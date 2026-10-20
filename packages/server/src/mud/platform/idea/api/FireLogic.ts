@@ -9,6 +9,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
 import { MixinApi } from '../../../api/mixin';
+import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
 import { StuffApi } from '../../../api/stuff';
 import { BiomeApi } from '../../../api/biome';
 import { ConnectionApi } from '../../../api/connection';
@@ -100,8 +101,17 @@ export class FireLogic extends ApiLogic {
     room: Stuff & Container,
     kgBurnt: number,
     complete: boolean,
+    products: readonly { material: string; litres: number }[] = [],
   ): void {
     emitExhaustInto(room, kgBurnt, complete);
+    // ⭐ (cleanliness D22) What THIS fuel gives off besides — sulfur's
+    // dioxide — into the same medium, cleared by the same openings.
+    if (products.length > 0 && MixinApi.isAtmospheric(room)) {
+      const atm = room as unknown as Atmospheric;
+      for (const p of products) {
+        if (p.litres > 0) atm.addAtmosphereContent(p.material, p.litres);
+      }
+    }
   }
 
   /**
@@ -540,6 +550,38 @@ function emitExhaustInto(
     smoke,
     dial(AppSettingKeys.fireExhaustSmokeLitresPerKg, 300) * kgBurnt,
   );
+  sootTheRoom(room, kgBurnt);
+}
+
+/**
+ * Load of soot a kilogram of fuel burnt SMOKILY leaves on each thing in a
+ * shut room (cleanliness D6, D19) — a winter of bad fires greys a pane.
+ */
+const SOOT_PER_KG = 0.01;
+
+/**
+ * ⭐ (cleanliness D6) A smoky fire indoors soots what is in the room with
+ * it — the panes, the floor, a lamp, whatever lies about. The room's own
+ * fixtures and props, asked directly; a pane is reached through its
+ * anchor. Under the open sky the smoke goes up and nothing is sooted.
+ */
+function sootTheRoom(room: Stuff & Container, kgBurnt: number): void {
+  if (BiomeApi.isSkyExposed(room)) return;
+  const amount = SOOT_PER_KG * kgBurnt;
+  if (!(amount > 0)) return;
+  const touched = new Set<Stuff>();
+  const fixtures = MixinApi.isAdornable(room) ? room.getFixtures() : [];
+  for (const f of fixtures) {
+    const glazing = BoundaryAnchor.is(f) ? f.getBoundary() : null;
+    touched.add(glazing ? (glazing as unknown as Stuff) : (f as unknown as Stuff));
+  }
+  for (const c of room.getContents()) {
+    if (c.isAgent()) continue;
+    touched.add(c);
+  }
+  for (const t of touched) {
+    if (MixinApi.isSoilable(t)) t.soil('soot', amount);
+  }
 }
 
 /**
@@ -593,12 +635,20 @@ function flammableMediumCheck(
   if (contents.length === 0) return;
   const ignitesAt = dial(AppSettingKeys.fireFlammableIgnitesAt, 0.05);
   let worst: { type: string; amount: number } | null = null;
+  let worstLimit = ignitesAt;
   for (const c of contents) {
-    if (c.amount < ignitesAt) continue;
     const material = StuffApi.findByTemplatePath<Material>(c.type);
     if (!material) continue;
+    // ⭐ (cleanliness D22) A substance's own flammable limit, when it
+    // states one — mill dust flashes at a share of the air coal gas would
+    // not; the global dial for everything that does not say.
+    const limit = material.getFlammableLimit() > 0 ? material.getFlammableLimit() : ignitesAt;
+    if (c.amount < limit) continue;
     if (!(material.getHeatOfCombustion().rawValue() > 0)) continue;
-    if (worst === null || c.amount > worst.amount) worst = c;
+    if (worst === null || c.amount / limit > worst.amount / worstLimit) {
+      worst = c;
+      worstLimit = limit;
+    }
   }
   if (worst === null) return;
   const striking =
@@ -617,7 +667,7 @@ function flammableMediumCheck(
 
   const energy =
     dial(AppSettingKeys.fireFlammableFlashEnergy, 90000) *
-    (worst.amount / ignitesAt);
+    (worst.amount / worstLimit);
   for (const occ of room.getContents()) {
     const s = occ as unknown as Stuff;
     if (s.isDestroyed()) continue;

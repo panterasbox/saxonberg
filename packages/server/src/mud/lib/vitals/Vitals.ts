@@ -82,6 +82,7 @@ import type { ScheduleHandle } from '../../api/schedule';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { POSTURE_REST_BASE } from '../character/Posed';
+import { CLEAN_TIERS, type CleanTier } from '../cleanliness/Soilable';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -325,6 +326,16 @@ export interface TreatmentOpts {
   /** The body doing the treating (for the infection seed's cleanliness read
    * and deed attribution) — absent for an environmental / self path. */
   treater?: Stuff;
+  /**
+   * ⭐ The dressing's clean tier (cleanliness D14) — a dressing short of
+   * `disinfected` seeds the wound in proportion to how far short it is.
+   */
+  dressingTier?: CleanTier;
+  /**
+   * ⭐ The instrument's clean tier — for surgery it must be `sterile`;
+   * a kit only washed carries what it last cut into the next wound.
+   */
+  instrumentTier?: CleanTier;
 }
 
 /** Outcome of {@link Vitals.applyTreatment}. */
@@ -338,6 +349,14 @@ export interface TreatmentResult {
 }
 
 export interface Vitals {
+  /**
+   * ⭐ Lose `litres` of blood (the bleed every wound type drains through).
+   * An EXTERNAL bleed stains (cleanliness B44): the innermost layer over
+   * `site` first (the bare skin when nothing covers it), the bleeder's own
+   * blood on the stain, and at `BLOOD_DRIP_SEVERITY` a share drips on the
+   * floor. An internal one (a rupture) stains nothing.
+   */
+  loseBlood(litres: number, opts: { site: string; severity: number; external: boolean }): void;
   // ---------- vital signs ----------
   getVitalSign(sign: VitalSign): Quantity<Unit>;
   setVitalSign(sign: VitalSign, value: Quantity<Unit>): void;
@@ -1472,7 +1491,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (MixinApi.isSlottable(self) && !restingOnNothing) {
         const host = self.getOccupiedHost();
         if (host && MixinApi.isPostured(host)) {
-          restQuality = host.getRestQuality();
+          restQuality = host.restQualityAsKept();
           clinical = host.getConvalescence();
         }
       }
@@ -3241,24 +3260,71 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // ⭐ D11 — a DIRTY treatment of a bleed-family wound inoculates it.
       let seededInfection = false;
-      if (BLEED_FAMILY.has(wound.type)) {
+      // ⭐ Surgery opens a wound whatever its type — the knife is a bleed.
+      if (BLEED_FAMILY.has(wound.type) || opts.by === 'surgery') {
         const treater = opts.treater;
+        // ⭐ Derived from what the hands (or the gloves) carry — never a
+        // clock (cleanliness D4).
         const hands =
-          treater && MixinApi.isHygiene(treater)
-            ? treater.handsCleanliness()
+          treater && MixinApi.isHygienic(treater)
+            ? treater.handCleanliness()
             : 1;
+        // ⭐ Semmelweis (cleanliness D14): the WORST of what touched the
+        // wound — the hands, the dressing short of disinfected, the
+        // instrument short of sterile in surgery.
+        const shortOf = (tier: CleanTier | undefined, need: CleanTier): number => {
+          if (tier === undefined) return 0;
+          const have = CLEAN_TIERS.indexOf(tier);
+          const want = CLEAN_TIERS.indexOf(need);
+          return have >= want ? 0 : (want - have) / want;
+        };
+        const dressingShort = shortOf(opts.dressingTier, 'disinfected');
+        // Surgery wants a sterile kit; a needle and thread, disinfected.
+        const instrumentShort = shortOf(
+          opts.instrumentTier,
+          opts.by === 'surgery' ? 'sterile' : 'disinfected',
+        );
+        const worst = Math.max(1 - hands, dressingShort, instrumentShort);
         const dirty =
           hands < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD ||
-          opts.efficacy < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD;
-        if (dirty) {
+          opts.efficacy < HARM_DEFAULTS.SEPSIS_DIRTY_THRESHOLD ||
+          dressingShort > 0 ||
+          instrumentShort > 0;
+        if (dirty && worst > 0) {
           seededInfection = this.seedSepsis(
-            HARM_DEFAULTS.SEPSIS_INOCULUM * (1 - hands),
+            HARM_DEFAULTS.SEPSIS_INOCULUM * worst,
           );
         }
-        // Handling a bleeding wound soils the treater's hands.
-        if (treater && MixinApi.isHygiene(treater)) treater.soil();
+        // Handling a bleeding wound bloodies the treater's hands — with
+        // the PATIENT's blood (the sample a forensic read can name).
+        if (treater && MixinApi.isHygienic(treater)) {
+          treater.soilHands(
+            'blood',
+            HARM_DEFAULTS.HAND_BLOOD_PER_DRESSING,
+            this as unknown as Stuff,
+          );
+        }
       }
       return { treated: true, by: opts.by, seededInfection };
+    }
+
+    public loseBlood(
+      litres: number,
+      opts: { site: string; severity: number; external: boolean },
+    ): void {
+      if (!(litres > 0)) return;
+      const left = this.getVitalSign('bloodVolume').rawValue() - litres;
+      this.setVitalSign('bloodVolume', Quantity.of(Math.max(0, left), 'L'));
+      if (!opts.external) return;
+      const body = this as unknown as Stuff;
+      if (!MixinApi.isHygienic(body)) return;
+      const D = HARM_DEFAULTS;
+      const load = litres * D.BLOOD_STAIN_PER_L;
+      const drips = opts.severity >= D.BLOOD_DRIP_SEVERITY;
+      body.soilBodyPart(opts.site, 'blood', drips ? load * (1 - D.BLOOD_DRIP_SHARE) : load, body, 'inner');
+      if (drips) {
+        body.soilFrom([{ kind: 'blood', amount: load * D.BLOOD_DRIP_SHARE, where: 'floor' }], body);
+      }
     }
 
     public getScars(): readonly ScarRecord[] {

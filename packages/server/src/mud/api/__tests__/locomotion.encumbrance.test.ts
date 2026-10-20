@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
 import { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import Exit from '../../lib/boundary/Exit';
 import { MobileMixin } from '../../lib/spatial/Mobile';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
@@ -29,7 +29,7 @@ import {
   massThing,
 } from '../../lib/encumbrance/__tests__/encumbrance-fixtures';
 
-const ClimbLoc = ClimbableMixin(Location);
+const ClimbLoc = ClimbableMixin(Place);
 class ClimbLocation extends ClimbLoc {}
 
 // A Mobile + Propertied load-bearer (Character-shaped: can traverse and
@@ -80,7 +80,7 @@ describe('LocomotionApi — load-aware veto', () => {
   });
 
   it('never gates walk on load (walk has no enablement mixin)', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const bearer = bearerOf(() => new MobileBearer());
     ContainmentApi.move(bearer, loc);
     overload(bearer);
@@ -100,7 +100,7 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
   });
   afterEach(() => StuffApi.clearAll());
 
-  function exitBetween(from: Location, to: Location): Exit {
+  function exitBetween(from: Place, to: Place): Exit {
     return makeStuff(
       () => new Exit({ direction: 'north', source: from, destination: to }),
     );
@@ -111,8 +111,8 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
   }
 
   it('a loaded self-powered traverse draws down endurance', async () => {
-    const here = makeStuff(() => new Location());
-    const there = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
+    const there = makeStuff(() => new Place());
     const bearer = bearerOf(() => new MobileBearer());
     ContainmentApi.move(bearer, here);
     overload(bearer);
@@ -124,8 +124,8 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
   });
 
   it('a light load costs no endurance', async () => {
-    const here = makeStuff(() => new Location());
-    const there = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
+    const there = makeStuff(() => new Place());
     const bearer = bearerOf(() => new MobileBearer());
     ContainmentApi.move(bearer, here);
     ContainmentApi.move(massThing(1), bearer); // ratio well under the floor
@@ -137,8 +137,8 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
   });
 
   it('a CARRIED traverse (a rider moved by its mount) drains nothing', async () => {
-    const here = makeStuff(() => new Location());
-    const there = makeStuff(() => new Location());
+    const here = makeStuff(() => new Place());
+    const there = makeStuff(() => new Place());
     const bearer = bearerOf(() => new MobileBearer());
     ContainmentApi.move(bearer, here);
     overload(bearer);
@@ -147,7 +147,7 @@ describe('LocomotionApi — loaded-traversal drain (engageAround)', () => {
     // ⭐ Since the traversal refactor `traverse` IS the self-powered
     // crossing and exerts; the walked-vs-rode exclusion is the carried
     // branch (the conveyance ripple's), which never engages.
-    const mount = makeStuff(() => new Location());
+    const mount = makeStuff(() => new Place());
     await bearer.traverse(exitBetween(here, there), 'walk', { carriedBy: mount });
 
     expect(endurance(bearer)).toBe(before);

@@ -86,6 +86,8 @@ import type {
   SkippedPart,
   Fault,
   DiagnoseRequest,
+  WashRequest,
+  WashResult,
   DiagnoseOutcome,
   SalvageRequest,
   SalvageOutcome,
@@ -96,6 +98,8 @@ import type {
 import { MaterialApi } from '../../../api/material';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
+import { CLEAN_TIERS } from '../../../lib/cleanliness/Soilable';
+import { CleanserUse } from '../../../lib/cleanliness/CleanserUse';
 import Scrap from '../../thing/Scrap';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
@@ -488,7 +492,7 @@ interface GatheredMatter {
  */
 interface PoolGlass {
   isClaimable(): boolean;
-  soil(): void;
+  markUsed(): void;
   setTechnique(value: string): void;
   setIce(kg: number, form: string, meltK?: number, latentJPerKg?: number): void;
   clearIce(): void;
@@ -1018,6 +1022,93 @@ function contaminateTools(
   }
 }
 
+/** The flora a dirty board, knife or hand puts on food (D14). */
+const KITCHEN_FLORA = 'staph-aureus';
+
+/**
+ * ⭐ **The kitchen tier** (cleanliness D14) — the mirror of
+ * {@link contaminateTools}: what the kit and the hands put INTO the food.
+ * Each Soilable tool short of `sanitised` inoculates it by how far short
+ * (`kitchen.surfaceInoculum × (1 − rank/4)`, raw or dirty the whole dose,
+ * merely clean three quarters), and the maker's hands by how dirty they
+ * are. Added before the working's kill, so a stew boiled long enough is
+ * safe however dirty the board, and a salad cut on it is not.
+ */
+function kitInoculum(
+  tools: readonly Stuff[],
+  maker: Stuff | null,
+): PathogenLoads {
+  const dose = kitchenSurfaceInoculum();
+  let loads: PathogenLoads = {};
+  const sanitised = CLEAN_TIERS.indexOf('sanitised');
+  for (const tool of tools) {
+    if (!MixinApi.isSoilable(tool)) continue;
+    const idx = CLEAN_TIERS.indexOf(tool.cleanTier());
+    if (idx >= sanitised) continue;
+    const rank = Math.max(0, idx - 1);
+    loads = Contamination.contaminate(loads, KITCHEN_FLORA, dose * (1 - rank / 4));
+  }
+  if (maker !== null && MixinApi.isHygienic(maker)) {
+    const dirt = 1 - maker.handCleanliness();
+    if (dirt > 0.05) {
+      loads = Contamination.contaminate(loads, KITCHEN_FLORA, dose * dirt);
+    }
+  }
+  return loads;
+}
+
+/** Add an inoculum to a load map — contact adds, it does not average. */
+function withInoculum(loads: PathogenLoads, added: PathogenLoads): PathogenLoads {
+  const out: PathogenLoads = { ...loads };
+  for (const [k, v] of Object.entries(added)) {
+    out[k] = Math.min(1, (out[k] ?? 0) + v);
+  }
+  return out;
+}
+
+/**
+ * Put the kit's inoculum onto the inputs themselves before the working —
+ * the board touches the food, then the food is cooked (or not).
+ */
+function inoculateInputs(
+  tools: readonly Stuff[],
+  maker: Stuff | null,
+  matched: readonly MatchedInput[],
+  matchedItems: readonly MatchedItemInput[],
+): void {
+  const added = kitInoculum(tools, maker);
+  if (Contamination.isClean(added)) return;
+  // ⚠ Only FOOD takes it — something that can spoil. A dirty hand on a
+  // bottle of gin or a bar of iron is a dirty bottle, not a sick drink.
+  for (const m of matchedItems) {
+    if (
+      MixinApi.isContaminable(m.stuff) &&
+      MixinApi.isFresh(m.stuff) &&
+      m.stuff.isPerishable()
+    ) {
+      m.stuff.setPathogenLoads(withInoculum(m.stuff.getPathogenLoads(), added));
+    }
+  }
+  for (const m of matched) {
+    if (m.measureL <= 0) continue;
+    if (!Freshness.isPerishable(m.slot.getMaterial())) continue;
+    const c = new Contamination(m.slot);
+    c.stampLoads(withInoculum(c.loads(), added));
+  }
+}
+
+/** `kitchen.surfaceInoculum` — the severity a dirty surface deposits. */
+function kitchenSurfaceInoculum(): number {
+  try {
+    const n = Number.parseFloat(
+      AppApi.setting(AppSettingKeys.kitchenSurfaceInoculum) ?? '',
+    );
+    return Number.isFinite(n) ? n : 0.5;
+  } catch {
+    return 0.5;
+  }
+}
+
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
   new Freshness(outSlot).stampLoad(outcome.load);
@@ -1170,6 +1261,7 @@ function buildMicrobialLoad(
   effectiveHeatK: number,
   holdS: number,
   contributions: readonly BuildContribution[],
+  kit: PathogenLoads = {},
 ): SpoilageOutcome {
   let weighted = 0;
   let total = 0;
@@ -1185,7 +1277,7 @@ function buildMicrobialLoad(
     effectiveHeatK,
     holdS,
     total > 0 ? weighted / total : 0,
-    Contamination.blendAll(parts),
+    withInoculum(Contamination.blendAll(parts), kit),
   );
 }
 
@@ -1437,7 +1529,7 @@ async function finishGlass(
     }
   }
   if (typeof pool.setTechnique === 'function') pool.setTechnique(technique);
-  if (typeof pool.soil === 'function') pool.soil();
+  if (typeof pool.markUsed === 'function') pool.markUsed();
 }
 
 /**
@@ -1980,7 +2072,7 @@ async function applyEdibleOutput(
   // and the whole wash loop would be decorative; and a pot exempted from
   // it could serve dinner every night and never need cleaning.
   const pool = asPoolGlass(output);
-  if (typeof pool.soil === 'function') pool.soil();
+  if (typeof pool.markUsed === 'function') pool.markUsed();
 
   const authored = recipe.getOutputMaterial();
   if (authored) {
@@ -2836,6 +2928,17 @@ async function mintVessel(
       effectiveHeatK,
       recipe?.getHoldS() ?? ThermalDose.defaultHoldS(),
       req.contributions,
+      // ⭐ The dish it goes into and the hand that made it (D14) — food
+      // only, as at the bench.
+      req.contributions.some((c) =>
+        Freshness.isPerishable(
+          c.materialPath
+            ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
+            : null,
+        ),
+      )
+        ? kitInoculum([vessel], makerStuff)
+        : {},
     ),
   );
 
@@ -3044,6 +3147,10 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   if (base) grade = grade.max(base);
   grade = applyControlFloor(grade, usedTools, recipe.getToolCapabilities());
 
+  // ⭐ The kitchen tier (cleanliness D14): the board and the hands touch
+  // the food before the working's heat decides what survives.
+  inoculateInputs(usedTools, maker, matched, matchedItems);
+
   // The bar's finishing inputs — matched before anything is consumed:
   // ice from a reachable bin, the garnish by category.
   const application = recipe.getOutputApplication();
@@ -3180,6 +3287,11 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     recipe: recipe.getRecipeId(),
     craftedAt: WorldClockApi.getNow().rawValue(),
   });
+
+  // ⭐ **And the hand that made it** (cleanliness D6): the recipe row says
+  // what making this dirties — grease on the renderer's hands and apron,
+  // flour on the baker's floor — and it lands on the layer it reaches.
+  if (MixinApi.isHygienic(maker)) maker.soilFrom(recipe.getSoils());
 
   // ⭐⭐ **A working DIRTIES the tools it was done with** — a press that
   // pressed contaminated fruit is a dirty press, the board's route one
@@ -4533,6 +4645,20 @@ export class CraftingLogic extends ApiLogic {
     discipline?: string,
   ): Promise<Stuff | null> {
     return fulfillingHandImpl(giver, offer, discipline);
+  }
+
+  /** See {@link CraftingApi.wash}. */
+  @CallSecurity(CraftingApiCallers)
+  public wash(request: WashRequest): WashResult[] {
+    const items = request.items.filter((t) => !t.isDestroyed() && MixinApi.isSoilable(t));
+    const spec = { ...request.spec, coWashed: items };
+    const out: WashResult[] = [];
+    for (const item of items) {
+      if (!MixinApi.isSoilable(item)) continue;
+      out.push({ item, outcome: item.washSite(spec, '') });
+    }
+    new CleanserUse(request.spec.cleansers).spend(out.length);
+    return out;
   }
 
   /** See {@link CraftingApi.diagnose}. */

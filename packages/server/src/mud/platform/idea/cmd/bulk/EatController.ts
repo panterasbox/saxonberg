@@ -15,20 +15,10 @@ import { CommandController } from "../../../../lib/command/CommandController";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
-import { BulkableApi } from "../../../../api/bulk";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
-import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
-import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
-import { Freshness } from "../../../../lib/material/Freshness";
-import {
-  UTENSIL_KINDS,
-  UTENSIL_PHRASE,
-  type UtensilKind,
-} from "../../../../lib/bulk/Utensil";
-import { MaterialApi } from '../../../../api/material';
-import { CraftingApi } from '../../../../api/crafting';
+import { UTENSIL_PHRASE } from "../../../../lib/bulk/Utensil";
 
 const TOPIC = "act.deed";
 
@@ -41,189 +31,51 @@ export default class EatController extends CommandController<EatModel> {
   async execute(model: EatModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
-
     if (!target) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' to eat.`)
         .send();
-      context.note({
-        kind: "empty-result",
-        field: "target",
-        query: model.target.raw,
-      });
+      context.note({ kind: "empty-result", field: "target", query: model.target.raw });
       return;
     }
-
-    // ⭐ Under the water nothing goes in by mouth but the water (D29).
-    if (MixinApi.isMetabolic(giver)) {
-      const airway = giver.canIngest();
-      if (!airway.ok) return this.refuse(context, TOPIC, airway.line, airway.reason);
+    if (!MixinApi.isMetabolic(giver)) {
+      return this.decline(context, Mml.compose`You can't eat.`, "not-an-eater");
     }
-    // ⭐ A cooked meal is a bulk blend in a claimed dish, so `eat stew`
-    // targets the BOWL. Serve from the slot rather than swallowing the
-    // crockery — the two arms of the verb, one act.
-    if (this.isServedDish(target)) {
-      return this.eatFromDish(target, model.with, context);
-    }
-
-    const material = MixinApi.isTangible(target) ? target.getMaterial() : null;
-    if (!material || material.getEdibility() !== true) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You can't eat ${Mml.thing(target)}.`)
-        .send();
-      context.note({
-        kind: "controller-rejected",
-        reason: "not-edible",
-        detail: "target has no edible material",
-      });
-      return;
-    }
-
-    const portion = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
-    // ⭐ The food synthesizes its own payload — see `Fresh.ingestPayload`.
-    // A second copy of that assembly is the silent-divergence failure its
-    // own docstring warns about, and there is now a second mouth (an
-    // animal being fed) that must reach the identical answer.
-    const payload = MixinApi.isFresh(target) ? target.ingestPayload() : null;
-    const accepted = BulkableApi.ingestSolid(giver, material, portion, payload);
-
-    // Discrete item is all-or-nothing: only a full portion consumes it.
-    if (accepted < portion - 1e-9) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You're too full to eat ${Mml.thing(target)}.`)
-        .send();
-      context.note({
-        kind: "controller-rejected",
-        reason: "too-full",
-        detail: "digestion buffer's solid sub-volume is full",
-      });
-      return;
-    }
-
-    const appearance = material.getAppearance() || material.getName() || "it";
-    // ⭐ Cutlery READS, it never gates. A clean utensil in reach is used
-    // and dirtied — which is what puts it in the same wash loop as the
-    // crockery — and its absence changes the sentence, not the outcome.
-    const utensil = this.claimUtensil(model.with);
-    const withIt = utensil ? ` ${UTENSIL_PHRASE[utensil.kind]}` : "";
-    // Emit the scene while the item still exists, then consume it.
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(
-        utensil
-          ? Mml.compose`You eat the ${appearance}${withIt}.`
-          : Mml.compose`You eat the ${appearance} with your fingers.`,
-      )
-      .toPeers(
-        utensil
-          ? Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)}${withIt}.`
-          : Mml.compose`${Mml.actor(giver)} eats ${Mml.thing(target)} with their fingers.`,
-      )
-      .send();
-    await StuffApi.destruct(target);
-  }
-
-
-  /** A vessel holding edible matter — a bowl of stew, a plate of roast. */
-  private isServedDish(target: Stuff): boolean {
-    if (!MixinApi.isBulkable(target) || !target.hasInteriorBulk()) return false;
-    if (target.isBulkEmpty("interior")) return false;
-    return MaterialApi.blendEdibility(
-      target.getBulkPayload("interior"),
-      target.getBulkMaterial("interior"),
-    );
-  }
-
-  /**
-   * Eat a portion out of a dish. The bulk sibling of the discrete arm —
-   * same solid intake, same spoilage fold (through the slot's own
-   * `Freshness.ingestPayloadOf`), and the dish is EMPTIED rather than destroyed,
-   * because a bowl you have finished is a bowl to wash, not a bowl that
-   * has ceased to exist.
-   */
-  private async eatFromDish(
-    target: Stuff,
-    cutlery: MqlManyResult | undefined,
-    context: CommandContext,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    const slot = BulkableApi.slotFor(target, undefined);
-    if (!slot) return;
-    const material = slot.getMaterial();
-    const payload = new Freshness(slot).ingestPayload();
-    const appearance =
-      CraftingApi.blendAppearance(payload, material) || "it";
-    const portion = Math.min(
-      METABOLIC_DEFAULTS.EAT_PORTION_LITRES,
-      slot.getAmount().rawValue(),
-    );
-    const accepted = BulkableApi.ingestSolid(giver, material, portion, payload);
-    if (accepted < portion - 1e-9) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You're too full to eat ${Mml.thing(target)}.`)
-        .send();
-      context.note({
-        kind: "controller-rejected",
-        reason: "too-full",
-        detail: "digestion buffer's solid sub-volume is full",
-      });
-      return;
-    }
-    const utensil = this.claimUtensil(cutlery);
-    const withIt = utensil ? ` ${UTENSIL_PHRASE[utensil.kind]}` : "";
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      // ⚠ No article: a blend's authored appearance carries its own
-      // ("a thick brown stew…"), where a Material's does not. The
-      // discrete arm below keeps `the`. Live drive read "You eat the a
-      // thick brown stew".
-      .toSelf(
-        utensil
-          ? Mml.compose`You eat ${appearance}${withIt}.`
-          : Mml.compose`You eat ${appearance} with your fingers.`,
-      )
-      .toPeers(
-        utensil
-          ? Mml.compose`${Mml.actor(giver)} eats from ${Mml.thing(target)}${withIt}.`
-          : Mml.compose`${Mml.actor(giver)} eats from ${Mml.thing(target)} with their fingers.`,
-      )
-      .send();
-    BulkableApi.transfer(slot, null, {
-      kind: "measure",
-      litres: accepted,
-      mode: "lenient",
-    });
-  }
-
-  /**
-   * The first clean utensil among those the binder bound — in kind
-   * preference order, held gear first within a kind (binder order).
-   * Soils it on the way out (a used spoon is washed like a used bowl).
-   * `null` when there is none, which is a perfectly good way to eat.
-   *
-   * ⭐ A NARROWING, not a search: `eat.yaml` declares `with` with a
-   * `[mixin.CutleryMixin]` default, so what arrives is every reachable
-   * piece of cutlery and the only question left is which is clean —
-   * state, which no predicate asks (`lint:instrument-args`).
-   */
-  private claimUtensil(
-    bound: MqlManyResult | undefined,
-  ): { kind: UtensilKind } | null {
-    const reach = bound?.stuff ?? [];
-    for (const kind of UTENSIL_KINDS) {
-      for (const candidate of reach) {
-        if (!MixinApi.isCutlery(candidate)) continue;
-        if (candidate.getUtensilKind() !== kind) continue;
-        if (!MixinApi.isServiceable(candidate)) continue;
-        if (!candidate.isClaimable()) continue;
-        candidate.soil();
-        return { kind };
+    // ⭐ The ACT is the eater's (`Metabolic.eat`): the edibility, the
+    // portion, the dish arm, the utensil, the crumbs. This verb only reads
+    // the request and words what happened.
+    const outcome = await giver.eat(target, model.with?.stuff ?? []);
+    if (!outcome.ok) {
+      if (outcome.reason === "airway") {
+        // The body's own words for why (under the water, you would breathe it in).
+        const airway = giver.canIngest();
+        return this.decline(context, Mml.compose`${airway.ok ? "You can't eat that." : airway.line}`, "airway");
       }
+      return outcome.reason === "too-full"
+        ? this.decline(context, Mml.compose`You're too full to eat ${Mml.thing(target)}.`, "too-full")
+        : this.decline(context, Mml.compose`You can't eat ${Mml.thing(target)}.`, "not-edible");
     }
-    return null;
+    const withIt = outcome.utensil ? ` ${UTENSIL_PHRASE[outcome.utensil]}` : " with your fingers";
+    const peersWith = outcome.utensil ? ` ${UTENSIL_PHRASE[outcome.utensil]}` : " with their fingers";
+    // ⚠ A blend's appearance carries its own article ("a thick brown
+    // stew…"), a material's does not — the live drive read "You eat the a
+    // thick brown stew".
+    const self = outcome.fromDish
+      ? Mml.compose`You eat ${outcome.what}${withIt}.`
+      : Mml.compose`You eat the ${outcome.what}${withIt}.`;
+    const peers = outcome.fromDish
+      ? Mml.compose`${Mml.actor(giver)} eats from ${Mml.thing(target)}${peersWith}.`
+      : Mml.compose`${Mml.actor(giver)} eats ${outcome.foodName}${peersWith}.`;
+    MessageApi.scene(giver).topic(TOPIC).toSelf(self).toPeers(peers).send();
+  }
+
+  private decline(
+    context: CommandContext,
+    line: ReturnType<typeof Mml.compose>,
+    reason: string,
+  ): void {
+    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(line).send();
+    context.note({ kind: "controller-rejected", reason, detail: reason });
   }
 }

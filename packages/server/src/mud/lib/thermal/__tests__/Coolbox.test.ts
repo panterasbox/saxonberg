@@ -24,7 +24,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Good from "../../stuff/Good";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import Material from "../../material/Material";
 import Icebox from "../../../platform/thing/Icebox";
 import { ThermalMixin } from "../Thermal";
@@ -47,7 +47,7 @@ class TestBlock extends MeltableMixin(ThermalMixin(Good)) {
 class ThermalThing extends ThermalMixin(Good) {
   static _mixinName = "CoolboxThermalThing";
 }
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 const SCALE = 12;
 let real = 0;

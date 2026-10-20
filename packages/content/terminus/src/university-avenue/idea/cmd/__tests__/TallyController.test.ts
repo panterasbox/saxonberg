@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TallyController from '../TallyController';
 import CrossingLog from '../../../thing/CrossingLog';
 import Watch from '../../../thing/Watch';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -41,7 +41,7 @@ class FakeAvatar extends FakeAvatarBase {
   }
 }
 
-function ctxFor(avatar: FakeAvatar, loc: Location): CommandContext {
+function ctxFor(avatar: FakeAvatar, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     location: loc as never,
@@ -62,14 +62,14 @@ function one(stuff: unknown, raw: string): MqlOneResult {
 
 describe('TallyController', () => {
   let avatar: FakeAvatar;
-  let room: Location;
+  let room: Place;
   let log: CrossingLog;
 
   beforeEach(() => {
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => 100000);
-    room = makeStuff(() => new Location());
+    room = makeStuff(() => new Place());
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
     ContainmentApi.move(avatar as never, room as never);

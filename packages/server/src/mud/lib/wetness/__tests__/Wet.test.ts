@@ -1,7 +1,8 @@
 /**
  * WetMixin — the per-object wetness gauge (weather Wave 2). Accrual is
  * pushed (`wet`), drainage is reconcile-on-read over game-time,
- * presence-frozen (far-past guard), warmth-accelerated, banded for the
+ * presence-frozen (far-past guard), scaled by the air it is in and the
+ * matter's own heat (one law with curing, B56), banded for the
  * player. See docs/subsystems/weather.md.
  */
 
@@ -10,7 +11,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import { Vessel } from '../../stuff/Vessel';
 import { Agent } from '../../stuff/Agent';
-import Location from '../../stuff/Location';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
+import { ContainerMixin } from '../../spatial/Container';
+import { ContainableMixin } from '../../spatial/Containable';
+import { ContainmentApi } from '../../../api/containment';
+import Place from '../../stuff/Place';
 import { Idea } from '../../stuff/Idea';
 import { ThermalMixin } from '../../thermal/Thermal';
 import Material from '../../material/Material';
@@ -24,7 +29,12 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
-class WetThing extends Good {}
+class WetThing extends ContainableMixin(Good) {}
+/** A person-shaped holder: the far-past guard is about a body's absence. */
+class Person extends HasInteractiveMixin(ContainerMixin(Agent)) {
+  protected handleMessage(): void {}
+  protected handleEnvelope(): void {}
+}
 class WarmWetThing extends ThermalMixin(Good) {
   static _mixinName = 'WarmWetThing';
 }
@@ -126,16 +136,29 @@ describe('WetMixin — the wetness gauge', () => {
     expect(t.getWetness()).toBe(0);
   });
 
-  it('presence-freeze: a far-past gap integrates nothing (drops it)', () => {
+  it('presence-freeze: on a BODY, a far-past gap integrates nothing (drops it)', () => {
+    // ⭐ (cleanliness D11) The absence rule is a body's: a shirt on a
+    // logged-out swimmer stays as wet as she does.
+    const body = makeStuff(() => new Person());
     const t = makeStuff(() => new WetThing());
+    ContainmentApi.move(t, body);
     t.wet(1); // stamp at 0
     setNow(5 * HOUR); // gap > 4h far-past guard
     expect(t.getWetness()).toBe(1); // no drying across an absence
   });
 
+  it('⭐ a thing NOBODY holds dries across the whole gap — a shirt left out overnight', () => {
+    const t = makeStuff(() => new WetThing());
+    t.wet(1); // stamp at 0
+    setNow(8 * HOUR);
+    expect(t.getWetness()).toBeLessThan(1);
+  });
+
   it('warmth dries faster than cold', () => {
-    const warm = warmThing(330); // ~35 K above the 295 reference
-    const cool = warmThing(295);
+    // The matter's own heat is the Evaporation heat term (B56): at the
+    // 20 °C reference it dries at the material rate, and doubles per 10 K.
+    const warm = warmThing(330);
+    const cool = warmThing(293);
     warm.wet(1);
     cool.wet(1);
     setNow(HOUR);
@@ -143,6 +166,40 @@ describe('WetMixin — the wetness gauge', () => {
     const c = cool.getWetness();
     expect(c).toBeCloseTo(0.75, 2); // neutral warmth
     expect(w).toBeLessThan(c); // warmth accelerated the drain
+  });
+
+  it('⭐⭐ ONE law: saturated air dries nothing; dry air dries fast; the forecast is the rate (B56)', () => {
+    const room = (rh: number) => {
+      const r = makeStuff(() => new Place());
+      r.setHumidity(Quantity.of(rh, '%'));
+      return r;
+    };
+    const humid = room(100);
+    const dry = room(20);
+    const a = makeStuff(() => new WetThing());
+    const b = makeStuff(() => new WetThing());
+    ContainmentApi.move(a, humid);
+    ContainmentApi.move(b, dry);
+    a.wet(1);
+    b.wet(1);
+    // The forecast: never in saturated air; hours in dry air — and it is
+    // the closed form of the same rate the reconcile integrates.
+    expect(a.dryingHours()).toBeNull();
+    const hours = b.dryingHours()!;
+    expect(hours).toBeGreaterThan(0);
+    setNow(HOUR);
+    expect(a.getWetness()).toBe(1);
+    expect(b.getWetness()).toBeLessThan(1);
+    setNow(Math.min(Math.ceil(hours * HOUR) + 1, 4 * HOUR - 1));
+    if (hours < 3.9) expect(b.getWetnessBand()).toBe('dry');
+  });
+
+  it('shut in something that is not air (a chest), nothing dries', () => {
+    const chest = makeStuff(() => new Vessel());
+    const t = makeStuff(() => new WetThing());
+    ContainmentApi.move(t, chest);
+    t.wet(1);
+    expect(t.dryingHours()).toBeNull();
   });
 
   it('a wet object shows a band line in its long description (not a number)', () => {
@@ -197,12 +254,12 @@ describe('WetMixin — the host set is the matter seam', () => {
   afterEach(() => WorldClockApi._resetForTesting());
 
   it('matter (Thing / Vessel / Agent) is wettable; space + Ideas are not', () => {
-    // "Can get wet" ⟺ "is matter" (Tangible). A Location is *space*, not
+    // "Can get wet" ⟺ "is matter" (Tangible). A Place is *space*, not
     // matter, so it is neither Tangible nor Wet; a pure Idea is neither.
     expect(MixinApi.isWet(makeStuff(() => new Good()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Vessel()))).toBe(true);
     expect(MixinApi.isWet(makeStuff(() => new Agent()))).toBe(true);
-    expect(MixinApi.isWet(makeStuff(() => new Location()))).toBe(false);
+    expect(MixinApi.isWet(makeStuff(() => new Place()))).toBe(false);
     expect(MixinApi.isWet(makeStuff(() => new Idea()))).toBe(false);
   });
 });

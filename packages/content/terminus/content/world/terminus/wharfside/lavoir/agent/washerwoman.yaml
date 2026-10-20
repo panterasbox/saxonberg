@@ -1,0 +1,22 @@
+# A washerwoman at the trough (cleanliness D27) — nobody's employee; she is
+# doing her own family's wash, which is what the trough is for.
+class: /platform/agent/Extra
+extends: /stuff/agent/costume/student
+data:
+  keywords: [washerwoman, woman, neighbour]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  # ⭐ She answers to the parish (lint:identity — a sentient Extra must
+  # answer to someone): the lavoir is the town's, and so is she.
+  institution: /world/terminus/wharfside/lavoir/idea/laundry
+  shortDescription: washerwoman
+  register: indefinite
+  longDescription: |
+    A thin woman bent over the trough with a basket of her family's washing, working a shirt against the board with a lump of grey soap.
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Mind the wet, dear, it's like ice."
+          - "Soft water this. You'd never get a collar clean in the river."

@@ -123,7 +123,7 @@ scores better against the placement rule.
 > assay office, it *copies* the lab content. No archetype extraction is
 > needed — possibly ever.
 
-**Structurally** a lab is still a `FurnishableRoom` row with a
+**Structurally** a lab is still a `PersistentLocation` row with a
 `populates:` of its bench instruments — the shipped trade-bundle pattern
 (`bar` / `cellar` / `warehouse`). **Zero new classes.** They just live in
 the `eternal-university` pack.
@@ -656,7 +656,7 @@ content one.
   - **Recreation needs nothing.** A field is a location; a ball is a
     thing; `throw` ships (ranged); people gather. A pickup game
     *emerges* — lens 3 — and the field belongs here as content: a
-    `FurnishableRoom`-free open location with a ball and a goal, beside
+    `PersistentLocation`-free open location with a ball and a goal, beside
     the combat facilities of Part 7. Ship it with the grounds.
   - **Sport is a build of its own** — a match with rules, a winner, and
     standing conferred by peers or a polity — and the engine already

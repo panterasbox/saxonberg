@@ -78,6 +78,7 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 import { Impression, type ImpressionClause } from './Impression';
+import { SOIL_BANDS } from '../cleanliness/Soilable';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -127,12 +128,6 @@ export interface Attired {
   ): readonly (Stuff & Slottable)[];
 
   /**
-   * Go into water: the body and every worn layer at every exterior part
-   * the optional filter admits are soaked (side-effect-only — it wets).
-   */
-  immerse(parts?: (partKey: string) => boolean): void;
-
-  /**
    * The outermost thing covering `partKey`, or `null` when the part is
    * bare.
    *
@@ -145,6 +140,35 @@ export interface Attired {
 
   /** The insulation stacked over one body part, in `clo`. */
   insulationAt(partKey: string): Quantity<'clo'>;
+
+  /**
+   * The body goes INTO water (storage-and-ice's contract, D11): every layer
+   * at every part the filter admits is soaked (`wet(1)`; no filter = every
+   * part — a swim; the feet — a flooded cell), and the body by the share of
+   * it under water (cleanliness B56). Side-effect only. ⭐ What the water washes off is
+   * `HygieneMixin`'s, which overrides this to rinse.
+   */
+  immerse(parts?: (partKey: string) => boolean, waterK?: number): void;
+  /** Every distinct layer covering a leaf part the filter admits. */
+  immersedLayers(parts?: (partKey: string) => boolean): (Stuff & Slottable)[];
+  /** The body's leaf parts — those that govern nothing below them. */
+  leafParts(): string[];
+  /** The body parts that serve `capacity` (`manipulation` → the hands). */
+  partsServing(capacity: string): string[];
+  /** The hand sites — the parts that serve manipulation. */
+  handSites(): string[];
+  /** The foot sites — the leaf parts below what serves locomotion (a
+   * biped's feet; a quadruped's legs, which have no foot part). */
+  footSites(): string[];
+  /** The trunk part — the root of the body plan (`body.torso`). */
+  trunkSite(): string | null;
+  /**
+   * ⭐ The share of this body's external surface the filter admits,
+   * `0..1` — Meeh's-law part areas (`BodyPlan.getPartSurfaceFraction`);
+   * by part count when the plan authors no masses. No filter is the whole
+   * body. How much of you is in the water when you wade (B56).
+   */
+  surfaceShareOf(parts?: (partKey: string) => boolean): number;
 
   /**
    * Whole-body insulation in `clo`, **surface-weighted per part**.
@@ -261,14 +285,19 @@ function impressionClauses(
     if (band) clauses.push({ facet: 'quality', band });
   }
 
-  // ── upkeep: wetness first (it is the loudest), then condition ──
+  // ── upkeep: wetness first (it is the loudest), then soil, then
+  // condition ──
   let wettest = 0;
+  let filthiest = 0;
   let worstCondition = 1;
   let anyDurable = false;
   for (const item of stack) {
     const asStuff = item as unknown as Stuff;
     if (MixinApi.isWet(asStuff)) {
       wettest = Math.max(wettest, asStuff.getWetness());
+    }
+    if (MixinApi.isSoilable(asStuff)) {
+      filthiest = Math.max(filthiest, SOIL_BANDS.indexOf(asStuff.soilBand()));
     }
     if (MixinApi.isDurable(asStuff)) {
       anyDurable = true;
@@ -282,6 +311,10 @@ function impressionClauses(
     clauses.push({ facet: 'upkeep', band: 'soaked' });
   } else if (wettest >= DAMP_AT) {
     clauses.push({ facet: 'upkeep', band: 'damp' });
+  } else if (filthiest >= SOIL_BANDS.indexOf('filthy')) {
+    clauses.push({ facet: 'upkeep', band: 'filthy' });
+  } else if (filthiest >= SOIL_BANDS.indexOf('soiled')) {
+    clauses.push({ facet: 'upkeep', band: 'soiled' });
   } else if (anyDurable && worstCondition < RAGGED_BELOW) {
     clauses.push({ facet: 'upkeep', band: 'ragged' });
   } else if (anyDurable && worstCondition < WORN_BELOW) {
@@ -629,6 +662,87 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.coveringAt(partKey)[0] ?? null;
     }
 
+    /**
+     * The body goes INTO water: the body and every layer at every part the
+     * filter admits are soaked (`wet(1)`). What the water also WASHES off is
+     * cleanliness's — `HygieneMixin` overrides this and rinses.
+     */
+    public immerse(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+      _waterK = 283,
+    ): void {
+      const self = this as unknown as Stuff;
+      // ⭐ Wading wets the body by the share of it under water, not to
+      // the hair (B56); each layer under water is soaked whole.
+      if (MixinApi.isWet(self)) {
+        const want = this.surfaceShareOf(parts);
+        const now = self.getWetness();
+        if (want > now) self.wet(want - now);
+      }
+      for (const layer of this.immersedLayers(parts)) {
+        if (MixinApi.isWet(layer)) layer.wet(1);
+      }
+    }
+
+    /** Every distinct layer covering a leaf part the filter admits. */
+    public immersedLayers(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+    ): (Stuff & Slottable)[] {
+      const done = new Set<Stuff & Slottable>();
+      for (const key of this.leafParts()) {
+        if (parts && !parts(key)) continue;
+        for (const layer of this.coveringAt(key)) done.add(layer);
+      }
+      return [...done];
+    }
+
+    // ── the body's sites — plain body-plan reads (dress codes, dirt) ──
+
+    public partsServing(capacity: string): string[] {
+      const plan = bodyPlanOf(this as unknown as Stuff);
+      if (!plan) return [];
+      return plan
+        .getBodyParts()
+        .filter((p) => (p.serves ?? []).includes(capacity))
+        .map((p) => p.key);
+    }
+
+    public handSites(): string[] {
+      return this.partsServing('manipulation');
+    }
+
+    public footSites(): string[] {
+      const plan = bodyPlanOf(this as unknown as Stuff);
+      if (!plan) return [];
+      const parts = plan.getBodyParts();
+      const out: string[] = [];
+      for (const leg of parts) {
+        if (!(leg.serves ?? []).includes('locomotion')) continue;
+        const feet = parts.filter((p) => p.parent === leg.key).map((p) => p.key);
+        out.push(...(feet.length > 0 ? feet : [leg.key]));
+      }
+      return out;
+    }
+
+    public trunkSite(): string | null {
+      const plan = bodyPlanOf(this as unknown as Stuff);
+      if (!plan) return null;
+      return plan.getBodyParts().find((p) => p.parent === null)?.key ?? null;
+    }
+
+    /** The body's leaf parts — those that govern nothing below them. */
+    public leafParts(): string[] {
+      const plan = bodyPlanOf(this as unknown as Stuff);
+      return plan
+        ? plan
+            .getBodyParts()
+            .filter((p) => (p.governs ?? []).length === 0)
+            .map((p) => p.key)
+        : [];
+    }
+
     public insulationAt(this: Stuff & Slotted & Attired, partKey: string): Quantity<'clo'> {
       const self = this as unknown as Stuff;
       const penalty = dial(
@@ -649,6 +763,24 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         clo += asStuff.getClo().rawValue() * factor;
       }
       return Quantity.of(clo, 'clo');
+    }
+
+    public surfaceShareOf(
+      this: Stuff & Slotted & Attired,
+      parts?: (partKey: string) => boolean,
+    ): number {
+      if (!parts) return 1;
+      const plan = bodyPlanOf(this as unknown as Stuff & Slotted);
+      if (!plan) return 1;
+      let share = 0;
+      for (const part of plan.getBodyParts()) {
+        if (plan.isInterior(part.key) || !parts(part.key)) continue;
+        share += plan.getPartSurfaceFraction(part.key);
+      }
+      if (share > 0) return Math.min(1, share);
+      const leaves = this.leafParts();
+      if (leaves.length === 0) return 1;
+      return leaves.filter((k) => parts(k)).length / leaves.length;
     }
 
     public bodyInsulation(this: Stuff & Slotted & Attired): Quantity<'clo'> {
@@ -746,33 +878,6 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         weighted += share * conspicuityOf(outer as unknown as Stuff);
       }
       return weighted * weight;
-    }
-
-    /**
-     * ⭐ **Go into water** (storage-and-ice D11): the body is soaked through,
-     * and so is every worn layer at every exterior part the optional
-     * filter admits (no filter = every part — a swim; the foot parts — a
-     * flooded cell). Side-effect-only: it WETS, and computes no heat; the
-     * body's chill is the regulation's read of the water it is in.
-     */
-    public immerse(this: Stuff & Slotted & Attired, parts?: (partKey: string) => boolean): void {
-      const self = this as unknown as Stuff;
-      if (!parts && MixinApi.isWet(self)) self.wet(1);
-      const plan = bodyPlanOf(self as unknown as Stuff & Slotted);
-      if (!plan) return;
-      const soaked = new Set<Stuff>();
-      for (const part of plan.getBodyParts()) {
-        if (plan.isInterior(part.key)) continue;
-        if (parts && !parts(part.key)) continue;
-        for (const layer of this.coveringAt(part.key)) {
-          const asStuff = layer as unknown as Stuff;
-          if (soaked.has(asStuff)) continue;
-          soaked.add(asStuff);
-          if (MixinApi.isWet(asStuff)) asStuff.wet(1);
-        }
-      }
-      // ⚠ With a filter (a flooded cell soaks the boots) the body's own
-      // single wetness gauge is left alone: it cannot be wet at the feet.
     }
 
     public attentionFactor(this: Stuff & Slotted & Attired): number {

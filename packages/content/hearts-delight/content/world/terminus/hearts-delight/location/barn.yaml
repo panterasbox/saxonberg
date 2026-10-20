@@ -5,7 +5,7 @@
 # when they are gone they are gone until somebody sows the bench again.
 # The `distribution` counter is a faucet and is honest precisely because
 # it admits to being one; this is not, and must not become one.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: barn
   keywords: [barn, store, threshing]
@@ -22,7 +22,7 @@ data:
 
     Sacks are stacked against the far wall on a pallet of old timber, up off the floor and away from the rats.
   coords: { x: -20, y: 1, z: 7 }
-  # ⚠ CARDINAL, and the coords agree with it. `CartesianLocation.addExit`
+  # ⚠ CARDINAL, and the coords agree with it. `Location.addExit`
   # admits a named direction only ACROSS a zone boundary — a grid exit
   # inside one zone must have a known inverse, and `out`/`barn` has none.
   # The barn genuinely stands on the north side of the yard, so the

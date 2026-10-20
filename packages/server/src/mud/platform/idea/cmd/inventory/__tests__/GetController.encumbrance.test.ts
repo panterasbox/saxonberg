@@ -14,7 +14,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
@@ -49,7 +49,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: Stuff, location: Location): CommandContext {
+function makeContext(giver: Stuff, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -76,7 +76,7 @@ describe('GetController — encumbrance lift gate', () => {
   afterEach(() => StuffApi.clearAll());
 
   it('declines an over-ceiling anvil with a too-heavy-to-lift note', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const bearer = sensingBearer(70); // capacity 35, ceiling 70
     ContainmentApi.move(bearer, loc);
     const anvil = massThing(200);
@@ -97,7 +97,7 @@ describe('GetController — encumbrance lift gate', () => {
   });
 
   it('lifts an item over capacity but under the ceiling (overloaded)', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const bearer = sensingBearer(70); // capacity 35, ceiling 70
     ContainmentApi.move(bearer, loc);
     // 50 kg → loose-carry surcharge 62.5 kg: over capacity (35), under
@@ -113,7 +113,7 @@ describe('GetController — encumbrance lift gate', () => {
   });
 
   it('does not gate a non-creature container (looting still works)', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const bin = makeStuff(() => new PlainBin());
     bin.setName('bin');
     ContainmentApi.move(bin, loc);

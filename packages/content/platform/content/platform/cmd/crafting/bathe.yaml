@@ -1,0 +1,41 @@
+verbs: [bathe, bath]
+controller: /platform/idea/cmd/crafting/BatheController
+description: "Get into water and wash all of you — a tub, a river, a pool"
+help: |
+  Bathe — `bathe in tub with soap`, `bathe in river`. Every part of you
+  is washed at once, by the same chemistry as `wash`: the water's heat,
+  the time, the soap. Mud comes off in any water; grease wants soap.
+
+  ⭐ The water decides how you come out. A tub filled from a hot copper
+  warms you; a winter river chills you by the same law a swimmer obeys,
+  and leaves you wet through. A frozen river refuses you unless somebody
+  has cut a hole in it.
+
+  ⚠ Bathe in your clothes and they come out soaked. Take them off first
+  (`remove`), or don't, and be cold.
+
+  A basin is too small to get into — wash at it instead. A bathhouse will
+  draw you a hot bath for a fee (`order bath`).
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHAT IN — DECLARED (`lint:instrument-args`): a tub, or the water a
+  # shore is beside. Too small a vessel is refused in words.
+  - name: water
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [in, at]
+    default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
+    scope: ["reachable"]
+    requires: any
+  # ⭐ WHAT WITH — a cleanser (soap, fuller's earth…), as `wash`.
+  - name: cleanser
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    scope: ["reachable"]
+    requires: any

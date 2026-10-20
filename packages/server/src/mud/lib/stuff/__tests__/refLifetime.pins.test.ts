@@ -49,7 +49,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { BoundaryApi } from '../../../api/boundary';
 import type { Stuff } from '../Stuff';
 import Thing from '../Thing';
-import Location from '../Location';
+import Place from '../Place';
 import { Idea } from '../Idea';
 import Exit from '../../boundary/Exit';
 import { Boundary } from '../../boundary/Boundary';
@@ -75,8 +75,8 @@ class Box extends Holder {}
 class Desk extends PlacingMixin(Holder) {}
 class Nest extends SpawnerMixin(Idea) {}
 class Hatchling extends SpawnedMixin(Idea) {}
-class MemberRoom extends WarrenMemberMixin(Location) {}
-class ExitRoom extends ExitableMixin(Location) {}
+class MemberRoom extends WarrenMemberMixin(Place) {}
+class ExitRoom extends ExitableMixin(Place) {}
 class Wall extends AdornableMixin(Holder) {}
 class Fixture extends AdornmentMixin(Thing) {}
 class Implant extends AetherMixin(Thing) {}

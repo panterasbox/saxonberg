@@ -1,4 +1,4 @@
-# The starting location. Plain Location — no Named, no Visible, no
+# The void — the one place with no coordinates (`Void`). No Named, no Visible, no
 # Exitable. Avatars resolved into here by Login at first; the look
 # command renders this as the bare minimum (just whatever Mml.location
 # emits, no description body) until the look command grows a more
@@ -11,7 +11,7 @@
 # was documented in three places for two builds while no code read it, and
 # this row is what makes it true. Mid-air and mid-water rooms will use the
 # same field: *a place with no floor is a place you cannot stand.*
-class: /platform/location/VoidLocation
+class: /platform/location/Void
 # ⭐ The opt-out below reaches the instance because the row has `data`.
 # It once needed a `hydratorClass` line to say so, and without one every
 # key was silently discarded — the opt-out would have been dead text of

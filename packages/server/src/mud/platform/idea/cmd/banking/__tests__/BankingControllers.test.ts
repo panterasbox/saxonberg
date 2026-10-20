@@ -17,7 +17,7 @@ import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { Idea } from "../../../../../lib/stuff/Idea";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
 import { CommandApi, type CommandContext } from "../../../../../api/command";
 import type { MqlOneResult } from "../../../../../api/mql";
@@ -53,7 +53,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   giver: TestGiver,
-  location: Location,
+  location: Place,
   verb: string
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -85,7 +85,7 @@ describe("Banking controllers — verb wiring", () => {
   });
 
   it("open → balance → deposit → withdraw threads through the verbs", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), ALICE);
     ContainmentApi.move(giver, loc);
     const bank = makeStuffAtPath(() => {
@@ -138,7 +138,7 @@ describe("Banking controllers — verb wiring", () => {
   });
 
   it("statement lists activity, honors a count arg, and guards a missing account", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), ALICE);
     ContainmentApi.move(giver, loc);
     const bank = makeStuffAtPath(() => {
@@ -212,7 +212,7 @@ describe("Banking controllers — verb wiring", () => {
   });
 
   it("declines with a note when there's no bank in the room", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuffAtPath(() => new TestGiver(), ALICE);
     ContainmentApi.move(giver, loc);
 

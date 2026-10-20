@@ -10,7 +10,7 @@
 #
 # The whole lesson of the trade is in the geometry of these two rooms:
 # the place the ground tells you about is not the place to dig.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: spring hollow

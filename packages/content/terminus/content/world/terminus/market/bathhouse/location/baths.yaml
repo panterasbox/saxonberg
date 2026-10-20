@@ -1,0 +1,44 @@
+# The baths — the copper and the tubs (cleanliness D28). `order bath` and
+# the attendant fills one from the copper; or fill one yourself and
+# `bathe` in it.
+class: /platform/location/PersistentLocale
+data:
+  coords: { x: 0, y: 1, z: 0 }
+  # ⭐ Daylight through the high windows (the light-sources rule).
+  # What it is made of (rubber's construction: walls and roof).
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: windows
+  shortDescription: baths
+  keywords: [baths, bath-room, tubs, steam]
+  register: definite
+  longDescription: |
+    A long steamy room with three deep tubs along the wall behind wooden screens, and at the end a great copper set into brickwork with its fire door glowing. The floor is slatted over a drain, and the walls run with condensation.
+  exits:
+    south:
+      destination: /world/terminus/market/bathhouse/location/vestibule
+      media: [ground]
+      edgeMinutes: 1
+  # A lamp kept lit — it keeps evening hours (cleanliness, the browser walk).
+  adornments:
+    - { template: /world/terminus/market/bathhouse/thing/bath-lamp, slot: lamp:baths }
+  props:
+    - /stuff/thing/fixture/copper
+    # The cold tap beside the copper — a bath you draw yourself, cold, or
+    # tempered from the copper (cleanliness, drive 21).
+    - /stuff/thing/fixture/bath-tap
+    - { template: /stuff/thing/fixture/tub, count: 3 }
+    # The attendant's stack — `dry me with towel` out of the tub (B56).
+    - { template: /stuff/thing/gear/towel, count: 3 }
+    - /trade/chandlery/thing/soap-bar
+    - /stuff/thing/fixture/midden
+    # ⭐ The slate and the attendant where the work is (found by the
+    # drive): a paid service is done by a hand in the room with the tubs.
+    - /world/terminus/market/bathhouse/thing/tariff
+  cast:
+    - /world/terminus/market/bathhouse/agent/attendant
+  details:
+    windows:
+      keywords: [windows, window]
+      description: High small windows, misted on the inside, letting in a grey daylight.

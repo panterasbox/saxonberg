@@ -33,7 +33,7 @@ import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { Idea } from '../../../../lib/stuff/Idea';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import {
@@ -95,7 +95,7 @@ function seedBusiness(): BusinessEntity {
   return b;
 }
 
-function ctx(giver: Keeper, loc: Location, text: string): CommandContext {
+function ctx(giver: Keeper, loc: Place, text: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -146,7 +146,7 @@ describe('the par manifest (D7)', () => {
     const ice = material('/stuff/test/material/ice', ['ice'], 917);
     const limeFlesh = material('/stuff/test/material/lime', ['fruit', 'lime']);
 
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const mara = makeStuffAtPath(() => new Keeper(), '/platform/agent/Avatar/mara');
     ContainmentApi.move(mara as never, loc as never);
 

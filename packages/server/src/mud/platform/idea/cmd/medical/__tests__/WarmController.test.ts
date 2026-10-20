@@ -9,7 +9,7 @@ import type { Burner } from '../../../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WarmController from '../WarmController';
 import { Creature } from '../../../../../lib/creature/Creature';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Material from '../../../../../lib/material/Material';
 import Good from '../../../../../lib/stuff/Good';
 import { CombustibleMixin } from '../../../../../lib/fire/Combustible';
@@ -94,7 +94,7 @@ function reachable(c: Creature): MqlManyResult {
 
 /** A frostbitten body in a room with a burning log. */
 function frostbitten(withFire = true): { me: Creature; frost: Trauma } {
-  const room = makeStuff(() => new Location());
+  const room = makeStuff(() => new Place());
   const me = makeStuff(() => new Creature());
   ContainmentApi.move(me, room);
   if (withFire) ContainmentApi.move(burningLog(), room);
@@ -141,7 +141,7 @@ describe('WarmController', () => {
   });
 
   it('⚠ refuses a body with nothing warmth would help', async () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const me = makeStuff(() => new Creature());
     ContainmentApi.move(me, room);
     ContainmentApi.move(burningLog(), room);

@@ -6,7 +6,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import AirPump from '../thing/AirPump';
-import Location from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';

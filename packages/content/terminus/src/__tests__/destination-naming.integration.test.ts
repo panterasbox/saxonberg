@@ -82,8 +82,8 @@ const STUBS: Doc[] = [
     class: "/system/tpa/thing/TpaTerminal",
     data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", register: "proper", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", data: { shortDescription: "the lounge" } },
-  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", data: { shortDescription: "University Avenue" } },
+  { path: "/world/test/lounge-room", class: "/platform/location/Void", data: { shortDescription: "the lounge" } },
+  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/Void", data: { shortDescription: "University Avenue" } },
   // The terminal office lists the clerk under props (a bare-`Thing` stub keeps the
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
@@ -103,8 +103,8 @@ const STUBS: Doc[] = [
   // the whole mining town to satisfy two exits would drag its trades in
   // behind it. The road itself is asserted in the transport pack and in
   // `logistics-corridors`.
-  { path: "/world/terminus/rejection/kestrel-road/lower-climb", class: "/platform/location/VoidLocation", data: { shortDescription: "the lower climb" } },
-  { path: "/world/terminus/rejection/kestrel-road/yard-gate", class: "/platform/location/VoidLocation", data: { shortDescription: "the yard gate" } },
+  { path: "/world/terminus/rejection/kestrel-road/lower-climb", class: "/platform/location/Void", data: { shortDescription: "the lower climb" } },
+  { path: "/world/terminus/rejection/kestrel-road/yard-gate", class: "/platform/location/Void", data: { shortDescription: "the yard gate" } },
 ];
 
 describe("destination naming + crossroads (real seeds)", () => {

@@ -29,7 +29,7 @@ import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
 import Good from '../../lib/stuff/Good';
 import Chest from '../../platform/thing/Chest';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 
 async function bootRegistry(): Promise<void> {
   const reg = await StuffApi.create(() => {
@@ -44,10 +44,10 @@ async function bootRegistry(): Promise<void> {
 
 async function setup(): Promise<{
   avatar: Avatar;
-  location: Location;
+  location: Place;
 }> {
   await bootRegistry();
-  const location = await StuffApi.create(() => new Location());
+  const location = await StuffApi.create(() => new Place());
   const avatar = await StuffApi.create(() => new Avatar());
   avatar.setName('Alice');
   ContainmentApi.move(avatar, location);

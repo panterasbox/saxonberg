@@ -1555,6 +1555,8 @@ export default class Species extends SingletonMixin(
 
   public getProduction(): readonly TapSpec[] { return this.production; }
   public setProduction(value: TapSpec[]): void {
+    // ⭐ What a take dirties is DERIVED by the tap act (an animal's floor,
+    // a liquid's splash — `Producing.soilTheTaker`), never authored here.
     this.production = Array.isArray(value) ? value : [];
   }
 

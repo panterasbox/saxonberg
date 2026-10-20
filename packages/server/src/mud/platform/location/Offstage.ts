@@ -5,23 +5,19 @@
  *
  * A singleton per template path (so the lounge's and the Hearthworks'
  * offstage rooms are two rooms, not one), Visible/Detailed for the
- * description an operator sees if they teleport in; deliberately not
- * `Exitable` — nothing walks out of it.
+ * description an operator sees if they teleport in. Nothing walks out of
+ * it: it has a grid cell like any place, and no row authors it an exit.
  */
 
-import Location from '../../lib/stuff/Location';
-import { SingletonMixin } from '../../lib/stuff/Singleton';
+import Locale from '../../lib/location/Locale';
 import { OffstageMixin } from '../../lib/employment/Offstage';
 import type { FieldMeta } from '../../lib/mixin';
 
-// ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ It is
-// composed per class because `Location` does NOT carry it (only
-// `CartesianLocation` does), so every room class built directly on
-// `Location` has to remember. These rows were authoring `primaryKeyword`
-// into a void until 2026-09-11; `lint:presentation` clause (d) found it.
-const OffstageBase = SingletonMixin(
-  OffstageMixin(Location)
-);
+// ⭐ A `Locale` — one row is one place, and like every place but the void
+// it sits on its venue's grid (the place taxonomy, `location.md`): each
+// row authors `coords:` in its venue's zone. It is still not walked out
+// of — no row authors an exit — and the grid does not derive exits.
+const OffstageBase = OffstageMixin(Locale);
 
 export default class Offstage extends OffstageBase {
   static fieldMeta: FieldMeta = {};

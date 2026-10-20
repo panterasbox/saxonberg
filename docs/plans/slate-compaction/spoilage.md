@@ -77,7 +77,7 @@ attach points are the body.
 Almost entirely unbuilt, and the greps agree: no `ClimateControl`, no
 `PoweredMixin`, no `Coolbox` anywhere (`arcana`'s `ManaPowered` is a
 different thing); `AtmosphericMixin` still composes on `Location` and
-`Vessel` only (`lib/stuff/Location.ts:46`, `lib/stuff/Vessel.ts:50`), so
+`Vessel` only (`lib/stuff/Place.ts:46`, `lib/stuff/Vessel.ts:50`), so
 update #1 (atmosphere on a `Container`) is open and the container-skip the
 slate worries about is still real. Only the spoilage prerequisite shipped.
 

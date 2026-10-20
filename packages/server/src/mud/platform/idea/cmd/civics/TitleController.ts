@@ -67,7 +67,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { AppApi } from '../../../../api/app';
 import { AccessApi } from '../../../../api/access';
 import { Lock } from '../../../../lib/lock/Lock';
-import { OuterWarren } from '../../../../lib/location/OuterWarren';
+import { CirculationWarren } from '../../../../lib/location/CirculationWarren';
 import { Currency } from "../../../../lib/banking/Currency";
 import { BoundaryApi } from '../../../../api/boundary';
 import { NavigationApi } from '../../../../api/navigation';
@@ -520,7 +520,7 @@ export default class TitleController extends CommandController<TitleModel> {
       const extent = record.getExtent();
       let cond: { condition: number; band: string } | null = null;
       try {
-        cond = await OuterWarren.conditionOf(extent);
+        cond = await CirculationWarren.conditionOf(extent);
       } catch {
         cond = null;
       }

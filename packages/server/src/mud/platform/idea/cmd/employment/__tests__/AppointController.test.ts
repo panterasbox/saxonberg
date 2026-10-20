@@ -29,7 +29,7 @@ import {
   type CommandModel,
 } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -70,7 +70,7 @@ function makeOrg(): OrganizationEntity {
 function makeContext(giver: Stuff): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: 'appoint',
     executionId: 'test',
     commandId: 'test',

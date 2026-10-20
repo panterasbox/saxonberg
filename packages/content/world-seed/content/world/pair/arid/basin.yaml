@@ -1,6 +1,6 @@
 # The dry basin — 42° in the middle of a continent, 400 m: a hard winter
 # and very little rain, by lean and by amount.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: dry basin
   keywords: [basin, flat, scrub]

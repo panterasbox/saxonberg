@@ -62,7 +62,8 @@ describe("every worn row is a real physical object", () => {
     // carries a material, a form, a grade and a mass. The count is a
     // census; keep it, and expect to bump it.
     // ⚠ 11 → 12: the climate build's greatcoat (the dorm footlocker's).
-    expect(CLOTHING).toHaveLength(12);
+    // ⚠ 12 → 13: the cleanliness build's wool jumper (the felting wash).
+    expect(CLOTHING).toHaveLength(13);
     expect(ARMOUR).toHaveLength(6);
   });
 

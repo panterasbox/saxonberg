@@ -2,7 +2,7 @@
  * PutController tests — preposition-aware dispatch into Container vs
  * Placing targets.
  *
- * Mirrors DropController's setup shape (TestGiver, Location, makeStuff
+ * Mirrors DropController's setup shape (TestGiver, Place, makeStuff
  * fixtures). The tests exercise the four core branches:
  *   - `put X in Y` where Y is a Container → move()
  *   - `put X on Y` where Y is a Placing host → place()
@@ -27,7 +27,7 @@ import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
@@ -120,7 +120,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
+function makeContext(giver: TestGiver, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -196,7 +196,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X in Y (Container) moves item into the container', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -242,7 +242,7 @@ describe('PutController — in/on dispatch', () => {
      * `PutController` is the platform's, the hive is a pack class, and
      * the two only meet in a booted world. The drive is what found it.
      */
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const bees = makeStuff(() => {
@@ -269,7 +269,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X on Y (Surfaced) sets restingOn and moves into surface\'s env', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -296,7 +296,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X on (Container, not Surfaced) → wrong-preposition rejection', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -331,7 +331,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X in (Surfaced, not Container) → wrong-preposition rejection', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -366,7 +366,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X Y with no preposition + Container target → infers "in"', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -392,7 +392,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X Y with no preposition + Surfaced target → infers "on"', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -418,7 +418,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X Y with no preposition + target composes both → ambiguous rejection', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -453,7 +453,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('put X on Y where canPlace() vetoes → cannot-rest rejection', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const item = makeStuff(() => {
@@ -488,7 +488,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('moving an apple from one table to another in the same room: container unchanged, restingOn updates', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const apple = makeStuff(() => {
@@ -526,7 +526,7 @@ describe('PutController — in/on dispatch', () => {
   });
 
   it('moving an apple from a table to a chest: container changes, restingOn clears', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const apple = makeStuff(() => {
@@ -576,11 +576,11 @@ describe('PutController — put over N placements', () => {
 
   /** giver in a room, holding a named apple. */
   function scene(): {
-    loc: Location;
+    loc: Place;
     giver: TestGiver;
     apple: TestItem;
   } {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const apple = makeStuff(() => {

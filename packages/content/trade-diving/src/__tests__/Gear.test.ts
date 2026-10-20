@@ -10,7 +10,7 @@ import Slate from '../thing/Slate';
 import AirBag from '../thing/AirBag';
 import Lifeline from '../thing/Lifeline';
 import LineEnd from '../thing/LineEnd';
-import Location from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';

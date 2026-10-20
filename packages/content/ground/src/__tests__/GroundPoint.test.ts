@@ -22,7 +22,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -46,8 +46,8 @@ function stubZone(cellSize: number, deposit: string | null) {
 }
 
 /** A surface room with coordinates and a zone — what a derrick stands in. */
-function room(coords: [number, number, number], zone: unknown): CartesianLocation {
-  const r = makeStuff(() => new CartesianLocation());
+function room(coords: [number, number, number], zone: unknown): Location {
+  const r = makeStuff(() => new Location());
   r.setCoordinates(coords);
   (r as unknown as { getZone(): unknown }).getZone = () => zone;
   return r;

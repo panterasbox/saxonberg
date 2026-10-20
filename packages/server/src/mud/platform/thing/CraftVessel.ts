@@ -49,6 +49,8 @@ import { BlendLabel } from '../../lib/metabolism/BlendLabel';
 import { VesselKindMixin } from '../../lib/bulk/VesselKind';
 import { ServiceableMixin } from '../../lib/craft/Serviceable';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import type { WashOutcome, WashSpec } from '../../lib/cleanliness/Soilable';
 import { Freshness } from '../../lib/material/Freshness';
 import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -114,7 +116,11 @@ const SoiledWriters = SecurityPolicies.AnyOf(
 // pot — which is exactly why filling a dirty vessel contaminates what goes
 // in, emptying it does not clean it, and washing it clears the surface and
 // never the contents.
-const CraftVesselBase = ContaminableMixin(
+//
+// ⭐ And a vessel can be GREASY as well as used (cleanliness D3):
+// `Serviceable.soiled` keeps its *used* meaning, Soilable carries the dirt
+// by kind — two facts, two fields — and the clean tiers read both.
+const CraftVesselBase = SoilableMixin(ContaminableMixin(
   ServiceableMixin(
   VesselKindMixin(
   CraftedMixin(
@@ -122,7 +128,7 @@ const CraftVesselBase = ContaminableMixin(
   ),
   ),
   ),
-);
+));
 
 /**
  * ⭐ What the vessel's CONTENTS say about their spoilage — to `look` and
@@ -206,6 +212,17 @@ export default class CraftVessel extends CraftVesselBase {
     // through the verb.
     this.clearContamination();
     super.wash();
+  }
+
+  /**
+   * ⭐ The wash at water (cleanliness D10): the service wash above (the
+   * dregs out, the surface cleared, back to the pool) AND the dirt by kind
+   * the chemistry lifts — a pot can be greasy as well as used. One act,
+   * both facts.
+   */
+  override washSite(spec: WashSpec, site: string = ''): WashOutcome {
+    this.wash();
+    return super.washSite(spec, site);
   }
 
   /** Clean AND empty AND iceless — claimable for a fill. */

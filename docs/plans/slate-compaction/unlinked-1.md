@@ -181,7 +181,7 @@ method (`:145`), `lint:binder-models` (`package.json:69`,
 `lint-family.md:197`), `trait.md:12` (*the Api OO sweep retired
 `TraitApi`*). Still static and unruled: `GroundCharacter.forZone` /
 `resolve` (`packages/content/trade-farming/src/idea/GroundCharacter.ts:202,233`),
-`OuterWarren.conditionOf`/`admitFor` (`lib/location/OuterWarren.ts:355,383`),
+`CirculationWarren.conditionOf`/`admitFor` (`lib/location/CirculationWarren.ts:355,383`),
 `HoldingWarren.entryRowOf` (`residence/src/idea/HoldingWarren.ts:193`),
 `Login.generateGuestName` (`Login.ts:200`); `readInt` in 5 files,
 `linearToDb` in 2, `scoreEvents` in 3.
@@ -214,7 +214,7 @@ method (`:145`), `lint:binder-models` (`package.json:69`,
 
 ### Kept (UNBUILT)
 - the status block (re-stamped) · *Raised by* / *Census* / the invariant quote · `## Cross-references`
-- `### 2 · Needs a decision first (≈20)` — the table is one paragraph; four of its five rows are now resolved (see Uncertain) but `OuterWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf` and `Login.generateGuestName` are still public statics with no ruling
+- `### 2 · Needs a decision first (≈20)` — the table is one paragraph; four of its five rows are now resolved (see Uncertain) but `CirculationWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf` and `Login.generateGuestName` are still public statics with no ruling
 - `### 3 · Misclassified` — `GroundCharacter.resolve` still open (the other three were handled in §A)
 - `### ⚠ What was deliberately NOT deduplicated` — the rule (*duplication matters when the definition could change*) + the three open items: `readInt` → `AppApi.settingInt`, the `linearToDb` rename, `scoreEvents`
 
@@ -291,7 +291,7 @@ method (`:145`), `lint:binder-models` (`package.json:69`,
 
 ### Status block
 - Status: PARTIAL (*scoped for the next session*, ceiling 462/464, remainder 123) → PARTIAL (merged; ceiling 337; doctrine homed; the ladder kept because the doc points here)
-- Left: *✅ rungs 2–3 done … the real remainder is 123, not 464: 44 world-SUBJECT … 79 world-REACH … `Lock` → `BoundaryApi`* → *`GroundCharacter.forZone` / `resolve` · the unruled async lookups `OuterWarren.conditionOf` / `admitFor`, `HoldingWarren.entryRowOf` · `Login.generateGuestName` · `readInt` ×3 → `AppApi.settingInt` · the `linearToDb` false-friend rename · `scoreEvents` ×3*
+- Left: *✅ rungs 2–3 done … the real remainder is 123, not 464: 44 world-SUBJECT … 79 world-REACH … `Lock` → `BoundaryApi`* → *`GroundCharacter.forZone` / `resolve` · the unruled async lookups `CirculationWarren.conditionOf` / `admitFor`, `HoldingWarren.entryRowOf` · `Login.generateGuestName` · `readInt` ×3 → `AppApi.settingInt` · the `linearToDb` false-friend rename · `scoreEvents` ×3*
 - Size: a build — 564 statics → a tail
 
 ---
@@ -477,7 +477,7 @@ because the status block grew.
 
 ### Uncertain — kept
 - `### The three sites` row 2 (*Horticulture grounds + greenhouse — rides smallholding, husbandry, thermal*) — shipped as the campus FARM: a yard, a byre, a home field, a herdbook (`trade-farming` + `trade-ranching` classes, no greenhouse, no thermal instrumentation). *The campus field site teaches the loop; the world charges for it* is now literally true for farming (Heart's Delight is the static authored farm that charges the journey — `hearts-delight/pack.yaml`). The row is kept because the greenhouse half is unbuilt; requirements should site the labs beside the farm that exists
-- `## Part 2` says a lab is *"a `FurnishableRoom` row with a `populates:` of its bench instruments"* — `populates:` was retired in favour of `props:` / `cast:` (memory: props-and-cast-designation). The decision (a row, zero classes, in the university pack) stands; the field name is stale
+- `## Part 2` says a lab is *"a `PersistentLocation` row with a `populates:` of its bench instruments"* — `populates:` was retired in favour of `props:` / `cast:` (memory: props-and-cast-designation). The decision (a row, zero classes, in the university pack) stands; the field name is stale
 - `## Part 0` counts *23 platform Disciplines (+10 arcana)* and *18 analyze/measure channels*; the metal chain added `measure strike` / `dip` and `analyze ground` stanzas since — not recounted
 - `### It is cheap` / Q15 — `serve` still lives in `trade-hospitality` (`CLAUDE.md § File Naming` lists it there); the placement question is still open
 - Q4 (the observatory as official time) — `time.md` gives the clock to `WorldClockApi` + the Timekeeping display seam; no institution owns it

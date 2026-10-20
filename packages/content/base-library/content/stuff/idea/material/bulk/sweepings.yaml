@@ -1,0 +1,17 @@
+# Sweepings — what a broom takes up off a floor (cleanliness D15): crumbs,
+# grit, old rushes and what they soaked up. Refuse, and compost once it has
+# rotted on a midden.
+class: /platform/idea/material/Material
+data:
+  name: sweepings
+  keywords: [sweepings, muck, dirt]
+  appearance: a grey heap of floor sweepings
+  density: 300
+  specificHeat: 1500
+  thermalConductivity: 0.1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [organic, compost, refuse, granular]
+  composition: []
+  biologicalSource: null

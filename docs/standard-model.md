@@ -227,9 +227,9 @@ Under `Idea`:
 
 Under `Location`:
 
-- **`CartesianLocation`** — a room positioned on a Cartesian grid.
+- **`Location`** — a room positioned on a Cartesian grid.
 - **`SphericalLocation`** — a body positioned in a spherical zone.
-- **`VoidLocation`** — the singleton null-space room.
+- **`Void`** — the singleton null-space room.
 
 Under `Thing` (the boundary family):
 

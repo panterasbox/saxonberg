@@ -163,7 +163,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   | `content/terminus/src/market/idea/cmd/StallController.ts:119` (the counter) | `${STALL_SEED}/<leaf>` | `/world/terminus/market/thing/stall` | its own `holder_snapshots` record (`restoreOrSeed`); `operatingLocations` / `counterPath` round-trips (`findByTemplatePath`) | **justified** (own record + lookup) — re-keyed by A4 |
   | `StallController.ts:141` (the house) | `${STALL_BUSINESS_SEED}/<leaf>` | `/trade/shopkeeping/idea/business/stall` | its operating account (`getAccountPath()` = identity, `Business.ts:339`); employment records' `organizationPath` | **justified** (referenced) |
   | `platform/idea/api/PartyLogic.ts:226` (`rec.path`) · `:358` | `/platform/idea/party/<uuid>` — not re-derivable, but **recorded** | `/platform/idea/Party` | its own `PartyRecord.path`; members' `activePartyPath` | **justified** (own record) |
-  | `lib/location/OuterWarren.ts:499` (`ensureNode`) | `${parentExtent}/${nodeId}` — **re-derivable** from the plan + the extent | the warren's circulation row (Hinkley `lots/road-segment`; Duncan's `Corridor`) | a parked character's snapshot records it as `place.container` (`capturePlacement`, `PersistableLogic.ts:221`) | **justified** (referenced) — ⭐ 9a's worked case: ephemeral as an object, durably named; **shape unchanged** |
+  | `lib/location/CirculationWarren.ts:499` (`ensureNode`) | `${parentExtent}/${nodeId}` — **re-derivable** from the plan + the extent | the warren's circulation row (Hinkley `lots/road-segment`; Duncan's `Corridor`) | a parked character's snapshot records it as `place.container` (`capturePlacement`, `PersistableLogic.ts:221`) | **justified** (referenced) — ⭐ 9a's worked case: ephemeral as an object, durably named; **shape unchanged** |
   | `platform/idea/api/ScriptLogic.ts:69` | `${parcel}/_eval` (`EvalController.ts:93`) — re-derivable from the jurisdiction | `/platform/idea/EvalScript` | `findByTemplatePath(path)` reads the previous scratch back to destroy it (`:66`) — a genuine lookup, not a mint-time probe | **justified** (lookup) |
   | `platform/idea/api/SandboxLogic.ts:355` (the wire body) | `actor.getIdentityPath()` — the REAL player's path, re-derivable | `/platform/agent/sandbox/SandboxAvatar` | the identity-keyed ledgers attribute in-circle acts to the player | **justified as a projection, wrong as a stamp** — DA8 / A3 moves the projection to the method and stops the stamp |
   | `platform/idea/Login.ts:309` (the guest) | `${Avatar.TEMPLATE_PATH_PREFIX}guest-<uuid>` (`:285`) — random | `/platform/agent/PrimaryAvatar` | nothing: unrecorded, `shouldPersist()` false | ⛔ **unjustified — named non-goal.** On the login path; its purpose is avoiding a throwaway template row; touching char-gen opportunistically is how a cheap build becomes expensive. The census RECORDS it; it is the first entry the ratchet is allowed to fall by. |
@@ -247,12 +247,12 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `isPersistenceKeyExplicit:235`, `capturesAtShutdown:227` (*"never
   established"* when `_persistenceKey === null`).
 - **Who composes `PersistableMixin`** (so who can carry a key): kernel
-  `Plant`, `FurnishableRoom` (every dorm/house room), `KeptAnimal`,
+  `Plant`, `PersistentLocation` (every dorm/house room), `KeptAnimal`,
   `Avatar`, `Stock`; packs `HoldingWarren`, `Field`, `Panel`, `MineRoom`,
   `MineWarren`, `Turbary`, `Wood`, `StorageNode`, `TpaTerminal`,
   `CheckRack`, `OpenWorking`, `ConsignmentShelf`. **Not** `Location`
-  (`lib/stuff/Location.ts:161` composes `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(Stuff))))))))`),
-  not `CartesianLocation`, not `SingletonCartesianLocation`
+  (`lib/stuff/Place.ts:161` composes `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(Stuff))))))))`),
+  not `Location`, not `Locale`
   (`SingletonMixin(…)`, `:26`), not `Lounge` (`world/lounge/location/Lounge.ts:37`).
   So the bar's singleton room has no key and no stamp and must still
   yield a handle (its row) — the regression guard — while a lounge
@@ -319,8 +319,8 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `api/stuff.ts:545` computes `identityPath = opts?.asIdentityPath ?? templatePath`
   for the singleton guard, and line 629 stamps `#identityPath` **only
   when `asIdentityPath` was passed**. Four populations follow:
-  - **Circulation nodes** of an `OuterWarren` are stamped
-    (`lib/location/OuterWarren.ts:499`) — ephemeral as objects, durably
+  - **Circulation nodes** of an `CirculationWarren` are stamped
+    (`lib/location/CirculationWarren.ts:499`) — ephemeral as objects, durably
     NAMED (G-MINT; requirements 9a's worked case). Their stamp stays.
   - **Holding rooms** (every Duncan Hall dorm room, every Hinkley house
     room, Seznick House's units) are NOT stamped. The keyed model is the
@@ -335,8 +335,8 @@ Verified by opening files this cycle (2026-10-04). File paths are
     (line 391) parses the floor/position out of it. **So the slate's
     "scheme 2 mints identity" is wrong**: the per-instance durable handle
     of a holding room is **row + key** — requirements decision 9.
-  - **Singleton places** (`SingletonCartesianLocation`,
-    `SingletonSphericalLocation`, `Offstage`, `VoidLocation`, the
+  - **Singleton places** (`Locale`,
+    `SphericalLocale`, `Offstage`, `Void`, the
     crossing's `Street` lineage) have no stamp and no key; their one
     instance IS the row, so the row is the right handle — the behaviour
     the bar's secret door relies on.
@@ -349,7 +349,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `api/mixin.ts:1585`. Branch predicates on `Stuff` (`isAgent()` at
   `Stuff.ts:1179` and siblings).
 - Test shape precedents: `lib/boundary/__tests__/Exit.concealment.test.ts`
-  (`makeStuff(() => new CartesianLocation())`, a zone, two rooms — ⚠
+  (`makeStuff(() => new Location())`, a zone, two rooms — ⚠
   these carry **no template path**, so a collision test built that way
   passes today for the wrong reason; the failing-first test must clone
   from a ROW), `lib/concealment/__tests__/Hiding.test.ts` (`makeStuffAtPath`).
@@ -394,11 +394,11 @@ Verified by opening files this cycle (2026-10-04). File paths are
   never by path infix.
 - **Which rows are PLACES and which are KINDS.** `scripts/check-location-classes.ts`
   enumerates the minted roster: `MINTED_ROWS` (3 rows on permissive
-  `CartesianLocation`: Hinkley's `lots/road-segment`, the platform
+  `Location`: Hinkley's `lots/road-segment`, the platform
   `venue`, Seznick's `corridor`) and `FURNISHED` (13 rows on
-  `FurnishableRoom`, the dorm room included). Its doc: *"An authored
+  `PersistentLocation`, the dorm room included). Its doc: *"An authored
   place — a hub, a hollow, a cookhouse — belongs on
-  `SingletonCartesianLocation`."* `DormRoom extends FurnishableRoom`
+  `Locale`."* `DormRoom extends PersistentLocation`
   (`content/eternal-university/src/duncan-hall/location/DormRoom.ts:48`);
   `Corridor` is a pack class on plain `Location`, minted per floor;
   `Lounge` (`world/lounge/location/Lounge.ts:43`) is cloned per
@@ -414,7 +414,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `nodesInOrder:315` (⚠ linear is unbounded — enumerates to `maxNodes`),
   `isAuthored:333`, `authoredPathOf:339`, `routeOf:358`,
   `reachableGiven:383`, `predecessorOf:393`, `onwardDirectionOf:409`,
-  `gateDirectionOfSlot:431`. `OuterWarren.fieldMeta` (line 112) carries
+  `gateDirectionOfSlot:431`. `CirculationWarren.fieldMeta` (line 112) carries
   `plan`, `capacityKey`, `defaultCapacity`, `parentExtent` as persistent
   + authorable; `getParentExtent():151`, `getPlatPlan():187`.
   `ensureNode` (line 486) uses `authoredPathOf(nodeId)` →
@@ -439,14 +439,14 @@ Verified by opening files this cycle (2026-10-04). File paths are
   path is path-based: `api/zone.ts:159 resolveZoneForPath` →
   `ZoneLogic` walks `Template.ancestorPaths` nearest-first for a class
   that `isSpatialZoneClass`. The cardinal rule lives in
-  `lib/location/CartesianLocation.ts:85–125` (a non-cardinal direction is
+  `lib/location/Location.ts:85–125` (a non-cardinal direction is
   admitted only when the destination resolves to a different zone,
   path-based). `AppSettings.defaultStartLocation`
   (`lib/config/AppSettings.ts:40`, default `/platform/location/void`) and
   `evacuationFallback` (line 54) are the two global fallbacks;
   `lib/spatial/Container.ts:286` escapes `HasInteractive` occupants to
   the evacuation fallback on a host destruct with no outer.
-  `platform/location/VoidLocation.ts` (bootstrap-pinned, refuses
+  `platform/location/Void.ts` (bootstrap-pinned, refuses
   destruct) and `platform/location/Offstage.ts` (a `SingletonMixin(OffstageMixin(Location))`,
   deliberately not Exitable) are the two shipped "nowhere" rooms.
 - **G6 — the Api↔Logic pair.** `api/navigation.ts:56` `NavigationApi`
@@ -573,7 +573,7 @@ Verified by opening files this cycle (2026-10-04). File paths are
   `fieldMeta` is empty. `lib/character/Avatar.ts:242`
   `Avatar.commandContributions.self` carries the player-only reference
   surfaces (`help`, `wiki`, `press`, `analyze`, `measure`, `readings`,
-  `sample`, `trace`). `lib/stuff/Location.ts:11` composes
+  `sample`, `trace`). `lib/stuff/Place.ts:11` composes
   `AmbientLit(Adornable(Container(Stuff)))` plus `Atmospheric`,
   `Addressable`, `Visible`, `Perceptible`, `Detailed` (imports 24–31).
 - **Localities.** `platform/idea/Locality.ts:126` (`extends Idea`; `_address`
@@ -675,7 +675,7 @@ exit's source), never the viewer's — the viewer key is
 vessel's finds attribute to the real player.
 
 **D2 — SUPERSEDED (2026-10-04).** *Was:* `Exit.getDiscoveryKey()` =
-`source.isLocation() ? source.getPlaceKey() : source.getIdentityStamp()`.
+`source.isPlace() ? source.getPlaceKey() : source.getIdentityStamp()`.
 *Why cut:* it rode D1, and its vessel special case dissolves once the
 handle is on every object (DA3). The four test cases D2 named survive
 verbatim in A1. The requirements' decision 9 now states the rule D2 was
@@ -785,7 +785,7 @@ it), **the KEY (`isPersistenceKeyExplicit()`) decides whether there is a
 what produced the four-rung ladder this plan deleted. ⭐ No
 `MixinApi.isX` in `Stuff.ts` (G2: it does not import `MixinApi`, and a
 root class narrowing on its own mixins is the shape to fear), no
-`if (isLocation)` anywhere. `placeIdOf(host)` becomes
+`if (isPlace)` anywhere. `placeIdOf(host)` becomes
 `host.getDurableHandle() ?? host.getIdentityPath() ?? ""` — byte-identical
 for every host but the stall; `PersistableApi.placeIdOf` stays as the
 spine's name for *the room identity a `place` names* and documents that
@@ -805,12 +805,12 @@ it.
 each a test (D2's four, kept): two keyed holding rooms of one row no
 longer share a key (`<row>#<extentA/leaf>#exit:down` ≠
 `<row>#<extentB/leaf>#exit:down`); two `asIdentityPath` clones of one
-row no longer share a key; a `SingletonCartesianLocation` keeps
+row no longer share a key; a `Locale` keeps
 **byte-identical** `<row>#exit:<dir>` (the bar's door, and every
 `DISCOVERY` belief already written); a lounge satellite yields
 `undefined`. ⚠ The test **fails first** only when built from clones of a
 ROW with `restoreOrSeed` / `asIdentityPath`, not from
-`makeStuff(() => new CartesianLocation())`. `Concealable`'s default
+`makeStuff(() => new Location())`. `Concealable`'s default
 (`:140`, a Good's own template path) is NOT changed: a concealed good is
 individuated by its chattel id, a different question and a different
 build.
@@ -860,7 +860,7 @@ census QUESTIONS them, and its count is meant to go DOWN.
   stamps are re-derived from its new key in A4 (DA6) but the shape class
   is the same. Stage B's D4 derives the circulation identity through
   **`PlatPlan.nodeIdentityOf(nodeId, extent)`** (an instance method on
-  the kernel value object, which `OuterWarren.ensureNode` also calls), so
+  the kernel value object, which `CirculationWarren.ensureNode` also calls), so
   there is one computer of the string, not two — the method is a move of
   the existing formula, not a new shape.
 - **A2 unmints nothing, and says so.** Eleven sites are justified; the
@@ -963,17 +963,17 @@ boot"*. Indexes: `{identity: 1}` unique; `{zone: 1}`; `{'edges.to': 1}`;
   (G-ROWS). `identity` = `template` = the row path. Every other location
   row is a **kind** and is not a node.
 - A **plan node** (`origin: 'plan'`) is every circulation node of every
-  row whose effective class extends `lib/location/OuterWarren`
+  row whose effective class extends `lib/location/CirculationWarren`
   (`PlatWarren`, `BuildingWarren`, `DormWarren` extend it): parse
   `data.plan` with `PlatPlan.parse` (the kernel value object; the data is
-  authored on the kernel's `OuterWarren.fieldMeta`), enumerate
+  authored on the kernel's `CirculationWarren.fieldMeta`), enumerate
   `nodesInOrder(cap)` where `cap` for a linear plan is
   `ceil(defaultCapacity / frontagesPerNode)`; `identity` =
   `authoredPathOf(nodeId)` when the node is authored (the authored row
   then IS the node and the plan contributes its edges), else
   **`plan.nodeIdentityOf(nodeId, parentExtent)`** = `` `${parentExtent}/${nodeId}` ``,
   byte-identical to today's `ensureNode` string and the same method
-  `OuterWarren.ensureNode` now calls (DA5), so the two strings cannot
+  `CirculationWarren.ensureNode` now calls (DA5), so the two strings cannot
   drift. Edges: the spine (`predecessorOf` /
   `onwardDirectionOf` + the inverse), the branch edge
   (`branchesFrom.direction`), and one **slot stub** per frontage
@@ -1099,7 +1099,7 @@ makes AC6 true**: the boot no longer throws from `applyExits`.
 
 **D11 — Offline is a camera: `Tombstone`.** `platform/location/Tombstone.ts`
 (`class: /platform/location/Tombstone`; a `Location` with the exit face
-`CartesianLocation` has — confirm `Exitable` composition when writing it),
+`Location` has — confirm `Exitable` composition when writing it),
 row `packages/content/platform/content/platform/location/tombstone.yaml`
 (a KIND: cloned per offlining with `asIdentityPath: `${TOMBSTONE_ROW}/${extent stripped}``
 — re-derivable from the extent, and `pointingAt`'s diagnostics reference
@@ -1268,12 +1268,12 @@ new gates), `sandbox.md` (the method override; *wire body* throughout).
 | `onPerceivedPlace?` · `onReadTimetable?` | `Perceiver` interface (optional `@hook`s) | declaring an optional hook claims nothing of a composer that does not implement it (an NPC perceiver stays a no-op); the only implementer is `Avatar`. ⭐ No guard is needed in `Sense`/`Look`/`Teleport`: they already narrow on `isPerceiver`, and calling an optional member is the `Mobile.canTraverse?` idiom. |
 | the three map writers (`onPerceivedPlace`, `onReadTimetable`, `onTraversed`) | ⚠ **CORRECTED IN REVIEW** → `CartographerMixin` (`lib/location/Cartographer.ts`). *Was:* `Avatar`, on the reasoning that *players own a `/home/<self>` branch* — which is about where the DOCUMENT goes, not about who may keep a map. The tell was a private `writesMaps()` predicate re-narrowing the host set from inside `Avatar`: this plan's own host-placement test says that means the host is wrong. And the row's own last sentence (*"if an NPC guide ever wants a map, it implements the hooks"*) was the giveaway — under that shape it would have had to reimplement ~220 lines of private conversion. The mixin owns the policy, the conversion and the routing; `Avatar` keeps only `keepsMaps()`, the one fact the family can answer. ⚠ The `map` VERB stays on `Avatar`: writing is a capability, reading is a person's. |
 | `publishedStops()` | the `TravelNode` shape (kernel) · implemented by `FastTravelMixin` (tpa pack) | a travel network can say what it advertises; a node without the method advertises nothing. |
-| `Tombstone` | `platform/location/Tombstone.ts` + the kind row | an instanceable Location; `Offstage`/`VoidLocation` are its siblings. Named for what it IS (a marker where a place stood), a noun. |
+| `Tombstone` | `platform/location/Tombstone.ts` + the kind row | an instanceable Location; `Offstage`/`Void` are its siblings. Named for what it IS (a marker where a place stood), a noun. |
 | `map` verb | `Avatar.commandContributions.self` | the read is the player's; see D17. |
 | `title publish` / `title offline` | the existing `title` view + `TitleController` | no new affordance. |
 
 ⭐ The test, applied: no site in this plan adds `if (isAvatar(x))` or
-`if (isLocation(x))` to re-narrow a host set. The handle's rungs each
+`if (isPlace(x))` to re-narrow a host set. The handle's rungs each
 live on the host that owns the fact; where the host set is players, the
 code is on `Avatar`; where it is places, on `Location`; where it is every
 object, on `Stuff` and honest about null.
@@ -1287,7 +1287,7 @@ Checked against the current tree this cycle.
 - **`props:` / `cast:`** — `stalls.yaml` gains `pitches:`; the tombstone
   row authors neither; `square.yaml`'s `props:` is untouched.
 - **Locations, not rooms** — `Tombstone` is a `Location`; no `*Room`
-  name; `FurnishableRoom` untouched.
+  name; `PersistentLocation` untouched.
 - **Path pattern `<root>/<branch>/`** — row `/platform/location/tombstone`;
   view `/platform/cmd/perception/map`; controller
   `/platform/idea/cmd/perception/MapController`; registry
@@ -1455,7 +1455,7 @@ method), `lib/stuff/Singleton.ts` (singleton rung), `platform/idea/api/Persistab
 `lib/stuff/__tests__/Stuff.durableHandle.test.ts` (a bare clone → null;
 a row-prefixed stamp → the identity; a `restoreOrSeed`'d clone →
 `row#key`; a stamped AND keyed clone → `row#key`; a
-`SingletonCartesianLocation` → its row), `lib/boundary/__tests__/Exit.discoveryKey.test.ts`
+`Locale` → its row), `lib/boundary/__tests__/Exit.discoveryKey.test.ts`
 (**written first, watched fail**: two clones of a permissive room row
 `restoreOrSeed`'d with keys A/B, a `concealment: hidden` exit `down` on
 each via `installExit`, `PerceptionApi.recordDiscovery(viewer, exitA)`,
@@ -1495,7 +1495,7 @@ Covers AC1, AC2, AC19's handle half.
 > definition.
 >
 > `PlatPlan.nodeIdentityOf(nodeId, parentExtent)` landed as planned and
-> `OuterWarren.ensureNode` calls it; the string is unchanged, proven by a
+> `CirculationWarren.ensureNode` calls it; the string is unchanged, proven by a
 > test that also pins re-derivability across a reap.
 
 **Original wave spec** — `build(stuff): every identity mint names what keys on it; the unjustified count is a ratchet at two`
@@ -1509,7 +1509,7 @@ reason and the slate pointer); `api/stuff.ts` (`#cloneInner` continuity
 assertion + `#identityNamespaceOf(ctor)` prototype walk);
 `lib/character/Avatar.ts`, `platform/agent/ShadeAvatar.ts`,
 `platform/idea/Party.ts` (`identityNamespace`); `lib/location/PlatPlan.ts`
-(`nodeIdentityOf(nodeId, extent)`) + `lib/location/OuterWarren.ts:499`
+(`nodeIdentityOf(nodeId, extent)`) + `lib/location/CirculationWarren.ts:499`
 (calls it; string unchanged); `docs/subsystems/identity.md` or
 `architecture.md`, `lint-family.md`. Tests: the lint's own (a fixture
 tree with a marked site, an unmarked site → error, a `none` site →
@@ -1779,7 +1779,7 @@ hand restart; the first keeper's `stall` reopens pitch 1). Covers AC4.
 > from `check-location-classes` (which still passes).
 >
 > ⚠ A fixture correction: Seznick House's `corridor` LOOKS like a place
-> and is one of the three rows on the permissive `CartesianLocation` —
+> and is one of the three rows on the permissive `Location` —
 > a kind, minted per floor. The first draft of the lint's test asserted
 > it was a place; the fact is pinned the right way round now.
 >
@@ -2407,7 +2407,7 @@ Read first, in this order:
    `scripts/check-person-keys.ts` (the lint shape to copy) ·
    `content/terminus/src/market/thing/MarketStalls.ts` +
    `idea/cmd/StallController.ts` + `content/world/terminus/market/{square,stalls,thing/stall,cmd/stall}.yaml` ·
-   `lib/location/OuterWarren.ts:480–520` · `lib/location/PlatPlan.ts`
+   `lib/location/CirculationWarren.ts:480–520` · `lib/location/PlatPlan.ts`
 3. `packages/server/src/mud/lib/boundary/Exit.ts` (`getDiscoveryKey:400`,
    `canTraverse`, `TraversalGate`) · `lib/boundary/Exitable.ts`
    (`_applyExitSpec`, `obviousExitsFor`, `verifyOutboundExits`)
@@ -2475,7 +2475,7 @@ Four unit-green waves could not see it; one socket could.
 
 **2. My step 2 was asking the wrong room, and the answer was news.**
 It asked the lounge's BAR and got its row back, which read as a failure
-and was not one: `Bar extends SingletonCartesianLocation`, so it is ONE
+and was not one: `Bar extends Locale`, so it is ONE
 place and its row is exactly the right handle. The ephemeral thing is
 the SATELLITE (`Lounge`, no `SingletonMixin`, cloned per landing). The
 step asks **both** now, because the rule has two sides and getting

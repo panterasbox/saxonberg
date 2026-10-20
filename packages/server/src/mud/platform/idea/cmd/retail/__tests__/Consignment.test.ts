@@ -41,7 +41,7 @@ import { ContainerMixin } from "../../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../../lib/spatial/Containable";
 import { NamedMixin } from "../../../../../lib/description/Named";
 import { Idea } from "../../../../../lib/stuff/Idea";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import Provision from "../../../../thing/Provision";
 import Material from "../../../../../lib/material/Material";
 import { Freshness } from "../../../../../lib/material/Freshness";
@@ -127,7 +127,7 @@ function stubClones(): void {
   }) as unknown as typeof StuffApi.clone);
 }
 
-function ctx(giver: TestGiver, loc: Location, shelf: ConsignmentShelf, verb: string): CommandContext {
+function ctx(giver: TestGiver, loc: Place, shelf: ConsignmentShelf, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -191,7 +191,7 @@ describe("Consignment — sell loop over real ownership", () => {
   }
 
   it("consign → another player buys → split payout, stamp transfers, conserved", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
 
@@ -261,7 +261,7 @@ describe("Consignment — sell loop over real ownership", () => {
       ContainmentApi.move(p as never, owner as never);
       return p;
     }
-    async function consign(who: TestGiver, loc: Location, shelf: ConsignmentShelf, item: Stuff, raw: string) {
+    async function consign(who: TestGiver, loc: Place, shelf: ConsignmentShelf, item: Stuff, raw: string) {
       const c = ctx(who, loc, shelf, "consign");
       await asOwner(who, () =>
         makeStuff(() => new ConsignController()).execute(
@@ -273,7 +273,7 @@ describe("Consignment — sell loop over real ownership", () => {
     }
 
     it("a fresh provision lists; a spoiled one is refused `turned` and stays in hand", async () => {
-      const loc = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Place());
       const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
       ContainmentApi.move(shelf as never, loc as never);
       const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
@@ -297,7 +297,7 @@ describe("Consignment — sell loop over real ownership", () => {
       let real = 100_000;
       WorldClockApi._setNowProviderForTesting(() => real);
       makeStuffAtPath(() => new WorldClockRegistry(), "/platform/idea/WorldClockRegistry");
-      const loc = makeStuff(() => new Location());
+      const loc = makeStuff(() => new Place());
       const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
       ContainmentApi.move(shelf as never, loc as never);
       const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
@@ -340,7 +340,7 @@ describe("Consignment — sell loop over real ownership", () => {
   });
 
   it("consign without a bank account nudges; nothing moves", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
     const broke = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/broke");
@@ -363,7 +363,7 @@ describe("Consignment — sell loop over real ownership", () => {
       new AppSettings();
     AppSettings.getCached().setValue(AppSettingKeys.retailConsignmentListingCap, "1");
 
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
     const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
@@ -399,7 +399,7 @@ describe("Consignment — sell loop over real ownership", () => {
       new AppSettings();
     AppSettings.getCached().setValue(AppSettingKeys.retailConsignmentListingCap, "1");
 
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     // The market stall authors a generous cap (loose produce = dozens of
     // listings per seller); the plain shelf beside it keeps the dial.
     const stall = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
@@ -472,7 +472,7 @@ describe("Consignment — sell loop over real ownership", () => {
   });
 
   it("reclaim returns an unsold listing; ownership never changed", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
     const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
@@ -522,7 +522,7 @@ describe("Consignment — sell loop over real ownership", () => {
   }
 
   it("⭐⭐ consigns ONE unit off a stack and leaves the rest in hand", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
     const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
@@ -556,7 +556,7 @@ describe("Consignment — sell loop over real ownership", () => {
   });
 
   it("⭐⭐ a TITLED lot does not merge — that is what makes the rule safe", async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
     const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
@@ -600,7 +600,7 @@ describe("Consignment — sell loop over real ownership", () => {
     // The gates run BEFORE the split for exactly this reason: a stack
     // divided by a consignment that then declines is a stack the caller
     // has to put back together. `broke` holds no account.
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
     const broke = makeStuffAtPath(
@@ -632,7 +632,7 @@ describe("Consignment — sell loop over real ownership", () => {
    */
   it("terms: the buyer pays the shop's ask, the shop pays its supplier, title transfers, conserved", async () => {
     const STOCK = "/test/consignment/thing/terms-counter";
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const counter = makeStuffAtPath(() => {
       const s = new Stock();
       s.stockLines = [];

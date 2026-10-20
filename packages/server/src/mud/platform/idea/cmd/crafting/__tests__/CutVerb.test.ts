@@ -10,7 +10,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import CutController from '../CutController';
 import Good from '../../../../thing/Good';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import { Mml } from '../../../../../api/mml';
@@ -59,13 +59,13 @@ function rejected(ctx: CommandContext): string | null {
   return note ? (note as unknown as { reason: string }).reason : null;
 }
 
-let room: Location;
+let room: Place;
 let actor: TestActor;
 
 beforeEach(() => {
   StuffApi.clearAll();
   made = [];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   actor = makeStuff(() => new TestActor());
   ContainmentApi.move(actor as never, room as never);
 });

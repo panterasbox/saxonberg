@@ -10,7 +10,7 @@
 # back-exit to the lobby is auto-installed by Exitable.applyExits
 # when the lobby's south exit hydrates (bidirectional default for
 # cardinals).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: terminus/city/campus/duncan-hall

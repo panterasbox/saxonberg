@@ -20,7 +20,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
@@ -32,7 +32,7 @@ class TestGiver extends SensorMixin(CommandGiverMixin(ContainerMixin(Containable
   static _mixinName = 'TestGiverPour';
 }
 
-function ctx(giver: TestGiver, loc: Location): CommandContext {
+function ctx(giver: TestGiver, loc: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -57,7 +57,7 @@ describe('pour sack into pot (the drive repro)', () => {
     }, '/stuff/idea/material/bulk/potting-soil') as unknown as Material;
     void soilMat;
 
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const giver = makeStuff(() => {
       const g = new TestGiver();
       g.setName('Probe');

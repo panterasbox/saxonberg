@@ -1,7 +1,7 @@
 # The dive shop (underwater C5) — Morrow's, a tarred shed on the quay that
 # sells what takes you down and keeps you alive there, hires out a tender
 # and a pump, and sends divers to the city's jobs.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   coords: { x: 0, y: 0, z: 0 }
   shortDescription: "dive shop"

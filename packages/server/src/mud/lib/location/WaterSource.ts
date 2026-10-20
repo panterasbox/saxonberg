@@ -29,6 +29,11 @@ export interface WaterDraw {
   materialPath: string;
   /** The water's temperature, K. */
   temperatureK: number;
+  /**
+   * The water's hardness, °dH (cleanliness D12) — the source's own,
+   * carried by what is drawn. Absent ⇒ the source does not say.
+   */
+  hardnessDgh?: number;
 }
 
 /**

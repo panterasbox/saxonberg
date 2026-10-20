@@ -38,6 +38,7 @@
 
 import { Boundary } from '../../lib/boundary/Boundary';
 import { SealableMixin } from '../../lib/spatial/Sealable';
+import { SoilableMixin, SOIL_BANDS } from '../../lib/cleanliness/Soilable';
 import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { MixinApi } from '../../api/mixin';
@@ -55,7 +56,9 @@ import type { ColorTag } from '../../lib/perception/Light';
 import { Colour } from '../../lib/perception/Colour';
 import type { FieldMeta } from '../../lib/mixin';
 
-const WindowBase = SealableMixin(Boundary);
+// ⭐ Soilable (cleanliness D19): every pane may grime — soot from the
+// room's fires, the town's dirt — and a grimed pane passes less light.
+const WindowBase = SoilableMixin(SealableMixin(Boundary));
 
 interface DirectionalOverrides {
   aToB?: number;
@@ -289,10 +292,22 @@ export default class Window extends WindowBase {
 
   public transmissivity(from: BoundarySide, to: BoundarySide): number {
     if (!this.isOpen()) return 0;
-    if (from === to) return this._baseTransmissivity;
+    const grime = this.grimeFactor();
+    if (from === to) return this._baseTransmissivity * grime;
     const override = from === 'A' ? this._aToBOverride : this._bToAOverride;
-    if (override !== null) return override;
-    return this._baseTransmissivity;
+    if (override !== null) return override * grime;
+    return this._baseTransmissivity * grime;
+  }
+
+  /**
+   * ⭐ A grimed pane passes less (cleanliness D19): `1 − 0.6 × band/3` —
+   * soot from the room's fires, the weather side's dirt — so a filthy
+   * window lets in 40 % of what a clean one does, and `wash window` brings
+   * the light back. The one number the light walk reads, scaled in place.
+   */
+  private grimeFactor(): number {
+    const rank = SOIL_BANDS.indexOf(this.soilBand());
+    return 1 - 0.6 * (Math.max(0, rank) / 3);
   }
 
   public canSeeThrough(from: BoundarySide, to: BoundarySide): boolean {

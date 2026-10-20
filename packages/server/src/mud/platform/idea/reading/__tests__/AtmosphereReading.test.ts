@@ -19,7 +19,7 @@ import { withRow } from './row';
 import { driveMeasure, driveAnalyze, instrumentWith } from './drive';
 import AtmosphereReading from '../AtmosphereReading';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Biome from '../../../../lib/biome/Biome';
 import { BiomeApi } from '../../../../api/biome';
 import Material from '../../../../lib/material/Material';
@@ -69,7 +69,7 @@ function stubCommand(verb: string): CommandDefinition {
 
 function makeContext(
   avatar: FakeAvatar,
-  location: CartesianLocation,
+  location: Location,
   verb: string,
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -114,7 +114,7 @@ function body(avatar: FakeAvatar): string {
 
 describe('AtmosphereReading', () => {
   let zone: CartesianZone;
-  let room: CartesianLocation;
+  let room: Location;
   let avatar: FakeAvatar;
 
   beforeEach(() => {
@@ -124,7 +124,7 @@ describe('AtmosphereReading', () => {
     installRootBiome();
     installSmoke();
     zone = makeStuff(() => new CartesianZone());
-    room = makeStuff(() => new CartesianLocation());
+    room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
     avatar = makeStuff(() => new FakeAvatar());
     avatar.setName('Alice');
@@ -216,7 +216,7 @@ describe('AtmosphereReading', () => {
     const ctx = CommandApi.createCommandContext({
       commandGiver: nowhere as unknown as CommandContext['commandGiver'],
       interactive: {} as Interactive,
-      location: null as unknown as CartesianLocation,
+      location: null as unknown as Location,
       commandText: 'analyze atmosphere',
       executionId: 't',
       commandId: 'c',

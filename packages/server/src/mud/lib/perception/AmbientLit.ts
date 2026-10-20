@@ -73,6 +73,14 @@ export interface AmbientLit {
    */
   isSkyLit(): boolean;
   /**
+   * ⭐ What the named opening passes of the sky (cleanliness D19, B18):
+   * when a `'sky'` room's `ambientOpening` is a real pane in the room — a
+   * window whose keyword is the opening — the daylight comes THROUGH it,
+   * so a grimed or shuttered window darkens the room. `1` when the opening
+   * is only a described one.
+   */
+  openingTransmissivity(): number;
+  /**
    * How much of the open sky lights this scope, 0–1: 1 for an authored
    * `ambientSource: sky` (the authored rung is never multiplied) or an
    * open top; otherwise what its roof and walls pass (Beer–Lambert).
@@ -349,6 +357,30 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this._ambientSource === 'sky') return 1;
       if (this._ambientSource !== null) return 0;
       return BiomeApi.exposureOf(this as unknown as Stuff)?.skyLightFraction() ?? 0;
+    }
+
+    openingTransmissivity(): number {
+      if (this._ambientSource !== 'sky' || !this._ambientOpening) return 1;
+      const opening = this._ambientOpening;
+      const contents = (
+        this as unknown as { getContents?: () => readonly unknown[] }
+      ).getContents?.() ?? [];
+      for (const c of contents) {
+        // The pane shape, duck-probed (the LightFilter precedent): a lib
+        // mixin does not import the platform Window.
+        const glazing = c as {
+          hasKeyword?: (k: string) => boolean;
+          transmissivity?: (from: 'A', to: 'A') => number;
+        };
+        if (
+          typeof glazing.transmissivity === 'function' &&
+          typeof glazing.hasKeyword === 'function' &&
+          glazing.hasKeyword(opening)
+        ) {
+          return glazing.transmissivity('A', 'A');
+        }
+      }
+      return 1;
     }
 
     /**

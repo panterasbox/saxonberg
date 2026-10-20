@@ -148,6 +148,10 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
   { prefix: "/trade/tailoring/", dir: () => TAILORING_DIR },
+  // ⭐ The cleansers' shelf (cleanliness W3).
+  { prefix: "/trade/chandlery/", dir: () => fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url)) },
+  { prefix: "/trade/fuel/", dir: () => fileURLToPath(new URL("../../../trade-fuel/content/trade/fuel/", import.meta.url)) },
+  { prefix: "/trade/quarrying/", dir: () => fileURLToPath(new URL("../../../trade-quarrying/content/trade/quarrying/", import.meta.url)) },
   // ⭐ The rubber works' boots, gloves and coat (rubber build).
   { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   // The commons — the generic-objects pack, and the fallback.
@@ -215,7 +219,8 @@ describe("general-store content integrity", () => {
     expect(zone.class).toBe("/platform/idea/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
-    expect(room.class).toBe("/platform/location/SingletonCartesianLocation");
+    // ⭐ Persistent (cleanliness D31): a kept place's floor outlives a restart.
+    expect(room.class).toBe("/platform/location/PersistentLocale");
     expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
@@ -281,6 +286,19 @@ describe("general-store content integrity", () => {
     // ration pack is one: perishable matter belongs on the class that says
     // so, not on the generic `Thing` that happened to be carrying the gauge.
     "/platform/thing/Provision",
+    // ⭐ The cleansers' shelf and the soap-maker's kit (cleanliness W3) —
+    // each a Good underneath: the cured bar, a flask, a lump of fuller's
+    // earth or chalk, the hopper, the kettle and the frame.
+    "/trade/chandlery/thing/SoapBar",
+    "/platform/thing/Receptacle",
+    "/trade/quarrying/thing/Lump",
+    "/trade/chandlery/thing/Hopper",
+    "/trade/chandlery/thing/SoapKettle",
+    "/platform/thing/Mould",
+    // The rug a floor is kept under, and beaten (cleanliness D15).
+    "/platform/thing/Rug",
+    // A clothes line a wash is hung out on (cleanliness D11) — the rack class.
+    "/platform/thing/DryingRack",
     // ⭐ Still shipped, and now narrowed to what it is FOR: a light that
     // burns nothing (the glowcap jar and its fixture, which are a
     // fungus). The lantern and the torch moved to `Lamp`.
@@ -341,6 +359,14 @@ describe("general-store content integrity", () => {
     // lives in the smithing pack so the kernel never names a trade's
     // view. The ingot a Meltable Thing — all discrete, none Stackable.
     "/platform/thing/Tool",
+    // The cleanliness instruments (review: the verb goes on what PERFORMS
+    // the act, not the room): the broom and flue brush sweep, rushes strew,
+    // a heap is disposed of.
+    "/platform/thing/SweepingTool",
+    // A towel (cleanliness B56) — a cloth you dry with.
+    "/platform/thing/Cloth",
+    "/platform/thing/Litter",
+    "/platform/thing/Heap",
     "/platform/thing/MendingTool",
     "/trade/smithing/thing/Whetstone",
     "/platform/thing/Ingot",

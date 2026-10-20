@@ -14,7 +14,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
@@ -61,7 +61,7 @@ class TestGiver extends TestGiverBase {
 
 describe('CommandGiverMixin.executeCommand lifecycle', () => {
   let giver: TestGiver;
-  let location: Location;
+  let location: Place;
 
   beforeEach(() => {
     CommandApi.clearCache();
@@ -91,7 +91,7 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
       findById: vi.fn(),
     } as unknown as PersistenceManager);
 
-    location = makeStuff(() => new Location());
+    location = makeStuff(() => new Place());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });

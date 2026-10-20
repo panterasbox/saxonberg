@@ -98,6 +98,9 @@ export type PnlCategory =
   | "fee"
   | "onboarding"
   | "consignment"
+  /** A house paying for what it ruined — the laundress's cover, a
+   * warranty, an insurer (cleanliness D26; named generically). */
+  | "damages"
   | "escrow"
   | "draw"
   | "commission"

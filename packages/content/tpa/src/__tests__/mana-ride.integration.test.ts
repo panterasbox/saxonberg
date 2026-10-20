@@ -29,7 +29,7 @@ import { CommandGiverMixin } from "@saxonberg/server/mud/lib/command/CommandGive
 import { SensorMixin } from "@saxonberg/server/mud/lib/message/Sensor";
 import { NamedMixin } from "@saxonberg/server/mud/lib/description/Named";
 import { EnvironmentMixin } from "@saxonberg/server/mud/lib/shell/Environment";
-import Location from "@saxonberg/server/mud/lib/stuff/Location";
+import Place from "@saxonberg/server/mud/lib/stuff/Place";
 import { Agent } from "@saxonberg/server/mud/lib/stuff/Agent";
 import CredentialWalletUpdate from "@saxonberg/server/mud/platform/idea/CredentialWalletUpdate";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
@@ -134,9 +134,9 @@ function seedNetwork(opts: {
   standbyWatts?: number;
   cell?: number | null;
   mains?: boolean;
-} = {}): { dRoom: Location; depart: TpaTerminal; arrive: TpaTerminal } {
-  const dRoom = makeStuffAtPath(() => new Location(), D_ROOM);
-  const rRoom = makeStuffAtPath(() => new Location(), R_ROOM);
+} = {}): { dRoom: Place; depart: TpaTerminal; arrive: TpaTerminal } {
+  const dRoom = makeStuffAtPath(() => new Place(), D_ROOM);
+  const rRoom = makeStuffAtPath(() => new Place(), R_ROOM);
 
   const depart = makeStuffAtPath(() => new TpaTerminal(), DEPART);
   depart.setDirectionality("departure");

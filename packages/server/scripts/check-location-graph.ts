@@ -79,14 +79,14 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  * (the abstract base and its concrete twin share a name).
  */
 const LOCATION_ROOTS = [
-  "/lib/stuff/Location",
-  "/platform/location/CartesianLocation",
-  "/platform/location/SingletonCartesianLocation",
-  "/platform/location/FurnishableRoom",
-  "/lib/location/CartesianLocation",
+  "/lib/stuff/Place",
+  "/platform/location/Location",
+  "/platform/location/Locale",
+  "/platform/location/PersistentLocation",
+  "/lib/location/Location",
   "/lib/location/SphericalLocation",
   "/platform/location/SphericalLocation",
-  "/platform/location/SingletonSphericalLocation",
+  "/platform/location/SphericalLocale",
 ];
 
 /** The kernel's spatial-zone roots — derived onward, never listed. */

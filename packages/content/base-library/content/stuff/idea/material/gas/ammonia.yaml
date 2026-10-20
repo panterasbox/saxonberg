@@ -1,0 +1,20 @@
+# Ammonia — what stale urine gives off as it works (cleanliness D22): the
+# fuller's and the laundress's alkali, and in a shut laundry it stings the
+# eyes and the chest. A door clears it.
+class: /platform/idea/material/Material
+data:
+  name: ammonia
+  keywords: [ammonia, reek]
+  appearance: a pungent, eye-watering reek
+  density: 0.73
+  boilingPoint: 240
+  thermalConductivity: 0.02
+  electricalConductivity: 1.0e-12
+  edibility: false
+  nutrients: []
+  toxicity:
+    - type: ammonia
+      amount: 20
+  tags: [gas, fume]
+  composition: []
+  biologicalSource: null

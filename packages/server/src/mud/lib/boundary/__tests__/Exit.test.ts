@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
@@ -39,8 +39,8 @@ describe('Exit', () => {
   });
 
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
   let mover: TestMover;
   let peerInA: PeerSensor;
   let peerInB: PeerSensor;
@@ -49,10 +49,10 @@ describe('Exit', () => {
     buildAllModes();
     zone = makeStuff(() => new CartesianZone());
 
-    locA = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
     locA.setShortDescription('Location A');
 
-    locB = makeStuff(() => new CartesianLocation());
+    locB = makeStuff(() => new Location());
     locB.setShortDescription('Location B');
 
     zone.addLocation(locA, 0, 0, 0);
@@ -232,7 +232,7 @@ describe('Exit lazy destination resolution', () => {
   });
 
   it('throws on sync destination access when path not loaded', async () => {
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
     const exit = makeStuff(() => new Exit({
       direction: 'east',
       source: a,
@@ -243,8 +243,8 @@ describe('Exit lazy destination resolution', () => {
   });
 
   it('resolves the path-form destination via findByTemplatePath each call', async () => {
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
 
     const exit = makeStuff(() => new Exit({
       direction: 'east',
@@ -261,8 +261,8 @@ describe('Exit lazy destination resolution', () => {
     // ref and returned it forever, even if the singleton was
     // re-registered (hot-reload, admin swap, etc.). After the
     // cache drop, every read goes through `findByTemplatePath`.
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b1 = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b1 = makeStuffAtPath(() => new Location(), '/zone/b');
 
     const exit = makeStuff(() => new Exit({
       direction: 'east',
@@ -273,7 +273,7 @@ describe('Exit lazy destination resolution', () => {
 
     // Swap the singleton at /zone/b: unregister b1, register b2.
     StuffApi.unregister(b1);
-    const b2 = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const b2 = makeStuffAtPath(() => new Location(), '/zone/b');
 
     // Next read observes the swap.
     expect(exit.getDestination()).toBe(b2);
@@ -281,8 +281,8 @@ describe('Exit lazy destination resolution', () => {
   });
 
   it('getDestinationTemplatePath returns the path regardless of resolution', async () => {
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/zone/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/zone/b');
+    const a = makeStuffAtPath(() => new Location(), '/zone/a');
+    const b = makeStuffAtPath(() => new Location(), '/zone/b');
 
     const liveExit = makeStuff(() => new Exit({
       direction: 'east',
@@ -302,8 +302,8 @@ describe('Exit lazy destination resolution', () => {
 
 describe('Exit.media', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
   let mover: TestMover;
 
   beforeEach(() => {
@@ -313,8 +313,8 @@ describe('Exit.media', () => {
     // walk-only without needing a loaded singleton.
     buildAllModes();
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locB = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
+    locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     mover = makeStuff(() => new TestMover());
@@ -441,15 +441,15 @@ describe('Exit.media', () => {
 
 describe('Exit.canTraverse with mode', () => {
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
   let mover: TestMover;
 
   beforeEach(() => {
     buildAllModes();
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locB = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
+    locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     mover = makeStuff(() => new TestMover());

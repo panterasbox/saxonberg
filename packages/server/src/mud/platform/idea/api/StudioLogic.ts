@@ -31,7 +31,7 @@ import Thing from '../../../lib/stuff/Thing';
 import Good from '../../../lib/stuff/Good';
 import { Actor } from '../../../lib/creature/Actor';
 import { Vessel } from '../../../lib/stuff/Vessel';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import { Agent } from '../../../lib/stuff/Agent';
 import { Creature } from '../../../lib/creature/Creature';
 import { Character } from '../../../lib/character/Character';
@@ -82,7 +82,7 @@ const SOURCE_ROOT_DISPLAY = '/server/src/mud';
  */
 const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
   // The real fundamental divisions of `Stuff` (Idea/Shadow extend Stuff
-  // directly; Agent = TangibleMixin(Stuff); Thing/Location are composed
+  // directly; Agent = TangibleMixin(Stuff); Thing/Place are composed
   // roots; Good = Thing + Chattel/Concealable, the goods rung;
   // Vessel = a container-object that extends Good;
   // Creature→Actor→Character specialize Agent — a body, a body that
@@ -94,7 +94,7 @@ const PALETTE_BASE_CTORS: Record<string, AnyConstructor> = {
   Thing: Thing as unknown as AnyConstructor,
   Good: Good as unknown as AnyConstructor,
   Vessel: Vessel as unknown as AnyConstructor,
-  Location: Location as unknown as AnyConstructor,
+  Place: Place as unknown as AnyConstructor,
   Agent: Agent as unknown as AnyConstructor,
   Creature: Creature as unknown as AnyConstructor,
   Actor: Actor as unknown as AnyConstructor,
@@ -376,7 +376,7 @@ function collectHelpEnrichment(mixinName: string): {
  * A one-time scan mapping each exported mixin factory (`_mixinName`) and each
  * exported base class to its source file (absolute), recording whether a base
  * class is a `export default` (so the scaffolder emits a default import, not a
- * named one — e.g. `Thing`/`Location`). Reuses the same tree walk as the
+ * named one — e.g. `Thing`/`Place`). Reuses the same tree walk as the
  * classification scan. Best-effort — an unresolved name degrades to a
  * placeholder comment the wizard fixes in Monaco.
  */

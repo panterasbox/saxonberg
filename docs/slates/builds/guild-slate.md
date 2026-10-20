@@ -1117,3 +1117,86 @@ authority; the wall) · [access.md](../../subsystems/access.md)
 credentials) · [renown.md](../../subsystems/renown.md) (credential
 value) · [attendant.md](../../subsystems/attendant.md) (congestion made
 felt).
+
+## ⭐ Recorded 2026-10-19 — the galley cook, a vocation at an intersection
+
+From the ships session (not yet drilled). *"The galley cook is the perfect case
+for guilds, which is how we encapsulate these kinds of combinatorial effects
+between trades and vocations."* By the formation rule (*vocation = discipline ×
+livelihood*), the ship's cook is **cooking's disciplines (plus preserving —
+curing, drying, salting) × the sea's livelihood** (a crew berth under articles):
+not a new discipline, a **combination a guild can recognise**. Two institutions
+have a claim — the **mariners'** (who rate *ship's cook* on the articles) and the
+**cooks'** (who know the cookery) — and this slate's answer to overlap is
+**wings inside one institution, never forks**: a sea wing of the cooks' guild,
+or a cookery rating within the mariners', the claim rule deciding who may
+certify. ⭐ Content fact: in the Royal Navy the cook's warrant often went to a
+seaman **disabled in service**, as a pension. See
+[ships-and-harbors-slate](./ships-and-harbors-slate.md) § 15 and
+[wellbeing-slate](./wellbeing-slate.md) § 8.
+
+## ⭐⭐⭐ Designed 2026-10-19 — the MAP ROOM, the first concrete guild feature
+
+*"Maybe the first real feature we've added to guilds, and I think it's a good
+one."* Out of the mariners' guild (ships-and-harbors § 16). It makes the
+slate's first fantasy — **a door into a hidden world** — literal, and it is a
+feature of the **guild model**, not of one guild (*"a foresters' guild or
+something wants to map the woods"*).
+
+What ships ([location-graph.md](../../subsystems/location-graph.md)): a
+player's map is append-only **claims** in six channels (`walked` · `seen` ·
+`searched` · `published` · `charted` · `told`); `ChartedMixin` is *a source
+whose knowledge is claims* — reading a `Chart` writes `charted` claims, a paid
+`Pilot` writes `told` claims signed `toldBy`; the evidence firewall keeps the
+true index from every map. A shipped chart is authored once and never
+changes. **The map room is a chart its readers keep feeding.**
+
+- **Contributing** — at the guild's map room a member contributes what their
+  own map holds **within the guild's domain**; it is copied into the guild's
+  map document **dated and signed by the contributor**, appended, never merged.
+- ⭐ **Honest by construction** — a contribution can only copy claims the
+  contributor's map already holds, and only the engine writes those (walked,
+  seen, searched, measured). **Nobody can forge a channel or invent a coast**;
+  a guild map can be stale or incomplete, never fabricated. Lies stay in
+  `told`, signed.
+- **Reading** — a member reads the room and the shipped `ChartedMixin` writes
+  **`charted`** claims into their map, attributed to the guild's chart — the
+  existing mechanism with a growing source; whose survey a line came from, and
+  how old, stays visible.
+- ⭐ **Why the guild's map beats the library's** (a public map room at the
+  university or records office, the same mechanism open to all):
+  **practitioners feed it** (mariners at sea, foresters in the deep wood,
+  miners down the workings — where outsiders never go); **it is curated** (a
+  **cartographer's seat**, a master, drops the stale and flags contradictions —
+  a trusted judgement); **it is restricted** (members read it — *the map is the
+  mystery*).
+- ⭐ **The domain is the charter's region** — the mariners' channels, bars,
+  soundings, currents and wrecks (band claims, depth readings); the foresters'
+  woods; the delvers' workings and damps; the wardens' wilds and dens.
+- **Contribution is a teaching deed** — a contribution another member reads and
+  uses mints for its contributor (*teaching deeds only mint when done for
+  others*), a road to mastery.
+- ⭐ **Printing the chart** — a guild may sell a `Chart` Thing whose claims are a
+  dated snapshot of its map: revenue, and a lens 4 choice — **Portugal kept its
+  sea charts a state secret** (the *padrão real*); later admiralties published
+  for safety.
+
+## Recorded 2026-10-19 — two charters by default, and an organizing principle (OPEN)
+
+- **Two is the default stance** (*"with guilds I feel like two is better than
+  one most of the time"*) — the mariners' guild and the watermen
+  ([ships-and-harbors-slate](./ships-and-harbors-slate.md) § 17): one living,
+  one shipped as a ruin.
+- ⚠ **OPEN — an organizing principle**: *"it may become necessary to apply an
+  organization principle around them instead of just a big bag of different
+  guilds with no relationship to each other."* Candidates:
+
+| principle | what organizes them | precedent |
+|---|---|---|
+| ⭐ **the supply chain** (the lean) | each guild sits at a position — **extract** (delvers, foresters), **transform** (smiths, ceramics, victuallers), **move** (watermen, carriers, mariners), **serve** (physic, the Chorus, landwrights) | `vocations.md` already organizes the vocations register by chain position |
+| the discipline map | each guild a region of the catalogue; neighbours by shared disciplines | the claim rule |
+| the paymaster | market · polity paper · patronage | the audit test (*who pays?*) |
+| precedence and federation | ranked or grouped by the polity — London's **Great Twelve** livery companies; a **trades council** | a governance choice — the polity's, never the engine's |
+
+  The lean: **the supply chain as the primary order**, **precedence and
+  federation left to each polity**. To decide when the slate fills out.

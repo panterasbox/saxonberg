@@ -315,6 +315,12 @@ The shipped frame holds — session, poise, gambits, tempo, terms, morale. No
 new combat system; the physics feeds it, and one thing becomes central:
 **the fight is about air.**
 
+**Coordinates are the author's choice**: `Location` for a
+gridded reef; `SphericalLocation` — exists, positions by focus and
+radius, *no implicit adjacency, every exit explicit* — for a column, a
+dome, a city under one. A column's exits are `up` and `down`, derived
+from depth. `lint:locations` is satisfied either way.
+
 - **Drag in the weapon profile.** A weapon is already a derived bundle from
   form × material × mass × length; water adds the **area presented along
   the motion**. Swung edges and clubs collapse (energy ∝ v²); **thrusts
@@ -419,7 +425,7 @@ you surface (joints → neurological → fatal). **Nothing in the body tells
 you**: you learn it from **dive tables**, a document bought or taught. The
 stops are **staying in a band** — September's *the stop is a stop set*,
 with no new verb. **Treatment is recompression** — back down, or a chamber a
-harbour town builds (the medic vertical's second consumer). Free divers do
+harbor town builds (the medic vertical's second consumer). Free divers do
 not get it, which is why it lives on the pump rung.
 
 **Narcosis** below ~30 m on air — the rapture of the deep — is a
@@ -430,7 +436,7 @@ just let go of.
 
 - **The tank** — `AirTank` ships; the rung adds **air as an economy**:
   tanks filled at a **powered compressor** (the grid or `ManaPowered`), a
-  counter business at a harbour, and ⭐ **bad air** — a compressor whose
+  counter business at a harbor, and ⭐ **bad air** — a compressor whose
   intake breathes its own exhaust fills tanks with carbon monoxide.
   Physiology carries over unchanged.
 - **The submersible** — a positioned Location with boundary's `Window`s, a
@@ -571,7 +577,7 @@ stone and belt, lines, bell, the hard-hat dress and pump, dive tables; the
 discipline (equalizing, buoyancy control, line work, reading a bed); its
 verbs (`tug`, `drop belt`, `equalize` if it needs one); and the jobs, which
 are services: **tender and pump crew**, and the **diver for hire** —
-inspection, harbour works, bridge footings, cable laying, recovering a
+inspection, harbor works, bridge footings, cable laying, recovering a
 player's own wreck, ⭐ and **recovering a body** (who the town sends for).
 The trade-shopkeeping shape: a trade whose product is a service.
 

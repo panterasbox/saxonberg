@@ -46,7 +46,10 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
-import { HygieneMixin } from '../vitals/Hygiene';
+import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
+import { HygieneMixin } from '../cleanliness/Hygiene';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import { ReservedMixin, Reserve } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
@@ -142,7 +145,10 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // clock, so its placement is immaterial to the ordered body stack, and
 // being outermost puts its `canEvict` veto ahead of the others — a corpse
 // objects to being collected before any inner layer gets a say.
-const CreatureBase = PostmortemMixin(
+// ⭐ Hygiene OUTERMOST (cleanliness, review): how a body is kept clean reads
+// the covering stack (Attired) and writes the body's soil by part
+// (Soilable), so it sits outside both — and clothing knows nothing of dirt.
+const CreatureBase = HygieneMixin(PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -174,9 +180,11 @@ const CreatureBase = PostmortemMixin(
             ThermalMixin(
               RespirationMixin(
                 MetabolicMixin(
-                  // Body cleanliness beside vitals — every body can be dirty;
-                  // only a treater's cleanliness is ever read (recovery D10).
-                  HygieneMixin(
+                  // ⭐ Dirt by kind, per body part (cleanliness D4): every
+                  // body that wears things can be dirty where it was
+                  // touched. No clock — the retired HygieneMixin decayed
+                  // clean hands to dirty by itself; now only an act soils.
+                  SoilableMixin(
                   VitalsMixin(
                     ReservedMixin(
                       PosedMixin(
@@ -218,7 +226,7 @@ const CreatureBase = PostmortemMixin(
   )
   )
   )
-);
+));
 
 /**
  * The body-condition bands, thin to fat — ⭐ a CLOSED, ordinal
@@ -352,6 +360,112 @@ export class Creature extends CreatureBase {
     // satiation / hydration) at full. Idempotent — hydration overwrites
     // from stored values afterward.
     this.installBiologicalReserves();
+  }
+
+  // ── dirt on the body (cleanliness D4) ──
+  // ⭐ A body's sites are its PART keys. Which LAYER an act reaches —
+  // the glove or the bare hand — is the wearer's question and lives on
+  // `AttiredMixin` (`soilBodyPart`, `soilHands`, `handCleanliness`);
+  // this class only words what is on the bare skin.
+
+  /**
+   * Skin holds no set stain: hot water on bloodied hands washes them (a
+   * bath from the copper is ~330 K, over blood's 318 K set point — it set
+   * the blood on the bather's hands, found by the drive).
+   */
+  public override holdsSetStains(): boolean {
+    return false;
+  }
+
+  /**
+   * A body wash wets the share of the body washed — a hand is ~3% of
+   * the skin, so washing your hands leaves you dry and a bath soaks you
+   * (B56). `''` is the whole skin.
+   */
+  public override washedShare(site: string): number {
+    if (site === '') return 1;
+    return this.surfaceShareOf((k) => k === site);
+  }
+
+  /**
+   * ⭐ A body smells of its skin AND what it wears (B57) — the shirt you
+   * worked in all day is half of why you need a bath.
+   */
+  public override soilOdour(): { identity: string; ppm: number } | null {
+    const own = super.soilOdour();
+    let ppm = own?.ppm ?? 0;
+    let identity = own?.identity ?? '';
+    let strongest = own?.ppm ?? 0;
+    const seen = new Set<unknown>();
+    for (const occupants of this.getAllOccupants().values()) {
+      for (const layer of occupants) {
+        if (seen.has(layer)) continue;
+        seen.add(layer);
+        const s = layer as unknown as Stuff;
+        if (!MixinApi.isSoilable(s)) continue;
+        const o = s.soilOdour();
+        if (!o) continue;
+        ppm += o.ppm;
+        if (o.ppm > strongest) {
+          strongest = o.ppm;
+          identity = o.identity;
+        }
+      }
+    }
+    return ppm > 0 ? { identity, ppm } : null;
+  }
+
+  /**
+   * ⭐ A soaked body holds a FILM of water on its skin, not its flesh's
+   * absorption capacity × 70 kg — the water a towel takes (B56). Skin
+   * area by Meeh's law (`0.1 · m^(2/3)` m², ~1.7 m² at 70 kg) × the film
+   * per m² (`wetness.skinFilmKgPerM2`, 0.2): about a third of a litre.
+   */
+  public override waterCapacityKg(): number {
+    const massKg = this.getMass().rawValue();
+    if (!(massKg > 0)) return 0;
+    const areaM2 = 0.1 * Math.pow(massKg, 2 / 3);
+    return areaM2 * dial(AppSettingKeys.wetnessSkinFilmKgPerM2, 0.2);
+  }
+
+  /**
+   * The soil on the BARE skin, by region — *Your hands are bloodied.* What
+   * a garment carries is the garment's line (and the dressed impression's
+   * upkeep clause), so only parts nothing covers are spoken for here.
+   */
+  public soilLookLine(viewer: Stuff | null = null): string {
+    const regions: Array<[string, string[]]> = [
+      ['hands', this.handSites()],
+      ['feet', this.footSites()],
+    ];
+    const claimed = new Set(regions.flatMap(([, keys]) => keys));
+    const rest = this.soilSites().filter((s) => s !== WHOLE_SITE && !claimed.has(s));
+    const bySite = new Map<string, string[]>();
+    for (const site of rest) {
+      const region = site.split('.').pop() ?? site;
+      bySite.set(region, [...(bySite.get(region) ?? []), site]);
+    }
+    regions.push(...bySite.entries());
+    const possessive = viewer === (this as unknown as Stuff) ? 'Your' : 'Their';
+    const lines: string[] = [];
+    for (const [region, keys] of regions) {
+      const bare = keys.filter((k) => this.outermostAt(k) === null);
+      let worst = '';
+      let worstLoad = 0;
+      for (const k of bare) {
+        const load = this.soilAt(k);
+        if (load > worstLoad) {
+          worstLoad = load;
+          worst = k;
+        }
+      }
+      if (!worst) continue;
+      const phrase = this.soilPhrase(worst);
+      if (!phrase) continue;
+      const verb = region.endsWith('s') ? 'are' : 'is';
+      lines.push(`${possessive} ${region} ${verb} ${phrase}.`);
+    }
+    return lines.join(' ');
   }
 
   // ── biological reserve readers — the contract surface ──

@@ -10,7 +10,7 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TraceAddressController from '../TraceAddressController';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Locality from '../../../Locality';
 import AddressRegistry from '../../../AddressRegistry';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -37,7 +37,7 @@ import {
 import type { MqlOneResult } from '../../../../../api/mql';
 import type Interactive from '../../../Interactive';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),

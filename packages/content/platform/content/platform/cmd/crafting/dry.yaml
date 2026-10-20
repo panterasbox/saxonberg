@@ -1,0 +1,86 @@
+# ⭐ `dry` — and this view used to claim `hang` as an alias, which
+# collided with `platform/cmd/inventory/hang.yaml` (fixing a wall fixture
+# to a room).
+#
+# Adjudicated by the ladder at rung 2: hanging a thing on a wall is the
+# generative primitive — the furnishing/placement family, where what you
+# hang stays yours and survives the room emptying — while drying meat
+# already HAS its plain word, and this view's own help leads with it
+# (`dry <thing> [on <rack>]`). ⚠ The alias bought nothing and shadowed
+# something. `hang` is still the right word in the PROSE, which is where
+# it belongs: *you hang a cut up to dry.*
+verbs: [dry]
+controller: /platform/idea/cmd/crafting/DryController
+description: "Hang something up where the air can dry it"
+help: |
+  `dry <thing> [on <rack>]` — hang something up where the air can get at
+  it. Costs nothing but the time, and the time is the weather's to set.
+
+  `dry <thing> with <cloth>` — rub it dry: a towel takes the water into
+  itself, as much as it has room for (`dry me with towel` after a bath). A
+  sodden towel dries like anything else — hang it up.
+
+  ⭐ **Drying is a RATE, not a treatment.** Hanging a cut up does not dry
+  it; it puts it somewhere it *can* dry. What happens then is the air's
+  business: dry, warm, moving air takes water out fast, and saturated air
+  takes none out at all however long you wait. The act tells you roughly
+  what you are in for before you commit a week to it.
+
+  Drying takes the water away where salting binds it, so the two multiply
+  rather than compete — a cut that is salted AND dried keeps better than
+  one that is either.
+
+  ⚠ It is the hurdle that reverses. A dried thing left somewhere damp
+  softens back and loses what the drying bought, and rain undoes a week of
+  sun. A salted cut never un-salts.
+
+  ⚠ **Only what the air can reach dries.** Something shut in a sack, a
+  chest or a pack exchanges nothing. And what it is lying ON matters: a
+  slatted rack reaches all of it, bare ground reaches about a third —
+  which is why turf is stacked in an openwork lattice and cheese sits on
+  open shelves.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    # ⭐ `any`, deliberately, and now for a sharper reason than before: what
+    # can dry is decided by whether the thing HAS a water state
+    # (`WaterActivityMixin`), which the controller narrows and refuses in its own
+    # words. A pack that ships a fish, a hide or a turf needs no edit here.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach
+  - name: rack
+    type: object
+    required: false
+    # ⭐ One word per placement member this argument accepts. `from`
+    # is here because hanging is a placement now — see
+    # `/platform/idea/Placement/from` — and a verb whose argument takes
+    # a support but not the member's word refuses every such target AT
+    # THE BINDER, closed and silent. `lint:placement-words --list` is
+    # what tells an author which arguments those are.
+    prepositions: [on, onto, from]
+    scope: "reachable"
+    # The support is optional: hanging a thing in the open air works, it is
+    # simply slower. When one IS named it carries the exposure fraction.
+    default: "reachable:[class.DryingRack]"
+    requires: [PlacingMixin]
+    validators:
+      - /lib/command/validators/canReach
+  - name: cloth
+    type: object
+    required: false
+    prepositions: [with]
+    # The tail after `with` — `dry me with the linen towel`.
+    greedy: true
+    scope: "reachable"
+    # Any wet-able thing will rub something dry (a shirt in a pinch); a
+    # towel is simply good at it. The controller narrows.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach

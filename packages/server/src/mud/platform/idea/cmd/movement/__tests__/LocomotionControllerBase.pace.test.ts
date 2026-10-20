@@ -11,7 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RunController from '../RunController';
 import GoController from '../GoController';
 import CartesianZone from '../../../location/CartesianZone';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import Exit from '../../../../../lib/boundary/Exit';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -24,7 +24,7 @@ import { MobileMixin } from '../../../../../lib/spatial/Mobile';
 import { ReservedMixin, Reserve } from '../../../../../lib/reserve';
 import { ExertingMixin } from '../../../../../lib/exertion/Exerting';
 import type Interactive from '../../../Interactive';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import { CommandApi, type CommandContext, type CommandModel, type ModelData } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { AppApi } from '../../../../../api/app';
@@ -53,7 +53,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(avatar: Runner, location: Location, verb: string): CommandContext {
+function makeContext(avatar: Runner, location: Place, verb: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: avatar as unknown as CommandContext['commandGiver'],
     interactive: {} as Interactive,
@@ -77,8 +77,8 @@ function resolveTarget(giver: Stuff, raw: string): MqlOneResult {
 }
 
 describe('LocomotionControllerBase — the run that breaks', () => {
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
   let runner: Runner;
 
   beforeEach(async () => {
@@ -93,8 +93,8 @@ describe('LocomotionControllerBase — the run that breaks', () => {
     run.setCostMultiplier(2.0);
     run.setMedium('ground');
     const zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locB = makeStuff(() => new CartesianLocation());
+    locA = makeStuff(() => new Location());
+    locB = makeStuff(() => new Location());
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     await locA.addExit(

@@ -1,0 +1,10 @@
+# The laundry's lamp — a wall sconce kept LIT (cleanliness, the browser
+# walk): the back room's copper boils and the laundress works her shift
+# after dark, and a room with no light reads pitch black. The infirmary
+# ward's lamp is the precedent.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: sconce over the copper
+  keywords: [sconce, lamp, light]
+  on: true

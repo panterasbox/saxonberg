@@ -3,7 +3,7 @@
 > **Status: UNBUILT** — `isWizard` / `isArchwizard` exist as the
 > code-trust axis ([access.md](../../subsystems/access.md)); no bar, no
 > roster, no complaint process, no break-glass record.
-> **Left:** the safe-harbour standard text (⭐ the product) · admit (exam
+> **Left:** the safe-harbor standard text (⭐ the product) · admit (exam
 > + archwizard flip) · the public roster · the hearing process · advisory
 > disbarment. ⭐ The conspicuous record of wizard reads/impersonations —
 > the one non-retrofittable piece, which the bar is worthless without —
@@ -27,8 +27,8 @@ hosting and turned into what a wizard *is*:
 [wizard-duty-slate](../builds/wizard-duty-slate.md) established the law —
 **wizardry is a fiduciary role, not a permission** — and named exactly
 what was missing: the **duty**, the **process**, and ⚠ the **safe
-harbour**. Enforcement already ships (the PM may revoke any wizard). This
-slate is the **process**, and it argues the safe harbour is the product.
+harbor**. Enforcement already ships (the PM may revoke any wizard). This
+slate is the **process**, and it argues the safe harbor is the product.
 
 Related: [wizard-duty-slate](../builds/wizard-duty-slate.md) (**the parent** —
 the premise, break-glass, the recursion, the mechanism ranking),
@@ -124,9 +124,9 @@ the interesting one is the fifth row.
 | **Publish** | the roster is public — who holds the bit, since when | wizard-duty § mechanisms (*"suspicion has a short list"*) |
 | **Hear** | a complaint process any player can start, whose input is the break-glass record | wizard-duty § break-glass |
 | **Disbar** | recommend or revoke (⭐ **the dial** — see below) | the PM revocation that already ships |
-| ⭐⭐ **Safe harbour** | **the actual product** — a stated standard under which a wizard who breaks something in good faith is not treated as one who snooped | wizard-duty open Q2 |
+| ⭐⭐ **Safe harbor** | **the actual product** — a stated standard under which a wizard who breaks something in good faith is not treated as one who snooped | wizard-duty open Q2 |
 
-> ⭐⭐⭐ **The safe harbour is why the institution exists at all.** Without
+> ⭐⭐⭐ **The safe harbor is why the institution exists at all.** Without
 > it the role is unfillable — the parent slate says so plainly. A bar
 > that only punishes recruits nobody; a bar that *defines what good-faith
 > practice looks like* is the thing that makes accepting the capability
@@ -221,7 +221,7 @@ is the third:
    transcript that already ships. **Leans University-examines /
    bar-admits** (the transcript is evidence; admission is a judgment),
    but this is genuinely unsettled and it changes what gets built.
-2. ⚠ **What is the safe harbour's actual text?** Named as the product
+2. ⚠ **What is the safe harbor's actual text?** Named as the product
    above and still unwritten. A business-judgment-rule equivalent is the
    obvious model; whether it protects *breaking things* only, or also
    *misjudging a break-glass purpose*, is the substance.

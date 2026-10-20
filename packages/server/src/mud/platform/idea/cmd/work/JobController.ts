@@ -26,6 +26,7 @@ import { Mml } from "../../../../api/mml";
 import { ContractApi } from "../../../../api/contract";
 import type { ConditionData } from "../../../../lib/employment/Condition";
 import type { ContractRecord } from "../../../../lib/employment/ContractRecord";
+import type { Stuff } from "../../../../lib/stuff/Stuff";
 import JobBoard from "../../../thing/JobBoard";
 
 const TOPIC = "act.deed";
@@ -182,7 +183,7 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
   ):
     | {
-        template: "delivery" | "supply" | "watch" | "inspection";
+        template: "delivery" | "supply" | "watch" | "clean" | "inspection";
         itemRef: ConditionData["item"];
         destinationPath: string;
         count: number;
@@ -213,14 +214,20 @@ export default class JobController extends CommandController<JobModel> {
     // what it is — a drowned body has no chattel row (underwater D17).
     const recovering = verb === "recover";
     if (recovering) verb = "deliver";
-    if (verb !== "deliver" && verb !== "supply" && verb !== "watch") {
+    if (
+      verb !== "deliver" &&
+      verb !== "supply" &&
+      verb !== "watch" &&
+      verb !== "clean"
+    ) {
       return {
         error:
           `Post what? Say what has to be true — ` +
           `\`deliver <thing> to <place>\`, ` +
           `\`supply <n> <kind> to <place>\`, ` +
-          `\`watch <place> for <n> hours\`, \`inspect <works>\` or ` +
-          `\`recover <body> to <place>\`.`,
+          `\`watch <place> for <n> hours\`, ` +
+          `\`clean <place>\` / \`clean <thing> at <place>\`, ` +
+          `\`inspect <works>\` or \`recover <body> to <place>\`.`,
         reason: "no-condition",
       };
     }
@@ -274,6 +281,7 @@ export default class JobController extends CommandController<JobModel> {
         gameHours: hours,
       };
     }
+    if (verb === "clean") return this.parseClean(words, context);
     // The destination is everything after `to`; the subject is what is
     // left in front of it.
     const at = words.findIndex((w) => w.toLowerCase() === "to");
@@ -391,6 +399,113 @@ export default class JobController extends CommandController<JobModel> {
   }
 
   /**
+   * ⭐ `clean <place>` · `clean <thing> [at <place>]` — the cleaning gig
+   * (cleanliness D30). A place means its floor; a thing (a hearth, a
+   * marked shirt) means that thing, found at the place when the work is
+   * turned in. The engine checks the subject is clean NOW, not that
+   * anybody took care.
+   */
+  private parseClean(
+    words: string[],
+    context: CommandContext,
+  ):
+    | {
+        template: "clean";
+        itemRef: ConditionData["item"];
+        destinationPath: string;
+        count: number;
+      }
+    | { error: string; reason: string } {
+    const at = words.findIndex((w) => w.toLowerCase() === "at");
+    const subjectRaw = (at < 0 ? words : words.slice(0, at)).join(" ").trim();
+    const placeRaw = at < 0 ? "" : words.slice(at + 1).join(" ").trim();
+    if (subjectRaw.length === 0) {
+      return {
+        error: `Clean what? \`clean <place>\` or \`clean <thing> at <place>\`.`,
+        reason: "no-item",
+      };
+    }
+    if (at < 0) {
+      // A place by itself — or a thing here, when it names one.
+      const thing =
+        MqlApi.resolveMany(subjectRaw, {
+          commandGiver: context.commandGiver,
+          scope: "reachable",
+        }).stuff[0] ?? null;
+      if (thing === null || MixinApi.isFloor(thing)) {
+        const placePath =
+          thing !== null
+            ? context.location?.getTemplatePath() ?? ""
+            : this.place(subjectRaw, context);
+        if (placePath.length === 0) {
+          return {
+            error: `Nobody here has heard of that place.`,
+            reason: "unknown-destination",
+          };
+        }
+        return {
+          template: "clean",
+          itemRef: { kind: "template", path: placePath },
+          destinationPath: placePath,
+          count: 1,
+        };
+      }
+      return this.cleanThing(thing, context.location?.getTemplatePath() ?? "");
+    }
+    const placePath = this.place(placeRaw, context);
+    if (placePath.length === 0) {
+      return {
+        error: `Nobody here has heard of that place.`,
+        reason: "unknown-destination",
+      };
+    }
+    const thing =
+      MqlApi.resolveMany(subjectRaw, {
+        commandGiver: context.commandGiver,
+        scope: "reachable",
+      }).stuff[0] ?? null;
+    if (thing === null) {
+      const kind = this.kindOf(subjectRaw, context);
+      if (kind.length === 0) {
+        return { error: `There is no such thing.`, reason: "no-item" };
+      }
+      return {
+        template: "clean",
+        itemRef: { kind: "template", path: kind },
+        destinationPath: placePath,
+        count: 1,
+      };
+    }
+    return this.cleanThing(thing, placePath);
+  }
+
+  /** A pointed-at thing to clean: THAT one if it is marked, else its kind. */
+  private cleanThing(
+    thing: Stuff,
+    placePath: string,
+  ):
+    | {
+        template: "clean";
+        itemRef: ConditionData["item"];
+        destinationPath: string;
+        count: number;
+      }
+    | { error: string; reason: string } {
+    if (placePath.length === 0) {
+      return { error: `Clean it where?`, reason: "unknown-destination" };
+    }
+    const chattelId = MixinApi.isChattel(thing) ? thing.getChattelId() : "";
+    return {
+      template: "clean",
+      itemRef: chattelId
+        ? { kind: "chattel", chattelId }
+        : { kind: "template", path: thing.getTemplatePath() ?? "" },
+      destinationPath: placePath,
+      count: 1,
+    };
+  }
+
+  /**
    * A KIND, as a durable path: something reachable resolves to its
    * template, and anything else is read as a path. ⚠ `ContractApi.post`
    * re-validates that the kind is really something — a gig for a kind
@@ -452,6 +567,14 @@ export default class JobController extends CommandController<JobModel> {
         `  [${short}] watch ${where} — ${this.watchProgress(gig)} ` +
         `— ${gig.rewardMinor} credits (${mode}${expiry})`
       );
+    }
+    if (condition?.template === "clean") {
+      const subject =
+        condition.item.kind === "template" &&
+        condition.item.path === condition.destinationPath
+          ? where
+          : `${what} at ${where}`;
+      return `  [${short}] clean ${subject} — ${gig.rewardMinor} credits (${mode}${expiry})`;
     }
     if (condition?.template === "inspection") {
       return `  [${short}] inspect ${what} — ${gig.rewardMinor} credits (${mode}${expiry})`;

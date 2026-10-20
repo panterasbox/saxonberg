@@ -5,7 +5,7 @@
 # few rooms and long edges — nothing for a long time, then something.*
 # A corridor whose every room is a landmark is a high street; the flats
 # are what make the milestone and the crossroads mean anything.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: empty flats
   keywords: [flats, empty]

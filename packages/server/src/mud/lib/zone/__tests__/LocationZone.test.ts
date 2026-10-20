@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpatialZone } from '../SpatialZone';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import SphericalZone from '../../../platform/idea/location/SphericalZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, seedKernelContentStore } from '../../security/__tests__/test-setup';
@@ -42,7 +42,7 @@ describe('LocationZoneMixin', () => {
 
   it('addLocation still stamps the back-reference through the gate', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 1, 2, 0);
     expect(room.getZone()).toBe(zone);
     expect(zone.contains(room)).toBe(true);
@@ -69,8 +69,8 @@ describe('⭐ what a place can see loads with the place (maritime review, 2026-1
       stood.push(p);
       return (p === '/test/seen' ? seen : here) as never;
     });
-    here.addLocation(makeStuff(() => new CartesianLocation()), 0, 0, 0);
-    here.addLocation(makeStuff(() => new CartesianLocation()), 1, 0, 0);
+    here.addLocation(makeStuff(() => new Location()), 0, 0, 0);
+    here.addLocation(makeStuff(() => new Location()), 1, 0, 0);
     await Promise.resolve();
     // Once per target, however many rooms; never what the SEEN zone sees.
     expect(stood).toEqual(['/test/seen']);
@@ -80,7 +80,7 @@ describe('⭐ what a place can see loads with the place (maritime review, 2026-1
   it('nothing named, nothing stood up', () => {
     const here = makeStuff(() => new CartesianZone());
     const spy = vi.spyOn(StuffApi, 'singleton');
-    here.addLocation(makeStuff(() => new CartesianLocation()), 0, 0, 0);
+    here.addLocation(makeStuff(() => new Location()), 0, 0, 0);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

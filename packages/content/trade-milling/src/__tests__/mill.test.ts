@@ -31,7 +31,7 @@ import MillController from '../idea/cmd/milling/MillController';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Sack from '@saxonberg/server/mud/platform/thing/Sack';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
@@ -109,7 +109,7 @@ const stubCommand = CommandDefinition.fromYaml(
   '<test>',
 );
 
-let room: Location;
+let room: Place;
 let actor: TestActor;
 
 function material(
@@ -296,7 +296,7 @@ beforeEach(async () => {
     return s as never;
   });
 
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   actor = makeStuff(() => new TestActor());
   await ContainmentApi.move(actor as never, room as never);
 });

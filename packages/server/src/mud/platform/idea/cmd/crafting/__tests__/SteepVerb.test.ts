@@ -36,7 +36,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { SteepableMixin } from '../../../../../lib/craft/Steepable';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
 import { CommandApi } from '../../../../../api/command';
@@ -119,11 +119,11 @@ function makeSolute(): TestSolute {
 }
 
 let actor: TestActor;
-let room: Location;
+let room: Place;
 let now = 0;
 
 async function stand(): Promise<void> {
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   actor = makeStuff(() => new TestActor());
   await ContainmentApi.move(actor as never, room as never);
 }

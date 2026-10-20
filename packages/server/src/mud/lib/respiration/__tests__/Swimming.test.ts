@@ -18,7 +18,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { Character } from '../../character/Character';
-import Location from '../../stuff/Location';
+import Location from '../../stuff/Place';
 import Good from '../../../platform/thing/Good';
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';

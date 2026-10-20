@@ -360,9 +360,11 @@ export const Mixins = {
   Tangible: 'TangibleMixin',
   Organism: 'OrganismMixin',
   Vitals: 'VitalsMixin',
-  // Body cleanliness: a `washedAt` stamp that decays to "dirty", read by
-  // wound treatment (dirty hands infect a wound) — the recovery build.
-  Hygiene: 'HygieneMixin',
+  // Dirt by kind on the layer an act reached — garments, bodies (per
+  // part), floors, panes, pots. No clock: only an act soils (cleanliness).
+  Soilable: 'SoilableMixin',
+  // A built-in fire's flue: it soots, and a foul one catches (cleanliness).
+  Flued: 'FluedMixin',
   // What a body does after it stops: the decay clock, the forensic
   // readability curve, and the eviction veto that keeps a corpse in the
   // world long enough to be studied.
@@ -421,6 +423,7 @@ export const Mixins = {
   // missing from it cannot be named by a `requires:` however real it is.
   BodyPlanSlots: 'BodyPlanSlotsMixin',
   Attired: 'AttiredMixin',
+  Hygiene: 'HygieneMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
   Wardrobe: 'WardrobeMixin',
@@ -901,6 +904,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  SoilableMixin: "{} is not something you can wash",
   PrescriptionMixin: "{} isn't a prescription",
   PostmortemMixin: "{} is not a body you can examine",
   /*

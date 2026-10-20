@@ -339,7 +339,7 @@ suite('the plumbing', () => {
   });
 
   it('12. ⭐ you log back in where you logged out', async () => {
-    // `OuterWarren.admitFor` — the residence roster's first consumer,
+    // `CirculationWarren.admitFor` — the residence roster's first consumer,
     // and the one whose failure a player notices immediately: a wrong
     // answer here puts you outside your own front door.
     const handle = uniqueHandle('scan-return');

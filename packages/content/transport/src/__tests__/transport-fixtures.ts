@@ -16,7 +16,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { LocomotionMode } from '@saxonberg/server/mud/platform/idea/LocomotionMode';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -216,7 +216,7 @@ export function corridor(
   for (let i = 0; i < n; i += 1) {
     const path = `/test/road/${i}`;
     const room = makeStuffAtPath(
-      () => new SingletonCartesianLocation(),
+      () => new Locale(),
       path,
     ) as unknown as Stuff & Container;
     zone.addLocation(room as never, i, 0, 0);

@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import Door from '../../../platform/thing/Door';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
@@ -20,7 +20,7 @@ import { PerceptionApi } from '../../../api/perception';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLocation extends AmbientLitMixin(Location) {}
 
 
 /**
@@ -60,7 +60,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
 
   it('a wardrobe with an open door leaks ambient room light into its interior', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
@@ -84,7 +84,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
 
   it('a wardrobe with a closed door reads ZERO inside even when the room is bright', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
@@ -112,8 +112,8 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     // wardrobe-interior contribution independently.
     const zoneA = makeStuff(() => new CartesianZone());
     const zoneB = makeStuff(() => new CartesianZone());
-    const dim = makeStuff(() => new CartesianLocation());
-    const bright = makeStuff(() => new AmbientCartesianLocation());
+    const dim = makeStuff(() => new Location());
+    const bright = makeStuff(() => new AmbientLocation());
     zoneA.addLocation(dim, 0, 0, 0);
     zoneB.addLocation(bright, 0, 0, 0);
     bright.setAmbientFlux(80);
@@ -137,7 +137,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
 
   it('setDoor swaps the boundary anchor from old door to new', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     room.setAmbientFlux(60);
 
@@ -173,7 +173,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
 
   it('the synthesized "out" exit still uses the door as a Door (attachedTo intact)', async () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new AmbientCartesianLocation());
+    const room = makeStuff(() => new AmbientLocation());
     zone.addLocation(room, 0, 0, 0);
     const wardrobe = await StuffApi.create(() => new ExitableVessel());
     wardrobe.setShortDescription('oak wardrobe');

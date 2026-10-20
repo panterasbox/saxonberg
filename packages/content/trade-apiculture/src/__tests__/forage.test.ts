@@ -27,7 +27,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hive from '../thing/Hive';
 import Field from '@saxonberg/content-trade-farming/src/location/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
@@ -202,8 +202,8 @@ describe('the forage read', () => {
   });
 
   it('⭐ a clover ley two exits away counts, and counts its own share', async () => {
-    const yard = makeStuff(() => new CartesianLocation());
-    const lane = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
+    const lane = makeStuff(() => new Location());
     const close = ley(1000, 0.4);
     await link(yard, lane, 3);
     await link(lane, close as unknown as Stuff, 3);
@@ -218,7 +218,7 @@ describe('the forage read', () => {
   });
 
   it('⭐ a field with no clover contributes nothing, however big', async () => {
-    const yard = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
     const bare = ley(4000, 0);
     await link(yard, bare as unknown as Stuff, 2);
     const h = hive();
@@ -227,7 +227,7 @@ describe('the forage read', () => {
   });
 
   it('⭐ a flowering plant counts; one out of flower does not', async () => {
-    const yard = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
     const h = hive();
     ContainmentApi.move(h as never, yard as never);
 
@@ -242,7 +242,7 @@ describe('the forage read', () => {
 
     // A seedling in the same room is not bloom.
     const seedling = cherry();
-    const empty = makeStuff(() => new CartesianLocation());
+    const empty = makeStuff(() => new Location());
     ContainmentApi.move(seedling as never, empty as never);
     seedling.getVigor();
     const other = hive();
@@ -252,7 +252,7 @@ describe('the forage read', () => {
   });
 
   it('⚠ the walk STOPS at the range in minutes', async () => {
-    const yard = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
     const faraway = ley(1000, 0.4);
     // 50 minutes out, against a 40-minute range.
     await link(yard, faraway as unknown as Stuff, 50);
@@ -264,7 +264,7 @@ describe('the forage read', () => {
   it('⚠ an exit whose destination does not resolve is not an edge', async () => {
     // A deferred destination, a reaped room, a broken clone. A neighbour
     // going wrong must not take a colony's forage down with it.
-    const yard = makeStuff(() => new CartesianLocation());
+    const yard = makeStuff(() => new Location());
     const dangling = makeStuff(
       () =>
         new Exit({

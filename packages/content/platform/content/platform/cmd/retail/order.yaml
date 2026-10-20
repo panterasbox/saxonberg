@@ -12,9 +12,17 @@ help: |
     `order repair my sword`  — a smithy makes it good again
     `order treatment`        — a clinic sees to what is wrong with you
     `order burial the body`  — a necropolis lays them to rest
+    `order wash my shirt`    — a laundress looks it over, names a price,
+                               and washes it the way she knows how
+    `order bath`             — a bathhouse draws you a hot one
   The tariff on the wall lists what the house does and what it costs;
   `menu` reads it. You pay for what the house has and you don't: the
   forge, the dressings, the ground.
+
+  ⭐ A paid service needs somebody on shift to do it — *there's nobody
+  here to do the work* otherwise — and is done by THEIR hands, at their
+  skill: a good laundress washes wool lukewarm, a poor one boils it. When
+  the house ruins what you brought, the house pays you its posted cover.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

@@ -26,8 +26,12 @@ import { BLOOD_DEFAULTS } from '../../../../lib/vitals/Blood';
 import type { Attendant } from '../../../../lib/attendant/Attendant';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import Tariff, { type ServiceKind, type QuoteRequestLine } from '../../../thing/Tariff';
+import Tariff, { type ServiceKind, type QuoteRequestLine, type CoverOutcome } from '../../../thing/Tariff';
+import Tub from '../../../thing/Tub';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
+import { CompetenceBand } from '../../../../lib/advancement/CompetenceBand';
+import { WashPolicy } from '../../../../lib/cleanliness/WashPolicy';
+import Garment from '../../../thing/equipment/Garment';
 
 const TOPIC = 'act.deed';
 
@@ -234,8 +238,13 @@ export default class OrderController extends CraftController<OrderModel> {
     if (kind === 'transfusion') {
       return this.doTransfusionService(tariff, key, context);
     }
+    // ⭐ A bath is durative on the CUSTOMER, as a transfusion is: the
+    // water runs at its own rate, and paying does not buy out of the time.
+    if (kind === 'bath') {
+      return this.doBathService(tariff, key, context);
+    }
 
-    const done = await this.performService(tariff, kind, subjectRaw, context);
+    const done = await this.performService(tariff, key, kind, subjectRaw, context);
     if (done.ok && done.declined) {
       MessageApi.scene(giver)
         .topic(SERVICE_TOPIC)
@@ -265,17 +274,18 @@ export default class OrderController extends CraftController<OrderModel> {
     // ⭐ The hand is paid by the seat's basis (repair D12): a piece-rate
     // seat is paid for this piece, out of the house the fee just went to;
     // a time-wage seat is paid by the shift and is not paid twice.
-    if (collected.paid && done.hand) await this.payPiecework(tariff, done.hand);
+    if (collected.paid && done.hand) await OrderController.payPiecework(tariff, done.hand);
     const tail = collected.note ? ` ${collected.note}` : '';
     MessageApi.scene(giver)
       .topic(SERVICE_TOPIC)
       .toSelf(Mml.fromMarkup(Mml.escape(`${done.detail}${tail}`)))
       .toPeers(Mml.compose`${Mml.actor(giver)} is seen to.`)
       .send();
+    if (done.after) await done.after();
   }
 
   /** Pay a piece-rate hand for one piece, out of the offer's house. */
-  private async payPiecework(tariff: Tariff, hand: Stuff): Promise<void> {
+  private static async payPiecework(tariff: Tariff, hand: Stuff): Promise<void> {
     const house = await tariff.house();
     const key = hand.getIdentityPath();
     if (!house || !key || !MixinApi.isEmployed(hand)) return;
@@ -289,6 +299,50 @@ export default class OrderController extends CraftController<OrderModel> {
     } catch (err) {
       console.warn('OrderController: piecework not paid:', err);
     }
+  }
+
+  /**
+   * ⭐ ONE durative service (cleanliness D26): the customer's body is
+   * engaged for `durationMs` — a transfusion, a bath — and `effect` lands
+   * at completion. A barge-in gives and charges nothing. A body that cannot
+   * be engaged (a bare test body) runs it at once.
+   */
+  private runDurativeService(
+    context: CommandContext,
+    durationMs: number,
+    begin: { self: string; peers: string },
+    effect: () => Promise<void>,
+  ): void {
+    const giver = context.commandGiver;
+    if (!MixinApi.isEngaged(giver)) {
+      void effect();
+      return;
+    }
+    const step = new ManualBuildStep({
+      actor: giver,
+      slots: ['hands'],
+      durationMs,
+      onComplete: () => {
+        void effect();
+      },
+      onAbort: () => {},
+    });
+    const result = SchedulerApi.start(step);
+    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+      context.note(result.note);
+      MessageApi.scene(giver)
+        .topic(SERVICE_TOPIC)
+        .toSelf(Mml.fromMarkup(Mml.escape(begin.self)))
+        .toPeers(Mml.fromMarkup(Mml.escape(begin.peers)))
+        .send();
+      return;
+    }
+    if (result.ok && result.status === 'completed-sync') return;
+    MessageApi.scene(giver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(Mml.compose`You cannot sit for it just now.`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
   }
 
   /**
@@ -308,21 +362,21 @@ export default class OrderController extends CraftController<OrderModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isDonationBank(tariff)) {
-      return this.serviceFail(context, 'This house keeps no blood bank.', 'no-bank');
+      return OrderController.serviceFail(context, 'This house keeps no blood bank.', 'no-bank');
     }
     if (!MixinApi.isVitals(giver)) {
-      return this.serviceFail(context, 'There is nothing here to transfuse.', 'not-a-body');
+      return OrderController.serviceFail(context, 'There is nothing here to transfuse.', 'not-a-body');
     }
     // Up-front refusal: do not make a patient sit for 45s to be told no.
     if (!tariff.hasCompatibleUnitFor(giver as unknown as Stuff)) {
-      return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+      return OrderController.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
     }
     const issuer = this.resolveWindowIssuer(tariff, context);
     const effect = async (): Promise<void> => {
       const outcome = await tariff.transfuseInto(giver as unknown as Stuff, issuer);
       if (!outcome) {
         // The last match went while they waited — honest, and unbilled.
-        return this.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
+        return OrderController.serviceFail(context, 'Nothing on the shelf will match you.', 'no-compatible-unit');
       }
       const collected = await tariff.collect(key, 'a transfusion');
       const tail = collected.note ? ` ${collected.note}` : '';
@@ -337,40 +391,19 @@ export default class OrderController extends CraftController<OrderModel> {
         .send();
     };
 
-    // Not an engageable body (a bare test/NPC body) → run it at once.
-    if (!MixinApi.isEngaged(giver)) {
-      await effect();
-      return;
-    }
-    const step = new ManualBuildStep({
-      actor: giver,
-      slots: ['hands'],
-      durationMs: BLOOD_DEFAULTS.TRANSFUSE_DURATION_S * 1000,
-      onComplete: () => {
-        void effect();
+    this.runDurativeService(
+      context,
+      BLOOD_DEFAULTS.TRANSFUSE_DURATION_S * 1000,
+      {
+        self: 'You settle in; the line goes in and the unit begins to run. Hold still.',
+        peers: `${giver.getPresentation()} settles in for a transfusion.`,
       },
-      onAbort: () => {},
-    });
-    const result = SchedulerApi.start(step);
-    if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
-      context.note(result.note);
-      MessageApi.scene(giver)
-        .topic(SERVICE_TOPIC)
-        .toSelf(Mml.compose`You settle in; the line goes in and the unit begins to run. Hold still.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} settles in for a transfusion.`)
-        .send();
-      return;
-    }
-    if (result.ok && result.status === 'completed-sync') return;
-    MessageApi.scene(giver)
-      .topic(SERVICE_TOPIC)
-      .toSelf(Mml.compose`You cannot sit for it just now.`)
-      .send();
-    context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
+      effect,
+    );
   }
 
   /** A refused service: the scene line + the matching rejected note. */
-  private serviceFail(context: CommandContext, line: string, reason: string): void {
+  private static serviceFail(context: CommandContext, line: string, reason: string): void {
     MessageApi.scene(context.commandGiver)
       .topic(SERVICE_TOPIC)
       .toSelf(Mml.fromMarkup(Mml.escape(line)))
@@ -381,12 +414,15 @@ export default class OrderController extends CraftController<OrderModel> {
   /** Do the thing. Each arm is an existing capability, wired to a price. */
   private async performService(
     tariff: Tariff,
-    kind: Exclude<ServiceKind, 'transfusion'>,
+    key: string,
+    kind: Exclude<ServiceKind, 'transfusion' | 'bath'>,
     subjectRaw: string,
     context: CommandContext,
   ): Promise<ServiceResult> {
     const giver = context.commandGiver;
     switch (kind) {
+      case 'wash':
+        return this.washService(tariff, key, subjectRaw, context);
       case 'repair':
         return this.repairService(tariff, subjectRaw, context);
       case 'treatment': {
@@ -499,8 +535,9 @@ export default class OrderController extends CraftController<OrderModel> {
         ),
       )
       .send();
-    if (!tariff.canSettle(quote.total)) {
-      return { ok: false, reason: 'cannot-pay', detail: "You haven't the money for that." };
+    const cannotPay = tariff.payRefusal(quote.total);
+    if (cannotPay) {
+      return { ok: false, reason: 'cannot-pay', detail: cannotPay };
     }
     // No interactive (a scripted caller) answers no: money is never taken
     // on a question nobody was asked.
@@ -523,6 +560,157 @@ export default class OrderController extends CraftController<OrderModel> {
       charge: quote.total,
       hand,
     };
+  }
+
+  /**
+   * ⭐ The laundress (cleanliness D26): the hand reads the garment at her
+   * band, names a price, and — on a yes — washes it HER way, in the water
+   * in the room with the house's soap. What she does decides what it does
+   * to the cloth; when it comes back ruined, the house pays its posted
+   * cover (never to one of its own).
+   */
+  private async washService(
+    tariff: Tariff,
+    key: string,
+    subjectRaw: string,
+    context: CommandContext,
+  ): Promise<ServiceResult> {
+    const giver = context.commandGiver;
+    const item = this.resolveSubject(subjectRaw, context);
+    if (!item || !(item instanceof Garment)) {
+      return { ok: false, reason: 'no-subject', detail: 'Name what you want washed.' };
+    }
+    const hand = await CraftingApi.fulfillingHand(giver, tariff, tariff.disciplineFor(key));
+    if (!hand) return { ok: false, reason: 'no-hand', detail: NOBODY_TO_WORK };
+    const band = MixinApi.isAdvancing(hand)
+      ? await hand.competenceBandFor('textiles')
+      : CompetenceBand.FLOOR;
+    // ⭐ The objects' (B48): what the hand reads of the cloth, her method,
+    // the house's quote, its soap and water, the cloth's laundering.
+    const policy = new WashPolicy(band);
+    const look = item.describeForLaundress(policy);
+    const method = policy.methodFor(look.subject);
+    const quote = tariff.quoteLaundry(key, look.kinds, method);
+    const who = hand.getPresentation() ?? 'They';
+    MessageApi.scene(giver)
+      .topic(SERVICE_TOPIC)
+      .toSelf(Mml.fromMarkup(Mml.escape(`${who} turns it over. ${look.said} That'll be ${money(quote.total)}.`)))
+      .send();
+    const cannotPay = tariff.payRefusal(quote.total);
+    if (cannotPay) {
+      return { ok: false, reason: 'cannot-pay', detail: cannotPay };
+    }
+    const yes = context.interactive
+      ? await context.interactive
+          .promptConfirm(`Have it washed for ${money(quote.total)}?`, 'no')
+          .catch(() => false)
+      : false;
+    if (!yes) return { ok: true, declined: true, detail: 'You keep your coin, and your washing.' };
+    const { outcome, ruined } = await item.launderBy(policy, {
+      hand,
+      customer: giver,
+      hardnessDgh: tariff.houseWaterHardness(),
+      cleansers: tariff.houseCleansers(method.reachesFor),
+    });
+    const what = item.getPresentation();
+    if (ruined.length === 0) {
+      return {
+        ok: true,
+        detail: `${who} brings ${what} back ${outcome.band === 'clean' ? 'clean' : `still ${outcome.band}`}, wet from the line.`,
+        charge: quote.total,
+        hand,
+      };
+    }
+    return {
+      ok: true,
+      detail: `${who} brings ${what} back ${ruined.join(' and ')}. "I'm sorry — the house will make it good."`,
+      charge: quote.total,
+      hand,
+      after: async () => OrderController.wordCover(giver, await tariff.payCover(giver, what)),
+    };
+  }
+
+  /** The house's cover for a ruined thing, in words (`Tariff.payCover`). */
+  private static wordCover(customer: Stuff, cover: CoverOutcome): void {
+    if (!cover.paid && cover.reason === 'no-cover') return;
+    const line = cover.paid
+      ? `The house pays you ${money(cover.amount)} for it.`
+      : cover.reason === 'self-dealing'
+        ? 'The house does not pay its own people for their own washing.'
+        : cover.reason === 'no-account'
+          ? `The house owes you ${money(cover.amount)} — you have no account to be paid into.`
+          : cover.reason === 'no-house'
+            ? 'The house owes you for it, and says so.'
+            : `The house owes you ${money(cover.amount)}, and has not got it.`;
+    MessageApi.scene(customer).topic(SERVICE_TOPIC).toSelf(Mml.fromMarkup(Mml.escape(line))).send();
+  }
+
+  /**
+   * ⭐ The bathhouse (cleanliness D28): the attendant on shift fills a tub
+   * from the hot copper, and the customer bathes in it — durative on the
+   * customer's body, the fee taken at completion.
+   */
+  private async doBathService(
+    tariff: Tariff,
+    key: string,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const hand = await CraftingApi.fulfillingHand(giver, tariff, tariff.disciplineFor(key));
+    if (!hand) return OrderController.serviceFail(context, NOBODY_TO_WORK, 'no-hand');
+    if (!MixinApi.isAttired(giver)) {
+      return OrderController.serviceFail(context, 'There is nobody here to bathe.', 'not-a-body');
+    }
+    // ⭐ The house's vessels, and the tub's own draw (B48).
+    const copper = tariff.houseVessel('copper');
+    const tub = tariff.houseVessel('tub');
+    if (!copper || !tub || !(tub instanceof Tub)) {
+      return OrderController.serviceFail(context, 'There is nothing here to draw a bath in.', 'no-tub');
+    }
+    const price = tariff.priceFor(key) ?? 0;
+    const cannotPay = tariff.payRefusal(price);
+    if (cannotPay) return OrderController.serviceFail(context, cannotPay, 'cannot-pay');
+    const drawn = tub.drawFrom(copper, 80);
+    if (!drawn.ok) {
+      return drawn.reason === 'not-hot' || drawn.reason === 'no-water'
+        ? OrderController.serviceFail(context, 'The water is not hot yet.', 'not-hot')
+        : OrderController.serviceFail(context, 'The tub will not hold water.', 'no-tub');
+    }
+    // ⭐ Paid at the desk, IN the command (found by the browser walk: the
+    // fee was taken in the completion, which runs outside the command frame
+    // where there is no acting payer — every bath was free). A bath you
+    // cannot pay for is refused before the tub is filled for you.
+    const collected = await tariff.collect(key, 'a bath');
+    if (price > 0 && !collected.paid) {
+      return OrderController.serviceFail(context, "You haven't the money for that.", 'cannot-pay');
+    }
+    if (collected.paid) await OrderController.payPiecework(tariff, hand);
+    const cleansers = tariff.houseCleansers('soap');
+    const waterK = drawn.waterK;
+    const who = hand.getPresentation() ?? 'The attendant';
+    // ⚠ Read now: the effect lands after the controller is destructed.
+    const hardnessDgh = tariff.houseWaterHardness();
+    this.runDurativeService(
+      context,
+      12000,
+      {
+        self: `${who} fills a tub from the copper, steaming, and leaves you to it.`,
+        peers: `${giver.getPresentation()} gets into a hot tub.`,
+      },
+      async () => {
+        if (giver.isDestroyed() || !MixinApi.isHygienic(giver)) return;
+        giver.bathe(
+          { waterK, hardnessDgh, cleansers, effort: 2 },
+          120,
+        );
+        const tail = collected.note ? ` ${collected.note}` : '';
+        MessageApi.scene(giver)
+          .topic(SERVICE_TOPIC)
+          .toSelf(Mml.fromMarkup(Mml.escape(`You climb out pink and scrubbed.${tail}`)))
+          .toPeers(Mml.compose`${Mml.actor(giver)} climbs out of the tub.`)
+          .send();
+      },
+    );
   }
 
   /** Every priced Tariff the giver can reach — the two-houses scan (D6). */
@@ -611,6 +799,8 @@ type ServiceResult =
       hand?: Stuff;
       /** The customer said no: nothing done, nothing charged. */
       declined?: boolean;
+      /** What happens after the fee is taken (the house's cover). */
+      after?: () => Promise<void>;
     }
   | { ok: false; reason: string; detail: string };
 
@@ -665,4 +855,3 @@ function quoteLine(f: Fault): QuoteRequestLine {
 function money(minor: number): string {
   return Money.of(minor, BankingApi.compactCurrency()).render();
 }
-

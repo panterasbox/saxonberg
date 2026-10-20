@@ -1,7 +1,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import Window from '../thing/Window';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import Good from '../../lib/stuff/Good';
 import { PersistenceManager, Collections } from '../../../backend/PersistenceManager';
 import { StuffApi } from '../../api/stuff';
@@ -71,8 +71,8 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('resolves both hosts via singleton and attaches anchors', async () => {
-    const a = makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    const b = makeStuffAtPath(() => new CartesianLocation(), '/room/b');
+    const a = makeStuffAtPath(() => new Location(), '/room/a');
+    const b = makeStuffAtPath(() => new Location(), '/room/b');
     const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     expect(w.getAttachedHosts()).toEqual(['/room/a', '/room/b']);
@@ -83,8 +83,8 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('is idempotent: re-set with same pair is no-op', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/room/b');
+    makeStuffAtPath(() => new Location(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/b');
     const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     await expect(
@@ -93,8 +93,8 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('accepts hosts in reverse order on re-set (matchesReverse)', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/room/b');
+    makeStuffAtPath(() => new Location(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/b');
     const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     await expect(
@@ -103,9 +103,9 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('throws on conflict: different pair after attach', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/room/b');
-    makeStuffAtPath(() => new CartesianLocation(), '/room/c');
+    makeStuffAtPath(() => new Location(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/b');
+    makeStuffAtPath(() => new Location(), '/room/c');
     const w = await StuffApi.create(() => new Window());
     await w.setAttachedHosts(['/room/a', '/room/b']);
     await expect(
@@ -114,7 +114,7 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('refuses hostA === hostB', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/a');
     const w = await StuffApi.create(() => new Window());
     await expect(
       w.setAttachedHosts(['/room/a', '/room/a'])
@@ -129,7 +129,7 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('throws if a resolved host is not Adornable', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/a');
     makeStuffAtPath(() => new Good(), '/thing'); // not Adornable
     const w = await StuffApi.create(() => new Window());
     await expect(
@@ -141,12 +141,12 @@ describe('Window.setAttachedHosts', () => {
     installInMemoryStore([
       {
         path: '/room/a',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {},
       },
       {
         path: '/room/b',
-        class: '/platform/location/SingletonCartesianLocation',
+        class: '/platform/location/Locale',
         data: {},
       },
     ]);
@@ -162,8 +162,8 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('hydrates via TemplateApplier method-dispatch', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/room/b');
+    makeStuffAtPath(() => new Location(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/b');
     const w = await StuffApi.create(() => new Window());
     await makeStuff(() => new TemplateApplier()).apply(w, {
       attachedHosts: ['/room/a', '/room/b'],
@@ -174,8 +174,8 @@ describe('Window.setAttachedHosts', () => {
   });
 
   it('HMR-style: destruct + re-clone attaches cleanly to same hosts', async () => {
-    makeStuffAtPath(() => new CartesianLocation(), '/room/a');
-    makeStuffAtPath(() => new CartesianLocation(), '/room/b');
+    makeStuffAtPath(() => new Location(), '/room/a');
+    makeStuffAtPath(() => new Location(), '/room/b');
     const w1 = await StuffApi.create(() => new Window());
     await w1.setAttachedHosts(['/room/a', '/room/b']);
     // Destruct via BoundaryApi (clears anchors via Boundary.onDestruct).

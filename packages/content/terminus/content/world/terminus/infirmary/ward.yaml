@@ -2,7 +2,9 @@
 # (SOUTHWEST back to the street; the block declares NORTHEAST in here —
 # cross-zone cardinal exit, both sides explicit), on the same walk as the
 # store and the bank.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentLocale
 data:
   shortDescription: infirmary
   keywords: [infirmary]
@@ -10,7 +12,7 @@ data:
   alternateNames: [ward, clinic, surgery]
   _address: terminus/city/counting-houses/infirmary
   longDescription: |
-    A low white room that smells of lye and boiled linen. Two cots stand along the far wall under a window with the shutters folded back; between them a scrubbed deal table holds a basin, a jug, and a roll of clean cloth. A tall cabinet by the door is stacked with folded dressings, and beside it a slate lists what the house does and what the house charges, in a small square hand that has written it many times. There is a chair by the near cot, angled for sitting with somebody. Set into the inner wall is a low barred blood window, cold air sighing off the fridge behind it; over it hangs a dead Goodkin sign, GOODKIN BLOODWORKS in grey unlit tubes, and a door east leads back to the collection room.
+    A low white room that smells of lye and boiled linen. Two cots stand along the far wall under a window with the shutters folded back; between them a scrubbed deal table holds a basin, a jug, and a roll of clean cloth, and beside it a brazier keeps a pot of water at the boil. A tall cabinet by the door is stacked with folded dressings, and beside it a slate lists what the house does and what the house charges, in a small square hand that has written it many times. There is a chair by the near cot, angled for sitting with somebody. Set into the inner wall is a low barred blood window, cold air sighing off the fridge behind it; over it hangs a dead Goodkin sign, GOODKIN BLOODWORKS in grey unlit tubes, and a door east leads back to the collection room.
   coords:
     x: 0
     y: 0
@@ -59,6 +61,11 @@ data:
     # (clean hands between patients), `rinse` and `cool`. The prose already
     # names a basin; this makes it a working water source.
     - /stuff/thing/fixture/basin
+    # ⭐ The brazier and its pot (cleanliness D14) — the boiled linen the
+    # room smells of. A nurse who knows her work boils a bandage before it
+    # goes on a wound; the surgeon holds the kit in the coals.
+    - /world/terminus/infirmary/thing/ward-brazier
+    - /trade/cooking/thing/cook-pot
     # The clinic's dressing supply — real bandages the nurse's brain dresses
     # wounds with, and that RUN OUT (each is spent by one dressing).
     - /world/terminus/infirmary/thing/bandage-1

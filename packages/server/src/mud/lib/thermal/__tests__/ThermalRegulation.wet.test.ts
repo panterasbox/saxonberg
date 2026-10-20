@@ -8,7 +8,7 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import Biome from "../../biome/Biome";
 import { Creature } from "../../creature/Creature";
 import { Quantity } from "../../quantity";
@@ -23,7 +23,7 @@ import {
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import "../../../platform/idea/WorldClockRegistry";
 
-class TestRoom extends Location {}
+class TestRoom extends Place {}
 
 const COLD_K = 265; // well below the ~310 K endotherm setpoint
 

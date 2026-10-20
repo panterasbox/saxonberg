@@ -286,7 +286,7 @@ right per row is most of the civic design.
 | **archivist / librarian** | **GAP** | post | competence | the integrity branch's human face; the Museum |
 | **assessor / tax collector** | **GAP** | post | warrant | blocked with the fiscal cycle |
 | **postmaster** | designed ([delivery](./slates/builds/delivery-slate.md)) | post | the provider | the post office you can walk into |
-| **harbourmaster** | **GAP** | office | appointment | the Gate's port |
+| **harbormaster** | **GAP** | office | appointment | the Gate's port |
 | **surveyor (Lands & Works)** | **GAP** | post | instrument | the office already exists in the Civic Quarter |
 | **relief administrator** | **GAP** | post | office | the WPA floor + match |
 | soldier / militia | designed | post | muster | Garrison; the war faces outward |
@@ -402,7 +402,7 @@ So decompose it — the parts land in five different places:
 | Part | Lands as |
 |---|---|
 | cooking | ✅ **already a vocation** — cook (shipped) |
-| cleaning, laundry, tidying **for wages** | ⚠ **texture** — the bottom rung; and it *freezes in absence*, so nobody needs you to do it while they are away |
+| cleaning, laundry, tidying **for wages** | ◐ **laundry ships as a paid seat** (the lavoir's laundress, the bathhouse attendant — cleanliness build, `domestic-services`); cleaning a room *for wages* is still texture: it *freezes in absence*, so nobody needs you to do it while they are away |
 | reading the condition **band** | 🤖 **automated** — the record already knows it, and it is visible by design |
 | ⭐ the **causal** read — which producer binds, and what act clears it | ✅ **a real gate** (below) |
 | ⭐⭐ the **continuous** processes of a holding its owner is not in | ✅ **the strongest survivor** (below) |

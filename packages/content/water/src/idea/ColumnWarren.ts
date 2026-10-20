@@ -25,7 +25,7 @@
  * (`river-slate`): nothing that ships has two water places side by side.
  */
 
-import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
@@ -56,7 +56,7 @@ const UNDERWATER_EXIT_KIND = '/system/water/idea/exits/underwater';
 /** The exit kind a column's ways are cloned from. */
 const COLUMN_EXIT_KIND = '/system/water/idea/exits/column';
 
-const ColumnWarrenBase = WaterColumnMixin(SingletonMixin(PersistableMixin(InnerWarren)));
+const ColumnWarrenBase = WaterColumnMixin(SingletonMixin(PersistableMixin(RoomWarren)));
 
 export default class ColumnWarren extends ColumnWarrenBase {
   /** Where the singleton lives (`TemplatePaths.waterColumn`). */

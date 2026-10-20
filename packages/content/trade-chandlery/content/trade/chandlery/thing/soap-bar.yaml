@@ -1,0 +1,14 @@
+# A bar of soap — cut from the frame, and curing (cleanliness D24). Four
+# weeks on a rack makes it mild; a new bar is harsh. `look` says which.
+class: /trade/chandlery/thing/SoapBar
+data:
+  shortDescription: bar of soap
+  keywords: [soap, bar, "bar of soap", "soap bar"]
+  register: indefinite
+  longDescription: >-
+    A rough-cut block of pale soap, square at the ends where the wire
+    went through it.
+  _materialPath: /trade/chandlery/idea/material/hard-soap
+  # ⭐ A bought bar is cured: the chandler's stock has had its weeks.
+  seasonedFraction: 1
+  mass: 0.15

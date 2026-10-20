@@ -361,6 +361,16 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    */
   public leesShare: CompositionShareSpec | null = null;
 
+  /**
+   * ⭐ What a converting batch BREATHES into the room, per day (cleanliness
+   * D22) — `null` (the default) is the mechanism's own answer: a microbial
+   * ferment breathes carbon dioxide; nothing breathes over a salt pan, a
+   * bleaching green or a soap kettle. A row authors it to say otherwise —
+   * stale urine gives off AMMONIA, and a shut laundry fills with it.
+   * `{ material: '' }` is an explicit nothing.
+   */
+  public offGas: { material: string; litresPerDay: number } | null = null;
+
   static fieldMeta: FieldMeta = {
     key: { persistent: true, authorable: true },
     inputCategory: { persistent: true, authorable: true },
@@ -388,6 +398,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
     transforms: { persistent: true, authorable: true },
     scaldAboveK: { persistent: true, authorable: true },
     leesShare: { persistent: true, authorable: true },
+    offGas: { persistent: true, authorable: true },
   };
 
   // ── the inter-Stuff contract (methods, never fields) ──
@@ -509,6 +520,21 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
       );
     }
     this.kind = value;
+  }
+
+  /**
+   * What a converting batch of this profile gives off, per day — the
+   * authored gas, else the mechanism's (microbial: the shipped CO₂), else
+   * nothing.
+   */
+  getOffGas(): { material: string; litresPerDay: number } | null {
+    if (this.offGas !== null) {
+      const g = this.offGas;
+      return g.material && g.litresPerDay > 0 ? { ...g } : null;
+    }
+    return this.mechanism === 'microbial'
+      ? { material: '/stuff/idea/material/gas/carbon-dioxide', litresPerDay: 5000 }
+      : null;
   }
 
   getMechanism(): MaturationMechanism {

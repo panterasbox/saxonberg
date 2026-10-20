@@ -15,7 +15,7 @@ import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { Agent } from '../../../../../lib/stuff/Agent';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
@@ -58,7 +58,7 @@ function stubCommand(verb: string): CommandDefinition {
   );
 }
 
-function makeContext(giver: TestGiver, location: Location): CommandContext {
+function makeContext(giver: TestGiver, location: Place): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: location as never,
@@ -92,7 +92,7 @@ describe('GiveController', () => {
   });
 
   it('give item to recipient: item lands in recipient inventory', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const alice = makeStuff(() => {
@@ -118,7 +118,7 @@ describe('GiveController', () => {
   });
 
   it('give item recipient (no preposition) works identically', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const alice = makeStuff(() => {
@@ -144,7 +144,7 @@ describe('GiveController', () => {
   });
 
   it('empty item resolution → empty-result note, no move', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const alice = makeStuff(() => {
@@ -172,7 +172,7 @@ describe('GiveController', () => {
   });
 
   it('empty recipient resolution → empty-result note for recipient', async () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, loc);
     const apple = makeStuff(() => {

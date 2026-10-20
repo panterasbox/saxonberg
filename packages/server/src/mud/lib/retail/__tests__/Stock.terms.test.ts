@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import StockBase from "../Stock";
 import Good from "../../../platform/thing/Good";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
-import Location from "../../stuff/Location";
+import Place from "../../stuff/Place";
 import { Idea } from "../../stuff/Idea";
 import { NamedMixin } from "../../description/Named";
 import { StuffApi } from "../../../api/stuff";
@@ -50,7 +50,7 @@ function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 }
 
 let counter: Stock;
-let room: Location;
+let room: Place;
 let settings: Record<string, string>;
 
 function crate(path: string, kw: string): Crate {
@@ -70,7 +70,7 @@ beforeEach(async () => {
   vi.spyOn(AppApi, "setting").mockImplementation(((key: string) => settings[key] ?? "") as never);
   const reg = makeStuffAtPath(() => new ChattelRegistry(), "/platform/idea/ChattelRegistry");
   await reg.onCreate();
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   counter = makeStuffAtPath(() => {
     const s = new Stock();
     s.stockLines = [

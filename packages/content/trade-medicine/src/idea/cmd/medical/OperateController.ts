@@ -160,10 +160,13 @@ export default class OperateController extends CommandController<OperateModel> {
         }
         body.severPart(match.partKey);
       } else if (match.wound) {
+        // ⭐ The kit's clean tier (cleanliness D14): held in a flame it is
+        // sterile; only washed, it seeds the wound.
         body.applyTreatment(match.wound, {
           by: 'surgery',
           efficacy,
           treater: giver as unknown as Stuff,
+          ...(MixinApi.isSoilable(kit) ? { instrumentTier: kit.cleanTier() } : {}),
         });
         // The follow-up date — a competent hand's prognosis (D12).
         if (

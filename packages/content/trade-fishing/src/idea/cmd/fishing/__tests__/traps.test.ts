@@ -11,7 +11,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -39,7 +39,7 @@ const rejected = (ctx: CommandContext): string | null => {
   return note ? (note as unknown as { reason: string }).reason : null;
 };
 
-let room: Location;
+let room: Place;
 let angler: Angler;
 let sent: string[];
 let drawn: string[];
@@ -54,7 +54,7 @@ beforeEach(async () => {
   sent = [];
   drawn = [];
   standing = [crab()];
-  room = makeStuff(() => new Location());
+  room = makeStuff(() => new Place());
   angler = makeStuff(() => new Angler());
   ContainmentApi.move(angler as never, room as never);
   const locality = makeStuffAtPath(() => new Locality(), '/stuff/idea/Locality/test');

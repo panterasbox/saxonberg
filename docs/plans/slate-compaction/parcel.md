@@ -290,7 +290,7 @@ bullets only.
 
 ## docs/slates/builds/wizard-bar-slate.md — 238 → 233 · Status UNBUILT → UNBUILT
 
-Entirely unbuilt. Grep under `packages/server/src/mud` for safe-harbour /
+Entirely unbuilt. Grep under `packages/server/src/mud` for safe-harbor /
 disbar / break-glass / roster: nothing. `WizardController` (`wizard
 grant/revoke`, `requiresArchwizard`) writes no conspicuous record.
 

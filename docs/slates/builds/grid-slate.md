@@ -490,7 +490,7 @@ political act.)
 
 ## ⭐⭐ Integration with envelope's `Street` + public lighting (shipping ahead of us)
 
-Envelope minted `platform/location/Street.ts` (`SingletonCartesianLocation` +
+Envelope minted `platform/location/Street.ts` (`Locale` +
 `PublicLightingMixin`) — a **location subtype for outdoor public ways**, NOT a
 grid-topology object (the "no `Street.ts`" doctrine was about grid *topology*;
 service stays an exit attribute). Its lamps run a **civic FUEL service billed

@@ -543,9 +543,25 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
 
 - **Drainage is reconcile-on-read** over game-time, presence-frozen (the
   metabolism / harm / electricity-sustain idiom — no tick; first-touch /
-  linkdead / far-past guards), warmth-accelerated (the object's own sync
-  `ThermalMixin.getTemperature`) and **material-modulated**
+  linkdead / far-past guards) and **material-modulated**
   (`waterAbsorptionCapacity` above).
+- ⭐⭐ **One drying law with curing** (cleanliness B56). The rate is the
+  material's × **the air it is in** — the place's own `getAir()`
+  (`Atmospheric`, i.e. `BiomeApi.airFor`) as an `Evaporation`: humidity
+  deficit × wind × the heat of the MATTER (its own temperature: by the fire
+  it dries fast; `wetness.warmthFactor` retired) — over still indoor air at
+  `wetness.referenceHumidityPct` (50) and 20 °C, so ordinary indoor drying
+  is the material rate itself — × the air reach of what it hangs on.
+  Saturated air dries NOTHING; something shut in a chest or pack dries
+  nothing; worn or carried it is in its bearer's air.
+  `Wet.dryingHours()` is the closed form of that same rate, so the `dry`
+  verb's forecast (*"in this air it will take about …"*) can never
+  disagree with the drying.
+- **What holds how much water** — `Wet.waterCapacityKg()`: the material's
+  capacity × mass; a BODY holds a skin FILM (Meeh's area × 
+  `wetness.skinFilmKgPerM2`, ~⅓ L), a `Cloth` its weave (`absorbency` kg
+  per kg — a linen towel ~2). `Wet.soakUp(from)` moves water by those
+  masses: `dry me with towel` (B56).
 - **Accrual is *pushed***, not pulled: "is it raining here" is an *async*
   resolve, which the sync getter can't do — so precipitation exposure
   (the presence-gated boundary fan-out, source-indifferent) and immersion

@@ -1,0 +1,10 @@
+# Mud — earth carried in on feet and legs. Water and time take most of
+# it; it is what a shop floor gathers from its customers.
+class: /platform/idea/DirtKind
+data:
+  key: mud
+  adjective: muddy
+  form: film
+  answersTo: [surfactant, alkali-mild, abrasive]
+  waterLifts: 0.7
+  brushLifts: 0.5

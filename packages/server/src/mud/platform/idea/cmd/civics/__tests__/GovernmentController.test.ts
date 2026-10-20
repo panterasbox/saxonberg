@@ -13,7 +13,7 @@ import GovernmentCatalogue from "../../../GovernmentCatalogue";
 import Government from "../../../Government";
 import AddressRegistry from "../../../AddressRegistry";
 import Locality from "../../../Locality";
-import Location from "../../../../../lib/stuff/Location";
+import Place from "../../../../../lib/stuff/Place";
 import { NPC } from "../../../../../lib/npc/NPC";
 import { AddressApi } from "../../../../../api/address";
 import { ContainmentApi } from "../../../../../api/containment";
@@ -32,7 +32,7 @@ import {
 
 type Loose = Record<string, unknown>;
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 const BUSINESS = "/world/terminus/registry/business";
 

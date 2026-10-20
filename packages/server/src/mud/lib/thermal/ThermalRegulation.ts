@@ -53,6 +53,7 @@ import { THERMAL_DEFAULTS } from "./Thermal";
 import { METABOLIC_DEFAULTS } from "../metabolism/Metabolic";
 import { Decay } from "../Decay";
 
+
 /** Numeric AppSetting read with a seeded-literal fallback (test/pre-warm safe). */
 function readDial(key: string, fallback: number): number {
   try {

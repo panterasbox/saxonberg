@@ -16,7 +16,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { ClimateControlMixin } from '../ClimateControl';
 import { AtmosphericMixin } from '../../biome/Atmospheric';
@@ -84,7 +84,7 @@ class CCThing extends ClimateControlMixin(
 }
 
 /** The Location fixture — a room already answers volume / sky / enclosure. */
-class CCRoom extends ClimateControlMixin(FakePoweredMixin(CartesianLocation)) {
+class CCRoom extends ClimateControlMixin(FakePoweredMixin(Location)) {
   static _mixinName = 'CCRoom';
 }
 

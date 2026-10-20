@@ -1,0 +1,11 @@
+# A clothes brush — stiff bristles in a wooden back (cleanliness, B46).
+# `brush coat`: the dust, ash and dried mud out of a garment without water.
+class: /platform/thing/SweepingTool
+data:
+  shortDescription: clothes brush
+  keywords: [brush, "clothes brush", "clothes-brush"]
+  register: indefinite
+  longDescription: A stiff-bristled brush set in a beech back, worn smooth where the hand holds it.
+  capabilities: [brushing]
+  _materialPath: /stuff/idea/material/wood/beech
+  mass: 0.2

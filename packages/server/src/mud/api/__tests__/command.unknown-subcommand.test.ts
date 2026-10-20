@@ -34,7 +34,7 @@ import { AliasMixin } from '../../lib/shell/Alias';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { Idea } from '../../lib/stuff/Idea';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 class TestActor extends HasInteractiveMixin(
@@ -79,7 +79,7 @@ describe('requiresHasInteractive validator', () => {
   });
 
   it('passes for an actor composing HasInteractive', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor as never, loc as never);
     expect(
@@ -88,7 +88,7 @@ describe('requiresHasInteractive validator', () => {
   });
 
   it('rejects an actor without HasInteractive', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new NoInteractiveActor());
     ContainmentApi.move(actor as never, loc as never);
     const err = requiresHasInteractive(
@@ -106,7 +106,7 @@ describe('requiresEnvironment validator', () => {
   });
 
   it('passes for an actor composing Environment', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new EnvActor());
     ContainmentApi.move(actor as never, loc as never);
     expect(
@@ -115,7 +115,7 @@ describe('requiresEnvironment validator', () => {
   });
 
   it('rejects an actor without Environment', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new NoInteractiveActor());
     ContainmentApi.move(actor as never, loc as never);
     const err = requiresEnvironment(
@@ -132,7 +132,7 @@ describe('requiresAlias validator', () => {
   });
 
   it('passes for an actor composing Alias', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new AliasActor());
     ContainmentApi.move(actor as never, loc as never);
     expect(
@@ -141,7 +141,7 @@ describe('requiresAlias validator', () => {
   });
 
   it('rejects an actor without Alias', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new NoInteractiveActor());
     ContainmentApi.move(actor as never, loc as never);
     const err = requiresAlias(
@@ -158,7 +158,7 @@ describe('requiresAvatar validator', () => {
   });
 
   it('rejects a non-Avatar giver', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new NoInteractiveActor());
     ContainmentApi.move(actor as never, loc as never);
     const err = requiresAvatar(
@@ -187,7 +187,7 @@ subcommands:
   }
 
   it('returns error: unknown-subcommand with the typed name and available list', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor as never, loc as never);
     const cmd = stubCmd();
@@ -204,7 +204,7 @@ subcommands:
   });
 
   it('a known subcommand assembles cleanly', () => {
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const actor = makeStuff(() => new TestActor());
     ContainmentApi.move(actor as never, loc as never);
     const cmd = stubCmd();

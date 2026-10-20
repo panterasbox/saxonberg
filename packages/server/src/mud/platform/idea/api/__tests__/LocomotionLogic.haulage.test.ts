@@ -12,7 +12,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { HaulerMixin } from '../../../../lib/slot/Hauler';
 import { Idea } from '../../../../lib/stuff/Idea';
 import CartesianZone from '../../location/CartesianZone';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import Exit from '../../../../lib/boundary/Exit';
 import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
@@ -33,12 +33,12 @@ class MobileHauler extends HaulerMixin(MobileMixin(ContainableMixin(Idea))) {
 }
 
 function groundExit(wheelPassable = true): {
-  locA: CartesianLocation;
+  locA: Location;
   exit: Exit;
 } {
   const zone = makeStuff(() => new CartesianZone());
-  const locA = makeStuff(() => new CartesianLocation());
-  const locB = makeStuff(() => new CartesianLocation());
+  const locA = makeStuff(() => new Location());
+  const locB = makeStuff(() => new Location());
   zone.addLocation(locA, 0, 0, 0);
   zone.addLocation(locB, 0, 1, 0);
   const exit = makeStuff(

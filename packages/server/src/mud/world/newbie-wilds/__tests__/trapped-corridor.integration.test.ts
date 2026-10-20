@@ -63,7 +63,7 @@ import { BiomeApi } from '../../../api/biome';
 import { MqlApi, type MqlOneResult } from '../../../api/mql';
 import { CommandApi, type CommandContext } from '../../../api/command';
 import { CommandDefinition } from '../../../lib/command/CommandDefinition';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import { EventApi } from '../../../api/event';
 import {
@@ -137,7 +137,7 @@ function trapsStore(): Doc[] {
     // void (the real treeline, with its wolf, is never stood up by a test).
     {
       path: '/world/newbie-wilds/crossroads/treeline',
-      class: '/platform/location/VoidLocation',
+      class: '/platform/location/Void',
       data: { shortDescription: 'the treeline' },
     },
   ];
@@ -253,10 +253,10 @@ function wound(m: Creature): Trauma | undefined {
 }
 
 // --- room / trap / secret accessors over the stood-up real zone -----------
-function room(leaf: string): Stuff & Location {
+function room(leaf: string): Stuff & Place {
   return StuffApi.findByTemplatePath(
     `/world/newbie-wilds/delve/${leaf}`,
-  ) as unknown as Stuff & Location;
+  ) as unknown as Stuff & Place;
 }
 function trapIn(leaf: string): Trap {
   return (room(leaf) as unknown as { getContents(): Stuff[] })
@@ -436,7 +436,7 @@ describe('The Sunken Delve — content discipline (the required invariant)', () 
 describe('The Sunken Delve — care↔speed over the real corridor traps', () => {
   it('a WALK springs the hidden corridor dart (novice capacity 3 < 4)', async () => {
     const m = delver();
-    ContainmentApi.move(m, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(m, makeStuff(() => new Place()) as never);
     await warm(m, 'novice');
     const dart = trapIn('corridor-1');
     dart.resolveTraversal(m, 'walk');
@@ -446,7 +446,7 @@ describe('The Sunken Delve — care↔speed over the real corridor traps', () =>
 
   it('a SNEAK avoids that same hidden dart (novice 3 + 2 >= 4)', async () => {
     const m = delver();
-    ContainmentApi.move(m, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(m, makeStuff(() => new Place()) as never);
     await warm(m, 'novice');
     const dart = trapIn('corridor-1');
     dart.resolveTraversal(m, 'sneak');
@@ -456,7 +456,7 @@ describe('The Sunken Delve — care↔speed over the real corridor traps', () =>
 
   it('a WALK avoids the subtle corridor blade (novice 3 >= 2)', async () => {
     const m = delver();
-    ContainmentApi.move(m, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(m, makeStuff(() => new Place()) as never);
     await warm(m, 'novice');
     const blade = trapIn('corridor-3');
     blade.resolveTraversal(m, 'walk');
@@ -466,7 +466,7 @@ describe('The Sunken Delve — care↔speed over the real corridor traps', () =>
 
   it('a RUN springs that same subtle blade (novice 3 - 2 = 1 < 2)', async () => {
     const m = delver();
-    ContainmentApi.move(m, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(m, makeStuff(() => new Place()) as never);
     await warm(m, 'novice');
     const blade = trapIn('corridor-3');
     blade.resolveTraversal(m, 'run');
@@ -490,12 +490,12 @@ describe('The Sunken Delve — armor + medium', () => {
     };
 
     const bare = delver();
-    ContainmentApi.move(bare, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(bare, makeStuff(() => new Place()) as never);
     freshTrap().resolveTraversal(bare, 'walk');
 
     const shod = delver();
     bootOn(shod);
-    ContainmentApi.move(shod, makeStuff(() => new Location()) as never);
+    ContainmentApi.move(shod, makeStuff(() => new Place()) as never);
     freshTrap().resolveTraversal(shod, 'walk');
 
     const bw = wound(bare);

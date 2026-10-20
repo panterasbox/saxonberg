@@ -1,0 +1,21 @@
+# Sulfur dioxide — what burning sulfur gives off (cleanliness D22): the
+# bleacher's fume for wool, which sun yellows and lye destroys. In a shut
+# room it builds until it poisons; a door or a window clears it. ⭐ The
+# `toxicity` is read as burden per breath at unit fraction (smoke's rule).
+class: /platform/idea/material/Material
+data:
+  name: sulfur dioxide
+  keywords: [sulfur dioxide, fumes, fume]
+  appearance: a sharp, choking fume
+  density: 2.6
+  boilingPoint: 263
+  thermalConductivity: 0.01
+  electricalConductivity: 1.0e-12
+  edibility: false
+  nutrients: []
+  toxicity:
+    - type: sulfurDioxide
+      amount: 40
+  tags: [gas, fume, oxidiser, sulfur-fume]
+  composition: []
+  biologicalSource: null

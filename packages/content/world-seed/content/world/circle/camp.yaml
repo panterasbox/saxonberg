@@ -2,7 +2,7 @@
 # the northern equinox: the growing case, where snow deepens and ice thickens
 # inside a drive. The salt pan, left with brine in it, sits frozen over (the
 # evaporative profile's own words).
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: Circle camp
   keywords: [camp, circle]

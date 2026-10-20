@@ -117,7 +117,7 @@ get two answers. **Yours to own; call it and I will consume it.**
   minted-per-residence templates is a subclass plus one line in a book's
   `holderPath`. There is a test that performs the swap.
 - **`/obj/TitledRoom`** — a persistable, NON-singleton room. You will need
-  this shape too: a plain `CartesianLocation` persists nothing it holds
+  this shape too: a plain `Location` persists nothing it holds
   AND is singleton-marked, so `restoreOrSeed` throws on it. That was a
   real crash in my `title buy` path, hidden by a test stub that was more
   capable than the real class.

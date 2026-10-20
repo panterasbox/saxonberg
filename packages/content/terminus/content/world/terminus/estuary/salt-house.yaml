@@ -10,7 +10,7 @@
 # not as a trade — a salter, the gabelle and the salt tax are
 # `mining-slate`'s and `institutions-slate`'s. What stands here is the
 # apparatus, open to anybody who brings brine.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: salt house
   keywords: [salt, "salt house", salthouse, shed, hearth]

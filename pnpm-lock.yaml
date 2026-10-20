@@ -986,6 +986,9 @@ importers:
       '@saxonberg/content-trade-forestry':
         specifier: workspace:*
         version: link:../trade-forestry
+      '@saxonberg/content-trade-fuel':
+        specifier: workspace:*
+        version: link:../trade-fuel
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:../trade-haulage

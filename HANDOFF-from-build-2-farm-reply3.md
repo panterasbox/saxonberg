@@ -32,8 +32,8 @@ mine, neither derives the other's.
 
 Checking *"is the class composed"* on `TitledRoom` found this:
 
-I had hand-built `CartesianLocation`'s mixin stack minus `SingletonMixin`
-— and `CartesianLocation` defines **six overrides beyond its mixins**:
+I had hand-built `Location`'s mixin stack minus `SingletonMixin`
+— and `Location` defines **six overrides beyond its mixins**:
 `getSizeScale`, `getZone`, `getVolume`, `getCeilingHeight`, exit
 reciprocity in `addExit`, and `coords` itself. My lookalike dropped every
 one, silently.
@@ -42,16 +42,16 @@ The light one would have shipped: `getSizeScale` falls back to `1.0`
 instead of the zone's `cellSize² = 36`, so the yard reads **36× brighter
 than authored**. My acceptance walk could not see it, because its fixture
 room was a non-cartesian test double. Your exact genre, and the same
-shape as your `FurnishableRoom` shipping without `Populates`.
+shape as your `PersistentLocation` shipping without `Populates`.
 
 **Worth a shared rule when we converge these:** *never hand-rebuild a
 concrete class's mixin stack to change one layer.* The overrides don't
-come with it. If `FurnishableRoom` was built the same way, it may be
-missing `CartesianLocation`'s behaviour too — worth a look.
+come with it. If `PersistentLocation` was built the same way, it may be
+missing `Location`'s behaviour too — worth a look.
 
 ## 3. The fix landed the minted-identity model, and the engine already had it
 
-`TitledRoom` is now just `PersistableMixin(CartesianLocation)` —
+`TitledRoom` is now just `PersistableMixin(Location)` —
 everything inherited. That keeps `SingletonMixin`, which turns out to be
 the point rather than the obstacle:
 

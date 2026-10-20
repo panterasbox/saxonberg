@@ -1,166 +1,171 @@
 /**
- * WashController — `wash <thing>` (clean a thing at water), and bare
- * `wash` (wash your own hands).
+ * WashController — `wash <things> [in <water>] [with <cleanser>]`, and bare
+ * `wash` (your own hands). `scrub` is the same act, harder
+ * ({@link ScrubController}).
  *
- * One verb, one act: apply reachable **water** to clean a thing. A named
- * target dispatches on what it IS — serviceware gives up its dregs and
- * returns to the pool, a contamination carrier gives up its surface
- * grime, a dyed garment sheds colour — each an engaged step (~3 s) at
- * any bulk holder whose matter is water (the basin, the tap, a jug).
+ * ⭐⭐ **The mixin is the authority; this controller is dumb**
+ * (cleanliness D10). It binds the targets, settles the water and reads what
+ * it is — its temperature (from what holds it) and its hardness (the water
+ * carries its source's) — finds the cleanser rows the named cleansers'
+ * materials answer to, and hands every target ONE `WashSpec`. What a wash
+ * does — mud out in water and time, grease only to soap or an alkali, blood
+ * SET by hot water, a wool jumper felted, a red sock bleeding into the
+ * whites — is each target's own `washSite`. This file renders the outcome
+ * and nothing else.
  *
- * ⭐ **Bare `wash` washes your hands** — the recovery build's `scrub`,
- * folded in (D10). It has no object arg because the hands are always
- * your own body, so a null target simply routes here; nothing was
- * widened. (`rinse` takes a body ARG and so could not fold in — see
- * `RinseController`'s header and `WaterFixture`.)
+ * ⭐ **Bare `wash` washes your hands** — the layer at each hand: the
+ * gloves, when you wear them (they come clean; the hands under them are
+ * untouched). The recovery build's `scrub` folded in, and kept.
  *
- * Afforded by the water source: `WaterFixture`'s `peers` bucket, so you
- * learn `wash` by standing at a sink.
+ * Afforded by the water: a `WaterFixture`'s `peers` bucket, a shore's
+ * `inventory` bucket — you learn `wash` by standing at water.
  */
 
 import { ManualBuildController } from "./ManualBuildController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
+import type { MqlManyResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Hygiene } from "../../../../lib/vitals/Hygiene";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
+import { CraftingApi } from '../../../../api/crafting';
 import { Mml } from "../../../../api/mml";
 import { BulkableApi } from "../../../../api/bulk";
+import { StuffApi } from "../../../../api/stuff";
+import { BiomeApi } from "../../../../api/biome";
+import { TemplatePaths } from "../../../../lib/paths";
+import { Quantity } from "../../../../lib/quantity";
+import type {
+  WashCleanser,
+  WashOutcome,
+  WashSpec,
+} from "../../../../lib/cleanliness/Soilable";
 
 const TOPIC = "act.deed";
-const WASH_MS = 3000;
+/** One plain wash, real milliseconds; a scrub is three of them. */
+export const WASH_MS = 3000;
+/** Water nobody has measured: a basin at a cool room's warmth. */
+const UNKNOWN_WATER_K = 285;
+/** Water hardness nobody has stated — moderately hard (the realm's default seed). */
+const UNKNOWN_HARDNESS_DGH = 8;
 
-interface WashModel extends CommandModel {
-  target?: MqlOneResult;
+export interface WashModel extends CommandModel {
+  target?: MqlManyResult;
   water?: MqlManyResult;
+  cleanser?: MqlManyResult;
+  /** `scrub … using <brush>` — the scrubbing instrument (scrub only). */
+  brush?: MqlManyResult;
+}
+
+/** The water a wash is done in, read once. */
+export interface WashWater {
+  source: Stuff;
+  waterK: number;
+  hardnessDgh: number;
 }
 
 export default class WashController extends ManualBuildController<WashModel> {
-  async execute(model: WashModel, context: CommandContext): Promise<void> {
-    // ⭐ A source that has to read itself first (a shore's water, maritime
-    // revision 3) settles before anything is looked for in it; a vessel
-    // is ready at once.
-    for (const c of model.water?.stuff ?? []) {
-      await BulkableApi.slotFor(c, undefined)?.settle();
-    }
-    this.run(model, context);
+  /** How hard this act works the thing: `1` a wash, `3` a scrub. */
+  protected effort(model?: WashModel): number {
+    void model;
+    return 1;
   }
 
-  private run(model: WashModel, context: CommandContext): void {
-    const giver = context.commandGiver;
-    const glass = model.target?.stuff ?? null;
-    // ⭐ Bare `wash` (no thing named) = wash your own HANDS. The medic's
-    // old `scrub`, folded in: hygiene has no object arg, so nothing was
-    // widened to get here — a null target simply means "your hands".
-    if (glass === null) {
-      this.washHands(model.water, context);
-      return;
-    }
-    // ⭐ **Washing is not a glassware verb.** It was `instanceof
-    // CraftVessel`, which is why a knife could not be washed at all — and
-    // a knife is the one implement in the kitchen that most needs it, the
-    // whole counterplay to cross-contamination. Anything that gets
-    // SOILED or gets DIRTY can be washed; the two are separate facts and
-    // a target may be either or both.
-    const serviceable =
-      glass !== null && MixinApi.isServiceable(glass) ? glass : null;
-    const contaminable =
-      glass !== null && MixinApi.isContaminable(glass) ? glass : null;
-    // ⚠⚠ AND A THIRD FACT, which the textiles build added: TWO CONCEPTS
-    // SHARE THE WORD "washed" and they must not be folded together.
-    // Soil and contamination are *is this claimable / is it dirty* —
-    // binary by necessity. What laundering does to a garment is *how
-    // much colour is still bound*, which is continuous and is where the
-    // dyer's craft is measured. A dyed thing that is neither serviceware
-    // nor a contamination carrier is a garment, and takes that path.
-    const dyed = glass !== null && MixinApi.isDyed(glass) ? glass : null;
-    if (dyed !== null && serviceable === null && contaminable === null) {
-      return this.launderGarment(dyed, model.water, context);
-    }
-    if (serviceable === null && contaminable === null) {
-      this.declineStep(
-        context,
-        Mml.compose`You can't wash ${Mml.thing(glass)} clean.`,
-        "not-washable",
-      );
-      return;
-    }
-    const water = this.findWater(model.water);
-    if (!water) {
-      this.declineStep(
-        context,
-        Mml.compose`There's no water here to wash ${Mml.thing(glass)} in.`,
-        "no-water",
-      );
-      return;
-    }
+  /** The verb's own word for the act, in the scenes. */
+  protected act(): { self: string; peers: string } {
+    return { self: "wash", peers: "washes" };
+  }
 
-    this.engageStep(context, {
-      durationMs: WASH_MS,
-      effortW: 200,
-      beginSelf: Mml.compose`You take ${Mml.thing(glass)} to ${Mml.thing(water)}.`,
-      onComplete: () => {
-        // The serviceware half: dregs out, garnish out, ice tipped, the
-        // soil mark cleared so the pool will claim it again.
-        serviceable?.wash();
-        // ⭐⭐ The contamination half, and it is the counterplay the whole
-        // build turns on. ⚠ It clears the SURFACE and never the contents:
-        // washing a pot of bad stew is not a cure for the stew. (On a
-        // `CraftVessel` the serviceware wash has already tipped the dregs,
-        // so the ordering is not load-bearing — but the two acts are
-        // different and the comment is what keeps them apart.)
-        contaminable?.clearContamination();
-        // ⚠ A dyed apron is serviceware AND cloth. It took this branch
-        // for the soil, so the colour half is folded in here rather than
-        // silently skipped — the fade is the same either way, only the
-        // line the player reads differs.
-        dyed?.launder();
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`You wash ${Mml.thing(glass)} clean.`)
-          .toPeers(Mml.compose`${Mml.actor(giver)} washes ${Mml.thing(glass)}.`)
-          .send();
-      },
-    });
+  /** The model of the act in flight (the effort reads its brush). */
+  protected currentModel: WashModel | undefined;
+
+  async execute(model: WashModel, context: CommandContext): Promise<void> {
+    this.currentModel = model;
+    // ⭐ A source that has to read itself first (a shore's water, a tap's
+    // main) settles before anything is looked for in it.
+    // ⚠ Bounded (found by the drive: a wash never answered, and the player
+    // could do nothing else). A source that cannot settle in time washes
+    // with what it already knows; the bound is logged so the slow one is
+    // named.
+    for (const c of model.water?.stuff ?? []) {
+      const slot = BulkableApi.slotFor(c, undefined);
+      if (slot) await bounded(slot.settle(), `settle ${c.getTemplatePath()}`);
+    }
+    // ⭐ No catalogue (B50): a cleanser is what its MATERIAL names, loaded
+    // with it; a dirt kind's row loaded when the dirt was made.
+    const found = this.findCleansers(model.cleanser);
+    if ("refusal" in found) {
+      this.declineStep(context, Mml.compose`${found.refusal}`, "not-a-cleanser");
+      return;
+    }
+    const water = await this.findWater(model.water, context);
+    if ("refusal" in water) {
+      this.declineStep(context, Mml.compose`${water.refusal}`, water.reason);
+      return;
+    }
+    const targets = (model.target?.stuff ?? []).filter(
+      (t) => t !== context.commandGiver,
+    );
+    if (targets.length === 0) {
+      this.washHands(water, found.cleansers, context);
+      return;
+    }
+    this.washThings(targets, water, found.cleansers, context);
   }
 
   /**
-   * ⭐ **Bare `wash` = wash your own hands** (the recovery build's `scrub`,
-   * folded in — D10). Clean hands treat a wound without seeding sepsis;
-   * handling a bleeding wound dirties them. Resets the body's `washedAt`
-   * stamp so its cleanliness reads full again. Needs water in reach, the
-   * same precondition as every other `wash` path.
+   * ⭐ The things — every target takes ONE spec, and every other target in
+   * the same water is its co-wash (where an unfast dye's colour goes).
    */
-  private washHands(
-    bound: MqlManyResult | undefined,
+  private washThings(
+    targets: Stuff[],
+    water: WashWater,
+    cleansers: WashCleanser[],
     context: CommandContext,
   ): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isHygiene(giver)) {
-      this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
-      return;
-    }
-    const water = this.findWater(bound);
-    if (!water) {
+    const soilable = targets.filter((t) => MixinApi.isSoilable(t));
+    // ⭐ The thing says why it is not washed (a strewn earth floor); the
+    // verb only renders it.
+    const refusals = soilable
+      .map((t) => (MixinApi.isSoilable(t) ? t.washRefusal() : null))
+      .filter((r): r is string => r !== null);
+    const washable = soilable.filter(
+      (t) => MixinApi.isSoilable(t) && t.washRefusal() === null,
+    );
+    if (washable.length === 0) {
       this.declineStep(
         context,
-        Mml.compose`There's no water here to wash your hands in.`,
-        "no-water",
+        refusals.length > 0
+          ? Mml.compose`${refusals[0]!}`
+          : Mml.compose`You can't wash ${Mml.thing(targets[0]!)} clean.`,
+        refusals.length > 0 ? "not-washed-so" : "not-washable",
       );
       return;
     }
+    const act = this.act();
+    const effort = this.effort(this.currentModel);
+    const names = washable.map((t) => t.getPresentation());
     this.engageStep(context, {
-      durationMs: WASH_MS,
-      effortW: 200,
-      beginSelf: Mml.compose`You step to ${Mml.thing(water)} to wash your hands.`,
+      durationMs: WASH_MS * effort,
+      effortW: effort > 1 ? 350 : 200,
+      beginSelf: Mml.compose`You take ${names.join(", ")} to ${Mml.thing(water.source)}${withWords(cleansers)}.${this.fibreWarning(washable, water)}`,
       onComplete: () => {
-        (giver as Stuff & Hygiene).scrub();
+        // ⭐ One water, several things: the orchestration no one thing
+        // owns (`CraftingApi.wash`, repair's upkeep twin) — each thing's own wash.
+        const results = CraftingApi.wash({
+          items: washable,
+          spec: { waterK: water.waterK, hardnessDgh: water.hardnessDgh, cleansers, effort },
+        });
+        const lines = results.map((r) => describeOutcome(r.item.getPresentation(), r.outcome, act.self));
+        if (MixinApi.isAdvancing(giver)) {
+          // The deed `analyze cleanliness` reads (B57).
+          void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+        }
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You scrub your hands clean under the water.`)
+          .toSelf(Mml.compose`${lines.join(" ")}`)
           .toPeers(
-            Mml.compose`${Mml.actor(giver)} scrubs their hands clean.`,
+            Mml.compose`${Mml.actor(giver)} ${act.peers} ${names.join(", ")}.`,
           )
           .send();
       },
@@ -168,89 +173,197 @@ export default class WashController extends ManualBuildController<WashModel> {
   }
 
   /**
-   * `wash <garment>` — one trip through the tub.
-   *
-   * ⭐ **This is where the dyer's craft is measured.** Each wash strips
-   * colour in proportion to `1 − fastness`, so an un-mordanted piece
-   * comes out of the first launder pale and a well-mordanted one
-   * survives many. Competence in dyeing buys fastness and
-   * repeatability; it never buys a brighter colour, and this is what
-   * makes that a mechanic rather than a claim.
-   *
-   * ⚠ Water is a **precondition, never a consumable** — the same rule
-   * the vessel branch follows, and the reason there is no laundry
-   * vocation: the care loop is not an errand per wash.
+   * Bare `wash` — the hands, on the layer each hand wears: the gloves come
+   * clean and the hands under them stay as they were.
    */
-  private launderGarment(
-    garment: Stuff,
-    bound: MqlManyResult | undefined,
+  private washHands(
+    water: WashWater,
+    cleansers: WashCleanser[],
     context: CommandContext,
   ): void {
     const giver = context.commandGiver;
-    const water = this.findWater(bound);
-    if (!water) {
-      this.declineStep(
-        context,
-        Mml.compose`There's no water here to wash ${Mml.thing(garment)} in.`,
-        "no-water",
-      );
+    if (!MixinApi.isHygienic(giver) || giver.handSites().length === 0) {
+      this.declineStep(context, Mml.compose`Wash what?`, "no-hands");
       return;
     }
-    if (!MixinApi.isDyed(garment)) return;
-    const before = garment.getColorTag();
+    const effort = this.effort(this.currentModel);
+    const gloved = giver.handSites().some((h) => giver.outermostAt(h) !== null);
     this.engageStep(context, {
-      durationMs: WASH_MS,
-      effortW: 200,
-      beginSelf: Mml.compose`You take ${Mml.thing(garment)} to ${Mml.thing(water)}.`,
+      durationMs: WASH_MS * effort,
+      effortW: effort > 1 ? 350 : 200,
+      beginSelf: Mml.compose`You step to ${Mml.thing(water.source)} to wash your ${gloved ? "gloves" : "hands"}${withWords(cleansers)}.`,
       onComplete: () => {
-        if (!MixinApi.isDyed(garment)) return;
-        const changed = garment.launder();
-        const after = garment.getColorTag();
-        const line =
-          before && !after
-            ? Mml.compose`The colour goes out of ${Mml.thing(garment)} entirely.`
-            : changed
-              ? Mml.compose`You wash ${Mml.thing(garment)}. Some of the colour comes away with the water.`
-              : Mml.compose`You wash ${Mml.thing(garment)} clean.`;
+        giver.washHands({
+          waterK: water.waterK,
+          hardnessDgh: water.hardnessDgh,
+          cleansers,
+          effort,
+        });
+        const clean = giver.handCleanliness() >= 0.9;
+        if (MixinApi.isAdvancing(giver)) {
+          // The deed `analyze cleanliness` reads (B57).
+          void giver.creditDeed({ discipline: 'domestic-services', difficulty: 'easy', outcome: 'success' });
+        }
+        const what = gloved ? "gloves" : "hands";
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(line)
-          .toPeers(Mml.compose`${Mml.actor(giver)} washes ${Mml.thing(garment)}.`)
+          .toSelf(
+            clean
+              ? Mml.compose`You scrub your ${what} clean under the water.`
+              : Mml.compose`You wash your ${what}, but they are not clean yet.`,
+          )
+          .toPeers(Mml.compose`${Mml.actor(giver)} washes their ${what}.`)
           .send();
       },
     });
   }
 
   /**
-   * A reachable bulk holder of water — held, then in the room (the
-   * two-leg reach the tool finder uses).
-   *
-   * ⭐ Water is the Material's **`water` tag** and nothing else. This
-   * once also matched the keyword and the display name, which is how it
-   * worked at all: the water row carried no `water` tag, so the identity
-   * branch never fired and the string match was load-bearing. Keywords
-   * are the command line's tokens and say nothing about what a thing IS
-   * — see docs/antipatterns.md § Keywords Where You Mean Identity.
+   * ⭐ A competent hand knows before it washes (lens 1: resolution, not
+   * access) — the textiles band tells you *wool — it will felt if boiled*.
+   * An untrained hand finds out after.
    */
-  private findWater(bound: MqlManyResult | undefined): Stuff | null {
-    // ⭐ A NARROWING, not a search: `wash.yaml` declares `water` with a
-    // `[mixin.BulkableMixin]` default, so what arrives is every reachable
-    // vessel and the only question left is what is IN it — contents,
-    // which no predicate asks (`lint:instrument-args`).
+  private fibreWarning(targets: Stuff[], water: WashWater): string {
+    if (water.waterK < 363) return "";
+    for (const t of targets) {
+      if (!MixinApi.isTangible(t)) continue;
+      const m = t.getMaterial();
+      if (m?.hasTag("protein") && m.hasTag("fibre")) {
+        return ` The water is near boiling, and ${t.getPresentation()} is wool.`;
+      }
+    }
+    return "";
+  }
+
+  /**
+   * The cleansers named, by the agent tag their MATERIAL carries — a bar
+   * of soap is soap because it is made of soap; a flask of lye is lye. A
+   * named thing that is no cleanser is refused in words.
+   */
+  protected findCleansers(
+    bound: MqlManyResult | undefined,
+  ): { cleansers: WashCleanser[] } | { refusal: string } {
+    const out: WashCleanser[] = [];
     for (const c of bound?.stuff ?? []) {
-      // A crafted vessel's contents are a product, not wash water; a
-      // shore (no vessel at all) offers the water it is beside.
-      if (MixinApi.isCrafted(c)) continue;
-      if (!MixinApi.isBulkable(c) && !MixinApi.isShore(c)) continue;
+      const material = materialOf(c);
+      const row = material?.getCleanser() ?? null;
+      if (!row) return { refusal: `${c.getPresentation()} is no use for washing.` };
+      out.push({ row, materialPath: material?.getTemplatePath() ?? null, source: c });
+    }
+    return { cleansers: out };
+  }
+
+  /**
+   * The water: a bulk holder of water or brine in reach (a basin, a tap, a
+   * tub, a pail), or the water a shore is beside — read through the
+   * shore's one answer, which refuses a frozen water unless there is a
+   * hole in it.
+   */
+  protected async findWater(
+    bound: MqlManyResult | undefined,
+    context: CommandContext,
+  ): Promise<WashWater | { refusal: string; reason: string }> {
+    const room = context.location ?? null;
+    let frozenLine: string | null = null;
+    for (const c of bound?.stuff ?? []) {
+      if (MixinApi.isShore(c)) {
+        const pick = c.waterFor();
+        if ("refusal" in pick) continue;
+        // Settle the read first: the shore's gate answers from the read.
+        await c.settleWater(pick.key);
+        const drawn = c.drawAt(pick.key, room ?? c);
+        if ("refusal" in drawn) {
+          if (drawn.refusal === "frozen") frozenLine = drawn.line;
+          continue;
+        }
+        return {
+          source: c,
+          waterK: drawn.draw.temperatureK,
+          hardnessDgh: drawn.draw.hardnessDgh ?? UNKNOWN_HARDNESS_DGH,
+        };
+      }
+      // A crafted vessel's contents are a product, not wash water.
+      if (MixinApi.isCrafted(c) && !MixinApi.isSoilable(c)) continue;
+      if (!MixinApi.isBulkable(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);
       if (!slot || slot.isEmpty()) continue;
       const m = slot.getMaterial();
-      if (!m) continue;
-      // ⭐ Salt water washes (a deck, a shirt at sea) — by its own `brine`
-      // tag, never by giving it the `water` tag the recipes read (seawater
-      // would brew ale).
-      if (m.hasTag("water") || m.hasTag("brine")) return c;
+      // ⭐ Water is the material's `water` tag; salt water washes by its
+      // own `brine` tag (a deck at sea) — never by giving it `water`.
+      if (!m || !(m.hasTag("water") || m.hasTag("brine"))) continue;
+      return {
+        source: c,
+        waterK: slot.getTemperatureK() ?? ambientK(c),
+        hardnessDgh: slot.getHardnessDgh() ?? UNKNOWN_HARDNESS_DGH,
+      };
     }
-    return null;
+    if (frozenLine) return { refusal: frozenLine, reason: "frozen" };
+    return { refusal: "There's no water here to wash in.", reason: "no-water" };
   }
+}
+
+/** Wait for `p`, but never longer than `ms`; say which wait ran over. */
+async function bounded<T>(p: Promise<T>, label: string, ms = 5000): Promise<T | undefined> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<undefined>((res) => {
+    timer = setTimeout(() => {
+      console.warn(`WashController: ${label} did not settle in ${ms} ms; washing without it`);
+      res(undefined);
+    }, ms);
+  });
+  try {
+    return await Promise.race([p, late]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function materialOf(c: Stuff) {
+  if (MixinApi.isBulkable(c)) {
+    const slot = BulkableApi.slotFor(c, undefined);
+    const m = slot && !slot.isEmpty() ? slot.getMaterial() : null;
+    if (m) return m;
+  }
+  return MixinApi.isTangible(c) ? c.getMaterial() : null;
+}
+
+function ambientK(c: Stuff): number {
+  try {
+    const room = MixinApi.isContainable(c) ? c.getContainer() : null;
+    if (room && MixinApi.isContainer(room)) return BiomeApi.airFor(room).tempK;
+  } catch {
+    // fall through
+  }
+  return UNKNOWN_WATER_K;
+}
+
+function withWords(cleansers: WashCleanser[]): string {
+  if (cleansers.length === 0) return "";
+  const keys = cleansers.map((c) => c.row.key.replace(/-/g, " "));
+  return ` with ${keys.join(" and ")}`;
+}
+
+
+/** The outcome, in words — the only thing the verb decides. */
+function describeOutcome(name: string, o: WashOutcome, verb: string): string {
+  const parts: string[] = [];
+  const out = Object.keys(o.removed);
+  parts.push(
+    out.length > 0
+      ? `You ${verb} ${name}; the ${out.join(" and ")} come${out.length === 1 ? "s" : ""} out.`
+      : `You ${verb} ${name}.`,
+  );
+  if (o.setNow.length > 0) {
+    parts.push(`The hot water sets the ${o.setNow.join(" and ")} into it.`);
+  }
+  const d = new Set(o.damage);
+  if (d.has("felted")) parts.push("It comes out of the boil felted and shrunk — thick, hard and small.");
+  else if (d.has("shrunk")) parts.push("It has shrunk a little in the hot water.");
+  if (d.has("burnt")) parts.push("The cleanser has eaten into the cloth.");
+  if (d.has("rotted")) parts.push("The bleach has weakened the cloth.");
+  if (d.has("scratched")) parts.push("It is scratched.");
+  if (d.has("bled")) parts.push("Its colour runs into the rest of the wash.");
+  else if (d.has("faded")) parts.push("Some of the colour comes away with the water.");
+  parts.push(o.band === "clean" ? "It comes up clean." : `It is still ${o.band}.`);
+  return parts.join(" ");
 }

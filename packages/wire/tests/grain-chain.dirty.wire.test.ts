@@ -187,6 +187,9 @@ suite('the mill', () => {
     // Bare `mill` with nothing to mill declines in the CONTROLLER's
     // words — which is the proof the verb is afforded here. A verb
     // nothing affords is refused by the parser as unknown.
+    // ⭐ The stones are INDOORS now (cleanliness D22): the mill house,
+    // west of the race — where the dust hangs.
+    expectOk(await p.cmd('go west'));
     reachedItsGate(await p.cmd('mill'));
   }, 120_000);
 

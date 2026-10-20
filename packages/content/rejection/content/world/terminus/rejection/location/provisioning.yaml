@@ -6,7 +6,7 @@
 # of. ⚠ The fungus DIES and must be replaced — the consumable is
 # biological rather than combustible, which is Rejection's own answer to
 # the archetype's defaultless `light` slot.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: provisioning shed
   keywords: [provisioning, stores, shop, shed]

@@ -1,0 +1,17 @@
+# The byre's floor — cobbles sloping to a gutter (cleanliness D20). ⭐ The
+# ONE calendar accrual in the build, declared HERE: `stalls:` names the herd
+# book whose beasts stand on it, and the floor fouls by the animal-day while
+# they are kept. `muck out` takes it up into a heap of muck for the midden.
+# (A floor ROW because the room's `floor:` block is closed — the ice sheet's
+# own pattern.)
+class: /platform/thing/Floor
+data:
+  shortDescription: byre floor
+  keywords: [floor, ground, cobbles, stalls, gutter]
+  register: definite
+  longDescription: |
+    Cobbles laid in rough courses, sloping to a stone gutter along the stalls.
+  _materialPath: /stuff/idea/material/rock/granite
+  worked: true
+  stalls: { herdbook: /world/terminus/hearts-delight/dairy/thing/dairy-book }
+  sweepsInto: /trade/ranching/thing/muck

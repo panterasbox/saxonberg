@@ -5,7 +5,7 @@
 # is STAKED, not bought — `title buy` is buying from a catalogue and
 # staking is a first-come registration, which is a different act with a
 # different verb.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: claims office
   keywords: [office, "claims office", claims]

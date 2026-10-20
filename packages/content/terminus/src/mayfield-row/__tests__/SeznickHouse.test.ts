@@ -33,7 +33,7 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { CommandApi, type CommandContext, type ModelData } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -76,8 +76,8 @@ function col(name: string): Doc[] {
  *
  * ⚠ The fixture used to hard-code these, and hard-coding is how a suite
  * goes green against a world that does not exist: the corridor moved off
- * `FurnishableRoom` (it is minted per floor and keeps no record) and the
- * lobby onto `SingletonCartesianLocation`, and every one of these tests
+ * `PersistentLocation` (it is minted per floor and keeps no record) and the
+ * lobby onto `Locale`, and every one of these tests
  * kept passing against the old classes. A fixture may stub what it does
  * not want to boot — it may not invent a DIFFERENT world.
  */
@@ -137,16 +137,16 @@ function seedDomain(): void {
       { leaf: 'main', room: `${HOUSE}/location/main` },
     ],
   });
-  add(`${HOUSE}/location/hall`, '/platform/location/FurnishableRoom', {
+  add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
     shortDescription: 'the entry hall',
   });
-  add(`${HOUSE}/location/main`, '/platform/location/FurnishableRoom', {
+  add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
     shortDescription: 'the main room',
   });
-  add(CORRIDOR, '/platform/location/FurnishableRoom', {
+  add(CORRIDOR, '/platform/location/PersistentLocation', {
     shortDescription: 'a Seznick House landing',
   });
-  add(LOBBY, '/platform/location/FurnishableRoom', {
+  add(LOBBY, '/platform/location/PersistentLocation', {
     shortDescription: 'the Seznick House lobby',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
@@ -477,7 +477,7 @@ describe('Seznick House — the lease loop', () => {
       null,
     );
     const cond = vi
-      .spyOn(OuterWarren, 'conditionOf')
+      .spyOn(CirculationWarren, 'conditionOf')
       .mockResolvedValue({ condition: 0.2, band: 'dilapidated' });
 
     const ctx = await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');

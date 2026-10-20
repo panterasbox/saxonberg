@@ -13,7 +13,7 @@ import { CommandApi } from '../../../../../api/command';
 import { CommandLineApi } from '../../../../../api/command-line';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import type { CommandGiver } from '../../../../../lib/command/CommandGiver';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -24,7 +24,7 @@ const VIEW = join(
 
 const ctx = {
   commandGiver: {} as Stuff & CommandGiver,
-  location: {} as Location,
+  location: {} as Place,
 };
 
 function bind(text: string): Record<string, unknown> {

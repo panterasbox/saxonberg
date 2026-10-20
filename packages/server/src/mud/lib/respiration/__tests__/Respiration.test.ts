@@ -16,7 +16,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { Character } from '../../character/Character';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import Species from '../../../platform/idea/species/Species';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -44,7 +44,7 @@ import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
 import { buildMode } from '../../locomotion/__tests__/test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 /** A bowl: holds a bulk interior AND things (the fish). */
 class TestBowl extends BulkableMixin(
   ContainerMixin(ContainableMixin(NamedMixin(Idea))),

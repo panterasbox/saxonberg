@@ -36,7 +36,7 @@ import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import { Template } from '../../stuff/Template';
 import Good from '../../stuff/Good';
 import Species from '../../../platform/idea/species/Species';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import { Character } from '../../character/Character';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
@@ -108,7 +108,7 @@ async function installCatalogue(): Promise<void> {
 }
 
 function room(elevation: number | null): Stuff & Container {
-  const r = makeStuff(() => new SingletonCartesianLocation());
+  const r = makeStuff(() => new Locale());
   stampTemplatePathForTest(r, `/platform/location/test/cost-${seq++}`);
   elevations.set(r as unknown as Stuff, elevation);
   return r as unknown as Stuff & Container;

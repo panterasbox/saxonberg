@@ -109,7 +109,7 @@ export default class Ship extends PersistableMixin(
     const out: (Stuff & Container)[] = [];
     for (const p of await this.memberPaths) {
       const s = StuffApi.findByTemplatePath<Stuff>(p);
-      if (s && s.isLocation() && MixinApi.isContainer(s)) out.push(s);
+      if (s && s.isPlace() && MixinApi.isContainer(s)) out.push(s);
     }
     return out;
   }

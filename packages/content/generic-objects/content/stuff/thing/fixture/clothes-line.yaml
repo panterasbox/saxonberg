@@ -1,0 +1,14 @@
+# A clothes line — a rope between two posts, with pegs (cleanliness D11). A
+# wet garment hung on it dries in the open air, faster than one in a room;
+# a DryingRack by another name, because hanging a shirt to dry and hanging a
+# ham to dry are the same act.
+class: /platform/thing/DryingRack
+data:
+  shortDescription: clothes line
+  keywords: [line, "clothes line", "washing line", rope, pegs]
+  register: indefinite
+  longDescription: A rope strung taut between two posts, with a bag of wooden pegs hung on one of them.
+  airExposure: 1
+  placements: [on, from]
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 3

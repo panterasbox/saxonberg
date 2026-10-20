@@ -16,7 +16,7 @@
 import { Modality, MAX_HOPS, EXIT_TAU } from '../../../lib/perception/Modality';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Perception } from '../../../lib/perception/Perception';
 import {
@@ -245,7 +245,7 @@ export class VisionModality extends Modality {
         ? (viewer.getContainer() ?? env)
         : env;
     } else if (
-      !(env instanceof Location) &&
+      !(env instanceof Place) &&
       MixinApi.isOpenContainer(env as Stuff) &&
       MixinApi.isContainable(env)
     ) {
@@ -447,8 +447,10 @@ function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
         loc.getWeatherDimFactor() *
         // ⭐ What the roof and walls let through (rubber build): 1 under
         // the open sky and for an authored `sky` rung, a glass roof's
-        // Beer–Lambert transmittance under glass.
-        loc.skyLightFraction()
+        // Beer–Lambert transmittance under glass — × what the named
+        // opening's pane passes (cleanliness D19: a grimed window darkens
+        // the room it lights).
+        loc.skyLightFraction() * loc.openingTransmissivity()
       : loc.getAmbientFlux().rawValue() * loc.getWeatherDimFactor();
     if (ambientFlux > 0) {
       const ambientColorTemp = loc.getAmbientColorTemperature();
@@ -513,7 +515,7 @@ function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
     // sealed in a chest in a pack is not lighting anything, and a
     // general recursion would make the hot path walk the world.
     if (!MixinApi.isContainer(item)) continue;
-    if (loc instanceof Location && item instanceof Location) continue;
+    if (loc instanceof Place && item instanceof Place) continue;
     for (const held of (item as Stuff & Container).getContents()) {
       if (!MixinApi.isLightSource(held)) continue;
       const flux = held.getEmittedFlux().rawValue();
@@ -689,7 +691,7 @@ function latitudeOf(loc: Stuff & Container): number | undefined {
 }
 
 function readSizeScale(loc: Stuff & Container): number {
-  return loc instanceof Location ? loc.getSizeScale() : 1.0;
+  return loc instanceof Place ? loc.getSizeScale() : 1.0;
 }
 
 function findLightConduit(boundary: Boundary): LightConduit | null {

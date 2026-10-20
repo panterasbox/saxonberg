@@ -16,7 +16,7 @@ import { Actor } from '../../creature/Actor';
 import Pool from '../../../platform/location/Pool';
 import WaterSurface from '../../../platform/thing/WaterSurface';
 import Floor from '../../../platform/thing/Floor';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
+import Locale from '../../../platform/location/Locale';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BiomeApi } from '../../../api/biome';
@@ -98,7 +98,7 @@ describe('the medium vocabulary (D2)', () => {
 
 describe('BiomeApi.mediumFor — one read, per occupant (D3)', () => {
   it('a thing in an ordinary room is in the air', () => {
-    const room = makeStuff(() => new SingletonCartesianLocation());
+    const room = makeStuff(() => new Locale());
     const w = walker();
     ContainmentApi.move(w as never, room as never);
     expect(BiomeApi.mediumFor(w as unknown as Stuff)).toMatchObject({ tag: 'air', immersed: false });

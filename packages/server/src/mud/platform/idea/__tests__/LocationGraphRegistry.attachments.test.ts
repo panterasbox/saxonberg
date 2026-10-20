@@ -21,11 +21,11 @@ beforeEach(() => {
   seedKernelContentStore([
     { path: T, class: '/platform/idea/location/CartesianZone', data: {} },
     // A shop: the house names its COUNTER; the room props the counter.
-    { path: `${T}/shop`, class: '/platform/location/SingletonCartesianLocation', data: { props: [`${T}/counter`] } },
+    { path: `${T}/shop`, class: '/platform/location/Locale', data: { props: [`${T}/counter`] } },
     { path: `${T}/counter`, class: '/platform/thing/Thing', data: {} },
     { path: `${T}/idea/house`, class: '/platform/idea/Business', data: { operatingLocations: [`${T}/counter`] } },
     // A yard the house names directly.
-    { path: `${T}/yard`, class: '/platform/location/SingletonCartesianLocation', data: {} },
+    { path: `${T}/yard`, class: '/platform/location/Locale', data: {} },
     { path: `${T}/idea/farm`, class: '/platform/idea/Business', data: { operatingLocations: [`${T}/yard`] } },
     // A tower over the district, a ship on a sea.
     { path: `${T}/tower`, class: '/platform/idea/Structure', data: { extent: T } },
@@ -33,12 +33,12 @@ beforeEach(() => {
     // An institution over an extent.
     { path: `${T}/idea/warren`, class: '/platform/idea/Business', data: { parentExtent: `${T}/lots` } },
     // A fixture that seats itself in a warren a ROOM names.
-    { path: `${T}/lounge`, class: '/platform/location/SingletonCartesianLocation', data: { warren: `${T}/idea/lounge-warren` } },
+    { path: `${T}/lounge`, class: '/platform/location/Locale', data: { warren: `${T}/idea/lounge-warren` } },
     { path: `${T}/idea/lounge-warren`, class: '/platform/idea/Business', data: {} },
     { path: `${T}/rack`, class: '/platform/thing/Thing', data: { seatIn: `${T}/idea/lounge-warren` } },
     // A guard cast in the yard, standing for an institution.
     { path: `${T}/guard`, class: '/platform/agent/Extra', data: { institution: `${T}/idea/watch` } },
-    { path: `${T}/gate`, class: '/platform/location/SingletonCartesianLocation', data: { cast: [`${T}/guard`] } },
+    { path: `${T}/gate`, class: '/platform/location/Locale', data: { cast: [`${T}/guard`] } },
   ]);
   const real = PersistenceManager.get() as unknown as {
     save(c: string, d: Record<string, unknown>): Promise<string>;

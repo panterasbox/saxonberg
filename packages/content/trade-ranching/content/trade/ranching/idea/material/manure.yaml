@@ -1,0 +1,17 @@
+# Manure — muck out of a byre (cleanliness D20): dung and trodden straw. It
+# carries what lives in a gut, and on a midden it rots down into the compost
+# a field is fed with — the return leg of the nitrogen ledger.
+class: /platform/idea/material/Material
+data:
+  name: manure
+  keywords: [manure, muck, dung]
+  appearance: wet dark muck and straw
+  density: 700
+  specificHeat: 3000
+  thermalConductivity: 0.4
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [organic, compost, slow-amendment, manure, refuse]
+  composition: []
+  biologicalSource: null

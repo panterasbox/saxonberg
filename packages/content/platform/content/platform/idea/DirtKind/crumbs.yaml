@@ -1,0 +1,10 @@
+# Crumbs — the one DEBRIS kind the platform ships: what eating leaves
+# on a floor. Swept, not washed — and what the pests come for.
+class: /platform/idea/DirtKind
+data:
+  key: crumbs
+  adjective: crumbed
+  form: debris
+  answersTo: []
+  waterLifts: 0.5
+  brushLifts: 0.9

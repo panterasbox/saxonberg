@@ -34,7 +34,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult, MqlManyResult } from '@saxonberg/server/mud/api/mql';
 import type { Difficulty } from '@saxonberg/server/mud/lib/advancement/ActSignature';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
@@ -49,7 +49,7 @@ const SHOULDER_M = '/stuff/idea/material/tissue/muscles/_shoulder';
 const LOIN_ROW = '/trade/cooking/thing/_cut-loin';
 const SHOULDER_ROW = '/trade/cooking/thing/_cut-shoulder';
 
-class TestRoom extends ContainerMixin(Location) {}
+class TestRoom extends ContainerMixin(Place) {}
 class TestKnife extends ConstructedMixin(Good) {}
 class TestGiver extends NamedMixin(ContainableMixin(ContainerMixin(Idea))) {}
 

@@ -12,6 +12,15 @@ platform. TypeScript across the stack within a `pnpm` monorepo
 (`packages/server`, `packages/client`, `packages/types`). For the
 product vision see [docs/vision.md](./docs/vision.md).
 
+## Language — American English
+
+**Write American English everywhere** — prose, docs, comments, content rows,
+help text, commit messages, and every new name: *harbor*, *color*, *center*,
+*behavior*, *gray*, *mold*, *meter*, *program*. The owner: *"we speak
+american here."* Shipped identifiers with British spellings (`Colour`,
+`MouldMixin`, `mould.md`, `programme`) are not renamed piecemeal; a rename is a
+deliberate sweep. Proper nouns keep their authored spelling (the Greywater).
+
 ## Documentation Map
 
 The `docs/` tree is the source of truth for architecture and subsystem
@@ -138,7 +147,7 @@ behavior. Read the relevant doc before editing in its area.
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
   - [identity.md](./docs/subsystems/identity.md) — who a character IS: the `Cast`/`Extra` rungs (name OR the definite article), the authored dossier as seeded evidence + the archetype stamp, who answers for you, the three gates; ⭐ the Compact stays players-only by ARITHMETIC
-  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/Inner/Outer tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
+  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/RoomWarren/CirculationWarren tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
@@ -166,7 +175,7 @@ behavior. Read the relevant doc before editing in its area.
   - [parcel.md](./docs/subsystems/parcel.md) — real-property title: ParcelRecord + chain-of-title, ParcelRegistry, `ownerOf`, `subdivide`/`transfer`
   - [sandbox.md](./docs/subsystems/sandbox.md) — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary, the wire-body crossing + wardrobe door, the Forkable substrate, jurisdiction-targeted eval
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
-  - [furnishing.md](./docs/subsystems/furnishing.md) — owner-based persistence: `place`, the estate slice, the host skip rule, the room overlay; FurnishableRoom + the four archetypes; acreage (ground vs floors)
+  - [furnishing.md](./docs/subsystems/furnishing.md) — owner-based persistence: `place`, the estate slice, the host skip rule, the room overlay; PersistentLocation + the four archetypes; acreage (ground vs floors)
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
   - [livestream.md](./docs/subsystems/livestream.md) — broadcast-feed WS principal, StreamState, `requiresStreamer`, `stream away`/`back`
@@ -210,6 +219,7 @@ behavior. Read the relevant doc before editing in its area.
   - [assembly.md](./docs/subsystems/assembly.md) — a made thing that KEEPS its parts: ⭐ transformation destroys identity, assembly preserves it; the bill on the kind + the parts record on the instance, `Joint` rows (reversibility decides `salvage`), localized wear and `repair`, the one verb `fit`, the families it composes on (no bill = one piece) and part state on the line, the wood column (`rive`/`saw`/`carve`, seasoning, the grain carry) and the compartment
   - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`; the kernel/pack line (the MECHANISM is kernel substrate, the class a row names is `trade-shopkeeping`'s) + `lint:counters`
   - [corpo.md](./docs/subsystems/corpo.md) — the mark substrate: Corpo/Brand data Ideas, CorpoCatalogue, BrandedMixin resolve-on-read
+  - [cleanliness.md](./docs/subsystems/cleanliness.md) — dirt as STATE (`SoilableMixin`: deposits by site × kind over `DirtKind` rows, set stains, the wash and the clean tiers from the process record), the body's hygiene, the wash chemistry (cleansers named by their material), places (the floor, the heap, the midden, the flue), the people paid for it (laundress, attendant, doorman), how a player KNOWS (`look`, `smell`, `analyze cleanliness`)
   - [textiles.md](./docs/subsystems/textiles.md) — cloth and what it is FOR: purpose is which channel a garment intercepts, the covering ladder + derived `clo`, fit as two numbers and a stamp, the subtractive dye stack + fade, the soiling seam; the three-trade chain
   - [banking.md](./docs/subsystems/banking.md) — two-tier money, the conservation chokepoint, custodial banks, settle/credential, coinage, Terms, quotas
   - [attendant.md](./docs/subsystems/attendant.md) — storefront attention: queue + lease on AttendantMixin, AttendanceEngagement, idle-eviction sweep
@@ -938,8 +948,8 @@ deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
 `platform/idea/modalities/Modality`,
-`platform/location/CartesianLocation`,
-`platform/location/SingletonCartesianLocation`, `platform/idea/Exit`,
+`platform/location/Location`,
+`platform/location/Locale`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`. **Four are
 real renames because they are real concepts**: ⭐ `platform/thing/Corpse`
 (← `Creature`), which is also the one twin that changed BRANCH — a corpse

@@ -25,7 +25,7 @@ import { CommandLineApi } from '../command-line';
 import { MqlSubscriptionApi } from '../mql-subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { ContainmentApi } from '../containment';
-import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
+import Locale from '../../platform/location/Locale';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -244,7 +244,7 @@ describe('the normalized command is what a card re-issues', () => {
 describe('the room card', () => {
   it('⭐ stacks like everything else, and its key names what it is about', async () => {
     const h = await makeHarness();
-    const room = await StuffApi.create(() => new SingletonCartesianLocation());
+    const room = await StuffApi.create(() => new Locale());
     room.setShortDescription("Dave's Bar");
     ContainmentApi.move(h.avatar, room);
     const lookRoom = (text: string): string | null =>

@@ -135,7 +135,7 @@ justifies it. Above the source there is no river, only land.
 *"This sounds like the only real solution is to have some sort of
 RiverWarren that consumes some data model for the river's makeup."*
 
-- **One per course**, an `InnerWarren` — its members are rooms.
+- **One per course**, an `RoomWarren` — its members are rooms.
 - **It consumes the `Watercourse` row** (§ 7) and derives the stretch
   boundaries, each stretch's kind, and the current, depth and width in it.
 - **Between authored places the river divides itself into STRETCHES where

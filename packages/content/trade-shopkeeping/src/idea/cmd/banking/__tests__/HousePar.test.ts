@@ -25,7 +25,7 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   makeStuff,
@@ -52,7 +52,7 @@ function seedBusiness(): BusinessEntity {
   return b;
 }
 
-function ctx(giver: Keeper, loc: Location, text: string): CommandContext {
+function ctx(giver: Keeper, loc: Place, text: string): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: loc as never,
@@ -80,7 +80,7 @@ describe('`house par` — the shop keeps the sheet', () => {
 
   it('house par edits the sheet — unit from the suffix, 0 strikes the line', async () => {
     const biz = seedBusiness();
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const dave = makeStuffAtPath(() => new Keeper(), DAVE);
     ContainmentApi.move(dave as never, loc as never);
     // The house app runs on a screen (display.md): the tablet in hand.

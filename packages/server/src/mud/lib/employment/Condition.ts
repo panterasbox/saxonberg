@@ -30,6 +30,8 @@ import { CategoryMeasure } from "./CategoryMeasure";
 import { PAR_UNITS, type ParUnit } from "./ParLine";
 import { Creature } from "../creature/Creature";
 import type { Stuff } from "../stuff/Stuff";
+import { AppApi } from "../../api/app";
+import { AppSettingKeys } from "../config/AppSettings";
 
 /**
  * The closed, engine-verifiable condition-template vocabulary.
@@ -82,7 +84,13 @@ import type { Stuff } from "../stuff/Stuff";
  * pattern `fulfill` already uses). Nothing is delivered; the destination
  * is the works themselves, inert like a watch's.
  */
-export const CONDITION_TEMPLATES = ["delivery", "supply", "watch", "inspection"] as const;
+export const CONDITION_TEMPLATES = [
+  "delivery",
+  "supply",
+  "watch",
+  "clean",
+  "inspection",
+] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 
@@ -138,6 +146,21 @@ export interface ConditionData {
    * on the contract's own record.
    */
   gameHours?: number;
+}
+
+/**
+ * The flue soot at which a chimney catches (`fire.flue.ignitesAtKg`). A
+ * module function, not a class static, for the `lint:lib-statics` ceiling.
+ */
+function flueFoulAtKg(): number {
+  try {
+    const n = Number.parseFloat(
+      AppApi.setting(AppSettingKeys.fireFlueIgnitesAtKg) ?? "",
+    );
+    return Number.isFinite(n) ? n : 0.5;
+  } catch {
+    return 0.5;
+  }
 }
 
 /** How deep the upward ancestor walk goes (a chest inside a room is 2). */
@@ -244,6 +267,28 @@ export class Condition {
   public watchHolds(watchedSec: number): boolean {
     if (this.data.template !== "watch") return false;
     return watchedSec >= Math.max(0, this.data.gameHours ?? 0) * 3600;
+  }
+
+  /**
+   * ⭐ Whether a `clean` clause holds for its subject (cleanliness D30) —
+   * the room's floor, a hearth, a garment — read off the soil the subject
+   * already carries: a floor or a garment is `clean` at every site, a
+   * flued hearth's flue has under a fifth of the soot that would catch.
+   * Like `watch`, the engine cannot check that you TOOK CARE; it can check
+   * that the thing is clean now, and that is what a cleaner sells.
+   */
+  public cleanHolds(subject: Stuff): boolean {
+    if (this.data.template !== "clean") return false;
+    let target: Stuff | null = subject;
+    if (MixinApi.isFlued(target)) {
+      return target.getFlueSoot() < flueFoulAtKg() * 0.2;
+    }
+    if (MixinApi.isAdornable(target)) {
+      target = target.getFloor() as unknown as Stuff | null;
+    }
+    if (target === null || !MixinApi.isSoilable(target)) return false;
+    // No site: the worst site — every part of it must be clean.
+    return target.soilBand() === "clean";
   }
 
   /** How many the condition asks for — 1 unless it is a counted supply. */

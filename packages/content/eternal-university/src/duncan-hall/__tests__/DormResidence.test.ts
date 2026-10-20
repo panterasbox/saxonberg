@@ -28,7 +28,7 @@ import {
   type CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import Location from '@saxonberg/server/mud/lib/stuff/Location';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { HasInteractiveMixin } from '@saxonberg/server/mud/lib/connection/HasInteractive';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
@@ -257,7 +257,7 @@ function ctxFor(
 ): CommandContext {
   return CommandApi.createCommandContext({
     commandGiver: giver as never,
-    location: makeStuff(() => new Location()) as never,
+    location: makeStuff(() => new Place()) as never,
     commandText: verb,
     executionId: 'test',
     commandId: 'test',

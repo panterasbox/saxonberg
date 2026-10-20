@@ -1,0 +1,3 @@
+# Fuller's earth — an absorbent clay: it drinks grease and spills.
+class: /platform/idea/Cleanser
+data: {key: fullers-earth, agent: fullers-earth, action: absorbent, consumesPerWash: 0.05}

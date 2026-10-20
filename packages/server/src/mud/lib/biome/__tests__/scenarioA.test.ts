@@ -1,12 +1,12 @@
 /**
  * Scenario A — cafeteria with a hot hearth Detail. The cafeteria
  * inherits its indoor defaults from the biome tree; the hearth is
- * a Location-scope detail override at 800 K.
+ * a Place-scope detail override at 800 K.
  */
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import Biome from '../Biome';
 import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../quantity';
@@ -17,7 +17,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 function installRootBiome(): Biome {
   return makeStuffAtPath(() => {

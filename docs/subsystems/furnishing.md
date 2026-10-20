@@ -197,7 +197,7 @@ two identities either side of its first capture.
 
 ⚠⚠ **Only a host that persists ITSELF overlays** — the four location
 classes that compose `Persistable`. A public room never asks. The pets
-build tried putting the overlay on every `CartesianLocation.onCreate`
+build tried putting the overlay on every `Location.onCreate`
 (hundreds of indexed point queries at boot) and reversed it the next day:
 a room doing work to find things that are not its own state is the room
 scan wearing another face. What a good in a public room needs is the
@@ -335,7 +335,7 @@ exactly as it did before the fields existed.
 
 ## The room class and its archetypes
 
-`lib/location/FurnishableRoom` is the **one class** every archetype is a
+`lib/location/PersistentLocation` is the **one class** every archetype is a
 template row over. Its composition is **`DormRoom`'s stack minus
 `WarrenMember`**:
 
@@ -352,10 +352,10 @@ is mirrored rather than re-derived.
 
 > **⭐ It is also the class OUTDOOR titled ground uses.** The Hinkley
 > Hills build minted a near-twin for a lot's yard
-> (`TitledRoom = PersistableMixin(CartesianLocation)`) and then retired
+> (`TitledRoom = PersistableMixin(Location)`) and then retired
 > it for this one — see [smallholding.md](./smallholding.md). The
 > deciding constraint was that a room minted **per lot** cannot be a grid
-> member (N lots, one coordinate), and losing `CartesianLocation` also
+> member (N lots, one coordinate), and losing `Location` also
 > lost the `cellSize²` light denominator that was dividing a yard's open
 > sky down to 16.7 lux. So "venue-generic" is stronger than it reads: not
 > just bank-bathroom-and-bar-kitchen, but *any* room that is one instance
@@ -414,7 +414,7 @@ room. Its `load` slot is met by `platform/thing/LoadDevice` (the smith's
 barbell); its `pace` slot waits for the first treadmill. See
 [exertion.md](./exertion.md).
 
-**Three trade bundles** joined them in libations, each a `FurnishableRoom`
+**Three trade bundles** joined them in libations, each a `PersistentLocation`
 row with a `props:` of the trade's own fixtures: hospitality's
 **`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
 tap, ice bin, water tap, basin, the glass rack with its pool, seating,
@@ -574,16 +574,20 @@ db.domain.findOne({ path: '/world/terminus/eternal/duncan-hall/dorm-fixtures/bed
 - **Condition / stewardship** — what a room's state *means*, and the
   `restQuality` aggregation from bedding freshness and tidiness. Needs the
   condition model.
-- **Room-general cadences** — energy (on the fixture), debris (a
-  room-level field), air quality (the shipped `AtmosphericMixin`), and
-  **pests, which get no field at all** because they are emergent from
-  debris plus food.
+- **Room-general cadences** — energy (on the fixture) and air quality (the
+  shipped `AtmosphericMixin`). ⭐ Debris and pests SHIPPED with the
+  cleanliness build, on the floor rather than a room field: debris is a
+  `debris`-form deposit on the floor, and pests are still no field — a
+  derived read of debris plus open food (see
+  [cleanliness.md](./cleanliness.md)). Rest reads as kept
+  (`restQualityAsKept`).
 - **Spoilage / preservation** — `ptomaine.yaml` ships a food-poisoning
   condition with no producer, and keeps having none. Spoilage belongs to
   the food and its container.
-- **Washing / sterility** — `DressingMixin.dressingQuality` (consumed by
-  `treat`, no producer) and `Condition.contagion` ("reserved, no consumer
-  v1") are the two seams. Handwashing *is* the chain of infection.
+- **Washing / sterility** — ⭐ shipped with the cleanliness build: a
+  dressing's quality is its derived clean tier, and the hands that dress a
+  wound seed it as they are kept ([cleanliness.md](./cleanliness.md)).
+  `Condition.contagion` ("reserved, no consumer v1") is still a seam.
 - **Further dorm "dedupe" — checked, and there is none.** The bed **is**
   done (below). The rest turned out not to be duplication at all, and this
   is recorded so the next reader does not go looking:

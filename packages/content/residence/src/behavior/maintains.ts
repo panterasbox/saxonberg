@@ -45,7 +45,7 @@ import type {
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
-import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 
 const DEFAULT_BATCH = 3;
 
@@ -135,10 +135,10 @@ async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
     ...(await NavigationApi.attachedTo(extent, 'institution')),
     ...(await NavigationApi.attachedWithin(extent, 'institution')),
   ]);
-  const institutions: OuterWarren[] = [];
+  const institutions: CirculationWarren[] = [];
   for (const p of paths) {
     const s = StuffApi.findByTemplatePath(p);
-    if (s instanceof OuterWarren && !s.isDestroyed()) institutions.push(s);
+    if (s instanceof CirculationWarren && !s.isDestroyed()) institutions.push(s);
   }
   for (const institution of institutions) {
     for (const s of institution.holdings()) {

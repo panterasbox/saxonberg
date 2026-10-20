@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach , vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze, instrumentWith } from './drive';
 import TimeReading from '../TimeReading';
-import Location from '../../../../lib/stuff/Location';
+import Place from '../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
@@ -24,7 +24,7 @@ import {
 } from '../../../../api/command';
 import type Interactive from '../../Interactive';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),

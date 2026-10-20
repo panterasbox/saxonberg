@@ -410,14 +410,14 @@ describe('⭐⭐ a maple on freeze–thaw (the climate build)', () => {
     const { default: CartesianZone } = await import(
       '@saxonberg/server/mud/platform/idea/location/CartesianZone'
     );
-    const { default: CartesianLocation } = await import(
-      '@saxonberg/server/mud/lib/location/CartesianLocation'
+    const { default: Location } = await import(
+      '@saxonberg/server/mud/lib/location/Location'
     );
     const { Stuff } = await import('@saxonberg/server/mud/lib/stuff/Stuff');
     const zone = makeStuff(() => new CartesianZone());
     zone.setLatitude(latitude);
     zone.setElevation(elevationM);
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     Stuff._stampZone(room, zone as never);
     await room.resolveClimateSite();
     const t = tree();

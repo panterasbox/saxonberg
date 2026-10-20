@@ -1855,9 +1855,9 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/location/CartesianLocation.ts",
+    "file": "packages/server/src/mud/lib/location/Location.ts",
     "index": 0,
-    "className": "CartesianLocation",
+    "className": "Location",
     "persistentFields": [
       "coords",
       "extent"
@@ -3050,9 +3050,9 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/Location.ts",
+    "file": "packages/server/src/mud/lib/stuff/Place.ts",
     "index": 0,
-    "className": "Location",
+    "className": "Place",
     "persistentFields": [
       "suppressesMagic"
     ],
@@ -4099,9 +4099,9 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/location/FurnishableRoom.ts",
+    "file": "packages/server/src/mud/platform/location/PersistentLocation.ts",
     "index": 0,
-    "className": "FurnishableRoom",
+    "className": "PersistentLocation",
     "persistentFields": [
       "postedAs"
     ],

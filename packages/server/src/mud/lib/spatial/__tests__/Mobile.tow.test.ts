@@ -13,7 +13,7 @@ import { ContainableMixin } from '../Containable';
 import { HaulerMixin } from '../../slot/Hauler';
 import { Idea } from '../../stuff/Idea';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import CartesianLocation from '../../location/CartesianLocation';
+import Location from '../../location/Location';
 import Exit from '../../boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -27,10 +27,10 @@ class MobileHauler extends HaulerMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'MobileHauler';
 }
 
-function tworoom(): { locA: CartesianLocation; locB: CartesianLocation; exit: Exit } {
+function tworoom(): { locA: Location; locB: Location; exit: Exit } {
   const zone = makeStuff(() => new CartesianZone());
-  const locA = makeStuff(() => new CartesianLocation());
-  const locB = makeStuff(() => new CartesianLocation());
+  const locA = makeStuff(() => new Location());
+  const locB = makeStuff(() => new Location());
   zone.addLocation(locA, 0, 0, 0);
   zone.addLocation(locB, 0, 1, 0);
   const exit = makeStuff(

@@ -43,6 +43,12 @@ data:
   props:
     - /trade/fishing/thing/rod
   behaviors:
+    # ⭐ Somebody notices what you have on (cleanliness D29).
+    - brain: /lib/behavior/remarks
+      trigger: arrival
+      config:
+        lines:
+          - { outer: [greatcoat, blazer, tweed, coat, frock], say: "Lost, are you? The bank's up the hill, sir. Mind your coat on the steps." }
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /trade/fishing/behavior/fishes

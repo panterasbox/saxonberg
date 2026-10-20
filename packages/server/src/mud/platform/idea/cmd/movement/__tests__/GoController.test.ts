@@ -3,7 +3,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { describe, it, expect, beforeEach  } from 'vitest';
 import GoController from '../GoController';
 import CartesianZone from '../../../location/CartesianZone';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import SphericalZone from '../../../location/SphericalZone';
 import SphericalLocation from '../../../../location/SphericalLocation';
 import ExitableVessel from '../../../../../lib/boundary/ExitableVessel';
@@ -18,7 +18,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { MobileMixin } from '../../../../../lib/spatial/Mobile';
 import type Interactive from '../../../Interactive';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import {
   CommandApi,
   type CommandContext,
@@ -83,7 +83,7 @@ class PeerSensor extends NamedMixin(SensorMixin(ContainableMixin(Idea))) {
 
 function makeContext(
   avatar: FakeAvatar,
-  location: Location,
+  location: Place,
   commandText: string
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -107,7 +107,7 @@ function makeContext(
 async function goCmd(
   controller: GoController,
   avatar: FakeAvatar,
-  location: Location,
+  location: Place,
   raw: string
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
@@ -121,8 +121,8 @@ describe('GoController', () => {
   });
 
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
   let avatar: FakeAvatar;
   let peerInA: PeerSensor;
   let peerInB: PeerSensor;
@@ -136,10 +136,10 @@ describe('GoController', () => {
 
     zone = makeStuff(() => new CartesianZone());
 
-    locA = makeStuff(() => new CartesianLocation());
-    locA.setShortDescription('Location A');
-    locB = makeStuff(() => new CartesianLocation());
-    locB.setShortDescription('Location B');
+    locA = makeStuff(() => new Location());
+    locA.setShortDescription('Place A');
+    locB = makeStuff(() => new Location());
+    locB.setShortDescription('Place B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
     // Exits are explicit (no grid-derivation): declare both sides.
@@ -318,7 +318,7 @@ describe('GoController', () => {
       await goCmd(
         controller,
         avatar,
-        wardrobe as unknown as Location,
+        wardrobe as unknown as Place,
         'out'
       );
       expect(avatar.getContainer()).toBe(locA);

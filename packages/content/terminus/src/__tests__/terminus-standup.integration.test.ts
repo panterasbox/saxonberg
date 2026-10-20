@@ -103,18 +103,18 @@ const STUBS: Doc[] = [
     class: "/system/tpa/thing/TpaTerminal",
     data: { seatIn: "/world/test/lounge-room", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", data: { shortDescription: "the lounge" } },
+  { path: "/world/test/lounge-room", class: "/platform/location/Void", data: { shortDescription: "the lounge" } },
   {
     path: "/world/newbie-wilds/crossroads/terminal",
     class: "/system/tpa/thing/TpaTerminal",
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/crossroads-room", class: "/platform/location/VoidLocation", data: { shortDescription: "the crossroads" } },
+  { path: "/world/test/crossroads-room", class: "/platform/location/Void", data: { shortDescription: "the crossroads" } },
   // The terminal office lists the clerk under props (a bare-`Thing` stub keeps the
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
   { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", data: { shortDescription: "the clerk" } },
-  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/Void", data: { shortDescription: "University Avenue" } },
 ];
 
 /**

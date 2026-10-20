@@ -14,7 +14,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import Locality from '../../platform/idea/Locality';
 import { Vessel } from '../../lib/stuff/Vessel';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
@@ -29,7 +29,7 @@ import {
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 function installRegistry(): AddressRegistry {
   return makeStuffAtPath(() => new AddressRegistry(), '/platform/idea/AddressRegistry');

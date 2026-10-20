@@ -18,7 +18,7 @@ Batch-wide findings first:
   199 → 59: its design AND its "deliberately not bundled" follow-on both
   shipped (`fieldMeta` unified every field static; `authorable` /
   `runtimeState` folded in), and the tail it points at moved hosts
-  (`DormWarren` maps → `OuterWarren` / `HoldingWarren`) and half-closed
+  (`DormWarren` maps → `CirculationWarren` / `HoldingWarren`) and half-closed
   (`ref: 'identity'` is declared once). `alignment-religion` is 174 → 82:
   superseded exactly as it said, with one unowned block (the DRG
   conflict model) that also contradicts shipped consented combat.
@@ -110,8 +110,8 @@ six held-side R2.4 unhooks are still `cleanupOnDestruct`-form
 `Slottable.ts`, `Slotted.ts`). Two items of the stamp were stale:
 **`DormWarren._unitsByKey` / `_corridorsByFloor` / `_doorsByKey` no
 longer exist** — the residences build lifted them to
-`OuterWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey`
-(`lib/location/OuterWarren.ts:137-141`) and `HoldingWarren._roomsByKey`
+`CirculationWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey`
+(`lib/location/CirculationWarren.ts:137-141`) and `HoldingWarren._roomsByKey`
 (`packages/content/residence/src/idea/HoldingWarren.ts:127`), all still
 undeclared (only `UnprovisionController.ts:14` and `Corridor.ts:4`
 mention the old names in comments); and **`ref: 'identity'` is no longer
@@ -141,11 +141,11 @@ declared nowhere** — `Employed.institution` declares it
 - none (the one doctrine paragraph is the graduated why above)
 
 ### Uncertain — kept
-- the `Left` names for the warren maps — I re-pointed the stamp at `OuterWarren` / `HoldingWarren` because the `DormWarren` fields are gone from code; `ref-shapes.md § Known gaps:120` still names the `DormWarren` maps (stale, outside my list, flagged). Whether `HoldingWarren._roomsByKey` / `OuterWarren._keywayByHolding` (a `Map<string,string>`, not a ref) belong on the list is the tail's own audit to make
+- the `Left` names for the warren maps — I re-pointed the stamp at `CirculationWarren` / `HoldingWarren` because the `DormWarren` fields are gone from code; `ref-shapes.md § Known gaps:120` still names the `DormWarren` maps (stale, outside my list, flagged). Whether `HoldingWarren._roomsByKey` / `CirculationWarren._keywayByHolding` (a `Map<string,string>`, not a ref) belong on the list is the tail's own audit to make
 
 ### Stale doc facts flagged (outside my list)
 - `ref-shapes.md:132` *"`ref: 'identity'` is declared nowhere yet"* — `Employed.institution` declares it (`Employed.ts:227`)
-- `ref-shapes.md:120` the `DormWarren` maps — moved to `OuterWarren` / `HoldingWarren` (above)
+- `ref-shapes.md:120` the `DormWarren` maps — moved to `CirculationWarren` / `HoldingWarren` (above)
 - `ref-shapes.md § R2.1` (*"Mechanism: eager, convention-based. Enforcement: convention"*) — a declared `lifetime: 'owned'` IS framework-enforced in slot 2.5 pass 2 (`api/stuff.ts:1176`; declared on `Boundary.anchorA/B`, `Exitable` exits, `Aether._hostedUpdates`); the doc's own two-axis table says *destruct cascades*. The section reads as pre-declaration text
 - `studio.md:41-57` *classification is an inline TSDoc block tag… read by a source-scan (`StudioLogic.scanClassification`)* — the tags are now `fieldMeta` entries read via `getAllFieldMeta` (`StudioLogic.ts:570,605`); zero `@authorable` tags remain in `lib/` + `platform/`
 
@@ -189,7 +189,7 @@ declared nowhere** — `Employed.institution` declares it
 
 ### Status block
 - Status: PARTIAL → PARTIAL (the tail is real: five undeclared sites + six unhooks; not rounded to ABSORBED)
-- Left: *four undeclared instance-ref sites (`SandboxCrossingExit.crossing`, the `ExitableVessel` caches, `LoungeWarren._reapTimers`, the `DormWarren` maps) · the six held-side R2.4 unhooks · the identity axis, declared nowhere* → *the undeclared instance-ref sites still guarding by hand (`SandboxCrossingExit.crossing` · the `ExitableVessel` caches · `LoungeWarren._reapTimers` · the warren maps, now `OuterWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey` and `HoldingWarren._roomsByKey`) · the six held-side R2.4 unhooks folded into declarations (open question below)* — the identity-axis item dropped: it is declared (`Employed.institution`), and the doc says the axis carries no runtime behaviour by design, so there is no work
+- Left: *four undeclared instance-ref sites (`SandboxCrossingExit.crossing`, the `ExitableVessel` caches, `LoungeWarren._reapTimers`, the `DormWarren` maps) · the six held-side R2.4 unhooks · the identity axis, declared nowhere* → *the undeclared instance-ref sites still guarding by hand (`SandboxCrossingExit.crossing` · the `ExitableVessel` caches · `LoungeWarren._reapTimers` · the warren maps, now `CirculationWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey` and `HoldingWarren._roomsByKey`) · the six held-side R2.4 unhooks folded into declarations (open question below)* — the identity-axis item dropped: it is declared (`Employed.institution`), and the doc says the axis carries no runtime behaviour by design, so there is no work
 - Size: a tail → a tail
 
 ---

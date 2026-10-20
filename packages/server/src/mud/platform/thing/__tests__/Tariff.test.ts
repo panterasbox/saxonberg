@@ -77,6 +77,9 @@ describe("Tariff — what a priced key MEANS", () => {
       "treatment",
       "burial",
       "transfusion",
+      // ⭐ Cleanliness D26: the laundress's wash and the bathhouse's bath.
+      "wash",
+      "bath",
     ]);
   });
 });

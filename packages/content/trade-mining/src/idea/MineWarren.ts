@@ -11,11 +11,11 @@
  * static mine is a mine that does not grow, which is a coherent thing to
  * be rather than a degraded one.
  *
- * ## Why `InnerWarren`, and why not `HoldingWarren`
+ * ## Why `RoomWarren`, and why not `HoldingWarren`
  *
  * `Warren.occupantsOf` is abstract — a warren cannot be written without
  * declaring which tier it is — and a mine's members are ROOMS, so this
- * is an inner warren. `LoungeWarren` is the shipped non-residential
+ * is a `RoomWarren`. `LoungeWarren` is the shipped non-residential
  * precedent.
  *
  * ⚠ **Not `HoldingWarren`**, and for one reason only: it is
@@ -31,7 +31,7 @@
  * ⭐ So the keys here are chosen for a **base swap, not a redesign**:
  * when the abstract holding graduates to kernel — with mining as the
  * second consumer, per the two-consumers rule — adopting it is
- * `extends InnerWarren` → `extends HoldingWarren`. The only genuinely
+ * `extends RoomWarren` → `extends HoldingWarren`. The only genuinely
  * residential residue to leave behind is the shell condition and its
  * weathering clock; a field has no paint either.
  *
@@ -65,7 +65,7 @@
  * care. That is the falsifiable test the whole trade is built on.
  */
 
-import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
@@ -124,7 +124,7 @@ export interface CarvedEntry {
   type: WorkingType;
 }
 
-const MineWarrenBase = SingletonMixin(PersistableMixin(InnerWarren));
+const MineWarrenBase = SingletonMixin(PersistableMixin(RoomWarren));
 
 export default class MineWarren extends MineWarrenBase {
   static fieldMeta: FieldMeta = {

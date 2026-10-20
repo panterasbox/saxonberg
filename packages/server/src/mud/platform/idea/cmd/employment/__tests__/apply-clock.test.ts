@@ -27,7 +27,7 @@ import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import type { Mml } from '../../../../../api/mml';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
@@ -48,7 +48,7 @@ const YARD = '/stuff/test/apply/location/yard';
 const BIZ = '/stuff/test/apply/idea/business';
 const ALICE = '/platform/agent/Avatar/alice';
 
-class Room extends NamedMixin(ContainerMixin(Location)) {
+class Room extends NamedMixin(ContainerMixin(Place)) {
   static _mixinName = 'ApplyRoom';
 }
 class Person extends AdvancementMixin(

@@ -92,3 +92,26 @@ settings:
   # desaturation bottoms out.
   - key: textiles.dye.legibleAt
     value: "0.08"
+
+  # ── the wash (cleanliness D10): what washing can do to cloth ──
+  # The water temperature at or above which a fibre garment shrinks. 60 °C
+  # is a hot wash; a garment that is rubber, rubberized or leather does not
+  # take the water and does not shrink.
+  - key: textiles.wash.shrinkAboveK
+    value: "333"
+  # What a hot wash shrinks a fibre garment's cut to — enough that a coat
+  # that fitted the body it was cut for is tight on it after.
+  - key: textiles.wash.hotShrink
+    value: "0.97"
+  # What FELTING shrinks a wool garment to. ⭐ Boiled wool is a new cloth
+  # and does not stretch back: a felted jumper no longer fits anyone it did.
+  - key: textiles.wash.feltShrink
+    value: "0.85"
+  # The share of the colour an unfast dye loses in a wash that goes onto
+  # whatever else is in the water — the red sock in the white wash.
+  - key: textiles.wash.bleedFraction
+    value: "0.3"
+  # The wear a wash does when its cleanser's chemistry eats the fibre —
+  # a harsh bleach on linen, lye on wool, vitriol on cotton.
+  - key: textiles.wash.rotDose
+    value: "0.05"

@@ -1,7 +1,7 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import TraceAtmosphereController from '../TraceAtmosphereController';
-import Location from '../../../../../lib/stuff/Location';
+import Place from '../../../../../lib/stuff/Place';
 import Biome from '../../../../../lib/biome/Biome';
 import { BiomeApi } from '../../../../../api/biome';
 import { Quantity } from '../../../../../lib/quantity';
@@ -31,7 +31,7 @@ import {
 } from '../../../../../api/command';
 import type Interactive from '../../../Interactive';
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),

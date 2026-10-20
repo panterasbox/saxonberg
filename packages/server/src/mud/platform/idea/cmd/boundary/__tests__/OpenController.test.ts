@@ -5,7 +5,7 @@ import OpenController from '../OpenController';
 import CloseController from '../CloseController';
 import GoController from '../../movement/GoController';
 import CartesianZone from '../../../location/CartesianZone';
-import CartesianLocation from '../../../../../lib/location/CartesianLocation';
+import Location from '../../../../../lib/location/Location';
 import Door from '../../../../thing/Door';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MqlApi, type MqlOneResult } from '../../../../../api/mql';
@@ -17,7 +17,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { MobileMixin } from '../../../../../lib/spatial/Mobile';
 import type Interactive from '../../../Interactive';
-import type Location from '../../../../../lib/stuff/Location';
+import type Place from '../../../../../lib/stuff/Place';
 import {
   CommandApi,
   type CommandContext,
@@ -67,7 +67,7 @@ class PeerSensor extends NamedMixin(SensorMixin(ContainableMixin(Idea))) {
 
 function makeContext(
   avatar: FakeAvatar,
-  location: Location,
+  location: Place,
   commandText: string
 ): CommandContext {
   return CommandApi.createCommandContext({
@@ -100,7 +100,7 @@ function buildMqlOneResult(giver: Stuff, raw: string, scope: string): MqlOneResu
 async function openCmd(
   controller: OpenController,
   avatar: FakeAvatar,
-  location: Location,
+  location: Place,
   raw: string
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `open ${raw}`);
@@ -111,7 +111,7 @@ async function openCmd(
 async function closeCmd(
   controller: CloseController,
   avatar: FakeAvatar,
-  location: Location,
+  location: Place,
   raw: string
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `close ${raw}`);
@@ -122,7 +122,7 @@ async function closeCmd(
 async function goCmd(
   controller: GoController,
   avatar: FakeAvatar,
-  location: Location,
+  location: Place,
   raw: string
 ): Promise<void> {
   const ctx = makeContext(avatar, location, `go ${raw}`);
@@ -136,8 +136,8 @@ describe('OpenController / CloseController / doors integration', () => {
   });
 
   let zone: CartesianZone;
-  let locA: CartesianLocation;
-  let locB: CartesianLocation;
+  let locA: Location;
+  let locB: Location;
   let avatar: FakeAvatar;
   let peerInA: PeerSensor;
   let door: Door;
@@ -145,10 +145,10 @@ describe('OpenController / CloseController / doors integration', () => {
   beforeEach(async () => {
     buildMode('walk');
     zone = makeStuff(() => new CartesianZone());
-    locA = makeStuff(() => new CartesianLocation());
-    locA.setShortDescription('Location A');
-    locB = makeStuff(() => new CartesianLocation());
-    locB.setShortDescription('Location B');
+    locA = makeStuff(() => new Location());
+    locA.setShortDescription('Place A');
+    locB = makeStuff(() => new Location());
+    locB.setShortDescription('Place B');
     zone.addLocation(locA, 0, 0, 0);
     zone.addLocation(locB, 0, 1, 0);
 

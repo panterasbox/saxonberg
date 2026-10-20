@@ -1,0 +1,4 @@
+# Vitriol — a strong acid: rust and scale, and anything it is corrosive
+# to (its material says what).
+class: /platform/idea/Cleanser
+data: {key: vitriol, agent: acid, action: acid-strong, consumesPerWash: 0.02, skinHarshness: 1}

@@ -535,6 +535,7 @@ const FAUCETS: Record<string, string> = {
   seedTemplatePath: "what a crop drops; cloned at harvest",
   growsIntoPath: "what a seed becomes; cloned at germination",
   harvestTemplatePath: "what a plant yields; cloned at harvest",
+  sweepsInto: "what a floor's sweep heaps up — cloned when the broom takes it (cleanliness D15)",
   seedPath: "a stand's seed — cloned at a felling",
   wins: "what winning a band mints",
   vessel: "the sack a grind fills",
@@ -626,6 +627,8 @@ const CITATIONS: Record<string, string> = {
   seatIn: "self-seating — mechanism 2, likewise",
   intake: "the surveys brain's works to post an inspection of — propped by the bank (underwater C4)",
   anchor: "the surveys brain's lost anchor to post a recovery of — propped by the bed it lies on (underwater C4)",
+  herdbook: "the book a byre floor's stalls read for the head kept (cleanliness D20) — load on use",
+  powerFrom: "the millrace a mill's stones draw their power from — load on use",
 };
 
 /** Is this a `thing`-branch template path? */
@@ -834,7 +837,7 @@ export const PHRASE_SHAPE_CEILING = 6;
  * stale tree is opened at the wrong number.** Measure at the merge, not
  * at the branch point, and say which you did.
  */
-export const ARTICLE_SHAPE_CEILING = 121;
+export const ARTICLE_SHAPE_CEILING = 119;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase

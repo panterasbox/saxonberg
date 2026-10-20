@@ -28,7 +28,7 @@
  *    `look` does not change under you within the hour.
  */
 
-import CartesianLocation from '@saxonberg/server/mud/platform/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
@@ -61,7 +61,7 @@ export interface BandProse {
 type SurfaceStuff = Stuff & Container & WaterPlace & Shore;
 
 const BandBase = WaterPlaceMixin(
-  SwimmableMixin(ShoreMixin(PersistableMixin(WarrenMemberMixin(CartesianLocation)))),
+  SwimmableMixin(ShoreMixin(PersistableMixin(WarrenMemberMixin(Location)))),
 );
 
 export default class Band extends BandBase {

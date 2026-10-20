@@ -124,6 +124,13 @@ export interface Dyed {
    * checks for it and does not spend it.
    */
   launder(): boolean;
+
+  /**
+   * ⭐ An oxidiser's dose fades it (cleanliness D21) — the sun on the green,
+   * the sulfur fume in the shut room: every application's strength ×
+   * `(1 − dose)`. Returns whether anything changed.
+   */
+  bleach(dose: number): boolean;
 }
 
 /** Dye dials with seeded-literal fallbacks (pre-warm / test safe). */
@@ -292,6 +299,16 @@ export function DyedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * about it forever after.
      */
     static markupAugmenters: MarkupAugmenter[] = [dyeColourAugmenter];
+
+    public bleach(dose: number): boolean {
+      const d = clamp01(dose);
+      if (d <= 0 || this.dyeStack.length === 0) return false;
+      this.dyeStack = this.dyeStack.map((a) => ({
+        ...a,
+        strength: clamp01(a.strength * (1 - d)),
+      }));
+      return true;
+    }
 
     public launder(): boolean {
       if (this.dyeStack.length === 0) return false;

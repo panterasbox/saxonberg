@@ -17,14 +17,14 @@
  * Duncan Hall cistern, the basin below the Wharfside quay.
  */
 
-import SingletonCartesianLocation from './SingletonCartesianLocation';
+import Locale from './Locale';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '../../lib/location/WaterPlace';
 import { TemplatePaths } from '../../lib/paths';
 
 export default class Pool extends WaterPlaceMixin(
-  SwimmableMixin(ShoreMixin(SingletonCartesianLocation)),
+  SwimmableMixin(ShoreMixin(Locale)),
 ) {
   constructor() {
     super();

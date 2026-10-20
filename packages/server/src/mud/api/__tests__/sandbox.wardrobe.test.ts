@@ -27,7 +27,7 @@ import {
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../lib/sandbox/SandboxCrossingExit';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -83,9 +83,9 @@ let sockSeq = 100;
 async function makeRig(): Promise<{
   avatar: Avatar;
   interactive: Interactive;
-  room: CartesianLocation;
+  room: Location;
 }> {
-  const room = await StuffApi.create(() => new CartesianLocation());
+  const room = await StuffApi.create(() => new Location());
   const avatar = await StuffApi.create(() => new Avatar(), {
     playerId: PLAYER,
   });
@@ -104,7 +104,7 @@ async function makeRig(): Promise<{
   return { avatar, interactive, room };
 }
 
-async function placeWardrobe(room: CartesianLocation): Promise<SandboxCrossing> {
+async function placeWardrobe(room: Location): Promise<SandboxCrossing> {
   const wardrobe = await StuffApi.create(() => new SandboxCrossing());
   ContainmentApi.move(
     wardrobe as unknown as Stuff & Containable,
@@ -113,7 +113,7 @@ async function placeWardrobe(room: CartesianLocation): Promise<SandboxCrossing> 
   return wardrobe;
 }
 
-function wardrobeExitOf(room: CartesianLocation): SandboxCrossingExit {
+function wardrobeExitOf(room: Location): SandboxCrossingExit {
   const exit = (room as unknown as { getExit(d: string): unknown }).getExit(
     // The bare mechanism, not the wardrobe skin — so the generic label.
     'crossing'
@@ -177,7 +177,7 @@ describe('the wardrobe door (Wave 4)', () => {
 
   it('placing a wardrobe installs the passage; moving relocates it', async () => {
     const { room } = await makeRig();
-    const other = await StuffApi.create(() => new CartesianLocation());
+    const other = await StuffApi.create(() => new Location());
     const wardrobe = await placeWardrobe(room);
     expect(wardrobeExitOf(room)).toBeTruthy();
 
@@ -230,7 +230,7 @@ describe('the wardrobe door (Wave 4)', () => {
   it('two doors, one circle: sessions key on scope', async () => {
     const { avatar, room } = await makeRig();
     const w1 = await placeWardrobe(room);
-    const other = await StuffApi.create(() => new CartesianLocation());
+    const other = await StuffApi.create(() => new Location());
     const w2 = await placeWardrobe(other);
     w1.setLinkedSandboxPath(SCOPE);
     w2.setLinkedSandboxPath(SCOPE);

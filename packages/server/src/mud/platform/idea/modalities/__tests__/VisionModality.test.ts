@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { VisionModality } from '../VisionModality';
 import { MAX_HOPS, EXIT_TAU } from '../../../../lib/perception/Modality';
 import { Light } from '../../../../lib/perception/Light';
-import CartesianLocation from '../../../../lib/location/CartesianLocation';
+import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
 import SphericalLocation from '../../../location/SphericalLocation';
 import SphericalZone from '../../location/SphericalZone';
@@ -22,7 +22,7 @@ import { PerceptionApi } from '../../../../api/perception';
 const vision = (): VisionModality =>
   PerceptionApi.modalityByName('vision') as VisionModality;
 
-class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
+class AmbientLocation extends AmbientLitMixin(Location) {}
 class AmbientSphericalLocation extends AmbientLitMixin(SphericalLocation) {}
 
 describe('VisionModality.signalAt — propagation core', () => {
@@ -41,7 +41,7 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('empty room with no ambient reads ZERO', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
 
     expect(vision().lightAt(loc)).toBe(Light.ZERO);
@@ -51,7 +51,7 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('room with setAmbientFlux + setAmbientColorTemperature reflects the band and color', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
     loc.setAmbientColorTemperature('warm');
@@ -65,7 +65,7 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('the weather cloud-dim factor scales the ambient flux (Wave 2)', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
 
@@ -85,8 +85,8 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('exits leak ambient light from neighbors', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new AmbientCartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new AmbientLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     b.setAmbientFlux(60);
@@ -100,8 +100,8 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('a closed door on an exit blocks light leakage', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new AmbientCartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new AmbientLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     b.setAmbientFlux(60);
@@ -120,10 +120,10 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('MAX_HOPS truncates propagation past depth 2', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
-    const c = makeStuff(() => new CartesianLocation());
-    const d = makeStuff(() => new AmbientCartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
+    const c = makeStuff(() => new Location());
+    const d = makeStuff(() => new AmbientLocation());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 0, 2, 0);
@@ -141,8 +141,8 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('cycle: visited Set prevents infinite recursion', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const a = makeStuff(() => new AmbientCartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new AmbientLocation());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     a.setAmbientFlux(10);
@@ -152,9 +152,9 @@ describe('VisionModality.signalAt — propagation core', () => {
     expect(total.intensity.rawValue()).toBeGreaterThanOrEqual(10);
   });
 
-  it('CartesianLocation.getSizeScale uses zone.cellSize squared', () => {
+  it('Location.getSizeScale uses zone.cellSize squared', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
     loc.setAmbientFlux(40);
 
@@ -177,7 +177,7 @@ describe('VisionModality.signalAt — propagation core', () => {
   it('shadowsAt maps each band to a shadow tier', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
 
     expect(vision().shadowsAt(loc)).toBe('absolute');
@@ -204,7 +204,7 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
   it('lightAt(loc).intensity.tag() matches bandAt(loc) across bands', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
 
     const samples = [
@@ -224,7 +224,7 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
 
   it('flux/sizeScale → lux scales linearly (cellSize² as scale)', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
 
     zone.setCellSize(1);
@@ -247,7 +247,7 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
 
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
-    const loc = makeStuff(() => new AmbientCartesianLocation());
+    const loc = makeStuff(() => new AmbientLocation());
     zone.addLocation(loc, 0, 0, 0);
 
     loc.setAmbientFlux(50);

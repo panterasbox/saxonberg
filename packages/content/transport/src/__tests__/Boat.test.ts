@@ -10,12 +10,12 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
 import Boat from '../thing/Boat';
 
-class Deck extends CartesianLocation {}
+class Deck extends Location {}
 
 let boat: Boat;
 

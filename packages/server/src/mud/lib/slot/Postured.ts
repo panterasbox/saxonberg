@@ -21,6 +21,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from './Slotted';
+import { MixinApi } from '../../api/mixin';
 
 /**
  * Posture vocabulary — frozen constants module. Mod-introduced
@@ -52,6 +53,14 @@ export interface Postured extends Slotted {
    * pattern), NOT on the universal `SlotSpec`.
    */
   getRestQuality(): number;
+  /**
+   * ⭐ How this rests a body AS KEPT (cleanliness D16): its own
+   * `restQuality` × how dirty it is × how dirty the room's floor is
+   * (`clean 1 · marked 0.95 · soiled 0.8 · filthy 0.6`). A filthy bed is a
+   * worse bed, never a punishment. Total: a host that carries no dirt
+   * rests you as it always did.
+   */
+  restQualityAsKept(): number;
   setRestQuality(value: number): void;
   /**
    * ⭐⭐ **How much this surface speeds WOUND recovery**, over and above
@@ -81,6 +90,18 @@ export interface Postured extends Slotted {
   setWarmth(value: number): void;
 }
 
+/** How a soil band rests a body (cleanliness D16). */
+const KEPT_FACTOR: Readonly<Record<string, number>> = {
+  clean: 1,
+  marked: 0.95,
+  soiled: 0.8,
+  filthy: 0.6,
+};
+
+function keptFactor(stuff: Stuff): number {
+  return MixinApi.isSoilable(stuff) ? (KEPT_FACTOR[stuff.soilBand()] ?? 1) : 1;
+}
+
 export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
   Base: TBase
 ) {
@@ -104,6 +125,16 @@ export function PosturedMixin<TBase extends MixinConstructor<Stuff & Slotted>>(
 
     getRestQuality(): number {
       return this.restQuality;
+    }
+
+    restQualityAsKept(): number {
+      const self = this as unknown as Stuff;
+      let k = this.getRestQuality() * keptFactor(self);
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const floor =
+        room && MixinApi.isAdornable(room) ? (room.getFloor() as unknown as Stuff | null) : null;
+      if (floor && floor !== self) k *= keptFactor(floor);
+      return k;
     }
 
     setRestQuality(value: number): void {

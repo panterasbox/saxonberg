@@ -15,7 +15,7 @@ import {
 } from '../command';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -139,7 +139,7 @@ describe('subcommand-level validators', () => {
       gate as unknown as CommandValidator,
     ];
 
-    const loc = makeStuff(() => new Location());
+    const loc = makeStuff(() => new Place());
     const mkCtx = (): CommandContext =>
       CommandApi.createCommandContext({
         commandGiver: loc as never,

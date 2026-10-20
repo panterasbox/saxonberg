@@ -2,7 +2,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import Door from '../thing/Door';
 import { Boundary } from '../../lib/boundary/Boundary';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 import CartesianZone from '../idea/location/CartesianZone';
 import { VisionModality } from '../idea/modalities/VisionModality';
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
@@ -72,8 +72,8 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
   it('addBidirectionalExit({door}) installs anchors on both rooms', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -93,8 +93,8 @@ describe('Door retrofit — Boundary identity and conduit registry', () => {
   it('door.detach() clears BOTH attachedTo AND the anchors’ hosts', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 
@@ -135,8 +135,8 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     zoneA.setCellSize(1);
     const zoneB = makeStuff(() => new CartesianZone());
     zoneB.setCellSize(1);
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zoneA.addLocation(a, 0, 0, 0);
     zoneB.addLocation(b, 0, 0, 0);
     return { a, b };
@@ -174,8 +174,8 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     // skips doored exits so the boundary-side contribution wins.
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1); // pre-biome light calibration: 1m² receiving-surface scale
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
 

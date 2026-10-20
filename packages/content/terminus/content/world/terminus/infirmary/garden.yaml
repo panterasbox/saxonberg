@@ -1,7 +1,7 @@
 # The physic garden — a walled bed north of the ward where the infirmary
 # grows its simples (D10). Walkable from the ward; harvest by hand, steep
 # in the pot, and the autarkist has their whole drug supply.
-class: /platform/location/SingletonCartesianLocation
+class: /platform/location/Locale
 data:
   shortDescription: physic garden
   keywords: [garden, physic]

@@ -47,7 +47,7 @@ import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { Idea } from '../../../lib/stuff/Idea';
-import Location from '../../../lib/stuff/Location';
+import Place from '../../../lib/stuff/Place';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 class Angler extends PerceptionMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))) {}
@@ -55,7 +55,7 @@ class Gear extends VisibleMixin(PerceptibleMixin(ContainableMixin(Idea))) {}
 
 describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
   it('⭐ resolves to the net on the floor, not the keepnet in hand, under the top policy', () => {
-    const room = makeStuff(() => new Location());
+    const room = makeStuff(() => new Place());
     const angler = makeStuff(() => new Angler());
     const net = makeStuff(() => new Gear());
     net.setShortDescription('net');

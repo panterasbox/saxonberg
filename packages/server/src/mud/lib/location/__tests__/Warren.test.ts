@@ -8,12 +8,12 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach  } from 'vitest';
 import { type Attachment } from '../Warren';
-import { InnerWarren } from '../InnerWarren';
+import { RoomWarren } from '../RoomWarren';
 import { WarrenMemberMixin } from '../WarrenMember';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { ContainableMixin } from '../../spatial/Containable';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
-import Location from '../../stuff/Location';
+import Place from '../../stuff/Place';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
@@ -26,14 +26,14 @@ import { makeStuff,
 
 // ── Test fixtures ────────────────────────────────────────────────
 
-class TestRoom extends ExitableMixin(WarrenMemberMixin(Location)) {}
+class TestRoom extends ExitableMixin(WarrenMemberMixin(Place)) {}
 
 // A countable occupant: HasInteractive + Containable, nothing else.
 class TestOccupant extends HasInteractiveMixin(ContainableMixin(Idea)) {}
 
 const CARDINALS = ['north', 'east', 'south', 'west'];
 
-class TestOverflowWarren extends InnerWarren {
+class TestOverflowWarren extends RoomWarren {
   private _attachCount = 0;
 
   protected async createMember(): Promise<Stuff & Container> {

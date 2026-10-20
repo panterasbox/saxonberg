@@ -1,0 +1,20 @@
+# The ward's brazier (cleanliness D14) — the fire the ward's prose has
+# always smelt of: a pot of water kept at the boil on it, for the linen and
+# the instruments. Boil a bandage in the pot (`boil bandage in pot`) and it
+# is disinfected; hold the surgeon's kit in the coals (`heat kit`) and it
+# is sterile. A brazier, not a hearth: a basket of coals with no flue,
+# breathing into a room with a door and a shuttered window.
+class: /platform/thing/Brazier
+extends: /stuff/thing/brazier
+data:
+  shortDescription: brazier
+  keywords: [brazier, coals, fire]
+  register: definite
+  longDescription: >
+    An iron brazier of banked coals by the basin, with a blackened pot of
+    water set over it. The water is never quite off the boil.
+  lit: true
+  fuelBed:
+    /stuff/idea/material/wood/oak: 8
+  placements: [on]
+  mass: 15

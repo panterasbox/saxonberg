@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import CartesianLocation from '../../../lib/location/CartesianLocation';
+import Location from '../../../lib/location/Location';
 import CartesianZone from '../../idea/location/CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
@@ -12,7 +12,7 @@ describe('CartesianZone.hasRoomAt', () => {
 
   it('returns true when a room is at the given coords (no room arg)', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const room = makeStuff(() => new CartesianLocation());
+    const room = makeStuff(() => new Location());
     zone.addLocation(room, 0, 0, 0);
     expect(zone.hasRoomAt(0, 0, 0)).toBe(true);
   });
@@ -24,8 +24,8 @@ describe('CartesianZone.hasRoomAt', () => {
 
   it('with room arg: returns true only when the specific room matches', () => {
     const zone = makeStuff(() => new CartesianZone());
-    const a = makeStuff(() => new CartesianLocation());
-    const b = makeStuff(() => new CartesianLocation());
+    const a = makeStuff(() => new Location());
+    const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 1, 1, 1);
     expect(zone.hasRoomAt(0, 0, 0, a)).toBe(true);

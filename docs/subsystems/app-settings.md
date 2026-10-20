@@ -148,7 +148,7 @@ individually mutable thereafter). The Avatar seed YAML no longer carries a
 `startLocation` literal — all three mint sites inject from app config, so
 an operator can move the new-player spawn in-app without a deploy.
 
-`evacuationFallback` defaults to the void deliberately: `VoidLocation` is
+`evacuationFallback` defaults to the void deliberately: `Void` is
 the bootstrap-pinned, destruct-refusing singleton built to be the evac
 fallback — a more reliable live Container than any ordinary room. This
 replaced the retired `config/constants.ts` constant, which conflated the

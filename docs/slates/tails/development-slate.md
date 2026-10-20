@@ -180,7 +180,7 @@ real lesson, arriving as a consequence rather than a feature.
 - ~~Minted identity may already unblock per-room extent~~ — **answered,
   the other way.** The `asTemplatePath` channel this leaned on is
   retired; a holding's rooms are now keyed instances of a real
-  `FurnishableRoom` row — deliberately **not** `CartesianLocation`,
+  `PersistentLocation` row — deliberately **not** `Location`,
   because a room minted per lot cannot safely be a grid member. See
   `smallholding.md § A lot's room is NOT on the street's grid`. Cartesian
   per-room area is not how per-room extent will be reached.

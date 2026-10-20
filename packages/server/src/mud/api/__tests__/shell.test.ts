@@ -36,7 +36,7 @@ import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
-import CartesianLocation from '../../lib/location/CartesianLocation';
+import Location from '../../lib/location/Location';
 
 class TestGiverBase extends EnvironmentMixin(
   FocusedMixin(
@@ -57,10 +57,10 @@ class NpcGiver extends CommandGiverMixin(
 
 describe('ShellApi.expandVariables', () => {
   let giver: TestGiver;
-  let location: CartesianLocation;
+  let location: Location;
 
   beforeEach(() => {
-    location = makeStuff(() => new CartesianLocation());
+    location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });
@@ -139,7 +139,7 @@ describe('ShellApi.lookupSyntheticVar', () => {
 
 describe('CommandApi.assemble — variable expansion through matcher', () => {
   let giver: TestGiver;
-  let location: CartesianLocation;
+  let location: Location;
 
   function lookCmd(): CommandDefinition {
     return CommandDefinition.fromYaml(
@@ -175,7 +175,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
   }
 
   beforeEach(() => {
-    location = makeStuff(() => new CartesianLocation());
+    location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });
@@ -231,7 +231,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
 
 describe('CommandApi.assemble — defaults', () => {
   let giver: TestGiver;
-  let location: CartesianLocation;
+  let location: Location;
 
   function lookWithDefault(): CommandDefinition {
     return CommandDefinition.fromYaml(
@@ -276,7 +276,7 @@ describe('CommandApi.assemble — defaults', () => {
   }
 
   beforeEach(() => {
-    location = makeStuff(() => new CartesianLocation());
+    location = makeStuff(() => new Location());
     giver = makeStuff(() => new TestGiver());
     ContainmentApi.move(giver, location);
   });

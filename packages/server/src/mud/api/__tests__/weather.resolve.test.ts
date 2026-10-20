@@ -11,7 +11,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../lib/stuff/Location';
+import Place from '../../lib/stuff/Place';
 import Locality from '../../platform/idea/Locality';
 import Biome from '../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../platform/idea/SkyExposedBiome';
@@ -36,7 +36,7 @@ import {
 
 const SEG = WEATHER_DEFAULTS.SEGMENT_LENGTH_S;
 
-class TestLocation extends Location {}
+class TestLocation extends Place {}
 
 /** A mutable game-time provider so resolve reads can be moved in time. */
 let nowS = 0;

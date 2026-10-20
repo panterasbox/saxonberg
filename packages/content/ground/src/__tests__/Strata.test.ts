@@ -14,13 +14,13 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
-import CartesianLocation from '@saxonberg/server/mud/lib/location/CartesianLocation';
+import Location from '@saxonberg/server/mud/lib/location/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { StrataMixin, STRATA_MIXIN } from '../lib/Strata';
 
-class TestGround extends StrataMixin(CartesianLocation) {}
+class TestGround extends StrataMixin(Location) {}
 
 /** A zone that answers a cell size and a deposit citation, and nothing else. */
 function stubZone(cellSize: number, deposit: string | null) {

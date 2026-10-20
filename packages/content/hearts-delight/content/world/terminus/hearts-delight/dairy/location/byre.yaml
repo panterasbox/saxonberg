@@ -1,7 +1,9 @@
 # The byre (dairy D14) — where the cows are milked, and where the dairy
 # keeps its books: the herd and the calves. Lit by what comes through the
 # door; the milking is done by daylight.
-class: /platform/location/SingletonCartesianLocation
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/location/PersistentLocale
 data:
   shortDescription: byre
   keywords: [byre, shed, stalls]
@@ -17,6 +19,8 @@ data:
 
     A three-legged stool stands by the first stall, worn dark on the seat. By the door, a scrubbed block and a knife on a nail: a dairy's bull calves do not go out to grass.
   coords: { x: 1, y: -6, z: 0 }
+  # ⭐ Its own floor row: the stalls foul by the animal-day (cleanliness D20).
+  floor: { template: /world/terminus/hearts-delight/dairy/thing/byre-floor }
   exits:
     west:
       destination: /world/terminus/hearts-delight/dairy/location/yard

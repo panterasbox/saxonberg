@@ -307,6 +307,15 @@ export const HARM_DEFAULTS = {
   DRESSED_HEAL_PER_SEC: 0.02,
   /** Below this severity a laceration has clotted (safe to undress). */
   CLOT_SEVERITY: 0.5,
+  /** ⭐ Blood that leaves the body STAINS (cleanliness, review): soil
+   * load per litre on the layer over the wound — a quarter-litre soaks a
+   * shirt to *filthy* (the band dials: marked 0.1 · soiled 0.4 · filthy 1). */
+  BLOOD_STAIN_PER_L: 4,
+  /** At or above this severity an open bleed DRIPS — a share of it lands on
+   * the floor the bleeder stands on (a trail). */
+  BLOOD_DRIP_SEVERITY: 1,
+  /** The share of a dripping bleed that reaches the floor. */
+  BLOOD_DRIP_SHARE: 0.5,
   /** ⭐ Severity decay per game-second while a wound is SUTURED (D8) —
    * faster than a bare dressing: stitches hold the edges together. */
   SUTURED_HEAL_PER_SEC: 0.03,
@@ -501,6 +510,10 @@ export const HARM_DEFAULTS = {
   /** Below this cleanliness (hands) or care quality, a treatment is dirty
    * enough to inoculate a bleed-family wound. */
   SEPSIS_DIRTY_THRESHOLD: 0.5,
+  /** How much blood one dressing of a bleed puts on the treater's hands
+   * (cleanliness D4) — past the dirty threshold, so the NEXT wound dressed
+   * with unwashed hands is inoculated, as the retired hands clock had it. */
+  HAND_BLOOD_PER_DRESSING: 0.6,
   /** How long (game-seconds) a bleed-family wound above the clot threshold
    * may sit undressed before it goes bad on its own — twelve game-hours. */
   SEPSIS_OPEN_ONSET_SEC: 12 * 60 * 60,
@@ -972,8 +985,7 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     // severity decay is the HEALING half and lives in `mend`, where the
     // convalescence factor scales it — see the split (D1).
     if (t.bleeding && !t.dressed) {
-      const lost = D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec;
-      setBloodLitres(host, bloodLitres(host) - lost);
+      host.loseBlood(D.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, { site: t.site, severity: t.severity, external: true });
     }
   },
   mend(_host: Vitals, t: Trauma, elapsedSec: number, k: number): void {
@@ -1307,7 +1319,13 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
  */
 export const RUPTURE_BEHAVIOR: TraumaBehavior = {
   onset: LACERATION_BEHAVIOR.onset,
-  tick: LACERATION_BEHAVIOR.tick,
+  // ⭐ Into the body: the same drain, and no stain — a cavity is not a
+  // shirt.
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+    if (t.bleeding && !t.dressed) {
+      host.loseBlood(HARM_DEFAULTS.BLEED_PER_SEC * Math.max(0, t.severity) * elapsedSec, { site: t.site, severity: t.severity, external: false });
+    }
+  },
   // ⭐ An interior bleed does not knit on its own — it is bleeding into a
   // cavity nobody can reach, so `mend` does NOTHING until surgery closes
   // it (D4). Once `dressed` (operated), it heals slowly at the rupture
@@ -1368,7 +1386,7 @@ export const FOREIGN_BODY_BEHAVIOR: TraumaBehavior = {
         HARM_DEFAULTS.FOREIGN_BODY_BLEED_SCALE *
         Math.max(0, t.severity) *
         elapsedSec;
-      setBloodLitres(host, bloodLitres(host) - lost);
+      host.loseBlood(lost, { site: t.site, severity: t.severity, external: true });
     }
   },
   // Nothing knits around an embedded object; once extracted (dressed), it

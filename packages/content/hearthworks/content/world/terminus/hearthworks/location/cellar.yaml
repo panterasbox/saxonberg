@@ -26,10 +26,12 @@ data:
   # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
   # already author exactly this.
   # ⭐ DARK, on purpose. A cellar. The whole point of a cellar is that nothing gets in, light included.
+  # ⚠ Under the cookhouse, not IN its cell: both authored (2,0,0), and the
+  # grid keeps one room per cell silently (the place taxonomy found it).
   coords:
     x: 2
     y: 0
-    z: 0
+    z: -1
   # ⭐⭐ The cellar's lesson — run a fire in here and it kills you — needs
   # no authored air budget. A shut stone room has almost no openings, so
   # the derived air change is the leak rate and nothing else: the fire
