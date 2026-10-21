@@ -165,8 +165,13 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     const realS = await exit.crossingRealS(actor);
     if (realS > 0 && MixinApi.isEngaged(actor) && MixinApi.isContainable(actor)) {
       // Asked BEFORE the time is spent: a way that will refuse at the end
-      // (the ice overhead, too heavy to rise) refuses now.
-      const gate = await exit.canTraverse(actor, mode.getName());
+      // (the ice overhead, too heavy to rise) refuses now — the WHOLE
+      // gate `traverse` will ask (body, posture, load, the exit), not the
+      // exit's alone: the browser walk swam a band and was told "you're
+      // carrying too much to swim" at the end of it. (⚠ A deliberate
+      // pre-gate: `traverse` asks again at the end, because the world
+      // moves while you swim.)
+      const gate = await LocomotionApi.canTraverseExit(actor, exit, mode, exit.getDirection());
       if (!gate.ok) {
         this.emitRejection(gate, mode, model, context);
         return;

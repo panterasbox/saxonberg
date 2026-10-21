@@ -686,6 +686,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     public onEntered(mover: Stuff & Mobile & Containable, via: Exit): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
       void this.reconcileOccupants();
+      // ⭐ The way down exists the moment somebody is in the water (the
+      // browser walk: after a restart `swim down` at the surface found no
+      // `down` until somebody had used `descend` — load on use, but the
+      // use is being here).
+      void this.ensureColumnExits().catch(() => {});
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
