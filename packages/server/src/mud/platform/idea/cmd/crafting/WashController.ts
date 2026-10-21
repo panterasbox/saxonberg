@@ -148,7 +148,11 @@ export default class WashController extends ManualBuildController<WashModel> {
     this.engageStep(context, {
       durationMs: WASH_MS * effort,
       effortW: effort > 1 ? 350 : 200,
-      beginSelf: Mml.compose`You take ${names.join(", ")} to ${Mml.thing(water.source)}${withWords(cleansers)}.${this.fibreWarning(washable, water)}`,
+      // ⭐ In the water already (a swimmer, a diver): it is round you, not
+      // somewhere to take things to (found by the underwater browser walk).
+      beginSelf: water.source === context.location
+        ? Mml.compose`You wash ${names.join(", ")} in the water round you${withWords(cleansers)}.${this.fibreWarning(washable, water)}`
+        : Mml.compose`You take ${names.join(", ")} to ${Mml.thing(water.source)}${withWords(cleansers)}.${this.fibreWarning(washable, water)}`,
       onComplete: () => {
         // ⭐ One water, several things: the orchestration no one thing
         // owns (`CraftingApi.wash`, repair's upkeep twin) — each thing's own wash.
@@ -191,7 +195,9 @@ export default class WashController extends ManualBuildController<WashModel> {
     this.engageStep(context, {
       durationMs: WASH_MS * effort,
       effortW: effort > 1 ? 350 : 200,
-      beginSelf: Mml.compose`You step to ${Mml.thing(water.source)} to wash your ${gloved ? "gloves" : "hands"}${withWords(cleansers)}.`,
+      beginSelf: water.source === context.location
+        ? Mml.compose`You wash your ${gloved ? "gloves" : "hands"} in the water round you${withWords(cleansers)}.`
+        : Mml.compose`You step to ${Mml.thing(water.source)} to wash your ${gloved ? "gloves" : "hands"}${withWords(cleansers)}.`,
       onComplete: () => {
         giver.washHands({
           waterK: water.waterK,
