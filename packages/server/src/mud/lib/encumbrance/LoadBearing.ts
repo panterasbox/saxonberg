@@ -116,13 +116,20 @@ export const LOAD_BEARING_DEFAULTS = {
 /** The public surface added by LoadBearingMixin. */
 export interface LoadBearing {
   /** Total weighted weight this body bears (carried + worn + held). */
-  getBorneBurden(): Quantity<'kg'>;
+  /**
+   * ⭐ With `waterDensityKgM3`, the burden IN THE WATER (underwater
+   * review): each carried thing at its weight there — mass × (1 − ρ_water
+   * / ρ_thing) — so lead still weighs and a bag of air lifts (it counts
+   * negative and helps carry the rest; the total never goes below 0).
+   */
+  getBorneBurden(waterDensityKgM3?: number): Quantity<'kg'>;
   /** What this body can comfortably carry (physiology-derived). */
   getCarryCapacity(): Quantity<'kg'>;
   /** Absolute lift cap = capacity × OVERLOAD_FACTOR. */
   getStrainCeiling(): Quantity<'kg'>;
   /** Burden / capacity (dimensionless; `0` capacity → `0`/`Infinity`). */
-  getLoadRatio(): number;
+  /** Burden over capacity; in the water when `waterDensityKgM3` is given. */
+  getLoadRatio(waterDensityKgM3?: number): number;
   /** Would lifting `candidate` (as loose carry) push burden past the ceiling? */
   wouldExceedCeiling(candidate: Stuff): boolean;
   /**
@@ -209,12 +216,19 @@ function walk(
   placement: number,
   depth: number,
   visited: Set<string>,
+  waterDensityKgM3?: number,
 ): number {
   if (depth > LOAD_BEARING_DEFAULTS.MAX_DEPTH) return 0;
   if (visited.has(item.stuffId)) return 0;
   visited.add(item.stuffId);
 
-  const self = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+  let self = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+  // ⭐ In the water a thing weighs what it does not float off: lead still
+  // pulls, air lifts (negative), and the bearer's total is clamped at 0.
+  if (waterDensityKgM3 !== undefined && MixinApi.isTangible(item) && self > 0) {
+    const rho = item.getMaterial()?.getDensity().rawValue() ?? NEUTRAL_DENSITY_KG_M3;
+    self = rho > 0 ? self * (1 - waterDensityKgM3 / rho) : self;
+  }
   let contribution = self * transmission * placement;
 
   if (MixinApi.isContainer(item)) {
@@ -225,7 +239,7 @@ function walk(
       transmission *
       (item instanceof Vessel ? item.getTransmissionFactor() : 1.0);
     for (const child of item.getContents()) {
-      contribution += walk(child, childTransmission, placement, depth + 1, visited);
+      contribution += walk(child, childTransmission, placement, depth + 1, visited, waterDensityKgM3);
     }
   }
   return contribution;
@@ -297,7 +311,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    public getBorneBurden(): Quantity<'kg'> {
+    public getBorneBurden(waterDensityKgM3?: number): Quantity<'kg'> {
       this.requireBearerSurface();
       const bearer = this as unknown as Stuff & Container & Slotted;
       const visited = new Set<string>();
@@ -313,6 +327,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           LOAD_BEARING_DEFAULTS.LOOSE_CARRY_SURCHARGE,
           0,
           visited,
+          waterDensityKgM3,
         );
       }
 
@@ -336,7 +351,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (MixinApi.isWearable(asStuff)) {
             coupling += asStuff.fitOn(self0).tightness * tightSurcharge;
           }
-          total += walk(asStuff, 1.0, coupling, 0, visited);
+          total += walk(asStuff, 1.0, coupling, 0, visited, waterDensityKgM3);
         }
       }
 
@@ -350,7 +365,7 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         total += self.getHaulDraft().rawValue();
       }
 
-      return Quantity.of(total, 'kg');
+      return Quantity.of(Math.max(0, total), 'kg');
     }
 
     public getDisplacedVolumeM3(depthM = 0): number {
@@ -418,9 +433,9 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
     }
 
-    public getLoadRatio(): number {
+    public getLoadRatio(waterDensityKgM3?: number): number {
       const capacity = this.getCarryCapacity().rawValue();
-      const burden = this.getBorneBurden().rawValue();
+      const burden = this.getBorneBurden(waterDensityKgM3).rawValue();
       if (capacity <= 0) return burden > 0 ? Infinity : 0;
       return burden / capacity;
     }

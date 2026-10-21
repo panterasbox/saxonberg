@@ -13,6 +13,7 @@ import type { TraversalGuard } from '../../../lib/boundary/Exit';
 import { LocomotionMode } from '../LocomotionMode';
 import type { Enablement } from '../../../lib/locomotion/Enablement';
 import { StuffApi } from '../../../api/stuff';
+import { BiomeApi } from '../../../api/biome';
 import { MixinApi } from '../../../api/mixin';
 import { SpeciesApi } from '../../../api/species';
 import type { MixinName } from '../../../lib/mixin';
@@ -575,16 +576,18 @@ function engageHost(
   // a raw/dev traverse skips the veto entirely (the agnostic-substrate
   // guarantee). Open seam: relocate to `ExitableMixin`/boundary if
   // desired — the predicate moves unchanged.
-  if (
-    MixinApi.isLoadBearing(actor) &&
-    actor.getLoadRatio() >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD
-  ) {
+  // ⭐ In the water the load is what the water does not hold up (the
+  // underwater review): a diver's air bags lift, a weight belt still
+  // pulls — the dry mass would refuse a swim the water makes easy.
+  const inWater = mode.getMedium() === 'water' ? waterDensityKgM3() : undefined;
+  const loadRatio = MixinApi.isLoadBearing(actor) ? actor.getLoadRatio(inWater) : 0;
+  if (loadRatio >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
     return {
       ok: false,
       gate: 'encumbrance',
       mode: mode.getName(),
       reason: `You're carrying too much to ${mode.getName()}.`,
-      context: { loadRatio: actor.getLoadRatio() },
+      context: { loadRatio },
     };
   }
   return { ok: true };
@@ -660,4 +663,13 @@ function checkConveyance(actor: Stuff, mode: LocomotionMode): TraversalGuard {
     mode: mode.getName(),
     reason: `You're not ${mode.getName()}ing anything.`,
   };
+}
+
+/** The water's density, kg/m³ (fresh, when the biome cannot say). */
+function waterDensityKgM3(): number {
+  try {
+    return BiomeApi.densityOf('water').rawValue() || 1000;
+  } catch {
+    return 1000;
+  }
 }
