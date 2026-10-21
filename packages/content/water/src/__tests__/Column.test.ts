@@ -348,9 +348,9 @@ describe('the column (underwater A2)', () => {
     const p = await surface();
     const col = await column();
     const lit = (await col.bandOf(p, 'lit')) as unknown as Band;
-    const said = lit.getLongDescription();
+    const said = lit.getLong();
     expect(said.startsWith('the lit water')).toBe(true);
     expect(said).toMatch(/surface is (close|well|a long way) above you/);
-    expect(lit.getLongDescription()).toBe(said);
+    expect(lit.getLong()).toBe(said);
   });
 });

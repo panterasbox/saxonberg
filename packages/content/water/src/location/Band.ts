@@ -249,9 +249,14 @@ export default class Band extends BandBase {
     return 'There is nothing under you but water.';
   }
 
-  /** The row's words, then what this water is like here: how far you see, how far up the air is. */
-  public getLongDescription(): string {
-    const base = super.getLongDescription();
+  /**
+   * The row's words, then what this water is like here: how far you see,
+   * how far up the air is. ⚠ `getLong()` is what `look` renders — the
+   * browser walk found these lines missing while they sat on
+   * `getLongDescription()`, which no render reads.
+   */
+  public override getLong(): string {
+    const base = super.getLong();
     const surface = this.getSurface();
     const read = surface === null ? null : surface.peekWaterRead(surface.getWaterKey());
     const lines = [base];
