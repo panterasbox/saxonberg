@@ -120,6 +120,14 @@ by **one named follow-up** (`potash-on-sugar`, Deferred seams).
 | `trade-chandlery/…/material/lye.yaml` | — | names the fix, does not make it | `latentHeatOfVaporization 2260000` | potash makes it (W5); if sugar lands it first, the merge is a no-op |
 | `heat.yaml` / `BoilController` | deleted / aliased | — | nothing; the drive types `put pot on hearth` (master) and may type `heat pot` after silk | take silk's deletion at the merge |
 
+### ⭐ Sibling check, 2026-10-20 (trial merges by `git merge-tree`, no worktree)
+
+| sibling | state | textual conflicts with potash | what it changes for us |
+|---|---|---|---|
+| **underwater** (build-4) | finalizing — lands next | `Vitals.ts`, `PackLogic.discover.test.ts` | ⭐ It found and fixed the SAME storm crash in `shockCircuitLive`, identically (plus `renewSustained`): take theirs. ⚠ The Wharfside bank gains a `river` EXIT into the basin — re-check the drive's `fill pail from river` there still binds the water. Burners do not burn under water (no effect on us). |
+| **sugar** (build-1) | building (W-docs) | `thermal.md`, the pack count | ⛔⛔ **Its plateau never lets a liquor with dissolved solids boil dry** — it holds at a solids ceiling until a `concentratesTo` arrow ends it. Our `IronPot` casts only when the pot is DRY, so at the sugar merge the pot would boil forever and no cake would ever come — silently. **`potash-on-sugar` is therefore MANDATORY at that merge, not a cleanup:** lye authors `solidsKgPerL` and a `concentratesTo` arrow to black salts, and `reconcileBoil` goes. Also: drop our lye-only fold in `BulkableLogic` (sugar's fold covers it; both would double-blend lye). |
+| **ceramics** (build-3) | W8 | ~16 files (recipes, `FireController`, `CharController`, the material move, docs) | the § Ceramics protocol below |
+
 ### ⭐ Ceramics (build-3, `reqs/ceramics`) — the landing protocol (2026-10-20)
 
 Ceramics is building in parallel; **whichever lands second reconciles**
