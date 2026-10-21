@@ -143,7 +143,11 @@ Detach is `ContainmentApi.move(item, null)`. A direct
      "carry a chest with someone in it" exploit.)
    - Exitables cannot cross zones via containment. The `zone` field
      follows whichever template spawned the item; moving it into a
-     foreign zone would silently desync.
+     foreign zone would silently desync. ⭐ One opening: a vessel may
+     go down the column of the water it belongs to — into a water band
+     whose `surfacePlace()` is in the vessel's own zone (the diving bell;
+     a water's bands are the column's zone). The stamp stays honest: the
+     bell is still of its surface's zone, hanging below it.
 2. **Veto hooks** (declaration-of-care order: item, source, dest):
    `canMove` on the item, `canRemoveContainable` on the source,
    `canAddContainable` on the destination. First veto wins, throws

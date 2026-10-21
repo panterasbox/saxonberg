@@ -228,10 +228,18 @@ function moveCore(
       );
     }
     // PRE-FLIGHT (2): Exitables cannot cross zones via containment.
+    // ⭐ One opening, and it keeps the stamp honest: a vessel goes down
+    // the column of the water it belongs to (found by the underwater
+    // browser walk — `pull bell down` threw, because a water's bands are
+    // the column's zone and the bell is its quay's). The bell is still
+    // of its surface's zone; it hangs below it.
+    const downItsOwnWater =
+      MixinApi.isWaterPlace(to) && to.surfacePlace()?.getZone() === item.getZone();
     if (
       MixinApi.isExitable(item) &&
       item.getZone() &&
-      item.getZone() !== to.getZone()
+      item.getZone() !== to.getZone() &&
+      !downItsOwnWater
     ) {
       throw new ContainmentError(
         'Cannot move an exitable into a different zone.'
