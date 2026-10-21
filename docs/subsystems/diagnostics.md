@@ -124,8 +124,25 @@ store is the curated view).
 `backend/CompileWatcher.ts` runs a long-running `tsc --watch` via the
 TypeScript **Compiler API** (`createWatchProgram` +
 `createSemanticDiagnosticsBuilderProgram`), streaming **semantic**
-diagnostics into `recordDiagnostics`. Dev-only (booted in `AppBootstrap`
-when `NODE_ENV !== 'production'`; prod has no TS source). Cold-start
+diagnostics into `recordDiagnostics`. Dev-only (armed in `AppBootstrap`
+when `NODE_ENV !== 'production'`; prod has no TS source).
+
+⭐ **Loaded on use, never at boot** (2026-10-21). `arm()` only subscribes;
+the watcher starts on the first `Events.ModuleReloaded` /
+`ModuleReloadFailed` (an author edited source) or the first wizard
+`DiagnosticApi.list` that can return compile rows, which emits
+`Events.CompileDiagnosticsWanted`. Measured on a fresh world, the
+watcher was ~2.35 GB of live heap and a ~60 s synchronous first check,
+against ~190 MB for the whole booted world, and every wire drive and idle
+`pnpm dev` paid it. So the first `errors` that asks gets the store as it
+stands; the cold baseline lands a few seconds later. **`__tests__` are outside the
+program**: `readDirectory` is filtered rather than the root list frozen,
+so new source is still picked up. That cut the first check from 2.3 GB
+to ~1 GB, and `pnpm build` still type-checks tests. ⚠ The flush drains every affected file
+**synchronously before** awaiting any record: the host's own
+`afterProgramCreate` consumes whatever is still pending, and until this
+fix only the first file of each check (on a cold start, `lib.d.ts`) was
+ever recorded. Cold-start
 batches flow through `{ live: false }` so authors aren't firehosed with
 the project baseline; `#ready` flips on TS status codes 6193/6194, after
 which rechecks are live. Semantic-only in v1 — parse errors are already

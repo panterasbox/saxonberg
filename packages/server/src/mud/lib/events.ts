@@ -53,6 +53,7 @@ export const Events = {
   StreamStateChanged: 'stream.stateChanged',
   RelayMessage: 'stream.relayMessage',
   Diagnostic: 'diagnostic.recorded',
+  CompileDiagnosticsWanted: 'diagnostic.compileWanted',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -138,6 +139,19 @@ export interface EventPayloads {
    * nothing.
    */
   [Events.Diagnostic]: DiagnosticEvent;
+  /**
+   * A wizard asked to read TS-source `compile` diagnostics
+   * (`DiagnosticApi.list`). The dev-only compile watcher is loaded on use —
+   * it costs ~1 GB and a long synchronous first check — so it starts on
+   * this demand (or on the first module reload) rather than at boot.
+   */
+  [Events.CompileDiagnosticsWanted]: CompileDiagnosticsWantedEvent;
+}
+
+/** Payload of {@link Events.CompileDiagnosticsWanted}. */
+export interface CompileDiagnosticsWantedEvent {
+  /** Identity path of the wizard whose read asked for compile rows. */
+  by: string;
 }
 
 /** Payload of {@link Events.RelayMessage}. */

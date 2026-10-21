@@ -578,8 +578,10 @@ is cast there. A second sawmill is rows.
   midnight, and a drive that sets no daylight fails as *"It is pitch
   dark"* everywhere. The Hearthworks smithy also read pitch dark to a
   glowcap-holder at noon in the browser (not this build's; reported).
-- ⚠ **A drive world is ~3 GB**; sibling worktrees' servers starved
-  several runs into timeouts that look like defects. Run it on a quiet box.
+- ⚠ **A drive world was ~3 GB**: sibling worktrees' servers starved
+  several runs into timeouts that looked like defects. Since 2026-10-21 an
+  idle world is ~600 MB, because the dev compile watcher is loaded on use
+  ([diagnostics.md](./diagnostics.md)), so contention is far rarer.
 - ⚠ **Commerce found under a drive**: `buy` once handed over a whole
   heap for one price, a craft could gather unpaid shelf goods (a craft
   never gathers from a shop counter now), and a stocked heap restocked

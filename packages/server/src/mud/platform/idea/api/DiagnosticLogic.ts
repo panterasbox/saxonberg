@@ -250,6 +250,13 @@ export class DiagnosticLogic extends ApiLogic {
     const isWiz = await AccessApi.isWizard(subject);
     // Non-wizards can't see TS-source compile diagnostics (wizard-tier content).
     if (!isWiz && filter.source === 'compile') return [];
+    // A wizard reading compile rows is the demand the dev compile watcher
+    // loads on (it does not run at boot — see `CompileWatcher`).
+    if (isWiz && (filter.source === undefined || filter.source === 'compile')) {
+      EventApi.emit(Events.CompileDiagnosticsWanted, {
+        by: subject.getIdentityPath() ?? '',
+      });
+    }
     // The within-your-extent pattern (content-packs wave 3): a row is
     // yours to read when its path is under an extent you hold, or it is
     // a pack's channel and you maintain that pack. No author tier.

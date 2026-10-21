@@ -2,13 +2,18 @@
  * CompileWatcher — the diagnostic mapping + lifecycle guards. The live
  * `tsc --watch` program is exercised end-to-end by running the dev server
  * (it spawns filesystem watchers and async recompiles, which don't unit
- * test deterministically); here we cover the pure `toRaw` mapping and the
- * start/stop guards.
+ * test deterministically); here we cover the pure `toRaw` mapping, the
+ * start/stop/arm guards, and — over a two-file fixture — that the first
+ * program leaves `__tests__` out.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as ts from 'typescript';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { CompileWatcher } from '../CompileWatcher';
+import { DiagnosticApi } from '../../mud/api/diagnostics';
 
 function fakeDiagnostic(over: Partial<ts.Diagnostic>): ts.Diagnostic {
   return {
@@ -85,5 +90,57 @@ describe('CompileWatcher lifecycle', () => {
     w.stop();
     w.stop();
     expect(w.ready).toBe(false);
+  });
+});
+
+describe('CompileWatcher — loaded on use, tests left out', () => {
+  let dir: string | undefined;
+  afterEach(() => {
+    CompileWatcher.get().stop();
+    vi.restoreAllMocks();
+    if (dir) rmSync(dir, { recursive: true, force: true });
+    dir = undefined;
+  });
+
+  it('arm() throws loudly on a missing tsconfig', () => {
+    expect(() =>
+      CompileWatcher.get().arm('/no/such/tsconfig.json')
+    ).toThrow(/tsconfig not found/);
+  });
+
+  it('isTestFile() names a __tests__ path and nothing else', () => {
+    expect(CompileWatcher.isTestFile('/a/src/__tests__/x.test.ts')).toBe(true);
+    expect(CompileWatcher.isTestFile('C:\\a\\__tests__\\x.ts')).toBe(true);
+    expect(CompileWatcher.isTestFile('/a/src/tests/x.ts')).toBe(false);
+    expect(CompileWatcher.isTestFile('/a/src/my__tests__x.ts')).toBe(false);
+  });
+
+  it('the program checks source files and never a __tests__ file', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'compile-watcher-'));
+    mkdirSync(join(dir, 'src', '__tests__'), { recursive: true });
+    writeFileSync(
+      join(dir, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: { strict: true, noEmit: true, types: [] },
+        include: ['src/**/*'],
+      })
+    );
+    writeFileSync(join(dir, 'src', 'a.ts'), 'export const a: number = "x";\n');
+    writeFileSync(
+      join(dir, 'src', '__tests__', 'a.test.ts'),
+      'export const b: number = "y";\n'
+    );
+    const seen: string[] = [];
+    vi.spyOn(DiagnosticApi, 'recordDiagnostics').mockImplementation(
+      async (file: string) => {
+        seen.push(file);
+      }
+    );
+    CompileWatcher.get().start(join(dir, 'tsconfig.json'));
+    // Records are awaited one at a time after a synchronous drain.
+    await vi.waitFor(() =>
+      expect(seen.some((f) => f.endsWith('/src/a.ts'))).toBe(true)
+    );
+    expect(seen.some((f) => CompileWatcher.isTestFile(f))).toBe(false);
   });
 });

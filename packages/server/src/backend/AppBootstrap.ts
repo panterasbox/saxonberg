@@ -256,16 +256,17 @@ export class AppBootstrap {
     console.info('AppBootstrap: world open — the cast may act');
 
     // Author diagnostics Producer 3 — the TS compile watcher. Dev-only:
-    // production runs compiled JS with no TS source to watch. Best-effort:
-    // a missing tsconfig / watcher failure logs and continues (diagnostics
-    // must never block boot).
+    // production runs compiled JS with no TS source to watch. ARMED, not
+    // started: it loads on the first module reload or wizard `errors` read
+    // (~1 GB and a long first check — see CompileWatcher). Best-effort: a
+    // missing tsconfig logs and continues (diagnostics never block boot).
     if (process.env.NODE_ENV !== 'production') {
       try {
         const tsconfig = fileURLToPath(
           new URL('../../tsconfig.json', import.meta.url)
         );
-        CompileWatcher.get().start(tsconfig);
-        console.info('CompileWatcher: watching for TypeScript diagnostics');
+        CompileWatcher.get().arm(tsconfig);
+        console.info('CompileWatcher: armed — starts on the first reload or compile-diagnostics read');
       } catch (err) {
         console.warn(
           `CompileWatcher: not started — ${

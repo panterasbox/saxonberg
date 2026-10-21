@@ -386,6 +386,10 @@ export class EventApi {
       // open policy (the RelayMessage precedent). The logic gate on
       // DiagnosticLogic is the real write restriction.
       [Events.Diagnostic]: EventApi.emittableBy(),
+      // Open emit, for the same load-cycle reason as `Diagnostic` above —
+      // `DiagnosticLogic.list` is the one emitter, and it carries no
+      // payload worth forging (a forged emit only starts a dev watcher).
+      [Events.CompileDiagnosticsWanted]: EventApi.emittableBy(),
       // Open emit — `ContractLogic`'s settle path is the only emitter,
       // and naming it here would import the logic singleton into this
       // module and form a load cycle (event → contract → ContractLogic →
