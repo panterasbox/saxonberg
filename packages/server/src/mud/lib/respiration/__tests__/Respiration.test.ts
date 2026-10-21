@@ -393,6 +393,26 @@ describe('RespirationMixin — the crisis core', () => {
     expect(Math.abs(calm.getO2StoreL() - panting.getO2StoreL())).toBeLessThan(1e-6);
   });
 
+  it('⭐ three fast breaths and you black out with NO warning (requirements drive step 4)', async () => {
+    const panting = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(panting, room('air'));
+    await settle();
+    await panting.inhale();
+    await panting.inhale();
+    await panting.inhale();
+    await panting.inhale();
+    ContainmentApi.move(panting, room('water'));
+    await panting.reassess();
+    let peak = panting.getBreathUrge();
+    for (let i = 0; i < 400 && panting.getO2StoreL() > 0; i++) {
+      tick(1);
+      peak = Math.max(peak, panting.getBreathUrge());
+    }
+    expect(panting.getO2StoreL()).toBe(0);
+    // The warning speaks at 0.5: it never got there before the store ran out.
+    expect(peak).toBeLessThan(0.5);
+  });
+
   it('⭐ cold water takes your breath on entry: the store halves, the urge jumps, once', async () => {
     const c = makeStuff(() => new TestCharacter());
     ContainmentApi.move(c, room('air'));

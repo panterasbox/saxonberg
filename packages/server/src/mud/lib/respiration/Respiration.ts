@@ -102,10 +102,15 @@ export const RESPIRATION_DEFAULTS = {
   REFILL_SEC: 10,
   /** Repeated `inhale`s within this many seconds are hyperventilating. */
   HYPERVENTILATE_WINDOW_SEC: 10,
-  /** How far each hyperventilating breath lowers where the urge starts. */
-  HYPERVENTILATE_URGE_STEP: 0.15,
+  /**
+   * How far each hyperventilating breath lowers where the urge starts.
+   * ⭐ Three fast breaths must silence the warning entirely (requirements
+   * drive step 4: "you black out WITH NO WARNING" — the browser walk
+   * found one warning still came at 0.15 / −0.45, at 95% of the hold).
+   */
+  HYPERVENTILATE_URGE_STEP: 0.2,
   /** The lowest the urge can be pushed down (it starts there). */
-  HYPERVENTILATE_URGE_FLOOR: -0.45,
+  HYPERVENTILATE_URGE_FLOOR: -0.6,
   /** Water colder than this takes your breath on entry, K. */
   COLD_SHOCK_K: 288,
   /** How long the gasp of cold shock caps the breath, game-seconds. */
