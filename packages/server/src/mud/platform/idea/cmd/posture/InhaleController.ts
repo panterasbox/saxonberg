@@ -32,9 +32,11 @@ export default class InhaleController extends CommandController<CommandModel> {
     MessageApi.scene(giver)
       .topic('act.deed')
       .toSelf(
-        out.hyperventilating
-          ? Mml.compose`You breathe fast and deep, and your head swims.`
-          : Mml.compose`You take a deep breath and hold it.`,
+        out.shallow
+          ? Mml.compose`You gasp at the air, but the cold will not let you fill your lungs.`
+          : out.hyperventilating
+            ? Mml.compose`You breathe fast and deep, and your head swims.`
+            : Mml.compose`You take a deep breath and hold it.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} takes a deep breath.`)
       .send();

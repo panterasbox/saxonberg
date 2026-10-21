@@ -19,6 +19,8 @@ import { MATERIAL_FORK_SLICES } from '../../../lib/vitals/Vitals';
 import type { Vitals } from '../../../lib/vitals/Vitals';
 import type { MortalArc } from '../../../lib/mortality/MortalArc';
 import { ContainmentApi } from '../../../api/containment';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
 import { SandboxApi } from '../../../api/sandbox';
 import { PersistableApi } from '../../../api/persistable';
 import { PlayerApi } from '../../../api/player';
@@ -470,7 +472,7 @@ async function dieImpl(
     // ── async tail ──────────────────────────────────────────────────
     await recordDeathDeed(host, cause);
     if (player) {
-      await divideBody(player, cause);
+      await divideBody(player, cause, attribution === undefined);
       return;
     }
 
@@ -542,7 +544,11 @@ function playerBodyOf(host: Stuff): PlayerBody | null {
  *       throws on two live objects at one path;
  *   (h) and only now may the shade take the slot and the sockets.
  */
-async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
+async function divideBody(
+  avatar: PlayerBody,
+  cause: string,
+  environmental: boolean,
+): Promise<void> {
   const body = avatar as unknown as Stuff & Vitals;
   const nowS = conditionNowSeconds() ?? 0;
   const held = MixinApi.isHasInteractive(avatar as unknown as Stuff)
@@ -564,6 +570,21 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
   const fell = MixinApi.isContainable(body) ? body.getContainer() : null;
   const where = fell?.getTemplatePath() ?? undefined;
   avatar.setMortalArc({ diedAt: nowS, cause, whereTemplatePath: where });
+
+  // ⭐ The room sees a death nobody dealt (found by the underwater browser
+  // walk: a diver drowned on the bed and nobody beside them was told). A
+  // killing blow is narrated by the fight that dealt it, so only the
+  // environmental death speaks here. Best-effort: a cue never blocks it.
+  if (environmental) {
+    try {
+      MessageApi.scene(body)
+        .topic('act.deed')
+        .toPeers(Mml.compose`${Mml.actor(body)} goes still.`)
+        .send();
+    } catch {
+      // No message infrastructure (a unit test) — the death stands.
+    }
+  }
 
   // (d) — a clean, living baseline. NOT dead.
   body.resetVitalsToSpeciesBaseline();
@@ -613,6 +634,20 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
     }
     for (const interactive of held) {
       await (shade as unknown as PlayerBody).enter(interactive as never);
+    }
+    // ⭐⭐ Tell the player (found by the underwater browser walk: two
+    // characters died and were told nothing — the next line they saw was
+    // "Welcome back"). The death is the shade's first fact, and the way
+    // back is the floor beneath every other offer.
+    try {
+      MessageApi.scene(shade as unknown as Stuff)
+        .topic('act.deed')
+        .toSelf(
+          Mml.compose`You are dead. Your body lies where it fell, with everything you carried. You are a shade now, between bodies — \`passage\` takes you back.`,
+        )
+        .send();
+    } catch {
+      // No message infrastructure (a unit test) — the shade stands.
     }
   }
 }

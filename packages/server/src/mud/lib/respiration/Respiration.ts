@@ -212,7 +212,12 @@ const EARS_CLEARED_ON_THE_WAY: Readonly<Record<string, number>> = {
 
 /** What `inhale` did. */
 export type InhaleResult =
-  | { ok: true; hyperventilating: boolean }
+  | {
+      ok: true;
+      hyperventilating: boolean;
+      /** ⭐ The cold has your breath: half a lungful is all you got. */
+      shallow: boolean;
+    }
   | { ok: false; reason: 'nothing-to-breathe'; line: string };
 
 /** Numeric AppSetting read, falling back to the seeded literal (test-safe). */
@@ -1423,7 +1428,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       this._lungFill = 1;
       this._co2Urge = this._urgeStart;
       this._urgeCued = 0;
-      return { ok: true, hyperventilating: quick };
+      // ⭐ Say so when the cold capped it (found by the browser walk): the
+      // gasp lasts a minute, and a diver told "a deep breath" went down on
+      // half of one and blacked out on the bed.
+      const shallow = this._o2StoreL < this.fullO2StoreL();
+      return { ok: true, hyperventilating: quick, shallow };
     }
 
     public exhale(): void {

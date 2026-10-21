@@ -333,7 +333,7 @@ describe('RespirationMixin — the crisis core', () => {
     // The prepared diver takes a breath on dry land first.
     ContainmentApi.move(prepared, room('air'));
     await settle();
-    expect(await prepared.inhale()).toEqual({ ok: true, hyperventilating: false });
+    expect(await prepared.inhale()).toEqual({ ok: true, hyperventilating: false, shallow: false });
     expect(prepared.getO2StoreL()).toBeCloseTo(prepared.fullO2StoreL(), 5);
 
     ContainmentApi.move(prepared, room('water'));
@@ -380,7 +380,7 @@ describe('RespirationMixin — the crisis core', () => {
     await settle();
     await calm.inhale();
     await panting.inhale();
-    expect(await panting.inhale()).toEqual({ ok: true, hyperventilating: true });
+    expect(await panting.inhale()).toEqual({ ok: true, hyperventilating: true, shallow: false });
     await panting.inhale();
     ContainmentApi.move(calm, room('water'));
     ContainmentApi.move(panting, room('water'));
@@ -427,6 +427,8 @@ describe('RespirationMixin — the crisis core', () => {
     // Breathing at the surface does not give it back while the gasp lasts.
     tick(5);
     expect(c.getO2StoreL()).toBeLessThanOrEqual(full / 2 + 1e-9);
+    // ⭐ …and a deep breath taken in the gasp says it is a shallow one.
+    expect(await c.inhale()).toMatchObject({ ok: true, shallow: true });
   });
 
   it('⭐ the dying window is longer in cold water — about four times near freezing', async () => {
