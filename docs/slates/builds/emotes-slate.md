@@ -5,6 +5,7 @@
 > `expression` pack, the three dispatch paths) →
 > [emotes.md](../../subsystems/emotes.md); reactions shipped →
 > [reactions.md](../../subsystems/reactions.md)
+> ⭐ **Meaning (acts, manners, consent, witnesses):** [expressive-acts-slate](./expressive-acts-slate.md).
 > **Left:** the Layer-2 client render toggle (`social.emote.render`
 > honoured, per channel and per source) · Layer 3 honorary / entitlement
 > gating (the `requires` predicate seam) · channel / remote-audience
