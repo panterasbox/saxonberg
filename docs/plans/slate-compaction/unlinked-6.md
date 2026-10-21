@@ -346,7 +346,7 @@ and `Switchable`); `positions` is still a mutable current-state cache —
 the write is an upsert"* — with no `position_events`, docket or roll
 collection beside it (the *three the legal build adds* are still the
 legal-code slate's). `GitApi` snapshot-and-push exists (`git-workflow.md`)
-as the slate says. Every link resolves (`docs/governance/draft-constitution.md`,
+as the slate says. Every link resolves (`docs/compact/governance/draft-constitution.md`,
 `branch-policy-slate.md`, `cooperative-slate.md`, `legal-code-slate.md`,
 `press-slate.md`, `influence.md`). One status block already; no cuts. The
 file grew by five lines because the status line grew.

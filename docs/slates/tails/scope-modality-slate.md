@@ -14,7 +14,7 @@
 > **Size:** a wave
 
 > **Surfaced by:** the timepiece + crossing-log work at the EU bus stop
-> (`docs/staging/eternal-university/objects/{pocket-watch,crossing-log}.md`).
+> ([eternal-university-drafts § Gus's objects](../builds/eternal-university-drafts-slate.md#6-guss-objects)).
 > A `tally` verb that reads a timepiece, and an `eat` that has to cope with
 > food in bags (and food in outer space), forced the general model out.
 > **Touches:** MQL (`docs/subsystems/mql.md`), command-routing

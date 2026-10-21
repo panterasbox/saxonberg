@@ -114,7 +114,7 @@ that predated the build entirely.
 The drive script lives in the requirements doc; the drive **record**
 is appended to the plan (`farming-plan.md § Checkpoint A` is the
 precedent). By this phase it should already have been run — it is the
-exit criterion for the build phase, before the MR opens.
+exit criterion for the merge, run alongside review once the MR is open.
 
 ⭐⭐ **Graduation — the drive must have landed IN the suite, not beside
 it.** From 2026-09-08 a drive is written as a wire file and keeps

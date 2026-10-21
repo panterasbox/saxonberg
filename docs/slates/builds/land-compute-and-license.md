@@ -359,7 +359,7 @@ The interrogation that reframed the kernel/module split:
 
 - Economy home + reconception: [cooperative-slate.md § The money membrane / § How
   territory is held](./cooperative-slate.md).
-- Kernel/module + the three-floor test: [../../governance/draft-constitution.md](../../governance/draft-constitution.md).
+- Kernel/module + the three-floor test: [../../governance/draft-constitution.md](../../compact/governance/draft-constitution.md).
 - Content-packs (the pure-data distribution unit): `content-packs-slate.md`.
 - Courts / eminent-domain (the takings path private→public): `courts-judiciary-primitive`
   (memory).

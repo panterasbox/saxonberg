@@ -47,7 +47,7 @@
  * cannot be spelled two ways.
  *
  * **Tier 1 — the published grounds (18).** Verbatim from
- * `docs/design_handoff/DESIGN-SYSTEM.md`. ⚠ Where
+ * `docs/design/handoff/DESIGN-SYSTEM.md`. ⚠ Where
  * `Art Direction - Civic.dc.html` disagrees (it gives `--fg-mute` as
  * `#66799a`/`#78849a`), DESIGN-SYSTEM wins — it is the published palette
  * and the reference art is reference art.

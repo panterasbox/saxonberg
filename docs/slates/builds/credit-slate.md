@@ -285,7 +285,7 @@ anyway.")*
 > shipped and documented, `banking.md` § Custodial bank ops (*"a bank is
 > affiliated to a corpo, not a branded product"*). The property floor →
 > `docs/stewardship-doctrine.md`. The 13th module barring debt bondage →
-> `docs/governance/eotl-history.md`. Authorship-inalienable-as-capacity →
+> `docs/compact/governance/eotl-history.md`. Authorship-inalienable-as-capacity →
 > `balance-slate.md`. *Credit obliges discharge* → resolved: the
 > requirements doc's Arrival Note is non-recourse and business debt
 > stops at the business, so the 13th-module obligation is met by

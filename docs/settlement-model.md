@@ -12,7 +12,7 @@
 > of what will exist at launch, so an enumerated venue list is worthless.
 > What survives is a **generator** — a needs template, a type taxonomy, a
 > density rule, and a growth mechanism. The actual venues live per-locality
-> in `docs/staging/`; the machinery lives in
+> in the localities themselves; the machinery lives in
 > [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md).
 
 **Sources.** The colony sims, because they are literally *about* the

@@ -8,7 +8,7 @@
  * proves the abstraction, which is also why it could not be "added later
  * once we're sure" — being sure is what it provides.
  *
- * Tier-1 values are verbatim from `docs/design_handoff/DESIGN-SYSTEM.md`
+ * Tier-1 values are verbatim from `docs/design/handoff/DESIGN-SYSTEM.md`
  * § Marble.
  *
  * ⚠ Two things invert relative to Ink and are easy to get wrong:

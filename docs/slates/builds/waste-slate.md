@@ -4,7 +4,8 @@
 > **Left:** whether waste must be COLLECTED and moved before it is
 > destroyed · transformation on the way (composting, rotting, salvage) ·
 > who does the collecting · abandoned things' ownership · bounding what a
-> kept place accumulates.
+> kept place accumulates · ⭐ **the dump** (2026-10-20): destroyed on a cadence,
+> the tipping fee, the dustman, the scavenger, only what you own or is abandoned.
 > **Size:** a build.
 
 ## ⭐ The framing (user, 2026-10-18)
@@ -58,6 +59,39 @@ thing between being waste and being gone, and who does it.
    across restarts. Rot-away bounds the food; non-perishable junk (a log,
    a carcass's bones, a broken tool) still piles up with nothing clearing
    it. The bound belongs here.
+
+## ⭐⭐ The dump — the route's end, with a function **[DECIDED 2026-10-20]**
+
+The owner: *"I've toyed with the idea of a waste disposal 'dump' in the game but it
+actually serves a function. Whatever a player takes to the dump eventually is dested
+and GC'd on a cadence, so picking up items that no longer serve the fiction and
+throwing them away has a real performance impact. We may even want to make it
+economical and create a trade for it."*
+
+This **refines the framing rather than reversing it** — *"just dest trash"* still holds.
+A dump that **destroys what is brought to it on a cadence** keeps nothing for long: it is
+the end of the route, not a pile.
+
+- **The performance case is real** (answering question 5) — owned things persist through
+  the capture spine, so litter left in kept places costs memory forever. Paying people to
+  haul it away and burn it turns cleanup into play, and garbage collection into somebody's
+  job.
+- **The economy** (answering question 3):
+  - **the tipping fee** — paying to dump, which is how real landfills are paid for;
+  - **the dustman** who collects — a civic job the polity pays for, or a business;
+  - ⭐ **the scavenger** who picks value out before the burn (rag-and-bone, the totter):
+    things with value get a last chance;
+  - **composting** stays the organic route (the midden ships).
+- ⚠ **One honest rule** (answering question 4) — **you may dump only what you own or what
+  is legally abandoned**. Dumping someone else's thing is theft, which keeps the dump from
+  becoming a way to grief other players' content. Whose an unowned thing is follows the
+  found-property law of [stratigraphy-and-finds](./stratigraphy-and-finds-slate.md) § 4
+  (lost or abandoned; a polity's rule, with the chattel record as evidence).
+- **The cadence** — the burn (or the tip covered over) on a schedule; what is on the dump
+  between burns is the scavenger's window.
+
+**Bodily waste and the liquid sinks** — the privy, the cesspit, the night-soil man, the
+sewer — are the [sanitation-and-pollution slate](./sanitation-and-pollution-slate.md)'s.
 
 ## Related
 

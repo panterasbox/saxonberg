@@ -4,7 +4,7 @@ The universal "walk into a storefront, wait, get attended one at a time"
 subsystem. Every service venue (the bar, the bank, the TPA ticket office,
 future shops) runs it, configured differently — it is **not** a bank feature;
 it is foundational and sits underneath everything. Lives in `lib/attendant/`.
-Graduated from [../staging/attendant-subsystem.md](../staging/attendant-subsystem.md).
+Graduated from the staging design (retired 2026-10-20; in git history).
 
 ## The model
 

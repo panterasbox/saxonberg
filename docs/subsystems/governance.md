@@ -24,7 +24,7 @@ the Governor of the Central Bank controls the bank's `reserve` lever.
 It does **not** build the democratic filling process (investiture,
 elections, no-confidence, sortition) — that is the deferred governance
 machinery. Seeded by the [cooperative slate](../slates/builds/cooperative-slate.md)
-and grounded in the [draft constitution](../governance/draft-constitution.md)
+and grounded in the [draft constitution](../compact/governance/draft-constitution.md)
 (Art. IV legislature + House names, Art. V executive / Prime Minister +
 §9 administration, Art. VIII economy-is-ordinary-law, Art. XI founding
 transition).

@@ -1,7 +1,7 @@
 /**
  * `Seal` — the Saxonberg mark, **applied**.
  *
- * Source of truth is `docs/brand/saxonberg-seal.svg` (+ its README).
+ * Source of truth is `docs/design/brand/saxonberg-seal.svg` (+ its README).
  * ⚠ That directory currently lives on the `design/balance-machine`
  * branch and is not yet on master; the artwork is inlined here rather
  * than imported, which is what the brand README says to do ("drop them

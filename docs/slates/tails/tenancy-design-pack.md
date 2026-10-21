@@ -25,7 +25,7 @@ call) · substrates: [parcel](../../subsystems/parcel.md) (`UseGrant`, live) ·
 [furnishing](../../subsystems/furnishing.md) + [chattel](../../subsystems/chattel.md)
 (the structure/contents split, already modelled) ·
 [credit-slate](../builds/credit-slate.md) (the property floor) ·
-[diegetic-government §8](../../staging/diegetic-government.md) (**the
+[diegetic-government §8](./staging-leftovers-slate.md#14-the-shelter-domicile-and-the-floor-under-eviction) (**the
 shelter** — the floor under eviction).
 
 ---
@@ -159,7 +159,7 @@ Three things keep it humane, and all three already exist:
    property holds unchanged: your estate slice and your chattel survive
    revocation. `revokeUse` reaps you from the extent; it takes nothing you own.
 2. **There is a floor to land on.** [diegetic-government
-   §8](../../staging/diegetic-government.md) already designs **the shelter** —
+   §8](./staging-leftovers-slate.md#14-the-shelter-domicile-and-the-floor-under-eviction) already designs **the shelter** —
    *"a bed and an address their records can point at."* Eviction has a
    destination, so it is a setback rather than a deletion.
 3. **The term is knowable.** `expiresAt` is on the row; nothing expires by

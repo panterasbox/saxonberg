@@ -36,7 +36,7 @@ structural answer**) · [residence](../../subsystems/residence.md) +
 [banking](../../subsystems/banking.md) ·
 [advancement](../../subsystems/advancement.md) (the individual half) ·
 [access](../../subsystems/access.md). Rulings honored:
-[diegetic-government §9](../../staging/diegetic-government.md) (**marriage**) ·
+[diegetic-government §9](./staging-leftovers-slate.md#15-marriage-and-the-two-prisons) (**marriage**) ·
 [credit-slate](../builds/credit-slate.md) (the property floor) ·
 [insurance-slate](../builds/insurance-slate.md) (the scrivener thesis) ·
 [gazette-slate](gazette-slate.md) (*aggregate, never report*) ·
@@ -225,7 +225,7 @@ the design rather than a shortcut. The difference is entirely the bundle:
 joint title (a group owner), a joint account, mutual grants, and a registry
 record.
 
-This honors [diegetic-government §9](../../staging/diegetic-government.md)
+This honors [diegetic-government §9](./staging-leftovers-slate.md#15-marriage-and-the-two-prisons)
 exactly — *"a Terminus institution, full stop; ceremony = content, record =
 city-registry entry, effects = whatever the couple opts into through real
 substrates, each on its own consent terms"* — and it states the pedagogy

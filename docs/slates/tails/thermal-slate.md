@@ -37,7 +37,7 @@ and two items explicitly tracked elsewhere (frostbite-from-weather at
 `physiology-slate`, the clo/fold reconciliation split with
 `textiles-slate`).
 
-> **Surfaced by:** `docs/staging/eternal-university/objects/thermos.md`
+> **Surfaced by:** the thermos draft (now [eternal-university-drafts § Gus's objects](../builds/eternal-university-drafts-slate.md#6-guss-objects))
 > (the worked model lives there as content; this is its substrate home).
 
 ---

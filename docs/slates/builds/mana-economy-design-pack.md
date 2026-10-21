@@ -604,7 +604,7 @@ improvement*, not a bundle.
 
 ## Part 5b — ⭐⭐⭐ Where Terminus gets it: the city refines what it cannot produce
 
-**The canon.** [terminus-city](../../staging/terminus-city.md): two rivers
+**The canon.** [terminus-city](./eternal-university-drafts-slate.md#2-terminus-the-city): two rivers
 meet at the **Confluence** at the north head ("sacred head"), the combined
 river runs south splitting West Bank from East, and **Wharfside** is the
 riverfront. ⚠ **The hydro decision is NOT in the corpus** —
@@ -671,7 +671,7 @@ That last row is the tell that the geography was already pointing here.
 
 ### ⭐⭐ The fog is the evidence, and it is already canon
 
-[terminus-city](../../staging/terminus-city.md) gives the city a signature:
+[terminus-city](./eternal-university-drafts-slate.md#2-terminus-the-city) gives the city a signature:
 **"fog off the confluence."** Decision 7 says mana is **volatile and leaks to
 ambient on every disturbance.**
 
@@ -1128,7 +1128,7 @@ Terminus hydro decision — is recorded in
 [power-utility-slate](./power-utility-slate.md) § Generation — DECIDED.
 Still open outside `arcane-science.md`:
 
-2. ⚠ [terminus-city](../../staging/terminus-city.md) needs **the Confluence
+2. ⚠ [terminus-city](./eternal-university-drafts-slate.md#2-terminus-the-city) needs **the Confluence
    as a mana source** (Part 5b) — the deposit, the six claims, and the fog as
    its visible signature. **Deliberately NOT written yet**, for the same
    reason `arcane-science.md` is untouched: the mana model is a design pack,

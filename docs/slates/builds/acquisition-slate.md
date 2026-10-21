@@ -187,4 +187,4 @@ issuer ledgers — the credential-wallet slate it grew from is retired)
 fees) · [comms.md](../../subsystems/comms.md) ·
 [demo-content-requirements.md](../../requirements/demo-content-requirements.md)
 (units 11/13; the registrar) ·
-[staging/terminus-city.md](../../staging/terminus-city.md) (venues).
+[eternal-university-drafts § Terminus](./eternal-university-drafts-slate.md#2-terminus-the-city) (venues).
