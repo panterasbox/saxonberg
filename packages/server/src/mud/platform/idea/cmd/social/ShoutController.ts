@@ -36,6 +36,7 @@ export default class ShoutController extends CommandController<ShoutModel> {
       return;
     }
     const target = model.target?.stuff ?? undefined;
-    speaker.shout(model.message, target);
+    const out = speaker.shout(model.message, target);
+    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
   }
 }

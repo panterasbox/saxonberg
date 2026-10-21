@@ -166,6 +166,11 @@ import type { Postured } from '../lib/slot/Postured';
 import type { Floor } from '../lib/ground/Floor';
 import type { GroundSource } from '../lib/ground/GroundSource';
 import type { Shore } from '../lib/location/Shore';
+import type { WaterPlace } from '../lib/location/WaterPlace';
+import type { WaterColumn } from '../lib/location/WaterColumn';
+import type { Pullable } from '../lib/spatial/Pullable';
+import type { Tossable } from '../lib/spatial/Tossable';
+import type { Buoy } from '../lib/location/Buoy';
 import type { WaterSource } from '../lib/location/WaterSource';
 import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
@@ -1808,6 +1813,31 @@ export class MixinApi {
   /** Is this place beside a named water (maritime revision 3)? */
   public static isShore(obj: Stuff): obj is Stuff & Shore {
     return this.hasMixin(obj, Mixins.Shore);
+  }
+
+  /**
+   * ⭐ A place that IS a water (underwater D1) — which says how deep it
+   * is now, and what each occupant is in.
+   */
+  public static isWaterPlace(obj: Stuff): obj is Stuff & WaterPlace & Shore {
+    return this.hasMixin(obj, Mixins.WaterPlace);
+  }
+
+  /** The Idea that grows a column under a deep water (the water pack's). */
+  public static isWaterColumn(obj: Stuff): obj is Stuff & WaterColumn {
+    return this.hasMixin(obj, Mixins.WaterColumn);
+  }
+
+  public static isPullable(obj: Stuff): obj is Stuff & Pullable {
+    return this.hasMixin(obj, Mixins.Pullable);
+  }
+
+  public static isTossable(obj: Stuff): obj is Stuff & Tossable {
+    return this.hasMixin(obj, Mixins.Tossable);
+  }
+
+  public static isBuoy(obj: Stuff): obj is Stuff & Buoy {
+    return this.hasMixin(obj, Mixins.Buoy);
   }
 
   /** Can this Idea read a named water for a place? */

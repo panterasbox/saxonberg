@@ -147,6 +147,12 @@ export interface MoraleInputs {
    * terms — the `sentient` gate covers both.
    */
   onlookers: number;
+  /**
+   * ⭐ The urge to breathe, 0..1 (underwater D28): a fighter holding their
+   * breath wants the surface more with every beat, whatever the poise
+   * says. Absent = breathing freely.
+   */
+  breathUrge?: number;
 }
 
 export class Morale {
@@ -197,6 +203,10 @@ export class Morale {
     // say how the *fight* has gone, and a fighter cut three times over
     // knows the difference even while their footing is briefly fine.
     for (const w of state.woundsTaken) p += WOUND_PRESSURE[w] ?? 0;
+
+    // ⭐ The fight is about air: the urge to breathe pushes toward out —
+    // and under the water out is UP.
+    p += 0.4 * Math.max(0, Math.min(1, inputs.breathUrge ?? 0));
 
     // Outnumbered, and watching your side fall.
     if (inputs.foes > 1) p += 0.15 * (inputs.foes - 1);

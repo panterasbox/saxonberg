@@ -1,0 +1,20 @@
+# Decompression sickness — the bends (underwater D27). A diver who breathed
+# compressed air at depth carries gas dissolved in their tissues; come up
+# faster than the tissues can give it back and it comes out as bubbles.
+# It shows some minutes AFTER surfacing — the aching joints first, then
+# the numbness and the staggering, then, untreated, the dying. Going back
+# down (recompression) relieves it; so does a physician. The dive tables
+# say how long to stop on the way up so it never comes.
+class: /platform/idea/Condition
+data:
+  name: the bends
+  signature:
+    - { kind: expression, bands: 1 }
+    - { kind: reserve, reserve: endurance, pctPerHour: -20 }
+  progression:
+    law: stage
+    intervalMs: 1200000
+  resolution:
+    by: medicine
+  observableSigns: [aching-joints, stooped, numb, staggering]
+  contagion: null

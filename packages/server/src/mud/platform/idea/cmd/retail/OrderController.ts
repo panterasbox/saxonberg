@@ -67,6 +67,11 @@ const CLINIC_EFFICACY = 0.7;
 export default class OrderController extends CraftController<OrderModel> {
   async execute(model: OrderModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+    // ⭐ Ordering is asking aloud — a voice the medium carries (D29 seam 5).
+    if (MixinApi.isVocal(giver)) {
+      const voice = giver.canVocalize();
+      if (!voice.ok) return this.refuse(context, 'act.deed', voice.line, voice.reason);
+    }
 
     // ⭐⭐ **The service branch.** A `Tariff` in the room prices things
     // that are DONE to what you already have — a repair, a revival, a

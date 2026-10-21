@@ -1,0 +1,30 @@
+# The strandline (underwater D25) — the line of wrack along the top of the
+# beach where the high water stops. Dry most of the day; at the top of a
+# big tide the sea comes up over it. What floated in the channel lies here
+# after the next high water.
+class: /platform/location/Pool
+data:
+  shortDescription: strandline
+  keywords: [strandline, wrack, "tide line", tideline, weed]
+  register: definite
+  _address: terminus/city/wharfside/strandline
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  details:
+    tideline:
+      keywords: [tideline, "tide line", wrack, weed]
+      description: |
+        Dried weed and cork and broken wood in a wavering line, and below it the sand dark where the sea has been.
+  longDescription: |
+    The top of the beach, where a ragged line of dried weed, cork, feathers and splintered wood marks how far the last high water came.
+  coords:
+    x: 4
+    y: 0
+    z: 1
+  water: { of: /stuff/idea/WaterExpanse/greywater, depthM: -1.3, feature: tideline }
+  tide:
+    collectsFrom:
+      - /world/terminus/estuary/channel
+  exits:
+    down:
+      destination: /world/terminus/estuary/strand
+      media: [ground, water]

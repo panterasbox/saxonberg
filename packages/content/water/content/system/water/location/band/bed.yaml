@@ -1,0 +1,14 @@
+# The bed — the bottom of the water (underwater D8): ground, under the
+# whole weight of the water. Its row authors no floor, so the place mints
+# the default ground, and its depth below the surface puts it on grade.
+# What sinks lies here.
+class: /system/water/location/Band
+data:
+  shortDescription: bottom
+  keywords: [bottom, bed, floor]
+  register: definite
+  longDescription: >-
+    You are down on the bottom, under the whole weight of the water. Silt lifts round you at every movement and hangs, slow to settle.
+  _biomePath: /stuff/idea/biome/water/under
+  enclosure: none
+  roof: none

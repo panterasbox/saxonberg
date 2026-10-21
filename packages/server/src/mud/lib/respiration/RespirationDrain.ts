@@ -29,6 +29,24 @@ import { RESPIRATION_DEFAULTS } from './Respiration';
 import type { Respiration } from './Respiration';
 
 /**
+ * ⭐ The breath's beat, in GAME milliseconds: the emission interval in
+ * real time (the breath runs on real seconds — Respiration's clock), so
+ * at a 12× world one beat spans 24 game-seconds. Each tick integrates the
+ * elapsed time between its stamps, so a coarser beat loses nothing — and
+ * a clock jump replays a twelfth as many (the underwater drive measured
+ * 20 s of server work per game day from one frog treading water).
+ */
+function breathBeatMs(): number {
+  let scale = 1;
+  try {
+    scale = WorldClockApi.getScale();
+  } catch {
+    scale = 1;
+  }
+  return RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS * (Number.isFinite(scale) && scale > 1 ? scale : 1);
+}
+
+/**
  * Why a body is failing to exchange air. The engine is built
  * medium-agnostic / three-trigger-ready, but only `'medium'` (W1) and
  * `'supply'` (W2 tank-exhausted) are produced in this build; `'channel'`
@@ -74,7 +92,7 @@ export class RespirationDrain implements SustainedEngagement {
     // is the Respiration host, `this` is the RespirationDrain it ticks.
     this.emissions = [
       {
-        intervalMs: RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS,
+        intervalMs: breathBeatMs(),
         event: (): void => actor.respirationDrainTick(this),
       },
     ];
@@ -118,7 +136,7 @@ export class RespirationRecovery implements SustainedEngagement {
     this.actor = actor;
     this.emissions = [
       {
-        intervalMs: RESPIRATION_DEFAULTS.EMISSION_INTERVAL_MS,
+        intervalMs: breathBeatMs(),
         event: (): void => actor.respirationRecoverTick(this),
       },
     ];
@@ -137,3 +155,45 @@ export class RespirationRecovery implements SustainedEngagement {
   }
 }
 
+
+/**
+ * ⭐ Treading water (underwater D12) — the cost of staying up. Runs while
+ * a body is in water over its head at the surface and nothing holds it
+ * up: every tick it pays the tread in effort, cheaper the better it
+ * swims, and a body that has nothing left goes under. Same slot as the
+ * drain and the recovery: a body is doing one of the three.
+ */
+export class RespirationTread implements SustainedEngagement {
+  engagementId = '';
+  readonly type = 'respiration-tread';
+  readonly actor: Stuff & Engaged;
+  startedAt = 0;
+  readonly slots: ReadonlySet<EngagementSlot> = new Set<EngagementSlot>([
+    'body',
+  ]);
+  readonly interruptibleBy: ReadonlySet<AbortReason> = new Set<AbortReason>();
+  readonly cancelable = true;
+  readonly emissions: readonly ScheduledEmission[];
+
+  constructor(actor: Stuff & Engaged & Respiration) {
+    this.actor = actor;
+    this.emissions = [
+      {
+        intervalMs: breathBeatMs(),
+        event: (): void => actor.respirationTreadTick(this),
+      },
+    ];
+  }
+
+  onStart(): void {
+    this.startedAt = gameStartedAtMs();
+  }
+
+  onAbort(_reason: AbortReason): void {
+    void _reason;
+  }
+
+  getHost(): Stuff | null {
+    return this.actor;
+  }
+}

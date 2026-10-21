@@ -1,0 +1,20 @@
+# A diving bell (underwater C2, D26) — an open-bottomed iron bell on a
+# hoist cable, its air held in by the water it stands in. Swim in under
+# the rim and stand in air. The deeper it goes the higher the water rises
+# inside it; every breath in it fouls it; an air barrel brought in and
+# opened freshens it. It hangs where its hoist puts it and does not sink.
+class: /trade/diving/thing/Bell
+data:
+  shortDescription: diving bell
+  keywords: [bell, "diving bell", iron]
+  register: indefinite
+  longDescription: >-
+    A squat iron bell as tall as a man, open at the bottom, with a ring of
+    thick glass ports round its crown and a bench round the inside. The
+    air in it smells of iron and breath.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 900
+  fixedInPlace: true
+  interiorVolume: 1.5
+  airM3: 1.5
+  _atmosphere: air

@@ -1,0 +1,11 @@
+# The free end of a lifeline (underwater C1) — minted by its line when the
+# line is made fast to somebody, and gone when it is cast off. Holding it
+# is being on the line; it is what you `tug`.
+class: /trade/diving/thing/LineEnd
+data:
+  shortDescription: end of a line
+  keywords: [end, line, rope, "line end"]
+  register: indefinite
+  longDescription: The free end of a lifeline, a bowline tied in it, the rest of it going away to whoever holds the other end.
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 0.3

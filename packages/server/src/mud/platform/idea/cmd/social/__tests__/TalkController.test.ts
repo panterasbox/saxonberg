@@ -174,7 +174,7 @@ describe("TalkController", () => {
     const player = makeStuff(() => new PlayerHost());
     ContainmentApi.move(npc as never, room as never);
     ContainmentApi.move(player as never, room as never);
-    const say = vi.spyOn(npc, "say").mockImplementation(() => {});
+    const say = vi.spyOn(npc, "say").mockImplementation(() => ({ ok: true }));
 
     const ctx = context(player, room);
     const controller = makeStuff(() => new TalkController());

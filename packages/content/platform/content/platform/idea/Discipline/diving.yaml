@@ -1,0 +1,13 @@
+# Diving — going down and coming back (underwater D15, C). The band is
+# how much descent the ears take before the squeeze (untrained 3 m, then
+# 6, 9, 12, and an expert who never needs to think about it), how to read
+# the dive tables, and how a diver works with a tender and a line. Earned
+# by dives.
+class: /platform/idea/Discipline
+data:
+  key: diving
+  channel: skill
+  label: Diving
+  iscedf: "1014"
+  requires: [swimming]
+  description: Going down into the water and coming back — clearing your ears, reading the tables, working a line with a tender. A diver goes deeper before the water hurts them, and knows when to stop on the way up.

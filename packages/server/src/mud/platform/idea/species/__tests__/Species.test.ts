@@ -176,3 +176,13 @@ describe('Species', () => {
     expect(sapiens.isDestroyed()).toBe(true);
   });
 });
+
+describe('Species — vision profile (underwater browser walk)', () => {
+  it('⭐ a profile that authors no bandShift shifts by nothing, never by undefined', () => {
+    const s = makeStuff(() => new Species());
+    s.setVisionProfile({ scotopicMin: 'very-dim', photopicMax: 'bright' } as never);
+    expect(s.getVisionProfile()?.bandShift).toBe(0);
+    s.setVisionProfile({ scotopicMin: 'very-dim', photopicMax: 'bright', bandShift: 1 });
+    expect(s.getVisionProfile()?.bandShift).toBe(1);
+  });
+});

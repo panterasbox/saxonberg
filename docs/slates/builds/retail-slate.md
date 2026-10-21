@@ -64,12 +64,12 @@ See also:
   — producers/franchisers/the market arena (§ Corpo retail); the
   reserve-governed labor faucet (§ Employment). This slate is the *build
   plan* for that design surface.
-- [../../staging/terminus-city.md](../../staging/terminus-city.md) §6–7 —
+- [eternal-university-drafts § Terminus economy](./eternal-university-drafts-slate.md#28-the-city-economy--the-atmosphere-and-the-ledger) §6–7 —
   the **Atmosphere / Ledger economy + the Circulation Reserve autopilot**.
   This is **S2 below** — the shop *references* it, does not own it: it's
   the city's core deliverable in its own right, and the shop is one
   consumer that lights up when it lands.
-- [../../staging/terminus-banking.md](../../staging/terminus-banking.md) —
+- [staging-leftovers § banking rationale](../tails/staging-leftovers-slate.md#21-the-business-landscape-model) —
   the business-landscape model (everything is a business; one money-tier
   fixed at birth; real is derived from player money-loops), the
   bank-banks-with-itself pattern, the early corpo royalty. The shop is
@@ -181,7 +181,7 @@ seams, not stubs.
 ### S2 — The Circulation Reserve (referenced, not owned) · *large · the city core deliverable*
 
 **This is the city-economy build, not a shop build** — see
-[terminus-city.md](../../staging/terminus-city.md) §6–7. The shop is one
+[terminus-city.md](./eternal-university-drafts-slate.md#28-the-city-economy--the-atmosphere-and-the-ledger) §6–7. The shop is one
 consumer. Listed here only for the dependency it satisfies.
 
 - **What it is:** the two-layer Atmosphere / Ledger economy + the

@@ -34,7 +34,8 @@ export interface IgniteOutcome {
    * will not burn), `'no-fuel'` (⭐ a burner with an empty bed — the
    * refusal that `stoke` lifts, and the reason a fire can be run twice),
    * `'already-burning'`, `'too-wet'` (a hand-flame can't dry it), or
-   * `'no-air'` (⭐ a flame needs air — shut in a starved chamber), or
+   * `'no-air'` (⭐ a flame needs air — shut in a starved chamber, or under
+   * the water), or
    * `'lining-burnt-through'` (a furnace whose lining needs relining).
    * Absent on success.
    */

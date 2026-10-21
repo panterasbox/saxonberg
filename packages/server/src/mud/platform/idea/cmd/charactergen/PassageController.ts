@@ -26,6 +26,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
+import { BiomeApi } from '../../../../api/biome';
 import { ConditionApi } from '../../../../api/condition';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
@@ -36,11 +37,23 @@ import { TemplatePaths } from '../../../../lib/paths';
 const TOPIC = 'act.deed';
 
 /**
- * How much of each biological reserve the floor route costs you (`%`).
- * Enough to be felt and to be worth paying someone to avoid; not enough to
- * put anybody back in danger.
+ * Where the floor route leaves each biological reserve (`%`): a full one
+ * less the cost of coming back. Enough to be felt and to be worth paying
+ * someone to avoid; not enough to put anybody back in danger.
+ *
+ * ⭐ A LEVEL, not a deduction (found by the underwater browser walk): the
+ * returned body carried the dead one's reserves, so a diver who had never
+ * drunk came back with nothing to lose 60 from and died of thirst within
+ * a minute of returning.
  */
-const RECOVERY_RESERVE_COST = 60;
+const RECOVERY_RESERVE_LEVEL = 40;
+
+/** The reserve floor-effects {@link RECOVERY_RESERVE_LEVEL} is above clearing. */
+const LIFTED_BY_THE_FLOOR: ReadonlySet<string> = new Set([
+  TemplatePaths.metabolismCollapse,
+  TemplatePaths.metabolismStarvation,
+  TemplatePaths.metabolismDehydration,
+]);
 
 export default class PassageController extends CommandController<CommandModel> {
   async execute(
@@ -67,6 +80,19 @@ export default class PassageController extends CommandController<CommandModel> {
     //
     // Deliberately never consults the corpse either: a body decays, and
     // nothing on the path back may depend on one existing.
+    // ⭐ Not in the water (found by the underwater browser walk): a diver
+    // who drowned took a body on the bed where they died, with no breath
+    // in it, and drowned again — a loop. The floor route must never put
+    // anybody back in danger, so it waits until you are out; a shade
+    // swims up and climbs out like anyone (`ascend`, the steps).
+    if (BiomeApi.mediumFor(giver).immersed) {
+      const detail =
+        'There is no taking a body in the water — it would drown before it drew breath. Get out first.';
+      context.note({ kind: 'controller-rejected', reason: 'in-the-water', detail });
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${detail}`).send();
+      return;
+    }
+
     const body = await ConditionApi.reembody(giver);
 
     // THE PRICE OF COMING BACK CHEAP.
@@ -84,12 +110,23 @@ export default class PassageController extends CommandController<CommandModel> {
     // nobody has to build a cure for it.
     if (MixinApi.isReserved(body)) {
       for (const key of ['satiation', 'hydration', 'endurance']) {
-        if (body.getReserve(key)) {
-          body.adjustReserve(key, Quantity.of(-RECOVERY_RESERVE_COST, '%'));
+        const reserve = body.getReserve(key);
+        if (reserve) {
+          const delta = RECOVERY_RESERVE_LEVEL - reserve.current.rawValue();
+          body.adjustReserve(key, Quantity.of(delta, '%'));
         }
       }
     }
     if (MixinApi.isVitals(body)) {
+      // ⭐ …and the conditions those levels lift go with them (found by the
+      // underwater browser walk). Metabolism reconciles on READ, so the
+      // collapse its first read stamped on the empty reserves stayed
+      // after the reserves were set — "collapsed from exhaustion" with the
+      // body shelf reading fresh, and nothing that reads metabolism in
+      // sight to clear it.
+      for (const c of [...body.getConditions()]) {
+        if (c.kind === 'affliction' && LIFTED_BY_THE_FLOOR.has(c.templatePath)) body.relieve(c);
+      }
       body.afflict({
         kind: 'affliction',
         templatePath: TemplatePaths.mortalityRecovering,

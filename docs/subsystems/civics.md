@@ -6,10 +6,10 @@ identity (the `Corpo` recipe) authored by a committee; **jurisdiction
 is declared on the `Locality`** and derived as a chain over the address
 coverage walk; **residency derives from a character's domicile**;
 **seats are employment positions**. Seeded by the diegetic-government
-design capture ([docs/staging/diegetic-government.md](../staging/diegetic-government.md)
+design capture ([staging-leftovers § diegetic government](../slates/tails/staging-leftovers-slate.md#1-diegetic-government)
 — the two-layer premise, the six enforcement powers, the jargon
 standard); the Terminus government stack is
-locked in [terminus-city.md §8](../staging/terminus-city.md). (The
+locked in [terminus-city.md §8](../slates/builds/eternal-university-drafts-slate.md#210-the-government-stack-locked-2026-07-30). (The
 build's requirements + plan were retired at the pre-merge sweep, per
 the workflow.)
 
@@ -266,9 +266,9 @@ district (staging).
 
 ## Cross-references
 
-- [docs/staging/diegetic-government.md](../staging/diegetic-government.md)
+- [staging-leftovers § diegetic government](../slates/tails/staging-leftovers-slate.md#1-diegetic-government)
   — premise, six powers, jargon standard, capital-district future
-- [docs/staging/terminus-city.md](../staging/terminus-city.md) §8 — the
+- [eternal-university-drafts § the government stack](../slates/builds/eternal-university-drafts-slate.md#210-the-government-stack-locked-2026-07-30) §8 — the
   government stack + the city's charter-text structure
 - [address.md](./address.md) — Locality, the coverage walk, tier fields
 - [corpo.md](./corpo.md) — the data-Idea/catalogue recipe

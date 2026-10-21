@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { StuffApi } from '../../../api/stuff';
-import { describe, it, expect, beforeEach  } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import ExitableVessel from '../ExitableVessel';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
@@ -158,6 +158,27 @@ describe('ExitableVessel', () => {
       Stuff._stampZone(wardrobe, zone);
       ContainmentApi.move(wardrobe, park);
       expect(() => ContainmentApi.move(wardrobe, otherPark)).toThrow(ContainmentError);
+    });
+
+    it('⭐ may go down the column of the water it belongs to (the diving bell — underwater walk)', async () => {
+      // A water's bands are the column's zone; the bell is its quay's. The
+      // one opening: the band's SURFACE is in the vessel's own zone.
+      const columnZone = makeStuff(() => new CartesianZone());
+      const band = makeStuff(() => new Location());
+      columnZone.addLocation(band, 0, 0, 0);
+      const real = MixinApi.isWaterPlace.bind(MixinApi);
+      vi.spyOn(MixinApi, 'isWaterPlace').mockImplementation(((o: Stuff) => o === band || real(o)) as never);
+      Object.assign(band, { surfacePlace: () => park });
+
+      try {
+        Stuff._stampZone(wardrobe, zone);
+        ContainmentApi.move(wardrobe, park);
+        ContainmentApi.move(wardrobe, band);
+        expect(wardrobe.getContainer()).toBe(band);
+        expect(wardrobe.getZone()).toBe(zone);
+      } finally {
+        vi.restoreAllMocks();
+      }
     });
 
     it('move does not back-fill zone on a Exitable that was never stamped', async () => {

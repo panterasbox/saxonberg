@@ -181,9 +181,6 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // Resolved live at the grid compile, and a rowless one is a feeder that
     // energizes nothing with no author-findable reason.
     'source',
-    // ⭐ `bed` (the storage-and-ice review) — a Pool's bed: the prop row it
-    // sinks dense things into, found among its contents by this path.
-    'bed',
     // ⭐ The pump citations (the pump build). `mechanism` names the
     // `PumpMechanism` row a pump is built on — resolved live on every
     // spell at the handle, and a rowless one is a pump with no law: it
@@ -192,6 +189,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // OPEN (the tap runs as its own source), so the census is what says
     // the plumbing was never connected.
     'mechanism', 'suppliedBy',
+    // ⭐ `surface` (the underwater build) — the water place an authored
+    // room beside a column lies under (the intake's mouth under the
+    // Wharfside basin). Resolved live by every read of the band; a
+    // rowless one is a room under no water at all.
+    'surface',
+    // ⭐ `bell` (the underwater build) — the diving bell a hoist carries,
+    // found live by its row path every time the hoist is worked.
+    'bell',
     // ⭐ `castTemplate` (the cold-storage build) — what a frozen pool of a
     // Material becomes (water → `/stuff/thing/ice-block`). Resolved live at
     // the solidify edge of `reconcileBulkPhase`, and a rowless one is a

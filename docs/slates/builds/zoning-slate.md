@@ -29,7 +29,7 @@ turnpike, the depot-as-town-generator),
 [legal-code-slate](./legal-code-slate.md),
 [instrumentation-slate](./instrumentation-slate.md),
 [prison-slate](./prison-slate.md),
-`docs/staging/terminus-city.md` (the map this sites against).
+[eternal-university-drafts § Terminus](./eternal-university-drafts-slate.md#22-the-spine-and-the-map) (the map this sites against).
 
 ## ⭐⭐ What makes industrial categorically different
 

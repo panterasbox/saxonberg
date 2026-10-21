@@ -234,7 +234,11 @@ drive runs as a way that does not swim. `mapGate`'s default is still
 `exit-mode`, so a new guard must add its word to the union AND the
 mapper.
 A `blocked` refusal renders the exit's own `reason` when it has one (a
-ford, a snowbound pass), else *"The way is blocked."*
+ford, a snowbound pass), else *"The way is blocked."* ⭐ An `exitMode`
+refusal names the way that works, from the exit's `media`
+(*"You can't walk that way — you'll have to climb."*) — the card's exit
+link sends `go <dir>`, and out of the river that used to say only *"You
+can't walk that way"* beside steps you have to climb (underwater walk).
 The `mode` is the short LocomotionMode name (`'walk'`, `'climb'`, …).
 
 The gate names are kebab-case on the wire even though

@@ -233,8 +233,11 @@ export interface Tangible {
   /**
    * ⭐ Tap it and listen: a sound hard body rings, a soft one is dead, a
    * flawed one buzzes — and how loud, by its mass. `ring` tells it.
+   * `carries`, when a thing sets it, is what everybody else hears in place
+   * of watching you tap it — a signal bell under the water, heard by every
+   * diver in the column and placed by none (underwater C5).
    */
-  ringSound(): { sound: string; db: number; rings: boolean };
+  ringSound(): RingSound;
   /** Can this receive a pour at `k` K? (ceramics S13 — W7 reads it.) */
   canReceiveAtK(k: number): PourReception;
   /**
@@ -254,6 +257,15 @@ export interface Tangible {
    * impression it was cut to.
    */
   leaveImpression(nowS: number): ImpressionData | null;
+}
+
+/** How a thing sounds when it is rung (`TangibleMixin.ringSound`). */
+export interface RingSound {
+  sound: string;
+  db: number;
+  rings: boolean;
+  /** What the others hear, when it is not the sight of the tap. */
+  carries?: string;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -746,7 +758,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       return { broke: true, flawed: false, pieces };
     }
 
-    public ringSound(): { sound: string; db: number; rings: boolean } {
+    public ringSound(): RingSound {
       const mat = this.getMaterial();
       const sounding = mat !== null && (mat.hasTag('brittle') || mat.hasTag('metal'));
       const rings =

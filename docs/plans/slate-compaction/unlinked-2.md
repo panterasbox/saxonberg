@@ -136,7 +136,7 @@ docs/architecture.md` → nothing).
 ## docs/slates/builds/amendment-library-slate.md — 561 → 566 · Status UNBUILT → UNBUILT
 
 Constitutional doctrine per the brief: kept, labelled. Verified UNBUILT:
-`docs/governance/draft-constitution.md` exists (a document, no runtime);
+`docs/compact/governance/draft-constitution.md` exists (a document, no runtime);
 `civics.md:22` (*"no legal machinery (no statute engine…"*) and `:178`
 (*"Never (doctrine): legal machinery — statute engine, trials…"*) still
 rule the engine out; `grep -i 'veto\|amendment\|ratif\|disenfranch\|totalStanding'`

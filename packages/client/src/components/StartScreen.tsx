@@ -125,7 +125,7 @@ const Masthead = styled.header`
  *
  * ⚠ An earlier cut of this screen drew its own "S" on a red square
  * while `frame/Seal.tsx` — the applied seal, sourced from
- * `docs/brand/saxonberg-seal.svg` and already on the in-world top bar —
+ * `docs/design/brand/saxonberg-seal.svg` and already on the in-world top bar —
  * sat one import away. The front door is the first thing a stranger
  * sees, so it is the last place to ship a stand-in for the brand.
  *

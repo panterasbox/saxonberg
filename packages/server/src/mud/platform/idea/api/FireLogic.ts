@@ -252,9 +252,9 @@ function fireNowSeconds(): number {
  * addition; a Phase-3 fire assumes air.
  */
 function igniteImpl(stuff: Stuff): IgniteOutcome {
-  // ⭐ No flame where there is no air (ceramics R3; underwater D29 seam 1
-  // is the medium arm of the same gate): a log shut in a starved chamber
-  // is refused BEFORE anything is struck.
+  // ⭐ No flame where there is no air (ceramics R3 + underwater D29 seam
+  // 1, two arms of one gate): a log shut in a starved chamber, or a thing
+  // under the water, is refused BEFORE anything is struck.
   if (!mediumBurns(stuff)) return { lit: false, reason: 'no-air' };
   // ⭐⭐⭐ **Striking a light is how you find out.** The tick's flash check
   // runs where a fire already burns; this is the other half, and it is
@@ -332,11 +332,19 @@ function tryAutoigniteImpl(stuff: Stuff): boolean {
  * `completeness()` is at or above `fire.air.flamingCompleteness` — so
  * cordwood sealed in a clamp at draught 0.45 (≈ 0.53) or in a shut retort
  * chars by its material's transition and never catches, and at `draught
- * wide` it burns. ⚠ The medium arm (a thing under water, in a medium that
- * does not support combustion) is underwater's, and lands INSIDE this same
- * function — never a second gate beside it.
+ * wide` it burns. The medium arm (underwater D29 seam 1): a thing under
+ * the water, or in any medium that will not burn, never catches. Two arms,
+ * ONE gate — never a second gate beside it.
  */
 function mediumBurns(stuff: Stuff): boolean {
+  const medium = BiomeApi.mediumFor(stuff);
+  if (medium.immersed && !medium.atSurface) {
+    try {
+      if (!BiomeApi.mediumProps(medium.tag).supportsCombustion) return false;
+    } catch {
+      return false;
+    }
+  }
   if (!MixinApi.isContainable(stuff)) return true;
   const holder = stuff.getContainer() as unknown as Stuff | null;
   if (holder === null || holder === stuff || !MixinApi.isBurner(holder)) return true;

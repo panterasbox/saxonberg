@@ -23,6 +23,7 @@ import FloorBase from './Floor';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Slottable } from '../../lib/slot/Slottable';
 import type { FieldMeta } from '../../lib/mixin';
+import type { WaterPlace } from '../../lib/location/WaterPlace';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { LocomotionApi } from '../../api/locomotion';
@@ -39,9 +40,13 @@ export default class WaterSurface extends FloorBase {
   /** The water's surface area, m² (0 = one cell). */
   public areaM2 = 0;
 
-  /** Open water bears nobody; water read frozen bears you (no sheet to weigh). */
+  /**
+   * Open water bears nobody; water read frozen bears you (no sheet to
+   * weigh); ⭐ and water you can stand in — a place whose water is only
+   * wading deep now, or has gone out altogether — bears you on its bed.
+   */
   public override bears(_loadKg: number): boolean {
-    return this.isFrozenWater();
+    return this.isFrozenWater() || this.isStandingWater();
   }
 
   public override supportIsSlotted(): boolean {
@@ -51,6 +56,7 @@ export default class WaterSurface extends FloorBase {
   /** The whole surface is open water — unless the water reads frozen. */
   public override openWaterAreaM2(): number {
     if (this.isFrozenWater()) return 0;
+    if (this.waterPlace()?.stateNow() === 'dry') return 0;
     return this.areaM2 > 0 ? this.areaM2 : 1;
   }
 
@@ -132,6 +138,18 @@ export default class WaterSurface extends FloorBase {
           : Mml.compose`${Mml.actor(occupant)} goes into the water.`,
       )
       .send();
+  }
+
+  /** The water place this surface floors, if it is one. */
+  private waterPlace(): (Stuff & WaterPlace) | null {
+    const room = (this as unknown as { getAdornedTo?(): Stuff | null }).getAdornedTo?.() ?? null;
+    return room !== null && MixinApi.isWaterPlace(room) ? room : null;
+  }
+
+  /** The water here is shallow enough to stand in now (or gone). */
+  protected isStandingWater(): boolean {
+    const state = this.waterPlace()?.stateNow();
+    return state === 'dry' || state === 'wading';
   }
 
   /** The pool's water reads frozen (read off the room by shape — a `Shore`). */

@@ -267,7 +267,7 @@ economy — and because they share the same vocation family. Split into
 its own slate if it outgrows this.
 
 Related: [banking.md](../../subsystems/banking.md) (**shipped
-infrastructure**), [terminus-banking](../../staging/terminus-banking.md)
+infrastructure**), [terminus-banking](../tails/staging-leftovers-slate.md#2-banking-rationale-that-did-not-graduate)
 (five corpo banks, locked), [livelihood-slate](./livelihood-slate.md)
 (the WPA floor), [sanitation-slate](./sanitation-slate.md) (the
 pawnshop).

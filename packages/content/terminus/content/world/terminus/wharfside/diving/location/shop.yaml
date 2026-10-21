@@ -1,0 +1,25 @@
+# The dive shop (underwater C5) — Morrow's, a tarred shed on the quay that
+# sells what takes you down and keeps you alive there, hires out a tender
+# and a pump, and sends divers to the city's jobs.
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: 0, z: 0 }
+  shortDescription: "dive shop"
+  keywords: [shop, "dive shop", shed, morrow]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.05 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.05 }
+  longDescription: |
+    A tarred shed hard against the quay wall, smelling of rubber, rope and the river. Copper helmets stand on a shelf like a row of heads, a diving dress hangs from a hook with its arms out, and coils of line and hose lie everywhere under a storm lantern on a hook. A chalked board behind the counter lists the tides.
+  exits:
+    bank:
+      destination: /world/terminus/wharfside/bank
+      media: [ground]
+      edgeMinutes: 1
+  adornments:
+    - { template: /world/terminus/wharfside/diving/thing/shop-lamp, slot: lamp:shop }
+  props:
+    - /world/terminus/wharfside/diving/thing/counter
+  cast:
+    - /world/terminus/wharfside/diving/agent/dive-master

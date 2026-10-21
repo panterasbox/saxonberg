@@ -19,6 +19,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { AppApi } from '@saxonberg/server/mud/api/app';
+import type { RingSound } from '@saxonberg/server/mud/lib/material/Tangible';
 
 /** Bell bronze — the reference metal: hardness ÷ density, MPa per kg/m³. */
 const BELL_BRONZE_STIFFNESS = 250 / 8800;
@@ -67,7 +68,7 @@ export default class Bell extends CraftedMixin(ThermalMixin(Good)) {
    * hand bell across a room, a great bell over the streets. A flaw (a crack,
    * a casting fault) dulls it to a clank.
    */
-  public override ringSound(): { sound: string; db: number; rings: boolean } {
+  public override ringSound(): RingSound {
     const mat = this.getMaterial();
     if (mat === null || !mat.hasTag('metal')) return super.ringSound();
     const kg = Math.max(0.05, this.getMass().rawValue());

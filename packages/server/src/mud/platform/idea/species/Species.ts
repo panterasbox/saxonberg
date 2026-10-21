@@ -25,6 +25,7 @@ import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { StuffApi } from '../../../api/stuff';
 import type BodyPlan from './BodyPlan';
+import type { BreathingSpec } from './BodyPlan';
 import type Clade from './Clade';
 import type Material from '../../../lib/material/Material';
 import type { VisionProfile } from '../../../lib/perception/Light';
@@ -932,6 +933,16 @@ export default class Species extends SingletonMixin(
   protected habitat: Habitat | null = null;
 
   /**
+   * ⭐ How this species breathes at a stage, where it differs from its
+   * plan's (underwater D21): a tadpole on gills, a froglet on gills and
+   * lungs both, the adult on its plan. Unset stages take the plan's.
+   */
+  protected breathingByStage: Partial<Record<LifeStage, BreathingSpec[]>> = {};
+
+  /** ⭐ What water a stage needs, where it differs from {@link habitat} (D21). */
+  protected habitatByStage: Partial<Record<LifeStage, Habitat>> = {};
+
+  /**
    * The species' **natural attacks** — its innate combat vocabulary
    * (bite / claw / tail…), each a `NaturalAttackSpec`
    * `{key, channel, reach?, massKg?, lengthM?}`. Multiple attacks rotate
@@ -1062,6 +1073,8 @@ export default class Species extends SingletonMixin(
     // number, and a wiki panel printing the tolerances is the field
     // guide the angler is supposed to have read.
     habitat: { persistent: true, authorable: true },
+    breathingByStage: { persistent: true, authorable: true },
+    habitatByStage: { persistent: true, authorable: true },
 
     // ── What you learn by meeting it ──
     vitalProfile: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -1323,6 +1336,63 @@ export default class Species extends SingletonMixin(
   /** See {@link Habitat}. `null` — the species lives in no water. */
   public getHabitat(): Habitat | null {
     return this.habitat;
+  }
+
+  /**
+   * ⭐ How well `habitat` lives with `value` of one water parameter, 0..1
+   * — the one tolerance curve, for a reader that has picked the habitat
+   * (a body's own stage, underwater D21). `1` where it authors none.
+   */
+  public toleranceIn(habitat: Habitat | null, word: WaterParameter, value: number): number {
+    const tol = habitat?.tolerances[word];
+    return tol ? Species.toleranceFactor(value, tol) : 1;
+  }
+
+  public getHabitatByStage(): Partial<Record<LifeStage, Habitat>> {
+    return { ...this.habitatByStage };
+  }
+
+  public setHabitatByStage(value: Partial<Record<LifeStage, Habitat>> | null): void {
+    const out: Partial<Record<LifeStage, Habitat>> = {};
+    for (const [stage, h] of Object.entries(value ?? {})) {
+      if (!(LIFE_STAGES as readonly string[]).includes(stage)) {
+        throw new TypeError(`Species.setHabitatByStage: '${stage}' is not a life stage`);
+      }
+      if (h) out[stage as LifeStage] = h;
+    }
+    this.habitatByStage = out;
+  }
+
+  /**
+   * ⭐ How a body of this species breathes at `stage` (underwater D21):
+   * the stage's own breathing, else the plan's.
+   */
+  public breathingFor(stage: LifeStage | null): readonly BreathingSpec[] {
+    // A body with no age to read is taken as grown (an authored frog is an adult).
+    const own = this.breathingByStage[stage ?? 'adult'];
+    return own ?? this.getBodyPlan()?.getBreathing() ?? [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+  }
+
+  public getBreathingByStage(): Partial<Record<LifeStage, BreathingSpec[]>> {
+    return { ...this.breathingByStage };
+  }
+
+  public setBreathingByStage(value: Partial<Record<LifeStage, BreathingSpec[]>> | null): void {
+    const out: Partial<Record<LifeStage, BreathingSpec[]>> = {};
+    for (const [stage, specs] of Object.entries(value ?? {})) {
+      if (!(LIFE_STAGES as readonly string[]).includes(stage)) {
+        throw new TypeError(`Species.setBreathingByStage: '${stage}' is not a life stage`);
+      }
+      if (!Array.isArray(specs)) continue;
+      out[stage as LifeStage] = specs.map((b) => {
+        const intake = Number(b.intake);
+        if (typeof b.medium !== 'string' || b.medium === '' || !Number.isFinite(intake) || intake < 0 || intake > 1) {
+          throw new RangeError(`Species.setBreathingByStage: a bad breathing entry at '${stage}'`);
+        }
+        return { medium: b.medium, apparatus: String(b.apparatus ?? 'lungs'), intake };
+      });
+    }
+    this.breathingByStage = out;
   }
 
   /**
@@ -1632,7 +1702,18 @@ export default class Species extends SingletonMixin(
   public getDiet(): string | null { return this.diet; }
   public setDiet(value: string | null): void { this.diet = value; }
 
-  public getVisionProfile(): VisionProfile | null { return this.visionProfile; }
+  /**
+   * ⭐ A profile that authors no `bandShift` shifts by nothing (the
+   * underwater browser walk: two shipped rows omitted it, a shift by
+   * `undefined` made an undefined light band, and a creature of either
+   * kind seeing anything in daylight crashed the server). Read-side, so
+   * every stored row is covered.
+   */
+  public getVisionProfile(): VisionProfile | null {
+    const v = this.visionProfile;
+    if (v === null) return null;
+    return Number.isFinite(v.bandShift) ? v : { ...v, bandShift: 0 };
+  }
   public setVisionProfile(value: VisionProfile | null): void {
     this.visionProfile = value;
   }

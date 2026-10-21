@@ -1,0 +1,26 @@
+# The harbor works (underwater C4/C5) — the city's department for what
+# lies under the water at Wharfside: the intake's screen, the lost anchor,
+# the drowned. ONE seat, held by the pilot (who knows the water better
+# than anybody), who posts the work on the harbor board.
+class: /platform/idea/Business
+data:
+  name: "the harbor works"
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus
+  positions:
+    - key: harbor
+      noun: pilot
+      label: keeping the harbor works
+      wageRate: 4
+      purchases: true
+  rosterSlots:
+    - positionKey: harbor
+      assignee: /world/terminus/wharfside/agent/pilot
+      station: /world/terminus/wharfside/bank
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/wharfside/bank
+    - /world/terminus/wharfside/thing/harbor-board

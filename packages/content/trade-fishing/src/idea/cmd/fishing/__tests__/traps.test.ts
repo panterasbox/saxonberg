@@ -20,7 +20,7 @@ import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { TestActor, makeContext, completeStep, standUpBranchHarness } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import LayController from '../LayController';
-import HaulController from '../HaulController';
+import PullController from '@saxonberg/server/mud/platform/idea/cmd/inventory/PullController';
 import Waters, { WATERS_PATH } from '../../../Waters';
 import Trap from '../../../../thing/Trap';
 import Bait from '../../../../thing/Bait';
@@ -112,7 +112,7 @@ describe('lay and haul', () => {
     expect(pot.getSetBy()).toBe(angler.getIdentityPath() ?? '');
 
     await completeStep(8 * 3600 * 1000); // a night
-    const haul = await run(HaulController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'haul pot');
+    const haul = await run(PullController as never, { target: { stuff: pot, raw: 'pot' } }, angler, room, 'pull pot');
     expect(rejected(haul)).toBeNull();
     expect(pot.getContainer()).toBe(angler);
     expect(pot.isSet()).toBe(false);
@@ -129,7 +129,7 @@ describe('lay and haul', () => {
     const pot = heldPot();
     await run(LayController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lay pot');
     await completeStep(8 * 3600 * 1000);
-    await run(HaulController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'haul pot');
+    await run(PullController as never, { target: { stuff: pot, raw: 'pot' } }, angler, room, 'pull pot');
     expect(drawn).toEqual([]);
     expect(sent.join(' ')).toMatch(/Nothing in it/);
     expect(pot.getContainer()).toBe(angler);
@@ -139,7 +139,7 @@ describe('lay and haul', () => {
     const pot = makeStuff(() => new Trap());
     ContainmentApi.move(pot as never, room as never);
     expect(rejected(await run(LayController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lay pot'))).toBe('not-held');
-    expect(rejected(await run(HaulController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'haul pot'))).toBe('not-set');
+    expect(rejected(await run(PullController as never, { target: { stuff: pot, raw: 'pot' } }, angler, room, 'pull pot'))).toBe('not-set');
     const held = heldPot();
     await run(LayController as never, { trap: { stuff: held, raw: 'pot' } }, angler, room, 'lay pot');
     ContainmentApi.move(held as never, angler as never); // somebody picked it up somehow
@@ -173,7 +173,7 @@ describe('the keepnet (B8)', () => {
     expect([...keepnet.getContents()]).toContain(trout);
 
     WorldClockApi._advanceForTesting?.(3600);
-    const ctx = await run(HaulController as never, { trap: { stuff: keepnet, raw: 'keepnet' } }, angler, room, 'haul keepnet');
+    const ctx = await run(PullController as never, { target: { stuff: keepnet, raw: 'keepnet' } }, angler, room, 'pull keepnet');
     expect(rejected(ctx)).toBeNull();
     expect(drawn).toEqual([]); // it draws nothing of its own
     expect([...angler.getContents()]).toContain(trout);
@@ -190,7 +190,7 @@ describe('the keepnet (B8)', () => {
     const crabBack = makeStuff(() => new Fish());
     ContainmentApi.move(crabBack as never, pot as never);
     standing = [crab(0)];
-    await run(HaulController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'haul pot');
+    await run(PullController as never, { target: { stuff: pot, raw: 'pot' } }, angler, room, 'pull pot');
     expect([...angler.getContents()]).toContain(crabBack);
   });
 });

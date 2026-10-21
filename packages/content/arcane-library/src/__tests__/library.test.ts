@@ -37,7 +37,7 @@ interface Row { class?: string; data?: Record<string, unknown> }
 describe('the arcane library — every row installs', () => {
   const rows = [...yamlFiles(CONTENT)].map((f) => ({ file: f, row: YAML.parse(readFileSync(f, 'utf-8')) as Row }));
 
-  it('ships forty-three rows: 20 spells, 3 loci, 17 items, 3 draughts', () => {
+  it('ships forty-six rows: 22 spells, 3 loci, 18 items, 3 draughts', () => {
     // 31 → 36: frost (injury) + the four magic-expression workings
     // (stonefist, stone-lance, windrazor, acid-splash) took the spell
     // count from 13 to 18. 36 → 40: a wand for each of those four
@@ -47,7 +47,10 @@ describe('the arcane library — every row installs', () => {
     // rather than a bare light. It takes no exemption from the physics
     // a hearth obeys: it cooks, it smokes if you choke it, and a room
     // with no air puts it out.
-    expect(rows).toHaveLength(43);
+    // ⭐ 43 → 46: the underwater build's two held workings — `breathe-water`
+    // and `keep-warm`, paid for by the caster while held — and a wand of
+    // glowlight, the light a diver can raise where no spoken cast carries.
+    expect(rows).toHaveLength(46);
   });
 
   it('every class resolves — the loci into this pack, the item classes into arcana, the rest into the kernel', async () => {
@@ -74,7 +77,8 @@ describe('the arcane library — every row installs', () => {
     // (the two loci below are unchanged), so only the count moves.
     // ⭐ 19 → 20: `conjure-flame`, which DOES name a locus — the third,
     // and the only one that burns.
-    expect(spells).toHaveLength(20);
+    // ⭐ 20 → 22: `breathe-water` and `keep-warm` (underwater D18); no locus.
+    expect(spells).toHaveLength(22);
     const named = new Set<string>();
     for (const { file, row } of spells) {
       for (const raw of row.data!.effects as unknown[]) {

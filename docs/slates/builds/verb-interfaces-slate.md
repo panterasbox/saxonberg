@@ -64,3 +64,19 @@ bandage is not a verb but **time in water at 100 °C**. The derivable model:
 | `strew` | only floor litter | scattering a loose material over a surface: grit or salt on an icy path, sand on a spill, broadcast seed |
 | `dispose` | refuse onto a midden | dumping — fine as the act it is; check it is not a `put` |
 | every verb | — | the census: views whose `requires:` (or controller narrowing) admits one class or one row |
+
+## ⭐ Bare verb shapes become protocol mixins (the underwater review, 2026-10-20)
+
+The rule is in [mixins.md § A verb's protocol is a PROTOCOL MIXIN](../../subsystems/mixins.md):
+what a verb narrows its target on is a protocol mixin (a name, a refusing
+default, each host overriding), never a bare interface, so the binder can
+`requires:` it, `MixinApi.isX` exists, and Studio shows it. The underwater
+build converted its own (`Pullable`, `Tossable`, `TakesFish`).
+
+**Left — the shipped bare shapes:** `Workable` / `Diggable` / `Splittable`
+(the ground protocol), `Pumpable` (bellows, well, wellhead), `Tappable`
+(the taps), `Cuttable`; `Reelable` goes with the reel undo
+(command-taxonomy item 7). **Census then ratchet:** ~18 controllers
+narrow a target by `typeof x.method === 'function'` today — count them,
+hold the ceiling, drive it to zero, and let the views name the mixins in
+`requires:` (each one moves an `any` off `lint:arg-kinds`).

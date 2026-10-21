@@ -33,3 +33,11 @@ data:
     north:
       destination: /world/terminus/estuary/headland/brow
       media: [ground]
+    # ⭐ The tide's edges (underwater D25): the rocks with their pool to the
+    # south, and up the beach the line of wrack the high water leaves.
+    south:
+      destination: /world/terminus/estuary/tidepool
+      media: [ground, water]
+    up:
+      destination: /world/terminus/estuary/strandline
+      media: [ground, water]

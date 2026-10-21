@@ -42,6 +42,11 @@ export default class DrinkController extends CommandController<DrinkModel> {
       return;
     }
 
+    // ⭐ Under the water nothing goes in by mouth but the water (D29).
+    if (MixinApi.isMetabolic(giver)) {
+      const airway = giver.canIngest();
+      if (!airway.ok) return this.refuse(context, TOPIC, airway.line, airway.reason);
+    }
     const fromSlot = BulkableApi.slotFor(
       target,
       model.target.via

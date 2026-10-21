@@ -1,0 +1,20 @@
+# Aspiration — water in the lungs (underwater D10). A body that blacked
+# out under water and was brought back to the air is alive, coughing, and
+# not finished with it: the water it breathed in sets up an inflammation
+# over the next hours — a cough, then a fever, then, untreated, drowning
+# in bed. The rescued KNOW they were nearly lost, because their body says
+# so for days.
+#
+# Afflicted by respiration when a body that blacked out under water comes
+# round; progresses a stage a game-hour; resolved by medicine (`treat`).
+class: /platform/idea/Condition
+data:
+  name: aspiration
+  signature: []
+  progression:
+    law: stage
+    intervalMs: 3600000
+  resolution:
+    by: medicine
+  observableSigns: [coughing, wet-breathing, fever]
+  contagion: null

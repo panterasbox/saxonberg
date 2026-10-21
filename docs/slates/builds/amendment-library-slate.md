@@ -1,6 +1,6 @@
 # Amendment-library slate (working doc) — "political legos"
 
-> **Status: UNBUILT** — `docs/governance/draft-constitution.md` exists as
+> **Status: UNBUILT** — `docs/compact/governance/draft-constitution.md` exists as
 > a design document only; civics.md rules the statute engine out by
 > doctrine, so nothing here has a runtime.
 > **Left:** the catalog Document + module registry + the adoption path
@@ -15,7 +15,7 @@
 > portability · capture-resistance)
 > **Size:** a build
 
-> The [draft constitution](../../governance/draft-constitution.md) ships as a **bare-bones
+> The [draft constitution](../../compact/governance/draft-constitution.md) ships as a **bare-bones
 > kernel** — the firewall, the machine, and the provided tools, identical for
 > every community on the platform. This slate specs the layer *on top*: a
 > shared **library of model amendments** — pre-drafted, vetted, composable
@@ -26,7 +26,7 @@
 
 See also:
 
-- [draft-constitution.md](../../governance/draft-constitution.md) — **the kernel.** Its
+- [draft-constitution.md](../../compact/governance/draft-constitution.md) — **the kernel.** Its
   three-floor test (firewall / machine / deferred) is what *defines* a module
   slot: everything on floor 3 (rights, economy, roster, tool-adoption) is a
   library entry, not kernel text. Modules are adopted through its **Art. X**

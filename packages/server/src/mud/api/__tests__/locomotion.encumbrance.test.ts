@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { LocomotionApi } from '../locomotion';
 import { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
+import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import Place from '../../lib/stuff/Place';
 import Exit from '../../lib/boundary/Exit';
 import { MobileMixin } from '../../lib/spatial/Mobile';
@@ -21,7 +22,9 @@ import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { Creature } from '../../lib/creature/Creature';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
+import { Quantity } from '../../lib/quantity';
+import MaterialClass from '../../platform/idea/material/Material';
 import { buildMode } from '../../lib/locomotion/__tests__/test-helpers';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import {
@@ -31,6 +34,7 @@ import {
 
 const ClimbLoc = ClimbableMixin(Place);
 class ClimbLocation extends ClimbLoc {}
+class SwimLocation extends SwimmableMixin(Place) {}
 
 // A Mobile + Propertied load-bearer (Character-shaped: can traverse and
 // engage modes; capability props for the climb difficulty check).
@@ -66,6 +70,29 @@ describe('LocomotionApi — load-aware veto', () => {
     expect(guard.ok).toBe(false);
     expect(guard.gate).toBe('encumbrance');
     expect(guard.mode).toBe('climb');
+  });
+
+  it('⭐ in the water weight never refuses DOWN — it is the way up it refuses (underwater walk)', () => {
+    const swim = buildMode('swim');
+    const water = makeStuff(() => new SwimLocation());
+    water.setAxes(['up', 'down']);
+    const bearer = bearerOf(() => new MobileBearer());
+    ContainmentApi.move(bearer, water);
+    // Lead, so the water does not hold it up: 100 kg is still ~91 kg wet.
+    const lead = massThing(100);
+    lead.setMaterial(makeStuffAtPath(() => {
+      const m = new MaterialClass();
+      m.setName('test-lead');
+      m.setDensity(Quantity.of(11340, 'kg/m³'));
+      return m;
+    }, '/stuff/idea/material/_test/test-lead') as unknown as MaterialClass);
+    ContainmentApi.move(lead, bearer);
+
+    expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toEqual({ ok: true });
+    // In off the quay in the hard-hat suit: in, and sinking, not refused.
+    water.setAxes(['up', 'down', 'river']);
+    expect(LocomotionApi.checkEnablement(bearer, swim, 'river')).toEqual({ ok: true });
+    expect(LocomotionApi.checkEnablement(bearer, swim, 'up').gate).toBe('encumbrance');
   });
 
   it('lets an unloaded body climb', () => {

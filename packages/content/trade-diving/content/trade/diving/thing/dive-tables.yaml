@@ -1,0 +1,20 @@
+# The dive tables (underwater C3, D27) — the printed card that tells a
+# hard-hat diver how long to stop on the way up. Read before the dive;
+# the stops are dwelling in a band.
+class: /platform/thing/Chart
+data:
+  shortDescription: dive tables
+  keywords: [tables, "dive tables", card]
+  register: definite
+  longDescription: A stiff card printed both sides, in columns, the corners soft with handling.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 0.05
+  markForm: embossed
+  markText: |
+    DECOMPRESSION — STANDARD DRESS ON PUMPED AIR.
+    Stop in the band named, for the time named, on the way up.
+    Bottom 10 min or less, any depth: no stop.
+    Bottom 20 min at the dark water: 15 min in the light band.
+    Bottom 20 min on the bed: 25 min in the light band.
+    Bottom 40 min on the bed: 10 min in the dark, then 40 min in the light.
+    If the joints ache after: go back down. Do not wait.

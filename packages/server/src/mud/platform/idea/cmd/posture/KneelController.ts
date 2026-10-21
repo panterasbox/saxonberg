@@ -13,6 +13,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { Postures } from '../../../../lib/slot/Postured';
+import Place from '../../../../lib/stuff/Place';
 
 interface KneelModel extends CommandModel {
   target: MqlOneResult;
@@ -23,6 +24,10 @@ export default class KneelController extends CommandController<KneelModel> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     if (!target) {
+      // ⭐ No ground here at all (mid-water): the place says why.
+      const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+      const why = room instanceof Place ? room.groundRefusal(model.target.raw) : null;
+      if (why !== null) return this.refuse(context, 'act.deed', why, 'no-ground');
       MessageApi.scene(giver)
         .topic('act.deed')
         .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)

@@ -77,7 +77,7 @@ export default class IgniteController extends CommandController<IgniteModel> {
             : outcome.reason === 'no-fuel'
               ? 'There is no fuel in it. Stoke it first.'
               : outcome.reason === 'no-air'
-                ? 'The flame dies as you strike it. There is not the air in there for a flame.'
+                ? 'The flame dies as you strike it. There is no air here for a flame.'
                 : outcome.reason === 'lining-burnt-through'
                   ? 'Its lining has burnt through — the heat would go straight into the casing. Reline it with firebrick first.'
                   : "That won't burn.";

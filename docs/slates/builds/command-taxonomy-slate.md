@@ -115,6 +115,19 @@ peers.
    target's type is the census's smell (count it beside the institution
    verbs in step 3).
 
+
+## The authoring verbs pivot onto their trees (user, the underwater review, 2026-10-20)
+
+8. ⭐ **The tree is the noun, the operation is the subcommand**: `content
+   ls ~` · `source rm /File.ts` · `docs cat doc.yaml` — the shell suite
+   (`ls` `cat` `cp` `mv` `rm` `mkdir` `find` `grep` `cd` `pwd` and the
+   authoring verb) rewritten as subcommands of the three trees, the
+   institution rule applied to the trees an author works in. It frees the
+   bare words for the world. **Already moved:** the authoring verb became
+   `edit` (MR !408) so `write` could be the world's verb for putting words
+   on a thing (`write <words> on <thing>`, over `MarkedMixin`); the sweep
+   makes it `content edit` / `source edit`.
+
 ## Open questions
 
 - Does `category:` replace the directory, or mirror it (with a gate that

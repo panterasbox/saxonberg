@@ -49,7 +49,7 @@ allocation**, and it is the load-bearing fact of this entry:
 > **What can be enforced by code, shall be enforced by code. The rest
 > needs a person to judge.**
 
-[draft-constitution.md](../governance/draft-constitution.md) §7 states
+[draft-constitution.md](../compact/governance/draft-constitution.md) §7 states
 it as a principle of enforcement: *"Where the law is mechanically
 applicable it shall be enforced by code — uniformly, automatically, and
 without selective discretion. **Human enforcement is reserved for

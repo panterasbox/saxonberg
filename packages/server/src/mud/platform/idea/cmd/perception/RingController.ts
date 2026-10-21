@@ -30,15 +30,18 @@ export default class RingController extends CommandController<RingModel> {
     // ⭐ The thing answers how it sounds; this tells it, and it carries
     // by its loudness to whoever can hear (a bell to the next street).
     const giver = context.commandGiver;
-    const { sound, db, rings } = target.ringSound();
+    const { sound, db, rings, carries } = target.ringSound();
     const scene = MessageApi.scene(giver)
       .topic('act.deed')
       .meta({ acousticDb: db })
       .toSelf(Mml.compose`You tap ${Mml.thing(target)}. It gives ${sound}.`);
     if (MixinApi.isContainable(giver)) {
-      scene.toAudible(Mml.compose`${Mml.actor(giver)} taps ${Mml.thing(target)}: ${sound}.`, {
-        descriptor: rings ? 'something ringing' : 'a knock',
-      });
+      scene.toAudible(
+        carries !== undefined
+          ? Mml.compose`${carries}`
+          : Mml.compose`${Mml.actor(giver)} taps ${Mml.thing(target)}: ${sound}.`,
+        { descriptor: rings ? 'something ringing' : 'a knock' },
+      );
     }
     scene.send();
   }

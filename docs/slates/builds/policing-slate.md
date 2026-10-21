@@ -505,7 +505,7 @@ undramatic. Here it would be an office with a name and a record.
 > [venue-and-supply-slate § 6c](./venue-and-supply-slate.md).
 
 **The district is already authored for this.** From
-[terminus-city.md](../../staging/terminus-city.md) §3:
+[terminus-city.md](./eternal-university-drafts-slate.md#23-districts-and-neighborhoods) §3:
 
 > **The Gray** — shady edge (poor/informal, not lethal):
 > fence/pawnshop, flophouse, manhole/dead-drop (underground seam),

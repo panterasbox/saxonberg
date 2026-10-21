@@ -41,6 +41,21 @@ export interface WaterDraw {
  * `name`, `pending`, `frozen` and `draw`; `opaque` is the source's own
  * and is handed back to it untouched.
  */
+/** A tidal water's tide at the read's instant. */
+export interface WaterTide {
+  /** The instant this tide is for, game-seconds (a re-tide moves it, not the read's `atS`). */
+  atS: number;
+  /** Low to high today, m. */
+  rangeM: number;
+  /** The water is coming in. */
+  rising: boolean;
+  /** Game-seconds of the next high and low water. */
+  nextHighS: number;
+  nextLowS: number;
+  /** The stream, m/s: + flooding, − ebbing, 0 at the turn. */
+  streamMps: number;
+}
+
 export interface WaterRead {
   /** The concrete ref this read is of. */
   ref: string;
@@ -60,6 +75,24 @@ export interface WaterRead {
    * gate that let you through the ice would otherwise find no water.
    */
   underIce?: WaterDraw;
+  /**
+   * ⭐ The water's level above its datum now, m (underwater D4) — 0 for a
+   * still water; the tide moves it. A water place's depth is its floor's
+   * depth plus this.
+   */
+  levelM?: number;
+  /**
+   * How deep light reaches, m — the depth at which 1 % of the surface
+   * light is left. Clear sea ~10, the Kestrel ~3.
+   */
+  clarityM?: number;
+  /**
+   * ⭐ The tide, where the water has one (underwater D4/D25): what a
+   * shore says about it in words and an almanac prints.
+   */
+  tide?: WaterTide;
+  /** ⭐ Dissolved oxygen, mg/L (underwater D21) — what a gill breathes. */
+  oxygenMgL?: number;
   /** The source's own state, returned to it in `waterLinesFor`. */
   opaque?: unknown;
 }
@@ -69,6 +102,7 @@ export interface WaterSource {
   currentWaterRef(citation: string, place: Stuff): string | null;
   readWater(citation: string, place: Stuff, nowS: number): Promise<WaterRead | null>;
   waterLinesFor(read: WaterRead, viewer: Stuff): string[];
+  retide(read: WaterRead, nowS: number): WaterRead | null;
 }
 
 export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -116,6 +150,21 @@ export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
       void read;
       void viewer;
       return [];
+    }
+
+    /**
+     * ⭐ The same read with its tide brought to `nowS` (underwater D25) —
+     * the level and the stream are arithmetic on the moon's clock, and a
+     * whole read can be expensive (the drive found a sea read costing
+     * seconds, re-read by every tidal shore every ten minutes).
+     *
+     * @hook Override on a source whose waters have a tide. Default: `null`
+     *   — no cheaper way than a full read.
+     */
+    public retide(read: WaterRead, nowS: number): WaterRead | null {
+      void read;
+      void nowS;
+      return null;
     }
   };
 }

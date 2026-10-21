@@ -31,6 +31,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Exit from '../boundary/Exit';
 import type { WaterDraw, WaterRead, WaterSource } from './WaterSource';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -45,6 +46,9 @@ import type { MqlMatchVia } from '../../api/mql';
 /** The weather field is memoised per six-game-hour segment; reading more often buys nothing. */
 const SEGMENT_S = 6 * 3600;
 
+/** ⭐ A tidal water moves in minutes, not segments (underwater D25): read it this often. */
+const TIDE_SEGMENT_S = 600;
+
 /** One cited feature's read, and the source that answered it. */
 interface WaterMemo {
   source: (Stuff & WaterSource) | null;
@@ -52,6 +56,8 @@ interface WaterMemo {
   refreshing: Promise<void> | null;
   /** The source was found and said it does not know this water. */
   unknown?: true;
+  /** When the tide was last brought current on this read, game-seconds. */
+  tideAtS?: number;
 }
 
 /** Which water a name picks, or why none. */
@@ -72,6 +78,8 @@ export interface Shore {
   waterRefFor(name?: string): Promise<WaterRefPick>;
   settleWater(key: string): Promise<WaterRead | null>;
   peekWaterRead(key: string): WaterRead | null;
+  /** @hook A fresh read of the water under `key` has landed. */
+  onWaterRead(key: string, read: WaterRead): Promise<void>;
   /**
    * ⭐ What can be drawn from the water under `key` by someone standing in
    * `room` — THE frozen gate (storage-and-ice D15). Frozen water gives
@@ -79,6 +87,12 @@ export interface Shore {
    */
   drawAt(key: string, room: Stuff): { draw: WaterDraw } | { refusal: 'frozen' | 'unread'; line: string };
   waterSlot(via?: MqlMatchVia): SourceSlot;
+  /**
+   * ⭐ The way from here into the water — `swim` with no way named
+   * (underwater review): the exit whose far side IS a water place, or why
+   * there is none, in words.
+   */
+  wayIntoWater(): { exit: Exit } | { refusal: 'no-water' | 'iced-over'; line: string };
 }
 
 /** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
@@ -178,8 +192,11 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private citedKeys(): string[] {
       const features = this.featureMap();
       const out: string[] = [];
+      // ⭐ A water place's own water needs no feature: the place IS it.
+      const self = this as unknown as Stuff;
+      const own = MixinApi.isWaterPlace(self) ? self.getWaterKey() : null;
       for (const key of Object.keys(this.waters)) {
-        if (features.has(key)) {
+        if (features.has(key) || key === own) {
           out.push(key);
           continue;
         }
@@ -304,16 +321,27 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         memo.source.currentWaterRef(citation, this as unknown as Stuff) !== read.ref;
       const fresh =
         read !== null && !read.pending && !moved && nowS - read.atS < SEGMENT_S;
+      // ⭐ A tidal water's level moves in minutes: bring the tide current
+      // cheaply between full reads (the source re-tides what it holds).
+      if (fresh && read !== null && read.tide !== undefined && memo.source !== null &&
+          nowS - (memo.tideAtS ?? read.atS) >= TIDE_SEGMENT_S) {
+        const tided = memo.source.retide(read, nowS);
+        if (tided !== null) {
+          memo.read = tided;
+          memo.tideAtS = nowS;
+          void this.onWaterRead(key, tided);
+        }
+      }
       if (fresh && !(force && memo.source === null)) return Promise.resolve();
       if (!force && memo.unknown) return Promise.resolve();
-      const run = this.readCited(memo, citation, nowS).finally(() => {
+      const run = this.readCited(key, memo, citation, nowS).finally(() => {
         memo.refreshing = null;
       });
       memo.refreshing = run;
       return run;
     }
 
-    private async readCited(memo: WaterMemo, citation: string, nowS: number): Promise<void> {
+    private async readCited(key: string, memo: WaterMemo, citation: string, nowS: number): Promise<void> {
       const startedMs = Date.now();
       const where = (this as unknown as Stuff).getTemplatePath() ?? '?';
       try {
@@ -331,6 +359,8 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
         memo.unknown = undefined;
         memo.read = read;
+        memo.tideAtS = nowS;
+        await this.onWaterRead(key, read);
       } catch (err) {
         // The read stays as it was (a look says it is hard to read) — but
         // a read that THROWS is a defect somebody must be able to see.
@@ -339,6 +369,56 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const tookMs = Date.now() - startedMs;
         if (tookMs > 2_000) console.warn(`ShoreMixin: reading '${citation}' at ${where} took ${tookMs} ms`);
       }
+    }
+
+    public wayIntoWater(): { exit: Exit } | { refusal: 'no-water' | 'iced-over'; line: string } {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isExitable(self)) {
+        for (const [, exit] of self.getExits()) {
+          const path = exit.getDestinationTemplatePath?.() ?? null;
+          const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+          if (!dest || !MixinApi.isWaterPlace(dest)) continue;
+          // The water decided it cannot be swum into: say why, rather
+          // than the swim gate's bare "no way to swim <exit>".
+          if (dest.stateNow() === 'frozen') {
+            return { refusal: 'iced-over', line: 'The water is iced over. The only way in is through a hole in the ice.' };
+          }
+          return { exit };
+        }
+      }
+      return { refusal: 'no-water', line: 'There is no water here to go into.' };
+    }
+
+    /**
+     * ⭐ How deep the water at the edge is, in words (requirements drive
+     * step 1 — found missing by the browser walk): the water place this
+     * shore's way in leads to, as a person standing here judges it. Never
+     * a number.
+     */
+    private depthWords(): string | null {
+      const way = this.wayIntoWater();
+      if (!('exit' in way)) return null;
+      const path = way.exit.getDestinationTemplatePath?.() ?? null;
+      const water = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+      if (!water || !MixinApi.isWaterPlace(water)) return null;
+      const state = water.stateNow();
+      const d = water.depthNow();
+      if (state === 'dry') return 'At the foot of the way down there is no water now, only mud.';
+      if (state === 'wading') return 'You could wade in from here; it would come up to your waist.';
+      if (state !== 'swimming') return null;
+      if (d < 3) return 'Off the edge it is just over your head.';
+      if (d < 8) return 'Off the edge it is deep — well over your head, and you cannot see the bottom.';
+      return 'Off the edge it is very deep; it goes down a long way into the dark.';
+    }
+
+    /**
+     * @hook A fresh read of the water under `key` has landed. A place
+     * whose own state follows the water (a tidepool, a strand) reconciles
+     * here; a plain shore does nothing.
+     */
+    public async onWaterRead(key: string, read: WaterRead): Promise<void> {
+      void key;
+      void read;
     }
 
     /**
@@ -370,6 +450,10 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         line = 'The water is hard to read yet.';
       } else {
         const lines = memo.source.waterLinesFor(memo.read, viewer as Stuff);
+        const tide = tideWords(memo.read);
+        if (tide !== null) lines.push(tide);
+        const depth = this.depthWords();
+        if (depth !== null) lines.push(depth);
         line = lines.length > 0 ? lines.join(' ') : 'The water is hard to read yet.';
       }
       return base ? `${base}\n\n${line}` : line;
@@ -378,6 +462,25 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 }
 
 /* ───────────────────────── module-private ───────────────────────── */
+
+/**
+ * ⭐ The tide in a shore's words (underwater D25): which way it is going,
+ * how long to the turn, and the stream — never a number of meters.
+ */
+function tideWords(read: WaterRead): string | null {
+  const tide = read.tide;
+  if (tide === undefined) return null;
+  const slack = Math.abs(tide.streamMps) < 0.15;
+  const nextS = tide.rising ? tide.nextHighS : tide.nextLowS;
+  const hours = Math.max(0, (nextS - tide.atS) / 3600);
+  const when = hours < 0.75 ? 'within the hour' : `in about ${hours < 1.5 ? 'an hour' : `${Math.round(hours)} hours`}`;
+  if (slack) {
+    return tide.rising ? 'The tide is on the turn at low water; it will be making soon.' : 'The tide is on the turn at the top of the flood.';
+  }
+  const way = tide.rising ? `The tide is making — high water ${when}` : `The tide is ebbing — low water ${when}`;
+  const run = Math.abs(tide.streamMps) > 0.8 ? ', and the stream runs hard' : '';
+  return `${way}${run}.`;
+}
 
 /**
  * The source that reads `citation`: the cited Idea itself when the

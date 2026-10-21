@@ -61,7 +61,7 @@ sixteen needs, the site/exit type taxonomy, the specialization gradient,
 `PlatBook` growth mechanism. Read it first; this slate is its three
 worked examples.
 
-**Content for all three towns is staged under `docs/staging/`** — the
+**Content for all three towns is salvaged as patterns in [staging-leftovers § town patterns](../tails/staging-leftovers-slate.md#3-town-patterns) (the town content itself was retired 2026-10-20)** — the
 cast rosters, routines, room maps, culture and per-town build hooks. Those
 are drafting docs and are deleted once they graduate into YAML; the design
 rationale stays here.
@@ -112,7 +112,7 @@ latent in shipped rows — nothing below needs to be invented, only built.
 ## Rejection — extraction
 
 > ⭐ **Worked out in full 2026-09-02** — the sources, the three acts, the
-> cast and the charter decision are staged under `docs/staging/`. This
+> cast and the charter decision are salvaged as patterns in [staging-leftovers § town patterns](../tails/staging-leftovers-slate.md#3-town-patterns) (the town content itself was retired 2026-10-20). This
 > section holds only what a *slate* should: the decisions and why.
 
 **Functional half (shipped).** The Ferrow, four businesses, the grade
@@ -237,7 +237,7 @@ is enforced, per settlement](../../settlement-model.md).*
 ## Hinkley Hills — tenure
 
 > ⭐ **Worked out in full 2026-09-02** — the sources, the Death Man, the
-> District razor and the open-door policy are staged under `docs/staging/`.
+> District razor and the open-door policy are salvaged as patterns in [staging-leftovers § town patterns](../tails/staging-leftovers-slate.md#3-town-patterns) (the town content itself was retired 2026-10-20).
 > This section holds the decisions and why.
 
 **Functional half (shipped).** 40 generative lots, the plat plan, the
@@ -361,7 +361,7 @@ nine-house scale, and the same theme as Rejection Act III.
 ## Heart's Delight — cultivation
 
 > ⭐ **Worked out in full 2026-09-03** — the sources, the founding
-> sequence, the tower and the cast are staged under `docs/staging/`. This
+> sequence, the tower and the cast are salvaged as patterns in [staging-leftovers § town patterns](../tails/staging-leftovers-slate.md#3-town-patterns) (the town content itself was retired 2026-10-20). This
 > section holds the decisions and why.
 
 *Superseded by the code (farmstead, 2026-09-06): the valley's **functional

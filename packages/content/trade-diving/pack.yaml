@@ -1,0 +1,16 @@
+id: trade-diving
+version: 0.1.0
+root: /trade/diving
+description: >-
+  Diving — the trade of working below the waterline (underwater C). The
+  water itself is the water pack's system: the column of bands under any
+  deep water, the bed, the medium. This pack is what a diver brings to
+  it and the crew who keep them alive: the weighted stone and the belt
+  that take you down, the lifeline your tender holds and the signals you
+  send up it, the bell that carries air to the bed, the hard-hat suit and
+  the pump crew that feed it, the dive tables, the slate you write on
+  below. Practised and quittable; it owns no water. A second dive shop is
+  rows.
+requires:
+  title:
+    - { extent: /trade/diving, holder: { organization: /compact/trade } }
