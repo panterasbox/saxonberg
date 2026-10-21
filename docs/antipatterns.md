@@ -6209,3 +6209,24 @@ it adds a mixin above the parent (base statics shadow; mixin statics
 union). ⭐ The guards went away the second time not by narrowing but
 because the mixin's own methods had become total — so the family shape
 (2) came back without them.
+
+## ⛔ A controller's late continuation calling `this`
+
+**Don't:** keep working on a command after it has answered by reaching
+back into the controller:
+`void SomeApi.slowThing().then((r) => this.tell(context, this.format(r)))`.
+
+**Do:** capture what the continuation needs (the giver, the plain
+values) before `execute` returns. Do the work in module functions that
+touch no instance, and tell the result from a fresh scheduler root:
+`ScheduleApi.schedule(0, () => tellGiver(giver, text), { propagateAttribution: false })`.
+
+**Why.** A controller instance is destroyed when its command returns, so
+every later method call on it is a silent no-op. The only trace is a
+console line: `[inert] verdict() called on destroyed Stuff …`. A frame
+sent from the finished command's context is also stamped with a closed
+command id.
+
+The per-reload type-check (2026-10-21) shipped this way first. Its
+background verdict never arrived, a controller test could not see it,
+and the live drive did. See `ReloadController`'s `verdictOf`/`tellGiver`.

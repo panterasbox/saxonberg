@@ -45,3 +45,6 @@ docs/compact/manifesto/exports/
 
 # tools/suite — one log per package, regenerated every run
 .suite/
+
+# The typecheck wire drive writes and removes this probe; a crashed run may leave it.
+packages/server/src/mud/platform/thing/WireTypecheckProbe.ts

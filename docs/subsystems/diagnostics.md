@@ -143,6 +143,11 @@ closes that gap for **one file at a time, out of process**:
   burst of saves must not become a burst of processes.
 - It refuses anything that is not a `.ts` source inside the kernel's
   `src/` or a pack's `src/`.
+- It runs in **every environment, prod included**. Prod runs from
+  TypeScript source too (`hot-reload.md`), and the image installs the dev
+  dependencies (tsx is the runtime), so `typescript` is present. A reload
+  on a live box therefore briefly costs one ~300 MB child; the watcher
+  this replaced was never started there at all.
 
 **Who calls it.** The check is explicit at the author-facing sites.
 ⚠ It never listens to `Events.ModuleReloaded`: pack install, the
