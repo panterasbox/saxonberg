@@ -4,6 +4,8 @@
 > shipped with real gaps remaining (below) → MR!142 + MR!145,
 > [concealment.md](../../subsystems/concealment.md) ·
 > [stealth.md](../../subsystems/stealth.md)
+> ⭐ **2026-10-20:** where you hide, search techniques, making hiding places and
+> multi-sense hiding → [cover-and-concealment-slate](../builds/cover-and-concealment-slate.md).
 > **Left:** the knowledge economy (sharing / selling / transferring
 > found secrets, maps as currency) · `frisk` and searching a downed
 > body · player-placed concealment beyond pick-up-your-own ·
