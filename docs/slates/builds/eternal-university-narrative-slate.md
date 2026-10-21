@@ -584,7 +584,7 @@ is being pruned, not built out wholesale.
 > cover-up, not an everyone's-a-suspect** story (see §14).
 
 - **Katie, the dorm property manager** *(carved — see
-  `staging/eternal-university/npcs/property-manager.md`)* — the **onboarding
+  [eternal-university-drafts § Katie](./eternal-university-drafts-slate.md#57-katie-the-property-manager))* — the **onboarding
   touchpoint** (every player meets her day one for a room) and the **organic
   on-ramp** (you come back with questions; she gives the official accident
   line). Live-in caretaker / building enforcer — *gang when she wants, boss
@@ -1051,5 +1051,5 @@ onboarding / llm-content territory, not this slate's to build.
 [cooperative-slate](./cooperative-slate.md) (the polity the allegory
 rides) · [../../design-philosophy.md](../../design-philosophy.md)
 (liberal diegesis / un-genred stance). Concrete campus content is staged
-generically under `docs/staging/eternal-university/` (per the staging
+in [eternal-university-drafts](./eternal-university-drafts-slate.md) (per the staging
 rules, not deep-linked here).

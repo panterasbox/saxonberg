@@ -166,7 +166,38 @@ so every build re-derived it.
 - `build(<feature> W<n>): <what the wave did>` — one per wave
 - Smaller `feat/refactor/fix(<area>):` commits for sub-pieces
 
-#### ⭐⭐ The exit criterion: drive it before the MR opens
+#### ⭐⭐⭐ The user's time comes first: the MR opens READY at code-complete
+
+**Review starts the moment the code is complete — not when verification
+finishes.** The drive and the full suite are the build's exit criterion
+for the MERGE, not a gate on the user's attention. They run *alongside*
+review, and what they find lands as commits on the open MR exactly as a
+review comment's fix does. Holding the MR back changes nothing about
+what gets fixed; it only makes the user wait.
+
+The owner's words (2026-10-20): *"if an agent runs tests I assume
+they're doing it because they have to. when I find out none of this is
+necessary and you're making me wait for no reason it's pretty
+upsetting … I can't just ask every 15 minutes 'is this necessary?'"*
+
+So, without being asked:
+
+1. **Code-complete → push, open the MR READY (never draft), report the
+   number.** Code-complete means every wave landed with `test:near` +
+   the touched packs' vitest + `lint:family` green. Say in the same
+   message what verification is still running and that it does not
+   block review.
+2. **Then drive + full suite**, as review-round work. A drive failure
+   is a fix commit on the MR, not a reason the MR was not open.
+3. ⚠⚠ **Anything the user waits on must justify itself in the message
+   that makes them wait**: what it is, why their next step cannot start
+   without it, and how long. If you cannot write that sentence, they
+   should not be waiting — hand over now.
+4. **A standing world is held only while driving.** Tear the server
+   down (by PID) between drive runs; a 3 GB world idling through review
+   starves the sibling builds the user is also running.
+
+#### ⭐⭐ The exit criterion: drive it before the MERGE
 
 **Tests build state; they never use it.** Run the drive script from
 the requirements doc against the running game, and append the result
@@ -204,13 +235,14 @@ Two of the eleven were the drive's OWN checkpoints being unable to fail
 run — the output, the count, what each failure was — or the exit
 criterion has not been met, whatever the doc says.
 
-When the drive passes, **push the branch and open the MR** against
-`master` — no need to ask first. Pushing and MR creation are not gated
-on the user; only the merge is.
+The MR is already open by then (above). When the drive passes, append
+the record to the plan and update the MR description. Pushing and MR
+creation are never gated on the user; only the merge is.
 
 **Skill.** `/build <plan-path>` — orients the worktree, runs the wave
-loop, keeps the plan current as each wave lands, runs the suite once,
-drives the feature, opens the MR and reports the number. It exists so
+loop, keeps the plan current as each wave lands, opens the MR READY at
+code-complete and reports the number, then runs the suite once and
+drives the feature as review-round work. It exists so
 the completion contract is something the agent *holds* rather than
 something the user retypes every cycle.
 

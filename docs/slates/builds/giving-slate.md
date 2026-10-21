@@ -44,7 +44,7 @@ Related: [cooperative-slate](cooperative-slate.md) (the stake ledger,
 the two markers, the concave curve, mint-at-launch),
 [company-and-capital.md](../../company-and-capital.md) (capital standing
 and why it is not a security), the
-[founding charter](../../governance/founding-charter.md) (matched-plus-one),
+[founding charter](../../compact/governance/founding-charter.md) (matched-plus-one),
 the [broadcast-patronage track](../../tracks/broadcast-patronage-track.md)
 Phases 4–5 (pulled forward; one locked decision reopened),
 [auth-providers-slate](../tails/auth-providers-slate.md) (YouTube as a

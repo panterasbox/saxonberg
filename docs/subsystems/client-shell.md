@@ -69,7 +69,7 @@ The components:
   that dropped them would have regressed two shipped surfaces.
 - **The seal** (`components/frame/Seal.tsx`) — the real Saxonberg mark,
   **applied**: a white rim, a struck red field with two inset rules, and
-  the three Borromean rings. Source of truth is `docs/brand/` (⚠ which
+  the three Borromean rings. Source of truth is `docs/design/brand/` (⚠ which
   currently lives on the `design/balance-machine` branch, not master);
   the artwork is inlined, which is what the brand README says to do.
 
@@ -1256,7 +1256,7 @@ so it has nothing to resume.
 
 `components/ui/Figure.tsx` + `UnbuiltGround.tsx` — the shared primitives
 for the one convention that cuts across every surface that shows a
-number (`docs/design_handoff/CONVENTIONS.md` #1):
+number (`docs/design/handoff/CONVENTIONS.md` #1):
 
 > **Never render a figure the server did not send**, including "just for
 > now."

@@ -34,6 +34,15 @@ happens *inside* a building in the extent.
 - **Fixtures read the supply through the connection** — the tap, the sink, the bath,
   ⭐ **the water closet** (into the reversed conduit, the sewer), the copper or range
   boiler for hot water (thermal ships).
+  ⚠ **Corrected 2026-10-20** (found in the [irrigation](./irrigation-slate.md) pass):
+  **most fixtures already ship** — taps, basins, the bath tap, the standpipe, the
+  trough are `WaterFixture`s (inexhaustible unless plumbed), and **`suppliedBy`
+  already is the service connection**: a plumbed tap reads its main's `SupplyState`
+  (the market standpipe is plumbed). This build makes laying that connection the
+  plumber's **act** rather than an authored field, and adds what does not ship (the
+  water closet, the boiler, the roof cistern). ⚠ And the **water butt** is an
+  inexhaustible fixture today; a rain barrel should **fill from the rain on its
+  roof**, as soil does.
 - **Pressure is head** — *"a tank above you gives every tap below it pressure"*
   (ships) — which is why buildings have a **roof cistern**, and why the top floor runs
   weak when the main is low.
@@ -69,7 +78,7 @@ epoch's pieces as rows:
 | lifting | none — Rome had no supply pumps | the pump (steam, then electric) | pumped `Conduit`, `Powered` |
 | storage | the cistern, ⭐ **the castellum** | the reservoir, ⭐ **the water tower** | `StorageNode` |
 | division | the castellum's outlets | valves, district mains | `ControlStructure` |
-| the fixture | a **fountain that never stops** | a **tap** | new (§ 1) |
+| the fixture | a **fountain that never stops** | a **tap** | `WaterFixture` (ships; § 1 adds the mode) |
 
 ⭐ **The proof that they mix is real**: the **Aqua Virgo** (19 BC) still feeds Rome's
 **Trevi Fountain** — a Roman gravity aqueduct delivering into a modern city. In the

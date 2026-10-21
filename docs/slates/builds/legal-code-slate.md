@@ -1294,7 +1294,7 @@ to conviction's spirit and better drama.
 
 ### Most of it is already constitutional
 
-[draft-constitution.md](../../governance/draft-constitution.md)
+[draft-constitution.md](../../compact/governance/draft-constitution.md)
 Art. IV §3 is more specific than this slate previously credited:
 
 - a bill **carries in a house** when its weight crosses that house's

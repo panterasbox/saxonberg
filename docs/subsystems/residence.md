@@ -233,7 +233,7 @@ fronts provisioning in the world**: `talk to Katie` → her intake dialogue
 `dispatch`es `provision $player` **as Katie**, who is authorized because she is
 a member of the `duncan-hall` group. A player never types the raw verb. See
 [npc-dialogue.md § dispatch](./npc-dialogue.md) and Katie's sheet
-(`docs/staging/eternal-university/npcs/property-manager.md`).
+([eternal-university-drafts § Katie](../slates/builds/eternal-university-drafts-slate.md#57-katie-the-property-manager)).
 
 **Authority is owner-conferred, never self-claimed** (the security-critical
 point — a self-issued credential is no credential). Katie's membership in the
@@ -431,7 +431,7 @@ risk this shape carries and the reason the live drive walks these paths.
   floor 1 always-present; the seam is `ensureFloor(1)` being invocable
   independent of provisioned units.
 - **Katie / onboarding** — the diegetic move-in fronts `provision`
-  (`docs/staging/eternal-university/npcs/property-manager.md`).
+  ([eternal-university-drafts § Katie](../slates/builds/eternal-university-drafts-slate.md#57-katie-the-property-manager)).
 - ~~**Chattel / owned effects**~~ and ~~**multi-room apartments**~~ —
   **shipped** (furnishing, then residences): owned goods persist owner-side
   against a `place` ([furnishing.md](./furnishing.md)), and the let unit at

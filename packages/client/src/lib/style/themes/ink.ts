@@ -7,7 +7,7 @@
  * reading ground is the navy below it. Brass accent, hairline rules,
  * squared corners.
  *
- * Tier-1 values are verbatim from `docs/design_handoff/DESIGN-SYSTEM.md`
+ * Tier-1 values are verbatim from `docs/design/handoff/DESIGN-SYSTEM.md`
  * § Ink. Tier-2 values are derived (a lightness step off a published
  * family, never a new hue) and every one is contrast-checked against
  * `--surface` by `lib/style/__tests__/contrast.test.ts` — that test is

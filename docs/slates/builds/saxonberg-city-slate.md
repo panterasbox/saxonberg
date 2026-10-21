@@ -36,7 +36,7 @@ substrate + the no-face doctrine this slate must thread),
 [fasttravel.md](../../subsystems/fasttravel.md),
 [governance.md](../../subsystems/governance.md) (the real Office
 substrate), [residence.md](../../subsystems/residence.md),
-[terminus-city.md](../../staging/terminus-city.md) (the incumbent city
+[terminus-city.md](./eternal-university-drafts-slate.md#2-terminus-the-city) (the incumbent city
 this one competes with).
 
 ## The doctrine — the frame is ours; the furniture is theirs

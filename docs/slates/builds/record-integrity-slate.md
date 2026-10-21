@@ -16,7 +16,7 @@
 
 **Captured 2026-07-31**, out of the government design run. The
 guarantee is **specified and entrenched** — Art. VII of the
-[draft constitution](../../governance/draft-constitution.md), an
+[draft constitution](../../compact/governance/draft-constitution.md), an
 **eternity clause**, and a whole manifesto chapter (*The Record —
 Don't Trust, Verify*). It is **implemented nowhere.**
 

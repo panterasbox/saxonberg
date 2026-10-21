@@ -167,4 +167,4 @@ Full reasoning, and the char-gen restructure this came out of:
 *See also:* [race.md](../../subsystems/race.md) (the built substrate) ·
 [eternal-university-narrative-slate.md](../builds/eternal-university-narrative-slate.md)
 (the who-counts engine the diversity serves) · the character sheets under
-`docs/staging/eternal-university/npcs/` (the `Species` casting slot in action).
+[eternal-university-drafts § the cast](../builds/eternal-university-drafts-slate.md#5-the-arcs-cast) (the `Species` casting slot in action).
