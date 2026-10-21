@@ -352,10 +352,14 @@ suite('C · the line', () => {
     expect(squash(await feels)).toMatch(/haul me up/);
     // ⭐ The pull takes time (hand over hand, then the steps): wait for it.
     expectOk(await diver.cmd('pull lifeline'));
-    for (let t = 0; t < 60 && !/Kestrel|embankment/i.test(await look(buddy)); t++) {
+    // ⚠ The QUAY's own words: the water below it mentions "the embankment"
+    // too, so that pattern passed while the pull was still running and
+    // the next step found the diver's hands busy (run 39).
+    const onQuay = /bank at the confluence|comes down out of the gorge/i;
+    for (let t = 0; t < 60 && !onQuay.test(await look(buddy)); t++) {
       await new Promise((res) => setTimeout(res, 500));
     }
-    expect(await look(buddy)).toMatch(/Kestrel|embankment/i);
+    expect(await look(buddy)).toMatch(onQuay);
   });
 });
 
@@ -368,7 +372,12 @@ suite('C · the city\'s work', () => {
     // it goes on BEFORE the bags are in your hands (run 37: "your hands
     // are full").
     expectOk(await diver.cmd('get here:i:belt'));
-    expectOk(await diver.cmd('wear belt'));
+    const wear = await diver.cmd('wear belt');
+    if (wear.status !== 'ok') {
+      console.log('[15b] wear refused:', squash(await wear.said()));
+      console.log('[15b] inventory:', squash(await (await diver.cmd('inventory')).said()));
+    }
+    expect(wear.status, squash(await wear.said())).toBe('ok');
     for (let t = 0; t < 30 && !/wearing[^.]*belt/i.test(squash(await (await diver.cmd('inventory')).said())); t++) {
       await new Promise((res) => setTimeout(res, 1_000));
     }
