@@ -1,0 +1,13 @@
+# crock — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/Ware
+data:
+  shortDescription: crock
+  keywords: [crock, pot]
+  register: indefinite
+  longDescription: >-
+    A heavy, wide-mouthed clay crock for keeping things in.
+  interiorBulk: true
+  interiorCapacity: 4
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 1.9

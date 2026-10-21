@@ -58,6 +58,16 @@ ref:
   seat/staff line is exactly whether a constitutional document *points
   at* the position: a seat is pointed at, personal staff is not — see
   [employment.md](./employment.md).
+- `standards` — `{ key, value, unit }` measures the polity declares, read
+  by the readings that judge against them: `cask` (L — the gauger's
+  `measure capacity`, [assembly.md](./assembly.md)) and the **statute
+  brick** `brick-length` / `brick-width` / `brick-depth` (Terminus: 9 × 4½ ×
+  2¼ in — `measure size`, [ceramics.md](./ceramics.md)). The innermost
+  polity that declares a standard is the one it is read against; a seated
+  `gauger`'s reading is *of record*. ⭐ The engine records and never
+  forbids: an off-standard brick still sells and still lays — the standard
+  is what a buyer, a builder or a magistrate takes, and a second polity
+  declares its own by rows alone.
 
 `GovernmentCatalogue` (`/platform/idea/GovernmentCatalogue`, manifest-warmed) is
 the corpo-recipe data-cache: one boot query, sync reads, defensive

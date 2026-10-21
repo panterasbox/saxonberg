@@ -1,6 +1,6 @@
 verbs: [carve]
-controller: /trade/carpentry/idea/cmd/carpentry/CarveController
-description: "Carve a part out of a piece of wood with an edge"
+controller: /platform/idea/cmd/crafting/CarveController
+description: "Cut away to a form with an edge — a part from wood, a foot on a pot"
 help: |
   `carve haft` shapes a pick haft out of the best piece of wood in reach
   that will do. `carve peg from the blank` names the piece. `carve handle
@@ -21,6 +21,11 @@ help: |
   ⭐ This is where the tool tree starts. A handle you carve and a blade a
   smith forges are a froe (`fit froe`), and the froe rives the next
   blank.
+
+  ⭐ **A leather-hard pot is carved too** — `carve foot on mug` turns a
+  foot on it, `carve trim on jug` pares the wall, `carve pattern on bowl`
+  cuts one in. Too soft and it smears; bone-dry and it cracks. The pot
+  says which.
 examples:
   - cmd: carve haft
     note: Shape a pick haft from wood in reach
@@ -28,6 +33,8 @@ examples:
     note: Name the piece to carve it from
   - cmd: carve handle with the billhook
     note: Name the edge
+  - cmd: carve foot on mug
+    note: Turn a foot on a leather-hard pot
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -43,6 +50,15 @@ args:
     type: object
     required: false
     greedy: true
+    scope: ["reachable"]
+    requires: any
+  # ⭐ WHAT TO CARVE IT ON — a thing that plans its own carving (a
+  # leather-hard pot). `requires: any`: the controller asks it to plan.
+  - name: target
+    type: object
+    required: false
+    greedy: true
+    prepositions: [on, into]
     scope: ["reachable"]
     requires: any
   # The piece to carve it from, when you want a particular one.

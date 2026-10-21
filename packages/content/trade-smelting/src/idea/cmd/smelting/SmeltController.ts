@@ -56,6 +56,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -100,6 +101,9 @@ const SMELT_EFFORT_W = 425;
  * you do not meter it.
  */
 const CHARCOAL_MINIMUM_KG = 16;
+
+/** The hold a smelting run puts on the furnace's lining, game-seconds. */
+const RUN_HOLD_S = 3600;
 
 // ---------- ⭐ the Fe–C facts, and they are facts ----------
 
@@ -484,6 +488,9 @@ async function runCharge(
   // the metal pools on the hearth and sets as a lump in the furnace.
   if (liquid) {
     const run = await runIntoCrucible(furnace, productMaterial, metalKg, heldK, owner, carbon);
+    // ⭐ A run wears the furnace's lining (ceramics D19) — an hour's hold at
+    // the furnace's heat.
+    if (MixinApi.isBurner(furnace)) furnace.wearLining(heldK, RUN_HOLD_S);
     await pour(furnace, SLAG_ROW, Math.max(chargeKg - metalKg, 0), owner);
     consume();
     if (!watching) return;
@@ -866,6 +873,15 @@ async function runIntoCrucible(
     }
     // The metal arrives at the furnace's heat, and the furnace holds it.
     if (keptL > 0) crucible.setContentsTemperature(heldK);
+    // ⭐ A crucible wears with every melt (ceramics D19): it reads worn, and
+    // at the end it CRACKS — a cracked crucible holds nothing.
+    if (keptL > 0 && MixinApi.isDurable(crucible)) {
+      crucible.wear(crucibleWearPerMelt());
+      if (crucible.isBroken() && MixinApi.isTangible(crucible) &&
+        !crucible.getFlaws().some((f) => f.kind === 'crack')) {
+        crucible.addFlaw('crack', true);
+      }
+    }
   }
   const spilledKg = ((litres - keptL) / 1000) * density;
   if (spilledKg > 0.001) await hearthLump(furnace, metal, spilledKg, madeFrom);
@@ -997,4 +1013,15 @@ function isCharcoal(item: Stuff): boolean {
   const material = item.getMaterial() as Material | null;
   const tags = material?.getTags?.() ?? [];
   return tags.includes('fuel') && tags.includes('carbon');
+}
+
+/** How much one melt wears a crucible (`ceramics.crucible.wearPerMelt`). */
+function crucibleWearPerMelt(): number {
+  try {
+    const raw = AppApi.setting('ceramics.crucible.wearPerMelt');
+    const n = raw == null || raw === '' ? NaN : Number.parseFloat(raw);
+    return Number.isFinite(n) && n > 0 ? n : 0.12;
+  } catch {
+    return 0.12;
+  }
 }

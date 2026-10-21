@@ -101,13 +101,140 @@ no common ancestor, which is the kernel test). Each composer composes
   read its weather FIRST, so a wet piece's burst is seen before a rung swaps
   it to terracotta.
 
-## Forms and the potter's hand
+## Forms and the potter's hand (S4, D16)
 
-*(W4.)*
+`shape [<material>] [with|on|at <instrument>] [into <form…>]` is the
+platform's (promoted from glass — `command-spec.md`). The INSTRUMENT plans
+(`ShapePlanner`), else the MATERIAL plans by hand (`Shapeable`); the clay
+YIELDS the piece (`Clay.yieldPieces`).
+
+- **A form** (`lib/craft/FormSpec.ts`) is a class (open · closed · flat ·
+  block · cone) × a capacity × a proportion (tall · squat · wide · narrow).
+  Words are `/platform/idea/Form` rows (`<root>/idea/form/<word>`: `key`,
+  `formClass`, `capacityL`, `proportion`, `product`, `seats`, `greenScale`,
+  `discipline`), loaded by path from the instrument's `forms:` list — nothing
+  scans. `tall jug holding 3 pints`, `open vessel holding 2 litres`; an
+  unknown word is refused naming the five classes.
+- **The product row**: the word's `product`, else the instrument's
+  `formTemplates[class]`, else the clay material's `formTemplates[class]`.
+- **The hand decides, deterministically** (`Clay.potterHand`): wall mass =
+  the form's nominal (`0.75·V^⅔` kg for an open vessel, more for closed and
+  tall) × `ceramics.wall.factor.<band>` (untrained 1.8 … expert 0.85);
+  the largest vessel = `ceramics.wall.maxL.<band>` — asked for more, the
+  refusal names the band; grade = the band less one. Below your band a pot
+  is heavier, never failed. A moulded block, a tile or a handle is its row's
+  own mass × `greenScale` — the hand does not change a brick.
+- **The piece** is green clay of the clay's material and composition, at its
+  water, made by the actor, described by its form, its vessel capacity the
+  form's; a form with `seats:` (a jug's `handle`) is born with that bill line
+  EMPTY, so `fit handle to jug` fills it. It lands in the actor's hands (a
+  day's bricks in the room) and its host is captured (the `fell` precedent —
+  the craft-mint defect does not reach green ware). The clay is consumed by
+  mass; a heap worked out is gone.
+- **The wheel** (`Wheel`, capability `wheel`) throws open, closed, flat and
+  cone forms, one pot to a `shape`. **The brick table** (`BrickTable`,
+  capability `brick-table`) moulds blocks and tiles: a game-day
+  (`ceramics.brickTable.hours`, 8) at `ceramics.brickTable.rate.<band>` an
+  hour, ONE stack, as far as the clay goes; the moulder ends up muddy.
+  **Hands** coil any class, slowly (`ceramics.hand.minutes`), into the clay
+  material's `formTemplates`.
+- The goods: `Ware` (`Greenware(WaterActivity(Assembled(Named(Durable(
+  Composition(CraftVessel))))))` — mugs, jugs, jars, crocks, bowls, flasks,
+  crucibles, handles), `Brick` (a green stack), `FlowerPot` (the kernel
+  `PlantPot`, potter-made), `Cone` (a kernel `Mould` thrown green — the
+  sugar cone). Dairying's `SettingPan` composes green ware too, and ships its
+  own `setting-pan` form under its own root.
+
+## ⭐ Trimming and the maker's mark (S5, W4)
+
+At LEATHER-HARD a green piece is worked on, and the piece answers the verb
+(`GreenwareMixin` implements `Carvable` and `Impressible`):
+
+- **`carve foot on mug`** / `carve trim on jug` / `carve pattern on bowl` —
+  the green piece's `carvePlan`: a few minutes with any edge, a little mass
+  pared off, the work recorded in words (`a turned foot`), pottery credited.
+  Plastic refuses (`too-soft` — it would smear), bone-dry refuses (`too-dry`
+  — it would crack), a fired or ruined piece refuses.
+- **`impress stamp on jug`** — `takeImpression`: the base takes WHOSE MARK the
+  stamp carries (`Crafted.mark`, an identity path: the stamp's
+  `markIdentity()`, else its maker). The potter's `Stamp` (`/trade/ceramics/
+  thing/Stamp`, a `Crafted` good with an authorable `markOf`) affords
+  `impress`. The same leather-hard refusals.
+- **The base**: once fired, a piece's look reads *its base bears X's mark,
+  and it was fired <date>* — the date is its heat history's
+  `lastTransitionAtS`. ⭐ A shelf of a player's own pots is their improvement,
+  visible: the heavy first mug and the light later one, marked and dated.
 
 ## The clamp, the kiln, linings and crucibles
 
-*(W5.)*
+### ⭐⭐ The clamp grades by position (S6, D15)
+
+`BrickClamp` (`/trade/ceramics/thing/BrickClamp`) = `ContainerMixin(Firebox)`
+— the charcoal clamp's chain, but its own class (a `CharcoalPit` would afford
+`char`). A clamp is not a chamber at one heat: the bricks by the fire
+channels get far more than the casing does, and **each brick's own
+heat-work decides what it comes out as, by the clay's three transitions**
+(B1) — there is no grade table here.
+
+- **Setting** (`onFireStart(by)`, the `Burner` hook `fire` calls before the
+  hold): every brick stack in the clamp is split three ways with
+  `Stackable.split` — a channel share, a skin share
+  (`ceramics.clamp.skinShare` 0.25) and the middle — and each part is
+  stamped with its position **on the brick** (`Brick.clampPosition`, a
+  persistent field: a stuff id would not survive a restart mid-burn). The
+  channel share is the setter's `brickmaking` band:
+  `ceramics.clamp.channelShare.<band>` untrained 0.35 · novice 0.3 ·
+  competent 0.22 · proficient 0.16 · expert 0.12 — ⭐ a better setter makes
+  fewer over-burnt bricks, deterministically. A stack under three, or a
+  piece that is not a stack (a pot in a pit firing), sits in the middle. The
+  setter is recorded (`setBy`) and the wind over the clamp at lighting is
+  read once (`skinWindMs`).
+- **The fire answers each brick by its place** (`heldTemperatureKFor`):
+  channel × `channelFactor` 1.25 · middle × 1 · skin × `skinFactor` 0.9,
+  less `rainK` 100 K × the clamp's own wetness and `windKPerMs` 6 K per m/s.
+- **The numbers** (clamp row 1474 K, draught 0.6 → completeness ≈ 0.71,
+  held ≈ 1366 K; a three-day burn; clay's transitions at 1200/1330/1480 K,
+  zK 30, 7200 s — over three days a rung completes ≈ 47 K under its
+  reference): the middle ≈ 1366 K → **earthenware** (the sound brick); the
+  channels ≈ 1707 K, past the stoneware rung's 1560 K scorch → **clinker**
+  (over-burnt); the skin ≈ 1229 K → **terracotta** (the soft place brick).
+  A soaked skin (≈ 1129 K) does not complete terracotta at all — under-burnt.
+  ⭐ Fired `--draught half` the burn is starved (completeness ≈ 0.59, under
+  the kernel's 0.6) and **reducing**: the middle ≈ 1322 K comes out the
+  earthenware's reducing twin — the blue brick — and the skin grey.
+- It glows (a `Firebox` is a `LightSource`) and smells of its fuel's
+  combustion products (the fire build's).
+- ⭐ **A split brick is the stack's brick.** `Brick.onSplit` carries the
+  material, the composition, the water state, the temperature, the heat-work
+  record, the maker, the mark and the grade onto the split-off — a fresh
+  clone of the row otherwise came back green (the `Clay`/`Ore` precedent).
+- The rows — `clamp`, `pit-firing` (same class: 1250 K, oak, draught 0.45 —
+  smoky and reducing), `updraft-kiln` (an `Oven` with a 30-firebrick lining)
+  — are W6's: nothing props them until the brickfield and the pottery exist
+  (`lint:reachability`).
+
+### Linings and crucibles (D19, D20)
+
+The lining is a part line on a chamber furnace, worn per firing and relined
+with `fit lining to <furnace>` — see [fire.md § Linings](./fire.md). The
+keeper's brain `relines` lives in this pack (`src/behavior/relines.ts`). The
+Rejection store sells firebrick (an import until the brickfield supplies it),
+the smelting pack's fired crucible (the potter's `/trade/ceramics/thing/
+crucible` row is GREEN ware — a crucible for sale is fired), a pig of lead
+and a bar of tin (the glaze fluxes, commons rows).
+
+### `measure size` — the statute brick (S11, D30)
+
+`/trade/ceramics/idea/reading/size` (`SizeReading`, instrument `gauging`,
+discipline `brickmaking`): a brick's length is read off its VOLUME (mass ÷
+its material's density) in the statute's proportion, so a brick from an
+oversize mould — or a clay that shrank less — reads **off standard** past
+5 %. The statute is the innermost polity's `standards` keys `brick-length` /
+`brick-width` / `brick-depth` (Terminus: 9 × 4½ × 2¼ in; the realm default
+the same). The figure is blurred by the reader's band like any reading
+(competence resolves detail, never access) — ⚠ an untrained reader's ±8 %
+can blur a 6 % oversize brick back to *true*. A seated gauger's measure is
+*of record*; nothing is written on the brick.
 
 ## The works and their people
 
@@ -120,6 +247,12 @@ no common ancestor, which is the kernel test). Each composer composes
 | `ceramics.weathering.ceilingDays` | 40 | freeze-thaw days past which a heap gets no better |
 | `ceramics.temper.minutes` | 20 | game-minutes of treading a pit |
 | `ceramics.temper.waterLPerKg` | 0.05 | the pit's water a kilogram of clay takes up |
+| `ceramics.clamp.channelFactor` / `skinFactor` | 1.25 / 0.9 | the clamp's heat by position, × the held heat |
+| `ceramics.clamp.skinShare` | 0.25 | the casing's share of the charge |
+| `ceramics.clamp.channelShare.<band>` | 0.35 … 0.12 | the setter's channel share, untrained … expert |
+| `ceramics.clamp.rainK` / `windKPerMs` | 100 / 6 | K off the skin for a soaked clamp / per m/s of wind |
+| `ceramics.lining.relineBelow` | 0.4 | lining health under which a keeper relines |
+| `ceramics.crucible.wearPerMelt` | 0.12 | a crucible's wear per melt (read by smelting) |
 
 ⚠ Pack dials are read by string key (`AppApi.setting('ceramics.…')`) with a
 literal fallback — no kernel `AppSettingKeys` entry.

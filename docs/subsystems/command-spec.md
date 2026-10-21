@@ -208,6 +208,36 @@ binder's lookahead skips when the next token is the bath's preposition.
 The paint slate's reservation is honoured: `dip` is the coat-from-bath
 primitive; `paint` will be the brush. `knead` (W0) is the same promotion.
 
+### `shape` (ceramics W4) — the same rung
+
+One act — forming a soft material into a form — promoted from `trade-glass`
+behind `lib/craft/Shapeable.ts`: the INSTRUMENT plans
+(`ShapePlanner.shapePlanFor` — the blowpipe, the potter's wheel, the brick
+table), else the MATERIAL by hand (`Shapeable.shapePlan` — clay coils).
+`shape [<material>] [with|on|at <instrument>] [into <form…>]`, the form
+greedy and last; with no `into`, the material arg's word IS the form, so the
+glassblower's `shape bottle` binds as it always did.
+
+### `carve` and `impress` (ceramics W4) — the same rung
+
+- **`carve`** moved from `trade-carpentry` to `platform/cmd/crafting/carve.yaml`
+  (`carve <part> [on <target>] [from <stock>] [with <edge>]`). A TARGET that
+  answers `Carvable.carvePlan` plans its own carving — a leather-hard pot
+  turns a foot, trims, takes a pattern (`GreenwareMixin`), and says itself
+  when it is too soft or too dry. With no target the controller runs the
+  generic carving-RECIPE path (one item of wood, an edge, no heat) exactly as
+  carpentry did; `Board` and `Blank` afford the platform view. Every shipped
+  form (`carve haft`, `carve peg from the blank`, `carve handle with the
+  billhook`) binds as before.
+- **`impress`** (alias `mold`), new: `impress <pattern> on|in|into <medium>`.
+  The MEDIUM answers `Impressible.takeImpression` — a leather-hard pot takes
+  its maker's mark (`Crafted.mark`, from the pattern's `markIdentity()` or
+  its maker); moulding's media take a whole impression (W7). A press is a
+  moment: it runs in the command, and a refusal is the medium's own words.
+- **`hammer <blank> on <die>`** stays smithing's, with a structural probe: an
+  anvil that answers `strikeWith(blank, blowJ, by)` is a die, and it decides
+  what the blow made.
+
 ## YAML view — top-level shape
 
 Every YAML declares one `CommandView`. Required keys: `verbs`,

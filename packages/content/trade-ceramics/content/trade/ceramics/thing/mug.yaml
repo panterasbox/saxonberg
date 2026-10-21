@@ -1,0 +1,13 @@
+# mug — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/Ware
+data:
+  shortDescription: mug
+  keywords: [mug, cup]
+  register: indefinite
+  longDescription: >-
+    A clay mug, straight-sided, with a seat for a handle.
+  interiorBulk: true
+  interiorCapacity: 0.3
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 0.35

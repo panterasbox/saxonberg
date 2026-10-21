@@ -26,6 +26,16 @@ data:
     - { disposition: diligence, valence: 70 }
     - { disposition: patience, valence: 60 }
   behaviors:
+    # ⭐ (ceramics D20) The keeper relines the house furnace when its lining
+    # has worn thin: buys firebrick at the store on the house's card and
+    # fits it — every step a verb a player could type.
+    - brain: /trade/ceramics/behavior/relines
+      trigger: candidate
+      config:
+        furnace: /stuff/thing/Kiln
+        counter: /world/terminus/rejection/thing/store-counter
+        ways:
+          - { to: /world/terminus/rejection/location/provisioning, go: [west, south, south, southwest, south, west], back: [east, north, north, north, north, northeast] }
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

@@ -1,5 +1,14 @@
 /**
- * CarveController — `carve <part> [from <stock>] [with <edge>]`.
+ * CarveController — `carve <part> [on <target>] [from <stock>] [with <edge>]`.
+ *
+ * ⭐⭐ **Promoted to the platform (ceramics D14), and dumb.** `carve` is one
+ * act — cutting away to a form with an edge — and two things can be carved:
+ *
+ *  1. a TARGET that plans its own carving (`Carvable.carvePlan`): a
+ *     leather-hard pot turns a foot, trims, takes a pattern
+ *     (`GreenwareMixin`), and says itself when it is too soft or too dry;
+ *  2. otherwise the generic CARVING-RECIPE path below — carpentry's whole
+ *     use of the verb, unchanged.
  *
  * Shapes one piece of wood into one part with an edge: a haft, a handle,
  * a peg, a dowel, a leg, a rail, a mallet. ⭐ **The by-hand rung of the
@@ -25,29 +34,33 @@
  * tools by capability, as every recipe does.
  */
 
-import { CraftController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/CraftController';
+import { ManualBuildController } from './ManualBuildController';
 import type {
   CommandContext,
   CommandModel,
-} from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Recipe } from '@saxonberg/server/mud/lib/craft/Recipe';
-import RecipeCatalogue from '@saxonberg/server/mud/platform/idea/RecipeCatalogue';
-import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+} from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
+import type { Recipe } from '../../../../lib/craft/Recipe';
+import RecipeCatalogue from '../../RecipeCatalogue';
+import { CraftingApi } from '../../../../api/crafting';
+import { MixinApi } from '../../../../api/mixin';
+import { MessageApi } from '../../../../api/message';
+import { Mml } from '../../../../api/mml';
+import { StuffApi } from '../../../../api/stuff';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { Carvable } from '../../../../lib/craft/Carvable';
 
 const TOPIC = 'act.deed';
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 
 /** The capability a carving asks for — an edge. */
-export const CARVING_EDGE = 'cutting';
+const CARVING_EDGE = 'cutting';
 /** The material tag a carving's one slot takes. */
-export const CARVING_STOCK = 'wood';
+const CARVING_STOCK = 'wood';
 
 interface CarveModel extends CommandModel {
+  /** The thing to carve on, when it plans its own carving (a green pot). */
+  target?: MqlOneResult;
   /** The part to carve — a recipe word, read off `raw`. */
   thing?: MqlOneResult;
   /** The wood to carve it from, when named. */
@@ -56,10 +69,41 @@ interface CarveModel extends CommandModel {
   knife?: MqlOneResult;
 }
 
-export default class CarveController extends CraftController<CarveModel> {
+export default class CarveController extends ManualBuildController<CarveModel> {
   async execute(model: CarveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const word = (model.thing?.raw ?? '').trim().toLowerCase();
+
+    // ⭐ A target that plans its own carving answers first.
+    const target = model.target?.stuff ?? null;
+    if (model.target && target === null) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'target', query: model.target.raw });
+      return;
+    }
+    if (target !== null) {
+      if (!isCarvable(target)) {
+        this.turnDown(context, 'not-carvable', Mml.compose`There is nothing to carve on ${Mml.thing(target)}.`);
+        return;
+      }
+      const plan = await target.carvePlan({ actor: giver, word, knife: model.knife?.stuff ?? null });
+      if (!plan.ok) {
+        this.turnDown(context, plan.reason, plan.line);
+        return;
+      }
+      this.engageStep(context, {
+        durationMs: plan.durationMs,
+        effortW: plan.effortW,
+        beginSelf: plan.beginSelf,
+        beginPeers: plan.beginPeers,
+        onComplete: plan.onComplete,
+        onAbort: plan.onAbort,
+      });
+      return;
+    }
 
     const catalogue = await StuffApi.singleton<RecipeCatalogue>(RECIPE_CATALOGUE);
 
@@ -149,6 +193,11 @@ export default class CarveController extends CraftController<CarveModel> {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(text).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
+}
+
+/** Does this thing plan its own carving? Duck-probed — a protocol, not a mixin. */
+function isCarvable(s: Stuff): s is Stuff & Carvable {
+  return typeof (s as unknown as Partial<Carvable>).carvePlan === 'function';
 }
 
 /**

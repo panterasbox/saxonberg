@@ -1,0 +1,13 @@
+# bowl — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/Ware
+data:
+  shortDescription: bowl
+  keywords: [bowl]
+  register: indefinite
+  longDescription: >-
+    A clay bowl, wide and shallow.
+  interiorBulk: true
+  interiorCapacity: 0.8
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 0.45

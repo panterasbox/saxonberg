@@ -1,0 +1,11 @@
+# green brick (ceramics W4).
+class: /trade/ceramics/thing/Brick
+data:
+  shortDescription: green brick
+  keywords: [brick, bricks]
+  register: indefinite
+  longDescription: >-
+    A brick of clay struck from the mould, its frog pressed into the top, still soft.
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 3.6
+  quantity: 1

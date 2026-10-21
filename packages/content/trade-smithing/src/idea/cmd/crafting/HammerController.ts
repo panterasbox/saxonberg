@@ -108,6 +108,30 @@ export default class HammerController extends ManualBuildController<HammerModel>
       return;
     }
 
+    // ⭐ (ceramics D14) `hammer <blank> on <die>`: the anvil the binder
+    // bound may be a DIE — a thing that answers `strikeWith` (a structural
+    // probe: this pack cannot name the founder's class, and need not). The
+    // die takes the blank's shape from the blow and says what came of it;
+    // a plain anvil answers nothing and the forging below runs as ever.
+    // `impress die on blank` is the same act said the universal way.
+    if (isDie(anvil)) {
+      const die = anvil;
+      this.engageStep(context, {
+        durationMs: this.paceMs(HAMMER_MS, anvil, ['anvil']),
+        effortW: 600,
+        beginSelf: Mml.compose`You set ${Mml.thing(target)} on ${Mml.thing(die)} and raise the hammer.`,
+        beginPeers: Mml.compose`${Mml.actor(giver)} strikes ${Mml.thing(target)} on ${Mml.thing(die)}.`,
+        onComplete: () => {
+          if (MixinApi.isDurable(striker)) striker.wear(undefined, 'shock');
+          void die.strikeWith(target, HAMMER_BLOW_J, giver).then((line) => {
+            if (giver.isDestroyed()) return;
+            MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+          });
+        },
+      });
+      return;
+    }
+
     if (
       !MixinApi.isBuildVessel(target) ||
       !MixinApi.isTangible(target) ||
@@ -175,6 +199,19 @@ export default class HammerController extends ManualBuildController<HammerModel>
 function isUnforgeable(target: Stuff): boolean {
   if (MixinApi.isTangible(target) && target.hasMaterialTag('brittle')) return true;
   return MixinApi.isComposition(target) && target.fractionOf(CARBON) >= C_CAST_FLOOR;
+}
+
+/** The energy of one hand-hammer blow on a die, J — a sledge's is more. */
+const HAMMER_BLOW_J = 60;
+
+/** What a die answers when a blank is struck on it. */
+interface Die {
+  strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<ReturnType<typeof Mml.compose>>;
+}
+
+/** A die: an anvil that takes a blank's shape from a blow. Duck-probed. */
+function isDie(anvil: Stuff): anvil is Stuff & Die {
+  return typeof (anvil as unknown as Partial<Die>).strikeWith === 'function';
 }
 
 /** A bloom: the one thing that can say how much slag is trapped in it. */

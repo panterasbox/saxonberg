@@ -217,6 +217,24 @@ export interface Burner extends Pumpable {
    * where the brick stands in it.
    */
   heldTemperatureKFor(body: Stuff): number;
+  /**
+   * ⭐ What the vessel lets the fire reach, `(0, 1]` (ceramics D19): `1`
+   * with no lining; `0.6 + 0.4 × health` with one — a thinning lining
+   * holds less heat.
+   */
+  heatCeilingFactor(): number;
+  /**
+   * The lining's health, `0..1` — `(count − failed − (1 − condition)) ÷
+   * count` over the bill's `lining` line — or `null` with no lining.
+   */
+  liningHealth(): number | null;
+  /** Wear the lining by a hold at `heldK` for `heldS` (a firing, a smelt run). */
+  wearLining(heldK: number, heldS: number): void;
+  /**
+   * @hook Called by `fire` as a hold begins — a clamp sets its charge into
+   * its fire channels here. Default: nothing.
+   */
+  onFireStart(by: Stuff | null): Promise<void>;
   /** What has vaporized into this chamber's air, kg by material path. */
   getChamberVapors(): Readonly<Record<string, number>>;
   /** A lump of `materialPath` became vapor in this chamber. */
@@ -448,6 +466,53 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       return this.getHeldTemperatureK();
     }
 
+
+    public heatCeilingFactor(): number {
+      const h = this.liningHealth();
+      return h === null ? 1 : 0.6 + 0.4 * h;
+    }
+
+    public liningHealth(): number | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAssembled(self)) return null;
+      const line = self.getLine('lining');
+      if (line === null || !(line.count > 0)) return null;
+      const left = line.count - line.failed - (1 - line.condition);
+      return Math.max(0, Math.min(1, left / line.count));
+    }
+
+    /**
+     * ⭐ A hold wears the lining (ceramics D19): `fire.lining.wearPerHour`
+     * bricks' worth an hour at the lining's own limit (its material's
+     * melting point), scaling as (held ÷ limit)³ — a gentle bread oven
+     * barely touches its bricks, a smelting furnace eats them. Worn brick
+     * by brick through the shipped `wearLine`, so a relining replaces the
+     * bricks that failed.
+     */
+    public wearLining(heldK: number, heldS: number): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAssembled(self) || !(heldK > 0) || !(heldS > 0)) return;
+      const line = self.getLine('lining');
+      if (line === null) return;
+      const brick = StuffApi.findByTemplatePath<Material>(line.material);
+      const limitK = brick?.getMeltingPoint().rawValue() || 1950;
+      let units =
+        burnerDial(AppSettingKeys.fireLiningWearPerHour, 0.5) *
+        (heldS / 3600) *
+        Math.pow(Math.min(1.5, heldK / limitK), 3);
+      for (let guard = 0; units > 1e-9 && guard < 200; guard++) {
+        const now = self.getLine('lining');
+        if (now === null || now.failed >= now.count) break;
+        const step = Math.min(units, Math.max(1e-6, now.condition));
+        self.wearLine('lining', step);
+        units -= step;
+      }
+    }
+
+    /** @hook Called by `fire` as a hold begins. Default: nothing. */
+    public async onFireStart(_by: Stuff | null): Promise<void> {
+      return;
+    }
 
     public async settleFiring(_by: Stuff | null): Promise<SettledFiring> {
       const self = this as unknown as Stuff;
@@ -921,7 +986,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getHeldTemperatureK(): number {
       const mult = this.bellowsActive ? this.bellowsMultiplier : 1;
-      const vesselCeiling = this.burnTemperatureK * mult;
+      const vesselCeiling = this.burnTemperatureK * mult * this.heatCeilingFactor();
       const flame =
         this.fuelSource().kind === 'worked' ? Infinity : this.fuelFlameK();
       const reachable = flame > 0 ? Math.min(vesselCeiling, flame) : vesselCeiling;

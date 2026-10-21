@@ -7,7 +7,9 @@
 # The furnace, the blowpipe and the marver are its capital; the charcoal,
 # the lime and the ash are a starting condition (bounded props, never
 # restocked — the Hearthworks shape). The sand you win yourself at the pit.
-class: /platform/location/Locale
+# ⭐ (ceramics W5) Persistent: its furnace's lining is worn state that must
+# survive a restart (a Locale keeps nothing).
+class: /platform/location/PersistentLocale
 data:
   shortDescription: glasshouse
   keywords: [glasshouse, glassworks, furnace, "glass house"]

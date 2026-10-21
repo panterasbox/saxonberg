@@ -390,6 +390,12 @@ export interface FitRequest {
   part?: Stuff;
   /** The assembly to fit it to (replace arm). */
   whole?: Stuff;
+  /**
+   * The LINE to renew, by its part name, when no part is named (`fit
+   * lining to furnace`): the part is whatever in reach is that line's kind
+   * of thing — its row, or a row that `extends:` it (ceramics W5).
+   */
+  line?: string;
   /** The recipe to raise (raise arm). */
   recipeRef?: string;
 }
@@ -404,6 +410,12 @@ export type FitDeclineReason =
   | 'missing-tool'
   /** The joint wants a band the fitter has not reached. */
   | 'not-skilled'
+  /**
+   * ⭐ (ceramics W4) A slip joint joins GREEN clay at leather-hard only.
+   * `detail`: `too-soft` (plastic), `too-dry` (bone-dry), `ruined` (the
+   * weather got it), `fired` (it is not clay any more).
+   */
+  | 'not-leather-hard'
   | 'insufficient-input';
 
 export interface FitReplaced {

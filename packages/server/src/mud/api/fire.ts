@@ -34,10 +34,11 @@ export interface IgniteOutcome {
    * will not burn), `'no-fuel'` (⭐ a burner with an empty bed — the
    * refusal that `stoke` lifts, and the reason a fire can be run twice),
    * `'already-burning'`, `'too-wet'` (a hand-flame can't dry it), or
-   * `'no-air'` (⭐ a flame needs air — shut in a starved chamber).
+   * `'no-air'` (⭐ a flame needs air — shut in a starved chamber), or
+   * `'lining-burnt-through'` (a furnace whose lining needs relining).
    * Absent on success.
    */
-  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet' | 'no-air';
+  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet' | 'no-air' | 'lining-burnt-through';
 }
 
 const LOGIC_PATH = '/platform/idea/api/fire';

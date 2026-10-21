@@ -198,3 +198,15 @@ settings:
   # chimney fire, and the reason sweeps existed.
   - key: fire.flue.ignitesAtKg
     value: "0.5"
+
+  # ⭐ A furnace's lining wears (ceramics D19): bricks' worth an hour at the
+  # lining's own limit (its melting point), scaling as (held ÷ limit)³ — a
+  # bread oven barely touches its bricks, a smelting furnace eats about one
+  # a run. Bloomery linings were relined every few smelts.
+  - key: fire.lining.wearPerHour
+    value: "2"
+
+  # A lining this thin is burnt through: the heat would go into the casing,
+  # and the chamber will not light until it is relined.
+  - key: fire.lining.burntBelow
+    value: "0.15"

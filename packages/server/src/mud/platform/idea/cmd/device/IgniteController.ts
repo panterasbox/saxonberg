@@ -78,7 +78,9 @@ export default class IgniteController extends CommandController<IgniteModel> {
               ? 'There is no fuel in it. Stoke it first.'
               : outcome.reason === 'no-air'
                 ? 'The flame dies as you strike it. There is not the air in there for a flame.'
-                : "That won't burn.";
+                : outcome.reason === 'lining-burnt-through'
+                  ? 'Its lining has burnt through — the heat would go straight into the casing. Reline it with firebrick first.'
+                  : "That won't burn.";
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(Mml.compose`${detail}`)

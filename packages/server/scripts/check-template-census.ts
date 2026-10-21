@@ -211,6 +211,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // `stir` or a `knead`, and a rowless one is a blend that consumes its
     // inputs and mints nothing.
     'blendMaterial', 'blendTemplate',
+    // ⭐ A form word's `product` (ceramics D16) — the row a shaped piece is
+    // minted as, resolved live at the end of a `shape`; a rowless one is a
+    // throw that consumes the clay and mints nothing.
+    'product',
     // ⭐ `brokenTemplate` (ceramics W2) — what a brittle body breaks into
     // (sherds). Resolved live at the break; a rowless one is a dropped
     // bowl that vanishes.
@@ -252,6 +256,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
         push('transforms', (t as Record<string, unknown>).becomes);
       }
     }
+  }
+  // ⭐ An instrument's `forms:` (the Form rows it makes, by path) and a
+  // `formTemplates:` map by form class (ceramics D16) — loaded on use when a
+  // `shape` asks.
+  if (Array.isArray(data.forms)) {
+    for (const v of data.forms as unknown[]) push('forms', v);
+  }
+  if (data.formTemplates && typeof data.formTemplates === 'object') {
+    for (const v of Object.values(data.formTemplates as Record<string, unknown>)) push('formTemplates', v);
   }
   if (data.drainSetting && typeof data.drainSetting === 'object') {
     push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);

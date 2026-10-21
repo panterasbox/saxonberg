@@ -148,13 +148,14 @@ export default class FireController extends CommandController<FireModel> {
       }
     }
 
+    await kiln.onFireStart(giver);
     const heldK = kiln.getHeldTemperatureK();
     this.engage(context, holdS * 1000, heldK, () => {
       // ⚠⚠ A module function over captured locals, never `this.<method>`: a
       // controller is one ephemeral clone per execution and is destructed
       // the moment `execute` returns, while a firing holds the chamber at
       // heat over game time.
-      void settle(context, kiln);
+      void settle(context, kiln, heldK, holdS);
     });
   }
 
@@ -258,9 +259,16 @@ function firedWord(body: Stuff): string | null {
  * because a kiln does not stop because somebody left; only the telling of
  * it needs a listener.
  */
-async function settle(context: CommandContext, kiln: Stuff & Container & Burner): Promise<void> {
+async function settle(
+  context: CommandContext,
+  kiln: Stuff & Container & Burner,
+  heldK: number,
+  holdS: number,
+): Promise<void> {
   const giver = context.commandGiver;
   const settled = await kiln.settleFiring(giver.isDestroyed() ? null : giver);
+  // ⭐ The hold wore the chamber's lining (ceramics D19).
+  kiln.wearLining(heldK, holdS);
   const disciplines = [...settled.disciplines];
 
   // ⭐ (cleanliness D14) The hold is a DRY HEAT on everything Soilable in

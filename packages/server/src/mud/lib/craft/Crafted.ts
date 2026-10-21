@@ -92,6 +92,12 @@ export interface Crafted extends Graded {
   /** The trade of the mould it set in, when it was cast (`''` otherwise). */
   getCastDiscipline(): string;
   setCastDiscipline(value: string): void;
+  /**
+   * ⭐ The maker's MARK pressed into it (ceramics S5) — whose stamp, as an
+   * identity path; `''` unmarked. Read on the base with the firing date.
+   */
+  getMark(): string;
+  setMark(value: string): void;
   setCraftedAt(value: number): void;
   /** Stamp all four marks at once (the one mutator CraftingLogic calls). */
   stamp(spec: CraftedStamp): void;
@@ -118,7 +124,18 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       recipe: { persistent: true, runtimeState: true },
       craftedAt: { persistent: true, runtimeState: true },
       castDiscipline: { persistent: true, runtimeState: true },
+      mark: { persistent: true, runtimeState: true },
     };
+
+    /** The stamp pressed into it — whose mark (an identity path), or `''`. */
+    public mark: string = '';
+
+    getMark(): string {
+      return this.mark;
+    }
+    setMark(value: string): void {
+      this.mark = typeof value === 'string' ? value : '';
+    }
 
     /**
      * The maker's durable templatePath; empty until stamped.

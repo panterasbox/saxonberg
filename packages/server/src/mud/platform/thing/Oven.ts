@@ -9,6 +9,8 @@ import Firebox from '../../lib/fire/Firebox';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { FluedMixin } from '../../lib/fire/Flued';
+import { AssembledMixin } from '../../lib/craft/Assembled';
+import { DurableMixin } from '../../lib/material/Durable';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
 import type { BulkSlot } from '../../lib/bulk/Bulkable';
@@ -28,7 +30,11 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 // ⭐ A firebox that ENCLOSES what it heats — that is the whole
 // difference between an oven and a forge, and it is two mixins.
 // ⭐ A flue (cleanliness D18): an oven's smoke goes up a chimney that soots.
-const OvenBase = FluedMixin(ContainerMixin(PlacingMixin(Firebox)));
+// ⭐⭐ And made of PARTS (ceramics D19): a chamber furnace has a lining, a
+// part line of firebrick that wears with every firing and is relined with
+// `fit lining to <oven>`. A row with no `bill` is one piece and wears
+// nothing — a lamp and a campfire are fireboxes, not ovens.
+const OvenBase = AssembledMixin(DurableMixin(FluedMixin(ContainerMixin(PlacingMixin(Firebox)))));
 
 export default class Oven extends OvenBase {
   /**

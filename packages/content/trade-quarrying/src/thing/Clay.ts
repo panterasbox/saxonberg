@@ -38,6 +38,73 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Lump from './Lump';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { Mml } from '@saxonberg/server/mud/api/mml';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import { FormGrammar, ParsedForm } from '@saxonberg/server/mud/lib/craft/FormSpec';
+import type {
+  Shapeable,
+  ShapePlan,
+  ShapeRefusal,
+  ShapeRequest,
+} from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+
+/**
+ * ⭐ What a hand at a band raises (ceramics D16) — deterministic: a
+ * beginner's walls are thick and their pots heavy, never failed; the
+ * largest form a band can raise is its ceiling, refused above. Dials are
+ * `ceramics.wall.factor.<band>` / `ceramics.wall.maxL.<band>`.
+ */
+export interface PotterHand {
+  band: CompetenceBandName;
+  /** The wall mass over a proficient hand's. */
+  wallFactor: number;
+  /** The largest vessel this hand can raise, L. */
+  maxL: number;
+  /** The grade its work comes out at. */
+  grade: Grade;
+}
+
+const WALL_FACTOR: Readonly<Record<CompetenceBandName, number>> = {
+  untrained: 1.8,
+  novice: 1.6,
+  competent: 1.25,
+  proficient: 1.0,
+  expert: 0.85,
+};
+const MAX_L: Readonly<Record<CompetenceBandName, number>> = {
+  untrained: 0.5,
+  novice: 1.5,
+  competent: 4,
+  proficient: 10,
+  expert: 30,
+};
+const GRADE_OF: Readonly<Record<CompetenceBandName, number>> = {
+  untrained: 0,
+  novice: 0,
+  competent: 1,
+  proficient: 2,
+  expert: 3,
+};
+
+/** What `yieldPieces` is told to make. */
+export interface PieceOrder {
+  actor: Stuff;
+  form: ParsedForm;
+  /** The row the piece is minted as. */
+  product: string;
+  hand: PotterHand;
+  /** How many (a day's bricks); 1 for a pot. */
+  count: number;
+  /** Where it lands; default the actor's hands. */
+  into?: Stuff | null;
+}
 
 /** One game day, s (a freeze-thaw count is in whole days). */
 const DAY_S = 86_400;
@@ -106,7 +173,7 @@ const clayAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 
 const ClayBase = CompositionMixin(WaterActivityMixin(Lump));
 
-export default class Clay extends ClayBase {
+export default class Clay extends ClayBase implements Shapeable {
   static markupAugmenters: MarkupAugmenter[] = [clayAugmenter];
 
   static fieldMeta: FieldMeta = {
@@ -228,6 +295,207 @@ export default class Clay extends ClayBase {
     return s.iron + s.lime + s.organic < 0.05 && s.clayMineral >= 0.6 ? 'refractory' : 'common';
   }
 
+  // ---------- shaping (ceramics S4, D16) ----------
+
+  /** The clay this heap holds, kg (a heap is lumps × each lump's mass). */
+  public clayKg(): number {
+    return this.getMass().rawValue() * this.getQuantity();
+  }
+
+  /**
+   * ⭐ The hand that is shaping, read off its competence — a deterministic
+   * table, the grain the pack's dials tune.
+   */
+  public async potterHand(actor: Stuff, discipline: string): Promise<PotterHand> {
+    let band: CompetenceBandName = 'untrained';
+    if (MixinApi.isAdvancing(actor)) band = await actor.competenceBandFor(discipline);
+    return {
+      band,
+      wallFactor: ceramicsDial(`ceramics.wall.factor.${band}`, WALL_FACTOR[band]),
+      maxL: ceramicsDial(`ceramics.wall.maxL.${band}`, MAX_L[band]),
+      grade: Grade.fromOrdinal(GRADE_OF[band]),
+    };
+  }
+
+  /** The mass one piece of `form` takes from this clay at `hand`, kg. */
+  public pieceMassKg(form: ParsedForm, hand: PotterHand, productMassKg: number): number {
+    const scale = form.word?.greenScale ?? 1;
+    // A moulded block, a tile, a pulled handle: the piece's own size, cut
+    // oversize for the shrink — the hand does not change a brick's mass.
+    if (form.formClass === 'block' && productMassKg > 0) return productMassKg * scale;
+    if (form.formClass === 'flat' && form.word !== null && form.word.capacityL <= 0 && productMassKg > 0) {
+      return productMassKg * scale;
+    }
+    const nominal = form.nominalMassKg();
+    const base = nominal > 0 ? nominal : productMassKg;
+    return base * hand.wallFactor * scale;
+  }
+
+  /**
+   * ⭐ Make pieces of `form` out of this clay — the material YIELDS; the
+   * instrument decides the time and the bounds. Each piece is green clay of
+   * this clay's material and composition, at this clay's water, made by the
+   * actor at the hand's grade, described by its form; `count > 1` mints ONE
+   * stack (a day's bricks), as many as the clay allows. The clay is consumed
+   * by mass. Returns the piece, or a refusal line.
+   */
+  public async yieldPieces(order: PieceOrder): Promise<Stuff | string> {
+    const self = this as unknown as Stuff;
+    const material = this.getMaterial();
+    if (material === null) return 'There is nothing in it to shape.';
+    let product: Stuff;
+    try {
+      product = await StuffApi.clone<Stuff>(order.product, undefined, { madeFrom: [self] });
+    } catch {
+      return 'That is not a thing anybody here knows how to make.';
+    }
+    const rowMass = MixinApi.isTangible(product) ? product.getMass().rawValue() : 0;
+    const each = this.pieceMassKg(order.form, order.hand, rowMass);
+    // ⭐ As many as were asked for, as far as the clay goes (a day at the
+    // table stops when the heap runs out).
+    const count = Math.min(Math.max(1, Math.floor(order.count)), Math.floor((this.clayKg() + 1e-9) / each));
+    const need = each * count;
+    if (!(each > 0) || !(count >= 1)) {
+      await StuffApi.destruct(product);
+      return 'There is not enough clay here for that.';
+    }
+    if (MixinApi.isTangible(product)) {
+      product.setMaterial(material);
+      product.setMass(Quantity.of(each, 'kg'));
+    }
+    if (MixinApi.isStackable(product) && count > 1) product.setQuantity(count);
+    // A vessel holds what its form says it holds.
+    if (
+      MixinApi.isBulkable(product) &&
+      product.hasInteriorBulk() &&
+      (order.form.formClass === 'open' || order.form.formClass === 'closed')
+    ) {
+      (product as unknown as { setInteriorCapacity(v: Quantity<'L'> | null): void })
+        .setInteriorCapacity(Quantity.of(order.form.capacityL, 'L'));
+    }
+    if (MixinApi.isComposition(product)) {
+      product.setAlloying(this.getEffectiveComposition());
+    }
+    if (MixinApi.isWaterActive(product)) product.setWaterState(this.getWaterState());
+    const maker = order.actor.getIdentityPath() ?? '';
+    if (MixinApi.isCrafted(product) && maker !== '') product.setMaker(maker);
+    if (MixinApi.isGraded(product)) product.setGrade(order.hand.grade);
+    // ⭐ A thrown body with seats (a jug's handle) is born with those lines
+    // EMPTY — the bill's default would read the handle as present, and
+    // `fit handle to jug` would hand back a phantom.
+    const seats = order.form.word?.seats ?? [];
+    if (seats.length > 0 && MixinApi.isAssembled(product)) {
+      const bill = product.getBill();
+      if (bill !== null) {
+        const grade = order.hand.grade.getBand();
+        const path = material.getTemplatePath() ?? '';
+        product.recordAssembly(
+          bill.parts.map((p) => ({
+            part: p.part,
+            template: p.template,
+            count: p.count,
+            role: p.role,
+            material: path,
+            grade,
+            condition: 1,
+            failed: seats.includes(p.part) ? p.count : 0,
+            makers: [],
+          })) as never,
+          (bill.joints ?? []).map((j) => ({
+            key: j.key,
+            method: j.method,
+            members: [...j.members],
+            tension: 1,
+            maker: '',
+          })) as never,
+        );
+      }
+    }
+    const labelled = product as unknown as {
+      setShortDescription?(s: string): void;
+      getKeywords?(): readonly string[];
+      setKeywords?(k: string[]): void;
+    };
+    const phrase = order.form.describe();
+    if (order.form.word === null || order.form.describe() !== order.form.word.key) {
+      labelled.setShortDescription?.(phrase);
+    }
+    if (typeof labelled.setKeywords === 'function') {
+      const kw = new Set(labelled.getKeywords?.() ?? []);
+      for (const w of phrase.split(/\s+/)) if (w && !/^\d/.test(w)) kw.add(w);
+      labelled.setKeywords([...kw]);
+    }
+    const into = order.into ?? order.actor;
+    if (MixinApi.isContainable(product) && MixinApi.isContainer(into)) {
+      ContainmentApi.move(product as Stuff & Containable, into as Stuff & Container);
+    }
+    // ⭐ The craft-mint defect must not reach green ware: the piece is
+    // placed AND its host captured (the `fell` precedent).
+    await PersistableApi.captureHostOf(product).catch(() => undefined);
+    // Last: a heap worked out is destructed.
+    this.consumeKg(need);
+    return product;
+  }
+
+  /** The refusal that names the hand's band — the progression, said. */
+  public refuseBeyond(hand: PotterHand): ShapeRefusal {
+    return {
+      ok: false,
+      reason: 'beyond-your-hand',
+      line: Mml.compose`That is more than your hand can raise yet — a ${hand.band} potter raises a pot of up to ${String(hand.maxL)} litres.`,
+    };
+  }
+
+  /** Take `kg` of clay off this heap; a heap worked out is gone. */
+  private consumeKg(kg: number): void {
+    const left = this.clayKg() - kg;
+    if (left <= 0.01) {
+      void StuffApi.destruct(this as unknown as Stuff);
+      return;
+    }
+    if (this.getQuantity() > 1) this.setQuantity(1);
+    this.setMass(Quantity.of(left, 'kg'));
+  }
+
+  /**
+   * ⭐ Hands coil anything (S4): any form class, any size the hand can
+   * raise, slowly — the product row is the material's `formTemplates` for
+   * the class. Credits pottery.
+   */
+  public async shapePlan(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal> {
+    const self = this as unknown as Stuff;
+    const parsed = new FormGrammar([]).parse(req.formText);
+    if (!(parsed instanceof ParsedForm)) {
+      return { ok: false, reason: parsed.reason, line: Mml.compose`${parsed.line}` };
+    }
+    const form = parsed;
+    const product = this.getMaterial()?.getFormTemplates()[form.formClass] ?? '';
+    if (product === '') {
+      return {
+        ok: false,
+        reason: 'no-product',
+        line: Mml.compose`You could coil ${Mml.thing(self)} into a shape, but it would be nothing anybody has a name for. Work it on a wheel, or in a mould.`,
+      };
+    }
+    const hand = await this.potterHand(req.actor, 'pottery');
+    if (form.formClass !== 'block' && form.formClass !== 'flat' && form.capacityL > hand.maxL) {
+      return this.refuseBeyond(hand);
+    }
+    const actor = req.actor;
+    return {
+      ok: true,
+      durationMs: ceramicsDial('ceramics.hand.minutes', 30) * 60_000,
+      effortW: 220,
+      beginSelf: Mml.compose`You roll coils of clay between your palms and begin to build them up, ring on ring.`,
+      beginPeers: Mml.compose`${Mml.actor(actor)} coils a pot by hand.`,
+      onComplete: () => {
+        void this.yieldPieces({ actor, form, product, hand, count: 1 }).then((made) =>
+          tellMade(actor, made, 'pottery'),
+        );
+      },
+    };
+  }
+
   // ---------- pooling ----------
 
   /** Capture the absorbed lot before it is destructed (Ore's rule). */
@@ -282,5 +550,25 @@ export default class Clay extends ClayBase {
     if (typeof cut.setWeatheredDays === 'function') cut.setWeatheredDays(this.weatheredDays);
     if (typeof cut.setAlloying === 'function') cut.setAlloying(this.getAlloying());
     super.onSplit(splitoff);
+  }
+}
+
+/**
+ * Say what a hand-shaping made, and credit it. ⚠ A module function, never a
+ * method: the clay may be worked out — destructed — by the time it runs.
+ */
+async function tellMade(actor: Stuff, made: Stuff | string, discipline: string): Promise<void> {
+  if (actor.isDestroyed()) return;
+  if (typeof made === 'string') {
+    MessageApi.scene(actor).topic('act.deed').toSelf(Mml.compose`${made}`).send();
+    return;
+  }
+  MessageApi.scene(actor)
+    .topic('act.deed')
+    .toSelf(Mml.compose`You have made ${Mml.thing(made)}. It is green — let it dry before anything else.`)
+    .toPeers(Mml.compose`${Mml.actor(actor)} sets down ${Mml.thing(made)}.`)
+    .send();
+  if (MixinApi.isAdvancing(actor) && discipline !== '') {
+    await actor.creditDeed({ discipline, difficulty: 'standard', outcome: 'success' });
   }
 }

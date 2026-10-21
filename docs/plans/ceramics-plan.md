@@ -1362,6 +1362,48 @@ left a fork the lens that chose is named.
   1550 K, clinker only past 1800 K); gypsum and clay-mineral are base-library
   rows (R4). The temper-pit ROW waits for W6's brickfield (nothing props it
   yet, `lint:reachability`).
+- **B33 (W4) — `shape` grammar:** `shape [<material>] [with|on|at
+  <instrument>] [into <form…>]`; with no `into` the material word IS the
+  form, so the glassblower's `shape bottle` binds word for word. Instruments
+  plan first (wheel, brick table, blowpipe), then the clay by hand.
+  `FormGrammar` parses capacity words (pints, quarts, gallons, cups,
+  litres); an unknown word refuses naming the five classes.
+- **B34 (W4) — `Ware` = Greenware(WaterActivity(Assembled(Named(Durable(
+  Composition(CraftVessel))))))** — Named so a maker names it, Assembled so a
+  handle fits, Composition so it keeps its clay. A form with `seats:` is
+  born with that bill line EMPTY (else `fit` hands back a phantom handle).
+  ⚠ `SettingPan` did not compose `WaterActivity` before (a plan premise
+  was wrong); it composes both now.
+- **B35 (W4) — Carve logic stays in the platform controller** (a carving
+  recipe is a platform idea and `carve haft` has no target to ask); a
+  target that plans (green ware: foot/trim/pattern at leather-hard) answers
+  first. The mark is `Crafted.mark` (an identity path); the base line
+  ("bears X's mark, fired <date>") survives firing. The die is a shape
+  probe on `hammer`'s anvil (`strikeWith`).
+- **B36 (W4) — The slip joint has no competence band** (a beginner's
+  starting band is below novice and would be refused); a dryness mismatch
+  over `green.joinMismatch` joins with a visible check.
+- **B37 (W5) — The clamp** (1474 K, draught 0.6 → held ≈ 1366 K over three
+  days): middle ×1 → earthenware (sound brick), channels ×1.25 → clinker,
+  skin ×0.9 (less rain and wind) → terracotta (place brick); a `half`
+  draught is reducing (blue). A better setter's channel share is smaller
+  (untrained 0.35 … expert 0.12). A brick's position lives ON the brick
+  (`clampPosition`, survives a restart); a split carries the piece's whole
+  state.
+- **B38 (W5) — Linings:** health = (count − failed − (1 − condition)) ÷
+  count over the bill's `lining` line; the ceiling is 0.6 + 0.4 × health;
+  wear = `fire.lining.wearPerHour` 2 bricks/h × (held ÷ the lining's melting
+  point)³ — a smelting furnace (8 bricks) relines every few runs (bloomery
+  practice), the Kiln (30) every ~38 h at heat; burnt through below 0.15
+  refuses `ignite`. `fit lining to <furnace>` needed a new FitController arm
+  (a word naming a line of the named whole; parts taken from hands, then
+  the room). The keeper's `relines` brain walks authored ways, buys on the
+  house card, fits. Bills: furnace 8, limekiln 24, retort 12, Kiln 30.
+  The furnace rooms are `PersistentLocale`.
+- **B39 (W5) — Rejection's store sells the SMELTING crucible** (the potter's
+  `/trade/ceramics/thing/crucible` is green ware until fired); firebrick is
+  the commons fired row, an import until W6's brickfield supplies it.
+  `measure size` blurs by competence (±8 % untrained).
 
 ## ⭐⭐ Host placement
 
@@ -1959,6 +2001,14 @@ three states`
 
 ### W4 — the potter's hand: `shape`, forms, `carve`, `fit`, `impress`, the brick table
 
+> ✅ **DONE (W4).** `shape` promoted (FormGrammar, Form rows, Shapeable/
+> ShapePlanner; wheel, brick table, hands, blowpipe); competence decides
+> wall, size and grade; `carve` and `impress` promoted (trim at
+> leather-hard, the maker's mark and date); the slip joint for handles;
+> the die probe on `hammer`; Ware/Brick/FlowerPot/Cone; product and form
+> rows. Rows nothing props yet (wheel, brick table, generic per-class
+> products, stamp) wait for W6's works. Decisions B33–B36.
+
 **Goal.** S4 S5, the trimming/joining/marking window, the mark and the
 date. Consumer: the pack's `Ware`, `Brick`, `FlowerPot`, `Cone`, the
 wheel, the brick table, the stamp; a potter can make and name a jug; a
@@ -2020,6 +2070,13 @@ blowpipe unchanged; `carve haft` unchanged; AC 6, AC 7.
 forms, trim and join and stamp at leather-hard, a day at the brick table`
 
 ### W5 — the clamp, the kiln, linings and crucibles, the statute brick
+
+> ✅ **DONE (W5).** Linings as part lines that wear, ceiling the heat,
+> refuse to light burnt through, and are relined (`fit lining to …`) by the
+> keepers' `relines` brain; crucibles wear and crack; the clamp grades by
+> position and the draught; `measure size` against the statute brick.
+> Clamp, pit-firing, updraft kiln and cones rows wait for W6's works.
+> Decisions B37–B39.
 
 **Goal.** S6 S10 S11: the clamp's gradient and grades; the draught's
 atmosphere; glow and smell; linings as part lines that wear and reline;

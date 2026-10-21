@@ -397,7 +397,8 @@ Trade verbs for rung-1/2 transformations, not assembly's budget:
   stack, one heap per wetness band) and the boards lightened by exactly
   what was minted — mass conserved. It is the icehouse's packing (see
   [storage.md](./storage.md)).
-- **`carve`** (`trade-carpentry`, `CarveController`) — runs any installed
+- **`carve`** (the platform's since ceramics W4 — `CarveController`; a
+  target that plans its own carving, a green pot, answers first) — runs any installed
   one-slot wood recipe that asks for `cutting` and no heat (haft, handle,
   peg, dowel, leg, rail, mallet…); no list in the controller. It sets
   `CraftRequest.subtractive`: the output keeps its row's size and the rest
@@ -638,3 +639,23 @@ families and a monolith is one piece; the nine twins (`AssembledTool`,
 `AssembledSurveyInstrument`, textiles' `AssembledSpinningTool`) retired
 and their 23 rows re-point to the family. What made the reversal safe is
 that every method had become total on an empty record.
+
+## ⭐ The slip joint — green clay joined at leather-hard (ceramics W4, 2026-10)
+
+`/platform/idea/Joint/slip` (`slipped`; `reversible: never`, no instrument,
+no band — anybody can score and slip a handle on) joins two pieces of GREEN
+clay: a pulled handle to a thrown jug, a spout to a pot. A ware row carries a
+bill whose line names the joint (`bill: {parts: [{part: handle, template:
+/trade/ceramics/thing/handle, count: 1, role: wear}], joints: [{key:
+handling, method: slip, members: [handle]}]}`), and a freshly thrown piece
+records that line EMPTY (`failed: 1`) so `fit handle to jug` fills it rather
+than swapping a phantom handle out.
+
+`fit`'s replace arm asks, for a line held by a `slip` joint, that BOTH the
+whole and the part be green clay at leather-hard (`Greenware.canJoin`), and
+refuses `not-leather-hard` in words otherwise — `too-soft` (plastic: it
+would sag off), `too-dry` (bone-dry: slip will not take), `fired` (it is
+pottery now), `ruined`. ⭐ Two pieces whose dryness differs by more than
+`green.joinMismatch` (0.25) still join — and the whole takes a `check` (a
+drying crack, seen) where they meet: the wetter one shrinks more as they dry.
+That is the lesson in the timing, and the only thing the joint grades on.

@@ -552,6 +552,14 @@ const FAUCETS: Record<string, string> = {
   trapTemplate: "a hazard mints it",
   castTemplate: "what a frozen pool becomes",
   blendTemplate: "a mixing vessel mints its blend (ceramics R1)",
+  // ⭐ An instrument's or a clay's `formTemplates:` map, keyed by form class
+  // (ceramics D16): a `shape` mints the row the class names.
+  product: "a Form word's product — a `shape` mints it (ceramics D16)",
+  open: "a shape mints an open vessel of this row (formTemplates)",
+  closed: "a shape mints a closed vessel of this row (formTemplates)",
+  flat: "a shape mints a flat piece of this row (formTemplates)",
+  block: "a shape mints a block of this row (formTemplates)",
+  cone: "a shape mints a cone of this row (formTemplates)",
   brokenTemplate: "a brittle body breaks into it (ceramics W2)",
   barkPath: "a felled standard's bark",
   charcoalTemplate: "what a char mints",
@@ -608,6 +616,7 @@ const CITATIONS: Record<string, string> = {
   shelf: "a brain's config — the fixture is propped by its room",
   stock: "as `shelf`",
   counter: "as `shelf`",
+  furnace: "a keeper brain's furnace (`relines`) — propped by its room (ceramics W5)",
   board: "as `shelf`",
   boards: "as `shelf`",
   bench: "as `shelf`",

@@ -48,3 +48,9 @@ data:
   # gauger gauges against. A second polity declares its own here.
   standards:
     - { key: cask, value: 25, unit: L }
+    # ⭐ The statute brick (ceramics S11): 9 × 4½ × 2¼ inches. `measure
+    # size` reads a brick against it; a brick from an oversize mould is
+    # off standard.
+    - { key: brick-length, value: 9, unit: in }
+    - { key: brick-width, value: 4.5, unit: in }
+    - { key: brick-depth, value: 2.25, unit: in }

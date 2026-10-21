@@ -4,7 +4,9 @@
 # of how much of a rock is not ore. A bar comes out of here, goes to a
 # smith, comes back as a pick head, and gets swung at the ground it came
 # out of — with a real sink at the end, because picks wear out.
-class: /platform/location/Locale
+# ⭐ (ceramics W5) Persistent: its furnace's lining is worn state that must
+# survive a restart (a Locale keeps nothing).
+class: /platform/location/PersistentLocale
 data:
   shortDescription: smelter
   keywords: [smelter, furnace, works]

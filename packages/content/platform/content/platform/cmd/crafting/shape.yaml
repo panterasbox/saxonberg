@@ -1,0 +1,63 @@
+verbs: [shape]
+controller: /platform/idea/cmd/crafting/ShapeController
+description: "Form a soft material into a shape — clay on a wheel or in a mould, glass on a pipe"
+help: |
+  `shape clay into mug` throws a mug on the wheel you are at.
+  `shape clay into tall jug holding 3 pints` says how big and what
+  proportion. `shape clay into brick` at a brick table is a day's work and
+  a pallet of green bricks. `shape bottle` works the gather on your pipe.
+
+  ⭐ A form is an OPEN vessel, a CLOSED (necked) vessel, a FLAT piece, a
+  BLOCK or a CONE, a capacity, and a proportion — tall, squat, wide or
+  narrow. Familiar words (mug, jug, jar, crock, bowl, flask, brick, tile)
+  are shorthand. Say any size the instrument allows, then `name` it.
+
+  ⭐ **Your hand decides the pot.** A beginner's walls are thick and their
+  pots heavy; a practised potter's are light. Ask for more than your hand
+  can raise and you will be told which band you are at. Nothing fails:
+  below your band it just comes out heavier.
+
+  Clay is green until it is fired: let it dry to leather-hard before you
+  trim, join or stamp it, and to bone-dry before it goes in a kiln.
+examples:
+  - cmd: shape clay into mug
+    note: Throw a mug on the wheel here
+  - cmd: shape clay into tall jug holding 3 pints
+    note: Any form, any size your hand can raise
+  - cmd: shape clay into brick
+    note: A day at the brick table
+  - cmd: shape bottle
+    note: Blow the gather on your pipe into a bottle
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # What to shape — the clay you hold or stand by. Optional: the gather on
+  # a pipe is the pipe's to find, and `shape bottle` (no `into`) binds the
+  # word here and the controller reads it as the form.
+  - name: material
+    type: object
+    required: false
+    scope: ["reachable"]
+    requires: any
+  # ⭐ WHAT shapes it — the wheel, the brick table, the blowpipe. Declared
+  # with a default (`lint:instrument-args`); the controller asks each bound
+  # tool whether it plans the shape, and hands are the fallback.
+  - name: instrument
+    type: objects
+    required: false
+    prepositions: [with, using, on, at]
+    # ⚠ W6 widens this to `reachable:[capability.wheel],reachable:[capability.brick-table],`
+    # when the brickfield's wheel and brick table stand somewhere
+    # (`lint:capabilities`: a capability no row offers is a gate nobody passes).
+    default: "reachable:[capability.blowpipe]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # The form, after `into` — greedy, so `tall jug holding 3 pints` is one
+  # phrase. Last, as a greedy arg must be.
+  - name: form
+    type: string
+    required: false
+    prepositions: [into]
+    greedy: true

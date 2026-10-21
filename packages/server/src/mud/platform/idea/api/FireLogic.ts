@@ -279,6 +279,12 @@ function igniteImpl(stuff: Stuff): IgniteOutcome {
     // ⭐⭐ THE REFUSAL IS THE PROGRESSION UI: if something lifts it, the
     // player has to be able to be told what.
     if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'no-fuel' };
+    // ⭐ A lining burnt through holds no fire (ceramics D19) — the refusal
+    // relining lifts.
+    const lining = stuff.liningHealth();
+    if (lining !== null && lining <= dial(AppSettingKeys.fireLiningBurntBelow, 0.15)) {
+      return { lit: false, reason: 'lining-burnt-through' };
+    }
     stuff._setLit(true);
     return { lit: true };
   }

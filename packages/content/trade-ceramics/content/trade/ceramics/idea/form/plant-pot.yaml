@@ -1,0 +1,9 @@
+# The `plant-pot` form (ceramics S4): an open pot with a drainage hole.
+class: /platform/idea/Form
+data:
+  key: plant pot
+  formClass: open
+  capacityL: 1.5
+  product: /trade/ceramics/thing/plant-pot-small
+  greenScale: 1.0
+  discipline: pottery

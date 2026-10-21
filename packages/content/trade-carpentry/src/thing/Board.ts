@@ -22,9 +22,9 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 export default class Board extends Timber {
   static commandContributions: CommandContributions = {
     // In your hands (`environment` — to the holder) or at your feet.
-    environment: ['trade/carpentry/cmd/carpentry/carve.yaml'],
+    environment: ['platform/cmd/crafting/carve.yaml'],
     peers: [
-      'trade/carpentry/cmd/carpentry/carve.yaml',
+      'platform/cmd/crafting/carve.yaml',
       ...(Timber.commandContributions.peers ?? []),
     ],
   };

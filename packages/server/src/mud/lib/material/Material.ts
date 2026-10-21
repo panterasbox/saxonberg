@@ -1099,6 +1099,9 @@ export default class Material extends SingletonMixin(
     // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
     // breaks to sherds; glass keeps its cullet (the cast template).
     brokenTemplate: { persistent: true, authorable: true },
+    // ⭐ What a piece shaped of this becomes, by form class (ceramics D16):
+    // `{open: …/vessel, closed: …/jar, flat: …/dish, block: …/block, cone: …}`.
+    formTemplates: { persistent: true, authorable: true },
   };
 
   public getName(): string { return this.name; }
@@ -1466,6 +1469,23 @@ export default class Material extends SingletonMixin(
   }
   public setBrokenTemplate(value: string): void {
     this.brokenTemplate = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ The row a piece shaped of this is minted as, by form class (ceramics
+   * D16) — the `castTemplate` shape for `shape`. Empty = no default; a form
+   * word's own `product` or the instrument's map answers instead.
+   */
+  protected formTemplates: Partial<Record<string, string>> = {};
+  public getFormTemplates(): Readonly<Partial<Record<string, string>>> {
+    return this.formTemplates;
+  }
+  public setFormTemplates(value: Partial<Record<string, string>> | null): void {
+    const out: Partial<Record<string, string>> = {};
+    for (const [k, v] of Object.entries(value ?? {})) {
+      if (typeof v === 'string' && v !== '') out[k] = v;
+    }
+    this.formTemplates = out;
   }
 
   /** A bath of this lays a coat — a glaze slip (what `dip` reads). */

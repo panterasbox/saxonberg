@@ -150,3 +150,12 @@ sell counter and the returns/empties loop → retail then a glass follow-on;
 the converter/instrument bench → a glass epoch follow-on; decolorisers
 (manganese) and the composed stained panel → glass follow-ons. See the
 glass plan's deferred-seams table.
+
+### `shape` is the platform's (ceramics W4)
+
+`shape` was promoted out of this pack (`platform/cmd/crafting/shape.yaml`):
+the BLOWPIPE plans its gather's two forms (`Blowpipe.shapePlanFor` — bottle
+or cylinder, the blow and the jacks in one move, re-validated at commit, lost
+to cullet if it set), exactly as before, and `shape bottle` binds word for
+word (with no `into`, the one word is the form). A wheel plans a pot through
+the same protocol.

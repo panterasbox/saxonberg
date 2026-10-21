@@ -529,6 +529,61 @@ sweep added a roll of sacking. Offered to
 [metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns
 the fuel chain, as a **stocking** question rather than a mechanism one.
 
+## ⭐ Linings — a chamber furnace's part that wears (ceramics D19, W5)
+
+A chamber furnace is lined with firebrick, and the lining is an assembly
+**part line**, not a stat: `Oven`, `SmeltingFurnace` and `Retort` compose
+`AssembledMixin(DurableMixin(…))` (⛔ not `Firebox` — a lamp, a campfire and
+a clamp have no lining). A row authors the line in its `bill`:
+
+```yaml
+bill:
+  parts:
+    - { part: lining, template: /stuff/thing/firebrick, count: 8, role: wear }
+  joints:
+    - { key: lining, method: dry-laid, members: [lining] }
+```
+
+Shipped counts: the smelting furnace 8, the limekiln 24, the retort 12, the
+commons `Kiln` (the Rejection glasshouse's) 30. The member row is the
+COMMONS `/stuff/thing/firebrick` (generic-objects), so packs that do not
+depend on the ceramics trade can name it; the potter's made firebrick
+`extends:` it and fits the same line by row lineage.
+
+- **Health** — `BurnerMixin.liningHealth()` = `(count − failed − (1 −
+  condition)) ÷ count` over the `lining` line, or `null` with no lining.
+- **The ceiling** — `heatCeilingFactor()` = `0.6 + 0.4 × health` (`1` with
+  no lining) multiplies the vessel ceiling in `getHeldTemperatureK()`: a
+  thinning lining holds less heat, so a worn smelting furnace stops reaching
+  the bloom's heat before it stops lighting.
+- **Wear** — `wearLining(heldK, heldS)`: `fire.lining.wearPerHour` bricks'
+  worth an hour at the lining's own limit (its material's melting point),
+  scaling as `(held ÷ limit)³` — a bread oven barely touches its bricks, a
+  smelting furnace eats them. Worn brick by brick through the shipped
+  `wearLine`, so `failed` counts bricks. `fire` wears it at settle; `smelt`
+  wears it per run.
+- **Burnt through** — below `fire.lining.burntBelow` (0.15) `ignite` refuses
+  `lining-burnt-through`, naming the cure.
+- **Relining** — `fit lining to <furnace>` (or `fit firebrick to …`) with
+  firebrick in reach: the shipped replace arm. ⭐ A LINE word names the part
+  by the line (`FitRequest.line`): the logic takes whatever in reach is the
+  line's row or `extends:` it, and renews as many bricks as burnt through.
+  The `dry-laid` joint row names `masonry`, so relining credits masonry.
+- **The keeper** — `relines` (trade-ceramics brain): on shift, below
+  `ceramics.lining.relineBelow` (0.4) the keeper walks an authored way to
+  the counter, buys what burnt through on the house's card, walks back and
+  fits — every act a literal verb. The Rejection glassblower (glasshouse
+  kiln), smelterman (furnace), collier (retort) and storekeeper (limekiln)
+  carry it; their rooms are `PersistentLocale`s (the quarry pit is already
+  persistable), so a lining's wear survives a restart.
+- ⚠ **Wear runs only where firebrick is sold.** A furnace row with a bill
+  wears wherever it is propped; Terminus's oilworks props the same retort
+  row with no firebrick line and no keeper (a seam for the works build).
+
+**Crucibles** wear too: `SmeltController` wears a crucible
+`ceramics.crucible.wearPerMelt` (0.12, about eight melts) per melt and
+cracks it at broken (a `crack` flaw — it holds nothing).
+
 ## ⭐⭐ An oven on a pipe (the drilling build, 2026-10)
 
 `Oven.fuelSlot()` answers with the interior of a **sealed vessel of

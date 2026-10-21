@@ -1,0 +1,13 @@
+# flask — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/Ware
+data:
+  shortDescription: flask
+  keywords: [flask, bottle]
+  register: indefinite
+  longDescription: >-
+    A small clay flask with a narrow neck.
+  interiorBulk: true
+  interiorCapacity: 0.6
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 0.5

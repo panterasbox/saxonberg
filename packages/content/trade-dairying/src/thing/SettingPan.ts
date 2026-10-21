@@ -19,9 +19,14 @@ import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
 import { FractionatingMixin } from '@saxonberg/server/mud/lib/fractionation/Fractionating';
+import { GreenwareMixin } from '@saxonberg/server/mud/lib/material/Greenware';
+import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
 
-const SettingPanBase = FractionatingMixin(
+// ⭐ (ceramics W4) A setting pan is a potter's piece too: thrown green and
+// fired, so it composes green ware over its own water (the plan read it as
+// already WaterActive; it was not).
+const SettingPanBase = GreenwareMixin(WaterActivityMixin(FractionatingMixin(
   ContaminableMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good)))),
-);
+)));
 
 export default class SettingPan extends SettingPanBase {}

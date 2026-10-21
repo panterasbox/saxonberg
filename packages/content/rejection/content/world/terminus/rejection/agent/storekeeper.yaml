@@ -39,6 +39,17 @@ data:
     - { disposition: compassion, valence: -40 }
     - { disposition: composure, valence: 70 }
   behaviors:
+    # ⭐ (ceramics D20) The storekeeper keeps the quarry's limekiln too: when
+    # its lining has worn thin, firebrick comes off this counter on the
+    # house's card and is carried up to the pit and fitted — every step a
+    # verb a player could type.
+    - brain: /trade/ceramics/behavior/relines
+      trigger: candidate
+      config:
+        furnace: /trade/quarrying/thing/limekiln
+        counter: /world/terminus/rejection/thing/store-counter
+        ways:
+          - { to: /world/terminus/rejection/quarry/pit, go: [east, north, north, northeast, north], back: [south, southwest, southwest, south, west] }
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

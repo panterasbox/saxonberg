@@ -29,6 +29,12 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
+import { Mml } from '../../api/mml';
+import { MessageApi } from '../../api/message';
+import { Quantity } from '../quantity';
+import { DefaultCalendar } from '../time/DefaultCalendar';
+import type { Carvable, CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
+import type { Impressible, ImpressOutcome } from '../craft/Impressible';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
@@ -44,7 +50,14 @@ export type GreenState = 'plastic' | 'leather-hard' | 'bone-dry';
 /** What the weather did to it. */
 export type GreenRuin = 'slumped' | 'shattered' | null;
 
-export interface Greenware {
+/** What a carve word does to a green piece. */
+const CARVINGS: Readonly<Record<string, { line: string; keep: number }>> = {
+  foot: { line: 'a turned foot', keep: 0.95 },
+  trim: { line: 'a trimmed wall', keep: 0.95 },
+  pattern: { line: 'a pattern cut into it', keep: 0.98 },
+};
+
+export interface Greenware extends Carvable, Impressible {
   /** Still unfired clay? (R2 — false from the first rung on.) */
   isGreen(): boolean;
   /** `plastic` · `leather-hard` · `bone-dry`, or `null` once fired. */
@@ -61,6 +74,15 @@ export interface Greenware {
   isFireable(): boolean;
   /** Bring the weather's effects current (called on every read above). */
   reconcileGreen(): void;
+  /** What has been worked on it at leather-hard (a turned foot …). */
+  getGreenWork(): readonly string[];
+}
+
+/** A person's (or anything's) name for a mark, from an identity path. */
+function markName(identity: string): string | null {
+  if (!identity) return null;
+  const who = StuffApi.findByTemplatePath<Stuff>(identity);
+  return who ? who.getPresentation() : null;
 }
 
 function greenDial(key: string, fallback: number): number {
@@ -91,8 +113,26 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   else if (state === 'plastic') line = 'It is green — soft, wet clay that takes a thumbprint.';
   else if (state === 'leather-hard') line = 'It is green and leather-hard: firm enough to trim, still cool and damp.';
   else if (state === 'bone-dry') line = 'It is green and bone-dry: pale, light, and ready for the kiln.';
-  if (line === '') return text;
-  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+  const extra: string[] = [];
+  const work = host.getGreenWork();
+  if (work.length > 0) extra.push(`It has ${work.join(' and ')}.`);
+  // ⭐ The base (ceramics S5): whose mark, and — once fired — when.
+  const mark = MixinApi.isCrafted(host) ? host.getMark() : '';
+  const who = markName(mark);
+  const rec = MixinApi.isThermal(host) ? host.getHeatWork() : null;
+  const firedAt = state === null && rec !== null && rec.lastTransitionAtS !== null ? rec.lastTransitionAtS : null;
+  if (who !== null) {
+    extra.push(
+      firedAt !== null
+        ? `Its base bears ${who}'s mark, and it was fired ${DefaultCalendar.singleton().formatDate(Quantity.of(firedAt, 's'))}.`
+        : `Its base bears ${who}'s mark.`,
+    );
+  } else if (firedAt !== null) {
+    extra.push(`It was fired ${DefaultCalendar.singleton().formatDate(Quantity.of(firedAt, 's'))}.`);
+  }
+  const all = [line, ...extra].filter((l) => l !== '').join(' ');
+  if (all === '') return text;
+  return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
 export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -106,7 +146,128 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       greenCheckedS: { persistent: true, runtimeState: true },
       greenLastDryness: { persistent: true, runtimeState: true },
       greenLastWetness: { persistent: true, runtimeState: true },
+      greenWork: { persistent: true, runtimeState: true },
     };
+
+    /** What was worked on it at leather-hard, in words (survives firing). */
+    public greenWork: string[] = [];
+
+    public getGreenWork(): readonly string[] {
+      return this.greenWork;
+    }
+
+    /**
+     * ⭐ The kernel's carve for a green piece (ceramics W4): trim the wall,
+     * turn a foot, cut a pattern — at LEATHER-HARD only. Too soft, it
+     * smears; too dry, it cracks. Credits pottery.
+     */
+    public async carvePlan(req: CarveRequest): Promise<CarvePlan | CarveRefusal> {
+      const self = this as unknown as Stuff;
+      const word = req.word.trim().toLowerCase();
+      const cut = CARVINGS[word];
+      if (cut === undefined) {
+        return {
+          ok: false,
+          reason: 'not-carvable',
+          line: Mml.compose`You can trim ${Mml.thing(self)}, turn a foot on it, or cut a pattern into it.`,
+        };
+      }
+      const refused = this.leatherHardRefusal('trim');
+      if (refused !== null) return refused;
+      if (req.knife === null) {
+        return {
+          ok: false,
+          reason: 'no-edge',
+          line: Mml.compose`You need an edge to trim with — any knife will do.`,
+        };
+      }
+      const actor = req.actor;
+      return {
+        ok: true,
+        durationMs: 3 * 60 * 1000,
+        effortW: 120,
+        beginSelf: Mml.compose`You set ${Mml.thing(self)} upside down and pare at it with ${Mml.thing(req.knife)}.`,
+        beginPeers: Mml.compose`${Mml.actor(actor)} pares at ${Mml.thing(self)}.`,
+        onComplete: () => {
+          if (self.isDestroyed()) return;
+          if (MixinApi.isTangible(self)) {
+            self.setMass(Quantity.of(self.getMass().rawValue() * cut.keep, 'kg'));
+          }
+          if (!this.greenWork.includes(cut.line)) this.greenWork = [...this.greenWork, cut.line];
+          if (!actor.isDestroyed()) {
+            MessageApi.scene(actor)
+              .topic('act.deed')
+              .toSelf(Mml.compose`The shavings curl away. ${Mml.thing(self)} has ${cut.line} now.`)
+              .send();
+            if (MixinApi.isAdvancing(actor)) {
+              void actor.creditDeed({ discipline: 'pottery', difficulty: 'standard', outcome: 'success' });
+            }
+          }
+        },
+      };
+    }
+
+    /**
+     * ⭐ A leather-hard piece takes a MARK (ceramics S5): the stamp's own
+     * identity — whose mark it is — pressed into the base. A pattern that
+     * answers `markIdentity()` (the potter's stamp) names it; otherwise its
+     * maker does.
+     */
+    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ImpressOutcome> {
+      const self = this as unknown as Stuff;
+      const refused = this.leatherHardRefusal('stamp');
+      if (refused !== null) return refused;
+      if (!MixinApi.isCrafted(self)) {
+        return { ok: false, reason: 'not-markable', line: Mml.compose`There is nowhere on ${Mml.thing(self)} a mark would mean anything.` };
+      }
+      const probe = pattern as unknown as { markIdentity?(): string };
+      const identity =
+        typeof probe.markIdentity === 'function'
+          ? probe.markIdentity()
+          : MixinApi.isCrafted(pattern)
+            ? pattern.getMaker()
+            : '';
+      if (identity === '') {
+        return {
+          ok: false,
+          reason: 'no-mark',
+          line: Mml.compose`${Mml.thing(pattern)} leaves a dent, and no mark anybody would know.`,
+        };
+      }
+      self.setMark(identity);
+      const who = markName(identity) ?? 'its maker';
+      return {
+        ok: true,
+        line: Mml.compose`You press ${Mml.thing(pattern)} into the base of ${Mml.thing(self)}. It takes ${who}'s mark, sharp and clean.`,
+      };
+    }
+
+    /** `null` when the piece is leather-hard and sound; a refusal otherwise. */
+    private leatherHardRefusal(act: 'trim' | 'stamp'): CarveRefusal | null {
+      const self = this as unknown as Stuff;
+      if (this.greenRuin !== null) {
+        return { ok: false, reason: 'ruined', line: Mml.compose`${Mml.thing(self)} is ruined — knead it back and start again.` };
+      }
+      const state = this.greenState();
+      if (state === null) {
+        return { ok: false, reason: 'fired', line: Mml.compose`${Mml.thing(self)} has been fired hard. Nothing will ${act} it now.` };
+      }
+      if (state === 'plastic') {
+        return {
+          ok: false,
+          reason: 'too-soft',
+          line: Mml.compose`${Mml.thing(self)} is too soft to ${act} — it would smear. Let it firm up to leather-hard.`,
+        };
+      }
+      if (state === 'bone-dry') {
+        return {
+          ok: false,
+          reason: 'too-dry',
+          line: Mml.compose`${Mml.thing(self)} is bone-dry — it would crack. That is done at leather-hard.`,
+        };
+      }
+      return null;
+    }
 
     public greenRuin: GreenRuin = null;
     public greenCheckedS = 0;

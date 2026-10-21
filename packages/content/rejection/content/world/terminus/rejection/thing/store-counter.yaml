@@ -62,6 +62,17 @@ data:
     # a sealed vessel, shut* — which is the whole Stage B lesson and is
     # only teachable if the right vessel is buyable nearby.
     - { itemTemplatePath: /trade/fuel/thing/gas-bladder, par: 3 }
+    # ⭐ (ceramics W5) What keeps a furnace: firebrick to reline it — an
+    # IMPORT until the Delight's brickfield supplies it (W6 re-points the
+    # line) — a refractory crucible from the potter, and the two glaze
+    # fluxes no ore here wins.
+    # ⚠ The FIRED commons rows: an import arrives burnt. The pack's
+    # `/trade/ceramics/thing/firebrick` is the green brick a moulder makes
+    # (it `extends:` this one, so it fits the same lining line once fired).
+    - { itemTemplatePath: /stuff/thing/firebrick, par: 40 }
+    - { itemTemplatePath: /trade/smelting/thing/crucible, par: 2 }
+    - { itemTemplatePath: /stuff/thing/lead-pig, par: 2 }
+    - { itemTemplatePath: /stuff/thing/tin-bar, par: 2 }
   # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
   # It was authored as a list first and every `buy` answered *"isn't for
   # sale"*: a `Stock` with stock lines and no prices holds the goods and
@@ -98,3 +109,9 @@ data:
     /trade/quarrying/thing/salt-pan: 16
     /trade/fuel/thing/oil-cask: 7
     /trade/fuel/thing/gas-bladder: 11
+    # A firebrick is cheap and a lining is forty of them; a crucible is
+    # dear and wears with every melt; lead and tin are imports.
+    /stuff/thing/firebrick: 2
+    /trade/smelting/thing/crucible: 15
+    /stuff/thing/lead-pig: 20
+    /stuff/thing/tin-bar: 25

@@ -1886,6 +1886,15 @@ export const AppSettingKeys = {
   greenSlumpWetting: "green.slumpWetting",
   /** Green ware — drying rate (dryness/hour) × crack risk past this cracks it. */
   greenCrackRate: "green.crackRate",
+  /** Fire — ⭐ a lining's wear per hour of firing at its own refractory
+   * limit, in bricks' worth (ceramics D19); it scales as (held ÷ limit)³. */
+  fireLiningWearPerHour: "fire.lining.wearPerHour",
+  /** Fire — a lining whose health has fallen to this is burnt through: the
+   * chamber refuses to light until it is relined. */
+  fireLiningBurntBelow: "fire.lining.burntBelow",
+  /** Green ware — two pieces joined with slip whose dryness differs by more
+   * than this crack where they meet as they dry (ceramics W4). */
+  greenJoinMismatch: "green.joinMismatch",
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",

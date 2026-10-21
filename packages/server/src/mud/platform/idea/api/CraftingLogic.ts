@@ -4204,6 +4204,61 @@ async function rowLineage(path: string): Promise<string[]> {
   return out;
 }
 
+/**
+ * The part in reach that renews `whole`'s line named `word` (ceramics W5):
+ * held first, then the room — the line's own row, or a row that `extends:`
+ * it. Returns the part, or the line's member noun when nothing in reach is
+ * one (for the refusal). Row lineage, never a list of substitutes.
+ */
+async function partInReachFor(
+  whole: Stuff & Assembled,
+  word: string,
+  location: Stuff,
+  maker: Stuff,
+): Promise<Stuff | string> {
+  whole.ensureParts();
+  const w = word.trim().toLowerCase();
+  const line = whole
+    .getParts()
+    .find((l) => l.part.toLowerCase() === w || `${l.part.toLowerCase()}s` === w);
+  if (!line) return w;
+  const pool: Stuff[] = [];
+  if (MixinApi.isContainer(maker)) pool.push(...(maker.getContents() as Stuff[]));
+  if (MixinApi.isContainer(location)) pool.push(...(location.getContents() as Stuff[]));
+  for (const s of pool) {
+    if (s === whole || s === maker || !MixinApi.isTangible(s)) continue;
+    const tpl = s.getTemplatePath() ?? '';
+    if (tpl === '') continue;
+    if (tpl === line.template || (line.template && (await rowLineage(tpl)).includes(line.template))) {
+      return s;
+    }
+  }
+  const row = line.template ? await Template.findByPath(line.template) : null;
+  const noun = (row?.data as { shortDescription?: unknown } | undefined)?.shortDescription;
+  return typeof noun === 'string' && noun !== '' ? noun : line.part;
+}
+
+/** The joint that joins green clay with slip (ceramics W4). */
+const SLIP_JOINT = 'slip';
+
+/**
+ * Why a piece cannot take a slip joint now, or `null` when it can: it must
+ * be green clay at leather-hard (`Greenware.canJoin`).
+ */
+function leatherHardRefusal(piece: Stuff): string | null {
+  if (!MixinApi.isGreenware(piece)) return 'fired';
+  if (!piece.isGreen()) return 'fired';
+  if (piece.getRuin() !== null) return 'ruined';
+  if (piece.canJoin()) return null;
+  return piece.greenState() === 'plastic' ? 'too-soft' : 'too-dry';
+}
+
+/** Game-seconds now, or 0 before a clock runs. */
+function nowGameS(): number {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
+  return WorldClockApi.getNow().rawValue();
+}
+
 /** The joint vocabulary — loaded on first use (`singleton` is the get-or-create). */
 async function jointCatalogue(): Promise<JointCatalogue> {
   return StuffApi.singleton<JointCatalogue>(TemplatePaths.jointCatalogue);
@@ -4295,7 +4350,17 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   }
 
   const whole = req.whole ?? null;
-  const part = req.part ?? null;
+  // ⭐ (ceramics W5) A LINE named instead of a part — `fit lining to
+  // furnace`: the part is whatever in reach is that line's kind of thing.
+  let byLine: Stuff | null = null;
+  if (!req.part && whole && req.line && MixinApi.isAssembled(whole) && !whole.isOnePiece()) {
+    const found = await partInReachFor(whole, req.line, location, maker);
+    if (typeof found === 'string') {
+      return { ok: false, reason: 'insufficient-input', detail: `line:${found}` };
+    }
+    byLine = found;
+  }
+  const part = req.part ?? byLine;
   if (!whole || !part) return { ok: false, reason: 'insufficient-input', detail: 'nothing-to-fit' };
   if (!MixinApi.isAssembled(whole)) {
     return { ok: false, reason: 'no-line', detail: 'not-an-assembly' };
@@ -4337,6 +4402,22 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     if (!row) continue;
     const gate = await jointGate(maker, row, tools);
     if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
+  }
+  // ⭐ (ceramics W4) A SLIP joint joins green clay to green clay, and only
+  // at leather-hard — both sides. A much wetter part shrinks more than its
+  // body as they dry, and the join cracks.
+  const slipped = jointsOf(whole, line.part).some((j) => j.method === SLIP_JOINT);
+  let slipMismatch = false;
+  if (slipped) {
+    for (const piece of [whole, part]) {
+      const refused = leatherHardRefusal(piece);
+      if (refused) return { ok: false, reason: 'not-leather-hard', detail: refused };
+    }
+    if (MixinApi.isGreenware(whole) && MixinApi.isGreenware(part)) {
+      slipMismatch =
+        Math.abs(whole.dryness() - part.dryness()) >
+        dial(AppSettingKeys.greenJoinMismatch, 0.25);
+    }
   }
 
   const stack = MixinApi.isStackable(part);
@@ -4384,6 +4465,23 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     ...(partCondition !== undefined ? { condition: partCondition } : {}),
     ...carried,
   });
+  // ⭐ (ceramics D29) A joint that names its trade credits it: relining a
+  // furnace with dry-laid firebrick is MASONRY practice.
+  if (MixinApi.isAdvancing(maker)) {
+    const credited = new Set<string>();
+    for (const j of jointsOf(whole, line.part)) {
+      const row = await cat.warmed(j.method);
+      const d = row?.competence?.discipline ?? '';
+      if (d === '' || credited.has(d)) continue;
+      credited.add(d);
+      await maker.creditDeed({ discipline: d, difficulty: 'standard', outcome: 'success' });
+    }
+  }
+  // ⭐ The mismatched slip join: a crack that opens where the two meet as
+  // they dry — a drying crack (`check`) on the whole, seen.
+  if (slipMismatch && MixinApi.isTangible(whole)) {
+    whole.addFlaw('check', true, nowGameS());
+  }
   // The whole is as good as its worst line (weakest link).
   if (MixinApi.isGraded(whole)) {
     const worst = whole

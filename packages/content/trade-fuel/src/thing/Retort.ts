@@ -37,11 +37,14 @@
 import Firebox from '@saxonberg/server/mud/lib/fire/Firebox';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
+import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 
-const RetortBase = ContainerMixin(PlacingMixin(Firebox));
+// ⭐ Made of parts (ceramics D19): its lining wears with every charge.
+const RetortBase = AssembledMixin(DurableMixin(ContainerMixin(PlacingMixin(Firebox))));
 
 /** What a receiver placed on the head answers to. */
 interface VolatileReceiver {

@@ -1,0 +1,81 @@
+/**
+ * `shape` is dumb (ceramics D14): the instrument plans, else the material
+ * plans by hand; `shape bottle` (no `into`) reads its one word as the form —
+ * the glassblower's line, word for word.
+ */
+
+import '../../../../../../test-bootstrap';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import ShapeController from '../ShapeController';
+import Good from '../../../../../lib/stuff/Good';
+import { Mml } from '../../../../../api/mml';
+import { ExecutionContextApi } from '../../../../../api/execution-context';
+import type { ShapeRequest } from '../../../../../lib/craft/Shapeable';
+import type { CommandContext } from '../../../../../api/command';
+import { TestActor, standUpBranchHarness, makeContext } from './branch-fixtures';
+import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+
+class Pipe extends Good {
+  public seen: ShapeRequest | null = null;
+  public async shapePlanFor(req: ShapeRequest) {
+    this.seen = req;
+    return { ok: true as const, durationMs: 1, effortW: 1, beginSelf: Mml.compose`go`, onComplete: () => {} };
+  }
+}
+class Idle extends Good {
+  public async shapePlanFor() {
+    return null;
+  }
+}
+class Lump extends Good {
+  public asked = false;
+  public async shapePlan() {
+    this.asked = true;
+    return { ok: false as const, reason: 'too-dry', line: Mml.compose`too dry` };
+  }
+}
+
+let actor: TestActor;
+let room: TestActor;
+
+beforeEach(async () => {
+  await standUpBranchHarness();
+  room = makeStuff(() => new TestActor());
+  actor = makeStuff(() => new TestActor());
+});
+afterEach(() => vi.restoreAllMocks());
+
+async function shape(model: Record<string, unknown>): Promise<CommandContext> {
+  const ctx = makeContext(actor, room, 'shape');
+  await ExecutionContextApi.runRoot(null, 'test', async () => {
+    await makeStuff(() => new ShapeController()).execute(model as never, ctx);
+  });
+  return ctx;
+}
+
+const declined = (c: CommandContext) =>
+  c.getNotes().find((n) => n.kind === 'controller-rejected')?.reason;
+
+describe('shape asks; it never decides', () => {
+  it('⭐ `shape bottle`: the bare word is the FORM, and the pipe plans it', async () => {
+    const pipe = makeStuff(() => new Pipe());
+    await shape({ material: { stuff: null, raw: 'bottle' }, instrument: { stuff: [pipe] } });
+    expect(pipe.seen?.formText).toBe('bottle');
+    expect(pipe.seen?.material).toBeNull();
+  });
+
+  it('an instrument with nothing to say passes; the material plans by hand', async () => {
+    const lump = makeStuff(() => new Lump());
+    const ctx = await shape({
+      material: { stuff: lump, raw: 'clay' },
+      instrument: { stuff: [makeStuff(() => new Idle())] },
+      form: 'open vessel holding 2 pints',
+    });
+    expect(lump.asked).toBe(true);
+    expect(declined(ctx)).toBe('too-dry');
+  });
+
+  it('nothing to shape and nothing to shape it on is refused in words', async () => {
+    expect(declined(await shape({ form: 'mug' }))).toBe('nothing-to-shape');
+  });
+});

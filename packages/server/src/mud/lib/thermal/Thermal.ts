@@ -1527,7 +1527,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const reducing =
         rec.atmosphere.weight > 0 &&
         rec.atmosphere.completeness <
-          heatWorkDial(AppSettingKeys.thermalHeatWorkReducingBelow, 0.55);
+          heatWorkDial(AppSettingKeys.thermalHeatWorkReducingBelow, 0.6);
       const out = t.outcomeAt(conv.rung, {
         peakK: rec.peakK,
         agentFraction: this.agentFractionFor(t),

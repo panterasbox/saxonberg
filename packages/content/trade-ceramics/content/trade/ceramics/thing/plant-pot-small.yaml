@@ -1,0 +1,11 @@
+# small plant pot — the pottery's plant pot (ceramics W4): a bed with one slot,
+# thrown green and fired; the general store buys them (W6).
+class: /trade/ceramics/thing/FlowerPot
+data:
+  shortDescription: small plant pot
+  keywords: [pot, "plant pot", "flower pot"]
+  register: indefinite
+  longDescription: >-
+    A clay flower pot with a hole in the bottom.
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 0.6
