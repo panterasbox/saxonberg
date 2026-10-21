@@ -117,6 +117,14 @@ export default class SoapKettle extends MaturingMixin(CraftVessel) {
     for (const lump of lime) void StuffApi.destruct(lump);
     this.depositHeat(kg * perKg);
     this.rekeyBatch(MILK_OF_LIME);
+    // ⭐ Slaking is loud: the room sees and hears it.
+    if (actor) {
+      MessageApi.scene(actor)
+        .topic('act.deed')
+        .toSelf(Mml.compose`The lime hisses and heaves as the water takes it, and the kettle fills with steam and a hot white milk.`)
+        .toPeers(Mml.compose`The lime in ${Mml.thing(this as unknown as Stuff)} hisses and heaves, throwing up steam.`)
+        .send();
+    }
     if (actor && burnt && MixinApi.isAttired(actor)) {
       const gloved = actor.handSites().some((h) => actor.outermostAt(h) !== null);
       const site = actor.handSites()[0];

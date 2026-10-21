@@ -40,6 +40,7 @@ import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { MouldMixin } from '@saxonberg/server/mud/lib/mould/Mould';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -53,6 +54,14 @@ const BLACK_SALTS = '/trade/potash/idea/material/black-salts';
 const POTASH = '/stuff/idea/material/mineral/potash';
 /** The share of a cake of black salts that is potash (the rest char, iron, damp). */
 const PURITY = 0.65;
+/**
+ * ⭐ Saturation, kg of potash per litre (potassium carbonate dissolves about
+ * 1.1 kg in a litre of hot water). A lye boiled down to this is salts with
+ * a little water in them: what is left SETS as the cake. (Found by the
+ * drive: the plateau boils the last of a liquor ever more slowly and never
+ * quite to nothing, so a cake waiting for "dry" never came.)
+ */
+const SATURATED_KG_PER_L = 1.1;
 
 const IronPotBase = MouldMixin(DurableMixin(CraftVessel));
 
@@ -97,6 +106,16 @@ export default class IronPot extends IronPotBase {
           this.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: this.alkaliKg / litres });
         }
         this.lastSeenL = litres;
+        // ⭐ Boiled down to saturation: the salts set out of what is left.
+        if (this.alkaliKg > 0 && this.alkaliKg / litres >= SATURATED_KG_PER_L) {
+          const kg = this.alkaliKg;
+          this.alkaliKg = 0;
+          this.lastSeenL = 0;
+          this.setBulkAmount('interior', Quantity.of(0, 'L'));
+          this.setBulkMaterial('interior', null);
+          this.setBulkPayload('interior', null);
+          void this.setCake(kg);
+        }
         return;
       }
       if (litres <= 0 && this.alkaliKg > 0) {

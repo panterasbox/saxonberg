@@ -91,6 +91,17 @@ describe('the iron pot', () => {
     expect(p.getAlkaliKg()).toBe(0);
   });
 
+  it('⭐ boiled down to SATURATION the salts set — it need not reach dry', () => {
+    const p = pot(30, 0.06); // 1.8 kg of alkali
+    p.getContents();
+    boilTo(p, 2); // 0.9 kg/L — not yet
+    expect(cast).not.toHaveBeenCalled();
+    boilTo(p, 1.5); // 1.2 kg/L — past saturation
+    expect(cast).toHaveBeenCalledTimes(1);
+    expect((cast.mock.calls[0]![0] as { massKg: number }).massKg).toBeCloseTo(1.8 / 0.65, 6);
+    expect(p.getBulkAmount('interior').rawValue()).toBe(0);
+  });
+
   it('⭐ a weak lye boiled the same way leaves a third of the cake (AC 5, AC 6)', () => {
     const p = pot(30, 0.02);
     p.getContents();

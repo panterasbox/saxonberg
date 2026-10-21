@@ -666,6 +666,14 @@ export class BulkableLogic extends ApiLogic {
       fromHolder.setContentsTemperature(fromHolder.getTemperature().rawValue());
     }
 
+    // ⭐ …and a maturing DESTINATION keys its batch now, while the pourer
+    // is the acting author (found by the potash drive): a fill's transform
+    // — lime slaking in a kettle, a hopper's leach — ran at the next read,
+    // with nobody's hand in it and nobody there to see it.
+    if (applied > 0 && toHolder !== null && MixinApi.isMaturing(toHolder)) {
+      toHolder.reconcileFerment();
+    }
+
     const clampedShort =
       amount.kind === 'measure' && applied < amount.litres;
     const status: TransferStatus | undefined = clampedShort
