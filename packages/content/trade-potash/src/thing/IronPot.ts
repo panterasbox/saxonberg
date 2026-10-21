@@ -47,6 +47,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { UNMEASURED_LYE_KG_PER_L } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
+import type { ChattelOwner } from '@saxonberg/server/mud/lib/chattel/ChattelRecord';
 
 /** What a boiled-dry lye leaves. */
 const BLACK_SALTS = '/trade/potash/idea/material/black-salts';
@@ -109,21 +110,23 @@ export default class IronPot extends IronPotBase {
         // ⭐ Boiled down to saturation: the salts set out of what is left.
         if (this.alkaliKg > 0 && this.alkaliKg / litres >= SATURATED_KG_PER_L) {
           const kg = this.alkaliKg;
+          const owner = payload?.contentsOwner ?? null;
           this.alkaliKg = 0;
           this.lastSeenL = 0;
           this.setBulkAmount('interior', Quantity.of(0, 'L'));
           this.setBulkMaterial('interior', null);
           this.setBulkPayload('interior', null);
-          void this.setCake(kg);
+          void this.setCake(kg, owner);
         }
         return;
       }
       if (litres <= 0 && this.alkaliKg > 0) {
         // ⭐ Boiled dry: the water is gone and the salts are left.
         const kg = this.alkaliKg;
+        const owner = this.getBulkPayload('interior')?.contentsOwner ?? null;
         this.alkaliKg = 0;
         this.lastSeenL = 0;
-        void this.setCake(kg);
+        void this.setCake(kg, owner);
         return;
       }
       if (litres <= 0) this.lastSeenL = 0;
@@ -132,7 +135,12 @@ export default class IronPot extends IronPotBase {
     }
   }
 
-  private async setCake(alkaliKg: number): Promise<void> {
+  /**
+   * ⭐ The cake is whose the lye was (the communal-oven rule) — yours in
+   * the ashery's pot — and nobody's when the lye was nobody's: it sets when
+   * somebody READS the pot, and that onlooker is never its owner.
+   */
+  private async setCake(alkaliKg: number, owner: ChattelOwner | null): Promise<void> {
     const material = StuffApi.findByTemplatePath<Material>(BLACK_SALTS);
     if (!material) {
       console.warn(`IronPot: no material at '${BLACK_SALTS}' — the salts are lost`);
@@ -140,7 +148,7 @@ export default class IronPot extends IronPotBase {
     }
     const self = this as unknown as Stuff;
     const grade: Grade | null = MixinApi.isGraded(self) ? self.getGrade() : null;
-    const cake = await this.castInto({ material, massKg: alkaliKg / PURITY, payload: null, stampMaterial: true });
+    const cake = await this.castInto({ material, massKg: alkaliKg / PURITY, payload: null, stampMaterial: true, madeBy: owner });
     if (cake === null) return;
     if (MixinApi.isComposition(cake)) cake.setAlloying([{ materialPath: POTASH, fraction: PURITY }]);
     // ⭐ The cake is graded as the lye was (AC 3): the pour carried the

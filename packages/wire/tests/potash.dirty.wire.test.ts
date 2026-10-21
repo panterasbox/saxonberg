@@ -748,9 +748,10 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     expect(glass, `fire the glass batch: ${glass}`).not.toMatch(/no recipe|nothing it can|matches a firing|stone cold/i);
     expect(glass, `fire the glass batch: ${glass}`).toMatch(/seal|settle|hold it/i);
     // ⭐ Last, so the batch above is observed whatever this says: the
-    // glassblower buys the pearl ash drive 10 fired. ⚠ OPEN (drive 19): a
-    // firing completes after its command, so its output is titled to
-    // nobody and falls to the parcel rung — "That is not yours to sell."
+    // glassblower buys the pearl ash drive 10 fired. ⭐ It is YOURS: your
+    // heaps made your lye, your lye your cake in the ashery's pot (the
+    // communal oven), your cake your pearl ash — drive 19 found it titled
+    // to nobody ("That is not yours to sell").
     const sold = await say(s, 'sell "pearl ash"');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ sold to the glassblower: ${sold}`);

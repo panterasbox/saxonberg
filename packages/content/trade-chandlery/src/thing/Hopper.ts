@@ -32,6 +32,7 @@ import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ContentsTitle } from '@saxonberg/server/mud/lib/chattel/ContentsTitle';
 
 /** The profile a hopper of water and ash runs. */
 const LEACH = 'lye-leach';
@@ -106,7 +107,18 @@ export default class Hopper extends ContainerMixin(Vat) {
       payload?.dissolvedSolidsKgPerL ??
       (this.getBulkMaterial('interior')?.hasTag('lye') ? UNMEASURED_LYE_KG_PER_L : 0);
     const kgPerL = carried + (alkaliKg / litres) * kept;
-    this.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: kgPerL });
+    // ⭐ The lye is whose the ash was (the communal-oven rule): your heaps
+    // in the ashery's hopper make your lye. Rain makes no claim; heaps of
+    // two owners make it nobody's.
+    const title = ash.reduce((t, heap) => {
+      const o = MixinApi.isChattel(heap) ? heap.stampedOwner() : null;
+      return o && o.kind !== 'group' ? t.with(o) : t;
+    }, new ContentsTitle(payload?.contentsOwner));
+    this.setBulkPayload('interior', {
+      ...(payload ?? {}),
+      dissolvedSolidsKgPerL: kgPerL,
+      contentsOwner: title.claimed(),
+    });
     this.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
     for (const heap of ash) {
       this.spending.add(heap);

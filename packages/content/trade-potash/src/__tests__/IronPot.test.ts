@@ -102,6 +102,19 @@ describe('the iron pot', () => {
     expect(p.getBulkAmount('interior').rawValue()).toBe(0);
   });
 
+  it('⭐⭐ the cake is whose the LYE was — the communal oven — and nobody\'s when it was nobody\'s', () => {
+    const mine = { kind: 'player' as const, templatePath: '/platform/agent/Avatar/alice' };
+    const p = pot(30, 0.06);
+    p.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.06, contentsOwner: mine });
+    p.getContents();
+    boilTo(p, 1.5);
+    expect((cast.mock.calls[0]![0] as { madeBy?: unknown }).madeBy).toEqual(mine);
+    const q = pot(30, 0.06); // rain and nobody's ash
+    q.getContents();
+    boilTo(q, 1.5);
+    expect((cast.mock.calls[0]![0] as { madeBy?: unknown }).madeBy).toBeNull();
+  });
+
   it('⭐ a weak lye boiled the same way leaves a third of the cake (AC 5, AC 6)', () => {
     const p = pot(30, 0.02);
     p.getContents();

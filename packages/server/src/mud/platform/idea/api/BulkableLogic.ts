@@ -40,6 +40,7 @@ import type {
 import type {} from '../../../lib/cleanliness/WaterHardness';
 // The `dissolvedSolidsKgPerL` payload field is declared by LyeStrength's merge.
 import { UNMEASURED_LYE_KG_PER_L } from '../../../lib/cleanliness/LyeStrength';
+import { ContentsTitle } from '../../../lib/chattel/ContentsTitle';
 
 const BULK_FIELD = 'bulk';
 
@@ -606,6 +607,18 @@ export class BulkableLogic extends ApiLogic {
             blood: new Blood(toPayload.blood).blend(fromPayload.blood),
           });
         }
+      }
+
+      // ⭐ Whose the liquid is blends by AGREEMENT (the communal-oven rule,
+      // `ContentsTitle`): your lye topped up with rain is still yours; your
+      // lye poured into somebody else's is nobody's. An empty destination
+      // took the source's whole payload above.
+      if (!toWasEmpty && fromPayload && 'contentsOwner' in fromPayload) {
+        const held = to.getPayload();
+        to.setPayload({
+          ...(held ?? {}),
+          contentsOwner: new ContentsTitle(held?.contentsOwner).with(fromPayload.contentsOwner).claimed(),
+        });
       }
 
       // ⭐ A lye's strength blends by VOLUME (potash D5): a pail of weak

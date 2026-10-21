@@ -524,6 +524,15 @@ tree already used — `Engaged`, `CombatSession`, `AbortReason` and
 subsystem but `lib/material`, and `pnpm lint:imports` holds that.
 
 
+### Whose a liquid is — `contentsOwner` (potash build)
+
+A liquid bears no title, so whose it is rides its payload:
+`contentsOwner`, declared by chattel (`lib/chattel/ContentsTitle.ts`).
+An empty destination takes the source's payload whole; a top-up blends by
+**agreement** — untitled water makes no claim, two owners make it
+nobody's. A pour into a full vessel says so (*"… is already full"*), not
+*"nothing to pour"*. See [chattel.md](./chattel.md) § the communal oven.
+
 ## MQL surface
 
 A holder's bulk is a non-Stuff facet reached exactly like a `Detail`:

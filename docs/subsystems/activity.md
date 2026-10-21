@@ -384,6 +384,17 @@ scheduler CALLS; the Api methods are the scheduler being TOLD to run a
 transition.** Different direction, different owner — and a verb pair
 (`cancel`/`complete`) split across two homes would be the worse read.
 
+### ⭐ The continuation knows who acted (potash build)
+
+An engagement's completion and its emissions run on fresh roots, after the
+command that started them has returned. The registry captures the
+starter (`ExecutionContextApi.getCausingAuthor()` at `start`) and plants it
+as `causingAuthor` on those roots — the same leg `ScheduleApi` carries for
+a plain deferred callback beside `causingCommandId`. What a durative act
+makes when it finishes is therefore its actor's (the firing an hour after
+`fire kiln`). A forced start (a brain's act) carries no author. See
+[chattel.md](./chattel.md).
+
 ## EngagedMixin
 
 `EngagedMixin` (`lib/activity/Engaged.ts`) is the actor-side
