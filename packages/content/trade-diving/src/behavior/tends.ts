@@ -9,7 +9,7 @@
  * verb a player types (`pull line`), a band at a time.
  *
  * config: `{ silenceS?: number }` — how long a limp diver is left before
- * the tender starts hauling (default 20 game-seconds).
+ * the tender starts hauling (default 20 real seconds).
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -39,7 +39,9 @@ export const brain = class {
     if (!line) return;
     const diver = line.getOnEnd();
     if (diver === null || diver === host) return;
-    const nowS = WorldClockApi.getNow().rawValue();
+    // Real seconds, like the line's own signal window and the breath.
+    const scale = WorldClockApi.getScale();
+    const nowS = WorldClockApi.getNow().rawValue() / (Number.isFinite(scale) && scale > 0 ? scale : 1);
     const signal = line.lastSignal();
     if (signal !== null && signal.tugs === 2) {
       await host.executeCommand('pull line');

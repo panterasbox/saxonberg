@@ -65,7 +65,11 @@ const PULL_MPS = 0.6;
 /** The quay steps at the top: getting a body up them and out, real seconds. */
 const STEPS_S = 5;
 
-/** Tugs this close together are one signal, game-seconds. */
+/**
+ * Tugs this close together are one signal, REAL seconds — the line is a
+ * player at a keyboard, like the breath (finalize sweep: at 20 game-seconds
+ * two tugs had to land within 1.7 real seconds to read as "haul me up").
+ */
 const SIGNAL_WINDOW_S = 20;
 
 /** What a line signal means, by its count of tugs. */
@@ -413,9 +417,11 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     };
   }
 
+  /** Real seconds now — game time over the world's rate (as the breath reads). */
   private nowS(): number {
     try {
-      return WorldClockApi.getNow().rawValue();
+      const scale = WorldClockApi.getScale();
+      return WorldClockApi.getNow().rawValue() / (Number.isFinite(scale) && scale > 0 ? scale : 1);
     } catch {
       return 0;
     }

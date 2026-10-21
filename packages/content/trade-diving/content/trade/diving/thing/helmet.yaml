@@ -15,8 +15,13 @@ data:
   mass: 15
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/bulk/air
-  interiorCapacity: 30
+  # ⭐ About a minute of air at the surface (forty seconds at the basin's
+  # bed) once the pump stops — the hard-hat diver lives on the pump. The
+  # worn-air tap is real seconds (TANK_TAP_PER_SEC, 1/30 × the ambient
+  # atm); at 30 units the helmet lasted a quarter of an hour unpumped
+  # (finalize sweep). A spell at the pump fills it.
+  interiorCapacity: 2
   closure: sealed
-  interiorAmount: 30
+  interiorAmount: 2
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [head]

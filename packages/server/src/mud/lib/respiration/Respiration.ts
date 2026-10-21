@@ -62,8 +62,14 @@ import { RespirationDrain, RespirationRecovery, RespirationTread } from './Respi
  * Every respiration dial as a module const-object (the
  * `METABOLIC_DEFAULTS` precedent). All magnitudes are defensible
  * playtest defaults — the structure is the deliverable, the rates are
- * tuned. Times are GAME-seconds; `*_PER_SEC` are `%`-points per
- * game-second. **Rates are playtest-tuned, not plan decisions.**
+ * tuned. ⭐ Times are REAL seconds, and `*_PER_SEC` are per real second:
+ * every interval is read on `respirationNowSeconds`, game time over the
+ * world's rate (the underwater build — a held breath is something the
+ * player does at the keyboard). Where a value says "game-second" below it
+ * predates that and now reads as real; `EMISSION_INTERVAL_MS` is the one
+ * game-time dial (the tick cadence). Handed to a game-time clock (the
+ * dying window), a duration is multiplied by the rate.
+ * **Rates are playtest-tuned, not plan decisions.**
  */
 export const RESPIRATION_DEFAULTS = {
   /** Game-ms per drain/recovery emission tick (→ `WorldClockApi.every`). */
@@ -104,9 +110,11 @@ export const RESPIRATION_DEFAULTS = {
   HYPERVENTILATE_WINDOW_SEC: 10,
   /**
    * How far each hyperventilating breath lowers where the urge starts.
-   * ⭐ Three fast breaths must silence the warning entirely (requirements
-   * drive step 4: "you black out WITH NO WARNING" — the browser walk
-   * found one warning still came at 0.15 / −0.45, at 95% of the hold).
+   * ⭐ Three fast breaths AFTER the first silence the warning entirely —
+   * four `inhale`s, since the first is never quick (requirements drive
+   * step 4: "you black out WITH NO WARNING"; the browser walk found one
+   * warning still came at 0.15 / −0.45, at 95% of the hold, and the final
+   * walk that three inhales still give one).
    */
   HYPERVENTILATE_URGE_STEP: 0.2,
   /** The lowest the urge can be pushed down (it starts there). */
