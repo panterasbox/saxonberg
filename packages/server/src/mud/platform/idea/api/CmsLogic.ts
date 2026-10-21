@@ -8,6 +8,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../api/source-tree';
 import { TemplateApi } from '../../../api/template';
 import type { FillDescription } from '../../../api/template';
+import { DiagnosticApi } from '../../../api/diagnostics';
 import { HotReloadApi } from '../../../api/hot-reload';
 import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
@@ -682,6 +683,15 @@ export class CmsLogic extends ApiLogic {
     // sandbox) — let it propagate; the REST layer maps it to 400.
     const abs = sourceAbs(path);
     await SourceTreeApi.write(abs, body);
+
+    // Type-check the saved file out of process, in the background: the
+    // swap below never waits on it, and the live author push carries the
+    // verdict (tsx strips types, so the reload alone cannot).
+    if (abs.endsWith('.ts')) {
+      void DiagnosticApi.typecheck(abs, { live: true }).catch((err: Error) =>
+        console.warn(`type-check of ${abs} not run: ${err.message}`)
+      );
+    }
 
     try {
       await HotReloadApi.reload(abs);

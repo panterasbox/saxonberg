@@ -108,7 +108,13 @@ holds in dev, test and prod. `reload <target>` accepts a **class path**
 `StuffApi.resolveClassFile` — the kernel tree, or a capability pack's
 `src/` (content-packs.md § The capability rung) — before falling back to
 the workspace-logical join; `pack sync <id>` reloads a pack's changed
-`src/` files the same way before re-hydrating its rows.
+`src/` files the same way before re-hydrating its rows. Because tsx strips types without
+checking them, the `reload` verb then type-checks the reloaded file out
+of process (`--no-check` skips it, `--strict` checks first and refuses on
+errors, and `typecheck` checks without swapping): see
+[diagnostics.md](./diagnostics.md) § Producer 3. `HotReloadApi.reload`
+itself never checks, because pack sync, the scheduler and the clone path
+reload modules too.
 
 ## Integration
 

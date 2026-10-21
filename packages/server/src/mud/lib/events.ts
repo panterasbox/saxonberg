@@ -130,11 +130,12 @@ export interface EventPayloads {
    */
   [Events.RelayMessage]: RelayMessageEvent;
   /**
-   * One structured diagnostic recording (runtime guard / compile watcher),
-   * fired per live row by `DiagnosticApi.record`/`recordDiagnostics`. The
-   * boot-registered author-push listener (`DiagnosticApi.startRouter`)
-   * consumes it to notify the content's author; the CMS-delta seam is a
-   * future subscriber. Cold-start compile rows are `live:false` and fire
+   * One structured diagnostic recording (runtime guard / per-file type-check),
+   * fired per live row by `DiagnosticApi.record`/`recordDiagnostics`/
+   * `typecheck`. The boot-registered author-push listener
+   * (`DiagnosticApi.startRouter`) consumes it to notify the content's
+   * author; the CMS-delta seam is a future subscriber. A compile batch
+   * recorded `live:false` (a verb that reports its own result) fires
    * nothing.
    */
   [Events.Diagnostic]: DiagnosticEvent;
