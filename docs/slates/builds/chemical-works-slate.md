@@ -21,7 +21,7 @@
 | parting gold from silver | nitric acid | [gems-and-precious-metals-slate](./gems-and-precious-metals-slate.md) § 4 |
 | coprolite superphosphate | sulfuric acid | [stratigraphy-and-finds-slate](./stratigraphy-and-finds-slate.md) § 2 |
 | etching | acid | [paper-and-printing-slate](./paper-and-printing-slate.md) § 5 |
-| celluloid | nitric acid | a plastics slate, not yet designed |
+| celluloid | nitric acid | [plastics-slate](./plastics-slate.md) § 5 |
 | carbonation CO₂ (chalk + vitriol) | sulfuric acid | [cannery-and-bottling-slate](./cannery-and-bottling-slate.md) § 6 |
 | glass, soap | soda | glass, chandlery |
 | paper, textiles | bleach | paper, textiles |
