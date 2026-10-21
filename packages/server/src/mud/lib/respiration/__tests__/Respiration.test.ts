@@ -464,6 +464,23 @@ describe('RespirationMixin — the crisis core', () => {
     expect(dying12.mock.calls[0]![1] as number).toBeCloseTo(unscaled * 12, 5);
   });
 
+  it('⭐⭐ brought up into air inside the window, a drowning body is rescued — the dying record goes (underwater walk)', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('water'));
+    const deep = { tag: 'water', substance: 'water', immersed: true, atSurface: false, temperatureK: 285, depthM: 4, waterRef: null };
+    const read = vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(deep as never);
+    await c.reassess();
+    for (let i = 0; i < 300 && !c.isDying(); i++) tick(1);
+    expect(c.isDying()).toBe(true);
+    // Hauled out: air again.
+    read.mockRestore();
+    ContainmentApi.move(c, room('air'));
+    await c.reassess();
+    tick(40);
+    expect(c.isDying()).toBe(false);
+    expect(c.getConsciousness()).toBe('conscious');
+  });
+
   it('respires opt-out: a non-respiring body never engages a drain', async () => {
     const construct = bodyWith({ respires: false });
     ContainmentApi.move(construct, room('water'));

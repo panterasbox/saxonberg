@@ -422,6 +422,8 @@ export interface Vitals {
    * in a snowdrift buys them time, not a life.
    */
   stabilize(): boolean;
+  /** What the body is dying of (the `dying` record's cause), or null. */
+  getDyingCause(): string | null;
 
   // ---------- the material fork family (see MATERIAL_FORK_SLICES) ----------
   forkSlice_Vitals(): unknown;
@@ -984,6 +986,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!record) return false;
       this.relieve(record);
       return true;
+    }
+
+    public getDyingCause(): string | null {
+      return this.dyingRecord()?.cause ?? null;
     }
 
     /**

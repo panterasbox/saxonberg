@@ -168,6 +168,11 @@ export const RESPIRATION_DEFAULTS = {
   DYING_WINDOW_SEC: 90,
 };
 
+/** The deaths that are the breath's own — air rescues them. */
+const BREATH_DEATHS: ReadonlySet<string> = new Set(
+  Object.values(RESPIRATION_DEFAULTS.DEATH_CAUSE_BY_CAUSE),
+);
+
 /** The urge crossings, and what the body says at each (`self.body`). */
 const URGE_CUES: ReadonlyArray<readonly [number, string]> = [
   [0.5, 'You want to breathe.'],
@@ -1009,6 +1014,18 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.reconcileStore(nowS, true);
       this._co2Urge = 0;
       this._urgeCued = 0;
+
+      // ⭐⭐ Air is the rescue for a death that was the breath's own (found
+      // by the underwater browser walk: a diver hauled out on the hose
+      // inside the window stayed "unconscious" on the quay, because the
+      // dying record outranks the blood's oxygen, and would have died
+      // there). Breathing again with the blood back above the floor
+      // stabilizes it — rescued, not healed: the water in the lungs
+      // follows below.
+      if (next > survivableMin && MixinApi.isVitals(self)) {
+        const dyingOf = self.getDyingCause();
+        if (dyingOf !== null && BREATH_DEATHS.has(dyingOf)) self.stabilize();
+      }
 
       // Regained consciousness → gasp cue, once.
       if (this._blackoutCued && next > survivableMin) {
