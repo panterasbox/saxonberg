@@ -98,8 +98,11 @@ export default class AirBag extends BuoyMixin(BulkableMixin(Good)) {
     }
     const top = place.surfacePlace();
     if (top === null) return { ok: false, reason: 'no-surface', line: 'There is nowhere for it to rise to.' };
-    ContainmentApi.move(load as never, top as Stuff & Container);
+    // The bags go up FIRST: a water asks what buoys a thing the moment it
+    // arrives, and an anchor that reached the surface before its bags was
+    // sunk straight back to the bed (the finalize drive, run 43).
     for (const bag of [this, ...others]) ContainmentApi.move(bag as never, top as Stuff & Container);
+    ContainmentApi.move(load as never, top as Stuff & Container);
     return { ok: true, line: `You lash it to ${load.getPresentation()}. The pair lift off the bottom and go up through the water, slowly, then faster.` };
   }
 }
