@@ -1572,11 +1572,19 @@ two owned boots died: one SIGTERMed during boot (a sibling's preflight /
 `tools/panic` reaches every worktree), one past the 420 s budget under
 contention — rerun with `WIRE_BOOT_TIMEOUT=1200000` on a quiet machine.)*
 
-**Passed on a fresh world so far:** steps 1–3 (two bundles of beech brash →
-**2 heaps, 0.777 kg, "strong ash"**, no number) and step 5 (a wide-open
-clamp of four lengths opened on **one heap of 0.032 kg** — sized to the
-charge, not the old 0.6 kg drift). Steps 4 and 6–16 have run but not yet
-against one clean, uninterrupted world after the fixes below.
+**Run 19 (2026-10-21, fresh world, master merged at `56e238df2`): 10 of
+13.** Passed: 1–3 (beech brash → strong ash, no number), 4 (pine weaker), 5
+(a wide clamp's ash sized to the charge), 6–8 (the egg ranks; a second pass
+rides higher; Kestrel water reads weaker than rain), **9** (both pots set, at
+hours 10 and 11; **0.710 kg of black salts from the strong lye, 0.301 kg from
+the weak one: the weak lye's potash cost 2.4× the wood per kilo**, AC 5's fuel
+half), **10** (two lumps of pearl ash, 0.40 kg each), 13 (the chandlery's
+buying lines), 15 (a wash with pearl ash; washing soda on the shelf). The three
+left are rows 13–21 below; run 20 is the re-drive.
+
+⚠ Run 17 drove a STALE world and should be discarded: there is no root
+`reset:db`, and `pnpm -s` swallowed the failure. Reset with
+`pnpm --filter @saxonberg/server reset:db`.
 
 **What driving found (fixed unless marked):**
 
@@ -1594,13 +1602,19 @@ against one clean, uninterrupted world after the fixes below.
 | 10 | every stacked cordwood read green: "too sodden to catch" even under a roof (the fire build's charcoal finding again) | cordwood seeds `dryness: 0.8` — `5a7990f06` |
 | 11 | MQL's partial match is a SUBSTRING: "ash" ⊂ "br**ash**", so `put "wood ash"` with none held took a brash bundle | recorded, not changed (MQL's designed fallback); the drive takes `get 1 brash` — `5a7990f06` |
 | 12 | the egg-less density refusal names only the hydrometer ("a hydrometer would read it") on a lye an egg would read | ⚠ OPEN — minor wording |
+| 13 | a pour read a maturing SOURCE's stale material (the hopper's water, not its lye) | the transfer reconciles its source first — `a8e9a84ad` |
+| 14 | the lean-to sits at 274 K, under the leach's stall floor: no lye | `lye-leach` stalls below 273 K — `17a68708e` |
+| 15 | the player died of hunger and thirst over the drive's game week | rations and a waterskin, eaten and drunk every ten hours — `a8e9a84ad` |
+| 16 | the pots never cast: silk's plateau approaches empty and never reaches it | the pot casts at SATURATION (1.1 kg/L) — `a0a1fbe4e` |
+| 17 | water on lime in the kettle never slaked until somebody read it, with no actor | the transfer reconciles a maturing DESTINATION at the end of the pour; the kettle says so — `a0a1fbe4e` |
+| 18 | ⚠ PRE-EXISTING: `pour` into a brim-full vessel said "There's nothing to pour", blaming the full flask in hand | it says the destination is already full — `5abe93888` |
+| 19 | ⚠ PRE-EXISTING: `get` has no `from` — `get cake from second pot` binds the POT (and scalds you); `<vessel>:i` lists nothing for a pot or kiln | the drive names goods by `#id`; recorded, not changed |
+| 20 | ⚠ PRE-EXISTING: a round on other houses' premises never ran — nothing stood its Business up (no `operatingLocations`), and once up, its evicted hand was skipped | the graph attaches a round where its hand is cast and at every station; the roster pass fetches an absent hand to a stop that is standing — `5abe93888`, `bbf119ecd` |
+| 21 | ⚠ OPEN — PRE-EXISTING, cross-cutting: a kiln's output lands after its command returns, so it is titled to nobody and falls to the parcel rung (the CODE-maintenance title); `sell "pearl ash"` → "That is not yours to sell." The pot's cake is the same case (cast on a read). Ceramics' bricks share the path | put to the owner — the drive keeps the sale as its last, failing checkpoint |
 
-**Still to observe on the clean run:** step 4 (pine weaker), 6–8 (the egg
-ranks: first pass, second pass higher, Kestrel water lower than rain), 9 (two
-cakes, strong heavier — AC 5's fuel half), 10 (pearl ash), 11 (the
-glassblower's sale; lye in the lime slot refused; the batch fires — the
-batch wants 1400 K against a 1200 K kiln, so the bellows may be needed),
-12 (slake → caustic → hard-soap paste), 13–14 (the chandlery sale; the
-ash-man's day — AC 9's living-or-supplement answer), 15 (a wash with pearl
-ash in the Kestrel; washing soda on the shelf).
+**Still to observe (run 20):** 11's glass batch (it wants 1400 K against a
+1200 K kiln; the bellows may be needed) and lye refused in the lime slot; 12's
+causticizing and hard-soap paste; 14's round on the new fetch (AC 9's
+living-or-supplement answer). 11's pearl-ash sale stays red until row 21 is
+decided.
 
