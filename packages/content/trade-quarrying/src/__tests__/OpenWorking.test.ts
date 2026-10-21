@@ -337,6 +337,27 @@ describe('the credit, and what it is FOR', () => {
   });
 });
 
+describe('⭐ the line that says what you won', () => {
+  it('names the load even when it merges into the heap at the tip on arrival (the ceramics drive: "undefined")', async () => {
+    // A stackable unit is destroyed by the heap it joins; stand that in
+    // with a move that destroys the arriving thing.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
+      const g = makeStuff(() => new Good());
+      g.setShortDescription('load of spoil');
+      return g;
+    }) as never);
+    const { ContainmentApi } = await import('@saxonberg/server/mud/api/containment');
+    vi.spyOn(ContainmentApi, 'move').mockImplementation((async (t: Stuff) => {
+      await StuffApi.destruct(t);
+    }) as never);
+    const pit = working();
+    const plan = (await pit.planWork(actor, spade(), null)) as WorkPlan;
+    const result = await pit.completeWork(actor, spade(), plan.token);
+    expect(result.self).toMatch(/You work a load of spoil free/);
+    expect(result.self).not.toMatch(/undefined/);
+  });
+});
+
 describe('the shape the kernel talks to', () => {
   it('a working answers `Diggable`, and composes the mixin under its own name', () => {
     const pit = working();

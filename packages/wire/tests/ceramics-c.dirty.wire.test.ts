@@ -219,8 +219,10 @@ async function toHour(fromH: number, toH: number): Promise<void> {
 /** Dig `n` lumps at the pit and come back to the shop. */
 async function clayFor(s: Session, n: number): Promise<Session> {
   let at = await goTo(s, PIT);
-  await say(at, 'get spade');
+  await say(at, 'get 1 spade');
   for (let i = 0; i < n; i++) await act(at, 'dig clay with spade', '2 minutes');
+  // The won clay lies where it fell.
+  await say(at, 'get clay');
   expect(await held(at), 'clay won').toMatch(/clay/i);
   at = await goTo(at, SHOP);
   return at;

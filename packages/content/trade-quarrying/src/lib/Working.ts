@@ -631,15 +631,19 @@ export function OpenWorkingMixin<
       if (MixinApi.isComposition(thing)) {
         await this.stampAssay(thing, face);
       }
+      // ⚠ Named BEFORE the move: a stackable unit (spoil, clay) merges into
+      // the heap already at the tip on arrival and is destroyed by it, so
+      // read after the move it says "undefined" (the ceramics drive).
+      const named = thing.getPresentation();
       const where = await this.destinationFor(face);
       if (MixinApi.isContainable(thing) && MixinApi.isContainer(where)) {
-        ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
+        await ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
       }
       const heaped =
         where !== (this as unknown as Stuff)
           ? 'and it goes to the tip'
           : 'and it lies where it fell';
-      return `You work ${thing.getPresentation()} free, ${heaped}.`;
+      return `You work ${named} free, ${heaped}.`;
     }
 
     /**

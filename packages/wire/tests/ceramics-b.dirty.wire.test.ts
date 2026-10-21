@@ -201,16 +201,21 @@ afterAll(() => {
 
 suite('⭐ 10 — make firebrick', () => {
   it('fireclay is won at the Hill Quarry, under the coal', async () => {
-    await say('get spade');
-    await say('get pick');
+    await say('get 1 spade');
+    await say('get 1 pick');
     // ⭐ You strip what is over it first: the floor comes down band by band
     // (drift, clay, granite, chalk, limestone, coal) until the coal's
     // seat-earth is uncovered. Bounded.
     let won = '';
     for (let i = 0; i < 80 && !/fireclay/i.test(won); i++) {
-      const tried = await act('dig fireclay', '2 minutes');
+      const tried = await act('dig fireclay with spade', '2 minutes');
       if (refusedFor(tried.r) === 'under-overburden' || refusedFor(tried.r) === 'no-such-face') {
-        await act('dig', '2 minutes');
+        // ⭐ The ground names the tool: a spade for drift and clay, the
+        // pick once the floor is rock (the first drive looped on the spade).
+        const floor = await act('dig with spade', '2 minutes');
+        if (refusedFor(floor.r) === 'no-spade' || refusedFor(floor.r) === 'no-pick') {
+          await act('dig with pick', '2 minutes');
+        }
         continue;
       }
       won = await held();

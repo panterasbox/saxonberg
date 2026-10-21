@@ -199,7 +199,7 @@ afterAll(() => {
 
 suite('⭐ 1 — win the clay', () => {
   it('`dig clay with spade` at the Delight pit wins lumps of the river clay', async () => {
-    const got = await say(digger, 'get spade');
+    const got = await say(digger, 'get 1 spade');
     expect(got, `get spade: ${got}`).toMatch(/you pick up|spade/i);
     const before = (await held(digger)).join(' | ');
     expect(before).not.toMatch(/clay/i);
@@ -207,6 +207,8 @@ suite('⭐ 1 — win the clay', () => {
       const dug = await act(digger, 'dig clay with spade', '2 minutes');
       expect(dug, `dig ${i + 1}: ${dug}`).not.toMatch(/at the water|worked out|no clay in this ground/i);
     }
+    // At this pit the won clay lies where it fell, at your feet.
+    await say(digger, 'get clay');
     // ⭐ STATE: the lumps are in hand.
     expect((await held(digger)).join(' | '), 'the dug clay is held').toMatch(/clay/i);
   }, 900_000);
@@ -224,6 +226,7 @@ suite('⭐ 1 — win the clay', () => {
   it('the same wall gives river sand — the temper is dug with the clay', async () => {
     const dug = await act(digger, 'dig sand with spade', '2 minutes');
     expect(dug).not.toMatch(/at the water|no sand in this ground/i);
+    await say(digger, 'get sand');
     expect((await held(digger)).join(' | ')).toMatch(/sand/i);
   }, 300_000);
 });
@@ -455,6 +458,7 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     // Clamp ground → hacks → shed → temper → yard → pit.
     for (const d of ['west', 'north', 'west', 'west', 'south']) await say(digger, d);
     for (let i = 0; i < 2; i++) await act(digger, 'dig clay with spade', '2 minutes');
+    await say(digger, 'get clay');
     for (const d of ['north', 'east', 'east']) await say(digger, d);
     await act(digger, 'shape clay into brick', '9 hours');
     await say(digger, 'get bricks');
@@ -517,6 +521,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     // Clamp ground → hacks → shed → temper → yard → pit: a lump of clay.
     for (const d of ['west', 'north', 'west', 'west', 'south']) await say(digger, d);
     await act(digger, 'dig clay with spade', '2 minutes');
+    await say(digger, 'get clay');
     // The old table stands on the bank of the flooded pit.
     await say(digger, 'west');
     expect(await examine(digger, 'here:i:table')).toMatch(/old|mould/i);
