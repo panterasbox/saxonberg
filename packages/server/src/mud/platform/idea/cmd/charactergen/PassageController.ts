@@ -26,6 +26,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
+import { BiomeApi } from '../../../../api/biome';
 import { ConditionApi } from '../../../../api/condition';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
@@ -67,6 +68,19 @@ export default class PassageController extends CommandController<CommandModel> {
     //
     // Deliberately never consults the corpse either: a body decays, and
     // nothing on the path back may depend on one existing.
+    // ⭐ Not in the water (found by the underwater browser walk): a diver
+    // who drowned took a body on the bed where they died, with no breath
+    // in it, and drowned again — a loop. The floor route must never put
+    // anybody back in danger, so it waits until you are out; a shade
+    // swims up and climbs out like anyone (`ascend`, the steps).
+    if (BiomeApi.mediumFor(giver).immersed) {
+      const detail =
+        'There is no taking a body in the water — it would drown before it drew breath. Get out first.';
+      context.note({ kind: 'controller-rejected', reason: 'in-the-water', detail });
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${detail}`).send();
+      return;
+    }
+
     const body = await ConditionApi.reembody(giver);
 
     // THE PRICE OF COMING BACK CHEAP.

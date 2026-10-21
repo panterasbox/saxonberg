@@ -214,6 +214,14 @@ const ByPartyRoom = SecurityPolicies.FromMixin(Mixins.Exitable, {
   },
 });
 
+/** The self-powered way across each medium, for a refusal that names it. */
+const EXIT_MEDIUM_VERB: Readonly<Record<string, string>> = {
+  ground: 'walk',
+  vertical: 'climb',
+  water: 'swim',
+  air: 'fly',
+};
+
 export default class Exit extends ConcealableMixin(Idea) {
   /**
    * The exit-KIND hydration allowlist (the applier applies only
@@ -1095,11 +1103,17 @@ export default class Exit extends ConcealableMixin(Idea) {
       };
     }
     if (mode != null && !this.allowsMode(mode)) {
+      // ⭐ Name the way that works (found by the underwater browser walk:
+      // the card's `up` out of the river sends `go up`, which said only
+      // "You can't walk that way" beside steps you have to climb).
+      const ways = [...new Set(this.media.map((m) => EXIT_MEDIUM_VERB[m]).filter(Boolean))];
       return {
         ok: false,
         gate: 'exitMode',
         mode,
-        reason: `You can't ${mode} that way.`,
+        reason: ways.length > 0
+          ? `You can't ${mode} that way — you'll have to ${ways.join(' or ')}.`
+          : `You can't ${mode} that way.`,
       };
     }
     return { ok: true };

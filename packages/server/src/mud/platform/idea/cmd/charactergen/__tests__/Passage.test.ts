@@ -22,6 +22,8 @@ import { join } from 'path';
 import PassageController from '../PassageController';
 import { Creature } from '../../../../../lib/creature/Creature';
 import { ConditionApi } from '../../../../../api/condition';
+import { BiomeApi } from '../../../../../api/biome';
+import { MixinApi } from '../../../../../api/mixin';
 import { MessageApi } from '../../../../../api/message';
 import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -65,6 +67,22 @@ describe('passage — the floor beneath coming back', () => {
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-a-shade' }),
     );
+  });
+
+  it('⭐ waits until you are out of the water — a body taken there drowns again (underwater walk)', async () => {
+    const shade = makeStuff(() => new Creature());
+    vi.spyOn(MixinApi, 'isIncorporeal').mockReturnValue(true);
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 280, depthM: 9, waterRef: null,
+    } as never);
+    const reembody = vi.spyOn(ConditionApi, 'reembody');
+    const ctrl = makeStuff(() => new PassageController());
+
+    await ctrl.execute({}, ctxFor(shade));
+
+    expect(note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'in-the-water' }));
+    expect(reembody).not.toHaveBeenCalled();
   });
 
   it('reembody refuses anything that is not a shade', async () => {

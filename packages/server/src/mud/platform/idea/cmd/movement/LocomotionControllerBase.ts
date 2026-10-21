@@ -253,7 +253,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       case 'posture':
         return `You can't ${mode.getName()} from this posture.`;
       case 'exitMode':
-        return `You can't ${mode.getName()} that way.`;
+        return guard.reason ?? `You can't ${mode.getName()} that way.`;
       case 'enablement':
         return guard.reason ?? `There's no way to ${mode.getName()} here.`;
       case 'capability':
