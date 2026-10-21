@@ -296,7 +296,7 @@ export class LocomotionLogic extends ApiLogic {
     }
     const host = asEnablement(dest, mixinName);
     if (!host || !host.canEngageAxis(direction)) return null;
-    return engageHost(actor, mode, host);
+    return engageHost(actor, mode, host, direction);
   }
 
   /**
@@ -549,7 +549,7 @@ function checkEnablementScope(
       context: { missing: mixinName },
     };
   }
-  return engageHost(actor, mode, host);
+  return engageHost(actor, mode, host, direction);
 }
 
 /** Whether `actor` may engage `mode` on the enablement `host` it found. */
@@ -557,6 +557,7 @@ function engageHost(
   actor: Stuff & Containable,
   mode: LocomotionMode,
   host: Stuff & Enablement,
+  direction: string,
 ): TraversalGuard {
   if (!host.canBeEngagedBy(actor)) {
     return {
@@ -580,6 +581,11 @@ function engageHost(
   // underwater review): a diver's air bags lift, a weight belt still
   // pulls — the dry mass would refuse a swim the water makes easy.
   const inWater = mode.getMedium() === 'water' ? waterDensityKgM3() : undefined;
+  // ⭐ …and the water never refuses DOWN for weight (found by the
+  // underwater browser walk): a diver in a belt with a stone in hand was
+  // told "carrying too much to swim" — at the one thing weight is for.
+  // Weight sinks you; it is the way up it refuses (the column's own gate).
+  if (inWater !== undefined && direction === 'down') return { ok: true };
   const loadRatio = MixinApi.isLoadBearing(actor) ? actor.getLoadRatio(inWater) : 0;
   if (loadRatio >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
     return {
