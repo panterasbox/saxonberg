@@ -390,6 +390,28 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
+     * ⭐ How deep the water at the edge is, in words (requirements drive
+     * step 1 — found missing by the browser walk): the water place this
+     * shore's way in leads to, as a person standing here judges it. Never
+     * a number.
+     */
+    private depthWords(): string | null {
+      const way = this.wayIntoWater();
+      if (!('exit' in way)) return null;
+      const path = way.exit.getDestinationTemplatePath?.() ?? null;
+      const water = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+      if (!water || !MixinApi.isWaterPlace(water)) return null;
+      const state = water.stateNow();
+      const d = water.depthNow();
+      if (state === 'dry') return 'At the foot of the way down there is no water now, only mud.';
+      if (state === 'wading') return 'You could wade in from here; it would come up to your waist.';
+      if (state !== 'swimming') return null;
+      if (d < 3) return 'Off the edge it is just over your head.';
+      if (d < 8) return 'Off the edge it is deep — well over your head, and you cannot see the bottom.';
+      return 'Off the edge it is very deep; it goes down a long way into the dark.';
+    }
+
+    /**
      * @hook A fresh read of the water under `key` has landed. A place
      * whose own state follows the water (a tidepool, a strand) reconciles
      * here; a plain shore does nothing.
@@ -430,6 +452,8 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const lines = memo.source.waterLinesFor(memo.read, viewer as Stuff);
         const tide = tideWords(memo.read);
         if (tide !== null) lines.push(tide);
+        const depth = this.depthWords();
+        if (depth !== null) lines.push(depth);
         line = lines.length > 0 ? lines.join(' ') : 'The water is hard to read yet.';
       }
       return base ? `${base}\n\n${line}` : line;

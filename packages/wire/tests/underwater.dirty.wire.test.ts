@@ -247,6 +247,9 @@ suite('A · the water place', () => {
       said = await look(diver, 'look river');
     }
     expect(said).toMatch(/Kestrel/);
+    // ⭐ …with the depth in words (requirements step 1 — the drive only
+    // asked for the name, and the browser walk found no depth at all).
+    expect(said).toMatch(/over your head|deep|wade/i);
   });
 
   it('15d · on the quay, the almanac prints the next high and low waters', async () => {

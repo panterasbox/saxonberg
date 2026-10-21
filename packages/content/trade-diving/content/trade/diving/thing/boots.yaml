@@ -3,7 +3,7 @@
 # walk the bed and you cannot swim up: the hose and the line bring you up.
 class: /platform/thing/equipment/Garment
 data:
-  shortDescription: lead diving boots
+  shortDescription: pair of lead diving boots
   keywords: [boots, "lead boots", "diving boots"]
   register: indefinite
   longDescription: >-

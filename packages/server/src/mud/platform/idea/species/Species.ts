@@ -1702,7 +1702,18 @@ export default class Species extends SingletonMixin(
   public getDiet(): string | null { return this.diet; }
   public setDiet(value: string | null): void { this.diet = value; }
 
-  public getVisionProfile(): VisionProfile | null { return this.visionProfile; }
+  /**
+   * ⭐ A profile that authors no `bandShift` shifts by nothing (the
+   * underwater browser walk: two shipped rows omitted it, a shift by
+   * `undefined` made an undefined light band, and a creature of either
+   * kind seeing anything in daylight crashed the server). Read-side, so
+   * every stored row is covered.
+   */
+  public getVisionProfile(): VisionProfile | null {
+    const v = this.visionProfile;
+    if (v === null) return null;
+    return Number.isFinite(v.bandShift) ? v : { ...v, bandShift: 0 };
+  }
   public setVisionProfile(value: VisionProfile | null): void {
     this.visionProfile = value;
   }

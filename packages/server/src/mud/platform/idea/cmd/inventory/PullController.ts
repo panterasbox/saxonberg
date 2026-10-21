@@ -66,7 +66,11 @@ export default class PullController extends CommandController<PullModel> {
       // ⚠ Never back into this controller: it is destructed when
       // `execute` returns (`lint:completion-this`).
       onComplete: () => {
-        void takes.finish().then((done) => land(giver, done));
+        // ⚠ Outside any command: an unhandled rejection here would take
+        // the server down. Log it; the line stays where it was.
+        takes.finish().then((done) => land(giver, done)).catch((err) => {
+          console.error('[timed pull] landing failed', err);
+        });
       },
     });
     const started = SchedulerApi.start(step);

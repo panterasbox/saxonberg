@@ -185,7 +185,12 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
         // ⚠ Never back into this controller: it is destructed when
         // `execute` returns (`lint:completion-this`).
         onComplete: () => {
-          void arriveAfter(actor, exit, modeName);
+          // ⚠ A completion runs outside any command: a throw here is an
+          // UNHANDLED rejection, which takes the whole server down (the
+          // browser walk). Log it; the swimmer stays where they were.
+          arriveAfter(actor, exit, modeName).catch((err) => {
+            console.error('[timed crossing] arrival failed', exit.getDirection(), err);
+          });
         },
       });
       const started = SchedulerApi.start(step);
