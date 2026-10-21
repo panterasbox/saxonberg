@@ -120,6 +120,40 @@ by **one named follow-up** (`potash-on-sugar`, Deferred seams).
 | `trade-chandlery/…/material/lye.yaml` | — | names the fix, does not make it | `latentHeatOfVaporization 2260000` | potash makes it (W5); if sugar lands it first, the merge is a no-op |
 | `heat.yaml` / `BoilController` | deleted / aliased | — | nothing; the drive types `put pot on hearth` (master) and may type `heat pot` after silk | take silk's deletion at the merge |
 
+### ⭐ Ceramics (build-3, `reqs/ceramics`) — the landing protocol (2026-10-20)
+
+Ceramics is building in parallel; **whichever lands second reconciles**
+(their note: `git show origin/reqs/ceramics:docs/plans/ceramics-note-to-siblings.md`
+§ To potash). Ceramics retires `fire`'s recipe path (materials declare
+`heatTransitions`) and mixing recipes. **If ceramics lands first, at our
+merge:**
+
+1. Delete `trade-potash/content/recipes/calcine.yaml`; give
+   `trade-potash/…/idea/material/black-salts.yaml` the `calcine`
+   `heatTransitions` block from their note (`referenceK 900`, `massRetained
+   0.8`, ladder to `mineral/potash`, `discipline ashery`; tune `zK` /
+   `fullDoseS` to the drive's hold). The cake keeps its `Ash` class; drive
+   step 10 reads the cake's material after the burn.
+2. `FireController.ts`: drop our two hunks (yield concentration, weakest
+   input grade) — the transition carries both; re-pin our two `describe`s
+   on a transition fixture.
+3. `CharController.openClamp`'s ash branch goes: a lost burn is ordinary
+   combustion, and they mint its ash through `Burner.mintAshHeaps`.
+4. `organic/{charcoal,coke,ash}.yaml` and `bulk/wood-tar.yaml` move
+   trade-fuel → base-library (same paths): re-apply our `flux` tag on the
+   moved `ash.yaml`, and move `spent-ash.yaml` beside it.
+5. Both `glass-batch*.yaml` are deleted (mixing has no recipe): our slot
+   edits meet a deleted file; our `flux`/`stabilizer` material tags stand.
+   `burn-lime.yaml` is deleted too (limestone carries a transition).
+6. Unions: wood rows (`alkaliShare` + their `heatTransitions`, by key),
+   `Burner.ts` (separate regions; `fieldMeta` union), the two counters
+   (line union), the pack count (recount), ceilings (recompute, never sum),
+   `pnpm install` for the lockfile.
+
+**If we land first,** they make the same conversions on their side. ⚠ Our
+drive steps 10–11 then re-pin: pearl ash and the glass batch come from
+transitions, not recipes.
+
 ### Pre-wave check, for every wave that touches a shared file
 
 ```bash
