@@ -686,11 +686,6 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     public onEntered(mover: Stuff & Mobile & Containable, via: Exit): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
       void this.reconcileOccupants();
-      // ⭐ The way down exists the moment somebody is in the water (the
-      // browser walk: after a restart `swim down` at the surface found no
-      // `down` until somebody had used `descend` — load on use, but the
-      // use is being here).
-      void this.ensureColumnExits().catch(() => {});
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
@@ -745,6 +740,12 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
      */
     public onContainableAdded(thing: Stuff & Containable): void {
       (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+      // ⭐ The way down exists the moment anybody is in the water — walked
+      // in, swum in, or restored here after a restart (the browser walk:
+      // `swim down` found no `down`, and a diver restored at the surface
+      // saw only `up`, until somebody had used `descend`). Load on use —
+      // the use is being here.
+      if (thing.isAgent?.()) void this.ensureColumnExits().catch(() => {});
       const floor = this.waterFloor();
       floor?.reconcileSupport();
       try {
