@@ -11,7 +11,7 @@
 > **Left:** the pack broadened to `/trade/polymers` (a build-side rename sweep) ·
 > crosslinking as the polymer family's one law · the natural polymers — rubber,
 > gutta-percha, shellac, casein plastic — gathered, set and moulded · the synthetic
-> half → [plastics-slate](./plastics-slate.md)
+> half → a plastics slate, not yet designed
 > **Size:** a build (mostly rows over shipped mechanisms; the rename is its own sweep)
 
 ## 1. ⭐⭐ A pack is an industry; rubber was half of one **[DECIDED]**
@@ -53,8 +53,8 @@ the mould.
    **Participation** — the tapper, the moulder, the works.
 4. **Values** — plantation latex and its labor (sugar's question, and the
    unfree-labor slate's register, again).
-5. **Continuity** — natural polymers → synthetics ([plastics](./plastics-slate.md)); the
-   same cure and mould.
+5. **Continuity** — natural polymers → synthetics (a plastics slate, not yet designed);
+   the same cure and mould.
 6. **Economy** — insulation for the grid and the telegraph; buttons; varnish; seals.
 7. **Governance** — plantation regulation; later, the plastics questions.
 
@@ -62,5 +62,5 @@ the mould.
 
 1. **Where gutta-percha and lac grow** — the tropical climate kit is a gap.
 2. **Formaldehyde's source** — the [chemical works](./chemical-works-slate.md) or the
-   retort's wood spirit ([plastics](./plastics-slate.md) § 2).
+   retort's wood spirit.
 3. **The rename's timing** — before or with the plastics build.
