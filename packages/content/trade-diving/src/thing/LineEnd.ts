@@ -31,6 +31,12 @@ export default class LineEnd extends Good {
 
   public attachTo(line: Lifeline): void {
     this._line = line;
+    // ⭐ The end of a hose is a hose's end (found by the underwater browser
+    // walk: a suited diver typed `tug hose` and was told they had no line).
+    if (line.getKind() === 'hose') {
+      this.setShortDescription('end of an air hose');
+      this.setKeywords([...this.getKeywords(), 'hose', 'air hose', 'hose end']);
+    }
   }
 
   public getLine(): Lifeline | null {

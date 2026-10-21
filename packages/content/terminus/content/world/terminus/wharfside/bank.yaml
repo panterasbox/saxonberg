@@ -133,8 +133,9 @@ data:
       edgeMinutes: 7
     # ⭐ Into the river itself (underwater D23). The bank is a QUAY —
     # beside the water, never in it — and the water you go down into is
-    # the basin below it: `descend` (or `dive`, `jump`) goes in, `climb
-    # down` the quay steps does it slowly. `down` stays the knacker's.
+    # the basin below it: `swim` (or `dive`, `jump`) goes in — in the
+    # hard-hat suit too, which sinks you; the quay steps are the way back
+    # OUT (`climb up` from the water). `down` stays the knacker's.
     river:
       destination: /world/terminus/wharfside/water/location/basin
       media: [water, vertical]

@@ -89,6 +89,9 @@ describe('LocomotionApi — load-aware veto', () => {
     ContainmentApi.move(lead, bearer);
 
     expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toEqual({ ok: true });
+    // In off the quay in the hard-hat suit: in, and sinking, not refused.
+    water.setAxes(['up', 'down', 'river']);
+    expect(LocomotionApi.checkEnablement(bearer, swim, 'river')).toEqual({ ok: true });
     expect(LocomotionApi.checkEnablement(bearer, swim, 'up').gate).toBe('encumbrance');
   });
 

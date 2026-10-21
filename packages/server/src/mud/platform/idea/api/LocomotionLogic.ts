@@ -581,11 +581,12 @@ function engageHost(
   // underwater review): a diver's air bags lift, a weight belt still
   // pulls — the dry mass would refuse a swim the water makes easy.
   const inWater = mode.getMedium() === 'water' ? waterDensityKgM3() : undefined;
-  // ⭐ …and the water never refuses DOWN for weight (found by the
-  // underwater browser walk): a diver in a belt with a stone in hand was
-  // told "carrying too much to swim" — at the one thing weight is for.
-  // Weight sinks you; it is the way up it refuses (the column's own gate).
-  if (inWater !== undefined && direction === 'down') return { ok: true };
+  // ⭐ …and in the water weight refuses only the way UP (found by the
+  // underwater browser walk, twice: a diver in a belt with a stone was told
+  // "carrying too much to swim" going down, and a diver in the hard-hat
+  // suit could not get into the water at all). Weight sinks you; what it
+  // takes from you is rising — the column's own gate and this one.
+  if (inWater !== undefined && direction !== 'up') return { ok: true };
   const loadRatio = MixinApi.isLoadBearing(actor) ? actor.getLoadRatio(inWater) : 0;
   if (loadRatio >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
     return {
