@@ -91,7 +91,7 @@ the end of the route, not a pile.
   between burns is the scavenger's window.
 
 **Bodily waste and the liquid sinks** — the privy, the cesspit, the night-soil man, the
-sewer — are the sanitation-and-pollution slate's (designed next).
+sewer — are the [sanitation-and-pollution slate](./sanitation-and-pollution-slate.md)'s.
 
 ## Related
 
