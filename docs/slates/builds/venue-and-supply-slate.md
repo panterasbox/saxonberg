@@ -30,7 +30,7 @@
 > 10 % of the final and mostly wrong. What survives a 10× is a
 > **generator**: the shapes, the coverage rule, the ladder, and the
 > placement discipline. This slate holds only those. Actual venues live
-> per-locality in `docs/staging/`.
+> per-locality in the retired staging tree (patterns salvaged in [staging-leftovers](../tails/staging-leftovers-slate.md#3-town-patterns)).
 
 ⭐⭐ **The settlement model this rides on is
 [settlement-model.md](../../settlement-model.md)** — the sixteen needs

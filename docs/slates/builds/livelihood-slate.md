@@ -690,7 +690,7 @@ now.
 - **[NOW] Honest wrinkle:** under authored fixed prices (Law 1),
   excess money shows up as hoarding and queue pressure, not price
   inflation; the Circulation Reserve's floating terms-of-trade
-  controller ([terminus-city](../../staging/terminus-city.md)) is
+  controller ([terminus-city](./eternal-university-drafts-slate.md#2-terminus-the-city)) is
   the designed answer. This program lands **after or alongside the
   Reserve**, not before.
 

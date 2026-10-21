@@ -11,7 +11,7 @@ education-video track and the study.com pitch demo.** Source
 artifacts: [education-videos.md](../../education-videos.md) (§
 Pre-script gap audit), [study-com-strategy.md](../../study-com/strategy.md),
 the fresh lens pass (docs/lenses/, entries 1–18), and
-[staging/wishbook.md](../../staging/wishbook.md).
+[the wishbook](../tails/staging-leftovers-slate.md#4-the-wishbook).
 
 Organization note: this is the *third* live build list (alongside
 [build-menu.md](../../build-menu.md)/[roadmap.md](../../roadmap.md)

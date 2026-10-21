@@ -14,9 +14,9 @@ fixture of the world, not a film set.
 
 - **The campus opens on its authored road network.** The v1
   stitch of the Eternal University campus per
-  [staging/eternal-university/campus-map.md](../staging/eternal-university/campus-map.md)
+  [eternal-university-drafts § the campus](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads)
   and the city plan
-  ([staging/terminus-city.md](../staging/terminus-city.md)): the
+  ([eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city)): the
   Quad as the Heart-geometry compass junction, Eternal Way as the
   south→north spine gate-to-gate, Silver Street east toward the
   Mere, Limbo Lane west to the Residential Quarter — wiring the
@@ -139,9 +139,9 @@ An earlier draft invented a gatehouse→courtyard campus from
 scratch; it was thrown out when set against the already-authored
 campus design (the road network, districts, and EC-derived road
 prose in
-[campus-map.md](../staging/eternal-university/campus-map.md), the
+[campus-map.md](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads), the
 v1 roster in the eternal-university slate, and the city plan in
-[terminus-city.md](../staging/terminus-city.md)). The settled
+[terminus-city.md](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city)). The settled
 geometry lives in content-spec unit 1. Two notes of record:
 
 - **The Quad takes the Heart's geometry deliberately.** The campus
@@ -246,7 +246,7 @@ first-wage beat at Dave's Bar · **13** key-handover audit ·
 ### Unit 1 — campus geometry & the gates ✓
 
 **Perimeter (from the city plan,
-[terminus-city.md](../staging/terminus-city.md)):** the campus
+[terminus-city.md](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city)):** the campus
 sits at the city's north head, on the ruins, embedded in the
 city — the civic wedge at its south, the **Marrow** river down
 its west flank, the **Mere** down its east, meeting at the
@@ -266,7 +266,7 @@ is **retired**; `campus-gate-door.yaml` survives as the main
 gate's door, unlocked.
 
 **The network (from
-[campus-map.md](../staging/eternal-university/campus-map.md), EC
+[campus-map.md](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads), EC
 names kept):** hub-and-spoke with the **Quad as the Heart** — the
 central compass junction, the deliberate homage to EC's Heart
 ("roads from each point on the compass lead off"; the monument →
@@ -939,7 +939,7 @@ build** — the walk can't be rehearsed against a surface that
 doesn't exist yet; the user is building the sandbox soon and the
 runbook follows it. The spec is retained for that moment:
 
-`docs/staging/v5-authoring-runbook.md` scripts V5's arc — player
+`v5-authoring-runbook.md` (never written) scripts V5's arc — player
 becomes maker — every step on shipped surfaces: **click** (the
 ghost command line showing what the button typed) → **type**
 (the same command by hand) → **script** (the morning routine via
@@ -1164,17 +1164,17 @@ withdrawal, memorial automation, and expulsion are all deferred.
   [power-utility](../slates/builds/power-utility-slate.md),
   [distance-perception](../slates/tails/distance-perception-slate.md)
 - Campus design:
-  [staging/eternal-university/campus-map.md](../staging/eternal-university/campus-map.md)
+  [eternal-university-drafts § the campus](../slates/builds/eternal-university-drafts-slate.md#11-districts-and-roads)
   (roads, districts, floor model),
   [slates/builds/eternal-university-slate.md](../slates/builds/eternal-university-slate.md)
   (v1 roster, un-genred doctrine, services pattern),
-  [staging/terminus-city.md](../staging/terminus-city.md) (the
+  [eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city) (the
   city plan: campus at the north head, the rivers), `~/play/eotl/mudlib/zone/null/eternal/`
   (the EC source — road prose origins, the Heart)
 - Video briefs: [education-videos.md](../education-videos.md);
-  wishbook loops: [staging/wishbook.md](../staging/wishbook.md)
+  wishbook loops: [the wishbook](../slates/tails/staging-leftovers-slate.md#4-the-wishbook)
 - Ceremony doctrine: [lens-deck-salvage.md](../lens-deck-salvage.md)
-- Campus plan: [staging/content-tour.md](../staging/content-tour.md)
+- Campus plan: [the grand tour](../slates/tails/staging-leftovers-slate.md#5-the-grand-tour-launch-content-bundles)
 - Subsystem docs: [advancement](../subsystems/advancement.md)
   (conferrals), [employment](../subsystems/employment.md) (wages),
   [residence](../subsystems/residence.md) (Katie / the key),

@@ -2,7 +2,7 @@
 
 > **Status: roadmap, 2026-07-12. Mostly anticipatory.** The sequenced build plan
 > for Terminus at street level — the street map + city services + the venue
-> economy. Design source: `docs/staging/terminus-city.md` (districts, map,
+> economy. Design source: [eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#2-terminus-the-city) (districts, map,
 > neighborhoods, the Atmosphere/Ledger economy model, the institution-archetype
 > principle). This track names *where we're headed and in what order*; each phase
 > enters the normal slate → requirements → plan → build loop when its turn comes.
@@ -103,9 +103,9 @@ underground (drains/wire), deeper admin-sim, boom/bust dynamics, player-founded
 businesses.
 
 ## Cross-references / reconcile
-- Economy + venue design: `docs/staging/terminus-city.md` (§6 economy, §7 reserve
+- Economy + venue design: [eternal-university-drafts § Terminus](../slates/builds/eternal-university-drafts-slate.md#28-the-city-economy--the-atmosphere-and-the-ledger) (§6 economy, §7 reserve
   autopilot, §8 tavern archetype when folded in).
-- The **attuned allegory** (`docs/staging/eternal-university/attuned-dispossession-allegory.md`)
+- The **attuned allegory** ([eternal-university-drafts § the attuned dispossession](../slates/builds/eternal-university-drafts-slate.md#33-the-attuned-dispossession-exploration-not-canon))
   — the Registrar + the redlining covenant are property-allegory venues that
   share the ledger; land them in P3/P4.
 - The **underground** note (drains/wire) — the address graph rides the wire graph;
