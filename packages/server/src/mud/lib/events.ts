@@ -53,7 +53,6 @@ export const Events = {
   StreamStateChanged: 'stream.stateChanged',
   RelayMessage: 'stream.relayMessage',
   Diagnostic: 'diagnostic.recorded',
-  CompileDiagnosticsWanted: 'diagnostic.compileWanted',
 } as const;
 
 export type EventName = (typeof Events)[keyof typeof Events];
@@ -131,27 +130,15 @@ export interface EventPayloads {
    */
   [Events.RelayMessage]: RelayMessageEvent;
   /**
-   * One structured diagnostic recording (runtime guard / compile watcher),
-   * fired per live row by `DiagnosticApi.record`/`recordDiagnostics`. The
-   * boot-registered author-push listener (`DiagnosticApi.startRouter`)
-   * consumes it to notify the content's author; the CMS-delta seam is a
-   * future subscriber. Cold-start compile rows are `live:false` and fire
+   * One structured diagnostic recording (runtime guard / per-file type-check),
+   * fired per live row by `DiagnosticApi.record`/`recordDiagnostics`/
+   * `typecheck`. The boot-registered author-push listener
+   * (`DiagnosticApi.startRouter`) consumes it to notify the content's
+   * author; the CMS-delta seam is a future subscriber. A compile batch
+   * recorded `live:false` (a verb that reports its own result) fires
    * nothing.
    */
   [Events.Diagnostic]: DiagnosticEvent;
-  /**
-   * A wizard asked to read TS-source `compile` diagnostics
-   * (`DiagnosticApi.list`). The dev-only compile watcher is loaded on use —
-   * it costs ~1 GB and a long synchronous first check — so it starts on
-   * this demand (or on the first module reload) rather than at boot.
-   */
-  [Events.CompileDiagnosticsWanted]: CompileDiagnosticsWantedEvent;
-}
-
-/** Payload of {@link Events.CompileDiagnosticsWanted}. */
-export interface CompileDiagnosticsWantedEvent {
-  /** Identity path of the wizard whose read asked for compile rows. */
-  by: string;
 }
 
 /** Payload of {@link Events.RelayMessage}. */
