@@ -1555,6 +1555,15 @@ left a fork the lens that chose is named.
   `tainted-water` (lead; neither filtered nor boiled clean) by the reach's
   contamination kind — no persistent outfall ships yet, so tainted water is
   drawable nowhere today. Sugar's names copied verbatim (B-protocol).
+- **B70 (the underwater merge, 2026-10-21) — `ring` is one verb.** Underwater
+  shipped its own `ring` view for the signal bell; ours is the platform's
+  (`TangibleMixin` affords it). Tapping a jug to hear a crack and striking
+  a bell to be heard are one act, so diving's view and controller went and
+  `ringSound()` gained an optional `carries` (what the others hear in place
+  of the tap), the hook the founder's `Bell` already overrides. Under the
+  water the medium already drops the direction. *Lens 2 (one verb, a
+  second bell is rows) chose.* The fire gate's two arms (chamber + medium)
+  merged into one `mediumBurns`, as the note to siblings said they would.
 
 ## ⭐⭐ Host placement
 
