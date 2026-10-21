@@ -1,0 +1,36 @@
+# The setter — ⭐ builds and burns the clamps (ceramics S20, D15): bone-dry
+# bricks off the hacks set in courses over the fire channels, the clamp
+# lit and held, the burnt bricks drawn onto the stack. A setter's band is
+# how few bricks go into the channels to come out clinker — Emmet is a
+# good one.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Emmet Crane
+  keywords: [emmet, crane, setter]
+  alternateNames: ["emmet", "crane"]
+  pronouns: he
+  shortDescription: setter with scorched eyebrows
+  register: indefinite
+  longDescription: >-
+    A quiet grey man with no eyebrows to speak of and a leather apron gone
+    stiff with heat, who lays a course of green bricks without looking at
+    his hands.
+  archetype: labourer
+  competence:
+    - { discipline: brickmaking, asserting: proficient }
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+  behaviors:
+    - brain: /trade/ceramics/behavior/sets
+      trigger: candidate
+      config:
+        home: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+        clamp: /trade/ceramics/thing/clamp
+        hacks: /world/terminus/hearts-delight/brickfield/location/hacks
+        batch: 40
+        burn: 3 days
+        ways:
+          - { to: /world/terminus/hearts-delight/brickfield/location/hacks, go: [west], back: [east] }

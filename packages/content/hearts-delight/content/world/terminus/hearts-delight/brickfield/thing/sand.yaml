@@ -1,0 +1,14 @@
+# A load of river sand — won at the clay pit's wall from the lens of clean
+# sand under the clay (`idea/deposit/valley-alluvium`). The brickmaker's
+# temper: a few shovels kneaded into fat clay open it, and it dries without
+# cracking (ceramics S3).
+class: /trade/quarrying/thing/Lump
+data:
+  keywords: [sand, "river sand", load]
+  shortDescription: load of river sand
+  register: indefinite
+  longDescription: >-
+    A heap of clean, sharp, yellow-brown river sand, damp and cold.
+  _materialPath: /stuff/idea/material/earth/sand
+  mass: 10
+  quantity: 1

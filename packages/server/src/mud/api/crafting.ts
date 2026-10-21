@@ -428,6 +428,11 @@ export interface FitReplaced {
   replaced: number;
   /** A SOUND member swapped out comes back to hand; a failed one does not. */
   returned: Stuff | null;
+  /**
+   * ⭐ (ceramics D27) The part was cast from an impression of the line's
+   * own kind: it dropped into the old joint, with no joint re-made.
+   */
+  interchangeable?: boolean;
 }
 
 export interface FitRaised {

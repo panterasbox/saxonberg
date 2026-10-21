@@ -126,6 +126,10 @@ export const TemplatePaths = {
   // keychain credential); the durable form of dorm/lock access.
   key: "/stuff/thing/Key",
 
+  // ⭐ A cast of a FACE (ceramics M9): a likeness, never a disguise — the
+  // kind a mould casts when the impression was taken of a living body.
+  likeness: "/stuff/thing/likeness",
+
   // ⭐ The floor every Location gets when it authors none — cloned once per
   // room by `Location.ensureFloor` at `onCreate`. Named here because
   // the kernel mints it: before the ground build nothing attached this row

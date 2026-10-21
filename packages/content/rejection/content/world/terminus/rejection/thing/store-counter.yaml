@@ -62,14 +62,14 @@ data:
     # a sealed vessel, shut* — which is the whole Stage B lesson and is
     # only teachable if the right vessel is buyable nearby.
     - { itemTemplatePath: /trade/fuel/thing/gas-bladder, par: 3 }
-    # ⭐ (ceramics W5) What keeps a furnace: firebrick to reline it — an
-    # IMPORT until the Delight's brickfield supplies it (W6 re-points the
-    # line) — a refractory crucible from the potter, and the two glaze
-    # fluxes no ore here wins.
-    # ⚠ The FIRED commons rows: an import arrives burnt. The pack's
-    # `/trade/ceramics/thing/firebrick` is the green brick a moulder makes
-    # (it `extends:` this one, so it fits the same lining line once fired).
-    - { itemTemplatePath: /stuff/thing/firebrick, par: 40 }
+    # ⭐ (ceramics W5) What keeps a furnace: firebrick to reline it, a
+    # refractory crucible, and the two glaze fluxes no ore here wins.
+    # ⭐⭐ (ceramics W6, D28) The firebrick is the Delight BRICKFIELD's:
+    # bought there first, and imported — at half as much again, and with no
+    # maker on it — only when the brick stack holds none. The row is the
+    # pack's firebrick, which `extends:` the commons one every lining bill
+    # names (so it fits the same line), and whose bare clone arrives FIRED.
+    - { itemTemplatePath: /trade/ceramics/thing/firebrick, par: 40, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/brickmaster, importBackstop: 1.5 } }
     - { itemTemplatePath: /trade/smelting/thing/crucible, par: 2 }
     - { itemTemplatePath: /stuff/thing/lead-pig, par: 2 }
     - { itemTemplatePath: /stuff/thing/tin-bar, par: 2 }
@@ -111,7 +111,7 @@ data:
     /trade/fuel/thing/gas-bladder: 11
     # A firebrick is cheap and a lining is forty of them; a crucible is
     # dear and wears with every melt; lead and tin are imports.
-    /stuff/thing/firebrick: 2
+    /trade/ceramics/thing/firebrick: 2
     /trade/smelting/thing/crucible: 15
     /stuff/thing/lead-pig: 20
     /stuff/thing/tin-bar: 25

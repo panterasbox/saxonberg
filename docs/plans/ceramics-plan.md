@@ -1404,6 +1404,139 @@ left a fork the lens that chose is named.
   `/trade/ceramics/thing/crucible` is green ware until fired); firebrick is
   the commons fired row, an import until W6's brickfield supplies it.
   `measure size` blurs by competence (±8 % untrained).
+- **B40 (W7) — The mould dials are the KERNEL's** (`mould.*` in
+  `AppSettingKeys` + `settings/mould.yaml`), not `ceramics.pour.*`: the
+  mixin is kernel (B29's precedent). `misrunKcm` 15, `sandEffusivity` 850,
+  `blowWetness` 0.3, `blowBurnJ` 40, `rammedWetness` 0.15, `pressNPerKg`
+  2000, `overpressExponent` 0.15.
+- **B41 (W7) — What a thing leaves pressed into something soft is ITS
+  answer**, `TangibleMixin.leaveImpression(nowS)` (a `@hook`), not a helper
+  in the mould: the carved `Pattern` overrides it with the impression it
+  was cut to, and the board that carves it reads the same answer off the
+  thing (no new public static anywhere). The cast's provenance is a
+  Tangible field, `castFrom {kindPath, takenFromIdentity, takenAtS}`, so
+  interchangeability (D27) and the die's token read one record; the seams
+  and *taken from* are written into the cast's prose at the set.
+- **B42 (W7) — Misrun and shrinkage judge a CLOSED cavity only** (any mould
+  holding an impression, or `closedCavity: true` — the bell pit). An open
+  ingot trough is its own riser and fills from above; judging it would
+  have failed the dairy drive's tiny copper ingot. A pour that runs short
+  of the cavity is a misrun too; the overfill of a metal is a *runner and
+  riser* lump beside the cast (never lost); a slip's is poured back.
+- **B43 (W7) — The undercut is refused at the IMPRESS, not at `castInto`**
+  (the plan's place): the set has no actor to tell, the impress does. An
+  undercut is derived — more than one line in the pattern's bill (a sword's
+  four parts; a jug's one handle line is not).
+- **B44 (W7) — The damp blow happens at the POUR.** `receivedPour` marks
+  the mould blown; `Bulkable.afterPouredInBy(by, litres)` — a new `@hook`
+  the pour verb calls, the twin of `afterPouredOutBy` — throws the metal at
+  the pourer (`ConditionApi.inflict` heat, hands); the set mints a *blown
+  lump*. A sand flask is dampened by pouring water into it: an `absorbent`
+  mould drinks plain water into its own wetness.
+- **B45 (W7) — Past the reference load the drain set keeps firming**, as
+  `loaded × ratio^(−0.15)`, and the ratio is no longer capped at 1 for the
+  moisture (the pace still is). ⚠ This moves a shipped number: the 12 kg
+  stone on a 2 L hoop is ~2.9× its reference, so its wheel presses to 0.47
+  rather than 0.55 (`hoop.test` restated). Without it a screw press could
+  not make a cheese firmer than a stone, which S16 requires.
+- **B46 (W7) — The bell pit's slow pour transfers AT ONCE and holds the
+  founder's attention after** (six game hours), crediting `founding` at
+  `hard` when the watch is kept — not the transfer at the completion the
+  plan named: a crucible held a game day before the pour would have set.
+- **B47 (W7) — Survival is asked of INTERIOR receivers only** (a floor is
+  never one), right after the material-compatibility step and before the
+  closure step. A melting receiver is destructed at once and its broken
+  form placed where it stood; a burning one ignites through its own
+  `ignite` when it is `Combustible`, else chars away. Statuses `melted` /
+  `burned`.
+- **B48 (W7) — An alloy salvages as itself.** `salvageImpl` used to flatten
+  every material to its elements, so salvaging pewter would have handed back
+  tin and lead apart — which a melt never does. A material tagged `alloy`
+  and `metal` is one constituent now (D27's *a pool, which recasts*). Fired
+  clay's branch is the authored `brokenTemplate` (≠ its cast template) at
+  full mass.
+- **B49 (W7) — The die is a `Tool` with `capabilities: [anvil]`**, not a
+  `Mould` with `pressKind: blow` (D25): `hammer`'s anvil arg `requires:
+  [ToolMixin]`, so only a tool reaches its `strikeWith` probe. `loadN` is
+  weight + press; the blow is the die's own arithmetic (energy over a 2 mm
+  stroke against hardness over a token's face, eased toward the melt).
+- **B50 (W7) — `carve riser on <flask>`**: the riser is a mould row flag
+  (`riser`) that the `carve` verb can set on a rammed mould
+  (`MouldMixin.carvePlan` — any edge), so *no riser → porous; a riser →
+  sound* is a player's act, not two rows. The foundry props a moulder's
+  trowel for it.
+- **B51 (W7) — `carve pattern of <thing> [from <wood>] [for <metal>]`**:
+  carve gains `of` and `for` args (`CarveRequest.of`, `forWord`); the stock
+  plans it through carpentry's `PatternStockMixin` (pack `lib/` — Board and
+  Blank compose it). The metal defaults to the thing's own when it is metal.
+- **B52 (W7) — The foundry is flat rows** (`rejection/location/foundry`,
+  `location/foundry-yard`), beside the smelter's flat siblings, not a
+  `foundry/` folder; the yard is roofed (rain on the pit would blow a bell).
+  The wax block and the moulding-sand heap are `trade-smelting` rows (the
+  venue does not depend on `trade-chandlery`); the pattern bell is a real
+  hand bell (anything can be a pattern), so no pattern rack.
+- **B53 (W7) — Plaster has no dead-burnt rung.** Gypsum past ~700 K becomes
+  anhydrite and never sets — but the mixing vessel names the blend whatever
+  went in, so the row would have been a false claim; deferred in mould.md.
+- **B54 (W7) — `terminus` depends on `trade-smelting`** for the curfew
+  bell's `Bell` class (a new workspace dependency: `pnpm install`).
+- **B55 (W6) — A sold row is the FIRED good.** The rows the re-pointed
+  lines name (mug, jug, jar, crock, bowl, flask, both plant pots) carry
+  `ceramic/earthenware`; the pack firebrick drops its `earth/clay`
+  override and inherits the commons refractory. `shape` restamps clay,
+  water and maker, so the potter's piece is born green and a backstop
+  import (a bare clone) is born finished with no maker. Without it every
+  import was raw clay that slumps in the rain. *Lens 1.*
+- **B56 (W6) — The ceramics plant pots are working pots**: the farming
+  pot rows' interior, moisture reserve, plant slot and planting detail are
+  copied onto them (the trades share no dependency). The two farming pot
+  rows lost their only reacher (the general store) and are propped at the
+  Delight farmstead yard (`lint:reachability` arm R).
+- **B57 (W6) — The chandlery ADDS the pottery's jar and flask** beside its
+  soft-soap jar and lye flask instead of replacing them: the soft soap and
+  the lye are the chandler's product and the cleanliness chain's inputs;
+  the jar is the pot they go in. *Lens 6 (was the demand there first).*
+- **B58 (W6) — The stall is the MARKET's counter** (the fish stall's
+  shape), its eight lines supplied by the pottery with the backstop; the
+  potter carries ware to it with the shopkeeping `consigns` brain. The
+  general store keeper's `stocks` beat gets an authored way down the
+  Delight road to the potter's shop. Setting pan off the stall: terminus
+  does not depend on dairying.
+- **B59 (W6) — The brickfield is its own `CartesianZone` with its own
+  `deposit:`** (the valley's farms do not stand on brick clay), and the
+  pit is authored at `floorDepthM: 1.2` on the water table, so the clay
+  and the sand are WALL faces. ⚠ With the floor in the clay band a pit
+  stops after two digs (`LIFT_M` 0.5 per floor dig). `faceRunM: 200`
+  (≈ 800 lumps, 400 loads of sand).
+- **B60 (W6) — The flooded old pit is a `Locale` with a `WaterFixture`
+  pond**, not a `Shore` (a Shore cites a Watercourse; a flooded pit is
+  none). It also holds the old oversize moulding table (`idea/form/
+  old-brick`, `greenScale` 1.6 — off standard past any reader's blur) for
+  drive step 9.
+- **B61 (W6) — The TUB names the glaze.** Two `MixingVessel` rows,
+  `blendMaterial: glaze/ash` and `glaze/lead`; no dominant-flux naming
+  exists in the kernel blend and none was added (R1: the vessel names the
+  blend, the inputs decide what is in it).
+- **B62 (W6) — The temper pit is a WORLD row** (its blend is the Delight's
+  alluvial clay, which a trade row may not name — R4) and authors its
+  starting water (`interiorAmount: 200`, the soft-soap jar's shape).
+- **B63 (W6) — The cone rung** (`TemperatureReading`): a set of three
+  (08 · 04 · 6 at 1218 · 1333 · 1495 K, ±15 K bending), counted by anyone,
+  named by a competent reader, read into the body by a proficient one;
+  the set is destructed by the read.
+- **B64 (W6) — No `structure.yaml`, no screw press, no tile/brick mould
+  rows, no `parLines`.** Each shed is a lone building (a structure only
+  says who shares a wall); the press and the moulds are W7's files; a par
+  sheet does nothing without a `restocks` brain, so the stack's BREEZE is
+  an import line instead (S20 "buys breeze"), and the sand is dug.
+- **B65 (W6) — The brains never move a PLAYER's goods** (a good stamped to
+  a player stops the step); the setter `douse`s a clamp once its bricks
+  are burnt (a 600 kg coal bed would smoulder for weeks); the potter
+  throws clay untempered (the temper pit's blend would re-name any clay
+  the Delight's). The clamp answers only to `clamp`/`brick clamp`.
+- **B66 (W6) — Every kept brickfield place is a `PersistentLocale`** —
+  the weathering ground, temper yard and clamp ground too, not only the
+  three sheds: a heap's winter and a clamp mid-burn are AC 22 state.
 
 ## ⭐⭐ Host placement
 

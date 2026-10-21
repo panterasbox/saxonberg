@@ -1895,6 +1895,28 @@ export const AppSettingKeys = {
   /** Green ware — two pieces joined with slip whose dryness differs by more
    * than this crack where they meet as they dry (ceramics W4). */
   greenJoinMismatch: "green.joinMismatch",
+  /** Mould — ⭐ Chvorinov's misrun (ceramics S14): the superheat (K) a
+   * pour needs per unit of the cast's area-to-volume, in K·cm, against a
+   * sand mould; a mould that draws heat faster (its effusivity ÷ sand's)
+   * needs proportionally more. */
+  mouldMisrunKcm: "mould.misrunKcm",
+  /** Mould — the thermal effusivity √(kρc) of moulding sand, the
+   * reference a mould's own chill is taken against. */
+  mouldSandEffusivity: "mould.sandEffusivity",
+  /** Mould — a mould wetter than this BLOWS under a hot pour: the steam
+   * ruins the cast and throws metal at the pourer (ceramics S12). */
+  mouldBlowWetness: "mould.blowWetness",
+  /** Mould — the energy (J) a blown mould throws at the pourer's hands. */
+  mouldBlowBurnJ: "mould.blowBurnJ",
+  /** Mould — wetness a freshly rammed sand mould holds (green sand). */
+  mouldRammedWetness: "mould.rammedWetness",
+  /** Mould — newtons per kg a dry plastic charge resists pressing with;
+   * scaled by (1 − moisture)², so wet clay gives easily (ceramics S16). */
+  mouldPressNPerKg: "mould.pressNPerKg",
+  /** Mould — beyond the drain set's reference load, moisture falls as
+   * load^(−this): a screw press makes a firmer cheese than a stone. */
+  mouldOverpressExponent: "mould.overpressExponent",
+
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",

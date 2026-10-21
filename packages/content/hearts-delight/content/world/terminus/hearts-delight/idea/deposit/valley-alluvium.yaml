@@ -1,0 +1,35 @@
+# ⭐ The Delight's flats, in section — the ground the brickfield cuts
+# (ceramics W6). An HONEST column, which is the point of a second working
+# after the Hill Quarry's deliberate museum: a river laid this down, fine
+# stuff on top of coarse, and that is all there is in it.
+#
+# ## The section, in METRES
+#
+#   0 … −0.3   loam        the turf and the topsoil — lifted once, long ago
+#  −0.3 … −0.9 alluvial    the river's fat red clay: the brick and the pot
+#              clay        (a lump stamps THIS material — `Clay` reads its
+#                          composition, M3)
+#  −0.9 … −1.2 river sand  a lens of clean sand the river dropped in a
+#                          flood: the moulder's temper, won at the same face
+#  −1.2 … −6   gravel      the old bed — stones and coarse sand
+#      below   granite     the country rock, a long way down
+#
+# **The water table at −1.2 is what "worked out" means here.** The river
+# is two hundred yards off and the gravel under the sand is full of it, so
+# a pit taken down to the gravel stands in water and stops — the brickfield
+# does not dig deeper, it opens a new pit beside the old one, and the old
+# one fills (`brickfield/location/old-pit`). ⚠ The dynamic flood of a
+# working that reaches the water is mining-slate's; the old pit is
+# authored flooded.
+class: /system/ground/idea/Deposit
+data:
+  name: valley-alluvium
+  stratigraphy:
+    - { toZ: -0.3, host: /stuff/idea/material/earth/loam }
+    - { toZ: -0.9, host: /world/terminus/hearts-delight/idea/material/alluvial-clay, wins: /trade/quarrying/thing/clay }
+    - { toZ: -1.2, host: /stuff/idea/material/earth/sand, wins: /world/terminus/hearts-delight/brickfield/thing/sand }
+    # ⚠ The gravel bed is the commons `drift` host — clay, gravel and
+    # stones thrown together, which is what an old river bed is.
+    - { toZ: -6, host: /stuff/idea/material/bulk/drift }
+    - { toZ: -400, host: /stuff/idea/material/rock/granite }
+  waterTable: -1.2

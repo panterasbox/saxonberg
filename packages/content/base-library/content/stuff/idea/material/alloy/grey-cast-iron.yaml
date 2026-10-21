@@ -1,0 +1,28 @@
+# Grey cast iron — ⭐ cast iron that cooled slowly enough in sand for its
+# carbon to come out as flakes of graphite (ceramics S12): grey where it
+# breaks, soft enough to file and machine, and it damps a ring — the stove
+# plate, the pot, the cannon. Brittle still (the flakes are cracks waiting),
+# but nothing like the chilled white.
+class: /platform/idea/material/Material
+data:
+  name: grey cast iron
+  keywords: [grey-iron, "grey iron", "grey cast iron", "gray iron"]
+  appearance: dull grey cast iron
+  density: 7150
+  specificHeat: 460
+  thermalConductivity: 52
+  electricalConductivity: 1.0e6
+  waterAbsorptionCapacity: 0.2
+  hardness: 450
+  toughness: 18
+  meltingPoint: 1420
+  latentHeatOfFusion: 240000
+  thermalExpansion: 1.1e-05
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: [{ type: iron-poisoning, amount: 0 }]
+  tags: ["alloy", "metal", "ferrous", "magnetic", "brittle"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.96 }
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.04 }
+  biologicalSource: null

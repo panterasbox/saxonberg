@@ -561,6 +561,8 @@ const FAUCETS: Record<string, string> = {
   block: "a shape mints a block of this row (formTemplates)",
   cone: "a shape mints a cone of this row (formTemplates)",
   brokenTemplate: "a brittle body breaks into it (ceramics W2)",
+  breaksTo: "what a consumed mould leaves when broken off its cast (ceramics W7)",
+  strikes: "what a blank struck on a die becomes (ceramics W7)",
   barkPath: "a felled standard's bark",
   charcoalTemplate: "what a char mints",
   brandsTemplate: "the brands a char leaves",
@@ -617,6 +619,9 @@ const CITATIONS: Record<string, string> = {
   stock: "as `shelf`",
   counter: "as `shelf`",
   furnace: "a keeper brain's furnace (`relines`) — propped by its room (ceramics W5)",
+  kiln: "as `furnace` — the potter's kiln (`pots`), propped by her shop (ceramics W6)",
+  clamp: "as `furnace` — the setter's clamp (`sets`), propped by the clamp ground (ceramics W6)",
+  temper: "as `shelf` — the moulders' temper pit (`moulds`), propped by its yard (ceramics W6)",
   board: "as `shelf`",
   boards: "as `shelf`",
   bench: "as `shelf`",
@@ -869,8 +874,10 @@ export const ARTICLE_SHAPE_CEILING = 119;
  * every one was given the name it prints, and two older misses with them.
  * The rubber drive bought a leather WATERSKIN asking for the boots: they
  * answer to "leather boots" now (70 → 69).
+ * Ceramics W6 re-pointed the store's pot and jar lines to the pottery's
+ * rows, whose names they answer to (69 → 68).
  */
-export const UNNAMEABLE_GOOD_CEILING = 69;
+export const UNNAMEABLE_GOOD_CEILING = 68;
 
 /**
  * ⭐⭐ **Arm A is a ZERO INVARIANT.** There is no ceiling: every command

@@ -1,0 +1,35 @@
+# A moulder — ⭐ the brickfield's gang (ceramics S20): digs clay at the pit,
+# treads it in the temper pit with sand, moulds a day of bricks at the
+# table and bears them off to the hacks. A moulder's band sets how many a
+# day comes to — the gang's two hands are a proficient and a novice.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Jory Sallow
+  keywords: [jory, sallow, moulder]
+  alternateNames: ["jory", "sallow"]
+  pronouns: he
+  shortDescription: moulder with a clot of clay in each hand
+  register: indefinite
+  longDescription: >-
+    A wiry young man moulding at a pace you can hardly follow — throw, strike, turn out — who has not stopped talking since dawn.
+  archetype: labourer
+  competence:
+    - { discipline: brickmaking, asserting: proficient }
+  dispositions:
+    - { disposition: diligence, valence: 55 }
+  behaviors:
+    - brain: /trade/ceramics/behavior/moulds
+      trigger: candidate
+      config:
+        shed: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+        temper: /world/terminus/hearts-delight/brickfield/thing/temper-pit
+        hacks: /world/terminus/hearts-delight/brickfield/location/hacks
+        pit: /world/terminus/hearts-delight/brickfield/location/clay-pit
+        # ⭐ The field, from the shed — authored, never searched.
+        ways:
+          - { to: /world/terminus/hearts-delight/brickfield/location/hacks, go: [south], back: [north] }
+          - { to: /world/terminus/hearts-delight/brickfield/location/temper-pit, go: [west], back: [east] }
+          - { to: /world/terminus/hearts-delight/brickfield/location/clay-pit, go: [west, west, south], back: [north, east, east] }

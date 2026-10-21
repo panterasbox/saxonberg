@@ -48,10 +48,9 @@ args:
     type: objects
     required: false
     prepositions: [with, using, on, at]
-    # ⚠ W6 widens this to `reachable:[capability.wheel],reachable:[capability.brick-table],`
-    # when the brickfield's wheel and brick table stand somewhere
-    # (`lint:capabilities`: a capability no row offers is a gate nobody passes).
-    default: "reachable:[capability.blowpipe]"
+    # The wheel and the brick table stand in the Delight's pottery and
+    # moulding shed (ceramics W6); the blowpipe in the glasshouse.
+    default: "reachable:[capability.wheel],reachable:[capability.brick-table],reachable:[capability.blowpipe]"
     scope: ["reachable"]
     requires: [ToolMixin]
   # The form, after `into` — greedy, so `tall jug holding 3 pints` is one

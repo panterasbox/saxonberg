@@ -31,6 +31,10 @@ import type { MqlQuantity, MqlMatchVia } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
+import type { Containable } from '../../../lib/spatial/Containable';
+import type { Container } from '../../../lib/spatial/Container';
 import { QuantityApi } from '../../../api/quantity';
 import type {
   BulkNote,
@@ -338,6 +342,39 @@ export class BulkableLogic extends ApiLogic {
           reason: 'material-mismatch',
         });
         return { applied: 0, status: 'declined', notes };
+      }
+    }
+
+    // ⭐⭐ 2b. The receiver must SURVIVE the pour (ceramics S13) — asked
+    // BEFORE anything moves, of every vessel: a wooden mould under bronze
+    // burns, a tin cup under molten lead melts. The pour goes to the floor
+    // (the shipped puddle path) and the receiver is gone — melted into its
+    // broken form, or burning.
+    if (to !== null && to.affordance === 'interior') {
+      const receiver = to.getHolder() as unknown as Stuff;
+      const pourK = from.getTemperatureK();
+      const reception =
+        MixinApi.isTangible(receiver) && pourK !== null && pourK > 0
+          ? receiver.canReceiveAtK(pourK)
+          : 'holds';
+      if (reception !== 'holds') {
+        const floor = this.floorSurfaceNear(receiver);
+        const spilt =
+          floor !== null
+            ? this.transfer(from, floor, amount)
+            : { applied: 0, notes: [] as BulkNote[] };
+        notes.push(...spilt.notes);
+        notes.push({
+          kind: 'target-declined',
+          target: MessageApi.refOf(receiver),
+          reason: reception === 'melts' ? 'receiver-melted' : 'receiver-burned',
+        });
+        loseReceiver(receiver, reception);
+        return {
+          applied: spilt.applied,
+          status: reception === 'melts' ? 'melted' : 'burned',
+          notes,
+        };
       }
     }
 
@@ -657,6 +694,13 @@ export class BulkableLogic extends ApiLogic {
       fromHolder.setContentsTemperature(fromHolder.getTemperature().rawValue());
     }
 
+    // ⭐ (ceramics D22) A mould hears what was poured into it and how hot —
+    // the superheat Chvorinov reads at the set, the water an absorbent
+    // mould drinks, the steam a damp one blows with.
+    if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
+      toHolder.receivedPour({ temperatureK: blendFromK, litres: applied, material });
+    }
+
     const clampedShort =
       amount.kind === 'measure' && applied < amount.litres;
     const status: TransferStatus | undefined = clampedShort
@@ -705,6 +749,37 @@ export class BulkableLogic extends ApiLogic {
 // ---------------------------------------------------------------------------
 // Helpers (module-private, off-class, not part of the public surface).
 // ---------------------------------------------------------------------------
+
+/**
+ * ⭐ A receiver that could not survive a pour (ceramics S13). A melting one
+ * slumps into its material's broken form where it stood; a burning one
+ * catches — through its own `ignite` when it is fuel, else it chars away.
+ * Fire-and-forget: the transfer is synchronous and the clone is not.
+ */
+function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
+  if (how === 'burns' && MixinApi.isCombustible(receiver)) {
+    const lit = receiver.ignite();
+    if (lit.lit) return;
+  }
+  const mat = MixinApi.isTangible(receiver) ? receiver.getMaterial() : null;
+  const massKg = MixinApi.isTangible(receiver) ? receiver.getMass().rawValue() : 0;
+  const row = how === 'melts' && mat !== null ? mat.getBrokenTemplate() : '';
+  const where = MixinApi.isContainable(receiver) ? receiver.getContainer() : null;
+  // Gone NOW — the pour is on the floor in the same breath.
+  StuffApi.destruct(receiver);
+  if (row === '' || mat === null || where === null || !MixinApi.isContainer(where)) return;
+  void StuffApi.clone<Stuff>(row)
+    .then((pieces) => {
+      if (MixinApi.isTangible(pieces)) {
+        pieces.setMaterial(mat);
+        pieces.setMass(Quantity.of(massKg, 'kg'));
+      }
+      if (MixinApi.isContainable(pieces) && !where.isDestroyed()) {
+        ContainmentApi.move(pieces as Stuff & Containable, where as Stuff & Container);
+      }
+    })
+    .catch((err: unknown) => console.warn('BulkableLogic: a melted receiver left nothing:', err));
+}
 
 /**
  * Compute the clamped litres to move and push any clamp note.

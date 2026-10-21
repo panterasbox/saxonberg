@@ -1,0 +1,62 @@
+# The potter — ⭐ keeps the Delight pottery (ceramics S20): throws at the
+# wheel, fires the updraft kiln, lead-glazes the jars and crocks, shelves
+# the ware and carries it to the Terminus stall to consign. She relines her
+# own kiln with the brickfield's firebrick when it wears thin (D20).
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Wenna Hale
+  keywords: [wenna, hale, potter]
+  alternateNames: ["wenna", "hale"]
+  pronouns: she
+  shortDescription: potter with slip to the elbow
+  register: definite
+  longDescription: >-
+    A lean, sharp-eyed woman with grey slip dried to the elbow and a pencil
+    behind one ear, who can tell you what a pot weighs before you hand it to
+    her and will, whether you asked or not.
+  archetype: proprietor
+  prologue:
+    - "Throws a pint mug in the time it takes to say so."
+    - "Stamps a running hare on everything she makes."
+  competence:
+    - { discipline: pottery, asserting: proficient }
+    - { discipline: masonry, asserting: competent }
+    - { discipline: retail-sales, asserting: competent }
+  dispositions:
+    - { disposition: diligence, valence: 70 }
+  behaviors:
+    - brain: /trade/ceramics/behavior/pots
+      trigger: candidate
+      config:
+        shop: /world/terminus/hearts-delight/brickfield/location/potters-shop
+        kiln: /trade/ceramics/thing/updraft-kiln
+        pit: /world/terminus/hearts-delight/brickfield/location/clay-pit
+        forms: [mug, jug, jar, crock, bowl, "plant pot"]
+        glaze: { tub: "lead tub", forms: [jar, crock] }
+        fire: 10 hours
+        batch: 4
+        boards: 6
+        ways:
+          - { to: /world/terminus/hearts-delight/brickfield/location/clay-pit, go: [west, west, west, south], back: [north, east, east, east] }
+    # ⭐ The stall in town (D28): she carries the shelf's ware to the
+    # Terminus market and consigns it as the pottery — sale or return, paid
+    # when it sells.
+    - brain: /trade/shopkeeping/behavior/consigns
+      trigger: candidate
+      config:
+        stock: /world/terminus/hearts-delight/brickfield/thing/ware-shelf
+        shelf: /world/terminus/market/thing/potters-stall
+        batch: 6
+        defaultAsk: 3
+    # ⭐ (D20) The kiln's lining is firebrick, and the brickfield's stack is
+    # where she buys it.
+    - brain: /trade/ceramics/behavior/relines
+      trigger: candidate
+      config:
+        furnace: /trade/ceramics/thing/updraft-kiln
+        counter: /world/terminus/hearts-delight/brickfield/thing/brick-stack
+        ways:
+          - { to: /world/terminus/hearts-delight/brickfield/location/clamp-ground, go: [south], back: [north] }

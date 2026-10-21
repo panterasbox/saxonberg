@@ -440,6 +440,16 @@ holds; sequential single-viewer commands keep the race benign).
   can purge it. The cascade itself is the persistence layer's job; no
   account-deletion hook exists to wire today.
 
+## ⛔ A cast of a face is a likeness, never a disguise (ceramics W7, M9)
+
+A living body pressed into a mould (`impress <person> in plaster`) leaves a
+**likeness** — `TangibleMixin.leaveImpression` answers the commons
+`likeness` row and nothing else — and the cast is a mask of how they looked.
+⚠⚠ It confers NOTHING to belief: no realm is written by the impression, the
+cast, or anybody holding or wearing it, and a viewer's recognition of the
+holder is untouched (`Mould.envelope.test.ts` asserts it). Disguise stays
+`Disguisable`'s, and a likeness is not one. See [mould.md](./mould.md).
+
 ## Deferred tails
 
 - **Aether id-aug + anonymity** (deferred) — an `AugmentMixin` broadcast over

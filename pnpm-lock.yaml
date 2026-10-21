@@ -629,6 +629,9 @@ importers:
       '@saxonberg/content-trade-carpentry':
         specifier: workspace:*
         version: link:../trade-carpentry
+      '@saxonberg/content-trade-ceramics':
+        specifier: workspace:*
+        version: link:../trade-ceramics
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
@@ -653,6 +656,9 @@ importers:
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
+      '@saxonberg/content-trade-quarrying':
+        specifier: workspace:*
+        version: link:../trade-quarrying
       '@saxonberg/content-trade-ranching':
         specifier: workspace:*
         version: link:../trade-ranching
@@ -965,6 +971,9 @@ importers:
       '@saxonberg/content-trade-carpentry':
         specifier: workspace:*
         version: link:../trade-carpentry
+      '@saxonberg/content-trade-ceramics':
+        specifier: workspace:*
+        version: link:../trade-ceramics
       '@saxonberg/content-trade-chandlery':
         specifier: workspace:*
         version: link:../trade-chandlery
@@ -1016,6 +1025,9 @@ importers:
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing

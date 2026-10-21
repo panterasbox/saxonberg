@@ -1,0 +1,44 @@
+# The potter's stall — ⭐ the Delight pottery's ware in town (ceramics S20,
+# D28). A fixed `Stock` on the market square, the market's own (the fish
+# stall's shape: self-service, the market takes its commission), whose
+# lines are SUPPLIED by the Delight pottery: the potter walks the Delight
+# road with a basket of ware and consigns it here as the pottery, sale or
+# return, and a player potter may consign into the same lines.
+#
+# ⭐⭐ The backstop: when the pottery's own shelf holds none of a line, the
+# reset sweep imports to par — at `importBackstop` × the base, and an
+# import is derivably a pot nobody here made (no maker, no mark). So the
+# stall always has a plant pot; the local one is the cheap one.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: potter's stall
+  keywords: [stall, "potter's stall", "pot stall", crocks]
+  register: definite
+  longDescription: |
+    A trestle under a brown awning stacked with pots — crocks and jars on the ground, mugs and jugs on the boards, a pyramid of flower pots at one end. A painted board over it shows a running hare: the Delight pottery.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [monger]
+  businessPath: /world/terminus/market/business
+  stockLines:
+    - { itemTemplatePath: /trade/ceramics/thing/plant-pot-small, par: 4, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/plant-pot-large, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/mug, par: 4, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/jug, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/crock, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/bowl, par: 3, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/jar, par: 3, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/flask, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+  # The base — the Delight shelf's own figures; an import asks half again.
+  prices:
+    /trade/ceramics/thing/plant-pot-small: 3
+    /trade/ceramics/thing/plant-pot-large: 8
+    /trade/ceramics/thing/mug: 2
+    /trade/ceramics/thing/jug: 3
+    /trade/ceramics/thing/crock: 4
+    /trade/ceramics/thing/bowl: 2
+    /trade/ceramics/thing/jar: 3
+    /trade/ceramics/thing/flask: 2
+  listingCapOverride: 40
+  mass: 30

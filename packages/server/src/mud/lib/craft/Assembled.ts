@@ -235,6 +235,8 @@ export interface GaugeRecord {
 export interface Assembled {
   /** True when this thing has a bill or a parts record — it IS made of parts. */
   getBill(): Bill | null;
+  /** Set (or clear — `null`, a thing of one piece) the bill. */
+  setBill(value: unknown): void;
   /** The parts record (materialized from the bill first, for a found thing). */
   getParts(): PartLine[];
   getJoints(): JointState[];

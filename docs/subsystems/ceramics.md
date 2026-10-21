@@ -210,8 +210,10 @@ heat-work decides what it comes out as, by the clay's three transitions**
   clone of the row otherwise came back green (the `Clay`/`Ore` precedent).
 - The rows — `clamp`, `pit-firing` (same class: 1250 K, oak, draught 0.45 —
   smoky and reducing), `updraft-kiln` (an `Oven` with a 30-firebrick lining)
-  — are W6's: nothing props them until the brickfield and the pottery exist
-  (`lint:reachability`).
+  — stand in the Delight brickfield's clamp ground and potter's shop (W6).
+  ⚠ The clamp answers to `clamp`, never `brick`/`bricks`/`stack`: `put
+  bricks in clamp` must bind the bricks, and the brick stack beside it is
+  the counter.
 
 ### Linings and crucibles (D19, D20)
 
@@ -238,7 +240,119 @@ can blur a 6 % oversize brick back to *true*. A seated gauger's measure is
 
 ## The works and their people
 
-*(W6.)*
+### The Delight brickfield-and-pottery (S20)
+
+One works, two trades, on the river flats southeast of the valley gate —
+`hearts-delight/content/world/terminus/hearts-delight/brickfield/**`, a
+`CartesianZone` of its own (20 m cells) carrying its **own `deposit:`**,
+`idea/deposit/valley-alluvium`: an honest column — loam 0…−0.3 m, the
+Delight's alluvial clay to −0.9, a lens of river sand to −1.2, gravel
+(`drift`), granite. ⭐ **The water table at −1.2 is what "worked out"
+means:** the clay pit (`location/clay-pit`, an `OpenWorking`) is authored
+at `floorDepthM: 1.2`, its floor the wet gravel, so clay and sand are WALL
+faces (`dig clay`, `dig sand` — about 800 lumps and 400 loads on a 200 m
+face) and the floor refuses *at the water*. The valley's first pit
+(`location/old-pit`) is authored flooded — a `Locale` with a
+`WaterFixture` pond (a flooded pit cites no Watercourse, so not a
+`Shore`); the dynamic flood of a working is mining-slate's.
+
+| place | what is there |
+|---|---|
+| weathering ground | open (no roof, no walls) — heaps lie out the winter here; the brickmaster |
+| clay pit | the working; three quarry spades |
+| old pit | the pond; the **old moulding table**, its mould cut before the statute (`idea/form/old-brick`, `greenScale` 1.6 — a brick off it measures *off standard*) |
+| temper yard | the temper pit (a world row: the blend is CALLED the Delight's alluvial clay, which a trade row may not name — R4), pails, starting heaps of breeze and sand |
+| moulding shed | two brick tables; the gauging rod (`measure size`); the two moulders |
+| hacks | `enclosure: none`, a canvas `roof:` — rain kept off, the field's air (a frost still reaches a wet brick) |
+| clamp ground | the clamp, the pit firing, coal; the **brick stack** (the brickmaster's counter: bricks, firebricks, tiles, and breeze as its one import line); the setter |
+| potter's shop | the wheel, the updraft kiln, the ash- and lead-glaze tubs, the potter's stamp (`markOf` the potter), four sets of cones, the **ware shelf**, a water butt, ash, a pig of lead, charcoal; the potter |
+
+Every place but the pit (`OpenWorking` is persistable itself) and the
+pond is a `PersistentLocale`: a heap's winter, a day's green bricks, a
+clamp mid-burn and the ware on the boards survive a restart (AC 22). The
+floors are the alluvial clay, unworked outdoors and beaten in the sheds
+— the ground soils you.
+
+**Glazes are mixing, not recipes (R1).** Each tub is a kernel
+`MixingVessel` whose `blendMaterial` is its glaze (`glaze/ash`,
+`glaze/lead`): put ash (or lead) in with a little clay and water, `stir
+tub`, and the slurry is that glaze by the vessel's name and its make-up by
+what was weighed. The *vessel* names the glaze — there is no
+dominant-flux naming. Salt glaze is the chamber-vapor path with any salt a
+player brings (the Delight potter is an earthenware potter).
+
+### The businesses and the people
+
+- **The brickmaster** (`idea/brickmaster`, titled the field): seats
+  `master`, `moulder` (headcount 3, two rostered — an opening), `setter`;
+  each slot carries its `station`. Hal Brennick holds the judgment seat
+  (idles); **Jory Sallow** (proficient) and **Bet Amory** (novice) run
+  `moulds`; **Emmet Crane** (proficient) runs `sets`.
+- **The pottery** (`idea/pottery`, titled the shop — the longer extent
+  wins): seats `potter` and `hand` (an opening). **Wenna Hale** runs
+  `pots`, the shopkeeping trade's `consigns` (ware shelf → the Terminus
+  stall) and `relines` (the kiln's lining, firebrick off the brick stack).
+
+The brains (`trade-ceramics/src/behavior/`) are the `reels` shape: ONE act
+per beat, furthest along first, each stage only when its input is there,
+every step a LITERAL verb through `forceCommand`, every walk an AUTHORED
+way, and ⚠ **never a player's goods** (a good stamped to a player stops
+the step that would move it).
+
+- **`moulds`** — bricks in hand → the hacks (`drop bricks`); the gang's
+  green bricks on the pallet → `get 10 bricks`; tempered clay in hand →
+  `shape clay into brick` (a day at the table); a tempered clay in the pit
+  → fetched; raw clay in the pit → an opener in (`put sand in pit`) and
+  `knead pit`; raw clay in hand → into the pit; else `get spade`, `dig
+  clay`.
+- **`sets`** — a lit clamp is left alone, and stopped (`douse`) once its
+  bricks are burnt; burnt bricks in hand → `put bricks in counter`; a cold
+  clamp's burnt bricks → `get bricks from clamp`; bone-dry bricks in hand →
+  `put bricks in clamp` (damp ones go back); a clamp charged to `batch`
+  (40) → `stoke coal`, `ignite clamp`, `fire clamp for 3 days`; else fetch
+  bone-dry bricks from the hacks. ⭐ The setter's own band sets the channel
+  share (`BrickClamp.onFireStart` reads who fires it).
+- **`pots`** — a lit kiln is left, and doused when its load is done;
+  fired ware in hand is lead-glazed inside and put back (jars, crocks) or
+  shelved (`put jug in shelf`); a cold kiln's finished ware drawn a piece a
+  beat; green ware in hand onto the boards (`drop`); a kiln-load (4) fired
+  (`fire kiln for 10 hours`); bone-dry ware off the boards into the kiln;
+  clay in hand thrown into the next form in turn while the boards hold
+  fewer than 6; else dig. ⚠ She throws the clay as it comes out of the
+  ground, and a fat clay that dries fast checks — the clay's honest
+  behaviour.
+
+⚠ Nothing in the valley is booted: the brickfield runs while something
+loads it (a visitor, the general store keeper's errand).
+
+### The Terminus stall and the re-pointed lines (D28)
+
+The **potter's stall** (`terminus/…/market/thing/potters-stall`, propped
+on the square) is the market's counter, self-service like the fish stall,
+with eight lines — plant pots, mug, jug, crock, bowl, jar, flask — each
+`from: { supplier: the pottery, importBackstop: 1.5 }`. The potter
+consigns into it; a player potter may too. The general store's plant pots
+and jar (the jar replaced the jar of honey — the honey is the
+beekeeper's), the chandlery's jar and flask (added beside its soft soap
+and lye) and the Rejection store's firebrick (supplier: the brickfield)
+name the same shape; the general store keeper's `stocks` beat has an
+authored way down the Delight road to the potter's shop. The mechanism is
+[retail.md § Buy local first](./retail.md). ⭐ Every row those lines name
+is the FIRED good (the row's material is the fired body), so an import
+arrives finished with no maker, and `shape` restamps clay onto the
+potter's own. The two plant-pot rows carry the farming pot's soil,
+moisture reserve and plant slot (content copied — the trades share no
+dependency).
+
+### The cones (D31)
+
+`temperature.yaml` carries `handTool: pyrometry`; the pottery props
+`/trade/ceramics/thing/pyrometric-cones` (a `Tool`). `analyze temperature
+kiln` on a lit burner with a set in reach adds the cones to the glow:
+anybody counts how many have gone over; a competent reader names them
+(08 · 04 · 6 — terracotta, earthenware and stoneware heat, ±15 K
+bending); a proficient one says what the ware has had. The set is SPENT
+by the read (a bent cone does not stand up again).
 
 ## Settings (`settings/ceramics.yaml`)
 
@@ -256,6 +370,33 @@ can blur a 6 % oversize brick back to *true*. A seated gauger's measure is
 
 ⚠ Pack dials are read by string key (`AppApi.setting('ceramics.…')`) with a
 literal fallback — no kernel `AppSettingKeys` entry.
+
+## ⭐ Moulding and founding — the ceramics side of W7
+
+The moulding half of the build lives in [mould.md](./mould.md); what is
+ceramics' here:
+
+- **Plaster** — `rock/gypsum` burns to `mineral/plaster` by the one heat
+  rule (~420 K for an hour; the foundry's core oven); `stir` it with water in
+  the **plaster tub** and the slurry (`plaster-slurry`, `cureSetting` 15
+  minutes → `cast-plaster`) poured into the two-piece **plaster case**, a
+  model pressed in before it sets, cures into a **plaster mould** with the
+  model's cavity.
+- **Slip casting** — `slip` authors an `absorbedByMould` drain: poured into
+  a plaster mould (`absorbent`), the mould drinks the water into its own
+  wetness, slower as it wets, and a cup of clay sets in the cavity at
+  leather-hard (`get mug from mould`). In a mould that does not drink, slip
+  never sets.
+- **Pressed tiles** — the **tile mould** (`pressKind: press`) on the **tile
+  press** (`ScrewPress`): a pat of tempered clay is pressed the turn the
+  screw beats its stiffness (`(1 − moisture)²` — wetter clay gives sooner)
+  and the green tile comes straight out.
+- **Recast** — a fired pot salvages to sherds by its body's
+  `brokenTemplate`, whole by mass (`CraftingLogic` salvage, ceramics S18).
+
+The rows stand in Rejection's foundry (`plaster-tub`, `slip-tub`,
+`plaster-case`, `tile-mould`, `tile-press`); `pottery` is the discipline
+the plaster case, the plaster mould and the tile mould credit.
 
 ## Cross-references
 

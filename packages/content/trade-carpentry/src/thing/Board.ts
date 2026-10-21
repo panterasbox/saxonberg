@@ -18,8 +18,9 @@
 
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import { PatternStockMixin } from '../lib/PatternStock';
 
-export default class Board extends Timber {
+export default class Board extends PatternStockMixin(Timber) {
   static commandContributions: CommandContributions = {
     // In your hands (`environment` — to the holder) or at your feet.
     environment: ['platform/cmd/crafting/carve.yaml'],

@@ -41,6 +41,15 @@ data:
   # against pure iron's 1811 K, bought with carbon.
   meltingPoint: 1420
   latentHeatOfFusion: 240000
+  thermalExpansion: 1.1e-05
+  # ⭐⭐ Chill casting (ceramics S12): how it sets depends on how fast the
+  # MOULD takes its heat. Against a conducting iron mould it freezes before
+  # its carbon can come out as graphite and sets WHITE and hard; in sand it
+  # cools slowly and sets GREY and soft. The first arrow whose threshold the
+  # mould's thermal conductivity (W/(m·K)) beats decides.
+  chillsTo:
+    - { mouldConductivityAbove: 20, becomes: /stuff/idea/material/alloy/white-cast-iron }
+    - { mouldConductivityAbove: 0, becomes: /stuff/idea/material/alloy/grey-cast-iron }
   edibility: false
   nutrients: ["iron"]
   toxicity: [{ type: iron-poisoning, amount: 0 }]

@@ -268,7 +268,7 @@ describe('moulds — the container decides the shape', () => {
     (stone as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(4, 'kg'));
     ContainmentApi.move(stone, r);
     ContainmentApi.move(stone, hoop, 'on');
-    expect(hoop.loadKg()).toBeCloseTo(4, 9);
+    expect(hoop.loadN()).toBeCloseTo(4 * 9.81, 9);
     hoop.reconcileSetting(); // seed
     setNow(0.25 * DAY + 60);
     hoop.reconcileSetting();

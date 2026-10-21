@@ -1,0 +1,15 @@
+# A potter's stamp — a thumb-sized seal of fired clay with a mark cut in its
+# face. ⭐ `impress stamp on jug` at leather-hard presses it into the base,
+# and once the pot is fired its base reads whose mark it is and when it was
+# fired (ceramics S5). A stamp somebody cut is THEIRS (its maker); a row can
+# ship a known potter's die by authoring `markOf`.
+class: /trade/ceramics/thing/Stamp
+data:
+  shortDescription: potter's stamp
+  keywords: [stamp, seal, die, mark, potter's stamp]
+  register: indefinite
+  longDescription: >-
+    A little plug of hard-fired clay, the size of a thumb, with a mark cut
+    into its flat face and its back rounded to sit in the palm.
+  _materialPath: /stuff/idea/material/ceramic/stoneware
+  mass: 0.05

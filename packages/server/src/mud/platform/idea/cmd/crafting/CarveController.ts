@@ -67,12 +67,60 @@ interface CarveModel extends CommandModel {
   stock?: MqlOneResult;
   /** The edge the view's default bound, or the one named `with`. */
   knife?: MqlOneResult;
+  /** ⭐ What a pattern is carved OF (`carve pattern of sword`). */
+  of?: MqlOneResult;
+  /** The metal a pattern is cut FOR, a word (`… for bronze`). */
+  for?: MqlOneResult;
 }
 
 export default class CarveController extends ManualBuildController<CarveModel> {
   async execute(model: CarveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const word = (model.thing?.raw ?? '').trim().toLowerCase();
+
+    // ⭐ (ceramics D23) `carve pattern of <thing> [from <wood>] [for
+    // <metal>]` — the STOCK plans a pattern: a board or a blank cut
+    // oversize to the thing's shape by the metal's shrinkage.
+    if (model.of) {
+      const of = model.of.stuff ?? null;
+      if (of === null) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You don't see any '${model.of.raw}' to carve a pattern of.`)
+          .send();
+        context.note({ kind: 'empty-result', field: 'of', query: model.of.raw });
+        return;
+      }
+      const stock = model.stock?.stuff ?? model.target?.stuff ?? null;
+      if (stock === null || !isCarvable(stock)) {
+        this.turnDown(
+          context,
+          'no-stock',
+          Mml.compose`Carve it from what? Name a board or a blank — \`carve pattern of ${Mml.thing(of)} from board\`.`,
+        );
+        return;
+      }
+      const plan = await stock.carvePlan({
+        actor: giver,
+        word,
+        knife: model.knife?.stuff ?? null,
+        of,
+        forWord: (model.for?.raw ?? '').trim().toLowerCase(),
+      });
+      if (!plan.ok) {
+        this.turnDown(context, plan.reason, plan.line);
+        return;
+      }
+      this.engageStep(context, {
+        durationMs: plan.durationMs,
+        effortW: plan.effortW,
+        beginSelf: plan.beginSelf,
+        beginPeers: plan.beginPeers,
+        onComplete: plan.onComplete,
+        onAbort: plan.onAbort,
+      });
+      return;
+    }
 
     // ⭐ A target that plans its own carving answers first.
     const target = model.target?.stuff ?? null;

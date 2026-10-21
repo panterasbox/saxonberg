@@ -23,6 +23,16 @@ export interface CarveRequest {
   word: string;
   /** The edge the binder bound, or `null`. */
   knife: Stuff | null;
+  /**
+   * ⭐ What the carving is OF (ceramics D23): `carve pattern of sword` — the
+   * thing a pattern copies the shape of. Absent for every other carving.
+   */
+  of?: Stuff | null;
+  /**
+   * The word the carving is FOR (`… for bronze`): the metal a pattern is
+   * cut oversize for, by its shrinkage. `''` when unsaid.
+   */
+  forWord?: string;
 }
 
 export interface CarvePlan {

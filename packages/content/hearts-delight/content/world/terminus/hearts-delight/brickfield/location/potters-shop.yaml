@@ -1,0 +1,70 @@
+# The potter's shop — ⭐ the pottery at the top of the brickfield (ceramics
+# S4–S10): the wheel, the updraft kiln, the glaze tubs and the shelf. The
+# potter throws here, dries the ware on the boards, fires it in the kiln
+# (cones in the spy-hole), glazes what wants glazing, fires it again, and
+# carries it to the Terminus stall.
+#
+# Its own outfit (`idea/pottery`), titled to it in the pack manifest: the
+# brickfield's ground is the brickmaster's, and the shop is the potter's.
+# ⭐ Persistent: green ware drying on the boards is a week of somebody's work.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: potter's shop
+  keywords: [shop, "potter's shop", pottery, potter]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  ambientSource: sky
+  ambientOpening: door
+  ambientIntensity: 10000
+  ambientColorTemperature: 5400
+  enclosure:
+    material: /stuff/idea/material/ceramic/brick
+    thicknessM: 0.23
+  roof: { material: /stuff/idea/material/wood/oak, thicknessM: 0.02 }
+  floor:
+    material: /world/terminus/hearts-delight/idea/material/alluvial-clay
+    worked: true
+    onGrade: true
+  longDescription: |
+    A brick shop with a big window, warm from the kiln at its back. A kick-wheel stands under the window with a bucket of slip beside it; boards along the walls carry pots at every stage, dark and soft at one end, pale and dry at the other. Two lidded tubs of glaze stand by the kiln, and a shelf by the door holds what is for sale.
+
+    The kiln fills the back wall: a squat brick bottle with its firemouth low down and a spy-hole stopped with a brick.
+
+    West is the moulding shed. South, down the slope, the clamp ground.
+  coords: { x: 3, y: 0, z: 0 }
+  props:
+    - /trade/ceramics/thing/wheel
+    - /trade/ceramics/thing/updraft-kiln
+    - /world/terminus/hearts-delight/brickfield/thing/ash-glaze-tub
+    - /world/terminus/hearts-delight/brickfield/thing/lead-glaze-tub
+    - /world/terminus/hearts-delight/brickfield/thing/stamp
+    - /world/terminus/hearts-delight/brickfield/thing/ware-shelf
+    - { template: /trade/ceramics/thing/pyrometric-cones, count: 4 }
+    - { template: /stuff/thing/vessel/pail, count: 2 }
+    - /stuff/thing/fixture/water-butt
+    # What a glaze is made of, a starting heap of each — bounded.
+    - { template: /trade/fuel/thing/wood-ash, count: 3 }
+    - /stuff/thing/lead-pig
+    # The kiln's fuel, bounded.
+    - { template: /trade/fuel/thing/charcoal, count: 6 }
+  cast:
+    - /world/terminus/hearts-delight/brickfield/agent/potter
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      media: [ground]
+      edgeMinutes: 1
+    south:
+      destination: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+      media: [ground]
+      edgeMinutes: 1
+  details:
+    door:
+      keywords: [door, window, light]
+      description: |
+        A big many-paned window over the wheel, and the door beside it propped open — a potter throws by daylight, and so does she.
+    boards:
+      keywords: [boards, ware, drying]
+      description: |
+        Long boards on brackets, the ware on them in the order it was thrown: dark and slick at one end, leather-coloured in the middle, pale and dusty at the far end where it is ready to fire.

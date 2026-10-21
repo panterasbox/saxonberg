@@ -29,6 +29,21 @@ export interface ImpressionData {
   takenAtS: number;
   /** What the shape carries because the shape IS the function. */
   carried: { keys?: { keyway: string; technology: string }[]; seal?: string };
+  /**
+   * ⭐ The pattern-maker's allowance (ceramics D23): a pattern carved
+   * OVERSIZE by the linear shrinkage of the metal it was cut for, so the
+   * cast shrinks back to true. `0` (absent) — an impression of the thing
+   * itself, which casts a shade small.
+   */
+  allowance?: number;
+  /**
+   * The shape will not draw out of a one-piece rigid mould — something
+   * stands out of its body (a guard, a handle). Only a mould broken to
+   * release (sand, wax) or one of two pieces takes it.
+   */
+  undercut?: boolean;
+  /** How the thing it was taken from was called, at the time (`look` names it when the identity is not in the world). */
+  takenFromName?: string;
 }
 
 /** A copied shape. Immutable; `toData()` is what persists. */
@@ -43,6 +58,9 @@ export class Impression {
       ...data,
       volumeL: Number.isFinite(data.volumeL) && data.volumeL > 0 ? data.volumeL : 0,
       carried: { ...(data.carried ?? {}) },
+      allowance:
+        Number.isFinite(data.allowance) && (data.allowance as number) > 0 ? (data.allowance as number) : 0,
+      undercut: data.undercut === true,
     };
   }
 
@@ -72,6 +90,21 @@ export class Impression {
 
   public getCarried(): Readonly<ImpressionData['carried']> {
     return this.data.carried;
+  }
+
+  /** The linear oversize the pattern was cut to, `0` for the thing itself. */
+  public getAllowance(): number {
+    return this.data.allowance ?? 0;
+  }
+
+  /** Does something stand out of the shape that a one-piece rigid mould cannot draw? */
+  public hasUndercut(): boolean {
+    return this.data.undercut === true;
+  }
+
+  /** The name the source went by when the impression was taken, or `''`. */
+  public getTakenFromName(): string {
+    return this.data.takenFromName ?? '';
   }
 
   public toData(): ImpressionData {

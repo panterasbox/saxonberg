@@ -15,6 +15,13 @@ data:
   # Mechanical response: softer + less tough than steel (MPa / MJ·m⁻³).
   hardness: 250
   toughness: 90
+  # ⭐ (ceramics W7) It melts — at about 1220 K, two hundred degrees under
+  # copper, which is the tin's gift and why bells and statues are cast in
+  # it. Its shrink derives from this and its expansion: a sixtieth, the
+  # bell-founder's allowance.
+  meltingPoint: 1220
+  latentHeatOfFusion: 200000
+  thermalExpansion: 1.8e-05
   edibility: false
   nutrients: []
   toxicity: []

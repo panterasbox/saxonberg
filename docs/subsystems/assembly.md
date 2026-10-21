@@ -598,6 +598,21 @@ is cast there. A second sawmill is rows.
   never gathers from a shop counter now), and a stocked heap restocked
   without bound.
 
+## ⭐⭐ Interchangeable — a cast to the line's own pattern (ceramics W7, D27)
+
+A part cast from an impression carries `Tangible.castFrom.kindPath`. When a
+part offered to a line in the replace arm of `fit` was cast from an
+impression of **that line's own kind** (`castFrom.kindPath === line.template`),
+it is the same shape as the one it replaces, so it **drops into the old
+joint**: `fitImpl` skips the joint gate (no instrument, no band), the slip
+check and the joint's discipline credit, and `FitReplaced.interchangeable`
+lets the verb say so — *"cast to the same pattern as the one it replaces, it
+drops straight into the old joint."* Derived from the provenance; there is
+no authored flag (an authored `interchangeable` joint flag stays this doc's
+tail). A two-piece mould is itself an assembly — the platform `Mould`
+composes `Assembled`, so a mould with a `bill` of two halves is worn and
+mended at its joint, and every bill-less mould reads *It is one piece*.
+
 ## Deferred seams
 
 - The table and wardrobe (`Fitting`, `Chest` as hosts), casks that are not

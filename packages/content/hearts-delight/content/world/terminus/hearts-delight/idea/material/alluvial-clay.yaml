@@ -17,3 +17,12 @@ data:
     - { materialPath: /stuff/idea/material/mineral/goethite, fraction: 0.07 }
     - { materialPath: /stuff/idea/material/rock/limestone, fraction: 0.02 }
     - { materialPath: /stuff/idea/material/organic/peat, fraction: 0.07 }
+  # ⭐ (ceramics W6) What a piece shaped of this clay by HAND is minted as,
+  # by form class — the wheel and the brick table name their own; the clay
+  # names the fallback for coiling and pinching.
+  formTemplates:
+    open: /trade/ceramics/thing/vessel
+    closed: /trade/ceramics/thing/jar
+    flat: /trade/ceramics/thing/dish
+    block: /trade/ceramics/thing/block
+    cone: /trade/ceramics/thing/cone

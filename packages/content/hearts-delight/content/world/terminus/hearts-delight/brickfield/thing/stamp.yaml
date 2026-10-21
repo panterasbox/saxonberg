@@ -1,0 +1,11 @@
+# The potter's die (ceramics S5) — the shop's own stamp, cut with the
+# potter's mark. Pressed into a leather-hard base (`impress stamp on jug`)
+# it gives the pot HER mark, whoever's hand pressed it; a fired pot's base
+# then reads whose mark it is and when it was fired.
+extends: /trade/ceramics/thing/stamp
+data:
+  shortDescription: potter's stamp
+  longDescription: >-
+    A little plug of hard-fired clay, the size of a thumb, cut with a
+    running hare inside a ring — the Delight pottery's mark.
+  markOf: /world/terminus/hearts-delight/brickfield/agent/potter

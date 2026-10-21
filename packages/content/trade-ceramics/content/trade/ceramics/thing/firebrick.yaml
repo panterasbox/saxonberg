@@ -10,6 +10,9 @@ data:
   register: indefinite
   longDescription: >-
     A pale, gritty brick of fireclay, heavier than it looks.
-  _materialPath: /stuff/idea/material/earth/clay
+  # ⭐ (ceramics W6, D28) No `_materialPath`: the row inherits the commons
+  # firebrick's REFRACTORY body, so a bare clone — the import a store's
+  # backstop brings in when the brickfield has none — arrives fired, with
+  # no maker. `shape` restamps the fireclay onto a moulded one, green.
   mass: 3.6
   quantity: 1

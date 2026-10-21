@@ -96,8 +96,12 @@ data:
     # duplicating them here would mean two pots (and two seeds growing the
     # same plant) drifting apart. The existing goods live under `goods/`
     # because they are store-specific, not because the path is required.
-    - { itemTemplatePath: /trade/farming/thing/pot/small, par: 3 }
-    - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
+    # ⭐⭐ (ceramics W6, D28) The plant pots are the Delight POTTERY's now:
+    # she buys local first — the keeper's `stocks` beat walks the Delight
+    # road to the pottery's shelf — and only when it is bare does the reset
+    # import, at half as much again, a pot nobody here made.
+    - { itemTemplatePath: /trade/ceramics/thing/plant-pot-small, par: 3, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 }, pricing: stocking }
+    - { itemTemplatePath: /trade/ceramics/thing/plant-pot-large, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 }, pricing: stocking }
     - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
     - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
     # ⭐ An orange you can EAT (nutrition-and-fitness W4, D25). The
@@ -148,7 +152,9 @@ data:
     - { itemTemplatePath: /trade/apiculture/thing/frame, par: 6 }
     - { itemTemplatePath: /trade/apiculture/thing/smoker, par: 2 }
     - { itemTemplatePath: /trade/apiculture/thing/extractor, par: 1 }
-    - { itemTemplatePath: /trade/apiculture/thing/honey-jar, par: 4 }
+    # ⭐ (ceramics W6, D28) The JAR, not the honey: the honey is the
+    # beekeeper's to put in it. The pottery's jar, local first.
+    - { itemTemplatePath: /trade/ceramics/thing/jar, par: 4, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 }, pricing: stocking }
     - { itemTemplatePath: /stuff/thing/clothes/bee-veil, par: 2 }
     - { itemTemplatePath: /stuff/thing/clothes/work-gloves, par: 3 }
     # ⭐ A wool jumper (cleanliness D26) — what the wash teaches with.
@@ -475,8 +481,8 @@ data:
     # 4, clasp-knife 6, lantern 10). The large pot is deliberately a real
     # but reachable purchase — it is the first thing a new player has a
     # REASON to buy, and the reason is legible before the purchase.
-    /trade/farming/thing/pot/small: 3
-    /trade/farming/thing/pot/large: 8
+    /trade/ceramics/thing/plant-pot-small: 3
+    /trade/ceramics/thing/plant-pot-large: 8
     /stuff/thing/vessel/soil-sack: 2
     /trade/farming/thing/seed/snake-plant: 5
     /trade/farming/thing/seed/flax: 5
@@ -626,7 +632,7 @@ data:
     /trade/apiculture/thing/frame: 1
     /trade/apiculture/thing/smoker: 6
     /trade/apiculture/thing/extractor: 55
-    /trade/apiculture/thing/honey-jar: 2
+    /trade/ceramics/thing/jar: 3
     /stuff/thing/clothes/bee-veil: 5
     /stuff/thing/clothes/work-gloves: 4
     /stuff/thing/clothes/jumper: 6

@@ -16,6 +16,7 @@ import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
+import { MixinApi } from '../../../../api/mixin';
 import { ContainmentApi } from '../../../../api/containment';
 import {
   makeStuff,
@@ -180,5 +181,35 @@ describe('TemperatureReading', () => {
     expect(reading.getScope()).toContain('subject');
     expect(await reading.truth(vat as unknown as never)).toBeCloseTo(340, 0);
     expect(await reading.truth(room as unknown as never)).toBe(295);
+  });
+
+  it('⭐ (ceramics W6) cones in the spy-hole: everybody counts them, a proficient potter reads the body — and the set is spent', async () => {
+    const room = makeStuff(() => new TestLocation());
+    const avatar = makeStuff(() => new FakeAvatar());
+    avatar.setName('Alice');
+    ContainmentApi.move(avatar, room);
+    const reading = withRow(await StuffApi.create(() => new TemperatureReading()), 'temperature');
+    const kiln = { isLit: () => true, getHeldTemperatureK: () => 1340 };
+    vi.spyOn(MixinApi, 'isBurner').mockImplementation(((o: unknown) => o === kiln) as never);
+    const analyze = (reading as unknown as {
+      analyze(c: CommandContext, t: unknown, b: string, tool: unknown, p: string): Promise<void>;
+    }).analyze.bind(reading);
+
+    const cones1 = await instrumentWith('pyrometry');
+    await analyze(makeContext(avatar, room), kiln, 'novice', cones1, '');
+    const plainRead = (avatar.received.at(-1) as { body: string }).body;
+    expect(plainRead).toMatch(/glows/i);
+    expect(plainRead).toMatch(/one cone has gone over, and another is leaning/i);
+    expect(cones1.isDestroyed()).toBe(true);
+
+    const cones2 = await instrumentWith('pyrometry');
+    await analyze(makeContext(avatar, room), kiln, 'proficient', cones2, '');
+    const fine = (avatar.received.at(-1) as { body: string }).body;
+    expect(fine).toMatch(/cone 08 down, cone 04 bending, cone 6 standing/);
+    expect(fine).toMatch(/coming to earthenware heat/i);
+
+    // Without cones the eye reads the glow alone.
+    await analyze(makeContext(avatar, room), kiln, 'proficient', null, '');
+    expect((avatar.received.at(-1) as { body: string }).body).not.toMatch(/cone/i);
   });
 });

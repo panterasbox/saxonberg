@@ -85,7 +85,12 @@ export type TransferAmount =
  * into something that will not hold it is gone into the air of the room
  * — not retained, not a floor puddle, and not silently lost.
  */
-export type TransferStatus = 'partial' | 'declined' | 'drained' | 'escaped';
+/**
+ * `melted` / `burned` (ceramics S13): the receiver could not survive the
+ * pour — its melting or ignition point is below the pour's temperature —
+ * so the pour went to the floor and the receiver is gone.
+ */
+export type TransferStatus = 'partial' | 'declined' | 'drained' | 'escaped' | 'melted' | 'burned';
 
 export interface TransferResult {
   /** Litres actually moved into the final destination. */

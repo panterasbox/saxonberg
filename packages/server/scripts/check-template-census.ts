@@ -219,6 +219,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // (sherds). Resolved live at the break; a rowless one is a dropped
     // bowl that vanishes.
     'brokenTemplate',
+    // ⭐ (ceramics W7) What a consumed mould leaves when it is broken off
+    // its cast (its sand, its wax), and what a blank struck on a die
+    // becomes. Resolved live at the cast and the blow.
+    'breaksTo', 'strikes',
   ] as const) {
     push(f, data[f]);
   }
@@ -269,6 +273,20 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   if (data.drainSetting && typeof data.drainSetting === 'object') {
     push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);
   }
+  // ⭐ (ceramics W7) The cure set's `becomes` (plaster slurry → plaster) and
+  // the chill arrows' `becomes` (cast iron → white / grey) — materials,
+  // resolved live at the set; a rowless one is a cast of nothing.
+  if (data.cureSetting && typeof data.cureSetting === 'object') {
+    push('cureSetting', (data.cureSetting as Record<string, unknown>).becomes);
+  }
+  if (Array.isArray(data.chillsTo)) {
+    for (const a of data.chillsTo as Array<Record<string, unknown>>) {
+      if (a && typeof a === 'object') push('chillsTo', a.becomes);
+    }
+  }
+  // ⭐ (ceramics W4/W7) Whose mark a stamp or a die was cut with — a
+  // person's row, read live when a pot is marked or a token struck.
+  push('markOf', data.markOf);
   // ⭐ `heatTransitions[]` (ceramics M1) — what heat makes of a material:
   // each rung's `becomes` and `reducing`, the `over` and `scorched`
   // materials, the agent, the volatiles and the vapor coats. Every one is

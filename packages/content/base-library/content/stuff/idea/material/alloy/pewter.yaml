@@ -1,0 +1,38 @@
+# Pewter — ⭐ the founder's first metal (ceramics W7): tin with a fifth part
+# lead, the old common pewter of tavern pots and spoons. It melts at a heat
+# a kitchen fire reaches, so a flask, a wax block and a plaster mould will
+# all take it, and a cast comes out of the sand bright and grey.
+#
+# ⚠ The lead is the point and the danger both: the old founders' pewter
+# was cheap BECAUSE of it, and a pewter cup gives lead to sour drink exactly
+# as a lead glaze does (`leaches`, the same rule, not a second one). A fine
+# pewter with no lead in it is a later rung.
+#
+# Its shrink is DERIVED (`Material.castShrinkage` — expansion × the fall
+# from its melt to a room): about half a percent, the pattern-maker's
+# figure for pewter.
+class: /platform/idea/material/Material
+data:
+  name: pewter
+  keywords: [pewter]
+  appearance: soft grey pewter
+  density: 7900
+  specificHeat: 200
+  thermalConductivity: 55
+  electricalConductivity: 7.0e6
+  hardness: 45
+  toughness: 40
+  meltingPoint: 500
+  latentHeatOfFusion: 55000
+  thermalExpansion: 2.3e-05
+  waterAbsorptionCapacity: 0.2
+  edibility: false
+  nutrients: []
+  toxicity: [{ type: lead-poisoning, amount: 0 }]
+  leaches:
+    - { toxin: lead-poisoning, mgPerLPerDayPerAcidity: 0.5 }
+  tags: ["alloy", "metal", "non-ferrous", "tin", "lead"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/tin, fraction: 0.8 }
+    - { materialPath: /stuff/idea/material/element/lead, fraction: 0.2 }
+  biologicalSource: null

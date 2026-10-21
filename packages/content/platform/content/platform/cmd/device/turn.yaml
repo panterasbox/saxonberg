@@ -1,0 +1,44 @@
+verbs: [turn, tighten]
+controller: /platform/idea/cmd/device/TurnController
+# Bare `turn press` runs the top-level args; `turn back press` the subcommand.
+fallthrough: true
+description: "Turn a screw or a handle down — a screw press bearing on a mould"
+help: |
+  `turn press` heaves the bar of a screw press round one more turn, and
+  the platen bears down harder on whatever mould stands on its bed. Each
+  turn is more pressure than the last; at the bottom of its thread it
+  will go no further. `turn back press` slackens it right off.
+
+  ⭐ A press does what a weight does, only far harder: a cheese hoop on
+  its bed drains faster, and comes out firmer than a stone could ever
+  press it. A tile mould charged with tempered clay is pressed as soon as
+  the screw beats the clay's stiffness — and the tile, holding its own
+  shape, comes straight out. Wetter clay gives sooner; stiff clay wants
+  more turns.
+examples:
+  - cmd: turn press
+    note: One more turn down on the screw
+  - cmd: turn back press
+    note: Slacken it right off
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args: &turnable
+  # `requires: any` — a press, and later a windlass or a capstan, share no
+  # mixin; the controller narrows by SHAPE (the `Turnable` protocol) and
+  # every refusal is the thing's own sentence (the `pump.yaml` reasoning).
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: any
+    greedy: true
+    validators:
+      - /lib/command/validators/canReach
+subcommands:
+  # ⭐ A closed word after the verb is a subcommand (the `draught.yaml`
+  # lesson): a bare word would be swallowed by the object arg.
+  back:
+    description: "Slacken it right off"
+    args: *turnable

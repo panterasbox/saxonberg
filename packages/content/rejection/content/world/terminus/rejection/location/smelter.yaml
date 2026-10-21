@@ -27,6 +27,11 @@ data:
   exits:
     west:
       destination: /world/terminus/rejection/location/fuel-yard
+    # ⭐ (ceramics W7) The foundry, through the door in the east wall —
+    # where the metal goes to take a shape.
+    east:
+      destination: /world/terminus/rejection/location/foundry
+      edgeMinutes: 1
   props:
     - /trade/smelting/thing/furnace
     # ⭐ The mending slate (repair D19) — a mend is somebody's work, and

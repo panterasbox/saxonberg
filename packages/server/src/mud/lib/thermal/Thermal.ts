@@ -2313,6 +2313,9 @@ function reconcileBulkPhase(
         massKg,
         payload: setPayload,
         stampMaterial: !mat.hasTag('liquid'),
+        // ⭐ (ceramics D22) The pool sets at its melting point; what heat
+        // it was POURED with is the mould's record (`receivedPour`).
+        temperatureK: mp,
       });
       return;
     }

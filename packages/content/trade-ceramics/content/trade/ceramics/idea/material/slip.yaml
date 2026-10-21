@@ -20,6 +20,18 @@ data:
   nutrients: []
   toxicity: []
   tags: ["liquid", "slip", "clay"]
+  # ⭐⭐ Slip casting (ceramics D24): the drain set with the MOULD as the
+  # sink. Poured into a plaster mould, the plaster drinks the slip's water —
+  # into its own wetness, so a wet mould drinks slower — and in a couple of
+  # hours what stands in the cavity is clay, firm enough to take out:
+  # leather-hard, in the cavity's shape. In anything that does not drink, it
+  # just sits there as slip.
+  drainSetting:
+    days: 0.08
+    becomes: /stuff/idea/material/earth/clay
+    moisture: { unloaded: 0.7, loaded: 0.7 }
+    loadRef: 1
+    absorbedByMould: true
   composition:
     - { materialPath: /stuff/idea/material/mineral/clay-mineral, fraction: 0.45 }
     - { materialPath: /stuff/idea/material/earth/sand, fraction: 0.10 }

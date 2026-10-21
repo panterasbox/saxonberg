@@ -147,6 +147,34 @@ export interface DrainSetting {
   becomes?: string;
   moisture: { unloaded: number; loaded: number };
   loadRef: number;
+  /**
+   * ⭐ The MOULD drinks the water, not a drain (ceramics D24 — slip
+   * casting): it sets only in an absorbent mould, the water goes into the
+   * mould's own wetness, and a wetter mould drinks slower.
+   */
+  absorbedByMould?: boolean;
+}
+
+/**
+ * ⭐ How this matter sets by a CHEMICAL change with no act (ceramics S17):
+ * plaster slurry takes up its water and is hard in a quarter of an hour.
+ * The third set process (freeze, drain, cure). `becomes` is the material
+ * the set thing IS.
+ */
+export interface CureSetting {
+  minutes: number;
+  becomes?: string;
+}
+
+/**
+ * ⭐ A metal that sets differently against a cold, conducting mould
+ * (ceramics S12 — chill casting): cast iron in an iron mould sets WHITE and
+ * hard, in sand GREY and soft. The first arrow whose threshold the mould's
+ * thermal conductivity (W/(m·K)) exceeds decides.
+ */
+export interface ChillArrow {
+  mouldConductivityAbove: number;
+  becomes: string;
 }
 
 /**
@@ -627,7 +655,8 @@ export default class Material extends SingletonMixin(
         value.moisture.loaded <= value.moisture.unloaded &&
         Number.isFinite(value.loadRef) &&
         value.loadRef > 0 &&
-        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== ''))
+        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== '')) &&
+        (value.absorbedByMould === undefined || typeof value.absorbedByMould === 'boolean')
       )
     ) {
       throw new RangeError(
@@ -640,7 +669,70 @@ export default class Material extends SingletonMixin(
       moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
       loadRef: value.loadRef,
       ...(value.becomes ? { becomes: value.becomes } : {}),
+      ...(value.absorbedByMould === true ? { absorbedByMould: true } : {}),
     };
+  }
+
+  /**
+   * ⭐ How this matter sets by curing (ceramics S17), or `null`. Read only
+   * by a mould's `reconcileSetting`, like the drain set.
+   */
+  public cureSetting: CureSetting | null = null;
+  public getCureSetting(): CureSetting | null {
+    return this.cureSetting;
+  }
+  public setCureSetting(value: CureSetting | null): void {
+    if (value === null || value === undefined) {
+      this.cureSetting = null;
+      return;
+    }
+    if (!(Number.isFinite(value.minutes) && value.minutes > 0)) {
+      throw new RangeError('Material.setCureSetting: need minutes > 0');
+    }
+    this.cureSetting = {
+      minutes: value.minutes,
+      ...(typeof value.becomes === 'string' && value.becomes !== '' ? { becomes: value.becomes } : {}),
+    };
+  }
+
+  /** ⭐ What this sets as against a conducting mould (ceramics S12). */
+  public chillsTo: ChillArrow[] = [];
+  public getChillsTo(): readonly ChillArrow[] {
+    return this.chillsTo;
+  }
+  public setChillsTo(value: ChillArrow[] | null): void {
+    this.chillsTo = (Array.isArray(value) ? value : [])
+      .filter(
+        (a) =>
+          a !== null &&
+          typeof a === 'object' &&
+          Number.isFinite(a.mouldConductivityAbove) &&
+          typeof a.becomes === 'string' &&
+          a.becomes !== '',
+      )
+      .map((a) => ({ mouldConductivityAbove: a.mouldConductivityAbove, becomes: a.becomes }))
+      .sort((a, b) => b.mouldConductivityAbove - a.mouldConductivityAbove);
+  }
+  /** The material this sets as in a mould of conductivity `k`, or `null` (itself). */
+  public chilledIn(mouldConductivity: number): string | null {
+    for (const a of this.chillsTo) {
+      if (mouldConductivity > a.mouldConductivityAbove) return a.becomes;
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ The pattern-maker's shrink (ceramics D23): how much a casting of this
+   * shrinks, linearly, cooling from its melting point to a room —
+   * `thermalExpansion × (meltingPoint − 293)`. DERIVED: brass's 1.7 %
+   * against a pattern-maker's rule of 1.5 %. `0` for a material that
+   * authors neither.
+   */
+  public castShrinkage(): number {
+    const mp = this.getMeltingPoint().rawValue();
+    const a = this.getThermalExpansion();
+    if (!(mp > 293) || !(a > 0)) return 0;
+    return Math.min(0.1, a * (mp - 293));
   }
   /** Whether freezing ruins this material (blood) rather than casting it. */
   public isRuinedByFreezing(): boolean {
@@ -1043,6 +1135,10 @@ export default class Material extends SingletonMixin(
     // facts an author writes per row (water → ice-block; blood → ruined).
     castTemplate: { persistent: true, authorable: true },
     drainSetting: { persistent: true, authorable: true },
+    // ⭐ (ceramics S12, S17) The cure set and the chill arrows — how the
+    // matter sets, never the mould's business.
+    cureSetting: { persistent: true, authorable: true },
+    chillsTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     ruinedByFreezing: { persistent: true, authorable: true },
     boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },

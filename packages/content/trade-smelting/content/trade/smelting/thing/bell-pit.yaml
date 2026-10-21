@@ -1,0 +1,31 @@
+# The bell pit (ceramics D26) — ⭐ a FIXED mould: a pit in the foundry yard,
+# lined with a loam mould built up round a strickled core, that a great
+# bell is poured into. The pour is the founder's DAY: the metal goes down
+# in a long rope and then the founder watches the pit cool until it is
+# safe to dig out (`pourDurationS` — the pour verb holds the attention).
+# Its cavity is shut and fed by a riser, as a founder builds one.
+#
+# ⚠ The requirements say *a pit you climb into, a mould that is a place*;
+# a fixed mould you stand at is what the engine says today (recorded under
+# *needs the owner*).
+class: /platform/thing/Mould
+data:
+  shortDescription: bell pit
+  keywords: [pit, "bell pit", "casting pit", mould, mold]
+  register: definite
+  longDescription: >-
+    A square pit in the yard floor, shored with planks, and at the bottom
+    the dull brown dome of a loam bell mould with a riser cup standing up
+    out of its crown.
+  _materialPath: /stuff/idea/material/ceramic/refractory
+  mass: 2000
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 20
+  closure: liquidTight
+  reusable: true
+  castTemplate: /trade/smelting/thing/large-bell
+  closedCavity: true
+  riser: true
+  pourDurationS: 21600
+  discipline: founding

@@ -1,0 +1,26 @@
+# The casting yard (ceramics W7, D26) — ⭐ where the great bells are poured:
+# an open yard behind the foundry, and in the middle of it the bell pit. A
+# pour into the pit is the founder's day — the metal goes down in a long
+# rope and then the pit is watched until it has cooled enough to dig out.
+class: /platform/location/PersistentLocale
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  # ⭐ A plank roof on posts over the pit and nothing round it: rain on a
+  # loam mould is a pit that BLOWS under the bronze (the damp-mould rule),
+  # so a bell yard is roofed and open-sided.
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  shortDescription: casting yard
+  keywords: [yard, "casting yard", "foundry yard"]
+  register: definite
+  longDescription: |
+    A yard of trodden black sand behind the foundry, walled on two sides with old flasks and a heap of loam under a tarpaulin. In the middle of it, under a plank roof on four posts, a square pit is shored with planks, a windlass standing over it on two trestles.
+
+    Somebody has chalked the date of the last pour on the foundry wall, and the one before it, and the one before that.
+  coords: { x: 3, y: 2, z: 0 }
+  exits:
+    south:
+      destination: /world/terminus/rejection/location/foundry
+      edgeMinutes: 1
+  props:
+    - /trade/smelting/thing/bell-pit
+    - /trade/smelting/thing/ladle

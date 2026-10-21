@@ -4073,8 +4073,43 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
   let maxRateUsed = 0;
   for (const piece of pieces) {
   const pieceKg = piece.kg;
-  // The flattened constituents — a pure material is its own whole.
-  const comp = piece.material.elementalComposition();
+  // ⭐⭐ (ceramics S18) FIRED CLAY salvages to SHERDS — its material's
+  // authored broken form, whole by mass: breaking a pot loses nothing but
+  // the pot. (Grog is the next act, at the millstone.)
+  const brokenRow = piece.material.getBrokenTemplate();
+  if (
+    !piece.material.hasTag('metal') &&
+    !(piece.material.getMeltingPoint().rawValue() > 0) &&
+    brokenRow !== '' &&
+    brokenRow !== piece.material.getCastTemplate()
+  ) {
+    const units = Math.floor(pieceKg / Scrap.UNIT_KG);
+    if (units >= 1) {
+      const sherds = await StuffApi.clone<Stuff>(brokenRow, undefined, { madeFrom: item });
+      const h = sherds as unknown as Stuff & {
+        setMaterial?(m: Material): void;
+        setMass?(q: Quantity<'kg'>): void;
+        setQuantity?(n: number): void;
+      };
+      h.setMaterial?.(piece.material);
+      if (MixinApi.isStackable(sherds) && typeof h.setQuantity === 'function') {
+        h.setMass?.(Quantity.of(Scrap.UNIT_KG, 'kg'));
+        h.setQuantity(units);
+      } else {
+        h.setMass?.(Quantity.of(units * Scrap.UNIT_KG, 'kg'));
+      }
+      meltOutputs.push(sherds);
+      meltRecoveredKg += units * Scrap.UNIT_KG;
+      maxRateUsed = Math.max(maxRateUsed, 1);
+    }
+    continue;
+  }
+  // ⭐ (ceramics S18) An ALLOY melts down as itself: pewter remelted is
+  // pewter, never its tin and its lead apart — a melt does not separate
+  // what alloying joined. One constituent, the whole alloy.
+  const comp = piece.material.hasTag('alloy') && piece.material.hasTag('metal')
+    ? { direct: [] as { materialPath: string; fraction: number }[] }
+    : piece.material.elementalComposition();
   const constituents: { material: Material; fraction: number }[] = [];
   if (comp.direct.length === 0) {
     constituents.push({ material: piece.material, fraction: 1 });
@@ -4397,7 +4432,13 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   // The line that needs it most: a failed member first, then the most worn.
   candidates.sort((a, b) => b.failed - a.failed || a.condition - b.condition);
   const line = candidates[0]!;
-  for (const j of jointsOf(whole, line.part)) {
+  // ⭐⭐ (ceramics D27) INTERCHANGEABLE: a part cast from an impression of
+  // this line's very kind is the same shape as the one it replaces, so it
+  // drops into the old joint — no instrument, no band, no joint re-made.
+  // Derived from the cast's provenance; no authored flag.
+  const castKind = MixinApi.isTangible(part) ? (part.getCastFrom()?.kindPath ?? '') : '';
+  const interchangeable = castKind !== '' && castKind === line.template;
+  for (const j of interchangeable ? [] : jointsOf(whole, line.part)) {
     const row = await cat.warmed(j.method);
     if (!row) continue;
     const gate = await jointGate(maker, row, tools);
@@ -4406,7 +4447,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   // ⭐ (ceramics W4) A SLIP joint joins green clay to green clay, and only
   // at leather-hard — both sides. A much wetter part shrinks more than its
   // body as they dry, and the join cracks.
-  const slipped = jointsOf(whole, line.part).some((j) => j.method === SLIP_JOINT);
+  const slipped = !interchangeable && jointsOf(whole, line.part).some((j) => j.method === SLIP_JOINT);
   let slipMismatch = false;
   if (slipped) {
     for (const piece of [whole, part]) {
@@ -4467,7 +4508,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   });
   // ⭐ (ceramics D29) A joint that names its trade credits it: relining a
   // furnace with dry-laid firebrick is MASONRY practice.
-  if (MixinApi.isAdvancing(maker)) {
+  if (MixinApi.isAdvancing(maker) && !interchangeable) {
     const credited = new Set<string>();
     for (const j of jointsOf(whole, line.part)) {
       const row = await cat.warmed(j.method);
@@ -4497,7 +4538,15 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   } catch (err) {
     console.warn('CraftingLogic: fit capture failed:', err);
   }
-  return { ok: true, arm: 'replace', whole, part: line.part, replaced: k, returned };
+  return {
+    ok: true,
+    arm: 'replace',
+    whole,
+    part: line.part,
+    replaced: k,
+    returned,
+    ...(interchangeable ? { interchangeable: true } : {}),
+  };
 }
 
 /**

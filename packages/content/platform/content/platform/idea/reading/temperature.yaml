@@ -18,10 +18,10 @@ data:
   instrument: thermometry
   instrumentNoun: a thermometer
   # ⭐ A lit kiln reads by its GLOW with nothing in hand at all (ceramics
-  # D31). The cones' `handTool: pyrometry` rung lands with the cones
-  # themselves (the potter's shop) — a capability nothing offers is a gate
-  # nobody can pass (`lint:capabilities`).
+  # D31); with pyrometric cones in reach (the Delight pottery props them,
+  # ceramics W6) the reader resolves finer than the glow — the cone band.
   eyeCeiling: competent
+  handTool: pyrometry
   improves: >-
     whether a room will keep a batch, ripen a cheese, or kill you slowly
   stakes: >-

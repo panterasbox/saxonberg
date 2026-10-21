@@ -477,6 +477,12 @@ export interface Bulkable {
    * bare-handed pourer's face (cleanliness D23).
    */
   afterPouredOutBy(by: Stuff, litres: number): void;
+  /**
+   * @hook `by` has just poured `litres` INTO this (the pour verb calls it,
+   * after the transfer). A no-op on an ordinary vessel; a damp sand mould
+   * that blew under a hot pour throws metal at the pourer (ceramics S12).
+   */
+  afterPouredInBy(by: Stuff, litres: number): void;
   setBulkPayload(affordance: BulkAffordance, payload: BulkPayload | null): void;
   /**
    * Policy seam: the payload `litres` drawn now would carry. Base impl
@@ -904,6 +910,8 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public afterPouredOutBy(_by: Stuff, _litres: number): void {}
+
+    public afterPouredInBy(_by: Stuff, _litres: number): void {}
 
     public getBulkPayload(affordance: BulkAffordance): BulkPayload | null {
       if (affordance === 'interior') this.reconcileFaceExchange();

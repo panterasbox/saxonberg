@@ -21,4 +21,18 @@ data:
   toxicity: []
   tags: ["rock", "mineral", "sedimentary", "sulphate", "gypsum"]
   composition: []
+  # ⭐⭐ Burning gypsum is the same ONE rule as burning lime (ceramics M1,
+  # W7): held at about 420 K for an hour it gives up three-quarters of its
+  # water and is PLASTER, which takes the water back and sets again in any
+  # shape it is poured into. A core oven's gentle heat is the right one.
+  heatTransitions:
+    - key: plaster
+      referenceK: 420
+      zK: 15
+      fullDoseS: 3600
+      massRetained: 0.84
+      discipline: pottery
+      ladder:
+        - atDegree: 1
+          becomes: /stuff/idea/material/mineral/plaster
   biologicalSource: null

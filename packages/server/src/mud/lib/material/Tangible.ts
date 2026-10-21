@@ -56,6 +56,8 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MaterialSummary } from '@saxonberg/types';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { TemplatePaths } from '../paths';
+import type { ImpressionData } from '../mould/Impression';
 
 /** The kinds of flaw a piece of matter can carry (ceramics M5). */
 export type FlawKind = 'dunt' | 'crack' | 'casting' | 'check';
@@ -90,6 +92,21 @@ export interface ImpactOutcome {
 /** What a receiver does with a pour at a temperature (ceramics S13). */
 export type PourReception = 'holds' | 'melts' | 'burns';
 
+/**
+ * ⭐ Where a CAST's shape came from (ceramics M9): the kind of thing an
+ * impression was taken of, whose it was, and when — provenance, recorded
+ * and never judged. A cast is a fresh thing of that kind; this is all it
+ * keeps of the original. `null` on anything not cast from an impression.
+ */
+export interface CastProvenance {
+  /** The template path of the kind the impression was taken from. */
+  kindPath: string;
+  /** Whose thing it was — an identity path, or `''`. */
+  takenFromIdentity: string;
+  /** Game-second the impression was taken. */
+  takenAtS: number;
+}
+
 /** One numeric dial read, falling back to the literal when unseeded. */
 function tangibleDial(key: string, fallback: number): number {
   try {
@@ -102,6 +119,28 @@ function tangibleDial(key: string, fallback: number): number {
   }
 }
 
+
+
+/**
+ * ⭐ Whose a thing is, for an impression's provenance: whose name is on it
+ * (the chattel stamp), else who made it, else — a living body — itself.
+ */
+function provenanceOf(pattern: Stuff): string {
+  if (pattern.isAgent()) return pattern.getIdentityPath() ?? '';
+  if (MixinApi.isChattel(pattern)) {
+    const owner = pattern.stampedOwner();
+    if (owner && owner.kind !== 'group') return owner.templatePath;
+  }
+  if (MixinApi.isCrafted(pattern)) return pattern.getMaker();
+  return '';
+}
+
+/** The name an identity goes by in the world now, or `''`. */
+function presentNameOf(identity: string): string {
+  if (!identity) return '';
+  const who = StuffApi.findByTemplatePath<Stuff>(identity);
+  return who ? who.getPresentation() : '';
+}
 
 /** How much a flaw costs a body's strength. */
 const FLAW_PENALTY: Readonly<Record<FlawKind, number>> = {
@@ -198,6 +237,23 @@ export interface Tangible {
   ringSound(): { sound: string; db: number; rings: boolean };
   /** Can this receive a pour at `k` K? (ceramics S13 — W7 reads it.) */
   canReceiveAtK(k: number): PourReception;
+  /**
+   * ⭐ What this was cast from — the impression's kind and whose thing it
+   * was (ceramics M9) — or `null` when it was not cast from one. A cast
+   * part whose kind is a line's part kind fits without a new joint (D27).
+   */
+  getCastFrom(): CastProvenance | null;
+  /** Record a cast's provenance (the mould's cast path writes it). */
+  setCastFrom(value: CastProvenance | null): void;
+  /**
+   * @hook ⭐ The shape this leaves pressed into something soft (ceramics
+   * M9, D21): its kind, its volume, how it reads, whose it is — and what
+   * the shape carries because the shape IS the function (a key's wards).
+   * Never its identity. A living body leaves a LIKENESS. `null` when there
+   * is no shape a mould could hold. A carved pattern overrides it with the
+   * impression it was cut to.
+   */
+  leaveImpression(nowS: number): ImpressionData | null;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -244,10 +300,16 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ The flaws a body carries — a dunt, a crack, a casting fault
       // (ceramics M5). Authorable so a row can ship a cracked bell.
       flaws: { persistent: true, authorable: true, runtimeState: true },
+      // ⭐ What a cast was cast FROM (ceramics M9) — the impression's kind
+      // and provenance. Runtime state: only a pour writes it.
+      castFrom: { persistent: true, runtimeState: true },
     };
 
     /** See {@link Tangible.getFlaws}. */
     public flaws: Flaw[] = [];
+
+    /** See {@link Tangible.getCastFrom}. */
+    public castFrom: CastProvenance | null = null;
 
     /**
      * Live-query subscribable fields.
@@ -552,6 +614,72 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public addFlaw(kind: FlawKind, visible: boolean, atS = 0): void {
       this.flaws = [...this.flaws, { kind, visible, atS }];
+    }
+
+    public leaveImpression(nowS: number): ImpressionData | null {
+      const self = this as unknown as Stuff;
+      const takenFromIdentity = provenanceOf(self);
+      const name = self.getPresentation();
+      if (self.isAgent()) {
+        // ⚠⚠ A face is a LIKENESS (ceramics M9): a mask of how it looked,
+        // and nothing in the world will take it for the person. No belief
+        // is written here or anywhere a cast of it goes.
+        return {
+          kindPath: TemplatePaths.likeness,
+          volumeL: 0.4,
+          formDescription: `the face of ${name}`,
+          partsDescription: 'a brow, the set of the mouth, the shut eyes',
+          takenFromIdentity,
+          takenFromName: name,
+          takenAtS: nowS,
+          carried: {},
+        };
+      }
+      const density = this.getMaterial()?.getDensity().rawValue() ?? 0;
+      const massKg = this._mass.rawValue();
+      const kindPath = self.getTemplatePath();
+      if (!kindPath || !(density > 0) || !(massKg > 0)) return null;
+      const carried: ImpressionData['carried'] = {};
+      // ⭐ A key's wards ARE its shape: a cast of it turns the same lock. A
+      // keycard's function is a chip, not a shape, so it carries nothing.
+      if (MixinApi.isCredentialWallet(self)) {
+        const keys = self
+          .getCredential('key')
+          ?.getKeys()
+          .filter((k) => k.technology !== 'keycard');
+        if (keys && keys.length > 0) carried.keys = keys.map((k) => ({ ...k }));
+      }
+      // Something standing out of the body — a guard, a handle — will not
+      // draw out of a one-piece rigid mould.
+      const parts =
+        MixinApi.isAssembled(self) ? (self.getBill()?.parts ?? []).map((l) => l.part) : [];
+      return {
+        kindPath,
+        volumeL: (massKg / density) * 1000,
+        // `getPresentation` already carries its article (`an arming sword`).
+        formDescription: name,
+        partsDescription: parts.join(', '),
+        takenFromIdentity,
+        takenFromName: presentNameOf(takenFromIdentity),
+        takenAtS: nowS,
+        carried,
+        undercut: parts.length > 1,
+      };
+    }
+
+    public getCastFrom(): CastProvenance | null {
+      return this.castFrom;
+    }
+
+    public setCastFrom(value: CastProvenance | null): void {
+      this.castFrom =
+        value && typeof value.kindPath === 'string' && value.kindPath !== ''
+          ? {
+              kindPath: value.kindPath,
+              takenFromIdentity: value.takenFromIdentity ?? '',
+              takenAtS: Number.isFinite(value.takenAtS) ? value.takenAtS : 0,
+            }
+          : null;
     }
 
     public impactStrengthJ(): number {

@@ -1,0 +1,48 @@
+# The clamp ground — ⭐ where the bricks are burnt (ceramics S6, D15): a
+# clamp set over fire channels and cased in old brick and clay, lit and
+# left for days. A clamp is not a chamber at one heat, so it grades its
+# bricks by where they sat — clinker by the channels, sound brick in the
+# middle, soft place brick in the casing — and the setter's skill is how
+# few go into the channels.
+#
+# Beside it, the potter's firing pit: a scoop of earth for burying a few
+# pots in fuel and smothering them, the oldest kiln there is.
+#
+# The burnt bricks go on the stack by the track, where they are sold.
+# ⭐ Persistent: a clamp mid-burn, and the stack, outlive a restart.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: clamp ground
+  keywords: [ground, "clamp ground", stack, track]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  floor:
+    material: /world/terminus/hearts-delight/idea/material/alluvial-clay
+    worked: false
+    onGrade: true
+  longDescription: |
+    A burnt patch of ground at the bottom of the field, black in places and brick-red in others, where the clamps are built and taken down. The current clamp stands in the middle, a long low block of brick cased in clay with the mouths of its fire channels along one side. A heap of coal stands under a sheet, and a stack of burnt bricks by the track waits to be carted.
+
+    West are the hacks. North, up the slope, is the potter's shop.
+  coords: { x: 3, y: -1, z: 0 }
+  props:
+    - /trade/ceramics/thing/clamp
+    - /trade/ceramics/thing/pit-firing
+    - /world/terminus/hearts-delight/brickfield/thing/brick-stack
+    # Coal for the next clamp's channels — a starting heap, bounded; what
+    # restocks it is the fuel trade.
+    - { template: /trade/quarrying/thing/coal, count: 6 }
+  cast:
+    - /world/terminus/hearts-delight/brickfield/agent/setter
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/brickfield/location/hacks
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/hearts-delight/brickfield/location/potters-shop
+      media: [ground]
+      edgeMinutes: 1

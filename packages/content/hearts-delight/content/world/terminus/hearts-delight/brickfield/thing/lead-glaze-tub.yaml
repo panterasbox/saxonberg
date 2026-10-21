@@ -1,0 +1,18 @@
+# The lead-glaze tub (ceramics S8, R1) — a MIXING vessel: lead, a little
+# clay and water, stirred, is a lead glaze — glossy, runs smooth at
+# earthenware heat, and (M7) gives lead to anything sour kept against it,
+# which nothing about it says.
+class: /platform/thing/MixingVessel
+data:
+  shortDescription: lead-glaze tub
+  # ⚠ Never bare `lead`: the pig of lead answers to it.
+  keywords: [tub, "lead tub", "lead-glaze tub", "glaze tub"]
+  register: indefinite
+  longDescription: >-
+    A lidded oak tub with a skin of pale, heavy slurry dried on the paddle.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 15
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 40
+  blendMaterial: /stuff/idea/material/glaze/lead

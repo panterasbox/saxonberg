@@ -26,6 +26,12 @@ help: |
   foot on it, `carve trim on jug` pares the wall, `carve pattern on bowl`
   cuts one in. Too soft and it smears; bone-dry and it cracks. The pot
   says which.
+
+  ⭐ **A founder's pattern** — `carve pattern of sword from board for
+  bronze` cuts a wooden copy of the sword a shade OVERSIZE, by exactly
+  what bronze shrinks as it cools, so a cast from it comes out true. And
+  `carve riser on flask` cuts a riser into a rammed sand mould, so the
+  last of the metal to freeze has something to feed from.
 examples:
   - cmd: carve haft
     note: Shape a pick haft from wood in reach
@@ -35,6 +41,10 @@ examples:
     note: Name the edge
   - cmd: carve foot on mug
     note: Turn a foot on a leather-hard pot
+  - cmd: carve pattern of sword from board for bronze
+    note: Cut a founder's pattern, oversize for bronze's shrink
+  - cmd: carve riser on flask
+    note: Cut a riser into a rammed sand mould
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -59,6 +69,25 @@ args:
     required: false
     greedy: true
     prepositions: [on, into]
+    scope: ["reachable"]
+    requires: any
+  # ⭐ (ceramics D23) WHAT A PATTERN IS OF — `carve pattern of sword from
+  # board`: the board plans a pattern of the sword's shape. `requires: any`
+  # — anything with a shape can be copied.
+  - name: of
+    type: object
+    required: false
+    greedy: true
+    prepositions: [of]
+    scope: ["reachable"]
+    requires: any
+  # …and the METAL it is cut for — a word, read off `raw` (`for bronze`):
+  # the pattern is cut oversize by that metal's shrinkage, so it casts true.
+  - name: for
+    type: object
+    required: false
+    greedy: true
+    prepositions: [for]
     scope: ["reachable"]
     requires: any
   # The piece to carve it from, when you want a particular one.

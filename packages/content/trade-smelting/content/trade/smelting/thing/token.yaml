@@ -1,0 +1,11 @@
+# A struck token (ceramics S16) — a blank that took a die's device. Which
+# metal it is is the blank's; whose die struck it is written on it.
+class: /platform/thing/Ingot
+data:
+  shortDescription: struck token
+  keywords: [token, "struck token", coin]
+  register: indefinite
+  longDescription: >-
+    A small flat disc of metal with a device standing up crisp on its face.
+  _materialPath: /stuff/idea/material/alloy/pewter
+  mass: 0.02

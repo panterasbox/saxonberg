@@ -1,0 +1,58 @@
+# The moulding shed — ⭐ where the brick is made (ceramics S4): an open-
+# sided shed over the moulders' tables. At a table `shape clay into brick`
+# is a day's work — sand the mould, throw the clot, strike it off, turn it
+# out — and the moulder's band decides how many come off by evening. The
+# MOULD decides the brick; the hand only decides how many.
+#
+# ⚠ The screw press and the tile and brick moulds (S16) are the moulding
+# wave's (W7): it stands its press here when it ships.
+#
+# ⭐ Persistent: a day's green bricks are a day's work.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: moulding shed
+  keywords: [shed, "moulding shed", "molding shed", tables]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  ambientSource: sky
+  ambientOpening: door
+  ambientIntensity: 10000
+  ambientColorTemperature: 5400
+  enclosure:
+    material: /stuff/idea/material/wood/pine
+    thicknessM: 0.02
+  roof: { material: /stuff/idea/material/wood/oak, thicknessM: 0.02 }
+  floor:
+    material: /world/terminus/hearts-delight/idea/material/alluvial-clay
+    worked: true
+    onGrade: true
+  longDescription: |
+    A long plank shed open along its south side, its floor beaten clay gritty with sand. Two stout moulding tables stand down the middle, each with its wooden mould, its heap of sand and its strike, and a pallet board beside it for the bricks to go out on.
+
+    A gauging rod hangs on a nail by the door for whoever wants to argue about whether a brick is the statute's. The temper yard is west; the hacks run south; east, up a step, is the potter's shop.
+  coords: { x: 2, y: 0, z: 0 }
+  details:
+    door:
+      keywords: [door, side, opening, light]
+      description: |
+        There is no south wall to speak of: the shed stands open to the yard along its whole length, and the moulders work in the daylight that comes in.
+  props:
+    - { template: /trade/ceramics/thing/brick-table, count: 2 }
+    - /trade/coopering/thing/gauging-rod
+  cast:
+    - /world/terminus/hearts-delight/brickfield/agent/moulder-a
+    - /world/terminus/hearts-delight/brickfield/agent/moulder-b
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/brickfield/location/temper-pit
+      media: [ground]
+      edgeMinutes: 1
+    south:
+      destination: /world/terminus/hearts-delight/brickfield/location/hacks
+      media: [ground]
+      edgeMinutes: 1
+    east:
+      destination: /world/terminus/hearts-delight/brickfield/location/potters-shop
+      media: [ground]
+      edgeMinutes: 1

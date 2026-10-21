@@ -52,6 +52,9 @@ data:
     - /world/terminus/hearts-delight/creamery/thing/hearth
     - /stuff/thing/instrument/thermometer
     - /stuff/thing/gear/press-stone
+    # ⭐ (ceramics W7) The screw press beside the stone — a hoop on its bed
+    # presses harder than the stone ever can (`turn press`).
+    - /world/terminus/hearts-delight/creamery/thing/cheese-press
     - /trade/cooking/thing/salt-sack
     - /trade/cooking/thing/salting-trough
     - /stuff/thing/fixture/water-butt

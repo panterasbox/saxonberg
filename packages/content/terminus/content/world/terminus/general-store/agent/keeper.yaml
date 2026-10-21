@@ -72,6 +72,14 @@ data:
           - to: /world/terminus/counting-houses/cash-and-carry
             go: [south, south]
             back: [north, north]
+          # ⭐ (ceramics W6, D28) The Delight pottery — her pots and jars,
+          # bought at the potter's shelf: down the Delight road from the
+          # market square, through the valley gate and across the
+          # brickfield. A long walk for a basket of pots, which is why the
+          # import backstop exists.
+          - to: /world/terminus/hearts-delight/brickfield/location/potters-shop
+            go: [south, southwest, south, south, south, south, south, south, south, southeast, east, east, east]
+            back: [west, west, west, northwest, north, north, north, north, north, north, north, northeast, north]
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/idles

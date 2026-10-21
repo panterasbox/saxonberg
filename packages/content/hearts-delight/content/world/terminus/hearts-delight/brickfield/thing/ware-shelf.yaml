@@ -1,0 +1,32 @@
+# The ware shelf — ⭐ the pottery's own counter (ceramics S20): the potter
+# sets her fired ware here, priced at the hours in it. The Terminus stall
+# is stocked off this shelf — the potter carries ware to town and
+# consigns it — and the town's re-pointed lines (the general store's
+# pots and jars) buy here first and import dearer only when it is bare
+# (D28).
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: ware shelf
+  keywords: [shelf, "ware shelf", counter]
+  register: definite
+  longDescription: >-
+    A long shelf by the door with pots on it in rows by size, each with a
+    chalk price on the board behind.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  mass: 20
+  fixedInPlace: true
+  businessPath: /world/terminus/hearts-delight/brickfield/idea/pottery
+  stockLines: []
+  prices:
+    /trade/ceramics/thing/mug: 2
+    /trade/ceramics/thing/jug: 3
+    /trade/ceramics/thing/jar: 3
+    /trade/ceramics/thing/crock: 4
+    /trade/ceramics/thing/bowl: 2
+    /trade/ceramics/thing/flask: 2
+    /trade/ceramics/thing/plant-pot-small: 3
+    /trade/ceramics/thing/plant-pot-large: 8
+    /trade/ceramics/thing/crucible: 12
