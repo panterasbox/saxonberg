@@ -292,9 +292,29 @@ async function toDaylight(): Promise<void> {
  * hall and visits the fire to read it (a fire, a pot and a hopper all
  * reconcile when somebody reads them).
  */
+/** Game-hours each player has waited since they last ate and drank. */
+const UNFED = new Map<string, number>();
+
+/**
+ * ⚠⚠ Eat and drink. The drive spans the better part of a game week, and a
+ * body that never eats or drinks dies of it (found by the drive: its
+ * ash-burner went down during the boil and every later step ran as a
+ * shade). Rations and a waterskin are bought at the start.
+ */
+async function sustain(s: Session): Promise<void> {
+  await s.cmd('eat rations').catch(() => null);
+  await s.cmd('drink from waterskin').catch(() => null);
+  await s.drainProse();
+}
+
 async function waitAway(handle: string, hours: number, visit?: { where: string; read: (s: Session) => Promise<unknown> }, stepH = 2): Promise<void> {
   for (let h = 0; h < hours; h += stepH) {
     const away = await goTo(handle, BANK_HALL);
+    const unfed = (UNFED.get(handle) ?? 0) + stepH;
+    if (unfed >= 10) {
+      await sustain(away);
+      UNFED.set(handle, 0);
+    } else UNFED.set(handle, unfed);
     away.close();
     await advance(`${stepH} hours`);
     if (visit) {
@@ -368,6 +388,9 @@ suite('⭐ drive 1–4 — brash, the pit, and ash of a strength (AC 2, 3, 10)',
     // Gloves, bought as a person would — lye is drawn off a tall hopper.
     await say(s, 'buy gloves');
     await say(s, 'wear gloves');
+    // Food and water for the week the drive spans.
+    for (let i = 0; i < 6; i++) await say(s, 'buy rations');
+    await say(s, 'buy waterskin');
     // ⭐ A reader who can tell a weak lye from water by the egg — below
     // competent the egg only "sinks" (the competence ladder, by design).
     for (let i = 0; i < 6; i++) await s.cmd('practice chemistry hard success');
@@ -460,6 +483,7 @@ let firstPass = -1;
 suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC 4, 12)', () => {
   it('⭐ drive 6 — beech ash and rain make a lye; the egg reads it in words; the ash is SPENT, not gone', async () => {
     let s = await goTo(ashMaker, LEAN_TO);
+    await say(s, 'fill waterskin from butt').catch(() => '');
     expect(await inside(s, 'hopper', /wood ash/i), 'beech heaps in the hopper').toBeGreaterThanOrEqual(2);
     await say(s, 'get pail');
     await say(s, 'fill pail from butt');
@@ -482,11 +506,12 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     let s = await goTo(ashMaker, LEAN_TO);
     // Gloved: a lye drawn bare-handed off the hopper splashes the face.
     await say(s, 'pour hopper into pail');
-    // The ashery's store: four fresh heaps through the lye a second time.
-    for (let i = 0; i < 4; i++) {
-      await say(s, 'get "wood ash"');
-      await say(s, 'put "wood ash" in hopper');
-    }
+    // The ashery's store: fresh heaps through the lye a second time.
+    // ⚠ ONE get — a plural get lifts the whole store, and a get inside the
+    // loop took back the heap just put in (the hopper's contents are in
+    // reach): the first runs leached one heap, not four.
+    await say(s, 'get "wood ash"');
+    for (let i = 0; i < 4; i++) await say(s, 'put "wood ash" in hopper');
     await say(s, 'pour pail into hopper');
     s.close();
     await waitAway(ashMaker, 14);
@@ -503,15 +528,18 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     // The control: four heaps off the chandlery's counter, in its own
     // hopper, in rain from its own butt. (The pail is the lean-to's; it
     // travels with you.)
-    let s = await goTo(ashMaker, CHANDLERY);
-    await say(s, 'get "test egg"').catch(() => '');
+    // Four full heaps off the general store's shelf for the control. (The
+    // first runs used the chandlery's, one of them light, and the control
+    // read just under soap strength.)
+    let s = await goTo(ashMaker, STORE);
     for (let i = 0; i < 4; i++) await say(s, 'buy "wood ash"');
+    s.close();
+    s = await goTo(ashMaker, CHANDLERY);
+    await say(s, 'get "test egg"').catch(() => '');
     for (let i = 0; i < 4; i++) await say(s, 'put "wood ash" in hopper');
     await say(s, 'fill pail from butt');
     await say(s, 'pour pail into hopper');
-    s.close();
-    // Four more heaps of the same row, off the general store's shelf.
-    s = await goTo(ashMaker, STORE);
+    // Four more of the same row, off the chandlery's counter, for the river.
     for (let i = 0; i < 4; i++) await say(s, 'buy "wood ash"');
     s.close();
     // The strong second-pass lye goes into the first pot, drained dry, so
@@ -547,22 +575,25 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
 });
 
 /** The two pots and what is in them. */
-async function pots(s: Session): Promise<{ name: string; holds: string[] }[]> {
+async function pots(s: Session): Promise<{ name: string; holds: string[]; liquor: string }[]> {
   const rows = (await s.query('here:i', { fields: 'detail' }).catch(() => [])) as unknown as {
     displayName?: string;
     contents?: { displayName?: string; mass?: { value: number } }[];
+    longDescription?: string;
   }[];
   return rows
     .filter((r) => /iron pot/i.test(String(r.displayName ?? '')))
     .map((r) => ({
       name: String(r.displayName),
       holds: (r.contents ?? []).map((c) => `${String(c.displayName)}@${c.mass?.value ?? 0}`),
+      liquor: prose(String(r.longDescription ?? '')).split('\n').slice(1).join(' ').slice(0, 160),
     }));
 }
 
 suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black salts (AC 3, 5, 6)', () => {
   it('⭐ both boil down; the strong lye leaves the heavier cake — the weak one cost the same fire for less', async () => {
     let s = await goTo(ashMaker, LEAN_TO);
+    await say(s, 'fill waterskin from butt').catch(() => '');
     // The weak (Kestrel) lye into the second pot; the strong is in the first.
     for (let i = 0; i < 2; i++) {
       await say(s, 'pour hopper into pail');
@@ -583,6 +614,10 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
         where: LEAN_TO,
         read: async (v) => {
           last = await pots(v);
+          const me = (await examine(v, 'me')).replace(/\s+/g, ' ').slice(-220);
+          const hearth = (await examine(v, 'hearth')).replace(/\s+/g, ' ').slice(-160);
+          // eslint-disable-next-line no-console -- the drive's own record
+          console.log(`  [drive] boil h${hours + 1}: ${JSON.stringify(last)} | hearth: ${hearth} | me: ${me}`);
           last.forEach((p, i) => {
             if (setAt[i] === undefined && p.holds.some((h) => /black salts/i.test(h))) setAt[i] = hours + 1;
           });
@@ -686,7 +721,9 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
 suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)', () => {
   it('⭐ quicklime and water heat; with lye it is caustic; with tallow it boils to a hard curd', async () => {
     let s = await goTo(ashMaker, GLASSHOUSE);
-    await say(s, 'get lime');
+    // ⚠ One lump: a plural get lifts the stack, and two lumps leave the
+    // kettle no room for a pail of water.
+    await say(s, 'get 1 lime');
     s.close();
     s = await goTo(ashMaker, KNACKERS);
     await say(s, 'get crock');

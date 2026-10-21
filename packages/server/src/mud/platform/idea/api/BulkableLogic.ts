@@ -309,6 +309,13 @@ export class BulkableLogic extends ApiLogic {
   ): TransferResult {
     const notes: BulkNote[] = [];
 
+    // ⭐ A maturing source reconciles BEFORE its material is read (found by
+    // the potash drive): the transform runs on read, and the draw-time
+    // reconcile below (`payloadForDraw`) came too late — a hopper left half
+    // a day to leach poured out WATER, and turned to lye after the pour.
+    const source = from.getHolder();
+    if (MixinApi.isMaturing(source)) source.reconcileFerment();
+
     const material = from.getMaterial();
     if (from.isEmpty() || material === null) {
       notes.push({ kind: 'empty-result', field: BULK_FIELD, query: '' });
