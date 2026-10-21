@@ -22,6 +22,7 @@ const hiddenKnife = thing('knife', true);
 
 const slots: Record<string, { accepts: string; userFacingDetail?: string; bodyPart?: string }> = {
   torso: { accepts: 'WearableMixin' },
+  legs: { accepts: 'WearableMixin' },
   hand: { accepts: 'WieldableMixin', bodyPart: 'body.arm.right.hand' },
   back: { accepts: 'SlottableMixin', userFacingDetail: 'back' },
   brain: { accepts: 'SlottableMixin', bodyPart: 'body.head' },
@@ -31,6 +32,8 @@ const person = {
   isAgent: () => true,
   getAllOccupants: () => new Map<string, Set<Stuff>>([
     ['torso', new Set([shirt])],
+    // ⭐ A garment over two slots (a diving dress) is an occupant of both.
+    ['legs', new Set([shirt])],
     ['hand', new Set([sword])],
     ['back', new Set([pack])],
     ['brain', new Set([implant])],

@@ -588,6 +588,10 @@ export class PerceptionLogic extends ApiLogic {
             ? 'worn'
             : 'inside';
         for (const o of occupants) {
+          // ⭐ Once, however many slots it covers (found by the underwater
+          // browser walk: a diving dress claims torso and legs and was
+          // listed as worn twice).
+          if (slotted.has(o.stuffId)) continue;
           slotted.add(o.stuffId);
           if (!seen(o)) continue;
           if (kind === 'held') out.held.push(o);
