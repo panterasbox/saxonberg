@@ -74,6 +74,7 @@ import { AppSettingKeys } from "../config/AppSettings";
  * ⚠ Which means a guard who watched the full term and was robbed blind
  * still gets paid. That is correct, and it is the same reason a delivery
  * pays on arrival rather than on the client being pleased.
+
  */
 export const CONDITION_TEMPLATES = [
   "delivery",
@@ -104,7 +105,13 @@ export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 export type ConditionItemRef =
   | { kind: "template"; path: string }
   | { kind: "chattel"; chattelId: string }
-  | { kind: "category"; category: string; unit: ParUnit };
+  | { kind: "category"; category: string; unit: ParUnit }
+  /**
+   * ⭐ `identity` (underwater D17): **this one**, by who or what it is —
+   * a drowned body has no chattel row and shares its kind with every
+   * other corpse, but it has its own identity. "Recover THIS body."
+   */
+  | { kind: "identity"; identityPath: string };
 
 /** The serializable condition payload a Contract carries. */
 export interface ConditionData {
@@ -178,13 +185,15 @@ export class Condition {
       if (!item.path) return "a template-bound item needs a path";
     } else if (item.kind === "chattel") {
       if (!item.chattelId) return "a chattel-bound item needs its id";
+    } else if (item.kind === "identity") {
+      if (!item.identityPath) return "an identity-bound item needs its identity";
     } else if (item.kind === "category") {
       if (!item.category) return "a category-bound item needs a category";
       if (!PAR_UNITS.includes(item.unit)) {
         return `a category needs a unit — one of ${PAR_UNITS.join(", ")}`;
       }
     } else {
-      return "item must be template-, chattel- or category-bound";
+      return "item must be template-, chattel-, identity- or category-bound";
     }
     if (!d.destinationPath) return "condition needs a destinationPath";
     if (d.template === "watch") {
@@ -207,7 +216,7 @@ export class Condition {
       }
       // ⚠ A supply gig never binds ONE marked object: "ten of THIS one"
       // is not a thing anybody can mean.
-      if (item.kind === "chattel") {
+      if (item.kind === "chattel" || item.kind === "identity") {
         return "a supply condition counts a KIND, not one marked item";
       }
     }
@@ -275,6 +284,9 @@ export class Condition {
       return CategoryMeasure.counts(stuff, data.item.category);
     }
     if (MixinApi.isStackable(stuff)) return false;
+    if (data.item.kind === "identity") {
+      return stuff.getIdentityPath() === data.item.identityPath;
+    }
     if (data.item.kind === "chattel") {
       return (
         MixinApi.isChattel(stuff) &&

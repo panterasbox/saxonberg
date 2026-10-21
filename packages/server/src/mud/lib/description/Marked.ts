@@ -40,6 +40,11 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+
+/** How wet inked paper must be before the ink runs (0..1). */
+const INK_RUNS_AT = 0.5;
 
 /**
  * The channels a written thing's marks can be taken in through. A
@@ -126,11 +131,28 @@ export interface Marked {
   /** The symbol system the marks are in. See {@link MARK_SCRIPTS}. */
   getMarkScript(): MarkScript;
   setMarkScript(script: string): void;
+  /**
+   * ⭐ How many more characters this surface takes (underwater review): 0
+   * for a thing that takes no writing (a printed book, a carved stone).
+   */
+  getWritingRoom(): number;
+  setWritingRoom(chars: number): void;
+  /**
+   * ⭐ `write <words> on <this>` — the world's verb for putting words on a
+   * thing (underwater review; the diver's slate was its first surface).
+   * Added after what is there; how it reads is this surface's own form
+   * (ink needs light and runs when wet; a scratch does not). Refusals in
+   * words. ⛔ There is no private writing: what is written here, anyone
+   * who can read it reads — a note to yourself is writing on a thing of
+   * your own.
+   */
+  writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string };
 
   // ---------- storage (public for the applier) ----------
   markText: string;
   markForm: string;
   markScript: string;
+  writingRoom: number;
 }
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -152,14 +174,16 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      peers: ['platform/cmd/perception/read.yaml'],
-      environment: ['platform/cmd/perception/read.yaml'],
+      // ⭐ `write` beside `read`: a surface with no room says so in words.
+      peers: ['platform/cmd/perception/read.yaml', 'platform/cmd/inventory/write.yaml'],
+      environment: ['platform/cmd/perception/read.yaml', 'platform/cmd/inventory/write.yaml'],
     };
 
     static fieldMeta: FieldMeta = {
       markText: { persistent: true, authorable: true },
       markForm: { persistent: true, authorable: true },
       markScript: { persistent: true, authorable: true },
+      writingRoom: { persistent: true, authorable: true },
     };
 
     /** What the marks say. */
@@ -171,7 +195,27 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The common script is the ordinary case, so it is the default. */
     public markScript: string = COMMON_SCRIPT;
 
+    /** Characters this surface still takes; 0 takes no writing (the default). */
+    public writingRoom: number = 0;
+
+    /**
+     * ⭐ What the marks say — unless they were inked on something you can
+     * carry that has been soaked (underwater D29 seam 2): the ink has run.
+     * Drying it does not bring the words back; the text is still stored,
+     * the reading is what failed. Fixed things (a sign in the rain) and
+     * marks that are not ink (chalk, a scratched slate) are unaffected.
+     */
     public getMarkText(): string {
+      const self = this as unknown as Stuff;
+      if (
+        this.markForm === 'inked' &&
+        this.markText !== '' &&
+        MixinApi.isWet(self) &&
+        self.getWetness() >= INK_RUNS_AT &&
+        !(MixinApi.isContainable(self) && self.isFixedInPlace())
+      ) {
+        return 'The ink has run; nothing of it can be read.';
+      }
       return this.markText;
     }
 
@@ -198,6 +242,39 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public requiresLightToRead(): boolean {
       return !this.getMarkModalities().includes('touch');
+    }
+
+    public getWritingRoom(): number {
+      return Math.max(0, Math.floor(this.writingRoom || 0));
+    }
+
+    public setWritingRoom(chars: number): void {
+      this.writingRoom = Number.isFinite(chars) && chars > 0 ? Math.floor(chars) : 0;
+    }
+
+    public writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string } {
+      const self = this as unknown as Stuff;
+      const text = words.trim();
+      if (text === '') return { ok: false, reason: 'nothing-to-write', line: 'Write what?' };
+      if (this.getWritingRoom() <= 0) {
+        return { ok: false, reason: 'no-room', line: `There is nowhere to write on ${self.getPresentation()}.` };
+      }
+      // A thing you can carry, you write on in your hands; a fixed one
+      // (a wall, a board) where it stands.
+      const held = MixinApi.isContainable(self) && self.getContainer() === by;
+      const fixed = MixinApi.isContainable(self) && self.isFixedInPlace();
+      if (!held && !fixed) {
+        return { ok: false, reason: 'not-holding', line: `You need ${self.getPresentation()} in your hand to write on it.` };
+      }
+      const before = this.markText.trim();
+      const next = before === '' ? text : `${before} / ${text}`;
+      if (next.length - before.length > this.getWritingRoom()) {
+        return { ok: false, reason: 'full', line: `There is no room left on ${self.getPresentation()} for that.` };
+      }
+      this.writingRoom = this.getWritingRoom() - (next.length - before.length);
+      this.markText = next;
+      const how = this.getMarkForm() === 'inked' ? 'write' : 'scratch';
+      return { ok: true, line: `You ${how} "${text}" on ${self.getPresentation()}.` };
     }
 
     public getMarkScript(): MarkScript {

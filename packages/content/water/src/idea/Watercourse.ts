@@ -192,6 +192,12 @@ export interface WatercourseDescriptor {
   branchesFrom: string | null;
   /** See {@link WatercourseWater}; absent = the dials' defaults. */
   water?: WatercourseWater;
+  /**
+   * ⭐ How deep light reaches in this water, m — the depth at which 1 %
+   * of the surface light is left (underwater D6). A silty river 3, a
+   * clear lake 8. Absent = a river's 3.
+   */
+  clarityM?: number;
   /** See {@link WatercourseSite}; absent = the realm's default site. */
   site?: WatercourseSite;
 }
@@ -239,6 +245,7 @@ export default class Watercourse extends NamedMixin(Idea) {
     branchesFrom: { persistent: true, authorable: true },
     water: { persistent: true, authorable: true },
     site: { persistent: true, authorable: true },
+    clarityM: { persistent: true, authorable: true },
   };
 
   protected key = '';
@@ -247,9 +254,16 @@ export default class Watercourse extends NamedMixin(Idea) {
   protected branchesFrom: string | null = null;
   protected water: WatercourseWater | null = null;
   protected site: WatercourseSite | null = null;
+  /** How deep light reaches in this water, m (underwater D6). */
+  protected clarityM: number | null = null;
 
   public getKey(): string {
     return this.key;
+  }
+
+  /** How deep light reaches in this water, m, or null for a river's default. */
+  public getClarityM(): number | null {
+    return this.clarityM;
   }
   public setKey(value: string): void {
     this.key = value;

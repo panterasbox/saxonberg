@@ -1,0 +1,22 @@
+# Keep warm — control·fire (underwater D18): the caster meets the cold a
+# dozen degrees warmer than it is, for as long as they hold the working.
+# Paid from their mana while held; light, cheap, and a diver's friend in
+# a winter river.
+class: /platform/idea/magic/Spell
+data:
+  spellId: keep-warm
+  name: Keep Warm
+  verb: control
+  noun: fire
+  cost: 20
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
+  targeting: self
+  durationSeconds: 1800
+  effects:
+    - kind: offset-ambient
+      deltaK: 12
+  description: >-
+    A banked warmth under the skin, as if you had just come in from a
+    fire — it keeps the cold off, it does not keep you dry.

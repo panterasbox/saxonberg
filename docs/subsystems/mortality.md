@@ -681,9 +681,19 @@ So the cost lives in the **floor route**, not in the transition:
 - `reembody` hands back a clean body and takes no position on what dying
   should cost — that is the caller's business, which is exactly what lets
   a temple or a clinic offer a better return;
-- the `passage` verb, being the cheap way, drains the biological reserves
-  and leaves a `recovering` affliction. It clears itself as metabolism
+- the `passage` verb, being the cheap way, sets the biological reserves
+  (satiation, hydration, endurance) to `RECOVERY_RESERVE_LEVEL` (40%) and
+  leaves a `recovering` affliction. It clears itself as metabolism
   refills, so nobody has to build a cure for it.
+
+  ⭐ **A level, never a deduction** (underwater browser walk, 2026-10-20).
+  The returned body carries the dead one's reserves, and the floor used
+  to subtract 60 from them: a diver who had never drunk came back near
+  zero, collapsed, and died of thirst a minute later. The same pass found
+  that metabolism, reconciling on read, had already stamped `collapse` on
+  the empty reserves before the floor set them, so the floor also
+  relieves the floor-effects its level lifts (collapse, starvation,
+  dehydration).
 
 Two properties the diminishment must keep, and a service's must too:
 
@@ -728,6 +738,18 @@ or was deleted. Content is free to be better than it.
 **There is no wake point.** You come back where you are standing: the
 shade walked somewhere, and that is where it takes a body. `reembody` has
 no destination argument at all, and nothing is relocated.
+
+⭐ **Except never in the water** (underwater browser walk). A drowned
+diver's shade stands on the bed where they died; a body taken there has no
+breath in it and drowns again — a loop. `passage` refuses while the shade
+is immersed (*"Get out first"*); a shade swims up and climbs out like
+anybody.
+
+**The death is told.** The shade's first line says you are dead, where
+your body is, and that `passage` takes you back; a death nobody dealt (the
+environmental row) also tells the room that the body goes still. Until the
+underwater walk a death was silent — the next thing two drowned divers saw
+was "Welcome back".
 
 That is a deliberate retreat from an earlier shape that woke you at
 `defaultStartLocation`. Two things were wrong with it. A global default
@@ -850,7 +872,7 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   *better* diminishment for a paid service to sell beyond the one
   `recovering`-at-a-later-stage lever already shown there (a wound that
   heals over time, a diminished vessel, a patron's mark) — and the dial
-  (`RECOVERY_RESERVE_COST`) remains a placeholder, not a balance decision.
+  (`RECOVERY_RESERVE_LEVEL`) remains a placeholder, not a balance decision.
 - **The in-circle death arc** — a circle death ejects, so the full arc
   cannot be rehearsed in a holodeck.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and

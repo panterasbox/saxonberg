@@ -193,8 +193,8 @@ deployment manifest — or `PackLogic` never discovers it).
 
 **The instrument affords the verb**, as class statics: `Rod` (`fish` /
 `reel` / `slack`, `environment` = whoever holds it), `Trap` (`lay` /
-`haul`, both axes; the pot and the net are rows of one class — numbers,
-never a `trapKind`), `Fish` (`release`). ⚠ `haul`, not `lift`: `lift`
+`pull` (`haul` until the underwater review — that word is logistics'), both axes; the pot and the net are rows of one class — numbers,
+never a `trapKind`), `Fish` (`release`). ⚠ `pull`, not `lift`: `lift`
 is the barbell's (`device/lift`, the nutrition build) and two views on
 one verb shadow each other silently — `lint:verb-collisions` caught it
 at the catch-up merge. ⚠ `lay`, not
@@ -263,7 +263,7 @@ and vetoes eviction. A net (30, 20/h) empties the confluence's ~160 in
 five afternoons' lifts; a pot (2, 0.4/h) takes crabs overnight.
 ⭐ **A trap is a container** (`BulkableMixin(ContainerMixin(Tool))`),
 and a laid one with an interior is **full of the water it lies in**
-(`lay` fills it from `/stuff/idea/material/bulk/water`, `haul` drains it
+(`lay` fills it from `/stuff/idea/material/bulk/water`, `pull` drains it
 and hands over whatever it held). That is the whole of the **keepnet**
 — a Trap row with `drawPerHour: 0`, `capacity: 12`, `interiorBulk:
 true`: `lay keepnet`, `put trout in keepnet`, and the trout breathes
@@ -348,7 +348,7 @@ dispatch ENVELOPE; a browser shows what a player is shown. Driven in
 Chromium against `pnpm dev` (fresh DB, `AUTH_MODE=test`): buy the whole
 rig at the general store, walk south to the bank, Ambrose Tull
 introduces himself, `look edge`, eat, cast, play and land an eel, lay
-the keepnet, put the eel in it, haul it, release it, talk to the fisher.
+the keepnet, put the eel in it, pull it, release it, talk to the fisher.
 It found three things wire could not:
 
 1. ⭐ **A bare shelf refused as *"float-rod" isn't for sale here*** while

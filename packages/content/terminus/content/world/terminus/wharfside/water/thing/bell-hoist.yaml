@@ -1,0 +1,6 @@
+# The quay's bell hoist (underwater C2) — the derrick over the basin that
+# carries the Wharfside bell.
+class: /trade/diving/thing/Hoist
+extends: /trade/diving/thing/hoist
+data:
+  bell: /world/terminus/wharfside/water/thing/bell

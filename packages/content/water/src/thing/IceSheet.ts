@@ -624,9 +624,9 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
 
   /** What was left on the ice: floats stay at the surface, sinkers go to the bottom. */
   private sortFloatSink(): void {
-    // ⭐ The WATER says where sunk things go (its `bed:`), never the ice.
-    const room = this.room() as unknown as { sinkWhatSinks?(): void } | null;
-    room?.sinkWhatSinks?.();
+    // ⭐ The WATER says where sunk things go, never the ice.
+    const room = this.room();
+    if (room !== null && MixinApi.isWaterPlace(room)) room.sinkWhatSinks();
   }
 
   /** Why an actor cannot work the ice from where they are, or `null`. */

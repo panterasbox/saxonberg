@@ -231,10 +231,16 @@ describe('⭐ the reach reports every parameter a tank will hold (D22)', () => {
     expect(at.hardnessDgh).toBeGreaterThan(delight.hardnessDgh);
   });
 
-  it('the estuary is salt, the confluence brackish, the falls fresh', async () => {
+  it('the estuary is salt at the flood and brackish at the ebb; the confluence brackish, the falls fresh', async () => {
     installRows();
     const c = catalogue();
-    expect((await c.waterStateAt('kestrel:estuary', SUMMER))!.salinityPpt).toBeGreaterThan(25);
+    // ⭐ The tide replaced the step (underwater D4): across half a tide
+    // the estuary swings from sea water toward the brackish line.
+    const salts: number[] = [];
+    for (let h = 0; h < 13; h++) salts.push((await c.waterStateAt('kestrel:estuary', SUMMER + h * 3600))!.salinityPpt);
+    expect(Math.max(...salts)).toBeGreaterThan(25);
+    expect(Math.min(...salts)).toBeLessThan(20);
+    expect(Math.min(...salts)).toBeGreaterThanOrEqual(15);
     const confluence = (await c.waterStateAt('kestrel:confluence', SUMMER))!.salinityPpt;
     expect(confluence).toBeGreaterThan(1);
     expect(confluence).toBeLessThan(25);

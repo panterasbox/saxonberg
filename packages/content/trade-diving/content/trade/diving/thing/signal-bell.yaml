@@ -1,0 +1,13 @@
+# A signal bell (underwater C5) — a small brass bell on a lanyard, struck
+# with its own clapper held in the fist. Under the water it carries to
+# every diver in the column, from no direction anybody can place.
+class: /trade/diving/thing/SignalBell
+data:
+  shortDescription: signal bell
+  keywords: [bell, "signal bell"]
+  register: indefinite
+  longDescription: >-
+    A bronze bell no bigger than a fist, on a cord lanyard, its clapper
+    lashed so it sounds only when you mean it to.
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 0.3

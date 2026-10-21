@@ -47,6 +47,11 @@ export default class EatController extends CommandController<EatModel> {
     // the request and words what happened.
     const outcome = await giver.eat(target, model.with?.stuff ?? []);
     if (!outcome.ok) {
+      if (outcome.reason === "airway") {
+        // The body's own words for why (under the water, you would breathe it in).
+        const airway = giver.canIngest();
+        return this.decline(context, Mml.compose`${airway.ok ? "You can't eat that." : airway.line}`, "airway");
+      }
       return outcome.reason === "too-full"
         ? this.decline(context, Mml.compose`You're too full to eat ${Mml.thing(target)}.`, "too-full")
         : this.decline(context, Mml.compose`You can't eat ${Mml.thing(target)}.`, "not-edible");

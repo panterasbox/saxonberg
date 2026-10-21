@@ -1,9 +1,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SwimmableMixin, SWIMMING_CAPABILITY_PROP } from '../Swimmable';
+import { SwimmableMixin } from '../Swimmable';
 import { Idea } from '../../stuff/Idea';
 import Good from '../../stuff/Good';
-import { PropertiedMixin, Property } from '../../stuff/Propertied';
+import { PropertiedMixin } from '../../stuff/Propertied';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -45,24 +45,13 @@ describe('SwimmableMixin', () => {
       expect(() => p.setDifficulty(0)).toThrow(RangeError);
     });
 
-    it('canBeEngagedBy reads SWIMMING_CAPABILITY_PROP', () => {
+    it('⭐ swimming is a cost, never a check: every body may go in, and a water has no difficulty', () => {
       const actor = makeStuff(() => new Actor());
-      p.setDifficulty(2);
-      actor.setProp(SWIMMING_CAPABILITY_PROP, 2);
-      expect(p.canBeEngagedBy(actor)).toBe(true);
-      actor.setProp(SWIMMING_CAPABILITY_PROP, 1);
-      expect(p.canBeEngagedBy(actor)).toBe(false);
-    });
-
-    it('canBeEngagedBy rejects non-Propertied actor when difficulty is set', () => {
       const bare = makeStuff(() => new BareActor());
-      p.setDifficulty(2);
-      expect(p.canBeEngagedBy(bare)).toBe(false);
+      expect(p.canBeEngagedBy(actor)).toBe(true);
+      expect(p.canBeEngagedBy(bare)).toBe(true);
+      expect(p.getDifficulty()).toBeNull();
+      expect(() => p.setDifficulty(2)).toThrow(/cost, not a check/);
     });
-  });
-
-  it('SWIMMING_CAPABILITY_PROP is Property<number> named "swimming"', () => {
-    const ref = Property.of<number>('swimming');
-    expect(SWIMMING_CAPABILITY_PROP.toString()).toBe(ref.toString());
   });
 });

@@ -1,0 +1,18 @@
+# An air bag (underwater C5) — a tarred canvas bag filled from the pump,
+# lashed to something too heavy to bring up. Its air lifts what no diver
+# can: the city's lost anchor comes up on a few of these.
+class: /trade/diving/thing/AirBag
+data:
+  shortDescription: air bag
+  keywords: [bag, "air bag", "lifting bag"]
+  register: indefinite
+  longDescription: >-
+    A tarred canvas bag the size of a sack, with a bronze cock in its neck
+    and a lashing of rope sewn round its mouth.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 3
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/air
+  interiorCapacity: 1
+  closure: sealed
+  interiorAmount: 1

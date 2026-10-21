@@ -22,6 +22,8 @@ import { join } from 'path';
 import PassageController from '../PassageController';
 import { Creature } from '../../../../../lib/creature/Creature';
 import { ConditionApi } from '../../../../../api/condition';
+import { BiomeApi } from '../../../../../api/biome';
+import { MixinApi } from '../../../../../api/mixin';
 import { MessageApi } from '../../../../../api/message';
 import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -65,6 +67,22 @@ describe('passage — the floor beneath coming back', () => {
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-a-shade' }),
     );
+  });
+
+  it('⭐ waits until you are out of the water — a body taken there drowns again (underwater walk)', async () => {
+    const shade = makeStuff(() => new Creature());
+    vi.spyOn(MixinApi, 'isIncorporeal').mockReturnValue(true);
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 280, depthM: 9, waterRef: null,
+    } as never);
+    const reembody = vi.spyOn(ConditionApi, 'reembody');
+    const ctrl = makeStuff(() => new PassageController());
+
+    await ctrl.execute({}, ctxFor(shade));
+
+    expect(note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'in-the-water' }));
+    expect(reembody).not.toHaveBeenCalled();
   });
 
   it('reembody refuses anything that is not a shade', async () => {
@@ -161,6 +179,54 @@ describe('passage — the floor beneath coming back', () => {
     const body = logic.slice(start, logic.indexOf('\n}\n', start));
     expect(body).not.toContain('adjustReserve');
     expect(body).not.toContain('Recovering');
+  });
+
+  it('⭐ the floor leaves every reserve at ONE level — never a deduction off a dying body (underwater walk)', async () => {
+    // A diver who had never drunk came back with hydration near zero, lost
+    // 60 more, and died of thirst a minute after returning: the death loop
+    // through the side door the test below names.
+    const shade = makeStuff(() => new Creature());
+    vi.spyOn(MixinApi, 'isIncorporeal').mockReturnValue(true);
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({ immersed: false } as never);
+    const levels: Record<string, number> = { satiation: 90, hydration: 3, endurance: 40 };
+    const adjust = vi.fn((key: string, q: { rawValue(): number }) => { levels[key]! += q.rawValue(); });
+    const body = {
+      getReserve: (k: string) => (k in levels ? { current: { rawValue: () => levels[k]! } } : null),
+      adjustReserve: adjust,
+    };
+    vi.spyOn(ConditionApi, 'reembody').mockResolvedValue(body as never);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isVitals').mockReturnValue(false);
+    const ctrl = makeStuff(() => new PassageController());
+
+    await ctrl.execute({}, ctxFor(shade));
+
+    expect(levels).toEqual({ satiation: 40, hydration: 40, endurance: 40 });
+  });
+
+  it('⭐ a collapse stamped on the empty reserves goes when they are set (underwater walk)', async () => {
+    const shade = makeStuff(() => new Creature());
+    vi.spyOn(MixinApi, 'isIncorporeal').mockReturnValue(true);
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({ immersed: false } as never);
+    const collapse = { kind: 'affliction', templatePath: '/platform/idea/Condition/metabolism/collapse', stage: 0, elapsed: 0 };
+    const bruise = { kind: 'affliction', templatePath: '/platform/idea/Condition/other', stage: 0, elapsed: 0 };
+    const relieve = vi.fn();
+    const body = {
+      getReserve: () => null,
+      adjustReserve: vi.fn(),
+      getConditions: () => [collapse, bruise],
+      relieve,
+      afflict: vi.fn(),
+    };
+    vi.spyOn(ConditionApi, 'reembody').mockResolvedValue(body as never);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
+    const ctrl = makeStuff(() => new PassageController());
+
+    await ctrl.execute({}, ctxFor(shade));
+
+    expect(relieve).toHaveBeenCalledWith(collapse);
+    expect(relieve).not.toHaveBeenCalledWith(bruise);
   });
 
   it('diminishment never touches a vital sign', () => {

@@ -34,6 +34,11 @@ interface TalkModel extends CommandModel {
 export default class TalkController extends CommandController<TalkModel> {
   async execute(model: TalkModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+    // ⭐ Speaking needs a voice the medium carries (underwater D29 seam 5).
+    if (MixinApi.isVocal(giver)) {
+      const voice = giver.canVocalize();
+      if (!voice.ok) return this.decline(context, voice.line, voice.reason);
+    }
     const target = model.target?.stuff ?? null;
 
     if (!target) {

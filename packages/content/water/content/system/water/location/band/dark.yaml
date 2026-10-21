@@ -1,0 +1,15 @@
+# The dark band — below where the surface's light reaches (underwater D6):
+# only under water deeper than its own clarity. What you see here is what
+# you brought a light for.
+class: /system/water/location/Band
+data:
+  shortDescription: deep water
+  keywords: [water, depths, dark]
+  register: proper
+  longDescription: >-
+    The water around you is nearly black, and colder than above. Whatever light there is comes from far overhead, and it does not reach your hands.
+  _biomePath: /stuff/idea/biome/water/under
+  enclosure: none
+  roof: none
+  # Nothing under you but water: no floor, and the band says so.
+  noDefaultFloor: true

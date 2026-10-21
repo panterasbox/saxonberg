@@ -1,0 +1,9 @@
+# A way through the water between a band of a column and an authored room
+# beside it (underwater D7) — the intake's mouth beside the basin's dark
+# band. Swum: there is nothing under you to walk on.
+class: /platform/idea/Exit
+data:
+  media: [water]
+  messageOut: "{{ mover }} swims off through the water."
+  messageIn: "{{ mover }} comes through the water."
+  wheelPassable: false

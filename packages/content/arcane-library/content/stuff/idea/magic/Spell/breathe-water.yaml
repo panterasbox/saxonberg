@@ -1,0 +1,24 @@
+# Breathe water — transform·body (underwater D18): while the working is
+# held, the caster breathes water as freely as air. A MODIFIER, held by
+# the caster and paid for from their own mana while it lasts; when the
+# term or the mana runs out it lapses — and you have your breath to get
+# up on. It must be spoken, so it is cast in the air, before the dive.
+class: /platform/idea/magic/Spell
+data:
+  spellId: breathe-water
+  name: Breathe Water
+  verb: transform
+  noun: body
+  cost: 40
+  castingProfile:
+    requiredBand: competent
+    castSeconds: 6
+  targeting: self
+  durationSeconds: 900
+  effects:
+    - kind: confer-medium
+      medium: water
+  description: >-
+    The chest stops fighting the water. For as long as the working holds,
+    a breath of the river is a breath — and the moment it goes, it is
+    the river again.

@@ -535,7 +535,7 @@ At mint the applier now writes one `DiagnosticApi` record per
 `TemplateApi.describeFill(spec)` answers it in three lists — the keys the
 applier **applies** (with phase, and whether the field is birth-only),
 the keys nobody **applies**, and what an instance will also **remember**
-from a declared source. Four surfaces print it (`cat`, `write`, the
+from a declared source. Four surfaces print it (`cat`, `edit`, the
 Studio's create disposition, the CMS's `templateMeta.fill`) from that one
 method. ⭐ "Nothing" is printed out loud rather than omitted, because an
 absent line is indistinguishable from a surface that forgot to write one.

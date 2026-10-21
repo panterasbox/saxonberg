@@ -1,0 +1,17 @@
+# The squeeze — pain in the ears from going down without clearing them
+# (underwater D15). The water's weight presses on the eardrum meter by
+# meter; the ears clear on their own — some of each step on the way down
+# (more, the better you dive), the rest while you pause — so only going
+# down faster than they clear hurts. A landed impulse that fades as the pressure eases.
+class: /platform/idea/Condition
+data:
+  name: squeeze
+  signature:
+    - { kind: expression, bands: 1 }
+  progression:
+    law: decay
+    decayPerSec: 0.0005
+  resolution:
+    by: rest
+  observableSigns: [wincing, hand-to-ear]
+  contagion: null

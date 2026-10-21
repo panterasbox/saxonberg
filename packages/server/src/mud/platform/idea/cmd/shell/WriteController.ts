@@ -1,12 +1,14 @@
 /**
- * WriteController — author a content-tree template or source-tree
+ * WriteController — `edit` (the verb was `write` until the underwater
+ * review; the class keeps its name, which the CMS and Studio gates cite):
+ * author a content-tree template or source-tree
  * file.
  *
  * Tree pick: honors the player's `workspace.tree` setting when
  * it points at a single tree (`content` or `source`) — same as
  * read-only verbs. Under `mirror` mode the setting doesn't pick
  * a tree, and writing the same body to both trees is nonsensical,
- * so `write` requires explicit `-c` (content) or `-s` (source) in
+ * so `edit` requires explicit `-c` (content) or `-s` (source) in
  * that case. The two flags are mutually exclusive when both supplied.
  *
  * Payload shape — two payload-only fields, one per tree:

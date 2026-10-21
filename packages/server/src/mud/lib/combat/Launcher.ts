@@ -38,6 +38,8 @@ import type { EnergySourceKind } from './EnergySource';
 
 /** The launcher surface — see the module doc. */
 export interface Launcher {
+  /** Whether it works under the water (a speargun does; a bow does not). */
+  getWorksUnderwater(): boolean;
   /**
    * Where the shot's energy was stored before it was a shot. The axis
    * that makes this a launcher rather than a thrown thing: `muscle` is
@@ -91,7 +93,19 @@ export function LauncherMixin<TBase extends MixinConstructor<Stuff>>(
       projectileTemplate: { persistent: true, authorable: true },
       readySeconds: { persistent: true, authorable: true },
       readyAtS: { persistent: true, runtimeState: true },
+      worksUnderwater: { persistent: true, authorable: true },
     };
+
+    /**
+     * ⭐ Whether this launcher works under the water (underwater D28). A
+     * bow's limbs and string will not draw against the water, and a
+     * charge will not light; a speargun's rubber is built to. Default no.
+     */
+    public worksUnderwater = false;
+
+    public getWorksUnderwater(): boolean {
+      return this.worksUnderwater;
+    }
 
     public energySource: EnergySourceKind = 'stored-elastic';
     public muzzleSpeed: Quantity<'m/s'> = Quantity.of(0, 'm/s');

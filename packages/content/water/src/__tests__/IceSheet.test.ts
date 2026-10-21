@@ -385,7 +385,8 @@ describe('⭐ skim ice is open water — one threshold for the read and the shee
     const skim = await cat.readWater(REF, place, now);
     expect(skim?.frozen).toBe(false);
     vi.spyOn(cat, 'iceAt').mockResolvedValue({ ...real, thicknessM: 0.02 });
-    const iced = await cat.readWater(REF, place, now);
+    // A read is shared for its segment (underwater drive): the next one.
+    const iced = await cat.readWater(REF, place, now + 6 * 3600);
     expect(iced?.frozen).toBe(true);
     expect(iced?.underIce).toBeDefined();
   });

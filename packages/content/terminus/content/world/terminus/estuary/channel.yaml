@@ -1,0 +1,30 @@
+# The channel (underwater D25) — the deep water along the withies at the
+# estuary mouth, where the Greywater's tide runs in and out of the river.
+# A place that IS the water: three meters over the mud at mean water, more
+# at the flood. What floats here when the tide turns ends up on the
+# strandline.
+class: /platform/location/Pool
+data:
+  shortDescription: channel
+  keywords: [channel, tide, water, "deep water"]
+  register: definite
+  _address: terminus/city/wharfside/channel
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  details:
+    channel:
+      keywords: [channel, tide, water, "deep water"]
+      description: |
+        Gray water, opaque past an arm's length, running hard between the withies.
+  longDescription: |
+    You are in the channel, the withies leaning past at arm's length. The water is gray and cold and it pulls — upriver on the flood, out toward the bar on the ebb.
+  coords:
+    x: 3
+    y: 1
+    z: 0
+  water: { of: /stuff/idea/WaterExpanse/greywater, depthM: 3, feature: channel }
+  exits:
+    south:
+      destination: /world/terminus/estuary/estuary-mouth
+      media: [water]
+      # A swim out over the bar, short; every corridor edge carries a budget.
+      edgeMinutes: 2

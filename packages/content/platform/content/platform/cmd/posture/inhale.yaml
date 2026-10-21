@@ -1,15 +1,17 @@
 verbs: [inhale]
 controller: /platform/idea/cmd/posture/InhaleController
-description: "Take a deep breath and hold it — extend how long you can go without air before a dive."
+description: "Take a deep breath — fill your lungs before a dive."
 help: |
-  Draw a deep breath and hold it. While you hold, your body coasts
-  on the stored air, so you can cross water or other airless space
-  that would otherwise start to choke you.
+  Fill your lungs. Your breath is a store: a deep one lasts about twice
+  as long under water as the breath the water would otherwise catch you
+  with, and less the harder you work and the less fit your wind. Cold
+  water makes it last a little longer — and costs you half of it on the
+  way in.
 
-  Reach for this just before a dive or a dash through a flooded
-  passage. Release it with `exhale`, or simply let it lapse — the
-  grace runs out on its own. A blacked-out body can't hold its
-  breath at all.
+  Under water there is nothing to breathe, so you cannot take another.
+  Breathing fast and deep before you go (`inhale` again and again) does
+  not give you more air; it only makes the warning come later — and the
+  blackout comes without one.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

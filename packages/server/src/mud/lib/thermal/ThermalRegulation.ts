@@ -81,6 +81,9 @@ type RegulationHost = Stuff &
   Containable;
 
 export interface ThermalRegulation {
+  /** ⭐ A held working's warmth on this body, K (underwater D18). */
+  setWorkingOffsetK(deltaK: number): void;
+  getWorkingOffsetK(): number;
   /** Setpoint (K) the body defends — the movable fever/magic seam. */
   setpointK: number;
   /** Cached effective ambient (raw K) — biome + warmth + clo + transforms. */
@@ -246,6 +249,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * reload is corrected by the next re-stamp.
      */
     private _ambientOffsetK = 0;
+
+    /** A held working's warmth, K (runtime; set by the sustained arm). */
+    private _workingOffsetK = 0;
 
     /** The room's own raw temperature, before any body-side transform. */
     protected async baseAmbientK(): Promise<number> {
@@ -539,13 +545,14 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       }
       this.cachedHumidity = humidity;
 
-      // ⭐⭐ IN THE WATER (storage-and-ice D10): a swimmable place says who
-      // is in its water (whoever its floor is not holding up) and how cold
-      // it is; the body then takes the water's exchange, not the air's.
-      const water = scope as unknown as Stuff | null;
-      if (water !== null && MixinApi.isSwimmable(water)) {
-        const im = water.immersionOf(host as unknown as Stuff);
-        if (im) return Quantity.of(Math.max(0, this.exchangeWithWater(im.temperatureK, 0)), "K");
+      // ⭐⭐ IN THE WATER (storage-and-ice D10, underwater D3): the one
+      // medium read says whether this body is in a water and how cold it
+      // is; the body then takes the water's exchange, not the air's.
+      if (scope !== null) {
+        const medium = BiomeApi.mediumFor(host as unknown as Stuff);
+        if (medium.immersed && medium.tag === "water" && medium.temperatureK !== null) {
+          return Quantity.of(Math.max(0, this.exchangeWithWater(medium.temperatureK, 0) + this._workingOffsetK), "K");
+        }
       }
 
       // Occupied warming-slot warmth (a campfire log-seat). Read like
@@ -600,7 +607,24 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         ambientK += (humidity - 50) * 0.05; // crude heat-index bump
       }
 
-      return Quantity.of(Math.max(0, ambientK), "K");
+      return Quantity.of(Math.max(0, ambientK + this._workingOffsetK), "K");
+    }
+
+    /**
+     * ⭐ A working that keeps the cold off (underwater D18): while held,
+     * this body meets its surroundings `deltaK` warmer. Set by the
+     * sustained realization; `0` when nothing is held. Its own field —
+     * `_ambientOffsetK` is the re-stamp's cache and must stay derived.
+     */
+    public setWorkingOffsetK(deltaK: number): void {
+      const next = Number.isFinite(deltaK) ? deltaK : 0;
+      if (next === this._workingOffsetK) return;
+      this._workingOffsetK = next;
+      void this.restamp();
+    }
+
+    public getWorkingOffsetK(): number {
+      return this._workingOffsetK;
     }
 
     /**
@@ -680,10 +704,10 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const regHost = this.regHost as unknown as { getContainer?: () => unknown } | undefined;
       const getContainer = regHost?.getContainer;
       const place = typeof getContainer === 'function' ? (getContainer.call(regHost) as Stuff | null) : null;
-      if (place && MixinApi.isSwimmable(place)) {
+      if (place) {
         const host = this.regHost as unknown as Stuff;
-        const im = place.immersionOf(host);
-        if (im && MixinApi.isAttired(host)) host.immerse();
+        const medium = BiomeApi.mediumFor(host);
+        if (medium.immersed && medium.tag === "water" && MixinApi.isAttired(host)) host.immerse();
       }
       // ⭐⭐ Remember how far the transforms moved the raw room
       // temperature — the warming slot, the wind chill, the immersion,

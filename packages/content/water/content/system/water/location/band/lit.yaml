@@ -1,0 +1,16 @@
+# The lit band — the water just under the surface, where the surface's
+# light still reaches (underwater D6). Budded under any water deep enough
+# to have one; it authors nothing about WHICH water — that is stamped at
+# bud from the surface it lies under.
+class: /system/water/location/Band
+data:
+  shortDescription: under the water
+  keywords: [water, depths]
+  register: proper
+  longDescription: >-
+    You hang in the water under the surface. The light comes down through it in moving bands, and the underside of the surface shines over you like a sheet of tin.
+  _biomePath: /stuff/idea/biome/water/under
+  enclosure: none
+  roof: none
+  # Nothing under you but water: no floor, and the band says so.
+  noDefaultFloor: true

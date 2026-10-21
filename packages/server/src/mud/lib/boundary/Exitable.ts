@@ -989,7 +989,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
       const pending = [...this._pendingVerify];
       for (const exit of pending) {
         // Lazy eviction: settled by us or by another side.
-        if (exit.isOneWay() || exit.getInverse() || exit.isBlocked()) {
+        if (exit.wiresItsOwnInverse() || exit.isOneWay() || exit.getInverse() || exit.isBlocked()) {
           this._pendingVerify.delete(exit);
           continue;
         }
@@ -1116,6 +1116,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
  * and never enters the pending set.
  */
 function needsVerification(exit: Exit): boolean {
+  if (exit.wiresItsOwnInverse()) return false;
   if (exit.isOneWay()) return false;
   if (exit.getInverse()) return false;
   if (exit.isBlocked()) return false;

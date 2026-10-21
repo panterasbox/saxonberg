@@ -58,6 +58,11 @@ export const COMBAT_DYNAMICS_ALLOWLIST: ReadonlySet<string> = new Set([
   // changed name without changing meaning. ⚠ The gate is why that was
   // noticed at all: a rename breaks the DEPENDENTS, not what you edited.
   "isAttired",
+  // ⭐ `isRespiration` (the underwater build): the morale read asks how
+  // badly a fighter wants to BREATHE — the body's air, the same vitals
+  // substrate as the drain's `isMetabolic`, not a dynamic. Under the
+  // water the fight is about air.
+  "isRespiration",
   // ⭐ `isHygienic` is the same move again (the cleanliness review, !380): a blow's
   // blood on the struck site and on the striker's hands was `Attired`'s
   // `soilHands` until hygiene left the clothes module for `HygieneMixin`.

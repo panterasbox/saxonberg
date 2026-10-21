@@ -131,6 +131,19 @@ data:
       destination: /world/terminus/wharfside/knackers/location/yard
       media: [ground]
       edgeMinutes: 7
+    # ⭐ Into the river itself (underwater D23). The bank is a QUAY —
+    # beside the water, never in it — and the water you go down into is
+    # the basin below it: `swim` (or `dive`, `jump`) goes in — in the
+    # hard-hat suit too, which sinks you; the quay steps are the way back
+    # OUT (`climb up` from the water). `down` stays the knacker's.
+    river:
+      destination: /world/terminus/wharfside/water/location/basin
+      media: [water, vertical]
+    # ⭐ Morrow's dive shop, a tarred shed on the quay (underwater C5).
+    divers:
+      destination: /world/terminus/wharfside/diving/location/shop
+      media: [ground]
+      edgeMinutes: 1
     # ⭐ The lavoir (cleanliness D27) — the town's washing place, on soft
     # fell water. A NAMED exit: every compass point off the bank is a road
     # or a trade floor already, and the lavoir is somewhere you go IN to.
@@ -174,9 +187,26 @@ data:
     # silly, and the depot at Wharfside is where those belong."* This is
     # that place.
     - /system/transport/thing/barge
+    # ⭐ The steps down into the river (underwater D23) — a thing you
+    # climb, standing in both rooms. The old `steps` detail is gone: a
+    # detail wins the binding, and `climb steps` would have read the words
+    # instead of the stone.
+    - /world/terminus/wharfside/water/thing/quay-steps
+    # ⭐ The heaving line at the head of the steps (underwater C1).
+    - /world/terminus/wharfside/water/thing/heaving-line
+    # ⭐ The bell hoist over the basin (underwater C2).
+    - /world/terminus/wharfside/water/thing/bell-hoist
+    # ⭐ The dive shop's air pump on the quay, and the harbor works'
+    # board (underwater C3/C4).
+    - /trade/diving/thing/air-pump
+    - /world/terminus/wharfside/thing/harbor-board
   cast:
     - /world/terminus/wharfside/agent/fisher
     - /world/terminus/wharfside/agent/pilot
+    # ⭐ The dive shop's quay crew: the tender holds a diver's line, the
+    # pump hand works the air pump (underwater C3–C5).
+    - /world/terminus/wharfside/diving/agent/tender
+    - /world/terminus/wharfside/diving/agent/pump-hand
   details:
     lamps:
       keywords: [lamps, lamp, standards, lighting]
@@ -190,10 +220,6 @@ data:
       keywords: [river, kestrel, water, confluence]
       description: |
         Brown, wide and moving faster than it looks. In spring it comes up the steps and over the third one; in August you can see the gravel out in the middle of it. Everything anybody upstream has done to it is in here somewhere, thinned out.
-    steps:
-      keywords: [steps, stair, stairs, embankment]
-      description: |
-        Worn stone going down into the water, green below the summer line and black below the spring one. People have drawn water from these steps for as long as there has been a city, which is the arrangement the intake was built to replace.
     arch:
       keywords: [arch, brick, discharge]
       description: |

@@ -108,6 +108,25 @@ describe('the body as words, and the moment it changes', () => {
     expect(lines).toEqual(["You're spent.", "You've got your breath back."]);
   });
 
+  it('⭐ hovering at the edge of spent says it ONCE, not every beat (underwater walk)', () => {
+    const c = body();
+    set(c, 'endurance', 12);
+    c.noteBodyState();
+    lines.length = 0;
+    c.exert({ durationS: 60, powerW: 600 });
+    for (let i = 0; i < 4; i++) {
+      set(c, 'endurance', 30); // the beat's rest: winded
+      c.noteBodyState();
+      c.exert({ durationS: 60, powerW: 600 }); // the next stroke: spent
+    }
+    expect(lines).toEqual(["You're spent."]);
+    set(c, 'endurance', 55);
+    c.noteBodyState();
+    c.exert({ durationS: 120, powerW: 900 });
+    // Recovered, then spent again: that is news.
+    expect(lines.filter((l) => l === "You're spent.").length).toBe(2);
+  });
+
   it('hunger and thirst turn the card over without a breath line', () => {
     const c = body();
     set(c, 'satiation', 20);

@@ -1,0 +1,20 @@
+# ⭐ A bell struck below (underwater C5): heard by every diver in the
+# column, from no direction anybody can place.
+verbs: [ring]
+controller: /trade/diving/idea/cmd/diving/RingController
+description: "Strike a signal bell"
+help: |
+  `ring bell` strikes a signal bell you are holding. In air it is a
+  bell; under the water the note carries further than any voice and
+  comes from nowhere a listener can place — every diver in the water
+  hears it, and nobody can tell where you are from it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: bell
+    type: object
+    required: true
+    scope: "inventory"
+    requires: any

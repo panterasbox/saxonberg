@@ -127,8 +127,14 @@ ground continue beneath the floor*. Conflating them would hand a
 sky-exposed flying-only room an **earth** floor (you could sit down on the
 sky) and floor an open water column when only its **bed** has ground under
 it. Existence defaults to yes; mid-air and mid-water declare the opt-out.
-Neither exists in the game yet — the seam and its test ship so the builder
-who arrives finds them.
+⭐ Mid-water exists since the underwater build: the water pack's lit and
+dark bands have no floor. **A place with no floor says why** —
+`Place.groundRefusal(named?)` answers the posture verbs (`sit`/`lie`/
+`kneel` when the ground is what you named, bare `stand`) with the place's
+`noGroundLine()` hook: *"There is no ground here"* by default, *"There is
+nothing under you but water"* in a band. ⛔ Not a floor object that bears
+nobody — the underwater review deleted `OpenWater` for standing in for an
+absence (the second time a water-thing of that name was reversed).
 
 ## Verbs
 

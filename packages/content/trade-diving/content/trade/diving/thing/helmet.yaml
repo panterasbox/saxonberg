@@ -1,0 +1,27 @@
+# A diving helmet (underwater C3, D27) — the copper hard hat of a standard
+# dress, bolted to the corselet, its air fed down a hose from a pump on
+# the surface. It holds about a minute's breathing: when the pump stops,
+# that minute is what you have.
+class: /platform/thing/AirTank
+data:
+  shortDescription: diving helmet
+  keywords: [helmet, "diving helmet", "hard hat", copper]
+  register: indefinite
+  longDescription: >-
+    A heavy copper helmet with three thick glass ports, a non-return valve
+    where the hose screws on, and an exhaust valve you bump with your
+    chin. It is very heavy out of the water.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 15
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/air
+  # ⭐ About a minute of air at the surface (forty seconds at the basin's
+  # bed) once the pump stops — the hard-hat diver lives on the pump. The
+  # worn-air tap is real seconds (TANK_TAP_PER_SEC, 1/30 × the ambient
+  # atm); at 30 units the helmet lasted a quarter of an hour unpumped
+  # (finalize sweep). A spell at the pump fills it.
+  interiorCapacity: 2
+  closure: sealed
+  interiorAmount: 2
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [head]

@@ -68,6 +68,7 @@ import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { Charge } from '../magic/Charge';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { VetoResult } from '../errors';
@@ -84,6 +85,16 @@ import { POSTURE_REST_BASE } from '../character/Posed';
 import { CLEAN_TIERS, type CleanTier } from '../cleanliness/Soilable';
 
 /** Alias for readability at the magic arm's call sites. */
+/** Is `thing` on `body` — held, worn, or inside something it carries? */
+function carriedBy(thing: Stuff, body: Stuff): boolean {
+  let at: Stuff | null = MixinApi.isContainable(thing) ? (thing.getContainer() as Stuff | null) : null;
+  for (let i = 0; i < 8 && at !== null; i++) {
+    if (at === body) return true;
+    at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;
+  }
+  return MixinApi.isSlottable(thing) && thing.getOccupiedHost() === body;
+}
+
 function magicDial(key: string, fallback: number): number {
   return elecDial(key, fallback);
 }
@@ -411,6 +422,8 @@ export interface Vitals {
    * in a snowdrift buys them time, not a life.
    */
   stabilize(): boolean;
+  /** What the body is dying of (the `dying` record's cause), or null. */
+  getDyingCause(): string | null;
 
   // ---------- the material fork family (see MATERIAL_FORK_SLICES) ----------
   forkSlice_Vitals(): unknown;
@@ -973,6 +986,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!record) return false;
       this.relieve(record);
       return true;
+    }
+
+    public getDyingCause(): string | null {
+      return this.dyingRecord()?.cause ?? null;
     }
 
     /**
@@ -2820,7 +2837,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             s.tickedAt = nowS;
             continue;
           }
+          const heldFor = nowS - s.tickedAt;
           s.tickedAt = nowS;
+          // ⭐ The standing bill (underwater D18): a working the caster holds
+          // on themselves is paid from their own mana while it lasts; at
+          // nothing left it lapses — you have your breath to get up on.
+          if (!this.payStandingBill(s, heldFor)) {
+            this.releaseSustained(s);
+            continue;
+          }
           if (
             s.expiresAt !== undefined &&
             nowS >= s.expiresAt &&
@@ -2972,7 +2997,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private renewSustained(s: SustainedEffect, nowS: number): boolean {
       // Term-bought: nothing to ask. It ran out.
       if (!s.sustainedBy) return false;
-      const host = StuffApi.findByTemplatePath(s.sustainedBy);
+      // ⚠ The holder's id is its IDENTITY path, which for an item with no
+      // identity of its own is its KIND — and a kind is live many times
+      // over (found by the underwater drive: eight wands of glowlight, the
+      // singleton lookup threw inside the breath engagement and aborted
+      // it). One instance is the host, as it always was; of several, the
+      // one THIS body carries.
+      const self = this as unknown as Stuff;
+      const charged = StuffApi.findAllByTemplatePath(s.sustainedBy).filter((c) => MixinApi.isCharged(c));
+      const host = charged.length === 1 ? charged[0] : charged.find((c) => carriedBy(c, self));
       if (!host || !MixinApi.isCharged(host)) return false;
       // A flat host cannot hold anything up either — the ring goes out
       // rather than running on nothing.
@@ -3021,6 +3054,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         return;
       }
+      if (s.realizes === 'confer-medium' && MixinApi.isRespiration(self)) {
+        self.setConferredBreathing(s.dormant ? null : (s.medium ?? null));
+        return;
+      }
+      if (s.realizes === 'offset-ambient' && MixinApi.isThermalRegulation(self)) {
+        self.setWorkingOffsetK(s.dormant ? 0 : (s.deltaK ?? 0));
+        return;
+      }
       if (s.realizes === 'cloak' && MixinApi.isDisguisable(self)) {
         if (s.dormant) {
           self.setDisguise(null);
@@ -3035,12 +3076,39 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ Pay for a caster-held working for `elapsedS` (underwater D18) —
+     * the same standby draw a charged shell pays, from the holder's own
+     * mana. `false` when the mana has run out. A working a charged
+     * source holds up (`sustainedBy`) is billed to that source instead,
+     * and an emitter or a veil is a term bought once.
+     */
+    private payStandingBill(s: SustainedEffect, elapsedS: number): boolean {
+      if (s.sustainedBy || elapsedS <= 0) return true;
+      if (s.realizes !== 'confer-medium' && s.realizes !== 'offset-ambient') return true;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isCaster(self) || !MixinApi.isReserved(self)) return true;
+      const pool = self.getReserve('mana');
+      if (!pool) return true;
+      const attention = MixinApi.isAttired(self) ? self.attentionFactor() : 1;
+      const bill = Charge.standbyDraw(
+        magicDial(AppSettingKeys.magicChargeStandbyWatts, 5) * attention,
+        elapsedS,
+        WorldClockApi.getScale(),
+      );
+      const left = pool.current.rawValue();
+      if (bill > 0) self.adjustReserve('mana', Quantity.of(-Math.min(bill, left), pool.current.unit));
+      return left - bill > 0;
+    }
+
+    /**
      * Release a sustained magical effect — expiry and dispel both land
      * here: un-realize, destruct any bound emitter, drop the condition.
      * Public: `MagicLogic`'s tag-keyed dispel is the second caller.
      */
     public releaseSustained(s: SustainedEffect): void {
       const self = this as unknown as Stuff;
+      if (s.realizes === 'confer-medium' && MixinApi.isRespiration(self)) self.setConferredBreathing(null);
+      if (s.realizes === 'offset-ambient' && MixinApi.isThermalRegulation(self)) self.setWorkingOffsetK(0);
       if (s.realizes === 'cloak' && MixinApi.isDisguisable(self)) {
         self.setDisguise(null);
       }
@@ -3059,12 +3127,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * bounded `tetanyUntil` window, checked by the reconcile caller. */
     private shockCircuitLive(s: SustainedShock): boolean {
       if (!s.source) return false;
-      // ⚠ The source is a TEMPLATE path, and a transient source (a
-      // lightning strike) has many live instances at once in a storm: the
-      // singleton lookup threw `expected singleton, found 4` and took the
-      // server down on a long clock jump (found by the potash drive). Any
-      // live instance still carrying current through this body holds the
-      // circuit.
+      // ⚠ A source's template path names a KIND, and a kind may be live
+      // many times over (found by the underwater drive: a storm across a
+      // long clock jump left twelve lightning strikes standing, the
+      // singleton lookup threw inside this reconcile, and the rejection
+      // took the server down). The circuit is live if ANY of them still
+      // carries current through this body.
       const self = this as unknown as Stuff;
       return StuffApi.findAllByTemplatePath(s.source).some(
         (source) =>

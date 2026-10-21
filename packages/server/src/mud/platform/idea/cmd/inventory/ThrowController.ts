@@ -53,7 +53,11 @@ const IMPACT_SITES = ["body.torso", "body.head", "body.arm.right"] as const;
 interface ThrowModel extends CommandModel {
   item?: MqlOneResult;
   target?: MqlOneResult;
+  /** `throw <thing> to <who>` — a toss meant to be caught. */
+  recipient?: string;
 }
+
+
 
 export default class ThrowController extends CommandController<ThrowModel> {
   async execute(model: ThrowModel, context: CommandContext): Promise<void> {
@@ -72,6 +76,22 @@ export default class ThrowController extends CommandController<ThrowModel> {
 
     if (target === giver) {
       return this.fail(context, "You can't throw that at yourself.", "self-target");
+    }
+
+    // ── ⭐ A toss TO somebody (underwater review): the thing decides what
+    // catching it means and how far it carries; a thing that has no
+    // answer is thrown AT someone, or handed over. ──
+    const recipient = (model.recipient ?? '').trim();
+    if (recipient !== '') {
+      if (!MixinApi.isTossable(item)) {
+        return this.fail(context, `You can throw ${item.getPresentation()} AT someone, or give it to them.`, "not-tossable");
+      }
+      const out = await item.tossTo(giver, recipient);
+      if (!out.ok) return this.fail(context, out.line, out.reason);
+      const scene = MessageApi.scene(giver).topic("act.deed").toSelf(out.self);
+      if (out.peers) scene.toPeers(out.peers);
+      scene.send();
+      return;
     }
 
     // ── The throw-away parse: no target, no gate, no fight. ──

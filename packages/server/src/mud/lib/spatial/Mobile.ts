@@ -675,11 +675,17 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
 
       // 1. Custom messageOut on the Exit.
       const messageOut = exit?.getMessageOut();
-      if (messageOut) {
+      if (exit && messageOut) {
+        // ⭐ The authored line is what OTHERS see ("walker goes down
+        // through the water"); the mover is told in the second person,
+        // as by every other way (the underwater browser walk: the mover
+        // read their own move as a stranger's). `{{ direction }}` is the
+        // way taken.
         const fragment = ProseApi.format(messageOut, {
           mover: Mml.actor(self),
+          direction: exit.getDirection(),
         });
-        return { self: fragment, peers: fragment };
+        return { self: this.defaultDepartureSelf(exit), peers: fragment };
       }
 
       // 2. Per-location hook with an Exit in hand.
@@ -723,11 +729,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       const self = this as unknown as Stuff;
 
       const messageIn = exit?.getMessageIn();
-      if (messageIn) {
+      if (exit && messageIn) {
         const fragment = ProseApi.format(messageIn, {
           mover: Mml.actor(self),
+          direction: exit.getDirection(),
         });
-        return { self: fragment, peers: fragment };
+        return { self: this.defaultArrivalSelf(exit), peers: fragment };
       }
 
       const toHook = (to as MovementHookProvider).getArrivalMessage;
