@@ -2712,6 +2712,24 @@ furnace rooms + `quarry-hill.yaml` + `store-counter.yaml` · `C/terminus/…/
 market/thing/{potters-stall,curfew-bell}.yaml` + the counters ·
 `terminus-city.yaml` · the four wire files.
 
+## Build status (handoff, 2026-10-20)
+
+- Committed: W0 d22c2a429 · W1 4a671e8f1 · W2 38d1a676d · W3 2a21c0e2f ·
+  W4+W5 1eaa685d9 · W6+W7 3e32aa72f. W8 (crystallize + filter) in flight.
+  Each wave: `test:near` + all 82 lint gates green.
+- NOT YET RUN: the four drives `packages/wire/tests/ceramics-{a,b,c,d}.dirty.wire.test.ts`
+  (written, never run — expect defects); the sibling probe (§ Merge
+  protocol: detached worktree, merge origin/reqs/{sugar,potash,underwater}
+  each and together, lint:family); the full `pnpm test`.
+- Memory is short on this box (build-4's test world): one heavy process at a
+  time, never parallel tsc.
+- Drive risks flagged by the W6/W7 builders: Rejection's firebrick line
+  depends on a brickfield carrier nobody runs (backstop holds while the
+  Delight stack has bricks); the Delight temper pit makes any clay the
+  Delight's; `measure size` blurs ±8 % untrained; quoted multi-word MQL
+  keywords and `get lump` from the oven are untested live; checkpoint 35
+  covers only W7's restart state.
+
 ## Drive record
 
 *(appended at build time — one entry per run: the date, the file, the
