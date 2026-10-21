@@ -204,6 +204,31 @@ describe('passage — the floor beneath coming back', () => {
     expect(levels).toEqual({ satiation: 40, hydration: 40, endurance: 40 });
   });
 
+  it('⭐ a collapse stamped on the empty reserves goes when they are set (underwater walk)', async () => {
+    const shade = makeStuff(() => new Creature());
+    vi.spyOn(MixinApi, 'isIncorporeal').mockReturnValue(true);
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({ immersed: false } as never);
+    const collapse = { kind: 'affliction', templatePath: '/platform/idea/Condition/metabolism/collapse', stage: 0, elapsed: 0 };
+    const bruise = { kind: 'affliction', templatePath: '/platform/idea/Condition/other', stage: 0, elapsed: 0 };
+    const relieve = vi.fn();
+    const body = {
+      getReserve: () => null,
+      adjustReserve: vi.fn(),
+      getConditions: () => [collapse, bruise],
+      relieve,
+      afflict: vi.fn(),
+    };
+    vi.spyOn(ConditionApi, 'reembody').mockResolvedValue(body as never);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
+    const ctrl = makeStuff(() => new PassageController());
+
+    await ctrl.execute({}, ctxFor(shade));
+
+    expect(relieve).toHaveBeenCalledWith(collapse);
+    expect(relieve).not.toHaveBeenCalledWith(bruise);
+  });
+
   it('diminishment never touches a vital sign', () => {
     // Reserves only. Anything that could carry a body back across a lethal
     // threshold would re-open the death loop through a side door: you

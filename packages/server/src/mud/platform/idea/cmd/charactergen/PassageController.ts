@@ -48,6 +48,13 @@ const TOPIC = 'act.deed';
  */
 const RECOVERY_RESERVE_LEVEL = 40;
 
+/** The reserve floor-effects {@link RECOVERY_RESERVE_LEVEL} is above clearing. */
+const LIFTED_BY_THE_FLOOR: ReadonlySet<string> = new Set([
+  TemplatePaths.metabolismCollapse,
+  TemplatePaths.metabolismStarvation,
+  TemplatePaths.metabolismDehydration,
+]);
+
 export default class PassageController extends CommandController<CommandModel> {
   async execute(
     _model: CommandModel,
@@ -111,6 +118,15 @@ export default class PassageController extends CommandController<CommandModel> {
       }
     }
     if (MixinApi.isVitals(body)) {
+      // ⭐ …and the conditions those levels lift go with them (found by the
+      // underwater browser walk). Metabolism reconciles on READ, so the
+      // collapse its first read stamped on the empty reserves stayed
+      // after the reserves were set — "collapsed from exhaustion" with the
+      // body shelf reading fresh, and nothing that reads metabolism in
+      // sight to clear it.
+      for (const c of [...body.getConditions()]) {
+        if (c.kind === 'affliction' && LIFTED_BY_THE_FLOOR.has(c.templatePath)) body.relieve(c);
+      }
       body.afflict({
         kind: 'affliction',
         templatePath: TemplatePaths.mortalityRecovering,
