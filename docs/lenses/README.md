@@ -166,7 +166,7 @@ placed only where an entry makes a *substantive claim* about that doc:
   borrowed instruments*, which is the index an agent running a pass hits
 - **doctrine** — [measurement.md](../measurement.md) (seven entries) ·
   [uncertainty.md](../uncertainty.md) ·
-  [governance/draft-constitution.md](../governance/draft-constitution.md) ·
+  [governance/draft-constitution.md](../compact/governance/draft-constitution.md) ·
   [subsystems/sandbox.md](../subsystems/sandbox.md)
 - **subsystems** — `employment` · `command-spec` · `combat` ·
   `exertion` · `mortality`

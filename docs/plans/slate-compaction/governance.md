@@ -8,8 +8,8 @@ for diffing. Code was verified in `packages/server/src/mud/**`,
 `packages/server/src/schema/*.yaml` and `packages/content/platform/**`;
 the docs read against were `governance.md`, `civics.md`, `access.md`,
 `influence.md`, `participation.md`, `renown.md`, `forums.md`, `press.md`,
-`chat.md`, `banking.md`, `parcel.md`, `docs/governance/draft-constitution.md`,
-`docs/governance/founding-charter.md`, `docs/polity-decision-register.md`,
+`chat.md`, `banking.md`, `parcel.md`, `docs/compact/governance/draft-constitution.md`,
+`docs/compact/governance/founding-charter.md`, `docs/polity-decision-register.md`,
 and the sibling slates `legal-code`, `record-integrity`,
 `amendment-library`, `argument-map`, `economy`, `auth-providers`.
 
@@ -219,7 +219,7 @@ locality/group treasury beyond the municipal budget account.
   > no-life grind* (raw hours, bots, AFK); **engagement × reputation** demands
   > both — substantial participation *and* regard for it.
 
-- → `docs/governance/draft-constitution.md` Art. IV §2 + Art. IV §7 + the Schedule (`influence.cap_curve`, `influence.regen_rate`) — the reservoir / regeneration clauses are stale against the shipped, entrenched no-pool rule (`influence.md § Conviction`). The constitution's own text flags *"the precise reconciliation … remains to be specified"*; it is specified — there is no reservoir. Not a slate matter; the coordinator or the next constitution pass. (`legal-code-slate § The passage rule` has already re-derived Art. IV §4 under the same fact.)
+- → `docs/compact/governance/draft-constitution.md` Art. IV §2 + Art. IV §7 + the Schedule (`influence.cap_curve`, `influence.regen_rate`) — the reservoir / regeneration clauses are stale against the shipped, entrenched no-pool rule (`influence.md § Conviction`). The constitution's own text flags *"the precise reconciliation … remains to be specified"*; it is specified — there is no reservoir. Not a slate matter; the coordinator or the next constitution pass. (`legal-code-slate § The passage rule` has already re-derived Art. IV §4 under the same fact.)
 - → `docs/subsystems/governance.md § Deferred` (my own list, but NOT inserted — it is a backlog item, not a graduation; the coordinator may prefer the slate to keep it): the *caretaker may execute, may not veto* floor — today a vacated seat reverting to the founder default carries the seat's full authority.
 
 ### Status block

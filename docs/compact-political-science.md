@@ -12,10 +12,10 @@ The difference from its sibling is that here **the subject already
 exists.** Thaumology had to be invented; the Compact was designed, and
 its primary sources are on disk:
 
-- [governance/draft-constitution.md](./governance/draft-constitution.md)
+- [governance/draft-constitution.md](./compact/governance/draft-constitution.md)
   — the articles, the eternity clauses, and the Schedule of
   Parameters.
-- [governance/founding-charter.md](./governance/founding-charter.md) —
+- [governance/founding-charter.md](./compact/governance/founding-charter.md) —
   the founder's self-binding commitment.
 - `slates/builds/cooperative-slate.md` — the rationale behind the
   provisions.

@@ -3,7 +3,7 @@
 Normative governance **instruments** for the Compact — the
 documents that *bind*, as distinct from the design slates that *explore*.
 These are not backlog (they don't live under `docs/slates/`); they're the
-constitutional texts the [cooperative build](../slates/builds/cooperative-slate.md)
+constitutional texts the [cooperative build](../../slates/builds/cooperative-slate.md)
 produces and references.
 
 - [draft-constitution.md](./draft-constitution.md) — the bare-bones
@@ -22,6 +22,6 @@ produces and references.
   not the titles.
 
 The open-ended governance *design* lives in
-[cooperative-slate.md](../slates/builds/cooperative-slate.md) and
-[amendment-library-slate.md](../slates/builds/amendment-library-slate.md)
+[cooperative-slate.md](../../slates/builds/cooperative-slate.md) and
+[amendment-library-slate.md](../../slates/builds/amendment-library-slate.md)
 (the model-amendment library layered on the kernel).

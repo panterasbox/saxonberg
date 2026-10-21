@@ -17,7 +17,7 @@
 > **Size:** a wave
 
 **Captured 2026-08-06**, from the Claude Design handoff committed at
-`c03100dd` (`docs/design_handoff/` — 23 interactive `.dc.html` screens +
+`c03100dd` (`docs/design/handoff/` — 23 interactive `.dc.html` screens +
 three cross-cutting markdown docs). The handoff was produced by reading
 the real server source, so its designs are grounded rather than
 aspirational; what it does *not* do is sequence itself against this

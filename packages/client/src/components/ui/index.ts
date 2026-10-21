@@ -15,7 +15,7 @@
  * ## The honesty convention
  *
  * `Figure` and `UnbuiltGround` are the primitives for
- * `docs/design_handoff/CONVENTIONS.md` #1 — **never render a figure the
+ * `docs/design/handoff/CONVENTIONS.md` #1 — **never render a figure the
  * server did not send**, including "just for now". Any widget showing a
  * number reaches for `Figure` and names its state; the discriminated
  * union means the compiler, not the reviewer, is what stops a hardcoded

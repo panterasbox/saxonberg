@@ -54,7 +54,7 @@ the shape, it falls out of it.
 
 Rings: `R = 26`, centres `33` apart on an equilateral triangle (vertices taken
 off the circumcircle at 210° / 330° / 90°), ink stroke `4.7`, casing `× 2.55`.
-Measured against `docs/manifesto/background.png`, the existing flag.
+Measured against `docs/compact/manifesto/background.png`, the existing flag.
 
 Hex: pointy-top, the three rhombi scaled `0.895` about their own centroids to
 open the gaps.
