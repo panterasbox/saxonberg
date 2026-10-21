@@ -444,6 +444,26 @@ describe('RespirationMixin — the crisis core', () => {
     expect(windowSec).toBeCloseTo(RESPIRATION_DEFAULTS.DYING_WINDOW_SEC * 2.5, 5);
   });
 
+  it('⭐⭐ the rescue window is REAL time — the game-time dying clock gets it scaled by the world rate (underwater walk)', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('water'));
+    const cold = { tag: 'water', substance: 'water', immersed: true, atSurface: false, temperatureK: 276, depthM: 4, waterRef: null };
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(cold);
+    const dying = vi.spyOn(c, 'beginDying');
+    await c.reassess();
+    tick(120);
+    const unscaled = dying.mock.calls[0]![1] as number;
+    dying.mockClear();
+    const d = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(d, room('water'));
+    const dying12 = vi.spyOn(d, 'beginDying');
+    // The breath runs on game ÷ scale, so the same real time is 12× the ticks.
+    vi.spyOn(WorldClockApi, 'getScale').mockReturnValue(12);
+    await d.reassess();
+    tick(120 * 12);
+    expect(dying12.mock.calls[0]![1] as number).toBeCloseTo(unscaled * 12, 5);
+  });
+
   it('respires opt-out: a non-respiring body never engages a drain', async () => {
     const construct = bodyWith({ respires: false });
     ContainmentApi.move(construct, room('water'));

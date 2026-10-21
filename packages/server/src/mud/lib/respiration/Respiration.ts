@@ -152,7 +152,9 @@ export const RESPIRATION_DEFAULTS = {
     channel: 'strangulation',
   } as Record<RespirationCause, string>,
   /**
-   * Dying window (game-seconds) once the anoxia cascade turns lethal.
+   * Dying window (REAL seconds, like every respiration interval) once the
+   * anoxia cascade turns lethal — handed to the game-time dying clock
+   * scaled up by the world's rate (see {@link reconcileAnoxiaCascade}).
    * Short — the brain does not wait. ⭐ Lengthened by cold water (the
    * dive reflex and a cold brain): see {@link coldWindowFactor}.
    */
@@ -1097,7 +1099,19 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (nowS - this._drowningSinceS >= RESPIRATION_DEFAULTS.DROWNING_RESPONSE_SEC) {
         this._drowningSinceS = null;
         const place = MixinApi.isContainable(self) ? self.getContainer() : null;
-        if (place !== null && MixinApi.isWaterPlace(place)) void place.takeUnder(self);
+        if (place !== null && MixinApi.isWaterPlace(place)) {
+          void place.takeUnder(self).then((under) => {
+            if (!under) return;
+            try {
+              MessageApi.scene(self)
+                .topic('act.deed')
+                .toSelf(Mml.compose`The water closes over your head.`)
+                .send();
+            } catch {
+              // decoration
+            }
+          }).catch(() => {});
+        }
       }
     }
 
@@ -1129,8 +1143,12 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private drowningScene(): void {
       const self = this as unknown as Stuff;
       try {
+        // ⭐ The drowning feel it even though nobody else hears it (found by
+        // the underwater browser walk: a spent swimmer went under and died
+        // with no line of their own).
         MessageApi.scene(self)
           .topic('act.deed')
+          .toSelf(Mml.compose`You can't keep your head up. Every breath comes half water, and there is none to spare to shout with.`)
           .toPeers(Mml.compose`${Mml.actor(self)} is upright in the water, head tipped back, arms pressing down at the surface — not calling, not waving.`)
           .send();
       } catch {
@@ -1360,9 +1378,15 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         record.elapsed += elapsedSec;
         if (record.elapsed >= RESPIRATION_DEFAULTS.ANOXIA_LETHAL_SEC) {
+          // ⭐⭐ The rescue window is a REAL-time window (found by the
+          // underwater browser walk): the dying clock counts game-seconds,
+          // so a 90 s window handed over raw was 7½ real seconds at 12× —
+          // a drowned diver died before anyone could reach the line.
+          const scale = WorldClockApi.getScale();
+          const toGame = Number.isFinite(scale) && scale > 0 ? scale : 1;
           host.beginDying(
             RESPIRATION_DEFAULTS.DEATH_CAUSE_BY_CAUSE[cause],
-            RESPIRATION_DEFAULTS.DYING_WINDOW_SEC * this.coldWindowFactor(),
+            RESPIRATION_DEFAULTS.DYING_WINDOW_SEC * this.coldWindowFactor() * toGame,
           );
           return true;
         }
