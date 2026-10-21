@@ -221,6 +221,35 @@ describe('⭐⭐ the effect lands when the timer does', () => {
     ).toBeNull();
   });
 
+  it('⭐⭐ `dig clay` in a pit whose own name says clay works the CLAY — the ceramics drive’s finding', async () => {
+    // The binder hands the pit itself back for `clay` (the Delight's is the
+    // "clay pit"); the word must still reach the ground as the band asked.
+    // ⚠ The floor is taken BELOW the clay (on the granite), so the clay is
+    // a wall face: dug as "the pit" with no word, the floor answers — rock,
+    // and a spade is refused — which is what the drive saw at the water.
+    pit.floorDepthM = 2;
+    const asked = await run(
+      DigController as never,
+      { target: { raw: 'clay', stuff: pit }, tool: tool('digging') },
+      'dig clay',
+    );
+    expect(rejected(asked)).toBeNull();
+    await settle();
+    expect(pit.wonByBand[CLAY], 'the clay band was not the one worked').toBe(1);
+  });
+
+  it('`dig pit` names the working itself, and digs its floor', async () => {
+    (pit as unknown as { setKeywords(k: string[]): void }).setKeywords(['pit']);
+    const ctx = await run(
+      DigController as never,
+      { target: { raw: 'pit', stuff: pit }, tool: tool('digging') },
+      'dig pit',
+    );
+    expect(rejected(ctx)).toBeNull();
+    await settle();
+    expect(pit.wonByBand[DRIFT]).toBe(1);
+  });
+
   it('⭐ the spoil is MINTED, and it lands somewhere a person can see', async () => {
     await run(DigController as never, { tool: tool('digging') }, 'dig');
     await settle();

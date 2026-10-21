@@ -384,6 +384,14 @@ export function OpenWorkingMixin<
       for (const face of faces) {
         if (matchesBand(face, want)) return face;
       }
+      // ⭐ A word that names the WORKING itself (`dig pit`, `dig the
+      // working`) means its floor — what `dig floor` means. A band always
+      // wins first: in the Delight's clay pit `clay` is the wall, never
+      // the pit.
+      const self = this as unknown as { hasKeyword?(k: string): boolean };
+      if (self.hasKeyword?.(want)) {
+        return faces.find((f) => f.floor) ?? faces[faces.length - 1] ?? null;
+      }
       return null;
     }
 
