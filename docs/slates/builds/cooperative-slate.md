@@ -7,7 +7,7 @@
 > [governance.md](../../subsystems/governance.md),
 > [influence.md](../../subsystems/influence.md); the argument-map v1 shipped →
 > [forums.md](../../subsystems/forums.md); the provisions are consolidated in the
-> [draft constitution](../../governance/draft-constitution.md).
+> [draft constitution](../../compact/governance/draft-constitution.md).
 > **Left:** the capital faucet (credit per patron per bucket) + the stake
 > ledger enforcing the founding charter + the dono/sub webhook +
 > mint-at-launch · the honor→chronicle / voice→standing split of the two
@@ -28,7 +28,7 @@
 
 > Compacted 2026-09-19 — every cut is accounted for in [the ledger](../../plans/slate-compaction/governance.md).
 
-> **Consolidation:** a formal [draft constitution](../../governance/draft-constitution.md)
+> **Consolidation:** a formal [draft constitution](../../compact/governance/draft-constitution.md)
 > distilling this slate into normative articles now exists (status: draft,
 > not ratified; four undecided points marked `[OPEN]` with recommendations).
 > This slate remains the *rationale*; the constitution carries the
@@ -188,7 +188,7 @@ for this subsystem, and the first one is also the legal firewall.
 ### Law 1 — Stake is not stock
 
 
-*Cut 2026-09-19 — Art. I §1 + Art. VIII §2 of the [draft constitution](../../governance/draft-constitution.md) carry the provision (the no-lawyer floor is the preamble's three-floor test). The wording discipline below is kept.*
+*Cut 2026-09-19 — Art. I §1 + Art. VIII §2 of the [draft constitution](../../compact/governance/draft-constitution.md) carry the provision (the no-lawyer floor is the preamble's three-floor test). The wording discipline below is kept.*
 
 The discipline in three words an author/operator can hold: never write
 the words **investor, share, equity, return,** or **dividend** where a
@@ -201,14 +201,14 @@ not the investor house. Stake, never stock.
 ### Law 2 — Power is earned and spent, never owned
 
 
-*Superseded — by the code. There is no spend: `hold` is full weight, no pool ([influence.md](../../subsystems/influence.md) § Conviction). The law itself is Art. I §3 / Art. III §3 of the [draft constitution](../../governance/draft-constitution.md).*
+*Superseded — by the code. There is no spend: `hold` is full weight, no pool ([influence.md](../../subsystems/influence.md) § Conviction). The law itself is Art. I §3 / Art. III §3 of the [draft constitution](../../compact/governance/draft-constitution.md).*
 
 
 ---
 
 ## Influence — the keystone resource
 
-*(The three subsections below are pointers: the three stocks, their faucets and the no-pool conviction rule shipped → [influence.md](../../subsystems/influence.md), [participation.md](../../subsystems/participation.md), [renown.md](../../subsystems/renown.md); the provisions are Art. III of the [draft constitution](../../governance/draft-constitution.md).)*
+*(The three subsections below are pointers: the three stocks, their faucets and the no-pool conviction rule shipped → [influence.md](../../subsystems/influence.md), [participation.md](../../subsystems/participation.md), [renown.md](../../subsystems/renown.md); the provisions are Art. III of the [draft constitution](../../compact/governance/draft-constitution.md).)*
 
 ### Three types, one per chamber, non-fungible
 
@@ -224,11 +224,11 @@ not the investor house. Stake, never stock.
 
 ### One resource, not two — continuity lives in the voting rule
 
-*Superseded — the reservoir premise is gone; the resolution shipped as the kernel's uniform conviction rule → [influence.md](../../subsystems/influence.md) § Conviction; kernel-fixed method / chamber-internal representation / term limits on offices only are Art. III §4, Art. IV §6, Art. V §2 of the [draft constitution](../../governance/draft-constitution.md).*
+*Superseded — the reservoir premise is gone; the resolution shipped as the kernel's uniform conviction rule → [influence.md](../../subsystems/influence.md) § Conviction; kernel-fixed method / chamber-internal representation / term limits on offices only are Art. III §4, Art. IV §6, Art. V §2 of the [draft constitution](../../compact/governance/draft-constitution.md).*
 
 ### RESOLVED (2026-07-31): the kernel's conviction rule shipped — **no pool**
 
-*Shipped → [influence.md](../../subsystems/influence.md) § Conviction (`hold` is full weight, no pool — an entrenched invariant). ⚠ The [draft constitution](../../governance/draft-constitution.md) Art. IV §2 still describes a capped, regenerating reservoir — stale; the knock-on for Art. IV §4 is worked in [legal-code-slate § The passage rule](./legal-code-slate.md). The WHY of no-pool (attention is the real scarcity; a budget is portfolio politics) is in the ledger's Handoff for influence.md.*
+*Shipped → [influence.md](../../subsystems/influence.md) § Conviction (`hold` is full weight, no pool — an entrenched invariant). ⚠ The [draft constitution](../../compact/governance/draft-constitution.md) Art. IV §2 still describes a capped, regenerating reservoir — stale; the knock-on for Art. IV §4 is worked in [legal-code-slate § The passage rule](./legal-code-slate.md). The WHY of no-pool (attention is the real scarcity; a budget is portfolio politics) is in the ledger's Handoff for influence.md.*
 
 #### The markers survive by splitting, not by merging
 
@@ -386,7 +386,7 @@ vectors, and the merit mechanism should match each:
   way to *source* this regard explicitly — recognition as a deliberate peer act,
   not only an inferred metric.)
 
-*(The producer merit-pay bank — producer influence only · minted and capped by the legislature · evaluated by competence · recusal · sub-decisive · public rationale · justiciable — is Art. III §7 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19. Unbuilt.)*
+*(The producer merit-pay bank — producer influence only · minted and capped by the legislature · evaluated by competence · recusal · sub-decisive · public rationale · justiciable — is Art. III §7 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19. Unbuilt.)*
 
 **Why the producer bank isn't a power-pump.** Minting producer influence
 redistributes power *within* the producer house (toward the meritorious) — it
@@ -407,15 +407,15 @@ legislated modules.
 
 ## The legislature — three co-equal chambers
 
-*Cut 2026-09-19 — Art. IV §§1–3 of the [draft constitution](../../governance/draft-constitution.md) (co-equal houses, majority of houses, one central floor, no originating house, per-house splittable voting); the per-stock `Position` partition that makes splitting real shipped → [influence.md](../../subsystems/influence.md) § Conviction.*
+*Cut 2026-09-19 — Art. IV §§1–3 of the [draft constitution](../../compact/governance/draft-constitution.md) (co-equal houses, majority of houses, one central floor, no originating house, per-house splittable voting); the per-stock `Position` partition that makes splitting real shipped → [influence.md](../../subsystems/influence.md) § Conviction.*
 
 ### Near-empty chambers — abstain, full-count, fall back
 
-*Cut 2026-09-19 — Art. IV §3 of the [draft constitution](../../governance/draft-constitution.md) (a house below `vote.quorum` abstains; passage against the full count; sub-viability falls back to the caretaker floor) + Art. XI / the [founding charter](../../governance/founding-charter.md) for the self-binding.*
+*Cut 2026-09-19 — Art. IV §3 of the [draft constitution](../../compact/governance/draft-constitution.md) (a house below `vote.quorum` abstains; passage against the full count; sub-viability falls back to the caretaker floor) + Art. XI / the [founding charter](../../compact/governance/founding-charter.md) for the self-binding.*
 
 ### The constitution is thin — but the voting system is kernel, not chamber-set
 
-*Cut 2026-09-19 — Art. III §4, Art. IV §§6–7 of the [draft constitution](../../governance/draft-constitution.md) (the voting method is kernel-fixed; a chamber governs only its internal organization; structure by amendment, constants as organic law).*
+*Cut 2026-09-19 — Art. III §4, Art. IV §§6–7 of the [draft constitution](../../compact/governance/draft-constitution.md) (the voting method is kernel-fixed; a chamber governs only its internal organization; structure by amendment, constants as organic law).*
 
 ---
 
@@ -814,7 +814,7 @@ the dishonest option.
 ## Pay-to-win: political voice, not gameplay advantage
 
 
-*Cut 2026-09-19 — Art. I §2 + Art. VIII §1 of the [draft constitution](../../governance/draft-constitution.md) (money may earn a voice, never in-world currency, property or advantage; the firewall is bidirectional). The hill-not-a-wall argument below is kept.*
+*Cut 2026-09-19 — Art. I §2 + Art. VIII §1 of the [draft constitution](../../compact/governance/draft-constitution.md) (money may earn a voice, never in-world currency, property or advantage; the firewall is bidirectional). The hill-not-a-wall argument below is kept.*
 
 
 ### A hill, not a wall — and the hill *is* the game
@@ -1082,15 +1082,15 @@ move) — so sync deliberation doubles as a retention mechanism, drawing people
 
 ### The load-bearing principle: ungameable organization
 
-*Cut 2026-09-19 — the principle graduated verbatim → [forums.md](../../subsystems/forums.md) § The argument organizer; “no number is an authority” is Art. I §4 of the [draft constitution](../../governance/draft-constitution.md).*
+*Cut 2026-09-19 — the principle graduated verbatim → [forums.md](../../subsystems/forums.md) § The argument organizer; “no number is an authority” is Art. I §4 of the [draft constitution](../../compact/governance/draft-constitution.md).*
 
 ### Deliberate as equals, vote by weight
 
-*Cut 2026-09-19 — Art. III §5 of the [draft constitution](../../governance/draft-constitution.md); the argument organizer is reputation-blind and the conviction tally is standing-weighted ([forums.md](../../subsystems/forums.md), [influence.md](../../subsystems/influence.md)).*
+*Cut 2026-09-19 — Art. III §5 of the [draft constitution](../../compact/governance/draft-constitution.md); the argument organizer is reputation-blind and the conviction tally is standing-weighted ([forums.md](../../subsystems/forums.md), [influence.md](../../subsystems/influence.md)).*
 
 ### Reputation intersects the edges, never the structure
 
-*Cut 2026-09-19 — Art. III §6 of the [draft constitution](../../governance/draft-constitution.md) (“reputation → bounded weight, never → authority”); the attention edge shipped as the circle highlight ([forums.md](../../subsystems/forums.md) § Delegated attention), the vote edge as `engagement × renown` ([participation.md](../../subsystems/participation.md)). Still open:*
+*Cut 2026-09-19 — Art. III §6 of the [draft constitution](../../compact/governance/draft-constitution.md) (“reputation → bounded weight, never → authority”); the attention edge shipped as the circle highlight ([forums.md](../../subsystems/forums.md) § Delegated attention), the vote edge as `engagement × renown` ([participation.md](../../subsystems/participation.md)). Still open:*
 
 - **Moderation** — notoriety informs *scrutiny* of a known bad actor, never
   an auto-discount of the argument (ad hominem stays a fallacy).
@@ -1114,15 +1114,15 @@ providing only the *social* layer around it.
 
 ## Branches & separation of powers
 
-*Cut 2026-09-19 — Art. V §§1, 4 of the [draft constitution](../../governance/draft-constitution.md) (a Prime Minister holding confidence; a civil service of chartered institutions, not hierarchies).*
+*Cut 2026-09-19 — Art. V §§1, 4 of the [draft constitution](../../compact/governance/draft-constitution.md) (a Prime Minister holding confidence; a civil service of chartered institutions, not hierarchies).*
 
 ### The executive — a government, not a management
 
-*Cut 2026-09-19 — Art. V §§2–3 of the [draft constitution](../../governance/draft-constitution.md) (executes only what the legislature authorized; a term limit is available, not required).*
+*Cut 2026-09-19 — Art. V §§2–3 of the [draft constitution](../../compact/governance/draft-constitution.md) (executes only what the legislature authorized; a term limit is available, not required).*
 
 ### How the prime minister is chosen
 
-*Cut 2026-09-19 — Art. V §§1–2 (confidence = majority of chambers, investiture, constructive no-confidence, optional term limit), Art. VII §2 (the confidence count is universally verifiable) of the [draft constitution](../../governance/draft-constitution.md); the founder as default holder shipped → [governance.md](../../subsystems/governance.md) § The founder default. The cooldown is open (*Open problems*).*
+*Cut 2026-09-19 — Art. V §§1–2 (confidence = majority of chambers, investiture, constructive no-confidence, optional term limit), Art. VII §2 (the confidence count is universally verifiable) of the [draft constitution](../../compact/governance/draft-constitution.md); the founder as default holder shipped → [governance.md](../../subsystems/governance.md) § The founder default. The cooldown is open (*Open problems*).*
 
 ### Confidence, expressed in the shipped substrate (2026-07-31)
 
@@ -1277,7 +1277,7 @@ toothbrush, the fitness band, the study tracker) — the executive could come
 to hold **real-world** behavioral data. That is real power; the three-branch
 + code-first design is what keeps it from the nightmare:
 
-*(The five-way split — legislature → requirements · executive → implementation · judiciary → verification + spirit · human enforcement bounded · the archive — is Art. IV §5, Art. V §§6–7, Art. VI §2, Art. VII of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
+*(The five-way split — legislature → requirements · executive → implementation · judiciary → verification + spirit · human enforcement bounded · the archive — is Art. IV §5, Art. V §§6–7, Art. VI §2, Art. VII of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19.)*
 
 The thesis under it: **this is a blueprint for *legitimate* surveillance** —
 enormous sensing, but the rules **democratic**, the application **mechanical
@@ -1291,7 +1291,7 @@ legitimate rather than nightmarish.
 
 ### The judiciary — verification and spirit
 
-*(The two competences — verification of the letter, spirit-judgment of the intent — are Art. VI §2 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
+*(The two competences — verification of the letter, spirit-judgment of the intent — are Art. VI §2 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19.)*
 
 The two are a **dual-key greenlight**: verification can't ship a correct
 thing that violates the spirit; spirit can't ship a well-meaning thing
@@ -1306,11 +1306,11 @@ verification, captured in the archive.
 
 ### One process, two knobs — the streamer is the pool of one
 
-*Cut 2026-09-19 — Art. VI §§1, 3, 5 of the [draft constitution](../../governance/draft-constitution.md) (one async process at every scale; the jury pool and bindingness are the only knobs; due process widens the pool and removes the override).*
+*Cut 2026-09-19 — Art. VI §§1, 3, 5 of the [draft constitution](../../compact/governance/draft-constitution.md) (one async process at every scale; the jury pool and bindingness are the only knobs; due process widens the pool and removes the override).*
 
 ### How the judiciary is staffed
 
-*(The egalitarian branch — influence buys nothing; spirit-judgment by flat sortition past a tenure threshold, judging intent from the archived record — is Art. VI §4 + Art. XIII of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19. The verification pool's track-record mechanism, below, is design the constitution abstracts.)*
+*(The egalitarian branch — influence buys nothing; spirit-judgment by flat sortition past a tenure threshold, judging intent from the archived record — is Art. VI §4 + Art. XIII of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19. The verification pool's track-record mechanism, below, is design the constitution abstracts.)*
 
 - **Verification → sortition *within the qualified*.** You can't draw a
   random citizen to vet a kernel change, so draw verification panels by
@@ -1337,11 +1337,11 @@ fills — the same population ladder as the rest of separation of powers.
 
 ### Trials — async-first, sync-optional
 
-*Cut 2026-09-19 — Art. VI §1 of the [draft constitution](../../governance/draft-constitution.md) (async case, verdict by deadline, no-show → judgment on the record, live hearing optional) + the Schedule (`judiciary.overdraw_factor`, `filing_window`, `verdict_deadline`).*
+*Cut 2026-09-19 — Art. VI §1 of the [draft constitution](../../compact/governance/draft-constitution.md) (async case, verdict by deadline, no-show → judgment on the record, live hearing optional) + the Schedule (`judiciary.overdraw_factor`, `filing_window`, `verdict_deadline`).*
 
 ### Abatement — taking live content offline
 
-*(Abatement — the presumption for live content, burden on the challenger, the cure order + `abatement.cure_window`, fault → clawback vs no-fault → natural decay, never for unpopularity — is Art. VI §7 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
+*(Abatement — the presumption for live content, burden on the challenger, the cure order + `abatement.cure_window`, fault → clawback vs no-fault → natural decay, never for unpopularity — is Art. VI §7 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19.)*
 
 **Open work:**
 
@@ -1531,7 +1531,7 @@ into* real separation as the pool fills.
 
 ### The cross-branch membrane
 
-*Cut 2026-09-19 — Art. III §2 of the [draft constitution](../../governance/draft-constitution.md) (no kind of influence converts into another, nor into office in any branch).*
+*Cut 2026-09-19 — Art. III §2 of the [draft constitution](../../compact/governance/draft-constitution.md) (no kind of influence converts into another, nor into office in any branch).*
 
 ### The root-power floor
 
@@ -1549,7 +1549,7 @@ primitive as the thesis.)
 
 ### The record — integrity by construction, not by org-chart
 
-*Cut 2026-09-19 — Art. VII of the [draft constitution](../../governance/draft-constitution.md) (operated by the executive, integrity independent of its operator by construction; universally verifiable; no act rests on a falsified record; detectable, not impossible); the build-level design and the four 2026-07-31 findings are [record-integrity-slate](./record-integrity-slate.md) (UNBUILT — every ledger is append-only by convention).*
+*Cut 2026-09-19 — Art. VII of the [draft constitution](../../compact/governance/draft-constitution.md) (operated by the executive, integrity independent of its operator by construction; universally verifiable; no act rests on a falsified record; detectable, not impossible); the build-level design and the four 2026-07-31 findings are [record-integrity-slate](./record-integrity-slate.md) (UNBUILT — every ledger is append-only by convention).*
 
 ---
 
@@ -1561,15 +1561,15 @@ primitive as the thesis.)
 > the AGPL-core-plus-composition-exception license regime. That doc deepens both this
 > economy section and § *How territory is held*.
 
-*(Two concerns, one firewall — Art. VIII §1 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
+*(Two concerns, one firewall — Art. VIII §1 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19.)*
 
 ### The budget — real dollars
 
-*Cut 2026-09-19 — Art. VIII §§1–2 of the [draft constitution](../../governance/draft-constitution.md) (operating funds vs the in-world economy never convert; surplus may pay wages and costs, never a return to backers). The bookkeeping/tax note is in *Open problems*.*
+*Cut 2026-09-19 — Art. VIII §§1–2 of the [draft constitution](../../compact/governance/draft-constitution.md) (operating funds vs the in-world economy never convert; surplus may pay wages and costs, never a return to backers). The bookkeeping/tax note is in *Open problems*.*
 
 ### The reserve — a game mechanic
 
-*Cut 2026-09-19 — Art. VIII §§1, 3 of the [draft constitution](../../governance/draft-constitution.md) (the in-world economy is ordinary law under the firewall; two portfolios, never a shared balance).*
+*Cut 2026-09-19 — Art. VIII §§1, 3 of the [draft constitution](../../compact/governance/draft-constitution.md) (the in-world economy is ordinary law under the firewall; two portfolios, never a shared balance).*
 
 ---
 
@@ -1604,7 +1604,7 @@ Two disciplines keep it honest:
   banking as ongoing governance against the live game, not devs patching
   numbers.
 
-*(The code-executed fiscal cycle — tax → budget → appropriate → disburse — and the real-budget contrast are Art. VIII §4 + Art. V §9 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19. Shipped today: a demo sales tax that accumulates in a placeholder treasury with **no appropriation path** — `BankingApi.remitDemoTax`, [banking.md](../../subsystems/banking.md).)*
+*(The code-executed fiscal cycle — tax → budget → appropriate → disburse — and the real-budget contrast are Art. VIII §4 + Art. V §9 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19. Shipped today: a demo sales tax that accumulates in a placeholder treasury with **no appropriation path** — `BankingApi.remitDemoTax`, [banking.md](../../subsystems/banking.md).)*
 
 ### Genesis: capital earned the way influence is
 
@@ -1791,25 +1791,25 @@ you can.
 
 ## Founder control — transient lock, permanent check
 
-*Superseded — the ~51% figure by the [founding charter](../../governance/founding-charter.md)'s published formula (sole producer · 0% consumer · capital matched plus one · sunsets at ratification); “codify the structure, not the founder” and natural dilution are Art. XI of the [draft constitution](../../governance/draft-constitution.md); co-equality is Art. I §5.*
+*Superseded — the ~51% figure by the [founding charter](../../compact/governance/founding-charter.md)'s published formula (sole producer · 0% consumer · capital matched plus one · sunsets at ratification); “codify the structure, not the founder” and natural dilution are Art. XI of the [draft constitution](../../compact/governance/draft-constitution.md); co-equality is Art. I §5.*
 
 ---
 
 ## Amendment & entrenchment
 
-*Cut 2026-09-19 — Art. X §§1–3 of the [draft constitution](../../governance/draft-constitution.md) (ordinary · organic · amendment · eternity; the eternity set). The fractions and cooling period are open (*Open problems*).*
+*Cut 2026-09-19 — Art. X §§1–3 of the [draft constitution](../../compact/governance/draft-constitution.md) (ordinary · organic · amendment · eternity; the eternity set). The fractions and cooling period are open (*Open problems*).*
 
 ### Amendment is ratified by equals
 
-*Cut 2026-09-19 — Art. X §2 of the [draft constitution](../../governance/draft-constitution.md) (one-member-one-vote ratification).*
+*Cut 2026-09-19 — Art. X §2 of the [draft constitution](../../compact/governance/draft-constitution.md) (one-member-one-vote ratification).*
 
 ### Fork is the amendment of last resort
 
-*Cut 2026-09-19 — Art. X §4 + Art. VII §5 of the [draft constitution](../../governance/draft-constitution.md) (the only change to an eternity clause is to found anew; exit disciplines entrenchment).*
+*Cut 2026-09-19 — Art. X §4 + Art. VII §5 of the [draft constitution](../../compact/governance/draft-constitution.md) (the only change to an eternity clause is to found anew; exit disciplines entrenchment).*
 
 ### Founding vs. amendment — the founder's self-binding
 
-*Cut 2026-09-19 — Art. XI of the [draft constitution](../../governance/draft-constitution.md) + the [founding charter](../../governance/founding-charter.md) § Why bind at all (formula-fixed · code-enforced · published · auto-sunset → wage-only; the charter ships with the stake ledger). The charter cites this heading for the rationale; the rationale now lives there.*
+*Cut 2026-09-19 — Art. XI of the [draft constitution](../../compact/governance/draft-constitution.md) + the [founding charter](../../compact/governance/founding-charter.md) § Why bind at all (formula-fixed · code-enforced · published · auto-sunset → wage-only; the charter ships with the stake ledger). The charter cites this heading for the rationale; the rationale now lives there.*
 
 ### Where it lives
 
@@ -1822,7 +1822,7 @@ live: the highest-stakes change gets the strongest review.
 
 ### The kernel and the library — amendments as political legos
 
-*Cut 2026-09-19 — [amendment-library-slate](./amendment-library-slate.md) (the kernel / library split, presets, the package manager) and the [draft constitution](../../governance/draft-constitution.md)'s three-floor test.*
+*Cut 2026-09-19 — [amendment-library-slate](./amendment-library-slate.md) (the kernel / library split, presets, the package manager) and the [draft constitution](../../compact/governance/draft-constitution.md)'s three-floor test.*
 
 ---
 
@@ -1856,7 +1856,7 @@ of the macro tuning.
 The substrate is honest; the *polity* can't be finished against one
 citizen. Parked until there's a population to govern:
 
-- *Surplus bedrock — resolved: Art. VIII §2, entrenched by Art. X §3 of the [draft constitution](../../governance/draft-constitution.md).*
+- *Surplus bedrock — resolved: Art. VIII §2, entrenched by Art. X §3 of the [draft constitution](../../compact/governance/draft-constitution.md).*
 - *One-time burst vs cap+honor — superseded by no-pool: a lump credits once, spikes and decays, and is honored in the chronicle (§ The markers survive by splitting).*
 - **Loyalty/tenure bonus on recurring?** A modest, *capped* streak bonus
   rewards the backbone subscriber; uncapped, it re-creates a tenure
@@ -2007,7 +2007,7 @@ citizen. Parked until there's a population to govern:
   supermajority fraction, the cooling-period length, the population
   threshold for the ratifying convention, and precisely where the
   eternity-clause boundary is drawn.
-- *Origination — resolved: none; Art. IV §3 of the [draft constitution](../../governance/draft-constitution.md).*
+- *Origination — resolved: none; Art. IV §3 of the [draft constitution](../../compact/governance/draft-constitution.md).*
 - *Who adjudicates producer influence — resolved: the engine measures the engagement content draws ([influence.md](../../subsystems/influence.md) § The producer stock); the human layer is the merit-pay exception (Art. III §7), unbuilt.*
 - **Apportionment inside the Consumer House.** Almost certainly
   representational at scale — but that's the chamber's own bylaw, not

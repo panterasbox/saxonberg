@@ -8,7 +8,7 @@
 > Design sources: [../governance/draft-constitution.md](../governance/draft-constitution.md)
 > § **Schedule of Parameters** (the itemized, change-tiered governance dials — "the
 > articles are the logic; this Schedule is the configuration") + § Art. X–XI, and
-> [../slates/builds/amendment-library-slate.md](../slates/builds/amendment-library-slate.md)
+> [../slates/builds/amendment-library-slate.md](../../slates/builds/amendment-library-slate.md)
 > (the module / "political legos" catalog). The runtime home of many parameter values is
 > `mud/config/app-settings.yaml` (the storage; the Schedule is the governance-view).
 > **Its own video in the playlist — length relaxed.**
@@ -499,7 +499,7 @@ since it is nothing but dimmed and lit rows.
   showed all nine areas, so the narration was reading its own visual aloud, and now walks
   two rows while the panel carries the rest; and the **parameter/bound handoff** at [5].
 - **⭐⭐ Parameter vs. bound** (from
-  [balance-slate](../slates/builds/balance-slate.md)): a **parameter** configures the machine
+  [balance-slate](../../slates/builds/balance-slate.md)): a **parameter** configures the machine
   and is read by the runtime; a **bound** constrains an outcome and is checked by the sweep.
   **Only the first is set at ratification.** Bounds are the legislature's ongoing work — which
   *narrows* this appendix's scope rather than widening it, and supplies the handoff.
@@ -508,7 +508,7 @@ since it is nothing but dimmed and lit rows.
 - **Two new panel rows**, from the 2026-08-04 law-source hunt: **information** (transparency
   and classification, private association, unlink, expungement) and **the operator** (wizard
   duty, break-glass, the code-trust chain — see
-  [wizard-duty-slate](../slates/builds/wizard-duty-slate.md)). ⚠ The operator row being
+  [wizard-duty-slate](../../slates/builds/wizard-duty-slate.md)). ⚠ The operator row being
   absent until now was itself a statement.
 - **Grounded on the Schedule of Parameters** (draft-constitution § 463) — the real,
   change-tiered dial list — *plus* the amendment-library modules. **Two-layer** framing

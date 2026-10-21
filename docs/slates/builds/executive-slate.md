@@ -28,7 +28,7 @@
 
 See also:
 
-- [draft-constitution.md § Art. V](../../governance/draft-constitution.md)
+- [draft-constitution.md § Art. V](../../compact/governance/draft-constitution.md)
   — the branch's text; §3 (executes only what is authorized), §4 (a civil
   service of chartered institutions), §6 (programming the machine is an
   executive function; the judiciary verifies), §7 (human enforcement is

@@ -16,7 +16,7 @@ turning into amendments:
 > [rerecord-appendix-b.md](./rerecord-appendix-b.md)); this re-frames them
 > and proposes the rest.
 
-Sources: [amendment-library-slate](../slates/builds/amendment-library-slate.md)
+Sources: [amendment-library-slate](../../slates/builds/amendment-library-slate.md)
 § *The US-amendment walk* (the candidate roster),
 [draft-constitution.md](../governance/draft-constitution.md) § *Schedule of
 Parameters*, [rerecord-outline.md](./rerecord-outline.md).
@@ -83,7 +83,7 @@ A candidate earns its own video when **all three** hold:
 ## Two if there is appetite
 
 - **F — Money & taxation.** 16 taxation power, 27 officer pay, and
-  **currency issuance** ([currency-slate](../slates/builds/currency-slate.md)).
+  **currency issuance** ([currency-slate](../../slates/builds/currency-slate.md)).
   ⭐ Company scrip gives it a villain.
 - **G — Belief.** Establishment + free exercise, with **sentient
   sacrifice** as the hard case — a real free-exercise conflict made safe
@@ -151,7 +151,7 @@ phone number — and the schema already has it.
 
 ## ⭐ Beat 4 is answered, and not by a permission flag
 
-[psychology-slate](../slates/builds/psychology-slate.md) resolves it:
+[psychology-slate](../../slates/builds/psychology-slate.md) resolves it:
 **you cannot read yourself, another person can, and you only discover
 what you choose to reveal.** Trait visibility stops being a right granted
 or withheld and becomes **a relationship you build and a disclosure you
@@ -226,7 +226,7 @@ vocational game needs.
 |---|---|
 | ⭐⭐ **homestead exemption** | your home cannot be seized for debt — **the tenure floor with a real name** |
 | ⭐ **corporations articles** | charter limits; what a corpo may be |
-| **banking articles** | live, given [currency-slate](../slates/builds/currency-slate.md) |
+| **banking articles** | live, given [currency-slate](../../slates/builds/currency-slate.md) |
 | ⭐⭐ **education clauses** | *"thorough and efficient"* — straight into the education vertical |
 | **labour articles** | hours, safety, organising |
 | **anti-monopoly** | corpos |
@@ -300,14 +300,14 @@ law.
 
 ⭐ **Liens** come with it — a claim against property surviving transfer,
 which is also the primitive
-[incapacity-slate](../slates/tails/incapacity-slate.md)'s impound has
+[incapacity-slate](../../slates/tails/incapacity-slate.md)'s impound has
 been reaching for.
 
 ### ⭐⭐ Sports leagues — a better balance model than a legislature
 
 A league is **a polity whose members agree to limit their own advantage
 because the product dies otherwise** (salary caps, revenue sharing, draft
-order). That is [balance-slate](../slates/builds/balance-slate.md)'s
+order). That is [balance-slate](../../slates/builds/balance-slate.md)'s
 problem, solved by people who *are* the competitors — and it reframes
 balance as **collective self-restraint** rather than regulation imposed
 from outside.
@@ -341,7 +341,7 @@ hold someone with no interest in civics.
 
 # ⭐⭐ Video X — "The people who can see everything"
 
-From [wizard-duty-slate](../slates/builds/wizard-duty-slate.md), the last
+From [wizard-duty-slate](../../slates/builds/wizard-duty-slate.md), the last
 law source: **law suggested by the technology itself** (Schell's fourth
 tetrad corner — *the one the player never sees*).
 
@@ -405,7 +405,7 @@ nobody else makes.
   binds. Sharper hook than abstract incorporation.
 - **source protection ⊗ confrontation → video E's speech sibling** (or F/G
   if speech gets its own). ⚠ And note
-  [psychology-slate](../slates/builds/psychology-slate.md) makes this a
+  [psychology-slate](../../slates/builds/psychology-slate.md) makes this a
   **conflict CLASS** — privileged relationships vs. the confrontation
   right — not a one-off.
 - **guaranteed compute ⊗ quota → a footnote in B**, which already owns

@@ -4,7 +4,7 @@
 > **appendix, not a chapter.** Optional depth, after the main series + outro, and
 > downstream of **Appendix A (ratification)** — much of what's described here is a *dial*
 > a community sets at ratification, so A establishes the frame this fills in.
-> Design source: [../slates/builds/land-compute-and-license.md](../slates/builds/land-compute-and-license.md).
+> Design source: [../slates/builds/land-compute-and-license.md](../../slates/builds/land-compute-and-license.md).
 > **Its own video in the playlist — length relaxed.**
 >
 > **⚠ Register: DESCRIPTIVE, not persuasive.** This is documentation — *how the thing

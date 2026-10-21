@@ -15,7 +15,7 @@ the town. Per-town decisions (the D-numbers) stay in
 *Source: the diegetic-government capture (2026-07-30), shipped as
 [civics.md](../../subsystems/civics.md). Its jargon standard (markedness,
 "the Compact", committee, member vs resident) lives in
-[governance/glossary.md](../../governance/glossary.md). Kept here: the
+[governance/glossary.md](../../compact/governance/glossary.md). Kept here: the
 rationale civics.md cites but does not hold, and the two sections other
 slates build on.*
 
@@ -622,6 +622,6 @@ chronicle portfolio (identity).
   enrollment scene, the financial-quarter geography and v1 scope.
 - **The attendant design** ([attendant.md](../../subsystems/attendant.md))
   and **the jargon standard**
-  ([governance/glossary.md](../../governance/glossary.md)), both whole.
+  ([governance/glossary.md](../../compact/governance/glossary.md)), both whole.
 - **The content tour's per-bundle bibles** and its mine model (see
   [mining.md](../../subsystems/mining.md)).

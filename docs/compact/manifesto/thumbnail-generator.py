@@ -2,12 +2,12 @@
 """
 Manifesto re-record — YouTube thumbnail generator (Ch 1-7).
 
-Emits 1280x720 PNGs -> docs/manifesto/exports/thumbnails/. One per chapter,
+Emits 1280x720 PNGs -> docs/compact/manifesto/exports/thumbnails/. One per chapter,
 identical layout, so the set reads as a series in a playlist sidebar.
 
 DESIGN
   * Ground is Old Glory Blue #002868 — the same value the rings mark hard-codes
-    as its casing, which is what the brand doc requires (docs/brand/README.md:
+    as its casing, which is what the brand doc requires (docs/design/brand/README.md:
     "the casing colour must match whatever is behind the mark").
   * The rings are EXTRACTED FROM background.png (the flag), not re-drawn from
     saxonberg-rings-white.svg. Both are correct Borromean, but the SVG's casing

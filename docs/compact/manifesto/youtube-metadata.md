@@ -10,7 +10,7 @@ seven — fill the two ⚑ placeholders once and reuse.
 
 > **⚑ TWO LINKS TO FILL BEFORE PUBLISHING.**
 > 1. **The constitution itself.** The series' whole conversion goal is "go read
->    it," and there is no public URL for `docs/governance/draft-constitution.md`
+>    it," and there is no public URL for `docs/compact/governance/draft-constitution.md`
 >    in the repo. Either publish it (the docs-mirror path) or drop that line —
 >    do not link something that 404s.
 > 2. **The playlist URL**, which doesn't exist until the playlist does.
@@ -229,7 +229,7 @@ against the eyebrow's soft blue so it reads as a mark rather than another label.
 Three decisions worth keeping if these are ever redone:
 
 - **The ground is Old Glory Blue `#002868`** — the same value the rings mark
-  hard-codes as its casing, which is what `docs/brand/README.md` requires ("the
+  hard-codes as its casing, which is what `docs/design/brand/README.md` requires ("the
   casing colour must match whatever is behind the mark").
 - **The rings are cut from `background.png`, not from
   `saxonberg-rings-white.svg`.** Both are correct Borromean, but the SVG's

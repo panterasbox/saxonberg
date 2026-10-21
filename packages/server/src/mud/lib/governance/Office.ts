@@ -131,7 +131,7 @@ export class Office {
  * `constituted` seats (Art. IV legislature + House names, Art. V
  * executive/PM) plus four `founder-established` seats (ordinary law per
  * Art. VIII §3): the Central-Bank Governor, and — the economic
- * bootstrap's three, named per `docs/governance/glossary.md` — the
+ * bootstrap's three, named per `docs/compact/governance/glossary.md` — the
  * Minister of Finance (the Treasury: appropriation, the Arrival Note's
  * counterparty, escheat's recipient), the Minister of Trade (the
  * Ministry of Trade: holds `/trade` and `/stuff` — the physics of trade

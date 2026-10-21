@@ -2,7 +2,7 @@
 """
 Manifesto re-record — slide generator (Ch 1 = the hero montage).
 
-Emits transparent 4K PNGs -> docs/manifesto/exports/ (Descript drops them over the
+Emits transparent 4K PNGs -> docs/compact/manifesto/exports/ (Descript drops them over the
 blue background layer). SVG-native; no Excalidraw.
 
 DESIGN (converged — see memory `manifesto-visuals-batch-mode`):

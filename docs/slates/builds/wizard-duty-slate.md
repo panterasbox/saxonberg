@@ -43,7 +43,7 @@ a visible override than an imaginary guarantee*),
 chaining** — the one mechanism that survives),
 [balance-slate](./balance-slate.md) (the PM chain; the ops seat; the
 inalienable floor), [sandbox.md](../../subsystems/sandbox.md),
-[rerecord-appendix-plan](../../manifesto/rerecord-appendix-plan.md).
+[rerecord-appendix-plan](../../compact/manifesto/rerecord-appendix-plan.md).
 
 ---
 
