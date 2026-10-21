@@ -27,4 +27,6 @@ data:
   exits:
     up:
       destination: /world/terminus/eternal/duncan-hall/location/steps
+      # The iron rungs: `climb up` (a walk-only way out of water is none).
+      media: [vertical]
   water: { of: duncan:cistern, depthM: 3 }
