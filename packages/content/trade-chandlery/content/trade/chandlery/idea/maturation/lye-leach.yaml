@@ -8,8 +8,12 @@ data:
   key: lye-leach
   inputCategory: lye-leach
   mechanism: chemical
-  stallBelowK: 275
-  happyK: 285
+  # ⭐ A leach is the water dissolving the salt out of the ash — not a
+  # ferment — so it runs in any water that is liquid (found by the potash
+  # drive: a winter lean-to at 274 K stalled at the old 275 K floor, the
+  # hopper never made lye, and the pots boiled plain water).
+  stallBelowK: 273
+  happyK: 275
   damageAboveK: 400
   ratePerDay: 2
   productMaterial: /trade/chandlery/idea/material/lye

@@ -725,9 +725,6 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     // kettle no room for a pail of water.
     await say(s, 'get 1 lime');
     s.close();
-    s = await goTo(ashMaker, KNACKERS);
-    await say(s, 'get crock');
-    s.close();
     s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'put lime in kettle');
     await say(s, 'get pail').catch(() => '');
@@ -743,6 +740,15 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ causticized: ${caustic.slice(0, 300)}`);
     expect(caustic, `the kettle, causticized: ${caustic}`).toMatch(/caustic|strong lye/i);
+    // The tallow, fetched only now: ⚠ holding a second vessel (the crock)
+    // makes `pour pail into kettle` fall through to the crafting `pour`
+    // ("isn't a vessel you can work in") — a pre-existing collision the
+    // drive found; drop it and the same pour works.
+    s.close();
+    s = await goTo(ashMaker, KNACKERS);
+    await say(s, 'get crock');
+    s.close();
+    s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'pour crock into kettle');
     const paste = await examine(s, 'kettle');
     // eslint-disable-next-line no-console -- the drive's own record
