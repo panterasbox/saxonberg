@@ -16,57 +16,19 @@ The plan is written for a fresh-context build agent. Every grounding fact
 below was verified by opening the file named; re-verify anything that has
 moved since 2026-10-21.
 
-## Questions for the user
+## Decided with the user (2026-10-21)
 
-Decided below and the build proceeds on the default; say so if you want
-a different answer. None of these is blocking.
-
-1. ⭐⭐ **The Kestrel's authored elevations make its lower river a
-   torrent.** `kestrel.yaml` authors falls **500 m** and confluence
-   **30 m**; the slate's kilometers put the falls at km 41 and the
-   confluence at km 9, so the navigable reach falls 470 m in 32 km — a
-   mean gradient of 1.5 %, which is class III whitewater by any honest
-   hydraulics (Manning gives ~4 m/s). No sternwheeler steams that, and the
-   drive (steps 25–31) needs the *Ostrander* to reach the landing below
-   the falls. The profile model (D1) distributes a river's drop into
-   steps and pools, so SOME gradient is survivable, but not that one.
-   **Default taken: re-author the falls to 140 m** (the 22 m drop stays;
-   the gorge above it takes the 1,260 m from the headwaters at 1400 — a
-   cascade, which is what a gorge nobody has boated up should be). The
-   lower Kestrel is then 0.27 % — pools with a riffle every half-mile, a
-   brisk navigable mountain-front river. Nothing shipped reads the
-   falls' elevation but the snowpack at that reach and the climate
-   drive's temperature expectations (`climate-and-water.dirty` — the
-   build re-checks it). The alternative — keep 500 m and accept a river
-   that is 70 % rapids below the falls — contradicts the requirements'
-   fiction and is not taken.
-2. **The Nesbit ferry's siting.** The requirements name the ferry but not
-   where. Default: across the **Kestrel just below the confluence**, the
-   **lower towpath** (city side) to a new **Nesbit's landing** on the far
-   bank that joins the Delight road at the **milestone** — so when the
-   ford is up, a wagon still has a way to the crossroads, which is the
-   first demand the ferry has (lens 6, and it is what makes step 34's
-   route-planner leg real). Alternative: across the Delight beside the
-   ford (no demand — the ford is right there).
-3. **The one-node still waters are exempt from `source`/`mouth`.** The
-   four meres (`blackmere`, `circlemere`, `clearmere`, `hollowmere`) are
-   `Watercourse` rows of one node, which the compile already treats as a
-   lake. A lake has no direction to declare, so the required-ends rule
-   applies to courses of two or more nodes. Lens 1 chose it.
-4. **The Holloway needs a sea node.** Its mouth is at 0 m and the
-   requirements say a sea mouth is "the sea at a named node"; the
-   Greywater has none for it. Default: author `greywater/holloway-mouth`
-   (a passage node with no destination, west of the bar). One row.
-5. **Two verb readings.** "grab the canoe" is `pull canoe` (the shipped
-   `Pullable` protocol — a capsized boat is pulled upright and holds you
-   up); "pull them in" is `pull <person>` from the boat or the bank, which
-   puts `PullableMixin` on `Creature` (D22). Neither mints a verb.
-6. **The cable ferry ships as mechanism and a unit test, with no authored
-   instance.** The drive has no step for it; the first content that wants
-   one is a row (`tethered: <cable row>` on a `Ferry`).
-7. **The *Ostrander*'s house** is a terminus `Business` row like the
-   *Hesper*'s outfit (master, engineer, deckhand), on a PM-appointed
-   roster. A shipping line as a corpo is the ships slate's.
+Seven forks were put to the user and decided; each is recorded in the
+decision it belongs to — the Kestrel's falls re-authored to 140 m, the
+one-node meres exempt from the required ends, and the Holloway's sea node
+(**D1**); `pull canoe` / `pull <person>` with `PullableMixin` on
+`Creature` (**D22**); the Nesbit ferry's siting and the cable ferry as
+mechanism only (**D31**); the *Ostrander*'s house (**D36**). Two revisions
+followed the same day: small craft are propelled by a new verb, `paddle`
+(**D21**, **D23**, **D35**), and **no zone changes at runtime** — a moving
+place has a moving zone (**D38**), which replaced the containment opening
+D24 had proposed. The maritime drive going red at W3 and repaired at W5 is
+accepted. Nothing is left for the user to answer before the build.
 
 ## Grounding
 
@@ -431,7 +393,7 @@ mouth, required on every node of a course with ≥ 2 nodes), `drop` (a falls'
 step, m). A course of two or more nodes with no `source` or no `mouth`, or
 a node with no `km`, or `km` not strictly decreasing source-first, **fails
 the compile naming itself** (the uphill rule's shape, l.1327). A one-node
-still water is exempt (question 3). A sink mouth's end moves: the line
+still water is exempt (decided; below). A sink mouth's end moves: the line
 ends where `flowAt` reaches 0 walking down from the last node. A river
 place (D7) with no downstream end fails to load unless it declares
 `ends.downstream: end`.
@@ -517,6 +479,26 @@ water source (`WaterSourceMixin`), already memoizes per segment, and every
 existing citation resolves through it; a second roster would be the
 inert-reference trap this repo has paid for three times.
 
+⭐⭐ **The Kestrel's falls are re-authored to 140 m (decided with the user,
+2026-10-21).** `kestrel.yaml` authors falls **500 m** and confluence
+**30 m**; with the slate's kilometers (falls km 41, confluence km 9) the
+navigable reach fell 470 m in 32 km — a mean gradient of 1.5 %, class III
+whitewater by Manning (~4 m/s), which no sternwheeler steams and which
+the drive (steps 25–31) cannot survive. The step–pool distribution above
+makes SOME gradient survivable, not that one. So the falls become 140 m
+(the 22 m drop stays; the gorge above takes the 1,260 m from the
+headwaters at 1400 — a cascade, which is what a gorge nobody has boated
+up should be); the lower Kestrel is then 0.27 % — pools with a riffle
+every half-mile, a brisk navigable mountain-front river. Nothing shipped
+reads the falls' elevation but the snowpack at that reach and the climate
+drive's temperature expectations (`climate-and-water.dirty` — W0 re-runs
+it). **The one-node still waters are exempt from `source`/`mouth`**
+(decided): the four meres are one-node courses the compile already treats
+as a lake, and a lake has no direction to declare. **The Holloway gets a
+sea node** (decided): `greywater/holloway-mouth`, a passage node with no
+destination west of the bar, so its mouth is "the sea at a named node"
+as the requirements say.
+
 **D2 — The river's frame for ships is the `Watercourse` row, stood up.**
 The kernel gains a protocol mixin `lib/expanse/LineFrame.ts`
 (`LineFrameMixin`, `Mixins.LineFrame`): `lengthKm()`, `advance(from:
@@ -573,26 +555,36 @@ when the host is a `MovingPlace` (its coordinates are decoration, as a
 band's are, never grid-indexed). Composed by the water pack's `ReachPatch`
 and `ReachStop` (river water), `BankPatch` (a walker on the bank between
 places) and `SeaRoom` (the stopped sea room, D30); a floe or a raft yard
-later. ⭐ What composing it claims: the host is a place with no cell of its
-own whose exits are resolved against a frame when taken; a lounge
-satellite does not compose it and never will.
+later. ⭐ What composing it claims: the host is a place whose exits are
+resolved against a frame when taken, and whose ZONE is its own moving
+zone — one `MovingZone` instance per moving place, minted with it and
+reaped with it, whose identity never changes and whose state follows the
+place (D38); a lounge satellite does not compose it and never will.
 
-**D5 — Patches and stops are minted with identity paths; a stop persists
-by `(scope, key)`.** `/system/water/location/reach/patch` and `…/reach/stop`
-are the two rows (zoneless, under the pack's location subtree like the
-bands; `lint:locations` already admits that shape). A moving patch is
-cloned `asIdentityPath: /system/water/location/reach/patch/<course>/<serial>`
-(marker `none` — it buys nothing durable and is counted; a patch is gone
-when empty), so `WaterExpanse.positionFor`, `craftOfPlace`,
-`Band.getSurface` and `Ship.liveMembers` — all of which resolve by
-template/identity path — never collide across budded clones. A stop is
-`asIdentityPath: /system/water/location/reach/stop/<course>/<km×1000>/<side>`
-(marker `own-record`: it files its `holder_snapshots` record under it) and
-`PersistableApi.restoreOrSeed(stop, key)` with the same key — so a canoe
-beached on a bar, a sword on the bed, a body under a strainer are there
-after a restart, once (the keyed record + D34). `WaterExpanse.craftOfPlace`
-is re-keyed on `stuffId` (it is transient) and `positionFor(place)` reads a
-`MovingPlace`'s own frame position before the structure/landing lookup.
+**D5 — Patches and stops are minted with identity paths, each with its
+own zone; a stop persists by `(scope, key)`.** The rows are
+`/system/water/location/reach/patch/water`, `…/reach/stop/water` and
+`…/reach/bank/ground`, each under its own authored **kind zone** row
+(`reach/patch.yaml`, `reach/stop.yaml`, `reach/bank.yaml` — class
+`/system/water/location/ReachZone`, D38) so a named exit between a patch
+and a stop, a bank or an authored place is cross-zone by path, as
+`Location.addExit` requires. A moving patch is cloned `asIdentityPath:
+/system/water/location/reach/patch/<course>/<serial>/water` (marker
+`none` — it buys nothing durable and is counted; a patch is gone when
+empty) **and its zone** `…/reach/patch/<course>/<serial>` (marker
+`lookup` — the place's `getZone()` resolves to this instance), so
+`WaterExpanse.positionFor`, `craftOfPlace`, `Band.getSurface` and
+`Ship.liveMembers` — all of which resolve by template/identity path —
+never collide across budded clones. A stop is `asIdentityPath:
+/system/water/location/reach/stop/<course>/<km×1000>/<side>/water` (marker
+`own-record`: it files its `holder_snapshots` record under it) with its
+zone `…/stop/<course>/<km×1000>/<side>`, and `PersistableApi.restoreOrSeed
+(stop, key)` with the same key — so a canoe beached on a bar, a sword on
+the bed, a body under a strainer are there after a restart, once (the
+keyed record + D34); the warren mints the zone again from the key on
+restore. `WaterExpanse.craftOfPlace` is re-keyed on `stuffId` (it is
+transient) and `positionFor(place)` reads a `MovingPlace`'s own frame
+position before the structure/landing lookup.
 
 **D6 — One warren, one scheduled event per patch, offsets within hail.**
 `content/water/src/idea/ReachWarren.ts` =
@@ -694,6 +686,113 @@ who reaches the bed is in the stop's column and the patch leaves without
 them (requirement step 18). What floats up from a stop's column arrives in
 the stop's surface and, if the current there is not slack, is swept
 (`sweep`, D11) into a patch.
+
+**D38 — Zones never change at runtime; a moving place has a moving
+zone.** (Decided with the user, 2026-10-21; replaces the containment
+opening D24 first proposed.) The principle: *no location's and no
+vessel's zone ever changes; a moving place's zone is its own, with a fixed
+identity for the place's life, and that zone's STATE follows the place.*
+
+- **(a) The class and where it lives.** Kernel `lib/zone/MovingZone.ts` —
+  `MovingZoneMixin` over `SpatialZone & LocationZone` (`Mixins.MovingZone`):
+  holds ONE weak live ref to its place (a `Stuff & Positioned`, set by
+  `adopt(place)`, which calls the zone's own `addLocation` — the
+  `FromSpatialZone`-gated `setZone` is the zone's to call, so the place is
+  restamped to its moving zone without any new seam), `cellSize` = the
+  frame's hail range (the room IS the water within hail — so the ranged
+  band ladder, light scale and `getLinearExtent` read it), and overrides
+  `lookupField` / `peekField` for the **position-dependent names**, read
+  off the frame at the place's CURRENT position through the kernel
+  protocols: `elevation` (`LineFrame.elevationAtKm`; a sea room 0),
+  `address` (`LineFrame.localityAddressAt(km)` — the reach's
+  `climateLocalityPath`'s own address root, so a patch at the headwaters
+  is in Rejection's weather and, as grain, its jurisdiction until the
+  thalweg border is designed; a sea room answers its `Expanse`'s authored
+  `address`), the climate site (`latitude` / `continentality` /
+  `climateOffsetK` from the reach's `site`), and `horizon` (null — the
+  river's and the sea's sightables are `horizonOnRiver` / `horizonAtSea`,
+  D26). Every other name walks to the ancestor as any zone does
+  (`lookupAncestorField` → the KIND zone row's enclosing chain). The
+  water pack's instanceable classes are `/system/water/location/ReachZone`
+  = `MovingZoneMixin(CartesianZone)` (the three kind rows above) and
+  `/system/water/location/SeaZone` (`sea.yaml` over `sea/room.yaml`). A
+  pack may ship a zone class (`lint:locations` derives zone classes by
+  walking `extends`, never a list). **One zone per moving place**, never
+  per course or per kind: `lookupField` has no asker, so two patches at
+  different kilometers need two zone objects. The kind row is a
+  `CartesianZone` singleton standing empty — the path resolver's answer
+  for the row (*a region that only carries geography and holds no rooms*
+  is a shipped shape); the per-place instances are minted from it with
+  `asIdentityPath` (the singleton guard keys on the identity path, so N
+  instances of one zone row are legal, exactly as N avatars are).
+  Every zone reader keeps working with no change of its own: biome's
+  step-5 `atmosphere.*` and `elevationFor`, address's step-2 fallthrough
+  (and through it `WeatherLogic.localityOf`), access's `zoneOf` (a minted
+  zone's template path is the kind row, under the water title),
+  perception's `horizonAshore` (null horizon → nothing; the river reads
+  its own), `Place.onDestruct` → `removeLocation`, `Location.getZone()`
+  (a `CartesianZone` subclass, so the narrowing holds). Weather's
+  positional lean for a sea room rides the shipped `leanAtSync(placePath)`
+  unchanged, because the room itself is `Positioned`.
+- **(b) The containment pre-flight is UNCHANGED, and its three clauses
+  are one principle.** `moveCore`'s rule reads: an exitable may not land
+  in a container of a different zone — *unless it has no zone*
+  (`item.getZone() &&`), *or the destination is a band of the water
+  beneath its own zone's surface* (the diving bell's opening). Restated
+  as the principle this build adopts: **an exitable belongs, for life,
+  to the zone its ROW lives in; a vessel whose row lives in no spatial
+  zone belongs nowhere and goes wherever it is carried; and any vessel
+  may go down the column beneath its own zone's water.** A boat is the
+  second clause: every boat is a KIND row in `transport`
+  (`/system/transport/thing/canoe` …), instanced by `props:` on a deck or
+  a landing or sold from a shelf, and a pack `thing` path resolves no
+  spatial zone — so a canoe's zone is `null` from its first second to its
+  last, it may be put into a patch, a stop, the Wharfside stream, a
+  ferry landing's stop or a ship's deck by the shipped rule, and nothing
+  is ever restamped. ⛔ A boat row authored under a venue (`/world/…/thing/
+  punt`) would be zoned and stuck at its first landing; the *Hesper*'s
+  dinghy and Nesbit's punt are therefore transport kind rows propped
+  where they lie (D20), and a transport unit test asserts that every
+  `Boat`-class row in every pack resolves no spatial zone (a census in a
+  test is not a runtime scan). **A boat's interior is NOT a moving
+  place** and has no zone of its own (decided): a boat is a Thing in a
+  water room; its interior is a transparent step in the biome walk
+  (`ExitableVessel` is `Atmospheric` with no inline atmosphere), so
+  everything positional about the people in it is the room's — which is
+  the requirements' rule (*a thing's position is its container's,
+  always*). The bell keeps the third clause. No new hook on
+  `ExitableVessel`; the `followsZoneOfContainer` opening is withdrawn.
+- **(c) Persistence and restart.** A moving zone stores nothing: its
+  state is derived on every read from its place's frame position, which
+  is stored ONCE (`Positioned.linePosition` on the place; persisted for a
+  stop, runtime for a patch). On a stop's restore (`standUpKeyed` /
+  `restoreOrSeed`) the warren mints the zone from the stop's key and
+  `adopt`s the place before anything reads it. A zone is destructed when
+  its place is (`LocationZone.canDestruct` refuses while it holds a room,
+  so the warren removes the place first); `canEvict` on a moving zone
+  vetoes while it holds its place.
+- **(d) The map.** `location_graph` projects authored rows only, so
+  minted places and zones never enter the index or the attachment
+  derivation. The map WRITER is the risk: `Cartographer` records every
+  exit it perceives or a walker takes as an `edge` claim with the far
+  side's row path as `toLabel`, with no filter. So the kernel `Exit`
+  gains **`isMapped(): boolean`** (a `@hook`, default `true`); the
+  within-hail wired exits, a ship's alongside exits and every
+  `ReachExit`/`SeaRoomExit` answer `false`, and `Cartographer` skips an
+  unmapped exit in both its passes — *maps never name a ship*, and never
+  a patch. A stop has a durable handle and may be recorded as a place a
+  walker stood in; a claim naming a bar that has since gone is the map
+  rotting, which is the feature.
+- **(e) Lints.** `lint:locations`: the kind zone rows' stems zone their
+  directories (`orphanedZones`); the four place rows carry no `coords:`
+  and join `MINTED_ROWS` beside the band rows (the roster is the gate's
+  design question — *is this a KIND of place?* — and it is); the zone
+  classes are found by the `extends` walk. `lint:instanceable`: the
+  class paths resolve into the pack's `src/`. `lint:untitled`: every path
+  is under `/system/water`. `lint:identity-mints`: four marked sites (a
+  patch, its zone, a stop, its zone; the sea room and its zone two more).
+  `lint:location-graph`: no new exit kind row names `blocked` without
+  `conditional`.
 
 ### Bodies
 
@@ -844,7 +943,9 @@ canoe is stood up at boot by the pin roll and its owner's estate carries a
 boat (the *Hesper*'s dinghy, Nesbit's punt) is a prop of its deck/landing
 and is keyed the same way the first time it is titled. `launch`/`recover`
 stay the boat's verbs (D30 changes what they do). `course` / `anchor` /
-`hail` stay afforded from inside (D21, D23).
+`hail` are NOT afforded by a boat any more: `paddle` is (D21), the
+killick affords `anchor` (D23), a fitted tiller affords `course`, and
+`hail` is the place's.
 
 **D20 — Hulls and propulsion are parts.** A boat is an assembly whose bill
 is `hull` (one, the kind's own: `{ form: flat | round | keeled, draftM,
@@ -863,24 +964,47 @@ air propeller refuses nothing. Transport owns the rows (a craft exists
 whether anyone paddles — the `/system/` test); the outfitter who sells
 them is Rejection's content (D36).
 
-**D21 — Propulsion is the drivers' sustained effort.** `course <direction |
-landing | bank>` from inside a boat starts a **`Propel`** sustained
-engagement (`content/transport/src/lib/Propel.ts`, host the boat, actor the
-helmsman, slots `hands` of every paddler aboard who `join`s — the first
-`course` enrolls the giver; others `course` too to add their arms) that on
-each beat (one game minute) `exert`s each paddler at their chosen pace
-(`water.craft.paddleW` 120 sustained; `--hard` 250 for a burst) and sets
-the boat's **speed through the water** from the summed power against hull
-drag (`v = (P·η / (½·ρ·C_d·A))^(1/3)`, `η 0.5`, `A` from the hull's beam ×
+**D21 — Small craft are propelled by their people: the one new verb,
+`paddle`.** (Decided with the user, 2026-10-21: a canoe is not navigated
+like a ship; `course` / `anchor` / `hail` are the helm's and stay the
+ship's and the sea's, and `Boat` no longer affords any of them.)
+`paddle upstream | downstream | <landing> | <bank> | bar | left | right`,
+with `--inside` (hug the inside bank, where the margin current is a
+quarter of the channel's — requirement step 19) and `--hard` (a burst);
+`stop` ends it. The view is the transport pack's
+(`content/system/transport/cmd/movement/paddle.yaml`, controller
+`/system/transport/idea/cmd/movement/PaddleController`, category
+`movement`), **conferred by `Boat.commandContributions.inventory`** — you
+are in it. ⭐ **One verb per act:** paddling, rowing and poling are one
+act — propelling a small craft with your own effort — and the fitted
+crew-powered part (`paddle`, `oar`, `pole`) decides the physics and the
+prose (*you dig the pole in and lean*), never a second verb; `row` and
+`pole` are not verbs here. `paddle` starts a **`Propel`** sustained
+engagement (`content/transport/src/lib/Propel.ts`, host the boat, actor
+the giver, slots `hands` of every paddler aboard who joins — the first
+`paddle` enrolls the giver; others `paddle` too to add their arms) that
+on each beat (one game minute) `exert`s each paddler at their pace
+(`water.craft.paddleW` 120 sustained; `--hard` 250) and sets the boat's
+**speed through the water** from the summed power against hull drag
+(`v = (P·η / (½·ρ·C_d·A))^(1/3)`, `η 0.5`, `A` from the hull's beam ×
 draft). The patch's offset for the boat is `(v_boat − current)` upstream
-or `(v_boat + current)` downstream; the boat's across follows the helm's
-choice (`course upstream --inside` hugs the inside bank where the margin
-current is a quarter of the channel's — requirement step 19). `stop`
-cancels the engagement and the boat drifts back with the patch. A paddler
-whose `canSustainPace` fails drops to the sustainable rate and is told
-(*"your arms are going"*). ⚠ The known gap stands: `currentPowerW` fades on
-game seconds while breath is real-time; the engagement tracks its own
-power and does not read `currentPowerW`.
+or `(v_boat + current)` downstream. `stop` cancels the engagement and the
+boat drifts back with the patch. A paddler whose `canSustainPace` fails
+drops to the sustainable rate and is told (*"your arms are going"*).
+⭐ **A small boat that is not crew-powered is steered, not paddled:** a
+sail boat's bill fits a **tiller** — a row of the platform's `Helm`
+(`platform/thing/Helm`, which affords `course` / `anchor` / `hail` on
+`peers`, and a thing in the boat's contents is a peer of whoever sits in
+it) — so a sailing dinghy answers `course` and the wind drives `Propel`
+(`v` from the sail's area against the wind over the stretch, refused
+where the water is narrower than three hull lengths); the cable ferry
+(D31) is the same case with the current as the engine. *The instrument
+affords the verb*: `paddle` by the boat you sit in, `course` by a tiller.
+⚠ The known gap stands: `currentPowerW` fades on game seconds while
+breath is real-time; the engagement tracks its own power and does not
+read `currentPowerW`. `lint:verb-collisions`: `paddle` names no shipped
+view, alias or scripting builtin (the word is only a thing keyword on a
+carpet beater and two mash tuns, which the gate does not count).
 
 **D22 — Capsize, swamping, and pulling people in.** Freeboard =
 `hull.freeboardM − load / (ρ · waterplane)`; the wave height here = the
@@ -900,38 +1024,45 @@ unless the body is in a water place the puller is beside or in a boat in
 ends an entrapment pin (D13). Lens 2 and the one-verb rule chose `pull`
 over `grab`/`haul`/`rescue`.
 
-**D23 — Stopping is landing; the killick.** `anchor` from a boat on a river
-drops the killick: it **holds** where `currentMps < water.river.killickHoldsMps`
-(0.3) — the boat and its people become a **stop** at that km (the patch is
-reaped around them); in faster water it **drags**: the patch keeps moving
-at `current × 0.6` and you are told. `course <bank>` / `course bar` lands
-the boat: an attempt like a swimmer's (D14) at the boat's speed; landing
-puts the boat (and you in it) in the stop; from a stop `course downstream`
-pushes off into a new patch. A boat in an authored place (`course quay`)
+**D23 — Stopping is landing; the killick is `anchor`, afforded by the
+killick.** The act is the same act a ship's anchor is — stop the craft
+where it is — so one-verb-per-act keeps the word; what changes is who
+affords it: not the boat (D21 took the helm verbs off `Boat`) but the
+**killick itself**, a `Killick` good (`/system/transport/thing/killick`, a
+stone on a line, in a canoe kind's `parts:`; `commandContributions.peers:
+[anchor.yaml]` — the `Helm`'s shape exactly), so whoever sits in a boat
+that carries one can `anchor`. Dropped, it **holds** where `currentMps <
+water.river.killickHoldsMps` (0.3) — the boat and its people become a
+**stop** at that km (the patch is reaped around them); in faster water it
+**drags**: the patch keeps moving at `current × 0.6` and you are told.
+There is no weigh verb: the next `paddle` takes it up and goes (the line
+says so). `paddle <bank>` / `paddle bar` / `paddle <landing>` lands the
+boat: an attempt like a swimmer's (D14) at the boat's speed; landing puts
+the boat (and you in it) in the stop; from a stop `paddle downstream`
+pushes off into a new patch. A boat in an authored place (`paddle quay`)
 is handed in at the place's end exactly as a swimmer is.
 
 **D24 — Poling, lining, portage.** **Poling** is the `pole` propulsion
-part: `course upstream` with a pole fitted works where the stretch's depth
+part: `paddle upstream` with a pole fitted works where the stretch's depth
 ≤ `poleLengthM` (2.5) and gives `v` from the poler's power at ×1.6 the
 paddle's efficiency in shallows (a riffle is a pole's water); over depth it
-refuses in words. **Lining** is the painter: every boat kind carries a
-`painter` (a `Lifeline` row of `kind: painter`, 15 m, in the boat's
-contents); `throw painter to <person on the bank>` makes it fast to them;
-`pull painter` from a bank patch or a bank place tows the boat's patch
-with the puller (the puller walks upstream — `go upstream` on the bank
-patch, D25 — and the boat follows at the walk's pace while the line is
-held; the pull's exertion is the current's drag on the hull per step).
-**Portage** is carrying: `hitch canoe` (the boat composes `HaulableMixin`
-with `passageMode: walk` — a carried load is admitted by any ground exit —
-and `draftFactor` by its mass over a yoke, 0.6) and the shipped tow carries
-it over ground exits as a unit; `unhitch` sets it down. ⭐ The containment
-pre-flight (2) gains a second opening: an exitable whose class answers
-`followsZoneOfContainer() → true` (a `@hook` on `ExitableVessel`, default
-false; `Boat` true) may change zone by containment and is restamped to its
-container's zone through the clone-pipeline seam (`Stuff._stampZone`,
-allowlisted for `ContainmentLogic`) — a boat has no home zone; it is where
-it is. The gorge's walls refuse both (`walkable: false` on both banks — no
-bank patch to pull from or carry on; the `ReachExit` says so).
+refuses in words (*the pole finds no bottom*). **Lining** is the painter:
+every boat kind carries a `painter` (a `Lifeline` row of `kind: painter`,
+15 m, in the boat's contents); `throw painter to <person on the bank>`
+makes it fast to them; `pull painter` from a bank patch or a bank place
+tows the boat's patch with the puller (the puller walks upstream — `go
+upstream` on the bank patch, D25 — and the boat follows at the walk's
+pace while the line is held; the pull's exertion is the current's drag on
+the hull per step). **Portage** is carrying: `hitch canoe` (the boat
+composes `HaulableMixin` with `passageMode: walk` — a carried load is
+admitted by any ground exit — and `draftFactor` by its mass over a yoke,
+0.6) and the shipped tow carries it over ground exits as a unit; `unhitch`
+sets it down. ⭐ No zone changes on the way (D38): a boat's row lives in
+no spatial zone, so the shipped containment rule admits it into the quay's
+stream, a landing's stop and the bank alike without restamping anything —
+the `followsZoneOfContainer` opening this decision first proposed is
+withdrawn. The gorge's walls refuse both (`walkable: false` on both banks
+— no bank patch to pull from or carry on; the `ReachExit` says so).
 
 **D25 — The bank is a moving land patch.** `/system/water/location/reach/
 bank` (`BankPatch` = `MovingPlaceMixin(ShoreMixin(…Location))`, dry, floor
@@ -1044,18 +1175,20 @@ SeaWarren`) **only where a ship has stopped**: keyed on the **hail cell**
 (the 0.1° grammar the fishery already uses, refined to `expanse.hailRangeM`),
 carried by the band's set (the `Drift` engagement with the sea's
 `driftAtS` arithmetic — a ship hove to drifts with it, anchored holds
-both); ships stopped in one cell share one room. A ship stopped at sea or
-on a river is **alongside** that room: she wires an exit on it named for
-her to her deck and `over the side` / `ashore` on her deck back
-(`Warren.wireHubExit`'s live-ref pair; transient, never written to the
-map; two ships in one room are two exits); under way she unwires them and
-is alongside nothing. **`launch`** moves the boat from the deck into the
-room alongside (a Thing in a water room — `course` from it rows to another
-ship stopped within hail, or ashore where a landing's water is within
-hail); **`recover`** moves it from the room onto the deck of a ship
-alongside that room. **Over the side** is `swim` from the deck (the
-deck is a shore whose way into the water is the alongside exit); swimmers
-at sea exist only where a ship has stopped. ⭐ **`course` is refused while
+both); ships stopped in one cell share one room; each room's zone is its own
+`SeaZone` instance (D38), minted and reaped with it. A ship stopped at sea
+or on a river is **alongside** that room: she wires an exit on it named
+for her to her deck and `over the side` / `ashore` on her deck back
+(`Warren.wireHubExit`'s live-ref pair; `isMapped() → false`, so never
+written to the map; two ships in one room are two exits); under way she
+unwires them and is alongside nothing. **`launch`** moves the boat from
+the deck into the room alongside (a Thing in a water room — `paddle
+<ship>` rows to another ship stopped within hail, `paddle <landing>` /
+`paddle ashore` where a landing's water is within hail); **`recover`**
+moves it from the room onto the deck of a ship alongside that room.
+**Over the side** is `swim` from the deck (the deck is a shore whose way
+into the water is the alongside exit); swimmers at sea exist only where a
+ship has stopped. ⭐ **`course` is refused while
 her own people or boats are in the water** — her own count: bodies and
 boats in the room alongside whose last place aboard was hers (the
 `SeaRoom`/`ReachPatch` records `cameFrom` per arrival) — unless `course …
@@ -1089,18 +1222,30 @@ aboard, the ferry's `Propel` runs the crossing as a timed step
 arrival: the **ferry glide** — the ferryman's `navigation` band decides the
 angle he holds upstream; drift = `current × t − v × sin(angle) × t`; a
 competent hand lands at the far landing's span, a novice lands downstream
-in a stop on the far bank and poles up (requirement step 32). A **cable
-ferry** (`tethered: <cable row>`, a `FerryCable` thing spanning the
-crossing) crosses with zero drift at `v_across = current × sin(cableAngle)`
-— the current itself is the engine; mechanism + test, no row (question 6).
-**Summoning:** `hail` from a landing (the river frame's `contactsFrom`
-within hail) or `ring bell` (a `SignalBell` row on each landing) is a
-hearing event the ferryman's **`ferries`** brain (`trade-haulage/src/
-behavior/ferries.ts`, `witness` trigger, a `candidate` for the beat) acts
-on: he `course`s across, refuses at high water with a shout. A **big ferry
-as a ship** is a `Ship` row with a vehicle deck and the same `FerryExit`
-naming her — the exit's `alongside` test reads a ship's wired exit as
-readily as a boat in the stop.
+in a stop on the far bank and poles up (requirement step 32). The
+ferryman's own act is `paddle <far landing>` (a poled punt, D21). A
+**cable ferry** (`tethered: <cable row>`, a `FerryCable` thing spanning
+the crossing) is the not-crew-powered case: its bill fits a tiller and
+the crossing is `course <far landing>` — the current is the engine, the
+tiller the angle — with zero drift at `v_across = current ×
+sin(cableAngle)`; **mechanism + unit test, no authored instance**
+(decided with the user: the drive has no step for it; the first crossing
+that wants one is a row). **Summoning:** `hail` from a landing (the river
+frame's `contactsFrom` within hail — `hail` is afforded by the PLACE: a
+`ShoreMixin` host with a `bank` or a river/sea position, on `inventory`,
+so a landing, a patch and a sea room offer it, and a boat offers nothing)
+or `ring bell` (a `SignalBell` row on each landing) is a hearing event the
+ferryman's **`ferries`** brain (`trade-haulage/src/behavior/ferries.ts`,
+`witness` trigger, a `candidate` for the beat) acts on: he `paddle`s
+across, refuses at high water with a shout. A **big ferry as a ship** is a
+`Ship` row with a vehicle deck and the same `FerryExit` naming her — the
+exit's `alongside` test reads a ship's wired exit as readily as a boat in
+the stop. ⭐ **Siting (decided with the user):** the Nesbit ferry crosses
+the **Kestrel just below the confluence**, from the **lower towpath**
+(city side) to a new **Nesbit's landing** on the far bank that joins the
+Delight road at the **milestone** — so when the ford is up a wagon still
+has a way to the crossroads, the first demand the ferry has (lens 6) and
+what makes step 34's route-planner leg real.
 
 **D32 — Readings.** `measure current`: a new water-pack channel
 (`/system/water/idea/reading/current.yaml`, `CurrentReading`, instrument
@@ -1157,34 +1302,41 @@ bank's stretch with no row change.
 
 ### Content and conventions
 
-**D35 — Verbs: none new.** Every act rides a shipped verb: `swim`
-(`jump`/`dive`) with a direction, a bank, a branch, a place, or a canoe;
-`lie` (the float) and `stand`; `climb` (steps, a canoe, a bank); `throw …
-to`; `pull` (a line, a painter, a canoe, a person, the capstan); `course`
-(a direction, a landing, a bank, a bar, a node) / `anchor` / `hail`;
+**D35 — Verbs: exactly one new, `paddle`.** Every other act rides a
+shipped verb: `swim` (`jump`/`dive`) with a direction, a bank, a branch, a
+place, or a canoe; `lie` (the float) and `stand`; `climb` (steps, a canoe,
+a bank); `throw … to`; `pull` (a line, a painter, a canoe, a person, the
+capstan); `paddle` (a direction, a landing, a bank, a bar, a ship within
+hail — D21, the one new view, transport's, conferred by `Boat`); `course`
+(a ship's: a direction, a landing, a node; a sail boat's or a cable
+ferry's through its tiller) / `anchor` (a ship's by her helm; a canoe's by
+its killick) / `hail` (the place's, where it has a river or sea position);
 `ring`; `stop`; `hitch` / `unhitch` (portage); `launch` / `recover`;
 `fish` / `reel` / `slack`; `measure current | temperature | depth`; `look
 river` / `watch horizon`; `buy` / `put`; `go aboard` / `go ashore` / `go
 upstream` / `go downstream` / `go <ferry>`; `journey`; `fit`. Collisions
-checked: `drift` (mining) unused; `pole`, `line`, `beach`, `land`, `grab`,
-`paddle`, `ferry` are never verbs here; `ring`'s one view is diving's
-(afforded by the bell); `course`'s view is the platform's and grows a line
-grammar in its controller. New VIEWS: none. New arg grammar: `course`
-accepts `upstream | downstream | <landing> | <bank> | <node>` (already
-`greedy: true`), `swim` accepts `left | right | upstream | downstream |
-<course name> | bank | bar | <place>` as a target word resolved by the
-controller before MQL (a direction word must never be a detail keyword —
+checked: `drift` (mining) unused; `paddle` names no shipped view, alias
+or scripting builtin; `pole`, `row`, `line`, `beach`, `land`, `grab`,
+`ferry` are never verbs here; `ring`'s one view is diving's (afforded by
+the bell); `course`'s view is the platform's and grows a line grammar in
+its controller. New VIEWS: one (`paddle`). New arg grammar: `course`
+accepts `upstream | downstream | <landing> | <node>` (already `greedy:
+true`); `paddle` takes one greedy `heading` string plus `--inside` /
+`--hard`; `swim` accepts `left | right | upstream | downstream | <course
+name> | bank | bar | <place>` as a target word resolved by the controller
+before MQL (a direction word must never be a detail keyword —
 `logistics.md`'s warning). `lint:verb-collisions` and `lint:reachability`
-arm A hold (every view already named by a static; the river's `ReachExit`
-ways are exits, not verbs).
+arm A hold (`paddle.yaml` is named by `Boat`'s static; the river's
+`ReachExit` ways are exits, not verbs).
 
 **D36 — Content, by pack.** `world-seed`: the four profiles (km, ends,
-drops, beds, the gorge override, Hob's Bend named at `confluence-15`), the
-Greywater `holloway-mouth` node, the falls landing locality (`/world/
-falls-landing/`: the landing quay at `falls-0.3`, the head of navigation —
-a Shore with a `bank`), the gorge locality (`/world/kestrel-gorge/`: five
-`RiverPlace` rooms with `current: inherit`, walls both sides, one authored
-hydraulic below the chute). `terminus`: the Wharfside **stream**
+drops, beds, the gorge override, Hob's Bend named at `confluence-15`, the
+Kestrel's falls at **140 m** — D1), the Greywater `holloway-mouth` node,
+the falls landing locality (`/world/falls-landing/`: the landing quay at
+`falls-0.3`, the head of navigation — a Shore with a `bank`), the gorge
+locality (`/world/kestrel-gorge/`: five `RiverPlace` rooms with `current:
+inherit`, walls both sides, one authored hydraulic below the chute).
+`terminus`: the Wharfside **stream**
 (`wharfside/water/location/stream`, a `RiverPlace` at `confluence+0.1`,
 span 0.2, `current: inherit`, exits `steps` up to the bank and `basin` into
 the still basin; the bank's `river` exit re-pointed to it; the basin's
@@ -1194,11 +1346,14 @@ as `Shore` rows with `waters.river`, a `river` detail and a `bank`), the
 estuary channel re-cited to `kestrel:estuary` (the tidal reach; the sea's
 pool keeps the Greywater), the **Nesbit ferry** (`/world/terminus/nesbit-
 ferry/`: two landings with `FerryExit`s and bells, the ferryman, the punt
-kind row's instance, a `Business` with the fare), the ***Ostrander***
-(`/world/terminus/ostrander/`: structure, deck with helm · lead-line ·
-capstan · bunker · her boat, saloon, hold, the `outfit` business with
-master, engineer, deckhand brains — `keeps-watch` for the lookout, a
-`stokes`-like `fires` brain feeding the bunker on shift), the **woodyard
+propped on the city-side landing from transport's kind row, a `Business`
+with the fare), the ***Ostrander*** (`/world/terminus/ostrander/`:
+structure, deck with helm · lead-line · capstan · bunker · her boat
+(transport's rowboat row, propped), saloon, hold, **her house a terminus
+`Business` row like the *Hesper*'s outfit** (decided with the user) with
+master, engineer, deckhand positions on a PM-appointed roster —
+`keeps-watch` for the lookout, a `stokes`-like `fires` brain feeding the
+bunker on shift), the **woodyard
 landing** at `confluence-12` (`/world/terminus/woodyard/`: a Shore with a
 bank, the woodhawk's counter stocked with cordwood from forestry's wood
 column, a `Business`). `rejection`: the **put-in** at `headwaters-1.5`
@@ -1233,7 +1388,10 @@ she passes the bar at km 0 → the Greywater's bar node, D29). The cove
 | `line`, `linePosition` | kernel `PositionedMixin` | every positioned thing has at most one frame half set; `Ship` and the moving places use it; `Boat` no longer composes `Positioned` at all |
 | `direction`, `landing` on `CourseRecord` | kernel `Voyaging` | a sea course leaves them null |
 | `hull`, `fuel`, `aground`, `holed` | kernel `Ship` | every ship has a hull (true); `fuel: null` is sail |
-| `MovingPlaceMixin` | kernel `lib/location/MovingPlace.ts`; composed by `ReachPatch`, `ReachStop`, `BankPatch`, `SeaRoom` | a place with no cell whose exits resolve against a frame; nothing authored composes it |
+| `MovingPlaceMixin` | kernel `lib/location/MovingPlace.ts`; composed by `ReachPatch`, `ReachStop`, `BankPatch`, `SeaRoom` | a place whose exits resolve against a frame and whose zone is its own moving zone; nothing authored composes it |
+| `MovingZoneMixin` | kernel `lib/zone/MovingZone.ts` over `SpatialZone & LocationZone`; composed by the pack's `ReachZone` and `SeaZone` | one instance per moving place, minted and reaped with it; identity fixed, state derived from its place's frame position; stores nothing (D38) |
+| `ReachZone`, `SeaZone` + the kind zone rows `reach/{patch,stop,bank}.yaml`, `sea.yaml` | pack `/system/water/location/{ReachZone,SeaZone}` = `MovingZoneMixin(CartesianZone)` | the kind row stands empty as the path resolver's answer; a named exit between two kinds is cross-zone by path |
+| `Exit.isMapped()` hook (default `true`) | kernel `lib/boundary/Exit.ts`; `Cartographer` skips an unmapped exit | the wired alongside/within-hail exits and the `ReachExit`/`SeaRoomExit` answer `false` — maps never name a ship or a patch |
 | `Drift` engagement | kernel `lib/location/Drift.ts` | actor = a moving place |
 | `currentMps`, `roughness` on `MediumRead`; `currentFor`, `roughnessFor`, `sweep` hooks | kernel `api/biome.ts`, `WaterPlaceMixin` | every water place answers a current (0 unless it says otherwise); a pool never sweeps |
 | `stateFor(occupant)` (wading by stature) | kernel `WaterPlaceMixin` | wading depth is `stature × water.column.wadeFraction` per body, the dial the fallback |
@@ -1249,9 +1407,8 @@ she passes the bar at km 0 → the Greywater's bar node, D29). The cove
 | drag + roughness terms, `isFeetFirst()` | kernel `RespirationMixin.treadBeat` | every immersed body feels a current; a current of 0 costs what it costs today |
 | `buoyantNow()` + the immersed stage integral | kernel `PostmortemMixin` | every corpse floats at `decomposed`; a fresh one sinks as today |
 | `PullableMixin` on `Creature` (`pullBy` refusing unless in water beside the puller) | kernel `lib/creature/Creature.ts` | any body can be hauled out of water by a neighbor; corpses are `Thing`s and are `get`/`put` |
-| `followsZoneOfContainer()` hook | kernel `ExitableVessel` (default false); `Boat` true | a boat has no home zone; a wardrobe keeps the rule |
 | `ESTATE_LOOSE` | kernel `PersistenceSlice.ts`; `ChattelLogic`, `Estate` readers | a titled good can have no presence |
-| `Boat` recomposed; `Propulsion`, `Ferry`, `FerryCable`, `Propel` | `content/transport/src/thing/*`, `src/lib/Propel.ts` | a boat is a thing in a water room; every boat is haulable (carried), climbable, pullable, a buoy when capsized |
+| `Boat` recomposed; `Propulsion`, `Killick`, `Ferry`, `FerryCable`, `Propel`; the `paddle` view | `content/transport/src/thing/*`, `src/lib/Propel.ts`, `src/idea/cmd/movement/PaddleController.ts`, `content/system/transport/cmd/movement/paddle.yaml` | a boat is a thing in a water room with NO spatial zone, for life (a kind row in transport, never a venue row — D38); every boat is haulable (carried), climbable, pullable, a buoy when capsized; `Boat` affords `paddle` on `inventory` and nothing of the helm's; the killick affords `anchor` on `peers`, a fitted tiller (`Helm`) `course` |
 | `FerryExit` | `content/transport/src/idea/FerryExit.ts` + kind row | a conditional ground edge; the planner costs it |
 | `ferries` brain | `content/trade-haulage/src/behavior/ferries.ts` | who makes: the ferryman is haulage's (the ships slate) |
 | `CurrentReading`, `current-log` | `content/water/src/idea/reading/`, `src/thing/CurrentLog.ts` | a channel any pack could have shipped; water ships it |
@@ -1261,9 +1418,12 @@ she passes the bar at km 0 → the Greywater's bar node, D29). The cove
 ⭐ The narrowing test was run on each: `PullableMixin` on `Creature` is the
 one that needed it — the guard inside `pullBy` is a STATE condition (in
 water, beside the puller), not a host-set narrowing, so it stays; a
-`RescuableMixin` would have been the costume. `MovingPlaceMixin` composes
-on four pack classes with no common ancestor below `Location` and is
-reused by a stopped sea room, which is why it is kernel.
+`RescuableMixin` would have been the costume. `MovingPlaceMixin` and
+`MovingZoneMixin` compose on pack classes with no common ancestor below
+`Location`/`SpatialZone` and are reused by a stopped sea room, which is
+why they are kernel. A boat's interior is deliberately NOT a moving place
+(D38): giving it one would be a zone that follows a thing, which is the
+rule the user refused.
 
 ## Convention conformance
 
@@ -1272,6 +1432,10 @@ reused by a stopped sea room, which is why it is kernel.
 - **Locations, not rooms:** `RiverPlace` over `Pool`/`Locale`; the gorge
   and the landing are `Locale`/`Shore` rows; nothing uses
   `PersistentLocation` (the furnishable roster is untouched).
+- ⭐ **Zones never change at runtime** (D38): no `setZone`/`_stampZone`
+  outside a zone's own `addLocation`; a moving place's zone is minted with
+  it; a boat's zone is null for life (kind rows in transport, never venue
+  rows); the containment pre-flight is untouched.
 - **Paths:** `/system/water/<branch>/…` for the pack's classes and rows,
   `/stuff/idea/Watercourse/<key>` for the realm's rivers (commons),
   `/world/<place>/…` for places, `/system/transport/thing/…` for craft,
@@ -1335,7 +1499,8 @@ Greywater `holloway-mouth` node; `lint:census` arm for `hazards[].row`;
 tests `RiverLine.test.ts` (the step–pool distribution, the seeded meander
 is stable across two compiles and differs across seeds, banks flip at a
 bend, a hydraulic appears below each weir, the ends and km failures name
-themselves, the gradient fork of question 1 at both profiles), the
+themselves, the lower Kestrel at 140 m reads as pools and riffles and at
+the old 500 m as rapids — the D1 decision pinned), the
 catalogue's read tests, the reading tests.
 
 **Acceptance.** `look river` at the Wharfside bank prints the stretch, its
@@ -1362,21 +1527,32 @@ attachment — no ship yet), D4–D9, D15 (delivery only), D33, D37, D36
 hook, `stateFor` by stature, `holdAtSurface` → delivery when the place is
 moving), `platform/idea/LocationGraphRegistry.ts` (`line` → `craft`),
 `lib/persistence/PersistenceSlice.ts` + `platform/idea/api/ChattelLogic.ts`
-+ `lib/chattel/Estate.ts` (D33), `platform/idea/api/ContainmentLogic.ts` + `lib/boundary/ExitableVessel.ts`
-(the `followsZoneOfContainer` opening, D24 — a body needs no opening; it
-lands here with its test so W3 is craft and content). water pack:
-`src/idea/ReachWarren.ts`, `src/location/{ReachPatch,ReachStop,BankPatch,
-RiverPlace}.ts`, `src/lib/RiverWater.ts`, `src/idea/exits/ReachExit.ts`,
-`src/idea/Watercourse.ts` (composes `LineFrameMixin`), `src/idea/
++ `lib/chattel/Estate.ts` (D33), `lib/zone/MovingZone.ts` (new, D38),
+`lib/boundary/Exit.ts` (`isMapped()`) + `lib/location/Cartographer.ts` (skip
+unmapped exits), `lib/mixin.ts` (`MovingZone`), `api/weather.ts` +
+`platform/idea/api/WeatherLogic.ts` (`forgetScope(stuffId)` — risk 2),
+`scripts/check-location-classes.ts` (the four rows join `MINTED_ROWS`).
+The containment pre-flight is NOT touched (D38 b). water pack:
+`src/idea/ReachWarren.ts`, `src/location/{ReachZone,ReachPatch,ReachStop,
+BankPatch,RiverPlace}.ts`, `src/lib/RiverWater.ts`, `src/idea/exits/
+ReachExit.ts`, `src/idea/Watercourse.ts` (composes `LineFrameMixin`;
+`elevationAtKm`, `localityAddressAt`, `climateSiteAt`), `src/idea/
 ColumnWarren.ts` (a moving surface's bands; the bed on the stop), rows
-under `content/system/water/{location/reach/*, idea/ReachWarren.yaml,
-idea/exits/reach.yaml}`, `src/idea/WaterExpanse.ts` (D5 re-key). terminus:
+under `content/system/water/location/reach/{patch,stop,bank}.yaml` (the
+kind zones) + `reach/{patch/water,stop/water,bank/ground}.yaml`,
+`idea/ReachWarren.yaml`, `idea/exits/reach.yaml`, `src/idea/WaterExpanse.ts`
+(D5 re-key). terminus:
 the stream, the bank's exits, the basin prose, the towpaths and estuary
 rows (D36/D37). Tests: `MovingPlace.test.ts`, `Drift.test.ts`,
 `ReachWarren.test.ts` (bud/merge/split, offsets, next-event, a stop
 persists keyed and is reaped when empty, non-interactive occupancy),
 `ReachExit.test.ts`, `Estate.loose.test.ts` (the duplicate is gone),
-`Positioned.frame.test.ts`.
+`Positioned.frame.test.ts`, `MovingZone.test.ts` (a patch's zone answers
+the line's elevation and locality at its km and changes as it drifts
+while `getZone()` is the same object throughout; a stop restored from
+its key gets its zone back before any read; the zone is reaped with its
+place; a named exit patch→stop passes `addExit`), `Exit.mapped.test.ts`
+(a walked unmapped exit writes no claim).
 
 **Acceptance.** Drive steps 1–6 pass over the wire (stage A file); a
 restart with a sword on a bar brings the bar and one sword back; the
@@ -1427,24 +1603,33 @@ water's own words.
 **Goal.** A canoe goes where you would swim. **Decisions:** D19–D24, D34
 (drift fishing), D36 (the put-in and outfitter).
 
-**Files.** transport: `src/thing/Boat.ts` (recomposed), `src/thing/
-Propulsion.ts`, `src/thing/FerryCable.ts` (the row class only; D31 uses
-it), `src/lib/Propel.ts`, rows `content/system/transport/thing/{canoe,
-punt, rowboat, ferry, propulsion/*}.yaml`, `hesper/thing/dinghy.yaml`
-re-authored as a rowboat kind; `platform/idea/cmd/movement/{Course,
-Anchor}Controller.ts` (a boat on a line: `Propel`, the killick, landing;
-a boat in a sea room: rowing to a ship within hail — D30's half lands in
-W5); `platform/idea/cmd/inventory/PullController.ts` (a boat as target);
-`lib/boundary/ExitableVessel.ts` (`followsZoneOfContainer`); `lib/slot/
-Haulable.ts` (`passageMode: walk` admitted — verify the terrain gate
-reads `media` for a walk mode); trade-fishing: `src/lib/FishingEngagement.ts`
-(`reachNow`, drift and across terms), `Species.habitat.lies`; rejection:
-the put-in and the outfitter; `trade-diving`: the `painter` lifeline kind
-row. Tests: `Boat.keyed.test.ts` (two canoes from one row, keyed by
-chattel, restored once), `Propel.test.ts` (speed from power, slack vs
-channel, tire and drift back), `Pole.test.ts`, `Lining.test.ts`,
-`Portage.test.ts` (the zone restamp; the gorge refuses), `Capsize.test.ts`,
-`Killick.test.ts`, `DriftFishing.test.ts`.
+**Files.** transport: `src/thing/Boat.ts` (recomposed; affords `paddle`),
+`src/thing/Propulsion.ts`, `src/thing/Killick.ts` (affords `anchor` on
+`peers`), `src/thing/FerryCable.ts` (the row class only; D31 uses it),
+`src/lib/Propel.ts`, `src/idea/cmd/movement/PaddleController.ts` +
+`content/system/transport/cmd/movement/paddle.yaml` (the one new view;
+`greedy: true` heading; `requiresAnimate`, `requiresConscious`), rows
+`content/system/transport/thing/{canoe, punt, rowboat, ferry, killick,
+propulsion/*}.yaml` (a sail boat kind's bill names a `tiller:` part — a
+`/platform/thing/Helm` row), `hesper/thing/dinghy.yaml` retired for the
+rowboat kind propped on the deck; `platform/idea/cmd/movement/
+CourseController.ts` (a tiller in a `Boat`: the craft is the vessel the
+helm stands in, and `Propel` runs under sail); `platform/idea/cmd/
+inventory/PullController.ts` (a boat as target); `lib/slot/Haulable.ts`
+(`passageMode: walk` admitted — verify the terrain gate reads `media` for
+a walk mode); trade-fishing: `src/lib/FishingEngagement.ts` (`reachNow`,
+drift and across terms), `Species.habitat.lies`; rejection: the put-in and
+the outfitter; `trade-diving`: the `painter` lifeline kind row. Tests:
+`Boat.keyed.test.ts` (two canoes from one row, keyed by chattel, restored
+once), `Boat.zone.test.ts` (every `Boat`-class row in every pack resolves
+no spatial zone; a canoe moves patch → stream → landing stop → bank with
+`getZone()` null throughout — D38), `Paddle.test.ts` (the view is
+conferred by `Boat`; `paddle` refuses with no crew-powered part; speed
+from power, slack vs channel, tire and drift back; `--hard`), `Pole.test.ts`,
+`Sail.test.ts` (a tiller affords `course`; refused on narrow water),
+`Lining.test.ts`, `Portage.test.ts` (the gorge refuses), `Capsize.test.ts`,
+`Killick.test.ts` (`anchor` afforded by the killick; holds slack, drags
+fast; the next `paddle` takes it up), `DriftFishing.test.ts`.
 
 **Acceptance.** Drive steps 19–24 pass (stage C file); the maritime drive's
 step 15 is red here and is fixed in W5 (recorded in the commit).
@@ -1493,10 +1678,11 @@ row, `FerryCable`, `Propel` (the glide, the cable); trade-haulage:
 `src/behavior/ferries.ts`, the ferryman position; terminus: the Nesbit
 ferry locality (landings, bells, the punt, the ferryman, the business, the
 fare); water pack: `src/idea/SeaWarren.ts`, `src/location/SeaRoom.ts`,
-`src/idea/exits/SeaRoomExit.ts`, rows; transport: `Launch/Recover
-Controller.ts` (into/out of the room alongside), `src/thing/Boat.ts`
-(`course` in a sea room rows to a ship within hail); `WaterExpanse`
-(`currentWaterRef` for a sea room); kernel: `ExpanseLogic.craftAt` callers
+`src/idea/exits/SeaRoomExit.ts`, `src/location/SeaZone.ts` + `sea.yaml`
+(D38), rows; transport: `Launch/RecoverController.ts` (into/out of the
+room alongside), `PaddleController.ts` (`paddle <ship>` in a sea room rows
+to a ship stopped within hail; `paddle ashore` / `paddle <landing>`);
+`WaterExpanse` (`currentWaterRef` for a sea room); kernel: `ExpanseLogic.craftAt` callers
 audited (`LocateController`, `RouteController`, `HailController`,
 `BearingReading`, `LatitudeReading`, `keeps-watch` read the room's frame
 when the viewer is in a boat); `packages/wire/tests/maritime-space.dirty.
@@ -1553,8 +1739,10 @@ the doc commits.
 | `throw line to <swimmer>` | shipped | `Tossable` on `Lifeline` | heaving line (shipped), `painter` row | — | `personWithinReach` walks obvious neighbors — the within-hail wiring is what makes the patch a neighbor |
 | `pull line` / `pull painter` / `pull canoe` / `pull <person>` / `pull capstan` | shipped `pull` | `PullableMixin` on `Lifeline`, `Boat`, `Creature`, `Capstan` | — | — | `requires: [PullableMixin]` on the target (shipped) |
 | `watch horizon` on a river | shipped `watch` | shipped | — | `horizonOnRiver` reads the frame | — |
-| `course` from a canoe / a ship on a line | shipped | `Boat.commandContributions.inventory` (shipped), `Helm.peers` (shipped) | boat kind rows; the *Ostrander*'s helm | the frame by `line:` attachment | `heading` greedy string |
-| `anchor` (the killick; alongside) | shipped | same | — | — | — |
+| **`paddle`** (the one new verb) | `paddle` — `content/system/transport/cmd/movement/paddle.yaml`, controller `/system/transport/idea/cmd/movement/PaddleController` | `Boat.commandContributions.inventory` (you are in it) — conferred, so `lint:reachability` arm A passes; a fitted crew-powered part (`paddle`/`oar`/`pole`) is what the controller reads | boat kind rows (`canoe`, `punt`, `rowboat`, `ferry`), the propulsion rows, the outfitter's and Nesbit's instances | the frame by the room's position; nothing booted | one greedy `heading` string + `--inside`/`--hard` flags; the controller refuses in the part's words when no crew-powered part is fitted (*there is nothing to paddle with*), and the direction/landing words are resolved before MQL |
+| `course` from a ship on a line, or from a sail boat / cable ferry by its tiller | shipped | `Helm.peers` (shipped) — the ship's helm; a `Helm` row as the boat kind's `tiller` part | the *Ostrander*'s helm; the sail boat and cable ferry bills | the frame by `line:` attachment | `heading` greedy string |
+| `anchor` — a ship's by her helm; a canoe's killick | shipped | `Helm.peers`; `Killick.commandContributions.peers` | the `killick` row in a canoe's `parts:` | — | — |
+| `hail` from a landing, a patch, a sea room | shipped | `Helm.peers` (a ship); `ShoreMixin.inventory` for a shore with a `bank` or a river/sea position (new) | — | — | `contact` greedy |
 | `stop` (stop paddling) | shipped | the engagement's own cancel | — | — | — |
 | `hitch canoe` / `unhitch` | shipped | `HaulerMixin` on `Character`; target `requires: [HaulableMixin]` | `Boat` composes `Haulable` | — | `hitch.yaml:35` |
 | `fit paddle in canoe` | shipped | assembly | the bill on the boat kind | — | — |
@@ -1562,7 +1750,7 @@ the doc commits.
 | `go aboard` / `go ashore` / `go <ship>` | shipped | the wired alongside exits | `exits/{aboard,ashore}.yaml`; the ship's named exit is minted | wired on stop | — |
 | `go upstream` / `go downstream` on a bank | shipped `go` | the bank patch's exits | `reach/bank.yaml` | minted on leaving a bank place | — |
 | the ferry crossing | shipped `go <far landing>` / `journey` | the `FerryExit` on each landing | `exits/ferry.yaml` (`_conditional: true`) | the landings are authored rooms | the fare and the alongside gate inside `canTraverse` |
-| `hail` / `ring` the ferry | shipped | `Helm`/`Boat` afford `hail`; a landing's `hail` is the shore's (add `hail` to `ShoreMixin.inventory` for a shore with a `bank`); `ring` by the bell | bell rows on the landings | the `ferries` brain `witness` | `contact` greedy |
+| `hail` / `ring` the ferry | shipped | the landing's `hail` is the shore's (above); `ring` by the bell | bell rows on the landings | the `ferries` brain `witness` | `contact` greedy |
 | `fish` from a drifting canoe | shipped | `Rod` | — | — | the place binds (`reachable:[mixin.ShoreMixin]` — the patch is a `Shore`) |
 | `buy cordwood` / `put cordwood in bunker` | shipped | the woodhawk's counter; `bunker` a `Holder` | the woodyard rows | — | — |
 | `course … --leaving-them` | shipped `course` | — | — | — | a flag on the greedy heading; recorded by `AccountabilityApi.record` |
@@ -1593,7 +1781,14 @@ Drive steps: 1–6 W1 (1's readings W0) · 7–13 W2 · 14 W2 · 15 W2 (a clock
 jump; the float-up is unit-tested, the wire asserts the stage and the
 bar) · 16 W1 · 17 W2 (winter: pinned content weather at the gorge pool —
 a `snow` pin on the gorge locality, the climate drive's recipe) · 18 W1 ·
-19–24 W3 · 25–31 W4 · 32–34 W5 · 35 W5. Nothing unmapped.
+19–24 W3 · 25–31 W4 · 32–34 W5 · 35 W5. Nothing unmapped. The steps' acts
+in this plan's words: 19 `paddle upstream --inside` then `stop`; 20
+`paddle upstream` with a pole fitted, `pull painter` from the bank,
+`hitch canoe`; 21 `pull canoe`, `climb canoe`, `pull <them>`; 22 `anchor`
+(the killick); 23 `fish` from the drifting canoe; 32 the ferryman's
+`paddle <far landing>`; 33 `hail` / `ring bell` from the landing; 35
+`launch`, `paddle <ship>`, `swim` over the side, `swim <boat>` / `climb
+<boat>`, `course` refused until `recover`.
 
 ## Test & gate strategy
 
@@ -1634,17 +1829,33 @@ a `snow` pin on the gorge locality, the climate drive's recipe) · 18 W1 ·
 
 ## Risks & opens
 
-1. ⭐⭐ **The profile numbers (question 1).** If the user keeps the falls
-   at 500 m, W4's drive steps 25–31 cannot pass as written and the plan
-   returns to requirements. Decide before W0.
-2. **The containment zone opening (D24).** Restamping a boat's zone on a
-   cross-zone move is the first exitable to change zone by containment.
-   Readers of `zone` on a vessel's interior (perception scope, the biome
-   walk, `lint:locations`' unzoned checks) must be checked with the boat
-   in an authored place. If a consumer breaks, the fallback is to make
-   the stream, the stops and the landings share the river's zoneless
-   shape — i.e. authored river places are zoneless too — which costs the
-   gorge's and the quay's grid cells. Record which way it went.
+1. ⭐ **The profile numbers (decided: falls 140 m).** The residual risk is
+   what else read 500 m: the snowpack at the falls reach and the climate
+   drive's temperature expectations. W0 re-runs `climate-and-water.dirty`
+   and adjusts its falls-reach assertions in the same commit, naming the
+   change.
+2. **The moving zone (D38).** Three things to prove in W1's first tests,
+   because each fails silently if wrong: (i) a `CartesianZone` row minted
+   N times under distinct identity paths — the singleton guard keys on
+   the identity path (`api/stuff.ts:611`), but nothing has minted a ZONE
+   that way before; (ii) `ZoneApi.resolveZoneForPath` and the exit
+   invariant read the KIND row's zone while `getZone()` answers the
+   instance — the two must never be compared by identity anywhere that
+   matters (the pre-flight compares `getZone()` on both sides: a boat
+   with a null zone is admitted; two moving places never contain each
+   other); (iii) every zone reader that caches by zone path
+   (`WeatherLogic.localityByScope` keys on the SCOPE's stuffId — fine;
+   biome's provenance reports the kind row's path — fine) must not cache
+   a moving zone's answer across a move: `WeatherLogic.localityByScope`
+   caches the Locality per scope and **nothing ever deletes an entry**
+   (verified: no `delete`/forget on it in `WeatherLogic.ts`), so a patch
+   that drifted from Rejection's reach into the confluence's would keep
+   Rejection's weather for its life. W1 adds the kernel seam
+   `WeatherApi.forgetScope(stuffId)` (one `Map.delete` on both
+   `localityByScope` and `siteByScope`, gated to the moving-place callers)
+   and the `Drift` beat calls it on every event that crosses a reach
+   boundary. A venue-authored boat row is the other silent failure, and
+   the transport test is its tripwire.
 3. **The `Band.getSurface()` lookup for a minted patch identity.**
    `findByTemplatePath` must find an identity-stamped clone (it does for
    avatars); confirm for a Location in the first W1 test or key the band's
@@ -1681,6 +1892,12 @@ a `snow` pin on the gorge locality, the climate drive's recipe) · 18 W1 ·
     *at sea, by reckoning* assertion for a launched boat (a boat has no
     reckoning now; the room alongside does not plot). Record it in the
     drive record.
+12. **`Exit.isMapped()` and the Cartographer.** The map writer records
+    every exit it perceives with no filter today; the hook is new kernel
+    surface read in two places. A missed site writes *the ostrander* onto
+    somebody's map of Wharfside — `Exit.mapped.test.ts` walks both
+    passes. The `route` verb over claims is unaffected (unmapped exits
+    never become claims).
 
 ## Deferred seams
 
