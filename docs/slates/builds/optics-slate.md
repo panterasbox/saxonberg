@@ -179,7 +179,9 @@ the blanks; optics grinds and wires them.
    no new channel, the instrument doctrine's own shape.)
 4. **Does the telescope extend `scry` range, or feed a new astronomy
    read?** Depends whether `CelestialApi` surfaces anything a lens would
-   sharpen.
+   sharpen. ⭐ **Leaning (2026-10-20, [orbit-slate](./orbit-slate.md) § 0):
+   feed a new astronomy read** — when there is a sky for it; stars do not exist yet,
+   and astronomy beyond navigation is not a build of its own.
 5. **The grind as an act** — a recipe row, or a skilled cold-work act with
    a quality that sets the curvature precision (and thus the power's
    tolerance)? The failure economics of glass (cullet is recoverable) make
