@@ -1,0 +1,8 @@
+# The column's ways up and down (underwater D7) — lazy: the band behind
+# one is budded only when somebody goes. Swum (the media is set when the
+# column installs it).
+class: /system/water/idea/exits/ColumnExit
+data:
+  messageOut: "{{ mover }} goes {{ direction }} through the water."
+  messageIn: "{{ mover }} comes through the water."
+  wheelPassable: false

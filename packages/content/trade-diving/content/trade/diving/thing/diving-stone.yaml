@@ -1,0 +1,15 @@
+# A diving stone (underwater C1) — the oldest way down: a smooth stone
+# with a hand-hold cut in it, carried to sink fast and let go of to come
+# up. What sponge-divers and pearl-divers have used for three thousand
+# years.
+class: /platform/thing/Good
+data:
+  shortDescription: diving stone
+  keywords: [stone, "diving stone", weight]
+  register: indefinite
+  longDescription: >-
+    A flat, smooth stone the size of a loaf, with a hole worn through it
+    for a hand-line and a hand-hold cut in one edge. It is much heavier
+    than it looks.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 12

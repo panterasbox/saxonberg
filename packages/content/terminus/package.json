@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@saxonberg/content-arcana": "workspace:*",
+    "@saxonberg/content-arcane-library": "workspace:*",
     "@saxonberg/content-corpo-goodkin": "workspace:*",
     "@saxonberg/content-corpo-vionne": "workspace:*",
     "@saxonberg/content-distribution": "workspace:*",
@@ -29,6 +30,7 @@
     "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",
+    "@saxonberg/content-trade-diving": "workspace:*",
     "@saxonberg/content-trade-dyeing": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-fishing": "workspace:*",

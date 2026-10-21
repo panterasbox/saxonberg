@@ -6,10 +6,7 @@ import {
   ClimbableMixin,
   CLIMBING_CAPABILITY_PROP,
 } from '../../lib/locomotion/Climbable';
-import {
-  SwimmableMixin,
-  SWIMMING_CAPABILITY_PROP,
-} from '../../lib/locomotion/Swimmable';
+import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { FlyableMixin } from '../../lib/locomotion/Flyable';
 import { Idea } from '../../lib/stuff/Idea';
 import Good from '../../lib/stuff/Good';
@@ -23,6 +20,7 @@ import { DrivableMixin } from '../../lib/slot/Drivable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { ContainmentApi } from '../containment';
 import Exit from '../../lib/boundary/Exit';
+import Pool from '../../platform/location/Pool';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -279,16 +277,15 @@ describe('LocomotionApi', () => {
         expect(guard.gate).toBe('enablement');
       });
 
-      it('returns gate=capability when SWIMMING_CAPABILITY_PROP too low', () => {
+      it('⭐ swimming is a cost, not a check (underwater D12): no water refuses a body for want of skill', () => {
         const swim = buildMode('swim');
         const loc = makeStuff(() => new SwimLocation());
         loc.setAxes(['*']);
-        loc.setDifficulty(4);
         const actor = makeStuff(() => new Actor());
-        actor.setProp(SWIMMING_CAPABILITY_PROP, 1);
         ContainmentApi.move(actor, loc);
         const guard = LocomotionApi.checkEnablement(actor, swim, 'down');
-        expect(guard.gate).toBe('capability');
+        expect(guard.ok).toBe(true);
+        expect(() => loc.setDifficulty(4)).toThrow(/cost, not a check/);
       });
     });
 
@@ -323,17 +320,27 @@ describe('LocomotionApi', () => {
         expect(guard.gate).toBe('enablement');
       });
 
-      it('the far side still gates capability', async () => {
+      it('⭐ you do not WALK into water over your head — refused in the water\'s words (D29 seam 10)', async () => {
+        const walk = buildMode('walk');
+        const strand = makeStuff(() => new Place());
+        const deep = makeStuffAtPath(() => new Pool(), '/test/locomotion/deep-pool');
+        const actor = makeStuff(() => new Actor());
+        ContainmentApi.move(actor, strand);
+        const exit = makeStuff(() => new Exit({ direction: 'east', source: strand, destinationPath: '/test/locomotion/deep-pool', media: ['ground', 'water'] }));
+        void deep;
+        const guard = await LocomotionApi.canTraverseExit(actor, exit, walk, 'east');
+        expect(guard).toMatchObject({ ok: false, gate: 'blocked', reason: 'You would be in over your head there; swim, or go down to it.' });
+      });
+
+      it('the far side admits any body: going in is never a skill check', async () => {
         const swim = buildMode('swim');
         const strand = makeStuff(() => new Place());
         const pool = makeStuff(() => new SwimLocation());
         pool.setAxes(['*']);
-        pool.setDifficulty(4);
         const actor = makeStuff(() => new Actor());
-        actor.setProp(SWIMMING_CAPABILITY_PROP, 1);
         ContainmentApi.move(actor, strand);
         const guard = await LocomotionApi.canTraverseExit(actor, exitTo(strand, pool), swim, 'east');
-        expect(guard.gate).toBe('capability');
+        expect(guard.ok).toBe(true);
       });
     });
 

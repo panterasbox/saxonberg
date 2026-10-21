@@ -13,6 +13,7 @@ import type { TraversalGuard } from '../../../lib/boundary/Exit';
 import { LocomotionMode } from '../LocomotionMode';
 import type { Enablement } from '../../../lib/locomotion/Enablement';
 import { StuffApi } from '../../../api/stuff';
+import { BiomeApi } from '../../../api/biome';
 import { MixinApi } from '../../../api/mixin';
 import { SpeciesApi } from '../../../api/species';
 import type { MixinName } from '../../../lib/mixin';
@@ -237,6 +238,8 @@ export class LocomotionLogic extends ApiLogic {
     }
     const exitGuard = await exit.canTraverse(actor, mode.getName());
     if (!exitGuard.ok) return exitGuard;
+    const deep = this.overYourHead(exit, mode);
+    if (deep !== null) return deep;
     let enablement = this.checkEnablement(actor, mode, direction);
     // ⭐ The far side: an exit whose DESTINATION is the medium (the
     // strand's east into the pool) admits the mode — you swim INTO the
@@ -249,6 +252,26 @@ export class LocomotionLogic extends ApiLogic {
     }
     if (!enablement.ok) return enablement;
     return this.checkHaulage(actor, exit, mode);
+  }
+
+  /**
+   * ⭐ You do not WALK into water over your head (underwater D29 seam 10):
+   * a ground mode into a water place whose water is deeper than wading is
+   * refused, in the water's words — swim in, or go down to it. A frozen
+   * water is the floor's question (the ice bears you or breaks).
+   */
+  private overYourHead(exit: Exit, mode: LocomotionMode): TraversalGuard | null {
+    if (mode.getMedium() !== 'ground') return null;
+    const path = exit.getDestinationTemplatePath?.() ?? null;
+    const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+    if (!dest || !MixinApi.isWaterPlace(dest)) return null;
+    if (dest.stateNow() !== 'swimming') return null;
+    return {
+      ok: false,
+      gate: 'blocked',
+      mode: mode.getName(),
+      reason: 'You would be in over your head there; swim, or go down to it.',
+    };
   }
 
   /**
@@ -273,7 +296,7 @@ export class LocomotionLogic extends ApiLogic {
     }
     const host = asEnablement(dest, mixinName);
     if (!host || !host.canEngageAxis(direction)) return null;
-    return engageHost(actor, mode, host);
+    return engageHost(actor, mode, host, direction);
   }
 
   /**
@@ -526,7 +549,7 @@ function checkEnablementScope(
       context: { missing: mixinName },
     };
   }
-  return engageHost(actor, mode, host);
+  return engageHost(actor, mode, host, direction);
 }
 
 /** Whether `actor` may engage `mode` on the enablement `host` it found. */
@@ -534,6 +557,7 @@ function engageHost(
   actor: Stuff & Containable,
   mode: LocomotionMode,
   host: Stuff & Enablement,
+  direction: string,
 ): TraversalGuard {
   if (!host.canBeEngagedBy(actor)) {
     return {
@@ -553,16 +577,24 @@ function engageHost(
   // a raw/dev traverse skips the veto entirely (the agnostic-substrate
   // guarantee). Open seam: relocate to `ExitableMixin`/boundary if
   // desired — the predicate moves unchanged.
-  if (
-    MixinApi.isLoadBearing(actor) &&
-    actor.getLoadRatio() >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD
-  ) {
+  // ⭐ In the water the load is what the water does not hold up (the
+  // underwater review): a diver's air bags lift, a weight belt still
+  // pulls — the dry mass would refuse a swim the water makes easy.
+  const inWater = mode.getMedium() === 'water' ? waterDensityKgM3() : undefined;
+  // ⭐ …and in the water weight refuses only the way UP (found by the
+  // underwater browser walk, twice: a diver in a belt with a stone was told
+  // "carrying too much to swim" going down, and a diver in the hard-hat
+  // suit could not get into the water at all). Weight sinks you; what it
+  // takes from you is rising — the column's own gate and this one.
+  if (inWater !== undefined && direction !== 'up') return { ok: true };
+  const loadRatio = MixinApi.isLoadBearing(actor) ? actor.getLoadRatio(inWater) : 0;
+  if (loadRatio >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
     return {
       ok: false,
       gate: 'encumbrance',
       mode: mode.getName(),
       reason: `You're carrying too much to ${mode.getName()}.`,
-      context: { loadRatio: actor.getLoadRatio() },
+      context: { loadRatio },
     };
   }
   return { ok: true };
@@ -638,4 +670,13 @@ function checkConveyance(actor: Stuff, mode: LocomotionMode): TraversalGuard {
     mode: mode.getName(),
     reason: `You're not ${mode.getName()}ing anything.`,
   };
+}
+
+/** The water's density, kg/m³ (fresh, when the biome cannot say). */
+function waterDensityKgM3(): number {
+  try {
+    return BiomeApi.densityOf('water').rawValue() || 1000;
+  } catch {
+    return 1000;
+  }
 }

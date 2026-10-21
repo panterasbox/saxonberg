@@ -1,0 +1,30 @@
+# The tidepool (underwater D25) — a basin in the rocks under the headland,
+# half a meter above mean water: the tide fills it at the flood and leaves
+# it at the ebb, cut off, the fish in it living on what water it kept.
+class: /platform/location/Pool
+data:
+  shortDescription: tidepool
+  keywords: [tidepool, pool, rocks, "rock pool"]
+  register: definite
+  _address: terminus/city/wharfside/tidepool
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  details:
+    tidepool:
+      keywords: [tidepool, pool, "rock pool", weed]
+      description: |
+        Clear water in a cup of black rock, weed swaying at the bottom and something silver turning under it.
+  longDescription: |
+    A basin in the black rocks at the foot of the headland, weed hanging in it like hair. At the top of the tide the sea comes over the lip; at the bottom it is a pool of its own, still and warming.
+  coords:
+    x: 4
+    y: -1
+    z: 0
+  # ⭐ The rim keeps forty centimetres when the sea goes down (D25): cut
+  # off, the pool's oxygen falls by the hour until the flood comes back.
+  water: { of: /stuff/idea/WaterExpanse/greywater, depthM: -0.5, feature: tidepool, rimM: 0.4 }
+  cast:
+    - /trade/fishing/agent/grey-mullet
+  exits:
+    north:
+      destination: /world/terminus/estuary/strand
+      media: [ground, water]

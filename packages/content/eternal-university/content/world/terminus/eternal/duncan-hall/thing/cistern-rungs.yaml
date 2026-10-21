@@ -1,0 +1,18 @@
+# The cistern's iron rungs — ⭐ the way out of the flooded cistern, as the
+# quay steps are the way out of the river (found by the underwater
+# browser walk: the rungs were prose only, so `up` said "you'll have to
+# climb" and `climb` was not a word anybody here could use — a diver who
+# went in could not get out). A thing in the water, serving the vertical.
+class: /platform/thing/Ladder
+data:
+  shortDescription: iron rungs
+  keywords: [rungs, rung, ladder, "iron rungs"]
+  register: indefinite
+  longDescription: >-
+    Iron rungs set into the brick of the near wall, climbing from under the
+    black water up toward the daylight on the steps. Rust has eaten them
+    thin, but they hold.
+  mass: 40
+  fixedInPlace: true
+  axes: [up]
+  difficulty: null

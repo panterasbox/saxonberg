@@ -1,20 +1,14 @@
 # Underwater slate — water you can be in, and what it does to you
 
-> **Status: UNBUILT** — redesigned 2026-10-18 in one session with the
-> founder, over the September exploration draft (whose audit, § 8a there,
-> is kept below where it still holds). Nothing underwater exists: swimming
-> is at the surface only (maritime), and the ice build's `Pool` has an
-> abstract `bed:` prop. Companion: [river-slate](./river-slate.md).
-> **Left:** water as a STATE of any place (a mixin; `Pool` the class
-> retires) with `water: { of, depthM }` · the column Warren and its bands,
-> the bed band replacing the `bed:` prop · the craft size rule · breath as
-> store ÷ burn with two clocks · the blackout, neutral depth and the
-> rescuable dying clock · descent, equalizing and `drop belt` · the medium
-> as PROPERTIES and the census's twelve seams (no validator) · underwater
-> combat · the lifeline · the bell mixin · the hard-hat suit and the bends ·
-> tides from the shore, tidal streams, the surf · life across the tree (the
-> five findings) · sealants, sponges, insulation · `/trade/diving` · and,
-> marked LEAN, the tank, the submersible and domes
+> **Status: PARTIAL** — the water place shipped in the underwater build
+> (MR !408, 2026-10-21) → [underwater.md](../../subsystems/underwater.md);
+> the breath under water → [respiration.md](../../subsystems/respiration.md).
+> **Left:** the craft size rule (§ The craft size rule) · carrying a person
+> (→ [carrying-a-person-slate](./carrying-a-person-slate.md)) · sealants,
+> sponges, insulation · the tank, the submersible and domes (LEAN) · the
+> gaps the final walk left open — entering the lowered bell underwater,
+> eardrums that cannot burst in ≤6 m water, the effort-vs-breath clock (see
+> underwater.md § Known gaps)
 > **Size:** a build — the water place first; the river, craft and the
 > harvest are later builds (§ 17)
 

@@ -1,0 +1,21 @@
+# ⭐ A signal up the line (underwater C1): one tug, all is well; two,
+# haul me up; three, give me more line. Felt by whoever holds the other
+# end, through any water, and by nobody else.
+verbs: [tug]
+controller: /trade/diving/idea/cmd/diving/TugController
+description: "Signal up your lifeline — one tug, two, or three"
+help: |
+  On the end of a lifeline, `tug line` sends a signal up it to whoever
+  holds the other end. The old code: one tug, all is well; two tugs in a
+  row, haul me up; three, give me more line. Under the water nobody can
+  hear you — the line is how you talk.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # The END of the line, in your hands — `tug line`.
+  - name: line
+    type: object
+    required: true
+    scope: "inventory"
+    requires: any

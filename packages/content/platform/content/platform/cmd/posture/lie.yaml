@@ -1,4 +1,5 @@
-verbs: [lie]
+# `float` is lying down when the floor is water (underwater review).
+verbs: [lie, float]
 controller: /platform/idea/cmd/posture/LieController
 description: "Lie down on something. With no argument, lie on the ground."
 help: |
@@ -8,6 +9,11 @@ help: |
 
   Lying is a posture and stays put until you change it. Get back
   up with `stand`, or shift to `sit` or `kneel`.
+
+  In deep water, `lie` (or `float`) lies you back on the water to rest:
+  staying up costs nothing while you float, if you can swim at all and
+  are not carrying too much. You float until you go under, swim
+  somewhere, or leave the water.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresPosed

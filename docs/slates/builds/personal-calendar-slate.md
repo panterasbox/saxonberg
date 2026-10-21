@@ -152,6 +152,17 @@ to your calendar is a spam/consent vector.
 
 ---
 
+
+## ⭐ A notes app is the only private writing (user, the underwater review, 2026-10-20)
+
+There is no writing on a world object that only its author can read —
+*"that doesn't make any sense."* A note to yourself is `write … on` a
+thing of your own (a notebook, a slate). The exception is software: a
+**notes app on the aether implant**, the calendar's sibling, could do
+what a notepad cannot — notes shared or private, linked to the things,
+places and people they are about, integrated with the other apps. It
+belongs with this slate's hosted-app shape.
+
 ## Open questions (for its own requirements)
 
 1. **Write-authorisation** — who may put a date on whose calendar? (Consent /

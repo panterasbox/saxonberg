@@ -11,6 +11,7 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
+import { MixinApi } from '../../../../api/mixin';
 import { BulkableApi } from '../../../../api/bulk';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -40,6 +41,11 @@ export default class SipController extends CommandController<SipModel> {
       return;
     }
 
+    // ⭐ Under the water nothing goes in by mouth but the water (D29).
+    if (MixinApi.isMetabolic(giver)) {
+      const airway = giver.canIngest();
+      if (!airway.ok) return this.refuse(context, TOPIC, airway.line, airway.reason);
+    }
     const fromSlot = BulkableApi.slotFor(target, model.target.via);
     if (fromSlot === null || fromSlot.isEmpty()) {
       MessageApi.scene(giver)

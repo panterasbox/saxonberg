@@ -28,7 +28,11 @@ import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import {
   WaterSourceMixin,
   type WaterRead,
+  type WaterTide,
 } from '@saxonberg/server/mud/lib/location/WaterSource';
+import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { Tide } from '../lib/Tide';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
@@ -99,6 +103,8 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     stock: { persistent: true, authorable: true },
     waterTemperatureK: { persistent: true, authorable: true },
     salinityPpt: { persistent: true, authorable: true },
+    clarityM: { persistent: true, authorable: true },
+    tidal: { persistent: true, authorable: true },
   };
 
   /** Depth where no band says otherwise, metres. */
@@ -110,6 +116,14 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   protected stock: Record<string, number> = {};
   protected waterTemperatureK = 285;
   protected salinityPpt = 35;
+  /** How deep light reaches, m (underwater D6). Open sea is clear. */
+  protected clarityM = 10;
+  /**
+   * ⭐ The tide (underwater D25): `{ rangeM, lagH }` — the mean range low
+   * to high and how long after the moon's transit high water stands. No
+   * entry, no tide (an inland sea).
+   */
+  protected tidal: { rangeM: number; lagH?: number } | null = null;
 
   /**
    * Place path → the craft whose deck it is (`''` = none), resolved once
@@ -143,6 +157,30 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       return { ref: citation, atS: nowS, name, pending: true, frozen: false, draw: null };
     }
     const ref = this.refAt(at);
+    // ⭐ One read per sea cell per segment, shared by every shore on it
+    // (the underwater drive: eight estuary places each read the sea).
+    const key = `${ref}@${Math.floor(nowS / (6 * 3600))}`;
+    const shared = this.sharedReads.get(key);
+    if (shared) return shared;
+    const read = this.readCellNow(citation, ref, at, place, nowS, name);
+    this.sharedReads.set(key, read);
+    if (this.sharedReads.size > 256) this.sharedReads.delete(this.sharedReads.keys().next().value!);
+    read.catch(() => this.sharedReads.delete(key));
+    return read;
+  }
+
+  /** `<cell>@<segment>` → the read (runtime). */
+  private sharedReads = new Map<string, Promise<WaterRead | null>>();
+
+  private async readCellNow(
+    citation: string,
+    ref: string,
+    at: GeoPosition,
+    place: Stuff,
+    nowS: number,
+    name: string,
+  ): Promise<WaterRead | null> {
+    void citation;
     const line = await this.seaReadAt(at, place);
     let standing: FisheryStanding | null = null;
     let disciplineKey: string | null = null;
@@ -154,15 +192,28 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       /* the sea, read physically */
     }
     const opaque: SeaReadState = { line, standing, disciplineKey };
+    const tide = this.tideAt(nowS);
+    const oxygenMgL = this.oxygenMgL();
     return {
       ref,
       atS: nowS,
       name,
       // No sea ice is modelled; a frozen water is a reach's.
       frozen: false,
+      levelM: tide?.levelM ?? 0,
+      ...(tide !== null ? { tide: tide.tide } : {}),
+      oxygenMgL,
+      clarityM: this.clarityM,
       draw: { materialPath: SALT_WATER_PATH, temperatureK: this.waterTemperatureK },
       opaque,
     };
+  }
+
+  /** ⭐ The tide brought current on a read this sea already gave (D25). */
+  public override retide(read: WaterRead, nowS: number): WaterRead | null {
+    const tide = this.tideAt(nowS);
+    if (tide === null) return null;
+    return { ...read, levelM: tide.levelM, tide: tide.tide };
   }
 
   public override waterLinesFor(read: WaterRead, viewer: Stuff): string[] {
@@ -216,6 +267,28 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   public getStock(): Record<string, number> { return { ...this.stock }; }
   public setStock(v: Record<string, number> | null): void { this.stock = { ...(v ?? {}) }; }
   public getWaterTemperatureK(): number { return this.waterTemperatureK; }
+  public getTidal(): { rangeM: number; lagH?: number } | null { return this.tidal; }
+  public setTidal(v: { rangeM: number; lagH?: number } | null): void {
+    this.tidal = v !== null && Number(v.rangeM) > 0 ? { rangeM: Number(v.rangeM), lagH: Number(v.lagH ?? 0) } : null;
+  }
+
+  /** ⭐ The tide at `nowS` — the level above mean water and the stream — or null. */
+  public tideAt(nowS: number): { levelM: number; tide: WaterTide } | null {
+    if (this.tidal === null) return null;
+    const moon = CelestialApi.moonPhase(Quantity.of(nowS, 's'));
+    const t = new Tide(this.tidal.rangeM, (this.tidal.lagH ?? 0) * 3600).at(nowS, moon);
+    return {
+      levelM: t.levelM,
+      tide: {
+        atS: nowS,
+        rangeM: t.rangeM,
+        rising: t.rising,
+        nextHighS: t.nextHighS,
+        nextLowS: t.nextLowS,
+        streamMps: t.streamFactor * numSetting('water.tide.peakStreamMps', 1.2),
+      },
+    };
+  }
   public setWaterTemperatureK(v: number): void { this.waterTemperatureK = Number(v) || 285; }
   public getSalinityPpt(): number { return this.salinityPpt; }
   public setSalinityPpt(v: number): void { this.salinityPpt = Math.max(0, Number(v) || 0); }
@@ -309,7 +382,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       temperatureK: this.waterTemperatureK,
       currentMps: (band?.getSetKn() ?? 0) * 0.5144,
       salinityPpt: this.salinityPpt,
-      oxygenMgL: 8,
+      oxygenMgL: this.oxygenMgL(),
       pH: 8.1,
       hardnessDgh: 50,
       nitrateMgL: 0.5,
@@ -317,6 +390,21 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
       nitriteMgL: 0,
       contamination: 0,
     };
+  }
+
+  /**
+   * ⭐ Dissolved oxygen, mg/L (underwater D21): saturation at the water's
+   * temperature, less for salt (sea water holds a fifth less than fresh),
+   * at the open sea's well-mixed surface (95 % of saturation). ⚠ The plan
+   * mixed by the sea state's roughness; that read is a weather field per
+   * cell and cost ~80 s cold across a shore's waters (the drive found it),
+   * for a 15 % nuance — the sea is taken as mixed.
+   */
+  private oxygenMgL(): number {
+    const t = Math.max(0, Math.min(1, (this.waterTemperatureK - 273) / 30));
+    const fresh = 14.6 + (7.5 - 14.6) * t;
+    const salt = 1 - 0.006 * Math.max(0, this.salinityPpt);
+    return fresh * salt * 0.95;
   }
 
   /** The wind the realm's weather gives here, m/s. */

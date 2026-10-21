@@ -1,0 +1,14 @@
+# A tide almanac (underwater D25) — a thin book of high and low waters for
+# the Greywater, the next few days of them. `read almanac`: the strand
+# agrees with it, because both read the same tide.
+class: /trade/diving/thing/TideAlmanac
+data:
+  shortDescription: tide almanac
+  keywords: [almanac, "tide almanac", tables, book]
+  register: indefinite
+  longDescription: A thin paper book with a tarred cover, its pages ruled into columns of times and heights.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 0.1
+  markForm: inked
+  markText: "TIDES FOR THE GREYWATER, OFF THE BAR. Times of high and low water; heights above the mean."
+  of: /stuff/idea/WaterExpanse/greywater

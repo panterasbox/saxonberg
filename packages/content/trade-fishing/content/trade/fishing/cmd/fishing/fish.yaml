@@ -22,6 +22,11 @@ help: |
   bends — `reel` when it rests, `slack` when it runs, and you learn the
   difference by losing a few. `cancel fishing` brings the line in.
 
+  ⭐ With a fish spear in your hand, down in the water where you can see
+  them, `fish` is a thrust: the spear takes the most plentiful fish there,
+  or comes back empty when the water is fished out. (`fish using spear`
+  when you are holding a rod too.)
+
   ⚠ What you land is alive, and it is in your hand. A fish out of water
   is a fish that is drowning; a bowl of water is the only thing that
   stops it.
@@ -46,13 +51,16 @@ args:
   # ⭐ WHICH ROD — declared, not hunted for. `[capability.angling]` asks
   # for the thing you can fish with; `me:i` is in hand, as a rod must be.
   # With more than one rod in hand the default PROMPTS: say `using cane`.
+  # ⭐ `requires: any` — a fish spear is a weapon, not a tool, and
+  # `using spear` must bind it; the controller narrows by shape (a `Rod`
+  # casts, a `TakesFish` strikes).
   - name: rod
     type: object
     required: false
     prepositions: [using]
     default: "me:i:[capability.angling]"
     scope: ["inventory"]
-    requires: [ToolMixin]
+    requires: any
   # ⭐ WHICH WATER — the place you stand in, when it is beside a named
   # water (maritime revision 3: `fish` its one water, `fish kestrel` names
   # it, the place refuses in words otherwise); or none: then the

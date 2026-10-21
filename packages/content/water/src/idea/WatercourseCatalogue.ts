@@ -51,6 +51,9 @@ import {
   WaterSourceMixin,
   type WaterRead,
 } from '@saxonberg/server/mud/lib/location/WaterSource';
+import type { WaterTide } from '@saxonberg/server/mud/lib/location/WaterSource';
+import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { Tide } from '../lib/Tide';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
@@ -124,6 +127,12 @@ export interface CompiledReach {
   courseKey: string;
   /** The course's display name ("the Kestrel") — what prose calls the water. */
   courseName: string;
+  /**
+   * ⭐ How deep light reaches in this water, m (underwater D6) — the
+   * depth at which 1 % is left. The course's `water.clarityM`, else a
+   * river's 3; fouled water reads 1 whatever the course says.
+   */
+  clarityM: number;
   nodeName: string;
   basin: string;
   /** Position on its own course, source-first. */
@@ -392,6 +401,25 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     nowS: number,
   ): Promise<WaterRead | null> {
     void place;
+    // ⭐ ONE read per water per segment, shared by every place that cites
+    // it (found by the underwater drive): the bank, the basin and every
+    // band of its column cite the confluence, and each read is seconds of
+    // work — a diver's `descend` waited on a fresh read of the whole river
+    // for the band it was entering. The read does not depend on the place.
+    const key = `${citation}@${Math.floor(nowS / READ_SEGMENT_S)}`;
+    const shared = this.sharedReads.get(key);
+    if (shared) return shared;
+    const read = this.readWaterNow(citation, nowS);
+    this.sharedReads.set(key, read);
+    if (this.sharedReads.size > 256) this.sharedReads.delete(this.sharedReads.keys().next().value!);
+    read.catch(() => this.sharedReads.delete(key));
+    return read;
+  }
+
+  /** stuffId-free read cache: `<citation>@<segment>` → the read (runtime). */
+  private sharedReads = new Map<string, Promise<WaterRead | null>>();
+
+  private async readWaterNow(citation: string, nowS: number): Promise<WaterRead | null> {
     const reach = await this.reachOf(citation);
     if (reach === null) return null;
     let registry: FisheryRegistry | null = null;
@@ -406,6 +434,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       standing?.contamination ?? (await this.contaminationAt(citation, nowS).catch(() => null));
     const water = standing?.water ?? (await this.waterStateAt(citation, nowS).catch(() => null));
     const frozen = ice !== null && ice.thicknessM > OPEN_WATER_BELOW_M;
+    const tide = this.tideOf(reach, nowS);
     const fouled = (contamination?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
     const opaque: ReachReadState = {
       reach,
@@ -419,6 +448,10 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       atS: nowS,
       name: reach.courseName || reach.courseKey,
       frozen,
+      levelM: tide?.levelM ?? 0,
+      ...(tide !== null ? { tide: tide.tide } : {}),
+      ...(water ? { oxygenMgL: fouled ? water.oxygenMgL * 0.3 : water.oxygenMgL } : {}),
+      clarityM: fouled ? Math.min(FOULED_CLARITY_M, reach.clarityM) : reach.clarityM,
       draw: frozen
         ? null
         : {
@@ -443,6 +476,15 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   }
 
   /** Everyone's physical read, then the fishery read the viewer earns. Never *fouled*. */
+  /** ⭐ The tide brought current on a read this catalogue already gave (D25). */
+  public override retide(read: WaterRead, nowS: number): WaterRead | null {
+    const state = read.opaque as ReachReadState | undefined;
+    if (!state) return null;
+    const tide = this.tideOf(state.reach, nowS);
+    if (tide === null) return null;
+    return { ...read, levelM: tide.levelM, tide: tide.tide };
+  }
+
   public override waterLinesFor(read: WaterRead, viewer: Stuff): string[] {
     const state = read.opaque as ReachReadState | undefined;
     if (!state) return [];
@@ -743,6 +785,35 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   }
 
   /**
+   * ⭐ The tide at a reach (underwater D4): a reach at the sea's level is
+   * the sea's tide, felt up the river mouth; any reach above it has none.
+   * The range is the realm's dial (`water.tide.rangeM`, the Greywater's 3).
+   */
+  private tideOf(reach: { elevation: number }, nowS: number): { levelM: number; tide: WaterTide } | null {
+    if (reach.elevation > 0) return null;
+    const rangeM = dial('water.tide.rangeM', 3);
+    if (!(rangeM > 0)) return null;
+    let moon = 0;
+    try {
+      moon = CelestialApi.moonPhase(Quantity.of(nowS, 's'));
+    } catch {
+      moon = 0;
+    }
+    const t = new Tide(rangeM, dial('water.tide.lagH', 0) * 3600).at(nowS, moon);
+    return {
+      levelM: t.levelM,
+      tide: {
+        atS: nowS,
+        rangeM: t.rangeM,
+        rising: t.rising,
+        nextHighS: t.nextHighS,
+        nextLowS: t.nextLowS,
+        streamMps: t.streamFactor * dial('water.tide.peakStreamMps', 1.2),
+      },
+    };
+  }
+
+  /**
    * ⭐⭐ **Everything a body of water reports** (fishing D22) — every word
    * of `WATER_PARAMETERS`, derived where it can be and seeded on the
    * course row where it cannot, so a species' tolerances and, one day,
@@ -788,7 +859,15 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
     const brackishBelowM = dial('water.fishery.brackishBelowM', 50);
     let salinityPpt = 0.3;
-    if (reach.elevation <= 0) salinityPpt = dial('water.fishery.salinity.sea', 33);
+    const tide = this.tideOf(reach, nowS);
+    if (tide !== null) {
+      // ⭐ The tide replaces the step (underwater D4): sea water at the
+      // top of the flood, brackish at the bottom of the ebb.
+      const sea = dial('water.fishery.salinity.sea', 33);
+      const brackish = dial('water.fishery.salinity.brackish', 15);
+      const up = Math.max(0, Math.min(1, tide.levelM / Math.max(0.01, tide.tide.rangeM) + 0.5));
+      salinityPpt = brackish + (sea - brackish) * up;
+    } else if (reach.elevation <= 0) salinityPpt = dial('water.fishery.salinity.sea', 33);
     else if (reach.depthToSea <= 1 && reach.elevation < brackishBelowM) {
       salinityPpt = dial('water.fishery.salinity.brackish', 15);
     }
@@ -1128,6 +1207,7 @@ async function loadIndex(): Promise<CompiledIndex> {
         ref,
         courseKey: course.key,
         courseName: course.name,
+        clarityM: course.clarityM ?? RIVER_CLARITY_M,
         nodeName: node.name,
         basin: course.basin,
         index: i,
@@ -1503,6 +1583,10 @@ const SECONDS_PER_DAY = 86_400;
 /** The register a shore's fishery read comes from (a path, not an import — no cycle). */
 const FISHERY_PATH = '/system/water/idea/FisheryRegistry';
 /** What a pail drawn from clean fresh water holds. */
+/** How deep light reaches in a river nobody described, m. */
+const RIVER_CLARITY_M = 3;
+/** How deep light reaches in fouled water, m. */
+const FOULED_CLARITY_M = 1;
 const FRESH_WATER_PATH = '/stuff/idea/material/bulk/water';
 /** What a pail drawn below an outfall holds — no sense announces it. */
 const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
@@ -1589,6 +1673,9 @@ function hardnessWords(dgh: number): string {
 const UNDER_ICE_K = 274;
 
 /** Numeric AppSetting read with a seeded-literal fallback. */
+/** A read is shared for one weather segment (the shore's own memo window). */
+const READ_SEGMENT_S = 6 * 3600;
+
 function dial(key: string, fallback: number): number {
   try {
     const raw = AppApi.setting(key);
@@ -1911,6 +1998,7 @@ function descriptorOf(
     branchesFrom: str(data.branchesFrom) === '' ? null : str(data.branchesFrom),
     ...(water ? { water } : {}),
     ...(site ? { site } : {}),
+    ...(typeof data.clarityM === 'number' && data.clarityM > 0 ? { clarityM: data.clarityM } : {}),
   };
 }
 

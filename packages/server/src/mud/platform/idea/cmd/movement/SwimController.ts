@@ -20,8 +20,9 @@ export default class SwimController extends LocomotionControllerBase {
   /**
    * ⭐ `swim` with no target — *swim here* (storage-and-ice D12): let go of
    * the floor and go into the water where you are. The floor decides: one
-   * with open water drops you in, gently; one with none refuses. With a
-   * target it is the shipped crossing.
+   * with open water drops you in, gently; one with none refuses. Beside a
+   * water (a quay, a strand) it is the way in, which the shore names
+   * (underwater review). With a target it is the shipped crossing.
    */
   override async execute(model: LocomotionModel & CommandModel, context: CommandContext): Promise<void> {
     // A way that was TYPED is the crossing even when it names no exit —
@@ -31,7 +32,20 @@ export default class SwimController extends LocomotionControllerBase {
     if ((model.target && model.target.stuff !== null) || typed !== '') return super.execute(model, context);
     const giver = context.commandGiver as unknown as Stuff;
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    // ⭐ `dive` in the water is down (underwater review): the place picks
+    // the way, the same as `descend`.
+    // Off the ice at a hole, the water place lets go of you first.
+    if (context.verb === 'dive' && room !== null && MixinApi.isWaterPlace(room)) {
+      const way = await room.wayDown(giver);
+      if (!('exit' in way)) return this.refuse(context, 'act.deed', way.line, way.reason);
+      return this.crossPicked(giver, way.exit, context);
+    }
     const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
+    if (!(floor instanceof WaterSurface) && room !== null && MixinApi.isShore(room) && !MixinApi.isWaterPlace(room)) {
+      const way = room.wayIntoWater();
+      if ('refusal' in way) return this.refuse(context, 'act.deed', way.line, way.refusal);
+      return this.crossPicked(giver as Stuff, way.exit, context);
+    }
     if (!(floor instanceof WaterSurface)) {
       return this.refuse(context, 'act.deed', 'There is no open water here to swim in.', 'no-open-water');
     }

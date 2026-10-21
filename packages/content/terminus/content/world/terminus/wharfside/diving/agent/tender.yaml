@@ -1,0 +1,29 @@
+# The tender (underwater C4/C5) — Bet Carrow, who holds a diver's line on
+# the quay and reads it: two tugs and she hauls; a line gone quiet in the
+# wrong way and she hauls anyway.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Bet Carrow
+  keywords: [bet, carrow, tender]
+  shortDescription: tender
+  register: definite
+  longDescription: >-
+    A tall rawboned woman in a canvas apron, a coil of line over one
+    shoulder and the end of it in her hand, who never quite looks away
+    from the water.
+  archetype: hand
+  competence:
+    - { discipline: diving, asserting: proficient }
+    - { discipline: swimming, asserting: competent }
+  dispositions:
+    - { disposition: composure, valence: 70 }
+  props:
+    - /trade/diving/thing/lifeline
+  behaviors:
+    - brain: /trade/diving/behavior/tends
+      trigger: candidate

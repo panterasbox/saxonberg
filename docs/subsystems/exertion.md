@@ -164,7 +164,10 @@ time, how their body is doing. Three surfaces, all words:
   *"You're winded."* / *"You're spent."*; coming back, one line for the
   whole climb — *"You've got your breath back."* — and nothing for
   spent → winded (still short of breath). The first read of a session
-  is silent. Crossings only: *the deviation is the story*.
+  is silent. Crossings only: *the deviation is the story* — and a band
+  speaks only when it is **deeper than any since you last got your
+  breath back**, so a swimmer treading at the edge of spent hears it once,
+  not on every stroke (underwater walk: ten in a minute).
 
 ⚠ What is deliberately NOT here: a bar, a percentage, a ticking figure.
 The design that makes the run *break* only works if the player is

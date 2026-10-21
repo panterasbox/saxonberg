@@ -1,4 +1,4 @@
-verbs: [throw, hurl, lob]
+verbs: [throw, hurl, lob, heave]
 controller: /platform/idea/cmd/inventory/ThrowController
 description: "Throw something you're carrying — away, or at someone"
 help: |
@@ -16,6 +16,11 @@ help: |
 
   A potion only does its work if it acts on CONTACT. Throwing one meant
   to be drunk just wastes the flask.
+
+  ⭐ `throw <thing> to <someone>` is a toss meant to be caught, not an
+  attack — the end of a line to a swimmer going under, from the quay to
+  the water below. Not everything can be tossed to someone; what can't,
+  you throw AT them or hand over.
 examples:
   - cmd: throw the rock
     note: Pitch it away — no target, no fight
@@ -23,6 +28,8 @@ examples:
     note: Deliver a contact potion across the gap
   - cmd: hurl the bottle at the bandit
     note: An alias for the same verb
+  - cmd: throw line to Mara
+    note: A toss to be caught — a lifeline to someone in the water
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
@@ -53,3 +60,10 @@ args:
     scope: "reachable"
     prepositions: [at]
     requires: VisibleMixin
+  # ⭐ `to <who>` — a toss meant to be caught (underwater review). A name,
+  # not a bound object: the THING finds who, within its own reach (a line
+  # reaches the water below a quay, which `reachable` cannot see).
+  - name: recipient
+    type: string
+    required: false
+    prepositions: [to]

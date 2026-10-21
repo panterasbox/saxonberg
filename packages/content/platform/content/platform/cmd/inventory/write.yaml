@@ -1,0 +1,41 @@
+# ⭐ Write on a thing (underwater review) — the world's verb for putting
+# words on something: a diver's slate, a sheet of paper, a board on a wall.
+# Afforded by everything that bears marks (`MarkedMixin`); the surface
+# decides whether it takes writing and how the words read (ink needs light
+# and runs when wet; a scratch does not). ⛔ Nothing written is private: a
+# note to yourself is writing on a thing of your own. (`write` was the
+# shell's authoring verb until this review; that is `edit` now.)
+verbs: [write]
+controller: /platform/idea/cmd/inventory/WriteOnController
+description: "Write some words on a thing"
+help: |
+  `write <words> on <thing>` puts your words on something that takes
+  writing — a slate, a sheet of paper, a board — after whatever is there
+  already. Anyone who can `read` it reads it: there is no writing only
+  you can see. A note to yourself is writing on something of your own.
+
+  What it is written on decides how it lasts and how it is read. Ink
+  needs light to read and runs when it gets soaked; a scratch on a slate
+  can be felt in the dark and survives the water. Something you carry,
+  you write on in your hands; a board on a wall, where it hangs.
+examples:
+  - cmd: write meet at the anchor on slate
+    note: A diver's slate, under the water where nobody can hear you
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: words
+    type: string
+    required: true
+    greedy: true
+  # ⚠ greedy: `on the slate` / `on the harbor board` are more than one
+  # token (lint:reachability arm G — an article shape).
+  - name: surface
+    type: object
+    required: true
+    greedy: true
+    prepositions: [on, onto, in]
+    scope: ["inventory", "reachable"]
+    requires: [MarkedMixin]

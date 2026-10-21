@@ -78,8 +78,8 @@ interface World {
   npc: TestNPC;
   player: TestPlayer;
   interactive: Interactive;
-  sayNpc: ReturnType<typeof vi.spyOn>;
-  sayPlayer: ReturnType<typeof vi.spyOn>;
+  sayNpc: { mock: { calls: unknown[][] }; mockClear(): void };
+  sayPlayer: { mock: { calls: unknown[][] }; mockClear(): void };
   pending: PendingChoice[];
   /** Resolve the latest pending choice with the choice at `index`. */
   pick(index: number): Promise<void>;
@@ -111,8 +111,8 @@ function makeWorld(): World {
   ContainmentApi.move(npc as never, room as never);
   ContainmentApi.move(player as never, room as never);
 
-  const sayNpc = vi.spyOn(npc, "say").mockImplementation(() => {});
-  const sayPlayer = vi.spyOn(player, "say").mockImplementation(() => {});
+  const sayNpc = vi.spyOn(npc, "say").mockImplementation(() => ({ ok: true }));
+  const sayPlayer = vi.spyOn(player, "say").mockImplementation(() => ({ ok: true }));
 
   const pending: PendingChoice[] = [];
   const interactive = {

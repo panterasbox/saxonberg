@@ -28,6 +28,7 @@ import EventRegistry from '../../../platform/idea/EventRegistry';
 import { Stuff } from '../../stuff/Stuff';
 import { RESPIRATION_DEFAULTS } from '../Respiration';
 import { StuffApi } from '../../../api/stuff';
+import { BiomeApi, type MediumRead } from '../../../api/biome';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -85,6 +86,11 @@ function tick(n = 1): void {
   for (let i = 0; i < n; i++) WorldClockApi._advanceForTesting(TICK_MS);
 }
 
+/** Let the fire-and-forget `onMoved` re-checks land before the next act. */
+async function settle(): Promise<void> {
+  for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+}
+
 function spo2(c: Character): number {
   return c.getVitalSign('spo2').rawValue();
 }
@@ -99,6 +105,7 @@ function room(atmosphere: string): TestLocation {
 let speciesSeq = 0;
 function bodyWith(config: {
   breathableMedia?: string[];
+  breathing?: { medium: string; apparatus: string; intake: number }[];
   respires?: boolean;
 }): Character {
   speciesSeq += 1;
@@ -106,7 +113,12 @@ function bodyWith(config: {
     () => new BodyPlan(),
     `/test/respiration/bodyplan-${speciesSeq}`,
   );
-  if (config.breathableMedia) bp.setBreathableMedia(config.breathableMedia);
+  if (config.breathableMedia) {
+    bp.setBreathing(config.breathableMedia.map((medium) => ({
+      medium, apparatus: medium === 'water' ? 'gills' : 'lungs', intake: 1,
+    })));
+  }
+  if (config.breathing) bp.setBreathing(config.breathing);
   if (config.respires !== undefined) bp.setRespires(config.respires);
   const sp = makeStuffAtPath(
     () => new Species(),
@@ -162,9 +174,10 @@ describe('RespirationMixin — the crisis core', () => {
     await c.reassess();
     expect(c.getEngagementByType('respiration-drain')).toBeDefined();
 
-    // Past the breath-hold grace, well into the drain (but above the
-    // lethal floor): consciousness flips for free off the falling spo2.
-    tick(25);
+    // Past the breath the body had in it (a tidal breath, ~37 s), well
+    // into the drain (but above the lethal floor): consciousness flips
+    // for free off the falling spo2.
+    tick(45);
     expect(spo2(c)).toBeLessThan(70);
     expect(spo2(c)).toBeGreaterThan(RESPIRATION_DEFAULTS.ANOXIA_FLOOR_PCT);
     expect(c.getConsciousness()).toBe('unconscious');
@@ -192,7 +205,7 @@ describe('RespirationMixin — the crisis core', () => {
     ContainmentApi.move(c, water);
 
     await c.reassess();
-    tick(25);
+    tick(45);
     expect(c.getConsciousness()).toBe('unconscious');
 
     // Escape to breathable air.
@@ -313,39 +326,159 @@ describe('RespirationMixin — the crisis core', () => {
     await expect(inFlight).resolves.toBeUndefined();
   });
 
-  it('inhale extends the breath-hold so a prepared dive outlasts an unprepared one', async () => {
+  it('⭐ the breath is a STORE: a deep breath taken first outlasts a surprised one', async () => {
     const prepared = makeStuff(() => new TestCharacter());
     const unprepared = makeStuff(() => new TestCharacter());
 
     // The prepared diver takes a breath on dry land first.
-    prepared.inhale();
-    expect(prepared.isHoldingBreath()).toBe(true);
+    ContainmentApi.move(prepared, room('air'));
+    await settle();
+    expect(await prepared.inhale()).toEqual({ ok: true, hyperventilating: false, shallow: false });
+    expect(prepared.getO2StoreL()).toBeCloseTo(prepared.fullO2StoreL(), 5);
 
     ContainmentApi.move(prepared, room('water'));
     ContainmentApi.move(unprepared, room('water'));
     await prepared.reassess();
     await unprepared.reassess();
+    expect(prepared.isHoldingBreath()).toBe(true);
 
-    // Advance past the automatic grace but within the voluntary hold.
-    tick(13);
-    expect(spo2(unprepared)).toBeLessThan(98); // auto-grace expired, dropping
-    expect(spo2(prepared)).toBe(98); // still holding the deeper breath
+    // Past the tidal breath, within the deep one.
+    tick(25);
+    expect(spo2(unprepared)).toBeLessThan(98);
+    expect(spo2(prepared)).toBe(98);
   });
 
-  it('exhale clears the hold so the drain resumes draining', async () => {
+  it('⭐ #94: under water there is nothing to breathe — inhale is refused, the store unchanged', async () => {
     const c = makeStuff(() => new TestCharacter());
-    c.inhale();
     ContainmentApi.move(c, room('water'));
     await c.reassess();
+    tick(5);
+    const before = c.getO2StoreL();
+    expect(await c.inhale()).toMatchObject({ ok: false, reason: 'nothing-to-breathe' });
+    expect(c.getO2StoreL()).toBeCloseTo(before, 5);
+  });
 
-    tick(3); // within the hold — no drop yet
-    expect(spo2(c)).toBe(98);
-
+  it('exhale empties the lungs to the residual, so the drain bites sooner', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('air'));
+    await settle();
+    await c.inhale();
     c.exhale();
-    expect(c.isHoldingBreath()).toBe(false);
-
-    tick(20); // the drain now bites
+    expect(c.getO2StoreL()).toBeCloseTo(c.fullO2StoreL() * RESPIRATION_DEFAULTS.RESIDUAL_FRACTION, 5);
+    ContainmentApi.move(c, room('water'));
+    await c.reassess();
+    tick(25);
     expect(spo2(c)).toBeLessThan(70);
+  });
+
+  it('⭐ the urge speaks in the body\'s voice, at crossings; hyperventilating delays it, not the blackout', async () => {
+    const said: string[] = [];
+    const calm = makeStuff(() => new TestCharacter());
+    const panting = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(calm, room('air'));
+    ContainmentApi.move(panting, room('air'));
+    await settle();
+    await calm.inhale();
+    await panting.inhale();
+    expect(await panting.inhale()).toEqual({ ok: true, hyperventilating: true, shallow: false });
+    await panting.inhale();
+    ContainmentApi.move(calm, room('water'));
+    ContainmentApi.move(panting, room('water'));
+    await calm.reassess();
+    await panting.reassess();
+    void said;
+    tick(20); // 40 s: about half the deep breath spent
+    expect(calm.getBreathUrge()).toBeGreaterThan(panting.getBreathUrge());
+    // The oxygen ran out at the same time for both.
+    expect(Math.abs(calm.getO2StoreL() - panting.getO2StoreL())).toBeLessThan(1e-6);
+  });
+
+  it('⭐ three fast breaths and you black out with NO warning (requirements drive step 4)', async () => {
+    const panting = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(panting, room('air'));
+    await settle();
+    await panting.inhale();
+    await panting.inhale();
+    await panting.inhale();
+    await panting.inhale();
+    ContainmentApi.move(panting, room('water'));
+    await panting.reassess();
+    let peak = panting.getBreathUrge();
+    for (let i = 0; i < 400 && panting.getO2StoreL() > 0; i++) {
+      tick(1);
+      peak = Math.max(peak, panting.getBreathUrge());
+    }
+    expect(panting.getO2StoreL()).toBe(0);
+    // The warning speaks at 0.5: it never got there before the store ran out.
+    expect(peak).toBeLessThan(0.5);
+  });
+
+  it('⭐ cold water takes your breath on entry: the store halves, the urge jumps, once', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('air'));
+    await settle();
+    await c.inhale();
+    const full = c.fullO2StoreL();
+    const cold = { tag: 'water', substance: 'water', immersed: true, atSurface: true, temperatureK: 276, depthM: 0, waterRef: null };
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(cold);
+    await c.reassess();
+    expect(c.getO2StoreL()).toBeLessThanOrEqual(full / 2 + 1e-9);
+    expect(c.getBreathUrge()).toBeGreaterThanOrEqual(0.6);
+    // Breathing at the surface does not give it back while the gasp lasts.
+    tick(5);
+    expect(c.getO2StoreL()).toBeLessThanOrEqual(full / 2 + 1e-9);
+    // ⭐ …and a deep breath taken in the gasp says it is a shallow one.
+    expect(await c.inhale()).toMatchObject({ ok: true, shallow: true });
+  });
+
+  it('⭐ the dying window is longer in cold water — about four times near freezing', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('water'));
+    const cold = { tag: 'water', substance: 'water', immersed: true, atSurface: false, temperatureK: 276, depthM: 4, waterRef: null };
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(cold);
+    const dying = vi.spyOn(c, 'beginDying');
+    await c.reassess();
+    tick(120);
+    expect(dying).toHaveBeenCalled();
+    const windowSec = dying.mock.calls[0]![1] as number;
+    expect(windowSec).toBeCloseTo(RESPIRATION_DEFAULTS.DYING_WINDOW_SEC * 2.5, 5);
+  });
+
+  it('⭐⭐ the rescue window is REAL time — the game-time dying clock gets it scaled by the world rate (underwater walk)', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('water'));
+    const cold = { tag: 'water', substance: 'water', immersed: true, atSurface: false, temperatureK: 276, depthM: 4, waterRef: null };
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(cold);
+    const dying = vi.spyOn(c, 'beginDying');
+    await c.reassess();
+    tick(120);
+    const unscaled = dying.mock.calls[0]![1] as number;
+    dying.mockClear();
+    const d = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(d, room('water'));
+    const dying12 = vi.spyOn(d, 'beginDying');
+    // The breath runs on game ÷ scale, so the same real time is 12× the ticks.
+    vi.spyOn(WorldClockApi, 'getScale').mockReturnValue(12);
+    await d.reassess();
+    tick(120 * 12);
+    expect(dying12.mock.calls[0]![1] as number).toBeCloseTo(unscaled * 12, 5);
+  });
+
+  it('⭐⭐ brought up into air inside the window, a drowning body is rescued — the dying record goes (underwater walk)', async () => {
+    const c = makeStuff(() => new TestCharacter());
+    ContainmentApi.move(c, room('water'));
+    const deep = { tag: 'water', substance: 'water', immersed: true, atSurface: false, temperatureK: 285, depthM: 4, waterRef: null };
+    const read = vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(deep as never);
+    await c.reassess();
+    for (let i = 0; i < 300 && !c.isDying(); i++) tick(1);
+    expect(c.isDying()).toBe(true);
+    // Hauled out: air again.
+    read.mockRestore();
+    ContainmentApi.move(c, room('air'));
+    await c.reassess();
+    tick(40);
+    expect(c.isDying()).toBe(false);
+    expect(c.getConsciousness()).toBe('conscious');
   });
 
   it('respires opt-out: a non-respiring body never engages a drain', async () => {
@@ -359,5 +492,143 @@ describe('RespirationMixin — the crisis core', () => {
     tick(40);
     expect(spo2(construct)).toBe(before);
     expect(construct.getLifecycleState()).not.toBe('dead');
+  });
+
+  /* ─────────────── breathing is a rate (underwater D21) ─────────────── */
+
+  it('⭐ a frog\'s skin takes three-quarters of its need from the water: its breath lasts four times as long', async () => {
+    const man = bodyWith({ breathableMedia: ['air'] });
+    const frog = bodyWith({ breathing: [
+      { medium: 'air', apparatus: 'lungs', intake: 1 },
+      { medium: 'water', apparatus: 'skin', intake: 0.75 },
+    ] });
+    for (const c of [man, frog]) c.setMass(Quantity.of(70, 'kg'));
+    const under: MediumRead = {
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 293, depthM: 3, waterRef: null,
+    };
+    ContainmentApi.move(man, room('air'));
+    ContainmentApi.move(frog, room('air'));
+    await man.reassess();
+    await frog.reassess();
+    const fullMan = man.getO2StoreL();
+    const fullFrog = frog.getO2StoreL();
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(under);
+    await man.reassess();
+    await frog.reassess();
+    expect(frog.getEngagementByType('respiration-drain')).toBeDefined();
+    tick(4);
+    const spentMan = fullMan - man.getO2StoreL();
+    const spentFrog = fullFrog - frog.getO2StoreL();
+    expect(spentMan).toBeGreaterThan(0);
+    expect(spentFrog / spentMan).toBeCloseTo(0.25, 1);
+  });
+
+  it('⭐ gills in foul, oxygen-poor water breathe, and not enough: the drain runs; in good water it does not', async () => {
+    const trout = bodyWith({ breathableMedia: ['water'] });
+    const sp = (trout as unknown as { getSpecies(): Species }).getSpecies();
+    sp.setHabitat({ role: 'predator', tolerances: { oxygenMgL: { min: 7, margin: 2 } } } as never);
+    const at = (o2: number): MediumRead => ({
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 285, depthM: 1, waterRef: null, oxygenMgL: o2,
+    });
+    ContainmentApi.move(trout, room('air'));
+    const read = vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(at(10));
+    await trout.reassess();
+    expect(trout.getEngagementByType('respiration-drain')).toBeUndefined();
+    read.mockReturnValue(at(4));
+    await trout.reassess();
+    expect(trout.getEngagementByType('respiration-drain')).toBeDefined();
+  });
+
+  /* ─────────────── a working held (underwater D18) ─────────────── */
+
+  it('⭐ breathe-water held: under the water it breathes; when the working lapses it is on its own breath again', async () => {
+    const diver = bodyWith({ breathableMedia: ['air'] });
+    const under: MediumRead = {
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 285, depthM: 5, waterRef: null,
+    };
+    ContainmentApi.move(diver, room('air'));
+    const now = WorldClockApi.getNow().rawValue();
+    const working = {
+      kind: 'sustained', spellId: 'breathe-water', realizes: 'confer-medium', medium: 'water',
+      magicOrigin: { tag: 'arcane' }, expiresAt: now + 900,
+    } as never;
+    diver.afflict(working);
+    diver.getVitalSign('heartRate');
+    expect(diver.getConferredBreathing()).toBe('water');
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(under);
+    await diver.reassess();
+    expect(diver.getEngagementByType('respiration-drain')).toBeUndefined();
+    // The term runs out: the working lapses, and the drain begins.
+    WorldClockApi._advanceForTesting(901_000);
+    diver.getVitalSign('heartRate');
+    await settle();
+    expect(diver.getConferredBreathing()).toBeNull();
+    await diver.reassess();
+    expect(diver.getEngagementByType('respiration-drain')).toBeDefined();
+  });
+
+  it('⭐ a held breath runs on real seconds: at a 12× world clock, twelve game-seconds spend one second of breath', async () => {
+    const man = bodyWith({ breathableMedia: ['air'] });
+    man.setMass(Quantity.of(70, 'kg'));
+    ContainmentApi.move(man, room('air'));
+    await man.reassess();
+    const full = man.getO2StoreL();
+    vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({
+      tag: 'water', substance: 'water', immersed: true, atSurface: false,
+      temperatureK: 293, depthM: 3, waterRef: null,
+    });
+    await man.reassess();
+    WorldClockApi.setScale(12);
+    try {
+      WorldClockApi._advanceForTesting(12_000);
+      await settle();
+      const atTwelve = full - man.getO2StoreL();
+      WorldClockApi.setScale(1);
+      const man2 = bodyWith({ breathableMedia: ['air'] });
+      man2.setMass(Quantity.of(70, 'kg'));
+      ContainmentApi.move(man2, room('air'));
+      await man2.reassess();
+      const full2 = man2.getO2StoreL();
+      await man2.reassess();
+      WorldClockApi._advanceForTesting(12_000);
+      await settle();
+      const atOne = full2 - man2.getO2StoreL();
+      expect(atOne).toBeGreaterThan(0);
+      expect(atTwelve).toBeLessThan(atOne / 4);
+    } finally {
+      WorldClockApi.setScale(1);
+    }
+  });
+
+  it('⭐ a cold-shocked hold still warns: the urge passes its first word before the halved store runs out', async () => {
+    const diver = bodyWith({ breathableMedia: ['air'] });
+    diver.setMass(Quantity.of(70, 'kg'));
+    ContainmentApi.move(diver, room('air'));
+    await diver.reassess();
+    // Into COLD water at the surface: the gasp (cold shock) — then a deep
+    // breath, which resets the urge but cannot refill past the gasp's cap.
+    const cold = (atSurface: boolean): MediumRead => ({
+      tag: 'water', substance: 'water', immersed: true, atSurface,
+      temperatureK: 280, depthM: atSurface ? 0 : 3, waterRef: null,
+    });
+    const read = vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue(cold(true));
+    await diver.reassess();
+    await diver.inhale();
+    expect(diver.getBreathUrge()).toBeLessThan(0.5);
+    // Then under.
+    read.mockReturnValue(cold(false));
+    await diver.reassess();
+    expect(diver.getEngagementByType('respiration-drain')).toBeDefined();
+    let warnedBeforeEmpty = false;
+    for (let i = 0; i < 200 && diver.getO2StoreL() > 0; i++) {
+      tick(1);
+      await settle();
+      if (diver.getO2StoreL() > 0 && diver.getBreathUrge() >= 0.5) warnedBeforeEmpty = true;
+    }
+    expect(diver.getO2StoreL()).toBe(0);
+    expect(warnedBeforeEmpty).toBe(true);
   });
 });

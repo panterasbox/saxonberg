@@ -116,6 +116,9 @@ importers:
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:packages/content/trade-distilling
+      '@saxonberg/content-trade-diving':
+        specifier: workspace:*
+        version: link:packages/content/trade-diving
       '@saxonberg/content-trade-drilling':
         specifier: workspace:*
         version: link:packages/content/trade-drilling
@@ -481,6 +484,9 @@ importers:
       '@saxonberg/content-trade-ranching':
         specifier: workspace:*
         version: link:../trade-ranching
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -917,6 +923,9 @@ importers:
       '@saxonberg/content-arcana':
         specifier: workspace:*
         version: link:../arcana
+      '@saxonberg/content-arcane-library':
+        specifier: workspace:*
+        version: link:../arcane-library
       '@saxonberg/content-corpo-goodkin':
         specifier: workspace:*
         version: link:../corpo-goodkin
@@ -968,6 +977,9 @@ importers:
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:../trade-distilling
+      '@saxonberg/content-trade-diving':
+        specifier: workspace:*
+        version: link:../trade-diving
       '@saxonberg/content-trade-dyeing':
         specifier: workspace:*
         version: link:../trade-dyeing
@@ -1373,6 +1385,43 @@ importers:
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-diving:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-fishing':
+        specifier: workspace:*
+        version: link:../trade-fishing
+      '@saxonberg/content-trade-shopkeeping':
+        specifier: workspace:*
+        version: link:../trade-shopkeeping
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -1,0 +1,17 @@
+# A diver's air pump (underwater C3, D27) — a two-handled force pump in a
+# wooden case, worked by hand on the surface to send air down a hose to
+# a helmet. Each spell at the handles is a minute of air below.
+class: /trade/diving/thing/AirPump
+data:
+  shortDescription: air pump
+  keywords: [pump, "air pump", handles]
+  register: indefinite
+  longDescription: >-
+    A bronze double-cylinder pump in a mahogany case, with a great flywheel
+    and a handle at each side for two men to work, and a pressure gauge
+    on its face.
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 80
+  fixedInPlace: true
+  litresPerSpell: 30
+  spellSeconds: 20

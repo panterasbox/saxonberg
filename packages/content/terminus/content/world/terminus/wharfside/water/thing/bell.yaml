@@ -1,0 +1,6 @@
+# The Wharfside bell (underwater C2) — the city's diving bell, hung on the
+# quay hoist over the basin. The dive shop's crew work it.
+class: /trade/diving/thing/Bell
+extends: /trade/diving/thing/bell
+data:
+  shortDescription: diving bell

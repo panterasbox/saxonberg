@@ -109,6 +109,9 @@ function dialNum(key: string, fallback: number): number {
  */
 const warnedFloorFailures = new Set<string>();
 
+/** The words that name the ground itself, for {@link Place.groundRefusal}. */
+const GROUND_WORDS: readonly string[] = ['ground', 'floor'];
+
 /** What {@link Place.floorDefaults} answers. */
 export interface FloorDefaults {
   worked: boolean;
@@ -306,8 +309,9 @@ export default class Place extends PlaceBase {
    * **sits below datum**, so it would floor the open water when only the bed
    * has ground under it. So existence is its own field, it defaults to
    * **yes**, and the three cases that opt out are the void (shipped here),
-   * mid-air and mid-water (neither exists in the game yet — the seam and its
-   * test ship so the builder who arrives finds it).
+   * mid-water (the water pack's lit and dark bands, underwater build) and
+   * mid-air (not in the game yet). A place with none says why through
+   * {@link Place.noGroundLine}, which the posture verbs ask.
    *
    * ⚠ It was documented in `default-floor.yaml`, `posture.md` and
    * `spatial.md` for two builds while **no code read it**. It does now.
@@ -337,6 +341,27 @@ export default class Place extends PlaceBase {
   }
   public setNoDefaultFloor(value: boolean): void {
     this.noDefaultFloor = value;
+  }
+
+  /**
+   * ⭐ Why you cannot sit, lie, kneel or stand on the ground here, when
+   * `named` asks for the ground and this place has none — or `null`, and
+   * the verb goes on (underwater review: the PLACE says why, rather than a
+   * floor object standing in for an absence). The posture verbs ask it.
+   */
+  public groundRefusal(named?: string): string | null {
+    if (this.getFloor() !== null) return null;
+    const word = (named ?? '').trim().toLowerCase();
+    if (word !== '' && !GROUND_WORDS.includes(word)) return null;
+    return this.noGroundLine();
+  }
+
+  /**
+   * @hook What a place with no floor says about the ground: a place that
+   * knows what is under you (mid-water, mid-air) says it in its own words.
+   */
+  public noGroundLine(): string {
+    return 'There is no ground here.';
   }
 
   /**

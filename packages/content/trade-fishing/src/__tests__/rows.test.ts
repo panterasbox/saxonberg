@@ -95,13 +95,17 @@ describe('the species rows', () => {
 });
 
 describe('the body plans', () => {
-  it('⚠⚠ the fish plan breathes WATER and only water; the crab breathes both', () => {
+  it('⚠⚠ the fish plan breathes WATER and only water; the crab breathes water, and air nearly as well', () => {
     const fish = YAML.parse(readFileSync(join(SPECIES_DIR, 'BodyPlan', 'fish.yaml'), 'utf8'));
-    expect(fish.data.breathableMedia).toEqual(['water']);
+    expect(fish.data.breathing).toEqual([{ medium: 'water', apparatus: 'gills', intake: 1 }]);
     expect(fish.data.locomotionModes).toEqual(['swim']);
     expect(fish.data.respires).toBe(true);
     const crab = YAML.parse(readFileSync(join(SPECIES_DIR, 'BodyPlan', 'crustacean.yaml'), 'utf8'));
-    expect(crab.data.breathableMedia).toEqual(['water', 'air']);
+    // ⭐ Water freely; air, at nine-tenths of its need (underwater D21).
+    expect(crab.data.breathing).toEqual([
+      { medium: 'water', apparatus: 'gills', intake: 1 },
+      { medium: 'air', apparatus: 'gills', intake: 0.9 },
+    ]);
   });
 });
 

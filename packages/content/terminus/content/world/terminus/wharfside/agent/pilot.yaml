@@ -20,6 +20,7 @@ data:
     A broad weathered woman in an oilskin smock, sitting on a bollard with
     her back to the warehouses and her eyes on the estuary, the way some
     people watch a fire.
+  archetype: pilot
   prologue:
     - "Has taken ships over the bar since before the withies were renewed."
     - "Charges for what she knows, and has never been wrong about the Westerlies."
@@ -33,3 +34,14 @@ data:
     - { kind: band, path: /stuff/idea/WaterExpanse/greywater/channel, name: the channel, where: "over the bar, a cable wide, and it shifts" }
     - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-westerlies, name: the Westerlies, where: "from the roads to the Rock, setting north-east" }
     - { kind: band, path: /stuff/idea/WaterExpanse/greywater/the-race, name: the race, where: "across the haar, over the ledge — stand off it" }
+  # ⭐ The harbor works' seat (underwater C4/C5): the pilot keeps the
+  # city's work below the waterline posted on the harbor board.
+  behaviors:
+    - brain: /trade/diving/behavior/surveys
+      trigger: candidate
+      config:
+        board: /world/terminus/wharfside/thing/harbor-board
+        bank: /world/terminus/wharfside/bank
+        anchor: /world/terminus/wharfside/water/thing/lost-anchor
+        basin: /world/terminus/wharfside/water/location/basin
+        reward: 30

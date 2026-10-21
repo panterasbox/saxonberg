@@ -426,6 +426,11 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * what makes surveying before you commit predict anything. It is
  * assigned at runtime by the act, which is exactly what this roster is
  * for.
+ *
+ * ⭐ The last three are the COLUMN's bands (underwater D5): the
+ * `ColumnWarren` clones one per band under a deep water and stamps it a
+ * cell below its surface, so a band row is a KIND of depth, never a
+ * place an author positions.
  */
 export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/face.yaml",
@@ -433,6 +438,9 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
   "trade-farming/content/trade/farming/location/field.yaml",
+  "water/content/system/water/location/band/bed.yaml",
+  "water/content/system/water/location/band/dark.yaml",
+  "water/content/system/water/location/band/lit.yaml",
   "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
   "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
 ];

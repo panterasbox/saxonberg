@@ -13,6 +13,8 @@ import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { Quantity } from '../../quantity';
 import { LOAD_BEARING_DEFAULTS } from '../LoadBearing';
+import MaterialClass from '../../../platform/idea/material/Material';
+import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import {
   bearerCreature,
@@ -158,5 +160,37 @@ describe('LoadBearing — getLoadRatio', () => {
     const c = bearerCreature(0); // no body mass → zero capacity
     ContainmentApi.move(massThing(5), c);
     expect(c.getLoadRatio()).toBe(Infinity);
+  });
+});
+
+describe('LoadBearing — the burden in the water (underwater review)', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  /** A loose thing of `kg` made of something `rho` dense. */
+  function madeOf(kg: number, rho: number, name: string) {
+    const t = massThing(kg);
+    const m = makeStuffAtPath(() => {
+      const mat = new MaterialClass();
+      mat.setName(name);
+      mat.setDensity(Quantity.of(rho, 'kg/m³'));
+      return mat;
+    }, `/stuff/idea/material/_test/${name}`) as unknown as MaterialClass;
+    t.setMaterial(m);
+    return t;
+  }
+
+  it('⭐ lead still weighs in the water; a bag of air lifts and helps carry it', () => {
+    const c = bearerCreature();
+    ContainmentApi.move(madeOf(6, 11340, 'test-lead'), c);
+    const dry = c.getBorneBurden().rawValue();
+    const wet = c.getBorneBurden(1000).rawValue();
+    expect(dry).toBeCloseTo(6 * LOOSE_CARRY_SURCHARGE);
+    expect(wet).toBeCloseTo(6 * (1 - 1000 / 11340) * LOOSE_CARRY_SURCHARGE);
+    // Three canvas bags (600 kg/m³) float: they take weight OFF.
+    for (let i = 0; i < 3; i++) ContainmentApi.move(madeOf(3, 600, `test-canvas-${i}`), c);
+    expect(c.getBorneBurden().rawValue()).toBeGreaterThan(dry);
+    expect(c.getBorneBurden(1000).rawValue()).toBe(0);
+    expect(c.getLoadRatio(1000)).toBe(0);
   });
 });

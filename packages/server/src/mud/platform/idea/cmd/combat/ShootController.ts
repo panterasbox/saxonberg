@@ -34,6 +34,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
+import { BiomeApi } from '../../../../api/biome';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ConditionApi } from '../../../../api/condition';
@@ -82,6 +83,16 @@ export default class ShootController extends CommandController<ShootModel> {
 
     // ⭐⭐ **Not ready yet.** Refused BEFORE the fight opens and before
     // any ammunition is spent — a reload is not a failed shot.
+    // ⭐ Under the water a bow will not draw (D28) — the launcher says
+    // whether it was built for it.
+    const medium = BiomeApi.mediumFor(giver as unknown as Stuff);
+    if (medium.immersed && !medium.atSurface && !launcher.getWorksUnderwater()) {
+      return this.fail(
+        context,
+        `${launcher.getPresentation()} will not draw against the water.`,
+        'no-draw-underwater',
+      );
+    }
     const waiting = launcher.secondsUntilReady(this.nowS());
     if (waiting > 0) {
       return this.fail(

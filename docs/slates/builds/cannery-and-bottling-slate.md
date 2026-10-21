@@ -200,3 +200,15 @@ summer price, and a ship's cook buys a case for the voyage.
 3. **The metal-forming pack's root and name** — its own trade, beside smithing.
 4. **Cork** — the cork-oak tap and where it grows.
 5. **The hand of the soldered seam** vs the double seam — which rung ships first.
+
+## ⭐ A label is a NOUN (user, the underwater review, 2026-10-20)
+
+*"labels are nouns and we're going to want to have labels on real goods
+… `label bottle` is gonna be the natural expression of affixing a label
+to a bottle … labels exist and they mean something specific, not just
+any old text."* So bottling's `label <bottle>` AFFIXES a label — a made
+good (printed, bought, a brand's) — to the bottle. ⚠ The shipped
+platform `label <thing> <text>` (write a name a thing answers to) is
+writing on it, not a label: this build reconciles the two — the shipped
+verb's renaming job either becomes `write … on` or keeps a word that is
+not `label`.

@@ -61,7 +61,7 @@ the author-controlled `data` blob.
 **`FromTemplate('/platform/idea/api/template')`** — its sole legitimate caller is the
 `TemplateLogic` save singleton (a registered Stuff, so its caller frame
 resolves to its template path, not a module id). Every authoring transport —
-the in-world authoring verbs (`write`, …) and the REST CMS — funnels through
+the in-world authoring verbs (`edit`, …) and the REST CMS — funnels through
 `TemplateApi.saveTemplate`, which appends one row after the save commits; no
 other code may write a row. The author is resolved **DB-free first**
 (`getActingAuthor` is an execution-context read), so a non-authoring save (no
