@@ -47,7 +47,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 const WEATHER_DEVIATED_FIELDS = new Set<string>(WEATHER_FIELDS);
 
 /**
- * ⭐ The medium's physics by tag — the one source (underwater-plan D2).
+ * ⭐ The medium's physics by tag — the one source (underwater D2).
  * The four per-tag tables that lived here are columns of
  * {@link MEDIA} now; the reads below keep their signatures.
  */
@@ -892,7 +892,7 @@ const AIR_READ: MediumRead = {
 };
 
 /**
- * ⭐⭐ **What `stuff` is IN** — the one medium read (underwater-plan D3).
+ * ⭐⭐ **What `stuff` is IN** — the one medium read (underwater D3).
  *
  * Walks the containment chain outward from `stuff`; the first ancestor
  * that has an answer gives it:

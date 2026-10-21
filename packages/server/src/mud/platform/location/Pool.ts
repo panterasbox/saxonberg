@@ -1,6 +1,6 @@
 /**
  * Pool — ⭐ **a water you can be in**: the kernel's instanceable water
- * place (underwater-plan D1).
+ * place (underwater D1).
  *
  * Everything that makes it water is `WaterPlaceMixin`'s — the cited water
  * and the depth of the floor in it (`water: { of, depthM }`), who is in

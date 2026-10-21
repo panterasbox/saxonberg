@@ -684,6 +684,7 @@ LoungeMixin.warren = 0
 MarkedMixin.markForm = 0
 MarkedMixin.markScript = 0
 MarkedMixin.markText = 0
+MarkedMixin.writingRoom = 0
 Material.appearance = 0
 Material.ashFraction = 1 (name 0)
 Material.atomicNumber = 0

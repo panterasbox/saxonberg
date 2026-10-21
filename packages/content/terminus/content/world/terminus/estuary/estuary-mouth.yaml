@@ -50,6 +50,8 @@ data:
     north:
       destination: /world/terminus/estuary/channel
       media: [water]
+      # A swim out over the bar, short; every corridor edge carries a budget.
+      edgeMinutes: 2
     # ⭐ The way aboard whatever lies at the bar (maritime D19) — a ship
     # that has sailed is not alongside, and this says so.
     aboard:

@@ -1,5 +1,5 @@
 /**
- * WaterPlaceMixin — ⭐⭐ **this place IS a water** (underwater-plan D1).
+ * WaterPlaceMixin — ⭐⭐ **this place IS a water** (underwater D1).
  *
  * Water is a STATE of a place, not a kind of place. A place cites a water
  * and says how deep its floor lies below that water's level:

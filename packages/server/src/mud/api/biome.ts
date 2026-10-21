@@ -248,7 +248,7 @@ export class BiomeApi {
 
   /**
    * ⭐⭐ **What `stuff` is IN, now** — the one medium read every physics
-   * seam asks (underwater-plan D3). Sync. Per-occupant: a body on the ice
+   * seam asks (underwater D3). Sync. Per-occupant: a body on the ice
    * reads air and the body in the hole beside it reads water.
    *
    * Walks outward: a vessel's liquid, then a holder's own atmosphere (a

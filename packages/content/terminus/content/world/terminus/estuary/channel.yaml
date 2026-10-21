@@ -26,3 +26,5 @@ data:
     south:
       destination: /world/terminus/estuary/estuary-mouth
       media: [water]
+      # A swim out over the bar, short; every corridor edge carries a budget.
+      edgeMinutes: 2

@@ -6,7 +6,7 @@
  * mine gases). Every seam that used to ask *"is this place water?"* in its
  * own way — combustion, speech, sound, sight, heat, drag, breathing —
  * reads a column of this record by tag, so the medium is answered once
- * and every consequence derives from it (underwater-plan D2).
+ * and every consequence derives from it (underwater D2).
  *
  * The four per-tag tables that lived in `BiomeLogic` (density,
  * conductivity, breathable, contaminant) are columns here now; the
