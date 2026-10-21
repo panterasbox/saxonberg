@@ -1,8 +1,9 @@
 /**
  * DiagnosticApi — the author-diagnostics surface: one searchable store
  * fed by three producers (the runtime execution-context guard, the
- * dev-only TS compile watcher, and — for the raw ring only — the console
- * tap), read by the `errors` verb and the CMS diagnostics panel.
+ * per-file TypeScript check {@link DiagnosticApi.typecheck}, and — for the
+ * raw ring only — the console tap), read by the `errors` verb and the CMS
+ * diagnostics panel.
  *
  * A content author working through the CMS or the shell has no feedback
  * path for errors in the content they authored: runtime throws in a brain
@@ -37,6 +38,7 @@ import type {
   RawDiagnostic,
   RawConsoleLine,
   RawConsoleFilter,
+  TypecheckResult,
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -82,7 +84,26 @@ export class DiagnosticApi {
   }
 
   /**
-   * Record a compile watcher's batch for one file: fully replaces the
+   * Type-check ONE source file out of process and record what it found
+   * (superseding the file's prior compile rows). Rooted at the file, so it
+   * answers "does this file type-check", not "did it break its
+   * importers". Checks run one at a time; a check takes ~1–3 s and never
+   * blocks the world. Throws when `file` is not a `.ts` source inside the
+   * kernel's or a pack's `src/`, or when the check could not run.
+   *
+   * `opts.live` fires the author push for each row — for callers with no
+   * reply of their own (a CMS or Studio save); a verb that reports the
+   * result itself passes `false`.
+   */
+  public static async typecheck(
+    file: string,
+    opts: { live: boolean }
+  ): Promise<TypecheckResult> {
+    return logic().typecheck(file, opts);
+  }
+
+  /**
+   * Record a compile batch for one file: fully replaces the
    * file's prior compile rows (a fixed file clears), and fires the live
    * stream only when `opts.live` (cold-start batches pass `false` so the
    * boot baseline lands silently).

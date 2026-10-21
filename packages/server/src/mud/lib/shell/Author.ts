@@ -77,6 +77,7 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
       self: [
         'platform/cmd/author/clone.yaml',
         'platform/cmd/author/reload.yaml',
+        'platform/cmd/author/typecheck.yaml',
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
 

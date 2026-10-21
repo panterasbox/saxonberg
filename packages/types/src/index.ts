@@ -4266,6 +4266,19 @@ export interface RawDiagnostic {
   message: string;
 }
 
+/**
+ * The outcome of type-checking ONE source file (`DiagnosticApi.typecheck`):
+ * what the out-of-process check found in that file, and nothing about the
+ * files that import it.
+ */
+export interface TypecheckResult {
+  /** Absolute path of the file checked. */
+  file: string;
+  errors: number;
+  warnings: number;
+  diagnostics: RawDiagnostic[];
+}
+
 /** A single captured runtime throw (the runRoot guard / command-path capture). */
 export interface RuntimeDiagnostic {
   path: string | null;
