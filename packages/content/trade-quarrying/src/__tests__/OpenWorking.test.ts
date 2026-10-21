@@ -134,8 +134,8 @@ function tool(label: string, ...capabilities: string[]): Stuff & Tooled {
   return t as Stuff & Tooled;
 }
 
-const spade = () => tool('a spade', 'digging');
-const pick = () => tool('a pick', 'winning', 'striking');
+const spade = () => tool('spade', 'digging');
+const pick = () => tool('pick', 'winning', 'striking');
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -231,7 +231,7 @@ describe('⭐⭐ the tool is the constraint, and the GROUND names it', () => {
 
   it('⚠ the wrong tool is named as ITSELF — a test egg is not "a pick" (potash drive)', async () => {
     const pit = working();
-    const out = (await pit.planWork(actor, tool('a test egg', 'flotation'), null)) as WorkRefusal;
+    const out = (await pit.planWork(actor, tool('test egg', 'flotation'), null)) as WorkRefusal;
     expect(out.reason).toBe('no-spade');
     expect(out.prose).toMatch(/^A test egg will not shift/);
   });

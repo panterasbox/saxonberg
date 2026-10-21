@@ -31,6 +31,7 @@ const PACK = fileURLToPath(new URL('../../pack.yaml', import.meta.url));
 
 interface Doc {
   class: string;
+  extends?: string;
   data: Record<string, unknown>;
 }
 
@@ -210,7 +211,14 @@ describe('the premises have what the trades need', () => {
       'props'
     ] as string[];
     expect(props).toContain('/trade/cooking/thing/butcher-block');
-    expect(props).toContain('/trade/cooking/thing/tallow-crock');
+    // ⭐ Cooking's crock, FULL: "what is left is in the crock" — a
+    // locality row that `extends:` the trade's (no class, no pack code),
+    // holding the fat the yard has been rendering for years (the potash
+    // drive found the shipped crock empty).
+    expect(props).toContain('/world/terminus/wharfside/knackers/thing/tallow-crock');
+    const crock = doc(`${WHARFSIDE}/knackers/thing/tallow-crock.yaml`);
+    expect(crock.extends).toBe('/trade/cooking/thing/tallow-crock');
+    expect(crock.data['interiorMaterial']).toBe('/trade/cooking/idea/material/tallow');
     // ⭐ And the works-board, because a 70 kg carcass cannot be carried:
     // a knacker does not fetch, he posts a job and somebody brings it.
     expect(props).toContain('/trade/haulage/thing/works-board');
