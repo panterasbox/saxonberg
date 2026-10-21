@@ -120,6 +120,7 @@ export default class Conduit
   static fieldMeta: FieldMeta = {
     conduitKey: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
+    at: { persistent: true, authorable: true },
     extent: { persistent: true, authorable: true },
     direction: { persistent: true, authorable: true },
     capacityM3S: { persistent: true, authorable: true },
@@ -136,6 +137,22 @@ export default class Conduit
 
   /** The river end — a reach citation like `kestrel:falls`. */
   public reachRef = '';
+
+  /**
+   * ⭐ Where on the river it sits (river D3) — `kestrel:confluence+0.05,left`.
+   * The node in {@link reachRef} keeps the works' index; this is its own
+   * position on the line (an intake really is 100 m above the outfall), and
+   * a weir's hydraulic forms just below it. `''` = at the node.
+   */
+  public at = '';
+
+  /** Where on the line this work sits, or its node when it says nothing. */
+  public getAt(): string {
+    return this.at !== '' ? this.at : this.reachRef;
+  }
+  public setAt(value: string): void {
+    this.at = typeof value === 'string' ? value : '';
+  }
 
   /**
    * The land end — a **template-path prefix**, resolved longest-prefix,

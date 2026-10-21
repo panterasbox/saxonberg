@@ -54,6 +54,22 @@ import {
 import type { WaterTide } from '@saxonberg/server/mud/lib/location/WaterSource';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { Tide } from '../lib/Tide';
+import {
+  RiverLine,
+  LINE_DIALS,
+  type BankKind,
+  type LineBankOverride,
+  type LineHazardInput,
+  type LineNodeInput,
+  type LineStretchOverride,
+  type LineWeirInput,
+  type RiverSide,
+  type LinePosition,
+  type RiverStretch,
+  type RiverBank,
+  type LineHazard,
+  type LineSpot,
+} from '../lib/RiverLine';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
@@ -74,6 +90,10 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import {
   WATERCOURSE_PATH_PREFIX,
   type WatercourseDescriptor,
+  type WatercourseSource,
+  type WatercourseMouth,
+  type WatercourseStretchOverride,
+  type WatercourseHazard,
   type WatercourseNode,
   type WatercourseStock,
   type WatercourseWater,
@@ -359,6 +379,10 @@ interface CompiledIndex {
   predecessors: Map<ReachRef, ReachRef[]>;
   /** Course key → its authored water chemistry seed (fishing D22). */
   waterByCourse: Map<string, WatercourseWater>;
+  /** ⭐ Course key → its compiled line (river D1); a mere has none. */
+  lines: Map<string, RiverLine>;
+  /** Course key → its parsed descriptor (the source and mouth read it). */
+  descriptors: Map<string, WatercourseDescriptor>;
 }
 
 export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
@@ -382,10 +406,20 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
   /* ───────────── the water a shore cites (maritime revision 3) ───────────── */
 
-  /** A reach's ref is its own citation: a bank does not move along a river. */
+  /**
+   * ⭐ Where a cited water is read from `place`, now (river D3): on a line,
+   * the **stretch id** at the citation's position — so the fishery, the ice
+   * and the shared read key per stretch; a mere's or an unknown citation is
+   * its own ref. A place on the line that moves (a reach patch) answers its
+   * own position first (river D5).
+   */
   public override currentWaterRef(citation: string, place: Stuff): string | null {
-    void place;
-    return citation;
+    const index = this.loaded;
+    if (index === null) return citation;
+    const moving = movingPositionOf(place);
+    const pos = moving ?? positionIn(index, citation);
+    if (pos === null) return citation;
+    return index.lines.get(pos.course)?.stretchAt(pos.km)?.id ?? citation;
   }
 
   /**
@@ -400,12 +434,15 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     place: Stuff,
     nowS: number,
   ): Promise<WaterRead | null> {
-    void place;
     // ⭐ ONE read per water per segment, shared by every place that cites
     // it (found by the underwater drive): the bank, the basin and every
     // band of its column cite the confluence, and each read is seconds of
     // work — a diver's `descend` waited on a fresh read of the whole river
-    // for the band it was entering. The read does not depend on the place.
+    // for the band it was entering. The read does not depend on the place
+    // — except where the place MOVES on the line (river D5): then it is
+    // the read of the stretch it is over.
+    const moving = movingPositionOf(place);
+    if (moving !== null) citation = positionCitation(moving);
     const key = `${citation}@${Math.floor(nowS / READ_SEGMENT_S)}`;
     const shared = this.sharedReads.get(key);
     if (shared) return shared;
@@ -422,6 +459,11 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   private async readWaterNow(citation: string, nowS: number): Promise<WaterRead | null> {
     const reach = await this.reachOf(citation);
     if (reach === null) return null;
+    // ⭐ On a line the read is OF a stretch (river D3): its id is the ref
+    // every reader keys on, and the river's own state rides the opaque.
+    const pos = await this.positionOf(citation).catch(() => null);
+    const river = pos !== null ? await this.riverStateAt(pos, nowS).catch(() => null) : null;
+    if (river !== null) citation = river.stretch.id;
     let registry: FisheryRegistry | null = null;
     try {
       registry = await StuffApi.singleton<FisheryRegistry>(FISHERY_PATH);
@@ -442,6 +484,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       ice,
       fouled,
       disciplineKey: registry ? await registry.readDisciplineKey() : null,
+      river,
     };
     return {
       ref: citation,
@@ -452,6 +495,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       ...(tide !== null ? { tide: tide.tide } : {}),
       ...(water ? { oxygenMgL: fouled ? water.oxygenMgL * 0.3 : water.oxygenMgL } : {}),
       clarityM: fouled ? Math.min(FOULED_CLARITY_M, reach.clarityM) : reach.clarityM,
+      ...(river !== null ? { currentMps: river.currentHereMps, roughness: river.roughness } : {}),
       draw: frozen
         ? null
         : {
@@ -555,6 +599,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     this.flowCacheSegment = -1;
     this.iceCache.clear();
     this.iceCacheSegment = -1;
+    this.riverCache.clear();
+    this.riverCacheSegment = -1;
     this.loaded = null;
   }
 
@@ -583,19 +629,21 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     history?: IceHistory,
   ): Promise<IceRecord | null> {
     const index = await this.index();
-    const reach = index.reaches.get(ref);
+    const reach = resolveReach(index, ref);
     if (reach === undefined) return null;
     this.rollIceCache(nowS);
     const key = iceKey(ref, history);
     const hit = this.iceCache.get(key);
     if (hit !== undefined) return hit;
 
+    // ⭐ On a line the stretch's own current decides (river D16): a pool
+    // freezes, a rapid runs open all winter.
     const water = await this.waterStateAt(ref, nowS);
     const still = dial('water.ice.stillWaterMps', 0.5);
     const running = water !== null && water.currentMps >= still;
     if (running) this.runningRefs.add(ref);
     else this.runningRefs.delete(ref);
-    const record: IceRecord = running ? runningRecord(ref) : computeIce(reach, nowS, history);
+    const record: IceRecord = running ? runningRecord(ref) : { ...computeIce(reach, nowS, history), ref };
     this.iceCache.set(key, record);
     return record;
   }
@@ -609,13 +657,13 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   public iceAtSync(ref: ReachRef, nowS: number, history?: IceHistory): IceRecord | null {
     const index = this.loaded;
     if (index === null) return null;
-    const reach = index.reaches.get(ref);
+    const reach = resolveReach(index, ref);
     if (reach === undefined) return null;
     this.rollIceCache(nowS);
     const key = iceKey(ref, history);
     const hit = this.iceCache.get(key);
     if (hit !== undefined) return hit;
-    const record = this.runningRefs.has(ref) ? runningRecord(ref) : computeIce(reach, nowS, history);
+    const record = this.runningRefs.has(ref) ? runningRecord(ref) : { ...computeIce(reach, nowS, history), ref };
     this.iceCache.set(key, record);
     return record;
   }
@@ -633,7 +681,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   /** The compiled reach for a citation, or `null` if it names none. */
   public async reachOf(ref: ReachRef): Promise<CompiledReach | null> {
     const index = await this.index();
-    return index.reaches.get(ref) ?? null;
+    return resolveReach(index, ref) ?? null;
   }
 
   /** Every reach on a course, source-first. */
@@ -658,7 +706,11 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
    */
   public async compare(a: ReachRef, b: ReachRef): Promise<ReachRelation> {
     const index = await this.index();
-    if (!index.reaches.has(a) || !index.reaches.has(b)) return 'unrelated';
+    const ra = resolveReach(index, a);
+    const rb = resolveReach(index, b);
+    if (ra === undefined || rb === undefined) return 'unrelated';
+    a = ra.ref;
+    b = rb.ref;
     if (a === b) return 'same';
     if (index.downstream.get(a)?.has(b) === true) return 'upstream';
     if (index.downstream.get(b)?.has(a) === true) return 'downstream';
@@ -692,8 +744,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   ): Promise<number | null> {
     if ((await this.compare(a, b)) !== 'upstream') return null;
     const index = await this.index();
-    const from = index.reaches.get(a)!;
-    const to = index.reaches.get(b)!;
+    const from = resolveReach(index, a)!;
+    const to = resolveReach(index, b)!;
     return from.depthToSea - to.depthToSea;
   }
 
@@ -720,8 +772,9 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     draws: DrawLedger = new Map(),
   ): Promise<FlowReading | null> {
     const index = await this.index();
-    const reach = index.reaches.get(ref);
+    const reach = resolveReach(index, ref);
     if (reach === undefined) return null;
+    ref = reach.ref;
 
     const natural = this.naturalFlowOf(reach, nowS);
 
@@ -747,7 +800,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       drawnM3S: drawn,
       snowpackMm: natural.snowpackMm,
       navigable:
-        m3s >= dial(AppSettingKeys.waterNavigableMinFlowM3S, 8) &&
+        // ⭐ The code fallback agrees with the shipped dial (river D36).
+        m3s >= dial(AppSettingKeys.waterNavigableMinFlowM3S, 3) &&
         (reach.channelWidthM ?? 0) >=
           dial(AppSettingKeys.waterNavigableMinWidthM, 12),
     };
@@ -770,7 +824,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     nowS: number,
   ): Promise<number | null> {
     const index = await this.index();
-    const reach = index.reaches.get(ref);
+    const reach = resolveReach(index, ref);
     if (reach === undefined) return null;
     return WeatherApi.temperatureAt(
       reach.site,
@@ -781,7 +835,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
   /** A reach's climate site, or `null` when the citation names nothing. */
   public async siteOf(ref: ReachRef): Promise<ClimateSite | null> {
-    return (await this.index()).reaches.get(ref)?.site ?? null;
+    return resolveReach(await this.index(), ref)?.site ?? null;
   }
 
   /**
@@ -837,8 +891,13 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     nowS: number,
   ): Promise<WaterState | null> {
     const index = await this.index();
-    const reach = index.reaches.get(ref);
+    const reach = resolveReach(index, ref);
     if (reach === undefined) return null;
+    // ⭐ On a line, the stretch's own read (river D1/D17): the current by
+    // Manning at its gradient, the temperature by its source.
+    const pos = positionIn(index, ref);
+    const river = pos !== null ? await this.riverStateAt(pos, nowS) : null;
+    ref = reach.ref;
 
     // The catchment's air, floored at the temperature of water under
     // ice: a river does not go below freezing, it freezes over, and the
@@ -855,7 +914,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     // width or depth wins.
     const widthM = Math.max(1, reach.channelWidthM ?? 5 * Math.sqrt(Math.max(m3s, 0.04)));
     const depthM = Math.max(0.1, reach.meanDepthM ?? 0.4 * Math.pow(Math.max(m3s, 0.04), 0.4));
-    const currentMps = m3s / (widthM * depthM);
+    const currentMps = river !== null ? river.currentMps : m3s / (widthM * depthM);
 
     const brackishBelowM = dial('water.fishery.brackishBelowM', 50);
     let salinityPpt = 0.3;
@@ -883,7 +942,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const contamination = (await this.contaminationAt(ref, nowS))?.level ?? 0;
 
     const state: WaterState = {
-      temperatureK,
+      temperatureK: river !== null ? river.temperatureK : temperatureK,
       currentMps,
       salinityPpt,
       oxygenMgL,
@@ -961,7 +1020,9 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     nowS: number,
   ): Promise<ContaminationReading | null> {
     const index = await this.index();
-    if (!index.reaches.has(ref)) return null;
+    const resolved = resolveReach(index, ref);
+    if (resolved === undefined) return null;
+    ref = resolved.ref;
 
     const byKind: Record<ContaminantKind, number> = {
       organic: 0,
@@ -1135,6 +1196,188 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     return computed;
   }
 
+  // ---------- the line (river D1) ----------
+
+  /** The compiled line of a course, or `null` (a mere, an unknown key). */
+  public async lineOf(courseKey: string): Promise<RiverLine | null> {
+    return (await this.index()).lines.get(courseKey) ?? null;
+  }
+
+  /** The line of a course once compiled, synchronously; `null` before. */
+  public lineOfSync(courseKey: string): RiverLine | null {
+    return this.loaded?.lines.get(courseKey) ?? null;
+  }
+
+  /**
+   * ⭐ Where a citation stands on its river (river D3):
+   * `course:node[±km][,side]` (a positive offset is downstream), or a
+   * stretch id. `null` for a mere, a sea, or a citation naming nothing.
+   */
+  public async positionOf(citation: string): Promise<LinePosition | null> {
+    return positionIn(await this.index(), citation);
+  }
+
+  /** {@link positionOf} once the drainage is compiled; `null` before. */
+  public positionOfSync(citation: string): LinePosition | null {
+    return this.loaded === null ? null : positionIn(this.loaded, citation);
+  }
+
+  /** The stretch at a position, or `null` off any line. */
+  public async stretchAt(pos: LinePosition): Promise<RiverStretch | null> {
+    return (await this.lineOf(pos.course))?.stretchAt(pos.km) ?? null;
+  }
+
+  /** Both banks at a position. */
+  public async banksAt(pos: LinePosition): Promise<Record<RiverSide, RiverBank> | null> {
+    return (await this.stretchAt(pos))?.banks ?? null;
+  }
+
+  /** The hazards between two km of a course, in the order met going from `a` to `b`. */
+  public async hazardsBetween(course: string, kmA: number, kmB: number, side?: RiverSide): Promise<LineHazard[]> {
+    return (await this.lineOf(course))?.hazardsBetween(kmA, kmB, side) ?? [];
+  }
+
+  /** The eddies between two km of a course. */
+  public async eddiesBetween(course: string, kmA: number, kmB: number): Promise<LineSpot[]> {
+    return (await this.lineOf(course))?.eddiesBetween(kmA, kmB) ?? [];
+  }
+
+  /** The next spot downstream where what floats fetches up. */
+  public async collectsAt(course: string, km: number): Promise<LineSpot | null> {
+    return (await this.lineOf(course))?.collectsAt(km) ?? null;
+  }
+
+  /** How far along the line is in view from a position, each way. */
+  public async sightKm(pos: LinePosition, eyeHeightM: number): Promise<{ upKm: number; downKm: number }> {
+    const line = await this.lineOf(pos.course);
+    return line ? line.sightKm(pos.km, eyeHeightM) : { upKm: 0, downKm: 0 };
+  }
+
+  /** How a course starts and ends, as authored; `null` for a mere. */
+  public async endsOf(courseKey: string): Promise<{ source: WatercourseSource; mouth: WatercourseMouth } | null> {
+    const d = (await this.index()).descriptors.get(courseKey);
+    return d?.source && d.mouth ? { source: d.source, mouth: d.mouth } : null;
+  }
+
+  /**
+   * ⭐⭐ **The river at a position, now** (river D1/D17) — what a body in
+   * it feels and a boatman reads. Memoised per weather segment beside the
+   * flow memo (flow changes only when the segment does).
+   *
+   * - **Flow** interpolated by km between the node pair that brackets it.
+   * - **Depth and current by Manning at the stretch's own gradient**
+   *   (`v = (1/n)·R^(2/3)·S^(1/2)`, with continuity `Q = w·d·v` solved for
+   *   the normal depth): a pool is deep and slow, a riffle shallow and
+   *   fast, from the same water. `n` by the bed.
+   * - **Across**: the channel's current and depth at the thalweg, the
+   *   bank's fraction of each toward the margin you are at.
+   * - **Temperature by the source**: a spring river holds near the
+   *   ground's temperature for its first tens of km, a melt river is
+   *   pulled toward freezing by its meltwater's share; the air otherwise,
+   *   floored at the under-ice figure.
+   * - **Roughness**: 0 in a pool to 1 in a rapid, scaled by the current.
+   * - **A tidal reach** carries the tide's stream against the river's.
+   */
+  public async riverStateAt(pos: LinePosition, nowS: number): Promise<RiverState | null> {
+    const index = await this.index();
+    const line = index.lines.get(pos.course);
+    if (!line) return null;
+    const stretch = line.stretchAt(pos.km);
+    if (!stretch) return null;
+    const segment = Math.floor(nowS / WEATHER_DEFAULTS.SEGMENT_LENGTH_S);
+    if (segment !== this.riverCacheSegment) {
+      this.riverCache.clear();
+      this.riverCacheSegment = segment;
+    }
+    const key = `${stretch.id}@${Math.round(pos.km * 1000)}@${Math.round(pos.across)}`;
+    const hit = this.riverCache.get(key);
+    if (hit !== undefined && (hit.tidal === false || Math.abs(hit.atS - nowS) < 600)) return hit;
+
+    const { up, down, t } = line.nodePairAt(pos.km);
+    const draws = await this.liveDraws(nowS);
+    const fUp = await this.flowAt(`${pos.course}:${up.name}`, nowS, draws);
+    const fDown = up === down ? fUp : await this.flowAt(`${pos.course}:${down.name}`, nowS, draws);
+    const flowM3S = Math.max(0, (fUp?.m3s ?? 0) + ((fDown?.m3s ?? 0) - (fUp?.m3s ?? 0)) * t);
+    const meltM3S = Math.max(0, (fUp?.meltM3S ?? 0) + ((fDown?.meltM3S ?? 0) - (fUp?.meltM3S ?? 0)) * t);
+    const widthM = Math.max(1, line.authoredWidthAt(pos.km) ?? 5 * Math.sqrt(Math.max(flowM3S, 0.04)));
+    const n = MANNING_N[stretch.bed] ?? 0.035;
+    const S = Math.max(1e-5, stretch.gradient);
+    const q = Math.max(flowM3S, 0.001);
+    const normal = Math.pow((q * n) / (widthM * Math.sqrt(S)), 0.6);
+    const meanDepthM = Math.max(0.05, normal * (stretch.flow === 'pool' ? 1.3 : 1));
+    let currentMps = flowM3S > 0 ? Math.min(MAX_CURRENT_MPS, flowM3S / (widthM * meanDepthM)) : 0;
+    const depthM = meanDepthM * 1.4;
+
+    // The tide's stream against the river's, where the river meets the sea.
+    const elevation = line.elevationAtKm(pos.km);
+    const reachRef = `${pos.course}:${line.nearestNode(pos.km).name}`;
+    const reach = index.reaches.get(reachRef);
+    let tidal = false;
+    if (elevation <= 0 && reach) {
+      const tide = this.tideOf({ elevation }, nowS);
+      if (tide !== null) {
+        currentMps -= tide.tide.streamMps;
+        tidal = true;
+      }
+    }
+
+    const channelAt = widthM * stretch.channelAcross;
+    const side: RiverSide = pos.across < channelAt ? 'left' : 'right';
+    const bank = stretch.banks[side];
+    const off = Math.abs(pos.across - channelAt) / (widthM / 2);
+    const f = Math.max(0, Math.min(1, (off - 0.3) / 0.6));
+    const currentHereMps = currentMps * (1 + (bank.currentFraction - 1) * f);
+    const depthHereM = depthM * (1 + (bank.depthFraction - 1) * f);
+
+    const air = Math.max(UNDER_ICE_K, (await this.airTemperatureKAt(reachRef, nowS)) ?? UNDER_ICE_K);
+    const source = index.descriptors.get(pos.course)?.source;
+    let temperatureK = air;
+    if (source?.kind === 'spring') {
+      const fromSourceKm = line.sourceKm - pos.km;
+      const w = Math.max(0, Math.min(1, fromSourceKm / dial('water.river.springMixKm', 30)));
+      temperatureK = dial('water.river.springK', 282) * (1 - w) + air * w;
+    } else if (source?.kind === 'melt' && flowM3S > 0) {
+      temperatureK = air - (air - UNDER_ICE_K) * Math.min(1, meltM3S / flowM3S);
+    }
+    temperatureK = Math.max(UNDER_ICE_K, temperatureK);
+
+    const speed = Math.abs(currentHereMps);
+    const roughness = Math.min(1, (ROUGHNESS[stretch.flow] ?? 0) * Math.max(0.5, speed / 2));
+    const tt = Math.max(0, Math.min(1, (temperatureK - 273) / 30));
+    const saturation = 14.6 + (7.5 - 14.6) * tt;
+    const turbulence = speed >= 0.5 ? 1 : speed >= 0.2 ? 0.9 : 0.8;
+
+    const state: RiverState = {
+      atS: nowS,
+      position: { ...pos },
+      stretch,
+      flowM3S,
+      widthM,
+      depthM,
+      meanDepthM,
+      currentMps,
+      currentHereMps,
+      depthHereM,
+      margins: {
+        left: { currentMps: currentMps * stretch.banks.left.currentFraction, depthM: depthM * stretch.banks.left.depthFraction },
+        right: { currentMps: currentMps * stretch.banks.right.currentFraction, depthM: depthM * stretch.banks.right.depthFraction },
+      },
+      temperatureK,
+      roughness,
+      oxygenMgL: saturation * turbulence,
+      elevationM: elevation,
+      tidal,
+      dry: flowM3S <= 0.001,
+    };
+    this.riverCache.set(key, state);
+    if (this.riverCache.size > 2048) this.riverCache.delete(this.riverCache.keys().next().value!);
+    return state;
+  }
+
+  /** Per-segment river memo — see {@link riverStateAt}. */
+  private riverCache = new Map<string, RiverState>();
+  private riverCacheSegment = -1;
+
   // ---------- the load ----------
 
   /** Load-once, cached. Concurrent callers coalesce onto one promise. */
@@ -1154,6 +1397,109 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     });
     return started;
   }
+}
+
+/** ⭐ A river at a position, now — see {@link WatercourseCatalogue.riverStateAt}. */
+export interface RiverState {
+  atS: number;
+  position: LinePosition;
+  stretch: RiverStretch;
+  /** m³/s passing, interpolated between the bracketing nodes. */
+  flowM3S: number;
+  widthM: number;
+  /** At the thalweg, m. */
+  depthM: number;
+  meanDepthM: number;
+  /** The channel's current, m/s; + downstream, − when the flood tide runs up. */
+  currentMps: number;
+  /** The current at this position's across. */
+  currentHereMps: number;
+  /** The depth at this position's across. */
+  depthHereM: number;
+  margins: Record<RiverSide, { currentMps: number; depthM: number }>;
+  temperatureK: number;
+  /** 0 (glassy) to 1 (white water). */
+  roughness: number;
+  oxygenMgL: number;
+  /** The water surface's elevation here, m. */
+  elevationM: number;
+  tidal: boolean;
+  /** A sink river run out this season. */
+  dry: boolean;
+}
+
+/** Manning's roughness by bed. */
+const MANNING_N: Record<string, number> = { ground: 0.035, gravel: 0.035, rock: 0.05, sand: 0.03, mud: 0.025 };
+/** How rough each kind of water is before the current scales it. */
+const ROUGHNESS: Record<string, number> = { pool: 0, run: 0.2, riffle: 0.4, rapid: 1, falls: 1 };
+/** No river here runs faster than this, m/s (a falls' sheet is not a current). */
+const MAX_CURRENT_MPS = 6;
+
+/**
+ * ⭐ A citation resolved to the NODE whose hydrology stands for it (river
+ * D3): a reach ref is itself; a stretch id or a `node±km` position is the
+ * node nearest it on its line — so flow, chemistry, contamination and the
+ * fishery's stock all read the node, while the current and the temperature
+ * are the position's own (`riverStateAt`).
+ */
+function resolveReach(index: CompiledIndex, citation: string): CompiledReach | undefined {
+  const direct = index.reaches.get(citation);
+  if (direct !== undefined) return direct;
+  const at = AT_POSITION.exec(citation);
+  const course = at ? at[1]! : citation.slice(0, citation.indexOf(':'));
+  const line = index.lines.get(course);
+  if (!line) {
+    const cite = RiverLine.parseCitation(citation);
+    return cite ? index.reaches.get(`${cite.course}:${cite.node}`) : undefined;
+  }
+  const pos = positionIn(index, citation);
+  if (pos === null) return undefined;
+  return index.reaches.get(`${course}:${line.nearestNode(pos.km).name}`);
+}
+
+/** Where a citation stands on its course's line, or `null`. */
+function positionIn(index: CompiledIndex, citation: string): LinePosition | null {
+  const at = AT_POSITION.exec(citation);
+  if (at) {
+    const line = index.lines.get(at[1]!);
+    if (!line) return null;
+    const km = Math.max(line.mouthKm, Math.min(line.sourceKm, Number.parseFloat(at[2]!)));
+    return { course: at[1]!, km, across: Number.parseFloat(at[3]!) };
+  }
+  const course = citation.slice(0, citation.indexOf(':'));
+  const line = index.lines.get(course);
+  if (!line) return null;
+  if (RiverLine.isStretchId(citation)) {
+    const s = line.stretchById(citation);
+    if (!s) return null;
+    const km = (s.upKm + s.downKm) / 2;
+    const w = line.authoredWidthAt(km) ?? 10;
+    return { course, km, across: w * s.channelAcross };
+  }
+  const cite = RiverLine.parseCitation(citation);
+  if (!cite) return null;
+  const km = line.kmOf(cite.node, cite.offsetKm);
+  if (km === null) return null;
+  return line.positionOf(cite, line.authoredWidthAt(km) ?? 10);
+}
+
+/** A place's own position on a line, when it moves on one (river D5) — read through its methods. */
+function movingPositionOf(place: Stuff): LinePosition | null {
+  const p = place as unknown as { getLinePosition?: () => LinePosition | null };
+  if (typeof p.getLinePosition !== 'function') return null;
+  try {
+    return p.getLinePosition() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** `<course>@<km>~<across>` — a moving place's position as a citation. */
+const AT_POSITION = /^([^@:/\s]+)@(-?\d+(?:\.\d+)?)~(\d+(?:\.\d+)?)$/;
+
+/** A position as a citation the read memo keys on: the course and km. */
+function positionCitation(pos: LinePosition): string {
+  return `${pos.course}@${pos.km.toFixed(3)}~${Math.round(pos.across)}`;
 }
 
 /* ─────────────────────────── the compile ─────────────────────────── */
@@ -1182,14 +1528,35 @@ async function loadIndex(): Promise<CompiledIndex> {
       );
       continue;
     }
+    if (!lineEndsHold(d, problems)) continue;
     courses.set(d.key, d);
   }
 
   const reaches = new Map<ReachRef, CompiledReach>();
   const byCourse = new Map<string, ReachRef[]>();
+  const lines = new Map<string, RiverLine>();
+  // ⭐ The weirs the courses' works name (river D1): every one makes a
+  // hydraulic below it. Read by the rows' exact paths — no scan.
+  const workPaths = new Set<string>();
+  for (const course of courses.values()) {
+    for (const n of course.nodes) for (const w of n.works ?? []) workPaths.add(w);
+  }
+  const workRowsByPath = new Map<string, Record<string, unknown>>();
+  if (workPaths.size > 0) {
+    for (const tpl of await Template.findByPaths([...workPaths])) {
+      workRowsByPath.set(tpl.path, { class: tpl.class, ...(tpl.data ?? {}) });
+    }
+  }
 
   for (const course of courses.values()) {
     const filled = interpolate(course, problems);
+    if (filled.length >= 2 && filled.every((n) => typeof n.km === 'number')) {
+      try {
+        lines.set(course.key, compileLine(course, filled, workRowsByPath));
+      } catch (err) {
+        problems.push(`watercourse '${course.key}': ${(err as Error).message}`);
+      }
+    }
     const refs: ReachRef[] = [];
     const seen = new Set<string>();
     filled.forEach((node, i) => {
@@ -1263,6 +1630,7 @@ async function loadIndex(): Promise<CompiledIndex> {
   for (const course of courses.values()) {
     if (course.water) waterByCourse.set(course.key, course.water);
   }
+  const descriptors = new Map(courses);
   return {
     reaches,
     downstream,
@@ -1270,7 +1638,111 @@ async function loadIndex(): Promise<CompiledIndex> {
     byCourse,
     predecessors,
     waterByCourse,
+    lines,
+    descriptors,
   };
+}
+
+/** The seed a course's meander is laid from: authored, else FNV of its key. */
+function meanderSeed(course: WatercourseDescriptor): number {
+  if (typeof course.meander?.seed === 'number') return course.meander.seed;
+  let h = 2166136261;
+  for (let i = 0; i < course.key.length; i++) {
+    h ^= course.key.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/**
+ * ⭐ Compile one course's line (river D1): its nodes in km, its overrides,
+ * hazards and named bends resolved from `node±km` citations, and a weir for
+ * every `ControlStructure` of kind `weir` with a head among its works. A
+ * citation naming no node of the course throws, naming itself.
+ */
+function compileLine(
+  course: WatercourseDescriptor,
+  filled: WatercourseNode[],
+  workRows: Map<string, Record<string, unknown>>,
+): RiverLine {
+  const nodes: LineNodeInput[] = filled.map((n) => ({
+    name: n.name,
+    km: n.km!,
+    elevation: n.elevation ?? 0,
+    widthM: n.channelWidthM ?? null,
+    drop: n.drop ?? 0,
+  }));
+  const kmOf = (at: string, what: string): number => {
+    const cite = RiverLine.parseCitation(at.includes(':') ? at : `${course.key}:${at}`);
+    const node = cite ? nodes.find((n) => n.name === cite.node) : undefined;
+    if (!cite || !node) throw new Error(`${what} '${at}' names no node of the course`);
+    return Math.max(nodes[nodes.length - 1]!.km, Math.min(nodes[0]!.km, node.km - cite.offsetKm));
+  };
+  const sideOf = (v: unknown): RiverSide => (v === 'right' ? 'right' : 'left');
+  const stretches: LineStretchOverride[] = [];
+  const bankOverrides: LineBankOverride[] = [];
+  for (const o of course.stretches ?? []) {
+    if (typeof o.at === 'string' && typeof o.bank === 'string') {
+      bankOverrides.push({ km: kmOf(o.at, 'a bank override at'), side: sideOf(o.side), bank: o.bank });
+      continue;
+    }
+    if (typeof o.from !== 'string' || typeof o.to !== 'string') continue;
+    const a = kmOf(o.from, 'a stretch override from');
+    const b = kmOf(o.to, 'a stretch override to');
+    const banks = o.banks === 'walls'
+      ? 'walls' as const
+      : o.banks && typeof o.banks === 'object'
+        ? (o.banks as Partial<Record<RiverSide, BankKind>>)
+        : undefined;
+    stretches.push({
+      upKm: Math.max(a, b),
+      downKm: Math.min(a, b),
+      ...(o.kind ? { kind: o.kind } : {}),
+      ...(o.bed ? { bed: o.bed } : {}),
+      ...(banks ? { banks } : {}),
+    });
+  }
+  const hazards: LineHazardInput[] = (course.hazards ?? []).map((h) => ({
+    km: kmOf(h.at, 'a hazard at'),
+    side: sideOf(h.side),
+    kind: h.kind,
+    ...(h.row ? { row: h.row } : {}),
+  }));
+  const bends = (course.bends ?? []).map((b) => ({ km: kmOf(b.at, `the bend '${b.name}' at`), name: b.name }));
+  const weirs: LineWeirInput[] = [];
+  for (const n of filled) {
+    for (const path of n.works ?? []) {
+      const row = workRows.get(path);
+      if (!row || !String(row.class ?? '').endsWith('/thing/ControlStructure')) continue;
+      if ((row.controlKind ?? 'weir') !== 'weir') continue;
+      if (!(typeof row.headM === 'number' && row.headM > 0)) continue;
+      const at = typeof row.at === 'string' && row.at !== '' ? row.at : `${course.key}:${n.name}`;
+      const cite = RiverLine.parseCitation(at);
+      if (!cite || cite.course !== course.key) continue;
+      weirs.push({ km: kmOf(at, `the weir ${path} at`), row: path });
+    }
+  }
+  return new RiverLine(
+    {
+      key: course.key,
+      bed: course.bed ?? 'ground',
+      wooded: course.banks?.wooded ?? true,
+      seed: meanderSeed(course),
+      nodes,
+      stretches,
+      bankOverrides,
+      hazards,
+      bends,
+      weirs,
+    },
+    {
+      poolGradient: dial('water.river.poolGradient', LINE_DIALS.poolGradient),
+      stepGradient: dial('water.river.stepGradient', LINE_DIALS.stepGradient),
+      rapidGradient: dial('water.river.rapidGradient', LINE_DIALS.rapidGradient),
+      crossingFraction: dial('water.river.crossingFraction', LINE_DIALS.crossingFraction),
+      strainerPerKm: dial('water.river.strainerPerKm', LINE_DIALS.strainerPerKm),
+    },
+  );
 }
 
 /**
@@ -1312,6 +1784,45 @@ function rowWork(
     };
   }
   return null;
+}
+
+/**
+ * ⭐ **A river's ends are required** (river D1): a course of two or more
+ * nodes declares how it starts and where it ends, and every node its km
+ * from the mouth, strictly decreasing source-first. A one-node still water
+ * (a mere) is exempt — a lake has no direction to declare. Each failure
+ * names the course, the shape of the uphill rule's message.
+ */
+function lineEndsHold(d: WatercourseDescriptor, problems: string[]): boolean {
+  if (d.nodes.length < 2) return true;
+  const before = problems.length;
+  if (!d.source) {
+    problems.push(
+      `watercourse '${d.key}' declares no source — a river of two or more ` +
+        `nodes says how it starts (rills, a spring, an outlet, melt)`,
+    );
+  }
+  if (!d.mouth) {
+    problems.push(
+      `watercourse '${d.key}' declares no mouth — a river of two or more ` +
+        `nodes says where it ends (a river, a still water, the sea, a sink)`,
+    );
+  }
+  let prevKm = Infinity;
+  for (const n of d.nodes) {
+    if (typeof n.km !== 'number') {
+      problems.push(`watercourse '${d.key}': node '${n.name}' authors no km from the mouth`);
+      continue;
+    }
+    if (!(n.km < prevKm)) {
+      problems.push(
+        `watercourse '${d.key}': node '${n.name}' (km ${n.km}) is not below ` +
+          `the node before it — km from the mouth falls source-first`,
+      );
+    }
+    prevKm = n.km;
+  }
+  return problems.length === before;
 }
 
 /**
@@ -1380,11 +1891,17 @@ function interpolate(
           `(${prev.elevation} m), which is upstream of it`,
       );
     }
-    // Linear fill between the two control points.
+    // Linear fill between the two control points — in km where the line
+    // has them (river D1), else by index.
     const span = i - lastControl;
-    const drop = prev.elevation! - node.elevation;
+    const drop = prev.elevation! - (prev.drop ?? 0) - node.elevation;
+    const kmSpan = (prev.km ?? 0) - (node.km ?? 0);
     for (let j = lastControl + 1; j < i; j++) {
-      nodes[j]!.elevation = prev.elevation! - (drop * (j - lastControl)) / span;
+      const t =
+        typeof prev.km === 'number' && typeof node.km === 'number' && typeof nodes[j]!.km === 'number' && kmSpan > 0
+          ? (prev.km - nodes[j]!.km!) / kmSpan
+          : (j - lastControl) / span;
+      nodes[j]!.elevation = prev.elevation! - (prev.drop ?? 0) - drop * t;
     }
     lastControl = i;
   }
@@ -1598,6 +2115,8 @@ interface ReachReadState {
   ice: IceRecord | null;
   fouled: boolean;
   disciplineKey: string | null;
+  /** The river at the read's position, on a line (river D1). */
+  river: RiverState | null;
 }
 
 /**
@@ -1609,7 +2128,11 @@ function physicalRead(state: ReachReadState): string[] {
   const reach = state.reach;
   const out: string[] = [];
   const name = reach.courseName || reach.courseKey;
-  out.push(`This is ${name}, ${breadthWords(reach.channelWidthM)}.`);
+  const river = state.river;
+  out.push(`This is ${name}, ${breadthWords(river?.widthM ?? reach.channelWidthM)}.`);
+  // ⭐ On a line: the stretch, its current in words, both banks (river D1)
+  // — read from the water, never appended to an author's room prose.
+  if (river !== null) out.push(...stretchLines(river));
   const water = state.standing?.water ?? null;
   if (water !== null) {
     const words = [
@@ -1637,6 +2160,51 @@ function physicalRead(state: ReachReadState): string[] {
     out.push('It is open water.');
   }
   return out;
+}
+
+/** The line at a read's position, in words: what the water does, both banks. */
+function stretchLines(river: RiverState): string[] {
+  const s = river.stretch;
+  const out: string[] = [];
+  const bend = s.bendName ? ` at ${s.bendName}` : '';
+  out.push(`${STRETCH_WORDS[s.kind] ?? 'The river runs on'}${bend}; ${flowWords(river)}.`);
+  out.push(`On the left, ${bankWords(s.banks.left)}; on the right, ${bankWords(s.banks.right)}.`);
+  return out;
+}
+
+const STRETCH_WORDS: Record<string, string> = {
+  pool: 'Here it lies in a long deep pool',
+  run: 'Here it runs smooth and steady',
+  riffle: 'Here it breaks over gravel in a shallow riffle',
+  rapid: 'Here it is white water, pouring over rock',
+  falls: 'Here it goes over the falls in a roaring sheet',
+  gorge: 'Here it is shut in a gorge, rock walls on both hands',
+};
+
+/** How fast, how deep, how cold — never a number. */
+function flowWords(river: RiverState): string {
+  const v = Math.abs(river.currentMps);
+  const pace = v < 0.1 ? 'barely moving' : v < 0.4 ? 'moving slowly' : v < 1 ? 'running briskly' : v < 2 ? 'running fast' : 'racing';
+  const deep = river.depthM < 0.6 ? 'shallow enough to wade' : river.depthM < 1.5 ? 'about chest deep' : river.depthM < 4 ? 'over your head' : 'deep and dark';
+  const up = river.currentMps < -0.05 ? ', the tide pushing it upstream' : '';
+  return `the water is ${pace}${up}, ${deep}`;
+}
+
+function bankWords(bank: RiverBank): string {
+  switch (bank.kind) {
+    case 'bar':
+      return 'shingle shelves out of the water';
+    case 'shelving':
+      return 'the gravel shelves gently up';
+    case 'steep':
+      return bank.wooded ? 'a steep bank of roots and earth' : 'a steep earth bank';
+    case 'undercut':
+      return 'a steep undercut of roots, the water sucking in beneath it';
+    case 'wall':
+      return 'sheer rock';
+    case 'place':
+      return bank.place ? `the ${bank.place}` : 'a made bank';
+  }
 }
 
 function breadthWords(widthM: number | null): string {
@@ -1916,6 +2484,8 @@ function nodesOf(value: unknown): WatercourseNode[] {
     if (typeof r.meanDepthM === 'number' && Number.isFinite(r.meanDepthM)) {
       node.meanDepthM = r.meanDepthM;
     }
+    if (typeof r.km === 'number' && Number.isFinite(r.km)) node.km = r.km;
+    if (typeof r.drop === 'number' && Number.isFinite(r.drop) && r.drop > 0) node.drop = r.drop;
     const stocks = stocksOf(r.stocks);
     if (stocks.length > 0) node.stocks = stocks;
     if (Array.isArray(r.works)) {
@@ -1999,7 +2569,37 @@ function descriptorOf(
     ...(water ? { water } : {}),
     ...(site ? { site } : {}),
     ...(typeof data.clarityM === 'number' && data.clarityM > 0 ? { clarityM: data.clarityM } : {}),
+    ...lineFieldsOf(data),
   };
+}
+
+/**
+ * ⭐ The line's authored fields (river D1) — copied through by hand, for
+ * the reason {@link nodesOf} gives: a field this parser does not copy is
+ * silently discarded.
+ */
+function lineFieldsOf(data: Record<string, unknown>): Partial<WatercourseDescriptor> {
+  const out: Partial<WatercourseDescriptor> = {};
+  const obj = (v: unknown): Record<string, unknown> | null =>
+    v !== null && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+  const src = obj(data.source);
+  if (src && typeof src.kind === 'string') out.source = { ...src } as WatercourseSource;
+  const mouth = obj(data.mouth);
+  if (mouth && typeof mouth.into === 'string') out.mouth = { ...mouth } as WatercourseMouth;
+  if (typeof data.bed === 'string') out.bed = data.bed as WatercourseDescriptor['bed'];
+  const banks = obj(data.banks);
+  if (banks) out.banks = { ...(typeof banks.wooded === 'boolean' ? { wooded: banks.wooded } : {}) };
+  const list = (v: unknown): Array<Record<string, unknown>> =>
+    Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => obj(x) !== null) : [];
+  const stretches = list(data.stretches);
+  if (stretches.length > 0) out.stretches = stretches.map((x) => ({ ...x })) as WatercourseStretchOverride[];
+  const hazards = list(data.hazards).filter((h) => typeof h.at === 'string' && typeof h.kind === 'string');
+  if (hazards.length > 0) out.hazards = hazards.map((x) => ({ ...x })) as unknown as WatercourseHazard[];
+  const bends = list(data.bends).filter((b) => typeof b.at === 'string' && typeof b.name === 'string');
+  if (bends.length > 0) out.bends = bends.map((b) => ({ at: String(b.at), name: String(b.name) }));
+  const meander = obj(data.meander);
+  if (meander && typeof meander.seed === 'number') out.meander = { seed: meander.seed };
+  return out;
 }
 
 /** The authored `site:` block, numbers only; `null` when absent. */

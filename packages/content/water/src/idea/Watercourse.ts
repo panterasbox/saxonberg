@@ -124,6 +124,58 @@ export interface WatercourseNode {
    * found its works by a class scan of the template table.
    */
   works?: string[];
+  /**
+   * ⭐ **Kilometres from the mouth** (river D1) — the river mile. Required
+   * on every node of a course of two or more nodes, strictly decreasing
+   * source-first; the mouth is the end that does not move, so lengthening
+   * the headwaters shifts nothing below.
+   */
+  km?: number;
+  /** A falls' step at this node, m — the drop is taken out as a 50 m stretch. */
+  drop?: number;
+}
+
+/** How a river starts. Required on a course of two or more nodes. */
+export type WatercourseSource =
+  | { kind: 'rills' }
+  | { kind: 'spring'; yieldM3S?: number }
+  | { kind: 'outlet'; of: string }
+  | { kind: 'melt' };
+
+/**
+ * Where a river ends. Required on a course of two or more nodes: another
+ * river (a node of it), a still water, the sea at a named node, or a sink
+ * where it runs out (whose end moves with the season).
+ */
+export type WatercourseMouth =
+  | { into: 'river'; course: string; node: string }
+  | { into: 'still'; water: string }
+  | { into: 'sea'; node: string }
+  | { into: 'sink' };
+
+/** A stretch override (river D1): only what differs from the derivation. */
+export interface WatercourseStretchOverride {
+  /** `node±km` — the upstream end of the span overridden. */
+  from?: string;
+  /** `node±km` — the downstream end. */
+  to?: string;
+  kind?: 'pool' | 'run' | 'riffle' | 'rapid' | 'falls' | 'gorge';
+  bed?: 'ground' | 'gravel' | 'rock' | 'sand' | 'mud';
+  /** `walls` (both sides), or a bank kind per side. */
+  banks?: 'walls' | { left?: string; right?: string };
+  /** A point bank override: `node±km` with `side` and `bank` (a quay). */
+  at?: string;
+  side?: 'left' | 'right';
+  bank?: string;
+}
+
+/** An authored hazard at a position (`at: falls+0.05`). */
+export interface WatercourseHazard {
+  at: string;
+  side?: 'left' | 'right';
+  kind: 'strainer' | 'hydraulic' | 'undercut';
+  /** The hazard's own row, when not the kind's default. */
+  row?: string;
 }
 
 /**
@@ -200,6 +252,22 @@ export interface WatercourseDescriptor {
   clarityM?: number;
   /** See {@link WatercourseSite}; absent = the realm's default site. */
   site?: WatercourseSite;
+  /** How the river starts (river D1). Required with two or more nodes. */
+  source?: WatercourseSource;
+  /** Where the river ends (river D1). Required with two or more nodes. */
+  mouth?: WatercourseMouth;
+  /** What the bed is (default `ground` — gravel in a river). */
+  bed?: 'ground' | 'gravel' | 'rock' | 'sand' | 'mud';
+  /** The banks' default character (default wooded). */
+  banks?: { wooded?: boolean };
+  /** Overrides of the derived stretches and banks — never the whole river. */
+  stretches?: WatercourseStretchOverride[];
+  /** Authored hazards; the derived ones need no row. */
+  hazards?: WatercourseHazard[];
+  /** Named bends — a landmark on a bend the meander derives (`Hob's Bend`). */
+  bends?: Array<{ at: string; name: string }>;
+  /** The meander's seed (default: a hash of the course key). */
+  meander?: { seed?: number };
 }
 
 /**
@@ -246,6 +314,14 @@ export default class Watercourse extends NamedMixin(Idea) {
     water: { persistent: true, authorable: true },
     site: { persistent: true, authorable: true },
     clarityM: { persistent: true, authorable: true },
+    source: { persistent: true, authorable: true },
+    mouth: { persistent: true, authorable: true },
+    bed: { persistent: true, authorable: true },
+    banks: { persistent: true, authorable: true },
+    stretches: { persistent: true, authorable: true },
+    hazards: { persistent: true, authorable: true },
+    bends: { persistent: true, authorable: true },
+    meander: { persistent: true, authorable: true },
   };
 
   protected key = '';
@@ -256,6 +332,14 @@ export default class Watercourse extends NamedMixin(Idea) {
   protected site: WatercourseSite | null = null;
   /** How deep light reaches in this water, m (underwater D6). */
   protected clarityM: number | null = null;
+  protected source: WatercourseSource | null = null;
+  protected mouth: WatercourseMouth | null = null;
+  protected bed: WatercourseDescriptor['bed'] | null = null;
+  protected banks: { wooded?: boolean } | null = null;
+  protected stretches: WatercourseStretchOverride[] = [];
+  protected hazards: WatercourseHazard[] = [];
+  protected bends: Array<{ at: string; name: string }> = [];
+  protected meander: { seed?: number } | null = null;
 
   public getKey(): string {
     return this.key;
@@ -302,5 +386,38 @@ export default class Watercourse extends NamedMixin(Idea) {
   }
   public setSite(value: WatercourseSite | null): void {
     this.site = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public getSource(): WatercourseSource | null {
+    return this.source === null ? null : { ...this.source };
+  }
+  public setSource(value: WatercourseSource | null): void {
+    this.source = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public getMouth(): WatercourseMouth | null {
+    return this.mouth === null ? null : { ...this.mouth };
+  }
+  public setMouth(value: WatercourseMouth | null): void {
+    this.mouth = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public setBed(value: WatercourseDescriptor['bed'] | null): void {
+    this.bed = value ?? null;
+  }
+  public setBanks(value: { wooded?: boolean } | null): void {
+    this.banks = value && typeof value === 'object' ? { ...value } : null;
+  }
+  public setStretches(value: WatercourseStretchOverride[]): void {
+    this.stretches = Array.isArray(value) ? value.map((v) => ({ ...v })) : [];
+  }
+  public setHazards(value: WatercourseHazard[]): void {
+    this.hazards = Array.isArray(value) ? value.map((v) => ({ ...v })) : [];
+  }
+  public setBends(value: Array<{ at: string; name: string }>): void {
+    this.bends = Array.isArray(value) ? value.map((v) => ({ ...v })) : [];
+  }
+  public setMeander(value: { seed?: number } | null): void {
+    this.meander = value && typeof value === 'object' ? { ...value } : null;
   }
 }

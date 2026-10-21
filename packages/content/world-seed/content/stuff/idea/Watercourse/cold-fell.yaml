@@ -29,13 +29,19 @@ data:
   # authored here because a reach is not a place a zone chain reaches.
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
+  # ⭐ The river as a LINE (the river build): out of the tarn under the
+  # ridge, into the fell — a sink, whose end moves with the season.
+  source: { kind: melt }
+  mouth: { into: sink }
+  bed: rock
+  banks: { wooded: false }
   nodes:
     # A tarn under the ridge — snowmelt and rain, and nobody upstream of
     # it at all, which is exactly what makes it worth an aqueduct.
-    - { name: tarn, elevation: 1650, catchmentKm2: 60, stocks: [{ species: /stuff/idea/species/brown-trout }] }
+    - { name: tarn, km: 9, elevation: 1650, catchmentKm2: 60, stocks: [{ species: /stuff/idea/species/brown-trout }] }
     # Where the city's intake sits. 1150 m of head over Terminus is why
     # the whole run can be gravity-fed AND generate on the descent.
-    - { name: cascade, elevation: 1150, channelWidthM: 8, catchmentKm2: 55, stocks: [{ species: /stuff/idea/species/brown-trout }], works: [/world/terminus/wharfside/thing/aqueduct-house, /world/terminus/wharfside/thing/cold-fell-aqueduct] }
+    - { name: cascade, km: 5, elevation: 1150, channelWidthM: 8, catchmentKm2: 55, stocks: [{ species: /stuff/idea/species/brown-trout }], works: [/world/terminus/wharfside/thing/aqueduct-house, /world/terminus/wharfside/thing/cold-fell-aqueduct] }
     # It sinks into the fell and goes wherever water goes; the build does
     # not model an outlet it has no use for.
-    - { name: sink, elevation: 800, stocks: [{ species: /stuff/idea/species/brown-trout }] }
+    - { name: sink, km: 0, elevation: 800, stocks: [{ species: /stuff/idea/species/brown-trout }] }

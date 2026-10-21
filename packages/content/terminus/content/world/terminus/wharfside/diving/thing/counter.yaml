@@ -29,6 +29,8 @@ data:
     - { itemTemplatePath: /trade/diving/thing/spear, par: 2 }
     - { itemTemplatePath: /trade/diving/thing/air-bag, par: 6 }
     - { itemTemplatePath: /trade/diving/thing/tide-almanac, par: 3 }
+    # ⭐ The river build: the float and line you time the current with.
+    - { itemTemplatePath: /system/water/thing/current-log, par: 2 }
     - { itemTemplatePath: /stuff/thing/magic/wand-of-glowlight, par: 1 }
   prices:
     /trade/diving/thing/diving-stone: 4
@@ -45,4 +47,5 @@ data:
     /trade/diving/thing/spear: 9
     /trade/diving/thing/air-bag: 10
     /trade/diving/thing/tide-almanac: 2
+    /system/water/thing/current-log: 5
     /stuff/thing/magic/wand-of-glowlight: 45

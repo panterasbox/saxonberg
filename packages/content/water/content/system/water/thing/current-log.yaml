@@ -1,0 +1,18 @@
+# A current log — the float and line you time the river with (`measure
+# current`, the river build D32).
+#
+# ⚠ `capabilities: [current-log]` IS the reachability: the current reading
+# refuses any tool that does not declare it.
+class: /platform/thing/Tool
+data:
+  shortDescription: current log
+  keywords: [log, current log, chip log, float]
+  register: indefinite
+  longDescription: |
+    A weighted wooden chip on fifty yards of light line knotted every few
+    paces, wound on a reel with a little sandglass lashed to the spindle.
+    Toss the chip in, let the line run, and count the knots that go out
+    before the glass empties: that is how fast the water is going.
+  capabilities: [current-log]
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.6

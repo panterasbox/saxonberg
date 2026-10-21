@@ -1512,6 +1512,42 @@ compile naming the course; the fishery at the bank keys on a stretch id;
 
 **Commit.** `build(river W0): the river as a line — profile, stretches, banks, hazards, two readings`
 
+> ✅ **W0 done (2026-10-21).** Build notes, for whoever reads this after
+> the context is gone:
+> - **Depth and current are Manning's NORMAL depth with continuity**, not
+>   `0.4·Q^0.4 × kind`: `d = (Q·n / (w·√S))^0.6`, `v = Q/(w·d)`, at the
+>   stretch's own gradient (a pool ×1.3 for bend scour). The plan's kind
+>   multipliers overestimated a pool's speed (~1.1 m/s at the confluence);
+>   the normal depth gives a pool ~0.35 m/s and a riffle ~1.4 m/s from the
+>   same water, which is what the drive needs.
+> - **`water.river.rapidGradient` is 0.012, not 0.008**, and crossings are
+>   **0.3** of a bend: with the plan's 0.008 every crossing on the 0.27 %
+>   lower Kestrel was a rapid (the step gradient there is ~0.85 %), which
+>   contradicted the plan's own *"pools with a riffle every half mile"*.
+>   Pinned by `RiverLine.test.ts` (140 m → pools and riffles; 500 m → rapids).
+> - **A node citation with no offset is a POSITION** (the stretch at the
+>   node's km) — so a shore citing `kestrel:confluence` reads the stretch
+>   the quay stands on, and the fishery's confluence stocks live in the
+>   POOLS around it (D34); `FisheryRegistry.test.ts` now reads the nearest
+>   pool. Flow, chemistry, contamination and stocks resolve to the nearest
+>   node; current and temperature are the position's own.
+> - **Offsets are DOWNSTREAM-positive** (`confluence+0.4` = km 8.6), so the
+>   plan's `falls-0.3` (the landing *below* the falls) and `headwaters-1.5`
+>   (the put-in) were upstream of their nodes — one above the falls, one off
+>   the top of the river. Decided: the falls landing is at **`falls+0.3`**
+>   and the put-in at **`headwaters+1.5`** (W2/W3 content). Hob's Bend at
+>   `confluence-15` (km 24) and the woodyard at `confluence-12` are right.
+> - **Kms authored:** Kestrel 62/48/41/9/0 (the slate's); Delight 60/40/0
+>   (lengthened so the flats→mouth reach is 0.36 % and its crossings are
+>   riffles — the ford is an authored riffle override at `mouth-0.4..-0.25`);
+>   Holloway 45/25/0; Cold Fell 9/5/0 (a sink).
+> - The ends/km rule broke every multi-node test fixture, as it should
+>   (fails loudly); fixtures got neutral `source: rills, mouth: sink` and
+>   km by index. `RiverLine` carries a class-level `@internal`
+>   (`lint:lib-statics`). The current log is stocked at the dive counter
+>   (`lint:reachability` arm R); the outfitter adds it in W3.
+> - The climate drive asserts nothing about the falls reach (risk 1 is moot).
+
 ### W1 — The moving place and the reach patch
 
 **Goal.** Swim off the quay into the stream and be carried; two swimmers

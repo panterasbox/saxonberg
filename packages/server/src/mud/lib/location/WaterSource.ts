@@ -93,6 +93,13 @@ export interface WaterRead {
   tide?: WaterTide;
   /** ⭐ Dissolved oxygen, mg/L (underwater D21) — what a gill breathes. */
   oxygenMgL?: number;
+  /**
+   * ⭐ The current where the read was taken, m/s (river D10) — + running
+   * downstream, − when a flood tide runs up. Absent for still water.
+   */
+  currentMps?: number;
+  /** ⭐ How broken the water is, 0 (glassy) to 1 (white water) (river D10). */
+  roughness?: number;
   /** The source's own state, returned to it in `waterLinesFor`. */
   opaque?: unknown;
 }

@@ -204,10 +204,12 @@ describe('the shipped basins compile, and say what the design says', () => {
   });
 
   it('an unauthored reach INTERPOLATES between the control points around it', async () => {
-    // The Kestrel's `gorge` authors no elevation: it is one step between
-    // 1400 m and 500 m, so it must read 950 and nobody typed that.
+    // The Kestrel's `gorge` authors no elevation: at km 48 it lies two
+    // thirds of the way down the 21 km from the headwaters (1400 m, km 62)
+    // to the falls (140 m, km 41) — 560 m, interpolated in KM (the river
+    // build), and nobody typed that.
     const gorge = await catalogue().reachOf('kestrel:gorge');
-    expect(gorge!.elevation).toBe(950);
+    expect(gorge!.elevation).toBeCloseTo(560, 6);
   });
 
   it('⭐ the Delight is a TRIBUTARY, and nothing in the row says so', async () => {

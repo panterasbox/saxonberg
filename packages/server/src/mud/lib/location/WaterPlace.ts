@@ -212,6 +212,10 @@ export interface WaterPlace {
    * surface depth) unless the floor holds it up, else the air above.
    */
   mediumFor(occupant: Stuff): MediumRead;
+  /** The current where `occupant` is, m/s (river D10). */
+  currentFor(occupant: Stuff): number;
+  /** How broken the water is where `occupant` is, 0–1 (river D10). */
+  roughnessFor(occupant: Stuff): number;
   /** The water's temperature, K. */
   waterTemperatureK(): number;
   /** Does this thing go down in water — a still, dense, non-acting thing? */
@@ -623,7 +627,34 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         depthM: 0,
         waterRef: this.water?.of ?? null,
         oxygenMgL: this.oxygenNowMgL(),
+        currentMps: this.currentFor(occupant),
+        roughness: this.roughnessFor(occupant),
       };
+    }
+
+    /**
+     * ⭐ The current where `occupant` is in this water, m/s (river D10) —
+     * + running downstream. Nothing else in the kernel reads a river.
+     * @hook Override on a water that moves: a river place answers from its
+     *   line or its author's override. Default: the read's current, which
+     *   a still water and a sea pool report as nothing — 0.
+     */
+    public currentFor(occupant: Stuff): number {
+      void occupant;
+      const pick = (this as unknown as Shore).waterFor();
+      if (!('key' in pick)) return 0;
+      const read = (this as unknown as Shore).peekWaterRead(pick.key);
+      if (read?.tide && !read.currentMps) return read.tide.streamMps;
+      return 0;
+    }
+
+    /**
+     * ⭐ How broken the water is where `occupant` is, 0–1 (river D10).
+     * @hook Override on a water that has white water. Default: 0.
+     */
+    public roughnessFor(occupant: Stuff): number {
+      void occupant;
+      return 0;
     }
 
     /** The water's temperature: the read's draw, or the under-ice floor. */

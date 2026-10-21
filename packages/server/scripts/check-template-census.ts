@@ -508,6 +508,19 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
+   * ⭐ A Watercourse's authored `hazards[].row` (the river build) — an
+   * authored strainer or hydraulic naming its own row. A rowless one is a
+   * hazard the drift meets and nothing can stand up.
+   */
+  const hazards = data.hazards;
+  if (Array.isArray(hazards)) {
+    for (const h of hazards) {
+      if (h && typeof h === 'object' && typeof (h as Record<string, unknown>).row === 'string') {
+        push('hazards.row', (h as Record<string, unknown>).row);
+      }
+    }
+  }
+  /*
    * ⭐ The deposit's MATERIAL citations. A `Deposit` is a pure-data Idea
    * whose whole content is references: each stratum names its host rock,
    * each zone its ore mineral, and the lode its gangue. They are the

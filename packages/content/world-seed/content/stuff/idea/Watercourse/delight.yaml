@@ -24,8 +24,18 @@ data:
   # authored here because a reach is not a place a zone chain reaches.
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
+  # ⭐ The river as a LINE (the river build): a spring river, cold and
+  # steady at the top, joining the Kestrel at the confluence.
+  source: { kind: spring }
+  mouth: { into: river, course: kestrel, node: confluence }
+  bed: gravel
+  stretches:
+    # The ford: a gravel riffle a few hundred metres above the mouth —
+    # shallow, fast, and the only place a cart crosses (overridden: a ford
+    # is where somebody found the riffle, and an author says where).
+    - { from: mouth-0.4, to: mouth-0.25, kind: riffle }
   nodes:
-    - { name: spring, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    - { name: spring, km: 60, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The alluvial flats — the diversion fight, when it comes, is here.
-    - { name: flats, elevation: 180, channelWidthM: 22, catchmentKm2: 240, stocks: [{ species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/brown-trout }], works: [/world/terminus/hearts-delight/thing/millrace] }
-    - { name: mouth, elevation: 35, channelWidthM: 30, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }
+    - { name: flats, km: 40, elevation: 180, channelWidthM: 22, catchmentKm2: 240, stocks: [{ species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/brown-trout }], works: [/world/terminus/hearts-delight/thing/millrace, /world/terminus/hearts-delight/thing/sawmill-race] }
+    - { name: mouth, km: 0, elevation: 35, channelWidthM: 30, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }

@@ -36,6 +36,9 @@ data:
   conduitKey: cold-fell-aqueduct
   direction: supply
   reachRef: cold-fell:cascade
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "cold-fell:cascade"
   extent: /world/terminus
   capacityM3S: 0.8
   # ⭐ TREATED, unlike the Wharfside intake. That is the point of it:

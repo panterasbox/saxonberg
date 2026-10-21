@@ -65,6 +65,7 @@ export default class ControlStructure extends ControlStructureBase {
   static fieldMeta: FieldMeta = {
     controlKind: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
+    at: { persistent: true, authorable: true },
     passFraction: { persistent: true, authorable: true },
     divertsTo: { persistent: true, authorable: true },
     headM: { persistent: true, authorable: true },
@@ -77,6 +78,22 @@ export default class ControlStructure extends ControlStructureBase {
 
   /** The reach it sits on. */
   public reachRef = '';
+
+  /**
+   * ⭐ Where on the river it sits (river D3) — `kestrel:confluence+0.05,left`.
+   * The node in {@link reachRef} keeps the works' index; this is its own
+   * position on the line (an intake really is 100 m above the outfall), and
+   * a weir's hydraulic forms just below it. `''` = at the node.
+   */
+  public at = '';
+
+  /** Where on the line this work sits, or its node when it says nothing. */
+  public getAt(): string {
+    return this.at !== '' ? this.at : this.reachRef;
+  }
+  public setAt(value: string): void {
+    this.at = typeof value === 'string' ? value : '';
+  }
 
   /**
    * The fraction of arriving flow that continues down the same course,
