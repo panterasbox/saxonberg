@@ -277,7 +277,7 @@ export function WorkspaceMixin<
         'platform/cmd/shell/ls.yaml',
         'platform/cmd/shell/cat.yaml',
         'platform/cmd/shell/grep.yaml',
-        'platform/cmd/shell/write.yaml',
+        'platform/cmd/shell/edit.yaml',
         'platform/cmd/shell/mkdir.yaml',
         'platform/cmd/shell/rm.yaml',
         'platform/cmd/shell/cp.yaml',

@@ -102,7 +102,7 @@ async function resolveFieldValidators(cmd: CommandDefinition): Promise<void> {
 type DriveResult =
   | { stage: 'shape' | 'bind'; summary: string }
   | { stage: 'refused'; detail: string }
-  | { stage: 'ok'; item: string; target: string };
+  | { stage: 'ok'; item: string; target: string; recipient?: string };
 
 describe('throw.yaml through the whole binder', () => {
   let location: TestLocation;
@@ -160,7 +160,13 @@ describe('throw.yaml through the whole binder', () => {
     }
     const name = (v: unknown): string =>
       v === undefined ? '(absent)' : ((v as MqlOneResult).stuff?.getPresentation() ?? 'NULL');
-    return { stage: 'ok', item: name(r.resolved.item), target: name(r.resolved.target) };
+    const recipient = (r.resolved as { recipient?: unknown }).recipient;
+    return {
+      stage: 'ok',
+      item: name(r.resolved.item),
+      target: name(r.resolved.target),
+      ...(typeof recipient === 'string' ? { recipient } : {}),
+    };
   }
 
   it('binds an item you are holding', async () => {
@@ -224,6 +230,16 @@ describe('throw.yaml through the whole binder', () => {
       stage: 'ok',
       item: 'rock',
       target: 'wolf',
+    });
+  });
+
+  it('⭐ `throw <thing> to <someone>` binds the thing and leaves the name for it (underwater review)', async () => {
+    move(rock, giver);
+    expect(await drive(realThrow(), 'throw rock to mara')).toEqual({
+      stage: 'ok',
+      item: 'rock',
+      target: '(absent)',
+      recipient: 'mara',
     });
   });
 

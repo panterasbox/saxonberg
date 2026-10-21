@@ -1,0 +1,10 @@
+# The dive shop's lamp — a storm lantern on a hook over the counter, the
+# shed's only light once the door is shut.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: storm lantern
+  keywords: [lantern, lamp, light]
+  on: true
+  # 400 lumens over the shed's floor reads `lit`: enough to sort gear by.
+  emittedIntensity: 400

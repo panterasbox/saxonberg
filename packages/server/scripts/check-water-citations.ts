@@ -41,13 +41,26 @@ export function checkWaterCitations(
   const out: WaterCitationFinding[] = [];
   for (const [path, row] of rows) {
     const data = effectiveRow(path, rows).data;
-    const waters = data.waters;
-    if (!waters || typeof waters !== "object" || Array.isArray(waters)) continue;
     const details = data.details;
     const features =
       details && typeof details === "object" && !Array.isArray(details)
         ? new Set(Object.keys(details as Record<string, unknown>))
         : new Set<string>();
+    // ⭐ A water place's OWN water (underwater D1) needs no feature — the
+    // place IS the water — unless it names one it is known by here, and
+    // then that feature must exist like any other.
+    const water = data.water as { feature?: unknown } | undefined;
+    if (water && typeof water === "object" && typeof water.feature === "string" &&
+        !features.has(water.feature)) {
+      out.push({
+        where: relative(CONTENT, row.file),
+        detail:
+          `${path} names its water's feature '${water.feature}' and has no ` +
+          `'${water.feature}' detail — add one to details:, or drop the feature.`,
+      });
+    }
+    const waters = data.waters;
+    if (!waters || typeof waters !== "object" || Array.isArray(waters)) continue;
     for (const key of Object.keys(waters as Record<string, unknown>)) {
       if (features.has(key)) continue;
       out.push({

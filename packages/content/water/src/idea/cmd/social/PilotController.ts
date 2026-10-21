@@ -14,6 +14,7 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MqlApi } from '@saxonberg/server/mud/api/mql';
 import { BankingApi, Money } from '@saxonberg/server/mud/api/banking';
 import type { Charge } from '@saxonberg/server/mud/lib/banking/Charge';
@@ -26,6 +27,11 @@ interface PilotModel extends CommandModel {
 export default class PilotController extends CommandController<PilotModel> {
   async execute(model: PilotModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
+    // ⭐ Speaking needs a voice the medium carries (underwater D29 seam 5).
+    if (MixinApi.isVocal(giver)) {
+      const voice = giver.canVocalize();
+      if (!voice.ok) return this.decline(context, voice.line, voice.reason);
+    }
     const bound = model.pilot?.stuff ?? MqlApi.resolveOne('reachable:[class.Pilot]', {
       commandGiver: giver,
       scope: 'reachable',

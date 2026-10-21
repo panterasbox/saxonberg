@@ -167,6 +167,22 @@ describe('ElectricityLogic — being-shocked sustain + tetany + death', () => {
     expect(burnSeverity(body)).toBeGreaterThan(before); // accrues over time
   });
 
+  it('⭐ a source KIND live many times over (twelve strikes in a storm) neither throws nor drops the circuit', () => {
+    const room = makeRoom();
+    floodFloor(room, 20);
+    const wire = makeWire(room, 50);
+    const body = makeBody(room);
+    wire.conduct();
+    expect(shockOf(body)).toBeDefined();
+    // A second live instance under the SAME template path (the drive's
+    // storm left twelve lightning strikes standing; the singleton lookup
+    // threw inside the reconcile and took the server down).
+    const twin = makeWire(room, 50);
+    stampTemplatePathForTest(twin, wire.getTemplatePath()!);
+    expect(() => tick(body, 2)).not.toThrow();
+    expect(body.isBeingShocked()).toBe(true);
+  });
+
   it('clears the sustain when the circuit breaks (drained pool)', () => {
     const room = makeRoom();
     const floor = floodFloor(room, 20);

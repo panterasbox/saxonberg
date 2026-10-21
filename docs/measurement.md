@@ -825,7 +825,9 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
   seam may attest, or what the model is allowed to remember.
   [mirror-slate](./slates/builds/mirror-slate.md) and
   [instrumentation-slate](./slates/tails/instrumentation-slate.md) hold
-  that thread; it deserves its own peer doc.
+  that thread; it deserves its own peer doc. ⭐ **Begun 2026-10-20 as the
+  [privacy slate](./slates/builds/privacy-slate.md)** (plane 1: the privacy
+  surface, spoiler privilege earned by publication, the trail).
 - **Consent mechanics** as implemented — this states the requirement
   (opt-in, cheap exit), not the machinery.
 - **The valuation vocabulary itself.** Which deed-tags exist is content,

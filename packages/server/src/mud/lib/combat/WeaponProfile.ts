@@ -77,7 +77,25 @@ export interface WeaponProfileInputs {
   /** An explicit off-guard / assist bonus (a shield, a dual-wield off-hand)
    * added to the derived guard factor. Default 0. */
   guardBonus?: number;
+  /**
+   * ⭐ The drag of the medium the weapon moves through (underwater D28): 0
+   * in air, ~1 in water. A SWUNG form pushes its whole length through the
+   * water and is slowed to a fraction; a thrust parts it point-first and
+   * barely notices. Default 0.
+   */
+  mediumDrag?: number;
 }
+
+/** How hard the medium's drag bites each delivery form: swung forms push
+ * their whole length sideways through it; a point parts it. */
+const FORM_DRAG: Record<DeliveryForm, number> = {
+  bladed: 4,
+  hafted: 4,
+  flail: 4,
+  blunted: 4,
+  whip: 6,
+  pointed: 0.5,
+};
 
 /** Tunable coefficients (`combat.weapon.*` AppSettings). */
 export interface WeaponProfileConfig {
@@ -253,14 +271,18 @@ export class WeaponProfile {
     const handedness: Handedness =
       inputs.handSlots >= 2 ? "two-handed" : "one-handed";
 
+    // ⭐ The water's drag (D28): a sword barely hurts, a spear thrust does.
+    const drag = Math.max(0, inputs.mediumDrag ?? 0);
+    const slowed = drag > 0 && form ? 1 / (1 + FORM_DRAG[form] * drag) : 1;
+
     return new WeaponProfile(
       reach,
       balance,
       guard,
       handedness,
       form,
-      tempoFactor,
-      poiseDamageFactor,
+      tempoFactor * slowed,
+      poiseDamageFactor * slowed,
       overextendFactor,
       guardFactor,
     );

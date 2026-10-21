@@ -14,8 +14,9 @@
 # ladder is a verb a fresh body already has (`run`, `climb`, every step
 # verb), read through the body at the verb layer — a conferral rule
 # here would be a no-op push. The mechanism is wired
-# (`refreshConferrals` fires when the band crosses in either direction),
-# and the first real conferral is the swim, when there is water.
+# (`refreshConferrals` fires when the band crosses in either direction).
+# Verb conferral itself was retired since: the swim, when water came
+# (underwater D12), is a COST the body pays, never a verb a band grants.
 class: /platform/idea/Discipline
 data:
   key: wind

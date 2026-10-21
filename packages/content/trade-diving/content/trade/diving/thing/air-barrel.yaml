@@ -1,0 +1,20 @@
+# An air barrel (underwater C2, D26) — a weighted, pitched barrel full of
+# air, sent down to a bell. Brought in under the rim, its air goes up into
+# the bell and the foul air spills out under the edge: the old way of
+# keeping a bell's crew alive below. Lashed to a load on the bed, it
+# lifts it (an `AirBag`, as the canvas bag is).
+class: /trade/diving/thing/AirBag
+data:
+  shortDescription: air barrel
+  keywords: [barrel, "air barrel", cask]
+  register: indefinite
+  longDescription: >-
+    A stout barrel, pitched inside and out and weighted with a band of
+    lead, with a leather hose and a stopcock in its head.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 25
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/air
+  interiorCapacity: 1
+  closure: sealed
+  interiorAmount: 1

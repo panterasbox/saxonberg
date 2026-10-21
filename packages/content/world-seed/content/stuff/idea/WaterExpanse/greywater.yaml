@@ -29,3 +29,7 @@ data:
   bottom: grey mud
   waterTemperatureK: 286
   salinityPpt: 35
+  # ⭐ The tide (underwater D25): three meters low to high, on the moon's
+  # clock — high water about fifty minutes later each day, springs at new
+  # and full moon. High water stands at the moon's transit off the bar.
+  tidal: { rangeM: 3, lagH: 0 }

@@ -162,7 +162,10 @@ interface ConductiveGraph {
 
 function buildConductiveGraph(room: Stuff): ConductiveGraph {
   const floor = findFloor(room);
-  const poolMat = floor ? conductivePoolOf(floor) : null;
+  // ⭐ A water place IS the pool (underwater D29 seam 12): everyone in it
+  // is in the medium, and the medium conducts as its water does — the
+  // Greywater's brine five hundred times better than the Kestrel.
+  const poolMat = waterPlacePoolOf(room) ?? (floor ? conductivePoolOf(floor) : null);
   const floorMat =
     floor && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
   const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
@@ -226,6 +229,19 @@ function findFloor(room: Stuff): Stuff | null {
   if (!floor) return null;
   if (!floor.hasSurfaceBulk()) return null;
   return floor;
+}
+
+/** The water a water place is, as a conductive pool material, or `null`. */
+function waterPlacePoolOf(room: Stuff): Material | null {
+  if (!MixinApi.isWaterPlace(room)) return null;
+  const state = room.stateNow();
+  if (state === 'dry' || state === 'frozen') return null;
+  const read = room.peekWaterRead(room.getWaterKey());
+  const path = read?.draw?.materialPath ?? null;
+  const mat = path ? StuffApi.findByTemplatePath<Material>(path) ?? null : null;
+  if (!mat) return null;
+  const poolMin = dial(AppSettingKeys.electricityPoolMinConductivity, 0.005);
+  return mat.getElectricalConductivity().rawValue() >= poolMin ? mat : null;
 }
 
 /** The floor's conductive surface pool material, or `null` (dry / too fresh /

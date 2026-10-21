@@ -1,0 +1,33 @@
+# A wand of glowlight (underwater D18) — the glowlight working with a
+# battery. A wand needs no voice, so it works under the water where a
+# spoken cast cannot: the diver's lamp on the dark bed.
+class: /system/arcana/thing/Wand
+data:
+  shortDescription: stubby glass-tipped wand
+  keywords: [wand, stubby, glass-tipped, "stubby glass-tipped wand", "glass-tipped wand"]
+  register: indefinite
+  longDescription: >
+    A short rod of dark wood with a bead of clouded glass set in its tip
+    and a cord loop at the butt, made to be carried on a wrist.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 0.05
+  carriedSpellPath: /stuff/idea/magic/Spell/glowlight
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.2
+  capacityTau: 300
+  alwaysOn: false
+  censusKey: wand
+  materialTags: [wood, glass]
+  regionTarget: 1
+  descriptorClass: wand
+  identifiedName: a wand of glowlight
+  selfIdentifying: true
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  blessingOdds: { cursed: 1, uncursed: 98, blessed: 1 }
+  details:
+    sigil:
+      keywords: [sigil, glyph, mark, bead]
+      description: >
+        A light glyph etched round the glass bead — the maker's, legible
+        to anyone taught to read the grid.

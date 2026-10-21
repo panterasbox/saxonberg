@@ -443,6 +443,14 @@ export const Mixins = {
   // *This place is beside a named water* (maritime revision 3). Composed
   // only by the waterside Location classes — never a base.
   Shore: 'ShoreMixin',
+  // ⭐⭐ *This place IS a water* (underwater D1) — water as a state of a
+  // place: a cited water and the depth of the floor in it. Composed by
+  // `Pool` and the water pack's column bands; never on a bank or a quay,
+  // which are BESIDE water.
+  WaterPlace: 'WaterPlaceMixin',
+  // *This Idea grows the column under a deep water* — the seam the water
+  // pack's `ColumnWarren` implements (the WaterSource shape).
+  WaterColumn: 'WaterColumnMixin',
   // *This Idea can read a named water for a place* — the seam the water
   // pack's reach catalogue and seas implement (the GroundSource shape).
   WaterSource: 'WaterSourceMixin',
@@ -638,6 +646,15 @@ export const Mixins = {
   CredentialWallet: 'CredentialWalletMixin',
   // Haulage — a dragged container (cart) and the creature that pulls it.
   Haulable: 'HaulableMixin',
+  // ⭐ *A thing on the end of a line you take in* — a protocol mixin
+  // (underwater review): no state, a name; each host answers `pull`.
+  Pullable: 'PullableMixin',
+  // ⭐ *A thing thrown TO someone, to be caught* — a protocol mixin; the
+  // host answers `throw … to`.
+  Tossable: 'TossableMixin',
+  // ⭐ *A thing in the water holding ANOTHER up* — a protocol mixin the
+  // sinking rule asks (an air bag lashed to an anchor).
+  Buoy: 'BuoyMixin',
   Hauler: 'HaulerMixin',
   // Employment — the org chart (positions + holders + the appointing
   // authority), the Business that trades on top of it, and an actor's
@@ -873,6 +890,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   FloorMixin: "{} isn't the ground underfoot",
   GroundSourceMixin: "{} doesn't know what the ground is made of",
   ShoreMixin: "{} isn't beside any water",
+  WaterPlaceMixin: "{} isn't a water you can be in",
+  WaterColumnMixin: "{} doesn't grow a water column",
   WaterSourceMixin: "{} can't read a water",
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
@@ -977,6 +996,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   MountableMixin: "you can't ride {}",
   DrivableMixin: "you can't drive {}",
   HaulableMixin: "{} isn't something you can hitch",
+  PullableMixin: "{} isn't on a line you can pull",
+  TossableMixin: "{} isn't something anybody catches",
+  BuoyMixin: "{} doesn't hold anything up in the water",
   HaulerMixin: "{} can't pull a cart",
 
   // Storefronts.

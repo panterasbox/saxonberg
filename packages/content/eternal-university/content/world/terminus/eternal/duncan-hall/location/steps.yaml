@@ -10,7 +10,7 @@
 # back-exit to the lobby is auto-installed by Exitable.applyExits
 # when the lobby's south exit hydrates (bidirectional default for
 # cardinals).
-class: /platform/location/Locale
+class: /platform/location/Shore
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: terminus/city/campus/duncan-hall
@@ -33,8 +33,14 @@ data:
     y: 0
     z: 0
   exits:
+    # ⭐ Into the flooded cistern — water over your head, so you swim in
+    # (bare `swim` from these steps) or climb down the rungs, never walk
+    # (found by the underwater browser walk: the over-your-head rule
+    # refused `down` and nothing else was admitted, so the cistern could
+    # not be entered). The steps are a Shore for it, as the quay is.
     down:
       destination: /world/terminus/eternal/duncan-hall/location/cistern
+      media: [water, vertical]
   # Scuba proof gear: an air tank (wear it before descending into the
   # flooded cistern below) and a compressor to refill it. The cistern is
   # the gear-gated water spot — survivable only while the tank has air.

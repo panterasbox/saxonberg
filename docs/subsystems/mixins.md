@@ -149,6 +149,33 @@ there is no `PossessableMixin`. (Contrast: the wardrobe's
 `SandboxPortalMixin` confers *behavior* → a legitimate mixin. The test
 discriminates.)
 
+### ⭐ A verb's protocol is a PROTOCOL MIXIN, never a bare interface
+
+(Decided at the underwater review, 2026-10-20.)
+
+Three cases, by what the implementers share:
+
+| implementers share… | it is | example |
+|---|---|---|
+| state or behavior | a **mixin** (as always) | `Wearable`, `Container` |
+| only a method a verb calls — every host's answer is its own | a **protocol mixin**: `_mixinName`, the method with a refusing default, the IS / IS NOT docstring; each host overrides | `PullableMixin` (a pot, a lifeline, a bell's hoist), `TossableMixin`, `WaterColumnMixin`, the fishing pack's `TakesFishMixin` |
+| nothing — it is DATA passed around | a **bare interface / type** | `PullOutcome`, a `WaterRead` |
+
+⛔ **What a verb narrows its target on is never a bare interface.** A bare
+shape is invisible to everything that keys off mixins: a view cannot say
+`requires: [it]` (so the binder admits anything and the refusal moves
+into the controller), there is no `MixinApi.isX` (so every controller
+hand-rolls `typeof x.method === 'function'`), and Studio cannot show an
+author that the thing answers the verb (`callable == visible ==
+cared-about`). A protocol mixin costs one class layer and buys all three.
+⚠ It must not break TypeScript: a deep composition chain has collapsed
+inference before (`Atmospheric`) — a protocol mixin is thin, but check.
+
+The shipped bare shapes predate the rule — `Workable` / `Diggable` /
+`Splittable`, `Pumpable`, `Tappable`, `Cuttable` (and `Reelable`, which
+the reel undo removes) — and are swept by
+[verb-interfaces-slate.md](../slates/builds/verb-interfaces-slate.md).
+
 Five conventions. Skip any of them and other subsystems silently treat
 the mixin as if it weren't there.
 

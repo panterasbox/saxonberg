@@ -5,7 +5,7 @@
  * tokens (`components/ui/tokens` → app chrome) resolve through these, so
  * a face swap is one edit here.
  *
- * The four-voice model, from `docs/design_handoff/DESIGN-SYSTEM.md`:
+ * The four-voice model, from `docs/design/handoff/DESIGN-SYSTEM.md`:
  *
  * | Role        | Face          | Where                                     |
  * |-------------|---------------|-------------------------------------------|

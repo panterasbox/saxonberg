@@ -588,6 +588,10 @@ export class PerceptionLogic extends ApiLogic {
             ? 'worn'
             : 'inside';
         for (const o of occupants) {
+          // ⭐ Once, however many slots it covers (found by the underwater
+          // browser walk: a diving dress claims torso and legs and was
+          // listed as worn twice).
+          if (slotted.has(o.stuffId)) continue;
           slotted.add(o.stuffId);
           if (!seen(o)) continue;
           if (kind === 'held') out.held.push(o);
@@ -705,6 +709,16 @@ function resolveByOrganKey(organKey: string): Modality | null {
  * (reserved future-species organs that haven't shipped a modality
  * singleton).
  */
+/** The medium a viewer's senses are in: the water under its surface, else air. */
+function mediumOf(viewer: Stuff): string {
+  try {
+    const read = BiomeApi.mediumFor(viewer);
+    return read.immersed && !read.atSurface ? read.tag : 'air';
+  } catch {
+    return 'air';
+  }
+}
+
 function walkInnateModalities(viewer: Stuff): Modality[] {
   if (!MixinApi.isOrganism(viewer)) return [];
   const organism = viewer as Stuff & Organism;
@@ -712,7 +726,9 @@ function walkInnateModalities(viewer: Stuff): Modality[] {
   if (!species) return [];
   const bodyPlan = species.getBodyPlan();
   if (!bodyPlan) return [];
-  const organKeys = bodyPlan.getModalities();
+  // ⭐ An organ works in its own media (underwater D21): under the water a
+  // nose would breathe it in, eyes and ears go on working.
+  const organKeys = bodyPlan.getModalitiesIn(mediumOf(viewer));
   const out: Modality[] = [];
   for (const key of organKeys) {
     const modality = resolveByOrganKey(key);

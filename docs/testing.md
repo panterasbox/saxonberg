@@ -753,7 +753,7 @@ Assert what it found (`expect(inspected).toBe(N)`), or a rename
 silently reduces it to `expect([]).toEqual([])`.
 
 > ⚠ **Read a design mock by rendering it, never by extracting its text.**
-> The `docs/design_handoff/*.dc.html` mocks were once audited by stripped
+> The `docs/design/handoff/*.dc.html` mocks were once audited by stripped
 > text, which preserves *what words appear* and destroys *how they are
 > arranged* — a one-page form was built as a five-screen wizard, a banded
 > hero as a two-column rail, a three-column workspace as a single centred

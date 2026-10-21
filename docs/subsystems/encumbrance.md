@@ -30,10 +30,10 @@ surface directly:
 
 | Method | Meaning |
 |---|---|
-| `getBorneBurden(): Quantity<'kg'>` | the weighted weight currently borne |
+| `getBorneBurden(rho?): Quantity<'kg'>` | the weighted weight currently borne; given a fluid density `rho`, each item counts at `mass × (1 − ρ/ρ_item)` — what the water does not hold up (clamped ≥ 0) |
 | `getCarryCapacity(): Quantity<'kg'>` | what the body can comfortably carry |
 | `getStrainCeiling(): Quantity<'kg'>` | the absolute lift cap (`capacity × OVERLOAD_FACTOR`) |
-| `getLoadRatio(): number` | `burden / capacity` (dimensionless) |
+| `getLoadRatio(rho?): number` | `burden / capacity` (dimensionless), in that fluid when `rho` is given |
 | `wouldExceedCeiling(candidate): boolean` | the lift-gate predicate |
 
 ⚠ `drainForTraversal()` is gone (nutrition-and-fitness W1): the loaded
@@ -222,6 +222,15 @@ that own the actor experience:
   *modes* (movement-speed effects are a non-goal). **Open seam:** the veto
   could relocate to `ExitableMixin` / the boundary; the predicate moves
   unchanged.
+
+  ⭐ **In the water** (underwater build): a mode whose medium is water reads
+  the **in-water** ratio (`getLoadRatio(ρ_water)`) — a diver's air bags
+  lift, a belt still pulls — and the veto refuses only the way **up**.
+  Weight sinks you; it never refuses going in or going down (the browser
+  walk found a weighted diver refused `descend` and a diver in the
+  hard-hat suit unable to enter the water at all). Rising is refused by
+  the column's own `canRise` as well. See
+  [underwater.md](./underwater.md).
 - **Traversal drain** → `LocomotionApi.engageAround`, which
   `Mobile.traverse` runs every self-powered crossing inside, after the
   crossing *happened* — as `actor.exertTraverse(mode)` on `ExertingMixin`

@@ -1,8 +1,8 @@
 /**
  * InhaleController — the voluntary breath-hold (the free-diving skill).
- * Object-free posture-category verb; sets/extends the held-breath grace
- * on `RespirationMixin` so a prepared dive crosses a `spo2`-gap an
- * unprepared body cannot. A blacked-out body can't hold its breath —
+ * Object-free posture-category verb; fills the breath store on
+ * `RespirationMixin` so a prepared dive lasts longer than a surprised one
+ * (underwater D10). Under water there is nothing to breathe — refused. A blacked-out body can't hold its breath —
  * gated by `requiresConscious` at the view.
  *
  * Validation surface (from `cmd/posture/inhale.yaml`):
@@ -16,7 +16,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 
 export default class InhaleController extends CommandController<CommandModel> {
-  execute(_model: CommandModel, context: CommandContext): void {
+  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     if (!MixinApi.isRespiration(giver)) {
       // A body that doesn't respire (construct) — gentle no-op cue.
@@ -26,10 +26,18 @@ export default class InhaleController extends CommandController<CommandModel> {
         .send();
       return;
     }
-    giver.inhale();
+    // ⭐ The body decides: under water there is nothing to breathe (#94).
+    const out = await giver.inhale();
+    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
     MessageApi.scene(giver)
       .topic('act.deed')
-      .toSelf(Mml.compose`You take a deep breath and hold it.`)
+      .toSelf(
+        out.shallow
+          ? Mml.compose`You gasp at the air, but the cold will not let you fill your lungs.`
+          : out.hyperventilating
+            ? Mml.compose`You breathe fast and deep, and your head swims.`
+            : Mml.compose`You take a deep breath and hold it.`,
+      )
       .toPeers(Mml.compose`${Mml.actor(giver)} takes a deep breath.`)
       .send();
   }

@@ -1,0 +1,14 @@
+# /stuff/idea/biome/water/under — under the surface (underwater D5): the
+# biome of a column's bands. NOT sky-exposed — what light there is comes
+# down through the water from the surface place, which the band reads for
+# itself. Humidity is moot; the sound is the water's own.
+#
+# ⚠ The atmosphere stays the universe's air: what a body is IN under the
+# water is answered per occupant by `BiomeApi.mediumFor` (the band says
+# water), never by a room tag.
+class: /platform/idea/Biome
+extends: /stuff/idea/biome/universe
+data:
+  name: under-water
+  _defaultHumidity: { value: 100, unit: "%" }
+  _ambientSoundMml: "<markup>a hush, and your own blood loud in your ears</markup>"

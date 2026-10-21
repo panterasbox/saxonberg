@@ -496,7 +496,10 @@ function isFungible(onHand: Stuff | null, kind: string): boolean {
  * or the re-order guard silently stops guarding.
  */
 function pendingKey(item: ConditionData['item']): string {
-  return item.kind === 'category' ? `cat:${item.category}` : item.kind === 'template' ? item.path : `chattel:${item.chattelId}`;
+  if (item.kind === 'category') return `cat:${item.category}`;
+  if (item.kind === 'template') return item.path;
+  if (item.kind === 'identity') return `identity:${item.identityPath}`;
+  return `chattel:${item.chattelId}`;
 }
 
 /** The kinds already posted to this bench and not yet carried. */

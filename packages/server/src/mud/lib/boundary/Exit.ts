@@ -214,6 +214,14 @@ const ByPartyRoom = SecurityPolicies.FromMixin(Mixins.Exitable, {
   },
 });
 
+/** The self-powered way across each medium, for a refusal that names it. */
+const EXIT_MEDIUM_VERB: Readonly<Record<string, string>> = {
+  ground: 'walk',
+  vertical: 'climb',
+  water: 'swim',
+  air: 'fly',
+};
+
 export default class Exit extends ConcealableMixin(Idea) {
   /**
    * The exit-KIND hydration allowlist (the applier applies only
@@ -977,6 +985,32 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
+   * @hook ⭐ Does this way wire its own way back (underwater drive, run
+   * 32)? The topology verifier checks an exit by looking its destination
+   * PATH up and asking that place for the way back — right for an
+   * authored room, wrong for a way whose far side is computed per
+   * instance from a shared row (every column's `dark` band is the same
+   * row): the lookup finds SOME band of that row, its way back is not
+   * ours, and the verifier blocks a good way. A way whose warren wires
+   * both ends says so here and is never verified by path.
+   */
+  public wiresItsOwnInverse(): boolean {
+    return false;
+  }
+
+  /**
+   * @hook ⭐ How long crossing this way takes `mover`, in REAL seconds
+   * (underwater review). An ordinary way is a step, `0`. A way whose
+   * LENGTH is the cost — a swim down through the water — says it here, and
+   * the movement verbs hold the mover's hands that long and cross at the
+   * end, so no verb that takes this way skips the time.
+   */
+  public async crossingRealS(mover: Stuff): Promise<number> {
+    void mover;
+    return 0;
+  }
+
+  /**
    * Can `mover` traverse this exit right now?
    *
    * Returns `{ ok: false, reason, gate }` on the first failing gate
@@ -1069,11 +1103,17 @@ export default class Exit extends ConcealableMixin(Idea) {
       };
     }
     if (mode != null && !this.allowsMode(mode)) {
+      // ⭐ Name the way that works (found by the underwater browser walk:
+      // the card's `up` out of the river sends `go up`, which said only
+      // "You can't walk that way" beside steps you have to climb).
+      const ways = [...new Set(this.media.map((m) => EXIT_MEDIUM_VERB[m]).filter(Boolean))];
       return {
         ok: false,
         gate: 'exitMode',
         mode,
-        reason: `You can't ${mode} that way.`,
+        reason: ways.length > 0
+          ? `You can't ${mode} that way — you'll have to ${ways.join(' or ')}.`
+          : `You can't ${mode} that way.`,
       };
     }
     return { ok: true };

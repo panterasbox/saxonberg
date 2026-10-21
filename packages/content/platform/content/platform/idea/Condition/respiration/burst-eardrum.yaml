@@ -1,0 +1,17 @@
+# A burst eardrum — the squeeze ignored (underwater D15): something gives
+# in the ear with a stab of pain, and the world spins. Self-limiting over
+# about three game-days; while it is fresh the vertigo makes standing and
+# fine work hard.
+class: /platform/idea/Condition
+data:
+  name: burst eardrum
+  signature:
+    - { kind: expression, bands: 2 }
+    - { kind: reserve, reserve: endurance, pctPerHour: -2 }
+  progression:
+    law: decay
+    decayPerSec: 0.0000116
+  resolution:
+    by: time
+  observableSigns: [vertigo, bleeding-ear, unsteady]
+  contagion: null

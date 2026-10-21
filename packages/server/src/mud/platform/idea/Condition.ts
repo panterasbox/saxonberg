@@ -632,7 +632,7 @@ export interface SustainedEffect {
   kind: 'sustained';
   /** The spell that installed it. */
   spellId: string;
-  /** Which realization this holds: 'emit-light' | 'cloak' (grows with the modifier roster). */
+  /** Which realization this holds: 'emit-light' | 'cloak' | 'confer-medium' | 'offset-ambient' (grows with the modifier roster). */
   realizes: string;
   /** Always tagged — a sustained effect IS magic. */
   magicOrigin: MagicProvenance;
@@ -664,6 +664,10 @@ export interface SustainedEffect {
   boundStuffId?: string;
   /** The imposed disguise text (the cloak realization), if any. */
   disguise?: string;
+  /** The medium a `confer-medium` working lets its holder breathe (underwater D18). */
+  medium?: string;
+  /** How much warmer an `offset-ambient` working keeps its holder, K (D18). */
+  deltaK?: number;
   /** Absolute game-time (seconds) this effect lapses on its own. */
   expiresAt?: number;
   /** Inside a suppression field — un-realized but not released. */

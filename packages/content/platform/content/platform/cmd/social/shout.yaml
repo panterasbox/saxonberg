@@ -13,6 +13,8 @@ help: |
   for.
 validators:
   - /lib/command/validators/requiresAnimate
+  # Out cold, you say nothing (found by the underwater browser walk).
+  - /lib/command/validators/requiresConscious
 options:
   to:
     short: t

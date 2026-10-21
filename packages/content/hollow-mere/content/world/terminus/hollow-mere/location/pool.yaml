@@ -14,16 +14,17 @@ data:
     Out on the mere itself, the hollow of the hills all round and the sky very wide over it. The shore is a few strokes behind you to the south, the far bank of reeds across the water to the north.
   coords: { x: 0, y: 2, z: 0 }
   floor: { template: /world/terminus/hollow-mere/thing/sheet }
-  # ⚠ A cited water must be a FEATURE of the place — a `waters:` key with
-  # no `details:` entry is cited by nothing (the drive, run 3: the pool's
-  # sheet never bound its reach and `fish` found no water).
+  # ⭐ The place IS the water (underwater D1): the mere, five meters over
+  # the bed, known here by its `mere` feature (`fill bucket from mere`).
+  water: { of: hollowmere:mere, depthM: 5, feature: mere }
   details:
     mere:
       keywords: [mere, water]
       description: |
         The mere itself — the water you are out on, or in.
-  waters:
-    mere: hollowmere:mere
+  # ⭐ The mere's frog (underwater D21): dives, stays, has to come up.
+  cast:
+    - /world/terminus/hollow-mere/agent/frog
   exits:
     south:
       destination: /world/terminus/hollow-mere/location/shore
@@ -35,8 +36,3 @@ data:
       media: [ground, water]
       edgeMinutes: 6
       conditional: true
-  # ⭐ The bed — where what sinks goes (the abstract bed layer; a dive verb
-  # opens it). The pool names it; the ice never does.
-  bed: /system/water/thing/pool-bottom
-  props:
-    - /system/water/thing/pool-bottom

@@ -368,7 +368,7 @@ suite('8 · the pot', () => {
     expectOk(await me.cmd('south'));
     await me.drainProse();
     await me.prose(`eval ${PARCEL} --on crab-pot return (this.setAtS = 1, 1)`);
-    const haul = await me.cmd('haul crab-pot');
+    const haul = await me.cmd('pull crab-pot');
     expectOk(haul);
     const said = squash(await haul.said());
     expect(said).toMatch(/haul/i);
@@ -392,7 +392,7 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
     // ⚠ `--on` is REACHABLE scope: the eval runs where the net lies.
     await me.prose(`eval ${PARCEL} --on seine return (this.setAtS = 1, this.drawPerHour = 1000, 1)`);
     await me.drainProse();
-    expectOk(await me.cmd('haul seine'));
+    expectOk(await me.cmd('pull seine'));
     return (await fishCount(me)) - before;
   };
   const dropTheHaul = async (): Promise<void> => {
@@ -728,7 +728,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
       await s.drainProse();
       expect(await fishInHand(s)).toBeNull();
       await sleep(60_000);
-      const haul = await s.cmd('haul keepnet');
+      const haul = await s.cmd('pull keepnet');
       expectOk(haul);
       expect(squash(await haul.said())).toMatch(/take out what you kept/i);
       expect(await fishInHand(s)).toBe(kept);

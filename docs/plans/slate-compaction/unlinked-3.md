@@ -365,7 +365,7 @@ applied-by line all ship as the status line says. One status block (the
 *Captured 2026-09-18* blockquote is framing, not a stamp). **No cuts.**
 
 ### Kept (UNBUILT)
-- everything: the status block · the framing · *See also* (every link resolves, incl. `docs/governance/draft-constitution.md` and `economic-bootstrap-requirements.md`) · `## The mapping` · `## ⚠⚠ The gap, in one fact` · Parts 1–7 · `# Open questions` 1–4 · `# Build cut`
+- everything: the status block · the framing · *See also* (every link resolves, incl. `docs/compact/governance/draft-constitution.md` and `economic-bootstrap-requirements.md`) · `## The mapping` · `## ⚠⚠ The gap, in one fact` · Parts 1–7 · `# Open questions` 1–4 · `# Build cut`
 
 ### Doctrine — kept, labelled
 - `## The mapping — Art. V already describes the workflow` → *the branch is not missing; it has power without legibility* · `# Part 7 — The fiat phase, made legible` → *this slate is publication*. Both are the slate's thesis rather than backlog; `Left` already carries their build items (the log; the fiat-phase handover record)

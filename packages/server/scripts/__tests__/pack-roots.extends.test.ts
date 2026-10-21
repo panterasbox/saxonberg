@@ -177,7 +177,7 @@ describe('isTemplateRelPath', () => {
   const kinds = new Set(['emotes', 'recipes', 'settings']);
   it('skips a kind dir and skips cmd/ at ANY depth', () => {
     expect(isTemplateRelPath('emotes/bow.yaml', kinds)).toBe(false);
-    expect(isTemplateRelPath('platform/cmd/shell/write.yaml', kinds)).toBe(false);
+    expect(isTemplateRelPath('platform/cmd/shell/edit.yaml', kinds)).toBe(false);
     expect(isTemplateRelPath('platform/thing/can.yaml', kinds)).toBe(true);
     expect(isTemplateRelPath('home.yaml', kinds)).toBe(true);
   });

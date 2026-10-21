@@ -38,6 +38,7 @@ export default class SayController extends CommandController<SayModel> {
       return;
     }
     const target = model.target?.stuff ?? undefined;
-    speaker.say(model.message, target);
+    const out = speaker.say(model.message, target);
+    if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
   }
 }

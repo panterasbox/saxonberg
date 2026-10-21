@@ -1,0 +1,17 @@
+# A weight belt (underwater C1) — lead on a webbing belt, worn to take a
+# diver down and keep them there. ⭐ `drop belt` lets it go: the lead
+# sinks to the bed and you rise. Ballast is always droppable.
+class: /platform/thing/equipment/Garment
+data:
+  shortDescription: weight belt
+  keywords: [belt, "weight belt", weights, lead]
+  register: indefinite
+  longDescription: >-
+    A broad canvas belt threaded with pigs of lead, with a single quick
+    buckle at the front that a cold hand can find.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": [torso]
+  _materialPath: /stuff/idea/material/element/lead
+  constructionForm: woven
+  gradeBand: fair
+  mass: 6

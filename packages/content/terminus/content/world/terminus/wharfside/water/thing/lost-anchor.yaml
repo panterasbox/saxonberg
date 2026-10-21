@@ -1,0 +1,15 @@
+# The city's lost anchor (underwater C4/C5) — the harbor works' own,
+# fouled and parted from its cable years ago and lying on the bed below
+# the quay. Too heavy to carry up: three hundred kilograms of iron, which
+# is what a sealed barrel or an air bag is for. A good with a title, so a
+# delivery job can name THIS anchor and nothing else.
+class: /platform/thing/Good
+data:
+  shortDescription: iron anchor
+  keywords: [anchor, iron, flukes]
+  register: indefinite
+  longDescription: >-
+    A big iron anchor, its stock rusted to a crust and a fathom of broken
+    chain still shackled to its ring. It has been down here a long time.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 300

@@ -1,0 +1,7 @@
+# The water below the quay (underwater D23) — a sub-zone of the wharfside
+# so the basin and the rooms beside its column keep their own coords. The
+# bank is BESIDE the river; this is the river itself.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Water Below the Quay
+  cellSize: 4.0

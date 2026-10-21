@@ -242,6 +242,28 @@ export interface RelocateEffect {
   readonly to?: string;
 }
 
+/**
+ * ⭐ **A medium conferred** (underwater D18) — backing:
+ * `Respiration.setConferredBreathing`. While the working is held the
+ * actor breathes `medium` freely (a `working` apparatus, intake 1), and
+ * when it lapses — its term run out, or the caster's mana with it — the
+ * body is back on its own breath. Modifier-bound, held by the caster.
+ */
+export interface ConferMediumEffect {
+  readonly kind: 'confer-medium';
+  readonly medium: string;
+}
+
+/**
+ * ⭐ **The cold kept off** (underwater D18) — backing:
+ * `ThermalRegulation.setWorkingOffsetK`. While held, the actor's body
+ * meets its surroundings `deltaK` warmer than they are. Modifier-bound.
+ */
+export interface OffsetAmbientEffect {
+  readonly kind: 'offset-ambient';
+  readonly deltaK: number;
+}
+
 /** The exotic 5% — backing: the scripting interpreter, **code-trust (`isWizard`) gated** at execution. */
 export interface ScriptEffect {
   readonly kind: 'script';
@@ -261,6 +283,8 @@ export type Effect =
   | CloakEffect
   | EmitFieldEffect
   | RelocateEffect
+  | ConferMediumEffect
+  | OffsetAmbientEffect
   | ScriptEffect;
 
 /** The known effect kinds (validation vocabulary). */
@@ -276,6 +300,8 @@ export const EFFECT_KINDS = [
   'cloak',
   'emit-field',
   'relocate',
+  'confer-medium',
+  'offset-ambient',
   'script',
 ] as const;
 
@@ -318,6 +344,8 @@ export class MagicEffects {
       case 'sense':
       case 'cloak':
       case 'emit-field':
+      case 'confer-medium':
+      case 'offset-ambient':
       case 'script':
         return false;
       // ⚠ A relocation with no mark and no authored `to` has nowhere to
@@ -346,7 +374,8 @@ export class MagicEffects {
    * fired-and-released.
    */
   public static familyOf(effect: Effect): EffectFamily {
-    return effect.kind === 'emit-field' || effect.kind === 'cloak'
+    return effect.kind === 'emit-field' || effect.kind === 'cloak' ||
+      effect.kind === 'confer-medium' || effect.kind === 'offset-ambient'
       ? 'modifier'
       : 'impulse';
   }
@@ -593,6 +622,20 @@ export class MagicEffects {
           );
         }
         return { kind: 'emit-field', field: 'light', locus };
+      }
+      case 'confer-medium': {
+        const medium = e.medium;
+        if (typeof medium !== 'string' || medium.length === 0) {
+          throw new TypeError('confer-medium: needs a medium');
+        }
+        return { kind: 'confer-medium', medium };
+      }
+      case 'offset-ambient': {
+        const deltaK = Number(e.deltaK);
+        if (!Number.isFinite(deltaK) || deltaK === 0) {
+          throw new TypeError('offset-ambient: needs a non-zero deltaK');
+        }
+        return { kind: 'offset-ambient', deltaK };
       }
       case 'script': {
         const source = e.source;

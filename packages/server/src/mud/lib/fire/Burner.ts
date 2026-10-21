@@ -724,6 +724,9 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public completeness(): number {
+      // Under the water nothing burns at all (underwater D29 seam 1).
+      const medium = BiomeApi.mediumFor(this as unknown as Stuff);
+      if (medium.immersed && !medium.atSurface) return 0;
       const scope = this.airScope();
       const airShare =
         scope === null

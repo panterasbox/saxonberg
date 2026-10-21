@@ -12,7 +12,9 @@
 > burn rate · powder carries its own oxygen · damp ruins it · the explosion as a
 > negligent act, the mill as a LULU, the magazine · blasting (drill, charge, tamp,
 > the safety fuse) · fireworks, the signal rocket, the salute · the musket's
-> charge consumed · the epoch ladder · the mill's site (lean: the Weeping Moor)
+> charge consumed · the epoch ladder · the mill's site (lean: the Weeping Moor) ·
+> ⭐ § 5a gathers everything powder touches across the docs, and points to the
+> [ranged slate](./ranged-slate.md) for the gun itself
 > **Size:** a build (content-led)
 
 ## 0. The garrison is not a build yet — where its pieces went
@@ -97,6 +99,81 @@ Which matters, given that lethal combat faces outward:
 - **The musket's charge** — so the shipped gun finally consumes powder and ball.
 - **Paper cartridges** — [paper-and-printing](./paper-and-printing-slate.md)'s
   material demand.
+
+## 5a. ⭐⭐ Everything powder touches — the gathered map **[2026-10-20]**
+
+Gunpowder is mentioned across some sixteen docs. This section gathers them so the
+slate is the one place to start. **The gun itself is designed elsewhere and in depth —
+the [ranged slate](./ranged-slate.md)** (and [ranged.md](../../subsystems/ranged.md)'s
+*W4 — guns* roadmap); this slate is the **powder**, and points there for the weapon.
+
+### Supply — what powder is made from
+
+| input | source | where |
+|---|---|---|
+| saltpeter | ⭐ **nitre beds farmed from dung** — ranching's muck → midden → field leg, a medieval RGO manufactured from manure; leached through potash | § 2; [rgo-unification](./rgo-unification-slate.md); [potash](../tails/potash-slate.md) |
+| sulfur | caprock (the rubber build) | ships |
+| charcoal | the collier's clamp (`char`) | ships |
+| nitric acid (for the next rungs) | the [chemical works](./chemical-works-slate.md) | slated |
+
+### Demand — who consumes it
+
+| consumer | what | where |
+|---|---|---|
+| blasting | mining and quarrying; avalanche control | § 5 |
+| the fuse as a timer | the safety fuse burns at a known rate | [horology](./horology-slate.md) § 2 |
+| fireworks; the signal rocket and flare; signal guns | festivals; the lifeboat; ships' signals at intervals | [festival](./festival-slate.md); [ships-and-harbors](./ships-and-harbors-slate.md) § 21 |
+| the salute | diplomatic ceremony | [diplomacy](./diplomacy-slate.md) |
+| paper cartridges | the cartridge's case | [paper-and-printing](./paper-and-printing-slate.md) |
+| ⭐ **the gun's charge** | the shipped musket, and every firearm | § 5a below; the ranged slate |
+| ⭐ **saltpeter in curing** | potassium nitrate turns cured meat pink and helps keep it — a second, peaceful buyer of the nitre bed | cooking's `cure` |
+
+### The gun — designed in the ranged slate, summarized here
+
+The [ranged slate](./ranged-slate.md) already designs the firearm honestly, and this
+slate defers to it:
+
+- **The mechanism is the curriculum** — cartridge decomposition (case, primer, charge,
+  projectile; powder *deflagrates*, which the combustion substrate can say), and the
+  **action families** as a ladder — matchlock → flintlock → caplock → cartridge →
+  repeater → self-loader. ⭐ The **wheellock** between matchlock and flintlock is
+  literally clockwork — a spring wound with a key ([horology](./horology-slate.md)).
+- **Firing is easy; handling safely is the skill** — competence never gates whether a
+  gun fires; **negligent discharge is a derived consequence, never a roll**.
+- ⭐ **"Keep your powder dry"** — wetness ships, so damp powder misfires, a worn flint
+  sparks poorly, rain kills the matchlock: reliability from parts and conditions,
+  never rolled (ranged W4's *reliability against output*).
+- ⭐ **Interchangeable parts came from guns** — the ranged slate's *hand-fitted vs
+  pattern parts*: a hand-fitted flintlock's lock belongs to that gun; a pattern-made
+  spring fits any of its pattern. The armory system (early 1800s) is the
+  [machines slate](./machines-slate.md)'s *interchangeability as an achievement of
+  precision*, born in this trade; **the gunsmith's** parts economy.
+- **Registration is the chattel ledger** — serials are chattel IDs; a crafted,
+  never-registered firearm is mechanically a ghost gun; localities legislate
+  differently and people sort (Tiebout on gun law).
+- ⭐ **The proof house** — every barrel test-fired with an overload charge and stamped if
+  it survived (a British institution since the 1630s): the three-layer certification
+  pattern — the engine measures, an institution certifies.
+
+### Cannon, founding and fortification
+
+- ⭐ **Bell-founders cast cannon** — the ceramics build's **foundry** (which casts bells)
+  is the door; in wartime **church bells were melted for guns**, a real values case.
+- **Cannon remade fortification** — tall castle walls gave way to low, angled star forts:
+  the [masonry slate](./masonry-and-concrete-slate.md)'s thrust, at war.
+- **Salvage** — an iron cannon raised from a wreck comes up a lump of rust, a bronze one
+  comes up a cannon ([underwater](./underwater-slate.md) — decomposition by material).
+
+### Law and land
+
+- **The powder magazine** — isolation, *"a hazard to neighbors"*
+  ([storage-slate](../tails/storage-slate.md)); its siting is zoning's.
+- **Covenants** ([land-use-covenant](./land-use-covenant-slate.md)) — *"no powder within
+  the claim's fringe"* (the mining law's ban on blasting near a boundary); *"no firearms
+  in the chase"* and the close season on hunting ground.
+- **Statutes against real fields** ([legal-code](./legal-code-slate.md)) — gun law
+  written against what the world can actually check, one vocabulary shared with the
+  ranged slate.
 
 ## 6. The epoch ladder
 

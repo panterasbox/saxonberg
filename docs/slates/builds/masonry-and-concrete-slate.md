@@ -60,6 +60,47 @@ beam. ⭐ It is a **material property plus a rule per element** — never a stru
 simulation; expression is inelastic, and lens 1 needs the principle, not the
 analysis.
 
+## 3a. ⭐⭐⭐ Thrust — dams, buttresses and the flying buttress **[DECIDED 2026-10-20]**
+
+The owner asked whether dams and buttresses need their own abstractions. **For water
+control the abstraction exists and is size-agnostic**: [watershed.md](../../subsystems/watershed.md)'s
+`ControlStructure` — *"a dam, a headgate, a weir and a sluice are one thing"* — with the
+reservoir behind it a `StorageNode` whose **level is its one piece of state**. A ditch's
+headgate and a great dam are the same object with different numbers. **What does not exist
+is the dam as a body** — what physically holds the water back — and that is where
+buttresses come in.
+
+**The shared idea is resisting a thrust.** A dam holds back water, a cathedral wall the
+outward push of its vault, a retaining wall the earth: each an **element resisting a
+sideways thrust**, and there are few ways to do it:
+
+| way | how it resists | dam | elsewhere |
+|---|---|---|---|
+| **mass** | weight | gravity dam | the thick wall |
+| **shape** | curves the thrust into compression against solid ends | arch dam, braced on the valley's rock | the arch and the vault (§ 3) |
+| **struts** | a thin face held up by braces | ⭐ buttress dam — far less material | ⭐ **the buttress and the flying buttress** |
+| **embankment** | a mound of earth round a clay core | earthfill, the oldest | the levee |
+
+- **Thrust is a load type** beside § 3's compression and tension — still a material
+  property and a rule per element, never a simulation — and the
+  [construction slate](./construction-slate.md)'s elements gain these kinds. **A buttress
+  is an element kind, not a system.**
+- ⭐⭐ **The flying buttress is why Gothic walls became windows** — carry the vault's
+  thrust outward over the aisle and the wall no longer bears it, so the wall can be mostly
+  glass. The buttress makes the stained-glass window possible: masonry,
+  [glass](../../subsystems/glass.md) and [paint](./paint-slate.md) in one structure.
+- ⭐⭐ **The thrust derives from shipped state** — water pressure grows with depth and the
+  total push on a dam with **the square of the depth**, so **the load rises as the
+  reservoir fills**, read from the `StorageNode`'s level — and why a dam is thicker at
+  the bottom.
+- **Small and big** — one abstraction at every size; size changes **how it is built** (a
+  farm pond's bank is dug; a great dam is a construction site with elements) and **what
+  failure costs** (the stored volume), both derived. A beaver dam is a natural
+  `ControlStructure`, when the bestiary arrives.
+- **How a dam fails, and what it costs** → the [flooding slate](./flooding-slate.md)
+  (overtopping, piping and its boil, sliding, the abutment; the released volume; Rylands
+  v Fletcher and Johnstown).
+
 ## 4. The stone mason **[DECIDED]**
 
 - **Dressing** — rubble (rough), squared, **ashlar** (precisely cut); quarrying's

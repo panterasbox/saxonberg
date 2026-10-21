@@ -415,7 +415,7 @@ not weaken.
 (`CodeNamingFields.FIELDS` is the single source of truth.) The gate
 lives at the **universal `TemplateApi.saveTemplate` chokepoint**
 (`TemplateLogic.enforceCodeFieldGate`), through which both the
-in-world `write -c` verb and the REST CMS funnel. The actor is derived
+in-world `edit -c` verb (`write` until the underwater review) and the REST CMS funnel. The actor is derived
 from the execution context (`ExecutionContextApi.getActingAuthor` —
 never caller-supplied; the *gated-api-actor-from-context* rule). The
 allow ladder:

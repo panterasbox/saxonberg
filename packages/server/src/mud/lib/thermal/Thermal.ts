@@ -835,6 +835,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * medium for a bare Phase-1 object; the body lifts this to its
      * resolved immersion medium in Phase 2).
      */
+    /** What this body was immersed in at the last restamp, or null (air). */
+    private immersedTag: string | null = null;
+
     protected mediumConductivity(): number {
       const self = this.thermalHost;
       let tag: string;
@@ -842,6 +845,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         tag = "vacuum";
       } else if (this.barrier !== null) {
         tag = this.barrier;
+      } else if (this.immersedTag !== null) {
+        // In the water: the water's conductivity, cached at the restamp.
+        tag = this.immersedTag;
       } else {
         tag = "air";
       }
@@ -1212,11 +1218,19 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       let ambientK = this.lastAmbientK;
       const sourceK = this.heatSourceK();
       const holderCold = sourceK === null ? this.holderK() : null;
+      const water = BiomeApi.mediumFor(this.thermalHost);
+      this.immersedTag = water.immersed ? water.tag : null;
+      const immersedK = water.immersed ? water.temperatureK : null;
       if (sourceK !== null) {
         ambientK = sourceK;
       } else if (holderCold !== null) {
         // ⭐ Seam 1, the push side — same position as `heatSourceK`.
         ambientK = holderCold;
+      } else if (immersedK !== null) {
+        // ⭐ In the water (underwater D29 seam 3): a thing on the bed or
+        // carried down is at the water's temperature, and the water draws
+        // heat ~25× faster than air (the conductivity below).
+        ambientK = immersedK;
       } else {
         // Resolve the new scope's ambient. ⭐ The scope is the nearest
         // thing outward with air in it — an enclosing placement host

@@ -47,6 +47,7 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { ClimateSite } from '../lib/weather/WeatherType';
 import type { Exposure } from '../lib/spatial/Exposure';
+import type { MediumProps } from '../lib/biome/Medium';
 
 /**
  * Provenance for a single resolved atmospheric field. Returned by
@@ -157,6 +158,39 @@ const EARTH_RADIUS_M = 6_371_000;
 /** Earth-normal gravity, m/s² — the fallback. */
 const STANDARD_GRAVITY = 9.81;
 
+/** What a thing is in — see {@link BiomeApi.mediumFor}. */
+export interface MediumRead {
+  /** The medium vocabulary tag (`air`, `water`, `vacuum`, …). */
+  readonly tag: string;
+  /**
+   * What exactly it is in — the liquid's material name when that is not
+   * just the tag (`salt water`, `fouled water`, `ale`). What a breather
+   * checks its breathing set against.
+   */
+  readonly substance: string;
+  /** In a liquid (a body under water), not under an atmosphere. */
+  readonly immersed: boolean;
+  /**
+   * ⭐ In the water at its SURFACE — swimming, head out: wet and cold as
+   * the water is, breathing the air over it. Going under is a band below.
+   */
+  readonly atSurface: boolean;
+  /** The medium's temperature when the answering place knows it. */
+  readonly temperatureK: number | null;
+  /** Meters below the water's surface (0 in air or at the surface). */
+  readonly depthM: number;
+  /** The water citation a water place answered with, else null. */
+  readonly waterRef: string | null;
+  /**
+   * ⭐ How far you can see through it, m — the water's clarity under the
+   * surface (D28: the fight's range cap). `null` in air: as far as the
+   * place lets you.
+   */
+  readonly visibilityM?: number | null;
+  /** ⭐ Dissolved oxygen in the water here, mg/L (underwater D21); absent in air. */
+  readonly oxygenMgL?: number | null;
+}
+
 export class BiomeApi {
   /**
    * Singleton path lookup. Returns `null` when no template is
@@ -206,6 +240,29 @@ export class BiomeApi {
    */
   public static contaminantOf(tag: string): string | null {
     return logic().contaminantOf(tag);
+  }
+
+  /**
+   * ⭐ One medium's physics by tag — density, conductivity, whether it
+   * is breathed, burns, carries a voice, how it carries sound and light,
+   * how it drags a blade. Throws on an unknown tag.
+   */
+  public static mediumProps(tag: string): MediumProps {
+    return logic().mediumProps(tag);
+  }
+
+  /**
+   * ⭐⭐ **What `stuff` is IN, now** — the one medium read every physics
+   * seam asks (underwater D3). Sync. Per-occupant: a body on the ice
+   * reads air and the body in the hole beside it reads water.
+   *
+   * Walks outward: a vessel's liquid, then a holder's own atmosphere (a
+   * bell), then a water place (which answers for its occupants by depth),
+   * else air. The async {@link resolveAtmosphereFor} consults this first,
+   * so the two never disagree.
+   */
+  public static mediumFor(stuff: Stuff): MediumRead {
+    return logic().mediumFor(stuff);
   }
 
   /**

@@ -171,7 +171,7 @@ Three things a reviewer should know first:
   > cold radial waits one local round-trip; warm opens are instant. No MML
   > change, no encoding problem, no drift.
 
-- → `testing.md` (the render tier), verbatim from the cut § 7.15 — the method rule for reading the `docs/design_handoff/*.dc.html` mocks:
+- → `testing.md` (the render tier), verbatim from the cut § 7.15 — the method rule for reading the `docs/design/handoff/*.dc.html` mocks:
 
   > **The `.dc.html` files were read by extracting their text and never
   > opened in a browser.** Stripped text preserves *what words appear* and
