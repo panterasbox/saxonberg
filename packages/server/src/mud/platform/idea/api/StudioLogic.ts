@@ -19,6 +19,7 @@ import { DocumentApi } from '../../../api/document';
 import { TemplateApi, TemplateError } from '../../../api/template';
 import { Template } from '../../../lib/stuff/Template';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../api/source-tree';
+import { DiagnosticApi } from '../../../api/diagnostics';
 import { HotReloadApi } from '../../../api/hot-reload';
 import { Quantity } from '../../../lib/quantity';
 import { Mixins } from '../../../lib/mixin';
@@ -992,6 +993,15 @@ export class StudioLogic extends ApiLogic {
     // then save a template referencing the new `class:`. A compile failure
     // leaves the file persisted-but-not-live (the shipped CMS behavior) —
     // surfaced, never a 500.
+    // Type-check the saved file out of process, in the background: the
+    // swap below never waits on it, and the live author push carries the
+    // verdict (tsx strips types, so the reload alone cannot).
+    if (abs.endsWith('.ts')) {
+      void DiagnosticApi.typecheck(abs, { live: true }).catch((err: Error) =>
+        console.warn(`type-check of ${abs} not run: ${err.message}`)
+      );
+    }
+
     try {
       await HotReloadApi.reload(abs);
     } catch (err) {

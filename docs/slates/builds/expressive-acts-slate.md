@@ -1,0 +1,327 @@
+# Expressive acts slate — what an emote means, who saw it, and whether they agreed
+
+> **Status: UNBUILT** — designed at high level 2026-10-21 with the owner. What ships:
+> emotes as diegetic acts over the aether's ESP carrier, an authored grammar with a free
+> custom slot, emoji as a recipient-chosen layer ([emotes.md](../../subsystems/emotes.md));
+> reactions — act-scoped tallies flushed on a fixed cadence, with `act.emote` reactable
+> ([reactions.md](../../subsystems/reactions.md)); one signed `valence` per emote that
+> renown reads ([renown.md](../../subsystems/renown.md)); per-viewer regard
+> ([belief.md](../../subsystems/belief.md)); personality derived from a ledger of acts
+> ([trait.md](../../subsystems/trait.md)); the harm-consent ledger
+> ([accountability.md](../../subsystems/accountability.md)).
+> **Left:** the act vocabulary (`performs:` on an emote) · the manner vocabulary (the
+> custom slot's leading word) · the play frame · consent and welcome on directed acts,
+> with accountability generalized from harm to directed acts · witness reach · the
+> sincerity reading from witnesses' reactions · the consumers (displayed mood, NPC
+> regard, social facts, the trait ledger, derived closeness) · the numbers on `look`
+> and `score` · `afk`/`brb` as presence · the two new document kinds
+> **Size:** a build
+
+## 0. The problem **[DECIDED — the owner]**
+
+*"A 'smile' isn't just some prose, it tells the game something about how you're
+feeling at any given time in the game. 'smile iffy' tells you something also, even
+moreso. Or 'thank iffy'. … Most emotes probably don't carry any of this baggage."* And:
+*"I don't even know what we're trying to track or aggregate really, I just know there's
+meaning to be had in this whole emote content and I'd like to leverage it to the best
+of our ability."*
+
+Emotes are already a huge, authored, culturally rich vocabulary — and, today, almost
+inert: one signed `valence` read by renown when an emote is used as a reaction. This
+slate gives a **core** of them significance without burdening the rest.
+
+## 1. What the EotL corpus showed **[EVIDENCE — read with a grain of salt]**
+
+The owner supplied EotL's soul save (`/etc/core/feelings.o`): **1,377 feelings**, each
+with ten forms (undirected and directed, for self, room and target, plus a custom
+variant taking a free-text slot). *"Take EotL emotes with a grain of salt, they're 30
+years old"* — but the shape is instructive:
+
+- **Synonym families everywhere** — about 13 kisses (`akiss bkiss gkiss hkiss kkiss
+  pkiss skiss french smooch peck pash muah kiss`), 8 hugs, a dozen laughs (`lol rofl
+  roflmao guffaw cackle chortle giggle snicker`…), 8 grins, 8 nods. Players author
+  **flavors**, not meanings.
+- **Memes and quotes** — over 500 contain a quote (`pbride`, `caddyshack`, *"Life is
+  pain, Highness"*). Performance, not literal statement (§ 4).
+- **Community lore** — emotes named for people (`iffy`, `zamboni`, `duncan`,
+  `jimbotomy`). Culturally priceless, mechanically nothing.
+- **Out-of-character shorthand** — `afk`, `brb`, `bbl`, `idle`, `lol`, `imho`, `rtfm`.
+- **Directed touch** — about 130, including about 30 sexual ones as one-word prose
+  (`grope`, `molest`), beside world-changing violence (`decapitate`, `explode`, `nuke`).
+- **The custom slot** — 917 of them take free text (`smile evilly`).
+
+## 2. ⭐⭐⭐ Meaning belongs to an ACT, not a verb **[DECIDED]**
+
+The owner: *"'thumbs up', 'agree' and 'ok' probably all evaluate to the same thing
+mechanically."*
+
+- An emote declares the act it **performs** — `performs: kiss` — as a field on the
+  emote document, beside today's `valence` (which this subsumes: valence is an
+  evaluation act's reading). The act carries the meaning; the verb carries the flavor.
+- **Most emotes perform nothing** and stay pure expression. The meaningful set is not
+  an arbitrary verb list the player must memorize: *any kiss is a kiss*, and
+  `soul show skiss` says *performs: kiss*.
+- ⭐ **No routing around a boundary by synonym** — consent (§ 6) hangs on the act, so
+  every kiss anyone ever authors is covered automatically.
+- **An emote cannot describe a world change.** Emotes change nothing
+  ([emotes.md](../../subsystems/emotes.md)); `decapitate` says something happened that
+  did not, which betrays the fiction. An act that would change the world renders as mime
+  (*"Bobalu mimes decapitating Iffy"*) or is not an emote — violence is combat's, which
+  has its own consent through terms.
+
+### The act vocabulary — about thirty **[LEAN — content, drafted with the owner]**
+
+| kind | acts |
+|---|---|
+| **affect** — how I present | joy · amusement · sadness · anger · fear · surprise · disgust · boredom · weariness · embarrassment |
+| **touch** — directed at a body | hug · kiss · caress · pat · poke · tickle · slap · hold |
+| **social acts** — make a fact between us | greet · farewell · thank · apologize · forgive · congratulate · console · encourage · bless · defer (bow, kneel) · salute · taunt · mock |
+| **evaluation** — what I think of *that* | agree (approve) · disagree · applaud · laugh at · sincere · skeptical |
+| **pointing** — look there, come here | point · beckon · shush |
+| **presence** — out of character | away · back |
+
+The kinds come from what the social sciences already separate: **affect** on two axes
+(pleasant–unpleasant, calm–energized); **stance** on the interpersonal circle
+(warmth–hostility, deference–dominance); **social acts** as acts that do something by
+being performed (thanking, apologizing, greeting).
+
+## 3. ⭐⭐⭐ The manner vocabulary — what to do with text that can be anything **[DECIDED]**
+
+The owner: *"the harder one is the custom text … you probably want another fixed set of
+grammar that the player culture can absorb and understand as a vocabulary they can use
+to make certain emotes 'do something'. Anything outside that vocabulary is just
+neutral. That vocabulary itself needs to be tagged and sorted."*
+
+- **A closed, authored vocabulary of manner words**, each with a reading on one
+  dimension; synonyms collapse (warmly · kindly · fondly → warm).
+
+| dimension | examples | effect on the act |
+|---|---|---|
+| **intensity** | slightly · deeply · wildly | scales it |
+| **warmth** | warmly · coldly · tenderly | shifts stance |
+| **dominance** | smugly · shyly · meekly · imperiously | shifts stance |
+| **sincerity** | sincerely · sarcastically · mockingly | flips or discounts it — ⭐ declared by the actor |
+| **frame** | playfully · jokingly | sets the play frame (§ 4) |
+| **affect color** | sadly · nervously · happily | adds a feeling to any act |
+
+- **Where it is read: the leading word(s) of the custom slot.** `smile warmly at the
+  sunset over the harbor` — warm, and the rest is prose. `smile like a cat that ate the
+  canary` — neutral flavor. One rule to learn: **lead with the word.** Negation (*not
+  warmly*) is flavor, deliberately.
+- ⭐ **Discoverable, or it is an arbitrary memory test** — the client marks a recognized
+  manner word as you type it; `help manners` lists the vocabulary by dimension;
+  `soul show <verb>` lists the act. The culture absorbs the vocabulary because the
+  interface keeps showing it.
+- The emotes slate's typed slots (`literal` / `enum`, for moderation) are the same
+  machinery; one typed-slot design serves both.
+
+## 4. ⭐⭐ Significance, not literal content — the meme and the play frame **[DECIDED — the owner]**
+
+The owner: *"None of the emotes are speech, they're read through extrasensory perception
+over the aether field. But more important than their physics is their significance and
+if you're quoting Princess Bride you don't really mean to kill the guy because he killed
+your father. It's a metaphor, i.e. a meme."*
+
+- **An emote means what it does, not what it literally says.** `pbride` performs
+  amusement or banter, never threat. Literal content and significance are separate, and
+  only significance is read.
+- ⭐ **The play frame** (Gregory Bateson: the dog's nip says *this is not a bite*) — a
+  play-framed act never counts as its literal act: a playful slap is not a slap, a mock
+  threat not a threat. Set by the emote (a meme performs within it) or by a frame manner
+  word.
+- ⭐⭐ **A play frame has to be shared.** A "playful" slap on a stranger is not play — they
+  never agreed it was a game. Banter between friends and the same line at someone new
+  read differently, and the game can tell from the history between the two (§ 8.5).
+
+## 5. ⭐⭐ Witnesses — the set of people who now know **[DECIDED — the owner]**
+
+The owner: *"we'd want to weight these things by how many witnesses there are to the
+act. That isn't to say that privately expressed emotes shouldn't be significant, but
+doing things publicly has a certain self-policing quality that privacy doesn't have."*
+
+- **Witnesses are not a multiplier; they are reach.** A private act lands in one memory
+  (the recipient's); a public act also lands in every witness's memory, regard, and
+  renown in that scope. The self-policing comes free: you cannot later deny the public
+  apology, the crowd saw the glare, someone present can contradict you.
+- **A witness is whoever perceived it** — the per-viewer perception the engine already
+  does (the dark room, the sensorium, out of earshot). ⭐ Disguise works for free:
+  witnesses attribute the act to whoever they believe you are, so a public apology in a
+  mask credits the mask ([privacy-slate](./privacy-slate.md) § 8).
+- **What a crowd does depends on the act** — a public apology costs face and counts for
+  more; a public thanks is an honor; a public glare is humiliation, counting more
+  against you; a public consolation is less intimate, and the private one may count
+  more.
+- **Saturating and distinct** — reach is log-saturated and counts distinct, independent
+  witnesses; your alts and your own party are not a crowd.
+- **Steep diminishing returns** per pair and act — the owner: *"yes on the steep
+  diminishing returns or there's a cooldown or something."* Smiling at Augie forty times
+  is one smile.
+
+## 6. ⭐⭐⭐ Consent — what it tells us about the act **[DECIDED — the owner]**
+
+The owner: *"the most interesting part … was actually the consent point. Not because
+kissing people who don't want or expect it is creepy (though that's a part of it), but
+also that consent itself tells us something about the act. We might want to actually
+try to broaden the model for kissing to anything/everything."*
+
+- **Every act directed at a person means something different with consent and without**
+  — a kiss: affection or violation; a hug from a friend or a stranger; teasing: banter or
+  bullying; a gift: generosity or an obligation pressed on someone; help unasked:
+  kindness or paternalism; following, recording, entering a room: company or stalking;
+  sparring or assault, which combat's terms already decide.
+- ⭐⭐ **Accountability generalizes from harm to directed acts** — it is already *"who
+  harmed whom, on what terms, and did the victim consent?"* Harm is the far end of the
+  spectrum of acts directed at a person. Harm keeps its `crime` reading unchanged; new
+  derived readings join it (closeness, harassment, respect for boundaries). One place
+  answers *did they agree*.
+- ⭐⭐ **Consent is not welcome** — consent is **before** (were they asked, a standing
+  permission, the norm here?); welcome is **after** (they hugged back, they pulled
+  away). An unconsented kiss that turns out welcome is still unconsented; the game must
+  never encode *it worked out* as permission. Two fields, not one.
+- **Where consent comes from**, cheapest first, so play stays spontaneous:
+  1. **standing** — your contacts and relationships (*friends may hug me*);
+  2. **place and context** — the dance floor, the sparring ring, the festival, a greeting
+     culture: norms an author sets on a place (enable, never impose);
+  3. **asked** — an explicit ask and answer, for the acts that need one;
+  4. **refused in advance** — a standing boundary, ⭐ enforced mechanically for players:
+     the act renders as an attempt (*"Bobalu leans in; Iffy turns away"*) — safety
+     without breaking the fiction.
+- **Welcome is read from the response** — the recipient's own emote completes the
+  meaning of the first.
+- **NPCs** consent by regard, personality and role: kissing a stranger NPC is refused,
+  their regard drops, and the witnesses saw it.
+- ⭐⭐⭐ **Why this is foundational, not a feature** — in LambdaMOO in 1993 a player called
+  Mr. Bungle used a "voodoo doll" program to make other characters appear to perform
+  sexual acts. Julian Dibbell's *A Rape in Cyberspace* (*The Village Voice*, 1993)
+  describes the community inventing self-governance in response. That is the
+  [Compact](../../compact-political-science.md)'s ancestor: consent on directed acts is
+  why governance in virtual worlds exists at all.
+
+## 7. ⭐⭐ Sincerity — the audience is the check **[DECIDED — the owner]**
+
+The owner: *"performing for a crowd, there's a word for that and it's called virtue
+signalling and people hate it. Hopefully the audience would be able to read between the
+lines and then they in turn can react and emote back how they feel about the person's
+authenticity; that in itself is another thing to read."*
+
+- Reactions to emotes already ship. **Evaluation acts carry a sincerity reading** —
+  skeptical (eyeroll, scoff, smirk) or affirming (nod, moved, forgive).
+- **Each witness's update is shaped by their own reaction** — the eyerollers discount
+  the apology; witnesses who saw the eyerolls saw a contested apology, not a clean one.
+  The engine never computes *this was insincere*; the reading spreads through the crowd
+  as acts.
+- **The reactions are acts with witnesses too** — eyerolling a sincere apology before a
+  sympathetic room costs *you*.
+- **The actor gets the record, not a verdict** — *"your apology in the square drew 5 nods
+  and 3 eyerolls."* What it says about you is yours to conclude.
+- **It settles when the reaction window closes** — reactions already aggregate per act on
+  a fixed flush, so an expressive act's effect can finalize then.
+
+## 8. The consumers **[DECIDED]**
+
+1. **Displayed mood** — derived on read from your recent affect acts, never stored:
+   `look bobalu` shows *he looks pleased* for a while after a smile, fading over
+   game-minutes; NPC brains read it (the barkeep notices you're down). The emote still
+   changes nothing — the zero-state doctrine stands.
+2. **NPC regard** — stance and social acts directed at an NPC move its regard, scaled by
+   its susceptibility and personality, with steep diminishing returns. ⭐ **A thank
+   counts when there was something to thank for** — a recent gift, trade or help between
+   you; a thank from nowhere is noise.
+3. **Social facts** — ⭐ **apologize** attaches to an accountability record of harm you
+   did that person: it acknowledges, it never erases, and they may **forgive**, which
+   closes it; **thank** attaches to a gift — [giving](./giving-slate.md) is the first
+   act of play, and thanks closes the loop; **greet** is a light introduction;
+   **salute** and **bow** to an officeholder recognize the office. Each shows in both
+   people's record (*"Iffy thanked you for the bread"*).
+4. **The trait ledger** — directed acts are exactly the disposition-valenced acts
+   [trait.md](../../subsystems/trait.md) counts: a habit of consoling reads warm, a
+   habit of glaring hostile. Cheap acts weigh very little — a slow, honest drift, never a
+   stat to grind.
+5. ⭐ **Closeness, derived** — mutual, consented, welcomed acts accumulating between two
+   people is how the game knows they are close, **with no relationship field
+   anywhere**. The trait ledger's trick applied to a pair. It also tells whether a play
+   frame is shared (§ 4).
+6. **Renown** — as now, via reactions.
+7. **Presence** — `away` and `back` tell the game the human is away (the livestream's
+   `stream away` already has the concept). The most mechanically meaningful emotes are
+   the out-of-character ones.
+
+**What it does not do** — no buffs from smiling (gameable, and it cheapens the gesture);
+nothing mechanical on a player recipient beyond the record and closeness — the human
+reads Iffy's glare and decides what it means.
+
+## 9. ⭐⭐⭐ The numbers — of the effect, never of the person **[DECIDED — the owner, measurement Part 6]**
+
+The owner: *"at some point you need to aggregate things into a number, if not for the
+engine's sake for the player's sake. This isn't like traits where it's hard to
+introspect — you should know the effect emotes are having."*
+
+[measurement.md](../../measurement.md) Part 6 draws the line exactly here: a number about
+**who you are** (warm, sincere, kind) is a gauge on a declared standard and banned (rule
+3); a number about **what happened and what it did** is owed (rule 4, B3 — the feed
+hides the measurement, the mirror shows you).
+
+| the number | what it is | where |
+|---|---|---|
+| **Augie's regard for you: +34, warm** | someone else's attitude — a fact about the relationship | `look augie`; the social section of `score` |
+| **between you and Iffy** | mutual, consented, welcomed acts, counted and decayed | both see it |
+| **your week** — 40 warm, 3 hostile, 12 thanks given, 5 received, 2 apologies, 1 unwelcome | the record of your acts | `score` |
+| **how your public acts were received** | witnesses' reactions, counted | `score` |
+| renown per scope | already numeric | as now |
+
+- **Never** a sincerity or kindness position.
+- **Quiet per act** — emotes may be half of a chat session's frames, so no note on every
+  smile; the numbers live on the relationship and the mirror, and a per-act line fires
+  only when something moves (regard crosses a band, an apology is accepted) —
+  *announce the surprising*.
+- **Pure-flavor emotes write nothing.**
+
+## 10. Data, not Stuff **[DECIDED — the owner]**
+
+The owner: *"you're saying you make all these words Stuff objects? That's only for
+things that need runtime state and need to be targetable by commands. This all just
+sounds like document data to me."*
+
+- **Acts and manner words are documents**, like emotes: installed by a pack, reconciled
+  three-way, cached beside the soul catalogue. `performs:` is a field on the emote
+  document.
+- **The one kernel cost** — the document kinds are a closed list, so the new kinds are a
+  kernel change in the build.
+- **A realm extends the vocabulary** by shipping or editing documents, as it edits emotes
+  today.
+
+## 11. The lens pass
+
+1. **Pedagogy** — affect and stance as real psychology; acts that do things by being
+   performed; the play frame; consent before and welcome after; base rates of
+   reception.
+2. **Expression** — ⭐ thousands of flavors over thirty acts: authors keep writing emotes
+   freely, and meaning comes from one field. Memes keep their place as play.
+3. **Immersion** — the barkeep who notices; the turned-away kiss; the eyerolls in the
+   square. **Participation** — the apology and the forgiveness, the gracious thanks, the
+   banter between friends, the cad refused before witnesses.
+4. **Values** — consent as foundational; virtue signaling met by the audience, never by
+   the engine; no number on who you are.
+5. **Continuity** — the same acts under any epoch; only who can witness (an aether
+   channel, a broadcast) changes.
+6. **Economy** — thanks closing the gift loop; regard as the currency of service;
+   reputation from reception.
+7. **Governance** — consent records as evidence; harassment as a pattern of unwelcome
+   acts for the Compact's conduct process, with its criterion and appeal; LambdaMOO as
+   the precedent.
+
+## 12. Open
+
+1. **The act list and the manner vocabulary themselves** — content and culture, drafted
+   with the owner.
+2. **The weights** — diminishing returns, witness saturation, and how much each act moves
+   regard.
+3. **Default touch consent between players** — the lean: permissive between contacts and
+   in places whose norms allow it, an attempt everywhere else.
+4. **Directed acts beyond emotes** — give, follow, record, enter onto the same consent
+   ledger: the lean is to design for all and build emotes first.
+5. **Importing an EotL-derived emote pack** — gesture families mapped to acts, lore kept,
+   sexual and world-changing ones left out or rewritten as mime. Likely the from-scratch
+   content pass's, not this build's.
+6. **Can a polity adopt its own words** through governance, beyond shipping documents?
+7. **The displayed-mood fade** — how long a smile shows.

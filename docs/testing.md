@@ -977,14 +977,12 @@ Mongo snapshot/restore reset path would attack the right 150s, and is
 recorded as a candidate in the wire-suite growth slate rather than built
 — nothing today needs a reset mid-run.
 
-⚠ **The 38 seconds after the world opens are a dev-only compile
-watcher.** `AppBootstrap.run` starts `CompileWatcher` — a full
-TypeScript watch program — and only then does `Server.start` bind the
-port, so *every* boot pays it, warm ones included, and so does every CI
-wire run. It is gated on `NODE_ENV !== 'production'` and the wire suite
-cannot set that (`AUTH_MODE=test` is refused in production), so the cost
-stands. Recorded here as a finding; nothing in this build changes the
-engine to avoid it.
+⚠ **The 38 seconds after the world opens were a dev-only compile
+watcher**: a full TypeScript watch program started at boot, ~2.4 GB of
+heap that every wire run paid. It was removed on 2026-10-21; type-checking
+is now per file, out of process, on `reload` / `typecheck` / a CMS save
+([diagnostics.md](./subsystems/diagnostics.md) § Producer 3). A world now
+binds its port as soon as it opens, and idles at ~600 MB.
 
 ### ⚠ The clock ceiling — what a wire file cannot drive
 

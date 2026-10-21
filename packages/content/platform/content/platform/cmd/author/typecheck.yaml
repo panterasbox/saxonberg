@@ -1,0 +1,25 @@
+verbs: [typecheck]
+controller: /platform/idea/cmd/author/TypecheckController
+description: "Type-check a source file without reloading it"
+help: |
+  Check whether a TypeScript source file type-checks, without swapping
+  it into the live world. Name the target exactly as you would for
+  `reload`: a class path, a file in your workspace, or `--mql` to pick
+  it out with a query. This is a developer tool and requires developer
+  access.
+
+  The check runs outside the game server and takes a few seconds. It
+  covers that one file — not the files that import it. What it finds is
+  also kept in `errors --source compile`.
+validators:
+  - /lib/command/validators/requiresWizard
+args:
+  - name: target
+    type: string
+    required: false
+options:
+  mql:
+    type: object
+    scope: [reachable]
+    description: "MQL expression alternate to <target>"
+    requires: any

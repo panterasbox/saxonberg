@@ -26,7 +26,7 @@ Three producers → one store → two-audience delivery → two readers.
 PRODUCERS                        STORE                READERS
 runRootGuarded ─┐                                  ┌─ errors verb (shell)
 console tap ────┼──record──► diagnostics ◄─────────┤
-compile watcher ┘            (Mongo, TTL)          └─ CMS panel (REST poll)
+typecheck ──────┘            (Mongo, TTL)          └─ CMS panel (REST poll)
 
 DELIVERY (on each live structured write, via Events.Diagnostic)
   author ← ProvenanceApi.authorOf → online Avatar → MudlogApi.error
@@ -119,19 +119,60 @@ seams keep their `console.warn` for terminal visibility, so they appear in
 the ring too (an accepted overlap — the ring is a terminal mirror; the
 store is the curated view).
 
-## Producer 3 — the TS compile watcher
+## Producer 3 — the per-file type-check
 
-`backend/CompileWatcher.ts` runs a long-running `tsc --watch` via the
-TypeScript **Compiler API** (`createWatchProgram` +
-`createSemanticDiagnosticsBuilderProgram`), streaming **semantic**
-diagnostics into `recordDiagnostics`. Dev-only (booted in `AppBootstrap`
-when `NODE_ENV !== 'production'`; prod has no TS source). Cold-start
-batches flow through `{ live: false }` so authors aren't firehosed with
-the project baseline; `#ready` flips on TS status codes 6193/6194, after
-which rechecks are live. Semantic-only in v1 — parse errors are already
-surfaced by tsx at module load (`Events.ModuleReloadFailed`) and the CMS
-save-time reload error. A missing tsconfig / watcher failure logs and
-continues (diagnostics never blocks boot).
+tsx strips types and never checks them, so a module can reload cleanly
+and no longer type-check. `DiagnosticApi.typecheck(file, { live })`
+closes that gap for **one file at a time, out of process**:
+
+- `DiagnosticLogic` spawns `backend/typecheck-child.mjs`, a plain `node`
+  child with no tsx and no inherited `NODE_OPTIONS`. The child builds a
+  TypeScript program **rooted at that file** over the server
+  `tsconfig.json`, reports the file's syntactic and semantic diagnostics
+  as one JSON line, and exits.
+- The import closure is parsed and bound, but only the file itself is
+  checked. A typical kernel or pack module takes ~3 s and ~300 MB, a
+  leaf ~1 s, and the memory goes back to the OS when the child exits.
+  The world's event loop never waits on it.
+- ⚠ **It answers "does X type-check", not "did X break its importers".**
+  A changed signature surfaces in its callers when they are checked, at
+  `pnpm build`, or in CI.
+- Results go through the supersede write (`recordDiagnostics`): a
+  recheck replaces the file's compile rows, and a clean file clears them.
+- Checks run **one at a time** on the logic singleton's queue, because a
+  burst of saves must not become a burst of processes.
+- It refuses anything that is not a `.ts` source inside the kernel's
+  `src/` or a pack's `src/`.
+- It runs in **every environment, prod included**. Prod runs from
+  TypeScript source too (`hot-reload.md`), and the image installs the dev
+  dependencies (tsx is the runtime), so `typescript` is present. A reload
+  on a live box therefore briefly costs one ~300 MB child; the watcher
+  this replaced was never started there at all.
+
+**Who calls it.** The check is explicit at the author-facing sites.
+⚠ It never listens to `Events.ModuleReloaded`: pack install, the
+scheduler and the clone path reload modules programmatically, one per
+file, and would each spawn a check.
+
+| Site | Behavior |
+|---|---|
+| `reload <target>` | Swaps the module in, then checks it in the background and tells the giver the verdict when it lands (`live: false`, since the verb reports itself). |
+| `reload --no-check` | Swaps only. |
+| `reload --strict` | Checks FIRST and refuses to swap code with type errors in. |
+| `typecheck <target>` | Checks without swapping. Same target resolution as `reload` (`TypecheckController` extends `ReloadController`). |
+| CMS and Studio source saves | Fire a background check with `live: true`. The author push carries the verdict, and the CMS panel reads the store. |
+
+**History: the watcher it replaced (2026-10-21).** Until then
+`backend/CompileWatcher.ts` ran a `tsc --watch` builder program over all
+3,561 server and pack files, started at boot in every non-production
+world.
+- Measured on a fresh world, it was ~2.35 GB of live heap and a ~60 s
+  synchronous first check, against ~190 MB for the whole booted world.
+  Every `pnpm dev` and every wire drive paid it.
+- Removing it took an idle dev world from ~3.3 GB to ~600 MB RSS.
+- It also had a silent defect: it awaited between affected files while
+  the host's own `afterProgramCreate` drained the rest, so only the first
+  file of each check (`lib.d.ts` on a cold start) was ever recorded.
 
 ## Delivery — the author push
 
