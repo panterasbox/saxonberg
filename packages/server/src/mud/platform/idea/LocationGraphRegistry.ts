@@ -432,12 +432,16 @@ export default class LocationGraphRegistry extends Idea {
       // ⭐ A round that trades on other houses' premises names no operating
       // location of its own, so nothing stood it up and its hand never left
       // home (found by the potash drive: the ash-man's round never ticked).
-      // It is attached where its roster's ASSIGNEE is cast — a ref the
-      // content already authors, pointing at the place he lives.
+      // It is attached where its roster's ASSIGNEE is cast, and at every
+      // STATION it calls at — refs the content already authors, pointing
+      // at the places: whichever of them somebody stands up, the round
+      // stands up with it. (Attached is not operating: the stop's own house
+      // still operates its room.)
       if (Array.isArray(data.rosterSlots)) {
         for (const slot of data.rosterSlots) {
-          const who = (slot as { assignee?: unknown } | null)?.assignee;
+          const { assignee: who, station } = (slot ?? {}) as { assignee?: unknown; station?: unknown };
           if (typeof who === 'string' && placedIn.has(who)) add(placeOf(who), row.path, 'house');
+          if (typeof station === 'string') add(placeOf(station), row.path, 'house');
         }
       }
       if (typeof data.parentExtent === 'string') add(data.parentExtent, row.path, 'institution');

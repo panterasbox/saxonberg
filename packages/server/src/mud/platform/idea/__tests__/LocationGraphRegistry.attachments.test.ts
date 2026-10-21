@@ -44,7 +44,7 @@ beforeEach(() => {
     { path: `${T}/market`, class: '/platform/location/Locale', data: { cast: [`${T}/hawker`] } },
     { path: `${T}/idea/round`, class: '/platform/idea/Business', data: {
       operatingLocations: [],
-      rosterSlots: [{ positionKey: 'hawker', assignee: `${T}/hawker`, station: `${T}/yard` }],
+      rosterSlots: [{ positionKey: 'hawker', assignee: `${T}/hawker`, station: `${T}/stall` }],
     } },
   ]);
   const real = PersistenceManager.get() as unknown as {
@@ -72,10 +72,10 @@ describe('the location graph attaches what belongs with a place', () => {
     expect(await NavigationApi.attachedTo(`${T}/yard`, 'house')).toEqual([`${T}/idea/farm`]);
   });
 
-  it('⭐ a ROUND with no premises is attached where its roster\'s hand is cast', async () => {
+  it('⭐ a ROUND with no premises is attached where its hand is cast, and at every stop it calls at', async () => {
     expect(await NavigationApi.attachedTo(`${T}/market`, 'house')).toEqual([`${T}/idea/round`]);
-    // Its stations are other houses' ground: it is not attached there.
-    expect(await NavigationApi.attachedTo(`${T}/yard`, 'house')).toEqual([`${T}/idea/farm`]);
+    // And at its stop, whoever else operates there.
+    expect(await NavigationApi.attachedTo(`${T}/stall`, 'house')).toEqual([`${T}/idea/round`]);
   });
 
   it('⭐ a structure is attached at its extent, so every room under it reads it', async () => {

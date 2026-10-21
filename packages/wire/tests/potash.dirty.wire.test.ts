@@ -711,10 +711,6 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     let s = await goTo(ashMaker, GLASSHOUSE);
     const board = await examine(s, 'board');
     expect(board, `the buying board: ${board}`).toMatch(/buys .*pearl/i);
-    const sold = await say(s, 'sell "pearl ash"');
-    // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] ⭐ sold to the glassblower: ${sold}`);
-    expect(sold, `sell pearl ash: ${sold}`).toMatch(/you sell|sold/i);
     s.close();
     s = await goTo(ashMaker, CLEAN_FACE);
     await say(s, 'get spade');
@@ -746,6 +742,14 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ the glass batch: ${glass}`);
     expect(glass, `fire the glass batch: ${glass}`).not.toMatch(/no recipe|nothing it can/i);
+    // ⭐ Last, so the batch above is observed whatever this says: the
+    // glassblower buys the pearl ash drive 10 fired. ⚠ OPEN (drive 19): a
+    // firing completes after its command, so its output is titled to
+    // nobody and falls to the parcel rung — "That is not yours to sell."
+    const sold = await say(s, 'sell "pearl ash"');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] ⭐ sold to the glassblower: ${sold}`);
+    expect(sold, `sell pearl ash: ${sold}`).toMatch(/you sell|sold/i);
     s.close();
   }, 1_800_000);
 });
@@ -778,10 +782,14 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     const full = flasks.find((f) => (f.bulkAmount?.value ?? 0) > 0);
     expect(full, `a full flask of lye: ${JSON.stringify(flasks)}`).toBeTruthy();
     await say(s, `pour #${full!.stuffId} into kettle`);
+    // ⚠ Read once the pour has settled: read in the same breath, the
+    // kettle showed no liquor line at all. Caustic lye's own words are its
+    // milky settling of lime — it never says "caustic".
+    await new Promise((res) => setTimeout(res, 1_500));
     const caustic = await examine(s, 'kettle');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ causticized: ${caustic.slice(0, 300)}`);
-    expect(caustic, `the kettle, causticized: ${caustic}`).toMatch(/caustic|strong lye/i);
+    expect(caustic, `the kettle, causticized: ${caustic}`).toMatch(/milky settling of lime/i);
     // The tallow, fetched only now: ⚠ holding a second vessel (the crock)
     // makes `pour pail into kettle` fall through to the crafting `pour`
     // ("isn't a vessel you can work in") — a pre-existing collision the
