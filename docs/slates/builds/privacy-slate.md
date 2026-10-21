@@ -8,7 +8,9 @@
 > [deception-and-detection slate](./deception-and-detection-slate.md).
 > **Left:** the privacy surface and its flagging lint · spoiler privilege earned by
 > publication · the install-and-eval trail · the operator residual · the four quadrants
-> (hiding, anonymity, disguise, privacy) · noise masking, tamper-evidence · masquerade's
+> (hiding, anonymity, disguise, privacy) · ⭐ PII (§ 5a) · ⭐ anonymity as the default and
+> disclosure per property, attested against said (§ 8a) · noise masking, tamper-evidence ·
+> masquerade's
 > mechanics (belief v2: the persona as a referent, remembered features, the deterministic
 > check) · scrying under the general pattern · the dials
 > **Size:** a build (plane 1 is small kernel work; plane 2 is belief v2 and its readers)
@@ -73,6 +75,29 @@ Whoever runs the server has the database; no code-level rule reaches a direct re
 trust is the operator's — what the [distribution slate](./distribution-and-hosting-slate.md)'s
 managed hosting sells, under a published privacy policy (data kept, how long, who reads
 it). Players' freedom to leave for another host is what keeps an operator honest.
+
+## 5a. ⭐⭐⭐ PII — the human, not the character **[DECIDED 2026-10-20]**
+
+The owner: *"you need to also think of another type of anonymity which is any and all PII
+we keep, which is separate from the information we generate ourselves."* What the
+**platform** holds that identifies the **human** — the Google account (email, name, photo),
+IP addresses and session logs, linked streaming accounts (Twitch, YouTube, Kick),
+donations and anything payment-adjacent — as distinct from everything the game generates.
+
+1. ⭐ **No path from the fiction to PII, ever** — no command, instrument or shadow on an
+   avatar reaches it. **PII stores join the privacy surface** (§ 2), so code touching them is
+   flagged and reviewed — the evidence firewall's twin: *the game knows your character,
+   never your person.*
+2. **Minimization** — keep only what running the account needs.
+3. ⭐ **You can see what is held about you, and export it** — B3 (*any measurement of you is
+   one you can read*) extended to identifying data.
+4. **Deletion separates the two kinds** — deleting an account removes the **PII**; what you
+   made in the game (deeds, authored content, credited work) is game-generated, and its fate
+   is a separate decision — pseudonymized, kept under the estate rules, or removed — because
+   *players are the game's developers* and their content is shared work.
+5. **Linking is disclosure** — a streamer who links a platform identity chooses to connect
+   person and character: opt-in, per platform, revocable.
+6. **The operator's published policy** governs it all (§ 5).
 
 # Plane 2 — the fiction
 
@@ -167,6 +192,76 @@ craft). The persona's is **inconsistency** — competence, knowledge, dress and 
 safest as a role, riskiest as a named person with a history. **Governance** — a false name is
 not a crime, fraud is; impersonating an officer; ⭐ **papers** (the registry, printing, the
 seal) made identity checkable, and forging them is a trade.
+
+## 8a. ⭐⭐⭐ Anonymity — the default, and disclosure as an act **[DECIDED 2026-10-20]**
+
+### Anonymity is the default, guaranteed by physics — not a permission
+
+The owner: *"a certain amount of anonymity is guaranteed just by the physics and the engine —
+not everything is queryable whenever you want; there's specific commands that query specific
+props and report them conditionally. Most of the state on your body is anonymous, even to
+the player themselves."* In the fiction **anonymity is the absence of a channel**, never
+access control: `look` shows the outermost layer, `assess` reads condition at a medic's
+competence, instruments report bands — and nothing reads what nothing reads. Hiding,
+disguise and privacy modulate channels that exist; anonymity is mostly the channels that do
+not.
+
+### ⭐⭐⭐ Disclosure is the player's act, one property at a time
+
+The owner: *"it's the 'introduce' system just generalized to more than names. In the modern
+age everyone can broadcast whatever they want about themselves so each property they reveal
+is its own decision vector."*
+
+- **`introduce` already discloses one property** — your name. Generalized: your trade, your
+  guild, your faith (already *declared*, in the [faith slate](./faith-slate.md)), your home,
+  your competence in a Discipline, your standing, your status line — **each its own
+  decision**.
+- ⭐ **`score` is the source** — slated as *self only*; it stays private by default, and **you
+  choose which sections others may see, and who** (a named person, a group, everyone):
+  [measurement.md](../../measurement.md)'s middle layer, *the subject decides*.
+- **The modern broadcast** — a public profile on the aether, each property a toggle, the
+  default private.
+- ⭐⭐ **Attested against said** — anything you type is **said**, a claim that may be false; a
+  shared `score` section shows **the engine's real number** — **attested**, a proof. You can
+  show a guild your brewing band and it cannot be faked — the hallmark's, the proof house's
+  and the [diplomacy slate](./diplomacy-slate.md)'s signed records' pattern: **a verifiable
+  credential, disclosed selectively** — perhaps *"competent or better"* without the exact band.
+- **Once seen, known** — you may stop sharing, but what someone saw stays in their memory
+  ([belief](../../subsystems/belief.md)). Disclosure is easy to give and impossible to take
+  back.
+
+### The declared and the structural forms
+
+- **Chat anonymity** (ships, [chat.md](../../subsystems/chat.md)) — a channel's owner permits
+  or forbids it; an anonymous post carries a handle.
+- **Pseudonymity** — the persona worn openly (*Publius*, Elena Ferrante): regard attaches to the
+  pseudonym's referent (§ 8). ⭐ **Renown must not leak the link** — the record keeps the true
+  actor (A7), but if *public* renown rose on the true person, timing would unmask the pen name.
+  So a pseudonym's public renown shows on the pseudonym; only the person's own `score` shows
+  both.
+- ⭐ **Cash against the ledger — anonymity by physics.** A coin is a fungible, physical stack;
+  a hand-to-hand handover *"changes location, not total supply"*
+  ([banking.md](../../subsystems/banking.md)) and **a coin does not say who spent it** — at the
+  price of mass and theft. The ledger is weightless and safe and **names both sides**. Bribes,
+  the black market and the anonymous gift move in cash. ⚠ **Open (lens 7):** who may read the
+  ledger — you and the bank today; an auditor or a court's subpoena would be **financial
+  privacy** as a polity's choice (bank secrecy at the extreme).
+- ⭐⭐ **The secret ballot** (the ballot is deferred, [influence.md](../../subsystems/influence.md))
+  — **citizens' votes secret, representatives' votes public** (the voter protected, the
+  legislator's roll call accountable). Secrecy stops vote-buying and intimidation because a
+  bought vote cannot be verified (Victoria, 1856). ⚠ A voter can screenshot their own ballot
+  and prove it — so ⭐ **re-voting until the close, the last vote counting** (as Estonia's
+  e-voting does): a buyer cannot verify a vote you may change. **Receipt-freeness**, taught.
+- **The anonymous tip** — protects the tipster (policing) and the press's source; ⭐ **an
+  anonymous claim is a lead, never proof** — nobody stands behind it, so it can open an
+  investigation and convict no one uncorroborated (A15; the court judges evidence presented).
+- **The anonymous gift** — the ledger names both parties, so it travels by cash or through an
+  intermediary's discretion (a bank or charity that knows and will not say).
+
+**Lenses 4 and 7** — anonymity protects the whistleblower, the dissenter and the voter, and
+shields the harasser and the fraudster; the world shows both and ranks neither. Who may be
+anonymous where is each forum's call (chat's per-channel setting) and a polity's for its own
+institutions.
 
 ## 9. ⭐⭐ Scrying — and the general pattern for acts aimed at a real player **[DECIDED]**
 
