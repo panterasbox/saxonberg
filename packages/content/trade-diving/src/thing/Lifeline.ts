@@ -36,6 +36,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -188,7 +189,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     }
     if (target === by) return { ok: false, reason: 'self', line: 'You keep hold of your own end.' };
     if (!this.withinReach(by, target)) {
-      return { ok: false, reason: 'out-of-reach', line: `You cannot reach ${target.getPresentation()} with it from here.` };
+      return { ok: false, reason: 'out-of-reach', line: `You cannot reach ${target.describeFor(by)} with it from here.` };
     }
     await this.makeFast(target);
     const medium = MixinApi.isRespiration(target) ? target : null;
@@ -204,7 +205,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     } catch {
       // decoration
     }
-    return { ok: true, line: `You heave the end of ${this.getPresentation()} to ${target.getPresentation()}.` };
+    return { ok: true, line: `You heave the end of ${this.getPresentation()} to ${target.describeFor(by)}.` };
   }
 
   /**
@@ -224,8 +225,11 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
       if (!MixinApi.isContainer(place)) continue;
       for (const who of place.getContents()) {
         if (who === holder || !who.isAgent?.()) continue;
-        const words = (MixinApi.isPerceptible(who) ? who.getKeywords() : []).map((k) => k.toLowerCase());
-        if (words.includes(word) || who.getPresentation().toLowerCase().includes(word)) return who;
+        // ⭐ By what the HOLDER knows them as (found by the underwater
+        // browser walk): a stranger is "a human", and the line went only to
+        // a real name nobody had been told — then said it back.
+        const words = who.perceivedKeywordsFor(holder).map((k) => k.toLowerCase());
+        if (words.includes(word) || who.describeFor(holder).toLowerCase().includes(word)) return who;
       }
     }
     return null;
@@ -301,7 +305,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
       return { ok: false, reason: 'nobody-on-line', line: 'The line goes nowhere.' };
     }
     if (where === here) {
-      return { ok: false, reason: 'already-up', line: `${diver.getPresentation()} is already up beside you.` };
+      return { ok: false, reason: 'already-up', line: `${GrammarApi.cap(diver.describeFor(puller))} is already up beside you.` };
     }
     let next: (Stuff & Container) | null = null;
     // The water's own way up, from wherever they are…
@@ -339,7 +343,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
         return {
           ok: false,
           reason: 'too-heavy',
-          line: `You pull until your arms crack; ${diver.getPresentation()} will not come up off the bottom. It wants air under it.`,
+          line: `You pull until your arms crack; ${diver.describeFor(puller)} will not come up off the bottom. It wants air under it.`,
         };
       }
       if (MixinApi.isExerting(puller)) puller.exert({ durationS: 30, powerW: Math.min(600, 80 + netKg * HAUL_W_PER_KG) });
@@ -404,7 +408,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
       ok: true,
       self: out
         ? Mml.compose`You pull ${Mml.actor(diver)} up the steps and out of the water.`
-        : Mml.compose`The weight on the end of ${Mml.thing(this as unknown as Stuff)} comes up.`,
+        : Mml.compose`The weight on the end of ${Mml.thing(this as unknown as Stuff)} comes up a length — there is more line still in the water.`,
       peers: Mml.compose`${Mml.actor(puller)} brings a line in.`,
     };
   }

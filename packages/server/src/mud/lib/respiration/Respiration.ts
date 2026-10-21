@@ -396,6 +396,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _floating = false;
     /** When the instinctive drowning response began, game-seconds. */
     private _drowningSinceS: number | null = null;
+    /** When the drowning was last shown (runtime; a cue debounce). */
+    private _drowningCuedS: number | null = null;
     /** The uncleared descent on your ears, meters. */
     private _pressureDebtM = 0;
     /** How deep you were at the last reassess, meters. */
@@ -1092,7 +1094,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (this._drowningSinceS === null) {
         this._drowningSinceS = nowS;
-        this.drowningScene();
+        this.drowningScene(nowS);
         this.grabNearest();
         return;
       }
@@ -1140,8 +1142,13 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** What the drowning look like from outside — the victim says nothing. */
-    private drowningScene(): void {
+    private drowningScene(nowS: number): void {
       const self = this as unknown as Stuff;
+      // Once a response, not on every beat a tired swimmer dips back into
+      // it (found by the underwater browser walk: three in ten seconds).
+      if (this._drowningCuedS !== null &&
+          nowS - this._drowningCuedS < RESPIRATION_DEFAULTS.DROWNING_RESPONSE_SEC) return;
+      this._drowningCuedS = nowS;
       try {
         // ⭐ The drowning feel it even though nobody else hears it (found by
         // the underwater browser walk: a spent swimmer went under and died
