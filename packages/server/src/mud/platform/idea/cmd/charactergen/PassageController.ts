@@ -37,11 +37,16 @@ import { TemplatePaths } from '../../../../lib/paths';
 const TOPIC = 'act.deed';
 
 /**
- * How much of each biological reserve the floor route costs you (`%`).
- * Enough to be felt and to be worth paying someone to avoid; not enough to
- * put anybody back in danger.
+ * Where the floor route leaves each biological reserve (`%`): a full one
+ * less the cost of coming back. Enough to be felt and to be worth paying
+ * someone to avoid; not enough to put anybody back in danger.
+ *
+ * ⭐ A LEVEL, not a deduction (found by the underwater browser walk): the
+ * returned body carried the dead one's reserves, so a diver who had never
+ * drunk came back with nothing to lose 60 from and died of thirst within
+ * a minute of returning.
  */
-const RECOVERY_RESERVE_COST = 60;
+const RECOVERY_RESERVE_LEVEL = 40;
 
 export default class PassageController extends CommandController<CommandModel> {
   async execute(
@@ -98,8 +103,10 @@ export default class PassageController extends CommandController<CommandModel> {
     // nobody has to build a cure for it.
     if (MixinApi.isReserved(body)) {
       for (const key of ['satiation', 'hydration', 'endurance']) {
-        if (body.getReserve(key)) {
-          body.adjustReserve(key, Quantity.of(-RECOVERY_RESERVE_COST, '%'));
+        const reserve = body.getReserve(key);
+        if (reserve) {
+          const delta = RECOVERY_RESERVE_LEVEL - reserve.current.rawValue();
+          body.adjustReserve(key, Quantity.of(delta, '%'));
         }
       }
     }
