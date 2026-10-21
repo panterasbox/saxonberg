@@ -12,6 +12,7 @@ import type {
   RuntimeDiagnostic,
   RawDiagnostic,
   DiagnosticEvent,
+  TypecheckResult,
 } from '@saxonberg/types';
 import { Collections } from '../../../lib/persistence/Collections';
 import { PersistApi } from '../../../api/persist';
@@ -27,6 +28,11 @@ import { MixinApi } from '../../../api/mixin';
 import { MudlogApi } from '../../../api/mudlog';
 import { Mml } from '../../../api/mml';
 import { DiagnosticChannel } from '../../../lib/diagnostics/DiagnosticChannel';
+import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const DiagnosticApiCallers = SecurityPolicies.FromModule(
   '/api/diagnostics#DiagnosticApi'
@@ -58,6 +64,103 @@ async function maintainsPack(subject: Stuff, id: string): Promise<boolean> {
 
 function actor(): Stuff | null {
   return (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? null;
+}
+
+/** `packages/server/` — the tsconfig the type-check reads lives here. */
+const SERVER_ROOT = fileURLToPath(new URL('../../../../../', import.meta.url));
+const TSCONFIG = resolve(SERVER_ROOT, 'tsconfig.json');
+const CHECKER = resolve(SERVER_ROOT, 'src/backend/typecheck-child.mjs');
+const KERNEL_SRC = resolve(SERVER_ROOT, 'src') + sep;
+const PACKS = resolve(SERVER_ROOT, '../content') + sep;
+/** A check that has not answered in this long is abandoned. */
+const TYPECHECK_TIMEOUT_MS = 120_000;
+
+/**
+ * Why `file` cannot be type-checked, or `null` when it can: a `.ts`
+ * source file that exists inside the program the tsconfig describes (the
+ * kernel's `src/` or a pack's `src/`).
+ */
+function uncheckable(file: string): string | null {
+  if (!file.endsWith('.ts') || file.endsWith('.d.ts')) {
+    return `not a TypeScript source file: ${file}`;
+  }
+  const inKernel = file.startsWith(KERNEL_SRC);
+  const inPack =
+    file.startsWith(PACKS) &&
+    file.slice(PACKS.length).split(sep)[1] === 'src';
+  if (!inKernel && !inPack) {
+    return `outside the server and pack sources: ${file}`;
+  }
+  if (!existsSync(file)) return `no such file: ${file}`;
+  return null;
+}
+
+/**
+ * Run the out-of-process checker on one file. A plain `node` child (no
+ * tsx, no inherited NODE_OPTIONS) so it starts fast, never blocks the
+ * world, and hands its memory back when it exits.
+ */
+function runChecker(file: string): Promise<RawDiagnostic[]> {
+  const env = { ...process.env };
+  delete env.NODE_OPTIONS;
+  return new Promise((done, fail) => {
+    execFile(
+      process.execPath,
+      [CHECKER, TSCONFIG, file],
+      { env, timeout: TYPECHECK_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 },
+      (err, stdout) => {
+        if (err) {
+          return fail(new Error(`type-check failed to run: ${err.message}`));
+        }
+        let out: { diagnostics?: RawDiagnostic[]; error?: string };
+        try {
+          out = JSON.parse(stdout.trim().split('\n').pop() ?? '') as typeof out;
+        } catch {
+          return fail(new Error('type-check returned no result'));
+        }
+        if (out.error !== undefined) return fail(new Error(out.error));
+        done(out.diagnostics ?? []);
+      }
+    );
+  });
+}
+
+/**
+ * Record one file's compile batch: fully replaces the file's prior compile
+ * rows (a fixed file clears), firing the live stream only when `live`.
+ */
+async function recordCompile(
+  path: string,
+  versionId: string,
+  diags: readonly RawDiagnostic[],
+  opts: { live: boolean }
+): Promise<void> {
+  if (!connected()) return;
+  const channel = DiagnosticChannel.pathToChannel(path);
+  const author = await ProvenanceApi.authorOf(path);
+  // Supersede: a recheck fully replaces this file's compile rows, so a
+  // fixed file clears (empty `diags` → nothing re-inserted).
+  await PersistApi.deleteMany(Collections.Diagnostics, {
+    source: 'compile',
+    path,
+  });
+  for (const d of diags) {
+    const row = makeRow({
+      source: 'compile',
+      severity: d.severity,
+      channel,
+      path,
+      author,
+      versionId,
+      code: d.code ?? null,
+      line: d.line ?? null,
+      col: d.col ?? null,
+      message: d.message,
+      stack: null,
+    });
+    await insert(row);
+    if (opts.live) fire(row);
+  }
 }
 
 function escapeRegex(s: string): string {
@@ -213,32 +316,40 @@ export class DiagnosticLogic extends ApiLogic {
     diags: readonly RawDiagnostic[],
     opts: { live: boolean }
   ): Promise<void> {
-    if (!connected()) return;
-    const channel = DiagnosticChannel.pathToChannel(path);
-    const author = await ProvenanceApi.authorOf(path);
-    // Supersede: a recheck fully replaces this file's compile rows, so a
-    // fixed file clears (empty `diags` → nothing re-inserted).
-    await PersistApi.deleteMany(Collections.Diagnostics, {
-      source: 'compile',
-      path,
+    await recordCompile(path, versionId, diags, opts);
+  }
+
+  /**
+   * Checks run ONE AT A TIME: each is a ~300 MB child, and a burst of
+   * saves must not become a burst of processes.
+   */
+  private typecheckQueue: Promise<unknown> = Promise.resolve();
+
+  /** See {@link DiagnosticApi.typecheck}. */
+  @CallSecurity(DiagnosticApiCallers)
+  public async typecheck(
+    file: string,
+    opts: { live: boolean }
+  ): Promise<TypecheckResult> {
+    const abs = resolve(file);
+    const refusal = uncheckable(abs);
+    if (refusal) throw new Error(refusal);
+    const run = this.typecheckQueue.then(async (): Promise<TypecheckResult> => {
+      const versionId = createHash('sha256')
+        .update(readFileSync(abs))
+        .digest('hex')
+        .slice(0, 16);
+      const diagnostics = await runChecker(abs);
+      await recordCompile(abs, versionId, diagnostics, opts);
+      return {
+        file: abs,
+        errors: diagnostics.filter((d) => d.severity === 'error').length,
+        warnings: diagnostics.filter((d) => d.severity === 'warning').length,
+        diagnostics,
+      };
     });
-    for (const d of diags) {
-      const row = makeRow({
-        source: 'compile',
-        severity: d.severity,
-        channel,
-        path,
-        author,
-        versionId,
-        code: d.code ?? null,
-        line: d.line ?? null,
-        col: d.col ?? null,
-        message: d.message,
-        stack: null,
-      });
-      await insert(row);
-      if (opts.live) fire(row);
-    }
+    this.typecheckQueue = run.catch(() => undefined);
+    return run;
   }
 
   /** See {@link DiagnosticApi.list}. */

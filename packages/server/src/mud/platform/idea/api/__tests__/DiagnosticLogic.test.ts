@@ -21,6 +21,8 @@ import { PackApi } from '../../../../api/pack';
 import { GroupApi } from '../../../../api/group';
 import { ProvenanceApi } from '../../../../api/provenance';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { writeFileSync, rmSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 type Row = Record<string, unknown>;
 
@@ -156,6 +158,38 @@ describe('DiagnosticApi.recordDiagnostics (compile supersede)', () => {
       { live: true }
     );
     expect(store).toHaveLength(0);
+  });
+});
+
+describe('DiagnosticApi.typecheck (one file, out of process)', () => {
+  // A scratch source file inside the kernel tree, which is what the check
+  // accepts. Its name keeps it out of every glob the suite collects.
+  const scratch = fileURLToPath(
+    new URL('./__typecheck_scratch.ts', import.meta.url)
+  );
+  afterEach(() => rmSync(scratch, { force: true }));
+
+  it('reports and records a type error, then clears when it is fixed', async () => {
+    writeFileSync(scratch, 'export const n: number = "seven";\n');
+    const broken = await DiagnosticApi.typecheck(scratch, { live: false });
+    expect(broken.errors).toBe(1);
+    expect(broken.diagnostics[0]).toMatchObject({ line: 1, code: 2322 });
+    expect(store.filter((r) => r.source === 'compile' && r.path === scratch))
+      .toHaveLength(1);
+
+    writeFileSync(scratch, 'export const n: number = 7;\n');
+    const fixed = await DiagnosticApi.typecheck(scratch, { live: false });
+    expect(fixed).toMatchObject({ errors: 0, warnings: 0, diagnostics: [] });
+    expect(store.filter((r) => r.path === scratch)).toHaveLength(0);
+  }, 60_000);
+
+  it('refuses a file outside the server and pack sources, and a non-.ts file', async () => {
+    await expect(
+      DiagnosticApi.typecheck('/etc/hosts.ts', { live: false })
+    ).rejects.toThrow(/outside the server and pack sources/);
+    await expect(
+      DiagnosticApi.typecheck(fileURLToPath(import.meta.url).replace(/\.ts$/, '.yaml'), { live: false })
+    ).rejects.toThrow(/not a TypeScript source file/);
   });
 });
 
