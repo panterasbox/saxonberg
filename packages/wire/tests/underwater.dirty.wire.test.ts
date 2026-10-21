@@ -104,11 +104,15 @@ async function toTheBed(s: Session): Promise<string[]> {
   // cold river) cannot swim with a load a fresh one carries — the
   // exertion model, not a defect (found by run 33: a fresh diver with
   // the same gear swims). Rest on the quay, lying down, until it can.
+  // A deep breath is let go after half a minute, so a rest means a fresh
+  // breath before going in (run 35: the diver rested, went down on an
+  // ordinary breath, and ran out on the way).
   let into = await s.cmd('swim');
   for (let i = 0; i < 6 && into.status !== 'ok' && /carrying too much/i.test(squash(await into.said())); i++) {
     await s.cmd('lie');
     await s.listen(30_000);
     await s.cmd('stand');
+    await breathe(s);
     into = await s.cmd('swim');
   }
   expect(into.status, squash(await into.said())).toBe('ok');
@@ -213,7 +217,7 @@ beforeAll(async () => {
   }
   diver = await outfitted(DIVER, [
     'lifeline', '"diver\'s slate"', '"signal bell"', '"fish spear"',
-    '"air bag"', '"air bag"', '"air bag"', '"tide almanac"', '"glass-tipped wand"',
+    '"air bag"', '"air bag"', '"air bag"', '"tide almanac"', '"glass-tipped wand"', '"weight belt"',
   ]);
   buddy = await Session.open(BUDDY, { startLocation: BANK });
   await daylight(buddy);
@@ -232,7 +236,7 @@ suite('A · the water place', () => {
     await toQuay(diver);
     // The work gear waits on the quay: carried, it is weight, and weight is
     // the one thing that refuses the way up (D14).
-    for (const g of ['me:i:lifeline', 'me:i:spear', 'me:i:bag']) expectOk(await diver.cmd(`drop ${g}`));
+    for (const g of ['me:i:lifeline', 'me:i:spear', 'me:i:bag', 'me:i:belt']) expectOk(await diver.cmd(`drop ${g}`));
     // Two strangers on the quay know each other only as "a human" until
     // they say who they are (the identity rungs) — names, `give`, `dm`.
     expectOk(await diver.cmd('introduce'));
@@ -358,6 +362,16 @@ suite('C · the line', () => {
 suite('C · the city\'s work', () => {
   it('15b · the lost anchor will not come up on a line; three air bags float it, and the line brings it in', async () => {
     expectOk(await diver.cmd('drop me:i:lifeline'));
+    // ⭐ Three bags of air and a lungful float a diver hard (run 36: a band
+    // took the slowest stroke there is, and the breath ran out on the way).
+    // Lead is how a diver takes lift down — the belt the shop sells — and
+    // it goes on BEFORE the bags are in your hands (run 37: "your hands
+    // are full").
+    expectOk(await diver.cmd('get here:i:belt'));
+    expectOk(await diver.cmd('wear belt'));
+    for (let t = 0; t < 30 && !/wearing[^.]*belt/i.test(squash(await (await diver.cmd('inventory')).said())); t++) {
+      await new Promise((res) => setTimeout(res, 1_000));
+    }
     expectOk(await diver.cmd('get here:i:bag'));
     // The bed is dark; the wand's light (raised in step 10) still follows
     // the diver down.
