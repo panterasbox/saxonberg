@@ -189,6 +189,17 @@ export interface BiologicalSource {
   tissueType: string;
 }
 
+/**
+ * ⭐ What a solution of this material sets when it holds more than it can
+ * dissolve (ceramics S17): the crystals (`product`, a material path) and
+ * the mother liquor left behind (`residue` — brine's is bittern). Both
+ * paths; the residue may name the material itself.
+ */
+export interface CrystallizesTo {
+  product: string;
+  residue: string;
+}
+
 /** Numeric AppSetting read for the wet law, falling back to the seeded literal. */
 function wetDial(key: string, fallback: number): number {
   try {
@@ -1198,6 +1209,18 @@ export default class Material extends SingletonMixin(
     // ⭐ What a piece shaped of this becomes, by form class (ceramics D16):
     // `{open: …/vessel, closed: …/jar, flat: …/dish, block: …/block, cone: …}`.
     formTemplates: { persistent: true, authorable: true },
+    // ── Crystallizing and the filter (ceramics W8, S17 + S9) ──
+    // ⭐ The boil-down (sugar D1). Public: a sugar boiler reads the
+    // thermometer and the thread, and the stages are the trade's syllabus.
+    solidsKgPerL: { persistent: true, authorable: true },
+    // ⭐ How much of its solute a liter of this holds at a temperature —
+    // a measured fact, like the boiling point.
+    solubility: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    crystallizesTo: { persistent: true, authorable: true },
+    // ⭐⭐ What a porous body strains this into — `spoiler: 1`: that fouled
+    // water comes through a filter clean is the lesson, and that tainted
+    // water does not is the harder one.
+    filteredTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
   };
 
   public getName(): string { return this.name; }
@@ -1887,6 +1910,113 @@ export default class Material extends SingletonMixin(
    * recursive composition? */
   public containsElement(elementSymbol: string): boolean {
     return materialLogic().containsElement(this as unknown as never, elementSymbol);
+  }
+
+  /**
+   * ⭐ Dissolved solids a fresh litre of this carries, kg/L (sugar D1):
+   * maple sap 0.025, cane juice 0.16, raw liquor 0.6. `0` for everything
+   * that is not a solution anyone boils down. The plateau rewrites the
+   * figure on the bulk's payload as it boils water off; this is where a
+   * fill with no payload figure starts.
+   */
+  protected solidsKgPerL = 0;
+
+  public getSolidsKgPerL(): number {
+    return this.solidsKgPerL;
+  }
+  public setSolidsKgPerL(value: number): void {
+    this.solidsKgPerL = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /**
+   * ⭐ How much solute a liter of this holds at a temperature (ceramics
+   * S17): `[[K, kgPerL], …]`, K ascending, read piecewise linearly and
+   * held flat past either end. Salt barely cares (0.31 → 0.33 kg/L from
+   * freezing to boiling) — which is why salt is made by taking the water
+   * AWAY; alum and saltpetre care a great deal, which is why they are made
+   * by letting a hot liquor COOL. Empty: this is not a solution anything
+   * sets out of.
+   */
+  protected solubility: Array<[number, number]> = [];
+
+  public getSolubility(): ReadonlyArray<readonly [number, number]> {
+    return this.solubility;
+  }
+  public setSolubility(value: Array<[number, number]> | null): void {
+    if (value === null || value === undefined) {
+      this.solubility = [];
+      return;
+    }
+    if (!Array.isArray(value)) {
+      throw new TypeError('Material.solubility must be a list of [K, kgPerL] pairs');
+    }
+    const points = value.map((p, i) => {
+      const [k, kg] = Array.isArray(p) ? p : [NaN, NaN];
+      if (!(Number(k) > 0) || !(Number(kg) >= 0)) {
+        throw new TypeError(`Material.solubility[${i}]: [${String(k)}, ${String(kg)}] is not [K > 0, kgPerL >= 0]`);
+      }
+      return [Number(k), Number(kg)] as [number, number];
+    });
+    for (let i = 1; i < points.length; i++) {
+      if (points[i]![0] <= points[i - 1]![0]) {
+        throw new TypeError('Material.solubility must be ascending in K');
+      }
+    }
+    this.solubility = points;
+  }
+
+  /** kg of solute a liter holds at `tempK`, or `null` when unauthored. */
+  public solubilityAt(tempK: number): number | null {
+    const pts = this.solubility;
+    if (pts.length === 0) return null;
+    const first = pts[0]!;
+    const last = pts[pts.length - 1]!;
+    if (tempK <= first[0]) return first[1];
+    if (tempK >= last[0]) return last[1];
+    for (let i = 1; i < pts.length; i++) {
+      const [k1, s1] = pts[i]!;
+      if (tempK <= k1) {
+        const [k0, s0] = pts[i - 1]!;
+        return s0 + ((s1 - s0) * (tempK - k0)) / (k1 - k0);
+      }
+    }
+    return last[1];
+  }
+
+  /** What crystallizing this solution sets and leaves, or `null`. */
+  protected crystallizesTo: CrystallizesTo | null = null;
+
+  public getCrystallizesTo(): CrystallizesTo | null {
+    return this.crystallizesTo;
+  }
+  public setCrystallizesTo(value: CrystallizesTo | null): void {
+    if (value === null || value === undefined) {
+      this.crystallizesTo = null;
+      return;
+    }
+    const product = typeof value.product === 'string' ? value.product.trim() : '';
+    const residue = typeof value.residue === 'string' ? value.residue.trim() : '';
+    if (product === '' || residue === '') {
+      throw new TypeError('Material.crystallizesTo needs both a product and a residue path');
+    }
+    this.crystallizesTo = { product, residue };
+  }
+
+  /**
+   * ⭐⭐ The material this becomes when it seeps through a porous body
+   * (ceramics S9 — the water filter), or `''`. The pores are smaller than
+   * a bacterium and larger than an ion, so fouled water (organic and
+   * sediment — the dysentery is IN something) names plain water, and
+   * tainted water (lead, a nitrate — dissolved) names nothing: it comes
+   * through as it went in.
+   */
+  protected filteredTo = '';
+
+  public getFilteredTo(): string {
+    return this.filteredTo;
+  }
+  public setFilteredTo(value: string | null): void {
+    this.filteredTo = typeof value === 'string' ? value.trim() : '';
   }
 }
 

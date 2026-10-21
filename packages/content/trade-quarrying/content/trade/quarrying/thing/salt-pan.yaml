@@ -1,19 +1,26 @@
 # ⭐⭐ A salt pan — **the patient source, and the one that goes backwards.**
 #
-# A shallow leaded pan on the saltings. You fill it from the tide and the sun
-# does the rest, which takes weeks and is at the weather's mercy: a dry windy
-# spell concentrates it and **a wet one puts the water back**. That setback is
-# the only one in the maturation substrate that is not a failure, and it is
-# the read the requirements actually ask for.
+# A shallow leaded pan on the saltings. You fill it from the tide or the
+# spring and the sun does the rest, which takes weeks and is at the
+# weather's mercy: a dry windy spell concentrates it and **a wet one puts
+# the water back**. That setback is the only one in the maturation
+# substrate that is not a failure.
 #
-# ⚠ **A `Vat` row, not a class.** It is a vessel with a bulk interior standing
-# open to the sky, which is exactly what a `Vat` is; what makes it a saltern
-# rather than a brewery is its `category`, its capacity, and the fact that
-# somebody put it outdoors. A second saltern anywhere is this row again.
+# ⭐⭐ (ceramics S17, W8) **And the salt SETS in it.** When the brine holds
+# more salt than a liter of it can (the `solubility` on sea water's row),
+# the excess crystallizes — kept in the pan as one crop that grows while
+# the sun is still working the brine — and when the pan is done the liquor
+# left is bittern, which runs off into the tub the pan stands on. Salt
+# crystals in the pan, bittern beneath: the shape of a saltern.
 #
-# ⭐ `open: true` and it stays open — a covered pan is a pan that does not
-# work. And `closure: open`, because the whole apparatus is *no lid*.
-class: /platform/thing/Vat
+# ⚠ A `SaltPan` (`MaturingMixin` over the kernel `Mould`): the mold keeps
+# the crop and drains the bittern; the maturation takes the water. Neither
+# kernel class is both, and a second saltern anywhere is this row again.
+#
+# ⭐ `closure: liquidTight` — closure is whether liquid stays IN, and a pan
+# with no lid holds brine (`open` is a SIEVE: the brine ran to the floor).
+# The pan stands open to the sky because nothing covers it.
+class: /trade/quarrying/thing/SaltPan
 data:
   shortDescription: salt pan
   keywords: [pan, "salt pan", saltpan, saltern, lead]
@@ -21,19 +28,16 @@ data:
   longDescription: >-
     A wide shallow pan of sheet lead on a low brick bed, hardly deeper than
     your hand, with a white crust standing in the corners where it never quite
-    empties.
+    empties and a lip at one end over the tub below.
   # The VESSEL KIND — the tie between this row and every product that is this
   # vessel filled.
   category: pan
   _materialPath: /stuff/idea/material/element/lead
   interiorBulk: true
   interiorCapacity: 40
-  # ⚠⚠ `open`, and it said `none` until the fire build — which is not a
-  # `ClosureLevel`. `CLOSURE_ORDER['none']` is `undefined`, the comparison
-  # yields `NaN`, and `NaN < 0` is **false**, so the drain-through arm
-  # never fired and this vessel RETAINED LIQUID AS THOUGH IT WERE LIDDED.
-  # ⭐ `setClosure` throws on an unknown rung now, so a row like that
-  # fails its own hydration instead of quietly inverting its own prose.
-  closure: open
-  open: true
+  closure: liquidTight
+  # ⭐ The shape the salt sets in: the crop is kept in the pan until it is
+  # raked out (`get crystals from pan`), and the pan is used again.
+  castTemplate: /stuff/thing/salt-crystals
+  reusable: true
   mass: 90

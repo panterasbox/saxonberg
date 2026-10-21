@@ -939,6 +939,25 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       return sup.call(this, spec);
     }
 
+    /**
+     * ⭐ (ceramics W8) The vessel a porous body's seep runs INTO, or `null`
+     * (it weeps onto its own outside). The vessel it stands ON — the same
+     * rule as `Mould.drainsInto()`, the sugar cone on its pot — else the
+     * vessel it is set IN (a filter in the mouth of a crock). Either must
+     * hold liquid in an interior.
+     */
+    private seepReceiver(): (Stuff & Bulkable) | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return null;
+      const on = (self.getPlacement()?.host ?? null) as unknown as Stuff | null;
+      const candidates = [on, self.getContainer() as unknown as Stuff | null];
+      for (const c of candidates) {
+        if (c === null || c === self || !MixinApi.isBulkable(c) || !c.hasInteriorBulk()) continue;
+        return c;
+      }
+      return null;
+    }
+
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
@@ -1038,9 +1057,22 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
           material.hasTag('liquid') &&
           (!self.holdsWater('inside') || !self.holdsWater('outside'))
         ) {
-          const rate = bulkDial(AppSettingKeys.thermalEvaporationSeepLPerHourPerL, 0.02);
-          const lost = Math.min(left, self.porosity() * rate * left * (dt / 3600));
-          if (lost > 0) {
+          // ⭐⭐ (ceramics S9, W8) **Through, when there is somewhere to go.**
+          // A porous body set ON or IN a vessel that holds liquid does not
+          // weep onto its own outside — the water runs through the wall and
+          // drips into the vessel below, which is the whole of a ceramic
+          // water filter. A free flow, not an evaporation, so it runs at the
+          // faster `faces.filterLPerHourPerL`; and what comes through is
+          // what the pores let through (`Material.filteredTo`).
+          const below = this.seepReceiver();
+          const rate = below
+            ? bulkDial(AppSettingKeys.facesFilterLPerHourPerL, 5)
+            : bulkDial(AppSettingKeys.thermalEvaporationSeepLPerHourPerL, 0.02);
+          let lost = Math.min(left, self.porosity() * rate * left * (dt / 3600));
+          if (lost > 0 && below) {
+            lost = seepInto(below, material, payload, lost);
+            left -= lost;
+          } else if (lost > 0) {
             left -= lost;
             if (MixinApi.isWet(self)) {
               const cap = self.waterCapacityKg();
@@ -1224,6 +1256,48 @@ function bulkNowSeconds(): number | null {
 }
 
 /** One numeric dial read, falling back to the literal when unseeded. */
+/**
+ * ⭐ (ceramics S9) `litres` liters of `material` seeping through a porous wall
+ * into `below`: it lands as `material.filteredTo` (fouled water comes
+ * through as water) or, naming nothing, as itself (tainted water comes
+ * through tainted). What is DISSOLVED goes with it — toxins, solids, the
+ * hardness; what is suspended (the microbial load) stays in the wall.
+ * Into an empty vessel or one already holding what comes through, up to
+ * its room; anything else and nothing moves. Returns the liters moved.
+ */
+function seepInto(
+  below: Stuff & Bulkable,
+  material: Material,
+  payload: BulkPayload,
+  litres: number,
+): number {
+  const through = material.getFilteredTo();
+  const out = through !== '' ? (StuffApi.findByTemplatePath<Material>(through) ?? material) : material;
+  const held = below.getBulkAmount('interior').rawValue();
+  const heldMat = below.getBulkMaterial('interior');
+  if (held > 0 && heldMat !== null && heldMat.getTemplatePath() !== out.getTemplatePath()) return 0;
+  const cap = below.getBulkCapacity('interior')?.rawValue() ?? Infinity;
+  const moved = Math.min(litres, Math.max(0, cap - held));
+  if (!(moved > 0)) return 0;
+  const { faceCheckedS: _f, freshness: _m, ...carried } = payload;
+  if (held <= 0 || heldMat === null) below.setBulkMaterial('interior', out);
+  below.setBulkAmount('interior', Quantity.of(held + moved, BULK_VOLUME_UNIT));
+  const heldPayload = below.getBulkPayload('interior');
+  const folded = BulkableApi.blendPayloads(
+    Object.keys(carried).length > 0 ? carried : null,
+    moved,
+    heldPayload,
+    held,
+  );
+  // Dissolved solids go through the pores too, folded by volume.
+  const fromSolids = carried.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
+  const toSolids = heldPayload?.dissolvedSolidsKgPerL ?? (heldMat?.getSolidsKgPerL() ?? 0);
+  const solids = (moved * fromSolids + held * toSolids) / (moved + held);
+  if (solids > 0) folded.dissolvedSolidsKgPerL = solids;
+  below.setBulkPayload('interior', Object.keys(folded).length > 0 ? folded : null);
+  return moved;
+}
+
 function bulkDial(key: string, fallback: number): number {
   try {
     const raw = AppApi.setting(key);

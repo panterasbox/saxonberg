@@ -36,7 +36,7 @@
 import { Final, Unshadowable } from '../security/decorators';
 import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
-import type { BulkAffordance } from '../bulk/Bulkable';
+import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
 import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
@@ -90,6 +90,13 @@ declare module "../bulk/Bulkable" {
      */
     boilHeldS?: number;
     boilCheckedS?: number;
+    /**
+     * ⭐ Dissolved solids, kg per litre of these contents (sugar D1) —
+     * what boiling concentrates. Absent: the material's own
+     * `solidsKgPerL` (a fresh fill). The plateau rewrites it each time it
+     * boils water off; a pour folds it by volume.
+     */
+    dissolvedSolidsKgPerL?: number;
   }
 }
 
@@ -2214,6 +2221,12 @@ function reconcileBulkPhase(
   if (!mat) return;
   const temp = v.getTemperature().rawValue();
 
+  // ⭐⭐ **Crystallizing** (ceramics S17), the third arm — and the one that
+  // fires at ANY temperature: a solution sets crystals when it holds more
+  // than its material dissolves at its heat, whether the water left
+  // (a salt pan in the sun) or the heat did (alum liquor cooling).
+  if (crystallizeIfOver(v, aff, mat, temp)) return;
+
   const bp = mat.getBoilingPoint().rawValue();
   if (bp > 0 && temp >= bp) {
     // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
@@ -2355,6 +2368,169 @@ function reconcileBulkPhase(
       // the pool has already emptied; the cast simply does not appear. In a
       // booted world the template is present (water → ice-block).
     });
+  }
+}
+
+/**
+ * ⭐⭐ **The crystallize arm** (ceramics S17, D32). A bulk whose material
+ * authors `solubility` and `crystallizesTo`, holding more dissolved solids
+ * (`payload.dissolvedSolidsKgPerL`, else the material's own
+ * `solidsKgPerL`) than `solubilityAt(T)`, sets the EXCESS:
+ *
+ *  - in a mold, kept in the mold's shape (`castInto`) — and a crop
+ *    already setting there GROWS rather than a second one minting;
+ *  - in any other vessel, a lump of crystals beside it (the product's own
+ *    `castTemplate`), grown the same way.
+ *
+ * The liquor left is SATURATED, and what becomes of it is the one choice:
+ *
+ *  - ⭐ while the vessel is still concentrating it (a maturing host with an
+ *    active batch — the pan the sun is working) it STAYS, its own
+ *    material, so the crop keeps growing as the water keeps leaving and
+ *    the total set is the same however often anybody looks;
+ *  - otherwise the liquor is SPENT: its material swaps to
+ *    `crystallizesTo.residue` (brine's bittern) and, in a mold standing
+ *    on a vessel that takes drainings (`Mould.drainsInto()`), it runs
+ *    down into that vessel.
+ *
+ * Returns true when it changed the slot (the caller stops for this read).
+ */
+function crystallizeIfOver(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  tempK: number,
+): boolean {
+  const solubility = mat.solubilityAt(tempK);
+  const into = mat.getCrystallizesTo();
+  if (solubility === null || into === null) return false;
+  const litres = v.getBulkAmount(aff).rawValue();
+  if (!(litres > 0)) return false;
+  const payload: BulkPayload = v.getBulkPayload(aff) ?? {};
+  const held = payload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+  if (!(held > solubility + 1e-9)) return false;
+  const product = StuffApi.findByTemplatePath<Material>(into.product);
+  if (!product) return false;
+
+  const excessKg = (held - solubility) * litres;
+  // ⚠ The liquor keeps its volume: a solute's share of a solution's volume
+  // is small, and the volume is what the water does (the evaporative window
+  // moves it) — subtracting the crystals' volume made a pan whose window
+  // had run ahead of its reads lose its whole liquor to the crop.
+  const liquorL = litres;
+  const host = v as unknown as Stuff;
+  const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
+
+  const liquorPayload: BulkPayload = { ...payload, dissolvedSolidsKgPerL: solubility };
+  v.setBulkAmount(aff, Quantity.of(liquorL, 'L'));
+  v.setBulkPayload(aff, liquorPayload);
+  if (!concentrating) {
+    const residue = StuffApi.findByTemplatePath<Material>(into.residue);
+    if (residue && liquorL > 0) v.setBulkMaterial(aff, residue);
+    if (MixinApi.isMould(v) && liquorL > 0) {
+      const below = v.drainsInto();
+      if (below !== null && below !== (v as unknown as Stuff)) {
+        drainLiquorInto(v, aff, below, liquorL);
+      }
+    }
+    if (liquorL <= 0) {
+      v.setBulkMaterial(aff, null);
+      v.setBulkPayload(aff, null);
+    }
+  }
+  void setCrystals(v, product, excessKg);
+  return true;
+}
+
+/**
+ * The spent liquor runs down into the vessel the mold stands on — up to
+ * what that vessel has room for; what it cannot take stays in the mould.
+ * A different liquor already below is not mixed into: it stays put.
+ */
+function drainLiquorInto(
+  v: Stuff & Bulkable,
+  aff: BulkAffordance,
+  below: Stuff & Bulkable,
+  litres: number,
+): void {
+  const mat = v.getBulkMaterial(aff);
+  if (mat === null) return;
+  const held = below.getBulkAmount('interior').rawValue();
+  const heldMat = below.getBulkMaterial('interior');
+  if (held > 0 && heldMat !== null && heldMat.getTemplatePath() !== mat.getTemplatePath()) return;
+  const cap = below.getBulkCapacity('interior')?.rawValue() ?? Infinity;
+  const room = Math.max(0, cap - held);
+  const moved = Math.min(litres, room);
+  if (!(moved > 0)) return;
+  const payload = v.getBulkPayload(aff);
+  if (held <= 0 || heldMat === null) below.setBulkMaterial('interior', mat);
+  below.setBulkAmount('interior', Quantity.of(held + moved, 'L'));
+  const heldPayload = below.getBulkPayload('interior');
+  const folded = BulkableApi.blendPayloads(payload, moved, heldPayload, held);
+  // The dissolved solids fold by volume (sugar's pour rule, here for a drain).
+  const fromSolids = payload?.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+  const toSolids = heldPayload?.dissolvedSolidsKgPerL ?? (heldMat?.getSolidsKgPerL() ?? 0);
+  const solids = (moved * fromSolids + held * toSolids) / (moved + held);
+  if (solids > 0) folded.dissolvedSolidsKgPerL = solids;
+  below.setBulkPayload('interior', Object.keys(folded).length > 0 ? folded : null);
+  const left = litres - moved;
+  v.setBulkAmount(aff, Quantity.of(left, 'L'));
+  if (left <= 0) {
+    v.setBulkMaterial(aff, null);
+    v.setBulkPayload(aff, null);
+  }
+}
+
+/**
+ * Lay `kg` of `product` crystals where the vessel keeps them: a crop
+ * already there (in the mold, or beside a plain vessel) of the same
+ * material grows; otherwise one is set — `castInto` in a mold, the
+ * product's own cast row beside anything else.
+ */
+async function setCrystals(
+  v: Stuff & Bulkable & Thermal,
+  product: Material,
+  kg: number,
+): Promise<void> {
+  if (!(kg > 0)) return;
+  const self = v as unknown as Stuff;
+  const mould = MixinApi.isMould(self) ? (self as Stuff & Mould) : null;
+  const scope = mould
+    ? (self as unknown as Stuff & Container)
+    : ((self as unknown as { getContainer(): Stuff | null }).getContainer() as
+        | (Stuff & Container)
+        | null);
+  if (scope === null || !MixinApi.isContainer(scope as Stuff)) return;
+  const shape = mould ? mould.castTemplateFor(product) : product.getCastTemplate();
+  for (const c of scope.getContents()) {
+    const s = c as unknown as Stuff;
+    if (s === self || s.isDestroyed() || !MixinApi.isTangible(s)) continue;
+    if (s.getTemplatePath() !== shape) continue;
+    if (s.getMaterial()?.getTemplatePath() !== product.getTemplatePath()) continue;
+    s.setMass(Quantity.of(s.getMass().rawValue() + kg, 'kg'));
+    return;
+  }
+  if (mould) {
+    await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+    return;
+  }
+  let cast: Stuff;
+  try {
+    cast = await StuffApi.clone(shape);
+  } catch {
+    return; // an unresolvable shape must not crash a reconcile
+  }
+  if (MixinApi.isTangible(cast)) {
+    if (cast.getMaterial() === null) {
+      cast.setMaterial(product);
+      const c = cast as unknown as { setShortDescription?(s: string): void; setKeywords?(k: string[]): void };
+      c.setShortDescription?.(`${product.getName()} crystals`);
+      c.setKeywords?.(['crystals', 'crystal', ...product.getName().split(/\s+/)]);
+    }
+    cast.setMass(Quantity.of(kg, 'kg'));
+  }
+  if (MixinApi.isContainable(cast)) {
+    ContainmentApi.move(cast as Stuff & Containable, scope);
   }
 }
 

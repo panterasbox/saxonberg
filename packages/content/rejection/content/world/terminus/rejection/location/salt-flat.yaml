@@ -40,7 +40,10 @@ data:
   # and where you live decides which one you use.
   props:
     - /trade/quarrying/thing/brine-hearth
-    - /trade/quarrying/thing/salt-pan
+    # ⭐ (ceramics W8) The pan stands ON its bittern tub, so the liquor a
+    # finished pan leaves runs off into it.
+    - /trade/quarrying/thing/bittern-tub
+    - { template: /trade/quarrying/thing/salt-pan, on: /trade/quarrying/thing/bittern-tub }
   # ⭐⭐⭐ **The labour pool stands AT THE WORK**, and the requirement's
   # own words are the reason: *a bore crew is hired at the bore, out of
   # whoever has walked up to it.* They were in the Dry for one revision

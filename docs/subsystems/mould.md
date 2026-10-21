@@ -116,6 +116,7 @@ casts TRUE.
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets (passing `temperatureK`, the set edge) |
 | **draining** | `Material.drainSetting { days, becomes?, moisture, loadRef, absorbedByMould? }` | `MouldMixin.reconcileSetting` |
 | **curing** | `Material.cureSetting { minutes, becomes? }` | `MouldMixin.reconcileSetting` — no act, no load, no heat |
+| **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor drains through `drainsInto()` |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
 
 ### The drain set
@@ -137,9 +138,25 @@ drinks slower until it dries. In anything that does not drink, slip just
 sits there. The cast is the cavity's kind in clay (`slip`'s `becomes`), at
 leather-hard moisture.
 
-> **Where the drainings go.** *(Reserved for sugar's `drainsInto()`
-> paragraph at the merge — the vessel beneath a draining mould that catches
-> what runs out of it; the crystallizing build (W8) lands it here verbatim.)*
+### Where the drainings go — `drainsInto()` (W8)
+
+`Mould.drainsInto(): (Stuff & Bulkable) | null` is the vessel the mold
+stands ON (its placement host) when that vessel holds liquid in an interior,
+else `null` — what runs out of a mold on a board, a shelf or the floor runs
+away. Sugar's signature and body, shipped first here (D32): a sugar cone on
+its curing pot, and the salt pan on its **bittern tub**.
+
+The crystallize arm ([thermal.md](./thermal.md) § Crystallizing) is the
+first caller: a pan whose brine has set its salt runs the spent liquor —
+swapped to `crystallizesTo.residue`, bittern — down into the tub, up to the
+tub's room; a tub already holding a different liquor takes none of it.
+⭐ The `/trade/quarrying/thing/SaltPan` (`MaturingMixin` over the kernel
+`Mould`, the evaporative `brine` profile taking the water) stands on a
+`/trade/quarrying/thing/Tub` (`PlacingMixin` over `Vat`) at the Rejection
+flat and the Terminus salt house — a prop `{ template: …salt-pan, on:
+…bittern-tub }`. ⚠ The trade-sugar pack ships the same `PlacingMixin(Vat)`
+shape as its `CuringPot`: two packs with no common ancestor wanting one
+substrate is the signal to promote it to the kernel at the merge.
 
 ### The cure (S17)
 

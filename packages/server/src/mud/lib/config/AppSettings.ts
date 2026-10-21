@@ -1859,6 +1859,10 @@ export const AppSettingKeys = {
   facesHoldsWaterBelow: "faces.holdsWaterBelow",
   /** Faces — the share of a fill's aromas a porous inside face keeps. */
   facesAromaRetained: "faces.aromaRetained",
+  /** Faces — liters per hour per liter held, per unit of porosity, that
+   * run THROUGH a porous body into a vessel it stands on or in — the
+   * ceramic water filter (ceramics S9, W8). A free flow, not a weep. */
+  facesFilterLPerHourPerL: "faces.filterLPerHourPerL",
   /** Impact — ⭐ the share of a brittle body's toughness × volume that a
    * blow must exceed to break it, with volume weighted by itself again
    * (a thicker wall is disproportionately stronger) (ceramics M5). */

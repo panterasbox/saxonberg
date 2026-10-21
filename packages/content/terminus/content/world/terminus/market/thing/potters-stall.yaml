@@ -30,6 +30,9 @@ data:
     - { itemTemplatePath: /trade/ceramics/thing/bowl, par: 3, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
     - { itemTemplatePath: /trade/ceramics/thing/jar, par: 3, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
     - { itemTemplatePath: /trade/ceramics/thing/flask, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    # ⭐ (ceramics W8) The water filter — a porous stoneware candle for the
+    # mouth of a crock; the town below the outfall's answer to the river.
+    - { itemTemplatePath: /trade/ceramics/thing/water-filter, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
   # The base — the Delight shelf's own figures; an import asks half again.
   prices:
     /trade/ceramics/thing/plant-pot-small: 3
@@ -40,5 +43,6 @@ data:
     /trade/ceramics/thing/bowl: 2
     /trade/ceramics/thing/jar: 3
     /trade/ceramics/thing/flask: 2
+    /trade/ceramics/thing/water-filter: 6
   listingCapOverride: 40
   mass: 30

@@ -1,0 +1,29 @@
+# Bittern — ⭐ the mother liquor a salt pan leaves (ceramics S17).
+#
+# What is left when the salt has set out of a brine: still saturated with
+# salt, and carrying everything that dissolves better than salt does — the
+# magnesium and the sulfate — so it tastes bitter, which is the name. A
+# saltmaker runs it off below the pan rather than let it crust the crop
+# with a bitter scale.
+#
+# ⚠ NOT tagged `brine`: the brine profile matches by that tag, and bittern
+# in the tub under a pan must not start a second evaporation of its own.
+# ⭐ A real by-product rather than a waste: bittern curdles soy milk, and it
+# is where Epsom salt and magnesia come from — a later trade's input.
+class: /platform/idea/material/Material
+data:
+  name: bittern
+  keywords: [bittern, liquor, "mother liquor", brine]
+  appearance: thick, faintly yellow brine
+  density: 1250
+  thermalConductivity: 0.55
+  specificHeat: 3300
+  electricalConductivity: 15
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tastes: [bitter, salty]
+  acidity: 0.05
+  tags: [liquid, bittern, conductive]
+  composition: []
+  biologicalSource: null

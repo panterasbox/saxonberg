@@ -788,6 +788,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ (ceramics W8) What a solution crystallizes to: the crystals and the
+  // mother liquor, both material rows.
+  const crystallizesTo = data.crystallizesTo as { product?: unknown; residue?: unknown } | undefined;
+  if (crystallizesTo && typeof crystallizesTo === 'object') {
+    for (const k of ['product', 'residue'] as const) {
+      const v = crystallizesTo[k];
+      if (typeof v === 'string' && v.startsWith('/')) out.push({ field: 'crystallizesTo', path: v });
+    }
+  }
   const prices = data.prices;
   if (prices && typeof prices === 'object') {
     for (const key of Object.keys(prices as Record<string, unknown>)) {
@@ -804,6 +813,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const scalar of [
     'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
     'programmePath', 'purifiedByBoiling',
+    // ⭐ (ceramics W8) What a porous wall strains a liquid into — a real
+    // material row, the filter's sibling of `purifiedByBoiling`.
+    'filteredTo',
     'productMaterial', 'leesMaterial', 'turnedMaterial',
     // The mine: the ore row a face yields, the warren that carves, the
     // grid it carves into, and the parcel extent the claim ring covers.

@@ -25,3 +25,11 @@ settings:
   # the next — the crock that remembers the pickles.
   - key: faces.aromaRetained
     value: "0.1"
+
+  # ⭐ A porous body set on or in a vessel runs its water THROUGH into it —
+  # the ceramic filter — at this many liters an hour per liter held, per
+  # unit of porosity: a filter candle of porous stoneware (≈ 0.12) passes
+  # about half its fill in the first hour. A flow, so it is far faster
+  # than the weep onto a jar's own outside.
+  - key: faces.filterLPerHourPerL
+    value: "5"

@@ -18,5 +18,16 @@ data:
   # ⭐ How acid it is, 0..1 (ceramics M7) — what draws lead from a glaze.
   acidity: 0.05
   tags: [liquid, brine, conductive]
+  # ⭐⭐ Crystallizing (ceramics S17). Sea water carries about 35 g of salt
+  # a liter; a liter of brine holds about 316 g of it at freezing and only
+  # 329 g at the boil — salt barely cares about heat, which is why salt is
+  # made by taking the WATER away (the pan in the sun, the hearth) and never
+  # by cooling. Past saturation the excess sets as crystals; the liquor left
+  # when the pan is done is bittern, and it runs off below.
+  solidsKgPerL: 0.035
+  solubility: [[273, 0.316], [293, 0.317], [373, 0.329]]
+  crystallizesTo:
+    product: /stuff/idea/material/food/salt
+    residue: /stuff/idea/material/bulk/bittern
   composition: []
   biologicalSource: null

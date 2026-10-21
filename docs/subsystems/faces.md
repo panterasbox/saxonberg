@@ -116,6 +116,43 @@ and a share of a fill's aromas (`faces.aromaRetained`, 0.1) stays on the
 inside face and goes into the next fill: the crock that remembers the pickles.
 Glazed ware and stoneware keep nothing, which is what *hygienic* means here.
 
+## ⭐⭐ The water filter — through, when there is somewhere to go (S9, W8)
+
+The same weep, with one question first: **is there a vessel to run into?**
+`BulkableMixin.seepReceiver()` is the vessel the porous body stands ON (the
+`drainsInto()` rule — its placement host) or, failing that, the vessel it is
+set IN (its container), when either holds liquid in an interior. With a
+receiver the water does not weep onto the body's outside; it runs THROUGH
+the wall into the receiver, at `porosity × faces.filterLPerHourPerL` (5) per
+hour per liter held — a free flow, not an evaporation, so about 250× the weep.
+No receiver, and the body weeps as above.
+
+⭐ **What comes through is what the pores let through** — `Material.filteredTo`
+on the liquid's own row, else the liquid itself. The pores of a filter body
+(`/trade/ceramics/idea/material/filter-stoneware`, 12 % open porosity: a
+stoneware fired short of vitrifying) are about a micron, smaller than a
+bacterium and far larger than an ion, so:
+
+- **fouled water** (`filteredTo: water`) comes through as water — the
+  dysentery is IN something, and it stays in the wall;
+- **tainted water** (no arrow) comes through tainted — lead is dissolved;
+- anything DISSOLVED rides along: the payload's `dissolvedToxins`, dissolved
+  solids and hardness go through (folded by volume into what is there); the
+  microbial load (`freshness`) stays behind.
+
+A receiver already holding a different liquid takes none of it (the filter
+holds). The choice — **set IN as well as stood ON** — is because a filter
+candle sits in the mouth of a crock, and `Ware` offers no placement; the ON
+rule is the one sugar's cone and the salt pan use, so one predicate serves
+both. ⚠ A weeping jar set in a basin now drips into the basin rather than
+wetting its own outside, which is the physics.
+
+The row: `/trade/ceramics/thing/water-filter` (a `Ware`, 2 L, unglazed —
+a glaze would close the pores) and the `filter` form, sold at the Terminus
+potter's stall. Doulton's filter of the cholera years — an instrument
+against [watershed.md](./watershed.md)'s contamination by kind, and its
+limit is that kind.
+
 ## Cleaning
 
 `cleansAs()` multiplies how hard a good is to wash ([cleanliness.md](./cleanliness.md)).

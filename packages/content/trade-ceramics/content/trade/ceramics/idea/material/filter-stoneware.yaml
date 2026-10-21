@@ -1,0 +1,31 @@
+# Filter stoneware — ⭐ a stoneware body made NOT to vitrify (ceramics S9,
+# W8): fine clay with a share of burnt-out filler, fired hard but short of
+# the glassy rung, so it keeps a network of open pores about a micron
+# across — far smaller than a bacterium (a few microns) and far larger than
+# a dissolved ion. That one comparison is the whole filter: what is IN the
+# water stays in the wall, what is dissolved in it goes through.
+#
+# Doulton's candle of the cholera years. ⚠ Unglazed by definition — a
+# glaze closes the pores, and a filter that holds water is a jar.
+class: /platform/idea/material/Material
+data:
+  name: filter stoneware
+  keywords: [stoneware, "filter stoneware", pottery, fired]
+  appearance: fine, chalky buff stoneware, dry to the touch and faintly absorbent
+  density: 1900
+  specificHeat: 880
+  thermalConductivity: 0.9
+  electricalConductivity: 1.0e-7
+  # ⭐ The open porosity a filter needs: well over the 3 % at which a body
+  # holds water bare (`faces.holdsWaterBelow`), so water runs through it.
+  waterAbsorptionCapacity: 12
+  hardness: 70
+  toughness: 4
+  thermalExpansion: 6.0e-06
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "porous", "stoneware"]
+  composition: []
+  biologicalSource: null
+  brokenTemplate: /stuff/thing/sherds

@@ -66,7 +66,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Material from '../material/Material';
-import type { BulkPayload } from '../bulk/Bulkable';
+import type { Bulkable, BulkPayload } from '../bulk/Bulkable';
 import { WEAR_PER_USE } from '../material/Durable';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
@@ -130,6 +130,8 @@ export interface Mould {
   castInto(pool: SetPool): Promise<Stuff | null>;
   /** True while a set thing sits in the mould. */
   holdsCast(): boolean;
+  /** The vessel the mould stands on that takes its drainings, or `null`. */
+  drainsInto(): (Stuff & Bulkable) | null;
   /**
    * ⭐ The load on the mould, N — a weight put ON it (× g) plus the screw
    * press it stands in (ceramics D25). `0` with neither.
@@ -484,6 +486,19 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (m !== null && m.getCastTemplate() === path) return true;
       }
       return false;
+    }
+
+    /**
+     * ⭐ Where the drainings go (sugar D16): the vessel this mould stands
+     * ON, when it can hold them — a sugar cone on its curing pot. `null`
+     * (they run away) for a mould on a board, a shelf or the floor.
+     */
+    public drainsInto(): (Stuff & Bulkable) | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return null;
+      const host = (self.getPlacement()?.host ?? null) as unknown as Stuff | null;
+      if (host === null || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return null;
+      return host;
     }
 
     public loadN(): number {

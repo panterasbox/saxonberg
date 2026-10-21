@@ -1042,3 +1042,48 @@ passes under it.
   large vessel on a range heats slowly (30 L takes ~5 game hours to a
   simmer); the copper is sized at 12 L for it. A power-limited heat
   transfer is this subsystem's.
+
+## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8)
+
+`reconcileBulkPhase` has three arms, and the third fires at ANY temperature,
+so it runs first: **a solution sets crystals when it holds more than its
+material dissolves at its heat**, whether the water left (a salt pan in the
+sun) or the heat did (alum liquor cooling).
+
+- **The facts are the solution's.** `Material.solubility: [[K, kgPerL]…]`
+  (K ascending, piecewise linear, flat past the ends — `solubilityAt(T)`),
+  `crystallizesTo { product, residue }`, and `solidsKgPerL`, a fresh liter's
+  dissolved solids (sugar's accessor pair, copied). The bulk payload's
+  `dissolvedSolidsKgPerL` (sugar's declaration, verbatim, from this file) is
+  the running figure; absent, the material's own. A pour folds it by volume
+  (sugar's `BulkableLogic` hunk); the evaporative maturation window rescales
+  it as the volume falls (`Maturing.rescaleDissolvedSolids`) — the salt is
+  conserved, so a pan of sea water at 35 g/L saturates near a ninth of its
+  volume.
+- **The excess sets.** `(held − solubilityAt(T)) × L` kg of `product`: in a
+  mold, kept in its shape (`castInto`), and a crop already there of that
+  material GROWS rather than a second one minting; in any other vessel, the
+  product's own `castTemplate` beside it, grown the same way. The liquor
+  keeps its volume (a solute's share is small, and the volume is the
+  water's — the evaporative window moves it).
+- **The liquor left is saturated, and its fate is the one choice.** ⭐ While
+  the vessel is still CONCENTRATING it (a maturing host whose batch is
+  `active` — the pan the sun is working) it stays, its own material, so the
+  total crop is the same however often anybody reads the pan. Otherwise it
+  is SPENT: its material swaps to `crystallizesTo.residue` (brine →
+  bittern; alum and saltpeter liquors name themselves, the mother liquor
+  that goes back to the boil) and, in a mold standing on a vessel
+  (`Mould.drainsInto()`), it drains into that vessel ([mould.md](./mould.md)).
+- **The rows.** Sea water (`bulk/salt-water`: 0.035 kg/L; 0.316 → 0.329
+  kg/L freezing to boiling — salt barely cares about heat, which is why it is
+  made by taking the water away); `bulk/bittern`; the saltpeter liquor (0.9
+  kg/L; 0.127 → 1.04 — made by cooling) and `mineral/saltpeter`; trade-dyeing's
+  `alum-liquor` (0.6; 0.055 → 0.95) setting its `alum`. The `brine` profile's
+  product is the brine itself taken to 3 % of its volume, and the salt is
+  what that water could not keep; `food/salt`'s `castTemplate` is
+  `/stuff/thing/salt-crystals`.
+- ⚠ A cooling crystallization in a plain vessel (no maturing batch) sets and
+  spends at the first read past saturation; a liquor that names itself as
+  the residue keeps setting as it cools further, so the crop is still whole.
+  Sugar's staged boil (`concentrateIfReached`) is the boil arm's sibling and
+  lands after this arm at the merge.

@@ -1,0 +1,31 @@
+# Alum liquor — ⭐ alum is made by cooling a hot liquor (ceramics S17).
+#
+# The alum works boiled their leached liquor strong and ran it into
+# "roching" casks to cool: potash alum dissolves about seventeen times
+# better at the boil than at freezing, so the clear hot liquor sets its
+# crop on the cask walls as it cools, and the mother liquor (`residue`, the
+# liquor itself) goes back to the pans. The crop is this pack's own mordant.
+#
+# ⚠ The curve is approximate (kg per liter of solution); its STEEPNESS is
+# the lesson, against salt's nearly flat one.
+class: /platform/idea/material/Material
+data:
+  name: alum liquor
+  keywords: [liquor, "alum liquor"]
+  appearance: clear, faintly cloudy liquor
+  density: 1300
+  thermalConductivity: 0.55
+  specificHeat: 3300
+  electricalConductivity: 4
+  edibility: false
+  nutrients: []
+  toxicity: []
+  acidity: 0.2
+  tags: [liquid, liquor]
+  solidsKgPerL: 0.6
+  solubility: [[273, 0.055], [293, 0.12], [313, 0.22], [333, 0.45], [353, 0.75], [373, 0.95]]
+  crystallizesTo:
+    product: /trade/dyeing/idea/material/alum
+    residue: /trade/dyeing/idea/material/alum-liquor
+  composition: []
+  biologicalSource: null

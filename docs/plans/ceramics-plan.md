@@ -1537,6 +1537,24 @@ left a fork the lens that chose is named.
 - **B66 (W6) — Every kept brickfield place is a `PersistentLocale`** —
   the weathering ground, temper yard and clamp ground too, not only the
   three sheds: a heap's winter and a clamp mid-burn are AC 22 state.
+- **B67 (W8) — Crystallizing runs BEFORE the boil and freeze arms**, not
+  inside the `bp > 0 && temp >= bp` block the plan named: brine has no
+  boiling point and a pan crystallizes at room heat. A maturing host's
+  liquor stays saturated while its batch is active (the crop is the same
+  however often the pan is read); otherwise it becomes `crystallizesTo.
+  residue` and drains to the vessel the mould stands on.
+- **B68 (W8) — The salt pan is a pack class** (`SaltPan` = VesselKind(
+  Maturing(Mould)), `Tub` = Placing(Vat)) — the kernel `Mould` has no
+  maturation, so a plain row could never evaporate. ⚠ `salt-pan.yaml` is
+  also sugar's file: expect a conflict at the merge.
+- **B69 (W8) — The filter seeps into what it stands on, or what it sits
+  in** (`faces.filterLPerHourPerL` 5): a candle sits in a crock's mouth and
+  `Ware` offers no placement. Side effect: a weeping jar in a basin drips
+  into it. Plain stoneware holds water, so the filter is its own 12 %
+  porous body. The water pack's draw picks `fouled-water` or the new
+  `tainted-water` (lead; neither filtered nor boiled clean) by the reach's
+  contamination kind — no persistent outfall ships yet, so tainted water is
+  drawable nowhere today. Sugar's names copied verbatim (B-protocol).
 
 ## ⭐⭐ Host placement
 
@@ -2419,6 +2437,12 @@ three sources, cure, recast, and the bell that carries`
 
 ### W8 — crystallizing and the filter (master's code, sugar's names)
 
+> ✅ **DONE (W8).** Crystallizing (solubility, crystallizesTo, the bittern
+> below via `drainsInto`), the salt pan on its tub, saltpeter and alum
+> liquors; the water filter (porous Ware seeping into what it stands on,
+> `filteredTo`); tainted vs fouled water on the draw; checkpoints 22 and 32
+> written. Decisions B67–B69.
+
 **Goal.** S17 and S9's filter; AC 12 and 18. Consumers: the salt pans
 (bittern below), the ceramic water filter, alum and saltpetre rows.
 ⭐ Waits on nobody (D32); its shared-file work is append-only and copies
@@ -2715,7 +2739,7 @@ market/thing/{potters-stall,curfew-bell}.yaml` + the counters ·
 ## Build status (handoff, 2026-10-20)
 
 - Committed: W0 d22c2a429 · W1 4a671e8f1 · W2 38d1a676d · W3 2a21c0e2f ·
-  W4+W5 1eaa685d9 · W6+W7 3e32aa72f. W8 (crystallize + filter) in flight.
+  W4+W5 1eaa685d9 · W6+W7 3e32aa72f · W8 (see git log).
   Each wave: `test:near` + all 82 lint gates green.
 - NOT YET RUN: the four drives `packages/wire/tests/ceramics-{a,b,c,d}.dirty.wire.test.ts`
   (written, never run — expect defects); the sibling probe (§ Merge

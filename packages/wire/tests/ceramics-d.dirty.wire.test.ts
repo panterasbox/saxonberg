@@ -19,8 +19,9 @@
  *
  * ⚠ Every checkpoint asserts the verb was UNDERSTOOD (never "I don't
  * understand") and a STATE changed, read back off the world — never only
- * that the verb was not refused. ⚠ Step 32 (crystallize) is the
- * crystallizing wave's (W8): written and skipped until it lands.
+ * that the verb was not refused. ⭐ Step 32 (crystallize) is the
+ * crystallizing wave's (W8): brine in the salt pan at the Rejection flat
+ * sets its salt in the pan, and the bittern runs off into the tub beneath.
  *
  * Setup by the founder: molten metal is stood up in a crucible by `eval`
  * (the material and its heat — the pour, the mould and what it makes are
@@ -54,7 +55,8 @@ export const DIRTY_REASON =
   'burns its core-oven charcoal, fills its tubs and case, locks and unlocks ' +
   'its yard door, pours the bell pit, presses a cheese at the Delight ' +
   'creamery and a tile on the foundry press, strikes its token blanks, ' +
-  'clones swords, keys, boards, pots and moulds into the foundry, and moves ' +
+  'clones swords, keys, boards, pots and moulds into the foundry, fills the ' +
+  'Rejection flat\'s salt pan with brine and rakes its salt, and moves ' +
   'the clock';
 
 declareFile({
@@ -81,6 +83,7 @@ declareFile({
 });
 
 const R = '/world/terminus/rejection';
+const SALT_FLAT = `${R}/location/salt-flat`;
 const FOUNDRY = `${R}/location/foundry`;
 const CASTING_YARD = `${R}/location/foundry-yard`;
 const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
@@ -639,10 +642,81 @@ suite('⭐⭐ 31 — pressing: one load, from a stone, a screw and a blow', () =
 
 /* ───────────── 32. crystallize (W8) ───────────── */
 
-suite('32 — crystallize', () => {
-  it.skip('brine in the salt pan → salt crystals, with bittern beneath (W8 — the crystallizing wave)', () => {
-    // Written by W8: the salt pan's freeze-edge crystallize arm.
-  });
+suite('⭐⭐ 32 — crystallize', () => {
+  /** The pan's crop and the tub's liquor, read off the world (the reads drive both reconciles). */
+  async function saltern(): Promise<{ crop: number; panL: number; tub: string | null; tubL: number }> {
+    const said = await founderEval(
+      SALT_FLAT,
+      `return JSON.stringify((() => { const here = self.getContainer().getContents();` +
+        ` const pan = here.find(o => o.getTemplatePath() === '/trade/quarrying/thing/salt-pan');` +
+        ` const tub = here.find(o => o.getTemplatePath() === '/trade/quarrying/thing/bittern-tub');` +
+        ` if (!pan || !tub) return { crop: -1, panL: -1, tub: 'missing', tubL: -1 };` +
+        ` pan.getMaturationPhase(); const panL = pan.getBulkAmount('interior').rawValue();` +
+        ` const crop = pan.getContents().filter(c => c.getTemplatePath() === '/stuff/thing/salt-crystals')` +
+        `.reduce((a, c) => a + c.getMass().rawValue(), 0);` +
+        ` return { crop, panL, tub: tub.getBulkMaterialPath('interior'), tubL: tub.getBulkAmount('interior').rawValue() }; })())`,
+    );
+    const json = /\{.*\}/s.exec(plain(said))?.[0] ?? '{}';
+    return JSON.parse(json) as { crop: number; panL: number; tub: string | null; tubL: number };
+  }
+
+  it('brine in the salt pan → salt crystals IN the pan, with bittern in the tub beneath', async () => {
+    await daylight();
+    caster = await goTo(caster, SALT_FLAT);
+    // ⭐ The pan stands ON its tub (the flat's props), and that is the whole
+    // of the drain: the mold's `drainsInto()` reads the vessel under it.
+    const tubBefore = await examine(caster, 'tub');
+    expect(tubBefore, 'the bittern tub at the flat').toMatch(/tub/i);
+
+    // ⚠ Setup by the founder: the brine. The flat's spring is a strong
+    // subsurface brine (most of the way to saturation, as inland brine
+    // springs are), and getting it into the pan is the bore crew's trade,
+    // not this drive's. 20 L at 0.28 kg/L — under a liter's 0.317, so it
+    // has to LOSE water before anything sets.
+    const filled = await founderEval(
+      SALT_FLAT,
+      `return (() => { const pan = self.getContainer().getContents()` +
+        `.find(o => o.getTemplatePath() === '/trade/quarrying/thing/salt-pan');` +
+        ` const brine = StuffApi.findByTemplatePath('/stuff/idea/material/bulk/salt-water');` +
+        ` if (!pan || !brine) return 'no pan or no brine';` +
+        ` pan.setBulkMaterial('interior', brine);` +
+        ` pan.setBulkAmount('interior', pan.getBulkAmount('interior').constructor.of(20, 'L'));` +
+        ` pan.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.28 });` +
+        ` return 'brine: ' + pan.getBulkAmount('interior').rawValue() + ' L, ' + pan.getMaturationPhase(); })()`,
+    );
+    expect(filled, `the pan filled: ${filled}`).toMatch(/brine: 20 L, active/);
+    const first = await saltern();
+    expect(first.crop, 'nothing set yet — the brine is under saturation').toBe(0);
+
+    // The sun works it: a day at a time until the pan is done and the
+    // bittern has run off (rain sets it back; a wet week does nothing).
+    let read = first;
+    for (let day = 0; day < 60 && !(read.tubL > 0); day++) {
+      await advance('1 day');
+      await examine(caster, 'pan');
+      read = await saltern();
+    }
+    expect(read.crop, `the crop in the pan: ${JSON.stringify(read)}`).toBeGreaterThan(0);
+    // ⭐ Nearly all of it: 20 L × 0.28 kg/L is 5.6 kg, and the pan keeps
+    // only what its last 3 % of liquor can hold.
+    expect(read.crop).toBeGreaterThan(4);
+    expect(read.tub, 'the liquor below is BITTERN').toBe('/stuff/idea/material/bulk/bittern');
+    expect(read.tubL).toBeGreaterThan(0);
+    expect(read.panL, 'the pan is drained').toBe(0);
+
+    // What a player sees: the crop in the pan, the bittern in the tub, and
+    // the salt is salt in the hand.
+    const pan = await examine(caster, 'pan:i:crystals');
+    expect(pan, `the pan's crop: ${pan}`).toMatch(/salt crystals/i);
+    const tub = await examine(caster, 'tub');
+    expect(tub, `the tub: ${tub}`).toMatch(/bittern/i);
+    const got = await doing(caster, 'get crystals from pan');
+    expect(got, `raking the crop: ${got}`).toMatch(/crystals/i);
+    const held = await examine(caster, 'me:i:crystals');
+    expect(held, `the crop in hand: ${held}`).toMatch(/salt/i);
+    await say(caster, 'drop crystals');
+    caster = await goTo(caster, FOUNDRY);
+  }, 3_600_000);
 });
 
 /* ───────────── 33. recast and fit ───────────── */

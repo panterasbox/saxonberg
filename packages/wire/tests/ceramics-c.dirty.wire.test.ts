@@ -16,8 +16,9 @@
  *
  * ⚠ Every checkpoint asserts the verb was UNDERSTOOD and a STATE changed,
  * read back off the world — never only that the verb was not refused.
- * ⚠ Step 22 (the filter) is the crystallizing-and-filter wave's (W8); its
- * checkpoint is written and skipped until W8 lands. ⚠ Step 20 runs after
+ * ⭐ Step 22 (the filter) is the crystallizing-and-filter wave's (W8): a
+ * filter set in a crock strains fouled water to water and lets tainted
+ * water through. ⚠ Step 20 runs after
  * 23 in this file: its grogged pot is made from 23's sherds.
  *
  * Run: `WIRE_BOOT=1 WIRE_PORT=<this worktree's> npx vitest run
@@ -40,7 +41,8 @@ export const DIRTY_REASON =
   'and glazes ware in the pottery (spending its cones, charcoal and glaze ' +
   'stock), breaks pots on the market square, consigns at and buys off the ' +
   'Terminus potter\'s stall and the general store, clones a campfire and a ' +
-  'thermometer, practises pottery onto its characters, and moves the clock';
+  'thermometer, practises pottery onto its characters, buys water filters and ' +
+  'crocks and stands contaminated pails in the yard and the temper pit, and moves the clock';
 
 declareFile({
   file: 'ceramics-c.dirty.wire.test.ts',
@@ -54,6 +56,7 @@ declareFile({
     'base-library',
     'hearts-delight',
     'terminus',
+    'water',
     'world-seed',
   ],
   dirtyReason: DIRTY_REASON,
@@ -71,6 +74,9 @@ const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 
 const CHARCOAL = '/trade/fuel/thing/charcoal';
+const PAIL = '/stuff/thing/vessel/pail';
+const FOULED_WATER = '/stuff/idea/material/bulk/fouled-water';
+const TAINTED_WATER = '/stuff/idea/material/bulk/tainted-water';
 const CAMPFIRE = '/stuff/thing/Campfire';
 const THERMOMETER = '/stuff/thing/instrument/thermometer';
 
@@ -495,17 +501,83 @@ suite('⭐ 21 — the weeping jar', () => {
 });
 
 suite('⭐ 22 — the filter (W8)', () => {
-  it.skip('contaminated river water poured through a ceramic filter: the bacteria gone, a dissolved contaminant through', async () => {
-    // ⚠ The filter is the crystallizing-and-filter wave's (W8): unskip when
-    // `filteredTo` and the stall's filter ship.
-    const s = await goTo(potter, MILL);
-    await say(s, 'buy filter');
-    await say(s, 'fill pail from race');
-    const poured = await act(s, 'pour pail into filter');
-    expect(poured.said).toMatch(/filter|seep|through/i);
-    const chem = await say(s, 'analyze chemistry jar');
-    expect(chem).not.toMatch(/bacteri|faecal|fouled/i);
-    expect(chem).toMatch(/dissolved|salt|nitrate/i);
+  /**
+   * One filter, one crock, one contaminated pail, in `room`: buy the filter
+   * and the crock at the Terminus stall, set the filter in the crock's
+   * mouth, pour the pail into the filter and stand the crock down.
+   *
+   * ⚠ A fresh character (`filterer`) in rooms with no other crock or
+   * filter in reach: the potter carries the 19/21 crocks, and the shop's
+   * floor holds more — `put filter in crock` must name ONE crock.
+   *
+   * ⚠ Setup by the founder: the pail's water. A river's draw is fouled or
+   * tainted by the reach's contamination BY KIND (`WatercourseCatalogue.
+   * draw.test.ts` pins the branch), and the Kestrel's fouling at the wharf
+   * is seasonal — the spring melt thins the city's sewer to traces (the
+   * maritime drive's lesson) — and no persistent outfall ships at all. So
+   * the founder stands up a pail of each water by `eval`; the FILTER is the
+   * act under test.
+   */
+  let w: Session;
+  async function filterRound(room: string, water: string): Promise<void> {
+    w = await goTo(w, SQUARE);
+    expect(await say(w, 'buy water filter'), 'the stall sells a filter').toMatch(/you buy/i);
+    expect(await say(w, 'buy crock'), 'and a crock for it to stand in').toMatch(/you buy/i);
+    w = await goTo(w, room);
+    const set = await run(w, 'put filter in crock');
+    expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
+    await mint(room, PAIL);
+    await founderEval(
+      room,
+      '/world/terminus/hearts-delight/brickfield',
+      `return JSON.stringify(self.getContainer().getContents()` +
+        `.filter(o => o.getTemplatePath() === '${PAIL}')` +
+        `.map(o => { const v = StuffApi.findByTemplatePath('${water}');` +
+        ` o.setBulkMaterial('interior', v); o.setBulkAmount('interior', o.getBulkAmount('interior').constructor.of(2, 'L'));` +
+        ` return o.getBulkMaterialPath('interior'); }))`,
+    );
+    await say(w, 'get pail');
+    const poured = await say(w, 'pour pail into filter');
+    expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
+    await say(w, 'drop crock');
+    await say(w, 'drop pail');
+  }
+
+  /** What stands in the crock with a filter in it, in `room`, after the filter has run. */
+  async function strainedIn(room: string): Promise<{ material: string | null; litres: number } | null> {
+    const said = await founderEval(
+      room,
+      '/world/terminus/hearts-delight/brickfield',
+      `return JSON.stringify(self.getContainer().getContents()` +
+        `.filter(o => o.getTemplatePath() === '/trade/ceramics/thing/crock' && o.getContents()` +
+        `.some(f => f.getTemplatePath() === '/trade/ceramics/thing/water-filter'))` +
+        `.map(o => { o.getContents().forEach(f => f.getBulkAmount && f.getBulkAmount('interior'));` +
+        ` return { material: o.getBulkMaterialPath('interior'), litres: o.getBulkAmount('interior').rawValue() }; }))`,
+    );
+    const json = /\[.*\]/s.exec(plain(said))?.[0] ?? '[]';
+    const crocks = JSON.parse(json) as Array<{ material: string | null; litres: number }>;
+    return crocks[0] ?? null;
+  }
+
+  it('fouled river water through a ceramic filter comes out WATER; tainted water comes through TAINTED', async () => {
+    // Daylight: the yard and the temper pit are out of doors.
+    await toHour(8, 15);
+    w = await funded('filterer', SQUARE);
+    await filterRound(YARD, FOULED_WATER);
+    await filterRound(TEMPER, TAINTED_WATER);
+    await advance('3 hours');
+
+    // ⭐ The bacteria stayed in the wall: what dripped into the crock is water.
+    const strained = await strainedIn(YARD);
+    expect(strained, 'the yard\'s crock with its filter').not.toBeNull();
+    expect(strained!.litres, 'water came through').toBeGreaterThan(0);
+    expect(strained!.material).toBe('/stuff/idea/material/bulk/water');
+
+    // ⭐ The lead is dissolved: it went straight through the pores.
+    const through = await strainedIn(TEMPER);
+    expect(through, 'the temper pit\'s crock with its filter').not.toBeNull();
+    expect(through!.litres, 'the tainted water came through').toBeGreaterThan(0);
+    expect(through!.material).toBe(TAINTED_WATER);
   }, 1_800_000);
 });
 

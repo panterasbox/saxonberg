@@ -1,0 +1,33 @@
+# Saltpeter — potassium nitrate (KNO₃, 101.1 g/mol), ⭐ the salt that is made by COOLING
+# (ceramics S17).
+#
+# It comes out of a niter bed's leachings boiled strong, and then the
+# liquor is left to cool: saltpeter dissolves more than seven times better
+# at the boil than at freezing, so a hot liquor that is clear sets a crop
+# of long needles as it cools, and the mother liquor goes back to the next
+# boil. Salt is the opposite case (it barely cares about heat) — which is
+# why the two are made in such different apparatus, and why the solubility
+# curve is the row's whole lesson.
+#
+# The crystals' row: what the liquor sets as. The oxidizer of black powder
+# and a meat cure's pink; neither consumer is this build's.
+class: /platform/idea/material/Material
+data:
+  name: saltpeter
+  keywords: [saltpeter, saltpetre, nitre, niter, "potassium nitrate"]
+  appearance: colorless needles of saltpeter
+  density: 2109
+  specificHeat: 950
+  thermalConductivity: 0.5
+  meltingPoint: 607
+  hardness: 2
+  toughness: 1
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 0
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tastes: [salty, bitter]
+  tags: ["mineral", "salt", "nitrate", "oxidizer", "crystalline"]
+  composition: []
+  biologicalSource: null
