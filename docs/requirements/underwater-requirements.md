@@ -321,7 +321,8 @@ stages.
    `ascend` band by band to air and breathe. Ascent is never refused for
    lack of skill.
 4. Hyperventilate (`inhale` repeatedly), descend and stay: you black out
-   **with no warning**. A second character `pull`s or carries you up; at
+   **with no warning**. A second character `pull`s you up on your line
+   (carrying a person is slated: `carrying-a-person-slate.md`); at
    the surface you come round, coughing; later you feel the water in your
    lungs.
 5. Black out alone and stay down: the dying clock runs (longer in the
@@ -337,8 +338,8 @@ stages.
     cannot speak, thrash, and in about a minute go under. A second
     character throws them a line from the quay; they grab it and are
     pulled to the steps. A trained swimmer floats on their back and rests.
-8b. Climb out: the quay wall refuses; the steps work. Carry an unconscious
-    character up the steps.
+8b. Climb out: the quay wall refuses; the steps work. An unconscious
+    character on a line is pulled up the steps (carrying one is slated).
 8c. Jump into the winter mere's hole: the cold takes your breath — the
     gasp costs breath before you have held it.
 8d. Drop a sword from the quay: it lies on the bed (seen there by a diver);
