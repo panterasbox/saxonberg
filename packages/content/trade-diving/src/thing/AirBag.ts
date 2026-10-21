@@ -13,6 +13,7 @@
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import { BuoyMixin } from '@saxonberg/server/mud/lib/location/Buoy';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -30,7 +31,7 @@ const WATER_KG_PER_L = 1;
  */
 const AIR_SCALE = 200;
 
-export default class AirBag extends BulkableMixin(Good) {
+export default class AirBag extends BuoyMixin(BulkableMixin(Good)) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['trade/diving/cmd/diving/lash.yaml'],
@@ -41,6 +42,11 @@ export default class AirBag extends BulkableMixin(Good) {
   private _lashedTo: Stuff | null = null;
 
   /** The load this bag is lashed to, while they are together. */
+  /** ⭐ A bag holds up what it is lashed to, while its air lifts it. */
+  public override buoys(thing: Stuff): boolean {
+    return this.getLashedTo() === thing;
+  }
+
   public getLashedTo(): Stuff | null {
     const load = this._lashedTo;
     if (load === null || load.isDestroyed() || !MixinApi.isContainable(load)) return null;

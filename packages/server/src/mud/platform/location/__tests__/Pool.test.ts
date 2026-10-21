@@ -18,7 +18,12 @@ import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { TemplatePaths } from '../../../lib/paths';
 import { Mixins } from '../../../lib/mixin';
-import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
+import GoodClass from '../../thing/Good';
+import { BuoyMixin } from '../../../lib/location/Buoy';
+import Material from '../../idea/material/Material';
+import { Quantity } from '../../../lib/quantity';
+import { ContainmentApi } from '../../../api/containment';
 
 const SOURCE = '/test/water/source';
 
@@ -66,5 +71,32 @@ describe('a Pool is the water', () => {
     const room = pool();
     await room.settleWater('pool');
     expect(room.canEngageAxis('west')).toBe(false);
+  });
+
+  it('⭐ a dense thing sinks — unless something in the same water buoys it (drive run 34)', () => {
+    const room = pool();
+    const iron = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('pool-test-iron');
+      m.setDensity(Quantity.of(7870, 'kg/m³'));
+      return m;
+    }, '/stuff/idea/material/_test/pool-test-iron') as unknown as Material;
+    const anchor = makeStuff(() => {
+      const g = new GoodClass();
+      g.setMass(Quantity.of(300, 'kg'));
+      g.setMaterial(iron);
+      return g;
+    });
+    ContainmentApi.move(anchor as never, room as never);
+    expect(room.sinks(anchor as unknown as Stuff)).toBe(true);
+    class Bag extends BuoyMixin(GoodClass) {
+      public held: Stuff | null = null;
+      public override buoys(thing: Stuff): boolean { return thing === this.held; }
+    }
+    const bag = makeStuff(() => new Bag());
+    ContainmentApi.move(bag as never, room as never);
+    expect(room.sinks(anchor as unknown as Stuff)).toBe(true);
+    bag.held = anchor as unknown as Stuff;
+    expect(room.sinks(anchor as unknown as Stuff)).toBe(false);
   });
 });

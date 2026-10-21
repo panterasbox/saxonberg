@@ -810,6 +810,14 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       if (thing.isAgent?.() || MixinApi.isMobile(thing)) return false;
       if (!MixinApi.isTangible(thing)) return false;
       if (MixinApi.isContainable(thing) && thing.isFixedInPlace?.()) return false;
+      // ⭐ Held up by something in the same water (an air bag lashed to
+      // it — the run-34 drive: the anchor came up and went straight back
+      // down). The buoy says so; the place cannot know a pack's thing.
+      const here = MixinApi.isContainable(thing) ? thing.getContainer() : null;
+      if (here !== null && MixinApi.isContainer(here) &&
+          here.getContents().some((c) => (c as Stuff) !== thing && MixinApi.isBuoy(c) && c.buoys(thing))) {
+        return false;
+      }
       const rho = thing.getMaterial()?.getDensity().rawValue() ?? 0;
       // Buoyancy is a READ (the underwater slate § 3): the medium's own density.
       let medium = WATER_DENSITY;

@@ -649,6 +649,9 @@ export const Mixins = {
   // ⭐ *A thing thrown TO someone, to be caught* — a protocol mixin; the
   // host answers `throw … to`.
   Tossable: 'TossableMixin',
+  // ⭐ *A thing in the water holding ANOTHER up* — a protocol mixin the
+  // sinking rule asks (an air bag lashed to an anchor).
+  Buoy: 'BuoyMixin',
   Hauler: 'HaulerMixin',
   // Employment — the org chart (positions + holders + the appointing
   // authority), the Business that trades on top of it, and an actor's
@@ -990,6 +993,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HaulableMixin: "{} isn't something you can hitch",
   PullableMixin: "{} isn't on a line you can pull",
   TossableMixin: "{} isn't something anybody catches",
+  BuoyMixin: "{} doesn't hold anything up in the water",
   HaulerMixin: "{} can't pull a cart",
 
   // Storefronts.

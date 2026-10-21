@@ -167,6 +167,7 @@ import type { WaterPlace } from '../lib/location/WaterPlace';
 import type { WaterColumn } from '../lib/location/WaterColumn';
 import type { Pullable } from '../lib/spatial/Pullable';
 import type { Tossable } from '../lib/spatial/Tossable';
+import type { Buoy } from '../lib/location/Buoy';
 import type { WaterSource } from '../lib/location/WaterSource';
 import type { Improvable } from '../lib/ground/Improvable';
 import type { Posed } from '../lib/character/Posed';
@@ -1818,6 +1819,10 @@ export class MixinApi {
 
   public static isTossable(obj: Stuff): obj is Stuff & Tossable {
     return this.hasMixin(obj, Mixins.Tossable);
+  }
+
+  public static isBuoy(obj: Stuff): obj is Stuff & Buoy {
+    return this.hasMixin(obj, Mixins.Buoy);
   }
 
   /** Can this Idea read a named water for a place? */

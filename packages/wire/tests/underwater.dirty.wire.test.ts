@@ -100,7 +100,17 @@ async function stroke(s: Session, verb: 'descend' | 'ascend'): Promise<Awaited<R
 /** From the quay into the water, then down the column until it is no deeper; the looks on the way. */
 async function toTheBed(s: Session): Promise<string[]> {
   // The way in from beside a water is `swim`; `descend` is the column's.
-  const into = await s.cmd('swim');
+  // ⭐ A body worn down by the dives before (a blackout, a haul out of a
+  // cold river) cannot swim with a load a fresh one carries — the
+  // exertion model, not a defect (found by run 33: a fresh diver with
+  // the same gear swims). Rest on the quay, lying down, until it can.
+  let into = await s.cmd('swim');
+  for (let i = 0; i < 6 && into.status !== 'ok' && /carrying too much/i.test(squash(await into.said())); i++) {
+    await s.cmd('lie');
+    await s.listen(30_000);
+    await s.cmd('stand');
+    into = await s.cmd('swim');
+  }
   expect(into.status, squash(await into.said())).toBe('ok');
   const looks: string[] = [await look(s)];
   for (let i = 0; i < 8; i++) {
