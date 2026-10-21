@@ -223,6 +223,6 @@ multiplayer crux.**
   ([eternal-university-narrative-slate.md](./eternal-university-narrative-slate.md)
   §14 evidence triangle, §8/§11 the unreachable handler) and the census form as
   the records-track **literacy primer**
-  ([census-form.md](../../staging/eternal-university/experiences/census-form.md)).
+  ([census-form.md](./eternal-university-drafts-slate.md#45-the-census-form--the-thematic-centerpiece)).
 - Boundary: [forums.md](../../subsystems/forums.md) (deliberation ≠ investigation
   — the civic aftermath only).

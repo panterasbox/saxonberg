@@ -74,10 +74,10 @@ Doctrine this build is bound by: [measurement.md](../../measurement.md)
 reports*) · [balance-slate](./balance-slate.md) (*the denominator is
 where the design is*).
 
-Localities: [hearts-delight](../../staging/hearts-delight.md) ·
-[rejection](../../staging/rejection.md) ·
-[newbie-wilds](../../staging/newbie-wilds/README.md) ·
-[terminus-city](../../staging/terminus-city.md).
+Localities: [hearts-delight](../tails/staging-leftovers-slate.md#3-town-patterns) ·
+[rejection](../tails/staging-leftovers-slate.md#3-town-patterns) ·
+[newbie-wilds](./newbie-wilds-slate.md) ·
+[terminus-city](./eternal-university-drafts-slate.md#2-terminus-the-city).
 
 ---
 
@@ -160,7 +160,7 @@ corridor destination; that was wrong.
 > Shipped → [logistics.md § The corridors](../../subsystems/logistics.md) (*length is an event budget, not a distance*; three lanes; one corridor covered and one not — § Addresses, and the jurisdictional gap).
 
 ⚠ **One inconsistency to resolve before it hardens.**
-[hearts-delight](../../staging/hearts-delight.md) says *"the ore town's
+[hearts-delight](../tails/staging-leftovers-slate.md#3-town-patterns) says *"the ore town's
 fouling arrives here first"*, but the hydrology has Rejection on the
 **Kestrel** and the valley on the **Delight** — two tributaries that
 only meet at Terminus. Rejection's tailings never touch the valley. This

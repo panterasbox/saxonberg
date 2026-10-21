@@ -101,7 +101,7 @@ down; everything below and in the
 
 > **Terminus generates its power from HYDRO, because it sits on the rivers.**
 
-The geography already carries it — [terminus-city](../../staging/terminus-city.md)
+The geography already carries it — [terminus-city](./eternal-university-drafts-slate.md#2-terminus-the-city)
 puts two rivers meeting at the **Confluence** at the north head, the combined
 river running south between the banks, with **Wharfside** as the riverfront.
 Generation is a site fact, not a policy choice: the city is where it is
@@ -176,9 +176,9 @@ Everything past the middle tier is polity + economy design:
 
 - [subsystems/electricity.md](../../subsystems/electricity.md) —
   the local-physics core this extends
-- [staging/terminus-city.md](../../staging/terminus-city.md) — the
+- [eternal-university-drafts § Terminus](./eternal-university-drafts-slate.md#2-terminus-the-city) — the
   municipality this belongs to
-- [staging/wishbook.md](../../staging/wishbook.md) — vignette 2 +
+- [staging-leftovers § the wishbook](../tails/staging-leftovers-slate.md#42-the-ten-vignettes) — vignette 2 +
   the trades daily loop
 - [requirements/demo-content-requirements.md](../../requirements/demo-content-requirements.md)
   — the lamppost decision that spawned this (unit 8)

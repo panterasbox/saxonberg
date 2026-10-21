@@ -7,7 +7,7 @@
 > worked epoch ladder*; the [navigable-water slate](./navigable-water-slate.md) §
 > *Irrigation — what the WATER side owes it*. Staged already at Heart's Delight:
 > *"Thinning & the water — the anxious season. Irrigation begins; the head gate matters;
-> a dry year is decided now"* ([hearts-delight.md](../../staging/hearts-delight.md)).
+> a dry year is decided now"* ([hearts-delight.md](../tails/staging-leftovers-slate.md#35-the-seasonal-economy)).
 > What ships: soil's moisture reserve (*"only RAIN waters the ground"*,
 > [soil.md](../../subsystems/soil.md)), the `Conduit` ladder, water rights with priority
 > dates, `StorageNode`, `passFraction` ([watershed.md](../../subsystems/watershed.md)).

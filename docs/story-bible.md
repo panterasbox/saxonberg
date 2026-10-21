@@ -1204,7 +1204,7 @@ unspent.*
 ## The present — gazetteer & dramatis personae (the late-Mission interim) *[index]*
 
 The concrete layer of the present — a **hub, not a re-description.** Most of
-it already lives in the slates and the staging tree; here it's organized,
+it already lives in the slates; here it's organized,
 connected, and stamped with the historical strata beneath it. Per the
 NPC-cost rule, **existing figures are indexed; missing ones are flagged *to
 be carved*, never rattled off.** The present sits at **≈ year 5–10** — the
@@ -1230,7 +1230,7 @@ brief caretaker interim, the world modern and the founding imminent.
 
 - **Dave's Bar:** **Dave** (owner, blank-slate master mixologist), **Mara** (day; reserved, runs inventory), **Remy** (swing; gossip), **Sloane** (night; secrets-keeper), **Augie** (weekend; storyteller). *[daves-bar-slate]*
 - **Campus:** **Katie** (Duncan Hall property manager — a troll), **Dr. Limen** (the Orientation guide — a preserved brain wired into the campus), **Dr. Vance** (medical examiner — a ghoul). *[onboarding-slate; staging/eternal-university]*
-- **The "Honest Count" arc** carries its own murder-mystery cast (victim, killer, witnesses). *[eternal-university-narrative-slate; staging]*
+- **The "Honest Count" arc** carries its own murder-mystery cast (victim, killer, witnesses). *[eternal-university-narrative-slate; eternal-university-drafts-slate]*
 
 ### Factions & institutions
 
