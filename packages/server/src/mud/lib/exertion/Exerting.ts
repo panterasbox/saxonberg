@@ -385,6 +385,8 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The last bands noted — runtime only, so the first note is silent. */
     private _notedBreath: BreathBand | null = null;
+    /** The deepest breath band since you last had it back (runtime; a cue debounce). */
+    private _deepestBreath = -1;
     private _notedBodyState: string | null = null;
 
     public breathBand(): BreathBand {
@@ -432,12 +434,21 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
         // Going DOWN names the band you have reached; coming back up says
         // so once, when you are no longer short of breath. Spent → winded
         // is still short of breath and says nothing.
+        // ⭐ …and only DEEPER than you have been since you last got it
+        // back (found by the underwater browser walk: a swimmer treading
+        // at the edge of spent heard "You're spent." on every beat, as the
+        // beat's own rest lifted them to winded and the next stroke put
+        // them back).
         const line =
           now > was
-            ? (BREATH_CUE[breath] ?? null)
+            ? now > this._deepestBreath
+              ? (BREATH_CUE[breath] ?? null)
+              : null
             : was >= winded && now < winded
               ? BREATH_BACK
               : null;
+        if (now > this._deepestBreath) this._deepestBreath = now;
+        if (now < winded) this._deepestBreath = now;
         if (line) {
           try {
             MessageApi.scene(self)
