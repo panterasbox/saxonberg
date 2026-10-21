@@ -39,6 +39,13 @@ beforeEach(() => {
     // A guard cast in the yard, standing for an institution.
     { path: `${T}/guard`, class: '/platform/agent/Extra', data: { institution: `${T}/idea/watch` } },
     { path: `${T}/gate`, class: '/platform/location/Locale', data: { cast: [`${T}/guard`] } },
+    // A round: no premises of its own, its hand cast in somebody's shop.
+    { path: `${T}/hawker`, class: '/platform/agent/Cast', data: {} },
+    { path: `${T}/market`, class: '/platform/location/Locale', data: { cast: [`${T}/hawker`] } },
+    { path: `${T}/idea/round`, class: '/platform/idea/Business', data: {
+      operatingLocations: [],
+      rosterSlots: [{ positionKey: 'hawker', assignee: `${T}/hawker`, station: `${T}/yard` }],
+    } },
   ]);
   const real = PersistenceManager.get() as unknown as {
     save(c: string, d: Record<string, unknown>): Promise<string>;
@@ -62,6 +69,12 @@ afterEach(() => vi.restoreAllMocks());
 describe('the location graph attaches what belongs with a place', () => {
   it('⭐ a house is attached to the ROOM its counter stands in — the house named the counter, nobody named the house', async () => {
     expect(await NavigationApi.attachedTo(`${T}/shop`, 'house')).toEqual([`${T}/idea/house`]);
+    expect(await NavigationApi.attachedTo(`${T}/yard`, 'house')).toEqual([`${T}/idea/farm`]);
+  });
+
+  it('⭐ a ROUND with no premises is attached where its roster\'s hand is cast', async () => {
+    expect(await NavigationApi.attachedTo(`${T}/market`, 'house')).toEqual([`${T}/idea/round`]);
+    // Its stations are other houses' ground: it is not attached there.
     expect(await NavigationApi.attachedTo(`${T}/yard`, 'house')).toEqual([`${T}/idea/farm`]);
   });
 

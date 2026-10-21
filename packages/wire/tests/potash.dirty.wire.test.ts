@@ -211,6 +211,31 @@ async function inside(s: Session, vessel: string, name: RegExp): Promise<number>
   return (rows[0]?.contents ?? []).filter((c) => name.test(String(c.displayName ?? ''))).length;
 }
 
+/**
+ * What a vessel in this room holds — ids, names AND masses. ⚠ The detail
+ * row's `contents` carries no mass, and `<vessel>:i` lists nothing for a
+ * hopper, a pot or a kiln; each held thing is read by `#id` instead.
+ */
+async function heldIn(s: Session, vessel: RegExp, name: RegExp): Promise<{ id: string; name: string; kg: number }[][]> {
+  const rows = (await s.query('here:i', { fields: 'detail' }).catch(() => [])) as unknown as {
+    displayName?: string;
+    contents?: { stuffId?: string; displayName?: string }[];
+  }[];
+  const out: { id: string; name: string; kg: number }[][] = [];
+  for (const r of rows.filter((x) => vessel.test(String(x.displayName ?? '')))) {
+    const held: { id: string; name: string; kg: number }[] = [];
+    for (const c of r.contents ?? []) {
+      if (!c.stuffId || !name.test(String(c.displayName ?? ''))) continue;
+      const one = (await s.query(`#${c.stuffId}`, { fields: ['displayName', 'mass'] }).catch(() => [])) as unknown as {
+        mass?: { value: number };
+      }[];
+      held.push({ id: c.stuffId, name: String(c.displayName), kg: one[0]?.mass?.value ?? 0 });
+    }
+    out.push(held);
+  }
+  return out;
+}
+
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, n = 1): Promise<void> {
   const f = await Session.open('founder', { startLocation: where, wizard: true });
@@ -222,6 +247,8 @@ async function cloneHere(where: string, path: string, n = 1): Promise<void> {
 }
 
 const LIT = new Set<string>();
+/** The two cakes of black salts, by id (drive 9 → drive 10). */
+const CAKES: string[] = [];
 
 /** The same person, standing somewhere else (inventory travels), with a light. */
 async function goTo(handle: string, where: string): Promise<Session> {
@@ -608,7 +635,7 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
     s.close();
     let hours = 0;
     const setAt: Record<number, number> = {};
-    let last: { name: string; holds: string[] }[] = [];
+    let last: { name: string; holds: string[]; liquor: string }[] = [];
     while (hours < 30 && Object.keys(setAt).length < 2) {
       await waitAway(ashMaker, 1, {
         where: LEAN_TO,
@@ -619,7 +646,9 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
           // eslint-disable-next-line no-console -- the drive's own record
           console.log(`  [drive] boil h${hours + 1}: ${JSON.stringify(last)} | hearth: ${hearth} | me: ${me}`);
           last.forEach((p, i) => {
-            if (setAt[i] === undefined && p.holds.some((h) => /black salts/i.test(h))) setAt[i] = hours + 1;
+            // ⚠ By the liquor's own line: in the dark the cake reads as
+            // "something", and the night would push the hour to dawn.
+            if (setAt[i] === undefined && /has set/i.test(p.liquor)) setAt[i] = hours + 1;
           });
         },
       }, 1);
@@ -627,15 +656,18 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
     }
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] the pots after ${hours} h: ${JSON.stringify(last)} — set at ${JSON.stringify(setAt)}`);
-    const cakes = last.map((p) => p.holds.find((h) => /black salts/i.test(h)) ?? '');
-    expect(cakes.filter(Boolean).length, 'a cake in each pot').toBe(2);
-    const mass = (h: string): number => Number(h.split('@')[1]);
-    const [strong, weak] = [mass(cakes[0]!), mass(cakes[1]!)];
+    expect(Object.keys(setAt).length, 'both pots set').toBe(2);
+    // ⭐ Each pot's cake by its own id (the first pot took the strong lye),
+    // read by day.
+    await toDaylight();
+    s = await goTo(ashMaker, LEAN_TO);
+    const held = await heldIn(s, /iron pot/i, /black salts/i);
+    expect(held.map((h) => h.length), 'a cake in each pot').toEqual([1, 1]);
+    CAKES.splice(0, CAKES.length, ...held.flat().map((c) => c.id));
+    const [strong, weak] = [held[0]?.[0]?.kg ?? 0, held[1]?.[0]?.kg ?? 0];
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ AC 5: one fire of four lengths made ${strong.toFixed(3)} kg (strong) and ${weak.toFixed(3)} kg (weak) of black salts — the weak lye's potash cost ${(strong / Math.max(weak, 1e-9)).toFixed(1)}× the wood per kilo`);
     expect(strong).toBeGreaterThan(weak);
-    await toDaylight();
-    s = await goTo(ashMaker, LEAN_TO);
     const look = await examine(s, 'cake');
     expect(look, `the cake: ${look}`).toMatch(/salts|cake/i);
     expect(look).not.toMatch(NO_NUMBER);
@@ -646,13 +678,14 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
 suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC 1, 8)', () => {
   it('⭐ drive 10 — black salts fired at a red heat whiten to pearl ash', async () => {
     let s = await goTo(ashMaker, LEAN_TO);
-    await say(s, 'get cake from first pot');
-    await say(s, 'get cake from second pot');
+    // ⚠ `get` has no `from`: its whole tail is ONE target, so `get cake
+    // from second pot` binds the POT (and scalds you). Name each cake.
+    expect(CAKES.length, 'drive 9 left two cakes').toBe(2);
+    for (const id of CAKES) await say(s, `get #${id}`);
     for (let i = 0; i < 4; i++) await say(s, 'get cordwood');
     s.close();
     s = await goTo(ashMaker, ASHERY);
-    await say(s, 'put cake in kiln');
-    await say(s, 'put cake in kiln');
+    for (const id of CAKES) await say(s, `put #${id} in kiln`);
     for (let i = 0; i < 4; i++) await say(s, 'stoke cordwood into kiln');
     await say(s, 'ignite kiln');
     s.close();
@@ -664,12 +697,11 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     await waitAway(ashMaker, 6, { where: ASHERY, read: (v) => examine(v, 'kiln') });
     await toDaylight();
     s = await goTo(ashMaker, ASHERY);
-    const pearl = await named(s, 'kiln:i', /pearl ash/i);
+    const pearl = (await heldIn(s, /kiln/i, /pearl ash/i)).flat();
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] ⭐ the kiln: ${JSON.stringify(pearl.map((p) => [p.displayName, p.mass?.value]))}`);
+    console.log(`  [drive] ⭐ the kiln: ${JSON.stringify(pearl.map((p) => [p.name, p.kg]))}`);
     expect(pearl.length, `pearl ash in the kiln: ${fired}`).toBeGreaterThanOrEqual(1);
-    await say(s, 'get "pearl ash" from kiln');
-    await say(s, 'get "pearl ash" from kiln').catch(() => '');
+    for (const p of pearl) await say(s, `get #${p.id}`);
     const words = await examine(s, 'me:i');
     expect(words).toMatch(/pearl ash/i);
     s.close();
@@ -729,13 +761,23 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     await say(s, 'put lime in kettle');
     await say(s, 'get pail').catch(() => '');
     await say(s, 'fill pail from butt');
-    const slaked = await say(s, 'pour pail into kettle');
+    // ⚠ A measure: the kettle holds 10 L and the pail more, so a whole
+    // pail leaves no room for the lye.
+    const slaked = await say(s, 'pour pail into kettle --amount 4L');
     const kettle = await examine(s, 'kettle');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ slaking: ${slaked} | the kettle: ${kettle.slice(0, 300)}`);
     expect(`${slaked} ${kettle}`, 'the lime slaked').toMatch(/hiss|heave|milk of lime/i);
     await say(s, 'buy "lye flask"');
-    await say(s, 'pour "lye flask" into kettle');
+    // ⚠ The flask you just bought, by id: an emptied one from drive 8 is
+    // in your pack too, and the drive's prompt-answerer takes the first.
+    const flasks = (await s.query('me:i:flask', { fields: ['displayName', 'bulkAmount'] })) as unknown as {
+      stuffId: string;
+      bulkAmount?: { value: number };
+    }[];
+    const full = flasks.find((f) => (f.bulkAmount?.value ?? 0) > 0);
+    expect(full, `a full flask of lye: ${JSON.stringify(flasks)}`).toBeTruthy();
+    await say(s, `pour #${full!.stuffId} into kettle`);
     const caustic = await examine(s, 'kettle');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ causticized: ${caustic.slice(0, 300)}`);
@@ -775,18 +817,41 @@ suite('⭐ drive 13–16 — town ash sold, the ash-man\'s round, a wash with po
   }, 300_000);
 
   it('⭐ drive 14 — the ash-man works his round: he buys hearth ash and sells it at the chandlery; a day\'s take', async () => {
+    // ⭐ Arriving where he lives stands his round up (he names no premises
+    // of his own; found by the drive — before that it never ticked).
     const watcher = await newPlayer('watcher', CHANDLERY);
-    const before = await named(watcher, 'counter:i', /wood ash/i);
     const handle = watcher.handle;
     watcher.close();
-    await waitAway(handle, 24, undefined, 4);
-    await toDaylight();
-    const w = await goTo(handle, CHANDLERY);
-    const after = await named(w, 'counter:i', /wood ash/i);
-    const ashman = await examine(w, 'ashman').catch(() => '');
-    // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] ⭐ the round: ${before.length} → ${after.length} heap(s) on the counter; the ash-man: ${ashman.slice(0, 160)}`);
+    const ASHMAN = '/world/terminus/wharfside/chandlery/agent/ash-man';
+    const { after } = await advanceWorldClock('0 seconds');
+    const tod = ((after % 86_400) + 86_400) % 86_400;
+    await advance(`${Math.ceil(((6 * 3600 + 55 * 60 - tod + 86_400) % 86_400) / 60)} minutes`);
+    // His first stop, the general store, 7 to 9.
+    let w = await goTo(handle, STORE);
+    await advance('15 minutes');
+    await w.listen(10_000).catch(() => '');
+    const atStore = await count(w, 'here:i', /ash-man/i);
     w.close();
+    expect(atStore, 'the ash-man at his first stop (the general store, 7–9)').toBe(1);
+    // The rest of his stops, to the dyehouse (13–15); then what he carries
+    // to the counter is the day's take.
+    await waitAway(handle, 7, undefined, 1);
+    w = await goTo(handle, CHANDLERY);
+    const carried = (await w.query(`${ASHMAN}:i`, { fields: ['displayName', 'mass'] }).catch(() => [])) as unknown as {
+      displayName?: string;
+      mass?: { value: number };
+    }[];
+    const heaps = carried.filter((c) => /wood ash/i.test(String(c.displayName ?? '')));
+    const kg = heaps.reduce((a, h) => a + (h.mass?.value ?? 0), 0);
+    const counter = await examine(w, 'counter');
+    const bid = Number(/buys wood-ash at (\d+)/i.exec(counter)?.[1] ?? 0);
+    w.close();
+    // ⭐ AC 9's question, answered from what the day showed: his take at the
+    // counter's bid, beside a day of the round's own wage (1 an hour × 10).
+    const take = heaps.length * bid;
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] ⭐ the round: ${heaps.length} heap(s), ${kg.toFixed(2)} kg off five stops; at ${bid} a heap that is ${take} zorkmids against a 10-zorkmid day — ${take >= 10 ? 'a living' : 'a supplement, not a living'}`);
+    expect(bid, `the counter's bid: ${counter}`).toBeGreaterThan(0);
   }, 1_800_000);
 
   it('⭐ drive 15 — washing in hard water with potash; washing soda is on the shelf', async () => {

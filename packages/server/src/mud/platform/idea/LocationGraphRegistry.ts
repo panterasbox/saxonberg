@@ -429,6 +429,17 @@ export default class LocationGraphRegistry extends Idea {
           if (typeof op === 'string') add(placeOf(op), row.path, 'house');
         }
       }
+      // ⭐ A round that trades on other houses' premises names no operating
+      // location of its own, so nothing stood it up and its hand never left
+      // home (found by the potash drive: the ash-man's round never ticked).
+      // It is attached where its roster's ASSIGNEE is cast — a ref the
+      // content already authors, pointing at the place he lives.
+      if (Array.isArray(data.rosterSlots)) {
+        for (const slot of data.rosterSlots) {
+          const who = (slot as { assignee?: unknown } | null)?.assignee;
+          if (typeof who === 'string' && placedIn.has(who)) add(placeOf(who), row.path, 'house');
+        }
+      }
       if (typeof data.parentExtent === 'string') add(data.parentExtent, row.path, 'institution');
       if (typeof data.seatIn === 'string') add(placeOf(data.seatIn), row.path, 'fixture');
       if (typeof data.institution === 'string' && placedIn.has(row.path)) {
