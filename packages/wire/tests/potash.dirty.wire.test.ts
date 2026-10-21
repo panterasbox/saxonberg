@@ -714,8 +714,10 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     s.close();
     s = await goTo(ashMaker, CLEAN_FACE);
     await say(s, 'get spade');
-    await act(s, 'dig');
-    await act(s, 'dig');
+    // ⚠ Name the spade: the default binds the FIRST tool you carry, and
+    // this player carries an egg, a broom and an axe as well.
+    await act(s, 'dig with spade');
+    await act(s, 'dig with spade');
     await say(s, 'drop spade');
     s.close();
     s = await goTo(ashMaker, GLASSHOUSE);
@@ -741,7 +743,10 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     const glass = await act(s, 'fire kiln', 300_000);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ the glass batch: ${glass}`);
-    expect(glass, `fire the glass batch: ${glass}`).not.toMatch(/no recipe|nothing it can/i);
+    // ⚠ "Nothing in a brick kiln matches a firing" passed the old check —
+    // a batch that never fired read as one that did (drive 20).
+    expect(glass, `fire the glass batch: ${glass}`).not.toMatch(/no recipe|nothing it can|matches a firing|stone cold/i);
+    expect(glass, `fire the glass batch: ${glass}`).toMatch(/seal|settle|hold it/i);
     // ⭐ Last, so the batch above is observed whatever this says: the
     // glassblower buys the pearl ash drive 10 fired. ⚠ OPEN (drive 19): a
     // firing completes after its command, so its output is titled to
@@ -790,10 +795,10 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ causticized: ${caustic.slice(0, 300)}`);
     expect(caustic, `the kettle, causticized: ${caustic}`).toMatch(/milky settling of lime/i);
-    // The tallow, fetched only now: ⚠ holding a second vessel (the crock)
-    // makes `pour pail into kettle` fall through to the crafting `pour`
-    // ("isn't a vessel you can work in") — a pre-existing collision the
-    // drive found; drop it and the same pour works.
+    // The tallow: the knacker's crock (it was EMPTY until drive 20 found
+    // it). ⭐ Held, a crock is a build vessel and its `pour` came first —
+    // and refused the kettle; a view whose ARGUMENT is the wrong kind now
+    // hands the line to the next view, so the bulk `pour` takes it.
     s.close();
     s = await goTo(ashMaker, KNACKERS);
     await say(s, 'get crock');

@@ -1611,8 +1611,16 @@ left are rows 13–21 below; run 20 is the re-drive.
 | 19 | ⚠ PRE-EXISTING: `get` has no `from` — `get cake from second pot` binds the POT (and scalds you); `<vessel>:i` lists nothing for a pot or kiln | the drive names goods by `#id`; recorded, not changed |
 | 20 | ⚠ PRE-EXISTING: a round on other houses' premises never ran — nothing stood its Business up (no `operatingLocations`), and once up, its evicted hand was skipped | the graph attaches a round where its hand is cast and at every station; the roster pass fetches an absent hand to a stop that is standing — `5abe93888`, `bbf119ecd` |
 | 21 | ⚠ OPEN — PRE-EXISTING, cross-cutting: a kiln's output lands after its command returns, so it is titled to nobody and falls to the parcel rung (the CODE-maintenance title); `sell "pearl ash"` → "That is not yours to sell." The pot's cake is the same case (cast on a read). Ceramics' bricks share the path | put to the owner — the drive keeps the sale as its last, failing checkpoint |
+| 22 | ⚠ PRE-EXISTING: two views of one verb were tried in recency order and the FIRST bind refusal stopped the chain — holding a crock (a build vessel) put the shaker's `pour` first, so `pour crock into kettle` died on "isn't a vessel you can work in" and the bulk `pour` never ran | a FIELD validator's refusal (an argument of the wrong kind) hands the line to the next view; the first refusal stands if none claims it; actor refusals still stop — `CommandGiver._runChain`. ⚠ unit test OWED (tests paused for build-4's memory work) |
+| 23 | the knacker's yard said "what is left is in the crock" and propped an EMPTY one (cooking's crock is empty by design) | the yard props its own crock holding 0.8 L of tallow |
+| 24 | ⚠ PRE-EXISTING: `dig`'s default binds the FIRST tool you carry (the drive's egg), and the refusal called any wrong tool "a pick" | the refusal names the tool in hand; the drive says `dig with spade`. ⚠ OPEN: whether the default should prefer the ground's wanted capability |
+| 25 | the kettle read straight after causticizing showed no liquor line (even 1.5 s on); a later read shows caustic lye | ⚠ OPEN — probe once tests resume |
+| 26 | drive 11's "lye in the lime slot" puts `"lye flask"` in the kiln before the player holds one (it put a waterskin) — and its glass check passed on "Nothing … matches a firing" | the glass check now needs the kiln sealed; ⚠ the lye-slot leg OPEN (needs a flask bought first) |
 
-**Still to observe (run 20):** 11's glass batch (it wants 1400 K against a
+**Run 20 was stopped at step 13** (the owner paused test runs for build-4's
+memory investigation); it reproduced 1–10 and found rows 22–26.
+
+**Still to observe (run 21):** 11's glass batch (it wants 1400 K against a
 1200 K kiln; the bellows may be needed) and lye refused in the lime slot; 12's
 causticizing and hard-soap paste; 14's round on the new fetch (AC 9's
 living-or-supplement answer). 11's pearl-ash sale stays red until row 21 is
