@@ -143,8 +143,15 @@ export const RESPIRATION_DEFAULTS = {
   ANOXIA_LETHAL_SEC: 30,
   /** Far-past guard (reuse metabolism's 4h) — a gap this long = absence. */
   MAX_REASONABLE_GAP_SEC: 4 * 3600,
-  /** W2: litres of air a worn tank yields per game-second under supply. */
-  TANK_TAP_PER_SEC: 0.5,
+  /**
+   * W2: units of air a worn tank yields per REAL second at the surface
+   * under supply — faster with depth (Boyle: each breath at depth is
+   * denser air). ⭐ Real seconds like every respiration interval (found by
+   * the underwater browser walk): at 0.5 the generic six-unit tank, tuned
+   * when this ran on the 12× game clock, lasted twelve seconds. Now about
+   * three minutes at the surface, a little over two at the cistern's bed.
+   */
+  TANK_TAP_PER_SEC: 1 / 30,
   /** Cause-of-death string by cause (the death seam's `causeOfDeath`). */
   DEATH_CAUSE_BY_CAUSE: {
     medium: 'asphyxiation',
@@ -926,7 +933,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (drain.cause === 'supply') {
         const tank = this.findWornAirSupply();
         if (tank && tank.available() > 0) {
-          const tap = RESPIRATION_DEFAULTS.TANK_TAP_PER_SEC * elapsed;
+          const atm = 1 + Math.max(0, BiomeApi.mediumFor(this as unknown as Stuff).depthM) / 10;
+          const tap = RESPIRATION_DEFAULTS.TANK_TAP_PER_SEC * atm * elapsed;
           tank.debit(Math.min(tank.available(), tap));
           void this.reassess();
           return;

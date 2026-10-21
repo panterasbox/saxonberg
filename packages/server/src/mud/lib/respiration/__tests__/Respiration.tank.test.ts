@@ -129,7 +129,8 @@ describe('RespirationMixin — carried-air supply (scuba)', () => {
 
   it('a worn tank pins spo2 underwater and depletes; emptying triggers the crisis', async () => {
     const diver = makeDiver();
-    const tank = makeTank(20, 20);
+    // One unit: about thirty real seconds at the tap (TANK_TAP_PER_SEC).
+    const tank = makeTank(1, 1);
     wearAndPlace(diver, tank, room('water'));
 
     // Sanity: the driver sees the worn air supply and runs the tap.
@@ -140,7 +141,7 @@ describe('RespirationMixin — carried-air supply (scuba)', () => {
     tick(13);
     expect(spo2(diver)).toBe(98);
     const left = tank.getBulk('interior').getAmount().rawValue();
-    expect(left).toBeLessThan(20);
+    expect(left).toBeLessThan(1);
     expect(left).toBeGreaterThan(0);
 
     // Drain the tank dry → the supply-exhausted crisis: spo2 falls.
