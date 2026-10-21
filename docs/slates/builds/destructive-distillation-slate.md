@@ -30,6 +30,10 @@
 > it is knowledge-by-TRADITION. See § *The on-ramp blocks the plastic
 > and nothing else* — resolved 2026-10-06.
 > **Size:** a build — Stage B (the thermoset), gated.
+> ⭐ **2026-10-20 — Stage B moved to the [plastics slate](./plastics-slate.md), ungated**:
+> rubber shipped with no knowledge gate (*"the industrial break encoded in physics
+> instead of a lock"* — [inquiry-slate](./inquiry-slate.md)), and Bakelite's cure is
+> the same kind of narrow window reached by measuring.
 
 Opened 2026-09-25, out of *"after rubber is exhausted we can talk
 drilling, oil, and plastics."* Running that question turned up a
