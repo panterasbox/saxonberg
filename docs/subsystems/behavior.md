@@ -611,6 +611,25 @@ for them — night trade against night wages — so the 24-hour city is
 something you build, not a default, and *"the one place open all night"*
 is literally a rostering choice, never a carve-out.
 
+⭐⭐ **Forced, or the hand's own act — two different things (sugar
+build, 2026-10-20).** `forceCommand` stamps the frame forced, and a forced
+frame is **unattributable by design**: `ExecutionContextApi.getActingAuthor`
+returns null, so a driven act never lands on a player's name. That is
+right for something done TO a body, and wrong for a hand's own WORK: every
+maker verb (`mill`, `cut`, `cook`, `order`…) resolves its maker from the
+acting author, and a forced one found nobody — the island's miller declined
+`no-maker` at every bundle, and the shipped `cellars` brain's `order` had
+declined the same way since it shipped. **A brain doing its own work uses
+`executeCommand`** (`prints`, `cellars`' crush, and the sugar brains);
+`forceCommand` stays for acts that are not the body's to own. Neither
+skips a gate.
+
+⚠ **A clock jump runs no brain.** Beats are real-time; a `WorldClockApi`
+advance moves every clock-reconciled stock (a boil, a cure, growth) but
+fires no cadence, so a wire drive or probe that jumps twelve hours sees an
+NPC chain do nothing at all. Watch working hours in real time (the sugar
+drive's `buyEstateBlocks`) and jump only the nights.
+
 ⭐ **`consigns` and `restocks` are the first brains that dispatch
 commands.** Neither calls an Api that moves money: every act is a literal
 verb through `CommandApi.forceCommand(host, text)`, so "no verb only an
