@@ -68,10 +68,26 @@ export async function setup(): Promise<void> {
     const kept = keptWorld();
     // ⚠ A kept world mid-clock-jump answers slowly: one failed probe is not
     // a dead world, and forgetting a live one strands it (a probe run did).
+    // ⭐ And a kept world whose PROCESS is alive is still booting (a drive
+    // that restarts its world — ceramics D's 35 — hands the next run a
+    // server minutes from answering): wait the boot budget for it, never
+    // forget it on a thirty-second probe (run 19 stranded A, B and C so).
+    const running = (pid: number): boolean => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const budget = Number(process.env.WIRE_BOOT_TIMEOUT ?? 420_000);
+    const deadline = Date.now() + budget;
     let alive = false;
-    for (let i = 0; kept && !alive && i < 10; i++) {
+    for (let i = 0; kept && !alive; i++) {
       alive = await probe(kept.url);
-      if (!alive) await new Promise((r) => setTimeout(r, 3_000));
+      if (alive) break;
+      if (i >= 10 && (!running(kept.pid) || Date.now() > deadline)) break;
+      await new Promise((r) => setTimeout(r, 3_000));
     }
     if (kept && alive) {
       process.env[TEST_WORLD_FLAG] = '1';
