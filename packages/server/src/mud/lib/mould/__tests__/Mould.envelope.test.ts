@@ -281,6 +281,20 @@ describe('the mould as an envelope (ceramics W7)', () => {
     expect(cast.getCredential('key')?.authorize('kw-123', 'pin-tumbler')).toBe(true);
   });
 
+  it('⭐ a key cast with NO riser (porous where it froze last) still carries its wards', async () => {
+    const k = makeStuff(() => new Key());
+    stampTemplatePathForTest(k, KEY);
+    k.ensureCredential('key').addKey('kw-456', 'pin-tumbler');
+    (k as unknown as { setMaterial(m: Material): void }).setMaterial(mat(STEEL));
+    (k as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(0.02, 'kg'));
+    const wax = sandFlask();
+    ContainmentApi.move(wax, room());
+    expect((await wax.takeImpression(k, wax)).ok).toBe(true);
+    pour(wax, BRONZE, 0.05, 1350);
+    const cast = (await set(wax, BRONZE, 0.05)) as unknown as Key;
+    expect(cast.getCredential('key')?.authorize('kw-456', 'pin-tumbler')).toBe(true);
+  });
+
   it('⚠⚠ a face casts a LIKENESS and nothing anywhere is told who it is', async () => {
     const face = makeStuff(() => new TestFace());
     (face as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(70, 'kg'));

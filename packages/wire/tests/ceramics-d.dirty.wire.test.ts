@@ -608,6 +608,17 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
     await clearFloor();
     // Refused before: nobody holds a key that fits… (the player holds only the cast)
     const unlocked = await run(caster, 'unlock door');
+    if (refusedFor(unlocked.r) !== null) {
+      // The record, when the key does not turn: what the hands hold, with
+      // its wards, and what the door's lock wants (run 22: a SOUND cast,
+      // superheat 218.8 K over a need of 119.5, still "no key that fits").
+      const held = await caster.cmd(
+        `eval --parcel ${R} return JSON.stringify(self.getContents().filter(o => o.getCredential).map(o => [o.getPresentation(), o.getTemplatePath(), JSON.stringify(o.getCredential('key'))]))`,
+      );
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive D] (the keys in hand → ${squash(plain(await held.said())).slice(0, 800)})`);
+      await founderEvalOn(FOUNDRY, 'door', `JSON.stringify({ keyway: this.keyway, technology: this.technology, locked: this.isLocked() })`);
+    }
     expect(refusedFor(unlocked.r), `unlock with the cast key: ${unlocked.said}`).toBeNull();
     expect(unlocked.said, `unlock: ${unlocked.said}`).toMatch(/unlock/i);
     await say(caster, 'open door');
