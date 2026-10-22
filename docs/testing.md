@@ -919,6 +919,16 @@ stale wire server. It gets no database of its own (one database per
 worktree stands), so locally it REPLACES a dev server rather than
 joining one.
 
+⭐ **Keep the world between runs** (ceramics, 2026-10-21). The drive loop
+is boot-bound — about six minutes a world — and most iterations change
+only a drive file. `WIRE_BOOT=1 WIRE_KEEP_WORLD=1 pnpm wire <file>` boots
+the world detached and leaves it standing (`.wire/kept-world.json` holds
+its pid and port); `WIRE_REUSE=1 pnpm wire <file>` attaches to it as a
+test world, so clock jumps still work, with no boot. Reboot only when
+SOURCE or content changed — a running world holds the code it booted
+with — and drop the worktree DB first when the drive is dirty. Stop it
+with `kill <pid>`.
+
 ⚠⚠ **Each worktree owns a `WIRE_PORT`** (fishing, 2026-09-18): two
 owned boots on 2012 from sibling worktrees attach to EACH OTHER's world
 (the first probe answers from the sibling's server — no fishing pack in

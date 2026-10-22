@@ -21,7 +21,7 @@ import { rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { readRunReport } from '../harness/registry';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from './boot';
+import { bootOwnedWorld, forgetKeptWorld, keptWorld, stopOwnedWorld, WIRE_LOG, WIRE_PORT } from './boot';
 
 const REPORT = join(tmpdir(), `saxonberg-wire-run-${process.pid}.json`);
 
@@ -60,6 +60,25 @@ const TEST_WORLD_FLAG = 'WIRE_TEST_WORLD';
 export async function setup(): Promise<void> {
   process.env.WIRE_RUN_REPORT = REPORT;
   rmSync(REPORT, { force: true });
+
+  // ⭐ `WIRE_REUSE=1`: attach to the world a `WIRE_KEEP_WORLD=1` run left
+  // standing. It was booted as a test world by this harness, so the
+  // test-world capabilities (the clock jump) stand.
+  if (process.env.WIRE_REUSE === '1') {
+    const kept = keptWorld();
+    if (kept && (await probe(kept.url))) {
+      process.env[TEST_WORLD_FLAG] = '1';
+      process.env.WIRE_SERVER_URL = kept.url;
+      process.env.WIRE_SERVER_LOG = WIRE_LOG;
+      console.log(`\nwire: REUSING the kept world at ${kept.url} (pid ${kept.pid})\n`);
+      return;
+    }
+    forgetKeptWorld();
+    throw new Error(
+      '\nwire: WIRE_REUSE=1 but no kept world answers. Boot one with ' +
+        'WIRE_BOOT=1 WIRE_KEEP_WORLD=1 first.\n',
+    );
+  }
 
   if (ownsTheWorld()) {
     process.env[TEST_WORLD_FLAG] = '1';
