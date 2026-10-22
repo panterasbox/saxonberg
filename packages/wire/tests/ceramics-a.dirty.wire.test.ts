@@ -150,6 +150,12 @@ async function examine(s: Session, keyword: string): Promise<string> {
 }
 
 /** The display names of what the player holds. */
+/** The ids a query names — to take one thing by identity. */
+async function idsOf(s: Session, keyword: string): Promise<string[]> {
+  const rows = await s.query(keyword, { fields: ['displayName'] }).catch(() => []);
+  return (rows as { stuffId?: string }[]).map((r) => r.stuffId ?? '').filter((x) => x !== '');
+}
+
 async function held(s: Session): Promise<string[]> {
   const rows = await s.query('me:i', { fields: ['displayName'] }).catch(() => []);
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? ''));
@@ -342,21 +348,30 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await toHour(9, 15);
     await say(digger, 'east');
     await say(digger, 'east');
+    // ⚠ By identity: `get 1 brick` bound the moulding table — its keyword
+    // is "brick table", and a singular head noun matches the modifier (run
+    // 24; the MQL finding) — and the hack's fourteen gang bricks are not ours.
+    const before = new Set(await idsOf(digger, 'bricks'));
     await act(digger, 'shape clay into brick', '9 hours');
-    await say(digger, 'get 1 brick');
+    const fresh = (await idsOf(digger, 'bricks')).find((id) => !before.has(id));
+    expect(fresh, 'the brick just struck').toBeTruthy();
+    await say(digger, `get #${fresh}`);
     await say(digger, 'south');
-    await say(digger, 'drop 1 brick');
+    await say(digger, `drop #${fresh}`);
     let hackBrick = '';
     for (let half = 0; half < 20 && !/frost has burst|froze wet/i.test(hackBrick); half++) {
       await advance('12 hours');
-      hackBrick = await examine(digger, 'here:i:brick');
+      hackBrick = await examine(digger, `#${fresh}`);
     }
     expect(hackBrick, 'the hack brick after the winter').toMatch(/frost has burst|froze wet/i);
     expect(hackBrick).not.toMatch(/slumped/i);
     await say(digger, 'north');
     await say(digger, 'west');
     await say(digger, 'west');
-  }, 300_000);
+    // ⚠ Room for all twenty half-days. A timed-out test does not stop its
+    // loop: run 24's kept jumping the clock through 3 and 4, and the
+    // brickmaker — sodden from the pit — died of hypothermia mid-moulding.
+  }, 1_800_000);
 });
 
 suite('⭐ 3 — knead it', () => {
