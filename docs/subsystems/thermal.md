@@ -830,11 +830,17 @@ did (it calls `absorbIntoIce`), so a jug of water in a winter street
 never froze. It now runs for `Bulkable & Thermal` hosts too: the jug
 plateaus at the melting point, banks its latent heat, and empties into
 its material's cast. Safe twice over — a second pass at `T == mp` banks
-nothing, and the slot empties before the cast mints. ⚠ The engine banks
-the undershoot it FINDS at a read, not the heat extracted over the gap,
-so one long unread gap banks one cooling's worth (≈ 96 of the 334 kJ a
-litre needs); a watched jug freezes over a few reads. Pre-existing, and
-the melt shares it → thermal-slate. ⭐ The same driver sets molten metal
+nothing, and the slot empties before the cast mints. ⭐ **The freeze
+banks by TIME** (ceramics, 2026-10-22): it used to bank the undershoot it
+FOUND at a read, so one long unread gap banked one cooling's worth and a
+pool set only after several looks — a damp-blown flask of pewter sat
+liquid three game hours under one read (drive run 24). On the plateau a
+pool loses `C·(mp − amb)/τ` a second, and the reconcile drifted it as if
+nothing froze to `T = amb + (mp − amb)·e^(−t/τ)`; inverting that gives the
+heat from `T` alone, `C·(mp − amb)·ln((mp − amb)/(T − amb))` — the old
+`(mp − T)·C` for a short gap, everything once the pool has reached the air,
+and only the time after it reached `mp` for a pool that started above it.
+⚠ The MELT still banks per read → thermal-slate. ⭐ The same driver sets molten metal
 in a crucible or an ingot mould (the dairy build's moulds, which had
 narrowed an earlier freeze driver to non-`liquid` pools to spare tallow
 crocks — superseded by this one at the merge; see `mould.md`).

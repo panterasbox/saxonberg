@@ -864,9 +864,14 @@ suite('⭐⭐ 32 — crystallize', () => {
 
     // The fire works it: coal under the pan, lit, and held — a day at a
     // time until the crop is in the pan.
+    // ⚠ Two lumps a trip: a lump of coal is 6 kg, and a caster already
+    // carrying the morning's work could not lift the sixth (run 24 — and
+    // every lump stayed in their hands, so 34's `get board` would not budge).
     await mint(SALT_FLAT, '/trade/quarrying/thing/coal', 6);
-    await doing(caster, 'get coal');
-    await doing(caster, 'stoke coal into hearth');
+    for (let trip = 0; trip < 3; trip++) {
+      await doing(caster, 'get 2 coal');
+      await doing(caster, 'stoke coal into hearth');
+    }
     await doing(caster, 'ignite hearth');
     let read = first;
     for (let day = 0; day < 6 && !(read.crop > 4); day++) {

@@ -2241,6 +2241,31 @@ function purifyIfHeld(
  * solid `Thing` drops into the vessel's scope). The reverse of the melt above,
  * driven by the same heat read — so ice → water → steam falls out for free.
  */
+/**
+ * ⭐ The heat a freezing pool gave up since it last sat at `mp` — by TIME,
+ * not by how often anybody looked. On the plateau a pool loses
+ * `C·(mp − amb)/τ` a second; the reconcile has meanwhile drifted it, as if
+ * nothing were freezing, to `T = amb + (mp − amb)·e^(−t/τ)`, so the time it
+ * spent there is `τ·ln((mp − amb)/(T − amb))` and the heat is
+ * `C·(mp − amb)·ln((mp − amb)/(T − amb))`. Short gaps reduce to the old
+ * `(mp − T)·C`; a pool that drifted from above `mp` is credited only the
+ * time after it reached it. ⚠ The old figure capped one read at
+ * `(mp − amb)·C`, so a damp-blown flask left three hours and read once
+ * never set (the ceramics drive, run 24). A pool that has reached ambient
+ * has given up everything it ever will: `Infinity`, which the caller caps.
+ */
+function plateauHeatJ(mp: number, temp: number, ambientK: number, capacityJ: number): number {
+  const gap = mp - ambientK;
+  if (!(gap > 0)) return (mp - temp) * capacityJ;
+  if (temp >= mp) return 0;
+  const above = temp - ambientK;
+  // Below the air it is drifting toward: the air warmed since (a sunrise),
+  // and the drift says nothing exact — the old figure.
+  if (above < -1e-9) return (mp - temp) * capacityJ;
+  if (above <= 1e-9) return Number.POSITIVE_INFINITY;
+  return capacityJ * gap * Math.log(gap / above);
+}
+
 function reconcileBulkPhase(
   v: Stuff & Bulkable & Thermal,
   clock: PhaseClock,
@@ -2321,15 +2346,17 @@ function reconcileBulkPhase(
     const massKg = (amount / 1000) * mat.getDensity().rawValue();
     const specificHeat = mat.getSpecificHeat().rawValue();
     const capacityJ = massKg * specificHeat;
-    const undershootJ = (mp - temp) * capacityJ;
+    const undershootJ = plateauHeatJ(mp, temp, v.lastAmbientK, capacityJ);
     const payload = v.getBulkPayload(aff);
+    const need = massKg * mat.getLatentHeatOfFusion().rawValue();
     let removed = payload?.latentRemovedJ ?? 0;
     if (undershootJ > 0) {
-      removed += undershootJ;
+      // Capped at what the freeze needs: nothing banks past the whole.
+      removed = need > 0 ? Math.min(need, removed + undershootJ) : removed + undershootJ;
+      if (!Number.isFinite(removed)) removed = 0;
       v.setBulkPayload(aff, { ...(payload ?? {}), latentRemovedJ: removed });
       v.setContentsTemperature(mp); // clamp — the plateau
     }
-    const need = massKg * mat.getLatentHeatOfFusion().rawValue();
     if (!(need > 0) || removed < need) return; // still on the plateau
 
     // ⭐ The ruin edge: a material freezing ruins (blood hemolyses) mints no

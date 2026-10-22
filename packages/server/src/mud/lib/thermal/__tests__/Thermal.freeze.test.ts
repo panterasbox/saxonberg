@@ -73,6 +73,9 @@ describe('the honest freeze', () => {
   it('plateaus at the melting point while the latent heat is banked', () => {
     const water = liquid({ mp: 273, latent: 334_000 });
     const p = pan(water, 4, 272); // 1 K below mp — a small undershoot
+    // …a moment into its drift toward air at 260 K (a pool AT the air has
+    // been sitting there for ever — see the time test below).
+    p.setLastAmbientK(260);
     p.reconcilePhase();
     // Still liquid (not nearly enough latent removed), clamped to mp, and the
     // accumulator banked the undershoot.
@@ -92,6 +95,26 @@ describe('the honest freeze', () => {
     // The pool solidified — the slot is emptied synchronously (the cast is
     // cloned async; its placement is the drive's to prove).
     expect(p.getBulkAmount('interior').rawValue()).toBe(0);
+  });
+
+  it('⭐ the plateau banks by TIME: one read after a long cold sit freezes the pool (ceramics run 24)', () => {
+    // 1.2 kg of pewter: C ≈ 240 J/K, the need 72 kJ. A pool that has drifted
+    // all the way to 290 K air has sat at its plateau far longer than the
+    // freeze takes — the old per-read figure banked only (500 − 290)·240 ≈
+    // 50 kJ and left a damp-blown flask's pewter liquid for three hours.
+    const pewter = liquid({ mp: 500, latent: 60_000, density: 7300, specificHeat: 200 });
+    const p = pan(pewter, 1.2 / 7.3, 290);
+    p.reconcilePhase();
+    expect(p.getBulkAmount('interior').rawValue()).toBe(0);
+  });
+
+  it('…and a pool only a moment into its drift banks about (mp − T)·C, as before', () => {
+    const water = liquid({ mp: 273, latent: 334_000 });
+    const p = pan(water, 4, 272.9);
+    p.setLastAmbientK(250);
+    p.reconcilePhase();
+    const banked = p.getBulkPayload('interior')?.latentRemovedJ ?? 0;
+    expect(banked).toBeCloseTo(0.1 * 4 * 4186, -1);
   });
 
   it('a material ruined by freezing mints no cast and stamps it ruined', () => {
