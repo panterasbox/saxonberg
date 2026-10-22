@@ -221,7 +221,7 @@ suite('⭐ 10 — make firebrick', () => {
       won = await held();
     }
     expect(won, 'fireclay in hand').toMatch(/fireclay|clay/i);
-    const read = await say('analyze clay');
+    const read = await say('analyze clay lump');
     expect(read, `the fireclay: ${read}`).toMatch(/fireclay|refractory|pale|white/i);
   }, 3_600_000);
 

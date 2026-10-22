@@ -244,6 +244,11 @@ export class GrammarApi {
         // Fall through to naive.
       }
     }
+    // ⭐ A partitive names its MEASURE first — `a lump of clay`, `a load of
+    // spoil` — and it is the measure that counts: two lumps of clay, never
+    // two lump of clays (the ceramics drive read "10 lump of clays").
+    const partitive = /^(\S+)( of .+)$/.exec(singular);
+    if (partitive) return `${partitive[1]}s${partitive[2]}`;
     return `${singular}s`;
   }
 

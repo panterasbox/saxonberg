@@ -218,7 +218,7 @@ suite('⭐ 1 — win the clay', () => {
   }, 120_000);
 
   it('`analyze clay` reads its composition in words — fat, and the colour of its iron', async () => {
-    const read = await say(digger, 'analyze clay');
+    const read = await say(digger, 'analyze clay lump');
     expect(read, `analyze clay: ${read}`).toMatch(/fat/i);
     expect(read).not.toMatch(/\d+\s*%/); // words, never a figure
   }, 120_000);
@@ -247,6 +247,12 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
   }, 300_000);
 
   it('two test bricks off one lump: one on the open yard, one under the hack cover', async () => {
+    // ⭐ Ten lumps dug and carried spend a body: the first run answered
+    // "You're too tired for that". Rest the way a person would, on the clock
+    // (the drilling drive's precedent), rather than cheapen the digging.
+    await say(digger, 'sit');
+    await advance('8 hours');
+    await say(digger, 'stand');
     // A day at the table with one lump makes a few green bricks.
     const day = await act(digger, 'shape clay into brick', '9 hours');
     expect(day, `the test bricks: ${day}`).toMatch(/brick/i);
@@ -304,7 +310,7 @@ suite('⭐ 3 — knead it', () => {
   it('the weathered heap is trodden with sand and breeze in the temper pit — ONE clay, leaner', async () => {
     await toHour(9, 15);
     expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
-    const fat = await say(digger, 'analyze clay');
+    const fat = await say(digger, 'analyze clay lump');
     await say(digger, 'east');
     await say(digger, 'put clay in pit');
     await say(digger, 'put sand in pit');
@@ -319,7 +325,7 @@ suite('⭐ 3 — knead it', () => {
     expect(after, 'what is left in the pit').toMatch(/clay/i);
     expect(after).not.toMatch(/sand|breeze/i);
     await say(digger, 'get clay from pit');
-    const lean = await say(digger, 'analyze clay');
+    const lean = await say(digger, 'analyze clay lump');
     expect(lean, `tempered: ${lean} — raw: ${fat}`).not.toEqual(fat);
     expect(lean).toMatch(/workable|lean/i);
   }, 900_000);

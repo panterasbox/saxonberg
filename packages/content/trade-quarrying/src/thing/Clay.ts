@@ -164,10 +164,17 @@ const clayAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (host.isDestroyed()) return text;
   const clay = host as unknown as Partial<Clay>;
   if (typeof clay.getWeatheredDays !== 'function') return text;
-  const line = weatheringPhrase(
+  const weathered = weatheringPhrase(
     clay.getWeatheredDays(),
     ceramicsDial('ceramics.weathering.ceilingDays', 40),
   );
+  // ⭐ The colour is the CLAY's, not the row's: one lump row serves every
+  // band that wins it, so the Delight's red river clay must not read as the
+  // quarry's grey (the ceramics drive).
+  const looks = (host as unknown as { getMaterial?(): { getAppearance(): string } | null })
+    .getMaterial?.()
+    ?.getAppearance();
+  const line = looks ? `It is ${looks}. ${weathered}` : weathered;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
 

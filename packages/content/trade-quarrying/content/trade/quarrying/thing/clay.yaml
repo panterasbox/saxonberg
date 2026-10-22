@@ -20,7 +20,7 @@ data:
   shortDescription: lump of clay
   register: indefinite
   longDescription: >-
-    Heavy grey-blue clay, cool and slick, holding the shape of the spade
+    A heavy lump of clay, cool and slick, holding the shape of the spade
     that cut it.
   _materialPath: /stuff/idea/material/earth/clay
   mass: 12

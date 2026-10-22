@@ -41,6 +41,16 @@ export default class ClayReading extends Reading {
     _handTool: (Stuff & Tooled) | null,
     _param: string,
   ): Promise<void> {
+    if (subject === null) {
+      // ⭐ The channel is named and the lump is not (the drive typed
+      // `analyze clay`): say what to type, not that nothing is clay.
+      this.decline(
+        context,
+        Mml.compose`Which clay? Name the lump you mean — \`analyze clay lump\`.`,
+        'no-subject',
+      );
+      return;
+    }
     if (!isReadableClay(subject)) {
       this.decline(
         context,

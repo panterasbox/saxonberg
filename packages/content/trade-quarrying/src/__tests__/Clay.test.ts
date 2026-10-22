@@ -125,6 +125,17 @@ describe('what a clay is made of', () => {
   });
 });
 
+describe('what a lump looks like', () => {
+  it('⭐ reads in its OWN clay’s colour — one lump row, every band’s clay (the ceramics drive)', () => {
+    (fat as unknown as { setAppearance(a: string): void }).setAppearance('fat, slick red-brown river clay');
+    const lump = lumpOf(fat);
+    lump.setLongDescription('A heavy lump of clay.');
+    const read = lump.getMarkupLong(lump as never);
+    expect(read).toMatch(/red-brown river clay/);
+    expect(read).not.toMatch(/grey/);
+  });
+});
+
 describe('a clay’s year', () => {
   it('⭐ a heap left out weathers by its place’s freeze-thaw days — whole days, to a ceiling', async () => {
     const yard = makeStuff(() => new Yard());
