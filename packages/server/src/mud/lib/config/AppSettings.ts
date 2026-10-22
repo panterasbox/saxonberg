@@ -1802,6 +1802,12 @@ export const AppSettingKeys = {
   fireAshChokeFullShare: "fire.ash.chokeFullShare",
   /** Fire — the draught multiplier a fully choked grate leaves. */
   fireAshChokedDraught: "fire.ash.chokedDraught",
+  /** Fire — the mass (kg) of one raked heap of ash (potash D4): a grate's
+   * ash comes out as countable heaps, the last one the remainder. */
+  fireAshHeapKg: "fire.ash.heapKg",
+  /** Fire — the material a heap's alkali is counted as, a composition key
+   * on the raked ash (potash D1): potassium carbonate. */
+  fireAshAlkaliMaterial: "fire.ash.alkaliMaterial",
   /** Fire — the power ceiling (W) a burner row that authors none falls back
    * to. */
   fireBurnerDefaultMaxPowerW: "fire.burner.defaultMaxPowerW",
@@ -2381,6 +2387,16 @@ export const AppSettingKeys = {
   kitchenSurfaceInoculum: "kitchen.surfaceInoculum",
   /** Cleanliness — the row a hearth's raked-out ash is minted as. */
   cleanlinessAshTemplate: "cleanliness.ashTemplate",
+  /** Potash — the alkali (kg/L) from which a liquor reads as a WEAK lye
+   * rather than water (potash D5). */
+  potashLyeWeakFromKgPerL: "potash.lye.weakFromKgPerL",
+  /** Potash — the alkali (kg/L) from which a lye is SOAP-STRENGTH. */
+  potashLyeSoapFromKgPerL: "potash.lye.soapFromKgPerL",
+  /** Potash — the alkali (kg/L) from which a lye is STRONG. */
+  potashLyeStrongFromKgPerL: "potash.lye.strongFromKgPerL",
+  /** Potash — the share of a leach's alkali each °dH of the water wastes
+   * (potash D6): hard water spends alkali on its own lime. */
+  potashLyeHardnessWastePerDgh: "potash.lye.hardnessWastePerDgh",
 } as const;
 
 export type AppSettingKey =

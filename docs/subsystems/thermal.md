@@ -986,3 +986,12 @@ passes under it.
     then stops.
   - Rough scale: 4 kW delivered boils off ~5 L an hour. Silk's 12 L copper
     on a range now boils dry in about three hours unattended.
+
+## Note — the potash build (2026-10-19)
+
+The second consumer of the latent-heat boil plateau: lye authors
+`latentHeatOfVaporization`, so an iron pot of it holds at the boil and
+loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
+keeps a pack-local count of the alkali across the boil-off and casts black
+salts when dry; it converges on the sugar build's solids-keeping plateau and
+is deleted then (`potash-on-sugar`, [potash.md](potash.md)).

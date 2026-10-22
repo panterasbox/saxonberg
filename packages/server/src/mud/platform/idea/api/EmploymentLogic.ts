@@ -1689,6 +1689,9 @@ export class EmploymentLogic extends ApiLogic {
    */
   private shiftStations = new Map<string, { slot: number; at: string }>();
 
+  /** Rounds whose hand is being fetched to a stop — one load at a time. */
+  private fetching = new Set<string>();
+
   private tickBusiness(
     business: BusinessStuff,
     date: ReturnType<InstanceType<typeof DefaultCalendar>['decompose']>,
@@ -1718,6 +1721,22 @@ export class EmploymentLogic extends ApiLogic {
     for (const [roundKey, slots] of rounds) {
       const assignment = slots[0]!;
       const actor = StuffApi.findByTemplatePath(assignment.assignee);
+      if (!actor) {
+        // ⭐ A hand who is not resident is fetched only when the stop the
+        // clock has him at IS — somebody is there to see him (found by the
+        // potash drive: the ash-man was evicted from home, so his round
+        // ran with nobody on it). Load on use, from the observer's side:
+        // never a load for a stop nobody stands in.
+        const due = slots.find((a) => roster.evaluate(a, clock) === 'on-shift');
+        if (due?.station && StuffApi.findByTemplatePath(due.station) && !this.fetching.has(roundKey)) {
+          this.fetching.add(roundKey);
+          void StuffApi.singleton<Stuff>(assignment.assignee)
+            .then(() => this.tickBusiness(business, date, nowRaw))
+            .catch((err) => console.warn(`EmploymentLogic: could not fetch ${assignment.assignee} to ${due.station}:`, err))
+            .finally(() => this.fetching.delete(roundKey));
+          continue;
+        }
+      }
       if (!actor || !MixinApi.isEmployed(actor)) {
         console.warn(
           `EmploymentLogic: roster ${businessPath}/${assignment.positionKey} — ` +

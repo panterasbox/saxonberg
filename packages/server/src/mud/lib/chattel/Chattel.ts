@@ -24,7 +24,7 @@
  * stack's `_chattelId` stays empty and it is owned-by-possession.
  */
 
-import type { MixinConstructor, FieldMeta } from "../mixin";
+import { Mixins, type MixinConstructor, type FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
@@ -108,6 +108,15 @@ export interface Chattel {
   recordMadeFrom(inputs: readonly Stuff[]): Promise<void>;
   /** The owner of what this was made from, when they all agree; else null. */
   getMadeFromOwner(): ChattelOwner | null;
+  /**
+   * ⭐ A PROCESS mint declares whose its output is — a pot's cake, a
+   * mould's cast, a firing's lump — from what went into it (the
+   * communal-oven rule), and `null` means NOBODY: never whoever happened to
+   * be looking when it set. Read once, on arrival, like `recordMadeFrom`.
+   */
+  recordMadeBy(owner: ChattelOwner | null): void;
+  /** Did a process declare this good's maker (even as nobody)? */
+  isMadeByProcess(): boolean;
   /** Establish ownership — mint the durable id and title it to `owner`. */
   stampChattel(owner: Stuff): Promise<ChattelStampResult>;
   /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
@@ -282,6 +291,22 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getMadeFromOwner(): ChattelOwner | null {
       return this._madeFromOwner;
+    }
+
+    /** See {@link Chattel.recordMadeBy}. */
+    public _madeByProcess = false;
+
+    // ⚠ A declared maker titles a fresh good, so only a process mint may
+    // declare one — a mould setting its cast (a firing hands the mould
+    // its owner through `castInto`).
+    @CallSecurity(SecurityPolicies.FromMixin(Mixins.Mould))
+    public recordMadeBy(owner: ChattelOwner | null): void {
+      this._madeFromOwner = owner;
+      this._madeByProcess = true;
+    }
+
+    public isMadeByProcess(): boolean {
+      return this._madeByProcess;
     }
 
     /**

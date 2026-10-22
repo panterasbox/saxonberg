@@ -131,6 +131,14 @@ export default class SchedulerRegistry extends Idea {
   private engagementsById: Map<string, Engagement> = new Map();
   private completionTimers: Map<string, ClockHandle> = new Map();
   private emissionTimers: Map<string, ClockHandle[]> = new Map();
+  /**
+   * ⭐ Who started each engagement (`ExecutionContextApi.getCausingAuthor`
+   * at start) — planted on its completion and emission roots, so what a
+   * durative act makes when it finishes is the actor's (a firing an hour
+   * after `fire kiln` returned). Absent for a forced start: a brain's act
+   * has no author.
+   */
+  private causingAuthors: Map<string, unknown> = new Map();
   private hostSubscriptions: Map<string, Subscription<unknown>> = new Map();
   private activityRegistry: Map<string, ActivityClass> = new Map();
 
@@ -378,6 +386,7 @@ export default class SchedulerRegistry extends Idea {
       for (const h of handles) h.cancel();
     }
     this.emissionTimers.clear();
+    this.causingAuthors.clear();
     for (const sub of this.hostSubscriptions.values()) {
       try {
         sub.unsubscribe();
@@ -399,6 +408,8 @@ export default class SchedulerRegistry extends Idea {
 
   private register(e: Engagement): void {
     const actor = e.actor;
+    const author = ExecutionContextApi.getCausingAuthor();
+    if (author != null) this.causingAuthors.set(e.engagementId, author);
     // Direct participant call: `_setEngagement` is gated on THIS
     // registry (`FromTemplate('/platform/idea/SchedulerRegistry')`), so the
     // registry calls as itself — no synthetic SchedulerApi root needed.
@@ -449,7 +460,10 @@ export default class SchedulerRegistry extends Idea {
             void ExecutionContextApi.runRootGuarded(
               SchedulerApi,
               'emission',
-              () => this.fireEmission(e, em),
+              () => {
+                this.plantAuthor(e.engagementId);
+                this.fireEmission(e, em);
+              },
               'swallow',
               actorScope !== null ? { circleScope: actorScope } : undefined
             );
@@ -470,6 +484,7 @@ export default class SchedulerRegistry extends Idea {
             SchedulerApi,
             'completion',
             () => {
+              this.plantAuthor(id);
               const live = this.engagementsById.get(id);
               if (!live || !isDurativeActivity(live)) return;
               this.completeFromTimer(live);
@@ -642,7 +657,14 @@ export default class SchedulerRegistry extends Idea {
     }
   }
 
+  /** Plant the engagement's author on the root its continuation runs in. */
+  private plantAuthor(id: string): void {
+    const author = this.causingAuthors.get(id);
+    if (author != null) ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: author });
+  }
+
   private clearTimersAndSubs(id: string): void {
+    this.causingAuthors.delete(id);
     const timer = this.completionTimers.get(id);
     if (timer) {
       timer.cancel();

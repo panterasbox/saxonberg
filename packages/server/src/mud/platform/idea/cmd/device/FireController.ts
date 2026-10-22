@@ -70,6 +70,10 @@ import type { CompositionEntry } from '../../../../lib/material/Material';
 import type Material from '../../../../lib/material/Material';
 import type { Mould } from '../../../../lib/mould/Mould';
 import type { CrosslinkOutcome } from '../../../../lib/material/Crosslinking';
+import type { Grade } from '../../../../lib/craft/Grade';
+import { ExecutionContextApi } from '../../../../api/execution-context';
+import { ContentsTitle } from '../../../../lib/chattel/ContentsTitle';
+import type { ChattelOwner } from '../../../../lib/chattel/ChattelRecord';
 
 const TOPIC = 'act.deed';
 
@@ -491,15 +495,44 @@ async function runFiring(
         acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * weight);
       }
     }
+    // ⭐ (potash D12a) What STAYS in a lighter output concentrates: a
+    // constituent that all comes through a firing that keeps `massYield`
+    // of the charge is `1 / massYield` as strong in what is left — black
+    // salts calcined to pearl ash lose their water and char, not their
+    // potash. Capped at the whole.
+    const concentrate = massYield > 0 ? 1 / massYield : 1;
     for (const [materialPath, fraction] of acc) {
-      mergedCharge.push({ materialPath, fraction });
+      mergedCharge.push({ materialPath, fraction: Math.min(1, fraction * concentrate) });
     }
   }
+  // ⭐ (potash D12b) A firing grades its output by its WORST graded input —
+  // the weakest-link rule a craft and a batch already follow. `null` when
+  // nothing in the charge was graded (a lime-burn of plain stone).
+  const weakestInput = consumed.reduce<Grade | null>((worst, c) => {
+    if (!MixinApi.isGraded(c)) return worst;
+    const g = c.getGrade();
+    return worst === null ? g : worst.min(g);
+  }, null);
 
   const outputs: Stuff[] = [];
   const cureMaterial =
     cure !== null ? StuffApi.findByTemplatePath<Material>(cure.materialPath) ?? null : null;
   const makerPath = giver.isDestroyed() ? '' : giver.getIdentityPath() ?? '';
+  // ⭐ Whose the firing makes (potash): whose its charge was — your black
+  // salts make your pearl ash, in anybody's kiln — and, for a charge
+  // nobody owned, whose act the firing is (the continuation's author: it
+  // completes long after `fire kiln` returned). Disputed stays nobody's.
+  const charge = consumed.reduce((title, c) => {
+    const o = MixinApi.isChattel(c) ? c.stampedOwner() : null;
+    return o && o.kind !== 'group' ? title.with(o) : title;
+  }, new ContentsTitle(undefined));
+  const author = ExecutionContextApi.getCausingAuthor() as Stuff | null;
+  const madeBy: ChattelOwner | null =
+    charge.claimed() !== undefined
+      ? charge.owner()
+      : author
+        ? { kind: MixinApi.isOrganization(author) ? 'organization' : 'player', templatePath: author.getIdentityPath() ?? '' }
+        : null;
   const castKg = massYield > 0 ? totalConsumedKg * massYield : totalConsumedKg;
 
   // ⭐⭐ THE MOULD SEAM (rubber build; owned by
@@ -524,6 +557,7 @@ async function runFiring(
       massKg: castKg,
       payload: null,
       stampMaterial: true,
+      madeBy,
     });
     if (cast === null) {
       if (watching) {
@@ -552,7 +586,7 @@ async function runFiring(
     // No mould: the cure comes out as its material's own lump.
     const lump = cureMaterial?.getCastTemplate() || firing.recipe.getOutputTemplate();
     try {
-      const made = await StuffApi.clone<Stuff>(lump);
+      const made = await StuffApi.clone<Stuff>(lump, undefined, { madeFrom: consumed });
       if (cureMaterial !== null) {
         (made as Stuff & { setMaterial?(m: Material): void }).setMaterial?.(cureMaterial);
       }
@@ -568,7 +602,7 @@ async function runFiring(
   const shapedOrCured = outputs.length > 0;
   for (let i = 0; !shapedOrCured && i < firing.batches; i += 1) {
     try {
-      const made = await StuffApi.clone<Stuff>(firing.recipe.getOutputTemplate());
+      const made = await StuffApi.clone<Stuff>(firing.recipe.getOutputTemplate(), undefined, { madeFrom: consumed });
       if (massYield > 0 && MixinApi.isTangible(made)) {
         made.setMass(
           Quantity.of((totalConsumedKg * massYield) / firing.batches, 'kg'),
@@ -577,6 +611,7 @@ async function runFiring(
       if (MixinApi.isComposition(made) && mergedCharge.length > 0) {
         made.setAlloying([...made.getAlloying(), ...mergedCharge]);
       }
+      if (weakestInput !== null && MixinApi.isGraded(made)) made.setGrade(weakestInput);
       if (MixinApi.isContainable(made)) {
         // Landed, not moved: a fired good is somebody's, and a good moved
         // into a kiln by nobody has no recorded place to come back to.

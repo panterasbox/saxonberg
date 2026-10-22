@@ -1,0 +1,24 @@
+# A cake of black salts (potash D9, D11) — what is left in the iron pot
+# when a lye has boiled dry: the alkali the ash gave up, in the pot's own
+# round shape. ⭐ Its mass is the LYE's — the alkali in the litres boiled,
+# over the cake's purity — so a strong lye gives a heavy cake and a weak
+# one a thin crust; its grade is the lye's, carried by the pot.
+#
+# The `alloying` entry is a PURITY (the potash share of the cake), not a
+# strength: `gradedByStrength` is off, so the cake keeps the grade the
+# chain gave it.
+class: /trade/fuel/thing/Ash
+data:
+  shortDescription: cake of black salts
+  keywords: ["black salts", cake, salts, "cake of black salts", "crude potash"]
+  register: indefinite
+  longDescription: >-
+    A round cake of crude salts the shape of the bottom of a pot, brown
+    going on black, hard as fired clay and faintly greasy to the touch.
+  _materialPath: /trade/potash/idea/material/black-salts
+  gradeBand: fair
+  gradedByStrength: false
+  alloying:
+    - materialPath: /stuff/idea/material/mineral/potash
+      fraction: 0.65
+  mass: 2.5

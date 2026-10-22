@@ -19,19 +19,70 @@ import type { Container } from '../../../lib/spatial/Container';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
+import { LyeStrength, UNMEASURED_LYE_KG_PER_L } from '../../../lib/cleanliness/LyeStrength';
 
 interface MeasureDensityModel extends CommandModel {
   target: MqlOneResult;
 }
 
 export default class DensityReading extends Reading {
+  /**
+   * ⭐ The eye rung is the EGG (potash D7): float one in a lye and it says
+   * how strong it is, in words — the folk hydrometer, older than the glass
+   * by centuries. With no egg there is nothing to read by eye, and the base
+   * refusal names the route. Only a lye has an egg reading; anything else
+   * wants the glass.
+   */
+  protected override async analyze(
+    ctx: CommandContext,
+    target: Stuff | null,
+    band: CompetenceBandName,
+    handTool: (Stuff & Tooled) | null,
+    param: string,
+  ): Promise<void> {
+    if (
+      handTool === null &&
+      target &&
+      MixinApi.isBulkable(target) &&
+      !target.isBulkEmpty('interior') &&
+      target.getBulkMaterial('interior')?.hasTag('lye')
+    ) {
+      // ⭐ Name the folk route too: an egg reads a lye (found by the drive —
+      // the base refusal named only the hydrometer).
+      this.decline(ctx, Mml.compose`You cannot tell a lye's strength by eye. Float an egg in it, or a hydrometer.`, 'no-eye-rung');
+      return;
+    }
+    if (handTool === null || !target || !MixinApi.isBulkable(target) || target.isBulkEmpty('interior')) {
+      await super.analyze(ctx, target, band, handTool, param);
+      return;
+    }
+    const liquor = target.getBulkMaterial('interior');
+    const strength = new LyeStrength(
+      target.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? (liquor?.hasTag('lye') ? UNMEASURED_LYE_KG_PER_L : 0),
+    );
+    if (!strength.isLye(liquor) && !liquor?.hasTag('water')) {
+      await super.analyze(ctx, target, band, handTool, param);
+      return;
+    }
+    this.wordLye(ctx, target, handTool, strength.eggWords(band));
+  }
+
   protected override async measure(
     ctx: CommandContext,
     subject: Stuff | null,
-    _instrument: Stuff & Tooled,
-    _band: CompetenceBandName,
+    instrument: Stuff & Tooled,
+    band: CompetenceBandName,
     param: string,
   ): Promise<void> {
+    // ⭐ A lye is read in WORDS even under the glass (potash D7, AC 12):
+    // its strength is a band a soapmaker acts on, never a figure.
+    if (subject && MixinApi.isBulkable(subject) && !subject.isBulkEmpty('interior')) {
+      const strength = new LyeStrength(subject.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L);
+      if (strength.isLye(subject.getBulkMaterial('interior'))) {
+        this.wordLye(ctx, subject, instrument, strength.glassWords(band));
+        return;
+      }
+    }
     // ⭐ The controller's body verbatim, under the rung it always was.
     const model = { target: { stuff: subject, raw: param } } as unknown as MeasureDensityModel;
     const giver = ctx.commandGiver;
@@ -87,6 +138,21 @@ export default class DensityReading extends Reading {
       .toPeers(
         Mml.compose`${Mml.actor(giver)} floats a hydrometer in ${Mml.thing(target)}.`,
       )
+      .send();
+  }
+
+  /** The one place a lye's strength is spoken. */
+  private wordLye(
+    ctx: CommandContext,
+    target: Stuff,
+    floated: Stuff,
+    words: string,
+  ): void {
+    const giver = ctx.commandGiver;
+    MessageApi.scene(giver)
+      .topic('sense.reading')
+      .toSelf(Mml.compose`You float ${Mml.thing(floated)} in ${Mml.thing(target)}. ${words}`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} floats ${Mml.thing(floated)} in ${Mml.thing(target)}.`)
       .send();
   }
 }

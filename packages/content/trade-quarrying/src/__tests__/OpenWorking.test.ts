@@ -72,7 +72,7 @@ function seedMaterials(): void {
   mat(DRIFT, 'drift', ['earth', 'mixture'], 2);
   mat(CLAY, 'clay', ['earth', 'solid'], 3);
   mat(GRANITE, 'granite', ['rock', 'igneous'], 200);
-  mat(LIMESTONE, 'limestone', ['rock', 'carbonate', 'flux'], 120);
+  mat(LIMESTONE, 'limestone', ['rock', 'carbonate', 'smelting-flux'], 120);
 }
 
 /**
@@ -123,18 +123,19 @@ function working(opts?: {
   return pit;
 }
 
-/** A tool offering exactly the capabilities named. */
-function tool(...capabilities: string[]): Stuff & Tooled {
+/** A tool by name, offering exactly the capabilities named. */
+function tool(label: string, ...capabilities: string[]): Stuff & Tooled {
   const t = makeStuff(() => {
     const item = new Tool();
+    item.setShortDescription(label);
     item.capabilities = capabilities;
     return item;
   }) as unknown as Stuff;
   return t as Stuff & Tooled;
 }
 
-const spade = () => tool('digging');
-const pick = () => tool('winning', 'striking');
+const spade = () => tool('spade', 'digging');
+const pick = () => tool('pick', 'winning', 'striking');
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -226,6 +227,13 @@ describe('⭐⭐ the tool is the constraint, and the GROUND names it', () => {
     const out = (await pit.planWork(actor, pick(), null)) as WorkRefusal;
     expect(out.reason).toBe('no-spade');
     expect(out.prose).toMatch(/pick will not shift/i);
+  });
+
+  it('⚠ the wrong tool is named as ITSELF — a test egg is not "a pick" (potash drive)', async () => {
+    const pit = working();
+    const out = (await pit.planWork(actor, tool('test egg', 'flotation'), null)) as WorkRefusal;
+    expect(out.reason).toBe('no-spade');
+    expect(out.prose).toMatch(/^A test egg will not shift/);
   });
 
   it('…and a SPADE will not win granite — one verb, and the refusal teaches', async () => {

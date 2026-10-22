@@ -1,0 +1,19 @@
+id: trade-potash
+version: 0.1.0
+root: /trade/potash
+description: >-
+  The ashery — ⭐ **the trade that turns the wood's waste into the
+  glasshouse's flux and the soapmaker's alkali.** Brash and cordwood burn
+  to ash in a pit that is simply a big fire; the ash is leached to lye in a
+  hopper, its strength read with an egg; the lye boils down in an iron pot
+  to black salts, and the kiln whitens them to pearl ash. The strength of
+  everything downstream comes from the WOOD — beech strong, pine weak —
+  and from how the lye was made: how much ash, how many passes, how hard
+  the water. No new verb: every act is the fire's, the hopper's, the pot's
+  and the kiln's. ⭐⭐ A second ashery is rows.
+requires:
+  # The trade is placeless (the quarrying precedent): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. An ashery
+  # sits in the world under a locality's committee.
+  title:
+    - { extent: /trade/potash, holder: { organization: /compact/trade } }

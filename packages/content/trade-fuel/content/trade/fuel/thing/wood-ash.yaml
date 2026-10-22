@@ -4,7 +4,7 @@
 # ash (`organic/ash`, tag `potash`), so the lye hopper and the glass batch
 # take either — only the story differs: this one is a chore, that one is a
 # lost burn.
-class: /platform/thing/Provision
+class: /trade/fuel/thing/Ash
 data:
   shortDescription: heap of wood ash
   keywords: [ash, ashes, "wood ash", heap, "heap of wood ash"]
@@ -13,5 +13,12 @@ data:
     Soft grey ash raked out of a grate, with a few black flecks of charcoal
     in it. It is lighter than it looks, and gets everywhere.
   _materialPath: /stuff/idea/material/organic/ash
-  gradeBand: poor
+  gradeBand: fair
+  # ⭐ Its grade IS its strength (potash D1): a raked heap's composition is
+  # written by the burner that made it, and re-grades it. This default is
+  # an oak hearth's — a share of 0.15 of the ash is alkali.
+  gradedByStrength: true
+  alloying:
+    - materialPath: /stuff/idea/material/mineral/potash
+      fraction: 0.15
   mass: 0.6

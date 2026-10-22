@@ -188,11 +188,17 @@ export default class PourController extends CommandController<PourModel> {
       const rejected = result.notes.some(
         (n) => n.kind === 'quantity-clamped-rejected',
       );
+      // ⚠ A lenient pour into a brim-full vessel also moves nothing — and
+      // "nothing to pour" blamed the full flask in your hand (the potash
+      // drive's kettle, filled by one pail of water).
+      const full = fromSlot.available() > 0 && toSlot.remaining() <= 0;
       const line = mismatch
         ? Mml.compose`That won't mix with what's already in ${Mml.thing(target)}.`
         : rejected
           ? Mml.compose`That's more than will fit in ${Mml.thing(target)}.`
-          : Mml.compose`There's nothing to pour.`;
+          : full
+            ? Mml.compose`${Mml.thing(target)} is already full.`
+            : Mml.compose`There's nothing to pour.`;
       MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
       return;
     }

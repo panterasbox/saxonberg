@@ -1,0 +1,11 @@
+# The knacker's crock — "what is left is in the crock" (the yard's own
+# words), so it holds the fat: rendered tallow, set in it and scooped out
+# warm. ⚠ The cooking pack's crock is EMPTY by design (rendering fills a
+# clean one); a yard that has been rendering for years has a full one
+# (found by the potash drive: the yard's prop was empty, so the hard-soap
+# step had no fat to pour).
+class: /platform/thing/CraftVessel
+extends: /trade/cooking/thing/tallow-crock
+data:
+  interiorMaterial: /trade/cooking/idea/material/tallow
+  interiorAmount: 0.8

@@ -38,6 +38,9 @@ import type {
 } from '../../../api/bulk';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
+// The `dissolvedSolidsKgPerL` payload field is declared by LyeStrength's merge.
+import { UNMEASURED_LYE_KG_PER_L } from '../../../lib/cleanliness/LyeStrength';
+import { ContentsTitle } from '../../../lib/chattel/ContentsTitle';
 
 const BULK_FIELD = 'bulk';
 
@@ -306,6 +309,13 @@ export class BulkableLogic extends ApiLogic {
     amount: TransferAmount,
   ): TransferResult {
     const notes: BulkNote[] = [];
+
+    // ⭐ A maturing source reconciles BEFORE its material is read (found by
+    // the potash drive): the transform runs on read, and the draw-time
+    // reconcile below (`payloadForDraw`) came too late — a hopper left half
+    // a day to leach poured out WATER, and turned to lye after the pour.
+    const source = from.getHolder();
+    if (MixinApi.isMaturing(source)) source.reconcileFerment();
 
     const material = from.getMaterial();
     if (from.isEmpty() || material === null) {
@@ -592,9 +602,15 @@ export class BulkableLogic extends ApiLogic {
       // ⭐ Dissolved solids blend by VOLUME too (sugar D1): a pail of thin
       // juice tipped into a thick pan thins it. Either side without a
       // figure is a fresh fill at its material's own strength.
-      const fromSolids =
-        fromPayload?.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
-      if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
+      // ⚠ Not lye — potash's own fold below owns lye's strength until the
+      // two converge (`potash-on-sugar`, potash.md): with both, a pour of
+      // lye folded twice, the second time from the first's result (found at
+      // the merge, 2026-10-22).
+      const lye = material.hasTag('lye');
+      const fromSolids = lye
+        ? 0
+        : fromPayload?.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
+      if (!lye && !toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
         const held = to.getPayload();
         const heldMat = to.getMaterial() ?? material;
         const toSolids = held?.dissolvedSolidsKgPerL ?? heldMat.getSolidsKgPerL();
@@ -616,6 +632,36 @@ export class BulkableLogic extends ApiLogic {
           to.setPayload({
             ...toPayload,
             blood: new Blood(toPayload.blood).blend(fromPayload.blood),
+          });
+        }
+      }
+
+      // ⭐ Whose the liquid is blends by AGREEMENT (the communal-oven rule,
+      // `ContentsTitle`): your lye topped up with rain is still yours; your
+      // lye poured into somebody else's is nobody's. An empty destination
+      // took the source's whole payload above.
+      if (!toWasEmpty && fromPayload && 'contentsOwner' in fromPayload) {
+        const held = to.getPayload();
+        to.setPayload({
+          ...(held ?? {}),
+          contentsOwner: new ContentsTitle(held?.contentsOwner).with(fromPayload.contentsOwner).claimed(),
+        });
+      }
+
+      // ⭐ A lye's strength blends by VOLUME (potash D5): a pail of weak
+      // lye tipped into a pot of strong thins it. ⚠ Lye only, and only
+      // until the sugar build's fold of the same field lands — then this
+      // block is DELETED (`potash-on-sugar`), since that fold covers it.
+      if (!toWasEmpty && material.hasTag('lye')) {
+        const held = to.getPayload();
+        // A lye nobody measured is taken at soap strength (LyeStrength).
+        const fromK = fromPayload?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L;
+        const toK = held?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L;
+        const total = applied + toAmountBefore;
+        if (total > 0 && (fromK > 0 || toK > 0)) {
+          to.setPayload({
+            ...(held ?? {}),
+            dissolvedSolidsKgPerL: (applied * fromK + toAmountBefore * toK) / total,
           });
         }
       }
@@ -658,6 +704,14 @@ export class BulkableLogic extends ApiLogic {
     if (MixinApi.isThermal(fromHolder)) {
       // Freeze-and-re-anchor at the reduced capacity (pour cools faster).
       fromHolder.setContentsTemperature(fromHolder.getTemperature().rawValue());
+    }
+
+    // ⭐ …and a maturing DESTINATION keys its batch now, while the pourer
+    // is the acting author (found by the potash drive): a fill's transform
+    // — lime slaking in a kettle, a hopper's leach — ran at the next read,
+    // with nobody's hand in it and nobody there to see it.
+    if (applied > 0 && toHolder !== null && MixinApi.isMaturing(toHolder)) {
+      toHolder.reconcileFerment();
     }
 
     const clampedShort =

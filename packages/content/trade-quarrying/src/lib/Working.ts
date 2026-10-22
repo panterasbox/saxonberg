@@ -475,16 +475,20 @@ export function OpenWorkingMixin<
         // a reader notices the opening clause is false. That is the whole
         // argument for walking a build in a browser.
         const barehanded = tool === null;
+        // ⚠ Name the tool in hand: the default binds the FIRST tool you
+        // carry, and "a pick" was said of a test egg (the potash drive).
+        const held = tool?.getPresentation() ?? '';
+        const Held = held.charAt(0).toUpperCase() + held.slice(1);
         return {
           kind: 'refusal',
           reason: face.earth ? 'no-spade' : 'no-pick',
           prose: face.earth
             ? barehanded
               ? `You will not shift ${nameOfFace(face)} with your hands — take a spade to it.`
-              : `A pick will not shift ${nameOfFace(face)} — take a spade to it.`
+              : `${Held} will not shift ${nameOfFace(face)} — take a spade to it.`
             : barehanded
               ? `You would want a pick. That is ${nameOfFace(face)}, and it wants winning — not bare hands.`
-              : `You would want a pick. That is ${nameOfFace(face)}, and it wants winning, not shovelling.`,
+              : `You would want a pick. That is ${nameOfFace(face)}, and it wants winning — not ${held}.`,
         };
       }
 

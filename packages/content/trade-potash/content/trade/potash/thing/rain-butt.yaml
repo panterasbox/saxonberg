@@ -1,0 +1,19 @@
+# A rain butt — ⭐ the soft water an ashery wants (potash D16). A lye made
+# with rain is stronger than one made with river water, because hard water
+# spends some of the ash's alkali on its own lime before any of it reaches
+# the lye: where your water comes from is a thing an ash-burner knows.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: rain butt
+  keywords: ["rain butt", butt, barrel, rainwater, water]
+  register: indefinite
+  longDescription: >-
+    A tarred barrel under the eaves of the lean-to, fed by a wooden gutter
+    and brimming with rainwater the colour of weak tea.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  # Rain: about as soft as water comes.
+  hardnessDgh: 1
+  fixedInPlace: true
+  mass: 220
+  _materialPath: /stuff/idea/material/wood/oak

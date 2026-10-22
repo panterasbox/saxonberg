@@ -959,7 +959,8 @@ function isStock(item: Stuff): boolean {
  */
 function isFlux(item: Stuff): boolean {
   if (!MixinApi.isTangible(item)) return false;
-  return item.hasMaterialTag('flux');
+  // ⭐ `smelting-flux` (potash D13): bare `flux` is the glassmaker's.
+  return item.hasMaterialTag('smelting-flux');
 }
 
 /**

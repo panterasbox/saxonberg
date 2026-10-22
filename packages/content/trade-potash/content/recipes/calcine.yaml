@@ -1,0 +1,18 @@
+# Calcining — black salts fired at a red heat in a kiln burn their char and
+# water out and whiten to PEARL ASH (potash D12). ⭐ The firing carries the
+# charge: the cake's potash concentrates by the yield (0.65 → ~0.81), and
+# its grade — the lye's, through the pot — rides onto the pearl ash.
+recipeId: calcine
+name: Pearl ash
+keywords: [calcine, "pearl ash", pearlash]
+inputSlots:
+  - { slot: salts, category: black-salts, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/potash/thing/pearl-ash
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 900
+maxHeatK: 1150
+massYield: 0.8
+difficulty: standard
+discipline: ashery

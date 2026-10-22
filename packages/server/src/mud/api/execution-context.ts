@@ -540,6 +540,30 @@ export class ExecutionContextApi {
   }
 
   /**
+   * ⭐ **Whose act this is** — the acting author while a command runs, and
+   * after it the author the act's CONTINUATION was planted with: a
+   * scheduled callback or an engagement's completion carries the person
+   * who started it (`causingAuthor` on its root), as it already carries
+   * the `causingCommandId`. The question a deferred mint asks — a firing
+   * completing an hour after `fire kiln` returned is still the firer's.
+   *
+   * Distinct from {@link getActingAuthor}, which a REST boundary tags and
+   * provenance reads: this one adds the continuation leg and changes
+   * nothing that reads the other. Null for a forced chain (a brain's act
+   * has no author) and for work nobody set going.
+   */
+  public static getCausingAuthor(): unknown | null {
+    if (ExecutionContextApi.getCommandStack().length > 0) {
+      return ExecutionContextApi.getActingAuthor();
+    }
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const author = n.frame.metadata?.causingAuthor;
+      if (author != null) return author;
+    }
+    return null;
+  }
+
+  /**
    * Stamp the **acting author** — the principal (an Avatar) on whose behalf
    * a non-command transport boundary is running — onto the current frame's
    * metadata, where {@link getActingAuthor} reads it for the REST/CMS path.

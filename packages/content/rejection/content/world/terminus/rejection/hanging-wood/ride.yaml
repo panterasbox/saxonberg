@@ -24,7 +24,7 @@ data:
   ambientIntensity: 1500
   ambientColorTemperature: 5600
   longDescription: |
-    The ride runs up the slope under the trees, bare earth in the middle and leaf-litter to either side, the canopy closed overhead so that the light comes down green and in pieces. Standards stand along both edges of it, oak and ash, big enough that two men could not link hands round the biggest, and between them the hazel comes up in the gaps.
+    The ride runs up the slope under the trees, bare earth in the middle and leaf-litter to either side, the canopy closed overhead so that the light comes down green and in pieces. Standards stand along both edges of it, oak and ash and smooth grey beech, big enough that two men could not link hands round the biggest, and between them the hazel comes up in the gaps. Higher up, where the soil thins, a few Scots pine stand dark among the broadleaves.
 
     It is quiet in the way a wood is quiet, which is to say full of small sounds.
   coords: { x: 0, y: 1, z: 0 }
@@ -39,6 +39,9 @@ data:
       # for a tanpit. The tanning trade's whole feedstock comes off this
       # one line.
       barkPath: /trade/forestry/thing/bark
+      # ⭐ The crown's twigs, trimmed where it lies (potash D18) — the ash
+      # pit's best feed.
+      brashMaterialPath: /stuff/idea/material/wood/oak-brash
       standing: 8
       capacity: 10
       incrementPerYear: 1
@@ -46,8 +49,26 @@ data:
       name: ash
       woodMaterialPath: /stuff/idea/material/wood/ash
       seedPath: /trade/forestry/thing/seed/ash-key
+      brashMaterialPath: /stuff/idea/material/wood/ash-brash
       standing: 4
       capacity: 6
+      incrementPerYear: 1
+    # ⭐ Beech and pine (potash D16): the strongest ash and the weakest, side
+    # by side, so an ash-burner learns the difference from the heap. No seed
+    # row ships for either yet — a felling of one drops none, honestly.
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/fagus/sylvatica
+      name: beech
+      woodMaterialPath: /stuff/idea/material/wood/beech
+      brashMaterialPath: /stuff/idea/material/wood/beech-brash
+      standing: 12
+      capacity: 14
+      incrementPerYear: 1
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/pinaceae/pinus/sylvestris
+      name: pine
+      woodMaterialPath: /stuff/idea/material/wood/pine
+      brashMaterialPath: /stuff/idea/material/wood/pine-brash
+      standing: 8
+      capacity: 10
       incrementPerYear: 1
   exits:
     south:

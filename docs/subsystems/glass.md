@@ -129,3 +129,11 @@ sell counter and the returns/empties loop → retail then a glass follow-on;
 the converter/instrument bench → a glass epoch follow-on; decolorisers
 (manganese) and the composed stained panel → glass follow-ons. See the
 glass plan's deferred-seams table.
+
+## Note — the potash build (2026-10-19)
+
+The batch's slots are `flux` (the potash family: wood ash, potash, black
+salts, pearl ash) and `stabilizer` (quicklime) — lye is alkali but no
+stabilizer, so it fills no slot. The melt carries the flux's potash share
+(concentrated by the yield); the melt itself stays ungraded (the trade
+grades by colour). See [potash.md](potash.md).
