@@ -2952,5 +2952,31 @@ forced. What they found, by kind:
   - **The server exits on any unhandled rejection**, so one bad `eval`
     — mine, run 17 — or one detached throw ends a world. That is policy,
     and it is left alone.
-  - **Temporary `DIAG(ceramics)` logging is in** (7a21b7a23) and comes
-    out before the MR is marked ready.
+  - **Temporary `DIAG(ceramics)` logging was in** (7a21b7a23); it came
+    out in 8646da843.
+
+**Runs 22–23** (D 18/23, then 17/23; A–C not reached in 23):
+- **Kernel defects found and fixed:**
+  - **Work heat** (e0adc3234): a body working in the heat banked its whole
+    work heat and shed none until the work ended, so an afternoon's digging
+    killed the brickmaker of hyperthermia while resting. `absorbHeatLoad`
+    now sheds what the body can while it works — the sweat it can afford,
+    nothing past the wet-bulb ceiling.
+  - **Carve** (1b3be923b): `carve pattern from <stock> for <metal>`
+    declared `for` before `stock`, so the documented line never bound its
+    metal.
+  - **Greenware slump**: a wetted pot read the slump off the last delta
+    only; `greenWetted` accumulates.
+  - **Boil concentrates** (Thermal): a boil arm leaving less liquor now
+    keeps its dissolved solids in it.
+  - **Bricks stack only alike**: a wet brick merged into a bone-dry stack
+    and took its water.
+  - **Gang brains** take their own bricks by id, never the player's.
+- **Drive defects, all fixed:** the cast key was swept up by the general
+  floor sweep (the sweep is now narrow); 34a read the old straight cast
+  (now by `idsOf()`); the bell's ring listened after the ring; 33a now casts
+  its own pewter; jumps over 4 h dropped heat regulation as absence and are
+  stepped at 4 h.
+- **Open from 23:** `fire hearth for 12 hours` got no dispatch response
+  within 30 s once — contention, or the hold. Watched in run 24.
+- **The potash merge** (c627b0893, B78) lands before run 24.
