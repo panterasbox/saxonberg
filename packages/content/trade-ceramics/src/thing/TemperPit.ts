@@ -85,7 +85,10 @@ export default class TemperPit extends TemperPitBase {
     return {
       ok: true,
       durationMs: minutes * 60_000,
-      effortW: 450,
+      // ⚠ Hard, but a rested body can do it: the whole act is charged up
+      // front, and 450 W for twenty minutes was ~120 % of a full reserve
+      // (the ceramics drive). 360 W costs about half of it.
+      effortW: 360,
       beginSelf: Mml.compose`You wet the clay in ${Mml.thing(self)} and get in, treading it and turning it over with the spade.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} treads the clay in ${Mml.thing(self)}.`,
       onComplete: () => {
