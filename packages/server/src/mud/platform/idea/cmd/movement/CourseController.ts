@@ -45,9 +45,6 @@ const RIVER_WAYS: Record<string, 'upstream' | 'downstream'> = {
   down: 'downstream',
 };
 
-/** `course … slow`: the share of her speed a master runs at through snags. */
-const SLOW_SHARE = 0.4;
-
 /** The words for a river's line, in km — a pilot's, not a navigator's. */
 function kmWords(km: number): string {
   return km < 1 ? `${Math.round(km * 1000)} meters above the mouth` : `${km.toFixed(1)} km above the mouth`;
@@ -202,8 +199,8 @@ export default class CourseController extends CommandController<CourseModel> {
       landing = named.path;
     }
     if (!(await this.mayLeave(model, context, craft, context.commandGiver))) return;
-    const speedMps = ((craft.getSpeedKn() * 1852) / 3600) * (slow ? SLOW_SHARE : 1);
-    const started = await craft.steerAlong({ direction, landing, throughWaterMps: speedMps });
+    const speedMps = (craft.getSpeedKn() * 1852) / 3600;
+    const started = await craft.steerAlong({ direction, landing, throughWaterMps: speedMps, slow });
     if ('refused' in started) return this.decline(context, started.refused, 'river-refused');
     if (started.ok && started.status !== 'completed-sync') context.note(started.note);
     const name = landing ? (await StuffApi.singleton<Stuff>(landing).catch(() => null))?.getPresentation() ?? 'the landing' : null;

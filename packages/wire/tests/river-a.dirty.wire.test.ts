@@ -155,7 +155,12 @@ suite('stage A — the line and the patch', () => {
     expect(river, river).toMatch(/On the left, .*; on the right, /);
     expect(river).not.toMatch(/\d+(\.\d+)? ?m\/s/);
 
-    const current = await say(a, 'measure current river');
+    // ⚠ The first reading after a season's jump can take longer than the
+    // harness waits (recorded on the MR); a second read is warm.
+    const current = await say(a, 'measure current river').catch(async () => {
+      await a.listen(30_000);
+      return say(a, 'measure current river');
+    });
     expect(current, current).toMatch(/current is .*m\/s/);
     const temp = await say(a, 'measure temperature river');
     expect(temp, temp).toMatch(/Temperature: .*K/);

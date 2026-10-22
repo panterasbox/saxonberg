@@ -42,7 +42,9 @@ export const brain = class {
   static kind: TaskKind = 'work';
   static summary = 'Answers the bell on the far landing and poles the ferry over for whoever rang it.';
   static discipline = 'navigation';
-  static claims: readonly EngagementSlot[] = ['hands', 'body'];
+  // ⭐ Nothing: the crossing he makes is itself a timed act on his hands, and
+  // a beat holding them refused his own `go across` (the drive's pass 8).
+  static claims: readonly EngagementSlot[] = [];
   static urgency(): Urgency {
     return new Urgency('wanted', 'answers the ferry bell');
   }

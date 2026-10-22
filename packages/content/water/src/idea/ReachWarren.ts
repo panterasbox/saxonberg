@@ -499,6 +499,40 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     return best;
   }
 
+  /**
+   * ⭐ A patch within hail of `pos` NOW (D6, the acceptance's "together
+   * exactly when within hail"): each patch's position is its last event's,
+   * so it is carried on by its own current for the time since — the drive
+   * found two swimmers merged on positions minutes stale, one a stroke
+   * ahead of the other.
+   */
+  private async patchNearNow(pos: LinePosition, exclude: ReachPatch | null): Promise<ReachPatch | null> {
+    const hail = this.hailM();
+    const width = this.widthAt(pos.course, pos.km);
+    const cat = this.catalogue();
+    const nowS = WorldClockApi.getNow().rawValue();
+    let best: ReachPatch | null = null;
+    let bestD = Infinity;
+    for (const p of this._patches) {
+      if (p === exclude || p.isDestroyed()) continue;
+      const at = p.getLinePosition();
+      if (!at || at.course !== pos.course) continue;
+      if (bandOf(at.across, width, hail) !== bandOf(pos.across, width, hail)) continue;
+      let km = at.km;
+      const since = nowS - (this._lastAt.get(p.stuffId) ?? nowS);
+      if (since > 0 && cat && this.allPassive(p)) {
+        const state = await cat.riverStateAt(at, nowS).catch(() => null);
+        km -= (Math.max(0, state?.currentMps ?? 0) * since) / 1000;
+      }
+      const d = Math.abs(km - pos.km) * 1000;
+      if (d <= hail && d < bestD) {
+        best = p;
+        bestD = d;
+      }
+    }
+    return best;
+  }
+
   private async mintPatch(pos: LinePosition): Promise<ReachPatch> {
     const patch = await this.serial(async () => {
       this._budRow = PATCH_ROW;
@@ -545,8 +579,14 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     // ⭐ The water within hail of somebody is never dry (the drive found a
     // patch at a bar's edge reading a margin of nothing, and `dive` told
     // "no open water"): a patch is at least wading water.
-    const floorM = MixinApi.isMovingPlace(place) && (place as unknown as ReachPatch).isUnderWay() ? MIN_PATCH_DEPTH_M : 0;
-    const depth = Math.max(floorM, state?.depthHereM ?? 1.4);
+    // ⭐ A patch under way is the water within hail — the river's whole
+    // width at a stretch — so its depth is the channel's, not the margin's
+    // where the swimmer came in (the drive: "shallow enough to stand in"
+    // in the middle of a long, deep pool, and no dive anywhere). A stop
+    // (a spot at a bank) keeps the margin's.
+    const underWay = MixinApi.isMovingPlace(place) && (place as unknown as ReachPatch).isUnderWay();
+    const floorM = underWay ? MIN_PATCH_DEPTH_M : 0;
+    const depth = Math.max(floorM, (underWay ? state?.depthM : state?.depthHereM) ?? 1.4);
     place.setWater({ of: node, depthM: Math.round(depth * 100) / 100 });
     // ⭐ The place moved under whoever stood in it: deeper now, the bed
     // lets them go (the drive found a swimmer standing in a deep pool).
@@ -910,7 +950,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   private async mergeInto(patch: ReachPatch): Promise<boolean> {
     const pos = patch.getLinePosition();
     if (pos === null) return false;
-    const other = await this.patchNear(pos, patch);
+    const other = await this.patchNearNow(pos, patch);
     if (other === null) return false;
     const [keep, fold] = other.stuffId < patch.stuffId ? [other, patch] : [patch, other];
     for (const c of [...(fold as unknown as Stuff & Container).getContents()]) {

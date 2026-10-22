@@ -37,6 +37,12 @@ export interface PassageRequest {
   landing: string | null;
   /** Her speed through the water, m/s. */
   throughWaterMps: number;
+  /**
+   * ⭐ `slow`: through snag water she is held to the speed her people can
+   * read the water at (never faster over the ground than the snags can be
+   * seen) — and runs at her speed everywhere else.
+   */
+  slow?: boolean;
   /** Her hull: draft now (laden), beam and length, m. */
   draftM: number;
   beamM: number;

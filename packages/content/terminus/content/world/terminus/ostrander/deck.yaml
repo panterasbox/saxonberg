@@ -35,7 +35,7 @@ data:
       destination: /system/water/location/reach/patch
   details:
     river:
-      keywords: [river, water, side, over, rail]
+      keywords: [river, water, rail]
       description: |
         Below the rail, the Kestrel, brown and quick, going by.
     wheel:

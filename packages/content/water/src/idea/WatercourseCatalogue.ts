@@ -1369,15 +1369,18 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       if (state.depthHereM < req.draftM) {
         return stopAt(entryKm, t, 'aground', `She takes the ground. The channel here has less water in it than she draws, and she is hard aground.`);
       }
-      const sog = up ? req.throughWaterMps - state.currentMps : req.throughWaterMps + state.currentMps;
+      const clarityM = dial('water.river.clarityM', 6);
+      const day = isDay(nowS);
+      const sight = clarityM * 0.4 * (day ? 1 : 0.25);
+      const full = up ? req.throughWaterMps - state.currentMps : req.throughWaterMps + state.currentMps;
+      // `slow` through a choked reach: no faster over the ground than the
+      // water can be read — engine eased, still stemming the current.
+      const sog = req.slow === true && s.obstruction > SNAG_CHOKED ? Math.min(full, sight) : full;
       if (sog <= 0.05) {
         return stopAt(entryKm, t, 'stemmed', 'She cannot stem the current here: the paddles turn and the bank stands still. She holds where she is.');
       }
       // A snag she cannot see in time (D29): broken water over a fouled bed
       // at more speed than the eye can read the water ahead.
-      const clarityM = dial('water.river.clarityM', 6);
-      const day = isDay(nowS);
-      const sight = clarityM * 0.4 * (day ? 1 : 0.25);
       if (s.obstruction > SNAG_CHOKED && sog > sight) {
         // ⭐ The master's choice, not the engine's: coming up to a choked
         // reach she stops at its edge, where her people can see the snags

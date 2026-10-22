@@ -48,7 +48,7 @@ data:
   # row). The rail is a feature, not water.
   details:
     sea:
-      keywords: [sea, water, side, over]
+      keywords: [sea, water]
       description: |
         Below the rail, the water.
     gunwale:

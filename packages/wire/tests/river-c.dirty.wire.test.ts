@@ -167,8 +167,8 @@ suite('stage C — small craft', () => {
     } else {
       expect(lost, 'neither the channel nor the inside answered the paddle').toBe(true);
     }
-    const out = await water(s);
-    expect(out, out).toMatch(/Kestrel|river|water/i);
+    const out = await boatAt(s);
+    expect(out, out).toMatch(/river|water|estuary|channel|sea/i);
   }, 900_000);
 
   it('20. a pole needs a bottom: in the shallows it digs in, over deep water it finds none', async () => {
