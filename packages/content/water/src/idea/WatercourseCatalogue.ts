@@ -1335,7 +1335,10 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       const bend = line.bendAt((s.upKm + s.downKm) / 2);
       if (bend === null) continue;
       const radiusM = ((bend.upKm - bend.downKm) * 1000) / 2;
-      if (req.lengthM > radiusM / 2) {
+      // A bend's radius is about half its length along the river; a hull
+      // longer than that radius cannot be swung round it (the drive's
+      // 38 m steamer was refused at a 127 m bend under the old radius/2).
+      if (req.lengthM > radiusM) {
         return { refused: `She is too long to get round ${bend.name ?? 'the bend above'}; she would put her bow in one bank and her stern in the other.` };
       }
     }

@@ -60,7 +60,7 @@ export default class SeaRoom extends SeaRoomBase {
    */
   public alongsideCraft(): Stuff | null {
     const self = this as unknown as Stuff & Exitable;
-    for (const exit of self.getExits()) {
+    for (const exit of self.getExits().values()) {
       const way = exit as unknown as { getWay?(): string; getTarget?(): string };
       if (way.getWay?.() !== 'deck') continue;
       const ship = NavigationApi.structureAtNow(way.getTarget?.() ?? '');

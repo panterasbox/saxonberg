@@ -233,6 +233,12 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return this._bankStood;
     }
 
+    /** A player put down on a bank (a login, a spawn) is using it too. */
+    public onContainableAdded(thing: unknown): void {
+      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+      if (this.bank !== null && MixinApi.isHasInteractive(thing as Stuff)) void this.bankStood();
+    }
+
     /** Arriving on a bank is using it: its way into the river is put in place. */
     public onEntered(mover: unknown, via: unknown): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);

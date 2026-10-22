@@ -5,7 +5,8 @@
 # worked out when it was set rides with it — so she goes on steaming with
 # nobody aboard, and across a restart.
 #
-# She draws two feet light (0.6 m) — a sternwheeler floats on a heavy dew —
+# She draws sixteen inches light (0.4 m) — a sternwheeler floats on a heavy
+# dew — the riffles below the woodyard carry half a metre in a wet month;
 # and more laden; in a dry August the
 # channel at Hob's Bend has less than that. She burns cordwood from the
 # bunker on her deck.
@@ -29,6 +30,6 @@ data:
   line: /stuff/idea/Watercourse/kestrel
   linePosition: { course: kestrel, km: 8.82, across: 20 }
   speedKn: 6
-  hull: { draftM: 0.6, beamM: 7, lengthM: 38 }
+  hull: { draftM: 0.4, beamM: 7, lengthM: 38 }
   fuel: { material: /stuff/idea/material/wood, kgPerKm: 6 }
   bunker: /world/terminus/ostrander/thing/bunker

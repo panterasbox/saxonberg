@@ -37,8 +37,11 @@ export default class LieController extends CommandController<LieModel> {
     // D13; the drive found `lie` in a fast shallows lying down ON the bed):
     // standing or not, the river has you and you float.
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    // A patch of river carried with the current reads no current of its
+    // own (it moves WITH the water): under way, it is moving water.
+    const carried = room !== null && MixinApi.isMovingPlace(room) && room.isUnderWay();
     const moving = target instanceof WaterSurface && room !== null && MixinApi.isWaterPlace(room) &&
-      Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS;
+      (carried || Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS);
     if ((target instanceof WaterSurface && (!target.supports(giver) || moving)) || floatingAsked) {
       if (!MixinApi.isRespiration(giver)) {
         return this.refuse(context, 'act.deed', 'You cannot float.', 'not-a-swimmer');

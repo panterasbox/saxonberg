@@ -19,10 +19,6 @@ data:
       keywords: [river, kestrel, water]
       description: |
         Clear as glass over the stones and very fast, with the snow's cold still in it. You can see every stone on the bottom, and you can see how quickly they go by.
-    canoes:
-      keywords: [canoes, upturned]
-      description: |
-        A dozen of them, bark and canvas, turned turtle on the shingle with their paddles under them. The outfitter's.
   exits:
     up:
       destination: /world/terminus/rejection/kestrel-road/upper-climb

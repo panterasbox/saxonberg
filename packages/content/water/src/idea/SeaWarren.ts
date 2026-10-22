@@ -122,7 +122,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   public async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
     const room = [...this._rooms].find((r) => (r as unknown) === (from as unknown)) ?? null;
     if (room === null || !MixinApi.isExitable(room)) return null;
-    for (const exit of (room as unknown as Exitable).getExits()) {
+    for (const exit of (room as unknown as Exitable).getExits().values()) {
       const way = exit as unknown as Partial<SeaRoomExit>;
       if (way.getWay?.() !== 'deck') continue;
       if ((await this.refusalFor(exit as unknown as SeaRoomExit)) !== null) continue;

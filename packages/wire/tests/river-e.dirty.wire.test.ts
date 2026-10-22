@@ -112,8 +112,13 @@ suite('stage E — the ferry, and the sea', () => {
     const r = await s.cmd('go across');
     const said = squash(await r.said());
     expect(r.status, said).toBe('ok');
-    await s.listen(5_000);
-    const there = await look(s);
+    // The crossing takes as long as a pole takes her over.
+    let there = '';
+    for (let i = 0; i < 12; i++) {
+      await s.listen(5_000);
+      there = await look(s);
+      if (/Nesbit's landing/i.test(there)) break;
+    }
     expect(there, there).toMatch(/Nesbit's landing|hard of packed gravel/i);
   }, 300_000);
 
@@ -122,6 +127,7 @@ suite('stage E — the ferry, and the sea', () => {
     // far bank calls the ferry over.
     const rider = open[0]!;
     expect((await rider.cmd('go across')).status).toBe('ok');
+    for (let i = 0; i < 12 && !/lower towpath/i.test(await look(rider)); i++) await rider.listen(5_000);
     const caller = await session(uniqueHandle('reb'), NESBIT);
     const refused = await caller.cmd('go across');
     expect(squash(await refused.said())).toMatch(/Ring the bell/);

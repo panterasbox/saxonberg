@@ -621,6 +621,11 @@ function applyOverrides(stretches: Draft[], input: LineCourseInput, dials: LineD
       if (o.kind) {
         s.kind = o.kind;
         if (o.kind !== 'gorge') s.flow = o.kind;
+        // ⭐ An authored riffle is a riffle in the WATER too, not only its
+        // name (the drive's ford, a pool's gradient relabelled, was a slow
+        // deep pool that went over a wader's head before it ever took
+        // their feet): the drop gathers into the step.
+        if (o.kind === 'riffle') s.gradient = Math.max(s.gradient, dials.rapidGradient / 2);
       }
       if (o.banks === 'walls') {
         s.banks = { left: wall(), right: wall() };
