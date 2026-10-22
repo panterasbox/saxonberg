@@ -232,8 +232,10 @@ async function clayFor(s: Session, n: number): Promise<Session> {
   }
   expect(await held(at), 'a spade from the pit').toMatch(/spade/i);
   for (let i = 0; i < n; i++) await act(at, 'dig clay with spade', '2 minutes');
-  // The won clay lies where it fell.
-  await say(at, 'get clay');
+  // The won clay lies where it fell — take what was won, not the gang's
+  // heap with it: a bare `get clay` handed the potter 75 kg (run 19), and
+  // then nothing — not even a mug — could be lifted.
+  await say(at, `get ${n} clay`);
   // ⭐ The spade is the pit's: leave it for the next hand (the NPC brains
   // do). Two drive potters carrying spades off left the pit with none.
   await say(at, 'drop spade');

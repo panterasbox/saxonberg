@@ -137,6 +137,20 @@ describe('the wheel and the hand', () => {
   });
 });
 
+describe('what is left of the heap', () => {
+  it('⭐ stays in lumps of about their size — never one lump of everything', async () => {
+    // Run 19: nine lumps shaped once left a potter holding ONE 75 kg "lump".
+    const { shed, actor, clay } = await standUp('proficient', 8);
+    clay.setQuantity(9); // nine 8 kg lumps, 72 kg
+    const wheel = await wheelIn(shed);
+    await run(await wheel.shapePlanFor({ actor, material: clay, formText: 'mug', commandText: '' }));
+    expect(clay.clayKg()).toBeLessThan(72);
+    expect(clay.clayKg()).toBeGreaterThan(70);
+    expect(clay.getQuantity()).toBe(9);
+    expect(clay.getMass().rawValue()).toBeLessThanOrEqual(8);
+  });
+});
+
 describe('a day at the brick table', () => {
   async function table(shed: Place): Promise<BrickTable> {
     const t = makeStuff(() => new BrickTable());

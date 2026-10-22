@@ -482,8 +482,13 @@ export default class Clay extends ClayBase implements Shapeable {
       void StuffApi.destruct(this as unknown as Stuff);
       return;
     }
-    if (this.getQuantity() > 1) this.setQuantity(1);
-    this.setMass(Quantity.of(left, 'kg'));
+    // ⭐ What is left stays in LUMPS of about the size they were: collapsing
+    // the heap to one lump of everything that was left handed a potter a
+    // single 75 kg "lump of clay" off nine (the ceramics drive, run 19).
+    const each = this.getMass().rawValue();
+    const lumps = each > 0 ? Math.max(1, Math.ceil(left / each - 1e-9)) : 1;
+    if (this.getQuantity() !== lumps) this.setQuantity(lumps);
+    this.setMass(Quantity.of(left / lumps, 'kg'));
   }
 
   /**

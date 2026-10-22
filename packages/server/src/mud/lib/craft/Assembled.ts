@@ -477,11 +477,15 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
       joints.map((j) => jointRow(j.method)?.label ?? j.method).filter((m) => m),
     ),
   ];
-  sentences.push(
-    GrammarApi.cap(
-      `It is made of ${made}${methods.length > 0 ? `, ${GrammarApi.joinList(methods)}` : ''}.`,
-    ),
-  );
+  // Nothing seated yet (a jug whose one line is the handle it wants) has no
+  // "made of" to say — the line read "It is made of ." (ceramics, run 19).
+  if (present.length > 0) {
+    sentences.push(
+      GrammarApi.cap(
+        `It is made of ${made}${methods.length > 0 ? `, ${GrammarApi.joinList(methods)}` : ''}.`,
+      ),
+    );
+  }
   for (const l of wanted) {
     sentences.push(GrammarApi.cap(`It wants ${GrammarApi.articleFor(l.part)} ${l.part}.`));
   }
