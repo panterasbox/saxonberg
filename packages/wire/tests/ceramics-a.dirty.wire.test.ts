@@ -320,11 +320,23 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
   }, 7_200_000);
 
   it('5b. ⭐ the brick left wet under the hack cover across the frost burst', async () => {
-    // ⚠ Rain never reached it (the canvas), so a ruin here is the FROST's.
+    // ⚠ A brick made in SPRING is dry long before winter (about two weeks
+    // under the cover), and a dry brick takes a frost — so the drive makes
+    // a fresh one NOW, in the winter the last checkpoint reached, leaves it
+    // wet under the cover, and lets a frost find it. Rain never reaches it
+    // (the canvas), so a ruin here is the FROST's.
+    await toHour(9, 15);
     await say(digger, 'east');
     await say(digger, 'east');
+    await act(digger, 'shape clay into brick', '9 hours');
+    await say(digger, 'get 1 brick');
     await say(digger, 'south');
-    const hackBrick = await examine(digger, 'here:i:brick');
+    await say(digger, 'drop 1 brick');
+    let hackBrick = '';
+    for (let half = 0; half < 20 && !/frost has burst|froze wet/i.test(hackBrick); half++) {
+      await advance('12 hours');
+      hackBrick = await examine(digger, 'here:i:brick');
+    }
     expect(hackBrick, 'the hack brick after the winter').toMatch(/frost has burst|froze wet/i);
     expect(hackBrick).not.toMatch(/slumped/i);
     await say(digger, 'north');
@@ -358,6 +370,8 @@ suite('⭐ 3 — knead it', () => {
   }, 900_000);
 
   it('a second batch of fat clay is kept back with NO sand in it', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // The shed's raw lumps are the no-sand batch: nothing was trodden into them.
     await say(digger, 'east');
     const raw = await examine(digger, 'here:i:clay');
@@ -374,6 +388,8 @@ async function s_namesIn(s: Session, container: string): Promise<string[]> {
 
 suite('⭐ 4 — shape it', () => {
   it('`shape clay into brick` at the table — a durative day, a pallet of green bricks, a muddy moulder', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // The tempered clay is in hand (fetched from the pit in 3).
     await say(digger, 'east');
     const beforeMe = await examine(digger, 'me');
@@ -391,6 +407,8 @@ suite('⭐ 4 — shape it', () => {
   }, 900_000);
 
   it('the fat, no-sand batch is moulded too', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // The shed's raw lump — fat, unweathered, no sand.
     expect(await say(digger, 'get 1 clay')).toMatch(/pick up|clay/i);
     const day = await act(digger, 'shape clay into brick', '9 hours');
@@ -400,6 +418,8 @@ suite('⭐ 4 — shape it', () => {
 
 suite('⭐ 6 — dry them', () => {
   it('into the hacks; weeks later leather-hard, then bone-dry — and the fat batch has cracked', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     const got = await say(digger, 'get bricks');
     expect(got).toMatch(/pick up|brick/i);
     await say(digger, 'get bricks');
@@ -427,6 +447,8 @@ suite('⭐ 6 — dry them', () => {
 
 suite('⭐ 7 — fire the clamp', () => {
   it('set, light and burn the clamp; at night it glows from the hacks, and its smoke carries', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // ⭐ The setter is trained (a better setter, fewer clinkers — the share
     // is the setter's band, `BrickClamp.onFireStart`).
     for (let i = 0; i < 12; i++) await digger.cmd('practice brickmaking hard success');
@@ -458,6 +480,8 @@ suite('⭐ 7 — fire the clamp', () => {
   }, 3_600_000);
 
   it('⭐ drawn cold, the bricks come out in three grades by where they sat', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     await say(digger, 'douse clamp');
     await advance('1 day');
     const drawn = await say(digger, 'get bricks from clamp');
@@ -470,6 +494,8 @@ suite('⭐ 7 — fire the clamp', () => {
   }, 600_000);
 
   it('⭐ `ring` a well-burnt brick — it rings; a place brick sounds dead', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     const names = await held(digger);
     const sound = names.find((n) => /earthenware/i.test(n));
     const place = names.find((n) => /terracotta/i.test(n));
@@ -487,6 +513,8 @@ suite('⭐ 7 — fire the clamp', () => {
 
 suite('⭐ 8 — reduce the draught: blue brick', () => {
   it('a second clamp fired starved of air comes out blue', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // The first clamp's bricks stay on the clamp ground (9 measures them).
     await say(digger, 'drop bricks');
     // A second load: clay from the pit, a day at the table, the hacks.
@@ -533,6 +561,8 @@ suite('⭐ 9 — measure against the statute brick', () => {
   }
 
   it('⭐ a sound brick measures to Terminus’s statute brick', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // A trained reader — an untrained eye's ±8 % blurs a small error away.
     for (let i = 0; i < 12; i++) await digger.cmd('practice brickmaking hard success');
     await digger.drainProse();
@@ -553,6 +583,8 @@ suite('⭐ 9 — measure against the statute brick', () => {
   }, 900_000);
 
   it('⭐ a brick off the old pit’s oversize mould measures OFF STANDARD', async () => {
+    // Read by daylight: in the dark a query sees nothing (perception gates the read).
+    await toHour(9, 15);
     // Clamp ground → hacks → shed → temper → yard → pit: a lump of clay.
     for (const d of ['west', 'north', 'west', 'west', 'south']) await say(digger, d);
     await act(digger, 'dig clay with spade', '2 minutes');
