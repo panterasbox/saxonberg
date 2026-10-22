@@ -28,6 +28,10 @@ data:
         mould: hogshead
         pot: pot
         fuels: [bagasse, log]
+        # Keep the bed charged: the train burns at twenty kilowatts only on
+        # some fourteen kilos of fuel (1.5 kW a kilo); a log at a time ran it
+        # at three, and a batch never reached syrup.
+        charge: 14
         source: juice
         finish: block
         counter: /world/terminus/waponi-woo/thing/stock

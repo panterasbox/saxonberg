@@ -62,6 +62,14 @@ interface Words {
   counter: string;
   out: string;
   back: string;
+  /**
+   * ⭐ The working charge, kg — what a stoker keeps in the bed. A fire
+   * burns at most its fuel's mass × the per-kilo rate, so one log at a
+   * time runs a twenty-kilowatt train at three (probed: four game hours on
+   * the fire and the juice still "thin and watery"). Absent, the boiler
+   * stokes when the bed is empty (the Terminus arch, a single pan).
+   */
+  charge?: number;
 }
 
 const TERMINUS: Words = {
@@ -264,7 +272,10 @@ export const brain = class {
       copper,
       onFire: !!copper && fire !== null && placedOn(copper) === fire,
       fireLit: !!fire && MixinApi.isBurner(fire) && fire.isLit(),
-      fireFuelled: !!fire && MixinApi.isBurner(fire) && fire.fuelRemaining() > 0,
+      fireFuelled:
+        !!fire &&
+        MixinApi.isBurner(fire) &&
+        (w.charge ? fire.fuelRemaining() >= w.charge : fire.fuelRemaining() > 0),
       liquor,
       limed,
       skimmed,
