@@ -108,6 +108,18 @@ describe('the weather', () => {
     expect(p.isFireable()).toBe(false);
   });
 
+  it('⭐ a storm that soaks it and passes slumps it, though it dried back before the look', () => {
+    // The ceramics drive (run 16): rain on the open yard, the brick read two
+    // hours later — dried back to where it was, so two reads saw no rise.
+    const p = piece(0.9);
+    p.reconcileGreen();
+    advance(3600);
+    p.wet(0.4);
+    advance(7200);
+    p.wet(-0.4); // dried back: the same wetness as at the last look
+    expect(p.getRuin()).toBe('slumped');
+  });
+
   it('⭐ a wet piece across a frost shatters; a bone-dry one does not', () => {
     const wet = piece(0.8);
     const dry = piece(0.52);

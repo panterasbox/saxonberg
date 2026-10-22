@@ -28,6 +28,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Wet } from '../wetness/Wet';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
@@ -136,7 +137,7 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base: TBase) {
   class GreenwareMixin extends Base implements Greenware {
     static _mixinName = 'GreenwareMixin';
 
@@ -159,6 +160,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       greenCheckedS: { persistent: true, runtimeState: true },
       greenLastDryness: { persistent: true, runtimeState: true },
       greenLastWetness: { persistent: true, runtimeState: true },
+      greenWetted: { persistent: true, runtimeState: true },
       greenWork: { persistent: true, runtimeState: true },
     };
 
@@ -286,6 +288,20 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
     public greenCheckedS = 0;
     public greenLastDryness = 0;
     public greenLastWetness = 0;
+    /** Water that reached it (rain, a pour) since the last look, in saturation. */
+    public greenWetted = 0;
+
+    /**
+     * ⭐ The rain is an EVENT on the piece, not a difference of two reads: a
+     * storm that soaks a green brick and passes, and the brick drying back
+     * before anyone looks, still slumped it. Comparing wetness at the two
+     * reads missed exactly that (the ceramics drive, run 16: a storm on the
+     * open yard, the brick read two hours later, unslumped).
+     */
+    public wet(delta: number): void {
+      super.wet(delta);
+      if (delta > 0 && this.greenRuin === null) this.greenWetted += delta;
+    }
 
     /** Reentry guard: a reconcile reads the body, which may reconcile. */
     private _greenReconciling = false;
@@ -372,6 +388,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
           this.greenCheckedS = nowS;
           this.greenLastDryness = dry;
           this.greenLastWetness = wet;
+          this.greenWetted = 0;
           return;
         }
         const fromS = this.greenCheckedS;
@@ -387,7 +404,8 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
           }
         }
         const wetPiece = Math.min(dry, this.greenLastDryness) < greenDial(AppSettingKeys.greenBoneDryAt, 0.85);
-        if (wet > this.greenLastWetness + greenDial(AppSettingKeys.greenSlumpWetting, 0.15)) {
+        const wetting = Math.max(wet - this.greenLastWetness, this.greenWetted);
+        if (wetting > greenDial(AppSettingKeys.greenSlumpWetting, 0.15)) {
           this.greenRuin = 'slumped';
         } else if (wetPiece && (minK < 273.15 || maxK > 373.15)) {
           this.greenRuin = 'shattered';
@@ -403,6 +421,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         this.greenCheckedS = nowS;
         this.greenLastDryness = dry;
         this.greenLastWetness = wet;
+        this.greenWetted = 0;
       } finally {
         this._greenReconciling = false;
       }

@@ -228,7 +228,13 @@ export default class DropController extends CommandController<DropModel> {
     // ⭐ (ceramics M5) It FALLS — and a brittle thing may break, by its
     // strength against the fall and the floor it lands on. `put` and `get`
     // never call this: nothing breaks from being handled.
-    if (context.location !== null) void landDrop(operand, context.location, giver);
+    // ⚠ Detached, so it must never throw out: an unhandled rejection here
+    // took a whole world down (the ceramics drive, run 16).
+    if (context.location !== null) {
+      landDrop(operand, context.location, giver).catch((err: unknown) =>
+        console.warn('DropController: the fall failed:', err),
+      );
+    }
     return true;
   }
 }
@@ -238,12 +244,17 @@ export default class DropController extends CommandController<DropModel> {
  * controller is one ephemeral clone and the blow is async.
  */
 async function landDrop(item: Stuff, room: Stuff, by: Stuff): Promise<void> {
-  if (!MixinApi.isTangible(item)) return;
+  // ⭐ A dropped piece can MERGE into a like stack on the floor and be gone
+  // by now (a brick onto the hacks' brick stack): the stack it joined did
+  // not fall, so there is nothing to land.
+  if (item.isDestroyed() || !MixinApi.isTangible(item)) return;
+  const kg = item.getMass()?.rawValue();
+  if (typeof kg !== 'number' || !(kg > 0)) return;
   const floor = (MixinApi.isAdornable(room) ? room.getFloor() : null) as Stuff | null;
   const surface = floor !== null && MixinApi.isTangible(floor) ? floor.getMaterial() : null;
   const heightM = dropDial(AppSettingKeys.impactDropHeightM, 1);
   const out = await item.sufferImpact({
-    energyJ: item.getMass().rawValue() * 9.81 * heightM,
+    energyJ: kg * 9.81 * heightM,
     surface,
     cause: 'drop',
   });
