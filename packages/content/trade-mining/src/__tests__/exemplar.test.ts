@@ -399,6 +399,10 @@ describe('the venue itself', () => {
      * demonstration of the same one field — a trade nobody had written
      * when the quarry's was authored took the pattern and needed no
      * code either.
+     *
+     * ⭐ The ninth is the **put-in** (the river build): the outfitter's
+     * landing on the Kestrel below the pass, a bank on the river's line in
+     * a zone of its own. Authored ground like the rest.
      */
     expect(zones.sort()).toEqual([
       'content/world/terminus/rejection.yaml',
@@ -407,6 +411,7 @@ describe('the venue itself', () => {
       'content/world/terminus/rejection/hush.yaml',
       'content/world/terminus/rejection/kestrel-road.yaml',
       'content/world/terminus/rejection/location.yaml',
+      'content/world/terminus/rejection/put-in.yaml',
       'content/world/terminus/rejection/quarry.yaml',
       'content/world/terminus/rejection/sand-pit.yaml',
     ]);
