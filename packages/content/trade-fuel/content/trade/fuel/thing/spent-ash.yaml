@@ -1,0 +1,14 @@
+# Spent ash — what is left in a lye hopper once the water has taken the
+# alkali out of the ash (potash D6). Heavier and darker than it went in,
+# and worthless to a soapmaker; a farmer would spread it (soil's missing
+# potassium reserve is that seam).
+class: /platform/thing/Good
+data:
+  shortDescription: heap of spent ash
+  keywords: ["spent ash", "spent ashes", heap, "heap of spent ash"]
+  register: indefinite
+  longDescription: >-
+    Wet grey ash, packed down and leached out. Whatever bite it had went
+    into the lye.
+  _materialPath: /stuff/idea/material/organic/spent-ash
+  mass: 0.55

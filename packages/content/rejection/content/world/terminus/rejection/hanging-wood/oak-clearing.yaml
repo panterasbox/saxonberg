@@ -29,6 +29,9 @@ data:
       # for a tanpit. The tanning trade's whole feedstock comes off this
       # one line.
       barkPath: /trade/forestry/thing/bark
+      # ⭐ The crown's twigs, trimmed where it lies (potash D18) — the ash
+      # pit's best feed.
+      brashMaterialPath: /stuff/idea/material/wood/oak-brash
       standing: 12
       capacity: 14
       incrementPerYear: 1
@@ -36,6 +39,7 @@ data:
       name: ash
       woodMaterialPath: /stuff/idea/material/wood/ash
       seedPath: /trade/forestry/thing/seed/ash-key
+      brashMaterialPath: /stuff/idea/material/wood/ash-brash
       standing: 4
       capacity: 6
       incrementPerYear: 1
@@ -43,6 +47,10 @@ data:
     south:
       destination: /world/terminus/rejection/hanging-wood/ride
       edgeMinutes: 3
+    # ⭐ The ashery (potash D16), west of the big oaks.
+    west:
+      destination: /world/terminus/rejection/hanging-wood/ashery
+      edgeMinutes: 2
   props:
     - /world/terminus/rejection/hanging-wood/thing/panel-north
   details:

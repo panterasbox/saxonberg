@@ -35,8 +35,11 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     const target = model.target?.stuff ?? null;
     const room = context.location ?? null;
 
-    if (target !== null && MixinApi.isFlued(target)) {
-      return this.sweepHearth(target, brush, room, context);
+    // ⭐ Any fire's grate is raked — a pit, a brazier, a hearth (found by the
+    // potash drive: an ash pit, having no flue, was swept as FLOOR and its
+    // ash could never come out). Only a flued one takes the brush.
+    if (target !== null && (MixinApi.isFlued(target) || MixinApi.isBurner(target))) {
+      return this.sweepHearth(target, brush && MixinApi.isFlued(target), room, context);
     }
     const floor =
       target !== null && MixinApi.isFloor(target)
@@ -104,7 +107,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     context: CommandContext,
   ): void {
     const giver = context.commandGiver;
-    if (!MixinApi.isFlued(hearth)) return;
+    if (!MixinApi.isFlued(hearth) && !MixinApi.isBurner(hearth)) return;
     this.engageStep(context, {
       durationMs: SWEEP_MS * (brush ? 3 : 1),
       effortW: brush ? 400 : 200,
@@ -119,8 +122,7 @@ export default class SweepController extends ManualBuildController<SweepModel> {
 
   /** ⚠ STATIC (completions run on a destructed controller). */
   private static async finishHearth(giver: Stuff, hearth: Stuff, brush: boolean): Promise<void> {
-    if (!MixinApi.isFlued(hearth)) return;
-    if (brush) {
+    if (brush && MixinApi.isFlued(hearth)) {
       // ⭐ The chimney's own act: soot onto the floor and your hands.
       const { sootKg } = await hearth.sweepChimney(giver);
       MessageApi.scene(giver)
@@ -134,9 +136,11 @@ export default class SweepController extends ManualBuildController<SweepModel> {
         .send();
       return;
     }
+    if (!MixinApi.isBurner(hearth)) return;
     // ⭐ The grate's own act: the ash into your hands, the hearth owner's.
     const { ash } = await hearth.rakeGrate(giver);
-    if (!ash) {
+    const first = ash[0];
+    if (!first) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`There is hardly any ash in the grate. It wants a brush up the flue, maybe, but not raking.`)
@@ -145,7 +149,11 @@ export default class SweepController extends ManualBuildController<SweepModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You rake the grate out into ${Mml.thing(ash)}.`)
+      .toSelf(
+        ash.length === 1
+          ? Mml.compose`You rake the grate out into ${Mml.thing(first)}.`
+          : Mml.compose`You rake the grate out into ${String(ash.length)} heaps of ash.`,
+      )
       .toPeers(Mml.compose`${Mml.actor(giver)} rakes out the grate.`)
       .send();
   }

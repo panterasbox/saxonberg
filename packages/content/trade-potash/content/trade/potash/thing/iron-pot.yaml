@@ -1,0 +1,24 @@
+# The ashery's iron pot (potash D11) — a squat cast-iron cauldron a lye is
+# boiled down in. Stand it on the hearth, pour the lye in, and keep the fire
+# up: the lye holds at the boil and the water goes off as steam until a
+# cake of black salts is left in the bottom, the shape of the pot. A strong
+# lye gives a heavy cake; a weak one a thin crust and a great deal of wood.
+class: /trade/potash/thing/IronPot
+data:
+  shortDescription: iron pot
+  keywords: ["iron pot", pot, cauldron, "potash kettle"]
+  register: indefinite
+  longDescription: >-
+    A squat cast-iron cauldron on three stubby legs, black with soot
+    outside and crusted brown within, with a ring of white salt dried
+    round the inside of its lip.
+  interiorBulk: true
+  interiorCapacity: 40
+  # ⚠ liquidTight, not open: an open vessel lets a poured liquid run
+  # through (the closure ladder). The steam leaves by the boil.
+  closure: liquidTight
+  castTemplate: /trade/potash/thing/black-salts
+  reusable: true
+  discipline: ashery
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 40

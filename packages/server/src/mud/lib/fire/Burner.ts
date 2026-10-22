@@ -94,6 +94,10 @@ const BURNER_DEFAULTS = {
  */
 const UNSTAMPED = -1;
 
+/** The material a raked heap's alkali is counted as when the setting is
+ * unread (potash D1): potassium carbonate, the commons row. */
+const DEFAULT_ASH_ALKALI = '/stuff/idea/material/mineral/potash';
+
 /**
  * Below a gram of fuel a fire is out. ⚠ Not tidiness: see the burnout
  * edge in `reconcileBurnerFuel`. Once the bed's mass stops binding
@@ -159,14 +163,29 @@ export interface Burner extends Pumpable {
   completeness(): number;
   /** The ash in the grate, kg (cleanliness D24). */
   getAshKg(): number;
+  /** The alkali in that ash, kg (potash D1) — the mass-weighted mix of
+   * what burned, each material's `ashFraction × alkaliShare`. */
+  getAshAlkaliKg(): number;
   /** Rake the grate: the ash's kg, and the grate left clean. */
   takeAsh(): number;
   /**
-   * ⭐ Rake the grate (cleanliness D24, B40): the ash into the raker's hands,
-   * MADE FROM this burner (so its owner's), ash on the raker's hands, the
-   * room kept. `ash` is `null` when there was hardly any.
+   * ⭐ Rake the grate (cleanliness D24, B40): the ash into the raker's hands
+   * as heaps of `fire.ash.heapKg` (potash D4), MADE FROM this burner (so its
+   * owner's), ash on the raker's hands, the room kept. `ash` is empty when
+   * there was hardly any.
    */
-  rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff | null }>;
+  rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff[] }>;
+  /**
+   * ⭐ Mint `kg` of ash carrying `alkaliKg` of alkali as heaps of
+   * `fire.ash.heapKg` (potash D3, D4) — the grate's rake and a clamp's
+   * failed burn share it, so ash is the same thing whoever made it. Each
+   * heap is `madeFrom` what made it and lands in `into`.
+   */
+  mintAshHeaps(
+    kg: number,
+    alkaliKg: number,
+    opts: { template: string; madeFrom: Stuff[]; into: Stuff | null },
+  ): Promise<Stuff[]>;
   /**
    * What the ash in the grate does to the draught, `(0, 1]` — 1 while the
    * grate is clear. A deep ash bed starves the fire of air from below, so a
@@ -383,6 +402,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       flameEnclosed: { persistent: true, authorable: true },
       burnerFuelClockStamp: { persistent: true, runtimeState: true },
       ashKg: { persistent: true, runtimeState: true },
+      ashAlkaliKg: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -391,18 +411,28 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
      * whoever sweeps the hearth — the first input of lye.
      */
     public ashKg = 0;
+    /**
+     * ⭐ The alkali in that ash, kg (potash D1): accrued beside `ashKg` from
+     * each burnt material's `alkaliShare`, so the raked heap's strength is
+     * the mass-weighted mix of what burned — beech strong, pine weak.
+     */
+    public ashAlkaliKg = 0;
 
     /** The ash lying in the grate, kg. */
     public getAshKg(): number {
       return this.ashKg;
     }
+    public getAshAlkaliKg(): number {
+      return this.ashAlkaliKg;
+    }
 
-    /** Rake the grate: hand back the ash's kg and leave it clean. */
-    public async rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff | null }> {
+    /** Rake the grate: the ash into the raker's hands, in heaps. */
+    public async rakeGrate(raker: Stuff): Promise<{ kg: number; ash: Stuff[] }> {
       const self = this as unknown as Stuff;
+      const alkaliKg = this.ashAlkaliKg;
       const kg = this.takeAsh();
       if (MixinApi.isHygienic(raker)) raker.soilFrom([{ kind: 'ash', amount: 0.15, where: 'hands' }]);
-      if (!(kg > 0.01)) return { kg, ash: null };
+      if (!(kg > 0.01)) return { kg, ash: [] };
       const template = (() => {
         try {
           return AppApi.setting(AppSettingKeys.cleanlinessAshTemplate) || '/trade/fuel/thing/wood-ash';
@@ -410,22 +440,55 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
           return '/trade/fuel/thing/wood-ash';
         }
       })();
-      const ash = await StuffApi.clone<Stuff>(template).catch(() => null);
-      if (!ash) return { kg, ash: null };
+      // Into the raker's hands (at their feet when they hold nothing).
+      const into = MixinApi.isContainer(raker) ? raker : MixinApi.isContainable(raker) ? raker.getContainer() : null;
       // ⭐ MADE FROM this burner, so the fresh-title rule makes it the
       // burner's owner's (B40).
-      if (MixinApi.isChattel(ash)) await ash.recordMadeFrom([self]);
-      if (MixinApi.isTangible(ash)) ash.setMass(Quantity.of(kg, 'kg'));
-      // Into the raker's hands (at their feet when they hold nothing).
-      const where = MixinApi.isContainer(raker) ? raker : MixinApi.isContainable(raker) ? raker.getContainer() : null;
-      if (where && MixinApi.isContainer(where) && MixinApi.isContainable(ash)) ContainmentApi.move(ash, where);
+      const ash = await this.mintAshHeaps(kg, alkaliKg, { template, madeFrom: [self], into });
       await PersistableApi.captureHostOf(self).catch(() => {});
       return { kg, ash };
+    }
+
+    public async mintAshHeaps(
+      kg: number,
+      alkaliKg: number,
+      opts: { template: string; madeFrom: Stuff[]; into: Stuff | null },
+    ): Promise<Stuff[]> {
+      if (!(kg > 0)) return [];
+      const unit = Math.max(burnerDial(AppSettingKeys.fireAshHeapKg, 0.6), 0.01);
+      const alkaliPath = (() => {
+        try {
+          return AppApi.setting(AppSettingKeys.fireAshAlkaliMaterial) || DEFAULT_ASH_ALKALI;
+        } catch {
+          return DEFAULT_ASH_ALKALI;
+        }
+      })();
+      const strength = Math.min(1, Math.max(0, alkaliKg / kg));
+      const heaps: Stuff[] = [];
+      let left = kg;
+      // ⭐ Countable heaps, the last the remainder — a dust under a hundredth
+      // of a heap joins the one before it rather than becoming its own.
+      while (left > 1e-9) {
+        const mass = left - unit < unit * 0.01 ? left : Math.min(unit, left);
+        left -= mass;
+        const heap = await StuffApi.clone<Stuff>(opts.template, undefined, { madeFrom: opts.madeFrom }).catch(
+          () => null,
+        );
+        if (!heap) break;
+        if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(mass, 'kg'));
+        if (MixinApi.isComposition(heap)) heap.setAlloying([{ materialPath: alkaliPath, fraction: strength }]);
+        if (opts.into && MixinApi.isContainer(opts.into) && MixinApi.isContainable(heap)) {
+          ContainmentApi.move(heap, opts.into);
+        }
+        heaps.push(heap);
+      }
+      return heaps;
     }
 
     public takeAsh(): number {
       const kg = this.ashKg;
       this.ashKg = 0;
+      this.ashAlkaliKg = 0;
       return kg;
     }
 
@@ -1032,8 +1095,13 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       for (const path of Object.keys(this.fuelBed)) {
         const mass = this.fuelBed[path] ?? 0;
         // ⭐ What burns leaves its ash in the grate (cleanliness D24).
-        const ash = StuffApi.findByTemplatePath<Material>(path)?.getAshFraction() ?? 0;
-        if (ash > 0) this.ashKg += mass * fraction * ash;
+        const material = StuffApi.findByTemplatePath<Material>(path);
+        const ash = material?.getAshFraction() ?? 0;
+        if (ash > 0) {
+          this.ashKg += mass * fraction * ash;
+          // ⭐ …and the alkali in it, by the same material (potash D1).
+          this.ashAlkaliKg += mass * fraction * ash * (material?.getAlkaliShare() ?? 0);
+        }
         const left = mass - mass * fraction;
         if (left > 1e-9) this.fuelBed[path] = left;
         else delete this.fuelBed[path];

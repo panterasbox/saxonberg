@@ -89,6 +89,11 @@ avatar.executeCommand(text, { interactive })          ← CommandGiverMixin
    │       await CommandApi.preloadValidatorDeps(cmd, ctx, ← async preload phase
    │             resolved, subcommandHint)
    │       CommandApi.runValidators(resolved, ctx)         → sync validators
+   │         a FIELD validator's refusal (an argument of the wrong kind)
+   │         → keep the first refusal; continue (try next match). The
+   │         first refusal stands if no later view claims the line; a
+   │         verb-level refusal (about the actor) still stops (potash,
+   │         2026-10-21: two views of `pour` now coexist by target)
    │       _executeOne:
    │         StuffApi.clone('/platform/idea/cmd/' + cmd.controller)
    │         await controller.execute(model, ctx)          ← returns void

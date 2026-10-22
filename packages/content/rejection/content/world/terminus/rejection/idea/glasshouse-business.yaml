@@ -20,3 +20,4 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/rejection/hanging-wood/glasshouse
+    - /world/terminus/rejection/hanging-wood/glasshouse/thing/counter

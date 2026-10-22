@@ -1,0 +1,20 @@
+# Eggshell — the blown, waxed shell of a test egg (potash D7). Chalk, in
+# effect: calcium carbonate laid down by a hen. Not food.
+class: /platform/idea/material/Material
+data:
+  name: eggshell
+  keywords: [eggshell, shell]
+  appearance: thin brown eggshell
+  density: 2500
+  specificHeat: 880
+  thermalConductivity: 0.4
+  hardness: 3
+  toughness: 1
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 2
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [solid, mineral, shell]
+  composition: []
+  biologicalSource: null

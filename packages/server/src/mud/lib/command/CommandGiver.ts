@@ -1072,6 +1072,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return outer;
       }
 
+      /** The first view that refused an argument, if a later one is tried. */
+      let firstRefused: CommandContext | undefined;
       for (const affordance of matches) {
         const command = affordance.command;
         const built = CommandApi.assemble(parsed, command, {
@@ -1086,6 +1088,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         }
         if ('error' in built) {
           if (built.error === 'shape') continue; // fall through
+          if (firstRefused) return firstRefused;
           // Bind / unknown-subcommand errors stop the chain. Emit on
           // the outer ctx — we never reached _executeOne for any
           // attempt.
@@ -1143,7 +1146,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           attempt,
           built.prep
         );
-        if ('result' in resolved) return attempt;
+        if ('result' in resolved) return firstRefused ?? attempt;
         const subcommandHint =
           typeof (resolved.resolved as { subcommand?: unknown }).subcommand === 'string'
             ? ((resolved.resolved as { subcommand?: string }).subcommand)
@@ -1159,7 +1162,24 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           attempt,
           preloads,
         );
-        if ('result' in validated) return attempt;
+        if ('result' in validated) {
+          // ⭐ Two views of one verb coexist BY TARGET: an argument of the
+          // wrong kind for this view is a question for the next one, not a
+          // refusal (found by the potash drive: holding a tallow crock put
+          // the shaker's `pour` first, and `pour crock into kettle` died on
+          // "isn't a vessel you can work in" while the bulk `pour` never
+          // ran). A refusal about the ACTOR stops here; only a field's
+          // refusal falls through, and the first one stands if nobody
+          // claims the line.
+          const fieldRefused = attempt
+            .getNotes()
+            .some((n) => n.kind === 'validator-failed' && (n as { validator?: string }).validator === 'field');
+          if (fieldRefused && affordance !== matches[matches.length - 1]) {
+            firstRefused ??= attempt;
+            continue;
+          }
+          return firstRefused ?? attempt;
+        }
         // Effective async = per-invocation reserved flag over the verb's
         // spec default. `--async`/`--sync` were stripped during assemble.
         const effectiveAsync = built.reservedAsync
@@ -1170,6 +1190,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         return attempt;
       }
+      if (firstRefused) return firstRefused;
       // Every match returned a shape error.
       outer.note({
         kind: 'command-rejected',

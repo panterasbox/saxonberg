@@ -1,0 +1,22 @@
+# Black salts — crude potash, the cake a boiled-down lye leaves in the pot
+# (potash D9). Brown-black with the char and the iron the lye carried, a
+# little damp, and about two parts in three potassium carbonate. The kiln
+# burns the dirt out and leaves pearl ash.
+class: /platform/idea/material/Material
+data:
+  name: black salts
+  keywords: ["black salts", salts, "crude potash", "pot ash"]
+  appearance: a hard brown-black cake of crude salts
+  density: 2000
+  specificHeat: 850
+  thermalConductivity: 0.5
+  meltingPoint: 1164
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 40
+  edibility: false
+  nutrients: ["potassium"]
+  toxicity: []
+  tags: [solid, mineral, alkali, potash, flux, black-salts]
+  cleanser: /trade/potash/idea/Cleanser/potash
+  composition: []
+  biologicalSource: null

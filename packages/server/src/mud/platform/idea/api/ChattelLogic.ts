@@ -39,6 +39,7 @@ import type { Adornment } from "../../../lib/boundary/Adornment";
 import type { ChattelStampResult } from "../../../api/chattel";
 import type ChattelRegistry from "../ChattelRegistry";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import { ContentsTitle } from "../../../lib/chattel/ContentsTitle";
 
 const REGISTRY_PATH = TemplatePaths.chattelRegistry;
 
@@ -282,23 +283,33 @@ export class ChattelLogic extends ApiLogic {
    * 2. **the hands it lands in**: a person's;
    * 3. **the acting person**, inside a live command, where they stand (a
    *    room's `props:` laid down while somebody walks in are not theirs);
+   *    or, with no command running, **the person whose act this is the
+   *    continuation of** — a firing that completes an hour after `fire
+   *    kiln` returned is still the firer's, wherever they have gone;
    * 4. **its recorded maker** (a crafted thing knows who made it).
+   *
+   * ⭐⭐ A good a PROCESS made (`recordMadeBy`: a pot's cake, a mould's
+   * cast) is decided at rung 1 and nowhere else — its owner is whose its
+   * contents were, and NOBODY when they were nobody's. A process runs when
+   * somebody reads it; the reader is an onlooker, and an onlooker must
+   * never be titled (potash: a passer-by at the pot as it set would have
+   * owned your black salts).
    *
    * Null leaves it untitled — a shop's restock, a room's props, a thing
    * made from nobody's materials with nobody there — as it always was.
    */
   private derivedTitle(item: Stuff, to: Stuff | null): ChattelOwner | null {
-    const made = (item as Stuff & Chattel).getMadeFromOwner();
+    const good = item as Stuff & Chattel;
+    const made = good.getMadeFromOwner();
     if (made) return made;
+    if (good.isMadeByProcess()) return null;
     if (to !== null && to.isAgent()) return ownerKeyOf(to);
-    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
-    if (
-      actor &&
-      to !== null &&
-      ExecutionContextApi.getCommandStack().length > 0 &&
-      isWhere(actor, to)
-    ) {
-      return ownerKeyOf(actor);
+    if (ExecutionContextApi.getCommandStack().length > 0) {
+      const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
+      if (actor && to !== null && isWhere(actor, to)) return ownerKeyOf(actor);
+    } else {
+      const author = ExecutionContextApi.getCausingAuthor() as Stuff | null;
+      if (author && to !== null) return ownerKeyOf(author);
     }
     if (MixinApi.isCrafted(item)) {
       const maker = item.getMaker();
@@ -320,7 +331,9 @@ export class ChattelLogic extends ApiLogic {
   ): Promise<ChattelOwner | null> {
     const reg = lookupRegistry();
     if (!reg) return null;
-    let agreed: ChattelOwner | null = null;
+    // ⭐ The same agreement a liquid's contents follow (`ContentsTitle`):
+    // untitled inputs make no claim, disagreeing ones make it nobody's.
+    let agreed = new ContentsTitle(undefined);
     for (const input of inputs) {
       if (!MixinApi.isChattel(input)) continue;
       const good = input as Stuff & Chattel;
@@ -330,12 +343,9 @@ export class ChattelLogic extends ApiLogic {
       // made from what its output was).
       const owner = id ? reg.ownerOf(id) : good.getMadeFromOwner();
       if (!owner || owner.kind === "group") continue;
-      if (agreed === null) agreed = owner;
-      else if (agreed.kind !== owner.kind || agreed.templatePath !== owner.templatePath) {
-        return null; // the inputs disagree: no single owner to inherit from
-      }
+      agreed = agreed.with(owner);
     }
-    return agreed;
+    return agreed.owner();
   }
 
   /**

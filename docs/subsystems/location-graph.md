@@ -502,7 +502,7 @@ from a reference content already authors, pointing AT the place:
 
 | kind | derived from | anchored at |
 |---|---|---|
-| `house` | a business's `operatingLocations` | the operated room — a fixture's room when the entry is a counter (followed through `props:` / `cast:` / a room's `warren:`, then `container:`, then `seatIn:`) |
+| `house` | a business's `operatingLocations`; ⭐ and its `rosterSlots` (each assignee's cast place and each `station`, so a round with no premises stands up too) | the operated room — a fixture's room when the entry is a counter (followed through `props:` / `cast:` / a room's `warren:`, then `container:`, then `seatIn:`); the hand's home and every stop |
 | `structure` | a Structure row's `extent` | the extent |
 | `craft` | a Ship row's `expanse` | the sea |
 | `institution` | a row's `parentExtent`; an agent's `institution` | the extent; the room that casts the agent |

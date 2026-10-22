@@ -589,3 +589,11 @@ capped every wheel at the default `fair`), and how far along it is
 ripened grade. It holds spoilage while `active`. The augmenter speaks on
 `look` and `taste`, never `smell`, and carries no digit. Composed by
 `trade-dairying`'s `Wheel` only; a cured ham is the named second consumer.
+
+## Note — the potash build (2026-10-19)
+
+`soda-from-lye` is retired: boiled wood-ash lye is potassium carbonate —
+potash, never washing soda — and a fire-heated boil belongs to the thermal
+plateau, not to an `evaporative` profile. The lye hopper still runs
+`lye-leach`, but its STRENGTH is derived at the fill (`Hopper.leach`). See
+[potash.md](potash.md).

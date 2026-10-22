@@ -1,0 +1,6 @@
+# The chandlery's dials (the `settings` kind: merge-missing) — every key has
+# a seeded literal at its call site, so these only ever retune it.
+settings:
+  # ⭐ The heat quicklime gives off as it slakes (potash D14): about 1.15 MJ
+  # a kilo — a lump in a kettle of water brings it near the boil on its own.
+  - { key: chandlery.lime.slakingJPerKg, value: "1150000" }

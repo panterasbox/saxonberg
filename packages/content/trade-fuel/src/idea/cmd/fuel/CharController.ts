@@ -170,7 +170,23 @@ async function openClamp(
     const count = outcome === 'charcoal' ? pit.yieldFor(lengths) : 1;
 
     const made: Stuff[] = [];
-    if (row) {
+    if (row && outcome === 'ash') {
+      // ⭐ A burnt-through clamp leaves what the charge was WORTH in ash
+      // (potash D3): each length's mass × its wood's ash fraction, with
+      // the alkali by the same wood — the grate's rule, minted the grate's
+      // way, in heaps. Made FROM the charge, so it is the wood's owner's.
+      let kg = 0;
+      let alkaliKg = 0;
+      for (const wood of charge) {
+        if (!MixinApi.isTangible(wood)) continue;
+        const mass = wood.getMass().rawValue();
+        const material = wood.getMaterial();
+        const share = material?.getAshFraction() ?? 0;
+        kg += mass * share;
+        alkaliKg += mass * share * (material?.getAlkaliShare() ?? 0);
+      }
+      made.push(...(await pit.mintAshHeaps(kg, alkaliKg, { template: row, madeFrom: charge, into: pit })));
+    } else if (row) {
       for (let i = 0; i < Math.max(count, 0); i++) {
         // ⭐ Made FROM the charge: the charcoal is whoever's the wood was,
         // the collier gone or not — so it is minted before the wood burns

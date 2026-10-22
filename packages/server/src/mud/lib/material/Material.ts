@@ -852,6 +852,15 @@ export default class Material extends SingletonMixin(
   protected ashFraction = 0;
 
   /**
+   * ⭐ The share of that ash which is ALKALI — the potassium salts a lye
+   * leaches out of it (potash D1). Beech and elm strong, pine weak, bark
+   * and twigs richer than heartwood. `0` = unauthored, so coal, charcoal
+   * and stone claim nothing. The burner's raked heap is the mass-weighted
+   * mix of what burned.
+   */
+  protected alkaliShare = 0;
+
+  /**
    * ⭐ **The basic tastes this substance carries** — a closed five-word
    * vocabulary (`sweet` · `salty` · `sour` · `bitter` · `umami`), the
    * physiology's own list and not a flavour-note bank.
@@ -1057,6 +1066,7 @@ export default class Material extends SingletonMixin(
     vapourMaterial: { persistent: true, spoiler: 1, spoilerName: 0 },
     cleanser: { persistent: true, authorable: true, ref: 'identity:constituent' },
     ashFraction: { persistent: true, spoiler: 1, spoilerName: 0 },
+    alkaliShare: { persistent: true, spoiler: 1, spoilerName: 0 },
     // ⭐ `spoiler: 1`, matching `toxicity` — they are the same fact seen
     // from two sides. "This water poisons you" and "boiling fixes it"
     // are the two halves of the John Snow lesson, and shipping the
@@ -1194,6 +1204,13 @@ export default class Material extends SingletonMixin(
   }
   public setAshFraction(value: number): void {
     this.ashFraction = Number.isFinite(value) && value > 0 ? Math.min(1, value) : 0;
+  }
+  /** The share of this material's ash that is alkali (potash D1). */
+  public getAlkaliShare(): number {
+    return this.alkaliShare;
+  }
+  public setAlkaliShare(value: number): void {
+    this.alkaliShare = Number.isFinite(value) && value > 0 ? Math.min(1, value) : 0;
   }
   public setToxicity(value: ToxinTag[]): void {
     if (!Array.isArray(value)) {

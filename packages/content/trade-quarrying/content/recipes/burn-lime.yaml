@@ -17,7 +17,9 @@ recipeId: burn-lime
 name: Burnt lime
 keywords: [lime, quicklime, "burn lime", calcine]
 inputSlots:
-  - { slot: charge, category: flux, minGrade: poor, kind: item, count: 2 }
+  # ⭐ A lime kiln burns a CARBONATE (potash D13) — what limestone is, and
+  # why it slakes; `flux` is the glassmaker's word now.
+  - { slot: charge, category: carbonate, minGrade: poor, kind: item, count: 2 }
 toolCapabilities: []
 outputTemplate: /trade/quarrying/thing/quicklime
 outputMaterial: ''

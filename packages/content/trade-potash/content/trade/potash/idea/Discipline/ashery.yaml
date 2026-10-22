@@ -1,0 +1,16 @@
+# The ashery (potash D19) — making potash from wood ash. Credited by the
+# calcining; the egg's read stays chemistry's and a burn credits nobody (a
+# fire is not a trade).
+class: /platform/idea/Discipline
+data:
+  key: ashery
+  channel: skill
+  label: Ashery
+  iscedf: "0711"
+  description: >-
+    Knowing which wood leaves the strong ash and keeping it dry; running a
+    leach until the egg rides; boiling a lye down without scorching the
+    salts; and bringing black salts to a red heat that whitens them to
+    pearl ash without fusing them to the kiln floor.
+  specializes: []
+  requires: []
