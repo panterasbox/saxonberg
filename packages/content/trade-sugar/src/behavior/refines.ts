@@ -242,11 +242,16 @@ export const brain = class {
       s.getTemplatePath() === '/trade/cooking/thing/sugar-sack' &&
       MixinApi.isBulkable(s) &&
       !s.isBulkEmpty('interior');
+    // ⭐ Fuel is what BURNS — the fire's own test (heat of combustion), not
+    // a `fuel` tag: oak carries "wood, flammable" and no such tag, so the
+    // island's boiler stood over a cold train beside ten logs (probed).
+    const burns = (s: Stuff): boolean =>
+      MixinApi.isTangible(s) && (s.getMaterial()?.getHeatOfCombustion().rawValue() ?? 0) > 0;
     const dryFuel = (word: string): boolean =>
       here.some(
         (s) =>
           named(s, word) &&
-          hasTag(s, 'fuel') &&
+          burns(s) &&
           !(MixinApi.isWaterActive(s) && s.getWaterState().moisture > TOO_WET),
       );
     const counter = w.counter ? StuffApi.findByTemplatePath(w.counter) : null;
