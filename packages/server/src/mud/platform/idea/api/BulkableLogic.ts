@@ -520,7 +520,25 @@ export class BulkableLogic extends ApiLogic {
         // is out of scope, like blend merging above).
         carryBatchIdentity(fromHolder, toHolder);
       }
+      // ⭐⭐ Bring the destination CURRENT before the matter lands. Setting
+      // a vessel's temperature first reconciles it up to now at the heat it
+      // had, so a reconcile run AFTER the pour landed held molten brass at a
+      // cold mould's own temperature and froze it on the spot, with no
+      // superheat on record — the ceramics drive's 19 g key misran at any
+      // heat (run 21's DIAG: "superheat=0.0"). Then the matter lands, the
+      // mould hears the pour, and only then is the heat set.
+      if (toHolder !== null && MixinApi.isThermal(toHolder)) toHolder.getTemperature();
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
+      if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
+        toHolder.receivedPour({ temperatureK: blendFromK, litres: applied, material });
+      }
+      if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
+        toHolder.setContentsTemperature(
+          toAmountBefore <= 0 || blendToK === null
+            ? blendFromK
+            : (applied * blendFromK + toAmountBefore * blendToK) / (applied + toAmountBefore),
+        );
+      }
       // Mass(volume)-weighted blend of the two loads. A pour into an empty
       // slot just carries the source's load across (the arithmetic degrades
       // to that on its own when `toAmountBefore` is 0).
@@ -702,14 +720,7 @@ export class BulkableLogic extends ApiLogic {
     // temperature; a partial pour leaves the source hotter-per-unit but
     // re-anchors so its now-smaller heat capacity cools the remainder
     // faster.
-    if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
-      const newK =
-        toAmountBefore <= 0 || blendToK === null
-          ? blendFromK
-          : (applied * blendFromK + toAmountBefore * blendToK) /
-            (applied + toAmountBefore);
-      toHolder.setContentsTemperature(newK);
-    }
+    // (The destination's coupling ran when the matter landed — above.)
     if (MixinApi.isThermal(fromHolder)) {
       // Freeze-and-re-anchor at the reduced capacity (pour cools faster).
       fromHolder.setContentsTemperature(fromHolder.getTemperature().rawValue());
@@ -717,10 +728,8 @@ export class BulkableLogic extends ApiLogic {
 
     // ⭐ (ceramics D22) A mould hears what was poured into it and how hot —
     // the superheat Chvorinov reads at the set, the water an absorbent
-    // mould drinks, the steam a damp one blows with.
-    if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
-      toHolder.receivedPour({ temperatureK: blendFromK, litres: applied, material });
-    }
+    // mould drinks, the steam a damp one blows with. (Told when the matter
+    // landed — above — so no read in between can set it unheard.)
 
     const clampedShort =
       amount.kind === 'measure' && applied < amount.litres;

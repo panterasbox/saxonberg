@@ -296,10 +296,9 @@ describe('the mould as an envelope (ceramics W7)', () => {
     expect(face.told).toBe(0);
   });
 
-  it('⭐⭐ through a REAL pour, the superheat is heard before anything can set — a hot pour fills', async () => {
-    // Run 20: a key poured through BulkableApi.transfer misran at any heat.
-    // The pool landed in the cold mould before the mould heard the pour,
-    // so a read in between froze it with no superheat on record.
+  it('a pour through the REAL transfer tells the mould its superheat', async () => {
+    // The unit tests' `pour()` calls receivedPour by hand; this one goes
+    // through BulkableApi.transfer, the path every player pour takes.
     const r = room();
     const flask = sandFlask();
     ContainmentApi.move(flask, r);
