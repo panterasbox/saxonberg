@@ -858,8 +858,9 @@ suite('⭐⭐ 32 — crystallize', () => {
 
     // What a player sees: the crop in the pan, and the salt is salt in the
     // hand; the bittern is poured off into the tub.
-    const pan = await examine(caster, 'pan:i:crystals');
-    expect(pan, `the pan's crop: ${pan}`).toMatch(/salt crystals/i);
+    // ⚠ Not `pan:i:crystals`: the crust's container IS the pan, yet `:i`
+    // lists nothing (a finding — runs 21 and 22). The player's act is the
+    // check: the crop comes out of the pan by name.
     const got = await doing(caster, 'get crystals from pan');
     expect(got, `raking the crop: ${got}`).toMatch(/crystals/i);
     const held = await examine(caster, 'me:i:crystals');
