@@ -922,6 +922,10 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await doing(caster, 'pour crucible into flask');
     await advance('2 hours');
     await examine(caster, 'flask'); // a mould sets on read
+    // The record: what `bronze` and `bell` name here (runs 16 and 18 rang
+    // the floor — the cast was not found by `bronze`).
+    await examine(caster, 'bronze');
+    await examine(caster, 'bell');
     const rung = await doing(caster, 'ring bronze');
     expect(rung, `the hand bell: ${rung}`).toMatch(/high|clear/i);
     expect(rung, 'a named note').toMatch(/\b[A-G]\b( sharp| flat)?/);
