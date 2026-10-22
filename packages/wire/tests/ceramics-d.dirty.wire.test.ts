@@ -302,7 +302,11 @@ async function founderEvalOn(where: string, keyword: string, code: string, parce
 async function melt(where: string, potRow: string, materialPath: string, kelvin: number): Promise<void> {
   const said = await founderEval(
     where,
-    `return (() => { const here = self.getContainer().getContents();` +
+    // ⚠ One level deep too: the caster may be HOLDING the pot (28's
+    // `get brass` picked the crucible up with the key), and a pot in hand
+    // is still the pot.
+    `return (() => { const top = self.getContainer().getContents();` +
+      ` const here = top.concat(...top.map(o => (o.getContents ? o.getContents() : [])));` +
       ` const pot = here.find(o => o.getTemplatePath() === '${potRow}');` +
       ` const m = StuffApi.findByTemplatePath('${materialPath}');` +
       ` if (!(pot && m)) return 'no pot or no metal';` +
