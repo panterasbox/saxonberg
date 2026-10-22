@@ -1019,6 +1019,25 @@ something does, *every* durative subsystem's finish is unit-tested only.
 Recorded as the ceiling, not as a plan — the group itself is tracked in
 `docs/slates/tails/wire-suite-growth-slate.md`.
 
+### ⭐⭐ A clock jump is LIVED time — feed the people in it
+
+`advanceWorldClock` jumps the world; every body in it integrates the
+whole gap on its next read, and integrates it honestly: hydration runs
+out in about two game days (then dehydration kills in eight hours),
+satiation in about three and a half. The ceramics drives jump weeks
+while bricks dry, and run 16 lost two characters to it — the potter
+died of **starvation**, the brickmaker of **hyperthermia** (no water,
+so no sweat, so the work's heat stayed in). Both read as broken
+mechanisms first: a mug "too heavy to lift" (a starving body is weak),
+then "your hand passes through it" (a shade).
+
+A drive that jumps more than a day uses **`advanceLiving(duration,
+sessions)`**: jumps of at most a game day, each open session fed and
+watered before each (`nourish(session)`, the character's own wizard
+`eval` topping `satiation` and `hydration` up). That stands for the
+meals a person eats between checkpoints. It is setup, so it throws
+when refused rather than letting the body die quietly three steps later.
+
 ## Adding a test
 
 Nothing to do, unless your test touches the wired runtime — the Stuff
