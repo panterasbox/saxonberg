@@ -230,7 +230,8 @@ async function nourishHandle(handle: string): Promise<void> {
 
 /**
  * ⭐ Advance the world clock by `duration` as LIVED time: in jumps of at
- * most a game day, the `living` sessions fed and watered before each
+ * most four game hours (the heat regulation's gap window), the `living`
+ * sessions fed and watered — and brought current — before each
  * ({@link nourish}). A duration the parser does not recognize is one jump.
  * Returns the game-seconds either side of the whole advance.
  */
@@ -256,7 +257,9 @@ export async function advanceLiving(
   let before: number | null = null;
   let after = 0;
   for (let left = total; left > 0; ) {
-    const step = Math.min(left, 86_400);
+    // ≤ 4 h: a body's heat regulation treats a longer gap as absence and
+    // sheds nothing over it, while a condition it carried runs on.
+    const step = Math.min(left, 4 * 3600);
     await feed();
     const jump = await advanceWorldClock(`${step} seconds`);
     before ??= jump.before;

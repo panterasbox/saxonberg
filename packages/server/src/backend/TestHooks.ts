@@ -307,6 +307,12 @@ export class TestHooks {
       if (!avatar) throw new Error(`no resident character named '${handle}'`);
       const body = avatar as unknown as Stuff;
       if (!MixinApi.isReserved(body)) throw new Error(`'${handle}' keeps no reserves`);
+      // ⭐ Bring the body's heat CURRENT first, on the water it had: the
+      // regulation skips a gap past `MAX_REASONABLE_GAP_SEC` as absence
+      // while a hyperthermia it already carried kept counting, so a drive
+      // character who rested eight hours after digging died of the work's
+      // unshed heat (the ceramics drive B, runs 16 and 22).
+      if (MixinApi.isThermalRegulation(body)) body.reconcileThermalRegulation();
       // ⭐ A balanced diet, not bread and water: a drive fed only those two
       // through a game year bled its brickmaker AND the founder to death —
       // scurvy (`vitamin-c`'s floor), the ceramics drives, run 20.
