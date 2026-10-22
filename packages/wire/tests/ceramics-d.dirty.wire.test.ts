@@ -777,7 +777,11 @@ suite('⭐⭐ 32 — crystallize', () => {
    * "sandbox boundary denied getDefaultHumidity").
    */
   async function saltern(): Promise<{ crop: number; brineInPan: boolean; bitternInTub: boolean }> {
-    const crop = (await massesOf(caster, 'pan:i:crystals')).reduce((a, b) => a + b, 0);
+    // ⚠ By name, not `pan:i:crystals`: the crust IS in the pan (its
+    // container is the pan — run 21's DIAG and an eval agree), yet `pan:i`
+    // lists nothing. A finding for the plan; the crop is counted where a
+    // player finds it, in reach by its own word.
+    const crop = (await massesOf(caster, 'crystals')).reduce((a, b) => a + b, 0);
     const pan = await examine(caster, 'pan');
     const tub = await examine(caster, 'tub');
     return { crop, brineInPan: /\[salt water\]/i.test(pan), bitternInTub: /\[bittern\]/i.test(tub) };
