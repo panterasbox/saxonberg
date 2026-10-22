@@ -60,6 +60,20 @@ interface WaterMemo {
   tideAtS?: number;
 }
 
+/** ⭐ Where a shore stands on a river's line (river D8). */
+export interface ShoreBank {
+  /** The course key (`kestrel`). */
+  course: string;
+  /** `node±km` — the shore's downstream end (or its one point). */
+  at: string;
+  /** River left or right, as you face downstream. */
+  side: 'left' | 'right';
+  /** How much of the line it covers, km (0 = a point). */
+  span?: number;
+  /** The word a way to it is called from the water within hail (`quay`). */
+  name?: string;
+}
+
 /** Which water a name picks, or why none. */
 export type WaterPick =
   | { key: string; citation: string }
@@ -73,6 +87,11 @@ export type WaterRefPick =
 /** Public shape added by ShoreMixin. */
 export interface Shore {
   getWaters(): Record<string, string>;
+  getBank(): ShoreBank | null;
+  setBank(value: ShoreBank | null): void;
+  /** The river frame a bank stands on, once its water source said so (river D26). */
+  getBankFrame(): string | null;
+  setBankFrame(path: string | null): void;
   setWaters(value: Record<string, string> | null): void;
   waterFor(name?: string): WaterPick;
   waterRefFor(name?: string): Promise<WaterRefPick>;
@@ -117,6 +136,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       waters: { persistent: true, authorable: true },
+      bank: { persistent: true, authorable: true },
     };
 
     /**
@@ -135,6 +155,38 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     public waters: Record<string, string> = {};
 
+    /**
+     * ⭐ Where on a river's LINE this shore stands (river D8) —
+     * `{ course, at, side, span? }`, an opaque citation the water pack
+     * interprets (the `waters:` precedent). A quay, a towpath, a landing, a
+     * bar: a shore with a `bank` is a walkable bank at its km, and a patch
+     * drifting past within hail wires a way to it. `null` for a sea shore
+     * or a mere's — honest, not missing.
+     */
+    public bank: ShoreBank | null = null;
+
+    /** The river frame this bank stands on — set by its water source (runtime). */
+    private _bankFrame: string | null = null;
+
+    public getBankFrame(): string | null {
+      return this._bankFrame;
+    }
+
+    public setBankFrame(path: string | null): void {
+      this._bankFrame = path;
+    }
+
+    public getBank(): ShoreBank | null {
+      return this.bank === null ? null : { ...this.bank };
+    }
+
+    public setBank(value: ShoreBank | null): void {
+      this.bank =
+        value && typeof value === 'object' && typeof value.course === 'string' && typeof value.at === 'string'
+          ? { ...value }
+          : null;
+    }
+
     /** Per cited key — transient, rebuilt on first use after every boot. */
     private _waterMemos: Map<string, WaterMemo> | null = null;
     /** Keys already warned about (naming no feature of this place). */
@@ -151,6 +203,14 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public async onCreate(...args: unknown[]): Promise<void> {
       await (Base.prototype as { onCreate?: (...a: unknown[]) => Promise<void> }).onCreate?.apply(this, args);
       for (const key of Object.keys(this.waters)) void this.refreshWater(key, false);
+      // ⭐ A bank on a river's line: its water source gives it its way in
+      // (river D8) — the kernel cannot work out where moving water is.
+      if (this.bank !== null) {
+        const bank = this.bank;
+        void findWaterSource(`${bank.course}:${bank.at}`)
+          .then((source) => source?.onBankStood(this as unknown as Stuff))
+          .catch((err) => console.warn(`ShoreMixin: the bank at ${bank.course}:${bank.at} has no way into the water:`, err));
+      }
     }
 
     public getWaters(): Record<string, string> {
@@ -375,9 +435,12 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (MixinApi.isExitable(self)) {
         for (const [, exit] of self.getExits()) {
+          // ⭐ The exit says whether it goes into the water (river D8): a
+          // way worked out against a river leads into water it cannot name.
+          if (!exit.leadsIntoWater()) continue;
           const path = exit.getDestinationTemplatePath?.() ?? null;
           const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
-          if (!dest || !MixinApi.isWaterPlace(dest)) continue;
+          if (!dest || !MixinApi.isWaterPlace(dest)) return { exit };
           // The water decided it cannot be swum into: say why, rather
           // than the swim gate's bare "no way to swim <exit>".
           if (dest.stateNow() === 'frozen') {

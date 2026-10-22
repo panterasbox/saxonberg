@@ -44,6 +44,13 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
+import {
+  LineFrameMixin,
+  type LineClimateSite,
+  type LinePositionRecord,
+} from '@saxonberg/server/mud/lib/expanse/LineFrame';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type WatercourseCatalogue from './WatercourseCatalogue';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 import type { BoundaryRole } from '@saxonberg/server/mud/lib/security/BoundaryRole';
@@ -268,6 +275,12 @@ export interface WatercourseDescriptor {
   bends?: Array<{ at: string; name: string }>;
   /** The meander's seed (default: a hash of the course key). */
   meander?: { seed?: number };
+  /**
+   * ⭐ The authored places on this river's line (river D7, D8) — the rows
+   * of a quay, a towpath, the stream below a quay, a gorge pool. The river
+   * says what stands on it; nothing is searched for.
+   */
+  places?: string[];
 }
 
 /**
@@ -277,7 +290,7 @@ export interface WatercourseDescriptor {
  * along unused (the mixin's opt-out posture). `getAllFieldMeta` merges the
  * mixin's `name` meta with the block below property-by-property.
  */
-export default class Watercourse extends NamedMixin(Idea) {
+export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
   /**
    * ⭐ Shared vocabulary: a watercourse row is **authored topology** —
    * key, basin, the source-first node list, the branch point, and the
@@ -322,6 +335,7 @@ export default class Watercourse extends NamedMixin(Idea) {
     hazards: { persistent: true, authorable: true },
     bends: { persistent: true, authorable: true },
     meander: { persistent: true, authorable: true },
+    places: { persistent: true, authorable: true },
   };
 
   protected key = '';
@@ -340,6 +354,7 @@ export default class Watercourse extends NamedMixin(Idea) {
   protected hazards: WatercourseHazard[] = [];
   protected bends: Array<{ at: string; name: string }> = [];
   protected meander: { seed?: number } | null = null;
+  protected places: string[] = [];
 
   public getKey(): string {
     return this.key;
@@ -419,5 +434,64 @@ export default class Watercourse extends NamedMixin(Idea) {
   }
   public setMeander(value: { seed?: number } | null): void {
     this.meander = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public setPlaces(value: string[]): void {
+    this.places = Array.isArray(value) ? value.filter((p) => typeof p === 'string') : [];
+  }
+
+  /* ───────────── the line as a frame (river D2) ───────────── */
+  //
+  // ⭐ A river stood up as a Stuff is the FRAME a moving place on it reads
+  // (the kernel's `LineFrame` protocol): every answer is the catalogue's
+  // compiled line, read synchronously. Before the drainage has compiled
+  // once there is nothing to answer, and the protocol's refusals stand.
+
+  private catalogue(): WatercourseCatalogue | null {
+    return StuffApi.findByTemplatePath<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue') ?? null;
+  }
+
+  public override lengthKm(): number {
+    return this.catalogue()?.lineOfSync(this.key)?.lengthKm() ?? 0;
+  }
+
+  public override elevationAtKm(km: number): number | null {
+    return this.catalogue()?.lineOfSync(this.key)?.elevationAtKm(km) ?? null;
+  }
+
+  /**
+   * The address of the ground that drains to `km` — the locality whose
+   * weather stands in for the reach's catchment (the climate proxy), so a
+   * patch at the headwaters is under Rejection's sky.
+   */
+  public override localityAddressAt(km: number): string | null {
+    const reach = this.catalogue()?.reachNearSync(this.key, km) ?? null;
+    const path = reach?.climateLocalityPath ?? null;
+    if (!path) return null;
+    const locality = StuffApi.findByTemplatePath<Idea & { getAddress?(): string | null }>(path);
+    return locality?.getAddress?.() ?? null;
+  }
+
+  public override climateSiteAt(km: number): LineClimateSite | null {
+    const site = this.catalogue()?.reachNearSync(this.key, km)?.site ?? null;
+    if (!site) return null;
+    return {
+      latitude: site.latitudeDeg,
+      continentality: site.continentality,
+      climateOffsetK: site.offsetK,
+    };
+  }
+
+  /** ⭐ Whoever is in the water within sight of `place` (D26) — the warren knows. */
+  public override sightablesNear(place: unknown, eyeHeightM: number): unknown[] {
+    const warren = StuffApi.findByTemplatePath<Idea & { sightablesNear(course: string, place: unknown, eye: number): unknown[] }>(
+      '/system/water/idea/ReachWarren',
+    );
+    return warren?.sightablesNear(this.key, place, eyeHeightM) ?? [];
+  }
+
+  public override describeAt(pos: LinePositionRecord): string[] {
+    const stretch = this.catalogue()?.lineOfSync(this.key)?.stretchAt(pos.km) ?? null;
+    return stretch === null ? [] : [stretch.kind];
   }
 }

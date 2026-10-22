@@ -76,6 +76,7 @@ import type { FisheryStanding } from './FisheryRegistry';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
@@ -383,6 +384,30 @@ interface CompiledIndex {
   lines: Map<string, RiverLine>;
   /** Course key → its parsed descriptor (the source and mouth read it). */
   descriptors: Map<string, WatercourseDescriptor>;
+  /** ⭐ Course key → the authored places on its line, upstream first (river D7/D8). */
+  placesByCourse: Map<string, LinePlace[]>;
+}
+
+/**
+ * ⭐ An authored place on a river's line (river D7, D8): a WATER place
+ * (`river:` — the stream below a quay, a gorge pool) that owns the water
+ * along its span, or a LAND place (`bank:` — a quay, a towpath, a landing)
+ * standing on one bank. Read from the rows the course's `places:` names,
+ * by exact path — the river says what is on it; nothing is searched for.
+ */
+export interface LinePlace {
+  path: string;
+  kind: 'water' | 'bank';
+  /** The upstream end, km from the mouth. */
+  upKm: number;
+  /** The downstream end, km from the mouth. */
+  downKm: number;
+  /** The bank a land place stands on; a water place is the whole width. */
+  side: RiverSide | null;
+  /** The word a way to it is called from the water within hail. */
+  name: string;
+  /** A water place's ends: `handoff` hands the line in and out there. */
+  ends: { upstream: string; downstream: string };
 }
 
 export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
@@ -1198,6 +1223,57 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
   // ---------- the line (river D1) ----------
 
+  /**
+   * ⭐ A bank on a river's line has stood up (river D8): its way into the
+   * water there, which the river's warren works out when it is taken.
+   */
+  public override async onBankStood(shore: Stuff): Promise<void> {
+    const bank = MixinApi.isShore(shore) ? shore.getBank() : null;
+    if (bank !== null && MixinApi.isShore(shore)) {
+      // ⭐ The bank's frame (D26): the river it stands on, stood up, so the
+      // horizon from it reads the line.
+      const frame = `${WATERCOURSE_PATH_PREFIX}/${bank.course}`;
+      await StuffApi.singleton<Stuff>(frame).catch(() => null);
+      shore.setBankFrame(frame);
+    }
+    const warren = await StuffApi.singleton<Stuff & { installBankWay(s: Stuff): Promise<void> }>(
+      '/system/water/idea/ReachWarren',
+    );
+    await warren.installBankWay(shore);
+  }
+
+  /** The rivers that join `courseKey`, and the km of their junction on it. */
+  public tributariesOfSync(courseKey: string): Array<{ course: string; km: number }> {
+    const index = this.loaded;
+    const line = index?.lines.get(courseKey);
+    if (!index || !line) return [];
+    const out: Array<{ course: string; km: number }> = [];
+    for (const d of index.descriptors.values()) {
+      if (d.mouth?.into !== 'river' || d.mouth.course !== courseKey) continue;
+      const km = line.kmOf(d.mouth.node);
+      if (km !== null) out.push({ course: d.key, km });
+    }
+    return out;
+  }
+
+  /** The authored places on a course's line, upstream first; `[]` before the compile. */
+  public placesOfSync(courseKey: string): readonly LinePlace[] {
+    return this.loaded?.placesByCourse.get(courseKey) ?? [];
+  }
+
+  /** The authored places on a course's line, upstream first. */
+  public async placesOf(courseKey: string): Promise<readonly LinePlace[]> {
+    return (await this.index()).placesByCourse.get(courseKey) ?? [];
+  }
+
+  /** The node nearest a km of a course, compiled — sync; `null` before the compile. */
+  public reachNearSync(courseKey: string, km: number): CompiledReach | null {
+    const index = this.loaded;
+    const line = index?.lines.get(courseKey);
+    if (!index || !line) return null;
+    return index.reaches.get(`${courseKey}:${line.nearestNode(km).name}`) ?? null;
+  }
+
   /** The compiled line of a course, or `null` (a mere, an unknown key). */
   public async lineOf(courseKey: string): Promise<RiverLine | null> {
     return (await this.index()).lines.get(courseKey) ?? null;
@@ -1631,6 +1707,13 @@ async function loadIndex(): Promise<CompiledIndex> {
     if (course.water) waterByCourse.set(course.key, course.water);
   }
   const descriptors = new Map(courses);
+  const placesByCourse = await compilePlaces(courses, lines, problems);
+  if (problems.length > 0) {
+    throw new Error(
+      `WatercourseCatalogue: the authored drainage does not describe a ` +
+        `world water can run downhill in:\n  - ${problems.join('\n  - ')}`,
+    );
+  }
   return {
     reaches,
     downstream,
@@ -1640,7 +1723,74 @@ async function loadIndex(): Promise<CompiledIndex> {
     waterByCourse,
     lines,
     descriptors,
+    placesByCourse,
   };
+}
+
+/**
+ * ⭐ The authored places on each line (river D7, D8), read from the rows
+ * the course's `places:` names. A water place cites `river: { course, at,
+ * span?, ends? }` — `at` its upstream end, the span running downstream; a
+ * land place cites `bank: { course, at, side, span? }`. A place naming a
+ * node its course does not have, or a water place with no downstream end,
+ * fails the compile naming itself.
+ */
+async function compilePlaces(
+  courses: Map<string, WatercourseDescriptor>,
+  lines: Map<string, RiverLine>,
+  problems: string[],
+): Promise<Map<string, LinePlace[]>> {
+  const out = new Map<string, LinePlace[]>();
+  const paths = [...courses.values()].flatMap((c) => c.places ?? []);
+  if (paths.length === 0) return out;
+  const rows = new Map<string, Record<string, unknown>>();
+  for (const tpl of await Template.findByPaths(paths)) rows.set(tpl.path, (tpl.data ?? {}) as Record<string, unknown>);
+  for (const course of courses.values()) {
+    const line = lines.get(course.key);
+    if (!line) continue;
+    const list: LinePlace[] = [];
+    for (const path of course.places ?? []) {
+      const data = rows.get(path);
+      if (!data) {
+        // ⚠ Never silent, never fatal: `lint:census` refuses a rowless place
+        // at authoring; at runtime one missing room must not take the whole
+        // river down with it.
+        console.warn(`WatercourseCatalogue: '${course.key}' names the place '${path}', which has no row`);
+        continue;
+      }
+      const river = data.river as Record<string, unknown> | undefined;
+      const bank = data.bank as Record<string, unknown> | undefined;
+      const spec = river ?? bank;
+      if (!spec || typeof spec.at !== 'string') {
+        problems.push(`watercourse '${course.key}' names '${path}', which stands nowhere on it (no river: or bank:)`);
+        continue;
+      }
+      const cite = RiverLine.parseCitation(spec.at.includes(':') ? spec.at : `${course.key}:${spec.at}`);
+      const upKm = cite && cite.course === course.key ? line.kmOf(cite.node, cite.offsetKm) : null;
+      if (upKm === null) {
+        problems.push(`the place '${path}' stands at '${spec.at}', which names no node of '${course.key}'`);
+        continue;
+      }
+      const span = typeof spec.span === 'number' && spec.span > 0 ? spec.span : 0;
+      const endsRaw = (river?.ends ?? data.ends) as Record<string, unknown> | undefined;
+      const ends = {
+        upstream: typeof endsRaw?.upstream === 'string' ? endsRaw.upstream : 'handoff',
+        downstream: typeof endsRaw?.downstream === 'string' ? endsRaw.downstream : 'handoff',
+      };
+      list.push({
+        path,
+        kind: river ? 'water' : 'bank',
+        upKm,
+        downKm: Math.max(line.mouthKm, upKm - span),
+        side: spec.side === 'left' || spec.side === 'right' ? spec.side : null,
+        name: typeof spec.name === 'string' && spec.name !== '' ? spec.name : path.slice(path.lastIndexOf('/') + 1),
+        ends,
+      });
+    }
+    list.sort((a, b) => b.upKm - a.upKm);
+    out.set(course.key, list);
+  }
+  return out;
 }
 
 /** The seed a course's meander is laid from: authored, else FNV of its key. */
@@ -2599,6 +2749,10 @@ function lineFieldsOf(data: Record<string, unknown>): Partial<WatercourseDescrip
   if (bends.length > 0) out.bends = bends.map((b) => ({ at: String(b.at), name: String(b.name) }));
   const meander = obj(data.meander);
   if (meander && typeof meander.seed === 'number') out.meander = { seed: meander.seed };
+  if (Array.isArray(data.places)) {
+    const places = data.places.filter((p): p is string => typeof p === 'string' && p !== '');
+    if (places.length > 0) out.places = places;
+  }
   return out;
 }
 

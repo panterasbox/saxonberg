@@ -1,0 +1,17 @@
+# A river's undercut (the river build, D12) — met by the drift on its side of
+# the river; how you meet it decides what it does. Placed in the stop at
+# its position by the river's warren; never spent.
+class: /system/water/thing/RiverHazard
+data:
+  shortDescription: undercut bank
+  keywords: [undercut, bank, roots, hollow]
+  register: indefinite
+  longDescription: >-
+    The current has eaten the bank away underneath, leaving a dark hollow among the roots where the water goes in and does not come straight back out.
+  hazardKind: undercut
+  holdFactor: 2
+  trigger: proximity
+  traverseConsequence: none
+  groundTriggered: false
+  fixedInPlace: true
+  mass: 500

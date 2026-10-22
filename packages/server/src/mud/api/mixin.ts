@@ -72,6 +72,9 @@ import type { Singleton } from '../lib/stuff/Singleton';
 import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
+import type { LineFrame } from '../lib/expanse/LineFrame';
+import type { MovingPlace } from '../lib/location/MovingPlace';
+import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
 import type { Adornable } from '../lib/boundary/Adornable';
@@ -1306,6 +1309,21 @@ export class MixinApi {
 
   public static isVoyaging(obj: Stuff): obj is Stuff & Positioned & Voyaging {
     return this.hasMixin(obj, Mixins.Voyaging);
+  }
+
+  /** ⭐ A river's line as a frame (river D2). */
+  public static isLineFrame(obj: Stuff): obj is Stuff & LineFrame {
+    return this.hasMixin(obj, Mixins.LineFrame);
+  }
+
+  /** ⭐ A place whose position is a variable (river D4). */
+  public static isMovingPlace(obj: Stuff): obj is Stuff & MovingPlace & Positioned & Container & Exitable {
+    return this.hasMixin(obj, Mixins.MovingPlace);
+  }
+
+  /** ⭐ The zone of a moving place (river D38). */
+  public static isMovingZone(obj: Stuff): obj is Stuff & MovingZone {
+    return this.hasMixin(obj, Mixins.MovingZone);
   }
 
   public static isCharted(obj: Stuff): obj is Stuff & Charted {

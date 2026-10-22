@@ -116,6 +116,12 @@ export default class TemperatureReading extends BiomeReading {
     return super.subjectValue(target, param);
   }
 
+  /** ⭐ A shore whose water you named: the thermometer goes in the water (river D32). */
+  protected override acceptsSubject(subject: Stuff, raw: string): boolean {
+    if (MixinApi.isWaterPlace(subject)) return true;
+    return raw !== '' && MixinApi.isShore(subject) && 'key' in subject.waterFor(raw);
+  }
+
   protected label(): string {
     return 'Temperature';
   }

@@ -1,0 +1,14 @@
+# A stop on a river — a patch that has stopped (the river build, D5): a
+# gravel bar, the shallows at a bank, the bed under a pool. Minted at a
+# position, persisted by (row, key) with the key its position, kept while
+# anything is in it and reaped when empty.
+class: /system/water/location/ReachStop
+data:
+  shortDescription: at the edge of the river
+  keywords: [water, river, bank, bar, shallows]
+  register: proper
+  longDescription: >-
+    The edge of the river, the current going past.
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none

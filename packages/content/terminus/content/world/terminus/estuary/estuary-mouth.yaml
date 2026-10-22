@@ -63,6 +63,9 @@ data:
   # brine from it.
   waters:
     channel: /stuff/idea/WaterExpanse/greywater
+  # ⭐ The last of the Kestrel's left bank (the river build): the made path
+  # ends here, beside the river's mouth.
+  bank: { course: kestrel, at: estuary-0.3, side: left, span: 0.3, name: bank }
   details:
     channel:
       keywords: [channel, tide, sea, brine, saltwater, "salt water", "deep water"]

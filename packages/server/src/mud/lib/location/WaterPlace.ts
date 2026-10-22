@@ -207,6 +207,8 @@ export interface WaterPlace {
    * them. The dying clock, if it was already running, runs on.
    */
   holdAtSurface(body: Stuff): Promise<boolean>;
+  /** The current carries a body that is not holding out of this water (river D11). */
+  sweep(body: Stuff): Promise<boolean>;
   /**
    * ⭐ What `occupant` is in: the water (with its temperature and the
    * surface depth) unless the floor holds it up, else the air above.
@@ -568,6 +570,18 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       return this as unknown as Stuff & Container;
     }
 
+    /**
+     * ⭐ The current takes a body that is not holding against it (river
+     * D11): carry it out of this water, downstream.
+     * @hook Override on a water with somewhere to sweep you to — a river's
+     *   places hand the body to the line at their downstream end. Default:
+     *   `false`, a pool has nowhere to sweep you.
+     */
+    public async sweep(body: Stuff): Promise<boolean> {
+      void body;
+      return false;
+    }
+
     public async holdAtSurface(body: Stuff): Promise<boolean> {
       const surface = this.surfacePlace();
       if (surface === null || !MixinApi.isContainable(body) || body.isDestroyed()) return false;
@@ -845,6 +859,8 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public sinks(thing: Stuff): boolean {
       if (thing.isAgent?.() || MixinApi.isMobile(thing)) return false;
+      // ⭐ A body full of the gas of its own decay floats (river D27).
+      if ((thing as unknown as { buoyantNow?(): boolean }).buoyantNow?.() === true) return false;
       if (!MixinApi.isTangible(thing)) return false;
       if (MixinApi.isContainable(thing) && thing.isFixedInPlace?.()) return false;
       // ⭐ Held up by something in the same water (an air bag lashed to

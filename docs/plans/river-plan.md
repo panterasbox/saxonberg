@@ -1597,6 +1597,42 @@ column and the bank are unchanged in behavior).
 
 **Commit.** `build(river W1): the moving place — reach patches, stops, the bank, the estate's loose goods`
 
+> ✅ **W1 built (2026-10-21).** Decisions the build made:
+> - **Stops persist by `(row, key)`, NOT identity-stamped** (D5 said both).
+>   `PersistableApi.standUpKeyed(scope, key)` clones the SCOPE as a row, so
+>   a minted identity with no row can never be stood up — an avatar logged
+>   out on a bar would have come back nowhere. The stop's key is its
+>   position (`kestrel@8650@left`); its row is shared; its zone is minted
+>   with an identity of its own (`/system/water/location/reach/stop/…`).
+>   Patches are never persisted and share their row too.
+> - **No column under river water** (D9 deferred): the deepest Kestrel pool
+>   is ~2.5 m at the thalweg, too shallow for bands. A patch's `down` is a
+>   `ReachExit` to the STOP at its km (the bed), what sinks goes to that stop
+>   (`ReachPatch.sink`), and a stop's floor is the bed. The column under a
+>   moving surface waits for a river deep enough to need it.
+> - **`Drift` is a schedule holder, not an `EngagedMixin` engagement**: a
+>   patch is not an actor; it holds one `WorldClockApi.at` event (host = the
+>   patch). Event = next stretch boundary / place upstream end / a fixed
+>   place coming within hail / the river's end, capped at 600 game-s.
+> - **Offsets are discrete strokes**: `swim downstream|upstream` from a patch
+>   is a timed crossing of 1.1 × hail that lands you in the patch within hail
+>   there (catching up = joining it) or a new one (splitting). Merge radius =
+>   hail. Crossings are reckoned in GAME seconds and handed back as real ones
+>   (risk 5: in real seconds a 40 m margin swim drifted you a kilometre).
+> - **The line names its places** (`places:` on the Watercourse row, census
+>   arm) instead of places being searched for — the reverse-question rule.
+> - **A bank's way in** is a kernel hook: a `Shore` with a `bank` tells its
+>   water source it stood (`WaterSource.onBankStood`), and the water pack
+>   installs a `river` `ReachExit` (way `enter`); `Exit.leadsIntoWater()` is
+>   the kernel hook a bare `swim` reads (default: the far side is a loaded
+>   water place).
+> - **`lint:locations`**: the two reach rows are `OWN_FRAME` (each patch is
+>   its zone's origin), not `MINTED_ROWS` (that roster is the kernel
+>   `Location` class only).
+> - The quay's `river` exit goes to the new **stream** (requirement 2); the
+>   basin has its own `basin` exit — sibling drives that typed a bare `swim`
+>   at the quay for the basin must say `swim basin` now.
+
 ### W2 — Bodies
 
 **Goal.** The current is felt every beat; the ford reads the body; floats,

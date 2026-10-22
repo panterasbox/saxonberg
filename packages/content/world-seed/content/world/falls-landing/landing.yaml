@@ -1,0 +1,34 @@
+# The landing below the falls (the river build, D36) — ⭐ the head of
+# navigation: as far up the Kestrel as a boat comes. Freight that wants to
+# go further goes by the road from here, and that is why there is anything
+# here at all.
+class: /platform/location/Shore
+data:
+  shortDescription: landing below the falls
+  keywords: [landing, falls, quay]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A timber landing staged out from the left bank where the water comes out of the falls' pool and settles into a river again. Spray drifts over everything. A cart track comes down the valley side to it, because this is as far as the river carries anything up; above here it is the road or nothing.
+  coords: { x: 0, y: 1, z: 0 }
+  waters:
+    river: "kestrel:falls+0.4"
+  bank: { course: kestrel, at: falls+0.3, side: left, span: 0.2, name: landing }
+  details:
+    river:
+      keywords: [river, kestrel, water, pool, spray]
+      description: |
+        The falls' pool churns white under the drop and loosens into a broad brown river by the time it reaches the landing.
+    falls:
+      keywords: [falls, drop, spray]
+      description: |
+        Twenty-odd metres of water coming down in a sheet and a roar. Nothing goes up it.
+  exits:
+    north:
+      destination: /world/falls-landing/head
+      media: [ground]
+      edgeMinutes: 10
+    road:
+      destination: /world/terminus/valley-road/the-shoulder
+      media: [ground]
+      edgeMinutes: 90

@@ -930,6 +930,33 @@ export default class Exit extends ConcealableMixin(Idea) {
    * Used by the mutual-exit verifier to identify the destination
    * by path.
    */
+  /**
+   * ⭐ Does a map record this way (river D38 d)? A way that is worked out
+   * against a moving frame — the water within hail of you, a ship lying
+   * alongside — is not a fact about the place it leaves, and a map that
+   * wrote it down would be telling its owner something that stopped being
+   * true when the water moved on. *Maps never name a ship, or a patch.*
+   * @hook Override on a way that comes and goes with a frame. Default
+   *   `true`.
+   */
+  public isMapped(): boolean {
+    return true;
+  }
+
+  /**
+   * ⭐ Does this way go into the water — what a bare `swim` beside a water
+   * takes (river D8)? By default: its far side, when it is loaded, is a
+   * water place.
+   * @hook Override on a way worked out against moving water, whose far
+   *   side is not known until it is taken.
+   */
+  public leadsIntoWater(): boolean {
+    const path = this.getDestinationTemplatePath();
+    if (!path) return false;
+    const dest = StuffApi.findByTemplatePath<Stuff>(path);
+    return dest !== undefined && dest !== null && MixinApi.isWaterPlace(dest);
+  }
+
   public getDestinationTemplatePath(): string | null {
     if (this._destinationPath) return this._destinationPath;
     if (this._destination) return this._destination.getTemplatePath() ?? null;

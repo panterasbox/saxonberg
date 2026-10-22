@@ -202,6 +202,18 @@ const WIND_BURN: Readonly<Record<string, number>> = {
  * swimming band (underwater review: the meters between you and the air
  * cost TIME, and breath burns the whole way). Buoyancy adds or takes away.
  */
+/** Slower than this a current carries nothing (river D11), m/s. */
+const CURRENT_SLACK_MPS = 0.05;
+/** A body's frontal area against a current, m², and its drag coefficient (river D11). */
+const DRAG_AREA_M2 = 0.3;
+const DRAG_CD = 1;
+/** Rough water this broken puts you under part of the time (river D11). */
+const ROUGH_UNDER_AT = 0.6;
+/** The share of the breath store a beat in white water takes, at roughness 1. */
+const ROUGH_STORE_SHARE = 0.08;
+/** A stroke keeps you head-first and driving for this long, real ms (river D13). */
+const STROKE_HEAD_FIRST_MS = 20_000;
+
 const VERTICAL_MPS: Readonly<Record<string, number>> = {
   untrained: 0.4,
   novice: 0.6,
@@ -308,6 +320,18 @@ export interface Respiration {
    * is helped up and slowed down.
    */
   verticalSwimSeconds(meters: number, up: boolean): Promise<number>;
+  /** ⭐ Floating feet-first in moving water (river D13). */
+  isFeetFirst(): boolean;
+  /** ⭐ A stroke was taken now (river D13). */
+  noteStroke(): void;
+  /** ⭐ How this body meets what is ahead in the water (river D12). */
+  approachNow(): 'feet-first' | 'head-first' | 'passive';
+  /**
+   * ⭐ How fast this body swims through the water, m/s (river D11) — the
+   * swimming band's stroke: untrained 0.4 … expert 1.2. What a current is
+   * measured against when you try to swim up it or across it.
+   */
+  swimSpeedMps(): Promise<number>;
   /** The uncleared pressure on your ears, meters of descent. */
   getPressureDebtM(): number;
   /** Dissolved gas per tissue compartment, atm (the bends, D27). */
@@ -414,6 +438,8 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     private _heldUp = false;
     /** Floating on your back (`float`) — no tread, until you go under or out. */
     private _floating = false;
+    /** Real ms of the last stroke taken (river D13). Runtime. */
+    private _strokedAtRealMs: number | null = null;
     /** When the instinctive drowning response began, game-seconds. */
     private _drowningSinceS: number | null = null;
     /** When the drowning was last shown (runtime; a cue debounce). */
@@ -1101,6 +1127,29 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const nowS = this.respirationNowSeconds() ?? 0;
       const medium = BiomeApi.mediumFor(self);
       if (!(medium.immersed && medium.atSurface && medium.tag === 'water')) return;
+      // ⭐⭐ The current (river D11). In water that is itself carried (a
+      // reach patch) the body goes with it and holding costs nothing; in a
+      // place whose water runs past, holding against it costs drag, and a
+      // body that is not holding — floating, held up, spent — is swept.
+      const place = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const v = Math.abs(medium.currentMps ?? 0);
+      const carried = place !== null && MixinApi.isMovingPlace(place);
+      if (!carried && v > CURRENT_SLACK_MPS && place !== null && MixinApi.isWaterPlace(place)) {
+        const spent = MixinApi.isExerting(self) && self.breathBand() === 'spent';
+        const holding = !this._floating && !this._heldUp && !spent;
+        if (!holding) {
+          void place.sweep(self).catch(() => {});
+          return;
+        }
+      }
+      // ⭐ Rough water (D11, D13): you are under part of the time — the
+      // store pays for it, and the feet-first float pays half.
+      const rough = Math.max(0, Math.min(1, medium.roughness ?? 0));
+      const feet = this.isFeetFirst() ? 0.5 : 1;
+      if (rough >= ROUGH_UNDER_AT) {
+        const store = this.reconcileStore(nowS, true);
+        this._o2StoreL = Math.max(0, store - this.fullO2StoreL() * ROUGH_STORE_SHARE * rough * feet);
+      }
       if (this._floating || this._heldUp) return;
       const lift = this.netBuoyancyN(medium);
       // A small body floats on a small lift (the frog): the threshold
@@ -1115,7 +1164,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const buoyancy = lift > 0 ? 0.5 : 1 + Math.min(3, -lift / 50);
       // ⭐ Every drowning body clinging to you is a body you hold up too.
       const clinging = this.liveClingers();
-      const powerW = RESPIRATION_DEFAULTS.TREAD_W * technique * buoyancy * (1 + clinging);
+      // Holding station in water that runs past: ½·ρ·C_d·A·v³ — 0.4 m/s is
+      // cheap, 1.5 m/s more than a fresh body sustains (D11).
+      const drag = carried ? 0 : 0.5 * 1000 * DRAG_CD * DRAG_AREA_M2 * v * v * v;
+      const powerW =
+        (RESPIRATION_DEFAULTS.TREAD_W * technique * buoyancy * (1 + clinging) + drag) * (1 + rough * feet);
       self.exert({ durationS: elapsedS, powerW });
       if (MixinApi.isAdvancing(self)) {
         void self.creditDeed({ discipline: 'swimming', difficulty: 'easy', outcome: 'success' }).catch(() => {});
@@ -1148,6 +1201,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
           }).catch(() => {});
         }
       }
+    }
+
+    public async swimSpeedMps(): Promise<number> {
+      await this.warmWaterBands();
+      return VERTICAL_MPS[this._swimBand] ?? VERTICAL_MPS.untrained!;
     }
 
     public async verticalSwimSeconds(meters: number, up: boolean): Promise<number> {
@@ -1264,6 +1322,35 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public isFloating(): boolean {
       return this._floating;
+    }
+
+    /**
+     * ⭐ Feet first (river D13): floating on your back in moving water,
+     * feet downstream — what costs half in rough water and meets a hazard
+     * feet-first.
+     */
+    public isFeetFirst(): boolean {
+      if (!this._floating) return false;
+      const medium = BiomeApi.mediumFor(this as unknown as Stuff);
+      return Math.abs(medium.currentMps ?? 0) > CURRENT_SLACK_MPS;
+    }
+
+    /** ⭐ A stroke was taken (river D13): for the next while you are head-first and driving. */
+    public noteStroke(): void {
+      this._strokedAtRealMs = Date.now();
+    }
+
+    /**
+     * How a body meets what is in the water ahead (river D12): feet-first
+     * floating, head-first stroking (any stroke in the last 20 real
+     * seconds), passive otherwise.
+     */
+    public approachNow(): 'feet-first' | 'head-first' | 'passive' {
+      if (this.isFeetFirst()) return 'feet-first';
+      if (this._strokedAtRealMs !== null && Date.now() - this._strokedAtRealMs <= STROKE_HEAD_FIRST_MS) {
+        return 'head-first';
+      }
+      return 'passive';
     }
 
     public async float(): Promise<{ ok: true } | { ok: false; reason: string; line: string }> {

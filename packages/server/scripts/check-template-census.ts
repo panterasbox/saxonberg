@@ -508,6 +508,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
+   * ⭐ A Watercourse's `places[]` (the river build, D7/D8) — the authored
+   * places on its line. A rowless one is a quay the river passes without
+   * ever handing anybody in.
+   */
+  const places = data.places;
+  if (Array.isArray(places)) for (const p of places) push('places', p);
+  /*
    * ⭐ A Watercourse's authored `hazards[].row` (the river build) — an
    * authored strainer or hydraulic naming its own row. A rowless one is a
    * hazard the drift meets and nothing can stand up.

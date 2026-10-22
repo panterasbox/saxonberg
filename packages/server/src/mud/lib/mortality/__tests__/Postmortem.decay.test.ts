@@ -52,6 +52,18 @@ describe('PostmortemMixin — the corpse clock', () => {
   });
   afterEach(() => WorldClockApi._resetForTesting());
 
+  it('⭐ a drowned body sinks fresh, floats when it has decomposed, and sinks again when spent (river D27)', () => {
+    const c = corpse();
+    expect(c.buoyantNow()).toBe(false);
+    advance(STAGE + 1);
+    expect(c.buoyantNow()).toBe(false);
+    advance(STAGE);
+    expect(c.getDecayStage()).toBe('decomposed');
+    expect(c.buoyantNow()).toBe(true);
+    advance(STAGE);
+    expect(c.buoyantNow()).toBe(false);
+  });
+
   it('walks the decay stages in order and never walks back', () => {
     const c = corpse();
     expect(c.getDecayStage()).toBe('fresh');

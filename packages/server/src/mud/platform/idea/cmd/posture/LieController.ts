@@ -36,9 +36,16 @@ export default class LieController extends CommandController<LieModel> {
       }
       const out = await giver.float();
       if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
+      // ⭐ In moving water the float is feet-first (river D13): the
+      // technique that costs half in rough water and meets a hazard feet on.
+      const feet = giver.isFeetFirst();
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.compose`You lie back on the water and let it hold you up.`)
+        .toSelf(
+          feet
+            ? Mml.compose`You turn on your back with your feet downstream and let the river carry you, feet first.`
+            : Mml.compose`You lie back on the water and let it hold you up.`,
+        )
         .toPeers(Mml.compose`${Mml.actor(giver)} lies back and floats.`)
         .send();
       return;

@@ -563,7 +563,7 @@ export class PerceptionLogic extends ApiLogic {
     // EXPANSE's (its landmarks and registered craft), and ashore a named
     // zone's structures are the catalogue's again. Nothing asks the
     // registry for every craft in the world.
-    return horizonAtSea(viewer) ?? horizonAshore(viewer);
+    return horizonAtSea(viewer) ?? horizonOnRiver(viewer) ?? horizonAshore(viewer);
   }
 
   /** See {@link PerceptionApi.visibleContentsOf}. */
@@ -1292,6 +1292,34 @@ function horizonAtSea(viewer: Stuff): HorizonView | null {
   );
   return toView(contacts, true);
 }
+
+/**
+ * ⭐ On a river (river D26): the viewer's room is on a river's line — the
+ * water itself, or a bank standing on it — and what is in sight is the
+ * frame's answer (whoever is in the water, to the next bend or as far as
+ * height carries). `null` when the room is on no river.
+ */
+function horizonOnRiver(viewer: Stuff): HorizonView | null {
+  const room = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+  if (room === null) return null;
+  const framePath =
+    (MixinApi.isPositioned(room) ? room.getLine() : null) ??
+    (MixinApi.isShore(room) ? room.getBankFrame() : null);
+  if (!framePath) return null;
+  const frame = StuffApi.findByTemplatePath<Stuff>(framePath);
+  if (!frame || !MixinApi.isLineFrame(frame)) return null;
+  if (!(BiomeApi.exposureOf(room)?.skyVisible() ?? false)) return EMPTY_HORIZON;
+  const things: HorizonView['things'] = [];
+  for (const s of frame.sightablesNear(room, RIVER_EYE_M)) {
+    const stuff = s as Stuff;
+    if (!stuff || stuff === viewer || stuff.isDestroyed()) continue;
+    things.push({ stuff, bearingDeg: null, rangeNm: null });
+  }
+  return { things, traffic: [], atSea: false };
+}
+
+/** A person's eye above the water or the bank, m. */
+const RIVER_EYE_M = 1.7;
 
 /**
  * Ashore: the nearest `horizon` declaration names ZONES; a Structure in

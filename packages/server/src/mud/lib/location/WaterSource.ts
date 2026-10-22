@@ -110,6 +110,7 @@ export interface WaterSource {
   readWater(citation: string, place: Stuff, nowS: number): Promise<WaterRead | null>;
   waterLinesFor(read: WaterRead, viewer: Stuff): string[];
   retide(read: WaterRead, nowS: number): WaterRead | null;
+  onBankStood(shore: Stuff): Promise<void>;
 }
 
 export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -172,6 +173,17 @@ export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
       void read;
       void nowS;
       return null;
+    }
+
+    /**
+     * ⭐ A shore standing on this source's water as a BANK has stood up
+     * (river D8, D26) — a quay, a towpath, a landing on a river's line. The
+     * source gives it its way into the water there, which the source alone
+     * can work out (where the water is, what is in it within hail).
+     * @hook Override on a source whose waters have banks. Default: nothing.
+     */
+    public async onBankStood(shore: Stuff): Promise<void> {
+      void shore;
     }
   };
 }

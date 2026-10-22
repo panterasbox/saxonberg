@@ -28,6 +28,12 @@ data:
       destination: /world/terminus/valley-road/the-narrows
     west:
       destination: /world/terminus/hinkley-hills/location/arrival
+    # ⭐ Up the valley to the falls landing (the river build): the road a
+    # boat's cargo takes on from the head of navigation.
+    falls:
+      destination: /world/falls-landing/landing
+      media: [ground]
+      edgeMinutes: 90
   details:
     milepost:
       keywords: [milepost, post, stone, marker]

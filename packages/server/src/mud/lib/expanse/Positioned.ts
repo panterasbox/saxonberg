@@ -15,11 +15,20 @@
  * resolved by `ExpanseApi.positionOf`.
  *
  * It never shares a host with `CartesianCoordinatesMixin`: a room has a
- * cell, a node or a craft has a position.
+ * cell, a node or a craft has a position — ⭐ except a MOVING PLACE (river
+ * D4: a reach patch, a stopped ship's room at sea), whose coordinates are
+ * decoration, as a band's are, never grid-indexed beyond its own zone.
+ *
+ * ⭐ **Two frames, one record** (river D18): a position is either on the
+ * chart (`expanse` + `expansePosition`) or on a river's LINE (`line` +
+ * `linePosition` — km from the mouth, m from river left). Never both: the
+ * setters refuse the second half while the first is set, so a ship at a
+ * river's mouth clears one before taking the other.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
+import type { LinePositionRecord } from './LineFrame';
 
 export interface Positioned {
   getExpansePosition(): GeoPosition | null;
@@ -28,6 +37,10 @@ export interface Positioned {
   setExpanse(path: string | null): void;
   sightHeightFor(observer: unknown): number;
   getTargetHeightM(): number;
+  getLine(): string | null;
+  getLinePosition(): LinePositionRecord | null;
+  placeOnLine(line: string | null, value: LinePositionRecord | null): void;
+  framePath(): string | null;
 }
 
 export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -37,6 +50,8 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       expansePosition: { persistent: true, authorable: true },
       expanse: { persistent: true, authorable: true },
+      line: { persistent: true, authorable: true },
+      linePosition: { persistent: true, authorable: true },
     };
 
     /**
@@ -54,7 +69,60 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setExpansePosition(value: GeoPositionRecord | GeoPosition | null): void {
+      if (value !== null && this.linePosition !== null) {
+        throw new Error(
+          'PositionedMixin: a position is on the chart OR on a line, never both — clear the line half first',
+        );
+      }
       this.expansePosition = value === null ? null : new GeoPosition(value).toJSON();
+    }
+
+    /** The river (a `LineFrame` row path) this position is on, or `null`. */
+    protected line: string | null = null;
+
+    /** Where on that river: km from the mouth, m from river left. */
+    protected linePosition: LinePositionRecord | null = null;
+
+    getLine(): string | null { return this.line; }
+
+    getLinePosition(): LinePositionRecord | null {
+      return this.linePosition === null ? null : { ...this.linePosition };
+    }
+
+    /** Hydration setter — the record's own field, no invariant (see {@link placeOnLine}). */
+    setLine(value: string | null): void {
+      this.line = typeof value === 'string' && value !== '' ? value : null;
+    }
+
+    /** Hydration setter — the record's own field, no invariant (see {@link placeOnLine}). */
+    setLinePosition(value: LinePositionRecord | null): void {
+      this.linePosition =
+        value && typeof value === 'object' && Number.isFinite(value.km) && Number.isFinite(value.across)
+          ? { course: value.course, km: value.km, across: value.across }
+          : null;
+    }
+
+    /**
+     * Put it on a river's line (or off one, with `null`s). Refused while
+     * a chart position is set — one frame at a time.
+     */
+    placeOnLine(line: string | null, value: LinePositionRecord | null): void {
+      if (value !== null && this.expansePosition !== null) {
+        throw new Error(
+          'PositionedMixin: a position is on the chart OR on a line, never both — clear the chart half first',
+        );
+      }
+      if (value !== null && !(Number.isFinite(value.km) && Number.isFinite(value.across))) {
+        throw new Error(`PositionedMixin: a line position needs a finite km and across (got ${JSON.stringify(value)})`);
+      }
+      this.line = value === null ? null : line;
+      this.linePosition = value === null ? null : { course: value.course, km: value.km, across: value.across };
+    }
+
+    /** The frame this position is in — the expanse's path or the river's. */
+    framePath(): string | null {
+      if (this.linePosition !== null) return this.line;
+      return this.expansePosition !== null ? this.expanse : null;
     }
 
     getExpanse(): string | null { return this.expanse; }

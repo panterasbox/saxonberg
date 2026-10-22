@@ -1,0 +1,17 @@
+# A river's strainer (the river build, D12) — met by the drift on its side of
+# the river; how you meet it decides what it does. Placed in the stop at
+# its position by the river's warren; never spent.
+class: /system/water/thing/RiverHazard
+data:
+  shortDescription: fallen tree across the water
+  keywords: [strainer, tree, trunk, branches, snag]
+  register: indefinite
+  longDescription: >-
+    A whole tree, roots and all, gone over into the river off the bank and lying out across the current. The water goes through its branches. Anything else the water carries stays there.
+  hazardKind: strainer
+  holdFactor: 4
+  trigger: proximity
+  traverseConsequence: none
+  groundTriggered: false
+  fixedInPlace: true
+  mass: 500

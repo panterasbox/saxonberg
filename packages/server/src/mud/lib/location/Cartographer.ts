@@ -226,6 +226,9 @@ export function CartographerMixin<TBase extends MixinConstructor>(
           },
         ];
         for (const exit of perceived) {
+          // ⭐ A way the frame works out (within hail, alongside) is never
+          // written down (river D38 d).
+          if ((exit as unknown as { isMapped?(): boolean }).isMapped?.() === false) continue;
           const dir = (exit as unknown as { getDirection?(): string })
             .getDirection?.();
           if (!dir) continue;
@@ -297,6 +300,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
     private async recordTraversal(via: Exit): Promise<void> {
       try {
         if (!this.keepsMaps()) return;
+        if (!via.isMapped()) return;
         const viewerKey = this.mapOwnerKey();
         if (!viewerKey) return;
         const source = via.getSource() as unknown as Stuff;

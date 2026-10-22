@@ -1,0 +1,7 @@
+# The kind zone of a stop on a river (the river build, D38) — a bar, an
+# eddy, the bed under a pool. Stands empty; each stop is minted with a
+# zone of its own from this row, at the stop's own position.
+class: /system/water/location/ReachZone
+data:
+  name: the river
+  cellSize: 30

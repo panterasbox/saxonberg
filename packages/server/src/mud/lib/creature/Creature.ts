@@ -49,6 +49,9 @@ import { VitalsMixin } from '../vitals/Vitals';
 import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
 import { HygieneMixin } from '../cleanliness/Hygiene';
 import type { Stuff } from '../stuff/Stuff';
+
+/** Real seconds a haul out of the water takes on the puller's hands (river D22). */
+const PULL_OUT_REAL_S = 4;
 import { MixinApi } from '../../api/mixin';
 import { ReservedMixin, Reserve } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
@@ -62,6 +65,11 @@ import { ConcealableMixin } from '../concealment/Concealable';
 import { SlottableMixin } from '../slot/Slottable';
 import { AttiredMixin } from '../slot/Attired';
 import { PostmortemMixin } from '../mortality/Postmortem';
+import { PullableMixin, type PullOutcome, type PullSense } from '../spatial/Pullable';
+import { ContainmentApi } from '../../api/containment';
+import { SchedulerApi } from '../../api/scheduler';
+import { HAZARD_PIN_TYPE } from '../hazard/HazardActivity';
+import { Mml } from '../../api/mml';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -148,7 +156,10 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // ⭐ Hygiene OUTERMOST (cleanliness, review): how a body is kept clean reads
 // the covering stack (Attired) and writes the body's soil by part
 // (Soilable), so it sits outside both — and clothing knows nothing of dirt.
-const CreatureBase = HygieneMixin(PostmortemMixin(
+// ⭐ Pullable OUTERMOST (river D22): any body can be hauled out of water
+// by somebody beside it — the protocol `pull` speaks, refused anywhere but
+// beside water by the body's own `pullBy`.
+const CreatureBase = PullableMixin(HygieneMixin(PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -226,7 +237,7 @@ const CreatureBase = HygieneMixin(PostmortemMixin(
   )
   )
   )
-));
+)));
 
 /**
  * The body-condition bands, thin to fat — ⭐ a CLOSED, ordinal
@@ -337,6 +348,61 @@ function dial(key: string, fallback: number): number {
  * `Creature` does not re-register.
  */
 export class Creature extends CreatureBase {
+  /**
+   * ⭐ Haul this body out of the water (river D22): from a bank or a boat
+   * beside it, or standing in the same water. It ends a hazard's hold on
+   * it, and lands it where the puller is — the bank, the boat — at the
+   * lifeline's pace on the puller's hands. Refused anywhere but beside
+   * water: a person is not a thing on a line.
+   */
+  public override async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
+    void sense;
+    const self = this as unknown as Stuff;
+    const water = this.getContainer() as unknown as Stuff | null;
+    const from = MixinApi.isContainable(puller) ? (puller.getContainer() as unknown as Stuff | null) : null;
+    const name = self.getPresentation();
+    if (water === null || from === null || !MixinApi.isWaterPlace(water)) {
+      return { ok: false, reason: 'not-in-water', line: `${name} is not in the water; there is nothing to haul them out of.` };
+    }
+    const beside =
+      from === water ||
+      (MixinApi.isExitable(from) &&
+        [...from.getExits().values()].some((e) => {
+          try {
+            return e.getDestination() === (water as unknown);
+          } catch {
+            return false;
+          }
+        }));
+    if (!beside) {
+      return { ok: false, reason: 'out-of-reach', line: `${name} is out of your reach.` };
+    }
+    return {
+      ok: true,
+      self: Mml.compose`You get hold of ${Mml.actor(self)} and start to haul.`,
+      peers: Mml.compose`${Mml.actor(puller)} gets hold of ${Mml.actor(self)} and starts to haul.`,
+      takes: {
+        realS: PULL_OUT_REAL_S,
+        finish: async (): Promise<PullOutcome> => {
+          if (self.isDestroyed()) return { ok: false, reason: 'gone', line: 'There is nobody on the end of it now.' };
+          // The hold the water had on them goes: a strainer, a jammed foot.
+          if (MixinApi.isEngaged(self)) SchedulerApi.cancelByType(self, HAZARD_PIN_TYPE);
+          const to = MixinApi.isContainable(puller) ? (puller.getContainer() as unknown as Stuff | null) : null;
+          if (to !== null && to !== water && MixinApi.isContainer(to)) {
+            ContainmentApi.move(self as never, to as never);
+          } else if (MixinApi.isRespiration(self)) {
+            self.holdUp();
+          }
+          return {
+            ok: true,
+            self: Mml.compose`You haul ${Mml.actor(self)} out of the water.`,
+            peers: Mml.compose`${Mml.actor(puller)} hauls ${Mml.actor(self)} out of the water.`,
+          };
+        },
+      },
+    };
+  }
+
   /**
    * ⭐ The shelf's BODY row — the reserve bands as words, with the build
    * phrase beside them. A live field on the `self` card, re-resolved

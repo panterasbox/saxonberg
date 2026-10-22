@@ -1,0 +1,28 @@
+# The foot of the gorge — the Kestrel gorge (the river build, D36). A river place:
+# the line's water at its km (current: inherit), walls both sides, handed
+# in at its head and out at its foot.
+class: /system/water/location/RiverPlace
+data:
+  shortDescription: foot of the gorge
+  keywords: [gorge, river, kestrel, water, foot]
+  register: definite
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none
+  longDescription: |
+    The walls step back and let the light in. The river comes out of the rock tired, wide and broken over stones, and somewhere below and ahead of you there is a sound like weather that is the falls.
+  coords: { x: 4, y: 0, z: 0 }
+  water: { of: "kestrel:gorge+6.5", depthM: 2 }
+  river: { course: kestrel, at: "gorge+6.5", span: 0.4, name: foot }
+  current: inherit
+  details:
+    walls:
+      keywords: [walls, wall, rock, limestone, cliff]
+      description: |
+        Grey limestone, wet to twice your height and scoured smooth. There is nothing to hold and nowhere to climb out.
+  exits:
+    # Where the walls step back: the one way out of the gorge, onto the
+    # ledge at the head of the falls.
+    up:
+      destination: /world/falls-landing/head
+      media: [vertical]

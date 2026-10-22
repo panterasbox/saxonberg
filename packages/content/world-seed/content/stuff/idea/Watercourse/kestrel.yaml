@@ -47,6 +47,33 @@ data:
   # The landmark a pilot names: where the channel shoals in a dry August.
   bends:
     - { at: confluence-15, name: "Hob's Bend" }
+  # Authored killers (everything else is derived — a hydraulic below every
+  # weir, strainers on the outside of wooded bends). The old elm that went
+  # over below the city's last towpath, and has been there for years.
+  hazards:
+    - { at: confluence+1.3, side: left, kind: strainer }
+    # Where the cauldron below the chute spills out, the water turns back on
+    # itself bank to bank (on the line, so the drift meets it).
+    - { at: gorge+2.62, side: left, kind: hydraulic }
+    - { at: gorge+2.62, side: right, kind: hydraulic }
+  # ⭐ What stands on the line (the river build, D7/D8): the river names
+  # its places, so the water drifting down it knows where it is handed in,
+  # and which banks it passes within hail of. Nothing is searched for.
+  places:
+    - /world/kestrel-gorge/head
+    - /world/kestrel-gorge/chute
+    - /world/kestrel-gorge/cauldron
+    - /world/kestrel-gorge/narrows
+    - /world/kestrel-gorge/foot
+    - /world/falls-landing/head
+    - /world/falls-landing/landing
+    - /world/terminus/valley-road/towpath
+    - /world/terminus/wharfside/bank
+    - /world/terminus/wharfside/water/location/stream
+    - /world/terminus/estuary/lower-towpath
+    - /world/terminus/estuary/reach
+    - /world/terminus/estuary/estuary-mouth
+    - /world/terminus/estuary/channel
   nodes:
     # Rejection's ground. High, cold, and where the ore is — so this is
     # simultaneously the realm's snowpack and its worst pollution risk.

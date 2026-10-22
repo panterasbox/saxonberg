@@ -1,6 +1,6 @@
 # The lower towpath — the working end of Wharfside, where things are
 # loaded rather than looked at.
-class: /platform/location/Locale
+class: /platform/location/Shore
 data:
   shortDescription: lower towpath
   keywords: [towpath, lower]
@@ -83,3 +83,9 @@ data:
       keywords: [water, river, kestrel, deep]
       description: |
         Brown, opaque, and moving without any surface to speak of. You cannot see the bottom. Upstream of the confluence you can see the bottom everywhere, which is the whole reason a boat stops there and starts here.
+  # ⭐ A bank of the Kestrel (the river build, D8): the water it looks at,
+  # and where it stands on the line — so the bank between places is
+  # walkable, and the water passing within hail can reach it.
+  waters:
+    water: "kestrel:confluence+0.6"
+  bank: { course: kestrel, at: confluence+0.4, side: left, span: 0.5, name: towpath }

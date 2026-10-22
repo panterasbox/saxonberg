@@ -136,7 +136,13 @@ data:
     # the basin below it: `swim` (or `dive`, `jump`) goes in — in the
     # hard-hat suit too, which sinks you; the quay steps are the way back
     # OUT (`climb up` from the water). `down` stays the knacker's.
+    # ⭐ Into the river itself — the stream past the foot of the steps
+    # (the river build): `swim` from the quay goes here, into the current.
     river:
+      destination: /world/terminus/wharfside/water/location/stream
+      media: [water, vertical]
+    # The still basin beside it, where the dive shop works.
+    basin:
       destination: /world/terminus/wharfside/water/location/basin
       media: [water, vertical]
     # ⭐ Morrow's dive shop, a tarred shed on the quay (underwater C5).
@@ -231,4 +237,7 @@ data:
   # ⚠ `delight` is not a keyword of the feature — the Delight is a second
   # water at the confluence, and a bank citing it is a later decision.
   waters:
-    river: kestrel:confluence
+    river: kestrel:confluence+0.1
+  # ⭐ Where the quay stands on the Kestrel's line (the river build, D8):
+  # the left bank, from the steps two hundred metres down past the outfall.
+  bank: { course: kestrel, at: confluence+0.1, side: left, span: 0.2, name: quay }

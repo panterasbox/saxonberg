@@ -29,6 +29,7 @@ import { TemplatePaths } from "../../../lib/paths";
 import {
   ESTATE_INVENTORY,
   ESTATE_STORAGE,
+  ESTATE_LOOSE,
 } from "../../../lib/persistence/PersistenceSlice";
 import type {
   ChattelOwner,
@@ -260,7 +261,12 @@ export class ChattelLogic extends ApiLogic {
     const owner = await this.resolveOwner(item);
     if (owner?.kind !== "player") return;
     const host = this.nearestHost(item);
-    if (!host) return; // transient space — leave the last placement alone
+    // ⭐ Transient space (river D33): `loose` — never left as `inventory`,
+    // which made the owner's next restore mint a second copy.
+    if (!host) {
+      if (good.getPlace() !== ESTATE_LOOSE) await this.applyPlace(item, ESTATE_LOOSE);
+      return;
+    }
     const place =
       host.getIdentityPath() === owner.templatePath
         ? ESTATE_INVENTORY
@@ -373,7 +379,7 @@ export class ChattelLogic extends ApiLogic {
    * standing anywhere, so it has no pin either.
    */
   private pinOf(good: Stuff & Chattel, place: string): ChattelPin | null {
-    if (place === ESTATE_STORAGE || place === ESTATE_INVENTORY) return null;
+    if (place === ESTATE_STORAGE || place === ESTATE_INVENTORY || place === ESTATE_LOOSE) return null;
     if (!MixinApi.isPersistable(good)) return null;
     if (!good.pinsResidency() || !good.isPersistenceKeyExplicit()) return null;
     // ⚠ The scope must be the one the RECORD was written under, which

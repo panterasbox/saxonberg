@@ -1,0 +1,35 @@
+# The stream below the Wharfside quay (the river build, D36) — the
+# Kestrel itself, running past the foot of the steps. ⭐ A river place: the
+# author owns the water along its span (here it inherits the line's current
+# at its position), and its ends hand you on to the river — swim
+# downstream and the Kestrel takes you.
+#
+# The basin beside it is still water off the stream (the dive shop's): the
+# two are different waters, and this is the one that goes somewhere.
+class: /system/water/location/RiverPlace
+data:
+  shortDescription: stream below the quay
+  keywords: [stream, river, kestrel, current, water]
+  register: definite
+  _address: terminus/city/wharfside/stream
+  _biomePath: /stuff/idea/biome/water/open
+  longDescription: |
+    You are in the Kestrel at the foot of the quay steps, out past the shelter of the basin where the river's own water goes by. The embankment stands up out of it on your left, slimed green to the summer line, and the brown water leans on you all the time, going east.
+  coords: { x: 1, y: 0, z: 0 }
+  water: { of: "kestrel:confluence+0.1", depthM: 3 }
+  # ⭐ On the line: its upstream end at the quay steps, two hundred metres
+  # of the river past the city's front, then the line again.
+  river: { course: kestrel, at: confluence+0.1, span: 0.2, name: stream }
+  current: inherit
+  details:
+    embankment:
+      keywords: [embankment, wall, quay, stone]
+      description: |
+        Dressed stone going straight up out of the water, slimed and sheer. The steps are the way up; there is no other.
+  exits:
+    up:
+      destination: /world/terminus/wharfside/bank
+      media: [vertical]
+    west:
+      destination: /world/terminus/wharfside/water/location/basin
+      media: [water]
