@@ -38,11 +38,11 @@ data:
     # (sugar W1) The arch's woodpile — a sugarhouse is built beside its
     # cordwood; the arch burns nothing if there is nothing to burn.
     - { template: /stuff/thing/items/dry-log, count: 8 }
+  # ⚠ No `arch` detail: the evaporator prop IS the arch, and a detail
+  # answering to the same words (arch, evaporator, fire, hearth) made every
+  # `look evaporator` / `stoke … into arch` ask "which one?" once a log was
+  # laid in it — the sugar drive read it as a thirty-second hang.
   details:
-    arch:
-      keywords: [arch, evaporator, hearth, fire, "fire-bed", stone, brick]
-      description: |
-        Fieldstone at the base and brick above it, laid dry and bedded in ash, with four iron bars across the top set just wide enough to take the pan. You could get a day's cordwood into it and it would want more.
     hollow:
       keywords: [hollow, ground, brash, ends, litter]
       description: |
