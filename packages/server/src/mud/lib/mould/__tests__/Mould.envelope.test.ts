@@ -296,6 +296,38 @@ describe('the mould as an envelope (ceramics W7)', () => {
     expect(face.told).toBe(0);
   });
 
+  it('⭐⭐ through a REAL pour, the superheat is heard before anything can set — a hot pour fills', async () => {
+    // Run 20: a key poured through BulkableApi.transfer misran at any heat.
+    // The pool landed in the cold mould before the mould heard the pour,
+    // so a read in between froze it with no superheat on record.
+    const r = room();
+    const flask = sandFlask();
+    ContainmentApi.move(flask, r);
+    await flask.takeImpression(sword(), flask);
+    flask.setRiser(true);
+    const crucible = makeStuff(() => new TestMould());
+    ContainmentApi.move(crucible, r);
+    const c = crucible as unknown as {
+      interiorBulk: boolean;
+      setInteriorCapacity(q: Quantity<'L'>): void;
+      setBulkMaterial(a: 'interior', m: Material): void;
+      setBulkAmount(a: 'interior', q: Quantity<'L'>): void;
+      setStampedTemperatureK(k: number): void;
+      setLastAmbientK(k: number): void;
+    };
+    c.interiorBulk = true;
+    c.setInteriorCapacity(Quantity.of(3, 'L'));
+    c.setBulkMaterial('interior', mat(PEWTER));
+    c.setBulkAmount('interior', Quantity.of(0.2, 'L'));
+    c.setStampedTemperatureK(600);
+    c.setLastAmbientK(600);
+    // Any read of the mould mid-pour must not find a cold pool to freeze.
+    const read = vi.spyOn(flask, 'receivedPour');
+    BulkableApi.transfer(BulkableApi.slotFor(crucible)!, BulkableApi.slotFor(flask)!, { kind: 'all' });
+    expect(read).toHaveBeenCalled();
+    expect(flask.pourSuperheatK, 'the superheat is on record').toBeGreaterThan(50);
+  });
+
   it('⭐ Chvorinov: too cool into a thin shape misruns; hot enough fills', async () => {
     const cold = sandFlask();
     ContainmentApi.move(cold, room());

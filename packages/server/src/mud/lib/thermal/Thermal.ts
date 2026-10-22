@@ -2440,6 +2440,8 @@ function crystallizeIfOver(
   if (!product) return false;
 
   const excessKg = (held - solubility) * litres;
+  // DIAG(ceramics): temporary — remove before the MR is marked ready.
+  console.info(`DIAG(ceramics) crystallize ${(v as unknown as Stuff).getTemplatePath()} held=${held.toFixed(3)} sol=${solubility.toFixed(3)} L=${litres.toFixed(2)} excessKg=${excessKg.toFixed(3)} T=${Math.round(tempK)}`);
   // ⚠ The liquor keeps its volume: a solute's share of a solution's volume
   // is small, and the volume is what the water does (the evaporative window
   // moves it) — subtracting the crystals' volume made a pan whose window
@@ -2538,7 +2540,9 @@ async function setCrystals(
     return;
   }
   if (mould) {
-    await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+    const made = await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+    // DIAG(ceramics): temporary — remove before the MR is marked ready.
+    console.info(`DIAG(ceramics) setCrystals into mould ${self.getTemplatePath()} kg=${kg.toFixed(3)} cast=${made ? made.getTemplatePath() : 'NULL'}`);
     return;
   }
   let cast: Stuff;
