@@ -217,12 +217,15 @@ suite('stage D — a ship on the river', () => {
   it('31. down to the mouth and out over the bar: she is on the sea; at the bar, the river’s name takes her back in', async () => {
     const out = await steam(master, 'course bar');
     expect(out, out).toMatch(/under way downstream/);
+    // ⭐ Everything heard on the way down, not only the last watch's (the
+    // drive lost a grounding that was told on the first).
     let sea = '';
     for (let i = 0; i < 16; i++) {
       await advanceWorldClock('30 minutes');
-      sea = squash(await master.listen(3_000));
+      sea += ' ' + squash(await master.listen(3_000));
       if (/out over the bar/.test(sea)) break;
     }
+    console.log(`down to the bar: ${sea.slice(0, 1500)}`);
     expect(sea, 'she never came out over the bar').toMatch(/out over the bar/);
     const readout = await say(master, 'course');
     expect(readout, readout).toMatch(/by reckoning/);

@@ -165,6 +165,13 @@ export interface CompiledReach {
   channelWidthM: number | null;
   /** Minimum hops to a sea outlet — a monotone downstream distance. */
   depthToSea: number;
+  /** This node's km from its own course's mouth. */
+  km: number;
+  /**
+   * ⭐ Kilometres of river to the sea (river review): how far the salt
+   * reaches is a distance, not a count of the nodes an author drew.
+   */
+  kmToSea: number;
   /**
    * Square kilometers draining to this reach — its own contributing
    * localities plus everything upstream of it. Accumulated at load.
@@ -903,7 +910,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
    * |---|---|
    * | `temperatureK` | the catchment's air ({@link airTemperatureKAt}; no thermocline — the underwater slate's depth) |
    * | `currentMps` | `flow / (width × depth)`; an unauthored width or depth from the flow by hydraulic geometry |
-   * | `salinityPpt` | 33 at sea level; brackish (the dial) one hop above the sea below the brackish elevation; 0.3 fresh — the one function a tide clock replaces |
+   * | `salinityPpt` | 33 at sea level; brackish (the dial) within `water.fishery.brackishWithinKm` (12) of river from the sea, below the brackish elevation; 0.3 fresh — the one function a tide clock replaces |
    * | `oxygenMgL` | saturation at temperature (14.6 at 273 K → 7.5 at 303 K) × turbulence by current band |
    * | `pH` · `hardnessDgh` · `nitrateMgL` | the course row's `water:` seed, **flow-weighted where a tributary joins** |
    * | `ammoniaMgL` · `nitriteMgL` | 0 in a flowing river |
@@ -953,7 +960,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       const up = Math.max(0, Math.min(1, tide.levelM / Math.max(0.01, tide.tide.rangeM) + 0.5));
       salinityPpt = brackish + (sea - brackish) * up;
     } else if (reach.elevation <= 0) salinityPpt = dial('water.fishery.salinity.sea', 33);
-    else if (reach.depthToSea <= 1 && reach.elevation < brackishBelowM) {
+    else if (reach.kmToSea <= dial('water.fishery.brackishWithinKm', 12) && reach.elevation < brackishBelowM) {
       salinityPpt = dial('water.fishery.salinity.brackish', 15);
     }
 
@@ -1862,6 +1869,8 @@ async function loadIndex(): Promise<CompiledIndex> {
         elevation: node.elevation ?? 0,
         channelWidthM: node.channelWidthM ?? null,
         depthToSea: 0, // filled below
+        km: typeof node.km === 'number' ? node.km : 0,
+        kmToSea: 0, // filled below
         // The wild ground the author declared on the node itself;
         // localities add theirs in `accumulateCatchments`.
         catchmentKm2: node.catchmentKm2 ?? 0,
@@ -2446,6 +2455,32 @@ function assignDepths(
     return d;
   };
   for (const [ref, reach] of reaches) reach.depthToSea = depth(ref, new Set());
+
+  // ⭐ The same walk in kilometres: along a course, the km between its
+  // nodes; across a junction (a branch's mouth onto the trunk) nothing.
+  const kmMemo = new Map<ReachRef, number>();
+  const kmTo = (ref: ReachRef, guard: Set<ReachRef>): number => {
+    const done = kmMemo.get(ref);
+    if (done !== undefined) return done;
+    if (guard.has(ref)) return 0;
+    guard.add(ref);
+    const here = reaches.get(ref);
+    const next = successors.get(ref) ?? [];
+    const d =
+      next.length === 0 || here === undefined
+        ? 0
+        : Math.min(
+            ...next.map((n) => {
+              const there = reaches.get(n);
+              const step = there && there.courseKey === here.courseKey ? Math.abs(here.km - there.km) : 0;
+              return step + kmTo(n, guard);
+            }),
+          );
+    guard.delete(ref);
+    kmMemo.set(ref, d);
+    return d;
+  };
+  for (const [ref, reach] of reaches) reach.kmToSea = kmTo(ref, new Set());
 }
 
 /* ─────────────────────── flow and snowpack ─────────────────────── */

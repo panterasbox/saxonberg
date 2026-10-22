@@ -107,9 +107,10 @@ data:
     # bigger than a canoe could use it, and the line says so.
     - { name: confluence, km: 9, elevation: 30, channelWidthM: 35, catchmentKm2: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/grey-mullet }], works: [/world/terminus/wharfside/thing/city-intake, /world/terminus/wharfside/thing/city-outfall] }
     # The sea, and the global minimum: downstream of everything.
-    # ⭐ 50 m, not 160 (the river build's drive): this is the RIVER's width
-    # where it meets the sea — the estuary's breadth is the sea's water
-    # and its authored places. Opened from the confluence's 35 to 160 over
-    # nine kilometres, the lower river spread into riffles a hand deep in
-    # every season, and no steamer could reach the bar.
-    - { name: estuary, km: 0, elevation: 0, channelWidthM: 50, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }
+    # ⭐ The tideway (the river build's drive): the river holds its width
+    # until the last two kilometres, then opens into the estuary. Opened
+    # straight from the confluence's 35 m to the estuary's 160 over nine
+    # kilometres, the lower river spread into riffles a hand deep in every
+    # season, and no steamer could reach the bar.
+    - { name: tideway, km: 2, elevation: 1, channelWidthM: 45 }
+    - { name: estuary, km: 0, elevation: 0, channelWidthM: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

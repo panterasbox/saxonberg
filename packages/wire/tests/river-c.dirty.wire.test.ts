@@ -195,8 +195,13 @@ suite('stage C — small craft', () => {
     await morning();
     // ⭐ A person is not landed against their will (river review): the mate
     // is in her party, so a pull is help, not a seizure.
+    // Known by name — the party and the pull both go by what she knows.
+    await s.drainProse();
+    expectOk(await mate.cmd('introduce'));
+    const met = squash(await s.listen(3_000));
+    const known = (met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? mate.handle).split(' ')[0]!.toLowerCase();
     expectOk(await s.cmd('party form canoeists'));
-    expectOk(await s.cmd(`party invite ${mate.handle}`));
+    expectOk(await s.cmd(`party invite ${known}`));
     expectOk(await mate.cmd('party accept'));
     // Into the same canoe: the mate takes one; the paddler finds hers.
     expectOk(await mate.cmd('go canoe'));
@@ -228,9 +233,9 @@ suite('stage C — small craft', () => {
     expect(righted, righted).toMatch(/comes over the right way up/);
     // Back in, and her mate pulled in after her — by what she knows them as.
     expectOk(await s.cmd('go canoe'));
-    const pulled = await s.cmd('pull human');
+    const pulled = await s.cmd(`pull ${known}`);
     const said = squash(await pulled.said());
-    console.log(`pull human: ${pulled.status} ${said}`);
+    console.log(`pull ${known}: ${pulled.status} ${said}`);
     expect(pulled.status, said).toBe('ok');
     expect(said).toMatch(/get hold of/);
     await s.listen(15_000);
