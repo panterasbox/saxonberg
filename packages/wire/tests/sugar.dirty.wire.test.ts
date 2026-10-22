@@ -700,7 +700,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // (drive 11 found nothing left to read).
     const fresh = await examine(sailor, 'bundle');
     expect(fresh, `fresh cane: ${fresh}`).toMatch(/fresh-cut/i);
-    await act(sailor, 'mill cane');
+    await act(sailor, 'mill bundle');
     // ⭐ Juice IN a tub, read by its look — the yard's own prose says
     // "tub", so matching the room proved nothing (it passed with every
     // crush refused `no-glass`, drive 8).

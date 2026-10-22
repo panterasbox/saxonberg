@@ -26,7 +26,7 @@ import { brain as mills } from '../behavior/mills';
 describe('mills', () => {
   const carry = mills.carry({ carry: { to: ['north'], back: ['south'] } });
   it('crushes what is there, then carries the juice to the boiling house', () => {
-    expect(mills.next({ crush: true, tub: true }, carry)).toBe('mill cane');
+    expect(mills.next({ crush: true, tub: true }, carry)).toBe('mill bundle');
     expect(mills.next({ crush: false, tub: true }, carry)).toBe('get tub\ngo north\ndrop tub\ngo south');
     expect(mills.next({ crush: false, tub: false }, carry)).toBeNull();
   });

@@ -4,7 +4,7 @@
 extends: /trade/sugar/idea/material/raw-liquor
 data:
   name: cane juice
-  keywords: [cane-juice, juice, cane]
+  keywords: [cane-juice, juice]
   appearance: pale green and cloudy, sweet and grassy
   tags: ["liquid", "food", "cane-juice", "perishable", "once-living"]
   solidsKgPerL: 0.16

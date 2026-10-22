@@ -59,7 +59,10 @@ export const brain = class {
     yard: { crush: boolean; tub: boolean },
     carry: { to: readonly string[]; back: readonly string[]; into?: string },
   ): string | null {
-    if (yard.crush) return 'mill cane';
+    // `bundle`, never `cane`: a tub of juice answers to "cane" too, and
+    // `mill cane` bound the FULL tub — "a juice tub is not grain" at every
+    // beat while the bundles soured (probed). Only the cut cane is a bundle.
+    if (yard.crush) return 'mill bundle';
     if (yard.tub && carry.to.length > 0) {
       const there = carry.into
         ? [`pour tub into ${carry.into}`, ...carry.back.map((d) => `go ${d}`), 'drop tub']

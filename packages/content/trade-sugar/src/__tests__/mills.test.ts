@@ -10,7 +10,7 @@ import { brain } from '../behavior/mills';
 
 describe('mills', () => {
   it('crushes first', () => {
-    expect(brain.next({ crush: true, tub: true }, { to: ['north'], back: ['south'] })).toBe('mill cane');
+    expect(brain.next({ crush: true, tub: true }, { to: ['north'], back: ['south'] })).toBe('mill bundle');
   });
 
   it('⭐ with `into`, the tub is emptied up there and comes home', () => {
