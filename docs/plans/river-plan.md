@@ -2316,18 +2316,37 @@ compared a fresh position with others' minutes-stale ones (`patchNearNow`
 carries them on); the ferryman's brain claimed the hands his own crossing
 needs; both decks had a detail answering to `side`.
 
+### Pass 9 (2026-10-22): 24 / 28
+
+The steamer leaves with wood; the dive is in deep water (f48ef731a).
+
+### Pass 10 (2026-10-22): A 9/9 · B 4/5 · C 0/4 · D 4/6 · E 3/4
+
+C and B14 failed on fetch timeouts, and C22's `anchor` was unknown: the
+world had stalled (4,351 Mongo `CursorNotFound` on `transcripts`; command
+views are read from the store). D26/D31: `Ship.burnFor` duck-typed a
+`getMaterialPath()` no Tangible has, so every billet was filtered out, the
+fire died with a full bin and she went adrift below the quay; it reads
+`getMaterial()?.getTemplatePath()` now (d6ac09e88). E35: a deck is gone
+over with a bare `swim`, not `swim side`.
+
+### Pass 11 (2026-10-22): 19 / 28 — and the world at 6.3 GB
+
+Run before the fix above. ⭐ The idle world afterwards held 6.3 GB RSS
+with **313 MB** of live JS heap: ~21,000 resident 256 KB V8 pages. A forced
+full GC (the inspector) dropped it to 1.17 GB — garbage, not a leak. The
+world had been started with `--max-old-space-size=6144`, so V8 let a
+burst's garbage (the season-jump catch-up, which also starved the loop into
+the cursor timeouts) pile up to the ceiling. Drive worlds now start at
+3 GB and are sampled each minute (`mem12.log`).
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
-- **Pass 9 is running** against fc115ceb2 (logs:
-  `~/.claude/jobs/477f9cab/tmp/drive9-{a..e}.log`, memory `mem9.log`; world on
-  port 2018, DB `saxonberg_build4`, started with a 6 GB heap). Read its
-  failures, fix, commit, re-drive; tear the world down by the PID on port
-  2018 when done (never by pattern).
-- **Still failing at pass 8, fixed since, unproven:** A3 (the parting
-  stroke), A18 (the dive), C19 (step 19 rowed in the estuary dinghy), D26/
-  D28/D31 (snags + slow, `go side`), E33 (the ferryman), E35 (`go side`).
-  A1's first `measure current` after a season jump can outlast 30 s — the
-  drive reads twice; a performance finding for the MR.
+- **Pass 12** runs against d6ac09e88 on a 3 GB world
+  (`~/.claude/jobs/477f9cab/tmp/drive12.sh`, logs `drive12-{a..e}.log`).
+- **Unproven since pass 10:** D26/D31 (the fire), E35 (bare `swim`), and all
+  of C on a world that is not stalled. A1's first `measure current` after a
+  season jump can outlast 30 s — a performance finding for the MR.
 - **For the user's eye (content, not code):** (1) the Kestrel confluence and
   Delight mouth widths were narrowed (90→35 m, 30→12 m) to match their flows
   — they predate this build; (2) in this world's weather the Delight never
