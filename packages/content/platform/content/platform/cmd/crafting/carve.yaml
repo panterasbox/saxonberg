@@ -81,6 +81,19 @@ args:
     prepositions: [of]
     scope: ["reachable"]
     requires: any
+  # The piece to carve it from, when you want a particular one.
+  - name: stock
+    type: object
+    required: false
+    greedy: true
+    prepositions: [from, out]
+    scope: ["reachable"]
+    requires: TangibleMixin
+  # ⭐ `for` is declared AFTER `stock`: a greedy arg stops only at a LATER
+  # declared preposition, so with `for` first, `carve pattern of sword
+  # from board for pewter` (the documented order) bound `stock` = "board
+  # for pewter", `for` came up empty, and the pattern was cut for steel
+  # (the ceramics drive, run 23).
   # …and the METAL it is cut for — a word, read off `raw` (`for bronze`):
   # the pattern is cut oversize by that metal's shrinkage, so it casts true.
   - name: for
@@ -90,14 +103,6 @@ args:
     prepositions: [for]
     scope: ["reachable"]
     requires: any
-  # The piece to carve it from, when you want a particular one.
-  - name: stock
-    type: object
-    required: false
-    greedy: true
-    prepositions: [from, out]
-    scope: ["reachable"]
-    requires: TangibleMixin
   # ⭐ WHICH EDGE — declared, not hunted for (`lint:instrument-args`).
   - name: knife
     type: object
