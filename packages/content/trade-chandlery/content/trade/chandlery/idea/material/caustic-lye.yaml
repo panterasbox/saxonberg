@@ -1,0 +1,22 @@
+# Caustic lye — a wood-ash lye made caustic by slaked lime (potash D14).
+# The lime takes the carbonate out of the potash and leaves the potassium
+# hydroxide: a lye that makes HARD soap of fat directly, with no salting
+# out. Stronger and crueller than plain lye; it will take the skin off.
+class: /platform/idea/material/Material
+data:
+  name: caustic lye
+  keywords: ["caustic lye", "strong lye", lye, liquor]
+  appearance: a clear, slippery liquor with a faint milky settling of lime
+  density: 1150
+  specificHeat: 3700
+  thermalConductivity: 0.6
+  meltingPoint: 268
+  boilingPoint: 378
+  edibility: false
+  nutrients: []
+  toxicity: []
+  corrosiveTo: [protein, tissue]
+  tags: [liquid, caustic, alkali, lye, caustic-lye]
+  cleanser: /platform/idea/Cleanser/lye
+  composition: []
+  biologicalSource: null

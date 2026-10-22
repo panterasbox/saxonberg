@@ -376,6 +376,24 @@ describe('Bulk verbs — pour clamp / mismatch / drain; spill', () => {
     );
   });
 
+  it('⭐ pour into a brim-full mug → it says the MUG is full, not that there is nothing to pour', async () => {
+    await makeStuff(() => new PourController()).execute(
+      model({ source: one(waterSrc, 'water'), target: one(mug, 'mug') }),
+      ctxFor(actor, loc, 'pour'),
+    );
+    expect(amountL(mug)).toBeCloseTo(0.35);
+    const jug = vessel('a water jug', { material: water, amountL: 1, capacityL: 2 });
+    ContainmentApi.move(jug as never, actor as never);
+    const lines = captureSelfLines();
+    await makeStuff(() => new PourController()).execute(
+      model({ source: one(jug, 'jug'), target: one(mug, 'mug') }),
+      ctxFor(actor, loc, 'pour'),
+    );
+    expect(amountL(jug)).toBeCloseTo(1);
+    expect(lines.join(' ')).toMatch(/already full/);
+    expect(lines.join(' ')).not.toMatch(/nothing to pour/);
+  });
+
   it('pour coffee into a water-holding mug → material mismatch', async () => {
     // Seed the mug with water first.
     await makeStuff(() => new PourController()).execute(

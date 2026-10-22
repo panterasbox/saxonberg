@@ -159,3 +159,11 @@ or cylinder, the blow and the jacks in one move, re-validated at commit, lost
 to cullet if it set), exactly as before, and `shape bottle` binds word for
 word (with no `into`, the one word is the form). A wheel plans a pot through
 the same protocol.
+
+## Note — the potash build (2026-10-19)
+
+The batch's slots are `flux` (the potash family: wood ash, potash, black
+salts, pearl ash) and `stabilizer` (quicklime) — lye is alkali but no
+stabilizer, so it fills no slot. The melt carries the flux's potash share
+(concentrated by the yield); the melt itself stays ungraded (the trade
+grades by colour). See [potash.md](potash.md).

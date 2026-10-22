@@ -1,0 +1,11 @@
+# pine brash — the twigs and lop of a felled pine (potash D18). ⭐ The same
+# wood as the trunk in every way a fire or a saw reads, except what it
+# leaves in the grate: a twig is mostly bark and growing tip, so its ash
+# is about three times the heartwood's and a little stronger. Grain: an
+# author's numbers.
+extends: /stuff/idea/material/wood/pine
+data:
+  name: pine brash
+  keywords: ["pine brash", brash]
+  ashFraction: 0.015
+  alkaliShare: 0.104

@@ -310,7 +310,10 @@ export function packBrainShapeOk(source: string): boolean {
 // ⭐ 361 → 360 (ceramics W3): `earth/clay`'s dead `chemistry: null` is gone —
 // and with it the copy two `extends:` children (alluvial clay, fireclay)
 // would have inherited.
-const ORPHAN_DATA_KEY_CEILING = 360;
+// 361 → 353 (the potash build, 2026-10-19): `chemistry: null` came off
+// the ten wood rows, five of which the brash rows `extends:`.
+// Both landed (ceramics merged potash, 2026-10-22): 353 − 1.
+const ORPHAN_DATA_KEY_CEILING = 352;
 
 
 function main(): void {

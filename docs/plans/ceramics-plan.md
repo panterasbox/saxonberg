@@ -1594,6 +1594,21 @@ left a fork the lens that chose is named.
 - **B77 — the wire harness keeps a world.** `WIRE_KEEP_WORLD` /
   `WIRE_REUSE` (testing.md): the drive loop was boot-bound.
 
+- **B78 — the potash merge (2026-10-22): its firings ride the one rule.**
+  Potash extended the retired recipe path (the `calcine` recipe; a firing
+  concentrates by `1/massYield`, grades by its worst input, titles to its
+  charge's owner). Here a piece keeps its identity, so grade and owner come
+  free; the concentration moved into `rescaleConvertedMass` (what stays in
+  less mass is stronger — the glass melt's iron now 0.002/0.72, as potash
+  pinned it); `calcine` is a heat transition on the black-salts row into a
+  new `pearl-ash` MATERIAL. ⭐ The cost of identity-through-the-kiln: a
+  counter buys by row, and the cake's row is still black salts — so
+  `Stock.lineKeyFor` prices a good on its material's own lump line when the
+  house lists one (lens 1: what a thing IS is its material, derivable). The
+  clamp-only `/trade/fuel/thing/ash` row retired: a burnt-through clamp's ash
+  lies in its grate and `sweep` rakes it in heaps, potash's alkali and all.
+  `CommandGiver`'s fall-through landed twice; master's text kept.
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of

@@ -52,6 +52,19 @@ describe('ScheduleApi.schedule', () => {
     expect(observed).toBe('cmd-A');
   });
 
+  it('⭐ carries WHO acted across the delay — a continuation of a continuation keeps its author (potash)', () => {
+    const alice = { name: 'alice' };
+    let observed: unknown = '<not-set>';
+    ExecutionContextApi.runRoot(null, 'r', () => {
+      ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: alice });
+      ScheduleApi.schedule(50, () => {
+        observed = ExecutionContextApi.getCausingAuthor();
+      });
+    });
+    vi.advanceTimersByTime(50);
+    expect(observed).toBe(alice);
+  });
+
   it('with propagateAttribution: false the callback runs without command attribution', () => {
     let observed: string | null = '<not-set>';
     ExecutionContextApi.runRoot(null, 'r', () => {

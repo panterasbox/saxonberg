@@ -195,7 +195,9 @@ describe("mix, then fire", () => {
     expect(batch.isDestroyed()).toBe(false);
     expect(batch.getMaterial()?.getTemplatePath()).toBe(glass.getTemplatePath());
     expect(batch.getMass().rawValue()).toBeCloseTo(16 * 0.72, 3);
-    expect(batch.fractionOf(IRON)).toBeCloseTo(0.002, 6);
+    // ⭐ (potash D12a) what stays concentrates: the gall and gases leave,
+    // the iron does not — 0.002 of the batch is 0.002 / 0.72 of the glass.
+    expect(batch.fractionOf(IRON)).toBeCloseTo(0.002 / 0.72, 6);
     expect(batch.isFluid()).toBe(true);
   });
 });

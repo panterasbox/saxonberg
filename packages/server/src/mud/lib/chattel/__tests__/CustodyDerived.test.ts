@@ -118,7 +118,7 @@ describe("custody derived by the movement primitive", () => {
     expect((made as unknown as Stuff & Chattel).getMadeFromOwner()).toBeNull();
   });
 
-  it("⚠ a deferred act titles nothing by itself — no timer carries an owner", async () => {
+  it("⚠ a REST boundary's acting author is not a continuation — it titles nothing by itself", async () => {
     const alice = makeStuffAtPath(() => new Person(), ALICE);
     const yard = room("/test/Yard");
     const g = good();
@@ -129,6 +129,51 @@ describe("custody derived by the movement primitive", () => {
     );
     await settle();
     expect((g as unknown as Stuff & Chattel).getChattelId()).toBe("");
+  });
+
+  it("⭐ a CONTINUATION carries its author — what a firing makes after `fire kiln` returned is the firer's", async () => {
+    const alice = makeStuffAtPath(() => new Person(), ALICE);
+    const yard = room("/test/Yard");
+    const g = good();
+    // A scheduled callback or an engagement's completion: no command
+    // frame, the root planted with who set it going.
+    await withRootContext(null, "custody.test", async () => {
+      ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: alice });
+      ContainmentApi.move(g as unknown as Stuff & Containable, yard as unknown as Stuff & Container);
+      await settle();
+    });
+    await settle();
+    expect(await ownerOf(g)).toBe(ALICE);
+  });
+
+  it("⭐⭐ a PROCESS mint declared nobody's is never its onlooker's (the pot that sets while you look)", async () => {
+    const alice = makeStuffAtPath(() => new Person(), ALICE);
+    const yard = room("/test/Yard");
+    const g = good();
+    // ⚠ Test seam: `recordMadeBy` is the mould's alone (its gate), so the
+    // fields it writes are set directly — the state a cast of nobody's
+    // pool arrives in.
+    const raw = g as unknown as { _madeByProcess: boolean; _madeFromOwner: null };
+    raw._madeByProcess = true;
+    raw._madeFromOwner = null;
+    await withRootContext(null, "custody.test", async () => {
+      ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: alice });
+      ContainmentApi.move(g as unknown as Stuff & Containable, yard as unknown as Stuff & Container);
+      await settle();
+    });
+    await settle();
+    expect((g as unknown as Stuff & Chattel).getChattelId()).toBe("");
+  });
+
+  it("⭐ a process mint is whose its CONTENTS were — the communal oven", async () => {
+    const yard = room("/test/Yard");
+    const g = good();
+    const raw = g as unknown as { _madeByProcess: boolean; _madeFromOwner: { kind: "player"; templatePath: string } };
+    raw._madeByProcess = true;
+    raw._madeFromOwner = { kind: "player", templatePath: "/platform/agent/Avatar/bob" };
+    ContainmentApi.move(g as unknown as Stuff & Containable, yard as unknown as Stuff & Container);
+    await settle();
+    expect(await ownerOf(g)).toBe("/platform/agent/Avatar/bob");
   });
 
   it("⚠ a good that already EXISTS is never retitled by being moved — taking it is theft", async () => {

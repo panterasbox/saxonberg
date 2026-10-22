@@ -768,3 +768,12 @@ covering one — and the fiction is the reason it is the right one:
 **the register LISTING the ground is the town saying it is open to
 claim.** That is what a claims office is for. What the refusal must still
 catch is somebody who already staked this exact ground.
+
+## Note — the potash build (2026-10-19)
+
+Limestone's smelting tag is `smelting-flux` (bare `flux` is the
+glassmaker's, the potash family's); `burn-lime` burns a `carbonate`. The
+clamp's ash is sized to the charge (kg × the wood's ash fraction), in heaps,
+not one fixed drift. ⚠ `char 0.45` binds the number as the clamp (a
+pre-existing view defect the potash drive found); `draught` sets it. See
+[potash.md](potash.md).

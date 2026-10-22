@@ -1498,8 +1498,21 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const kg = rec.originMassKg * factor;
       const self = this.thermalHost;
-      if (Math.abs(self.getMass().rawValue() - kg) > 1e-9) {
+      const was = self.getMass().rawValue();
+      if (Math.abs(was - kg) > 1e-9) {
         self.setMass(Quantity.of(kg, "kg"));
+        // ⭐ (potash D12a) What STAYS concentrates: the water and the gas
+        // leave, the constituents do not — black salts calcined to pearl ash
+        // keep their potash in less cake. Capped at the whole.
+        const piece = self as unknown as Stuff;
+        if (kg > 0 && MixinApi.isComposition(piece)) {
+          const alloying = piece.getAlloying();
+          if (alloying.length > 0) {
+            piece.setAlloying(
+              alloying.map((e) => ({ ...e, fraction: Math.min(1, (e.fraction * was) / kg) })),
+            );
+          }
+        }
       }
     }
 

@@ -245,4 +245,11 @@ describe('charcoal, read off the MATERIAL', () => {
     }
   });
 
+  it('⭐ ash is not a provision (potash D1): a heap whose grade is its STRENGTH', () => {
+    // No freshness, no cure, no pathogens — and a burnt-through clamp's ash
+    // lies in its grate, raked out in heaps like any hearth's.
+    expect(row('trade/fuel/thing/wood-ash.yaml').class).toBe('/trade/fuel/thing/Ash');
+    expect((row('trade/fuel/thing/wood-ash.yaml').data as Record<string, unknown>).gradedByStrength).toBe(true);
+  });
+
 });

@@ -256,6 +256,32 @@ describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repa
     await settle();
     expect(mara.getContainer()?.stuffId).toBe(yard.stuffId);
   });
+
+  it('⭐ a hand who is not resident is fetched to a stop somebody stands in — and to no other (potash drive)', async () => {
+    const world = seed({ offstage: OFFSTAGE });
+    const YARD = '/test/location/yard';
+    round(world, [{ hours: [6, 8], station: YARD }, { hours: [8, 12], station: CELLAR }]);
+    // She is evicted: nothing live at her path. Loading her mints her.
+    const real = StuffApi.singleton.bind(StuffApi);
+    let fetched = 0;
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string) => {
+      if (path !== MARA) return real(path);
+      fetched += 1;
+      return makeStuffAtPath(() => new Worker(), MARA) as unknown as Stuff;
+    }) as never);
+    // 07:00 — her stop is the yard, and nobody has stood it up: no load.
+    atClock(2, 7);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(fetched).toBe(0);
+    // 09:00 — her stop is the cellar, which is standing: she is fetched there.
+    atClock(2, 9);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(fetched).toBe(1);
+    const mara = StuffApi.findByTemplatePath(MARA) as unknown as { getContainer(): Stuff | null };
+    expect(mara.getContainer()?.stuffId).toBe(world.rooms.get(CELLAR)!.stuffId);
+  });
 });
 
 describe('cover, on demand', () => {

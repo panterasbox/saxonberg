@@ -1094,3 +1094,12 @@ sun) or the heat did (alum liquor cooling).
   the residue keeps setting as it cools further, so the crop is still whole.
   Sugar's staged boil (`concentrateIfReached`) is the boil arm's sibling and
   lands after this arm at the merge.
+
+## Note — the potash build (2026-10-19)
+
+The second consumer of the latent-heat boil plateau: lye authors
+`latentHeatOfVaporization`, so an iron pot of it holds at the boil and
+loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
+keeps a pack-local count of the alkali across the boil-off and casts black
+salts when dry; it converges on the sugar build's solids-keeping plateau and
+is deleted then (`potash-on-sugar`, [potash.md](potash.md)).

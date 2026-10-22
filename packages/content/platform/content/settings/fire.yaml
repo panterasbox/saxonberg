@@ -155,6 +155,17 @@ settings:
   - key: fire.ash.chokedDraught
     value: "0.4"
 
+  # ⭐ A raked grate comes out as HEAPS of this many kg, the last the
+  # remainder (potash D4) — so a tonne of beech burnt in a pit is seventeen
+  # heaps you can count, and a hearth's day is one small one. A counter
+  # prices per heap.
+  - key: fire.ash.heapKg
+    value: "0.6"
+  # What a heap's alkali is counted as — a composition entry on the ash,
+  # so its strength is a fraction a lye, a pot and a kiln all read.
+  - key: fire.ash.alkaliMaterial
+    value: /stuff/idea/material/mineral/potash
+
   - key: fire.burner.defaultMaxPowerW
     value: "8000"
 

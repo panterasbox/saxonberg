@@ -1,0 +1,37 @@
+# Black salts — crude potash, the cake a boiled-down lye leaves in the pot
+# (potash D9). Brown-black with the char and the iron the lye carried, a
+# little damp, and about two parts in three potassium carbonate. The kiln
+# burns the dirt out and leaves pearl ash.
+class: /platform/idea/material/Material
+data:
+  name: black salts
+  keywords: ["black salts", salts, "crude potash", "pot ash"]
+  appearance: a hard brown-black cake of crude salts
+  density: 2000
+  specificHeat: 850
+  thermalConductivity: 0.5
+  meltingPoint: 1164
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 40
+  edibility: false
+  nutrients: ["potassium"]
+  toxicity: []
+  tags: [solid, mineral, alkali, potash, flux, black-salts]
+  cleanser: /trade/potash/idea/Cleanser/potash
+  composition: []
+  biologicalSource: null
+  # ⭐⭐ Calcining is the ONE firing rule (ceramics M1), not a recipe: a cake
+  # held at a red heat burns its char and water out and whitens to pearl
+  # ash, keeping 80 % of its mass — and its potash, which concentrates in
+  # what is left (0.65 → ~0.81). The same cake comes out of the kiln it went
+  # in, whose it was and graded as it was (potash D12).
+  heatTransitions:
+    - key: calcine
+      referenceK: 900
+      zK: 60
+      fullDoseS: 3600
+      massRetained: 0.8
+      discipline: ashery
+      ladder:
+        - atDegree: 1
+          becomes: /trade/potash/idea/material/pearl-ash

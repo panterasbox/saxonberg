@@ -120,9 +120,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // ⭐ 64 → 66: the silk build adds `trade-sericulture` and the underwater
     // build `trade-diving` — both branches wrote 65 and git merged the line
     // CLEAN; the sum is 66 (the hazard above, a sixth time).
-    // ⭐ 66 → 67: the ceramics build adds `trade-ceramics` (sugar and potash
-    // add packs in parallel — whoever lands second recounts the sum).
-    expect(ids).toHaveLength(67);
+    // ⭐ 66 → 68: the ceramics build adds `trade-ceramics` and the potash
+    // build `trade-potash` (built in parallel; the sum, whatever git says —
+    // and sugar adds one more).
+    expect(ids).toHaveLength(68);
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.

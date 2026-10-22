@@ -38,8 +38,11 @@ data:
     - { template: /trade/fuel/thing/charcoal, as: charcoal-4 }
     - { template: /trade/quarrying/thing/quicklime, as: lime-1 }
     - { template: /trade/quarrying/thing/quicklime, as: lime-2 }
-    - { template: /trade/fuel/thing/ash, as: ash-1 }
-    - { template: /trade/fuel/thing/ash, as: ash-2 }
+    # ⭐ Wood ash, not a lost clamp's (potash D16): the flux the ashery makes.
+    - { template: /trade/fuel/thing/wood-ash, as: ash-1 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-2 }
+    # ⭐ The board the glassblower buys his flux at (potash D16).
+    - /world/terminus/rejection/hanging-wood/glasshouse/thing/counter
   cast:
     - /world/terminus/rejection/agent/glassblower
   exits:

@@ -302,6 +302,9 @@ describe("general-store content integrity", () => {
     "/trade/chandlery/thing/Hopper",
     "/trade/chandlery/thing/SoapKettle",
     "/platform/thing/Mould",
+    // ⭐ Wood ash is a heap of a STRENGTH, not food (potash D1) — a Good
+    // with a composition and a grade.
+    "/trade/fuel/thing/Ash",
     // The rug a floor is kept under, and beaten (cleanliness D15).
     "/platform/thing/Rug",
     // A clothes line a wash is hung out on (cleanliness D11) — the rack class.

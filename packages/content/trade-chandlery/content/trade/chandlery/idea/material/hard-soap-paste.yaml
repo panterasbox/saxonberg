@@ -1,0 +1,21 @@
+# Hard soap paste — fat and CAUSTIC lye in the kettle (potash D14): the
+# same paste as soft soap's in every way the fire reads (its thermal fields
+# are soap paste's exactly), but it boils to a hard curd the frame sets,
+# with no salt.
+class: /platform/idea/material/Material
+data:
+  name: hard soap paste
+  keywords: [paste, soap, "hard soap paste"]
+  appearance: a thick, cloudy paste of fat and strong lye
+  density: 1000
+  specificHeat: 3000
+  thermalConductivity: 0.4
+  meltingPoint: 300
+  boilingPoint: 400
+  edibility: false
+  nutrients: []
+  toxicity: []
+  corrosiveTo: [protein, tissue]
+  tags: [liquid, caustic, hard-soap-paste]
+  composition: []
+  biologicalSource: null

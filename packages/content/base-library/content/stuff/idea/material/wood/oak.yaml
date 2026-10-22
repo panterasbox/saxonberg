@@ -27,6 +27,10 @@ data:
   # ⭐ What burning it leaves in the grate (cleanliness D24) — the
   # lye-maker's ash.
   ashFraction: 0.01
+  # ⭐ The share of that ash which is alkali (potash D1) — what a lye
+  # leaches out of it. Grain: an author's numbers, broadleaves strong,
+  # conifers weak.
+  alkaliShare: 0.15
   # ⚠⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Oak
   # authored NEITHER until this build, and it is the oak WASTER's
   # material — the practice sword the combat gym benches bruises with.
@@ -42,7 +46,6 @@ data:
   toxicity: []
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
   composition: []
-  chemistry: null
   # ⭐ Seasoning (assembly D2): game-days for a 25 mm board to dry in
   # good air, and how much it shrinks getting there — what makes work
   # done green move. Grain: an author's numbers.

@@ -180,6 +180,7 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  * also authors as a detail you can look at.
  */
 export const SKYLIT_INTERIORS: readonly string[] = [
+  '/world/terminus/rejection/hanging-wood/lean-to', // open along its front to the ashery clearing — daylight under the eaves
   '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
   '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench
   '/world/terminus/market/bathhouse/location/baths', // high misted windows over the tubs

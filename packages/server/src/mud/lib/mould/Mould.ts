@@ -67,6 +67,8 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Material from '../material/Material';
 import type { Bulkable, BulkPayload } from '../bulk/Bulkable';
+import type { ChattelOwner } from '../chattel/ChattelRecord';
+// The payload's `contentsOwner` is declared by ContentsTitle's merge.
 import { WEAR_PER_USE } from '../material/Durable';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
@@ -96,6 +98,13 @@ export interface SetPool {
   stampMaterial?: boolean;
   /** The pool's temperature as it set, K — the freeze edge passes it. */
   temperatureK?: number;
+  /**
+   * ⭐ Whose the cast is, when the caller knows better than the pool (a
+   * firing: whose its charge was). Absent ⇒ the pool's own
+   * `contentsOwner` — the communal-oven rule — and nobody when the pool
+   * was nobody's. A cast is a PROCESS mint: never the onlooker's.
+   */
+  madeBy?: ChattelOwner | null;
 }
 
 /** What the transfer tells a mould it has just been poured into. */
@@ -1071,6 +1080,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
       }
       if (blown && MixinApi.isGraded(cast)) cast.setGrade(Grade.of('poor'));
+      if (MixinApi.isChattel(cast)) {
+        cast.recordMadeBy(pool.madeBy !== undefined ? pool.madeBy : (pool.payload?.contentsOwner ?? null));
+      }
 
       if (!MixinApi.isContainable(cast)) return cast;
       const item = cast as Stuff & Containable;

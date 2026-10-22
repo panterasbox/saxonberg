@@ -233,6 +233,20 @@ export default class Stock extends StockBase {
     return this.stockLines.find((l) => l.itemTemplatePath === itemTemplatePath) ?? null;
   }
 
+  /**
+   * ⭐ The line a good is bought on: what it is MADE OF before the shape it
+   * came in, when its material names its own lump and the house lists that
+   * lump. Firing keeps a piece's identity (ceramics M1), so a cake of black
+   * salts calcined in the kiln is the same cake — and it is pearl ash now,
+   * and sells as pearl ash. Otherwise the good's own row.
+   */
+  public lineKeyFor(item: Stuff): string {
+    const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
+    const lump = material?.getCastTemplate() ?? "";
+    if (lump !== "" && this.lineFor(lump) !== null) return lump;
+    return item.getTemplatePath() ?? "";
+  }
+
   /** The supplied lines currently short of par — what the keeper's `stocks` beat buys. */
   public shortSuppliedLines(): Array<StockLine & { supplier: string; shortfall: number }> {
     const out: Array<StockLine & { supplier: string; shortfall: number }> = [];
@@ -553,7 +567,7 @@ export default class Stock extends StockBase {
    */
   public async buyFrom(seller: Stuff, item: Stuff & Containable): Promise<BuyFromOutcome> {
     const no = (reason: string, line: string): BuyFromOutcome => ({ ok: false, reason, line });
-    const path = item.getTemplatePath() ?? "";
+    const path = this.lineKeyFor(item);
     const line = this.lineFor(path);
     if (!line || line.buys !== true) return no("not-bought", "The house does not buy that.");
     const venue = (this as unknown as Stuff).getIdentityPath() ?? "";

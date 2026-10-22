@@ -30,7 +30,9 @@ data:
   # one"*). So the pair becomes a CHOICE rather than a rule: marl is slow and
   # needs no fire, quicklime is fast and burnt, and marl survives as the
   # fuel-free path.
-  tags: [mineral, caustic, alkali, liming]
+  # ⭐ `stabilizer` (potash D13): what lime IS in a glass batch — it makes
+  # the glass stand water. Lye is alkali and caustic too, and is not one.
+  tags: [mineral, caustic, alkali, liming, stabilizer]
   # (rubber build) `organic` → `once-living`: lime does not eat rubber.
   corrosiveTo: [tissue, leather, textile, once-living]
   density: 3340

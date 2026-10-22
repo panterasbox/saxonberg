@@ -605,3 +605,11 @@ the act, one collector, and piece-rate pay by the seat's basis. A ruined
 wash is paid back by the house's posted `cover` through
 `BankingApi.indemnify` — never to one of the house's own seats. `bath` is
 durative on the customer. See [cleanliness.md](./cleanliness.md).
+
+## Note — the potash build (2026-10-19)
+
+Three more buying lines: the Wharfside chandlery buys wood ash, black salts
+and pearl ash; the Hanging Wood glasshouse's chalked board buys pearl ash
+and black salts. The ash round is a sole trader who buys at the hearth at
+the chandlery's own bid and sells at its counter. See
+[potash.md](potash.md).

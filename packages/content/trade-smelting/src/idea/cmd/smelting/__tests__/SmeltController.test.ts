@@ -312,7 +312,7 @@ beforeEach(async () => {
     'rock',
     'sedimentary',
     'carbonate',
-    'flux',
+    'smelting-flux',
   ]);
   // ⚠⚠ …and raw COAL, which reduces iron perfectly well and poisons it.
   makeStuffAtPath(() => new Material(), COAL_M).setTags([
