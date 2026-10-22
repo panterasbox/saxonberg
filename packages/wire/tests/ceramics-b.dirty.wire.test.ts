@@ -237,12 +237,17 @@ async function winAtQuarry(band: string, n: number, back: string): Promise<void>
 async function oreFor(n: number, back: string): Promise<void> {
   const gov = await Session.open('founder', { startLocation: SMELTER, wizard: true });
   try {
+    // Into the founder's own hands, then down by an ordinary `drop`: moving
+    // it into the room from an eval reads the room to merge the stack, and
+    // a person there may not be read (`peek()` denied, run 22).
     const r = await gov.cmd(
       `eval --parcel /world/terminus/rejection return Promise.all(Array.from({ length: ${n} }, () =>` +
         ` StuffApi.clone('/world/terminus/rejection/thing/copper-ore'))).then(os =>` +
-        ` Promise.all(os.map(o => ContainmentApi.move(o, StuffApi.findByTemplatePath('${SMELTER}'))))).then(() => 'ore: ${n}')`,
+        ` Promise.all(os.map(o => ContainmentApi.move(o, self)))).then(() => 'ore: ${n}')`,
     );
     const said = squash(plain(await r.said()));
+    await gov.cmd('drop ore');
+    await gov.drainProse();
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] (founder eval → ${said.slice(0, 160)})`);
     expect(said, 'the ore setup').toMatch(/ore: \d/);
