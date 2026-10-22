@@ -502,8 +502,11 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     const pressed = await doing(caster, 'impress mug in case');
     expect(pressed, `impress mug in case: ${pressed}`).toMatch(/holds the shape of/i);
     await advance('30 minutes');
-    // ⭐ The case cures on READ: look at it, and the mould comes out.
+    // ⭐ The case cures on READ: look at it, and the mould comes out — a
+    // beat later (the set mints it; read at once, it was not there yet —
+    // runs 17 and 20 failed so, runs 16, 18, 19 and 21 did not).
     await examine(caster, 'case');
+    await new Promise((r) => setTimeout(r, 1_500));
     const mould = await examine(caster, '"plaster mould"');
     expect(mould, `a plaster mould cured in the case: ${mould}`).toMatch(/plaster mould/i);
     expect(mould, 'it holds the mug\'s cavity').toMatch(/impression of an? .*mug/i);
@@ -521,6 +524,7 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'pour "slip tub" into "plaster mould"');
     await advance('3 hours');
     await examine(caster, '"plaster mould"'); // the mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     const cup = await examine(caster, 'mug');
     expect(cup, `the slip cast: ${cup}`).toMatch(/clay cast of an? .*mug/i);
     expect(cup, 'it comes out green clay, firm enough to handle').toMatch(/It is green/i);
@@ -628,7 +632,10 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
     await examine(caster, 'flask'); // a mould sets on read
-    const misrun = await examine(caster, 'misrun');
+    // The cast lands a beat after the read (the set mints it), and
+    // `misrun` is its description, not a word it answers to (run 22).
+    await new Promise((r) => setTimeout(r, 1_500));
+    const misrun = await examine(caster, 'pewter');
     expect(misrun, `a cool pour into a blade: ${misrun}`).toMatch(/misrun/i);
     expect(misrun).toMatch(/froze before the mould was full/i);
     await clearFloor();
@@ -648,6 +655,7 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     expect(hurt, `the pourer's hands: ${hurt}`).toMatch(/burn/i);
     await advance('1 hour');
     await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     expect(await examine(caster, 'blown'), 'a blown lump').toMatch(/blown lump of pewter/i);
     await clearFloor();
   }, 1_800_000);
@@ -660,6 +668,7 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
     await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     const casts = await examine(caster, 'cast');
     expect(casts, `the unrisered cast: ${casts}`).toMatch(/porous/i);
     await clearFloor();
@@ -704,6 +713,7 @@ suite('⭐⭐ 30 — every pour obeys its receiver; the chill', () => {
     await doing(caster, 'pour crucible into flask');
     await advance('2 hours');
     await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     const grey = await examine(caster, 'cast');
     expect(grey, `in sand: ${grey}`).toMatch(/grey cast iron/i);
     await clearFloor();
@@ -901,6 +911,7 @@ suite('⭐⭐ 33 — recast and interchangeable', () => {
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
     await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     expect(await examine(caster, 'pewter'), 'a pewter pommel').toMatch(/pewter cast of a pommel/i);
     const fitted = await doing(caster, 'fit pewter to sword');
     expect(fitted, `fit: ${fitted}`).toMatch(/fit a new pommel/i);
@@ -927,6 +938,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
     await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     // ⚠ `pewter`: the brass key in hand is a cast too, and a shade small.
     const cast = await examine(caster, 'pewter');
     expect(cast, `the cast from the pattern: ${cast}`).toMatch(/pewter cast of an arming sword/i);
@@ -947,6 +959,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     });
     await advance('2 hours');
     await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     // ⚠ `bronze` names the bell AND its runner, and `ring bronze` rang the
     // FLOOR (runs 16, 18, 19 — a binder finding, recorded in the plan). The
     // cast is named by identity, as a click names it.
