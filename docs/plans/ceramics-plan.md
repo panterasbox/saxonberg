@@ -1565,6 +1565,35 @@ left a fork the lens that chose is named.
   second bell is rows) chose.* The fire gate's two arms (chamber + medium)
   merged into one `mediumBurns`, as the note to siblings said they would.
 
+- **B71 (the drives, 2026-10-21) — `clone` asks the KIND's title.** The
+  gate walked a live representative's zone, so whether a founder could
+  clone a flask depended on where the first flask stood. `canAtPath` on
+  the kind's own path. *Decided by the user.* (`access.md`.)
+- **B72 — lightning is derived, per place.** `storm.strikeRate` 0.15 →
+  0.0025 a 30-minute tick (~0.5 ground flashes/km²/h × a ~0.01 km² place):
+  across a drive's clock jumps a waterlogged pit took dozens of strikes
+  and killed the Delight's potter. *Lens 1 (derivable) chose.*
+- **B73 — the dig's word.** The word names a band unless it bound the very
+  thing being worked: `dig clay` bound the "clay pit", `dig coal` a lump
+  of coal in hand, and both dug the floor at the water. A band you NAME
+  stays at your feet; a bare `dig` strips to the tip.
+- **B74 — bone-dry is judged against the air the brick dried in.**
+  `WaterActivityMixin.getAirHumidityPct()` (the last integrated segment)
+  replaces a second, weather-blind read; a hack (a `DryingRack`, 0.85) is
+  where bricks dry.
+- **B75 — what an engaged act may ask of a body.** `lint:act-effort`
+  refuses an act no fresh body can do (the whole act is charged up front);
+  the brick table 330 → 260 W, the temper pit 450 → 360 W.
+- **B76 — smaller truths the drives found.** Partitive plurals ("lumps of
+  clay"); clay reads its own colour; a thrown wall says whose hand raised
+  it; an empty seat is *wanted*, not *worn through* (`PartLine.empty`); a
+  green pot affords `carve` and the potter has a turning tool; a
+  refractory body counts as grogged for shock; a mould's blow burns on the
+  contact scale (2, not 40 "J"); the pit has five spades and the brains
+  leave theirs at the pit; one platform `ring` (B70).
+- **B77 — the wire harness keeps a world.** `WIRE_KEEP_WORLD` /
+  `WIRE_REUSE` (testing.md): the drive loop was boot-bound.
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of
