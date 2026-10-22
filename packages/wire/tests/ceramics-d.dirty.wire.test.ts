@@ -671,7 +671,10 @@ suite('⭐⭐ 31 — pressing: one load, from a stone, a screw and a blow', () =
     await daylight();
     await mint(FOUNDRY, T.clay);
     await doing(caster, 'get clay');
-    await doing(caster, 'put clay in "tile mould"');
+    // `lump`, not `clay`: the slip-cast mug in hand (26) is clay too.
+    await doing(caster, 'put lump in "tile mould"');
+    // The mould is lifted onto the press (`put` wants it in hand).
+    await doing(caster, 'get "tile mould"');
     await doing(caster, 'put "tile mould" on "tile press"');
     let out = '';
     for (let i = 0; i < 8 && !/comes free/i.test(out); i++) out = await doing(caster, 'turn "tile press"');
