@@ -1082,6 +1082,11 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
     // Five turns: past half the thread, so a sixth reads "hard down" only
     // if the five survived.
     for (let i = 0; i < 5; i++) await doing(caster, 'turn "tile press"');
+    // ⚠ The key must be in hand BEFORE the restart, or a loss across it
+    // cannot be told from a key mislaid earlier (run 24 found the caster
+    // carrying nothing afterwards and could not say which).
+    const held = await examine(caster, 'me:i:brass');
+    expect(held, `the cast key before the restart: ${held}`).toMatch(/brass cast of a key/i);
     const handle = caster.handle;
     for (const s of sessions) s.close();
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
