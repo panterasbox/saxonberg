@@ -1585,6 +1585,13 @@ first and records the batch softly: **no drive has ever fired batch → melt**
 (the glass drive stops short of it), and the batch wants 1400 K of a 1200 K
 kiln — ⚠ OPEN, glass's rather than potash's.
 
+**Full suite (2026-10-21, `tools/suite`, run in two halves — the first was
+stopped at package 10 by the low-memory guard and resumed `--from`):**
+49 packages, all green after three fixes the branch had never seen run: the
+server (14,006 passed; spent ash's tags and the spoiler snapshot, both files
+rerun green) and trade-mining (Rejection has SIX businesses now — the
+ashery). Client 1,003.
+
 Memory (the owner's ask: note spikes): the drive's world peaked at **838 MB**
 (3.3 GB+ before the fix); build-2's processes peaked at 2.9 GB, during the
 parallel kernel unit run (vitest workers ~400–600 MB each), with ≥2.9 GB of
@@ -1634,6 +1641,7 @@ left are rows 13–21 below; run 20 is the re-drive.
 | 24 | ⚠ PRE-EXISTING: `dig`'s default binds the FIRST tool you carry (the drive's egg), and the refusal called any wrong tool "a pick" | the refusal names the tool in hand; the drive says `dig with spade`. ⚠ OPEN: whether the default should prefer the ground's wanted capability |
 | 25 | the kettle read straight after causticizing showed no liquor line (even 1.5 s on); a later read shows caustic lye | ⚠ OPEN — probe once tests resume |
 | 26 | drive 11's "lye in the lime slot" puts `"lye flask"` in the kiln before the player holds one (it put a waterskin) — and its glass check passed on "Nothing … matches a firing" | the glass check now needs the kiln sealed; ⚠ the lye-slot leg OPEN (needs a flask bought first) |
+| 27 | ⚠ OPEN (pre-existing, retail/stacks): step 11 replayed on run 21's world — the pearl-ash sale is refused again. The ownership chain did what it was built to: a temporary leach log showed one of the player's heaps TITLED TO THE CHANDLERY OUTFIT beside the player's own, so the lye was disputed → nobody's → the cake and the pearl ash too (the lump that sold earlier was step 15's bought one). How a carried heap kept the house's title is not traced: `stamp` overwrites on a purchase, so the suspects are a heap MERGING in hand (the resident keeps its title) and `get` lifting house goods (`get flask` at the chandlery took its whole stock) | recorded; follow-up. The drive keeps the sale as a hard, failing checkpoint. The batch itself now answers in words: "holding 1200 K and this firing wants 1400 K. Work the bellows." |
 
 **Run 20 was stopped at step 13** (the owner paused test runs for build-4's
 memory investigation); it reproduced 1–10 and found rows 22–26.
