@@ -165,6 +165,13 @@ A card is about one subject. Size is how much of your attention it gets.
    if nothing is focal.
 6. **Lazy**: a section is empty until its command runs. Clicking a lit sense
    sends that command. **Every clickable previews the command it will send.**
+7. ⭐ **Any card can pop out into its own window, without browser chrome**
+   (added 2026-10-22). It is the same card at whichever breakpoint fits the
+   window, and a popped-out card counts as *where your attention is*, so it stays
+   live. The motivating case: a streamer parks the stream controls card on a
+   monitor that is not captured
+   ([broadcast-ready](./slates/builds/broadcast-ready-slate.md)). Chromeless means
+   an installed app window; a plain popup keeps a minimal address bar.
 
 ### Identity on every card and link
 
