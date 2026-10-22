@@ -219,7 +219,16 @@ async function toHour(fromH: number, toH: number): Promise<void> {
 /** Dig `n` lumps at the pit and come back to the shop. */
 async function clayFor(s: Session, n: number): Promise<Session> {
   let at = await goTo(s, PIT);
-  await say(at, 'get 1 spade');
+  // ⭐ The pit's three spades are the gang's too: when every one is in a
+  // moulder's or the potter's hands, a player waits for one to come back
+  // (the brains leave it at the pit when they go home).
+  for (let wait = 0; wait < 8 && !/spade/i.test(await held(at)); wait++) {
+    await at.cmd('get 1 spade');
+    await at.drainProse();
+    if (/spade/i.test(await held(at))) break;
+    await advance('30 minutes');
+  }
+  expect(await held(at), 'a spade from the pit').toMatch(/spade/i);
   for (let i = 0; i < n; i++) await act(at, 'dig clay with spade', '2 minutes');
   // The won clay lies where it fell.
   await say(at, 'get clay');
@@ -306,8 +315,11 @@ suite('⭐ 15 — throw at your band', () => {
 
 suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
   it('at leather-hard: a foot turned, a handle joined, the potter’s stamp pressed in', async () => {
-    // On the boards to dry.
-    await say(potter, 'drop all');
+    // On the boards to dry (there is no `drop all`: each piece by name).
+    for (const piece of ['mug', 'jug', 'crock', 'crock', 'jar', 'jar', 'bowl', 'bowl', 'handle', 'pot']) {
+      await potter.cmd(`drop ${piece}`);
+    }
+    await potter.drainProse();
     await say(novice, 'drop mug');
     const lh = await until(potter, 'here:i:jug', /leather-hard/i, '6 hours', 40);
     expect(lh, 'the jug at leather-hard').toMatch(/leather-hard/i);
@@ -328,7 +340,10 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
       await say(potter, `get ${ware}`);
       await say(potter, `impress stamp on ${ware}`);
     }
-    await say(potter, 'drop all');
+    for (const piece of ['mug', 'jug', 'crock', 'crock', 'jar', 'jar', 'bowl', 'bowl', 'handle', 'pot']) {
+      await potter.cmd(`drop ${piece}`);
+    }
+    await potter.drainProse();
   }, 3_600_000);
 
   it('a handle much wetter than the body cracks the joint on drying', async () => {

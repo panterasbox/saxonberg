@@ -47,7 +47,7 @@ export default class Wheel extends WheelBase implements ShapePlanner {
       ok: true,
       durationMs: THROW_MS,
       effortW: 260,
-      beginSelf: Mml.compose`You centre the clay on ${Mml.thing(self)}, open it with your thumbs and draw the wall up.`,
+      beginSelf: Mml.compose`You centre the clay on ${Mml.thing(self)}, open it with your thumbs and draw the wall up for a ${form.describe()}.`,
       beginPeers: Mml.compose`${Mml.actor(actor)} throws a pot on ${Mml.thing(self)}.`,
       onComplete: () => {
         void clay

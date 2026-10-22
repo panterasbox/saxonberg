@@ -136,6 +136,41 @@ describe('what a lump looks like', () => {
   });
 });
 
+describe('⭐ a thrown wall says whose hand raised it (the ceramics drive)', () => {
+  async function thrown(wallFactor: number): Promise<string> {
+    const { ParsedForm } = await import('@saxonberg/server/mud/lib/craft/FormSpec');
+    const { Grade } = await import('@saxonberg/server/mud/lib/craft/Grade');
+    const Good = (await import('@saxonberg/server/mud/lib/stuff/Good')).default;
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
+      const g = makeStuff(() => new Good());
+      g.setLongDescription('A clay mug.');
+      return g;
+    }) as never);
+    const lump = lumpOf(fat);
+    const actor = makeStuff(() => new Good()) as never;
+    const made = await lump.yieldPieces({
+      actor,
+      form: new ParsedForm('open', 0.3, null, null),
+      product: '/x/mug',
+      hand: { band: 'novice', wallFactor, maxL: 2, grade: Grade.of('fair') },
+      count: 1,
+    });
+    return typeof made === 'string' ? made : (made as unknown as { getLongDescription(): string }).getLongDescription();
+  }
+
+  it("a beginner's mug is heavy, thick-walled", async () => {
+    expect(await thrown(1.6)).toMatch(/heavy for its size: the wall is thick/);
+  });
+
+  it("an expert's is light in the hand", async () => {
+    expect(await thrown(0.85)).toMatch(/light in the hand/);
+  });
+
+  it('a proficient hand says nothing about it', async () => {
+    expect(await thrown(1.0)).toBe('A clay mug.');
+  });
+});
+
 describe('a clay’s year', () => {
   it('⭐ a heap left out weathers by its place’s freeze-thaw days — whole days, to a ceiling', async () => {
     const yard = makeStuff(() => new Yard());

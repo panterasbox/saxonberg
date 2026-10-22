@@ -152,6 +152,14 @@ function sharesOf(entries: readonly CompositionEntry[]): ClayShares {
   return out;
 }
 
+/** How a thrown wall reads, by the hand's wall factor (1 = a proficient hand). */
+function wallLine(factor: number): string | null {
+  if (factor >= 1.4) return 'It is heavy for its size: the wall is thick, a beginner\'s wall.';
+  if (factor >= 1.15) return 'It is a little heavy for its size.';
+  if (factor <= 0.9) return 'It is light in the hand, the wall thin and even.';
+  return null;
+}
+
 /** A weathering word for a heap — what `look` says of it. */
 function weatheringPhrase(days: number, ceiling: number): string {
   if (days <= 0) return 'It is fresh-dug and raw, unweathered.';
@@ -369,6 +377,19 @@ export default class Clay extends ClayBase implements Shapeable {
     if (MixinApi.isTangible(product)) {
       product.setMaterial(material);
       product.setMass(Quantity.of(each, 'kg'));
+    }
+    // ⭐ A thrown vessel says how its wall came out, in the hand's words (the
+    // mass alone was silent, and a player could not tell a beginner's mug
+    // from a master's — the ceramics drive). A moulded piece's shape is
+    // the mould's, not the hand's, so only an open or closed form reads it.
+    const wall = wallLine(order.hand.wallFactor);
+    if (
+      wall !== null &&
+      (order.form.formClass === 'open' || order.form.formClass === 'closed') &&
+      MixinApi.isVisible(product)
+    ) {
+      const long = product.getLongDescription();
+      product.setLongDescription(long ? `${long} ${wall}` : wall);
     }
     if (MixinApi.isStackable(product) && count > 1) product.setQuantity(count);
     // A vessel holds what its form says it holds.
