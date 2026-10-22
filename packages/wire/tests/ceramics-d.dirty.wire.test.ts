@@ -532,6 +532,8 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
 
 suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', () => {
   it('too cool into a thin pattern → a MISRUN', async () => {
+    // A checkpoint owns its position: never trust where the last one left off.
+    caster = await goTo(caster, FOUNDRY);
     await ram(caster, 'sword', true);
     await melt(FOUNDRY, T.crucible, M.pewter, 505); // 5 K over the melt
     await doing(caster, 'pour crucible into flask');
@@ -544,6 +546,8 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
   }, 1_800_000);
 
   it('a DAMP flask blows: the pourer is burned and the cast is a ruined lump', async () => {
+    // A checkpoint owns its position: never trust where the last one left off.
+    caster = await goTo(caster, FOUNDRY);
     await ram(caster, 'sword', true);
     const watered = await doing(caster, 'pour butt into flask');
     expect(watered, `watering the flask: ${watered}`).toMatch(/pour/i);
@@ -559,6 +563,8 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
   }, 1_800_000);
 
   it('NO riser → porous where it froze last (27\'s risered cast was sound)', async () => {
+    // A checkpoint owns its position: never trust where the last one left off.
+    caster = await goTo(caster, FOUNDRY);
     await ram(caster, 'sword', false);
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
     await doing(caster, 'pour crucible into flask');
@@ -574,6 +580,8 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
 
 suite('⭐⭐ 30 — every pour obeys its receiver; the chill', () => {
   it('bronze into a wooden mould → it BURNS', async () => {
+    // A checkpoint owns its position: never trust where the last one left off.
+    caster = await goTo(caster, FOUNDRY);
     await mint(FOUNDRY, T.soapFrame);
     await melt(FOUNDRY, T.crucible, M.bronze, 1350);
     const burned = await say(caster, 'pour crucible into "soap frame"');
@@ -582,6 +590,8 @@ suite('⭐⭐ 30 — every pour obeys its receiver; the chill', () => {
   }, 1_800_000);
 
   it('lead into a tin cup → the cup MELTS', async () => {
+    // A checkpoint owns its position: never trust where the last one left off.
+    caster = await goTo(caster, FOUNDRY);
     await mint(FOUNDRY, T.tinCup);
     await melt(FOUNDRY, T.crucible, M.lead, 720);
     const melted = await say(caster, 'pour crucible into "latex cup"');
@@ -590,6 +600,8 @@ suite('⭐⭐ 30 — every pour obeys its receiver; the chill', () => {
   }, 1_800_000);
 
   it('cast iron into an iron mould sets WHITE; into sand, GREY', async () => {
+    // A checkpoint owns its position: never trust where the last one left off.
+    caster = await goTo(caster, FOUNDRY);
     await melt(FOUNDRY, T.crucible, M.castIron, 1650);
     await doing(caster, 'pour crucible into "chill mould"');
     await advance('2 hours');
