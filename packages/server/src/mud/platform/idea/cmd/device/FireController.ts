@@ -114,6 +114,18 @@ export default class FireController extends CommandController<FireModel> {
     // ⭐ The charge is whatever is IN the chamber — and in a mould standing
     // in it. Never an argument: the heat reaches what is there.
     const charge = kiln.getContents().filter((c) => MixinApi.isTangible(c));
+    // ⭐ …or standing ON it: a pan on a brine hearth is that hearth's whole
+    // load (it is in the room, resting on the fire — the heat reaches it
+    // through its placement). "The brine hearth is empty" with a pan of
+    // brine on it was the ceramics drive.
+    const kilnRoom = MixinApi.isContainable(kiln) ? kiln.getContainer() : null;
+    if (kilnRoom && MixinApi.isContainer(kilnRoom)) {
+      for (const c of kilnRoom.getContents() as Stuff[]) {
+        if (MixinApi.isContainable(c) && c.getPlacement()?.host === (kiln as unknown as Stuff) && MixinApi.isTangible(c)) {
+          charge.push(c);
+        }
+      }
+    }
     if (charge.length === 0) {
       this.decline(
         context,

@@ -533,7 +533,9 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
     expect(pressed, `impress key in wax: ${pressed}`).toMatch(/holds the shape of/i);
     // The yard key goes back on the bench: only the CAST will be in hand.
     await doing(caster, 'drop key');
-    await melt(FOUNDRY, T.crucible, M.brass, 1320);
+    // Hot enough to fill a key's thin wards: at 1320 K it came out a misrun
+    // and its wards did not turn the lock (run 16).
+    await melt(FOUNDRY, T.crucible, M.brass, 1420);
     await doing(caster, 'pour crucible into wax');
     await advance('1 hour');
     expect(await examine(caster, 'brass'), 'a brass cast of the key').toMatch(/brass cast of a key/i);
@@ -826,6 +828,8 @@ suite('⭐⭐ 33 — recast and interchangeable', () => {
   it('⭐⭐ a pommel cast from a pommel\'s impression fits the sword without a new joint', async () => {
     // A checkpoint owns its position: never trust where the last one left off.
     caster = await goTo(caster, FOUNDRY);
+    // Old casts down and swept (and by daylight): `pewter`/`bronze` must name THIS one.
+    await clearFloor();
     await mint(FOUNDRY, T.pommel);
     await ram(caster, 'pommel', true);
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
@@ -845,6 +849,8 @@ suite('⭐⭐ 34 — patterns and bells', () => {
   it('`carve pattern` → an oversize pattern that casts TRUE (27\'s straight impression came out a shade small)', async () => {
     // A checkpoint owns its position: never trust where the last one left off.
     caster = await goTo(caster, FOUNDRY);
+    // Old casts down and swept (and by daylight): `pewter`/`bronze` must name THIS one.
+    await clearFloor();
     await mint(FOUNDRY, T.board);
     await doing(caster, 'get board');
     const carved = await act(caster, 'carve pattern of sword from board for pewter', '1 hour');
@@ -866,6 +872,8 @@ suite('⭐⭐ 34 — patterns and bells', () => {
   it('cast a hand bell in a flask → `ring` sounds its note', async () => {
     // A checkpoint owns its position: never trust where the last one left off.
     caster = await goTo(caster, FOUNDRY);
+    // Old casts down and swept (and by daylight): `pewter`/`bronze` must name THIS one.
+    await clearFloor();
     await ram(caster, 'bell', true);
     await melt(FOUNDRY, T.crucible, M.bronze, 1350);
     await doing(caster, 'pour crucible into flask');

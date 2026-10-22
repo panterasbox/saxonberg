@@ -87,6 +87,10 @@ export default class PourController extends CommandController<PourModel> {
       { kind: 'all' },
       model.exact === true,
     );
+    // What the mould is made of, read BEFORE the pour: a mould the pour
+    // consumes is gone by the time the line is written.
+    const waxMould =
+      MixinApi.isMould(target) && MixinApi.isTangible(target) && target.getMaterial()?.hasTag('wax') === true;
     const result = BulkableApi.transfer(fromSlot, toSlot, amount);
     for (const note of result.notes) context.note(note);
     if (result.applied > 0 && MixinApi.isBulkable(source)) {
@@ -225,14 +229,22 @@ export default class PourController extends CommandController<PourModel> {
       return;
     }
 
-    // ⭐ The pour consumed its mould — lost wax: the metal melts the wax
-    // out and takes its place. Say so rather than naming a thing that is
-    // no longer there.
+    // ⭐ The pour consumed its mould — lost wax (the metal melts the wax out
+    // and takes its place), or a sand mould broken away from what set in
+    // it. Say so rather than naming a thing that is no longer there.
     if (target.isDestroyed()) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You pour from ${Mml.thing(source)}. The wax runs out as the metal takes its place.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} pours, and wax runs smoking out of the mould.`)
+        .toSelf(
+          waxMould
+            ? Mml.compose`You pour from ${Mml.thing(source)}. The wax runs out as the metal takes its place.`
+            : Mml.compose`You pour from ${Mml.thing(source)}. It sets, and the mould is broken away from it.`,
+        )
+        .toPeers(
+          waxMould
+            ? Mml.compose`${Mml.actor(giver)} pours, and wax runs smoking out of the mould.`
+            : Mml.compose`${Mml.actor(giver)} pours, and breaks the mould away from the casting.`,
+        )
         .send();
       return;
     }

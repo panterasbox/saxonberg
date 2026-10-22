@@ -20,6 +20,7 @@ import type { FieldMeta } from '../../lib/mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Turnable, TurnOutcome } from '../../lib/craft/Turnable';
+import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
@@ -82,6 +83,7 @@ export default class ScrewPress extends PlacingMixin(Good) implements Turnable {
         return { ok: false, reason: 'already-slack', line: Mml.compose`${Mml.thing(self)} is already slack.` };
       }
       this.turns = 0;
+      await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => undefined);
       return {
         ok: true,
         line: Mml.compose`You spin the bar back and the platen lifts clear.`,
@@ -96,6 +98,10 @@ export default class ScrewPress extends PlacingMixin(Good) implements Turnable {
       };
     }
     this.turns += 1;
+    // ⭐ A screw left down is state the room must keep: save the host now
+    // (the die's precedent) — a turn made since the room's last save came
+    // back from a restart undone (the ceramics drive, 35).
+    await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => undefined);
     const released: Stuff[] = [];
     for (const m of moulds) {
       if (!MixinApi.isMould(m)) continue;
