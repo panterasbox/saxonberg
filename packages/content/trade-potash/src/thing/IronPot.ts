@@ -97,8 +97,13 @@ export default class IronPot extends IronPotBase {
     try {
       const litres = this.getBulkAmount('interior').rawValue();
       const liquor = this.getBulkMaterial('interior');
-      if (litres > 0 && liquor !== null && liquor.hasTag('lye')) {
-        const payload = this.getBulkPayload('interior');
+      const payload = this.getBulkPayload('interior');
+      // ⭐ Dissolved solids are dissolved solids: a hopper drawn before its
+      // leach has re-keyed gives WATER carrying the alkali the egg already
+      // reads (found by the live walk — the pot boiled it to nothing, and
+      // the alkali went with the steam). Count it whatever the liquor's name.
+      const carries = liquor !== null && (liquor.hasTag('lye') || (payload?.dissolvedSolidsKgPerL ?? 0) > 0);
+      if (litres > 0 && carries) {
         if (litres > this.lastSeenL + 1e-9 || this.alkaliKg <= 0) {
           // A pour came in (it blended the strength): re-base the count.
           this.alkaliKg = (payload?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L) * litres;

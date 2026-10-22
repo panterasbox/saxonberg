@@ -1585,6 +1585,24 @@ first and records the batch softly: **no drive has ever fired batch → melt**
 (the glass drive stops short of it), and the batch wants 1400 K of a 1200 K
 kiln — ⚠ OPEN, glass's rather than potash's.
 
+**Live browser walk (2026-10-22, the MCP Chrome against build-2's own server
+and Vite client on a fresh world):** a new character in the lean-to took the
+ashery's OWN ash store through hopper, egg (*"a coin of shell … Soap
+strength"*), pot, cake, kiln (*"a lump of pearl ash has come out of it"*) to
+**"You sell a lump of pearl ash to the house for 16 zorkmids."** The ash-burner
+was working the pit beside them. What it found that 21 wire runs could not:
+
+| # | finding | fix |
+|---|---|---|
+| L1 | the hopper drawn promptly gives WATER carrying the alkali the egg reads (the leach's material re-keys later); the pot counted only `lye`, so it boiled to nothing and the alkali went with the steam | the pot counts dissolved solids whatever the liquor's name |
+| L2 | lye from UNTITLED ash (the ashery's store, rain) made no claim, so its pearl ash was nobody's and could never be sold | the communal oven completed: untitled contents are the MAKER's — whoever pours or puts the act the leach is part of (disputed stays nobody's) |
+| L3 | ⚠ OPEN, kernel (silk's plateau): a pot left on a burning hearth for 24 h unobserved barely boils — one long reconcile is one step; read hourly, it set in 4 h | the drive reads hourly; record for the plateau's owner |
+| L4 | ⚠ OPEN, pre-existing MQL: the substring partial match MOVES the wrong things — with no wood ash held, `get "wood ash"` picked up the 25 kg HOPPER (and strained at both pots); `put "wood ash" in hopper` put the wooden PAIL and a length of CORDWOOD in | recorded (row 11's cousin, now with consequences) |
+| L5 | the hopper's `look` said "The hopper is empty" while the egg read lye in it; its card's click sends `look vat` | ⚠ OPEN, minor |
+| L6 | in the dark, `look at pot` disambiguates "something (1) / something (2)" | honest; ⚠ minor |
+| L7 | a new character has no money and no account: `buy "wood ash"` → "can't cover"; the sale → "no bank account to be paid into" until `bank open` | as designed — worth a line in the help |
+| L8 | ⚠ process: "restarting" the live server killed `npx`'s wrapper but not the node child, which kept serving the OLD code — kill by the LISTENING pid | noted for the walk recipe |
+
 **Full suite (2026-10-21, `tools/suite`, run in two halves — the first was
 stopped at package 10 by the low-memory guard and resumed `--from`):**
 49 packages, all green after three fixes the branch had never seen run: the

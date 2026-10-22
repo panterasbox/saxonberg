@@ -33,6 +33,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContentsTitle } from '@saxonberg/server/mud/lib/chattel/ContentsTitle';
+import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 
 /** The profile a hopper of water and ash runs. */
 const LEACH = 'lye-leach';
@@ -114,10 +115,20 @@ export default class Hopper extends ContainerMixin(Vat) {
       const o = MixinApi.isChattel(heap) ? heap.stampedOwner() : null;
       return o && o.kind !== 'group' ? t.with(o) : t;
     }, new ContentsTitle(payload?.contentsOwner));
+    // ⭐ Nothing titled went in — the ashery's own store, rain: the lye is
+    // whoever made it (the communal oven, completed by the live walk — free
+    // ash made a lye nobody could ever sell). The one pouring or putting is
+    // the author of the act this leach is part of; a read makes no claim.
+    const claim = title.claimed();
+    const maker = claim === undefined ? (ExecutionContextApi.getCausingAuthor() as Stuff | null) : null;
+    const contentsOwner =
+      maker && maker.getIdentityPath()
+        ? { kind: 'player' as const, templatePath: maker.getIdentityPath()! }
+        : claim;
     this.setBulkPayload('interior', {
       ...(payload ?? {}),
       dissolvedSolidsKgPerL: kgPerL,
-      contentsOwner: title.claimed(),
+      contentsOwner,
     });
     this.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
     for (const heap of ash) {

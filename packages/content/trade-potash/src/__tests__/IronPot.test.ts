@@ -115,6 +115,22 @@ describe('the iron pot', () => {
     expect((cast.mock.calls[0]![0] as { madeBy?: unknown }).madeBy).toBeNull();
   });
 
+  it('⭐ WATER carrying dissolved alkali (a hopper drawn early) still sets its salts — the alkali is not lost with the steam', () => {
+    const p = pot(30, 0.06);
+    const water = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('rain water');
+      m.setTags(['liquid', 'water']);
+      return m;
+    }, '/stuff/idea/material/_pot-water');
+    p.setBulkMaterial('interior', water);
+    p.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.06 });
+    p.getContents();
+    boilTo(p, 1.5);
+    expect(cast).toHaveBeenCalledTimes(1);
+    expect((cast.mock.calls[0]![0] as { massKg: number }).massKg).toBeCloseTo(1.8 / 0.65, 6);
+  });
+
   it('⭐ a weak lye boiled the same way leaves a third of the cake (AC 5, AC 6)', () => {
     const p = pot(30, 0.02);
     p.getContents();
