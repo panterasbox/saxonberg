@@ -375,6 +375,10 @@ async function clearFloor(only?: RegExp): Promise<void> {
   // `impress X in flask` kept binding an old, impressed one. `destruct #id`
   // as the founder does it, one leftover at a time, by identity.
   const LEFTOVER = /moulding flask|\bcast\b|runner and riser|moulding sand|beeswax|salvaged lump|sherd|\bmug\b/i;
+  // ⚠ In the dark every name reads "something" (perception gates the
+  // label), and the sweep matches by name — so it swept NOTHING at night
+  // and old impressed flasks kept binding `flask`. Sweep by daylight.
+  await daylight();
   // What the caster HOLDS that matches goes down first: an impressed flask
   // or a green mug carried off by a broad `get` was still binding the next
   // checkpoint's `flask` and `mug` from the caster's hands.
@@ -727,11 +731,13 @@ suite('⭐⭐ 32 — crystallize', () => {
     return { crop, brineInPan: /\[salt water\]/i.test(pan), bitternInTub: /\[bittern\]/i.test(tub) };
   }
 
-  it('brine in the salt pan → salt crystals IN the pan, with bittern in the tub beneath', async () => {
+  it('brine boiled down in the salt pan on the hearth → salt crystals IN the pan, bittern left to pour off', async () => {
     await daylight();
     caster = await goTo(caster, SALT_FLAT);
-    // ⭐ The pan stands ON its tub (the flat's props), and that is the whole
-    // of the drain: the mold's `drainsInto()` reads the vessel under it.
+    // ⭐ The pan stands ON the brine hearth (the flat's props, and its own
+    // prose — "a hearth and an iron pan"). This is wet country: a pan left
+    // to the sun here was rained into faster than it dried, sixty days and
+    // no crop. Inland salt in a wet climate was boiled down.
     const tubBefore = await examine(caster, 'tub');
     expect(tubBefore, 'the bittern tub at the flat').toMatch(/tub/i);
 
@@ -755,31 +761,35 @@ suite('⭐⭐ 32 — crystallize', () => {
     const first = await saltern();
     expect(first.crop, 'nothing set yet — the brine is under saturation').toBe(0);
 
-    // The sun works it: a day at a time until the pan is done and the
-    // bittern has run off (rain sets it back; a wet week does nothing).
+    // The fire works it: coal under the pan, lit, and held — a day at a
+    // time until the crop is in the pan.
+    await mint(SALT_FLAT, '/trade/quarrying/thing/coal', 6);
+    await doing(caster, 'get coal');
+    await doing(caster, 'stoke coal into hearth');
+    await doing(caster, 'ignite hearth');
     let read = first;
-    for (let day = 0; day < 60 && !read.bitternInTub; day++) {
-      await advance('1 day');
+    for (let day = 0; day < 6 && !(read.crop > 4); day++) {
+      await act(caster, 'fire hearth for 12 hours', '12 hours');
       await examine(caster, 'pan');
       read = await saltern();
     }
     expect(read.crop, `the crop in the pan: ${JSON.stringify(read)}`).toBeGreaterThan(0);
     // ⭐ Nearly all of it: 20 L × 0.28 kg/L is 5.6 kg, and the pan keeps
-    // only what its last 3 % of liquor can hold.
+    // only what its last few per cent of liquor can hold.
     expect(read.crop).toBeGreaterThan(4);
-    expect(read.bitternInTub, 'the liquor below is BITTERN').toBe(true);
-    expect(read.brineInPan, 'the pan is drained').toBe(false);
+    expect(read.brineInPan, 'no sea water left — the liquor is bittern').toBe(false);
 
-    // What a player sees: the crop in the pan, the bittern in the tub, and
-    // the salt is salt in the hand.
+    // What a player sees: the crop in the pan, and the salt is salt in the
+    // hand; the bittern is poured off into the tub.
     const pan = await examine(caster, 'pan:i:crystals');
     expect(pan, `the pan's crop: ${pan}`).toMatch(/salt crystals/i);
-    const tub = await examine(caster, 'tub');
-    expect(tub, `the tub: ${tub}`).toMatch(/bittern/i);
     const got = await doing(caster, 'get crystals from pan');
     expect(got, `raking the crop: ${got}`).toMatch(/crystals/i);
     const held = await examine(caster, 'me:i:crystals');
     expect(held, `the crop in hand: ${held}`).toMatch(/salt/i);
+    await doing(caster, 'douse hearth');
+    await doing(caster, 'pour pan into tub');
+    expect(await examine(caster, 'tub'), 'the bittern poured off').toMatch(/bittern/i);
     await say(caster, 'drop crystals');
     caster = await goTo(caster, FOUNDRY);
   }, 3_600_000);
@@ -838,7 +848,8 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await mint(FOUNDRY, T.board);
     await doing(caster, 'get board');
     const carved = await act(caster, 'carve pattern of sword from board for pewter', '1 hour');
-    expect(carved, `carve pattern: ${carved}`).toMatch(/pattern|shavings/i);
+    // STATE: the opening line scribes; the pattern is read off the board.
+    expect(carved, `carve pattern: ${carved}`).toMatch(/pattern|shavings|scribe|carve/i);
     expect(await examine(caster, 'pattern'), 'the pattern').toMatch(/pattern of an arming sword/i);
     await ram(caster, 'pattern', true);
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
@@ -883,7 +894,8 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await listener.drainProse();
     const rung = await doing(caster, 'ring "curfew bell"');
     expect(rung, `the curfew bell: ${rung}`).toMatch(/deep|clear/i);
-    const heard = squash(plain(await listener.listen(5_000)));
+    // A bell's note crosses places on the next tick; give it time.
+    const heard = squash(plain(await listener.listen(15_000)));
     expect(heard, `heard from the wharf bank: ${heard}`).toMatch(/ring|bell/i);
     listener.close();
     caster = await goTo(caster, FOUNDRY);

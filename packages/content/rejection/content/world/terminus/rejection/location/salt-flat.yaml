@@ -43,7 +43,13 @@ data:
     # ⭐ (ceramics W8) The pan stands ON its bittern tub, so the liquor a
     # finished pan leaves runs off into it.
     - /trade/quarrying/thing/bittern-tub
-    - { template: /trade/quarrying/thing/salt-pan, on: /trade/quarrying/thing/bittern-tub }
+    # ⭐ The pan stands ON the hearth (the prose's "a hearth and an iron
+    # pan"): this is wet country, and a pan left to the sun here is rained
+    # into faster than it dries — sixty days and no crop (the ceramics
+    # drive). Inland salt in a wet climate was boiled down (Droitwich): the
+    # fire does what the sun cannot, and the bittern is poured off into the
+    # tub when the crop is raked out.
+    - { template: /trade/quarrying/thing/salt-pan, on: /trade/quarrying/thing/brine-hearth }
   # ⭐⭐⭐ **The labour pool stands AT THE WORK**, and the requirement's
   # own words are the reason: *a bore crew is hired at the bore, out of
   # whoever has walked up to it.* They were in the Dry for one revision
