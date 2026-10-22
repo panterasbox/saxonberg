@@ -41,6 +41,7 @@ import {
   uniqueHandle,
   expectOk,
   advanceWorldClock,
+  advanceLiving,
   isOwnedTestWorld,
   plain,
 } from '../src/harness';
@@ -210,7 +211,8 @@ async function act(s: Session, line: string, gameTime?: string): Promise<string>
 }
 
 async function advance(duration: string): Promise<void> {
-  await advanceWorldClock(duration);
+  // Lived time: in day-long jumps, the drive's people fed between them.
+  await advanceLiving(duration, sessions);
   await new Promise((res) => setTimeout(res, 1_000));
 }
 

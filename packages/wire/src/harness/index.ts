@@ -26,5 +26,7 @@ export {
   installedPacks,
   isOwnedTestWorld,
   advanceWorldClock,
+  advanceLiving,
+  nourish,
   worldClockNow,
 } from './world';

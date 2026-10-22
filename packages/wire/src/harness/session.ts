@@ -874,6 +874,11 @@ export class Session {
     return heard;
   }
 
+  /** Still connected — `close()` has not been called and the socket is open. */
+  isOpen(): boolean {
+    return !this.closed && this.ws.readyState === WebSocket.OPEN;
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;

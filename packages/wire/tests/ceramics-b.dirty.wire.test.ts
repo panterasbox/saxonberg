@@ -28,6 +28,7 @@ import {
   uniqueHandle,
   expectOk,
   advanceWorldClock,
+  advanceLiving,
   plain,
 } from '../src/harness';
 
@@ -112,7 +113,8 @@ async function say(line: string): Promise<string> {
 }
 
 async function advance(duration: string): Promise<void> {
-  await advanceWorldClock(duration);
+  // Lived time: in day-long jumps, the drive's people fed between them.
+  await advanceLiving(duration, [k]);
   const probe = await Session.open('founder', { startLocation: SMELTER, wizard: true }).catch(() => null);
   try {
     const until = Date.now() + 600_000;

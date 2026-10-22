@@ -33,6 +33,7 @@ import {
   uniqueHandle,
   expectOk,
   advanceWorldClock,
+  advanceLiving,
   plain,
 } from '../src/harness';
 
@@ -109,7 +110,8 @@ async function say(s: Session, line: string): Promise<string> {
 }
 
 async function advance(duration: string): Promise<void> {
-  await advanceWorldClock(duration);
+  // Lived time: in day-long jumps, the drive's people fed between them.
+  await advanceLiving(duration, sessions);
   const probe = await Session.open('founder', { startLocation: SHOP, wizard: true }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
@@ -245,6 +247,9 @@ async function until(s: Session, keyword: string, re: RegExp, step = '1 day', ma
   let seen = '';
   for (let i = 0; i < max && !re.test(seen); i++) {
     await advance(step);
+    // ⚠ Read by daylight: a whole-day step that starts at night reads in
+    // the dark every time, and a query in the dark sees nothing (run 16).
+    await toHour(8, 15);
     seen = await examine(s, keyword);
   }
   return seen;
@@ -494,8 +499,11 @@ suite('⭐ 19 — lead leaches', () => {
     await say(potter, 'get ashpot');
     const clean = await say(potter, 'analyze chemistry ashpot');
     expect(clean, `the ash crock's vinegar: ${clean}`).not.toMatch(/\blead\b/i);
-    const drank = await act(potter, 'drink from leadpot');
-    expect(drank.said).toMatch(/drink|sour|vinegar/i);
+    // ⚠ `drink leadpot`, not `drink from leadpot`: the second is no shape
+    // of the verb, and its refusal says "drink" — which this regex matched.
+    const drank = await act(potter, 'drink leadpot --amount 100ml');
+    expect(refusedFor(drank.r), `drink: ${drank.said}`).toBeNull();
+    expect(drank.said).toMatch(/you drink|sour|vinegar/i);
   }, 3_600_000);
 });
 
