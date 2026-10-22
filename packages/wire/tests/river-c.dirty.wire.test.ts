@@ -13,7 +13,7 @@
  *    seam); portage is `hitch`, which the haulage drives already cover; the
  *    gorge walls refusing a landing are stage A's step 4 refusal, the same
  *    bank word.
- *  - 22's hold in a slow pool: the slow water is forty kilometres below the
+ *  - 22's hold in a slow pool: the slow water is forty kilometers below the
  *    put-in, a day's paddle. The hold is unit-tested on the warren.
  *  - 23 (fishing from a drifting canoe): the line following the water is
  *    `FishingEngagement`'s, unit-tested in trade-fishing.

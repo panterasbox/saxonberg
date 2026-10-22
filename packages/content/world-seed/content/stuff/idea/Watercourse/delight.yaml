@@ -3,7 +3,7 @@
 #
 # It branches from `kestrel:confluence` and NOTHING says which way. The
 # junction end is derived: its `mouth` sits at 35 m, five from the
-# confluence's 30, while its spring is seven hundred metres away — so
+# confluence's 30, while its spring is seven hundred meters away — so
 # the mouth is the end that touches, and this is a tributary JOINING
 # rather than a distributary leaving. The same one-line structure would express a delta
 # arm if its source were the end at that height.
@@ -30,7 +30,7 @@ data:
   mouth: { into: river, course: kestrel, node: confluence }
   bed: gravel
   stretches:
-    # The ford: a gravel riffle a few hundred metres above the mouth —
+    # The ford: a gravel riffle a few hundred meters above the mouth —
     # shallow, fast, and the only place a cart crosses (overridden: a ford
     # is where somebody found the riffle, and an author says where).
     - { from: mouth-0.4, to: mouth-0.25, kind: riffle }

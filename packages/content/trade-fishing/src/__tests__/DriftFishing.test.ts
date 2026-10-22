@@ -27,7 +27,7 @@ describe('drift fishing (river D34)', () => {
     expect(overWater(2, false)).toBe(1);
   });
 
-  it('⭐ the bite falls away as the drift quickens, and at a metre a second nothing takes', () => {
+  it('⭐ the bite falls away as the drift quickens, and at a meter a second nothing takes', () => {
     const slow = overWater(0.2, true);
     const quick = overWater(0.7, true);
     expect(slow).toBeGreaterThan(quick);

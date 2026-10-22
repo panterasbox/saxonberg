@@ -37,7 +37,7 @@ data:
   # with no kernel edit.
   conditional: true
   # ⭐ Where on the Delight it crosses (the river build): the gravel riffle
-  # a few hundred metres above its mouth. The water there decides, body by
+  # a few hundred meters above its mouth. The water there decides, body by
   # body — no threshold.
   crossesReach: "delight:mouth-0.3"
   messageOut: "{{ mover }} splashes across the ford."

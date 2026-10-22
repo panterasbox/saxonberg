@@ -79,8 +79,8 @@ async function morning(): Promise<void> {
 function kmOf(readout: string): number | null {
   const m = readout.match(/(\d+(?:\.\d+)?) km above the mouth/);
   if (m) return Number(m[1]);
-  const metres = readout.match(/(\d+) metres above the mouth/);
-  return metres ? Number(metres[1]) / 1000 : null;
+  const meters = readout.match(/(\d+) meters above the mouth/);
+  return meters ? Number(meters[1]) / 1000 : null;
 }
 
 /** Wait until the readout says she is not under way, moving the clock. */

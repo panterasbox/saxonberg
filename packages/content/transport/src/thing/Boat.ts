@@ -109,9 +109,9 @@ export default class Boat extends BoatBase {
     hull: { persistent: true, authorable: true },
   };
 
-  /** Eye height of somebody sitting in it, metres. */
+  /** Eye height of somebody sitting in it, meters. */
   protected eyeHeightM = 1;
-  /** How tall it stands as a target, metres. */
+  /** How tall it stands as a target, meters. */
   protected heightM = 1.5;
   /** The hull's numbers. */
   protected hull: HullSpec = { ...DEFAULT_HULL };

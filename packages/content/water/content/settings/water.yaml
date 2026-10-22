@@ -81,7 +81,7 @@ settings:
   # ── ice on a still reach (the climate build) ─────────────────────
   # Running water does not freeze over here: at or above this current
   # (m/s) a reach reads `running`. ⭐ 0.5 (storage-and-ice D14): rivers
-  # freeze over at currents up to about half a metre a second; only fast,
+  # freeze over at currents up to about half a meter a second; only fast,
   # turbulent water stays open (0.1 left most slow rivers open all winter).
   # The thin place over a current is the watershed slate's.
   - key: water.ice.stillWaterMps
@@ -98,7 +98,7 @@ settings:
   - key: water.ice.growthUnderSnow
     value: "0.017"
 
-  # Thaw: metres of sheet lost per kelvin above freezing per day.
+  # Thaw: meters of sheet lost per kelvin above freezing per day.
   - key: water.ice.meltMPerKd
     value: "0.005"
 
@@ -107,7 +107,7 @@ settings:
   - key: water.ice.rotTddK
     value: "10"
 
-  # Gold's formula: a sheet bears σ·h² (kg, h in metres) — a person at
+  # Gold's formula: a sheet bears σ·h² (kg, h in meters) — a person at
   # 6 cm, a horse at 14, a loaded cart at 20. The ice trade's margins are
   # its own.
   - key: water.ice.bearingKgPerM2
@@ -177,10 +177,10 @@ settings:
   - key: water.fishery.readDiscipline
     value: "/trade/fishing/idea/Discipline/fishing"
 
-  # Kilometres of river a reach stands for, for capacity:
+  # Kilometers of river a reach stands for, for capacity:
   # `round(fit × abundance × reachLengthKm)`. Abundance is authored per
   # species per km; this is the one number that scales every reach.
-  # ⭐ ONE kilometre — the stretch you can fish from where you stand, not
+  # ⭐ ONE kilometer — the stretch you can fish from where you stand, not
   # the whole reach between two nodes: at 3 the confluence held eight
   # hundred fish and no net could empty it in an afternoon (the drive).
   # ⭐ How many fish a 0.1° cell of open sea holds at a band's full

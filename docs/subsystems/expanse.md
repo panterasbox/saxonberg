@@ -39,7 +39,7 @@ is what holds rooms, and only `CartesianZone` / `SphericalZone` compose it.
 
 | layer | system | who reads it |
 |---|---|---|
-| **the graph** — nodes and bands | ⭐ **spherical**, relative to the expanse: a node is a focus `[rho, theta, phi]` + `radius` (`SphericalCoordinatesMixin`, the shape and units a `SphericalLocation` uses in its `SphericalZone` — metres; `theta` the bearing from the origin, `phi` the inclination, `90` on the surface) | authors |
+| **the graph** — nodes and bands | ⭐ **spherical**, relative to the expanse: a node is a focus `[rho, theta, phi]` + `radius` (`SphericalCoordinatesMixin`, the shape and units a `SphericalLocation` uses in its `SphericalZone` — meters; `theta` the bearing from the origin, `phi` the inclination, `90` on the surface) | authors |
 | **the chart** — a craft's position, course, reckoning, sight, fix, the horizon's bearings | latitude and longitude (`GeoPosition`), plane sailing | sailors |
 | **the bridge** | the expanse's authored `origin` (where the graph's centre lies on the chart) and `GeoPosition.atFocus(focus)` — the surface run `rho·sin(phi)` along `theta`, the depth `−rho·cos(phi)` | one place |
 
@@ -77,7 +77,7 @@ only (`lint:object-verbs`).
 `BandExtent` is a closed two-word vocabulary: a **corridor** (two points
 and a width — a rectangle on the local plane) or a **belt** (the box
 between two corners — joins nothing). ⭐ Both are **authored on the
-graph**, as foci relative to the origin (`widthM` in metres), and a
+graph**, as foci relative to the origin (`widthM` in meters), and a
 corridor that names `endpoints` and no `from`/`to` is **drawn between
 those nodes** — an edge can never disagree with what it joins, and
 moving a node moves it. `Band.getExtent()` resolves the authored shape

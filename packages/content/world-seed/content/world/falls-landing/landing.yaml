@@ -22,7 +22,7 @@ data:
     falls:
       keywords: [falls, drop, spray]
       description: |
-        Twenty-odd metres of water coming down in a sheet and a roar. Nothing goes up it.
+        Twenty-odd meters of water coming down in a sheet and a roar. Nothing goes up it.
   exits:
     north:
       destination: /world/falls-landing/head

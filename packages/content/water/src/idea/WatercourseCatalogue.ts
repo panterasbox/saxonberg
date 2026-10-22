@@ -166,7 +166,7 @@ export interface CompiledReach {
   /** Minimum hops to a sea outlet — a monotone downstream distance. */
   depthToSea: number;
   /**
-   * Square kilometres draining to this reach — its own contributing
+   * Square kilometers draining to this reach — its own contributing
    * localities plus everything upstream of it. Accumulated at load.
    */
   catchmentKm2: number;
@@ -243,8 +243,8 @@ export const CONTAMINANT_KINDS: readonly ContaminantKind[] = [
 /**
  * The fraction of a load that survives **one reach** downstream.
  *
- * ⚠ Per hop rather than per metre, because a reach is the unit the
- * whole subsystem reasons in and a per-metre rate would demand a
+ * ⚠ Per hop rather than per meter, because a reach is the unit the
+ * whole subsystem reasons in and a per-meter rate would demand a
  * channel length nobody has authored. The numbers are dials; the
  * ORDERING is the model, and it is not negotiable: organic recovers,
  * sediment settles faster still, persistent and nutrient do not
@@ -295,7 +295,7 @@ export interface Withdrawing {
   /** The reach it takes from, or `''`. */
   getReachRef?: () => string;
   /**
-   * Cubic metres per second it is taking, given the natural flow
+   * Cubic meters per second it is taking, given the natural flow
    * arriving at its reach.
    *
    * ⚠ **Natural** flow, deliberately: sizing a withdrawal against the
@@ -347,7 +347,7 @@ export interface IceHistory {
 export interface FlowReading {
   /** The reach it describes. */
   ref: ReachRef;
-  /** Cubic metres per second actually passing, after withdrawals. */
+  /** Cubic meters per second actually passing, after withdrawals. */
   m3s: number;
   /** What the catchment would deliver with nobody drawing. */
   naturalM3S: number;
@@ -783,7 +783,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
    * ⭐ **The second consumer of the precipitation integral.** A bed
    * multiplies the millimetres by its land area to get litres of soil
    * moisture; a reach multiplies the same millimetres by its catchment
-   * area to get cubic metres of river. One walk, two scales — that is
+   * area to get cubic meters of river. One walk, two scales — that is
    * the whole spine of this build, and this method is the half of it
    * that makes a diversion matter.
    *
@@ -2651,7 +2651,7 @@ function computeNaturalFlow(
     reach.site,
   );
   const covered = fell.coveredS > 0 ? fell.coveredS : windowS;
-  // mm over the window → metres per second over the catchment.
+  // mm over the window → meters per second over the catchment.
   const runoffM3S =
     ((fell.liquid.rawValue() / 1000) / covered) * areaM2 * runoff;
 

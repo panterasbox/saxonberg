@@ -51,9 +51,9 @@ export type ControlKind = 'dam' | 'headgate' | 'weir' | 'sluice';
 
 /** What a control did to the water arriving at it. */
 export interface ControlSplit {
-  /** Cubic metres per second continuing down the same course. */
+  /** Cubic meters per second continuing down the same course. */
   passedM3S: number;
-  /** Cubic metres per second sent to {@link ControlStructure.divertsTo}. */
+  /** Cubic meters per second sent to {@link ControlStructure.divertsTo}. */
   divertedM3S: number;
   /** Watts generated on the way through, or 0 without a head. */
   generatedW: number;
@@ -115,7 +115,7 @@ export default class ControlStructure extends ControlStructureBase {
   public divertsTo = '';
 
   /**
-   * Metres of fall the structure commands, for generation.
+   * Meters of fall the structure commands, for generation.
    *
    * ⚠ **Fixed per structure, at construction** (plan § P0). A dam's
    * head is a fact about the dam, not a live elevation lookup, so the

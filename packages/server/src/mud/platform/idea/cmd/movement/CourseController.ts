@@ -50,7 +50,7 @@ const SLOW_SHARE = 0.4;
 
 /** The words for a river's line, in km — a pilot's, not a navigator's. */
 function kmWords(km: number): string {
-  return km < 1 ? `${Math.round(km * 1000)} metres above the mouth` : `${km.toFixed(1)} km above the mouth`;
+  return km < 1 ? `${Math.round(km * 1000)} meters above the mouth` : `${km.toFixed(1)} km above the mouth`;
 }
 
 type Craft = Stuff & Positioned & Voyaging;

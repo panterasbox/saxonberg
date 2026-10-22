@@ -17,7 +17,7 @@ data:
     You are in the Kestrel at the foot of the quay steps, out past the shelter of the basin where the river's own water goes by. The embankment stands up out of it on your left, slimed green to the summer line, and the brown water leans on you all the time, going east.
   coords: { x: 1, y: 0, z: 0 }
   water: { of: "kestrel:confluence+0.1", depthM: 3 }
-  # ⭐ On the line: its upstream end at the quay steps, two hundred metres
+  # ⭐ On the line: its upstream end at the quay steps, two hundred meters
   # of the river past the city's front, then the line again.
   river: { course: kestrel, at: confluence+0.1, span: 0.2, name: stream }
   current: inherit

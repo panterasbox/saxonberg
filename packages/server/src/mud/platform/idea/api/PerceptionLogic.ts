@@ -1213,7 +1213,7 @@ const COMPASS_POINTS = [
   'to the south', 'to the south-west', 'to the west', 'to the north-west',
 ] as const;
 
-/** An observer's eye above the ground they stand on, metres. */
+/** An observer's eye above the ground they stand on, meters. */
 const SHORE_EYE_M = 2;
 
 const EMPTY_HORIZON: HorizonView = { things: [], traffic: [], atSea: false };
@@ -1328,7 +1328,7 @@ const RIVER_EYE_M = 1.7;
  * A named EXPANSE is read like a deck from the nearest landing, at the
  * zone's elevation (maritime R11: the headland).
  *
- * ⭐ Distance is approximated from the zones' extents in metres (cell size
+ * ⭐ Distance is approximated from the zones' extents in meters (cell size
  * × the grid's span): from inside a named zone, half its span; from
  * another zone, half of each. Crude by design — a grain, tuned by
  * `perception.horizonRatio`, which optics widen later.

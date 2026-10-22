@@ -22,8 +22,8 @@
  * (maritime review, 2026-10-13.) A node is placed the way a
  * `SphericalLocation` is placed in its `SphericalZone` — the same mixin,
  * the same authored `focus: { rho, theta, phi, radius }`, the same units
- * (metres; degrees) — RELATIVE to the expanse it is in: *fifteen miles
- * out, bearing 050, a stack four hundred metres across*. It is on no
+ * (meters; degrees) — RELATIVE to the expanse it is in: *fifteen miles
+ * out, bearing 050, a stack four hundred meters across*. It is on no
  * lattice and it moves with its sea.
  *
  * - **Where on the chart** is derived, never authored: the expanse's

@@ -436,8 +436,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * How long the swim a way asks takes, real seconds. ⭐ The river runs on
    * the GAME clock (the patch drifts in game seconds), so a stroke through
    * moving water is reckoned in game seconds and handed back as real ones —
-   * otherwise a swimmer crossing forty metres of margin would watch the
-   * patch carry them a kilometre (river risk 5).
+   * otherwise a swimmer crossing forty meters of margin would watch the
+   * patch carry them a kilometer (river risk 5).
    */
   public async crossingSecondsFor(exit: ReachExit, mover: Stuff): Promise<number> {
     const gameS = await this.crossingGameSeconds(exit, mover);
@@ -1212,7 +1212,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
 
   /**
    * One walk along a bank (D25): from an authored bank place's end or a
-   * bank patch's km, a hundred metres up or down the same bank — into the
+   * bank patch's km, a hundred meters up or down the same bank — into the
    * authored bank place there when there is one, else the bank there.
    * `null` past the river's ends.
    */
@@ -1426,7 +1426,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   }
 }
 
-/** The key a stop persists by: its course, its metre, its side. */
+/** The key a stop persists by: its course, its meter, its side. */
 function stopKey(course: string, km: number, side: RiverSide | 'mid'): string {
   return `${course}@${Math.round(km * 1000)}@${side}`;
 }

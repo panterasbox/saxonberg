@@ -97,11 +97,11 @@ export type ConduitDirection = 'supply' | 'disposal';
 export interface ConduitReading {
   /** `null` when it is working. The six-word vocabulary otherwise. */
   state: SupplyState | null;
-  /** Cubic metres per second actually delivered. */
+  /** Cubic meters per second actually delivered. */
   deliveredM3S: number;
   /** What was asked of it. */
   demandM3S: number;
-  /** Metres of head in its favour; negative means it must be pumped. */
+  /** Meters of head in its favour; negative means it must be pumped. */
   headM: number | null;
   /** Watts the pump is drawing to deliver that, or 0 when gravity-fed. */
   pumpWatts: number;
@@ -166,7 +166,7 @@ export default class Conduit
   public direction: ConduitDirection = 'supply';
 
   /**
-   * Cubic metres per second it carries.
+   * Cubic meters per second it carries.
    *
    * **A number, not an ideal**, because an over-subscribed main in a dry
    * August is what gives the rights layer something to bind against. A
@@ -205,7 +205,7 @@ export default class Conduit
   public ownerRef = '';
 
   /**
-   * Metres of head in the conduit's favour, resolved **once at
+   * Meters of head in the conduit's favour, resolved **once at
    * construction** and stored.
    *
    * ⭐ This is the P0 discipline in one field. Elevation resolution is

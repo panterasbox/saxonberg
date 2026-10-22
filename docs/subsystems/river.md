@@ -24,7 +24,7 @@ and elevation, a falls' drop, widths) plus `source`, `mouth`, `bed`, banks,
 that stand on it. The catalogue compiles each into a `RiverLine` — a value
 object, memoized — that derives everything else:
 
-- **positions**: `{ course, km, across }` — km from the mouth, metres from
+- **positions**: `{ course, km, across }` — km from the mouth, meters from
   river left. The citation grammar is `course:node[±km][,side]`; a positive
   offset is **downstream**.
 - **stretches** (`course:N`): the step–pool distribution puts the drop in

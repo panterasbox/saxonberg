@@ -8,7 +8,7 @@ data:
   keywords: [painter, line, rope, "bow line"]
   register: indefinite
   longDescription: >-
-    Fifteen metres of manila with an eye spliced in one end, made to go on
+    Fifteen meters of manila with an eye spliced in one end, made to go on
     a boat's bow ring and be thrown ashore with the other.
   _materialPath: /stuff/idea/material/textile/jute
   mass: 1.5

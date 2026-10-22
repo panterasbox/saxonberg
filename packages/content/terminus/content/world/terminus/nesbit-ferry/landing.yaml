@@ -19,7 +19,7 @@ data:
     river:
       keywords: [river, kestrel, water]
       description: |
-        Ninety metres of brown water going by at a walk, or faster after rain. You can read how hard it is running by how the ferry hangs on her pole.
+        Ninety meters of brown water going by at a walk, or faster after rain. You can read how hard it is running by how the ferry hangs on her pole.
   exits:
     across:
       kind: /world/terminus/nesbit-ferry/exits/crossing

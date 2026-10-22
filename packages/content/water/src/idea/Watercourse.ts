@@ -83,7 +83,7 @@ export interface WatercourseNode {
   /** Durable identity within the course. */
   name: string;
   /**
-   * Metres above sea level. Authored at **control points** only;
+   * Meters above sea level. Authored at **control points** only;
    * omitted nodes interpolate linearly between the control points that
    * bracket them, which is what makes an uphill reach unrepresentable.
    */
@@ -95,7 +95,7 @@ export interface WatercourseNode {
    */
   channelWidthM?: number;
   /**
-   * Square kilometres of **unclaimed** ground draining to this reach —
+   * Square kilometers of **unclaimed** ground draining to this reach —
    * the mountainside nobody's locality covers.
    *
    * ⭐ Most of a catchment is not anybody's town. A locality declares
@@ -111,7 +111,7 @@ export interface WatercourseNode {
    */
   catchmentKm2?: number;
   /**
-   * Mean depth of the channel in metres, for the current read
+   * Mean depth of the channel in meters, for the current read
    * (`flow / (width × depth)`). Authored where an author cares; derived
    * from the flow by hydraulic geometry otherwise, as an unauthored
    * width is.
@@ -134,7 +134,7 @@ export interface WatercourseNode {
    */
   works?: string[];
   /**
-   * ⭐ **Kilometres from the mouth** (river D1) — the river mile. Required
+   * ⭐ **Kilometers from the mouth** (river D1) — the river mile. Required
    * on every node of a course of two or more nodes, strictly decreasing
    * source-first; the mouth is the end that does not move, so lengthening
    * the headwaters shifts nothing below.

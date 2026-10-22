@@ -307,7 +307,7 @@ describe('⭐ Terminus drinks and discharges into the same water', () => {
   it("⚠ the city's intake needs a PUMP, forever — Terminus is flat", async () => {
     const intake = conduitFrom('world/terminus/wharfside/thing/city-intake.yaml');
     const head = await intake.resolveHead(catalogue());
-    // River at 30 m, city ground at 35: five metres the wrong way.
+    // River at 30 m, city ground at 35: five meters the wrong way.
     expect(head).toBe(-5);
     expect(intake.requiresPump()).toBe(true);
     expect(intake.pumpWattsFor(1)).toBeGreaterThan(0);
@@ -400,14 +400,14 @@ describe('⭐⭐ the Cold Fell aqueduct (D22 / acceptance 19)', () => {
 });
 
 describe("⭐ Hinkley's is a HEAD problem, not a rights problem (D20 / D27)", () => {
-  it('the suburb sits a hundred metres above its own river', async () => {
+  it('the suburb sits a hundred meters above its own river', async () => {
     const zone = data('world/terminus/hinkley-hills.yaml');
     const reach = await catalogue().reachOf(
       data('stuff/idea/Locality/hinkley-hills.yaml')._reach as string,
     );
     expect(Number(zone.elevation)).toBe(130);
     expect(reach!.elevation).toBe(30);
-    // A main from the Kestrel would have to lift a hundred metres,
+    // A main from the Kestrel would have to lift a hundred meters,
     // forever. That is why the Hills store instead.
     expect(Number(zone.elevation) - reach!.elevation).toBe(100);
   });
@@ -423,7 +423,7 @@ describe("⭐ Hinkley's is a HEAD problem, not a rights problem (D20 / D27)", ()
       return t;
     }) as StorageNode;
 
-    // 145 m of tank over 130 m of ground: fifteen metres of head, and
+    // 145 m of tank over 130 m of ground: fifteen meters of head, and
     // that IS the pressure at the tap.
     expect(await tank.headOverServedGroundM()).toBe(15);
     expect(tank.serves('/world/terminus/hinkley-hills/location/lane')).toBe(true);

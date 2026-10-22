@@ -253,7 +253,7 @@ export default class FerryExit extends Exit {
     ContainmentApi.move(ferry, landed);
     ContainmentApi.move(mover, landed);
     if (poler !== mover && MixinApi.isContainable(poler)) ContainmentApi.move(poler, landed);
-    FerryExit.tell(mover, `You pole straight across and the river takes her down the whole way; she grounds in the shallows ${Math.round(driftM)} metres below the landing. You will have to pole her back up (\`paddle\` to the landing).`);
+    FerryExit.tell(mover, `You pole straight across and the river takes her down the whole way; she grounds in the shallows ${Math.round(driftM)} meters below the landing. You will have to pole her back up (\`paddle\` to the landing).`);
     return true;
   }
 

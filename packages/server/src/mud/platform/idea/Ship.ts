@@ -145,9 +145,9 @@ export default class Ship extends PersistableMixin(
   public setHoled(v: boolean): void { this.holed = v === true; }
   public setFuelDebtKg(v: number): void { this.fuelDebtKg = Math.max(0, Number(v) || 0); }
 
-  /** An observer's eye height on deck, metres. */
+  /** An observer's eye height on deck, meters. */
   protected deckHeightM = 0;
-  /** An observer's eye height at the masthead, metres; `null` for none. */
+  /** An observer's eye height at the masthead, meters; `null` for none. */
   protected mastheadHeightM: number | null = null;
   /** The Business row whose roster mans her; `null` for none. */
   protected house: string | null = null;

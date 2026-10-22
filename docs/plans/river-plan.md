@@ -1618,7 +1618,7 @@ column and the bank are unchanged in behavior).
 >   is a timed crossing of 1.1 × hail that lands you in the patch within hail
 >   there (catching up = joining it) or a new one (splitting). Merge radius =
 >   hail. Crossings are reckoned in GAME seconds and handed back as real ones
->   (risk 5: in real seconds a 40 m margin swim drifted you a kilometre).
+>   (risk 5: in real seconds a 40 m margin swim drifted you a kilometer).
 > - **The line names its places** (`places:` on the Watercourse row, census
 >   arm) instead of places being searched for — the reverse-question rule.
 > - **A bank's way in** is a kernel hook: a `Shore` with a `bank` tells its
@@ -1879,7 +1879,7 @@ the maritime drive is green again.
 > ✅ **W5 built (2026-10-21), with the W3 items owed.** Decisions the build made:
 > - **The sea's warren keys rooms by distance, not by a cell.** A ship
 >   stopped within hail of a room's spot shares it; a rounded cell key put
->   two ships eight metres apart into two waters at a cell line (the
+>   two ships eight meters apart into two waters at a cell line (the
 >   test found it). Rooms do **not drift** — a stopped ship holds her fix,
 >   and so does her water; a ship hove-to drifting with the set is the
 >   ships slate's. No column under the sea room (`bandsNow` is empty).

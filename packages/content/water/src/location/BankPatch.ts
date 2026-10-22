@@ -5,7 +5,7 @@
  * Between a river's authored places the bank is the line's, as the water
  * is. Somebody who leaves a quay or a towpath along the river is in a bank
  * patch: one room for one party, on one bank, at a km, moved by their own
- * steps (`go upstream`, `go downstream` — a timed walk of a hundred metres
+ * steps (`go upstream`, `go downstream` — a timed walk of a hundred meters
  * at a time). Reaching an authored bank place, they are handed into it; a
  * bank that turns to sheer rock refuses them.
  *

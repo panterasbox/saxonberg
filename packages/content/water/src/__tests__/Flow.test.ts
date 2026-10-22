@@ -4,7 +4,7 @@
  *
  * A bed multiplies the millimetres by its land area to get litres of
  * soil moisture; a reach multiplies the SAME millimetres by its
- * catchment area to get cubic metres of river. That is the whole spine
+ * catchment area to get cubic meters of river. That is the whole spine
  * of the build, and this file is the half of it that makes a diversion
  * matter.
  *
@@ -283,7 +283,7 @@ describe('⭐ snowpack: the spring rise and the late-summer low', () => {
       shoreTotal += (await c.flowAt('step:shore', t))!.snowpackMm;
     }
     expect(alpTotal).toBeGreaterThan(0);
-    // Two kilometres of lapse rate is thirteen Kelvin, and thirteen
+    // Two kilometers of lapse rate is thirteen Kelvin, and thirteen
     // Kelvin is the difference between a snowfield and a wet winter.
     expect(alpTotal).toBeGreaterThan(shoreTotal * 2);
   });

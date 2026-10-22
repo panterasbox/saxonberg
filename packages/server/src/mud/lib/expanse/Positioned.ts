@@ -130,7 +130,7 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * How high `observer`'s eye is when looking out from this thing,
-     * metres — what the sea's horizon formula reads of an observer.
+     * meters — what the sea's horizon formula reads of an observer.
      *
      * @hook Invoked by `Expanse.contactsFrom` for the observing craft.
      *   Default `0` — an eye at the waterline. A Structure answers its
@@ -143,7 +143,7 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * How tall this thing stands as a TARGET, metres — what the horizon
+     * How tall this thing stands as a TARGET, meters — what the horizon
      * formula reads of it when somebody else is looking.
      *
      * @hook Invoked by `Expanse.contactsFrom` for each candidate. Default
