@@ -2304,3 +2304,37 @@ night it holes her. A swamped boat's people could not `pull` it (the boat
 offered verbs only to its sitters). The ferryman's brain issued a bare
 `across` (unknown verb). A SEEN ferry way was mapped without its
 conditional flag.
+
+### Pass 8 (2026-10-22): 19 / 28 — memory peak 1.2 GB
+
+A 6/9 · B 5/5 · C 3/4 · D 3/6 · E 2/4. Found (fc115ceb2): a patch under way
+read its depth at the swimmer's margin, not the channel (no dive anywhere);
+`slow` was 40% of her speed and could not stem the current at the quay while
+full speed was refused among the snags — now `slow` caps her speed over the
+ground at what the water can be read at, in snag reaches only; a merge
+compared a fresh position with others' minutes-stale ones (`patchNearNow`
+carries them on); the ferryman's brain claimed the hands his own crossing
+needs; both decks had a detail answering to `side`.
+
+### ⭐ Where things stand (handoff, 2026-10-22)
+
+- **Pass 9 is running** against fc115ceb2 (logs:
+  `~/.claude/jobs/477f9cab/tmp/drive9-{a..e}.log`, memory `mem9.log`; world on
+  port 2018, DB `saxonberg_build4`, started with a 6 GB heap). Read its
+  failures, fix, commit, re-drive; tear the world down by the PID on port
+  2018 when done (never by pattern).
+- **Still failing at pass 8, fixed since, unproven:** A3 (the parting
+  stroke), A18 (the dive), C19 (step 19 rowed in the estuary dinghy), D26/
+  D28/D31 (snags + slow, `go side`), E33 (the ferryman), E35 (`go side`).
+  A1's first `measure current` after a season jump can outlast 30 s — the
+  drive reads twice; a performance finding for the MR.
+- **For the user's eye (content, not code):** (1) the Kestrel confluence and
+  Delight mouth widths were narrowed (90→35 m, 30→12 m) to match their flows
+  — they predate this build; (2) in this world's weather the Delight never
+  floods, so its ford is never dangerous — step 7 drives the low-water ford,
+  the swept branch is unit-tested only.
+- **Not built (recorded in wave notes):** pilot claims on stretches, `hail`
+  from a landing, `paddle <ship>` at sea, sea rooms drifting, walking out on
+  river ice and the hole, lining from an authored bank.
+- **After the drive passes:** update the MR description (findings + the
+  content items), then `/finalize` is the user's call.
