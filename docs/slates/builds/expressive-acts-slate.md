@@ -14,7 +14,9 @@
 > polity's mapping · the manner vocabulary (the custom slot's leading word) · the play frame · consent and welcome on directed acts,
 > with accountability generalized from harm to directed acts · witness reach · the
 > sincerity reading from witnesses' reactions · the consumers (displayed mood, NPC
-> regard, social facts, the trait ledger, derived closeness) · the numbers on `look`
+> regard, social facts, the trait ledger, derived closeness) · the target's half (what
+> you receive, adjacency pairs, target-side saturation) · intimacy (private records,
+> witness consent, the minors/animals/corpses refusal) · the numbers on `look`
 > and `score` · `afk`/`brb` as presence · the two new document kinds
 > **Size:** a build
 
@@ -143,7 +145,8 @@ but it's opt-in by the Compact."*
   2. **each player opts in to receive it** — a perception filter like the emoji render
      setting. Nobody can aim a pack's acts at a player who has not opted in (the refusal
      in advance, applied wholesale), and ⭐ a **witness who has not opted in sees it
-     redacted**: *"Bobalu and Iffy share a private moment."*
+     redacted**: *"Bobalu and Iffy share a private moment."* ⚠ Except the sexual tier,
+     which is **refused** rather than redacted when any witness has not consented (§ 6a).
 - **A pack can add acts, never loosen the consent rule of the tier it uses** (§ 6) — which
   is what makes opting in safe.
 
@@ -252,7 +255,7 @@ try to broaden the model for kissing to anything/everything."*
 | affectionate | hug | between contacts, or where a place's norms allow |
 | intimate | kiss | standing consent or asked only |
 | hostile | slap | never consented by default; may open a fight under combat's terms |
-| **sexual** | none — opt-in packs only (§ 2b) | ⛔ **locked**: standing consent or asked, never a place's norm; a pack cannot loosen it |
+| **sexual** | none — opt-in packs only (§ 2b) | ⛔ **locked**: the partner's standing consent or asked, never a place's norm; ⭐ **and every witness's consent** (§ 6a); a pack cannot loosen it |
 - **Where consent comes from**, cheapest first, so play stays spontaneous:
   1. **standing** — your contacts and relationships (*friends may hug me*);
   2. **place and context** — the dance floor, the sparring ring, the festival, a greeting
@@ -271,6 +274,64 @@ try to broaden the model for kissing to anything/everything."*
   describes the community inventing self-governance in response. That is the
   [Compact](../../compact-political-science.md)'s ancestor: consent on directed acts is
   why governance in virtual worlds exists at all.
+
+## 6a. ⭐⭐⭐ Intimacy — private by default, and the audience as part of the act **[DECIDED — the owner]**
+
+The owner: *"what if we did have a sex emote pack — how should sex affect the characters,
+given it generally happens in private, and it happening in public is, uh, an expression
+of a very specific kink."*
+
+### The invariant answers most of it
+
+**Emotes change nothing in the world**, so an intimate or sexual act triggers **no
+biology** — no conception, no disease, no stat. If a realm wants pregnancy or children,
+that is the household lifecycle's, with its own deliberate act, never a side effect of an
+emote. Modeling it through emotes would make every intimate scene a medical event —
+*expression is inelastic*. In the fiction, sex affects characters through three things
+only: **closeness, the record, and who knows.**
+
+### In private — closeness and a shared secret
+
+- **Closeness** — the most intimate tier weighs most in the closeness derived between two
+  people (§ 8.5); a relationship emerges with no relationship field.
+- **The record is private by default** — intimate- and sexual-tier acts show only in the
+  two people's own records: never renown, never reception counts, nothing another person
+  can be shown. ⭐ **Either person can delete their copy** — opt-in content, and the closest
+  thing in the game to personal.
+- ⭐⭐ **Who slept with whom is the classic secret**, and it reaches anyone else only
+  through the [privacy slate](./privacy-slate.md)'s machinery: someone saw, someone told
+  (a disclosure act), or a trace was found (the
+  [deception-and-detection](./deception-and-detection-slate.md) detective). Affairs,
+  jealousy and scandal all run on discovery, which already exists; a marriage
+  ([staging-leftovers § 1.5](../tails/staging-leftovers-slate.md#15-marriage-and-the-two-prisons))
+  gives a betrayal its stakes.
+
+### In public — the audience is part of the act
+
+- ⭐⭐⭐ **Exhibitionism includes the audience by definition**, so the sexual tier needs
+  **every witness's consent**, not only the partner's — without it, it is indecent
+  exposure, a harm to the witnesses. Consent generalizes: some acts need **witness
+  consent**.
+- **Where witness consent comes from** — every player present has opted in to the pack,
+  or ⭐ the **place declares it as its norm** (a club whose door *is* the consent) — a
+  venue authors and polities can make. A place's norm supplies witness consent only,
+  never the partner's.
+- ⭐⭐ **Without it, the act is refused — not performed and redacted.** Redaction would let
+  the act happen *to* the room. So the **private room** — the privacy slate's open item, a
+  place property — becomes load-bearing.
+- **Public indecency is a polity's law** — a crime, a fine, or legal in a district is
+  title-level; accountability holds the evidence.
+
+### ⛔ Invariants no pack and no polity can change
+
+- A sexual-tier act **can never target a character presented as a minor, an animal, or a
+  corpse** — refused at the act, with no setting or norm that lifts it. Stated because
+  NPC children exist (household lifecycle) and species vary.
+- The tier's consent rule — the partner's and the witnesses'.
+- Emotes trigger no biology.
+
+**NPCs** consent by regard and role, as for any act. **Sex work** is the gap walk's
+**vice** item — a trade a polity regulates or bans — and its own conversation.
 
 ## 7. ⭐⭐ Sincerity — the audience is the check **[DECIDED — the owner]**
 
@@ -324,6 +385,69 @@ authenticity; that in itself is another thing to read."*
 **What it does not do** — no buffs from smiling (gameable, and it cheapens the gesture);
 nothing mechanical on a player recipient beyond the record and closeness — the human
 reads Iffy's glare and decides what it means.
+
+## 8a. ⭐⭐⭐ The target — the other half of every directed act **[DECIDED — the owner]**
+
+The owner: *"you talked a lot about what an emote means for the person emoting, but what
+about the target, when there is one."*
+
+### What you receive is how the world treats you
+
+What you have done is your conduct; what has been done **to** you is the world's regard.
+Thanked by five people this week — evidence you help; apologized to — you were wronged;
+consoled — someone noticed; glared at by the same three — a feud. These are other people's
+acts, so they are readable numbers (§ 9): *thanked 5 times by 4 people*, *apologies
+received 2, forgiven 1*. For most players this is the half that says how they are doing.
+
+### The target gets a turn — adjacency pairs
+
+Conversation analysis's **adjacency pairs**: some acts open a slot for the other person's
+reply.
+
+| first act | the expected reply | the cold reply |
+|---|---|---|
+| greet | greet back | ignore |
+| thank | acknowledge | brush off |
+| apologize | forgive | refuse |
+| hug | hug back | pull away |
+| console | accept the comfort | rebuff |
+| offer (a gift) | accept | decline |
+
+- **The reply completes the meaning** (it is the welcome of § 6), and both records take the
+  pair as one fact: *"Iffy apologized; you forgave her"* is not *"Iffy apologized."*
+- **Silence is a move — fairly.** An unanswered act means something only if the target was
+  present and could perceive it; away, in the dark, or out of reach is no snub.
+- ⭐ **NPCs read snubs; players are never penalized for them.** Augie remembers you ignored
+  him. For a player target an unanswered act shows only as *unanswered* in the record —
+  real people miss messages.
+
+### Protection centers on the target
+
+- **Consent and refusal** are the target's (§ 6).
+- ⭐⭐⭐ **Saturation on the target's side** — per pair, nobody can farm one person; **per
+  target, nobody can be mobbed**: thirty people glaring in an hour is a pile-on, and its
+  effect on the target saturates. **Invariant** — no polity may make mobbing effective.
+- **Harassment is a pattern of acts received** — unwelcome acts from one person, or a
+  dogpile from many: the target's side is where the Compact's conduct process reads its
+  evidence.
+
+### Who or what the target is
+
+| target | what it means |
+|---|---|
+| a player | everything above |
+| an NPC | the engine simulates the response: regard, mood (consoling a sad NPC lifts them), the remembered snub |
+| ⭐ an animal | [pets.md](../../subsystems/pets.md) already reads it — the bond is regard × handling, so `pat` **is** handling; animals refuse too (*difficult, not feral*) |
+| an object or symbol | no consent, no regard, but meaning: bowing to an altar is a faith act, saluting a flag civic, kissing the ring fealty — for [organized religion](./organized-religion-slate.md), civics and [diplomacy](./diplomacy-slate.md) to read |
+| the room (*apologizes to everyone*) | a social act aimed at the witnesses themselves |
+| yourself | self-soothing (`hug self`) — affect only |
+
+### Under a disguise
+
+You act toward whoever you **believe** someone is: thank a masked stranger and the thanks
+belongs to the persona you thought you thanked. The person underneath knows; nobody else
+does. The witnesses' rule (§ 5), applied to targets, with
+[privacy § 8a](./privacy-slate.md)'s pen-name rule for where standing attaches.
 
 ## 9. ⭐⭐⭐ The numbers — of the effect, never of the person **[DECIDED — the owner, measurement Part 6]**
 
