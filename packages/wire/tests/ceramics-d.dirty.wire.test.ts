@@ -605,7 +605,11 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
     expect(await examine(caster, 'brass'), 'a brass cast of the key').toMatch(/brass cast of a key/i);
     expect(await examine(caster, 'beeswax'), 'the wax came back').toMatch(/beeswax/i);
     await doing(caster, 'get brass');
-    await clearFloor();
+    // ⚠ The sweep leaves the CAST in hand: the general sweep matches
+    // `\bcast\b`, dropped the key the drive had just cast, scrapped it, and
+    // the lock answered "no key that fits" (runs 16–23 — the engine was right
+    // all along: run 23's record found no key in hand at all).
+    await clearFloor(/runner and riser|beeswax|moulding sand|salvaged lump/i);
     // Refused before: nobody holds a key that fits… (the player holds only the cast)
     const unlocked = await run(caster, 'unlock door');
     if (refusedFor(unlocked.r) !== null) {
