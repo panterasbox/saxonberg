@@ -49,8 +49,18 @@
  */
 
 import { Idea } from '../stuff/Idea';
+import type { BoundaryRole } from '../security/BoundaryRole';
 
 export abstract class Marshaller<TRuntime, TStored> extends Idea {
+  /**
+   * ⭐ Engine plumbing, not a world object: the `TemplateApplier` calls a
+   * marshaller to hydrate any field it serves (every `Quantity` is one), so
+   * a marshaller held to the boundary compare made every clone with a mass
+   * die inside a jurisdiction-targeted `eval` (`fromStored()` denied on
+   * `/platform/idea/persistence/QuantityMarshaller/kg` — the ceramics drive).
+   */
+  static boundaryRole: BoundaryRole = 'infrastructure';
+
   /**
    * Convert raw stored persistence shape into a runtime value object.
    * Called by `TemplateApplier.hydrate` and

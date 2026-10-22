@@ -60,6 +60,7 @@ declareFile({
 
 const QUARRY = '/world/terminus/rejection/quarry/pit';
 const SMELTER = '/world/terminus/rejection/location/smelter';
+const PITHEAD = '/world/terminus/rejection/location/pithead-yard';
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
@@ -86,7 +87,10 @@ let handle = '';
 let k: Session;
 
 /** Move the character by reopening the session where it needs to be. */
+let at = '';
+
 async function goTo(where: string): Promise<void> {
+  at = where;
   k?.close();
   k = await Session.open(handle, { startLocation: where, wizard: true });
   await k.drainProse();
@@ -160,9 +164,27 @@ async function held(): Promise<string> {
 
 /** Rest the way a person would: sit out a night on the clock. */
 async function rest(): Promise<void> {
+  await drink();
   await say('sit');
   await advance('8 hours');
   await say('stand');
+}
+
+/**
+ * ⭐ Drink at the village well, then come back. A body that works for days
+ * and never drinks cannot sweat, and the work's heat kills it: run 16's
+ * brickmaker died of hyperthermia at the smelter on the fourth melt. A
+ * person drinks, so the drive does, at the pithead yard's hand pump.
+ */
+async function drink(): Promise<void> {
+  const back = at;
+  await goTo(PITHEAD);
+  await say('get pail');
+  await act('pump village well', '1 minute');
+  await say('fill pail from well');
+  for (let i = 0; i < 2; i++) await say('drink pail --amount 1L');
+  await say('drop pail');
+  await goTo(back);
 }
 
 /**
@@ -209,6 +231,7 @@ async function oreFor(n: number, back: string): Promise<void> {
     const said = squash(plain(await r.said()));
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] (founder eval → ${said.slice(0, 160)})`);
+    expect(said, 'the ore setup').toMatch(/ore: \d/);
   } finally {
     gov.close();
   }
@@ -385,6 +408,9 @@ suite('⭐ 13 — wear a crucible', () => {
     for (let melt = 0; melt < 10 && !/crack/i.test(look); melt++) {
       await winAtQuarry('coal', 4, SMELTER);
       await oreFor(2, SMELTER);
+      await drink();
+      // Read by daylight: in the dark the furnace and the crucible are "something".
+      await toHour(9, 15);
       await say('stoke 2 coal into furnace');
       await say('ignite furnace');
       await act('pump bellows');
