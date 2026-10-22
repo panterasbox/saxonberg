@@ -175,7 +175,7 @@ export async function bootOwnedWorld(): Promise<string> {
 /**
  * ⭐ `WIRE_KEEP_WORLD=1`: leave the booted world standing when the run
  * ends, for `WIRE_REUSE=1` runs to attach to (stop it with
- * `kill <pid>` from `.wire/kept-world.json`). The drive loop is boot-bound
+ * `kill -- -<pid>` — the process GROUP — from `.wire/kept-world.json`). The drive loop is boot-bound
  * — six minutes a world — and most iterations change only a drive file.
  */
 export function keepWorld(): boolean {
@@ -206,7 +206,7 @@ export async function stopOwnedWorld(): Promise<void> {
     if (kept) {
       console.log(
         `\nwire: KEPT the world at ${kept.url} (pid ${kept.pid}). ` +
-          `Attach with WIRE_REUSE=1; stop it with: kill ${kept.pid}\n`,
+          `Attach with WIRE_REUSE=1; stop it (its whole process group) with: kill -- -${kept.pid}\n`,
       );
     }
     child = null;
