@@ -341,6 +341,13 @@ async function melt(
     R,
     then,
   );
+  if (/no pot/.test(said) && potRow === T.crucible && !then) {
+    // ⭐ One crucible through a whole day of melts CRACKS (the wear B13
+    // drives): a cracked pot is no pot. A founder takes a fresh one off the
+    // shelf, and the melt is stood up again (run 21's 33a found none).
+    await mint(where, T.crucible);
+    return melt(where, potRow, materialPath, kelvin, then);
+  }
   expect(said, `the melt stood up: ${said}`).toMatch(/melt: .* L of /);
 }
 
@@ -434,7 +441,11 @@ async function clearFloor(only?: RegExp): Promise<void> {
           // include whoever is passing, and a person may not be read at all
           // (peek() denied — the sweep threw and left the old casts, run 20).
           ` const left = ids.map(id => StuffApi.findById(id)).filter(Boolean);` +
-          ` return Promise.all(left.map(o => ContainmentApi.move(o, yard))).then(() => 'scrapped ' + left.length); })()`,
+          // One at a time: a thing the eval may not touch must not stop the
+          // rest (run 21: one leftover's peek() was denied and nothing moved).
+          ` let moved = 0; let kept = 0;` +
+          ` return left.reduce((p, o) => p.then(() => ContainmentApi.move(o, yard)).then(() => { moved++; }, () => { kept++; }), Promise.resolve())` +
+          `.then(() => 'scrapped ' + moved + (kept ? ', could not move ' + kept : '')); })()`,
       );
       // eslint-disable-next-line no-console -- the drive's own record
       console.log(`  [drive D] (sweep → ${squash(await r.said()).slice(0, 120)})`);
