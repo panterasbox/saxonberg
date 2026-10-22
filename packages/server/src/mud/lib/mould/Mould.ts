@@ -565,8 +565,6 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const material = self.getBulkMaterial('interior');
         const drain = material?.getDrainSetting() ?? null;
         const cure = material?.getCureSetting() ?? null;
-        // DIAG(ceramics): temporary — remove before the MR is marked ready.
-        console.info(`DIAG(ceramics) reconcileSetting ${self.getTemplatePath()} L=${amountL} mat=${material?.getName() ?? '-'} T=${MixinApi.isThermal(self) ? Math.round(self.getTemperature().rawValue()) : '-'} stamp=${this.setStamp} progress=${this.setProgress.toFixed(3)} now=${mouldNowSeconds()}`);
         if (!(amountL > 0) || material === null || (drain === null && cure === null)) {
           this.setProgress = 0;
           this.setStamp = 0;
@@ -1053,8 +1051,6 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const need = modulus > 0 ? (mouldDial(AppSettingKeys.mouldMisrunKcm, 15) * chill) / modulus : 0;
         const nowS = mouldNowSeconds() ?? 0;
         const closed = this.isClosedCavity();
-        // DIAG(ceramics): temporary — remove before the MR is marked ready.
-        console.info(`DIAG(ceramics) chvorinov ${self.getTemplatePath()} massKg=${massKg.toFixed(4)} lengthM=${lengthM} modulusCm=${modulus.toFixed(4)} chill=${chill.toFixed(3)} need=${need.toFixed(1)} superheat=${superheat.toFixed(1)} short=${shortPour} closed=${closed}`);
         if (closed && (shortPour || superheat < need)) {
           // A misrun: it froze before the cavity filled.
           cast.addFlaw('casting', true, nowS);
