@@ -159,7 +159,19 @@ describe('moulds', () => {
   it('with no clay anywhere he walks to the pit and digs', async () => {
     const w = world(rooms([], []), '/bf/shed', []);
     await moulds.act({ host: w.host, config } as unknown as BrainContext);
-    expect(w.commands).toEqual(['(→ /bf/temper)', '(→ /bf/pit)', 'get spade', 'dig clay']);
+    expect(w.commands).toEqual(['(→ /bf/temper)', '(→ /bf/pit)', 'get 1 spade', 'dig clay']);
+  });
+
+  it('⭐ he leaves the pit’s spade AT the pit when he carries his clay home', async () => {
+    // A brain that took the spades home left the brickfield with none —
+    // and players and potters stood in the pit with nothing to dig with.
+    const w = world(rooms([], []), '/bf/pit', [
+      { tpl: '/spade', kw: ['spade'], tool: ['digging'] },
+      { tpl: CLAY, kw: ['clay'], qty: 1, alloy: 0 },
+    ]);
+    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    expect(w.commands[0]).toBe('drop spade');
+    expect(w.commands).toContain('(→ /bf/shed)');
   });
 });
 

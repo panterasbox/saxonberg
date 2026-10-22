@@ -97,6 +97,10 @@ export const brain = class {
     // come home the way he went, and only then work.
     const standing = roomOf(m);
     if (standing !== shed) {
+      // ⭐ The spade is the PIT's: leave it there for the next hand (a
+      // brain that carried the pit's spades home left the brickfield with
+      // none — the ceramics drive).
+      if (standing === pit && digsWith(m)) await m.forceCommand('drop spade');
       const back = wayTo(standing);
       if (back) await walkRoute(m, back.back);
       return;
@@ -185,7 +189,7 @@ export const brain = class {
     const toPit = wayTo(pit);
     if (!toPit || !(await walkRoute(m, toPit.go))) return;
     if (count(m, (s) => MixinApi.isTool(s) && s.getCapabilities().includes('digging')) === 0) {
-      await m.forceCommand('get spade');
+      await m.forceCommand('get 1 spade');
     }
     await m.forceCommand('dig clay');
   }
@@ -265,4 +269,11 @@ async function walkRoute(m: Moulder, directions: readonly string[]): Promise<boo
     if (!stepped.ok) return false;
   }
   return true;
+}
+
+/** Is this body holding a digging tool (the pit's spade)? */
+function digsWith(body: Stuff & Container): boolean {
+  return (body.getContents() as Stuff[]).some(
+    (s) => MixinApi.isTool(s) && s.getCapabilities().includes('digging'),
+  );
 }

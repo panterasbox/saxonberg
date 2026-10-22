@@ -627,7 +627,9 @@ for any new consumer: prefer the pull side, as wetness does.
   it outside this fan-out.
 - **Storm lightning.** A `weather:strike` WorldClock system schedule
   fires a presence-gated fan-out: an occupied SkyExposed `storm` scope
-  rolls `storm.strikeRate` and, on a hit, mints a transient
+  rolls `storm.strikeRate` (≈0.0025 a 30-minute tick, DERIVED: ~0.5 ground
+  flashes/km²/h in a storm cell × a ~0.01 km² place; it was 0.15, which
+  killed people standing in a wet pit across a clock jump) and, on a hit, mints a transient
   `LightningStrike` (`EnergizedMixin`+`AudibleMixin`, engine-event
   content) routed through the shipped `conduct` (never a
   bespoke shock path), biases a direct hit onto the most-conductive

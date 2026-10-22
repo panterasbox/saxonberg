@@ -1438,7 +1438,7 @@ async function runStormFanout(): Promise<void> {
   const nowS = nowSecondsOrNull();
   if (nowS === null) return;
   const { BiomeApi } = await import('../../../api/biome');
-  const rate = dial(AppSettingKeys.stormStrikeRate, 0.15);
+  const rate = dial(AppSettingKeys.stormStrikeRate, 0.0025);
   const visited = new Set<string>();
   for (const interactive of ConnectionApi.getAllInteractives()) {
     const holder = interactive.getHolder();

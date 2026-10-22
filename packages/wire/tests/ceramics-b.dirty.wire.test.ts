@@ -206,20 +206,43 @@ suite('⭐ 10 — make firebrick', () => {
     // ⭐ You strip what is over it first: the floor comes down band by band
     // (drift, clay, granite, chalk, limestone, coal) until the coal's
     // seat-earth is uncovered. Bounded.
-    let won = '';
-    for (let i = 0; i < 80 && !/fireclay/i.test(won); i++) {
+    // ⚠ The first runs looped on `held()`, but a won lump is "a lump of
+    // clay" whatever band it came off, and it went to the TIP — so the
+    // loop never saw it and dug on until the body was spent. Now: stop
+    // the moment a dig works the fireclay, rest on the clock when tired,
+    // and pick the lump up where it fell.
+    const rest = async (): Promise<void> => {
+      await say('sit');
+      await advance('8 hours');
+      await say('stand');
+    };
+    let dug = false;
+    for (let i = 0; i < 120 && !dug; i++) {
       const tried = await act('dig fireclay with spade', '2 minutes');
-      if (refusedFor(tried.r) === 'under-overburden' || refusedFor(tried.r) === 'no-such-face') {
-        // ⭐ The ground names the tool: a spade for drift and clay, the
-        // pick once the floor is rock (the first drive looped on the spade).
-        const floor = await act('dig with spade', '2 minutes');
-        if (refusedFor(floor.r) === 'no-spade' || refusedFor(floor.r) === 'no-pick') {
-          await act('dig with pick', '2 minutes');
-        }
+      const why = refusedFor(tried.r);
+      if (why === null) {
+        dug = /fireclay/i.test(tried.said);
         continue;
       }
-      won = await held();
+      if (why === 'too-tired') {
+        await rest();
+        continue;
+      }
+      if (why !== 'under-overburden' && why !== 'no-such-face') break;
+      // ⭐ The ground names the tool: a spade for drift and clay, the pick
+      // once the floor is rock.
+      const floor = await act('dig with spade', '2 minutes');
+      const fr = refusedFor(floor.r);
+      if (fr === 'no-spade' || fr === 'no-pick') {
+        const struck = await act('dig with pick', '2 minutes');
+        if (refusedFor(struck.r) === 'too-tired') await rest();
+      } else if (fr === 'too-tired') {
+        await rest();
+      }
     }
+    expect(dug, 'a dig worked the fireclay').toBe(true);
+    await say('get clay');
+    const won = await held();
     expect(won, 'fireclay in hand').toMatch(/fireclay|clay/i);
     const read = await say('analyze clay lump');
     expect(read, `the fireclay: ${read}`).toMatch(/fireclay|refractory|pale|white/i);
