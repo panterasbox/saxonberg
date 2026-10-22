@@ -178,7 +178,14 @@ async function rest(): Promise<void> {
  * brickmaker died of hyperthermia at the smelter on the fourth melt. A
  * person drinks, so the drive does, at the pithead yard's hand pump.
  */
+let lastDrankS = Number.NEGATIVE_INFINITY;
+
 async function drink(): Promise<void> {
+  // Once a game day: every rest drank in run 18 (22 times in one step), and
+  // the village pump's leather wore through (`no-packing`) — honestly.
+  const { after: nowS } = await advanceWorldClock('0 seconds');
+  if (nowS - lastDrankS < 20 * 3600) return;
+  lastDrankS = nowS;
   const back = at;
   expect(back, 'drink() needs to know where to come back to').not.toBe('');
   await goTo(PITHEAD);
@@ -206,11 +213,15 @@ async function winAtQuarry(band: string, n: number, back: string): Promise<void>
   for (let got = 0, tries = 0; got < n && tries < n * 4; tries++) {
     const dug = await act(`dig ${band} with pick`, '2 minutes');
     const why = refusedFor(dug.r);
-    if (why === null) got++;
-    else if (why === 'too-tired') await rest();
+    // ⭐ Picked up as it is won, one at a time: a bare `get coal` at the end
+    // took EVERY lump lying at the face (too heavy to lift), and lumps left
+    // out through a night's rest were rained on (`too-wet` to stoke).
+    if (why === null) {
+      got++;
+      await say(`get 1 ${band}`);
+    } else if (why === 'too-tired') await rest();
     else break;
   }
-  await say(`get ${band}`);
   await goTo(back);
 }
 
