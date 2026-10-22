@@ -2194,3 +2194,63 @@ Read first, in this order:
 *(appended at build time, not at plan time — the output of running the
 five stage files against the running game: the run number, the count,
 what each failure was, and what was fixed.)*
+
+### During the build — stage A against a standing world (runs 1–8)
+
+Stage A was driven repeatedly while W1–W3 were built. What it found and the
+build fixed: the hydration setter collision that broke the *Hesper*'s
+restore; a same-zone non-cardinal exit refused by `addExit` (river ways now
+name the reach directory); the deferred destination thrown "not
+materialized" during a timed crossing; night ("pitch dark" — the drive
+swims in the morning); a wooden spear that floats (a diving stone now);
+a dry bar refusing `swim` (stop ways take ground too); the gorge counted
+unreachable (river landings are entrances); and ⭐ a swimmer who stood in
+the shallows kept the swim mode and every bank refused them "too rough"
+(W3: finding your feet drops the water mode; the bed reconciles on every
+depth refresh; patch bank ways take ground).
+
+### Pass 1 — all five stages, a fresh world (2026-10-22): 7 / 28
+
+A 5/9 · B 2/5 · C 0/4 · D 0/6 · E 0/4. Found (57bdfa433):
+
+- ⭐ **A bank's way into the river was installed from the room's
+  `onCreate`, inside the clone tree loading it**; two banks loading in one
+  boot cascade collided on the exit row ("circular template dependency")
+  and the estuary reach had no way in (A6). Now load on use (`bankStood`).
+- ⭐ **The put-in's counter stocked boats** — a counter cannot hold a vessel —
+  and the failure broke every room loaded through the pass at boot (the
+  newbie-wilds terminal and budget, and the put-in: C's logins 500). Boats
+  are props on the shingle; the shed sells the gear.
+- ⭐ **The ford and the ferry read the river at its margin** (the citation's
+  position, river left): a wader crosses the channel.
+- A stone dropped in wading water rode on with the patch; `lie` in fast
+  shallows lay down on the bed; `locate` beside a ship asked only the root.
+- Drive corrections: `go aboard`/`go across`; a line is thrown to someone
+  by what the thrower knows them as (introduce); a fresh diver (the first
+  had passed out after an hour in snowmelt — the body model, working); a
+  route asked by somebody whose map holds the far landing.
+
+### Pass 2 — after those fixes (2026-10-22): 11 / 28
+
+A 7/9 · B 1/5 · C 1/4 · D 1/6 · E 0/4. Found (5393031b8, bcd80b1ae,
+10d2e20f2), with real numbers from a throwaway compile of the shipped
+Kestrel and Delight through a year:
+
+- A3: a stroke typed while standing in the water was refused "too rough";
+  then the stroke ended standing (merged into wading water) and the arrival
+  was refused. A stroke pushes off at both ends.
+- A18: a patch at a bar's edge read a margin depth of nothing. A patch under
+  way is at least 0.3 m.
+- ⭐ B7: an authored `kind: riffle` relabelled a pool and kept its gradient,
+  so the Delight's ford was 2.4 m deep at 0.7 m/s in rain — over a wader's
+  head before it took their feet. An authored riffle carries a riffle's
+  gradient: a road in the dry, swept in spate (~1.0 m at 1.7 m/s).
+- ⭐ D25–31: the riffles between the quay and the woodyard carry ~0.46 m in a
+  wet month; the *Ostrander* (0.6 m) grounded at once. She draws 0.4 m now
+  (runs wet, grounds dry — D28's August). The bend rule refused a 38 m
+  steamer at the Kestrel's tightest bend (127 m) under length > radius/2;
+  now length > radius.
+- E35: `getExits()` is a Map, iterated as if it held exits. B8: a drifting
+  patch reads no current of its own — under way is moving water. B12: a
+  login on a bank installs its ways, and movement from a bank waits on them.
+  C: a leftover `canoes` detail bound `go canoe` to the room.
