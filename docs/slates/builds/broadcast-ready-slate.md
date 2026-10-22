@@ -12,7 +12,8 @@
 > can see · ⭐ the canvas (revised 2026-10-22: display capture in a 16:9
 > content area, the sidebar — brand, topic and agenda, chat, the camera
 > in the corner — and the lower third's rotation and crawl) · the agenda ·
-> the streamer controls as a pop-out card on the unshared monitor ·
+> the lower third v1 (join, goals to claim, the world, the quote, building, links; names by
+> opt-in; alerts later) · the streamer controls as a pop-out card on the unshared monitor ·
 > redaction while on air · the client's foreground reported · the
 > streamer's client facts on the feed ·
 > the overlay's scenes, layers and scene rules · OBS scene switching ·
@@ -193,10 +194,74 @@ Laid out for a viewer at 720p, where everything renders at two-thirds size:
 - ⭐ **The rotation wins any squeeze** (the owner: *"if we had to pick just one then it'd be
   the rotation"*). The crawl is a layer that hides when it has nothing to say, and the
   rotation grows back to the full 225.
-- **Both are rows**, like standby reasons — adding an item is content, not code.
+- **Both are rows**, like standby reasons — text, duration, weight, source, and a **show
+  only when** condition, so an empty item never takes a turn and adding one is content, not
+  code.
 
-| item | where | source | exists? |
+### ⭐⭐ What the lower third is for — passive, and the pitch **[DECIDED — the owner]**
+
+The owner: *"some of this stuff we can just put in the game, and if I wanna show it I'll be
+showing the whole client … The overlays is stuff I want shown passively."* And: *"logging
+into the game actually puts you in the stream now, since I'm just showing the saxonberg
+client. That's a value proposition most other streams don't offer."* Anything worth
+navigating to stays in the game; the overlay carries what should be true while the streamer
+is doing something else — and its spine is **log in and you're on the show**.
+
+**The v1 rotation** — a starter, built to be changed (the owner: *"I might tell you one
+thing and then totally hate it once I see it"*):
+
+| panel | says | source | when |
 |---|---|---|---|
+| ⭐ **join** — weighted heaviest | *"Log in and you're on the stream"* · the URL · a QR code · how many are in the world now | static + the game | always |
+| ⭐ **goals** | *"Subs this stream: 12 / 20 · every sub becomes a stake in the cooperative · log in with Twitch to claim yours"* | Twitch events | once intake exists |
+| **the world now** | Terminus's time, season and weather; the latest in-world headline | time, weather, press | always |
+| **the quote** | *"See now, this is why mad scientists are generally less desirable than your common or garden variety scientist."* (*Mystery Men*) — the persona's thesis | static | always |
+| **building** | the current milestone and its progress; open merge requests and their pipelines | GitLab ([gitlab-and-packs](./gitlab-and-packs-slate.md) § 7) | when the integration is on |
+| **brand and links** | socials; ⭐ *"the source is open"* — the GitLab link and the AGPL | static | always |
+
+⭐ **Goals are a reason to log in.** Patronage becomes standing in the cooperative when it can
+be attributed to a real player — the [giving slate](./giving-slate.md)'s *attribution by
+claim*: a held gift attaches when its giver signs in with, or links, that account. So the
+goals panel and the join panel make one pitch from two directions.
+
+**The v1 crawl** — only when it has something: in-world news; notable deeds and ⭐ **world
+firsts** (chronicle's one-time deeds — *"the first ingot smelted in Rejection"*); just merged;
+issues closed; ⭐ *"your bug report got fixed"*.
+
+### ⚠⚠ Names only for players who opted in **[DECIDED]**
+
+Logging in puts you on the show, and a *"welcome, Iffy"* panel broadcasts an arrival to the
+internet — reaching people who never came near the streamer, which the on-air marker does
+not cover. So **names appear on the overlay only for players who opted in to being shown on
+stream** (one setting); everyone else is a count. The opt-in doubles as the list of people
+who *want* to be on the show.
+
+### Alerts — later, in the lower third **[DECIDED]**
+
+Alerts interrupt the rotation for a few seconds, in the lower third, so the content area is
+never covered. ⭐ **The alert that matters is the conversion: someone walked into Saxonberg
+from the stream** — the moment the pitch worked (names by opt-in). Follows, subs and raids
+follow Twitch event intake.
+
+### For the streamer only — the controls card **[DECIDED — the owner]**
+
+The owner: *"a few of these things I might want to know about but not show at all, like
+viewer count — that's worth putting in the streamer control pop-out window just for my
+benefit."* On the popped-out controls card, on the unshared monitor: viewer count (Twitch and
+YouTube), uptime, chat rate; who is in the game right now, by name; ⭐ the rotation's **now
+and next, with skip and pin**; the alert queue once alerts exist.
+
+### Cheap to iterate
+
+- **Rows**, so copy, order and timing change without code.
+- **A preview page** — Rodney with mock data shows the lower third cycling with no stream and
+  no server, to look at, react to and change.
+- **Skip and pin** on the controls card, to test it live.
+- Rules the owner may tilt: **fresh beats due** (an item whose data just changed jumps the
+  queue once) and **weight by segment** (build items heavier in a coding segment, world
+  items in a play segment).
+
+---|---|---|---|
 | ⭐ **stream goals** — follows, subs | rotation | Twitch events | needs Twitch event intake (the broadcast track's Phase 4) |
 | ⭐ **the quote** — *"See now, this is why mad scientists are generally less desirable than your common or garden variety scientist."* (*Mystery Men*) — the thesis of the on-stream persona | rotation | static | yes |
 | **now building** — open MRs and their pipelines | rotation | GitLab | needs the GitLab API |
