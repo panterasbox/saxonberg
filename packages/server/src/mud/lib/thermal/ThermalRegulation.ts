@@ -114,8 +114,13 @@ export interface ThermalRegulation {
    * not a spell effect.
    */
   heatLoadJ: number;
-  /** Add joules to the internal load — see {@link heatLoadJ}. */
-  absorbHeatLoad(joules: number): void;
+  /**
+   * Add joules to the internal load — see {@link heatLoadJ}. With `overS`,
+   * the heat was made OVER that many seconds of work, and the body shed
+   * what it could while working (sweat, at its water's cost); only the
+   * rest is added.
+   */
+  absorbHeatLoad(joules: number, overS?: number): void;
 
   setSetpointK(value: number): void;
   setEffectiveAmbientK(value: number): void;
@@ -157,9 +162,38 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     /** Internal heat not yet shed (J) — see the interface. */
     public heatLoadJ = 0;
 
-    public absorbHeatLoad(joules: number): void {
+    public absorbHeatLoad(joules: number, overS = 0): void {
       if (!Number.isFinite(joules) || joules <= 0) return;
-      this.heatLoadJ = Math.max(0, this.heatLoadJ + joules);
+      // ⭐⭐ A body sheds its work's heat WHILE it works. A durative act is
+      // charged as ONE exertion, so all of a nine-hour moulding day's heat
+      // used to land at once — some 7 MJ, over 20 K of core in an instant —
+      // and the brickmaker died of hyperthermia in mild spring fog (the
+      // ceramics drive A, run 23). Over `overS` the body sweats off what it
+      // could have in that time, by the same rule as the slice (the
+      // wet-bulb ceiling, the water it has, what it wears), and only the
+      // rest is carried.
+      const shed = overS > 0 ? this.shedWhileWorking(joules, overS) : 0;
+      this.heatLoadJ = Math.max(0, this.heatLoadJ + joules - shed);
+    }
+
+    /** What `overS` seconds of sweating sheds of `joules`, paid in water. */
+    private shedWhileWorking(joules: number, overS: number): number {
+      const host = this.regHost;
+      const D = THERMAL_DEFAULTS;
+      const wetBulb = this.wetBulbK(this.effectiveAmbientK, this.cachedHumidity);
+      if (wetBulb > D.WET_BULB_CEILING_K) return 0;
+      const clo = MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0;
+      const damping = D.SHED_BODY_CLO / (D.SHED_BODY_CLO + Math.max(0, clo));
+      const capacity = D.HEAT_SHED_W * damping * overS;
+      // The water it costs, on the slice's scale; a body runs out of sweat.
+      const perJ = D.HEAT_SPEND_PER_DEGREE / this.bodyHeatCapacityJPerK();
+      const water = this.reserveCurrent("hydration");
+      const affordable = perJ > 0 ? water / perJ : Infinity;
+      const shed = Math.max(0, Math.min(joules, capacity, affordable));
+      if (shed > 0 && perJ > 0) {
+        host.adjustReserve("hydration", Quantity.of(-shed * perJ, "%"));
+      }
+      return shed;
     }
 
     /** Reentry guard (TypeScript `private` per the proxy constraint). */

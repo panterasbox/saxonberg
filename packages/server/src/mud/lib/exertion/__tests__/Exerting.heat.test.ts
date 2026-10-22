@@ -80,12 +80,14 @@ describe("exertion is heat", () => {
     WorldClockApi._resetForTesting();
   });
 
-  it("⭐ an exertion at 600 W for 60 s deposits 27 kJ on the heat load", () => {
+  it("⭐ an exertion at 600 W for 60 s makes 27 kJ, sheds what it can while working, carries the rest", () => {
     const c = body(0);
     c.getVitalSign("coreTemperature");
     c.exert({ durationS: 60, powerW: 600 });
-    // 600 × 60 × (1 − 0.25)
-    expect(c.heatLoadJ).toBeCloseTo(27_000, 0);
+    // 600 × 60 × (1 − 0.25) = 27 kJ made; a bare body sweats off 400 W × 60 s
+    // = 24 kJ while it works, and carries 3 kJ (the ceramics drive, run 23:
+    // a long act's whole heat used to land at once).
+    expect(c.heatLoadJ).toBeCloseTo(27_000 - 400 * 60, 0);
   });
 
   it("⭐⭐ the same shift in a coat sheds slower and costs more water", () => {

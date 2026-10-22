@@ -307,7 +307,7 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // 4. Heat — the work you did not get out as work.
       const efficiency = dial(AppSettingKeys.exertionEfficiency, 0.25);
-      this.depositWorkHeat(powerW * durationS * (1 - efficiency));
+      this.depositWorkHeat(powerW * durationS * (1 - efficiency), durationS);
 
       // 5. Structure — ⭐ real work re-breaks a half-knit bone (D15). The
       //    body was carrying a fracture whose function had come back but
@@ -562,10 +562,11 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * will deposit sweat on a `Soilable` body the day room-condition
      * ships one.
      */
-    protected depositWorkHeat(joules: number): void {
+    protected depositWorkHeat(joules: number, overS = 0): void {
       if (joules <= 0) return;
       const self = this as unknown as Stuff;
-      if (MixinApi.isThermalRegulation(self)) self.absorbHeatLoad(joules);
+      // Over the work's own duration: the body sheds while it works.
+      if (MixinApi.isThermalRegulation(self)) self.absorbHeatLoad(joules, overS);
     }
 
     /**
