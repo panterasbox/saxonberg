@@ -177,7 +177,7 @@ suite('stage E — the ferry, and the sea', () => {
     expectOk(await master.cmd('go out'));
 
     // Over the side is into the water: swum, not walked.
-    const over = await hand.cmd('swim side');
+    const over = await hand.cmd('swim');
     expect(over.status, squash(await over.said())).toBe('ok');
     expect(await look(hand)).toMatch(/In the sea|open sea/i);
     const waits = await say(master, 'course gannet');

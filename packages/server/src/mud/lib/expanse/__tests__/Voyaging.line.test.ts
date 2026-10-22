@@ -186,6 +186,27 @@ describe('a ship on a river (river D18)', () => {
     expect(asked!.draftM).toBeGreaterThan(1.2);
   });
 
+  it('⭐ the fire eats billets of her fuel’s material out of the bunker, and dies when it is empty (D29)', async () => {
+    const billet = (mat: string) => ({
+      stuffId: mat,
+      getMaterial: () => ({ getTemplatePath: () => mat }),
+      getMass: () => Quantity.of(3.2, 'kg'),
+    });
+    const hazel = billet('/stuff/idea/material/wood/hazel');
+    const stone = billet('/stuff/idea/material/stone');
+    const contents = [hazel, stone];
+    live.set('/test/bunker', { stuffId: 'bunker', getContents: () => contents } as unknown as Stuff);
+    vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x === live.get('/test/bunker')) as never);
+    vi.spyOn(MixinApi, 'isTangible').mockImplementation(((x: unknown) => x === hazel || x === stone) as never);
+    const burnt: unknown[] = [];
+    vi.spyOn(StuffApi, 'destruct').mockImplementation(((x: unknown) => { burnt.push(x); contents.splice(contents.indexOf(x as never), 1); }) as never);
+    ship.setFuel({ material: '/stuff/idea/material/wood', kgPerKm: 3 });
+    ship.setBunker('/test/bunker');
+    expect(await ship.burnFor(1)).toBe(true);
+    expect(burnt).toEqual([hazel]);
+    expect(await ship.burnFor(1)).toBe(false);
+  });
+
   it('⭐ she keeps who went over her side while they are in the water, and lets go of them aboard again (D30)', async () => {
     const swimmer = { stuffId: 'sw', getIdentityPath: () => '/p/sw', getTemplatePath: () => '/p/sw', isDestroyed: () => false } as unknown as Stuff;
     let inWater = true;

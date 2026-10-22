@@ -320,10 +320,12 @@ export default class Ship extends PersistableMixin(
     if (this.bunker === null) return true;
     const bunker = await StuffApi.singleton<Stuff>(this.bunker).catch(() => null);
     if (!bunker || !MixinApi.isContainer(bunker)) return false;
-    const billets = bunker.getContents().filter((x) => {
-      const m = (x as unknown as { getMaterialPath?(): string | null }).getMaterialPath?.() ?? '';
-      return m.startsWith(fuel.material) && MixinApi.isTangible(x);
-    });
+    // ⭐ What a billet is made of is its Material's path (`wood/hazel`
+    // under `wood`); a duck-typed `getMaterialPath` matched nothing, so
+    // every fire died with a full bin (the drive's pass 10).
+    const billets = bunker
+      .getContents()
+      .filter((x) => MixinApi.isTangible(x) && (x.getMaterial()?.getTemplatePath() ?? '').startsWith(fuel.material));
     while (this.fuelDebtKg > 0) {
       const b = billets.shift();
       if (!b) return false;
