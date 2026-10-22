@@ -214,6 +214,34 @@ describe('⭐⭐ the crystallize arm', () => {
     expect(t.getBulkPayload('interior')?.dissolvedSolidsKgPerL).toBeCloseTo(0.317, 6);
   });
 
+  it('⭐⭐ BOILED, brine concentrates — the steam is water, the salt stays — and sets a crop', async () => {
+    // The ceramics drive: a pan of brine on the hearth held twelve-hour fires
+    // and set no salt, because the boil took the solids away with the volume.
+    const boiling = material(`${BRINE}-boiling`, (m) => {
+      m.setDensity(Quantity.of(1025, 'kg/m³'));
+      m.setSolidsKgPerL(0.035);
+      m.setSolubility([[273, 0.316], [293, 0.317], [373, 0.329]]);
+      m.setCrystallizesTo({ product: SALT, residue: BITTERN });
+      m.setBoilingPoint(Quantity.of(373, 'K'));
+      m.setLatentHeatOfVaporization(Quantity.of(2_260_000, 'J/kg'));
+    });
+    salt();
+    bittern();
+    const r = makeStuff(() => new TestRoom());
+    const pot = fill(makeStuff(() => new TestPot()), boiling, 10, 293, 0.28);
+    ContainmentApi.move(pot, r);
+    let before = 0.28;
+    for (let i = 0; i < 40 && cloned.length === 0; i++) {
+      pot.setContentsTemperature(450); // the fire under it
+      pot.reconcilePhase();
+      await settle();
+      const now = pot.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0;
+      if (cloned.length === 0) expect(now).toBeGreaterThanOrEqual(before);
+      before = now;
+    }
+    expect(cloned.length, 'a crop set').toBeGreaterThan(0);
+  });
+
   it('under saturation nothing sets — sea water at its own 35 g a litre is just sea water', async () => {
     const p = fill(pan(), brine(), 2, 293);
     p.reconcilePhase();

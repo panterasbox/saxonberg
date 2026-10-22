@@ -419,6 +419,21 @@ async function clearFloor(only?: RegExp): Promise<void> {
       await gov.cmd(`destruct #${o.stuffId}`);
     }
     await gov.drainProse();
+    // ⚠ A cast keeps its pattern's lineage, and the founder may not destruct
+    // a /stuff kind (a cast arming sword, a cast key): those stayed, and the
+    // next `pewter` named the OLD cast (run 18's pommel). What will not break
+    // up goes out to the yard's scrap, by identity.
+    const ids = floor.map((o) => o.stuffId);
+    if (ids.length > 0) {
+      const r = await gov.cmd(
+        `eval --parcel ${R} return (() => { const ids = ${JSON.stringify(ids)};` +
+          ` const yard = StuffApi.findByTemplatePath('${R}/location/foundry-yard');` +
+          ` const left = self.getContainer().getContents().filter(o => ids.includes(o.stuffId));` +
+          ` return Promise.all(left.map(o => ContainmentApi.move(o, yard))).then(() => 'scrapped ' + left.length); })()`,
+      );
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive D] (sweep → ${squash(await r.said()).slice(0, 120)})`);
+    }
   } finally {
     gov.close();
   }
@@ -928,10 +943,13 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     const listener = await funded('bell-ear', WHARF_BANK);
     caster = await goTo(caster, SQUARE);
     await listener.drainProse();
+    // ⚠ Listen FROM BEFORE the ring: `listen()` clears what came before it,
+    // and the note can reach the wharf while the ringer's own line is still
+    // settling — so listening after it heard nothing (runs 15 and 18).
+    const hearing = listener.listen(15_000);
     const rung = await doing(caster, 'ring "curfew bell"');
     expect(rung, `the curfew bell: ${rung}`).toMatch(/deep|clear/i);
-    // A bell's note crosses places on the next tick; give it time.
-    const heard = squash(plain(await listener.listen(15_000)));
+    const heard = squash(plain(await hearing));
     expect(heard, `heard from the wharf bank: ${heard}`).toMatch(/ring|bell/i);
     listener.close();
     caster = await goTo(caster, FOUNDRY);

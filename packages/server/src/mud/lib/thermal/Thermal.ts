@@ -2276,6 +2276,15 @@ function reconcileBulkPhase(
       const left = amount - boiledL;
       if (left > 0) {
         v.setBulkAmount(aff, Quantity.of(left, 'L'));
+        // ⭐⭐ The STEAM is water: what was dissolved stays behind, so a
+        // boil CONCENTRATES. Before this the solids left with the volume,
+        // and brine boiled on a hearth never reached saturation — the
+        // ceramics drive's salt pan held twelve-hour fires and set no salt.
+        const solidsPayload = v.getBulkPayload(aff) ?? {};
+        const solids = solidsPayload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+        if (solids > 0 && left < amount) {
+          v.setBulkPayload(aff, { ...solidsPayload, dissolvedSolidsKgPerL: (solids * amount) / left });
+        }
         v.setContentsTemperature(bp); // the plateau
         purifyIfHeld(v, aff, mat, heldS);
         return;
