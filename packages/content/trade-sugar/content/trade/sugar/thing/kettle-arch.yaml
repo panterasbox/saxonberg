@@ -3,8 +3,11 @@
 # up the stack. That is why it eats wood, and why the train was built.
 class: /platform/thing/Oven
 data:
-  shortDescription: kettle arch
-  keywords: [arch, "kettle arch", fire, hearth]
+  # ⚠ Not "kettle arch": `kettle` must name the KETTLES on this floor —
+  # the miller's `pour tub into kettle` bound this arch first and was
+  # refused "doesn't hold liquid" thirty-two times (sugar drive 11).
+  shortDescription: open arch
+  keywords: [arch, "open arch", fire, hearth]
   register: indefinite
   longDescription: >-
     A rough arch of fieldstone with a fire-mouth at one end and a single

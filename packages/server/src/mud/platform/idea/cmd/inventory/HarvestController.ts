@@ -78,6 +78,18 @@ interface HarvestModel extends CommandModel {
 }
 
 export default class HarvestController extends CommandController<HarvestModel> {
+  /** A harvestable plant of the same kind standing beside `plant`, or null. */
+  private ripeSiblingOf(plant: Stuff & Growing): (Stuff & Growing) | null {
+    const here = MixinApi.isContainable(plant) ? plant.getContainer() : null;
+    if (!here || !MixinApi.isContainer(here)) return null;
+    const kind = plant.getTemplatePath();
+    for (const c of here.getContents() as Stuff[]) {
+      if (c === plant || c.getTemplatePath() !== kind) continue;
+      if (MixinApi.isGrowing(c) && c.isHarvestable()) return c;
+    }
+    return null;
+  }
+
   async execute(model: HarvestModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const named = model.target.stuff;
@@ -102,7 +114,12 @@ export default class HarvestController extends CommandController<HarvestModel> {
     // stage rather than saying "no").
     let plant: (Stuff & Growing) | null = null;
     if (MixinApi.isGrowing(named)) {
-      plant = named;
+      // ⭐ The ground's rule, for a named plant: `harvest cane` in a field of
+      // stands means a RIPE stand when one stands there. The binder takes
+      // the first match, and it refused "has not filled its set" while
+      // ripe cane stood beside it (the sugar drive: an estate's cutters,
+      // seventy-eight times). Only the same KIND is a substitute.
+      plant = named.isHarvestable() ? named : (this.ripeSiblingOf(named) ?? named);
     } else if (MixinApi.isCultivable(named)) {
       const growing = (named.getPlants() as Stuff[]).filter(
         (p): p is Stuff & Growing => MixinApi.isGrowing(p),
