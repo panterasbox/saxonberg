@@ -66,6 +66,8 @@ ropewalk.
   competence changes the outcome deterministically.
 - The lifelines, heaving line and painter in the world are rope that someone
   made.
+- A rope can carry its maker's mark (the rogue's yarn) inside it, and every
+  length cut from it carries the same mark.
 
 ## Non-goals
 
@@ -80,8 +82,6 @@ ropewalk.
 - **The lasso, halter and lead** → ranching (its slate).
 - **Running rigging replaced on a schedule; a ship chandler's bulk trade** →
   the ships build ([ships-and-harbors-slate](../slates/builds/ships-and-harbors-slate.md)).
-- **The rogue's yarn** (a maker's colored yarn as provenance) → stays in the
-  cordage slate.
 - **Hemp's drug variety** → the vice cluster; only the fiber variety ships.
 - **Sisal, manila, coir** → cordage slate (tropical gaps); **jute** stays bought
   stock.
@@ -181,6 +181,15 @@ rope is tarred and dry rope is not.
 A farm crop, sown, retted and scutched exactly like flax, giving hemp line and
 tow. Hemp is the strong rope fiber; flax makes a weaker, finer cord.
 
+### The rogue's yarn
+Whoever twists a rope may lay a colored yarn into its heart: a mark chosen by
+the ropewalk or by whoever ordered the rope. It is inside, so an ordinary look
+does not show it; cutting the rope or looking closely does. ⭐ It survives
+cutting and splicing: every length cut from a marked coil carries the mark, and
+a splice shows both. It is provenance carried by the thing itself, beside the
+hallmark and the mason's mark. What anyone does with it (proving a theft) is
+the polity's, not this build's.
+
 ### Ropework
 A new Discipline for laying rope and tying knots. Ships' seamanship builds on it
 later.
@@ -208,7 +217,9 @@ rope. The dive shop's lifelines and the quay's heaving line are its rope.
 6. **Economy:** the ropewalk is capital measured in length; rope is consumed
    by chafe and rot, so it is bought again; hemp gives farming a new crop with
    a buyer. Demand was there first (the diver, the quay, the river, the shaft).
-7. **Governance:** none in this build (rated rope and liability are routed out).
+7. **Governance:** the rogue's yarn makes a stolen rope provable from the rope
+   itself; who acts on that is the polity's. Rated rope and liability are
+   routed out.
    ⚠ Gap: a rope that parts under someone has no one to answer for it yet.
 
 ## The drive
@@ -225,6 +236,9 @@ A fresh character, plus a second character for steps 15–16.
 6. Try to lay a rope longer than the walk: refused, and the refusal says why
    (the walk's length).
 7. `cut rope 10 m`: two ropes, 10 m and the rest. `coil` one.
+   7a. `twist` a rope with a red rogue's yarn. An ordinary `look` does not show
+   it; a close look does. Cut a length from it: the cut length shows the red
+   yarn too.
 8. Tar one: `dip rope in pitch` at a pitch pot. It reads as tarred.
 9. Go to the Sunken Delve's pit. `tie rope to <post> with bowline`. `look`:
    the rope hangs down the drop.
@@ -266,7 +280,10 @@ A fresh character, plus a second character for steps 15–16.
 9. The diving lifeline, the quay's heaving line and (once the river lands) the
    painter are rope, and their shipped verbs still work; the air hose is still a
    hose.
-10. Ropework competence moves with the work, and a practised hand's knots hold
+10. A rope twisted with a rogue's yarn shows it to a close look or a cut and
+    not to an ordinary look, and every length cut or spliced from it still
+    carries it.
+11. Ropework competence moves with the work, and a practised hand's knots hold
     more than a green hand's, every time.
 
 ## Cross-references
