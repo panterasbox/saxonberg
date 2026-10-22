@@ -14,6 +14,6 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["mineral", "residue", "liming", "once-living"]
+  tags: ["organic", "mineral", "residue", "liming", "once-living"]
   composition: []
   biologicalSource: null

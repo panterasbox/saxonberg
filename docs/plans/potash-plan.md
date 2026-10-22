@@ -1572,6 +1572,24 @@ two owned boots died: one SIGTERMed during boot (a sibling's preflight /
 `tools/panic` reaches every worktree), one past the 420 s budget under
 contention — rerun with `WIRE_BOOT_TIMEOUT=1200000` on a quiet machine.)*
 
+**Run 21 (2026-10-21, fresh world, master merged at `2fc4ed3c1` — incl. the
+world-memory fix): 12 of 13.** Green: 1–10 and **12** (slake → caustic lye →
+hard-soap paste, the first time: the pour hand-over, row 22, and the full
+crock, row 23), 13, **14** (the ash-man IS at his first stop; AC 9 answered
+from the day: 0 heaps off five stops — *a supplement, not a living* — ⚠ on
+a fresh world whose town hearths have burned little), 15. Step 11 failed on
+the glass batch before it reached the sale; probed on run 21's own world,
+**`sell "pearl ash"` → "You sell a lump of pearl ash to the house for 16
+zorkmids"** — the communal-oven chain end to end (row 21). Step 11 now sells
+first and records the batch softly: **no drive has ever fired batch → melt**
+(the glass drive stops short of it), and the batch wants 1400 K of a 1200 K
+kiln — ⚠ OPEN, glass's rather than potash's.
+
+Memory (the owner's ask: note spikes): the drive's world peaked at **838 MB**
+(3.3 GB+ before the fix); build-2's processes peaked at 2.9 GB, during the
+parallel kernel unit run (vitest workers ~400–600 MB each), with ≥2.9 GB of
+the machine still free while three agents worked.
+
 **Run 19 (2026-10-21, fresh world, master merged at `56e238df2`): 10 of
 13.** Passed: 1–3 (beech brash → strong ash, no number), 4 (pine weaker), 5
 (a wide clamp's ash sized to the charge), 6–8 (the egg ranks; a second pass
