@@ -288,14 +288,16 @@ async function daylight(): Promise<void> {
 async function buyEstateBlocks(want: number, days: number): Promise<number> {
   let bought = 0;
   for (let day = 0; day < days && bought < want; day++) {
-    // ONE continuous window a day, long enough for a whole batch: a clock
-    // jump in mid-shift moves the boil on hours with the boiler's beats
-    // skipped, and the probe's 07:00 → 13:00 jump took a batch from
-    // juice to burnt toffee with nobody to strike it.
+    // ONE continuous window a day — the boiler's whole shift (07:00–19:00,
+    // twelve game hours ≈ sixty real minutes). A clock jump in mid-shift
+    // moves the boil on hours with the boiler's beats skipped, and a
+    // shorter window left a batch on the fire unattended overnight: the
+    // probes saw juice go to burnt toffee three times. She has to be THERE
+    // for the strike, as a boiler is.
     await toHourOfDay(7);
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/store`);
-    for (let minute = 0; minute < 20 && bought < want; minute++) {
+    for (let minute = 0; minute < 60 && bought < want; minute++) {
       await new Promise((r) => setTimeout(r, 60_000));
       while (bought < want && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
     }
@@ -751,10 +753,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // whether or not it holds any (drive 8 passed this on a bare shelf).
     // She stays ON the island through the wait: its hands work while it is
     // loaded, and a sailor who leaves takes the island's attention with her.
-    const bought = await buyEstateBlocks(1, 6);
+    const bought = await buyEstateBlocks(1, 3);
     if (bought < 1) await books(`${W}/location/store`);
     expect(bought, 'the estate never shelved a block of its own sugar').toBe(1);
-  }, 7_200_000);
+  }, 14_400_000);
 
   it('19. ⭐⭐ cargo in the Hesper\'s hold survives a restart (D13)', async () => {
     sailor.close();
@@ -801,7 +803,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor = await goTo(sailorHandle, `${W}/location/store`);
     let bought = 0;
     while (bought < blocks && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
-    bought += await buyEstateBlocks(blocks - bought, 6);
+    bought += await buyEstateBlocks(blocks - bought, 3);
     if (bought < blocks) await books(`${W}/location/store`);
     expect(bought, 'the estate never had blocks to sell').toBe(blocks);
     sailor.close();
@@ -821,6 +823,6 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     for (let i = 0; i < blocks; i++) await say(sailor, 'put 1 block on bench');
     const paid = await say(sailor, `job complete ${gig}`);
     expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
-  }, 9_000_000);
+  }, 18_000_000);
 });
 
