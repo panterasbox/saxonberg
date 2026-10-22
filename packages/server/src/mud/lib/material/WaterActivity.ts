@@ -532,6 +532,14 @@ export interface WaterActive {
   treat(treatment: { moisture?: number; solute?: number }): void;
   /** Reconcile the elapsed rehydration (sync). */
   reconcileWater(): void;
+  /**
+   * ⭐ The relative humidity (%) of the air this thing last came to terms
+   * with — the air its water was integrated against, weather and locality
+   * included — or the quick ambient read when it has not been reconciled
+   * against moving air. "As dry as this air will let it" is measured
+   * against THIS air, never a second read of it (ceramics drive).
+   */
+  getAirHumidityPct(): number;
 
   // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
@@ -586,6 +594,9 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
     /** Reentry guard — a reconcile must never recurse through a read. */
     private _reconcilingCure = false;
 
+    /** The humidity of the last air segment integrated (transient). */
+    private _airHumidityPct: number | null = null;
+
     /**
      * Seed how DRY this thing arrives, `0` (as-harvested) … `1` (bone
      * dry). ⭐ Read as `1 − moisture`, because *dry* is the word a row
@@ -610,6 +621,11 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
 
     public getMoisture(): number {
       return this.getWaterState().moisture;
+    }
+
+    public getAirHumidityPct(): number {
+      this.getWaterState();
+      return this._airHumidityPct ?? WaterActivity.ambientHumidityOf(this as unknown as Stuff);
     }
 
     public getSolute(): number {
@@ -731,6 +747,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
             undefined,
             { air: seg.air, exposure },
           );
+          this._airHumidityPct = seg.air.humidityPct;
         }
         this._moisture = moisture;
         this.waterClockStamp = nowS;

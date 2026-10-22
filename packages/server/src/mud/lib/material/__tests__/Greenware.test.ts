@@ -14,6 +14,11 @@ import { CompositionMixin } from '../Composition';
 import { GreenwareMixin } from '../Greenware';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
+import { BiomeApi } from '../../../api/biome';
+import { ContainmentApi } from '../../../api/containment';
+import Place from '../../stuff/Place';
+import { Evaporation } from '../Evaporation';
+import { vi } from 'vitest';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
@@ -69,7 +74,10 @@ beforeEach(() => {
   mineral = mat('clay mineral', ['mineral', 'clay-mineral']);
   sand = mat('sand', ['mineral', 'sand']);
 });
-afterEach(() => WorldClockApi._resetForTesting());
+afterEach(() => {
+  vi.restoreAllMocks();
+  WorldClockApi._resetForTesting();
+});
 
 describe('the three states', () => {
   it('wet clay is plastic; drier, leather-hard; as dry as the air allows, bone-dry', () => {
@@ -140,5 +148,24 @@ describe('⭐⭐ green ends at firing (R2)', () => {
     advance(3600);
     p.wet(0.5);
     expect(p.getRuin()).toBeNull();
+  });
+});
+
+describe('⭐⭐ bone-dry is judged against the air it dried in (the ceramics drive)', () => {
+  it('a brick that dried to the locality\'s real 75 % air reads bone-dry, not leather-hard against the bare 50 %', async () => {
+    class Yard extends Place {}
+    const yard = makeStuff(() => new Yard());
+    const p = piece(1);
+    await ContainmentApi.move(p as never, yard as never);
+    // The weather walk the water is integrated over: the Delight's own air.
+    vi.spyOn(BiomeApi, 'airSegmentsFor').mockImplementation(((_s: unknown, t0: number, t1: number) => [
+      { air: new Evaporation(75, 2, 290), durationS: t1 - t0, rainMmPerH: 0 },
+    ]) as never);
+    // …and the quick read that skips the locality and the weather.
+    vi.spyOn(BiomeApi, 'localHumidityFor').mockReturnValue(50 as never);
+    p.reconcileGreen();
+    advance(60 * 86_400);
+    expect(p.getMoisture()).toBeLessThan(0.8);
+    expect(p.greenState()).toBe('bone-dry');
   });
 });

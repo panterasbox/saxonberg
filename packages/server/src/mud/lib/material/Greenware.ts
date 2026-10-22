@@ -293,7 +293,12 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const self = this as unknown as Stuff;
       if (!MixinApi.isWaterActive(self)) return 1;
       const m = self.getMoisture();
-      const eq = WaterActivity.equilibriumMoisture(WaterActivity.ambientHumidityOf(self));
+      // ⭐ Against the air the water was actually integrated in (locality and
+      // weather included). A second, quicker read of the air (the biome's
+      // bare default) disagreed with it: a brick dried to the Delight's real
+      // ~75 % was judged against 50 % and stayed leather-hard for ten weeks
+      // on the hack (the ceramics drive).
+      const eq = WaterActivity.equilibriumMoisture(self.getAirHumidityPct());
       if (!(eq < 1)) return 0;
       return Math.max(0, Math.min(1, (1 - m) / (1 - eq)));
     }
