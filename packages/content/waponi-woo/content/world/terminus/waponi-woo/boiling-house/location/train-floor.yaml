@@ -20,6 +20,12 @@ data:
     - /trade/sugar/thing/curing-pot
     - /stuff/thing/instrument/thermometer
     - { template: /stuff/thing/items/dry-log, count: 10 }
+    # ⭐ The boiling house's lime store, beside its woodpile: the boiler
+    # tempers from what is in reach and only shops when it is gone. Buying
+    # from the estate's OWN counter needs the house to have the money,
+    # and an idle estate has none (probed: `insufficient-funds` at every
+    # batch) — a house drawing on its own stock is a retail follow-up.
+    - { template: /trade/quarrying/thing/quicklime, count: 12 }
   cast:
     - /world/terminus/waponi-woo/agent/boiler
   exits:
