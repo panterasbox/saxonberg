@@ -2779,7 +2779,7 @@ market/thing/{potters-stall,curfew-bell}.yaml` + the counters ·
 - Committed: W0 d22c2a429 · W1 4a671e8f1 · W2 38d1a676d · W3 2a21c0e2f ·
   W4+W5 1eaa685d9 · W6+W7 3e32aa72f · W8 (see git log).
   Each wave: `test:near` + all 82 lint gates green.
-- Drives: 19 runs so far (see § Drive record). The full `pnpm test` is
+- Drives: 21 runs so far (see § Drive record). The full `pnpm test` is
   still owed, after the drives are clean.
 - Memory is short on this box (build-4's test world): one heavy process at a
   time, never parallel tsc.
@@ -2888,3 +2888,54 @@ forced. What they found, by kind:
 - `lint:instrument-args`: my buy fallback hunted the room in the
   controller. The search moved onto `Stock.counterFor` (3e39b664a); the
   family is back to 83/83.
+
+**Runs 19–21** (D 16/23 each; A 1–5a and the winter pass once fed):
+- **Kernel defects found and fixed:**
+  - **Verb dispatch** (814d65551): a view refused by an *argument's* gate
+    now yields to the next view of the same verb. An ingot (a runner and
+    riser) affords crafting's `pour`, and `pour ladle into pit` stopped
+    at its vessel gate.
+  - **Transfer order** (790b63100): the destination is brought current
+    *before* the pour lands. A 19 g key cast was frozen in the cold
+    jacket by the heat-set's own reconcile, with no superheat on record
+    (DIAG: `superheat=0.0`).
+  - **Shaping** (d19968f42): `Clay.consumeKg` kept a worked heap as ONE
+    lump of everything left, which handed a potter a 75 kg "lump".
+  - **Look line**: `Assembled` printed "It is made of ." for a jug whose
+    only line was its wanted handle.
+  - **Death** (0fd0cf563): a player body's death read a mass that wasn't
+    there and took the world down from a detached `die`.
+  - **Sandbox** (afa24dc58): `Biome` is `commons`; `POST
+    /auth/test-nourish` replaces the drive's eval.
+  - **Silent cast loss**: `Mould.castInto` warns when a shape cannot be
+    cloned, instead of returning null in silence.
+- **Drive defects, all fixed:**
+  - **People died between checkpoints.**
+    - Run 20 fed only bread and water through a game year, and the
+      brickmaker and the founder died of **scurvy**. Vitamin C is now
+      fed too, and so is the founder.
+    - B's `at` was empty, so its water break returned nowhere.
+  - **Reads hit the wrong object.**
+    - C took the gang's clay heap with a bare `get clay`.
+    - The D sweep was refused on a person in the room (now by id, one
+      item at a time), so `flask` and `pewter` named old things.
+  - **The step's own setup failed.**
+    - A crucible cracked over a day of melts (now replaced).
+    - The key and bell were poured late (now as soon as the melt lands).
+- **Engine confirmed by DIAG:** the salt pan works — 20 L boiled to
+  0.6 L and set 5.4 kg of crystals in the pan.
+- **Findings, not fixed in this build:**
+  - **`pan:i` lists nothing**, though an eval shows the crust's
+    container is the pan. The drive counts `crystals`.
+  - **`ring bronze` rang the floor** when `bronze` named the bell and
+    its runner. The drive now rings by identity.
+  - **A parcel-bound eval:**
+    - may not clone a `/stuff` kind (`setShortDescription()` denied
+      during hydration);
+    - may not move a Delight lump (`getPlacement()` denied);
+    - may not read a room holding a person (`peek()` denied).
+  - **The server exits on any unhandled rejection**, so one bad `eval`
+    — mine, run 17 — or one detached throw ends a world. That is policy,
+    and it is left alone.
+  - **Temporary `DIAG(ceramics)` logging is in** (7a21b7a23) and comes
+    out before the MR is marked ready.
