@@ -651,6 +651,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * makes `#` unreachable from proxy-dispatched methods). Transient.
      */
     private _thermalReconciling = false;
+    /** The drift the last reconcile integrated, for the phase pass that follows it (transient). */
+    private _lastDrift: { seconds: number; tauS: number } | null = null;
 
     /**
      * Reentry guard for the PHASE pass that ends a reconcile. ⚠ The phase
@@ -843,6 +845,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         reconcilePhaseImpl(this as unknown as Stuff, {
           nowS: this.thermalNowSeconds(),
           horizonS: this.thermalRing().horizonS(),
+          drift: this._lastDrift,
         });
       } finally {
         this._phaseReconciling = false;
@@ -1144,6 +1147,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.lastAmbientK = ambientPw.at(nowS);
         // The forward segment: from now, drift toward the current ambient.
         ring.record(nowS, T, this.lastAmbientK, tau);
+        this._lastDrift = { seconds: nowS - this.thermalClockStamp, tauS: tau };
         this.thermalClockStamp = nowS;
       } finally {
         this._thermalReconciling = false;
@@ -1182,6 +1186,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       ) {
         this.reconcilePhase();
       }
+      this._lastDrift = null;
 
       // ⭐⭐ **And a body that has been hot carries what the heat did to
       // it** (ceramics M1). After the phase pass, on the same lazy read,
@@ -2082,6 +2087,11 @@ function massToLitres(massKg: number, mat: Material): number {
 interface PhaseClock {
   nowS: number | null;
   horizonS: number | null;
+  /**
+   * The drift the reconcile just integrated (its seconds and the body's
+   * τ), when the phase pass follows one — `null` from any other caller.
+   */
+  drift?: { seconds: number; tauS: number } | null;
 }
 
 function reconcilePhaseImpl(stuff: Stuff, clock: PhaseClock): void {
@@ -2254,7 +2264,13 @@ function purifyIfHeld(
  * never set (the ceramics drive, run 24). A pool that has reached ambient
  * has given up everything it ever will: `Infinity`, which the caller caps.
  */
-function plateauHeatJ(mp: number, temp: number, ambientK: number, capacityJ: number): number {
+function plateauHeatJ(
+  mp: number,
+  temp: number,
+  ambientK: number,
+  capacityJ: number,
+  drift: { seconds: number; tauS: number } | null,
+): number {
   const gap = mp - ambientK;
   if (!(gap > 0)) return (mp - temp) * capacityJ;
   if (temp >= mp) return 0;
@@ -2262,7 +2278,15 @@ function plateauHeatJ(mp: number, temp: number, ambientK: number, capacityJ: num
   // Below the air it is drifting toward: the air warmed since (a sunrise),
   // and the drift says nothing exact — the old figure.
   if (above < -1e-9) return (mp - temp) * capacityJ;
-  if (above <= 1e-9) return Number.POSITIVE_INFINITY;
+  if (above <= 1e-9) {
+    // ⚠ AT the air the drift cannot say how long it has sat there — a
+    // pool read the instant it landed in a cold mould, before its heat was
+    // set, is here too (run 26: a pour "set" mid-transfer). So by the time
+    // that drift actually covered: on the plateau the pool loses
+    // C·(mp − amb)/τ a second. No drift on record: the old figure.
+    if (drift && drift.tauS > 0) return capacityJ * gap * (drift.seconds / drift.tauS);
+    return (mp - temp) * capacityJ;
+  }
   return capacityJ * gap * Math.log(gap / above);
 }
 
@@ -2346,7 +2370,7 @@ function reconcileBulkPhase(
     const massKg = (amount / 1000) * mat.getDensity().rawValue();
     const specificHeat = mat.getSpecificHeat().rawValue();
     const capacityJ = massKg * specificHeat;
-    const undershootJ = plateauHeatJ(mp, temp, v.lastAmbientK, capacityJ);
+    const undershootJ = plateauHeatJ(mp, temp, v.lastAmbientK, capacityJ, clock.drift ?? null);
     const payload = v.getBulkPayload(aff);
     const need = massKg * mat.getLatentHeatOfFusion().rawValue();
     let removed = payload?.latentRemovedJ ?? 0;

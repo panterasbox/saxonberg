@@ -97,17 +97,6 @@ describe('the honest freeze', () => {
     expect(p.getBulkAmount('interior').rawValue()).toBe(0);
   });
 
-  it('⭐ the plateau banks by TIME: one read after a long cold sit freezes the pool (ceramics run 24)', () => {
-    // 1.2 kg of pewter: C ≈ 240 J/K, the need 72 kJ. A pool that has drifted
-    // all the way to 290 K air has sat at its plateau far longer than the
-    // freeze takes — the old per-read figure banked only (500 − 290)·240 ≈
-    // 50 kJ and left a damp-blown flask's pewter liquid for three hours.
-    const pewter = liquid({ mp: 500, latent: 60_000, density: 7300, specificHeat: 200 });
-    const p = pan(pewter, 1.2 / 7.3, 290);
-    p.reconcilePhase();
-    expect(p.getBulkAmount('interior').rawValue()).toBe(0);
-  });
-
   it('…and a pool only a moment into its drift banks about (mp − T)·C, as before', () => {
     const water = liquid({ mp: 273, latent: 334_000 });
     const p = pan(water, 4, 272.9);
@@ -129,6 +118,21 @@ describe('the honest freeze', () => {
     expect(payload?.latentRemovedJ ?? 0).toBe(0);
   });
 });
+
+/**
+ * A world clock that thermal reads — ⚠ `beforeEach` clears the registry,
+ * and with none thermal is IDLE (a test then passes vacuously).
+ */
+async function runningClock() {
+  const { WorldClockApi } = await import('../../../api/worldclock');
+  const { default: WorldClockRegistry } = await import('../../../platform/idea/WorldClockRegistry');
+  if (!StuffApi.findByTemplatePath('/platform/idea/WorldClockRegistry')) {
+    makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+  }
+  WorldClockApi._resetForTesting();
+  WorldClockApi.setScale(1000);
+  return WorldClockApi;
+}
 
 describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the climate build, D7)', () => {
   beforeEach(() => {
@@ -162,10 +166,7 @@ describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the c
       jug.getTemperature();
       expect(jug.getBulkPayload('interior')?.latentRemovedJ ?? 0).toBeCloseTo(banked, 6);
 
-      // Read through the day (a watched world reads; ⚠ the phase engine
-      // banks the undershoot it FINDS at a read, so one long unread gap
-      // banks one cooling's worth — a thermal-tail limit, see thermal-slate), and
-      // the bank reaches m·L: the pool is gone. The cast
+      // Read through the day, and the bank reaches m·L: the pool is gone. The cast
       // (/stuff/thing/ice-block) mints into the jug's container, which the
       // drive proves; here the slot emptying is the claim.
       for (let h = 2; h <= 24 && jug.getBulkAmount('interior').rawValue() > 0; h++) {
@@ -173,6 +174,46 @@ describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the c
         jug.getTemperature();
       }
       expect(jug.getBulkAmount('interior').rawValue()).toBe(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+
+  it('⭐ the plateau banks by TIME: ONE read after a long cold sit freezes the pool (ceramics run 24)', async () => {
+    // 1.2 kg of pewter in 290 K air: C ≈ 240 J/K, the need 72 kJ. Read once,
+    // three hours on. The old per-read figure banked (500 − 290)·240 ≈ 50 kJ
+    // and a damp-blown flask of pewter stayed liquid.
+    const WorldClockApi = await runningClock();
+    let now = 100;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    try {
+      const pewter = liquid({ mp: 500, latent: 60_000, density: 7300, specificHeat: 200 });
+      const p = pan(pewter, 1.2 / 7.3, 600);
+      p.setLastAmbientK(290);
+      p.getTemperature();
+      now = 100 + 3 * 3600;
+      p.getTemperature();
+      expect(p.getBulkAmount('interior').rawValue()).toBe(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+
+  it('⚠ …but a pool read the INSTANT it lands in a cold mould is not frozen by it (run 26)', async () => {
+    // The pour lands at the mould's own (ambient) temperature and only then
+    // is its heat set; a read in between sees a pool AT the air, which the
+    // drift alone cannot tell from one that has sat there for ever.
+    const WorldClockApi = await runningClock();
+    let now = 100;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    try {
+      const pewter = liquid({ mp: 500, latent: 60_000, density: 7300, specificHeat: 200 });
+      const p = pan(pewter, 1.2 / 7.3, 290);
+      p.setLastAmbientK(290);
+      p.getTemperature();
+      now = 100.5;
+      p.getTemperature();
+      expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
     } finally {
       WorldClockApi._resetForTesting();
     }
