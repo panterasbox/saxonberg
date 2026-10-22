@@ -535,9 +535,11 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
     expect(pressed, `impress key in wax: ${pressed}`).toMatch(/holds the shape of/i);
     // The yard key goes back on the bench: only the CAST will be in hand.
     await doing(caster, 'drop key');
-    // Hot enough to fill a key's thin wards: at 1320 K it came out a misrun
-    // and its wards did not turn the lock (run 16).
-    await melt(FOUNDRY, T.crucible, M.brass, 1420);
+    // Hot enough to fill a key's thin wards by the time it is poured: a full
+    // crucible of brass radiates ~20 K per real second (1420 → 1224 K in ten
+    // seconds, measured), and the drive's hands take several seconds from
+    // the melt to the pour. At 1320 K and at 1420 K it misran (runs 16, 17).
+    await melt(FOUNDRY, T.crucible, M.brass, 1500);
     await doing(caster, 'pour crucible into wax');
     await advance('1 hour');
     expect(await examine(caster, 'brass'), 'a brass cast of the key').toMatch(/brass cast of a key/i);
