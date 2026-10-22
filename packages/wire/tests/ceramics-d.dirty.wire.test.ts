@@ -216,7 +216,9 @@ async function advance(duration: string): Promise<void> {
 
 /** What a player reads off things in reach — name, prose, and what they are made of. */
 async function examine(s: Session, keyword: string): Promise<string> {
-  const rows = await s.query(keyword, { fields: 'detail' }).catch(() => []);
+  // ⚠ MQL takes `plaster tub` bare and refuses quotes (a command line wants
+  // them; a query does not) — the first run read every quoted tub as empty.
+  const rows = await s.query(keyword.replace(/"/g, ''), { fields: 'detail' }).catch(() => []);
   const text = rows
     .map((r) => {
       const row = r as {
@@ -304,6 +306,10 @@ async function melt(where: string, potRow: string, materialPath: string, kelvin:
       ` const pot = here.find(o => o.getTemplatePath() === '${potRow}');` +
       ` const m = StuffApi.findByTemplatePath('${materialPath}');` +
       ` if (!(pot && m)) return 'no pot or no metal';` +
+      // ⭐ Preheat the empty pot first, a few kelvin at a time, as a founder
+      // does: 1350 K metal into a cold crucible is a shock that cracks it,
+      // and a cracked crucible holds nothing (run 11 read "0 L of bronze").
+      ` for (let k = pot.getTemperature().rawValue(); k < ${kelvin}; k += 5) pot.setContentsTemperature(Math.min(k + 5, ${kelvin}));` +
       ` pot.setBulkMaterial('interior', m);` +
       ` pot.setBulkAmount('interior', pot.getBulkCapacity('interior'));` +
       ` pot.setContentsTemperature(${kelvin});` +
@@ -392,7 +398,9 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'stoke charcoal into oven');
     const lit = await say(caster, 'ignite oven');
     expect(lit, `ignite oven: ${lit}`).toMatch(/catch|light|burn|alight/i);
-    await act(caster, 'fire oven for 1 hour', '1 hour');
+    // A lump heats through slowly and plaster wants a long low heat: an hour
+    // was spent warming the stone (run 11 came out gypsum). Four.
+    await act(caster, 'fire oven for 4 hours', '4 hours');
     await say(caster, 'douse oven');
     await advance('1 hour'); // let it cool enough to handle
     const plaster = await examine(caster, 'lump');

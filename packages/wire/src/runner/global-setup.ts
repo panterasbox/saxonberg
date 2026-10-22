@@ -66,7 +66,14 @@ export async function setup(): Promise<void> {
   // test-world capabilities (the clock jump) stand.
   if (process.env.WIRE_REUSE === '1') {
     const kept = keptWorld();
-    if (kept && (await probe(kept.url))) {
+    // ⚠ A kept world mid-clock-jump answers slowly: one failed probe is not
+    // a dead world, and forgetting a live one strands it (a probe run did).
+    let alive = false;
+    for (let i = 0; kept && !alive && i < 10; i++) {
+      alive = await probe(kept.url);
+      if (!alive) await new Promise((r) => setTimeout(r, 3_000));
+    }
+    if (kept && alive) {
       process.env[TEST_WORLD_FLAG] = '1';
       process.env.WIRE_SERVER_URL = kept.url;
       process.env.WIRE_SERVER_LOG = WIRE_LOG;

@@ -1910,7 +1910,9 @@ export const AppSettingKeys = {
   /** Mould — a mould wetter than this BLOWS under a hot pour: the steam
    * ruins the cast and throws metal at the pourer (ceramics S12). */
   mouldBlowWetness: "mould.blowWetness",
-  /** Mould — the energy (J) a blown mould throws at the pourer's hands. */
+  /** Mould — what a blown mould throws at the pourer's hands, on the heat
+   * channel's contact scale (`Touch.contactBurnEnergy`, 0.5 … 1; the key
+   * keeps its historical `J`). */
   mouldBlowBurnJ: "mould.blowBurnJ",
   /** Mould — wetness a freshly rammed sand mould holds (green sand). */
   mouldRammedWetness: "mould.rammedWetness",

@@ -1210,7 +1210,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const alpha = mat.getThermalExpansion();
       if (!(alpha > 0)) return Number.POSITIVE_INFINITY;
       const porosity = MixinApi.isFaced(self) ? self.porosity() : 0;
-      let grog = 0;
+      // ⭐ A REFRACTORY body is grog-opened by definition — that is what
+      // makes it a crucible or a firebrick rather than a pot (the ceramics
+      // drive: a refractory crucible cracked under its first bronze melt
+      // because the row records no composition to credit).
+      let grog = mat.hasTag("refractory") ? 0.4 : 0;
       if (MixinApi.isComposition(self)) {
         for (const e of self.getAlloying()) {
           const m = StuffApi.findByTemplatePath<Material>(e.materialPath);

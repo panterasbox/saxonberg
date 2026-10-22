@@ -174,6 +174,20 @@ describe('thermal shock — heat too fast', () => {
     expect(gentle.getFlaws()).toEqual([]);
   });
 
+  it('⭐ a REFRACTORY body stands a step the same clay without the tag cracks under (the ceramics drive)', () => {
+    const fill = (tags: string[]) => (m: Material): void => {
+      m.setTags(tags);
+      m.setThermalExpansion(5e-6);
+    };
+    const plain = pot(mat('fireclay-body', fill(['ceramic', 'fired', 'brittle'])), 4);
+    const refractory = pot(mat('refractory-body', fill(['ceramic', 'fired', 'brittle', 'refractory'])), 4);
+    for (const p of [plain, refractory]) {
+      (p as unknown as { shockBody(step: number, rate: number): void }).shockBody(250, 0);
+    }
+    expect(plain.getFlaws().length).toBeGreaterThan(0);
+    expect(refractory.getFlaws()).toEqual([]);
+  });
+
   it('a hidden dunt is heard, not seen: `ring` on a flawed body is dull', () => {
     const room = makeStuff(() => new Room());
     const p = pot(stoneware, 0.5);

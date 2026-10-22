@@ -20,9 +20,13 @@ settings:
   - key: mould.blowWetness
     value: "0.3"
 
-  # What a blow throws at the pourer's hands, J (a glove takes the edge off).
+  # What a blow throws at the pourer's hands, on the heat channel's CONTACT
+  # scale (`Touch.contactBurnEnergy`: 0.5 a scald … 1 the hottest thing you
+  # can touch) — molten metal is twice the worst of it. It was "40 J" and
+  # 40 on that scale killed the drive's caster outright; a glove still
+  # takes the edge off.
   - key: mould.blowBurnJ
-    value: "40"
+    value: "2"
 
   # Green sand, freshly rammed: damp enough to hold a shape, dry enough to
   # take a pour.

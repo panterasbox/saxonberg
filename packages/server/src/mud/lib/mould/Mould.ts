@@ -738,7 +738,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         ConditionApi.inflict(by, {
           mechanism: 'heat',
           site: 'body.hand',
-          energy: mouldDial(AppSettingKeys.mouldBlowBurnJ, 40),
+          energy: mouldDial(AppSettingKeys.mouldBlowBurnJ, 2),
         });
       }
     }
