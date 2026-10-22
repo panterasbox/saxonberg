@@ -10,3 +10,8 @@ data:
     A slatted bin by the firebox door, chest-high, with a scatter of bark in the bottom.
   _materialPath: /stuff/idea/material/wood/pine
   mass: 60
+  # She lies at the quay with her bin full: enough wood to make the woodyard
+  # twelve kilometres up, and some over (the drive found her fire dying a
+  # kilometre out with an empty bin).
+  props:
+    - { template: /trade/forestry/thing/cordwood, count: 40 }

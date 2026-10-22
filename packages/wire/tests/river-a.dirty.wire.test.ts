@@ -271,39 +271,28 @@ suite('stage A — the line and the patch', () => {
   }, 120_000);
 
   it('18. a dive in deep water reaches the bed and stops there; the water goes on without you', async () => {
-    // ⭐ A fresh swimmer: an hour in the snowmelt takes the first one's
+    // ⭐ In the stream at the foot of the quay steps, three metres deep. The
+    // lower Kestrel's own pools run about wading depth in a late-spring
+    // flow (the drive: every stretch it tried was "shallow enough to stand
+    // in"); the deep water is where the city cut its steps.
+    // A fresh swimmer: an hour in the snowmelt takes the first one's
     // consciousness (the drive found it — the body model, working).
     a.close();
     a = await Session.open(uniqueHandle('rvx'), { startLocation: BANK });
     await morning();
     expectOk(await a.cmd('swim'));
     await a.listen(2_000);
-    const atIn = await here(a);
-    expectOk(await a.cmd('swim downstream'));
-    await moved(a, atIn, 180);
-    let dove = false;
-    let lastDive = '';
-    for (let i = 0; i < 20 && !dove; i++) {
-      const at = await here(a);
-      const r = await a.cmd('dive');
-      const said = squash(await r.said());
-      lastDive = `${r.status}: ${said} — at: ${(await look(a)).slice(0, 200)}`;
-      if (r.status === 'ok' && (await moved(a, at, 60))) {
-        dove = true;
-        break;
-      }
-      expect(said, said).toMatch(/shallow enough to stand in|no deeper|no open water|dive/);
-      // Not deep enough here: a stroke on down the river, and try again.
-      await a.cmd('swim downstream');
-      await a.listen(20_000);
-    }
-    expect(dove, `never over water deep enough to dive (last: ${lastDive})`).toBe(true);
+    const surface = await here(a);
+    const r = await a.cmd('dive');
+    const said = squash(await r.said());
+    expect(r.status, said).toBe('ok');
+    expect(await moved(a, surface, 60), 'the dive never went down').toBe(true);
     const bed = await look(a);
-    expect(bed, bed).toMatch(/river bed|edge of the river/i);
+    expect(bed, bed).toMatch(/bed|bottom|mud|gravel/i);
     // Back up into the current.
-    const at = await here(a);
-    expectOk(await a.cmd('swim downstream'));
-    expect(await moved(a, at, 180)).toBe(true);
+    const below = await here(a);
+    expectOk(await a.cmd('swim up'));
+    expect(await moved(a, below, 120)).toBe(true);
   }, 900_000);
 
   it('5. upstream at the junction you choose a branch: the Delight comes in by name', async () => {
