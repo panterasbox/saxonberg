@@ -123,9 +123,18 @@ export const brain = class {
     }
 
     // 2. Green bricks on the pallet — the gang's own — are borne off.
-    const pallet = (shedRoom.getContents() as Stuff[]).filter((s) => isGreenBrick(s));
-    if (pallet.length > 0 && pallet.every((b) => !isPlayers(b))) {
-      await m.forceCommand(`get ${carry} bricks`);
+    // ⭐ By IDENTITY, so a player's bricks lying beside them are neither
+    // taken nor a reason to stop (a bare `get N bricks` takes whatever
+    // answers — the setter carried a player's brick off so, run 22).
+    const pallet = (shedRoom.getContents() as Stuff[]).filter((s) => isGreenBrick(s) && !isPlayers(s));
+    if (pallet.length > 0) {
+      let want = carry;
+      for (const b of pallet) {
+        if (want <= 0) break;
+        const n = Math.min(want, MixinApi.isStackable(b) ? b.getQuantity() : 1);
+        await m.forceCommand(`get ${n} #${b.stuffId}`);
+        want -= n;
+      }
       return;
     }
 

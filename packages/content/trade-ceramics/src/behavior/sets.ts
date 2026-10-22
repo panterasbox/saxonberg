@@ -167,7 +167,16 @@ export const brain = class {
       const dry = rows && MixinApi.isContainer(rows)
         ? (rows.getContents() as Stuff[]).filter((b) => isFireable(b) && !isPlayers(b))
         : [];
-      if (dry.length > 0) await s.forceCommand(`get ${batch - charged} bricks`);
+      // ⭐ By IDENTITY, the gang's own: a bare `get N bricks` takes whatever
+      // answers, and the player's bone-dry test brick in the hacks went to
+      // the clamp with the gang's (the ceramics drive A, run 22).
+      let want = Math.max(0, batch - charged);
+      for (const b of dry) {
+        if (want <= 0) break;
+        const n = Math.min(want, MixinApi.isStackable(b) ? b.getQuantity() : 1);
+        await s.forceCommand(`get ${n} #${b.stuffId}`);
+        want -= n;
+      }
     } finally {
       await walkRoute(s, way.back);
     }

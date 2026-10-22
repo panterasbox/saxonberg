@@ -26,6 +26,7 @@ interface Fake {
   ruin?: string | null;
   alloy?: number;
   player?: boolean;
+  id?: string;
   tempK?: number;
   wetCoat?: boolean;
   insideCoats?: number;
@@ -39,6 +40,7 @@ interface Fake {
 function good(f: Fake) {
   return {
     ...f,
+    stuffId: f.id ?? `${f.tpl}:${f.player ? 'player' : 'gang'}`,
     isDestroyed: () => false,
     getTemplatePath: () => f.tpl,
     getKeywords: () => f.kw,
@@ -204,6 +206,24 @@ describe('sets', () => {
     }
   });
 
+  it('⭐ a player\'s brick in the hacks is never taken — the gang fetches its own by identity', async () => {
+    // Run 22: `get 20 bricks` took the player's bone-dry test brick too.
+    const clamp = good({ tpl: CLAMP, kw: ['clamp'], lit: false, contents: [] });
+    const theirs = good({ tpl: BRICK, kw: ['bricks'], qty: 1, green: true, fireable: true, player: true, id: 'players-brick' });
+    const gangs = good({ tpl: BRICK, kw: ['bricks'], qty: 30, green: true, fireable: true, id: 'gangs-bricks' });
+    const w = world(
+      [
+        { path: '/bf/ground', things: [clamp], exits: { west: '/bf/hacks' } },
+        { path: '/bf/hacks', things: [theirs, gangs], exits: { east: '/bf/ground' } },
+      ],
+      '/bf/ground',
+      [],
+    );
+    await sets.act({ host: w.host, config } as unknown as BrainContext);
+    const gets = w.commands.filter((c) => c.startsWith('get '));
+    expect(gets).toEqual(['get 20 #gangs-bricks']);
+  });
+
   it('an under-charged clamp sends him to the hacks for bone-dry bricks', async () => {
     const clamp = good({ tpl: CLAMP, kw: ['clamp'], lit: false, contents: [] });
     const w = world(
@@ -215,7 +235,7 @@ describe('sets', () => {
       [],
     );
     await sets.act({ host: w.host, config } as unknown as BrainContext);
-    expect(w.commands).toEqual(['(→ /bf/hacks)', 'get 20 bricks', '(→ /bf/ground)']);
+    expect(w.commands).toEqual(['(→ /bf/hacks)', expect.stringMatching(/^get 20 #/), '(→ /bf/ground)']);
   });
 });
 
