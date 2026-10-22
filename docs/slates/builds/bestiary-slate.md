@@ -8,7 +8,10 @@
 > is almost all domestic (cattle, sheep, goats, pigs, horses, dogs, cats, fowl, bees,
 > silkworms, fish, a rat, a cave cricket, a bullfrog) plus the newbie-wilds wolf. Wild fauna
 > barely exists. combat-experience T15 lists the non-humanoid bestiary as deferred.
-> **Left:** sentience split from personhood · the four quadrants · the translation template
+> **Left:** sentience split from personhood · ⭐ the encounter stage and creatures reading your
+> acts · fantasy creatures as bindings (what is held · what pays · what cuts it) and the
+> authoring rule · oils and silver · common names over species paths, an optional base to
+> extend · curses as conditions; constructs and the bodiless off the animal tree · the four quadrants · the translation template
 > and the folklore rule · the recurring mechanisms (regeneration with a stopper, damage
 > shaping the yield, a curse as a disease, and the rest) · creatures in the minigame · bosses
 > without a bar · ⭐ difficulty derived, never set · the curve from geography · the wild roster
@@ -251,7 +254,161 @@ tells, rhythm and seasons, society (solitary, pack, herd), and what it yields. H
 derived — an animal's morale is drive against cost: prey flees at the first wound, a predator
 quits when you cost more than you are worth, a mother does not quit.
 
-## 10. The lens pass
+## 12. ⭐⭐ Pass 3 — the encounter, before any fight **[DECIDED — the owner]**
+
+With creatures, most of the drama happens before a fight starts, and most encounters never
+become one. A creature runs its own sequence — *notices you → sizes you up (threat? prey?
+nothing?) → displays or approaches → commits, or leaves* — and the fight opens only on a commit.
+That is the Elden Ring property working: you can almost always avoid what you are not ready for,
+**if you read it right**.
+
+### Systems and content, kept apart
+
+The owner: *"a lot of these are content guidelines more than systems we'd implement, but that's
+fine."*
+
+**Systems** (built once):
+
+- ⭐ **Creatures read what you are already doing** — posture (lying still), pace (running
+  against backing away), what you hold (fire), how you present yourself. Most of the player's
+  encounter moves are verbs that exist; the new part is creature brains **reading** them against
+  their drives.
+- **The encounter stage** — notice, size up, display, commit or leave.
+- **Group morale** for packs.
+- **The recurring monster constraints** — regeneration with a stopper, looking as a harm channel,
+  being engulfed.
+
+**Content guidelines** (each author's): which animal reads what, and how; the bluff charge; the
+specific monsters and their weaknesses; the kappa's bow. The real-world animal-safety moves are
+the reference — freeze; back away slowly; ⚠ never run from what chases (cougars, dogs, wolves);
+loom against a cougar or a black bear; play dead for a brown bear's defensive attack; fire and
+noise; throw food.
+
+### When it becomes a fight
+
+- **Beasts use the same three stances** ([combat-depth](./combat-depth-slate.md) § 8b), by drive
+  — a predator presses, a defender guards its ground, prey gives ground and flees the moment it
+  can.
+- **No feints, no yields** — their feint is the **bluff charge**, a tell; their yield is breaking
+  off. Morale is drive against cost: prey flees at the first wound, a predator quits once you cost
+  more than you are worth, ⭐ a mother never quits.
+- **Packs** test, circle and flank (the threat graph); their morale is the pack's — hurt the lead
+  wolf badly and the pack may break.
+- **Aiming at beasts** is vital zones — the clean kill and the perfect pelt — and their natural
+  armor (aim behind a boar's shoulder shield).
+
+### Monsters bend the core, one constraint each
+
+| monster | the constraint | the counterplay |
+|---|---|---|
+| troll | its wounds close | fire or acid — a torch is the key move |
+| werewolf | its wounds close | silver |
+| gorgon, basilisk | ⭐ aiming means looking | avert your eyes — your read fogs and you can only aim at the body — or a mirror |
+| floating eye | pressing it hurts you | don't press it; range |
+| gelatinous cube | engulfed, the fight runs on your breath | get out, or cut your way out |
+| rust monster | its touch ruins your gear | fight with what you can afford to lose |
+| hydra | cut a head and two grow back | cauterize |
+
+### Monster persons talk first
+
+The vampire, the cursed woman, the djinn are **persons**, so the encounter includes **talking**
+and terms can apply; the best outcome may not be a fight — lift the curse, strike the bargain,
+let it go.
+
+## 13. ⭐⭐⭐ Fantasy creatures are bindings — where lens 2 runs **[DECIDED for now — the owner]**
+
+The owner: *"I wanna use our fantasy creatures to have some mechanics that wouldn't necessarily
+make sense with just real creatures — basically The Witcher's different oils working with
+different types of beast. That's a constraint of its own design. We have to find a way to tell
+it in the narrative and lore, but I'd suggest we use the bestiary's fantasy side to do most of
+our cool lens 2 shit."* And: *"this is fine for now, but I need to see how it all plays out with
+actual content."*
+
+### The hook — Kell's Partition
+
+[arcane-science](../../arcane-science.md): every magical act is an **impulse** (energy delivered
+once, then the world takes over) or a **binding** — *a state held away from equilibrium, which
+must be continuously topped up.* Bindings leak (Voss Decay), cost upkeep, and **lapse when what
+holds them is cut** — the warded cell already does it. So **a fantasy creature's special
+mechanic is a binding**, and every invented power answers:
+
+> **What is held? What pays for it? What cuts it?**
+
+The answers are the lore and the counterplay.
+
+### Two kinds of fantasy creature
+
+1. **Invented biology** — the griffin, the wyvern: new animals that obey real physics (a wyvern's
+   flight has to work), living by the real quadrant's ecology.
+2. **Bound beings** — magic holds something about them in place; **that is where lens 2 runs**.
+
+| family | what is held | what pays for it | what cuts it | the lore it writes |
+|---|---|---|---|---|
+| ⭐ **regenerators** (troll, hydra) | the body's form, regrown to its template | **its own food** | fire or acid — they destroy the living tissue the binding regrows from | ⭐ trolls are always eating; starve one and it cannot heal; the hydra's cauterized stump is the same rule |
+| **the cursed** (werewolf, striga) | a form laid on a person | **the host's own reserve** | lifting it (a caster), or a ward-conductor like silver | the cursed are always hungry and tired |
+| **specters** (wraith, noonwraith) | a semblance with no body (the Sense domain) | the place they haunt | a ward; and ⭐ **attention** — Voss Decay already says a veil erodes fastest under observation | specters appear where no one is looking — the empty field at noon |
+| **constructs** (golem) | obedience (Control), anchored to a written word | its binder, or a stored charge | erase the word | the legend's own counter |
+| **relicts** (leshy) | a spirit bound to a place | the place | destroy its anchor | why it cannot leave the wood |
+| **vampires** | the body held from death | ⭐ **other people's blood** ([blood](../../subsystems/blood.md) draws units) | starvation; a ward | why they feed |
+
+- **Oils are delivery** — a coating carries what cuts a family's binding into the wound
+  ([combat-depth](./combat-depth-slate.md) § 8d); the field guide says which.
+- **Silver** — one invented property that contradicts no real chemistry: silver is really the
+  best conductor of heat and electricity, and the fiction adds that it is the best conductor of a
+  ward. Additive, never contradictory — arcane science's hard rule.
+
+### ⭐ The authoring rule
+
+> **An author may invent any fantasy creature and any power, if the power is a binding that
+> answers: what is held, what pays for it, what cuts it.**
+
+Creative freedom with a discipline that guarantees derivable counterplay; it would sit beside
+arcane science's content-authoring rules for magic.
+
+## 14. ⭐⭐ "Troll" is a common name — identity is the species path **[DECIDED — the owner]**
+
+The owner: *"if I make a troll for my Witcher area and someone else makes a troll for their
+Tolkien area and yet another troll exists as a player race, do we allow all that, or do we say
+'troll' is a platform concept you have to use, or at least extend from?"*
+
+Neither. Biology already copes — *robin* is a different bird in Britain and America; *buffalo*
+names two unrelated animals: **the scientific name is the identity; the common name is
+vocabulary.**
+
+- **"Troll" is a common name**, carried by several species rows at their own paths — the Witcher
+  troll, a Tolkien stone troll, the playable *Homo trollius* (Katie in Duncan Hall is one) — each
+  with its own body, binding and personhood.
+- **Commands never collide** — `attack troll` resolves against what is in front of you.
+- ⭐ **Knowledge is honest** — the record (combat-depth § 8d) is keyed on the species, so learning
+  one troll does not teach you another; a field guide that conflates them is a wrong field guide.
+- **Encouraged, never required: extend a shared base** — a row may `extends:` one parent. A shared
+  folklore pack (like species-and-names) can ship **base creatures**; the Tolkien troll extends the
+  base troll and adds *sunlight cuts the binding*.
+
+| layer | owns | example |
+|---|---|---|
+| the kernel | mechanisms | the regeneration binding; what cuts it |
+| a shared folklore pack (optional) | base creatures to extend | the base troll |
+| each author's pack | their creatures | the Witcher troll, the stone troll |
+| each realm | which creatures live there, and what its people call them | Terminus's hill trolls |
+
+⚠ **A playable people sharing a name with a monster** is the long-running orc debate in D&D; each
+realm settles it — name its monsters distinctly (*stone troll*, *bridge troll*), or make its
+trolls people throughout.
+
+## 15. ⭐⭐ Keeping the tree of life honest **[DECIDED — the owner]**
+
+The owner: *"it's gonna make certain branches of the tree of life kinda crowded."* Crowding is
+realistic (beetles are about 400,000 species), but two moves take most of the crowd out:
+
+| what it is | where it lives |
+|---|---|
+| an animal, a people, invented biology | the species tree, under real or invented clades (a chimera may need its own order) |
+| ⭐ a **curse** — werewolf, vampire, zombie | **a condition on any body**, spread like a disease ([disease](./disease-slate.md)); a werewolf elf falls out for free. The shade is already a state of a dead person |
+| something built — golem, construct | the `constructa` root, outside Animalia (the tutor-bot is the precedent) |
+| something bodiless — wraith, specter | a root of its own; its identity is its binding |
+
+## 16. The lens pass
 
 1. **Pedagogy** — ⭐ real ethology (the bear rules); the armor grid as a type chart; the field
    guide as a fallible document; a naturalist or tracking Discipline.
@@ -263,11 +420,15 @@ quits when you cost more than you are worth, a mother does not quit.
 6. **Economy** — pelts, trophies and reagents; the fur trade; the hoard.
 7. **Governance** — game law and close seasons ([hunting](./hunting-slate.md)); bounties.
 
-## 11. Open
+## 17. Open
 
-1. **The arcane-science gaps** — why silver works, what makes a spirit manifest, what a binding
-   is ([arcane-science](../../arcane-science.md) says nothing of monsters).
-2. **The four quotients** — the right cut.
-3. **The announce invariant** — too strong?
-4. **The roster and the first fantasy creatures** — which ship first, and where.
-5. **The sentience rename** — and where the welfare property is read.
+1. **The arcane-science additions** — the authoring rule, silver as a ward-conductor, what makes a
+   spirit manifest (§ 13) — to land in [arcane-science](../../arcane-science.md), which says
+   nothing of monsters yet.
+2. **Real content** — the owner wants to see the bindings play out in actual creatures before
+   they are settled.
+3. **The four quotients** — the right cut.
+4. **The announce invariant** — too strong?
+5. **The roster and the first fantasy creatures** — which ship first, and where.
+6. **The sentience rename** — and where the welfare property is read.
+7. **The shared folklore pack** — whether one ships, and its base creatures.

@@ -5,7 +5,9 @@
 > cap, endurance, morale and onlookers, reach and range, emergent tempo, terms and consent,
 > the feint and the fog, weapons as derived playstyles, the coup, multi-party and formations.
 > This slate is what running many fights through it showed.
-> **Left:** aiming and armor gaps · the cap as the honest health bar · evading what you
+> **Left:** ⭐ steer, don't micromanage — held stance and aim, a hand of moves, no default
+> exchange · aiming as choosing a capacity, the target ladder keyed to footing, gaps known
+> before aimed at · downed by capacities · the cap as the honest health bar · evading what you
 > cannot block · bout rules as an institution's terms, and sport on campus · who acts first,
 > and composure · a downed fighter's last move · weapon coatings · improvised weapons ·
 > chokepoints · deeper grappling · the play frame for staged violence
@@ -54,7 +56,7 @@ What the model has:
 - ❌ **choosing where to hit** — torso by default; the only aimed blow is the head on an open
   window.
 
-**The lean** — gaps as one more fact per armor piece (how much of each site it leaves open,
+**Decided in pass 2 (§ 8c)** — gaps as one more fact per armor piece (how much of each site it leaves open,
 and where), reachable by **point** with a footing advantage; aiming as a choice between an
 easy blow on armor and a hard one into a gap. That is the Viper's fight, and why a spear
 finds gaps and a mace does not care about them. ⚠ **No helmet ships**, so today every earned
@@ -63,7 +65,7 @@ head blow lands on a bare head.
 The same system serves **vital zones** on animals — the hunter's heart-and-lung shot
 ([bestiary](./bestiary-slate.md)).
 
-## 3. ⭐⭐ The cap is the honest health bar **[LEAN]**
+## 3. ⭐⭐ The cap is the honest health bar **[DECIDED — the owner, pass 2]**
 
 The owner: *"earlier I told you we needed hitpoints or something that we can drill down so
 the player knows how far along combat is, and you suggested poise. So our bones are still
@@ -135,7 +137,119 @@ footing contest with no one killed.
   you get sharper.
 - **Hitpoints** (D&D, MUDs) — rejected; § 3 is the honest replacement.
 
-## 8. The lens pass
+## 8a. The passes — combat redesigned a conversation at a time **[DECIDED — the owner]**
+
+The owner: *"we only really had two sessions, the first one for melee, then a follow-up for
+ranged, but … it's so core to the experience that this is gonna take more than one pass to get
+right."* The sequence:
+
+1. **The core decision** — what each beat asks of you (§ 8b).
+2. **The body** — aiming, gaps, vital zones, blocking against evading, the cap, the downed
+   fighter (§ 8c).
+3. **Creatures** — the encounter, beasts and monsters ([bestiary](./bestiary-slate.md) § 12).
+4. **Before** — preparation, knowledge, coatings, the ground (§ 8d).
+5. **After** — recovery, regrouping, the chase and escape, the threat that comes back.
+   *(Not yet held.)*
+6. **Sport** — bout rules as an institution, sparring on campus (§ 6). *(Not yet held.)*
+7. **Balance tools** — the combat gym extended to creatures and the difficulty read.
+   *(Not yet held.)*
+
+## 8b. ⭐⭐⭐ Pass 1 — steer, don't micromanage **[DECIDED — the owner]**
+
+Today a beat comes every three real seconds; with no input a default exchange runs, and the
+player queues one of about a dozen one-off moves (strike, feint, defend, close, disarm, subdue,
+shove, switch, draw, assess, yield, break) — so a player either types every three seconds or
+lets autopilot play. Aiming on top of that would make it worse.
+
+| | what it is | how it works |
+|---|---|---|
+| **stance** — held | how you are fighting: **press**, **guard**, or **give ground** | stays until changed; every beat runs on it |
+| **aim** — held | where you are trying to land (§ 8c) | stays until changed |
+| **a move** — played | a one-time card: feint, close, disarm, grapple, the coup, yield | spent when played |
+
+- **The loop** — pressing beats a feinter but costs your footing; guarding beats pressing
+  (parry and riposte) but a feint cracks it; giving ground beats raw power and keeps reach, but
+  you run out of room — which is where walls and doorways start to matter.
+- ⭐ **Against something far heavier, guarding fails** and giving ground is the only defense —
+  *you can't parry a bear* falls out of the table rather than a special rule.
+- **The default exchange goes** — a fight with no input plays your current stance and aim, so
+  doing nothing is a choice you made.
+- **Skill** — the player's is **when** (changing stance or aim at the right beat, spending a
+  move at the right moment — a few well-timed inputs, at a human pace); the character's is
+  **how well** (competence clears the fog so you read their stance sooner, speeds tempo,
+  improves recovery). ⭐ **Their stance is the main tell** — *"he's set his feet"*, *"he's
+  coming hard"* — fogged by your sharpness.
+
+## 8c. ⭐⭐⭐ Pass 2 — the body: aim chooses which capacity you take **[DECIDED — the owner]**
+
+The harm system built most of this and was waiting for combat to aim — its own doc: *"the
+honest improvement is aim-derived and deterministic — a called shot — and that is a combat
+build"* ([harm.md](../../subsystems/harm.md)): wound type by channel; depth reaching the organs
+under a site, biggest first; ⭐ **the function axis** — a wound costs a capacity (grip, walking,
+consciousness); severing only under lethal terms; shock; the limp.
+
+| aim at | it costs them | the strategy |
+|---|---|---|
+| **legs** | walking | ⭐ the Viper's knee — they cannot close, give ground or flee |
+| **the weapon arm** | grip | disarm by wounding |
+| **the head** | consciousness | the knockout (blunt) or the kill |
+| **the body** | organs, bleeding, shock | the long kill |
+
+Aim fits the **terms** (a non-lethal bout aims at limbs; a subdue aims a blunt blow at the head;
+a fight to the death goes for the body or a gap), and **weapons become strategies** — edges
+bleed them out, blunt breaks them, points go deep and find gaps.
+
+### The target ladder — keyed to their footing, never a roll
+
+| their footing | what you can land |
+|---|---|
+| steady | the body |
+| pressed | the legs or the weapon arm |
+| reeling | ⭐ a gap in their armor |
+| open | the head |
+
+**Aim higher than their footing allows and the blow lands on the body** — you hit what you could
+reach; you never miss.
+
+### Gaps
+
+Each armor piece declares the gaps it leaves (the breastplate the armpit, a helmet the eye slit,
+plate legs the back of the knee; mail almost none — and blunt goes through it anyway). **Only a
+thrust gets into a gap.** ⭐ **A gap is in your aim list only once you know it is there** — from
+`assess`, from knowing that armor, or from seeing it.
+
+### The bar and the diagram
+
+The cap (§ 3) says how badly hurt; ⭐ **the body diagram says what is failing** — *his leg is
+failing* reads as a limp, a real tell, and the honest progress against a big foe.
+
+### Downed, but not out
+
+**Downed is defined by capacities** — you cannot stand (walking lost) or stay conscious. ⭐ **A
+downed fighter still conscious with working hands keeps one desperate move** against anyone who
+comes into close range while the killing blow is delayed — the Mountain grabbed the Viper
+because his arms still worked. Gloating is dangerous because the body says so, not a script.
+
+## 8d. ⭐⭐ Pass 4 — before the fight **[DECIDED — the owner]**
+
+1. **The difficulty read** — `assess` and its quotients ([bestiary](./bestiary-slate.md) § 7).
+2. ⭐ **A per-player knowledge record about species** — like the map's walked / seen / searched
+   channels, it builds from **seeing** one, **fighting** one, **reading** the field guide (a
+   document, which can be wrong) and **being told**; each adds facts (tells, gaps, weakness).
+   `assess` reads only what is in your record, so *"you've never seen one of these"* is literal.
+3. **Gear prep** — mostly shipped: keenness, condition, armor fit, conditioning, food and rest.
+4. ⭐ **Coatings — a dose on the blade**, delivered into the body through a wound (metabolism
+   handles toxins), wearing off with each strike. Monster oils follow the same rule
+   ([bestiary](./bestiary-slate.md) § 13).
+5. ⭐ **Choosing the ground** — the place's size sets the opening range (shipped); light;
+   witnesses (shipped); chokepoints; ⭐ **footing** — the ground's material and wetness already
+   exist, so mud, ice and a wet floor erode footing faster: lure the man in plate onto the ice.
+6. **Traps and bait** — the trap kit ships; bait is hunting's.
+7. **Terms and companions** — shipped; bout rules are the sport pass's.
+
+**Content, not systems:** the field guide's text; which oil works on which monster; which venom.
+
+## 9. The lens pass
 
 1. **Pedagogy** — the armor grid as a type chart worth learning; reach, mass and tempo;
    sparring on campus.
@@ -149,13 +263,15 @@ footing contest with no one killed.
    upkeep.
 7. **Governance** — dueling law, trial by combat, a sport's sanctioning body.
 
-## 9. Open
+## 10. Open
 
-1. **The gap model** — how a piece declares its gaps, and how hard each is to reach.
-2. **Evading** — the mass ratio at which defend becomes evade.
-3. **Bout rules** — the shape of an institution's terms.
+1. **The gap model's numbers** — how a piece declares its gaps.
+2. **Stance numbers** — the mass ratio at which guarding fails; how fast giving ground runs out
+   of room.
+3. **Bout rules** — the shape of an institution's terms (the sport pass).
 4. **The downed fighter's move** — what it can do, and for how long.
-5. **Coatings** — a dose carried on a weapon and delivered through a wound.
+5. **Coatings** — dose, wear, and the counter-substances.
 6. **Composure** — filling the empty seam (the [trait](../tails/trait-slate.md) stress
    follow-on).
 7. **Children** — whether characters presented as children can fight, and on what terms.
+8. **The passes not yet held** — after the fight, sport, balance tools (§ 8a).
