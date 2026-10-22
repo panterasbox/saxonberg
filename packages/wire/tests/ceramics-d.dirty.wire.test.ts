@@ -422,12 +422,14 @@ async function clearFloor(only?: RegExp): Promise<void> {
     // ⚠ A cast keeps its pattern's lineage, and the founder may not destruct
     // a /stuff kind (a cast arming sword, a cast key): those stayed, and the
     // next `pewter` named the OLD cast (run 18's pommel). What will not break
-    // up goes out to the yard's scrap, by identity.
+    // up goes out to the dry rise, by identity — NOT the casting yard, where
+    // the scrap stood beside the bell pit and `pour ladle into pit` was
+    // refused (run 19).
     const ids = floor.map((o) => o.stuffId);
     if (ids.length > 0) {
       const r = await gov.cmd(
         `eval --parcel ${R} return (() => { const ids = ${JSON.stringify(ids)};` +
-          ` const yard = StuffApi.findByTemplatePath('${R}/location/foundry-yard');` +
+          ` const yard = StuffApi.findByTemplatePath('${R}/location/dry-rise');` +
           // A person here may not be read at all (peek() denied) — skip them.
           ` const left = self.getContainer().getContents().filter(o => { try { return ids.includes(o.stuffId); } catch (e) { return false; } });` +
           ` return Promise.all(left.map(o => ContainmentApi.move(o, yard))).then(() => 'scrapped ' + left.length); })()`,
