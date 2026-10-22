@@ -58,7 +58,20 @@ export default class BuyController extends CommandController<BuyModel> {
     // ⭐ Bound by the view (`buy.yaml` § counter), not hunted for here.
     // One counter can be both the house's shelf and a brokerage, so the
     // single resolved object is narrowed into the two roles it plays.
-    const counter = model.counter?.stuff ?? null;
+    let counter = model.counter?.stuff ?? null;
+    // ⭐ No counter NAMED, and the one the default bound does not carry the
+    // line: ask the other counters standing here. A market square holds
+    // several stalls, and `buy water filter` went to whichever came first
+    // and was told it "isn't for sale here" (the ceramics drive).
+    // (A counter bound by the view's DEFAULT carries the default's query as
+    // its raw text, or none — either way, not a counter the player named.)
+    const named = !!model.counter?.raw && !/^reachable:/.test(model.counter.raw);
+    if (!named && counter instanceof Stock && !counter.carriesLine(model.thing)) {
+      const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+      const others = here && MixinApi.isContainer(here) ? (here.getContents() as Stuff[]) : [];
+      const carrier = others.find((o) => o instanceof Stock && o !== counter && o.carriesLine(model.thing));
+      if (carrier) counter = carrier;
+    }
     const stock = counter instanceof Stock ? counter : null;
     const shelf =
       counter && MixinApi.isConsignmentShelf(counter)

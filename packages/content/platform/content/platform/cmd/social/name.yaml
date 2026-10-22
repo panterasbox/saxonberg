@@ -37,6 +37,10 @@ args:
     # ⭐ Anything: an animal OR a reforged thing — both arms are checked
     # in the controller (an alternation here would delete a check).
     requires: any
+  # ⭐ The rest of the line: a name may be two words ("Mother's jug") —
+  # not greedy, `name jug Mother's jug` matched no shape at all, though this
+  # very help names it as the example (the ceramics drive).
   - name: animalName
     type: string
     required: true
+    greedy: true

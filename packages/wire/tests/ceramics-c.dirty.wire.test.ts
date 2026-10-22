@@ -232,6 +232,9 @@ async function clayFor(s: Session, n: number): Promise<Session> {
   for (let i = 0; i < n; i++) await act(at, 'dig clay with spade', '2 minutes');
   // The won clay lies where it fell.
   await say(at, 'get clay');
+  // ⭐ The spade is the pit's: leave it for the next hand (the NPC brains
+  // do). Two drive potters carrying spades off left the pit with none.
+  await say(at, 'drop spade');
   expect(await held(at), 'clay won').toMatch(/clay/i);
   at = await goTo(at, SHOP);
   return at;
