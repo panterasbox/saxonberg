@@ -30,7 +30,10 @@ data:
   props:
     # The pit's own spades — the quarrying trade's rows (the drive's lesson
     # at the Hill Quarry: a pit with nothing to dig with is nobody's pit).
-    - { template: /trade/quarrying/thing/spade, count: 3 }
+    # Five: the gang digs with three, and the spares are what a stranger
+    # (or a player) finds leaning on the bank — with three, the gang held
+    # every one and nobody else could dig (the ceramics drive).
+    - { template: /trade/quarrying/thing/spade, count: 5 }
   exits:
     north:
       destination: /world/terminus/hearts-delight/brickfield/location/weathering-ground
