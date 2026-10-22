@@ -216,6 +216,11 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     this.removeMember(m);
     if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) zone.removeLocation(m);
     StuffApi.destruct(m as unknown as Stuff);
+    // ⭐ The zone goes with its place (D38): minted with it, reaped with it —
+    // not left for eviction (the drive's world ran out of memory).
+    if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff) && !(zone as unknown as Stuff).isDestroyed()) {
+      StuffApi.destruct(zone as unknown as Stuff);
+    }
   }
 
   /* ───────────────────────── reads ───────────────────────── */

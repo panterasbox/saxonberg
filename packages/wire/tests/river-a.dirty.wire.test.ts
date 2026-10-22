@@ -146,6 +146,8 @@ suite('stage A — the line and the patch', () => {
     a = await Session.open(A, { startLocation: BANK });
     await openWater(a);
     await morning();
+    // The season's jump leaves the world catching up; let it settle before reading.
+    await a.listen(30_000);
     const river = await look(a, 'look river');
     // The stretch, its current in words, both banks — never a number.
     expect(river, river).toMatch(/This is the Kestrel/);
@@ -283,7 +285,7 @@ suite('stage A — the line and the patch', () => {
       const at = await here(a);
       const r = await a.cmd('dive');
       const said = squash(await r.said());
-      lastDive = `${r.status}: ${said}`;
+      lastDive = `${r.status}: ${said} — at: ${(await look(a)).slice(0, 200)}`;
       if (r.status === 'ok' && (await moved(a, at, 60))) {
         dove = true;
         break;
