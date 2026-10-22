@@ -230,13 +230,14 @@ export async function nourish(s: Session): Promise<void> {
  */
 export async function advanceLiving(
   duration: string,
-  living: readonly Session[],
+  living: readonly (Session | undefined)[],
 ): Promise<{ before: number; after: number }> {
   const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day|week)s?\s*$/i.exec(duration);
   const per: Record<string, number> = { second: 1, minute: 60, hour: 3600, day: 86_400, week: 604_800 };
   const total = m ? Number(m[1]) * per[m[2]!.toLowerCase()]! : null;
   const feed = async (): Promise<void> => {
-    for (const s of living) if (s.isOpen()) await nourish(s);
+    // A drive may advance before its first session opens (B's `[k]`).
+    for (const s of living) if (s?.isOpen()) await nourish(s);
   };
   if (total === null) {
     await feed();
