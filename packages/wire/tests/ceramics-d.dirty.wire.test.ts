@@ -897,6 +897,16 @@ suite('⭐⭐ 33 — recast and interchangeable', () => {
   it('`salvage` the pewter cast → a lump of PEWTER, which recasts', async () => {
     // A checkpoint owns its position: never trust where the last one left off.
     caster = await goTo(caster, FOUNDRY);
+    // A checkpoint owns its MATERIAL too: it casts the pewter it salvages
+    // (it leaned on an earlier cast, and once the sweeps worked there was
+    // none left — run 23).
+    await clearFloor();
+    await ram(caster, 'sword', true);
+    await melt(FOUNDRY, T.crucible, M.pewter, 600);
+    await doing(caster, 'pour crucible into flask');
+    await advance('3 hours');
+    await examine(caster, 'flask'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     // ⚠ `pewter`, not `cast`: the brass key in hand is a cast too.
     const back = await doing(caster, 'salvage pewter');
     expect(back, `salvage: ${back}`).toMatch(/pewter/i);
