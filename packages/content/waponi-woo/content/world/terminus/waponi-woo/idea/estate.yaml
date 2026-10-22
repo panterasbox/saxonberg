@@ -25,6 +25,11 @@ data:
       wageRate: 5
       headcount: 1
       fulfills: [sugar-refining]
+      # The boiler buys the house's lime off its counter AS the house —
+      # a purchasing seat, the Sugar House refiner's. Without it she paid
+      # from her own empty purse ("insufficient-funds"; `wallet` unknown)
+      # and the juice sat in the kettle untempered (probed).
+      purchases: true
     - key: hand
       noun: hand
       label: keeping the estate store
