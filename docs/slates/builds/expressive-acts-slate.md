@@ -15,7 +15,8 @@
 > with accountability generalized from harm to directed acts · witness reach · the
 > sincerity reading from witnesses' reactions · the consumers (displayed mood, NPC
 > regard, social facts, the trait ledger, derived closeness) · the target's half (what
-> you receive, adjacency pairs, target-side saturation) · intimacy (private records,
+> you receive, adjacency pairs, target-side saturation) · the hand of open obligations ·
+> script-fired acts marked · same-account acts count for nothing · intimacy (private records,
 > witness consent, the minors/animals/corpses refusal) · the numbers on `look`
 > and `score` · `afk`/`brb` as presence · the two new document kinds
 > **Size:** a build
@@ -223,7 +224,9 @@ doing things publicly has a certain self-policing quality that privacy doesn't h
   witnesses; your alts and your own party are not a crowd.
 - **Steep diminishing returns** per pair and act — the owner: *"yes on the steep
   diminishing returns or there's a cooldown or something."* Smiling at Augie forty times
-  is one smile.
+  is one smile. ⭐ This is **modeling, not anti-gaming** (§ 8b): it is how a person
+  responds, it lives on the **recipient's** side, and it never asks the actor to ration —
+  emotes are free.
 
 ## 6. ⭐⭐⭐ Consent — what it tells us about the act **[DECIDED — the owner]**
 
@@ -448,6 +451,74 @@ You act toward whoever you **believe** someone is: thank a masked stranger and t
 belongs to the persona you thought you thanked. The person underneath knows; nobody else
 does. The witnesses' rule (§ 5), applied to targets, with
 [privacy § 8a](./privacy-slate.md)'s pen-name rule for where standing attaches.
+
+## 8b. ⭐⭐⭐ Gaming, cards and culture **[DECIDED — the owner]**
+
+The owner: *"if it can't be gamed then it probably isn't actually that compelling … my
+normal way to deal with this is to have culture that self-polices, and preferred-use
+systems that are more compelling than the payoff of gaming something would be. … Like in
+a card game, if someone played the 'thank you' card and you're holding the 'you're
+welcome' card, when you choose to deploy it is the whole game. Every emote becomes its own
+little minigame, not necessarily based on real codified rules but on cultural norms that
+emerge from the codified rules. … If you're accurately modeling the experience, then going
+through the motions and genuinely engaging with the experience take the same requests and
+responses and are essentially the same at the material layer, and it's only at the
+cultural layer where they're questioned."*
+
+### The principle
+
+- ⭐⭐⭐ **Rote and genuine are materially identical; only the culture tells them apart.**
+  The engine never tries to detect sincerity or rote-ness — no timing heuristic, no
+  *replied too fast* — and every mechanism in this slate is **modeling, never
+  anti-gaming**. It is the project's gameability doctrine applied to
+  expression: gaming is fatal only when it is **invisible** or **breaks conservation**;
+  everything else is play, and the exploit should be indistinguishable from competence.
+- ⭐⭐ **Emotes are free — never something to conserve.** The owner: *"we'd never want
+  players to have to conserve emotes. They should be totally free to use … it just means
+  that saying 'you're welcome' is always cheap, so if I don't do it when you say thank you
+  I'm still making a statement."* Because the expected reply costs nothing, **its absence
+  is the signal** — the reverse of costly signaling: when sending is free, *not* sending is
+  what informs.
+
+### The hand — open pairs are obligations
+
+The adjacency pairs of § 8a are **obligations** (Marcel Mauss, *The Gift*: a gift obliges
+the receiver to receive and to reciprocate). The reply decides what happens to the
+obligation — that choice is the card:
+
+| they played | your cards | what each does |
+|---|---|---|
+| thank | **you're welcome** | closes it — no debt between you |
+| | **anytime** | closes the debt, opens a standing offer — warmth |
+| | ⭐ **you owe me one** | keeps the debt open as leverage, to call in later |
+| | silence | left open — a statement, because the reply was free; NPCs read it, players are never penalized |
+| apologize | **forgive** | closes the harm |
+| | **accept, don't forgive** | acknowledged, still open |
+| | **refuse** | open, and colder |
+| | **forgive in public** | closes it, and honors them before witnesses |
+
+- **What is open between you and everyone else is your hand** — whom you owe, who owes
+  you, whose apology you are still holding. **You see your whole hand; each counterparty
+  sees only what is open between the two of you; nobody sees anyone else's.**
+- **Timing is the game** — when to forgive, when to call in the favor, whether a debt is
+  worth more left open. The codified rules are tiny (open · close · keep open); the norms
+  on top — is *you owe me one* crass here, or how business is done? — are the culture's
+  (§ 2a).
+- A favor economy, not money: it conserves nothing, so it cannot break conservation.
+
+### The only two fatal cases
+
+1. ⛔ **Self-dealing across one human's characters** — thanking your own alt for a gift it
+   never really gave manufactures a counterparty; it is invisible and breaks the
+   conservation of truth. **Acts between characters of one account count for nothing** —
+   the influence system's account roll-up seam
+   ([influence.md](../../subsystems/influence.md)), the same rule as *your alts are not a
+   crowd* (§ 5).
+2. ⭐ **Invisible automation** — a player may script (*on thank, say you're welcome*), and
+   by the principle that is allowed: the rote reply is materially the real one. But it is
+   policeable only if it is visible, so **a script-fired act is marked** — in the record
+   and to witnesses (*"reflexively"*). The culture judges bot-like politeness; the engine
+   never penalizes it.
 
 ## 9. ⭐⭐⭐ The numbers — of the effect, never of the person **[DECIDED — the owner, measurement Part 6]**
 
