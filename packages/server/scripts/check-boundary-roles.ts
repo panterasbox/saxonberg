@@ -70,7 +70,7 @@ const VOCAB = fileURLToPath(
  * in the same commit, which is the whole point: the diff shows somebody
  * widened the sandbox boundary.
  */
-export const COMMONS_CEILING = 24;
+export const COMMONS_CEILING = 25; // +1 Biome (ceramics, 2026-10-22): every body's reconcile reads it
 
 export interface RoleDeclaration {
   file: string;

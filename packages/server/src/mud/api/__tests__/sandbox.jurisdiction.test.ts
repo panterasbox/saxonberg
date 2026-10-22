@@ -30,6 +30,7 @@ import { ContainerMixin } from '../../lib/spatial/Container';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
+import Biome from '../../platform/idea/Biome';
 import {
 
 
@@ -274,6 +275,19 @@ describe('governed eval — the jurisdiction bound', () => {
       mass = kg.fromStored(1.4).rawValue();
     });
     expect(mass).toBe(1.4);
+  });
+
+  it('⭐ a BIOME is commons — a governed act can read the air a body stands in', async () => {
+    // Every body's reconcile reads its biome; held to the compare, a
+    // parcel-bound eval could not top up a reserve or move a lump.
+    const air = makeStuff(() => new Biome());
+    stampTemplatePathForTest(air, '/stuff/idea/biome/outdoor/somewhere-else');
+    let read = false;
+    await SandboxApi.runGoverned(BOUND, async () => {
+      air.getDefaultHumidity();
+      read = true;
+    });
+    expect(read).toBe(true);
   });
 
   it('leaves the unbounded world alone (no bound ⇒ no check)', async () => {

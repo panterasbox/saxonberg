@@ -46,6 +46,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import type { FieldMeta } from '../mixin';
+import type { BoundaryRole } from '../security/BoundaryRole';
 
 /**
  * ⭐ It overrides `onCreate` for ONE reason: a live biome has
@@ -55,6 +56,18 @@ import type { FieldMeta } from '../mixin';
 const BiomeBase = Idea;
 
 export default class Biome extends BiomeBase {
+  /**
+   * ⭐ Shared vocabulary: a climate nobody holds title to, read by every
+   * body's thermal and metabolic reconcile to know the air it stands in. A
+   * per-parcel copy would fork it (the `Material` test). Held to the
+   * compare, a parcel-bound eval could not touch a body at all — topping
+   * up a reserve, moving a lump, reading a room's heat each reconcile and
+   * each read the biome (`getDefaultHumidity()` / `getDefaultTemperature()`
+   * denied, the ceramics drives, runs 17–18). Authored data only; the one
+   * transient is the engine's own `extends` override.
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** Display name (e.g. `'universe'`, `'temperate-baseline'`, `'quad'`). */
   protected name: string = '';
 

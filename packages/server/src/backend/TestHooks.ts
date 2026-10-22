@@ -54,6 +54,8 @@ import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
 import { WorldClockApi } from '../mud/api/worldclock';
+import { MixinApi } from '../mud/api/mixin';
+import type { Stuff } from '../mud/lib/stuff/Stuff';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -280,6 +282,39 @@ export class TestHooks {
     return ExecutionContextApi.runRoot(TestHooks, 'clockNow', () =>
       WorldClockApi.getNow().rawValue()
     );
+  }
+
+  /**
+   * TEST-ONLY: top a test character's `satiation` and `hydration` up to
+   * capacity — the meals a person eats between a drive's checkpoints.
+   *
+   * ⭐ A ROUTE for the clock's reason. A clock jump integrates a body's
+   * whole gap, and a drive that jumps weeks starved and dehydrated its
+   * people (the ceramics drives, run 16). The first answer was the
+   * character's own `eval`, and it could not work: topping a reserve up
+   * reconciles the body first, the reconcile reads the place's biome, and
+   * a parcel-bound `eval` may not (run 18: `getDefaultHumidity()` denied).
+   * A root frame carries no sandbox scope, which is what scaffolding needs
+   * and what an in-world act never gets.
+   *
+   * @throws when no resident character answers to `handle`.
+   */
+  public static nourishCharacter(handle: string): { satiation: number; hydration: number } {
+    TestHooks.#assertTestMode('nourishCharacter');
+    return ExecutionContextApi.runRoot(TestHooks, 'nourishCharacter', () => {
+      const avatar = PlayerApi.findAvatarByName(handle);
+      if (!avatar) throw new Error(`no resident character named '${handle}'`);
+      const body = avatar as unknown as Stuff;
+      if (!MixinApi.isReserved(body)) throw new Error(`'${handle}' keeps no reserves`);
+      const out = { satiation: 0, hydration: 0 };
+      for (const key of ['satiation', 'hydration'] as const) {
+        const r = body.getReserve(key);
+        if (!r) continue;
+        body.adjustReserve(key, r.capacity);
+        out[key] = body.getReserve(key)?.current.rawValue() ?? 0;
+      }
+      return out;
+    });
   }
 
   /**

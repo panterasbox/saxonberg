@@ -1033,8 +1033,10 @@ then "your hand passes through it" (a shade).
 
 A drive that jumps more than a day uses **`advanceLiving(duration,
 sessions)`**: jumps of at most a game day, each open session fed and
-watered before each (`nourish(session)`, the character's own wizard
-`eval` topping `satiation` and `hydration` up). That stands for the
+watered before each (`nourish(session)` → `POST /auth/test-nourish`,
+topping `satiation` and `hydration` up). ⛔ Not an `eval`, for the clock's
+reason: a reserve top-up reconciles the body, the reconcile reads the
+biome, and a parcel-bound eval may not. That stands for the
 meals a person eats between checkpoints. It is setup, so it throws
 when refused rather than letting the body die quietly three steps later.
 

@@ -143,8 +143,29 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ A test character fed and watered (the meals between a drive's
+    // checkpoints) — a route for the clock's reason: a parcel-bound `eval`
+    // may not read the biome the body's reconcile reads.
+    app.post('/auth/test-nourish', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = (req.body as { handle?: unknown } | undefined)?.handle;
+      if (typeof handle !== 'string' || handle === '') {
+        res.status(400).json({ error: 'handle must be a string' });
+        return;
+      }
+      try {
+        res.json(TestHooks.nourishCharacter(handle));
+      } catch (err) {
+        console.error('TestAuthRoutes: test-nourish failed:', err);
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+      }
+    });
+
     console.warn(
-      'TestAuthRoutes: ⚠  /auth/test-login and /auth/test-clock are MOUNTED ' +
+      'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock and /auth/test-nourish are MOUNTED ' +
         '(test seams). Never in production.'
     );
   }

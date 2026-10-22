@@ -214,6 +214,24 @@ const RAINING = (w: string): boolean =>
 // ── the cast of this file ───────────────────────────────────────────────
 let digger: Session; // the brickmaker
 
+/**
+ * Setup, as the founder: an `eval` at `where` under `parcel`'s title. It
+ * must not be refused — a silent setup miss surfaces three checkpoints on.
+ */
+async function founderEval(where: string, parcel: string, code: string): Promise<string> {
+  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  try {
+    const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
+    const said = squash(plain(await r.said()));
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] (founder eval → ${said.slice(0, 160)})`);
+    expect(said, `founder eval: ${said}`).not.toMatch(/error/i);
+    return said;
+  } finally {
+    gov.close();
+  }
+}
+
 beforeAll(async () => {
   await toHour(9, 15);
   digger = await at(uniqueHandle('brickmaker'), PIT);
@@ -225,6 +243,18 @@ afterAll(() => {
 
 suite('⭐ 1 — win the clay', () => {
   it('`dig clay with spade` at the Delight pit wins lumps of the river clay', async () => {
+    // ⚠ Setup: the gang's leftover lumps go offstage first. A lump dug onto
+    // a lying heap JOINS it (its weathering blended by mass — Clay's merge,
+    // honestly), so after weeks of the moulders' work the drive's fresh
+    // clay read "weathered a little" (run 18). This checkpoint is about
+    // clay out of the ground.
+    await founderEval(
+      PIT,
+      '/world/terminus/hearts-delight',
+      `return (() => { const off = StuffApi.findByTemplatePath('${B}/offstage');` +
+        ` const old = self.getContainer().getContents().filter(o => o.getTemplatePath() === '/trade/quarrying/thing/clay');` +
+        ` return Promise.all(old.map(o => ContainmentApi.move(o, off))).then(() => 'cleared ' + old.length); })()`,
+    );
     const got = await say(digger, 'get 1 spade');
     expect(got, `get spade: ${got}`).toMatch(/you pick up|spade/i);
     const before = (await held(digger)).join(' | ');

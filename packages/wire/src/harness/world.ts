@@ -196,25 +196,29 @@ export async function worldClockNow(): Promise<number> {
 /**
  * ⭐ **Meals between a drive's checkpoints.** A clock jump integrates a
  * body's whole gap at once, and a body integrates honestly: hydration
- * runs out in about two game days and dehydration kills in eight hours
- * more, satiation in about three and a half. A drive that jumps a week
+ * runs out in about two game days (dehydration kills in eight hours
+ * more), satiation in about three and a half. A drive that jumps a week
  * while a brick dries is a person who ate and drank through that week,
  * and the ceramics drives found what happens when nobody says so — the
  * potter died of starvation and the brickmaker of hyperthermia (no water,
- * no sweat). Setup, not the act under test: tops `satiation` and
- * `hydration` up to capacity through the character's own wizard `eval`,
- * bound to `parcel` (the body must stand inside it).
+ * no sweat). Setup, not the act under test: `POST /auth/test-nourish`
+ * tops `satiation` and `hydration` up to capacity.
  *
- * @throws if the eval is refused — a silent miss is a body that dies later.
+ * ⛔ Not an `eval`, for the clock's reason: topping a reserve up
+ * reconciles the body, the reconcile reads the biome, and a parcel-bound
+ * eval may not (`getDefaultHumidity()` denied, run 18).
+ *
+ * @throws if the world refuses — a silent miss is a body that dies later.
  */
-export async function nourish(s: Session, parcel = '/world/terminus'): Promise<void> {
-  const r = await s.cmd(
-    `eval --parcel ${parcel} return ['satiation', 'hydration']` +
-      `.map(k => (self.adjustReserve(k, self.getReserve(k).capacity), k)).join(' ')`,
-  );
-  const said = await r.said();
-  if (!/satiation hydration/.test(said)) {
-    throw new Error(`nourish(${s.handle}) was refused: ${said.slice(0, 300)}`);
+export async function nourish(s: Session): Promise<void> {
+  const res = await fetch(`${SERVER_URL()}/auth/test-nourish`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ handle: s.handle }),
+  });
+  const body = (await res.json()) as { satiation?: number; error?: string };
+  if (!res.ok || typeof body.satiation !== 'number') {
+    throw new Error(`nourish(${s.handle}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
   }
 }
 
@@ -227,13 +231,12 @@ export async function nourish(s: Session, parcel = '/world/terminus'): Promise<v
 export async function advanceLiving(
   duration: string,
   living: readonly Session[],
-  parcel = '/world/terminus',
 ): Promise<{ before: number; after: number }> {
   const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day|week)s?\s*$/i.exec(duration);
   const per: Record<string, number> = { second: 1, minute: 60, hour: 3600, day: 86_400, week: 604_800 };
   const total = m ? Number(m[1]) * per[m[2]!.toLowerCase()]! : null;
   const feed = async (): Promise<void> => {
-    for (const s of living) if (s.isOpen()) await nourish(s, parcel);
+    for (const s of living) if (s.isOpen()) await nourish(s);
   };
   if (total === null) {
     await feed();
