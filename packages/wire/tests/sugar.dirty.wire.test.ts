@@ -288,14 +288,16 @@ async function daylight(): Promise<void> {
 async function buyEstateBlocks(want: number, days: number): Promise<number> {
   let bought = 0;
   for (let day = 0; day < days && bought < want; day++) {
-    for (const hour of [7, 13]) {
-      await toHourOfDay(hour);
-      sailor.close();
-      sailor = await goTo(sailorHandle, `${W}/location/store`);
-      for (let minute = 0; minute < 6 && bought < want; minute++) {
-        await new Promise((r) => setTimeout(r, 60_000));
-        while (bought < want && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
-      }
+    // ONE continuous window a day, long enough for a whole batch: a clock
+    // jump in mid-shift moves the boil on hours with the boiler's beats
+    // skipped, and the probe's 07:00 → 13:00 jump took a batch from
+    // juice to burnt toffee with nobody to strike it.
+    await toHourOfDay(7);
+    sailor.close();
+    sailor = await goTo(sailorHandle, `${W}/location/store`);
+    for (let minute = 0; minute < 20 && bought < want; minute++) {
+      await new Promise((r) => setTimeout(r, 60_000));
+      while (bought < want && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
     }
   }
   return bought;

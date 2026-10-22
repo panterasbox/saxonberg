@@ -32,6 +32,8 @@ data:
         # some fourteen kilos of fuel (1.5 kW a kilo); a log at a time ran it
         # at three, and a batch never reached syrup.
         charge: 14
+        # A burnt batch is spilled and the pan started again.
+        spoilt: spill
         source: juice
         finish: block
         counter: /world/terminus/waponi-woo/thing/stock

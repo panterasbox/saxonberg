@@ -71,6 +71,10 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...base, liquor: 'struck', coneReady: true })).toBe('pour copper into cone');
     expect(brain.next({ ...base, liquor: 'struck', coneAndPot: false })).toBeNull();
     expect(brain.next({ ...base, liquor: 'spoilt', onFire: true })).toBeNull();
+    // ⭐ An estate spills a spoilt pan and starts again (config `spoilt: spill`).
+    const estate = brain.words({ kettle: 'kettle', spoilt: 'spill' });
+    expect(brain.next({ ...base, liquor: 'spoilt', onFire: true }, estate)).toBe('get kettle');
+    expect(brain.next({ ...base, liquor: 'spoilt', onFire: false }, estate)).toBe('spill kettle');
   });
 
   it('waits for what it has not got', () => {

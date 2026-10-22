@@ -70,6 +70,14 @@ interface Words {
    * stokes when the bed is empty (the Terminus arch, a single pan).
    */
   charge?: number;
+  /**
+   * What a spoilt pan (caramel, burnt, blackstrap) gets: `leave` it be —
+   * the default, because in Terminus a player boils molasses to
+   * blackstrap on purpose — or `spill` it and start again, which a
+   * working estate must or its boiler stands idle for good after one
+   * burnt batch (probed: a batch went to "burnt toffee" and stayed).
+   */
+  spoilt?: 'leave' | 'spill';
 }
 
 const TERMINUS: Words = {
@@ -169,6 +177,9 @@ export const brain = class {
     } else {
       if (f.block) return errand('put block in counter');
       if (f.setBlock) return `get block from ${w.mould}`;
+    }
+    if (f.liquor === 'spoilt' && w.spoilt === 'spill') {
+      return f.onFire ? `get ${w.kettle}` : `spill ${w.kettle}`;
     }
     if (f.liquor === 'struck' || f.liquor === 'spoilt') return null;
     if (f.liquor === 'empty') {
