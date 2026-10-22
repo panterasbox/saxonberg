@@ -303,7 +303,7 @@ async function melt(where: string, potRow: string, materialPath: string, kelvin:
     `return (() => { const here = self.getContainer().getContents();` +
       ` const pot = here.find(o => o.getTemplatePath() === '${potRow}');` +
       ` const m = StuffApi.findByTemplatePath('${materialPath}');` +
-      ` if (!pot || !m) return 'no pot or no metal';` +
+      ` if (!(pot && m)) return 'no pot or no metal';` +
       ` pot.setBulkMaterial('interior', m);` +
       ` pot.setBulkAmount('interior', pot.getBulkCapacity('interior'));` +
       ` pot.setContentsTemperature(${kelvin});` +
@@ -360,7 +360,7 @@ async function clearFloor(): Promise<void> {
     `return (() => { const top = self.getContainer().getContents();` +
       ` const all = top.concat(...top.map(o => (o.getContents && !o.getTemplatePath().startsWith('/platform/agent') ? o.getContents() : [])));` +
       ` const gone = all.filter(o =>` +
-      ` (o.getCastFrom && o.getCastFrom()) ||` +
+      ` (o.getCastFrom && o.getCastFrom()) ??` +
       ` ['/stuff/thing/metal-casting', '/stuff/thing/Casting', '/stuff/thing/sherds', '/trade/smelting/thing/moulding-sand'].includes(o.getTemplatePath()));` +
       ` gone.forEach(o => StuffApi.destruct(o)); return 'swept ' + gone.length; })()`,
   );
@@ -650,7 +650,7 @@ suite('⭐⭐ 32 — crystallize', () => {
       `return JSON.stringify((() => { const here = self.getContainer().getContents();` +
         ` const pan = here.find(o => o.getTemplatePath() === '/trade/quarrying/thing/salt-pan');` +
         ` const tub = here.find(o => o.getTemplatePath() === '/trade/quarrying/thing/bittern-tub');` +
-        ` if (!pan || !tub) return { crop: -1, panL: -1, tub: 'missing', tubL: -1 };` +
+        ` if (!(pan && tub)) return { crop: -1, panL: -1, tub: 'missing', tubL: -1 };` +
         ` pan.getMaturationPhase(); const panL = pan.getBulkAmount('interior').rawValue();` +
         ` const crop = pan.getContents().filter(c => c.getTemplatePath() === '/stuff/thing/salt-crystals')` +
         `.reduce((a, c) => a + c.getMass().rawValue(), 0);` +
@@ -678,7 +678,7 @@ suite('⭐⭐ 32 — crystallize', () => {
       `return (() => { const pan = self.getContainer().getContents()` +
         `.find(o => o.getTemplatePath() === '/trade/quarrying/thing/salt-pan');` +
         ` const brine = StuffApi.findByTemplatePath('/stuff/idea/material/bulk/salt-water');` +
-        ` if (!pan || !brine) return 'no pan or no brine';` +
+        ` if (!(pan && brine)) return 'no pan or no brine';` +
         ` pan.setBulkMaterial('interior', brine);` +
         ` pan.setBulkAmount('interior', pan.getBulkAmount('interior').constructor.of(20, 'L'));` +
         ` pan.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.28 });` +
