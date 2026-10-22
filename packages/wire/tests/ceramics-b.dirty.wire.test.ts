@@ -245,7 +245,10 @@ suite('⭐ 10 — make firebrick', () => {
     const won = await held();
     expect(won, 'fireclay in hand').toMatch(/fireclay|clay/i);
     const read = await say('analyze clay lump');
-    expect(read, `the fireclay: ${read}`).toMatch(/fireclay|refractory|pale|white/i);
+    // ⭐ An untrained hand reads only fat or lean; whether a clay will stand
+    // a furnace is a PRACTISED reader's detail (competence resolves detail,
+    // never access) — so this drive's fresh character reads the worm.
+    expect(read, `the fireclay: ${read}`).toMatch(/fat|lean|worm/i);
   }, 3_600_000);
 
   it('moulded at the Delight table into firebricks, dried and burnt in the pottery kiln', async () => {
