@@ -12,9 +12,9 @@ import { MixinApi } from '../../mud/api/mixin';
 import { Quantity } from '../../mud/lib/quantity';
 import type Avatar from '../../mud/lib/character/Avatar';
 
-/** A body with two reserves, at `level` of a 100 % capacity. */
+/** A body with the three reserves a meal tops up, at `level` of a 100 % capacity. */
 function body(level: number) {
-  const reserves: Record<string, number> = { satiation: level, hydration: level };
+  const reserves: Record<string, number> = { satiation: level, hydration: level, 'vitamin-c': level };
   return {
     getReserve: (k: string) =>
       k in reserves
@@ -35,10 +35,10 @@ describe('TestHooks.nourishCharacter', () => {
     process.env.AUTH_MODE = 'test';
   });
 
-  it('⭐ tops satiation and hydration up to capacity', () => {
+  it('⭐ tops satiation, hydration and vitamin C up to capacity (scurvy killed a drive, run 20)', () => {
     vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(body(12) as unknown as Avatar);
     vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
-    expect(TestHooks.nourishCharacter('wire-potter')).toEqual({ satiation: 100, hydration: 100 });
+    expect(TestHooks.nourishCharacter('wire-potter')).toEqual({ satiation: 100, hydration: 100, 'vitamin-c': 100 });
   });
 
   it('⚠ says so when nobody answers to the handle', () => {

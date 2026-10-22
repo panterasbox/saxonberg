@@ -285,8 +285,9 @@ export class TestHooks {
   }
 
   /**
-   * TEST-ONLY: top a test character's `satiation` and `hydration` up to
-   * capacity — the meals a person eats between a drive's checkpoints.
+   * TEST-ONLY: top a test character's `satiation`, `hydration` and
+   * `vitamin-c` up to capacity — the meals a person eats between a drive's
+   * checkpoints.
    *
    * ⭐ A ROUTE for the clock's reason. A clock jump integrates a body's
    * whole gap, and a drive that jumps weeks starved and dehydrated its
@@ -299,15 +300,18 @@ export class TestHooks {
    *
    * @throws when no resident character answers to `handle`.
    */
-  public static nourishCharacter(handle: string): { satiation: number; hydration: number } {
+  public static nourishCharacter(handle: string): { satiation: number; hydration: number; 'vitamin-c': number } {
     TestHooks.#assertTestMode('nourishCharacter');
     return ExecutionContextApi.runRoot(TestHooks, 'nourishCharacter', () => {
       const avatar = PlayerApi.findAvatarByName(handle);
       if (!avatar) throw new Error(`no resident character named '${handle}'`);
       const body = avatar as unknown as Stuff;
       if (!MixinApi.isReserved(body)) throw new Error(`'${handle}' keeps no reserves`);
-      const out = { satiation: 0, hydration: 0 };
-      for (const key of ['satiation', 'hydration'] as const) {
+      // ⭐ A balanced diet, not bread and water: a drive fed only those two
+      // through a game year bled its brickmaker AND the founder to death —
+      // scurvy (`vitamin-c`'s floor), the ceramics drives, run 20.
+      const out = { satiation: 0, hydration: 0, 'vitamin-c': 0 };
+      for (const key of ['satiation', 'hydration', 'vitamin-c'] as const) {
         const r = body.getReserve(key);
         if (!r) continue;
         body.adjustReserve(key, r.capacity);

@@ -804,8 +804,12 @@ async function mintCorpseFrom(
    * forensic body reports. The slices carry no reserves, so nothing
    * re-adds a body-composition delta on top of the stamp.
    */
+  // ⚠ A body that answers no mass (a player's, read across the awaits of
+  // a death — the ceramics drive's frozen brickmaker, run 20) mints a
+  // corpse that derives its own, rather than a TypeError that took the
+  // whole world down from a detached `die`.
   const stampedMass = MixinApi.isTangible(body)
-    ? body.getMass().rawValue()
+    ? body.getMass()?.rawValue()
     : undefined;
   const bornAt = MixinApi.isOrganism(body) ? body.getBornAt() : undefined;
 

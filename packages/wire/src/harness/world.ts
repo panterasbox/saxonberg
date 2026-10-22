@@ -202,7 +202,8 @@ export async function worldClockNow(): Promise<number> {
  * and the ceramics drives found what happens when nobody says so — the
  * potter died of starvation and the brickmaker of hyperthermia (no water,
  * no sweat). Setup, not the act under test: `POST /auth/test-nourish`
- * tops `satiation` and `hydration` up to capacity.
+ * tops `satiation`, `hydration` and `vitamin-c` up to capacity (fed bread
+ * and water through a game year, run 20's people died of scurvy).
  *
  * ⛔ Not an `eval`, for the clock's reason: topping a reserve up
  * reconciles the body, the reconcile reads the biome, and a parcel-bound
@@ -211,14 +212,19 @@ export async function worldClockNow(): Promise<number> {
  * @throws if the world refuses — a silent miss is a body that dies later.
  */
 export async function nourish(s: Session): Promise<void> {
+  await nourishHandle(s.handle);
+}
+
+/** {@link nourish} by handle — for a character the drive holds no session for. */
+async function nourishHandle(handle: string): Promise<void> {
   const res = await fetch(`${SERVER_URL()}/auth/test-nourish`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ handle: s.handle }),
+    body: JSON.stringify({ handle }),
   });
   const body = (await res.json()) as { satiation?: number; error?: string };
   if (!res.ok || typeof body.satiation !== 'number') {
-    throw new Error(`nourish(${s.handle}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
+    throw new Error(`nourish(${handle}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
   }
 }
 
@@ -238,6 +244,10 @@ export async function advanceLiving(
   const feed = async (): Promise<void> => {
     // A drive may advance before its first session opens (B's `[k]`).
     for (const s of living) if (s?.isOpen()) await nourish(s);
+    // ⭐ And the founder: every drive's settle probe and setup opens it
+    // where the drive works, and through a game year it bled to death of
+    // scurvy at the weathering ground (run 20). Not resident is fine.
+    await nourishHandle('founder').catch(() => undefined);
   };
   if (total === null) {
     await feed();

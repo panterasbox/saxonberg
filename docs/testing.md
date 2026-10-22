@@ -1034,7 +1034,10 @@ then "your hand passes through it" (a shade).
 A drive that jumps more than a day uses **`advanceLiving(duration,
 sessions)`**: jumps of at most a game day, each open session fed and
 watered before each (`nourish(session)` → `POST /auth/test-nourish`,
-topping `satiation` and `hydration` up). ⛔ Not an `eval`, for the clock's
+topping `satiation`, `hydration` and `vitamin-c` up — a balanced diet:
+fed bread and water through a game year, run 20's brickmaker and the
+founder both bled to death of **scurvy**). The founder is fed too: every
+drive's settle probe opens it where the drive works. ⛔ Not an `eval`, for the clock's
 reason: a reserve top-up reconciles the body, the reconcile reads the
 biome, and a parcel-bound eval may not. That stands for the
 meals a person eats between checkpoints. It is setup, so it throws
