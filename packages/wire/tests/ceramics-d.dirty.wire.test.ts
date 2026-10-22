@@ -428,7 +428,8 @@ async function clearFloor(only?: RegExp): Promise<void> {
       const r = await gov.cmd(
         `eval --parcel ${R} return (() => { const ids = ${JSON.stringify(ids)};` +
           ` const yard = StuffApi.findByTemplatePath('${R}/location/foundry-yard');` +
-          ` const left = self.getContainer().getContents().filter(o => ids.includes(o.stuffId));` +
+          // A person here may not be read at all (peek() denied) — skip them.
+          ` const left = self.getContainer().getContents().filter(o => { try { return ids.includes(o.stuffId); } catch (e) { return false; } });` +
           ` return Promise.all(left.map(o => ContainmentApi.move(o, yard))).then(() => 'scrapped ' + left.length); })()`,
       );
       // eslint-disable-next-line no-console -- the drive's own record
