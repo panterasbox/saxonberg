@@ -225,6 +225,18 @@ export default class PourController extends CommandController<PourModel> {
       return;
     }
 
+    // ⭐ The pour consumed its mould — lost wax: the metal melts the wax
+    // out and takes its place. Say so rather than naming a thing that is
+    // no longer there.
+    if (target.isDestroyed()) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You pour from ${Mml.thing(source)}. The wax runs out as the metal takes its place.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} pours, and wax runs smoking out of the mould.`)
+        .send();
+      return;
+    }
+
     // Success (possibly a lenient partial — the clamp note is already
     // forwarded; the prose stays the same).
     MessageApi.scene(giver)

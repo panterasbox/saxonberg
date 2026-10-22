@@ -1050,7 +1050,11 @@ export class Mml {
       // asked for. Both resolve here, together, because they are the
       // same question — what should THIS recipient read in THIS
       // sentence.
-      const label = stuff.describeFor(viewer, form);
+      // ⚠ A thing destroyed between the emit and the render (a lost-wax
+      // mould the pour consumed) names nothing: it reads as "something",
+      // never a crash (the ceramics drive: `pour crucible into wax`).
+      const named = stuff.isDestroyed() ? undefined : stuff.describeFor(viewer, form);
+      const label = typeof named === 'string' && named.length > 0 ? named : 'something';
       // The object turns its label into a composable `Mml` *fragment*
       // (`getPresentationMml`, Stuff): `null` = the plain default, which
       // we build here as an escaped-once text fragment; a non-null
