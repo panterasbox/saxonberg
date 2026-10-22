@@ -372,6 +372,18 @@ async function clearFloor(only?: RegExp): Promise<void> {
   // `impress X in flask` kept binding an old, impressed one. `destruct #id`
   // as the founder does it, one leftover at a time, by identity.
   const LEFTOVER = /moulding flask|\bcast\b|runner and riser|moulding sand|beeswax|salvaged lump|sherd|\bmug\b/i;
+  // What the caster HOLDS that matches goes down first: an impressed flask
+  // or a green mug carried off by a broad `get` was still binding the next
+  // checkpoint's `flask` and `mug` from the caster's hands.
+  if (caster) {
+    const held = await caster.query('me:i', { fields: ['displayName'] }).catch(() => []);
+    for (const h of held as { stuffId?: string; displayName?: string }[]) {
+      if (h.stuffId && (only ?? LEFTOVER).test(String(h.displayName ?? ''))) {
+        await caster.cmd(`drop #${h.stuffId}`);
+      }
+    }
+    await caster.drainProse();
+  }
   const gov = await Session.open('founder', { startLocation: FOUNDRY, wizard: true });
   try {
     const rows = await gov.query('here', { fields: 'detail' }).catch(() => []);
