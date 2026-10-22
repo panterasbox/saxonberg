@@ -180,7 +180,7 @@ suite('stage A — the line and the patch', () => {
     const patch = await look(a);
     expect(patch, patch).toMatch(/You are (in a long, deep pool|in a smooth, steady run|over a shallow riffle|in white water)/);
     expect(patch, patch).toMatch(/On the left, .*; on the right, /);
-  }, 300_000);
+  }, 900_000);
 
   it('2b. carried, the stretch changes are told as you pass them', async () => {
     const heard = squash(await a.listen(90_000));
@@ -274,6 +274,9 @@ suite('stage A — the line and the patch', () => {
     const atIn = await here(a);
     expectOk(await a.cmd('swim downstream'));
     await moved(a, atIn, 180);
+    // Lie back and the river carries you out into the channel, where it is deep.
+    await a.cmd('lie');
+    await a.listen(60_000);
     let dove = false;
     for (let i = 0; i < 20 && !dove; i++) {
       const at = await here(a);

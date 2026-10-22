@@ -853,7 +853,10 @@ export default class Exit extends ConcealableMixin(Idea) {
         this._destinationPath = opts.destinationPath ?? null;
       } else {
         const path = opts.destination.getTemplatePath();
-        if (path) {
+        // ⭐ A path only for a place (see the `destination` setter): a vessel's
+        // entry exit is bound here, and three canoes of one row made its
+        // path ambiguous.
+        if (path && opts.destination.isPlace() && Exit.namesOnly(path, opts.destination)) {
           if (!this._destinationPath) this._destinationPath = path;
           this._destination = null;
         } else {

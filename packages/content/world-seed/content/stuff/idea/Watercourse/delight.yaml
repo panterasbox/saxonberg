@@ -41,4 +41,7 @@ data:
     - { name: spring, km: 60, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The alluvial flats — the diversion fight, when it comes, is here.
     - { name: flats, km: 40, elevation: 180, channelWidthM: 22, catchmentKm2: 240, stocks: [{ species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/brown-trout }], works: [/world/terminus/hearts-delight/thing/millrace, /world/terminus/hearts-delight/thing/sawmill-race] }
-    - { name: mouth, km: 0, elevation: 35, channelWidthM: 30, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }
+    # ⭐ 12 m, not 30 (the river build's drive): "a stream you could throw a
+    # stone across" carrying ~2.5 m³/s in summer; spread across 30 m its ford
+    # could never take anybody's feet in a year of water.
+    - { name: mouth, km: 0, elevation: 35, channelWidthM: 12, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }

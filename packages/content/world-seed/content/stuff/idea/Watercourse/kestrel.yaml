@@ -101,6 +101,10 @@ data:
     #
     # 30 m, five below the city's own ground at 35, which is what makes
     # a bank a bank rather than a flood.
-    - { name: confluence, km: 9, elevation: 30, channelWidthM: 90, catchmentKm2: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/grey-mullet }], works: [/world/terminus/wharfside/thing/city-intake, /world/terminus/wharfside/thing/city-outfall] }
+    # ⭐ 35 m, not the 90 the water build authored (the river build's drive):
+    # a river carrying ~15 m³/s is ~20–40 m wide by hydraulic geometry, and
+    # spread across 90 m its riffles carried a quarter of a metre — no boat
+    # bigger than a canoe could use it, and the line says so.
+    - { name: confluence, km: 9, elevation: 30, channelWidthM: 35, catchmentKm2: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/grey-mullet }], works: [/world/terminus/wharfside/thing/city-intake, /world/terminus/wharfside/thing/city-outfall] }
     # The sea, and the global minimum: downstream of everything.
     - { name: estuary, km: 0, elevation: 0, channelWidthM: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

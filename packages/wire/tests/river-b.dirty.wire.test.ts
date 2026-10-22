@@ -39,7 +39,7 @@ export const DIRTY_REASON =
 
 declareFile({
   file: 'river-b.dirty.wire.test.ts',
-  packs: ['terminus', 'water', 'trade-diving', 'transport', 'world-seed', 'generic-objects'],
+  packs: ['terminus', 'rejection', 'water', 'trade-diving', 'transport', 'world-seed', 'generic-objects'],
   dirtyReason: DIRTY_REASON,
 });
 
@@ -48,6 +48,7 @@ const SHOP = '/world/terminus/wharfside/diving/location/shop';
 const BANK = '/world/terminus/wharfside/bank';
 const FORD = '/world/terminus/delight-road/ford';
 const LOWER = '/world/terminus/estuary/lower-towpath';
+const PUT_IN = '/world/terminus/rejection/put-in/landing';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -158,9 +159,11 @@ suite('stage B — bodies in moving water', () => {
   }, 1_800_000);
 
   it('8. floating in moving water is feet first; standing in a fast riffle jams a foot', async () => {
+    // ⭐ At the put-in: snowmelt over rock, fast enough to take a foot. The
+    // lower Kestrel's riffles run slower than a foot is jammed at.
     const s = await outfitted(uniqueHandle('rbe'), []);
     s.close();
-    const t = await session(s.handle, BANK);
+    const t = await session(s.handle, PUT_IN);
     await morning();
     expectOk(await t.cmd('swim'));
     await t.listen(2_000);
@@ -174,7 +177,7 @@ suite('stage B — bodies in moving water', () => {
     let jammed = false;
     for (let i = 0; i < 30 && !jammed; i++) {
       const where = await look(t);
-      if (/shallow riffle/.test(where)) {
+      if (/shallow riffle|white water/.test(where)) {
         await t.cmd('stand');
         jammed = /foot goes down between two rocks/.test(squash(await t.listen(4_000)));
         if (!jammed) await t.cmd('lie');
