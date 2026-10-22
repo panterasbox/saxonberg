@@ -169,17 +169,41 @@ async function toHour(fromH: number, toH: number): Promise<void> {
   await advance(`${Math.ceil(wait / 60) + 1} minutes`);
 }
 
-/** Step the clock to just past each weather-segment boundary until `test` says yes. */
+/**
+ * Bring the clock to the first segment whose weather `test` accepts.
+ *
+ * ⭐ Reads the FORECAST and jumps straight to the segment it names, rather
+ * than stepping one boundary at a time (that loop cost ten minutes a run).
+ * ⚠ Fails fast where there is no sky to read — run 2 read the weather
+ * inside the moulding shed sixty times and could never see rain there.
+ */
 async function untilWeather(s: Session, test: (weather: string) => boolean, segments: number): Promise<boolean> {
   const SEGMENT_S = 6 * 3600;
-  for (let i = 0; i < segments; i++) {
+  const toBoundary = async (n: number): Promise<void> => {
     const { after } = await advanceWorldClock('0 seconds');
     const toNext = Math.ceil((after + 1) / SEGMENT_S) * SEGMENT_S - after;
-    await advance(`${Math.ceil(toNext) + 60} seconds`);
+    await advance(`${Math.ceil(toNext + (n - 1) * SEGMENT_S) + 60} seconds`);
     await new Promise((r) => setTimeout(r, 4_000)); // the boundary fan-out is async
-    if (test(await say(s, 'analyze weather'))) return true;
+  };
+  let read = await say(s, 'analyze weather');
+  expect(read, 'untilWeather needs open sky — the drive is standing indoors').not.toMatch(
+    /no active sky weather here/i,
+  );
+  for (let tries = 0; tries < segments && !test(read); ) {
+    // The forecast names the coming segments in order: jump to the first
+    // that rains, or past the whole forecast when none does.
+    const forecast = /forecast:\s*([^\n]*?)(?:\s+the last|$)/i.exec(read)?.[1] ?? '';
+    const ahead = forecast.split(/\s*→\s*/).filter(Boolean);
+    const at = ahead.findIndex((w) => /rain|drizzle|shower|storm|downpour/i.test(w));
+    // ⚠ Never past it: whether the forecast's first word is THIS segment or
+    // the next is not the drive's to assume, so it lands at or just before
+    // the rain and reads again (at most one extra step).
+    const jump = at >= 0 ? Math.max(1, at) : Math.max(1, ahead.length - 1);
+    await toBoundary(jump);
+    tries += jump;
+    read = await say(s, 'analyze weather');
   }
-  return false;
+  return test(read);
 }
 
 const RAINING = (w: string): boolean =>
