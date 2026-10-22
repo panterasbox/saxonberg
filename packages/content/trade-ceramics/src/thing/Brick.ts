@@ -49,6 +49,23 @@ export default class Brick extends BrickBase {
   }
 
   /**
+   * ⭐ Green bricks stack only with bricks in the SAME green state and the
+   * same ruin. A stack has one water state, so a fresh wet brick set down
+   * beside a bone-dry one merged into "2 green bricks" of the dry one's
+   * state and the wet brick's water was lost — the frost the drive left it
+   * out for had nothing to burst (the ceramics drive A, run 21). Fired
+   * bricks stack by the ordinary rule.
+   */
+  public override canMergeWith(other: Stuff): boolean {
+    if (!super.canMergeWith(other)) return false;
+    const o = other as unknown as Partial<Brick>;
+    const mineGreen = this.greenState();
+    const theirsGreen = typeof o.greenState === 'function' ? o.greenState() : null;
+    if (mineGreen === null && theirsGreen === null) return true;
+    return mineGreen === theirsGreen && this.getRuin() === (typeof o.getRuin === 'function' ? o.getRuin() : null);
+  }
+
+  /**
    * ⭐ Bricks taken off a stack are the stack's bricks (the `Clay` and
    * `Ore` precedent): the split-off is a fresh clone of the ROW, so without
    * this a clay's composition, its water, its heat and its firing so far

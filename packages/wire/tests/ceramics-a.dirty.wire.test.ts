@@ -361,6 +361,11 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
 
 suite('⭐ 3 — knead it', () => {
   it('the weathered heap is trodden with sand and breeze in the temper pit — ONE clay, leaner', async () => {
+    // A checkpoint owns its position: the weathered heap is on the ground
+    // (run 21: a failed 5b left the brickmaker at the hacks, and `east`
+    // walked to the clamp ground).
+    digger.close();
+    digger = await at(digger.handle, GROUND);
     await toHour(9, 15);
     expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
     const fat = await say(digger, 'analyze clay lump');
