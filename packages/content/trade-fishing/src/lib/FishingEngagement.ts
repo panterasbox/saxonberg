@@ -63,6 +63,7 @@ import type { FeedFactors } from '../idea/Waters';
 import Fish from '../agent/Fish';
 import Bait from '../thing/Bait';
 import Rod, { type RigLayer } from '../thing/Rod';
+import Waters, { WATERS_PATH } from '../idea/Waters';
 
 /** A `Fish` this long or shorter goes on a hook as a baitfish. */
 const BAITFISH_MAX_M = 0.25;
@@ -108,7 +109,8 @@ export class FishingEngagement implements SustainedEngagement {
   readonly cancelable = true;
   readonly emissions: readonly ScheduledEmission[];
 
-  readonly reachRef: string;
+  /** ⭐ The water fished — re-read each wait, so a drifting boat fishes the stretch it is over (river D34). */
+  reachRef: string;
   private readonly rod: Stuff;
   private bait: Stuff | null;
   private readonly room: Stuff;
@@ -153,7 +155,36 @@ export class FishingEngagement implements SustainedEngagement {
     this.ended = true;
   }
 
-  /** The rod: its destruction tears the wait down. */
+  /** The water the fisher is in now: the first water place up from them. */
+  private waterRoom(): Stuff | null {
+    let at: Stuff | null = this.actor;
+    for (let i = 0; i < 4 && at !== null; i++) {
+      at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;
+      if (at !== null && MixinApi.isShore(at)) return at;
+    }
+    return null;
+  }
+
+  /** Re-read the stretch the fisher is over (a drifting boat moves on, D34). */
+  private async followTheWater(): Promise<void> {
+    const room = this.waterRoom();
+    if (room === null || !(room as unknown as { getLinePosition?(): unknown }).getLinePosition) return;
+    const waters = await StuffApi.singleton<Waters>(WATERS_PATH).catch(() => null);
+    const ref = waters ? await waters.reachAt(room).catch(() => null) : null;
+    if (ref) this.reachRef = ref;
+  }
+
+  /** 1 still, falling to 0 as the drift reaches `water.fishery.driftKillMps`. */
+  private driftFactor(): number {
+    const room = this.waterRoom();
+    if (room === null || !MixinApi.isWaterPlace(room)) return 1;
+    if ((room as unknown as { isUnderWay?(): boolean }).isUnderWay?.() === false) return 1;
+    const v = Math.abs(room.currentFor(this.actor));
+    const kill = dial('water.fishery.driftKillMps', 1.0);
+    return Math.max(0, Math.min(1, 1 - v / kill));
+  }
+
+  /** The rod: its destruction tears the wait down. */  /** The rod: its destruction tears the wait down. */
   getHost(): Stuff | null {
     return this.rod;
   }
@@ -228,12 +259,16 @@ export class FishingEngagement implements SustainedEngagement {
   /** One minute of waiting: accumulate pressure; a take when it crosses one. */
   private async wait(): Promise<FishingEvent | null> {
     const nowS = WorldClockApi.getNow().rawValue();
+    await this.followTheWater();
     const standing = await this.registry.standingAt(this.reachRef, nowS);
     if (standing === null) return null;
     this.noteContamination(standing);
     const factors = await this.feedFactors(this.room, nowS);
     const terms = this.terms(standing, factors);
-    const total = terms.reduce((sum, t) => sum + t.term, 0);
+    // ⭐ Drift too fast and nothing takes (river D34): a bait swept past
+    // a fish faster than it can turn is a bait no fish takes — unless the
+    // boat is held (beached, at its killick).
+    const total = terms.reduce((sum, t) => sum + t.term, 0) * this.driftFactor();
     this.pressure += total * dial('fishing.bite.ratePerMinute', 0.12);
     if (this.pressure < 1 || total <= 0) return null;
     this.pressure -= 1;

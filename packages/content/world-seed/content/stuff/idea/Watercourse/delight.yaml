@@ -34,6 +34,9 @@ data:
     # shallow, fast, and the only place a cart crosses (overridden: a ford
     # is where somebody found the riffle, and an author says where).
     - { from: mouth-0.4, to: mouth-0.25, kind: riffle }
+  # The places on its line: the ford.
+  places:
+    - /world/terminus/delight-road/ford
   nodes:
     - { name: spring, km: 60, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The alluvial flats — the diversion fight, when it comes, is here.

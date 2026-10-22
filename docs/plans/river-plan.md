@@ -1670,6 +1670,37 @@ water's own words.
 
 **Commit.** `build(river W2): bodies in moving water — the current, the ford, hazards, the rescue, the delivery, the corpse`
 
+> ✅ **W2 built (2026-10-21), landed in the W1 commit and the W3 commit.**
+> Decisions the build made:
+> - **The current in `treadBeat`** is a drag `½ρC_dAv³` paid every beat
+>   while you hold station, and the sweep when you do not; rough water takes
+>   a share of the store; the feet-first float halves both. A body's own
+>   swim speed is `Respiration.swimSpeedMps` (the stroke, noted per crossing).
+> - **The ford reads the body** (`FordExit.verdictFor`): over the head
+>   (0.85 × stature) refuses — a swim; depth × speed past the
+>   0.6 m²/s standing figure scaled by stature and mass sweeps you, handed to
+>   the warren at the ford's citation. `floodThresholdM3S` is retired.
+> - **Entrapment lives on the bed** (`RiverBed.occupy`): taking your feet in
+>   a riffle or rapid over rock or gravel at ≥ 1 m/s pins you (a
+>   `HazardActivity`); `pull <person>` (now `PullableMixin` on `Creature`)
+>   cancels it; when it ends the river hands you on.
+> - **Hazards are things with a side** (`RiverHazard`, `HazardMixin(Good)`),
+>   minted onto a patch when the line puts one within reach; `catches`
+>   reads the approach (passive / feet-first / swimming).
+> - **A corpse floats again at `decomposed`** (`Postmortem.buoyantNow`);
+>   the warren's drift fetches a floating body up on the next bar.
+> - ⭐ **The drive found it:** a swimmer who found their feet in the
+>   shallows kept the swim mode, and every bank refused them as water too
+>   rough to swim (`gate: capability`); and the patch that drifted into a
+>   deep pool kept them standing. Fixed by the bed's `occupy` dropping a
+>   water mode for walk (the mirror of `giveWay`), the warren reconciling
+>   who the bed bears whenever a place's depth is refreshed, and the patch's
+>   `left`/`right` ways taking ground as well as water (you wade out).
+> - ⚠ **Owed, not built yet:** river ice per stretch (D16, drive step 17)
+>   and white water heard ahead (step 9) are wired in code (`hearAhead`) but
+>   undriven — the lower Kestrel has no rapid within a drift of a standing
+>   place. Recorded for W6.
+
 ### W3 — Small craft
 
 **Goal.** A canoe goes where you would swim. **Decisions:** D19–D24, D34
@@ -1707,6 +1738,39 @@ fast; the next `paddle` takes it up), `DriftFishing.test.ts`.
 step 15 is red here and is fixed in W5 (recorded in the commit).
 
 **Commit.** `build(river W3): small craft — hulls and propulsion by part, paddling, poling, lining, portage, the killick, drift fishing`
+
+> ✅ **W3 built (2026-10-21).** Decisions the build made:
+> - **Propulsion is CARRIED, not fitted.** A `Propulsion` part (paddle,
+>   oar, pole) is a thing in the boat; `Boat.propulsion()` reads the first
+>   crew-powered one. No assembly bill — a paddle is not a part of a canoe,
+>   it is in it, and you can hand it to the next boat (lens 2: a new boat
+>   kind is one row with `props:`).
+> - **`Boat` is not Persistable.** It persists as content of the stop it is
+>   beached in (stops are persisted, W1) and as its owner's estate; the
+>   `Boat.keyed` test is replaced by the census that every `Boat` row is a
+>   transport KIND row (D38's zone-null guarantee), `Boat.test.ts`.
+> - **`Propel` is one engagement on the paddler's hands**, beating every
+>   20 game-s: `v = ∛(P·η·crew / (½ρC_dA))`, the current added downstream
+>   and subtracted upstream (losing ground is told once), `--inside` reads
+>   the river at the inside of the bend, a pole needs `depth ≤ reach` and is
+>   the strongest thing in the shallows, a wave over freeboard capsizes.
+>   Each 1.1 hails of way moves the boat into the water the warren names —
+>   the same `destinationOf` a swimmer's stroke takes.
+> - **`launch` / `recover` by shape**: the river's warren gives the stop at a
+>   bank's edge (`launchPlaceFor`) and the bank within hail
+>   (`recoverPlaceFor`); the sea's will answer the same two questions (W5).
+> - **The killick** affords the platform's `anchor` (`AnchorController` asks
+>   a duck-typed `dropAnchor` first); the warren holds a boat under
+>   `water.river.killickHoldsMps` by turning its spot into a stop.
+> - **The put-in** (D36): rejection's `put-in` zone, a Shore at
+>   `headwaters+1.5` left, Ada Fenn's boat shed (`Fenn's boats`, a Stock
+>   counter selling canoes, a punt, paddles, a pole, killicks, a current
+>   log and a thermometer); the upper climb gains `down` to it.
+> - ⚠ **Owed for W6, not built in this wave:** lining from the bank, sail /
+>   tiller (`course` in a `Boat`), `FerryCable` (W5 needs it), the
+>   lifeline `painter`, `DriftFishing.test`. Drive steps 23–24 are
+>   unit-territory (fishing's reach-following is in `FishingEngagement`;
+>   a wire drive cannot restart its own server).
 
 ### W4 — Ships on the river
 

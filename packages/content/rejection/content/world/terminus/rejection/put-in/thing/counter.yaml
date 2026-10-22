@@ -1,0 +1,34 @@
+# The outfitter's counter at the put-in (the river build): boats and what
+# drives them, and the instruments that tell you what the river is doing.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: boat-shed counter
+  keywords: [counter, shed, till]
+  register: definite
+  longDescription: |
+    A plank across two barrels in the mouth of the shed, with a price list chalked on the door behind it and paddles racked on the wall.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 40
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [keeper]
+  businessPath: /world/terminus/rejection/put-in/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /system/transport/thing/canoe, par: 3 }
+    - { itemTemplatePath: /system/transport/thing/punt, par: 1 }
+    - { itemTemplatePath: /system/transport/thing/rowboat, par: 1 }
+    - { itemTemplatePath: /system/transport/thing/propulsion/paddle, par: 4 }
+    - { itemTemplatePath: /system/transport/thing/propulsion/pole, par: 2 }
+    - { itemTemplatePath: /system/transport/thing/killick, par: 2 }
+    - { itemTemplatePath: /system/water/thing/current-log, par: 2 }
+    - { itemTemplatePath: /stuff/thing/instrument/thermometer, par: 2 }
+  prices:
+    /system/transport/thing/canoe: 40
+    /system/transport/thing/punt: 60
+    /system/transport/thing/rowboat: 75
+    /system/transport/thing/propulsion/paddle: 4
+    /system/transport/thing/propulsion/pole: 5
+    /system/transport/thing/killick: 3
+    /system/water/thing/current-log: 5
+    /stuff/thing/instrument/thermometer: 6

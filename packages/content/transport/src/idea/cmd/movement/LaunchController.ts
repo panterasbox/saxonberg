@@ -1,12 +1,15 @@
 /**
- * LaunchController — `launch`: put the boat you are sitting in over the
- * side (maritime D12).
+ * LaunchController — `launch`: put the boat you are sitting in into the
+ * water (river D30).
  *
- * Afforded from inside a `Boat` on a deck. The boat leaves every
- * container (the legal final-detach edge) and takes the ship's position
- * as its own, so you are now wherever the boat is — on the water, not in
- * it, and no longer aboard the ship. `course` and `anchor` work from the
- * boat exactly as from a helm.
+ * A boat is a thing in a water room, so launching it is moving it from
+ * where it lies — a bank, a landing, a ship's deck — into the water beside
+ * there. From a bank on a river it goes into the water at the bank's edge,
+ * held there (a stop); `paddle` pushes off. From a ship's deck it goes into
+ * the room alongside her, where she has stopped.
+ *
+ * Which water, and whether there is any, is the water's business: asked of
+ * the river's warren (and the sea's) by shape.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -14,11 +17,19 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Boat from '../../../thing/Boat';
+
+/** The waters a boat can be put into, by shape. */
+interface LaunchWater {
+  launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null>;
+}
+
+/** Where the river's warren and the sea's live. */
+const WATERS = ['/system/water/idea/ReachWarren', '/system/water/idea/SeaWarren'];
 
 export default class LaunchController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -27,31 +38,25 @@ export default class LaunchController extends CommandController<CommandModel> {
     if (!(boat instanceof Boat)) {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
-    const deck = boat.getContainer();
-    if (deck === null) {
-      return this.decline(context, 'You are already on the water.', 'already-launched');
+    const from = boat.getContainer() as unknown as Stuff | null;
+    if (from === null) return this.decline(context, 'There is nowhere to put her into.', 'no-water');
+    if (MixinApi.isWaterPlace(from)) {
+      return this.decline(context, 'She is in the water already.', 'already-launched');
     }
-    const root = MixinApi.isContainable(deck) ? deck.getRootContainer() ?? deck : deck;
-    const ship = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
-    const at = ship?.getExpansePosition() ?? null;
-    if (!ship || !at || !ship.getExpanse()) {
-      return this.decline(context, 'There is no open water under the side to put her into.', 'no-water');
+    for (const path of WATERS) {
+      const water = await StuffApi.singleton<Stuff & Partial<LaunchWater>>(path).catch(() => null);
+      if (!water || typeof water.launchPlaceFor !== 'function') continue;
+      const into = await water.launchPlaceFor(from);
+      if (into === null) continue;
+      ContainmentApi.move(boat, into);
+      MessageApi.scene(giver)
+        .topic('act.move')
+        .toSelf(Mml.compose`You run ${Mml.thing(boat)} down into the water and she floats. The water is close enough to touch.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} runs ${Mml.thing(boat)} down into the water.`)
+        .send();
+      return;
     }
-    const expanse = await ExpanseApi.expanse(ship.getExpanse()!);
-    if (!expanse) return this.decline(context, 'There is no open water here.', 'no-water');
-
-    ContainmentApi.move(boat, null);
-    boat.setExpanse(ship.getExpanse());
-    boat.placeAt(at, WorldClockApi.getNow().rawValue());
-    await expanse.bands();
-    expanse.register(boat);
-    void PersistableApi.capture(boat).catch((err) => console.warn('launch: capture failed:', err));
-
-    const shipName = MixinApi.isNamed(ship) ? ship.getName() : 'the ship';
-    MessageApi.scene(giver)
-      .topic('act.move')
-      .toSelf(Mml.compose`You put ${Mml.thing(boat)} over the side and push off from ${shipName}. The water is close enough to touch.`)
-      .send();
+    return this.decline(context, 'There is no open water beside here to put her into.', 'no-water');
   }
 
   private decline(context: CommandContext, text: string, reason: string): void {

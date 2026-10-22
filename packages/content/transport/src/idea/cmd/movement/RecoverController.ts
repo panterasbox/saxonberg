@@ -1,10 +1,10 @@
 /**
- * RecoverController — `recover`: bring the boat you are sitting in back
- * aboard a ship lying close (maritime D12).
+ * RecoverController — `recover`: take the boat you are sitting in out of
+ * the water (river D30) — onto the deck of a ship lying alongside, or up
+ * onto the bank it is beached against.
  *
- * Within `expanse.recoverNm` of a craft with a deck, the boat goes back
- * onto that deck and gives up its position — you are aboard the ship
- * again, still sitting in the boat; `out` to climb onto the deck.
+ * Where it can come out is the water's business, asked by shape of the
+ * river's warren and the sea's.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -12,15 +12,18 @@ import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/com
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import Ship from '@saxonberg/server/mud/platform/idea/Ship';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Boat from '../../../thing/Boat';
+
+/** The waters a boat can be taken out of, by shape. */
+interface RecoverWater {
+  recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null>;
+}
+
+const WATERS = ['/system/water/idea/SeaWarren', '/system/water/idea/ReachWarren'];
 
 export default class RecoverController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -29,40 +32,23 @@ export default class RecoverController extends CommandController<CommandModel> {
     if (!(boat instanceof Boat)) {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
-    const at = boat.getExpansePosition();
-    const path = boat.getExpanse();
-    if (boat.getContainer() !== null || at === null || !path) {
-      return this.decline(context, 'She is not in the water.', 'not-launched');
+    const from = boat.getContainer() as unknown as Stuff | null;
+    if (from === null || !MixinApi.isWaterPlace(from)) {
+      return this.decline(context, 'She is out of the water already.', 'not-afloat');
     }
-    const expanse = await ExpanseApi.expanse(path);
-    const within = Number(AppApi.setting('expanse.recoverNm')) || 1;
-    let ship: Ship | null = null;
-    let best = Infinity;
-    for (const c of expanse?.craft() ?? []) {
-      if (!(c instanceof Ship) || c.getEntrance() === null) continue;
-      const p = c.getExpansePosition();
-      const d = p ? p.distanceNm(at) : Infinity;
-      if (d <= within && d < best) {
-        ship = c;
-        best = d;
-      }
+    for (const path of WATERS) {
+      const water = await StuffApi.singleton<Stuff & Partial<RecoverWater>>(path).catch(() => null);
+      if (!water || typeof water.recoverPlaceFor !== 'function') continue;
+      const onto = await water.recoverPlaceFor(from);
+      if (onto === null) continue;
+      ContainmentApi.move(boat, onto);
+      MessageApi.scene(giver)
+        .topic('act.move')
+        .toSelf(Mml.compose`${Mml.thing(boat)} comes up out of the water and you with it.`)
+        .send();
+      return;
     }
-    if (ship === null) {
-      return this.decline(context, 'There is nothing close enough to come alongside.', 'nothing-alongside');
-    }
-    const deck = await StuffApi.singleton<Stuff>(ship.getEntrance()!);
-    if (!MixinApi.isContainer(deck)) {
-      return this.decline(context, 'There is no deck to swing her onto.', 'no-deck');
-    }
-    await boat.anchorHere();
-    expanse?.deregister(boat);
-    boat.setExpansePosition(null);
-    ContainmentApi.move(boat, deck as Stuff & Container);
-    void PersistableApi.capture(boat).catch((err) => console.warn('recover: capture failed:', err));
-    MessageApi.scene(giver)
-      .topic('act.move')
-      .toSelf(Mml.compose`You come alongside ${ship.getName()}, and ${Mml.thing(boat)} is swung back aboard with you in it.`)
-      .send();
+    return this.decline(context, 'There is nowhere beside here to take her out onto.', 'nowhere');
   }
 
   private decline(context: CommandContext, text: string, reason: string): void {

@@ -60,6 +60,7 @@ data:
   # its places, so the water drifting down it knows where it is handed in,
   # and which banks it passes within hail of. Nothing is searched for.
   places:
+    - /world/terminus/rejection/put-in/landing
     - /world/kestrel-gorge/head
     - /world/kestrel-gorge/chute
     - /world/kestrel-gorge/cauldron

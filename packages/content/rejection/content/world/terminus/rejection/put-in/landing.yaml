@@ -1,0 +1,34 @@
+# The put-in (the river build, D36): a shelving gravel landing on the
+# Kestrel's left bank a kilometre and a half below its head, where the road
+# down from the pass comes nearest the water. The outfitter's shed stands
+# on it.
+class: /platform/location/Shore
+data:
+  shortDescription: put-in
+  keywords: [put-in, landing, gravel, shingle]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    The road gives up a hundred yards short of the river and a path of boot-polished stones goes the rest of the way, down to a shelf of grey shingle where the Kestrel runs fast and clear and cold, straight off the snow. Canoes lie upturned along the top of the shingle like a row of sleeping animals. A shed with its doors open sells what you need to go down the river, and the woman in it will tell you, unasked, what the river does to people who go without.
+  coords: { x: 0, y: 0, z: 0 }
+  waters:
+    river: "kestrel:headwaters+1.6"
+  bank: { course: kestrel, at: headwaters+1.5, side: left, span: 0.2, name: put-in }
+  details:
+    river:
+      keywords: [river, kestrel, water]
+      description: |
+        Clear as glass over the stones and very fast, with the snow's cold still in it. You can see every stone on the bottom, and you can see how quickly they go by.
+    canoes:
+      keywords: [canoes, upturned]
+      description: |
+        A dozen of them, bark and canvas, turned turtle on the shingle with their paddles under them. The outfitter's.
+  exits:
+    up:
+      destination: /world/terminus/rejection/kestrel-road/upper-climb
+      media: [ground]
+      edgeMinutes: 5
+  props:
+    - /world/terminus/rejection/put-in/thing/counter
+  cast:
+    - /world/terminus/rejection/put-in/agent/outfitter

@@ -1,0 +1,30 @@
+# Ada Fenn, the outfitter at the put-in (the river build, D36): sells and
+# hires the boats people go down the Kestrel in, and the gear that keeps
+# them alive doing it.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Ada Fenn
+  keywords: [ada, fenn, outfitter]
+  shortDescription: outfitter
+  register: definite
+  longDescription: >-
+    A lean woman in a patched waxed jacket with her sleeves pushed up over
+    forearms like rope, who looks at the river before she looks at you.
+  archetype: proprietor
+  prologue:
+    - "Has run the Kestrel from the put-in to the city more times than anyone she knows."
+    - "Will not hire a boat to anybody she has watched fall in getting into it."
+  competence:
+    - { discipline: swimming, asserting: expert }
+    - { discipline: navigation, asserting: proficient }
+  dispositions:
+    - { disposition: sociability, valence: 30 }
+    - { disposition: composure, valence: 80 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

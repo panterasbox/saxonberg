@@ -123,7 +123,7 @@ const A = uniqueHandle('rva');
 const B = uniqueHandle('rvb');
 
 beforeAll(async () => {
-  a = await outfitted(A, ['current log', 'thermometer', 'spear']);
+  a = await outfitted(A, ['current log', 'thermometer', 'diving stone']);
   b = await Session.open(B, { startLocation: BANK });
 }, 300_000);
 
@@ -196,8 +196,10 @@ suite('stage A — the line and the patch', () => {
     }
     expect(together, `B never caught A up (last: ${last})`).toBe(true);
     // Together: one room, and a word carries.
-    expectOk(await b.cmd(`say ${A}, here!`));
-    expect(squash(await a.listen(5_000))).toMatch(/here!/);
+    await a.drainProse();
+    const heard = a.listen(6_000);
+    expectOk(await b.cmd('say here!'));
+    expect(squash(await heard)).toMatch(/here!/);
 
     // A strokes hard ahead: past hail, they part.
     const atA = await here(a);
@@ -240,16 +242,16 @@ suite('stage A — the line and the patch', () => {
     expect(await moved(a, bar, 180)).toBe(true);
   }, 900_000);
 
-  it('16. a spear dropped from the drifting water lies on the bed where it went down', async () => {
+  it('16. a diving stone dropped from the drifting water lies on the bed where it went down', async () => {
     const at = await here(a);
-    expectOk(await a.cmd('drop spear'));
+    expectOk(await a.cmd('drop stone'));
     await a.listen(3_000);
     const inv = await say(a, 'inventory');
-    expect(inv).not.toMatch(/spear/);
+    expect(inv).not.toMatch(/diving stone/);
     // The patch drifts on; the sword does not come with it.
     await a.listen(30_000);
     const still = await look(a);
-    expect(still).not.toMatch(/\bspear\b/);
+    expect(still).not.toMatch(/diving stone/);
     void at;
   }, 120_000);
 

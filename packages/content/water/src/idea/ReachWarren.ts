@@ -46,6 +46,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -91,6 +92,8 @@ const LINE_PREFIX = '/stuff/idea/Watercourse/';
 const MAX_EVENT_S = 600;
 /** Slower than this the water is slack, m/s: nothing is carried. */
 const SLACK_MPS = 0.02;
+/** A killick holds in water slower than this, m/s (`water.river.killickHoldsMps`). */
+const KILLICK_HOLDS_MPS = 0.3;
 /** How far ahead white water is heard, km. */
 const EARSHOT_KM = 0.3;
 /** A hazard on a bank reaches this share of the width out from it. */
@@ -317,8 +320,16 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
 
   /** ⭐ Where a reach exit leads, worked out now (D7). */
   public async destinationFor(exit: ReachExit): Promise<Stuff & Container> {
-    const source = exit.getSource() as unknown as Stuff;
-    const way = exit.getWay();
+    return this.destinationOf(exit.getSource() as unknown as Stuff, exit.getWay(), exit.getTarget());
+  }
+
+  /**
+   * ⭐ Where a way from `source` leads now, named rather than taken through
+   * an exit — what a boat being paddled asks (river D21): the same water a
+   * swimmer's stroke reaches.
+   */
+  public async destinationOf(source: Stuff, way: ReachWay, wayTarget = ''): Promise<Stuff & Container> {
+    const exit = { getTarget: () => wayTarget };
     if (way === 'patch') {
       for (const p of [...this._patches, ...this._banks]) {
         if (p.stuffId === exit.getTarget() && !p.isDestroyed()) return p as unknown as Stuff & Container;
@@ -376,8 +387,11 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * refuses going up it, or getting in to a margin it races along.
    */
   public async refusalFor(exit: ReachExit, mover: Stuff): Promise<string | null> {
-    const source = exit.getSource() as unknown as Stuff;
-    const way = exit.getWay();
+    return this.refusalOf(exit.getSource() as unknown as Stuff, exit.getWay(), mover);
+  }
+
+  /** {@link refusalFor} for a way named rather than an exit (a boat's). */
+  public async refusalOf(source: Stuff, way: ReachWay, mover: Stuff): Promise<string | null> {
     if (way === 'place' || way === 'branch' || way === 'enter' || way === 'patch') return null;
     if (way === 'walk-up' || way === 'walk-down') {
       const step = await this.bankStep(source, way);
@@ -523,6 +537,10 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const state = await cat.riverStateAt(pos, WorldClockApi.getNow().rawValue()).catch(() => null);
     const depth = state?.depthHereM ?? 1.4;
     place.setWater({ of: node, depthM: Math.round(depth * 100) / 100 });
+    // ⭐ The place moved under whoever stood in it: deeper now, the bed
+    // lets them go (the drive found a swimmer standing in a deep pool).
+    const floor = MixinApi.isAdornable(place) ? place.getFloor() : null;
+    (floor as { reconcileSupport?(): void } | null)?.reconcileSupport?.();
   }
 
   /** The ways every minted place has: the banks, the strokes, the bed. */
@@ -562,7 +580,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
           ? ['water', 'vertical']
           : way === 'walk-up' || way === 'walk-down'
             ? ['ground']
-            : wade ? ['water', 'ground'] : ['water'],
+            : wade || way === 'left' || way === 'right' ? ['water', 'ground'] : ['water'],
       },
       (e) => e.configureReach(way, target),
     );
@@ -963,6 +981,103 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     }
   }
 
+  /* ───────────────────────── boats ───────────────────────── */
+
+  /**
+   * ⭐ The river where a room is now — what a boat being paddled feels
+   * (D21): the current at its across (the margin's with `inside`), the
+   * depth, how broken the water is. `null` off any river.
+   */
+  public async riverAt(
+    room: Stuff,
+    inside = false,
+  ): Promise<{ currentMps: number; depthM: number; roughness: number; course: string; km: number; barSide: RiverSide | null } | null> {
+    const cat = this.catalogue();
+    if (!cat) return null;
+    let pos = (room as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    if (pos === null) {
+      const river = (room as unknown as { getRiver?(): { course: string; at: string } | null }).getRiver?.();
+      if (river) pos = await cat.positionOf(river.at.includes(':') ? river.at : `${river.course}:${river.at}`);
+    }
+    if (pos === null) return null;
+    const nowS = WorldClockApi.getNow().rawValue();
+    let state = await cat.riverStateAt(pos, nowS);
+    if (state && inside) {
+      const s = state.stretch;
+      const insideSide: RiverSide = s.outside === 'left' ? 'right' : 'left';
+      const width = this.widthAt(pos.course, pos.km);
+      state = (await cat.riverStateAt({ ...pos, across: insideSide === 'left' ? width * 0.08 : width * 0.92 }, nowS)) ?? state;
+    }
+    if (!state) return null;
+    const banks = state.stretch.banks;
+    return {
+      currentMps: state.currentHereMps,
+      depthM: state.depthHereM,
+      roughness: state.roughness,
+      course: pos.course,
+      km: pos.km,
+      barSide: banks.left.kind === 'bar' ? 'left' : banks.right.kind === 'bar' ? 'right' : null,
+    };
+  }
+
+  /**
+   * ⭐ Where a boat launched from `from` goes into the river (D30): from a
+   * bank on a river's line, into the water at its edge, held there (a stop
+   * at the bank) — `paddle` pushes off. `null` anywhere else.
+   */
+  public async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+    if (!MixinApi.isShore(from) || from.getBank() === null) return null;
+    const b = from.getBank()!;
+    const cat = this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH));
+    const pos = await cat.positionOf(`${b.course}:${b.at},${b.side}`);
+    if (pos === null) return null;
+    return (await this.stopAt(pos.course, pos.km, b.side)) as unknown as Stuff & Container;
+  }
+
+  /**
+   * Where a boat in river water comes out (D30): from the edge of the river
+   * beside an authored bank within hail, up onto that bank. `null` anywhere
+   * else — a boat in the stream of the river has nowhere to be lifted onto.
+   */
+  public async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+    const pos = (from as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    const cat = this.catalogue();
+    if (pos === null || cat === null) return null;
+    const hailKm = this.hailM() / 1000;
+    for (const p of cat.placesOfSync(pos.course)) {
+      if (p.kind !== 'bank') continue;
+      if (pos.km <= p.upKm + hailKm && pos.km >= p.downKm - hailKm) {
+        return StuffApi.singleton<Stuff & Container>(p.path);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ A killick dropped from a boat (D23): it holds where the water is
+   * slack — the boat and its people become a stop at that spot — and drags
+   * where it is not.
+   */
+  public async holdBoat(boat: Stuff & Containable): Promise<{ ok: boolean; line: string }> {
+    const room = boat.getContainer() as unknown as Stuff | null;
+    if (room === null) return { ok: false, line: 'There is no water under it to hold in.' };
+    const pos = (room as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    const river = await this.riverAt(room);
+    if (pos === null || river === null) return { ok: false, line: 'The killick goes down, and finds nothing to hold.' };
+    const holdsBelow = dialNum('water.river.killickHoldsMps', KILLICK_HOLDS_MPS);
+    if (Math.abs(river.currentMps) >= holdsBelow) {
+      return { ok: false, line: 'The killick goes down and drags along the bottom; the water is too quick for it to hold.' };
+    }
+    if ((room as unknown as { isUnderWay?(): boolean }).isUnderWay?.() === false) {
+      return { ok: true, line: 'The killick goes down and holds; you are not going anywhere.' };
+    }
+    const width = this.widthAt(pos.course, pos.km);
+    const side: RiverSide | 'mid' = pos.across < width * 0.3 ? 'left' : pos.across > width * 0.7 ? 'right' : 'mid';
+    const stop = await this.stopAt(pos.course, pos.km, side);
+    ContainmentApi.move(boat, stop as unknown as Stuff & Container);
+    return { ok: true, line: 'The killick goes down, bumps along, and takes hold. The boat swings round on its line and stops.' };
+  }
+
   /* ───────────────────────── what is in sight ───────────────────────── */
 
   /**
@@ -1233,4 +1348,14 @@ function bandOf(across: number, width: number, hail: number): number {
 
 function clamp(x: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, x));
+}
+
+/** A numeric dial with a seeded fallback. */
+function dialNum(key: string, fallback: number): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(key) ?? '');
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
 }

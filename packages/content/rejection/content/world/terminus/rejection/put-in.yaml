@@ -1,0 +1,9 @@
+# The put-in (the river build, D36) — a gravel landing on the Kestrel below
+# the pass, where the road comes nearest the river, and the outfitter who
+# hires and sells the boats people put in with. Its own small zone: a bank
+# on the river's line.
+class: /platform/idea/location/CartesianZone
+data:
+  name: the put-in
+  cellSize: 10.0
+  elevation: 1380

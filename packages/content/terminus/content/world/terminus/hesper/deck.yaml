@@ -27,7 +27,7 @@ data:
     - /stuff/thing/instrument/hand-compass
     - /trade/fishing/thing/rod
     - /trade/fishing/thing/worm
-    - /world/terminus/hesper/thing/dinghy
+    - /system/transport/thing/dinghy
     - /world/terminus/hesper/thing/sea-chest
   cast:
     # ⭐ A deckhand who keeps the watch once appointed (maritime R7).

@@ -10,7 +10,7 @@
 #
 # ⚠ The way ONWARD is the ford. There is no other line: that is what
 # makes a seasonal crossing a fact about the road rather than a detour.
-class: /platform/location/Locale
+class: /platform/location/Shore
 data:
   shortDescription: ford on the Delight
   keywords: [ford, delight]
@@ -53,3 +53,8 @@ data:
       keywords: [channel, water, delight, river, side-channel]
       description: |
         A braid of the Delight that leaves the main stream up on the flats and comes down to rejoin it below the city. Most of the year it carries very little. Most of the year is not all of it.
+  # ⭐ The Delight at the crossing (the river build): read it before you
+  # try it — how deep, how fast — because the ford reads YOU.
+  waters:
+    channel: "delight:mouth-0.3"
+  bank: { course: delight, at: mouth-0.4, side: right, span: 0.15, name: ford }

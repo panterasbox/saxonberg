@@ -1,0 +1,18 @@
+# A rowboat (the river build, D19-D20): a small craft, a thing you sit in. ⭐ A
+# KIND row of the transport pack, never a venue's, so its zone is null for
+# life and it can go into any water (D38). Comes with what drives it.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: rowboat
+  keywords: [rowboat, boat, skiff]
+  register: indefinite
+  longDescription: |
+    A clinker-built rowboat with two thwarts and a pair of oars stowed along them.
+  eyeHeightM: 1
+  heightM: 1.5
+  mass: 120
+  _materialPath: /stuff/idea/material/wood/oak
+  hull: { form: round, draftM: 0.25, beamM: 1.3, lengthM: 4.5, freeboardM: 0.4, capacityKg: 500 }
+  props:
+    - { template: /system/transport/thing/propulsion/oar, count: 2 }
+    - /system/transport/thing/killick
