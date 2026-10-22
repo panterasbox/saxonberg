@@ -477,8 +477,9 @@ suite('⭐⭐ 27 — impress a sword in a flask, cast it in pewter', () => {
     expect(cast, 'seams, no mark').toMatch(/seams/i);
     expect(cast, 'no maker\'s mark').toMatch(/no maker's mark/i);
     expect(cast, 'one piece').toMatch(/one piece/i);
-    // ⭐ Whose sword it was — the player's own, stamped when they took it up.
-    if (playerName) expect(cast, `names whose sword (${playerName})`).toContain(playerName);
+    // ⭐ Whose sword it was — its OWNER. The founder minted it (setup), and
+    // picking a thing up is custody, not title: "founder's arming sword".
+    expect(cast, 'names whose sword it was').toMatch(/impression of [^.]+'s arming sword/i);
     // A riser fed it: sound, not porous.
     expect(cast, 'a riser → sound').not.toMatch(/porous/i);
     // The overfill is a runner, not lost.
