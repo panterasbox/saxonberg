@@ -6,6 +6,9 @@
 > Two planes: **real people** (plane 1) and **the fiction** (plane 2). The detection side
 > — suspicion, clues, the detective — is the
 > [deception-and-detection slate](./deception-and-detection-slate.md).
+> ⚠ **The private room is now load-bearing** — the sexual tier of
+> [expressive acts](./expressive-acts-slate.md) § 6a needs every witness's consent and is
+> refused without it, so the private room as a place property is where intimacy happens.
 > **Left:** the privacy surface and its flagging lint · spoiler privilege earned by
 > publication · the install-and-eval trail · the operator residual · the four quadrants
 > (hiding, anonymity, disguise, privacy) · ⭐ PII (§ 5a) · ⭐ anonymity as the default and
