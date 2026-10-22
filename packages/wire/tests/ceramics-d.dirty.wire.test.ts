@@ -429,6 +429,8 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     const pressed = await doing(caster, 'impress mug in case');
     expect(pressed, `impress mug in case: ${pressed}`).toMatch(/holds the shape of/i);
     await advance('30 minutes');
+    // ⭐ The case cures on READ: look at it, and the mould comes out.
+    await examine(caster, 'case');
     const mould = await examine(caster, '"plaster mould"');
     expect(mould, `a plaster mould cured in the case: ${mould}`).toMatch(/plaster mould/i);
     expect(mould, 'it holds the mug\'s cavity').toMatch(/impression of an? .*mug/i);
@@ -445,6 +447,7 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'drop "plaster mould"');
     await doing(caster, 'pour "slip tub" into "plaster mould"');
     await advance('3 hours');
+    await examine(caster, '"plaster mould"'); // the mould sets on read
     const cup = await examine(caster, 'mug');
     expect(cup, `the slip cast: ${cup}`).toMatch(/clay cast of an? .*mug/i);
     expect(cup, 'it comes out green clay, firm enough to handle').toMatch(/It is green/i);
