@@ -1028,6 +1028,13 @@ passes under it.
   heat above the boil now turns liquid to steam at that latent heat and
   the liquid HOLDS at the boil while it lasts (the boil twin of
   `reconcileMelt`); a material with no latent heat still flashes.
+- ⭐⭐ **A boil concentrates** (ceramics, 2026-10-22). The steam is water,
+  so what is dissolved stays behind: each boiled-off step scales the
+  bulk's `dissolvedSolidsKgPerL` (or the material's own `solidsKgPerL`)
+  by `before ÷ after`. Before, the solids left with the volume, and brine
+  on the brine hearth never reached saturation — the crystallize arm
+  never fired. Boiling down is now the hearth's road to salt, as the sun's
+  evaporative window is the pan's.
 - ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, the
   `boil` verb retired to an alias of `heat`). While a vessel's contents
   sit on the boil plateau and their material names a `purifiedByBoiling`
