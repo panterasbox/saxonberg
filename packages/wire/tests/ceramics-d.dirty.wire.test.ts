@@ -245,6 +245,12 @@ async function massesOf(s: Session, keyword: string): Promise<number[]> {
     .filter((n) => Number.isFinite(n));
 }
 
+/** The identities answering `keyword` in reach — to tell a new thing from old ones. */
+async function idsOf(s: Session, keyword: string): Promise<string[]> {
+  const rows = await s.query(keyword, { fields: ['displayName'] }).catch(() => []);
+  return (rows as { stuffId?: string }[]).map((r) => r.stuffId ?? '').filter((x) => x !== '');
+}
+
 /** The same person somewhere else (inventory travels). */
 async function goTo(s: Session, where: string): Promise<Session> {
   const handle = s.handle;
@@ -963,13 +969,18 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     expect(carved, `carve pattern: ${carved}`).toMatch(/pattern|shavings|scribe|carve/i);
     expect(await examine(caster, 'pattern'), 'the pattern').toMatch(/pattern of an arming sword/i);
     await ram(caster, 'pattern', true);
+    // THIS pour's cast, by identity: an older pewter sword the sweep could
+    // not move (a /stuff kind; "could not move 2", run 23) also answers
+    // to `pewter`, and it is the straight impression's, a shade small.
+    const before = await idsOf(caster, 'pewter');
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
     await examine(caster, 'flask'); // a mould sets on read
     await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
-    // ⚠ `pewter`: the brass key in hand is a cast too, and a shade small.
-    const cast = await examine(caster, 'pewter');
+    const fresh = (await idsOf(caster, 'pewter')).filter((id) => !before.includes(id));
+    expect(fresh.length, 'a new pewter cast').toBeGreaterThan(0);
+    const cast = await examine(caster, `#${fresh[0]}`);
     expect(cast, `the cast from the pattern: ${cast}`).toMatch(/pewter cast of an arming sword/i);
     expect(cast, 'true to size').not.toMatch(/shade smaller/i);
     await clearFloor();
