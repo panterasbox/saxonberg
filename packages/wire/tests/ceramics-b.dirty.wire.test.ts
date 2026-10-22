@@ -60,6 +60,7 @@ declareFile({
 
 const QUARRY = '/world/terminus/rejection/quarry/pit';
 const SMELTER = '/world/terminus/rejection/location/smelter';
+const FERROW_FACE = '/world/terminus/rejection/ferrow/face';
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
@@ -68,8 +69,6 @@ const SHED = `${B}/moulding-shed`;
 const HACKS = `${B}/hacks`;
 const SHOP = `${B}/potters-shop`;
 
-const CHARCOAL = '/trade/fuel/thing/charcoal';
-const COPPER_ORE = '/world/terminus/rejection/thing/copper-ore';
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
@@ -160,15 +159,49 @@ async function held(): Promise<string> {
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ');
 }
 
-/** As the founder, clone `path` onto the floor of `where` (setup only). */
-async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
-  try {
-    expectOk(await gov.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
-    await gov.drainProse();
-  } finally {
-    gov.close();
+/** Rest the way a person would: sit out a night on the clock. */
+async function rest(): Promise<void> {
+  await say('sit');
+  await advance('8 hours');
+  await say('stand');
+}
+
+/**
+ * Win `n` of a rock band at the Hill Quarry with the pick, resting when
+ * spent, pick it up, and come back to `back`.
+ *
+ * ⭐ Supplies are WON, not minted. A founder `clone` is refused for any
+ * kind whose first live copy stands on ground the founder does not hold
+ * (charcoal's is Rejection's fuel yard, held by the town) — and nobody
+ * SELLS charcoal: both stocks are props (a fuel-trade finding). So the
+ * brickmaker digs the coal and the limestone she passes on the way down
+ * to the fireclay, the way a player would.
+ */
+async function winAtQuarry(band: string, n: number, back: string): Promise<void> {
+  await goTo(QUARRY);
+  for (let got = 0, tries = 0; got < n && tries < n * 4; tries++) {
+    const dug = await act(`dig ${band} with pick`, '2 minutes');
+    const why = refusedFor(dug.r);
+    if (why === null) got++;
+    else if (why === 'too-tired') await rest();
+    else break;
   }
+  await say(`get ${band}`);
+  await goTo(back);
+}
+
+/** Hew `n` lumps of malachite at the Ferrow face and come back. */
+async function oreFor(n: number, back: string): Promise<void> {
+  await goTo(FERROW_FACE);
+  for (let got = 0, tries = 0; got < n && tries < n * 4; tries++) {
+    const hewn = await act('hew with pick', '10 minutes');
+    const why = refusedFor(hewn.r);
+    if (why === null) got++;
+    else if (why === 'too-tired') await rest();
+    else break;
+  }
+  await say('get malachite');
+  await goTo(back);
 }
 
 async function toHour(fromH: number, toH: number): Promise<void> {
@@ -211,11 +244,6 @@ suite('⭐ 10 — make firebrick', () => {
     // loop never saw it and dug on until the body was spent. Now: stop
     // the moment a dig works the fireclay, rest on the clock when tired,
     // and pick the lump up where it fell.
-    const rest = async (): Promise<void> => {
-      await say('sit');
-      await advance('8 hours');
-      await say('stand');
-    };
     let dug = false;
     for (let i = 0; i < 120 && !dug; i++) {
       const tried = await act('dig fireclay with spade', '2 minutes');
@@ -258,7 +286,8 @@ suite('⭐ 10 — make firebrick', () => {
     expect(await examine('here:i:firebrick')).toMatch(/green|thumbprint/i);
     await say('get firebricks');
     await goTo(HACKS);
-    await say('drop firebricks');
+    // Set on the hack, where the air reaches every face.
+    await say('put firebricks on hack');
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
@@ -292,9 +321,8 @@ suite('⭐ 11 — wear a lining', () => {
     let last = first;
     let refused = '';
     for (let firing = 0; firing < 12; firing++) {
-      await mint(SMELTER, CHARCOAL, 2);
-      await say('get charcoal');
-      await say('stoke charcoal into furnace');
+      await winAtQuarry('coal', 2, SMELTER);
+      await say('stoke coal into furnace');
       const lit = await run('ignite furnace');
       if (refusedFor(lit.r) !== null && /lining/i.test(lit.said)) {
         refused = lit.said;
@@ -330,9 +358,8 @@ suite('⭐ 12 — reline it', () => {
     const comp = await say('competence');
     expect(comp, `competence: ${comp}`).toMatch(/masonry/i);
     expect(comp).not.toEqual(before);
-    await mint(SMELTER, CHARCOAL, 2);
-    await say('get charcoal');
-    await say('stoke charcoal into furnace');
+    await winAtQuarry('coal', 2, SMELTER);
+    await say('stoke coal into furnace');
     const lit = await run('ignite furnace');
     expect(refusedFor(lit.r), `relit: ${lit.said}`).toBeNull();
     await say('douse furnace');
@@ -344,18 +371,13 @@ suite('⭐ 13 — wear a crucible', () => {
     await goTo(SMELTER);
     let look = '';
     for (let melt = 0; melt < 10 && !/crack/i.test(look); melt++) {
-      await mint(SMELTER, CHARCOAL, 4);
-      await mint(SMELTER, COPPER_ORE, 2);
-      await say('get charcoal');
-      await say('stoke charcoal into furnace');
-      await say('stoke charcoal into furnace');
+      await winAtQuarry('coal', 4, SMELTER);
+      await oreFor(2, SMELTER);
+      await say('stoke 2 coal into furnace');
       await say('ignite furnace');
       await act('pump bellows');
       await advance('30 minutes');
-      await say('get charcoal');
-      await say('put charcoal in furnace');
-      await say('put charcoal in furnace');
-      await say('get malachite');
+      await say('put coal in furnace');
       await say('put malachite in furnace');
       await say('put malachite in furnace');
       const smelt = await act('smelt', '2 hours');
@@ -387,13 +409,11 @@ suite('⭐ 14 — the keeper does it', () => {
     const fresh = await examine('kiln');
     // A charge for the chamber — a lump of limestone (it burns to lime, and
     // the kiln does not care what it is holding at heat).
-    await mint(GLASSHOUSE, '/trade/quarrying/thing/limestone');
-    await say('get limestone');
+    await winAtQuarry('limestone', 1, GLASSHOUSE);
     await say('put limestone in kiln');
     for (let i = 0; i < 6; i++) {
-      await mint(GLASSHOUSE, CHARCOAL, 3);
-      await say('get charcoal');
-      await say('stoke charcoal into kiln');
+      await winAtQuarry('coal', 3, GLASSHOUSE);
+      await say('stoke coal into kiln');
       const lit = await run('ignite kiln');
       if (refusedFor(lit.r) !== null) break;
       await act('fire kiln for 6 hours', '6 hours');

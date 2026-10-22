@@ -11,7 +11,7 @@
  *
  * Every step is the LITERAL verb through `forceCommand` — `dig clay`,
  * `put clay in pit`, `knead pit`, `get clay from pit`, `shape clay into
- * brick`, `get 10 bricks`, `drop bricks` — so a player watching sees the
+ * brick`, `get 10 bricks`, `put bricks on hack` — so a player watching sees the
  * same acts a player would type, and the gang's bricks are made by the
  * same chain a player's are: the clay's composition, the moulder's band,
  * the weather in the hacks. Nothing here mints, nothing teleports.
@@ -109,12 +109,13 @@ export const brain = class {
     if (!shedRoom || !MixinApi.isContainer(shedRoom)) return;
     const carry = positiveInt(ctx.config.carry, DEFAULT_CARRY);
 
-    // 1. Green bricks in hand go to the hacks.
+    // 1. Green bricks in hand go to the hacks — set ON the hack, where the
+    //    air reaches every face (dropped on the yard they never dried).
     if (count(m, (s) => isGreenBrick(s)) > 0) {
       const way = wayTo(hacks);
       if (!way || !(await walkRoute(m, way.go))) return;
       try {
-        await m.forceCommand('drop bricks');
+        await m.forceCommand('put bricks on hack');
       } finally {
         await walkRoute(m, way.back);
       }

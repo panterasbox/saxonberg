@@ -404,8 +404,10 @@ suite('⭐ 6 — dry them', () => {
     expect(got).toMatch(/pick up|brick/i);
     await say(digger, 'get bricks');
     await say(digger, 'south');
-    await say(digger, 'drop bricks');
-    await say(digger, 'drop bricks');
+    // ⭐ Set ON the hack, where the wind reaches every face — dropped on the
+    // yard (one face to the air) they never got past leather-hard.
+    await say(digger, 'put bricks on hack');
+    await say(digger, 'put bricks on hack');
     expect(await examine(digger, 'here:i:bricks')).toMatch(/green/i);
     let rows = '';
     for (let week = 0; week < 6 && !/leather-hard/i.test(rows); week++) {
@@ -496,7 +498,7 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     await act(digger, 'shape clay into brick', '9 hours');
     await say(digger, 'get bricks');
     await say(digger, 'south');
-    await say(digger, 'drop bricks');
+    await say(digger, 'put bricks on hack');
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
@@ -563,7 +565,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     await say(digger, 'get bricks');
     // Dry them in the hacks: old pit → pit → yard → temper → shed → hacks.
     for (const d of ['east', 'north', 'east', 'east', 'south']) await say(digger, d);
-    await say(digger, 'drop bricks');
+    await say(digger, 'put bricks on hack');
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');

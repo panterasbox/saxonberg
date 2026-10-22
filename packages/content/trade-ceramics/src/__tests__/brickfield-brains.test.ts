@@ -133,7 +133,7 @@ describe('moulds', () => {
   it('⭐ green bricks in hand go to the hacks before anything else', async () => {
     const w = world(rooms([], []), '/bf/shed', [{ tpl: BRICK, kw: ['bricks'], qty: 10, green: true }]);
     await moulds.act({ host: w.host, config } as unknown as BrainContext);
-    expect(w.commands).toEqual(['(→ /bf/hacks)', 'drop bricks', '(→ /bf/shed)']);
+    expect(w.commands).toEqual(['(→ /bf/hacks)', 'put bricks on hack', '(→ /bf/shed)']);
   });
 
   it('tempered clay in hand is moulded — a day at the table', async () => {
