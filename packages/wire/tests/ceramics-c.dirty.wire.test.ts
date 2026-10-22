@@ -333,10 +333,15 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     await say(novice, 'drop mug');
     const lh = await until(potter, 'here:i:jug', /leather-hard/i, '6 hours', 40);
     expect(lh, 'the jug at leather-hard').toMatch(/leather-hard/i);
-    await say(potter, 'get mug');
-    const foot = await say(potter, 'carve foot on mug');
+    // The potter's OWN mug, by its maker: a bare `get mug` took the novice's
+    // thick one too, and `carve` bound that one, still too soft (run 22).
+    const mugs = (await potter.query('here:i:mug', { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[];
+    const mine = mugs.find((m) => String(m.longDescription ?? '').includes(`Made by ${potter.handle}`));
+    expect(mine?.stuffId, `the potter's own mug: ${JSON.stringify(mugs.map((m) => m.longDescription?.slice(0, 120)))}`).toBeDefined();
+    await say(potter, `get #${mine!.stuffId}`);
+    const foot = await say(potter, `carve foot on #${mine!.stuffId}`);
     expect(foot, `trim: ${foot}`).toMatch(/foot|trim|pare/i);
-    expect(await examine(potter, 'me:i:mug')).toMatch(/turned foot/i);
+    expect(await examine(potter, `#${mine!.stuffId}`)).toMatch(/turned foot/i);
     await say(potter, 'get jug');
     await say(potter, 'get handle');
     const fit = await act(potter, 'fit handle to jug', '30 minutes');
