@@ -201,6 +201,8 @@ export interface WaterPlace {
   canRise(body: Stuff): VetoResult;
   /** The place at the top of this water — itself, unless it is under one. */
   surfacePlace(): (Stuff & Container) | null;
+  /** Whether a body here has its head in the air (river D16). */
+  headOutAt(occupant: Stuff): boolean;
   /**
    * ⭐ Hold a body face-up at the surface (underwater D11): the
    * disconnected player's water answer. Brought up to the surface place
@@ -572,6 +574,17 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     }
 
     /**
+     * ⭐ Whether a body in this water has its head in the air (river D16).
+     * @hook Override on a water something can close over: a river patch
+     *   carried under a frozen pool answers `false`, and the breath model
+     *   does the rest. Default: `true` — the water place is the surface.
+     */
+    public headOutAt(occupant: Stuff): boolean {
+      void occupant;
+      return true;
+    }
+
+    /**
      * ⭐ The current takes a body that is not holding against it (river
      * D11): carry it out of this water, downstream.
      * @hook Override on a water with somewhere to sweep you to — a river's
@@ -636,8 +649,9 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         tag: 'water',
         substance: 'water',
         immersed: true,
-        // The water place itself is the surface: in it, your head is out.
-        atSurface: true,
+        // The water place itself is the surface: in it, your head is out —
+        // unless something is over the water (a river's ice, D16).
+        atSurface: this.headOutAt(occupant),
         temperatureK: this.waterTemperatureK(),
         depthM: 0,
         waterRef: this.water?.of ?? null,

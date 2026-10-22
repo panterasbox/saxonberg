@@ -184,7 +184,7 @@ export class FishingEngagement implements SustainedEngagement {
     return Math.max(0, Math.min(1, 1 - v / kill));
   }
 
-  /** The rod: its destruction tears the wait down. */  /** The rod: its destruction tears the wait down. */
+  /** The rod: its destruction tears the wait down. */
   getHost(): Stuff | null {
     return this.rod;
   }

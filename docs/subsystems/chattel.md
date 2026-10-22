@@ -270,3 +270,10 @@ The corpse itself carries **no chattel row**. `ChattelMixin` composes at
 the `Thing` tier and a body is a `Creature`; custody of a *body* is a
 different concept, and it belongs to the deferred coroner economy. See
 [mortality.md](./mortality.md).
+
+## River build (2026-10-21)
+
+A good whose host is transient space (a river patch, a sea room) is written
+to the estate as **`loose`** (`ESTATE_LOOSE`): kept where its place is
+persisted (a river stop), lost otherwise, titled still. `Estate.hydrateSlice`
+skips loose entries.

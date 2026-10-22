@@ -21,6 +21,7 @@ data:
     - { itemTemplatePath: /system/transport/thing/propulsion/paddle, par: 4 }
     - { itemTemplatePath: /system/transport/thing/propulsion/pole, par: 2 }
     - { itemTemplatePath: /system/transport/thing/killick, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/painter, par: 3 }
     - { itemTemplatePath: /system/water/thing/current-log, par: 2 }
     - { itemTemplatePath: /stuff/thing/instrument/thermometer, par: 2 }
   prices:
@@ -30,5 +31,6 @@ data:
     /system/transport/thing/propulsion/paddle: 4
     /system/transport/thing/propulsion/pole: 5
     /system/transport/thing/killick: 3
+    /trade/diving/thing/painter: 2
     /system/water/thing/current-log: 5
     /stuff/thing/instrument/thermometer: 6

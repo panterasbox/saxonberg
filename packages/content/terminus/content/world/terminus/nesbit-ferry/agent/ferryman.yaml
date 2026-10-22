@@ -1,0 +1,36 @@
+# Orrin Nesbit, the ferryman (the river build, D31): has poled the Kestrel
+# below the confluence since his father did. Answers the bell; will not
+# cross at high water, and says so across the river.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Orrin Nesbit
+  keywords: [orrin, nesbit, ferryman]
+  shortDescription: ferryman
+  register: definite
+  longDescription: >-
+    A broad man with a face like a walnut and forearms like the pole he
+    leans on, who watches the water more than he watches you.
+  archetype: proprietor
+  prologue:
+    - "Has poled this crossing since he was tall enough to hold the pole."
+    - "Knows to the inch how far up to hold her bow at every height of the water."
+  competence:
+    - { discipline: navigation, asserting: expert }
+    - { discipline: swimming, asserting: proficient }
+  dispositions:
+    - { disposition: sociability, valence: 10 }
+    - { disposition: composure, valence: 70 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /trade/haulage/behavior/ferries
+      trigger: candidate
+      config:
+        landings: [/world/terminus/estuary/lower-towpath, /world/terminus/nesbit-ferry/landing]
+        bells: [/world/terminus/nesbit-ferry/thing/near-bell, /world/terminus/nesbit-ferry/thing/far-bell]
+        way: across

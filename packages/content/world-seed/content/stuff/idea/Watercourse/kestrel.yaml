@@ -73,6 +73,7 @@ data:
     - /world/terminus/wharfside/bank
     - /world/terminus/wharfside/water/location/stream
     - /world/terminus/estuary/lower-towpath
+    - /world/terminus/nesbit-ferry/landing
     - /world/terminus/estuary/reach
     - /world/terminus/estuary/estuary-mouth
     - /world/terminus/estuary/channel

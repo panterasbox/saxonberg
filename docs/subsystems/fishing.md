@@ -418,3 +418,11 @@ and the target completes and names the Discipline to credit — silk off a
 stack of stifled cocoons at a reeling basin ([sericulture.md](./sericulture.md)).
 A bound target that does not reel falls through to the fishing act.
 Bait from silkworm pupae is open: `BAIT_KINDS` is this pack's closed set.
+
+## River build (2026-10-21)
+
+A river's fishery is keyed **per stretch** (`course:N`), and an angler in a
+drifting boat follows the water: `FishingEngagement` re-reads the stretch it
+is over each beat, and the bite falls away as the drift quickens (to nothing
+at `water.fishery.driftKillMps`); a boat held still fishes as the bank does.
+See [river.md](./river.md).

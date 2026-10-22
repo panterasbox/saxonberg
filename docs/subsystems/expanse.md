@@ -2,7 +2,10 @@
 
 The maritime build's subsystem: a sea (and in principle a desert, an ice
 sheet, a void) whose places are reached by **setting a course**, not by
-walking an exit. It is the second and third spatial registers beside the
+walking an exit. ⭐ A ship on a RIVER is positioned on the river's line,
+not the chart, and her course is a planned passage — see
+[river.md](./river.md); so is the water beside a ship stopped at sea (the
+`SeaWarren`). It is the second and third spatial registers beside the
 room grid:
 
 | register | what a position is | neighbours |

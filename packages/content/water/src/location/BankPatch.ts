@@ -22,16 +22,43 @@ import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import type WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import type ReachWarren from '../idea/ReachWarren';
 
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
+const WARREN_PATH = '/system/water/idea/ReachWarren';
 
-export default class BankPatch extends MovingPlaceMixin(
-  ShoreMixin(PositionedMixin(WarrenMemberMixin(Location))),
-) {
+const BankPatchBase = MovingPlaceMixin(ShoreMixin(PositionedMixin(WarrenMemberMixin(Location))));
+
+export default class BankPatch extends BankPatchBase {
   /** A bank does not drift: it moves only as its walkers walk. */
   public override isUnderWay(): boolean {
     return false;
+  }
+
+  /**
+   * ⭐ Lining (river D24): somebody walking the bank with a boat's painter
+   * in hand brings the boat along beside them — the river's warren puts her
+   * in the water at the bank where they now stand.
+   */
+  public onEntered(mover: Stuff & Mobile & Containable, via: Exit): void {
+    (BankPatchBase.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
+    const pos = this.getLinePosition();
+    if (pos === null || !MixinApi.isContainer(mover)) return;
+    for (const held of mover.getContents()) {
+      const line = (held as unknown as { getLine?(): { getHolder(): Stuff | null } | null }).getLine?.() ?? null;
+      const holder = line?.getHolder() ?? null;
+      const boat = holder && MixinApi.isContainable(holder) ? (holder.getContainer() as unknown as Stuff | null) : null;
+      if (!boat || typeof (boat as unknown as { holdAt?: unknown }).holdAt !== 'function') continue;
+      void StuffApi.singleton<ReachWarren>(WARREN_PATH)
+        .then((w) => w.lineBoatTo(boat as Stuff & Containable, pos, mover))
+        .catch(() => undefined);
+    }
   }
 
   /** Gone when nobody is on it: nothing durable to name. */

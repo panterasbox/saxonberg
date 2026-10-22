@@ -591,3 +591,12 @@ Built as `reqs/underwater`, MR !408 (2026-10-18 – 10-21): the plan
 at the sweep and their standing decisions live here and in
 respiration.md. The build's commits are `origin/master...reqs/underwater`
 at its merge.
+
+## River build (2026-10-21)
+
+A **moving** water place: a river's reach patch is a water place carried
+along the river's line, its bed a fixed stop below it (no column under a
+river — the Kestrel is too shallow for bands); the current and roughness ride
+the medium read; the **sea room** (`SeaRoom`) is the water beside a ship
+stopped at sea. `WaterPlace.headOutAt` is the hook something closing over the
+water (ice) answers. See [river.md](./river.md).

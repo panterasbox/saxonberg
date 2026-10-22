@@ -1102,3 +1102,11 @@ first thing to revisit if freight speed ever needs to mean something.
 - **2026-10-18 (storage-and-ice, MR !378).** The `Warehouse` became a
   kernel store holding goods live; `store deposit`/`store withdraw` at the
   depot book are the custody acts, `depositFor` the desk's intake.
+
+## River build (2026-10-21)
+
+A **ferry** is one conditional edge (`FerryExit`, its kind row
+`_conditional: true`): the route planner costs it and says *not always
+passable*; a journey's leg across it is the ordinary traverse with the rig
+towed. Fords read the BODY now (`FordExit.verdictFor`) — the flood threshold
+is retired. See [river.md](./river.md).

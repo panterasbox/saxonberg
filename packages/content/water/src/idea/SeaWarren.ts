@@ -3,9 +3,9 @@
  * (river D30): the sea brought into line with the river.
  *
  * ONE singleton for the realm. Its members are sea rooms, budded only
- * where a ship has stopped — keyed by the hail cell she lies in, so ships
- * stopped within hail of one another share one — and reaped when nothing
- * is left in them. Each room has its own zone (D38), minted and reaped
+ * where a ship has stopped — a ship stopped within hail of a room's spot
+ * shares it, so two ships hove-to together have one water between them —
+ * and reaped when nothing is left in them. Each room has its own zone (D38), minted and reaped
  * with it.
  *
  * It answers the same questions of a sea that the river's warren answers
@@ -49,8 +49,8 @@ const ROOM_ZONE = '/system/water/location/sea/room';
 const EXIT_KIND = '/system/water/idea/exits/sea-room';
 /** How far you can call to somebody in the water, m (`expanse.hailRangeM`). */
 const HAIL_M = 100;
-/** One degree of latitude, m. */
-const DEG_M = 111_320;
+/** One nautical mile, m. */
+const NM_M = 1852;
 
 /** A ship as the sea's warren asks of her, by shape. */
 interface ShipShape {
@@ -63,8 +63,8 @@ interface ShipShape {
 }
 
 export default class SeaWarren extends SingletonMixin(RoomWarren) {
-  /** Hail cell key → its room. Runtime: a sea room is never persisted. */
-  private _rooms = new Map<string, SeaRoom>();
+  /** The rooms standing now. Runtime: a sea room is never persisted. */
+  private _rooms = new Set<SeaRoom>();
   private _serial = 0;
   private _mintChain: Promise<unknown> = Promise.resolve();
 
@@ -120,7 +120,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
 
   /** ⭐ Where a boat in the water comes out (D30): onto the deck of a ship lying here. */
   public async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
-    const room = [...this._rooms.values()].find((r) => (r as unknown) === (from as unknown)) ?? null;
+    const room = [...this._rooms].find((r) => (r as unknown) === (from as unknown)) ?? null;
     if (room === null || !MixinApi.isExitable(room)) return null;
     for (const exit of (room as unknown as Exitable).getExits()) {
       const way = exit as unknown as Partial<SeaRoomExit>;
@@ -142,7 +142,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     }
     const deck = exit.getTarget();
     const ship = await this.shipOf(await StuffApi.singleton<Stuff>(deck));
-    if (ship === null || !this.stopped(ship) || this.cellOf(ship) !== this.keyOf(exit.getSource() as unknown as Stuff)) {
+    if (ship === null || !this.stopped(ship) || !this.within(ship, exit.getSource() as unknown as SeaRoom)) {
       throw new Error('She has sailed.');
     }
     return StuffApi.singleton<Stuff & Container>(deck);
@@ -158,7 +158,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     }
     const deck = await StuffApi.singleton<Stuff>(exit.getTarget()).catch(() => null);
     const ship = deck ? await this.shipOf(deck) : null;
-    if (ship === null || !this.stopped(ship) || this.cellOf(ship) !== this.keyOf(exit.getSource() as unknown as Stuff)) {
+    if (ship === null || !this.stopped(ship) || !this.within(ship, exit.getSource() as unknown as SeaRoom)) {
       return 'She has sailed; there is only the sea where she was.';
     }
     return null;
@@ -167,18 +167,17 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   /* ───────────────────────── rooms ───────────────────────── */
 
   /**
-   * The water beside a stopped ship: her cell's room, minted if this is
+   * The water beside a stopped ship: the room within hail of her, minted if this is
    * the first time anybody has gone into it, with a way up onto her deck.
    */
   public async roomAlongside(ship: ShipShape): Promise<SeaRoom> {
-    const key = this.cellOf(ship);
-    let room = this._rooms.get(key) ?? null;
-    if (room === null || room.isDestroyed()) room = await this.mintRoom(ship, key);
+    let room = [...this._rooms].find((r) => !r.isDestroyed() && this.within(ship, r)) ?? null;
+    if (room === null) room = await this.mintRoom(ship);
     await this.wireDeck(room, ship);
     return room;
   }
 
-  private async mintRoom(ship: ShipShape, key: string): Promise<SeaRoom> {
+  private async mintRoom(ship: ShipShape): Promise<SeaRoom> {
     const room = await this.serial(async () => (await this.createMemberSerialized()) as unknown as SeaRoom);
     const pos = ship.getExpansePosition()!;
     room.setExpanse(ship.getExpanse());
@@ -192,7 +191,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     const sea = ship.getExpanse() ? await StuffApi.singleton<WaterExpanse>(ship.getExpanse()!).catch(() => null) : null;
     const depth = sea ? await sea.depthAt(pos).catch(() => 20) : 20;
     room.setWater({ of: ship.getExpanse()!, depthM: Math.round(depth * 10) / 10 });
-    this._rooms.set(key, room);
+    this._rooms.add(room);
     return room;
   }
 
@@ -212,7 +211,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
 
   private reap(m: MemberStuff): void {
     if (m.isDestroyed()) return;
-    for (const [k, r] of this._rooms) if ((r as unknown) === (m as unknown)) this._rooms.delete(k);
+    for (const r of this._rooms) if ((r as unknown) === (m as unknown)) this._rooms.delete(r);
     const zone = m.getZone() as unknown as (Stuff & { removeLocation(p: unknown): boolean }) | null;
     this.removeMember(m);
     if (zone !== null && MixinApi.isMovingZone(zone as unknown as Stuff)) zone.removeLocation(m);
@@ -235,25 +234,20 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   }
 
   private hailM(): number {
-    const n = Number.parseFloat(AppApi.setting('expanse.hailRangeM') ?? '');
-    return Number.isFinite(n) && n > 0 ? n : HAIL_M;
+    try {
+      const n = Number.parseFloat(AppApi.setting('expanse.hailRangeM') ?? '');
+      return Number.isFinite(n) && n > 0 ? n : HAIL_M;
+    } catch {
+      return HAIL_M;
+    }
   }
 
-  /** ⭐ The hail cell a position falls in — ships within it share their water. */
-  private cellAt(expanse: string, pos: GeoPosition): string {
-    const dLat = this.hailM() / DEG_M;
-    const dLon = dLat / Math.max(0.1, Math.cos((pos.latDeg * Math.PI) / 180));
-    return `${expanse}@${Math.round(pos.latDeg / dLat)}@${Math.round(pos.lonDeg / dLon)}`;
-  }
-
-  private cellOf(ship: ShipShape): string {
-    const pos = ship.getExpansePosition();
-    return pos ? this.cellAt(ship.getExpanse() ?? '', pos) : '';
-  }
-
-  private keyOf(room: Stuff): string {
-    for (const [k, r] of this._rooms) if ((r as unknown) === (room as unknown)) return k;
-    return '';
+  /** ⭐ A ship lies beside a room when she is on its sea within hail of it. */
+  private within(ship: ShipShape, room: SeaRoom): boolean {
+    const at = ship.getExpansePosition();
+    const here = room.getExpansePosition();
+    if (at === null || here === null || ship.getExpanse() !== room.getExpanse()) return false;
+    return at.distanceNm(here) * NM_M <= this.hailM();
   }
 
   /** One mint at a time. */

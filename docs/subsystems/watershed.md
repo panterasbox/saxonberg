@@ -4,6 +4,10 @@ Built from the water requirements (D1–D27). The kernel takes the
 physics; the [`water` capability pack](../../packages/content/water/)
 takes the works.
 
+> ⭐ **Being IN a river** — the line, the moving place, bodies in the
+> current, boats, ships, ferries — is [river.md](./river.md) (the river
+> build). This doc is the hydrology underneath it.
+
 The subsystem that makes water **get somewhere**. Water already had
 physics everywhere and weather nowhere: it is bulk matter you can fill,
 pour and drink, the body has a `hydration` reserve, soil holds moisture

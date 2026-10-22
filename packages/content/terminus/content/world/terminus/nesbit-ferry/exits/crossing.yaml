@@ -1,0 +1,9 @@
+# Nesbit's crossing — the ferry way at both landings (river D31). Which
+# ferry, whose house takes the fare and where on the river it crosses.
+class: /system/transport/idea/FerryExit
+extends: /system/transport/idea/exits/ferry
+data:
+  ferry: /system/transport/thing/ferry
+  house: /world/terminus/nesbit-ferry/idea/ferry
+  fareMinor: 2
+  crossesReach: "kestrel:confluence+0.4"

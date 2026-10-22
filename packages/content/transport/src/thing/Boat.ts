@@ -51,6 +51,8 @@ import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { Tangible } from '@saxonberg/server/mud/lib/material/Tangible';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import Propulsion from './Propulsion';
+import { Propel, type PaddleWater, type PropelHeading } from '../lib/Propel';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 
 type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible;
 
@@ -84,6 +86,9 @@ const DEFAULT_HULL: HullSpec = {
   freeboardM: 0.3,
   capacityKg: 300,
 };
+
+/** Below this wind a sail hangs slack, m/s. */
+const SAIL_MIN_WIND_MPS = 1.5;
 
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
@@ -135,6 +140,44 @@ export default class Boat extends BoatBase {
       if (c instanceof Propulsion && c.isCrewPowered()) return c;
     }
     return null;
+  }
+
+  /** ⭐ The sail she carries, if any — what `course` from her tiller sets (D20). */
+  public sail(): Propulsion | null {
+    for (const c of this.getContents()) {
+      if (c instanceof Propulsion && c.getNeeds() === 'wind') return c;
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ Sail her (D20, D21): `course` from her tiller, a direction or a
+   * landing on the river she is on. The water must be wide enough to sail
+   * (three of her lengths) and there must be wind; then the wind drives her
+   * as arms drive a paddle — `Propel` under sail, on the steersman's hands.
+   */
+  public async sailCourse(heading: string, giver: Stuff): Promise<{ ok: boolean; line: string }> {
+    if (this.sail() === null) return { ok: false, line: 'She has no sail.' };
+    if (this._capsized) return { ok: false, line: 'She is upside down.' };
+    if (!MixinApi.isEngaged(giver)) return { ok: false, line: 'You cannot sail her.' };
+    const water = (await StuffApi.singleton<Stuff>(WARREN_PATH).catch(() => null)) as unknown as PaddleWater | null;
+    const room = this.getContainer() as unknown as Stuff | null;
+    if (!water || typeof water.riverAt !== 'function' || room === null) {
+      return { ok: false, line: 'There is no water here that goes anywhere.' };
+    }
+    const river = await water.riverAt(room);
+    if (river === null) return { ok: false, line: 'She is not on any water that goes anywhere.' };
+    const width = river.widthM ?? Number.POSITIVE_INFINITY;
+    if (width < 3 * this.hull.lengthM) return { ok: false, line: 'The river is too narrow here to sail her; she would be in the bank before she came about.' };
+    const wind = MixinApi.isAtmospheric(room) ? (await room.getWind()).rawValue() : 0;
+    if (wind < SAIL_MIN_WIND_MPS) return { ok: false, line: 'There is no wind to fill her sail; she lies becalmed.' };
+    const word = heading.trim().toLowerCase();
+    const ways: Record<string, PropelHeading> = { upstream: 'upstream', up: 'upstream', downstream: 'downstream', down: 'downstream', left: 'left', right: 'right' };
+    const way = ways[word];
+    if (way === undefined) return { ok: false, line: 'Sail her which way — upstream, downstream, left or right?' };
+    const started = SchedulerApi.start(new Propel({ actor: giver as Stuff & Engaged, boat: this, heading: way, inside: false, hard: false, water, windMps: wind }));
+    if (!started.ok) return { ok: false, line: 'Your hands are already busy.' };
+    return { ok: true, line: `You put the tiller over and sheet in, and she heels and gathers way ${way}.` };
   }
 
   /** Whoever is sitting in it. */

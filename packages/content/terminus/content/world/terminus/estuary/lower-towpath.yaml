@@ -30,6 +30,13 @@ data:
       destination: /world/terminus/estuary/reach
       media: [ground, water]
       edgeMinutes: 4
+    # ⭐ Nesbit's ferry (the river build, D31): across the Kestrel to
+    # Nesbit's landing and the Delight road — when she lies here, the
+    # river lets her and the fare is paid.
+    across:
+      kind: /world/terminus/nesbit-ferry/exits/crossing
+      destination: /world/terminus/nesbit-ferry/landing
+      edgeMinutes: 3
   # ⭐ The Terminus depot stands here, on the quay, where the water lane
   # and the wheeled road both reach. A depot is the INTERFACE — where a
   # lane touches the local economy — and the place it belongs is where
@@ -58,9 +65,14 @@ data:
     # nobody could warm their hands at. (Propped, not sold — see the
     # brazier's note in the goods yard.)
     - /stuff/thing/stove
+    # The ferry lies at the city side between crossings, and the bell that
+    # calls her back from the far one hangs at the head of the steps.
+    - /system/transport/thing/ferry
+    - /world/terminus/nesbit-ferry/thing/near-bell
   cast:
     - /trade/haulage/agent/warehouseman
     - /trade/haulage/agent/dispatcher
+    - /world/terminus/nesbit-ferry/agent/ferryman
 
   details:
     rings:

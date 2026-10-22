@@ -996,7 +996,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   public async riverAt(
     room: Stuff,
     inside = false,
-  ): Promise<{ currentMps: number; depthM: number; roughness: number; course: string; km: number; barSide: RiverSide | null } | null> {
+  ): Promise<{ currentMps: number; depthM: number; roughness: number; course: string; km: number; barSide: RiverSide | null; widthM: number } | null> {
     const cat = this.catalogue();
     if (!cat) return null;
     let pos = (room as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
@@ -1022,6 +1022,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       course: pos.course,
       km: pos.km,
       barSide: banks.left.kind === 'bar' ? 'left' : banks.right.kind === 'bar' ? 'right' : null,
+      widthM: state.widthM,
     };
   }
 
@@ -1135,6 +1136,29 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
         }
       }
     }
+  }
+
+  /**
+   * ⭐ Lining (river D24): a boat on a painter held from the bank comes
+   * along to the water at the bank where the holder now stands — held there
+   * by the line, a stop at that bank. The pull is the walker's: the
+   * current's drag on her hull, paid in effort.
+   */
+  public async lineBoatTo(boat: Stuff & Containable, bank: LinePosition, walker: Stuff): Promise<void> {
+    const room = boat.getContainer() as unknown as Stuff | null;
+    const at = (room as unknown as { getLinePosition?(): LinePosition | null } | null)?.getLinePosition?.() ?? null;
+    if (room === null || at === null || at.course !== bank.course) return;
+    if (Math.abs(at.km - bank.km) > this.hailM() / 1000 * 2) return;
+    const width = this.widthAt(bank.course, bank.km);
+    const side: RiverSide = bank.across < width / 2 ? 'left' : 'right';
+    const stop = await this.stopAt(bank.course, bank.km, side);
+    if ((stop as unknown as Stuff) === room) return;
+    ContainmentApi.move(boat, stop as unknown as Stuff & Container);
+    const river = await this.riverAt(stop as unknown as Stuff).catch(() => null);
+    if (river && MixinApi.isExerting(walker)) {
+      walker.exert({ durationS: 60, powerW: Math.min(400, 60 + 40 * Math.abs(river.currentMps)) });
+    }
+    this.tellOf(walker, Mml.compose`You lean on the painter and walk her up the bank, the boat sheering out on the current and coming along.`);
   }
 
   /**

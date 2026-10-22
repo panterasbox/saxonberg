@@ -319,3 +319,10 @@ plate at severity 0.35), and `CLOTH_PROFILE` is poor/poor/poor — no cloth
 resists a point at all. The dart's "a boot mitigates" is therefore true of
 some coverings and not others, which is the materials grid being right
 rather than a defect.
+
+## River build (2026-10-21)
+
+A hazard with a **side and an approach** (`RiverHazard`, water pack): a
+strainer or hydraulic catches a body by how it comes at it (passive,
+feet-first, swimming), through `resolveProximity`; `applyPin` holds it until
+`pull <person>` frees it or the hold lapses and the river carries them on.

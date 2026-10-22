@@ -38,13 +38,17 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { RiverWaterMixin } from '../lib/RiverWater';
 import type WatercourseCatalogue from '../idea/WatercourseCatalogue';
 import type ReachWarren from '../idea/ReachWarren';
 
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
+/** Ice this thick closes a stretch over a body in it, m. */
+const ICE_CLOSES_M = 0.02;
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
 export const ReachPlaceBase = MovingPlaceMixin(
@@ -59,6 +63,40 @@ export default class ReachPatch extends ReachPlaceBase {
     // The river's surface is water: no floor but the water itself.
     // The river's bed under its water (D13): stood on where it is shallow.
     this.floor = { template: '/system/water/thing/river-bed' };
+  }
+
+  /**
+   * ⭐ Under the ice (river D16): carried into a stretch the cold has
+   * frozen over, the sheet is over your head — the water's own words, and
+   * the breath model takes it from there. Out the other side, at the open
+   * water below, you come up.
+   */
+  public override headOutAt(occupant: Stuff): boolean {
+    void occupant;
+    return !this.underIce();
+  }
+
+  public override wayUp(): { exit: Exit } | { reason: string; line: string } {
+    if (this.underIce()) {
+      return { reason: 'under-ice', line: 'The ice is over you, grey and hard; there is no up. The current is taking you along under it.' };
+    }
+    return super.wayUp();
+  }
+
+  /** Whether the stretch the patch is in reads frozen over now. */
+  public underIce(): boolean {
+    const pos = this.getLinePosition();
+    const cat = this.catalogue();
+    const stretch = pos ? cat?.lineOfSync(pos.course)?.stretchAt(pos.km) ?? null : null;
+    if (!stretch || !cat) return false;
+    let nowS = 0;
+    try {
+      nowS = WorldClockApi.getNow().rawValue();
+    } catch {
+      return false;
+    }
+    const ice = cat.iceAtSync(stretch.id, nowS);
+    return ice !== null && ice.thicknessM > ICE_CLOSES_M;
   }
 
   /** A patch is gone when it is empty: there is nothing durable to name. */
@@ -126,7 +164,10 @@ export default class ReachPatch extends ReachPlaceBase {
     const after = line.stretchAt(to.km);
     if (!after || (before && before.kind === after.kind && before.bendName === after.bendName)) return;
     const self = this as unknown as Stuff & { getContents(): Stuff[] };
-    const said = CHANGE_WORDS[after.kind] ?? 'The river carries you on.';
+    const iced = this.underIce();
+    const said = iced
+      ? 'The ice closes over your head: grey light, the sheet a hand above you, and the current taking you along under it.'
+      : CHANGE_WORDS[after.kind] ?? 'The river carries you on.';
     const bend = after.bendName ? ` This is ${after.bendName}.` : '';
     for (const c of self.getContents()) {
       if (!MixinApi.isHasInteractive(c)) continue;

@@ -29,6 +29,7 @@ function rig(opts: {
   needs?: 'water' | 'bottom';
   reachM?: number;
   freeboardM?: number;
+  windMps?: number;
 }): Rig {
   const told: string[] = [];
   let cancelled = false;
@@ -60,6 +61,7 @@ function rig(opts: {
     isDestroyed: () => false,
     isCapsized: () => false,
     propulsion: () => part,
+    sail: () => (opts.windMps !== undefined ? { ...part, getNeeds: () => 'wind', getEfficiency: () => 0.35 } : null),
     getContainer: () => room,
     crew: () => [{}],
     getHull: () => ({ beamM: 0.9, draftM: 0.15 }),
@@ -86,6 +88,7 @@ function rig(opts: {
     inside: false,
     hard: false,
     water: water as never,
+    ...(opts.windMps !== undefined ? { windMps: opts.windMps } : {}),
   });
   return { propel, water: water as never, boat, told, cancelled: () => cancelled };
 }
@@ -141,5 +144,16 @@ describe('Propel (river D21)', () => {
     await beats(r, 3);
     expect(r.water.destinationOf).toHaveBeenCalledWith(expect.anything(), 'left');
     expect(r.cancelled()).toBe(true);
+  });
+
+  it('⭐ under sail the wind drives her: way made with nobody tiring', async () => {
+    const r = rig({ heading: 'downstream', currentMps: 0, windMps: 8 });
+    const exert = vi.fn();
+    vi.spyOn(MixinApi, 'isExerting').mockReturnValue(true);
+    (r.propel as unknown as { actor: { exert: unknown; sustainableW: unknown } }).actor.exert = exert;
+    (r.propel as unknown as { actor: { exert: unknown; sustainableW: unknown } }).actor.sustainableW = () => 200;
+    await beats(r, 3);
+    expect(r.water.destinationOf).toHaveBeenCalledWith(expect.anything(), 'downstream');
+    expect(exert).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,23 @@
+# Nesbit's ferry — the house: the ferryman's position and the fare's till.
+class: /platform/idea/Business
+data:
+  name: "Nesbit's ferry"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/nesbit-ferry/agent/ferryman
+  call: rota
+  positions:
+    - key: ferryman
+      noun: ferryman
+      label: at the pole
+      wageRate: 3
+  rosterSlots:
+    - positionKey: ferryman
+      assignee: /world/terminus/nesbit-ferry/agent/ferryman
+      station: /world/terminus/estuary/lower-towpath
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/estuary/lower-towpath
+    - /world/terminus/nesbit-ferry/landing

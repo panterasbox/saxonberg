@@ -1876,6 +1876,58 @@ the maritime drive is green again.
 
 **Commit.** `build(river W5): ferries, and the sea's boats and swimmers brought into line`
 
+> ✅ **W5 built (2026-10-21), with the W3 items owed.** Decisions the build made:
+> - **The sea's warren keys rooms by distance, not by a cell.** A ship
+>   stopped within hail of a room's spot shares it; a rounded cell key put
+>   two ships eight metres apart into two waters at a cell line (the
+>   test found it). Rooms do **not drift** — a stopped ship holds her fix,
+>   and so does her water; a ship hove-to drifting with the set is the
+>   ships slate's. No column under the sea room (`bandsNow` is empty).
+> - **Over the side is an authored way on a sea-going deck** (`side`, a
+>   `SeaRoomExit` kind row), refused while she is under way; up is a way
+>   named for the ship, installed on the room. `locate` in the water beside
+>   a ship reads her reckoning (`SeaRoom.alongsideCraft`).
+> - **On a river, her boat goes into the water at her position** (the
+>   warren's `launchPlaceFor` reads a ship's deck) and comes back up onto
+>   her deck while she lies within hail.
+> - **Ferries:** `FerryExit` (transport) with `ferry`, `house`, `fareMinor`,
+>   `crossesReach`, `tethered`; the glide by the poler's `navigation` band;
+>   the fare through `EmploymentApi.settleSale` (the shipped retail path —
+>   no operator serves free, and the shipped float policy applies rather than
+>   a new refusal); a hand who does not angle lands downstream in a stop with
+>   the ferry. **Summoning is the bell, not `hail`:** the ferry bell is a
+>   `SignalBell` row that now remembers when it was rung, `ring`'s scope
+>   takes a bell on its post, and the ferryman's `ferries` brain (an
+>   ungated beat) answers it by crossing with the ferry — at high water he
+>   shouts the refusal across. `hail` from a landing (a place-afforded
+>   hail) is not built.
+> - **The cable ferry** is `FerryCable` + `FerryExit.tethered`: the
+>   current drives her across at `current × sin(angle)`, nothing drifts,
+>   slack water refuses. Mechanism + unit test, no authored instance (D31).
+> - **Nesbit's ferry**: the lower towpath ↔ Nesbit's landing (right bank,
+>   `confluence+0.4`) ↔ the milestone; Orrin Nesbit, his house, the fare (2),
+>   both bells; the ferry propped on the city side.
+> - **Lining (owed from W3) rides the shipped lifeline:** a `painter` row
+>   (a `Lifeline`, 15 m, sold at the put-in) thrown from the boat to
+>   somebody on the bank; as they walk the bank (a bank patch) the boat comes
+>   to the water beside them (`ReachWarren.lineBoatTo`), the walker paying the
+>   current's drag. ⚠ Lining from an AUTHORED bank place is not built — a
+>   bank patch only.
+> - **The sail (owed from W3):** a `sail` propulsion part (needs wind, not
+>   crew-powered), a `tiller` (a `Helm` row, so it affords `course`), a
+>   `sailing-dinghy` kind propped at the estuary mouth; `course` in a small
+>   boat delegates to `Boat.sailCourse` by shape; `Propel` under sail makes
+>   a third of the wind's speed (less beating upstream), nobody tires,
+>   refused below 1.5 m/s of wind and on water narrower than three hull
+>   lengths.
+> - **River ice (owed from W2, D16) — the body under the sheet:** the
+>   kernel `WaterPlace.headOutAt` hook; a reach patch in a stretch frozen over
+>   answers `false` (no air: the breath model does the rest), its way up is
+>   refused in the ice's words, and the drift says when the ice closes over.
+>   ⚠ Not built: frozen stretches' places taking the `ice-sheet` floor (so
+>   walking out on a frozen river is still not possible), the hole.
+> - **Drift fishing** is unit-tested (`DriftFishing.test.ts`).
+
 ### W6 — The drive, the docs, the sweep of what the build touched
 
 **Goal.** The exit criterion. **Files.** `packages/wire/tests/river-a.dirty.

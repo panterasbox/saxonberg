@@ -48,6 +48,10 @@ const PADDLE_W = 120;
 const HARD_W = 250;
 /** Hull drag coefficient. */
 const HULL_CD = 0.5;
+/** The most a small boat makes under sail, m/s. */
+const SAIL_MAX_MPS = 3;
+/** Beating up a river against the wind's bends, she makes this share. */
+const SAIL_BEAT_SHARE = 0.6;
 /** A stroke's worth of way along the river, in hails. */
 const STROKE_HAILS = 1.1;
 
@@ -56,7 +60,7 @@ export type PropelHeading = 'upstream' | 'downstream' | 'left' | 'right' | 'plac
 
 /** What the boat asks of the water, by shape (the river's warren). */
 export interface PaddleWater {
-  riverAt(room: Stuff, inside?: boolean): Promise<{ currentMps: number; depthM: number; roughness: number; barSide: 'left' | 'right' | null } | null>;
+  riverAt(room: Stuff, inside?: boolean): Promise<{ currentMps: number; depthM: number; roughness: number; barSide: 'left' | 'right' | null; widthM?: number } | null>;
   refusalOf(source: Stuff, way: string, mover: Stuff): Promise<string | null>;
   destinationOf(source: Stuff, way: string, target?: string): Promise<Stuff & Container>;
   launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null>;
@@ -72,6 +76,12 @@ export interface PropelSpec {
   inside: boolean;
   hard: boolean;
   water: PaddleWater;
+  /**
+   * ⭐ Under sail (D20, D21): the wind drives her, not arms — her speed
+   * through the water is the wind's share, nobody tires, and with no wind
+   * she lies becalmed.
+   */
+  windMps?: number;
 }
 
 export class Propel implements SustainedEngagement {
@@ -90,6 +100,8 @@ export class Propel implements SustainedEngagement {
   private readonly inside: boolean;
   private readonly hard: boolean;
   private readonly water: PaddleWater;
+  /** The wind she sails on, m/s; `null` when her people drive her. */
+  private readonly windMps: number | null;
   /** Metres made toward the next stroke's worth. */
   private progress = 0;
   private ended = false;
@@ -105,6 +117,7 @@ export class Propel implements SustainedEngagement {
     this.inside = spec.inside;
     this.hard = spec.hard;
     this.water = spec.water;
+    this.windMps = typeof spec.windMps === 'number' ? spec.windMps : null;
     this.emissions = [{ intervalMs: BEAT_GAME_MS, event: () => void this.beat() }];
   }
 
@@ -155,8 +168,8 @@ export class Propel implements SustainedEngagement {
       return this.end();
     }
     if (this.boat.isCapsized()) return this.end('She is upside down; there is no paddling her.');
-    const part = this.boat.propulsion();
-    if (part === null) return this.end('There is nothing in her to paddle with.');
+    const part = this.windMps !== null ? this.boat.sail() : this.boat.propulsion();
+    if (part === null) return this.end(this.windMps !== null ? 'She has no sail to set.' : 'There is nothing in her to paddle with.');
     const room = (this.boat as unknown as { getContainer(): Stuff | null }).getContainer();
     if (room === null) return this.end();
     const river = await this.water.riverAt(room, this.inside);
@@ -169,7 +182,9 @@ export class Propel implements SustainedEngagement {
 
     // The effort, and what it buys.
     let powerW = this.hard ? HARD_W : PADDLE_W;
-    if (MixinApi.isExerting(this.actor)) {
+    if (this.windMps !== null) {
+      powerW = 0;
+    } else if (MixinApi.isExerting(this.actor)) {
       const can = this.actor.sustainableW();
       if (powerW > can) {
         powerW = Math.max(30, can);
@@ -184,7 +199,11 @@ export class Propel implements SustainedEngagement {
     const hull = this.boat.getHull();
     const area = Math.max(0.05, hull.beamM * hull.draftM);
     const eff = part.getEfficiency() * (part.getNeeds() === 'bottom' && shallows ? 1.6 : 1);
-    const v = Math.cbrt((powerW * crew * eff) / (0.5 * 1000 * HULL_CD * area));
+    // Under sail her way is the wind's share — a small boat on a reach
+    // makes about a third of the wind's speed, and less beating up a river.
+    const v = this.windMps !== null
+      ? Math.min(SAIL_MAX_MPS, this.windMps * eff * (this.heading === 'upstream' ? SAIL_BEAT_SHARE : 1))
+      : Math.cbrt((powerW * crew * eff) / (0.5 * 1000 * HULL_CD * area));
 
     // The water rougher than her freeboard swamps her.
     const wave = river.roughness * 0.6;

@@ -963,3 +963,10 @@ plan specified. Three latent defects were found and fixed along the way —
 metabolism's missing lifecycle guard, `Avatar.shouldPersist` not chaining
 to `super` (which made `markForRevert` dead), and three drivers sharing an
 `applyDeath` method name so the outermost shadowed the other two.
+
+## River build (2026-10-21)
+
+A corpse sinks fresh and **floats again** once decomposed
+(`Postmortem.buoyantNow()` — true only at the `decomposed` stage); a water
+place's `sinks` reads it, and a river's drift fetches the floating body up on
+the next bar. See [river.md](./river.md).

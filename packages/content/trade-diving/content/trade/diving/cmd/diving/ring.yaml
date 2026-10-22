@@ -4,10 +4,12 @@ verbs: [ring]
 controller: /trade/diving/idea/cmd/diving/RingController
 description: "Strike a signal bell"
 help: |
-  `ring bell` strikes a signal bell you are holding. In air it is a
-  bell; under the water the note carries further than any voice and
-  comes from nowhere a listener can place — every diver in the water
-  hears it, and nobody can tell where you are from it.
+  `ring bell` strikes a signal bell — one you are holding, or one hung
+  where you stand (a ferry landing's, on its post). In air it is a bell,
+  and a ferryman across the water knows it rang; under the water the note
+  carries further than any voice and comes from nowhere a listener can
+  place — every diver in the water hears it, and nobody can tell where you
+  are from it.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -16,5 +18,5 @@ args:
   - name: bell
     type: object
     required: true
-    scope: "inventory"
+    scope: ["inventory", "reachable"]
     requires: any

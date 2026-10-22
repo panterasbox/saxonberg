@@ -65,6 +65,15 @@ export default class CourseController extends CommandController<CourseModel> {
     const giver = context.commandGiver;
     const craft = await this.craftOf(giver);
     if (craft === null) {
+      // ⭐ A small boat with a sail (river D20): the boat you sit in sails
+      // herself on the river's water, by shape — the kernel never imports
+      // the boat.
+      const boat = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+      const sails = boat as unknown as { sailCourse?(heading: string, by: Stuff): Promise<{ ok: boolean; line: string }> } | null;
+      if (sails && typeof sails.sailCourse === 'function') {
+        const out = await sails.sailCourse(model.heading ?? '', giver);
+        return out.ok ? this.tell(context, out.line) : this.decline(context, out.line, 'cannot-sail');
+      }
       return this.decline(context, 'You are not aboard anything that sails.', 'not-aboard');
     }
     // ⭐ On a river (D18): a direction, a landing, or the bar — never a bearing.

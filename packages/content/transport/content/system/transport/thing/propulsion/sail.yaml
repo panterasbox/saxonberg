@@ -1,0 +1,15 @@
+# A sail (the river build, D20) — a small boat's spritsail on its mast:
+# the wind drives her, not arms. Set with `course` from her tiller; it
+# needs water wide enough to sail and a wind to fill it.
+class: /system/transport/thing/Propulsion
+data:
+  shortDescription: spritsail
+  keywords: [sail, spritsail, mast, sprit]
+  register: indefinite
+  longDescription: A tanned spritsail laced to a short mast, its sprit and sheet coiled down along the thwart.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 9
+  propulsionKind: sail
+  needs: wind
+  crewPowered: false
+  efficiency: 0.35
