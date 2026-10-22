@@ -2340,6 +2340,23 @@ burst's garbage (the season-jump catch-up, which also starved the loop into
 the cursor timeouts) pile up to the ceiling. Drive worlds now start at
 3 GB and are sampled each minute (`mem12.log`).
 
+### Review — D22 reshaped: pulling out of the water is the water's act
+
+The user's review asked why a body was `Pullable` (any creature, a spider
+or a horse alike; no thing could be pulled out; no consent). With the
+cordage requirements (build-2) in view — *one rope; what it is for is where
+its ends are tied* — the line is the rope and the far end is a load, so a
+body is not a thing on a line. `Creature` drops `PullableMixin` (restored to
+its merge point); `WaterPlace.pullOut` hauls anything in it out by hand,
+gated on the puller's strain ceiling against the load (half for a swimmer
+who helps), with a player's consent unless helpless or of the puller's
+party; `WaterPlace.deliverOut` is the one landing a hand and the lifeline
+share, so cordage's rope lands the same way. `pull`'s target declares
+`requires: any` and the controller asks the water within reach (here, the
+boat's water, one way off) by name when the target is not on a line. Drive
+step C21 now pulls the mate back into the righted canoe. The ferryman's
+brain claims `attention` (lint:idle-cadence), not his hands.
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
 - **Pass 12** runs against d6ac09e88 on a 3 GB world

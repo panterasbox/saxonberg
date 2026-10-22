@@ -13,6 +13,12 @@ help: |
   hand: the deeper they are, the longer it takes. `pull bell down`
   lowers a diving bell on its hoist; `pull bell up` raises it.
 
+  `pull <someone>` gets hold of a swimmer — or anything in the water —
+  from the bank, from your boat, or beside them in the water, and brings
+  them out (in the water, you hold their head up). It takes your
+  strength: a body that can't help is a dead weight, and some things want
+  a rope. A swimmer who is awake and not with you can shake you off.
+
   With nothing named, `pull` takes up the one thing beside you that is on
   a line. (`lift` is what you do to a bar.)
 validators:
@@ -20,13 +26,16 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ `PullableMixin` — the protocol mixin a pot, a line and a hoist each
-  # answer in their own way; the binder refuses anything else in words.
+  # ⭐ No `requires:` (river review): a thing on a line here answers in
+  # its own way (`PullableMixin`); anything else — a swimmer, an oar — is
+  # asked of the water within reach by the name given, which `reachable`
+  # cannot see below a bank (a name that binds nothing still reaches the
+  # controller, as `raw`).
   - name: target
     type: object
     required: false
     scope: ["reachable"]
-    requires: [PullableMixin]
+    requires: any
   - name: sense
     type: string
     required: false

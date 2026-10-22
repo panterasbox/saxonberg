@@ -189,10 +189,29 @@ suite('stage C — small craft', () => {
     expect(way, 'the pole never moved her in the shallows').toBe(true);
   }, 900_000);
 
-  it('21. swamped in broken water: her people are in the river beside her; a pull rights her', async () => {
+  it('21. swamped in broken water: her people are in the river beside her; a pull rights her, and a pull brings her mate back in', async () => {
     const s = await funded(uniqueHandle('rcc'));
+    const mate = await session(uniqueHandle('rcm'), PUT_IN);
     await morning();
-    await afloat(s, 'canoe');
+    // ⭐ A person is not landed against their will (river review): the mate
+    // is in her party, so a pull is help, not a seizure.
+    expectOk(await s.cmd('party form canoeists'));
+    expectOk(await s.cmd(`party invite ${mate.handle}`));
+    expectOk(await mate.cmd('party accept'));
+    // Into the same canoe: the mate takes one; the paddler finds hers.
+    expectOk(await mate.cmd('go canoe'));
+    const mateBoat = JSON.stringify(await mate.query('me:e', { fields: 'ref' }));
+    let together = false;
+    for (const which of ['canoe', '2nd canoe', '3rd canoe']) {
+      const into = await s.cmd(`go ${which}`);
+      if (into.status !== 'ok') continue;
+      together = JSON.stringify(await s.query('me:e', { fields: 'ref' })) === mateBoat;
+      if (together) break;
+      await s.cmd('out');
+    }
+    expect(together, 'the two never got into one canoe').toBe(true);
+    const launched = await say(s, 'launch');
+    expect(launched, launched).toMatch(/down into the water and she floats/);
     expectOk(await s.cmd('paddle downstream --hard'));
     let over = false;
     for (let i = 0; i < 60 && !over; i++) {
@@ -207,6 +226,17 @@ suite('stage C — small craft', () => {
     expect(wet, wet).toMatch(/canoe/i);
     const righted = await say(s, 'pull canoe');
     expect(righted, righted).toMatch(/comes over the right way up/);
+    // Back in, and her mate pulled in after her — by what she knows them as.
+    expectOk(await s.cmd('go canoe'));
+    const pulled = await s.cmd('pull human');
+    const said = squash(await pulled.said());
+    console.log(`pull human: ${pulled.status} ${said}`);
+    expect(pulled.status, said).toBe('ok');
+    expect(said).toMatch(/get hold of/);
+    await s.listen(15_000);
+    const mateNow = JSON.stringify(await mate.query('me:e', { fields: 'ref' }));
+    const boatNow = JSON.stringify(await s.query('me:e', { fields: 'ref' }));
+    expect(mateNow, 'the mate is not in the canoe').toBe(boatNow);
   }, 1_200_000);
 
   it('22. a killick dropped in quick water drags along the bottom', async () => {

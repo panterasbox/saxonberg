@@ -93,7 +93,17 @@ within hail, `down` to the bed. A bank's `river` way in is installed when a
   first spot downstream that holds it, alive. A corpse floats again at the
   `decomposed` stage and fetches up on a bar.
 - **Rescue**: from the bank (a line thrown, `pull line`; running the bank),
-  by wading in, or from a boat (`pull <person>` hauls them into it).
+  by wading in, or by hand — `pull <someone>` from the bank, from a boat
+  floating in that water, or beside them in it (where it holds their head
+  up). ⭐ Pulling something out by hand is **the water's act**
+  (`WaterPlace.pullOut`, review): a body is not `Pullable` — that protocol
+  is a thing on the end of a line, and in cordage's world the line is the
+  rope. The water finds the load by what the puller knows it as, gates it on
+  the puller's strain ceiling against its mass (half for a swimmer who helps;
+  a horse wants a rope), and a player awake and free in the water shakes off
+  a hand that is not their party's — pinned, drowning, senseless or
+  linkdead, anybody may. A hand and a line land the same way
+  (`WaterPlace.deliverOut`): whatever hold the water had lets go.
 
 ## Small craft (transport pack)
 

@@ -31,6 +31,10 @@ import type { WaterRead } from '../WaterSource';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import Good from '../../../platform/thing/Good';
 import Material from '../../../platform/idea/material/Material';
+import { PartyApi } from '../../../api/party';
+import Exit from '../../boundary/Exit';
+import { SchedulerApi } from '../../../api/scheduler';
+import { HAZARD_PIN_TYPE } from '../../hazard/HazardActivity';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Walker extends Actor {}
@@ -270,5 +274,105 @@ describe('a basin the ebb leaves (D21, D25)', () => {
     expect(tidepool.oxygenNowMgL()).toBeCloseTo(8, 5);
     WorldClockApi._advanceForTesting(5 * 3600 * 1000);
     expect(tidepool.oxygenNowMgL()!).toBeLessThan(4);
+  });
+});
+
+describe('⭐ pulled out of the water by hand (river D22, review)', () => {
+  /** A bank with a way to the pool, and a walker on it. */
+  async function bankBeside(p: Pool): Promise<{ bank: Locale; puller: Walker }> {
+    const bank = makeStuff(() => new Locale());
+    const puller = walker();
+    ContainmentApi.move(puller as never, bank as never);
+    await bank.addExit(makeStuff(() => new Exit({ direction: 'water', source: bank, destination: p })));
+    return { bank, puller };
+  }
+  function good(kg: number): Good {
+    return makeStuff(() => {
+      const g = new Good();
+      g.setMass(Quantity.of(kg, 'kg'));
+      return g;
+    });
+  }
+
+  it('⭐ from the bank a swimmer comes out onto it, on the puller’s hands, and the water’s hold lets go', async () => {
+    const { pool: p } = await pool();
+    const { bank, puller } = await bankBeside(p);
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, p as never);
+    const out = await p.pullOut(swimmer as unknown as Stuff, puller as unknown as Stuff);
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(out.takes?.realS).toBeGreaterThan(0);
+    expect(swimmer.getContainer()).toBe(p);
+    const landed = await out.takes!.finish();
+    expect(landed.ok).toBe(true);
+    expect(swimmer.getContainer()).toBe(bank);
+  });
+
+  it('in the same water there is nothing to lift onto: you hold their head up', async () => {
+    const { pool: p } = await pool();
+    const swimmer = walker();
+    const rescuer = walker();
+    ContainmentApi.move(swimmer as never, p as never);
+    ContainmentApi.move(rescuer as never, p as never);
+    const out = await p.pullOut(swimmer as unknown as Stuff, rescuer as unknown as Stuff);
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    const held = await out.takes!.finish();
+    expect(held.ok && held.self.toString()).toMatch(/head up/);
+    expect(swimmer.getContainer()).toBe(p);
+  });
+
+  it('a water with no way to where you stand is out of your reach', async () => {
+    const { pool: p } = await pool();
+    const far = makeStuff(() => new Locale());
+    const puller = walker();
+    ContainmentApi.move(puller as never, far as never);
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, p as never);
+    expect(await p.pullOut(swimmer as unknown as Stuff, puller as unknown as Stuff)).toMatchObject({ ok: false, reason: 'out-of-reach' });
+  });
+
+  it('⭐ a thing comes out too; one heavier than your strain ceiling wants a rope', async () => {
+    const { pool: p } = await pool();
+    const { bank, puller } = await bankBeside(p);
+    vi.spyOn(puller, 'getStrainCeiling').mockReturnValue(Quantity.of(70, 'kg'));
+    const oar = good(3);
+    const horse = good(500);
+    ContainmentApi.move(oar as never, p as never);
+    ContainmentApi.move(horse as never, p as never);
+    expect(await p.pullOut(horse as unknown as Stuff, puller as unknown as Stuff)).toMatchObject({ ok: false, reason: 'too-heavy' });
+    const out = await p.pullOut(oar as unknown as Stuff, puller as unknown as Stuff);
+    expect(out.ok).toBe(true);
+    if (out.ok) await out.takes!.finish();
+    expect(oar.getContainer()).toBe(bank);
+  });
+
+  it('⭐ a player awake and free in the water shakes you off unless they are with you; linkdead, anybody may', async () => {
+    const { pool: p } = await pool();
+    const { puller } = await bankBeside(p);
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, p as never);
+    let linkdead = false;
+    vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((x: unknown) => x === swimmer) as never);
+    (swimmer as unknown as { isLinkdead(): boolean }).isLinkdead = () => linkdead;
+    const allied = vi.spyOn(PartyApi, 'areAllied').mockReturnValue(false);
+    expect(await p.pullOut(swimmer as unknown as Stuff, puller as unknown as Stuff)).toMatchObject({ ok: false, reason: 'unwilling' });
+    allied.mockReturnValue(true);
+    expect((await p.pullOut(swimmer as unknown as Stuff, puller as unknown as Stuff)).ok).toBe(true);
+    allied.mockReturnValue(false);
+    linkdead = true;
+    expect((await p.pullOut(swimmer as unknown as Stuff, puller as unknown as Stuff)).ok).toBe(true);
+  });
+
+  it('a body pinned in the water is let go when it comes out (a line lands the same way)', async () => {
+    const { pool: p } = await pool();
+    const bank = makeStuff(() => new Locale());
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, p as never);
+    const cancel = vi.spyOn(SchedulerApi, 'cancelByType').mockImplementation(() => {});
+    p.deliverOut(swimmer as never, bank as never);
+    expect(cancel).toHaveBeenCalledWith(swimmer, HAZARD_PIN_TYPE);
+    expect(swimmer.getContainer()).toBe(bank);
   });
 });
