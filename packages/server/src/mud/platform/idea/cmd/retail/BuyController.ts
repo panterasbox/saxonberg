@@ -66,12 +66,7 @@ export default class BuyController extends CommandController<BuyModel> {
     // (A counter bound by the view's DEFAULT carries the default's query as
     // its raw text, or none — either way, not a counter the player named.)
     const named = !!model.counter?.raw && !/^reachable:/.test(model.counter.raw);
-    if (!named && counter instanceof Stock && !counter.carriesLine(model.thing)) {
-      const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-      const others = here && MixinApi.isContainer(here) ? (here.getContents() as Stuff[]) : [];
-      const carrier = others.find((o) => o instanceof Stock && o !== counter && o.carriesLine(model.thing));
-      if (carrier) counter = carrier;
-    }
+    if (!named && counter instanceof Stock) counter = counter.counterFor(model.thing);
     const stock = counter instanceof Stock ? counter : null;
     const shelf =
       counter && MixinApi.isConsignmentShelf(counter)

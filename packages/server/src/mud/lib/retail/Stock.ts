@@ -425,6 +425,25 @@ export default class Stock extends StockBase {
     return this.lineForWord(keyword) !== null;
   }
 
+  /**
+   * ⭐ The counter in this place that sells `keyword`: this one when its
+   * lines carry it, else another `Stock` standing in the same place that
+   * does, else this one (whose refusal then names the good). A market
+   * square holds several stalls, and `buy water filter` went to whichever
+   * the binder found first and was told it "isn't for sale here" (the
+   * ceramics drive). The counter answers, not the controller.
+   */
+  counterFor(keyword: string): Stock {
+    if (this.carriesLine(keyword)) return this;
+    const self = this as unknown as Stuff;
+    const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+    if (here === null || !MixinApi.isContainer(here)) return this;
+    for (const other of here.getContents() as Stuff[]) {
+      if (other instanceof Stock && other !== this && other.carriesLine(keyword)) return other;
+    }
+    return this;
+  }
+
   /** The authored par depth for a line (by item template path). */
   parFor(itemTemplatePath: string): number {
     return (
