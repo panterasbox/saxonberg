@@ -668,7 +668,10 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     expect(blew, `the blow: ${blew}`).toMatch(/steam|spits/i);
     const hurt = await say(caster, 'assess me');
     expect(hurt, `the pourer's hands: ${hurt}`).toMatch(/burn/i);
-    await advance('1 hour');
+    // Long enough for 1.5 L of pewter in a 20 kg flask to give up its heat
+    // in any season: an hour left it "filled, and has not begun to set"
+    // (run 23).
+    await advance('3 hours');
     await examine(caster, 'flask'); // a mould sets on read
     await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     expect(await examine(caster, 'blown'), 'a blown lump').toMatch(/blown lump of pewter/i);
