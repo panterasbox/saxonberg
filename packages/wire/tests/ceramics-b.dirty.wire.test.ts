@@ -60,7 +60,6 @@ declareFile({
 
 const QUARRY = '/world/terminus/rejection/quarry/pit';
 const SMELTER = '/world/terminus/rejection/location/smelter';
-const FERROW_FACE = '/world/terminus/rejection/ferrow/face';
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
@@ -191,30 +190,30 @@ async function winAtQuarry(band: string, n: number, back: string): Promise<void>
 }
 
 /**
- * Hew `n` lumps of malachite at the Ferrow face and come back.
+ * Stand `n` lumps of copper ore at the smelter (setup) and pick them up.
  *
- * ⚠ The face's air comes and goes (the damps): the first run hewed in dead
- * air and the brickmaker went down — "You can't breathe!". A miner reads
- * the air before cutting and gets out when it is bad, so this does too:
- * hew only while the face reads clean, otherwise climb out, wait a couple
- * of hours, and try again.
+ * ⚠ The ore is SETUP, not the act under test (the crucible's wear is):
+ * the Ferrow face is pitch dark and its air comes and goes, and the first
+ * runs sent the brickmaker in lampless to suffocate. The founder stands the
+ * ore up by `eval` — the town's own kind, which `clone` (the kind's title)
+ * rightly refuses an outsider.
  */
 async function oreFor(n: number, back: string): Promise<void> {
-  for (let got = 0, tries = 0; got < n && tries < n * 6; tries++) {
-    await goTo(FERROW_FACE);
-    const air = await say('look');
-    if (!/air is clean/i.test(air)) {
-      await goTo(back);
-      await advance('2 hours');
-      continue;
-    }
-    const hewn = await act('hew with pick', '10 minutes');
-    const why = refusedFor(hewn.r);
-    if (why === null && !/can'?t breathe/i.test(hewn.said)) got++;
-    else if (why === 'too-tired') await rest();
-    await say('get malachite');
+  const gov = await Session.open('founder', { startLocation: SMELTER, wizard: true });
+  try {
+    const r = await gov.cmd(
+      `eval --parcel /world/terminus/rejection return Promise.all(Array.from({ length: ${n} }, () =>` +
+        ` StuffApi.clone('/world/terminus/rejection/thing/copper-ore'))).then(os =>` +
+        ` Promise.all(os.map(o => ContainmentApi.move(o, StuffApi.findByTemplatePath('${SMELTER}'))))).then(() => 'ore: ${n}')`,
+    );
+    const said = squash(plain(await r.said()));
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] (founder eval → ${said.slice(0, 160)})`);
+  } finally {
+    gov.close();
   }
   await goTo(back);
+  await say('get malachite');
 }
 
 async function toHour(fromH: number, toH: number): Promise<void> {
