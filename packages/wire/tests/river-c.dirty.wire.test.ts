@@ -51,6 +51,7 @@ declareFile({
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
+const ESTUARY_MOUTH = '/world/terminus/estuary/estuary-mouth';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -126,15 +127,17 @@ afterAll(() => {
 });
 
 suite('stage C — small craft', () => {
-  it('19. paddle a canoe upstream: the channel beats you, the inside of the bend does not; stop, and she goes back down', async () => {
-    const s = await funded(uniqueHandle('rcp'));
+  it('19. row a small boat upstream: the channel beats you, the inside of the bend does not; stop, and she goes back down', async () => {
+    // ⭐ On gentle water — the estuary — in the dinghy drawn up there (oars).
+    // The put-in is white water: a canoe paddled there swamps (step 21).
+    const s = await session(uniqueHandle('rcp'), ESTUARY_MOUTH);
     await morning();
-    await afloat(s, 'canoe');
+    await afloat(s, 'dinghy');
 
-    // The channel: the snow water is quicker than a paddler.
+    // The channel: the river and the tide against a rower.
     const start = await boatAt(s);
     const up = await say(s, 'paddle upstream');
-    expect(up, up).toMatch(/take up the paddle and paddle upstream/);
+    expect(up, up).toMatch(/take up the oar and row upstream/);
     const heard = squash(await s.listen(90_000));
     const lost = /current is stronger than you/.test(heard);
     const gained = (await boatAt(s)) !== start;
@@ -143,7 +146,7 @@ suite('stage C — small craft', () => {
     // The inside of the bend runs slower; the same arms make way there.
     await s.cmd('stop');
     const inside = await say(s, 'paddle upstream --inside');
-    expect(inside, inside).toMatch(/paddle upstream/);
+    expect(inside, inside).toMatch(/row upstream/);
     const before = await boatAt(s);
     let madeWay = false;
     for (let i = 0; i < 12 && !madeWay; i++) {

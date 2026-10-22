@@ -1379,6 +1379,19 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       const day = isDay(nowS);
       const sight = clarityM * 0.4 * (day ? 1 : 0.25);
       if (s.obstruction > SNAG_CHOKED && sog > sight) {
+        // ⭐ The master's choice, not the engine's: coming up to a choked
+        // reach she stops at its edge, where her people can see the snags
+        // — and goes on at a crawl or chances it. Already in it (the course
+        // was set from here, at speed), she is chancing it, and she is holed.
+        // By day the snags are there to be seen: she will not be run into
+        // them at speed — stopped at their edge, or (lying among them) not
+        // started. By night nobody sees them, and she runs on to the crack.
+        if (day) {
+          if (route[0] === s) {
+            return { refused: 'She lies among snags — dead trees in the channel all round her. Not at speed: take her out slow.' };
+          }
+          return stopAt(entryKm, t, 'snags', 'Snags ahead: dead trees lying in the channel, a branch combing the current, dark shapes just under the surface. The engine is rung down and she lies off them. Take her through slow.');
+        }
         const atS = t + (Math.abs(midKm - entryKm) * 1000) / sog;
         legs.push([midKm, atS]);
         return stopAt(midKm, atS, 'holed', 'Something under the water takes her with a crack you feel through your feet. She stops dead, holed on a snag, and the water is coming in.');

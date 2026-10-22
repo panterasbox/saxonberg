@@ -276,9 +276,6 @@ suite('stage A — the line and the patch', () => {
     const atIn = await here(a);
     expectOk(await a.cmd('swim downstream'));
     await moved(a, atIn, 180);
-    // Lie back and the river carries you out into the channel, where it is deep.
-    await a.cmd('lie');
-    await a.listen(60_000);
     let dove = false;
     let lastDive = '';
     for (let i = 0; i < 20 && !dove; i++) {
@@ -290,7 +287,9 @@ suite('stage A — the line and the patch', () => {
         dove = true;
         break;
       }
-      expect(said, said).toMatch(/shallow enough to stand in|no deeper|dive/);
+      expect(said, said).toMatch(/shallow enough to stand in|no deeper|no open water|dive/);
+      // Not deep enough here: a stroke on down the river, and try again.
+      await a.cmd('swim downstream');
       await a.listen(20_000);
     }
     expect(dove, `never over water deep enough to dive (last: ${lastDive})`).toBe(true);

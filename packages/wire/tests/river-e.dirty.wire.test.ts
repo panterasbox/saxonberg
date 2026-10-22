@@ -167,6 +167,7 @@ suite('stage E — the ferry, and the sea', () => {
   it('35. the Hesper stopped at sea: her boat into the water beside her; over the side, and her course waits', async () => {
     const master = await session(uniqueHandle('rem'), DECK);
     const hand = await session(uniqueHandle('reh'), DECK);
+    await look(master);
     expectOk(await master.cmd('go dinghy'));
     const launched = await say(master, 'launch');
     expect(launched, launched).toMatch(/into the water and she floats/);

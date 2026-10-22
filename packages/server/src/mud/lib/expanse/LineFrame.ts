@@ -44,7 +44,7 @@ export interface PassageRequest {
 }
 
 /** Why a passage stops short of where it was going. */
-export type PassageStopReason = 'landing' | 'aground' | 'holed' | 'stemmed' | 'falls' | 'mouth' | 'head';
+export type PassageStopReason = 'landing' | 'aground' | 'holed' | 'snags' | 'stemmed' | 'falls' | 'mouth' | 'head';
 
 /**
  * ⭐ A passage worked out stretch by stretch when the course was set (river

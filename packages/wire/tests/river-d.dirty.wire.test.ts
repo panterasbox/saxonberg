@@ -109,9 +109,16 @@ async function lies(s: Session, tries = 12): Promise<string> {
  */
 async function steam(s: Session, course: string): Promise<string> {
   let said = '';
+  let asked = course;
   for (let i = 0; i < 24; i++) {
-    said = await say(s, course);
-    console.log(`steam ${course} [${i}]: ${said.slice(0, 200)} | then: ${squash(await s.listen(8_000)).slice(0, 300)}`);
+    said = await say(s, asked);
+    const then = squash(await s.listen(8_000));
+    console.log(`steam ${asked} [${i}]: ${said.slice(0, 200)} | then: ${then.slice(0, 300)}`);
+    // Among snags, or stopped at their edge: the master takes her through slow.
+    if (/snags|Snags ahead/.test(said + ' ' + then) && !/ slow$/.test(asked)) {
+      asked = `${course} slow`;
+      continue;
+    }
     if (!/hard aground/.test(said)) return said;
     await advanceWorldClock('5 days');
     await advanceWorldClock('5 days');
@@ -146,9 +153,14 @@ suite('stage D — a ship on the river', () => {
   }, 600_000);
 
   it('26. course for the woodyard: she comes alongside; ashore, buy cordwood, and feed her bin', async () => {
-    const set = await steam(master, 'course woodyard');
+    let set = await steam(master, 'course woodyard');
     expect(set, set).toMatch(/for the woodyard|woodyard landing/i);
-    const at = await lies(master);
+    let at = await lies(master);
+    // Stopped short — at the edge of snags — she goes on, slow.
+    for (let i = 0; i < 4 && !/woodyard/i.test(at); i++) {
+      set = await steam(master, 'course woodyard slow');
+      at = await lies(master);
+    }
     expect(at, at).toMatch(/woodyard/i);
     // Ashore at the woodyard, and back aboard with a length of wood.
     const s = await Session.open(uniqueHandle('rdw'), { startLocation: BANK_HALL });

@@ -101,6 +101,10 @@ export interface BoatWater {
 export default class Boat extends BoatBase {
   static commandContributions: CommandContributions = {
     inventory: FROM_INSIDE,
+    // ⭐ Whoever is in the water beside her can right her (D22): `pull`, the
+    // trap's way (the river drive: a swamped canoe's people were told
+    // "I don't understand 'pull'").
+    peers: ['platform/cmd/inventory/pull.yaml'],
   };
 
   static fieldMeta: FieldMeta = {

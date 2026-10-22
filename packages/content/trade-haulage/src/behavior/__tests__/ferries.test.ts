@@ -63,9 +63,9 @@ describe('the ferries brain (river D31)', () => {
     rungAt = 100;
     const state: Record<string, unknown> = {};
     await brain.act(ctx(state));
-    expect(said).toEqual(['across']);
+    expect(said).toEqual(['go across']);
     await brain.act(ctx(state));
-    expect(said).toEqual(['across']);
+    expect(said).toEqual(['go across']);
   });
 
   it('⭐ at high water he shouts it across instead of going', async () => {

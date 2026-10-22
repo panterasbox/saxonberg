@@ -246,6 +246,11 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // they did not learn.
             to: null,
             toLabel: far ?? null,
+            // ⭐ A way you can see is not always there (a ferry, a ford) is
+            // seen to be so: the claim carries it, as a walked one does
+            // (the river drive: a route over the ferry, planned from a
+            // SEEN claim, never said "not always passable").
+            ...((exit as unknown as { isConditional?(): boolean }).isConditional?.() ? { conditional: true } : {}),
             channel: how,
             firstSeen: now,
             lastSeen: now,

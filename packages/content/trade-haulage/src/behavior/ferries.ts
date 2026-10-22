@@ -77,7 +77,9 @@ export const brain = class {
       await host.forceCommand(`shout ${gate.reason ?? 'Not now!'}`);
       return;
     }
-    await host.forceCommand(way);
+    // A named way is taken with `go` (the drive: a bare `across` was an
+    // unknown verb, and the ferry never came).
+    await host.forceCommand(`go ${way}`);
   }
 } satisfies BrainStatics;
 
