@@ -34,6 +34,8 @@ data:
         charge: 14
         # A burnt batch is spilled and the pan started again.
         spoilt: spill
+        # A full train kettle is ladled at the strike, never lifted.
+        ladle: true
         source: juice
         finish: block
         counter: /world/terminus/waponi-woo/thing/stock

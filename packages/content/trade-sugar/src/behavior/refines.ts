@@ -78,6 +78,13 @@ interface Words {
    * burnt batch (probed: a batch went to "burnt toffee" and stayed).
    */
   spoilt?: 'leave' | 'spill';
+  /**
+   * ⭐ Ladle the strike out where the pan stands, never lift it: a full
+   * train kettle "won't budge" (probed: twelve refused `get kettle` at the
+   * strike while the batch burned to toffee). The Jamaica train was always
+   * ladled. Absent, the boiler lifts the pan off (the Terminus copper).
+   */
+  ladle?: boolean;
 }
 
 const TERMINUS: Words = {
@@ -164,7 +171,7 @@ export const brain = class {
     const steps = (way: string): string[] => way.split(/\s+/).filter(Boolean).map((d) => `go ${d}`);
     const errand = (...verbs: string[]): string => [...steps(w.out), ...verbs, ...steps(w.back)].join('\n');
     if (f.liquor === 'struck') {
-      if (f.onFire) return `get ${w.kettle}`;
+      if (f.onFire && !w.ladle) return `get ${w.kettle}`;
       if (f.coneReady) return `pour ${w.kettle} into ${w.mould}`;
       if (f.coneAndPot) return `put ${w.mould} on ${w.pot}`;
     }
@@ -179,7 +186,7 @@ export const brain = class {
       if (f.setBlock) return `get block from ${w.mould}`;
     }
     if (f.liquor === 'spoilt' && w.spoilt === 'spill') {
-      return f.onFire ? `get ${w.kettle}` : `spill ${w.kettle}`;
+      return f.onFire && !w.ladle ? `get ${w.kettle}` : `spill ${w.kettle}`;
     }
     if (f.liquor === 'struck' || f.liquor === 'spoilt') return null;
     if (f.liquor === 'empty') {

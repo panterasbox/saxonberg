@@ -75,6 +75,10 @@ describe('refines — one act per beat', () => {
     const estate = brain.words({ kettle: 'kettle', spoilt: 'spill' });
     expect(brain.next({ ...base, liquor: 'spoilt', onFire: true }, estate)).toBe('get kettle');
     expect(brain.next({ ...base, liquor: 'spoilt', onFire: false }, estate)).toBe('spill kettle');
+    // ⭐ A train kettle is LADLED where it stands — a full one won't budge.
+    const train = brain.words({ kettle: 'kettle', mould: 'hogshead', spoilt: 'spill', ladle: true });
+    expect(brain.next({ ...base, liquor: 'struck', onFire: true, coneReady: true }, train)).toBe('pour kettle into hogshead');
+    expect(brain.next({ ...base, liquor: 'spoilt', onFire: true }, train)).toBe('spill kettle');
   });
 
   it('waits for what it has not got', () => {
