@@ -255,8 +255,11 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await say(digger, 'stand');
     // A day at the table with one lump makes a few green bricks.
     const day = await act(digger, 'shape clay into brick', '9 hours');
-    expect(day, `the test bricks: ${day}`).toMatch(/brick/i);
-    expect(await examine(digger, 'here:i:brick')).toMatch(/green|soft|thumbprint/i);
+    // ⭐ STATE, not prose: the day's line lands during the clock jump,
+    // before the drive is listening (run 4 began the day and read only that).
+    const made = await examine(digger, 'here:i:brick');
+    expect(made, `the test bricks: ${day}`).toMatch(/brick/i);
+    expect(made).toMatch(/green|soft|thumbprint/i);
     await say(digger, 'get 2 bricks');
     // One into the hacks (rain kept off, frost not).
     await say(digger, 'south');

@@ -78,7 +78,7 @@ export default class BrickTable extends BrickTableBase implements ShapePlanner {
       // front, and 330 W for eight hours was ~576 % of any body's endurance —
       // nobody could ever mould (the ceramics drive). A day's work is paced.
       effortW: 260,
-      beginSelf: Mml.compose`You sand the mould, throw the first clot of clay into it and strike it off. It is going to be a long day.`,
+      beginSelf: Mml.compose`You sand the brick mould, throw the first clot of clay into it and strike it off. It is going to be a long day.`,
       beginPeers: Mml.compose`${Mml.actor(actor)} sets to at ${Mml.thing(self)}, throwing clay into the mould.`,
       onComplete: () => {
         void (async (): Promise<void> => {
