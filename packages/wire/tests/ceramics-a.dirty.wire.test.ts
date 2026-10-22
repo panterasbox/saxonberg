@@ -394,10 +394,14 @@ suite('⭐ 3 — knead it', () => {
     const kneaded = await act(digger, 'knead pit', '30 minutes');
     expect(kneaded, `knead: ${kneaded}`).not.toMatch(/dry|wants water|empty/i);
     // ⭐ STATE: the sand and the breeze are gone into the clay — read off
-    // the clay that comes out, which is the player's act. (`pit:i` lists
-    // nothing in a live world though the pit holds the clay — the same
-    // finding as the salt pan's, recorded in the plan; it does not
-    // reproduce in a unit test.)
+    // the clay that comes out, which is the player's act. ⚠ The tread ends
+    // and THEN the blend mints (asynchronously, after the engagement
+    // completes): read at once, the pit is still empty and `get clay from
+    // pit` falls through to the next view and tries to lift the pit (run
+    // 24). That is also what "`pit:i` lists nothing" was.
+    for (let i = 0; i < 20 && (await idsOf(digger, 'pit:i:clay')).length === 0; i++) {
+      await new Promise((r) => setTimeout(r, 500));
+    }
     const taken = await say(digger, 'get clay from pit');
     expect(taken, 'the clay out of the pit').toMatch(/clay/i);
     expect(taken).not.toMatch(/sand|breeze/i);
