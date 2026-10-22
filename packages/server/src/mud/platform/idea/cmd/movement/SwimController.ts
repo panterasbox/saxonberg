@@ -29,7 +29,17 @@ export default class SwimController extends LocomotionControllerBase {
     // `swim north` at a bank with no north said "no open water here"
     // (the storage-and-ice drive); the crossing's refusal names the way.
     const typed = (model.target as { raw?: string } | null | undefined)?.raw?.trim() ?? '';
-    if ((model.target && model.target.stuff !== null) || typed !== '') return super.execute(model, context);
+    if ((model.target && model.target.stuff !== null) || typed !== '') {
+      // ⭐ Standing in the water, a stroke is pushing off (river drive, A3):
+      // the bed lets you go into the water and the swim proceeds — not
+      // "this water's too rough for you", which is what the swim gate says
+      // of anybody the bed is holding.
+      const giver = context.commandGiver as unknown as Stuff;
+      const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+      const floor = room !== null && MixinApi.isWaterPlace(room) && MixinApi.isAdornable(room) ? room.getFloor() : null;
+      if (floor instanceof WaterSurface && floor.supports(giver) && floor.openWaterAreaM2() > 0) floor.giveWay(giver, true);
+      return super.execute(model, context);
+    }
     const giver = context.commandGiver as unknown as Stuff;
     const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     // ⭐ `dive` in the water is down (underwater review): the place picks
