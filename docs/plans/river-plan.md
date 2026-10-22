@@ -2254,3 +2254,53 @@ Kestrel and Delight through a year:
   patch reads no current of its own — under way is moving water. B12: a
   login on a bank installs its ways, and movement from a bank waits on them.
   C: a leftover `canoes` detail bound `go canoe` to the room.
+
+### Pass 3 (2026-10-22): 13 / 28
+
+A 7/9 · B 3/5 · C 1/4 · D 1/6 · E 1/4. Found (8e2a9c117): a ship aground
+had no watch to see the river rise — a course now first asks whether she
+floats; the drives ran in winter (iced pools) and now start in late spring
+(days 60–100); stage E read an arrival off prose that named the far bank.
+(Its "three canoes" fix was the wrong door — see pass 5.)
+
+### Pass 4 (2026-10-22): 10 / 23 (E did not run)
+
+The live world's own readings (`analyze water`, day 147): the Kestrel at the
+quay 14 m³/s, the Delight at the ford 2.5, the put-in 1.8. ⭐ **Content: the
+Kestrel's confluence (90 m) and the Delight's mouth (30 m) were three to four
+times the width their flows fill** — the Kestrel's riffles carried ~0.25 m
+and no steamer moved. Now 35 m and 12 m (the estuary stays 160 m, tidal).
+⚠ These widths predate this build — flagged on the MR.
+
+### Pass 5 (2026-10-22): 13 / 28
+
+⭐ The canoe crash, found properly by a unit test (`Exit.manyOfARow`): a
+vessel's own exits stored their far side's row path, and callers looked a
+destination up by it — throwing for a row with three canoes. The vessel's
+exits use the existing `keepLiveDestination`; `Exit.peekDestination()`
+answers the far side without throwing. A swimmer carried into a fast riffle
+was stood up on arrival (`WaterPlace.standsOnArrival`: a river says no —
+standing is `stand`). The bell offered `ring` to `peers`; a ferry is
+`isConditional()` by its class.
+
+### Pass 6 (2026-10-22): A 7/9, B 2/5 — then out of memory
+
+The world ran out of heap (4 GB) during stage C. A reaped place's own zone
+was left for eviction; D38 says reaped WITH its place — destructed now.
+⚠ **The ford**: six passes read it "running briskly, shallow enough to wade"
+in every season. The shipped Delight never floods in a year of this world's
+weather, and the drive has no honest way to raise it (the locality's
+weather pin is on a commons row the founder holds no authority over; most
+of the catchment is wild ground). Step 7 drives the low-water ford; the
+swept branch stays unit-tested — **a content finding for the user.**
+
+### Pass 7 (2026-10-22): 17 / 28 — memory flat (650–800 MB, sampled)
+
+A 8/9 · ⭐ **B 5/5** (the jammed foot at the put-in's snowmelt) · C 2/4 ·
+D 1/6 · E 1/4. Found (091d64d4d): snags were decided when the course was
+SET — the engine holing her before anyone could see; by day a choked reach
+now stops her at its edge (a `snags` stop — "take her through slow"), by
+night it holes her. A swamped boat's people could not `pull` it (the boat
+offered verbs only to its sitters). The ferryman's brain issued a bare
+`across` (unknown verb). A SEEN ferry way was mapped without its
+conditional flag.
