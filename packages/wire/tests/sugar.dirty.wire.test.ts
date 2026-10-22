@@ -695,8 +695,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     await act(sailor, 'harvest cane');
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/mill-yard`);
-    await say(sailor, 'drop 1 cane');
-    const fresh = await examine(sailor, 'cane');
+    // Two bundles in hand: one is crushed, the other is KEPT in hand for the
+    // day-old read — a bundle left in the yard is the miller's to crush
+    // (drive 11 found nothing left to read).
+    const fresh = await examine(sailor, 'bundle');
     expect(fresh, `fresh cane: ${fresh}`).toMatch(/fresh-cut/i);
     await act(sailor, 'mill cane');
     // ⭐ Juice IN a tub, read by its look — the yard's own prose says
@@ -727,6 +729,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     await act(sailor, 'harvest cane');
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/store`);
+    // ⭐ The estate pays for cane out of what its till has taken. In an idle
+    // world it has taken nothing (drive 11: "The house cannot pay for that
+    // just now" — the idle-economy finding in the plan), so money goes in
+    // the way it really does: a customer buys first. A lump of lime (3)
+    // funds a bundle of cane (2).
+    await buy(sailor, 'quicklime');
     const sold = await say(sailor, 'sell cane');
     expect(sold).toMatch(/sell|buys|pays|coin/i);
     expect(await examine(sailor, 'owner')).toMatch(/Adaeze|owner|ledger/i);
