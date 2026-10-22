@@ -465,7 +465,11 @@ suite('⭐⭐ 27 — impress a sword in a flask, cast it in pewter', () => {
     const poured = await doing(caster, 'pour crucible into flask');
     expect(poured, `pour: ${poured}`).toMatch(/pour/i);
     await advance('1 hour');
-    const cast = await examine(caster, 'cast');
+    // ⭐ A mould sets on READ (reconcile-on-read): look at the flask first,
+    // as a founder does, and the cast comes out of it.
+    await examine(caster, 'flask');
+    // `pewter`, not `cast`: 26's slip-cast mug is a cast too.
+    const cast = await examine(caster, 'pewter');
     expect(cast, `the cast: ${cast}`).toMatch(/pewter cast of an arming sword/i);
     expect(cast, 'seams, no mark').toMatch(/seams/i);
     expect(cast, 'no maker\'s mark').toMatch(/no maker's mark/i);
@@ -532,6 +536,7 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     await melt(FOUNDRY, T.crucible, M.pewter, 505); // 5 K over the melt
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
+    await examine(caster, 'flask'); // a mould sets on read
     const misrun = await examine(caster, 'misrun');
     expect(misrun, `a cool pour into a blade: ${misrun}`).toMatch(/misrun/i);
     expect(misrun).toMatch(/froze before the mould was full/i);
@@ -558,6 +563,7 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
+    await examine(caster, 'flask'); // a mould sets on read
     const casts = await examine(caster, 'cast');
     expect(casts, `the unrisered cast: ${casts}`).toMatch(/porous/i);
     await clearFloor();
@@ -595,6 +601,7 @@ suite('⭐⭐ 30 — every pour obeys its receiver; the chill', () => {
     await melt(FOUNDRY, T.crucible, M.castIron, 1700);
     await doing(caster, 'pour crucible into flask');
     await advance('2 hours');
+    await examine(caster, 'flask'); // a mould sets on read
     const grey = await examine(caster, 'cast');
     expect(grey, `in sand: ${grey}`).toMatch(/grey cast iron/i);
     await clearFloor();
@@ -774,6 +781,7 @@ suite('⭐⭐ 33 — recast and interchangeable', () => {
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
+    await examine(caster, 'flask'); // a mould sets on read
     expect(await examine(caster, 'pewter'), 'a pewter pommel').toMatch(/pewter cast of a pommel/i);
     const fitted = await doing(caster, 'fit pewter to sword');
     expect(fitted, `fit: ${fitted}`).toMatch(/fit a new pommel/i);
@@ -796,6 +804,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await melt(FOUNDRY, T.crucible, M.pewter, 600);
     await doing(caster, 'pour crucible into flask');
     await advance('1 hour');
+    await examine(caster, 'flask'); // a mould sets on read
     // ⚠ `pewter`: the brass key in hand is a cast too, and a shade small.
     const cast = await examine(caster, 'pewter');
     expect(cast, `the cast from the pattern: ${cast}`).toMatch(/pewter cast of an arming sword/i);
@@ -810,6 +819,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     await melt(FOUNDRY, T.crucible, M.bronze, 1350);
     await doing(caster, 'pour crucible into flask');
     await advance('2 hours');
+    await examine(caster, 'flask'); // a mould sets on read
     const rung = await doing(caster, 'ring bronze');
     expect(rung, `the hand bell: ${rung}`).toMatch(/high|clear/i);
     expect(rung, 'a named note').toMatch(/\b[A-G]\b( sharp| flat)?/);
