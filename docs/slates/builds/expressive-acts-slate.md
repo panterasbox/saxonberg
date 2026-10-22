@@ -9,8 +9,9 @@
 > ([belief.md](../../subsystems/belief.md)); personality derived from a ledger of acts
 > ([trait.md](../../subsystems/trait.md)); the harm-consent ledger
 > ([accountability.md](../../subsystems/accountability.md)).
-> **Left:** the act vocabulary (`performs:` on an emote) · the manner vocabulary (the
-> custom slot's leading word) · the play frame · consent and welcome on directed acts,
+> **Left:** acts declared by properties (`performs:` on an emote) · the twenty-act
+> starter set and eleven manner words · emote packs and the two-layer opt-in · the
+> polity's mapping · the manner vocabulary (the custom slot's leading word) · the play frame · consent and welcome on directed acts,
 > with accountability generalized from harm to directed acts · witness reach · the
 > sincerity reading from witnesses' reactions · the consumers (displayed mood, NPC
 > regard, social facts, the trait ledger, derived closeness) · the numbers on `look`
@@ -69,21 +70,82 @@ mechanically."*
   (*"Bobalu mimes decapitating Iffy"*) or is not an emote — violence is combat's, which
   has its own consent through terms.
 
-### The act vocabulary — about thirty **[LEAN — content, drafted with the owner]**
+### ⭐⭐⭐ Consumers read an act's PROPERTIES, never its name **[DECIDED]**
 
-| kind | acts |
+Acts ship in packs (§ 2b), so nothing in the kernel may know the word *kiss*. Every act
+declares:
+
+- its **kind** — affect · touch · social · evaluation · pointing · presence;
+- for touch, its **intimacy tier** (§ 6);
+- its **default stance** when aimed at someone (warm · hostile · deferent · dismissive ·
+  none);
+- for a social act, **what it attaches to** (a gift, a harm, an apology, an office, a
+  displayed mood).
+
+Displayed mood, regard, consent, the social record and the trait ledger read those
+properties. A pack's new act therefore works with no kernel change — *a pack must never
+need a kernel list edit*. The kinds come from what the social sciences already separate:
+**affect** on two axes (pleasant–unpleasant, calm–energized); **stance** on the
+interpersonal circle (warmth–hostility, deference–dominance); **social acts** as acts
+that do something by being performed.
+
+### ⭐⭐ The starter set — one act per mechanism, chosen to teach **[DECIDED — the owner]**
+
+The owner: *"keep the starting set of significant grammar here pretty limited but make
+sure that the things that do do something do it in a way that's very legible to the
+player and instructs how the overall mechanism is supposed to work."* The test for every
+entry: **it exists only if some consumer reads it differently from its neighbors.**
+
+| teaches | acts (example verbs) |
 |---|---|
-| **affect** — how I present | joy · amusement · sadness · anger · fear · surprise · disgust · boredom · weariness · embarrassment |
-| **touch** — directed at a body | hug · kiss · caress · pat · poke · tickle · slap · hold |
-| **social acts** — make a fact between us | greet · farewell · thank · apologize · forgive · congratulate · console · encourage · bless · defer (bow, kneel) · salute · taunt · mock |
-| **evaluation** — what I think of *that* | agree (approve) · disagree · applaud · laugh at · sincere · skeptical |
-| **pointing** — look there, come here | point · beckon · shush |
-| **presence** — out of character | away · back |
+| **displayed mood** | joy (smile, grin) · sadness (cry, sob) · anger (glare, scowl) |
+| **consent tiers** | pat — casual · hug — affectionate · kiss — intimate · slap — hostile |
+| **social facts** | greet (wave, hello) · thank — a gift · apologize — a harm · forgive — closes it · console — their sadness · defer (bow, kneel, salute) — an office |
+| **evaluation and sincerity** | approve (agree, nod, ok, thumbs up, applaud) · disapprove · doubt (eyeroll) |
+| **pointing** | beckon |
+| **presence** | away (afk, brb) · back |
 
-The kinds come from what the social sciences already separate: **affect** on two axes
-(pleasant–unpleasant, calm–energized); **stance** on the interpersonal circle
-(warmth–hostility, deference–dominance); **social acts** as acts that do something by
-being performed (thanking, apologizing, greeting).
+**Twenty acts**, shipped in the `expression` pack. Agree and praise are one act
+(**approve**) here; a polity may split them. Everything else drafted — amusement, fear,
+surprise, disgust, confusion, embarrassment, boredom, weariness, farewell, welcome,
+congratulate, flirt, taunt, deride, point, shush, caress, tickle — is a **candidate for a
+polity to add**, not a starter act.
+
+## 2a. ⭐⭐⭐ Meaning is cultural — the polity decides **[DECIDED — the owner]**
+
+The owner: *"a lot of meaning here is cultural, an emote could be completely ironic or
+satirical representing the opposite sentiment of what the original meaning carries. Or
+the same grammar could mean something totally genuine in another game server. So these
+are decisions that a polity has to make for its constituents."*
+
+The design lenses' three altitudes:
+
+| altitude | what | who changes it |
+|---|---|---|
+| **invariant** | meaning comes from an act's properties · the consent rule per tier (the sexual tier locked) · no number about who you are · witnesses are reach · emotes change nothing in the world | nobody |
+| **grain** | the twenty-act starter set and its manner words | our default; a realm may change it |
+| **title** | which emotes perform which acts · new acts and manner words · ⭐ re-mapping for a culture — one realm's `smile` sincere, another's ironic; a satirical emote mapped to the opposite of its surface | the polity, for its constituents |
+
+The emote→act mapping is **realm data the polity governs**, never something the platform
+ships as truth.
+
+## 2b. ⭐⭐ Content packs and the opt-in **[DECIDED — the owner]**
+
+The owner: *"my answer to the content issues here was generally to break emotes up into
+content packs, so you could have a romance pack with all the sex acts you can think of,
+but it's opt-in by the Compact."*
+
+- **Content beyond the starter set ships as emote packs** — a romance pack, a crude-humor
+  pack, violence as mime — each carrying its emotes, its acts and its manner words.
+- **Two layers of opt-in:**
+  1. **the Compact decides whether a pack is installed** — installing a pack is the
+     governance act, by whatever process the Compact uses;
+  2. **each player opts in to receive it** — a perception filter like the emoji render
+     setting. Nobody can aim a pack's acts at a player who has not opted in (the refusal
+     in advance, applied wholesale), and ⭐ a **witness who has not opted in sees it
+     redacted**: *"Bobalu and Iffy share a private moment."*
+- **A pack can add acts, never loosen the consent rule of the tier it uses** (§ 6) — which
+  is what makes opting in safe.
 
 ## 3. ⭐⭐⭐ The manner vocabulary — what to do with text that can be anything **[DECIDED]**
 
@@ -93,16 +155,19 @@ to make certain emotes 'do something'. Anything outside that vocabulary is just
 neutral. That vocabulary itself needs to be tagged and sorted."*
 
 - **A closed, authored vocabulary of manner words**, each with a reading on one
-  dimension; synonyms collapse (warmly · kindly · fondly → warm).
+  dimension; synonyms collapse (warmly · kindly · fondly → warm). Like acts, the words
+  ship in packs and a polity extends them (§ 2a).
 
-| dimension | examples | effect on the act |
-|---|---|---|
-| **intensity** | slightly · deeply · wildly | scales it |
-| **warmth** | warmly · coldly · tenderly | shifts stance |
-| **dominance** | smugly · shyly · meekly · imperiously | shifts stance |
-| **sincerity** | sincerely · sarcastically · mockingly | flips or discounts it — ⭐ declared by the actor |
-| **frame** | playfully · jokingly | sets the play frame (§ 4) |
-| **affect color** | sadly · nervously · happily | adds a feeling to any act |
+| dimension | effect on the act | starter words | candidates for a polity |
+|---|---|---|---|
+| **intensity** | scales it | slightly · very | deeply · wildly · madly |
+| **warmth** | shifts stance | warmly · coldly | fondly · tenderly · kindly · gently · icily · curtly · dismissively |
+| **dominance** | shifts stance | proudly · shyly | smugly · haughtily · imperiously · meekly · humbly · respectfully · sheepishly |
+| **sincerity** | ⭐ the actor declares it — counts more, or inverts and discounts (sarcastic approval reads as disapproval) | sincerely · sarcastically | earnestly · solemnly · ironically · mockingly |
+| **frame** | sets the play frame (§ 4) | playfully | jokingly · teasingly · mischievously · ⭐ evilly, wickedly (mustache-twirling play, by MUD tradition) |
+| **affect color** | adds a feeling to displayed mood (`smile sadly` is bittersweet) | happily · sadly | angrily · nervously · wearily · excitedly · bitterly · dreamily · awkwardly |
+
+**Eleven starter words**, one pair per dimension (one for frame).
 
 - **Where it is read: the leading word(s) of the custom slot.** `smile warmly at the
   sunset over the harbor` — warm, and the rest is prose. `smile like a cat that ate the
@@ -178,6 +243,16 @@ try to broaden the model for kissing to anything/everything."*
   permission, the norm here?); welcome is **after** (they hugged back, they pulled
   away). An unconsented kiss that turns out welcome is still unconsented; the game must
   never encode *it worked out* as permission. Two fields, not one.
+- ⭐⭐ **The intimacy tiers** — every touch act names one, and the consent default keys
+  on the tier, never on the act:
+
+| tier | starter acts | default consent |
+|---|---|---|
+| casual | pat | allowed |
+| affectionate | hug | between contacts, or where a place's norms allow |
+| intimate | kiss | standing consent or asked only |
+| hostile | slap | never consented by default; may open a fight under combat's terms |
+| **sexual** | none — opt-in packs only (§ 2b) | ⛔ **locked**: standing consent or asked, never a place's norm; a pack cannot loosen it |
 - **Where consent comes from**, cheapest first, so play stays spontaneous:
   1. **standing** — your contacts and relationships (*friends may hug me*);
   2. **place and context** — the dance floor, the sparring ring, the festival, a greeting
@@ -276,6 +351,20 @@ hides the measurement, the mirror shows you).
   *announce the surprising*.
 - **Pure-flavor emotes write nothing.**
 
+### ⭐⭐ Legibility — the act explains itself, then goes quiet **[DECIDED — the owner]**
+
+The starter set's job is to **teach the mechanism** (§ 2). So the first few times you
+perform a meaningful act, its effect is narrated **with the reason**:
+
+- *"Augie warms to you. Thanks count because you'd just given him bread."*
+- *"Iffy turns away; she hasn't agreed to that."*
+- *"Six people saw your apology."*
+
+Then it goes quiet, speaking only when something moves. The reason is the lesson — four
+sentences teach something to thank for, consent and witnesses, with no tutorial.
+`soul show <verb>` and `help expression` show what an emote performs and why, so
+anything a polity adds describes itself the same way.
+
 ## 10. Data, not Stuff **[DECIDED — the owner]**
 
 The owner: *"you're saying you make all these words Stuff objects? That's only for
@@ -295,7 +384,7 @@ sounds like document data to me."*
 1. **Pedagogy** — affect and stance as real psychology; acts that do things by being
    performed; the play frame; consent before and welcome after; base rates of
    reception.
-2. **Expression** — ⭐ thousands of flavors over thirty acts: authors keep writing emotes
+2. **Expression** — ⭐ thousands of flavors over twenty starter acts a polity extends: authors keep writing emotes
    freely, and meaning comes from one field. Memes keep their place as play.
 3. **Immersion** — the barkeep who notices; the turned-away kiss; the eyerolls in the
    square. **Participation** — the apology and the forgiveness, the gracious thanks, the
@@ -312,16 +401,15 @@ sounds like document data to me."*
 
 ## 12. Open
 
-1. **The act list and the manner vocabulary themselves** — content and culture, drafted
-   with the owner.
-2. **The weights** — diminishing returns, witness saturation, and how much each act moves
+1. **The weights** — diminishing returns, witness saturation, and how much each act moves
    regard.
-3. **Default touch consent between players** — the lean: permissive between contacts and
-   in places whose norms allow it, an attempt everywhere else.
-4. **Directed acts beyond emotes** — give, follow, record, enter onto the same consent
+2. **Directed acts beyond emotes** — give, follow, record, enter onto the same consent
    ledger: the lean is to design for all and build emotes first.
-5. **Importing an EotL-derived emote pack** — gesture families mapped to acts, lore kept,
-   sexual and world-changing ones left out or rewritten as mime. Likely the from-scratch
-   content pass's, not this build's.
-6. **Can a polity adopt its own words** through governance, beyond shipping documents?
-7. **The displayed-mood fade** — how long a smile shows.
+3. **Importing an EotL-derived emote pack** — gesture families mapped to acts, lore kept,
+   world-changing ones rewritten as mime, sexual ones to an opt-in pack (§ 2b). Likely the
+   from-scratch content pass's, not this build's.
+4. **How a polity governs the mapping** (§ 2a) — the Compact's process for installing a
+   pack and re-mapping emotes to acts; the mechanism is documents, the process is the
+   Compact's.
+5. **The displayed-mood fade** — how long a smile shows.
+6. **The first-use narration** — how many uses before an act goes quiet.
