@@ -2779,10 +2779,8 @@ market/thing/{potters-stall,curfew-bell}.yaml` + the counters ·
 - Committed: W0 d22c2a429 · W1 4a671e8f1 · W2 38d1a676d · W3 2a21c0e2f ·
   W4+W5 1eaa685d9 · W6+W7 3e32aa72f · W8 (see git log).
   Each wave: `test:near` + all 82 lint gates green.
-- NOT YET RUN: the four drives `packages/wire/tests/ceramics-{a,b,c,d}.dirty.wire.test.ts`
-  (written, never run — expect defects); the sibling probe (§ Merge
-  protocol: detached worktree, merge origin/reqs/{sugar,potash,underwater}
-  each and together, lint:family); the full `pnpm test`.
+- Drives: 18 runs so far (see § Drive record). The full `pnpm test` is
+  still owed, after the drives are clean.
 - Memory is short on this box (build-4's test world): one heavy process at a
   time, never parallel tsc.
 - Drive risks flagged by the W6/W7 builders: Rejection's firebrick line
@@ -2796,3 +2794,63 @@ market/thing/{potters-stall,curfew-bell}.yaml` + the counters ·
 
 *(appended at build time — one entry per run: the date, the file, the
 count, each failure and what it became)*
+
+Runs 1–15 (2026-10-21 → 22) are recorded commit by commit
+(`git log --grep 'drive(ceramics'`); B71–B77 hold the decisions they
+forced. What they found, by kind:
+
+- **Product defects the drives found and the build fixed** —
+  - `dig clay` in the pit bound the PIT and dug its floor (642490ba6);
+  - a won load merged before it was named, and named winnings went to
+    the tip (647103aba, 4c6806c9a);
+  - moulding and treading cost beyond any body: the `lint:act-effort`
+    gate was built (448d7cefe);
+  - bone-dry was judged against the wrong air (417f006b9);
+  - a lump in hand swallowed the band word (4176d43a3);
+  - an empty seat read as broken, and nothing afforded `carve` on green
+    ware (a93de82d8);
+  - thermal shock ignored refractory bodies (c917dfa79);
+  - a thing destroyed before its line rendered crashed the MML render
+    (fc99194a4);
+  - a die afforded no blow, and a town bell did not carry (88c02cef1);
+  - the pan crystallized on a heat read, not as its water left
+    (05ef3b39f);
+  - `clone` judged the giver, not the kind's own path (B76).
+- **Drive defects** — the five reachability-adjacent traps every long drive
+  meets:
+  - **set on read** — a mould, case or pan sets when it is read, so the
+    drive looks first;
+  - **the dark** — names read "something" and queries return nothing;
+  - **the eval sandbox** — no `|`, no `&&`, no `destroy`, no reading
+    a person's contents;
+  - **a bare `get X` takes every match**;
+  - **a checkpoint owns its position**.
+
+**Run 16** (D 17/23, B+C stopped at C 16, A 7/20):
+- B 13/14 and C 16+ were **dead characters**. The brickmaker died of
+  hyperthermia (no water, no sweat) and the potter of starvation: the
+  drives jumped weeks unfed. The fix is in the harness: `advanceLiving`
+  plus `nourish` (ff6cd30e2, docs/testing.md).
+- B 13's ore setup was refused at the sandbox boundary. That was a
+  **kernel defect**: a marshaller was held to the jurisdiction compare,
+  so a scoped eval could clone nothing with a mass. Fixed in 49f9f3f58.
+- A 5a: a storm soaked the open-yard brick and dried off before the
+  read, so it never slumped. Green ware now records rain as an **event**
+  (ef3572d9a).
+- A 5b: the world **crashed**. `drop 1 brick` merged into the hack's
+  stack, and the detached fall read a destroyed piece's mass; nothing
+  caught the rejection (ef3572d9a).
+- C 16c / 17: drying waits read in the dark (whole-day steps that began
+  at night). They now read by daylight.
+
+**Run 17** (D only; the world crashed at step 29):
+- **The crash was caused by me, not the build.** A probe I ran by hand
+  called an async read through `eval`; it was refused at the sandbox
+  boundary, nothing caught it, and the server exits on any unhandled
+  rejection. That exit is deliberate platform policy and is recorded as
+  a finding; this build does not change it.
+- D 28: still a misrun at 1420 K. Measured: a full crucible of brass
+  radiates about 20 K per real second, and the drive takes several
+  seconds from the melt to the pour. It now melts at 1500 K (caff50dd0).
+- D 26b: the plaster case had not cured after 30 minutes. It passed in
+  runs 16 and 18 (alone); this one is watched, not yet explained.
