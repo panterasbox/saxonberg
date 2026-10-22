@@ -631,6 +631,7 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     const hurt = await say(caster, 'assess me');
     expect(hurt, `the pourer's hands: ${hurt}`).toMatch(/burn/i);
     await advance('1 hour');
+    await examine(caster, 'flask'); // a mould sets on read
     expect(await examine(caster, 'blown'), 'a blown lump').toMatch(/blown lump of pewter/i);
     await clearFloor();
   }, 1_800_000);
