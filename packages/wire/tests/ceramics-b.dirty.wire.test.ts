@@ -180,6 +180,7 @@ async function rest(): Promise<void> {
  */
 async function drink(): Promise<void> {
   const back = at;
+  expect(back, 'drink() needs to know where to come back to').not.toBe('');
   await goTo(PITHEAD);
   await say('get pail');
   await act('pump village well', '1 minute');
@@ -262,6 +263,7 @@ beforeAll(async () => {
   }
   await toHour(9, 15);
   k = await Session.open(handle, { startLocation: QUARRY, wizard: true });
+  at = QUARRY; // where a rest's drink comes back to
   await k.drainProse();
 }, 600_000);
 
