@@ -426,7 +426,11 @@ suite('⭐ 13 — wear a crucible', () => {
     await goTo(SMELTER);
     let look = '';
     for (let melt = 0; melt < 10 && !/crack/i.test(look); melt++) {
-      await winAtQuarry('coal', 4, SMELTER);
+      // ⚠ Win by daylight too, and only what a body can carry with its
+      // tools: the first melt of run 24 dug at night ("something doesn't
+      // budge") and a third 6 kg lump was too heavy by day.
+      await toHour(9, 15);
+      await winAtQuarry('coal', 2, SMELTER);
       await oreFor(2, SMELTER);
       await drink();
       // Read by daylight: in the dark the furnace and the crucible are "something".
