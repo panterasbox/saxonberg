@@ -68,6 +68,14 @@ async function look(s: Session): Promise<string> {
 }
 
 async function morning(): Promise<void> {
+  // ⭐ Late spring (days 60–100 of the 360-day year): the snowmelt is in the
+  // river and the pools are open — the drive swims and steams in it.
+  for (let i = 0; i < 40; i++) {
+    const day = Math.floor((await worldClockNow()) / 86_400) % 360;
+    if (day >= 60 && day <= 100) break;
+    await advanceWorldClock('5 days');
+    await advanceWorldClock('5 days');
+  }
   const DAY = 86_400;
   const t = (await worldClockNow()) % DAY;
   if (t >= 8 * 3600 && t <= 13 * 3600) return;
@@ -95,6 +103,21 @@ async function lies(s: Session, tries = 12): Promise<string> {
   return said;
 }
 
+/**
+ * Set a course; if the river has her aground, let the season turn (the
+ * water rises, and the next course finds her floating) and try again.
+ */
+async function steam(s: Session, course: string): Promise<string> {
+  let said = '';
+  for (let i = 0; i < 24; i++) {
+    said = await say(s, course);
+    if (!/hard aground/.test(said)) return said;
+    await advanceWorldClock('5 days');
+    await advanceWorldClock('5 days');
+  }
+  return said;
+}
+
 let master: Session;
 const MASTER = uniqueHandle('rdm');
 
@@ -113,8 +136,8 @@ suite('stage D — a ship on the river', () => {
 
     const before = kmOf(await say(master, 'course'));
     expect(before, 'the readout gave no km').not.toBeNull();
-    const steam = await say(master, 'course upstream');
-    expect(steam, steam).toMatch(/under way upstream/);
+    const steam1 = await steam(master, 'course upstream');
+    expect(steam1, steam1).toMatch(/under way upstream/);
     await advanceWorldClock('20 minutes');
     await master.listen(3_000);
     const after = kmOf(await say(master, 'course'));
@@ -122,7 +145,7 @@ suite('stage D — a ship on the river', () => {
   }, 600_000);
 
   it('26. course for the woodyard: she comes alongside; ashore, buy cordwood, and feed her bin', async () => {
-    const set = await say(master, 'course woodyard');
+    const set = await steam(master, 'course woodyard');
     expect(set, set).toMatch(/for the woodyard|woodyard landing/i);
     const at = await lies(master);
     expect(at, at).toMatch(/woodyard/i);
@@ -162,8 +185,8 @@ suite('stage D — a ship on the river', () => {
   }, 120_000);
 
   it('28. over her side under way: you are in the river where she is; her course waits for you unless she leaves you', async () => {
-    const steam = await say(master, 'course downstream slow');
-    expect(steam, steam).toMatch(/under way downstream/);
+    const steam2 = await steam(master, 'course downstream slow');
+    expect(steam2, steam2).toMatch(/under way downstream/);
     const swimmer = await session(uniqueHandle('rds'), DECK);
     const over = await swimmer.cmd('go side');
     expect(over.status, squash(await over.said())).toBe('ok');
@@ -179,7 +202,7 @@ suite('stage D — a ship on the river', () => {
   }, 300_000);
 
   it('31. down to the mouth and out over the bar: she is on the sea; at the bar, the river’s name takes her back in', async () => {
-    const out = await say(master, 'course bar');
+    const out = await steam(master, 'course bar');
     expect(out, out).toMatch(/under way downstream/);
     let sea = '';
     for (let i = 0; i < 16; i++) {

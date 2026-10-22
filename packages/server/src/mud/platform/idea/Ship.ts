@@ -261,7 +261,12 @@ export default class Ship extends PersistableMixin(
   override async steerAlong(
     req: Parameters<InstanceType<ReturnType<typeof VoyagingMixin>>['steerAlong']>[0],
   ): ReturnType<InstanceType<ReturnType<typeof VoyagingMixin>>['steerAlong']> {
-    if (this.aground) return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
+    // ⭐ A ship on the ground has no watch to notice the river rising (the
+    // drive found her aground for good): asked for a course, she first sees
+    // whether she floats now — the water up, or her lightened.
+    if (this.aground && !(await this.floatIfShePasses())) {
+      return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
+    }
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
     this.weighedKg = await this.cargoKg();
     return super.steerAlong(req);

@@ -366,7 +366,12 @@ export default class Exit extends ConcealableMixin(Idea) {
    */
   protected set destination(value: Stuff & Container) {
     const path = value.getTemplatePath();
-    if (path) {
+    // ⭐ A path only for a PLACE — one row, one place. A thing you can go
+    // into (a boat, a wagon) is one of however many its row has made (the
+    // river drive: three canoes on a shingle, and `go canoe` resolved the
+    // entry exit's path to "expected singleton, found 3"); it is held by
+    // reference.
+    if (path && value.isPlace() && Exit.namesOnly(path, value)) {
       this._destinationPath = path;
       this._destination = null;
     } else {
@@ -376,6 +381,16 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   public getDestination(): Stuff & Container { return this.destination; }
+
+  /** Whether `path` resolves to exactly `value` and nothing else (not loaded yet counts as yes). */
+  private static namesOnly(path: string, value: Stuff): boolean {
+    try {
+      const found = StuffApi.findByTemplatePath<Stuff>(path);
+      return !found || found === value;
+    } catch {
+      return false;
+    }
+  }
 
   /**
    * Does traversing this exit actually land the mover in the room

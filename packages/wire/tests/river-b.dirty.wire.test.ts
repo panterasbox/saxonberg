@@ -82,6 +82,14 @@ async function moved(s: Session, from: string, seconds = 120): Promise<boolean> 
 }
 
 async function morning(): Promise<void> {
+  // ⭐ Late spring (days 60–100 of the 360-day year): the snowmelt is in the
+  // river and the pools are open — the drive swims and steams in it.
+  for (let i = 0; i < 40; i++) {
+    const day = Math.floor((await worldClockNow()) / 86_400) % 360;
+    if (day >= 60 && day <= 100) break;
+    await advanceWorldClock('5 days');
+    await advanceWorldClock('5 days');
+  }
   const DAY = 86_400;
   const t = (await worldClockNow()) % DAY;
   if (t >= 8 * 3600 && t <= 13 * 3600) return;
@@ -126,6 +134,7 @@ suite('stage B — bodies in moving water', () => {
     let swept = false;
     for (let i = 0; i < 24 && !swept; i++) {
       const at = await here(s);
+      console.log(`ford try ${i}: ${squash(await s.prose('look channel')).slice(0, 160)}`);
       const r = await s.cmd('south');
       const said = squash(await r.said());
       if (r.status === 'ok') {

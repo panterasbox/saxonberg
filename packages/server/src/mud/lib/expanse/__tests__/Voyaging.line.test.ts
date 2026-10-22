@@ -29,6 +29,7 @@ let told: string[] = [];
 let started: Voyage[] = [];
 let plan: PassagePlan | { refused: string };
 let asked: PassageRequest | null = null;
+let depthNow = 3;
 const live = new Map<string, Stuff>();
 const LINE = '/test/river/line';
 const SEA = '/test/river/sea';
@@ -52,7 +53,7 @@ const frame = {
   },
   changesAlong: (a: number, b: number) => (Math.floor(a) !== Math.floor(b) ? ['The water quickens.'] : []),
   wakeAt: vi.fn(async () => undefined),
-  depthAt: async () => 3,
+  depthAt: async () => depthNow,
   landingNear: () => null,
   mouthOnSea: () => ({ expanse: SEA, node: BAR }),
 };
@@ -65,6 +66,7 @@ beforeEach(() => {
   told = [];
   started = [];
   asked = null;
+  depthNow = 3;
   nowS = 2_000_000;
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(nowS, 's'));
   vi.spyOn(MixinApi, 'isLineFrame').mockImplementation(((x: unknown) => x === frame) as never);
@@ -147,10 +149,15 @@ describe('a ship on a river (river D18)', () => {
     await ship.steerAlong({ direction: 'upstream', landing: null, throughWaterMps: 3 });
     await started[0]!.watch();
     expect(ship.isAground()).toBe(true);
+    // Still too little water: no course moves her.
+    depthNow = 0.5;
     const again = await ship.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 3 });
     expect(again).toMatchObject({ refused: expect.stringMatching(/hard aground/) });
-    // The water comes up (3 m against her 1.2): she floats.
-    expect(await ship.floatIfShePasses()).toBe(true);
+    expect(ship.isAground()).toBe(true);
+    // ⭐ The water comes up (3 m against her 1.2): asked for a course, she floats and goes.
+    depthNow = 3;
+    const off = await ship.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 3 });
+    expect('refused' in off).toBe(false);
     expect(ship.isAground()).toBe(false);
   });
 

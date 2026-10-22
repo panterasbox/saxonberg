@@ -109,6 +109,14 @@ async function openWater(s: Session): Promise<void> {
  * in it sees nothing (honestly). The drive swims in the morning.
  */
 async function morning(): Promise<void> {
+  // ⭐ Late spring (days 60–100 of the 360-day year): the snowmelt is in the
+  // river and the pools are open — the drive swims and steams in it.
+  for (let i = 0; i < 40; i++) {
+    const day = Math.floor((await worldClockNow()) / 86_400) % 360;
+    if (day >= 60 && day <= 100) break;
+    await advanceWorldClock('5 days');
+    await advanceWorldClock('5 days');
+  }
   const DAY = 86_400;
   const t = (await worldClockNow()) % DAY;
   if (t >= 8 * 3600 && t <= 13 * 3600) return;
