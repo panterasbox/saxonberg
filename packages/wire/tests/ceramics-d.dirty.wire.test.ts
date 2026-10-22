@@ -921,15 +921,20 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     // Old casts down and swept (and by daylight): `pewter`/`bronze` must name THIS one.
     await clearFloor();
     await ram(caster, 'bell', true);
-    await melt(FOUNDRY, T.crucible, M.bronze, 1350);
-    await doing(caster, 'pour crucible into flask');
+    // Poured as soon as the melt lands: a hand bell's thin lip misran when
+    // the drive waited on the melt's prose first (run 19).
+    await melt(FOUNDRY, T.crucible, M.bronze, 1350, async () => {
+      await doing(caster, 'pour crucible into flask');
+    });
     await advance('2 hours');
     await examine(caster, 'flask'); // a mould sets on read
-    // The record: what `bronze` and `bell` name here (runs 16 and 18 rang
-    // the floor — the cast was not found by `bronze`).
-    await examine(caster, 'bronze');
-    await examine(caster, 'bell');
-    const rung = await doing(caster, 'ring bronze');
+    // ⚠ `bronze` names the bell AND its runner, and `ring bronze` rang the
+    // FLOOR (runs 16, 18, 19 — a binder finding, recorded in the plan). The
+    // cast is named by identity, as a click names it.
+    const rows = (await caster.query('bronze', { fields: ['displayName'] })) as { stuffId?: string; displayName?: string }[];
+    const bell = rows.find((r) => /cast of a hand bell/i.test(String(r.displayName ?? '')));
+    expect(bell?.stuffId, `the cast bell: ${JSON.stringify(rows)}`).toBeDefined();
+    const rung = await doing(caster, `ring #${bell!.stuffId}`);
     expect(rung, `the hand bell: ${rung}`).toMatch(/high|clear/i);
     expect(rung, 'a named note').toMatch(/\b[A-G]\b( sharp| flat)?/);
   }, 1_800_000);
