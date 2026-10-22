@@ -300,13 +300,16 @@ async function founderEvalOn(where: string, keyword: string, code: string, parce
  * molten at `kelvin`. Reading the colour of it is the founder's own act.
  */
 async function melt(where: string, potRow: string, materialPath: string, kelvin: number): Promise<void> {
+  // ⚠ The pot is looked for on the FLOOR (reading into a person's hands
+  // trips the eval sandbox): a crucible the caster carried off — 28's
+  // `get brass` takes it with the key — goes down first.
+  if (caster) {
+    await caster.cmd('drop crucible');
+    await caster.drainProse();
+  }
   const said = await founderEval(
     where,
-    // ⚠ One level deep too: the caster may be HOLDING the pot (28's
-    // `get brass` picked the crucible up with the key), and a pot in hand
-    // is still the pot.
-    `return (() => { const top = self.getContainer().getContents();` +
-      ` const here = top.concat(...top.map(o => (o.getContents ? o.getContents() : [])));` +
+    `return (() => { const here = self.getContainer().getContents();` +
       ` const pot = here.find(o => o.getTemplatePath() === '${potRow}');` +
       ` const m = StuffApi.findByTemplatePath('${materialPath}');` +
       ` if (!(pot && m)) return 'no pot or no metal';` +
