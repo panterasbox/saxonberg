@@ -2779,7 +2779,7 @@ market/thing/{potters-stall,curfew-bell}.yaml` + the counters ·
 - Committed: W0 d22c2a429 · W1 4a671e8f1 · W2 38d1a676d · W3 2a21c0e2f ·
   W4+W5 1eaa685d9 · W6+W7 3e32aa72f · W8 (see git log).
   Each wave: `test:near` + all 82 lint gates green.
-- Drives: 18 runs so far (see § Drive record). The full `pnpm test` is
+- Drives: 19 runs so far (see § Drive record). The full `pnpm test` is
   still owed, after the drives are clean.
 - Memory is short on this box (build-4's test world): one heavy process at a
   time, never parallel tsc.
@@ -2854,3 +2854,37 @@ forced. What they found, by kind:
   seconds from the melt to the pour. It now melts at 1500 K (caff50dd0).
 - D 26b: the plaster case had not cured after 30 minutes. It passed in
   runs 16 and 18 (alone); this one is watched, not yet explained.
+
+**Run 18** (D 16/23; B stopped after 11; A ran with `nourish` refused):
+- D 32: the salt pan on the hearth now fired, because the hearth counts
+  what stands on it (run 16 had read "the brine hearth is empty"). Then
+  it set **no salt**: the boil arm took water off a liquid and left the
+  dissolved solids per liter unchanged, so the salt left with the steam.
+  That was a **kernel defect**: a boil now concentrates (eb5b288b0).
+- D 28: still a misrun at 1500 K. The wax block's mould material is its
+  cold fired-clay jacket, against which a 20 g key needs ~120 K over its
+  melt, and the drive waited on the melt's prose before pouring. It now
+  pours as soon as the melt's envelope lands (d276de22c).
+- D 33a / 34a: `clearFloor` could not destruct a cast of a /stuff kind,
+  so the next `pewter` named the old cast. Leftovers now go out to the
+  foundry yard.
+- D 34c: the curfew bell was heard, but before the listener started
+  listening: `listen()` clears what came before it. The drive now listens
+  from before the ring.
+- D 34b: `ring bronze` rang the floor; this run records what `bronze`
+  names.
+- B 10 / 11 (drive defects):
+  - `at` was empty, so a rest's drink came back to no location;
+  - every rest drank, and the village pump's packing wore through;
+  - a bare `get coal` took every lump at the face;
+  - lumps left out through the night were rained on (`too-wet`).
+- A:
+  - `nourish` was refused. Topping up a reserve reconciles the body,
+    the reconcile reads the biome, and a parcel-bound eval may not.
+    **Kernel**: Biome is `commons` (ceiling 24 → 25, caller audit in
+    afa24dc58). **Harness**: `POST /auth/test-nourish` replaces the eval.
+  - The pit's fresh clay merged into the moulders' weeks-old heap and
+    read weathered. The gang's leftovers now go offstage first.
+- `lint:instrument-args`: my buy fallback hunted the room in the
+  controller. The search moved onto `Stock.counterFor` (3e39b664a); the
+  family is back to 83/83.
