@@ -430,8 +430,10 @@ async function clearFloor(only?: RegExp): Promise<void> {
       const r = await gov.cmd(
         `eval --parcel ${R} return (() => { const ids = ${JSON.stringify(ids)};` +
           ` const yard = StuffApi.findByTemplatePath('${R}/location/dry-rise');` +
-          // A person here may not be read at all (peek() denied) — skip them.
-          ` const left = self.getContainer().getContents().filter(o => { try { return ids.includes(o.stuffId); } catch (e) { return false; } });` +
+          // By identity, never by walking the room: the room's contents
+          // include whoever is passing, and a person may not be read at all
+          // (peek() denied — the sweep threw and left the old casts, run 20).
+          ` const left = ids.map(id => StuffApi.findById(id)).filter(Boolean);` +
           ` return Promise.all(left.map(o => ContainmentApi.move(o, yard))).then(() => 'scrapped ' + left.length); })()`,
       );
       // eslint-disable-next-line no-console -- the drive's own record
