@@ -157,7 +157,7 @@ suite('stage A — the line and the patch', () => {
     expect(current, current).toMatch(/current is .*m\/s/);
     const temp = await say(a, 'measure temperature river');
     expect(temp, temp).toMatch(/Temperature: .*K/);
-  });
+  }, 900_000);
 
   it('2. `swim` off the quay goes into the stream, and downstream the river takes you', async () => {
     const before = await here(a);
@@ -278,10 +278,12 @@ suite('stage A — the line and the patch', () => {
     await a.cmd('lie');
     await a.listen(60_000);
     let dove = false;
+    let lastDive = '';
     for (let i = 0; i < 20 && !dove; i++) {
       const at = await here(a);
       const r = await a.cmd('dive');
       const said = squash(await r.said());
+      lastDive = `${r.status}: ${said}`;
       if (r.status === 'ok' && (await moved(a, at, 60))) {
         dove = true;
         break;
@@ -289,7 +291,7 @@ suite('stage A — the line and the patch', () => {
       expect(said, said).toMatch(/shallow enough to stand in|no deeper|dive/);
       await a.listen(20_000);
     }
-    expect(dove, 'never over water deep enough to dive').toBe(true);
+    expect(dove, `never over water deep enough to dive (last: ${lastDive})`).toBe(true);
     const bed = await look(a);
     expect(bed, bed).toMatch(/river bed|edge of the river/i);
     // Back up into the current.

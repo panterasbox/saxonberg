@@ -135,7 +135,7 @@ suite('stage B — bodies in moving water', () => {
     let swept = false;
     for (let i = 0; i < 24 && !swept; i++) {
       const at = await here(s);
-      console.log(`ford try ${i}: ${squash(await s.prose('look channel')).slice(0, 160)}`);
+      console.log(`ford try ${i}: ${squash(await s.prose('look channel')).slice(-260)}`);
       const r = await s.cmd('south');
       const said = squash(await r.said());
       if (r.status === 'ok') {
@@ -178,8 +178,10 @@ suite('stage B — bodies in moving water', () => {
     for (let i = 0; i < 30 && !jammed; i++) {
       const where = await look(t);
       if (/shallow riffle|white water/.test(where)) {
-        await t.cmd('stand');
-        jammed = /foot goes down between two rocks/.test(squash(await t.listen(4_000)));
+        const stood = await t.cmd('stand');
+        const felt = squash(await t.listen(4_000));
+        console.log(`stand try ${i}: ${stood.status} ${squash(await stood.said()).slice(0, 160)} | ${felt.slice(0, 200)}`);
+        jammed = /foot goes down between two rocks/.test(felt + squash(await stood.said()));
         if (!jammed) await t.cmd('lie');
       }
       if (!jammed) await t.listen(15_000);
@@ -215,6 +217,7 @@ suite('stage B — bodies in moving water', () => {
     for (let i = 0; i < 30 && !thrown; i++) {
       const out = await r.cmd(`throw line to ${swimmer.handle}`);
       thrown = out.status === 'ok';
+      if (i % 5 === 0) console.log(`throw try ${i}: ${out.status} ${squash(await out.said()).slice(0, 200)}`);
       if (!thrown) await r.listen(5_000);
     }
     expect(thrown, 'the swimmer never came within reach of the bank').toBe(true);

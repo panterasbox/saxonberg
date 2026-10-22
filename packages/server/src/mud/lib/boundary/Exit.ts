@@ -366,12 +366,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    */
   protected set destination(value: Stuff & Container) {
     const path = value.getTemplatePath();
-    // ⭐ A path only for a PLACE — one row, one place. A thing you can go
-    // into (a boat, a wagon) is one of however many its row has made (the
-    // river drive: three canoes on a shingle, and `go canoe` resolved the
-    // entry exit's path to "expected singleton, found 3"); it is held by
-    // reference.
-    if (path && value.isPlace() && Exit.namesOnly(path, value)) {
+    if (path) {
       this._destinationPath = path;
       this._destination = null;
     } else {
@@ -382,15 +377,6 @@ export default class Exit extends ConcealableMixin(Idea) {
 
   public getDestination(): Stuff & Container { return this.destination; }
 
-  /** Whether `path` resolves to exactly `value` and nothing else (not loaded yet counts as yes). */
-  private static namesOnly(path: string, value: Stuff): boolean {
-    try {
-      const found = StuffApi.findByTemplatePath<Stuff>(path);
-      return !found || found === value;
-    } catch {
-      return false;
-    }
-  }
 
   /**
    * Does traversing this exit actually land the mover in the room
@@ -853,10 +839,7 @@ export default class Exit extends ConcealableMixin(Idea) {
         this._destinationPath = opts.destinationPath ?? null;
       } else {
         const path = opts.destination.getTemplatePath();
-        // ⭐ A path only for a place (see the `destination` setter): a vessel's
-        // entry exit is bound here, and three canoes of one row made its
-        // path ambiguous.
-        if (path && opts.destination.isPlace() && Exit.namesOnly(path, opts.destination)) {
+        if (path) {
           if (!this._destinationPath) this._destinationPath = path;
           this._destination = null;
         } else {
@@ -969,10 +952,27 @@ export default class Exit extends ConcealableMixin(Idea) {
    *   side is not known until it is taken.
    */
   public leadsIntoWater(): boolean {
-    const path = this.getDestinationTemplatePath();
-    if (!path) return false;
-    const dest = StuffApi.findByTemplatePath<Stuff>(path);
-    return dest !== undefined && dest !== null && MixinApi.isWaterPlace(dest);
+    const dest = this.peekDestination();
+    return dest !== null && MixinApi.isWaterPlace(dest);
+  }
+
+  /**
+   * ⭐ The far side if it is loaded now, or `null` — never a throw. The
+   * destination this exit HOLDS when it holds one (a boat: one of however
+   * many its row has made, so its path is not a name); otherwise the place
+   * its path names. Use this, not `findByTemplatePath(getDestinationTemplatePath())`,
+   * which throws on a row with several instances (the river drive's three
+   * canoes).
+   */
+  public peekDestination(): Stuff | null {
+    if (this._destination) return this._destination;
+    const path = this._destinationPath;
+    if (!path) return null;
+    try {
+      return StuffApi.findByTemplatePath<Stuff>(path) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   public getDestinationTemplatePath(): string | null {

@@ -20,7 +20,10 @@ export default class SignalBell extends Good {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['trade/diving/cmd/diving/ring.yaml'],
-    peers: [],
+    // ⭐ A bell hung on a post (a ferry landing's) is rung by whoever stands
+    // beside it — the helm's way (the river drive: `ring` was unknown at
+    // Nesbit's landing).
+    peers: ['trade/diving/cmd/diving/ring.yaml'],
   };
 
   /** When it was last struck, game seconds (runtime: who rang is heard, not kept). */

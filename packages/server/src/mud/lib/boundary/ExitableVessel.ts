@@ -292,6 +292,10 @@ export default class ExitableVessel extends ExitableVesselBase {
       direction: 'out',
       source: this as unknown as Stuff & Container,
       destination: env,
+      // ⭐ Held, never looked up by row: a vessel is one of however many its
+      // row has made (the river drive's three canoes on a shingle, and
+      // `go canoe` crashed "expected singleton, found 3").
+      keepLiveDestination: true,
       door,
       messageOut: `{{ mover }} leaves the <thing>${vesselName}</thing>.`,
       messageIn: `{{ mover }} emerges from the <thing>${vesselName}</thing>.`,
@@ -300,6 +304,7 @@ export default class ExitableVessel extends ExitableVesselBase {
       direction: 'in',
       source: env,
       destination: this as unknown as Stuff & Container,
+      keepLiveDestination: true,
       door,
       messageOut: `{{ mover }} enters the <thing>${vesselName}</thing>.`,
       messageIn: `{{ mover }} enters from outside.`,

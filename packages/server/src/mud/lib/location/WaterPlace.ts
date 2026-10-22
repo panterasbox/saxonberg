@@ -204,6 +204,14 @@ export interface WaterPlace {
   /** Whether a body here has its head in the air (river D16). */
   headOutAt(occupant: Stuff): boolean;
   /**
+   * Whether somebody who SWIMS in where the floor would bear them finds
+   * their feet at once. @hook A river answers no (the drive: a swimmer
+   * carried into a fast riffle was stood up on arrival and their foot
+   * jammed) — standing in moving water is the swimmer's own act, `stand`.
+   * Default yes: a pool's shallows.
+   */
+  standsOnArrival(mover: Stuff): boolean;
+  /**
    * ⭐ Hold a body face-up at the surface (underwater D11): the
    * disconnected player's water answer. Brought up to the surface place
    * and held there, breathing, until they come back or someone moves
@@ -579,6 +587,11 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
      *   carried under a frozen pool answers `false`, and the breath model
      *   does the rest. Default: `true` — the water place is the surface.
      */
+    public standsOnArrival(mover: Stuff): boolean {
+      void mover;
+      return true;
+    }
+
     public headOutAt(occupant: Stuff): boolean {
       void occupant;
       return true;
@@ -755,7 +768,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
-      if (swum && !floor.bears(floor.supportLoadKgOf(mover))) {
+      if (swum && (!floor.bears(floor.supportLoadKgOf(mover)) || !this.standsOnArrival(mover))) {
         if (MixinApi.isAttired(mover)) mover.immerse();
         else if (MixinApi.isWet(mover)) mover.wet(1);
         return;

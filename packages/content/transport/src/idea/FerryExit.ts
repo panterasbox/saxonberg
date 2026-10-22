@@ -145,6 +145,15 @@ export default class FerryExit extends Exit {
   public getCrossesReach(): string { return this.crossesReach; }
   public setCrossesReach(v: string): void { this.crossesReach = v; }
 
+  /**
+   * ⭐ A ferry is never always there (D31): the route planner flags the leg
+   * and a plan says so. The class's truth, not a row's flag (the drive's
+   * route said nothing — the row's key never reached the exit).
+   */
+  public override isConditional(): boolean {
+    return true;
+  }
+
   /** The ferry, if she lies at this landing now. */
   public ferryHere(): (Stuff & Containable) | null {
     const here = this.getSource() as unknown as Stuff;

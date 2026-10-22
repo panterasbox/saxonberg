@@ -83,6 +83,16 @@ export default class ReachPatch extends ReachPlaceBase {
     return super.wayUp();
   }
 
+  /**
+   * ⭐ Swum into the shallows of a river, you are still swimming (the drive:
+   * a swimmer carried into a fast riffle was stood up and their foot
+   * jammed — the engine's choice, not theirs). `stand` finds your feet.
+   */
+  public override standsOnArrival(mover: Stuff): boolean {
+    void mover;
+    return false;
+  }
+
   /** Whether the stretch the patch is in reads frozen over now. */
   public underIce(): boolean {
     const pos = this.getLinePosition();

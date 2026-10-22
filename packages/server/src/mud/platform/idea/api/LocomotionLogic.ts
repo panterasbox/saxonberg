@@ -262,8 +262,7 @@ export class LocomotionLogic extends ApiLogic {
    */
   private overYourHead(exit: Exit, mode: LocomotionMode): TraversalGuard | null {
     if (mode.getMedium() !== 'ground') return null;
-    const path = exit.getDestinationTemplatePath?.() ?? null;
-    const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+    const dest = exit.peekDestination();
     if (!dest || !MixinApi.isWaterPlace(dest)) return null;
     if (dest.stateNow() !== 'swimming') return null;
     return {

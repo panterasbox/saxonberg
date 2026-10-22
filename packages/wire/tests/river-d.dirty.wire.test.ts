@@ -111,6 +111,7 @@ async function steam(s: Session, course: string): Promise<string> {
   let said = '';
   for (let i = 0; i < 24; i++) {
     said = await say(s, course);
+    console.log(`steam ${course} [${i}]: ${said.slice(0, 200)} | then: ${squash(await s.listen(8_000)).slice(0, 300)}`);
     if (!/hard aground/.test(said)) return said;
     await advanceWorldClock('5 days');
     await advanceWorldClock('5 days');
