@@ -238,6 +238,19 @@ describe('⭐⭐ the effect lands when the timer does', () => {
     expect(pit.wonByBand[CLAY], 'the clay band was not the one worked').toBe(1);
   });
 
+  it('⭐⭐ a lump in hand named like the band does not swallow the word (the ceramics drive: `dig coal` with coal in hand)', async () => {
+    pit.floorDepthM = 2;
+    const lump = makeStuff(() => new Good()) as unknown as Stuff;
+    const asked = await run(
+      DigController as never,
+      { target: { raw: 'clay', stuff: lump }, tool: tool('digging') },
+      'dig clay',
+    );
+    expect(rejected(asked)).toBeNull();
+    await settle();
+    expect(pit.wonByBand[CLAY], 'the clay band was the one worked').toBe(1);
+  });
+
   it('`dig pit` names the working itself, and digs its floor', async () => {
     (pit as unknown as { setKeywords(k: string[]): void }).setKeywords(['pit']);
     const ctx = await run(

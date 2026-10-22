@@ -190,17 +190,30 @@ async function winAtQuarry(band: string, n: number, back: string): Promise<void>
   await goTo(back);
 }
 
-/** Hew `n` lumps of malachite at the Ferrow face and come back. */
+/**
+ * Hew `n` lumps of malachite at the Ferrow face and come back.
+ *
+ * ⚠ The face's air comes and goes (the damps): the first run hewed in dead
+ * air and the brickmaker went down — "You can't breathe!". A miner reads
+ * the air before cutting and gets out when it is bad, so this does too:
+ * hew only while the face reads clean, otherwise climb out, wait a couple
+ * of hours, and try again.
+ */
 async function oreFor(n: number, back: string): Promise<void> {
-  await goTo(FERROW_FACE);
-  for (let got = 0, tries = 0; got < n && tries < n * 4; tries++) {
+  for (let got = 0, tries = 0; got < n && tries < n * 6; tries++) {
+    await goTo(FERROW_FACE);
+    const air = await say('look');
+    if (!/air is clean/i.test(air)) {
+      await goTo(back);
+      await advance('2 hours');
+      continue;
+    }
     const hewn = await act('hew with pick', '10 minutes');
     const why = refusedFor(hewn.r);
-    if (why === null) got++;
+    if (why === null && !/can'?t breathe/i.test(hewn.said)) got++;
     else if (why === 'too-tired') await rest();
-    else break;
+    await say('get malachite');
   }
-  await say('get malachite');
   await goTo(back);
 }
 
