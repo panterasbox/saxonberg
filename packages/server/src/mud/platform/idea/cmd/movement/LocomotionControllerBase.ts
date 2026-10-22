@@ -18,6 +18,7 @@
  * (`walk cabin` / `climb cabin`).
  */
 
+import WaterSurface from '../../../thing/WaterSurface';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -311,6 +312,14 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
 async function arriveAfter(actor: Stuff & Mobile, exit: Exit, mode: string): Promise<void> {
   if (actor.isDestroyed()) return;
   if (MixinApi.isVitals(actor) && actor.getConsciousness() !== 'conscious') return;
+  // ⭐ A swim that ends with you standing (the water you were in came into
+  // the shallows while you swam — the river drive, A3) pushes off again:
+  // the stroke was already taken.
+  if (mode === 'swim' && MixinApi.isContainable(actor)) {
+    const room = actor.getContainer();
+    const floor = room !== null && MixinApi.isWaterPlace(room) && MixinApi.isAdornable(room) ? room.getFloor() : null;
+    if (floor instanceof WaterSurface && floor.supports(actor) && floor.openWaterAreaM2() > 0) floor.giveWay(actor, true);
+  }
   const guard = await actor.traverse(exit, mode);
   if (!guard.ok) {
     MessageApi.scene(actor).topic('shell.result').toSelf(Mml.fromMarkup(guard.reason ?? 'You can\'t get there.')).send();

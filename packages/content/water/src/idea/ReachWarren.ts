@@ -97,6 +97,8 @@ const SLACK_MPS = 0.02;
 const KILLICK_HOLDS_MPS = 0.3;
 /** A ship's wake swamps small boats past this speed, m/s (`water.river.wakeSpeedMps`). */
 const WAKE_SPEED_MPS = 2.5;
+/** A patch (water within hail, under way) is at least this deep, m. */
+const MIN_PATCH_DEPTH_M = 0.3;
 /** How far ahead white water is heard, km. */
 const EARSHOT_KM = 0.3;
 /** A hazard on a bank reaches this share of the width out from it. */
@@ -540,7 +542,11 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     if (pos === null || cat === null) return;
     const node = cat.reachNearSync(pos.course, pos.km)?.ref ?? `${pos.course}:${pos.course}`;
     const state = await cat.riverStateAt(pos, WorldClockApi.getNow().rawValue()).catch(() => null);
-    const depth = state?.depthHereM ?? 1.4;
+    // ⭐ The water within hail of somebody is never dry (the drive found a
+    // patch at a bar's edge reading a margin of nothing, and `dive` told
+    // "no open water"): a patch is at least wading water.
+    const floorM = MixinApi.isMovingPlace(place) && (place as unknown as ReachPatch).isUnderWay() ? MIN_PATCH_DEPTH_M : 0;
+    const depth = Math.max(floorM, state?.depthHereM ?? 1.4);
     place.setWater({ of: node, depthM: Math.round(depth * 100) / 100 });
     // ⭐ The place moved under whoever stood in it: deeper now, the bed
     // lets them go (the drive found a swimmer standing in a deep pool).
