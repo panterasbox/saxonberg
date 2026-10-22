@@ -345,7 +345,9 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     const mine = mugs.find((m) => String(m.longDescription ?? '').includes(`Made by ${potter.handle}`));
     expect(mine?.stuffId, `the potter's own mug: ${JSON.stringify(mugs.map((m) => m.longDescription?.slice(0, 120)))}`).toBeDefined();
     await say(potter, `get #${mine!.stuffId}`);
-    const foot = await say(potter, `carve foot on #${mine!.stuffId}`);
+    // ⚠ An engaged act: the foot is turned when the trimming is DONE, so
+    // jump past it (run 27 read the mug while the tool was still on it).
+    const foot = (await act(potter, `carve foot on #${mine!.stuffId}`, '30 minutes')).said;
     expect(foot, `trim: ${foot}`).toMatch(/foot|trim|pare/i);
     expect(await examine(potter, `#${mine!.stuffId}`)).toMatch(/turned foot/i);
     await say(potter, 'get jug');
@@ -368,14 +370,19 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
   }, 3_600_000);
 
   it('a handle much wetter than the body cracks the joint on drying', async () => {
-    // A fresh handle, thrown now, onto the leather-hard jar.
+    // A fresh handle, thrown now, onto the potter's leather-hard MUG (the
+    // one trimmed above, still in hand) — a jar has no seat for a handle
+    // (run 27: "nothing in it to fit anything to"). Followed by identity.
+    const rows = await potter.query('me:i:mug', { fields: ['displayName'] }).catch(() => []);
+    const mug = (rows as { stuffId?: string }[])[0]?.stuffId;
+    expect(mug, 'the trimmed mug in hand').toBeTruthy();
     potter = await clayFor(potter, 1);
     await act(potter, 'shape clay into handle', '1 hour');
-    await say(potter, 'get jar');
-    const fit = await act(potter, 'fit handle to jar', '30 minutes');
-    expect(fit.said).toMatch(/handle|fit|join/i);
-    await say(potter, 'drop jar');
-    const dried = await until(potter, 'here:i:jar', /bone-dry/i, '1 day', 30);
+    await say(potter, 'get handle');
+    const fit = await act(potter, `fit handle to #${mug}`, '30 minutes');
+    expect(refusedFor(fit.r), `the wet handle on: ${fit.said}`).toBeNull();
+    await say(potter, `drop #${mug}`);
+    const dried = await until(potter, `#${mug}`, /bone-dry/i, '1 day', 30);
     expect(dried, 'the mismatched joint').toMatch(/crack|check/i);
   }, 3_600_000);
 
@@ -396,7 +403,9 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await until(potter, 'here:i:jug', /bone-dry/i, '1 day', 30);
     for (const ware of ['jug', 'mug', 'crock', 'crock', 'jar', 'bowl', 'plant pot']) {
       await say(potter, `get ${ware}`);
-      await say(potter, `put ${ware} in kiln`);
+      // ⚠ Quoted: `put plant pot in kiln` matches no shape of `put` (a
+      // two-word object is quoted on a command line — run 27).
+      await say(potter, `put ${ware.includes(' ') ? `"${ware}"` : ware} in kiln`);
     }
     expect(await examine(potter, 'kiln:i')).toMatch(/jug|crock/i);
     await mint(SHOP, CHARCOAL, 4);
@@ -434,27 +443,29 @@ suite('⭐ 18 — glaze', () => {
     await say(potter, 'get pail');
     await say(potter, 'fill pail from butt');
     await say(potter, 'get ash');
-    await say(potter, 'put ash in ash tub');
-    await say(potter, 'put clay in ash tub');
-    await say(potter, 'pour pail into ash tub');
-    const ash = await act(potter, 'stir ash tub', '20 minutes');
+    // ⚠ Two-word names are quoted on a command line (run 27: `put ash in
+    // ash tub` matched no shape of `put`).
+    await say(potter, 'put ash in "ash tub"');
+    await say(potter, 'put clay in "ash tub"');
+    await say(potter, 'pour pail into "ash tub"');
+    const ash = await act(potter, 'stir "ash tub"', '20 minutes');
     expect(ash.said, `the ash glaze: ${ash.said}`).toMatch(/glaze|stir|blend/i);
     expect(await examine(potter, 'ash tub')).toMatch(/ash glaze|glaze/i);
     potter = await clayFor(potter, 1);
     await say(potter, 'fill pail from butt');
     await say(potter, 'get lead');
-    await say(potter, 'put lead in lead tub');
-    await say(potter, 'put clay in lead tub');
-    await say(potter, 'pour pail into lead tub');
-    await act(potter, 'stir lead tub', '20 minutes');
+    await say(potter, 'put lead in "lead tub"');
+    await say(potter, 'put clay in "lead tub"');
+    await say(potter, 'pour pail into "lead tub"');
+    await act(potter, 'stir "lead tub"', '20 minutes');
     expect(await examine(potter, 'lead tub')).toMatch(/lead glaze|glaze/i);
     // Two bisque crocks, dipped inside.
     await say(potter, 'get crocks from kiln');
     await say(potter, 'name crock ashpot');
-    const dippedAsh = await say(potter, 'dip ashpot inside in ash tub');
+    const dippedAsh = await say(potter, 'dip ashpot inside in "ash tub"');
     expect(dippedAsh).toMatch(/coat|glaze|dip/i);
     await say(potter, 'name crock leadpot');
-    await say(potter, 'dip leadpot inside in lead tub');
+    await say(potter, 'dip leadpot inside in "lead tub"');
     expect(await examine(potter, 'me:i:leadpot')).toMatch(/glaze|coat|wet/i);
     await say(potter, 'put ashpot in kiln');
     await say(potter, 'put leadpot in kiln');
@@ -564,6 +575,12 @@ suite('⭐ 22 — the filter (W8)', () => {
     w = await goTo(w, SQUARE);
     expect(await say(w, 'buy water filter'), 'the stall sells a filter').toMatch(/you buy/i);
     expect(await say(w, 'buy crock'), 'and a crock for it to stand in').toMatch(/you buy/i);
+    // ⚠ What a stall hands over may land at the buyer's feet rather than in
+    // hand — the crock stayed in the square when the filterer walked on (run
+    // 27: `put filter in crock` saw no crock). Picked up before leaving.
+    await say(w, 'get crock');
+    await say(w, 'get filter');
+    expect(await held(w), 'the crock goes with the filterer').toMatch(/crock/i);
     w = await goTo(w, room);
     const set = await run(w, 'put filter in crock');
     expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
@@ -710,11 +727,12 @@ suite('⭐ 20 — flame and body', () => {
     await say(potter, 'get charcoal');
     await say(potter, 'stoke charcoal into campfire');
     await say(potter, 'ignite campfire');
-    await say(potter, 'put crock in campfire');
-    await say(potter, 'put bowl in campfire');
+    // ⚠ ON, not in: a campfire takes things on it (run 27: "it takes on").
+    await say(potter, 'put crock on campfire');
+    await say(potter, 'put bowl on campfire');
     await advance('1 hour');
-    expect(await examine(potter, 'campfire:i:crock'), 'stoneware in the flame').toMatch(/crack/i);
-    expect(await examine(potter, 'campfire:i:bowl'), 'grogged earthenware in the flame').not.toMatch(/crack/i);
+    expect(await examine(potter, 'here:i:crock'), 'stoneware in the flame').toMatch(/crack/i);
+    expect(await examine(potter, 'here:i:bowl'), 'grogged earthenware in the flame').not.toMatch(/crack/i);
   }, 7_200_000);
 
   it('boiling water poured into a cold glazed mug cracks it — thermal shock', async () => {
@@ -758,15 +776,15 @@ suite('⭐ 25 — the stall', () => {
     // The practiced potter's bisque plant pot from 17, consigned into the
     // stall's own plant-pot line.
     potter = await goTo(potter, SHOP);
-    await say(potter, 'get plant pot from kiln').catch(() => '');
+    await say(potter, 'get "plant pot" from kiln').catch(() => '');
     expect(await held(potter)).toMatch(/plant pot|pot/i);
     potter = await goTo(potter, SQUARE);
-    const consigned = await say(potter, 'consign plant pot --ask 3');
+    const consigned = await say(potter, 'consign "plant pot" --ask 3');
     expect(consigned).toMatch(/consign|stall|ask/i);
     const onStall = await examine(potter, 'stall:i:pot');
     expect(onStall, 'the stall holds the pottery’s pot').toMatch(/pot/i);
     novice = await goTo(novice, SQUARE);
-    const bought = await say(novice, 'buy plant pot');
+    const bought = await say(novice, 'buy "plant pot"');
     expect(bought).toMatch(/you buy/i);
     const pot = await examine(novice, 'me:i:pot');
     expect(pot, 'the bought pot reads its body').toMatch(/earthenware|terracotta|fired/i);

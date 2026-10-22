@@ -58,6 +58,7 @@ import { MixinApi } from '../mud/api/mixin';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { StuffApi } from '../mud/api/stuff';
 import { ContainmentApi } from '../mud/api/containment';
+import { TRAUMA_BEHAVIOR } from '../mud/platform/idea/Condition';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -324,6 +325,20 @@ export class TestHooks {
         if (!r) continue;
         body.adjustReserve(key, r.capacity);
         out[key] = body.getReserve(key)?.current.rawValue() ?? 0;
+      }
+      // ⭐ …and a wound tended, as anyone living through those days would:
+      // an untreated burn weeps plasma and mends only where the body is
+      // SAFE, so a drive's people, standing out in the yards through weeks
+      // of jumped clock, bled out of a scalded hand (the ceramics drives,
+      // run 27: the founder, the brickmaker). Each open wound gets its own
+      // resolution, cleanly — the same primitive `treat` calls.
+      if (MixinApi.isVitals(body)) {
+        for (const c of body.getConditions()) {
+          if (c.kind !== 'trauma' || c.dressed === true) continue;
+          const by = TRAUMA_BEHAVIOR[c.type]?.resolution;
+          if (by === undefined || by === 'surgery' || by === 'extraction') continue;
+          body.applyTreatment(c, { by, efficacy: 1 });
+        }
       }
       return out;
     });

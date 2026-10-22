@@ -259,7 +259,15 @@ export async function dressFounder(template: string = WINTER_COAT): Promise<void
     // carrying fourteen kilograms of them.
     const keyword = template.split('/').pop() ?? template;
     const has = await gov.query(`me:i:${keyword}`, { fields: ['displayName'] }).catch(() => []);
-    if (has.length === 0) await dress(gov, template);
+    // ⚠ Best effort: a founder an earlier file left dead (a shade wears
+    // nothing) must not take the next file's setup down with it (run 27's
+    // drive B skipped all six checkpoints on it).
+    if (has.length === 0) {
+      await dress(gov, template).catch((err: unknown) => {
+        // eslint-disable-next-line no-console -- a setup warning, not a failure
+        console.warn(`wire: the founder could not be dressed — ${err instanceof Error ? err.message : String(err)}`);
+      });
+    }
   } finally {
     gov.close();
   }

@@ -409,6 +409,11 @@ async function clearFloor(only?: RegExp): Promise<void> {
   // `impress X in flask` kept binding an old, impressed one. `destruct #id`
   // as the founder does it, one leftover at a time, by identity.
   const LEFTOVER = /moulding flask|\bcast\b|runner and riser|moulding sand|beeswax|salvaged lump|sherd|\bmug\b/i;
+  // ⚠ Never the cast key: 35 unlocks the yard with it after a restart. The
+  // first general sweep after 28 dropped it from the caster's hands as a
+  // "cast" and scrapped it (run 27's carried log: gone after 29a).
+  const KEEP = /cast of a key/i;
+  const sweeps = (name: string): boolean => (only ?? LEFTOVER).test(name) && !KEEP.test(name);
   // ⚠ In the dark every name reads "something" (perception gates the
   // label), and the sweep matches by name — so it swept NOTHING at night
   // and old impressed flasks kept binding `flask`. Sweep by daylight.
@@ -419,7 +424,7 @@ async function clearFloor(only?: RegExp): Promise<void> {
   if (caster) {
     const held = await caster.query('me:i', { fields: ['displayName'] }).catch(() => []);
     for (const h of held as { stuffId?: string; displayName?: string }[]) {
-      if (h.stuffId && (only ?? LEFTOVER).test(String(h.displayName ?? ''))) {
+      if (h.stuffId && sweeps(String(h.displayName ?? ''))) {
         await caster.cmd(`drop #${h.stuffId}`);
       }
     }
@@ -429,7 +434,7 @@ async function clearFloor(only?: RegExp): Promise<void> {
   try {
     const rows = await gov.query('here', { fields: 'detail' }).catch(() => []);
     const floor = ((rows[0] as { contents?: { stuffId: string; displayName: string }[] } | undefined)?.contents ?? [])
-      .filter((o) => (only ?? LEFTOVER).test(o.displayName));
+      .filter((o) => sweeps(o.displayName));
     for (const o of floor) {
       await gov.cmd(`destruct #${o.stuffId}`);
     }
@@ -886,7 +891,9 @@ suite('⭐⭐ 32 — crystallize', () => {
     await mint(SALT_FLAT, '/trade/quarrying/thing/coal', 6);
     for (let trip = 0; trip < 3; trip++) {
       await doing(caster, 'get 2 coal');
-      await doing(caster, 'stoke coal into hearth');
+      // Both: a bare `stoke coal` lays ONE lump, and three stayed in hand
+      // (run 27 — 18 kg the caster then could not lift a board over).
+      await doing(caster, 'stoke 2 coal into hearth');
     }
     await doing(caster, 'ignite hearth');
     let read = first;
@@ -908,8 +915,11 @@ suite('⭐⭐ 32 — crystallize', () => {
     // too (run 26). The player's act is the check: the crop comes out of
     // the pan by name. (The crop is hot off the hearth — it scalds.)
     await daylight();
-    const got = await doing(caster, 'get crystals from pan');
-    expect(got, `raking the crop: ${got}`).toMatch(/crystals/i);
+    // ⚠ The crop comes out; `get crystals from pan` ALSO strains at the pan
+    // itself (a singular head noun binds a modifier — the MQL finding), so
+    // the check is what came into the hand, not the absence of a refusal.
+    const got = (await run(caster, 'get crystals from pan')).said;
+    expect(got, `raking the crop: ${got}`).toMatch(/pick up [^.]*crystals/i);
     const held = await examine(caster, 'me:i:crystals');
     expect(held, `the crop in hand: ${held}`).toMatch(/salt/i);
     await doing(caster, 'douse hearth');
@@ -986,6 +996,10 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     // Old casts down and swept (and by daylight): `pewter`/`bronze` must name THIS one.
     await clearFloor();
     await mint(FOUNDRY, T.board);
+    // ⚠ Hands free first: what earlier checkpoints left in them (an ingot,
+    // the salt crust) is over a body's load with a board on top.
+    for (const x of ['coal', 'ingot', 'crystals']) await caster.cmd(`drop ${x}`);
+    await caster.drainProse();
     await doing(caster, 'get board');
     const carved = await act(caster, 'carve pattern of sword from board for pewter', '1 hour');
     // STATE: the opening line scribes; the pattern is read off the board.

@@ -41,6 +41,23 @@ describe('TestHooks.nourishCharacter', () => {
     expect(TestHooks.nourishCharacter('wire-potter')).toEqual({ satiation: 100, hydration: 100, 'vitamin-c': 100 });
   });
 
+  it('⭐ tends an open burn with its own resolution — not a dressed one (run 27 bled out of a scald)', () => {
+    const b = body(50) as ReturnType<typeof body> & {
+      getConditions(): unknown[];
+      applyTreatment: ReturnType<typeof vi.fn>;
+    };
+    const burn = { kind: 'trauma', type: 'burn', site: 'body.hand', severity: 2, dressed: false };
+    const cut = { kind: 'trauma', type: 'laceration', site: 'body.arm', severity: 1, dressed: true };
+    b.getConditions = () => [burn, cut];
+    b.applyTreatment = vi.fn();
+    vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(b as unknown as Avatar);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
+    TestHooks.nourishCharacter('wire-caster');
+    expect(b.applyTreatment).toHaveBeenCalledTimes(1);
+    expect(b.applyTreatment).toHaveBeenCalledWith(burn, { by: 'fluid', efficacy: 1 });
+  });
+
   it('⚠ says so when nobody answers to the handle', () => {
     vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(undefined);
     expect(() => TestHooks.nourishCharacter('nobody')).toThrow(/no resident character/i);
