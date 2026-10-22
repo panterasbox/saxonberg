@@ -214,24 +214,6 @@ const RAINING = (w: string): boolean =>
 // ── the cast of this file ───────────────────────────────────────────────
 let digger: Session; // the brickmaker
 
-/**
- * Setup, as the founder: an `eval` at `where` under `parcel`'s title. It
- * must not be refused — a silent setup miss surfaces three checkpoints on.
- */
-async function founderEval(where: string, parcel: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
-  try {
-    const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
-    const said = squash(plain(await r.said()));
-    // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] (founder eval → ${said.slice(0, 160)})`);
-    expect(said, `founder eval: ${said}`).not.toMatch(/error/i);
-    return said;
-  } finally {
-    gov.close();
-  }
-}
-
 beforeAll(async () => {
   await toHour(9, 15);
   digger = await at(uniqueHandle('brickmaker'), PIT);
@@ -243,18 +225,18 @@ afterAll(() => {
 
 suite('⭐ 1 — win the clay', () => {
   it('`dig clay with spade` at the Delight pit wins lumps of the river clay', async () => {
-    // ⚠ Setup: the gang's leftover lumps go offstage first. A lump dug onto
-    // a lying heap JOINS it (its weathering blended by mass — Clay's merge,
-    // honestly), so after weeks of the moulders' work the drive's fresh
-    // clay read "weathered a little" (run 18). This checkpoint is about
-    // clay out of the ground.
-    await founderEval(
-      PIT,
-      '/world/terminus/hearts-delight',
-      `return (() => { const off = StuffApi.findByTemplatePath('${B}/offstage');` +
-        ` const old = self.getContainer().getContents().filter(o => o.getTemplatePath() === '/trade/quarrying/thing/clay');` +
-        ` return Promise.all(old.map(o => ContainmentApi.move(o, off))).then(() => 'cleared ' + old.length); })()`,
-    );
+    // ⚠ The gang's leftover lumps are carried off first. A lump dug onto a
+    // lying heap JOINS it (its weathering blended by mass — Clay's merge,
+    // honestly), so after weeks of the moulders' work the drive's fresh clay
+    // read "weathered a little" (run 18). They go north to the weathering
+    // ground, where a heap is left to weather anyway (step 2). The founder's
+    // eval could not move them (`getPlacement()` denied, run 19).
+    if (/clay/i.test(await examine(digger, 'here:i:clay'))) {
+      await say(digger, 'get clay');
+      await say(digger, 'north');
+      await say(digger, 'drop clay');
+      await say(digger, 'south');
+    }
     const got = await say(digger, 'get 1 spade');
     expect(got, `get spade: ${got}`).toMatch(/you pick up|spade/i);
     const before = (await held(digger)).join(' | ');
