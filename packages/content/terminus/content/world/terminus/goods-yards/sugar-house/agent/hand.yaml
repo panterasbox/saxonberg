@@ -27,6 +27,11 @@ data:
         stock: /world/terminus/goods-yards/sugar-house/thing/stock
         shelf: /world/terminus/counting-houses/distributor/thing/counter
         batch: 6
+        # Only what the house MAKES — the raw sugar and lime on the floor
+        # are its feedstock, bought in to refine.
+        carries:
+          - /trade/cooking/thing/sugar-sack
+          - /trade/sugar/thing/molasses-cask
         ask:
           sugar:loose: 8
           sugar:molasses: 5

@@ -282,6 +282,8 @@ export interface Growing {
    * so an absence that ripened it counts.
    */
   isHarvestable(): boolean;
+  /** A harvestable plant of this kind beside this one, or null. */
+  ripeSibling(): (Stuff & Growing) | null;
   /**
    * The ground this is rooted in — a pot or a garden bed — or null when
    * unrooted. Speaks the `Cultivable` interface rather than a concrete
@@ -682,6 +684,24 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public setDiscipline(value: string): void {
       this.discipline = value || 'horticulture';
+    }
+
+    /**
+     * A harvestable plant of this one's kind standing beside it, or null —
+     * so `harvest cane` in a field of ratoons takes the ripe one rather
+     * than refusing on whichever stool the name bound first.
+     */
+    public ripeSibling(): (Stuff & Growing) | null {
+      const self = this as unknown as Stuff;
+      const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (!here || !MixinApi.isContainer(here)) return null;
+      const kind = self.getTemplatePath();
+      return (
+        (here.getContents() as Stuff[]).find(
+          (c): c is Stuff & Growing =>
+            c !== self && c.getTemplatePath() === kind && MixinApi.isGrowing(c) && c.isHarvestable(),
+        ) ?? null
+      );
     }
 
     public isHarvestable(): boolean {

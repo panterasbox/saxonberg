@@ -78,18 +78,6 @@ interface HarvestModel extends CommandModel {
 }
 
 export default class HarvestController extends CommandController<HarvestModel> {
-  /** A harvestable plant of the same kind standing beside `plant`, or null. */
-  private ripeSiblingOf(plant: Stuff & Growing): (Stuff & Growing) | null {
-    const here = MixinApi.isContainable(plant) ? plant.getContainer() : null;
-    if (!here || !MixinApi.isContainer(here)) return null;
-    const kind = plant.getTemplatePath();
-    for (const c of here.getContents() as Stuff[]) {
-      if (c === plant || c.getTemplatePath() !== kind) continue;
-      if (MixinApi.isGrowing(c) && c.isHarvestable()) return c;
-    }
-    return null;
-  }
-
   async execute(model: HarvestModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const named = model.target.stuff;
@@ -119,7 +107,7 @@ export default class HarvestController extends CommandController<HarvestModel> {
       // the first match, and it refused "has not filled its set" while
       // ripe cane stood beside it (the sugar drive: an estate's cutters,
       // seventy-eight times). Only the same KIND is a substitute.
-      plant = named.isHarvestable() ? named : (this.ripeSiblingOf(named) ?? named);
+      plant = named.isHarvestable() ? named : (named.ripeSibling() ?? named);
     } else if (MixinApi.isCultivable(named)) {
       const growing = (named.getPlants() as Stuff[]).filter(
         (p): p is Stuff & Growing => MixinApi.isGrowing(p),

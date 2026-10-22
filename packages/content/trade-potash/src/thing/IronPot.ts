@@ -6,31 +6,24 @@
  * ⭐ No verb and no profile. The pot stands ON a hearth (`put pot on
  * hearth`, the soap kettle's precedent), lye is poured in, and the boil is
  * the kernel's latent-heat plateau: the lye holds at its boiling point and
- * loses water to steam on every read. The ALKALI does not leave with the
- * steam, so the pot keeps count of it:
- *
- *  - the litres ROSE since the pot last looked — a pour came in: the count
- *    is re-based off the liquor's strength (`dissolvedSolidsKgPerL`, which
- *    the pour blended);
- *  - they FELL — the plateau boiled water off: the count is kept and the
- *    strength rewritten as count ÷ litres, so the egg rides higher as the
- *    pot boils down;
- *  - the slot is EMPTY with alkali counted — the water is gone: the pot
- *    mints the cake by the shipped mould path (`castInto`), of the alkali
- *    over the cake's purity, graded as the lye was.
+ * loses water to steam on every read, and the plateau KEEPS the alkali —
+ * the dissolved solids stay as the water leaves, so the liquor's strength
+ * climbs and the egg rides higher as the pot boils down. Boiled down to
+ * saturation, what is left SETS as the cake, by the shipped mould path
+ * (`castInto`): the alkali over the cake's purity, graded as the lye was.
  *
  * So a strong lye gives a heavy cake and a weak one a thin crust from the
  * same boil, and a weak lye burns more wood per kilo of potash (AC 5).
  *
- * ⚠ Honest limits: the cake appears at the first read after the pot boils
- * dry, not at the instant; a pour and a boil-off between two reads are
- * read as their net (a pot nobody watches is a pot nobody measures).
+ * ⭐⭐ **Converged (`potash-on-sugar`, the sugar build).** The pot kept its
+ * own count of the alkali (`alkaliKg`, `lastSeenL`, a re-base on every
+ * pour) because the plateau boiled the solids away with the water. The
+ * plateau keeps them now, so the count is gone: the pot reads the strength
+ * the plateau wrote, and casts at saturation. Lye states its own strength
+ * (`solidsKgPerL`) — the `UNMEASURED_LYE_KG_PER_L` constant retired.
  *
- * ⭐⭐ **Convergence (`potash-on-sugar`).** The sugar build's plateau keeps
- * dissolved solids as the water leaves and fires a material's
- * `concentratesTo` arrows; when that is on master, lye authors its solids
- * and an arrow to black salts, and `reconcileBoil`, `alkaliKg` and
- * `lastSeenL` are DELETED — this class becomes the mould it composes.
+ * ⚠ Honest limit: the cake appears at the first read after the pot
+ * reaches saturation, not at the instant.
  *
  * Composition: the Hoop minus `Placing` (the pot is placed ON a hearth; it
  * hosts nothing): food-grade vessel, `Durable` (a reusable mould wears per
@@ -43,10 +36,8 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
-import { UNMEASURED_LYE_KG_PER_L } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
 import type { ChattelOwner } from '@saxonberg/server/mud/lib/chattel/ChattelRecord';
 
 /** What a boiled-dry lye leaves. */
@@ -67,74 +58,54 @@ const SATURATED_KG_PER_L = 1.1;
 const IronPotBase = MouldMixin(DurableMixin(CraftVessel));
 
 export default class IronPot extends IronPotBase {
-  static fieldMeta: FieldMeta = {
-    alkaliKg: { persistent: true, runtimeState: true },
-    lastSeenL: { persistent: true, runtimeState: true },
-  };
-
-  /** The alkali in the pot's liquor, kg — conserved across the boil. */
-  public alkaliKg = 0;
-  /** The litres the pot held when it last looked. */
-  public lastSeenL = 0;
-
   private boiling = false;
 
-  /** The alkali the pot is holding, kg (its own count). */
+  /**
+   * The alkali the pot's liquor holds, kg — read off the strength the
+   * plateau keeps (dissolved solids × litres), never counted by the pot.
+   */
   public getAlkaliKg(): number {
     this.reconcileSetting();
-    return this.alkaliKg;
+    const litres = this.getBulkAmount('interior').rawValue();
+    return litres > 0 ? this.strength() * litres : 0;
   }
 
-  /** Every read of the pot runs the boil's bookkeeping after the plateau's. */
+  /** Every read of the pot looks for the salts setting, after the plateau's. */
   public override reconcileSetting(): void {
     super.reconcileSetting();
-    this.reconcileBoil();
+    this.castIfSaturated();
   }
 
-  private reconcileBoil(): void {
+  /** The liquor's dissolved solids, kg/L — the plateau's figure, else its material's own. */
+  private strength(): number {
+    return (
+      this.getBulkPayload('interior')?.dissolvedSolidsKgPerL ??
+      this.getBulkMaterial('interior')?.getSolidsKgPerL() ??
+      0
+    );
+  }
+
+  /**
+   * ⭐ Boiled down to saturation, the salts set out of what is left. Any
+   * liquor carrying alkali counts — a hopper drawn before its leach has
+   * re-keyed gives WATER carrying it (the live walk's finding), and that
+   * boils down to the same salts.
+   */
+  private castIfSaturated(): void {
     if (this.boiling) return;
     this.boiling = true;
     try {
       const litres = this.getBulkAmount('interior').rawValue();
-      const liquor = this.getBulkMaterial('interior');
+      if (!(litres > 0)) return;
+      const kgPerL = this.strength();
+      if (kgPerL < SATURATED_KG_PER_L) return;
       const payload = this.getBulkPayload('interior');
-      // ⭐ Dissolved solids are dissolved solids: a hopper drawn before its
-      // leach has re-keyed gives WATER carrying the alkali the egg already
-      // reads (found by the live walk — the pot boiled it to nothing, and
-      // the alkali went with the steam). Count it whatever the liquor's name.
-      const carries = liquor !== null && (liquor.hasTag('lye') || (payload?.dissolvedSolidsKgPerL ?? 0) > 0);
-      if (litres > 0 && carries) {
-        if (litres > this.lastSeenL + 1e-9 || this.alkaliKg <= 0) {
-          // A pour came in (it blended the strength): re-base the count.
-          this.alkaliKg = (payload?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L) * litres;
-        } else if (litres < this.lastSeenL - 1e-9) {
-          // The plateau boiled water off: the alkali stays behind.
-          this.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: this.alkaliKg / litres });
-        }
-        this.lastSeenL = litres;
-        // ⭐ Boiled down to saturation: the salts set out of what is left.
-        if (this.alkaliKg > 0 && this.alkaliKg / litres >= SATURATED_KG_PER_L) {
-          const kg = this.alkaliKg;
-          const owner = payload?.contentsOwner ?? null;
-          this.alkaliKg = 0;
-          this.lastSeenL = 0;
-          this.setBulkAmount('interior', Quantity.of(0, 'L'));
-          this.setBulkMaterial('interior', null);
-          this.setBulkPayload('interior', null);
-          void this.setCake(kg, owner);
-        }
-        return;
-      }
-      if (litres <= 0 && this.alkaliKg > 0) {
-        // ⭐ Boiled dry: the water is gone and the salts are left.
-        const kg = this.alkaliKg;
-        const owner = this.getBulkPayload('interior')?.contentsOwner ?? null;
-        this.alkaliKg = 0;
-        this.lastSeenL = 0;
-        void this.setCake(kg, owner);
-        return;
-      }
-      if (litres <= 0) this.lastSeenL = 0;
+      const owner = payload?.contentsOwner ?? null;
+      const kg = kgPerL * litres;
+      this.setBulkAmount('interior', Quantity.of(0, 'L'));
+      this.setBulkMaterial('interior', null);
+      this.setBulkPayload('interior', null);
+      void this.setCake(kg, owner);
     } finally {
       this.boiling = false;
     }
