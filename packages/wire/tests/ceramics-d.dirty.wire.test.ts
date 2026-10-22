@@ -703,7 +703,9 @@ suite('⭐⭐ 31 — pressing: one load, from a stone, a screw and a blow', () =
     // A checkpoint owns its position: never trust where the last one left off.
     caster = await goTo(caster, FOUNDRY);
     const struck = await act(caster, 'hammer blank on die', '5 minutes');
-    expect(struck, `the blow: ${struck}`).toMatch(/die bites|device/i);
+    // STATE, not prose: the blow's line can land during the clock jump,
+    // before the drive is listening (run 15 caught only the raise).
+    expect(struck, `the blow: ${struck}`).toMatch(/hammer|die/i);
     const token = await examine(caster, 'token');
     expect(token, `the token: ${token}`).toMatch(/struck from .*founder.* die/i);
   }, 1_800_000);
