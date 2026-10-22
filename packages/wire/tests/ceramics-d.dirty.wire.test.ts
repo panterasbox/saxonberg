@@ -552,17 +552,18 @@ suite('⭐⭐ 27 — impress a sword in a flask, cast it in pewter', () => {
 suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\'s lock', () => {
   it('the cast key unlocks the yard door', async () => {
     // Setup: the founder's yard key on the bench, and the yard door locked.
-    // ⭐ Stood up by reference, with a word of its own (`yardkey`): a key or
-    // a cast key left from an earlier pass made `--on key` ambiguous, and the
-    // founder may not destruct a /stuff kind to clear them.
-    await founderEval(
+    // The founder's own `clone` stands the key up (a parcel-bound eval may
+    // not clone a /stuff kind — `setShortDescription()` denied, run 19), and
+    // the eval gives it a word of its own (`yardkey`) for the hands to name.
+    await mint(FOUNDRY, T.key);
+    await founderEvalOn(
       FOUNDRY,
-      `return StuffApi.clone('${T.key}').then(k => {` +
-        ` k.ensureCredential('key').addKey('rejection-foundry-yard', 'pin-tumbler');` +
-        ` k.setMaterial(StuffApi.findByTemplatePath('${M.brass}'));` +
-        ` k.setMass(k.getMass().constructor.of(0.02, 'kg'));` +
-        ` k.setKeywords([...k.getKeywords(), 'yardkey']);` +
-        ` return ContainmentApi.move(k, self.getContainer()); }).then(() => 'key ready')`,
+      'key',
+      `(() => { this.ensureCredential('key').addKey('rejection-foundry-yard', 'pin-tumbler');` +
+        ` this.setMaterial(StuffApi.findByTemplatePath('${M.brass}'));` +
+        ` this.setMass(this.getMass().constructor.of(0.02, 'kg'));` +
+        ` this.setKeywords([...this.getKeywords(), 'yardkey']);` +
+        ` return 'key ready'; })()`,
     );
     await founderEvalOn(FOUNDRY, 'door', `(() => { this.setOpen(false); this.lock(); return this.isLocked(); })()`);
     await doing(caster, 'get yardkey');
