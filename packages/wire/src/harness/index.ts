@@ -28,5 +28,9 @@ export {
   advanceWorldClock,
   advanceLiving,
   nourish,
+  dress,
+  dressFounder,
+  hand,
+  WINTER_COAT,
   worldClockNow,
 } from './world';

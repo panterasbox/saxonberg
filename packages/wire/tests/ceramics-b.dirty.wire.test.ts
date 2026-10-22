@@ -30,6 +30,9 @@ import {
   advanceWorldClock,
   advanceLiving,
   plain,
+  dress,
+  dressFounder,
+  hand,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -235,27 +238,13 @@ async function winAtQuarry(band: string, n: number, back: string): Promise<void>
  * rightly refuses an outsider.
  */
 async function oreFor(n: number, back: string): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: SMELTER, wizard: true });
-  try {
-    // Into the founder's own hands, then down by an ordinary `drop`: moving
-    // it into the room from an eval reads the room to merge the stack, and
-    // a person there may not be read (`peek()` denied, run 22).
-    const r = await gov.cmd(
-      `eval --parcel /world/terminus/rejection return Promise.all(Array.from({ length: ${n} }, () =>` +
-        ` StuffApi.clone('/world/terminus/rejection/thing/copper-ore'))).then(os =>` +
-        ` Promise.all(os.map(o => ContainmentApi.move(o, self)))).then(() => 'ore: ${n}')`,
-    );
-    const said = squash(plain(await r.said()));
-    await gov.cmd('drop ore');
-    await gov.drainProse();
-    // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] (founder eval → ${said.slice(0, 160)})`);
-    expect(said, 'the ore setup').toMatch(/ore: \d/);
-  } finally {
-    gov.close();
-  }
+  // ⚠ Handed to the miner by name (setup). The founder's clone-and-drop
+  // landed wherever the founder was resident — not the smelter — and
+  // `get malachite` found nothing there (run 26).
   await goTo(back);
-  await say('get malachite');
+  for (let i = 0; i < n; i++) await hand(k, '/world/terminus/rejection/thing/copper-ore');
+  // eslint-disable-next-line no-console -- the drive's own record
+  console.log(`  [drive] (ore handed: ${n})`);
 }
 
 async function toHour(fromH: number, toH: number): Promise<void> {
@@ -279,6 +268,9 @@ beforeAll(async () => {
   }
   await toHour(9, 15);
   k = await Session.open(handle, { startLocation: QUARRY, wizard: true });
+  // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
+  await dress(k);
+  await dressFounder();
   at = QUARRY; // where a rest's drink comes back to
   await k.drainProse();
 }, 600_000);
@@ -437,7 +429,10 @@ suite('⭐ 13 — wear a crucible', () => {
       await toHour(9, 15);
       await say('stoke 2 coal into furnace');
       await say('ignite furnace');
-      await act('pump bellows');
+      // ⚠ The bellows is a toggle, and the last melt left it going: a pump
+      // that eases it off is pumped again (run 26 smelted cold).
+      const pumped = await act('pump bellows');
+      if (/ease off/i.test(pumped.said)) await act('pump bellows');
       await advance('30 minutes');
       await say('put coal in furnace');
       await say('put malachite in furnace');

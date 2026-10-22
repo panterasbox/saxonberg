@@ -33,7 +33,7 @@
  * tests/ceramics-d.dirty.wire.test.ts`.
  */
 
-import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe as suite, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import {
   Session,
   type CommandResult,
@@ -44,6 +44,8 @@ import {
   advanceLiving,
   isOwnedTestWorld,
   plain,
+  dress,
+  dressFounder,
 } from '../src/harness';
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
@@ -466,6 +468,9 @@ let playerName = '';
 
 beforeAll(async () => {
   caster = await funded('caster', FOUNDRY);
+  // ⭐ Dressed for the winter (run 26's founder died of a night of it).
+  await dress(caster);
+  await dressFounder();
   const me = await caster.query('me', { fields: ['displayName'] });
   playerName = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
   await daylight();
@@ -474,6 +479,17 @@ beforeAll(async () => {
 afterAll(() => {
   for (const s of sessions) s.close();
 });
+
+// ⚠ What the caster carries, after every checkpoint, into the record: run
+// 26 found the cast key — held after 28 — gone before 35's restart, with
+// nothing between to say where (no death, no drop, no snapshot of it).
+afterEach(async () => {
+  if (!caster?.isOpen()) return;
+  const rows = await caster.query('me:i', { fields: ['displayName'] }).catch(() => []);
+  const names = (rows as { displayName?: unknown }[]).map((r) => String(r.displayName ?? ''));
+  // eslint-disable-next-line no-console -- the drive's own record
+  console.log(`  [drive D] carried: ${names.join(', ') || '(nothing)'}`);
+}, 60_000);
 
 /* ───────────── 26. slip casting ───────────── */
 
@@ -887,9 +903,11 @@ suite('⭐⭐ 32 — crystallize', () => {
 
     // What a player sees: the crop in the pan, and the salt is salt in the
     // hand; the bittern is poured off into the tub.
-    // ⚠ Not `pan:i:crystals`: the crust's container IS the pan, yet `:i`
-    // lists nothing (a finding — runs 21 and 22). The player's act is the
-    // check: the crop comes out of the pan by name.
+    // ⚠ By daylight: in the dark the crop and the pan are both "something",
+    // and `get crystals from pan` took the crop and strained at the pan
+    // too (run 26). The player's act is the check: the crop comes out of
+    // the pan by name. (The crop is hot off the hearth — it scalds.)
+    await daylight();
     const got = await doing(caster, 'get crystals from pan');
     expect(got, `raking the crop: ${got}`).toMatch(/crystals/i);
     const held = await examine(caster, 'me:i:crystals');

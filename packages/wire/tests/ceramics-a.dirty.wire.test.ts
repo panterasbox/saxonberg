@@ -35,6 +35,8 @@ import {
   advanceWorldClock,
   advanceLiving,
   plain,
+  dress,
+  dressFounder,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -150,6 +152,18 @@ async function examine(s: Session, keyword: string): Promise<string> {
 }
 
 /** The display names of what the player holds. */
+/** Each stack a query names, by id → how many are in it ("14 green bricks" → 14). */
+async function stacksOf(s: Session, keyword: string): Promise<Map<string, number>> {
+  const rows = await s.query(keyword, { fields: ['displayName'] }).catch(() => []);
+  const out = new Map<string, number>();
+  for (const r of rows as { stuffId?: string; displayName?: unknown }[]) {
+    if (!r.stuffId) continue;
+    const n = Number(/^(\d+)\s/.exec(String(r.displayName ?? ''))?.[1] ?? 1);
+    out.set(r.stuffId, n);
+  }
+  return out;
+}
+
 /** The ids a query names — to take one thing by identity. */
 async function idsOf(s: Session, keyword: string): Promise<string[]> {
   const rows = await s.query(keyword, { fields: ['displayName'] }).catch(() => []);
@@ -223,6 +237,10 @@ let digger: Session; // the brickmaker
 beforeAll(async () => {
   await toHour(9, 15);
   digger = await at(uniqueHandle('brickmaker'), PIT);
+  // ⭐ Dressed for the year it will stand outside in (run 26: the brickmaker
+  // and the founder died of one winter night at the brickfield).
+  await dress(digger);
+  await dressFounder();
 }, 600_000);
 
 afterAll(() => {
@@ -351,11 +369,17 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // ⚠ By identity: `get 1 brick` bound the moulding table — its keyword
     // is "brick table", and a singular head noun matches the modifier (run
     // 24; the MQL finding) — and the hack's fourteen gang bricks are not ours.
-    const before = new Set(await idsOf(digger, 'bricks'));
+    // ⚠ A fresh brick STACKS with the gang's fresh bricks (the same green
+    // state), so it may get no id of its own (run 26): find the stack that
+    // grew, take one, and follow the one in hand.
+    const before = await stacksOf(digger, 'here:i:bricks');
     await act(digger, 'shape clay into brick', '9 hours');
-    const fresh = (await idsOf(digger, 'bricks')).find((id) => !before.has(id));
-    expect(fresh, 'the brick just struck').toBeTruthy();
-    await say(digger, `get #${fresh}`);
+    const after = await stacksOf(digger, 'here:i:bricks');
+    const grew = [...after].find(([id, n]) => n > (before.get(id) ?? 0))?.[0];
+    expect(grew, 'the brick just struck').toBeTruthy();
+    await say(digger, `get 1 #${grew}`);
+    const fresh = (await idsOf(digger, 'me:i:bricks'))[0];
+    expect(fresh, 'the struck brick in hand').toBeTruthy();
     await say(digger, 'south');
     await say(digger, `drop #${fresh}`);
     let hackBrick = '';

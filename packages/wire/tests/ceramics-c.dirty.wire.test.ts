@@ -35,6 +35,8 @@ import {
   advanceWorldClock,
   advanceLiving,
   plain,
+  dress,
+  dressFounder,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -275,6 +277,10 @@ beforeAll(async () => {
   await toHour(8, 14);
   novice = await funded('novice', SHOP);
   potter = await funded('potter', SHOP);
+  // ⭐ Dressed for the winter (run 26's founder died of a night of it).
+  await dress(novice);
+  await dress(potter);
+  await dressFounder();
   // ⭐ The practiced potter is practised by the shipped harness; the
   // novice is left alone. That difference is all of 15 and 24.
   for (let i = 0; i < 40; i++) await potter.cmd('practice pottery hard success');

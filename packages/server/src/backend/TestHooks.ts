@@ -56,6 +56,8 @@ import { SecurityApi } from '../mud/api/security';
 import { WorldClockApi } from '../mud/api/worldclock';
 import { MixinApi } from '../mud/api/mixin';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
+import { StuffApi } from '../mud/api/stuff';
+import { ContainmentApi } from '../mud/api/containment';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -324,6 +326,36 @@ export class TestHooks {
         out[key] = body.getReserve(key)?.current.rawValue() ?? 0;
       }
       return out;
+    });
+  }
+
+  /**
+   * ⭐ A test character handed a thing — a drive's SETUP, by the character's
+   * name rather than the founder's hands. The founder is not moved by a
+   * session's start location when it is resident elsewhere, so a thing it
+   * cloned and dropped landed wherever it was (the ceramics drive B's ore,
+   * run 26); and a drive's people need a winter coat a test-login character
+   * never finds in the dorm footlocker (run 26 lost the brickmaker and the
+   * founder to one night at the brickfield). The thing lands in the
+   * character's hands; what they do with it — `wear`, `put`, `stoke` — is
+   * their own act, so every rule still decides.
+   *
+   * @returns the thing's stuff id
+   */
+  public static async handCharacter(handle: string, templatePath: string): Promise<string> {
+    TestHooks.#assertTestMode('handCharacter');
+    return ExecutionContextApi.runRoot(TestHooks, 'handCharacter', async () => {
+      const avatar = PlayerApi.findAvatarByName(handle);
+      if (!avatar) throw new Error(`no resident character named '${handle}'`);
+      const body = avatar as unknown as Stuff;
+      if (!MixinApi.isContainer(body)) throw new Error(`'${handle}' cannot hold anything`);
+      const thing = await StuffApi.clone<Stuff>(templatePath);
+      if (!MixinApi.isContainable(thing)) {
+        await StuffApi.destruct(thing);
+        throw new Error(`'${templatePath}' is not a thing that can be held`);
+      }
+      ContainmentApi.move(thing, body);
+      return thing.stuffId;
     });
   }
 

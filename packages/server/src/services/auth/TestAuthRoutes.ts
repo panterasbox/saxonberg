@@ -164,8 +164,28 @@ export class TestAuthRoutes {
       }
     });
 
+    // ⭐ A test character handed a thing (a drive's setup: a winter coat to
+    // wear, an ore to smelt) — by name, not dropped from the founder's hands.
+    app.post('/auth/test-hand', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { handle?: unknown; template?: unknown } | undefined;
+      if (typeof body?.handle !== 'string' || body.handle === '' || typeof body.template !== 'string') {
+        res.status(400).json({ error: 'handle and template must be strings' });
+        return;
+      }
+      TestHooks.handCharacter(body.handle, body.template)
+        .then((id) => res.json({ id }))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-hand failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     console.warn(
-      'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock and /auth/test-nourish are MOUNTED ' +
+      'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-nourish and /auth/test-hand are MOUNTED ' +
         '(test seams). Never in production.'
     );
   }

@@ -228,6 +228,69 @@ async function nourishHandle(handle: string): Promise<void> {
   }
 }
 
+/** The commons' warmest honest garment — the coat the dorm footlocker offers. */
+export const WINTER_COAT = '/stuff/thing/clothes/greatcoat';
+
+/**
+ * ⭐ Dress a drive character for the season: the garment is handed over
+ * ({@link hand}) and the character WEARS it (its own act, so the
+ * slot rules decide). A drive that stands its people outdoors through a
+ * year must: the realm's winter dawn is 268 K, a body in its default
+ * loadout is on the hypothermia line at 8 °C, and run 26 lost the
+ * brickmaker and the founder to one night at the brickfield. Setup, like
+ * {@link nourish}: a new player finds this coat in the dorm footlocker,
+ * which a test-login character never visits. Handed by {@link hand}.
+ *
+ * @throws if the world refuses or the garment will not go on.
+ */
+export async function dress(s: Session, template: string = WINTER_COAT): Promise<void> {
+  const id = await hand(s, template);
+  const worn = await s.cmd(`wear #${id}`);
+  await worn.said();
+  if (worn.status !== 'ok') throw new Error(`dress(${s.handle}): 'wear #${id}' was ${worn.status}`);
+}
+
+/** {@link dress} for the founder, wherever it is resident — every drive's setup opens it. */
+export async function dressFounder(template: string = WINTER_COAT): Promise<void> {
+  const { Session: SessionClass } = await import('./session');
+  const gov = await SessionClass.open('founder', { wizard: true });
+  try {
+    // Once: every drive's setup asks, and a founder with four coats is
+    // carrying fourteen kilograms of them.
+    const keyword = template.split('/').pop() ?? template;
+    const has = await gov.query(`me:i:${keyword}`, { fields: ['displayName'] }).catch(() => []);
+    if (has.length === 0) await dress(gov, template);
+  } finally {
+    gov.close();
+  }
+}
+
+/**
+ * ⭐ Hand a drive character a thing of `template`'s kind (setup, by name):
+ * `POST /auth/test-hand` clones it into the character's hands and returns
+ * its id. ⚠ Not the founder's clone-and-drop: a founder resident elsewhere
+ * is not moved by a session's start location, so what it dropped landed
+ * wherever it was (drive B's ore, run 26).
+ *
+ * @throws if the world refuses.
+ */
+export async function hand(s: Session, template: string): Promise<string> {
+  return handHandle(s.handle, template);
+}
+
+async function handHandle(handle: string, template: string): Promise<string> {
+  const res = await fetch(`${SERVER_URL()}/auth/test-hand`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ handle, template }),
+  });
+  const body = (await res.json()) as { id?: string; error?: string };
+  if (!res.ok || typeof body.id !== 'string') {
+    throw new Error(`hand(${handle}, ${template}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
+  }
+  return body.id;
+}
+
 /**
  * ⭐ Advance the world clock by `duration` as LIVED time: in jumps of at
  * most four game hours (the heat regulation's gap window), the `living`
