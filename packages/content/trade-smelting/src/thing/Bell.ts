@@ -72,7 +72,11 @@ export default class Bell extends CraftedMixin(ThermalMixin(Good)) {
     const mat = this.getMaterial();
     if (mat === null || !mat.hasTag('metal')) return super.ringSound();
     const kg = Math.max(0.05, this.getMass().rawValue());
-    const db = 60 + 10 * Math.log10(kg);
+    // ⭐ A hand bell rings at ~80–90 dB a metre off, a church bell at 110–120:
+    // 85 + 10·log₁₀(kg) gives ~82 dB for a half-kilo hand bell and ~106 dB
+    // for the 120 kg curfew bell. At 60 + … the curfew bell died two places
+    // short of the wharf (−20 dB a place, a 10 dB floor — the ceramics drive).
+    const db = 85 + 10 * Math.log10(kg);
     if (this.getFlaws().length > 0) {
       return {
         sound: `a dull, cracked clank where ${this.noteName()} should be`,

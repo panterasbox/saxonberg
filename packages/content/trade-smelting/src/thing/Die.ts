@@ -17,6 +17,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -34,7 +35,21 @@ const STROKE_M = 0.002;
 /** The face a device is struck over, m² — a token's. */
 const FACE_M2 = 1e-4;
 
+/**
+ * ⭐ A die affords the blow itself — `hammer <blank> on <die>`, and the
+ * universal `impress die on <blank>`. Only the smith's ANVIL afforded
+ * `hammer`, so a die standing in a foundry offered nothing and no token
+ * could be struck there (the ceramics drive: "I don't understand
+ * 'hammer'"). Smelting already depends on smithing, whose view it is.
+ */
+const STRIKING = ['trade/smithing/cmd/crafting/hammer.yaml', 'platform/cmd/crafting/impress.yaml'];
+
 export default class Die extends ToolMixin(DurableMixin(CraftedMixin(Good))) {
+  static commandContributions: CommandContributions = {
+    environment: STRIKING,
+    peers: STRIKING,
+  };
+
   static fieldMeta: FieldMeta = {
     strikes: { persistent: true, authorable: true, ref: 'identity:kind' },
     markOf: { persistent: true, authorable: true },
