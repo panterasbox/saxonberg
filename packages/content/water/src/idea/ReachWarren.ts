@@ -50,6 +50,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -94,6 +95,8 @@ const MAX_EVENT_S = 600;
 const SLACK_MPS = 0.02;
 /** A killick holds in water slower than this, m/s (`water.river.killickHoldsMps`). */
 const KILLICK_HOLDS_MPS = 0.3;
+/** A ship's wake swamps small boats past this speed, m/s (`water.river.wakeSpeedMps`). */
+const WAKE_SPEED_MPS = 2.5;
 /** How far ahead white water is heard, km. */
 const EARSHOT_KM = 0.3;
 /** A hazard on a bank reaches this share of the width out from it. */
@@ -130,6 +133,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   private _stops = new Map<string, ReachStop>();
   /** Patch stuffId → game-second of its last event. Runtime. */
   private _lastAt = new Map<string, number>();
+  /** Patch stuffId → the ship whose boat was launched into it. Runtime. */
+  private _shipOf = new Map<string, string>();
   /** Patch stuffId → the node its weather was read for. Runtime. */
   private _nodeOf = new Map<string, string>();
   /** Patch stuffId → the white water it was last told about. Runtime. */
@@ -1026,6 +1031,17 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * at the bank) — `paddle` pushes off. `null` anywhere else.
    */
   public async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
+    // ⭐ A ship's deck on a river (D28, D30): her boat goes into the water
+    // where she lies — and comes back up onto her deck while she is within hail.
+    const deckPath = from.getTemplatePath();
+    const ship = deckPath ? await NavigationApi.structureAt(deckPath).catch(() => null) : null;
+    if (ship && MixinApi.isPositioned(ship) && ship.getLinePosition() !== null && MixinApi.isVoyaging(ship)) {
+      if (ship.getCourse() !== null) return null;
+      const pos = ship.getLinePosition()!;
+      const patch = (await this.patchNear(pos, null)) ?? (await this.mintPatch(pos));
+      this._shipOf.set(patch.stuffId, ship.getTemplatePath() ?? '');
+      return patch as unknown as Stuff & Container;
+    }
     if (!MixinApi.isShore(from) || from.getBank() === null) return null;
     const b = from.getBank()!;
     const cat = this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH));
@@ -1043,6 +1059,16 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const pos = (from as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
     const cat = this.catalogue();
     if (pos === null || cat === null) return null;
+    // Back up onto the deck of the ship she came off, while that ship lies within hail.
+    const shipPath = this._shipOf.get(from.stuffId) ?? null;
+    const ship = shipPath ? StuffApi.findByTemplatePath<Stuff>(shipPath) : null;
+    if (ship && MixinApi.isPositioned(ship) && MixinApi.isVoyaging(ship) && ship.getCourse() === null) {
+      const at = ship.getLinePosition();
+      const deck = (ship as unknown as { getEntrance?(): string | null }).getEntrance?.() ?? null;
+      if (at && deck && at.course === pos.course && Math.abs(at.km - pos.km) <= this.hailM() / 1000) {
+        return StuffApi.singleton<Stuff & Container>(deck);
+      }
+    }
     const hailKm = this.hailM() / 1000;
     for (const p of cat.placesOfSync(pos.course)) {
       if (p.kind !== 'bank') continue;
@@ -1086,6 +1112,53 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * far as height carries on a straight reach. The bodies, not the water:
    * *someone in the water, upstream, coming down.*
    */
+  /**
+   * ⭐ A ship's wake (river D29): passing at more than
+   * `water.river.wakeSpeedMps`, she throws a wave `0.08 · v²` m high, and a
+   * small boat within hail with less freeboard than that is swamped. Slowed,
+   * nothing. The ship's watch asks; the water does the rest.
+   */
+  public async wakeAt(pos: LinePosition, speedMps: number): Promise<void> {
+    if (speedMps <= dialNum('water.river.wakeSpeedMps', WAKE_SPEED_MPS)) return;
+    const wave = 0.08 * speedMps * speedMps;
+    const hailKm = this.hailM() / 1000;
+    const near = [...this._patches, ...this._stops.values()].filter((p) => {
+      const at = p.getLinePosition();
+      return at !== null && at.course === pos.course && Math.abs(at.km - pos.km) <= hailKm && !p.isDestroyed();
+    });
+    for (const place of near) {
+      for (const c of [...(place as unknown as Container).getContents()]) {
+        const boat = c as unknown as { freeboardNowM?(): number; capsize?(why: string): void };
+        if (typeof boat.freeboardNowM !== 'function' || typeof boat.capsize !== 'function') continue;
+        if (wave > boat.freeboardNowM()) {
+          boat.capsize('A steamer goes by at speed and her wake comes down on you, a hill of brown water.');
+        }
+      }
+    }
+  }
+
+  /**
+   * ⭐ A kedge down within hail (river D28): the km of a stop holding a
+   * boat that carries its killick — the boat took it out and let it go.
+   */
+  public kedgeNear(pos: LinePosition): number | null {
+    const hailKm = this.hailM() / 1000;
+    let best: { km: number; d: number } | null = null;
+    for (const stop of this._stops.values()) {
+      const at = stop.getLinePosition();
+      if (at === null || at.course !== pos.course || stop.isDestroyed()) continue;
+      const d = Math.abs(at.km - pos.km);
+      if (d === 0 || d > hailKm) continue;
+      const held = (stop as unknown as Container).getContents().some((c) => {
+        const boat = c as unknown as { holdAt?: unknown; getContents?(): Stuff[] };
+        return typeof boat.holdAt === 'function' &&
+          (boat.getContents?.() ?? []).some((k) => typeof (k as unknown as { dropAnchor?: unknown }).dropAnchor === 'function');
+      });
+      if (held && (best === null || d < best.d)) best = { km: at.km, d };
+    }
+    return best?.km ?? null;
+  }
+
   public sightablesNear(course: string, place: unknown, eyeHeightM: number): Stuff[] {
     const cat = this.catalogue();
     const line = cat?.lineOfSync(course) ?? null;
@@ -1237,6 +1310,10 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   private async positionOf(source: Stuff, way: ReachWay): Promise<LinePosition | null> {
     const own = (source as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
     if (own !== null) return own;
+    // ⭐ A ship's deck on a river (D29): over the side is the water where she is.
+    const path = source.getTemplatePath();
+    const ship = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
+    if (ship && MixinApi.isPositioned(ship) && ship.getLinePosition() !== null) return ship.getLinePosition();
     // A bank on the line: the margin of the water beside it.
     if (MixinApi.isShore(source) && source.getBank() !== null) {
       const bank = source.getBank()!;

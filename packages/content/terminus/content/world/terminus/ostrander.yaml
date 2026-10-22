@@ -1,0 +1,11 @@
+# The Ostrander — a wood-burning sternwheeler working the lower Kestrel
+# (the river build, D36): the city quay, the woodyard, the landing below
+# the falls, and out over the bar when the water serves.
+#
+# ⭐ Like the Hesper, her rooms are ordinary rooms in their own zone; what
+# makes her a SHIP is her Ship (`ostrander/structure`), whose position is
+# on the river's LINE rather than the sea's chart.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Ostrander
+  cellSize: 4.0

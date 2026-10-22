@@ -55,6 +55,12 @@ data:
       destination: /world/terminus/estuary/lower-towpath
       media: [ground, water]
       edgeMinutes: 3
+    # ⭐ The way aboard the Ostrander when she lies at the quay (the river
+    # build) — a steamer that has sailed is not alongside, and this says so.
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/ostrander/deck
+      edgeMinutes: 1
     # ⭐ The goods yards behind the working city — the one room D11's
     # switchover cost, and the way a hauler reaches every trade floor in
     # Terminus without any of their hands ever leaving their own floor.

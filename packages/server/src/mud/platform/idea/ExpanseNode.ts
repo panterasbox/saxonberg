@@ -66,7 +66,17 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
     passage: { persistent: true, authorable: true },
     destination: { persistent: true, authorable: true },
     along: { persistent: true, authorable: true },
+    river: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
+
+  /**
+   * ⭐ The river that comes out here, if one does (river D29): a ship lying
+   * at this node can take a course up it. The river names its mouth node;
+   * this is the same fact asked from the sea.
+   */
+  protected river: string | null = null;
+  public getRiver(): string | null { return this.river; }
+  public setRiver(v: string | null): void { this.river = v ?? null; }
 
   protected kind: NodeKind = 'passage';
   protected passage: PassageKind | null = 'areal';

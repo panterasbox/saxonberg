@@ -153,3 +153,59 @@ describe('⭐ the river at a position, now', () => {
     expect(Math.abs(near.temperatureK - 282)).toBeLessThan(3);
   });
 });
+
+describe('⭐ a ship’s passage on the line (river D18, D28)', () => {
+  const hull = { draftM: 0.15, beamM: 6, lengthM: 30 };
+
+  it('upstream is slower than down over the same water, and the passage ends at the head of what she was set for', async () => {
+    WeatherApi._forceTypeForTesting('rain');
+    installRows([kestrel()]);
+    const c = catalogue();
+    const t = YEAR + 120 * DAY;
+    const from = { course: 'kestrel', km: 2, across: 60 };
+    const up = await c.planPassage(from, { direction: 'upstream', landing: null, throughWaterMps: 1, ...hull }, t);
+    const down = await c.planPassage({ ...from, km: 8 }, { direction: 'downstream', landing: null, throughWaterMps: 1, ...hull }, t);
+    if ('refused' in up || 'refused' in down) throw new Error('refused');
+    // The legs run in order of travel, time rising.
+    for (let i = 1; i < up.legs.length; i++) expect(up.legs[i]![1]).toBeGreaterThan(up.legs[i - 1]![1]);
+    const upRate = (up.legs[1]![0] - up.legs[0]![0]) / (up.legs[1]![1] - up.legs[0]![1]);
+    const downRate = (down.legs[0]![0] - down.legs[1]![0]) / (down.legs[1]![1] - down.legs[0]![1]);
+    expect(downRate).toBeGreaterThan(upRate);
+    expect(down.stop?.reason).toBe('mouth');
+  });
+
+  it('⭐ upstream with no landing, the foot of the falls is as far as she goes', async () => {
+    WeatherApi._forceTypeForTesting('rain');
+    installRows([kestrel()]);
+    const c = catalogue();
+    const r = await c.planPassage(
+      { course: 'kestrel', km: 40.6, across: 10 },
+      { direction: 'upstream', landing: null, throughWaterMps: 3, draftM: 0.1, beamM: 2, lengthM: 5 },
+      YEAR + 120 * DAY + 12 * 3600,
+    );
+    if ('refused' in r) throw new Error(r.refused);
+    expect(r.stop?.reason, r.stop?.words).toBe('falls');
+    expect(r.stop!.km).toBeLessThanOrEqual(41);
+    // …and a landing beyond them is refused before she moves.
+    const beyond = await c.planPassage(
+      { course: 'kestrel', km: 30, across: 10 },
+      { direction: 'upstream', landing: '/nowhere', throughWaterMps: 2, draftM: 0.1, beamM: 2, lengthM: 5 },
+      YEAR + 200 * DAY,
+    );
+    expect(beyond).toHaveProperty('refused');
+  });
+
+  it('⭐ she grounds at the entry to a stretch with less water than she draws', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    installRows([kestrel()]);
+    const c = catalogue();
+    const r = await c.planPassage(
+      { course: 'kestrel', km: 1, across: 60 },
+      { direction: 'upstream', landing: null, throughWaterMps: 3, draftM: 20, beamM: 6, lengthM: 30 },
+      YEAR + 200 * DAY,
+    );
+    if ('refused' in r) throw new Error(r.refused);
+    expect(r.stop?.reason).toBe('aground');
+    expect(r.stop?.km).toBe(1);
+  });
+});

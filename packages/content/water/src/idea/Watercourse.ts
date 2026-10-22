@@ -48,6 +48,8 @@ import {
   LineFrameMixin,
   type LineClimateSite,
   type LinePositionRecord,
+  type PassagePlan,
+  type PassageRequest,
 } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type WatercourseCatalogue from './WatercourseCatalogue';
@@ -488,6 +490,54 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
       '/system/water/idea/ReachWarren',
     );
     return warren?.sightablesNear(this.key, place, eyeHeightM) ?? [];
+  }
+
+  public override courseKey(): string {
+    return this.key;
+  }
+
+  public override async planPassage(
+    from: LinePositionRecord,
+    req: PassageRequest,
+    nowS: number,
+  ): Promise<PassagePlan | { refused: string }> {
+    const cat = await StuffApi.singleton<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue');
+    return cat.planPassage(from, req, nowS);
+  }
+
+  public override landingNear(pos: LinePositionRecord, withinM: number): string | null {
+    return this.catalogue()?.landingNear(pos, withinM) ?? null;
+  }
+
+  public override landingNamed(word: string): { path: string; km: number; name: string } | null {
+    return this.catalogue()?.landingNamed(this.key, word) ?? null;
+  }
+
+  public override changesAlong(fromKm: number, toKm: number): string[] {
+    return this.catalogue()?.changesAlong(this.key, fromKm, toKm) ?? [];
+  }
+
+  public override async depthAt(pos: LinePositionRecord, nowS: number): Promise<number | null> {
+    const state = await this.catalogue()?.riverStateAt(pos, nowS);
+    return state?.depthHereM ?? null;
+  }
+
+  public override async wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void> {
+    const warren = StuffApi.findByTemplatePath<Idea & { wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void> }>(
+      '/system/water/idea/ReachWarren',
+    );
+    await warren?.wakeAt(pos, speedMps);
+  }
+
+  public override kedgeNear(pos: LinePositionRecord): number | null {
+    const warren = StuffApi.findByTemplatePath<Idea & { kedgeNear(pos: LinePositionRecord): number | null }>(
+      '/system/water/idea/ReachWarren',
+    );
+    return warren?.kedgeNear(pos) ?? null;
+  }
+
+  public override mouthOnSea(): { expanse: string; node: string } | null {
+    return this.catalogue()?.mouthOnSea(this.key) ?? null;
   }
 
   public override describeAt(pos: LinePositionRecord): string[] {

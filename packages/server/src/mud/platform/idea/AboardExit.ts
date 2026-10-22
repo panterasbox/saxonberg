@@ -31,8 +31,13 @@ interface NodeAt {
   node: ExpanseNode;
 }
 
+/** How near a landing a ship on a river lies to be alongside it, m. */
+const ALONGSIDE_M = 60;
+
 export default class AboardExit extends DeferredDestinationExit {
   private node: NodeAt | null = null;
+  /** ⭐ The ship whose berth this is, when she works a river (D18). */
+  private riverShip: string | null = null;
   /** The lookup ran (a landing with no node is answered once, not per traverse). */
   private warmed = false;
 
@@ -52,6 +57,11 @@ export default class AboardExit extends DeferredDestinationExit {
       // graph's record (from the ship's own `extent`), following the exit's
       // authored destination, never a catalogue of every structure.
       const ship = await NavigationApi.structureAt(berth);
+      if (ship && MixinApi.isPositioned(ship) && ship.getLine() !== null) {
+        this.riverShip = ship.getTemplatePath();
+        if (MixinApi.isVoyaging(ship)) await ship.liveLine();
+        return;
+      }
       const sea = ship && MixinApi.isPositioned(ship) ? ship.getExpanse() : null;
       const e = sea ? await StuffApi.singleton<Stuff>(sea) : null;
       if (!(e instanceof Expanse)) return;
@@ -68,6 +78,7 @@ export default class AboardExit extends DeferredDestinationExit {
 
   /** The craft lying at this exit's node now, if any. */
   private alongside(): Ship | null {
+    if (this.riverShip !== null) return this.alongsideOnRiver(this.riverShip);
     if (this.node === null) return null;
     const e = StuffApi.findByTemplatePath<Stuff>(this.node.expanse);
     if (!(e instanceof Expanse)) return null;
@@ -81,6 +92,17 @@ export default class AboardExit extends DeferredDestinationExit {
       if (this.node.node.isAt(at)) return c;
     }
     return null;
+  }
+
+  /** A river ship is alongside when she lies, not under way, within a rope's throw of this landing. */
+  private alongsideOnRiver(path: string): Ship | null {
+    const ship = StuffApi.findByTemplatePath<Stuff>(path);
+    if (!(ship instanceof Ship) || ship.getCourse() !== null || ship.getEntrance() === null) return null;
+    const line = ship.getLine();
+    const pos = ship.getLinePosition();
+    const frame = line ? StuffApi.findByTemplatePath<Stuff>(line) : null;
+    if (!frame || !pos || !MixinApi.isLineFrame(frame)) return null;
+    return frame.landingNear(pos, ALONGSIDE_M) === this.getSource().getTemplatePath() ? ship : null;
   }
 
   /** ⭐ The far side is read HERE, at the moment of asking (the lookup is cached after the first). */

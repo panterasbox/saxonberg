@@ -1,0 +1,34 @@
+# The Ostrander as ONE thing — her Structure (river D18, D28, D29).
+#
+# ⭐ Her position is on the Kestrel's line: km from the mouth, m from river
+# left. Her course is a direction and a landing, and the passage the river
+# worked out when it was set rides with it — so she goes on steaming with
+# nobody aboard, and across a restart.
+#
+# She draws two feet light (0.6 m) — a sternwheeler floats on a heavy dew —
+# and more laden; in a dry August the
+# channel at Hob's Bend has less than that. She burns cordwood from the
+# bunker on her deck.
+#
+# She starts lying at the city quay.
+class: /platform/idea/Ship
+data:
+  name: the Ostrander
+  extent: /world/terminus/ostrander
+  entrance: /world/terminus/ostrander/deck
+  shortDescription: Ostrander
+  register: definite
+  keywords: [ostrander, steamer, sternwheeler, boat, ship, vessel]
+  longDescription: >-
+    A flat-bottomed sternwheeler with a white-painted house on her deck, a
+    tall black stack and a paddle wheel the width of her stern: the
+    Ostrander, of Terminus.
+  heightM: 12
+  deckHeightM: 4
+  house: /world/terminus/ostrander/idea/outfit
+  line: /stuff/idea/Watercourse/kestrel
+  linePosition: { course: kestrel, km: 8.82, across: 20 }
+  speedKn: 6
+  hull: { draftM: 0.6, beamM: 7, lengthM: 38 }
+  fuel: { material: /stuff/idea/material/wood, kgPerKm: 6 }
+  bunker: /world/terminus/ostrander/thing/bunker

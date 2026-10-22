@@ -1,0 +1,11 @@
+# The Ostrander's wheel — the instrument of steering; it affords `course`
+# and `anchor`. On a river a course is a direction and a landing.
+class: /platform/thing/Helm
+data:
+  shortDescription: wheel
+  keywords: [wheel, helm, wheelhouse]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    A spoked wheel taller than a man in the wheelhouse window, and beside it the brass handle of the engine telegraph: AHEAD, STOP, ASTERN.
+  _materialPath: /stuff/idea/material/wood/oak

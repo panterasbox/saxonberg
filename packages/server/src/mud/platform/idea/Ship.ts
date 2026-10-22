@@ -32,9 +32,32 @@ import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { WorldClockApi } from '../../api/worldclock';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { HullNow } from '../../lib/expanse/Voyaging';
+import type { PassagePlan } from '../../lib/expanse/LineFrame';
+import ExpanseNode from './ExpanseNode';
+import type { Positioned } from '../../lib/expanse/Positioned';
+
+/** A ship's hull (river D28): how deep she floats, how wide, how long. */
+export interface ShipHull {
+  draftM: number;
+  beamM: number;
+  lengthM: number;
+}
+
+/** What drives her, when it is not the wind (river D29): a fire, and what it burns. */
+export interface ShipFuel {
+  /** The material path prefix the bunker's goods must be of (`/stuff/idea/material/wood`). */
+  material: string;
+  /** kg burned per km of river at her speed. */
+  kgPerKm: number;
+}
+
+/** Water density, kg/m³ — what a laden hull displaces. */
+const RHO = 1000;
 
 /** The position key of the seat that sees further (maritime D13). */
 const LOOKOUT_POSITION = 'lookout';
@@ -48,7 +71,79 @@ export default class Ship extends PersistableMixin(
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
     house: { persistent: true, authorable: true, ref: 'identity:relation' },
+    hull: { persistent: true, authorable: true },
+    fuel: { persistent: true, authorable: true },
+    aground: { persistent: true },
+    holed: { persistent: true },
+    fuelDebtKg: { persistent: true },
+    bunker: { persistent: true, authorable: true, ref: 'identity:relation' },
+    overboard: { persistent: true },
   };
+
+  /**
+   * ⭐ Who went over her side and has not come back aboard (river D30):
+   * identity paths. Her `course` refuses while any of them is still in the
+   * water, unless the master leaves them deliberately.
+   */
+  protected overboard: string[] = [];
+
+  /** Somebody went over her side (the deck's way into the water says so). */
+  public noteOverboard(who: Stuff): void {
+    const id = who.getIdentityPath() ?? who.getTemplatePath();
+    if (id && !this.overboard.includes(id)) this.overboard.push(id);
+  }
+
+  /**
+   * Her own people still in the water: of those who went over her side,
+   * whoever is alive and in a water place now. Anybody aboard again, ashore
+   * or gone is let go of.
+   */
+  public async peopleInTheWater(): Promise<Stuff[]> {
+    const still: Stuff[] = [];
+    const keep: string[] = [];
+    for (const id of this.overboard) {
+      const who = StuffApi.findByIdentityPath<Stuff>(id)[0] ?? null;
+      if (who === null || who.isDestroyed()) continue;
+      if (MixinApi.isOrganism(who) && !who.isAlive()) continue;
+      const room = MixinApi.isContainable(who) ? who.getContainer() : null;
+      if (room === null || !MixinApi.isWaterPlace(room)) continue;
+      keep.push(id);
+      still.push(who);
+    }
+    this.overboard = keep;
+    return still;
+  }
+
+  /** The master sails without them, on purpose: they are no longer hers to wait for. */
+  public leaveThem(): void {
+    this.overboard = [];
+  }
+
+  /** The prop on her deck the fire is fed from (its row path); `null` for none. */
+  protected bunker: string | null = null;
+  public getBunker(): string | null { return this.bunker; }
+  public setBunker(v: string | null): void { this.bunker = v ?? null; }
+
+  /** Her hull's numbers (river D28); `null` for a ship nobody measured. */
+  protected hull: ShipHull | null = null;
+  /** What her fire burns; `null` for sail. */
+  protected fuel: ShipFuel | null = null;
+  /** Hard aground — no course takes her anywhere until she floats (D28). */
+  protected aground = false;
+  /** Holed on a snag — stopped, taking water (D29). */
+  protected holed = false;
+  /** What the fire has burned that no whole billet has paid for yet, kg. */
+  protected fuelDebtKg = 0;
+
+  public getHull(): ShipHull | null { return this.hull ? { ...this.hull } : null; }
+  public setHull(v: ShipHull | null): void { this.hull = v ? { ...v } : null; }
+  public getFuel(): ShipFuel | null { return this.fuel ? { ...this.fuel } : null; }
+  public setFuel(v: ShipFuel | null): void { this.fuel = v ? { ...v } : null; }
+  public isAground(): boolean { return this.aground; }
+  public isHoled(): boolean { return this.holed; }
+  public setAground(v: boolean): void { this.aground = v === true; }
+  public setHoled(v: boolean): void { this.holed = v === true; }
+  public setFuelDebtKg(v: number): void { this.fuelDebtKg = Math.max(0, Number(v) || 0); }
 
   /** An observer's eye height on deck, metres. */
   protected deckHeightM = 0;
@@ -133,6 +228,119 @@ export default class Ship extends PersistableMixin(
     } catch {
       return null;
     }
+  }
+
+  /** What her rooms carry that is not people — cargo, stores, fuel, kg. */
+  public async cargoKg(): Promise<number> {
+    let kg = 0;
+    for (const room of await this.liveMembers()) {
+      for (const x of room.getContents()) {
+        if (MixinApi.isOrganism(x) || !MixinApi.isTangible(x)) continue;
+        if ((x as unknown as { isFixedInPlace?(): boolean }).isFixedInPlace?.() === true) continue;
+        const m = x.getMass().rawValue();
+        if (Number.isFinite(m)) kg += m;
+      }
+    }
+    return kg;
+  }
+
+  /** Runtime: her cargo as last weighed (the sync hull read uses it). */
+  private weighedKg = 0;
+
+  /**
+   * ⭐ Her hull as she floats now (D28): the draft deepens with what she
+   * carries — put cargo ashore and she comes up.
+   */
+  override hullNow(): HullNow {
+    const h = this.hull ?? { draftM: 1.2, beamM: 6, lengthM: 30 };
+    const extra = this.weighedKg / (RHO * h.lengthM * h.beamM * 0.7);
+    return { draftM: h.draftM + extra, beamM: h.beamM, lengthM: h.lengthM };
+  }
+
+  /** Weigh her before a passage is worked out (the plan reads the hull sync). */
+  override async steerAlong(
+    req: Parameters<InstanceType<ReturnType<typeof VoyagingMixin>>['steerAlong']>[0],
+  ): ReturnType<InstanceType<ReturnType<typeof VoyagingMixin>>['steerAlong']> {
+    if (this.aground) return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
+    if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
+    this.weighedKg = await this.cargoKg();
+    return super.steerAlong(req);
+  }
+
+  /**
+   * ⭐ The stop her passage came to (D28, D29): aground and holed are
+   * states she keeps (persisted); the mouth puts her out onto the sea.
+   */
+  override async onPassageStop(stop: NonNullable<PassagePlan['stop']>): Promise<string> {
+    if (stop.reason === 'aground') this.aground = true;
+    if (stop.reason === 'holed') this.holed = true;
+    if (stop.reason === 'mouth') {
+      const frame = await this.liveLine();
+      const sea = frame?.mouthOnSea() ?? null;
+      if (sea !== null) {
+        const node = await StuffApi.singleton<Stuff>(sea.node).catch(() => null);
+        const at = node instanceof ExpanseNode ? node.getExpansePosition() : null;
+        if (at !== null) {
+          this.placeOnLine(null, null);
+          this.setLine(null);
+          this.setExpanse(sea.expanse);
+          this.placeAt(at, WorldClockApi.getNow().rawValue());
+          const e = await this.liveExpanse();
+          e?.register(this as unknown as Stuff & Positioned);
+          return `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
+        }
+      }
+    }
+    return stop.words;
+  }
+
+  /**
+   * ⭐ Off the sea and onto a river (D29): at the mouth node a river names,
+   * she leaves the chart for the river's line, at its mouth.
+   */
+  public enterRiver(line: string, course: string, mouthKm: number, across: number): void {
+    this.setExpansePosition(null);
+    this.setExpanse(null);
+    this.placeOnLine(line, { course, km: mouthKm, across });
+  }
+
+  /**
+   * Burn the cordwood the km took (D29): billets out of the bunker on her
+   * deck, whole, as the fire has eaten them. `false` when there are none.
+   */
+  override async burnFor(km: number): Promise<boolean> {
+    const fuel = this.fuel;
+    if (fuel === null) return true;
+    this.fuelDebtKg += fuel.kgPerKm * km;
+    if (this.bunker === null) return true;
+    const bunker = await StuffApi.singleton<Stuff>(this.bunker).catch(() => null);
+    if (!bunker || !MixinApi.isContainer(bunker)) return false;
+    const billets = bunker.getContents().filter((x) => {
+      const m = (x as unknown as { getMaterialPath?(): string | null }).getMaterialPath?.() ?? '';
+      return m.startsWith(fuel.material) && MixinApi.isTangible(x);
+    });
+    while (this.fuelDebtKg > 0) {
+      const b = billets.shift();
+      if (!b) return false;
+      this.fuelDebtKg -= MixinApi.isTangible(b) ? Math.max(0.1, b.getMass().rawValue()) : 1;
+      StuffApi.destruct(b);
+    }
+    return true;
+  }
+
+  /** Floated off: the water came up, or she was lightened (D28). */
+  public async floatIfShePasses(): Promise<boolean> {
+    if (!this.aground) return true;
+    const frame = await this.liveLine();
+    const pos = this.getLinePosition();
+    if (frame === null || pos === null) return false;
+    this.weighedKg = await this.cargoKg();
+    const depth = await frame.depthAt(pos, WorldClockApi.getNow().rawValue());
+    if (depth !== null && depth > this.hullNow().draftM) {
+      this.aground = false;
+      return true;
+    }
+    return false;
   }
 
   /** The Durable gear on deck — what an unattended watch wears. */

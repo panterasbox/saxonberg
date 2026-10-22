@@ -25,6 +25,10 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import type { Voyaging } from '@saxonberg/server/mud/lib/expanse/Voyaging';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import type { LinePosition } from '../../lib/RiverLine';
+import type WatercourseCatalogue from '../WatercourseCatalogue';
 import WaterExpanse from '../WaterExpanse';
 import WaterBand from '../WaterBand';
 
@@ -42,7 +46,22 @@ export default class DepthReading extends Reading {
     const giver = this.actorOf(context);
     const found = await this.seaUnder(giver);
     if (found === null) {
-      this.decline(context, Mml.compose`There is no water under you to sound.`, 'no-water');
+      // ⭐ On a river (D32): the depth where you are, read off the line —
+      // and no fix to take, because on a river you always know where you are.
+      const river = await this.riverUnder(giver);
+      if (river === null) {
+        this.decline(context, Mml.compose`There is no water under you to sound.`, 'no-water');
+        return;
+      }
+      const shown = this.bracketed(Quantity.of(river.depthM, 'm'), band, this.seedFor(giver, null, param));
+      let line = Mml.compose`The lead finds bottom at ${shown}.`;
+      if (CompetenceBand.rank(band) >= CompetenceBand.rank('competent') && river.flow !== '') {
+        line = Mml.compose`${line} ${river.flow}`;
+      }
+      this.report(context, Mml.fromMarkup(`${line.toString()}\n`));
+      if (MixinApi.isAdvancing(giver)) {
+        await giver.creditDeed({ discipline: 'navigation', difficulty: 'standard', outcome: 'success' });
+      }
       return;
     }
     const { craft, sea } = found;
@@ -70,8 +89,29 @@ export default class DepthReading extends Reading {
   public override async truth(target: Stuff | null): Promise<number | null> {
     if (!target) return null;
     const found = await this.seaUnder(target);
-    if (found === null) return null;
+    if (found === null) return (await this.riverUnder(target))?.depthM ?? null;
     return found.sea.depthAt(found.craft.getExpansePosition()!);
+  }
+
+  /** The river under `who` — their water room's, or the ship they are aboard. */
+  private async riverUnder(who: Stuff): Promise<{ depthM: number; flow: string } | null> {
+    const room = MixinApi.isContainable(who) ? who.getContainer() : null;
+    const roomPath = room?.getTemplatePath() ?? '';
+    let pos = (room as unknown as { getLinePosition?(): LinePosition | null } | null)?.getLinePosition?.() ?? null;
+    if (pos === null && roomPath) {
+      const ship = await NavigationApi.structureAt(roomPath).catch(() => null);
+      pos = ship && MixinApi.isPositioned(ship) ? ship.getLinePosition() : null;
+    }
+    if (pos === null) return null;
+    const cat = await StuffApi.singleton<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue');
+    const state = await cat.riverStateAt(pos, WorldClockApi.getNow().rawValue());
+    if (state === null) return null;
+    const flow = state.stretch.flow === 'riffle'
+      ? 'The bottom is gravel, and close: a riffle, where a ship touches first.'
+      : state.stretch.flow === 'pool'
+        ? 'Soft bottom, and plenty of it: a pool.'
+        : '';
+    return { depthM: state.depthHereM, flow };
   }
 
   private async seaUnder(

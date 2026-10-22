@@ -64,7 +64,10 @@ export default class LocateController extends CommandController<LocateModel> {
    */
   private async reckoningOf(target: Stuff, reader: Stuff): Promise<string | null> {
     const root = MixinApi.isContainable(target) ? target.getRootContainer() ?? target : target;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // ⭐ In the water beside a stopped ship (river D30): her reckoning is
+    // yours — the room beside her names the craft it lies alongside.
+    const beside = (root as unknown as { alongsideCraft?(): Stuff | null }).alongsideCraft?.() ?? null;
+    const craft = beside ?? (await ExpanseApi.craftAt(root.getTemplatePath() ?? ''));
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const reckoned = craft.reckonedNow();
     const plot = craft.getPlot();

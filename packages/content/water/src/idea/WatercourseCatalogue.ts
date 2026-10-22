@@ -71,6 +71,7 @@ import {
   type LineSpot,
 } from '../lib/RiverLine';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { PassagePlan, PassageRequest, PassageStopReason } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
@@ -1279,6 +1280,170 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     return (await this.index()).lines.get(courseKey) ?? null;
   }
 
+  /**
+   * ⭐ A ship's passage on a river, worked out stretch by stretch (river
+   * D18, D28, D29): how fast she makes each one over the ground, and where
+   * she stops and why — the landing she was set for, the ground (her draft
+   * against this month's depth in the channel), a snag she could not see in
+   * time, a current she cannot stem, the falls, the sea. The beam she is
+   * too wide for and a bend too tight for her length refuse the course
+   * outright: the river says so before she moves.
+   */
+  public async planPassage(
+    from: LinePosition,
+    req: PassageRequest,
+    nowS: number,
+  ): Promise<PassagePlan | { refused: string }> {
+    const line = await this.lineOf(from.course);
+    if (line === null) return { refused: 'There is no river here to set a course along.' };
+    const up = req.direction === 'upstream';
+    let targetKm = up ? line.sourceKm : line.mouthKm;
+    let endReason: PassageStopReason = up ? 'head' : 'mouth';
+    let endWords = up ? 'The river runs out of water to float her; this is as far as she goes.' : 'She comes down to the river\'s mouth.';
+    let landingName: string | undefined;
+    if (req.landing !== null) {
+      const place = this.placesOfSync(from.course).find((p) => p.path === req.landing && p.kind === 'bank');
+      if (!place) return { refused: 'There is no such landing on this river.' };
+      targetKm = (place.upKm + place.downKm) / 2;
+      endReason = 'landing';
+      landingName = place.path;
+      const row = await StuffApi.singleton<Stuff>(place.path).catch(() => null);
+      endWords = `She comes in alongside ${row?.getPresentation() ?? place.name}, and they make her fast.`;
+    }
+    if (up ? targetKm <= from.km : targetKm >= from.km) return { refused: 'She is past it already, the other way.' };
+    // ⭐ The falls (D28): a landing beyond them is refused before she moves;
+    // with no landing named, the foot of the first falls on her way is the
+    // head of navigation, and she stops there.
+    const between = line.stretchesBetween(Math.min(from.km, targetKm), Math.max(from.km, targetKm));
+    const falls = between
+      .filter((s) => s.kind === 'falls' && s.upKm > Math.min(from.km, targetKm) && s.downKm < Math.max(from.km, targetKm))
+      .sort((a, b) => (up ? a.downKm - b.downKm : b.upKm - a.upKm))[0];
+    if (falls !== undefined) {
+      if (req.landing !== null) {
+        return { refused: 'Nothing goes past the falls. The landing below them is as far as a ship can go.' };
+      }
+      targetKm = up ? falls.downKm : falls.upKm;
+      endReason = 'falls';
+      endWords = 'The falls stand across the river ahead in a roar of white water; this is as far as anything floats. She holds below them.';
+    }
+    const lo = Math.min(from.km, targetKm);
+    const hi = Math.max(from.km, targetKm);
+    const route = line.stretchesBetween(lo, hi).filter((s) => s.upKm > lo && s.downKm < hi);
+    route.sort((a, b) => (up ? a.downKm - b.downKm : b.upKm - a.upKm));
+
+    for (const s of route) {
+      const bend = line.bendAt((s.upKm + s.downKm) / 2);
+      if (bend === null) continue;
+      const radiusM = ((bend.upKm - bend.downKm) * 1000) / 2;
+      if (req.lengthM > radiusM / 2) {
+        return { refused: `She is too long to get round ${bend.name ?? 'the bend above'}; she would put her bow in one bank and her stern in the other.` };
+      }
+    }
+
+    const legs: Array<[number, number]> = [[from.km, nowS]];
+    let t = nowS;
+    let across = from.across;
+    let first = true;
+    const stopAt = (km: number, atS: number, reason: PassageStopReason, words: string): PassagePlan => ({
+      course: from.course,
+      across,
+      legs,
+      stop: { km, atS, reason, words, ...(reason === 'landing' && landingName ? { landing: landingName } : {}) },
+    });
+    for (const s of route) {
+      const entryKm = first ? from.km : up ? s.downKm : s.upKm;
+      const exitKm = up ? Math.min(s.upKm, targetKm) : Math.max(s.downKm, targetKm);
+      const midKm = (entryKm + exitKm) / 2;
+      const probe = await this.riverStateAt({ course: from.course, km: midKm, across: 0 }, nowS);
+      if (probe === null) continue;
+      const channel = probe.widthM * s.channelAcross;
+      if (first) across = channel;
+      first = false;
+      if (probe.widthM < req.beamM * 2) {
+        return { refused: `The river narrows above ${entryKm.toFixed(1)} km to less than twice her beam; she will not go up it.` };
+      }
+      const state = (await this.riverStateAt({ course: from.course, km: midKm, across: channel }, nowS)) ?? probe;
+      if (state.depthHereM < req.draftM) {
+        return stopAt(entryKm, t, 'aground', `She takes the ground. The channel here has less water in it than she draws, and she is hard aground.`);
+      }
+      const sog = up ? req.throughWaterMps - state.currentMps : req.throughWaterMps + state.currentMps;
+      if (sog <= 0.05) {
+        return stopAt(entryKm, t, 'stemmed', 'She cannot stem the current here: the paddles turn and the bank stands still. She holds where she is.');
+      }
+      // A snag she cannot see in time (D29): broken water over a fouled bed
+      // at more speed than the eye can read the water ahead.
+      const clarityM = dial('water.river.clarityM', 6);
+      const day = isDay(nowS);
+      const sight = clarityM * 0.4 * (day ? 1 : 0.25);
+      if (s.obstruction > SNAG_CHOKED && sog > sight) {
+        const atS = t + (Math.abs(midKm - entryKm) * 1000) / sog;
+        legs.push([midKm, atS]);
+        return stopAt(midKm, atS, 'holed', 'Something under the water takes her with a crack you feel through your feet. She stops dead, holed on a snag, and the water is coming in.');
+      }
+      t += (Math.abs(exitKm - entryKm) * 1000) / sog;
+      legs.push([exitKm, t]);
+      if (exitKm === targetKm) return stopAt(exitKm, t, endReason, endWords);
+    }
+    return stopAt(targetKm, t, endReason, endWords);
+  }
+
+  /** The landing on a river within `withinM` of a position (river D18). */
+  public landingNear(pos: LinePosition, withinM: number): string | null {
+    const within = withinM / 1000;
+    let best: { path: string; d: number } | null = null;
+    for (const p of this.placesOfSync(pos.course)) {
+      if (p.kind !== 'bank') continue;
+      const d = pos.km > p.upKm ? pos.km - p.upKm : pos.km < p.downKm ? p.downKm - pos.km : 0;
+      if (d <= within && (best === null || d < best.d)) best = { path: p.path, d };
+    }
+    return best?.path ?? null;
+  }
+
+  /** A landing on a river by the word its way is called, or its path's leaf. */
+  public landingNamed(course: string, word: string): { path: string; km: number; name: string } | null {
+    const w = word.trim().toLowerCase();
+    for (const p of this.placesOfSync(course)) {
+      if (p.kind !== 'bank') continue;
+      const leaf = p.path.split('/').filter(Boolean);
+      if (p.name.toLowerCase() === w || leaf.includes(w) || leaf.join(' ').includes(w)) {
+        return { path: p.path, km: (p.upKm + p.downKm) / 2, name: p.name };
+      }
+    }
+    return null;
+  }
+
+  /** ⭐ What changed in the water between two km, in order of travel (D18). */
+  public changesAlong(course: string, fromKm: number, toKm: number): string[] {
+    const line = this.lineOfSync(course);
+    if (line === null || Math.abs(toKm - fromKm) < 1e-6) return [];
+    const up = toKm > fromKm;
+    const from = line.stretchAt(fromKm);
+    const crossed = line.stretchesBetween(Math.min(fromKm, toKm), Math.max(fromKm, toKm))
+      .filter((s) => s !== from && s.upKm > Math.min(fromKm, toKm) && s.downKm < Math.max(fromKm, toKm));
+    crossed.sort((a, b) => (up ? a.downKm - b.downKm : b.upKm - a.upKm));
+    const out: string[] = [];
+    let was = from?.flow ?? null;
+    for (const s of crossed) {
+      if (s.flow !== was) {
+        const words = FLOW_CHANGE[s.flow];
+        if (words) out.push(s.bendName ? `${words} This is ${s.bendName}.` : words);
+      }
+      // ⭐ Snags show — dark heads in the water, a branch combing the
+      // current — and a master who sees them can slow down (D29).
+      if (s.obstruction > SNAG_CHOKED) out.push('Snags ahead: dead branches comb the current, and something dark lies just under the surface.');
+      was = s.flow;
+    }
+    return out;
+  }
+
+  /** The sea a river runs out into, and the node at its mouth (D29). */
+  public mouthOnSea(course: string): { expanse: string; node: string } | null {
+    const m = this.loaded?.descriptors.get(course)?.mouth;
+    if (!m || m.into !== 'sea' || !m.node) return null;
+    const node = m.node;
+    return { expanse: node.slice(0, node.lastIndexOf('/')), node };
+  }
+
   /** The line of a course once compiled, synchronously; `null` before. */
   public lineOfSync(courseKey: string): RiverLine | null {
     return this.loaded?.lines.get(courseKey) ?? null;
@@ -1510,6 +1675,27 @@ const MANNING_N: Record<string, number> = { ground: 0.035, gravel: 0.035, rock: 
 const ROUGHNESS: Record<string, number> = { pool: 0, run: 0.2, riffle: 0.4, rapid: 1, falls: 1 };
 /** No river here runs faster than this, m/s (a falls' sheet is not a current). */
 const MAX_CURRENT_MPS = 6;
+/**
+ * ⭐ A reach choked enough with snags to hole a ship running faster than her
+ * people can read the water (river D29). The profile derives a wooded bend's
+ * obstruction in 0–0.6; D29's 0.3 put snags on nearly every wooded stretch,
+ * so the strike is kept for the choked end.
+ */
+const SNAG_CHOKED = 0.5;
+
+/** What a ship's people notice as the water changes under her (river D18). */
+const FLOW_CHANGE: Record<string, string> = {
+  pool: 'The water slackens and deepens; she runs easy through a long pool.',
+  run: 'The water quickens into a steady run.',
+  riffle: 'The water pales and chatters over a shallow riffle; the leadsman calls the marks short.',
+  rapid: 'White water ahead: she bucks and slews in broken water.',
+};
+
+/** Whether the sun is up at a game second — a crude day for the eye on the water. */
+function isDay(nowS: number): boolean {
+  const h = (((nowS % 86_400) + 86_400) % 86_400) / 3600;
+  return h >= 6 && h < 20;
+}
 
 /**
  * ⭐ A citation resolved to the NODE whose hydrology stands for it (river

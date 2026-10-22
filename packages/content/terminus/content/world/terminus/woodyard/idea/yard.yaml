@@ -1,0 +1,23 @@
+# The woodyard — the woodhawk's business: cordwood for the boats.
+class: /platform/idea/Business
+data:
+  name: "the woodyard"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/woodyard/agent/woodhawk
+  call: rota
+  positions:
+    - key: woodhawk
+      noun: woodhawk
+      label: at the rick
+      wageRate: 2
+  rosterSlots:
+    - positionKey: woodhawk
+      assignee: /world/terminus/woodyard/agent/woodhawk
+      station: /world/terminus/woodyard/landing
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/woodyard/landing
+    - /world/terminus/woodyard/thing/rick

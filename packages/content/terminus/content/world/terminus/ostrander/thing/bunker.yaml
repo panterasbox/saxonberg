@@ -1,0 +1,12 @@
+# The Ostrander's bunker (river D29): what her fire burns, by the km. Put
+# cordwood in it; when it is empty the fire dies and the river has her.
+class: /platform/thing/Chest
+data:
+  shortDescription: wood bin
+  keywords: [bin, bunker, wood bin, woodbin]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    A slatted bin by the firebox door, chest-high, with a scatter of bark in the bottom.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 60

@@ -32,3 +32,11 @@ data:
       destination: /world/terminus/valley-road/the-shoulder
       media: [ground]
       edgeMinutes: 90
+    # ⭐ The way aboard the steamer, when she lies here (the river build).
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/ostrander/deck
+      edgeMinutes: 1
+      # The way back is her deck's `ashore`, worked out by where she lies;
+      # the deck's row names only her home berth, the city quay.
+      oneWay: true

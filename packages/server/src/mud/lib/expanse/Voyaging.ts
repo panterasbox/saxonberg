@@ -35,6 +35,7 @@ import type { Container } from '../spatial/Container';
 import { GeoPosition } from './GeoPosition';
 import { Plot, type PlotRecord } from './Plot';
 import type { Positioned } from './Positioned';
+import type { LineFrame, LinePositionRecord, PassagePlan, PassageRequest } from './LineFrame';
 import type Band from '../../platform/idea/Band';
 import type ExpanseNode from '../../platform/idea/ExpanseNode';
 import { StuffApi } from '../../api/stuff';
@@ -52,6 +53,27 @@ export interface CourseRecord {
   speedKn: number;
   /** The node it was set for, or `null` for a bare bearing. */
   node: string | null;
+  /**
+   * ⭐ On a river's line (river D18): which way, the landing it was set
+   * for, and the passage the river worked out when it was set.
+   */
+  line?: LineCourse | null;
+}
+
+/** A course on a river: a direction, a landing, and its worked passage. */
+export interface LineCourse {
+  direction: 'upstream' | 'downstream';
+  landing: string | null;
+  /** Her speed through the water it was planned at, m/s. */
+  throughWaterMps: number;
+  plan: PassagePlan;
+}
+
+/** Her hull, as a passage reads it. */
+export interface HullNow {
+  draftM: number;
+  beamM: number;
+  lengthM: number;
 }
 
 export interface Voyaging {
@@ -85,6 +107,18 @@ export interface Voyaging {
   currentVoyage(): Voyage | null;
   /** The live expanse this craft is on, or `null`. */
   liveExpanse(): Promise<ExpanseFrame | null>;
+  /** The river this craft is on, as a frame, or `null`. */
+  liveLine(): Promise<(Stuff & LineFrame) | null>;
+  /** Where on its river she is at `tS` — the passage read, or where she lies. */
+  lineAtS(tS: number): LinePositionRecord | null;
+  /** ⭐ Set a course along a river (D18): her passage, or the river's refusal. */
+  steerAlong(req: Omit<PassageRequest, 'draftM' | 'beamM' | 'lengthM'>): Promise<StartResult | { refused: string }>;
+  /** Her hull as it floats now. */
+  hullNow(): HullNow;
+  /** A passage's stop has come: what happens to her there. */
+  onPassageStop(stop: NonNullable<PassagePlan['stop']>): Promise<string>;
+  /** Burn what drives her over `km` of river; `false` when there is none left. */
+  burnFor(km: number): Promise<boolean>;
 }
 
 function numSetting(key: string, fallback: number): number {
@@ -136,6 +170,39 @@ export function VoyagingMixin<
     /** ⭐ While under way the position is DERIVED; at anchor it is the fix. */
     getExpansePosition(): GeoPosition | null {
       return this.positionAtS(WorldClockApi.getNow().rawValue());
+    }
+
+    /** ⭐ On a river, the same: under way it is read off her passage (D18). */
+    getLinePosition(): LinePositionRecord | null {
+      let now = 0;
+      try {
+        now = WorldClockApi.getNow().rawValue();
+      } catch {
+        return super.getLinePosition();
+      }
+      return this.lineAtS(now);
+    }
+
+    lineAtS(tS: number): LinePositionRecord | null {
+      const lying = super.getLinePosition();
+      const line = this.course?.line ?? null;
+      if (line === null) return lying;
+      const plan = line.plan;
+      const legs = plan.legs;
+      if (legs.length === 0) return lying;
+      const endS = plan.stop?.atS ?? Number.POSITIVE_INFINITY;
+      const t = Math.min(tS, endS);
+      if (t <= legs[0]![1]) return { course: plan.course, km: legs[0]![0], across: plan.across };
+      for (let i = 0; i + 1 < legs.length; i++) {
+        const [k0, t0] = legs[i]!;
+        const [k1, t1] = legs[i + 1]!;
+        if (t <= t1) {
+          const f = t1 > t0 ? (t - t0) / (t1 - t0) : 1;
+          return { course: plan.course, km: k0 + (k1 - k0) * f, across: plan.across };
+        }
+      }
+      const last = legs[legs.length - 1]!;
+      return { course: plan.course, km: plan.stop?.km ?? last[0], across: plan.across };
     }
 
     /**
@@ -294,6 +361,14 @@ export function VoyagingMixin<
      * The ONE writer of the voyage triple; `Voyage` and the verbs call it.
      */
     rebase(course: CourseRecord | null, nowS: number): void {
+      if (super.getLinePosition() !== null) {
+        // ⭐ On a river: she is where her passage has brought her.
+        const here = this.lineAtS(nowS);
+        if (here !== null) (this as unknown as Positioned).placeOnLine((this as unknown as Positioned).getLine(), here);
+        this.course = course ? { ...course } : null;
+        this.courseSetAtS = nowS;
+        return;
+      }
       const truth = this.positionAtS(nowS);
       const reckoned = this.reckonedNow();
       const nm = this.reckoningUncertaintyNm();
@@ -384,6 +459,73 @@ export function VoyagingMixin<
       return (v as Voyage | undefined) ?? null;
     }
 
+    async liveLine(): Promise<(Stuff & LineFrame) | null> {
+      const path = (this as unknown as Positioned).getLine();
+      if (!path) return null;
+      try {
+        const s = await StuffApi.singleton<Stuff>(path);
+        return MixinApi.isLineFrame(s) ? (s as Stuff & LineFrame) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    /**
+     * ⭐ Set a course along a river (river D18): the river works the passage
+     * out — stretch by stretch, how fast she makes it, where she stops and
+     * why — or refuses it in its own words. The passage rides the course,
+     * so her position is read off it and survives a restart.
+     */
+    async steerAlong(req: Omit<PassageRequest, 'draftM' | 'beamM' | 'lengthM'>): Promise<StartResult | { refused: string }> {
+      const frame = await this.liveLine();
+      const nowS = WorldClockApi.getNow().rawValue();
+      const from = this.lineAtS(nowS);
+      if (frame === null || from === null) return { refused: 'There is no river under her to set a course along.' };
+      const plan = await frame.planPassage(from, { ...req, ...this.hullNow() }, nowS);
+      if ('refused' in plan) return plan;
+      this.endVoyage('replaced');
+      this.rebase({
+        bearingDeg: 0,
+        speedKn: (req.throughWaterMps * 3600) / 1852,
+        node: null,
+        line: { direction: req.direction, landing: req.landing, throughWaterMps: req.throughWaterMps, plan },
+      }, nowS);
+      const started = SchedulerApi.start(new Voyage(this as unknown as Craft));
+      this.persistNow();
+      return started;
+    }
+
+    /**
+     * Her hull as it floats now.
+     *
+     * @hook A ship answers her own, laden. Default: a small boat's.
+     */
+    hullNow(): HullNow {
+      return { draftM: 0.3, beamM: 1.5, lengthM: 5 };
+    }
+
+    /**
+     * ⭐ A passage's stop has come (D28, D29): what happens to her there,
+     * in words for whoever is aboard. She is stopped where it says.
+     *
+     * @hook A ship marks herself aground or holed, or comes out onto the
+     *   sea at the mouth. Default: the river's own words.
+     */
+    async onPassageStop(stop: NonNullable<PassagePlan['stop']>): Promise<string> {
+      return stop.words;
+    }
+
+    /**
+     * Burn what drives her over `km` of river.
+     *
+     * @hook A steamer burns cordwood from her bunker. Default: nothing to
+     *   burn (sail, oar), always enough.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async burnFor(_km: number): Promise<boolean> {
+      return true;
+    }
+
     async liveExpanse(): Promise<ExpanseFrame | null> {
       const path = (this as unknown as Positioned).getExpanse();
       if (!path) return null;
@@ -406,6 +548,16 @@ export function VoyagingMixin<
     async onRestored(): Promise<void> {
       const inner = (super.onRestored as unknown as (() => Promise<void>) | undefined);
       if (typeof inner === 'function') await inner.call(this);
+      // ⭐ On a river (D18): her passage rides the course; a course still
+      // set starts its watch again, which works the time away.
+      if (super.getLinePosition() !== null) {
+        if (this.course?.line && this.currentVoyage() === null) {
+          const voyage = new Voyage(this as unknown as Craft);
+          SchedulerApi.start(voyage);
+          void voyage.watch();
+        }
+        return;
+      }
       if (this.storedFix() === null) return;
       const expanse = await this.liveExpanse();
       if (expanse === null) return;

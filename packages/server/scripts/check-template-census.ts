@@ -209,8 +209,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // forever), a linear node's `along` the band it rides, a Structure's
     // `entrance` and `house` the deck and the roster that mans it, a
     // positioned thing's `expanse` the sea it is on, a chart's or a
-    // pilot's `of` the sea they know.
+    // pilot's `of` the sea they know. ⭐ The river build's: a ship's `line`
+    // the river she is on, her `bunker` the bin her fire is fed from, and
+    // a mouth node's `river` the river that comes out there.
     'destination', 'along', 'entrance', 'house', 'expanse', 'of',
+    'line', 'bunker', 'river',
   ] as const) {
     push(f, data[f]);
   }

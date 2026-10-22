@@ -21,6 +21,18 @@ help: |
 
   A sight (`measure latitude`), a sounding (`measure depth`) or a
   landmark coming into view tightens the reckoning. `anchor` stops.
+
+  On a river a course is a direction or a landing, not a bearing:
+  `course upstream`, `course downstream`, `course <landing>` (the woodyard,
+  the quay), or `course bar` to go out over the bar to sea. Add `slow` to
+  run at a crawl through snag water. The river refuses what it will not
+  let her do — the falls, a bend too tight for her, a reach too narrow —
+  and tells you where she touches bottom. From the sea, at a river's mouth,
+  `course <river>` takes her in.
+
+  While anybody who went over her side is still in the water, `course`
+  refuses: get them aboard first. `--leaving-them` sails anyway, and the
+  record says who you left.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -29,3 +41,8 @@ args:
     type: string
     required: false
     greedy: true
+options:
+  leaving-them:
+    type: boolean
+    field: leavingThem
+    description: "Sail with your own people still in the water, on purpose — it is recorded"

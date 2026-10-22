@@ -1,0 +1,44 @@
+# The Ostrander's deck — the entrance, where the wheelhouse is and the
+# watch is kept.
+#
+# ⭐ What makes this a river steamer's deck is what is on it: the wheel
+# affords `course` and `anchor`; the bunker feeds her fire; the capstan
+# walks her off the ground to a kedge; the lead tells the leadsman how much
+# water is under her; her boat is what takes a kedge out. Over the side is
+# the river wherever she is.
+class: /platform/location/Shore
+data:
+  shortDescription: Ostrander's deck
+  keywords: [deck, ostrander, steamer]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A broad flat deck, its planking scrubbed pale, with the white box of the wheelhouse forward and the stack going up black behind it. Aft, the great wheel turns in its housing and throws the river up in a brown fan. A bin of cordwood stands by the firebox door, a capstan squats in the bows, and a rowboat rides upside down on chocks along the rail.
+  coords: { x: 0, y: 0, z: 0 }
+  props:
+    - /world/terminus/ostrander/thing/wheel
+    - /world/terminus/ostrander/thing/capstan
+    - /world/terminus/ostrander/thing/bunker
+    - /system/water/thing/lead-line
+    - /system/transport/thing/rowboat
+  exits:
+    west:
+      destination: /world/terminus/ostrander/saloon
+    down:
+      destination: /world/terminus/ostrander/hold
+    ashore:
+      kind: /platform/idea/exits/ashore
+      destination: /world/terminus/wharfside/bank
+    # ⭐ Over the side: the river where she is now, under way or not.
+    side:
+      kind: /system/water/idea/exits/overside
+      destination: /system/water/location/reach/patch
+  details:
+    river:
+      keywords: [river, water, side, over, rail]
+      description: |
+        Below the rail, the Kestrel, brown and quick, going by.
+    wheel:
+      keywords: [paddlewheel, sternwheel, stern]
+      description: |
+        Twelve buckets on two great iron rims, turning in a spray of river.

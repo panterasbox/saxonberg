@@ -1804,6 +1804,47 @@ with her own people in the water; `--leaving-them` records the event).
 
 **Commit.** `build(river W4): ships on the line — the voyage, the hull against the river, grounding, snags, the wake, wood, the mouth`
 
+> ✅ **W4 built (2026-10-21).** Decisions the build made:
+> - ⭐ **The passage is planned, not integrated per read.** A ship's
+>   position on a line cannot be derived synchronously the way the sea's
+>   is (the flow behind the current is async), so `course` asks the frame
+>   for a `PassagePlan` — `[km, atS]` at every stretch boundary, and the
+>   stop it will come to (landing · aground · holed · stemmed · falls ·
+>   mouth · head) — and the plan rides the persisted `CourseRecord.line`.
+>   `getLinePosition()` interpolates it; restart-safe; the watch (10 game
+>   minutes on a river) tells what changed, burns fuel, throws the wake, and
+>   acts on the stop when it comes.
+> - **`course upstream` with no landing stops below the first falls** (the
+>   head of navigation); a landing beyond a falls is refused before she moves.
+> - **Snags strike above obstruction 0.5**, not D29's 0.3: the profile
+>   derives a wooded bend's obstruction in 0–0.6, so 0.3 put a snag on
+>   nearly every stretch (the planner's test found every passage holed).
+>   Sight is `clarityM × 0.4` with clarity 6 m (a quarter at night);
+>   `course … slow` runs at 40% through snag water, and the watch tells
+>   when snags show ahead. Lens 1: the rule is visible and acted on.
+> - **The *Ostrander* draws 0.6 m light** (a sternwheeler), not 1.2: the
+>   derived riffles are shallow; the live drive says whether she floats.
+> - **The bunker is a ref on the ship** (`bunker:`), a `Chest` on her deck
+>   — cordwood burned billet by billet, the remainder carried as debt; an
+>   empty bunker sets her drifting downstream with the current.
+> - **Kedging** is `Capstan` (`pull capstan`): it hauls a grounded ship to a
+>   stop within hail holding a boat with its killick, and she floats if the
+>   water there is deeper than she draws.
+> - **The mouth swap** is the ship's (`onPassageStop('mouth')` → chart at
+>   the river's mouth node), and back in is `course <river>` at a node that
+>   names its river (`ExpanseNode.river`, the bar's `river: kestrel`).
+> - **Her people in the water** (D30, brought forward from W5): a water
+>   place told it was entered from a ship's deck tells her
+>   (`Ship.noteOverboard`); `course` refuses while any is still in the
+>   water; `--leaving-them` sails and records an `abandonment` accountability
+>   row (a fifth kind, never terminal).
+> - **Alongside on a river** is a landing within 60 m of her position, read
+>   off the river's list of places — `AboardExit`/`AshoreExit` gained a line
+>   branch. Over the side is an authored `overside` reach way on her deck.
+> - ⚠ **Not built:** the pilot's `ChartedMixin` claims on stretch ids;
+>   beam/length refusals are planned but no authored river is narrow or
+>   tight enough to hit them yet.
+
 ### W5 — Ferries, and the sea brought into line
 
 **Goal.** The Nesbit ferry crosses by the swimmer's physics; the sea's

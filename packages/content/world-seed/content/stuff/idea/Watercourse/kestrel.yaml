@@ -68,6 +68,7 @@ data:
     - /world/kestrel-gorge/foot
     - /world/falls-landing/head
     - /world/falls-landing/landing
+    - /world/terminus/woodyard/landing
     - /world/terminus/valley-road/towpath
     - /world/terminus/wharfside/bank
     - /world/terminus/wharfside/water/location/stream

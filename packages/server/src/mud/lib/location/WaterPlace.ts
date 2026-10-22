@@ -56,6 +56,7 @@ import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
 import { ContainmentApi } from '../../api/containment';
 import { BulkableApi } from '../../api/bulk';
 import { WorldClockApi } from '../../api/worldclock';
@@ -731,6 +732,12 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     public onEntered(mover: Stuff & Mobile & Containable, via: Exit): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
       void this.reconcileOccupants();
+      // ⭐ Over a ship's side (river D30): she keeps who went into the water
+      // off her, and her `course` waits for them. By shape — a `Ship`'s
+      // `noteOverboard` — so the water does not import the ship.
+      const fromPath = via?.getSource?.()?.getTemplatePath?.() ?? '';
+      const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
+      (ship as unknown as { noteOverboard?(who: Stuff): void } | null)?.noteOverboard?.(mover);
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';

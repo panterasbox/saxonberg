@@ -12,7 +12,7 @@
 class: /platform/thing/Crop
 data:
   shortDescription: length of cordwood
-  keywords: [cordwood, wood, pole, billet, length, hazel]
+  keywords: [cordwood, wood, pole, billet, length, hazel, length of cordwood]
   register: indefinite
   longDescription: "A straight length of hazel, barked and cut to an arm's length."
   _materialPath: /stuff/idea/material/wood/hazel

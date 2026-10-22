@@ -1,0 +1,12 @@
+# The water beside a ship stopped at sea (the river build, D30) — what her
+# boat is launched into and what a swimmer over her side is in. Minted by
+# the sea's warren; its position is the chart's, at the ship.
+class: /system/water/location/SeaRoom
+data:
+  shortDescription: sea
+  keywords: [sea, water, swell]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  longDescription: |
+    The open sea, the swell lifting and dropping you, and a hull beside you going up and down like a wall.
+  coords: { x: 0, y: 0, z: 0 }

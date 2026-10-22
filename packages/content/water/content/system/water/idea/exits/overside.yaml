@@ -1,0 +1,10 @@
+# Over the side (the river build, D29): from a ship's deck on a river, the
+# water where she is now — under way or lying still. A reach way of the
+# `enter` kind: where it leads is worked out when it is taken, from her
+# position on the line.
+class: /system/water/idea/exits/ReachExit
+data:
+  way: enter
+  messageOut: "{{ mover }} goes over the side."
+  messageIn: "{{ mover }} comes down into the water off the side of a passing boat."
+  wheelPassable: false

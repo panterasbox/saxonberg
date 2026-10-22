@@ -1,0 +1,8 @@
+# The woodyard landing (the river build, D36): a woodhawk's yard on the
+# Kestrel's left bank twelve kilometres above the city, where the steamers
+# wood up. Its own small zone: a bank on the river's line.
+class: /platform/idea/location/CartesianZone
+data:
+  name: the woodyard
+  cellSize: 10.0
+  elevation: 45

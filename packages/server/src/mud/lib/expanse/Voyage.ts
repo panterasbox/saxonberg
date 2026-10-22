@@ -110,14 +110,22 @@ export class Voyage implements SustainedEngagement {
   private lastSky: string | null = null;
   private beating = false;
   private ended = false;
+  /** Where on her river the last watch found her (runtime). */
+  private lastKm: number | null = null;
 
   constructor(craft: Craft) {
     this.actor = craft;
     this.lastBeatS = WorldClockApi.getNow().rawValue();
-    const watchH = numSetting('expanse.watchGameHours', 4);
+    // ⭐ On a river the watch is short (river D18): a reach goes by in
+    // minutes, and a stretch's change is told as she comes into it.
+    const onLine = craft.getLine() !== null && craft.getCourse()?.line;
+    this.lastKm = onLine ? craft.lineAtS(this.lastBeatS)?.km ?? null : null;
+    const watchMs = onLine
+      ? numSetting('river.watchGameMinutes', 10) * 60 * 1000
+      : numSetting('expanse.watchGameHours', 4) * 3600 * 1000;
     this.emissions = [
       {
-        intervalMs: watchH * 3600 * 1000,
+        intervalMs: watchMs,
         event: () => {
           void this.watch();
         },
@@ -155,6 +163,7 @@ export class Voyage implements SustainedEngagement {
   }
 
   private async beat(): Promise<void> {
+    if (this.actor.getCourse()?.line) return this.lineBeat();
     const craft = this.actor;
     const nowS = WorldClockApi.getNow().rawValue();
     const expanse = await this.expanse();
@@ -209,6 +218,60 @@ export class Voyage implements SustainedEngagement {
       for (const g of await craft.gearAboard()) {
         if (MixinApi.isDurable(g)) g.wear(wear);
       }
+    }
+    this.persist();
+  }
+
+  /**
+   * ⭐ One watch on a river (river D18, D28, D29): what changed in the water
+   * since the last, the fuel the km took, the wake she throws, and — when
+   * her passage's stop has come — the stop: a landing, the ground, a snag,
+   * the falls, the sea.
+   */
+  private async lineBeat(): Promise<void> {
+    const craft = this.actor;
+    const course = craft.getCourse();
+    const line = course?.line ?? null;
+    if (line === null) return;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const frame = await craft.liveLine();
+    const pos = craft.lineAtS(nowS);
+    if (frame === null || pos === null) return;
+    const aboard = await craft.aboard();
+    const tell = (text: string, topic = 'sense.surroundings'): void => {
+      for (const who of aboard) {
+        if (!MixinApi.isSensor(who)) continue;
+        MessageApi.scene(who).topic(topic).toSelf(Mml.compose`${Mml.fromMarkup(text)}`).send();
+      }
+    };
+    const prevKm = this.lastKm ?? pos.km;
+    this.lastKm = pos.km;
+    for (const change of frame.changesAlong(prevKm, pos.km)) tell(change);
+
+    // What drives her: the km took fuel; with none left she loses way and
+    // the river has her.
+    const km = Math.abs(pos.km - prevKm);
+    if (km > 0 && line.throughWaterMps > 0 && !(await craft.burnFor(km))) {
+      tell('The fire dies in her firebox and the paddles stop. She loses way, and the river takes her.');
+      this.lastBeatS = nowS;
+      void craft.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 0 });
+      return;
+    }
+
+    // The wake she throws, at the speed she is making over the ground.
+    const dtS = Math.max(1, nowS - this.lastBeatS);
+    this.lastBeatS = nowS;
+    await frame.wakeAt(pos, (km * 1000) / dtS).catch(() => undefined);
+
+    const stop = line.plan.stop;
+    if (stop !== null && nowS >= stop.atS) {
+      craft.rebase(null, nowS);
+      const words = await craft.onPassageStop(stop);
+      tell(words, stop.reason === 'landing' ? 'act.move' : 'sense.surroundings');
+      this.persist();
+      this.ended = true;
+      SchedulerApi.complete(this);
+      return;
     }
     this.persist();
   }
