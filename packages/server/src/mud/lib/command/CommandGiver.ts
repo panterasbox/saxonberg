@@ -1072,7 +1072,23 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return outer;
       }
 
-      for (const affordance of matches) {
+      // ⭐ The first attempt that bound but was turned away by an
+      // ARGUMENT's own gate. Two views of one verb may share a shape and
+      // differ only in what their arguments must be — crafting's
+      // `pour <spirit> into <vessel>` wants a vessel you build in, bulk's
+      // `pour <source> into <target>` any holder — so a field validator
+      // refusing one view is a reason to try the next, not to stop. It is
+      // reported only when no view takes the line (the ceramics drive:
+      // a runner and riser is an ingot, an ingot affords crafting's
+      // `pour`, and with one in hand `pour ladle into pit` was refused).
+      let firstRefused: CommandContext | null = null;
+      const fieldGate = (ctx: CommandContext): boolean =>
+        ctx
+          .getNotes()
+          .some((n) => n.kind === 'validator-failed' && (n as { validator?: string }).validator === 'field');
+      for (let i = 0; i < matches.length; i++) {
+        const affordance = matches[i]!;
+        const more = i < matches.length - 1;
         const command = affordance.command;
         const built = CommandApi.assemble(parsed, command, {
           commandGiver: outer.commandGiver,
@@ -1159,7 +1175,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           attempt,
           preloads,
         );
-        if ('result' in validated) return attempt;
+        if ('result' in validated) {
+          if (more && fieldGate(attempt)) {
+            firstRefused ??= attempt;
+            continue;
+          }
+          return firstRefused ?? attempt;
+        }
         // Effective async = per-invocation reserved flag over the verb's
         // spec default. `--async`/`--sync` were stripped during assemble.
         const effectiveAsync = built.reservedAsync
@@ -1170,6 +1192,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         });
         return attempt;
       }
+      // A view turned the line away by an argument's gate and no later
+      // view took it: that first refusal is the answer.
+      if (firstRefused !== null) return firstRefused;
       // Every match returned a shape error.
       outer.note({
         kind: 'command-rejected',
