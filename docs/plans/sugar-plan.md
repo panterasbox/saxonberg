@@ -2127,3 +2127,40 @@ and 11; its remaining reds were handling, fixed after).
   boiler's `refines` on juice into a hogshead, the cure, the carry to the
   counter) has not been watched — the probes stopped on the steps above,
   and on 2026-10-20 the host's memory went to the underwater build.
+
+### Drives 11–12 and the estate watches (2026-10-21/22)
+
+**Drive 12 — 18 of 19 run, reaped in step 20 (host memory): steps 1–17
+and 19 green.** All of Stage A (the walk-off, the boil, both restarts,
+the strike, cone and pot, claying, nips and quern, the second boil, the
+sugarbush, Veshko's still) and Stage B's voyage, the island, the cut and
+crush, the train, the counter and the hold across a restart.
+
+**Step 18 (the estate shelves its own block) is the one red, and step 20
+depends on it.** Watched link by link in standing-world probes, every
+step of the island's chain now runs — and each was a defect found and
+fixed on the way:
+
+| link | what stopped it | fix |
+|---|---|---|
+| cut | `harvest cane` bound the first, unripe stand ("has not filled its set" ×78) | a named plant takes a ripe one of its kind beside it (kernel, tested) |
+| carry | three 30 kg bundles froze every carrier | one bundle a cut, five days round |
+| crush | `mill cane` bound the edge-runner ("cane mill"), then the full juice tub (the juice answered to "cane") | the mill and the juice lose the word; the miller mills a `bundle` |
+| carry up | two tubs: `get tub` took the empty one | one tub, carried up full and home empty |
+| pour | `pour tub into kettle` bound the "kettle arch" | it is the "open arch" |
+| temper | no house card, then an empty till paying itself | a purchasing seat; a lime store on the train floor (self-purchase is a retail follow-up) |
+| stoke | the brain counted only `fuel`-tagged matter; oak is "wood, flammable" | fuel is what burns (heat of combustion) |
+| boil | stoked only when the bed was EMPTY — a 20 kW train ran at 3 | a working `charge` (14 kg) kept in the bed |
+| strike | a full train kettle "won't budge" (×12) | `ladle`: pour the strike where it stands |
+| spoilt | a burnt pan was left be, and the boiler idle for good | `spoilt: spill` |
+
+⚠ **Not yet seen: a batch reaching the strike WITH the boiler present,
+and the cured block on the counter.** In drive 12 she was watched through
+three full shifts and shelved nothing, with no refusal logged — the
+remaining stall is silent. Every probe that caught a batch near the end
+caught it burnt across an unattended stretch. The next look is one
+continuous shift with the kettle's stage read every minute.
+
+**Gate gap (third time this build): two things in one room answering to
+the same word** — the kettle arch, the sugarbush's second arch, the cane
+mill, and the juice. No lint reads it.
