@@ -267,10 +267,19 @@ async function mint(where: string, path: string, count = 1): Promise<void> {
 }
 
 /** As the caster, run a setup `eval` in `where` under Rejection's title. */
-async function founderEval(where: string, code: string, parcel = R): Promise<string> {
+async function founderEval(
+  where: string,
+  code: string,
+  parcel = R,
+  then?: () => Promise<unknown>,
+): Promise<string> {
   const gov = await Session.open('founder', { startLocation: where, wizard: true });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
+    // ⭐ What must follow at once (a pour off a melt) goes BEFORE the prose
+    // settle: a full crucible radiates ~20 K a real second, and the settle
+    // alone cost the key its fill (runs 16–18 misran at 1320, 1420, 1500 K).
+    if (then) await then();
     const said = await r.said();
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive D] (caster eval → ${squash(said).slice(0, 200)})`);
@@ -301,7 +310,13 @@ async function founderEvalOn(where: string, keyword: string, code: string, parce
  * foundry's crucible, the yard's ladle) to its brim with `materialPath`,
  * molten at `kelvin`. Reading the colour of it is the founder's own act.
  */
-async function melt(where: string, potRow: string, materialPath: string, kelvin: number): Promise<void> {
+async function melt(
+  where: string,
+  potRow: string,
+  materialPath: string,
+  kelvin: number,
+  then?: () => Promise<unknown>,
+): Promise<void> {
   // ⚠ The pot is looked for on the FLOOR (reading into a person's hands
   // trips the eval sandbox): a crucible the caster carried off — 28's
   // `get brass` takes it with the key — goes down first.
@@ -323,6 +338,8 @@ async function melt(where: string, potRow: string, materialPath: string, kelvin:
       ` pot.setBulkAmount('interior', pot.getBulkCapacity('interior'));` +
       ` pot.setContentsTemperature(${kelvin});` +
       ` return 'melt: ' + pot.getBulkAmount('interior').rawValue() + ' L of ' + m.getName() + ' at ' + Math.round(pot.getTemperature().rawValue()); })()`,
+    R,
+    then,
   );
   expect(said, `the melt stood up: ${said}`).toMatch(/melt: .* L of /);
 }
@@ -520,27 +537,34 @@ suite('⭐⭐ 27 — impress a sword in a flask, cast it in pewter', () => {
 suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\'s lock', () => {
   it('the cast key unlocks the yard door', async () => {
     // Setup: the founder's yard key on the bench, and the yard door locked.
-    await mint(FOUNDRY, T.key);
-    await founderEvalOn(
+    // ⭐ Stood up by reference, with a word of its own (`yardkey`): a key or
+    // a cast key left from an earlier pass made `--on key` ambiguous, and the
+    // founder may not destruct a /stuff kind to clear them.
+    await founderEval(
       FOUNDRY,
-      'key',
-      `(() => { this.ensureCredential('key').addKey('rejection-foundry-yard', 'pin-tumbler');` +
-        ` this.setMaterial(StuffApi.findByTemplatePath('${M.brass}'));` +
-        ` this.setMass(this.getMass().constructor.of(0.02, 'kg'));` +
-        ` return 'key ready'; })()`,
+      `return StuffApi.clone('${T.key}').then(k => {` +
+        ` k.ensureCredential('key').addKey('rejection-foundry-yard', 'pin-tumbler');` +
+        ` k.setMaterial(StuffApi.findByTemplatePath('${M.brass}'));` +
+        ` k.setMass(k.getMass().constructor.of(0.02, 'kg'));` +
+        ` k.setKeywords([...k.getKeywords(), 'yardkey']);` +
+        ` return ContainmentApi.move(k, self.getContainer()); }).then(() => 'key ready')`,
     );
     await founderEvalOn(FOUNDRY, 'door', `(() => { this.setOpen(false); this.lock(); return this.isLocked(); })()`);
-    await doing(caster, 'get key');
-    const pressed = await doing(caster, 'impress key in wax');
-    expect(pressed, `impress key in wax: ${pressed}`).toMatch(/holds the shape of/i);
+    await doing(caster, 'get yardkey');
+    const pressed = await doing(caster, 'impress yardkey in wax');
+    expect(pressed, `impress yardkey in wax: ${pressed}`).toMatch(/holds the shape of/i);
     // The yard key goes back on the bench: only the CAST will be in hand.
-    await doing(caster, 'drop key');
-    // Hot enough to fill a key's thin wards by the time it is poured: a full
+    await doing(caster, 'drop yardkey');
+    // Hot enough to fill a key's thin wards, and poured AT ONCE: a full
     // crucible of brass radiates ~20 K per real second (1420 → 1224 K in ten
-    // seconds, measured), and the drive's hands take several seconds from
-    // the melt to the pour. At 1320 K and at 1420 K it misran (runs 16, 17).
-    await melt(FOUNDRY, T.crucible, M.brass, 1500);
-    await doing(caster, 'pour crucible into wax');
+    // seconds, measured), and against the cold fired-clay jacket a key needs
+    // ~120 K over its melt. Waiting on the melt's prose first, it misran at
+    // 1320, 1420 and 1500 K (runs 16–18).
+    let poured = '';
+    await melt(FOUNDRY, T.crucible, M.brass, 1420, async () => {
+      poured = await doing(caster, 'pour crucible into wax');
+    });
+    expect(poured).toMatch(/pour/i);
     await advance('1 hour');
     expect(await examine(caster, 'brass'), 'a brass cast of the key').toMatch(/brass cast of a key/i);
     expect(await examine(caster, 'beeswax'), 'the wax came back').toMatch(/beeswax/i);
