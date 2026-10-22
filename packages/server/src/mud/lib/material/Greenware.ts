@@ -42,6 +42,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { AppSettingKeys } from '../config/AppSettings';
 import { WaterActivity } from './WaterActivity';
+import type { CommandContributions } from '../../api/command';
 import type Material from './Material';
 
 /** How wet a green piece is. */
@@ -140,6 +141,18 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
     static _mixinName = 'GreenwareMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [greenAugmenter];
+
+    /**
+     * ⭐ A green piece affords `carve` — trim, turn a foot, cut a pattern —
+     * whoever is holding it or beside it. Its own plan asks for the edge.
+     * Without this nothing conferred the verb on a leather-hard pot, and
+     * `carve foot on mug` was "I don't understand" (the ceramics drive).
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      environment: ['platform/cmd/crafting/carve.yaml'],
+      peers: ['platform/cmd/crafting/carve.yaml'],
+    };
 
     static fieldMeta: FieldMeta = {
       greenRuin: { persistent: true, runtimeState: true },

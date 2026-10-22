@@ -39,6 +39,7 @@ data:
     - /world/terminus/hearts-delight/brickfield/thing/ash-glaze-tub
     - /world/terminus/hearts-delight/brickfield/thing/lead-glaze-tub
     - /world/terminus/hearts-delight/brickfield/thing/stamp
+    - /trade/ceramics/thing/turning-tool
     - /world/terminus/hearts-delight/brickfield/thing/ware-shelf
     - { template: /trade/ceramics/thing/pyrometric-cones, count: 4 }
     - { template: /stuff/thing/vessel/pail, count: 2 }

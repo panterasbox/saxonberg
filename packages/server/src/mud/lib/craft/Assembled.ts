@@ -153,6 +153,13 @@ export interface PartLine {
   /** It dried in place and moved: a member failed for that reason. */
   warped?: boolean;
   /**
+   * ⭐ A SEAT never filled — a thrown jug's handle before anybody fits one
+   * (ceramics drive). Its members count as failed (so `fit` takes them
+   * first), but it is not worn through or broken: the look says the piece
+   * WANTS it. Cleared the moment a member is fitted.
+   */
+  empty?: boolean;
+  /**
    * A flat-sawn member that has dried — its face is hollow across the
    * width. Harmless in a pegged frame; a joint that needs its members
    * flat (glue) seats short of it.
@@ -460,8 +467,11 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     return mat ? `${q} ${grain}${mat} ${noun}` : `${q} ${grain}${noun}`;
   };
   const sentences: string[] = [];
-  const made = GrammarApi.joinList(lines.map(describe));
-  const joints = host.getJoints();
+  const present = lines.filter((l) => !l.empty);
+  const wanted = lines.filter((l) => l.empty);
+  const made = GrammarApi.joinList(present.map(describe));
+  // A joint to a seat nobody has filled is not made yet.
+  const joints = host.getJoints().filter((j) => !j.members.some((m) => wanted.some((w) => w.part === m)));
   const methods = [
     ...new Set(
       joints.map((j) => jointRow(j.method)?.label ?? j.method).filter((m) => m),
@@ -472,7 +482,11 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
       `It is made of ${made}${methods.length > 0 ? `, ${GrammarApi.joinList(methods)}` : ''}.`,
     ),
   );
+  for (const l of wanted) {
+    sentences.push(GrammarApi.cap(`It wants ${GrammarApi.articleFor(l.part)} ${l.part}.`));
+  }
   for (const l of host.failedLines()) {
+    if (l.empty) continue;
     const word = failureWordFor(host, l);
     sentences.push(
       l.count === 1
@@ -884,6 +898,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       // worn of the sound ones (the set's gauge is their average).
       const fromFailed = Math.min(take, line.failed);
       line.failed -= fromFailed;
+      // A filled seat is no longer empty.
+      if (take > 0) delete line.empty;
       line.condition = (line.condition * (n - take) + take * fittedCondition) / n;
       if (n === 1 || take === n) {
         // The whole line is the new member — it IS what was fitted now,

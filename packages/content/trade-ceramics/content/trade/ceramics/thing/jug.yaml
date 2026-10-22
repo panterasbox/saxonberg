@@ -6,7 +6,8 @@ data:
   keywords: [jug, pitcher]
   register: indefinite
   longDescription: >-
-    A round-bellied clay jug with a lip for pouring and a seat for a handle.
+    A tall clay jug, about three pints, with a lip for pouring and a seat
+    for a handle.
   interiorBulk: true
   interiorCapacity: 1.7
   # ⭐ (ceramics W6, D28) The row is the FIRED good: a bare clone is an

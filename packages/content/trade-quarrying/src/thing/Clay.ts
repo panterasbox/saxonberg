@@ -427,6 +427,7 @@ export default class Clay extends ClayBase implements Shapeable {
             grade,
             condition: 1,
             failed: seats.includes(p.part) ? p.count : 0,
+            ...(seats.includes(p.part) ? { empty: true } : {}),
             makers: [],
           })) as never,
           (bill.joints ?? []).map((j) => ({
