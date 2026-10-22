@@ -2980,3 +2980,35 @@ forced. What they found, by kind:
 - **Open from 23:** `fire hearth for 12 hours` got no dispatch response
   within 30 s once — contention, or the hold. Watched in run 24.
 - **The potash merge** (c627b0893, B78) lands before run 24.
+
+**Run 24** (after the potash merge; D 18/23 · A 9/20 · B 5/6 · C stopped at
+2 passing, the chain reaped for memory):
+- **Kernel defect found and fixed — the freeze banked by reads, not time**
+  (3e485fd6a). A damp-blown flask of pewter sat "filled, and has not begun
+  to set" for three game hours: the plateau banked `(mp − T)·C` per READ, so
+  one read after a long gap banked one cooling's worth. Step 27 passed only
+  because a later query re-read its flask. Now the heat is integrated from
+  the drift itself (`C·(mp − amb)·ln((mp − amb)/(T − amb))`); thermal.md had
+  recorded the defect as known. The melt still banks per read.
+- **Drive defects, all fixed:**
+  - D 32: six 6 kg coal lumps were over the caster's load; the five held
+    then made 34a's `get board` fail. Two a trip now.
+  - D 35: the key is now asserted in hand BEFORE the restart — the caster
+    carried nothing after it, and the run could not say which side of the
+    restart lost it (a probe login overwrote the snapshot).
+  - A 5b: `get 1 brick` bound the moulding table ("brick table"); the brick
+    is taken by id. The step's 300 s timeout did not stop its loop, which
+    jumped the clock through 3 and 4 and killed the sodden brickmaker of
+    hypothermia — everything in A after 5b was that cascade.
+  - A 3: the knead's blend mints AFTER the engagement completes; read at
+    once the pit is empty. ⭐ This was the "`pit:i` lists nothing" finding.
+  - B 13: coal won at night (every lump "something") and four lumps over
+    the load; daylight first, two a melt.
+- **Findings, not fixed in this build:**
+  - **A singular head noun binds a modifier**: `get 1 brick` → the "brick
+    table"; `get clay from pit`, refused by the `from` view, falls through
+    to plain `get`, which binds "clay from pit" to the pit and answers
+    "fixed in place" — a misleading refusal (potash's MQL-substring note).
+  - **A durative act's heat lands at completion**, so work does not warm a
+    body while it runs; a sodden worker in winter cools as if idle.
+  - **A timed-out wire test keeps running** — its loop outlives the test.
