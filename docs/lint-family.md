@@ -1531,6 +1531,18 @@ configured**.
 - **`lint:does-nothing`** — materials-response legibility: no
   construction or implement that does nothing.
 - **`lint:inert-weapon`** — no seeded weapon derives an inert profile.
+- **`lint:act-effort`** — no engaged act that NO body can do (ceramics,
+  2026-10). An act is charged its whole effort up front (`canExert`: the
+  excess over the sustainable rate × the whole duration), so one whose
+  excess outruns a fresh body's spendable endurance is refused "too
+  tired" for everybody, however rested — and every controller test stays
+  green. The ceramics drive found two (the brick table, 576 % of a
+  reserve; the temper pit, 120 %). Reads every `{ effortW, durationMs }`
+  literal statically — literals, consts, arithmetic, a dial by its
+  default, a paced step by its base — and fails only what it can PROVE;
+  a figure computed at run time is listed as unchecked (`--list`), never
+  failed. The body's three figures are read from `Exerting.ts`, so a
+  re-tuned exertion model moves the gate with it.
 - **`lint:combat-dynamics`** — the combat engine branches on physics;
   dynamics come through hooks.
 - **`lint:blessed-bands`** — composing `Blessable` obliges you to author
