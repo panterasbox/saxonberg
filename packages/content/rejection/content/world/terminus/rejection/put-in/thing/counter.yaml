@@ -1,5 +1,8 @@
-# The outfitter's counter at the put-in (the river build): boats and what
-# drives them, and the instruments that tell you what the river is doing.
+# The outfitter's counter at the put-in (the river build): what drives a
+# boat, what holds and lines her, and the instruments that tell you what the
+# river is doing. ⚠ The boats are not on it: a boat is a vessel, and a
+# counter cannot hold one (the drive found the whole cascade through the
+# pass failing on it) — they lie on the shingle, the outfitter's own.
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: boat-shed counter
@@ -15,9 +18,6 @@ data:
   serverPositionKeys: [keeper]
   businessPath: /world/terminus/rejection/put-in/idea/outfit
   stockLines:
-    - { itemTemplatePath: /system/transport/thing/canoe, par: 3 }
-    - { itemTemplatePath: /system/transport/thing/punt, par: 1 }
-    - { itemTemplatePath: /system/transport/thing/rowboat, par: 1 }
     - { itemTemplatePath: /system/transport/thing/propulsion/paddle, par: 4 }
     - { itemTemplatePath: /system/transport/thing/propulsion/pole, par: 2 }
     - { itemTemplatePath: /system/transport/thing/killick, par: 2 }
@@ -25,9 +25,6 @@ data:
     - { itemTemplatePath: /system/water/thing/current-log, par: 2 }
     - { itemTemplatePath: /stuff/thing/instrument/thermometer, par: 2 }
   prices:
-    /system/transport/thing/canoe: 40
-    /system/transport/thing/punt: 60
-    /system/transport/thing/rowboat: 75
     /system/transport/thing/propulsion/paddle: 4
     /system/transport/thing/propulsion/pole: 5
     /system/transport/thing/killick: 3

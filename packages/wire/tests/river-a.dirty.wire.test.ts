@@ -256,6 +256,16 @@ suite('stage A — the line and the patch', () => {
   }, 120_000);
 
   it('18. a dive in deep water reaches the bed and stops there; the water goes on without you', async () => {
+    // ⭐ A fresh swimmer: an hour in the snowmelt takes the first one's
+    // consciousness (the drive found it — the body model, working).
+    a.close();
+    a = await Session.open(uniqueHandle('rvx'), { startLocation: BANK });
+    await morning();
+    expectOk(await a.cmd('swim'));
+    await a.listen(2_000);
+    const atIn = await here(a);
+    expectOk(await a.cmd('swim downstream'));
+    await moved(a, atIn, 180);
     let dove = false;
     for (let i = 0; i < 20 && !dove; i++) {
       const at = await here(a);

@@ -42,6 +42,7 @@ export default class SwimController extends LocomotionControllerBase {
     }
     const floor = room ? (MixinApi.isAdornable(room) ? room.getFloor() : null) : null;
     if (!(floor instanceof WaterSurface) && room !== null && MixinApi.isShore(room) && !MixinApi.isWaterPlace(room)) {
+      await room.bankStood();
       const way = room.wayIntoWater();
       if ('refusal' in way) return this.refuse(context, 'act.deed', way.line, way.refusal);
       return this.crossPicked(giver as Stuff, way.exit, context);

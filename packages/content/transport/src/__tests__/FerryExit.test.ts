@@ -61,7 +61,7 @@ beforeEach(() => {
     return c;
   }) as never);
   const water = {
-    riverStateAt: async () => ({ currentHereMps: current, widthM: 90 }),
+    riverStateAt: async () => ({ currentMps: current, widthM: 90 }),
     positionOf: async () => ({ course: 'kestrel', km: 8.6, across: 0 }),
   };
   const warren = { stopAt: async () => stop };

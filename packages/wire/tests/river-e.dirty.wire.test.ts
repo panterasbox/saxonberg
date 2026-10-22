@@ -109,7 +109,7 @@ suite('stage E — the ferry, and the sea', () => {
     await morning();
     const here = await look(s);
     expect(here, here).toMatch(/ferry/i);
-    const r = await s.cmd('across');
+    const r = await s.cmd('go across');
     const said = squash(await r.said());
     expect(r.status, said).toBe('ok');
     await s.listen(5_000);
@@ -121,23 +121,24 @@ suite('stage E — the ferry, and the sea', () => {
     // The rider goes back across with him, and a second person on the
     // far bank calls the ferry over.
     const rider = open[0]!;
-    expect((await rider.cmd('across')).status).toBe('ok');
+    expect((await rider.cmd('go across')).status).toBe('ok');
     const caller = await session(uniqueHandle('reb'), NESBIT);
-    const refused = await caller.cmd('across');
+    const refused = await caller.cmd('go across');
     expect(squash(await refused.said())).toMatch(/Ring the bell/);
     const rung = await say(caller, 'ring bell');
     expect(rung, rung).toMatch(/strike|bell/i);
     let over = false;
     for (let i = 0; i < 20 && !over; i++) {
       await caller.listen(15_000);
-      over = /ferry/i.test(await look(caller)) && (await caller.cmd('across')).status === 'ok';
+      over = /ferry/i.test(await look(caller)) && (await caller.cmd('go across')).status === 'ok';
     }
     expect(over, 'the ferryman never brought her over').toBe(true);
   }, 600_000);
 
   it('34. the route planner takes a journey across by the ferry, and says it is not always passable', async () => {
-    const s = await session(uniqueHandle('rer'), TOWPATH);
-    const r = await s.cmd('route to milestone');
+    // The rider has crossed both ways: their own map knows the far landing.
+    const s = open[0]!;
+    const r = await s.cmd('route to nesbit');
     const said = squash(await r.said());
     expect(r.status, said).toBe('ok');
     expect(said, said).toMatch(/not always passable/);

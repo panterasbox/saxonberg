@@ -43,7 +43,7 @@ class FakeWater extends Idea {
     return { course: 'delight', km: 0.3, across: 15 };
   }
   async riverStateAt() {
-    return { depthHereM: this.depthM, currentHereMps: this.mps };
+    return { depthM: this.depthM, currentMps: this.mps };
   }
 }
 
@@ -109,13 +109,13 @@ afterEach(() => {
 
 describe('the ford reads the body (river D10)', () => {
   it('⭐ the same water: a tall heavy body wades across, a short light one is taken off its feet', () => {
-    const w = { depthHereM: 0.6, currentHereMps: 1.0 };
+    const w = { depthM: 0.6, currentMps: 1.0 };
     expect(ford().verdictFor(body(1.85, 90), w)).toBe('across');
     expect(ford().verdictFor(body(1.3, 35), w)).toBe('swept');
   });
 
   it('over your head it is a swim, whoever you are', () => {
-    const w = { depthHereM: 1.4, currentHereMps: 0.1 };
+    const w = { depthM: 1.4, currentMps: 0.1 };
     expect(ford().verdictFor(body(1.5, 60), w)).toBe('over-head');
     expect(ford().verdictFor(body(1.9, 90), w)).toBe('across');
   });

@@ -179,7 +179,12 @@ suite('stage B — bodies in moving water', () => {
     const rescuer = await outfitted(uniqueHandle('rbr'), ['lifeline']);
     rescuer.close();
     const r = await session(rescuer.handle, LOWER);
-    const swimmer = await session(uniqueHandle('rbs'), BANK);
+    // ⭐ A line goes to somebody by what the thrower knows them as: a
+    // stranger in the water is "a human". They meet on the towpath first.
+    const swimmer = await session(uniqueHandle('rbs'), LOWER);
+    expectOk(await swimmer.cmd('introduce'));
+    expectOk(await r.cmd('introduce'));
+    expectOk(await swimmer.cmd('west'));
     await morning();
     expectOk(await r.cmd('watch horizon'));
 

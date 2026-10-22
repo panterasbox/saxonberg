@@ -24,8 +24,8 @@
  * ⭐ Every checkpoint asserts the verb was UNDERSTOOD and a state change or
  * the words that prove one.
  *
- * ⚠⚠ `.dirty.`: it buys canoes and a punt at the put-in, leaves them on the
- * Kestrel and moves the clock. None of it is produced again.
+ * ⚠⚠ `.dirty.`: it takes the outfitter's canoes and punt off the shingle,
+ * leaves them on the Kestrel and moves the clock. None of it is produced again.
  */
 
 import { describe as suite, it, expect, afterAll } from 'vitest';
@@ -40,7 +40,7 @@ import {
 } from '../src/harness';
 
 export const DIRTY_REASON =
-  'buys canoes and a punt at the put-in and leaves them on the Kestrel, and ' +
+  'takes the outfitter’s canoes and punt and leaves them on the Kestrel, and ' +
   'moves the clock — none of it produced again';
 
 declareFile({
@@ -100,10 +100,8 @@ async function funded(handle: string): Promise<Session> {
   return session(handle, PUT_IN);
 }
 
-/** Buy a boat at the shed, get into it, and put it in the water. */
+/** Get into one of the outfitter's boats on the shingle, and put it in the water. */
 async function afloat(s: Session, boat: string): Promise<void> {
-  const bought = await s.cmd(`buy ${boat}`);
-  expect(bought.status, squash(await bought.said())).toBe('ok');
   const into = await s.cmd(`go ${boat}`);
   expect(into.status, squash(await into.said())).toBe('ok');
   const launched = await say(s, 'launch');

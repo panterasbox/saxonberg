@@ -112,6 +112,8 @@ export interface Shore {
    * there is none, in words.
    */
   wayIntoWater(): { exit: Exit } | { refusal: 'no-water' | 'iced-over'; line: string };
+  /** Resolves once a bank's way into its river is in place. */
+  bankStood(): Promise<void>;
 }
 
 /** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
@@ -203,14 +205,38 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public async onCreate(...args: unknown[]): Promise<void> {
       await (Base.prototype as { onCreate?: (...a: unknown[]) => Promise<void> }).onCreate?.apply(this, args);
       for (const key of Object.keys(this.waters)) void this.refreshWater(key, false);
-      // ⭐ A bank on a river's line: its water source gives it its way in
-      // (river D8) — the kernel cannot work out where moving water is.
-      if (this.bank !== null) {
+    }
+
+    /** The bank's way in, once asked for (runtime) — see {@link bankStood}. */
+    private _bankStood: Promise<void> | null = null;
+
+    /**
+     * ⭐ A bank on a river's line gets its way into the river from its water
+     * source (river D8) — the kernel cannot work out where moving water is
+     * — the first time it is USED: somebody arrives on it, or swims from it.
+     * Load on use, never at creation: installed from a room's `onCreate`, it
+     * ran inside the clone tree that was loading the room, and two banks
+     * loading in one boot cascade collided on the exit row (the drive found
+     * the estuary reach with no way into the water).
+     */
+    public bankStood(): Promise<void> {
+      if (this.bank === null) return Promise.resolve();
+      if (this._bankStood === null) {
         const bank = this.bank;
-        void findWaterSource(`${bank.course}:${bank.at}`)
+        this._bankStood = findWaterSource(`${bank.course}:${bank.at}`)
           .then((source) => source?.onBankStood(this as unknown as Stuff))
-          .catch((err) => console.warn(`ShoreMixin: the bank at ${bank.course}:${bank.at} has no way into the water:`, err));
+          .catch((err) => {
+            this._bankStood = null;
+            console.warn(`ShoreMixin: the bank at ${bank.course}:${bank.at} has no way into the water:`, err);
+          });
       }
+      return this._bankStood;
+    }
+
+    /** Arriving on a bank is using it: its way into the river is put in place. */
+    public onEntered(mover: unknown, via: unknown): void {
+      (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
+      if (this.bank !== null && (mover as Stuff | null)?.isAgent?.()) void this.bankStood();
     }
 
     public getWaters(): Record<string, string> {

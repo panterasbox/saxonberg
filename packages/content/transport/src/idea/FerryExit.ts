@@ -65,9 +65,9 @@ const ANGLE_DEG: Record<string, number> = {
   master: 60,
 };
 
-/** The river at the crossing, as much of it as a ferry reads. */
+/** The river at the crossing, as much of it as a ferry reads: the channel's current (what a crossing meets mid-river), and the width. */
 interface CrossingWater {
-  currentHereMps: number;
+  currentMps: number;
   widthM: number;
 }
 
@@ -191,11 +191,11 @@ export default class FerryExit extends Exit {
       };
     }
     const water = await this.waterNow().catch(() => null);
-    if (water !== null && Math.abs(water.currentHereMps) >= FerryExit.dial('water.ferry.refuseAboveMps', REFUSE_ABOVE_MPS)) {
+    if (water !== null && Math.abs(water.currentMps) >= FerryExit.dial('water.ferry.refuseAboveMps', REFUSE_ABOVE_MPS)) {
       return { ok: false, gate: 'blocked', reason: 'Not at this water. The river is running too hard to take her across.' };
     }
     const cable = this.cableHere();
-    if (cable !== null && water !== null && this.cableSpeedMps(cable, water.currentHereMps) < MIN_CABLE_MPS) {
+    if (cable !== null && water !== null && this.cableSpeedMps(cable, water.currentMps) < MIN_CABLE_MPS) {
       return { ok: false, gate: 'blocked', reason: 'There is no current to drive her; she hangs slack on the cable.' };
     }
     return super.canTraverse(mover, mode);
@@ -207,7 +207,7 @@ export default class FerryExit extends Exit {
     const water = await this.waterNow().catch(() => null);
     if (water === null) return 0;
     const cable = this.cableHere();
-    const across = cable !== null ? Math.max(MIN_CABLE_MPS, this.cableSpeedMps(cable, water.currentHereMps)) : POLE_MPS;
+    const across = cable !== null ? Math.max(MIN_CABLE_MPS, this.cableSpeedMps(cable, water.currentMps)) : POLE_MPS;
     const gameS = water.widthM / across;
     const scale = WorldClockApi.getScale();
     return gameS / (Number.isFinite(scale) && scale > 0 ? scale : 1);
@@ -237,7 +237,7 @@ export default class FerryExit extends Exit {
     const water = await this.waterNow().catch(() => null);
     const band = MixinApi.isAdvancing(poler) ? await poler.competenceBandFor('navigation') : 'untrained';
     const angle = ((ANGLE_DEG[band] ?? 0) * Math.PI) / 180;
-    const current = Math.abs(water?.currentHereMps ?? 0);
+    const current = Math.abs(water?.currentMps ?? 0);
     const t = (water?.widthM ?? 0) / Math.max(0.1, POLE_MPS * Math.cos(angle));
     const driftM = (current - POLE_MPS * Math.sin(angle)) * t;
     const dest = this.getDestination();

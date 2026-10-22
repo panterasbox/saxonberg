@@ -61,10 +61,15 @@ const REF_MASS_KG = 75;
 const DEFAULT_MASS_KG = 80;
 const DEFAULT_STATURE_M = 1.7;
 
-/** The river at a position, as much of it as a ford reads. */
+/**
+ * The river at the crossing, as much of it as a ford reads: the channel's
+ * depth (at the thalweg) and its current — a wader crosses the whole river,
+ * and it is the channel, not the margin, that takes your feet (the drive
+ * found a year of water reading the margin, and never a soul swept).
+ */
 interface FordWater {
-  depthHereM: number;
-  currentHereMps: number;
+  depthM: number;
+  currentMps: number;
 }
 
 /** The catalogue's methods a ford asks, by shape. */
@@ -127,11 +132,11 @@ export default class FordExit extends Exit {
     water: FordWater,
   ): 'across' | 'over-head' | 'swept' {
     const stature = FordExit.statureOf(mover);
-    const depth = water.depthHereM;
+    const depth = water.depthM;
     if (depth > stature * HEAD_SHARE) return 'over-head';
     const mass = FordExit.massOf(mover);
     const hold = STABILITY_DV * (stature / REF_STATURE_M) * (mass / REF_MASS_KG);
-    return depth * Math.abs(water.currentHereMps) > hold ? 'swept' : 'across';
+    return depth * Math.abs(water.currentMps) > hold ? 'swept' : 'across';
   }
 
   /** Refused only where the water is over your head: then it is a swim. */

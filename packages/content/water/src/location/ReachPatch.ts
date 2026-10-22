@@ -121,6 +121,20 @@ export default class ReachPatch extends ReachPlaceBase {
   }
 
   /**
+   * ⭐ The bed does not move, in the shallows or the deep (D9; the drive
+   * found a stone dropped in wading water riding on with the patch): a
+   * thing that sinks — a stone, a sword, not a body standing — goes to the
+   * stop at this km whatever the depth.
+   */
+  public override onContainableAdded(thing: Stuff & Containable): void {
+    super.onContainableAdded(thing);
+    if (thing.isAgent?.() || !this.sinks(thing)) return;
+    const floor = this.getFloor();
+    const borne = floor !== null && MixinApi.isFloor(floor) && floor.supportIsSlotted() && floor.bears(0);
+    if (borne) void Promise.resolve().then(() => this.sink(thing));
+  }
+
+  /**
    * ⭐ A disconnected body in moving water (D15): not held here — the patch
    * is going somewhere — but delivered to the first spot downstream that
    * can hold it, and held there.
