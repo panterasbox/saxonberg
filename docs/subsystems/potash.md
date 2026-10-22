@@ -85,7 +85,40 @@ is untouched.
   title, and sells at the counter with `sell`. He earns by volume, never by
   margin.
 
+## Whose it is — the communal oven
+
+The chain's goods are titled by the kernel's fresh-good rule
+([chattel.md](./chattel.md)), extended by this build:
+
+- **A liquid carries its owner** (`BulkPayload.contentsOwner`). The hopper
+  writes it from the heaps' titles; a pour blends it by agreement: untitled
+  water makes no claim, and two owners make it nobody's.
+- ⭐ **What is made in somebody else's vessel belongs to whoever owned the
+  contents.** Your lye in the ashery's pot makes your cake. When nothing
+  titled went in (the ashery's own ash store, rain), it belongs to the
+  **maker**, the person whose pour or put the leach was part of.
+- **The pot's cake is a process mint**: it sets when somebody reads the pot,
+  so it declares its maker from the lye, and the onlooker is never titled.
+- **The kiln's pearl ash is made from its charge**. When the charge was
+  nobody's, it belongs to whoever fired the kiln, carried across the firing's
+  completion as the continuation's author.
+
 ## Limits and seams
+
+- **The boil runs on read.** The plateau and the pot's count reconcile when
+  someone reads the pot; a pour and a boil-off between two reads net out.
+  ⚠ A long unobserved stretch is ONE step of the plateau: a pot left 24 h on a
+  burning hearth barely boils, while read hourly it sets in hours (the live
+  walk, 2026-10-22). This belongs to silk's plateau, and the drive reads
+  hourly.
+- **A hopper drawn early** gives water carrying the alkali the egg already
+  reads (the leach re-keys the liquid to lye later). The pot counts dissolved
+  solids in any liquor, so nothing is lost.
+- **The ash round** stands up where its hand is cast and at every stop
+  (`LocationGraphRegistry`), and the roster fetches the ash-man to a stop
+  someone is standing in (`EmploymentLogic`). On a fresh world he takes little
+  ash, because the town's hearths have burned little: *a supplement, not a
+  living* (AC 9).
 
 - **The boil runs on read.** The plateau and the pot's count reconcile when
   someone reads the pot; a pour and a boil-off between two reads net out.
@@ -114,3 +147,9 @@ is untouched.
   concentration and weakest-input grade; the flux/stabilizer retag; slaking
   and caustic lye; the ashery, the buying lines and the ash round. See the
   potash plan's drive record for what driving found.
+- **2026-10-21/22 — verification** (`a8e9a84ad`…`717476710`): 21 drive runs
+  and a live browser walk found the cast at saturation, the transfer's
+  source and destination reconciles, the pour hand-over between two views of
+  one verb, the round that never ran, the full crock, and the attribution
+  build (continuations carry their author; the communal oven). See the
+  plan's drive record.

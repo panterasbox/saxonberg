@@ -1,6 +1,6 @@
 # Potash — implementation plan
 
-Executes [potash-requirements.md](../requirements/potash-requirements.md)
+Executes `docs/requirements/potash-requirements.md` (retired at the pre-merge sweep; last version at `bd5d22d05`)
 (**kind: feature · leads from: CONTENT** — rows on shipped mechanisms, with
 kernel corrections each naming a shipped consumer). The build makes a
 burner's ash **sized and strengthened by the wood** (the grate, the clamp
