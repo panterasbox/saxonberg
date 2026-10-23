@@ -23,6 +23,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import type { CourseRecord, HullNow } from './Voyaging';
 import { TrajectoryBuilder, type Trajectory } from './Trajectory';
@@ -248,6 +249,18 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
         continentality: site?.continentality ?? null,
         climateOffsetK: site?.climateOffsetK ?? null,
       };
+    }
+
+    /** @hook Override on the river: a place's citation, in its grammar. Default: nowhere. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    siteOf(_cite: string): FramePos | null {
+      return null;
+    }
+
+    /** @hook Override on the river: a bank's way into the water. Default: nothing. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async onSiteStood(_place: Stuff): Promise<void> {
+      return;
     }
 
     /* ─────────────────────── the river's own hooks ─────────────────────── */

@@ -12,7 +12,7 @@ data:
   coords: { x: 0, y: 0, z: 0 }
   waters:
     river: "kestrel:confluence-12"
-  bank: { course: kestrel, at: confluence-12, side: left, span: 0.15, name: woodyard }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence-12,left", span: 0.15, name: woodyard }
   props:
     - /world/terminus/woodyard/thing/rick
   cast:

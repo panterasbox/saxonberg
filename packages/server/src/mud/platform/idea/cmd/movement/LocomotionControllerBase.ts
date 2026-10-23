@@ -61,7 +61,7 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     // ⭐ A bank's ways along it and into the river are put in place on use
     // (river D8): the first move from a bank waits for them.
     const from = MixinApi.isContainable(actor) ? actor.getContainer() : null;
-    if (from !== null && MixinApi.isShore(from)) await from.bankStood();
+    if (from !== null && MixinApi.isFrameSited(from)) await from.frameSiteStood();
     if (!MixinApi.isContainable(actor) || !MixinApi.isMobile(actor)) {
       // No body-plan-shaped affordance at all — surface as a
       // mixin-missing note. Same `Scene.send` + ctx.note pairing as

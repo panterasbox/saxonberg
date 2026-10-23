@@ -310,7 +310,11 @@ export default class FerryExit extends Exit {
   private async downstreamOf(farLanding: Stuff, driftM: number): Promise<(Stuff & Container) | null> {
     const water = await FerryExit.waterSource();
     const pos = water ? await water.positionOf(this.crossesReach) : null;
-    const bank = (farLanding as unknown as { getBank?(): { side: 'left' | 'right' } | null }).getBank?.() ?? null;
+    // The far landing's bank, from where it is sited on the river (W13):
+    // the side is the line's own word, at the end of its citation.
+    const site = MixinApi.isFrameSited(farLanding) ? farLanding.getFrameSite() : null;
+    const sideWord = site?.cite.split(',')[1]?.trim();
+    const bank = site ? { side: (sideWord === 'right' ? 'right' : 'left') as 'left' | 'right' } : null;
     if (pos === null || bank === null) return null;
     try {
       const warren = (await StuffApi.singleton<Stuff>(REACH_WARREN)) as unknown as Partial<RiverStops>;

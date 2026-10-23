@@ -235,7 +235,8 @@ suite('stage C — small craft', () => {
     const righted = await say(s, 'pull canoe');
     expect(righted, righted).toMatch(/comes over the right way up/);
     // Back in, and her mate pulled in after her — by what she knows them as.
-    const back = await s.cmd('go canoe');
+    // From the water you swim to her and in, not walk.
+    const back = await s.cmd('swim canoe');
     const backSaid = squash(await back.said());
     console.log(`back in: ${back.status} ${backSaid}`);
     expect(back.status, backSaid).toBe('ok');

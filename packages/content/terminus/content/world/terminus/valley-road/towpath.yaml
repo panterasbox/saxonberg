@@ -39,4 +39,4 @@ data:
   # walkable, and the water passing within hail can reach it.
   waters:
     river: "kestrel:confluence-1.2"
-  bank: { course: kestrel, at: confluence-1.4, side: left, span: 0.4, name: towpath }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence-1.4,left", span: 0.4, name: towpath }

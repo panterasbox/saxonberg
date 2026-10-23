@@ -81,8 +81,18 @@ elevation, address and climate from the frame position.
 `right` (the bank decides — a wall or steep bank refuses; a margin racing
 faster than you swim carries you past), `upstream` / `downstream` (a
 stroke's worth, 1.1 hails), a branch at a junction, an authored place
-within hail, `down` to the bed. A bank's `river` way in is installed when a
-`Shore` with a `bank` stands (`WaterSource.onBankStood`).
+within hail, `down` to the bed. A bank's `river` way in is installed the
+first time a place sited on the river is used.
+
+⭐ **Sited on the line, not "a bank" on a shore** (W13): a quay, a towpath
+or a landing composes `FrameSitedMixin` (kernel) beside `ShoreMixin` and
+authors `frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite:
+"confluence+0.1,left", span, name }` — the citation in the river's OWN
+grammar (left and right are the line's words), read only by the frame
+(`Frame.siteOf`); the river is told the place stands there on first use
+(`Frame.onSiteStood` → the warren's bank way). `ShoreMixin` is only
+*beside a named water*, true of a mere's shore, a beach or a deck alike; a
+beach on the sea's chart would cite a node or a lat/lon in the same field.
 
 ## Bodies in moving water
 

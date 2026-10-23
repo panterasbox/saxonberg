@@ -60,20 +60,6 @@ interface WaterMemo {
   tideAtS?: number;
 }
 
-/** ⭐ Where a shore stands on a river's line (river D8). */
-export interface ShoreBank {
-  /** The course key (`kestrel`). */
-  course: string;
-  /** `node±km` — the shore's downstream end (or its one point). */
-  at: string;
-  /** River left or right, as you face downstream. */
-  side: 'left' | 'right';
-  /** How much of the line it covers, km (0 = a point). */
-  span?: number;
-  /** The word a way to it is called from the water within hail (`quay`). */
-  name?: string;
-}
-
 /** Which water a name picks, or why none. */
 export type WaterPick =
   | { key: string; citation: string }
@@ -87,11 +73,6 @@ export type WaterRefPick =
 /** Public shape added by ShoreMixin. */
 export interface Shore {
   getWaters(): Record<string, string>;
-  getBank(): ShoreBank | null;
-  setBank(value: ShoreBank | null): void;
-  /** The river frame a bank stands on, once its water source said so (river D26). */
-  getBankFrame(): string | null;
-  setBankFrame(path: string | null): void;
   setWaters(value: Record<string, string> | null): void;
   waterFor(name?: string): WaterPick;
   waterRefFor(name?: string): Promise<WaterRefPick>;
@@ -112,8 +93,6 @@ export interface Shore {
    * there is none, in words.
    */
   wayIntoWater(): { exit: Exit } | { refusal: 'no-water' | 'iced-over'; line: string };
-  /** Resolves once a bank's way into its river is in place. */
-  bankStood(): Promise<void>;
 }
 
 /** ⭐ The draw verbs, granted to whoever stands at a shore (a container grants inward). */
@@ -138,7 +117,6 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       waters: { persistent: true, authorable: true },
-      bank: { persistent: true, authorable: true },
     };
 
     /**
@@ -157,38 +135,6 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     public waters: Record<string, string> = {};
 
-    /**
-     * ⭐ Where on a river's LINE this shore stands (river D8) —
-     * `{ course, at, side, span? }`, an opaque citation the water pack
-     * interprets (the `waters:` precedent). A quay, a towpath, a landing, a
-     * bar: a shore with a `bank` is a walkable bank at its km, and a patch
-     * drifting past within hail wires a way to it. `null` for a sea shore
-     * or a mere's — honest, not missing.
-     */
-    public bank: ShoreBank | null = null;
-
-    /** The river frame this bank stands on — set by its water source (runtime). */
-    private _bankFrame: string | null = null;
-
-    public getBankFrame(): string | null {
-      return this._bankFrame;
-    }
-
-    public setBankFrame(path: string | null): void {
-      this._bankFrame = path;
-    }
-
-    public getBank(): ShoreBank | null {
-      return this.bank === null ? null : { ...this.bank };
-    }
-
-    public setBank(value: ShoreBank | null): void {
-      this.bank =
-        value && typeof value === 'object' && typeof value.course === 'string' && typeof value.at === 'string'
-          ? { ...value }
-          : null;
-    }
-
     /** Per cited key — transient, rebuilt on first use after every boot. */
     private _waterMemos: Map<string, WaterMemo> | null = null;
     /** Keys already warned about (naming no feature of this place). */
@@ -205,44 +151,6 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public async onCreate(...args: unknown[]): Promise<void> {
       await (Base.prototype as { onCreate?: (...a: unknown[]) => Promise<void> }).onCreate?.apply(this, args);
       for (const key of Object.keys(this.waters)) void this.refreshWater(key, false);
-    }
-
-    /** The bank's way in, once asked for (runtime) — see {@link bankStood}. */
-    private _bankStood: Promise<void> | null = null;
-
-    /**
-     * ⭐ A bank on a river's line gets its way into the river from its water
-     * source (river D8) — the kernel cannot work out where moving water is
-     * — the first time it is USED: somebody arrives on it, or swims from it.
-     * Load on use, never at creation: installed from a room's `onCreate`, it
-     * ran inside the clone tree that was loading the room, and two banks
-     * loading in one boot cascade collided on the exit row (the drive found
-     * the estuary reach with no way into the water).
-     */
-    public bankStood(): Promise<void> {
-      if (this.bank === null) return Promise.resolve();
-      if (this._bankStood === null) {
-        const bank = this.bank;
-        this._bankStood = findWaterSource(`${bank.course}:${bank.at}`)
-          .then((source) => source?.onBankStood(this as unknown as Stuff))
-          .catch((err) => {
-            this._bankStood = null;
-            console.warn(`ShoreMixin: the bank at ${bank.course}:${bank.at} has no way into the water:`, err);
-          });
-      }
-      return this._bankStood;
-    }
-
-    /** A player put down on a bank (a login, a spawn) is using it too. */
-    public onContainableAdded(thing: unknown): void {
-      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
-      if (this.bank !== null && MixinApi.isHasInteractive(thing as Stuff)) void this.bankStood();
-    }
-
-    /** Arriving on a bank is using it: its way into the river is put in place. */
-    public onEntered(mover: unknown, via: unknown): void {
-      (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
-      if (this.bank !== null && (mover as Stuff | null)?.isAgent?.()) void this.bankStood();
     }
 
     public getWaters(): Record<string, string> {

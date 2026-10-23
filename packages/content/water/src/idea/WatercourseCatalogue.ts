@@ -1231,25 +1231,6 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
   // ---------- the line (river D1) ----------
 
-  /**
-   * ⭐ A bank on a river's line has stood up (river D8): its way into the
-   * water there, which the river's warren works out when it is taken.
-   */
-  public override async onBankStood(shore: Stuff): Promise<void> {
-    const bank = MixinApi.isShore(shore) ? shore.getBank() : null;
-    if (bank !== null && MixinApi.isShore(shore)) {
-      // ⭐ The bank's frame (D26): the river it stands on, stood up, so the
-      // horizon from it reads the line.
-      const frame = `${WATERCOURSE_PATH_PREFIX}/${bank.course}`;
-      await StuffApi.singleton<Stuff>(frame).catch(() => null);
-      shore.setBankFrame(frame);
-    }
-    const warren = await StuffApi.singleton<Stuff & { installBankWay(s: Stuff): Promise<void> }>(
-      '/system/water/idea/ReachWarren',
-    );
-    await warren.installBankWay(shore);
-  }
-
   /** The rivers that join `courseKey`, and the km of their junction on it. */
   public tributariesOfSync(courseKey: string): Array<{ course: string; km: number }> {
     const index = this.loaded;
@@ -1973,10 +1954,14 @@ async function compilePlaces(
         continue;
       }
       const river = data.river as Record<string, unknown> | undefined;
-      const bank = data.bank as Record<string, unknown> | undefined;
+      // ⭐ A land place is sited on the line by its `frameSite` (W13): the
+      // citation is the river's own grammar, `node±km,side`.
+      const site = data.frameSite as Record<string, unknown> | undefined;
+      const [siteAt, siteSide] = typeof site?.cite === 'string' ? site.cite.split(',').map((x) => x.trim()) : [];
+      const bank = site ? { at: siteAt, side: siteSide, span: site.span, name: site.name } : undefined;
       const spec = river ?? bank;
       if (!spec || typeof spec.at !== 'string') {
-        problems.push(`watercourse '${course.key}' names '${path}', which stands nowhere on it (no river: or bank:)`);
+        problems.push(`watercourse '${course.key}' names '${path}', which stands nowhere on it (no river: or frameSite:)`);
         continue;
       }
       const cite = RiverLine.parseCitation(spec.at.includes(':') ? spec.at : `${course.key}:${spec.at}`);

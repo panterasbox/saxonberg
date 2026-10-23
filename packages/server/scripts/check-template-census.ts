@@ -238,6 +238,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // silently falls back to the universe default: the room would quietly
   // be made of something else and nothing would say so. `lint:envelope`
   // clause (b) additionally checks the material CONDUCTS.
+  // ⭐ (W13) A fixed place's `frameSite.frame` — the frame it stands on; a
+  // rowless one is a quay on a river that is not there.
+  if (data.frameSite && typeof data.frameSite === 'object') {
+    push('frameSite', (data.frameSite as Record<string, unknown>).frame);
+  }
   if (data.enclosure && typeof data.enclosure === 'object') {
     push('enclosure', (data.enclosure as Record<string, unknown>).material);
   }

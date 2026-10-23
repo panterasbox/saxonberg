@@ -246,4 +246,4 @@ data:
     river: kestrel:confluence+0.1
   # ⭐ Where the quay stands on the Kestrel's line (the river build, D8):
   # the left bank, from the steps two hundred meters down past the outfall.
-  bank: { course: kestrel, at: confluence+0.1, side: left, span: 0.2, name: quay }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence+0.1,left", span: 0.2, name: quay }

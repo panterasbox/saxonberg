@@ -53,6 +53,8 @@ import {
 } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type WatercourseCatalogue from './WatercourseCatalogue';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 import type { BoundaryRole } from '@saxonberg/server/mud/lib/security/BoundaryRole';
@@ -534,6 +536,18 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
       '/system/water/idea/ReachWarren',
     );
     return warren?.kedgeNear(pos) ?? null;
+  }
+
+  /** ⭐ A place on this river (W13): `node±km[,side]`, the river's own grammar, on this course. */
+  public override siteOf(cite: string): FramePos | null {
+    const at = this.catalogue()?.positionOfSync(`${this.key}:${cite}`) ?? null;
+    return at === null ? null : { frame: 'line', at };
+  }
+
+  /** ⭐ A bank on this river is being used (D8, W13): the river gives it its way into the water. */
+  public override async onSiteStood(place: Stuff): Promise<void> {
+    const warren = await StuffApi.singleton<Idea & { installBankWay(s: Stuff): Promise<void> }>('/system/water/idea/ReachWarren');
+    await warren.installBankWay(place);
   }
 
   public override mouthOnSea(): { expanse: string; node: string } | null {

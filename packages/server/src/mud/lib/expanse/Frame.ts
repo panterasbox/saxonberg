@@ -105,6 +105,18 @@ export interface Frame {
     hull: HullNow,
     nowS: number,
   ): Promise<{ course: CourseRecord; trajectory: Trajectory } | { refused: string }>;
+  /**
+   * ⭐ Where a fixed place stands (W13): `cite` in this frame's OWN grammar
+   * (`confluence+0.1,left` on a river's line; a node or a lat/lon on a
+   * chart), or `null` when it names nowhere on it.
+   */
+  siteOf(cite: string): FramePos | null;
+  /**
+   * ⭐ A fixed place sited on this frame is being used for the first time
+   * (W13): what standing there means — a river gives a bank its way into
+   * the water. Never called at a place's creation.
+   */
+  onSiteStood(place: Stuff): Promise<void>;
   /** ⭐ The geography at a position on this frame (D44): elevation, address, climate. */
   siteAt(pos: FramePos): FrameSite | null;
   /** ⭐ One watch, `fromS` to `toS`: what changed, how far she came, and the stop if it has come. */

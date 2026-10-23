@@ -2452,6 +2452,23 @@ timetabled ferry (D45), drive steps, a full guarded pass.
   by `FerryExit` and the `ferries` brain; Nesbit's market boat; drive step
   E36. The census reads `service` and `landings`.
 
+### Review — W13: a place sited on a frame, not a river bank on every shore
+
+The user's review: `ShoreMixin` is the shore model for everyone, but this
+build had put `bank: { course, at, side, span, name }` on it — left and
+right bank mean nothing beside a mere or the sea. Now `FrameSitedMixin`
+(kernel, `lib/expanse/FrameSited.ts` — named for the frames model, not a
+universal "site", at the user's word) is the static twin of `Moving`: a
+fixed place's `frameSite: { frame, cite, span?, name? }`, the citation in
+the frame's own grammar. `Frame` gains `siteOf(cite)` (the line reads
+`node±km,side`, the chart a node or `lat,lon`) and `onSiteStood(place)`
+(the river's bank way; nothing on the chart yet). Composed on `Shore` and
+`Quay`; the eleven banked rows now author `frameSite`; `ShoreMixin` lost
+`bank`, `bankStood` and the runtime frame memo; `WaterSource.onBankStood`
+is gone (the river's `Watercourse.onSiteStood` does it). The warren keeps
+its river terms through one private adapter (`bankOf`). The census reads
+`frameSite.frame`.
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
 - **Pass 12** runs against d6ac09e88 on a 3 GB world

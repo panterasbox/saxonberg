@@ -1304,7 +1304,7 @@ function horizonOnRiver(viewer: Stuff): HorizonView | null {
   if (room === null) return null;
   const framePath =
     (MixinApi.isPositioned(room) ? room.getLine() : null) ??
-    (MixinApi.isShore(room) ? room.getBankFrame() : null);
+    (MixinApi.isFrameSited(room) ? room.getFrameSite()?.frame ?? null : null);
   if (!framePath) return null;
   const frame = StuffApi.findByTemplatePath<Stuff>(framePath);
   if (!frame || !MixinApi.isLineFrame(frame)) return null;

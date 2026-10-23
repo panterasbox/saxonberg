@@ -57,4 +57,4 @@ data:
   # try it — how deep, how fast — because the ford reads YOU.
   waters:
     channel: "delight:mouth-0.3"
-  bank: { course: delight, at: mouth-0.4, side: right, span: 0.15, name: ford }
+  frameSite: { frame: /stuff/idea/Watercourse/delight, cite: "mouth-0.4,right", span: 0.15, name: ford }

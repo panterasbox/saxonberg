@@ -429,6 +429,23 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   }
 
   /**
+   * ⭐ A fixed place on the chart (W13): a node's path (where the node is),
+   * or `lat,lon` in degrees.
+   */
+  public siteOf(cite: string): FramePos | null {
+    const node = this.loadedNodes.find((n) => n.getTemplatePath() === cite);
+    const at = node?.getExpansePosition() ?? null;
+    if (at !== null) return { frame: 'chart', at };
+    const m = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(cite);
+    return m ? { frame: 'chart', at: new GeoPosition(Number(m[1]), Number(m[2])) } : null;
+  }
+
+  /** Standing on the chart's shore means nothing more yet (W13). */
+  public async onSiteStood(_place: Stuff): Promise<void> {
+    return;
+  }
+
+  /**
    * ⭐ The sea's geography at a chart position (D44): sea level, this
    * expanse's address, the latitude where the position IS, and the climate
    * levers the expanse's own chain carries. A sea room's zone answers

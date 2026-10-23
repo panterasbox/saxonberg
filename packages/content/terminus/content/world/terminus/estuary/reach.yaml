@@ -43,4 +43,4 @@ data:
   # walkable, and the water passing within hail can reach it.
   waters:
     tide: "kestrel:estuary-1.0"
-  bank: { course: kestrel, at: estuary-1.2, side: left, span: 0.5, name: towpath }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-1.2,left", span: 0.5, name: towpath }

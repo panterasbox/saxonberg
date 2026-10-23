@@ -13,7 +13,7 @@ data:
   coords: { x: 0, y: 0, z: 0 }
   waters:
     river: "kestrel:falls-0.3"
-  bank: { course: kestrel, at: falls-0.4, side: left, span: 0.3, name: ledge }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "falls-0.4,left", span: 0.3, name: ledge }
   details:
     river:
       keywords: [river, kestrel, water, lip]

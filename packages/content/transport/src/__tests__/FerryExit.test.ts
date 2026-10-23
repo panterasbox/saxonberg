@@ -22,7 +22,7 @@ let current = 0.5;
 let contents: Stuff[] = [];
 const ferry = { getTemplatePath: () => FERRY, stuffId: 'ferry' } as unknown as Stuff;
 const landing = { getTemplatePath: () => '/here', getContents: () => contents } as unknown as Stuff;
-const far = { getTemplatePath: () => '/there', getBank: () => ({ side: 'right' }) } as unknown as Stuff;
+const far = { getTemplatePath: () => '/there', getFrameSite: () => ({ frame: '/stuff/idea/Watercourse/kestrel', cite: 'confluence+0.4,right' }) } as unknown as Stuff;
 const stop = { stuffId: 'stop' } as unknown as Stuff;
 const moves: Array<[string, string]> = [];
 
@@ -53,6 +53,7 @@ beforeEach(() => {
   vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x === landing) as never);
   vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(true);
+  vi.spyOn(MixinApi, 'isFrameSited').mockImplementation(((x: unknown) => x === far) as never);
   vi.spyOn(MixinApi, 'isEmployed').mockImplementation(((x: { getEmployment?: () => unknown }) => x.getEmployment?.() != null) as never);
   vi.spyOn(ContainmentApi, 'move').mockImplementation(((t: Stuff, to: Stuff) => {
     moves.push([t.stuffId, (to as unknown as { stuffId?: string }).stuffId ?? (to.getTemplatePath?.() ?? '?')]);

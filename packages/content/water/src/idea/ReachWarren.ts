@@ -59,6 +59,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { LinePosition, RiverSide } from '../lib/RiverLine';
+import { WATERCOURSE_PATH_PREFIX } from './Watercourse';
 import type WatercourseCatalogue from './WatercourseCatalogue';
 import type { LinePlace } from './WatercourseCatalogue';
 import type ReachPatch from '../location/ReachPatch';
@@ -1098,8 +1099,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       this._shipOf.set(patch.stuffId, ship.getTemplatePath() ?? '');
       return patch as unknown as Stuff & Container;
     }
-    if (!MixinApi.isShore(from) || from.getBank() === null) return null;
-    const b = from.getBank()!;
+    if (this.bankOf(from) === null) return null;
+    const b = this.bankOf(from)!;
     const cat = this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH));
     const pos = await cat.positionOf(`${b.course}:${b.at},${b.side}`);
     if (pos === null) return null;
@@ -1244,8 +1245,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     if (!cat || !line) return [];
     const p = place as Stuff;
     let km: number | null = (p as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.()?.km ?? null;
-    if (km === null && MixinApi.isShore(p) && p.getBank() !== null) {
-      const b = p.getBank()!;
+    if (km === null && this.bankOf(p) !== null) {
+      const b = this.bankOf(p)!;
       km = cat.positionOfSync(`${b.course}:${b.at}`)?.km ?? null;
     }
     if (km === null) return [];
@@ -1284,8 +1285,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       course = own.course;
       km = own.km;
       side = own.across < this.widthAt(course, km) / 2 ? 'left' : 'right';
-    } else if (MixinApi.isShore(source) && source.getBank() !== null) {
-      const b = source.getBank()!;
+    } else if (this.bankOf(source) !== null) {
+      const b = this.bankOf(source)!;
       const placed = cat.placesOfSync(b.course).find((p) => p.path === (source.getTemplatePath() ?? ''));
       course = b.course;
       side = b.side;
@@ -1399,13 +1400,32 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const ship = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
     if (ship && MixinApi.isPositioned(ship) && ship.getLinePosition() !== null) return ship.getLinePosition();
     // A bank on the line: the margin of the water beside it.
-    if (MixinApi.isShore(source) && source.getBank() !== null) {
-      const bank = source.getBank()!;
+    if (this.bankOf(source) !== null) {
+      const bank = this.bankOf(source)!;
       const cat = this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH));
       const pos = await cat.positionOf(`${bank.course}:${bank.at},${bank.side}`);
       if (pos !== null) return pos;
     }
     return this.endOf(source, way === 'upstream' ? 'upstream' : 'downstream');
+  }
+
+  /**
+   * A fixed place sited on one of this realm's rivers (W13), read in the
+   * river's own terms: which course, where (`node±km`), which bank, how
+   * much of it. `null` for a place on no river.
+   */
+  private bankOf(place: Stuff): { course: string; at: string; side: RiverSide; span?: number; name?: string } | null {
+    if (!MixinApi.isFrameSited(place)) return null;
+    const site = place.getFrameSite();
+    if (site === null || !site.frame.startsWith(`${WATERCOURSE_PATH_PREFIX}/`)) return null;
+    const [at, sideWord] = site.cite.split(',').map((x) => x.trim());
+    return {
+      course: site.frame.slice(WATERCOURSE_PATH_PREFIX.length + 1),
+      at: at ?? '',
+      side: sideWord === 'right' ? 'right' : 'left',
+      ...(site.span !== undefined ? { span: site.span } : {}),
+      ...(site.name !== undefined ? { name: site.name } : {}),
+    };
   }
 
   /** An authored river place's end, as a position on its line. */
