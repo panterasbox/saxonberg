@@ -57,7 +57,8 @@ import Killick from './Killick';
 import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft;
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft &
+  { entryMediaIn(env: Stuff & Container): string[] };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BoatBase = PullableMixin(
@@ -249,6 +250,16 @@ export default class Boat extends BoatBase {
     const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
     if (!water) return { ok: false, line: 'The killick goes over the side and hangs there.' };
     return water.holdBoat(this);
+  }
+
+  /**
+   * ⭐ Afloat, she is climbed into from the water as well as from a bank
+   * or a deck alongside (river C21 — the browser walk: a swimmer righted
+   * her, was told by `go canoe` to swim for it, and by `swim canoe` that
+   * they could not).
+   */
+  public override entryMediaIn(env: Stuff & Container): string[] {
+    return MixinApi.isWaterPlace(env) ? ['ground', 'water'] : [];
   }
 
   /** ⭐ She carries a killick (D28): a stop that holds her is held by it. */

@@ -1419,7 +1419,18 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     return null;
   }
 
-  /** ⭐ What changed in the water between two km, in order of travel (D18). */
+  /**
+   * ⭐ What changed in the water between two km, in order of travel (D18):
+   * what a ship's people notice over one watch.
+   *
+   * ⚠ The CHARACTER of the water, not every step of it. A step–pool reach
+   * changes every few tens of meters, and a watch covers a kilometer: told
+   * stretch by stretch, the browser walk got a line a second, pool–rapid–
+   * run round and round with a snag warning between each (river D31). So
+   * one or two changes are told as they come; more are one line for the
+   * reach — a stair of pools and broken water — and where she ends; a
+   * named bend and the snags are told once.
+   */
   public changesAlong(course: string, fromKm: number, toKm: number): string[] {
     const line = this.lineOfSync(course);
     if (line === null || Math.abs(toKm - fromKm) < 1e-6) return [];
@@ -1428,17 +1439,30 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const crossed = line.stretchesBetween(Math.min(fromKm, toKm), Math.max(fromKm, toKm))
       .filter((s) => s !== from && s.upKm > Math.min(fromKm, toKm) && s.downKm < Math.max(fromKm, toKm));
     crossed.sort((a, b) => (up ? a.downKm - b.downKm : b.upKm - a.upKm));
-    const out: string[] = [];
+    const changes: string[] = [];
     let was = from?.flow ?? null;
     for (const s of crossed) {
-      if (s.flow !== was) {
-        const words = FLOW_CHANGE[s.flow];
-        if (words) out.push(s.bendName ? `${words} This is ${s.bendName}.` : words);
-      }
-      // ⭐ Snags show — dark heads in the water, a branch combing the
-      // current — and a master who sees them can slow down (D29).
-      if (s.obstruction > SNAG_CHOKED) out.push('Snags ahead: dead branches comb the current, and something dark lies just under the surface.');
+      if (s.flow !== was) changes.push(s.flow);
       was = s.flow;
+    }
+    const out: string[] = [];
+    if (changes.length <= 2) {
+      for (const flow of changes) {
+        const words = FLOW_CHANGE[flow];
+        if (words) out.push(words);
+      }
+    } else {
+      const broken = changes.includes('rapid') ? 'white water' : changes.includes('riffle') ? 'shallow riffles' : 'quicker runs';
+      const ends = FLOW_ENDS[changes[changes.length - 1]!] ?? '';
+      out.push(`${up ? 'She works up' : 'She runs down'} a stair of pools and ${broken}, the leadsman calling all the way${ends}.`);
+    }
+    // Told as she comes into them: the last watch ended where this one starts.
+    const bend = crossed.find((s) => s.bendName && s.bendName !== from?.bendName)?.bendName;
+    if (bend) out.push(`This is ${bend}.`);
+    // ⭐ Snags show — dark heads in the water, a branch combing the
+    // current — and a master who sees them can slow down (D29).
+    if ((from?.obstruction ?? 0) <= SNAG_CHOKED && crossed.some((s) => s.obstruction > SNAG_CHOKED)) {
+      out.push('Snags ahead: dead branches comb the current, and something dark lies just under the surface.');
     }
     return out;
   }
@@ -1696,6 +1720,14 @@ const FLOW_CHANGE: Record<string, string> = {
   run: 'The water quickens into a steady run.',
   riffle: 'The water pales and chatters over a shallow riffle; the leadsman calls the marks short.',
   rapid: 'White water ahead: she bucks and slews in broken water.',
+};
+
+/** Where a stair of water leaves her, as the end of a sentence. */
+const FLOW_ENDS: Record<string, string> = {
+  pool: '; now she runs easy through a long pool',
+  run: '; now the water runs steady under her',
+  riffle: '; now it pales over a riffle',
+  rapid: '; now she is in broken water',
 };
 
 /** Whether the sun is up at a game second — a crude day for the eye on the water. */

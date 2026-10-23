@@ -60,6 +60,20 @@ describe('the market boat', () => {
     expect(s.nextDepartureFrom(NEAR)).toBeNull();
   });
 
+  it('⭐ a boat is wanted at a landing before boarding opens there — a crossing ahead of it (E36)', () => {
+    const s = service();
+    // The 07:00 from the towpath boards at 06:50; she must leave the far side by 06:42.
+    nowS = at(80, 6, 40);
+    expect(s.boardingAt(NEAR)).toBe(false);
+    expect(s.wantedAt(NEAR)).toBe(false);
+    nowS = at(80, 6, 43);
+    expect(s.wantedAt(NEAR)).toBe(true);
+    nowS = at(80, 6, 55);
+    expect(s.wantedAt(NEAR)).toBe(true);
+    nowS = at(80, 8, 0);
+    expect(s.wantedAt(NEAR)).toBe(false);
+  });
+
   it('⭐ out of season she is on call all day — the bell rules', () => {
     const s = service();
     nowS = at(20, 5, 55);

@@ -108,6 +108,7 @@ describe('⭐ to the timetable (river W12)', () => {
         ? Object.assign(Object.create(FerryService.prototype), {
             isTimetabled: () => phase !== 'on-call',
             phaseNow: () => phase,
+            wantedAt: (l: string) => phase === `boarding:${l}`,
             lastDepartureFrom: () => lastDepart,
           })
         : { getLastRungAtS: () => (p === '/bell/b' ? rungAt : Number.NEGATIVE_INFINITY) }) as never);

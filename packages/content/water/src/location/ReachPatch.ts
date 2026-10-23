@@ -42,6 +42,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -188,6 +189,7 @@ export default class ReachPatch extends ReachPlaceBase {
     const before = was ? line.stretchAt(was.km) : null;
     const after = line.stretchAt(to.at.km);
     if (!after || (before && before.kind === after.kind && before.bendName === after.bendName)) return;
+    if (!this.worthTelling(after.kind, after.bendName ?? null)) return;
     const iced = this.underIce();
     const said = iced
       ? 'The ice closes over your head: grey light, the sheet a hand above you, and the current taking you along under it.'
@@ -196,6 +198,30 @@ export default class ReachPatch extends ReachPlaceBase {
     // ⭐ Through the chunked teller (D42): a fast run through three riffles
     // is one beat, not three lines.
     await this.tellAboard(`${said}${bend}`);
+  }
+
+  /** What the water under you was last told as, and when, game-seconds (runtime). */
+  private lastTold: { kind: string; bend: string | null; atS: number } | null = null;
+
+  /**
+   * ⭐ The character of the water, not every step of it (river A2, the
+   * browser walk): a step–pool reach changes every few tens of meters, and
+   * told stretch by stretch a swimmer got pool, white water, run, pool… a
+   * line every few seconds. Dangerous water and a new bend are always told;
+   * quiet water once in `water.river.tellQuietGameMinutes` (5), and never
+   * the same water twice running.
+   */
+  public worthTelling(kind: string, bend: string | null): boolean {
+    const nowS = WorldClockApi.getNow().rawValue();
+    const last = this.lastTold;
+    const newBend = bend !== null && bend !== last?.bend;
+    const dangerous = kind === 'rapid' || kind === 'falls' || kind === 'gorge';
+    let tell = newBend || last === null;
+    if (!tell && kind !== last!.kind) {
+      tell = dangerous || nowS - last!.atS >= quietMinutes() * 60;
+    }
+    if (tell) this.lastTold = { kind, bend, atS: nowS };
+    return tell;
   }
 
   private catalogue(): WatercourseCatalogue | null {
@@ -216,7 +242,28 @@ export default class ReachPatch extends ReachPlaceBase {
     if (!s) return ['You are in the river.'];
     const out = [`${LOOK_WORDS[s.kind] ?? 'The river carries you'}${s.bendName ? `, at ${s.bendName}` : ''}.`];
     out.push(`On the left, ${BANK_WORDS[s.banks.left.kind] ?? 'the bank'}; on the right, ${BANK_WORDS[s.banks.right.kind] ?? 'the bank'}.`);
+    // ⭐ The last landmark (requirement step 2): the nearest place on the
+    // river you have come down past, and how far back it is.
+    const passed = (this.catalogue()?.placesOfSync(pos.course) ?? [])
+      .filter((p) => p.downKm >= pos.km)
+      .sort((a, b) => a.downKm - b.downKm)[0];
+    if (passed) {
+      const back = passed.downKm - pos.km;
+      const far = back < 0.05 ? 'just behind you' : back < 1 ? `${Math.round(back * 10) * 100} meters back upstream` : `${back.toFixed(1)} km back upstream`;
+      const named = StuffApi.findByTemplatePath<Stuff>(passed.path)?.getPresentation() ?? passed.name;
+      out.push(`The last place you came by was ${named}, ${far}.`);
+    }
     return out;
+  }
+}
+
+/** How long quiet water goes untold after it was last told, game minutes. */
+function quietMinutes(): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting('water.river.tellQuietGameMinutes') ?? '');
+    return Number.isFinite(n) && n >= 0 ? n : 5;
+  } catch {
+    return 5;
   }
 }
 

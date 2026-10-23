@@ -84,6 +84,23 @@ export default class FerryService extends PositionedService {
     return this.phaseNow() === `boarding:${landing}`;
   }
 
+  /**
+   * ⭐ Is a boat wanted at `landing` — boarding open there, or its next
+   * departure close enough that she must set off now to be alongside when
+   * boarding opens (a crossing plus the boarding window)? What the ferryman
+   * brings her over for. Waiting for boarding to open was too late: at the
+   * world's 12× a ten-minute window is under a minute, and after any gap
+   * (a restart, a quiet night) she lies at the other landing (river E36,
+   * the browser walk).
+   */
+  public wantedAt(landing: string): boolean {
+    if (this.boardingAt(landing)) return true;
+    const next = this.nextDepartureFrom(landing);
+    if (next === null || this.timetable === null) return false;
+    const leadS = (Math.max(1, this.timetable.crossingMin) + Math.max(1, this.timetable.boardMin ?? 10)) * 60;
+    return next - this.nowS() <= leadS;
+  }
+
   /** When the next boat leaves `landing` today, game-seconds, or `null` (no more today). */
   public nextDepartureFrom(landing: string): number | null {
     const now = this.nowS();

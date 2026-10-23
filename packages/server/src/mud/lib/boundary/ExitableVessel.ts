@@ -306,6 +306,7 @@ export default class ExitableVessel extends ExitableVesselBase {
       destination: this as unknown as Stuff & Container,
       keepLiveDestination: true,
       door,
+      media: this.entryMediaIn(env),
       messageOut: `{{ mover }} enters the <thing>${vesselName}</thing>.`,
       messageIn: `{{ mover }} enters from outside.`,
     };
@@ -319,6 +320,17 @@ export default class ExitableVessel extends ExitableVesselBase {
     }
     this.outCacheEnvId = env.stuffId;
     this.entryCacheEnvId = env.stuffId;
+  }
+
+  /**
+   * The media the way in admits from `env` — who can get aboard from where
+   * she lies. Re-asked at every rebind, because it follows where she is.
+   * @hook A boat lying in water is climbed into from the water (river C21).
+   *   Default: `[]`, walk-only — a cart is climbed into from the ground.
+   */
+  public entryMediaIn(env: Stuff & Container): string[] {
+    void env;
+    return [];
   }
 
   public override getExit(direction: string): Exit | undefined {

@@ -224,6 +224,15 @@ suite('stage D — a ship on the river', () => {
       await advanceWorldClock('30 minutes');
       sea += ' ' + squash(await master.listen(3_000));
       if (/out over the bar/.test(sea)) break;
+      // ⭐ Her stop is found by her next WATCH (ten game minutes on a river —
+      // under a minute of real time at 12×), and a clock jump does not run
+      // one: at the mouth, stay for it (the browser walk saw her go out over
+      // the bar a watch after she reached it; this loop never waited).
+      const where = await say(master, 'course');
+      if (/at the mouth|0 meters above the mouth/.test(where)) {
+        sea += ' ' + squash(await master.listen(70_000));
+        break;
+      }
     }
     console.log(`down to the bar: ${sea.slice(0, 1500)}`);
     expect(sea, 'she never came out over the bar').toMatch(/out over the bar/);

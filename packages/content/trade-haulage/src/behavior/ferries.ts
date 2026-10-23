@@ -70,8 +70,9 @@ export const brain = class {
       const room = host.getContainer();
       const exit = room !== null && MixinApi.isExitable(room) ? room.getExit(way) : undefined;
       if (!(exit instanceof FerryExit) || exit.ferryHere() === null) return;
-      // Boarding called across the water, and she is here with him: over to it.
-      const boardingThere = service.phaseNow() === `boarding:${landings[other]}`;
+      // Wanted across the water — boarding called there, or soon to be —
+      // and she is here with him: over to it, in time for the boarding.
+      const boardingThere = service.wantedAt(landings[other]!);
       // A departure from here has come, and she is still here: away.
       const due = service.lastDepartureFrom(here);
       const departed = typeof ctx.state.departedAtS === 'number' ? ctx.state.departedAtS : Number.NEGATIVE_INFINITY;

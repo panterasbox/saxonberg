@@ -771,10 +771,16 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const heard = this._heard.get(patch.stuffId);
     if (heard === ahead.id) return;
     this._heard.set(patch.stuffId, ahead.id);
+    // ⭐ A roar is news once: not the next white water of a stair you are
+    // already going down (the browser walk heard it every sixty meters).
+    if (ahead.flow !== 'falls' && line.stretchAt(at.km)?.flow === 'rapid') return;
+    if (ahead.flow !== 'falls' && !patch.worthTelling('roar', null)) return;
     const line_ = ahead.flow === 'falls'
       ? 'Ahead of you, under the sound of the water, a deep steady roar that is not the wind: the falls.'
       : 'Ahead, round the bend, the river is roaring — white water, and you are going into it.';
-    for (const c of (patch as unknown as Stuff & Container).getContents()) this.tellOf(c, Mml.compose`${line_}`);
+    // Through the patch's own teller, so it is heard before the water it
+    // warns of is told — not after it (the browser walk heard it late).
+    void patch.tellAboard(line_);
   }
 
   /** Is everybody in the patch letting the water take them? */
