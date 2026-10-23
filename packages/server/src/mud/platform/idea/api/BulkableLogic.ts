@@ -538,16 +538,21 @@ export class BulkableLogic extends ApiLogic {
       // heat (run 21's DIAG: "superheat=0.0"). Then the matter lands, the
       // mould hears the pour, and only then is the heat set.
       if (toHolder !== null && MixinApi.isThermal(toHolder)) toHolder.getTemperature();
-      to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
-      if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
-        toHolder.receivedPour({ temperatureK: blendFromK, litres: applied, material });
-      }
+      // ⭐ …and the HEAT before the matter: set first, the vessel's clock
+      // restarts at the pour, so no read can find the landed pool at the
+      // mould's own cold temperature (run 28: a pour "set" mid-transfer —
+      // `setContentsTemperature` reconciles first, and it was reconciling a
+      // pool already landed and still cold).
       if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
         toHolder.setContentsTemperature(
           toAmountBefore <= 0 || blendToK === null
             ? blendFromK
             : (applied * blendFromK + toAmountBefore * blendToK) / (applied + toAmountBefore),
         );
+      }
+      to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
+      if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
+        toHolder.receivedPour({ temperatureK: blendFromK, litres: applied, material });
       }
       // Mass(volume)-weighted blend of the two loads. A pour into an empty
       // slot just carries the source's load across (the arithmetic degrades

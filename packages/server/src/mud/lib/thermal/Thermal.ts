@@ -651,7 +651,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * makes `#` unreachable from proxy-dispatched methods). Transient.
      */
     private _thermalReconciling = false;
-    /** The drift the last reconcile integrated, for the phase pass that follows it (transient). */
+    /** The drift the last reconcile integrated, until a phase pass consumes it (transient). */
     private _lastDrift: { seconds: number; tauS: number } | null = null;
 
     /**
@@ -842,10 +842,14 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this._phaseReconciling) return;
       this._phaseReconciling = true;
       try {
+        // The drift is CONSUMED by the phase pass that reads it — whichever
+        // path that pass came by — so it is never banked twice.
+        const drift = this._lastDrift;
+        this._lastDrift = null;
         reconcilePhaseImpl(this as unknown as Stuff, {
           nowS: this.thermalNowSeconds(),
           horizonS: this.thermalRing().horizonS(),
-          drift: this._lastDrift,
+          drift,
         });
       } finally {
         this._phaseReconciling = false;
@@ -1186,7 +1190,6 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       ) {
         this.reconcilePhase();
       }
-      this._lastDrift = null;
 
       // ⭐⭐ **And a body that has been hot carries what the heat did to
       // it** (ceramics M1). After the phase pass, on the same lazy read,
