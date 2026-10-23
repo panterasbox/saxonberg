@@ -2278,14 +2278,12 @@ function plateauHeatJ(
   if (!(gap > 0)) return (mp - temp) * capacityJ;
   if (temp >= mp) return 0;
   const above = temp - ambientK;
-  // Below the air it is drifting toward: the air warmed since (a sunrise),
-  // and the drift says nothing exact — the old figure.
-  if (above < -1e-9) return (mp - temp) * capacityJ;
   if (above <= 1e-9) {
-    // ⚠ AT the air the drift cannot say how long it has sat there — a
-    // pool read the instant it landed in a cold mould, before its heat was
-    // set, is here too (run 26: a pour "set" mid-transfer). So by the time
-    // that drift actually covered: on the plateau the pool loses
+    // ⚠ AT (or below) the air the drift cannot say how long the pool sat
+    // there: below it, the air warmed over the gap — a sunrise, or a damp
+    // mould's evaporative chill easing as it dried (run 29: a damp-blown
+    // flask read once after three hours stayed liquid on the old figure).
+    // So by the time the drift actually covered: on the plateau a pool loses
     // C·(mp − amb)/τ a second. No drift on record: the old figure.
     if (drift && drift.tauS > 0) return capacityJ * gap * (drift.seconds / drift.tauS);
     return (mp - temp) * capacityJ;
