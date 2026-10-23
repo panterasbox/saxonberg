@@ -22,6 +22,7 @@ import { MixinApi } from '../../api/mixin';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
+import { PerceptionApi } from '../../api/perception';
 import { AudienceGather } from '../perception/AudienceGather';
 import { Sound } from '../perception/Sound';
 
@@ -272,8 +273,23 @@ export class Scene {
         if (causingCommandId !== undefined) meta.causingCommandId = causingCommandId;
         if (this.#modality !== null) meta.modality = this.#modality;
         Object.assign(meta, this.#extraMeta);
-        const body =
-          af.body instanceof Mml ? af.body.toString(recipient) : af.body;
+        // ⭐ One frame's body is one synchronous READ: hold the light steady
+        // across it, so the room's light is walked once, not once per thing
+        // the body describes. An NPC's `look` over a full room re-walked the
+        // light graph per object, and a long clock advance — every brain's
+        // look rendered in turn — stopped the world answering for minutes
+        // (the ceramics drives, runs 29–30; the silk walk's counter, again).
+        let body: MessageFrame['body'];
+        if (af.body instanceof Mml) {
+          const release = PerceptionApi.holdLightSteady();
+          try {
+            body = af.body.toString(recipient);
+          } finally {
+            release();
+          }
+        } else {
+          body = af.body;
+        }
         const frame: MessageFrame = {
           id: SecurityApi.uuid(),
           topic: this.#topic!,
