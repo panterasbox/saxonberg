@@ -84,6 +84,19 @@ stroke's worth, 1.1 hails), a branch at a junction, an authored place
 within hail, `down` to the bed. A bank's `river` way in is installed the
 first time a place sited on the river is used.
 
+⭐ **The water is told by its character, not its steps** (the browser
+walk). A step–pool reach changes every few tens of meters, so a body or a
+ship told stretch by stretch got a line every few seconds. A swimmer's
+patch tells dangerous water (a rapid, the falls, a gorge) and a new bend
+always, quiet water at most once in `water.river.tellQuietGameMinutes` (5)
+and never the same water twice running (`ReachPatch.worthTelling`); the
+roar of white water ahead rides the patch's own teller, so it is heard
+before the water it warns of, and is news once a while. A ship's watch
+(`changesAlong`) tells one or two changes as they come, more as one line
+for the reach — *she runs down a stair of pools and white water* — and a
+named bend and snags once, as she comes into them. The patch's own read
+names **the last place you came by** and how far back upstream it is.
+
 ⭐ **Sited on the line, not "a bank" on a shore** (W13): a quay, a towpath
 or a landing composes `FrameSitedMixin` (kernel) beside `ShoreMixin` and
 authors `frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite:
@@ -144,7 +157,7 @@ set is brought to it.
 
 ## Small craft (transport pack)
 
-A `Boat` is a **thing in a water room**: never positioned, never voyaging,
+A `Boat` is a **thing in a water place**: never positioned, never voyaging,
 its zone null for life (every boat row is a transport **kind** row; a census
 test refuses a venue's). It carries what drives it:
 
@@ -153,12 +166,19 @@ test refuses a venue's). It carries what drives it:
   `--inside` the slack of the bend, `--hard` a burst. A pole needs a bottom
   it can reach and is strongest in the shallows. Each 1.1 hails of way moves
   her into the water the warren names — the same water a swimmer's stroke
-  reaches. A wave over her freeboard swamps her; `pull boat` rights her.
+  reaches. A wave over her freeboard swamps her; `pull boat` rights her,
+  and you get back in from the water with `swim <boat>` — afloat, her way in
+  admits the water as well as a bank (`ExitableVessel.entryMediaIn`, a hook
+  whose default is walk-only: a cart is not boarded by swimming).
 - **Under sail**: `course` from a tiller (a `Helm`) in a boat with a sail
   part — the wind drives `Propel`, a third of its speed, nobody tires;
   refused becalmed or on water narrower than three hull lengths.
 - **The killick** affords `anchor`: it holds in slack water (the boat's spot
-  becomes a stop) and drags in quick.
+  becomes a stop) and drags in quick. The boat lets it go
+  (`SmallCraft.letGoAnchor`). ⚠ An affordance from something in the boat
+  beside you survives the boat being carried (the browser walk found
+  `anchor` gone once she was launched — a moving container dropped what its
+  insides afforded each other).
 - **Lining**: throw a boat's `painter` to somebody on the bank; as they walk
   the bank the boat comes along beside them.
 - `launch` / `recover` ask the water mod's warrens (the river's and the
@@ -219,8 +239,11 @@ run back, a boarding window, a season). Its phases are state: `on-call`,
 `boarding:<landing>`, `crossing`, `alongside:<landing>`. In the timetable's
 hours a passenger boards only when boarding is called at that landing and
 is told the next boat otherwise; the house's ferryman is never held to it,
-and his brain brings her to the departing landing and takes her across at
-the departure. Out of its hours and season the service is on call and the
+and his brain brings her over as soon as she is WANTED at the other landing
+— boarding called there, or its next departure within a crossing and the
+boarding window (`FerryService.wantedAt`; waiting for boarding to open was
+too late, a ten-minute window being under a minute at 12×) — and takes her
+across at the departure. Out of its hours and season the service is on call and the
 bell rules. Nesbit's market boat runs at six and seven from the towpath; a
 second timetabled ferry is a second row.
 
@@ -246,4 +269,22 @@ always know where you are.
 The pilot's charted claims on stretch ids; `hail` afforded by a landing;
 `paddle <ship>` at sea; sea patches drifting with the set; a frozen river's
 places taking the ice-sheet floor, and the hole; lining from an authored
-bank place. See the plan's wave notes.
+bank place.
+
+**Seen by the browser walk, not fixed:** the ferryman fetches a ferry left
+on the far bank (after a restart) by walking the `across` way — over the
+river; `You walk across` then `You leave across` doubles a crossing's move
+line; the city quay's own stretch is snag-choked, so a `course` at speed
+from the quay is refused by day (`slow` works); A1's first `measure current`
+after a season jump can outlast 30 s.
+
+## History
+
+- **2026-10-21 → 10-23, MR !464 (`build/river`).** Built W0–W5 to the plan;
+  review reshaped it in W7–W16: one `Frame` for chart and line, the
+  trajectory (`MovingMixin`), `FrameSitedMixin` for a place sited on a
+  frame, `MovingWaterMixin`/`Steamer` chosen rather than widened onto
+  `WaterPlace`/`Ship`, places-not-rooms (`SeaPatch`, `ReachFloor`), and no
+  duck typing (`SmallCraft`/`TetherEnd`/`Ringable`; transport declares
+  water). The browser walk at finalize found eight defects the wire drive
+  could not — see the bullets above and the commits `walk(river): …`.

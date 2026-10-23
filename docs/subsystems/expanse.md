@@ -117,6 +117,15 @@ placement), `liveFrame`, and the craft's own `hullNow` · `burnFor` ·
 is the one chart-only surface: on a line you always know where you are
 (`Frame.reckons`).
 
+⚠ **A position is in one frame at a time, and the later write wins**
+(`PositionedMixin`'s hydration setters): a chart position takes a craft off
+any line and a line position takes her off the chart. Restore applies the
+row and then the snapshot, so a ship whose row puts her on the Kestrel and
+whose snapshot has her at sea comes back at sea — the setter used to throw
+there, and the *Ostrander* restarted after going out over the bar did not
+restore at all (river browser walk). `placeOnLine` keeps its guard for code
+that moves a craft.
+
 `VoyagingMixin` (kernel; `Ship`): ⭐⭐ the voyage's whole state
 is **three persisted fields** — the stored `expansePosition` IS the fix,
 plus `course` and `courseSetAtS`. `getExpansePosition()` answers the
