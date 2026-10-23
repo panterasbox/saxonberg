@@ -770,6 +770,24 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const D = THERMAL_DEFAULTS;
       const band = host.getVitalBand("coreTemperature");
       const core = this.readCore();
+      // ⚠⚠ A body that runs no living processes takes no thermal harm. Its
+      // core drifts to the air (the slice above), and a corpse cooling is
+      // algor mortis, not hypothermia; but a SHADE (`undead`) that drifted
+      // below the line was put in the dying window, and the death it reached
+      // divided the identity again — the ceramics potter's chronicle read
+      // "died of hypothermia" twelve times (run 31). Metabolism draws the
+      // same line (`isLivingBody()`, not `!isDead()`).
+      if (!host.isLivingBody()) {
+        for (const path of [
+          TemplatePaths.thermalHypothermia,
+          TemplatePaths.thermalTorpor,
+          TemplatePaths.thermalHyperthermia,
+        ]) {
+          const rec = this.findAffliction(path);
+          if (rec) host.relieve(rec);
+        }
+        return;
+      }
       const ecto = this.strategy() === "ectotherm";
 
       // Cold edge.
