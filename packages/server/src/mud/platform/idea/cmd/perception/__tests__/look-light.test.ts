@@ -158,6 +158,40 @@ describe('⭐⭐ a dark room withholds its description', () => {
     expect(text).not.toContain('the cellar');
   });
 
+  it('⭐ a fire seen in the dark you cannot see BY — its glow, by its colour (ceramics run 31)', async () => {
+    // A burning clamp's light reaches the place too faintly to light it.
+    const { PerceptionApi } = await import('../../../../../api/perception');
+    const { MixinApi } = await import('../../../../../api/mixin');
+    const { Light } = await import('../../../../../lib/perception/Light');
+    const { Quantity } = await import('../../../../../lib/quantity');
+    const real = PerceptionApi.modalityByName('vision');
+    const faint = Light.of(Quantity.of(0.01, 'lux'), null, { stuffId: 'clamp-1', flux: 3, colorTemperature: 1700 });
+    vi.spyOn(PerceptionApi, 'modalityByName').mockImplementation(((name: string) =>
+      name === 'vision'
+        ? Object.assign(Object.create(real), { signalAt: () => faint, perceivedBand: () => 'pitch-black' })
+        : real) as never);
+    vi.spyOn(StuffApi, 'findById').mockImplementation(((id: string) => (id === 'clamp-1' ? ({ stuffId: id } as never) : undefined)) as never);
+    vi.spyOn(MixinApi, 'isLightSource').mockReturnValue(true);
+    const text = await lookText();
+    expect(text).toMatch(/It is pitch dark/);
+    expect(text).toMatch(/You can see a dull red glow/);
+  });
+
+  it('…but the sky or a street lamp the walk attributes is no glow', async () => {
+    const { PerceptionApi } = await import('../../../../../api/perception');
+    const { Light } = await import('../../../../../lib/perception/Light');
+    const { Quantity } = await import('../../../../../lib/quantity');
+    const real = PerceptionApi.modalityByName('vision');
+    const sky = Light.of(Quantity.of(0.01, 'lux'), null, { stuffId: 'sky', flux: 3, colorTemperature: 4000 });
+    vi.spyOn(PerceptionApi, 'modalityByName').mockImplementation(((name: string) =>
+      name === 'vision'
+        ? Object.assign(Object.create(real), { signalAt: () => sky, perceivedBand: () => 'pitch-black' })
+        : real) as never);
+    const text = await lookText();
+    expect(text).toMatch(/It is pitch dark/);
+    expect(text).not.toMatch(/glow/);
+  });
+
   it('very dim: shapes and edges, and still not the prose', async () => {
     room.setAmbientFlux(2 * 9); // 2 lux — a full moon outdoors
     const text = await lookText();

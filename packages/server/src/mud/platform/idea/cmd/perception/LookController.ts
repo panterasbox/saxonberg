@@ -255,6 +255,12 @@ export default class LookController extends CommandController<LookModel> {
       const perceivedDark = MixinApi.isPerceiver(actor)
         ? actor.learnSurroundings(location)
         : [];
+      // ⭐ …and a fire is seen in the dark you cannot see BY: the light of a
+      // burning clamp next door reaches this place too faintly to light it,
+      // and is still a glow on the night (the ceramics drive A, run 31 —
+      // the requirement's "at night the clamp glows from the next place").
+      const glow = this.glowInTheDark(location);
+      if (glow) dark = Mml.compose`${dark}\n${glow}`;
       if (hasExits) {
         const exitsLine = this.formatExits(perceivedDark);
         if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
@@ -486,6 +492,54 @@ export default class LookController extends CommandController<LookModel> {
    * to today's behaviour — describe the room — which is the right
    * failure: a perception gap must never take `look` down.
    */
+  /**
+   * ⭐ One sentence for a light seen in the dark, or `null`: the strongest
+   * source whose light reaches `location` at all, though too faintly to see
+   * the place by — its colour by its own temperature (a fire's
+   * incandescence), and the way it shows when it stands beyond an exit.
+   * Reads the raw vision signal (the light walk already attributes its
+   * flux to sources); any gap degrades to `null`.
+   */
+  private glowInTheDark(location: Stuff): Mml | null {
+    if (!MixinApi.isContainer(location)) return null;
+    let sources: readonly { stuffId: string; flux: number; colorTemperature: number | null }[];
+    try {
+      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
+      sources = vision.signalAt(location as unknown as Stuff & Container).sources;
+    } catch {
+      return null;
+    }
+    // A THING that gives light — never the sky or a street's public lighting,
+    // which the walk attributes too and which would make every dark place
+    // read a glow.
+    const src = [...sources]
+      .filter((x) => x.flux > 0)
+      .filter((x) => {
+        const thing = StuffApi.findById(x.stuffId);
+        return thing !== undefined && MixinApi.isLightSource(thing);
+      })
+      .sort((a, b) => b.flux - a.flux)[0];
+    if (!src) return null;
+    const k = src.colorTemperature;
+    const hue =
+      k === null ? 'a glow' : k < 2000 ? 'a dull red glow' : k < 3000 ? 'an orange glow' : 'a pale glow';
+    let where = '';
+    if (MixinApi.isExitable(location)) {
+      for (const exit of location.getExits().values()) {
+        try {
+          const beyond = exit.getDestination();
+          if (beyond.getContents().some((c) => (c as unknown as Stuff).stuffId === src.stuffId)) {
+            where = ` to the ${exit.getDirection()}`;
+            break;
+          }
+        } catch {
+          // An exit that cannot say where it goes shows no light through it.
+        }
+      }
+    }
+    return Mml.compose`You can see ${hue}${where}.`;
+  }
+
   private perceivedBandAt(actor: Stuff, location: Stuff): LightBand | null {
     if (!MixinApi.isSensor(actor) || !MixinApi.isPerception(actor)) {
       return null;
