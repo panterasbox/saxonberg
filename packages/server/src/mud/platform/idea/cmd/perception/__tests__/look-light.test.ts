@@ -158,38 +158,54 @@ describe('⭐⭐ a dark room withholds its description', () => {
     expect(text).not.toContain('the cellar');
   });
 
-  it('⭐ a fire seen in the dark you cannot see BY — its glow, by its colour (ceramics run 31)', async () => {
-    // A burning clamp's light reaches the place too faintly to light it.
-    const { PerceptionApi } = await import('../../../../../api/perception');
+  /** The room's one way out, east, onto a place holding `things`. */
+  async function eastTo(things: unknown[], band = 'pitch-black'): Promise<void> {
     const { MixinApi } = await import('../../../../../api/mixin');
-    const { Light } = await import('../../../../../lib/perception/Light');
-    const { Quantity } = await import('../../../../../lib/quantity');
+    const { PerceptionApi } = await import('../../../../../api/perception');
+    // The band is pinned: the fake way out also carries the fire's light
+    // into the walk, and what is under test is the line, not the walk.
     const real = PerceptionApi.modalityByName('vision');
-    const faint = Light.of(Quantity.of(0.01, 'lux'), null, { stuffId: 'clamp-1', flux: 3, colorTemperature: 1700 });
     vi.spyOn(PerceptionApi, 'modalityByName').mockImplementation(((name: string) =>
-      name === 'vision'
-        ? Object.assign(Object.create(real), { signalAt: () => faint, perceivedBand: () => 'pitch-black' })
-        : real) as never);
-    vi.spyOn(StuffApi, 'findById').mockImplementation(((id: string) => (id === 'clamp-1' ? ({ stuffId: id } as never) : undefined)) as never);
-    vi.spyOn(MixinApi, 'isLightSource').mockReturnValue(true);
+      name === 'vision' ? Object.assign(Object.create(real), { perceivedBand: () => band }) : real) as never);
+    const beyond = { getContents: () => things };
+    const exit = { getDoor: () => null, getDestination: () => beyond, getDirection: () => 'east' };
+    vi.spyOn(MixinApi, 'isExitable').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isLightSource').mockImplementation(
+      ((o: { getEmittedFlux?: unknown }) => typeof o?.getEmittedFlux === 'function') as never,
+    );
+    (room as unknown as { getObviousExits: () => unknown[] }).getObviousExits = () => [exit];
+  }
+
+  function fire(lumens: number, kelvin: number) {
+    return {
+      stuffId: 'clamp-1',
+      getEmittedFlux: () => ({ rawValue: () => lumens }),
+      getEmittedColorTemperature: () => ({ rawValue: () => kelvin }),
+    };
+  }
+
+  it('⭐ a fire seen in the dark you cannot see BY — its glow, by its colour, and its way (ceramics runs 31–32)', async () => {
+    // A burning clamp next door lights this place too faintly to see by;
+    // by moonlight the walk's three strongest sources were all sky, so the
+    // glow is read off the emitter itself.
+    await eastTo([fire(120, 1700)]);
     const text = await lookText();
     expect(text).toMatch(/It is pitch dark/);
-    expect(text).toMatch(/You can see a dull red glow/);
+    expect(text).toMatch(/You can see a dull red glow to the east/);
   });
 
-  it('…but the sky or a street lamp the walk attributes is no glow', async () => {
-    const { PerceptionApi } = await import('../../../../../api/perception');
-    const { Light } = await import('../../../../../lib/perception/Light');
-    const { Quantity } = await import('../../../../../lib/quantity');
-    const real = PerceptionApi.modalityByName('vision');
-    const sky = Light.of(Quantity.of(0.01, 'lux'), null, { stuffId: 'sky', flux: 3, colorTemperature: 4000 });
-    vi.spyOn(PerceptionApi, 'modalityByName').mockImplementation(((name: string) =>
-      name === 'vision'
-        ? Object.assign(Object.create(real), { signalAt: () => sky, perceivedBand: () => 'pitch-black' })
-        : real) as never);
+  it('…but a cold clamp, or no fire at all, is no glow', async () => {
+    await eastTo([fire(0, 1700), { stuffId: 'brick' }]);
     const text = await lookText();
     expect(text).toMatch(/It is pitch dark/);
     expect(text).not.toMatch(/glow/);
+  });
+
+  it('…and by moonlight the fire still shows', async () => {
+    await eastTo([fire(120, 2500)], 'very-dim');
+    const text = await lookText();
+    expect(text).toMatch(/Shapes and edges/);
+    expect(text).toMatch(/You can see an orange glow to the east/);
   });
 
   it('very dim: shapes and edges, and still not the prose', async () => {

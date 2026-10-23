@@ -493,50 +493,45 @@ export default class LookController extends CommandController<LookModel> {
    * failure: a perception gap must never take `look` down.
    */
   /**
-   * ⭐ One sentence for a light seen in the dark, or `null`: the strongest
-   * source whose light reaches `location` at all, though too faintly to see
-   * the place by — its colour by its own temperature (a fire's
-   * incandescence), and the way it shows when it stands beyond an exit.
-   * Reads the raw vision signal (the light walk already attributes its
-   * flux to sources); any gap degrades to `null`.
+   * ⭐ One sentence for a light seen in the dark, or `null`: the brightest
+   * THING giving light here or just beyond an open way — a fire is seen in
+   * the dark you cannot see BY. Its colour is its own temperature (a fire's
+   * incandescence), and where it stands beyond an exit, that way.
+   *
+   * ⚠ Read off the emitters, not the vision walk's attribution: the walk
+   * keeps its three strongest sources, and outdoors at night the sky over
+   * this place and its neighbours fills them — the clamp next door was
+   * never in the list (the ceramics drive A, run 32, by moonlight). The sky
+   * and a street's public lighting are not THINGS giving light, so a dark
+   * place with none near it still reads no glow.
    */
   private glowInTheDark(location: Stuff): Mml | null {
     if (!MixinApi.isContainer(location)) return null;
-    let sources: readonly { stuffId: string; flux: number; colorTemperature: number | null }[];
-    try {
-      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
-      sources = vision.signalAt(location as unknown as Stuff & Container).sources;
-    } catch {
-      return null;
-    }
-    // A THING that gives light — never the sky or a street's public lighting,
-    // which the walk attributes too and which would make every dark place
-    // read a glow.
-    const src = [...sources]
-      .filter((x) => x.flux > 0)
-      .filter((x) => {
-        const thing = StuffApi.findById(x.stuffId);
-        return thing !== undefined && MixinApi.isLightSource(thing);
-      })
-      .sort((a, b) => b.flux - a.flux)[0];
-    if (!src) return null;
-    const k = src.colorTemperature;
-    const hue =
-      k === null ? 'a glow' : k < 2000 ? 'a dull red glow' : k < 3000 ? 'an orange glow' : 'a pale glow';
-    let where = '';
+    let best: { flux: number; kelvin: number | null; where: string } | null = null;
+    const consider = (place: Stuff & Container, where: string): void => {
+      for (const c of place.getContents() as Stuff[]) {
+        if (!MixinApi.isLightSource(c)) continue;
+        const flux = c.getEmittedFlux().rawValue();
+        if (!(flux > 0) || (best !== null && flux <= best.flux)) continue;
+        best = { flux, kelvin: c.getEmittedColorTemperature()?.rawValue() ?? null, where };
+      }
+    };
+    consider(location as Stuff & Container, '');
     if (MixinApi.isExitable(location)) {
-      for (const exit of location.getExits().values()) {
+      for (const exit of location.getObviousExits()) {
+        const door = exit.getDoor();
+        if (door && MixinApi.isSealable(door) && !door.isOpen()) continue;
         try {
-          const beyond = exit.getDestination();
-          if (beyond.getContents().some((c) => (c as unknown as Stuff).stuffId === src.stuffId)) {
-            where = ` to the ${exit.getDirection()}`;
-            break;
-          }
+          consider(exit.getDestination(), ` to the ${exit.getDirection()}`);
         } catch {
           // An exit that cannot say where it goes shows no light through it.
         }
       }
     }
+    if (best === null) return null;
+    const { kelvin: k, where } = best as { flux: number; kelvin: number | null; where: string };
+    const hue =
+      k === null ? 'a glow' : k < 2000 ? 'a dull red glow' : k < 3000 ? 'an orange glow' : 'a pale glow';
     return Mml.compose`You can see ${hue}${where}.`;
   }
 
