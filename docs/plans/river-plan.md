@@ -2385,6 +2385,54 @@ thousands of concurrent chains. A kernel test-seam defect every jumping
 drive shares; reported to the user. D31 hears her whole way down now and
 never the mouth — open.
 
+### Review — W8–W12: the trajectory (decided with the user, 2026-10-22)
+
+The user's review of `MovingPlace` / `MovingZone`: nothing in the
+abstraction says fast or slow, a slow move wants PHASES, and a moving place
+need not move along a line (random, teleporting). The lens pass: lens 2
+decides (a timetable, a migration, a fair, a floe's breakup become ROWS,
+not a warren each) and lens 5 confirms (a sail ferry, a steam ferry and a
+railway answer the same commands from one timetable model). The user:
+*nail the water location model, futureproofed; all on this MR.*
+
+- **D39 — A trajectory is what a moving thing WILL do, as a value.**
+  Kernel `lib/expanse/Trajectory.ts`: legs (`from → to` as `FramePos` over
+  `[t0, t1]`, a `glide`, a `hold` or a `jump`) and marks (a named moment:
+  words, and the state it sets). Position at a time is interpolation —
+  synchronous, derived, restart-proof. A trajectory may cross frames (the
+  mouth is a leg ending on the line and the next starting on the chart).
+- **D40 — Phases are state.** A mark sets the mover's state (`phase`), which
+  the mover reads (`currentPhase()`), so a floe's strength or a fair being
+  open IS the phase, not words about it.
+- **D41 — One `Moving` capability** (kernel `lib/expanse/Moving.ts`) holds
+  the trajectory and its one `Drift` (the next leg boundary or mark); a
+  ship (`Voyaging`) and a moving place both compose it. *How it moves* is
+  separate from *what it is*.
+- **D42 — Told in chunks, per viewer.** What a moving thing tells its
+  occupants is buffered per recipient over a real-time window
+  (`moving.tellWindowMs`), so a fast run is one beat, not a line per
+  boundary; a slow change is READ (`look`), and only a mark is pushed.
+- **D43 — Persisted iff touched.** The world's own motion re-derives from a
+  seed and an epoch; a course somebody set, or an interference, is a
+  persisted re-plan.
+- **D44 — `Frame.siteAt(pos)`** answers elevation, address and climate at a
+  position, so `MovingZone` reads any frame's geography (the sea's chart
+  too — a sea room's zone followed nothing before); per-mover km offsets
+  leave the kernel for the water pack's `ReachPatch`, the one thing that
+  integrates them.
+- **D45 — First slow consumer: a timetable.** Nesbit's ferry runs an
+  authored timetable in season (rows: legs and marks — boarding, crossing,
+  landing) and answers the bell out of hours.
+- **D46 — The clock's drain waits** (prerequisite): `WorldClockApi.advance`
+  fires each due schedule and awaits it before the next, so a drive's jump
+  returns when the catch-up has happened, not while thousands of chains
+  are still in flight (pass 17).
+
+Waves: **W8** the drain (D46) · **W9** the kernel model (D39–D44) ·
+**W10** the river on it (patch drift, the steamer's passage) · **W11** the
+chart on it (drift through bands as legs, arrival as a mark) · **W12** the
+timetabled ferry (D45), drive steps, a full guarded pass.
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
 - **Pass 12** runs against d6ac09e88 on a 3 GB world
