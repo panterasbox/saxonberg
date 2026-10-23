@@ -93,15 +93,20 @@ export interface WaterRead {
   tide?: WaterTide;
   /** ⭐ Dissolved oxygen, mg/L (underwater D21) — what a gill breathes. */
   oxygenMgL?: number;
-  /**
-   * ⭐ The current where the read was taken, m/s (river D10) — + running
-   * downstream, − when a flood tide runs up. Absent for still water.
-   */
-  currentMps?: number;
-  /** ⭐ How broken the water is, 0 (glassy) to 1 (white water) (river D10). */
-  roughness?: number;
   /** The source's own state, returned to it in `waterLinesFor`. */
   opaque?: unknown;
+}
+
+/**
+ * ⭐ A read of water that MOVES (river W14): a still water's read has no
+ * current at all — not a current of zero — so the two fields belong to
+ * the reads only moving sources make (a river's line).
+ */
+export interface MovingWaterRead extends WaterRead {
+  /** The current where the read was taken, m/s — + running downstream, − when a flood tide runs up. */
+  currentMps: number;
+  /** How broken the water is, 0 (glassy) to 1 (white water). */
+  roughness: number;
 }
 
 /** Public shape added by WaterSourceMixin. */

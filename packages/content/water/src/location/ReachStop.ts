@@ -10,6 +10,7 @@
  * after a restart, once.
  */
 
+import { MovingWaterMixin } from '@saxonberg/server/mud/lib/location/MovingWater';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
@@ -30,11 +31,11 @@ const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
 export default class ReachStop extends MovingPlaceMixin(
-  RiverWaterMixin(
+  RiverWaterMixin(MovingWaterMixin(
     WaterPlaceMixin(
       SwimmableMixin(ShoreMixin(PersistableMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
     ),
-  ),
+  )),
 ) {
   constructor() {
     super();

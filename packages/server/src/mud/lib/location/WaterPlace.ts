@@ -211,22 +211,12 @@ export interface WaterPlace {
   /** Whether a body here has its head in the air (river D16). */
   headOutAt(occupant: Stuff): boolean;
   /**
-   * Whether somebody who SWIMS in where the floor would bear them finds
-   * their feet at once. @hook A river answers no (the drive: a swimmer
-   * carried into a fast riffle was stood up on arrival and their foot
-   * jammed) — standing in moving water is the swimmer's own act, `stand`.
-   * Default yes: a pool's shallows.
-   */
-  standsOnArrival(mover: Stuff): boolean;
-  /**
    * ⭐ Hold a body face-up at the surface (underwater D11): the
    * disconnected player's water answer. Brought up to the surface place
    * and held there, breathing, until they come back or someone moves
    * them. The dying clock, if it was already running, runs on.
    */
   holdAtSurface(body: Stuff): Promise<boolean>;
-  /** The current carries a body that is not holding out of this water (river D11). */
-  sweep(body: Stuff): Promise<boolean>;
   /**
    * ⭐ Get hold of something in this water by hand and bring it out to
    * where the puller is — a bank or a quay one way off, a boat floating
@@ -250,10 +240,6 @@ export interface WaterPlace {
    * surface depth) unless the floor holds it up, else the air above.
    */
   mediumFor(occupant: Stuff): MediumRead;
-  /** The current where `occupant` is, m/s (river D10). */
-  currentFor(occupant: Stuff): number;
-  /** How broken the water is where `occupant` is, 0–1 (river D10). */
-  roughnessFor(occupant: Stuff): number;
   /** The water's temperature, K. */
   waterTemperatureK(): number;
   /** Does this thing go down in water — a still, dense, non-acting thing? */
@@ -612,26 +598,9 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
      *   carried under a frozen pool answers `false`, and the breath model
      *   does the rest. Default: `true` — the water place is the surface.
      */
-    public standsOnArrival(mover: Stuff): boolean {
-      void mover;
-      return true;
-    }
-
     public headOutAt(occupant: Stuff): boolean {
       void occupant;
       return true;
-    }
-
-    /**
-     * ⭐ The current takes a body that is not holding against it (river
-     * D11): carry it out of this water, downstream.
-     * @hook Override on a water with somewhere to sweep you to — a river's
-     *   places hand the body to the line at their downstream end. Default:
-     *   `false`, a pool has nowhere to sweep you.
-     */
-    public async sweep(body: Stuff): Promise<boolean> {
-      void body;
-      return false;
     }
 
     public async pullOut(load: Stuff, puller: Stuff): Promise<PullOutcome> {
@@ -782,6 +751,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     }
 
     public mediumFor(occupant: Stuff): MediumRead {
+      const self = this as unknown as Stuff;
       const floor = this.waterFloor();
       const air: MediumRead = {
         tag: 'air',
@@ -804,34 +774,10 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         depthM: 0,
         waterRef: this.water?.of ?? null,
         oxygenMgL: this.oxygenNowMgL(),
-        currentMps: this.currentFor(occupant),
-        roughness: this.roughnessFor(occupant),
+        // ⭐ Only water that MOVES has a current (W14): still water has none
+        // to report, not a current of nought.
+        ...(MixinApi.isMovingWater(self) ? { currentMps: self.currentFor(occupant), roughness: self.roughnessFor(occupant) } : {}),
       };
-    }
-
-    /**
-     * ⭐ The current where `occupant` is in this water, m/s (river D10) —
-     * + running downstream. Nothing else in the kernel reads a river.
-     * @hook Override on a water that moves: a river place answers from its
-     *   line or its author's override. Default: the read's current, which
-     *   a still water and a sea pool report as nothing — 0.
-     */
-    public currentFor(occupant: Stuff): number {
-      void occupant;
-      const pick = (this as unknown as Shore).waterFor();
-      if (!('key' in pick)) return 0;
-      const read = (this as unknown as Shore).peekWaterRead(pick.key);
-      if (read?.tide && !read.currentMps) return read.tide.streamMps;
-      return 0;
-    }
-
-    /**
-     * ⭐ How broken the water is where `occupant` is, 0–1 (river D10).
-     * @hook Override on a water that has white water. Default: 0.
-     */
-    public roughnessFor(occupant: Stuff): number {
-      void occupant;
-      return 0;
     }
 
     /** The water's temperature: the read's draw, or the under-ice floor. */
@@ -903,7 +849,9 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
-      if (swum && (!floor.bears(floor.supportLoadKgOf(mover)) || !this.standsOnArrival(mover))) {
+      const here = this as unknown as Stuff;
+      const keepsSwimming = MixinApi.isMovingWater(here) && !here.standsOnArrival(mover);
+      if (swum && (!floor.bears(floor.supportLoadKgOf(mover)) || keepsSwimming)) {
         if (MixinApi.isAttired(mover)) mover.immerse();
         else if (MixinApi.isWet(mover)) mover.wet(1);
         return;

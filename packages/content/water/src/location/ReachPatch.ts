@@ -25,6 +25,7 @@
  * handle is none: no map names a patch.
  */
 
+import { MovingWaterMixin } from '@saxonberg/server/mud/lib/location/MovingWater';
 import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
@@ -54,9 +55,9 @@ const ICE_CLOSES_M = 0.02;
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
 export const ReachPlaceBase = MovingPlaceMixin(
-  RiverWaterMixin(
+  RiverWaterMixin(MovingWaterMixin(
     WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
-  ),
+  )),
 );
 
 export default class ReachPatch extends ReachPlaceBase {

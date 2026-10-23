@@ -96,6 +96,19 @@ beach on the sea's chart would cite a node or a lat/lon in the same field.
 
 ## Bodies in moving water
 
+⭐ **Moving water is chosen, not defaulted** (W14). Still water — a pool, a
+mere, a cistern, a tidal basin that only rises and falls — has no current
+at all, not a current of nought. Water that moves composes
+`MovingWaterMixin` (kernel): `currentFor`, `roughnessFor`, `sweep`, and
+`standsOnArrival` (you do not find your feet in it — standing is your own
+act). The river's places (`RiverPlace`, `ReachPatch`, `ReachStop`) compose
+it under the water pack's `RiverWaterMixin`, so an author picking a class
+picks still or moving, and a player meets it: `measure current` in a pool
+says there is no running water. Only a moving source's read carries a
+current (`MovingWaterRead`). The sea room is still water until the sea's
+set is brought to it.
+
+
 - **The current is felt every beat** (`Respiration.treadBeat`): holding
   station costs drag `½ρC_dAv³`; not holding, you are swept; rough water
   takes a share of the store; the **feet-first float** (`lie` in a patch)
@@ -153,7 +166,7 @@ test refuses a venue's). It carries what drives it:
 
 ## Ships on a river
 
-A ship (`Ship`, kernel) is positioned on a chart **or** on a line, never
+A ship (`Ship`, kernel; a **`Steamer`** when a fire drives her — her fuel, her bunker, `burnFor` — so a sailing ship has no firebox, W14) is positioned on a chart **or** on a line, never
 both — and talks to either through one `Frame` ([expanse.md](./expanse.md)
 § The voyage): the line implements it in `LineFrameMixin` (`planCourse` is
 the passage, `craftPositionAt` reads it, `watchCraft` tells the stretches,

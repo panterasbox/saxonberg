@@ -50,14 +50,6 @@ export interface ShipHull {
   lengthM: number;
 }
 
-/** What drives her, when it is not the wind (river D29): a fire, and what it burns. */
-export interface ShipFuel {
-  /** The material path prefix the bunker's goods must be of (`/stuff/idea/material/wood`). */
-  material: string;
-  /** kg burned per km of river at her speed. */
-  kgPerKm: number;
-}
-
 /** Water density, kg/m³ — what a laden hull displaces. */
 const RHO = 1000;
 
@@ -74,11 +66,8 @@ export default class Ship extends PersistableMixin(
     mastheadHeightM: { persistent: true, authorable: true },
     house: { persistent: true, authorable: true, ref: 'identity:relation' },
     hull: { persistent: true, authorable: true },
-    fuel: { persistent: true, authorable: true },
     aground: { persistent: true },
     holed: { persistent: true },
-    fuelDebtKg: { persistent: true },
-    bunker: { persistent: true, authorable: true, ref: 'identity:relation' },
     overboard: { persistent: true },
   };
 
@@ -121,31 +110,19 @@ export default class Ship extends PersistableMixin(
     this.overboard = [];
   }
 
-  /** The prop on her deck the fire is fed from (its row path); `null` for none. */
-  protected bunker: string | null = null;
-  public getBunker(): string | null { return this.bunker; }
-  public setBunker(v: string | null): void { this.bunker = v ?? null; }
-
   /** Her hull's numbers (river D28); `null` for a ship nobody measured. */
   protected hull: ShipHull | null = null;
-  /** What her fire burns; `null` for sail. */
-  protected fuel: ShipFuel | null = null;
   /** Hard aground — no course takes her anywhere until she floats (D28). */
   protected aground = false;
   /** Holed on a snag — stopped, taking water (D29). */
   protected holed = false;
-  /** What the fire has burned that no whole billet has paid for yet, kg. */
-  protected fuelDebtKg = 0;
 
   public getHull(): ShipHull | null { return this.hull ? { ...this.hull } : null; }
   public setHull(v: ShipHull | null): void { this.hull = v ? { ...v } : null; }
-  public getFuel(): ShipFuel | null { return this.fuel ? { ...this.fuel } : null; }
-  public setFuel(v: ShipFuel | null): void { this.fuel = v ? { ...v } : null; }
   public isAground(): boolean { return this.aground; }
   public isHoled(): boolean { return this.holed; }
   public setAground(v: boolean): void { this.aground = v === true; }
   public setHoled(v: boolean): void { this.holed = v === true; }
-  public setFuelDebtKg(v: number): void { this.fuelDebtKg = Math.max(0, Number(v) || 0); }
 
   /** An observer's eye height on deck, meters. */
   protected deckHeightM = 0;
@@ -301,32 +278,6 @@ export default class Ship extends PersistableMixin(
    */
   public enterRiver(line: string, course: string, mouthKm: number, across: number): void {
     this.placeAt({ frame: 'line', at: { course, km: mouthKm, across } }, WorldClockApi.getNow().rawValue(), line);
-  }
-
-  /**
-   * Burn the cordwood the km took (D29): billets out of the bunker on her
-   * deck, whole, as the fire has eaten them. `false` when there are none.
-   */
-  override async burnFor(km: number): Promise<boolean> {
-    const fuel = this.fuel;
-    if (fuel === null) return true;
-    this.fuelDebtKg += fuel.kgPerKm * km;
-    if (this.bunker === null) return true;
-    const bunker = await StuffApi.singleton<Stuff>(this.bunker).catch(() => null);
-    if (!bunker || !MixinApi.isContainer(bunker)) return false;
-    // ⭐ What a billet is made of is its Material's path (`wood/hazel`
-    // under `wood`); a duck-typed `getMaterialPath` matched nothing, so
-    // every fire died with a full bin (the drive's pass 10).
-    const billets = bunker
-      .getContents()
-      .filter((x) => MixinApi.isTangible(x) && (x.getMaterial()?.getTemplatePath() ?? '').startsWith(fuel.material));
-    while (this.fuelDebtKg > 0) {
-      const b = billets.shift();
-      if (!b) return false;
-      this.fuelDebtKg -= MixinApi.isTangible(b) ? Math.max(0.1, b.getMass().rawValue()) : 1;
-      StuffApi.destruct(b);
-    }
-    return true;
   }
 
   /** Floated off: the water came up, or she was lightened (D28). */

@@ -179,7 +179,8 @@ export class FishingEngagement implements SustainedEngagement {
     const room = this.waterRoom();
     if (room === null || !MixinApi.isWaterPlace(room)) return 1;
     if ((room as unknown as { isUnderWay?(): boolean }).isUnderWay?.() === false) return 1;
-    const v = Math.abs(room.currentFor(this.actor));
+    // Still water does not carry your line away (W14).
+    const v = MixinApi.isMovingWater(room) ? Math.abs(room.currentFor(this.actor)) : 0;
     const kill = dial('water.fishery.driftKillMps', 1.0);
     return Math.max(0, Math.min(1, 1 - v / kill));
   }

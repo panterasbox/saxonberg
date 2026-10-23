@@ -41,7 +41,7 @@ export default class LieController extends CommandController<LieModel> {
     // own (it moves WITH the water): under way, it is moving water.
     const carried = room !== null && MixinApi.isMovingPlace(room) && room.isUnderWay();
     const moving = target instanceof WaterSurface && room !== null && MixinApi.isWaterPlace(room) &&
-      (carried || Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS);
+      (carried || (MixinApi.isMovingWater(room) && Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS));
     if ((target instanceof WaterSurface && (!target.supports(giver) || moving)) || floatingAsked) {
       if (!MixinApi.isRespiration(giver)) {
         return this.refuse(context, 'act.deed', 'You cannot float.', 'not-a-swimmer');

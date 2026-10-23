@@ -12,7 +12,7 @@
 # bunker on her deck.
 #
 # She starts lying at the city quay.
-class: /platform/idea/Ship
+class: /platform/idea/Steamer
 data:
   name: the Ostrander
   extent: /world/terminus/ostrander

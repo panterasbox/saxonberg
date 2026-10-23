@@ -76,6 +76,7 @@ import type { LineFrame } from '../lib/expanse/LineFrame';
 import type { MovingPlace } from '../lib/location/MovingPlace';
 import type { Moving } from '../lib/expanse/Moving';
 import type { FrameSited } from '../lib/expanse/FrameSited';
+import type { MovingWater } from '../lib/location/MovingWater';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
@@ -1316,6 +1317,11 @@ export class MixinApi {
   /** ⭐ A river's line as a frame (river D2). */
   public static isLineFrame(obj: Stuff): obj is Stuff & LineFrame {
     return this.hasMixin(obj, Mixins.LineFrame);
+  }
+
+  /** ⭐ Water that MOVES (river W14) — a river's reaches; still water composes none of it. */
+  public static isMovingWater(obj: Stuff): obj is Stuff & MovingWater & WaterPlace & Container {
+    return this.hasMixin(obj, Mixins.MovingWater);
   }
 
   /** A fixed place standing at a position on a frame (river W13) — a quay or a towpath on a river's line. */

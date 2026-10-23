@@ -1134,7 +1134,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       const place = MixinApi.isContainable(self) ? self.getContainer() : null;
       const v = Math.abs(medium.currentMps ?? 0);
       const carried = place !== null && MixinApi.isMovingPlace(place);
-      if (!carried && v > CURRENT_SLACK_MPS && place !== null && MixinApi.isWaterPlace(place)) {
+      if (!carried && v > CURRENT_SLACK_MPS && place !== null && MixinApi.isMovingWater(place)) {
         const spent = MixinApi.isExerting(self) && self.breathBand() === 'spent';
         const holding = !this._floating && !this._heldUp && !spent;
         if (!holding) {

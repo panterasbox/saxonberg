@@ -84,10 +84,12 @@ export default class CurrentReading extends Reading {
   private async currentFor(who: Stuff, param: string): Promise<number | null> {
     let at: Stuff | null = who;
     while (at !== null) {
-      if (MixinApi.isWaterPlace(at)) return at.currentFor(who);
+      // ⭐ Still water has no current at all (W14) — not a current of
+      // nought — so the log says there is no running water here.
+      if (MixinApi.isWaterPlace(at)) return MixinApi.isMovingWater(at) ? at.currentFor(who) : null;
       if (MixinApi.isShore(at) && !MixinApi.isWaterPlace(at) && at !== who) {
         const pick = await at.waterRefFor(param || undefined);
-        if ('ref' in pick) return pick.read.currentMps ?? 0;
+        if ('ref' in pick) return 'currentMps' in pick.read && typeof pick.read.currentMps === 'number' ? pick.read.currentMps : null;
         if (param !== '') return null;
       }
       at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;

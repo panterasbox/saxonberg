@@ -19,6 +19,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { MovingWater } from '@saxonberg/server/mud/lib/location/MovingWater';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { WaterPlace } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
@@ -55,7 +56,7 @@ export interface RiverWater {
   riverCurrentMps(): number;
 }
 
-export function RiverWaterMixin<TBase extends MixinConstructor<Stuff & WaterPlace & Shore>>(Base: TBase) {
+export function RiverWaterMixin<TBase extends MixinConstructor<Stuff & WaterPlace & Shore & MovingWater>>(Base: TBase) {
   return class RiverWaterMixin extends Base implements RiverWater {
     static _mixinName: string = 'RiverWaterMixin';
 
@@ -112,7 +113,7 @@ export function RiverWaterMixin<TBase extends MixinConstructor<Stuff & WaterPlac
       if (typeof c === 'object') return c.mps;
       const self = this as unknown as WaterPlace & Shore;
       const read = self.peekWaterRead(self.getWaterKey());
-      return typeof read?.currentMps === 'number' ? read.currentMps : 0;
+      return read !== null && 'currentMps' in read && typeof read.currentMps === 'number' ? read.currentMps : 0;
     }
 
     /** ⭐ One owner per length: the author's word, else the line's (river D10). */
@@ -126,7 +127,7 @@ export function RiverWaterMixin<TBase extends MixinConstructor<Stuff & WaterPlac
       if (this.current !== 'inherit') return 0;
       const self = this as unknown as WaterPlace & Shore;
       const read = self.peekWaterRead(self.getWaterKey());
-      return typeof read?.roughness === 'number' ? read.roughness : 0;
+      return read !== null && 'roughness' in read && typeof read.roughness === 'number' ? read.roughness : 0;
     }
   };
 }

@@ -10,6 +10,7 @@
  * take it.
  */
 
+import { MovingWaterMixin } from '@saxonberg/server/mud/lib/location/MovingWater';
 import Pool from '@saxonberg/server/mud/platform/location/Pool';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -20,7 +21,7 @@ import type ReachWarren from '../idea/ReachWarren';
 /** The river's warren, where a place hands a body to the line. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
-export default class RiverPlace extends RiverWaterMixin(Pool) {
+export default class RiverPlace extends RiverWaterMixin(MovingWaterMixin(Pool)) {
   /** ⭐ Its ways onto the line, at the ends that hand off (river D7). */
   public override async onCreate(context?: unknown): Promise<void> {
     await super.onCreate(context);

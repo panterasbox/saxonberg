@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Voyage } from '../Voyage';
 import { GeoPosition } from '../GeoPosition';
 import Ship from '../../../platform/idea/Ship';
+import Steamer from '../../../platform/idea/Steamer';
 import ExpanseNode from '../../../platform/idea/ExpanseNode';
 import { Expanse } from '../Expanse';
 import type { Stuff } from '../../stuff/Stuff';
@@ -216,11 +217,15 @@ describe('a ship on a river (river D18)', () => {
     vi.spyOn(MixinApi, 'isTangible').mockImplementation(((x: unknown) => x === hazel || x === stone) as never);
     const burnt: unknown[] = [];
     vi.spyOn(StuffApi, 'destruct').mockImplementation(((x: unknown) => { burnt.push(x); contents.splice(contents.indexOf(x as never), 1); }) as never);
-    ship.setFuel({ material: '/stuff/idea/material/wood', kgPerKm: 3 });
-    ship.setBunker('/test/bunker');
-    expect(await ship.burnFor(1)).toBe(true);
+    // A steamer — a sailing ship has no firebox (W14).
+    const steamer = makeStuffAtPath(() => new Steamer(), '/test/river/steamer/structure');
+    steamer.setFuel({ material: '/stuff/idea/material/wood', kgPerKm: 3 });
+    steamer.setBunker('/test/bunker');
+    expect(await steamer.burnFor(1)).toBe(true);
     expect(burnt).toEqual([hazel]);
-    expect(await ship.burnFor(1)).toBe(false);
+    expect(await steamer.burnFor(1)).toBe(false);
+    // …and a ship under sail burns nothing, ever.
+    expect(await ship.burnFor(100)).toBe(true);
   });
 
   it('⭐ she keeps who went over her side while they are in the water, and lets go of them aboard again (D30)', async () => {

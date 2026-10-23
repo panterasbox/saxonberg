@@ -2469,6 +2469,23 @@ is gone (the river's `Watercourse.onSiteStood` does it). The warren keeps
 its river terms through one private adapter (`bankOf`). The census reads
 `frameSite.frame`.
 
+### Review — W14: extend, never widen — moving water and the steamer are chosen
+
+The user's review, generalized from the Frame and Shore comments: this
+build kept widening a general base with what only some places or things
+have. `WaterPlace` had grown `currentFor`, `roughnessFor`, `sweep` and
+`standsOnArrival` — every pool answering "no current". Now
+`MovingWaterMixin` (kernel) owns them; `WaterPlace` lost all four; the
+readers (the float, the sweep, the medium read, fishing, `measure
+current`) ask `MixinApi.isMovingWater`; the river's three classes compose
+it under `RiverWaterMixin`; the read splits into `MovingWaterRead`. And
+`Ship` had grown a steamer's firebox (`fuel`, `bunker`, `fuelDebtKg`,
+`burnFor`) — every sailing ship carrying one: now `Steamer extends Ship`
+(kernel) owns them and the Ostrander's row names it. Kept, by the same
+test: a ship's `aground`/`holed`/people overboard (any ship), and
+`ExpanseNode.river` (a relation, like `destination`). The audit of every
+kernel file the build touched is in the MR.
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
 - **Pass 12** runs against d6ac09e88 on a 3 GB world

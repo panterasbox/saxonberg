@@ -14,6 +14,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Actor } from '../../creature/Actor';
 import Pool from '../../../platform/location/Pool';
+import { MovingWaterMixin } from '../MovingWater';
 import WaterSurface from '../../../platform/thing/WaterSurface';
 import Floor from '../../../platform/thing/Floor';
 import Locale from '../../../platform/location/Locale';
@@ -374,5 +375,34 @@ describe('⭐ pulled out of the water by hand (river D22, review)', () => {
     p.deliverOut(swimmer as never, bank as never);
     expect(cancel).toHaveBeenCalledWith(swimmer, HAZARD_PIN_TYPE);
     expect(swimmer.getContainer()).toBe(bank);
+  });
+});
+
+describe('⭐ still water and moving water are different water (river W14)', () => {
+  class Race extends MovingWaterMixin(Pool) {}
+
+  it('a still pool has no current at all — not a current of nought', async () => {
+    const { pool: p } = await pool({ of: 'kestrel:confluence', depthM: 3 });
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, p as never);
+    expect(MixinApi.isMovingWater(p as unknown as Stuff)).toBe(false);
+    const medium = p.mediumFor(swimmer as unknown as Stuff);
+    expect(medium.currentMps).toBeUndefined();
+  });
+
+  it('⭐ moving water reads its current from the water, and you do not find your feet in it', async () => {
+    const r = makeStuff(() => new Race());
+    r.setWater({ of: 'kestrel:confluence', depthM: 3 });
+    await r.ensureFloor();
+    vi.spyOn(r, 'peekWaterRead').mockReturnValue({
+      ref: 'r', atS: 0, name: 'the race', frozen: false,
+      draw: { materialPath: '/m/water', temperatureK: 283 }, levelM: 0,
+      currentMps: 1.4, roughness: 0.5,
+    } as never);
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, r as never);
+    expect(MixinApi.isMovingWater(r as unknown as Stuff)).toBe(true);
+    expect(r.mediumFor(swimmer as unknown as Stuff)).toMatchObject({ currentMps: 1.4, roughness: 0.5 });
+    expect(r.standsOnArrival(swimmer as unknown as Stuff)).toBe(false);
   });
 });

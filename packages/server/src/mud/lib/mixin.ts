@@ -346,6 +346,7 @@ export const Mixins = {
   MovingPlace: 'MovingPlaceMixin',
   Moving: 'MovingMixin',
   FrameSited: 'FrameSitedMixin',
+  MovingWater: 'MovingWaterMixin',
   MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
   Voyaging: 'VoyagingMixin',
