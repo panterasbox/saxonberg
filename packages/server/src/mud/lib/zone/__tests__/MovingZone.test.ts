@@ -98,8 +98,25 @@ describe('Positioned: two frames, one record (river D18)', () => {
     place.setExpansePosition(null);
     place.placeOnLine(FRAME, { course: 'test', km: 1, across: 1 });
     expect(place.framePath()).toBe(FRAME);
-    expect(() => place.setExpansePosition({ latDeg: 42, lonDeg: -8 })).toThrow(/never both/);
     place.placeOnLine(null, null);
     expect(place.getLine()).toBeNull();
+  });
+
+  it('⭐ hydration: the later write wins — a row on the river, a snapshot at sea, restores at sea', () => {
+    // The browser walk: the Ostrander restarted after going out over the
+    // bar failed to restore — her row's line, then her snapshot's chart.
+    const place = makeStuff(() => new TestPlace()) as TestPlace;
+    place.setLine(FRAME);
+    place.setLinePosition({ course: 'test', km: 1, across: 1 });
+    place.setExpansePosition({ latDeg: 42, lonDeg: -8 });
+    expect(place.getLinePosition()).toBeNull();
+    expect(place.getLine()).toBeNull();
+    expect(place.getExpansePosition()).not.toBeNull();
+    // …and the other way: a line position takes her off the chart.
+    place.setLinePosition({ course: 'test', km: 2, across: 1 });
+    expect(place.getExpansePosition()).toBeNull();
+    // Clearing a half touches nothing else.
+    place.setExpansePosition(null);
+    expect(place.getLinePosition()).not.toBeNull();
   });
 });

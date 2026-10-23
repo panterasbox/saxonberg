@@ -79,11 +79,19 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.expansePosition === null ? null : new GeoPosition(this.expansePosition);
     }
 
+    /**
+     * Hydration setter, and how a chart position is written. ⭐ A position
+     * is on the chart OR on a line, and the LATER write wins: a chart
+     * position takes her off any line. Restore applies the row and then the
+     * snapshot, so a ship whose row puts her on the Kestrel and whose
+     * snapshot has her out at sea comes back at sea (the river's browser
+     * walk: the Ostrander, restarted after she went out over the bar, failed
+     * to restore at all — this setter threw).
+     */
     setExpansePosition(value: GeoPositionRecord | GeoPosition | null): void {
-      if (value !== null && this.linePosition !== null) {
-        throw new Error(
-          'PositionedMixin: a position is on the chart OR on a line, never both — clear the line half first',
-        );
+      if (value !== null) {
+        this.line = null;
+        this.linePosition = null;
       }
       this.expansePosition = value === null ? null : new GeoPosition(value).toJSON();
     }
@@ -105,12 +113,13 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.line = typeof value === 'string' && value !== '' ? value : null;
     }
 
-    /** Hydration setter — the record's own field, no invariant (see {@link placeOnLine}). */
+    /** Hydration setter: a line position takes her off the chart — the later write wins (see {@link setExpansePosition}). */
     setLinePosition(value: LinePositionRecord | null): void {
       this.linePosition =
         value && typeof value === 'object' && Number.isFinite(value.km) && Number.isFinite(value.across)
           ? { course: value.course, km: value.km, across: value.across }
           : null;
+      if (this.linePosition !== null) this.expansePosition = null;
     }
 
     /**

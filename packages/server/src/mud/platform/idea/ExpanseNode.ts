@@ -194,6 +194,6 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
     if (bare.split(/\s+/).includes(w)) return true;
     const key = (this.getTemplatePath() ?? '').split('/').pop() ?? '';
     if (w === key.toLowerCase()) return true;
-    return this.hasAlternateName(word.trim());
+    return this.getAlternateNames().some((a) => a.value.toLowerCase() === w);
   }
 }

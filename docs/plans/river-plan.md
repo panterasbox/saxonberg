@@ -2536,14 +2536,61 @@ dependencies; everything else crosses through a kernel protocol.**
   `IceSheet` (5 sites), `PowerReading`, `WatercourseCatalogue`'s discharge
   read, `TeleportController.ride`, `Waters` in fishing.
 
+### The browser walk (2026-10-23) — stages A, C, D31, E36, live
+
+The first walk of the river in a browser (fresh world, client on 5178,
+world on 2018, five boots). It found eight things the wire drive could not
+see, each fixed and re-walked (834fe4de1 and the commit after it):
+
+- **C22 — `anchor` vanished once the canoe was launched.** A container
+  that moves dropped every affordance its insides gave each other (the
+  reset is subtree-wide; the re-push only reached the destination).
+  `CommandLogic` re-pushes inventory + peers inside the moved subtree.
+  Re-walked: *"The killick goes down and drags along the bottom."*
+- **C21 — no way back into a righted canoe from the water.** `go canoe`
+  said swim for it, `swim canoe` said you cannot: a vessel's way in
+  admitted walking only. `ExitableVessel.entryMediaIn` (hook, default
+  walk-only); `Boat` afloat admits water. Re-walked: in, and paddling.
+- **E36 — the market boat.** The ferryman fetched her only once boarding
+  opened — under a minute of real time at 12×, and after any gap she lay
+  across the river. `FerryService.wantedAt` (a crossing + the boarding
+  window ahead). Re-walked: *"The ferryman is bringing her"* → across.
+- **D31 — a passage told stretch by stretch: 174 lines** pool–rapid–run
+  with a snag line between each. `changesAlong` tells one or two changes,
+  else the reach's character; a bend and snags once, on entry. She DID go
+  out over the bar — her stop is found by her next watch, which the wire
+  step never waited for (it does now).
+- **D31 — `course kestrel` at the bar was refused**: `alternateNames`
+  authored as bare words (`[bar, estuary bar, kestrel]`) hydrated to
+  `{kind: undefined, value: undefined}` — **79 rows** across the packs had
+  never answered to one of their names. `Named.setAlternateNames` takes a
+  bare word as an `alias`. Re-walked: *"You take her in over the bar."*
+- **Restart — the Ostrander at sea failed to restore** (*"a position is on
+  the chart OR on a line, never both"*): her row puts her on the Kestrel,
+  her snapshot at sea. The Positioned setters now let the later write win.
+  Re-walked: out over the bar, restart, still at sea.
+- **A2 — the swimmer was told every step too**, and the roar came after
+  the white water it warned of. `ReachPatch.worthTelling` (quiet water once
+  in `water.river.tellQuietGameMinutes`, 5); the roar rides the patch's own
+  teller and is news once a while. **The patch names the last place you
+  came by** — requirement step 2's landmark, which no wave had mapped.
+- **Prose:** *"You leave to the downstream"* — adverb ways read bare.
+
+**Seen, not fixed (for the MR):** (1) the ferryman crosses to fetch her by
+walking the `across` way when the world has lost her to the far bank (a
+restart) — he walks over the river; (2) *"You walk across"* then *"You leave
+across"* doubles the move line; (3) the city quay's stretch is snag-choked,
+so `course` at speed from the quay is refused by day (`slow` works); (4)
+the towpath's dispatcher and warehouseman ambient lines repeat every few
+seconds (pre-existing); (5) `route bank` from the dive shop: *"no way from
+here"* with the exit in sight (routing, pre-existing); (6) Nesbit's landing
+presents as *"the Nesbit's landing"*.
+
 ### ⭐ Where things stand (handoff, 2026-10-23)
 
-- **Last valid drive (C–E after W14):** C21 fails (`swim canoe` from the
-  water: boarding a boat from the water is unsupported), D31 fails (the
-  steamer never reaches the bar in 8 h — unprobed), E36 fails (the market
-  boat has not come over by 06:55 — the timetabled ferryman unverified);
-  E32–E34 pass; E35 was invalidated by the SeaRoom rename mid-run. Memory
-  peaked at 1.6 GB, no runaway.
+- **C21, D31, E36** — the three red checkpoints of the last wire pass —
+  were reproduced in the browser walk above and fixed; each re-walked green.
+  E32–E34 passed on wire; E35 was invalidated by the SeaRoom rename mid-run.
 - A1's first `measure current` after a season jump can outlast 30 s — a
   performance finding for the MR.
 - **For the user's eye (content, not code):** (1) the Kestrel confluence and
@@ -2554,5 +2601,5 @@ dependencies; everything else crosses through a kernel protocol.**
 - **Not built (recorded in wave notes):** pilot claims on stretches, `hail`
   from a landing, `paddle <ship>` at sea, sea patches drifting, walking out on
   river ice and the hole, lining from an authored bank.
-- **After the drive passes:** update the MR description (findings + the
-  content items), then `/finalize` is the user's call.
+- **Finalize** (the user asked, 2026-10-23): master merged in (54728b929), the
+  walk above, then the sweep.

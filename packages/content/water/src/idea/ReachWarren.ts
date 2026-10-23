@@ -147,6 +147,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   private _nodeOf = new Map<string, string>();
   /** Patch stuffId → the white water it was last told about. Runtime. */
   private _heard = new Map<string, string>();
+  /** When each patch last heard white water ahead, game-seconds (runtime): a roar is news once a while. */
+  private _roaredAtS = new Map<string, number>();
   /** Patch stuffId → bank path → the bank's way to it. Runtime. */
   private _bankWays = new Map<string, Map<string, string>>();
   /** The serialization chain for minting (one member at a time). */
@@ -774,7 +776,10 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     // ⭐ A roar is news once: not the next white water of a stair you are
     // already going down (the browser walk heard it every sixty meters).
     if (ahead.flow !== 'falls' && line.stretchAt(at.km)?.flow === 'rapid') return;
-    if (ahead.flow !== 'falls' && !patch.worthTelling('roar', null)) return;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const roared = this._roaredAtS.get(patch.stuffId);
+    if (ahead.flow !== 'falls' && roared !== undefined && nowS - roared < dialNum('water.river.tellQuietGameMinutes', 5) * 60) return;
+    this._roaredAtS.set(patch.stuffId, nowS);
     const line_ = ahead.flow === 'falls'
       ? 'Ahead of you, under the sound of the water, a deep steady roar that is not the wind: the falls.'
       : 'Ahead, round the bend, the river is roaring — white water, and you are going into it.';
@@ -1354,6 +1359,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     this._lastAt.delete(patch.stuffId);
     this._nodeOf.delete(patch.stuffId);
     this._heard.delete(patch.stuffId);
+    this._roaredAtS.delete(patch.stuffId);
     this.reap(patch as unknown as MemberStuff);
   }
 

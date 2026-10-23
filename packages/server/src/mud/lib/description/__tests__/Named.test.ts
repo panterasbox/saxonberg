@@ -78,6 +78,22 @@ describe('NamedMixin', () => {
     });
   });
 
+  describe('alternate names', () => {
+    it('⭐ a bare word authored on a row is an alias it answers to (79 rows wrote them so)', () => {
+      obj.setAlternateNames(['bar', 'kestrel']);
+      expect(obj.hasAlternateName('kestrel')).toBe(true);
+      expect(obj.getAlternateNames()).toEqual([
+        { kind: 'alias', value: 'bar' },
+        { kind: 'alias', value: 'kestrel' },
+      ]);
+    });
+
+    it('a typed record is kept as written', () => {
+      obj.setAlternateNames([{ kind: 'title', value: 'Captain' }]);
+      expect(obj.getAlternateNames('title')).toEqual([{ kind: 'title', value: 'Captain' }]);
+    });
+  });
+
   describe('getFullName composition', () => {
     it('joins honorific + name + surname with spaces', () => {
       obj.setHonorific('Dr.');
