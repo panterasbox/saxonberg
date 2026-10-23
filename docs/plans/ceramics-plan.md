@@ -3088,3 +3088,31 @@ runs to its end, so the counts are honest cascades):
 - **Finding, not fixed:** `get crucible from furnace` binds the furnace
   as well as the crucible (it strains at the furnace, then takes the
   crucible).
+
+**Run 32** (D 23/23 — the first clean pass · A 12/20 · B and C never
+started):
+- **The world wedged on its own standings recompute** (d9af1e1cd). The
+  consumer, producer and renown recomputes are real-time recurring fires
+  that do not wait on the pass they start, and a pass is a find and a save
+  per subject. On a slow link the passes stacked and held all ten of the
+  Mongo pool's connections, with 55 operations queued behind them. Every
+  test-login waited past undici's five-minute header timeout, so B and C
+  skipped every checkpoint, twice. Found by reading the live
+  `ConnectionPool` through the inspector, then wrapping the driver's
+  `Connection.command`: about 1,900 participation finds and as many
+  updates in forty seconds. A fire that finds a pass running is now
+  skipped. The per-subject find is a recorded finding, not fixed.
+- **The gang carted off the player's drying bricks** (2c1cacfad). A stack
+  bears no title, so nine bricks set out on a hack carried no stamp, and
+  the setter took them to its clamp once bone-dry. A then read "no
+  bricks", which is also run 29's mystery. The brickfield brains now read
+  a crafted good's maker, and two makers' bricks no longer merge.
+- **The glow by moonlight** (40e38bcc7, then 402d15785): the hacks read
+  `very-dim`, not `pitch-black`. The vision walk's three strongest
+  sources were all sky, so the clamp next door was never in the list.
+  `VisionModality.brightestFireNear` reads the emitters themselves, here
+  and beyond an open obvious exit.
+- **5b struck its brick in spring** (f57496176): the winter pass ends
+  when the heap reads frost-broken, which can already be spring. 5b goes
+  on to early winter (`toSeasonDay`); step 3 returns to late spring.
+- **The harness login** retries on a header timeout (d7cdaac41).
