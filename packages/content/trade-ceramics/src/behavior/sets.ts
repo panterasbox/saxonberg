@@ -23,6 +23,7 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { PlayerApi } from '@saxonberg/server/mud/api/player';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -201,7 +202,12 @@ function coolEnough(b: Stuff): boolean {
 }
 
 function isPlayers(s: Stuff): boolean {
-  return MixinApi.isChattel(s) && s.stampedOwner()?.kind === 'player';
+  if (MixinApi.isChattel(s) && s.stampedOwner()?.kind === 'player') return true;
+  // ⭐ A STACK bears no title (owned by possession), so a player's bricks
+  // set out to dry carry no stamp at all — the maker is what says whose
+  // they are, and the setter carted a drive's nine bone-dry bricks to the
+  // clamp off its hack (drive A, runs 29 and 32).
+  return MixinApi.isCrafted(s) && PlayerApi.isAvatarIdentityPath(s.getMaker());
 }
 
 function count(goods: readonly Stuff[], pred: (s: Stuff) => boolean): number {

@@ -60,4 +60,14 @@ describe('green bricks on a stack', () => {
     expect(dry.greenState()).not.toBe(wet.greenState());
     expect(dry.canMergeWith(wet as unknown as Stuff)).toBe(false);
   });
+
+  it('⭐ two makers\' bricks do not stack — a stack bears no title, the maker says whose (run 32)', () => {
+    const mine = brick(0.52);
+    const theirs = brick(0.52);
+    mine.setMaker('/platform/agent/Avatar/p-1');
+    theirs.setMaker('/world/x/agent/moulder');
+    expect(mine.canMergeWith(theirs as unknown as Stuff)).toBe(false);
+    theirs.setMaker('/platform/agent/Avatar/p-1');
+    expect(mine.canMergeWith(theirs as unknown as Stuff)).toBe(true);
+  });
 });

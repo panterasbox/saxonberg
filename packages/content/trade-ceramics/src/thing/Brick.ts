@@ -58,6 +58,11 @@ export default class Brick extends BrickBase {
    */
   public override canMergeWith(other: Stuff): boolean {
     if (!super.canMergeWith(other)) return false;
+    // ⭐ And only with bricks of the same MAKER. A stack bears no title (it
+    // is owned by possession), so the maker is the one thing that says
+    // whose a pile of bricks set out on a hack is — and a player's nine
+    // folded into the gang's fourteen would be the gang's (drive A, run 32).
+    if (MixinApi.isCrafted(other) && other.getMaker() !== this.getMaker()) return false;
     const o = other as unknown as Partial<Brick>;
     const mineGreen = this.greenState();
     const theirsGreen = typeof o.greenState === 'function' ? o.greenState() : null;

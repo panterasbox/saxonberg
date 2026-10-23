@@ -26,6 +26,8 @@ interface Fake {
   ruin?: string | null;
   alloy?: number;
   player?: boolean;
+  /** The maker's identity path (a Crafted good). */
+  maker?: string;
   id?: string;
   tempK?: number;
   wetCoat?: boolean;
@@ -52,6 +54,7 @@ function good(f: Fake) {
     getRuin: () => f.ruin ?? null,
     getAlloying: () => Array.from({ length: f.alloy ?? 0 }, () => ({ materialPath: '/sand', fraction: 0.1 })),
     stampedOwner: () => (f.player ? { kind: 'player', templatePath: '/p' } : null),
+    getMaker: () => f.maker ?? '',
     getTemperature: () => ({ rawValue: () => f.tempK ?? 290 }),
     getCoats: (face: string) =>
       face === 'inside'
@@ -99,6 +102,7 @@ function world(rooms: Room[], start: string, heldGoods: Fake[]) {
   vi.spyOn(MixinApi, 'isStackable').mockImplementation(((o: Record<string, unknown>) => has('qty')(o)) as never);
   vi.spyOn(MixinApi, 'isComposition').mockImplementation(((o: Record<string, unknown>) => has('alloy')(o)) as never);
   vi.spyOn(MixinApi, 'isChattel').mockReturnValue(true as never);
+  vi.spyOn(MixinApi, 'isCrafted').mockImplementation(((o: Record<string, unknown>) => has('maker')(o)) as never);
   vi.spyOn(MixinApi, 'isThermal').mockReturnValue(true as never);
   vi.spyOn(MixinApi, 'isFaced').mockReturnValue(true as never);
   vi.spyOn(MixinApi, 'isTool').mockImplementation(((o: Record<string, unknown>) => has('tool')(o)) as never);
@@ -222,6 +226,27 @@ describe('sets', () => {
     await sets.act({ host: w.host, config } as unknown as BrainContext);
     const gets = w.commands.filter((c) => c.startsWith('get '));
     expect(gets).toEqual(['get 20 #gangs-bricks']);
+  });
+
+  it('⭐ a player\'s untitled STACK in the hacks is theirs by its maker (drive A, run 32)', async () => {
+    // A stack bears no title, so the nine bricks a player set out carry no
+    // stamp; the maker is what says whose they are.
+    const clamp = good({ tpl: CLAMP, kw: ['clamp'], lit: false, contents: [] });
+    const theirs = good({
+      tpl: BRICK, kw: ['bricks'], qty: 9, green: true, fireable: true,
+      maker: '/platform/agent/Avatar/p-1', id: 'players-stack',
+    });
+    const gangs = good({ tpl: BRICK, kw: ['bricks'], qty: 30, green: true, fireable: true, maker: '/bf/moulder', id: 'gangs-bricks' });
+    const w = world(
+      [
+        { path: '/bf/ground', things: [clamp], exits: { west: '/bf/hacks' } },
+        { path: '/bf/hacks', things: [theirs, gangs], exits: { east: '/bf/ground' } },
+      ],
+      '/bf/ground',
+      [],
+    );
+    await sets.act({ host: w.host, config } as unknown as BrainContext);
+    expect(w.commands.filter((c) => c.startsWith('get '))).toEqual(['get 20 #gangs-bricks']);
   });
 
   it('an under-charged clamp sends him to the hacks for bone-dry bricks', async () => {

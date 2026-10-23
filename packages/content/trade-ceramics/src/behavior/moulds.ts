@@ -30,6 +30,7 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { PlayerApi } from '@saxonberg/server/mud/api/player';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
@@ -232,7 +233,12 @@ function hasWord(s: Stuff, word: string): boolean {
 
 /** Is this good stamped to a player? Then it is not the gang's to move. */
 function isPlayers(s: Stuff): boolean {
-  return MixinApi.isChattel(s) && s.stampedOwner()?.kind === 'player';
+  if (MixinApi.isChattel(s) && s.stampedOwner()?.kind === 'player') return true;
+  // ⭐ A STACK bears no title (owned by possession), so a player's bricks
+  // set out to dry carry no stamp at all — the maker is what says whose
+  // they are, and the setter carted a drive's nine bone-dry bricks to the
+  // clamp off its hack (drive A, runs 29 and 32).
+  return MixinApi.isCrafted(s) && PlayerApi.isAvatarIdentityPath(s.getMaker());
 }
 
 /** How many of what the moulder holds match — a stack by its quantity. */
