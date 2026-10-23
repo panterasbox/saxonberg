@@ -61,9 +61,11 @@ type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable &
   { entryMediaIn(env: Stuff & Container): string[] };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+type BoatCtor = new (...args: any[]) => BoatShape;
+
 const BoatBase = PullableMixin(
   HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
-) as unknown as new (...args: any[]) => BoatShape;
+) as unknown as BoatCtor;
 
 /** What a boat affords to whoever sits in it. */
 const FROM_INSIDE = [
