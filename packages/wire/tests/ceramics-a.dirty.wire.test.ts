@@ -34,6 +34,8 @@ import {
   expectOk,
   advanceWorldClock,
   advanceLiving,
+  toSeasonDay,
+  toWarmSeason,
   plain,
   dress,
   dressFounder,
@@ -363,6 +365,10 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // a fresh one NOW, in the winter the last checkpoint reached, leaves it
     // wet under the cover, and lets a frost find it. Rain never reaches it
     // (the canvas), so a ruin here is the FROST's.
+    // ⚠ And NOW must be winter: the winter pass ends when the heap reads
+    // frost-broken, which can be spring already (run 32 struck its brick in
+    // fog, spring) — so go on to early winter (day 285 of 360).
+    await toSeasonDay(285, 330, open);
     await toHour(9, 15);
     await say(digger, 'east');
     await say(digger, 'east');
@@ -376,17 +382,28 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     const struck = await act(digger, 'shape clay into brick', '9 hours');
     expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
     await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
-    // ⭐ Overnight the moulders bear the day's green bricks off to the hacks
-    // (their routine — run 31 found the shed bare by morning), so follow
-    // them there: the stack still SOFT AND WET is the fresh one, and it is
-    // watched where it stands, under the cover.
+    // ⭐ The stack still SOFT AND WET is the fresh one. It is where the day
+    // left it, in the shed, unless the moulders bore it off to the hacks
+    // overnight (their routine — run 31 found the shed bare by morning, run
+    // 32 found it on neither row of the hacks); it is watched under the
+    // hack cover either way, carried there if it is still in the shed.
+    const wetIn = async (): Promise<{ id?: string; seen: string[] }> => {
+      const rows = (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as {
+        stuffId?: string;
+        longDescription?: unknown;
+      }[];
+      return {
+        id: rows.find((r) => /thumbprint|soft, wet/i.test(String(r.longDescription ?? '')))?.stuffId,
+        seen: rows.map((r) => String(r.longDescription ?? '').slice(-90)),
+      };
+    };
+    const inShed = await wetIn();
+    if (inShed.id) await say(digger, `get #${inShed.id}`);
     await say(digger, 'south');
-    const rows = (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as {
-      stuffId?: string;
-      longDescription?: unknown;
-    }[];
-    const fresh = rows.find((r) => /thumbprint|soft, wet/i.test(String(r.longDescription ?? '')))?.stuffId;
-    expect(fresh, `a fresh wet stack on the hacks: ${JSON.stringify(rows.map((r) => String(r.longDescription ?? '').slice(0, 80)))}`).toBeTruthy();
+    if (inShed.id) await say(digger, `drop #${inShed.id}`);
+    const onHacks = inShed.id ? inShed : await wetIn();
+    const fresh = onHacks.id;
+    expect(fresh, `a fresh wet stack: shed ${JSON.stringify(inShed.seen)} · hacks ${JSON.stringify(onHacks.seen)}`).toBeTruthy();
     let hackBrick = '';
     for (let half = 0; half < 20 && !/frost has burst|froze wet/i.test(hackBrick); half++) {
       await advance('12 hours');
@@ -400,7 +417,7 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // ⚠ Room for all twenty half-days. A timed-out test does not stop its
     // loop: run 24's kept jumping the clock through 3 and 4, and the
     // brickmaker — sodden from the pit — died of hypothermia mid-moulding.
-  }, 1_800_000);
+  }, 3_600_000);
 });
 
 suite('⭐ 3 — knead it', () => {
@@ -410,6 +427,9 @@ suite('⭐ 3 — knead it', () => {
     // walked to the clamp ground).
     digger.close();
     digger = await at(digger.handle, GROUND);
+    // ⭐ Back to the working season: 5b left the year in winter, and the
+    // bricks moulded from here dry on the hacks — wet ones a frost bursts.
+    await toWarmSeason(open);
     await toHour(9, 15);
     expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
     const fat = await say(digger, 'analyze clay lump');
@@ -439,7 +459,7 @@ suite('⭐ 3 — knead it', () => {
     const lean = await say(digger, 'analyze clay lump');
     expect(lean, `tempered: ${lean} — raw: ${fat}`).not.toEqual(fat);
     expect(lean).toMatch(/workable|lean/i);
-  }, 900_000);
+  }, 3_600_000);
 
   it('a second batch of fat clay is kept back with NO sand in it', async () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).

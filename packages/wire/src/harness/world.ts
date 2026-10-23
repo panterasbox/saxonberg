@@ -365,12 +365,24 @@ export async function advanceLiving(
  * a season for making for the same reason.
  */
 export async function toWarmSeason(living: readonly (Session | undefined)[] = []): Promise<void> {
+  await toSeasonDay(60, 170, living);
+}
+
+/**
+ * Bring the world (as LIVED time, {@link advanceLiving}) to the next day
+ * of the 360-day year in `[from, to)` — day 0 is the northern vernal
+ * equinox, so winter is 270–360 — or do nothing if it is already there.
+ */
+export async function toSeasonDay(
+  from: number,
+  to: number,
+  living: readonly (Session | undefined)[] = []
+): Promise<void> {
   const DAY = 86_400;
   const YEAR = 360;
   const now = await worldClockNow();
-  const day = Math.floor(now / DAY);
-  const dayOfYear = ((day % YEAR) + YEAR) % YEAR;
-  if (dayOfYear >= 60 && dayOfYear < 170) return;
-  const toDay = (60 - dayOfYear + YEAR) % YEAR;
+  const dayOfYear = ((Math.floor(now / DAY) % YEAR) + YEAR) % YEAR;
+  if (dayOfYear >= from && dayOfYear < to) return;
+  const toDay = (from - dayOfYear + YEAR) % YEAR;
   await advanceLiving(`${toDay} days`, living);
 }

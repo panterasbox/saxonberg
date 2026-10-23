@@ -28,6 +28,7 @@ export {
   advanceWorldClock,
   advanceLiving,
   toWarmSeason,
+  toSeasonDay,
   nourish,
   dress,
   dressFounder,
