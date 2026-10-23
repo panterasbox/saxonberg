@@ -411,10 +411,16 @@ export function scoreCandidate(
     return 60;
   }
 
-  if (nameLower && queryWords.every((w) => nameLower.includes(w))) return 50;
+  if (nameLower && queryWords.every((w) => startsAWord(nameLower, w))) return 50;
 
+  // ⚠ A query word matches where a WORD of the name or a keyword BEGINS,
+  // never in the middle of one. Mid-word substrings scored as partials, and
+  // a partial is the fallback when nothing names the whole phrase — so
+  // `consign "plant pot"`, with no plant pot in hand, put the player's
+  // aether imPLANT up for sale (the ceramics drive C, run 28); `get 1 brick`
+  // took the "brick table" by its keyword's tail.
   const nameMatches = queryWords.filter((qw) =>
-    nameWords.some((nw) => nw.includes(qw))
+    nameWords.some((nw) => nw.startsWith(qw))
   );
   if (nameMatches.length === queryWords.length && queryWords.length > 0) {
     return 40;
@@ -422,7 +428,7 @@ export function scoreCandidate(
 
   if (candidate.keywords.length > 0) {
     const kwMatches = queryWords.filter((qw) =>
-      candidate.keywords.some((kw) => kw.includes(qw))
+      candidate.keywords.some((kw) => startsAWord(kw, qw))
     );
     if (kwMatches.length === queryWords.length) return 25;
     if (kwMatches.length > 0) return 10 * kwMatches.length;
@@ -431,6 +437,11 @@ export function scoreCandidate(
   if (nameMatches.length > 0) return 5 * nameMatches.length;
 
   return 0;
+}
+
+/** Whether `word` begins one of the whitespace-separated words of `text`. */
+function startsAWord(text: string, word: string): boolean {
+  return text.split(/\s+/).some((t) => t.startsWith(word));
 }
 
 /**

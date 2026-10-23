@@ -15,9 +15,23 @@ const cand = (name: string, keywords: string[] = []): ScopeCandidate =>
   ({ stuff: {} as never, name, keywords }) as ScopeCandidate;
 
 describe('scoreCandidate — whole words beat substrings', () => {
-  it('⭐ `net`: "a net" (a whole word, 60) over "a keepnet" (a substring, 50)', () => {
+  it('⭐ `net`: "a net" (a whole word, 60); "a keepnet" does not answer to it at all', () => {
     expect(scoreCandidate(cand('a net'), ['net'])).toBe(60);
-    expect(scoreCandidate(cand('a keepnet'), ['net'])).toBe(50);
+    // A word matches where a word BEGINS, never mid-word (ceramics run 28).
+    expect(scoreCandidate(cand('a keepnet'), ['net'])).toBe(0);
+    expect(scoreCandidate(cand('a keepnet'), ['keep'])).toBeGreaterThan(0);
+  });
+
+  it('⛔ `plant pot` never binds an aether imPLANT — a mid-word substring is no match (ceramics run 28)', () => {
+    // With no plant pot in hand, the partial fallback took the implant, and
+    // `consign "plant pot"` put the player's implant up for sale.
+    expect(scoreCandidate(cand('an aether implant', ['aether implant', 'implant']), ['plant', 'pot'])).toBe(0);
+    expect(scoreCandidate(cand('a small plant pot', ['plant pot', 'pot']), ['plant', 'pot'])).toBeGreaterThan(0);
+  });
+
+  it('⛔ `brick` does not bind a table by the tail of "brick table"… but a prefix still answers', () => {
+    expect(scoreCandidate(cand('a moulding table', ['table', 'brick table']), ['brick'])).toBeGreaterThan(0);
+    expect(scoreCandidate(cand('a moulding table', ['table', 'moulding table']), ['ble'])).toBe(0);
   });
 
   it('⭐ `edge`: "the river\'s edge" over "a ledger rod"', () => {
