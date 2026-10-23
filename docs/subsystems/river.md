@@ -3,8 +3,8 @@
 How water that *goes somewhere* is lived in: a river is a **line** you are
 carried along, the water around you is a **moving place**, and boats, ships,
 ferries and the sea all follow one rule about what is tracked. Built by the
-river build (MR on `build/river`, 2026-10-21; plan `docs/plans/river-plan.md`,
-D1–D38). The hydrology underneath — flow, snowpack, navigability, rights —
+river build (MR !464, `build/river`, 2026-10-21 → 10-23; the plan and its
+drive record are in that MR's history — retired at the sweep). The hydrology underneath — flow, snowpack, navigability, rights —
 is [watershed.md](./watershed.md); the water column and the breath model are
 [underwater.md](./underwater.md); the sea's chart is [expanse.md](./expanse.md).
 
