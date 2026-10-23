@@ -1,0 +1,17 @@
+# Pearl ash — calcined potash, black salts brought to a red heat in a kiln
+# until the char burns out and the cake goes white (potash D12). The
+# glassmaker's flux, the soapmaker's best alkali, and the one an ashery
+# carts to town. ⭐ Its purity and grade come from the firing: the cake's
+# potash concentrated by the yield, the cake's grade carried.
+class: /trade/fuel/thing/Ash
+data:
+  shortDescription: lump of pearl ash
+  keywords: ["pearl ash", pearlash, potash, lump, "lump of pearl ash"]
+  register: indefinite
+  longDescription: >-
+    A lump of white, faintly bluish salt, porous and light, that crumbles
+    at the edges and draws damp out of the air if it is left uncovered.
+  _materialPath: /stuff/idea/material/mineral/potash
+  gradeBand: fair
+  gradedByStrength: false
+  mass: 2

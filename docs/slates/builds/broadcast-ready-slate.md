@@ -9,9 +9,13 @@
 > ending) and standby *reasons* as rows · stream state that survives a
 > restart and fails closed, held by each streamer rather than the
 > server · a per-streamer overlay token · the on-air marker bystanders
-> can see · the segment lower third · the streamer
-> controls in the client (a corner the camera covers) · redaction while
-> on air · tab-away reported · the streamer's client facts on the feed ·
+> can see · ⭐ the canvas (revised 2026-10-22: display capture in a 16:9
+> content area, the sidebar — brand, topic and agenda, chat, the camera
+> in the corner — and the lower third's rotation and crawl) · the agenda ·
+> the lower third v1 (join, goals to claim, the world, the quote, building, links; names by
+> opt-in; alerts later) · the streamer controls as a pop-out card on the unshared monitor ·
+> redaction while on air · the client's foreground reported · the
+> streamer's client facts on the feed ·
 > the overlay's scenes, layers and scene rules · OBS scene switching ·
 > the Stream Deck: Elgato's OBS plugin for the hard cuts, pblive revived
 > for game commands behind a scoped control credential · multistreaming
@@ -122,25 +126,173 @@ mid-show is one `clone` away*.
 
 ---
 
+## ⭐⭐ The canvas — revised 2026-10-22 **[DECIDED — the owner]**
+
+The owner's setup: *"I just want to run a browser maximized running the saxonberg client in
+one tab. I'll also have other tabs for other web content I wanna share, and maybe even
+another window for Claude Desktop."* The show is a frame around the desktop, not a
+full-screen client — so the original **streamer corner** (the camera over a reserved block
+of the client) and the separate **Browsing** scene are retired.
+
+```
+┌────────────────────────────────────────┬──────────┐
+│                                        │  BRAND   │  always
+│                                        ├──────────┤
+│        CONTENT  1520 × 855             │  TOPIC   │  always
+│        (display capture, 16:9)         │ + agenda │
+│                                        ├──────────┤
+│                                        │   CHAT   │
+├────────────────────────────────────────┤          │
+│ ROTATION  1520 × 177                   ├──────────┤
+│ CRAWL     1520 × 48                    │   CAM    │  the corner
+└────────────────────────────────────────┴──────────┘
+```
+
+1920 × 1080: a 1520-wide 16:9 content area leaves exactly a 400-wide sidebar and a
+225-tall lower third.
+
+### ⭐ Capture the display, not a window
+
+One display capture fills the content area: **what is on the screen is what the audience
+sees** — the Saxonberg tab, another tab, Claude Desktop in front. Switching content is
+switching windows, as the streamer works anyway; the state machine never chooses *what* to
+show. The owner: *"you can trust I'm not gonna open my email in the same Chrome window as
+the game"* — so there is no tab allowlist and no private-tab cover.
+
+⚠⚠ **A privacy cover is the absence of the source, never a layer over it.** An overlay page
+that fails to load takes its covers with it, so every privacy state switches to an OBS scene
+that **does not contain** the display capture (or, for Away, the camera) — the fail-closed
+rule, made structural.
+
+### The sidebar
+
+- **Brand — always on screen.** The Pantera's Box seal and the Saxonberg wordmark.
+- **Topic and agenda — always on screen.** The current topic is the current segment
+  (`stream segment …`); the agenda is the ordered list set at `stream start` or by
+  `stream agenda …`, the current item highlighted, finished ones ticked; one command or one
+  Stream Deck button steps to the next.
+- **Chat** — the combined Twitch and YouTube relay chat already on the feed; a Saxonberg
+  in-game channel may interleave.
+- **The camera in the bottom corner** — the owner: *"I want the camera in the corner, not in
+  the middle."*
+
+### The lower third — rotation over a crawl
+
+Laid out for a viewer at 720p, where everything renders at two-thirds size:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ROTATION 1520 × 177 · one panel at a time, ~20 s            │
+│ title 40px · body 28px · a hairline showing time left       │
+├─────────────────────────────────────────────────────────────┤
+│ CRAWL 1520 × 48 · 26px text, scrolling ~120 px/s            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- **The legibility floor** — the crawl's 26px is about 17px at 720p and the body's 28px
+  about 19px; nothing smaller.
+- ⭐ **The rotation wins any squeeze** (the owner: *"if we had to pick just one then it'd be
+  the rotation"*). The crawl is a layer that hides when it has nothing to say, and the
+  rotation grows back to the full 225.
+- **Both are rows**, like standby reasons — text, duration, weight, source, and a **show
+  only when** condition, so an empty item never takes a turn and adding one is content, not
+  code.
+
+### ⭐⭐ What the lower third is for — passive, and the pitch **[DECIDED — the owner]**
+
+The owner: *"some of this stuff we can just put in the game, and if I wanna show it I'll be
+showing the whole client … The overlays is stuff I want shown passively."* And: *"logging
+into the game actually puts you in the stream now, since I'm just showing the saxonberg
+client. That's a value proposition most other streams don't offer."* Anything worth
+navigating to stays in the game; the overlay carries what should be true while the streamer
+is doing something else — and its spine is **log in and you're on the show**.
+
+**The v1 rotation** — a starter, built to be changed (the owner: *"I might tell you one
+thing and then totally hate it once I see it"*):
+
+| panel | says | source | when |
+|---|---|---|---|
+| ⭐ **join** — weighted heaviest | *"Log in and you're on the stream"* · the URL · a QR code · how many are in the world now | static + the game | always |
+| ⭐ **goals** | *"Subs this stream: 12 / 20 · every sub becomes a stake in the cooperative · log in with Twitch to claim yours"* | Twitch events | once intake exists |
+| **the world now** | Terminus's time, season and weather; the latest in-world headline | time, weather, press | always |
+| **the quote** | *"See now, this is why mad scientists are generally less desirable than your common or garden variety scientist."* (*Mystery Men*) — the persona's thesis | static | always |
+| **building** | the current milestone and its progress; open merge requests and their pipelines | GitLab ([gitlab-and-packs](./gitlab-and-packs-slate.md) § 7) | when the integration is on |
+| **brand and links** | socials; ⭐ *"the source is open"* — the GitLab link and the AGPL | static | always |
+
+⭐ **Goals are a reason to log in.** Patronage becomes standing in the cooperative when it can
+be attributed to a real player — the [giving slate](./giving-slate.md)'s *attribution by
+claim*: a held gift attaches when its giver signs in with, or links, that account. So the
+goals panel and the join panel make one pitch from two directions.
+
+**The v1 crawl** — only when it has something: in-world news; notable deeds and ⭐ **world
+firsts** (chronicle's one-time deeds — *"the first ingot smelted in Rejection"*); just merged;
+issues closed; ⭐ *"your bug report got fixed"*.
+
+### ⚠⚠ Names only for players who opted in **[DECIDED]**
+
+Logging in puts you on the show, and a *"welcome, Iffy"* panel broadcasts an arrival to the
+internet — reaching people who never came near the streamer, which the on-air marker does
+not cover. So **names appear on the overlay only for players who opted in to being shown on
+stream** (one setting); everyone else is a count. The opt-in doubles as the list of people
+who *want* to be on the show.
+
+### Alerts — later, in the lower third **[DECIDED]**
+
+Alerts interrupt the rotation for a few seconds, in the lower third, so the content area is
+never covered. ⭐ **The alert that matters is the conversion: someone walked into Saxonberg
+from the stream** — the moment the pitch worked (names by opt-in). Follows, subs and raids
+follow Twitch event intake.
+
+### For the streamer only — the controls card **[DECIDED — the owner]**
+
+The owner: *"a few of these things I might want to know about but not show at all, like
+viewer count — that's worth putting in the streamer control pop-out window just for my
+benefit."* On the popped-out controls card, on the unshared monitor: viewer count (Twitch and
+YouTube), uptime, chat rate; who is in the game right now, by name; ⭐ the rotation's **now
+and next, with skip and pin**; the alert queue once alerts exist.
+
+### Cheap to iterate
+
+- **Rows**, so copy, order and timing change without code.
+- **A preview page** — Rodney with mock data shows the lower third cycling with no stream and
+  no server, to look at, react to and change.
+- **Skip and pin** on the controls card, to test it live.
+- Rules the owner may tilt: **fresh beats due** (an item whose data just changed jumps the
+  queue once) and **weight by segment** (build items heavier in a coding segment, world
+  items in a play segment).
+
+---|---|---|---|
+| ⭐ **stream goals** — follows, subs | rotation | Twitch events | needs Twitch event intake (the broadcast track's Phase 4) |
+| ⭐ **the quote** — *"See now, this is why mad scientists are generally less desirable than your common or garden variety scientist."* (*Mystery Men*) — the thesis of the on-stream persona | rotation | static | yes |
+| **now building** — open MRs and their pipelines | rotation | GitLab | needs the GitLab API |
+| world stats — players online, today's notable deeds | rotation | the game | mostly |
+| how to join — URL or QR code | rotation | static | yes |
+| next stream — the schedule | rotation | static or a stream verb | small |
+| **in the world** — the in-world news | crawl | the press subsystem's ticker | ✅ |
+| **just merged** — the live changelog | crawl | GitLab / git | the [distribution](./distribution-and-hosting-slate.md) idea |
+| chat highlights | crawl | relay chat | yes |
+| recent supporters | crawl | Twitch events | needs event intake |
+
+---
+
 ## The client
 
-### The streamer corner
+### ⭐ The streamer controls — a pop-out card on the unshared monitor **[DECIDED — the owner]**
 
-While the streamer is broadcasting (phase ≠ `offline`), their client
-reserves **one fixed block, bottom-right, on every layout**, and the
-streamer controls live in it: the phase, a reason picker, the timer,
-*Back*, the segment field. Every control sends its `stream` command (and
-previews it on hover, like every clickable). The overlay puts the camera
-over that block, so **the streamer sees their controls and the viewers
-see the streamer's face** — the part of the screen nobody else needed.
+The owner: *"generally I park my stream controls over on my other monitor that I don't
+share."* The controls are **a card** — the phase, a reason picker, the timer, *Back*, the
+topic and agenda — and ⭐ **any card can open in its own window without browser chrome**
+(a requirement handed to the card redesign: [card-ux-brief](../../card-ux-brief.md)
+§ 4). The streamer pops the controls out onto the monitor that is not captured. Every
+control sends its `stream` command, previewed on hover like every clickable; the Stream
+Deck and typing `stream …` on air remain.
 
-- The block is fixed for now because OBS must know where it is.
-  [card-sizes](card-sizes-slate.md) turns it into an arrangement region
-  the feed reports, at which point moving it is a saved arrangement
-  rather than an OBS edit.
-- `StreamerDeck`'s dead chips go: the ones whose verbs ship here are
-  wired into the corner, the rest (moderation, rewards, penalties) are
-  deleted rather than left dimmed, because no slate builds them.
+- `StreamerDeck`'s dead chips go: the ones whose verbs ship here are wired into the
+  controls card, the rest (moderation, rewards, penalties) are deleted rather than left
+  dimmed, because no slate builds them.
+- **On air the client's type grows** (about 140%) — the content area is roughly 60% of a
+  2560-wide monitor, so ordinary client text is unreadable on stream — and it hides its own
+  relay-chat panel, since the sidebar shows the chat.
 
 ### ⚠⚠ Redaction while on air
 
@@ -166,13 +318,18 @@ so** (*"…, broadcasting"*) and the room line carries a marker that a
 broadcast is reaching it. It is a statement, not a gate — a public room
 stays public — but nobody is on camera without being told.
 
-### Tab-away
+### The foreground — no extension needed
 
-`visibilitychange` → the client reports *hidden* / *visible* on the bus
-(streamer's client only, phase ≠ `offline`). It says *hidden*, never what
-is showing instead. That is the whole of the browsing story: the web is
-a browser tab, and the overlay changes scene around it
-([card-sizes](card-sizes-slate.md) § the web as content).
+The owner: *"I don't need to get too clever with the extension."* The browser alone tells
+the three states apart, and the streamer's client reports which (phase ≠ `offline`) —
+never what is showing:
+
+- **visible and focused** — Saxonberg is in front;
+- **hidden** (`visibilitychange`) — another tab in that window;
+- **visible but blurred** (the window lost focus) — another app (Claude Desktop).
+
+Nothing critical depends on it now that the display is captured; the overlay's rules may
+use it (*when the game is not in front, rotate a game summary*).
 
 ---
 
@@ -209,10 +366,9 @@ on purpose:
 | field | why the overlay needs it |
 |---|---|
 | `phase`, `reason` (label, copy, privacy, scene), `awayUntil`, `startsAt` | the scene and its text |
-| `segment` | the lower third |
+| `segment`, `agenda` | the topic and agenda in the sidebar |
 | `client.mode`, `client.arrangement` | which client layout is on air → layer rules |
-| `client.chatInView` | whether the streamer's visible terminal carries `speech.relay` — if not, the overlay shows chat |
-| `client.hidden` | the browsing scene |
+| `client.foreground` | `saxonberg` · `other-tab` · `other-app` — for the overlay's rules |
 | `relay-chat` (shipped) | the chat overlay |
 
 Not on it: anything about any player but the token's streamer, the streamer's
@@ -223,27 +379,23 @@ ships.
 
 ## The overlay (Rodney, `packages/rodney`)
 
-### Scenes
+### Scenes — four, each a fixed set of sources
 
-Built in the existing brand system (the monastery, the banner, the
-serif voice):
+| scene | content area | camera | when |
+|---|---|---|---|
+| **Starting** | the countdown to `startsAt`, the agenda | optional | starting |
+| **Live** | the display capture, with the sidebar and lower third | on | live |
+| **Away** | ⛔ no display source — the standby scene with the reason's copy; privacy shows no countdown | ⛔ off | standby |
+| **Ending** | the outro | on | ending |
 
-- **Starting Soon** — the countdown to `startsAt`, the week's segment
-  list if set.
-- **Live** — the client capture full screen, with layers on it: the
-  camera framed over the streamer corner, the chat lower third
-  (`relay-chat`, already on the wire), the segment lower third.
-- **Browsing** — the window capture framed rather than full, camera and
-  chat laid out by the overlay.
-- **Standby** — the shipped scene, now with the reason's copy; privacy
-  shows no countdown.
-- **Ending** — the outro.
+Built in the existing brand system (the monastery, the banner, the serif voice); the
+sidebar and lower third are Rodney layers on Live.
 
 ### ⭐ The rules are data
 
 A small table in the overlay maps the feed to a scene and its layers:
-*phase standby → Standby*; *live ∧ hidden → Browsing*; *live ∧
-¬chatInView → chat layer on*; *reason.scene set → that scene*. The game
+*phase standby → Away*; *live → Live*; *live ∧ foreground ≠ saxonberg → rotate a game
+summary*; *reason.scene set → that scene*. The game
 never names an OBS scene except as a reason row's hint, and OBS never
 learns what an arrangement is. Changing the show's behaviour is editing
 the table.
@@ -314,16 +466,19 @@ setting.
 
 The exit criterion, run against the real stack with OBS open:
 
-1. `stream start in 2m` → Starting Soon counts down; `stream live` → the
-   client is on air with the camera over the corner.
+1. `stream start in 2m` with an agenda → Starting counts down and shows it; `stream live` →
+   the display is on air in the content area, the sidebar shows brand, topic, chat and the
+   camera in the corner, and the lower third rotates.
 2. A tell arrives → it reads *[private message]* on air.
-3. `stream away bathroom` from the corner → Standby, 5:00 counting.
+3. `stream away bathroom` from the popped-out controls card on the other monitor → Away,
+   5:00 counting; the display and the camera are gone from the scene.
 4. `stream away privacy` from the Stream Deck (pblive) → Standby, no
    timer; the tell now reads in full on the streamer's screen.
 5. **Restart the server** → the overlay still shows the privacy
    standby; after reconnect it still does.
-6. `stream back` → live. Switch tabs → Browsing; switch back → Live.
-7. Toggle the terminal's relay-chat filter off → the chat layer appears.
+6. `stream back` → live. Switch to another tab, then to Claude Desktop → it is on air as
+   it is; the feed reports `other-tab`, then `other-app`.
+7. `stream segment` steps the agenda → the sidebar's topic and ticks follow.
 8. Elgato privacy button with the server stopped → the desktop leaves
    the stream.
 9. A second player in the room sees the on-air marker on the streamer
@@ -355,21 +510,26 @@ The exit criterion, run against the real stack with OBS open:
   REST — [streamer-registry-slate](streamer-registry-slate.md). This
   build makes state and tokens per-streamer; it does not make streamers
   a public, claimable thing.
-- **Card sizes, the arrangement region for the camera, focal facts** —
+- **Card sizes and focal facts** —
   [card-sizes-slate](card-sizes-slate.md).
 - **Reading patronage** (subs, bits, memberships, Super Chats, Patreon)
   and turning it into standing — [giving-slate](giving-slate.md). This
   build renders the alerts it hands over.
-- **The World Ticker and the Agent Board** — Rodney's plan, Phase 4.
+- **The Agent Board** — Rodney's plan, Phase 4. (The World Ticker's in-world news now rides
+  the lower third's crawl.)
 - **Viewer interactivity / the HUD** — Rodney's plan, Phases 6–7.
 - **Moderation, rewards, penalties** on the deck — no slate builds the
   verbs.
 
 ## Open questions
 
-1. **The segment list** — just a current segment, or a rundown set
-   before the show (`stream rundown …`) that Starting Soon displays and
-   `stream next` steps through?
+1. ~~**The segment list**~~ — **an agenda**, decided 2026-10-22: set before the show,
+   shown always in the sidebar, stepped by a command or a Stream Deck button.
+5. **The lower third's sources** — which ship in this build (GitLab, Twitch goals) and which
+   follow.
+6. **Pop-out windows without chrome** — an installed app (a PWA in a standalone window) is
+   the lean; Document Picture-in-Picture is chromeless but one always-on-top window per tab;
+   a plain popup keeps a minimal address bar. Verified when built.
 2. **`ending` → `offline`** — on a timer, or only by `stream off`?
 3. ~~**Twitch, YouTube, or both**~~ — **both**, decided 2026-10-17 (see
    § multistreaming); Kick later.

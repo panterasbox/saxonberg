@@ -26,7 +26,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["rock", "sedimentary", "carbonate", "flux"]
+  # ⭐ `smelting-flux`, not bare `flux` (potash D13): the smelter's word
+  # names the melt it serves. Bare `flux` is the glassmaker's — the potash
+  # family — and a lime kiln burns limestone as a `carbonate`.
+  tags: ["rock", "sedimentary", "carbonate", "smelting-flux"]
   composition: []
   chemistry: null
   biologicalSource: null

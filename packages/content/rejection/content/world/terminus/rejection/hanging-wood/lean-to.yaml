@@ -1,0 +1,63 @@
+# The ashery's lean-to (potash D16) — the dry half of the ashery: a roof of
+# rough boards over the hearth and its two pots, the hopper, the rain butt,
+# the store of ash and the wood. ⭐ A ROOF, because the drive found what an
+# open sky does: the cordwood was too sodden to catch, and the ash-burner
+# stood a day and a half in the rain. Open on the clearing side, so the
+# daylight comes in under the eaves.
+#
+# ⭐ Persistent: a hopper leaching overnight, two pots boiling down over
+# hours, a cake in a pot — a kept place outlives a restart.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: lean-to
+  keywords: ["lean-to", shed, shelter]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  roof: { material: /stuff/idea/material/wood/oak, thicknessM: 0.03 }
+  ambientSource: sky
+  ambientOpening: front
+  ambientIntensity: 3000
+  ambientColorTemperature: 5600
+  longDescription: |
+    A lean-to of rough boards against the trees, open along its front to the clearing and the pit. A hearth stands at the back with two iron pots on it, crusted white round the lips, and heaps of grey ash are kept dry along the back wall. A tall hopper on legs stands in the corner with a stone channel under its spigot, and a tarred rain butt catches what runs off the eaves. Cordwood is stacked under the roof where the weather cannot reach it.
+  coords: { x: -2, y: 2, z: 0 }
+  exits:
+    east:
+      destination: /world/terminus/rejection/hanging-wood/ashery
+      edgeMinutes: 1
+  props:
+    - /stuff/thing/Hearth
+    # ⭐ Two pots on the one hearth (potash D16): a strong lye and a weak one
+    # boiled over the SAME fire is how an ash-burner learns what weak lye
+    # costs in wood (AC 5).
+    - { template: /trade/potash/thing/iron-pot, as: pot-1, on: /stuff/thing/Hearth }
+    - { template: /trade/potash/thing/iron-pot, as: pot-2, on: /stuff/thing/Hearth }
+    - /trade/chandlery/thing/hopper
+    - /trade/potash/thing/rain-butt
+    - /trade/potash/thing/test-egg
+    # A pail to carry the rain to the hopper and the lye to the pots.
+    - /stuff/thing/vessel/pail
+    - { template: /trade/chandlery/thing/lye-flask, as: flask-1 }
+    - { template: /trade/chandlery/thing/lye-flask, as: flask-2 }
+    # The ashery's store of ash, bought in from hearths and kept dry —
+    # fresh ash for a second pass of the lye.
+    - { template: /trade/fuel/thing/wood-ash, as: ash-1 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-2 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-3 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-4 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-5 }
+    - { template: /trade/fuel/thing/wood-ash, as: ash-6 }
+    # Dry wood — for the hearth and the kiln.
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-1 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-2 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-3 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-4 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-5 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-6 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-7 }
+    - { template: /trade/forestry/thing/cordwood, as: cordwood-8 }
+  details:
+    front:
+      keywords: [front, eaves, opening]
+      description: |
+        The whole front of the lean-to is open to the clearing, under eaves low enough to duck. Daylight comes in under them, and smoke goes out.

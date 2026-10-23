@@ -1,0 +1,48 @@
+# The Hanging Wood ashery (potash D16) — ⭐ where the wood's waste becomes
+# the glasshouse's flux. It stands in the wood because potash is about a
+# tenth of the ash's mass: burn where the wood is, leach and boil where the
+# ash is, and cart the cake. The CLEARING is the burning ground — the pit
+# and the kiln, out under the sky; the lean-to beside it (`lean-to.yaml`)
+# keeps the leaching and the boiling, and the wood, dry.
+#
+# ⭐ Persistent: a fire burning down over hours and a pearl-ash firing in
+# the kiln outlive a restart (cleanliness D31).
+#
+# ⚠ The prose is invariant: it never says how much ash is in anything.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: ashery
+  keywords: [ashery, potashery, clearing]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  # An open clearing, the canopy cut well back off the smoke.
+  ambientIntensity: 4500
+  ambientColorTemperature: 5600
+  longDescription: |
+    A clearing west of the big oaks, grey underfoot for twenty yards in every direction, where the ash has been carried and spilled and trodden in for years. A broad pit ringed with blackened stones takes up the middle of it, and a squat brick kiln stands at the far side. A lean-to of rough boards stands against the trees to the west, smoke curling out from under its eaves.
+
+    Everything here smells of wet ash and lye, and there is not a green thing growing within a cart's length of the pit.
+  coords: { x: -1, y: 2, z: 0 }
+  exits:
+    east:
+      destination: /world/terminus/rejection/hanging-wood/oak-clearing
+      edgeMinutes: 2
+    west:
+      destination: /world/terminus/rejection/hanging-wood/lean-to
+      edgeMinutes: 1
+  props:
+    # ⭐ The burn (potash D2): a big Burner fed with the wood's waste.
+    - /trade/potash/thing/ash-pit
+    # ⭐ Its own kiln for the calcining (potash D16), so the ashery and the
+    # glasshouse never wait on each other.
+    - /stuff/thing/Kiln
+    # ⭐ The pit is raked out with a broom — `sweep` is the broom's verb
+    # (found by the drive: an ashery with no broom could not be swept).
+    - /stuff/thing/gear/broom
+  cast:
+    - /world/terminus/rejection/agent/ash-burner
+  details:
+    ground:
+      keywords: [ground, grey, floor]
+      description: |
+        Grey and soft and packed, with black flecks of char in it, trodden into ridges between the pit and the lean-to.

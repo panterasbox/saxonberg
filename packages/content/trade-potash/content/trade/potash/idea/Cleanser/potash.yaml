@@ -1,0 +1,7 @@
+# Potash as a cleanser (potash D15) — potassium carbonate, the alkali in
+# wood ash: it cuts grease more gently than lye, and like washing soda it
+# SOFTENS hard water, so soap lathers in it. Named by the potash and black
+# salts materials' `cleanser:`, so it loads with them.
+class: /platform/idea/Cleanser
+data: {key: potash, agent: potash, action: alkali-mild, softens: true, consumesPerWash: 0.02,
+  skinHarshness: 0.45}

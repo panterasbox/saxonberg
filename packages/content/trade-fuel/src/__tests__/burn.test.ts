@@ -145,15 +145,14 @@ describe('the charcoal burn', () => {
   });
 
   it('⭐ the three outcomes all have rows, so a lost burn is a THING you can see', () => {
-    for (const rel of [
-      'trade/fuel/thing/charcoal.yaml',
-      'trade/fuel/thing/brands.yaml',
-      'trade/fuel/thing/ash.yaml',
-    ]) {
+    for (const rel of ['trade/fuel/thing/charcoal.yaml', 'trade/fuel/thing/brands.yaml']) {
       expect(row(rel).class).toBe('/platform/thing/Provision');
     }
-    // …and the two failures are visibly WORSE, not merely different.
+    // ⭐ Ash is not a provision (potash D1): no freshness, no cure, no
+    // pathogens — a heap whose grade is its STRENGTH, sized to the charge.
+    expect(row('trade/fuel/thing/ash.yaml').class).toBe('/trade/fuel/thing/Ash');
+    expect((row('trade/fuel/thing/ash.yaml').data as Record<string, unknown>).gradedByStrength).toBe(true);
+    // …and the half-burnt failure is visibly WORSE, not merely different.
     expect((row('trade/fuel/thing/brands.yaml').data as Record<string, string>).gradeBand).toBe('poor');
-    expect((row('trade/fuel/thing/ash.yaml').data as Record<string, string>).gradeBand).toBe('poor');
   });
 });

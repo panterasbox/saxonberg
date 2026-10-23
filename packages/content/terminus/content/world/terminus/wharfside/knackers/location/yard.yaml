@@ -37,7 +37,7 @@ data:
   props:
     - /trade/cooking/thing/butcher-block
     - /trade/cooking/thing/cook-pot
-    - /trade/cooking/thing/tallow-crock
+    - /world/terminus/wharfside/knackers/thing/tallow-crock
     - /trade/haulage/thing/works-board
   details:
     board:

@@ -1,0 +1,20 @@
+# Milk of lime — quicklime slaked in water (potash D14): a hot white slurry
+# of slaked lime, caustic, and the thing a soap-boiler stirs into a lye to
+# make it strong enough for hard soap. Made in the kettle by pouring water
+# on a lump of lime; it heats as it slakes.
+class: /platform/idea/material/Material
+data:
+  name: milk of lime
+  keywords: ["milk of lime", "slaked lime", limewash, slurry]
+  appearance: a thin white slurry, like watered milk
+  density: 1150
+  specificHeat: 3600
+  thermalConductivity: 0.6
+  meltingPoint: 271
+  edibility: false
+  nutrients: []
+  toxicity: []
+  corrosiveTo: [tissue]
+  tags: [liquid, caustic, alkali, slaked-lime]
+  composition: []
+  biologicalSource: null

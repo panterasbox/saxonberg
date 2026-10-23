@@ -50,6 +50,8 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Material from '../material/Material';
 import type { BulkPayload } from '../bulk/Bulkable';
+import type { ChattelOwner } from '../chattel/ChattelRecord';
+// The payload's `contentsOwner` is declared by ContentsTitle's merge.
 import { WEAR_PER_USE } from '../material/Durable';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
@@ -71,6 +73,13 @@ export interface SetPool {
    * phase (an ice block is ice, never water).
    */
   stampMaterial?: boolean;
+  /**
+   * ⭐ Whose the cast is, when the caller knows better than the pool (a
+   * firing: whose its charge was). Absent ⇒ the pool's own
+   * `contentsOwner` — the communal-oven rule — and nobody when the pool
+   * was nobody's. A cast is a PROCESS mint: never the onlooker's.
+   */
+  madeBy?: ChattelOwner | null;
 }
 
 /**
@@ -389,6 +398,9 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       c.setMass?.(Quantity.of(pool.massKg, 'kg'));
       carryPayload(cast, pool, self);
+      if (MixinApi.isChattel(cast)) {
+        cast.recordMadeBy(pool.madeBy !== undefined ? pool.madeBy : (pool.payload?.contentsOwner ?? null));
+      }
 
       if (!MixinApi.isContainable(cast)) return cast;
       const item = cast as Stuff & Containable;

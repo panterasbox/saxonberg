@@ -15,7 +15,12 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import FellController, { LOGS_PER_STANDARD, type FellModel } from '../idea/cmd/forestry/FellController';
+import FellController, {
+  LOGS_PER_STANDARD,
+  BRASH_BUNDLES_PER_STANDARD,
+  BRASH_FRACTION_OF_BOLE,
+  type FellModel,
+} from '../idea/cmd/forestry/FellController';
 import Wood from '../location/Wood';
 import Bole, { BOLE_LENGTHS } from '../thing/Bole';
 import Panel from '../thing/Panel';
@@ -175,6 +180,12 @@ describe('fell', () => {
             t.setShortDescription('length of green timber');
             return t;
           }, path);
+        case '/trade/forestry/thing/brash':
+          return makeStuffAtPath(() => {
+            const t = new Thing();
+            t.setShortDescription('bundle of brash');
+            return t;
+          }, fresh(path));
         case '/trade/forestry/thing/felled-tree':
           return makeStuffAtPath(() => {
             const t = new Thing();
@@ -283,6 +294,20 @@ describe('fell', () => {
       expect(captured).toContain(room);
       expect(deeds).toEqual([{ discipline: 'silviculture', difficulty: 'standard', outcome: 'success' }]);
       expect(JSON.stringify(giver.received)).toMatch(/too much for any one back/);
+    });
+
+    it('⭐ every felling trims its brash where the tree lies — six bundles, a fifth of the bole, of the wood (potash D18)', async () => {
+      const { giver, room } = scene();
+      const axe = makeAxe();
+      ContainmentApi.move(axe, giver);
+      await makeStuff(() => new FellController()).execute(model(one(null, 'oak'), one(axe, 'axe')), ctx(giver, room));
+      await settle();
+      const brash = room.getContents().filter((s) => s.getTemplatePath()?.startsWith('/trade/forestry/thing/brash'));
+      expect(brash).toHaveLength(BRASH_BUNDLES_PER_STANDARD);
+      const total = brash.reduce((a, b) => a + (b as unknown as Thing).getMass().rawValue(), 0);
+      expect(total).toBeCloseTo(675 * BRASH_FRACTION_OF_BOLE, 1);
+      // No `brashMaterialPath` on this stand's entry: brash of the wood itself.
+      for (const b of brash) expect((b as unknown as Thing).getMaterial()?.getName()).toBe('oak');
     });
 
     it('⭐ `fell oak` with an oak LOG bound off the floor still fells the TREE (the word wins when the stand knows it)', async () => {

@@ -30,6 +30,9 @@ import Oven from '../../../../thing/Oven';
 import Casting from '../../../../thing/Casting';
 import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
+import { CompositionMixin } from '../../../../../lib/material/Composition';
+import { CraftedMixin } from '../../../../../lib/craft/Crafted';
+import { Grade } from '../../../../../lib/craft/Grade';
 import { Reserve } from '../../../../../lib/reserve';
 import { Quantity } from '../../../../../lib/quantity';
 import { StuffApi } from '../../../../../api/stuff';
@@ -369,8 +372,9 @@ describe('the firing carries its charge (D6)', () => {
     await draw();
     const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW);
     expect(melt).toBeDefined();
-    // Mass-weighted iron: (5·0.01 + 5·0.03) / 10 = 0.02.
-    expect((melt as unknown as { fractionOf(p: string): number }).fractionOf(IRON_M)).toBeCloseTo(0.02, 6);
+    // Mass-weighted iron: (5·0.01 + 5·0.03) / 10 = 0.02 — and ALL of it
+    // stays in half the mass, so the melt holds twice that (potash D12a).
+    expect((melt as unknown as { fractionOf(p: string): number }).fractionOf(IRON_M)).toBeCloseTo(0.04, 6);
   });
 
   it('a recipe with NO massYield keeps the output’s template mass (burn-lime unaffected)', async () => {
@@ -382,5 +386,64 @@ describe('the firing carries its charge (D6)', () => {
     expect(prod).toBeDefined();
     // test-burn authors no massYield → the clone keeps its mock mass (2).
     expect((prod as unknown as { getMass(): { rawValue(): number } }).getMass().rawValue()).toBeCloseTo(2, 6);
+  });
+});
+
+/** A graded, composed lump — black salts in shape (potash D12). */
+class GradedLump extends CompositionMixin(CraftedMixin(Good)) {
+  static _mixinName = 'GradedLump';
+}
+function gradedLumpOf(kg: number, band: string, ironFrac = 0): GradedLump {
+  const t = makeStuff(() => new GradedLump());
+  t.setMass(Quantity.of(kg, 'kg'));
+  t.setMaterial(StuffApi.findByTemplatePath<Material>(MELTABLE_M) as unknown as Material);
+  (t as unknown as { setGrade(g: Grade): void }).setGrade(Grade.of(band));
+  if (ironFrac > 0) t.setAlloying([{ materialPath: IRON_M, fraction: ironFrac }]);
+  return t;
+}
+const gradeOf = (s: Stuff): string => (s as unknown as { getGrade(): Grade }).getGrade().getBand();
+
+describe('⭐ the firing concentrates what it keeps and grades by its worst input (potash D12)', () => {
+  function gradedOutput(): void {
+    const real = StuffApi.clone;
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path === MELT_ROW) {
+        const p = makeStuff(() => new GradedLump());
+        stampTemplatePathForTest(p, path);
+        p.setMass(Quantity.of(99, 'kg'));
+        return p;
+      }
+      return real.call(StuffApi, path);
+    }) as never);
+  }
+
+  it('⭐ a graded output takes the WEAKEST graded input’s grade', async () => {
+    gradedOutput();
+    ContainmentApi.move(gradedLumpOf(5, 'fine'), kiln);
+    ContainmentApi.move(gradedLumpOf(5, 'fair'), kiln);
+    await fire();
+    await draw();
+    const out = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW)!;
+    expect(gradeOf(out)).toBe('fair');
+  });
+
+  it('a constituent concentrates by 1 / massYield, and never past the whole', async () => {
+    gradedOutput();
+    ContainmentApi.move(gradedLumpOf(5, 'fine', 0.65), kiln);
+    ContainmentApi.move(gradedLumpOf(5, 'fine', 0.65), kiln);
+    await fire();
+    await draw();
+    const out = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW)! as unknown as GradedLump;
+    // 0.65 / 0.5 would be 1.3 — capped at the whole.
+    expect(out.fractionOf(IRON_M)).toBeCloseTo(1, 6);
+  });
+
+  it('an ungraded output is untouched, and an ungraded charge grades nothing', async () => {
+    ContainmentApi.move(gradedLumpOf(5, 'poor'), kiln);
+    ContainmentApi.move(gradedLumpOf(5, 'poor'), kiln);
+    await fire();
+    await draw();
+    const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW)!;
+    expect(MixinApi.isGraded(melt)).toBe(false);
   });
 });

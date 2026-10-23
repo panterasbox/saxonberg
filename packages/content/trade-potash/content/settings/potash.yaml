@@ -1,0 +1,19 @@
+# The potash trade's dials (potash D5, D6) — all grain: an author's numbers.
+settings:
+  # ⭐ A lye's strength bands, in kg of alkali per litre. Below the first
+  # it is water to the egg; a soapmaker wants "soap strength" — about 30 g
+  # in a litre — and a strong lye is twice that, worth boiling down.
+  - key: potash.lye.weakFromKgPerL
+    value: "0.005"
+  - key: potash.lye.soapFromKgPerL
+    value: "0.03"
+  - key: potash.lye.strongFromKgPerL
+    value: "0.06"
+  # ⭐ Hard water wastes alkali on its own lime: each °dH spends 4 % of the
+  # leach, so the Kestrel (12 °dH) makes a lye half as strong as rain.
+  - key: potash.lye.hardnessWastePerDgh
+    value: "0.04"
+  # ⭐ The ash round (potash D17): the least ash in a grate worth raking —
+  # a few days of a household hearth.
+  - key: potash.round.minKg
+    value: "0.05"

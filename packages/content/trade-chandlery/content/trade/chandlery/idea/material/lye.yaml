@@ -5,13 +5,20 @@
 class: /platform/idea/material/Material
 data:
   name: lye
-  keywords: [lye, liquor, potash, caustic]
+  # ⚠ Not `potash` (potash build): lye is what potash is leached INTO,
+  # and the word belongs to the salt.
+  keywords: [lye, liquor, caustic]
   appearance: a clear, slippery, faintly yellow liquor
   density: 1100
   specificHeat: 3800
   thermalConductivity: 0.6
   meltingPoint: 271
   boilingPoint: 375
+  # ⭐ A lye is a water solution, and it takes water's heat to boil it
+  # down (potash D10): on the latent-heat plateau a pot of lye HOLDS at the
+  # boil and loses water as steam, instead of flashing empty — which is
+  # how a lye becomes black salts in an iron pot.
+  latentHeatOfVaporization: 2260000
   edibility: false
   nutrients: []
   toxicity: []

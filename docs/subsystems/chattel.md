@@ -58,6 +58,35 @@ see [spatial.md](./spatial.md) for the move's full sequence. A hand
 `stampChattel` remains only where title is a decision, not a derivation
 (a sale, a consignment, naming an animal).
 
+#### ⭐⭐ Who acted, when it happens later — and the communal oven (potash build)
+
+Two cases the rungs above could not answer, both found by the potash drive
+(`sell "pearl ash"` → *"That is not yours to sell."*):
+
+- **A deferred act keeps its author.** A firing completes an hour after
+  `fire kiln` returned, with no command frame. Every continuation now
+  carries `causingAuthor` beside `causingCommandId` — `ScheduleApi`
+  captures it at schedule time, `SchedulerRegistry` at an engagement's
+  start and plants it on its completion and emission roots — read by
+  `ExecutionContextApi.getCausingAuthor()`. With no command running, the
+  third rung titles a fresh good to **the continuation's author**, wherever
+  they now stand. A forced start (a brain's act) carries none.
+- **A process mints for its contents, never its onlooker.** A pot's cake,
+  a mould's cast — anything that sets when somebody READS it — is a
+  process mint: `castInto` declares its maker (`recordMadeBy`, the mould's
+  alone), and that decides at the first rung, **nobody included**, so the
+  reader is never titled. Whose the contents were rides the liquid:
+  `BulkPayload.contentsOwner`, written where titled goods become liquid (a
+  hopper's leach), blended by a pour. ⭐ **The communal-oven rule**
+  (owner's decision, 2026-10-21): what is made in somebody else's vessel is
+  whose the CONTENTS were — your lye in the ashery's pot is your cake.
+  One agreement rule (`ContentsTitle`) serves a liquid and a recipe's
+  inputs alike: an untitled lot makes no claim, two owners make it nobody's.
+
+⚠ Still open: the parcel rung below answers an unattributed good with the
+CODE-maintenance title (`two-ownership-axes`); attribution flowing reaches
+it far less often, and whether it should exist is its own question.
+
 ## Where the owner keeps it — `place`
 
 A stamped good also carries a **`place`** (a room identity, `'inventory'`,

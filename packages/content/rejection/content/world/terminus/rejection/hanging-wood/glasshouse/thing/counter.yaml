@@ -1,0 +1,24 @@
+# The glasshouse's buying board (potash D16) — ⭐ the glassblower buys his
+# flux: pearl ash for the good glass, black salts at a lower price for the
+# common. A board nailed to the lean-to post with the prices chalked on it.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: buying board
+  keywords: [board, "buying board", counter, prices]
+  register: definite
+  longDescription: |
+    A board nailed to the lean-to post with the glassblower's prices chalked on it — what he will pay for pearl ash, and for black salts — and a tally scratched underneath.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 8
+  fixedInPlace: true
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [glassblower]
+  businessPath: /world/terminus/rejection/idea/glasshouse-business
+  stockLines:
+    - { itemTemplatePath: /trade/potash/thing/pearl-ash, par: 1, buys: true }
+    - { itemTemplatePath: /trade/potash/thing/black-salts, par: 1, buys: true }
+  prices:
+    /trade/potash/thing/pearl-ash: 20
+    /trade/potash/thing/black-salts: 12

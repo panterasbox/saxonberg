@@ -533,3 +533,11 @@ when they write a farm where the wood used to be, not a verb.
 | `packages/server/src/mud/lib/craft/Tooled.ts` | `epoch` |
 | `packages/server/src/mud/api/grammar.ts` | `GrammarApi.inWords` |
 | `packages/wire/tests/forestry.dirty.wire.test.ts` | the drive |
+
+## Note — the potash build (2026-10-19)
+
+Every felling also trims **brash** — ten bundles, a fifth of the bole's
+mass — of the stand entry's `brashMaterialPath` (`<wood>-brash` rows
+`extends:` the wood with three times its ash and a richer alkali), else the
+wood itself. The Hanging Wood's ride stands beech and pine beside oak and
+ash. See [potash.md](potash.md).

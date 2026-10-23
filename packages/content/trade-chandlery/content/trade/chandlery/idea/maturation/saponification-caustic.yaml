@@ -1,0 +1,18 @@
+# Saponification with caustic lye (potash D14) — fat and a lye made strong
+# with lime, kept at the boil, go straight to a hard soap curd in about an
+# hour, the glycerin settling out as before. The direct route beside the
+# shipped one (soft soap, then salt): both end in a bar in the frame.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: saponification-caustic
+  inputCategory: hard-soap-paste
+  mechanism: chemical
+  stallBelowK: 350
+  happyK: 368
+  damageAboveK: 420
+  ratePerDay: 24
+  productMaterial: /trade/chandlery/idea/material/hard-soap-curd
+  leesFraction: 0.1
+  leesMaterial: /trade/chandlery/idea/material/glycerin
+  wildStrain: ''
+  spontaneousLagDays: 0

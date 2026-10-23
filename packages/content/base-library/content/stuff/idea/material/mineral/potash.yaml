@@ -1,0 +1,31 @@
+# Potash — potassium carbonate, the alkali in wood ash (potash D9).
+#
+# ⭐ What a lye leaches OUT of ash, what boiling that lye down leaves in
+# the pot, and what the kiln whitens into pearl ash: one substance at
+# three purities. It is also the COMPOSITION KEY a raked heap of ash
+# counts its strength in (`fire.ash.alkaliMaterial`) — so a heap's
+# strength, a lye's and a cake's are the same quantity read three ways.
+#
+# The glassmaker's flux (it drops silica's melting point to what a wood
+# fire can reach) and the soapmaker's alkali. Deliquescent: it pulls water
+# from the air and runs to a syrup if it is left open.
+class: /platform/idea/material/Material
+data:
+  name: potash
+  keywords: [potash, "potassium carbonate", "pot ash"]
+  appearance: a white, slightly damp alkaline salt
+  density: 2430
+  specificHeat: 830
+  thermalConductivity: 0.5
+  meltingPoint: 1164
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: ["potassium"]
+  toxicity: []
+  # ⭐ `flux`: the glassmaker's (potash D13). `alkali`: the cleansing family.
+  tags: [solid, mineral, alkali, potash, flux]
+  # What it washes as — softens hard water and cuts grease (potash D15).
+  cleanser: /trade/potash/idea/Cleanser/potash
+  composition: []
+  biologicalSource: null

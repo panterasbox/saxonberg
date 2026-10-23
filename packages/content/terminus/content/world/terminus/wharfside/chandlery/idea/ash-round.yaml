@@ -1,0 +1,50 @@
+# The ash round (potash D17) — ⭐ a Business of one, the tinker's shape: the
+# ash-man calls at the town's hearths, buys their ash with his own money at
+# the chandlery's bid, and sells it at the chandlery counter like anybody
+# else. The chandlery itself stays VACANT (a chandler-shaped hole a player
+# fills); the round is a supplier to it, not its hand.
+#
+# ⚠ No operating locations: every stop is another house's premises, and
+# naming one would make the round an operator there. A seat's `station:` is
+# where the roster tick sends him.
+class: /platform/idea/Business
+data:
+  name: "the ash round"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/wharfside/chandlery/agent/ash-man
+  call: rota
+  positions:
+    - key: ash-man
+      noun: ash-man
+      label: on the ash round
+      wageRate: 1
+      headcount: 1
+  rosterSlots:
+    - positionKey: ash-man
+      assignee: /world/terminus/wharfside/chandlery/agent/ash-man
+      station: /world/terminus/general-store/shop-floor
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 9] }
+    - positionKey: ash-man
+      assignee: /world/terminus/wharfside/chandlery/agent/ash-man
+      station: /world/terminus/market/bakery
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [9, 11] }
+    - positionKey: ash-man
+      assignee: /world/terminus/wharfside/chandlery/agent/ash-man
+      station: /world/terminus/goods-yards/yard
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [11, 13] }
+    - positionKey: ash-man
+      assignee: /world/terminus/wharfside/chandlery/agent/ash-man
+      station: /world/terminus/wharfside/dyehouse/location/floor
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [13, 15] }
+    - positionKey: ash-man
+      assignee: /world/terminus/wharfside/chandlery/agent/ash-man
+      station: /world/terminus/wharfside/chandlery/location/floor
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [15, 17] }
+  banksAt: goodkin
+  operatingLocations: []

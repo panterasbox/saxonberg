@@ -708,6 +708,15 @@ retired.
   The tinker's round (five stops) is the shipped one; a postman's or a
   roadmender's is the same rows. Walking between stops when watched is
   a deferred seam (`trade-roster-slate`).
+  ⭐ **A round with no premises of its own** (the ash round trades on
+  other houses' ground, so `operatingLocations: []`) is stood up where its
+  hand is cast and at every station (the location graph's `house`
+  attachment), and **an absent hand is fetched to a stop that is
+  standing**: `tickBusiness` loads the assignee only when the station the
+  clock has him at is live, meaning somebody is there to see him. That is
+  load-on-use from the observer's side, never a load for a stop nobody
+  stands in (potash, 2026-10-21: the ash-man was evicted from home and
+  his round ran with nobody on it).
 - **`Offstage`** — the off-shift parking role (content packs wave 4b,
   graduated out of the lounge): `OffstageMixin` in `lib/employment/`
   (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,

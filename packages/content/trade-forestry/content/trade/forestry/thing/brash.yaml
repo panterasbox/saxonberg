@@ -1,0 +1,20 @@
+# A bundle of brash — ⭐ the crown's twigs and lop, trimmed off a felled
+# standard where it lies (potash D18). The sawyer's waste and the ash
+# pit's best feed: a twig is mostly bark and growing tip, and both carry
+# more ash per kilo than heartwood, so a bundle of brash burnt to ash is
+# worth three of cordwood.
+#
+# ⚠ The mass is the TREE's — `dropStandard` sets it off the bole, and its
+# material is the stand entry's `brashMaterialPath` (or the wood's own).
+# The figure here is the typical case, for a bundle that arrives any
+# other way.
+class: /platform/thing/Good
+data:
+  shortDescription: bundle of brash
+  keywords: [brash, bundle, faggot, twigs, lop, "bundle of brash"]
+  register: indefinite
+  longDescription: >-
+    An armful of trimmed twigs and small limbs, bound round the middle
+    with a twist of withy. Leaves still cling to some of it.
+  _materialPath: /stuff/idea/material/wood/oak-brash
+  mass: 20

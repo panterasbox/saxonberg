@@ -124,8 +124,26 @@ interface InternalHandle {
  * `() => void`, so its synchronous body still completes before the guard
  * yields; only the error path changes.
  */
+/**
+ * What a deferred callback carries from the act that scheduled it: the
+ * command that caused it, and ⭐ WHO acted (`causingAuthor`) — so a
+ * deferred mint is still the actor's (`ExecutionContextApi.getCausingAuthor`).
+ */
+interface Attribution {
+  commandId: string | null;
+  author: unknown | null;
+}
+
+function captureAttribution(propagate: boolean): Attribution {
+  if (!propagate) return { commandId: null, author: null };
+  return {
+    commandId: ExecutionContextApi.getCurrentCausingCommandId(),
+    author: ExecutionContextApi.getCausingAuthor(),
+  };
+}
+
 function planRun(
-  causingId: string | null,
+  causing: Attribution,
   fn: () => void,
   circleScope: string | null = null
 ): void {
@@ -136,15 +154,15 @@ function planRun(
   const opts = circleScope !== null ? { circleScope } : undefined;
   // A scheduled callback is a fresh root — never part of the clone tree
   // that armed it (see `StuffApi.outsideCloneTree`).
-  StuffApi.outsideCloneTree(() => planRunInner(causingId, fn, opts));
+  StuffApi.outsideCloneTree(() => planRunInner(causing, fn, opts));
 }
 
 function planRunInner(
-  causingId: string | null,
+  causing: Attribution,
   fn: () => void,
   opts: { circleScope: string } | undefined
 ): void {
-  if (causingId === null) {
+  if (causing.commandId === null && causing.author === null) {
     void ExecutionContextApi.runRootGuarded(
       ScheduleApi,
       'fire',
@@ -159,7 +177,8 @@ function planRunInner(
     'fire',
     () => {
       ExecutionContextApi.updateCurrentFrameMetadata({
-        causingCommandId: causingId,
+        ...(causing.commandId !== null ? { causingCommandId: causing.commandId } : {}),
+        ...(causing.author !== null ? { causingAuthor: causing.author } : {}),
       });
       fn();
     },
@@ -185,10 +204,7 @@ export class ScheduleApi {
     fn: () => void,
     opts?: ScheduleOptions
   ): ScheduleHandle {
-    const propagate = opts?.propagateAttribution ?? true;
-    const causing = propagate
-      ? ExecutionContextApi.getCurrentCausingCommandId()
-      : null;
+    const causing = captureAttribution(opts?.propagateAttribution ?? true);
     const birthScope = _registrationScope();
     const id = SecurityApi.uuid();
     let cancelled = false;
@@ -225,10 +241,7 @@ export class ScheduleApi {
     fn: () => void,
     opts?: RecurringOptions
   ): ScheduleHandle {
-    const propagate = opts?.propagateAttribution ?? true;
-    const causing = propagate
-      ? ExecutionContextApi.getCurrentCausingCommandId()
-      : null;
+    const causing = captureAttribution(opts?.propagateAttribution ?? true);
     const birthScope = _registrationScope();
     const initialDelay = opts?.initialDelayMs ?? intervalMs;
     const mode = opts?.mode ?? 'fixed-delay';
