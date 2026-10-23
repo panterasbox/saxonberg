@@ -52,12 +52,15 @@ export default class BankPatch extends BankPatchBase {
     const pos = this.getLinePosition();
     if (pos === null || !MixinApi.isContainer(mover)) return;
     for (const held of mover.getContents()) {
-      const line = (held as unknown as { getLine?(): { getHolder(): Stuff | null } | null }).getLine?.() ?? null;
-      const holder = line?.getHolder() ?? null;
-      const boat = holder && MixinApi.isContainable(holder) ? (holder.getContainer() as unknown as Stuff | null) : null;
-      if (!boat || typeof (boat as unknown as { holdAt?: unknown }).holdAt !== 'function') continue;
+      // ⭐ A painter in hand (D24): its far end is fast to the boat, or to somebody sitting in her.
+      if (!MixinApi.isTetherEnd(held)) continue;
+      const far = held.tetheredTo();
+      const boat = far === null ? null
+        : MixinApi.isSmallCraft(far) ? far
+        : MixinApi.isContainable(far) ? far.getContainer() : null;
+      if (boat === null || !MixinApi.isSmallCraft(boat) || !MixinApi.isContainable(boat)) continue;
       void StuffApi.singleton<ReachWarren>(WARREN_PATH)
-        .then((w) => w.lineBoatTo(boat as Stuff & Containable, pos, mover))
+        .then((w) => w.lineBoatTo(boat, pos, mover))
         .catch(() => undefined);
     }
   }

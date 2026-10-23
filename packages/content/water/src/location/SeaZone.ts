@@ -6,11 +6,12 @@
 
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import { MovingZoneMixin } from '@saxonberg/server/mud/lib/zone/MovingZone';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
 export default class SeaZone extends MovingZoneMixin(CartesianZone) {
-  /** ⭐ The room IS the water within hail of her: the cell is the hail range. */
+  /** ⭐ The place IS the water within hail of her: the cell is the hail range. */
   public override getCellSize(): number {
-    const place = this.getPlace() as unknown as { hailRangeM?(): number } | null;
-    return place?.hailRangeM?.() ?? super.getCellSize();
+    const place = this.getPlace();
+    return place !== null && MixinApi.isMovingPlace(place) ? place.hailRangeM() : super.getCellSize();
   }
 }

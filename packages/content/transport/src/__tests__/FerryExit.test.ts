@@ -31,7 +31,7 @@ function exitFor(): FerryExit {
   e.setFerry(FERRY);
   e.setHouse('/house');
   e.setFareMinor(2);
-  e.setCrossesReach('kestrel:confluence+0.4');
+  e.setCrossesAt({ frame: '/stuff/idea/Watercourse/kestrel', cite: 'confluence+0.4' });
   vi.spyOn(e, 'getSource').mockReturnValue(landing as never);
   vi.spyOn(e, 'getDestination').mockReturnValue(far as never);
   return e;
@@ -50,7 +50,7 @@ beforeEach(() => {
   current = 0.5;
   contents = [ferry];
   moves.length = 0;
-  vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x === landing) as never);
+  vi.spyOn(MixinApi, 'isContainer').mockImplementation(((x: unknown) => x === landing || x === stop) as never);
   vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isFrameSited').mockImplementation(((x: unknown) => x === far) as never);
@@ -62,14 +62,16 @@ beforeEach(() => {
     const c = { topic: () => c, toSelf: () => c, send: () => undefined };
     return c;
   }) as never);
-  const water = {
-    riverStateAt: async () => ({ currentMps: current, widthM: 90 }),
-    positionOf: async () => ({ course: 'kestrel', km: 8.6, across: 0 }),
+  // The river frame (the kernel's `LineFrame`): the water at the crossing,
+  // where a landing stands, and the shallows a drifting ferry lands in.
+  const river = {
+    waterAt: async () => ({ currentMps: current, widthM: 90, depthM: 2 }),
+    locate: async (cite: string) => ({ course: 'kestrel', km: 8.6, across: cite.endsWith(',right') ? 85 : 0 }),
+    shallowsAt: async () => stop,
   };
-  const warren = { stopAt: async () => stop };
+  vi.spyOn(MixinApi, 'isLineFrame').mockImplementation(((x: unknown) => x === river) as never);
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
-    if (p.endsWith('WatercourseCatalogue')) return water;
-    if (p.endsWith('ReachWarren')) return warren;
+    if (p === '/stuff/idea/Watercourse/kestrel') return river;
     throw new Error(p);
   }) as never);
 });

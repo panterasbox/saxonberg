@@ -63,11 +63,14 @@ import { WATERCOURSE_PATH_PREFIX } from './Watercourse';
 import type WatercourseCatalogue from './WatercourseCatalogue';
 import type { LinePlace } from './WatercourseCatalogue';
 import type ReachPatch from '../location/ReachPatch';
-import type ReachStop from '../location/ReachStop';
+import ReachStop from '../location/ReachStop';
 import type BankPatch from '../location/BankPatch';
 import type ReachZone from '../location/ReachZone';
 import type ReachExit from './exits/ReachExit';
-import type RiverHazard from '../thing/RiverHazard';
+import RiverHazard from '../thing/RiverHazard';
+import { RIVER_WATER_MIXIN } from '../lib/RiverWater';
+import type { RiverWater, RiverSpec } from '../lib/RiverWater';
+import Structure from '@saxonberg/server/mud/platform/idea/Structure';
 import type { LineHazard } from '../lib/RiverLine';
 import type { ReachWay } from './exits/ReachExit';
 
@@ -246,7 +249,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   /** ⭐ An authored river place's ways onto the line, at its handing ends. */
   public async installEnds(place: Stuff): Promise<void> {
     if (!MixinApi.isExitable(place)) return;
-    const river = (place as unknown as { getRiver?(): { ends?: Record<string, string> } | null }).getRiver?.();
+    const river = this.riverOf(place);
     if (!river) return;
     for (const end of ['downstream', 'upstream'] as const) {
       if ((river.ends?.[end] ?? 'handoff') !== 'handoff') continue;
@@ -454,8 +457,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const source = exit.getSource() as unknown as Stuff;
     const way = exit.getWay();
     if (way === 'walk-up' || way === 'walk-down') {
-      const mode = (mover as unknown as { getEngagedMode?(): { getName?(): string } | string | null }).getEngagedMode?.();
-      const name = typeof mode === 'string' ? mode : mode?.getName?.() ?? '';
+      const name = MixinApi.isMobile(mover) ? mover.getEngagedMode()?.getName() ?? '' : '';
       return (BANK_STEP_KM * 1000) / (name.endsWith('run') ? RUN_MPS : WALK_MPS);
     }
     if (way === 'place' || way === 'branch' || way === 'enter' || way === 'patch' || !MixinApi.isRespiration(mover)) return 0;
@@ -589,7 +591,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     // ⭐ The place moved under whoever stood in it: deeper now, the bed
     // lets them go (the drive found a swimmer standing in a deep pool).
     const floor = MixinApi.isAdornable(place) ? place.getFloor() : null;
-    (floor as { reconcileSupport?(): void } | null)?.reconcileSupport?.();
+    if (floor !== null && MixinApi.isFloor(floor)) floor.reconcileSupport();
   }
 
   /** The ways every minted place has: the banks, the strokes, the bed. */
@@ -800,7 +802,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       if (Math.abs(to.across - at) > width * HAZARD_REACH) continue;
       const bodies = (patch as unknown as Stuff & Container)
         .getContents()
-        .filter((c) => (c.isAgent?.() ?? false) && MixinApi.isContainable(c));
+        .filter((c) => c.isAgent() && MixinApi.isContainable(c));
       for (const body of bodies) {
         if (MixinApi.isHasInteractive(body) && body.isLinkdead()) continue;
         const approach = MixinApi.isRespiration(body) ? body.approachNow() : 'passive';
@@ -824,8 +826,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   /** The hazard good standing in its stop, placed there the first time it is met. */
   private async hazardIn(stop: ReachStop, h: LineHazard): Promise<RiverHazard | null> {
     for (const c of (stop as unknown as Stuff & Container).getContents()) {
-      const r = c as unknown as RiverHazard;
-      if (typeof r.getHazardId === 'function' && r.getHazardId() === h.id) return r;
+      if (c instanceof RiverHazard && c.getHazardId() === h.id) return c;
     }
     try {
       const hazard = await StuffApi.clone<RiverHazard & Stuff & Containable>(h.row);
@@ -875,7 +876,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    */
   private async fetchUp(patch: ReachPatch, from: LinePosition, to: LinePosition): Promise<boolean> {
     const contents = (patch as unknown as Stuff & Container).getContents();
-    if (contents.length === 0 || contents.some((c) => c.isAgent?.())) return false;
+    if (contents.length === 0 || contents.some((c) => c.isAgent())) return false;
     const line = this.catalogue()?.lineOfSync(to.course) ?? null;
     const spot = line?.collectsAt(from.km + 1e-6) ?? null;
     if (spot === null || spot.km < to.km) return false;
@@ -899,8 +900,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       // Only off the BED: a body fetched up on a bar stays there.
       if (pos === null || stop.stateNow() !== 'swimming') continue;
       for (const c of [...(stop as unknown as Stuff & Container).getContents()]) {
-        if ((c as unknown as { buoyantNow?(): boolean }).buoyantNow?.() !== true) continue;
-        if (!MixinApi.isContainable(c)) continue;
+        if (!MixinApi.isPostmortem(c) || !c.buoyantNow() || !MixinApi.isContainable(c)) continue;
         await this.handIn(c, { ...pos, across: this.widthAt(pos.course, pos.km) * this.channelAt(pos.course, pos.km) });
       }
     }
@@ -913,7 +913,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       if (!MixinApi.isContainable(c)) continue;
       try {
         ContainmentApi.move(c, dest);
-        this.tellOf(c, Mml.compose`The river carries you on, into ${dest.getPresentation?.() ?? 'the water ahead'}.`);
+        this.tellOf(c, Mml.compose`The river carries you on, into ${dest.getPresentation() ?? 'the water ahead'}.`);
       } catch (err) {
         console.warn(`ReachWarren: could not hand ${c.stuffId} into ${place.path}`, err);
       }
@@ -1055,9 +1055,9 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   ): Promise<{ currentMps: number; depthM: number; roughness: number; course: string; km: number; barSide: RiverSide | null; widthM: number } | null> {
     const cat = this.catalogue();
     if (!cat) return null;
-    let pos = (room as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    let pos = this.ownPosition(room);
     if (pos === null) {
-      const river = (room as unknown as { getRiver?(): { course: string; at: string } | null }).getRiver?.();
+      const river = this.riverOf(room);
       if (river) pos = await cat.positionOf(river.at.includes(':') ? river.at : `${river.course}:${river.at}`);
     }
     if (pos === null) return null;
@@ -1113,7 +1113,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    * else — a boat in the stream of the river has nowhere to be lifted onto.
    */
   public async recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
-    const pos = (from as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    const pos = this.ownPosition(from);
     const cat = this.catalogue();
     if (pos === null || cat === null) return null;
     // Back up onto the deck of the ship she came off, while that ship lies within hail.
@@ -1121,7 +1121,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const ship = shipPath ? StuffApi.findByTemplatePath<Stuff>(shipPath) : null;
     if (ship && MixinApi.isPositioned(ship) && MixinApi.isVoyaging(ship) && ship.getCourse() === null) {
       const at = ship.getLinePosition();
-      const deck = (ship as unknown as { getEntrance?(): string | null }).getEntrance?.() ?? null;
+      const deck = ship instanceof Structure ? ship.getEntrance() : null;
       if (at && deck && at.course === pos.course && Math.abs(at.km - pos.km) <= this.hailM() / 1000) {
         return StuffApi.singleton<Stuff & Container>(deck);
       }
@@ -1144,14 +1144,14 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   public async holdBoat(boat: Stuff & Containable): Promise<{ ok: boolean; line: string }> {
     const room = boat.getContainer() as unknown as Stuff | null;
     if (room === null) return { ok: false, line: 'There is no water under it to hold in.' };
-    const pos = (room as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    const pos = this.ownPosition(room);
     const river = await this.riverAt(room);
     if (pos === null || river === null) return { ok: false, line: 'The killick goes down, and finds nothing to hold.' };
     const holdsBelow = dialNum('water.river.killickHoldsMps', KILLICK_HOLDS_MPS);
     if (Math.abs(river.currentMps) >= holdsBelow) {
       return { ok: false, line: 'The killick goes down and drags along the bottom; the water is too quick for it to hold.' };
     }
-    if ((room as unknown as { isUnderWay?(): boolean }).isUnderWay?.() === false) {
+    if (MixinApi.isMovingPlace(room) && !room.isUnderWay()) {
       return { ok: true, line: 'The killick goes down and holds; you are not going anywhere.' };
     }
     const width = this.widthAt(pos.course, pos.km);
@@ -1185,10 +1185,9 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     });
     for (const place of near) {
       for (const c of [...(place as unknown as Container).getContents()]) {
-        const boat = c as unknown as { freeboardNowM?(): number; capsize?(why: string): void };
-        if (typeof boat.freeboardNowM !== 'function' || typeof boat.capsize !== 'function') continue;
-        if (wave > boat.freeboardNowM()) {
-          boat.capsize('A steamer goes by at speed and her wake comes down on you, a hill of brown water.');
+        if (!MixinApi.isSmallCraft(c)) continue;
+        if (wave > c.freeboardNowM()) {
+          c.capsize('A steamer goes by at speed and her wake comes down on you, a hill of brown water.');
         }
       }
     }
@@ -1202,7 +1201,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
    */
   public async lineBoatTo(boat: Stuff & Containable, bank: LinePosition, walker: Stuff): Promise<void> {
     const room = boat.getContainer() as unknown as Stuff | null;
-    const at = (room as unknown as { getLinePosition?(): LinePosition | null } | null)?.getLinePosition?.() ?? null;
+    const at = room === null ? null : this.ownPosition(room);
     if (room === null || at === null || at.course !== bank.course) return;
     if (Math.abs(at.km - bank.km) > this.hailM() / 1000 * 2) return;
     const width = this.widthAt(bank.course, bank.km);
@@ -1229,11 +1228,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       if (at === null || at.course !== pos.course || stop.isDestroyed()) continue;
       const d = Math.abs(at.km - pos.km);
       if (d === 0 || d > hailKm) continue;
-      const held = (stop as unknown as Container).getContents().some((c) => {
-        const boat = c as unknown as { holdAt?: unknown; getContents?(): Stuff[] };
-        return typeof boat.holdAt === 'function' &&
-          (boat.getContents?.() ?? []).some((k) => typeof (k as unknown as { dropAnchor?: unknown }).dropAnchor === 'function');
-      });
+      const held = (stop as unknown as Container).getContents().some((c) => MixinApi.isSmallCraft(c) && c.carriesKedge());
       if (held && (best === null || d < best.d)) best = { km: at.km, d };
     }
     return best?.km ?? null;
@@ -1244,7 +1239,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const line = cat?.lineOfSync(course) ?? null;
     if (!cat || !line) return [];
     const p = place as Stuff;
-    let km: number | null = (p as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.()?.km ?? null;
+    let km: number | null = this.ownPosition(p)?.km ?? null;
     if (km === null && this.bankOf(p) !== null) {
       const b = this.bankOf(p)!;
       km = cat.positionOfSync(`${b.course}:${b.at}`)?.km ?? null;
@@ -1258,7 +1253,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       if (!at || at.course !== course) continue;
       if (at.km > km + sight.upKm || at.km < km - sight.downKm) continue;
       for (const c of (room as unknown as Stuff & Container).getContents()) {
-        if (c.isAgent?.()) out.push(c);
+        if (c.isAgent()) out.push(c);
       }
     }
     return out;
@@ -1280,7 +1275,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     let course: string;
     let km: number;
     let side: RiverSide;
-    const own = (source as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    const own = this.ownPosition(source);
     if (own !== null) {
       course = own.course;
       km = own.km;
@@ -1391,9 +1386,19 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     return StuffApi.findByTemplatePath<WatercourseCatalogue>(CATALOGUE_PATH) ?? null;
   }
 
+  /** A positioned thing's own place on the line; `null` for anything else. */
+  private ownPosition(x: Stuff): LinePosition | null {
+    return MixinApi.isPositioned(x) ? x.getLinePosition() : null;
+  }
+
+  /** An authored river place's site on its line; `null` for any other place. */
+  private riverOf(place: Stuff): RiverSpec | null {
+    return MixinApi.hasMixin(place, RIVER_WATER_MIXIN) ? (place as Stuff & RiverWater).getRiver() : null;
+  }
+
   /** Where a way starts from: a minted place's own position, an authored place's end. */
   private async positionOf(source: Stuff, way: ReachWay): Promise<LinePosition | null> {
-    const own = (source as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+    const own = this.ownPosition(source);
     if (own !== null) return own;
     // ⭐ A ship's deck on a river (D29): over the side is the water where she is.
     const path = source.getTemplatePath();
@@ -1430,7 +1435,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
 
   /** An authored river place's end, as a position on its line. */
   private async endOf(place: Stuff, end: 'upstream' | 'downstream'): Promise<LinePosition | null> {
-    const river = (place as unknown as { getRiver?(): { course: string; at: string; span?: number } | null }).getRiver?.();
+    const river = this.riverOf(place);
     const cat = this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH));
     if (!river || !cat) return null;
     const at = river.at.includes(':') ? river.at : `${river.course}:${river.at}`;
@@ -1475,14 +1480,11 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   }
 
   private hailKm(source: Stuff): number {
-    const own = (source as unknown as { hailRangeM?(): number }).hailRangeM?.();
-    return (own ?? this.hailM()) / 1000;
+    return (MixinApi.isMovingPlace(source) ? source.hailRangeM() : this.hailM()) / 1000;
   }
 
   private asStop(m: MemberStuff): ReachStop | null {
-    const s = m as unknown as ReachStop;
-    if ([...this._banks].some((b) => (b as unknown) === (m as unknown))) return null;
-    return typeof s.isUnderWay === 'function' && s.isUnderWay() === false ? s : null;
+    return m instanceof ReachStop ? m : null;
   }
 
   /** One mint at a time: two concurrent hand-ins never mint the same patch. */

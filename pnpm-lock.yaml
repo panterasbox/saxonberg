@@ -2247,6 +2247,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

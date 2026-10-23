@@ -1,7 +1,7 @@
 # Up onto the deck of a ship lying here (the river build, D30) — worked out
-# when it is taken; refused when she has sailed. Installed on a sea room,
+# when it is taken; refused when she has sailed. Installed on a sea patch,
 # named for the ship.
-class: /system/water/idea/exits/SeaRoomExit
+class: /system/water/idea/exits/SeaPatchExit
 data:
   way: deck
   messageOut: "{{ mover }} climbs up her side."

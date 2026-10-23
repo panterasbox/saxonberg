@@ -1,7 +1,7 @@
-# The bed under moving water you can stand in (the river build, D13): a
-# river place's floor. Swum over where it is deep, stood on where it is
+# The FLOOR under a river's moving water (the river build, D13) — a Thing
+# in its place, what you stand on; its name for a player is the river bed. Swum over where it is deep, stood on where it is
 # not — and standing in fast water over broken rock jams a foot.
-class: /system/water/thing/RiverBed
+class: /system/water/thing/ReachFloor
 data:
   shortDescription: river bed
   keywords: [bed, bottom, stones, gravel, water, ground, floor]

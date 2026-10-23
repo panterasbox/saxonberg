@@ -347,6 +347,9 @@ export const Mixins = {
   Moving: 'MovingMixin',
   FrameSited: 'FrameSitedMixin',
   MovingWater: 'MovingWaterMixin',
+  SmallCraft: 'SmallCraftMixin',
+  TetherEnd: 'TetherEndMixin',
+  Ringable: 'RingableMixin',
   MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
   Voyaging: 'VoyagingMixin',

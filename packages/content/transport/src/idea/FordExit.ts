@@ -21,12 +21,14 @@
  * The look tells you how deep and fast it is (`look river`, `measure
  * current`); whether you try is yours. Nothing is a roll.
  *
- * ## ⚠ It reads the water pack by SHAPE, never by import
+ * ## ⭐ It reads the river through the kernel, never the water mod
  *
- * The ford resolves the `WatercourseCatalogue` and the `ReachWarren` by
- * template path and duck-types the methods it needs. An install with no
- * water pack has a ford that is a road — the honest degradation, and it
- * keeps `transport` free of a dependency on `water` for one crossing.
+ * The ford names the river it crosses and where (`crossesAt: { frame, cite }`
+ * — the frame's row and a citation in its grammar), and asks that frame
+ * through the kernel's `LineFrame` protocol: the water there, and taking a
+ * swept body in (river W16 — it used to reach the water mod's catalogue
+ * and warren by path and duck-type them). No river frame there, no river
+ * to read: the ford is a road.
  *
  * See [docs/subsystems/logistics.md], [docs/subsystems/river.md].
  */
@@ -37,15 +39,12 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { FrameSiteRecord } from '@saxonberg/server/mud/lib/expanse/FrameSited';
+import type { LineFrame, LinePositionRecord } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
-
-/** Where the water pack's compiled drainage lives, if it is installed. */
-const WATERCOURSE_CATALOGUE = '/system/water/idea/WatercourseCatalogue';
-/** Where the river's warren lives — what takes a body swept off a ford. */
-const REACH_WARREN = '/system/water/idea/ReachWarren';
 
 /** A wading body is over its head past this share of its height. */
 const HEAD_SHARE = 0.85;
@@ -72,42 +71,41 @@ interface FordWater {
   currentMps: number;
 }
 
-/** The catalogue's methods a ford asks, by shape. */
-interface WaterSource {
-  positionOf(citation: string): Promise<{ course: string; km: number; across: number } | null>;
-  riverStateAt(pos: { course: string; km: number; across: number }, nowS: number): Promise<FordWater | null>;
-}
-
-/** The warren's one method a ford asks, by shape. */
-interface RiverIntake {
-  handIn(thing: Stuff & Containable, pos: { course: string; km: number; across: number }): Promise<unknown>;
-}
-
 export interface FordExitOptions extends ExitOptions {
-  /** `"<course>:<node>[±km]"` — where on the river this ford crosses. */
-  crossesReach?: string;
+  /** The river this ford crosses, and where on it (its frame's own citation). */
+  crossesAt?: FrameSiteRecord;
 }
 
 export default class FordExit extends Exit {
   static fieldMeta: FieldMeta = {
     ...Exit.fieldMeta,
-    _crossesReach: { persistent: true, authorable: true },
+    crossesAt: { persistent: true, authorable: true },
   };
 
-  /** Where the ford crosses; `''` ⇒ nothing to read, always a road. */
-  protected _crossesReach = '';
+  /** The river this ford crosses and where; `null` ⇒ nothing to read, always a road. */
+  protected crossesAt: FrameSiteRecord | null = null;
 
   constructor(opts?: FordExitOptions) {
     super(opts);
-    if (opts?.crossesReach !== undefined) this.setCrossesReach(opts.crossesReach);
+    if (opts?.crossesAt !== undefined) this.setCrossesAt(opts.crossesAt);
   }
 
-  public getCrossesReach(): string {
-    return this._crossesReach;
+  public getCrossesAt(): FrameSiteRecord | null {
+    return this.crossesAt ? { ...this.crossesAt } : null;
   }
 
-  public setCrossesReach(value: string): void {
-    this._crossesReach = value;
+  public setCrossesAt(value: FrameSiteRecord | null): void {
+    this.crossesAt = value && typeof value.frame === 'string' && typeof value.cite === 'string' ? { ...value } : null;
+  }
+
+  /** The river frame the ford crosses, and where on it — or `null`. */
+  private async crossing(): Promise<{ frame: Stuff & LineFrame; pos: LinePositionRecord } | null> {
+    const site = this.crossesAt;
+    if (site === null) return null;
+    const frame = await StuffApi.singleton<Stuff>(site.frame).catch(() => null);
+    if (frame === null || !MixinApi.isLineFrame(frame)) return null;
+    const pos = await frame.locate(site.cite);
+    return pos === null ? null : { frame, pos };
   }
 
   /**
@@ -115,12 +113,8 @@ export default class FordExit extends Exit {
    * where there is no river to read (no water pack, no reach named).
    */
   public async waterNow(): Promise<FordWater | null> {
-    if (this._crossesReach === '') return null;
-    const water = await FordExit.waterSource();
-    if (!water) return null;
-    const pos = await water.positionOf(this._crossesReach);
-    if (pos === null) return null;
-    return water.riverStateAt(pos, WorldClockApi.getNow().rawValue());
+    const at = await this.crossing();
+    return at === null ? null : at.frame.waterAt(at.pos, WorldClockApi.getNow().rawValue());
   }
 
   /**
@@ -163,10 +157,8 @@ export default class FordExit extends Exit {
   public override async applyTraversal(mover: Stuff & Containable): Promise<boolean> {
     const water = await this.waterNow().catch(() => null);
     if (water === null || this.verdictFor(mover, water) !== 'swept') return false;
-    const source = await FordExit.waterSource();
-    const pos = source ? await source.positionOf(this._crossesReach) : null;
-    const warren = await FordExit.riverIntake();
-    if (pos === null || warren === null) return false;
+    const at = await this.crossing();
+    if (at === null) return false;
     try {
       MessageApi.scene(mover)
         .topic('act.deed')
@@ -176,13 +168,11 @@ export default class FordExit extends Exit {
     } catch {
       /* decoration */
     }
-    await warren.handIn(mover, pos);
-    return true;
+    return at.frame.handIn(mover, at.pos);
   }
 
   private static statureOf(mover: Stuff): number {
-    const species = (mover as unknown as { getSpecies?(): { getStature(): number } | null }).getSpecies?.();
-    const m = species?.getStature() ?? 0;
+    const m = MixinApi.isOrganism(mover) ? mover.getSpecies()?.getStature() ?? 0 : 0;
     return m > 0 ? m : DEFAULT_STATURE_M;
   }
 
@@ -190,28 +180,5 @@ export default class FordExit extends Exit {
     if (!MixinApi.isTangible(mover)) return DEFAULT_MASS_KG;
     const kg = mover.getMass().rawValue();
     return Number.isFinite(kg) && kg > 0 ? kg : DEFAULT_MASS_KG;
-  }
-
-  /** The water pack's catalogue, by SHAPE; `null` when it is not installed. */
-  private static async waterSource(): Promise<WaterSource | null> {
-    try {
-      const cat = await StuffApi.singleton<Stuff>(WATERCOURSE_CATALOGUE);
-      const duck = cat as unknown as Partial<WaterSource>;
-      return typeof duck.riverStateAt === 'function' && typeof duck.positionOf === 'function'
-        ? (duck as WaterSource)
-        : null;
-    } catch {
-      return null;
-    }
-  }
-
-  private static async riverIntake(): Promise<RiverIntake | null> {
-    try {
-      const w = await StuffApi.singleton<Stuff>(REACH_WARREN);
-      const duck = w as unknown as Partial<RiverIntake>;
-      return typeof duck.handIn === 'function' ? (duck as RiverIntake) : null;
-    } catch {
-      return null;
-    }
   }
 }

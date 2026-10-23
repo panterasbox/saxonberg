@@ -12,6 +12,7 @@
 
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import { MovingZoneMixin } from '@saxonberg/server/mud/lib/zone/MovingZone';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
 export default class ReachZone extends MovingZoneMixin(CartesianZone) {
   /**
@@ -19,7 +20,7 @@ export default class ReachZone extends MovingZoneMixin(CartesianZone) {
    * range, so the ranged band ladder and the light read the right size.
    */
   public override getCellSize(): number {
-    const place = this.getPlace() as unknown as { hailRangeM?(): number } | null;
-    return place?.hailRangeM?.() ?? super.getCellSize();
+    const place = this.getPlace();
+    return place !== null && MixinApi.isMovingPlace(place) ? place.hailRangeM() : super.getCellSize();
   }
 }

@@ -9,30 +9,15 @@
  *
  * The killick decides nothing about the river: the boat and its water do.
  * It is the instrument that affords the verb, to whoever sits in the boat
- * that carries it.
+ * that carries it; the boat lets it go (`Boat.letGoAnchor`).
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import type Boat from './Boat';
 
 export default class Killick extends Good {
   /** Whoever is in the boat with it can drop it. */
   static commandContributions: CommandContributions = {
     peers: ['platform/cmd/movement/anchor.yaml'],
   };
-
-  /**
-   * ⭐ The anchor protocol the platform's `anchor` asks of whatever affords
-   * it in a small boat: drop it, and say what happened.
-   */
-  public async dropAnchor(giver: Stuff): Promise<{ ok: boolean; line: string }> {
-    const boat = MixinApi.isContainable(this) ? (this.getContainer() as unknown as Boat | null) : null;
-    if (boat === null || typeof (boat as unknown as { holdAt?: unknown }).holdAt !== 'function') {
-      return { ok: false, line: 'The killick is not in a boat; there is nothing for it to hold.' };
-    }
-    return boat.holdAt(giver);
-  }
 }

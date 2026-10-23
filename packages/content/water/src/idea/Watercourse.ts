@@ -48,11 +48,15 @@ import {
   LineFrameMixin,
   type LineClimateSite,
   type LinePositionRecord,
+  type LineWater,
   type PassagePlan,
   type PassageRequest,
 } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type WatercourseCatalogue from './WatercourseCatalogue';
+import type ReachWarren from './ReachWarren';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -472,8 +476,8 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
     const reach = this.catalogue()?.reachNearSync(this.key, km) ?? null;
     const path = reach?.climateLocalityPath ?? null;
     if (!path) return null;
-    const locality = StuffApi.findByTemplatePath<Idea & { getAddress?(): string | null }>(path);
-    return locality?.getAddress?.() ?? null;
+    const locality = StuffApi.findByTemplatePath<Stuff>(path);
+    return locality && MixinApi.isAddressable(locality) ? locality.getAddress() : null;
   }
 
   public override climateSiteAt(km: number): LineClimateSite | null {
@@ -488,9 +492,7 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
 
   /** ⭐ Whoever is in the water within sight of `place` (D26) — the warren knows. */
   public override sightablesNear(place: unknown, eyeHeightM: number): unknown[] {
-    const warren = StuffApi.findByTemplatePath<Idea & { sightablesNear(course: string, place: unknown, eye: number): unknown[] }>(
-      '/system/water/idea/ReachWarren',
-    );
+    const warren = StuffApi.findByTemplatePath<ReachWarren>('/system/water/idea/ReachWarren');
     return warren?.sightablesNear(this.key, place, eyeHeightM) ?? [];
   }
 
@@ -525,16 +527,12 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
   }
 
   public override async wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void> {
-    const warren = StuffApi.findByTemplatePath<Idea & { wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void> }>(
-      '/system/water/idea/ReachWarren',
-    );
+    const warren = StuffApi.findByTemplatePath<ReachWarren>('/system/water/idea/ReachWarren');
     await warren?.wakeAt(pos, speedMps);
   }
 
   public override kedgeNear(pos: LinePositionRecord): number | null {
-    const warren = StuffApi.findByTemplatePath<Idea & { kedgeNear(pos: LinePositionRecord): number | null }>(
-      '/system/water/idea/ReachWarren',
-    );
+    const warren = StuffApi.findByTemplatePath<ReachWarren>('/system/water/idea/ReachWarren');
     return warren?.kedgeNear(pos) ?? null;
   }
 
@@ -546,8 +544,44 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
 
   /** ⭐ A bank on this river is being used (D8, W13): the river gives it its way into the water. */
   public override async onSiteStood(place: Stuff): Promise<void> {
-    const warren = await StuffApi.singleton<Idea & { installBankWay(s: Stuff): Promise<void> }>('/system/water/idea/ReachWarren');
+    const warren = await StuffApi.singleton<ReachWarren>('/system/water/idea/ReachWarren');
     await warren.installBankWay(place);
+  }
+
+  /** The catalogue, loaded if no one has yet. */
+  private async liveCatalogue(): Promise<WatercourseCatalogue | null> {
+    return this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue').catch(() => null));
+  }
+
+  /** The warren, loaded if no one has yet. */
+  private liveWarren(): Promise<ReachWarren | null> {
+    return StuffApi.singleton<ReachWarren>('/system/water/idea/ReachWarren').catch(() => null);
+  }
+
+  /** ⭐ A place on this river by its citation (W16): `node±km[,side]`, the river's grammar. */
+  public override async locate(cite: string): Promise<LinePositionRecord | null> {
+    return (await this.liveCatalogue())?.positionOf(`${this.key}:${cite}`) ?? null;
+  }
+
+  /** ⭐ The water at a position now (W16): the channel's current, its depth, the river's width. */
+  public override async waterAt(pos: LinePositionRecord, nowS: number): Promise<LineWater | null> {
+    const state = await (await this.liveCatalogue())?.riverStateAt(pos, nowS);
+    return state ? { currentMps: state.currentMps, depthM: state.depthM, widthM: state.widthM } : null;
+  }
+
+  /** ⭐ Something goes into the river at a position (W16): the warren takes it into the water there. */
+  public override async handIn(thing: Stuff, pos: LinePositionRecord): Promise<boolean> {
+    if (!MixinApi.isContainable(thing)) return false;
+    const warren = await this.liveWarren();
+    if (warren === null) return false;
+    await warren.handIn(thing, pos);
+    return true;
+  }
+
+  /** ⭐ The shallows at the river's edge (W16): the stop on that bank at that km. */
+  public override async shallowsAt(pos: LinePositionRecord, side: 'left' | 'right'): Promise<Stuff | null> {
+    const warren = await this.liveWarren();
+    return warren ? ((await warren.stopAt(pos.course, pos.km, side)) as Stuff) : null;
   }
 
   public override mouthOnSea(): { expanse: string; node: string } | null {

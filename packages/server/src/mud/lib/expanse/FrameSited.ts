@@ -116,9 +116,9 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     }
 
     /** Arriving on it is using it. */
-    public onEntered(mover: unknown, via: unknown): void {
+    public onEntered(mover: Stuff, via: unknown): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
-      if (this.frameSite !== null && (mover as Stuff | null)?.isAgent?.()) void this.frameSiteStood();
+      if (this.frameSite !== null && mover.isAgent()) void this.frameSiteStood();
     }
   };
 }

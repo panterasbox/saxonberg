@@ -11,7 +11,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import SeaWarren from '../idea/SeaWarren';
-import SeaRoom from '../location/SeaRoom';
+import SeaPatch from '../location/SeaPatch';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const SEA = '/sea';
@@ -29,8 +29,8 @@ function ship(name: string, pos: GeoPosition | null, underWay = false) {
 }
 
 let ships: Record<string, ReturnType<typeof ship>> = {};
-let rooms: SeaRoom[] = [];
-let installed: Array<{ room: SeaRoom; direction: string; target: string }> = [];
+let rooms: SeaPatch[] = [];
+let installed: Array<{ room: SeaPatch; direction: string; target: string }> = [];
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -45,7 +45,7 @@ beforeEach(() => {
   vi.spyOn(MixinApi, 'isPositioned').mockReturnValue(true);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row.endsWith('/water')) {
-      const r = makeStuffAtPath(() => new SeaRoom(), row);
+      const r = makeStuffAtPath(() => new SeaPatch(), row);
       vi.spyOn(r, 'installExit').mockImplementation((async (_k: string, o: { direction: string }, cfg: (e: unknown) => void) => {
         const e = { configureSea: (_w: string, t: string) => installed.push({ room: r, direction: o.direction, target: t }) };
         cfg(e);
@@ -73,8 +73,8 @@ describe('SeaWarren (river D30)', () => {
   it('⭐ a boat goes into the water beside a ship that has stopped — on the chart where she lies', async () => {
     ships.hesper = ship('hesper', new GeoPosition(42, -8.47));
     const w = makeStuff(() => new SeaWarren());
-    const room = (await w.launchPlaceFor(deck('hesper'))) as unknown as SeaRoom;
-    expect(room).toBeInstanceOf(SeaRoom);
+    const room = (await w.launchPlaceFor(deck('hesper'))) as unknown as SeaPatch;
+    expect(room).toBeInstanceOf(SeaPatch);
     expect(room.getExpanse()).toBe(SEA);
     expect(room.getExpansePosition()!.distanceNm(new GeoPosition(42, -8.47))).toBeLessThan(0.01);
     expect(installed).toEqual([{ room, direction: 'hesper', target: '/ship/hesper/deck' }]);

@@ -1754,10 +1754,9 @@ function positionIn(index: CompiledIndex, citation: string): LinePosition | null
 
 /** A place's own position on a line, when it moves on one (river D5) — read through its methods. */
 function movingPositionOf(place: Stuff): LinePosition | null {
-  const p = place as unknown as { getLinePosition?: () => LinePosition | null };
-  if (typeof p.getLinePosition !== 'function') return null;
+  if (!MixinApi.isPositioned(place)) return null;
   try {
-    return p.getLinePosition() ?? null;
+    return place.getLinePosition();
   } catch {
     return null;
   }

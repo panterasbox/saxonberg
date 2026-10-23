@@ -1,5 +1,7 @@
 /**
- * RiverBed — ⭐ **the bed under moving water you can stand in** (river D13).
+ * ReachFloor — ⭐ **the floor under a river's moving water — what you stand on
+ * in it** (river D13). A FLOOR, so a Thing in its place, never a place
+ * itself (the bed you sink to under a pool is a place: a `ReachStop`).
  *
  * A river place's floor is its water — swum over where it is deep, stood
  * on where it is not. This is that floor with one more fact: **standing in
@@ -38,7 +40,7 @@ const ENTRAP_MPS = 1.0;
 /** How long a jammed foot holds, game seconds (`water.river.entrapS`). */
 const ENTRAP_S = 45;
 
-export default class RiverBed extends WaterSurface {
+export default class ReachFloor extends WaterSurface {
   /** ⭐ Taking your feet here may cost you one (D13). */
   public override occupy(candidate: Stuff & Slottable, slot: string): void {
     super.occupy(candidate, slot);
@@ -48,8 +50,7 @@ export default class RiverBed extends WaterSurface {
   private async entrapIfFast(body: Stuff): Promise<void> {
     if (!MixinApi.isEngaged(body) || !MixinApi.isContainable(body)) return;
     const place = body.getContainer() as unknown as Stuff | null;
-    const pos = (place as unknown as { getLinePosition?(): { course: string; km: number; across: number } | null } | null)
-      ?.getLinePosition?.() ?? null;
+    const pos = place !== null && MixinApi.isPositioned(place) ? place.getLinePosition() : null;
     if (pos === null) return;
     const cat = StuffApi.findByTemplatePath<WatercourseCatalogue>(CATALOGUE_PATH);
     const state = cat ? await cat.riverStateAt(pos, WorldClockApi.getNow().rawValue()) : null;

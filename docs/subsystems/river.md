@@ -105,7 +105,7 @@ act). The river's places (`RiverPlace`, `ReachPatch`, `ReachStop`) compose
 it under the water pack's `RiverWaterMixin`, so an author picking a class
 picks still or moving, and a player meets it: `measure current` in a pool
 says there is no running water. Only a moving source's read carries a
-current (`MovingWaterRead`). The sea room is still water until the sea's
+current (`MovingWaterRead`). The sea patch is still water until the sea's
 set is brought to it.
 
 
@@ -116,7 +116,7 @@ set is brought to it.
 - **Fords read the body** (`FordExit`): over your head (0.85 × stature) is
   a swim, refused; depth × speed past what your stature and mass stand
   against sweeps you, handed into the river at the ford.
-- **Entrapment** is the bed's (`RiverBed.occupy`): taking your feet in a
+- **Entrapment** is the river's floor's (`ReachFloor.occupy` — a floor, a Thing in the place): taking your feet in a
   riffle or rapid over rock or gravel at ≥ 1 m/s jams a foot; `pull <person>`
   frees it.
 - **Standing and swimming** (the drive found this): finding your feet in the
@@ -161,8 +161,19 @@ test refuses a venue's). It carries what drives it:
   becomes a stop) and drags in quick.
 - **Lining**: throw a boat's `painter` to somebody on the bank; as they walk
   the bank the boat comes along beside them.
-- `launch` / `recover` ask the waters by shape: a bank's edge, a ship's
-  side on a river or at sea.
+- `launch` / `recover` ask the water mod's warrens (the river's and the
+  sea's): a bank's edge, a ship's side on a river or at sea.
+
+⭐ **Who may import whom (W16 — no duck typing).** A mod imports, typed,
+only the mods it declares as dependencies; anything else crosses through
+a kernel protocol. `transport` depends on `water` (a boat floats on water;
+water never needs boats), so the boat, `paddle`, `launch`, `recover` and
+the ice crossing type the warrens and the catalogue. The water reaches the
+boat through **`SmallCraftMixin`** (freeboard, capsize, her kedge, her
+anchor, her sail — also what the kernel's `course` and `anchor` ask), a
+painter through **`TetherEndMixin`** (diving's `LineEnd`), and a bell
+through **`RingableMixin`** (diving's `SignalBell`, what the ferryman
+listens for). The ford and the ferry read the river through `LineFrame`.
 
 ## Ships on a river
 
@@ -215,7 +226,7 @@ second timetabled ferry is a second row.
 
 ## The sea, brought into line (`SeaWarren`)
 
-Water at sea exists only beside a ship that has **stopped**: a `SeaRoom`
+Water at sea exists only beside a ship that has **stopped**: a `SeaPatch`
 (positioned on the chart, its own `SeaZone`) budded where she lies, shared
 by ships stopped within hail, reaped when empty. Her boat is launched into
 it; `side` (an authored way on the deck) goes over into it; a way named for
@@ -233,6 +244,6 @@ always know where you are.
 ## Not built (recorded for later)
 
 The pilot's charted claims on stretch ids; `hail` afforded by a landing;
-`paddle <ship>` at sea; sea rooms drifting with the set; a frozen river's
+`paddle <ship>` at sea; sea patches drifting with the set; a frozen river's
 places taking the ice-sheet floor, and the hole; lining from an authored
 bank place. See the plan's wave notes.

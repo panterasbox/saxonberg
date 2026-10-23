@@ -35,6 +35,7 @@ import { EngagedMixin } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { HaulableMixin } from '@saxonberg/server/mud/lib/slot/Haulable';
 import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
+import { SmallCraftMixin, type SmallCraft } from '@saxonberg/server/mud/lib/expanse/SmallCraft';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -51,14 +52,16 @@ import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { Tangible } from '@saxonberg/server/mud/lib/material/Tangible';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import Propulsion from './Propulsion';
-import { Propel, type PaddleWater, type PropelHeading } from '../lib/Propel';
+import { Propel, type PropelHeading } from '../lib/Propel';
+import Killick from './Killick';
+import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible;
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BoatBase = PullableMixin(
-  HaulableMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel))) as unknown as MixinConstructor<BoatShape>),
+  HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
 ) as unknown as new (...args: any[]) => BoatShape;
 
 /** What a boat affords to whoever sits in it. */
@@ -93,10 +96,6 @@ const SAIL_MIN_WIND_MPS = 1.5;
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
-/** The warren's boat surface, by shape (transport never imports water). */
-export interface BoatWater {
-  holdBoat(boat: Stuff & Containable): Promise<{ ok: boolean; line: string }>;
-}
 
 export default class Boat extends BoatBase {
   static commandContributions: CommandContributions = {
@@ -160,13 +159,13 @@ export default class Boat extends BoatBase {
    * (three of her lengths) and there must be wind; then the wind drives her
    * as arms drive a paddle — `Propel` under sail, on the steersman's hands.
    */
-  public async sailCourse(heading: string, giver: Stuff): Promise<{ ok: boolean; line: string }> {
+  public override async sailCourse(heading: string, giver: Stuff): Promise<{ ok: boolean; line: string }> {
     if (this.sail() === null) return { ok: false, line: 'She has no sail.' };
     if (this._capsized) return { ok: false, line: 'She is upside down.' };
     if (!MixinApi.isEngaged(giver)) return { ok: false, line: 'You cannot sail her.' };
-    const water = (await StuffApi.singleton<Stuff>(WARREN_PATH).catch(() => null)) as unknown as PaddleWater | null;
-    const room = this.getContainer() as unknown as Stuff | null;
-    if (!water || typeof water.riverAt !== 'function' || room === null) {
+    const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
+    const room = this.getContainer();
+    if (!water || room === null) {
       return { ok: false, line: 'There is no water here that goes anywhere.' };
     }
     const river = await water.riverAt(room);
@@ -193,7 +192,7 @@ export default class Boat extends BoatBase {
    * ⭐ How much of the hull is above the water now, m (D22): what the hull
    * gives, less what its load presses it down.
    */
-  public freeboardNowM(): number {
+  public override freeboardNowM(): number {
     let load = 0;
     for (const c of this.getContents()) {
       if (MixinApi.isTangible(c)) load += c.getMass().rawValue();
@@ -206,7 +205,7 @@ export default class Boat extends BoatBase {
    * ⭐ Over she goes (D22): its people are in the water beside it, and it
    * floats upside down until somebody rights it.
    */
-  public capsize(why: string): void {
+  public override capsize(why: string): void {
     if (this._capsized) return;
     const room = this.getContainer();
     if (room === null) return;
@@ -247,11 +246,19 @@ export default class Boat extends BoatBase {
    */
   public async holdAt(giver: Stuff): Promise<{ ok: boolean; line: string }> {
     void giver;
-    const water = await StuffApi.singleton<Stuff & Partial<BoatWater>>(WARREN_PATH).catch(() => null);
-    if (!water || typeof water.holdBoat !== 'function') {
-      return { ok: false, line: 'The killick goes over the side and hangs there.' };
-    }
-    return water.holdBoat(this as unknown as Stuff & Containable);
+    const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
+    if (!water) return { ok: false, line: 'The killick goes over the side and hangs there.' };
+    return water.holdBoat(this);
+  }
+
+  /** ⭐ She carries a killick (D28): a stop that holds her is held by it. */
+  public override carriesKedge(): boolean {
+    return this.getContents().some((c) => c instanceof Killick);
+  }
+
+  /** ⭐ `anchor` in a boat (D23): over goes her killick, if she carries one. */
+  public override async letGoAnchor(by: Stuff): Promise<{ ok: boolean; line: string } | null> {
+    return this.carriesKedge() ? this.holdAt(by) : null;
   }
 
   /** The boat is its own watch. */

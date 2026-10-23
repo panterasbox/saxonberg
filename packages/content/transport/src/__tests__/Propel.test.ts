@@ -9,13 +9,13 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Propel, type PaddleWater, type PropelHeading } from '../lib/Propel';
+import { Propel, type PropelHeading } from '../lib/Propel';
 
 afterEach(() => vi.restoreAllMocks());
 
 interface Rig {
   propel: Propel;
-  water: PaddleWater & { destinationOf: ReturnType<typeof vi.fn> };
+  water: { destinationOf: ReturnType<typeof vi.fn> };
   boat: { capsize: ReturnType<typeof vi.fn> };
   told: string[];
   cancelled: () => boolean;
@@ -79,7 +79,6 @@ function rig(opts: {
     refusalOf: vi.fn(async () => null),
     destinationOf: vi.fn(async () => ({ id: 'next' })),
     launchPlaceFor: vi.fn(async () => null),
-    hailRangeM: () => 100,
   };
   const propel = new Propel({
     actor: actor as never,

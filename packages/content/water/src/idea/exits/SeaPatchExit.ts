@@ -1,5 +1,5 @@
 /**
- * SeaRoomExit — ⭐ **a way between a ship stopped at sea and the water
+ * SeaPatchExit — ⭐ **a way between a ship stopped at sea and the water
  * beside her, worked out when it is taken** (river D30).
  *
  * Two ways: `side`, from her deck into the water beside her (refused while
@@ -21,12 +21,12 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type SeaWarren from '../SeaWarren';
 
-/** Which way a sea room exit goes. */
+/** Which way a sea patch exit goes. */
 export type SeaWay = 'side' | 'deck';
 
 const WARREN_PATH = '/system/water/idea/SeaWarren';
 
-export default class SeaRoomExit extends DeferredDestinationExit {
+export default class SeaPatchExit extends DeferredDestinationExit {
   static fieldMeta: FieldMeta = {
     way: { persistent: true, authorable: true },
     target: { persistent: true },

@@ -40,7 +40,7 @@ export default class ReachStop extends MovingPlaceMixin(
   constructor() {
     super();
     // The river's bed under its water (D13): stood on where it is shallow.
-    this.floor = { template: '/system/water/thing/river-bed' };
+    this.floor = { template: '/system/water/thing/reach-floor' };
   }
 
   /** A stop does not move: the line leaves it alone. */

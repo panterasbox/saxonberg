@@ -19,6 +19,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
@@ -30,44 +31,36 @@ import FordExit from '../idea/FordExit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { installModes } from './transport-fixtures';
+import { LineFrameMixin } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 
-const CATALOGUE = '/system/water/idea/WatercourseCatalogue';
-const WARREN = '/system/water/idea/ReachWarren';
-const REACH = 'delight:mouth-0.3';
+const RIVER = '/stuff/idea/Watercourse/delight';
 
-/** A stand-in for the water pack's catalogue, answering by SHAPE. */
-class FakeWater extends Idea {
+/** A stand-in river frame (the kernel's `LineFrame`): the water at the ford, and who it was handed. */
+class FakeRiver extends LineFrameMixin(Idea) {
   public depthM = 0.4;
   public mps = 0.8;
-  async positionOf(_c: string) {
+  public handed: Stuff[] = [];
+  override async locate(_c: string) {
     return { course: 'delight', km: 0.3, across: 15 };
   }
-  async riverStateAt() {
-    return { depthM: this.depthM, currentMps: this.mps };
+  override async waterAt() {
+    return { depthM: this.depthM, currentMps: this.mps, widthM: 12 };
   }
-}
-
-/** A stand-in for the river's warren: records who it was handed. */
-class FakeWarren extends Idea {
-  public handed: Stuff[] = [];
-  async handIn(thing: Stuff) {
+  override async handIn(thing: Stuff) {
     this.handed.push(thing);
+    return true;
   }
 }
 
-let water: FakeWater;
-let warren: FakeWarren;
+let water: FakeRiver;
+let warren: FakeRiver;
 
 function installWater(): void {
-  water = makeStuffAtPath(() => new FakeWater(), CATALOGUE);
-  warren = makeStuffAtPath(() => new FakeWarren(), WARREN);
+  water = makeStuffAtPath(() => new FakeRiver(), RIVER);
+  warren = water;
   const real = StuffApi.singleton.bind(StuffApi);
   vi.spyOn(StuffApi, 'singleton').mockImplementation(((path: string) =>
-    path === CATALOGUE
-      ? Promise.resolve(water as unknown as Stuff)
-      : path === WARREN
-        ? Promise.resolve(warren as unknown as Stuff)
-        : real(path)) as typeof StuffApi.singleton);
+    path === RIVER ? Promise.resolve(water as unknown as Stuff) : real(path)) as typeof StuffApi.singleton);
 }
 
 function ford(): FordExit {
@@ -83,7 +76,7 @@ function ford(): FordExit {
         source: here as never,
         destination: there as never,
         media: ['ground'],
-        crossesReach: REACH,
+        crossesAt: { frame: RIVER, cite: 'mouth-0.3' },
       }),
   );
 }
@@ -101,6 +94,9 @@ beforeEach(() => {
   StuffApi.clearAll();
   installModes();
   vi.spyOn(WorldClockApi, 'getNow').mockReturnValue(Quantity.of(0, 's'));
+  // The bodies are organisms: a ford reads their species' stature (W16 — by
+  // the kernel predicate, never by shape).
+  vi.spyOn(MixinApi, 'isOrganism').mockImplementation(((x: { getSpecies?: unknown }) => x?.getSpecies !== undefined) as never);
 });
 afterEach(() => {
   vi.restoreAllMocks();

@@ -49,6 +49,8 @@ export interface MovingPlace extends Moving {
   onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void>;
   getDrift(): Drift | null;
   setDrift(drift: Drift | null): void;
+  /** The craft lying alongside this place, stopped — what `locate` names a place at sea by. */
+  alongsideCraft(): Stuff | null;
 }
 
 export function MovingPlaceMixin<
@@ -62,7 +64,7 @@ export function MovingPlaceMixin<
     private _drift: Drift | null = null;
 
     /**
-     * How far a hail carries here, m — the room IS the water within hail.
+     * How far a hail carries here, m — the place IS the water within hail.
      * @hook Override where the water says otherwise. Default: the
      *   `expanse.hailRangeM` dial, else 100 m.
      */
@@ -97,6 +99,14 @@ export function MovingPlaceMixin<
 
     public getDrift(): Drift | null {
       return this._drift;
+    }
+
+    /**
+     * @hook Override where a ship can lie alongside (the sea's patch, at
+     *   her deck). Default: none.
+     */
+    public alongsideCraft(): Stuff | null {
+      return null;
     }
 
     public setDrift(drift: Drift | null): void {

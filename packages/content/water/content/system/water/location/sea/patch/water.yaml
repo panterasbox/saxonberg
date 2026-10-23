@@ -1,7 +1,7 @@
 # The water beside a ship stopped at sea (the river build, D30) — what her
 # boat is launched into and what a swimmer over her side is in. Minted by
 # the sea's warren; its position is the chart's, at the ship.
-class: /system/water/location/SeaRoom
+class: /system/water/location/SeaPatch
 data:
   shortDescription: sea
   keywords: [sea, water, swell]

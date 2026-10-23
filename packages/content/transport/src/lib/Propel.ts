@@ -37,6 +37,8 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type Boat from '../thing/Boat';
+import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import type { ReachWay } from '@saxonberg/content-water/src/idea/exits/ReachExit';
 
 export const PROPEL_TYPE = 'propel';
 
@@ -58,15 +60,6 @@ const STROKE_HAILS = 1.1;
 /** Which way the paddler is driving. */
 export type PropelHeading = 'upstream' | 'downstream' | 'left' | 'right' | 'place';
 
-/** What the boat asks of the water, by shape (the river's warren). */
-export interface PaddleWater {
-  riverAt(room: Stuff, inside?: boolean): Promise<{ currentMps: number; depthM: number; roughness: number; barSide: 'left' | 'right' | null; widthM?: number } | null>;
-  refusalOf(source: Stuff, way: string, mover: Stuff): Promise<string | null>;
-  destinationOf(source: Stuff, way: string, target?: string): Promise<Stuff & Container>;
-  launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null>;
-  hailRangeM?(): number;
-}
-
 export interface PropelSpec {
   actor: Stuff & Engaged;
   boat: Boat;
@@ -75,7 +68,7 @@ export interface PropelSpec {
   target?: string;
   inside: boolean;
   hard: boolean;
-  water: PaddleWater;
+  water: ReachWarren;
   /**
    * ⭐ Under sail (D20, D21): the wind drives her, not arms — her speed
    * through the water is the wind's share, nobody tires, and with no wind
@@ -99,7 +92,7 @@ export class Propel implements SustainedEngagement {
   private readonly target: string;
   private readonly inside: boolean;
   private readonly hard: boolean;
-  private readonly water: PaddleWater;
+  private readonly water: ReachWarren;
   /** The wind she sails on, m/s; `null` when her people drive her. */
   private readonly windMps: number | null;
   /** Metres made toward the next stroke's worth. */
@@ -170,7 +163,7 @@ export class Propel implements SustainedEngagement {
     if (this.boat.isCapsized()) return this.end('She is upside down; there is no paddling her.');
     const part = this.windMps !== null ? this.boat.sail() : this.boat.propulsion();
     if (part === null) return this.end(this.windMps !== null ? 'She has no sail to set.' : 'There is nothing in her to paddle with.');
-    const room = (this.boat as unknown as { getContainer(): Stuff | null }).getContainer();
+    const room = this.boat.getContainer();
     if (room === null) return this.end();
     const river = await this.water.riverAt(room, this.inside);
     if (river === null) return this.end('She is not on any water that goes anywhere.');
@@ -213,10 +206,10 @@ export class Propel implements SustainedEngagement {
     }
 
     const cur = river.currentMps;
-    const hail = this.water.hailRangeM?.() ?? 100;
+    const hail = MixinApi.isMovingPlace(room) ? room.hailRangeM() : 100;
     let gain: number;
     let need: number;
-    let way: string;
+    let way: ReachWay;
     switch (this.heading) {
       case 'downstream':
         gain = (v + Math.max(0, cur)) * BEAT_S;

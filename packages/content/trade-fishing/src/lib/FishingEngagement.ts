@@ -168,7 +168,7 @@ export class FishingEngagement implements SustainedEngagement {
   /** Re-read the stretch the fisher is over (a drifting boat moves on, D34). */
   private async followTheWater(): Promise<void> {
     const room = this.waterRoom();
-    if (room === null || !(room as unknown as { getLinePosition?(): unknown }).getLinePosition) return;
+    if (room === null || !MixinApi.isPositioned(room)) return;
     const waters = await StuffApi.singleton<Waters>(WATERS_PATH).catch(() => null);
     const ref = waters ? await waters.reachAt(room).catch(() => null) : null;
     if (ref) this.reachRef = ref;
@@ -178,7 +178,7 @@ export class FishingEngagement implements SustainedEngagement {
   private driftFactor(): number {
     const room = this.waterRoom();
     if (room === null || !MixinApi.isWaterPlace(room)) return 1;
-    if ((room as unknown as { isUnderWay?(): boolean }).isUnderWay?.() === false) return 1;
+    if (MixinApi.isMovingPlace(room) && !room.isUnderWay()) return 1;
     // Still water does not carry your line away (W14).
     const v = MixinApi.isMovingWater(room) ? Math.abs(room.currentFor(this.actor)) : 0;
     const kill = dial('water.fishery.driftKillMps', 1.0);

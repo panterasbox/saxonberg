@@ -334,15 +334,14 @@ describe('road character', () => {
     const kind = ROWS.get('/world/terminus/delight-road/exits/delight-ford');
     expect(kind, 'the ford exit-kind is not shipped').toBeDefined();
     expect(kind!.class).toBe('/system/transport/idea/FordExit');
-    const reach = String(kind!.data.crossesReach);
+    const crossesAt = kind!.data.crossesAt as { frame: string; cite: string };
 
-    // `<courseKey>:<nodeName>` — and both halves have to be real, or the
-    // ford reads null forever and is silently always open.
-    // (river build: a position on the line — the node plus an offset.)
-    const [courseKey, at] = reach.split(':');
-    const nodeName = at!.replace(/[+-][\d.]+$/, '');
-    const course = ROWS.get(`/stuff/idea/Watercourse/${courseKey}`);
-    expect(course, `the ford names watercourse '${courseKey}'`).toBeDefined();
+    // `{frame, cite}` — the river, and a place on it in its own grammar
+    // (`node±km`; river W16) — and both have to be real, or the ford reads
+    // null forever and is silently always open.
+    const nodeName = String(crossesAt.cite).replace(/[+-][\d.]+$/, '');
+    const course = ROWS.get(String(crossesAt.frame));
+    expect(course, `the ford names watercourse '${crossesAt.frame}'`).toBeDefined();
     const nodes = (course!.data.nodes ?? []) as Array<{ name: string }>;
     expect(nodes.map((n) => n.name)).toContain(nodeName);
 

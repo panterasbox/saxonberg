@@ -77,6 +77,9 @@ import type { MovingPlace } from '../lib/location/MovingPlace';
 import type { Moving } from '../lib/expanse/Moving';
 import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
+import type { SmallCraft } from '../lib/expanse/SmallCraft';
+import type { TetherEnd } from '../lib/spatial/TetherEnd';
+import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
@@ -1317,6 +1320,21 @@ export class MixinApi {
   /** ⭐ A river's line as a frame (river D2). */
   public static isLineFrame(obj: Stuff): obj is Stuff & LineFrame {
     return this.hasMixin(obj, Mixins.LineFrame);
+  }
+
+  /** ⭐ A boat floating in a place's water (river W16) — the transport mod's `Boat`. */
+  public static isSmallCraft(obj: Stuff): obj is Stuff & SmallCraft {
+    return this.hasMixin(obj, Mixins.SmallCraft);
+  }
+
+  /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
+  public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
+    return this.hasMixin(obj, Mixins.TetherEnd);
+  }
+
+  /** ⭐ A bell or signal you strike (river W16), which remembers when. */
+  public static isRingable(obj: Stuff): obj is Stuff & Ringable {
+    return this.hasMixin(obj, Mixins.Ringable);
   }
 
   /** ⭐ Water that MOVES (river W14) — a river's reaches; still water composes none of it. */

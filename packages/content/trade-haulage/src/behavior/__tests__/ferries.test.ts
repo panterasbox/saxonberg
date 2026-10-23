@@ -7,6 +7,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import FerryService from '@saxonberg/content-transport/src/idea/FerryService';
+import FerryExit from '@saxonberg/content-transport/src/idea/FerryExit';
 import { brain } from '../ferries';
 
 const A = '/landing/a';
@@ -20,7 +22,10 @@ const room = {
   getTemplatePath: () => A,
   getExit: (d: string) =>
     d === 'across'
-      ? { ferryHere: () => (ferryHere ? {} : null), canTraverse: async () => gate }
+      ? Object.assign(Object.create(FerryExit.prototype), {
+          ferryHere: () => (ferryHere ? {} : null),
+          canTraverse: async () => gate,
+        })
       : undefined,
 };
 const host = {
@@ -47,6 +52,7 @@ beforeEach(() => {
   vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isCommandGiver').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isExitable').mockReturnValue(true);
+  vi.spyOn(MixinApi, 'isRingable').mockReturnValue(true);
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) =>
     p === '/bell/b' ? { getLastRungAtS: () => rungAt } : { getLastRungAtS: () => Number.NEGATIVE_INFINITY }) as never);
 });
@@ -99,7 +105,11 @@ describe('⭐ to the timetable (river W12)', () => {
     lastDepart = null;
     vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) =>
       p === '/svc'
-        ? { isTimetabled: () => phase !== 'on-call', phaseNow: () => phase, lastDepartureFrom: () => lastDepart }
+        ? Object.assign(Object.create(FerryService.prototype), {
+            isTimetabled: () => phase !== 'on-call',
+            phaseNow: () => phase,
+            lastDepartureFrom: () => lastDepart,
+          })
         : { getLastRungAtS: () => (p === '/bell/b' ? rungAt : Number.NEGATIVE_INFINITY) }) as never);
   });
 

@@ -70,7 +70,7 @@ export default class LocateController extends CommandController<LocateModel> {
     // root is the room's zone, which names nothing (the drive found it).
     let beside: Stuff | null = null;
     for (let at: Stuff | null = target, i = 0; at !== null && beside === null && i < 6; i++) {
-      beside = (at as unknown as { alongsideCraft?(): Stuff | null }).alongsideCraft?.() ?? null;
+      beside = MixinApi.isMovingPlace(at) ? at.alongsideCraft() : null;
       at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;
     }
     const craft = beside ?? (await ExpanseApi.craftAt(root.getTemplatePath() ?? ''));

@@ -79,7 +79,7 @@ export default class Ship extends PersistableMixin(
   protected overboard: string[] = [];
 
   /** Somebody went over her side (the deck's way into the water says so). */
-  public noteOverboard(who: Stuff): void {
+  public override noteOverboard(who: Stuff): void {
     const id = who.getIdentityPath() ?? who.getTemplatePath();
     if (id && !this.overboard.includes(id)) this.overboard.push(id);
   }
@@ -215,7 +215,7 @@ export default class Ship extends PersistableMixin(
     for (const room of await this.liveMembers()) {
       for (const x of room.getContents()) {
         if (MixinApi.isOrganism(x) || !MixinApi.isTangible(x)) continue;
-        if ((x as unknown as { isFixedInPlace?(): boolean }).isFixedInPlace?.() === true) continue;
+        if (MixinApi.isContainable(x) && x.isFixedInPlace()) continue;
         const m = x.getMass().rawValue();
         if (Number.isFinite(m)) kg += m;
       }

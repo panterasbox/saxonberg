@@ -63,7 +63,7 @@ export interface Cartographer {
   /** Write down what was just made out of a place. */
   recordSurroundings(
     location: Stuff,
-    perceived: readonly Stuff[],
+    perceived: readonly Exit[],
     how?: MapChannel,
   ): void;
   /** Write down the stops a public board just gave up. */
@@ -106,7 +106,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
      */
     public recordSurroundings(
       location: Stuff,
-      perceived: readonly Stuff[],
+      perceived: readonly Exit[],
       how: MapChannel = 'seen',
     ): void {
       void this.recordPerceived(location, perceived, how);
@@ -192,7 +192,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
 
     private async recordPerceived(
       location: Stuff,
-      perceived: readonly Stuff[],
+      perceived: readonly Exit[],
       how: MapChannel,
     ): Promise<void> {
       try {
@@ -228,13 +228,10 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         for (const exit of perceived) {
           // ⭐ A way the frame works out (within hail, alongside) is never
           // written down (river D38 d).
-          if ((exit as unknown as { isMapped?(): boolean }).isMapped?.() === false) continue;
-          const dir = (exit as unknown as { getDirection?(): string })
-            .getDirection?.();
+          if (!exit.isMapped()) continue;
+          const dir = exit.getDirection();
           if (!dir) continue;
-          const far = (
-            exit as unknown as { getDestinationTemplatePath?(): string | null }
-          ).getDestinationTemplatePath?.();
+          const far = exit.getDestinationTemplatePath();
           claims.push({
             kind: 'edge',
             place,
@@ -250,7 +247,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // seen to be so: the claim carries it, as a walked one does
             // (the river drive: a route over the ferry, planned from a
             // SEEN claim, never said "not always passable").
-            ...((exit as unknown as { isConditional?(): boolean }).isConditional?.() ? { conditional: true } : {}),
+            ...(exit.isConditional() ? { conditional: true } : {}),
             channel: how,
             firstSeen: now,
             lastSeen: now,

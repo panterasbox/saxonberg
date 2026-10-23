@@ -3,8 +3,8 @@
  * the water (river D30) — onto the deck of a ship lying alongside, or up
  * onto the bank it is beached against.
  *
- * Where it can come out is the water's business, asked by shape of the
- * river's warren and the sea's.
+ * Where it can come out is the water's business, asked of the river's
+ * warren and the sea's (the water mod, a declared dependency).
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -14,15 +14,11 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import type SeaWarren from '@saxonberg/content-water/src/idea/SeaWarren';
 import Boat from '../../../thing/Boat';
 
-/** The waters a boat can be taken out of, by shape. */
-interface RecoverWater {
-  recoverPlaceFor(from: Stuff): Promise<(Stuff & Container) | null>;
-}
-
+/** The river's warren and the sea's (the water mod's). */
 const WATERS = ['/system/water/idea/SeaWarren', '/system/water/idea/ReachWarren'];
 
 export default class RecoverController extends CommandController<CommandModel> {
@@ -32,13 +28,13 @@ export default class RecoverController extends CommandController<CommandModel> {
     if (!(boat instanceof Boat)) {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
-    const from = boat.getContainer() as unknown as Stuff | null;
+    const from = boat.getContainer();
     if (from === null || !MixinApi.isWaterPlace(from)) {
       return this.decline(context, 'She is out of the water already.', 'not-afloat');
     }
     for (const path of WATERS) {
-      const water = await StuffApi.singleton<Stuff & Partial<RecoverWater>>(path).catch(() => null);
-      if (!water || typeof water.recoverPlaceFor !== 'function') continue;
+      const water = await StuffApi.singleton<ReachWarren | SeaWarren>(path).catch(() => null);
+      if (!water) continue;
       const onto = await water.recoverPlaceFor(from);
       if (onto === null) continue;
       ContainmentApi.move(boat, onto);

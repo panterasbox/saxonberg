@@ -6,7 +6,7 @@
 class: /system/transport/idea/FerryService
 data:
   # Where she crosses: the Kestrel below the confluence (the crossing's own
-  # `crossesReach`, kestrel:confluence+0.4).
+  # `crossesAt`, kestrel confluence+0.4).
   line: /stuff/idea/Watercourse/kestrel
   linePosition: { course: kestrel, km: 8.6, across: 0 }
   crossingM: 35

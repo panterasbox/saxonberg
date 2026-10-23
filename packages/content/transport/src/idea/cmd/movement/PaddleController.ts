@@ -19,7 +19,9 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Boat from '../../../thing/Boat';
-import { Propel, type PaddleWater, type PropelHeading } from '../../../lib/Propel';
+import { Propel, type PropelHeading } from '../../../lib/Propel';
+import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import ReachExit from '@saxonberg/content-water/src/idea/exits/ReachExit';
 
 interface PaddleModel extends CommandModel {
   heading?: string;
@@ -48,20 +50,20 @@ export default class PaddleController extends CommandController<PaddleModel> {
     if (part === null) return this.refuse(context, 'act.deed', 'There is nothing in her to paddle with.', 'no-propulsion');
     if (boat.isCapsized()) return this.refuse(context, 'act.deed', 'She is upside down.', 'capsized');
     if (!MixinApi.isEngaged(giver)) return this.refuse(context, 'act.deed', 'You cannot paddle.', 'not-engaged');
-    const water = (await StuffApi.singleton<Stuff>(WARREN_PATH).catch(() => null)) as unknown as PaddleWater | null;
-    if (!water || typeof water.riverAt !== 'function') {
+    const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
+    if (!water) {
       return this.refuse(context, 'act.deed', 'There is no water here that goes anywhere.', 'no-river');
     }
     const word = (model.heading ?? 'downstream').trim().toLowerCase();
-    const room = (boat as unknown as { getContainer(): Stuff | null }).getContainer();
+    const room = boat.getContainer();
     let heading: PropelHeading | undefined = WORDS[word];
     let target = '';
     if (heading === undefined && room !== null && MixinApi.isExitable(room)) {
       // A landing within hail, by the way's own name (`quay`, `towpath`).
-      const exit = room.getExit(word) as unknown as { getWay?(): string; getTarget?(): string } | undefined;
-      if (exit?.getWay?.() === 'place') {
+      const exit = room.getExit(word);
+      if (exit instanceof ReachExit && exit.getWay() === 'place') {
         heading = 'place';
-        target = exit.getTarget?.() ?? '';
+        target = exit.getTarget();
       } else if (word === 'bar' || word === 'bank' || word === 'ashore') {
         const river = await water.riverAt(room);
         heading = river?.barSide ?? (river ? 'left' : undefined);

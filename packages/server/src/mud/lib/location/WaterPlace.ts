@@ -623,7 +623,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       // who kicks and climbs. In the same water there is no lift — you
       // hold their head up.
       const kg = MixinApi.isTangible(load) ? load.getMass().rawValue() : 0;
-      const liftKg = to === null ? 0 : kg * (load.isAgent?.() === true && !helpless ? 0.5 : 1);
+      const liftKg = to === null ? 0 : kg * (load.isAgent() && !helpless ? 0.5 : 1);
       const ceilingKg = MixinApi.isLoadBearing(puller) ? puller.getStrainCeiling().rawValue() : Infinity;
       if (liftKg > ceilingKg) {
         return { ok: false, reason: 'too-heavy', line: `You get hold of ${name} and heave, and cannot lift them out. It wants a rope, or more hands.` };
@@ -841,11 +841,10 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
       void this.reconcileOccupants();
       // ⭐ Over a ship's side (river D30): she keeps who went into the water
-      // off her, and her `course` waits for them. By shape — a `Ship`'s
-      // `noteOverboard` — so the water does not import the ship.
-      const fromPath = via?.getSource?.()?.getTemplatePath?.() ?? '';
+      // off her, and her `course` waits for them (`Voyaging.noteOverboard`).
+      const fromPath = via?.getSource()?.getTemplatePath() ?? '';
       const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
-      (ship as unknown as { noteOverboard?(who: Stuff): void } | null)?.noteOverboard?.(mover);
+      if (ship !== null && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
@@ -977,7 +976,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     public sinks(thing: Stuff): boolean {
       if (thing.isAgent?.() || MixinApi.isMobile(thing)) return false;
       // ⭐ A body full of the gas of its own decay floats (river D27).
-      if ((thing as unknown as { buoyantNow?(): boolean }).buoyantNow?.() === true) return false;
+      if (MixinApi.isPostmortem(thing) && thing.buoyantNow()) return false;
       if (!MixinApi.isTangible(thing)) return false;
       if (MixinApi.isContainable(thing) && thing.isFixedInPlace?.()) return false;
       // ⭐ Held up by something in the same water (an air bag lashed to

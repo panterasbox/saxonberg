@@ -25,6 +25,7 @@ import { ExpanseApi } from '../../../../api/expanse';
 import { NavigationApi } from '../../../../api/navigation';
 import { StuffApi } from '../../../../api/stuff';
 import Ship from '../../Ship';
+import ExpanseNode from '../../ExpanseNode';
 import { Expanse } from '../../../../lib/expanse/Expanse';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { SpeciesApi } from '../../../../api/species';
@@ -64,12 +65,10 @@ export default class CourseController extends CommandController<CourseModel> {
     const craft = await this.craftOf(giver);
     if (craft === null) {
       // ⭐ A small boat with a sail (river D20): the boat you sit in sails
-      // herself on the river's water, by shape — the kernel never imports
-      // the boat.
+      // herself on the river's water (`SmallCraft.sailCourse`).
       const boat = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-      const sails = boat as unknown as { sailCourse?(heading: string, by: Stuff): Promise<{ ok: boolean; line: string }> } | null;
-      if (sails && typeof sails.sailCourse === 'function') {
-        const out = await sails.sailCourse(model.heading ?? '', giver);
+      if (boat !== null && MixinApi.isSmallCraft(boat)) {
+        const out = await boat.sailCourse(model.heading ?? '', giver);
         return out.ok ? this.tell(context, out.line) : this.decline(context, out.line, 'cannot-sail');
       }
       return this.decline(context, 'You are not aboard anything that sails.', 'not-aboard');
@@ -106,7 +105,7 @@ export default class CourseController extends CommandController<CourseModel> {
       const lying = craft.getExpansePosition();
       // ⭐ At a river's mouth, the river's name takes her in over the bar
       // and onto its line (river D29): the next course is the river's.
-      const river = (target as unknown as { getRiver?(): string | null }).getRiver?.() ?? null;
+      const river = target instanceof ExpanseNode ? target.getRiver() : null;
       if (lying !== null && target.isAt(lying) && river !== null) {
         return this.intoRiver(context, craft, river);
       }

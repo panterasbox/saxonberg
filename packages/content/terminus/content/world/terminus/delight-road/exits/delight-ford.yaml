@@ -39,6 +39,6 @@ data:
   # ⭐ Where on the Delight it crosses (the river build): the gravel riffle
   # a few hundred meters above its mouth. The water there decides, body by
   # body — no threshold.
-  crossesReach: "delight:mouth-0.3"
+  crossesAt: { frame: /stuff/idea/Watercourse/delight, cite: "mouth-0.3" }
   messageOut: "{{ mover }} splashes across the ford."
   messageIn: "{{ mover }} comes up out of the water on this side."

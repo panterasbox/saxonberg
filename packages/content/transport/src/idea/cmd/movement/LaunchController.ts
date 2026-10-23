@@ -2,14 +2,14 @@
  * LaunchController — `launch`: put the boat you are sitting in into the
  * water (river D30).
  *
- * A boat is a thing in a water room, so launching it is moving it from
+ * A boat is a thing in a water place, so launching it is moving it from
  * where it lies — a bank, a landing, a ship's deck — into the water beside
  * there. From a bank on a river it goes into the water at the bank's edge,
  * held there (a stop); `paddle` pushes off. From a ship's deck it goes into
  * the room alongside her, where she has stopped.
  *
  * Which water, and whether there is any, is the water's business: asked of
- * the river's warren (and the sea's) by shape.
+ * the river's warren and the sea's (the water mod, a declared dependency).
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -19,16 +19,11 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import type SeaWarren from '@saxonberg/content-water/src/idea/SeaWarren';
 import Boat from '../../../thing/Boat';
 
-/** The waters a boat can be put into, by shape. */
-interface LaunchWater {
-  launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null>;
-}
-
-/** Where the river's warren and the sea's live. */
+/** The river's warren and the sea's (the water mod's). */
 const WATERS = ['/system/water/idea/ReachWarren', '/system/water/idea/SeaWarren'];
 
 export default class LaunchController extends CommandController<CommandModel> {
@@ -38,14 +33,14 @@ export default class LaunchController extends CommandController<CommandModel> {
     if (!(boat instanceof Boat)) {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
-    const from = boat.getContainer() as unknown as Stuff | null;
+    const from = boat.getContainer();
     if (from === null) return this.decline(context, 'There is nowhere to put her into.', 'no-water');
     if (MixinApi.isWaterPlace(from)) {
       return this.decline(context, 'She is in the water already.', 'already-launched');
     }
     for (const path of WATERS) {
-      const water = await StuffApi.singleton<Stuff & Partial<LaunchWater>>(path).catch(() => null);
-      if (!water || typeof water.launchPlaceFor !== 'function') continue;
+      const water = await StuffApi.singleton<ReachWarren | SeaWarren>(path).catch(() => null);
+      if (!water) continue;
       const into = await water.launchPlaceFor(from);
       if (into === null) continue;
       ContainmentApi.move(boat, into);

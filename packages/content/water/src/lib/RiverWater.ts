@@ -24,6 +24,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { WaterPlace } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { LinePosition } from './RiverLine';
 import type WatercourseCatalogue from '../idea/WatercourseCatalogue';
 
@@ -45,6 +46,9 @@ export type RiverCurrent = 'inherit' | 'still' | 'eddy' | { mps: number };
 /** The current in an eddy: slack water you can rest in. */
 const EDDY_MPS = 0.05;
 
+/** The mixin's name, for `MixinApi.hasMixin` (a pack mixin has no `Mixins` constant). */
+export const RIVER_WATER_MIXIN = 'RiverWaterMixin';
+
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
 export interface RiverWater {
@@ -58,7 +62,7 @@ export interface RiverWater {
 
 export function RiverWaterMixin<TBase extends MixinConstructor<Stuff & WaterPlace & Shore & MovingWater>>(Base: TBase) {
   return class RiverWaterMixin extends Base implements RiverWater {
-    static _mixinName: string = 'RiverWaterMixin';
+    static _mixinName: string = RIVER_WATER_MIXIN;
 
     static fieldMeta: FieldMeta = {
       river: { persistent: true, authorable: true },
@@ -97,7 +101,9 @@ export function RiverWaterMixin<TBase extends MixinConstructor<Stuff & WaterPlac
      * else the authored `river.at` — `null` before the drainage compiles.
      */
     public riverPosition(): LinePosition | null {
-      const own = (this as unknown as { getLinePosition?(): LinePosition | null }).getLinePosition?.() ?? null;
+      // A minted place moves on the line (`PositionedMixin` beneath); an authored one sits where `river.at` says.
+      const self = this as unknown as Stuff;
+      const own = MixinApi.isPositioned(self) ? self.getLinePosition() : null;
       if (own !== null) return own;
       if (this.river === null) return null;
       const cat = StuffApi.findByTemplatePath<WatercourseCatalogue>(CATALOGUE_PATH);

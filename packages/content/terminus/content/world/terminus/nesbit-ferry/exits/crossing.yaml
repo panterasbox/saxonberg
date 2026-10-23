@@ -6,7 +6,7 @@ data:
   ferry: /system/transport/thing/ferry
   house: /world/terminus/nesbit-ferry/idea/ferry
   fareMinor: 2
-  crossesReach: "kestrel:confluence+0.4"
+  crossesAt: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence+0.4" }
   # ⭐ The market boat's timetable (W12): in its hours a passenger boards
   # when boarding is called; the rest of the day the bell rules.
   service: /world/terminus/nesbit-ferry/idea/service

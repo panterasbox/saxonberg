@@ -1,4 +1,4 @@
-# The kind zone of a sea room (the river build, D38): the water within hail
+# The kind zone of a sea patch (the river build, D38): the water within hail
 # of a ship stopped at sea. It stands EMPTY: every room is minted with a
 # zone of its own from this row (its identity under this path).
 class: /system/water/location/SeaZone

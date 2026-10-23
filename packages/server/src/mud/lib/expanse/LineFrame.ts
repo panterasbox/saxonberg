@@ -37,6 +37,16 @@ export interface LinePositionRecord {
   across: number;
 }
 
+/** The water at a position on a river, as a crossing reads it (river W16). */
+export interface LineWater {
+  /** The channel's current there, m/s (+ downstream). */
+  currentMps: number;
+  /** How deep the water is there, m. */
+  depthM: number;
+  /** How wide the river is there, m. */
+  widthM: number;
+}
+
 /** The climate levers a position on a line reads from its river. */
 export interface LineClimateSite {
   latitude: number;
@@ -124,6 +134,17 @@ export interface LineFrame extends Frame {
   /** The sea and the node a ship comes out onto at this river's mouth, or `null`. */
   mouthOnSea(): { expanse: string; node: string } | null;
   /**
+   * ⭐ A place on this river by its citation, loaded if need be (W16) —
+   * `siteOf`'s async twin, for a caller that may be first to ask.
+   */
+  locate(cite: string): Promise<LinePositionRecord | null>;
+  /** ⭐ The water at a position now (W16): what a ford or a ferry reads. */
+  waterAt(pos: LinePositionRecord, nowS: number): Promise<LineWater | null>;
+  /** ⭐ Something goes into the river at a position (W16) — a body swept off a ford. `false` when it could not. */
+  handIn(thing: Stuff, pos: LinePositionRecord): Promise<boolean>;
+  /** ⭐ The shallows at the edge of the river, on a side, at a position (W16) — where a drifting ferry lands. */
+  shallowsAt(pos: LinePositionRecord, side: 'left' | 'right'): Promise<Stuff | null>;
+  /**
    * ⭐ Where a kedge is down within hail of `pos` (river D28): the km of a
    * boat held by its killick, which a capstan can haul a grounded ship to.
    */
@@ -177,7 +198,8 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
       nowS: number,
     ): Promise<{ course: CourseRecord; trajectory: Trajectory } | { refused: string }> {
       const here = craft.whereAtS(nowS);
-      const path = (this as unknown as { getTemplatePath(): string | null }).getTemplatePath();
+      // The base is a Stuff (a river's Idea); a mixin cannot see a generic base's members.
+      const path = (this as unknown as Stuff).getTemplatePath();
       if (here === null || here.frame !== 'line' || !path) return { refused: 'There is no river under her to set a course along.' };
       if (req.direction === undefined) return { refused: 'Upstream, or downstream?' };
       const throughWaterMps = (Math.max(0, req.speedKn) * 1852) / 3600;
@@ -249,6 +271,30 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
         continentality: site?.continentality ?? null,
         climateOffsetK: site?.climateOffsetK ?? null,
       };
+    }
+
+    /** @hook Override on the river. Default: nowhere. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async locate(_cite: string): Promise<LinePositionRecord | null> {
+      return null;
+    }
+
+    /** @hook Override on the river. Default: no water to read. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async waterAt(_pos: LinePositionRecord, _nowS: number): Promise<LineWater | null> {
+      return null;
+    }
+
+    /** @hook Override on the river. Default: nothing takes it. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async handIn(_thing: Stuff, _pos: LinePositionRecord): Promise<boolean> {
+      return false;
+    }
+
+    /** @hook Override on the river. Default: no shallows. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async shallowsAt(_pos: LinePositionRecord, _side: 'left' | 'right'): Promise<Stuff | null> {
+      return null;
     }
 
     /** @hook Override on the river: a place's citation, in its grammar. Default: nowhere. */

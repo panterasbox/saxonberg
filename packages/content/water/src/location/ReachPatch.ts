@@ -65,7 +65,7 @@ export default class ReachPatch extends ReachPlaceBase {
     super();
     // The river's surface is water: no floor but the water itself.
     // The river's bed under its water (D13): stood on where it is shallow.
-    this.floor = { template: '/system/water/thing/river-bed' };
+    this.floor = { template: '/system/water/thing/reach-floor' };
   }
 
   /**
@@ -141,7 +141,7 @@ export default class ReachPatch extends ReachPlaceBase {
    */
   public override onContainableAdded(thing: Stuff & Containable): void {
     super.onContainableAdded(thing);
-    if (thing.isAgent?.() || !this.sinks(thing)) return;
+    if (thing.isAgent() || !this.sinks(thing)) return;
     const floor = this.getFloor();
     const borne = floor !== null && MixinApi.isFloor(floor) && floor.supportIsSlotted() && floor.bears(0);
     if (borne) void Promise.resolve().then(() => this.sink(thing));
@@ -171,7 +171,7 @@ export default class ReachPatch extends ReachPlaceBase {
   public override getLong(): string {
     const lines = [this.riverLines(this.getLinePosition()).join(' ')];
     const self = this as unknown as Stuff & { getContents(): Stuff[] };
-    const others = self.getContents().filter((c) => c.isAgent?.()).length;
+    const others = self.getContents().filter((c) => c.isAgent()).length;
     if (others > 1) lines.push('You are near enough to the others in the water to call to them.');
     return lines.filter((l) => l !== '').join(' ');
   }

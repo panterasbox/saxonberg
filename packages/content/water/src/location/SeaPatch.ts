@@ -1,5 +1,5 @@
 /**
- * SeaRoom — ⭐⭐ **the water beside a ship stopped at sea** (river D30).
+ * SeaPatch — ⭐⭐ **the water beside a ship stopped at sea** (river D30).
  *
  * The sea is not content in the room sense: nothing is ever inside the
  * Greywater, and a ship under way is alongside nothing. But a ship that has
@@ -30,13 +30,14 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import SeaPatchExit from '../idea/exits/SeaPatchExit';
 
-export const SeaRoomBase = MovingPlaceMixin(
+export const SeaPatchBase = MovingPlaceMixin(
   WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
 );
 
-export default class SeaRoom extends SeaRoomBase {
-  /** A sea room is gone when it is empty: there is nothing durable to name. */
+export default class SeaPatch extends SeaPatchBase {
+  /** A sea patch is gone when it is empty: there is nothing durable to name. */
   public override getDurableHandle(): string | null {
     return null;
   }
@@ -59,12 +60,11 @@ export default class SeaRoom extends SeaRoomBase {
    * swimmer or a boat here reads (`locate`). The first whose deck a way
    * from here still reaches.
    */
-  public alongsideCraft(): Stuff | null {
+  public override alongsideCraft(): Stuff | null {
     const self = this as unknown as Stuff & Exitable;
     for (const exit of self.getExits().values()) {
-      const way = exit as unknown as { getWay?(): string; getTarget?(): string };
-      if (way.getWay?.() !== 'deck') continue;
-      const ship = NavigationApi.structureAtNow(way.getTarget?.() ?? '');
+      if (!(exit instanceof SeaPatchExit) || exit.getWay() !== 'deck') continue;
+      const ship = NavigationApi.structureAtNow(exit.getTarget());
       if (ship && MixinApi.isVoyaging(ship) && ship.getCourse() === null) return ship;
     }
     return null;
@@ -77,7 +77,7 @@ export default class SeaRoom extends SeaRoomBase {
   public override getLong(): string {
     const self = this as unknown as Stuff & { getContents(): Stuff[] };
     const lines = ['You are in the open sea, the swell lifting and dropping you, the hull beside you going up and down like a wall.'];
-    const others = self.getContents().filter((c) => c.isAgent?.()).length;
+    const others = self.getContents().filter((c) => c.isAgent()).length;
     if (others > 1) lines.push('You are near enough to the others in the water to call to them.');
     return lines.join(' ');
   }

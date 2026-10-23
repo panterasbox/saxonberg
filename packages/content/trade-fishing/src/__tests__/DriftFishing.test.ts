@@ -19,6 +19,8 @@ function overWater(currentMps: number, underWay: boolean): number {
   vi.spyOn(MixinApi, 'isWaterPlace').mockImplementation(((x: unknown) => x === room) as never);
   // The river is moving water (W14): its current is what carries the line.
   vi.spyOn(MixinApi, 'isMovingWater').mockImplementation(((x: unknown) => x === room) as never);
+  // A stopped place (a stop the killick holds) is a moving place not under way.
+  vi.spyOn(MixinApi, 'isMovingPlace').mockImplementation(((x: unknown) => x === room) as never);
   const e = Object.create(FishingEngagement.prototype) as { actor: unknown; driftFactor(): number };
   e.actor = angler;
   return e.driftFactor();

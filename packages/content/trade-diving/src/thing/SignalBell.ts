@@ -8,6 +8,7 @@
 
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
+import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -16,7 +17,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 /** A struck bell carries like a shout, and further in water. */
 const BELL_DB = 95;
 
-export default class SignalBell extends Good {
+export default class SignalBell extends RingableMixin(Good) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['trade/diving/cmd/diving/ring.yaml'],
@@ -33,7 +34,7 @@ export default class SignalBell extends Good {
    * ⭐ When this bell was last struck (river D31): a ferryman across the
    * water knows it rang — what a bell on a landing post is FOR.
    */
-  public getLastRungAtS(): number {
+  public override getLastRungAtS(): number {
     return this.rungAtS;
   }
 

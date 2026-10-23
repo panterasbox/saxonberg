@@ -117,6 +117,8 @@ export interface Voyaging {
   burnFor(km: number): Promise<boolean>;
   /** Her course has come to its stop: what happens to her there, in words. */
   onStop(stop: CraftStop): Promise<string>;
+  /** Somebody went over her side into the water (river D30). */
+  noteOverboard(who: Stuff): void;
   /** The navigator's reckoning, as a value (the chart's). */
   getPlot(): Plot | null;
   /** The reckoned position now (the chart's). */
@@ -291,7 +293,7 @@ export function VoyagingMixin<
      * Everyone aboard who can be told what the water is doing.
      *
      * @hook Invoked by `Voyage` on every beat. Default: nobody. A
-     *   Structure answers the occupants of its member rooms.
+     *   Structure answers the occupants of its member places.
      */
     async aboard(): Promise<Stuff[]> {
       return [];
@@ -419,6 +421,15 @@ export function VoyagingMixin<
      */
     async onStop(stop: CraftStop): Promise<string> {
       return stop.words;
+    }
+
+    /**
+     * Somebody went over her side — the deck's way into the water says so.
+     * @hook A ship keeps who is in the water off her, and her `course`
+     *   waits for them (river D30). Default: nobody is kept.
+     */
+    noteOverboard(who: Stuff): void {
+      void who;
     }
 
     /**

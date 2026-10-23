@@ -25,8 +25,9 @@
  * does not angle her lands downstream of it, in the shallows of the far
  * bank, and has to pole her back up (`paddle <landing>`).
  *
- * ⚠ It reads the water pack by SHAPE, never by import — an install with no
- * water pack has a ferry that crosses like a road (the ford's rule).
+ * ⚠ It reads the river through the kernel's `LineFrame` (the frame its
+ * `crossesAt` names) — a ferry whose river is not there crosses like a
+ * road (the ford's rule).
  */
 
 import Exit, { type ExitOptions, type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
@@ -43,10 +44,10 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import FerryCable from '../thing/FerryCable';
+import type { FrameSiteRecord } from '@saxonberg/server/mud/lib/expanse/FrameSited';
+import type { LineFrame, LinePositionRecord } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import FerryService from './FerryService';
 
-const WATERCOURSE_CATALOGUE = '/system/water/idea/WatercourseCatalogue';
-const REACH_WARREN = '/system/water/idea/ReachWarren';
 
 /** A ferryman refuses above this current, m/s (`water.ferry.refuseAboveMps`). */
 const REFUSE_ABOVE_MPS = 1.2;
@@ -72,20 +73,12 @@ interface CrossingWater {
   widthM: number;
 }
 
-interface WaterSource {
-  positionOf(citation: string): Promise<{ course: string; km: number; across: number } | null>;
-  riverStateAt(pos: { course: string; km: number; across: number }, nowS: number): Promise<CrossingWater | null>;
-}
-
-interface RiverStops {
-  stopAt(course: string, km: number, side: 'left' | 'right' | 'mid'): Promise<unknown>;
-}
-
 export interface FerryExitOptions extends ExitOptions {
   ferry?: string;
   house?: string;
   fareMinor?: number;
-  crossesReach?: string;
+  /** The river this ferry crosses, and where on it (its frame's own citation). */
+  crossesAt?: FrameSiteRecord;
 }
 
 export default class FerryExit extends Exit {
@@ -94,7 +87,7 @@ export default class FerryExit extends Exit {
     ferry: { persistent: true, authorable: true },
     house: { persistent: true, authorable: true },
     fareMinor: { persistent: true, authorable: true },
-    crossesReach: { persistent: true, authorable: true },
+    crossesAt: { persistent: true, authorable: true },
     service: { persistent: true, authorable: true },
     tethered: { persistent: true, authorable: true },
   };
@@ -128,14 +121,14 @@ export default class FerryExit extends Exit {
   /** The fare, minor units. */
   protected fareMinor = 0;
   /** `"<course>:<node>[±km]"` — where the ferry crosses. */
-  protected crossesReach = '';
+  protected crossesAt: FrameSiteRecord | null = null;
 
   constructor(opts?: FerryExitOptions) {
     super(opts);
     if (opts?.ferry !== undefined) this.ferry = opts.ferry;
     if (opts?.house !== undefined) this.house = opts.house;
     if (opts?.fareMinor !== undefined) this.fareMinor = opts.fareMinor;
-    if (opts?.crossesReach !== undefined) this.crossesReach = opts.crossesReach;
+    if (opts?.crossesAt !== undefined) this.setCrossesAt(opts.crossesAt);
   }
 
   public getFerry(): string { return this.ferry; }
@@ -144,8 +137,24 @@ export default class FerryExit extends Exit {
   public setHouse(v: string): void { this.house = v; }
   public getFareMinor(): number { return this.fareMinor; }
   public setFareMinor(v: number): void { this.fareMinor = Math.max(0, Math.round(Number(v) || 0)); }
-  public getCrossesReach(): string { return this.crossesReach; }
-  public setCrossesReach(v: string): void { this.crossesReach = v; }
+  public getCrossesAt(): FrameSiteRecord | null { return this.crossesAt ? { ...this.crossesAt } : null; }
+  public setCrossesAt(v: FrameSiteRecord | null): void {
+    this.crossesAt = v && typeof v.frame === 'string' && typeof v.cite === 'string' ? { ...v } : null;
+  }
+
+  /**
+   * ⭐ The river this ferry crosses, and where on it — asked through the
+   * kernel's `LineFrame` (W16; it used to reach the water mod's catalogue
+   * and warren by path and duck-type them). `null`: no river to read.
+   */
+  private async crossing(): Promise<{ frame: Stuff & LineFrame; pos: LinePositionRecord } | null> {
+    const site = this.crossesAt;
+    if (site === null) return null;
+    const frame = await StuffApi.singleton<Stuff>(site.frame).catch(() => null);
+    if (frame === null || !MixinApi.isLineFrame(frame)) return null;
+    const pos = await frame.locate(site.cite);
+    return pos === null ? null : { frame, pos };
+  }
 
   /** ⭐ The timetabled service this crossing runs to (W12), by row path, or `''` — on call only. */
   protected service = '';
@@ -186,12 +195,8 @@ export default class FerryExit extends Exit {
 
   /** The water at the crossing now, or `null` when there is none to read. */
   public async waterNow(): Promise<CrossingWater | null> {
-    if (this.crossesReach === '') return null;
-    const water = await FerryExit.waterSource();
-    if (!water) return null;
-    const pos = await water.positionOf(this.crossesReach);
-    if (pos === null) return null;
-    return water.riverStateAt(pos, WorldClockApi.getNow().rawValue());
+    const at = await this.crossing();
+    return at === null ? null : at.frame.waterAt(at.pos, WorldClockApi.getNow().rawValue());
   }
 
   /**
@@ -306,23 +311,21 @@ export default class FerryExit extends Exit {
     return true;
   }
 
-  /** The shallows of the far bank `driftM` below where this crossing lands. */
+  /**
+   * The shallows of the far bank `driftM` below where this crossing lands —
+   * the far landing's bank found by where IT stands on the river, which the
+   * river reads (never transport parsing the river's citation grammar).
+   */
   private async downstreamOf(farLanding: Stuff, driftM: number): Promise<(Stuff & Container) | null> {
-    const water = await FerryExit.waterSource();
-    const pos = water ? await water.positionOf(this.crossesReach) : null;
-    // The far landing's bank, from where it is sited on the river (W13):
-    // the side is the line's own word, at the end of its citation.
+    const at = await this.crossing();
     const site = MixinApi.isFrameSited(farLanding) ? farLanding.getFrameSite() : null;
-    const sideWord = site?.cite.split(',')[1]?.trim();
-    const bank = site ? { side: (sideWord === 'right' ? 'right' : 'left') as 'left' | 'right' } : null;
-    if (pos === null || bank === null) return null;
-    try {
-      const warren = (await StuffApi.singleton<Stuff>(REACH_WARREN)) as unknown as Partial<RiverStops>;
-      if (typeof warren.stopAt !== 'function') return null;
-      return (await warren.stopAt(pos.course, Math.max(0, pos.km - driftM / 1000), bank.side)) as Stuff & Container;
-    } catch {
-      return null;
-    }
+    if (at === null || site === null) return null;
+    const far = await at.frame.locate(site.cite);
+    const water = await at.frame.waterAt(at.pos, WorldClockApi.getNow().rawValue());
+    if (far === null || water === null) return null;
+    const side = far.across > water.widthM / 2 ? 'right' : 'left';
+    const shallows = await at.frame.shallowsAt({ ...at.pos, km: Math.max(0, at.pos.km - driftM / 1000) }, side);
+    return shallows !== null && MixinApi.isContainer(shallows) ? (shallows as Stuff & Container) : null;
   }
 
   private static tell(who: Stuff, text: string): void {
@@ -339,16 +342,6 @@ export default class FerryExit extends Exit {
       return Number.isFinite(n) ? n : fallback;
     } catch {
       return fallback;
-    }
-  }
-
-  private static async waterSource(): Promise<WaterSource | null> {
-    try {
-      const cat = await StuffApi.singleton<Stuff>(WATERCOURSE_CATALOGUE);
-      const duck = cat as unknown as Partial<WaterSource>;
-      return typeof duck.riverStateAt === 'function' && typeof duck.positionOf === 'function' ? (duck as WaterSource) : null;
-    } catch {
-      return null;
     }
   }
 }
