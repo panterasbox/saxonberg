@@ -233,6 +233,10 @@ async function clayFor(s: Session, n: number): Promise<Session> {
     if (/spade/i.test(await held(at))) break;
     await advance('30 minutes');
   }
+  // ⚠ …and when none comes back, the potter brings their OWN (setup): a
+  // gang member who starved offstage kept one, and four hours freed none
+  // (run 29).
+  if (!/spade/i.test(await held(at))) await hand(at, '/trade/quarrying/thing/spade');
   expect(await held(at), 'a spade from the pit').toMatch(/spade/i);
   for (let i = 0; i < n; i++) await act(at, 'dig clay with spade', '2 minutes');
   // The won clay lies where it fell — take what was won, not the gang's

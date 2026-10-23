@@ -196,14 +196,20 @@ async function doing(s: Session, line: string): Promise<string> {
 }
 
 /** Wait out an engaged act; with `gameTime`, jump the clock past it. */
-async function act(s: Session, line: string, gameTime?: string): Promise<string> {
+async function act(s: Session, line: string, gameTime?: string, sliceHours?: number): Promise<string> {
   const out = await run(s, line);
   expect(refusedFor(out.r), `'${line}' was refused: ${out.said}`).toBeNull();
   const started = (out.r.notes as Array<{ kind?: string; engagementId?: string }>).find(
     (n) => n.kind === 'engagement-started',
   );
   if (started?.engagementId) {
-    if (gameTime) await advance(gameTime);
+    // ⚠ `sliceHours`: a long hold over a busy world advanced in short jumps,
+    // so no single clock request outlives the HTTP client's five-minute
+    // header timeout (run 29's twelve-hour hearth: "fetch failed").
+    const hours = /^(\d+) hours?$/.exec(gameTime ?? '')?.[1];
+    if (gameTime && sliceHours && hours) {
+      for (let h = 0; h < Number(hours); h += sliceHours) await advance(`${Math.min(sliceHours, Number(hours) - h)} hours`);
+    } else if (gameTime) await advance(gameTime);
     await s.awaitActivity(started.engagementId, 300_000).catch(() => []);
   }
   await new Promise((res) => setTimeout(res, 500));
@@ -576,6 +582,7 @@ suite('⭐⭐ 27 — impress a sword in a flask, cast it in pewter', () => {
     // ⭐ A mould sets on READ (reconcile-on-read): look at the flask first,
     // as a founder does, and the cast comes out of it.
     await examine(caster, 'flask');
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     // `pewter`, not `cast`: 26's slip-cast mug is a cast too.
     const cast = await examine(caster, 'pewter');
     expect(cast, `the cast: ${cast}`).toMatch(/pewter cast of an arming sword/i);
@@ -630,6 +637,10 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
     });
     expect(poured).toMatch(/pour/i);
     await advance('1 hour');
+    // ⚠ A mould sets on READ, and the cast lands a beat later: the pour no
+    // longer sets mid-transfer (run 29's fix), so the wax is read first.
+    await examine(caster, 'wax');
+    await new Promise((r) => setTimeout(r, 1_500));
     expect(await examine(caster, 'brass'), 'a brass cast of the key').toMatch(/brass cast of a key/i);
     expect(await examine(caster, 'beeswax'), 'the wax came back').toMatch(/beeswax/i);
     await doing(caster, 'get brass');
@@ -750,6 +761,8 @@ suite('⭐⭐ 30 — every pour obeys its receiver; the chill', () => {
     await melt(FOUNDRY, T.crucible, M.castIron, 1650);
     await doing(caster, 'pour crucible into "chill mould"');
     await advance('2 hours');
+    await examine(caster, 'chill mould'); // a mould sets on read
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     const white = await examine(caster, 'ingot');
     expect(white, `chilled: ${white}`).toMatch(/white cast iron/i);
     await doing(caster, 'get ingot');
@@ -899,7 +912,7 @@ suite('⭐⭐ 32 — crystallize', () => {
     await doing(caster, 'ignite hearth');
     let read = first;
     for (let day = 0; day < 6 && !(read.crop > 4); day++) {
-      await act(caster, 'fire hearth for 12 hours', '12 hours');
+      await act(caster, 'fire hearth for 12 hours', '12 hours', 1);
       await examine(caster, 'pan');
       read = await saltern();
     }

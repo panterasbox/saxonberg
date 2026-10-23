@@ -369,20 +369,16 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // ⚠ By identity: `get 1 brick` bound the moulding table — its keyword
     // is "brick table", and a singular head noun matches the modifier (run
     // 24; the MQL finding) — and the hack's fourteen gang bricks are not ours.
-    // ⚠ A fresh brick STACKS with the gang's fresh bricks (the same green
-    // state), so it may get no id of its own (run 26): find the stack that
-    // grew, take one, and follow the one in hand.
-    const before = await stacksOf(digger, 'here:i:bricks');
-    await act(digger, 'shape clay into brick', '9 hours');
-    // ⚠ Read by daylight: a nine-hour day ends after dark in winter, and a
-    // query in the dark sees nothing (run 28 found no stack at all).
-    await toHour(9, 15);
-    const after = await stacksOf(digger, 'here:i:bricks');
-    const grew = [...after].find(([id, n]) => n > (before.get(id) ?? 0))?.[0];
-    expect(grew, 'the brick just struck').toBeTruthy();
-    await say(digger, `get 1 #${grew}`);
+    // ⚠ A fresh brick STACKS with any brick in its green state, so it has
+    // no id of its own and a stack-diff could not find it (runs 26–29; the
+    // gang carts bricks too). Any brick of the merged stack IS in that state
+    // — that is the merge rule — so take one, and follow it in hand.
+    const struck = await act(digger, 'shape clay into brick', '9 hours');
+    expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
+    await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
+    await say(digger, 'get 1 bricks');
     const fresh = (await idsOf(digger, 'me:i:bricks'))[0];
-    expect(fresh, 'the struck brick in hand').toBeTruthy();
+    expect(fresh, 'a fresh brick in hand').toBeTruthy();
     await say(digger, 'south');
     await say(digger, `drop #${fresh}`);
     let hackBrick = '';
@@ -470,7 +466,10 @@ suite('⭐ 4 — shape it', () => {
     // ⭐ STATE: the moulder is muddy.
     const me = await examine(digger, 'me');
     expect(me, `the moulder: ${me}`).toMatch(/mud/i);
-    expect(beforeMe === me).toBe(false);
+    // The mud is the day's only when the moulder came to the table clean:
+    // fresh from treading the pit they are already "filthy, muddy" (run 29),
+    // and the band has nowhere further to go.
+    if (!/mud/i.test(beforeMe)) expect(beforeMe === me).toBe(false);
     // ⚠ "A low-band moulder makes fewer": a day is clay-bound at the drive's
     // scale (a lump is three bricks; a novice's day is 480), so the rate by
     // band is pinned in trade-ceramics `shape.test.ts`, not here.
@@ -503,6 +502,9 @@ suite('⭐ 6 — dry them', () => {
     for (let week = 0; week < 6 && !/leather-hard/i.test(rows); week++) {
       await advance('5 days');
       rows = await examine(digger, 'here:i:bricks');
+      // ⚠ Run 29 read NO bricks here after the first five days, at a
+      // daylight hour, with the brickmaker alive: say what IS here.
+      if (rows === '') await examine(digger, 'here:i');
     }
     expect(rows, 'leather-hard in the hacks').toMatch(/leather-hard|bone-dry/i);
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {

@@ -332,9 +332,11 @@ suite('⭐ 10 — make firebrick', () => {
     expect(day.said, `the firebricks: ${day.said}`).toMatch(/brick/i);
     expect(await examine('here:i:firebrick')).toMatch(/green|thumbprint/i);
     await say('get firebricks');
-    await goTo(HACKS);
-    // Set on the hack, where the air reaches every face.
-    await say('put firebricks on hack');
+    // ⚠ Dried in the potter's shop, warm from the kiln, where the pottery
+    // dries its own ware: on the open hacks a late frost burst them wet
+    // (run 29 — B begins wherever in the year A left the clock).
+    await goTo(SHOP);
+    await say('drop firebricks');
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
@@ -405,8 +407,12 @@ suite('⭐ 12 — reline it', () => {
     const comp = await say('competence');
     expect(comp, `competence: ${comp}`).toMatch(/masonry/i);
     expect(comp).not.toEqual(before);
-    await winAtQuarry('coal', 2, SMELTER);
-    await say('stoke coal into furnace');
+    // ⚠ Fuel handed (winning coal left the miner too tired to dig — run
+    // 29), and the furnace put OUT first: it was already burning (the
+    // smelterman's work), and `ignite` must be what lights it.
+    await say('douse furnace');
+    await hand(k, '/trade/fuel/thing/charcoal');
+    await say('stoke charcoal into furnace');
     const lit = await run('ignite furnace');
     expect(refusedFor(lit.r), `relit: ${lit.said}`).toBeNull();
     await say('douse furnace');
@@ -428,22 +434,26 @@ suite('⭐ 13 — wear a crucible', () => {
       await goTo(SMELTER);
       for (const x of ['coal', 'ore', 'malachite', 'pail', 'firebrick', 'brick', 'clay']) await k.cmd(`drop ${x}`);
       await k.drainProse();
-      await hand(k, '/trade/fuel/thing/charcoal');
-      await say('stoke charcoal into furnace');
+      await drink();
+      // ⚠ Charged COLD, then lit and smelted at once: the smelterman keeps
+      // the furnace burning, and charcoal put into a drawing chamber catches
+      // and burns (ceramics W0) — run 29's 16 kg charge had burned away in
+      // the half-hour warm-up and `smelt` found 0 kg.
+      await say('douse furnace');
+      await oreFor(2, SMELTER);
+      await say('put malachite in furnace');
+      await say('put malachite in furnace');
       for (let i = 0; i < 2; i++) {
         await hand(k, '/trade/fuel/thing/charcoal');
         await say('put charcoal in furnace');
       }
-      await drink();
+      await hand(k, '/trade/fuel/thing/charcoal');
+      await say('stoke charcoal into furnace');
       await say('ignite furnace');
       // ⚠ The bellows is a toggle, and the last melt left it going: a pump
       // that eases it off is pumped again (run 26 smelted cold).
       const pumped = await act('pump bellows');
       if (/ease off/i.test(pumped.said)) await act('pump bellows');
-      await advance('30 minutes');
-      await oreFor(2, SMELTER);
-      await say('put malachite in furnace');
-      await say('put malachite in furnace');
       const smelt = await act('smelt', '2 hours');
       // The smelt RUNS — a refusal here (no fuel, no ore) is the failure,
       // not four melts on at the crucible (runs 26–28 smelted nothing).
