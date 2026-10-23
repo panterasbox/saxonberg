@@ -187,7 +187,11 @@ async function login(
   opts: { startLocation?: string; wizard?: boolean; withCharacter?: boolean } = {}
 ): Promise<string> {
   const server = SERVER_URL();
-  const res = await fetch(`${server}/auth/test-login`, {
+  // ⚠ After a long clock advance the world can be busy past undici's
+  // five-minute header timeout bringing the place current; the request is
+  // still served, so asking again is answered (ceramics drive B, run 32 —
+  // the login after a season's advance). Twice, then the error stands.
+  const send = (): Promise<Response> => fetch(`${server}/auth/test-login`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -202,6 +206,15 @@ async function login(
       ...(opts.wizard ? { wizard: true } : {}),
     }),
   });
+  let res: Response | null = null;
+  for (let attempt = 0; res === null; attempt++) {
+    try {
+      res = await send();
+    } catch (err) {
+      const code = (err as { cause?: { code?: string } }).cause?.code;
+      if (attempt >= 2 || code !== 'UND_ERR_HEADERS_TIMEOUT') throw err;
+    }
+  }
   if (!res.ok) {
     throw new Error(
       `wire: /auth/test-login answered ${res.status} at ${server}. ` +
