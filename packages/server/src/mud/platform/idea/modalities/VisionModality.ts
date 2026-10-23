@@ -223,6 +223,44 @@ export class VisionModality extends Modality {
   }
 
   /**
+   * ⭐ The brightest THING giving light in `loc` or just beyond one of its
+   * open obvious exits — what shows as a glow in a dark you cannot see BY
+   * (a burning clamp seen from the hacks next door). `direction` is the way
+   * it lies, `null` when it is here. Read off the emitters, not
+   * {@link signalAt}'s attribution: that keeps its three strongest sources,
+   * and outdoors at night the sky over a place and its neighbours fills them
+   * (the ceramics drive A, run 32). The sky and a street's public lighting
+   * are not things giving light, so a dark place with no fire near reads
+   * none. A burner gives light only while lit and fuelled.
+   */
+  public brightestFireNear(
+    loc: Stuff & Container,
+  ): { flux: number; colorTemperatureK: number | null; direction: string | null } | null {
+    let best: { flux: number; colorTemperatureK: number | null; direction: string | null } | null = null;
+    const consider = (place: Stuff & Container, direction: string | null): void => {
+      for (const c of place.getContents() as Stuff[]) {
+        if (!MixinApi.isLightSource(c)) continue;
+        const flux = c.getEmittedFlux().rawValue();
+        if (!(flux > 0) || (best !== null && flux <= best.flux)) continue;
+        best = { flux, colorTemperatureK: c.getEmittedColorTemperature()?.rawValue() ?? null, direction };
+      }
+    };
+    consider(loc, null);
+    if (MixinApi.isExitable(loc)) {
+      for (const exit of loc.getObviousExits()) {
+        const door = exit.getDoor();
+        if (door && MixinApi.isSealable(door) && !door.isOpen()) continue;
+        try {
+          consider(exit.getDestination(), exit.getDirection());
+        } catch {
+          // An exit that cannot say where it goes shows no light through it.
+        }
+      }
+    }
+    return best;
+  }
+
+  /**
    * Per-viewer visibility gate. Pipeline:
    *   1. Resolve the target's environment.
    *   2. Compute the raw answer: viewer's `perceivedBand(env)` ≥

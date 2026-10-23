@@ -493,45 +493,25 @@ export default class LookController extends CommandController<LookModel> {
    * failure: a perception gap must never take `look` down.
    */
   /**
-   * ⭐ One sentence for a light seen in the dark, or `null`: the brightest
-   * THING giving light here or just beyond an open way — a fire is seen in
-   * the dark you cannot see BY. Its colour is its own temperature (a fire's
-   * incandescence), and where it stands beyond an exit, that way.
-   *
-   * ⚠ Read off the emitters, not the vision walk's attribution: the walk
-   * keeps its three strongest sources, and outdoors at night the sky over
-   * this place and its neighbours fills them — the clamp next door was
-   * never in the list (the ceramics drive A, run 32, by moonlight). The sky
-   * and a street's public lighting are not THINGS giving light, so a dark
-   * place with none near it still reads no glow.
+   * ⭐ One sentence for a light seen in the dark, or `null`: a fire is seen
+   * in the dark you cannot see BY. The model finds it
+   * (`VisionModality.brightestFireNear`); this words it — its colour by its
+   * own temperature (a fire's incandescence), and the way it lies.
    */
   private glowInTheDark(location: Stuff): Mml | null {
     if (!MixinApi.isContainer(location)) return null;
-    let best: { flux: number; kelvin: number | null; where: string } | null = null;
-    const consider = (place: Stuff & Container, where: string): void => {
-      for (const c of place.getContents() as Stuff[]) {
-        if (!MixinApi.isLightSource(c)) continue;
-        const flux = c.getEmittedFlux().rawValue();
-        if (!(flux > 0) || (best !== null && flux <= best.flux)) continue;
-        best = { flux, kelvin: c.getEmittedColorTemperature()?.rawValue() ?? null, where };
-      }
-    };
-    consider(location as Stuff & Container, '');
-    if (MixinApi.isExitable(location)) {
-      for (const exit of location.getObviousExits()) {
-        const door = exit.getDoor();
-        if (door && MixinApi.isSealable(door) && !door.isOpen()) continue;
-        try {
-          consider(exit.getDestination(), ` to the ${exit.getDirection()}`);
-        } catch {
-          // An exit that cannot say where it goes shows no light through it.
-        }
-      }
+    let fire: ReturnType<VisionModality['brightestFireNear']>;
+    try {
+      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
+      fire = vision.brightestFireNear(location as unknown as Stuff & Container);
+    } catch {
+      return null;
     }
-    if (best === null) return null;
-    const { kelvin: k, where } = best as { flux: number; kelvin: number | null; where: string };
+    if (fire === null) return null;
+    const k = fire.colorTemperatureK;
     const hue =
       k === null ? 'a glow' : k < 2000 ? 'a dull red glow' : k < 3000 ? 'an orange glow' : 'a pale glow';
+    const where = fire.direction ? ` to the ${fire.direction}` : '';
     return Mml.compose`You can see ${hue}${where}.`;
   }
 
