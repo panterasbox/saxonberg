@@ -3012,3 +3012,47 @@ forced. What they found, by kind:
   - **A durative act's heat lands at completion**, so work does not warm a
     body while it runs; a sodden worker in winter cools as if idle.
   - **A timed-out wire test keeps running** — its loop outlives the test.
+
+**Runs 25–29** (D reached 20/23, A 11/20, B 5/6 at best; each run surfaced
+the next layer — drive defects mostly, and these kernel ones):
+- **Kernel defects found and fixed:**
+  - **The world wedged on a lit hearth** (a2d46efac): `MaturationProfile.
+    byKey` globbed the whole stuff trie on every read of a maturing
+    vessel, and a fire tick reads its fuel slot dozens of times. Found by a
+    live CPU profile; byKey now re-resolves a remembered path.
+  - **The freeze plateau, three ways** (6b2df3a62, 13322e077, b45de18ff):
+    a pool read the instant it landed sat AT the cold mould's temperature
+    and banked infinite heat; the drift on record counted from before the
+    pool existed; a damp mould's easing evaporative chill left the pool
+    BELOW its rising air and back on the per-read figure. The transfer now
+    sets the heat before the matter lands; the drift is consumed by the
+    next phase pass; at or below the air it banks by elapsed drift.
+  - **A refused split threw** (7ed79b793): `get 1 clay`, too heavy, could
+    not merge its split-off back (clay's state read diverges) and threw
+    out of the command. The split now stays a lump of its own.
+  - **MQL matched mid-word** (c9264790f): `consign "plant pot"` with no
+    plant pot in hand put the player's aether imPLANT up for sale. A query
+    word now matches where a word begins.
+- **Harness:** `POST /auth/test-hand` hands a character a thing by name;
+  every drive dresses its people for winter (`dress`), and `test-nourish`
+  now also tends open wounds (an untreated burn weeps until the body is
+  SAFE — the founder bled out of a scald over jumped weeks) and dries the
+  body and what it wears (a sodden brickmaker died of hypothermia mid-
+  knead, coat or no coat).
+- **Findings, not fixed in this build:**
+  - **`X:i` lists nothing for a kiln that holds six pieces** — confirmed by
+    an eval in run 28 (so the old `pit:i` / `pan:i` finding is real, not
+    only the knead race). The drives prove loading by the acts.
+  - **A keyword phrase matches on its first word** — `get 1 brick` takes
+    the "brick table".
+  - **Two-word names need quotes on a command line**, and the refusal
+    ("doesn't match any known command shape") does not say so; `get
+    "plant pot" from kiln` passes the quotes through to MQL.
+  - **Perception is the world's hot path**: every describe walks light
+    through the location graph; under a long clock advance the server
+    answered nothing for minutes (run 29's profile).
+  - **A durative act's heat lands at completion**, and **the smelt wants
+    16 kg of charcoal present at its start** while a lit chamber burns a
+    charcoal charge in minutes — a player must charge cold or smelt at once.
+  - **NPCs die of the world**: Abel Thorne (hypothermia, every run) and a
+    brickfield gang member (starvation) — content, not this build.
