@@ -16,14 +16,16 @@
  *   place, minted with it and reaped with it, whose identity never
  *   changes and whose STATE (elevation, address, climate) follows the
  *   place's position. No zone changes at runtime.
- * - **Movers inside it carry an offset** along the frame — a swimmer
- *   stroking ahead, a boat being paddled — integrated by whoever owns the
- *   frame; the place is still one room while they are within hail.
- * - **It is told when it moves** ({@link onFrameMoved}), so it can tell
- *   its occupants what changed — told, not the horizon.
+ * - **It moves along a trajectory** (`MovingMixin`, D41, composed beneath
+ *   it): where it is and what phase it is in are read off it; it tells its
+ *   occupants in chunks, per viewer. Nothing here assumes a line — a river
+ *   patch, a sea room, a seeded wanderer or a jump between two places are
+ *   all trajectories.
+ * - **It is told when it moves** ({@link onFrameMoved}), in whatever frame,
+ *   so it can tell its occupants what changed — told, not the horizon.
  *
  * The motion itself — when the next thing happens, merges and splits —
- * belongs to the warren that mints the place (`ReachWarren`, the sea's
+ * belongs to whoever mints the place (`ReachWarren`, the sea's
  * `SeaWarren`); a {@link Drift} on the place holds its one scheduled
  * event. Nothing authored composes this: a moving place is always minted.
  */
@@ -33,33 +35,28 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Exitable } from '../boundary/Exitable';
 import type { Positioned } from '../expanse/Positioned';
-import type { LinePositionRecord } from '../expanse/LineFrame';
+import type { FramePos } from '../expanse/Frame';
+import type { Moving } from '../expanse/Moving';
 import { AppApi } from '../../api/app';
 import type { Drift } from './Drift';
 
 /** How far a hail carries on open water when nobody says otherwise, m. */
 const DEFAULT_HAIL_M = 100;
 
-export interface MovingPlace {
+export interface MovingPlace extends Moving {
   hailRangeM(): number;
   isUnderWay(): boolean;
-  offsetOf(mover: Stuff): number;
-  setOffsetOf(mover: Stuff, km: number): void;
-  clearOffsetOf(mover: Stuff): void;
-  offsetsOf(): ReadonlyMap<string, number>;
-  onFrameMoved(from: LinePositionRecord | null, to: LinePositionRecord | null): Promise<void>;
+  onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void>;
   getDrift(): Drift | null;
   setDrift(drift: Drift | null): void;
 }
 
 export function MovingPlaceMixin<
-  TBase extends MixinConstructor<Stuff & Container & Exitable & Positioned>,
+  TBase extends MixinConstructor<Stuff & Container & Exitable & Positioned & Moving>,
 >(Base: TBase) {
-  return class MovingPlaceMixin extends Base implements MovingPlace {
+  // `MovingMixin` beneath supplies the `Moving` half; a mixin's `implements` cannot see a generic base.
+  return class MovingPlaceMixin extends Base implements Omit<MovingPlace, keyof Moving> {
     static _mixinName: string = 'MovingPlaceMixin';
-
-    /** Mover stuffId → km offset along the frame (+ downstream). Runtime. */
-    private _offsets = new Map<string, number>();
 
     /** The one scheduled next event. Runtime: a restart re-derives it. */
     private _drift: Drift | null = null;
@@ -88,32 +85,12 @@ export function MovingPlaceMixin<
       return true;
     }
 
-    public offsetOf(mover: Stuff): number {
-      return this._offsets.get(mover.stuffId) ?? 0;
-    }
-
-    public setOffsetOf(mover: Stuff, km: number): void {
-      if (!Number.isFinite(km)) return;
-      this._offsets.set(mover.stuffId, km);
-    }
-
-    public clearOffsetOf(mover: Stuff): void {
-      this._offsets.delete(mover.stuffId);
-    }
-
-    public offsetsOf(): ReadonlyMap<string, number> {
-      return this._offsets;
-    }
-
     /**
-     * The place has moved along its frame.
+     * The place has moved in its frame.
      * @hook Override to tell the occupants what changed — *the run opens
-     *   out into a long brown pool*. Default: nothing.
+     *   out into a long brown pool* — through `tellAboard`. Default: nothing.
      */
-    public async onFrameMoved(
-      from: LinePositionRecord | null,
-      to: LinePositionRecord | null,
-    ): Promise<void> {
+    public async onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void> {
       void from;
       void to;
     }

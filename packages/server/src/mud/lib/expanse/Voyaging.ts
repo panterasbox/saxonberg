@@ -44,6 +44,7 @@ import type { Container } from '../spatial/Container';
 import { GeoPosition } from './GeoPosition';
 import { Plot, type PlotRecord } from './Plot';
 import type { Positioned } from './Positioned';
+import type { Moving } from './Moving';
 import type { LinePositionRecord, PassagePlan } from './LineFrame';
 import type { CourseRequest, CraftStop, FramePos, FrameStuff } from './Frame';
 import { StuffApi } from '../../api/stuff';
@@ -92,10 +93,6 @@ export interface Voyaging {
   getFix(): FramePos | null;
   /** ⭐ Where her frame puts her at `tS` (seconds of game time). */
   whereAtS(tS: number): FramePos | null;
-  /** The frame she is in, loaded. */
-  liveFrame(): Promise<FrameStuff | null>;
-  /** The frame she is in, if it is resident (a synchronous read). */
-  peekFrame(): FrameStuff | null;
   /** ⭐ Set a course and get under way (or change it under way) — or the frame's refusal. */
   steer(req: CourseRequest): Promise<StartResult | { refused: string }>;
   /** Stop where the craft is. */
@@ -142,7 +139,7 @@ function numSetting(key: string, fallback: number): number {
 }
 
 export function VoyagingMixin<
-  TBase extends MixinConstructor<Stuff & Positioned>,
+  TBase extends MixinConstructor<Stuff & Positioned & Moving>,
 >(Base: TBase) {
   return class VoyagingMixin extends Base implements Voyaging {
     static _mixinName: string = 'VoyagingMixin';
@@ -182,7 +179,7 @@ export function VoyagingMixin<
 
     /** ⭐ Under way the position is DERIVED by her frame; at rest it is the fix. */
     whereAtS(tS: number): FramePos | null {
-      return this.peekFrame()?.craftPositionAt(this as unknown as Craft, tS) ?? this.getFix();
+      return (this as unknown as Positioned).peekFrame()?.craftPositionAt(this as unknown as Craft, tS) ?? this.getFix();
     }
 
     private nowS(): number | null {
@@ -203,21 +200,6 @@ export function VoyagingMixin<
       const now = this.nowS();
       const w = now === null ? this.getFix() : this.whereAtS(now);
       return w?.frame === 'line' ? { ...w.at } : null;
-    }
-
-    async liveFrame(): Promise<FrameStuff | null> {
-      const path = (this as unknown as Positioned).framePath();
-      if (!path) return null;
-      try {
-        return asFrame(await StuffApi.singleton<Stuff>(path));
-      } catch {
-        return null;
-      }
-    }
-
-    peekFrame(): FrameStuff | null {
-      const path = (this as unknown as Positioned).framePath();
-      return path ? asFrame(StuffApi.findByTemplatePath<Stuff>(path)) : null;
     }
 
     reckonedNow(): GeoPosition | null {
@@ -312,6 +294,11 @@ export function VoyagingMixin<
       return [];
     }
 
+    /** Whoever is aboard is who a moving ship tells (Moving's audience). */
+    async audience(): Promise<Stuff[]> {
+      return this.aboard();
+    }
+
     /**
      * Where the watch is kept — the deck. A watch is MANNED when a living,
      * conscious body stands in it.
@@ -340,7 +327,7 @@ export function VoyagingMixin<
      * is a fact that must survive a restart.
      */
     async steer(req: CourseRequest): Promise<StartResult | { refused: string }> {
-      const frame = await this.liveFrame();
+      const frame = await (this as unknown as Positioned).liveFrame();
       if (frame === null) return { refused: 'There is no water under her to set a course on.' };
       await frame.ready();
       const nowS = WorldClockApi.getNow().rawValue();
@@ -355,7 +342,7 @@ export function VoyagingMixin<
 
     /** Stop: the fix is where the craft truly is; the voyage ends `anchored`. */
     async anchorHere(): Promise<void> {
-      await (await this.liveFrame())?.ready();
+      await (await (this as unknown as Positioned).liveFrame())?.ready();
       this.rebase(null, WorldClockApi.getNow().rawValue());
       this.endVoyage('anchored');
       this.persistNow();
@@ -412,7 +399,7 @@ export function VoyagingMixin<
       const inner = (super.onRestored as unknown as (() => Promise<void>) | undefined);
       if (typeof inner === 'function') await inner.call(this);
       if (this.getFix() === null) return;
-      const frame = await this.liveFrame();
+      const frame = await (this as unknown as Positioned).liveFrame();
       if (frame === null) return;
       // ⚠ Never awaited: the sea's own compile stands its ships up, so a
       // ship restored DURING that compile would wait on the compile that is
@@ -443,11 +430,4 @@ export function VoyagingMixin<
       );
     }
   };
-}
-
-/** A loaded row as a frame — the sea's chart, or a river's line — or `null`. */
-function asFrame(s: Stuff | null | undefined): FrameStuff | null {
-  if (!s) return null;
-  if (s instanceof ExpanseFrame || MixinApi.isLineFrame(s)) return s as unknown as FrameStuff;
-  return null;
 }

@@ -23,7 +23,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
-import type { CourseRequest, Frame, FramePos, WatchReport } from './Frame';
+import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
 import { AppApi } from '../../api/app';
@@ -185,6 +185,19 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
         speedKn: Math.max(0, req.speedKn),
         node: null,
         line: { direction: req.direction, landing, throughWaterMps, plan },
+      };
+    }
+
+    /** ⭐ The river's geography at a km (D44): the water's elevation, the ground that drains to it, its climate. */
+    siteAt(pos: FramePos): FrameSite | null {
+      if (pos.frame !== 'line') return null;
+      const site = this.climateSiteAt(pos.at.km);
+      return {
+        elevation: this.elevationAtKm(pos.at.km),
+        address: this.localityAddressAt(pos.at.km),
+        latitude: site?.latitude ?? null,
+        continentality: site?.continentality ?? null,
+        climateOffsetK: site?.climateOffsetK ?? null,
       };
     }
 

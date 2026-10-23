@@ -65,6 +65,15 @@ export interface WatchReport {
   stop: CraftStop | null;
 }
 
+/** The geography at a position on a frame (river D44) — what a moving zone answers. */
+export interface FrameSite {
+  elevation: number | null;
+  address: string | null;
+  latitude: number | null;
+  continentality: number | null;
+  climateOffsetK: number | null;
+}
+
 export interface Frame {
   /** The frame's row path — what a position names. */
   getTemplatePath(): string | null;
@@ -84,6 +93,8 @@ export interface Frame {
   planCourse(craft: Craft, req: CourseRequest, hull: HullNow, nowS: number): Promise<CourseRecord | { refused: string }>;
   /** ⭐ Where the frame puts her at `tS` — her course read, or where she lies. Synchronous. */
   craftPositionAt(craft: Craft, tS: number): FramePos | null;
+  /** ⭐ The geography at a position on this frame (D44): elevation, address, climate. */
+  siteAt(pos: FramePos): FrameSite | null;
   /** ⭐ One watch, `fromS` to `toS`: what changed, how far she came, and the stop if it has come. */
   watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport>;
 }

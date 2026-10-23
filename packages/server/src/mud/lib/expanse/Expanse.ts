@@ -60,7 +60,7 @@ import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
 import type Structure from '../../platform/idea/Structure';
-import type { CourseRequest, Frame, FramePos, WatchReport } from './Frame';
+import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
 
@@ -382,6 +382,23 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
       bearingDeg: ((req.bearingDeg % 360) + 360) % 360,
       speedKn: Math.max(0, req.speedKn),
       node: req.toward ?? null,
+    };
+  }
+
+  /**
+   * ⭐ The sea's geography at a chart position (D44): sea level, this
+   * expanse's address, the latitude where the position IS, and the climate
+   * levers the expanse's own chain carries. A sea room's zone answers
+   * these as it drifts.
+   */
+  public siteAt(pos: FramePos): FrameSite | null {
+    if (pos.frame !== 'chart') return null;
+    return {
+      elevation: 0,
+      address: this.peekField<string>('address'),
+      latitude: pos.at.latDeg,
+      continentality: this.peekField<number>('continentality'),
+      climateOffsetK: this.peekField<number>('climateOffsetK'),
     };
   }
 

@@ -29,6 +29,7 @@ import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
+import { MovingMixin } from '../../lib/expanse/Moving';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -66,7 +67,7 @@ const LOOKOUT_POSITION = 'lookout';
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
 export default class Ship extends PersistableMixin(
-  VoyagingMixin(EngagedMixin(PositionedMixin(Structure))),
+  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(Structure)))),
 ) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },

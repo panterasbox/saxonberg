@@ -17,6 +17,7 @@ import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
+import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -31,7 +32,7 @@ const WARREN_PATH = '/system/water/idea/ReachWarren';
 export default class ReachStop extends MovingPlaceMixin(
   RiverWaterMixin(
     WaterPlaceMixin(
-      SwimmableMixin(ShoreMixin(PersistableMixin(PositionedMixin(WarrenMemberMixin(Location))))),
+      SwimmableMixin(ShoreMixin(PersistableMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
     ),
   ),
 ) {

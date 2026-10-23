@@ -25,12 +25,14 @@
  * handle is none: no map names a patch.
  */
 
+import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
+import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import type { LinePositionRecord } from '@saxonberg/server/mud/lib/expanse/LineFrame';
@@ -53,7 +55,7 @@ const WARREN_PATH = '/system/water/idea/ReachWarren';
 
 export const ReachPlaceBase = MovingPlaceMixin(
   RiverWaterMixin(
-    WaterPlaceMixin(SwimmableMixin(ShoreMixin(PositionedMixin(WarrenMemberMixin(Location))))),
+    WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
   ),
 );
 
@@ -176,31 +178,23 @@ export default class ReachPatch extends ReachPlaceBase {
   /**
    * ⭐ The river under you has changed — told, not the horizon (river D6).
    */
-  public override async onFrameMoved(
-    from: LinePositionRecord | null,
-    to: LinePositionRecord | null,
-  ): Promise<void> {
-    if (!to) return;
+  public override async onFrameMoved(from: FramePos | null, to: FramePos | null): Promise<void> {
+    if (to?.frame !== 'line') return;
     const cat = this.catalogue();
-    const line = cat?.lineOfSync(to.course) ?? null;
+    const line = cat?.lineOfSync(to.at.course) ?? null;
     if (!line) return;
-    const before = from && from.course === to.course ? line.stretchAt(from.km) : null;
-    const after = line.stretchAt(to.km);
+    const was = from?.frame === 'line' && from.at.course === to.at.course ? from.at : null;
+    const before = was ? line.stretchAt(was.km) : null;
+    const after = line.stretchAt(to.at.km);
     if (!after || (before && before.kind === after.kind && before.bendName === after.bendName)) return;
-    const self = this as unknown as Stuff & { getContents(): Stuff[] };
     const iced = this.underIce();
     const said = iced
       ? 'The ice closes over your head: grey light, the sheet a hand above you, and the current taking you along under it.'
       : CHANGE_WORDS[after.kind] ?? 'The river carries you on.';
     const bend = after.bendName ? ` This is ${after.bendName}.` : '';
-    for (const c of self.getContents()) {
-      if (!MixinApi.isHasInteractive(c)) continue;
-      try {
-        MessageApi.scene(c).topic('sense.surroundings').toSelf(Mml.compose`${said}${bend}`).send();
-      } catch {
-        /* decoration */
-      }
-    }
+    // ⭐ Through the chunked teller (D42): a fast run through three riffles
+    // is one beat, not three lines.
+    await this.tellAboard(`${said}${bend}`);
   }
 
   private catalogue(): WatercourseCatalogue | null {

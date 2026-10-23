@@ -20,6 +20,7 @@ import Location from '@saxonberg/server/mud/platform/location/Location';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
+import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -33,7 +34,7 @@ import type ReachWarren from '../idea/ReachWarren';
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
-const BankPatchBase = MovingPlaceMixin(ShoreMixin(PositionedMixin(WarrenMemberMixin(Location))));
+const BankPatchBase = MovingPlaceMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))));
 
 export default class BankPatch extends BankPatchBase {
   /** A bank does not drift: it moves only as its walkers walk. */

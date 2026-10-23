@@ -10,7 +10,8 @@
  * `addLocation`, the only writer of a room's zone), and it answers the
  * position-dependent geography — `elevation`, `address`, the climate
  * levers, `horizon` — off the place's CURRENT frame position, through the
- * frame's kernel protocol (`LineFrame` on a river). Every other field
+ * frame's own `siteAt` (D44): a river's line, the sea's chart, or any
+ * frame to come — the zone never knows which. Every other field
  * walks to the ancestor as any zone's does (the kind row's chain).
  *
  * Every zone reader keeps working with no change of its own: they read the
@@ -29,9 +30,7 @@ import type Place from '../stuff/Place';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Positioned } from '../expanse/Positioned';
-import type { LineFrame } from '../expanse/LineFrame';
-import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
+import type { FrameSite } from '../expanse/Frame';
 
 export interface MovingZone {
   adopt(place: Place & Positioned): void;
@@ -70,42 +69,36 @@ export function MovingZoneMixin<TBase extends MixinConstructor<SpatialZone & Loc
       return p !== null && !(p as unknown as Stuff).isDestroyed() ? p : null;
     }
 
-    /** The frame the place is on now, and where. */
-    private frameNow(): { frame: Stuff & LineFrame; km: number } | null {
+    /**
+     * ⭐ The geography where the place is now, from whatever frame it is in
+     * (D44) — a river's line, the sea's chart, or any frame to come.
+     */
+    private siteNow(): FrameSite | null {
       const place = this.getPlace();
-      const pos = place?.getLinePosition() ?? null;
-      const line = place?.getLine() ?? null;
-      if (!pos || !line) return null;
-      const frame = StuffApi.findByTemplatePath<Stuff>(line);
-      if (!frame || !MixinApi.isLineFrame(frame)) return null;
-      return { frame, km: pos.km };
+      const pos = place?.framePos() ?? null;
+      return pos === null ? null : place!.peekFrame()?.siteAt(pos) ?? null;
     }
 
-    /** The water's elevation where the place is now. */
+    /** The elevation where the place is now. */
     public getElevation(): number | null {
-      const at = this.frameNow();
-      return at ? at.frame.elevationAtKm(at.km) : super.getElevation();
+      return this.siteNow()?.elevation ?? super.getElevation();
     }
 
-    /** The address of the ground that drains to where the place is now. */
+    /** The address of the ground where the place is now. */
     public getAddress(): string | null {
-      const at = this.frameNow();
-      return (at ? at.frame.localityAddressAt(at.km) : null) ?? super.getAddress();
+      return this.siteNow()?.address ?? super.getAddress();
     }
 
     public getLatitude(): number | null {
-      const at = this.frameNow();
-      return (at ? at.frame.climateSiteAt(at.km)?.latitude : null) ?? super.getLatitude();
+      return this.siteNow()?.latitude ?? super.getLatitude();
     }
 
     public getContinentality(): number | null {
-      const at = this.frameNow();
-      return (at ? at.frame.climateSiteAt(at.km)?.continentality : null) ?? super.getContinentality();
+      return this.siteNow()?.continentality ?? super.getContinentality();
     }
 
     public getClimateOffsetK(): number | null {
-      const at = this.frameNow();
-      return (at ? at.frame.climateSiteAt(at.km)?.climateOffsetK : null) ?? super.getClimateOffsetK();
+      return this.siteNow()?.climateOffsetK ?? super.getClimateOffsetK();
     }
 
     /** A moving place's sightables are its frame's, never a zone's list. */

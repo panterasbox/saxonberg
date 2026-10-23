@@ -737,7 +737,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       this._nodeOf.set(patch.stuffId, node);
     }
     await this.refreshWater(patch);
-    await patch.onFrameMoved(from, to);
+    await patch.onFrameMoved({ frame: 'line', at: from }, { frame: 'line', at: to });
     this.hearAhead(patch, to);
     await this.wireWithinHail(patch);
     if (await this.mergeInto(patch)) return;

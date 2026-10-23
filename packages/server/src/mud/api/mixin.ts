@@ -74,6 +74,7 @@ import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
 import type { LineFrame } from '../lib/expanse/LineFrame';
 import type { MovingPlace } from '../lib/location/MovingPlace';
+import type { Moving } from '../lib/expanse/Moving';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
@@ -1316,8 +1317,13 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.LineFrame);
   }
 
+  /** A thing that moves along a trajectory (river D41) — a ship, a moving place. */
+  public static isMoving(obj: Stuff): obj is Stuff & Moving & Positioned {
+    return this.hasMixin(obj, Mixins.Moving);
+  }
+
   /** ⭐ A place whose position is a variable (river D4). */
-  public static isMovingPlace(obj: Stuff): obj is Stuff & MovingPlace & Positioned & Container & Exitable {
+  public static isMovingPlace(obj: Stuff): obj is Stuff & MovingPlace & Moving & Positioned & Container & Exitable {
     return this.hasMixin(obj, Mixins.MovingPlace);
   }
 

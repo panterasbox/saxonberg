@@ -23,6 +23,7 @@ import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
+import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -31,7 +32,7 @@ import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
 export const SeaRoomBase = MovingPlaceMixin(
-  WaterPlaceMixin(SwimmableMixin(ShoreMixin(PositionedMixin(WarrenMemberMixin(Location))))),
+  WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
 );
 
 export default class SeaRoom extends SeaRoomBase {

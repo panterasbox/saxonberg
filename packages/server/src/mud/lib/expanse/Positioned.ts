@@ -29,6 +29,11 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import type { LinePositionRecord } from './LineFrame';
+import type { Stuff } from '../stuff/Stuff';
+import type { FramePos, FrameStuff } from './Frame';
+import { Expanse } from './Expanse';
+import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
 
 export interface Positioned {
   getExpansePosition(): GeoPosition | null;
@@ -41,6 +46,12 @@ export interface Positioned {
   getLinePosition(): LinePositionRecord | null;
   placeOnLine(line: string | null, value: LinePositionRecord | null): void;
   framePath(): string | null;
+  /** ⭐ Where it is, in whichever frame (W9) — the derived position while it moves. */
+  framePos(): FramePos | null;
+  /** The frame it is in, if that frame is resident (a synchronous read). */
+  peekFrame(): FrameStuff | null;
+  /** The frame it is in, loaded. */
+  liveFrame(): Promise<FrameStuff | null>;
 }
 
 export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -125,6 +136,28 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.expansePosition !== null ? this.expanse : null;
     }
 
+    framePos(): FramePos | null {
+      const line = this.getLinePosition();
+      if (line !== null) return { frame: 'line', at: line };
+      const chart = this.getExpansePosition();
+      return chart === null ? null : { frame: 'chart', at: chart };
+    }
+
+    peekFrame(): FrameStuff | null {
+      const path = this.framePath();
+      return path ? asFrame(StuffApi.findByTemplatePath<Stuff>(path)) : null;
+    }
+
+    async liveFrame(): Promise<FrameStuff | null> {
+      const path = this.framePath();
+      if (!path) return null;
+      try {
+        return asFrame(await StuffApi.singleton<Stuff>(path));
+      } catch {
+        return null;
+      }
+    }
+
     getExpanse(): string | null { return this.expanse; }
     setExpanse(path: string | null): void { this.expanse = path ?? null; }
 
@@ -153,4 +186,11 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return 0;
     }
   };
+}
+
+/** A loaded row as a frame — the sea's chart, or a river's line — or `null`. */
+function asFrame(s: Stuff | null | undefined): FrameStuff | null {
+  if (!s) return null;
+  if (s instanceof Expanse || MixinApi.isLineFrame(s)) return s as unknown as FrameStuff;
+  return null;
 }
