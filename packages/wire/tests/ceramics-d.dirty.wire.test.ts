@@ -408,7 +408,8 @@ async function clearFloor(only?: RegExp): Promise<void> {
   // it), so the first runs swept nothing: seven flasks lay on the floor and
   // `impress X in flask` kept binding an old, impressed one. `destruct #id`
   // as the founder does it, one leftover at a time, by identity.
-  const LEFTOVER = /moulding flask|\bcast\b|runner and riser|moulding sand|beeswax|salvaged lump|sherd|\bmug\b/i;
+  // `blown lump`: a damp flask's ruin bound 33's `fit pewter to sword` (run 28).
+  const LEFTOVER = /moulding flask|\bcast\b|runner and riser|moulding sand|beeswax|salvaged lump|blown lump|sherd|\bmug\b/i;
   // ⚠ Never the cast key: 35 unlocks the yard with it after a restart. The
   // first general sweep after 28 dropped it from the caster's hands as a
   // "cast" and scrapped it (run 27's carried log: gone after 29a).
@@ -885,15 +886,15 @@ suite('⭐⭐ 32 — crystallize', () => {
 
     // The fire works it: coal under the pan, lit, and held — a day at a
     // time until the crop is in the pan.
-    // ⚠ Two lumps a trip: a lump of coal is 6 kg, and a caster already
-    // carrying the morning's work could not lift the sixth (run 24 — and
-    // every lump stayed in their hands, so 34's `get board` would not budge).
+    // ⚠ A lump of coal is 6 kg: a caster already carrying the morning's work
+    // could not lift the sixth (run 24 — and every lump stayed in their
+    // hands, so 34's `get board` would not budge).
     await mint(SALT_FLAT, '/trade/quarrying/thing/coal', 6);
-    for (let trip = 0; trip < 3; trip++) {
-      await doing(caster, 'get 2 coal');
-      // Both: a bare `stoke coal` lays ONE lump, and three stayed in hand
-      // (run 27 — 18 kg the caster then could not lift a board over).
-      await doing(caster, 'stoke 2 coal into hearth');
+    // ⚠ One lump a trip: `stoke` lays ONE lump whatever count it is given
+    // (runs 27–28 left three in the caster's hands with `stoke 2 coal`).
+    for (let trip = 0; trip < 6; trip++) {
+      await doing(caster, 'get 1 coal');
+      await doing(caster, 'stoke coal into hearth');
     }
     await doing(caster, 'ignite hearth');
     let read = first;
@@ -1119,6 +1120,10 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
     // carrying nothing afterwards and could not say which).
     const held = await examine(caster, 'me:i:brass');
     expect(held, `the cast key before the restart: ${held}`).toMatch(/brass cast of a key/i);
+    // …and the door LOCKED with it, so the unlock after the restart proves
+    // something (run 28: 28 left it unlocked — "It is already unlocked").
+    const locked = await run(caster, 'lock door');
+    expect(locked.said, `lock the yard door: ${locked.said}`).toMatch(/lock|already locked/i);
     const handle = caster.handle;
     for (const s of sessions) s.close();
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land

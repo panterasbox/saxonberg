@@ -374,6 +374,9 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // grew, take one, and follow the one in hand.
     const before = await stacksOf(digger, 'here:i:bricks');
     await act(digger, 'shape clay into brick', '9 hours');
+    // ⚠ Read by daylight: a nine-hour day ends after dark in winter, and a
+    // query in the dark sees nothing (run 28 found no stack at all).
+    await toHour(9, 15);
     const after = await stacksOf(digger, 'here:i:bricks');
     const grew = [...after].find(([id, n]) => n > (before.get(id) ?? 0))?.[0];
     expect(grew, 'the brick just struck').toBeTruthy();
@@ -422,11 +425,13 @@ suite('⭐ 3 — knead it', () => {
     // and THEN the blend mints (asynchronously, after the engagement
     // completes): read at once, the pit is still empty and `get clay from
     // pit` falls through to the next view and tries to lift the pit (run
-    // 24). That is also what "`pit:i` lists nothing" was.
-    for (let i = 0; i < 20 && (await idsOf(digger, 'pit:i:clay')).length === 0; i++) {
-      await new Promise((r) => setTimeout(r, 500));
+    // 24). (⚠ Not the whole of "`pit:i` lists nothing": run 28 caught
+    // `kiln:i` empty with six pieces inside — a real MQL gap, recorded.)
+    let taken = await say(digger, 'get clay from pit');
+    for (let i = 0; i < 10 && !/pick up/i.test(taken); i++) {
+      await new Promise((r) => setTimeout(r, 1_000));
+      taken = await say(digger, 'get clay from pit');
     }
-    const taken = await say(digger, 'get clay from pit');
     expect(taken, 'the clay out of the pit').toMatch(/clay/i);
     expect(taken).not.toMatch(/sand|breeze/i);
     const lean = await say(digger, 'analyze clay lump');

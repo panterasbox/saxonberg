@@ -332,6 +332,16 @@ export class TestHooks {
       // of jumped clock, bled out of a scalded hand (the ceramics drives,
       // run 27: the founder, the brickmaker). Each open wound gets its own
       // resolution, cleanly — the same primitive `treat` calls.
+      // ⭐ …and dry, body and what it wears, as anyone would change into dry
+      // things between days: drive A stands the brickmaker in the rain to
+      // watch test bricks get rained on, and in a damp spring fog nothing
+      // dries — sodden clothes multiplied the cold until the knead killed
+      // them of hypothermia (runs 26 and 28, coat or no coat). What they
+      // CARRY keeps its water: a clay lump's wetness is the drive's subject.
+      if (MixinApi.isWet(body)) body.wet(-1);
+      if (MixinApi.isAttired(body)) {
+        for (const g of body.wornStack()) if (MixinApi.isWet(g)) g.wet(-1);
+      }
       if (MixinApi.isVitals(body)) {
         for (const c of body.getConditions()) {
           if (c.kind !== 'trauma' || c.dressed === true) continue;

@@ -418,27 +418,36 @@ suite('⭐ 13 — wear a crucible', () => {
     await goTo(SMELTER);
     let look = '';
     for (let melt = 0; melt < 10 && !/crack/i.test(look); melt++) {
-      // ⚠ Win by daylight too, and only what a body can carry with its
-      // tools: the first melt of run 24 dug at night ("something doesn't
-      // budge") and a third 6 kg lump was too heavy by day.
+      // ⚠ SETUP, by name: the fuel and the ore are handed to the miner one
+      // at a time and go straight into the furnace. Winning coal at the
+      // quarry each melt left more in hand than a body can lift (runs
+      // 24–28), and the smelt is reckoned by MASS — it wants 16 kg of
+      // charcoal, which coal never was (B8). What the crucible's WEAR needs
+      // is the melts, not the mining (B10 drives that).
       await toHour(9, 15);
-      await winAtQuarry('coal', 2, SMELTER);
-      await oreFor(2, SMELTER);
+      await goTo(SMELTER);
+      for (const x of ['coal', 'ore', 'malachite', 'pail', 'firebrick', 'brick', 'clay']) await k.cmd(`drop ${x}`);
+      await k.drainProse();
+      await hand(k, '/trade/fuel/thing/charcoal');
+      await say('stoke charcoal into furnace');
+      for (let i = 0; i < 2; i++) {
+        await hand(k, '/trade/fuel/thing/charcoal');
+        await say('put charcoal in furnace');
+      }
       await drink();
-      // Read by daylight: in the dark the furnace and the crucible are "something".
-      await toHour(9, 15);
-      await say('stoke 2 coal into furnace');
       await say('ignite furnace');
       // ⚠ The bellows is a toggle, and the last melt left it going: a pump
       // that eases it off is pumped again (run 26 smelted cold).
       const pumped = await act('pump bellows');
       if (/ease off/i.test(pumped.said)) await act('pump bellows');
       await advance('30 minutes');
-      await say('put coal in furnace');
+      await oreFor(2, SMELTER);
       await say('put malachite in furnace');
       await say('put malachite in furnace');
       const smelt = await act('smelt', '2 hours');
-      expect(smelt.said).not.toMatch(/don'?t understand/i);
+      // The smelt RUNS — a refusal here (no fuel, no ore) is the failure,
+      // not four melts on at the crucible (runs 26–28 smelted nothing).
+      expect(refusedFor(smelt.r), `the smelt: ${smelt.said}`).toBeNull();
       await say('douse furnace');
       await advance('2 hours');
       look = await examine('crucible');

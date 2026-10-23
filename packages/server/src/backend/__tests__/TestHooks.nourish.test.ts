@@ -58,6 +58,23 @@ describe('TestHooks.nourishCharacter', () => {
     expect(b.applyTreatment).toHaveBeenCalledWith(burn, { by: 'fluid', efficacy: 1 });
   });
 
+  it('⭐ dries the body and what it WEARS — never what it carries (runs 26 and 28 died sodden)', () => {
+    const coat = { wet: vi.fn() };
+    const b = body(50) as ReturnType<typeof body> & {
+      wet: ReturnType<typeof vi.fn>;
+      wornStack(): unknown[];
+    };
+    b.wet = vi.fn();
+    b.wornStack = () => [coat];
+    vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(b as unknown as Avatar);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isWet').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isAttired').mockReturnValue(true);
+    TestHooks.nourishCharacter('wire-brickmaker');
+    expect(b.wet).toHaveBeenCalledWith(-1);
+    expect(coat.wet).toHaveBeenCalledWith(-1);
+  });
+
   it('⚠ says so when nobody answers to the handle', () => {
     vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(undefined);
     expect(() => TestHooks.nourishCharacter('nobody')).toThrow(/no resident character/i);

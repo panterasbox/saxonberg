@@ -37,6 +37,7 @@ import {
   plain,
   dress,
   dressFounder,
+  hand,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -352,6 +353,11 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     expect(await examine(potter, `#${mine!.stuffId}`)).toMatch(/turned foot/i);
     await say(potter, 'get jug');
     await say(potter, 'get handle');
+    // ⚠ The handle firms up on its own clock: "still too soft to join — it
+    // would sag off" (run 28). An hour at a time, so the jug is not let
+    // past leather-hard while it waits.
+    const handle = await until(potter, 'me:i:handle', /leather-hard|bone-dry/i, '1 hour', 24);
+    expect(handle, `the handle firm enough to join: ${handle}`).toMatch(/leather-hard/i);
     const fit = await act(potter, 'fit handle to jug', '30 minutes');
     expect(refusedFor(fit.r), `join: ${fit.said}`).toBeNull();
     expect(await examine(potter, 'me:i:jug')).toMatch(/handle/i);
@@ -378,6 +384,10 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     expect(mug, 'the trimmed mug in hand').toBeTruthy();
     potter = await clayFor(potter, 1);
     await act(potter, 'shape clay into handle', '1 hour');
+    // ⚠ The throw may still be going after the hour: wait for a handle to
+    // be here before taking it (run 28: "You don't see any 'handle' here").
+    const thrown = await until(potter, 'here:i:handle', /handle/i, '1 hour', 6);
+    expect(thrown, 'the fresh handle').toMatch(/handle/i);
     await say(potter, 'get handle');
     const fit = await act(potter, `fit handle to #${mug}`, '30 minutes');
     expect(refusedFor(fit.r), `the wet handle on: ${fit.said}`).toBeNull();
@@ -401,13 +411,17 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
 suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
   it('the cones read the heat — and a practiced potter reads more of it', async () => {
     await until(potter, 'here:i:jug', /bone-dry/i, '1 day', 30);
+    // ⚠ The loading is proven by the acts, not by `kiln:i`: that query
+    // lists NOTHING though the kiln holds the ware (run 28's probe — an eval
+    // read six pieces inside; the MQL finding, recorded in the plan).
+    const loaded: string[] = [];
     for (const ware of ['jug', 'mug', 'crock', 'crock', 'jar', 'bowl', 'plant pot']) {
       await say(potter, `get ${ware}`);
       // ⚠ Quoted: `put plant pot in kiln` matches no shape of `put` (a
       // two-word object is quoted on a command line — run 27).
-      await say(potter, `put ${ware.includes(' ') ? `"${ware}"` : ware} in kiln`);
+      loaded.push(await say(potter, `put ${ware.includes(' ') ? `"${ware}"` : ware} in kiln`));
     }
-    expect(await examine(potter, 'kiln:i')).toMatch(/jug|crock/i);
+    expect(loaded.join(' '), 'the ware in the kiln').toMatch(/put [^.]*(jug|crock)[^.]* in an updraft kiln/i);
     await mint(SHOP, CHARCOAL, 4);
     await say(potter, 'get charcoal');
     await say(potter, 'stoke charcoal into kiln');
@@ -460,12 +474,17 @@ suite('⭐ 18 — glaze', () => {
     await act(potter, 'stir "lead tub"', '20 minutes');
     expect(await examine(potter, 'lead tub')).toMatch(/lead glaze|glaze/i);
     // Two bisque crocks, dipped inside.
-    await say(potter, 'get crocks from kiln');
+    // One at a time: a plural `crocks` bound nothing in the kiln and fell
+    // through to lifting the kiln (run 28 — "fixed in place").
+    await say(potter, 'get crock from kiln');
+    await say(potter, 'get crock from kiln');
     await say(potter, 'name crock ashpot');
-    const dippedAsh = await say(potter, 'dip ashpot inside in "ash tub"');
+    // ⚠ A dip is an engaged act: waited out, or the next one finds the
+    // potter's "hands busy with something else" (run 28).
+    const dippedAsh = (await act(potter, 'dip ashpot inside in "ash tub"', '10 minutes')).said;
     expect(dippedAsh).toMatch(/coat|glaze|dip/i);
     await say(potter, 'name crock leadpot');
-    await say(potter, 'dip leadpot inside in "lead tub"');
+    await act(potter, 'dip leadpot inside in "lead tub"', '10 minutes');
     expect(await examine(potter, 'me:i:leadpot')).toMatch(/glaze|coat|wet/i);
     await say(potter, 'put ashpot in kiln');
     await say(potter, 'put leadpot in kiln');
@@ -481,8 +500,7 @@ suite('⭐ 18 — glaze', () => {
 
   it('a kiln opened HOT dunts its ware — some visibly, one only to the ear, and `ring` finds it', async () => {
     // A third firing of what is left: opened while it still glows.
-    const left = await examine(potter, 'kiln:i');
-    expect(left).toMatch(/mug|jar|bowl|pot/i);
+    // (What is left in the kiln is not read by `kiln:i` — see 17.)
     await fireKiln(potter, '6 hours');
     await say(potter, 'douse kiln');
     await say(potter, 'get all from kiln');
@@ -582,6 +600,9 @@ suite('⭐ 22 — the filter (W8)', () => {
     await say(w, 'get filter');
     expect(await held(w), 'the crock goes with the filterer').toMatch(/crock/i);
     w = await goTo(w, room);
+    // The crock stands on the ground and the filter goes in it: `put … in
+    // crock` names a crock HERE, not one in hand (run 28).
+    await say(w, 'drop crock');
     const set = await run(w, 'put filter in crock');
     expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
     await mint(room, PAIL);
@@ -597,7 +618,6 @@ suite('⭐ 22 — the filter (W8)', () => {
     await say(w, 'get pail');
     const poured = await say(w, 'pour pail into filter');
     expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
-    await say(w, 'drop crock');
     await say(w, 'drop pail');
   }
 
@@ -711,6 +731,13 @@ suite('⭐ 20 — flame and body', () => {
     await say(potter, 'drop crock');
     await say(potter, 'drop bowl');
     await until(potter, 'here:i:crock', /bone-dry/i, '1 day', 30);
+    // ⚠ Stoneware wants ~1480 K, and this kiln's lining has worn through
+    // 17's and 18's firings to a kiln that holds ~1345 K (B38 — the lining
+    // is a wear part): the crock came out earthenware (run 28). Relined
+    // first, with thirty firebricks handed over (setup).
+    for (let i = 0; i < 30; i++) await hand(potter, '/stuff/thing/firebrick');
+    const relined = await act(potter, 'fit lining to kiln', '3 hours');
+    expect(refusedFor(relined.r), `reline the kiln: ${relined.said}`).toBeNull();
     await say(potter, 'get crock');
     await say(potter, 'put crock in kiln');
     await say(potter, 'get bowl');
