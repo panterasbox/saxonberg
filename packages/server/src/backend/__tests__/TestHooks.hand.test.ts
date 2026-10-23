@@ -33,8 +33,20 @@ describe('TestHooks.handCharacter', () => {
     const clone = vi.spyOn(StuffApi, 'clone').mockResolvedValue(coat as never);
     const move = vi.spyOn(ContainmentApi, 'move').mockImplementation(() => undefined);
     await expect(TestHooks.handCharacter('wire-brickmaker', '/stuff/thing/clothes/greatcoat')).resolves.toBe('coat-1');
-    expect(clone).toHaveBeenCalledWith('/stuff/thing/clothes/greatcoat');
+    expect(clone).toHaveBeenCalledWith('/stuff/thing/clothes/greatcoat', undefined, undefined);
     expect(move).toHaveBeenCalledWith(coat, body);
+  });
+
+  it('⭐ a data overlay rides the clone — ore handed with the grade the face would stamp', async () => {
+    const body = { stuffId: 'body' } as unknown as Avatar;
+    const ore = { stuffId: 'ore-1' } as unknown as Stuff;
+    vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(body);
+    vi.spyOn(MixinApi, 'isContainer').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
+    const clone = vi.spyOn(StuffApi, 'clone').mockResolvedValue(ore as never);
+    vi.spyOn(ContainmentApi, 'move').mockImplementation(() => undefined);
+    await TestHooks.handCharacter('wire-liner', '/x/copper-ore', { grade: 0.3 });
+    expect(clone).toHaveBeenCalledWith('/x/copper-ore', undefined, { dataOverlay: { grade: 0.3 } });
   });
 
   it('⚠ says so when nobody answers to the handle', async () => {

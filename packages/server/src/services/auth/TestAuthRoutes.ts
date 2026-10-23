@@ -171,12 +171,17 @@ export class TestAuthRoutes {
         res.status(403).json({ error: 'forbidden' });
         return;
       }
-      const body = req.body as { handle?: unknown; template?: unknown } | undefined;
+      const body = req.body as { handle?: unknown; template?: unknown; data?: unknown } | undefined;
       if (typeof body?.handle !== 'string' || body.handle === '' || typeof body.template !== 'string') {
         res.status(400).json({ error: 'handle and template must be strings' });
         return;
       }
-      TestHooks.handCharacter(body.handle, body.template)
+      const data = body.data;
+      if (data !== undefined && (typeof data !== 'object' || data === null || Array.isArray(data))) {
+        res.status(400).json({ error: 'data, when given, must be an object' });
+        return;
+      }
+      TestHooks.handCharacter(body.handle, body.template, data as Record<string, unknown> | undefined)
         .then((id) => res.json({ id }))
         .catch((err: unknown) => {
           console.error('TestAuthRoutes: test-hand failed:', err);

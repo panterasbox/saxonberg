@@ -365,16 +365,28 @@ export class TestHooks {
    * character's hands; what they do with it — `wear`, `put`, `stoke` — is
    * their own act, so every rule still decides.
    *
+   * `data` rides the clone as a per-instance overlay (the embody path's
+   * `dataOverlay`): a lump of ore whose grade the face stamps at `hew`
+   * is handed with one, or the smelt finds no metal in it (run 31).
+   *
    * @returns the thing's stuff id
    */
-  public static async handCharacter(handle: string, templatePath: string): Promise<string> {
+  public static async handCharacter(
+    handle: string,
+    templatePath: string,
+    data?: Record<string, unknown>
+  ): Promise<string> {
     TestHooks.#assertTestMode('handCharacter');
     return ExecutionContextApi.runRoot(TestHooks, 'handCharacter', async () => {
       const avatar = PlayerApi.findAvatarByName(handle);
       if (!avatar) throw new Error(`no resident character named '${handle}'`);
       const body = avatar as unknown as Stuff;
       if (!MixinApi.isContainer(body)) throw new Error(`'${handle}' cannot hold anything`);
-      const thing = await StuffApi.clone<Stuff>(templatePath);
+      const thing = await StuffApi.clone<Stuff>(
+        templatePath,
+        undefined,
+        data ? { dataOverlay: data } : undefined
+      );
       if (!MixinApi.isContainable(thing)) {
         await StuffApi.destruct(thing);
         throw new Error(`'${templatePath}' is not a thing that can be held`);
