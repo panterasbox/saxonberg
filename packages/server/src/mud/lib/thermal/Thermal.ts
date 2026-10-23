@@ -1847,6 +1847,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
  * firing's end awaits them so it can say what came out.
  */
 const PENDING_CASTS = new Set<Promise<unknown>>();
+/** The crop each vessel is minting, by stuff id (see `setCrystals`). */
+const CROPS_MINTING = new Map<string, { kg: number }>();
 
 function freshHeatWork(): HeatWorkRecord {
   return {
@@ -2586,6 +2588,16 @@ async function setCrystals(
 ): Promise<void> {
   if (!(kg > 0)) return;
   const self = v as unknown as Stuff;
+  // ⭐ One crop in the making per vessel: while its cast is minting (async),
+  // a later read's crystals join it rather than starting another. A boil
+  // read a hundred times in one clock advance started a hundred casts, each
+  // a full containment move, and the world stopped answering (the ceramics
+  // drive D, run 30 — a live CPU profile, 87 % in `castInto`).
+  const minting = CROPS_MINTING.get(self.stuffId);
+  if (minting) {
+    minting.kg += kg;
+    return;
+  }
   const mould = MixinApi.isMould(self) ? (self as Stuff & Mould) : null;
   const scope = mould
     ? (self as unknown as Stuff & Container)
@@ -2602,27 +2614,32 @@ async function setCrystals(
     s.setMass(Quantity.of(s.getMass().rawValue() + kg, 'kg'));
     return;
   }
-  if (mould) {
-    await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
-    return;
-  }
-  let cast: Stuff;
+  const crop = { kg };
+  CROPS_MINTING.set(self.stuffId, crop);
   try {
-    cast = await StuffApi.clone(shape);
-  } catch {
-    return; // an unresolvable shape must not crash a reconcile
-  }
-  if (MixinApi.isTangible(cast)) {
-    if (cast.getMaterial() === null) {
-      cast.setMaterial(product);
-      const c = cast as unknown as { setShortDescription?(s: string): void; setKeywords?(k: string[]): void };
-      c.setShortDescription?.(`${product.getName()} crystals`);
-      c.setKeywords?.(['crystals', 'crystal', ...product.getName().split(/\s+/)]);
+    let cast: Stuff | null;
+    if (mould) {
+      cast = await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+    } else {
+      try {
+        cast = await StuffApi.clone(shape);
+      } catch {
+        return; // an unresolvable shape must not crash a reconcile
+      }
+      if (MixinApi.isTangible(cast) && cast.getMaterial() === null) {
+        cast.setMaterial(product);
+        const c = cast as unknown as { setShortDescription?(s: string): void; setKeywords?(k: string[]): void };
+        c.setShortDescription?.(`${product.getName()} crystals`);
+        c.setKeywords?.(['crystals', 'crystal', ...product.getName().split(/\s+/)]);
+      }
+      if (MixinApi.isContainable(cast)) {
+        ContainmentApi.move(cast as Stuff & Containable, scope);
+      }
     }
-    cast.setMass(Quantity.of(kg, 'kg'));
-  }
-  if (MixinApi.isContainable(cast)) {
-    ContainmentApi.move(cast as Stuff & Containable, scope);
+    // Whatever joined the crop while it was minting is in it now.
+    if (cast !== null && MixinApi.isTangible(cast)) cast.setMass(Quantity.of(crop.kg, 'kg'));
+  } finally {
+    CROPS_MINTING.delete(self.stuffId);
   }
 }
 

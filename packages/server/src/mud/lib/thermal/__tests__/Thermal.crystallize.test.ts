@@ -214,6 +214,25 @@ describe('⭐⭐ the crystallize arm', () => {
     expect(t.getBulkPayload('interior')?.dissolvedSolidsKgPerL).toBeCloseTo(0.317, 6);
   });
 
+  it('⭐ reads while a crop is still minting JOIN it — one cast, not one per read (run 30)', async () => {
+    const r = makeStuff(() => new TestRoom());
+    const p = fill(pan(), brine(), 2, 293, 1.0);
+    ContainmentApi.move(p, r);
+    // The first read sets a crop; before its cast lands, the liquor is made
+    // over-saturated again and read again — as a boil read a hundred times
+    // in one clock advance did.
+    p.reconcilePhase();
+    // (The first read spent the liquor to bittern: brine again, over-full.)
+    fill(p, brine(), 2, 293, 0.5);
+    p.reconcilePhase();
+    await settle();
+    expect(cloned, 'one cast').toEqual([CRYSTALS]);
+    const crops = contentsOf(p).filter((c) => c.getTemplatePath() === CRYSTALS);
+    expect(crops).toHaveLength(1);
+    // Both reads' salt is in it.
+    expect(massOf(crops[0]!)).toBeGreaterThan((1.0 - 0.317) * 2);
+  });
+
   it('⭐⭐ BOILED, brine concentrates — the steam is water, the salt stays — and sets a crop', async () => {
     // The ceramics drive: a pan of brine on the hearth held twelve-hour fires
     // and set no salt, because the boil took the solids away with the volume.
