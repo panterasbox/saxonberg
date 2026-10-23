@@ -61,6 +61,7 @@ import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
 import type Structure from '../../platform/idea/Structure';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
+import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
 
@@ -367,22 +368,64 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     this.register(craft);
   }
 
+  /**
+   * ⭐ A course on the chart as a TRAJECTORY (W11): the fix carried along
+   * the bearing, each band's set and way applied piece by piece, cut at
+   * every band boundary the track meets — computed ONCE, when the course
+   * is set, so where she is at a time is read off it without the bands
+   * loaded. A course set for a node ends where she first comes inside its
+   * radius, with an `arrived` mark there (maritime browser walk,
+   * 2026-10-14: without the stop a craft sailed through Gannet Rock and
+   * twelve miles beyond). A bare bearing is planned to a horizon; the
+   * voyage extends it when she gets there.
+   */
   public async planCourse(
     craft: Craft,
     req: CourseRequest,
     _hull: HullNow,
-    _nowS: number,
-  ): Promise<CourseRecord | { refused: string }> {
+    nowS: number,
+  ): Promise<{ course: CourseRecord; trajectory: Trajectory } | { refused: string }> {
     if (typeof req.bearingDeg !== 'number' || !Number.isFinite(req.bearingDeg)) {
       return { refused: 'Which way? Lay a course by bearing, or for somewhere you know.' };
     }
     await this.bands();
     this.register(craft);
-    return {
+    const path = this.getTemplatePath();
+    const here = craft.whereAtS(nowS);
+    if (!path || here === null || here.frame !== 'chart') return { refused: 'She is not on this water.' };
+    const course: CourseRecord = {
       bearingDeg: ((req.bearingDeg % 360) + 360) % 360,
       speedKn: Math.max(0, req.speedKn),
       node: req.toward ?? null,
     };
+    const fix = here.at;
+    const node = course.node ? await this.node(course.node) : null;
+    const target = node?.getExpansePosition() ?? null;
+    // Far enough to raise the node with room to spare, or a day's run.
+    const horizonS = Math.max(
+      numSetting('expanse.planHorizonGameHours', 24) * 3600,
+      target && course.speedKn > 0 ? (2 * fix.distanceNm(target) * 3600) / course.speedKn : 0,
+    );
+    const nominal = (course.speedKn * horizonS) / 3600;
+    const end = fix.destination(course.bearingDeg, nominal);
+    const cuts = new Set<number>([0, 1]);
+    for (const band of this.loadedBands) for (const c of band.crossings(fix, end)) cuts.add(c.t);
+    const ts = [...cuts].sort((x, y) => x - y);
+    const at = (p: GeoPosition): FramePos => ({ frame: 'chart', at: p });
+    let traj = (() => {
+      const b = new TrajectoryBuilder(path, at(fix), nowS);
+      for (const t of ts.slice(1)) b.glide(at(this.driftFrom(fix, course, t * horizonS)), nowS + t * horizonS);
+      return b.build();
+    })();
+    if (node && target) {
+      const arrivedS = firstInside(traj, target, node.getArrivalNm(), nowS, nowS + horizonS);
+      if (arrivedS !== null) {
+        const cut = traj.until(arrivedS).toJSON();
+        cut.marks.push({ atS: arrivedS, name: 'arrived', words: `You raise ${node.getName()} and come up to it.`, data: { node: course.node! } });
+        traj = new Trajectory(cut);
+      }
+    }
+    return { course, trajectory: traj };
   }
 
   /**
@@ -402,47 +445,22 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     };
   }
 
-  /**
-   * ⭐ Where she is at `tS` — the drift, STOPPED where a course set for a
-   * node first comes inside its radius (maritime browser walk, 2026-10-14).
-   * Arrival is recorded at the watch, but the position never runs past the
-   * place she was making for: without the stop a craft sailed through
-   * Gannet Rock and twelve miles beyond, then snapped back at the watch.
-   */
-  public craftPositionAt(craft: Craft, tS: number): FramePos | null {
-    const fix = craft.getFix();
-    if (fix === null || fix.frame !== 'chart') return null;
-    const at = this.driftAtS(craft, fix.at, tS);
-    if (at === null) return null;
-    const node = this.courseNodeOf(craft);
-    if (node === null) return { frame: 'chart', at };
-    const arrivedS = this.arrivalS(craft, fix.at, node, tS);
-    return { frame: 'chart', at: arrivedS === null ? at : this.driftAtS(craft, fix.at, arrivedS) ?? at };
-  }
-
   public async watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport> {
     await this.bands();
-    const prev = this.craftPositionAt(craft, fromS);
-    const pos = this.craftPositionAt(craft, toS);
+    const prev = craft.whereAtS(fromS);
+    const pos = craft.whereAtS(toS);
     if (prev?.frame !== 'chart' || pos?.frame !== 'chart') return { told: [], distanceKm: 0, stop: null };
     const deck = await craft.watchRoom();
     // 1. What each boundary crossed changed, in order.
     const told = await this.boundaryReport(prev.at, pos.at, deck);
     const distanceKm = prev.at.distanceNm(pos.at) * 1.852;
-    // 2. Arrival. ⭐ `isAt(pos)` first: the drift STOPS on the radius's
-    // edge, measured by the node's own metric, and the segment's closest
-    // approach — scaled at a different mid-latitude — can read a hair over
-    // it there, missing the arrival for a watch.
-    const course = craft.getCourse();
-    if (course?.node) {
-      const node = await this.node(course.node);
+    // 2. Arrival: the mark her course was planned to (W11).
+    const arrived = craft.getTrajectory()?.marksBetween(fromS, toS).find((m) => m.name === 'arrived') ?? null;
+    if (arrived !== null) {
+      const node = arrived.data?.node ? await this.node(arrived.data.node) : null;
       const at = node?.getExpansePosition() ?? null;
-      if (node && at && (node.isAt(pos.at) || closestApproachNm(prev.at, pos.at, at) <= node.getArrivalNm())) {
-        return {
-          told,
-          distanceKm,
-          stop: { reason: 'arrived', words: `You raise ${node.getName()} and come up to it.`, at: { frame: 'chart', at } },
-        };
+      if (at !== null) {
+        return { told, distanceKm, stop: { reason: 'arrived', words: arrived.words ?? '', at: { frame: 'chart', at } } };
       }
     }
     // 3. Neglect — the gear remembers.
@@ -478,76 +496,18 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     return lines;
   }
 
-  /** The node a craft's course was set for, once this sea has compiled. */
-  private courseNodeOf(craft: Craft): ExpanseNode | null {
-    const path = craft.getCourse()?.node ?? null;
-    if (path === null) return null;
-    return this.loadedNodes.find((n) => n.getTemplatePath() === path) ?? null;
-  }
-
-  /** Runtime memo of {@link arrivalS}, per craft, for the course it was computed for. */
-  private arrivalMemos = new Map<string, { key: string; arrivedS: number | null; clearUntilS: number }>();
-
   /**
-   * The first game-second at or before `tS` a craft's drift comes inside
-   * `node`'s radius, or `null` when it has not. Sampled at a step well
-   * inside the radius, then bisected; remembered per course, so a later
-   * read only scans the time since the last one.
+   * The drift `seconds` after `fix` on `course`: the bearing carried at
+   * her speed, each band's set and way applied piece by piece along the
+   * undisplaced track, the NARROWEST band at each piece owning it.
    */
-  private arrivalS(craft: Craft, fix: GeoPosition, node: ExpanseNode, tS: number): number | null {
-    const target = node.getExpansePosition();
-    const course = craft.getCourse();
-    if (target === null || course === null) return null;
-    const setAtS = craft.getCourseSetAtS();
-    const key = `${setAtS}|${course.node}|${course.bearingDeg}|${course.speedKn}`;
-    let memo = this.arrivalMemos.get(craft.stuffId);
-    if (memo?.key !== key) {
-      memo = { key, arrivedS: null, clearUntilS: setAtS };
-      this.arrivalMemos.set(craft.stuffId, memo);
-    }
-    if (memo.arrivedS !== null) return memo.arrivedS <= tS ? memo.arrivedS : null;
-    if (tS <= memo.clearUntilS) return null;
-    const within = node.getArrivalNm();
-    const inside = (t: number): boolean => {
-      const p = this.driftAtS(craft, fix, t);
-      return p !== null && p.distanceNm(target) <= within;
-    };
-    // Half the radius at the fastest she can be carried: no crossing of
-    // the circle is stepped over.
-    const knots = Math.max(0.1, course.speedKn + 5);
-    const stepS = Math.max(30, ((within / 2) / knots) * 3600);
-    let lo = memo.clearUntilS;
-    while (lo < tS) {
-      let hi = Math.min(lo + stepS, tS);
-      if (inside(hi)) {
-        // Bisect to the second she crosses into the radius.
-        for (let i = 0; i < 24 && hi - lo > 1; i++) {
-          const mid = (lo + hi) / 2;
-          if (inside(mid)) hi = mid;
-          else lo = mid;
-        }
-        memo.arrivedS = hi;
-        return hi;
-      }
-      lo = hi;
-    }
-    memo.clearUntilS = tS;
-    return null;
-  }
-
-  /** The drift: fix + course × time + the set of every band crossed. */
-  private driftAtS(craft: Craft, fix: GeoPosition, tS: number): GeoPosition | null {
-    const course = craft.getCourse();
-    const setAtS = craft.getCourseSetAtS();
-    if (course === null || tS <= setAtS) return fix;
-    const hours = (tS - setAtS) / 3600;
+  private driftFrom(fix: GeoPosition, course: CourseRecord, seconds: number): GeoPosition {
+    if (seconds <= 0) return fix;
+    const hours = seconds / 3600;
     const nominal = course.speedKn * hours;
     const end = fix.destination(course.bearingDeg, nominal);
     const bands = this.loadedBands;
     if (bands.length === 0) return end;
-
-    // Split the undisplaced track at every boundary it meets; in each
-    // piece the NARROWEST band containing it owns the set and the way.
     const cuts = new Set<number>([0, 1]);
     for (const b of bands) for (const c of b.crossings(fix, end)) cuts.add(c.t);
     const ts = [...cuts].sort((a, b) => a - b);
@@ -858,6 +818,40 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   }
 }
 
+/**
+ * The first game-second in `[fromS, toS]` the trajectory comes inside
+ * `within` nm of `target`, or `null`: sampled at half the radius at her
+ * fastest, then bisected to the second she crosses in.
+ */
+function firstInside(traj: Trajectory, target: GeoPosition, within: number, fromS: number, toS: number): number | null {
+  const inside = (t: number): boolean => {
+    const p = traj.at(t)?.pos;
+    return p?.frame === 'chart' && p.at.distanceNm(target) <= within;
+  };
+  if (inside(fromS)) return fromS;
+  let fastestKn = 0.1;
+  for (const leg of traj.getLegs()) {
+    if (leg.from.frame !== 'chart' || leg.to.frame !== 'chart' || leg.t1 <= leg.t0) continue;
+    const nm = new GeoPosition(leg.from.at).distanceNm(new GeoPosition(leg.to.at));
+    fastestKn = Math.max(fastestKn, (nm * 3600) / (leg.t1 - leg.t0));
+  }
+  const stepS = Math.max(30, ((within / 2) / fastestKn) * 3600);
+  let lo = fromS;
+  while (lo < toS) {
+    let hi = Math.min(lo + stepS, toS);
+    if (inside(hi)) {
+      for (let i = 0; i < 24 && hi - lo > 1; i++) {
+        const mid = (lo + hi) / 2;
+        if (inside(mid)) hi = mid;
+        else lo = mid;
+      }
+      return hi;
+    }
+    lo = hi;
+  }
+  return null;
+}
+
 /** A watch is manned when a living, conscious body stands in it. */
 function isManned(deck: Stuff | null): boolean {
   if (deck === null || !MixinApi.isContainer(deck)) return false;
@@ -865,15 +859,6 @@ function isManned(deck: Stuff | null): boolean {
     if (!MixinApi.isOrganism(x) || !x.isAlive()) return false;
     return !MixinApi.isVitals(x) || x.getConsciousness() === 'conscious';
   });
-}
-
-/** The nearest the segment `a → b` comes to `p`, nautical miles. */
-function closestApproachNm(a: GeoPosition, b: GeoPosition, p: GeoPosition): number {
-  const ab = a.offsetTo(b);
-  const ap = a.offsetTo(p);
-  const len2 = ab.northNm ** 2 + ab.eastNm ** 2;
-  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, (ap.northNm * ab.northNm + ap.eastNm * ab.eastNm) / len2));
-  return Math.hypot(ap.northNm - t * ab.northNm, ap.eastNm - t * ab.eastNm);
 }
 
 const COMPASS_WORDS = [

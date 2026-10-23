@@ -179,7 +179,7 @@ export default class CourseController extends CommandController<CourseModel> {
       const at = frame.landingNear(here, 60);
       const lines = [
         course
-          ? `Your course: ${course.direction}${course.landing ? `, for ${course.plan.stop?.landing ?? 'a landing'}` : ''}.`
+          ? `Your course: ${course.direction}${course.landing ? `, for ${(await StuffApi.singleton<Stuff>(course.landing).catch(() => null))?.getPresentation() ?? 'a landing'}` : ''}.`
           : 'You are not under way.',
         at
           ? `She lies at ${(await StuffApi.singleton<Stuff>(at).catch(() => null))?.getPresentation() ?? 'a landing'}, ${kmWords(here.km)}.`

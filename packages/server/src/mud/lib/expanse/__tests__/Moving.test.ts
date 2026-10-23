@@ -110,6 +110,17 @@ describe('a moving thing', () => {
     expect(sent[0]!.text).toMatch(/quickens\. A riffle chatters under you\. The water quickens/);
   });
 
+  it('⭐ moving, its position is read off the trajectory; placed, the placement replaces it (W10)', () => {
+    const floe = makeStuff(() => new Floe());
+    floe.placeOnLine(RIVER, { course: 'test', km: 10, across: 0 });
+    floe.setTrajectory(new TrajectoryBuilder(RIVER, km(10), 1000).glide(km(0), 2000).build());
+    nowS = 1500;
+    expect(floe.getLinePosition()!.km).toBeCloseTo(5, 6);
+    floe.placeOnLine(RIVER, { course: 'test', km: 7, across: 0 });
+    expect(floe.getTrajectory()).toBeNull();
+    expect(floe.getLinePosition()!.km).toBe(7);
+  });
+
   it('marks on their own clock: each fires when it comes, and the next is armed', async () => {
     const floe = makeStuff(() => new Floe());
     viewer('a');

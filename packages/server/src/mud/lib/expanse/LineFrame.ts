@@ -25,6 +25,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import type { CourseRecord, HullNow } from './Voyaging';
+import { TrajectoryBuilder, type Trajectory } from './Trajectory';
 import type { Craft } from './Voyage';
 import { AppApi } from '../../api/app';
 
@@ -168,9 +169,15 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
      * perhaps for a landing, worked out from where she is now — or the
      * river's refusal in its own words.
      */
-    async planCourse(craft: Craft, req: CourseRequest, hull: HullNow, nowS: number): Promise<CourseRecord | { refused: string }> {
-      const here = this.craftPositionAt(craft, nowS);
-      if (here === null || here.frame !== 'line') return { refused: 'There is no river under her to set a course along.' };
+    async planCourse(
+      craft: Craft,
+      req: CourseRequest,
+      hull: HullNow,
+      nowS: number,
+    ): Promise<{ course: CourseRecord; trajectory: Trajectory } | { refused: string }> {
+      const here = craft.whereAtS(nowS);
+      const path = (this as unknown as { getTemplatePath(): string | null }).getTemplatePath();
+      if (here === null || here.frame !== 'line' || !path) return { refused: 'There is no river under her to set a course along.' };
       if (req.direction === undefined) return { refused: 'Upstream, or downstream?' };
       const throughWaterMps = (Math.max(0, req.speedKn) * 1852) / 3600;
       const landing = req.toward ?? null;
@@ -180,11 +187,53 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
         nowS,
       );
       if ('refused' in plan) return plan;
+      // ⭐ The passage IS her trajectory (W10): a glide per stretch, at the
+      // channel she keeps, and the stop as a mark.
+      const at = (km: number): FramePos => ({ frame: 'line', at: { course: plan.course, km, across: plan.across } });
+      const legs = plan.legs;
+      const b = new TrajectoryBuilder(path, at(legs[0]?.[0] ?? here.at.km), legs[0]?.[1] ?? nowS);
+      for (const [km, atS] of legs.slice(1)) b.glide(at(km), atS);
+      if (plan.stop !== null) {
+        if (plan.stop.atS > b.now().atS) b.glide(at(plan.stop.km), plan.stop.atS);
+        b.mark({
+          name: 'stop',
+          atS: plan.stop.atS,
+          words: plan.stop.words,
+          data: { reason: plan.stop.reason, ...(plan.stop.landing ? { landing: plan.stop.landing } : {}) },
+        });
+      }
       return {
-        bearingDeg: 0,
-        speedKn: Math.max(0, req.speedKn),
-        node: null,
-        line: { direction: req.direction, landing, throughWaterMps, plan },
+        course: { bearingDeg: 0, speedKn: Math.max(0, req.speedKn), node: null, line: { direction: req.direction, landing, throughWaterMps } },
+        trajectory: b.build(),
+      };
+    }
+
+    /**
+     * ⭐ One watch on a river (river D18, D29): what changed in the water
+     * between where she was and where she is, the wake she throws at the
+     * speed she is making over the ground, and her passage's stop when it
+     * has come — a landing, the ground, a snag, the falls, the sea.
+     */
+    async watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport> {
+      const prev = craft.whereAtS(fromS);
+      const pos = craft.whereAtS(toS);
+      if (prev?.frame !== 'line' || pos?.frame !== 'line') return { told: [], distanceKm: 0, stop: null };
+      const told = this.changesAlong(prev.at.km, pos.at.km);
+      const distanceKm = Math.abs(pos.at.km - prev.at.km);
+      await this.wakeAt(pos.at, (distanceKm * 1000) / Math.max(1, toS - fromS)).catch(() => undefined);
+      const traj = craft.getTrajectory();
+      const mark = traj?.marksBetween(fromS, toS).find((m) => m.name === 'stop') ?? null;
+      if (mark === null) return { told, distanceKm, stop: null };
+      const there = traj!.at(mark.atS)?.pos ?? pos;
+      return {
+        told,
+        distanceKm,
+        stop: {
+          reason: mark.data?.reason ?? 'stop',
+          words: mark.words ?? '',
+          at: there,
+          ...(mark.data?.landing ? { landing: mark.data.landing } : {}),
+        },
       };
     }
 
@@ -198,52 +247,6 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
         latitude: site?.latitude ?? null,
         continentality: site?.continentality ?? null,
         climateOffsetK: site?.climateOffsetK ?? null,
-      };
-    }
-
-    /** ⭐ Where she is at `tS`: read off her passage, or where she lies. */
-    craftPositionAt(craft: Craft, tS: number): FramePos | null {
-      const fix = craft.getFix();
-      if (fix === null || fix.frame !== 'line') return null;
-      const plan = craft.getCourse()?.line?.plan ?? null;
-      if (plan === null || plan.legs.length === 0) return fix;
-      const legs = plan.legs;
-      const t = Math.min(tS, plan.stop?.atS ?? Number.POSITIVE_INFINITY);
-      const at = (km: number): FramePos => ({ frame: 'line', at: { course: plan.course, km, across: plan.across } });
-      if (t <= legs[0]![1]) return at(legs[0]![0]);
-      for (let i = 0; i + 1 < legs.length; i++) {
-        const [k0, t0] = legs[i]!;
-        const [k1, t1] = legs[i + 1]!;
-        if (t <= t1) return at(k0 + (k1 - k0) * (t1 > t0 ? (t - t0) / (t1 - t0) : 1));
-      }
-      return at(plan.stop?.km ?? legs[legs.length - 1]![0]);
-    }
-
-    /**
-     * ⭐ One watch on a river (river D18, D29): what changed in the water
-     * between where she was and where she is, the wake she throws at the
-     * speed she is making over the ground, and her passage's stop when it
-     * has come — a landing, the ground, a snag, the falls, the sea.
-     */
-    async watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport> {
-      const prev = this.craftPositionAt(craft, fromS);
-      const pos = this.craftPositionAt(craft, toS);
-      if (prev?.frame !== 'line' || pos?.frame !== 'line') return { told: [], distanceKm: 0, stop: null };
-      const told = this.changesAlong(prev.at.km, pos.at.km);
-      const distanceKm = Math.abs(pos.at.km - prev.at.km);
-      await this.wakeAt(pos.at, (distanceKm * 1000) / Math.max(1, toS - fromS)).catch(() => undefined);
-      const line = craft.getCourse()?.line ?? null;
-      const stop = line?.plan.stop ?? null;
-      if (stop === null || toS < stop.atS) return { told, distanceKm, stop: null };
-      return {
-        told,
-        distanceKm,
-        stop: {
-          reason: stop.reason,
-          words: stop.words,
-          at: { frame: 'line', at: { course: line!.plan.course, km: stop.km, across: line!.plan.across } },
-          ...(stop.landing ? { landing: stop.landing } : {}),
-        },
       };
     }
 

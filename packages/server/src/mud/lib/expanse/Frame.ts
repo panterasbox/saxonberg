@@ -7,8 +7,10 @@
  * where she is).
  *
  * The craft (`Voyaging`) never branches on which it is in: it asks its
- * frame to plan a course, where it puts her at a time, and what a watch
- * brought — what changed, how far she came, and the stop if one has come.
+ * frame to plan a course — which comes back as a TRAJECTORY she follows
+ * (W10, W11), so where she is at a time is read off that, never off the
+ * frame — and what a watch brought: what changed, how far she came, and
+ * the stop if one has come.
  * What drives her (`burnFor`), how she floats (`hullNow`) and what a stop
  * does to her (`onStop`) are the craft's, on either frame.
  *
@@ -22,6 +24,7 @@ import type { GeoPosition } from './GeoPosition';
 import type { LinePositionRecord } from './LineFrame';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
+import type { Trajectory } from './Trajectory';
 
 /** Where a craft is, in the frame it is in. */
 export type FramePos =
@@ -89,10 +92,19 @@ export interface Frame {
    * compile — a ship restored during her sea's compile would wait on it.
    */
   adopt(craft: Craft): void;
-  /** ⭐ Turn a request into a course from where she is now — or the frame's refusal, in its words. */
-  planCourse(craft: Craft, req: CourseRequest, hull: HullNow, nowS: number): Promise<CourseRecord | { refused: string }>;
-  /** ⭐ Where the frame puts her at `tS` — her course read, or where she lies. Synchronous. */
-  craftPositionAt(craft: Craft, tS: number): FramePos | null;
+  /**
+   * ⭐ Turn a request into a course from where she is now, and the
+   * TRAJECTORY she will follow on it (W10, W11) — or the frame's refusal,
+   * in its words. The trajectory carries everything the frame knows at the
+   * moment the course is set: where she will be when, and the stop (a
+   * landing, the ground, a node raised) as a mark.
+   */
+  planCourse(
+    craft: Craft,
+    req: CourseRequest,
+    hull: HullNow,
+    nowS: number,
+  ): Promise<{ course: CourseRecord; trajectory: Trajectory } | { refused: string }>;
   /** ⭐ The geography at a position on this frame (D44): elevation, address, climate. */
   siteAt(pos: FramePos): FrameSite | null;
   /** ⭐ One watch, `fromS` to `toS`: what changed, how far she came, and the stop if it has come. */

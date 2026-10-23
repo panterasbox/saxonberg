@@ -51,6 +51,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Engaged, EngagementSlot } from '../activity/Engaged';
 import type { Positioned } from './Positioned';
 import type { Voyaging } from './Voyaging';
+import type { Moving } from './Moving';
 
 export const VOYAGE_TYPE = 'expanse-voyage';
 
@@ -72,7 +73,7 @@ declare module '@saxonberg/types' {
 }
 
 /** What a voyage's actor must be. */
-export type Craft = Stuff & Engaged & Positioned & Voyaging;
+export type Craft = Stuff & Engaged & Positioned & Moving & Voyaging;
 
 function numSetting(key: string, fallback: number): number {
   try {
@@ -103,7 +104,9 @@ export class Voyage implements SustainedEngagement {
 
   constructor(craft: Craft) {
     this.actor = craft;
-    this.lastBeatS = WorldClockApi.getNow().rawValue();
+    // A hair before now: a stop planned at the very moment the course was
+    // set (she takes the ground where she lies) is inside the first watch.
+    this.lastBeatS = WorldClockApi.getNow().rawValue() - 1e-3;
     // ⭐ The frame says how long a watch is: hours at sea, minutes on a
     // river, where a reach goes by and is told as she comes into it.
     const watchMs = (craft.peekFrame()?.watchIntervalS() ?? numSetting('expanse.watchGameHours', 4) * 3600) * 1000;
@@ -178,8 +181,17 @@ export class Voyage implements SustainedEngagement {
       return;
     }
 
-    // 3. The stop, when it has come.
+    // 3. The stop, when it has come — or, with none planned and the
+    // trajectory running out (a bare bearing's horizon), the course planned on.
     const stop = report.stop;
+    const traj = craft.getTrajectory();
+    // Planned on a watch EARLY, from the trajectory's own end: no read
+    // between the horizon and the watch finds her parked at the end of it.
+    const watchS = frame.watchIntervalS();
+    if (stop === null && traj !== null && course !== null && nowS + watchS >= traj.endsAtS() &&
+        !traj.getMarks().some((m) => m.name === 'stop' || m.name === 'arrived')) {
+      await craft.extendCourse(traj.endsAtS());
+    }
     if (stop !== null) {
       craft.placeAt(stop.at, nowS);
       const words = await craft.onStop(stop);

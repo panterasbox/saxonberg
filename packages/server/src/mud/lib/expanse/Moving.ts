@@ -25,6 +25,8 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Positioned } from './Positioned';
+import type { LinePositionRecord } from './LineFrame';
+import type { GeoPosition } from './GeoPosition';
 import { Trajectory, type MarkRecord, type TrajectoryAt, type TrajectoryRecord } from './Trajectory';
 import { Drift } from '../location/Drift';
 import { MixinApi } from '../../api/mixin';
@@ -105,6 +107,41 @@ export function MovingMixin<TBase extends MixinConstructor<Stuff & Positioned>>(
 
     trajectoryAt(tS: number): TrajectoryAt | null {
       return this.getTrajectory()?.at(tS) ?? null;
+    }
+
+    /** ⭐ Moving, its position is read off its trajectory; at rest, what is stored. */
+    getLinePosition(): LinePositionRecord | null {
+      const at = this.trajectoryNow();
+      return at === undefined ? super.getLinePosition() : at?.pos.frame === 'line' ? { ...at.pos.at } : null;
+    }
+
+    getExpansePosition(): GeoPosition | null {
+      const at = this.trajectoryNow();
+      return at === undefined ? super.getExpansePosition() : at?.pos.frame === 'chart' ? at.pos.at : null;
+    }
+
+    /**
+     * ⭐ Placed somewhere is a fact that replaces where it was going: the
+     * trajectory goes with the old position (its planner gives it a new one).
+     * Not the hydration setters — loading what is stored never clears what
+     * was persisted with it.
+     */
+    placeOnLine(line: string | null, value: LinePositionRecord | null): void {
+      super.placeOnLine(line, value);
+      this.setTrajectory(null);
+    }
+
+    /** Where the trajectory puts it now; `undefined` when it has none (read what is stored). */
+    private trajectoryNow(): TrajectoryAt | null | undefined {
+      const t = this.getTrajectory();
+      if (t === null) return undefined;
+      try {
+        // A trajectory of marks only (she stops where she lies) puts it
+        // nowhere new: read what is stored.
+        return t.at(WorldClockApi.getNow().rawValue()) ?? undefined;
+      } catch {
+        return undefined;
+      }
     }
 
     currentPhase(): string | null {

@@ -35,6 +35,8 @@
  * current or is swept is the body's (W2).
  */
 
+import { TrajectoryBuilder } from '@saxonberg/server/mud/lib/expanse/Trajectory';
+import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
@@ -501,10 +503,9 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
 
   /**
    * ⭐ A patch within hail of `pos` NOW (D6, the acceptance's "together
-   * exactly when within hail"): each patch's position is its last event's,
-   * so it is carried on by its own current for the time since — the drive
-   * found two swimmers merged on positions minutes stale, one a stroke
-   * ahead of the other.
+   * exactly when within hail"): each patch's position is read off its
+   * trajectory (W10) — the drive found two swimmers merged on positions
+   * minutes stale, one a stroke ahead of the other.
    */
   private async patchNearNow(pos: LinePosition, exclude: ReachPatch | null): Promise<ReachPatch | null> {
     const hail = this.hailM();
@@ -518,13 +519,9 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       const at = p.getLinePosition();
       if (!at || at.course !== pos.course) continue;
       if (bandOf(at.across, width, hail) !== bandOf(pos.across, width, hail)) continue;
-      let km = at.km;
-      const since = nowS - (this._lastAt.get(p.stuffId) ?? nowS);
-      if (since > 0 && cat && this.allPassive(p)) {
-        const state = await cat.riverStateAt(at, nowS).catch(() => null);
-        km -= (Math.max(0, state?.currentMps ?? 0) * since) / 1000;
-      }
-      const d = Math.abs(km - pos.km) * 1000;
+      // ⭐ Its position NOW (W10): read off its trajectory, so two patches
+      // compare where they are, not where their last events left them.
+      const d = Math.abs(at.km - pos.km) * 1000;
       if (d <= hail && d < bestD) {
         best = p;
         bestD = d;
@@ -681,6 +678,15 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
       drift = new Drift(patch as unknown as Stuff, `reach-drift:${patch.stuffId}`);
       patch.setDrift(drift);
     }
+    // ⭐ Its trajectory to the next event (W10): one glide at the current
+    // it is in (constant within the stretch), or a hold in slack water — so
+    // where it is between events is read off it, never minutes stale.
+    const toKm = v > SLACK_MPS ? pos.km - (v * dueS) / 1000 : pos.km;
+    const here: FramePos = { frame: 'line', at: { ...pos } };
+    const b = new TrajectoryBuilder(`${LINE_PREFIX}${pos.course}`, here, nowS);
+    if (toKm !== pos.km) b.glide({ frame: 'line', at: { ...pos, km: toKm } }, nowS + dueS);
+    else b.hold(nowS + dueS);
+    patch.setTrajectory(b.build());
     drift.scheduleAt(nowS + dueS, () => this.onDrift(patch));
   }
 
@@ -688,7 +694,10 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   private async onDrift(patch: ReachPatch): Promise<void> {
     if (patch.isDestroyed()) return;
     const cat = this.catalogue();
-    const from = patch.getLinePosition();
+    // Where its last event left it: the start of the trajectory it has been
+    // on since (its position NOW is read off that trajectory).
+    const start = patch.getTrajectory()?.getLegs()[0]?.from ?? null;
+    const from = start?.frame === 'line' ? { ...start.at } : patch.getLinePosition();
     if (cat === null || from === null) return;
     const nowS = WorldClockApi.getNow().rawValue();
     const lastAt = this._lastAt.get(patch.stuffId) ?? nowS;

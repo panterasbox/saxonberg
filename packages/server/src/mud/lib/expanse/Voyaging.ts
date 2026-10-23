@@ -45,7 +45,7 @@ import { GeoPosition } from './GeoPosition';
 import { Plot, type PlotRecord } from './Plot';
 import type { Positioned } from './Positioned';
 import type { Moving } from './Moving';
-import type { LinePositionRecord, PassagePlan } from './LineFrame';
+import type { LinePositionRecord } from './LineFrame';
 import type { CourseRequest, CraftStop, FramePos, FrameStuff } from './Frame';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -69,13 +69,12 @@ export interface CourseRecord {
   line?: LineCourse | null;
 }
 
-/** A course on a river: a direction, a landing, and its worked passage. */
+/** A course on a river: which way, and the landing it was set for (its passage is her trajectory). */
 export interface LineCourse {
   direction: 'upstream' | 'downstream';
   landing: string | null;
   /** Her speed through the water it was planned at, m/s. */
   throughWaterMps: number;
-  plan: PassagePlan;
 }
 
 /** Her hull, as a frame reads it. */
@@ -95,6 +94,8 @@ export interface Voyaging {
   whereAtS(tS: number): FramePos | null;
   /** ⭐ Set a course and get under way (or change it under way) — or the frame's refusal. */
   steer(req: CourseRequest): Promise<StartResult | { refused: string }>;
+  /** Plan the same course on from where it puts her at `fromS` (a bare bearing's horizon). */
+  extendCourse(fromS: number): Promise<boolean>;
   /** Stop where the craft is. */
   anchorHere(): Promise<void>;
   /** Re-anchor the voyage at `nowS` with a new course (or none). */
@@ -177,9 +178,9 @@ export function VoyagingMixin<
       return chart === null ? null : { frame: 'chart', at: chart };
     }
 
-    /** ⭐ Under way the position is DERIVED by her frame; at rest it is the fix. */
+    /** ⭐ Under way the position is read off her trajectory (W10, W11); at rest it is the fix. */
     whereAtS(tS: number): FramePos | null {
-      return (this as unknown as Positioned).peekFrame()?.craftPositionAt(this as unknown as Craft, tS) ?? this.getFix();
+      return (this as unknown as Moving).trajectoryAt(tS)?.pos ?? this.getFix();
     }
 
     private nowS(): number | null {
@@ -260,6 +261,7 @@ export function VoyagingMixin<
       }
       this.course = course ? { ...course } : null;
       this.courseSetAtS = nowS;
+      if (course === null) (this as unknown as Moving).setTrajectory(null, true);
     }
 
     placeAt(pos: FramePos, nowS: number, framePath?: string): void {
@@ -282,6 +284,7 @@ export function VoyagingMixin<
       }
       this.course = null;
       this.courseSetAtS = nowS;
+      (this as unknown as Moving).setTrajectory(null, true);
     }
 
     /**
@@ -331,13 +334,44 @@ export function VoyagingMixin<
       if (frame === null) return { refused: 'There is no water under her to set a course on.' };
       await frame.ready();
       const nowS = WorldClockApi.getNow().rawValue();
-      const course = await frame.planCourse(this as unknown as Craft, req, this.hullNow(), nowS);
-      if ('refused' in course) return course;
+      const planned = await frame.planCourse(this as unknown as Craft, req, this.hullNow(), nowS);
+      if ('refused' in planned) return planned;
       this.endVoyage('replaced');
-      this.rebase(course, nowS);
+      this.rebase(planned.course, nowS);
+      // ⭐ A course somebody set is touched (D43): it persists with her.
+      (this as unknown as Moving).setTrajectory(planned.trajectory, true);
       const started = SchedulerApi.start(new Voyage(this as unknown as Craft));
       this.persistNow();
       return started;
+    }
+
+    /**
+     * ⭐ Her course is running past what was planned of it (a bare
+     * bearing's horizon, W11): plan the same course on from where it puts
+     * her at `fromS` (its end), and keep the voyage she is holding.
+     */
+    async extendCourse(fromS: number): Promise<boolean> {
+      const nowS = fromS;
+      const course = this.course;
+      const frame = await (this as unknown as Positioned).liveFrame();
+      if (course === null || frame === null) return false;
+      await frame.ready();
+      const planned = await frame.planCourse(
+        this as unknown as Craft,
+        {
+          speedKn: course.speedKn,
+          bearingDeg: course.bearingDeg,
+          toward: course.node ?? course.line?.landing ?? null,
+          ...(course.line ? { direction: course.line.direction } : {}),
+        },
+        this.hullNow(),
+        nowS,
+      );
+      if ('refused' in planned) return false;
+      this.rebase(planned.course, nowS);
+      (this as unknown as Moving).setTrajectory(planned.trajectory, true);
+      this.persistNow();
+      return true;
     }
 
     /** Stop: the fix is where the craft truly is; the voyage ends `anchored`. */

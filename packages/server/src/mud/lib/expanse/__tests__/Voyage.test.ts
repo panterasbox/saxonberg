@@ -9,6 +9,7 @@ import Ship from '../../../platform/idea/Ship';
 import { Template } from '../../stuff/Template';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
+import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { SchedulerApi } from '../../../api/scheduler';
@@ -258,6 +259,22 @@ describe('⭐ one craft, either frame (river review, W7)', () => {
     // Re-steered at no speed through the water: adrift.
     expect(started.at(-1)!).not.toBe(started[0]);
     expect(ship.getCourse()!.speedKn).toBe(0);
+  });
+});
+
+describe('⭐ a course is a trajectory (W11)', () => {
+  it('a bare bearing is planned to a horizon, and the voyage plans it on when she gets there', async () => {
+    const real = AppApi.setting.bind(AppApi);
+    vi.spyOn(AppApi, 'setting').mockImplementation(((k: string) => (k === 'expanse.planHorizonGameHours' ? '2' : real(k as never))) as never);
+    const start = ship.getExpansePosition()!;
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
+    expect(ship.getTrajectory()!.endsAtS()).toBe(nowS + 2 * 3600);
+    hours(3);
+    await started[0]!.watch();
+    // Planned on from where she was: still under way, three hours out.
+    expect(ship.getTrajectory()!.endsAtS()).toBeGreaterThan(nowS);
+    hours(1);
+    expect(ship.getExpansePosition()!.distanceNm(start)).toBeCloseTo(24, 0);
   });
 });
 
