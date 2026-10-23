@@ -43,6 +43,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import FerryCable from '../thing/FerryCable';
+import FerryService from './FerryService';
 
 const WATERCOURSE_CATALOGUE = '/system/water/idea/WatercourseCatalogue';
 const REACH_WARREN = '/system/water/idea/ReachWarren';
@@ -94,6 +95,7 @@ export default class FerryExit extends Exit {
     house: { persistent: true, authorable: true },
     fareMinor: { persistent: true, authorable: true },
     crossesReach: { persistent: true, authorable: true },
+    service: { persistent: true, authorable: true },
     tethered: { persistent: true, authorable: true },
   };
 
@@ -145,6 +147,24 @@ export default class FerryExit extends Exit {
   public getCrossesReach(): string { return this.crossesReach; }
   public setCrossesReach(v: string): void { this.crossesReach = v; }
 
+  /** ⭐ The timetabled service this crossing runs to (W12), by row path, or `''` — on call only. */
+  protected service = '';
+  public getService(): string { return this.service; }
+  public setService(v: string): void { this.service = typeof v === 'string' ? v : ''; }
+
+  /** The service, loaded, or `null`. */
+  public async liveService(): Promise<FerryService | null> {
+    if (this.service === '') return null;
+    const s = await StuffApi.singleton<Stuff>(this.service).catch(() => null);
+    return s instanceof FerryService ? s : null;
+  }
+
+  /** Is `mover` the house's own ferryman — who runs the timetable, and is never held to it? */
+  private isHouseFerryman(mover: Stuff): boolean {
+    if (this.house === '' || !MixinApi.isEmployed(mover)) return false;
+    return mover.getEmployment(this.house)?.positionKey === 'ferryman';
+  }
+
   /**
    * ⭐ A ferry is never always there (D31): the route planner flags the leg
    * and a plan says so. The class's truth, not a row's flag (the drive's
@@ -192,6 +212,26 @@ export default class FerryExit extends Exit {
 
   /** ⭐ Not when the ferry is across, and not at this water (D31). */
   public override async canTraverse(mover: Stuff & Containable, mode?: string): Promise<TraversalGuard> {
+    // ⭐ To the timetable (W12): in its hours a passenger boards only when
+    // boarding is called at this landing, and is told when the next boat
+    // goes. Out of its hours the service is on call, and the bell rules.
+    const service = await this.liveService();
+    if (service !== null && service.isTimetabled() && !this.isHouseFerryman(mover)) {
+      const here = (this.getSource() as unknown as Stuff | null)?.getTemplatePath() ?? '';
+      if (!service.boardingAt(here)) {
+        const next = service.nextDepartureFrom(here);
+        return {
+          ok: false,
+          gate: 'blocked',
+          reason: next !== null
+            ? `The ferry runs to the timetable now. The next boat from here leaves at ${service.clockWords(next)}.`
+            : 'The ferry runs to the timetable, and there are no more boats from here today.',
+        };
+      }
+      if (this.ferryHere() === null) {
+        return { ok: false, gate: 'blocked', reason: 'Boarding is called, but the boat has not come over yet. The ferryman is bringing her.' };
+      }
+    }
     if (this.ferryHere() === null) {
       return {
         ok: false,

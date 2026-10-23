@@ -13,6 +13,7 @@ import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import FerryExit from '../idea/FerryExit';
+import FerryService from '../idea/FerryService';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const FERRY = '/system/transport/thing/ferry';
@@ -73,6 +74,37 @@ beforeEach(() => {
 });
 
 afterEach(() => vi.restoreAllMocks());
+
+describe('⭐ to the timetable (W12)', () => {
+  function timetabled(phase: string, next: number | null): FerryExit {
+    const e = exitFor();
+    e.setService('/svc');
+    const svc = Object.assign(Object.create(FerryService.prototype), {
+      isTimetabled: () => phase !== 'on-call',
+      boardingAt: (l: string) => phase === `boarding:${l}`,
+      nextDepartureFrom: () => next,
+      clockWords: () => '07:00',
+    });
+    vi.spyOn(e, 'liveService').mockResolvedValue(svc);
+    return e;
+  }
+
+  it('in its hours a passenger boards only when boarding is called here, and is told the next boat', async () => {
+    const no = await timetabled('alongside:/there', 25_200).canTraverse(person('me') as never);
+    expect(no).toMatchObject({ ok: false, reason: expect.stringMatching(/next boat from here leaves at 07:00/) });
+    const none = await timetabled('alongside:/there', null).canTraverse(person('me') as never);
+    expect(none).toMatchObject({ ok: false, reason: expect.stringMatching(/no more boats/) });
+    const yes = await timetabled('boarding:/here', 25_200).canTraverse(person('me') as never);
+    expect(yes.ok).toBe(true);
+  });
+
+  it('the house’s ferryman runs it, and is never held to it', async () => {
+    const g = await timetabled('alongside:/there', 25_200).canTraverse(
+      person('orrin', 'expert', { positionKey: 'ferryman', status: 'on-shift' }) as never,
+    );
+    expect(g.ok).toBe(true);
+  });
+});
 
 describe('FerryExit (river D31)', () => {
   it('⭐ only when she lies at this landing — across the water, ring the bell', async () => {

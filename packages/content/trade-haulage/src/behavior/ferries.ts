@@ -13,9 +13,17 @@
  * Every act is a literal verb through `forceCommand`, as `hauls` does —
  * the ferryman is subject to the rules a person is.
  *
- * config: `{ landings: [a, b], bells: [bellA, bellB], way: string }` —
- * the two landings (template paths), the bell at each (same order), and
- * the name of the ferry way on both landings (default `across`).
+ * ⭐ **To a timetable** (river W12): with a `service` that runs one, in
+ * its hours he works to it rather than to the bell — when boarding is
+ * called at the other landing and the ferry is here with him, he takes her
+ * over to it; when a departure from here has come and she is still here,
+ * he takes her across. Out of its hours the service is on call, and the
+ * bell rules as before.
+ *
+ * config: `{ landings: [a, b], bells: [bellA, bellB], way: string,
+ * service?: string }` — the two landings (template paths), the bell at
+ * each (same order), the name of the ferry way on both landings (default
+ * `across`), and the timetabled service row, if there is one.
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -29,6 +37,13 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 /** A bell, by shape: when it was last rung. */
 interface Bell {
   getLastRungAtS(): number;
+}
+
+/** A timetabled service, by shape (transport's `FerryService`). */
+interface Service {
+  isTimetabled(): boolean;
+  phaseNow(): string;
+  lastDepartureFrom(landing: string): number | null;
 }
 
 /** The ferry way on a landing, by shape: can she go now, and if not why. */
@@ -64,6 +79,27 @@ export const brain = class {
     const at = landings.indexOf(here);
     if (at < 0) return;
     const other = 1 - at;
+
+    // ⭐ To the timetable, in its hours (W12).
+    const servicePath = typeof ctx.config.service === 'string' ? ctx.config.service : '';
+    const service = servicePath
+      ? ((await StuffApi.singleton<Stuff>(servicePath).catch(() => null)) as unknown as Partial<Service> | null)
+      : null;
+    if (service && typeof service.isTimetabled === 'function' && service.isTimetabled()) {
+      const room = host.getContainer();
+      const exit = room && MixinApi.isExitable(room) ? (room.getExit(way) as unknown as Partial<FerryWay> | undefined) : undefined;
+      if (!exit || typeof exit.ferryHere !== 'function' || exit.ferryHere() === null) return;
+      // Boarding called across the water, and she is here with him: over to it.
+      const boardingThere = service.phaseNow!() === `boarding:${landings[other]}`;
+      // A departure from here has come, and she is still here: away.
+      const due = service.lastDepartureFrom!(here);
+      const departed = typeof ctx.state.departedAtS === 'number' ? ctx.state.departedAtS : Number.NEGATIVE_INFINITY;
+      const departing = due !== null && due > departed;
+      if (!boardingThere && !departing) return;
+      if (departing) ctx.state.departedAtS = due;
+      await host.forceCommand(`go ${way}`);
+      return;
+    }
 
     // Rung on the far side since he last answered it?
     const bell = (await StuffApi.singleton<Stuff>(bells[other]!).catch(() => null)) as unknown as Partial<Bell> | null;

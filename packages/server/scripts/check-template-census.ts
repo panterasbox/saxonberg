@@ -211,10 +211,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // positioned thing's `expanse` the sea it is on, a chart's or a
     // pilot's `of` the sea they know. ⭐ The river build's: a ship's `line`
     // the river she is on, her `bunker` the bin her fire is fed from, and
-    // a mouth node's `river` the river that comes out there, and a ferry
-    // crossing's `ferry` the boat that works it.
+    // a mouth node's `river` the river that comes out there, a ferry
+    // crossing's `ferry` the boat that works it and its `service` the
+    // timetable it runs to (W12).
     'destination', 'along', 'entrance', 'house', 'expanse', 'of',
-    'line', 'bunker', 'river', 'ferry',
+    'line', 'bunker', 'river', 'ferry', 'service',
   ] as const) {
     push(f, data[f]);
   }
@@ -222,7 +223,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // structures, and the rows a chart or pilot's `entries` cite. A rowless
   // one is a sight-line to nothing. (A `horizon` names ZONES, which are
   // rows too.)
-  for (const f of ['endpoints', 'featured', 'horizon'] as const) {
+  // ⭐ (W12) A timetabled service's `landings` — a rowless one is a boat
+  // that leaves from nowhere.
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   if (Array.isArray(data.entries)) {

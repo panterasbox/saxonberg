@@ -164,6 +164,42 @@ suite('stage E — the ferry, and the sea', () => {
     expect(said, said).toMatch(/not always passable/);
   }, 120_000);
 
+  it('36. the market boat runs to its timetable: between boats you are told the next; at boarding you go', async () => {
+    // ⭐ (river W12) The first mover whose trajectory is rows: Nesbit's
+    // ferry runs at six and seven from the towpath, and is on call after.
+    const handle = uniqueHandle('ret');
+    await funded(handle);
+    const rider = await session(handle, TOWPATH);
+    const DAY = 86_400;
+    // To 06:40 — tomorrow's, if the morning is past it.
+    const now = await worldClockNow();
+    const t = now % DAY;
+    const toMin = Math.ceil(((6 * 3600 + 40 * 60 - t + DAY) % DAY) / 60);
+    for (let left = toMin; left > 0; left -= 300) await advanceWorldClock(`${Math.min(300, left)} minutes`);
+    const between = await rider.cmd('go across');
+    const no = squash(await between.said());
+    console.log(`06:40 go across: ${between.status} ${no}`);
+    expect(between.status, no).not.toBe('ok');
+    expect(no, no).toMatch(/next boat from here leaves at 07:00/);
+    // Boarding for the seven o'clock: at 06:55 you go — once the ferryman
+    // has her over, if the six o'clock left her across.
+    await advanceWorldClock('15 minutes');
+    let went = false;
+    let last = '';
+    for (let i = 0; i < 12 && !went; i++) {
+      const r = await rider.cmd('go across');
+      last = squash(await r.said());
+      went = r.status === 'ok';
+      if (!went) {
+        console.log(`06:55 try ${i}: ${last.slice(0, 160)}`);
+        await rider.listen(5_000);
+      }
+    }
+    expect(went, last).toBe(true);
+    await rider.listen(15_000);
+    expect(await roomName(rider)).toMatch(/landing|nesbit/i);
+  }, 600_000);
+
   it('35. the Hesper stopped at sea: her boat into the water beside her; over the side, and her course waits', async () => {
     const master = await session(uniqueHandle('rem'), DECK);
     const hand = await session(uniqueHandle('reh'), DECK);

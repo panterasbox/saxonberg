@@ -2433,6 +2433,25 @@ Waves: **W8** the drain (D46) · **W9** the kernel model (D39–D44) ·
 chart on it (drift through bands as legs, arrival as a mark) · **W12** the
 timetabled ferry (D45), drive steps, a full guarded pass.
 
+### W8–W12 landed
+
+- **W8** (84a4e917d): a test-world clock jump waits for the database to go
+  quiet (`PersistenceManager.whenQuiet`, pool check-out events) before it
+  returns; the kernel clock is untouched.
+- **W9** (4bee7e5a3): `Trajectory` + `TrajectoryBuilder`, `MovingMixin`,
+  `Frame.siteAt`, frame-agnostic `MovingZone` and `MovingPlace` (the dead
+  km offsets removed). Two public statics on `Trajectory` were dropped for
+  constructors to keep `lint:lib-statics` at its ceiling.
+- **W10/W11** (41cf0a461): `planCourse` returns the trajectory; the line's
+  passage and the chart's drift through bands (planned once, cut at band
+  crossings, `arrived` marks, a bare bearing planned to a horizon and
+  extended a watch early from its end) are trajectories; river patches get
+  a glide to the next event, so their positions are true between events.
+  `Frame.craftPositionAt` and the chart's arrival memo are gone.
+- **W12**: `FerryService` (transport) — the timetable as rows, phases read
+  by `FerryExit` and the `ferries` brain; Nesbit's market boat; drive step
+  E36. The census reads `service` and `landings`.
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
 - **Pass 12** runs against d6ac09e88 on a 3 GB world

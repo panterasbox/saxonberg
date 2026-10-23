@@ -82,3 +82,52 @@ describe('the ferries brain (river D31)', () => {
     expect(said).toEqual([]);
   });
 });
+
+describe('⭐ to the timetable (river W12)', () => {
+  let phase = 'on-call';
+  let lastDepart: number | null = null;
+  function timed(state: Record<string, unknown> = {}) {
+    return {
+      host,
+      state,
+      config: { landings: [A, B], bells: ['/bell/a', '/bell/b'], way: 'across', service: '/svc' },
+      trigger: { source: 'cadence', raw: 'candidate' },
+    } as never;
+  }
+  beforeEach(() => {
+    phase = 'on-call';
+    lastDepart = null;
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) =>
+      p === '/svc'
+        ? { isTimetabled: () => phase !== 'on-call', phaseNow: () => phase, lastDepartureFrom: () => lastDepart }
+        : { getLastRungAtS: () => (p === '/bell/b' ? rungAt : Number.NEGATIVE_INFINITY) }) as never);
+  });
+
+  it('boarding called at the other landing, and she is here with him: he takes her over to it', async () => {
+    phase = `boarding:${B}`;
+    await brain.act(timed());
+    expect(said).toEqual(['go across']);
+  });
+
+  it('⭐ a departure from here has come and she is still here: away — once per departure', async () => {
+    phase = 'crossing';
+    lastDepart = 21_600;
+    const state: Record<string, unknown> = {};
+    await brain.act(timed(state));
+    await brain.act(timed(state));
+    expect(said).toEqual(['go across']);
+  });
+
+  it('in the timetable’s hours the bell waits', async () => {
+    phase = `alongside:${A}`;
+    rungAt = 100;
+    await brain.act(timed());
+    expect(said).toEqual([]);
+  });
+
+  it('on call, the bell rules as before', async () => {
+    rungAt = 100;
+    await brain.act(timed());
+    expect(said).toEqual(['go across']);
+  });
+});

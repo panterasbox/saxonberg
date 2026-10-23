@@ -34,3 +34,4 @@ data:
         landings: [/world/terminus/estuary/lower-towpath, /world/terminus/nesbit-ferry/landing]
         bells: [/world/terminus/nesbit-ferry/thing/near-bell, /world/terminus/nesbit-ferry/thing/far-bell]
         way: across
+        service: /world/terminus/nesbit-ferry/idea/service

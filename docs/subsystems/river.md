@@ -43,6 +43,20 @@ channel, the tide's stream near the mouth, temperature by source kind
 line is a **frame**: the kernel's `LineFrame` mixin is the protocol a moving
 place and a ship read it through, without importing the water pack.
 
+## How anything moves — the trajectory (W9–W12)
+
+A moving thing — a ship, a river patch, a timetabled ferry, one day a
+floe — moves along a `Trajectory` (`lib/expanse/Trajectory.ts`): legs
+(`glide`, `hold`, `jump`) from a position to a position over game time, in
+a frame that may change between legs, and marks (named moments whose
+`phase` is STATE). `MovingMixin` holds it — persisted iff somebody touched
+it, the world's own re-derived by its planner — reads the mover's position
+and phase off it, and tells whoever is aboard in chunks, per viewer
+(`moving.tellWindowMs`). Fast and slow are the same object: a riffle run is
+many short legs, a spring breakup a few long ones with phases. A ship's
+course is the trajectory her frame plans (the line's passage, the chart's
+drift through bands); a river patch's is a glide to its next event.
+
 ## The moving place (`ReachWarren`)
 
 ONE singleton for the realm. Its members:
@@ -163,6 +177,18 @@ is driven by the current itself and never drifts. The ferryman's `ferries`
 brain answers the bell on the far landing (a `SignalBell` remembers when it
 was rung) and refuses at high water with a shout. Nesbit's ferry crosses
 the Kestrel below the confluence.
+
+⭐ **To a timetable** (W12): a crossing may name a `service` — a
+`FerryService` row (transport), a moving thing whose day is planned as a
+trajectory from its authored `timetable` (departures, crossing minutes, the
+run back, a boarding window, a season). Its phases are state: `on-call`,
+`boarding:<landing>`, `crossing`, `alongside:<landing>`. In the timetable's
+hours a passenger boards only when boarding is called at that landing and
+is told the next boat otherwise; the house's ferryman is never held to it,
+and his brain brings her to the departing landing and takes her across at
+the departure. Out of its hours and season the service is on call and the
+bell rules. Nesbit's market boat runs at six and seven from the towpath; a
+second timetabled ferry is a second row.
 
 ## The sea, brought into line (`SeaWarren`)
 

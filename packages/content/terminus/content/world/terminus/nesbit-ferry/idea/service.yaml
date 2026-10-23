@@ -1,0 +1,21 @@
+# ⭐ The market boat (river W12, D45): Nesbit's ferry runs to a TIMETABLE
+# at the start of the day — over from the towpath at six and at seven, for
+# the carts going to market, and back a quarter of an hour after she
+# lands — and is on call the rest of the day, when the bell rules. The
+# timetable is rows: a second timetabled ferry is a second of these.
+class: /system/transport/idea/FerryService
+data:
+  # Where she crosses: the Kestrel below the confluence (the crossing's own
+  # `crossesReach`, kestrel:confluence+0.4).
+  line: /stuff/idea/Watercourse/kestrel
+  linePosition: { course: kestrel, km: 8.6, across: 0 }
+  crossingM: 35
+  landings:
+    - /world/terminus/estuary/lower-towpath
+    - /world/terminus/nesbit-ferry/landing
+  timetable:
+    departs: ["06:00", "07:00"]
+    crossingMin: 8
+    returnAfterMin: 15
+    boardMin: 10
+    season: { fromDay: 60, toDay: 300 }
