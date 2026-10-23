@@ -59,7 +59,7 @@ export default class AboardExit extends DeferredDestinationExit {
       const ship = await NavigationApi.structureAt(berth);
       if (ship && MixinApi.isPositioned(ship) && ship.getLine() !== null) {
         this.riverShip = ship.getTemplatePath();
-        if (MixinApi.isVoyaging(ship)) await ship.liveLine();
+        if (MixinApi.isVoyaging(ship)) await ship.liveFrame();
         return;
       }
       const sea = ship && MixinApi.isPositioned(ship) ? ship.getExpanse() : null;

@@ -12,9 +12,21 @@
  *
  * Every method has a refusing default (no length, no elevation, nothing),
  * so a frame that answers nothing is honest rather than wrong.
+ *
+ * ⭐ It is a `Frame` (river review, W7): what a craft on a river asks of
+ * it is what a craft at sea asks of its chart — plan a course, where am I
+ * at a time, what did this watch bring. On a line a course is a PASSAGE
+ * worked out stretch by stretch when it is set (`planPassage`), her
+ * position is read off it, and the watch tells the stretches' changes,
+ * throws her wake and comes to the passage's stop. She always knows where
+ * she is (`reckons` is false).
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { CourseRequest, Frame, FramePos, WatchReport } from './Frame';
+import type { CourseRecord, HullNow } from './Voyaging';
+import type { Craft } from './Voyage';
+import { AppApi } from '../../api/app';
 
 /** Where on a river: km from the mouth, m from river left. */
 export interface LinePositionRecord {
@@ -68,7 +80,7 @@ export interface PassagePlan {
   stop: { km: number; atS: number; reason: PassageStopReason; words: string; landing?: string } | null;
 }
 
-export interface LineFrame {
+export interface LineFrame extends Frame {
   /** The river's key — the `course` of every position on it. */
   courseKey(): string;
   /** How long the river is, km (0 for a still water). */
@@ -116,9 +128,113 @@ export interface LineFrame {
   kedgeNear(pos: LinePositionRecord): number | null;
 }
 
-export function LineFrameMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class LineFrameMixin extends Base implements LineFrame {
+/** A dial, or its fallback. */
+function numSetting(key: string, fallback: number): number {
+  try {
+    const n = Number(AppApi.setting(key));
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(): string | null }>>(Base: TBase) {
+  // The base supplies `getTemplatePath` (every Stuff has one); a mixin's `implements` cannot see it.
+  return class LineFrameMixin extends Base implements Omit<LineFrame, 'getTemplatePath'> {
     static _mixinName: string = 'LineFrameMixin';
+
+    /* ─────────────── the frame a craft is in (river review, W7) ─────────────── */
+
+    reckons(): boolean {
+      return false;
+    }
+
+    /** ⭐ A reach goes by in minutes: the watch is short (river D18). */
+    watchIntervalS(): number {
+      return numSetting('river.watchGameMinutes', 10) * 60;
+    }
+
+    async ready(): Promise<void> {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    adopt(_craft: Craft): void {
+      return;
+    }
+
+    /**
+     * ⭐ A course on a river is its passage (river D18, D28): which way,
+     * perhaps for a landing, worked out from where she is now — or the
+     * river's refusal in its own words.
+     */
+    async planCourse(craft: Craft, req: CourseRequest, hull: HullNow, nowS: number): Promise<CourseRecord | { refused: string }> {
+      const here = this.craftPositionAt(craft, nowS);
+      if (here === null || here.frame !== 'line') return { refused: 'There is no river under her to set a course along.' };
+      if (req.direction === undefined) return { refused: 'Upstream, or downstream?' };
+      const throughWaterMps = (Math.max(0, req.speedKn) * 1852) / 3600;
+      const landing = req.toward ?? null;
+      const plan = await this.planPassage(
+        here.at,
+        { direction: req.direction, landing, throughWaterMps, ...(req.slow ? { slow: true } : {}), ...hull },
+        nowS,
+      );
+      if ('refused' in plan) return plan;
+      return {
+        bearingDeg: 0,
+        speedKn: Math.max(0, req.speedKn),
+        node: null,
+        line: { direction: req.direction, landing, throughWaterMps, plan },
+      };
+    }
+
+    /** ⭐ Where she is at `tS`: read off her passage, or where she lies. */
+    craftPositionAt(craft: Craft, tS: number): FramePos | null {
+      const fix = craft.getFix();
+      if (fix === null || fix.frame !== 'line') return null;
+      const plan = craft.getCourse()?.line?.plan ?? null;
+      if (plan === null || plan.legs.length === 0) return fix;
+      const legs = plan.legs;
+      const t = Math.min(tS, plan.stop?.atS ?? Number.POSITIVE_INFINITY);
+      const at = (km: number): FramePos => ({ frame: 'line', at: { course: plan.course, km, across: plan.across } });
+      if (t <= legs[0]![1]) return at(legs[0]![0]);
+      for (let i = 0; i + 1 < legs.length; i++) {
+        const [k0, t0] = legs[i]!;
+        const [k1, t1] = legs[i + 1]!;
+        if (t <= t1) return at(k0 + (k1 - k0) * (t1 > t0 ? (t - t0) / (t1 - t0) : 1));
+      }
+      return at(plan.stop?.km ?? legs[legs.length - 1]![0]);
+    }
+
+    /**
+     * ⭐ One watch on a river (river D18, D29): what changed in the water
+     * between where she was and where she is, the wake she throws at the
+     * speed she is making over the ground, and her passage's stop when it
+     * has come — a landing, the ground, a snag, the falls, the sea.
+     */
+    async watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport> {
+      const prev = this.craftPositionAt(craft, fromS);
+      const pos = this.craftPositionAt(craft, toS);
+      if (prev?.frame !== 'line' || pos?.frame !== 'line') return { told: [], distanceKm: 0, stop: null };
+      const told = this.changesAlong(prev.at.km, pos.at.km);
+      const distanceKm = Math.abs(pos.at.km - prev.at.km);
+      await this.wakeAt(pos.at, (distanceKm * 1000) / Math.max(1, toS - fromS)).catch(() => undefined);
+      const line = craft.getCourse()?.line ?? null;
+      const stop = line?.plan.stop ?? null;
+      if (stop === null || toS < stop.atS) return { told, distanceKm, stop: null };
+      return {
+        told,
+        distanceKm,
+        stop: {
+          reason: stop.reason,
+          words: stop.words,
+          at: { frame: 'line', at: { course: line!.plan.course, km: stop.km, across: line!.plan.across } },
+          ...(stop.landing ? { landing: stop.landing } : {}),
+        },
+      };
+    }
+
+    /* ─────────────────────── the river's own hooks ─────────────────────── */
 
     /** @hook Override on the river. Default: none. */
     courseKey(): string {

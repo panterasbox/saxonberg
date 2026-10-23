@@ -42,9 +42,9 @@ export default class AshoreExit extends DeferredDestinationExit {
       if (craft === null) return;
       this.craftPath = craft.getTemplatePath();
       if (MixinApi.isVoyaging(craft)) {
-        const e = await craft.liveExpanse();
-        if (e) await e.nodes();
-        await craft.liveLine();
+        // Her frame, loaded: the sea's nodes (a landing's way ashore), or a river.
+        const f = await craft.liveFrame();
+        if (f instanceof Expanse) await f.nodes();
       }
     } catch {
       /* nothing to step onto, then */

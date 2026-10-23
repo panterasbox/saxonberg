@@ -9,6 +9,7 @@
  * delivered to everyone aboard her; seeded traffic answers in kind.
  */
 
+import { Expanse } from '../../../../lib/expanse/Expanse';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
@@ -31,7 +32,8 @@ export default class HailController extends CommandController<HailModel> {
     if (craft === null) {
       return this.decline(context, 'You are not aboard anything to hail from.', 'not-aboard');
     }
-    const expanse = await craft.liveExpanse();
+    const frame = await craft.liveFrame();
+    const expanse = frame instanceof Expanse ? frame : null;
     const asked = (model.contact ?? '').trim().toLowerCase().replace(/^the\s+/, '');
     if (expanse === null || asked === '') {
       return this.decline(context, 'Hail whom? Name a sail in sight.', 'no-contact');

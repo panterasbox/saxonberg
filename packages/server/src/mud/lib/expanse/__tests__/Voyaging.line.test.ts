@@ -7,7 +7,8 @@ import ExpanseNode from '../../../platform/idea/ExpanseNode';
 import { Expanse } from '../Expanse';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
-import type { PassagePlan, PassageRequest } from '../LineFrame';
+import { LineFrameMixin, type LinePositionRecord, type PassagePlan, type PassageRequest } from '../LineFrame';
+import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { SchedulerApi } from '../../../api/scheduler';
@@ -44,19 +45,32 @@ class TestShip extends Ship {
   override async cargoKg(): Promise<number> { return 0; }
 }
 
-const frame = {
-  stuffId: 'frame',
-  courseKey: () => 'test',
-  planPassage: async (_from: unknown, req: PassageRequest) => {
+/** ⭐ A real line frame (river review, W7) with the river's hooks stubbed. */
+class TestRiver extends LineFrameMixin(Idea) {
+  override courseKey(): string {
+    return 'test';
+  }
+  override async planPassage(_from: LinePositionRecord, req: PassageRequest): Promise<PassagePlan | { refused: string }> {
     asked = req;
     return plan;
-  },
-  changesAlong: (a: number, b: number) => (Math.floor(a) !== Math.floor(b) ? ['The water quickens.'] : []),
-  wakeAt: vi.fn(async () => undefined),
-  depthAt: async () => depthNow,
-  landingNear: () => null,
-  mouthOnSea: () => ({ expanse: SEA, node: BAR }),
-};
+  }
+  override changesAlong(a: number, b: number): string[] {
+    return Math.floor(a) !== Math.floor(b) ? ['The water quickens.'] : [];
+  }
+  override async wakeAt(): Promise<void> {
+    return;
+  }
+  override async depthAt(): Promise<number | null> {
+    return depthNow;
+  }
+  override mouthOnSea(): { expanse: string; node: string } | null {
+    return { expanse: SEA, node: BAR };
+  }
+}
+let frame: TestRiver;
+/** A course along the river, as `course` asks for one. */
+const along = (direction: 'upstream' | 'downstream', landing: string | null = null) =>
+  ({ direction, toward: landing, speedKn: (3 * 3600) / 1852 });
 
 let ship: TestShip;
 
@@ -69,7 +83,6 @@ beforeEach(() => {
   depthNow = 3;
   nowS = 2_000_000;
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(nowS, 's'));
-  vi.spyOn(MixinApi, 'isLineFrame').mockImplementation(((x: unknown) => x === frame) as never);
   vi.spyOn(MixinApi, 'isSensor').mockImplementation((x) => x === listener);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
@@ -78,6 +91,8 @@ beforeEach(() => {
     b.send = () => {};
     return b as never;
   });
+  frame = makeStuffAtPath(() => new TestRiver(), LINE);
+  vi.spyOn(frame, 'wakeAt');
   live.set(LINE, frame as unknown as Stuff);
   vi.spyOn(StuffApi, 'singleton').mockImplementation(async (p: string) => {
     const s = live.get(p);
@@ -109,7 +124,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('a ship on a river (river D18)', () => {
   it('⭐ asks the river for her passage with her hull, and her position is read off it', async () => {
-    const r = await ship.steerAlong({ direction: 'upstream', landing: '/test/landing', throughWaterMps: 3 });
+    const r = await ship.steer(along('upstream', '/test/landing'));
     expect('refused' in r).toBe(false);
     expect(asked).toMatchObject({ direction: 'upstream', draftM: 1.2, beamM: 7, lengthM: 38 });
     nowS += 500;
@@ -124,14 +139,14 @@ describe('a ship on a river (river D18)', () => {
 
   it('a refused passage leaves her where she was, in the river’s words', async () => {
     plan = { refused: 'Nothing goes past the falls.' };
-    const r = await ship.steerAlong({ direction: 'upstream', landing: null, throughWaterMps: 3 });
+    const r = await ship.steer(along('upstream', null));
     expect(r).toEqual({ refused: 'Nothing goes past the falls.' });
     expect(ship.getCourse()).toBeNull();
     expect(started).toHaveLength(0);
   });
 
   it('⭐ the watch tells what changed, and at the landing she stops and comes alongside', async () => {
-    await ship.steerAlong({ direction: 'upstream', landing: '/test/landing', throughWaterMps: 3 });
+    await ship.steer(along('upstream', '/test/landing'));
     const v = started[0]!;
     nowS += 1500;
     await v.watch();
@@ -146,17 +161,17 @@ describe('a ship on a river (river D18)', () => {
 
   it('⭐ where the channel has less water than she draws she is hard aground, and no course moves her', async () => {
     plan = { course: 'test', across: 25, legs: [[10, nowS]], stop: { km: 10, atS: nowS, reason: 'aground', words: 'She takes the ground.' } };
-    await ship.steerAlong({ direction: 'upstream', landing: null, throughWaterMps: 3 });
+    await ship.steer(along('upstream', null));
     await started[0]!.watch();
     expect(ship.isAground()).toBe(true);
     // Still too little water: no course moves her.
     depthNow = 0.5;
-    const again = await ship.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 3 });
+    const again = await ship.steer(along('downstream', null));
     expect(again).toMatchObject({ refused: expect.stringMatching(/hard aground/) });
     expect(ship.isAground()).toBe(true);
     // ⭐ The water comes up (3 m against her 1.2): asked for a course, she floats and goes.
     depthNow = 3;
-    const off = await ship.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 3 });
+    const off = await ship.steer(along('downstream', null));
     expect('refused' in off).toBe(false);
     expect(ship.isAground()).toBe(false);
   });
@@ -168,9 +183,10 @@ describe('a ship on a river (river D18)', () => {
     const bar = makeStuffAtPath(() => new ExpanseNode(), BAR);
     vi.spyOn(bar, 'getExpansePosition').mockReturnValue(new GeoPosition(42, -8.47));
     live.set(BAR, bar);
-    vi.spyOn(sea, 'register').mockImplementation(() => undefined);
+    vi.spyOn(sea, 'adopt').mockImplementation(() => undefined);
+    vi.spyOn(sea, 'ready').mockResolvedValue(undefined);
     plan = { course: 'test', across: 25, legs: [[10, nowS], [0, nowS + 100]], stop: { km: 0, atS: nowS + 100, reason: 'mouth', words: 'She comes down to the mouth.' } };
-    await ship.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 3 });
+    await ship.steer(along('downstream', null));
     nowS += 200;
     await started[0]!.watch();
     expect(ship.getLine()).toBeNull();
@@ -182,7 +198,7 @@ describe('a ship on a river (river D18)', () => {
 
   it('⭐ the hull draws more laden: cargo puts her deeper (D28 lightening)', async () => {
     ship.cargoKg = async () => 30_000;
-    await ship.steerAlong({ direction: 'upstream', landing: null, throughWaterMps: 3 });
+    await ship.steer(along('upstream', null));
     expect(asked!.draftM).toBeGreaterThan(1.2);
   });
 

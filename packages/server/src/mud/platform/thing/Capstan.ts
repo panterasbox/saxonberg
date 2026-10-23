@@ -37,7 +37,8 @@ export default class Capstan extends PullableMixin(Fitting) {
     if (!ship.isAground()) {
       return { ok: false, reason: 'afloat', line: 'She is afloat. There is nothing to heave her off.' };
     }
-    const frame = await ship.liveLine();
+    const live = await ship.liveFrame();
+    const frame = live !== null && MixinApi.isLineFrame(live) ? live : null;
     const pos = ship.getLinePosition();
     const kedge = frame && pos ? frame.kedgeNear(pos) : null;
     if (frame === null || pos === null || kedge === null) {

@@ -103,7 +103,21 @@ felt.
 
 ## The voyage — held by the craft
 
-`VoyagingMixin` (kernel; `Ship`, `Boat`): ⭐⭐ the voyage's whole state
+⭐⭐ **One craft, either frame** (river review, W7 — `lib/expanse/Frame.ts`).
+A craft is positioned in a `Frame`: the sea's chart (an `Expanse`) or a
+river's line (`LineFrameMixin`, [river.md](./river.md)). The craft never
+branches on which: it asks its frame to plan a course
+(`planCourse` — a bearing at sea, a worked passage on a river, or the
+frame's refusal), where it puts her at a time (`craftPositionAt`), and what
+a watch brought (`watchCraft` — what changed, how far she came, the stop).
+`Voyaging` is the frame-agnostic craft: one `steer(request)`, `whereAtS`,
+`placeAt(pos[, framePath])` (a frame change at a river's mouth is a
+placement), `liveFrame`, and the craft's own `hullNow` · `burnFor` ·
+`onStop` on either frame (a steamer burns at sea too). The navigator's plot
+is the one chart-only surface: on a line you always know where you are
+(`Frame.reckons`).
+
+`VoyagingMixin` (kernel; `Ship`): ⭐⭐ the voyage's whole state
 is **three persisted fields** — the stored `expansePosition` IS the fix,
 plus `course` and `courseSetAtS`. `getExpansePosition()` answers the
 DERIVED position while a course is set:
@@ -112,11 +126,13 @@ DERIVED position while a course is set:
 
 integrated piecewise along the undisplaced track, split at every
 boundary. ⭐ A course set for a node **stops where the track first comes
-inside its radius** (`positionAtS` over the raw `driftAtS`; sampled at
+inside its radius** (`Expanse.craftPositionAt` over the raw `driftAtS`; sampled at
 half the radius, bisected, memoised per course) — between watch beats
 she lies off the node instead of sailing through it and snapping back at
 the beat (the live browser walk, 2026-10-14). `rebase` is the one
-writer; `steer` / `anchorHere` / `placeAt` are the acts.
+writer; `steer` / `anchorHere` / `placeAt` are the acts. The drift and the
+arrival search live on the `Expanse` (the chart's `Frame`), the watch's
+chart half — boundaries, arrival, neglect — in `Expanse.watchCraft`.
 
 `Voyage` (`lib/expanse/Voyage.ts`) is a **sustained engagement whose
 actor is the craft** — nobody's `cancel` reaches it, logging out does

@@ -37,7 +37,8 @@ import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { HullNow } from '../../lib/expanse/Voyaging';
-import type { PassagePlan } from '../../lib/expanse/LineFrame';
+import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
+import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
 import type { Positioned } from '../../lib/expanse/Positioned';
 
@@ -257,10 +258,8 @@ export default class Ship extends PersistableMixin(
     return { draftM: h.draftM + extra, beamM: h.beamM, lengthM: h.lengthM };
   }
 
-  /** Weigh her before a passage is worked out (the plan reads the hull sync). */
-  override async steerAlong(
-    req: Parameters<InstanceType<ReturnType<typeof VoyagingMixin>>['steerAlong']>[0],
-  ): ReturnType<InstanceType<ReturnType<typeof VoyagingMixin>>['steerAlong']> {
+  /** Weigh her before a course is worked out (the frame reads the hull sync). */
+  override async steer(req: CourseRequest): Promise<StartResult | { refused: string }> {
     // ⭐ A ship on the ground has no watch to notice the river rising (the
     // drive found her aground for good): asked for a course, she first sees
     // whether she floats now — the water up, or her lightened.
@@ -269,29 +268,25 @@ export default class Ship extends PersistableMixin(
     }
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
     this.weighedKg = await this.cargoKg();
-    return super.steerAlong(req);
+    return super.steer(req);
   }
 
   /**
-   * ⭐ The stop her passage came to (D28, D29): aground and holed are
-   * states she keeps (persisted); the mouth puts her out onto the sea.
+   * ⭐ The stop her course came to (D28, D29): aground and holed are
+   * states she keeps (persisted); a river's mouth puts her out onto the sea.
    */
-  override async onPassageStop(stop: NonNullable<PassagePlan['stop']>): Promise<string> {
+  override async onStop(stop: CraftStop): Promise<string> {
     if (stop.reason === 'aground') this.aground = true;
     if (stop.reason === 'holed') this.holed = true;
     if (stop.reason === 'mouth') {
-      const frame = await this.liveLine();
-      const sea = frame?.mouthOnSea() ?? null;
+      const frame = await this.liveFrame();
+      const sea = frame !== null && MixinApi.isLineFrame(frame) ? frame.mouthOnSea() : null;
       if (sea !== null) {
         const node = await StuffApi.singleton<Stuff>(sea.node).catch(() => null);
         const at = node instanceof ExpanseNode ? node.getExpansePosition() : null;
         if (at !== null) {
-          this.placeOnLine(null, null);
-          this.setLine(null);
-          this.setExpanse(sea.expanse);
-          this.placeAt(at, WorldClockApi.getNow().rawValue());
-          const e = await this.liveExpanse();
-          e?.register(this as unknown as Stuff & Positioned);
+          this.placeAt({ frame: 'chart', at }, WorldClockApi.getNow().rawValue(), sea.expanse);
+          (await this.liveFrame())?.adopt(this as never);
           return `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
         }
       }
@@ -304,9 +299,7 @@ export default class Ship extends PersistableMixin(
    * she leaves the chart for the river's line, at its mouth.
    */
   public enterRiver(line: string, course: string, mouthKm: number, across: number): void {
-    this.setExpansePosition(null);
-    this.setExpanse(null);
-    this.placeOnLine(line, { course, km: mouthKm, across });
+    this.placeAt({ frame: 'line', at: { course, km: mouthKm, across } }, WorldClockApi.getNow().rawValue(), line);
   }
 
   /**
@@ -338,9 +331,9 @@ export default class Ship extends PersistableMixin(
   /** Floated off: the water came up, or she was lightened (D28). */
   public async floatIfShePasses(): Promise<boolean> {
     if (!this.aground) return true;
-    const frame = await this.liveLine();
+    const frame = await this.liveFrame();
     const pos = this.getLinePosition();
-    if (frame === null || pos === null) return false;
+    if (frame === null || !MixinApi.isLineFrame(frame) || pos === null) return false;
     this.weighedKg = await this.cargoKg();
     const depth = await frame.depthAt(pos, WorldClockApi.getNow().rawValue());
     if (depth !== null && depth > this.hullNow().draftM) {

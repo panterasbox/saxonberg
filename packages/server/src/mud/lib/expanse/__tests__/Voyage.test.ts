@@ -127,7 +127,7 @@ const hours = (h: number): void => { nowS += h * 3600; };
 
 describe('the position is derived from three fields', () => {
   it('with no band, fix + course × time', async () => {
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(2);
     const expected = new GeoPosition(50, -5).destination(90, 12);
     expect(ship.getExpansePosition()!.distanceNm(expected)).toBeLessThan(0.01);
@@ -139,7 +139,7 @@ describe('the position is derived from three fields', () => {
       b.setSetKn(1.5);
       b.setDirection(0);
     });
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(2);
     const expected = new GeoPosition(50, -5).destination(90, 12).displaced(3, 0);
     expect(ship.getExpansePosition()!.distanceNm(expected)).toBeLessThan(0.05);
@@ -153,7 +153,7 @@ describe('the position is derived from three fields', () => {
     node.setName('the Rock');
     node.setFocus({ rho: 10 * 1852, theta: 90 });
     live.set(`${SEA}/rock`, node);
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: `${SEA}/rock` });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: `${SEA}/rock` });
     hours(2);
     await started[0]!.watch();
     expect(SchedulerApi.complete).toHaveBeenCalledTimes(1);
@@ -168,7 +168,7 @@ describe('the position is derived from three fields', () => {
     node.setFocus({ rho: 10 * 1852, theta: 90, radius: 0.5 * 1852 });
     live.set(`${SEA}/rock`, node);
     sea.invalidate();
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: `${SEA}/rock` });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: `${SEA}/rock` });
     hours(1);
     // An hour out she is six miles along, not yet there.
     expect(ship.getExpansePosition()!.distanceNm(node.getExpansePosition()!)).toBeCloseTo(4, 1);
@@ -182,7 +182,7 @@ describe('the position is derived from three fields', () => {
     expect(told.join('\n')).toContain('You raise the Rock');
     expect(ship.getCourse()).toBeNull();
     // A course set for nothing still runs on.
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(1);
     expect(ship.getExpansePosition()!.distanceNm(node.getExpansePosition()!)).toBeGreaterThan(5);
   });
@@ -195,7 +195,7 @@ describe('the watch', () => {
       b.setDirection(45);
       b.setSetKn(2);
     });
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(2);
     await started[0]!.watch();
     expect(told).toContain('A current takes her, setting north-east.');
@@ -213,14 +213,14 @@ describe('the watch', () => {
     addBand('haar', (b) => {
       b.setExtent(belt(49, 51, -4.9, -4.8));
     });
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(2);
     await started[0]!.watch();
     expect(told).toEqual([]);
   });
 
   it('a bare bearing never arrives', async () => {
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(20);
     await started[0]!.watch();
     expect(SchedulerApi.complete).not.toHaveBeenCalled();
@@ -231,7 +231,7 @@ describe('the watch', () => {
       b.setExtent(belt(49, 51));
       b.setGearHardness(0.5);
     });
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     hours(4);
     await started[0]!.watch();
     expect(gear.wear).toHaveBeenLastCalledWith(0.5 * 1 * 0.02);
@@ -242,9 +242,28 @@ describe('the watch', () => {
   });
 });
 
+describe('⭐ one craft, either frame (river review, W7)', () => {
+  it('a steamer burns at sea as on a river: with the fire out she loses way and the set has her', async () => {
+    const burnt: number[] = [];
+    let wood = true;
+    ship.burnFor = async (km: number) => { burnt.push(km); return wood; };
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
+    hours(4);
+    await started[0]!.watch();
+    expect(burnt[0]).toBeGreaterThan(40);
+    wood = false;
+    hours(4);
+    await started[0]!.watch();
+    expect(told.at(-1)).toMatch(/fire dies/);
+    // Re-steered at no speed through the water: adrift.
+    expect(started.at(-1)!).not.toBe(started[0]);
+    expect(ship.getCourse()!.speedKn).toBe(0);
+  });
+});
+
 describe('anchor and restart', () => {
   it('anchoring cancels the voyage `anchored` and stops the craft where it truly is', async () => {
-    await ship.steer({ bearingDeg: 90, speedKn: 6, node: null });
+    await ship.steer({ bearingDeg: 90, speedKn: 6, toward: null });
     vi.spyOn(ship, 'currentVoyage').mockReturnValue(started[0]!);
     hours(1);
     const there = ship.getExpansePosition()!;

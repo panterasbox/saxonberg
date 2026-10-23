@@ -2357,6 +2357,34 @@ boat's water, one way off) by name when the target is not on a line. Drive
 step C21 now pulls the mate back into the righted canoe. The ferryman's
 brain claims `attention` (lint:idle-cadence), not his hands.
 
+### Review — W7: one craft, either frame
+
+The user's review: the line had landed on the same interfaces as the chart
+side by side — `Voyaging` the union of two craft surfaces, `Voyage` two
+watches, `Expanse` and `LineFrame` sharing nothing. Now `Frame`
+(`lib/expanse/Frame.ts`) is the one protocol a craft talks to; `Expanse`
+and `LineFrameMixin` implement it (the chart's drift, arrival search and
+watch moved off `Voyaging`/`Voyage` onto `Expanse`; the passage read and
+the river watch onto `LineFrameMixin`). `Voyaging` is frame-agnostic —
+one `steer(request)`, `whereAtS`, `placeAt(pos[, framePath])`,
+`liveFrame` — and `burnFor`, `hullNow`, `onStop` are the craft's on either
+frame (a steamer burns at sea now; the line-only `burnFor` was the
+symptom). The plot stays chart-only behind `Frame.reckons`. Commands
+unchanged; maritime's voyage tests pass unchanged but for `toward:`.
+
+### Pass 17 — the drive's memory runaway is the clock's drain, not the river
+
+A guarded stage-D run with `SAXONBERG_QUERY_TRACE=1`: idle after D the
+world kept climbing, and the trace showed ~21,000 queries at an average of
+12 s each — wages and payroll (`EmploymentLogic` → banking) and practice
+(`Advancement` transcripts), queued behind the Mongo pool and each holding
+its results. `WorldClockRegistry.drainDue` fires every schedule tick in a
+jumped interval synchronously and awaits none of them, so each of the
+drive's ten-day jumps (`morning()`, up to forty per stage) launches
+thousands of concurrent chains. A kernel test-seam defect every jumping
+drive shares; reported to the user. D31 hears her whole way down now and
+never the mouth — open.
+
 ### ⭐ Where things stand (handoff, 2026-10-22)
 
 - **Pass 12** runs against d6ac09e88 on a 3 GB world

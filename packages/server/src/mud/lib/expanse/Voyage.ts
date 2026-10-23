@@ -17,23 +17,16 @@
  * restart (`Voyaging` hosts' `onRestored`) loses nothing but the memory of
  * what was said.
  *
- * ## The beat
+ * ## The beat — one watch, either frame (river review, W7)
  *
- * Every watch (`expanse.watchGameHours`, default four game hours):
- *
- * 1. **the water tells you what CHANGED** — at every band boundary the
- *    track crossed since the last watch, in order, the field just before
- *    against the field just after (`Expanse.changesAcross`: the sea
- *    getting up, a current taking her, the water shoaling), and the sky
- *    over the deck against the last watch's (fog closing in). Never a
- *    position, never authored, and a crossing that changes nothing
- *    perceptible says nothing (maritime R9);
- * 2. **arrival** — a course set for a node arrives when the track passes
- *    within the node's radius (`ExpanseNode.getArrivalNm`); a bare bearing
- *    never arrives;
- * 3. **neglect** — the gear on deck wears by the water's hardness and
- *    roughness, at a quarter of that when the watch is manned. Nothing
- *    new persists: the gear remembers.
+ * Every watch (the frame's `watchIntervalS`: four game hours at sea, ten
+ * game minutes on a river) the craft's FRAME says what the watch brought
+ * (`Frame.watchCraft`): what changed in the water since the last, how far
+ * she came, and — when it has come — the stop (a node raised, a landing,
+ * the ground, the sea). The voyage then tells it, adds the sky over the
+ * deck, burns what drove her that far (`burnFor`; with none left she loses
+ * way and the water has her), and at the stop places her and asks the
+ * craft what it does to her (`onStop`).
  *
  * ⛔ **What it does NOT do (maritime R9): see or fix anything.** Noticing
  * a sail is the lookout's job (`watch horizon`, the `keeps-watch` brain)
@@ -49,7 +42,6 @@ import { SchedulerApi } from '../../api/scheduler';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { PersistableApi } from '../../api/persistable';
 import { AppApi } from '../../api/app';
@@ -57,8 +49,6 @@ import { WeatherApi } from '../../api/weather';
 import type { AbortReason } from '@saxonberg/types';
 import type { Stuff } from '../stuff/Stuff';
 import type { Engaged, EngagementSlot } from '../activity/Engaged';
-import { Expanse } from './Expanse';
-import type { GeoPosition } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { Voyaging } from './Voyaging';
 
@@ -110,19 +100,13 @@ export class Voyage implements SustainedEngagement {
   private lastSky: string | null = null;
   private beating = false;
   private ended = false;
-  /** Where on her river the last watch found her (runtime). */
-  private lastKm: number | null = null;
 
   constructor(craft: Craft) {
     this.actor = craft;
     this.lastBeatS = WorldClockApi.getNow().rawValue();
-    // ⭐ On a river the watch is short (river D18): a reach goes by in
-    // minutes, and a stretch's change is told as she comes into it.
-    const onLine = craft.getLine() !== null && craft.getCourse()?.line;
-    this.lastKm = onLine ? craft.lineAtS(this.lastBeatS)?.km ?? null : null;
-    const watchMs = onLine
-      ? numSetting('river.watchGameMinutes', 10) * 60 * 1000
-      : numSetting('expanse.watchGameHours', 4) * 3600 * 1000;
+    // ⭐ The frame says how long a watch is: hours at sea, minutes on a
+    // river, where a reach goes by and is told as she comes into it.
+    const watchMs = (craft.peekFrame()?.watchIntervalS() ?? numSetting('expanse.watchGameHours', 4) * 3600) * 1000;
     this.emissions = [
       {
         intervalMs: watchMs,
@@ -163,20 +147,16 @@ export class Voyage implements SustainedEngagement {
   }
 
   private async beat(): Promise<void> {
-    if (this.actor.getCourse()?.line) return this.lineBeat();
     const craft = this.actor;
+    const frame = await craft.liveFrame();
+    if (frame === null) return;
+    await frame.ready();
     const nowS = WorldClockApi.getNow().rawValue();
-    const expanse = await this.expanse();
-    if (expanse === null) return;
-    await expanse.bands();
-    const prev = craft.positionAtS(this.lastBeatS);
-    const pos = craft.positionAtS(nowS);
+    const fromS = this.lastBeatS;
+    const report = await frame.watchCraft(craft, fromS, nowS);
     this.lastBeatS = nowS;
-    if (prev === null || pos === null) return;
 
     const aboard = await craft.aboard();
-    const deck = await craft.watchRoom();
-    const manned = isManned(deck);
     const tell = (text: string, topic = 'sense.surroundings'): void => {
       for (const who of aboard) {
         if (!MixinApi.isSensor(who)) continue;
@@ -184,122 +164,32 @@ export class Voyage implements SustainedEngagement {
       }
     };
 
-    // 1. The water tells you what changed — every boundary, in order,
-    // then the sky.
-    for (const line of await this.boundaryReport(expanse, prev, pos, deck)) tell(line);
-    const skyLine = await this.skyChange(deck);
+    // 1. The water tells you what changed, then the sky.
+    for (const line of report.told) tell(line);
+    const skyLine = await this.skyChange(await craft.watchRoom());
     if (skyLine) tell(skyLine);
 
-    // 2. Arrival.
+    // 2. What drove her that far: with none left she loses way, and the
+    // water has her — adrift with the set at sea, down the river on one.
     const course = craft.getCourse();
-    if (course?.node) {
-      const node = await expanse.node(course.node);
-      const at = node?.getExpansePosition() ?? null;
-      // ⭐ `isAt(pos)` first: the drift STOPS on the radius's edge
-      // (`Voyaging.positionAtS`), measured by the node's own metric, and
-      // the segment's closest approach — scaled at a different mid-latitude
-      // — can read a hair over it there, missing the arrival for a watch.
-      if (node && at && (node.isAt(pos) || closestApproachNm(prev, pos, at) <= node.getArrivalNm())) {
-        craft.placeAt(at, nowS);
-        this.persist();
-        tell(`You raise ${node.getName()} and come up to it.`, 'act.move');
-        this.ended = true;
-        SchedulerApi.complete(this);
-        return;
-      }
-    }
-
-    // 3. Neglect — the gear remembers.
-    const field = await expanse.fieldAt(pos);
-    const hardness = field.band?.getGearHardness() ?? 0;
-    const rough = await expanse.roughnessAt(pos, deck);
-    const wear = hardness * rough * numSetting('expanse.neglectWearPerWatch', 0.02) * (manned ? 0.25 : 1);
-    if (wear > 0) {
-      for (const g of await craft.gearAboard()) {
-        if (MixinApi.isDurable(g)) g.wear(wear);
-      }
-    }
-    this.persist();
-  }
-
-  /**
-   * ⭐ One watch on a river (river D18, D28, D29): what changed in the water
-   * since the last, the fuel the km took, the wake she throws, and — when
-   * her passage's stop has come — the stop: a landing, the ground, a snag,
-   * the falls, the sea.
-   */
-  private async lineBeat(): Promise<void> {
-    const craft = this.actor;
-    const course = craft.getCourse();
-    const line = course?.line ?? null;
-    if (line === null) return;
-    const nowS = WorldClockApi.getNow().rawValue();
-    const frame = await craft.liveLine();
-    const pos = craft.lineAtS(nowS);
-    if (frame === null || pos === null) return;
-    const aboard = await craft.aboard();
-    const tell = (text: string, topic = 'sense.surroundings'): void => {
-      for (const who of aboard) {
-        if (!MixinApi.isSensor(who)) continue;
-        MessageApi.scene(who).topic(topic).toSelf(Mml.compose`${Mml.fromMarkup(text)}`).send();
-      }
-    };
-    const prevKm = this.lastKm ?? pos.km;
-    this.lastKm = pos.km;
-    for (const change of frame.changesAlong(prevKm, pos.km)) tell(change);
-
-    // What drives her: the km took fuel; with none left she loses way and
-    // the river has her.
-    const km = Math.abs(pos.km - prevKm);
-    if (km > 0 && line.throughWaterMps > 0 && !(await craft.burnFor(km))) {
-      tell('The fire dies in her firebox and the paddles stop. She loses way, and the river takes her.');
-      this.lastBeatS = nowS;
-      void craft.steerAlong({ direction: 'downstream', landing: null, throughWaterMps: 0 });
+    if (report.distanceKm > 0 && (course?.speedKn ?? 0) > 0 && !(await craft.burnFor(report.distanceKm))) {
+      tell('The fire dies in her firebox and the paddles stop. She loses way, and the water takes her.');
+      await craft.steer({ speedKn: 0, bearingDeg: course?.bearingDeg ?? 0, direction: 'downstream' });
       return;
     }
 
-    // The wake she throws, at the speed she is making over the ground.
-    const dtS = Math.max(1, nowS - this.lastBeatS);
-    this.lastBeatS = nowS;
-    await frame.wakeAt(pos, (km * 1000) / dtS).catch(() => undefined);
-
-    const stop = line.plan.stop;
-    if (stop !== null && nowS >= stop.atS) {
-      craft.rebase(null, nowS);
-      const words = await craft.onPassageStop(stop);
-      tell(words, stop.reason === 'landing' ? 'act.move' : 'sense.surroundings');
+    // 3. The stop, when it has come.
+    const stop = report.stop;
+    if (stop !== null) {
+      craft.placeAt(stop.at, nowS);
+      const words = await craft.onStop(stop);
+      tell(words, stop.reason === 'arrived' || stop.reason === 'landing' ? 'act.move' : 'sense.surroundings');
       this.persist();
       this.ended = true;
       SchedulerApi.complete(this);
       return;
     }
     this.persist();
-  }
-
-  /**
-   * What each boundary the straight track crossed CHANGED, in order — the
-   * field just before it against just after. ⛔ No hazard is announced:
-   * seeing the race ahead is the lookout's job, and the water says what it
-   * does to her when she is in it.
-   */
-  private async boundaryReport(
-    expanse: Expanse,
-    prev: GeoPosition,
-    pos: GeoPosition,
-    deck: Stuff | null,
-  ): Promise<string[]> {
-    const ts: number[] = [];
-    for (const b of await expanse.bands()) {
-      for (const c of b.crossings(prev, pos)) ts.push(c.t);
-    }
-    ts.sort((a, b) => a - b);
-    const lines: string[] = [];
-    for (const t of ts) {
-      const before = prev.lerp(pos, Math.max(0, t - 1e-4));
-      const after = prev.lerp(pos, Math.min(1, t + 1e-4));
-      lines.push(...(await expanse.changesAcross(before, after, deck)));
-    }
-    return lines;
   }
 
   /**
@@ -321,17 +211,6 @@ export class Voyage implements SustainedEngagement {
     return SKY_CHANGE[now] ?? null;
   }
 
-  private async expanse(): Promise<Expanse | null> {
-    const path = this.actor.getExpanse();
-    if (!path) return null;
-    try {
-      const s = await StuffApi.singleton<Stuff>(path);
-      return s instanceof Expanse ? s : null;
-    } catch {
-      return null;
-    }
-  }
-
   private persist(): void {
     if (!MixinApi.isPersistable(this.actor)) return;
     void PersistableApi.capture(this.actor).catch((err) =>
@@ -339,22 +218,3 @@ export class Voyage implements SustainedEngagement {
     );
   }
 }
-
-/** A watch is manned when a living, conscious body stands in it. */
-function isManned(deck: Stuff | null): boolean {
-  if (deck === null || !MixinApi.isContainer(deck)) return false;
-  return deck.getContents().some((x) => {
-    if (!MixinApi.isOrganism(x) || !x.isAlive()) return false;
-    return !MixinApi.isVitals(x) || x.getConsciousness() === 'conscious';
-  });
-}
-
-/** The nearest the segment `a → b` comes to `p`, nautical miles. */
-function closestApproachNm(a: GeoPosition, b: GeoPosition, p: GeoPosition): number {
-  const ab = a.offsetTo(b);
-  const ap = a.offsetTo(p);
-  const len2 = ab.northNm ** 2 + ab.eastNm ** 2;
-  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, (ap.northNm * ab.northNm + ap.eastNm * ab.eastNm) / len2));
-  return Math.hypot(ap.northNm - t * ab.northNm, ap.eastNm - t * ab.eastNm);
-}
-

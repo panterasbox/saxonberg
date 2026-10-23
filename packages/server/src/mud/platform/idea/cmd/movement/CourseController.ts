@@ -25,6 +25,7 @@ import { ExpanseApi } from '../../../../api/expanse';
 import { NavigationApi } from '../../../../api/navigation';
 import { StuffApi } from '../../../../api/stuff';
 import Ship from '../../Ship';
+import { Expanse } from '../../../../lib/expanse/Expanse';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { SpeciesApi } from '../../../../api/species';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -75,7 +76,8 @@ export default class CourseController extends CommandController<CourseModel> {
     }
     // ⭐ On a river (D18): a direction, a landing, or the bar — never a bearing.
     if (craft.getLine() !== null) return this.onRiver(model, context, craft);
-    const expanse = await craft.liveExpanse();
+    const frame = await craft.liveFrame();
+    const expanse = frame instanceof Expanse ? frame : null;
     if (expanse === null) {
       return this.decline(context, 'There is no open water under you to lay a course across.', 'no-expanse');
     }
@@ -134,7 +136,8 @@ export default class CourseController extends CommandController<CourseModel> {
       }
     }
 
-    const started = await craft.steer({ bearingDeg, speedKn: craft.getSpeedKn(), node });
+    const started = await craft.steer({ bearingDeg, speedKn: craft.getSpeedKn(), toward: node });
+    if ('refused' in started) return this.decline(context, started.refused, 'course-refused');
     if (started.ok && started.status !== 'completed-sync') context.note(started.note);
     this.tell(
       context,
@@ -160,7 +163,8 @@ export default class CourseController extends CommandController<CourseModel> {
    * passage, and refuses what it will not let her do in its own words.
    */
   private async onRiver(model: CourseModel, context: CommandContext, craft: Craft): Promise<void> {
-    const frame = await craft.liveLine();
+    const live = await craft.liveFrame();
+    const frame = live !== null && MixinApi.isLineFrame(live) ? live : null;
     const here = craft.getLinePosition();
     if (frame === null || here === null) {
       return this.decline(context, 'There is no river under her to set a course along.', 'no-line');
@@ -199,8 +203,7 @@ export default class CourseController extends CommandController<CourseModel> {
       landing = named.path;
     }
     if (!(await this.mayLeave(model, context, craft, context.commandGiver))) return;
-    const speedMps = (craft.getSpeedKn() * 1852) / 3600;
-    const started = await craft.steerAlong({ direction, landing, throughWaterMps: speedMps, slow });
+    const started = await craft.steer({ speedKn: craft.getSpeedKn(), direction, toward: landing, slow });
     if ('refused' in started) return this.decline(context, started.refused, 'river-refused');
     if (started.ok && started.status !== 'completed-sync') context.note(started.note);
     const name = landing ? (await StuffApi.singleton<Stuff>(landing).catch(() => null))?.getPresentation() ?? 'the landing' : null;

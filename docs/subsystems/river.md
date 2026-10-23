@@ -130,7 +130,10 @@ test refuses a venue's). It carries what drives it:
 ## Ships on a river
 
 A ship (`Ship`, kernel) is positioned on a chart **or** on a line, never
-both. On a river, `course` takes a direction, a landing by name, `bar`, or
+both — and talks to either through one `Frame` ([expanse.md](./expanse.md)
+§ The voyage): the line implements it in `LineFrameMixin` (`planCourse` is
+the passage, `craftPositionAt` reads it, `watchCraft` tells the stretches,
+throws the wake and comes to the stop). On a river, `course` takes a direction, a landing by name, `bar`, or
 `slow`; the river **plans the passage** (`LineFrame.planPassage`) and the
 plan rides the persisted course: `[km, atS]` per stretch and the stop it
 will come to — landing · aground (her laden draft against this month's
