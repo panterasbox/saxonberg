@@ -3056,3 +3056,35 @@ the next layer — drive defects mostly, and these kernel ones):
     charcoal charge in minutes — a player must charge cold or smelt at once.
   - **NPCs die of the world**: Abel Thorne (hypothermia, every run) and a
     brickfield gang member (starvation) — content, not this build.
+
+**Runs 30–31** (run 31: D 21/23 · A 12/20 · B 3/6 · C 3/21 — each file now
+runs to its end, so the counts are honest cascades):
+- **The drive ORDER sets the season.** A runs through a winter (5b needs a
+  frost), and B and C began wherever A left the year. Their wet ware burst
+  on the unheated shop floor, and the liner (at the open-sided smelter)
+  and the potter died of hypothermia. Every later checkpoint was a shade's
+  "your hand passes through it". The harness's `toWarmSeason()` now
+  brings B and C to late spring as lived time. The game is right: a potter
+  makes in the warm months, or heats the shop.
+- **A shade died of hypothermia twelve times** (aadd8e494): a body that
+  runs no living processes drifts with the air, and the thermal cascade
+  still raised hypothermia on it. The death that followed divided the
+  identity again. The cascade now draws metabolism's line
+  (`isLivingBody()`).
+- **`look` names a glow in the dark** (a246fb762): the clamp's 120 lm
+  reaches the hacks too faintly to see BY, and "at night it glows from the
+  next place" was unreachable. In the dark, `look` names the strongest
+  light SOURCE the walk attributes, by colour temperature and direction.
+- **A handed ore lump smelts to slag**: the row authors grade 0 and `hew`
+  stamps the face's figure. `test-hand` takes a `data` overlay
+  (5352bfdf0), and B hands its ore at Ferrow's grade. The crucible never
+  wore because no metal ever ran into it.
+- **Drive defects:** `put bricks in clamp` binds one stack (A now sets
+  each); A's 5b follows the fresh bricks to the hacks; the fat batch's
+  crack is logged, not asserted (a slow season dries it whole, and the
+  rule is pinned by the unit test); D locks then unlocks the door after a
+  restart (a hard kill loses the door's state); the test routes retry
+  once on a reset socket (D 29b).
+- **Finding, not fixed:** `get crucible from furnace` binds the furnace
+  as well as the crucible (it strains at the furnace, then takes the
+  crucible).
