@@ -204,7 +204,10 @@ suite('stage C — small craft', () => {
     expectOk(await s.cmd(`party invite ${known}`));
     expectOk(await mate.cmd('party accept'));
     // Into the same canoe: the mate takes one; the paddler finds hers.
-    expectOk(await mate.cmd('go canoe'));
+    const boarded = await mate.cmd('go canoe');
+    const boardedSaid = squash(await boarded.said());
+    console.log(`mate go canoe: ${boarded.status} ${boardedSaid}`);
+    expect(boarded.status, boardedSaid).toBe('ok');
     const mateBoat = JSON.stringify(await mate.query('me:e', { fields: 'ref' }));
     let together = false;
     for (const which of ['canoe', '2nd canoe', '3rd canoe']) {
@@ -232,7 +235,10 @@ suite('stage C — small craft', () => {
     const righted = await say(s, 'pull canoe');
     expect(righted, righted).toMatch(/comes over the right way up/);
     // Back in, and her mate pulled in after her — by what she knows them as.
-    expectOk(await s.cmd('go canoe'));
+    const back = await s.cmd('go canoe');
+    const backSaid = squash(await back.said());
+    console.log(`back in: ${back.status} ${backSaid}`);
+    expect(back.status, backSaid).toBe('ok');
     const pulled = await s.cmd(`pull ${known}`);
     const said = squash(await pulled.said());
     console.log(`pull ${known}: ${pulled.status} ${said}`);
