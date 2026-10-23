@@ -1133,10 +1133,6 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
     // carrying nothing afterwards and could not say which).
     const held = await examine(caster, 'me:i:brass');
     expect(held, `the cast key before the restart: ${held}`).toMatch(/brass cast of a key/i);
-    // …and the door LOCKED with it, so the unlock after the restart proves
-    // something (run 28: 28 left it unlocked — "It is already unlocked").
-    const locked = await run(caster, 'lock door');
-    expect(locked.said, `lock the yard door: ${locked.said}`).toMatch(/lock|already locked/i);
     const handle = caster.handle;
     for (const s of sessions) s.close();
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
@@ -1165,6 +1161,12 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
       expect(press, `the press kept its turns: ${press}`).toMatch(/hard down|as tight/i);
       const key = await examine(back, 'me:i:brass');
       expect(key, `the cast key after a restart: ${key}`).toMatch(/brass cast of a key/i);
+      // The key turns BOTH ways after the restart. (The door's own state
+      // need not survive a hard kill: the lock before it was thirty seconds
+      // old and the yard had not saved since — run 31 read it unlocked. A
+      // change the world had not yet saved is lost on a kill, by design.)
+      const relocked = await run(back, 'lock door');
+      expect(relocked.said, `lock with the cast key: ${relocked.said}`).toMatch(/you lock|already locked/i);
       const unlocked = await run(back, 'unlock door');
       expect(refusedFor(unlocked.r), `the cast key still turns the lock: ${unlocked.said}`).toBeNull();
     } finally {

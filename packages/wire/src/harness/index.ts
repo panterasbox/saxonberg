@@ -27,6 +27,7 @@ export {
   isOwnedTestWorld,
   advanceWorldClock,
   advanceLiving,
+  toWarmSeason,
   nourish,
   dress,
   dressFounder,

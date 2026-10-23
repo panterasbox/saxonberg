@@ -34,6 +34,7 @@ import {
   expectOk,
   advanceWorldClock,
   advanceLiving,
+  toWarmSeason,
   plain,
   dress,
   dressFounder,
@@ -279,6 +280,9 @@ let potter: Session;
 let novicesFirstMug = '';
 
 beforeAll(async () => {
+  // ⭐ A potter makes in the working season: wet ware on an unheated shop
+  // floor bursts in a frost (run 31's jug and bowls, in A's winter).
+  await toWarmSeason();
   await toHour(8, 14);
   novice = await funded('novice', SHOP);
   potter = await funded('potter', SHOP);
@@ -290,7 +294,7 @@ beforeAll(async () => {
   // novice is left alone. That difference is all of 15 and 24.
   for (let i = 0; i < 40; i++) await potter.cmd('practice pottery hard success');
   await potter.drainProse();
-}, 900_000);
+}, 3_600_000);
 
 afterAll(() => {
   for (const s of sessions) s?.close();

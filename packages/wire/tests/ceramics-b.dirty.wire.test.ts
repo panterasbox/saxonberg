@@ -29,6 +29,7 @@ import {
   expectOk,
   advanceWorldClock,
   advanceLiving,
+  toWarmSeason,
   plain,
   dress,
   dressFounder,
@@ -242,7 +243,10 @@ async function oreFor(n: number, back: string): Promise<void> {
   // landed wherever the founder was resident — not the smelter — and
   // `get malachite` found nothing there (run 26).
   await goTo(back);
-  for (let i = 0; i < n; i++) await hand(k, '/world/terminus/rejection/thing/copper-ore');
+  // ⭐ At a Ferrow face's grade: the row authors 0 and `hew` stamps the
+  // deposit's figure, so a handed lump with none smelts to slag alone and
+  // the crucible never wears (run 31).
+  for (let i = 0; i < n; i++) await hand(k, '/world/terminus/rejection/thing/copper-ore', { grade: 0.24 });
   // eslint-disable-next-line no-console -- the drive's own record
   console.log(`  [drive] (ore handed: ${n})`);
 }
@@ -266,6 +270,9 @@ beforeAll(async () => {
   } finally {
     gov.close();
   }
+  // ⭐ Firebricks are moulded wet and dried in the shop: begin in the
+  // working season, not wherever A left the year (run 31's froze).
+  await toWarmSeason();
   await toHour(9, 15);
   k = await Session.open(handle, { startLocation: QUARRY, wizard: true });
   // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
@@ -273,7 +280,7 @@ beforeAll(async () => {
   await dressFounder();
   at = QUARRY; // where a rest's drink comes back to
   await k.drainProse();
-}, 600_000);
+}, 3_600_000);
 
 afterAll(() => {
   k?.close();

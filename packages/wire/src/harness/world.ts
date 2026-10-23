@@ -131,6 +131,27 @@ export function isOwnedTestWorld(): boolean {
 /* ──────────────────────── the clock ──────────────────────── */
 
 /**
+ * POST to a test-only route, retried ONCE on a connection reset: a kept-alive
+ * socket the server had already closed is reset before the request is read
+ * (run 31: `fetch failed` / ECONNRESET on a clock read, the server healthy).
+ */
+async function postTestRoute(path: string, body: unknown): Promise<Response> {
+  const send = (): Promise<Response> =>
+    fetch(`${SERVER_URL()}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  try {
+    return await send();
+  } catch (err) {
+    const code = (err as { cause?: { code?: string } }).cause?.code;
+    if (code !== 'ECONNRESET' && code !== 'UND_ERR_SOCKET') throw err;
+    return send();
+  }
+}
+
+/**
  * ⭐⭐ **Move world-time, from OUTSIDE the fiction.**
  *
  * A game day is about two real hours, so nothing a seasonal system does
@@ -157,11 +178,7 @@ export function isOwnedTestWorld(): boolean {
 export async function advanceWorldClock(
   duration: string
 ): Promise<{ before: number; after: number }> {
-  const res = await fetch(`${SERVER_URL()}/auth/test-clock`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ advance: duration }),
-  });
+  const res = await postTestRoute('/auth/test-clock', { advance: duration });
   const body = (await res.json()) as {
     before?: number;
     after?: number;
@@ -178,11 +195,7 @@ export async function advanceWorldClock(
 
 /** Game-seconds now, read through the same test-only route. */
 export async function worldClockNow(): Promise<number> {
-  const res = await fetch(`${SERVER_URL()}/auth/test-clock`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({}),
-  });
+  const res = await postTestRoute('/auth/test-clock', {});
   const body = (await res.json()) as { now?: number; error?: string };
   if (!res.ok || typeof body.now !== 'number') {
     throw new Error(
@@ -217,11 +230,7 @@ export async function nourish(s: Session): Promise<void> {
 
 /** {@link nourish} by handle — for a character the drive holds no session for. */
 async function nourishHandle(handle: string): Promise<void> {
-  const res = await fetch(`${SERVER_URL()}/auth/test-nourish`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ handle }),
-  });
+  const res = await postTestRoute('/auth/test-nourish', { handle });
   const body = (await res.json()) as { satiation?: number; error?: string };
   if (!res.ok || typeof body.satiation !== 'number') {
     throw new Error(`nourish(${handle}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
@@ -276,22 +285,27 @@ export async function dressFounder(template: string = WINTER_COAT): Promise<void
 /**
  * ⭐ Hand a drive character a thing of `template`'s kind (setup, by name):
  * `POST /auth/test-hand` clones it into the character's hands and returns
- * its id. ⚠ Not the founder's clone-and-drop: a founder resident elsewhere
+ * its id; `data` is a per-instance overlay on the clone (a lump of ore
+ * handed with the grade its face would stamp at `hew`). ⚠ Not the founder's clone-and-drop: a founder resident elsewhere
  * is not moved by a session's start location, so what it dropped landed
  * wherever it was (drive B's ore, run 26).
  *
  * @throws if the world refuses.
  */
-export async function hand(s: Session, template: string): Promise<string> {
-  return handHandle(s.handle, template);
+export async function hand(
+  s: Session,
+  template: string,
+  data?: Record<string, unknown>
+): Promise<string> {
+  return handHandle(s.handle, template, data);
 }
 
-async function handHandle(handle: string, template: string): Promise<string> {
-  const res = await fetch(`${SERVER_URL()}/auth/test-hand`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ handle, template }),
-  });
+async function handHandle(
+  handle: string,
+  template: string,
+  data?: Record<string, unknown>
+): Promise<string> {
+  const res = await postTestRoute('/auth/test-hand', data ? { handle, template, data } : { handle, template });
   const body = (await res.json()) as { id?: string; error?: string };
   if (!res.ok || typeof body.id !== 'string') {
     throw new Error(`hand(${handle}, ${template}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
@@ -338,4 +352,25 @@ export async function advanceLiving(
     left -= step;
   }
   return { before: before ?? after, after };
+}
+
+/**
+ * ⭐ Bring the world to its working season — late spring through summer
+ * (day 60–170 of the 360-day year; day 0 is the northern vernal equinox)
+ * — as LIVED time ({@link advanceLiving}), or do nothing if it is there.
+ * A drive that makes wet ware must: an unheated shop holds the winter's
+ * air, and green ware left wet across a frost bursts (the ceramics
+ * drives' B and C began wherever in the year A left the clock, and run 31
+ * froze their firebricks and jugs on the shop floor). A potter's year has
+ * a season for making for the same reason.
+ */
+export async function toWarmSeason(living: readonly (Session | undefined)[] = []): Promise<void> {
+  const DAY = 86_400;
+  const YEAR = 360;
+  const now = await worldClockNow();
+  const day = Math.floor(now / DAY);
+  const dayOfYear = ((day % YEAR) + YEAR) % YEAR;
+  if (dayOfYear >= 60 && dayOfYear < 170) return;
+  const toDay = (60 - dayOfYear + YEAR) % YEAR;
+  await advanceLiving(`${toDay} days`, living);
 }
