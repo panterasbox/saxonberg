@@ -5,7 +5,11 @@
 > cap, endurance, morale and onlookers, reach and range, emergent tempo, terms and consent,
 > the feint and the fog, weapons as derived playstyles, the coup, multi-party and formations.
 > This slate is what running many fights through it showed.
-> **Left:** ⭐ steer, don't micromanage — held stance and aim, a hand of moves, no default
+> **Left:** access to moves (no unlocks; body, gear, situation, knowledge, magic; new
+> Disciplines; schools as styles) · after the fight and ⭐ the chase · sport as a ruleset · the
+> gym's properties, creature profiles, `assess` calibration · ⭐ the body's derived reads (power,
+> stability, speed, hand speed, agility, reaction, staying power, reach) and heft relative to the
+> wielder · ⭐ steer, don't micromanage — held stance and aim, a hand of moves, no default
 > exchange · aiming as choosing a capacity, the target ladder keyed to footing, gaps known
 > before aimed at · downed by capacities · the cap as the honest health bar · evading what you
 > cannot block · bout rules as an institution's terms, and sport on campus · who acts first,
@@ -148,11 +152,11 @@ right."* The sequence:
    fighter (§ 8c).
 3. **Creatures** — the encounter, beasts and monsters ([bestiary](./bestiary-slate.md) § 12).
 4. **Before** — preparation, knowledge, coatings, the ground (§ 8d).
-5. **After** — recovery, regrouping, the chase and escape, the threat that comes back.
-   *(Not yet held.)*
-6. **Sport** — bout rules as an institution, sparring on campus (§ 6). *(Not yet held.)*
-7. **Balance tools** — the combat gym extended to creatures and the difficulty read.
-   *(Not yet held.)*
+5. **After** — recovery, regrouping, the chase and escape, the threat that comes back (§ 8f).
+6. **Sport** — bout rules as an institution, sparring on campus (§ 6, § 8g).
+7. **Balance tools** — the combat gym extended to creatures and the difficulty read (§ 8h).
+
+Beside the passes: **access to moves** (§ 8e) and **the body in combat** (§ 8i).
 
 ## 8b. ⭐⭐⭐ Pass 1 — steer, don't micromanage **[DECIDED — the owner]**
 
@@ -249,6 +253,233 @@ because his arms still worked. Gloating is dangerous because the body says so, n
 
 **Content, not systems:** the field guide's text; which oil works on which monster; which venom.
 
+## 8e. ⭐⭐⭐ Access to moves — no unlocks; the menu comes from the situation **[DECIDED — the owner]**
+
+The owner: *"where does this all fit into the combat model gambit system and other actives
+and/or passives a player has access to? What gives them access? Do we need more skills? In
+traditional MUDs this is what guilds are for."* Two settled rules decide it:
+
+1. ⛔ **Verb conferral is retired** ([advancement](./advancement-slate.md)) — a competence band
+   never unlocks a verb; *the verb is global and the outcome is graduated*, and the refusal that
+   names what would let you is the progression UI.
+2. **Guilds are institutions**, not skill trees ([guild](./guild-slate.md)) — the Free Company is
+   a fighting school with tuition, a sparring floor and rank exams.
+
+### What gives a player a move
+
+Every move exists for everyone; what decides whether it can be used **now**:
+
+| source | decides | examples |
+|---|---|---|
+| **the body** | what it can do, and what an injury takes away | a bite or a tail sweep for a species that has one; a broken arm greys the moves that need it (shipped — *injury edits the menu*) |
+| **the gear** | what a weapon or shield makes possible | shield bash, sweep, entangle, dual-wielding (shipped — *the weapon edits the menu*) |
+| **the situation** | stance, range, their footing, being down | `close` only at range; a gap only when they are reeling; the desperate grab only when downed |
+| **knowledge** | what you know is there | a gap in their armor; a monster's counter |
+| **magic and implants** | a spell is a move; an implant gives the **body** a capability (an augment confers a mixin, never a verb) | a blade implant becomes a natural attack — the combat slate's augment channel, still to build |
+
+When a move is not available it says why — *"you need a free hand"*, *"you'd need a weapon with
+a hook"*, *"he isn't open enough for that."*
+
+### Actives and passives
+
+- **Actives** — stance, aim, the move cards. No cooldowns and no combat mana: **the cost is
+  footing, tempo and endurance**, which every move already spends.
+- **Passives are competence** — how well each move works: a novice's feint is easy to read, an
+  expert's is not; dual-wielding already makes a novice's off-hand a net penalty.
+
+### More Disciplines, each measured from use
+
+Beyond melee-combat, blades, unarmed, command, awareness, sports and stealth: **hafted and
+polearms**, **blunt**, **archery and shooting**, **grappling**, **shield work**, and perhaps
+**evasion**.
+
+### ⭐ Schools and styles — where the MUD guild's flavor survives
+
+- **A school teaches a style** — the guild slate's charter-weighted competence and focus-tagged
+  training: its students get better at its techniques faster (*The Karate Kid*'s two dojos teach
+  one body different priorities).
+- ⭐ **A signature move is a technique a school trains** — anyone can attempt it; that school's
+  students have the practice that makes it land.
+- **A style is also a preset policy** — how the school fights when you are not giving orders
+  (stance tendencies, aim preferences), as formations already are for parties.
+- **Schools certify** — rank exams, credentials, the right to teach.
+
+## 8f. ⭐⭐ Pass 5 — after the fight **[DECIDED — the owner]**
+
+Much ships piecemeal — harm's recovery (care buys rate), the medic vertical, stabilization;
+mortality's dying clock, corpse, shade and re-embodiment; accountability's blame, chronicle's
+deeds; endurance with food and rest; repair and sharpening. What was missing is the shape: three
+clocks, with decisions.
+
+### The first minutes
+
+- ⭐ **Adrenaline wears off** — wounds narrated in the fight are **felt** afterwards, through
+  [wellbeing](./wellbeing-slate.md)'s discomfort channels: *"now you notice your hand is cut to
+  the bone."*
+- **The downed** — the dying clock runs: stabilize, finish (the coup), or walk away, before
+  witnesses.
+- **A prisoner** — a subdued person is captured, not killed; what that means is law (a polity's,
+  or the [unfree labour](./unfree-labour-slate.md) register's).
+- ⭐ **Spoils are honest** — taking the loser's things is a transfer of ownership chattel records:
+  **lawful** when the fight's stakes said so (terms carry free-text stakes) or a polity's law
+  allows spoils; **theft** otherwise, and the record says so.
+- **A beast** — butchering takes time, and you are vulnerable while you do it.
+
+### The short rest
+
+- **Field care** — dress, stabilize, eat and drink, a whetstone, the strap re-tied.
+- **Regroup** — who is hurt, who carries whom ([carrying a person](./carrying-a-person-slate.md)),
+  triage, the new formation; press on or turn back.
+- ⭐ **The fight draws the next threat** — blood, noise and a carcass draw scavengers and
+  predators by their own senses and drives; a kill in wolf country brings wolves. No spawning —
+  ecology.
+
+### The long recovery
+
+Healing bought by care; fractures slow; scars. ⭐ **Wounds carry into the next fight** — the cap
+is seeded from wounds still carried, so fighting again too soon starts you capped. Gear goes to
+the smith and the armorer.
+
+### ⭐⭐ The chase — escape has to work
+
+Today fleeing is a single step with parting shots, and pursuit is deferred; the bestiary's *you
+can avoid what you are not ready for* depends on it.
+
+- **A chase is a sequence of crossings**, each a contest of speed (§ 8i) and endurance.
+- **The pursuer follows only while its drive holds** — a defender stops at its territory's edge; a
+  predator quits when the chase costs too much.
+- **Breaking away** — out of sight then stealth; terrain (wolves cannot climb, bears can); water (a
+  dog loses the scent); a door closed and locked; a sanctuary room; a crowd.
+- ⭐ **Persistence** — you cannot outrun a horse, a dog or a bear over a short distance, but humans
+  are endurance animals (persistence hunting runs antelope down in the heat); the exertion and
+  thermal models can derive that a sprinter wins short and loses long.
+
+### The threat that comes back, derived
+
+The wounded beast is more dangerous (its drive changes); the pack regroups; the bandit's friends
+come; the fled boss waits in its lair; the law comes, if there were witnesses and it was a crime;
+the dead's kin remember (regard, vendetta).
+
+## 8g. ⭐⭐ Pass 6 — sport is terms plus an institution **[DECIDED — the owner]**
+
+A **ruleset** — a document a sport or club authors — extends terms:
+
+| part | says | rides on |
+|---|---|---|
+| lethality and gear | non-lethal, no maiming; gloves, a blunted foil, a mask, wasters | terms; maiming already respects terms |
+| rounds | how long; ⭐ **the rest between is a small after-act** — the corner | the clock; § 8f |
+| ⭐ scoring | a touch, a clean blow, a knockdown; **fencing's valid target differs by weapon** (torso for foil, the whole body for épée, above the waist for sabre) — aiming as a sport's rules | per-site blows (shipped) |
+| fouls | forbidden moves and their penalties | the move list |
+| stopping | first touch, a count of touches, a knockout, the ten-count, a submission, the referee | terms' stop condition |
+| the referee | a seat that can stop, warn and separate | [intervention](./intervention-slate.md); employment seats |
+| judges | score what the engine counts | ⭐ the three measurement layers |
+| weight classes | fairness, derived from mass | species size |
+
+**Systems** — the ruleset document, the round clock, scoring over blows the engine already
+resolves per site, the referee seat. **Content** — each sport and club; the campus teams.
+
+- **The campus** — sparring with wasters and padding; practice credits Disciplines; a coach makes
+  it faster; clubs, an intramural league, a bracket. ⭐ **A scoreboard showing where each touch
+  landed teaches aiming** better than any tutorial.
+- ⭐ **Staged fights are not combat** — stage combat and pro wrestling are performance with a
+  script both follow; the expressive-acts play frame and [performance](./performance-slate.md);
+  the combat engine does not run.
+- ⭐ **Head blows add up** — repeated blows to the head as a silent long-term stock, the shape of
+  smoking's hidden harm; a lesson and a values question.
+- **Economy and record** — purses (contracts and escrow), coaching, the cutman, betting (the vice
+  item); a fighter's record as chronicle and renown in that sport's scope.
+
+## 8h. ⭐⭐ Pass 7 — balance tools **[DECIDED — the owner]**
+
+The combat gym ships: fights are deterministic, so a whole fight runs headless and a matrix
+asserts properties. Balance here is not 50/50 — every claim of this design becomes **a property
+the gym asserts**:
+
+| property | the check |
+|---|---|
+| nothing dominates | every stance, weapon and armor has a counter |
+| skill matters but does not trivialize | an expert beats an equal-geared novice most of the time, by a bounded margin |
+| gear sets the shape, skill wins within it | plate against leather changes how the fight goes, not alone who wins |
+| ⭐ knowledge pays | knowing the gap or the counter beats not knowing, by a real margin |
+| ⭐ preparation pays | the right oil against the troll flips it; ⚠ **the troll with no fire never dies** — the counter is real |
+| escape works when it should | fleeing a defender succeeds; fleeing a wolf pack mostly does not |
+| fights have a length | beats per fight stay in a target range |
+
+- ⭐ **The creature profile for authors** — run a creature against reference loadouts and produce
+  the bestiary's *"what it takes"*, replacing the level label.
+- ⭐ **Keeping `assess` honest** — the difficulty read must agree with the gym (*bad odds* means
+  the gym loses that fight), a calibration test; the metallurgy build fixed this kind of
+  disagreement once (`analyze` against the exchange).
+- **The author's arena** — the holodeck lets an author fight their creature before it ships.
+- **Guard** — ⭐ **every bound creature declares what cuts its binding**, checked at build time
+  ([bestiary](./bestiary-slate.md) § 13), begun as a census that may only fall.
+- ⛔ **No adaptive difficulty** — real outcomes are counted and operators tune the dials, but
+  nothing adjusts a fight to the player in the moment: rubber-banding is `set_difficulty()` in
+  disguise.
+
+## 8i. ⭐⭐⭐ The body in combat — physical quantities, never stats **[DECIDED — the owner]**
+
+The owner: *"we don't have STR and DEX, we have body mass and some other shit … it's not like
+MUDs where you go from 10 strength to 100, or even D&D where you go from 16 to 21 — you're
+really just increasing the value on the margins, but it still should affect your combat
+ability."* And: *"what about agility and speed?"*
+
+### What exists
+
+[encumbrance.md](../../subsystems/encumbrance.md): *"There is no general strength stat, and none
+is coming."* The body is physical quantities — **mass** (the species' base — gnome 30 kg, halfling
+38, human 70, orc 100, dragonborn 125 — plus flesh and lean; fat to emaciated spans about 27 kg on
+one person); **lean** (muscle — its strength read runs 0.6× to 1.4×); **wind** (sustainable power
+1× to 2.5× a 300 W base); **stature**; **wounds** (the function axis).
+
+Today the body reaches combat four ways: species mass scales the **fist only**; mass and lean set
+carry capacity, so the same armor **slows a weaker body more**; wind sets **endurance per beat**;
+wounds take **capacities**. ⚠ **A weapon blow does not read the wielder's body at all**, and reach
+does not read arm length.
+
+### The reads, all derived
+
+| read | derived from | in a fight |
+|---|---|---|
+| **power** | lean muscle, scaled as strength really scales (cross-section — roughly mass to the ⅔) | the force behind a blow or a shove; ⭐ how heavy a weapon feels |
+| **stability** | total mass | how hard you are to shove, knock down or stand against — *you can't parry a bear* is the mass ratio |
+| **speed** | power-to-weight × leg length (top speed rises with the square root of leg length), minus encumbrance | ⭐ closing and opening range; the chase; flanking |
+| **hand speed** | power ÷ the weapon's heft | tempo; how quick a feint is |
+| **agility** | **mostly skill** — the body sets a ceiling (power-to-weight, a low center of mass) | how well giving ground works; dodging a missile; getting up |
+| **reaction** | **skill** — reading the opponent | the fog (shipped); ⭐ who acts first — the quickdraw |
+| **staying power** | wind | endurance per beat |
+| **reach** | stature (arm length) plus the weapon | who controls the gap |
+
+| body | power | power-to-weight (feeds speed and hand speed) |
+|---|---|---|
+| gnome, 30 kg | 0.57× | 1.33× |
+| human, 70 kg | 1.0× | 1.0× |
+| orc, 100 kg | 1.27× | 0.89× |
+| dragonborn, 125 kg | 1.47× | 0.82× |
+
+- **Training moves an individual's power by up to ±40%** (the lean read); ⭐ **fat adds mass, so
+  stability, but lowers power-to-weight** — the heavy brawler hard to move against the lean,
+  quick fighter: two honest builds.
+- **Real speeds** — an average adult ~6–7 m/s, an elite sprinter ~10, a dog ~13, a bear ~15 in a
+  burst, a wolf ~16, a horse ~19: you never outrun them short; you outlast them (§ 8f). A gnome is
+  slow on open ground and quick in hand; a dragonborn fast in a line and slow to turn.
+- **Armor costs speed and agility most** — the Viper's leather buys speed and agility, the
+  Mountain's plate protection and stability.
+
+### ⭐⭐ Why margins matter — thresholds
+
+Damage here is not a sum; it is thresholds — a blow gets through the plate or is deflected,
+breaks the bone or bruises it, reaches the organs or does not. So 15% more force barely matters
+against a bare torso and **is the difference between a deflected blow and a broken arm** against
+armor at the edge. Small advantages decide specific matchups, as real strength does.
+
+⭐ **Strength's biggest effect is what you can wield well** — a weapon's playstyle reads **weapon
+mass ÷ your power**, not weapon mass alone: a warhammer is a slow guard-breaker for a gnome and
+nearly a sword for an orc. The gym and the lifting bar matter for combat.
+
+**Shown as bands, never numbers** — the mirror's body phrases (*wiry*, *massive*, *running to fat*)
+as now.
+
 ## 9. The lens pass
 
 1. **Pedagogy** — the armor grid as a type chart worth learning; reach, mass and tempo;
@@ -266,12 +497,13 @@ because his arms still worked. Gloating is dangerous because the body says so, n
 ## 10. Open
 
 1. **The gap model's numbers** — how a piece declares its gaps.
-2. **Stance numbers** — the mass ratio at which guarding fails; how fast giving ground runs out
-   of room.
-3. **Bout rules** — the shape of an institution's terms (the sport pass).
+2. **Stance numbers** — the mass ratio at which guarding fails; how fast giving ground runs out of
+   room.
+3. **The ruleset document** — its exact shape.
 4. **The downed fighter's move** — what it can do, and for how long.
 5. **Coatings** — dose, wear, and the counter-substances.
-6. **Composure** — filling the empty seam (the [trait](../tails/trait-slate.md) stress
-   follow-on).
+6. **Composure** — filling the empty seam (the [trait](../tails/trait-slate.md) stress follow-on).
 7. **Children** — whether characters presented as children can fight, and on what terms.
-8. **The passes not yet held** — after the fight, sport, balance tools (§ 8a).
+8. **The body reads' curves** — exponents and clamps, tuned in the gym.
+9. **The chase** — how a pursuit is represented across crossings.
+10. **The new Disciplines** — which ship, and whether evasion is one.
