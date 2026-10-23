@@ -1,0 +1,9 @@
+# Nesbit's ferry (the river build, D31) — the crossing of the Kestrel just
+# below the confluence, from the city's lower towpath to Nesbit's landing on
+# the far bank, where a track joins the Delight road at the milestone. When
+# the ford is up, this is how a wagon gets to the crossroads.
+class: /platform/idea/location/CartesianZone
+data:
+  name: Nesbit's ferry
+  cellSize: 10.0
+  elevation: 32

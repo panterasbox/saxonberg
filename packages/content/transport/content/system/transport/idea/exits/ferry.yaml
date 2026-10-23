@@ -1,0 +1,12 @@
+# A ferry crossing (the river build, D31): the far landing, by the ferry
+# when she lies here, the river lets her across and the fare is paid. ONE
+# edge the route planner costs — and flags, because it is not always
+# passable. Placed on each landing, naming the far one; the rows say which
+# ferry, whose house, what fare and where it crosses.
+class: /system/transport/idea/FerryExit
+data:
+  _conditional: true
+  media: [ground]
+  wheelPassable: true
+  messageOut: "{{ mover }} goes aboard the ferry."
+  messageIn: "{{ mover }} comes ashore off the ferry."

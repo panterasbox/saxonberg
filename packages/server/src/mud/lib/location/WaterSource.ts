@@ -97,6 +97,18 @@ export interface WaterRead {
   opaque?: unknown;
 }
 
+/**
+ * ⭐ A read of water that MOVES (river W14): a still water's read has no
+ * current at all — not a current of zero — so the two fields belong to
+ * the reads only moving sources make (a river's line).
+ */
+export interface MovingWaterRead extends WaterRead {
+  /** The current where the read was taken, m/s — + running downstream, − when a flood tide runs up. */
+  currentMps: number;
+  /** How broken the water is, 0 (glassy) to 1 (white water). */
+  roughness: number;
+}
+
 /** Public shape added by WaterSourceMixin. */
 export interface WaterSource {
   currentWaterRef(citation: string, place: Stuff): string | null;
@@ -166,5 +178,6 @@ export function WaterSourceMixin<TBase extends MixinConstructor>(Base: TBase) {
       void nowS;
       return null;
     }
+
   };
 }

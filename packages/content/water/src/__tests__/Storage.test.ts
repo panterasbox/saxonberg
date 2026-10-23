@@ -68,9 +68,11 @@ const WORLD: Row[] = [
       name: 'the Kestrel',
       basin: 'kestrel',
       branchesFrom: null,
+      source: { kind: 'rills' },
+      mouth: { into: 'sink' },
       nodes: [
-        { name: 'falls', elevation: 400, channelWidthM: 20 },
-        { name: 'confluence', elevation: 40, channelWidthM: 80 },
+        { km: 10, name: 'falls', elevation: 400, channelWidthM: 20 },
+        { km: 0, name: 'confluence', elevation: 40, channelWidthM: 80 },
       ],
     },
   },

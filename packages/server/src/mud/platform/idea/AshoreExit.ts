@@ -22,6 +22,9 @@ import { Expanse } from '../../lib/expanse/Expanse';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 
+/** How near a landing a ship on a river lies to be alongside it, m. */
+const ALONGSIDE_M = 60;
+
 export default class AshoreExit extends DeferredDestinationExit {
   private craftPath: string | null = null;
   /** The lookup ran (a deck with no craft is answered once, not per traverse). */
@@ -39,8 +42,9 @@ export default class AshoreExit extends DeferredDestinationExit {
       if (craft === null) return;
       this.craftPath = craft.getTemplatePath();
       if (MixinApi.isVoyaging(craft)) {
-        const e = await craft.liveExpanse();
-        if (e) await e.nodes();
+        // Her frame, loaded: the sea's nodes (a landing's way ashore), or a river.
+        const f = await craft.liveFrame();
+        if (f instanceof Expanse) await f.nodes();
       }
     } catch {
       /* nothing to step onto, then */
@@ -52,6 +56,14 @@ export default class AshoreExit extends DeferredDestinationExit {
     if (this.craftPath === null) return null;
     const craft = StuffApi.findByTemplatePath<Stuff>(this.craftPath);
     if (!craft || !MixinApi.isVoyaging(craft) || craft.getCourse() !== null) return null;
+    // ⭐ On a river (D18): the landing she lies within hailing of a rope's
+    // throw of, by the river's own list of what stands on its banks.
+    const line = MixinApi.isPositioned(craft) ? craft.getLine() : null;
+    if (line !== null && MixinApi.isPositioned(craft)) {
+      const frame = StuffApi.findByTemplatePath<Stuff>(line);
+      const pos = craft.getLinePosition();
+      return frame && pos && MixinApi.isLineFrame(frame) ? frame.landingNear(pos, ALONGSIDE_M) : null;
+    }
     const at = craft.getExpansePosition();
     const path = craft.getExpanse();
     const e = path ? StuffApi.findByTemplatePath<Stuff>(path) : null;

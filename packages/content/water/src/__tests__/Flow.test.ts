@@ -4,7 +4,7 @@
  *
  * A bed multiplies the millimetres by its land area to get litres of
  * soil moisture; a reach multiplies the SAME millimetres by its
- * catchment area to get cubic metres of river. That is the whole spine
+ * catchment area to get cubic meters of river. That is the whole spine
  * of the build, and this file is the half of it that makes a diversion
  * matter.
  *
@@ -80,11 +80,13 @@ function installValley(): void {
         name: 'the Kestrel',
         basin: 'kestrel',
         branchesFrom: null,
+        source: { kind: 'rills' },
+        mouth: { into: 'sink' },
         nodes: [
-          { name: 'headwaters', elevation: 1400 },
-          { name: 'falls', elevation: 500 },
-          { name: 'confluence', elevation: 40, channelWidthM: 60 },
-          { name: 'estuary', elevation: 0, channelWidthM: 140 },
+          { km: 30, name: 'headwaters', elevation: 1400 },
+          { km: 20, name: 'falls', elevation: 500 },
+          { km: 10, name: 'confluence', elevation: 40, channelWidthM: 60 },
+          { km: 0, name: 'estuary', elevation: 0, channelWidthM: 140 },
         ],
       },
     },
@@ -220,7 +222,9 @@ describe('flow is a takeable volume', () => {
           name: 'dry',
           basin: 'dry',
           branchesFrom: null,
-          nodes: [{ name: 'a', elevation: 100 }, { name: 'b', elevation: 0 }],
+          source: { kind: 'rills' },
+          mouth: { into: 'sink' },
+          nodes: [{ km: 10, name: 'a', elevation: 100 }, { km: 0, name: 'b', elevation: 0 }],
         },
       },
     ]);
@@ -258,7 +262,9 @@ describe('⭐ snowpack: the spring rise and the late-summer low', () => {
           name: 'step',
           basin: 'step',
           branchesFrom: null,
-          nodes: [{ name: 'alp', elevation: 2000 }, { name: 'shore', elevation: 0 }],
+          source: { kind: 'rills' },
+          mouth: { into: 'sink' },
+          nodes: [{ km: 10, name: 'alp', elevation: 2000 }, { km: 0, name: 'shore', elevation: 0 }],
         },
       },
       {
@@ -277,7 +283,7 @@ describe('⭐ snowpack: the spring rise and the late-summer low', () => {
       shoreTotal += (await c.flowAt('step:shore', t))!.snowpackMm;
     }
     expect(alpTotal).toBeGreaterThan(0);
-    // Two kilometres of lapse rate is thirteen Kelvin, and thirteen
+    // Two kilometers of lapse rate is thirteen Kelvin, and thirteen
     // Kelvin is the difference between a snowfield and a wet winter.
     expect(alpTotal).toBeGreaterThan(shoreTotal * 2);
   });

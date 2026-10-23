@@ -18,6 +18,7 @@
  * bearing roughly (the eye rung is allowed, its bracket wide).
  */
 
+import { Expanse } from '../../../lib/expanse/Expanse';
 import Reading from '../../../lib/instrument/Reading';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
@@ -108,8 +109,8 @@ export default class BearingReading extends Reading {
 
   /** `target` as the expanse sees it from the reader's eye, or `null` out of sight. */
   private async contactFor(craft: Craft, eye: Stuff, target: Stuff): Promise<Contact | null> {
-    const expanse = await craft.liveExpanse();
-    if (expanse === null) return null;
+    const expanse = await craft.liveFrame();
+    if (!(expanse instanceof Expanse)) return null;
     const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
     const contacts = await expanse.contactsFrom(craft, eye, 'visual', hour);
     return contacts.find((c) => c.craft !== null && c.craft.stuffId === target.stuffId) ?? null;

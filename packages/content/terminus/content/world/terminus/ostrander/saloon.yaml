@@ -1,0 +1,16 @@
+# The Ostrander's saloon — where the passengers sit out of the weather.
+class: /platform/location/Locale
+data:
+  shortDescription: saloon
+  keywords: [saloon, cabin]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  # Her hull and her deck over it: planking all round.
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.06 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.05 }
+  longDescription: |
+    A long low cabin with benches down both sides under the windows, a stove at the forward end and the thud of the wheel coming up through the floor. The windows show the bank going by.
+  coords: { x: -1, y: 0, z: 0 }
+  exits:
+    east:
+      destination: /world/terminus/ostrander/deck

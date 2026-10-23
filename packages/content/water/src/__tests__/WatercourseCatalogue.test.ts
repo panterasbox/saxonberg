@@ -38,6 +38,8 @@ interface CourseSpec {
   basin: string;
   nodes: WatercourseNode[];
   branchesFrom?: string;
+  /** Leave the river's ends and km off — the compile must refuse it. */
+  noEnds?: boolean;
 }
 
 /**
@@ -58,7 +60,12 @@ function installCourses(specs: CourseSpec[]): void {
       key: spec.key,
       name: spec.key,
       basin: spec.basin,
-      nodes: spec.nodes,
+      // ⭐ A river of two or more nodes declares its ends and km (river
+      // D1); these specs are about direction, so they get neutral ones.
+      ...(spec.nodes.length >= 2 && !spec.noEnds ? { source: { kind: 'rills' }, mouth: { into: 'sink' } } : {}),
+      nodes: spec.nodes.length >= 2 && !spec.noEnds
+        ? spec.nodes.map((n, i) => ({ km: (spec.nodes.length - 1 - i) * 10, ...n }))
+        : spec.nodes,
       branchesFrom: spec.branchesFrom ?? null,
     },
   }));

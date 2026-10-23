@@ -1,6 +1,6 @@
 # The reach — the middle of the water lane. Short edges, and something
 # in every one of them.
-class: /platform/location/Locale
+class: /platform/location/Shore
 data:
   shortDescription: reach
   keywords: [reach]
@@ -38,3 +38,9 @@ data:
       keywords: [tide, water, river, salt]
       description: |
         It comes up this far. You can tell by the weed on the revetment and by the fact that the river here does not always go the same way.
+  # ⭐ A bank of the Kestrel (the river build, D8): the water it looks at,
+  # and where it stands on the line — so the bank between places is
+  # walkable, and the water passing within hail can reach it.
+  waters:
+    tide: "kestrel:estuary-1.0"
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-1.2,left", span: 0.5, name: towpath }

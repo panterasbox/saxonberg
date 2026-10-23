@@ -1,0 +1,11 @@
+# /system/water/idea/ReachWarren — the river's places that are not
+# authored (the river build, D5–D7): the water within hail of whoever is in
+# a river, and the spots where the river has stopped something. ONE
+# singleton for the realm — a second river needs a profile row and nothing
+# here. Stood up by whatever first asks (somebody swimming out of a river
+# place, a stop coming back from its record); no boot step.
+#
+# Its ledger is the list of stops that are keeping something, so the water
+# drifting past one after a restart finds it.
+class: /system/water/idea/ReachWarren
+data: {}

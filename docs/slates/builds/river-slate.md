@@ -1,6 +1,6 @@
 # River slate — the only water with a direction
 
-> **Status: UNBUILT** — designed 2026-10-18 with the founder. The
+> **Status: BUILT** (MR !464, 2026-10-23) → [river.md](../../subsystems/river.md); the tail is §11 *Deferred*. §12's opens were answered by the build. Was: designed 2026-10-18 with the founder. The
 > watershed build shipped the river as hydrology and law (`Watercourse`:
 > named nodes, elevation at control points, flow, snowpack, navigability
 > as a boolean, rights, contamination) → [watershed.md](../../subsystems/watershed.md).

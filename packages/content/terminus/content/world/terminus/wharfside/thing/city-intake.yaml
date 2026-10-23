@@ -22,6 +22,9 @@ data:
   conduitKey: terminus-intake
   direction: supply
   reachRef: kestrel:confluence
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "kestrel:confluence+0.05,left"
   # ⚠ RUNNING — `Switchable` defaults off, and an intake that is off draws
   # nothing for the city (the outfall's twin finding, the fishing drive).
   on: true

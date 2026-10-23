@@ -24,6 +24,9 @@ data:
     A squat stone building where the channel makes its last drop into the reservoir, with a wheel inside it turning steadily and a hum you feel through the floor. The water goes on into the city afterwards, no less water for having done some work on the way.
   controlKind: weir
   reachRef: cold-fell:cascade
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "cold-fell:cascade"
   passFraction: 1
   headM: 60
   generates: true

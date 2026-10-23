@@ -885,12 +885,18 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
  * arrival message is used in that case.
  */
 /**
+ * Ways named by an adverb, not a place: *You leave downstream*, never
+ * "to the downstream" (the river's browser walk).
+ */
+const ADVERB_WAYS: ReadonlySet<string> = new Set(['upstream', 'downstream', 'across', 'ashore', 'aboard', 'overboard']);
+
+/**
  * ⭐ The way a mover leaves, as a phrase: *to the north*, but *up* and
  * *down* — "You leave to the down" was what a ladder said (found driving
  * the rubber build's flooded substation in a browser).
  */
 function towardPhrase(direction: string): Mml {
-  if (direction === 'up' || direction === 'down' || direction === 'in' || direction === 'out') {
+  if (direction === 'up' || direction === 'down' || direction === 'in' || direction === 'out' || ADVERB_WAYS.has(direction)) {
     return Mml.direction(direction);
   }
   return Mml.compose`to the ${Mml.direction(direction)}`;
@@ -911,7 +917,9 @@ function fromPhrase(wayBack: string): Mml {
     case 'in':
       return Mml.compose`from inside`;
     default:
-      return Mml.compose`from the ${Mml.direction(wayBack)}`;
+      return ADVERB_WAYS.has(wayBack)
+        ? Mml.compose`from ${Mml.direction(wayBack)}`
+        : Mml.compose`from the ${Mml.direction(wayBack)}`;
   }
 }
 

@@ -1,0 +1,13 @@
+# The Holloway's mouth (the river build, D1) — where the second basin's
+# river meets the Greywater, west along the coast from the bar.
+#
+# A passage with no room behind it: nothing is built there, and a river
+# that "ends in the sea" must end at a NAMED node of it, so this is the
+# name. A ship that wants to go up the Holloway would start here.
+class: /platform/idea/ExpanseNode
+data:
+  name: the Holloway mouth
+  alternateNames: [holloway mouth, holloway]
+  kind: passage
+  passage: areal
+  focus: { rho: 9000, theta: 270, radius: 600 }

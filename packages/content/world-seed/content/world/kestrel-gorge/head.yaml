@@ -1,0 +1,22 @@
+# The head of the gorge — the Kestrel gorge (the river build, D36). A river place:
+# the line's water at its km (current: inherit), walls both sides, handed
+# in at its head and out at its foot.
+class: /system/water/location/RiverPlace
+data:
+  shortDescription: head of the gorge
+  keywords: [gorge, river, kestrel, water, head]
+  register: definite
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none
+  longDescription: |
+    The valley closes like a door. The Kestrel goes into the rock between two walls of grey limestone that lean in over you, and the water, which was a river a moment ago, is suddenly a thing in a hurry, white at every stone.
+  coords: { x: 0, y: 0, z: 0 }
+  water: { of: "kestrel:gorge", depthM: 2 }
+  river: { course: kestrel, at: "gorge", span: 0.4, name: head }
+  current: inherit
+  details:
+    walls:
+      keywords: [walls, wall, rock, limestone, cliff]
+      description: |
+        Grey limestone, wet to twice your height and scoured smooth. There is nothing to hold and nowhere to climb out.

@@ -56,6 +56,7 @@ import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
 import { ContainmentApi } from '../../api/containment';
 import { BulkableApi } from '../../api/bulk';
 import { WorldClockApi } from '../../api/worldclock';
@@ -63,6 +64,11 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import type { WaterRead } from './WaterSource';
 import { CombatApi } from '../../api/combat';
+import { PartyApi } from '../../api/party';
+import { GrammarApi } from '../../api/grammar';
+import { SchedulerApi } from '../../api/scheduler';
+import { HAZARD_PIN_TYPE } from '../hazard/HazardActivity';
+import type { PullOutcome } from '../spatial/Pullable';
 import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -84,6 +90,8 @@ const DEFAULT_WADE_M = 1.5;
 
 /** The thinnest a band of a column may be, m. */
 const DEFAULT_MIN_BAND_M = 2;
+/** Real seconds to get a body out by hand, unloaded — more as the lift nears the ceiling. */
+const PULL_OUT_REAL_S = 4;
 
 /** About how thick one dark band is, m — an atmosphere of water. */
 const DEFAULT_DARK_BAND_M = 10;
@@ -200,6 +208,8 @@ export interface WaterPlace {
   canRise(body: Stuff): VetoResult;
   /** The place at the top of this water — itself, unless it is under one. */
   surfacePlace(): (Stuff & Container) | null;
+  /** Whether a body here has its head in the air (river D16). */
+  headOutAt(occupant: Stuff): boolean;
   /**
    * ⭐ Hold a body face-up at the surface (underwater D11): the
    * disconnected player's water answer. Brought up to the surface place
@@ -207,6 +217,24 @@ export interface WaterPlace {
    * them. The dying clock, if it was already running, runs on.
    */
   holdAtSurface(body: Stuff): Promise<boolean>;
+  /**
+   * ⭐ Get hold of something in this water by hand and bring it out to
+   * where the puller is — a bank or a quay one way off, a boat floating
+   * here — or, in the same water, hold a body's head up (river D22). What
+   * `pull <it>` means for anything in water that is not itself on a line.
+   */
+  pullOut(load: Stuff, puller: Stuff): Promise<PullOutcome>;
+  /**
+   * What in this water a puller means by `word`, by what THEY know it as
+   * — `null` when nothing answers, or the water is out of their reach.
+   */
+  loadNamed(puller: Stuff, word: string): Stuff | null;
+  /**
+   * ⭐ Something comes out of this water into `to` (river D22): whatever
+   * the water had a hold on it by — a strainer, a jammed foot — lets go.
+   * The one landing a hand and a line both use.
+   */
+  deliverOut(load: Stuff & Containable, to: Stuff & Container): void;
   /**
    * ⭐ What `occupant` is in: the water (with its temperature and the
    * surface depth) unless the floor holds it up, else the air above.
@@ -564,6 +592,127 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       return this as unknown as Stuff & Container;
     }
 
+    /**
+     * ⭐ Whether a body in this water has its head in the air (river D16).
+     * @hook Override on a water something can close over: a river patch
+     *   carried under a frozen pool answers `false`, and the breath model
+     *   does the rest. Default: `true` — the water place is the surface.
+     */
+    public headOutAt(occupant: Stuff): boolean {
+      void occupant;
+      return true;
+    }
+
+    public async pullOut(load: Stuff, puller: Stuff): Promise<PullOutcome> {
+      const water = this as unknown as Stuff & Container & Exitable;
+      const name = load.getPresentation();
+      if (!MixinApi.isContainable(load) || load.getContainer() !== (water as unknown)) {
+        return { ok: false, reason: 'not-in-water', line: `${name} is not in the water; there is nothing to pull them out of.` };
+      }
+      const to = this.pullerStation(puller);
+      if (to === undefined) return { ok: false, reason: 'out-of-reach', line: `${name} is out of your reach.` };
+      // ⭐ A person is not landed against their will: one who is awake and
+      // free in the water swims on unless they are with you. Pinned,
+      // drowning, senseless or gone from the world, anybody may.
+      const helpless = this.isHelpless(load);
+      if (MixinApi.isHasInteractive(load) && !helpless && !PartyApi.areAllied(load, puller)) {
+        return { ok: false, reason: 'unwilling', line: `${GrammarApi.cap(name)} shakes off your hand and swims on.` };
+      }
+      // ⭐ The lift is the puller's strain ceiling against what comes out:
+      // the whole weight of a helpless body or a thing, half of a swimmer
+      // who kicks and climbs. In the same water there is no lift — you
+      // hold their head up.
+      const kg = MixinApi.isTangible(load) ? load.getMass().rawValue() : 0;
+      const liftKg = to === null ? 0 : kg * (load.isAgent() && !helpless ? 0.5 : 1);
+      const ceilingKg = MixinApi.isLoadBearing(puller) ? puller.getStrainCeiling().rawValue() : Infinity;
+      if (liftKg > ceilingKg) {
+        return { ok: false, reason: 'too-heavy', line: `You get hold of ${name} and heave, and cannot lift them out. It wants a rope, or more hands.` };
+      }
+      return {
+        ok: true,
+        self: Mml.compose`You get hold of ${Mml.actor(load)} and start to pull.`,
+        peers: Mml.compose`${Mml.actor(puller)} gets hold of ${Mml.actor(load)} and starts to pull.`,
+        takes: {
+          realS: PULL_OUT_REAL_S * (1 + (Number.isFinite(ceilingKg) && ceilingKg > 0 ? liftKg / ceilingKg : 0)),
+          finish: async (): Promise<PullOutcome> => {
+            if (load.isDestroyed() || load.getContainer() !== (water as unknown)) {
+              return { ok: false, reason: 'gone', line: 'Your hands close on nothing; it is not where it was.' };
+            }
+            const still = this.pullerStation(puller);
+            if (still === undefined) return { ok: false, reason: 'out-of-reach', line: `${GrammarApi.cap(name)} is out of your reach now.` };
+            if (liftKg > 0 && MixinApi.isExerting(puller)) {
+              puller.exert({ durationS: 20, powerW: Math.min(600, 80 + liftKg * 4) });
+            }
+            if (still === null) {
+              this.deliverOut(load as Stuff & Containable, water);
+              if (MixinApi.isRespiration(load)) load.holdUp();
+              return {
+                ok: true,
+                self: Mml.compose`You get ${Mml.actor(load)}'s head up out of the water and hold it there.`,
+                peers: Mml.compose`${Mml.actor(puller)} holds ${Mml.actor(load)}'s head up out of the water.`,
+              };
+            }
+            this.deliverOut(load as Stuff & Containable, still);
+            return {
+              ok: true,
+              self: Mml.compose`You pull ${Mml.actor(load)} out of the water.`,
+              peers: Mml.compose`${Mml.actor(puller)} pulls ${Mml.actor(load)} out of the water.`,
+            };
+          },
+        },
+      };
+    }
+
+    public loadNamed(puller: Stuff, word: string): Stuff | null {
+      const w = word.trim().toLowerCase();
+      if (w === '' || this.pullerStation(puller) === undefined) return null;
+      for (const c of (this as unknown as Stuff & Container).getContents()) {
+        if (c === puller) continue;
+        // ⭐ By what the PULLER knows them as (the lifeline's lesson): a
+        // stranger answers to "a human", never to a name nobody told.
+        const words = c.perceivedKeywordsFor(puller).map((k) => k.toLowerCase());
+        if (words.includes(w) || c.describeFor(puller).toLowerCase().includes(w)) return c;
+      }
+      return null;
+    }
+
+    public deliverOut(load: Stuff & Containable, to: Stuff & Container): void {
+      if (MixinApi.isEngaged(load)) SchedulerApi.cancelByType(load, HAZARD_PIN_TYPE);
+      if (to !== (this as unknown as Stuff)) ContainmentApi.move(load, to);
+    }
+
+    /**
+     * Pinned by the water, drowning, senseless, or gone from the world:
+     * somebody who cannot help being pulled out, nor help with it.
+     */
+    private isHelpless(body: Stuff): boolean {
+      if (MixinApi.isEngaged(body) && body.getEngagementByType(HAZARD_PIN_TYPE) !== undefined) return true;
+      if (MixinApi.isRespiration(body) && body.isInDrowningResponse()) return true;
+      if (MixinApi.isVitals(body) && body.getConsciousness() !== 'conscious') return true;
+      return MixinApi.isHasInteractive(body) && body.isLinkdead();
+    }
+
+    /**
+     * Where a puller stands to the water: `null` in it (the same water),
+     * the room or the craft a load comes out into, or `undefined` when the
+     * water is out of their reach — one way off at most, either way round.
+     */
+    private pullerStation(puller: Stuff): (Stuff & Container) | null | undefined {
+      const water = this as unknown as Stuff & Container & Exitable;
+      if (!MixinApi.isContainable(puller)) return undefined;
+      const at = puller.getContainer() as unknown as Stuff | null;
+      if (at === null) return undefined;
+      if (at === water) return null;
+      // Aboard a boat that floats here.
+      if (MixinApi.isContainable(at) && at.getContainer() === (water as unknown) && MixinApi.isContainer(at)) {
+        return at as Stuff & Container;
+      }
+      const leadsTo = (from: Stuff, there: Stuff): boolean =>
+        MixinApi.isExitable(from) && [...from.getExits().values()].some((e) => e.peekDestination() === (there as unknown));
+      if (MixinApi.isContainer(at) && (leadsTo(at, water) || leadsTo(water, at))) return at as Stuff & Container;
+      return undefined;
+    }
+
     public async holdAtSurface(body: Stuff): Promise<boolean> {
       const surface = this.surfacePlace();
       if (surface === null || !MixinApi.isContainable(body) || body.isDestroyed()) return false;
@@ -602,6 +751,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     }
 
     public mediumFor(occupant: Stuff): MediumRead {
+      const self = this as unknown as Stuff;
       const floor = this.waterFloor();
       const air: MediumRead = {
         tag: 'air',
@@ -617,12 +767,16 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         tag: 'water',
         substance: 'water',
         immersed: true,
-        // The water place itself is the surface: in it, your head is out.
-        atSurface: true,
+        // The water place itself is the surface: in it, your head is out —
+        // unless something is over the water (a river's ice, D16).
+        atSurface: this.headOutAt(occupant),
         temperatureK: this.waterTemperatureK(),
         depthM: 0,
         waterRef: this.water?.of ?? null,
         oxygenMgL: this.oxygenNowMgL(),
+        // ⭐ Only water that MOVES has a current (W14): still water has none
+        // to report, not a current of nought.
+        ...(MixinApi.isMovingWater(self) ? { currentMps: self.currentFor(occupant), roughness: self.roughnessFor(occupant) } : {}),
       };
     }
 
@@ -686,10 +840,17 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
     public onEntered(mover: Stuff & Mobile & Containable, via: Exit): void {
       (Base.prototype as { onEntered?: (m: unknown, v: unknown) => void }).onEntered?.call(this, mover, via);
       void this.reconcileOccupants();
+      // ⭐ Over a ship's side (river D30): she keeps who went into the water
+      // off her, and her `course` waits for them (`Voyaging.noteOverboard`).
+      const fromPath = via?.getSource()?.getTemplatePath() ?? '';
+      const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
+      if (ship !== null && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';
-      if (swum && !floor.bears(floor.supportLoadKgOf(mover))) {
+      const here = this as unknown as Stuff;
+      const keepsSwimming = MixinApi.isMovingWater(here) && !here.standsOnArrival(mover);
+      if (swum && (!floor.bears(floor.supportLoadKgOf(mover)) || keepsSwimming)) {
         if (MixinApi.isAttired(mover)) mover.immerse();
         else if (MixinApi.isWet(mover)) mover.wet(1);
         return;
@@ -814,6 +975,8 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public sinks(thing: Stuff): boolean {
       if (thing.isAgent?.() || MixinApi.isMobile(thing)) return false;
+      // ⭐ A body full of the gas of its own decay floats (river D27).
+      if (MixinApi.isPostmortem(thing) && thing.buoyantNow()) return false;
       if (!MixinApi.isTangible(thing)) return false;
       if (MixinApi.isContainable(thing) && thing.isFixedInPlace?.()) return false;
       // ⭐ Held up by something in the same water (an air bag lashed to

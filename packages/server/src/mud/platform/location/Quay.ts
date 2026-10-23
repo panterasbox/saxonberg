@@ -8,7 +8,8 @@
  * river common, away from whoever owns the private wharves.
  */
 
+import { FrameSitedMixin } from '../../lib/expanse/FrameSited';
 import Street from './Street';
 import { ShoreMixin } from '../../lib/location/Shore';
 
-export default class Quay extends ShoreMixin(Street) {}
+export default class Quay extends FrameSitedMixin(ShoreMixin(Street)) {}

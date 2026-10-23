@@ -1646,6 +1646,13 @@ export class WeatherLogic extends ApiLogic {
     return computeResolved(scope, locality, nowS, reach, site);
   }
 
+  /** See {@link WeatherApi.forgetScope}. */
+  @CallSecurity(WeatherApiCallers)
+  public forgetScope(stuffId: string): void {
+    localityByScope.delete(stuffId);
+    siteByScope.delete(stuffId);
+  }
+
   /** See {@link WeatherApi.peekSkyType}. SYNC over the cached Locality. */
   @CallSecurity(WeatherApiCallers)
   public peekSkyType(scope: Stuff & Container): WeatherType | null {

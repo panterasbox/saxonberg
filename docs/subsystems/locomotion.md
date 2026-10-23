@@ -527,3 +527,11 @@ content slate that pulls on it.
 - **2026-10-18 (storage-and-ice, MR !378).** Bare `swim` (*swim here*);
   the gate vocabulary gained `encumbrance` · `locked` · `unbuilt` ·
   `unpublished`.
+
+## River build (2026-10-21)
+
+In moving water the direction words are the river's — `swim upstream`,
+`swim downstream`, `swim left`/`right` to a bank — ways worked out when
+taken (`ReachExit`). Finding your feet in the shallows drops a water mode for
+walk (`WaterSurface.occupy`), so the way out is waded. See
+[river.md](./river.md).

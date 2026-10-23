@@ -1,0 +1,16 @@
+# A reach patch — the water within hail of you on a river, carried by the
+# current (the river build, D4–D7). Minted by the ReachWarren when
+# something goes into the river between authored places; never authored,
+# never persisted, gone when empty. Its words are the river's at its
+# position (the class reads the line), so this row says only what is true
+# of all of them.
+class: /system/water/location/ReachPatch
+data:
+  shortDescription: in the river
+  keywords: [water, river, current]
+  register: proper
+  longDescription: >-
+    You are in the river, and the river is going somewhere.
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none

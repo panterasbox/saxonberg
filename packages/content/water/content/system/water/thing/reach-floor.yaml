@@ -1,0 +1,17 @@
+# The FLOOR under a river's moving water (the river build, D13) — a Thing
+# in its place, what you stand on; its name for a player is the river bed. Swum over where it is deep, stood on where it is
+# not — and standing in fast water over broken rock jams a foot.
+class: /system/water/thing/ReachFloor
+data:
+  shortDescription: river bed
+  keywords: [bed, bottom, stones, gravel, water, ground, floor]
+  register: definite
+  longDescription: Stones and gravel under the moving water, slick with weed where the current lets anything grow.
+  _materialPath: /stuff/idea/material/bulk/water
+  onGrade: false
+  staticSlots:
+    - name: 'ground:1'
+      accepts: SlottableMixin
+      capacity: 9007199254740991
+      postures: [sit, lie, kneel, stand]
+      userFacingDetail: floor

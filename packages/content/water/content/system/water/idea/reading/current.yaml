@@ -1,0 +1,26 @@
+# current — how fast the water is running where you are (the river build,
+# D32): `measure current` with a current log, `analyze current` by eye.
+#
+# ⭐ One of the river's two readings, beside `measure temperature`. The
+# river kills through cold, rough water and traps; the current is how hard
+# it is pushing you into all three. Without a reading they are learned by
+# drowning.
+#
+# ⚠ Free — nothing else measures a `current`. `capabilities: [current-log]`
+# on the instrument IS the reachability.
+class: /system/water/idea/reading/CurrentReading
+data:
+  channel: current
+  kind: fact
+  scope: [here]
+  discipline: swimming
+  instrument: current-log
+  instrumentNoun: "a current log"
+  # The surface tells a trained eye a great deal; the figure is the log's.
+  eyeCeiling: competent
+  improves: >-
+    how fast the water is running here — whether you can swim against it,
+    stand in it, or should not be in it at all
+  stakes: >-
+    a ford tried in a freshet; a swim across a run that carries you onto
+    the strainer below

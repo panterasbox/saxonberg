@@ -1,0 +1,33 @@
+# The head of the falls (the river build, D36): a rock ledge on the left
+# bank where the gorge walls step back, just above the drop — the one place
+# between the headwaters and the landing where you can climb out of the
+# Kestrel, and where the portage path starts down.
+class: /platform/location/Shore
+data:
+  shortDescription: head of the falls
+  keywords: [ledge, head, falls, rock]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A shelf of wet grey rock on the left bank, where the gorge walls give up at last. Twenty paces on, the river goes over the edge of the world in one long green lip and is gone, and the sound of it comes up through the rock into your feet. A path goes down beside the drop, cut in steps, worn by everything anybody ever carried round it.
+  coords: { x: 0, y: 0, z: 0 }
+  waters:
+    river: "kestrel:falls-0.3"
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "falls-0.4,left", span: 0.3, name: ledge }
+  details:
+    river:
+      keywords: [river, kestrel, water, lip]
+      description: |
+        Smooth and fast and green right up to the lip, and then nothing. You would not want to be in it here.
+    path:
+      keywords: [path, steps, portage]
+      description: |
+        Steps cut into the rock beside the falls, and a groove beside them where boats have been dragged down.
+  exits:
+    south:
+      destination: /world/falls-landing/landing
+      media: [ground]
+      edgeMinutes: 10
+    down:
+      destination: /world/kestrel-gorge/foot
+      media: [water, vertical]

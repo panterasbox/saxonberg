@@ -1,5 +1,6 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Expanse } from '../../../../lib/expanse/Expanse';
 import BearingReading from '../BearingReading';
 import { ExpanseApi } from '../../../../api/expanse';
 import { MessageApi } from '../../../../api/message';
@@ -26,7 +27,8 @@ const brig = { stuffId: 'brig', getPresentation: () => 'the brig' } as unknown a
 const craft = {
   getExpansePosition: () => new GeoPosition(42, -8),
   takeFix,
-  liveExpanse: async () => ({ contactsFrom: async () => contacts }),
+  // The sea's chart, by prototype: the reading narrows the craft's frame to it.
+  liveFrame: async () => Object.assign(Object.create(Expanse.prototype), { contactsFrom: async () => contacts }),
 } as unknown as Stuff;
 const sailor = { getTemplatePath: () => '/test/sailor', getRootContainer: () => null } as unknown as Stuff;
 

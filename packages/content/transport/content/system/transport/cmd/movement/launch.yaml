@@ -4,10 +4,11 @@ verbs: [launch]
 controller: /system/transport/idea/cmd/movement/LaunchController
 description: "Put the boat you are sitting in over the side"
 help: |
-  Sitting in a ship's boat on deck, `launch` puts her in the water. You
-  are not in the sea — you are in the boat, and the boat is where you
-  are now: `course` and `anchor` work from her as from a helm, and
-  `recover` brings her back aboard a ship lying close.
+  Sitting in a boat out of the water — on a bank, a landing, a ship's
+  deck — `launch` puts her in the water beside you, and you in her: at a
+  riverbank she floats at the edge (`paddle` pushes off); from a ship
+  stopped at sea she goes into the water alongside. `recover` takes her
+  back out, onto a bank within hail or the deck of a ship alongside.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

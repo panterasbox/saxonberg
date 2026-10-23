@@ -268,7 +268,7 @@ function layersOf(
 }
 
 /** The two classes a Structure row names (a `Ship` is a Structure). */
-const STRUCTURE_CLASSES = new Set(["/platform/idea/Structure", "/platform/idea/Ship"]);
+const STRUCTURE_CLASSES = new Set(["/platform/idea/Structure", "/platform/idea/Ship", "/platform/idea/Steamer"]);
 
 function isStructureRow(row: Row): boolean {
   return STRUCTURE_CLASSES.has(row.class) || row.data.storeys !== undefined;

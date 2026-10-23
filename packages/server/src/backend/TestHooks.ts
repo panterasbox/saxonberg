@@ -54,6 +54,7 @@ import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
 import { WorldClockApi } from '../mud/api/worldclock';
+import { PersistenceManager } from './PersistenceManager';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -262,7 +263,7 @@ export class TestHooks {
     duration: string
   ): Promise<{ before: number; after: number }> {
     TestHooks.#assertTestMode('advanceClock');
-    return ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
+    const out = ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
       const before = WorldClockApi.getNow().rawValue();
       WorldClockApi.advance(duration);
       const after = WorldClockApi.getNow().rawValue();
@@ -272,6 +273,34 @@ export class TestHooks {
       );
       return { before, after };
     });
+    // ⭐ The jump returns when the world has caught up with it (river D46,
+    // pass 17): everything the skipped interval fired queues its reads and
+    // writes behind the pool, and a drive that jumps again before they land
+    // stacks one jump's backlog on the next — ~21,000 queries at 12 s each,
+    // and the process grew until the box went down.
+    const t0 = Date.now();
+    // ⭐ The clock is HELD while it settles: the world runs at its scale
+    // in real time, so a minute's wait would land the jump many game
+    // minutes past where the drive asked (pass 18: a quarter of an hour's
+    // jump landed past the boat it was for). Held, nothing new fires and
+    // the jump lands exactly. Never left held: resumed whatever happens.
+    const held = ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
+      if (WorldClockApi.isPaused()) return false;
+      WorldClockApi.pause();
+      return true;
+    });
+    let quiet = false;
+    try {
+      // Under the wire client's 300 s header timeout, so a slow drain reports rather than drops.
+      quiet = await PersistenceManager.get().whenQuiet(500, 240_000);
+    } finally {
+      if (held) ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => WorldClockApi.resume());
+    }
+    console.info(
+      `TestHooks: the jump settled in ${Date.now() - t0} ms` +
+        (quiet ? '' : ' — NOT quiet at the timeout; the backlog is still draining')
+    );
+    return out;
   }
 
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */

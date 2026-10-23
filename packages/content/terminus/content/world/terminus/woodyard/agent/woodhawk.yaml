@@ -1,0 +1,26 @@
+# Tam Rooke, the woodhawk (the river build, D36): cuts the alder and the
+# ash along this reach and sells it by the length to the boats.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Tam Rooke
+  keywords: [tam, rooke, woodhawk]
+  shortDescription: woodhawk
+  register: definite
+  longDescription: >-
+    A stooped man with a bow saw over one shoulder and sawdust in his
+    eyebrows, who counts lengths under his breath as he stacks them.
+  archetype: proprietor
+  prologue:
+    - "Has cut wood for the boats on this reach since the first steamer came up."
+  competence:
+    - { discipline: silviculture, asserting: proficient }
+  dispositions:
+    - { disposition: sociability, valence: -10 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
