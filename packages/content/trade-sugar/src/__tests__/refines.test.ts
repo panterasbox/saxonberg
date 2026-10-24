@@ -139,6 +139,12 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...island, setBlock: true }, w)).toBe('get block from #h1');
   });
 
+  it('⭐ an under-charged train is stoked up to its charge in one go, not a log a beat', () => {
+    const w = brain.words({ kettle: 'kettle', fire: 'train', source: 'juice', finish: 'block', charge: 14 });
+    const ready = { ...base, block: false, liquor: 'liquor' as const, limed: 1, skimmed: true, fuel: 'log', stokes: 3 };
+    expect(brain.next(ready, w)).toBe('stoke log into train\nstoke log into train\nstoke log into train');
+  });
+
   it('out of lime, it buys the import at its own counter', () => {
     expect(
       brain.next({ ...base, liquor: 'liquor', lime: false, counterLime: true }),

@@ -137,6 +137,13 @@ interface Floor {
   /** A mould holds a set raw-sugar block (an estate's hogshead). */
   setBlock: boolean;
   /**
+   * ⭐ How many pieces of fuel to stoke at once to bring the bed up to its
+   * charge (default 1). A boiler's beats come round every few game minutes
+   * and a twenty-kilowatt train burns ~4.5 kg of oak an hour, so a log a
+   * beat never built the bed and the batch only warmed (probed, drive 13).
+   */
+  stokes?: number;
+  /**
    * ⭐ Which one, by id (`#…`), where a floor has several of a kind — the
    * empty mould on its pot, a free mould and a free pot, the mould holding
    * what has set. A floor of three hogsheads binds `hogshead` to whichever
@@ -246,7 +253,10 @@ export const brain = class {
       return f.counterLime ? errand('wallet use house', 'buy quicklime') : null;
     }
     if (!f.skimmed) return `skim ${w.kettle} into pail`;
-    if (!f.fireFuelled) return f.fuel ? `stoke ${f.fuel} into ${w.fire}` : null;
+    if (!f.fireFuelled) {
+      if (!f.fuel) return null;
+      return Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`).join('\n');
+    }
     if (!f.fireLit) return `light ${w.fire}`;
     if (!f.onFire) return `heat ${w.kettle}`;
     return null;
@@ -328,6 +338,14 @@ export const brain = class {
           burns(s) &&
           !(MixinApi.isWaterActive(s) && s.getWaterState().moisture > TOO_WET),
       );
+    const fuelWord = w.fuels.find(dryFuel) ?? '';
+    const fuelPieces = fuelWord
+      ? here.filter((s) => named(s, fuelWord) && burns(s) && !(MixinApi.isWaterActive(s) && s.getWaterState().moisture > TOO_WET))
+      : [];
+    const pieceKg = fuelPieces.length > 0 && MixinApi.isTangible(fuelPieces[0]!) ? fuelPieces[0]!.getMass().rawValue() : 0;
+    const shortKg =
+      w.charge && fire && MixinApi.isBurner(fire) ? Math.max(0, w.charge - fire.fuelRemaining()) : 0;
+    const stokes = pieceKg > 0 ? Math.min(fuelPieces.length, Math.max(1, Math.ceil(shortKg / pieceKg))) : 1;
     const counter = w.counter ? StuffApi.findByTemplatePath(w.counter) : null;
     const onCounter = (tag: string): boolean =>
       !!counter &&
@@ -353,7 +371,8 @@ export const brain = class {
           (s.getBulkMaterial('interior')?.hasTag('cane-juice') ?? false),
       ),
       lime: here.some((s) => hasTag(s, 'liming')),
-      fuel: w.fuels.find(dryFuel) ?? '',
+      fuel: fuelWord,
+      stokes,
       coneReady,
       coneAndPot: cones.length > 0 && freePot,
       setLoaf: moulded((c) => c instanceof SugarLoaf),

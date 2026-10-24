@@ -828,7 +828,9 @@ the water pack's own pattern. Nothing changes value but the chart.
 > - **The clock stays universal:** one instant for the realm. How a planet
 >   READS it (day length, year, its sun — `CelestialApi` assumes one sun)
 >   is a slate, not this build. No content stands on a second planet yet.
-> - Sequenced after drive step 18.
+> - ⛔ **Parked for merge (owner, 2026-10-24):** sugar blocks harbors-and-boats.
+>   It changes nothing today (one planet), so it lives in
+>   [the-world-slate § 7](../slates/tails/the-world-slate.md), not this MR.
 
 **D13 — The hold persists by re-class.** `hesper/hold.yaml` →
 `class: /platform/location/PersistentLocale` (master's kept singleton

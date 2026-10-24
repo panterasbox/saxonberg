@@ -27,7 +27,11 @@ data:
     - { template: /trade/sugar/thing/hogshead, count: 3 }
     - { template: /trade/sugar/thing/curing-pot, count: 3 }
     - /stuff/thing/instrument/thermometer
-    - { template: /stuff/thing/items/dry-log, count: 10 }
+    # A boiling house burned wood by the cord: the train eats ~4.5 kg of oak
+    # an hour at full fire, so thirty logs is a shift's three batches and
+    # the next. (The historical fuel, the mill's dried bagasse carried to
+    # the stoke-hole, is a loop nobody runs yet — a follow-up.)
+    - { template: /stuff/thing/items/dry-log, count: 30 }
     # ⭐ The boiling house's lime store, beside its woodpile: the boiler
     # tempers from what is in reach and only shops when it is gone. Buying
     # from the estate's OWN counter needs the house to have the money,
