@@ -22,8 +22,8 @@ leaks and sinking), compacted against the river build on 2026-10-24.
 ## Staging — one build, two review rounds
 
 **Stage A — the harbor** (the port, berths, mooring, the harbormaster, the
-tide's window, dues, the shipping news, Waponi Woo's quay). It runs on the
-ships that exist today — the *Hesper* and the *Ostrander* — so it stands on
+tide's window, dues, Waponi Woo's quay). It runs on the ships that exist
+today — the *Hesper* and the *Ostrander* — and two regulars it authors, so it stands on
 its own. **Stage B — the boats** (ship kinds built from a floorplan, the yard,
 owned boats, the register of shares under a flag, leaks, sinking, the wreck).
 B's ships berth through A, never the other way round.
@@ -63,8 +63,8 @@ A player can already (survey 2026-10-24):
 
 Therefore what is genuinely new here is: **a port** (berths counted by quay
 length, a harbormaster you hail, mooring by `course`, a way aboard named for
-each ship that comes and goes with her, dues, the tide's window at the bar,
-the shipping news); **many ships from one kind** (each her own rooms, cargo,
+each ship that comes and goes with her, dues, the tide's window at the bar);
+**many ships from one kind** (each her own rooms, cargo,
 name and condition, asleep when nobody is aboard); **owned boats** that ride
 lower as they are loaded; **a register** of title in shares under one flag;
 **a yard** selling ship kinds; and **the hull's decline** — leaks, the bilge,
@@ -84,10 +84,18 @@ herself on the bottom.
   it decides on posted criteria, and the refusal says which.
 - **Dues are derived and paid**: berth dues by the ship's size, at posted
   rates, to the harbor's own account.
-- **The port's arrivals and departures are public** — the shipping news.
+- **The harbor keeps its own record** of who lies alongside which quay, since
+  when, and what she owes — what berths, dues and the harbormaster read.
 - **A ship kind is built many times**: each ship of a kind has her own rooms,
   cargo and name; a ship nobody is aboard sleeps whole and wakes as she was;
   everything survives a restart.
+- **An owned ship answers to her owners**: a majority of shares names her
+  managing owner, the managing owner names her master, and the master (and
+  whoever the master permits) has the helm. Her gangway is the master's to
+  open — closed to strangers until opened.
+- **A ship's hull weathers like a house's shell** — one clock for every
+  structure, read in the same bands, restored by the same upkeep; on a ship a
+  worn hull leaks.
 - **A player can own a ship**: buy one from the yard; she is entered in a
   government's register in the buyer's name; **title is held in shares**
   (sixty-fourths) that can be sold; she flies **one flag at a time**, can be
@@ -113,6 +121,10 @@ herself on the bottom.
 - **Crews, the watch, master and mate, the mariners' guild, shipping as a
   business** → the slate § 15–17 (`trade-seafaring`, the next build).
 - **Insurance, general average, bottomry** → the slate § 17.
+- **The shipping news, ships overdue, and declaring a destination on
+  clearing** → the slate § 18 — ⭐ cut deliberately: nothing a player does
+  today consumes them, and a public feed of players' movements is the kind of
+  thing that waits for real players to design and build.
 - **Pilots as an arrival step, quarantine, customs and smuggling** → the slate
   § 19 (the shipped bar pilot stays as it is).
 - **The sailortown, the lifeboat, the research ship, passengers and cruises**
@@ -131,9 +143,13 @@ herself on the bottom.
 
 ## Placement
 
-- **The port** is a place: a new **harbor district** of the Terminus realm at
-  the estuary mouth, beside the bar (`/world/terminus/harbor`), joined to the
-  estuary. Wharfside stays the river quay; the *Ostrander* berths there.
+- **The port** is a place: a new **harbor district** of the Terminus realm,
+  ⭐ **inside the bar** on the Kestrel's estuary (`/world/terminus/harbor`),
+  joined to the estuary. Its layout: the **Town Quay** (room for about three
+  ships, the harbor office on it), the **Fish Quay** (one), the **Harbor
+  Stairs** (a public landing for boats), and **the roads** outside the bar as
+  the anchorage, reached by boat. Wharfside stays the river quay; the
+  *Ostrander* berths there.
 - **The harbor authority** is the city's existing **harbor works** (a
   committee-appointed business): the harbormaster is a **second seat** there,
   beside the pilot's; dues are paid to the harbor works' account.
@@ -167,6 +183,11 @@ herself on the bottom.
   first).
 - **The harbor works** (Nell Abery, the pilot; the harbor board) gains the
   harbormaster's seat.
+- **Today's ships get owners**: the *Hesper* and **two new regulars** (authored
+  in Stage A, of different lengths, with NPC masters — the port's traffic)
+  belong to a new **shipping line** (a corpo); the *Ostrander* belongs to the
+  **city** (a public river service). Today's *Hesper's company* business is
+  how the line runs her.
 - **The Hesper's bilge pump** (a wearing tool prop today) becomes the pump
   that works her bilge.
 - **Verbs**: `hail` (signal a sail) now also reaches a harbor office;
@@ -179,6 +200,32 @@ herself on the bottom.
   boat shed sells owned boats beside them.
 
 ## Surface decisions
+
+### The port is inside the bar
+Lens 1: a harbor sits inside a bar because the bar shelters it from the sea,
+and the price of the shelter is the tide — a ship whose draught exceeds the
+water over the bar waits for the flood. Mooring is a course to a quay on the
+estuary, the way a river ship comes alongside a landing.
+
+### Owners, the managing owner, the master
+Lens 1 (the historical shape, decided in the slate § 17) and lens 7 (the
+criterion is named): a majority of shares names the managing owner, who names
+the master; the master, and whoever the master permits, takes the helm. A sole
+owner holds all three. Nobody else can set her course.
+
+### The gangway is the master's
+Lens 4 (a ship is property; walking aboard uninvited is trespass) and lens 2
+(enable, never impose): the master opens her to the public, to named people,
+or to nobody. A newly bought ship admits only her owners and master.
+
+### One weathering clock for houses and ships
+The owner's rule: **whatever the rule, it works the same way as residences.**
+A ship's hull is her shell — the same clock (it runs while she sleeps), the
+same bands, the same upkeep act and the same terms of who owes it. What the
+band MEANS differs by kind: a worn house reads worn; a worn hull leaks. A
+sleeping ship's leak catches up when she is next looked at (lens 1): a
+neglected ship at her berth has **settled onto the shallow harbor bottom** and
+can be pumped out; at anchor in deep water she would have sunk.
 
 ### Mooring has no new verb
 `course <quay>` moors her alongside it; any other course unmoors; the way
@@ -246,7 +293,7 @@ an obstruction. Nobody knows where she lies until someone charts her.
    ship kind or register is rows. Bespoke without breaking: an authored ship
    (the *Hesper*) is one kind built once; the yard's catalogue is a stocked
    line anyone can extend.
-3. **Immersion** — a quay full of named ships, the shipping news, a ship that
+3. **Immersion** — a quay full of named ships, a ship that
    goes down slowly while people decide what to save. **Participation** — the
    harbormaster's seat is a job a player can hold; shipowning in shares lets a
    town own a ship together; *can the polity do something we didn't want?* —
@@ -277,7 +324,7 @@ an obstruction. Nobody knows where she lies until someone charts her.
 2. `course <quay>`: she comes in and lies alongside. On the quay, `look` names
    her alongside; the quay's ways include `hesper`. On her deck, `ashore`
    leads to the quay.
-3. A second ship comes alongside the same quay: two ways, each named for its
+3. A second ship (one of the line's two regulars) comes alongside the same quay: two ways, each named for its
    ship. A third, too long for what is left, is sent to the roads by the
    harbormaster, and says so.
 4. A deep ship at low water is told to wait for the flood; at high water she
@@ -285,45 +332,46 @@ an obstruction. Nobody knows where she lies until someone charts her.
 5. Leaving: `course <somewhere>` — the way named for her is gone from the
    quay. The dues are charged to her owner's account and appear in the harbor
    works' books.
-6. Read the shipping news: her arrival and departure are there.
 
 **A2 — sugar's island** (sugar merges before this build starts; driven
 with Stage A)
-7. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
+6. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
     by the way named for her; home again to her berth at Terminus.
 
 ### Stage B — the boats
 
 **B1 — owning a ship**
-8. At the yard, `buy` a ship of a kind (a smack): she is yours, named, lying
+7. At the yard, `buy` a ship of a kind (a smack): she is yours, named, lying
    at the yard's quay; the register lists her in your name, 64 shares, under
    Terminus' flag.
-9. A second player buys another of the same kind: her rooms are hers; what you
-   leave in your hold is not in hers.
-10. Sell 16 shares to the second player; the register shows both owners.
-11. Re-flag her to another government's register; her flown flag can be
+8. A second player buys another of the same kind: her rooms are hers; what you
+   leave in your hold is not in hers. The second player cannot go aboard yours
+   until you open her, and cannot set your course.
+9. Sell 16 shares to the second player; the register shows both owners.
+10. Re-flag her to another government's register; her flown flag can be
     changed separately, and the register still tells the truth.
-12. At sea, ask what law applies aboard: the flag state's. In harbor: both.
-13. Leave her; she sleeps; restart the server; come back: she is where you
-    left her, with what you left in her.
+11. At sea, ask what law applies aboard: the flag state's. In harbor: both.
+12. Leave her; she sleeps; restart the server; come back: she is where you
+    left her, with what you left in her. Come back after weeks of game time:
+    her hull reads worn and she has settled at her berth; pump her out.
 
 **B2 — owning a boat**
-14. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
+13. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
     (`look` says so); overload her in a chop and she swamps.
 
 **B3 — the hull's decline**
-15. Aboard an old ship whose caulking is worn, sound the well: there is water
+14. Aboard an old ship whose caulking is worn, sound the well: there is water
     in the bilge, rising.
-16. `pump` the bilge pump: the level falls while you work; stop, and it rises.
-17. Let it go: the lowest rooms flood, then the next; you are told she is
+15. `pump` the bilge pump: the level falls while you work; stop, and it rises.
+16. Let it go: the lowest rooms flood, then the next; you are told she is
     settling; she goes down.
-18. Still aboard, you are in her rooms under water; swim up the column to the
+17. Still aboard, you are in her rooms under water; swim up the column to the
     surface.
-19. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
+18. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
     the hold — and she is still in your name in the register.
-20. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
+19. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
     with what is in her.
-21. `repair` the caulking on a sound ship: the leak stops.
+20. `repair` the caulking on a sound ship: the leak stops.
 
 ## Acceptance criteria
 
@@ -336,6 +384,10 @@ with Stage A)
 - The harbormaster's refusals name the posted criterion; a player holding the
   seat can make the call the NPC would otherwise make.
 - Berth dues for a stay appear in the owner's account and the harbor works'.
+- Only her master (or whoever the master permits) can set an owned ship's
+  course; a stranger cannot go aboard a ship whose master has not opened her.
+- A ship's hull and a house's shell weather on the same clock and read in the
+  same bands; a neglected ship is found settled at her berth, not vanished.
 - Two ships of one kind keep separate cargo, condition and names, and both are
   as they were after a restart.
 - The register names every ship's owners by shares and her flag state; a sale
