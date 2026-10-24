@@ -57,7 +57,8 @@ describe('the bank', () => {
       waters: Record<string, string>;
       details: Record<string, { keywords: string[] }>;
     };
-    expect(bank.waters).toEqual({ river: 'kestrel:confluence' });
+    // The river build: the stretch the quay stands on, a position on the line.
+    expect(bank.waters).toEqual({ river: 'kestrel:confluence+0.1' });
     expect(bank.details.river!.keywords).toContain('kestrel');
     // ⚠ The Delight is a second water at the confluence; this feature is not it.
     expect(bank.details.river!.keywords).not.toContain('delight');

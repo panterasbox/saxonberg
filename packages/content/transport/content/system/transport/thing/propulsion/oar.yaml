@@ -1,0 +1,14 @@
+# An oar (the river build, D20) — a rowboat's: a long lever on a rowlock,
+# more way for the same arms.
+class: /system/transport/thing/Propulsion
+data:
+  shortDescription: oar
+  keywords: [oar, oars, sweep]
+  register: indefinite
+  longDescription: A spruce oar, its loom leathered where it works in the rowlock.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 3
+  propulsionKind: oar
+  needs: water
+  crewPowered: true
+  efficiency: 0.6

@@ -3,7 +3,7 @@
 # A place that IS the water: three meters over the mud at mean water, more
 # at the flood. What floats here when the tide turns ends up on the
 # strandline.
-class: /platform/location/Pool
+class: /system/water/location/RiverPlace
 data:
   shortDescription: channel
   keywords: [channel, tide, water, "deep water"]
@@ -21,7 +21,13 @@ data:
     x: 3
     y: 1
     z: 0
-  water: { of: /stuff/idea/WaterExpanse/greywater, depthM: 3, feature: channel }
+  # ⭐ The Kestrel's mouth (the river build, D37): the last of the river,
+  # tidal — the flood runs up it and the ebb runs out — and the place the
+  # line hands anything drifting down to the sea into. A ship passes the
+  # bar beyond it in prose; nothing drifts out of it on its own.
+  water: { of: "kestrel:estuary", depthM: 3, feature: channel }
+  river: { course: kestrel, at: estuary-0.3, span: 0.3, name: channel, ends: { upstream: handoff, downstream: end } }
+  current: inherit
   exits:
     south:
       destination: /world/terminus/estuary/estuary-mouth

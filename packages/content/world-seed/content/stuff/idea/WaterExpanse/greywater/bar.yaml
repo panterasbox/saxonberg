@@ -8,7 +8,10 @@
 class: /platform/idea/ExpanseNode
 data:
   name: the bar
-  alternateNames: [bar, estuary bar]
+  alternateNames: [bar, estuary bar, kestrel]
+  # ⭐ The river that comes out here (the river build, D29): a ship lying at
+  # the bar takes `course kestrel` in over it and onto the river's line.
+  river: /stuff/idea/Watercourse/kestrel
   kind: passage
   passage: linear
   along: /stuff/idea/WaterExpanse/greywater/channel

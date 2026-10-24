@@ -1,0 +1,32 @@
+# The woodyard landing — where the Ostrander comes in to wood up (river
+# D29): `buy cordwood` at the woodhawk's rick, `put cordwood in bin`
+# aboard. No verb of its own.
+class: /platform/location/Shore
+data:
+  shortDescription: woodyard landing
+  keywords: [woodyard, landing, yard, rick]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A clearing hacked out of the alders on the left bank, with cordwood stacked in long ricks under bark roofs and a plank stage built out into the river for a steamer to lie against. Smoke goes up from a shack at the back of it, and the woods come down close all round.
+  coords: { x: 0, y: 0, z: 0 }
+  waters:
+    river: "kestrel:confluence-12"
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence-12,left", span: 0.15, name: woodyard }
+  props:
+    - /world/terminus/woodyard/thing/rick
+  cast:
+    - /world/terminus/woodyard/agent/woodhawk
+  details:
+    river:
+      keywords: [river, kestrel, water]
+      description: |
+        The Kestrel slides by the stage, quick and brown, with the alders trailing in it.
+  exits:
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/ostrander/deck
+      edgeMinutes: 1
+      # The way back is her deck's `ashore`, worked out by where she lies;
+      # the deck's row names only her home berth, the city quay.
+      oneWay: true

@@ -449,10 +449,13 @@ export default class LocationGraphRegistry extends Idea {
       if (typeof data.institution === 'string' && placedIn.has(row.path)) {
         add(placeOf(row.path), data.institution, 'institution');
       }
-      if ((typeof data.extent === 'string' || typeof data.expanse === 'string') &&
+      if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string') &&
           row.class && (await this.isStructureClass(row.class))) {
         if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
+        // ⭐ A ship on a river attaches to its LINE as the sea's do to
+        // theirs (river D2): the river loads what is attached to it.
+        if (typeof data.line === 'string') add(data.line, row.path, 'craft');
       }
     }
     this.attachments = next;

@@ -368,6 +368,16 @@ export class WeatherApi {
   }
 
   /**
+   * ⭐ Forget the cached Locality and site of one scope (river risk 2): a
+   * place that MOVES (a reach patch drifting out of one catchment into
+   * another) is re-resolved on its next read instead of keeping the
+   * weather of where it was. A room that does not move never needs this.
+   */
+  public static forgetScope(stuffId: string): void {
+    logic().forgetScope(stuffId);
+  }
+
+  /**
    * A derived sky reading for `look up` / `analyze weather` (Phase H) — the
    * resolved type, its visible cloud form, and whether that form presages a
    * front (a hedged, deterministic forecast tell). Presage-aware only for a

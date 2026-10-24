@@ -1,0 +1,23 @@
+# Fenn's boats — the outfitter's business at the put-in (the river build).
+class: /platform/idea/Business
+data:
+  name: "Fenn's boats"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/rejection/put-in/agent/outfitter
+  call: rota
+  positions:
+    - key: keeper
+      noun: outfitter
+      label: keeping the boat shed
+      wageRate: 4
+  rosterSlots:
+    - positionKey: keeper
+      assignee: /world/terminus/rejection/put-in/agent/outfitter
+      station: /world/terminus/rejection/put-in/landing
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/rejection/put-in/landing
+    - /world/terminus/rejection/put-in/thing/counter

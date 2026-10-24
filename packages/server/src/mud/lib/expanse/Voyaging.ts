@@ -24,9 +24,18 @@
  * the truth exactly as far as the water moved you, and it is what
  * `locate` and `course` report. Fixes collapse it.
  *
- * Composed on `Structure` and the transport pack's `Boat`; needs
- * `PositionedMixin` beneath it (it overrides `getExpansePosition`) and an
- * engaged, persistable host above.
+ * ## ⭐⭐ One craft, either frame (river review, W7)
+ *
+ * The craft never branches on WHERE it is: it asks its `Frame` (the sea's
+ * chart, an `Expanse`; a river's line, a `LineFrame`) to plan a course
+ * (`steer`), where it puts her at a time (`whereAtS`), and what a watch
+ * brought (`Voyage`). What drives her (`burnFor`), how she floats
+ * (`hullNow`) and what a stop does to her (`onStop`) are hers, on either.
+ * The navigator's plot is the one chart-only surface: on a line you always
+ * know where you are (`Frame.reckons`).
+ *
+ * Composed on `Ship` (a `Structure`); needs `PositionedMixin` beneath it
+ * (it overrides the position reads) and an engaged, persistable host above.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -35,8 +44,9 @@ import type { Container } from '../spatial/Container';
 import { GeoPosition } from './GeoPosition';
 import { Plot, type PlotRecord } from './Plot';
 import type { Positioned } from './Positioned';
-import type Band from '../../platform/idea/Band';
-import type ExpanseNode from '../../platform/idea/ExpanseNode';
+import type { Moving } from './Moving';
+import type { LinePositionRecord } from './LineFrame';
+import type { CourseRequest, CraftStop, FramePos, FrameStuff } from './Frame';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
@@ -52,17 +62,66 @@ export interface CourseRecord {
   speedKn: number;
   /** The node it was set for, or `null` for a bare bearing. */
   node: string | null;
+  /**
+   * ⭐ On a river's line (river D18): which way, the landing it was set
+   * for, and the passage the river worked out when it was set.
+   */
+  line?: LineCourse | null;
+}
+
+/** A course on a river: which way, and the landing it was set for (its passage is her trajectory). */
+export interface LineCourse {
+  direction: 'upstream' | 'downstream';
+  landing: string | null;
+  /** Her speed through the water it was planned at, m/s. */
+  throughWaterMps: number;
+}
+
+/** Her hull, as a frame reads it. */
+export interface HullNow {
+  draftM: number;
+  beamM: number;
+  lengthM: number;
 }
 
 export interface Voyaging {
   getCourse(): CourseRecord | null;
   getCourseSetAtS(): number;
   getSpeedKn(): number;
-  /** The true position at `tS` (seconds of game time). */
-  positionAtS(tS: number): GeoPosition | null;
-  /** The reckoning, as a value. */
+  /** Where she was when the course was set — or where she lies — as stored. */
+  getFix(): FramePos | null;
+  /** ⭐ Where her frame puts her at `tS` (seconds of game time). */
+  whereAtS(tS: number): FramePos | null;
+  /** ⭐ Set a course and get under way (or change it under way) — or the frame's refusal. */
+  steer(req: CourseRequest): Promise<StartResult | { refused: string }>;
+  /** Plan the same course on from where it puts her at `fromS` (a bare bearing's horizon). */
+  extendCourse(fromS: number): Promise<boolean>;
+  /** Stop where the craft is. */
+  anchorHere(): Promise<void>;
+  /** Re-anchor the voyage at `nowS` with a new course (or none). */
+  rebase(course: CourseRecord | null, nowS: number): void;
+  /**
+   * Put the craft exactly at `pos`, no course (an arrival, a launch). With
+   * `framePath`, into that frame — off the river's line and onto the sea's
+   * chart at a mouth, or back in over the bar.
+   */
+  placeAt(pos: FramePos, nowS: number, framePath?: string): void;
+  /** The voyage this craft is holding, if any. */
+  currentVoyage(): Voyage | null;
+  aboard(): Promise<Stuff[]>;
+  watchRoom(): Promise<(Stuff & Container) | null>;
+  gearAboard(): Promise<Stuff[]>;
+  /** Her hull as it floats now. */
+  hullNow(): HullNow;
+  /** Burn what drives her over `km`; `false` when there is none left. */
+  burnFor(km: number): Promise<boolean>;
+  /** Her course has come to its stop: what happens to her there, in words. */
+  onStop(stop: CraftStop): Promise<string>;
+  /** Somebody went over her side into the water (river D30). */
+  noteOverboard(who: Stuff): void;
+  /** The navigator's reckoning, as a value (the chart's). */
   getPlot(): Plot | null;
-  /** The reckoned position now. */
+  /** The reckoned position now (the chart's). */
   reckonedNow(): GeoPosition | null;
   /** How uncertain the reckoning is now, nautical miles. */
   reckoningUncertaintyNm(): number;
@@ -70,21 +129,6 @@ export interface Voyaging {
   takeFix(pos: GeoPosition, nm: number): void;
   /** A latitude sight: the reckoning's LATITUDE is corrected, not its longitude. */
   takeLatitude(latDeg: number, nm: number): void;
-  /** Re-anchor the voyage at `nowS` with a new course (or none). */
-  rebase(course: CourseRecord | null, nowS: number): void;
-  /** Put the craft exactly at `pos`, no course (an arrival, a launch). */
-  placeAt(pos: GeoPosition, nowS: number): void;
-  aboard(): Promise<Stuff[]>;
-  watchRoom(): Promise<(Stuff & Container) | null>;
-  gearAboard(): Promise<Stuff[]>;
-  /** Set a course and get under way (or change course under way). */
-  steer(course: CourseRecord): Promise<StartResult>;
-  /** Stop where the craft is. */
-  anchorHere(): Promise<void>;
-  /** The voyage this craft is holding, if any. */
-  currentVoyage(): Voyage | null;
-  /** The live expanse this craft is on, or `null`. */
-  liveExpanse(): Promise<ExpanseFrame | null>;
 }
 
 function numSetting(key: string, fallback: number): number {
@@ -98,7 +142,7 @@ function numSetting(key: string, fallback: number): number {
 }
 
 export function VoyagingMixin<
-  TBase extends MixinConstructor<Stuff & Positioned>,
+  TBase extends MixinConstructor<Stuff & Positioned & Moving>,
 >(Base: TBase) {
   return class VoyagingMixin extends Base implements Voyaging {
     static _mixinName: string = 'VoyagingMixin';
@@ -128,131 +172,44 @@ export function VoyagingMixin<
     getPlot(): Plot | null { return this.plot ? new Plot(this.plot) : null; }
     setPlot(v: PlotRecord | null): void { this.plot = v ?? null; }
 
-    /** The stored fix — where the course was set from. */
-    private storedFix(): GeoPosition | null {
-      return super.getExpansePosition();
+    /** The stored half of the position — Positioned's own record. */
+    getFix(): FramePos | null {
+      const line = super.getLinePosition();
+      if (line !== null) return { frame: 'line', at: line };
+      const chart = super.getExpansePosition();
+      return chart === null ? null : { frame: 'chart', at: chart };
     }
 
-    /** ⭐ While under way the position is DERIVED; at anchor it is the fix. */
+    /** ⭐ Under way the position is read off her trajectory (W10, W11); at rest it is the fix. */
+    whereAtS(tS: number): FramePos | null {
+      return (this as unknown as Moving).trajectoryAt(tS)?.pos ?? this.getFix();
+    }
+
+    private nowS(): number | null {
+      try {
+        return WorldClockApi.getNow().rawValue();
+      } catch {
+        return null;
+      }
+    }
+
     getExpansePosition(): GeoPosition | null {
-      return this.positionAtS(WorldClockApi.getNow().rawValue());
+      const now = this.nowS();
+      const w = now === null ? this.getFix() : this.whereAtS(now);
+      return w?.frame === 'chart' ? w.at : null;
     }
 
-    /**
-     * ⭐ Where she is at `tS` — the drift, STOPPED where a course set for
-     * a node first comes inside its radius (maritime browser walk,
-     * 2026-10-14). Arrival is recorded at the watch beat, but the
-     * position never runs past the place she was making for: without the
-     * stop a craft sailed through Gannet Rock and twelve miles beyond,
-     * then snapped back to it at the beat.
-     */
-    positionAtS(tS: number): GeoPosition | null {
-      const at = this.driftAtS(tS);
-      const node = this.courseNode();
-      if (at === null || node === null) return at;
-      const arrivedS = this.arrivalS(node, tS);
-      return arrivedS === null ? at : this.driftAtS(arrivedS);
-    }
-
-    /** The node the current course was set for, once its sea has compiled. */
-    private courseNode(): ExpanseNode | null {
-      const path = this.course?.node ?? null;
-      if (path === null) return null;
-      const sea = (this as unknown as Positioned).getExpanse();
-      const e = sea ? StuffApi.findByTemplatePath<Stuff>(sea) : null;
-      if (!(e instanceof ExpanseFrame)) return null;
-      return e.peekNodes().find((n) => n.getTemplatePath() === path) ?? null;
-    }
-
-    /** Runtime memo of {@link arrivalS} for the course it was computed for. */
-    private arrivalMemo: { key: string; arrivedS: number | null; clearUntilS: number } | null = null;
-
-    /**
-     * The first game-second at or before `tS` the drift comes inside
-     * `node`'s radius, or `null` when it has not. Sampled at a step well
-     * inside the radius, then bisected; remembered per course, so a later
-     * read only scans the time since the last one.
-     */
-    private arrivalS(node: ExpanseNode, tS: number): number | null {
-      const target = node.getExpansePosition();
-      const course = this.course;
-      if (target === null || course === null) return null;
-      const key = `${this.courseSetAtS}|${course.node}|${course.bearingDeg}|${course.speedKn}`;
-      if (this.arrivalMemo?.key !== key) {
-        this.arrivalMemo = { key, arrivedS: null, clearUntilS: this.courseSetAtS };
-      }
-      const memo = this.arrivalMemo;
-      if (memo.arrivedS !== null) return memo.arrivedS <= tS ? memo.arrivedS : null;
-      if (tS <= memo.clearUntilS) return null;
-      const within = node.getArrivalNm();
-      const inside = (t: number): boolean => {
-        const p = this.driftAtS(t);
-        return p !== null && p.distanceNm(target) <= within;
-      };
-      // Half the radius at the fastest she can be carried: no crossing of
-      // the circle is stepped over.
-      const knots = Math.max(0.1, course.speedKn + 5);
-      const stepS = Math.max(30, ((within / 2) / knots) * 3600);
-      let lo = memo.clearUntilS;
-      while (lo < tS) {
-        let hi = Math.min(lo + stepS, tS);
-        if (inside(hi)) {
-          // Bisect to the second she crosses into the radius.
-          for (let i = 0; i < 24 && hi - lo > 1; i++) {
-            const mid = (lo + hi) / 2;
-            if (inside(mid)) hi = mid;
-            else lo = mid;
-          }
-          memo.arrivedS = hi;
-          return hi;
-        }
-        lo = hi;
-      }
-      memo.clearUntilS = tS;
-      return null;
-    }
-
-    /** The drift: fix + course × time + the set of every band crossed. */
-    private driftAtS(tS: number): GeoPosition | null {
-      const fix = this.storedFix();
-      const course = this.course;
-      if (fix === null || course === null || tS <= this.courseSetAtS) return fix;
-      const hours = (tS - this.courseSetAtS) / 3600;
-      const nominal = course.speedKn * hours;
-      const end = fix.destination(course.bearingDeg, nominal);
-      const bands = this.liveBands();
-      if (bands.length === 0) return end;
-
-      // Split the undisplaced track at every boundary it meets; in each
-      // piece the NARROWEST band containing it owns the set and the way.
-      const cuts = new Set<number>([0, 1]);
-      for (const b of bands) for (const c of b.crossings(fix, end)) cuts.add(c.t);
-      const ts = [...cuts].sort((a, b) => a - b);
-      let along = 0;
-      let north = 0;
-      let east = 0;
-      for (let i = 0; i + 1 < ts.length; i++) {
-        const t0 = ts[i]!;
-        const t1 = ts[i + 1]!;
-        const frac = t1 - t0;
-        if (frac <= 0) continue;
-        const mid = fix.lerp(end, (t0 + t1) / 2);
-        const band = narrowest(bands, mid);
-        along += nominal * frac * (band?.getCost().wayFactor ?? 1);
-        const setKn = band?.getSetKn() ?? 0;
-        if (band && setKn !== 0) {
-          const dist = setKn * hours * frac;
-          const dir = (band.getDirection() * Math.PI) / 180;
-          north += dist * Math.cos(dir);
-          east += dist * Math.sin(dir);
-        }
-      }
-      return fix.destination(course.bearingDeg, along).displaced(north, east);
+    getLinePosition(): LinePositionRecord | null {
+      const now = this.nowS();
+      const w = now === null ? this.getFix() : this.whereAtS(now);
+      return w?.frame === 'line' ? { ...w.at } : null;
     }
 
     reckonedNow(): GeoPosition | null {
+      const fix = this.getFix();
+      if (fix?.frame !== 'chart') return null;
       const plot = this.getPlot();
-      if (plot === null) return this.storedFix();
+      if (plot === null) return fix.at;
       const course = this.course;
       return plot.reckonedAt(
         WorldClockApi.getNow().rawValue(),
@@ -289,51 +246,70 @@ export function VoyagingMixin<
     }
 
     /**
-     * Re-anchor: the fix becomes where the craft truly is now, the
-     * reckoning is carried forward to now, and the course is replaced.
-     * The ONE writer of the voyage triple; `Voyage` and the verbs call it.
+     * Re-anchor: the fix becomes where the craft truly is now (and on the
+     * chart the reckoning is carried forward to now), and the course is
+     * replaced. The ONE writer of the voyage triple; `Voyage` and the verbs
+     * call it.
      */
     rebase(course: CourseRecord | null, nowS: number): void {
-      const truth = this.positionAtS(nowS);
-      const reckoned = this.reckonedNow();
-      const nm = this.reckoningUncertaintyNm();
-      if (truth !== null) super.setExpansePosition(truth);
-      if (reckoned !== null) {
-        this.plot = { fix: reckoned.toJSON(), atS: nowS, nm };
+      const here = this.whereAtS(nowS);
+      if (here?.frame === 'line') {
+        (this as unknown as Positioned).placeOnLine((this as unknown as Positioned).getLine(), here.at);
+      } else if (here?.frame === 'chart') {
+        const reckoned = this.reckonedNow();
+        const nm = this.reckoningUncertaintyNm();
+        super.setExpansePosition(here.at);
+        if (reckoned !== null) this.plot = { fix: reckoned.toJSON(), atS: nowS, nm };
       }
       this.course = course ? { ...course } : null;
       this.courseSetAtS = nowS;
+      if (course === null) (this as unknown as Moving).setTrajectory(null, true);
     }
 
-    /**
-     * Put the craft exactly at `pos` with no course — an arrival snapping
-     * to its node, a boat put over the side. The reckoning is corrected
-     * too: you know where you are when you are somewhere.
-     */
-    placeAt(pos: GeoPosition, nowS: number): void {
-      super.setExpansePosition(pos);
+    placeAt(pos: FramePos, nowS: number, framePath?: string): void {
+      const p = this as unknown as Positioned;
+      if (pos.frame === 'chart') {
+        if (framePath !== undefined) {
+          p.placeOnLine(null, null);
+          p.setExpanse(framePath);
+        }
+        super.setExpansePosition(pos.at);
+        // You know where you are when you are somewhere.
+        this.plot = { fix: pos.at.toJSON(), atS: nowS, nm: 0 };
+      } else {
+        if (framePath !== undefined) {
+          super.setExpansePosition(null);
+          p.setExpanse(null);
+          this.plot = null;
+        }
+        p.placeOnLine(framePath ?? p.getLine(), pos.at);
+      }
       this.course = null;
       this.courseSetAtS = nowS;
-      this.plot = { fix: pos.toJSON(), atS: nowS, nm: 0 };
+      (this as unknown as Moving).setTrajectory(null, true);
     }
 
     /**
      * Everyone aboard who can be told what the water is doing.
      *
      * @hook Invoked by `Voyage` on every beat. Default: nobody. A
-     *   Structure answers the occupants of its member rooms; a boat its
-     *   own contents.
+     *   Structure answers the occupants of its member places.
      */
     async aboard(): Promise<Stuff[]> {
       return [];
+    }
+
+    /** Whoever is aboard is who a moving ship tells (Moving's audience). */
+    async audience(): Promise<Stuff[]> {
+      return this.aboard();
     }
 
     /**
      * Where the watch is kept — the deck. A watch is MANNED when a living,
      * conscious body stands in it.
      *
-     * @hook Invoked by `Voyage` on every beat. Default `null` (never
-     *   manned). A Structure answers its entrance room; a boat itself.
+     * @hook Invoked by the frame's watch. Default `null` (never manned). A
+     *   Structure answers its entrance room.
      */
     async watchRoom(): Promise<(Stuff & Container) | null> {
       return null;
@@ -343,35 +319,66 @@ export function VoyagingMixin<
      * The gear an unattended watch wears — the `Durable` goods exposed on
      * deck.
      *
-     * @hook Invoked by `Voyage` on every beat. Default: none.
+     * @hook Invoked by the frame's watch. Default: none.
      */
     async gearAboard(): Promise<Stuff[]> {
       return [];
     }
 
     /**
-     * ⭐ Set a course: the fix becomes where the craft truly is now, the
-     * reckoning carries forward, the craft registers on its expanse, and a
-     * voyage starts (replacing any it was already holding). Persisted at
-     * once — a course is a fact that must survive a restart.
+     * ⭐ Set a course: her frame plans it from where she truly is now (or
+     * refuses it in its own words), the fix moves to now, and a voyage
+     * starts (replacing any she was holding). Persisted at once — a course
+     * is a fact that must survive a restart.
      */
-    async steer(course: CourseRecord): Promise<StartResult> {
-      const expanse = await this.liveExpanse();
-      if (expanse === null) throw new Error('steer: the craft is on no expanse');
-      await expanse.bands();
+    async steer(req: CourseRequest): Promise<StartResult | { refused: string }> {
+      const frame = await (this as unknown as Positioned).liveFrame();
+      if (frame === null) return { refused: 'There is no water under her to set a course on.' };
+      await frame.ready();
       const nowS = WorldClockApi.getNow().rawValue();
+      const planned = await frame.planCourse(this as unknown as Craft, req, this.hullNow(), nowS);
+      if ('refused' in planned) return planned;
       this.endVoyage('replaced');
-      this.rebase(course, nowS);
-      expanse.register(this as unknown as Stuff & Positioned);
+      this.rebase(planned.course, nowS);
+      // ⭐ A course somebody set is touched (D43): it persists with her.
+      (this as unknown as Moving).setTrajectory(planned.trajectory, true);
       const started = SchedulerApi.start(new Voyage(this as unknown as Craft));
       this.persistNow();
       return started;
     }
 
+    /**
+     * ⭐ Her course is running past what was planned of it (a bare
+     * bearing's horizon, W11): plan the same course on from where it puts
+     * her at `fromS` (its end), and keep the voyage she is holding.
+     */
+    async extendCourse(fromS: number): Promise<boolean> {
+      const nowS = fromS;
+      const course = this.course;
+      const frame = await (this as unknown as Positioned).liveFrame();
+      if (course === null || frame === null) return false;
+      await frame.ready();
+      const planned = await frame.planCourse(
+        this as unknown as Craft,
+        {
+          speedKn: course.speedKn,
+          bearingDeg: course.bearingDeg,
+          toward: course.node ?? course.line?.landing ?? null,
+          ...(course.line ? { direction: course.line.direction } : {}),
+        },
+        this.hullNow(),
+        nowS,
+      );
+      if ('refused' in planned) return false;
+      this.rebase(planned.course, nowS);
+      (this as unknown as Moving).setTrajectory(planned.trajectory, true);
+      this.persistNow();
+      return true;
+    }
+
     /** Stop: the fix is where the craft truly is; the voyage ends `anchored`. */
     async anchorHere(): Promise<void> {
-      const expanse = await this.liveExpanse();
-      if (expanse) await expanse.bands();
+      await (await (this as unknown as Positioned).liveFrame())?.ready();
       this.rebase(null, WorldClockApi.getNow().rawValue());
       this.endVoyage('anchored');
       this.persistNow();
@@ -384,20 +391,50 @@ export function VoyagingMixin<
       return (v as Voyage | undefined) ?? null;
     }
 
-    async liveExpanse(): Promise<ExpanseFrame | null> {
-      const path = (this as unknown as Positioned).getExpanse();
-      if (!path) return null;
-      try {
-        const s = await StuffApi.singleton<Stuff>(path);
-        return s instanceof ExpanseFrame ? s : null;
-      } catch {
-        return null;
-      }
+    /**
+     * Her hull as it floats now.
+     *
+     * @hook A ship answers her own, laden. Default: a small boat's.
+     */
+    hullNow(): HullNow {
+      return { draftM: 0.3, beamM: 1.5, lengthM: 5 };
+    }
+
+    /**
+     * Burn what drives her over `km` — at sea or on a river.
+     *
+     * @hook A steamer burns cordwood from her bunker. Default: nothing to
+     *   burn (sail, oar), always enough.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async burnFor(_km: number): Promise<boolean> {
+      return true;
+    }
+
+    /**
+     * ⭐ Her course has come to its stop (D28, D29; an arrival at a node):
+     * what happens to her there, in words for whoever is aboard. She is
+     * already placed where it says.
+     *
+     * @hook A ship marks herself aground or holed, or comes out onto the
+     *   sea at a river's mouth. Default: the frame's own words.
+     */
+    async onStop(stop: CraftStop): Promise<string> {
+      return stop.words;
+    }
+
+    /**
+     * Somebody went over her side — the deck's way into the water says so.
+     * @hook A ship keeps who is in the water off her, and her `course`
+     *   waits for them (river D30). Default: nobody is kept.
+     */
+    noteOverboard(who: Stuff): void {
+      void who;
     }
 
     /**
      * ⭐ Re-establish the voyage when she LOADS (maritime D6; since the
-     * 2026-10-14 review nothing loads her at boot — her zone or her sea
+     * 2026-10-14 review nothing loads her at boot — her zone or her frame
      * does, when somebody comes aboard or within sight): the three fields
      * are back, so the voyage is too — if a course was set the engagement
      * starts again with the position already wherever the clock has
@@ -406,28 +443,23 @@ export function VoyagingMixin<
     async onRestored(): Promise<void> {
       const inner = (super.onRestored as unknown as (() => Promise<void>) | undefined);
       if (typeof inner === 'function') await inner.call(this);
-      if (this.storedFix() === null) return;
-      const expanse = await this.liveExpanse();
-      if (expanse === null) return;
-      // ⚠ Not `await expanse.bands()`: the expanse's own compile stands
-      // its ships up, so a ship restored DURING that compile would wait
-      // on the compile that is waiting on it. The first watch loads the
-      // bands; the derived position reads them once they are there. Kick
-      // the compile without waiting on it — it registers every SHIP sited
-      // on the sea (a Structure with a deck), at anchor or not; a building
-      // (a light on a rock) is never registered as craft.
-      void expanse.bands();
-      if (this.course !== null && this.currentVoyage() === null) {
-        expanse.register(this as unknown as Stuff & Positioned);
-        const voyage = new Voyage(this as unknown as Craft);
-        SchedulerApi.start(voyage);
-        // ⭐ Nothing kept her loaded while nobody was aboard or in sight
-        // (maritime review, 2026-10-14 — no ship is booted), so the time
-        // she was away is worked out NOW: her position is already derived
-        // (and stops at the node she was making for), and one watch at
-        // load records the arrival and the wear.
-        void voyage.watch();
+      if (this.getFix() === null) return;
+      const frame = await (this as unknown as Positioned).liveFrame();
+      if (frame === null) return;
+      // ⚠ Never awaited: the sea's own compile stands its ships up, so a
+      // ship restored DURING that compile would wait on the compile that is
+      // waiting on it. The first watch loads what positions read.
+      if (this.course === null || this.currentVoyage() !== null) {
+        void frame.ready();
+        return;
       }
+      frame.adopt(this as unknown as Craft);
+      const voyage = new Voyage(this as unknown as Craft);
+      SchedulerApi.start(voyage);
+      // ⭐ Nothing kept her loaded while nobody was aboard or in sight, so
+      // the time she was away is worked out NOW: one watch at load records
+      // the arrival, the stop and the wear.
+      void voyage.watch();
     }
 
     private endVoyage(reason: 'anchored' | 'replaced'): void {
@@ -442,22 +474,5 @@ export function VoyagingMixin<
         console.warn('Voyaging: capture failed:', err),
       );
     }
-
-    /** The bands of this craft's expanse, if it is resident and compiled. */
-    private liveBands(): Band[] {
-      const path = (this as unknown as Positioned).getExpanse();
-      if (!path) return [];
-      const e = StuffApi.findByTemplatePath<Stuff>(path);
-      return e instanceof ExpanseFrame ? e.peekBands() : [];
-    }
   };
-}
-
-function narrowest(bands: Band[], pos: GeoPosition): Band | null {
-  let best: Band | null = null;
-  for (const b of bands) {
-    if (!b.contains(pos)) continue;
-    if (best === null || b.area() < best.area()) best = b;
-  }
-  return best;
 }

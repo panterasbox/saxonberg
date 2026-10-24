@@ -51,9 +51,9 @@ export type ControlKind = 'dam' | 'headgate' | 'weir' | 'sluice';
 
 /** What a control did to the water arriving at it. */
 export interface ControlSplit {
-  /** Cubic metres per second continuing down the same course. */
+  /** Cubic meters per second continuing down the same course. */
   passedM3S: number;
-  /** Cubic metres per second sent to {@link ControlStructure.divertsTo}. */
+  /** Cubic meters per second sent to {@link ControlStructure.divertsTo}. */
   divertedM3S: number;
   /** Watts generated on the way through, or 0 without a head. */
   generatedW: number;
@@ -65,6 +65,7 @@ export default class ControlStructure extends ControlStructureBase {
   static fieldMeta: FieldMeta = {
     controlKind: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
+    at: { persistent: true, authorable: true },
     passFraction: { persistent: true, authorable: true },
     divertsTo: { persistent: true, authorable: true },
     headM: { persistent: true, authorable: true },
@@ -77,6 +78,22 @@ export default class ControlStructure extends ControlStructureBase {
 
   /** The reach it sits on. */
   public reachRef = '';
+
+  /**
+   * ⭐ Where on the river it sits (river D3) — `kestrel:confluence+0.05,left`.
+   * The node in {@link reachRef} keeps the works' index; this is its own
+   * position on the line (an intake really is 100 m above the outfall), and
+   * a weir's hydraulic forms just below it. `''` = at the node.
+   */
+  public at = '';
+
+  /** Where on the line this work sits, or its node when it says nothing. */
+  public getAt(): string {
+    return this.at !== '' ? this.at : this.reachRef;
+  }
+  public setAt(value: string): void {
+    this.at = typeof value === 'string' ? value : '';
+  }
 
   /**
    * The fraction of arriving flow that continues down the same course,
@@ -98,7 +115,7 @@ export default class ControlStructure extends ControlStructureBase {
   public divertsTo = '';
 
   /**
-   * Metres of fall the structure commands, for generation.
+   * Meters of fall the structure commands, for generation.
    *
    * ⚠ **Fixed per structure, at construction** (plan § P0). A dam's
    * head is a fact about the dam, not a live elevation lookup, so the

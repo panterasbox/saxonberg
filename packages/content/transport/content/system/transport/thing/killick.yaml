@@ -1,0 +1,10 @@
+# A killick (the river build, D23) — a stone lashed in a frame of sticks on
+# a line: a small boat's anchor. Holds in slack water; drags in a current.
+class: /system/transport/thing/Killick
+data:
+  shortDescription: killick
+  keywords: [killick, anchor, stone]
+  register: indefinite
+  longDescription: A river stone the size of a loaf, caged in a frame of bent withies on a coil of line.
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 6

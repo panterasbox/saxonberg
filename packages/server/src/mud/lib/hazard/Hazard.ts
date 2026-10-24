@@ -308,6 +308,29 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.applyTraverseConsequence(mover);
     }
 
+    /**
+     * ⭐ A mover has come within this hazard's reach (river D12) — the
+     * reserved `proximity` trigger, handled. The HOST that moves things
+     * decides when a mover is near (a river's drift passing the hazard on
+     * its side); the hazard decides what happens.
+     * @hook Override for a hazard whose outcome depends on HOW it is met
+     *   (`context.approach`) — a river's strainer. Default: the traversal
+     *   resolution without the medium's clearance (a swim does not clear a
+     *   water hazard).
+     */
+    public resolveProximity(
+      mover: Stuff,
+      context: { approach: 'head-first' | 'feet-first' | 'passive' },
+    ): void {
+      void context;
+      if (!this.isArmed() || this.trigger !== 'proximity') return;
+      if (this.delivery.isRanged()) return;
+      this.spring();
+      this.narrateSpring(mover);
+      this.deliverHarm(mover);
+      this.applyTraverseConsequence(mover);
+    }
+
     public resolveInteract(actor: Stuff): void {
       if (!this.isArmed() || this.trigger !== 'interact') return;
       this.spring();
@@ -324,7 +347,7 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
      * beat a trap needs. The victim gets the authored `springMessage` if set,
      * else a generic line; witnesses always get a generic one.
      */
-    private narrateSpring(victim: Stuff): void {
+    protected narrateSpring(victim: Stuff): void {
       const authored = this.springMessage.trim();
       MessageApi.scene(victim)
         .topic('act.deed')
@@ -465,15 +488,21 @@ export function HazardMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
-    /** Snare — hold the mover's `body` slot for `hazard.pinSeconds`. */
-    private applyPin(mover: Stuff): void {
+    /**
+     * Snare — hold the mover's `body` slot for `hazard.pinSeconds` × `factor`
+     * (a river's strainer holds longer than a snare). `onFree` runs when the
+     * pin ends on its own.
+     */
+    protected applyPin(mover: Stuff, factor = 1, onFree?: () => void): void {
       if (!MixinApi.isEngaged(mover)) return;
       const activity = new HazardActivity({
         actor: mover,
         type: HAZARD_PIN_TYPE,
-        durationMs: this.pinSeconds() * 1000,
+        durationMs: this.pinSeconds() * Math.max(0.1, factor) * 1000,
         slots: ['body'],
-        onComplete: (): void => {},
+        onComplete: (): void => {
+          onFree?.();
+        },
         onAbort: (_reason: AbortReason): void => {},
       });
       SchedulerApi.start(activity);

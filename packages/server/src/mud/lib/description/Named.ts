@@ -147,7 +147,7 @@ export interface Named {
   getFullName(): string;
 
   getAlternateNames(kind?: NameKind): AlternateName[];
-  setAlternateNames(alts: AlternateName[]): void;
+  setAlternateNames(alts: ReadonlyArray<AlternateName | string>): void;
   addAlternateName(alt: AlternateName): void;
   removeAlternateName(value: string): boolean;
   hasAlternateName(value: string): boolean;
@@ -267,8 +267,17 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.alternateNames.filter((a) => a.kind === kind);
     }
 
-    setAlternateNames(alts: AlternateName[]): void {
-      this.alternateNames = alts.map(({ kind, value }) => ({ kind, value }));
+    /**
+     * ⭐ A row may author a bare word (`alternateNames: [road, reach]`) — it
+     * is an `alias`. Destructured as a record, a string came out as
+     * `{ kind: undefined, value: undefined }`, so all 79 rows written that
+     * way answered to none of their names (found by the river's browser
+     * walk: `course kestrel` at the bar).
+     */
+    setAlternateNames(alts: ReadonlyArray<AlternateName | string>): void {
+      this.alternateNames = alts
+        .map((a): AlternateName => (typeof a === 'string' ? { kind: 'alias', value: a } : { kind: a.kind, value: a.value }))
+        .filter((a) => typeof a.value === 'string' && a.value !== '');
     }
 
     addAlternateName(alt: AlternateName): void {

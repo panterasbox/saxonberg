@@ -1,0 +1,18 @@
+# A ferry (the river build, D31): a flat, square-ended scow big enough to
+# take a wagon and its team, poled across a river and back. ⭐ A KIND row of
+# the transport pack (D38), propped at whichever landing it works from; the
+# crossing itself is the landing's `FerryExit`.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: ferry
+  keywords: [ferry, scow, flat, boat]
+  register: indefinite
+  longDescription: |
+    A broad flat scow of tarred planking with a ramp at each end and a rail down both sides, big enough for a loaded wagon and its team, and a long ash pole lying along the rail.
+  eyeHeightM: 1
+  heightM: 1.5
+  mass: 900
+  _materialPath: /stuff/idea/material/wood/oak
+  hull: { form: flat, draftM: 0.3, beamM: 3.5, lengthM: 9, freeboardM: 0.5, capacityKg: 3000 }
+  props:
+    - /system/transport/thing/propulsion/pole

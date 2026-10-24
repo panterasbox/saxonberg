@@ -18,7 +18,20 @@ import type { Voyaging } from '../../../../lib/expanse/Voyaging';
 
 export default class AnchorController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
-    const craft = await this.craftOf(context.commandGiver);
+    // ⭐ A small boat's anchor (river D23): the boat you are sitting in lets
+    // go her own — a killick — when she carries one. The act is the same as
+    // a ship's; what affords it differs.
+    const giver = context.commandGiver;
+    const boat = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    if (boat !== null && MixinApi.isSmallCraft(boat)) {
+      const out = await boat.letGoAnchor(giver);
+      if (out !== null) {
+        if (!out.ok) return this.decline(context, out.line, 'anchor-drags');
+        MessageApi.scene(giver).topic('act.move').toSelf(Mml.compose`${out.line}`).send();
+        return;
+      }
+    }
+    const craft = await this.craftOf(giver);
     if (craft === null) {
       return this.decline(context, 'You are not aboard anything that sails.', 'not-aboard');
     }

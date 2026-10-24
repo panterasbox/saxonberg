@@ -81,7 +81,7 @@ settings:
   # ── ice on a still reach (the climate build) ─────────────────────
   # Running water does not freeze over here: at or above this current
   # (m/s) a reach reads `running`. ⭐ 0.5 (storage-and-ice D14): rivers
-  # freeze over at currents up to about half a metre a second; only fast,
+  # freeze over at currents up to about half a meter a second; only fast,
   # turbulent water stays open (0.1 left most slow rivers open all winter).
   # The thin place over a current is the watershed slate's.
   - key: water.ice.stillWaterMps
@@ -98,7 +98,7 @@ settings:
   - key: water.ice.growthUnderSnow
     value: "0.017"
 
-  # Thaw: metres of sheet lost per kelvin above freezing per day.
+  # Thaw: meters of sheet lost per kelvin above freezing per day.
   - key: water.ice.meltMPerKd
     value: "0.005"
 
@@ -107,7 +107,7 @@ settings:
   - key: water.ice.rotTddK
     value: "10"
 
-  # Gold's formula: a sheet bears σ·h² (kg, h in metres) — a person at
+  # Gold's formula: a sheet bears σ·h² (kg, h in meters) — a person at
   # 6 cm, a horse at 14, a loaded cart at 20. The ice trade's margins are
   # its own.
   - key: water.ice.bearingKgPerM2
@@ -177,10 +177,10 @@ settings:
   - key: water.fishery.readDiscipline
     value: "/trade/fishing/idea/Discipline/fishing"
 
-  # Kilometres of river a reach stands for, for capacity:
+  # Kilometers of river a reach stands for, for capacity:
   # `round(fit × abundance × reachLengthKm)`. Abundance is authored per
   # species per km; this is the one number that scales every reach.
-  # ⭐ ONE kilometre — the stretch you can fish from where you stand, not
+  # ⭐ ONE kilometer — the stretch you can fish from where you stand, not
   # the whole reach between two nodes: at 3 the confluence held eight
   # hundred fish and no net could empty it in an afternoon (the drive).
   # ⭐ How many fish a 0.1° cell of open sea holds at a band's full
@@ -213,3 +213,28 @@ settings:
     value: "15"
   - key: water.fishery.brackishBelowM
     value: "50"
+
+  # ── the river as a line (the river build) ─────────────────────────
+  # ⭐ The step–pool distribution: a river's drop is concentrated in its
+  # steps and the pools between are nearly flat. A reach of gradient S puts
+  # (S − pool) / (step − pool) of its length in steps; the crossings between
+  # bends take the steps first (riffles), the rest are rapids.
+  - key: water.river.poolGradient
+    value: "0.0003"
+  - key: water.river.stepGradient
+    value: "0.02"
+  # A step steeper than this is white water, not a riffle.
+  - key: water.river.rapidGradient
+    value: "0.012"
+  # The share of each bend the crossing (the riffle) occupies.
+  - key: water.river.crossingFraction
+    value: "0.3"
+  # Fallen trees across the outside of wooded bends, per km of river.
+  - key: water.river.strainerPerKm
+    value: "0.4"
+  # ⭐ A spring river holds near the ground's temperature (282 K) for its
+  # first tens of km, warming toward the air's below that.
+  - key: water.river.springK
+    value: "282"
+  - key: water.river.springMixKm
+    value: "30"

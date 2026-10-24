@@ -209,7 +209,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // forever), a linear node's `along` the band it rides, a Structure's
     // `entrance` and `house` the deck and the roster that mans it, a
     // positioned thing's `expanse` the sea it is on, a chart's or a
-    // pilot's `of` the sea they know.
+    // pilot's `of` the sea they know. ⭐ The river build's: a ship's `line`
+    // the river she is on, her `bunker` the bin her fire is fed from, and
+    // a mouth node's `river` the river that comes out there, a ferry
+    // crossing's `ferry` the boat that works it and its `service` the
+    // timetable it runs to (W12).
     'destination', 'along', 'entrance', 'house', 'expanse', 'of',
     // ⭐ The mixing citations (ceramics R1): what a vessel's blend IS and
     // the row a solid blend is minted as. Resolved live at the end of a
@@ -228,6 +232,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // its cast (its sand, its wax), and what a blank struck on a die
     // becomes. Resolved live at the cast and the blow.
     'breaksTo', 'strikes',
+    'line', 'bunker', 'river', 'ferry', 'service',
   ] as const) {
     push(f, data[f]);
   }
@@ -235,7 +240,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // structures, and the rows a chart or pilot's `entries` cite. A rowless
   // one is a sight-line to nothing. (A `horizon` names ZONES, which are
   // rows too.)
-  for (const f of ['endpoints', 'featured', 'horizon'] as const) {
+  // ⭐ (W12) A timetabled service's `landings` — a rowless one is a boat
+  // that leaves from nowhere.
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   if (Array.isArray(data.entries)) {
@@ -248,6 +255,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // silently falls back to the universe default: the room would quietly
   // be made of something else and nothing would say so. `lint:envelope`
   // clause (b) additionally checks the material CONDUCTS.
+  // ⭐ (W13) A fixed place's `frameSite.frame` — the frame it stands on; a
+  // rowless one is a quay on a river that is not there.
+  if (data.frameSite && typeof data.frameSite === 'object') {
+    push('frameSite', (data.frameSite as Record<string, unknown>).frame);
+  }
   if (data.enclosure && typeof data.enclosure === 'object') {
     push('enclosure', (data.enclosure as Record<string, unknown>).material);
   }
@@ -573,6 +585,26 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
         if (stock && typeof stock === 'object') {
           push('nodes.stocks.species', (stock as Record<string, unknown>).species);
         }
+      }
+    }
+  }
+  /*
+   * ⭐ A Watercourse's `places[]` (the river build, D7/D8) — the authored
+   * places on its line. A rowless one is a quay the river passes without
+   * ever handing anybody in.
+   */
+  const places = data.places;
+  if (Array.isArray(places)) for (const p of places) push('places', p);
+  /*
+   * ⭐ A Watercourse's authored `hazards[].row` (the river build) — an
+   * authored strainer or hydraulic naming its own row. A rowless one is a
+   * hazard the drift meets and nothing can stand up.
+   */
+  const hazards = data.hazards;
+  if (Array.isArray(hazards)) {
+    for (const h of hazards) {
+      if (h && typeof h === 'object' && typeof (h as Record<string, unknown>).row === 'string') {
+        push('hazards.row', (h as Record<string, unknown>).row);
       }
     }
   }

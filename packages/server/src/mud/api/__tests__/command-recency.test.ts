@@ -326,6 +326,51 @@ describe('affordance reach — recursion and adjacency', () => {
   });
 });
 
+describe('affordance reach — inside a container that moves', () => {
+  beforeEach(() => {
+    CommandApi.clearCache();
+  });
+
+  /** A boat: what is in it is offered what it affords to those inside. */
+  const HullBase = ContainerMixin(ContainableMixin(Idea));
+  class Hull extends HullBase {
+    static commandContributions = {
+      self: [],
+      inventory: ['platform/cmd/system/ping.yaml'],
+      environment: [],
+      peers: [],
+    };
+  }
+
+  /**
+   * ⭐ River C22, found by the browser walk: a canoe launched with you in
+   * it took her killick's `anchor` away from you while you sat beside it.
+   * The move reset everything the subtree held sideways and re-pushed only
+   * from the destination — never from what moved WITH you.
+   */
+  it('a giver keeps its neighbors and its container when the container is carried somewhere else', () => {
+    const shore = makeStuff(() => new Place());
+    const water = makeStuff(() => new Place());
+    const boat = makeStuff(() => new Hull());
+    const killick = makeStuff(() => new EnvProvider());
+    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
+    ContainmentApi.move(boat, shore as never);
+    ContainmentApi.move(killick, boat as never);
+    ContainmentApi.move(giver, boat as never);
+    giver.getAvailableCommands();
+    const held = (): string[] =>
+      stackOf(giver)
+        .filter((e) => e.source === (killick as never) || e.source === (boat as never))
+        .map((e) => e.bucket)
+        .sort();
+    expect(held()).toEqual(['inventory', 'peers']);
+
+    ContainmentApi.move(boat, water as never);
+
+    expect(held()).toEqual(['inventory', 'peers']);
+  });
+});
+
 describe('affordance reach — peers one hop away', () => {
   beforeEach(() => {
     // A door is a boundary and a boundary's anchors are clones now.

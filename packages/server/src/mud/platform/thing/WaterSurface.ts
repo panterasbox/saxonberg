@@ -73,6 +73,20 @@ export default class WaterSurface extends FloorBase {
   }
 
   /**
+   * ⭐ Finding your feet — the mirror of {@link giveWay}: whoever the bed
+   * now holds is standing, no longer swimming, so the way out is walked
+   * (river drive, step 4: a swimmer who stood in the shallows kept the
+   * swim mode, and every bank refused them as water too rough to swim).
+   */
+  public override occupy(candidate: Stuff & Slottable, slot: string): void {
+    super.occupy(candidate, slot);
+    if (slot !== GROUND_SLOT || !MixinApi.isMobile(candidate)) return;
+    if (candidate.getEngagedMode()?.getMedium() !== 'water') return;
+    const walk = LocomotionApi.modeOf('walk');
+    if (walk) candidate.setEngagedMode(walk);
+  }
+
+  /**
    * ⭐ The drop. Off the slot if held, the swim mode engaged (what the
    * sense consumers read), soaked through — body and every worn layer —
    * and told so. `deliberate` is going in on purpose (`swim` with no

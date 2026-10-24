@@ -1,0 +1,17 @@
+# A river's hydraulic (the river build, D12) — met by the drift on its side of
+# the river; how you meet it decides what it does. Placed in the stop at
+# its position by the river's warren; never spent.
+class: /system/water/thing/RiverHazard
+data:
+  shortDescription: boil below the weir
+  keywords: [hydraulic, boil, stopper, weir, recirculation]
+  register: indefinite
+  longDescription: >-
+    Below the drop the water comes back on itself in a long white roll the width of the river. It looks like nothing much. It is the drowning machine.
+  hazardKind: hydraulic
+  holdFactor: 3
+  trigger: proximity
+  traverseConsequence: none
+  groundTriggered: false
+  fixedInPlace: true
+  mass: 500

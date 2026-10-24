@@ -19,7 +19,7 @@ import { BiomeApi } from '../../../api/biome';
 import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import type { Quantity, Unit } from '../../../lib/quantity';
+import { Quantity, type Unit } from '../../../lib/quantity';
 import type { MeasureChannel } from '../../../lib/perception/MeasureChannel';
 
 /**
@@ -121,7 +121,27 @@ export default class TemperatureReading extends BiomeReading {
     if (target && MixinApi.isThermal(target)) {
       return target.getTemperature() as unknown as Quantity<Unit>;
     }
+    // ⭐ In the water, or naming it from the bank, the reading is the
+    // WATER's (river D32): a thermometer over the side reads the river, not
+    // the air over it — the number that decides how long you have in it.
+    if (target && MixinApi.isWaterPlace(target)) {
+      return Quantity.of(target.waterTemperatureK(), 'K') as unknown as Quantity<Unit>;
+    }
+    if (target && param !== '' && MixinApi.isShore(target)) {
+      const pick = target.waterFor(param);
+      if ('key' in pick) {
+        const read = await target.settleWater(pick.key);
+        const k = read?.draw?.temperatureK ?? read?.underIce?.temperatureK;
+        if (typeof k === 'number') return Quantity.of(k, 'K') as unknown as Quantity<Unit>;
+      }
+    }
     return super.subjectValue(target, param);
+  }
+
+  /** ⭐ A shore whose water you named: the thermometer goes in the water (river D32). */
+  protected override acceptsSubject(subject: Stuff, raw: string): boolean {
+    if (MixinApi.isWaterPlace(subject)) return true;
+    return raw !== '' && MixinApi.isShore(subject) && 'key' in subject.waterFor(raw);
   }
 
   protected label(): string {

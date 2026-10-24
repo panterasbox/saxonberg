@@ -1,0 +1,13 @@
+# The Kestrel gorge (the river build, D36) — the cascade between the
+# headwaters and the falls, shut between rock walls, that nobody has ever
+# boated up. Five authored places on the river's line, and the line's own
+# white water between them: a swimmer carried down from the headwaters
+# passes through each, handed in at its head and out at its foot.
+#
+# Its own ground is water and rock; nobody lives here. The zone carries the
+# height (the rooms' water reads the line's at its km) and nothing else.
+class: /platform/idea/location/CartesianZone
+data:
+  name: the Kestrel gorge
+  cellSize: 12.0
+  elevation: 400

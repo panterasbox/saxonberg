@@ -64,6 +64,7 @@ import { SecurityPolicies } from "../security/SecurityPolicies";
 import {
   ESTATE_INVENTORY,
   ESTATE_STORAGE,
+  ESTATE_LOOSE,
   type EstateEntry,
   type EstateSlice,
   type MixinSlice,
@@ -293,6 +294,12 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           // Owned-but-unplaced. Nothing is cloned; the entry alone IS the
           // durable good. Eviction and lease-end land goods here, and they
           // are never destructed.
+          self._putEstateEntry(entry, null);
+          continue;
+        }
+        if (entry.place === ESTATE_LOOSE) {
+          // ⭐ Titled, in transient space when last seen (river D33): no
+          // presence to restore — neither in the owner's hands nor stood up.
           self._putEstateEntry(entry, null);
           continue;
         }

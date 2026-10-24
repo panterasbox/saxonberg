@@ -44,5 +44,8 @@ export default class RingController extends CommandController<RingModel> {
       );
     }
     scene.send();
+    // ⭐ A bell, a gong — a signal remembers it was struck, so whoever
+    // listens for it (a ferryman across the water) can answer (river W16).
+    if (MixinApi.isRingable(target)) target.struck();
   }
 }

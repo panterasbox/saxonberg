@@ -342,6 +342,15 @@ export const Mixins = {
   LocationZone: 'LocationZoneMixin',
   // A geographic position in an Expanse — a node, a Structure, a boat.
   Positioned: 'PositionedMixin',
+  LineFrame: 'LineFrameMixin',
+  MovingPlace: 'MovingPlaceMixin',
+  Moving: 'MovingMixin',
+  FrameSited: 'FrameSitedMixin',
+  MovingWater: 'MovingWaterMixin',
+  SmallCraft: 'SmallCraftMixin',
+  TetherEnd: 'TetherEndMixin',
+  Ringable: 'RingableMixin',
+  MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
   Voyaging: 'VoyagingMixin',
   // A written thing whose reading writes `charted` claims (a chart).

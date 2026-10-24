@@ -8,9 +8,11 @@
 # have to carry somebody's river in it. The mechanism is the transport
 # system's; the crossing is Terminus's.
 #
-# `delight:mouth` is the Delight's last reach before the confluence — a
-# catchment of ~240 km² of farming valley. 12 m³/s is roughly the spring
-# rise: comfortably passable through summer and autumn, up in the melt.
+# ⭐ Since the river build the ford reads the BODY, not a threshold: how
+# deep and how fast the water is at the riffle against how tall and heavy
+# you are. Over your head it is a swim; past what you can stand against,
+# the water takes your feet part-way across. Summer and autumn it is a
+# road; in the melt it is the river's.
 class: /system/transport/idea/FordExit
 data:
   media: [ground]
@@ -21,8 +23,8 @@ data:
   # ⭐⭐ The way is THE KIND THAT CLOSES, and the index says so.
   #
   # Whether the ford is flooded right now is the river's business and
-  # is discovered at the traverse (`FordExit.applyTraversal` refreshes
-  # from the reach's derived flow). What a ROW can honestly declare is
+  # is discovered at the traverse (`FordExit` reads the water at the
+  # crossing against the body crossing it). What a ROW can honestly declare is
   # that this crossing is not always there — which is exactly what a
   # route plan owes the person reading it: *this way crosses the ford
   # at Kestrel; it is not always passable.* Without it a plan would
@@ -34,7 +36,9 @@ data:
   # it. The gate names no pack class, so a tidal causeway is caught
   # with no kernel edit.
   conditional: true
-  crossesReach: delight:mouth
-  floodThresholdM3S: 12
+  # ⭐ Where on the Delight it crosses (the river build): the gravel riffle
+  # a few hundred meters above its mouth. The water there decides, body by
+  # body — no threshold.
+  crossesAt: { frame: /stuff/idea/Watercourse/delight, cite: "mouth-0.3" }
   messageOut: "{{ mover }} splashes across the ford."
   messageIn: "{{ mover }} comes up out of the water on this side."

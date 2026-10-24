@@ -21,6 +21,9 @@ import { Postures } from '../../../../lib/slot/Postured';
 import Place from '../../../../lib/stuff/Place';
 import WaterSurface from '../../../thing/WaterSurface';
 
+/** Water running at least this fast takes a body that lies back in it, m/s. */
+const MOVING_WATER_MPS = 0.2;
+
 interface LieModel extends CommandModel {
   target: MqlOneResult;
 }
@@ -30,15 +33,32 @@ export default class LieController extends CommandController<LieModel> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
     const floatingAsked = context.verb === 'float';
-    if ((target instanceof WaterSurface && !target.supports(giver)) || floatingAsked) {
+    // ⭐ In moving water, lying back takes your feet off the bottom (river
+    // D13; the drive found `lie` in a fast shallows lying down ON the bed):
+    // standing or not, the river has you and you float.
+    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    // A patch of river carried with the current reads no current of its
+    // own (it moves WITH the water): under way, it is moving water.
+    const carried = room !== null && MixinApi.isMovingPlace(room) && room.isUnderWay();
+    const moving = target instanceof WaterSurface && room !== null && MixinApi.isWaterPlace(room) &&
+      (carried || (MixinApi.isMovingWater(room) && Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS));
+    if ((target instanceof WaterSurface && (!target.supports(giver) || moving)) || floatingAsked) {
       if (!MixinApi.isRespiration(giver)) {
         return this.refuse(context, 'act.deed', 'You cannot float.', 'not-a-swimmer');
       }
+      if (moving && target instanceof WaterSurface && target.supports(giver)) target.giveWay(giver, true);
       const out = await giver.float();
       if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
+      // ⭐ In moving water the float is feet-first (river D13): the
+      // technique that costs half in rough water and meets a hazard feet on.
+      const feet = giver.isFeetFirst();
       MessageApi.scene(giver)
         .topic('act.deed')
-        .toSelf(Mml.compose`You lie back on the water and let it hold you up.`)
+        .toSelf(
+          feet
+            ? Mml.compose`You turn on your back with your feet downstream and let the river carry you, feet first.`
+            : Mml.compose`You lie back on the water and let it hold you up.`,
+        )
         .toPeers(Mml.compose`${Mml.actor(giver)} lies back and floats.`)
         .send();
       return;

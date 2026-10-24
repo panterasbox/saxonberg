@@ -644,6 +644,9 @@ const CITATIONS: Record<string, string> = {
   anchor: "the surveys brain's lost anchor to post a recovery of — propped by the bed it lies on (underwater C4)",
   herdbook: "the book a byre floor's stalls read for the head kept (cleanliness D20) — load on use",
   powerFrom: "the millrace a mill's stones draw their power from — load on use",
+  bunker: "the bin a ship's fire is fed from — propped on her deck, read by the ship on use (river D29)",
+  ferry: "the boat a ferry crossing works with — propped at its landing, looked for there on use (river D31)",
+  bells: "the bells a ferryman listens for — propped on their landings, read on his beat (river D31)",
 };
 
 /** Is this a `thing`-branch template path? */

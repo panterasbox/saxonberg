@@ -44,6 +44,21 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
+import {
+  LineFrameMixin,
+  type LineClimateSite,
+  type LinePositionRecord,
+  type LineWater,
+  type PassagePlan,
+  type PassageRequest,
+} from '@saxonberg/server/mud/lib/expanse/LineFrame';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type WatercourseCatalogue from './WatercourseCatalogue';
+import type ReachWarren from './ReachWarren';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 import type { BoundaryRole } from '@saxonberg/server/mud/lib/security/BoundaryRole';
@@ -74,7 +89,7 @@ export interface WatercourseNode {
   /** Durable identity within the course. */
   name: string;
   /**
-   * Metres above sea level. Authored at **control points** only;
+   * Meters above sea level. Authored at **control points** only;
    * omitted nodes interpolate linearly between the control points that
    * bracket them, which is what makes an uphill reach unrepresentable.
    */
@@ -86,7 +101,7 @@ export interface WatercourseNode {
    */
   channelWidthM?: number;
   /**
-   * Square kilometres of **unclaimed** ground draining to this reach —
+   * Square kilometers of **unclaimed** ground draining to this reach —
    * the mountainside nobody's locality covers.
    *
    * ⭐ Most of a catchment is not anybody's town. A locality declares
@@ -102,7 +117,7 @@ export interface WatercourseNode {
    */
   catchmentKm2?: number;
   /**
-   * Mean depth of the channel in metres, for the current read
+   * Mean depth of the channel in meters, for the current read
    * (`flow / (width × depth)`). Authored where an author cares; derived
    * from the flow by hydraulic geometry otherwise, as an unauthored
    * width is.
@@ -124,6 +139,58 @@ export interface WatercourseNode {
    * found its works by a class scan of the template table.
    */
   works?: string[];
+  /**
+   * ⭐ **Kilometers from the mouth** (river D1) — the river mile. Required
+   * on every node of a course of two or more nodes, strictly decreasing
+   * source-first; the mouth is the end that does not move, so lengthening
+   * the headwaters shifts nothing below.
+   */
+  km?: number;
+  /** A falls' step at this node, m — the drop is taken out as a 50 m stretch. */
+  drop?: number;
+}
+
+/** How a river starts. Required on a course of two or more nodes. */
+export type WatercourseSource =
+  | { kind: 'rills' }
+  | { kind: 'spring'; yieldM3S?: number }
+  | { kind: 'outlet'; of: string }
+  | { kind: 'melt' };
+
+/**
+ * Where a river ends. Required on a course of two or more nodes: another
+ * river (a node of it), a still water, the sea at a named node, or a sink
+ * where it runs out (whose end moves with the season).
+ */
+export type WatercourseMouth =
+  | { into: 'river'; course: string; node: string }
+  | { into: 'still'; water: string }
+  | { into: 'sea'; node: string }
+  | { into: 'sink' };
+
+/** A stretch override (river D1): only what differs from the derivation. */
+export interface WatercourseStretchOverride {
+  /** `node±km` — the upstream end of the span overridden. */
+  from?: string;
+  /** `node±km` — the downstream end. */
+  to?: string;
+  kind?: 'pool' | 'run' | 'riffle' | 'rapid' | 'falls' | 'gorge';
+  bed?: 'ground' | 'gravel' | 'rock' | 'sand' | 'mud';
+  /** `walls` (both sides), or a bank kind per side. */
+  banks?: 'walls' | { left?: string; right?: string };
+  /** A point bank override: `node±km` with `side` and `bank` (a quay). */
+  at?: string;
+  side?: 'left' | 'right';
+  bank?: string;
+}
+
+/** An authored hazard at a position (`at: falls+0.05`). */
+export interface WatercourseHazard {
+  at: string;
+  side?: 'left' | 'right';
+  kind: 'strainer' | 'hydraulic' | 'undercut';
+  /** The hazard's own row, when not the kind's default. */
+  row?: string;
 }
 
 /**
@@ -200,6 +267,28 @@ export interface WatercourseDescriptor {
   clarityM?: number;
   /** See {@link WatercourseSite}; absent = the realm's default site. */
   site?: WatercourseSite;
+  /** How the river starts (river D1). Required with two or more nodes. */
+  source?: WatercourseSource;
+  /** Where the river ends (river D1). Required with two or more nodes. */
+  mouth?: WatercourseMouth;
+  /** What the bed is (default `ground` — gravel in a river). */
+  bed?: 'ground' | 'gravel' | 'rock' | 'sand' | 'mud';
+  /** The banks' default character (default wooded). */
+  banks?: { wooded?: boolean };
+  /** Overrides of the derived stretches and banks — never the whole river. */
+  stretches?: WatercourseStretchOverride[];
+  /** Authored hazards; the derived ones need no row. */
+  hazards?: WatercourseHazard[];
+  /** Named bends — a landmark on a bend the meander derives (`Hob's Bend`). */
+  bends?: Array<{ at: string; name: string }>;
+  /** The meander's seed (default: a hash of the course key). */
+  meander?: { seed?: number };
+  /**
+   * ⭐ The authored places on this river's line (river D7, D8) — the rows
+   * of a quay, a towpath, the stream below a quay, a gorge pool. The river
+   * says what stands on it; nothing is searched for.
+   */
+  places?: string[];
 }
 
 /**
@@ -209,7 +298,7 @@ export interface WatercourseDescriptor {
  * along unused (the mixin's opt-out posture). `getAllFieldMeta` merges the
  * mixin's `name` meta with the block below property-by-property.
  */
-export default class Watercourse extends NamedMixin(Idea) {
+export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
   /**
    * ⭐ Shared vocabulary: a watercourse row is **authored topology** —
    * key, basin, the source-first node list, the branch point, and the
@@ -246,6 +335,15 @@ export default class Watercourse extends NamedMixin(Idea) {
     water: { persistent: true, authorable: true },
     site: { persistent: true, authorable: true },
     clarityM: { persistent: true, authorable: true },
+    source: { persistent: true, authorable: true },
+    mouth: { persistent: true, authorable: true },
+    bed: { persistent: true, authorable: true },
+    banks: { persistent: true, authorable: true },
+    stretches: { persistent: true, authorable: true },
+    hazards: { persistent: true, authorable: true },
+    bends: { persistent: true, authorable: true },
+    meander: { persistent: true, authorable: true },
+    places: { persistent: true, authorable: true },
   };
 
   protected key = '';
@@ -256,6 +354,15 @@ export default class Watercourse extends NamedMixin(Idea) {
   protected site: WatercourseSite | null = null;
   /** How deep light reaches in this water, m (underwater D6). */
   protected clarityM: number | null = null;
+  protected source: WatercourseSource | null = null;
+  protected mouth: WatercourseMouth | null = null;
+  protected bed: WatercourseDescriptor['bed'] | null = null;
+  protected banks: { wooded?: boolean } | null = null;
+  protected stretches: WatercourseStretchOverride[] = [];
+  protected hazards: WatercourseHazard[] = [];
+  protected bends: Array<{ at: string; name: string }> = [];
+  protected meander: { seed?: number } | null = null;
+  protected places: string[] = [];
 
   public getKey(): string {
     return this.key;
@@ -302,5 +409,187 @@ export default class Watercourse extends NamedMixin(Idea) {
   }
   public setSite(value: WatercourseSite | null): void {
     this.site = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public getSource(): WatercourseSource | null {
+    return this.source === null ? null : { ...this.source };
+  }
+  public setSource(value: WatercourseSource | null): void {
+    this.source = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public getMouth(): WatercourseMouth | null {
+    return this.mouth === null ? null : { ...this.mouth };
+  }
+  public setMouth(value: WatercourseMouth | null): void {
+    this.mouth = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public setBed(value: WatercourseDescriptor['bed'] | null): void {
+    this.bed = value ?? null;
+  }
+  public setBanks(value: { wooded?: boolean } | null): void {
+    this.banks = value && typeof value === 'object' ? { ...value } : null;
+  }
+  public setStretches(value: WatercourseStretchOverride[]): void {
+    this.stretches = Array.isArray(value) ? value.map((v) => ({ ...v })) : [];
+  }
+  public setHazards(value: WatercourseHazard[]): void {
+    this.hazards = Array.isArray(value) ? value.map((v) => ({ ...v })) : [];
+  }
+  public setBends(value: Array<{ at: string; name: string }>): void {
+    this.bends = Array.isArray(value) ? value.map((v) => ({ ...v })) : [];
+  }
+  public setMeander(value: { seed?: number } | null): void {
+    this.meander = value && typeof value === 'object' ? { ...value } : null;
+  }
+
+  public setPlaces(value: string[]): void {
+    this.places = Array.isArray(value) ? value.filter((p) => typeof p === 'string') : [];
+  }
+
+  /* ───────────── the line as a frame (river D2) ───────────── */
+  //
+  // ⭐ A river stood up as a Stuff is the FRAME a moving place on it reads
+  // (the kernel's `LineFrame` protocol): every answer is the catalogue's
+  // compiled line, read synchronously. Before the drainage has compiled
+  // once there is nothing to answer, and the protocol's refusals stand.
+
+  private catalogue(): WatercourseCatalogue | null {
+    return StuffApi.findByTemplatePath<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue') ?? null;
+  }
+
+  public override lengthKm(): number {
+    return this.catalogue()?.lineOfSync(this.key)?.lengthKm() ?? 0;
+  }
+
+  public override elevationAtKm(km: number): number | null {
+    return this.catalogue()?.lineOfSync(this.key)?.elevationAtKm(km) ?? null;
+  }
+
+  /**
+   * The address of the ground that drains to `km` — the locality whose
+   * weather stands in for the reach's catchment (the climate proxy), so a
+   * patch at the headwaters is under Rejection's sky.
+   */
+  public override localityAddressAt(km: number): string | null {
+    const reach = this.catalogue()?.reachNearSync(this.key, km) ?? null;
+    const path = reach?.climateLocalityPath ?? null;
+    if (!path) return null;
+    const locality = StuffApi.findByTemplatePath<Stuff>(path);
+    return locality && MixinApi.isAddressable(locality) ? locality.getAddress() : null;
+  }
+
+  public override climateSiteAt(km: number): LineClimateSite | null {
+    const site = this.catalogue()?.reachNearSync(this.key, km)?.site ?? null;
+    if (!site) return null;
+    return {
+      latitude: site.latitudeDeg,
+      continentality: site.continentality,
+      climateOffsetK: site.offsetK,
+    };
+  }
+
+  /** ⭐ Whoever is in the water within sight of `place` (D26) — the warren knows. */
+  public override sightablesNear(place: unknown, eyeHeightM: number): unknown[] {
+    const warren = StuffApi.findByTemplatePath<ReachWarren>('/system/water/idea/ReachWarren');
+    return warren?.sightablesNear(this.key, place, eyeHeightM) ?? [];
+  }
+
+  public override courseKey(): string {
+    return this.key;
+  }
+
+  public override async planPassage(
+    from: LinePositionRecord,
+    req: PassageRequest,
+    nowS: number,
+  ): Promise<PassagePlan | { refused: string }> {
+    const cat = await StuffApi.singleton<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue');
+    return cat.planPassage(from, req, nowS);
+  }
+
+  public override landingNear(pos: LinePositionRecord, withinM: number): string | null {
+    return this.catalogue()?.landingNear(pos, withinM) ?? null;
+  }
+
+  public override landingNamed(word: string): { path: string; km: number; name: string } | null {
+    return this.catalogue()?.landingNamed(this.key, word) ?? null;
+  }
+
+  public override changesAlong(fromKm: number, toKm: number): string[] {
+    return this.catalogue()?.changesAlong(this.key, fromKm, toKm) ?? [];
+  }
+
+  public override async depthAt(pos: LinePositionRecord, nowS: number): Promise<number | null> {
+    const state = await this.catalogue()?.riverStateAt(pos, nowS);
+    return state?.depthHereM ?? null;
+  }
+
+  public override async wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void> {
+    const warren = StuffApi.findByTemplatePath<ReachWarren>('/system/water/idea/ReachWarren');
+    await warren?.wakeAt(pos, speedMps);
+  }
+
+  public override kedgeNear(pos: LinePositionRecord): number | null {
+    const warren = StuffApi.findByTemplatePath<ReachWarren>('/system/water/idea/ReachWarren');
+    return warren?.kedgeNear(pos) ?? null;
+  }
+
+  /** ⭐ A place on this river (W13): `node±km[,side]`, the river's own grammar, on this course. */
+  public override siteOf(cite: string): FramePos | null {
+    const at = this.catalogue()?.positionOfSync(`${this.key}:${cite}`) ?? null;
+    return at === null ? null : { frame: 'line', at };
+  }
+
+  /** ⭐ A bank on this river is being used (D8, W13): the river gives it its way into the water. */
+  public override async onSiteStood(place: Stuff): Promise<void> {
+    const warren = await StuffApi.singleton<ReachWarren>('/system/water/idea/ReachWarren');
+    await warren.installBankWay(place);
+  }
+
+  /** The catalogue, loaded if no one has yet. */
+  private async liveCatalogue(): Promise<WatercourseCatalogue | null> {
+    return this.catalogue() ?? (await StuffApi.singleton<WatercourseCatalogue>('/system/water/idea/WatercourseCatalogue').catch(() => null));
+  }
+
+  /** The warren, loaded if no one has yet. */
+  private liveWarren(): Promise<ReachWarren | null> {
+    return StuffApi.singleton<ReachWarren>('/system/water/idea/ReachWarren').catch(() => null);
+  }
+
+  /** ⭐ A place on this river by its citation (W16): `node±km[,side]`, the river's grammar. */
+  public override async locate(cite: string): Promise<LinePositionRecord | null> {
+    return (await this.liveCatalogue())?.positionOf(`${this.key}:${cite}`) ?? null;
+  }
+
+  /** ⭐ The water at a position now (W16): the channel's current, its depth, the river's width. */
+  public override async waterAt(pos: LinePositionRecord, nowS: number): Promise<LineWater | null> {
+    const state = await (await this.liveCatalogue())?.riverStateAt(pos, nowS);
+    return state ? { currentMps: state.currentMps, depthM: state.depthM, widthM: state.widthM } : null;
+  }
+
+  /** ⭐ Something goes into the river at a position (W16): the warren takes it into the water there. */
+  public override async handIn(thing: Stuff, pos: LinePositionRecord): Promise<boolean> {
+    if (!MixinApi.isContainable(thing)) return false;
+    const warren = await this.liveWarren();
+    if (warren === null) return false;
+    await warren.handIn(thing, pos);
+    return true;
+  }
+
+  /** ⭐ The shallows at the river's edge (W16): the stop on that bank at that km. */
+  public override async shallowsAt(pos: LinePositionRecord, side: 'left' | 'right'): Promise<Stuff | null> {
+    const warren = await this.liveWarren();
+    return warren ? ((await warren.stopAt(pos.course, pos.km, side)) as Stuff) : null;
+  }
+
+  public override mouthOnSea(): { expanse: string; node: string } | null {
+    return this.catalogue()?.mouthOnSea(this.key) ?? null;
+  }
+
+  public override describeAt(pos: LinePositionRecord): string[] {
+    const stretch = this.catalogue()?.lineOfSync(this.key)?.stretchAt(pos.km) ?? null;
+    return stretch === null ? [] : [stretch.kind];
   }
 }

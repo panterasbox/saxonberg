@@ -33,6 +33,9 @@
  *   - `harm`     — a non-combat harm landed (a sprung trap): actor, victim,
  *                  consent (default non-consented), and sentience. Its
  *                  crime rule is the terms-free `!consented && sentient`.
+ *   - `abandonment` — a master sailed leaving somebody of hers in the water,
+ *                  on purpose (river D30): initiator the master, opponent
+ *                  the person left. Not terminal; blame never reads it.
  *
  * ⭐ **Durable ids are IDENTITIES** (`Stuff.getIdentityPath()`) — the same
  * key trait, transcript, chronicle, access, reactions and channels
@@ -64,8 +67,13 @@ import { Collections } from '../persistence/Collections';
 import type { Lethality, StopCondition } from '../combat/CombatTerms';
 import type { FieldMeta } from '../mixin';
 
-/** The kind of attribution row. Closed vocabulary (four writers). */
-export type AccountabilityKind = 'opened' | 'violated' | 'death' | 'harm';
+/**
+ * The kind of attribution row. Closed vocabulary (five writers).
+ * `abandonment` (river D30) is a master sailing with somebody of hers in
+ * the water, deliberately (`course … --leaving-them`): a fact, not a harm —
+ * it names the person left and is never terminal, so blame reads past it.
+ */
+export type AccountabilityKind = 'opened' | 'violated' | 'death' | 'harm' | 'abandonment';
 
 /**
  * The derived verdict of the accountability ledger for a victim — who is

@@ -72,6 +72,15 @@ import type { Singleton } from '../lib/stuff/Singleton';
 import type { LocationZone } from '../lib/zone/LocationZone';
 import type { Positioned } from '../lib/expanse/Positioned';
 import type { Voyaging } from '../lib/expanse/Voyaging';
+import type { LineFrame } from '../lib/expanse/LineFrame';
+import type { MovingPlace } from '../lib/location/MovingPlace';
+import type { Moving } from '../lib/expanse/Moving';
+import type { FrameSited } from '../lib/expanse/FrameSited';
+import type { MovingWater } from '../lib/location/MovingWater';
+import type { SmallCraft } from '../lib/expanse/SmallCraft';
+import type { TetherEnd } from '../lib/spatial/TetherEnd';
+import type { Ringable } from '../lib/perception/Ringable';
+import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
 import type { DoorBearing } from '../lib/boundary/DoorBearing';
 import type { Adornable } from '../lib/boundary/Adornable';
@@ -1309,6 +1318,51 @@ export class MixinApi {
 
   public static isVoyaging(obj: Stuff): obj is Stuff & Positioned & Voyaging {
     return this.hasMixin(obj, Mixins.Voyaging);
+  }
+
+  /** ⭐ A river's line as a frame (river D2). */
+  public static isLineFrame(obj: Stuff): obj is Stuff & LineFrame {
+    return this.hasMixin(obj, Mixins.LineFrame);
+  }
+
+  /** ⭐ A boat floating in a place's water (river W16) — the transport mod's `Boat`. */
+  public static isSmallCraft(obj: Stuff): obj is Stuff & SmallCraft {
+    return this.hasMixin(obj, Mixins.SmallCraft);
+  }
+
+  /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
+  public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
+    return this.hasMixin(obj, Mixins.TetherEnd);
+  }
+
+  /** ⭐ A bell or signal you strike (river W16), which remembers when. */
+  public static isRingable(obj: Stuff): obj is Stuff & Ringable {
+    return this.hasMixin(obj, Mixins.Ringable);
+  }
+
+  /** ⭐ Water that MOVES (river W14) — a river's reaches; still water composes none of it. */
+  public static isMovingWater(obj: Stuff): obj is Stuff & MovingWater & WaterPlace & Container {
+    return this.hasMixin(obj, Mixins.MovingWater);
+  }
+
+  /** A fixed place standing at a position on a frame (river W13) — a quay or a towpath on a river's line. */
+  public static isFrameSited(obj: Stuff): obj is Stuff & FrameSited {
+    return this.hasMixin(obj, Mixins.FrameSited);
+  }
+
+  /** A thing that moves along a trajectory (river D41) — a ship, a moving place. */
+  public static isMoving(obj: Stuff): obj is Stuff & Moving & Positioned {
+    return this.hasMixin(obj, Mixins.Moving);
+  }
+
+  /** ⭐ A place whose position is a variable (river D4). */
+  public static isMovingPlace(obj: Stuff): obj is Stuff & MovingPlace & Moving & Positioned & Container & Exitable {
+    return this.hasMixin(obj, Mixins.MovingPlace);
+  }
+
+  /** ⭐ The zone of a moving place (river D38). */
+  public static isMovingZone(obj: Stuff): obj is Stuff & MovingZone {
+    return this.hasMixin(obj, Mixins.MovingZone);
   }
 
   public static isCharted(obj: Stuff): obj is Stuff & Charted {

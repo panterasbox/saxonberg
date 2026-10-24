@@ -63,7 +63,7 @@ export interface Cartographer {
   /** Write down what was just made out of a place. */
   recordSurroundings(
     location: Stuff,
-    perceived: readonly Stuff[],
+    perceived: readonly Exit[],
     how?: MapChannel,
   ): void;
   /** Write down the stops a public board just gave up. */
@@ -106,7 +106,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
      */
     public recordSurroundings(
       location: Stuff,
-      perceived: readonly Stuff[],
+      perceived: readonly Exit[],
       how: MapChannel = 'seen',
     ): void {
       void this.recordPerceived(location, perceived, how);
@@ -192,7 +192,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
 
     private async recordPerceived(
       location: Stuff,
-      perceived: readonly Stuff[],
+      perceived: readonly Exit[],
       how: MapChannel,
     ): Promise<void> {
       try {
@@ -226,12 +226,12 @@ export function CartographerMixin<TBase extends MixinConstructor>(
           },
         ];
         for (const exit of perceived) {
-          const dir = (exit as unknown as { getDirection?(): string })
-            .getDirection?.();
+          // ⭐ A way the frame works out (within hail, alongside) is never
+          // written down (river D38 d).
+          if (!exit.isMapped()) continue;
+          const dir = exit.getDirection();
           if (!dir) continue;
-          const far = (
-            exit as unknown as { getDestinationTemplatePath?(): string | null }
-          ).getDestinationTemplatePath?.();
+          const far = exit.getDestinationTemplatePath();
           claims.push({
             kind: 'edge',
             place,
@@ -243,6 +243,11 @@ export function CartographerMixin<TBase extends MixinConstructor>(
             // they did not learn.
             to: null,
             toLabel: far ?? null,
+            // ⭐ A way you can see is not always there (a ferry, a ford) is
+            // seen to be so: the claim carries it, as a walked one does
+            // (the river drive: a route over the ferry, planned from a
+            // SEEN claim, never said "not always passable").
+            ...(exit.isConditional() ? { conditional: true } : {}),
             channel: how,
             firstSeen: now,
             lastSeen: now,
@@ -297,6 +302,7 @@ export function CartographerMixin<TBase extends MixinConstructor>(
     private async recordTraversal(via: Exit): Promise<void> {
       try {
         if (!this.keepsMaps()) return;
+        if (!via.isMapped()) return;
         const viewerKey = this.mapOwnerKey();
         if (!viewerKey) return;
         const source = via.getSource() as unknown as Stuff;

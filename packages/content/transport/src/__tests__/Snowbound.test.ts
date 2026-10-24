@@ -6,6 +6,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -28,9 +29,10 @@ function pass(closesAboveM = 0.5): SnowboundExit {
   const there = makeStuff(() => new Locale());
   zone.addLocation(here, 0, 0, 0);
   zone.addLocation(there, 0, 1, 0);
-  vi.spyOn(here, 'getFloor').mockReturnValue({
-    getSnowDepthM: () => depthM,
-  } as never);
+  const floor = { getSnowDepthM: () => depthM };
+  vi.spyOn(here, 'getFloor').mockReturnValue(floor as never);
+  const isFloor = MixinApi.isFloor.bind(MixinApi);
+  vi.spyOn(MixinApi, 'isFloor').mockImplementation(((x: never) => x === (floor as never) || isFloor(x)) as never);
   return makeStuff(
     () =>
       new SnowboundExit({

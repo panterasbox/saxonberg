@@ -1,0 +1,7 @@
+# /system/water/idea/SeaWarren — the water beside a ship stopped at sea
+# (the river build, D30). ONE singleton for the realm: a room is budded only
+# where a ship has stopped, keyed by the hail cell she lies in, and reaped
+# when empty. Stood up by whatever first asks (a boat launched, somebody
+# over the side); no boot step, nothing persisted.
+class: /system/water/idea/SeaWarren
+data: {}

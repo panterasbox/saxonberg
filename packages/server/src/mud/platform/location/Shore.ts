@@ -11,7 +11,8 @@
  * waterfront is {@link Quay}.
  */
 
+import { FrameSitedMixin } from '../../lib/expanse/FrameSited';
 import Locale from './Locale';
 import { ShoreMixin } from '../../lib/location/Shore';
 
-export default class Shore extends ShoreMixin(Locale) {}
+export default class Shore extends FrameSitedMixin(ShoreMixin(Locale)) {}

@@ -470,6 +470,11 @@ export class PersistenceManager {
         maxPoolSize: 10,
         minPoolSize: 2,
       });
+      // ⭐ Operations in flight — waiting for a connection or holding one —
+      // from the pool's own events: what `whenQuiet` waits on.
+      this.client.on('connectionCheckOutStarted', () => { this.#inFlight++; });
+      this.client.on('connectionCheckOutFailed', () => { this.#inFlight = Math.max(0, this.#inFlight - 1); });
+      this.client.on('connectionCheckedIn', () => { this.#inFlight = Math.max(0, this.#inFlight - 1); });
 
       await this.client.connect();
 
@@ -488,6 +493,33 @@ export class PersistenceManager {
     } catch (error) {
       console.error('PersistenceManager: Failed to connect to MongoDB:', error);
       throw error;
+    }
+  }
+
+  /** Operations waiting for, or holding, a pool connection right now. */
+  #inFlight = 0;
+
+  /**
+   * ⭐ Resolve when the database has had nothing in flight for `quietMs` —
+   * or after `timeoutMs`, with `false` (river pass 17). What a test-world
+   * clock jump waits on before it returns: the jump fires every schedule in
+   * the skipped interval at once and their async work queues behind the
+   * pool; a drive that jumps again before that backlog drains stacks one
+   * jump's backlog on the next until the process is mostly waiting queries.
+   */
+  public async whenQuiet(quietMs = 500, timeoutMs = 300_000): Promise<boolean> {
+    const start = Date.now();
+    let quietSince: number | null = null;
+    for (;;) {
+      const now = Date.now();
+      if (this.#inFlight === 0) {
+        quietSince ??= now;
+        if (now - quietSince >= quietMs) return true;
+      } else {
+        quietSince = null;
+      }
+      if (now - start >= timeoutMs) return false;
+      await new Promise((r) => setTimeout(r, 50));
     }
   }
 

@@ -15,11 +15,25 @@
  * resolved by `ExpanseApi.positionOf`.
  *
  * It never shares a host with `CartesianCoordinatesMixin`: a room has a
- * cell, a node or a craft has a position.
+ * cell, a node or a craft has a position — ⭐ except a MOVING PLACE (river
+ * D4: a reach patch, a stopped ship's room at sea), whose coordinates are
+ * decoration, as a band's are, never grid-indexed beyond its own zone.
+ *
+ * ⭐ **Two frames, one record** (river D18): a position is either on the
+ * chart (`expanse` + `expansePosition`) or on a river's LINE (`line` +
+ * `linePosition` — km from the mouth, m from river left). Never both: the
+ * setters refuse the second half while the first is set, so a ship at a
+ * river's mouth clears one before taking the other.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
+import type { LinePositionRecord } from './LineFrame';
+import type { Stuff } from '../stuff/Stuff';
+import type { FramePos, FrameStuff } from './Frame';
+import { Expanse } from './Expanse';
+import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
 
 export interface Positioned {
   getExpansePosition(): GeoPosition | null;
@@ -28,6 +42,16 @@ export interface Positioned {
   setExpanse(path: string | null): void;
   sightHeightFor(observer: unknown): number;
   getTargetHeightM(): number;
+  getLine(): string | null;
+  getLinePosition(): LinePositionRecord | null;
+  placeOnLine(line: string | null, value: LinePositionRecord | null): void;
+  framePath(): string | null;
+  /** ⭐ Where it is, in whichever frame (W9) — the derived position while it moves. */
+  framePos(): FramePos | null;
+  /** The frame it is in, if that frame is resident (a synchronous read). */
+  peekFrame(): FrameStuff | null;
+  /** The frame it is in, loaded. */
+  liveFrame(): Promise<FrameStuff | null>;
 }
 
 export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -37,6 +61,8 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       expansePosition: { persistent: true, authorable: true },
       expanse: { persistent: true, authorable: true },
+      line: { persistent: true, authorable: true },
+      linePosition: { persistent: true, authorable: true },
     };
 
     /**
@@ -53,8 +79,92 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.expansePosition === null ? null : new GeoPosition(this.expansePosition);
     }
 
+    /**
+     * Hydration setter, and how a chart position is written. ⭐ A position
+     * is on the chart OR on a line, and the LATER write wins: a chart
+     * position takes her off any line. Restore applies the row and then the
+     * snapshot, so a ship whose row puts her on the Kestrel and whose
+     * snapshot has her out at sea comes back at sea (the river's browser
+     * walk: the Ostrander, restarted after she went out over the bar, failed
+     * to restore at all — this setter threw).
+     */
     setExpansePosition(value: GeoPositionRecord | GeoPosition | null): void {
+      if (value !== null) {
+        this.line = null;
+        this.linePosition = null;
+      }
       this.expansePosition = value === null ? null : new GeoPosition(value).toJSON();
+    }
+
+    /** The river (a `LineFrame` row path) this position is on, or `null`. */
+    protected line: string | null = null;
+
+    /** Where on that river: km from the mouth, m from river left. */
+    protected linePosition: LinePositionRecord | null = null;
+
+    getLine(): string | null { return this.line; }
+
+    getLinePosition(): LinePositionRecord | null {
+      return this.linePosition === null ? null : { ...this.linePosition };
+    }
+
+    /** Hydration setter — the record's own field, no invariant (see {@link placeOnLine}). */
+    setLine(value: string | null): void {
+      this.line = typeof value === 'string' && value !== '' ? value : null;
+    }
+
+    /** Hydration setter: a line position takes her off the chart — the later write wins (see {@link setExpansePosition}). */
+    setLinePosition(value: LinePositionRecord | null): void {
+      this.linePosition =
+        value && typeof value === 'object' && Number.isFinite(value.km) && Number.isFinite(value.across)
+          ? { course: value.course, km: value.km, across: value.across }
+          : null;
+      if (this.linePosition !== null) this.expansePosition = null;
+    }
+
+    /**
+     * Put it on a river's line (or off one, with `null`s). Refused while
+     * a chart position is set — one frame at a time.
+     */
+    placeOnLine(line: string | null, value: LinePositionRecord | null): void {
+      if (value !== null && this.expansePosition !== null) {
+        throw new Error(
+          'PositionedMixin: a position is on the chart OR on a line, never both — clear the chart half first',
+        );
+      }
+      if (value !== null && !(Number.isFinite(value.km) && Number.isFinite(value.across))) {
+        throw new Error(`PositionedMixin: a line position needs a finite km and across (got ${JSON.stringify(value)})`);
+      }
+      this.line = value === null ? null : line;
+      this.linePosition = value === null ? null : { course: value.course, km: value.km, across: value.across };
+    }
+
+    /** The frame this position is in — the expanse's path or the river's. */
+    framePath(): string | null {
+      if (this.linePosition !== null) return this.line;
+      return this.expansePosition !== null ? this.expanse : null;
+    }
+
+    framePos(): FramePos | null {
+      const line = this.getLinePosition();
+      if (line !== null) return { frame: 'line', at: line };
+      const chart = this.getExpansePosition();
+      return chart === null ? null : { frame: 'chart', at: chart };
+    }
+
+    peekFrame(): FrameStuff | null {
+      const path = this.framePath();
+      return path ? asFrame(StuffApi.findByTemplatePath<Stuff>(path)) : null;
+    }
+
+    async liveFrame(): Promise<FrameStuff | null> {
+      const path = this.framePath();
+      if (!path) return null;
+      try {
+        return asFrame(await StuffApi.singleton<Stuff>(path));
+      } catch {
+        return null;
+      }
     }
 
     getExpanse(): string | null { return this.expanse; }
@@ -62,7 +172,7 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * How high `observer`'s eye is when looking out from this thing,
-     * metres — what the sea's horizon formula reads of an observer.
+     * meters — what the sea's horizon formula reads of an observer.
      *
      * @hook Invoked by `Expanse.contactsFrom` for the observing craft.
      *   Default `0` — an eye at the waterline. A Structure answers its
@@ -75,7 +185,7 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * How tall this thing stands as a TARGET, metres — what the horizon
+     * How tall this thing stands as a TARGET, meters — what the horizon
      * formula reads of it when somebody else is looking.
      *
      * @hook Invoked by `Expanse.contactsFrom` for each candidate. Default
@@ -85,4 +195,11 @@ export function PositionedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return 0;
     }
   };
+}
+
+/** A loaded row as a frame — the sea's chart, or a river's line — or `null`. */
+function asFrame(s: Stuff | null | undefined): FrameStuff | null {
+  if (!s) return null;
+  if (s instanceof Expanse || MixinApi.isLineFrame(s)) return s as unknown as FrameStuff;
+  return null;
 }

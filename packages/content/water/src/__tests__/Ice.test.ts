@@ -67,9 +67,11 @@ const BECK: Row = {
     basin: 'beck',
     branchesFrom: null,
     site: { latitudeDeg: -66, continentality: 1, offsetK: -7 },
+    source: { kind: 'rills' },
+    mouth: { into: 'sink' },
     nodes: [
-      { name: 'race', elevation: 900, channelWidthM: 2, meanDepthM: 0.2, catchmentKm2: 800 },
-      { name: 'foot', elevation: 0 },
+      { km: 10, name: 'race', elevation: 900, channelWidthM: 2, meanDepthM: 0.2, catchmentKm2: 800 },
+      { km: 0, name: 'foot', elevation: 0 },
     ],
   },
 };

@@ -1,0 +1,13 @@
+# A bank patch — the bank between a river's places, where you are walking
+# it (the river build, D25). Minted when somebody walks along the river
+# from a place on its bank; moved by their steps; gone when empty.
+class: /system/water/location/BankPatch
+data:
+  shortDescription: on the riverbank
+  keywords: [bank, riverbank, path]
+  register: proper
+  longDescription: >-
+    The bank of the river.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
