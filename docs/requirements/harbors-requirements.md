@@ -90,9 +90,9 @@ herself on the bottom.
   cargo and name; a ship nobody is aboard sleeps whole and wakes as she was;
   everything survives a restart.
 - **An owned ship answers to her owners**: a majority of shares names her
-  managing owner, the managing owner names her master, and the master (and
-  whoever the master permits) has the helm. Her gangway is the master's to
-  open — closed to strangers until opened.
+  managing owner, the managing owner names her master, and only the master
+  has the helm. Her gangway is a door the master locks and unlocks; her keys
+  are the master's to hand out.
 - **A ship's hull weathers like a house's shell** — one clock for every
   structure, read in the same bands, restored by the same upkeep; on a ship a
   worn hull leaks.
@@ -220,13 +220,16 @@ estuary, the way a river ship comes alongside a landing.
 ### Owners, the managing owner, the master
 Lens 1 (the historical shape, decided in the slate § 17) and lens 7 (the
 criterion is named): a majority of shares names the managing owner, who names
-the master; the master, and whoever the master permits, takes the helm. A sole
-owner holds all three. Nobody else can set her course.
+the master (`appoint`); **only the master takes the helm** this build — mates
+and helmsmen wait for crews. A sole owner holds all three. Nobody else can set
+her course.
 
-### The gangway is the master's
-Lens 4 (a ship is property; walking aboard uninvited is trespass) and lens 2
-(enable, never impose): the master opens her to the public, to named people,
-or to nobody. A newly bought ship admits only her owners and master.
+### The gangway is the master's — a lockable door with keys
+Lens 4 (a ship is property; walking aboard uninvited is trespass), lens 2
+(enable, never impose; no new verb) and lens 5 (the new object answers the
+same commands): her gangway is a door — `unlock` it and anyone may board,
+`lock` it and only those holding her key may; the master hands out keys as a
+householder does. A newly bought ship is locked, her key with her owner.
 
 ### One weathering clock for houses and ships
 The owner's rule: **whatever the rule, it works the same way as residences.**
@@ -386,8 +389,9 @@ with Stage A)
    already in the register is refused): she lies at the yard's quay; the
    register lists her in your name, 64 shares, under Terminus' flag.
 9. A second player buys another of the same kind: her rooms are hers; what you
-   leave in your hold is not in hers. The second player cannot go aboard yours
-   until you open her, and cannot set your course.
+   leave in your hold is not in hers. The second player cannot go aboard
+   yours while her gangway is locked, and cannot set your course; hand them
+   her key and they can come aboard (still not take the helm).
 10. Sell 16 shares to the second player at a price both accept; the money and
    the shares move together; the register shows both owners.
 11. At sea, `government`: Terminus City, her flag state.
@@ -434,8 +438,8 @@ with Stage A)
   and the shares together or not at all.
 - A hired canoe costs one day's hire per day kept.
 - Mooring, pumping and handling a craft record seamanship.
-- Only her master (or whoever the master permits) can set an owned ship's
-  course; a stranger cannot go aboard a ship whose master has not opened her.
+- Only her master can set an owned ship's course; with her gangway locked,
+  only someone holding her key can go aboard.
 - A ship's hull and a house's shell weather on the same clock and read in the
   same bands; a neglected ship is found settled at her berth, not vanished.
 - Two ships of one kind keep separate cargo, condition and names, and both are
