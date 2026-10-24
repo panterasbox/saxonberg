@@ -1,5 +1,5 @@
 # the Okafor piece — cane ground (sugar W5): the estate's or a smallholder's own field.
-class: /trade/farming/location/NamedField
+class: /trade/farming/location/SingletonField
 data:
   fieldName: the Okafor piece
   shortDescription: "Okafor smallholding"

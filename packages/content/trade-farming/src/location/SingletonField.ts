@@ -1,5 +1,5 @@
 /**
- * A named field — ⭐ ONE authored field, a place rather than a kind
+ * SingletonField — ⭐ ONE authored field, a place rather than a kind
  * (sugar W5).
  *
  * `Field` is a KIND: a plat is cut into lots and each lot is a minted
@@ -14,4 +14,4 @@
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import Field from './Field';
 
-export default class NamedField extends SingletonMixin(Field) {}
+export default class SingletonField extends SingletonMixin(Field) {}

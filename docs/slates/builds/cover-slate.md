@@ -142,7 +142,7 @@ missing sibling.
 ## 6. What sugar shipped as a stopgap (and this build replaces)
 
 Sugar's estate needed fields of cane, and there is no arable field. So W5
-put six `standing-cane` plants loose into each `NamedField` as props, and
+put six `standing-cane` plants loose into each `SingletonField` as props, and
 nothing afforded `harvest` on a plant standing in no bed. Sugar then:
 
 - moved `harvest` onto the kernel `Plant` (retiring medicine's

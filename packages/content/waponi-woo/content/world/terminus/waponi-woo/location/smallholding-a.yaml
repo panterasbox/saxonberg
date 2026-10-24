@@ -1,5 +1,5 @@
 # Marta Ruiz's piece — cane ground (sugar W5): the estate's or a smallholder's own field.
-class: /trade/farming/location/NamedField
+class: /trade/farming/location/SingletonField
 data:
   fieldName: Marta Ruiz's piece
   shortDescription: "Ruiz smallholding"
