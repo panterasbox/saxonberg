@@ -1,23 +1,40 @@
 # Ships and harbors slate — craft, berths, and life aboard
 
-> **Status: UNBUILT** — designed 2026-10-19 with the owner, high level; the
+> **Status:** PARTIAL — designed 2026-10-19 with the owner, high level; the
 > drill-downs follow. The maritime build shipped `Ship` (a Structure with a
-> position — the *Hesper*), a singleton `Boat` (the dinghy), `launch` /
-> `recover`, `AboardExit` / `AshoreExit`, and the barge; no harbor exists →
-> [expanse.md](../../subsystems/expanse.md). Supersedes
-> [navigable-water-slate](./navigable-water-slate.md) § 7a where they differ.
-> **Left:** boats in water rooms only, ships alone in the field · boats as
-> minted, Durable, chattel assemblies with capacity and derived draught ·
-> the expanse Warren budding sea rooms where ships stop · *a ship is always
-> alongside a room* — exits wired on arrival, unwired on departure, named
-> for her, transient · singleton and minted as one `(scope, key)` model ·
-> `Ship extends Structure` + `Named`, owning her floorplan, keyed rooms,
-> whole-ship dormancy and condition · a Structure row naming its warren ·
-> ship registers per government, flags, the flag state's law · craft
-> ARCHETYPES (the shipped venue archetype) and media by parts · harbors —
-> anchor vs alongside, berths on quays, the harbormaster, mooring by
-> `course` · leaks, the pump, swamping, sinking to the bed as her own wreck ·
-> life aboard by tenure · boatbuilding under carpentry · the pack map
+> position — the *Hesper*), `launch` / `recover`, `AboardExit` / `AshoreExit`,
+> and the barge → [expanse.md](../../subsystems/expanse.md). **The river
+> build (MR !464, merged 2026-10-23) shipped § 1's sea patches** — budded
+> within hail where a ship stops, shared, reaped, a way up named for her —
+> `launch` / `recover` / over the side at sea, and `course` waiting for her
+> PEOPLE in the water (`--leaving-them` → an `abandonment` row); `Boat` lost
+> its singleton marker (six kind rows; a Thing in a water place, never
+> positioned) → [river.md](../../subsystems/river.md). No harbor exists.
+> Supersedes [navigable-water-slate](./navigable-water-slate.md) § 7a where
+> they differ. ⭐ **Next build (`reqs/harbors`): § 1–3 + § 6 harbors + § 7
+> leaks and sinking.** Compacted 2026-10-24 against the river build's code.
+> **Left:** a hove-to ship's water drifting with the set · `course` refused
+> for her own BOATS in the water · a ship alongside a river quay or an
+> authored water's places — exits wired on arrival named for her, unwired
+> on departure, the room's derived line · boats as minted, Durable, chattel
+> assemblies · ships as floorplan kinds with keyed rooms, whole-ship
+> dormancy and hull condition · `(extent, key)` membership · a Structure row
+> naming its warren · the ship registry, shares, flags, the flag state's law
+> · archetypes on all three Structure kinds, media by parts, the hovercraft ·
+> the craft catalogue · harbors — anchor vs alongside, berths on quays, the
+> harbormaster, mooring by `course`, slipway, boathouse, careening hard ·
+> leaks, the pump, swamping, sinking to the bed as her own wreck · life
+> aboard by tenure · boatbuilding under carpentry · the pack map
+> (`trade-seafaring`, the harbor district, haulage widened) · the crew,
+> stations and manning, the watch, the articles, the lay, the cook ·
+> seamanship, the master's certificate, the shipping office, the mariners'
+> guild and the Watermen's ruin · boats crossing the field · the moving
+> encounter (whaling) · shipping as a business — shares, liner/tramp/charter,
+> insurance, general average, bottomry · the harbormaster's day, contention
+> and dues · pilots and the bar, grounding · quarantine · customs and
+> smuggling · the sailortown · the lifeboat · epochs at sea · aether dead
+> zones · the research ship, maritime instruments · the passenger's voyage ·
+> the cruise ship
 > **Size:** a build — and several; the drill-downs decide
 
 **Sits on:** [expanse.md](../../subsystems/expanse.md) ·
@@ -41,11 +58,10 @@ branch).
 
 A survey of what shipped found:
 
-1. **Three boat models** — a launched `Boat` detaches and holds a position at
-   sea; the barge moves room to room; the river and underwater slates put a
-   boat inside the water's room. A launched boat can never land; `Boat` is a
-   **singleton** (one row, one boat — none can be bought or built) and not
-   `Durable`.
+1. *Superseded by the river build → [river.md](../../subsystems/river.md)
+   § The one rule, § Small craft: ONE boat model (a Thing in a water place,
+   never positioned), six kind rows, no singleton marker; still not `Durable`
+   (§ 2).*
 2. **"The hull may be assumed"** — nothing hosts a hull, yet upkeep, sinking,
    draught, capacity and repair all need one.
 3. **A ship's rooms do not persist** — deck and hold are non-persistable, so
@@ -85,19 +101,14 @@ slate); the berth as the liveaboard's address.
 
 ### The expanse Warren — the sea's own rooms
 
-The owner rejected *water that belongs to a ship* (*"what are you actually
-modelling here… how do you know if it's starboard or portside"*):
+*Shipped by the river build (MR !464) → [river.md](../../subsystems/river.md)
+§ The sea, brought into line: the `SeaWarren` buds a patch where a ship
+stops, within hail (`expanse.hailRangeM`), shared by ships stopped within
+hail, reaped when empty; `launch` / `recover` / `side`; `course` waits for
+her PEOPLE in the water, `--leaving-them` records `abandonment`.*
 
-- **The expanse buds surface-water rooms where ships stop** — a third Warren
-  consumer beside the river's stretches and the column's bands; reaped when
-  empty. Each is a water place citing the sea there (sea state, depth, fish,
-  a column below).
-- ⭐ **Keyed to a cell of about hailing distance**, not to a ship, so **ships
-  stopped near each other share one room** — their boats row between them; a
-  rendezvous is ordinary co-presence.
 - **A ship hove to drifts with the band's set, and the room with her**; anchored
   holds both. You need only have stopped, never to have anchored.
-- **`launch`, `recover` and over the side** move between her deck and that room.
 - ⭐ **`course` is refused while her own boats or people are in the water** —
   *"the dinghy's still in the water, and Tam's swimming off the starboard
   quarter — recover them first, or `course … leaving them`."* Nobody is
@@ -111,6 +122,8 @@ modelling here… how do you know if it's starboard or portside"*):
 | the expanse (or a lake you cannot see across) | budded where she stops | a course across the field; under way she is alongside nothing |
 | a river | the `RiverWarren`'s stretches + authored places | the river voyage — a distance along |
 | ⭐ a fully authored water (a mere, a basin, a canal, a lagoon) | the authored water places | **room to room through their water exits**; her position IS which room she is alongside; admission = her draught against the room's `depthM`, her beam against an exit's width |
+
+*⚠ The river row is superseded by the river build → [river.md](../../subsystems/river.md) § Ships on a river: no `RiverWarren`, no stretch rooms — she is positioned on the LINE, alongside a landing when she lies within a rope's throw of it, and the landing's `aboard` is authored and names one ship.*
 
 **Exits come and go with her** (*"putting 'aboard' on every water place for a
 ship that's not there 90% of the time is stupid"*): arriving alongside, she
@@ -477,7 +490,7 @@ cut): the voyage's weather, combat, whaling's chase.
    something `Ship` composes (`Warren` is a base class).
 2. Structure membership by `(extent, key)`.
 3. A runtime-minted expanse node for a wreck.
-4. The sea-room cell size (grain).
+4. *Resolved: the cell is `expanse.hailRangeM` (100 m) → [river.md](../../subsystems/river.md) § The sea, brought into line.*
 5. Where the ship registry lives (a civics document tree per government — no
    new collections).
 
@@ -621,11 +634,7 @@ Location inside a Location, never a hull Thing.
 
 ### The sea is bounded; rooms bud only at ENCOUNTERS **[DECIDED]**
 
-*"Is it infinite or bounded?"* — **bounded by the expanse's own extent** (its
-chart region, nodes and bands), and **rooms are budded at encounters, not across
-the sea**: a stopped craft is a one-craft encounter, two ships hove to share one
-(the cell rule), everywhere else is field. The count of rooms is the count of
-things happening at sea now.
+*Shipped → [river.md](../../subsystems/river.md) § The sea, brought into line: patches only where a ship has stopped, shared within hail, field everywhere else.*
 
 **The geography a chase runs on already ships**: **bands** (set, fog, races, sea
 state, and **`stock`** — ⭐ *a whaling ground is a band*), **nodes** (rocks,

@@ -58,8 +58,10 @@ plane sailing (`cos(lat)` departure), which is what a navigator with a
 traverse table does. Persisted as its plain record.
 
 `PositionedMixin` (kernel) carries a CRAFT's chart position —
-`expansePosition` and `expanse` (the row path). Composed by `Ship` and
-the transport pack's `Boat` — never by `ExitableVessel` or `Mobile`,
+`expansePosition` and `expanse` (the row path). Composed by `Ship` (and
+by the water pack's `SeaPatch`; the transport pack's `Boat` no longer
+composes it since the river build — a boat is a thing in a water place,
+[river.md](./river.md) § Small craft) — never by `ExitableVessel` or `Mobile`,
 ⛔ never by a plain `Structure` (a building has no position of its own;
 a light is where its rock's node is), and not by `ExpanseNode`, whose
 position is the graph's. Two height hooks

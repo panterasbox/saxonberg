@@ -218,6 +218,14 @@ for the sea's chart; at a node that names a river (`ExpanseNode.river`),
 in the water her `course` waits; `--leaving-them` sails and records an
 `abandonment` accountability row.
 
+**Alongside a landing** (D18): a landing on the line carries an authored
+`aboard` way (`AboardExit`) naming the ship whose usual berth it is — the
+woodyard's to the *Ostrander*'s deck — passable only while she lies there,
+not under way, within 60 m (`ALONGSIDE_M`) of the landing; her deck's
+`ashore` names her home berth and is worked out by where she lies. A way
+minted on arrival and named for her, and a river place's `look` mentioning
+her, are the ships slate's.
+
 ## Ferries
 
 A crossing is an exit kind (`FerryExit`, transport) on each landing, one
@@ -255,6 +263,17 @@ by ships stopped within hail, reaped when empty. Her boat is launched into
 it; `side` (an authored way on the deck) goes over into it; a way named for
 her goes back up; under way she is alongside nothing. `locate` in the water
 beside her reads her reckoning.
+
+⭐ **Why the water is the sea's and not the ship's** (ships slate,
+2026-10-19): a water room that belonged to a ship would have to answer which
+side of her it lay on, and two ships stopped together would each own a
+different water. The patch is keyed to the SPOT, within hail
+(`expanse.hailRangeM`, 100 m — `MovingPlace.hailRangeM`), so ships stopped
+near each other share one water, their boats row between them, and a
+rendezvous is ordinary co-presence. The way up onto a deck is named for her
+(`SeaWarren.wireDeck`), so two ships in one patch are two ways, no prompt.
+The patches do not drift: a hove-to ship's set, and her water with her, is
+still the ships slate's.
 
 ## Readings
 
