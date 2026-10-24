@@ -10,11 +10,16 @@ data:
   enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.4 }
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   longDescription: |
-    Hot and loud and full of steam. The Jamaica train runs the length of the floor, four coppers in a row over one long fire, and an older single kettle sits over its own arch by the door, the way they boiled before the train was built. Bagasse is heaped by the stoke-hole and a woodpile is stacked along the wall. The curing house is through the door east; the mill yard is south.
+    Hot and loud and full of steam. The Jamaica train runs the length of the floor, four coppers in a row over one long fire, and an older single arch stands by the door, the way they boiled before the train was built. A brick cistern is sunk at the head of the floor for the juice to stand in. Bagasse is heaped by the stoke-hole and a woodpile is stacked along the wall. The curing house is through the door east; the mill yard is south.
   props:
     - /trade/sugar/thing/jamaica-train
     - /trade/sugar/thing/kettle-arch
-    - { template: /trade/sugar/thing/kettle, count: 2 }
+    # ⭐ ONE kettle: a second answered to the same word, so `pour … into
+    # kettle` could charge the spare by the door while the pan on the train
+    # stood empty (the keyword-collision gap). The juice waits in the
+    # cistern and the pan is charged from it.
+    - /trade/sugar/thing/kettle
+    - /trade/sugar/thing/juice-cistern
     - /stuff/thing/vessel/pail
     - /trade/sugar/thing/hogshead
     - /trade/sugar/thing/curing-pot

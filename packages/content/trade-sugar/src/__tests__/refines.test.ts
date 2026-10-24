@@ -119,6 +119,18 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...base, block: true }, w)).toBe('go south\nput block in counter\ngo north');
   });
 
+  it('⭐ with a cistern, an EMPTY pan is charged one batch — and a working pan is never topped up', () => {
+    const w = brain.words({
+      kettle: 'kettle', fire: 'train', mould: 'hogshead', source: 'juice', finish: 'block',
+      cistern: 'cistern', batch: 40,
+    });
+    const island = { ...base, block: false, juice: true };
+    expect(brain.next(island, w)).toBe('pour cistern into kettle --amount 40L');
+    // Juice standing in the cistern does not reach a pan already working.
+    const boiling = { ...island, liquor: 'liquor' as const, limed: 1, skimmed: true, fireFuelled: true, fireLit: true, onFire: true };
+    expect(brain.next(boiling, w)).toBeNull();
+  });
+
   it('out of lime, it buys the import at its own counter', () => {
     expect(
       brain.next({ ...base, liquor: 'liquor', lime: false, counterLime: true }),

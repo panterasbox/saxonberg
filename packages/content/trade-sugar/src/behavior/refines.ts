@@ -42,6 +42,8 @@ import SugarLoaf from '../thing/SugarLoaf';
 
 /** Litres of water a refinery batch starts from — a block's worth. */
 const BATCH_WATER = '30L';
+/** Litres a boiler charges from a juice cistern when the row names none. */
+const DEFAULT_BATCH_L = 40;
 /** Moisture above which bagasse will not catch (wet off the rollers). */
 const TOO_WET = 0.5;
 
@@ -85,6 +87,16 @@ interface Words {
    * ladled. Absent, the boiler lifts the pan off (the Terminus copper).
    */
   ladle?: boolean;
+  /**
+   * ⭐ Where the juice waits for the pan (a keyword): the boiler charges an
+   * EMPTY kettle from it, `batch` litres at a time. Absent, the juice comes
+   * in the mill's tub. A miller pouring every tub into the kettle kept
+   * topping up a boiling pan with thin juice, and two hundred litres never
+   * struck inside a shift (probed, drive 13).
+   */
+  cistern?: string;
+  /** Litres charged from the cistern per batch (default 40). */
+  batch?: number;
 }
 
 const TERMINUS: Words = {
@@ -163,6 +175,8 @@ export const brain = class {
       out: way(c.out) ? c.out : TERMINUS.out,
       back: way(c.back) ? c.back : TERMINUS.back,
       fuels: Array.isArray(c.fuels) ? c.fuels.filter(word) : TERMINUS.fuels,
+      cistern: word(c.cistern) ? c.cistern : undefined,
+      batch: typeof c.batch === 'number' && c.batch > 0 && c.batch <= 1000 ? c.batch : undefined,
     };
   }
 
@@ -205,7 +219,12 @@ export const brain = class {
     }
     if (f.liquor === 'struck' || f.liquor === 'spoilt') return null;
     if (f.liquor === 'empty') {
-      if (w.source === 'juice') return f.juice ? `pour tub into ${w.kettle}` : null;
+      if (w.source === 'juice') {
+        if (!f.juice) return null;
+        return w.cistern
+          ? `pour ${w.cistern} into ${w.kettle} --amount ${w.batch ?? DEFAULT_BATCH_L}L`
+          : `pour tub into ${w.kettle}`;
+      }
       return `pour butt into ${w.kettle} --amount ${BATCH_WATER}`;
     }
     if (f.liquor === 'water') {

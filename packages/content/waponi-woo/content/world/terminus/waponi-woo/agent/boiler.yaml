@@ -37,6 +37,10 @@ data:
         # A full train kettle is ladled at the strike, never lifted.
         ladle: true
         source: juice
+        # The pan is charged from the cistern a batch at a time — forty
+        # litres strikes in about two hours on the train (drive 13).
+        cistern: cistern
+        batch: 40
         finish: block
         counter: /world/terminus/waponi-woo/thing/stock
         out: south east north
