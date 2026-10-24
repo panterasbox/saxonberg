@@ -5,11 +5,14 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import SignalBell from '../thing/SignalBell';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 let seq = 0;
@@ -31,6 +34,7 @@ function bellOf(tags: string[]): SignalBell {
 }
 
 beforeEach(() => installV1QuantityMarshallers());
+afterEach(() => WorldClockApi._resetForTesting());
 
 describe('the signal bell', () => {
   it('⭐ rings loud, and what the others hear is the bell from nowhere', () => {
@@ -44,5 +48,15 @@ describe('the signal bell', () => {
     const r = bellOf(['wood']).ringSound();
     expect(r.rings).toBe(false);
     expect(r.carries).toBeUndefined();
+  });
+
+  it('⭐ a ringable signal: struck by the platform `ring`, it remembers when (the ferryman reads it — river W16)', () => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi._setNowProviderForTesting(() => 5_000);
+    const b = bellOf(['alloy', 'metal']);
+    expect(MixinApi.isRingable(b)).toBe(true);
+    expect(b.getLastRungAtS()).toBe(Number.NEGATIVE_INFINITY);
+    b.struck();
+    expect(Number.isFinite(b.getLastRungAtS())).toBe(true);
   });
 });
