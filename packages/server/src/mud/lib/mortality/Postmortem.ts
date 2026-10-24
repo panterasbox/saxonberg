@@ -50,6 +50,12 @@ export interface Postmortem {
   markDeceasedAt(gameSec: number): void;
   /** How far decomposition has gone. `'fresh'` while alive. */
   getDecayStage(): DecayStage;
+  /**
+   * ⭐ Does this body float now (river D27)? A drowned body sinks — fresh
+   * flesh is denser than water — and comes up when decomposition has filled
+   * it with gas, and goes down again when that is spent.
+   */
+  buoyantNow(): boolean;
   /** How readable the forensic record still is, 1 → 0. */
   getForensicReadability(): number;
   /**
@@ -155,6 +161,11 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
         Math.floor(elapsed / MORTALITY_DEFAULTS.DECAY_STAGE_SEC),
       );
       return DECAY_STAGES[index]!;
+    }
+
+    public buoyantNow(): boolean {
+      if (this.diedAtGameSec === 0) return false;
+      return this.getDecayStage() === 'decomposed';
     }
 
     public getForensicReadability(): number {

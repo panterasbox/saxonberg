@@ -727,3 +727,54 @@ A kept place must be one place (a locale) or keyed (a location in a warren)
 OUTERMOST over a place's own substrate, which is why a kept place with
 substrate composes the shape rather than subclassing the plain kept class.
 
+
+
+### ⛔ Naming places — the word "room", and what is renamed
+
+**The vocabulary is PLACE** (the root, above). Anything that stands for "a
+place", in any kind of name or prose, says *place* — `place`, `here`,
+`placeOf`, a moving place, a river *patch* — and never *room*.
+
+**Hard rules for "room"** (user, 2026-10-23 — *"rooms imply interior space"*):
+
+1. **A room is an interior**: an enclosed space inside a building or a
+   vessel, with walls and a roof over it — somewhere people furnish,
+   sleep, store or work. A dorm room, a ship's saloon or hold, a cold room,
+   the furnishing archetypes (`FurnishableRoom`), a holding's rooms
+   (`/stuff/location/room/*`). If you would not say "come into the
+   room", it is not one.
+2. **Never a room**: a deck, a quay, a towpath, a street, a field, a wood,
+   a yard, a beach, and **any water — a river, the sea, a pool, a patch of
+   current, a place at sea**. Those are places.
+3. **Names follow the rule everywhere** — classes, mixins, row paths and
+   kind rows, fields, exit kinds, fixture names, method and variable names
+   (a controller's `room` for "where the giver is" is a *place*), and prose
+   in comments, docs and player-facing words.
+4. **A generic name must fit interior and exterior alike** (the taxonomy's
+   own rule): `Locale`, `Location`, `Place` do; `Room` does not, and
+   neither does a word that only fits outdoors.
+5. **Floors are the one deliberate exception to "a thing that sounds like a
+   place"** — the ground model makes a place's floor a Thing in it, a slot
+   you stand on ([ground.md](./ground.md)). So a floor's CLASS says it is a
+   floor — `Floor`, `<Kind>Floor` (`ReachFloor`, the river's) — and is never
+   named like the place it lies in; its *display* noun is the fiction's
+   (*the river bed*, *the floor*). ⚠ `WaterSurface` predates the rule.
+
+**Rename status — the vocabulary is decided, the sweep is not finished.**
+Done: the classes (`Place` · `Locale` · `Location` · `PersistentLocale` ·
+`PersistentLocation` · `SphericalLocale`, the cleanliness MR !380); the
+stray `/platform/location/Room` class (→ `Locale`, the farming MR !213);
+the river build's sea place (`SeaRoom` → `SeaPatch`, W15). **Not yet**,
+each a deliberate standalone sweep rather than piecemeal edits:
+
+| still named the old way | becomes | notes |
+|---|---|---|
+| the `/location/` path segment — `lib/location/`, `platform/location/`, every `…/location/…` row path | `/place/` | a pack-wide path rename; rows, census and the class table move together |
+| `Location`-for-*place* APIs and fields — `startLocation`, `LocationZone`, `location_graph`, `getLocation…` readers | `…Place…` | where it means *any place*; `Location` the class (one of many laid out to a plan) keeps its name |
+| `room` as the code idiom for *the place someone is in* — controllers, brains, the kernel | `place` / `here` | mechanical, file by file; new code uses `place` now |
+| `Voyaging.watchRoom` | `watchPlace` | the deck where the watch is kept is outdoors |
+| `MineRoom` | (decide) | a cut working underground is enclosed but not furnished — the mining owner's call |
+| `RoomWarren` | `PlaceWarren` | its own header says what it is — *members are places you stand in, the bottom of the nesting* — and its members include lounge satellites, mine cells, underwater bands and river patches; six subclasses across four packs |
+
+`DormRoom`, `ColdRoom` and the holding rows (`/stuff/location/room/*`) are
+rooms by rule 1 and keep the word.

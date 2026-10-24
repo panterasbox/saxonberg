@@ -359,3 +359,33 @@ describe("⭐⭐⭐ a place claim banks the address it DECLARES", () => {
     expect(place?.group).toBeUndefined();
   });
 });
+
+describe('⭐ a way the water works out is never written down (river D38 d)', () => {
+  class UnmappedExit extends Exit {
+    override isMapped(): boolean {
+      return false;
+    }
+  }
+
+  it('a walked unmapped exit writes no edge claim', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    const exit = makeStuff(
+      () =>
+        new UnmappedExit({
+          direction: 'quay',
+          source: hall() as unknown as never,
+          destinationPath: '/test/cartoville/yard',
+        }),
+    );
+    guide.onTraversed(exit as never);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(recorded.flatMap((r) => r.claims).some((c) => c.kind === 'edge')).toBe(false);
+  });
+
+  it('every other way is mapped by default', () => {
+    const exit = makeStuff(
+      () => new Exit({ direction: 'north', source: hall() as unknown as never, destinationPath: '/test/cartoville/yard' }),
+    );
+    expect(exit.isMapped()).toBe(true);
+  });
+});

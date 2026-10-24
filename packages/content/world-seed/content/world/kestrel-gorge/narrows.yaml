@@ -1,0 +1,22 @@
+# The narrows — the Kestrel gorge (the river build, D36). A river place:
+# the line's water at its km (current: inherit), walls both sides, handed
+# in at its head and out at its foot.
+class: /system/water/location/RiverPlace
+data:
+  shortDescription: narrows
+  keywords: [gorge, river, kestrel, water, narrows]
+  register: definite
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none
+  longDescription: |
+    The walls come so close you could touch both, and the river runs black and deep between them, quiet now, with a hiss under the quiet. A strip of sky far up, and the rest is rock.
+  coords: { x: 3, y: 0, z: 0 }
+  water: { of: "kestrel:gorge+4.5", depthM: 2 }
+  river: { course: kestrel, at: "gorge+4.5", span: 0.3, name: narrows }
+  current: inherit
+  details:
+    walls:
+      keywords: [walls, wall, rock, limestone, cliff]
+      description: |
+        Grey limestone, wet to twice your height and scoured smooth. There is nothing to hold and nowhere to climb out.

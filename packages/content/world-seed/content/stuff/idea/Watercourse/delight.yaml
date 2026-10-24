@@ -3,7 +3,7 @@
 #
 # It branches from `kestrel:confluence` and NOTHING says which way. The
 # junction end is derived: its `mouth` sits at 35 m, five from the
-# confluence's 30, while its spring is seven hundred metres away — so
+# confluence's 30, while its spring is seven hundred meters away — so
 # the mouth is the end that touches, and this is a tributary JOINING
 # rather than a distributary leaving. The same one-line structure would express a delta
 # arm if its source were the end at that height.
@@ -24,8 +24,24 @@ data:
   # authored here because a reach is not a place a zone chain reaches.
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
+  # ⭐ The river as a LINE (the river build): a spring river, cold and
+  # steady at the top, joining the Kestrel at the confluence.
+  source: { kind: spring }
+  mouth: { into: river, course: kestrel, node: confluence }
+  bed: gravel
+  stretches:
+    # The ford: a gravel riffle a few hundred meters above the mouth —
+    # shallow, fast, and the only place a cart crosses (overridden: a ford
+    # is where somebody found the riffle, and an author says where).
+    - { from: mouth-0.4, to: mouth-0.25, kind: riffle }
+  # The places on its line: the ford.
+  places:
+    - /world/terminus/delight-road/ford
   nodes:
-    - { name: spring, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    - { name: spring, km: 60, elevation: 720, catchmentKm2: 190, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The alluvial flats — the diversion fight, when it comes, is here.
-    - { name: flats, elevation: 180, channelWidthM: 22, catchmentKm2: 240, stocks: [{ species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/brown-trout }], works: [/world/terminus/hearts-delight/thing/millrace] }
-    - { name: mouth, elevation: 35, channelWidthM: 30, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }
+    - { name: flats, km: 40, elevation: 180, channelWidthM: 22, catchmentKm2: 240, stocks: [{ species: /stuff/idea/species/carp }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/brown-trout }], works: [/world/terminus/hearts-delight/thing/millrace, /world/terminus/hearts-delight/thing/sawmill-race] }
+    # ⭐ 12 m, not 30 (the river build's drive): "a stream you could throw a
+    # stone across" carrying ~2.5 m³/s in summer; spread across 30 m its ford
+    # could never take anybody's feet in a year of water.
+    - { name: mouth, km: 0, elevation: 35, channelWidthM: 12, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }] }

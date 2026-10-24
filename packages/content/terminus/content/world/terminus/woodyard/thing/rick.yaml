@@ -1,0 +1,19 @@
+# The woodhawk's rick — cordwood for the steamers, by the length.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: woodrick
+  keywords: [rick, woodrick, stack, cordwood]
+  register: definite
+  longDescription: |
+    A long stack of split lengths under a bark roof, with a slate nailed to the end post: the price of a length, chalked.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 200
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [woodhawk]
+  businessPath: /world/terminus/woodyard/idea/yard
+  stockLines:
+    - { itemTemplatePath: /trade/forestry/thing/cordwood, par: 60 }
+  prices:
+    /trade/forestry/thing/cordwood: 1

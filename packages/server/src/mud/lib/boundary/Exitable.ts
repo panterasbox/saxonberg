@@ -1007,7 +1007,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
           continue;
         }
 
-        const liveDest = StuffApi.findByTemplatePath(destPath);
+        const liveDest = exit.peekDestination();
         if (!liveDest) {
           // Destination still not loaded; keep pending for a future pass.
           continue;

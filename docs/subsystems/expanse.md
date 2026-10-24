@@ -2,7 +2,10 @@
 
 The maritime build's subsystem: a sea (and in principle a desert, an ice
 sheet, a void) whose places are reached by **setting a course**, not by
-walking an exit. It is the second and third spatial registers beside the
+walking an exit. ⭐ A ship on a RIVER is positioned on the river's line,
+not the chart, and her course is a planned passage — see
+[river.md](./river.md); so is the water beside a ship stopped at sea (the
+`SeaWarren`). It is the second and third spatial registers beside the
 room grid:
 
 | register | what a position is | neighbours |
@@ -36,7 +39,7 @@ is what holds rooms, and only `CartesianZone` / `SphericalZone` compose it.
 
 | layer | system | who reads it |
 |---|---|---|
-| **the graph** — nodes and bands | ⭐ **spherical**, relative to the expanse: a node is a focus `[rho, theta, phi]` + `radius` (`SphericalCoordinatesMixin`, the shape and units a `SphericalLocation` uses in its `SphericalZone` — metres; `theta` the bearing from the origin, `phi` the inclination, `90` on the surface) | authors |
+| **the graph** — nodes and bands | ⭐ **spherical**, relative to the expanse: a node is a focus `[rho, theta, phi]` + `radius` (`SphericalCoordinatesMixin`, the shape and units a `SphericalLocation` uses in its `SphericalZone` — meters; `theta` the bearing from the origin, `phi` the inclination, `90` on the surface) | authors |
 | **the chart** — a craft's position, course, reckoning, sight, fix, the horizon's bearings | latitude and longitude (`GeoPosition`), plane sailing | sailors |
 | **the bridge** | the expanse's authored `origin` (where the graph's centre lies on the chart) and `GeoPosition.atFocus(focus)` — the surface run `rho·sin(phi)` along `theta`, the depth `−rho·cos(phi)` | one place |
 
@@ -74,7 +77,7 @@ only (`lint:object-verbs`).
 `BandExtent` is a closed two-word vocabulary: a **corridor** (two points
 and a width — a rectangle on the local plane) or a **belt** (the box
 between two corners — joins nothing). ⭐ Both are **authored on the
-graph**, as foci relative to the origin (`widthM` in metres), and a
+graph**, as foci relative to the origin (`widthM` in meters), and a
 corridor that names `endpoints` and no `from`/`to` is **drawn between
 those nodes** — an edge can never disagree with what it joins, and
 moving a node moves it. `Band.getExtent()` resolves the authored shape
@@ -100,7 +103,30 @@ felt.
 
 ## The voyage — held by the craft
 
-`VoyagingMixin` (kernel; `Ship`, `Boat`): ⭐⭐ the voyage's whole state
+⭐⭐ **One craft, either frame** (river review, W7 — `lib/expanse/Frame.ts`).
+A craft is positioned in a `Frame`: the sea's chart (an `Expanse`) or a
+river's line (`LineFrameMixin`, [river.md](./river.md)). The craft never
+branches on which: it asks its frame to plan a course
+(`planCourse` — a bearing at sea, a worked passage on a river, or the
+frame's refusal), where it puts her at a time (`craftPositionAt`), and what
+a watch brought (`watchCraft` — what changed, how far she came, the stop).
+`Voyaging` is the frame-agnostic craft: one `steer(request)`, `whereAtS`,
+`placeAt(pos[, framePath])` (a frame change at a river's mouth is a
+placement), `liveFrame`, and the craft's own `hullNow` · `burnFor` ·
+`onStop` on either frame (a steamer burns at sea too). The navigator's plot
+is the one chart-only surface: on a line you always know where you are
+(`Frame.reckons`).
+
+⚠ **A position is in one frame at a time, and the later write wins**
+(`PositionedMixin`'s hydration setters): a chart position takes a craft off
+any line and a line position takes her off the chart. Restore applies the
+row and then the snapshot, so a ship whose row puts her on the Kestrel and
+whose snapshot has her at sea comes back at sea — the setter used to throw
+there, and the *Ostrander* restarted after going out over the bar did not
+restore at all (river browser walk). `placeOnLine` keeps its guard for code
+that moves a craft.
+
+`VoyagingMixin` (kernel; `Ship`): ⭐⭐ the voyage's whole state
 is **three persisted fields** — the stored `expansePosition` IS the fix,
 plus `course` and `courseSetAtS`. `getExpansePosition()` answers the
 DERIVED position while a course is set:
@@ -109,11 +135,13 @@ DERIVED position while a course is set:
 
 integrated piecewise along the undisplaced track, split at every
 boundary. ⭐ A course set for a node **stops where the track first comes
-inside its radius** (`positionAtS` over the raw `driftAtS`; sampled at
+inside its radius** (`Expanse.craftPositionAt` over the raw `driftAtS`; sampled at
 half the radius, bisected, memoised per course) — between watch beats
 she lies off the node instead of sailing through it and snapping back at
 the beat (the live browser walk, 2026-10-14). `rebase` is the one
-writer; `steer` / `anchorHere` / `placeAt` are the acts.
+writer; `steer` / `anchorHere` / `placeAt` are the acts. The drift and the
+arrival search live on the `Expanse` (the chart's `Frame`), the watch's
+chart half — boundaries, arrival, neglect — in `Expanse.watchCraft`.
 
 `Voyage` (`lib/expanse/Voyage.ts`) is a **sustained engagement whose
 actor is the craft** — nobody's `cancel` reaches it, logging out does

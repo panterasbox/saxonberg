@@ -10,6 +10,7 @@
  */
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
+import { TetherEndMixin } from '@saxonberg/server/mud/lib/spatial/TetherEnd';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -18,7 +19,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type Lifeline from './Lifeline';
 import type { LineOutcome } from './Lifeline';
 
-export default class LineEnd extends Good {
+export default class LineEnd extends TetherEndMixin(Good) {
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds the end (item → holder) can signal up it.
@@ -42,6 +43,16 @@ export default class LineEnd extends Good {
   public getLine(): Lifeline | null {
     const l = this._line;
     return l !== null && !l.isDestroyed() ? l : null;
+  }
+
+  /**
+   * ⭐ The line's far end (river W16): whoever or whatever has the line
+   * itself — the tender carrying it, the boat it lies in. What the water
+   * asks of a painter in a walker's hand.
+   */
+  public override tetheredTo(): Stuff | null {
+    const line = this.getLine();
+    return line === null ? null : (line.getContainer() as Stuff | null);
   }
 
   /** What the end is made fast to, when it is not in anybody's hands (runtime). */

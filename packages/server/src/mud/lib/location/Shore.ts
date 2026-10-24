@@ -375,9 +375,11 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (MixinApi.isExitable(self)) {
         for (const [, exit] of self.getExits()) {
-          const path = exit.getDestinationTemplatePath?.() ?? null;
-          const dest = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
-          if (!dest || !MixinApi.isWaterPlace(dest)) continue;
+          // ⭐ The exit says whether it goes into the water (river D8): a
+          // way worked out against a river leads into water it cannot name.
+          if (!exit.leadsIntoWater()) continue;
+          const dest = exit.peekDestination();
+          if (!dest || !MixinApi.isWaterPlace(dest)) return { exit };
           // The water decided it cannot be swum into: say why, rather
           // than the swim gate's bare "no way to swim <exit>".
           if (dest.stateNow() === 'frozen') {
@@ -398,8 +400,7 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     private depthWords(): string | null {
       const way = this.wayIntoWater();
       if (!('exit' in way)) return null;
-      const path = way.exit.getDestinationTemplatePath?.() ?? null;
-      const water = path ? StuffApi.findByTemplatePath<Stuff>(path) : undefined;
+      const water = way.exit.peekDestination();
       if (!water || !MixinApi.isWaterPlace(water)) return null;
       const state = water.stateNow();
       const d = water.depthNow();

@@ -6,7 +6,9 @@
  * where it came from.
  */
 
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
+import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -15,15 +17,34 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 /** A struck bell carries like a shout, and further in water. */
 const BELL_DB = 95;
 
-export default class SignalBell extends Good {
+export default class SignalBell extends RingableMixin(Good) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: ['trade/diving/cmd/diving/ring.yaml'],
-    peers: [],
+    // ⭐ A bell hung on a post (a ferry landing's) is rung by whoever stands
+    // beside it — the helm's way (the river drive: `ring` was unknown at
+    // Nesbit's landing).
+    peers: ['trade/diving/cmd/diving/ring.yaml'],
   };
+
+  /** When it was last struck, game seconds (runtime: who rang is heard, not kept). */
+  private rungAtS = Number.NEGATIVE_INFINITY;
+
+  /**
+   * ⭐ When this bell was last struck (river D31): a ferryman across the
+   * water knows it rang — what a bell on a landing post is FOR.
+   */
+  public override getLastRungAtS(): number {
+    return this.rungAtS;
+  }
 
   /** ⭐ Strike it: a hearing event from where the striker is. */
   public ring(by: Stuff): void {
+    try {
+      this.rungAtS = WorldClockApi.getNow().rawValue();
+    } catch {
+      /* no clock (a unit world): the ring is heard and not remembered */
+    }
     MessageApi.scene(by)
       .topic('act.deed')
       .modality('hearing')

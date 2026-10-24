@@ -1,0 +1,18 @@
+# A canoe (the river build, D19-D20): a small craft, a thing you sit in. ⭐ A
+# KIND row of the transport pack, never a venue's, so its zone is null for
+# life and it can go into any water (D38). Comes with what drives it.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: canoe
+  keywords: [canoe, boat]
+  register: indefinite
+  longDescription: |
+    A birch-bark canoe on a frame of cedar ribs, long and light and narrow, that two people can lift and one can carry.
+  eyeHeightM: 1
+  heightM: 1.5
+  mass: 30
+  _materialPath: /stuff/idea/material/wood/birch
+  hull: { form: round, draftM: 0.15, beamM: 0.9, lengthM: 5, freeboardM: 0.3, capacityKg: 350 }
+  props:
+    - { template: /system/transport/thing/propulsion/paddle, count: 2 }
+    - /system/transport/thing/killick

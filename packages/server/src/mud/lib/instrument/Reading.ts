@@ -880,6 +880,18 @@ export default abstract class Reading extends ReadingBase {
     return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
   }
 
+  /**
+   * A subject this channel reads although it does not compose what
+   * `subjectRequires` names — a shore whose water you named, for a
+   * thermometer (river D32).
+   * @hook Override on a channel with such a subject. Default `false`.
+   */
+  protected acceptsSubject(subject: Stuff, raw: string): boolean {
+    void subject;
+    void raw;
+    return false;
+  }
+
   // ─────────────────────────── the internals ───────────────────────────
 
   /**
@@ -903,6 +915,7 @@ export default abstract class Reading extends ReadingBase {
     const raw = subject?.raw ?? '';
     for (const scope of this.scope) {
       if (scope === 'subject' && named) {
+        if (this.acceptsSubject(named, raw)) return { ok: true, target: named, param: raw };
         const missing = this.missingRequirement(named);
         if (missing) {
           // ⭐⭐ Look AGAIN before refusing — see `reResolve`.

@@ -23,11 +23,12 @@
  * ⚠ **Physical only**, like every closure in this build: comms and
  * teleport do not care what the river is doing.
  *
- * ## It reads the water pack by SHAPE
+ * ## It reads the water mod's catalogue
  *
- * The `FordExit` idiom. ⚠ With no water pack installed the crossing is
- * ALWAYS refused — a crossing with no water behind it is a wall, the
- * inverse of the ford's degradation (a ford with no river is a road).
+ * The ice is the water mod's (`WatercourseCatalogue.iceAt`), a declared
+ * dependency. ⚠ With no catalogue the crossing is ALWAYS refused — a
+ * crossing with no water behind it is a wall, the inverse of the ford's
+ * degradation (a ford with no river is a road).
  *
  * See [docs/subsystems/logistics.md], [docs/subsystems/watershed.md].
  */
@@ -41,24 +42,14 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 
-/** Where the water pack's compiled drainage lives, if it is installed. */
+import type WatercourseCatalogue from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
+import type { IceRecord } from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
+
+/** Where the water pack's compiled drainage lives. */
 const WATERCOURSE_CATALOGUE = '/system/water/idea/WatercourseCatalogue';
 
 /** A person on foot, when the mover says nothing about its mass. */
 const DEFAULT_MOVER_KG = 80;
-
-/** The ice as the crossing reads it — the water pack's `IceRecord`, by shape. */
-interface IceRead {
-  thicknessM: number;
-  bearsKg: number;
-  rotting: boolean;
-  reason: 'running' | 'warm' | null;
-}
-
-/** The one method a crossing asks the water for. */
-interface IceSource {
-  iceAt(ref: string, nowS: number): Promise<IceRead | null>;
-}
 
 /** Why the crossing refused, for the prose. */
 type IceRefusal = 'open' | 'running' | 'thin' | 'rotten' | 'no-water';
@@ -89,7 +80,7 @@ export default class IceCrossingExit extends Exit {
    * compares each mover's own mass against it, synchronously, so two
    * people at the shore at once can never read each other's answer.
    */
-  private ice: IceRead | null | undefined = undefined;
+  private ice: IceRecord | null | undefined = undefined;
 
   constructor(opts?: IceCrossingExitOptions) {
     super(opts);
@@ -164,9 +155,9 @@ export default class IceCrossingExit extends Exit {
     return null;
   }
 
-  private static async readIce(reach: string): Promise<IceRead | null> {
+  private static async readIce(reach: string): Promise<IceRecord | null> {
     if (reach === '') return null;
-    const water = await IceCrossingExit.iceSource();
+    const water = await StuffApi.singleton<WatercourseCatalogue>(WATERCOURSE_CATALOGUE).catch(() => null);
     if (!water) return null;
     return water.iceAt(reach, WorldClockApi.getNow().rawValue());
   }
@@ -193,16 +184,5 @@ export default class IceCrossingExit extends Exit {
     if (!MixinApi.isTangible(mover)) return DEFAULT_MOVER_KG;
     const kg = mover.getMass().rawValue();
     return Number.isFinite(kg) && kg > 0 ? kg : DEFAULT_MOVER_KG;
-  }
-
-  /** The water pack's catalogue, by SHAPE; `null` when it is not installed. */
-  private static async iceSource(): Promise<IceSource | null> {
-    try {
-      const cat = await StuffApi.singleton<Stuff>(WATERCOURSE_CATALOGUE);
-      const duck = cat as unknown as Partial<IceSource>;
-      return typeof duck.iceAt === 'function' ? (duck as IceSource) : null;
-    } catch {
-      return null;
-    }
   }
 }

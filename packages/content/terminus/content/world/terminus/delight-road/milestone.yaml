@@ -34,6 +34,12 @@ data:
       destination: /world/terminus/delight-road/drove
       media: [ground]
       edgeMinutes: 8
+    # ⭐ The track down to Nesbit's ferry (the river build, D31): when the
+    # ford is up, this is the way to the city.
+    east:
+      destination: /world/terminus/nesbit-ferry/landing
+      media: [ground]
+      edgeMinutes: 6
   details:
     stone:
       keywords: [stone, milestone, milepost, marker, face]

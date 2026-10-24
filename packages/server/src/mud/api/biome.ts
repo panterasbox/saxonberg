@@ -189,6 +189,14 @@ export interface MediumRead {
   readonly visibilityM?: number | null;
   /** ⭐ Dissolved oxygen in the water here, mg/L (underwater D21); absent in air. */
   readonly oxygenMgL?: number | null;
+  /**
+   * ⭐ The current where the occupant is, m/s (river D10) — the margin's at
+   * a bank, the channel's mid-river; 0 in air, in a pool, in slack water.
+   * Absent reads as 0.
+   */
+  readonly currentMps?: number;
+  /** ⭐ How broken the water is here, 0 (glassy) to 1 (white water) (river D10). */
+  readonly roughness?: number;
 }
 
 export class BiomeApi {

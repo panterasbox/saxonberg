@@ -1,29 +1,25 @@
 /**
- * The ford — ⭐ **a road that changes with the season**, and the whole of
- * it is a number the water system already computes.
+ * The ford — ⭐ **a crossing that reads the body, not a threshold** (river
+ * D10, requirement 7).
  *
  * The claims:
  *
- *  - passability is READ from flow at a reach, not authored anywhere;
- *  - it flips both ways across the threshold, so a spring rise closes a
- *    crossing a dry August opens;
- *  - the answer is memoised on the SAME six-game-hour weather segment
- *    the catalogue itself memoises on, so two reads inside one segment
- *    cannot disagree;
- *  - an install with **no water pack** has a ford that is simply always
- *    passable — the honest degradation, and what keeps `transport` free
- *    of a dependency on `water` for one crossing;
- *  - a closed ford refuses with a reason that **names the water**.
+ *  - the water at the crossing (how deep, how fast) is READ from the river,
+ *    not authored anywhere;
+ *  - the SAME water a tall body wades is over a short one's head — then it
+ *    is a swim, refused in the water's words;
+ *  - depth × speed past what a body can stand against takes its feet part
+ *    way: the crossing is the exit's, and the body is handed to the river;
+ *  - an install with **no water pack** has a ford that is simply a road.
  *
- * ⚠ The flow source here is a stand-in with a seasonal shape, not the
- * real Kestrel: what is under test is the MECHANISM (flow in, passability
- * out). That the authored threshold sits inside the Delight's real range
- * is a content fact, checked over the shipped rows in
- * `logistics-corridors.test.ts` and exercised for real by the drive.
+ * ⚠ The water here is a stand-in answering by SHAPE: what is under test is
+ * the MECHANISM (water and body in, verdict out). The drive crosses the
+ * real Delight.
  */
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
@@ -35,35 +31,38 @@ import FordExit from '../idea/FordExit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { installModes } from './transport-fixtures';
+import { LineFrameMixin } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 
-const CATALOGUE = '/system/water/idea/WatercourseCatalogue';
-const REACH = 'delight:mouth';
-const HOUR = 3_600;
+const RIVER = '/stuff/idea/Watercourse/delight';
 
-/** A stand-in for the water pack's catalogue, answering by SHAPE. */
-class FakeWater extends Idea {
-  static _mixinName = 'FakeWater';
-  public m3s = 1;
-  public asked: string[] = [];
-  async flowAt(ref: string, _nowS: number): Promise<{ m3s: number } | null> {
-    this.asked.push(ref);
-    return { m3s: this.m3s };
+/** A stand-in river frame (the kernel's `LineFrame`): the water at the ford, and who it was handed. */
+class FakeRiver extends LineFrameMixin(Idea) {
+  public depthM = 0.4;
+  public mps = 0.8;
+  public handed: Stuff[] = [];
+  override async locate(_c: string) {
+    return { course: 'delight', km: 0.3, across: 15 };
+  }
+  override async waterAt() {
+    return { depthM: this.depthM, currentMps: this.mps, widthM: 12 };
+  }
+  override async handIn(thing: Stuff) {
+    this.handed.push(thing);
+    return true;
   }
 }
 
-let water: FakeWater;
+let water: FakeRiver;
+let warren: FakeRiver;
 
-function installWater(): FakeWater {
-  water = makeStuffAtPath(() => new FakeWater(), CATALOGUE);
+function installWater(): void {
+  water = makeStuffAtPath(() => new FakeRiver(), RIVER);
+  warren = water;
   const real = StuffApi.singleton.bind(StuffApi);
   vi.spyOn(StuffApi, 'singleton').mockImplementation(((path: string) =>
-    path === CATALOGUE
-      ? Promise.resolve(water as unknown as Stuff)
-      : real(path)) as typeof StuffApi.singleton);
-  return water;
+    path === RIVER ? Promise.resolve(water as unknown as Stuff) : real(path)) as typeof StuffApi.singleton);
 }
 
-/** A ford between two rooms, flooding above 12 m³/s. */
 function ford(): FordExit {
   const zone = makeStuff(() => new CartesianZone());
   const here = makeStuff(() => new Locale());
@@ -77,129 +76,76 @@ function ford(): FordExit {
         source: here as never,
         destination: there as never,
         media: ['ground'],
-        crossesReach: REACH,
-        floodThresholdM3S: 12,
+        crossesAt: { frame: RIVER, cite: 'mouth-0.3' },
       }),
   );
 }
 
-/** Park the world clock at a fixed game time. */
-function at(gameSeconds: number): void {
-  vi.spyOn(WorldClockApi, 'getNow').mockReturnValue(
-    Quantity.of(gameSeconds, 's'),
-  );
+/** A body of a given height and weight, as the ford reads one. */
+function body(statureM: number, kg: number): Stuff & Containable {
+  return {
+    getSpecies: () => ({ getStature: () => statureM }),
+    getMass: () => Quantity.of(kg, 'kg'),
+    isTangible: () => true,
+  } as unknown as Stuff & Containable;
 }
 
 beforeEach(() => {
   StuffApi.clearAll();
   installModes();
-  at(0);
+  vi.spyOn(WorldClockApi, 'getNow').mockReturnValue(Quantity.of(0, 's'));
+  // The bodies are organisms: a ford reads their species' stature (W16 — by
+  // the kernel predicate, never by shape).
+  vi.spyOn(MixinApi, 'isOrganism').mockImplementation(((x: { getSpecies?: unknown }) => x?.getSpecies !== undefined) as never);
 });
 afterEach(() => {
   vi.restoreAllMocks();
   StuffApi.clearAll();
 });
 
-describe('a ford reads the river', () => {
-  it('⭐ closes when the water is up and opens when it is down', async () => {
-    const w = installWater();
-    const f = ford();
-
-    // August: the stones are dusty.
-    w.m3s = 2;
-    at(1 * HOUR);
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(false);
-
-    // The melt: the ford is up.
-    w.m3s = 30;
-    at(100 * HOUR);
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(true);
-
-    // …and it opens again, which is the half that makes it a season
-    // rather than a one-way switch.
-    w.m3s = 3;
-    at(200 * HOUR);
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(false);
-
-    // The reading came from the reach the ford declares, every time.
-    expect(new Set(w.asked)).toEqual(new Set([REACH]));
+describe('the ford reads the body (river D10)', () => {
+  it('⭐ the same water: a tall heavy body wades across, a short light one is taken off its feet', () => {
+    const w = { depthM: 0.6, currentMps: 1.0 };
+    expect(ford().verdictFor(body(1.85, 90), w)).toBe('across');
+    expect(ford().verdictFor(body(1.3, 35), w)).toBe('swept');
   });
 
-  it('the refusal names the water, not "the way"', async () => {
-    const w = installWater();
-    const f = ford();
-    w.m3s = 30;
-    const guard = await f.canTraverse({} as Stuff & Containable, 'walk');
-    expect(guard.ok).toBe(false);
-    if (guard.ok) return;
-    expect(guard.reason).toMatch(/ford is up/);
-    expect(guard.reason).not.toMatch(/The way is blocked/);
+  it('over your head it is a swim, whoever you are', () => {
+    const w = { depthM: 1.4, currentMps: 0.1 };
+    expect(ford().verdictFor(body(1.5, 60), w)).toBe('over-head');
+    expect(ford().verdictFor(body(1.9, 90), w)).toBe('across');
   });
 
-  it('two reads inside one weather segment agree exactly', async () => {
-    const w = installWater();
+  it('the refusal at the water’s edge names the water — and only over your head', async () => {
+    installWater();
+    water.depthM = 1.6;
     const f = ford();
-    w.m3s = 2;
-    at(1 * HOUR);
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(false);
+    const g = await f.canTraverse(body(1.6, 60), 'walk');
+    expect(g.ok).toBe(false);
+    expect(!g.ok && g.reason).toMatch(/over your head/);
+  });
 
-    // The river "rises" inside the same six-hour segment. The catalogue
-    // memoises on that segment, so a ford that re-read here would
-    // disagree with `measure` about the same water at the same moment.
-    w.m3s = 30;
-    at(3 * HOUR);
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(false);
-
-    // The next segment picks it up.
-    at(9 * HOUR);
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(true);
+  it('⭐ a crossing that fails part-way is the exit’s: the river is handed the body', async () => {
+    installWater();
+    water.depthM = 0.5;
+    water.mps = 1.2;
+    const f = ford();
+    const short = body(1.3, 35);
+    expect(await f.applyTraversal(short)).toBe(true);
+    expect(warren.handed).toEqual([short]);
+    // A body that stands in it wades across as on any road.
+    expect(await f.applyTraversal(body(1.9, 95))).toBe(false);
   });
 
   it('⚠ with no water pack installed, a ford is just a road', async () => {
-    // No catalogue registered — `StuffApi.singleton` fails to resolve it.
     const f = ford();
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(false);
-    expect((await f.canTraverse({} as Stuff & Containable, 'walk')).ok).toBe(true);
+    expect(await f.waterNow()).toBeNull();
+    expect(await f.applyTraversal(body(1.3, 35))).toBe(false);
   });
 
-  it('a ford that names no reach never closes', async () => {
-    installWater().m3s = 999;
+  it('a ford that names no water is a road', async () => {
+    installWater();
     const f = makeStuff(() => new FordExit());
-    await f.refreshCrossing();
-    expect(f.isBlocked()).toBe(false);
-  });
-
-  it('⭐ the gate reads the river AS IT ASKS — the first crossing after it rose is refused', async () => {
-    const w = installWater();
-    const f = ford();
-    w.m3s = 30;
-    expect(f.isBlocked()).toBe(false); // stale until something asks
-    expect((await f.canTraverse({} as Stuff & Containable, 'walk')).ok).toBe(false);
-    // …and the summary readers with no mover now see it too.
-    expect(f.isBlocked()).toBe(true);
-  });
-
-  it('applyTraversal NEVER handles the traversal (the ford reads the river in canTraverse only)', async () => {
-    const w = installWater();
-    const f = ford();
-    w.m3s = 30;
-    // Returning true would mean "I moved them" — the ford never does. It
-    // no longer reads the river here either: that is canTraverse's job,
-    // and a read after the gate is one crossing late.
-    expect(await f.applyTraversal({} as Stuff & Containable)).toBe(false);
-    expect(f.isBlocked()).toBe(false);
-  });
-
-  it('the threshold is validated — a negative flood level is an authoring error', () => {
-    const f = makeStuff(() => new FordExit());
-    expect(() => f.setFloodThresholdM3S(-1)).toThrow(TypeError);
-    expect(() => f.setFloodThresholdM3S(Number.NaN)).toThrow(TypeError);
+    expect(await f.waterNow()).toBeNull();
   });
 });

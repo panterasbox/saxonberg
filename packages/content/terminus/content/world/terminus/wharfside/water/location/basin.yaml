@@ -16,7 +16,7 @@ data:
   register: definite
   _biomePath: /stuff/idea/biome/water/open
   longDescription: |
-    You are in the river at the foot of the quay steps, the stone of the embankment going straight up out of the water beside you, green below the summer line. The current pulls at you, brown and cold, and the city stands over you with its back turned.
+    You are in the basin at the foot of the quay steps, the stone of the embankment going straight up out of the water beside you, green below the summer line. Out past the end of the wall the Kestrel goes by, brown and cold; in here the water is still, and the city stands over you with its back turned.
   coords: { x: 0, y: 0, z: 0 }
   water: { of: kestrel:confluence, depthM: 6 }
   column:
@@ -34,6 +34,11 @@ data:
     up:
       destination: /world/terminus/wharfside/bank
       media: [vertical]
+    # ⭐ The stream is the river's own water, out past the basin's wall
+    # (the river build): still water here, the current there.
+    east:
+      destination: /world/terminus/wharfside/water/location/stream
+      media: [water]
   props:
     - /world/terminus/wharfside/water/thing/quay-steps
     # ⭐ The city's lost anchor (underwater C4/C5) — dense iron, it goes to

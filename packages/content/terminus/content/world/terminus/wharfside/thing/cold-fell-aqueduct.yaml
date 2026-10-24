@@ -13,9 +13,9 @@
 # entirely. In this model that is exactly *your reach* — geography you
 # did not choose — versus *your conduit's intake* — capital you did.
 #
-# 1150 m at the cascade, 35 m at the city: 1115 metres of head in its
+# 1150 m at the cascade, 35 m at the city: 1115 meters of head in its
 # favour, so it costs nothing at all to run. Compare the intake at
-# Wharfside, five metres the wrong way, whose pump never stops.
+# Wharfside, five meters the wrong way, whose pump never stops.
 #
 # ⚠ And it runs **over the ridge from Rejection**, which is the whole
 # decision. A neutral third basin would let money simply exit the
@@ -36,6 +36,9 @@ data:
   conduitKey: cold-fell-aqueduct
   direction: supply
   reachRef: cold-fell:cascade
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "cold-fell:cascade"
   extent: /world/terminus
   capacityM3S: 0.8
   # ⭐ TREATED, unlike the Wharfside intake. That is the point of it:

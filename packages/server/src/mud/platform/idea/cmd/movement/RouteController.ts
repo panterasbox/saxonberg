@@ -32,6 +32,7 @@
  * `map-slate`'s business.
  */
 
+import { Expanse } from '../../../../lib/expanse/Expanse';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
@@ -832,8 +833,8 @@ export default class RouteController extends CommandController<RouteModel> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
     const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
-    const expanse = await craft.liveExpanse();
-    const node = expanse ? await expanse.nodeByKeyword(asked) : null;
+    const frame = await craft.liveFrame();
+    const node = frame instanceof Expanse ? await frame.nodeByKeyword(asked) : null;
     return node ? node.getName() : null;
   }
 

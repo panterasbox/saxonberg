@@ -4,6 +4,10 @@ Built from the water requirements (D1–D27). The kernel takes the
 physics; the [`water` capability pack](../../packages/content/water/)
 takes the works.
 
+> ⭐ **Being IN a river** — the line, the moving place, bodies in the
+> current, boats, ships, ferries — is [river.md](./river.md) (the river
+> build). This doc is the hydrology underneath it.
+
 The subsystem that makes water **get somewhere**. Water already had
 physics everywhere and weather nowhere: it is bulk matter you can fill,
 pour and drink, the body has a `hydration` reserve, soil holds moisture
@@ -28,7 +32,7 @@ build with no way for anybody to find out what it makes.
 |---|---|
 | a **generator** (answers `generationW`) | its reach, the flow passing now, its head, and the watts |
 | a **consumer** (answers `availablePowerW`) | the watts reaching it and what that buys in throughput |
-| bare, where you stand | the reach, what is passing, and what a fall of one metre would make — the honest answer to *could I put a mill here* |
+| bare, where you stand | the reach, what is passing, and what a fall of one meter would make — the honest answer to *could I put a mill here* |
 
 ⭐ **Both arms are duck-typed, and that is the design.** A grist mill
 lives in `trade-milling`; this pack has never heard of it and must not.
@@ -146,7 +150,7 @@ per-scope walk would need a per-scope caller.
 ## Rain reaches soil (W1)
 
 `CultivableMixin` gained the sky edge. `mm × m² = litres`, with the
-millimetres from the integral and the square metres from the bed's
+millimetres from the integral and the square meters from the bed's
 authored `landRequirementM2` — the footprint land use already charges it
 for. **Drought becomes possible for the first time:** before this,
 soil moisture only ever went down (drain) or up by hand (`water`).
@@ -208,7 +212,7 @@ that fails.
 ## Elevation (W2)
 
 **`SpatialZone.elevation`** (on `Zone` until the climate build's
-review moved geography to the region in space) — metres above sea level, inherited through the
+review moved geography to the region in space) — meters above sea level, inherited through the
 ordinary `lookupField` ancestor walk, an authored value anywhere in the
 chain winning over anything above it. `ZoneApi.elevationFor(scope)`
 resolves it for a place.
@@ -377,7 +381,7 @@ watershed asks of a place:
 | field | |
 |---|---|
 | `_reach` | the reach citation this locality sits on and drains to, or `null` |
-| `_catchmentKm2` | square kilometres draining to it, or `null` |
+| `_catchmentKm2` | square kilometers draining to it, or `null` |
 
 The address tree and the watershed are **two hierarchies, and their
 misalignment is the point**. The address tree is *political* containment
@@ -407,7 +411,7 @@ imports the pack**, and interpreting the citation is the pack's job.
 
 A bed multiplies the millimetres by its land area to get litres of soil
 moisture; a reach multiplies the **same** millimetres by its catchment
-area to get cubic metres of river. That is the whole spine of the build.
+area to get cubic meters of river. That is the whole spine of the build.
 
 `WatercourseCatalogue.flowAt(reach, nowS, draws)` returns a
 `FlowReading`: what is passing, what nature would deliver, how much of
@@ -959,8 +963,8 @@ problem.
 | `sediment` | settles, faster than sewage; raises turbidity while suspended |
 | `nutrient` | does not decay; accumulates where residence time is long |
 
-Survival is authored **per hop**, not per metre, because a reach is the
-unit the whole subsystem reasons in and a per-metre rate would demand a
+Survival is authored **per hop**, not per meter, because a reach is the
+unit the whole subsystem reasons in and a per-meter rate would demand a
 channel length nobody has authored. The numbers are dials; **the
 ordering is the model**.
 
@@ -1184,13 +1188,13 @@ head is what makes *the map is the argument* something a player can look
 at rather than infer.
 
 ⚠ The city's intake **needs a pump, forever**: the river is at 30 m and
-the city at 35, five metres the wrong way. That is not a flaw in the
+the city at 35, five meters the wrong way. That is not a flaw in the
 content — it is the reason a tower and an aqueduct are both worth
 building, and `analyze water the intake` says how many kilowatts.
 
 ### The Cold Fell aqueduct
 
-1115 metres of head, **gravity-fed end to end**, costing nothing to run,
+1115 meters of head, **gravity-fed end to end**, costing nothing to run,
 with a **weir and a turbine** on the last drop taking the energy out of
 water that was going past anyway (`ρ·g·Δh·Q·η` — the third appearance of
 one equation, in the direction that pays). It is **treated**, unlike the
@@ -1204,9 +1208,9 @@ a cooperation gate that emerges from physics rather than from a lock.
 
 ### Hinkley's is a head problem, and the District's first real job
 
-The suburb is a hundred metres above its own river, so a main would be
+The suburb is a hundred meters above its own river, so a main would be
 pumped forever. It stores instead: the **District tank** at 145 m, giving
-the standpipe fifteen metres of head and no pump at all.
+the standpipe fifteen meters of head and no pump at all.
 
 ⭐⭐ **The works are the Hinkley Hills Improvement District's** (D27),
 and the reason is a story the content already set up: the District ships

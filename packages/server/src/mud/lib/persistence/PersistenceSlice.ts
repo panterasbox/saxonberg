@@ -141,6 +141,16 @@ export interface SlottedSlice {
  */
 export const ESTATE_INVENTORY = "inventory";
 export const ESTATE_STORAGE = "storage";
+/**
+ * ⭐ Titled, and standing in TRANSIENT space (river D33): a place nothing
+ * persists — the water drifting past, a lounge satellite. The owner's
+ * restore mints NOTHING for it (it is not in their hands); the good is
+ * where it was left only if a persisting place picked it up since, and
+ * lost otherwise, titled still. Before this word a good dropped in
+ * transient space kept the `inventory` it was last carried in, and the
+ * next restore cloned a second copy into its owner's hands.
+ */
+export const ESTATE_LOOSE = "loose";
 
 /**
  * One good in an owner's **estate**: a good they hold title to that the

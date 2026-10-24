@@ -455,6 +455,12 @@ export const WARREN_PLACED = [
 export const OWN_FRAME = [
   "platform/content/platform/location/sandbox/CircleFloor.yaml",
   "platform/content/platform/location/tombstone.yaml",
+  // ⭐ The river build (D5, D38): a reach patch and a stop are each the one
+  // place in a zone of their own, minted with them at a position on the
+  // line — the origin of their own frame, as a circle's floor is.
+  "water/content/system/water/location/reach/patch/water.yaml",
+  "water/content/system/water/location/reach/stop/water.yaml",
+  "water/content/system/water/location/reach/bank/ground.yaml",
 ];
 
 export function unplottedLocations(rows: readonly Row[]): string[] {

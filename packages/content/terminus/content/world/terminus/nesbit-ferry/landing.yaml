@@ -1,0 +1,31 @@
+# Nesbit's landing — the far-bank end of the ferry (the river build, D31): a
+# gravel hard with a bell on a post, and a track up through the willows to
+# the Delight road.
+class: /platform/location/Shore
+data:
+  shortDescription: Nesbit's landing
+  keywords: [landing, nesbit, hard, ferry]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A hard of packed gravel running down into the Kestrel on its right bank, rutted deep where wagons go down to the ferry and come up off it. A bell hangs on a post at the top of the hard with its rope looped round a cleat. Across the water the city's lower towpath, and the ferry, if she is over there.
+  coords: { x: 0, y: 0, z: 0 }
+  waters:
+    river: "kestrel:confluence+0.4"
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence+0.4,right", span: 0.1, name: ferry }
+  props:
+    - /world/terminus/nesbit-ferry/thing/far-bell
+  details:
+    river:
+      keywords: [river, kestrel, water]
+      description: |
+        Ninety meters of brown water going by at a walk, or faster after rain. You can read how hard it is running by how the ferry hangs on her pole.
+  exits:
+    across:
+      kind: /world/terminus/nesbit-ferry/exits/crossing
+      destination: /world/terminus/estuary/lower-towpath
+      edgeMinutes: 3
+    west:
+      destination: /world/terminus/delight-road/milestone
+      media: [ground]
+      edgeMinutes: 6

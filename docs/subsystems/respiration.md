@@ -408,3 +408,15 @@ with the breath store and the urge, moved every interval to real seconds,
 and added cold shock, breathing as a rate, the ears, the bends, the tread
 and the drowning response, the disconnect hold, and air as the rescue for
 a breath death; its plan and requirements retired at that sweep.
+
+## River build (2026-10-21)
+
+The tread beat reads the water's **current and roughness** off the medium
+(`MediumRead.currentMps`, `roughness`): holding station against a current
+costs drag `½ρC_dAv³` every beat, a body not holding is swept (the water
+place's `sweep` hook — a river hands it on downstream), rough water takes a
+share of the store, and the **feet-first float** (`lie` in moving water,
+`isFeetFirst`) halves both. `swimSpeedMps` is a body's own stroke, which the
+river's ways read. A water place may close over a body (`headOutAt` false —
+a river patch under ice): immersed and not at the surface, the breath model
+treats it as under. See [river.md](./river.md).

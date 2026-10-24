@@ -22,7 +22,7 @@
 class: /platform/thing/Tool
 data:
   shortDescription: brass thermometer
-  keywords: [thermometer, brass]
+  keywords: [thermometer, brass, "brass thermometer"]
   register: indefinite
   longDescription: A pocket thermometer with a glass column and a brass case. Read it to learn the ambient temperature in Kelvin.
   capabilities: [thermometry]

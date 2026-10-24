@@ -150,6 +150,19 @@ function species(name: string, habitat: Habitat): string {
 
 const catalogue = (): WatercourseCatalogue =>
   makeStuffAtPath(() => new WatercourseCatalogue(), WATERCOURSE_CATALOGUE_PATH) as WatercourseCatalogue;
+/**
+ * ⭐ The pool stretch nearest a node (river D34): a river's fish are read
+ * per stretch, and the slow-water fish of the confluence live in the pools
+ * around it, not on the riffle that happens to sit at the node's km.
+ */
+async function pool(course: string, node: string): Promise<string> {
+  const line = (await StuffApi.singleton<WatercourseCatalogue>(WATERCOURSE_CATALOGUE_PATH).then((c) => c.lineOf(course)))!;
+  const km = line.kmOf(node)!;
+  const pools = line.stretches.filter((s) => s.kind === 'pool');
+  pools.sort((a, b) => Math.abs((a.upKm + a.downKm) / 2 - km) - Math.abs((b.upKm + b.downKm) / 2 - km));
+  return pools[0]!.id;
+}
+
 const registry = (): FisheryRegistry =>
   makeStuffAtPath(() => new FisheryRegistry(), FISHERY_REGISTRY_PATH) as FisheryRegistry;
 
@@ -277,7 +290,7 @@ describe('⭐⭐ the fishery derives — no table for the confluence, none for t
     const mullet = species('mullet', MULLET);
     const reg = registry();
 
-    const confluence = (await reg.standingAt('kestrel:confluence', SUMMER))!;
+    const confluence = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!;
     const head = (await reg.standingAt('holloway:head', SUMMER))!;
     const at = (s: typeof confluence, p: string) => s.species.find((x) => x.speciesPath === p)!;
 
@@ -296,7 +309,7 @@ describe('⭐⭐ the fishery derives — no table for the confluence, none for t
     const trout = species('trout', TROUT);
     const mullet = species('mullet', MULLET);
     const reg = registry();
-    const head = (await reg.standingAt('holloway:head', SUMMER))!;
+    const head = (await reg.standingAt(await pool('holloway', 'vale'), SUMMER))!;
     const mulletUp = head.species.find((x) => x.speciesPath === mullet)!;
     expect(mulletUp.fit).toBe(0);
     expect(mulletUp.limiting).toBe('salinityPpt');
@@ -313,7 +326,7 @@ describe('⭐⭐ the fishery derives — no table for the confluence, none for t
     species('mullet', MULLET);
     species('sturgeon', { ...MULLET, role: 'apex', abundance: 2, fightRating: 1 });
     const reg = registry();
-    const s = (await reg.standingAt('kestrel:confluence', SUMMER))!;
+    const s = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!;
     expect(reg.readFor(s, 'untrained')).toEqual([]);
     expect(reg.readFor(s, 'novice').join(' ')).toMatch(/fish in this water/);
     const competent = reg.readFor(s, 'competent').join(' ');
@@ -330,24 +343,24 @@ describe('⭐⭐ the fishery derives — no table for the confluence, none for t
     catalogue();
     const mullet = species('mullet', MULLET);
     const reg = registry();
-    const before = (await reg.standingAt('kestrel:confluence', SUMMER))!.species.find((x) => x.speciesPath === mullet)!;
+    const before = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!.species.find((x) => x.speciesPath === mullet)!;
     expect(before.level).toBe(before.capacity);
 
-    const taken = await reg.draw('kestrel:confluence', mullet, 10, SUMMER);
+    const taken = await reg.draw(await pool('kestrel', 'confluence'), mullet, 10, SUMMER);
     expect(taken).toBe(10);
     expect(writes).toBe(1);
-    const after = (await reg.standingAt('kestrel:confluence', SUMMER))!.species.find((x) => x.speciesPath === mullet)!;
+    const after = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!.species.find((x) => x.speciesPath === mullet)!;
     expect(after.level).toBe(before.capacity - 10);
 
     // Two game-days on (the seed half-life): half of it is back.
-    const later = (await reg.standingAt('kestrel:confluence', SUMMER + 2 * DAY))!.species.find((x) => x.speciesPath === mullet)!;
+    const later = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER + 2 * DAY))!.species.find((x) => x.speciesPath === mullet)!;
     expect(later.level).toBe(before.capacity - 5);
     // A read of a recovered reach STILL writes nothing.
     expect(writes).toBe(1);
 
     // A release puts it back.
-    await reg.release('kestrel:confluence', mullet, 5, SUMMER);
-    const released = (await reg.standingAt('kestrel:confluence', SUMMER))!.species.find((x) => x.speciesPath === mullet)!;
+    await reg.release(await pool('kestrel', 'confluence'), mullet, 5, SUMMER);
+    const released = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!.species.find((x) => x.speciesPath === mullet)!;
     expect(released.level).toBe(before.capacity - 5);
   });
 
@@ -356,12 +369,12 @@ describe('⭐⭐ the fishery derives — no table for the confluence, none for t
     catalogue();
     const mullet = species('mullet', MULLET);
     const reg = registry();
-    const cap = (await reg.standingAt('kestrel:confluence', SUMMER))!.species.find((x) => x.speciesPath === mullet)!.capacity;
-    expect(await reg.draw('kestrel:confluence', mullet, cap * 3, SUMMER)).toBe(cap);
-    const empty = (await reg.standingAt('kestrel:confluence', SUMMER))!;
+    const cap = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!.species.find((x) => x.speciesPath === mullet)!.capacity;
+    expect(await reg.draw(await pool('kestrel', 'confluence'), mullet, cap * 3, SUMMER)).toBe(cap);
+    const empty = (await reg.standingAt(await pool('kestrel', 'confluence'), SUMMER))!;
     expect(empty.species.find((x) => x.speciesPath === mullet)!.level).toBe(0);
     expect(reg.readFor(empty, 'proficient').join(' ')).toMatch(/fished out/);
-    expect(await reg.draw('kestrel:confluence', mullet, 1, SUMMER)).toBe(0);
+    expect(await reg.draw(await pool('kestrel', 'confluence'), mullet, 1, SUMMER)).toBe(0);
   });
 
   it('⭐ a `stocks:` node overrides fit — the aquaculture seam', async () => {

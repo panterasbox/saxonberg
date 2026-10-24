@@ -25,6 +25,9 @@ data:
     A stone-lined channel taken off the head of the weir, running level along the bank for forty yards to bring the water out over the top of the wheel. There is a hatch at the head of it to shut the water off.
   controlKind: weir
   reachRef: delight:flats
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "delight:flats+0.3,right"
   passFraction: 1
   headM: 6
   generates: true

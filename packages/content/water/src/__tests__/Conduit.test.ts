@@ -69,9 +69,11 @@ const WORLD: Row[] = [
       name: 'the Kestrel',
       basin: 'kestrel',
       branchesFrom: null,
+      source: { kind: 'rills' },
+      mouth: { into: 'sink' },
       nodes: [
-        { name: 'falls', elevation: 400, channelWidthM: 20 },
-        { name: 'confluence', elevation: 40, channelWidthM: 80 },
+        { km: 10, name: 'falls', elevation: 400, channelWidthM: 20 },
+        { km: 0, name: 'confluence', elevation: 40, channelWidthM: 80 },
       ],
     },
   },
@@ -418,9 +420,11 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
       branchesFrom: null,
       // A southern course: on a northern-summer day it is in its polar night.
       site: { latitudeDeg: -89, continentality: 1 },
+      source: { kind: 'rills' },
+      mouth: { into: 'sink' },
       nodes: [
-        { name: 'cap', elevation: 1500 },
-        { name: 'shore', elevation: 0 },
+        { km: 10, name: 'cap', elevation: 1500 },
+        { km: 0, name: 'shore', elevation: 0 },
       ],
     },
   };

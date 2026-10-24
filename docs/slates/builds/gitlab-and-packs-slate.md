@@ -8,8 +8,9 @@
 > rung recorded at install — a pack with `src/` is a *capability pack*
 > ([content-packs.md](../../subsystems/content-packs.md)); GitLab issues for limited bug
 > tracking; CI on GitLab.
-> **Left:** the three front doors · ⭐ the **content pack / mod** split — the name and the
-> enforcement · packs in their own repos (the platform pack stays with the engine) · the
+> **Left:** the three front doors · the names (pack · mod · DLC) · ⭐ enforcement in three
+> layers with the game as the authority · ⭐ the inert clone per pack and the invariant that
+> nothing is pulled into a running tree · the optional pack guard · packs in their own repos (the platform pack stays with the engine) · the
 > pack audit — which packs are really platform · GitLab issues with an in-game front door ·
 > GitLab account linking · GitLab as an optional integration a realm turns on · the overlay's
 > project feed
@@ -36,46 +37,116 @@ GitLab access to some people, maybe a lot of people."*
 [contribution-slate](../tails/contribution-slate.md) § 7 (*two audiences, two paths*) is the
 in-game half; this slate is the GitLab half.
 
-## 2. ⭐⭐⭐ Content packs and mods **[DECIDED — the owner]**
+## 2. ⭐⭐ Packs and mods — the names **[LEAN — the owner's]**
 
 The owner: *"you're bringing back a concept I had originally that we kind of abandoned — two
 different jargon for downloadable content: content packs and mods, mods being things that
-actually have TypeScript modules in addition to just Mongo content. We kinda just made
-everything one thing, but your split, at least in terms of nomenclature, sounds probably
-like a good thing."*
+actually have TypeScript modules in addition to just Mongo content."* And: *"what about 'DLC'
+vs 'mod'? … I dunno what's the most used."*
 
-- **A content pack ships data only** — rows, documents, prose, images.
-- **A mod ships code** — any TypeScript or JavaScript module, alongside its data.
-- Today's ladder is *data pack · capability pack · mod*, where "mod" meant a change that
-  needs a kernel MR. The rename: **capability pack → mod**, **data pack → content pack**,
-  and the old "mod rung" is simply **a kernel change** (not downloadable at all). A
-  deliberate sweep of the docs and the code's words, not a piecemeal rename.
+How games use the words:
 
-### ⭐⭐⭐ Enforcement — on the artifact, never on the person
+- **DLC** almost always means **official content from the developer**, often paid
+  (Paradox's expansions, Bethesda's add-ons, Steam DLC) — it says *who made it*, not what is
+  in it.
+- **Mod** usually means **made by the community** — and most mods in the big modding scenes
+  are data (a Skyrim plugin is mostly records); in Factorio everything is a mod, in Lua.
+- ⭐ **Minecraft splits on code against data** — the owner's split: built-in, code-free
+  **data packs** and **resource packs**, and **mods** in Java that need a loader.
 
-The owner: *"how does enforcement work? You're basically checking isWizard for every
-contributor and then checking whether they're writing script or data. The src folder check
-doesn't really matter, just the file type."*
+The lean: **pack** for data, **mod** for code (Minecraft's convention); **DLC** only for
+official storefront content, if the [distribution](./distribution-and-hosting-slate.md)
+storefront ever sells any. Today's ladder (*data pack · capability pack · mod*, where "mod"
+meant a kernel MR) becomes **pack · mod**, and the old mod rung is simply **a kernel change**.
+The final words are the owner's; the rename is a deliberate sweep, not piecemeal.
 
-- **The discriminator is file type.** Any module file (`.ts`, `.tsx`, `.js`, `.mjs`) makes a
-  pack a mod, wherever it sits — not a `src/` folder.
-- ⭐⭐ **No per-person check.** Code enters the running server at exactly one boundary: the
-  **deployment** — the operator lists the packs a server runs. So the gate is there, and it
-  is a seat (the operator), never `isWizard` on a contributor:
-  - a **content pack** installs as now;
-  - a **mod loads only if the deployment admits it as a mod** — an explicit operator act;
-  - ⭐ **a content pack that gains a module file stops loading, loudly**, until an operator
-    admits it as a mod. Break loudly, never silently run new code.
-- **Who may push to a repo** is GitLab's permission on that repo, not ours. A content
-  developer may write anything in their repo; if they write code, the result is a mod, and a
-  mod does not run until an operator says so.
-- So the "interim level between mortal and wizard" needs **no new account level**: a content
-  developer is a **maintainer of a content pack** (the manifest's `maintainers`, title over
-  a resource), working in real git instead of the facade.
-- ⚠ **Data that names code is still data** — a row's `class:` or a behavior's `brain:` names
-  code that a deployed mod or the kernel already provides. access.md gates those fields on
-  wizard today and records that the justification is wrong for `class`; this split is the
-  occasion to settle it.
+- **The discriminator is file type** — any module file (`.ts`, `.tsx`, `.js`, `.mjs`) makes it a
+  mod, wherever it sits; not a `src/` folder.
+
+## 2a. ⭐⭐⭐ Enforcement — the game is the authority, in three layers **[DECIDED — the owner]**
+
+The owner: *"troubleshooting issues happens on a live install, and you just work directly on
+the live compilation units on disk or data in Mongo. That's all gonna check wizardness on a
+live running game, even if your own pack's git repo doesn't care. I would think the repo
+maintainer would want to respect the game's permissions then, even if it doesn't have to.
+But they have no way to do that under your model."* The first draft enforced only at the
+deployment and left the repo blind; corrected:
+
+| layer | owner | required? |
+|---|---|---|
+| **the in-game path** — export, the inert clone, commit (§ 2b) | the game's permissions | always, for anyone working through the game |
+| **the pack guard** in CI (§ 2c) | the repo's maintainers | ⭐ optional — their choice |
+| **admitting a mod** at deployment | the operator | always |
+
+- **The game decides who is who** — who is a wizard, and who maintains which pack (the
+  manifest's `maintainers`, title over a resource). That is the existing code-trust axis and
+  the existing title axis — no new account level. A content developer is a maintainer of a
+  pack.
+- **The deployment is the backstop** — a pack containing a module runs only once an operator
+  admits it as a mod, whatever its repo allowed; ⭐ a pack that gains a module file stops
+  loading, loudly, until admitted.
+
+## 2b. ⭐⭐⭐ The inert clone — how a live instance contributes **[DECIDED — the owner]**
+
+The owner: *"the alternative is letting someone do a git clone inside saxonberg … only wizards
+get directories in the source tree, though, because only they can write source … unless you
+do git clones to some other space outside the source tree in the game, and it's not managed
+as source, it's just managed as an inert git clone just for git operations."*
+
+- **One working copy per pack, outside the source tree** — never loaded, never executed; the
+  server runs only what is deployed. It exists for git and nothing else.
+- **It is the export's target** — edit live (content in Mongo by title, source by code trust),
+  export Mongo to pack files ([contribution-slate](../tails/contribution-slate.md) § 3, the
+  export), and the files land in the pack's clone.
+- **Its permissions are the game's** — content files need title over the pack; ⭐ module
+  files need code trust to commit, the same check the source tree uses. A text file in an
+  inert clone is not code until merged and deployed, but the commit respects who may author
+  code.
+- **Checked out by the pack's maintainers**, by linking the pack to its repo on this instance.
+- **Per pack, not per person** — content is shared world state; contributors work on branches.
+
+```
+edit live (Mongo by title · source by code trust)
+  → export into the pack's inert clone
+  → commit (module files need code trust)
+  → push a branch → merge request (the pack guard, if the repo uses it)
+  → merge → the operator deploys → the install reconciles
+```
+
+### ⛔ Invariant — nothing is ever pulled into a running tree
+
+The owner: *"that works as long as we assume the clones are all inert. If we ever do this
+with the live git clone we're in for trouble."* A pack's clone is **inert**: never loaded, and
+**nothing is ever pulled or merged into a running tree.** Code reaches a running game one way
+only — deployment, then the install's reconcile. The only live tree is the engine's own
+checkout, which `GitApi` commits from and only **pushes out**
+([git-workflow.md](../../subsystems/git-workflow.md) records why it can never switch or pull
+under a running server). Pack clones never gain that power.
+
+## 2c. ⭐⭐ The pack guard — optional, and the maintainer's **[DECIDED — the owner]**
+
+The owner: *"someone cloning the repo and trying to contribute should be rejected if the game
+doesn't know about them. And all this should be optional too — it's still up to a repo
+maintainer how they wanna run their repo. It's just to their benefit to restrict code
+changes to wizards."*
+
+- Anyone can fork a public repo and open a merge request; the check happens at **merging**,
+  where a repo can say no.
+- **The guard is a CI component a maintainer chooses to include** (one `include:` line). On
+  every merge request it asks the pack's **home instance** two questions:
+  1. **Does the game know this person?** — is the merge request's GitLab author linked to a
+     game identity? If not: *"the game doesn't know you — link your GitLab account in
+     Saxonberg to contribute."*
+  2. **May they do this?** — content files need the pack's maintainers; module files need a
+     wizard.
+- ⚠ **It checks the merge request's author, never a commit's** — a commit's name and email are
+  text anyone can type.
+- **It binds only when required** — GitLab's *pipelines must succeed*, and never behind a
+  manual start.
+- **The home instance** — a pack may run in several realms, so it names its authority in its CI
+  settings.
+- **Why a maintainer would** — a pack whose history holds only changes the game would have
+  allowed is one operators can admit easily; an unguarded pack is reviewed the hard way.
 
 ## 3. ⭐⭐ Packs in their own repos **[LEAN — the owner]**
 
@@ -134,10 +205,11 @@ lower third.
 
 ## 8. Open
 
-1. **The rename sweep** — capability pack → mod, data pack → content pack, across docs and
-   code.
+1. **The words** — pack · mod · DLC, the owner's to settle; then the rename sweep.
 2. **How a deployment admits a mod** — a manifest flag, a list, an operator verb.
 3. **The pack audit** — which packs are platform.
 4. **The repo split** — order, and how dependent packs version against each other.
 5. **Alternatives to GitLab issues** — in-game tracking, or another tracker.
-6. **The `class:` / `brain:` gate** — settled by the split, or its own decision.
+6. **The `class:` / `brain:` gate** — data that names code; settled by the split, or its own
+   decision.
+7. **The inert clone's home** — where on disk, and how a pack is linked to its repo.

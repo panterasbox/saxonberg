@@ -1,0 +1,11 @@
+# A small boat's tiller (the river build, D20) — the instrument of steering
+# under sail, so it affords `course` to whoever sits in the boat with it.
+class: /platform/thing/Helm
+data:
+  shortDescription: tiller
+  keywords: [tiller, helm, rudder]
+  register: indefinite
+  fixedInPlace: true
+  longDescription: A short ash tiller on the head of a lifting rudder, worn smooth where a hand rests.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 2

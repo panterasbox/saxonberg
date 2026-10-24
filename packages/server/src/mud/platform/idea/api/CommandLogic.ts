@@ -3550,6 +3550,27 @@ function applyContainmentDeltaImpl(
     }
   }
 
+  // ── INSIDE the moved subtree: what its own containers and neighbors
+  // gave each other. The reset above dropped every `peers` entry and the
+  // destination walks below never see a container that moved WITH you —
+  // so a canoe launched with you in it took her killick's `anchor` away
+  // from you while you sat beside it (river C22, the browser walk).
+  for (const m of moved) {
+    if (!MixinApi.isCommandGiver(m)) continue;
+    const inner = receiversFor(m).filter((c) => movedIds.has(c.stuffId));
+    for (const anc of inner) {
+      const defs = collectBucketDefs(anc.constructor, 'inventory');
+      if (defs.length > 0) (m as Stuff & CommandGiver).pushCommandSource(anc, 'inventory', defs);
+    }
+    const parent = inner[0];
+    if (!parent || !MixinApi.isContainer(parent)) continue;
+    for (const sibling of (parent as Stuff & Container).getContents()) {
+      if (sibling.stuffId === m.stuffId) continue;
+      const theirs = collectBucketDefs(sibling.constructor, 'peers');
+      if (theirs.length > 0) (m as Stuff & CommandGiver).pushCommandSource(sibling, 'peers', theirs);
+    }
+  }
+
   // ── `inventory`: every container above grants INWARD, to the whole
   // moved subtree. A pack that affords `rummage` affords it to what it
   // swallowed, however deep.

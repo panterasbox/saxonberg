@@ -244,6 +244,23 @@ function seaLandings(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
   return out;
 }
 
+/**
+ * ⭐ The places a river's LINE hands people into (the river build): every
+ * place a watercourse row names in its `places:` — a stream below a quay,
+ * a gorge pool, a towpath. The line is a way in that no row's `exits:`
+ * holds (it is worked out against the river when it is taken), exactly as
+ * a sea's landings are, so a river place is an entrance.
+ */
+function riverLandings(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
+  const out = new Set<string>();
+  for (const row of rows.values()) {
+    const data = (row.raw.data ?? {}) as Record<string, unknown>;
+    if (!String(row.raw.class ?? "").endsWith("/idea/Watercourse") || !Array.isArray(data.places)) continue;
+    for (const p of data.places) if (typeof p === "string") out.add(p);
+  }
+  return out;
+}
+
 /** The default start location, which is an entrance wherever it lies. */
 function defaultStart(): string | null {
   const file = join(SERVER_SRC, "mud", "lib", "config", "AppSettings.ts");
@@ -274,6 +291,7 @@ export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): G
   const claims = publishedByExtent();
   const seats = travelSeats(rows);
   const landings = seaLandings(rows);
+  for (const p of riverLandings(rows)) landings.add(p);
   const start = defaultStart();
 
   const zoneRows = new Set<string>();

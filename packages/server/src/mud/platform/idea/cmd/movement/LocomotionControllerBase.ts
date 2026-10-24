@@ -18,6 +18,7 @@
  * (`walk cabin` / `climb cabin`).
  */
 
+import WaterSurface from '../../../thing/WaterSurface';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -57,6 +58,10 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
     context: CommandContext,
   ): Promise<void> {
     const actor = context.commandGiver;
+    // ⭐ A bank's ways along it and into the river are put in place on use
+    // (river D8): the first move from a bank waits for them.
+    const from = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (from !== null && MixinApi.isFrameSited(from)) await from.frameSiteStood();
     if (!MixinApi.isContainable(actor) || !MixinApi.isMobile(actor)) {
       // No body-plan-shaped affordance at all — surface as a
       // mixin-missing note. Same `Scene.send` + ctx.note pairing as
@@ -311,6 +316,14 @@ function mapGate(gate: string | undefined): LocomotionGateFailedNote['gate'] {
 async function arriveAfter(actor: Stuff & Mobile, exit: Exit, mode: string): Promise<void> {
   if (actor.isDestroyed()) return;
   if (MixinApi.isVitals(actor) && actor.getConsciousness() !== 'conscious') return;
+  // ⭐ A swim that ends with you standing (the water you were in came into
+  // the shallows while you swam — the river drive, A3) pushes off again:
+  // the stroke was already taken.
+  if (mode === 'swim' && MixinApi.isContainable(actor)) {
+    const room = actor.getContainer();
+    const floor = room !== null && MixinApi.isWaterPlace(room) && MixinApi.isAdornable(room) ? room.getFloor() : null;
+    if (floor instanceof WaterSurface && floor.supports(actor) && floor.openWaterAreaM2() > 0) floor.giveWay(actor, true);
+  }
   const guard = await actor.traverse(exit, mode);
   if (!guard.ok) {
     MessageApi.scene(actor).topic('shell.result').toSelf(Mml.fromMarkup(guard.reason ?? 'You can\'t get there.')).send();

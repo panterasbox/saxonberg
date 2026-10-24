@@ -1,0 +1,13 @@
+# The ferry bell on the city side (the river build, D31): ring it and the
+# ferryman, if she is across, brings her over.
+class: /trade/diving/thing/SignalBell
+data:
+  shortDescription: ferry bell
+  keywords: [bell, "ferry bell", post]
+  register: definite
+  fixedInPlace: true
+  longDescription: >-
+    A ship's bell on a post at the head of the steps, green with weather,
+    its rope looped round a cleat.
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 12

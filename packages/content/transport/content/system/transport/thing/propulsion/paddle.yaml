@@ -1,0 +1,14 @@
+# A paddle (the river build, D20) — a canoe's: one blade, no rowlock,
+# digs anywhere there is water.
+class: /system/transport/thing/Propulsion
+data:
+  shortDescription: paddle
+  keywords: [paddle, blade]
+  register: indefinite
+  longDescription: A single-bladed ash paddle as long as a man is tall, the grip worn dark.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 1.2
+  propulsionKind: paddle
+  needs: water
+  crewPowered: true
+  efficiency: 0.5

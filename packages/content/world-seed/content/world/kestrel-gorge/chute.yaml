@@ -1,0 +1,22 @@
+# The chute — the Kestrel gorge (the river build, D36). A river place:
+# the line's water at its km (current: inherit), walls both sides, handed
+# in at its head and out at its foot.
+class: /system/water/location/RiverPlace
+data:
+  shortDescription: chute
+  keywords: [gorge, river, kestrel, water, chute]
+  register: definite
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none
+  longDescription: |
+    The whole river is squeezed into a slot two arms wide and goes down it in one smooth hump of green water, faster than you have ever moved. The walls go by like the side of a running horse.
+  coords: { x: 1, y: 0, z: 0 }
+  water: { of: "kestrel:gorge+2", depthM: 2 }
+  river: { course: kestrel, at: "gorge+2", span: 0.3, name: chute }
+  current: inherit
+  details:
+    walls:
+      keywords: [walls, wall, rock, limestone, cliff]
+      description: |
+        Grey limestone, wet to twice your height and scoured smooth. There is nothing to hold and nowhere to climb out.

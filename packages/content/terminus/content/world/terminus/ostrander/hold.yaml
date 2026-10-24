@@ -1,0 +1,17 @@
+# The Ostrander's hold — cargo. What is down here is what she draws: put it
+# ashore and she comes up (river D28, lightening).
+class: /platform/location/Locale
+data:
+  shortDescription: hold
+  keywords: [hold, below]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  # Her hull and her deck over it: planking all round.
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.06 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.05 }
+  longDescription: |
+    A shallow hold under the deck beams, hardly head-high, with the bilge slopping under the boards and the hull's planking sweating. Whatever she carries goes down here.
+  coords: { x: 0, y: 0, z: -1 }
+  exits:
+    up:
+      destination: /world/terminus/ostrander/deck

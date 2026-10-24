@@ -107,13 +107,13 @@ async function toTheBed(s: Session): Promise<string[]> {
   // A deep breath is let go after half a minute, so a rest means a fresh
   // breath before going in (run 35: the diver rested, went down on an
   // ordinary breath, and ran out on the way).
-  let into = await s.cmd('swim');
+  let into = await s.cmd('swim basin');
   for (let i = 0; i < 6 && into.status !== 'ok' && /carrying too much/i.test(squash(await into.said())); i++) {
     await s.cmd('lie');
     await s.listen(30_000);
     await s.cmd('stand');
     await breathe(s);
-    into = await s.cmd('swim');
+    into = await s.cmd('swim basin');
   }
   expect(into.status, squash(await into.said())).toBe('ok');
   const looks: string[] = [await look(s)];
@@ -407,7 +407,7 @@ suite('C · the city\'s work', () => {
     expectOk(await diver.cmd('climb up'));
     expectOk(await diver.cmd('get here:i:spear'));
     await breathe(diver);
-    expectOk(await diver.cmd('swim'));
+    expectOk(await diver.cmd('swim basin'));
     expectOk(await stroke(diver, 'descend'));
     const r = await diver.cmd('fish using spear');
     const said = squash(await r.said());
@@ -488,7 +488,7 @@ suite('D · 19 · the frog', () => {
 suite('Magic · 20', () => {
   it('20 · under the water a working cannot be spoken', async () => {
     await breathe(diver);
-    expectOk(await diver.cmd('swim'));
+    expectOk(await diver.cmd('swim basin'));
     expectOk(await stroke(diver, 'descend'));
     const r = await diver.cmd('cast glowlight');
     const said = squash(await r.said());
