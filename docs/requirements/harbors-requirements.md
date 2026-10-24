@@ -19,6 +19,20 @@ wreck). It is the first build out of
 (§1 alongside, §2 one model, §3 registers and flags, §6 and §18 harbors, §7
 leaks and sinking), compacted against the river build on 2026-10-24.
 
+## Staging — one build, two review rounds
+
+**Stage A — the harbor** (the port, berths, mooring, the harbormaster, the
+tide's window, dues, the shipping news, Waponi Woo's quay). It runs on the
+ships that exist today — the *Hesper* and the *Ostrander* — so it stands on
+its own. **Stage B — the boats** (ship kinds built from a floorplan, the yard,
+owned boats, the register of shares under a flag, leaks, sinking, the wreck).
+B's ships berth through A, never the other way round.
+
+⭐ **The MR opens when Stage A is complete and driven**, for the first review
+round; Stage B continues as commits on the same branch and is reviewed as a
+second round. One branch, one MR, one merge — the user reviews the harbor and
+the boats separately, never both at once.
+
 ## What already exists
 
 A player can already (survey 2026-10-24):
@@ -255,7 +269,9 @@ an obstruction. Nobody knows where she lies until someone charts her.
 
 ## The drive
 
-**Stage A — the port**
+### Stage A — the harbor
+
+**A1 — the port**
 1. On the *Hesper* lying at the bar, the master `hail`s the harbor office: the
    harbormaster answers with a berth at a named quay (or the roads, and why).
 2. `course <quay>`: she comes in and lies alongside. On the quay, `look` names
@@ -271,40 +287,43 @@ an obstruction. Nobody knows where she lies until someone charts her.
    works' books.
 6. Read the shipping news: her arrival and departure are there.
 
-**Stage B — owning a ship**
-7. At the yard, `buy` a ship of a kind (a smack): she is yours, named, lying
+**A2 — sugar's island** (sugar merges before this build starts; driven
+with Stage A)
+7. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
+    by the way named for her; home again to her berth at Terminus.
+
+### Stage B — the boats
+
+**B1 — owning a ship**
+8. At the yard, `buy` a ship of a kind (a smack): she is yours, named, lying
    at the yard's quay; the register lists her in your name, 64 shares, under
    Terminus' flag.
-8. A second player buys another of the same kind: her rooms are hers; what you
+9. A second player buys another of the same kind: her rooms are hers; what you
    leave in your hold is not in hers.
-9. Sell 16 shares to the second player; the register shows both owners.
-10. Re-flag her to another government's register; her flown flag can be
+10. Sell 16 shares to the second player; the register shows both owners.
+11. Re-flag her to another government's register; her flown flag can be
     changed separately, and the register still tells the truth.
-11. At sea, ask what law applies aboard: the flag state's. In harbor: both.
-12. Leave her; she sleeps; restart the server; come back: she is where you
+12. At sea, ask what law applies aboard: the flag state's. In harbor: both.
+13. Leave her; she sleeps; restart the server; come back: she is where you
     left her, with what you left in her.
 
-**Stage C — owning a boat**
-13. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
+**B2 — owning a boat**
+14. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
     (`look` says so); overload her in a chop and she swamps.
 
-**Stage D — the hull's decline**
-14. Aboard an old ship whose caulking is worn, sound the well: there is water
+**B3 — the hull's decline**
+15. Aboard an old ship whose caulking is worn, sound the well: there is water
     in the bilge, rising.
-15. `pump` the bilge pump: the level falls while you work; stop, and it rises.
-16. Let it go: the lowest rooms flood, then the next; you are told she is
+16. `pump` the bilge pump: the level falls while you work; stop, and it rises.
+17. Let it go: the lowest rooms flood, then the next; you are told she is
     settling; she goes down.
-17. Still aboard, you are in her rooms under water; swim up the column to the
+18. Still aboard, you are in her rooms under water; swim up the column to the
     surface.
-18. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
+19. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
     the hold — and she is still in your name in the register.
-19. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
+20. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
     with what is in her.
-20. `repair` the caulking on a sound ship: the leak stops.
-
-**Stage E — sugar's island** (after sugar merges)
-21. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
-    by the way named for her; home again to her berth at Terminus.
+21. `repair` the caulking on a sound ship: the leak stops.
 
 ## Acceptance criteria
 
