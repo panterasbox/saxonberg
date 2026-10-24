@@ -96,12 +96,16 @@ herself on the bottom.
 - **A ship's hull weathers like a house's shell** — one clock for every
   structure, read in the same bands, restored by the same upkeep; on a ship a
   worn hull leaks.
-- **A player can own a ship**: buy one from the yard; she is entered in a
-  government's register in the buyer's name; **title is held in shares**
-  (sixty-fourths) that can be sold; she flies **one flag at a time**, can be
-  re-flagged, and **the flag state's law applies aboard at sea**.
+- **A player can own a ship**: buy a smack from the yard and name her as she
+  is entered in Terminus City's register; **title is held in shares**
+  (sixty-fourths) that can be sold; she flies **one flag at a time**, and **the
+  flag state's jurisdiction applies aboard at sea**.
 - **A player can own a boat**: bought, owned, sold like any good; she rides
-  lower as she is loaded and an overloaded boat swamps.
+  lower as she is loaded and an overloaded boat swamps. **Or hire one** from
+  the put-in's outfitter by the day.
+- **Handling a craft is seamanship**: mooring, pumping and handling a ship or
+  boat exercise a new **seamanship** Discipline (the seafaring build deepens
+  it with crews and the watch).
 - **A hull wears**: neglected caulking leaks into the bilge; the crew pumps a
   ship and bails a boat; left alone the water rises, rooms flood from the
   lowest up, and she sinks — slowly enough for the people aboard to act.
@@ -129,6 +133,12 @@ herself on the bottom.
   § 19 (the shipped bar pilot stays as it is).
 - **The sailortown, the lifeboat, the research ship, passengers and cruises**
   → the slate § 20–23.
+- **Bigger ship kinds (a brig, a pleasure sloop) and crews** — the yard sells
+  one kind, the smack, small enough to sail alone → `trade-seafaring` (the
+  slate § 15), which makes crew size matter.
+- **A second register** — only Terminus City keeps one this build; any polity
+  that chooses to open a registry later is content, and re-flagging is driven
+  then → the slate § 3.
 - **Boatbuilding and shipbuilding** — ships are bought as minted stock from the
   yard until construction ships the slip → the slate § 9 and
   [construction-slate](../slates/builds/construction-slate.md).
@@ -196,8 +206,8 @@ herself on the bottom.
   terminal's (a ship's register is read, not a new verb); `ship` is
   haulage's carriage verb (no ship verb is added); `transfer` (land title) is
   how shares change hands, if it is the honest verb — the plan decides.
-- **The canoes at the put-in** (three free kind boats) — stay free hire; the
-  boat shed sells owned boats beside them.
+- **The canoes at the put-in** (three free kind boats) — become **Ada Fenn's
+  hire boats**, by the day; her boat shed also sells owned boats.
 
 ## Surface decisions
 
@@ -251,22 +261,51 @@ A ship whose draught exceeds the water over the bar at the time waits for the
 flood — derived from the shipped tide and her draught, never rolled.
 
 ### Ship kinds and singletons are one model
-An authored named ship (the *Hesper*) is a kind built once; a ship kind (a
-smack, a brig) is built as many times as it is bought; each is named, has her
-own rooms and condition, and sleeps when nobody is aboard.
+An authored named ship (the *Hesper*) is a kind built once; a ship kind (the
+smack) is built as many times as it is bought; each is named, has her own
+rooms and condition, and sleeps when nobody is aboard. ⭐ The yard sells **one
+kind this build, the smack** — small enough to sail single-handed, which is
+historically honest; the deep ship the bar's tide bites on is one of Stage A's
+authored regulars, a coaster with an NPC company.
+
+### A ship is named at registry, uniquely in that register
+Lens 1 (real registers refuse a second ship of a name in the same register):
+the buyer names her as she is entered; a name already in the register is
+refused; the same name may sail under another flag.
 
 ### Title is a register entry in shares, under one flag
-Each government keeps a ship register. A ship is entered in one register at a
-time (her **flag state**); her title is **64 shares**, held by one or many;
-shares are sold between people; re-flagging moves her to another register.
-**At sea, the law aboard is the flag state's**; in harbor, both the port's and
-the flag's. An unregistered ship is stateless. The flown flag is a thing on
+A government keeps a ship register **if it chooses to** (lens 2 and the rule
+*enable authors, never impose*; lens 7 — who may register is the polity's
+own call) — this build, **Terminus City**, at the harbor office. A ship is
+entered in one register at a time (her **flag state**); her title is **64
+shares**, held by one or many; ⭐ shares are sold by a **consented sale paid
+in the same act** — the price moves with the shares or nothing moves (lens 4:
+neither side can be cheated); a gift is a sale at nothing. **At sea, the
+jurisdiction aboard is the flag state's** (readable with `government`); in
+harbor, both the port's and the flag's. An unregistered ship is stateless. The flown flag is a thing on
 her (a government's brand) and can differ from the register — false colors
 are possible and readable as such by anyone who checks the register.
 
-### A boat is owned like any good
+### A boat is owned like any good — or hired
 Bought at the boat shed, carried in your title, sold or given; her draught
 deepens and her freeboard falls with what is in her; overloaded, she swamps.
+The put-in's canoes are **the outfitter's hire boats** (lens 6: someone
+pays): hired **by the day**, kept as many days as you pay for (the clock runs
+at 12×), returned to her.
+
+### The harbor clears a ship to sail once her dues are paid
+Lens 1 (real ports cleared a ship only once her dues were paid) and lens 7
+(the posted criterion is *dues owed*; the appeal is the harbor works'
+committee): dues accrue per day alongside at posted rates by her length;
+`course` out of the harbor is refused until her managing owner has paid.
+
+### The harbor keeps hours
+Lens 1 and lens 3a (the port has a day): a ship hailing while the
+harbormaster is off shift is told to lie in the roads until the office opens.
+
+### Upkeep is `maintain`
+The owner's rule (the same as residences): re-caulking a hull is the same
+upkeep act as keeping a house, done with a **caulker's kit** (pitch and oakum).
 
 ### Leaks are the hull's condition, read as water
 Caulking wears like any sealant; a worn or holed hull lets water into the
@@ -287,8 +326,9 @@ an obstruction. Nobody knows where she lies until someone charts her.
    line); leak rate against pump rate (a tank-filling problem with a bad
    ending); the tide's window (draught against the water over the bar);
    capacity as geometry (berths from length). Disciplines: navigation
-   (shipped); **seamanship** is the gap — the plan decides whether pumping,
-   mooring and handling a boat exercise it or it waits for `trade-seafaring`.
+   (shipped) and ⭐ **seamanship**, new here — mooring, pumping and handling a
+   craft exercise it (decided by this lens: otherwise the build exercises
+   none); the seafaring build deepens it.
 2. **Creative expression** — ordinary case with no code: a new port, quay,
    ship kind or register is rows. Bespoke without breaking: an authored ship
    (the *Hesper*) is one kind built once; the yard's catalogue is a stocked
@@ -303,7 +343,7 @@ an obstruction. Nobody knows where she lies until someone charts her.
    register is public, so false colors can be found out; nobody is pressed or
    crimped (crews are the next build, coercion never a mechanic).
 5. **Continuity** — oar, sail and steam answer the same `course`, `pump`,
-   `repair`; the same berth takes a sailing brig and a steamer.
+   `maintain`; the same berth takes a sailing ship and a steamer.
 6. **Economy** — produces: berth dues for the harbor works, a yard's sales,
    pumping and caulking work, wreck diving. Consumes: ships, pitch and oakum
    (caulking). Who pays: shipowners, in dues and upkeep. Was the demand there
@@ -327,30 +367,30 @@ an obstruction. Nobody knows where she lies until someone charts her.
 3. A second ship (one of the line's two regulars) comes alongside the same quay: two ways, each named for its
    ship. A third, too long for what is left, is sent to the roads by the
    harbormaster, and says so.
-4. A deep ship at low water is told to wait for the flood; at high water she
+4. The deep regular (the coaster) at low water is told to wait for the flood; at high water she
    comes in.
-5. Leaving: `course <somewhere>` — the way named for her is gone from the
-   quay. The dues are charged to her owner's account and appear in the harbor
-   works' books.
+5. Leaving before the dues are paid: `course` is refused, naming the dues.
+   Pay them; `course <somewhere>` — the way named for her is gone from the
+   quay; the dues are in the harbor works' books.
+6. Hail at night: lie in the roads until the office opens.
 
 **A2 — sugar's island** (sugar merges before this build starts; driven
 with Stage A)
-6. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
+7. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
     by the way named for her; home again to her berth at Terminus.
 
 ### Stage B — the boats
 
 **B1 — owning a ship**
-7. At the yard, `buy` a ship of a kind (a smack): she is yours, named, lying
-   at the yard's quay; the register lists her in your name, 64 shares, under
-   Terminus' flag.
-8. A second player buys another of the same kind: her rooms are hers; what you
+8. At the yard, `buy` a smack and name her as she is registered (a name
+   already in the register is refused): she lies at the yard's quay; the
+   register lists her in your name, 64 shares, under Terminus' flag.
+9. A second player buys another of the same kind: her rooms are hers; what you
    leave in your hold is not in hers. The second player cannot go aboard yours
    until you open her, and cannot set your course.
-9. Sell 16 shares to the second player; the register shows both owners.
-10. Re-flag her to another government's register; her flown flag can be
-    changed separately, and the register still tells the truth.
-11. At sea, ask what law applies aboard: the flag state's. In harbor: both.
+10. Sell 16 shares to the second player at a price both accept; the money and
+   the shares move together; the register shows both owners.
+11. At sea, `government`: Terminus City, her flag state.
 12. Leave her; she sleeps; restart the server; come back: she is where you
     left her, with what you left in her. Come back after weeks of game time:
     her hull reads worn and she has settled at her berth; pump her out.
@@ -358,20 +398,24 @@ with Stage A)
 **B2 — owning a boat**
 13. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
     (`look` says so); overload her in a chop and she swamps.
+14. Hire a canoe from Ada Fenn for two days; paddle off; return it; the hire
+    is two days' money.
 
 **B3 — the hull's decline**
-14. Aboard an old ship whose caulking is worn, sound the well: there is water
+15. Aboard an old ship whose caulking is worn, sound the well: there is water
     in the bilge, rising.
-15. `pump` the bilge pump: the level falls while you work; stop, and it rises.
-16. Let it go: the lowest rooms flood, then the next; you are told she is
+16. `pump` the bilge pump: the level falls while you work; stop, and it rises.
+17. Let it go: the lowest rooms flood, then the next; you are told she is
     settling; she goes down.
-17. Still aboard, you are in her rooms under water; swim up the column to the
+18. Still aboard, you are in her rooms under water; swim up the column to the
     surface.
-18. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
+19. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
     the hold — and she is still in your name in the register.
-19. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
+20. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
     with what is in her.
-20. `repair` the caulking on a sound ship: the leak stops.
+21. `maintain` her hull with a caulker's kit: the leak stops, and the hull
+    reads sound. Mooring, pumping and handling her have counted toward
+    seamanship.
 
 ## Acceptance criteria
 
@@ -383,7 +427,13 @@ with Stage A)
   it, without anyone changing anything but the time.
 - The harbormaster's refusals name the posted criterion; a player holding the
   seat can make the call the NPC would otherwise make.
-- Berth dues for a stay appear in the owner's account and the harbor works'.
+- Berth dues for a stay appear in the owner's account and the harbor works';
+  a ship cannot clear the harbor with dues owing.
+- A ship hailing out of office hours is sent to the roads until it opens.
+- A ship's name is unique in her register; a sale of shares moves the money
+  and the shares together or not at all.
+- A hired canoe costs one day's hire per day kept.
+- Mooring, pumping and handling a craft record seamanship.
 - Only her master (or whoever the master permits) can set an owned ship's
   course; a stranger cannot go aboard a ship whose master has not opened her.
 - A ship's hull and a house's shell weather on the same clock and read in the
@@ -392,7 +442,7 @@ with Stage A)
   as they were after a restart.
 - The register names every ship's owners by shares and her flag state; a sale
   of shares changes it; nobody but a shareholder can sell shares.
-- Aboard at sea, the law in force is the flag state's.
+- Aboard at sea, the jurisdiction in force is the flag state's.
 - An owned boat changes hands like any good, and her freeboard reading falls
   as she is loaded until she swamps.
 - A leaking ship left alone sinks; pumped, she does not; nothing in the outcome
