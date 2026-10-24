@@ -423,6 +423,8 @@ with Stage A)
 
 ## Acceptance criteria
 
+### Stage A — the harbor
+
 - A ship moored at a quay is reached by a way named for her and by nothing
   else; when she leaves, that way is gone from the quay and from the deck.
 - Two ships at one quay are two ways; a quay never takes more ships than its
@@ -434,29 +436,31 @@ with Stage A)
 - Berth dues for a stay appear in the owner's account and the harbor works';
   a ship cannot clear the harbor with dues owing.
 - A ship hailing out of office hours is sent to the roads until it opens.
-- A ship's name is unique in her register; a sale of shares moves the money
-  and the shares together or not at all.
-- A hired canoe costs one day's hire per day kept.
-- Mooring, pumping and handling a craft record seamanship.
-- Only her master can set an owned ship's course; with her gangway locked,
-  only someone holding her key can go aboard.
-- A ship's hull and a house's shell weather on the same clock and read in the
-  same bands; a neglected ship is found settled at her berth, not vanished.
+- After sugar merges, Waponi Woo is reached by berthing, not by a hard-wired
+  exit.
+
+### Stage B — the boats
+
 - Two ships of one kind keep separate cargo, condition and names, and both are
   as they were after a restart.
-- The register names every ship's owners by shares and her flag state; a sale
-  of shares changes it; nobody but a shareholder can sell shares.
+- A ship's name is unique in her register; the register names every ship's
+  owners by shares and her flag state; a sale of shares moves the money and
+  the shares together or not at all; nobody but a shareholder can sell shares.
+- Only her master can set an owned ship's course; with her gangway locked,
+  only someone holding her key can go aboard.
 - Aboard at sea, the jurisdiction in force is the flag state's.
 - An owned boat changes hands like any good, and her freeboard reading falls
-  as she is loaded until she swamps.
+  as she is loaded until she swamps. A hired canoe costs one day's hire per day
+  kept.
+- A ship's hull and a house's shell weather on the same clock and read in the
+  same bands; a neglected ship is found settled at her berth, not vanished.
 - A leaking ship left alone sinks; pumped, she does not; nothing in the outcome
   is random.
 - The people aboard a sinking ship have time to act; anyone still aboard ends
   up under water in her rooms and can reach the surface.
 - A sunk ship's rooms, cargo and title are intact on the bottom, reachable by
   diving, and not on anyone's map until charted.
-- After sugar merges, Waponi Woo is reached by berthing, not by a hard-wired
-  exit.
+- Mooring, pumping and handling a craft record seamanship.
 
 ## Cross-references
 
