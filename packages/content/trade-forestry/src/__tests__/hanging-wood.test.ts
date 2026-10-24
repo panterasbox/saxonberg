@@ -147,7 +147,8 @@ describe('the Hanging Wood', () => {
       const key = `${r.data.coords!.x},${r.data.coords!.y},${r.data.coords!.z}`;
       expect(cells.has(key), `${f} shares ${key}`).toBe(false);
       cells.add(key);
-      for (const p of r.data.props ?? []) {
+      for (const e of r.data.props ?? []) {
+        const p = typeof e === 'string' ? e : e.template;
         if (!p.includes('/panel-')) continue;
         expect(panels.has(p), `${p} propped twice`).toBe(false);
         panels.add(p);
