@@ -136,6 +136,13 @@ interface Floor {
   setLoaf: boolean;
   /** A mould holds a set raw-sugar block (an estate's hogshead). */
   setBlock: boolean;
+  /**
+   * ⭐ Which one, by id (`#…`), where a floor has several of a kind — the
+   * empty mould on its pot, a free mould and a free pot, the mould holding
+   * what has set. A floor of three hogsheads binds `hogshead` to whichever
+   * answers first, full or not (drive 13); absent, the plain word.
+   */
+  refs?: { ready?: string; mould?: string; pot?: string; set?: string };
   loaf: boolean;
   nips: boolean;
   piece: boolean;
@@ -199,20 +206,21 @@ export const brain = class {
     // The way to the counter and back, a step at a time (`south east north`).
     const steps = (way: string): string[] => way.split(/\s+/).filter(Boolean).map((d) => `go ${d}`);
     const errand = (...verbs: string[]): string => [...steps(w.out), ...verbs, ...steps(w.back)].join('\n');
+    const ref = f.refs ?? {};
     if (f.liquor === 'struck') {
       if (f.onFire && !w.ladle) return `get ${w.kettle}`;
-      if (f.coneReady) return `pour ${w.kettle} into ${w.mould}`;
-      if (f.coneAndPot) return `put ${w.mould} on ${w.pot}`;
+      if (f.coneReady) return `pour ${w.kettle} into ${ref.ready ?? w.mould}`;
+      if (f.coneAndPot) return `put ${ref.mould ?? w.mould} on ${ref.pot ?? w.pot}`;
     }
     // Finish what is made before starting more.
     if (w.finish === 'loaf') {
       if (f.sack) return errand('put sack in counter');
       if (f.piece && f.quern) return 'mill piece';
       if (f.loaf && f.nips) return 'cut loaf with nips';
-      if (f.setLoaf) return `get loaf from ${w.mould}`;
+      if (f.setLoaf) return `get loaf from ${ref.set ?? w.mould}`;
     } else {
       if (f.block) return errand('put block in counter');
-      if (f.setBlock) return `get block from ${w.mould}`;
+      if (f.setBlock) return `get block from ${ref.set ?? w.mould}`;
     }
     if (f.liquor === 'spoilt' && w.spoilt === 'spill') {
       return f.onFire && !w.ladle ? `get ${w.kettle}` : `spill ${w.kettle}`;
@@ -274,8 +282,12 @@ export const brain = class {
       MixinApi.isMould(s) && MixinApi.isBulkable(s) && s.isBulkEmpty('interior') && !s.holdsCast();
     const cones = here.filter(isEmptyMould);
     const pots = here.filter((s) => s instanceof CuringPot);
-    const coneReady = cones.some((c) => placedOn(c) instanceof CuringPot);
-    const freePot = pots.some((p) => MixinApi.isPlacing(p) && p.getPlaced('on').length === 0);
+    const readyCone = cones.find((c) => placedOn(c) instanceof CuringPot);
+    const looseCone = cones.find((c) => !(placedOn(c) instanceof CuringPot));
+    const potFree = pots.find((p) => MixinApi.isPlacing(p) && p.getPlaced('on').length === 0);
+    const coneReady = readyCone !== undefined;
+    const freePot = potFree !== undefined;
+    const id = (s?: Stuff): string | undefined => (s ? `#${s.stuffId}` : undefined);
 
     let liquor: Floor['liquor'] = 'empty';
     let limed = 0;
@@ -291,13 +303,15 @@ export const brain = class {
       else liquor = 'liquor';
     }
 
-    const moulded = (pred: (c: Stuff) => boolean): boolean =>
-      here.some(
+    const mouldOf = (pred: (c: Stuff) => boolean): Stuff | undefined =>
+      here.find(
         (m) =>
           MixinApi.isMould(m) &&
           MixinApi.isContainer(m) &&
           ((m as unknown as Container).getContents() as Stuff[]).some(pred),
       );
+    const moulded = (pred: (c: Stuff) => boolean): boolean => mouldOf(pred) !== undefined;
+    const setMould = mouldOf((c) => c instanceof SugarLoaf || hasTag(c, 'raw-sugar'));
     const isSack = (s: Stuff): boolean =>
       s.getTemplatePath() === '/trade/cooking/thing/sugar-sack' &&
       MixinApi.isBulkable(s) &&
@@ -351,6 +365,7 @@ export const brain = class {
       sack: here.some(isSack),
       counterBlock: onCounter('raw-sugar'),
       counterLime: onCounter('liming'),
+      refs: { ready: id(readyCone), mould: id(looseCone), pot: id(potFree), set: id(setMould) },
     };
   }
 

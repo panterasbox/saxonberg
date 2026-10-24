@@ -131,6 +131,14 @@ describe('refines — one act per beat', () => {
     expect(brain.next(boiling, w)).toBeNull();
   });
 
+  it('⭐ a floor of several hogsheads: the boiler names the one it means', () => {
+    const w = brain.words({ kettle: 'kettle', fire: 'train', mould: 'hogshead', source: 'juice', finish: 'block', ladle: true });
+    const island = { ...base, block: false, refs: { ready: '#h2', mould: '#h3', pot: '#p3', set: '#h1' } };
+    expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true, coneReady: true }, w)).toBe('pour kettle into #h2');
+    expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true }, w)).toBe('put #h3 on #p3');
+    expect(brain.next({ ...island, setBlock: true }, w)).toBe('get block from #h1');
+  });
+
   it('out of lime, it buys the import at its own counter', () => {
     expect(
       brain.next({ ...base, liquor: 'liquor', lime: false, counterLime: true }),

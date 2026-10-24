@@ -21,8 +21,11 @@ data:
     - /trade/sugar/thing/kettle
     - /trade/sugar/thing/juice-cistern
     - /stuff/thing/vessel/pail
-    - /trade/sugar/thing/hogshead
-    - /trade/sugar/thing/curing-pot
+    # Three hogsheads on three pots: a strike cures four days, so a floor
+    # with one cask makes one block in four days whatever the boiler does.
+    # A shift's two-hour batches fill all three (drive 13).
+    - { template: /trade/sugar/thing/hogshead, count: 3 }
+    - { template: /trade/sugar/thing/curing-pot, count: 3 }
     - /stuff/thing/instrument/thermometer
     - { template: /stuff/thing/items/dry-log, count: 10 }
     # ⭐ The boiling house's lime store, beside its woodpile: the boiler
