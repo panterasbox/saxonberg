@@ -141,11 +141,6 @@ export interface CraftFailure {
   reason: CraftDeclineReason;
   /** Optional detail — the missing capability, the understocked category. */
   detail?: string;
-  /**
-   * ⭐ On `insufficient-input`: something in reach of the same ingredient
-   * family that is not what was asked for (honey for sugar, sugar D5).
-   */
-  near?: { name: string; family: string };
 }
 
 /**

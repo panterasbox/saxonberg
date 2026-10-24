@@ -71,11 +71,6 @@ export class CraftingDecline {
         if (detail === 'no-material' || detail === 'no-matter') {
           return "There's no honest matter in it to recover.";
         }
-        // ⭐ The near miss names what you offered (sugar D5): the honey is
-        // right there, and it is not sugar.
-        if ('near' in failure && failure.near) {
-          return `This wants ${detail} — ${failure.near.name} is a different ${failure.near.family}.`;
-        }
         return `There isn't enough ${detail || 'stock'} to make that.`;
       case 'part-failed':
         // ⭐⭐ The refusal NAMES the part and the cure (assembly D6, AC 10):

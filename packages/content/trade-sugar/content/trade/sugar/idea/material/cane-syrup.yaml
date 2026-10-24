@@ -8,5 +8,3 @@ data:
   appearance: thick and golden, slow off a spoon
   tags: ["liquid", "food", "syrup", "treacle", "sweetener"]
   waterActivity: 0.7
-  # A sweetener (sugar D5): a refusal offered this for another sweetener says so.
-  _familyPath: /trade/cooking/idea/ingredient-family/sweetener

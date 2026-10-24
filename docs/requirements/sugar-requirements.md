@@ -228,8 +228,11 @@ by grade.
 ### Sugar is tags
 Produced sugar carries `sugar` + `sweetener`; grades live within `sugar`, so
 a recipe's minimum grade already handles a cocktail that wants the good
-stuff. ⭐ **Honey's refusal says why**: *"this wants sugar — honey is a
-different sweetener."*
+stuff. ~~Honey's refusal says why~~ — **moved to the
+[substitution slate](../slates/builds/substitution-slate.md)** in review
+(2026-10-24): whether honey can stand in depends on the dish and the cook,
+never the ingredient, so the ingredient family that carried the sentence
+was removed.
 
 ### The voyage
 The Hesper **berths at Waponi Woo**, loads raw sugar and molasses into her
@@ -309,8 +312,8 @@ see; "not refused" is never success.
    will not grain — **blackstrap**.
 9. **Nip and pound** the white head into loose sugar; it reads as sugar of
    its grade.
-10. At the Lounge, a **mojito** is made with it. Honey offered instead is
-    refused, and the refusal says honey is a different sweetener.
+10. At the Lounge, a **mojito** is made with it. (The honey refusal moved
+    to the [substitution slate](../slates/builds/substitution-slate.md).)
 11. Molasses into a wash; the still makes **rum**; at **Veshko's yard** the
     distiller makes the rum line from molasses — the yard no longer conjures it.
 12. At the maple sugarbush, sap boiled past syrup to the strike gives **maple

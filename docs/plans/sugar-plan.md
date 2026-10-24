@@ -673,6 +673,16 @@ sweetener."* A second family (`fat`: tallow, lard, butter, oil) is a row
 any pack ships with no kernel edit. The slate's withdrawn `parent:` is
 not revived: membership is still the tags the materials carry.
 
+> ⛔ **D5 RETIRED (review, 2026-10-24).** `IngredientFamily`, `Material._familyPath`,
+> the `sweetener` row and the near-miss path are removed. The owner: *"you
+> can't always substitute sugar — it depends on the application… an
+> attribute of the cook and the recipe, not the ingredient."* One class,
+> one field and one row for one sentence was thin, and the host was wrong.
+> The design (a slot's job, rows over material properties, refusals by
+> competence) is the
+> [substitution slate](../slates/builds/substitution-slate.md). Drive 10
+> keeps the mojito and drops the honey sentence.
+
 **D6 — Nipping is `cut`, pounding is `mill`.** `SugarLoaf` implements
 `Cuttable`: `cutPlan` requires a bound tool with capability `nipping`
 (`/trade/sugar/thing/sugar-nips`, a `Tool` row) and plans one engaged

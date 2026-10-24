@@ -8,5 +8,3 @@ data:
   appearance: dark brown and sticky, sweet with a bitter edge
   tags: ["liquid", "food", "molasses", "first-molasses", "sweetener"]
   solidsKgPerL: 0.8
-  # A sweetener (sugar D5): a refusal offered this for another sweetener says so.
-  _familyPath: /trade/cooking/idea/ingredient-family/sweetener

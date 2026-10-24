@@ -60,7 +60,6 @@ import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { VetoResult } from '../errors';
-import type IngredientFamily from '../../platform/idea/IngredientFamily';
 import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
@@ -1124,7 +1123,6 @@ export default class Material extends SingletonMixin(
     // ⭐ The boil-down (sugar D1). Public: a sugar boiler reads the
     // thermometer and the thread, and the stages are the trade's syllabus.
     solidsKgPerL: { persistent: true, authorable: true },
-    _familyPath: { persistent: true, authorable: true, ref: 'identity:relation' },
     boilingPointElevation: { persistent: true, authorable: true },
     concentratesTo: { persistent: true, authorable: true },
   };
@@ -1561,27 +1559,6 @@ export default class Material extends SingletonMixin(
       prev = pt[0];
     }
     this.boilingPointElevation = value.map(([w, k]) => [w, k] as [number, number]);
-  }
-
-  /**
-   * ⭐ The ingredient family this material belongs to (sugar D5) — a path
-   * to an `IngredientFamily` row (`…/idea/ingredient-family/sweetener`),
-   * or `''`. It gates nothing; a refusal follows it to say honey offered
-   * for sugar is a different sweetener.
-   */
-  protected _familyPath = '';
-
-  public getFamilyPath(): string {
-    return this._familyPath;
-  }
-  public setFamilyPath(value: string): void {
-    this._familyPath = typeof value === 'string' ? value.trim() : '';
-  }
-
-  /** The family row, loaded on use; `null` when uncited or unresolvable. */
-  public async getFamily(): Promise<IngredientFamily | null> {
-    if (this._familyPath === '') return null;
-    return StuffApi.singleton<IngredientFamily>(this._familyPath).catch(() => null);
   }
 
   /** The boiling point (K) at solids mass fraction `w` — the plain boil plus the elevation. */
