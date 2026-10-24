@@ -799,6 +799,27 @@ PowerReading:276, WaterExpanse:54) read
 `BiomeApi.getRootBiome().getDefaultGravity()` with 9.81 as the fallback,
 the water pack's own pattern. Nothing changes value but the chart.
 
+> ⚠ **D12 re-plan (review, 2026-10-24): the root biome is the wrong host.**
+> The owner: *"planet radius needs to be scoped to content… making content
+> on a new planet needs to be expressible. The clock needs to be
+> universal."* Reading the root makes the radius a global, so a second
+> planet cannot differ. Lens 2 decides it: a second planet must be rows.
+> - **Host:** the planet is the top of its world zone's tree. It is read
+>   per place by the same outward walk gravity uses (container biomes →
+>   the zone's `atmosphere.planetRadius` → the root as the default).
+>   `BiomeApi.resolvePlanetRadiusFor(place)`. The universe keeps 2 124 km
+>   as the default, so no existing place changes value.
+> - **The chart:** each expanse resolves its radius once and passes it to
+>   every `GeoPosition` conversion (distance, bearing, `destination`,
+>   `offsetTo`, `displaced`) and to `sightRangeNm`. `GeoPosition` stops
+>   reading a global. The four gravity reads above have the same flaw:
+>   `standardGravity()` reads the root. They move to `resolveGravityFor`
+>   where a place is at hand.
+> - **The clock stays universal:** one instant for the realm. How a planet
+>   READS it (day length, year, its sun — `CelestialApi` assumes one sun)
+>   is a slate, not this build. No content stands on a second planet yet.
+> - Sequenced after drive step 18.
+
 **D13 — The hold persists by re-class.** `hesper/hold.yaml` →
 `class: /platform/location/PersistentLocale` (master's kept singleton
 place — `PersistableMixin(Locale)`, the cookhouse/lavoir precedent);
