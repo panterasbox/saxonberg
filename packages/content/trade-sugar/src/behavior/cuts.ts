@@ -6,12 +6,17 @@
  *
  * Every act a verb a player could type: `harvest cane`, then an errand down
  * the track (`go …` steps), the hand-over (`drop cane` at the estate's mill
- * yard, or — with `deliver: sell cane` — a smallholder SELLING it at the
+ * yard, or — with `deliver: sell` — a smallholder SELLING it at the
  * estate counter), and the steps back. A hired cutter works on shift; a
  * smallholder, who answers to nobody, works whenever there is ripe cane.
  *
- * config: `{ to: string[], back: string[], deliver?: string }` — the
- * directions to the mill (or the counter) and home, and the hand-over verb.
+ * config: `{ to: string[], back: string[], deliver?: 'drop' | 'sell' }` —
+ * the directions to the mill (or the counter) and home, and the hand-over.
+ *
+ * ⚠ The config names WORDS, never commands: a direction is one plain word
+ * and the hand-over is a closed choice. A row that could hand this brain a
+ * command string would make its NPC type anything at all (the forced-
+ * command review: a brain's config is not a command channel).
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -32,8 +37,11 @@ interface Plot {
 interface Errand {
   to: readonly string[];
   back: readonly string[];
-  deliver: string;
+  deliver: 'drop cane' | 'sell cane';
 }
+
+/** One plain word — a direction or a keyword, never a command. */
+const WORD = /^[a-z][a-z-]*$/i;
 
 export const brain = class {
   static label = 'cuts';
@@ -45,8 +53,10 @@ export const brain = class {
   static ambient = false;
 
   static errand(config: unknown): Errand {
-    const c = (config ?? {}) as Partial<Errand>;
-    return { to: c.to ?? [], back: c.back ?? [], deliver: c.deliver ?? 'drop cane' };
+    const c = (config ?? {}) as { to?: unknown[]; back?: unknown[]; deliver?: unknown };
+    const words = (v: unknown[] | undefined): string[] =>
+      (v ?? []).filter((d): d is string => typeof d === 'string' && WORD.test(d));
+    return { to: words(c.to), back: words(c.back), deliver: c.deliver === 'sell' ? 'sell cane' : 'drop cane' };
   }
 
   static urgency(ctx: BrainContext): Urgency {

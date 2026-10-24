@@ -72,9 +72,19 @@ export const brain = class {
     return null;
   }
 
+  /**
+   * The carry's words. ⚠ Words, never commands: each direction and the
+   * vessel's keyword is one plain word, so no row can splice a command into
+   * the errand (the forced-command review).
+   */
   static carry(config: unknown): { to: readonly string[]; back: readonly string[]; into?: string } {
-    const c = ((config ?? {}) as { carry?: { to?: string[]; back?: string[]; into?: string } }).carry ?? {};
-    return { to: c.to ?? [], back: c.back ?? [], ...(c.into ? { into: c.into } : {}) };
+    const c = ((config ?? {}) as { carry?: { to?: unknown[]; back?: unknown[]; into?: unknown } }).carry ?? {};
+    const word = (v: unknown): v is string => typeof v === 'string' && /^[a-z][a-z-]*$/i.test(v);
+    return {
+      to: (c.to ?? []).filter(word),
+      back: (c.back ?? []).filter(word),
+      ...(word(c.into) ? { into: c.into } : {}),
+    };
   }
 
   static urgency(ctx: BrainContext): Urgency {

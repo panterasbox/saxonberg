@@ -21,7 +21,7 @@ data:
       config:
         to: [east, northeast, north]
         back: [south, southwest, west]
-        deliver: sell cane
+        deliver: sell
     - brain: /lib/behavior/greets
       trigger: arrival
       config:

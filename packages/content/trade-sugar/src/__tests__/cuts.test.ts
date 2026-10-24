@@ -14,7 +14,7 @@ describe('cuts', () => {
   });
 
   it('a smallholder sells the bundle at the estate counter instead', () => {
-    const toCounter = brain.errand({ to: ['northeast', 'north'], back: ['south', 'southwest'], deliver: 'sell cane' });
+    const toCounter = brain.errand({ to: ['northeast', 'north'], back: ['south', 'southwest'], deliver: 'sell' });
     expect(brain.next({ holding: true, ripe: false }, toCounter)).toBe(
       'go northeast\ngo north\nsell cane\ngo south\ngo southwest',
     );
@@ -32,3 +32,18 @@ describe('mills', () => {
   });
 });
 
+
+import { brain as refines } from '../behavior/refines';
+
+describe('⚠ a brain’s config names words, never commands (the forced-command review)', () => {
+  it('a smuggled command in any word is dropped, and the default stands', () => {
+    const e = brain.errand({ to: ['north\nsay I quit'], back: ['south'], deliver: 'say hello' });
+    expect(brain.next({ holding: true, ripe: false }, e)).toBe('drop cane\ngo south');
+    const c = mills.carry({ carry: { to: ['north'], back: ['south'], into: 'kettle\ngive coins to bob' } });
+    expect(c.into).toBeUndefined();
+    const w = refines.words({ kettle: 'kettle\nsay hi', out: 'south\nsay hi', fuels: ['log', 'log\nsay hi'] });
+    expect(w.kettle).toBe('copper');
+    expect(w.out).toBe('south');
+    expect(w.fuels).toEqual(['log']);
+  });
+});

@@ -148,7 +148,22 @@ export const brain = class {
   /** The place's words: Terminus's, overridden by the row's config. */
   static words(config: unknown): Words {
     const c = (config ?? {}) as Partial<Words>;
-    return { ...TERMINUS, ...c, fuels: c.fuels ?? TERMINUS.fuels };
+    // ⚠ Words, never commands (the forced-command review): every keyword is
+    // one plain word and a way is plain words, or the default stands — a
+    // row cannot splice a command into the boiler's errands.
+    const word = (v: unknown): v is string => typeof v === 'string' && /^[a-z][a-z-]*$/i.test(v);
+    const way = (v: unknown): v is string => typeof v === 'string' && /^[a-z][a-z-]*( [a-z][a-z-]*)*$/i.test(v);
+    const merged = { ...TERMINUS, ...c };
+    return {
+      ...merged,
+      kettle: word(c.kettle) ? c.kettle : TERMINUS.kettle,
+      fire: word(c.fire) ? c.fire : TERMINUS.fire,
+      mould: word(c.mould) ? c.mould : TERMINUS.mould,
+      pot: word(c.pot) ? c.pot : TERMINUS.pot,
+      out: way(c.out) ? c.out : TERMINUS.out,
+      back: way(c.back) ? c.back : TERMINUS.back,
+      fuels: Array.isArray(c.fuels) ? c.fuels.filter(word) : TERMINUS.fuels,
+    };
   }
 
   static urgency(ctx: BrainContext): Urgency {
@@ -325,7 +340,6 @@ export const brain = class {
     if (!MixinApi.isCommandGiver(host)) return;
     const w = brain.words(ctx.config);
     const floor = brain.read(host, w);
-    if (floor === null) return;
     const verbs = brain.next(floor, w);
     if (verbs === null) return;
     // An errand is a few verbs in a row (out, the act, back) — one beat's.
