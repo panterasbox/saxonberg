@@ -18,7 +18,14 @@ decided with the owner 2026-10-22.
 - **A line with two ends.** Diving's lifeline (`trade-diving`) has a length, a
   fixed end and a free end, and the verbs `throw line to`, `pull line`, `tug`
   and `lash … to`. The quay's heaving line is one, and so is the diver's air
-  hose. The river build (in flight) adds the boat's painter as another.
+  hose. ⭐ **The river (merged 2026-10-23) made the boat's painter a third**
+  (15 m, "an eye spliced in one end"), sold at Rejection's put-in counter
+  three at a time. It is thrown ashore to line a boat up quick water, and a
+  line thrown from the bank pulls a swimmer out. The water and the boat
+  reach a line's end through one shared protocol, and the river's own doc
+  says *"in cordage's world the line is the rope"* and *"a horse wants a
+  rope"* (pulling a horse from the water). A cable ferry runs on a fixed
+  cable.
 - **Flax to yarn.** Farming grows flax; the retting pit rets it; `scutch` gives
   line and tow; `spin` gives yarn. Tow's own description says it "twists into
   rope", and nothing does.
@@ -82,7 +89,10 @@ ropewalk.
 - **The lasso, halter and lead** → ranching (its slate).
 - **Running rigging replaced on a schedule; a ship chandler's bulk trade** →
   the ships build ([ships-and-harbors-slate](../slates/builds/ships-and-harbors-slate.md)).
-- **Hemp's drug variety** → the vice cluster; only the fiber variety ships.
+- **Hemp's drug variety (cannabis)** → [smoking-slate](../slates/builds/smoking-slate.md),
+  which calls it *"one field, two varieties."* Only the fiber variety ships,
+  and hemp is authored as one plant so that the smoking build adds its second
+  variety as rows, not a new crop.
 - **Sisal, manila, coir** → cordage slate (tropical gaps); **jute** stays bought
   stock.
 - **Rated, certified rope and liability for a failed rope** → cordage slate §7.
@@ -105,8 +115,12 @@ ropewalk.
   stays a hose. Its verbs (`throw line to`, `pull line`, `tug`, `lash`) keep
   working, now on any rope.
 - **The quay's heaving line** (Wharfside) becomes rope.
-- **The river's painter** (build-4, in flight) becomes rope. Whichever build
-  lands second reconciles.
+- **The river's painter** (merged) becomes rope, so this build reconciles it.
+  Its spliced eye is a splice. Rejection's put-in counter keeps selling
+  painters, and the ropewalk's rope is what they are.
+- **Lining and the rescue line** (river) keep working, on any rope.
+- **The cable ferry's cable** stays the ferry's fixed cable, like the Hesper's
+  rigging. It is not loose rope. Recorded, not changed.
 - **The Hesper's rigging, the bowstring, the clothes-line**: authored lines that
   stay as they are this build (fixed rigging and a bow's worn part are not
   loose rope). Recorded, not changed.
@@ -179,7 +193,9 @@ rope is tarred and dry rope is not.
 
 ### Hemp
 A farm crop, sown, retted and scutched exactly like flax, giving hemp line and
-tow. Hemp is the strong rope fiber; flax makes a weaker, finer cord.
+tow. Hemp is the strong rope fiber; flax makes a weaker, finer cord. ⭐ It is
+one plant with a fiber variety, so that the smoking build's cannabis is its
+second variety (lens 2).
 
 ### The rogue's yarn
 Whoever twists a rope may lay a colored yarn into its heart: a mark chosen by
@@ -256,7 +272,8 @@ A fresh character, plus a second character for steps 15–16.
 16. The same fall with no belay: dropped.
 17. Sell sound rope back to the ropekeeper. At the dive shop, its lifeline
     reads as rope (its fiber, its length). On the quay, so does the heaving
-    line.
+    line, and at Rejection's put-in so does a painter. Line a boat along the
+    bank with that painter: it still works.
 18. On a farm, sow hemp; jump the season; harvest, ret and `scutch` it: hemp
     line, which spins and twists like the bought line.
 19. Check the ropework Discipline (`transcript` or the competence read): it
@@ -277,8 +294,9 @@ A fresh character, plus a second character for steps 15–16.
    drops the climber.
 7. A belayed climber whose rope fails is caught; an unbelayed one falls.
 8. Wet untarred rope weakens over days; tarred rope does not.
-9. The diving lifeline, the quay's heaving line and (once the river lands) the
-   painter are rope, and their shipped verbs still work; the air hose is still a
+9. The diving lifeline, the quay's heaving line and the river's painter are
+   rope, and their shipped acts still work (throwing, pulling, tugging,
+   lashing, lining a boat, a rescue from the bank); the air hose is still a
    hose.
 10. A rope twisted with a rogue's yarn shows it to a close look or a cut and
     not to an ordinary look, and every length cut or spliced from it still
@@ -297,4 +315,6 @@ A fresh character, plus a second character for steps 15–16.
   [locomotion.md](../subsystems/locomotion.md) (the climb) ·
   [boundary.md](../subsystems/boundary.md) (fixtures) ·
   [smallholding.md](../subsystems/smallholding.md) (crops)
-- In flight: the river build (the painter).
+- [river.md](../subsystems/river.md) (the painter, lining, the rescue line,
+  the cable ferry) · [smoking-slate](../slates/builds/smoking-slate.md)
+  (cannabis, hemp's second variety)
