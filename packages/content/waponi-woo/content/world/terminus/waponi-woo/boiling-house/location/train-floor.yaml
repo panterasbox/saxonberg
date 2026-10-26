@@ -4,7 +4,9 @@ class: /platform/location/PersistentLocale
 data:
   coords: { x: -1, y: 2, z: 0 }
   shortDescription: "train floor"
-  keywords: [floor, "train floor", "boiling house"]
+  # ⚠ Not "train floor": a multi-word keyword answers to its words, so
+  # `look train` asked the room or the Jamaica train (the live walk).
+  keywords: [floor, "boiling house"]
   register: definite
   _biomePath: /stuff/idea/biome/indoor/baseline
   enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.4 }

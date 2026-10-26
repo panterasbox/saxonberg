@@ -5,6 +5,11 @@ class: /trade/sugar/thing/Copper
 data:
   shortDescription: boiling kettle
   keywords: [kettle, copper, "boiling kettle", pan]
+  # The word a card link names it by — without it the link fell back to the
+  # class's `vat`, which every pan, tub and cistern on a floor answers to.
+  # The vessel's kind — what an empty one says it is ("The kettle is empty").
+  category: kettle
+  primaryKeyword: kettle
   register: indefinite
   longDescription: >-
     A wide, deep kettle of riveted copper, black outside from the fire and

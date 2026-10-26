@@ -8,6 +8,11 @@ class: /platform/thing/Vat
 data:
   shortDescription: juice cistern
   keywords: [cistern, receiver, "juice cistern"]
+  # The word a card link names it by — without it the link fell back to the
+  # class's `vat`, which every pan, tub and cistern on a floor answers to.
+  # The vessel's kind — what an empty one says it is ("The cistern is empty").
+  category: cistern
+  primaryKeyword: cistern
   register: indefinite
   longDescription: >-
     A deep cistern of mortared brick sunk at the head of the floor, where

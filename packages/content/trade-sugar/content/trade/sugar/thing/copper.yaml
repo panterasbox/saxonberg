@@ -6,6 +6,9 @@ class: /trade/sugar/thing/Copper
 data:
   shortDescription: sugar copper
   keywords: [copper, pan, "sugar copper", kettle]
+  # The word a card link names it by — without it the link fell back to the
+  # class's `vat`, which every pan, tub and cistern on a floor answers to.
+  primaryKeyword: copper
   register: indefinite
   longDescription: >-
     A deep round-bellied pan of beaten copper, wider than your arms, its

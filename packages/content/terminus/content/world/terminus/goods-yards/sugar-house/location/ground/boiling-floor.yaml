@@ -10,6 +10,12 @@ data:
   _biomePath: /stuff/idea/biome/indoor/baseline
   enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  # ⭐ Lit by the sky through a named opening (found by the live walk:
+  # brick and slate with no opening, it was pitch dark at noon).
+  ambientSource: sky
+  ambientOpening: louvre
+  ambientIntensity: 1500
+  ambientColorTemperature: 5500
   longDescription: |
     A hot, high room with a brick arch squatting in the middle of it and a great copper set in its mouth. Everything is sticky: the floor, the rails, the ladle hooks. A water butt stands by the wall, a quern for breaking sugar sits on a bench, and a coal heap is banked against the arch's firedoor. The curing house is through the door north and the store south; west, a door goes through to Veshko's distillery.
   exits:
@@ -43,3 +49,8 @@ data:
     - { template: /trade/quarrying/thing/coal, count: 8 }
   cast:
     - /world/terminus/goods-yards/sugar-house/agent/refiner
+  details:
+    louvre:
+      keywords: [louvre, louver, vent, roof, ridge, steam, light]
+      description: |
+        A long louvred vent along the roof ridge, slats set open, that the steam off the copper pours up through in a grey column — and the only daylight the floor gets comes down the same way. Every boiling house has one; a closed roof over a boil is a room full of fog.

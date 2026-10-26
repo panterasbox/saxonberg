@@ -9,8 +9,19 @@ data:
   _biomePath: /stuff/idea/biome/indoor/baseline
   enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.4 }
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  # ⭐ Lit by the sky through a named opening (found by the live walk:
+  # brick and slate with no opening, it was pitch dark at noon).
+  ambientSource: sky
+  ambientOpening: window
+  ambientIntensity: 6000
+  ambientColorTemperature: 5500
   longDescription: |
     A dim stone shed where hogsheads stand on beams over a cistern, their holes stopped with cane, molasses dripping slowly through into pots. It smells like the inside of a cake. The train floor is back west.
   props:
     - { template: /trade/sugar/thing/hogshead, count: 2 }
     - { template: /trade/sugar/thing/curing-pot, count: 2 }
+  details:
+    window:
+      keywords: [window, windows, openings, light, slats]
+      description: |
+        Slatted openings under the eaves on both long sides, for the air: the hogsheads want it to drain, and the light that comes in with it is just enough to see the drips by.

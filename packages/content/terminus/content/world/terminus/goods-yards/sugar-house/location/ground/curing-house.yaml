@@ -10,6 +10,12 @@ data:
   _biomePath: /stuff/idea/biome/indoor/baseline
   enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  # ⭐ Lit by the sky through a named opening (found by the live walk:
+  # brick and slate with no opening, it was pitch dark at noon).
+  ambientSource: sky
+  ambientOpening: window
+  ambientIntensity: 400
+  ambientColorTemperature: 5500
   longDescription: |
     A long dim room racked from end to end with stands, made to hold clay cones point-down over pots. It smells of molasses, and the floor under the racks is dark with it. The boiling floor is back through the door south.
   props:
@@ -18,3 +24,8 @@ data:
     - /trade/sugar/thing/sugar-nips
     # Wet clay for the loaves' bases (sugar W4).
     - { template: /trade/quarrying/thing/clay, count: 4 }
+  details:
+    window:
+      keywords: [window, windows, light, shutters]
+      description: |
+        Small shuttered windows high in the end wall, kept half-open for the air — curing wants a draught more than it wants light, so the room stays dim and the cones stay cool.
