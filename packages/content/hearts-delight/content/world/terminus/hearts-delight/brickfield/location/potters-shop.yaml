@@ -13,6 +13,9 @@ data:
   keywords: [shop, "potter's shop", pottery, potter]
   register: definite
   _address: terminus/hearts-delight/brickfield
+  # ⭐ A potter's shop, not the brickfield's 20 m cell: a 8000 m³ barn could
+  # not be warmed by anything (the ceramics browser walk).
+  extent: 6
   _biomePath: /stuff/idea/biome/indoor/baseline
   ambientSource: sky
   ambientOpening: door
@@ -27,7 +30,7 @@ data:
     worked: true
     onGrade: true
   longDescription: |
-    A brick shop with a big window, warm from the kiln at its back. A kick-wheel stands under the window with a bucket of slip beside it; boards along the walls carry pots at every stage, dark and soft at one end, pale and dry at the other. Two lidded tubs of glaze stand by the kiln, and a shelf by the door holds what is for sale.
+    A brick shop with a big window, kept warm by a squat stove against the kiln at its back. A kick-wheel stands under the window with a bucket of slip beside it; boards along the walls carry pots at every stage, dark and soft at one end, pale and dry at the other. Two lidded tubs of glaze stand by the kiln, and a shelf by the door holds what is for sale.
 
     The kiln fills the back wall: a squat brick bottle with its firemouth low down and a spy-hole stopped with a brick.
 
@@ -49,22 +52,36 @@ data:
     - /stuff/thing/lead-pig
     # The kiln's fuel, bounded.
     - { template: /trade/fuel/thing/charcoal, count: 6 }
+    # ⭐ The drying stove and its cordwood (the browser walk: green ware froze
+    # on the boards of a shop whose prose said it was warm). Bounded: when
+    # the stack is burnt the potter's shop goes cold, which is demand for
+    # the fuel yard, not a faucet.
+    - /world/terminus/hearts-delight/brickfield/thing/drying-stove
+    - { template: /trade/forestry/thing/cordwood, count: 12 }
   cast:
     - /world/terminus/hearts-delight/brickfield/agent/potter
   exits:
+    # ⭐ Doors on weights (the ceramics browser walk): they swing shut behind
+    # whoever goes through, so the drying stove's warmth stays in. Declared
+    # here and `bidirectional`, so the shed and the clamp ground do not
+    # author their side.
     west:
       destination: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      door: /world/terminus/hearts-delight/brickfield/thing/shed-door
+      bidirectional: true
       media: [ground]
       edgeMinutes: 1
     south:
       destination: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+      door: /world/terminus/hearts-delight/brickfield/thing/shop-door
+      bidirectional: true
       media: [ground]
       edgeMinutes: 1
   details:
     door:
       keywords: [door, window, light]
       description: |
-        A big many-paned window over the wheel, and the door beside it propped open — a potter throws by daylight, and so does she.
+        A big many-paned window over the wheel — a potter throws by daylight, and so does she — and the door beside it on its weight, swinging shut behind whoever comes in.
     boards:
       keywords: [boards, ware, drying]
       description: |

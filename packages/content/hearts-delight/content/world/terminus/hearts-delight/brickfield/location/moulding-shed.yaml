@@ -52,7 +52,3 @@ data:
       destination: /world/terminus/hearts-delight/brickfield/location/hacks
       media: [ground]
       edgeMinutes: 1
-    east:
-      destination: /world/terminus/hearts-delight/brickfield/location/potters-shop
-      media: [ground]
-      edgeMinutes: 1

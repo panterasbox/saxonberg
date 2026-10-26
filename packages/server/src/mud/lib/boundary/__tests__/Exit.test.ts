@@ -105,6 +105,27 @@ describe('Exit', () => {
       expect(result.reason).toMatch(/oak door/i);
     });
 
+    it('⭐ a door that swings shut behind you is passed shut, and stays shut (ceramics browser walk)', async () => {
+      const door = await StuffApi.create(() => new Door());
+      door.setShortDescription('shop door');
+      door.setClosesBehind(true);
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
+      expect((await exit.canTraverse(mover))).toEqual({ ok: true });
+      expect(door.isOpen()).toBe(false);
+      expect(door.canPassThrough('a' as never, 'b' as never, 'walk')).toBe(true);
+    });
+
+    it('…but a LOCKED swinging door still refuses', async () => {
+      const door = await StuffApi.create(() => new Door());
+      door.setShortDescription('shop door');
+      door.setClosesBehind(true);
+      (door as unknown as { setLocked(v: boolean): void }).setLocked(true);
+      const exit = makeStuff(() => new Exit({ direction: 'north', source: locA, destination: locB, door }));
+      const result = await exit.canTraverse(mover);
+      expect(result.ok).toBe(false);
+      expect(door.canPassThrough('a' as never, 'b' as never, 'walk')).toBe(false);
+    });
+
     it('returns ok when door is open', async () => {
       const door = await StuffApi.create(() => new Door());
       door.setShortDescription('oak door');

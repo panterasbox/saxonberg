@@ -41,6 +41,15 @@ data:
         boards: 6
         ways:
           - { to: /world/terminus/hearts-delight/brickfield/location/clay-pit, go: [west, west, west, south], back: [north, east, east, east] }
+    # ⭐ The drying stove (the ceramics browser walk): on shift she keeps it
+    # going with the cordwood by the door, so the ware on the boards does
+    # not freeze. Told which fire and what fuel — the kiln and its charcoal
+    # are fired on her own schedule above.
+    - brain: /lib/behavior/stokes
+      trigger: candidate
+      config:
+        fire: /world/terminus/hearts-delight/brickfield/thing/drying-stove
+        fuel: cordwood
     # ⭐ The stall in town (D28): she carries the shelf's ware to the
     # Terminus market and consigns it as the pottery — sale or return, paid
     # when it sells.

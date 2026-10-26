@@ -623,6 +623,7 @@ const CITATIONS: Record<string, string> = {
   furnace: "a keeper brain's furnace (`relines`) — propped by its room (ceramics W5)",
   kiln: "as `furnace` — the potter's kiln (`pots`), propped by her shop (ceramics W6)",
   clamp: "as `furnace` — the setter's clamp (`sets`), propped by the clamp ground (ceramics W6)",
+  fire: "as `furnace` — the fire a `stokes` hand keeps going, propped by its room (the potter's drying stove, ceramics browser walk)",
   temper: "as `shelf` — the moulders' temper pit (`moulds`), propped by its yard (ceramics W6)",
   board: "as `shelf`",
   boards: "as `shelf`",

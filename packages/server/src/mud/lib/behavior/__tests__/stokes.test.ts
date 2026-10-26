@@ -22,7 +22,7 @@ import { MessageApi } from '../../../api/message';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { fuelMaterial } from '../../fire/__tests__/burner-fuel';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 
 class Room extends ContainerMixin(Idea) {
   static _mixinName = 'StokesTestRoom';
@@ -47,10 +47,10 @@ function lump(kg: number, isFuel: boolean): Scrap {
   return s;
 }
 
-function ctx(): BrainContext {
+function ctx(config: Record<string, unknown> = {}): BrainContext {
   return {
     host: hand as unknown as Stuff,
-    config: {},
+    config,
     state: {},
     trigger: { source: 'candidate', raw: 'candidate' },
     say: vi.fn(),
@@ -131,4 +131,26 @@ describe('stokes', () => {
     await stokes.act(ctx());
     expect(forge.fuelRemaining()).toBeCloseTo(2.2, 6);
   });
+
+  it('⭐ told which fire and what fuel: the potter keeps her drying stove on cordwood, and leaves the kiln and its charcoal be', async () => {
+    // The room's FIRST burner is the forge (the kiln); the stove comes second.
+    const stove = makeStuff(() => new Forge());
+    stove.setFuelCapacityKg(20);
+    (stove as unknown as { lit: boolean }).lit = false;
+    stampTemplatePathForTest(stove as unknown as Stuff, '/test/thing/drying-stove');
+    ContainmentApi.move(stove, room);
+    const charcoal = lump(2, true);
+    ContainmentApi.move(charcoal, room);
+    const wood = lump(3, false);
+    wood.setKeywords(['cordwood', 'wood']);
+    ContainmentApi.move(wood, room);
+    const cfg = { fire: '/test/thing/drying-stove', fuel: 'cordwood' };
+    expect(stokes.urgency(ctx(cfg)).band).toBe('wanted');
+    await stokes.act(ctx(cfg));
+    expect(stove.isLit()).toBe(true);
+    expect(stove.fuelRemaining()).toBeCloseTo(3, 6);
+    expect(forge.isLit()).toBe(false);
+    expect(charcoal.isDestroyed()).toBe(false);
+  });
 });
+
