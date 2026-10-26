@@ -61,7 +61,12 @@ propped on a room's floor afforded nothing: `harvest` was only
 `CultivableMixin`'s. ⭐ Since the sugar build (2026-10-19) **a `Plant`
 affords its own harvest** wherever it stands — cane propped in a field,
 a herb in a walled physic garden (medicine's `PhysicPlant` was the same
-fix in a pack and retired into it). The panel stays for what it adds: a
+fix in a pack and retired into it). ⚠ **A stopgap:** it exists because
+there is no arable FIELD crop (a `Field` grows only sward), so sugar
+propped its cane loose; whether a bare `Plant` keeps `harvest` is
+foraging's question, and the
+[cover slate](../slates/builds/cover-slate.md) — the owner's immediate
+follow-on — replaces the loose cane with a field crop. The panel stays for what it adds: a
 persistable cut, shared soil, a bed you can `pick`. The
 two things the panel used to expose are settled by the forestry build:
 a grown plant IS authored (the stool row hydrates `growthStage: mature`

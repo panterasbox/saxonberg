@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ The sugar drive (sugar-requirements § The drive) — Stage A, the
+ * ⭐⭐ The sugar drive (this file IS the drive; its script retired with the requirements at the MR !439 sweep) — Stage A, the
  * Terminus sugar house; Stage B (the island and the voyage) appends.
  *
  * A player buys raw sugar, dissolves it in the copper's water, tempers it

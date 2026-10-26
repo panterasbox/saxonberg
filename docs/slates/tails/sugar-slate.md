@@ -1,18 +1,18 @@
 # Sugar slate — the cane, the strike and the loaf
 
-> **Status: UNBUILT** — designed 2026-10-18 with the founder, over the draft
-> [sugar requirements](../../requirements/sugar-requirements.md) (written in
-> a batch, never talked through; this slate supersedes it where they differ,
-> and `/requirements` rewrites it). Maple sugaring, the saltern, honey,
-> milling, fermentation and distilling ship.
-> **Left:** stage 1, the Terminus SUGAR HOUSE — raw sugar as a stocked line,
-> tempering and skimming, cane juice as an `evaporative` profile, the strike
-> read by the thread test, the cone as a draining mould, claying as a
-> percolation leach, grades within a loaf and by re-boiling, muscovado,
-> molasses to Veshko's rum line, sugar tags on the rows · stage 2, the SUGAR
-> ISLAND — cane on frost-free ground, the edge-runner crush, inversion, the
-> boiling house and the Jamaica train, bagasse dried and burnt, the voyage
-> **Size:** a build — the sugar house; the island is the build after it
+> **Status: BUILT** (MR !439, 2026-10-25) — both stages: the Terminus Sugar
+> House and Waponi Woo, the estate on waged hands, the sea crossed by players
+> → [thermal.md](../../subsystems/thermal.md) (the boil plateau, solids,
+> `concentratesTo`) · [mould.md](../../subsystems/mould.md) (drainings) ·
+> [spoilage.md](../../subsystems/spoilage.md) § Kinetics (inversion) ·
+> [employment.md](../../subsystems/employment.md) · [expanse.md](../../subsystems/expanse.md).
+> The requirements and plan retired at the sweep; this slate keeps what is
+> left (§ *Left after the build*, at the foot). Was: designed 2026-10-18
+> with the founder.
+> **Left:** the deferred seams table · the four follow-ons opened in review
+> (cover/arable · mountain · substitution · the-world § 7) · findings that
+> are not sugar's
+> **Size:** a tail
 
 **Sits on:** [maturation.md](../../subsystems/maturation.md) § `evaporative`
 (the sap profile, the arch) · [mould.md](../../subsystems/mould.md) ·
@@ -130,7 +130,7 @@ strike · sequence.
   **curing house** — the mould subsystem's draining shape (the cheese hoop),
   so the loaf sets and separates its molasses with no new mechanism.
   ⚠ **An assumption, not a settled base**: *"moulds shipped without a real
-  design conversation"* — the [moulding slate](./moulding-slate.md) is that
+  design conversation"* — the [moulding slate](../builds/moulding-slate.md) is that
   conversation, and this design should be checked against what it decides.
 - ⭐ **Claying is a leach.** Wet clay on the loaf's wide end lets water seep
   down through the crystals, washing the remaining molasses out of the tip —
@@ -217,7 +217,7 @@ it. **Molasses is the missing input to a product the realm already sells.**
    recorded plainly here: ⛔ **the engine never models a coerced worker as a
    mechanic**; if a polity ever builds coercion, the **accountability
    ledger** records it (the indentured-diver and Morecambe Bay precedents in
-   [underwater-slate](./underwater-slate.md)); and ⚠ **the island must not
+   [underwater-slate](../builds/underwater-slate.md)); and ⚠ **the island must not
    become a plantation by default content** — its authored people are
    smallholders, millers and boilers.
 5. **Continuity** — edge-runner → rollers → steam mills; open kettles → the
@@ -261,3 +261,59 @@ grade by sequence. See the potash slate.
    stock shape exactly, so both conjured lines retire the same way.
 3. The island's name, its climate site, and its node on the Greywater.
 4. Whether the `insufficient-input` refusal names the wanted category today.
+
+## Left after the build (MR !439, swept 2026-10-25)
+
+### Deferred seams (from the retired plan)
+
+| seam | attach point | leaves as |
+|---|---|---|
+| the hopper adopting percolation | `PercolatingMixin` on a potash-ash solid; `Hopper.matchProfile` retires | potash.md § still open |
+| lye and soda converging on the arrows | `concentratesTo` on `lye.yaml`; `soda-from-lye.yaml` retires | the potash slate |
+| a pan of strike left to cool setting hard | `reconcileBulkPhase`'s melt arm on a `strike` material with a melting point | `moulding-slate` |
+| rain into an open fire-heated pan | the plateau has no sky term | `thermal-slate` |
+| a limeburner seat at the quarry | the `burn-lime` recipe on a roster | a quarrying tail |
+| earthenware cones made, not stocked | the cone row's `_materialPath` + a pottery recipe | `pottery-slate` |
+| latitude resolved from a ship's position | `WaterExpanse` + `SpatialZone.climateSite()` | expanse.md |
+| consistent positions on the globe | — | the-world slate § 5 |
+| customs duty at the wharf | the `sell` at the house's counter | markets slate |
+| a berth as a quay feature; a wharf node | `AboardExit.computeDestination` | navigable-water § 7a |
+| dunder | the dark-rum wash recipe's residue | distilling |
+| the three-roller mill, the vacuum pan, bone char, the centrifuge | new rows on `mill`, the profile's stages | § 7.5 above |
+| an eruption; geothermal boiling | the volcano zone | the mountain slate § 6 |
+| juice inverting in the tub (kinetics on a liquid) | a bulk-payload extent, reconciled by the vessel | spoilage.md § Kinetics |
+| the estate's own fuel loop (dried bagasse to the stoke-hole) | the mill yard's drying heap → the train floor | the cover slate § 7 |
+
+### Opened in review — the owner's follow-ons
+
+- ⭐⭐⭐ [cover-slate](../builds/cover-slate.md) — **the immediate follow-on**: there
+  is no arable field crop; sugar's loose cane, harvest on `Plant` and
+  `Growing.ripeSibling()` are stopgaps it replaces.
+- [mountain-slate](../builds/mountain-slate.md) — the horizon feature split out of
+  `Structure` (Waponi Woo's peak is a stopgap `Structure`).
+- [substitution-slate](../builds/substitution-slate.md) — what an ingredient is FOR
+  (`IngredientFamily` retired; the honey refusal lives there now).
+- [the-world-slate § 7](./the-world-slate.md) — the planet radius per
+  planet; the clock universal.
+- The compulsion gate (who may make a body act) — a separate security build;
+  sugar's brain config names words, never commands.
+
+### Findings that are not sugar's
+
+- **The kernel's light table calls ≥ 200 lux `blinding`** (an ordinary
+  bright room), while `analyze light` calls it good working light; blinding
+  withholds detail (worn clothes read "something"). The island's train floor,
+  spill-lit from a tropical yard, reads glare all day.
+- **A new player's 20-zorkmid Arrival Note cannot be spent:** after `bank
+  open` the account is empty and `buy` says "You can't cover…", a refusal that
+  never says why.
+- **A shop counter lists its lines by template key** (`raw-sugar-block (14)`).
+- **No NPC has a bank account** — the smallholders' `sell cane` refuses
+  `no-account`; NPC wages go to arrears.
+- **The idle economy** — a fresh house's float is less than a day's wages;
+  W0 turns the arrears into walk-offs.
+- **Simple syrup cannot be made by hand:** its slots want 0.25 L and `add`
+  pours a fixed 0.06 L.
+- **The mojito is unmakeable at the Lounge by design** (agent-coordination's
+  standing vacancy), so the drive's step 10 asserts the supply under it.
+

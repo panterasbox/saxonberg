@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**371 slates.** 128 greenfield · 105 continuations · 67 waves · 71 tails.
+**375 slates.** 131 greenfield · 105 continuations · 67 waves · 72 tails.
 
-## ⭐ Greenfield — nothing shipped yet (128)
+## ⭐ Greenfield — nothing shipped yet (131)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -76,6 +76,7 @@ respect.
 | [controllers-are-io](./builds/controllers-are-io-slate.md) | the census gate (`lint:controller-mutations`) · the burn-down, controller by controller, of 132 controllers / 408 mutating calls · the outcome-type convention · where an engaged step's DURATION lives. |
 | [cordage](./builds/cordage-slate.md) | `trade-cordage` and the ropewalk at Wharfside · twist three times, alternating · strength derived (diameter², the knot's cost, the splice, chafe, rot, shock load) · rope as a measured length … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
+| [cover](./builds/cover-slate.md) | one kernel `Cover` shape over grass, timber and crops · per-species parameters from rows (ends the hard-coded ryegrass) · the harvest axis (what a cut takes, how it regrows, a ripeness gate) · the arable field crop (`sow`/`harvest` on a field) … |
 | [cover-and-concealment](./builds/cover-and-concealment-slate.md) | the cover protocol answered by an object's mixins · details' light cover facet · the channel split — concealment (perceptual) and protection (delivery) · search techniques per mixin … |
 | [deception-and-detection](./builds/deception-and-detection-slate.md) | the three-party table · NPC suspicion as behavior · the player mark's graded rendering · clues as derived traces read at competence … |
 | [decomposition](./builds/decomposition-slate.md) | ⭐ AUTHORED decay states in model-native terms — per part, by mechanism — that behave, read, repair and continue · authored as a STATE or as a HISTORY the physics derives once at creation · per-material susceptibility per mechanism · the exposure clock kept as the rule (an act starts it, shelter stops it — Law 2 intact) and built only where a consumer needs it … |
@@ -96,6 +97,7 @@ respect.
 | [flooding](./builds/flooding-slate.md) | the whole conversation, opening with the founder's two questions · ⭐ dam failure, designed 2026-10-20 (below) |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
 | [gems-and-precious-metals](./builds/gems-and-precious-metals-slate.md) | gem optics derived from rows (trace-element color, refractive index, dispersion, hardness, cleavage) · the identification ladder and paste · the lapidary and the abrasive ladder · gold, silver, platinum; cupellation; the touchstone … |
+| [gitlab-and-discord](./builds/gitlab-and-discord-slate.md) | the one pipeline (the game's release first, mirrored out) · Discord channel webhooks · merged against live · the deploy-time "what went live" read … |
 | [gitlab-and-packs](./builds/gitlab-and-packs-slate.md) | the three front doors · the names (pack · mod · DLC) … |
 | [giving](./builds/giving-slate.md) | reading patronage off Twitch, YouTube, Patreon (and later Kick) · converting it to dollars **at net** — what reached the commons — with the platform's cut shown · attribution by claim: a held gift attaches when its giver signs in with or links that account · YouTube channel linking and Patreon linking (the two prerequisites) … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
@@ -121,6 +123,7 @@ respect.
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [moulding](./builds/moulding-slate.md) | ✅ five rulings (§ 0) and ✅ the mechanism examined (§ 0a, 2026-10-18) · the mould as an ENVELOPE (conductivity, permeability, absorbency, survival) · a shape that is an authored cast row or an |
+| [mountain](./builds/mountain-slate.md) | the horizon feature split out of `Structure` · the mountain as rising ground (elevation bands on the zone, the biome by altitude) · mountain weather (lapse rate, orographic rain, rain shadow) · the body at height (thin air, cold, altitude sickness) … |
 | [newbie-wilds](./builds/newbie-wilds-slate.md) | the area zone + room map (threshold · crossroads hub · shared hunting woods · the wolfshead's lair … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
@@ -158,7 +161,7 @@ respect.
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
 | [structure](./builds/structure-slate.md) | ⭐ the structure tier (membership-primary, thresholds derived) · fabric · the shell promoted out of `/system/residence` into the kernel · maintenance as the first materials sink … |
 | [studio](./builds/studio-slate.md) | the studio as a location with a screen showing the stream · `!join` from chat to the audience in seconds · the chat command path (`!ask` `!vote` `!submit` `!join`) for viewers who never sign in · the docket (topics proposed and voted, and the backlog as a docket) … |
-| [sugar](./builds/sugar-slate.md) | stage 1, the Terminus SUGAR HOUSE — raw sugar as a stocked line, tempering and skimming, cane juice as an `evaporative` profile, the strike read by the thread test, the cone as a draining mould, claying as a percolation leach, grades within a loaf and by re-boiling, muscovado, molasses to Veshko's rum line, sugar tags on the rows · stage 2, the SUGAR ISLAND — cane on frost-free ground, the edge-runner crush, inversion, the boiling house and the Jamaica train, bagasse dried and burnt, the voyage |
+| [substitution](./builds/substitution-slate.md) | the slot's job (`for:`) · job rows over properties materials already carry · one acceptance predicate for every slot-matching site · refusals whose detail grows with the cook … |
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
 | [unfree-labour](./builds/unfree-labour-slate.md) | the register as a jurisdiction's filed record · what an enslaving claim gives an NPC owner · the enslaved NPC's derived pressure and its four resistances · flight to free soil … |
 | [unobserved-economy](./builds/unobserved-economy-slate.md) | whether the realm's NPC trade runs while unobserved at all · if it does, how it is computed without loading the places it moves between (⭐ against the location graph's record, not live content) · what a player arriving after a gap sees at a counter, a job board, the cash-and-carry and the Gazette · the faucet question the guild slate already raised. |
@@ -349,7 +352,7 @@ are the named remainders.
 | [species-expansion](./tails/species-expansion-slate.md) | the personhood casts (flesh golem · doppelganger · zombie · synth … |
 | [spoiler](./tails/spoiler-slate.md) | the secret tag + reveal-condition content model (Q2) · progress / integrity reveal conditions on percepts · server-side fact-gating in the Scene/percept projection · role-conditioned reveals (Q4) … |
 | [tenancy-design-pack](./tails/tenancy-design-pack.md) | the term-bounded attribution query over room-condition's attributed `(actor, target, extent)` events (the constraint itself is that pack's) · the check-in condition snapshot at `grantedAt` · the deposit as a contract escrow leg · the habitability claim … |
-| [the-world](./tails/the-world-slate.md) | the planet's radius as one setting, from which the chart's degree length and the sea's horizon derive · the hard-coded `9.81`s read the authored gravity · ⚠ consistent positions for places on the globe stays OPEN (§ 5) |
+| [the-world](./tails/the-world-slate.md) | ⭐ **the radius per PLANET, not per universe (§ 7, owner, 2026-10-24)** · the gravity reads the same way · a planet's reading of the universal clock (day, year, its sun) · ⚠ consistent positions for places on the globe stays OPEN (§ 5) |
 | [trade-roster](./tails/trade-roster-slate.md) | the 13 unminted Disciplines (foraging · metallurgy-as-knowledge · electrical-work · carpentry … |
 | [tradition](./tails/tradition-slate.md) | the `Law` catalog (inquiry's) · the Law/Tenet split · `Tradition` as a data Idea carrying tenets + an attention order, and its `TraditionCatalogue` · null laws … |
 | [trait](./tails/trait-slate.md) | the equilibrium / expressed split · the deviation narrator · the self-view showing acts not positions · the valence-scale denominator … |
@@ -358,7 +361,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (71)
+## Tails — small and opportunistic (72)
 
 | slate | left |
 |---|---|
@@ -422,6 +425,7 @@ are the named remainders.
 | [social-inspection](./tails/social-inspection-slate.md) | the `who --group <g>` filter · the `privacy.showSpecies` threshold (Q2) · the `profile` card rendered into the inspection card with a per-viewer subscribable projection (Q6 — no `opens_card` today) · `who` at scale (Q7) … |
 | [staging-leftovers](./tails/staging-leftovers-slate.md) | the shelter and marriage as content (§1.4, §1.5) · the open civics questions (§1.6) · maintenance fees, graded regard, the refusal frontage (§2) · the reusable town patterns: ground denial, recognition as a seat, the founding sequence, the seasonal economy, the wrong-commons co-op, facades, the District razor, the open door (§3) … |
 | [storage](./tails/storage-slate.md) | § Open after — the repack, the stocking horizon, the receipt kind; and every ⛔ below. ⛔ **Deferred:** store-to-store transfer, the ship's hold, any cargo (→ freight, *after every RGO is designed*) · damp and spontaneous combustion · vermin · transferable receipts … |
+| [sugar](./tails/sugar-slate.md) | the deferred seams table · the four follow-ons opened in review (cover/arable · mountain · substitution … |
 | [supply-chain](./tails/supply-chain-slate.md) | the offer layer has no currency (`PricedOffer.prices` is bare minor units, Part 2) · rung 2 — a direct farmer→distiller purchase (bypassing the store) has no authored example (Part 4) · rung 3 — a forward contract on a crop has no authored example (Part 4) · rung 4 — vertical integration (one owner across farm/distillery/bar) has no authored example (Part 4) … |
 | [supply-design-pack](./tails/supply-design-pack.md) | the **Connect** act (`plug`/`unplug`, binding a consumer to a source — rides the fridge pack) · the **power/electricity instance** of the supply layer (a substation/socket object actually composing `SupplyReporting`/`availablePowerW` — `analyze power` reads it duck-typed today but nothing yet answers for household electricity; waits on the power-utility slate) · whether `conjure-water` should answer to any of this (still just a lean: out of scope) |
 | [text-to-speech](./tails/text-to-speech-slate.md) | a ▶ on authored prose only (card prose sections, prose terminal frames) · browser speech first · cached cloud voices later · sentence highlight, one voice at a time, settings |

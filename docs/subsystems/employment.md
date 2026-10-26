@@ -769,7 +769,11 @@ retired.
   (`world/<venue>/__tests__/offstage.test.ts`).
 - **`restocks`** (libations) — the keeper reads the par sheet and buys
   the shortfall; **`consigns`** — a producer's floor hand carries stock
-  to a distributor's counter and consigns it as the business. Both are
+  to a distributor's counter and consigns it as the business. A floor that
+  also holds the house's own INPUTS names what it makes in `carries:`
+  (template paths; absent, every chattel good) — the Sugar House buys raw
+  sugar in to refine, and its hand hauled the 20 kg feedstock blocks out to
+  sell until it did (sugar build). Both are
   kernel, generic, and drive the **literal verbs** through
   `CommandApi.forceCommand` (`wallet use house`, `buy`, `put … on`,
   `pour … into`, `get`, `wash`; `get`, `consign … --ask`) — nothing an NPC
