@@ -585,7 +585,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     await say(boiler, 'get nips');
     boiler.close();
     boiler = await goTo(boilerHandle, FLOOR);
-    await say(boiler, 'get loaf from cone');
+    // ⚠ Asserted: `get` had no `from` until 2026-10-26, and this line was
+    // a parse error nobody read (the estate's boiler found it).
+    expect(await say(boiler, 'get loaf from cone'), 'the loaf did not come out of the cone').toMatch(/pick up/i);
     await act(boiler, 'cut loaf with nips');
     const inv = await say(boiler, 'inventory');
     expect(inv, 'the loaf did not break into pieces').toMatch(/loaf sugar|piece/i);

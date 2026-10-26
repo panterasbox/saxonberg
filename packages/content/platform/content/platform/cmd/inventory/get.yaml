@@ -4,11 +4,17 @@ description: "Pick up objects from your location"
 help: |
   Pick something up off the ground or out of the room and move it
   into your inventory. You can only get things that are here with
-  you — to take something out of a container or off a surface, name
-  it and `get` reaches in.
+  you. To take something out of a container or off a surface, name
+  it and `get` reaches in — or say where it is, `from` or `off`, when
+  more than one thing here answers to the name.
 
   Name several things at once to grab them in one go. You can't get
   what you're already carrying.
+examples:
+  - cmd: get coin
+    note: Pick up a thing here, or reach into an open container for it
+  - cmd: get loaf from cone
+    note: Take it out of one container (or `off` one surface) in particular
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -20,5 +26,18 @@ args:
     greedy: true
     scope: "peers"
     requires: [VisibleMixin, ContainableMixin]
+    validators:
+      - /lib/command/validators/mustBeInLocation
+  # ⭐ WHERE FROM — optional. `peers` already reaches one level into an
+  # open container standing here, so the targets bind without it; naming
+  # the holder narrows them to what is IN it or ON it (`get block from
+  # hogshead`). Without this arg the words `from hogshead` went to the
+  # targets query and MQL refused them as a parse error (sugar, 2026-10-26).
+  - name: source
+    type: object
+    required: false
+    prepositions: [from, off]
+    scope: "peers"
+    requires: [VisibleMixin, ContainerMixin|PlacingMixin]
     validators:
       - /lib/command/validators/mustBeInLocation
