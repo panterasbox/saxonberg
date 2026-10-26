@@ -271,15 +271,18 @@ export const brain = class {
       return f.counterLime ? errand('wallet use house', 'buy quicklime') : null;
     }
     if (!f.skimmed) return `skim ${w.kettle} into pail`;
+    // ⭐ Thick on the fire, the strike is minutes off: she stands over the
+    // pan testing the thread — reading it settles the boil, so the beat
+    // after it strikes sees it struck and ladles it — and lets the fire
+    // fall rather than feeding it (a boiler damps the fire as the strike
+    // comes; stoking first let the strike slip past, probed live).
+    if (brain.watching(f)) return `analyze boil ${w.kettle}`;
     if (!f.fireFuelled) {
       if (!f.fuel) return null;
       return Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`).join('\n');
     }
     if (!f.fireLit) return `light ${w.fire}`;
     if (!f.onFire) return `heat ${w.kettle}`;
-    // Thick on the fire: test the thread — reading the pan settles the boil,
-    // so the beat after it strikes sees it struck and ladles it.
-    if (brain.watching(f)) return `analyze boil ${w.kettle}`;
     return null;
   }
 
@@ -386,11 +389,17 @@ export const brain = class {
       limed,
       skimmed,
       block: here.some((s) => hasTag(s, 'raw-sugar')),
+      // ⭐ With a cistern, a pan is charged only from a FULL batch: a trickle
+      // of juice boils past the strike between two beats (probed live — a
+      // few litres went from juice to burnt toffee inside four game
+      // minutes). Without one, any tub of juice will do.
       juice: here.some(
         (s) =>
+          s !== copper &&
           MixinApi.isBulkable(s) &&
           !s.isBulkEmpty('interior') &&
-          (s.getBulkMaterial('interior')?.hasTag('cane-juice') ?? false),
+          (s.getBulkMaterial('interior')?.hasTag('cane-juice') ?? false) &&
+          (!w.cistern || s.getBulkAmount('interior').rawValue() >= (w.batch ?? DEFAULT_BATCH_L) - 1e-6),
       ),
       lime: here.some((s) => hasTag(s, 'liming')),
       fuel: fuelWord,

@@ -151,6 +151,9 @@ describe('refines — one act per beat', () => {
     expect(brain.next(boiling, w)).toBeNull();
     expect(brain.next({ ...boiling, thick: true }, w)).toBe('analyze boil kettle');
     expect(brain.watching({ ...boiling, thick: true })).toBe(true);
+    // ⭐ And she watches rather than stokes: a thick pan with a low bed is
+    // tested, not fed — the strike slipped past while she stoked (live).
+    expect(brain.next({ ...boiling, thick: true, fireFuelled: false, fuel: 'log' }, w)).toBe('analyze boil kettle');
     expect(brain.watching(boiling)).toBe(false);
   });
 
