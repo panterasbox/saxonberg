@@ -185,11 +185,11 @@ L6 economy · C = CLAUDE.md convention · P = nearest shipped pattern.
   `class: /trade/diving/thing/Hose`). `Lifeline.ts`, `LineEnd.ts`, `line-end.yaml` are deleted.
   `AirPump.ts` tests `instanceof Hose`; `tends.ts` finds `instanceof Rope` (kernel import).
 - **D3 — Rows re-class, no migration.** `lifeline.yaml` and `heaving-line.yaml` → `class:
-  /platform/thing/Rope` (hemp, tarred, 20 m / 15 m, `diameterMm: 14`); the painter moves to
-  `/trade/cordage/thing/painter` (15 m hemp, `splicedEye: true`, coiled) and the put-in counter +
-  `rejection/package.json` point at it [requirements: *"the ropewalk's rope is what they are"*].
-  Row paths `/trade/diving/thing/lifeline` and the heaving line keep their paths (the tender's
-  `props:`, the dive counter and `bank.yaml` are unchanged). DBs are dropped.
+  /platform/thing/Rope` (hemp, tarred, 20 m / 15 m, `diameterMm: 14`), and ⭐ **so does
+  `painter.yaml`, in place** (15 m hemp, `splicedEye: true`, coiled — the owner's call 2026-10-26:
+  re-class it like the other two, no move, no new `rejection` dependency). All three keep their
+  paths (the tender's `props:`, the dive counter, the put-in counter and `bank.yaml` are
+  unchanged). DBs are dropped.
 - **D4 — Length, mass, cut.** `lengthM` + `diameterMm` persistent; mass DERIVED
   (`getMass()` override on `Rope`: `λ = ρ·φ·π(d/2)²` with packing `φ = 0.6`, × `lengthM`, × 1.15
   tarred; `Tangible` wetness still applies). `cut`: `Rope` implements `Cuttable.cutPlan`; the
@@ -302,14 +302,15 @@ L6 economy · C = CLAUDE.md convention · P = nearest shipped pattern.
   (Locale, `extent: 300`, enclosure/roof), `agent/ropekeeper.yaml` (Cast, ropework proficient),
   `idea/outfit.yaml` (Business, position `keeper` `fulfills: [ropework]`, station the walk, `banksAt:
   goodkin`), `thing/counter.yaml` (Stock: hemp-line par 6, hemp-yarn par 6, rope coil par 2 with
-  `buys: true`, painter par 2), `thing/tar-pot.yaml` (chandlery `DipPot`, pitch), the jack placed in
-  `props:`. Title parcel in `terminus/pack.yaml` (industrial, off-grid). **Sold by the meter**:
+  `buys: true`, `/trade/diving/thing/painter` par 2), `thing/tar-pot.yaml` (chandlery `DipPot`, pitch), the jack placed in
+  `props:`. Title parcel in `terminus/pack.yaml` (industrial, off-grid). **Sold by the meter**
+  (the owner, 2026-10-26: *coils are fine*):
   coils of authored length (50 m) priced ×50; **buy-back by length and soundness** through one
   kernel seam — `@hook Good.worthFactor(): number` (default 1; `Rope` = `lengthM / 50 × (1 − chafe)
   × (1 − rot)`), read by `SellController` on the bid [L6; `bidFor` is per row today].
 - **D18 — `trade-cordage` pack** (`/trade/cordage`, title `/compact/trade`): `src/thing/RopeJack.ts`
   (`Tool`, capability `ropelaying`, affords `twist`), `src/idea/cmd/cordage/TwistController.ts`,
-  `src/idea/reading/LayReading.ts`; rows `thing/{jack,strand,rope,painter,hemp-line,hemp-yarn}.yaml`,
+  `src/idea/reading/LayReading.ts`; rows `thing/{jack,strand,rope,hemp-line,hemp-yarn}.yaml`,
   `cmd/cordage/twist.yaml`, `idea/cmd/cordage/TwistController.yaml`, `idea/reading/lay.yaml`.
   Depends on `trade-textiles` (yarn typed), `trade-chandlery` (the pot row's class), server, platform.
 - **D19 — The drive is `packages/wire/tests/cordage.dirty.wire.test.ts`** (buys, cuts, springs the
@@ -332,7 +333,7 @@ L6 economy · C = CLAUDE.md convention · P = nearest shipped pattern.
 | hemp species/plant/seed/sheaf/straw | `trade-farming` rows | one species, the plant row is the variety |
 | `textile/hemp` material | `base-library` (commons, beside linen/jute) | — |
 | `retting-hemp` profile; `TextileStock.adoptFibre` | `trade-textiles` | scutch/spin carry any fiber; flax unchanged |
-| `RopeJack`, `TwistController`, `LayReading`, strand/rope/painter/hemp-line/hemp-yarn rows | `trade-cordage` | a second ropewalk is rows (the jack row + a walk) |
+| `RopeJack`, `TwistController`, `LayReading`, strand/rope/hemp-line/hemp-yarn rows | `trade-cordage` | a second ropewalk is rows (the jack row + a walk) |
 | the lip post | `newbie-wilds` row `delve/thing/lip-post.yaml` (`/platform/thing/Thing`, `fixedInPlace`) in `corridor-2` `props:` | — |
 
 No guard re-narrows a host set: the only `kind` switch (`line|hose`) is gone with D1/D2.
@@ -381,7 +382,7 @@ tug}.yaml` + controllers `platform/idea/cmd/inventory/{Tie,Untie,Tug}Controller.
 `.yaml` controller rows under `platform/idea/cmd/inventory/`); `lib/mixin.ts`, `api/mixin.ts`.
 Diving: delete `Lifeline.ts`, `LineEnd.ts`, `line-end.yaml`, `cmd/diving/{tug,lash}.yaml`,
 `idea/cmd/diving/{Tug,Lash}Controller.ts`; add `src/thing/Hose.ts`; `hose.yaml` class;
-`lifeline.yaml` → Rope (hemp, 20 m, 14 mm, tarred); `AirBag.ts` composes Tieable
+`lifeline.yaml` → Rope (hemp, 20 m, 14 mm, tarred); `painter.yaml` → Rope in place (15 m, spliced eye; the river's lining and `river-b.dirty` must stay green); `AirBag.ts` composes Tieable
 (`tieTo` = old `lashTo`), contributes `platform/cmd/inventory/tie.yaml`; `AirPump.ts`, `tends.ts`,
 tests (`Lifeline.test.ts` → kernel `lib/spatial/__tests__/Line.test.ts` + `trade-diving/src/__tests__/
 Hose.test.ts`). Terminus `heaving-line.yaml` → Rope. Base-library `textile/hemp.yaml`.
@@ -426,17 +427,16 @@ Commit: `build(cordage W2): the rope at a drop climbs both ways, chafes, parts; 
 Files: `packages/content/trade-cordage/{pack.yaml,package.json,tsconfig.json,vitest.config.ts}`
 (copy `trade-chandlery`'s), `src/thing/RopeJack.ts`, `src/idea/cmd/cordage/TwistController.ts`,
 `src/idea/reading/LayReading.ts`, rows under `content/trade/cordage/`: `thing/{jack,strand,rope,
-painter,hemp-line,hemp-yarn}.yaml`, `cmd/cordage/twist.yaml`, `idea/cmd/cordage/TwistController.yaml`,
+hemp-line,hemp-yarn}.yaml`, `cmd/cordage/twist.yaml`, `idea/cmd/cordage/TwistController.yaml`,
 `idea/reading/lay.yaml`; `Rope.ts` credits `ropework` on tie/splice; `TwistController` credits it.
-Rejection put-in counter + `rejection/package.json` → the cordage painter; `trade-diving/content/…/
-painter.yaml` deleted. Register the pack wherever shipped packs are listed (`SAXONBERG_PACKS`
+Register the pack wherever shipped packs are listed (`SAXONBERG_PACKS`
 default / `docs/subsystems/content-packs.md` table — builder greps `trade-chandlery` for every
 registration site).
 Tests: `trade-cordage/src/__tests__/twist.test.ts` — yarn → strand → rope stages; `--yarns` →
 thicker → stronger; the walk cap refusal names the length; `--mark` laid, `analyze rope` reports it,
 `look` does not until cut; hemp line twists like bought line.
 Acceptance: pack suite + `lint:family` (`verb-collisions` clean: `twist` is new, `lay` untouched).
-Commit: `build(cordage W3): trade-cordage — twist at the walk, the lay read, the painter is rope`.
+Commit: `build(cordage W3): trade-cordage — twist at the walk, the lay read, the walk lays rope`.
 
 ### W4 — hemp on the farm, through the pit and the board (D14)
 Files: `trade-farming/content/stuff/idea/species/…/rosales/cannabaceae/cannabis/sativa.yaml`,
@@ -466,7 +466,7 @@ Commit: `build(cordage W5): the Wharfside ropewalk — the walk, its keeper, its
 ### W6 — the drive, the docs
 Files: `packages/wire/tests/cordage.dirty.wire.test.ts`; `docs/subsystems/cordage.md` (new: rope,
 knots, the rope at a drop, the belay, rot/tar, the ropewalk, the numbers and dials); updates to
-`underwater.md` (the lifeline is a rope; `tug`/`lash` moved), `river.md` (painter = cordage's rope),
+`underwater.md` (the lifeline is a rope; `tug`/`lash` moved), `river.md` (the painter is a rope),
 `textiles.md` (hemp, `adoptFibre`), `assembly.md` (knots as joints, the two failure words),
 `locomotion.md` (`afterEnabledTraverse`, the belay), `hazard.md` (the rope's fall reuses `drop`),
 `energy.md`/`crafting.md` (`splice`/`cut` now kernel protocols), `content-packs.md` (pack table row),
@@ -509,7 +509,7 @@ Commit: `build(cordage W6): the drive and the docs`.
 | 6 climbable both ways; chafes; frays before parting; parts/spills drop | W2 |
 | 7 belayed caught, unbelayed falls | W2 |
 | 8 wet untarred weakens; tarred does not | W1 (drive W6) |
-| 9 lifeline / heaving line / painter are rope; shipped acts work; hose stays a hose | W0, W3 |
+| 9 lifeline / heaving line / painter are rope; shipped acts work; hose stays a hose | W0 |
 | 10 rogue's yarn hidden/shown/carried | W1, W3 |
 | 11 competence moves; practised knots hold more, every time | W1, W3 |
 
@@ -546,7 +546,6 @@ cordage` (and `underwater`, `river-b` after W0).
   requirements worded otherwise; the reason is the import rule (a kernel class cannot name a pack
   view) and `lint:openings`. If the owner wants the belay in the pack, the rope would have to be
   afforded by a cordage fixture, which contradicts "your own body".
-- **Painter ownership** (D3): the row moves to cordage; `rejection` gains a dependency.
 - Anchors never fail; drop depth vs rope length is a dial, not geometry; the tar pot's pitch is
   assumed liquid; `fibre` tag spelling stays.
 

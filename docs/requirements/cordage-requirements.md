@@ -99,8 +99,10 @@ ropewalk.
 
 ## Placement
 
-- **`trade-cordage`**, at `/trade/cordage`: the ropewalk, rope, knots, the
-  twisting act and the belay.
+- **`trade-cordage`**, at `/trade/cordage`: the ropewalk and the twisting
+  act. ⭐ Rope itself, the knots, the belay and the ropework Discipline are the
+  kernel's (planning, 2026-10-26, agreed): rope is shared substrate, so what it
+  affords (`tie`, the belay "round your own body") cannot live in one pack.
 - **Hemp** is farming's (`trade-farming`), a crop beside flax.
 - **Rope as a line with two ends, and a rope at an exit,** are substrate that
   diving, the river and any later trade compose, so they belong where the
