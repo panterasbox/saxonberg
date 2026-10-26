@@ -675,11 +675,18 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
       heard += await sailor.listen(7_000).catch(() => '');
       if (/You raise Waponi Woo/.test(heard)) break;
       const horizon = await run(sailor, 'look horizon').then((r) => r.said());
-      await sailor.drainProse();
+      // ⚠ KEEP what the read says, never drain it: reading the horizon is
+      // what settles the voyage, so the arrival ("You raise Waponi Woo")
+      // fires DURING this read — a drain here threw it away (drive 18).
+      heard += ' ' + horizon + ' ' + (await sailor.listen(2_000).catch(() => ''));
+      if (/You raise Waponi Woo/.test(heard)) break;
       if (/peak of Waponi Woo/i.test(horizon)) {
-        expect(await say(sailor, 'measure bearing peak')).toMatch(/bears \d+/);
-        await layCourse(sailor, 'waponi woo');
+        const bearing = await say(sailor, 'measure bearing peak');
+        expect(bearing).toMatch(/bears \d+/);
         fixed = true;
+        heard += ' ' + bearing;
+        if (/You raise Waponi Woo/.test(heard)) break;
+        await layCourse(sailor, 'waponi woo');
       }
     }
     expect(fixed, 'the peak never came up over the horizon').toBe(true);
