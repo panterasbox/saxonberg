@@ -11,7 +11,8 @@
 > ([belief.md](../../subsystems/belief.md)); shell variables
 > ([shell-environment.md](../../subsystems/shell-environment.md)).
 > **Left:** `$name` bound to an expression · an identity literal · `[group.…]` and `[contacts.…]`
-> filters · verb default scopes for people · ⭐ verbs declare a body or a person target · the person
+> filters · ⭐ group names — committees and studios named by the extent they hold (public or private
+> by who manages it), official groups by bare name, social groups within their creator · verb default scopes for people · ⭐ verbs declare a body or a person target · the person
 > handle and records-only reach · per-record permissions
 > **Size:** a build
 
@@ -64,6 +65,67 @@ peers:[group.party]                  my party members in this room
   declare a default scope (`lift` defaults to things with the `load` capability), so **`watch`'s
   default is `online:[group.streamers]`**, and `watch bobalu` finds the streaming Bobalu with nothing
   typed.
+
+## 2a. ⭐⭐⭐ What a group's name is **[DECIDED for now — the owner]**
+
+The owner: *"do groups have keywords like that? Are they unique? I suppose we have to have like
+'official' groups if 'wizards' and 'archwizards' work the way they do."*
+
+### What exists ([grouping.md](../../subsystems/grouping.md), [parcel.md](../../subsystems/parcel.md))
+
+- **Managed groups share one global namespace** — a `Group` document's name is unique (the
+  database enforces it), and anyone may `group make <name>`, first come.
+- **Official groups already exist as an owner kind** — `system` (seeded by a content pack, owned by
+  nobody: `wizards`, `archwizards`, `streamers`, `lounge`), `office` (owned by a government seat;
+  handing over the seat hands over the group), and `player`.
+- **Contacts lists** are labels unique per owner; **parties** are referenced by path.
+
+⚠ Global unique names for player-made groups is the crowded namespace the owner rejected for
+handles — **squatting** (the first to make `book-club` owns the name forever) and
+**impersonation** (a player-made `moderators` that `[group.moderators]` would resolve to).
+
+### Most groups are committees and studios — named by what they hold
+
+The owner: *"most groups will probably be parcel committees, private and public, and studios — a
+team of players working on one content extent."*
+
+- **A parcel committee** is the group holding a parcel's title — a parcel's owner may be a group, a
+  player or an organization, and *title is what makes a body a committee*
+  ([document-store.md](../../subsystems/document-store.md)); the
+  [committee slate](./committee-slate.md) adds seats and how it decides.
+- **A studio** is a group holding title over a **`/studio/<group>`** workspace — the multiseat
+  `/home`. When the team works on a content extent, that extent's title goes to the same group, so
+  ⭐ **the studio is that extent's committee**: one group, two titles.
+- ⭐ **So they are named by the extent they hold** — parcel paths are already unique and are never
+  raced at runtime (an extent is claimed by subdividing or transferring title, through governance,
+  never by typing a name first): *the Rejection committee*, *the Delight studio*.
+
+### ⭐ Public and private is who manages the parcel
+
+The owner: *"private and public have to do with the parcel management — is it managed by the state
+or a private committee."*
+
+- **Public** — the state manages it: the committee is owned by a government seat (`office`), or is a
+  government organization (the executive already holds the platform's own branch this way).
+- **Private** — a private committee: a player-made group, or a company (a corpo organization).
+
+Nothing new is needed — the owner kind and the organization kind already say which.
+
+### The three cases
+
+| group | named by | example |
+|---|---|---|
+| ⭐ **a committee or studio** — most groups | the extent it holds title over; public or private by who manages it | *the Rejection committee* (public — the Rejection council's seat); *the Delight studio* (private) |
+| **official** — system or office, holding no parcel | a bare name, claimed at pack install (a conflict surfaces then, between authors) or by governance | `streamers`, `wizards` |
+| **social** — holding no parcel (a book club), the minority | within its creator, like a contacts list | *Bobalu's book-club* |
+
+- **Lookup checks your own memberships first**, then the official groups — `[group.book-club]` usually
+  needs nothing more; two of your groups sharing a name prompts; a non-member names it fully.
+- **The display always says which**, so a player-made group never reads as official. The owner: *"I
+  don't really love making players have to keep track of what kind of group is which, but I suppose
+  we're already doing that with owner kind"* — naming by extent is what keeps most of that out of the
+  player's head.
+- **Changes `group make`** — a social group no longer reserves its name for everyone.
 
 ## 3. ⭐⭐⭐ A body, or a person **[DECIDED — the owner]**
 
@@ -137,3 +199,5 @@ recorded and appealed.
 3. **What each record exposes** — the public face of mailbox, ledger, chronicle, streaming profile.
 4. **Which seats hold jurisdiction over which records.**
 5. **The name `online`** — kept for now.
+6. **Existing global group names** — what happens to player groups that already hold one.
+7. **The syntax** for naming a social group fully, and an extent's committee.
