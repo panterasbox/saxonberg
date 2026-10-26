@@ -686,7 +686,15 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
         fixed = true;
         heard += ' ' + bearing;
         if (/You raise Waponi Woo/.test(heard)) break;
-        await layCourse(sailor, 'waponi woo');
+        // ⚠ An arrival inside a JUMPED stretch of time is not narrated (the
+        // river build's voyage, drive 20: she was there and nothing said
+        // so) — the course's own refusal is the state, and it is enough.
+        const laid = await say(sailor, 'course waponi woo');
+        if (/at Waponi Woo already/i.test(laid)) {
+          heard += ' You raise Waponi Woo';
+          break;
+        }
+        expect(laid, `course waponi woo: ${laid}`).toMatch(/lay a course/i);
       }
     }
     expect(fixed, 'the peak never came up over the horizon').toBe(true);
