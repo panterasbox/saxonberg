@@ -273,10 +273,17 @@ export const brain = class {
     if (!f.skimmed) return `skim ${w.kettle} into pail`;
     // ⭐ Thick on the fire, the strike is minutes off: she stands over the
     // pan testing the thread — reading it settles the boil, so the beat
-    // after it strikes sees it struck and ladles it — and lets the fire
-    // fall rather than feeding it (a boiler damps the fire as the strike
-    // comes; stoking first let the strike slip past, probed live).
-    if (brain.watching(f)) return `analyze boil ${w.kettle}`;
+    // after it strikes sees it struck and ladles it. Stoking INSTEAD of
+    // watching let the strike slip past at `wanted` (probed live).
+    if (brain.watching(f)) {
+      // …but she keeps the fire up while she watches: a starved bed crawls,
+      // and the strike never came (the live walk: six game hours over a
+      // thick pan on a dying fire). Stoke and test in the one beat.
+      const stoke = !f.fireFuelled && f.fuel
+        ? Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`)
+        : [];
+      return [...stoke, `analyze boil ${w.kettle}`].join('\n');
+    }
     if (!f.fireFuelled) {
       if (!f.fuel) return null;
       return Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`).join('\n');
