@@ -237,13 +237,18 @@ const RAINING = (w: string): boolean =>
 let digger: Session; // the brickmaker
 
 beforeAll(async () => {
+  // ⭐ The brickmaker's year starts in early winter (day 285 of 360): 5b
+  // needs a frost on a wet brick, and the heap must lie out through a
+  // winter. Reached here, before anyone is made, so the clock moves a day a
+  // jump (run 34: 5b moving there in 4 h lived steps outran its timeout).
+  await toSeasonDay(285, 330);
   await toHour(9, 15);
   digger = await at(uniqueHandle('brickmaker'), PIT);
   // ⭐ Dressed for the year it will stand outside in (run 26: the brickmaker
   // and the founder died of one winter night at the brickfield).
   await dress(digger);
   await dressFounder();
-}, 600_000);
+}, 3_600_000);
 
 afterAll(() => {
   for (const s of open) s?.close();
@@ -343,22 +348,6 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     expect(await examine(digger, 'here:i:brick'), 'the yard brick after rain').toMatch(/slumped/i);
   }, 3_600_000);
 
-  it('⭐ through the winter: the heap outside mellows, the heap in the shed stays raw', async () => {
-    let looks = '';
-    for (let month = 0; month < 12; month++) {
-      await advance('30 days');
-      looks = await examine(digger, 'here:i:clay');
-      if (/frost-broken|crumbling/i.test(looks)) break;
-    }
-    expect(looks, 'the outdoor heap after a winter').toMatch(/frost-broken|crumbling/i);
-    expect(looks).not.toMatch(/unweathered/i);
-    await say(digger, 'east');
-    await say(digger, 'east');
-    expect(await examine(digger, 'here:i:clay'), 'the heap kept in the shed').toMatch(/unweathered|fresh-dug/i);
-    await say(digger, 'west');
-    await say(digger, 'west');
-  }, 7_200_000);
-
   it('5b. ⭐ the brick left wet under the hack cover across the frost burst', async () => {
     // ⚠ A brick made in SPRING is dry long before winter (about two weeks
     // under the cover), and a dry brick takes a frost — so the drive makes
@@ -418,6 +407,22 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // loop: run 24's kept jumping the clock through 3 and 4, and the
     // brickmaker — sodden from the pit — died of hypothermia mid-moulding.
   }, 3_600_000);
+
+  it('⭐ through the winter: the heap outside mellows, the heap in the shed stays raw', async () => {
+    let looks = '';
+    for (let month = 0; month < 12; month++) {
+      await advance('30 days');
+      looks = await examine(digger, 'here:i:clay');
+      if (/frost-broken|crumbling/i.test(looks)) break;
+    }
+    expect(looks, 'the outdoor heap after a winter').toMatch(/frost-broken|crumbling/i);
+    expect(looks).not.toMatch(/unweathered/i);
+    await say(digger, 'east');
+    await say(digger, 'east');
+    expect(await examine(digger, 'here:i:clay'), 'the heap kept in the shed').toMatch(/unweathered|fresh-dug/i);
+    await say(digger, 'west');
+    await say(digger, 'west');
+  }, 7_200_000);
 });
 
 suite('⭐ 3 — knead it', () => {

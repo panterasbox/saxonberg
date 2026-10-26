@@ -343,8 +343,13 @@ export async function advanceLiving(
   let after = 0;
   for (let left = total; left > 0; ) {
     // ≤ 4 h: a body's heat regulation treats a longer gap as absence and
-    // sheds nothing over it, while a condition it carried runs on.
-    const step = Math.min(left, 4 * 3600);
+    // sheds nothing over it, while a condition it carried runs on. With no
+    // drive body open (a season reached in setup, before anyone is made),
+    // a day a jump: only the founder is fed, and the world settles a day
+    // as cheaply as four hours (ceramics run 34 — 4 h steps crossed two
+    // game days a minute, and 5b's move to winter outran its timeout).
+    const anyoneLiving = living.some((s) => s?.isOpen());
+    const step = Math.min(left, (anyoneLiving ? 4 : 24) * 3600);
     await feed();
     const jump = await advanceWorldClock(`${step} seconds`);
     before ??= jump.before;
