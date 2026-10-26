@@ -213,6 +213,10 @@ export const brain = class {
     // agent early, so she checks the thread every few seconds rather than
     // every beat, and ladles the moment it strikes.
     if (brain.watching(floor)) return new Urgency('critical', `stands over the ${w.kettle}, testing the thread`);
+    // …and STRUCK on the fire it is critical too: strike to caramel is
+    // minutes, and a `wanted` beat (four game minutes) let every struck pan
+    // burn before it was ladled (drive 21).
+    if (floor.liquor === 'struck' && floor.onFire) return new Urgency('critical', `strikes the ${w.kettle}`);
     return new Urgency('wanted', `turns to the ${w.kettle}`);
   }
 
@@ -282,7 +286,14 @@ export const brain = class {
       const stoke = !f.fireFuelled && f.fuel
         ? Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`)
         : [];
-      return [...stoke, `analyze boil ${w.kettle}`].join('\n');
+      // ⭐ And she readies the cooler BEFORE the strike: an empty mould on
+      // its pot, so at the strike there is only the ladling left (drive 21:
+      // a hogshead set on its pot AFTER the strike cost a beat the strike
+      // did not have).
+      const ready = !f.coneReady && f.coneAndPot
+        ? [`put ${(f.refs ?? {}).mould ?? w.mould} on ${(f.refs ?? {}).pot ?? w.pot}`]
+        : [];
+      return [...ready, ...stoke, `analyze boil ${w.kettle}`].join('\n');
     }
     if (!f.fireFuelled) {
       if (!f.fuel) return null;
@@ -432,6 +443,7 @@ export const brain = class {
     if (!MixinApi.isCommandGiver(host)) return;
     const w = brain.words(ctx.config);
     const floor = brain.read(host, w);
+    if (floor === null) return;
     const verbs = brain.next(floor, w);
     if (verbs === null) return;
     // An errand is a few verbs in a row (out, the act, back) — one beat's.

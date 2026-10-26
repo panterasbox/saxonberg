@@ -147,7 +147,9 @@ describe('refines — one act per beat', () => {
 
   it('⭐ a pan thick on the fire is WATCHED — the thread tested, at critical, until it strikes', () => {
     const w = brain.words({ kettle: 'kettle', fire: 'train', source: 'juice', finish: 'block', ladle: true });
-    const boiling = { ...base, block: false, liquor: 'liquor' as const, limed: 1, skimmed: true, fireFuelled: true, fireLit: true, onFire: true };
+    // A hogshead already readied on its pot (`coneReady`), so this is only
+    // the watch and the fire.
+    const boiling = { ...base, block: false, liquor: 'liquor' as const, limed: 1, skimmed: true, fireFuelled: true, fireLit: true, onFire: true, coneReady: true };
     expect(brain.next(boiling, w)).toBeNull();
     expect(brain.next({ ...boiling, thick: true }, w)).toBe('analyze boil kettle');
     expect(brain.watching({ ...boiling, thick: true })).toBe(true);
@@ -158,6 +160,17 @@ describe('refines — one act per beat', () => {
       'stoke log into train\nstoke log into train\nanalyze boil kettle',
     );
     expect(brain.watching(boiling)).toBe(false);
+  });
+
+  it('⭐ thick on the fire she readies a hogshead on its pot, so the strike is only ladled', () => {
+    const w = brain.words({ kettle: 'kettle', fire: 'train', mould: 'hogshead', source: 'juice', finish: 'block', ladle: true });
+    const thick = {
+      ...base, block: false, liquor: 'liquor' as const, limed: 1, skimmed: true,
+      fireFuelled: true, fireLit: true, onFire: true, thick: true,
+      coneReady: false, coneAndPot: true, refs: { mould: '#h1', pot: '#p1' },
+    };
+    expect(brain.next(thick, w)).toBe('put #h1 on #p1\nanalyze boil kettle');
+    expect(brain.next({ ...thick, coneReady: true, refs: { ready: '#h1' } }, w)).toBe('analyze boil kettle');
   });
 
   it('out of lime, it buys the import at its own counter', () => {
