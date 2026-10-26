@@ -312,8 +312,14 @@ see; "not refused" is never success.
    will not grain — **blackstrap**.
 9. **Nip and pound** the white head into loose sugar; it reads as sugar of
    its grade.
-10. At the Lounge, a **mojito** is made with it. (The honey refusal moved
-    to the [substitution slate](../slates/builds/substitution-slate.md).)
+10. The house's sugar **reaches the bar's supplier**: the Sugar House hand
+    consigns the sack at the cash-and-carry the Lounge buys its sugar from
+    (before this build the pantry conjured it). ⚠ Was *"at the Lounge, a
+    mojito is made with it"*: the agent-coordination build made the mojito
+    deliberately unmakeable there (a standing vacancy for a skilled
+    mixologist), so the checkpoint is the supply under it. (The honey
+    refusal moved to the
+    [substitution slate](../slates/builds/substitution-slate.md).)
 11. Molasses into a wash; the still makes **rum**; at **Veshko's yard** the
     distiller makes the rum line from molasses — the yard no longer conjures it.
 12. At the maple sugarbush, sap boiled past syrup to the strike gives **maple
