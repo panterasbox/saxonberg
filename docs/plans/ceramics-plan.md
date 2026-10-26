@@ -3116,3 +3116,48 @@ started):
   when the heap reads frost-broken, which can already be spring. 5b goes
   on to early winter (`toSeasonDay`); step 3 returns to late spring.
 - **The harness login** retries on a header timeout (d7cdaac41).
+
+**The live browser walk (2026-10-26)** — the client on Vite against a fresh
+test-mode world, as one player (`walker-potter`): dig, temper, mould,
+hack, the clamp at night, the wheel, ring, name. It found eight things
+the wire drives could not see, because they read prose:
+- **`look clay` looked at the PIT** (b47f70382, af9cf8652). Two causes,
+  both fixed. Every word in the room's name tied with the lumps on its
+  floor. And `look`'s `['$focus', 'reachable']` stopped at the default
+  focus `here`, which is the room and its features WITHOUT its contents,
+  so the lumps were never compared. A `here` try is now dropped when
+  `reachable` follows it, and an exact keyword or name (70+) cuts a mere
+  name word.
+- **"The day is done. something stand turned out on the pallet"**: a
+  moulding day ends after dark, and the maker's own line used the
+  perceptual name. Named as the maker knows it now (table and wheel).
+- **"Somebody starts stripping the face"** in full daylight: the
+  `Workable` plans' onlooker lines were hard strings (quarrying's face,
+  the hive, the cheese wheel). They name the worker now.
+- **The clamp's smoke carried nowhere** (edf2f3fcd, c2240c086). Nothing
+  emitted it, although the clamp's own docstring said it did. A lit clamp
+  is a smell source now ("You smell coal smoke — from a brick clamp" at
+  the hacks), and `smell <a smell source>` answers with the odor instead
+  of reciting its look.
+- **`ring` echoed to its ringer** ("You tap a mug" and "a human taps a
+  mug"): `Scene.toAudible` did not skip the actor as `peers` does. `call`
+  had it too.
+- ✅ Confirmed live: the glow by night ("You can see a dull red glow to the
+  east"), my bricks left alone overnight by the gang, the novice's
+  beginner's-wall mug, `name`, the temper pit's card listing its lump.
+- **Findings, not fixed here:**
+  - What another person HOLDS reads as "something" ("a moulder picks up
+    something"). `canSee` reads a held thing by the light inside its
+    holder. Fixing it means deciding what others' inventories show, which
+    is a perception-policy question.
+  - `smell`/`listen` in a place with no channel-tagged prose recite the
+    room's VISUAL description: untagged prose passes the sense filter.
+  - The potter's shop reads "warm from the kiln", but its air is the
+    night's. Green ware froze on its boards in early spring, the same
+    thing drive C hit in run 31. The shop needs a heat of its own, or the
+    prose is wrong.
+  - `focus clear` sets a focus literally named "clear".
+  - `analyze light` and `look` disagree at night ("barely enough to move
+    by" against "pitch dark").
+  - NPCs moved by the roster tick "vanish" and "appear out of nowhere"
+    across a clock jump.
