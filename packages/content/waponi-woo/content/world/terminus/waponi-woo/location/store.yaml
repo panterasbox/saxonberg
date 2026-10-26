@@ -3,7 +3,7 @@
 class: /platform/location/Locale
 data:
   shortDescription: "estate store"
-  keywords: [store, "estate store", counter, office]
+  keywords: [store, "estate store", office]
   register: definite
   _biomePath: /stuff/idea/biome/indoor/baseline
   enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.4 }
