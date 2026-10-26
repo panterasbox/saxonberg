@@ -593,36 +593,6 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     expect(await say(boiler, 'inventory')).toMatch(/sack of sugar|sugar/i);
   }, 900_000);
 
-  it('10. ⭐ the house\'s sugar reaches the bar\'s supplier: the hand consigns the sack at the cash-and-carry', async () => {
-    // ⚠ The requirements' step 10 read "at the Lounge, a mojito is made
-    // with it". The agent-coordination build made the mojito DELIBERATELY
-    // unmakeable at the Lounge (no barkeep on the rail is skilled enough —
-    // a standing vacancy its own drive asserts), so the checkpoint is the
-    // product point under it: the Lounge buys its sugar from the
-    // distributor (`business.yaml`'s sugar line), and the distributor's
-    // sacks are the Sugar House's, carried there by its hand. Before this
-    // build the pantry conjured it.
-    await toWorkMorning(0);
-    boiler.close();
-    boiler = await goTo(boilerHandle, STORE);
-    await act(boiler, 'put sack in counter');
-    // The founder watches the counter — an observer, not a party to it.
-    const shop = await Session.open('founder', {
-      startLocation: '/world/terminus/counting-houses/cash-and-carry',
-      wizard: true,
-    });
-    let shelved = '';
-    try {
-      for (let minute = 0; minute < 60 && !/sack of sugar/i.test(shelved); minute++) {
-        await new Promise((r) => setTimeout(r, 60_000));
-        shelved = await say(shop, 'look counter');
-      }
-    } finally {
-      shop.close();
-    }
-    expect(shelved, 'the Sugar House hand never brought its sugar to the cash-and-carry').toMatch(/sack of sugar/i);
-  }, 4_500_000);
-
   it('8. ⭐ the molasses boiled again grains darker; pushed on, it will not grain — blackstrap', async () => {
     await say(boiler, 'pour pot into copper');
     await say(boiler, 'heat copper');
@@ -869,5 +839,43 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     const paid = await say(sailor, `job complete ${gig}`);
     expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
   }, 18_000_000);
+
+  it('10. ⭐ the house\'s sugar reaches the bar\'s supplier: the hand consigns the sack at the cash-and-carry', async () => {
+    // ⚠ The requirements' step 10 read "at the Lounge, a mojito is made
+    // with it". The agent-coordination build made the mojito DELIBERATELY
+    // unmakeable at the Lounge (no barkeep on the rail is skilled enough —
+    // a standing vacancy its own drive asserts), so the checkpoint is the
+    // product point under it: the Lounge buys its sugar from the
+    // distributor (`business.yaml`'s sugar line), and the distributor's
+    // sacks are the Sugar House's, carried there by its hand. Before this
+    // build the pantry conjured it.
+    //
+    // ⚠ LAST in the drive: it takes a working morning and a whole shift,
+    // and run in its numbered place it shifted the clock under every step
+    // after it (the voyage arrived at an hour the island could not be
+    // seen; the estate's cutters had the ripe cane) and left the boiler in
+    // the store (drive 15).
+    await toWorkMorning(0);
+    boiler.close();
+    boiler = await goTo(boilerHandle, STORE);
+    await act(boiler, 'put sack in counter');
+    // The founder watches the counter — an observer, not a party to it.
+    const shop = await Session.open('founder', {
+      startLocation: '/world/terminus/counting-houses/cash-and-carry',
+      wizard: true,
+    });
+    let shelved = '';
+    try {
+      // A counter lists its goods by line key (`sugar-sack`), the live walk
+      // found — so either wording is the sack.
+      for (let minute = 0; minute < 60 && !/sugar[- ]sack|sack of sugar/i.test(shelved); minute++) {
+        await new Promise((r) => setTimeout(r, 60_000));
+        shelved = await say(shop, 'look counter');
+      }
+    } finally {
+      shop.close();
+    }
+    expect(shelved, 'the Sugar House hand never brought its sugar to the cash-and-carry').toMatch(/sugar[- ]sack|sack of sugar/i);
+  }, 4_500_000);
 });
 
