@@ -1,0 +1,17 @@
+# A dinghy (the river build, D19-D20): a small craft, a thing you sit in. ⭐ A
+# KIND row of the transport pack, never a venue's, so its zone is null for
+# life and it can go into any water (D38). Comes with what drives it.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: dinghy
+  keywords: [dinghy, boat, tender]
+  register: indefinite
+  longDescription: |
+    A clinker-built tender twelve feet long, with two oars stowed along the thwarts.
+  eyeHeightM: 1
+  heightM: 1.5
+  mass: 120
+  _materialPath: /stuff/idea/material/wood/oak
+  hull: { form: round, draftM: 0.25, beamM: 1.3, lengthM: 3.7, freeboardM: 0.4, capacityKg: 400 }
+  props:
+    - { template: /system/transport/thing/propulsion/oar, count: 2 }

@@ -40,7 +40,7 @@ import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import { ESTATE_INVENTORY, ESTATE_STORAGE } from "../../persistence/PersistenceSlice";
+import { ESTATE_INVENTORY, ESTATE_STORAGE, ESTATE_LOOSE } from "../../persistence/PersistenceSlice";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../../spatial/Container";
 import type { FieldMeta } from "../../mixin";
@@ -245,6 +245,25 @@ describe("owner-based persistence — the estate slice", () => {
     // "My chair is in my living room while I am at work."
     expect((restored as unknown as Container).getContents().length).toBe(0);
     expect(restored.getEstateEntry(id)?.place).toBe(ROOM_ID);
+  });
+
+  it("⭐ place=loose mints NOTHING — a good left in transient space is not in your hands (river D33)", async () => {
+    const alice = makeOwner();
+    const torch = makeTorch();
+    await torch.stampChattel(alice);
+    await torch.setChattelPlace(ESTATE_LOOSE);
+    const id = torch.getChattelId();
+    await PersistableApi.capture(alice);
+
+    StuffApi.clearAll();
+    await boot();
+    const restored = makeOwner();
+    await PersistableApi.materialize(restored);
+
+    // Before the word, a good dropped in the river stayed `inventory` and
+    // the owner's next restore cloned a second copy into their hands.
+    expect((restored as unknown as Container).getContents().length).toBe(0);
+    expect(restored.getEstateEntry(id)?.place).toBe(ESTATE_LOOSE);
   });
 
   it("an entry whose good is not live is carried forward verbatim", async () => {

@@ -1,0 +1,11 @@
+# The Ostrander's capstan (river D28) — walk it round to haul her off the
+# ground to a kedge her boat has taken out. `pull capstan`.
+class: /platform/thing/Capstan
+data:
+  shortDescription: capstan
+  keywords: [capstan, drum, bars]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    An iron drum on a spindle bolted through the foredeck, with sockets round its head for the bars that are racked beside it.
+  _materialPath: /stuff/idea/material/element/iron

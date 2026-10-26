@@ -1,0 +1,42 @@
+# The landing below the falls (the river build, D36) — ⭐ the head of
+# navigation: as far up the Kestrel as a boat comes. Freight that wants to
+# go further goes by the road from here, and that is why there is anything
+# here at all.
+class: /platform/location/Shore
+data:
+  shortDescription: landing below the falls
+  keywords: [landing, falls, quay]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A timber landing staged out from the left bank where the water comes out of the falls' pool and settles into a river again. Spray drifts over everything. A cart track comes down the valley side to it, because this is as far as the river carries anything up; above here it is the road or nothing.
+  coords: { x: 0, y: 1, z: 0 }
+  waters:
+    river: "kestrel:falls+0.4"
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "falls+0.3,left", span: 0.2, name: landing }
+  details:
+    river:
+      keywords: [river, kestrel, water, pool, spray]
+      description: |
+        The falls' pool churns white under the drop and loosens into a broad brown river by the time it reaches the landing.
+    falls:
+      keywords: [falls, drop, spray]
+      description: |
+        Twenty-odd meters of water coming down in a sheet and a roar. Nothing goes up it.
+  exits:
+    north:
+      destination: /world/falls-landing/head
+      media: [ground]
+      edgeMinutes: 10
+    road:
+      destination: /world/terminus/valley-road/the-shoulder
+      media: [ground]
+      edgeMinutes: 90
+    # ⭐ The way aboard the steamer, when she lies here (the river build).
+    aboard:
+      kind: /platform/idea/exits/aboard
+      destination: /world/terminus/ostrander/deck
+      edgeMinutes: 1
+      # The way back is her deck's `ashore`, worked out by where she lies;
+      # the deck's row names only her home berth, the city quay.
+      oneWay: true

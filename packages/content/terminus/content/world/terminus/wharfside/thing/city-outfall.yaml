@@ -21,6 +21,9 @@ data:
   conduitKey: terminus-outfall
   direction: disposal
   reachRef: kestrel:confluence
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "kestrel:confluence+0.15,left"
   extent: /world/terminus
   capacityM3S: 0.9
   dischargeLoadPerSecond: 0.6

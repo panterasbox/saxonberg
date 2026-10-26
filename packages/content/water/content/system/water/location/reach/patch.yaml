@@ -1,0 +1,12 @@
+# The kind zone of a reach patch (the river build, D38) — the water within
+# hail of somebody on a river. It stands EMPTY: every patch is minted with
+# a zone of its own from this row (its identity under this path), whose
+# geography follows the patch along the river. This row is what the path
+# resolver answers for the directory, and what each patch's zone walks to
+# for everything that is not position-dependent.
+class: /system/water/location/ReachZone
+data:
+  name: the river
+  # ⭐ The room IS the water within hail (the zone answers its patch's
+  # hail range); this is the fallback when no patch is asking.
+  cellSize: 100

@@ -1,0 +1,19 @@
+# A sailing dinghy (the river build, D20): a small boat that sails — a
+# spritsail and a tiller, and a pair of oars for when the wind fails. ⭐ A
+# KIND row of the transport pack (D38), propped where she is drawn up.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: sailing dinghy
+  keywords: [dinghy, boat, sailboat, "sailing dinghy"]
+  register: indefinite
+  longDescription: |
+    A clinker-built dinghy with a short mast stepped forward, a tanned sail furled round it and a tiller shipped on the rudder.
+  eyeHeightM: 1
+  heightM: 4
+  mass: 120
+  _materialPath: /stuff/idea/material/wood/oak
+  hull: { form: keeled, draftM: 0.3, beamM: 1.5, lengthM: 4.5, freeboardM: 0.4, capacityKg: 400 }
+  props:
+    - /system/transport/thing/propulsion/sail
+    - /system/transport/thing/tiller
+    - { template: /system/transport/thing/propulsion/oar, count: 2 }

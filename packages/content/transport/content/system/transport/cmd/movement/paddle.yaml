@@ -1,0 +1,39 @@
+# paddle — propel the small boat you are sitting in by your own effort
+# (the river build, D21). ⭐ ONE verb for one act: paddling, rowing and
+# poling are the same act — moving a small craft with your arms — and the
+# part the boat carries (paddles, oars, a pole) decides the physics and the
+# words. `row` and `pole` are not verbs.
+#
+# Afforded by the boat you sit in (`Boat.commandContributions.inventory`).
+verbs: [paddle]
+controller: /system/transport/idea/cmd/movement/PaddleController
+description: "Paddle, row or pole the boat you are sitting in"
+help: |
+  Sitting in a boat with something to drive it — paddles, oars, a pole —
+  `paddle downstream` and `paddle upstream` take her along the river, and
+  keep at it until you `stop` or your arms give out. Downstream the
+  current adds to you; upstream it takes away, and in the channel it may
+  take more than you can make. `--inside` hugs the inside of the bend,
+  where the water runs slowest; `--hard` is a burst, and costs like one.
+
+  `paddle left`, `paddle right`, `paddle bar` or `paddle <landing>` puts
+  her in to the bank — a steep bank or a wall of rock will not take her.
+  A pole needs a bottom it can reach; over deep water it finds none.
+
+  With nobody paddling, a boat goes where the water takes it. A killick
+  (`anchor`) holds her in slack water.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: heading
+    type: string
+    required: false
+    greedy: true
+options:
+  inside:
+    type: boolean
+    description: "Hug the inside of the bend, where the current is slowest"
+  hard:
+    type: boolean
+    description: "A burst: more way on, and more effort"

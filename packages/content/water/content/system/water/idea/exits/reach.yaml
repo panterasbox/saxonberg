@@ -1,0 +1,9 @@
+# The ways out of moving water (the river build, D7): `left`/`right` to a
+# bank, `downstream`/`upstream` by your own stroke, a branch at a junction,
+# and a place within hail — every one worked out by the river's warren when
+# it is taken. Swum.
+class: /system/water/idea/exits/ReachExit
+data:
+  messageOut: "{{ mover }} strikes out {{ direction }}."
+  messageIn: "{{ mover }} comes through the water."
+  wheelPassable: false

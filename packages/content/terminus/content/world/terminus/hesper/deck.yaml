@@ -27,7 +27,7 @@ data:
     - /stuff/thing/instrument/hand-compass
     - /trade/fishing/thing/rod
     - /trade/fishing/thing/worm
-    - /world/terminus/hesper/thing/dinghy
+    - /system/transport/thing/dinghy
     - /world/terminus/hesper/thing/sea-chest
   cast:
     # ⭐ A deckhand who keeps the watch once appointed (maritime R7).
@@ -38,12 +38,17 @@ data:
     ashore:
       kind: /platform/idea/exits/ashore
       destination: /world/terminus/estuary/estuary-mouth
+    # ⭐ Over the side (the river build, D30): the water beside her, while
+    # she lies stopped — worked out by the sea's warren when taken.
+    side:
+      kind: /system/water/idea/exits/sea-side
+      destination: /system/water/location/sea/patch
   # ⭐ The sea over the side, and which water it is — the Greywater, read
   # wherever she has got to (the position comes from her, never from this
   # row). The rail is a feature, not water.
   details:
     sea:
-      keywords: [sea, water, side, over]
+      keywords: [sea, water]
       description: |
         Below the rail, the water.
     gunwale:

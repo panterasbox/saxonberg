@@ -41,6 +41,11 @@ data:
       media: [ground]
       wheelPassable: false
       edgeMinutes: 12
+    # ⭐ Down to the river (the river build): the put-in.
+    down:
+      destination: /world/terminus/rejection/put-in/landing
+      media: [ground]
+      edgeMinutes: 5
   details:
     trough:
       keywords: [trough, water, spring, stone, basin]

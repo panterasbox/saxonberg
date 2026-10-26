@@ -1,0 +1,8 @@
+# Over a ship's side at sea (the river build, D30): into the water beside
+# her — only while she has stopped. Authored on a sea-going deck.
+class: /system/water/idea/exits/SeaPatchExit
+data:
+  way: side
+  messageOut: "{{ mover }} goes over the side."
+  messageIn: "{{ mover }} comes down into the water off the ship's side."
+  wheelPassable: false

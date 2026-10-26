@@ -23,6 +23,9 @@ data:
   _materialPath: /stuff/idea/material/rock/granite
   controlKind: weir
   reachRef: delight:flats
+  # ⭐ Where on the line it sits (the river build, D3) — the node above
+  # keeps the works' index; this is its own place on the river.
+  at: "delight:flats+0.9,right"
   passFraction: 1
   headM: 2
   generates: true

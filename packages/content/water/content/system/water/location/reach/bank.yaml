@@ -1,0 +1,7 @@
+# The kind zone of a bank patch (the river build, D25, D38) — the bank
+# between a river's places, where somebody is walking it. Stands empty;
+# each bank patch is minted with a zone of its own from this row.
+class: /system/water/location/ReachZone
+data:
+  name: the riverbank
+  cellSize: 30

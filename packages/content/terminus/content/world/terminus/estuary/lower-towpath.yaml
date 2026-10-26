@@ -1,6 +1,6 @@
 # The lower towpath — the working end of Wharfside, where things are
 # loaded rather than looked at.
-class: /platform/location/Locale
+class: /platform/location/Shore
 data:
   shortDescription: lower towpath
   keywords: [towpath, lower]
@@ -30,6 +30,13 @@ data:
       destination: /world/terminus/estuary/reach
       media: [ground, water]
       edgeMinutes: 4
+    # ⭐ Nesbit's ferry (the river build, D31): across the Kestrel to
+    # Nesbit's landing and the Delight road — when she lies here, the
+    # river lets her and the fare is paid.
+    across:
+      kind: /world/terminus/nesbit-ferry/exits/crossing
+      destination: /world/terminus/nesbit-ferry/landing
+      edgeMinutes: 3
   # ⭐ The Terminus depot stands here, on the quay, where the water lane
   # and the wheeled road both reach. A depot is the INTERFACE — where a
   # lane touches the local economy — and the place it belongs is where
@@ -58,9 +65,14 @@ data:
     # nobody could warm their hands at. (Propped, not sold — see the
     # brazier's note in the goods yard.)
     - /stuff/thing/stove
+    # The ferry lies at the city side between crossings, and the bell that
+    # calls her back from the far one hangs at the head of the steps.
+    - /system/transport/thing/ferry
+    - /world/terminus/nesbit-ferry/thing/near-bell
   cast:
     - /trade/haulage/agent/warehouseman
     - /trade/haulage/agent/dispatcher
+    - /world/terminus/nesbit-ferry/agent/ferryman
 
   details:
     rings:
@@ -83,3 +95,9 @@ data:
       keywords: [water, river, kestrel, deep]
       description: |
         Brown, opaque, and moving without any surface to speak of. You cannot see the bottom. Upstream of the confluence you can see the bottom everywhere, which is the whole reason a boat stops there and starts here.
+  # ⭐ A bank of the Kestrel (the river build, D8): the water it looks at,
+  # and where it stands on the line — so the bank between places is
+  # walkable, and the water passing within hail can reach it.
+  waters:
+    water: "kestrel:confluence+0.6"
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence+0.4,left", span: 0.5, name: towpath }

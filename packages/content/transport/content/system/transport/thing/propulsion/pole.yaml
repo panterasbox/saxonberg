@@ -1,0 +1,16 @@
+# A setting pole (the river build, D20, D24) — a punt's: pushes off the
+# bottom, so it needs one it can reach; in shallow water there is nothing
+# stronger.
+class: /system/transport/thing/Propulsion
+data:
+  shortDescription: setting pole
+  keywords: [pole, "setting pole", quant]
+  register: indefinite
+  longDescription: Twelve feet of ash with an iron shoe on the foot, for pushing a boat off the river bed.
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 4
+  propulsionKind: pole
+  needs: bottom
+  crewPowered: true
+  efficiency: 0.5
+  reachM: 2.5

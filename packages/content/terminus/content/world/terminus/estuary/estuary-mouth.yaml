@@ -34,6 +34,8 @@ data:
   # a player who fills one on a dry week and one on a wet one has the whole
   # lesson side by side without anybody explaining it.
   props:
+    # ⭐ A sailing dinghy drawn up on the shingle (the river build, D20).
+    - /system/transport/thing/sailing-dinghy
     - /trade/quarrying/thing/salt-pan
     - /trade/quarrying/thing/salt-pan
   exits:
@@ -63,6 +65,9 @@ data:
   # brine from it.
   waters:
     channel: /stuff/idea/WaterExpanse/greywater
+  # ⭐ The last of the Kestrel's left bank (the river build): the made path
+  # ends here, beside the river's mouth.
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.3,left", span: 0.3, name: bank }
   details:
     channel:
       keywords: [channel, tide, sea, brine, saltwater, "salt water", "deep water"]

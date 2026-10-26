@@ -1,0 +1,18 @@
+# A punt (the river build, D19-D20): a small craft, a thing you sit in. ⭐ A
+# KIND row of the transport pack, never a venue's, so its zone is null for
+# life and it can go into any water (D38). Comes with what drives it.
+class: /system/transport/thing/Boat
+data:
+  shortDescription: punt
+  keywords: [punt, boat]
+  register: indefinite
+  longDescription: |
+    A square-ended punt, flat-bottomed and broad, made for shallow water and a man standing up at the stern with a pole.
+  eyeHeightM: 1
+  heightM: 1.5
+  mass: 110
+  _materialPath: /stuff/idea/material/wood/oak
+  hull: { form: flat, draftM: 0.1, beamM: 1.2, lengthM: 6, freeboardM: 0.35, capacityKg: 600 }
+  props:
+    - /system/transport/thing/propulsion/pole
+    - /system/transport/thing/killick

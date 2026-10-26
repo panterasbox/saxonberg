@@ -1,0 +1,30 @@
+# The Ostrander's company — the house whose roster mans her (river D36):
+# the master who has her, the engineer who keeps her fire, a deckhand who
+# handles her lines and her lead.
+class: /platform/idea/Business
+data:
+  name: "the Ostrander's company"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: master
+      noun: master
+      label: in the wheelhouse
+      wageRate: 5
+      headcount: 1
+    - key: engineer
+      noun: engineer
+      label: at the firebox
+      wageRate: 4
+      headcount: 1
+    - key: deckhand
+      noun: deckhand
+      label: on deck
+      wageRate: 2
+      headcount: 2
+  rosterSlots: []
+  startsShiftOnHire: true
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/ostrander/deck

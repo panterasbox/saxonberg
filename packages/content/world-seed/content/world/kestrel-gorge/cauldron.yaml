@@ -1,0 +1,22 @@
+# The cauldron — the Kestrel gorge (the river build, D36). A river place:
+# the line's water at its km (current: inherit), walls both sides, handed
+# in at its head and out at its foot.
+class: /system/water/location/RiverPlace
+data:
+  shortDescription: cauldron
+  keywords: [gorge, river, kestrel, water, cauldron]
+  register: definite
+  _biomePath: /stuff/idea/biome/water/open
+  enclosure: none
+  roof: none
+  longDescription: |
+    Below the chute the river falls into a round pool cut in the rock and turns back on itself, boiling up white and going round. Things go round in it. The walls stand straight up out of the foam on every side.
+  coords: { x: 2, y: 0, z: 0 }
+  water: { of: "kestrel:gorge+2.3", depthM: 2 }
+  river: { course: kestrel, at: "gorge+2.3", span: 0.3, name: cauldron }
+  current: inherit
+  details:
+    walls:
+      keywords: [walls, wall, rock, limestone, cliff]
+      description: |
+        Grey limestone, wet to twice your height and scoured smooth. There is nothing to hold and nowhere to climb out.

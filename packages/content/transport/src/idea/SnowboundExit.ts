@@ -21,11 +21,11 @@
  * comms, teleport or the peer graph: a pass under snow stops a body and
  * a cart, and a `tell` from behind it goes through.
  *
- * ## It reads the floor by SHAPE
+ * ## It reads the floor
  *
- * The floor is kernel, so there is no pack dependency at all; the shape
- * read (`getFloor` → `getSnowDepthM`) keeps the exit composable over any
- * room that has a floor and honest over one that does not (no floor, no
+ * The floor is kernel, so there is no pack dependency at all
+ * (`getFloor` → `MixinApi.isFloor` → `getSnowDepthM`): composable over any
+ * place that has a floor and honest over one that does not (no floor, no
  * snow, open).
  *
  * See [docs/subsystems/logistics.md], [docs/subsystems/ground.md].
@@ -41,11 +41,6 @@ import type { TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 
 /** The weather segment — six game hours, the snow's own memo period. */
 const SEGMENT_S = 6 * 3_600;
-
-/** The one read a snowbound way asks of a floor. */
-interface SnowFloor {
-  getSnowDepthM(): number;
-}
 
 export interface SnowboundExitOptions extends ExitOptions {
   /** Metres of snow above which the way is shut. */
@@ -114,7 +109,7 @@ export default class SnowboundExit extends Exit {
     };
   }
 
-  /** Metres of snow on a place's floor, by SHAPE; `0` with no floor. */
+  /** Metres of snow on a place's floor; `0` with no floor. */
   private static async snowAt(place: Stuff | null): Promise<number> {
     if (!place) return 0;
     if (MixinApi.isAtmospheric(place)) {
@@ -122,7 +117,7 @@ export default class SnowboundExit extends Exit {
       await place.resolveWeatherLocality();
     }
     if (!MixinApi.isAdornable(place)) return 0;
-    const floor = place.getFloor() as unknown as Partial<SnowFloor> | null;
-    return typeof floor?.getSnowDepthM === 'function' ? floor.getSnowDepthM() : 0;
+    const floor = place.getFloor();
+    return floor !== null && MixinApi.isFloor(floor) ? floor.getSnowDepthM() : 0;
   }
 }

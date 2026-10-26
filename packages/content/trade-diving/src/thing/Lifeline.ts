@@ -387,10 +387,14 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     const bags = isLoad && MixinApi.isContainer(where)
       ? where.getContents().filter((c): c is AirBag => c instanceof AirBag && c.getLashedTo() === diver)
       : [];
-    ContainmentApi.move(diver, next);
+    const out = next === here;
+    // ⭐ Out of the water, the water gives them up (river D22, review): its
+    // hold on them — a strainer, a jammed foot — lets go, as it does for a
+    // hand. A line and a hand land the same way.
+    if (out && MixinApi.isWaterPlace(where)) where.deliverOut(diver, next);
+    else ContainmentApi.move(diver, next);
     for (const bag of bags) ContainmentApi.move(bag as never, next);
     this._end?.followLoad();
-    const out = next === here;
     if (MixinApi.isRespiration(diver) && !out && MixinApi.isWaterPlace(next) &&
         next.surfacePlace() === (next as unknown as Stuff)) {
       diver.holdUp();

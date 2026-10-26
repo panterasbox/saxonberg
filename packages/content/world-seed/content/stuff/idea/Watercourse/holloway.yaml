@@ -17,7 +17,12 @@ data:
   # authored here because a reach is not a place a zone chain reaches.
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
+  # ⭐ The river as a LINE (the river build): off the moor's rills, out to
+  # the Greywater at its own named mouth west of the bar.
+  source: { kind: rills }
+  mouth: { into: sea, node: /stuff/idea/WaterExpanse/greywater/holloway-mouth }
+  bed: gravel
   nodes:
-    - { name: head, elevation: 1100, catchmentKm2: 300, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
-    - { name: vale, elevation: 300, channelWidthM: 14, catchmentKm2: 180, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }] }
-    - { name: mouth, elevation: 0, channelWidthM: 70, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }
+    - { name: head, km: 45, elevation: 1100, catchmentKm2: 300, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    - { name: vale, km: 25, elevation: 300, channelWidthM: 14, catchmentKm2: 180, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }] }
+    - { name: mouth, km: 0, elevation: 0, channelWidthM: 70, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

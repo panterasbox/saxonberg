@@ -32,16 +32,66 @@ data:
   # authored here because a reach is not a place a zone chain reaches.
   # Elevation is each node's own.
   site: { latitudeDeg: 42 }
+  # ⭐ The river as a LINE (the river build, D1): km from the mouth on
+  # every node, how it starts and where it ends. Snowmelt off the ore
+  # country; out over the bar into the Greywater.
+  source: { kind: melt }
+  mouth: { into: sea, node: /stuff/idea/WaterExpanse/greywater/bar }
+  bed: gravel
+  # Overrides only — everything else is derived from the profile. The
+  # gorge is a valley's fact no profile holds: rock walls, rock bed.
+  stretches:
+    - { from: gorge, to: falls, bed: rock, banks: walls }
+    # The Wharfside quay stands on the left bank below the confluence.
+    - { at: confluence+0.1, side: left, bank: quay }
+  # The landmark a pilot names: where the channel shoals in a dry August.
+  bends:
+    - { at: confluence-15, name: "Hob's Bend" }
+  # Authored killers (everything else is derived — a hydraulic below every
+  # weir, strainers on the outside of wooded bends). The old elm that went
+  # over below the city's last towpath, and has been there for years.
+  hazards:
+    - { at: confluence+1.3, side: left, kind: strainer }
+    # Where the cauldron below the chute spills out, the water turns back on
+    # itself bank to bank (on the line, so the drift meets it).
+    - { at: gorge+2.62, side: left, kind: hydraulic }
+    - { at: gorge+2.62, side: right, kind: hydraulic }
+  # ⭐ What stands on the line (the river build, D7/D8): the river names
+  # its places, so the water drifting down it knows where it is handed in,
+  # and which banks it passes within hail of. Nothing is searched for.
+  places:
+    - /world/terminus/rejection/put-in/landing
+    - /world/kestrel-gorge/head
+    - /world/kestrel-gorge/chute
+    - /world/kestrel-gorge/cauldron
+    - /world/kestrel-gorge/narrows
+    - /world/kestrel-gorge/foot
+    - /world/falls-landing/head
+    - /world/falls-landing/landing
+    - /world/terminus/woodyard/landing
+    - /world/terminus/valley-road/towpath
+    - /world/terminus/wharfside/bank
+    - /world/terminus/wharfside/water/location/stream
+    - /world/terminus/estuary/lower-towpath
+    - /world/terminus/nesbit-ferry/landing
+    - /world/terminus/estuary/reach
+    - /world/terminus/estuary/estuary-mouth
+    - /world/terminus/estuary/channel
   nodes:
     # Rejection's ground. High, cold, and where the ore is — so this is
     # simultaneously the realm's snowpack and its worst pollution risk.
-    - { name: headwaters, elevation: 1400, catchmentKm2: 380, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    - { name: headwaters, km: 62, elevation: 1400, catchmentKm2: 380, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # Interpolated: a gorge nobody has built in and nobody needs a room
     # for. Steep enough that no boat has ever been up it.
-    - { name: gorge, catchmentKm2: 210, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    - { name: gorge, km: 48, catchmentKm2: 210, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # The falls — a control point because the drop is real, and the
-    # obvious place to put a wheel or a dam.
-    - { name: falls, elevation: 500, channelWidthM: 18, catchmentKm2: 260, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
+    # obvious place to put a wheel or a dam. ⭐ 140 m at the lip, 22 m of
+    # sheer drop (re-authored from 500 by the river build, decided with the
+    # founder): the gorge above takes the mountain's height as a cascade
+    # nobody has boated, and the 0.27 % below is a navigable river of pools
+    # with a riffle every half mile. At 500 m the lower river would have
+    # been class III white water all the way to the city.
+    - { name: falls, km: 41, elevation: 140, drop: 22, channelWidthM: 18, catchmentKm2: 260, stocks: [{ species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/eel }] }
     # ⭐ The confluence — where the Delight comes in out of the farming
     # valley, and WHERE TERMINUS IS. A city whose entire geographic
     # premise is a confluence: it drinks last, after the mining town and
@@ -51,6 +101,16 @@ data:
     #
     # 30 m, five below the city's own ground at 35, which is what makes
     # a bank a bank rather than a flood.
-    - { name: confluence, elevation: 30, channelWidthM: 90, catchmentKm2: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/grey-mullet }], works: [/world/terminus/wharfside/thing/city-intake, /world/terminus/wharfside/thing/city-outfall] }
+    # ⭐ 35 m, not the 90 the water build authored (the river build's drive):
+    # a river carrying ~15 m³/s is ~20–40 m wide by hydraulic geometry, and
+    # spread across 90 m its riffles carried a quarter of a metre — no boat
+    # bigger than a canoe could use it, and the line says so.
+    - { name: confluence, km: 9, elevation: 30, channelWidthM: 35, catchmentKm2: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/brown-trout }, { species: /stuff/idea/species/grey-mullet }], works: [/world/terminus/wharfside/thing/city-intake, /world/terminus/wharfside/thing/city-outfall] }
     # The sea, and the global minimum: downstream of everything.
-    - { name: estuary, elevation: 0, channelWidthM: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }
+    # ⭐ The tideway (the river build's drive): the river holds its width
+    # until the last two kilometres, then opens into the estuary. Opened
+    # straight from the confluence's 35 m to the estuary's 160 over nine
+    # kilometres, the lower river spread into riffles a hand deep in every
+    # season, and no steamer could reach the bar.
+    - { name: tideway, km: 2, elevation: 1, channelWidthM: 45 }
+    - { name: estuary, km: 0, elevation: 0, channelWidthM: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

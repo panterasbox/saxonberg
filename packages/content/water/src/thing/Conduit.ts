@@ -97,11 +97,11 @@ export type ConduitDirection = 'supply' | 'disposal';
 export interface ConduitReading {
   /** `null` when it is working. The six-word vocabulary otherwise. */
   state: SupplyState | null;
-  /** Cubic metres per second actually delivered. */
+  /** Cubic meters per second actually delivered. */
   deliveredM3S: number;
   /** What was asked of it. */
   demandM3S: number;
-  /** Metres of head in its favour; negative means it must be pumped. */
+  /** Meters of head in its favour; negative means it must be pumped. */
   headM: number | null;
   /** Watts the pump is drawing to deliver that, or 0 when gravity-fed. */
   pumpWatts: number;
@@ -120,6 +120,7 @@ export default class Conduit
   static fieldMeta: FieldMeta = {
     conduitKey: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
+    at: { persistent: true, authorable: true },
     extent: { persistent: true, authorable: true },
     direction: { persistent: true, authorable: true },
     capacityM3S: { persistent: true, authorable: true },
@@ -138,6 +139,22 @@ export default class Conduit
   public reachRef = '';
 
   /**
+   * ⭐ Where on the river it sits (river D3) — `kestrel:confluence+0.05,left`.
+   * The node in {@link reachRef} keeps the works' index; this is its own
+   * position on the line (an intake really is 100 m above the outfall), and
+   * a weir's hydraulic forms just below it. `''` = at the node.
+   */
+  public at = '';
+
+  /** Where on the line this work sits, or its node when it says nothing. */
+  public getAt(): string {
+    return this.at !== '' ? this.at : this.reachRef;
+  }
+  public setAt(value: string): void {
+    this.at = typeof value === 'string' ? value : '';
+  }
+
+  /**
    * The land end — a **template-path prefix**, resolved longest-prefix,
    * which is the mechanism `ParcelRegistry` already uses for title. So
    * *"am I on the main?"* is the same question as *"who owns this?"*,
@@ -149,7 +166,7 @@ export default class Conduit
   public direction: ConduitDirection = 'supply';
 
   /**
-   * Cubic metres per second it carries.
+   * Cubic meters per second it carries.
    *
    * **A number, not an ideal**, because an over-subscribed main in a dry
    * August is what gives the rights layer something to bind against. A
@@ -188,7 +205,7 @@ export default class Conduit
   public ownerRef = '';
 
   /**
-   * Metres of head in the conduit's favour, resolved **once at
+   * Meters of head in the conduit's favour, resolved **once at
    * construction** and stored.
    *
    * ⭐ This is the P0 discipline in one field. Elevation resolution is

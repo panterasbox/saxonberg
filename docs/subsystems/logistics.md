@@ -737,9 +737,10 @@ never join the road.
 against a threshold and sets the shipped `blocked` bit. No new field on
 the water, no new mechanism, no weather of its own.
 
-⚠ It reads the water pack **by shape**, never by import (the
-`AnalyzeWaterController` / `TravelNode` idiom): an install with no water
-pack has a ford that is simply always passable. It memoises on the
+⭐ It reads the river through the kernel's `LineFrame` — the frame its
+`crossesAt: {frame, cite}` names (`locate` · `waterAt` · `handIn`,
+river W16) — never by shape: a ford whose river is not there is simply
+always passable. It memoises on the
 catalogue's own **six-game-hour weather segment**, so a ford and
 `measure` cannot disagree about the same water at the same moment.
 
@@ -751,12 +752,13 @@ gate refuses, in the exit's own words; `conditional: true` on the kind row; phys
 `tell` from behind a shut pass goes through):
 
 - **`SnowboundExit`** (`_closesAboveM`, default 0.5 m) reads the snow
-  lying on the floor of the room it starts from (`getSnowDepthM`, by
-  shape — the floor is kernel) and shuts while it is deeper. Memoised per
+  lying on the floor of the place it starts from (`getSnowDepthM`
+  through `MixinApi.isFloor` — the floor is kernel) and shuts while it is deeper. Memoised per
   weather segment. *"The way is under snow — deeper than your knee…"*
 - **`IceCrossingExit`** (`_crossesReach`, `_bearsMarginKg`) is the
   ford's INVERSE: a road the ice OPENS. Across iff the sheet on the reach
-  (`iceAt`, by shape) bears the mover's mass plus the margin, so the
+  (`WatercourseCatalogue.iceAt` — transport declares the water mod as a
+  dependency) bears the mover's mass plus the margin, so the
   answer is the mover's — a sheet that bears a person refuses a horse.
   It refuses open water, running water, thin ice and rotten ice in their
   own words, and with no water pack installed it is a WALL (a ford with
@@ -1102,3 +1104,11 @@ first thing to revisit if freight speed ever needs to mean something.
 - **2026-10-18 (storage-and-ice, MR !378).** The `Warehouse` became a
   kernel store holding goods live; `store deposit`/`store withdraw` at the
   depot book are the custody acts, `depositFor` the desk's intake.
+
+## River build (2026-10-21)
+
+A **ferry** is one conditional edge (`FerryExit`, its kind row
+`_conditional: true`): the route planner costs it and says *not always
+passable*; a journey's leg across it is the ordinary traverse with the rig
+towed. Fords read the BODY now (`FordExit.verdictFor`) — the flood threshold
+is retired. See [river.md](./river.md).

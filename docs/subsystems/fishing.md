@@ -28,7 +28,7 @@ mere. ⭐ A reach NAMES the species it holds (`stocks:` on the node — the
 scan sweep, 2026-10-14; it used to be a class scan of every species
 row), and each named `Species` that authors a **habitat** — tolerances
 over the closed water vocabulary, a role in the food web, an abundance
-per kilometre, a fight rating — is asked how well it fits the water the
+per kilometer, a fight rating — is asked how well it fits the water the
 catalogue reports at the reach, and the answer is the population. A
 named species that does not fit has capacity `0`; a species the reach
 does not name is not there at all:
@@ -418,3 +418,11 @@ and the target completes and names the Discipline to credit — silk off a
 stack of stifled cocoons at a reeling basin ([sericulture.md](./sericulture.md)).
 A bound target that does not reel falls through to the fishing act.
 Bait from silkworm pupae is open: `BAIT_KINDS` is this pack's closed set.
+
+## River build (2026-10-21)
+
+A river's fishery is keyed **per stretch** (`course:N`), and an angler in a
+drifting boat follows the water: `FishingEngagement` re-reads the stretch it
+is over each beat, and the bite falls away as the drift quickens (to nothing
+at `water.fishery.driftKillMps`); a boat held still fishes as the bank does.
+See [river.md](./river.md).
