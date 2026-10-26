@@ -239,7 +239,9 @@ export const brain = class {
     if (f.liquor === 'struck') {
       if (f.onFire && !w.ladle) return `get ${w.kettle}`;
       if (f.coneReady) return `pour ${w.kettle} into ${ref.ready ?? w.mould}`;
-      if (f.coneAndPot) return `put ${ref.mould ?? w.mould} on ${ref.pot ?? w.pot}`;
+      // `put … on` takes it from the hands: pick the mould up first (drive
+      // 23 — "you don't have a curing hogshead", every beat, as the pan burnt).
+      if (f.coneAndPot) return `get ${ref.mould ?? w.mould}\nput ${ref.mould ?? w.mould} on ${ref.pot ?? w.pot}`;
     }
     // Finish what is made before starting more.
     if (w.finish === 'loaf') {
@@ -291,7 +293,7 @@ export const brain = class {
       // a hogshead set on its pot AFTER the strike cost a beat the strike
       // did not have).
       const ready = !f.coneReady && f.coneAndPot
-        ? [`put ${(f.refs ?? {}).mould ?? w.mould} on ${(f.refs ?? {}).pot ?? w.pot}`]
+        ? [`get ${(f.refs ?? {}).mould ?? w.mould}`, `put ${(f.refs ?? {}).mould ?? w.mould} on ${(f.refs ?? {}).pot ?? w.pot}`]
         : [];
       return [...ready, ...stoke, `analyze boil ${w.kettle}`].join('\n');
     }

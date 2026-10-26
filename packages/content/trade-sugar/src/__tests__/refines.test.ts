@@ -67,7 +67,7 @@ describe('refines — one act per beat', () => {
 
   it('takes the copper off at the strike, and leaves a spoilt pan be', () => {
     expect(brain.next({ ...base, liquor: 'struck', onFire: true })).toBe('get copper');
-    expect(brain.next({ ...base, liquor: 'struck', onFire: false })).toBe('put cone on pot');
+    expect(brain.next({ ...base, liquor: 'struck', onFire: false })).toBe('get cone\nput cone on pot');
     expect(brain.next({ ...base, liquor: 'struck', coneReady: true })).toBe('pour copper into cone');
     expect(brain.next({ ...base, liquor: 'struck', coneAndPot: false })).toBeNull();
     expect(brain.next({ ...base, liquor: 'spoilt', onFire: true })).toBeNull();
@@ -135,7 +135,7 @@ describe('refines — one act per beat', () => {
     const w = brain.words({ kettle: 'kettle', fire: 'train', mould: 'hogshead', source: 'juice', finish: 'block', ladle: true });
     const island = { ...base, block: false, refs: { ready: '#h2', mould: '#h3', pot: '#p3', set: '#h1' } };
     expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true, coneReady: true }, w)).toBe('pour kettle into #h2');
-    expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true }, w)).toBe('put #h3 on #p3');
+    expect(brain.next({ ...island, liquor: 'struck' as const, onFire: true }, w)).toBe('get #h3\nput #h3 on #p3');
     expect(brain.next({ ...island, setBlock: true }, w)).toBe('get block from #h1');
   });
 
@@ -169,7 +169,7 @@ describe('refines — one act per beat', () => {
       fireFuelled: true, fireLit: true, onFire: true, thick: true,
       coneReady: false, coneAndPot: true, refs: { mould: '#h1', pot: '#p1' },
     };
-    expect(brain.next(thick, w)).toBe('put #h1 on #p1\nanalyze boil kettle');
+    expect(brain.next(thick, w)).toBe('get #h1\nput #h1 on #p1\nanalyze boil kettle');
     expect(brain.next({ ...thick, coneReady: true, refs: { ready: '#h1' } }, w)).toBe('analyze boil kettle');
   });
 
