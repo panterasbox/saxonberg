@@ -535,6 +535,10 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
+  // ⭐ What a substance does by itself over time, at a rate set by
+  // temperature — sucrose inverting, starch staling (inert until its
+  // Material declares `kinetics`). Not spoilage: that is a population.
+  Kinetic: 'KineticMixin',
   // ⭐ Reduce matter, then separate it — the grinding primitive. A mill
   // takes grain and yields flour plus bran; a stamp mill takes ore and
   // yields concentrate plus tailings, on the same three fields. Isn't a

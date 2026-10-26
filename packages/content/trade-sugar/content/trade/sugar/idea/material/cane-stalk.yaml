@@ -19,6 +19,30 @@ data:
   nutrients: ["sugar", "water"]
   nutrientAmounts: { sugar: 140000, water: 700000 }
   toxicity: []
+  # ⭐⭐ Inversion (kinetics, sugar D15): once cut, the stalk's sucrose
+  # turns to glucose and fructose — invert sugar, which will not grain. So
+  # cane is milled the day it is cut. First order, about 2 % an hour at a
+  # tropical 300 K, halving for every 10 K colder; the crop's GRADE falls as
+  # it turns (a band at a quarter, two at half), and the crush, the copper
+  # and the cone's drainings carry that on: less sugar, more molasses.
+  kinetics:
+    - key: inversion
+      order: 1
+      rate:
+        - [263, 0.00154]
+        - [273, 0.00308]
+        - [283, 0.00616]
+        - [293, 0.0123]
+        - [300, 0.02]
+        - [310, 0.04]
+        - [320, 0.08]
+        - [330, 0.16]
+      grade: [[0.25, 1], [0.5, 2]]
+      words:
+        - [0, "It is fresh-cut and running with juice."]
+        - [0.1, "It is turning — a day off the stalk."]
+        - [0.25, "It is inverted, gone sour at the cut ends."]
+      senses: [vision]
   tags: ["solid", "food", "cane", "perishable", "once-living"]
   composition: []
   biologicalSource:

@@ -1,5 +1,5 @@
 # A bundle of cut cane — mill it the day it is cut (sugar D15: it inverts).
-class: /trade/sugar/thing/Cane
+class: /platform/thing/Crop
 data:
   shortDescription: bundle of cut cane
   keywords: [cane, "cut cane", bundle, "bundle of cut cane", stalks]

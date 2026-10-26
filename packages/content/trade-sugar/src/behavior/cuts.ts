@@ -1,7 +1,7 @@
 /**
  * cuts — a cane cutter's brain (sugar D18): cut the ripe cane where they
  * stand, and carry the bundle to the mill the same hour — cut cane inverts
- * on a clock (`InvertingMixin`), so a cutter who lets it lie sells sugar
+ * on a clock (the cane stalk's `kinetics`), so a cutter who lets it lie sells sugar
  * nobody wants.
  *
  * Every act a verb a player could type: `harvest cane`, then an errand down

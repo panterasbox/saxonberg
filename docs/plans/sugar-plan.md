@@ -1011,6 +1011,7 @@ pack test (§ Risks), re-drive. Never the full suite for a merge.
 | `GroundSample.nativeNitrogenPct/.nativeOrganicPct` | `GroundSample` (ground pack) read by `Field.installSoilReserves` | every field seeds from the sample instead of two literals — same numbers unless a band or pin says otherwise |
 | `PersistentLocale` for the hold, the two Terminus sugar rooms, Veshko's distillery, the sugarbush, the island's two boiling rooms (D20) | the rows only | each persists like the cookhouse; seven more `holder_snapshots` records; cast re-seeded |
 | `InvertingMixin` / `Cane` | **pack** `trade-sugar/src/lib/`, on `Crop` | only cane; a sack of wheat does not invert |
+| ⛔ retired (review, 2026-10-24) | → kernel `KineticMixin` on `Provision` + `kinetics:` on `cane-stalk.yaml` | one mechanism with staling; see `spoilage.md` § Kinetics |
 | `SugarLoaf` (`PercolatingMixin(Provision)` + `Cuttable`), `CuringPot` (`PlacingMixin(Vat)`), `Bagasse` (`WaterActivityMixin(Firewood)`), `Train` (`AssembledMixin(Oven)`), `Copper` (`Vat` + `temper`/`skim` methods + the verb statics), `BoilReading` | **pack** `trade-sugar/src/thing/` and `src/idea/reading/` | pack classes a second sugar house names by row; the kernel's `Vat`, `Oven`, `Provision` unchanged |
 | `distils`, `sails`, `refines`, `cuts`, `mills`, `boils` | pack brains (`trade-distilling`, `water`, `trade-sugar` ×4) | brains are modules; they claim nothing about classes |
 

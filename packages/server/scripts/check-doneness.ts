@@ -11,10 +11,13 @@
  * no ceiling is not wrong; it is **unfinished**, and unfinished is exactly
  * what a census-then-ratchet gate is for.
  *
- * **(b) A bread row that cannot stale.** Staling is `StalingMixin`'s, on
- * `trade-baking`'s `Loaf`. A loaf authored onto bare `Provision` would
- * spoil (the `FreshnessMixin` path) and never go stale — silently, with
- * nothing anywhere to say so. This is `lint:perishable`'s failure shape
+ * **(b) A bread row that cannot stale.** Staling is the bread MATERIAL's
+ * kinetics (a `kinetics:` change keyed `staling`), run by the kernel's
+ * `KineticMixin` (on `Provision`) since the sugar build retired baking's
+ * `StalingMixin`. Either half missing fails silently: a class that does
+ * not reach the mixin, or a bread material with no staling change, spoils
+ * (the `FreshnessMixin` path) and never goes stale, with nothing anywhere
+ * to say so. This is `lint:perishable`'s failure shape
  * one subsystem over, and `lint:perishable` cannot see it: the row DOES
  * reach `FreshnessMixin`, which is precisely why it passes.
  *
@@ -66,7 +69,9 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 const UNCEILINGED_RECIPE_CEILING = 0;
 
 /** The mixin a bread row's class must reach (half b). */
-const STALING_MIXIN = 'StalingMixin';
+const STALING_MIXIN = 'KineticMixin';
+/** The kinetics key a bread material must declare (half b). */
+const STALING_KEY = 'staling';
 
 /** The Material tag that makes a row bread. */
 const BREAD_TAG = 'bread';
@@ -167,8 +172,12 @@ function reaches(
       `import\\s+(?:\\{[^}]*\\b${base}\\b[^}]*\\}|${base})\\s+from\\s+['"]([^'"]+)['"]`,
     ).exec(src);
     if (!imp) continue;
-    const resolved = resolve(dirname(file), imp[1]!);
-    const rel = '/' + relative(MUD, resolved).split('\\').join('/');
+    // A pack imports the kernel by package specifier (`@saxonberg/server/
+    // mud/…`, the server's exports map) — follow it into the kernel tree.
+    const KERNEL = '@saxonberg/server/mud/';
+    const rel = imp[1]!.startsWith(KERNEL)
+      ? '/' + imp[1]!.slice(KERNEL.length)
+      : '/' + relative(MUD, resolve(dirname(file), imp[1]!)).split('\\').join('/');
     if (reaches(rel, mixin, sources, seen)) return true;
   }
   return false;
@@ -182,6 +191,8 @@ function main(): void {
   // Which Material rows are edible, and which are bread.
   const edible = new Set<string>();
   const bread = new Set<string>();
+  /** Materials that declare a staling change. */
+  const stales = new Set<string>();
   for (const r of rows) {
     if (r.data['edibility'] === true) edible.add(r.path);
     const tags = r.data['tags'];
@@ -192,6 +203,13 @@ function main(): void {
           ? tags.filter((t): t is string => typeof t === 'string')
           : [];
     if (words.includes(BREAD_TAG)) bread.add(r.path);
+    const kin = r.data['kinetics'];
+    if (
+      Array.isArray(kin) &&
+      kin.some((k) => typeof k === 'object' && k !== null && (k as { key?: unknown }).key === STALING_KEY)
+    ) {
+      stales.add(r.path);
+    }
   }
 
   // ── half (a): a cookable working with no ceiling ─────────────────
@@ -225,6 +243,11 @@ function main(): void {
       unstaling.push(
         `  ✗ ${r.file}\n      is made of ${mat} (bread) but ` +
           `${r.klass} does not compose ${STALING_MIXIN}`,
+      );
+    } else if (!stales.has(mat)) {
+      unstaling.push(
+        `  ✗ ${r.file}\n      is made of ${mat} (bread), which declares no ` +
+          `\`${STALING_KEY}\` in its kinetics`,
       );
     }
   }

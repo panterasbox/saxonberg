@@ -51,6 +51,7 @@
  */
 
 import { Crosslinking, type CrosslinkSpec } from './Crosslinking';
+import { Kinetics, type KineticSpec } from './Kinetics';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
@@ -551,6 +552,12 @@ export default class Material extends SingletonMixin(
   // elastomer — is inert. Validated by constructing the value object, so
   // a curve that cannot be evaluated fails at the row.
   private _crosslinking: Crosslinking | null = null;
+
+  // ⭐⭐ What this substance does by itself over time, at a rate set by
+  // temperature (kinetics — sucrose inverting, starch staling). `null` is
+  // inert. Validated by constructing the value object, so a curve that
+  // cannot be evaluated fails at the row. `KineticMixin` on the good runs it.
+  private _kinetics: Kinetics | null = null;
 
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
 
@@ -1078,6 +1085,7 @@ export default class Material extends SingletonMixin(
     lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
     elasticity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
     crosslinking: { persistent: true, authorable: true },
+    kinetics: { persistent: true, authorable: true },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
@@ -1445,6 +1453,23 @@ export default class Material extends SingletonMixin(
   /** Set the cure spec; throws on a curve that cannot be evaluated. */
   public setCrosslinking(value: CrosslinkSpec | null): void {
     this.crosslinking = value;
+  }
+
+  /** ⭐ The changes this substance undergoes over time, or `null` (inert). */
+  public getKinetics(): Kinetics | null {
+    return this._kinetics;
+  }
+  /** The authored spec as stored (the row's own shape), or `null`. */
+  protected get kinetics(): KineticSpec[] | null {
+    return this._kinetics?.toSpec() ?? null;
+  }
+  protected set kinetics(value: KineticSpec[] | null) {
+    this._kinetics =
+      value === null || value === undefined || value.length === 0 ? null : new Kinetics(value);
+  }
+  /** Set the kinetic spec; throws on a curve that cannot be evaluated. */
+  public setKinetics(value: KineticSpec[] | null): void {
+    this.kinetics = value;
   }
 
   /** Read melting point (`Quantity<'K'>`; `0` = does not melt). */
