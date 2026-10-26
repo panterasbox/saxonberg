@@ -139,6 +139,14 @@ export interface ElementChemistry {
 export interface DrainSetting {
   days: number;
   becomes?: string;
+  /**
+   * ⭐ What the set thing is when it sets AS a given shape — keyed by the
+   * cast's template path, falling back to `becomes` (sugar: the strike
+   * set as a cone's loaf is loaf sugar; set as a hogshead's block, purged
+   * coarse and never clayed, it is raw sugar). The mould decides the
+   * shape; this lets the material say what that shape of it is.
+   */
+  becomesAs?: Record<string, string>;
   moisture: { unloaded: number; loaded: number };
   loadRef: number;
   /**
@@ -661,13 +669,20 @@ export default class Material extends SingletonMixin(
         value.loadRef > 0 &&
         (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== '')) &&
         (value.drains === undefined || (typeof value.drains === 'string' && value.drains !== '')) &&
+        (value.becomesAs === undefined ||
+          (value.becomesAs !== null &&
+            typeof value.becomesAs === 'object' &&
+            Object.entries(value.becomesAs).every(
+              ([shape, path]) => shape !== '' && typeof path === 'string' && path !== '',
+            ))) &&
         (value.drainPerBand === undefined ||
           (Number.isFinite(value.drainPerBand) && value.drainPerBand >= 0 && value.drainPerBand < 1))
       )
     ) {
       throw new RangeError(
         'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
-          'loadRef > 0, becomes and drains each a path or absent, and 0 <= drainPerBand < 1',
+          'loadRef > 0, becomes and drains each a path or absent, becomesAs a shape → path map or absent, ' +
+          'and 0 <= drainPerBand < 1',
       );
     }
     this.drainSetting = {
@@ -675,6 +690,7 @@ export default class Material extends SingletonMixin(
       moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
       loadRef: value.loadRef,
       ...(value.becomes ? { becomes: value.becomes } : {}),
+      ...(value.becomesAs ? { becomesAs: { ...value.becomesAs } } : {}),
       ...(value.drains ? { drains: value.drains } : {}),
       ...(value.drainPerBand ? { drainPerBand: value.drainPerBand } : {}),
     };

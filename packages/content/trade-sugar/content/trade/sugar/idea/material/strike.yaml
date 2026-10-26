@@ -15,6 +15,9 @@ data:
   drainSetting:
     days: 4
     becomes: /trade/sugar/idea/material/loaf-sugar
+    # A hogshead's block is purged coarse and never clayed: muscovado.
+    becomesAs:
+      /trade/sugar/thing/raw-sugar-block: /trade/sugar/idea/material/raw-sugar
     drains: /trade/sugar/idea/material/molasses
     moisture: { unloaded: 0.1, loaded: 0.1 }
     loadRef: 1

@@ -371,8 +371,11 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const lostKg = lostAt(pressed);
         this.creditDrainings(drain, lostKg);
         const massKg = poolKg - lostKg;
-        const becomes = drain.becomes
-          ? StuffApi.findByTemplatePath<Material>(drain.becomes) ?? material
+        // The shape this mould casts it as may name what it becomes (a
+        // hogshead's block is raw sugar, a cone's loaf is loaf sugar).
+        const becomesPath = drain.becomesAs?.[this.castTemplateFor(material)] ?? drain.becomes;
+        const becomes = becomesPath
+          ? StuffApi.findByTemplatePath<Material>(becomesPath) ?? material
           : material;
         const payload = self.getBulkPayload('interior');
         self.setBulkAmount('interior', Quantity.of(0, 'L'));

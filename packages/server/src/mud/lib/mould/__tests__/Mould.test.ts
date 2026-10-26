@@ -333,6 +333,26 @@ describe('moulds — the container decides the shape', () => {
       expect(loaf.getMass().rawValue()).toBeCloseTo(5 - 1.35, 3);
     });
 
+    it('⭐ the shape names what it becomes — a hogshead block is raw sugar, a cone loaf sugar', async () => {
+      const BLOCK = '/stuff/thing/_mould/raw-sugar-block';
+      const RAW = '/stuff/idea/material/_mould/raw-sugar';
+      const raw = material(RAW, () => {});
+      const s = strike();
+      s.setDrainSetting({ ...s.getDrainSetting()!, becomesAs: { [BLOCK]: RAW } });
+      const hogshead = mould(BLOCK);
+      fillVessel(hogshead, s, 5, 293);
+      ContainmentApi.move(hogshead, room());
+      const cone = fillVessel(mould(WHEEL), s, 5, 293);
+      ContainmentApi.move(cone, room());
+      for (const m of [hogshead, cone]) m.reconcileSetting();
+      setNow(5 * DAY);
+      for (const m of [hogshead, cone]) m.reconcileSetting();
+      await settle();
+      const matOf = (m: Stuff) => (contentsOf(m)[0] as unknown as { getMaterial(): Material }).getMaterial();
+      expect(matOf(hogshead)).toBe(raw);
+      expect(matOf(cone)?.getTemplatePath()).toBe(LOAF);
+    });
+
     it('with nothing beneath, the drainings run away — the hoop on its board', async () => {
       const r = room();
       const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
