@@ -341,6 +341,15 @@ export const brain = class {
     const freePot = potFree !== undefined;
     const id = (s?: Stuff): string | undefined => (s ? `#${s.stuffId}` : undefined);
 
+    // ⭐⭐ A boiler READS her pan every time she looks at it, and the read is
+    // what settles the boil: `getTemperature()` runs the thermal reconcile,
+    // and that runs the phase pass (the plateau and its arrows). Reading
+    // only the material and payload left the pan stale between beats, so
+    // the next read that did settle it covered hours at once and jumped
+    // past syrup, strike and caramel together — every estate batch spoilt
+    // and none was ever seen thick (drive 22's trace). The live walk passed
+    // only because a watcher looked at the kettle every minute.
+    if (copper && MixinApi.isThermal(copper)) copper.getTemperature();
     let liquor: Floor['liquor'] = 'empty';
     let limed = 0;
     let skimmed = false;
