@@ -137,6 +137,15 @@ interface Floor {
   /** A mould holds a set raw-sugar block (an estate's hogshead). */
   setBlock: boolean;
   /**
+   * ⭐ The pan is thick (syrup) — the strike is minutes off. From syrup to
+   * strike to caramel is a few game minutes on a full fire, and a boiler
+   * idle on a twenty-second beat (four game minutes; twenty-four unwatched)
+   * walked away from every batch at exactly that moment and came back to
+   * blackened toffee (probed, drive 13). A boiler stands over a pan coming
+   * to the strike, testing the thread.
+   */
+  thick?: boolean;
+  /**
    * ⭐ How many pieces of fuel to stoke at once to bring the bed up to its
    * charge (default 1). A boiler's beats come round every few game minutes
    * and a twenty-kilowatt train burns ~4.5 kg of oak an hour, so a log a
@@ -198,9 +207,18 @@ export const brain = class {
     const w = brain.words(ctx.config);
     const floor = brain.read(ctx.host, w);
     if (floor === null) return new Urgency('idle');
-    return brain.next(floor, w) === null
-      ? new Urgency('idle')
-      : new Urgency('wanted', `turns to the ${w.kettle}`);
+    const next = brain.next(floor, w);
+    if (next === null) return new Urgency('idle');
+    // ⭐ A pan coming to the strike is CRITICAL — the band that wakes the
+    // agent early, so she checks the thread every few seconds rather than
+    // every beat, and ladles the moment it strikes.
+    if (brain.watching(floor)) return new Urgency('critical', `stands over the ${w.kettle}, testing the thread`);
+    return new Urgency('wanted', `turns to the ${w.kettle}`);
+  }
+
+  /** Is the pan thick on the fire, minutes from the strike? */
+  static watching(f: Floor): boolean {
+    return f.liquor === 'liquor' && f.onFire && f.thick === true;
   }
 
   /**
@@ -259,6 +277,9 @@ export const brain = class {
     }
     if (!f.fireLit) return `light ${w.fire}`;
     if (!f.onFire) return `heat ${w.kettle}`;
+    // Thick on the fire: test the thread — reading the pan settles the boil,
+    // so the beat after it strikes sees it struck and ladles it.
+    if (brain.watching(f)) return `analyze boil ${w.kettle}`;
     return null;
   }
 
@@ -312,6 +333,7 @@ export const brain = class {
       else if (mat.hasTag('caramel') || mat.hasTag('burnt') || mat.hasTag('blackstrap')) liquor = 'spoilt';
       else liquor = 'liquor';
     }
+    const thick = liquor === 'liquor' && !!copper && (copper.getBulkMaterial('interior')?.hasTag('syrup') ?? false);
 
     const mouldOf = (pred: (c: Stuff) => boolean): Stuff | undefined =>
       here.find(
@@ -373,6 +395,7 @@ export const brain = class {
       lime: here.some((s) => hasTag(s, 'liming')),
       fuel: fuelWord,
       stokes,
+      thick,
       coneReady,
       coneAndPot: cones.length > 0 && freePot,
       setLoaf: moulded((c) => c instanceof SugarLoaf),

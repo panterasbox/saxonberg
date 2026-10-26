@@ -247,6 +247,15 @@ candidate brain `urgency(ctx)`, sorts, and runs **exactly one** winner.
 | `pressing` | beats every `wanted`, whatever KIND it is |
 | `critical` | beats everything, **preempts a running interruptible task**, and wakes the agent early |
 
+⭐ **A `critical` winner keeps the agent on the short beat** (sugar build,
+2026-10-24): after a critical act the agent re-decides at the debounce
+(`behavior.beatMinGapMs`, 3 s) until nothing is critical. Before this, only
+a perceived fight or voice woke it early, so a critical task that changes
+on a CLOCK (a pan coming to the strike: syrup to caramel in about two game
+minutes on a full fire) was checked on the twenty-second beat (four game
+minutes; twenty-four unwatched) and missed its window every time. The
+debounce bounds the cost.
+
 ⭐ Four bands because each is a **distinct arbiter behaviour** — that is the
 test a band vocabulary has to pass, and it is why there is no fifth.
 Competence has five and light has six; those are estimator thresholds and

@@ -145,6 +145,15 @@ describe('refines — one act per beat', () => {
     expect(brain.next(ready, w)).toBe('stoke log into train\nstoke log into train\nstoke log into train');
   });
 
+  it('⭐ a pan thick on the fire is WATCHED — the thread tested, at critical, until it strikes', () => {
+    const w = brain.words({ kettle: 'kettle', fire: 'train', source: 'juice', finish: 'block', ladle: true });
+    const boiling = { ...base, block: false, liquor: 'liquor' as const, limed: 1, skimmed: true, fireFuelled: true, fireLit: true, onFire: true };
+    expect(brain.next(boiling, w)).toBeNull();
+    expect(brain.next({ ...boiling, thick: true }, w)).toBe('analyze boil kettle');
+    expect(brain.watching({ ...boiling, thick: true })).toBe(true);
+    expect(brain.watching(boiling)).toBe(false);
+  });
+
   it('out of lime, it buys the import at its own counter', () => {
     expect(
       brain.next({ ...base, liquor: 'liquor', lime: false, counterLime: true }),
