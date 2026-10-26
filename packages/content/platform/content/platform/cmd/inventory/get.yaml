@@ -36,6 +36,8 @@ args:
   - name: source
     type: object
     required: false
+    # Greedy: `get loaf from the sugar cone` is several words.
+    greedy: true
     prepositions: [from, off]
     scope: "peers"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]
