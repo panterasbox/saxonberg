@@ -663,10 +663,17 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // (Probed: raised ~36 h out, bearing 172 against a laid 181.)
     let heard = '';
     let fixed = false;
+    //
+    // ⭐ And she fixes AGAIN every watch the peak is in sight (drive 16).
+    // Since the river build a course plans the whole track, set and all,
+    // and the arrival is planned only if that track passes within the
+    // landing's radius: one fix laid a course the current carried wide,
+    // and she sailed on past with nothing planned. A navigator re-fixes
+    // and re-lays as she closes; each plan starts nearer and truer.
     for (let i = 0; i < 18 && !/You raise Waponi Woo/.test(heard); i++) {
       await advanceWorldClock('4 hours');
-      heard += await sailor.listen(3_000).catch(() => '');
-      if (fixed) continue;
+      heard += await sailor.listen(7_000).catch(() => '');
+      if (/You raise Waponi Woo/.test(heard)) break;
       const horizon = await run(sailor, 'look horizon').then((r) => r.said());
       await sailor.drainProse();
       if (/peak of Waponi Woo/i.test(horizon)) {
