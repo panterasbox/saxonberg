@@ -12,7 +12,9 @@
 > **Left:** the one pipeline (the game's release first, mirrored out) · Discord channel webhooks
 > · merged against live · the deploy-time "what went live" read · what counts as big · the two
 > notes the sweep writes · stream alerts from platform detection, one edited message per stream
-> · streamer opt-in · secrets and per-realm adapters
+> · streamer opt-in · secrets and per-realm adapters · ⭐ the go-live embed linking to Saxonberg
+> (official embedded players, the choice offered) · a Discord bot with one-way role sync from groups
+> · the bot's extras (bridge, slash commands, events, notifications)
 > **Size:** a build
 
 ## 0. The ask **[DECIDED — the owner]**
@@ -88,6 +90,44 @@ step. So two moments, two audiences:
 - ⚠ **Names on stream** — the broadcast-ready overlay shows players' names only by opt-in; an alert
   that names who is *watching* or *joining* follows the same rule.
 
+## 3a. ⭐⭐ The go-live embed — it links to Saxonberg **[DECIDED — the owner]**
+
+The owner: *"I'll also need a Discord embed for when I go live on the Pantera's Box Discord
+server. It should link to Saxonberg, not Twitch or YouTube. Maybe we might also want to intercept
+the click and ask them if they want to watch on Twitch/YouTube/Kick or via the Saxonberg embed …
+we do wanna get people into the game, but I wanna play friendly with the livestream providers."*
+
+- **The embed's link is Saxonberg's watch page** — the [deep link](./deep-links-slate.md)'s watch
+  intent — on the one edited message of § 3: the stream's title, its thumbnail, which platforms are
+  live.
+- ⭐ **Friendly to the platforms** — watching in Saxonberg uses **the platform's own official
+  embedded player**: embedded views count as views on Twitch and YouTube, and chat still goes
+  through the platform, so the streamer loses nothing by sending people to Saxonberg. The constraint
+  is their terms — the player stays visible and their ads play.
+- **The watch page offers the choice** — *watch here in Saxonberg, in the world*, or *open on
+  Twitch / YouTube / Kick*. Nobody is trapped.
+
+## 3b. ⭐⭐ A real Discord integration — the game is the authority **[DECIDED — the owner]**
+
+The owner: *"we're also gonna want real Discord integration so we can do roles and stuff based on
+our groups design. Not sure what else we'll wanna do with our Discord server."*
+
+- **Link a Discord account** — Discord supports OAuth; linked as Twitch is.
+- ⭐ **Roles mirror groups, one way** — the game decides membership and a bot gives the matching
+  Discord roles: verified player, a guild, a party, the Compact's committee, streamers, patrons (the
+  [giving slate](./giving-slate.md) already names a Discord role as a patron perk). The same rule as
+  GitLab membership synced from the game.
+- **This needs a bot** — § 1's webhooks carry outbound messages only.
+
+### What else a bot could do **[OPEN — the owner to choose]**
+
+- a **channel bridge** between #saxonberg and an in-game channel — the Twitch relay's pattern
+  ([dgg-relay](../tails/dgg-relay-slate.md) and its siblings); ⚠ opt-in, because in-game anonymity
+  and Discord identities do not mix by default;
+- **slash commands** — `/who` (who is online), `/news` (the latest releases);
+- **Discord scheduled events** from the stream schedule;
+- **notifications** of Compact votes or releases to a role.
+
 ## 4. GitLab beyond announcements **[OPEN]**
 
 The owner's wider wish — *"issue tracking and other shit"* — is
@@ -115,3 +155,4 @@ label, the two notes, the merge commit.
 4. **Stream alerts** — platform detection with one edited message, and the opt-in's home.
 5. **Webhooks only** — until anything inbound is wanted.
 6. **Who publishes** — which organization the platform's releases are published by.
+7. **The bot's extras** — which of the bridge, slash commands, events and notifications.
