@@ -49,7 +49,7 @@ set processes ship:
 | process | the material's fact | driven by |
 |---|---|---|
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets |
-| **draining** | `Material.drainSetting { days, becomes?, moisture: {unloaded, loaded}, loadRef }` | the mould's own reads — `MouldMixin.reconcileSetting` |
+| **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture: {unloaded, loaded}, loadRef }` | the mould's own reads — `MouldMixin.reconcileSetting` |
 
 A **drain set** progresses at `(1 + ratio) / days` per game day, where
 `ratio = min(1, loadKg / (poolKg × loadRef))` — the weight placed **on**
@@ -82,7 +82,11 @@ narrowing on the clone:
 ⚠ An ingot composes none of these and is told nothing.
 
 **Which material the cast is** (`SetPool.stampMaterial`): a **drain** set
-always stamps `becomes` (one wheel row, every cheese); a **freeze** stamps
+always stamps `becomes` (one wheel row, every cheese) — or, when
+`becomesAs` names the shape this mould casts, that shape's material: one
+strike sets as loaf sugar in a cone and as raw sugar in a hogshead's
+block (sugar, 2026-10-26: without it the estate's block was white loaf
+sugar and no boiler recognized it); a **freeze** stamps
 the pool's material when the pool is NOT `liquid`-tagged (a metal is the
 same material molten or set — one ingot row serves copper, tin and iron)
 and otherwise keeps the shape row's own (an ice block is ice, never water).
