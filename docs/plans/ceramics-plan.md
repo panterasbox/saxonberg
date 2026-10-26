@@ -3161,3 +3161,13 @@ the wire drives could not see, because they read prose:
     by" against "pitch dark").
   - NPCs moved by the roster tick "vanish" and "appear out of nowhere"
     across a clock jump.
+- **Fixed after the walk — the potter's shop is warm by its causes**
+  (545a9fae1): `extent: 6` (it had the field's 20 m cell, an 8000 m³
+  barn), a 4 kW drying stove the potter keeps fed (`stokes`, now told
+  which fire and what fuel), and weighted doors that swing shut behind
+  you (`Door.closesBehind`, new). Shut, the 6 m brick shop loses about
+  360 W/K, so the stove holds it about 11 K above the night: a spring
+  frost no longer reaches the boards. `_temperature` was not an option;
+  it is the decree the envelope build retired, and its list is a ratchet.
+  `lint:location-graph` now walks the far side a `bidirectional` exit
+  installs.
