@@ -478,8 +478,13 @@ export function scoreCandidates(
   // Without this a plural verb took every partial too — live, `get
   // "latex cup"` picked up the three cups AND the coagulating pan (whose
   // keywords say "latex pan"), because scores only order, they never cut.
-  if (whole.some(Boolean)) return out.filter((_, i) => whole[i]);
-  return out;
+  const kept = whole.some(Boolean) ? out.filter((_, i) => whole[i]) : out;
+  // ⭐ And a thing the query NAMES outright — its exact name or one of its
+  // keywords (70+) — cuts the things whose name merely holds the word:
+  // `look clay` among the lumps at the clay pit is the clay, not a choice
+  // between the clay and the pit.
+  if (kept.some((m) => m.score >= 70)) return kept.filter((m) => m.score >= 70);
+  return kept;
 }
 
 /** Does every query word appear in the candidate's name or a keyword? */

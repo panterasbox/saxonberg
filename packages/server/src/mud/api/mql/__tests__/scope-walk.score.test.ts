@@ -130,4 +130,15 @@ describe('scoreCandidate — a query that IS a keyword names that thing (ceramic
   it('an exact name still beats a keyword', () => {
     expect(scoreCandidate(cand('clay', []), ['clay'])).toBeGreaterThan(scoreCandidate(lumps, ['clay']));
   });
+
+  it('⭐ …and the lumps CUT the pit: `look clay` is the clay, not a choice', () => {
+    const got = scoreCandidates([pit, lumps, lumps], ['clay']);
+    expect(got).toHaveLength(2);
+    expect(got.every((m) => m.score >= 70)).toBe(true);
+  });
+
+  it('with no exact match, a name word still stands (the fallback)', () => {
+    expect(scoreCandidates([pit], ['clay'])).toHaveLength(1);
+  });
 });
+
