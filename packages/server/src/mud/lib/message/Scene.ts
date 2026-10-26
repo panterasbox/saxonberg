@@ -339,7 +339,14 @@ export class Scene {
           if (typeof sourceDb !== 'number' || !Number.isFinite(sourceDb)) {
             break;
           }
+          // ⚠ The actor has its own `.toSelf` line, as `peers` assumes: the
+          // gather reaches every hearing sensor in the room, the actor too,
+          // and `ring` told its ringer both "You tap a mug" and "a human
+          // taps a mug" (the ceramics browser walk).
+          const skip = new Set<Stuff>([this.#actor]);
+          if (explicitTarget) skip.add(explicitTarget);
           for (const arrival of AudienceGather.gather(sourceLoc, sourceDb)) {
+            if (skip.has(arrival.sensor as unknown as Stuff)) continue;
             if (arrival.db < Sound.DEFAULT_HEARING_THRESHOLD_DB) continue;
             // Same-room (direction null) → the full body via buildFrame;
             // a reached farther room → a faint directional line.

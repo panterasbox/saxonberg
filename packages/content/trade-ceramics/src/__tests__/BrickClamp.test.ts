@@ -233,3 +233,18 @@ function quantityAt(clamp: BrickClamp, where: string): number {
     .filter((c) => clamp.positionOf(c as Stuff) === where)
     .reduce((n, c) => n + (c as unknown as Brick).getQuantity(), 0);
 }
+
+describe('⭐ the burning clamp\'s smoke (ceramics browser walk)', () => {
+  it('a lit clamp smells of its fuel\'s smoke; a cold one of nothing', () => {
+    const clamp = makeStuff(() => new BrickClamp());
+    expect(MixinApi.isSmellSource(clamp)).toBe(true);
+    const coal = { getName: () => 'Coal' } as unknown as Material;
+    vi.spyOn(clamp, 'fuelMaterials').mockReturnValue([coal]);
+    vi.spyOn(clamp, 'isLit').mockReturnValue(false);
+    expect(clamp.getEmittedConcentration().rawValue()).toBe(0);
+    expect(clamp.getOdorIdentity()).toBe('');
+    vi.spyOn(clamp, 'isLit').mockReturnValue(true);
+    expect(clamp.getEmittedConcentration().rawValue()).toBeGreaterThan(0);
+    expect(clamp.getOdorIdentity()).toBe('coal smoke');
+  });
+});
