@@ -105,9 +105,15 @@ async function tellDay(
     MessageApi.scene(actor).topic('act.deed').toSelf(Mml.compose`${line ?? ''}`).send();
     return;
   }
+  // ⭐ Named as the maker knows them, not as the light shows them: a day at
+  // the table ends after dark half the year, and the perceptual name read
+  // "something stand turned out on the pallet" (ceramics browser walk).
+  const n = MixinApi.isStackable(made) ? made.getQuantity() : 1;
+  const what = made.getPresentation();
+  const them = `${what.charAt(0).toUpperCase()}${what.slice(1)}`;
   MessageApi.scene(actor)
     .topic('act.deed')
-    .toSelf(Mml.compose`The day is done. ${Mml.thing(made)} stand turned out on the pallet, green and soft — get them under the hack cover before it rains.`)
+    .toSelf(Mml.compose`The day is done. ${them} ${n === 1 ? 'stands' : 'stand'} turned out on the pallet, green and soft — get ${n === 1 ? 'it' : 'them'} under the hack cover before it rains.`)
     .toPeers(Mml.compose`${Mml.actor(actor)} straightens a stiff back over a pallet of green bricks.`)
     .send();
   if (MixinApi.isAdvancing(actor)) {

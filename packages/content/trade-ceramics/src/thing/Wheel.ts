@@ -67,7 +67,9 @@ async function tellShaped(actor: Stuff, made: Stuff | string, discipline: string
   }
   MessageApi.scene(actor)
     .topic('act.deed')
-    .toSelf(Mml.compose`You wire ${Mml.thing(made)} off the wheel. It is green and soft — let it stiffen to leather-hard before you touch it again.`)
+    // ⭐ The thrower names it as they know it, not as the light shows it (a
+    // throw that ends after dark read "You wire something off the wheel").
+    .toSelf(Mml.compose`You wire ${made.getPresentation()} off the wheel. It is green and soft — let it stiffen to leather-hard before you touch it again.`)
     .toPeers(Mml.compose`${Mml.actor(actor)} lifts ${Mml.thing(made)} off the wheel.`)
     .send();
   if (MixinApi.isAdvancing(actor)) {

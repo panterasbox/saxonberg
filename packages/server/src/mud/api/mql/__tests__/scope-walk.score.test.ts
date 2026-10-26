@@ -109,3 +109,25 @@ describe('scoreCandidates — a whole-phrase match CUTS the partials', () => {
     expect(scoreCandidates([cup, pan], ['latex']).length).toBe(2);
   });
 });
+
+describe('scoreCandidate — a query that IS a keyword names that thing (ceramics browser walk)', () => {
+  /**
+   * `look clay` at the clay pit looked at the PLACE: "the clay pit" holds
+   * the word in its name, the lumps' "lump of clay" does too, and the tie
+   * went to the place, which comes first.
+   */
+  const pit = cand('the clay pit', ['pit', 'clay pit', 'face']);
+  const lumps = cand('4 lumps of clay', ['clay', 'lump']);
+
+  it('⭐ `clay` names the lumps above the pit', () => {
+    expect(scoreCandidate(lumps, ['clay'])).toBeGreaterThan(scoreCandidate(pit, ['clay']));
+  });
+
+  it('…and `clay pit` still names the pit', () => {
+    expect(scoreCandidate(pit, ['clay', 'pit'])).toBeGreaterThan(scoreCandidate(lumps, ['clay', 'pit']));
+  });
+
+  it('an exact name still beats a keyword', () => {
+    expect(scoreCandidate(cand('clay', []), ['clay'])).toBeGreaterThan(scoreCandidate(lumps, ['clay']));
+  });
+});

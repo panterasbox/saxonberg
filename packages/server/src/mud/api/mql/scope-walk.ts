@@ -402,6 +402,14 @@ export function scoreCandidate(
 
   if (queryWords.length === 1 && nameLower === queryWords[0]) return 100;
 
+  // ⭐ A query that IS one of the thing's keywords names that thing outright,
+  // above a word that merely appears in some other name: `look clay` at the
+  // pit looked at "the clay pit" — its NAME holds the word, the lumps' does
+  // too, and the tie went to the place (ceramics browser walk). The lump
+  // answers to `clay`; the pit only to "clay pit".
+  const phrase = queryWords.join(' ');
+  if (phrase && candidate.keywords.some((kw) => kw.toLowerCase() === phrase)) return 70;
+
   const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 0);
   if (
     nameWords.length > 0 &&

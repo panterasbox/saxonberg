@@ -62,7 +62,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
-import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
   Diggable,
   WorkPrognosis,
@@ -420,7 +420,7 @@ export function OpenWorkingMixin<
     public readonly diggable = true as const;
 
     public async planWork(
-      _by: Stuff,
+      by: Stuff,
       tool: (Stuff & Tooled) | null,
       what: string | null,
     ): Promise<WorkPrognosis> {
@@ -533,9 +533,12 @@ export function OpenWorkingMixin<
         beginSelf: face.earth
           ? `You set into the ${nameOfFace(face)}, cutting and casting back.`
           : `You set the point of it into the ${nameOfFace(face)} and start working a block free.`,
-        beginPeers: face.earth
-          ? 'Somebody starts stripping the face.'
-          : 'Somebody starts working stone out of the face.',
+        // ⭐ Named, as the room sees them: a bare "Somebody" read in full
+        // daylight to everyone at the pit (ceramics browser walk).
+        beginPeers: (face.earth
+          ? Mml.compose`${Mml.actor(by)} starts stripping the face.`
+          : Mml.compose`${Mml.actor(by)} starts working stone out of the face.`
+        ).toString(),
         token: { hostPath: face.hostPath, floor: face.floor, named: asked !== '' } satisfies DigToken,
       };
     }

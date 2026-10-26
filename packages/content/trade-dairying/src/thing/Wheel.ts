@@ -23,7 +23,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
   Splittable,
   WorkPrognosis,
@@ -115,7 +115,7 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
   // ───────────────────────── the Splittable shape ─────────────────────────
 
   public async planWork(
-    _by: Stuff,
+    by: Stuff,
     tool: (Stuff & Tooled) | null,
     _what: string | null,
   ): Promise<WorkPrognosis> {
@@ -144,7 +144,7 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
       durationMs: SPLIT_MS,
       cost: 1,
       beginSelf: 'You set the blade at the centre and lean on it.',
-      beginPeers: 'Somebody starts cutting into a wheel of cheese.',
+      beginPeers: Mml.compose`${Mml.actor(by)} starts cutting into a wheel of cheese.`.toString(),
       token: null,
     };
   }

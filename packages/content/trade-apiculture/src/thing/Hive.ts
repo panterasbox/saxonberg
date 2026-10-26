@@ -725,7 +725,7 @@ export default class Hive extends HiveBase implements Splittable {
       beginSelf:
         'You start going through the frames, looking for brood and eggs to ' +
         'take across.',
-      beginPeers: 'Somebody is working slowly through an open hive.',
+      beginPeers: Mml.compose`${Mml.actor(by)} is working slowly through an open hive.`.toString(),
       token: 'split',
     };
   }
