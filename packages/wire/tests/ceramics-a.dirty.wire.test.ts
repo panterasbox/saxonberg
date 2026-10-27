@@ -39,6 +39,7 @@ import {
   plain,
   dress,
   dressFounder,
+  hand,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -400,9 +401,23 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // (A fresh brick merges only with bricks in its own state AND by its own
     // maker, so the gang's never take it. `get 1 brick` once bound the
     // "brick table".)
+    // ⭐ A FRESH lump, handed (setup — the act under test is the frost):
+    // what the brickmaker still carried from 1 and 2 was remnants smaller
+    // than one brick, and the day minted nothing (runs 36–38). Moulded by
+    // the id of the heap in hand, so the shed's own floor clay is not it.
+    await hand(digger, '/trade/quarrying/thing/clay');
+    const heaps = (await digger.query('me:i:clay', { fields: ['mass', 'quantity'] }).catch(() => [])) as {
+      stuffId?: string;
+      quantity?: unknown;
+      mass?: { value?: number };
+    }[];
+    const heap = heaps
+      .map((r) => ({ id: r.stuffId, kg: (Number(r.quantity ?? 1) || 1) * Number(r.mass?.value ?? 0) }))
+      .sort((a, b) => b.kg - a.kg)[0]?.id;
+    expect(heap, 'the clay in hand').toBeDefined();
     let struck = '';
     const minted = await stackAfter(digger, 'here:i:bricks', async () => {
-      struck = await act(digger, 'shape clay into brick', '9 hours');
+      struck = await act(digger, `shape #${heap} into brick`, '9 hours');
       await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
     });
     expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
