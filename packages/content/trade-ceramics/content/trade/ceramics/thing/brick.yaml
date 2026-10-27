@@ -7,5 +7,10 @@ data:
   longDescription: >-
     A brick of clay struck from the mould, its frog pressed into the top, still soft.
   _materialPath: /stuff/idea/material/earth/clay
-  mass: 3.6
+  # ⭐ The STATUTE brick's fired mass (9 × 4½ × 2¼ in at 2000 kg/m³): the
+  # form cuts it 1.08× oversize green, and the firing gives back 0.92 of
+  # that, so a brick off the shed's mould fires to the statute. At 3.6 the
+  # brickfield's own bricks read 6 % OVER the statute (drive A, run 39 — the
+  # measure's own unit test calls 3.6 kg off standard).
+  mass: 2.99
   quantity: 1
