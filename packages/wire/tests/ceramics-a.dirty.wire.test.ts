@@ -471,7 +471,7 @@ suite('⭐ 3 — knead it', () => {
       expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
     });
     expect(heap?.stuffId, 'the weathered lumps in hand').toBeDefined();
-    const fat = await say(digger, `analyze #${heap!.stuffId}`);
+    const fat = await say(digger, `analyze clay #${heap!.stuffId}`);
     await say(digger, 'east');
     await say(digger, `put #${heap!.stuffId} in pit`);
     await say(digger, 'put sand in pit');
@@ -499,7 +499,7 @@ suite('⭐ 3 — knead it', () => {
     expect(taken, 'the clay out of the pit').toMatch(/clay/i);
     expect(taken).not.toMatch(/sand|breeze/i);
     expect(blend?.stuffId, 'the tempered clay in hand').toBeDefined();
-    const lean = await say(digger, `analyze #${blend!.stuffId}`);
+    const lean = await say(digger, `analyze clay #${blend!.stuffId}`);
     expect(lean, `tempered: ${lean} — raw: ${fat}`).not.toEqual(fat);
     expect(lean).toMatch(/workable|lean/i);
   }, 3_600_000);
