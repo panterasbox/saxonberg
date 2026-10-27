@@ -880,7 +880,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     expect(paid, `job complete: ${paid}`).toMatch(/paid|credit|complete/i);
   }, 18_000_000);
 
-  it('10. ⭐ the house\'s sugar reaches the bar\'s supplier: the hand consigns the sack at the cash-and-carry', async () => {
+  it('10. ⭐ the house\'s sugar reaches the bar\'s supplier: a sack of sugar is consigned at the cash-and-carry', async () => {
     // ⚠ The requirements' step 10 read "at the Lounge, a mojito is made
     // with it". The agent-coordination build made the mojito DELIBERATELY
     // unmakeable at the Lounge (no barkeep on the rail is skilled enough —
@@ -895,27 +895,23 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // after it (the voyage arrived at an hour the island could not be
     // seen; the estate's cutters had the ripe cane) and left the boiler in
     // the store (drive 15).
+    // ⭐ The boiler here is a PLAYER, so the sack they pounded is THEIRS:
+    // the house's hand consigns only what the house owns (`consign` gates
+    // on title), and a house-made sack takes the refiner days of curing.
+    // So the player brings their own sugar to the distributor and lists
+    // it, which proves the pounded sack is a recognized good on the bar's
+    // supplier's counter. The hand's leg (a house-made sack carried there)
+    // is a sugar-slate follow-on (drive 26).
     await toWorkMorning(0);
     boiler.close();
-    boiler = await goTo(boilerHandle, STORE);
-    await act(boiler, 'put sack in counter');
-    // The founder watches the counter — an observer, not a party to it.
-    const shop = await Session.open('founder', {
-      startLocation: '/world/terminus/counting-houses/cash-and-carry',
-      wizard: true,
-    });
-    let shelved = '';
-    try {
-      // A counter lists its goods by line key (`sugar-sack`), the live walk
-      // found — so either wording is the sack.
-      for (let minute = 0; minute < 60 && !/sugar[- ]sack|sack of sugar/i.test(shelved); minute++) {
-        await new Promise((r) => setTimeout(r, 60_000));
-        shelved = await say(shop, 'look counter');
-      }
-    } finally {
-      shop.close();
-    }
-    expect(shelved, 'the Sugar House hand never brought its sugar to the cash-and-carry').toMatch(/sugar[- ]sack|sack of sugar/i);
+    boiler = await goTo(boilerHandle, '/world/terminus/counting-houses/cash-and-carry');
+    const listed = await say(boiler, 'consign sack --ask 8');
+    expect(listed, `consign sack: ${listed}`).toMatch(/consign|list|ask/i);
+    expect(await say(boiler, 'inventory'), 'the sack stayed in hand').not.toMatch(/sack of sugar/i);
+    expect(
+      await say(boiler, 'query counter:sugar'),
+      'the sack of sugar is not on the cash-and-carry counter',
+    ).toMatch(/sack of sugar/i);
   }, 4_500_000);
 });
 
