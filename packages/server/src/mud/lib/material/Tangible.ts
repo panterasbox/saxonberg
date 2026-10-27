@@ -58,6 +58,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type { ImpressionData } from '../mould/Impression';
+import type { MarkupAugmenter } from '../../api/mml';
 
 /** The kinds of flaw a piece of matter can carry (ceramics M5). */
 export type FlawKind = 'dunt' | 'crack' | 'casting' | 'check';
@@ -69,6 +70,8 @@ export interface Flaw {
   visible: boolean;
   /** Game-second it happened. */
   atS: number;
+  /** How it was mended, if it was — a tinker's rivets across a crack. */
+  mended?: 'riveted';
 }
 
 /** A blow a body takes. */
@@ -215,6 +218,11 @@ export interface Tangible {
   /** Record a flaw (`atS`: when, if the caller knows — the clock is the caller's). */
   addFlaw(kind: FlawKind, visible: boolean, atS?: number): void;
   /**
+   * Rivet every unmended crack and dunt (a tinker's mend, ceramics): the
+   * staples show, so a riveted flaw is visible. Returns how many.
+   */
+  rivetFlaws(): number;
+  /**
    * ⭐ The energy a blow must deliver to break this body, J — its
    * material's toughness × its volume, a thicker wall disproportionately
    * stronger, less what its flaws cost. `Infinity` for a body that is not
@@ -268,9 +276,43 @@ export interface RingSound {
   carries?: string;
 }
 
+/** What a look says of a flaw an eye can find — and of a mend. */
+const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
+  crack: 'It is cracked.',
+  dunt: 'A fine crack runs through it where a shock of heat caught it.',
+  casting: 'It has a fault in the casting.',
+  check: 'Fine checks run across its surface where it dried too fast.',
+};
+
+/**
+ * ⭐ The flaws a look can see, and the mends. Before this a `visible` flaw
+ * was seen by nothing: a cracked bowl read as a sound one (the ceramics
+ * drive C, run 37). A hidden one stays hidden — only `ring` finds it.
+ */
+const flawAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
+  if (opts?.filter) return text;
+  if (!MixinApi.isTangible(host)) return text;
+  const lines: string[] = [];
+  const seen = new Set<string>();
+  for (const f of host.getFlaws()) {
+    const line = f.mended === 'riveted'
+      ? 'It has been riveted across a crack: a row of iron staples holds it together.'
+      : f.visible ? FLAW_WORDS[f.kind] : '';
+    if (line && !seen.has(line)) {
+      seen.add(line);
+      lines.push(line);
+    }
+  }
+  if (lines.length === 0) return text;
+  const all = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${all}` : all;
+};
+
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class TangibleMixin extends Base {
     static _mixinName = 'TangibleMixin';
+
+    static markupAugmenters: MarkupAugmenter[] = [flawAugmenter];
 
     /**
      * **The thing with mass confers the verb.** Anything Tangible is
@@ -628,6 +670,16 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.flaws = [...this.flaws, { kind, visible, atS }];
     }
 
+    public rivetFlaws(): number {
+      let n = 0;
+      this.flaws = this.flaws.map((f) => {
+        if ((f.kind !== 'crack' && f.kind !== 'dunt') || f.mended) return f;
+        n++;
+        return { ...f, visible: true, mended: 'riveted' as const };
+      });
+      return n;
+    }
+
     public leaveImpression(nowS: number): ImpressionData | null {
       const self = this as unknown as Stuff;
       const takenFromIdentity = provenanceOf(self);
@@ -704,7 +756,8 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       const vRef = tangibleDial(AppSettingKeys.impactReferenceVolumeM3, 0.0001);
       const share = tangibleDial(AppSettingKeys.impactFractureShare, 0.0018);
       let penalty = 0;
-      for (const f of this.flaws) penalty += FLAW_PENALTY[f.kind] ?? 0.2;
+      // A riveted crack still weakens the body, by half: the staples hold it.
+      for (const f of this.flaws) penalty += (FLAW_PENALTY[f.kind] ?? 0.2) * (f.mended ? 0.5 : 1);
       return toughness * 1e6 * v * (v / vRef) * share * Math.max(0.1, 1 - penalty);
     }
 

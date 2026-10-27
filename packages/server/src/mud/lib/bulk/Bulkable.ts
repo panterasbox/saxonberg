@@ -980,7 +980,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       try {
         const near: Stuff[] = [];
         if (MixinApi.isContainer(self)) near.push(...(self.getContents() as Stuff[]));
-        if (MixinApi.isPlacing(self)) near.push(...(self.getPlaced('on') as Stuff[]));
+        if (MixinApi.isPlacing(self)) near.push(...self.getPlaced('on'));
         for (const c of near) {
           if (c === self || !MixinApi.isBulkable(c) || !c.hasInteriorBulk()) continue;
           c.getBulkAmount('interior');

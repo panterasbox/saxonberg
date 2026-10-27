@@ -231,7 +231,7 @@ export interface RepairRequest {
  */
 export interface MendOutcome {
   part?: string;
-  kind: 'mended' | 'reforged' | 'tightened' | 'refired';
+  kind: 'mended' | 'reforged' | 'tightened' | 'refired' | 'riveted';
   /** The trade it was mended under (`''` when none could be known). */
   discipline: string;
   /** The hand's band in that trade. */
@@ -273,7 +273,7 @@ export const NOBODY_TO_WORK = "There's nobody here to do the work.";
 export interface Fault {
   /** The part (`''` for a thing of one piece), or the joint for `slack`. */
   part: string;
-  kind: 'worn' | 'failed' | 'slack' | 'spent';
+  kind: 'worn' | 'failed' | 'slack' | 'spent' | 'cracked';
   /** What the hand can call it — below a joint's band, *something about the staves*. */
   named: string;
   /** What mending it would be. */
@@ -356,7 +356,7 @@ export interface RepairSuccess {
    * slack joint (consumes nothing), `refired` a spent cask, or `restored`
    * wear with material. Absent on a thing that is not made of parts.
    */
-  rung?: 'tightened' | 'refired' | 'restored' | 'reforged';
+  rung?: 'tightened' | 'refired' | 'restored' | 'reforged' | 'riveted';
   /** What the rung acted on — the joints tightened, in words. */
   named?: string;
   /**

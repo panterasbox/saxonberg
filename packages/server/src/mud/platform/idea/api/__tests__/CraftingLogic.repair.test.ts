@@ -182,6 +182,33 @@ describe('CraftingLogic.repair', () => {
     expect(jerkin.getCondition()).toBe(1);
   });
 
+  it('⭐ a cracked pot is RIVETED — sound in condition, a hidden dunt found, the staples show (ceramics)', async () => {
+    const CLAY = '/stuff/idea/material/_test/rp-earthenware';
+    registerMaterial(CLAY, 'earthenware', ['ceramic', 'fired', 'brittle']);
+    const bowl = makeStuff(() => new Tool());
+    bowl.setMaterial(mat(CLAY));
+    bowl.setMass(Quantity.of(0.6, 'kg'));
+    bowl.setLongDescription('A bowl.');
+    bowl.addFlaw('dunt', false);
+    ContainmentApi.move(bowl, room);
+
+    // No kit: the crack is named and the cure with it.
+    const bare = await repairAs(bowl);
+    expect(bare).toMatchObject({ ok: false, reason: 'missing-tool', detail: 'mending' });
+
+    const kit = makeStuff(() => new Tool());
+    kit.setCapabilities(['mending']);
+    ContainmentApi.move(kit, room);
+    const outcome = await repairAs(bowl);
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.mended.map((x) => x.kind)).toEqual(['riveted']);
+    expect(bowl.getFlaws()[0]).toMatchObject({ kind: 'dunt', visible: true, mended: 'riveted' });
+    expect(bowl.getMarkupLong(bowl as never, {})).toMatch(/riveted across a crack/);
+    // Riveted once is riveted: there is nothing more to mend.
+    expect(await repairAs(bowl)).toMatchObject({ ok: false });
+  });
+
   it('a control-bearing mender floors the repaired grade; never lowers it', async () => {
     const machine = makeStuff(() => new Tool());
     machine.setCapabilities([{ kind: 'mending', rate: 3, control: 'fine' }]);

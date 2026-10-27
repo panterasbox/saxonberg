@@ -3579,6 +3579,7 @@ async function runMendLadder(
   const assembled = MixinApi.isAssembled(item) && !item.isOnePiece();
   if (MixinApi.isAssembled(item) && assembled) await mendAssembly(item, m);
   else await mendOnePiece(item, m);
+  await mendCracks(item, m);
   return { ok: true, m, item, assembled, conditionBefore };
 }
 
@@ -3911,6 +3912,45 @@ async function mendAssembly(
       mendable: true, result, stockKg: needKg,
     });
   }
+}
+
+/**
+ * ⭐ A cracked pot is RIVETED (ceramics: *the repair tinker gains riveting
+ * a broken pot*). A crack or a dunt in a brittle body is a fault of its
+ * own, whatever the piece's condition. The hand drills either side and
+ * draws the crack shut with iron staples, using a mending kit, and the
+ * staples show. A hand that does this work finds a hidden dunt the way
+ * anyone can, by ringing the piece, so a dunt is diagnosed like a crack.
+ */
+async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
+  if (!MixinApi.isTangible(item)) return;
+  if (!(item.getMaterial()?.hasTag('brittle') ?? false)) return;
+  const open = item.getFlaws().filter((f) => (f.kind === 'crack' || f.kind === 'dunt') && !f.mended);
+  if (open.length === 0) return;
+  const crafted = MixinApi.isCrafted(item);
+  const discipline = disciplineOf(
+    {
+      recipe: crafted ? item.getRecipe() : '',
+      template: item.getTemplatePath() ?? '',
+      castDiscipline: crafted ? item.getCastDiscipline() : '',
+    },
+    m.catalogue,
+  );
+  const { band } = await termsFor(m.hand, discipline);
+  // Not metal, not wood: the mending kit (`instrumentFor`'s third case).
+  const how = instrumentFor(null, m, 0);
+  if (!how.ok) {
+    m.faults.push(unmendable('', 'cracked', 'riveted', 'it', discipline, band, how.reason, how.detail));
+    return;
+  }
+  if (m.commit) {
+    item.rivetFlaws();
+    if (MixinApi.isDurable(item)) item.recordMend(mendRecord(m, band, discipline, 'riveted', 'sound'));
+  }
+  m.faults.push({
+    part: '', kind: 'cracked', named: 'it', action: 'riveted', discipline, band,
+    mendable: true, result: 'sound', stockKg: 0,
+  });
 }
 
 /** A thing of one piece is one line: its own fields (repair D8). */

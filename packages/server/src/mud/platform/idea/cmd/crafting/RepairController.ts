@@ -131,6 +131,16 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
         .send();
       return;
     }
+    if (outcome.mended.some((x) => x.kind === 'riveted') && outcome.mended.every((x) => x.kind === 'riveted')) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You drill either side of the crack in ${Mml.thing(item)} and draw it shut with a row of iron staples.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} rivets ${Mml.thing(item)}.`)
+        .send();
+      return;
+    }
     if (outcome.rung === 'refired') {
       MessageApi.scene(giver)
         .topic(TOPIC)

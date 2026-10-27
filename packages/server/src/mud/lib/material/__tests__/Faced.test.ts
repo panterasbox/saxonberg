@@ -137,6 +137,17 @@ describe('coats', () => {
     expect(j.getMarkupLong(j as never, {})).toMatch(/glazed on the inside with/);
   });
 
+  it('⭐ a look shows a VISIBLE flaw; a hidden one only `ring` finds (drive C, run 37)', () => {
+    const seen = jarOf(terracotta);
+    seen.setLongDescription('A jar.');
+    seen.addFlaw('crack', true);
+    expect(seen.getMarkupLong(seen as never, {})).toMatch(/It is cracked\./);
+    const hidden = jarOf(terracotta);
+    hidden.setLongDescription('A jar.');
+    hidden.addFlaw('dunt', false);
+    expect(hidden.getMarkupLong(hidden as never, {})).not.toMatch(/crack/);
+  });
+
   it('lead on terracotta CRAZES (it shrinks more than its body); ash does not', () => {
     const a = jarOf(terracotta);
     a.layCoat('inside', lead.getTemplatePath()!, 0);
