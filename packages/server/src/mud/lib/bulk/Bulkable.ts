@@ -62,6 +62,7 @@ import type Material from '../material/Material';
 import type { ImpactOutcome, ImpactSpec, Tangible } from '../material/Tangible';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../cleanliness/WaterHardness';
+import { SecurityError } from '../security/errors';
 
 /**
  * Ordered liquid-retention scale on a bulk holder. The vessel retains
@@ -982,8 +983,17 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         if (MixinApi.isContainer(self)) near.push(...(self.getContents() as Stuff[]));
         if (MixinApi.isPlacing(self)) near.push(...self.getPlaced('on'));
         for (const c of near) {
-          if (c === self || !MixinApi.isBulkable(c) || !c.hasInteriorBulk()) continue;
-          c.getBulkAmount('interior');
+          // Only a FACED vessel seeps (its faces are what let a liquid through).
+          if (c === self || !MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
+          try {
+            if (c.hasInteriorBulk()) c.getBulkAmount('interior');
+          } catch (err) {
+            // ⚠ A read this caller may not make is not this vessel's to force:
+            // a sandboxed eval looking into a pan may not peek at what stands
+            // across its boundary (drive D, run 38). That seeper is brought
+            // current on its own read. Anything else is a real fault.
+            if (!(err instanceof SecurityError)) throw err;
+          }
         }
       } finally {
         this._seepersReconciling = false;
