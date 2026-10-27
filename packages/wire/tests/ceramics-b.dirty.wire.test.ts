@@ -409,8 +409,23 @@ suite('⭐ 12 — reline it', () => {
     const fit = await act('fit lining to furnace', '1 hour');
     expect(refusedFor(fit.r), `fit: ${fit.said}`).toBeNull();
     expect(fit.said).toMatch(/lining|fit/i);
-    const after = await examine('furnace');
-    expect(after, 'the relined furnace').not.toMatch(/burnt through/i);
+    // ⭐ Reline it WHOLE: one fit takes the firebrick in hand, and step 11
+    // wore four of its eight linings through — a part-relined furnace held
+    // 1258 K and the copper wanted 1358 (run 34, 13's first graded smelt).
+    let after = await examine('furnace');
+    for (let more = 0; more < 6 && /worn through/i.test(after); more++) {
+      if (!/firebrick/i.test(await held())) {
+        await goTo(PROVISIONING);
+        for (let i = 0; i < 8; i++) {
+          if (!/you buy/i.test(await say('buy firebrick'))) break;
+        }
+        await goTo(SMELTER);
+      }
+      if (!/firebrick/i.test(await held())) break;
+      await act('fit lining to furnace', '1 hour');
+      after = await examine('furnace');
+    }
+    expect(after, 'the relined furnace').not.toMatch(/burnt through|worn through/i);
     const comp = await say('competence');
     expect(comp, `competence: ${comp}`).toMatch(/masonry/i);
     expect(comp).not.toEqual(before);
