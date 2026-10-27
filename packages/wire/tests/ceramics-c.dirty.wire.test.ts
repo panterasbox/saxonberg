@@ -749,7 +749,15 @@ suite('⭐ 23 — breakage and mending', () => {
     potter = await goTo(potter, GATE);
     const tinker = await examine(potter, 'tinker');
     expect(tinker, 'the tinker on his stop').not.toEqual('');
-    const asked = await run(potter, 'order repair bowl');
+    // ⭐ The piece a hot opening CRACKED (18b), by identity: a bare `bowl`
+    // handed the tinker a sound green one — "There is nothing wrong with
+    // it" (run 35).
+    const cracked = ((await potter.query('me:i', { fields: 'detail' }).catch(() => [])) as {
+      stuffId?: string;
+      longDescription?: string;
+    }[]).find((r) => /crack|dunt/i.test(String(r.longDescription ?? '')));
+    expect(cracked?.stuffId, 'a cracked piece from the hot kiln').toBeDefined();
+    const asked = await run(potter, `order repair #${cracked!.stuffId}`);
     const answer = await potter.awaitPrompt(5_000).catch(() => null);
     if (answer) {
       const id = (answer as { payload?: { promptId?: string }; promptId?: string }).payload?.promptId ??
@@ -758,8 +766,8 @@ suite('⭐ 23 — breakage and mending', () => {
       await new Promise((r) => setTimeout(r, 2_000));
     }
     expect(asked.said).not.toMatch(/don'?t understand/i);
-    const mended = await examine(potter, 'me:i:bowl');
-    expect(mended, 'the riveted bowl').toMatch(/rivet|mend/i);
+    const mended = await examine(potter, `#${cracked!.stuffId}`);
+    expect(mended, 'the riveted piece').toMatch(/rivet|mend/i);
   }, 1_800_000);
 });
 
