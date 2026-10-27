@@ -363,39 +363,33 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await toHour(9, 15);
     await say(digger, 'east');
     await say(digger, 'east');
-    // ⚠ By identity: `get 1 brick` bound the moulding table — its keyword
-    // is "brick table", and a singular head noun matches the modifier (run
-    // 24; the MQL finding) — and the hack's fourteen gang bricks are not ours.
-    // ⚠ A fresh brick STACKS with any brick in its green state, so it has
-    // no id of its own and a stack-diff could not find it (runs 26–29; the
-    // gang carts bricks too). Any brick of the merged stack IS in that state
-    // — that is the merge rule — so the fresh stack stands for it.
-    const struck = await act(digger, 'shape clay into brick', '9 hours');
-    expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
-    await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
-    // ⭐ The stack still SOFT AND WET is the fresh one. It is where the day
-    // left it, in the shed, unless the moulders bore it off to the hacks
-    // overnight (their routine — run 31 found the shed bare by morning, run
-    // 32 found it on neither row of the hacks); it is watched under the
-    // hack cover either way, carried there if it is still in the shed.
-    const wetIn = async (): Promise<{ id?: string; seen: string[] }> => {
-      const rows = (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as {
+    // ⭐ By identity: the stack the day mints is the one that was not here
+    // before it. (A fresh brick merges only with bricks in its own state
+    // AND by its own maker — the gang's never take it now — so the new stack
+    // id is the day's work; `get 1 brick` once bound the "brick table".)
+    const bricksHere = async (): Promise<{ stuffId?: string; longDescription?: unknown }[]> =>
+      (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as {
         stuffId?: string;
         longDescription?: unknown;
       }[];
-      return {
-        id: rows.find((r) => /thumbprint|soft, wet/i.test(String(r.longDescription ?? '')))?.stuffId,
-        seen: rows.map((r) => String(r.longDescription ?? '').slice(-90)),
-      };
-    };
-    const inShed = await wetIn();
-    if (inShed.id) await say(digger, `get #${inShed.id}`);
+    const before = new Set((await bricksHere()).map((r) => r.stuffId));
+    const struck = await act(digger, 'shape clay into brick', '9 hours');
+    expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
+    await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
+    const minted = (await bricksHere()).find((r) => r.stuffId && !before.has(r.stuffId));
+    expect(minted?.stuffId, 'the day\'s fresh stack').toBeDefined();
+    const fresh = minted!.stuffId!;
+    let hackBrick = String(minted!.longDescription ?? '');
+    // ⭐ In deep winter the frost can find the wet stack before the morning
+    // (run 35: burst on the pallet overnight) — that IS the outcome. Still
+    // wet, it goes under the hack cover and is watched there.
+    if (!/frost has burst|froze wet/i.test(hackBrick)) {
+      await say(digger, `get #${fresh}`);
+      await say(digger, 'south');
+      await say(digger, `drop #${fresh}`);
+      await say(digger, 'north');
+    }
     await say(digger, 'south');
-    if (inShed.id) await say(digger, `drop #${inShed.id}`);
-    const onHacks = inShed.id ? inShed : await wetIn();
-    const fresh = onHacks.id;
-    expect(fresh, `a fresh wet stack: shed ${JSON.stringify(inShed.seen)} · hacks ${JSON.stringify(onHacks.seen)}`).toBeTruthy();
-    let hackBrick = '';
     for (let half = 0; half < 20 && !/frost has burst|froze wet/i.test(hackBrick); half++) {
       await advance('12 hours');
       hackBrick = await examine(digger, `#${fresh}`);
