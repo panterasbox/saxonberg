@@ -168,6 +168,12 @@ args:
     expect(JSON.stringify(bind('get "latex cup"', GET).targets)).not.toContain('\\"');
   });
 
+  it('⭐ …and inside a LONGER object span too: `get "plant pot" from kiln` (ceramics drive C, run 35)', () => {
+    const targets = JSON.stringify(bind('get "plant pot" from kiln', GET).targets);
+    expect(targets).toContain('plant pot from kiln');
+    expect(targets).not.toContain('\\"');
+  });
+
   it('while a trailing STRING field still keeps its quotes (`say`)', () => {
     expect(bind('post "hello world"', TRAILING).line).toBe('"hello world"');
   });

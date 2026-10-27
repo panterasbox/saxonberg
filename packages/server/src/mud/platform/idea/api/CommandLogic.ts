@@ -2678,6 +2678,14 @@ function bindPositionals(
         }
       } else if (loneQuoted !== null) {
         bound[name] = expand(loneQuoted);
+      } else if (namesAThing && greedySpan.some((t) => t.raw !== t.value)) {
+        // ⭐ An object field's value goes to MQL, which has no use for a
+        // quote mark — so a quoted NAME inside a longer object span binds
+        // unquoted too: `get "plant pot" from kiln` answered *"unexpected
+        // character '\"' at position 0"* (the ceramics drive C, run 35; the
+        // two-word-name finding). The tokens' values, already unquoted by
+        // the tokenizer, joined by a space: a name is matched word by word.
+        bound[name] = expand(greedySpan.map((t) => t.value).join(' '));
       } else if (stopAt < positionals.length) {
         // Build the substring from the original source to preserve
         // whitespace, but cut it just before the boundary token.
