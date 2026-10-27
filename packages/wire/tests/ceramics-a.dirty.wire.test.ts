@@ -68,6 +68,7 @@ const B = '/world/terminus/hearts-delight/brickfield/location';
 const GROUND = `${B}/weathering-ground`;
 const PIT = `${B}/clay-pit`;
 const HACKS = `${B}/hacks`;
+const CLAMP_GROUND = `${B}/clamp-ground`;
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -674,6 +675,9 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
   it('a second clamp fired starved of air comes out blue', async () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).
     await toHour(9, 15);
+    // A checkpoint owns its position (7 ends at the clamp ground).
+    digger.close();
+    digger = await at(digger.handle, CLAMP_GROUND);
     // The first clamp's bricks stay on the clamp ground (9 measures them).
     await say(digger, 'drop bricks');
     // A second load: clay from the pit, a day at the table, the hacks.
@@ -732,6 +736,10 @@ suite('⭐ 9 — measure against the statute brick', () => {
     // A trained reader — an untrained eye's ±8 % blurs a small error away.
     for (let i = 0; i < 12; i++) await digger.cmd('practice brickmaking hard success');
     await digger.drainProse();
+    // ⭐ A checkpoint owns its position: run 37's 8 failed in the shed, and
+    // this step's walk from "the clamp ground" went nowhere it meant to.
+    digger.close();
+    digger = await at(digger.handle, CLAMP_GROUND);
     // At the clamp ground: the blue load down, then the gauging rod off its
     // nail in the shed, then the first clamp's graded bricks back up.
     await say(digger, 'drop bricks');
