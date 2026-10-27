@@ -394,6 +394,28 @@ suite('⭐ 11 — wear a lining', () => {
   }, 7_200_000);
 });
 
+/**
+ * Fit firebrick to the furnace until no lining reads worn through, buying
+ * more off the Rejection store when the hand runs out. Returns the
+ * furnace's read after the last fit.
+ */
+async function relineWhole(): Promise<string> {
+  let after = await examine('furnace');
+  for (let more = 0; more < 8 && /worn through|burnt through|worn thin/i.test(after); more++) {
+    if (!/firebrick/i.test(await held())) {
+      await goTo(PROVISIONING);
+      for (let i = 0; i < 8; i++) {
+        if (!/you buy/i.test(await say('buy firebrick'))) break;
+      }
+      await goTo(SMELTER);
+    }
+    if (!/firebrick/i.test(await held())) break;
+    await act('fit lining to furnace', '1 hour');
+    after = await examine('furnace');
+  }
+  return after;
+}
+
 suite('⭐ 12 — reline it', () => {
   it('`fit lining to furnace` with firebricks — relined, masonry credited, and it lights again', async () => {
     // Firebrick off the Rejection store: the brickfield's first, an import
@@ -412,19 +434,7 @@ suite('⭐ 12 — reline it', () => {
     // ⭐ Reline it WHOLE: one fit takes the firebrick in hand, and step 11
     // wore four of its eight linings through — a part-relined furnace held
     // 1258 K and the copper wanted 1358 (run 34, 13's first graded smelt).
-    let after = await examine('furnace');
-    for (let more = 0; more < 6 && /worn through/i.test(after); more++) {
-      if (!/firebrick/i.test(await held())) {
-        await goTo(PROVISIONING);
-        for (let i = 0; i < 8; i++) {
-          if (!/you buy/i.test(await say('buy firebrick'))) break;
-        }
-        await goTo(SMELTER);
-      }
-      if (!/firebrick/i.test(await held())) break;
-      await act('fit lining to furnace', '1 hour');
-      after = await examine('furnace');
-    }
+    const after = await relineWhole();
     expect(after, 'the relined furnace').not.toMatch(/burnt through|worn through/i);
     const comp = await say('competence');
     expect(comp, `competence: ${comp}`).toMatch(/masonry/i);
@@ -462,6 +472,10 @@ suite('⭐ 13 — wear a crucible', () => {
       // and burns (ceramics W0) — run 29's 16 kg charge had burned away in
       // the half-hour warm-up and `smelt` found 0 kg.
       await say('douse furnace');
+      // ⭐ The melts wear the LINING too, and a worn one holds less heat: by
+      // the fifth melt it held 1309 K and the copper wanted 1358 (run 36).
+      // A smelterman relines between runs, and so does this one.
+      await relineWhole();
       // Anything metal left in the shaft from a melt that did not pour (a
       // frozen lump) comes out first: ore and metal will not charge together.
       for (let i = 0; i < 3; i++) {
@@ -483,10 +497,33 @@ suite('⭐ 13 — wear a crucible', () => {
       // that eases it off is pumped again (run 26 smelted cold).
       const pumped = await act('pump bellows');
       if (/ease off/i.test(pumped.said)) await act('pump bellows');
-      const smelt = await act('smelt', '2 hours');
+      let smelt = await act('smelt', '2 hours');
+      // A lining worn but not yet through still costs heat: refused too
+      // cold, the furnace is relined to the last course and the run tried
+      // once more.
+      if (refusedFor(smelt.r) === 'too-cold') {
+        await say('douse furnace');
+        for (let i = 0; i < 8; i++) {
+          if (!/firebrick/i.test(await held())) {
+            await goTo(PROVISIONING);
+            for (let j = 0; j < 8; j++) if (!/you buy/i.test(await say('buy firebrick'))) break;
+            await goTo(SMELTER);
+          }
+          const fit = await act('fit lining to furnace', '1 hour');
+          if (refusedFor(fit.r) !== null) break;
+        }
+        await hand(k, '/trade/fuel/thing/charcoal');
+        await say('stoke charcoal into furnace');
+        await say('ignite furnace');
+        const again = await act('pump bellows');
+        if (/ease off/i.test(again.said)) await act('pump bellows');
+        smelt = await act('smelt', '2 hours');
+      }
       // The smelt RUNS — a refusal here (no fuel, no ore) is the failure,
       // not four melts on at the crucible (runs 26–28 smelted nothing).
       expect(refusedFor(smelt.r), `the smelt: ${smelt.said}`).toBeNull();
+      // eslint-disable-next-line no-console -- the drive's own record: where the melt went
+      console.log(`  [drive] melt ${melt + 1}: ${smelt.said.slice(0, 400)}`);
       // ⭐ Poured off the smelt, while the copper is still MOLTEN: doused
       // and left two hours, it froze, and a crucible is no mould — the metal
       // dropped out as a cast lump in the furnace, the crucible came up
