@@ -46,6 +46,7 @@ import type { Containable } from "../../lib/spatial/Containable";
 import type { Slotted } from "../../lib/slot/Slotted";
 import type { Difficulty } from "../../lib/advancement/ActSignature";
 import type { FieldMeta } from "../../lib/mixin";
+import type { CommandContributions } from "../../api/command";
 
 // PersistableMixin OUTERMOST — the documented host rule.
 const PlantBase = PersistableMixin(
@@ -53,6 +54,21 @@ const PlantBase = PersistableMixin(
 );
 
 export default class Plant extends PlantBase {
+  /**
+   * ⭐ A plant affords its OWN harvest, wherever it stands. A bed or pot
+   * affords it too (`CultivableMixin`, so `pick the bed` works), but a
+   * plant needs no host to be cut: cane standing in a field, a herb in a
+   * walled physic garden. Medicine shipped this as a pack class
+   * (`PhysicPlant`, clinical-medicine D10); sugar's field cane was the
+   * second pack to need it, so it moved here and that class retired
+   * (sugar build, 2026-10-19).
+   */
+  static commandContributions: CommandContributions = {
+    self: [],
+    peers: ["platform/cmd/inventory/harvest.yaml"],
+    environment: [],
+  };
+
   static fieldMeta: FieldMeta = {
     seedTemplatePath: { persistent: true, authorable: true },
     standardMaterialPath: { persistent: true, authorable: true },

@@ -1,0 +1,27 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Old Tomas
+  keywords: [miller, tomas, mule, mill]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: grey-haired miller walking behind the mule
+  register: indefinite
+  longDescription: |
+    A grey-haired man who walks behind the mill mule all day and talks to it more than to anyone.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: milling, asserting: competent }
+  behaviors:
+    - brain: /trade/sugar/behavior/mills
+      trigger: candidate
+      config:
+        carry: { to: [north], back: [south], into: cistern }
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "forks crushed cane onto the drying heap." }

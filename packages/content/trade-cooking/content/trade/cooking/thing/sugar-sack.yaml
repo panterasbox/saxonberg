@@ -1,7 +1,9 @@
 # The floor sack of sugar — 10 kg at target in the pantry stock.
 class: /platform/thing/Bottle
 data:
-  censusKey: pantry:sugar
+  # (sugar D9) The Sugar House fills these off a pounded loaf; the key is
+  # the GOOD, not the shop that used to conjure it.
+  censusKey: sugar:loose
   shortDescription: "sack of sugar"
   keywords: [sugar, sack, "sack of sugar"]
   register: indefinite

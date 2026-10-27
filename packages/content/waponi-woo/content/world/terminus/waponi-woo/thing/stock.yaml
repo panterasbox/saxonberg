@@ -1,0 +1,28 @@
+# The estate store's counter (sugar D18). Sells what the estate makes —
+# raw sugar in blocks knocked out of the hogsheads, molasses by the cask —
+# and BUYS cane by the bundle off anyone who brings it.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: estate counter
+  keywords: [counter, ledger, "estate counter", scale]
+  register: definite
+  longDescription: A heavy wooden counter with a ledger open on it and a cane scale by the door.
+  _materialPath: /stuff/idea/material/wood/mahogany
+  mass: 80
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  businessPath: /world/terminus/waponi-woo/idea/estate
+  stockLines:
+    - { itemTemplatePath: /trade/sugar/thing/raw-sugar-block, par: 0 }
+    - { itemTemplatePath: /trade/sugar/thing/molasses-cask, par: 0 }
+    - { itemTemplatePath: /trade/sugar/thing/crop/cane, par: 0, buys: true }
+    # Lime comes in by ship from the quarries, like everything the island
+    # does not make (the import backstop; burnt-coral lime is a later row).
+    - { itemTemplatePath: /trade/quarrying/thing/quicklime, par: 6 }
+  prices:
+    /trade/sugar/thing/raw-sugar-block: 9
+    /trade/sugar/thing/molasses-cask: 6
+    /trade/sugar/thing/crop/cane: 2
+    /trade/quarrying/thing/quicklime: 3

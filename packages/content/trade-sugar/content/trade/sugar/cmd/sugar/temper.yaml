@@ -1,0 +1,25 @@
+verbs: [temper]
+controller: /trade/sugar/idea/cmd/sugar/TemperController
+description: "Temper a sugar liquor with lime so it will grain"
+help: |
+  `temper copper with lime` tips one lump of lime into the liquor. ⭐ It
+  is what lets a liquor grain at all: a pan never tempered boils past the
+  strike and stays a syrup — blackstrap. One lump is right; a second
+  makes the sugar come out dark. Then `skim` the scum it throws up.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: copper
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: [BulkableMixin]
+  - name: lime
+    type: object
+    required: true
+    greedy: true
+    prepositions: [with, using]
+    scope: ["reachable"]
+    requires: [TangibleMixin]

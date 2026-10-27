@@ -1209,10 +1209,7 @@ async function payHouseWageImpl(
   if (!(await ensurePayableWorker(workerKey, business))) {
     return { ok: false, reason: 'no-account', detail: workerKey };
   }
-  const arrearsOwed = business
-    .getPayrollArrears()
-    .filter((a) => a.workerKey === workerKey)
-    .reduce((n, a) => n + a.amountMinor, 0);
+  const arrearsOwed = business.arrearsOwedTo(workerKey)?.amountMinor ?? 0;
   const due = amountMinor + arrearsOwed;
   const currency = BankingApi.compactCurrency();
   let drewMinor = 0;
@@ -1355,6 +1352,32 @@ async function settleShiftWageImpl(
   // The one way a house pays (D18): arrears first, a working-capital draw
   // where earned, else a refusal on the book.
   const paid = await payHouseWageImpl(business, employeeKey, amount);
+  // ⭐ A refused wage is a FACT the payroll reports; what to do about it is
+  // the worker's decision (sugar D10) — a person is told, a hand past what
+  // they will stand walks off. Both shift ends (the roster tick and
+  // `clock off`) come through here.
+  if (!paid.ok && paid.reason === 'insufficient-funds') {
+    const owed = business.arrearsOwedTo(employeeKey);
+    // ⭐ LOADED on use, not looked up: a hand on a holding nobody is
+    // standing in is not resident, and a resident-only read skipped their
+    // decision forever — the island estate ran 2170 zorkmids into arrears
+    // with every hand still on shift (sugar drive 7). A player is only
+    // told while they are here; an offline body is never loaded for it.
+    let worker: Stuff | null | undefined;
+    if (PlayerApi.isAvatarIdentityPath(employeeKey)) {
+      worker = StuffApi.findByTemplatePath(employeeKey);
+    } else {
+      worker = await StuffApi.singleton(employeeKey).catch(() => null);
+    }
+    if (owed && worker && MixinApi.isEmployed(worker)) {
+      await worker.onWageRefused(
+        business,
+        owed.amountMinor,
+        owed.oldestAtS,
+        offTimeRaw,
+      );
+    }
+  }
   if (!paid.ok && paid.reason === 'no-account') {
     console.warn(
       `EmploymentLogic: ${employeeKey} has no account to be paid into ` +

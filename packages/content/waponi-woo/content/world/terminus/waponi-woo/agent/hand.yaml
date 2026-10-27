@@ -1,0 +1,23 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Bertie Lowe
+  keywords: [hand, bertie, lowe, clerk]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: young store hand with ink on his fingers
+  register: indefinite
+  longDescription: |
+    A young man with ink on his fingers and a cane-weight chart pinned up behind him.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: sugar-refining, asserting: novice }
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Selling or buying?"

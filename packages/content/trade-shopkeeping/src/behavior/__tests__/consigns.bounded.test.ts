@@ -41,4 +41,10 @@ describe('the consigns beat bounds its take', () => {
   it('still caps the beat by the authored batch', () => {
     expect(SRC).toContain('.slice(0, batch)');
   });
+
+  it('⭐ takes up only what the config CARRIES — a house never hauls out its own feedstock', () => {
+    // The sugar drive watched the Sugar House hand try a 20 kg block of
+    // the raw sugar the house buys in to refine, every beat.
+    expect(SRC).toMatch(/carries\(ctx\.config, g\)/);
+  });
 });

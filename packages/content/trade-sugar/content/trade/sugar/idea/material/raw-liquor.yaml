@@ -1,0 +1,55 @@
+# Raw liquor — raw sugar dissolved in the copper. ⭐⭐ Everything the
+# trade does to it is written on this row and read by the kernel's boil:
+#
+# - `solidsKgPerL` is a fresh liquor's strength; the plateau rewrites the
+#   pan's own figure as it boils water off.
+# - `boilingPointElevation` is sucrose's: the boil climbs from 100 °C to
+#   about 122 °C at the strike and past 140 °C as it caramelises, which
+#   is what `measure temperature copper` reads rising.
+# - `concentratesTo` is the syllabus — syrup at two-thirds sugar, the
+#   strike at nine-tenths (and only from a pan good enough to grain: an
+#   untempered one goes to blackstrap), caramel, burnt.
+#
+# The stage rows `extends:` this one and keep the curve and the arrows;
+# an arrow that names the material already in the pan does nothing.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: raw liquor
+  keywords: [raw-liquor, liquor, sugar, syrup]
+  appearance: thin and brown, a scum rising on it
+  density: 1250
+  specificHeat: 3200
+  thermalConductivity: 0.5
+  electricalConductivity: 0.1
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: true
+  tastes: [sweet]
+  spoilActivationEnergy: 60000
+  waterActivity: 0.9
+  nutrients: ["sugar", "water"]
+  nutrientAmounts: { sugar: 480000, water: 500000 }
+  toxicity: []
+  tags: ["liquid", "food", "raw-liquor"]
+  composition: []
+  biologicalSource: null
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
+  solidsKgPerL: 0.6
+  boilingPointElevation:
+    - [0, 0]
+    - [0.5, 1.5]
+    - [0.7, 5]
+    - [0.8, 10]
+    - [0.85, 14]
+    - [0.9, 22]
+    - [0.95, 32]
+    - [0.98, 50]
+    - [0.99, 60]
+    - [1, 70]
+  concentratesTo:
+    - { fromW: 0.68, becomes: /trade/sugar/idea/material/cane-syrup }
+    - { fromW: 0.9, becomes: /trade/sugar/idea/material/strike, minBand: fair, elseBecomes: /trade/sugar/idea/material/blackstrap }
+    - { fromW: 0.985, becomes: /trade/sugar/idea/material/caramel }
+    - { fromW: 0.995, becomes: /trade/sugar/idea/material/burnt-sugar }

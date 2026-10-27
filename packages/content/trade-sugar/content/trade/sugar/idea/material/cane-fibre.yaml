@@ -1,0 +1,25 @@
+# Cane fibre — bagasse: what is left of the cane after the mill. ⭐ It
+# burns — about half as well as dry wood — and it is the boiling house's
+# fuel, if it is dry.
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: bagasse
+  keywords: [bagasse, fibre, trash, megass]
+  appearance: shredded pale fibre, damp and sweet-smelling
+  density: 150
+  specificHeat: 1800
+  thermalConductivity: 0.1
+  electricalConductivity: 0
+  waterAbsorptionCapacity: 0.5
+  hardness: 0
+  toughness: 0
+  edibility: false
+  tastes: []
+  nutrients: []
+  nutrientAmounts: {}
+  toxicity: []
+  tags: ["solid", "fuel", "bagasse", "organic", "once-living", "flammable"]
+  composition: []
+  biologicalSource: null
+  heatOfCombustion: 8
+  autoignitionTemperature: 560

@@ -27,7 +27,7 @@ interface Row {
     ambientSource?: string;
     ambientOpening?: string;
     _biomePath?: string;
-    props?: string[];
+    props?: Array<string | { template: string; count?: number }>;
     mix?: Array<{ speciesPath: string; woodMaterialPath: string; seedPath: string | null; standing: number; capacity: number; incrementPerYear: number }>;
   };
 }
@@ -147,7 +147,8 @@ describe('the Hanging Wood', () => {
       const key = `${r.data.coords!.x},${r.data.coords!.y},${r.data.coords!.z}`;
       expect(cells.has(key), `${f} shares ${key}`).toBe(false);
       cells.add(key);
-      for (const p of r.data.props ?? []) {
+      for (const e of r.data.props ?? []) {
+        const p = typeof e === 'string' ? e : e.template;
         if (!p.includes('/panel-')) continue;
         expect(panels.has(p), `${p} propped twice`).toBe(false);
         panels.add(p);
@@ -233,8 +234,10 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // standards a player can see and touch it would say *"nothing
     // stands here worth the axe"*. The sugarbush is the OTHER
     // representation: named individual trees in a panel.
+    // (sugar W1) A `PersistentLocale`: the arch's woodpile is burnt down
+    // and the pan's syrup kept across a restart — still not a `Wood`.
     const bush = row(BUSH);
-    expect(bush.class).toBe('/platform/location/Locale');
+    expect(bush.class).toBe('/platform/location/PersistentLocale');
     expect(bush.data._biomePath).toBe('/stuff/idea/biome/outdoor/woodland');
   });
 
@@ -302,7 +305,10 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     const bush = row(BUSH);
     expect(bush.data.props).toContain('/trade/forestry/thing/sap-pan');
     expect(bush.data.props).toContain('/trade/forestry/thing/evaporator');
-    for (const p of bush.data.props ?? []) expect(shipped(p), p).toBe(true);
+    for (const e of bush.data.props ?? []) {
+      const p = typeof e === 'string' ? e : e.template;
+      expect(shipped(p), p).toBe(true);
+    }
   });
 
   it('⭐⭐ the store stocks AND PRICES the kit — the found-by-driving bug', () => {

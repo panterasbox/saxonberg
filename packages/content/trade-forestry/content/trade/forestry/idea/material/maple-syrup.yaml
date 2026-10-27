@@ -21,6 +21,10 @@
 # ⭐ In the TRADE rather than the commons, unlike the sap: sap is a fact
 # about a tree and syrup is a thing somebody made.
 class: /platform/idea/material/ConsumableMaterial
+# ⭐ (sugar D1) The syrup is the sap boiled down: it inherits the sap's boil
+# (the latent heat, the curve, the arrows) and states only what differs —
+# including its own strength, for a jar bought rather than boiled.
+extends: /stuff/idea/material/food/maple-sap
 data:
   name: maple syrup
   keywords: [maple-syrup, syrup, maple]
@@ -45,3 +49,4 @@ data:
   tags: ["liquid", "food", "syrup", "maple-syrup", "sweetener", "edible"]
   composition: []
   biologicalSource: null
+  solidsKgPerL: 0.88

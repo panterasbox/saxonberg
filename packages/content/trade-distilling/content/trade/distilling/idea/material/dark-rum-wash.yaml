@@ -1,0 +1,16 @@
+# Dark rum wash — the fermented molasses, ready for the still (sugar D8).
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: dark rum wash
+  keywords: [wash, rum, "dark rum wash"]
+  appearance: "a black, yeasty wash smelling of burnt sugar"
+  density: 1010
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  toxicity:
+    - { type: alcohol, amount: 9 }
+  nutrients: ["water"]
+  tags: ["liquid", "dark-rum-wash"]
+  composition: []
+  biologicalSource: null

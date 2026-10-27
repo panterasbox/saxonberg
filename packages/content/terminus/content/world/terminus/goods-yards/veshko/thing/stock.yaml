@@ -16,8 +16,11 @@ data:
   # about where they are made.
   stockLines:
     - { itemTemplatePath: /trade/distilling/thing/gin, par: 18 }
-    - { itemTemplatePath: /trade/distilling/thing/rum-dark, par: 12 }
-    - { itemTemplatePath: /trade/distilling/thing/rum-light, par: 18 }
+    # ⭐ (sugar D8) The rum lines import NOTHING now (`par: 0`): the yard's
+    # rum comes off its own still, from the Sugar House's molasses, and the
+    # shelf holds only what the distiller has made.
+    - { itemTemplatePath: /trade/distilling/thing/rum-dark, par: 0 }
+    - { itemTemplatePath: /trade/distilling/thing/rum-light, par: 0 }
     - { itemTemplatePath: /trade/distilling/thing/tequila, par: 12 }
     - { itemTemplatePath: /trade/distilling/thing/vodka, par: 18 }
     - { itemTemplatePath: /trade/distilling/thing/whiskey, par: 18 }

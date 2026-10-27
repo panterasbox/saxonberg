@@ -49,3 +49,8 @@ settings:
   # chart cannot wait a month for a teller.
   - key: employment.absenceVacatesAfterDays
     value: "14"
+  # Game days a hired NPC keeps working with a wage on the book unpaid
+  # before walking off (sugar D10). Grain: nobody works unpaid forever,
+  # and how long is the realm's to say.
+  - key: employment.unpaidStandGameDays
+    value: "3"

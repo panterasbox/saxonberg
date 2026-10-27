@@ -1,0 +1,18 @@
+id: trade-sugar
+version: 0.1.0
+root: /trade/sugar
+description: >-
+  The sugar trade — boiling a solution down until it grains. ⭐ The
+  boiler's decision is WHEN to strike: the pan's boiling point climbs as
+  it thickens, and the same liquor taken off early is treacle, at the
+  strike grains into sugar, and pushed on is caramel and then burnt.
+  Lime tempers it and the skimmer clears it; a pan that was never
+  tempered will not grain, and what will not grain is blackstrap. The
+  boiling is the kernel's (the latent-heat plateau); this pack ships the
+  materials whose arrows say what each stage becomes, the copper, the
+  thread test, and the refiner.
+requires:
+  # The trade is placeless: its mechanism is held by the Ministry of
+  # Trade. Its premises sit in the world under a locality's committee.
+  title:
+    - { extent: /trade/sugar, holder: { organization: /compact/trade } }

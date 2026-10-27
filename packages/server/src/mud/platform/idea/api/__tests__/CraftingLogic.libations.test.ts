@@ -560,6 +560,51 @@ describe('the pool matches the VESSEL KIND, not the template path', () => {
     }
   });
 
+  // ⭐⭐ The claimed vessel BECOMES the recipe's product (sugar, 2026-10-27):
+  // a plain sack the pounded sugar went into is a sack of sugar to every
+  // counter, hand and census after. Only when the output row is a PRODUCT
+  // (it authors `interiorMaterial`) — an empty-vessel row leaves it be.
+  it('⭐ filled, a vessel of the kind becomes the product row the recipe names', async () => {
+    const drained = makeGlass(CAN_OF_COLA, 0.33);
+    drained.setCategory('can');
+    ContainmentApi.move(drained as never, room as never);
+    const spy = vi.spyOn(Template, 'findByPath').mockResolvedValue({
+      data: {
+        category: 'can',
+        interiorMaterial: GIN,
+        shortDescription: 'can of gin',
+        keywords: ['can', 'gin', 'can of gin'],
+      },
+    } as never);
+    try {
+      const out = await craftAs(dave, { recipeRef: 'refill', makerMode: 'self' });
+      expect(out.ok).toBe(true);
+      if (!out.ok) return;
+      expect(out.output).toBe(drained);
+      expect(drained.getTemplatePath()).toBe(CAN);
+      expect(drained.getShortDescription()).toBe('can of gin');
+      expect(drained.hasKeyword('gin')).toBe(true);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('an empty-vessel output row leaves the claimed vessel its own identity', async () => {
+    const drained = makeGlass(CAN_OF_COLA, 0.33);
+    drained.setCategory('can');
+    ContainmentApi.move(drained as never, room as never);
+    const spy = vi
+      .spyOn(Template, 'findByPath')
+      .mockResolvedValue({ data: { category: 'can' } } as never);
+    try {
+      const out = await craftAs(dave, { recipeRef: 'refill', makerMode: 'self' });
+      expect(out.ok).toBe(true);
+      expect(drained.getTemplatePath()).toBe(CAN_OF_COLA);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('a row that declares no kind still matches by path (the shipped fallback)', async () => {
     const wrongPath = makeGlass(CAN_OF_COLA, 0.33);
     wrongPath.setCategory('can');

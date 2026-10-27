@@ -23,7 +23,9 @@ import { BulkableMixin } from '../../bulk/Bulkable';
 import { ContainerMixin } from '../../spatial/Container';
 import { PlacingMixin } from '../../spatial/Placing';
 import { Quantity } from '../../quantity';
+import { Grade } from '../../craft/Grade';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { Stuff } from '../../stuff/Stuff';
@@ -45,6 +47,10 @@ class TestHoop extends PlacingMixin(
 }
 class TestPail extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'TestMouldPail';
+}
+/** A curing pot — a vessel a cone stands ON (sugar D16). */
+class TestPot extends PlacingMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good)))) {
+  static _mixinName = 'TestMouldPot';
 }
 class TestRoom extends ContainerMixin(Good) {
   static _mixinName = 'TestMouldRoom';
@@ -276,5 +282,87 @@ describe('moulds — the container decides the shape', () => {
     expect(cloned).toEqual([WHEEL]);
     const [cast] = contentsOf(hoop) as unknown as TestCast[];
     expect(storedMoisture(cast!)).toBeCloseTo(0.55, 2);
+  });
+
+  describe('⭐ the drainings are kept (sugar D16)', () => {
+    const STRIKE = '/stuff/idea/material/_mould/strike';
+    const LOAF = '/stuff/idea/material/_mould/loaf-sugar';
+    const MOLASSES = '/stuff/idea/material/_mould/molasses';
+    function strike(): Material {
+      material(LOAF, () => {});
+      material(MOLASSES, (m) => m.setDensity(Quantity.of(1400, 'kg/m³')));
+      return material(STRIKE, (m) => {
+        m.setNutrientAmounts({ sugar: 700000, water: 300000 });
+        m.setDrainSetting({
+          days: 4,
+          becomes: LOAF,
+          drains: MOLASSES,
+          moisture: { unloaded: 0.1, loaded: 0.1 },
+          loadRef: 1,
+        });
+      });
+    }
+
+    it('a cone on its pot fills the pot as it sets, a band poorer; the loaf is what is left', async () => {
+      const r = room();
+      const pot = makeStuff(() => new TestPot());
+      (pot as unknown as { interiorBulk: boolean }).interiorBulk = true;
+      pot.setInteriorCapacity(Quantity.of(10, 'L'));
+      ContainmentApi.move(pot, r);
+      const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
+      if (MixinApi.isGraded(cone)) cone.setGrade(Grade.of('fine'));
+      ContainmentApi.move(cone, pot, 'on');
+      expect(cone.drainsInto()).toBe(pot);
+
+      cone.reconcileSetting(); // stamps the start
+      setNow(2 * DAY);
+      cone.reconcileSetting();
+      const halfway = pot.getBulkAmount('interior').rawValue();
+      expect(halfway).toBeGreaterThan(0);
+      expect(pot.getBulkMaterialPath('interior')).toBe(MOLASSES);
+      expect(MixinApi.isGraded(pot) ? pot.getGrade().getBand() : '').toBe('fair');
+
+      setNow(5 * DAY);
+      cone.reconcileSetting();
+      await settle();
+      // Pool 5 kg; water 30% of it, 90% of THAT driven out = 1.35 kg.
+      const drainedKg = (pot.getBulkAmount('interior').rawValue() / 1000) * 1400;
+      expect(drainedKg).toBeCloseTo(1.35, 3);
+      expect(halfway * 2).toBeCloseTo(pot.getBulkAmount('interior').rawValue(), 3);
+      const loaf = contentsOf(cone)[0] as unknown as { getMass(): Quantity<'kg'> };
+      expect(loaf.getMass().rawValue()).toBeCloseTo(5 - 1.35, 3);
+    });
+
+    it('⭐ the shape names what it becomes — a hogshead block is raw sugar, a cone loaf sugar', async () => {
+      const BLOCK = '/stuff/thing/_mould/raw-sugar-block';
+      const RAW = '/stuff/idea/material/_mould/raw-sugar';
+      const raw = material(RAW, () => {});
+      const s = strike();
+      s.setDrainSetting({ ...s.getDrainSetting()!, becomesAs: { [BLOCK]: RAW } });
+      const hogshead = mould(BLOCK);
+      fillVessel(hogshead, s, 5, 293);
+      ContainmentApi.move(hogshead, room());
+      const cone = fillVessel(mould(WHEEL), s, 5, 293);
+      ContainmentApi.move(cone, room());
+      for (const m of [hogshead, cone]) m.reconcileSetting();
+      setNow(5 * DAY);
+      for (const m of [hogshead, cone]) m.reconcileSetting();
+      await settle();
+      const matOf = (m: Stuff) => (contentsOf(m)[0] as unknown as { getMaterial(): Material }).getMaterial();
+      expect(matOf(hogshead)).toBe(raw);
+      expect(matOf(cone)?.getTemplatePath()).toBe(LOAF);
+    });
+
+    it('with nothing beneath, the drainings run away — the hoop on its board', async () => {
+      const r = room();
+      const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
+      ContainmentApi.move(cone, r);
+      expect(cone.drainsInto()).toBeNull();
+      cone.reconcileSetting();
+      setNow(5 * DAY);
+      cone.reconcileSetting();
+      await settle();
+      expect(contentsOf(cone)).toHaveLength(1);
+    });
   });
 });

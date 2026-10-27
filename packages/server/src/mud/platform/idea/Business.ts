@@ -101,6 +101,8 @@ export interface BusinessTrade {
   getPayrollArrears(): readonly PayrollArrear[];
   /** Record a wage it could not pay. */
   addPayrollArrear(arrear: PayrollArrear): void;
+  /** What it owes one worker and since when (game seconds), or `null`. */
+  arrearsOwedTo(workerKey: string): { amountMinor: number; oldestAtS: number } | null;
   /** Strike arrears that have since been paid (by worker, up to `amountMinor`). */
   settlePayrollArrears(workerKey: string, amountMinor: number): number;
   /** The par manifest — what the house keeps on hand, and from whom. */
@@ -257,6 +259,25 @@ export function BusinessMixin<
 
     public addPayrollArrear(arrear: PayrollArrear): void {
       this.payrollArrears = [...this.payrollArrears, { ...arrear }];
+    }
+
+    /**
+     * What this house owes ONE worker, and since when — the sum of their
+     * arrears and the oldest refusal's instant (game seconds), or `null`
+     * when nothing stands on the book for them. The read the unpaid hand
+     * decides on (sugar D10).
+     */
+    public arrearsOwedTo(
+      workerKey: string,
+    ): { amountMinor: number; oldestAtS: number } | null {
+      let amountMinor = 0;
+      let oldestAtS = Infinity;
+      for (const a of this.payrollArrears) {
+        if (a.workerKey !== workerKey) continue;
+        amountMinor += a.amountMinor;
+        oldestAtS = Math.min(oldestAtS, a.at);
+      }
+      return amountMinor > 0 ? { amountMinor, oldestAtS } : null;
     }
 
     public settlePayrollArrears(workerKey: string, amountMinor: number): number {

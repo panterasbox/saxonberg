@@ -1,13 +1,15 @@
 # The world slate — a planet a third the size of Earth, and as heavy
 
-> **Status: UNBUILT** — decided 2026-10-18 with the founder, out of the sugar
+> **Status: PARTIAL** — decided 2026-10-18 with the founder, out of the sugar
 > requirements (the sugar island was 25 game days' sail away on an
-> Earth-sized globe).
-> **Left:** the planet's radius as one setting, from which the chart's
-> degree length and the sea's horizon derive · the hard-coded `9.81`s read
-> the authored gravity · ⚠ consistent positions for places on the globe
-> stays OPEN (§ 5)
-> **Size:** a wave — the radius setting rides the sugar build's voyage wave
+> Earth-sized globe). **Sugar (MR !439) shipped the radius as ONE setting
+> on the universe root biome**, the chart and the horizon derived from it,
+> and the `9.81`s reading the root's gravity.
+> **Left:** ⭐ **the radius per PLANET, not per universe (§ 7, owner,
+> 2026-10-24)** · the gravity reads the same way · a planet's reading of
+> the universal clock (day, year, its sun) · ⚠ consistent positions for
+> places on the globe stays OPEN (§ 5)
+> **Size:** a wave
 
 **Sits on:** [expanse.md](../../subsystems/expanse.md) (the chart in
 lat/lon, sight by curvature) · [weather.md](../../subsystems/weather.md)
@@ -128,3 +130,39 @@ atmosphere's shield against the solar wind (backstory, not live physics).
 **Altitude** — *invariant*: distances derive from one radius, gravity from
 one setting. *Grain*: this world's radius (a third) and density. *Title*:
 the heavy-world postulate.
+
+## 7. ⭐ The radius belongs to the planet, not the universe (2026-10-24)
+
+The owner, reviewing sugar: *"planet radius is something that needs to be
+scoped to content. Right now all our content is on one planet, but making
+content on a new planet needs to be expressible. The problem is the clock,
+which needs to be universal."*
+
+What sugar shipped reads the radius off the universe root biome
+(`BiomeApi.planetRadiusM()` → `getRootBiome()`), so it is a global and a
+second planet cannot differ. Lens 2 decides it: a second planet must be
+rows only.
+
+- **Host: the planet is the top of its world zone's tree.** The radius is
+  resolved per place by the same outward walk gravity already uses
+  (`resolveGravityFor`): container biomes → the zone's
+  `atmosphere.planetRadius` (zone fields inherit down the tree) → the
+  universe root as the default. A new planet is a zone tree declaring its
+  radius, gravity, air and temperatures; no code.
+- **The chart stops reading a global.** `GeoPosition` is a pure value
+  object with no idea where it is; distance, bearing, `destination`,
+  `offsetTo` and `displaced` read the global radius through about ten call
+  sites in `Expanse`, `Plot` and `BandExtent`, and `Expanse.sightRangeNm`
+  does too. Each expanse resolves its planet's radius once and passes it
+  into every conversion. ⚠ The zone lookup is async and those methods are
+  sync: resolve at the expanse, cache, pass down.
+- **The four gravity reads** (`MagicLogic`, `Pumping`, `PowerReading`,
+  `WaterExpanse`) read `standardGravity()`, the root's, so they have the
+  same flaw: move them to `resolveGravityFor(place)` where a place is at
+  hand.
+- **The clock stays universal:** one instant for the realm
+  (`WorldClockApi`). What differs per planet is how a place READS it: day
+  length, year length, its sun. `CelestialApi` assumes one sun. A planet
+  row declaring rotation and orbit, read through the same chain, is the
+  shape, and it waits until content stands on a second planet.
+

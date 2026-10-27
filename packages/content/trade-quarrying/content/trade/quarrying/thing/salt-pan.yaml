@@ -12,7 +12,8 @@
 # somebody put it outdoors. A second saltern anywhere is this row again.
 #
 # ⭐ `open: true` and it stays open — a covered pan is a pan that does not
-# work. And `closure: open`, because the whole apparatus is *no lid*.
+# work. `closure` is a different question — whether liquid stays IN — and
+# a pan with no lid holds brine: `liquidTight`.
 class: /platform/thing/Vat
 data:
   shortDescription: salt pan
@@ -28,12 +29,11 @@ data:
   _materialPath: /stuff/idea/material/element/lead
   interiorBulk: true
   interiorCapacity: 40
-  # ⚠⚠ `open`, and it said `none` until the fire build — which is not a
-  # `ClosureLevel`. `CLOSURE_ORDER['none']` is `undefined`, the comparison
-  # yields `NaN`, and `NaN < 0` is **false**, so the drain-through arm
-  # never fired and this vessel RETAINED LIQUID AS THOUGH IT WERE LIDDED.
-  # ⭐ `setClosure` throws on an unknown rung now, so a row like that
-  # fails its own hydration instead of quietly inverting its own prose.
-  closure: open
+  # ⚠⚠ `closure` is LIQUID RETENTION, not the lid — the lid is `open:`
+  # below. It said `none` until the fire build (not a rung; it retained by
+  # accident of a NaN), then `open` (a rung: a SIEVE — the sap ran
+  # straight through to the floor; the sugar drive found it, 2026-10-19).
+  # A pan holds liquid with no lid at all: `liquidTight`.
+  closure: liquidTight
   open: true
   mass: 90

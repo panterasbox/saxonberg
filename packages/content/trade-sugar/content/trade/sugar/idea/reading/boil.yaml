@@ -1,0 +1,24 @@
+# boil — the thread test (sugar D4). `analyze boil copper` is a drop
+# pulled between finger and thumb; `measure boil copper` puts a
+# thermometer in it too. ⚠ `boil` here is the CHANNEL word; the verb that
+# boils a pan is `heat` (the plateau does the boiling).
+#
+# A pack's channel — the platform names it nowhere. Competence resolves
+# DETAIL (an untrained hand feels thin or thick; a boiler names the
+# stage; the thermometer adds the figure), never access.
+class: /trade/sugar/idea/reading/BoilReading
+data:
+  channel: boil
+  kind: fact
+  scope: [subject]
+  subjectRequires: [BulkableMixin]
+  discipline: sugar-refining
+  instrument: thermometry
+  instrumentNoun: a thermometer
+  eyeCeiling: proficient
+  improves: >-
+    when to strike — taking a pan off at the moment it will grain, rather
+    than early as syrup or late as caramel
+  stakes: >-
+    a batch boiled past the strike to caramel, or struck too early and
+    left a syrup that never sets

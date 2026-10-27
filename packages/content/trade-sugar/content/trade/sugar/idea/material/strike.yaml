@@ -1,0 +1,24 @@
+# The strike — the massecuite: liquor boiled to nine-tenths sugar, which
+# grains as it cools. Poured into a cone it sets into a loaf and the
+# molasses drains out of it (the cone is the mould's; W2).
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: strike
+  keywords: [strike, massecuite, sugar]
+  appearance: dark and heavy, already clouding with grain as it cools
+  tags: ["liquid", "food", "strike"]
+  # ⭐ How it sets (sugar D16): poured into a cone it drains its molasses
+  # over four days and becomes loaf sugar. `water` here is the MOTHER
+  # LIQUOR — the share of the strike that will not grain and runs out as
+  # molasses (about a third); a poorer strike gives up more of it.
+  nutrientAmounts: { sugar: 650000, water: 350000 }
+  drainSetting:
+    days: 4
+    becomes: /trade/sugar/idea/material/loaf-sugar
+    # A hogshead's block is purged coarse and never clayed: muscovado.
+    becomesAs:
+      /trade/sugar/thing/raw-sugar-block: /trade/sugar/idea/material/raw-sugar
+    drains: /trade/sugar/idea/material/molasses
+    moisture: { unloaded: 0.1, loaded: 0.1 }
+    loadRef: 1
+    drainPerBand: 0.06

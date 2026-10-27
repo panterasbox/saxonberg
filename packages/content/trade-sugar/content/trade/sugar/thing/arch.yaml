@@ -1,0 +1,21 @@
+# The sugar arch — the brick firebox a copper is set on. ⭐ 20 kW of
+# fire, half of it reaching the pan (`heatTransferFraction`): about
+# twenty litres of water boiled off an hour, which is a working copper's
+# pace. Burnt at 470 K so a pan on it can reach the strike (395 K) and go
+# past it — nothing in the fire stops a boiler who is not watching.
+class: /platform/thing/Oven
+data:
+  shortDescription: sugar arch
+  keywords: [arch, firebox, fire, hearth, "sugar arch"]
+  register: indefinite
+  longDescription: >-
+    A squat arch of soot-black brick with an iron firedoor at one end and
+    a round mouth in its top sized to take a copper. The bricks around the
+    mouth are crusted with old sugar burnt brown.
+  burnTemperatureK: 470
+  bellowsMultiplier: 1
+  lit: false
+  mass: 2000
+  maxBurnPowerW: 20000
+  heatTransferFraction: 0.5
+  fuelCapacityKg: 120

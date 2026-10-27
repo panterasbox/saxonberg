@@ -1,0 +1,33 @@
+{
+  "name": "@saxonberg/content-waponi-woo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Waponi Woo \u2014 the cane island: the estate, the smallholders, the train, the volcano.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-ground": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-trade-forestry": "workspace:*",
+    "@saxonberg/content-trade-milling": "workspace:*",
+    "@saxonberg/content-trade-quarrying": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
+    "@saxonberg/content-trade-sugar": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "yaml": "^2.8.2"
+  }
+}

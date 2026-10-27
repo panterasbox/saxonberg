@@ -37,3 +37,25 @@ data:
   biologicalSource:
     speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum
     tissueType: sap
+  # ⭐⭐ The boil-down (sugar D1) — the same mechanism as the sugar
+  # house's copper, from much further down. A litre carries 25 g of sugar;
+  # the kernel's plateau boils the water off, the boil climbs as it
+  # thickens, and the arrows say what it becomes: syrup at two-thirds
+  # sugar, and pushed on to the strike, maple sugar's massecuite.
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
+  solidsKgPerL: 0.025
+  boilingPointElevation:
+    - [0, 0]
+    - [0.5, 1.5]
+    - [0.7, 5]
+    - [0.8, 10]
+    - [0.85, 14]
+    - [0.9, 22]
+    - [0.95, 32]
+    - [0.98, 50]
+    - [0.99, 60]
+    - [1, 70]
+  concentratesTo:
+    - { fromW: 0.66, becomes: /trade/forestry/idea/material/maple-syrup }
+    - { fromW: 0.9, becomes: /trade/forestry/idea/material/maple-strike }

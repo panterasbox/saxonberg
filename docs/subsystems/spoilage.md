@@ -499,17 +499,56 @@ a loaf is put anywhere).
 Heat reverses it: a stale loaf back in the oven **comes back** — not all
 the way (`refreshFloor`), and only so many times before it is a rusk.
 
-**Where it lives.** `StalingMixin` is the baking pack's
-(`trade-baking/src/lib/Staling.ts`), composed on `Loaf` over
-`Provision` — so a loaf spoils AND stales, on two gauges that share no
-band word. One composer in one pack is the kernel's own test for *not
-yet substrate*; cooked rice and a boiled potato are the same chemistry,
-and the third pack wanting it is the signal to promote it to
-`lib/material/`. Like `Freshness`, it has **no far-past guard**: it is
-the point that bread stales while you are away. Unlike `ThermalDose`,
-the rate is a single sample per reconcile rather than an integral — a
-loaf's thermal time constant is minutes and staling runs over days, so
-the rectangle rule is exact at that ratio.
+**Where it lives — kinetics (since the sugar build, 2026-10-24).**
+Staling is the bread MATERIAL's **kinetics**: a `kinetics:` change keyed
+`staling` on `bread.yaml` (and `dog-bread.yaml`), run by the kernel's
+`KineticMixin` (`lib/material/Kinetic.ts`), which `Provision` composes
+beside `FreshnessMixin`. So a loaf spoils AND stales, on two gauges that
+share no band word. Baking's `StalingMixin` retired into it, along with
+sugar's `InvertingMixin` (cut cane's sucrose inverting), because the two
+were one mechanism with one curve each.
+
+### Kinetics — what a substance does by itself over time
+
+`Kinetics` (`lib/material/Kinetics.ts`, a value object on the material row,
+the `Crosslinking` shape) lists the changes a substance undergoes. Each
+has:
+
+- **`order`:** 0 accumulates at the rate (staling); 1 turns what is left
+  (inversion, first order);
+- **`rate`:** points of `[kelvin, per hour]`, interpolated and flat past
+  the ends. One form covers a Q10 rise, a peak just above freezing that
+  stops at ice, and a reversal (a NEGATIVE rate: heat un-crystallises the
+  starch);
+- **`floor`:** how far a reversal brings it back (never all the way, and
+  it never raises an extent already under it);
+- **`grade`:** `[extent, bands lost]` from the grade the good started at;
+- **`becomes`:** the material it is at extent 1;
+- **`words`** and **`senses`:** what `look` says, by extent, through which
+  channels.
+
+`KineticMixin` holds an extent per change, one clock stamp and the
+starting grade. It is inert until the material declares kinetics (the
+sparse rule: inert matter reads and writes nothing). The clock starts when
+the thing is made (`onCreate`). It **integrates over the good's
+temperature trajectory** rather than sampling, so a loaf cooling through
+the fast band and a bundle of cane carried from sun to shade are both
+honest. Like `Freshness`, there is no far-past guard.
+
+⚠ **Not spoilage, and never one model with it.** `Freshness` is a
+POPULATION (multiplicative, set by water activity, killed by a heat hold,
+seeded by contamination) and decides SAFETY. Kinetics is a reaction
+running toward completion and decides QUALITY. They point opposite ways in
+the cold, which is the lesson. Nor maturation: there the VESSEL runs a
+profile on its contents on purpose; here the substance changes on its own.
+
+**Next (not yet built):** liquids. Cane juice inverts in the tub faster
+than the cut stalk; that is a field on the bulk payload, reconciled by the
+vessel. It was held out of the sugar build because juice losing grade in
+the estate's cistern over a shift could tip its strike into blackstrap.
+Candidate rows needing no code: sweetcorn and peas (sugar to starch after
+picking), coffee staling after roasting, tea oxidation, fish quality,
+spices and hops losing aroma, latex setting.
 
 `lint:doneness` gates the second silent failure this clock could have: a
 bread row on a class that cannot stale.

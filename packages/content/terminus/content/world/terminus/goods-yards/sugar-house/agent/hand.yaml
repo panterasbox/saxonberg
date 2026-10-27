@@ -1,0 +1,49 @@
+# The Sugar House's hand — minds the counter and carries.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Hester Wynn
+  keywords: [hand, hester, wynn, sacking, counter]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [hester, wynn]
+  shortDescription: broad-armed hand with sacking over one shoulder
+  register: indefinite
+  longDescription: |
+    A broad-armed woman with a fold of sacking over one shoulder and sugar-dust to the elbow, who weighs everything twice.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: sugar-refining, asserting: novice }
+  behaviors:
+    # ⭐ (sugar D9) The house's sugar and molasses go to the cash-and-carry
+    # the way every Terminus maker's goods do; the pantry no longer
+    # conjures a sack.
+    - brain: /trade/shopkeeping/behavior/consigns
+      trigger: candidate
+      config:
+        stock: /world/terminus/goods-yards/sugar-house/thing/stock
+        shelf: /world/terminus/counting-houses/distributor/thing/counter
+        batch: 6
+        # Only what the house MAKES — the raw sugar and lime on the floor
+        # are its feedstock, bought in to refine.
+        carries:
+          - /trade/cooking/thing/sugar-sack
+          - /trade/sugar/thing/molasses-cask
+        ask:
+          sugar:loose: 8
+          sugar:molasses: 5
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Raw sugar by the block. Loaves when they're cured."
+          - "Scales are honest. Ask anyone."
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "re-wraps a block in its sacking." }
+          - { kind: free, value: "taps the scales to settle them." }

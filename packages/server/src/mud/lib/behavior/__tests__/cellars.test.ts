@@ -145,6 +145,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
   let hand: Hand;
   let outfit: BusinessEntity;
   let lines: string[];
+  let unforced: string[];
 
   beforeEach(async () => {
     installBankingHarness();
@@ -340,6 +341,16 @@ describe('the cellars beat — rack, cork, consign, home', () => {
         // by the bottling leg this fixture proves.
       },
     );
+    // An UNFORCED verb (the hand's own act) reaches the same table, and
+    // is recorded as such.
+    unforced = [];
+    vi.spyOn(
+      hand as unknown as { executeCommand(text: string): Promise<void> },
+      'executeCommand',
+    ).mockImplementation(async (text: string) => {
+      unforced.push(text);
+      await (hand as unknown as { forceCommand(t: string): Promise<void> }).forceCommand(text);
+    });
   });
 
   afterEach(() => {
@@ -390,6 +401,19 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     expect(vat.getBulkAmount('interior').rawValue()).toBeGreaterThan(0.15);
     // And the hand ended the beat back home on the floor.
     expect(hand.getContainer()).toBe(floor);
+  });
+
+  it('⭐ the crush is ORDERED as the hand, never forced — a forced frame has no maker (every crush declined `no-maker`)', async () => {
+    vat.setBulkAmount('interior', Quantity.of(0, 'L'));
+    vat.setBulkMaterial('interior', null);
+    for (let i = 0; i < 6; i++) {
+      const g = makeStuff(() => new Bottle());
+      g.setKeywords(['grapes']);
+      g.setPrimaryKeyword('grapes');
+      ContainmentApi.move(g as never, floor as never);
+    }
+    await cellars.act(beatCtx());
+    expect(unforced.some((l) => l.startsWith('order'))).toBe(true);
   });
 
   it('a beat with no ready vat and no grapes does nothing but look', async () => {

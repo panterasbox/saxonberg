@@ -25,7 +25,23 @@
  */
 
 /** Nautical miles in one minute of latitude — the unit's definition. */
-const NM_PER_DEGREE = 60;
+import { BiomeApi } from '../../api/biome';
+
+/** Nautical miles per degree on an Earth-sized planet — a minute of arc each. */
+const EARTH_NM_PER_DEGREE = 60;
+/** Earth's mean radius, metres. */
+const EARTH_RADIUS_M = 6_371_000;
+
+/**
+ * ⭐ Nautical miles per degree on THIS world (sugar D12): the chart
+ * re-derives from the planet's radius, so on a world a third of Earth's a
+ * degree is twenty miles. A nautical mile stays 1852 m — the metres of
+ * every authored focus never move; the degrees they come to do.
+ */
+function nmPerDegree(): number {
+  const r = BiomeApi.planetRadiusM();
+  return r === EARTH_RADIUS_M ? EARTH_NM_PER_DEGREE : (2 * Math.PI * r) / 360 / M_PER_NM;
+}
 
 /** The plain, JSON-safe shape a position persists and is authored as. */
 export interface GeoPositionRecord {
@@ -94,8 +110,8 @@ export class GeoPosition {
   offsetTo(to: GeoPosition): { northNm: number; eastNm: number } {
     const midLat = toRad((this.latDeg + to.latDeg) / 2);
     return {
-      northNm: (to.latDeg - this.latDeg) * NM_PER_DEGREE,
-      eastNm: GeoPosition.dLon(this.lonDeg, to.lonDeg) * NM_PER_DEGREE * Math.cos(midLat),
+      northNm: (to.latDeg - this.latDeg) * nmPerDegree(),
+      eastNm: GeoPosition.dLon(this.lonDeg, to.lonDeg) * nmPerDegree() * Math.cos(midLat),
     };
   }
 
@@ -115,10 +131,10 @@ export class GeoPosition {
   /** The point `nm` miles away on a true bearing (plane sailing). */
   destination(bearingDeg: number, nm: number): GeoPosition {
     const b = toRad(bearingDeg);
-    const dLat = (nm * Math.cos(b)) / NM_PER_DEGREE;
+    const dLat = (nm * Math.cos(b)) / nmPerDegree();
     const midLat = toRad(this.latDeg + dLat / 2);
     const cos = Math.max(1e-6, Math.cos(midLat));
-    const dLon = (nm * Math.sin(b)) / (NM_PER_DEGREE * cos);
+    const dLon = (nm * Math.sin(b)) / (nmPerDegree() * cos);
     return new GeoPosition(this.latDeg + dLat, this.lonDeg + dLon, this.depthM);
   }
 
@@ -143,9 +159,9 @@ export class GeoPosition {
 
   /** Displace by north/east nautical miles (a current's set). */
   displaced(northNm: number, eastNm: number): GeoPosition {
-    const dLat = northNm / NM_PER_DEGREE;
+    const dLat = northNm / nmPerDegree();
     const midLat = toRad(this.latDeg + dLat / 2);
-    const dLon = eastNm / (NM_PER_DEGREE * Math.max(1e-6, Math.cos(midLat)));
+    const dLon = eastNm / (nmPerDegree() * Math.max(1e-6, Math.cos(midLat)));
     return new GeoPosition(this.latDeg + dLat, this.lonDeg + dLon, this.depthM);
   }
 

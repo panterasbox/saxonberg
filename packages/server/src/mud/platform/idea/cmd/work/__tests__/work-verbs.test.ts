@@ -535,6 +535,28 @@ describe("work verbs", () => {
     return v as unknown as Stuff;
   }
 
+  it("⭐ `supply 4 pieces of gin` posts a COUNTED category (a stack may fill it)", async () => {
+    const c = ctx(poster);
+    await asGiver(poster, () =>
+      job().execute(
+        {
+          subcommand: "post",
+          condition: `supply 4 pieces of gin to ${DEST}`,
+          reward: 40,
+          bounty: true,
+        } as never,
+        c,
+      ),
+    );
+    expect(c.note).not.toHaveBeenCalled();
+    const gigs = await ContractApi.openGigsOn(BOARD);
+    expect(gigs[gigs.length - 1]!.clause?.condition.item).toEqual({
+      kind: "category",
+      category: "gin",
+      unit: "count",
+    });
+  });
+
   it("⭐ ONE demijohn of six litres satisfies `supply 6 litres of gin`", async () => {
     const c = ctx(poster);
     await asGiver(poster, () =>
