@@ -1,5 +1,5 @@
 # A sack-lump of grog — sherds ground at the millstone (ceramics S7).
-class: /trade/quarrying/thing/Lump
+class: /trade/ceramics/thing/Grog
 data:
   shortDescription: lump of grog
   keywords: [grog, grit, lump, chamotte]

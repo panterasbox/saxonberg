@@ -742,26 +742,42 @@ suite('⭐ 23 — breakage and mending', () => {
     // A second thin bowl, fired, for the earth floor.
     potter = await goTo(potter, SHOP);
     // The bowls are on the boards, or in hand from 18b's firing (run 35).
-    const bowls = `${await examine(potter, 'here:i:bowl')} ${await examine(potter, 'me:i:bowl')}`;
-    expect(bowls).toMatch(/bowl/i);
-    await say(potter, 'get bowl');
-    await say(potter, 'get bowl');
-    await say(novice, 'get mug');
+    // ⭐ By id, sound ones of the potter's own: `drop bowl` let go of a
+    // STACK of two, so one broke on stone and nothing was left for the
+    // earth (run 36). And the novice's thick mug by its maker — wherever 17
+    // and 18b carried it, the novice held none (run 36).
+    type Row = { stuffId?: string; longDescription?: string };
+    const rows = async (s: Session, q: string): Promise<Row[]> =>
+      (await s.query(q, { fields: 'detail' }).catch(() => [])) as Row[];
+    const by = (r: Row, who: Session): boolean => String(r.longDescription ?? '').includes(`Made by ${who.handle}`);
+    const sound = (r: Row): boolean => !/crack|dunt|burst|slumped/i.test(String(r.longDescription ?? ''));
+    const bowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
+      .filter((r) => r.stuffId && by(r, potter) && sound(r))
+      .map((r) => r.stuffId!);
+    expect(bowls.length, 'two sound bowls of the potter\'s').toBeGreaterThanOrEqual(2);
+    const [stoneBowl, earthBowl] = [bowls[0]!, bowls[1]!];
+    for (const id of [stoneBowl, earthBowl]) await say(potter, `get #${id}`);
+    const thick = [...(await rows(potter, 'here:i:mug')), ...(await rows(potter, 'me:i:mug')), ...(await rows(novice, 'me:i:mug'))]
+      .find((r) => r.stuffId && by(r, novice));
+    expect(thick?.stuffId, 'the novice\'s thick mug').toBeDefined();
+    const mug = `#${thick!.stuffId}`;
+    await say(potter, `drop ${mug}`).catch(() => '');
+    await say(novice, `get ${mug}`);
     // Stone: the market square's granite setts.
     potter = await goTo(potter, SQUARE);
     novice = await goTo(novice, SQUARE);
-    const dropped = await say(potter, 'drop bowl');
+    const dropped = await say(potter, `drop #${stoneBowl}`);
     expect(dropped).toMatch(/drop|bowl|shatter|break/i);
     expect(await examine(potter, 'here:i:sherds'), 'the bowl on stone').toMatch(/sherd|shard|broken/i);
-    await say(novice, 'drop mug');
-    expect(await examine(novice, 'here:i:mug'), 'the thick mug on stone').toMatch(/mug/i);
-    await say(novice, 'get mug');
+    await say(novice, `drop ${mug}`);
+    expect(await examine(novice, mug), 'the thick mug on stone').toMatch(/mug/i);
+    await say(novice, `get ${mug}`);
     // Earth: the weathering ground's trodden clay.
     potter = await goTo(potter, YARD);
-    await say(potter, 'drop bowl');
-    expect(await examine(potter, 'here:i:bowl'), 'the thin bowl on earth').toMatch(/bowl/i);
+    await say(potter, `drop #${earthBowl}`);
+    expect(await examine(potter, `#${earthBowl}`), 'the thin bowl on earth').toMatch(/bowl/i);
     expect(await examine(potter, 'here:i:sherds')).not.toMatch(/sherd/i);
-    await say(potter, 'get bowl');
+    await say(potter, `get #${earthBowl}`);
   }, 1_800_000);
 
   it('`grind` the sherds — grog', async () => {
