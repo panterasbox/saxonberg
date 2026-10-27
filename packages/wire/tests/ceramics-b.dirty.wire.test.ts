@@ -418,6 +418,9 @@ async function relineWhole(): Promise<string> {
 
 suite('⭐ 12 — reline it', () => {
   it('`fit lining to furnace` with firebricks — relined, masonry credited, and it lights again', async () => {
+    // By daylight: the store is dark at night, a buyer reads "You buy
+    // something", and a read of the hands sees nothing (run 38).
+    await toHour(9, 15);
     // Firebrick off the Rejection store: the brickfield's first, an import
     // (dearer, no maker) when the brick stack is bare or the valley unloaded.
     await goTo(PROVISIONING);
