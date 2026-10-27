@@ -167,6 +167,13 @@ describe('the weather', () => {
 });
 
 describe('⭐⭐ green ends at firing (R2)', () => {
+  it('⭐ a piece fired elsewhere (an import) says its body — it read as nothing (drive C, run 37)', () => {
+    const p = piece(0.1);
+    p.setMaterial(terracotta);
+    p.setLongDescription('A pot.');
+    expect(p.getMarkupLong(p as never, {})).toMatch(/It is fired terracotta\./);
+  });
+
   it('a fired piece is no longer green — rain is just rain on a pot', () => {
     const p = piece(0.9);
     p.setMaterial(terracotta);

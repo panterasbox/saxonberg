@@ -142,6 +142,13 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   } else if (firedAt !== null) {
     extra.push(`It was fired ${DefaultCalendar.singleton().formatDate(Quantity.of(firedAt, 's'))}.`);
   }
+  // ⭐ Fired somewhere else — an import off the general store's shelf has no
+  // firing here to describe, and read as nothing at all (drive C, run 37).
+  // Its body is still plain to see.
+  if (state === null && (rec === null || rec.lastTransitionAtS === null) && MixinApi.isTangible(host)) {
+    const body = host.getMaterial()?.getName();
+    if (body) extra.unshift(`It is fired ${body}.`);
+  }
   const all = [line, ...extra].filter((l) => l !== '').join(' ');
   if (all === '') return text;
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
