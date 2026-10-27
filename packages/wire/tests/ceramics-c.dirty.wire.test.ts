@@ -589,9 +589,13 @@ suite('⭐ 18 — glaze', () => {
         ...((await potter.query(`here:i:${ware}`, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[]),
         ...((await potter.query(`me:i:${ware}`, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[]),
       ];
+      // ⚠ Only what the word NAMES: a crock answers to "pot" too, and run 37
+      // loaded ashpot into the hot kiln (20b then found no ashpot).
+      const names = ware === 'pot' ? /plant pot|flower pot/i : new RegExp(`\\b${ware}\\b`, 'i');
       const piece = rows.find(
         (r) =>
           r.stuffId &&
+          names.test(String((r as { displayName?: string }).displayName ?? '')) &&
           String(r.longDescription ?? '').includes(`Made by ${potter.handle}`) &&
           !/crack|dunt|burst|slumped|leather-hard|soft, wet/i.test(String(r.longDescription ?? '')),
       );
@@ -799,9 +803,12 @@ suite('⭐ 23 — breakage and mending', () => {
       (await s.query(q, { fields: 'detail' }).catch(() => [])) as Row[];
     const by = (r: Row, who: Session): boolean => String(r.longDescription ?? '').includes(`Made by ${who.handle}`);
     const sound = (r: Row): boolean => !/crack|dunt|burst|slumped/i.test(String(r.longDescription ?? ''));
-    const bowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
-      .filter((r) => r.stuffId && by(r, potter) && sound(r))
-      .map((r) => r.stuffId!);
+    // Sound bowls first; a dunted one will do for the second (18b's hot
+    // opening dunts what it holds — run 37 found one sound bowl).
+    const ruined = (r: Row): boolean => /burst|slumped/i.test(String(r.longDescription ?? ''));
+    const allBowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
+      .filter((r) => r.stuffId && by(r, potter) && !ruined(r));
+    const bowls = [...allBowls.filter(sound), ...allBowls.filter((r) => !sound(r))].map((r) => r.stuffId!);
     expect(bowls.length, 'two sound bowls of the potter\'s').toBeGreaterThanOrEqual(2);
     const [stoneBowl, earthBowl] = [bowls[0]!, bowls[1]!];
     for (const id of [stoneBowl, earthBowl]) await say(potter, `get #${id}`);
@@ -946,7 +953,9 @@ suite('⭐ 20 — flame and body', () => {
     // 34). The SHOCK is the act under test.
     const boiling = await hand(potter, PAIL, { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 1, stampedTemperatureK: 372 });
     await say(potter, 'get ashpot');
-    await say(potter, 'pour out ashpot').catch(() => '');
+    // `spill` empties a vessel; "pour out ashpot" is not a sentence `pour`
+    // reads ("You don't see any 'out' to pour", run 37).
+    await say(potter, 'spill ashpot').catch(() => '');
     const poured = await say(potter, `pour #${boiling} into ashpot`);
     expect(poured).toMatch(/pour/i);
     expect(await examine(potter, 'me:i:ashpot'), 'the cold glazed crock, boiling water in').toMatch(/crack/i);
@@ -993,13 +1002,16 @@ suite('⭐ 25 — the stall', () => {
     potter = await goTo(potter, SQUARE);
     const consigned = await say(potter, 'consign "plant pot" --ask 3');
     expect(consigned).toMatch(/consign|stall|ask|for sale/i);
-    const onStall = await examine(potter, 'stall:i:pot');
-    expect(onStall, 'the stall holds the pottery’s pot').toMatch(/pot/i);
+    // ⚠ Not `stall:i`: a consigned piece is a line on the stall's stock, not
+    // a thing in it, and the read listed nothing (run 37). What the buyer
+    // gets is the record — the potter's own pot, by its maker.
+    await say(potter, 'look stall');
     novice = await goTo(novice, SQUARE);
     const bought = await say(novice, 'buy "plant pot"');
     expect(bought).toMatch(/you buy/i);
     const pot = await examine(novice, 'me:i:pot');
     expect(pot, 'the bought pot reads its body').toMatch(/earthenware|terracotta|fired/i);
+    expect(pot, 'the consigned pot, its maker on it').toContain(`Made by ${potter.handle}`);
   }, 1_800_000);
 
   it('the general store’s plant-pot line is the pottery’s row — local first, an import dearer', async () => {
