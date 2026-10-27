@@ -582,14 +582,22 @@ suite('⭐ 21 — the weeping jar', () => {
     await say(potter, 'get thermometer');
     await say(potter, 'get jar');
     await say(potter, 'fill jar from butt');
+    // ⚠ By identity: the potter holds more than one jar, and `drop jar` let
+    // go of two — the thermometer then read whichever answered (run 34).
+    const jars = (await potter.query('me:i:jar', { fields: 'detail' }).catch(() => [])) as {
+      stuffId?: string;
+      longDescription?: string;
+    }[];
+    const full = jars.find((j) => /holds/i.test(String(j.longDescription ?? '')))?.stuffId;
+    expect(full, 'the filled jar').toBeDefined();
     await say(potter, 'fill leadpot from butt');
-    await say(potter, 'drop jar');
+    await say(potter, `drop #${full}`);
     await say(potter, 'drop leadpot');
     await advance('6 hours');
-    const jar = await examine(potter, 'here:i:jar');
+    const jar = await examine(potter, `#${full}`);
     expect(jar, 'the unglazed jar').toMatch(/weep|beads|damp|wet/i);
     const room = await say(potter, 'measure temperature');
-    const jarT = await say(potter, 'measure temperature jar');
+    const jarT = await say(potter, `measure temperature #${full}`);
     const potT = await say(potter, 'measure temperature leadpot');
     const k = (t: string): number => Number(/([0-9]+(?:\.[0-9]+)?)\s*K\b/.exec(t)?.[1] ?? NaN);
     expect(k(jarT), `jar ${jarT} vs room ${room}`).toBeLessThan(k(room) - 1);
