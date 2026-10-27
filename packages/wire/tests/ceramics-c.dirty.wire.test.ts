@@ -756,18 +756,21 @@ suite('⭐ 22 — the filter (W8)', () => {
   }
 
   /** What stands in the crock with a filter in it, in `room`, after the filter has run. */
-  async function strainedIn(room: string): Promise<{ material: string | null; litres: number } | null> {
-    // ⭐ Read the way the filterer can: go and look in the crock (no eval —
-    // the founder holds no authority over the brickfield).
+  async function strainedIn(room: string): Promise<{ look: string; chem: string } | null> {
+    // ⭐ Read the way the filterer can: look into the crock, and analyze what
+    // is in it. ⚠ Not the detail's `bulkMaterial`: that is the vessel's own
+    // BODY ("earthenware" for every crock, runs 36–38), not what it holds.
     w = await goTo(w, room);
     const rows = (await w.query('here:i:crock', { fields: 'detail' }).catch(() => [])) as {
+      stuffId?: string;
       contents?: { primaryKeyword?: string }[];
-      bulkMaterial?: { templatePath?: string } | null;
+      longDescription?: string;
     }[];
     const crock = rows.find((r) => (r.contents ?? []).some((c) => c.primaryKeyword === 'filter'));
-    if (!crock) return null;
-    const material = crock.bulkMaterial?.templatePath ?? null;
-    return { material, litres: material ? 1 : 0 };
+    if (!crock?.stuffId) return null;
+    const look = String(crock.longDescription ?? '');
+    const chem = await say(w, `analyze chemistry #${crock.stuffId}`);
+    return { look, chem };
   }
 
   it('fouled river water through a ceramic filter comes out WATER; tainted water comes through TAINTED', async () => {
@@ -781,14 +784,14 @@ suite('⭐ 22 — the filter (W8)', () => {
     // ⭐ The bacteria stayed in the wall: what dripped into the crock is water.
     const strained = await strainedIn(YARD);
     expect(strained, 'the yard\'s crock with its filter').not.toBeNull();
-    expect(strained!.litres, 'water came through').toBeGreaterThan(0);
-    expect(strained!.material).toBe('/stuff/idea/material/bulk/water');
+    expect(strained!.look, 'water came through').toMatch(/holds .*water/i);
+    expect(strained!.chem, `the strained water: ${strained!.chem}`).not.toMatch(/foul|dysentery|lead/i);
 
     // ⭐ The lead is dissolved: it went straight through the pores.
     const through = await strainedIn(TEMPER);
     expect(through, 'the temper pit\'s crock with its filter').not.toBeNull();
-    expect(through!.litres, 'the tainted water came through').toBeGreaterThan(0);
-    expect(through!.material).toBe(TAINTED_WATER);
+    expect(through!.look, 'the tainted water came through').toMatch(/holds .*water/i);
+    expect(through!.chem, `the tainted water: ${through!.chem}`).toMatch(/lead|taint/i);
   }, 1_800_000);
 });
 
