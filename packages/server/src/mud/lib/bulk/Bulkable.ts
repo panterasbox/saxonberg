@@ -981,7 +981,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       try {
         const near: Stuff[] = [];
         if (MixinApi.isContainer(self)) near.push(...(self.getContents() as Stuff[]));
-        if (MixinApi.isPlacing(self)) near.push(...self.getPlaced('on'));
+        // ⚠ Placement words come from a world catalogue, which a sandboxed,
+        // jurisdiction-bound eval may not peek at (drive D, run 39).
+        try {
+          if (MixinApi.isPlacing(self)) near.push(...self.getPlaced('on'));
+        } catch (err) {
+          if (!(err instanceof SecurityError)) throw err;
+        }
         for (const c of near) {
           // Only a FACED vessel seeps (its faces are what let a liquid through).
           if (c === self || !MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
