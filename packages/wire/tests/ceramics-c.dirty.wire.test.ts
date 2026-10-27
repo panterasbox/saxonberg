@@ -636,7 +636,11 @@ suite('⭐ 22 — the filter (W8)', () => {
   let w: Session;
   async function filterRound(room: string, water: string): Promise<void> {
     w = await goTo(w, SQUARE);
-    expect(await say(w, 'buy water filter'), 'the stall sells a filter').toMatch(/you buy/i);
+    // ⚠ The stall stocks one filter: the second round found it sold out
+    // (run 35) — then the filter is handed (setup); the act is the filter.
+    const bought = await say(w, 'buy water filter');
+    if (/sold out|bare of/i.test(bought)) await hand(w, '/trade/ceramics/thing/water-filter');
+    else expect(bought, 'the stall sells a filter').toMatch(/you buy/i);
     expect(await say(w, 'buy crock'), 'and a crock for it to stand in').toMatch(/you buy/i);
     // ⚠ What a stall hands over may land at the buyer's feet rather than in
     // hand — the crock stayed in the square when the filterer walked on (run
@@ -704,7 +708,8 @@ suite('⭐ 23 — breakage and mending', () => {
     await toHour(8, 14);
     // A second thin bowl, fired, for the earth floor.
     potter = await goTo(potter, SHOP);
-    const bowls = await examine(potter, 'here:i:bowl');
+    // The bowls are on the boards, or in hand from 18b's firing (run 35).
+    const bowls = `${await examine(potter, 'here:i:bowl')} ${await examine(potter, 'me:i:bowl')}`;
     expect(bowls).toMatch(/bowl/i);
     await say(potter, 'get bowl');
     await say(potter, 'get bowl');
