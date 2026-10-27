@@ -127,12 +127,17 @@ async function act(s: Session, line: string, gameTime?: string): Promise<string>
   const started = (r.notes as Array<{ kind?: string; engagementId?: string }>).find(
     (n) => n.kind === 'engagement-started',
   );
+  let outcome = '';
   if (started?.engagementId) {
     if (gameTime) await advance(gameTime);
-    await s.awaitActivity(started.engagementId, 300_000).catch(() => []);
+    const notes = (await s.awaitActivity(started.engagementId, 300_000).catch(() => [])) as Array<{ kind?: string; reason?: string }>;
+    // ⭐ How the engagement ENDED, in the record: run 37's 5b day minted
+    // nothing and nothing said whether it completed or was cut short.
+    const end = notes.find((n) => n.kind === 'engagement-completed' || n.kind === 'engagement-cancelled');
+    outcome = end ? ` [${end.kind}${end.reason ? `: ${end.reason}` : ''}]` : ' [no end seen]';
   }
   await new Promise((res) => setTimeout(res, 500));
-  const later = squash(plain(await s.listen(1_500).catch(() => '')));
+  const later = squash(plain(await s.listen(1_500).catch(() => ''))) + outcome;
   // eslint-disable-next-line no-console -- the drive's own record
   console.log(`  [drive] ${s.handle.slice(0, 18)} > ${line} → ${r.status}\n          ${said.slice(0, 300)} … ${later.slice(0, 300)}`);
   await s.drainProse();
