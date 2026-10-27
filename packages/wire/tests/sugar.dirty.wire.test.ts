@@ -844,11 +844,18 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // shelf out, so a hauler waits for the next blocks off the curing floor.
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/store`);
+    // ⭐ ONE island block is what this step proves — bought at the estate,
+    // sailed home in the hold, landed on the bench. The house posts what
+    // it is short of up to a par of 8 (four, drive 25), and the estate
+    // makes about a block per shift-and-cure, so filling the whole posting
+    // from the island would cost a cycle a block. The rest is padded at
+    // home below from the house's own import counter, at 14: the price the
+    // bounty pays, so the padding neither earns nor costs (drive plumbing).
     let bought = 0;
-    while (bought < blocks && /you buy/i.test(await say(sailor, 'buy block'))) bought++;
-    if (bought < blocks) bought += await buyEstateBlocks(blocks - bought);
-    if (bought < blocks) await books(`${W}/location/store`);
-    expect(bought, 'the estate never had blocks to sell').toBe(blocks);
+    if (/you buy/i.test(await say(sailor, 'buy block'))) bought++;
+    if (bought < 1) bought += await buyEstateBlocks(1);
+    if (bought < 1) await books(`${W}/location/store`);
+    expect(bought, 'the estate never had a block to sell').toBe(1);
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/landing`);
     await say(sailor, 'go aboard');
@@ -861,6 +868,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     }
     expect(heard, 'she never raised the bar').toMatch(/You raise the bar/);
     await say(sailor, 'go ashore');
+    if (blocks > 1) {
+      sailor.close();
+      sailor = await goTo(sailorHandle, STORE);
+      for (let i = 1; i < blocks; i++) await buy(sailor, 'block');
+    }
     sailor.close();
     sailor = await goTo(sailorHandle, FLOOR);
     for (let i = 0; i < blocks; i++) await say(sailor, 'put 1 block on bench');
