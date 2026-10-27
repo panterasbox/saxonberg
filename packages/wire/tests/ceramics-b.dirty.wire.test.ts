@@ -462,6 +462,13 @@ suite('⭐ 13 — wear a crucible', () => {
       // and burns (ceramics W0) — run 29's 16 kg charge had burned away in
       // the half-hour warm-up and `smelt` found 0 kg.
       await say('douse furnace');
+      // Anything metal left in the shaft from a melt that did not pour (a
+      // frozen lump) comes out first: ore and metal will not charge together.
+      for (let i = 0; i < 3; i++) {
+        const got = await say('get copper from furnace');
+        if (!/pick up/i.test(got)) break;
+      }
+      await say('drop copper');
       await oreFor(2, SMELTER);
       await say('put malachite in furnace');
       await say('put malachite in furnace');
@@ -480,13 +487,16 @@ suite('⭐ 13 — wear a crucible', () => {
       // The smelt RUNS — a refusal here (no fuel, no ore) is the failure,
       // not four melts on at the crucible (runs 26–28 smelted nothing).
       expect(refusedFor(smelt.r), `the smelt: ${smelt.said}`).toBeNull();
-      await say('douse furnace');
-      await advance('2 hours');
+      // ⭐ Poured off the smelt, while the copper is still MOLTEN: doused
+      // and left two hours, it froze, and a crucible is no mould — the metal
+      // dropped out as a cast lump in the furnace, the crucible came up
+      // empty ("nothing to pour"), and the next charge was ore and metal
+      // together (run 35).
       look = await examine('crucible');
-      // Empty it for the next run: whatever ran into it goes out.
       await say('get crucible from furnace');
       await act('pour crucible into mould', '30 minutes');
       await say('put crucible in furnace');
+      await say('douse furnace');
       if (melt === 3) expect(look, 'after four melts').toMatch(/worn|crack/i);
     }
     expect(look, 'the crucible at last').toMatch(/crack/i);
