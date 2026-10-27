@@ -423,6 +423,19 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
 suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
   it('the cones read the heat — and a practiced potter reads more of it', async () => {
     await until(potter, 'here:i:jug', /bone-dry/i, '1 day', 30);
+    // ⭐ EVERY piece bone-dry, not just the jug: a crock still damp went in
+    // and the bisque's steam burst it — "It froze wet, and the frost has
+    // burst it apart" (the burst line reads for heat as for frost), and 18
+    // glazed that one (run 36). A day at a time until none of the potter's
+    // own reads damp.
+    for (let day = 0; day < 10; day++) {
+      const ours = ((await potter.query('here:i', { fields: 'detail' }).catch(() => [])) as { longDescription?: string }[])
+        .map((r) => String(r.longDescription ?? ''))
+        .filter((d) => d.includes(`Made by ${potter.handle}`));
+      if (!ours.some((d) => /leather-hard|soft, wet|takes a thumbprint/i.test(d))) break;
+      await advance('1 day');
+      await toHour(8, 15);
+    }
     // ⚠ The loading is proven by the acts, not by `kiln:i`: that query
     // lists NOTHING though the kiln holds the ware (run 28's probe — an eval
     // read six pieces inside; the MQL finding, recorded in the plan).
@@ -501,8 +514,13 @@ suite('⭐ 18 — glaze', () => {
     const crocks = ((await potter.query('me:i:crock', { fields: 'detail' }).catch(() => [])) as {
       stuffId?: string;
       longDescription?: string;
-    }[]).filter((c) => String(c.longDescription ?? '').includes(`Made by ${potter.handle}`));
-    expect(crocks.length, 'two bisque crocks in hand').toBeGreaterThanOrEqual(2);
+    }[]).filter(
+      (c) =>
+        String(c.longDescription ?? '').includes(`Made by ${potter.handle}`) &&
+        // A sound one: a burst or slumped piece takes no glaze (run 36).
+        !/burst|slumped/i.test(String(c.longDescription ?? '')),
+    );
+    expect(crocks.length, 'two sound bisque crocks in hand').toBeGreaterThanOrEqual(2);
     await say(potter, `name #${crocks[0]!.stuffId} ashpot`);
     // ⚠ A dip is an engaged act: waited out, or the next one finds the
     // potter's "hands busy with something else" (run 28).

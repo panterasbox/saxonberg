@@ -68,6 +68,8 @@ export interface Greenware extends Carvable, Impressible {
   dryness(): number;
   /** What the weather did to it, if anything. */
   getRuin(): GreenRuin;
+  /** What burst a shattered piece — ice in a frost, or steam in a kiln. */
+  getBurstBy(): 'frost' | 'steam' | null;
   /** Trim, join and stamp ask for leather-hard. */
   canTrim(): boolean;
   canJoin(): boolean;
@@ -111,7 +113,15 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   const state = host.greenState();
   let line = '';
   if (ruin === 'slumped') line = 'Rain has got at it: it has slumped out of its shape.';
-  else if (ruin === 'shattered') line = 'It froze wet, and the frost has burst it apart.';
+  else if (ruin === 'shattered') {
+    // ⭐ By its cause: a damp piece put in a kiln bursts on its steam, and
+    // reading "the frost" off a crock that never saw one is the fiction
+    // contradicting itself (ceramics drive C, run 36).
+    line =
+      host.getBurstBy() === 'steam'
+        ? 'It went into the fire still damp, and the steam has burst it apart.'
+        : 'It froze wet, and the frost has burst it apart.';
+  }
   else if (state === 'plastic') line = 'It is green — soft, wet clay that takes a thumbprint.';
   else if (state === 'leather-hard') line = 'It is green and leather-hard: firm enough to trim, still cool and damp.';
   else if (state === 'bone-dry') line = 'It is green and bone-dry: pale, light, and ready for the kiln.';
@@ -157,6 +167,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
 
     static fieldMeta: FieldMeta = {
       greenRuin: { persistent: true, runtimeState: true },
+      greenBurstBy: { persistent: true, runtimeState: true },
       greenCheckedS: { persistent: true, runtimeState: true },
       greenLastDryness: { persistent: true, runtimeState: true },
       greenLastWetness: { persistent: true, runtimeState: true },
@@ -285,6 +296,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
     }
 
     public greenRuin: GreenRuin = null;
+    public greenBurstBy: 'frost' | 'steam' | null = null;
     public greenCheckedS = 0;
     public greenLastDryness = 0;
     public greenLastWetness = 0;
@@ -344,6 +356,11 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
     public getRuin(): GreenRuin {
       this.reconcileGreen();
       return this.greenRuin;
+    }
+
+    public getBurstBy(): 'frost' | 'steam' | null {
+      this.reconcileGreen();
+      return this.greenBurstBy;
     }
 
     public canTrim(): boolean {
@@ -409,6 +426,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
           this.greenRuin = 'slumped';
         } else if (wetPiece && (minK < 273.15 || maxK > 373.15)) {
           this.greenRuin = 'shattered';
+          this.greenBurstBy = minK < 273.15 ? 'frost' : 'steam';
           if (MixinApi.isTangible(self)) self.addFlaw('crack', true, nowS);
         } else if (dry > this.greenLastDryness) {
           const rate = (dry - this.greenLastDryness) / dtH;

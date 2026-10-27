@@ -133,6 +133,22 @@ describe('the weather', () => {
     expect(dry.getRuin()).toBeNull();
   });
 
+  it('⭐ a damp piece in a kiln bursts on its steam, and says so — not "the frost"', () => {
+    const damp = piece(0.8);
+    damp.reconcileThermal();
+    damp.reconcileGreen();
+    damp.setLastAmbientK(900);
+    advance(2 * 3600);
+    expect(damp.getRuin()).toBe('shattered');
+    expect(damp.getBurstBy()).toBe('steam');
+    const cold = piece(0.8);
+    cold.reconcileThermal();
+    cold.reconcileGreen();
+    cold.setLastAmbientK(260);
+    advance(12 * 3600);
+    expect(cold.getBurstBy()).toBe('frost');
+  });
+
   it('fat clay dried fast checks; the same clay opened with sand does not', () => {
     const fat = piece(1, [{ materialPath: mineral.getTemplatePath()!, fraction: 0.8 }]);
     const lean = piece(1, [
