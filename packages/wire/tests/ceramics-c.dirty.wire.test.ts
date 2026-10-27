@@ -352,10 +352,16 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     // handle held in the hand never dried at all (run 34: soft and wet after
     // a day in the potter's fist). The jug stays in hand meanwhile, so it is
     // not let past leather-hard while it waits. An hour at a time.
-    // By identity: the potter NPC pulls handles too.
-    const pulled = ((await potter.query('me:i:handle', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])[0]?.stuffId;
-    expect(pulled, 'the pulled handle in hand').toBeDefined();
-    await say(potter, `drop #${pulled}`);
+    // By identity: the potter NPC pulls handles too. The drive's own is
+    // "Made by" the potter — already on the boards (16 began by setting every
+    // piece down, run 35) or still in hand.
+    const mineOf = async (where: string): Promise<string | undefined> =>
+      ((await potter.query(where, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[])
+        .find((h) => String(h.longDescription ?? '').includes(`Made by ${potter.handle}`))?.stuffId;
+    const inHand = await mineOf('me:i:handle');
+    const pulled = inHand ?? (await mineOf('here:i:handle'));
+    expect(pulled, 'the potter\'s pulled handle').toBeDefined();
+    if (inHand) await say(potter, `drop #${pulled}`);
     const handle = await until(potter, `#${pulled}`, /leather-hard|bone-dry/i, '1 hour', 24);
     expect(handle, `the handle firm enough to join: ${handle}`).toMatch(/leather-hard/i);
     await say(potter, `get #${pulled}`);
