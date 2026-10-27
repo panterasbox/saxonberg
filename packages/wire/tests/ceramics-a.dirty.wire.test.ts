@@ -172,6 +172,30 @@ async function idsOf(s: Session, keyword: string): Promise<string[]> {
   return (rows as { stuffId?: string }[]).map((r) => r.stuffId ?? '').filter((x) => x !== '');
 }
 
+type StackRow = { stuffId?: string; quantity?: unknown; longDescription?: unknown };
+
+/**
+ * ⭐ The stack an act leaves under `query`: the id that was not there
+ * before it, else one that grew. A fresh stack merges into a like one of
+ * the same maker in the same state, and then no new id appears (run 36,
+ * 5b) — and a keyword read binds whichever like stack comes first (run 36:
+ * `analyze clay lump` read a stray raw lump, not the tempered one).
+ */
+async function stackAfter(s: Session, query: string, act: () => Promise<unknown>): Promise<StackRow | undefined> {
+  const rows = async (): Promise<StackRow[]> =>
+    (await s.query(query, { fields: 'detail' }).catch(() => [])) as StackRow[];
+  const count = (r: StackRow): number => Number(r.quantity ?? 1) || 1;
+  const before = new Map((await rows()).map((r) => [r.stuffId, count(r)]));
+  await act();
+  const after = await rows();
+  // eslint-disable-next-line no-console -- the drive's own record
+  console.log(`  [drive] ${query} before ${JSON.stringify([...before])} after ${JSON.stringify(after.map((r) => [r.stuffId, count(r)]))}`);
+  return (
+    after.find((r) => r.stuffId && !before.has(r.stuffId)) ??
+    after.find((r) => r.stuffId && count(r) > (before.get(r.stuffId) ?? 0))
+  );
+}
+
 async function held(s: Session): Promise<string[]> {
   const rows = await s.query('me:i', { fields: ['displayName'] }).catch(() => []);
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? ''));
@@ -235,6 +259,9 @@ const RAINING = (w: string): boolean =>
 
 // ── the cast of this file ───────────────────────────────────────────────
 let digger: Session; // the brickmaker
+// ⭐ The day's bricks by id (4), so 6 dries and 7 sets THEM — `get bricks`
+// in the shed took a burst brick and a dry stack along with them (run 36).
+let dayBricks: string[] = [];
 
 beforeAll(async () => {
   // ⭐ The brickmaker's year starts in late autumn (day 230–260 of 360):
@@ -363,26 +390,16 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await toHour(9, 15);
     await say(digger, 'east');
     await say(digger, 'east');
-    // ⭐ By identity: the stack the day mints is the one that was not here
-    // before it — OR one already here that grew. (A fresh brick merges only
-    // with bricks in its own state AND by its own maker, so the gang's never
-    // take it; but a wet stack of this brickmaker's own from an earlier day
-    // does, and then no new id appears — run 36. `get 1 brick` once bound
-    // the "brick table".)
-    type BrickRow = { stuffId?: string; quantity?: unknown; longDescription?: unknown };
-    const bricksHere = async (): Promise<BrickRow[]> =>
-      (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as BrickRow[];
-    const count = (r: BrickRow): number => Number(r.quantity ?? 1) || 1;
-    const before = new Map((await bricksHere()).map((r) => [r.stuffId, count(r)]));
-    const struck = await act(digger, 'shape clay into brick', '9 hours');
+    // ⭐ By identity: the stack the day mints, new or grown (`stackAfter`).
+    // (A fresh brick merges only with bricks in its own state AND by its own
+    // maker, so the gang's never take it. `get 1 brick` once bound the
+    // "brick table".)
+    let struck = '';
+    const minted = await stackAfter(digger, 'here:i:bricks', async () => {
+      struck = await act(digger, 'shape clay into brick', '9 hours');
+      await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
+    });
     expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
-    await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
-    const after = await bricksHere();
-    // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] shed bricks before ${JSON.stringify([...before])} after ${JSON.stringify(after.map((r) => [r.stuffId, count(r)]))}`);
-    const minted =
-      after.find((r) => r.stuffId && !before.has(r.stuffId)) ??
-      after.find((r) => r.stuffId && count(r) > (before.get(r.stuffId) ?? 0));
     expect(minted?.stuffId, 'the day\'s fresh stack').toBeDefined();
     const fresh = minted!.stuffId!;
     let hackBrick = String(minted!.longDescription ?? '');
@@ -443,10 +460,15 @@ suite('⭐ 3 — knead it', () => {
     // bricks moulded from here dry on the hacks — wet ones a frost bursts.
     await toWarmSeason(open);
     await toHour(9, 15);
-    expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
-    const fat = await say(digger, 'analyze clay lump');
+    // ⚠ By id: the brickmaker still holds raw lumps from 1 and 2, and
+    // `put clay`/`analyze clay lump` bound one of THOSE (run 36).
+    const heap = await stackAfter(digger, 'me:i:clay', async () => {
+      expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
+    });
+    expect(heap?.stuffId, 'the weathered lumps in hand').toBeDefined();
+    const fat = await say(digger, `analyze #${heap!.stuffId}`);
     await say(digger, 'east');
-    await say(digger, 'put clay in pit');
+    await say(digger, `put #${heap!.stuffId} in pit`);
     await say(digger, 'put sand in pit');
     await say(digger, 'get breeze');
     await say(digger, 'put breeze in pit');
@@ -461,14 +483,18 @@ suite('⭐ 3 — knead it', () => {
     // pit` falls through to the next view and tries to lift the pit (run
     // 24). (⚠ Not the whole of "`pit:i` lists nothing": run 28 caught
     // `kiln:i` empty with six pieces inside — a real MQL gap, recorded.)
-    let taken = await say(digger, 'get clay from pit');
-    for (let i = 0; i < 10 && !/pick up/i.test(taken); i++) {
-      await new Promise((r) => setTimeout(r, 1_000));
+    let taken = '';
+    const blend = await stackAfter(digger, 'me:i:clay', async () => {
       taken = await say(digger, 'get clay from pit');
-    }
+      for (let i = 0; i < 10 && !/pick up/i.test(taken); i++) {
+        await new Promise((r) => setTimeout(r, 1_000));
+        taken = await say(digger, 'get clay from pit');
+      }
+    });
     expect(taken, 'the clay out of the pit').toMatch(/clay/i);
     expect(taken).not.toMatch(/sand|breeze/i);
-    const lean = await say(digger, 'analyze clay lump');
+    expect(blend?.stuffId, 'the tempered clay in hand').toBeDefined();
+    const lean = await say(digger, `analyze #${blend!.stuffId}`);
     expect(lean, `tempered: ${lean} — raw: ${fat}`).not.toEqual(fat);
     expect(lean).toMatch(/workable|lean/i);
   }, 3_600_000);
@@ -497,8 +523,13 @@ suite('⭐ 4 — shape it', () => {
     // The tempered clay is in hand (fetched from the pit in 3).
     await say(digger, 'east');
     const beforeMe = await examine(digger, 'me');
-    const day = await act(digger, 'shape clay into brick', '9 hours');
+    let day = '';
+    const pallet = await stackAfter(digger, 'here:i:bricks', async () => {
+      day = await act(digger, 'shape clay into brick', '9 hours');
+    });
     expect(day, `the day: ${day}`).toMatch(/brick/i);
+    expect(pallet?.stuffId, 'the day\'s bricks').toBeDefined();
+    dayBricks = [pallet!.stuffId!];
     // ⭐ STATE: green bricks stand on the pallet.
     expect(await examine(digger, 'here:i:bricks'), 'the pallet').toMatch(/green|thumbprint/i);
     // ⭐ STATE: the moulder is muddy.
@@ -518,8 +549,13 @@ suite('⭐ 4 — shape it', () => {
     await toHour(9, 15);
     // The shed's raw lump — fat, unweathered, no sand.
     expect(await say(digger, 'get 1 clay')).toMatch(/pick up|clay/i);
-    const day = await act(digger, 'shape clay into brick', '9 hours');
+    let day = '';
+    const fat = await stackAfter(digger, 'here:i:bricks', async () => {
+      day = await act(digger, 'shape clay into brick', '9 hours');
+      await toHour(9, 15); // a nine-hour day ends after dark; read by day
+    });
     expect(day).toMatch(/brick/i);
+    if (fat?.stuffId && !dayBricks.includes(fat.stuffId)) dayBricks.push(fat.stuffId);
   }, 900_000);
 });
 
@@ -527,19 +563,19 @@ suite('⭐ 6 — dry them', () => {
   it('into the hacks; weeks later leather-hard, then bone-dry — and the fat batch has cracked', async () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).
     await toHour(9, 15);
-    const got = await say(digger, 'get bricks');
-    expect(got).toMatch(/pick up|brick/i);
-    await say(digger, 'get bricks');
+    expect(dayBricks.length, 'the day\'s bricks from 4').toBeGreaterThan(0);
+    const ours = async (): Promise<string> =>
+      (await Promise.all(dayBricks.map((id) => examine(digger, `#${id}`)))).join('\n');
+    for (const id of dayBricks) expect(await say(digger, `get #${id}`)).toMatch(/pick up|brick/i);
     await say(digger, 'south');
     // ⭐ Set ON the hack, where the wind reaches every face — dropped on the
     // yard (one face to the air) they never got past leather-hard.
-    await say(digger, 'put bricks on hack');
-    await say(digger, 'put bricks on hack');
-    expect(await examine(digger, 'here:i:bricks')).toMatch(/green/i);
+    for (const id of dayBricks) await say(digger, `put #${id} on hack`);
+    expect(await ours()).toMatch(/green/i);
     let rows = '';
     for (let week = 0; week < 6 && !/leather-hard/i.test(rows); week++) {
       await advance('5 days');
-      rows = await examine(digger, 'here:i:bricks');
+      rows = await ours();
       // ⚠ Run 29 read NO bricks here after the first five days, at a
       // daylight hour, with the brickmaker alive: say what IS here.
       if (rows === '') await examine(digger, 'here:i');
@@ -547,7 +583,7 @@ suite('⭐ 6 — dry them', () => {
     expect(rows, 'leather-hard in the hacks').toMatch(/leather-hard|bone-dry/i);
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
-      rows = await examine(digger, 'here:i:bricks');
+      rows = await ours();
     }
     expect(rows, 'bone-dry in the hacks').toMatch(/bone-dry/i);
     // ⚠ Whether the fat, no-sand batch CHECKS is the drying RATE against its
@@ -568,15 +604,20 @@ suite('⭐ 7 — fire the clamp', () => {
     // is the setter's band, `BrickClamp.onFireStart`).
     for (let i = 0; i < 12; i++) await digger.cmd('practice brickmaking hard success');
     await digger.drainProse();
-    await say(digger, 'get bricks');
+    // ⚠ By id: `get bricks` at the hacks took every stack there, wet ones
+    // and a frost-burst one with them (run 36).
+    for (const id of dayBricks) await say(digger, `get #${id}`);
     await say(digger, 'east');
-    // ⚠ `put bricks` binds ONE stack — the fat batch went in and the nine
-    // sound ones stayed in hand (run 31): set every stack held.
-    for (let i = 0; i < 4 && (await held(digger)).some((n) => /brick/i.test(n)); i++) {
-      const put = await say(digger, 'put bricks in clamp');
+    // ⚠ `put bricks` binds ONE stack (run 31): set each by id.
+    const set: string[] = [];
+    for (const id of dayBricks) {
+      const put = await say(digger, `put #${id} in clamp`);
       expect(put, `set: ${put}`).not.toMatch(/won't|can't|not fireable|wet/i);
+      set.push(put);
     }
-    expect((await s_namesIn(digger, 'clamp')).join(' | '), 'the clamp is charged').toMatch(/brick/i);
+    // ⚠ Not `clamp:i`: a clamp is cased in clay and its inside is dark, so a
+    // read of it lists nothing (run 36) — what the setter SAID is the record.
+    expect(set.join(' | '), 'the clamp is charged').toMatch(/put .*brick.* in .*clamp/i);
     const lit = await say(digger, 'ignite clamp');
     expect(lit).toMatch(/catch|light|burn|alight|fire/i);
     // Fire it into the night and look from next door.
@@ -642,23 +683,27 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     for (let i = 0; i < 2; i++) await act(digger, 'dig clay with spade', '2 minutes');
     await say(digger, 'get clay');
     for (const d of ['north', 'east', 'east']) await say(digger, d);
-    await act(digger, 'shape clay into brick', '9 hours');
     // ⚠ A nine-hour day ends after dark, and in the dark `get bricks` sees
-    // none on the pallet (run 34): fetch them in the morning, as 4 does.
-    await toHour(9, 15);
-    await say(digger, 'get bricks');
+    // none on the pallet (run 34): fetch them in the morning, as 4 does —
+    // and by id, since the shed holds other bricks (run 36).
+    const load = await stackAfter(digger, 'here:i:bricks', async () => {
+      await act(digger, 'shape clay into brick', '9 hours');
+      await toHour(9, 15);
+    });
+    expect(load?.stuffId, 'the second load').toBeDefined();
+    const second = `#${load!.stuffId}`;
+    await say(digger, `get ${second}`);
     await say(digger, 'south');
-    await say(digger, 'put bricks on hack');
+    await say(digger, `put ${second} on hack`);
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
-      rows = await examine(digger, 'here:i:bricks');
+      rows = await examine(digger, second);
     }
     expect(rows, 'the second load dry').toMatch(/bone-dry/i);
-    await say(digger, 'get bricks');
+    await say(digger, `get ${second}`);
     await say(digger, 'east');
-    await say(digger, 'put bricks in clamp');
-    expect((await s_namesIn(digger, 'clamp')).join(' | ')).toMatch(/brick/i);
+    expect(await say(digger, `put ${second} in clamp`)).toMatch(/put .*brick.* in .*clamp/i);
     await say(digger, 'get coal');
     await say(digger, 'stoke coal into clamp');
     await say(digger, 'ignite clamp');
