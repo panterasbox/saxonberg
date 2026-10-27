@@ -523,11 +523,19 @@ suite('⭐ 18 — glaze', () => {
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
-    // A third firing of what is left: opened while it still glows.
-    // (What is left in the kiln is not read by `kiln:i` — see 17.)
+    // A third firing, opened while it still glows. ⭐ The checkpoint loads
+    // its OWN ware: what it once found left in the kiln depended on 18a,
+    // and run 35 fired an empty kiln ("get all from kiln" lifted the kiln).
+    const loaded: string[] = [];
+    for (const ware of ['mug', 'jar', 'bowl', 'plant pot']) {
+      const word = ware.includes(' ') ? `"${ware}"` : ware;
+      await say(potter, `get ${word}`);
+      if (/put /i.test(await say(potter, `put ${word} in kiln`))) loaded.push(word);
+    }
+    expect(loaded.length, 'ware in the kiln to dunt').toBeGreaterThan(0);
     await fireKiln(potter, '6 hours');
     await say(potter, 'douse kiln');
-    await say(potter, 'get all from kiln');
+    for (const word of loaded) await say(potter, `get ${word} from kiln`);
     await advance('2 hours');
     const ware = await examine(potter, 'me:i');
     expect(ware, 'opened hot').toMatch(/crack|dunt/i);
