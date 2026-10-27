@@ -3234,3 +3234,70 @@ Drive defects, all fixed:
   - **`get "plant pot" from kiln` was a parser error**: a quoted name
     inside a longer object span kept its quotes on the way to MQL
     (42f69c4fd). This is the recorded two-word-name finding, now fixed.
+
+**Run 36** (D 23/23 · A 12/20 · B 5/6 · C 8/21). D is clean for the fifth
+run running. Most of what A and C lost was one drive defect seen many
+times: a **bare word binds whichever like thing comes first**. Once a
+drive character's hands and the shed fill up, `get bricks`,
+`analyze clay lump`, `pour pail` and `drop crock` each took a stack the
+step never meant. A and C now follow their own pieces by id: A uses
+`stackAfter` (a new id, or a stack that grew, since a fresh stack can
+merge into a like one) and C uses `freshIn`.
+- **A:**
+  - 3 tempers the weathered lumps by id; a stray raw lump read FAT.
+  - 5b, 4, 6, 7 and 8 follow the day's bricks by id. 7 confirms the
+    clamp is charged from what the setter said: a clamp is dark inside,
+    so `clamp:i` lists nothing.
+  - 9b quotes `at "old table"`. It failed the same way in every run from
+    15 to 36: an object argument binds ONE word, so "old" bound the table
+    and "table into brick" went to the form. 9b also puts the
+    brickmaker's load down first, because a laden brickmaker strained at
+    a fresh lump and lifted nothing.
+- **B:**
+  - 13 relines between melts (`relineWhole`, shared with 12). The fifth
+    melt was refused too cold at 1309 K against 1358 K, because the melts
+    wear the lining too.
+  - 13 pours five minutes after the two-minute run. Two hours later the
+    fire was out and the copper had set: "nothing to pour".
+- **C:**
+  - 16b takes 16's trimmed mug by id; 16 had set it down.
+  - 17 bisques only when every piece of the potter's reads bone-dry.
+  - 18 glazes only sound crocks.
+  - 18b rings its pieces by id; the eye cannot see a dunt in bisque by
+    design.
+  - 19, 22 and 23 pour handed pails by id.
+  - 22 hands a crock when the stall is out.
+  - 20 and 23 follow their pieces by id and maker.
+  - 23's tinker takes a piece the ear found.
+- **Game defects the drives found, fixed:**
+  - **`get X from Y` had no `from`.** "from kiln" was two more words to
+    match, so every such `get` also tried to lift the container ("an
+    updraft kiln is fixed in place"), and `get "plant pot" from kiln`
+    took the potter's stamp. `get` now has a trailing greedy `source`,
+    and the controller narrows to what is in or on it (ef56d045b).
+    42f69c4fd had made that sentence bind without making it right.
+  - **A steam burst read as frost.** A damp crock in the bisque kiln
+    read "It froze wet, and the frost has burst it apart". Greenware now
+    records the cause (`greenBurstBy`) (5584df326).
+  - **Grog could not be made.** `grind sherds` threw: the grog row named
+    quarrying's `Lump`, which has no maker. Grog is its own `Crafted`
+    class (08ace31c5).
+  - **`buy small plant pot`**: the shelf showed the name and the row did
+    not answer to it (0ec1cca33).
+- **Open findings, not fixed in this build:**
+  - **Recipe outputs that cannot be stamped.** A census of tangible
+    recipe outputs found six whose class does not compose `Crafted`, the
+    same throw as grog's whenever one is made:
+    - four `Ingot` rows in trade-smelting (`cast-bar`, `carburize-steel`,
+      `cast-pig-iron`, `smelt-copper`);
+    - drilling's `liner` (`Good`);
+    - ceramics' `case-half` (`Thing`).
+
+    The fix belongs to those trades. ⭐ It wants a gate (a tangible
+    output's class composes `Crafted`) rather than six patches.
+  - **A hot-opened jar read 599.6 K a week later** (C 21). A probe on the
+    same world after the run read 297 K, so it is not reproduced; record
+    it, and watch 21 next run.
+  - **An argument that declares `into` takes leftover words without
+    it**, so 9b's refusal named a nonsense form ("table into brick")
+    instead of saying the table was not found.
