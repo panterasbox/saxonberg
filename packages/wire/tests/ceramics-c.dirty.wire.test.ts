@@ -962,20 +962,22 @@ suite('⭐ 20 — flame and body', () => {
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
-    // The ash-glazed crock's twin: the leadpot holds water from 21; a jar of
-    // water is brought to the boil by the founder (setup), then poured.
     // ⚠ The boiling water is SETUP, handed in a pail already at 372 K (the
     // authorable `stampedTemperatureK`, as a data overlay) and poured at
     // once: the founder's eval holds no authority over the brickfield (run
     // 34). The SHOCK is the act under test.
+    // ⭐ What the criterion names: a cold GLAZED MUG (AC: "boiling water
+    // into a cold glazed mug → it cracks"). The ashpot reached only porous
+    // terracotta, whose open body stands the step — the rule is right, the
+    // piece was wrong (runs 36–38). Setup: the fired mug row with a fused
+    // ash glaze laid on it (the row's own `coats`, as a data overlay).
+    const mug = await hand(potter, '/trade/ceramics/thing/mug', {
+      coats: { outside: [{ material: '/stuff/idea/material/glaze/ash', thicknessM: 0.0003, state: 'fused' }] },
+    });
     const boiling = await hand(potter, PAIL, { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 1, stampedTemperatureK: 372 });
-    await say(potter, 'get ashpot');
-    // `spill` empties a vessel; "pour out ashpot" is not a sentence `pour`
-    // reads ("You don't see any 'out' to pour", run 37).
-    await say(potter, 'spill ashpot').catch(() => '');
-    const poured = await say(potter, `pour #${boiling} into ashpot`);
+    const poured = await say(potter, `pour #${boiling} into #${mug} --amount 250ml`);
     expect(poured).toMatch(/pour/i);
-    expect(await examine(potter, 'me:i:ashpot'), 'the cold glazed crock, boiling water in').toMatch(/crack/i);
+    expect(await examine(potter, `#${mug}`), 'the cold glazed mug, boiling water in').toMatch(/crack/i);
   }, 1_800_000);
 });
 
@@ -996,7 +998,10 @@ suite('⭐ 24 — the shelf', () => {
       }
       return '';
     };
-    const first = await mugBy(novice.handle);
+    // …and, wherever 16–20 carried it (the kiln, the square), the reading
+    // 15 took of it: the same mug, read when it was made (run 38 found it
+    // in nobody's reach).
+    const first = (await mugBy(novice.handle)) || novicesFirstMug;
     potter = await clayFor(potter, 1);
     await act(potter, 'shape clay into mug', '1 hour');
     const latest = await mugBy(potter.handle);
