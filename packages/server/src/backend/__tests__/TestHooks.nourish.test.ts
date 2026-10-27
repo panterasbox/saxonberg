@@ -10,6 +10,7 @@ import { TestHooks } from '../TestHooks';
 import { PlayerApi } from '../../mud/api/player';
 import { MixinApi } from '../../mud/api/mixin';
 import { Quantity } from '../../mud/lib/quantity';
+import { TemplatePaths } from '../../mud/lib/paths';
 import type Avatar from '../../mud/lib/character/Avatar';
 
 /** A body with the three reserves a meal tops up, at `level` of a 100 % capacity. */
@@ -50,6 +51,12 @@ describe('TestHooks.nourishCharacter', () => {
     const cut = { kind: 'trauma', type: 'laceration', site: 'body.arm', severity: 1, dressed: true };
     b.getConditions = () => [burn, cut];
     b.applyTreatment = vi.fn();
+    Object.assign(b, {
+      getVitalBand: () => ({ baseline: 310, survivableMin: 301, survivableMax: 315 }),
+      getVitalSign: () => Quantity.of(310, 'K'),
+      setVitalSign: vi.fn(),
+      relieve: vi.fn(),
+    });
     vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(b as unknown as Avatar);
     vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
     vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
@@ -73,6 +80,43 @@ describe('TestHooks.nourishCharacter', () => {
     TestHooks.nourishCharacter('wire-brickmaker');
     expect(b.wet).toHaveBeenCalledWith(-1);
     expect(coat.wet).toHaveBeenCalledWith(-1);
+  });
+
+  it('⭐ warms a chilled body — the off-camera hours are spent by a fire (run 35 died of a winter yard)', () => {
+    const chill = { kind: 'affliction', templatePath: TemplatePaths.thermalHypothermia, stage: 0, elapsed: 900 };
+    const setVitalSign = vi.fn();
+    const relieve = vi.fn();
+    const b = Object.assign(body(50), {
+      getConditions: () => [chill],
+      getVitalBand: () => ({ baseline: 310, survivableMin: 301, survivableMax: 315 }),
+      getVitalSign: () => Quantity.of(299, 'K'),
+      setVitalSign,
+      relieve,
+      applyTreatment: vi.fn(),
+    });
+    vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(b as unknown as Avatar);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
+    TestHooks.nourishCharacter('wire-brickmaker');
+    expect(setVitalSign).toHaveBeenCalledWith('coreTemperature', expect.objectContaining({}));
+    expect((setVitalSign.mock.calls[0]![1] as Quantity<'K'>).rawValue()).toBe(310);
+    expect(relieve).toHaveBeenCalledWith(chill);
+  });
+
+  it('…but leaves a HOT body\'s heat alone — that is the work\'s', () => {
+    const setVitalSign = vi.fn();
+    const b = Object.assign(body(50), {
+      getConditions: () => [],
+      getVitalBand: () => ({ baseline: 310, survivableMin: 301, survivableMax: 315 }),
+      getVitalSign: () => Quantity.of(312, 'K'),
+      setVitalSign,
+      relieve: vi.fn(),
+    });
+    vi.spyOn(PlayerApi, 'findAvatarByName').mockReturnValue(b as unknown as Avatar);
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isVitals').mockReturnValue(true);
+    TestHooks.nourishCharacter('wire-brickmaker');
+    expect(setVitalSign).not.toHaveBeenCalled();
   });
 
   it('⚠ says so when nobody answers to the handle', () => {

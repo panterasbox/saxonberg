@@ -59,6 +59,8 @@ import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { StuffApi } from '../mud/api/stuff';
 import { ContainmentApi } from '../mud/api/containment';
 import { TRAUMA_BEHAVIOR } from '../mud/platform/idea/Condition';
+import { Quantity } from '../mud/lib/quantity';
+import { TemplatePaths } from '../mud/lib/paths';
 import { PersistenceManager } from './PersistenceManager';
 
 export class TestHooks {
@@ -370,6 +372,21 @@ export class TestHooks {
       if (MixinApi.isWet(body)) body.wet(-1);
       if (MixinApi.isAttired(body)) {
         for (const g of body.wornStack()) if (MixinApi.isWet(g)) g.wet(-1);
+      }
+      // ⭐ …and WARM, as anyone would have been, indoors by a fire between
+      // the checkpoints. Drive A stands the brickmaker out on the weathering
+      // ground in early winter, waiting for rain onto a green brick, and a
+      // greatcoat on an open yard through days of jumped clock killed them of
+      // hypothermia (run 35). The cold of the hours under test still bites;
+      // only the hours off camera are spent by a fire. A body ABOVE its normal
+      // core is left alone — the heat it carries is the work's.
+      if (MixinApi.isVitals(body)) {
+        const band = body.getVitalBand('coreTemperature');
+        const core = body.getVitalSign('coreTemperature').rawValue();
+        if (core < band.baseline) body.setVitalSign('coreTemperature', Quantity.of(band.baseline, 'K'));
+        for (const c of body.getConditions()) {
+          if (c.kind === 'affliction' && c.templatePath === TemplatePaths.thermalHypothermia) body.relieve(c);
+        }
       }
       if (MixinApi.isVitals(body)) {
         for (const c of body.getConditions()) {
