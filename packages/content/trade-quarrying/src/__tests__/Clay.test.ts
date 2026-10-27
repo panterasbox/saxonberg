@@ -216,4 +216,22 @@ describe('a clay’s year', () => {
     expect(a.getWeatheredDays()).toBeCloseTo(20, 6);
     expect(a.fractionOf(sand.getTemplatePath()!)).toBeCloseTo(0.1, 6);
   });
+
+  it('⭐ pooled lumps keep EVERY kilogram — a remnant heap does not shrink fresh lumps (drive A, run 37)', () => {
+    const remnant = lumpOf(common);
+    const fresh = lumpOf(common);
+    remnant.setMass(Quantity.of(0.9, 'kg'));
+    remnant.setQuantity(2);
+    fresh.setMass(Quantity.of(12, 'kg'));
+    fresh.setQuantity(2);
+    fresh.setWeatheredDays(30);
+    stampTemplatePathForTest(remnant, '/trade/quarrying/thing/clay');
+    stampTemplatePathForTest(fresh, '/trade/quarrying/thing/clay');
+    expect(remnant.canMergeWith(fresh)).toBe(true);
+    remnant.setQuantity(4);
+    remnant.onMerged(fresh);
+    expect(remnant.clayKg()).toBeCloseTo(2 * 0.9 + 2 * 12, 6);
+    // Weighted by MASS: the fresh clay is nearly all of it.
+    expect(remnant.getWeatheredDays()).toBeCloseTo((30 * 24) / 25.8, 6);
+  });
 });

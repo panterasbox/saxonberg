@@ -206,6 +206,8 @@ export default class Clay extends ClayBase implements Shapeable {
   private _absorbing: {
     stuffId: string;
     quantity: number;
+    /** One of its lumps, kg — lumps differ, and the pool keeps every kilogram. */
+    eachKg: number;
     weatheredDays: number;
     alloying: CompositionEntry[];
   } | null = null;
@@ -541,6 +543,7 @@ export default class Clay extends ClayBase implements Shapeable {
         ? {
             stuffId: other.stuffId,
             quantity: lot.getQuantity(),
+            eachKg: MixinApi.isTangible(other) ? other.getMass().rawValue() : this.getMass().rawValue(),
             weatheredDays: lot.getWeatheredDays(),
             alloying: [...(lot.getAlloying?.() ?? [])],
           }
@@ -561,17 +564,24 @@ export default class Clay extends ClayBase implements Shapeable {
       stashed.quantity <= total
     ) {
       const mine = total - stashed.quantity;
-      this.weatheredDays =
-        (this.weatheredDays * mine + stashed.weatheredDays * stashed.quantity) / total;
+      // ⭐ By MASS, and the pool keeps every kilogram. A stack has one
+      // per-lump mass, and the merge kept the absorber's: two fresh 12 kg
+      // lumps picked up onto two 0.9 kg remnants became four 0.9 kg lumps,
+      // 22 kg of clay gone, and a day at the brick table then found too
+      // little clay for one brick (the ceramics drive A, run 37).
+      const myKg = mine * this.getMass().rawValue();
+      const theirKg = stashed.quantity * stashed.eachKg;
+      const totalKg = myKg + theirKg;
+      const wMine = totalKg > 0 ? myKg / totalKg : mine / total;
+      const wTheirs = 1 - wMine;
+      if (totalKg > 0) this.setMass(Quantity.of(totalKg / total, 'kg'));
+      this.weatheredDays = this.weatheredDays * wMine + stashed.weatheredDays * wTheirs;
       const acc = new Map<string, number>();
       for (const e of this.getAlloying()) {
-        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + (e.fraction * mine) / total);
+        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * wMine);
       }
       for (const e of stashed.alloying) {
-        acc.set(
-          e.materialPath,
-          (acc.get(e.materialPath) ?? 0) + (e.fraction * stashed.quantity) / total,
-        );
+        acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * wTheirs);
       }
       this.setAlloying([...acc].map(([materialPath, fraction]) => ({ materialPath, fraction })));
     }
@@ -583,6 +593,9 @@ export default class Clay extends ClayBase implements Shapeable {
     const cut = splitoff as unknown as Partial<Clay>;
     if (typeof cut.setWeatheredDays === 'function') cut.setWeatheredDays(this.weatheredDays);
     if (typeof cut.setAlloying === 'function') cut.setAlloying(this.getAlloying());
+    // …and the heap's lump size: the split-off is a fresh clone of the ROW,
+    // so without this a 0.9 kg remnant split off came back a 12 kg lump.
+    if (MixinApi.isTangible(splitoff)) splitoff.setMass(this.getMass());
     super.onSplit(splitoff);
   }
 }
