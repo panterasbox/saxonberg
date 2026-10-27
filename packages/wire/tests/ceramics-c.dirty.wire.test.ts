@@ -671,16 +671,22 @@ suite('⭐ 21 — the weeping jar', () => {
     await toHour(8, 14);
     await mint(SHOP, THERMOMETER);
     await say(potter, 'get thermometer');
-    await say(potter, 'get jar');
-    await say(potter, 'fill jar from butt');
-    // ⚠ By identity: the potter holds more than one jar, and `drop jar` let
-    // go of two — the thermometer then read whichever answered (run 34).
-    const jars = (await potter.query('me:i:jar', { fields: 'detail' }).catch(() => [])) as {
-      stuffId?: string;
-      bulkMaterial?: { templatePath?: string } | null;
-    }[];
-    const full = jars.find((j) => j.bulkMaterial?.templatePath)?.stuffId;
-    expect(full, `the filled jar: ${JSON.stringify(jars.map((j) => j.bulkMaterial ?? null))}`).toBeDefined();
+    // ⭐ By identity, and a BISQUE jar: porous terracotta, bare. 18b's short
+    // hot firing leaves a jar only part-fired ("fired alluvial clay"), whose
+    // tight body does not weep (run 38).
+    type JarRow = { stuffId?: string; longDescription?: string };
+    const jarRows = [
+      ...((await potter.query('here:i:jar', { fields: 'detail' }).catch(() => [])) as JarRow[]),
+      ...((await potter.query('me:i:jar', { fields: 'detail' }).catch(() => [])) as JarRow[]),
+    ];
+    const bisque = jarRows.find((j) => {
+      const d = String(j.longDescription ?? '');
+      return /terracotta/i.test(d) && !/glazed|coat|crack|burst/i.test(d);
+    });
+    expect(bisque?.stuffId, `a bisque jar: ${JSON.stringify(jarRows.map((j) => String(j.longDescription ?? '').slice(-120)))}`).toBeDefined();
+    const full = bisque!.stuffId!;
+    await say(potter, `get #${full}`);
+    await say(potter, `fill #${full} from butt`);
     await say(potter, 'fill leadpot from butt');
     await say(potter, `drop #${full}`);
     await say(potter, 'drop leadpot');
