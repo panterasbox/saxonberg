@@ -93,6 +93,9 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...idle, loaf: true })).toBe('cut loaf with nips');
     expect(brain.next({ ...idle, piece: true })).toBe('mill piece');
     expect(brain.next({ ...idle, sack: true })).toBe('go south\nput sack in counter\ngo north');
+    // A milled sack lies where its empty stood: picked up by id, then carried.
+    expect(brain.next({ ...idle, sack: true, sackHeld: false, refs: { sack: '#s1' } })).toBe('get #s1');
+    expect(brain.next({ ...idle, sack: true, sackHeld: true, refs: { sack: '#s1' } })).toBe('go south\nput #s1 in counter\ngo north');
   });
 
   it('⭐⭐ island sugar first; with none on the floor it buys the import at its own counter', () => {

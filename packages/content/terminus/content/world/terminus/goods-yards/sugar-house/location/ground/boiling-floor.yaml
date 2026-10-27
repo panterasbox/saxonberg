@@ -36,6 +36,10 @@ data:
     - /stuff/thing/fixture/water-butt
     - /stuff/thing/instrument/thermometer
     - /trade/milling/thing/quern
+    # Empty sacks beside the quern: a pounded piece goes into one and it is
+    # a sack of sugar (crafting's succession). With none, nothing was ever
+    # pounded here and the bar's sugar line was dead at its source.
+    - { template: /trade/cooking/thing/sack, count: 6 }
     # A cone and its pot by the arch, for the strike off the copper; the
     # curing house racks the rest.
     - /trade/sugar/thing/cone

@@ -158,12 +158,14 @@ interface Floor {
    * what has set. A floor of three hogsheads binds `hogshead` to whichever
    * answers first, full or not (drive 13); absent, the plain word.
    */
-  refs?: { ready?: string; mould?: string; pot?: string; set?: string };
+  refs?: { ready?: string; mould?: string; pot?: string; set?: string; sack?: string };
   loaf: boolean;
   nips: boolean;
   piece: boolean;
   quern: boolean;
   sack: boolean;
+  /** The filled sack is in her hands (a milled one lands where its empty stood). */
+  sackHeld?: boolean;
   /** The house's counter has raw sugar / lime to buy (the import). */
   counterBlock: boolean;
   counterLime: boolean;
@@ -245,7 +247,10 @@ export const brain = class {
     }
     // Finish what is made before starting more.
     if (w.finish === 'loaf') {
-      if (f.sack) return errand('put sack in counter');
+      // A milled sack is filled where the empty stood, so she picks it up
+      // first, by its id: the empties beside the quern are sacks too.
+      if (f.sack && f.sackHeld === false) return `get ${ref.sack ?? 'sack'}`;
+      if (f.sack) return errand(`put ${ref.sack ?? 'sack'} in counter`);
       if (f.piece && f.quern) return 'mill piece';
       if (f.loaf && f.nips) return 'cut loaf with nips';
       if (f.setLoaf) return `get loaf from ${ref.set ?? w.mould}`;
@@ -380,6 +385,7 @@ export const brain = class {
       s.getTemplatePath() === '/trade/cooking/thing/sugar-sack' &&
       MixinApi.isBulkable(s) &&
       !s.isBulkEmpty('interior');
+    const sackHere = here.find(isSack);
     // ⭐ Fuel is what BURNS — the fire's own test (heat of combustion), not
     // a `fuel` tag: oak carries "wood, flammable" and no such tag, so the
     // island's boiler stood over a cold train beside ten logs (probed).
@@ -442,10 +448,11 @@ export const brain = class {
       nips: here.some((s) => MixinApi.isTool(s) && s.hasCapability('nipping')),
       piece: here.some((s) => !(s instanceof SugarLoaf) && hasTag(s, 'loaf-sugar')),
       quern: here.some((s) => MixinApi.isTool(s) && s.hasCapability('millstone')),
-      sack: here.some(isSack),
+      sack: sackHere !== undefined,
+      sackHeld: sackHere !== undefined && MixinApi.isContainer(host) && host.getContents().includes(sackHere as never),
       counterBlock: onCounter('raw-sugar'),
       counterLime: onCounter('liming'),
-      refs: { ready: id(readyCone), mould: id(looseCone), pot: id(potFree), set: id(setMould) },
+      refs: { ready: id(readyCone), mould: id(looseCone), pot: id(potFree), set: id(setMould), sack: id(sackHere) },
     };
   }
 

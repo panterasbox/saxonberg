@@ -592,7 +592,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
     const inv = await say(boiler, 'inventory');
     expect(inv, 'the loaf did not break into pieces').toMatch(/loaf sugar|piece/i);
     await act(boiler, 'mill piece');
-    expect(await say(boiler, 'inventory')).toMatch(/sack of sugar|sugar/i);
+    // ⚠ Pounded into an empty sack beside the quern, which BECOMES a sack
+    // of sugar. The old check (`/sugar/`) passed on the loaf pieces for
+    // five drives while every pound was refused for want of a sack.
+    await say(boiler, 'get sack of sugar');
+    expect(await say(boiler, 'inventory'), 'no sack of sugar was pounded').toMatch(/sack of sugar/i);
   }, 900_000);
 
   it('8. ⭐ the molasses boiled again grains darker; pushed on, it will not grain — blackstrap', async () => {
