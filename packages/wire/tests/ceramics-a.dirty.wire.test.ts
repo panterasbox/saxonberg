@@ -405,9 +405,14 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
   }, 7_200_000);
 
   it('⭐ through the winter: the heap outside mellows, the heap in the shed stays raw', async () => {
+    // A checkpoint owns its position: a failed 5b left the brickmaker at the
+    // hacks, and twelve months of reads there found no heap (run 35).
+    digger.close();
+    digger = await at(digger.handle, GROUND);
     let looks = '';
     for (let month = 0; month < 12; month++) {
       await advance('30 days');
+      await toHour(9, 15); // read by day: in the dark a query sees nothing
       looks = await examine(digger, 'here:i:clay');
       if (/frost-broken|crumbling/i.test(looks)) break;
     }
