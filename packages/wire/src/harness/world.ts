@@ -178,12 +178,20 @@ async function postTestRoute(path: string, body: unknown): Promise<Response> {
 export async function advanceWorldClock(
   duration: string
 ): Promise<{ before: number; after: number }> {
-  const res = await postTestRoute('/auth/test-clock', { advance: duration });
-  const body = (await res.json()) as {
+  // ⚠ The world holds its clock while a jump settles (river D46): a jump
+  // asked for while another is still settling — a drive stopped mid-jump,
+  // the next file starting at once (run 35) — finds it paused. Wait it out.
+  let res = await postTestRoute('/auth/test-clock', { advance: duration });
+  let body = (await res.json()) as {
     before?: number;
     after?: number;
     error?: string;
   };
+  for (let wait = 0; wait < 60 && !res.ok && /clock is paused/i.test(body.error ?? ''); wait++) {
+    await new Promise((r) => setTimeout(r, 5_000));
+    res = await postTestRoute('/auth/test-clock', { advance: duration });
+    body = (await res.json()) as typeof body;
+  }
   if (!res.ok || typeof body.after !== 'number') {
     throw new Error(
       `advanceWorldClock('${duration}') failed (${res.status}): ` +
