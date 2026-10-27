@@ -497,7 +497,7 @@ suite('⭐ 13 — wear a crucible', () => {
       // that eases it off is pumped again (run 26 smelted cold).
       const pumped = await act('pump bellows');
       if (/ease off/i.test(pumped.said)) await act('pump bellows');
-      let smelt = await act('smelt', '2 hours');
+      let smelt = await act('smelt', '5 minutes');
       // A lining worn but not yet through still costs heat: refused too
       // cold, the furnace is relined to the last course and the run tried
       // once more.
@@ -517,13 +517,16 @@ suite('⭐ 13 — wear a crucible', () => {
         await say('ignite furnace');
         const again = await act('pump bellows');
         if (/ease off/i.test(again.said)) await act('pump bellows');
-        smelt = await act('smelt', '2 hours');
+        smelt = await act('smelt', '5 minutes');
       }
       // The smelt RUNS — a refusal here (no fuel, no ore) is the failure,
       // not four melts on at the crucible (runs 26–28 smelted nothing).
       expect(refusedFor(smelt.r), `the smelt: ${smelt.said}`).toBeNull();
       // eslint-disable-next-line no-console -- the drive's own record: where the melt went
       console.log(`  [drive] melt ${melt + 1}: ${smelt.said.slice(0, 400)}`);
+      // ⭐ The run is two minutes (SMELT_MS); jumping two hours past it let
+      // the fire burn down and the copper set in the crucible — "nothing to
+      // pour" on every melt of run 36.
       // ⭐ Poured off the smelt, while the copper is still MOLTEN: doused
       // and left two hours, it froze, and a crucible is no mould — the metal
       // dropped out as a cast lump in the furnace, the crucible came up
