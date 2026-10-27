@@ -398,11 +398,12 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     expect(mug, 'the trimmed mug in hand').toBeTruthy();
     potter = await clayFor(potter, 1);
     await act(potter, 'shape clay into handle', '1 hour');
-    // ⚠ The throw may still be going after the hour: wait for a handle to
-    // be here before taking it (run 28: "You don't see any 'handle' here").
-    const thrown = await until(potter, 'here:i:handle', /handle/i, '1 hour', 6);
+    // ⚠ The throw may still be going after the hour: wait for the handle.
+    // A thrown piece lands in the THROWER's hands (`Clay.yieldPieces`), so
+    // it is looked for there — the floor held none (run 34), and a bare
+    // `get handle` there could take the potter NPC's.
+    const thrown = await until(potter, 'me:i:handle', /handle/i, '1 hour', 6);
     expect(thrown, 'the fresh handle').toMatch(/handle/i);
-    await say(potter, 'get handle');
     const fit = await act(potter, `fit handle to #${mug}`, '30 minutes');
     expect(refusedFor(fit.r), `the wet handle on: ${fit.said}`).toBeNull();
     await say(potter, `drop #${mug}`);
