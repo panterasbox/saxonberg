@@ -360,12 +360,18 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     expect(foot, `trim: ${foot}`).toMatch(/foot|trim|pare/i);
     expect(await examine(potter, `#${mine!.stuffId}`)).toMatch(/turned foot/i);
     await say(potter, 'get jug');
-    await say(potter, 'get handle');
     // ⚠ The handle firms up on its own clock: "still too soft to join — it
-    // would sag off" (run 28). An hour at a time, so the jug is not let
-    // past leather-hard while it waits.
-    const handle = await until(potter, 'me:i:handle', /leather-hard|bone-dry/i, '1 hour', 24);
+    // would sag off" (run 28). It firms ON THE BOARD, in the shop's air — a
+    // handle held in the hand never dried at all (run 34: soft and wet after
+    // a day in the potter's fist). The jug stays in hand meanwhile, so it is
+    // not let past leather-hard while it waits. An hour at a time.
+    // By identity: the potter NPC pulls handles too.
+    const pulled = ((await potter.query('me:i:handle', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])[0]?.stuffId;
+    expect(pulled, 'the pulled handle in hand').toBeDefined();
+    await say(potter, `drop #${pulled}`);
+    const handle = await until(potter, `#${pulled}`, /leather-hard|bone-dry/i, '1 hour', 24);
     expect(handle, `the handle firm enough to join: ${handle}`).toMatch(/leather-hard/i);
+    await say(potter, `get #${pulled}`);
     const fit = await act(potter, 'fit handle to jug', '30 minutes');
     expect(refusedFor(fit.r), `join: ${fit.said}`).toBeNull();
     expect(await examine(potter, 'me:i:jug')).toMatch(/handle/i);
