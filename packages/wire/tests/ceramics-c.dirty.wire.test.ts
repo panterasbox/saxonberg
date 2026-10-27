@@ -478,8 +478,10 @@ suite('⭐ 18 — glaze', () => {
     expect(await examine(potter, 'ash tub')).toMatch(/ash glaze|glaze/i);
     potter = await clayFor(potter, 1);
     await say(potter, 'fill pail from butt');
-    await say(potter, 'get lead');
-    await say(potter, 'put lead in "lead tub"');
+    // ⚠ The lead is SETUP, handed: the shop's one pig went into the potter
+    // NPC's own lead glaze, and `get lead` found only the tub (run 35).
+    const pig = await hand(potter, '/stuff/thing/lead-pig');
+    await say(potter, `put #${pig} in "lead tub"`);
     await say(potter, 'put clay in "lead tub"');
     await say(potter, 'pour pail into "lead tub"');
     await act(potter, 'stir "lead tub"', '20 minutes');
@@ -489,12 +491,20 @@ suite('⭐ 18 — glaze', () => {
     // through to lifting the kiln (run 28 — "fixed in place").
     await say(potter, 'get crock from kiln');
     await say(potter, 'get crock from kiln');
-    await say(potter, 'name crock ashpot');
+    // ⭐ Named by identity: 17 already took one bisque crock out to read it,
+    // and a bare `name crock leadpot` bound the crock just named ashpot — a
+    // named piece is not renamed (run 35). The potter's own two, in hand.
+    const crocks = ((await potter.query('me:i:crock', { fields: 'detail' }).catch(() => [])) as {
+      stuffId?: string;
+      longDescription?: string;
+    }[]).filter((c) => String(c.longDescription ?? '').includes(`Made by ${potter.handle}`));
+    expect(crocks.length, 'two bisque crocks in hand').toBeGreaterThanOrEqual(2);
+    await say(potter, `name #${crocks[0]!.stuffId} ashpot`);
     // ⚠ A dip is an engaged act: waited out, or the next one finds the
     // potter's "hands busy with something else" (run 28).
     const dippedAsh = (await act(potter, 'dip ashpot inside in "ash tub"', '10 minutes')).said;
     expect(dippedAsh).toMatch(/coat|glaze|dip/i);
-    await say(potter, 'name crock leadpot');
+    await say(potter, `name #${crocks[1]!.stuffId} leadpot`);
     await act(potter, 'dip leadpot inside in "lead tub"', '10 minutes');
     expect(await examine(potter, 'me:i:leadpot')).toMatch(/glaze|coat|wet/i);
     await say(potter, 'put ashpot in kiln');
