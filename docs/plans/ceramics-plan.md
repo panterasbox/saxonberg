@@ -3301,3 +3301,54 @@ merge into a like one) and C uses `freshIn`.
   - **An argument that declares `into` takes leftover words without
     it**, so 9b's refusal named a nonsense form ("table into brick")
     instead of saying the table was not found.
+
+**Run 37** (D 23/23 · A 13/20 · B 5/6 · C 10/21), the first run on sugar's
+master (merge 85314c1df). D is clean for the sixth run running. This run's
+findings were mostly game defects, and each now has a unit test:
+- **Clay lost mass when lumps pooled.** Two fresh 12 kg lumps picked up
+  onto two 0.9 kg remnants became four 0.9 kg lumps, and 22 kg of clay
+  was gone. The moulding day then found 3.6 kg against a 3.9 kg brick and
+  minted nothing: A 5b and A 8, in two runs. `Clay.onMerged` now keeps the
+  total mass and weights weathering and temper by mass, and `onSplit`
+  keeps the heap's lump size (72590897e). A probe at the shed proved the
+  table itself works.
+- **A fired brick was still "green brick", and bodies stacked.** The
+  clamp's three grades folded into one stack in hand. Fired bricks are
+  named for their body, and a stack keeps one material (789cf9f33).
+- **Nothing described a coat.** A glazed crock read as a bare one, and
+  run 36 had passed only because "froze wet" matched /wet/. Faced now
+  says wet, glazed, crazed, run or crawled (38bd52f6b).
+- **A weeping jar read "thoroughly dried"** while the cooling treated its
+  outside as wet. There is now one `weeps()` rule on Faced, read by both
+  (1d8234b95).
+- **A crock looked into showed nothing its filter dripped.** The seep was
+  integrated only on the filter's read. A vessel now brings its seepers
+  current first (load on use, b2c619143).
+- **An import read as nothing.** It now says "It is fired earthenware"
+  (723af5bcd).
+- **⭐ The tinker could not rivet**, though the requirements promise it
+  ("gains riveting a broken pot", AC 1131). Mending read only condition.
+  A crack rung (`mendCracks`) rivets a crack or a dunt with a mending kit,
+  and the staples show. **No look line read flaws at all**, so a visibly
+  cracked bowl read as sound; Tangible now describes them (61277a4fe).
+- **Drive fixes:**
+  - **A:**
+    - `act` records how its engagement ended;
+    - 3 analyzes `clay #id`;
+    - 8 and 9a start at the clamp ground.
+  - **B:** 13 pours the furnace's own crucible by id. The melts now all
+    run (the reline fix held), but the crucible read only "worn" after
+    ten.
+  - **C:**
+    - 16b firms the handle before joining: a soft handle will not join,
+      by design;
+    - 18b loads only the ware it names (a crock answers to "pot");
+    - 20b spills;
+    - 23 takes a dunted second bowl;
+    - 25a judges the consign by the buyer's pot.
+- **Findings, not fixed here:**
+  - "pour out X" reads "out" as the thing to pour; a player will type it.
+  - A moulding day that has too little clay refuses at the END of eight
+    hours, not at the start.
+  - Stackables whose per-unit mass varies (ore, bricks) may share clay's
+    merge flaw. Only clay's is fixed.
