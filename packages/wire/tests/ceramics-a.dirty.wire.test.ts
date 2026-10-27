@@ -237,11 +237,13 @@ const RAINING = (w: string): boolean =>
 let digger: Session; // the brickmaker
 
 beforeAll(async () => {
-  // ⭐ The brickmaker's year starts in early winter (day 285 of 360): 5b
-  // needs a frost on a wet brick, and the heap must lie out through a
-  // winter. Reached here, before anyone is made, so the clock moves a day a
-  // jump (run 34: 5b moving there in 4 h lived steps outran its timeout).
-  await toSeasonDay(285, 330);
+  // ⭐ The brickmaker's year starts in late autumn (day 230–260 of 360):
+  // 5a needs LIQUID rain on a green brick — in winter it falls as snow and
+  // fifteen days brought none (run 35) — and 5b, next, needs a frost, a
+  // short lived walk on into early winter. Reached here, before anyone is
+  // made, so the clock moves a day a jump (run 34: a long move in 4 h lived
+  // steps outran 5b's timeout).
+  await toSeasonDay(230, 260);
   await toHour(9, 15);
   digger = await at(uniqueHandle('brickmaker'), PIT);
   // ⭐ Dressed for the year it will stand outside in (run 26: the brickmaker
@@ -406,7 +408,7 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // ⚠ Room for all twenty half-days. A timed-out test does not stop its
     // loop: run 24's kept jumping the clock through 3 and 4, and the
     // brickmaker — sodden from the pit — died of hypothermia mid-moulding.
-  }, 3_600_000);
+  }, 7_200_000);
 
   it('⭐ through the winter: the heap outside mellows, the heap in the shed stays raw', async () => {
     let looks = '';
