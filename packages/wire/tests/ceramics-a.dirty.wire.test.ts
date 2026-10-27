@@ -510,12 +510,6 @@ suite('⭐ 3 — knead it', () => {
   }, 120_000);
 });
 
-/** The display names inside a container in reach. */
-async function s_namesIn(s: Session, container: string): Promise<string[]> {
-  const rows = await s.query(`${container}:i`, { fields: ['displayName'] }).catch(() => []);
-  return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? ''));
-}
-
 suite('⭐ 4 — shape it', () => {
   it('`shape clay into brick` at the table — a durative day, a pallet of green bricks, a muddy moulder', async () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).
@@ -752,37 +746,51 @@ suite('⭐ 9 — measure against the statute brick', () => {
   it('⭐ a brick off the old pit’s oversize mould measures OFF STANDARD', async () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).
     await toHour(9, 15);
+    // ⚠ Put the load down first: carrying a day's bricks and the clay of
+    // three steps, the brickmaker strained at a fresh lump and lifted
+    // nothing (run 36).
+    for (let i = 0; i < 6 && (await held(digger)).some((n) => /brick|clay/i.test(n)); i++) {
+      await say(digger, 'drop bricks');
+      await say(digger, 'drop clay');
+    }
     // Clamp ground → hacks → shed → temper → yard → pit: a lump of clay.
     for (const d of ['west', 'north', 'west', 'west', 'south']) await say(digger, d);
     await act(digger, 'dig clay with spade', '2 minutes');
-    await say(digger, 'get clay');
+    expect(await say(digger, 'get clay'), 'a lump for the old mould').toMatch(/pick up/i);
     // The old table stands on the bank of the flooded pit.
     await say(digger, 'west');
     expect(await examine(digger, 'here:i:table')).toMatch(/old|mould/i);
-    const day = await act(digger, 'shape clay at old table into brick', '9 hours');
+    // ⚠ Quoted: an object argument binds ONE word, so `at old table into
+    // brick` bound the table by `old` and handed "table into brick" to the
+    // form (every run from 15 to 36).
+    let day = '';
+    const big = await stackAfter(digger, 'here:i:bricks', async () => {
+      day = await act(digger, 'shape clay at "old table" into brick', '9 hours');
+      await toHour(9, 15); // the day ends after dark; fetch them by daylight (run 34)
+    });
     expect(day, `the old mould: ${day}`).toMatch(/brick/i);
-    await toHour(9, 15); // the day ends after dark; fetch them by daylight (run 34)
-    await say(digger, 'get bricks');
+    expect(big?.stuffId, 'the oversize bricks').toBeDefined();
+    const oversized = `#${big!.stuffId}`;
+    await say(digger, `get ${oversized}`);
     // Dry them in the hacks: old pit → pit → yard → temper → shed → hacks.
     for (const d of ['east', 'north', 'east', 'east', 'south']) await say(digger, d);
-    await say(digger, 'put bricks on hack');
+    await say(digger, `put ${oversized} on hack`);
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
-      rows = await examine(digger, 'here:i:bricks');
+      rows = await examine(digger, oversized);
     }
     expect(rows, 'the oversize bricks dry').toMatch(/bone-dry/i);
-    await say(digger, 'get bricks');
+    await say(digger, `get ${oversized}`);
     // Burn them in the clamp ground's firing pit, on their own.
     await say(digger, 'east');
-    await say(digger, 'put bricks in pit');
-    expect((await s_namesIn(digger, 'pit')).join(' | ')).toMatch(/brick/i);
+    expect(await say(digger, `put ${oversized} in pit`)).toMatch(/put .*brick.* in .*pit/i);
     await say(digger, 'ignite pit');
     await act(digger, 'fire pit for 1 day', '1 day');
     await say(digger, 'douse pit');
     await advance('12 hours');
     await say(digger, 'get bricks from pit');
-    const oversize = await say(digger, 'measure size brick');
+    const oversize = await say(digger, `measure size ${oversized}`);
     expect(oversize, `the old mould's brick: ${oversize}`).toMatch(/off standard/i);
     expect(oversize).toMatch(/over/i);
   }, 7_200_000);
