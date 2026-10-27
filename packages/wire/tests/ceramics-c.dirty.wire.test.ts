@@ -596,10 +596,10 @@ suite('⭐ 21 — the weeping jar', () => {
     // go of two — the thermometer then read whichever answered (run 34).
     const jars = (await potter.query('me:i:jar', { fields: 'detail' }).catch(() => [])) as {
       stuffId?: string;
-      longDescription?: string;
+      bulkMaterial?: { templatePath?: string } | null;
     }[];
-    const full = jars.find((j) => /holds/i.test(String(j.longDescription ?? '')))?.stuffId;
-    expect(full, 'the filled jar').toBeDefined();
+    const full = jars.find((j) => j.bulkMaterial?.templatePath)?.stuffId;
+    expect(full, `the filled jar: ${JSON.stringify(jars.map((j) => j.bulkMaterial ?? null))}`).toBeDefined();
     await say(potter, 'fill leadpot from butt');
     await say(potter, `drop #${full}`);
     await say(potter, 'drop leadpot');
