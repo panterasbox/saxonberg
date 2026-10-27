@@ -1,0 +1,13 @@
+# The dark rum ferment (sugar D8) — the wash profile's shape on molasses.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: dark-rum-wash
+  mechanism: microbial
+  inputCategory: dark-rum-wort
+  stallBelowK: 283
+  happyK: 295
+  damageAboveK: 306
+  killK: 312
+  ratePerDay: 0.35
+  productMaterial: /trade/distilling/idea/material/dark-rum-wash
+  turnDays: 6

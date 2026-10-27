@@ -1,0 +1,29 @@
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: -1, z: 0 }
+  shortDescription: "sugar store"
+  # ⚠ Not `counter`: the counter standing in it answers to that, and a
+  # room sharing the word made `look counter` (and the card's own link)
+  # ask "which target?" (the live walk).
+  keywords: [store, "sugar store"]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  # ⭐ Lit by the sky through a named opening (found by the live walk:
+  # brick and slate with no opening, it was pitch dark at noon).
+  ambientSource: sky
+  ambientOpening: window
+  ambientIntensity: 350
+  ambientColorTemperature: 5500
+  longDescription: |
+    A narrow store with a counter across it and shelves of brown blocks behind, wrapped in sacking. Loaves in blue paper stand in a row along the top shelf. The boiling floor is back north.
+  props:
+    - /world/terminus/goods-yards/sugar-house/thing/stock
+  cast:
+    - /world/terminus/goods-yards/sugar-house/agent/hand
+  details:
+    window:
+      keywords: [window, light, glass]
+      description: |
+        A barred window over the counter, its glass brown with sugar-dust, that lets in enough light to read the scales by and not much more.

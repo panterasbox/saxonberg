@@ -181,6 +181,13 @@ first operating account is advanced `treasury.openingAdvance` at no rate
 inventory is financed where the ladder puts it. At two thousand no shop
 in the world ever borrowed and the ladder was theater.
 
+⚠ **Once, however many ask at once.** A house's account is opened by
+whoever touches it first — a wage at shift end, the keeper's order — and
+several can in one tick. The advance is serialized per borrower
+(`ContractLogic.openingAdvance`'s in-flight map); before that, "already
+advanced?" was read before any of them had written, and the Sugar House
+took three (sugar drive, 2026-10-19).
+
 ## A wage is a loan or a refusal
 
 `EmploymentApi.payHouseWage(business, workerKey, amount)` is the one

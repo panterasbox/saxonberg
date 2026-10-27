@@ -8,7 +8,9 @@
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
-class: /platform/location/Locale
+# ⭐ (sugar D20) A PersistentLocale: a rum wash fermenting in its vat and
+# a charged still survive a restart.
+class: /platform/location/PersistentLocale
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
@@ -35,6 +37,13 @@ data:
       destination: /world/terminus/goods-yards/yard
       media: [ground]
       edgeMinutes: 2
+    # ⭐ (sugar build) Through the east wall, the Sugar House — whose
+    # molasses is this still's rum (W3). The yard has no compass point
+    # left to spare, and next door is where a distiller wants it.
+    east:
+      destination: /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor
+      media: [ground]
+      edgeMinutes: 1
   props:
     # ⭐ The works board, ON the floor — and it is for PEOPLE.
     #
@@ -47,5 +56,16 @@ data:
     - /trade/haulage/thing/works-board
     - /trade/distilling/thing/racking
     - /world/terminus/goods-yards/veshko/thing/stock
+    # ⭐ (sugar W3) The pot still the yard's rum now comes out of — molasses
+    # from the Sugar House next door, fermented here and run here.
+    - /trade/distilling/thing/still
+    - /trade/distilling/thing/mash-tun
+    - /trade/distilling/thing/standpipe
+    - { template: /trade/distilling/thing/vat, count: 2 }
+    - /trade/distilling/thing/slop-bucket
+    - /trade/distilling/thing/wash-bucket
+    - { template: /trade/distilling/thing/empty-spirit-bottle, count: 6 }
+    - { template: /stuff/thing/items/dry-log, count: 6 }
   cast:
     - /world/terminus/goods-yards/veshko/agent/hand
+    - /world/terminus/goods-yards/veshko/agent/distiller

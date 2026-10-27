@@ -1,0 +1,22 @@
+id: waponi-woo
+version: 0.1.0
+root: /world/terminus/waponi-woo
+description: >-
+  Waponi Woo — a VENUE pack (sugar W5): a volcanic island a day and a half's
+  sail south of Terminus, frost-free at 30°, where sugar cane grows. A
+  wage-paying estate with a named owner cuts its cane, crushes it on an
+  edge-runner, boils the juice on a Jamaica train fired with bagasse and
+  wood off the island's own forest, and cures it in hogsheads; two
+  smallholders grow cane and sell it at the estate's mill. The cane, the
+  boil and the train are the sugar trade's; only the place is the island's.
+  A second estate is rows.
+requires:
+  groups:
+    - name: waponi-woo
+      purpose: the island's estate and its smallholders
+      owner: { office: prime-minister }
+  title:
+    - { extent: /world/terminus/waponi-woo, parentParcel: /world/terminus, holder: { group: waponi-woo } }
+
+# ⚠ No boot entries: the estate's brains are deferred (sugar W5), so
+# nothing here acts unobserved — the place loads when somebody comes.

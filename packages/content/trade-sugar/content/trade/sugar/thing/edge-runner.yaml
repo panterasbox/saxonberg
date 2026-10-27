@@ -1,0 +1,30 @@
+# The edge-runner mill — a stone wheel rolled round a bed by a mule,
+# crushing cane (sugar W5). A millstone: `mill cane` crushes a bundle to
+# juice and bagasse (the crush-cane recipe).
+class: /trade/milling/thing/GristMill
+data:
+  shortDescription: edge-runner mill
+  # ⚠ Not "cane mill": `cane` must name the CANE in this yard. The
+  # miller's `mill cane` bound the mill itself and was refused
+  # "not-grindable" at every beat, with the juice standing in the tub and
+  # the bundles souring (sugar probe, 2026-10-21).
+  keywords: [mill, "edge runner", "edge-runner", wheel, stone]
+  register: definite
+  longDescription: |
+    A great stone wheel on its edge, rolled round a circular stone bed by a sweep-pole, the bed channelled so the juice runs off to a spout over a tub.
+  mass: 900
+  capabilities: [millstone]
+  throughputKgPerMin: 2
+  kgPerMinPerKw: 0
+  maxThroughputKgPerMin: 0
+  extractionMin: 0.55
+  extractionMax: 1
+  extractionDefault: 0.8
+  residueFraction: 0.25
+  products: []
+  productMaterial: /trade/sugar/idea/material/cane-juice
+  residueMaterial: /trade/sugar/idea/material/cane-fibre
+  productVessel: /trade/sugar/thing/juice-tub
+  residueVessel: /trade/sugar/thing/juice-tub
+  tollFraction: 0
+  tollBinPath: ""

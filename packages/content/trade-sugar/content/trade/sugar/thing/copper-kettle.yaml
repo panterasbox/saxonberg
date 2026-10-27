@@ -1,0 +1,9 @@
+# One of the four coppers set in a Jamaica train — a part.
+class: /platform/thing/Thing
+data:
+  shortDescription: train copper
+  keywords: [copper, kettle, "train copper"]
+  register: indefinite
+  longDescription: A round copper pan with a thick rolled lip, made to be set in brickwork.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 60

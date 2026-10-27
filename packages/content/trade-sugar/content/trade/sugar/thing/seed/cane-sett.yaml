@@ -1,0 +1,12 @@
+# A cane sett — a length of stalk with its buds, laid in a furrow; cane is
+# planted from cuttings, not seed.
+class: /platform/thing/Seed
+data:
+  shortDescription: bundle of cane setts
+  keywords: [sett, setts, cane, cuttings, "cane setts"]
+  register: indefinite
+  longDescription: |
+    Short lengths of cane, three buds to a length, tied in a bundle to be laid in the furrow.
+  growsIntoPath: /trade/sugar/thing/plant/cane
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/saccharum/officinarum
+  mass: 5

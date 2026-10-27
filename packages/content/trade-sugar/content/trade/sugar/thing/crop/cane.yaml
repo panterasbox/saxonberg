@@ -1,0 +1,10 @@
+# A bundle of cut cane — mill it the day it is cut (sugar D15: it inverts).
+class: /platform/thing/Crop
+data:
+  shortDescription: bundle of cut cane
+  keywords: [cane, "cut cane", bundle, "bundle of cut cane", stalks]
+  register: indefinite
+  longDescription: |
+    Lengths of cane stripped of their leaves and tied in a bundle, heavy and sweet-smelling at the cut ends.
+  _materialPath: /trade/sugar/idea/material/cane-stalk
+  mass: 30

@@ -1,0 +1,23 @@
+# the lower cane piece — cane ground (sugar W5): the estate's or a smallholder's own field.
+class: /trade/farming/location/SingletonField
+data:
+  fieldName: the lower cane piece
+  shortDescription: "lower cane piece"
+  keywords: [field, cane, piece, "lower cane piece"]
+  register: definite
+  longDescription: |
+    A long sloping piece of cane running down toward the sea, newer than the upper piece and not so tall, the young cane bright green.
+  coords: { x: 1, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  groundSpotX: 3
+  groundSpotY: 3
+  areaM2: 8000
+  props:
+    - { template: /world/terminus/waponi-woo/thing/standing-cane, count: 6 }
+  exits:
+    northwest:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 3

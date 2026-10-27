@@ -1,0 +1,13 @@
+# A block of raw sugar — twenty kilograms knocked out of a hogshead, the
+# refinery's feedstock. Put into a copper of water it dissolves.
+class: /platform/thing/Provision
+data:
+  shortDescription: block of raw sugar
+  keywords: [block, "raw sugar", "block of raw sugar", sugar, raw-sugar, muscovado]
+  register: indefinite
+  primaryKeyword: block
+  longDescription: >-
+    A brown, damp-edged block of raw sugar, sticky with its own molasses
+    and smelling of it.
+  _materialPath: /trade/sugar/idea/material/raw-sugar
+  mass: 20

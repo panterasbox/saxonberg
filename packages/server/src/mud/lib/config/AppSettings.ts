@@ -397,6 +397,8 @@ export const AppSettingKeys = {
   estateEscheatAfterDays: "estate.escheatAfterDays",
   /** Employment — real days of absence after which a member's seat is vacated. */
   employmentAbsenceVacatesAfterDays: "employment.absenceVacatesAfterDays",
+  /** Employment — game days a hired NPC works on with wages unpaid before walking off. */
+  employmentUnpaidStandGameDays: "employment.unpaidStandGameDays",
 
   /**
    * Contracts — how long an exclusive claim holds before it lapses back to

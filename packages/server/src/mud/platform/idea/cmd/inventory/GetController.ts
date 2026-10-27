@@ -15,7 +15,7 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import type { MqlManyResult } from '../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
@@ -32,6 +32,8 @@ import { ProxyApi } from '../../../../api/proxy';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
+  /** `from <holder>` / `off <surface>` — narrows the targets to what it holds. */
+  source?: MqlOneResult;
 }
 
 interface GetPayload {
@@ -44,8 +46,31 @@ export default class GetController extends CommandController<GetModel> {
     model: GetModel,
     context: CommandContext
   ): Promise<void> {
-    const { stuff, quantity, raw } = model.targets;
+    const { quantity, raw } = model.targets;
     const giver = context.commandGiver;
+    // ⭐ `get X from Y`: the targets already bound everything here that
+    // answers to X (one level into open containers); the source keeps
+    // only what Y holds — in it, or on it.
+    const source = model.source?.stuff ?? null;
+    if (model.source && !source) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`You don't see any '${model.source.raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'source', query: model.source.raw });
+      return;
+    }
+    const stuff = source
+      ? model.targets.stuff.filter((s) => GetController.heldBy(s, source))
+      : model.targets.stuff;
+    if (source && stuff.length === 0) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`You don't find any '${raw}' in ${Mml.thing(source)}.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'targets', query: raw });
+      return;
+    }
     if (!MixinApi.isContainer(giver)) {
       throw new Error(
         `GetController: commandGiver ${giver.stuffId} is not a Container`
@@ -180,6 +205,15 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /** Is `s` in `holder`, or placed on it? */
+  private static heldBy(s: Stuff, holder: Stuff): boolean {
+    if (!MixinApi.isContainable(s)) return false;
+    return (
+      s.getContainer()?.stuffId === holder.stuffId ||
+      s.getPlacement()?.host.stuffId === holder.stuffId
+    );
   }
 
   /**

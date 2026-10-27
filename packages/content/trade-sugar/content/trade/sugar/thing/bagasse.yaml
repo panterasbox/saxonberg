@@ -1,0 +1,19 @@
+# Bagasse — the crushed cane off the mill, the boiling house's fuel (sugar
+# D17). ⚠ Wet off the rollers (moisture 1, the turf default): it will not
+# catch until it has dried on the ground.
+class: /trade/sugar/thing/Bagasse
+data:
+  shortDescription: heap of bagasse
+  keywords: [bagasse, megass, trash, heap, "heap of bagasse"]
+  register: indefinite
+  longDescription: |
+    A heap of crushed cane, shredded flat and pale, steaming faintly and smelling of the juice that was in it.
+  _materialPath: /trade/sugar/idea/material/cane-fibre
+  mass: 8
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

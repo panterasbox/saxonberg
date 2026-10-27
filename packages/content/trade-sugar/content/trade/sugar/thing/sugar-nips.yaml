@@ -1,0 +1,13 @@
+# Sugar nips — the iron pincers a loaf is broken with (sugar D6: nipping
+# is `cut`).
+class: /platform/thing/Tool
+data:
+  keywords: [nips, "sugar nips", nippers, pincers]
+  shortDescription: pair of sugar nips
+  register: indefinite
+  longDescription: >-
+    A pair of heavy iron pincers with blades ground sharp at the tip,
+    sprung so they open on their own.
+  mass: 0.6
+  capabilities: ["nipping"]
+  _materialPath: /stuff/idea/material/alloy/steel

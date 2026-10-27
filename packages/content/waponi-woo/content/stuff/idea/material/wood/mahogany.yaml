@@ -1,0 +1,26 @@
+# Mahogany — dense red-brown hardwood, the island's.
+class: /platform/idea/material/Material
+data:
+  name: mahogany
+  keywords: [mahogany]
+  density: 600
+  specificHeat: 2000
+  thermalConductivity: 0.15
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 25
+  autoignitionTemperature: 570
+  heatOfCombustion: 17
+  ashFraction: 0.01
+  hardness: 35
+  toughness: 55
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  seasoningDays: 200
+  greenShrinkage: 0.06
+  cleavability: 0.6
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/meliaceae/swietenia/mahagoni
+    tissueType: wood

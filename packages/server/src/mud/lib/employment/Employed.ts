@@ -78,6 +78,17 @@ import type { OrganizationStuff, BusinessStuff } from '../../api/employment';
 // eslint-disable-next-line no-restricted-imports -- the F4 actor face: an employee's quitJob()/buysFor()/cover verbs forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
 import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
 import { TemplatePaths } from '../paths';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import { BankingApi, Money } from '../../api/banking';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { PlayerApi } from '../../api/player';
+
+/** One game day in game seconds — the unit the unpaid stand is dialled in. */
+const ONE_GAME_DAY_S = 86_400;
+/** The stand when the dial is unseeded or unwarmed (sugar D10's grain). */
+const UNPAID_STAND_FLOOR_DAYS = 3;
 
 /**
  * A stored record as it may actually be on disk: pre-split rows carry
@@ -130,6 +141,17 @@ function fulfils(serves: readonly string[], discipline: string): boolean {
     }
   }
   return false;
+}
+
+/** The unpaid stand in game days — the dial, or the floor when unseeded. */
+function unpaidStandDays(): number {
+  try {
+    const raw = AppApi.setting(AppSettingKeys.employmentUnpaidStandGameDays);
+    const n = raw ? Number(raw) : NaN;
+    return Number.isFinite(n) && n >= 0 ? n : UNPAID_STAND_FLOOR_DAYS;
+  } catch {
+    return UNPAID_STAND_FLOOR_DAYS;
+  }
 }
 
 function recordKey(record: StoredEmployment): string {
@@ -244,6 +266,19 @@ export interface Employed {
 
   // The actor face (F4) — forwards into EmploymentLogic.
   quitJob(organizationPath: string): Promise<void>;
+  /**
+   * ⭐ The house could not pay this worker's wage (sugar D10). The payroll
+   * reports the FACT — what stands owed and since when — and the worker
+   * decides: a person is told; a hired NPC keeps working until the oldest
+   * unpaid wage is older than `employment.unpaidStandGameDays`, then quits
+   * and says so. Nobody works for nothing by accident.
+   */
+  onWageRefused(
+    business: BusinessStuff,
+    owedMinor: number,
+    oldestAtS: number,
+    nowS: number,
+  ): Promise<void>;
   /**
    * ⭐ Start a shift at a house that employs you, where you stand. A
    * shift is something you CHOOSE to start: holding a job puts you on
@@ -535,6 +570,46 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Quit `organizationPath` (status → quit; unlinks the house account). */
     public quitJob(organizationPath: string): Promise<void> {
       return employedLogic().quit(this as unknown as Stuff, organizationPath);
+    }
+
+    /** See {@link Employed.onWageRefused}. */
+    @CallSecurity(SecurityPolicies.FromTemplate('/platform/idea/api/employment'))
+    public async onWageRefused(
+      business: BusinessStuff,
+      owedMinor: number,
+      oldestAtS: number,
+      nowS: number,
+    ): Promise<void> {
+      const self = this as unknown as Stuff;
+      const owed = Money.of(owedMinor, BankingApi.compactCurrency()).render();
+      const house = business.getPresentation();
+      if (PlayerApi.isAvatarStuff(self)) {
+        MessageApi.scene(self)
+          .topic('act.deed')
+          .toSelf(
+            Mml.compose`${house} could not pay you; ${owed} stands on the book, owed to you by name, and is paid first when the house can.`,
+          )
+          .send();
+        return;
+      }
+      const standDays = unpaidStandDays();
+      const unpaidDays = (nowS - oldestAtS) / ONE_GAME_DAY_S;
+      if (unpaidDays < standDays) return;
+      const organizationPath = business.getOrganizationPath();
+      const record = this.getEmployment(organizationPath);
+      if (!record || EXITED_STATUSES.includes(record.status)) return;
+      await this.quitJob(organizationPath);
+      // Said where they stand — an offstage hand (no room) just leaves.
+      if (!MixinApi.isContainable(self)) return;
+      const days = Math.floor(unpaidDays);
+      const said =
+        days >= 2 ? `${days} days unpaid` : days === 1 ? 'A day unpaid' : 'Unpaid';
+      MessageApi.scene(self)
+        .topic('act.deed')
+        .toPeers(
+          Mml.compose`${Mml.actor(self)} sets down the work. "${said}, and ${owed} owed. I'm done here." ${Mml.actor(self)} walks off the job at ${house}.`,
+        )
+        .send();
     }
 
     public clockOn(organizationPath?: string): Promise<ClockResult> {

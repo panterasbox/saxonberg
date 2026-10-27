@@ -1,0 +1,10 @@
+# A piece nipped off a sugar loaf — head, middle or foot, each its own
+# grade. `mill` it at a quern and it is loose sugar.
+class: /platform/thing/Provision
+data:
+  shortDescription: piece of loaf sugar
+  keywords: [piece, sugar, "loaf sugar", lump]
+  register: indefinite
+  longDescription: A broken lump of hard loaf sugar.
+  _materialPath: /trade/sugar/idea/material/loaf-sugar
+  mass: 2

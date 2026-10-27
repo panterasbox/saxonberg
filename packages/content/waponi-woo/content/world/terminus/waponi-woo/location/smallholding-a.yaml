@@ -1,0 +1,29 @@
+# Marta Ruiz's piece — cane ground (sugar W5): the estate's or a smallholder's own field.
+class: /trade/farming/location/SingletonField
+data:
+  fieldName: Marta Ruiz's piece
+  shortDescription: "Ruiz smallholding"
+  keywords: [field, cane, piece, "Ruiz smallholding"]
+  register: definite
+  longDescription: |
+    A small piece of cane behind a thatched hut, kept clean of weeds by somebody who does it every day. Chickens. A lane runs back up to the estate track, and on west to the next holding.
+  coords: { x: -1, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  groundSpotX: 3
+  groundSpotY: 3
+  areaM2: 1200
+  props:
+    - { template: /world/terminus/waponi-woo/thing/standing-cane, count: 6 }
+  exits:
+    northeast:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 8
+    west:
+      destination: /world/terminus/waponi-woo/location/smallholding-b
+      media: [ground]
+      edgeMinutes: 4
+  cast:
+    - /world/terminus/waponi-woo/agent/smallholder-a

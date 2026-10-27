@@ -10,9 +10,9 @@
  *
  * ⭐⭐ The field is `dissolvedSolidsKgPerL` — **the same member, name and
  * unit the sugar build declares** for a boiled liquor's sucrose. A lye's
- * alkali and a cane juice's sugar are one quantity, so they are one field;
- * when sugar's declaration lands this one is deleted (one field, one owner)
- * and nothing that reads it changes.
+ * alkali and a cane juice's sugar are one quantity, so they are one field,
+ * declared once (Thermal); a lye nobody measured reads its material's own
+ * `solidsKgPerL` (potash-on-sugar).
  *
  * ⚠ A strength READ is honest only on a `lye`-tagged liquor
  * ({@link LyeStrength.isLye}): water carrying alkali the hopper has not
@@ -30,25 +30,6 @@ import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { GradeBand } from '../craft/Grade';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-
-declare module '../bulk/Bulkable' {
-  interface BulkPayload {
-    /**
-     * Dissolved solids, kg per litre — a lye's alkali (potash), a juice's
-     * sugar (sugar). Written by what dissolved them, carried by a pour.
-     */
-    dissolvedSolidsKgPerL?: number;
-  }
-}
-
-/**
- * ⭐ What a lye nobody measured is taken to hold, kg/L — soap strength
- * (found by the drive: a flask off the chandlery's shelf carried no figure,
- * so the egg called it water and a pot boiled it to nothing). A stocked lye
- * is made to sell, and it is made to make soap. ⚠ Replaced by the lye
- * material's own `solidsKgPerL` at `potash-on-sugar`.
- */
-export const UNMEASURED_LYE_KG_PER_L = 0.04;
 
 /** The four words for a lye's strength. */
 export type LyeBand = 'water' | 'weak' | 'soap-strength' | 'strong';

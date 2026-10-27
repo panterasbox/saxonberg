@@ -122,6 +122,14 @@ export interface GroundSample {
   topsoilM: number;
   /** The pH the ground came with. Offsettable, never re-seeded (D66). */
   nativePh: number;
+  /**
+   * ⭐ The nitrogen the ground carries before anyone worked it, % of the
+   * reserve (sugar D11). Absent: the ordinary rough ground's 25. Volcanic
+   * ash is far richer — that is why cane went where the volcanoes are.
+   */
+  nativeNitrogenPct?: number;
+  /** The organic matter it carries unworked, %. Absent: 40. */
+  nativeOrganicPct?: number;
 }
 
 /**
@@ -147,6 +155,10 @@ export interface GroundBand {
   phOffset?: number;
   /** Multiplier on computed topsoil depth, `> 0`. */
   depthScale?: number;
+  /** The ground's native nitrogen over the band, % (an override — sugar D11). */
+  nitrogenPct?: number;
+  /** The ground's native organic matter over the band, % (an override). */
+  organicPct?: number;
   /** Why — authoring documentation, read by nothing. */
   note?: string;
 }
@@ -558,8 +570,12 @@ function lean(
   let stoniness = base.stoniness;
   let nativePh = base.nativePh;
   let topsoilM = base.topsoilM;
+  let nativeNitrogenPct = base.nativeNitrogenPct;
+  let nativeOrganicPct = base.nativeOrganicPct;
   for (const b of bands) {
     if (!covers(b, at)) continue;
+    if (b.nitrogenPct !== undefined) nativeNitrogenPct = b.nitrogenPct;
+    if (b.organicPct !== undefined) nativeOrganicPct = b.organicPct;
     if (b.drainageScale !== undefined) drainage *= b.drainageScale;
     if (b.stoninessScale !== undefined) stoniness *= b.stoninessScale;
     if (b.phOffset !== undefined) nativePh += b.phOffset;
@@ -571,6 +587,8 @@ function lean(
     stoniness: clamp01(stoniness),
     nativePh: round1(Math.max(3.5, Math.min(9, nativePh))),
     topsoilM: round2(Math.max(0.01, topsoilM)),
+    ...(nativeNitrogenPct !== undefined ? { nativeNitrogenPct } : {}),
+    ...(nativeOrganicPct !== undefined ? { nativeOrganicPct } : {}),
   };
 }
 

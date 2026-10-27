@@ -1,0 +1,27 @@
+# A juice cistern — the receiver the mill's juice runs into on a boiling-
+# house floor (sugar W5, drive 13). ⭐ The pan is charged FROM it, one
+# batch at a time, into an empty kettle: a miller pouring every tub
+# straight into the kettle kept topping up a boiling pan with thin juice,
+# and a train that strikes forty litres in two hours never struck two
+# hundred inside a shift (probed).
+class: /platform/thing/Vat
+data:
+  shortDescription: juice cistern
+  keywords: [cistern, receiver, "juice cistern"]
+  # The word a card link names it by — without it the link fell back to the
+  # class's `vat`, which every pan, tub and cistern on a floor answers to.
+  # The vessel's kind — what an empty one says it is ("The cistern is empty").
+  category: cistern
+  primaryKeyword: cistern
+  register: indefinite
+  longDescription: >-
+    A deep cistern of mortared brick sunk at the head of the floor, where
+    the juice from the mill stands until the pan is ready for it. It smells
+    of green cane and is never quite clean.
+  _materialPath: /stuff/idea/material/ceramic/brick
+  interiorBulk: true
+  interiorCapacity: 300
+  closure: liquidTight
+  open: true
+  fixedInPlace: true
+  mass: 400

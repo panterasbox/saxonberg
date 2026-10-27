@@ -62,6 +62,11 @@ data:
     # a sealed vessel, shut* — which is the whole Stage B lesson and is
     # only teachable if the right vessel is buyable nearby.
     - { itemTemplatePath: /trade/fuel/thing/gas-bladder, par: 3 }
+    # ⭐ Lime, for the sugar house (sugar D7): a refiner tempers every
+    # copper with a lump of it, and the quarry's shelf is where the
+    # realm's lime already is. Nobody burns lime yet — the limeburner seat
+    # is an open finding — so it is stocked here like the other kit.
+    - { itemTemplatePath: /trade/quarrying/thing/quicklime, par: 4 }
   # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
   # It was authored as a list first and every `buy` answered *"isn't for
   # sale"*: a `Stock` with stock lines and no prices holds the goods and
@@ -98,3 +103,4 @@ data:
     /trade/quarrying/thing/salt-pan: 16
     /trade/fuel/thing/oil-cask: 7
     /trade/fuel/thing/gas-bladder: 11
+    /trade/quarrying/thing/quicklime: 3

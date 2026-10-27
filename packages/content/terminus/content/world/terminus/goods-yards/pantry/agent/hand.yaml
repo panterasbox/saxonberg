@@ -74,7 +74,6 @@ data:
         # walk whatever the hand is carrying.
         batch: 12
         ask:
-          pantry:sugar: 8
           pantry:salt: 5
           pantry:coffee: 22
           pantry:syrup: 6

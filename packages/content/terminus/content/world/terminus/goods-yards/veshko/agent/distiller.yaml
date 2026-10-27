@@ -1,0 +1,54 @@
+# The distiller — Veshko's pot still, run on molasses (sugar D8). The
+# shipped `cellars` brain: buy molasses at the cash-and-carry (the Sugar
+# House consigns it there), mash it to a rum wash, ferment it in a vat,
+# run the still with a banded cut, bottle and consign the rum.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Tobias Marr
+  keywords: [distiller, tobias, marr, beard, still]
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: [tobias, marr]
+  shortDescription: bearded distiller smelling of burnt sugar
+  register: indefinite
+  longDescription: |
+    A heavy, slow-moving man with a singed beard and a leather apron, who sniffs everything before he touches it. He smells of burnt sugar and wet wood.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+  archetype: hand
+  competence:
+    - { discipline: distilling, asserting: proficient }
+    - { discipline: fermenting, asserting: competent }
+  behaviors:
+    - brain: /lib/behavior/cellars
+      trigger: candidate
+      config:
+        home: /world/terminus/goods-yards/veshko/location/distillery
+        counterRoom: /trade/distribution/location/cash-and-carry
+        crushes: [light-rum-wash, dark-rum-wash]
+        buys:
+          - { keyword: molasses, count: 1 }
+        inputKeyword: molasses
+        inputMin: 1
+        vesselCategory: spirit-bottle
+        vesselKeyword: bottle
+        batch: 6
+        buyEvery: 5
+        distills:
+          chargeKeyword: vat
+          igniteKeyword: still
+          slopKeyword: slop
+          vesselKeyword: bottle
+          stepL: 0.4
+          startAfter: 1
+          takeUpTo: 0.16
+        asks:
+          rum: 10
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Don't touch the still."
+          - "Molasses in, rum out. It's not complicated. It's just slow."

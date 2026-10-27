@@ -1,0 +1,21 @@
+# The kettle arch — an open kettle over its own fire, the old way (sugar
+# D17). ⭐ Only three-tenths of the fire reaches the kettle; the rest goes
+# up the stack. That is why it eats wood, and why the train was built.
+class: /platform/thing/Oven
+data:
+  # ⚠ Not "kettle arch": `kettle` must name the KETTLES on this floor —
+  # the miller's `pour tub into kettle` bound this arch first and was
+  # refused "doesn't hold liquid" thirty-two times (sugar drive 11).
+  shortDescription: open arch
+  keywords: [arch, "open arch", fire, hearth]
+  register: indefinite
+  longDescription: >-
+    A rough arch of fieldstone with a fire-mouth at one end and a single
+    round seat for a kettle on top, the stones round it scorched black.
+  burnTemperatureK: 470
+  bellowsMultiplier: 1
+  lit: false
+  mass: 1500
+  maxBurnPowerW: 20000
+  heatTransferFraction: 0.3
+  fuelCapacityKg: 120

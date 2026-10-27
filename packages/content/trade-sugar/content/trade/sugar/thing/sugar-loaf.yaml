@@ -1,0 +1,12 @@
+# A sugar loaf — what a cone of strike sets into. Its grade is the pan's;
+# its colour is read head to foot.
+class: /trade/sugar/thing/SugarLoaf
+data:
+  shortDescription: sugar loaf
+  keywords: [loaf, "sugar loaf", sugar, cone]
+  register: indefinite
+  longDescription: >-
+    A tall cone of hard sugar, knocked out of its mould, still faintly
+    sticky at the point.
+  _materialPath: /trade/sugar/idea/material/loaf-sugar
+  mass: 6

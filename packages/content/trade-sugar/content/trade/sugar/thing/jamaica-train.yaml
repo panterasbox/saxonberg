@@ -1,0 +1,26 @@
+# The Jamaica train — four coppers in a row over one long flue, one fire
+# at the end (sugar D17). ⭐ Built of parts: whole, eight-tenths of its fire
+# reaches the kettle on it; a cracked or missing copper costs it.
+class: /trade/sugar/thing/Train
+data:
+  shortDescription: Jamaica train
+  keywords: [train, "jamaica train", flue, fire, coppers]
+  register: definite
+  longDescription: >-
+    A long low bed of brick with four copper mouths in a row along its top,
+    the biggest at the far end and the smallest over the fire, and one
+    stoke-hole at the end under the smallest. The flue runs the length of it
+    to a stack at the far wall.
+  burnTemperatureK: 470
+  bellowsMultiplier: 1
+  lit: false
+  mass: 6000
+  maxBurnPowerW: 20000
+  fuelCapacityKg: 160
+  bill:
+    parts:
+      - { part: kettle, template: /trade/sugar/thing/copper-kettle, count: 4, role: structural, material: /stuff/idea/material/element/copper }
+    # ⚠ The brick flue is the train's prose, not a part: no trade makes
+    # brickwork yet (the brickmaking slate), and a bill part nobody makes
+    # is a mend nobody can know. The coppers are the power anyway.
+    joints: []

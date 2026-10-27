@@ -102,7 +102,12 @@ export default class HarvestController extends CommandController<HarvestModel> {
     // stage rather than saying "no").
     let plant: (Stuff & Growing) | null = null;
     if (MixinApi.isGrowing(named)) {
-      plant = named;
+      // ⭐ The ground's rule, for a named plant: `harvest cane` in a field of
+      // stands means a RIPE stand when one stands there. The binder takes
+      // the first match, and it refused "has not filled its set" while
+      // ripe cane stood beside it (the sugar drive: an estate's cutters,
+      // seventy-eight times). Only the same KIND is a substitute.
+      plant = named.isHarvestable() ? named : (named.ripeSibling() ?? named);
     } else if (MixinApi.isCultivable(named)) {
       const growing = (named.getPlants() as Stuff[]).filter(
         (p): p is Stuff & Growing => MixinApi.isGrowing(p),

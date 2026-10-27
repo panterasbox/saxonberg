@@ -658,6 +658,22 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         undefined,
         'candidate'
       );
+      // ⭐ A `critical` intention keeps the agent on the short beat: it
+      // re-decides at the debounce (`behavior.beatMinGapMs`) until nothing
+      // is critical. Before this only a perceived fight or voice woke it
+      // early, so a critical task that changes on a CLOCK — a pan coming to
+      // the strike — was checked on the twenty-second beat and missed its
+      // two-minute window every time (sugar drive 13).
+      if (winner.urgency.band === 'critical') this._rebeatSoon();
+    }
+
+    /** Ask for the next beat once the debounce has passed. */
+    private _rebeatSoon(): void {
+      const gap = this._beatSetting(
+        AppSettingKeys.behaviorBeatMinGapMs,
+        DEFAULT_BEAT_MIN_GAP_MS
+      );
+      ScheduleApi.schedule(gap + 1, () => this.requestBeat());
     }
 
     // ───────── witness (perception) ─────────

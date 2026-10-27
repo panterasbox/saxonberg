@@ -10,6 +10,11 @@
  * Which produces the one piece of real kitchen knowledge the whole
  * subsystem exists to make discoverable: **the icebox is the worst place
  * for bread.** Nobody is told that. Two loaves in two rooms say it.
+ *
+ * ⭐ Staling is the bread MATERIAL's kinetics since the sugar build
+ * (2026-10-24): the curve is read off `bread.yaml` here, so these tests
+ * prove the AUTHORED row, run by the kernel's `KineticMixin` on
+ * `Provision`.
  */
 
 import '@saxonberg/server/test-bootstrap';
@@ -26,6 +31,33 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { KineticChange, type KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import YAML from 'yaml';
+
+/** Bread's authored kinetics, straight off the row. */
+const BREAD_KINETICS = (
+  YAML.parse(
+    readFileSync(
+      fileURLToPath(new URL('../../content/stuff/idea/material/food/bread.yaml', import.meta.url)),
+      'utf8',
+    ),
+  ) as { data: { kinetics: KineticSpec[] } }
+).data.kinetics;
+const STALING = BREAD_KINETICS.find((k) => k.key === 'staling')!;
+const STALING_CHANGE = new KineticChange(STALING);
+
+/** The staling band a reader is told, off the authored words. */
+type Band = 'fresh' | 'firm' | 'stale' | 'hard';
+function band(l: Loaf): Band {
+  const phrase = STALING_CHANGE.phrase(l.getKineticExtent('staling'));
+  if (phrase === '') return 'fresh';
+  if (/knock/.test(phrase)) return 'hard';
+  if (/leathery/.test(phrase)) return 'stale';
+  return 'firm';
+}
+const staleness = (l: Loaf): number => l.getKineticExtent('staling');
 
 const BREAD = '/stuff/idea/material/food/bread';
 const FLOUR = '/stuff/idea/material/food/wheat-flour';
@@ -87,6 +119,7 @@ beforeEach(() => {
       m.setEdibility(true);
       m.setSpecificHeat(Quantity.of(2500, 'J/(kg·K)'));
       m.setThermalConductivity(Quantity.of(0.05, 'W/(m·K)'));
+      if (p === BREAD) m.setKinetics(BREAD_KINETICS);
       return m;
     }, p);
   }
@@ -97,10 +130,10 @@ describe('⭐⭐⭐ the two clocks point opposite ways', () => {
   it('staling is FASTEST just above freezing, not at room temperature', () => {
     const cold = loaf(277); // a cold larder
     const room = loaf(293); // the counter
-    cold.getStaleness();
-    room.getStaleness();
+    staleness(cold);
+    staleness(room);
     tick(24);
-    expect(cold.getStaleness()).toBeGreaterThan(room.getStaleness());
+    expect(staleness(cold)).toBeGreaterThan(staleness(room));
   });
 
   it('⭐⭐ so the ICEBOX is the worst place for bread — the whole lesson', () => {
@@ -109,62 +142,62 @@ describe('⭐⭐⭐ the two clocks point opposite ways', () => {
     // this; two loaves in two rooms overnight say it.
     const larder = loaf(277);
     const counter = loaf(293);
-    larder.getStaleness();
-    counter.getStaleness();
+    staleness(larder);
+    staleness(counter);
     tick(48);
-    expect(larder.getStalingBand()).not.toBe(counter.getStalingBand());
-    expect(larder.getStaleness()).toBeGreaterThan(counter.getStaleness());
+    expect(band(larder)).not.toBe(band(counter));
+    expect(staleness(larder)).toBeGreaterThan(staleness(counter));
   });
 
   it('frozen STOPS it — and freezing is a pause, never a reset', () => {
     const frozen = loaf(270);
-    frozen.getStaleness();
+    staleness(frozen);
     tick(72);
-    expect(frozen.getStaleness()).toBe(0);
+    expect(staleness(frozen)).toBe(0);
 
     // Thaw it: it resumes where it left off rather than starting over.
-    frozen.setStaleness(0.4);
+    frozen.setKineticExtent('staling', 0.4);
     frozen.setStampedTemperatureK(270);
     frozen.setLastAmbientK(270);
     tick(72);
-    expect(frozen.getStaleness()).toBeCloseTo(0.4, 6);
+    expect(staleness(frozen)).toBeCloseTo(0.4, 6);
   });
 
   it('⭐ the oven REVERSES it — a stale loaf comes back', () => {
     const l = loaf(293);
-    l.setStaleness(0.9);
-    expect(l.getStalingBand()).toBe('hard');
+    l.setKineticExtent('staling', 0.9);
+    expect(band(l)).toBe('hard');
     // Into a hot oven.
     l.setStampedTemperatureK(400);
     l.setLastAmbientK(400);
     tick(1);
-    expect(l.getStaleness()).toBeLessThan(0.9);
-    expect(l.getStalingBand()).not.toBe('hard');
+    expect(staleness(l)).toBeLessThan(0.9);
+    expect(band(l)).not.toBe('hard');
   });
 
   it('⚠ but never all the way back — enough passes leave you a rusk', () => {
     const l = loaf(293);
-    l.setStaleness(1);
+    l.setKineticExtent('staling', 1);
     l.setStampedTemperatureK(400);
     l.setLastAmbientK(400);
     tick(10); // far longer than it takes
     // The floor: reviving buys you a meal, not a week.
-    expect(l.getStaleness()).toBeCloseTo(l.refreshFloor, 6);
-    expect(l.getStaleness()).toBeGreaterThan(0);
+    expect(staleness(l)).toBeCloseTo(STALING.floor!, 6);
+    expect(staleness(l)).toBeGreaterThan(0);
   });
 
   it('⚠ NO far-past guard — a loaf left over a weekend is not fresh', () => {
     const l = loaf(285);
-    l.getStaleness();
+    staleness(l);
     tick(24 * 7);
-    expect(l.getStalingBand()).toBe('hard');
+    expect(band(l)).toBe('hard');
   });
 });
 
 describe('the bands, and the vocabulary they must not share', () => {
   it('ladder from fresh to hard', () => {
     const l = loaf();
-    for (const [v, band] of [
+    for (const [v, want] of [
       [0, 'fresh'],
       [0.24, 'fresh'],
       [0.25, 'firm'],
@@ -174,21 +207,20 @@ describe('the bands, and the vocabulary they must not share', () => {
       [0.8, 'hard'],
       [1, 'hard'],
     ] as const) {
-      l.setStaleness(v);
-      expect(l.getStalingBand(), String(v)).toBe(band);
+      l.setKineticExtent('staling', v);
+      expect(band(l), String(v)).toBe(want);
     }
   });
 
-  it('⭐⭐ the staling and spoilage vocabularies share NO WORD', async () => {
+  it('⭐⭐ the staling and spoilage vocabularies share NO WORD', () => {
     // ⚠ Load-bearing. The two clocks point opposite ways, so a player who
     // reads "it has gone off" for a stale loaf will store bread in
     // exactly the wrong place. The prose has to keep them apart.
-    const staling = await import('../lib/Staling');
-    const src = String(
-      Object.getOwnPropertyNames(staling).length,
-    );
-    expect(src).toBeTruthy();
-
+    // Read off the AUTHORED words, so a reworded row is tested too.
+    const authored = (STALING.words ?? []).map(([, w]) => w.toLowerCase()).join(' ');
+    for (const w of ['tightened', 'dry', 'close-grained', 'leathery', 'hard', 'knock']) {
+      expect(authored).toContain(w);
+    }
     const STALE_WORDS = [
       'tightened',
       'dry',

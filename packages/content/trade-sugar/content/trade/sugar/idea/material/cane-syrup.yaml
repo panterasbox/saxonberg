@@ -1,0 +1,10 @@
+# Cane syrup — treacle. The liquor taken off at two-thirds sugar: it
+# keeps, it pours, and it goes in a cocktail as syrup. Pushed on, it
+# strikes.
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: cane syrup
+  keywords: [cane-syrup, syrup, treacle, golden]
+  appearance: thick and golden, slow off a spoon
+  tags: ["liquid", "food", "syrup", "treacle", "sweetener"]
+  waterActivity: 0.7

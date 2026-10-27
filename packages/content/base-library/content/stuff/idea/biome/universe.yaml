@@ -21,4 +21,10 @@ data:
   _defaultHumidity:    { value: 50, unit: "%" }
   _defaultWind:        { value: 0, unit: "m/s" }
   _defaultGravity:     { value: 9.81, unit: "m/s²" }
+  # ⭐ (sugar D12, the-world slate) A third of Earth's radius, so the
+  # world is a third as far to cross — the chart re-derives from it (20
+  # nautical miles to the degree) and the horizon closes in by √⅓. Gravity
+  # stays 9.81 above: the heavy-world postulate (a dense core) keeps a
+  # person's weight what it is.
+  _planetRadiusM: 2124000
   _defaultAtmosphere:  air

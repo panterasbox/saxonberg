@@ -115,6 +115,7 @@ import type { Launcher } from '../lib/combat/Launcher';
 import type { ThermalRegulation } from '../lib/thermal/ThermalRegulation';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
+import type { Kinetic } from '../lib/material/Kinetic';
 import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
@@ -131,6 +132,7 @@ import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
 import type { Fractionating } from '../lib/fractionation/Fractionating';
 import type { Mould } from '../lib/mould/Mould';
+import type { Percolating } from '../lib/material/Percolating';
 import type { Ripening } from '../lib/maturation/Ripening';
 import type { Pumping } from '../lib/pump/Pumping';
 import type { Plantable } from '../lib/husbandry/Plantable';
@@ -1515,6 +1517,16 @@ export class MixinApi {
   }
 
   /**
+   * Narrow to a good that runs its material's kinetics (staling, inversion).
+   * ⚠ Distinct from {@link isFresh}: that is a microbial population and
+   * decides safety; this is a reaction running to completion and decides
+   * quality.
+   */
+  public static isKinetic(obj: Stuff): obj is Stuff & Kinetic {
+    return this.hasMixin(obj, Mixins.Kinetic);
+  }
+
+  /**
    * A host that **reduces and separates matter** — a mill, a stamp
    * battery, anything that turns a quantity of one thing into a finer
    * product plus a coarser residue.
@@ -1648,6 +1660,14 @@ export class MixinApi {
    */
   public static isMould(obj: Stuff): obj is Stuff & Mould {
     return this.hasMixin(obj, Mixins.Mould);
+  }
+
+  /**
+   * A porous solid a liquid seeps down through over days — a clayed sugar
+   * loaf (sugar D3).
+   */
+  public static isPercolating(obj: Stuff): obj is Stuff & Percolating {
+    return this.hasMixin(obj, Mixins.Percolating);
   }
 
   /**

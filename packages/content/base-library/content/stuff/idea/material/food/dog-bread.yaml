@@ -24,6 +24,37 @@ data:
   # Baked hard and dry — it keeps, which is most of why it was made in
   # loaves at all.
   spoilActivationEnergy: 60000
+  # ⭐⭐ Staling (kinetics): the oven's gelatinised starch re-crystallising
+  # (retrogradation). NOT spoilage, and the two run opposite ways in the
+  # cold: fastest a few degrees above freezing, stopped by ice, and
+  # REVERSED by heat (a stale loaf comes back in the oven, but only to the
+  # floor — each pass loses a little). Which is why the icebox is the worst
+  # place for bread. A Gaussian peaking at 277 K, a sixth of its peak at
+  # room temperature. Phrases share no word with the freshness bands.
+  kinetics:
+    - key: staling
+      order: 0
+      rate:
+        - [273, 0]
+        - [273.5, 0.0183]
+        - [277, 0.02]
+        - [281, 0.0179]
+        - [285, 0.0128]
+        - [289, 0.00736]
+        - [293, 0.00338]
+        - [297, 0.00124]
+        - [301, 0.000366]
+        - [309, 0.0000164]
+        - [315, 0]
+        - [329, 0]
+        - [330, -1.2]
+      floor: 0.2
+      words:
+        - [0, ""]
+        - [0.25, "The crumb has tightened a little."]
+        - [0.5, "It has gone dry and close-grained; the crust is leathery."]
+        - [0.8, "It is hard all the way through. You could knock on it."]
+      senses: [vision, touch]
   waterActivity: 0.55
   edibility: true
   # Coarse and savoury, and nothing about it is sweet.

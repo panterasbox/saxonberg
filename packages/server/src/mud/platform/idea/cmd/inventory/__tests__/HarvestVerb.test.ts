@@ -418,6 +418,53 @@ describe('harvest <plant>', () => {
     expect(bed.nutrientFraction()).toBe(1); // nothing was exported
   });
 
+  it('⭐ naming an UNRIPE stand takes a ripe one of the same kind beside it (the sugar drive: a field of cane)', async () => {
+    const { giver, room } = scene();
+    // Two stands of one KIND loose in the room — a field, not a bed.
+    const kind = freshPath('/trade/farming/thing/plant/_stand');
+    const stand = (): Plant =>
+      makeStuffAtPath(() => {
+        const p = new Plant();
+        p.setShortDescription('a row of carrots');
+        p.setMaterial(tissue());
+        p.setMass(Quantity.of(0.5, 'kg'));
+        p.setLastAmbientK(295);
+        p.setLifecycleState('alive');
+        p.setProfile(carrotProfile());
+        p.setHarvestTemplatePath(CROP_PATH);
+        p.setNutrientDraw(15);
+        return p;
+      }, kind);
+    const green = stand();
+    ContainmentApi.move(green, room);
+    forceStage(green, 'young');
+    const grown = stand();
+    ContainmentApi.move(grown, room);
+    forceStage(grown, 'mature');
+    forceWorst(grown, 1);
+
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    // The binder handed over the FIRST match — the green one.
+    await ctrl.execute(model(one(green, 'carrots')), ctx);
+
+    expect(noteReasons(ctx)).not.toContain('not-mature');
+    expect(giver.getContents().some((s) => s instanceof Crop)).toBe(true);
+    expect(green.isDestroyed()).toBe(false);
+    expect(grown.isDestroyed()).toBe(true);
+  });
+
+  it('still refuses when NOTHING of the kind is ripe', async () => {
+    const { giver, room } = scene();
+    const p = makePlant();
+    ContainmentApi.move(p, room);
+    forceStage(p, 'young');
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(p, 'carrots')), ctx);
+    expect(noteReasons(ctx)).toContain('not-mature');
+  });
+
   it('refuses an ORNAMENTAL that yields nothing', async () => {
     const { giver, room, bed } = scene();
     const p = makePlant({ harvestable: false });

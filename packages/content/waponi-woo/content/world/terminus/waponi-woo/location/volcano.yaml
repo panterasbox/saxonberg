@@ -1,0 +1,22 @@
+# The volcano — scenery and the reason for the soil (sugar W5): ash and
+# lava weathered into ground that needs no dung for its first years.
+class: /platform/location/Locale
+data:
+  shortDescription: "volcano slope"
+  keywords: [volcano, mountain, slope, smoke, cone]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  longDescription: |
+    Bare black rock and grey ash, warm underfoot, climbing toward a broken cone that breathes a lazy plume of white into the sky. Below, the whole island lies spread out green to the sea. A yellow-crusted hollow steams a little way along the slope.
+  coords: { x: 1, y: 3, z: 2 }
+  exits:
+    southwest:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 20
+    east:
+      destination: /world/terminus/waponi-woo/location/fumaroles
+      media: [ground]
+      edgeMinutes: 3
