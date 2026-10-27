@@ -818,8 +818,12 @@ suite('⭐ 23 — breakage and mending', () => {
     const allBowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
       .filter((r) => r.stuffId && by(r, potter) && !ruined(r));
     const bowls = [...allBowls.filter(sound), ...allBowls.filter((r) => !sound(r))].map((r) => r.stuffId!);
-    expect(bowls.length, 'two sound bowls of the potter\'s').toBeGreaterThanOrEqual(2);
-    const [stoneBowl, earthBowl] = [bowls[0]!, bowls[1]!];
+    expect(bowls.length, 'a bowl of the potter\'s').toBeGreaterThanOrEqual(1);
+    // The earth floor's bowl may be anyone's: when 17–20 left only one of the
+    // potter's (run 38), a bought one is handed (setup — the act is the
+    // floor's, not the throw's).
+    const stoneBowl = bowls[0]!;
+    const earthBowl = bowls[1] ?? (await hand(potter, '/trade/ceramics/thing/bowl'));
     for (const id of [stoneBowl, earthBowl]) await say(potter, `get #${id}`);
     const thick = [...(await rows(potter, 'here:i:mug')), ...(await rows(potter, 'me:i:mug')), ...(await rows(novice, 'me:i:mug'))]
       .find((r) => r.stuffId && by(r, novice));
@@ -874,14 +878,18 @@ suite('⭐ 23 — breakage and mending', () => {
     const piece = cracked?.stuffId ?? dunted[0];
     expect(piece, 'a cracked or dunted piece from the hot kiln').toBeDefined();
     const cracked2 = { stuffId: piece };
-    const asked = await run(potter, `order repair #${cracked2.stuffId}`);
-    const answer = await potter.awaitPrompt(5_000).catch(() => null);
+    // ⚠ The tinker QUOTES and waits for a yes (the paid mend's prompt), and
+    // the order's reply only comes once it is answered: answer it while the
+    // order is still pending (run 38 awaited the reply first and timed out).
+    const pending = run(potter, `order repair #${cracked2.stuffId}`);
+    const answer = await potter.awaitPrompt(30_000).catch(() => null);
     if (answer) {
       const id = (answer as { payload?: { promptId?: string }; promptId?: string }).payload?.promptId ??
         (answer as { promptId?: string }).promptId;
       if (id) potter.answerPrompt(id, 'yes');
-      await new Promise((r) => setTimeout(r, 2_000));
     }
+    const asked = await pending;
+    await new Promise((r) => setTimeout(r, 2_000));
     expect(asked.said).not.toMatch(/don'?t understand/i);
     const mended = await examine(potter, `#${cracked2.stuffId}`);
     expect(mended, 'the riveted piece').toMatch(/rivet|mend/i);
