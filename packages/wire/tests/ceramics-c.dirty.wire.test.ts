@@ -271,6 +271,22 @@ let trimmedMug: string | undefined;
 // in bisque is hidden from the eye, so 23's tinker gets these (run 36
 // looked for a visible crack and found none).
 let dunted: string[] = [];
+
+/**
+ * ⭐ The piece an act leaves under `query`: the id that was not there
+ * before it. A bare word binds whichever like piece comes first — in run 36
+ * `drop crock` let go of ashpot, and `put crock on campfire` set the wrong
+ * crock in the flame.
+ */
+async function freshIn(s: Session, query: string, act: () => Promise<unknown>): Promise<string | undefined> {
+  const ids = async (): Promise<string[]> =>
+    ((await s.query(query, { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
+      .map((r) => r.stuffId ?? '')
+      .filter((x) => x !== '');
+  const before = new Set(await ids());
+  await act();
+  return (await ids()).find((id) => !before.has(id));
+}
 let novicesFirstMug = '';
 
 beforeAll(async () => {
@@ -852,18 +868,29 @@ suite('⭐ 20 — flame and body', () => {
     potter = await goTo(potter, SHOP);
     // Stoneware: a crock fired hot and long, wide open.
     potter = await clayFor(potter, 2);
-    await act(potter, 'shape clay into crock', '1 hour');
+    // A thrown piece lands in the thrower's hands (`Clay.yieldPieces`).
+    const crockId = await freshIn(potter, 'me:i:crock', async () => {
+      await act(potter, 'shape clay into crock', '1 hour');
+      await until(potter, 'me:i:crock', /crock/i, '1 hour', 6);
+    });
+    expect(crockId, 'the stoneware crock, thrown').toBeDefined();
+    const crock = `#${crockId}`;
     // The grogged body: grog trodden into clay in the temper pit.
     potter = await goTo(potter, TEMPER);
     await say(potter, 'put clay in pit');
-    await say(potter, 'put grog in pit');
+    expect(await say(potter, 'put grog in pit'), 'the grog from 23').toMatch(/put/i);
     await act(potter, 'knead pit', '30 minutes');
     await say(potter, 'get clay from pit');
     potter = await goTo(potter, SHOP);
-    await act(potter, 'shape clay into bowl', '1 hour');
-    await say(potter, 'drop crock');
-    await say(potter, 'drop bowl');
-    await until(potter, 'here:i:crock', /bone-dry/i, '1 day', 30);
+    const bowlId = await freshIn(potter, 'me:i:bowl', async () => {
+      await act(potter, 'shape clay into bowl', '1 hour');
+      await until(potter, 'me:i:bowl', /bowl/i, '1 hour', 6);
+    });
+    expect(bowlId, 'the grogged bowl, thrown').toBeDefined();
+    const bowl = `#${bowlId}`;
+    await say(potter, `drop ${crock}`);
+    await say(potter, `drop ${bowl}`);
+    await until(potter, crock, /bone-dry/i, '1 day', 30);
     // ⚠ Stoneware wants ~1480 K, and this kiln's lining has worn through
     // 17's and 18's firings to a kiln that holds ~1345 K (B38 — the lining
     // is a wear part): the crock came out earthenware (run 28). Relined
@@ -871,16 +898,16 @@ suite('⭐ 20 — flame and body', () => {
     for (let i = 0; i < 30; i++) await hand(potter, '/stuff/thing/firebrick');
     const relined = await act(potter, 'fit lining to kiln', '3 hours');
     expect(refusedFor(relined.r), `reline the kiln: ${relined.said}`).toBeNull();
-    await say(potter, 'get crock');
-    await say(potter, 'put crock in kiln');
-    await say(potter, 'get bowl');
-    await say(potter, 'put bowl in kiln');
+    for (const piece of [crock, bowl]) {
+      await say(potter, `get ${piece}`);
+      await say(potter, `put ${piece} in kiln`);
+    }
     await fireKiln(potter, '20 hours', '--draught wide ');
     await say(potter, 'douse kiln');
     await advance('1 day');
-    await say(potter, 'get crock from kiln');
-    await say(potter, 'get bowl from kiln');
-    expect(await examine(potter, 'me:i:crock'), 'a stoneware crock').toMatch(/stoneware|dense|rings/i);
+    await say(potter, `get ${crock} from kiln`);
+    await say(potter, `get ${bowl} from kiln`);
+    expect(await examine(potter, crock), 'a stoneware crock').toMatch(/stoneware|dense|rings/i);
     // The cook fire.
     await mint(SHOP, CAMPFIRE);
     await mint(SHOP, CHARCOAL, 2);
@@ -888,11 +915,11 @@ suite('⭐ 20 — flame and body', () => {
     await say(potter, 'stoke charcoal into campfire');
     await say(potter, 'ignite campfire');
     // ⚠ ON, not in: a campfire takes things on it (run 27: "it takes on").
-    await say(potter, 'put crock on campfire');
-    await say(potter, 'put bowl on campfire');
+    await say(potter, `put ${crock} on campfire`);
+    await say(potter, `put ${bowl} on campfire`);
     await advance('1 hour');
-    expect(await examine(potter, 'here:i:crock'), 'stoneware in the flame').toMatch(/crack/i);
-    expect(await examine(potter, 'here:i:bowl'), 'grogged earthenware in the flame').not.toMatch(/crack/i);
+    expect(await examine(potter, crock), 'stoneware in the flame').toMatch(/crack/i);
+    expect(await examine(potter, bowl), 'grogged earthenware in the flame').not.toMatch(/crack/i);
   }, 7_200_000);
 
   it('boiling water poured into a cold glazed mug cracks it — thermal shock', async () => {
