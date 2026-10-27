@@ -70,4 +70,25 @@ describe('green bricks on a stack', () => {
     theirs.setMaker('/platform/agent/Avatar/p-1');
     expect(mine.canMergeWith(theirs as unknown as Stuff)).toBe(true);
   });
+
+  it('⭐ fired bricks of two bodies do not stack — the clamp\'s grades stay apart (run 37)', () => {
+    const fired = (name: string): Material =>
+      makeStuffAtPath(() => {
+        const m = new Material();
+        m.setName(name);
+        m.setTags(['ceramic', 'fired']);
+        m.setDensity(Quantity.of(1900, 'kg/m³'));
+        m.setSpecificHeat(Quantity.of(900, 'J/(kg·K)'));
+        return m;
+      }, `/stuff/idea/material/_stack-test/${name}`) as unknown as Material;
+    const sound = brick(0.1);
+    const clinker = brick(0.1);
+    sound.setMaterial(fired('earthenware'));
+    clinker.setMaterial(fired('clinker'));
+    expect(sound.canMergeWith(clinker as unknown as Stuff)).toBe(false);
+    // ⭐ …and each is named for its body, not "green" (run 37).
+    expect(sound.getShortDescription()).toBe('earthenware brick');
+    expect(clinker.getShortDescription()).toBe('clinker brick');
+    expect(brick(0.52).getShortDescription()).not.toMatch(/earthenware|clinker/);
+  });
 });

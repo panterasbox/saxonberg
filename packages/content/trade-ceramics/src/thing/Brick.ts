@@ -63,11 +63,32 @@ export default class Brick extends BrickBase {
     // whose a pile of bricks set out on a hack is — and a player's nine
     // folded into the gang's fourteen would be the gang's (drive A, run 32).
     if (MixinApi.isCrafted(other) && other.getMaker() !== this.getMaker()) return false;
+    // ⭐ And only with bricks of the same BODY: a stack has one material, so
+    // the clamp's three grades — clinker, earthenware, a soft place brick —
+    // picked up together were folded into one stack of whichever came first
+    // (drive A, run 37).
+    const theirMaterial = MixinApi.isTangible(other) ? other.getMaterial() : null;
+    if ((theirMaterial?.getTemplatePath() ?? null) !== (this.getMaterial()?.getTemplatePath() ?? null)) return false;
     const o = other as unknown as Partial<Brick>;
     const mineGreen = this.greenState();
     const theirsGreen = typeof o.greenState === 'function' ? o.greenState() : null;
     if (mineGreen === null && theirsGreen === null) return true;
     return mineGreen === theirsGreen && this.getRuin() === (typeof o.getRuin === 'function' ? o.getRuin() : null);
+  }
+
+  /**
+   * ⭐ A fired brick is named for its body — *earthenware brick*, *clinker
+   * brick* — the way a candle is named for its fat. The row's stem is
+   * "green brick", and a burnt brick still read "green" (drive A, run 37).
+   */
+  override getShortDescription(): string {
+    const stem = super.getShortDescription();
+    // `isGreen`, not `greenState`: a name is read on every look and must not
+    // run the weather reconcile.
+    if (this.isGreen()) return stem;
+    const name = this.getMaterial()?.getName() ?? '';
+    if (!name) return stem.replace(/^green\s+/i, '');
+    return `${name} brick`;
   }
 
   /**
