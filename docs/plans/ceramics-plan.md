@@ -3352,3 +3352,35 @@ findings were mostly game defects, and each now has a unit test:
     hours, not at the start.
   - Stackables whose per-unit mass varies (ore, bricks) may share clay's
     merge flaw. Only clay's is fixed.
+
+**Run 38** (D 22/23 · A 17/20 · B 3/6 · C 12/21). A is the best it has
+been: kneading, the blue brick and both statute measures passed. C's
+glaze, its lead leach and its wet-handle joint passed for the first
+time.
+- **D, a regression of mine:** b2c619143's seep reconcile read a salt
+  pan's contents across the founder's sandbox boundary. Seepers are now
+  narrowed to Faced vessels, and a denied read is skipped (04bedc216).
+- **⭐ Game defects, fixed:**
+  - **A clamp set its positions only at `fire`.** Lit at noon and fired
+    at dusk, every brick sat "in the middle" for hours and burnt to one
+    earthenware. Lighting a burner now starts its firing (`ignite` calls
+    `onFireStart`), and the clamp sets each brick once (bdb3832ac).
+  - **A rivet quoted 0 zorkmids.** It is now one repair's work
+    (bd1401d02).
+- **Drive fixes:**
+  - **A:** 5b moulds a fresh handed lump. The brickmaker's remnants were
+    smaller than a brick, and the day says so only at its END (a recorded
+    finding).
+  - **B:** 12 buys by daylight. In the dark store every buy read
+    "something" and the firebricks went unseen in hand, which also sank
+    13 (lining never relined) and 14 (no coal liftable).
+  - **C:**
+    - 21 weeps a bisque terracotta jar, chosen by its look;
+    - 22 reads the crock's look and its chemistry (`bulkMaterial` is the
+      vessel's own BODY, never its contents);
+    - 20b pours into a cold glazed mug, per AC 1120 and the rule's own
+      unit test (porous terracotta stands the step);
+    - 23 answers the tinker's quote while the order is pending, and takes
+      a bought bowl for the earth floor when it has only one of its own;
+    - 24 falls back to 15's reading of the novice's mug;
+    - 25 names the potter's stall.
