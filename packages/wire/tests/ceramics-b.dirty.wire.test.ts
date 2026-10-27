@@ -532,10 +532,23 @@ suite('⭐ 13 — wear a crucible', () => {
       // dropped out as a cast lump in the furnace, the crucible came up
       // empty ("nothing to pour"), and the next charge was ore and metal
       // together (run 35).
-      look = await examine('crucible');
+      // ⚠ By id: the miner may hold another crucible (bought, or left from
+      // 11), and `pour crucible` bound an EMPTY one — "There's nothing to
+      // pour" on every melt of runs 36 and 37, while the metal froze in the
+      // furnace's own crucible and later melts found no room (no wear).
+      const crucibleIds = async (): Promise<string[]> =>
+        ((await k.query('me:i:crucible', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
+          .map((r) => r.stuffId ?? '')
+          .filter((x) => x !== '');
+      const heldBefore = new Set(await crucibleIds());
       await say('get crucible from furnace');
-      await act('pour crucible into mould', '30 minutes');
-      await say('put crucible in furnace');
+      const fromFire = (await crucibleIds()).find((id) => !heldBefore.has(id));
+      const cr = fromFire ? `#${fromFire}` : 'crucible';
+      look = await examine(cr);
+      const poured = await act(`pour ${cr} into mould`, '30 minutes');
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive] melt ${melt + 1} pour: ${poured.said.slice(0, 200)}`);
+      await say(`put ${cr} in furnace`);
       await say('douse furnace');
       if (melt === 3) expect(look, 'after four melts').toMatch(/worn|crack/i);
     }
