@@ -414,14 +414,26 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     expect(mug, 'the trimmed mug from 16').toBeTruthy();
     expect(await say(potter, `get #${mug}`)).toMatch(/pick up|already/i);
     potter = await clayFor(potter, 1);
-    await act(potter, 'shape clay into handle', '1 hour');
     // ⚠ The throw may still be going after the hour: wait for the handle.
     // A thrown piece lands in the THROWER's hands (`Clay.yieldPieces`), so
     // it is looked for there — the floor held none (run 34), and a bare
     // `get handle` there could take the potter NPC's.
-    const thrown = await until(potter, 'me:i:handle', /handle/i, '1 hour', 6);
+    const handleId = await freshIn(potter, 'me:i:handle', async () => {
+      await act(potter, 'shape clay into handle', '1 hour');
+      await until(potter, 'me:i:handle', /handle/i, '1 hour', 6);
+    });
+    const thrown = handleId ? await examine(potter, `#${handleId}`) : '';
     expect(thrown, 'the fresh handle').toMatch(/handle/i);
-    const fit = await act(potter, `fit handle to #${mug}`, '30 minutes');
+    // ⭐ A soft handle will not join at all — "too soft to join, it would
+    // sag off" (run 37). WETTER is the near edge of leather-hard against a
+    // mug that has been drying a day longer: the handle firms on the board
+    // (in the hand it never dries) an hour at a time, and joins the moment
+    // it will.
+    await say(potter, `drop #${handleId}`);
+    const firm = await until(potter, `#${handleId}`, /leather-hard|bone-dry/i, '1 hour', 24);
+    expect(firm, 'the handle just firm enough').toMatch(/leather-hard/i);
+    await say(potter, `get #${handleId}`);
+    const fit = await act(potter, `fit #${handleId} to #${mug}`, '30 minutes');
     expect(refusedFor(fit.r), `the wet handle on: ${fit.said}`).toBeNull();
     await say(potter, `drop #${mug}`);
     const dried = await until(potter, `#${mug}`, /bone-dry/i, '1 day', 30);
