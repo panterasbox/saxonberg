@@ -16,3 +16,6 @@ data:
   _materialPath: /stuff/idea/material/ceramic/terracotta
   mass: 0.1
   capabilities: [pyrometry]
+  # ⭐ Read by a potter's eye: a competent potter calls the cones by number,
+  # a proficient one says what the ware is coming to (`Tooled.getDiscipline`).
+  discipline: pottery

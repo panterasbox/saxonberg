@@ -212,4 +212,27 @@ describe('TemperatureReading', () => {
     await analyze(makeContext(avatar, room), kiln, 'proficient', null, '');
     expect((avatar.received.at(-1) as { body: string }).body).not.toMatch(/cone/i);
   });
+
+  it('⭐ cones that name their craft are read at the reader\'s band IN it — a practised potter, untrained in awareness (ceramics run 35)', async () => {
+    const room = makeStuff(() => new TestLocation());
+    const avatar = makeStuff(() => new FakeAvatar());
+    avatar.setName('Potter');
+    ContainmentApi.move(avatar, room);
+    const reading = withRow(await StuffApi.create(() => new TemperatureReading()), 'temperature');
+    const kiln = { isLit: () => true, getHeldTemperatureK: () => 1340 };
+    vi.spyOn(MixinApi, 'isBurner').mockImplementation(((o: unknown) => o === kiln) as never);
+    vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(true);
+    (avatar as unknown as { competenceBandFor(d: string): Promise<string> }).competenceBandFor = async (d: string) =>
+      d === 'pottery' ? 'proficient' : 'untrained';
+    const analyze = (reading as unknown as {
+      analyze(c: CommandContext, t: unknown, b: string, tool: unknown, p: string): Promise<void>;
+    }).analyze.bind(reading);
+    const cones = await instrumentWith('pyrometry');
+    (cones as unknown as { discipline: string }).discipline = 'pottery';
+    // The reading's own band (awareness) is the floor; the cones' craft lifts it.
+    await analyze(makeContext(avatar, room), kiln, 'untrained', cones, '');
+    const read = (avatar.received.at(-1) as { body: string }).body;
+    expect(read).toMatch(/cone 08 down, cone 04 bending, cone 6 standing/);
+  });
 });
+
