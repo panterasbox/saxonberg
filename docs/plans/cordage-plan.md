@@ -270,7 +270,14 @@ L6 economy · C = CLAUDE.md convention · P = nearest shipped pattern.
   else the fall [AC7]. Ends by `belay off`, by walking away (abort), by the rope being cast off.
 - **D13 — Rot and tar.** Rope composes `WetMixin`; `rot` + `rotAt` persistent, reconciled on
   every strength read: `+ dial cordage.rotPerWetDay (0.03) × wetness` per elapsed game day while
-  `!tarred` [P: reconcile-on-read]. Tarring = `dip <rope> in <pot>` through a kernel protocol mixin
+  `!tarred` [P: reconcile-on-read].
+  ⚠ **Re-check against sugar's `Kinetics` (merged 2026-10-27, `lib/material/Kinetics.ts` +
+  `Kinetic.ts`)** before writing a bespoke clock: it is the kernel's one mechanism for *what a
+  substance does by itself over time, read in words* (staling, inversion, freshness's family), as
+  `kinetics:` on the MATERIAL row. Rot is that shape with a **wetness** driver beside temperature.
+  ⭐ Prefer making rope rot its next consumer (a `rot` change on the fiber materials, the rate gated
+  by the good's wetness and stopped by `tarred`) — extending Kinetics with a moisture term if it has
+  none — over a rope-only `rot`/`rotAt`. Record which, and why, in the plan. Tarring = `dip <rope> in <pot>` through a kernel protocol mixin
   `lib/craft/Dippable.ts` (`dipInto(by, pot)`): `DipController` first asks a `Dippable` solid and
   returns, else the candle path (≈ 8 lines); the rope checks the pot's slot material `hasTag('tar')`
   (`pitch.yaml` + `wood-tar.yaml` gain `tags: [tar]`) → `tarred: true`, darker, heavier [AC8].
@@ -546,6 +553,9 @@ cordage` (and `underwater`, `river-b` after W0).
   requirements worded otherwise; the reason is the import rule (a kernel class cannot name a pack
   view) and `lint:openings`. If the owner wants the belay in the pack, the rope would have to be
   afforded by a cordage fixture, which contradicts "your own body".
+- **Sugar's merge (2026-10-27)** also brought `get X from Y` (the drive may use it) and a
+  persistence fix: a field named like a method is captured by its predicate — name Rope's
+  persistent fields (`coiled`, `tarred`, …) so they do not shadow `isCoiled()`/`isTarred()`.
 - Anchors never fail; drop depth vs rope length is a dial, not geometry; the tar pot's pitch is
   assumed liquid; `fibre` tag spelling stays.
 
