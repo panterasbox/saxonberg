@@ -587,10 +587,12 @@ suite('⭐ 19 — lead leaches', () => {
     // `interiorMaterial`, as a data overlay) and poured by the potter: the
     // founder's eval is parcel-bound and holds no authority over the
     // brickfield (run 34). The LEACH is the act under test.
-    await hand(potter, PAIL, { interiorMaterial: '/trade/winemaking/idea/material/wine-vinegar', interiorAmount: 2 });
-    await say(potter, 'pour pail into leadpot --amount 1L');
-    await say(potter, 'pour pail into ashpot --amount 1L');
-    await say(potter, 'drop pail');
+    // ⚠ By id: the potter carries other pails, and `pour pail` bound an
+    // empty one — "There's nothing to pour" (run 36).
+    const vinegar = await hand(potter, PAIL, { interiorMaterial: '/trade/winemaking/idea/material/wine-vinegar', interiorAmount: 2 });
+    await say(potter, `pour #${vinegar} into leadpot --amount 1L`);
+    await say(potter, `pour #${vinegar} into ashpot --amount 1L`);
+    await say(potter, `drop #${vinegar}`);
     await advance('7 days');
     await say(potter, 'get leadpot');
     const look = await examine(potter, 'me:i:leadpot');
@@ -668,7 +670,11 @@ suite('⭐ 22 — the filter (W8)', () => {
     const bought = await say(w, 'buy water filter');
     if (/sold out|bare of/i.test(bought)) await hand(w, '/trade/ceramics/thing/water-filter');
     else expect(bought, 'the stall sells a filter').toMatch(/you buy/i);
-    expect(await say(w, 'buy crock'), 'and a crock for it to stand in').toMatch(/you buy/i);
+    // …and the crock likewise: the first round bought the stall's last
+    // (run 36).
+    const crock = await say(w, 'buy crock');
+    if (/sold out|bare of/i.test(crock)) await hand(w, '/trade/ceramics/thing/crock');
+    else expect(crock, 'and a crock for it to stand in').toMatch(/you buy/i);
     // ⚠ What a stall hands over may land at the buyer's feet rather than in
     // hand — the crock stayed in the square when the filterer walked on (run
     // 27: `put filter in crock` saw no crock). Picked up before leaving.
@@ -685,10 +691,10 @@ suite('⭐ 22 — the filter (W8)', () => {
     // own `interiorMaterial`/`interiorAmount`, as a data overlay): the
     // founder's eval is parcel-bound, and it holds no authority over the
     // brickfield (runs 31 and 34). The FILTER is the act under test.
-    await hand(w, PAIL, { interiorMaterial: water, interiorAmount: 2 });
-    const poured = await say(w, 'pour pail into filter');
+    const pail = await hand(w, PAIL, { interiorMaterial: water, interiorAmount: 2 });
+    const poured = await say(w, `pour #${pail} into filter`);
     expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
-    await say(w, 'drop pail');
+    await say(w, `drop #${pail}`);
   }
 
   /** What stands in the crock with a filter in it, in `room`, after the filter has run. */
@@ -859,10 +865,10 @@ suite('⭐ 20 — flame and body', () => {
     // authorable `stampedTemperatureK`, as a data overlay) and poured at
     // once: the founder's eval holds no authority over the brickfield (run
     // 34). The SHOCK is the act under test.
-    await hand(potter, PAIL, { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 1, stampedTemperatureK: 372 });
+    const boiling = await hand(potter, PAIL, { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 1, stampedTemperatureK: 372 });
     await say(potter, 'get ashpot');
     await say(potter, 'pour out ashpot').catch(() => '');
-    const poured = await say(potter, 'pour pail into ashpot');
+    const poured = await say(potter, `pour #${boiling} into ashpot`);
     expect(poured).toMatch(/pour/i);
     expect(await examine(potter, 'me:i:ashpot'), 'the cold glazed crock, boiling water in').toMatch(/crack/i);
   }, 1_800_000);
