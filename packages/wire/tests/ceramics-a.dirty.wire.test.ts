@@ -364,19 +364,25 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await say(digger, 'east');
     await say(digger, 'east');
     // ⭐ By identity: the stack the day mints is the one that was not here
-    // before it. (A fresh brick merges only with bricks in its own state
-    // AND by its own maker — the gang's never take it now — so the new stack
-    // id is the day's work; `get 1 brick` once bound the "brick table".)
-    const bricksHere = async (): Promise<{ stuffId?: string; longDescription?: unknown }[]> =>
-      (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as {
-        stuffId?: string;
-        longDescription?: unknown;
-      }[];
-    const before = new Set((await bricksHere()).map((r) => r.stuffId));
+    // before it — OR one already here that grew. (A fresh brick merges only
+    // with bricks in its own state AND by its own maker, so the gang's never
+    // take it; but a wet stack of this brickmaker's own from an earlier day
+    // does, and then no new id appears — run 36. `get 1 brick` once bound
+    // the "brick table".)
+    type BrickRow = { stuffId?: string; quantity?: unknown; longDescription?: unknown };
+    const bricksHere = async (): Promise<BrickRow[]> =>
+      (await digger.query('here:i:bricks', { fields: 'detail' }).catch(() => [])) as BrickRow[];
+    const count = (r: BrickRow): number => Number(r.quantity ?? 1) || 1;
+    const before = new Map((await bricksHere()).map((r) => [r.stuffId, count(r)]));
     const struck = await act(digger, 'shape clay into brick', '9 hours');
     expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
     await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
-    const minted = (await bricksHere()).find((r) => r.stuffId && !before.has(r.stuffId));
+    const after = await bricksHere();
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] shed bricks before ${JSON.stringify([...before])} after ${JSON.stringify(after.map((r) => [r.stuffId, count(r)]))}`);
+    const minted =
+      after.find((r) => r.stuffId && !before.has(r.stuffId)) ??
+      after.find((r) => r.stuffId && count(r) > (before.get(r.stuffId) ?? 0));
     expect(minted?.stuffId, 'the day\'s fresh stack').toBeDefined();
     const fresh = minted!.stuffId!;
     let hackBrick = String(minted!.longDescription ?? '');
