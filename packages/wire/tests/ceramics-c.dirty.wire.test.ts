@@ -441,11 +441,11 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await say(potter, 'get charcoal');
     await say(potter, 'stoke charcoal into kiln');
     await say(potter, 'ignite kiln');
-    await say(novice, 'get cones');
+    await say(novice, 'get 1 cones');
     const plain1 = await say(novice, 'analyze temperature kiln');
     expect(plain1, `the novice at the spy-hole: ${plain1}`).toMatch(/cone/i);
     expect(plain1).toMatch(/glow/i);
-    await say(potter, 'get cones');
+    await say(potter, 'get 1 cones');
     const fine = await say(potter, 'analyze temperature kiln');
     expect(fine, `the potter at the spy-hole: ${fine}`).toMatch(/cone (08|04|6)/i);
     expect(fine).not.toEqual(plain1);
