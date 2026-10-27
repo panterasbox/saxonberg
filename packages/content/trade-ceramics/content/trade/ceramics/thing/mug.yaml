@@ -14,3 +14,13 @@ data:
   # clay, its water and its maker, so the potter's own piece is born green.
   _materialPath: /stuff/idea/material/ceramic/earthenware
   mass: 0.35
+  # ⭐ A mug has a handle, as a jug does: pulled, and fitted with slip at
+  # leather-hard (`fit handle to mug`). Thrown, the handle line is EMPTY.
+  # Its prose has always promised "a seat for a handle", and no line stood
+  # behind it — `fit handle to mug` answered "nothing in it to fit anything
+  # to" (the ceramics drive C, run 35).
+  bill:
+    parts:
+      - { part: handle, template: /trade/ceramics/thing/handle, count: 1, role: wear }
+    joints:
+      - { key: handling, method: slip, members: [handle] }
