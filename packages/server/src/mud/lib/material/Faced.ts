@@ -37,6 +37,7 @@ import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
+import type { MarkupAugmenter } from '../../api/mml';
 
 /** The two faces a good can have. */
 export type FaceName = 'outside' | 'inside';
@@ -93,6 +94,36 @@ function materialAt(path: string): Material | null {
   return StuffApi.findByTemplatePath<Material>(path) ?? null;
 }
 
+/** A coat's state, in the words a look gives it. */
+const COAT_WORDS: Record<CoatState, (glaze: string, face: FaceName) => string> = {
+  wet: (g, f) => `It has a wet coat of ${g} on the ${f}, not yet fired.`,
+  fused: (g, f) => `It is glazed on the ${f} with ${g}.`,
+  crazed: (g, f) => `The ${g} on its ${f} is crazed with fine cracks.`,
+  run: (g, f) => `The ${g} on its ${f} has run and pooled toward the foot.`,
+  crawled: (g, f) => `The ${g} on its ${f} has crawled back off bare patches.`,
+};
+
+/**
+ * ⭐ What a look says of the coats: the outermost on each face, wet or
+ * fired and how it came out. Before this nothing described a coat at all —
+ * a glazed crock read exactly as a bare one (the ceramics drive C, run 37;
+ * run 36 had passed only because "froze wet" matched).
+ */
+const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
+  if (opts?.filter) return text;
+  if (!MixinApi.isFaced(host)) return text;
+  const lines: string[] = [];
+  for (const face of host.faces()) {
+    const top = host.getCoats(face)[0];
+    if (!top) continue;
+    const glaze = materialAt(top.material)?.getName() || 'glaze';
+    lines.push(COAT_WORDS[top.state](glaze, face));
+  }
+  if (lines.length === 0) return text;
+  const all = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${all}` : all;
+};
+
 export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class FacedMixin extends Base implements Faced {
     static _mixinName = 'FacedMixin';
@@ -105,6 +136,8 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       environment: ['platform/cmd/crafting/dip.yaml'],
       peers: ['platform/cmd/crafting/dip.yaml'],
     };
+
+    static markupAugmenters: MarkupAugmenter[] = [coatAugmenter];
 
     static fieldMeta: FieldMeta = {
       coats: { persistent: true, authorable: true, runtimeState: true },

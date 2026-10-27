@@ -127,6 +127,16 @@ describe('coats', () => {
     expect(j.outermost('inside')).toBe(ash);
   });
 
+  it('⭐ a look SAYS the coat — wet, then glazed (drive C, run 37: a glazed crock read as a bare one)', () => {
+    const j = jarOf(stoneware);
+    j.setLongDescription('A jar.');
+    expect(j.getMarkupLong(j as never, {})).not.toMatch(/glaze|coat/i);
+    j.layCoat('inside', ash.getTemplatePath()!, 0);
+    expect(j.getMarkupLong(j as never, {})).toMatch(/wet coat of .* on the inside, not yet fired/);
+    j.fuseCoats(1300);
+    expect(j.getMarkupLong(j as never, {})).toMatch(/glazed on the inside with/);
+  });
+
   it('lead on terracotta CRAZES (it shrinks more than its body); ash does not', () => {
     const a = jarOf(terracotta);
     a.layCoat('inside', lead.getTemplatePath()!, 0);
