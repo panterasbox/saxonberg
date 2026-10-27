@@ -3171,3 +3171,31 @@ the wire drives could not see, because they read prose:
   it is the decree the envelope build retired, and its list is a ratchet.
   `lint:location-graph` now walks the far side a `bidirectional` exit
   installs.
+
+**Run 34** (D 23/23 · A 11/20 · B 5/6 · C 5/21; the walk's fixes loaded,
+the shop's warmth not yet). The world's fixes held: A's bricks dried with
+the gang leaving them be; B's firebricks no longer froze and the
+glasshouse keeper relined the kiln unattended for the first time; B and C
+started clean. Nearly every failure was the drives' own, each fixed:
+- **A:** 5b's move to winter in 4 h lived steps (about 2 game days a
+  minute) outran its hour, and its orphaned loop moved the clock under
+  3 and 7 ("the clock is paused"). A now starts in early winter, reached
+  in setup with day-long jumps (`advanceLiving` with no drive body
+  open), and 5b runs before the winter pass. Steps 8 and 9 fetch the
+  day's bricks by daylight.
+- **B:** 13's first GRADED smelt reached the heat gate: the half-relined
+  furnace held 1258 K against copper's 1358 K. Step 12 relines it whole.
+- **C:**
+  - The handle firms on the board, since a handle in the hand never
+    dries.
+  - The fresh handle is looked for in the thrower's hands.
+  - Each potter takes ONE set of cones.
+  - Steps 18–25 start by daylight; the glaze ran at night, and a named
+    crock in hand could not be bound.
+  - 21 follows its filled jar by identity.
+  - Every founder `eval` is gone: it holds no authority over the
+    brickfield. The setup liquids (fouled and tainted water, vinegar,
+    boiling water) are handed in pre-filled pails through the test-hand
+    data overlay.
+  - `get charcoal` took every basket, and the potter could not lift a
+    bowl. Each takes one.
