@@ -267,6 +267,10 @@ let potter: Session;
 // The potter's trimmed mug from 16, by id: 16 ends by setting every piece
 // down, and 16b fits the wet handle to THIS mug (run 36 looked in hand).
 let trimmedMug: string | undefined;
+// The pieces 18b's hot opening dunted, by id — what the ear found. A dunt
+// in bisque is hidden from the eye, so 23's tinker gets these (run 36
+// looked for a visible crack and found none).
+let dunted: string[] = [];
 let novicesFirstMug = '';
 
 beforeAll(async () => {
@@ -548,16 +552,29 @@ suite('⭐ 18 — glaze', () => {
     // A third firing, opened while it still glows. ⭐ The checkpoint loads
     // its OWN ware: what it once found left in the kiln depended on 18a,
     // and run 35 fired an empty kiln ("get all from kiln" lifted the kiln).
+    // ⭐ By id, one sound piece of each of the potter's own: a word bound
+    // whichever piece came first, and the ear then rang a different one.
     const loaded: string[] = [];
-    for (const ware of ['mug', 'jar', 'bowl', 'plant pot']) {
-      const word = ware.includes(' ') ? `"${ware}"` : ware;
-      await say(potter, `get ${word}`);
-      if (/put /i.test(await say(potter, `put ${word} in kiln`))) loaded.push(word);
+    // (MQL takes no quotes: the plant pot is asked for by `pot`.)
+    for (const ware of ['mug', 'jar', 'bowl', 'pot']) {
+      const rows = [
+        ...((await potter.query(`here:i:${ware}`, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[]),
+        ...((await potter.query(`me:i:${ware}`, { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[]),
+      ];
+      const piece = rows.find(
+        (r) =>
+          r.stuffId &&
+          String(r.longDescription ?? '').includes(`Made by ${potter.handle}`) &&
+          !/crack|dunt|burst|slumped|leather-hard|soft, wet/i.test(String(r.longDescription ?? '')),
+      );
+      if (!piece) continue;
+      await say(potter, `get #${piece.stuffId}`);
+      if (/put /i.test(await say(potter, `put #${piece.stuffId} in kiln`))) loaded.push(piece.stuffId!);
     }
     expect(loaded.length, 'ware in the kiln to dunt').toBeGreaterThan(0);
     await fireKiln(potter, '6 hours');
     await say(potter, 'douse kiln');
-    for (const word of loaded) await say(potter, `get ${word} from kiln`);
+    for (const id of loaded) await say(potter, `get #${id} from kiln`);
     await advance('2 hours');
     // ⭐ A dunt in an UNGLAZED body is hidden (`Thermal.shockBody`: only a
     // glaze's craze line shows it, and only a shock twice the body's
@@ -567,8 +584,11 @@ suite('⭐ 18 — glaze', () => {
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] opened hot, to the eye: ${/crack|dunt/i.test(ware) ? 'a visible crack' : 'nothing (bisque hides a dunt)'}`);
     let rang = '';
-    for (const w of ['mug', 'jar', 'bowl', 'pot']) {
-      rang += ` ${await say(potter, `ring ${w}`)}`;
+    dunted = [];
+    for (const id of loaded) {
+      const note = await say(potter, `ring #${id}`);
+      rang += ` ${note}`;
+      if (/crack|dull|dead|flat/i.test(note)) dunted.push(id);
     }
     expect(`${ware} ${rang}`, 'opened hot, the ear finds it').toMatch(/crack|dunt|dull|dead|flat/i);
   }, 3_600_000);
@@ -805,8 +825,12 @@ suite('⭐ 23 — breakage and mending', () => {
       stuffId?: string;
       longDescription?: string;
     }[]).find((r) => /crack|dunt/i.test(String(r.longDescription ?? '')));
-    expect(cracked?.stuffId, 'a cracked piece from the hot kiln').toBeDefined();
-    const asked = await run(potter, `order repair #${cracked!.stuffId}`);
+    // ⭐ Seen, or else heard: 18b's hot opening left its dunts hidden in
+    // bisque, and the ear is what found them.
+    const piece = cracked?.stuffId ?? dunted[0];
+    expect(piece, 'a cracked or dunted piece from the hot kiln').toBeDefined();
+    const cracked2 = { stuffId: piece };
+    const asked = await run(potter, `order repair #${cracked2.stuffId}`);
     const answer = await potter.awaitPrompt(5_000).catch(() => null);
     if (answer) {
       const id = (answer as { payload?: { promptId?: string }; promptId?: string }).payload?.promptId ??
@@ -815,7 +839,7 @@ suite('⭐ 23 — breakage and mending', () => {
       await new Promise((r) => setTimeout(r, 2_000));
     }
     expect(asked.said).not.toMatch(/don'?t understand/i);
-    const mended = await examine(potter, `#${cracked!.stuffId}`);
+    const mended = await examine(potter, `#${cracked2.stuffId}`);
     expect(mended, 'the riveted piece').toMatch(/rivet|mend/i);
   }, 1_800_000);
 });
