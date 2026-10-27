@@ -297,6 +297,19 @@ grade by sequence. See the potash slate.
   planet; the clock universal.
 - The compulsion gate (who may make a body act) — a separate security build;
   sugar's brain config names words, never commands.
+- **The estate's scale** (2026-10-27): the island makes about one block per
+  shift-and-cure, while the Sugar House orders up to a par of 8. The drive's
+  step 20 sails one island block and pads the posting from the import
+  counter; the economy lens says scale the estate to its buyer (more
+  hogsheads and pots, several strikes a shift).
+- **The Sugar House hand's leg is undriven** (2026-10-27): a house-made
+  sack carried to the cash-and-carry. The drive's boiler is a player, so its
+  sack is the player's and the hand (consigning as the house) correctly
+  refuses it; step 10 lists the player's own sack instead. Two findings for
+  whoever drives it: `consigns` carries only to a counter that is already
+  LIVE, so an unvisited cash-and-carry gets nothing; and step 18 buys the
+  estate's only block, so step 20 needs a second island cycle (hand it
+  step 18's block, or let the estate make two).
 
 ### Findings that are not sugar's
 
@@ -314,6 +327,15 @@ grade by sequence. See the potash slate.
   W0 turns the arrears into walk-offs.
 - **Simple syrup cannot be made by hand:** its slots want 0.25 L and `add`
   pours a fixed 0.06 L.
+- **An `eval --parcel` mint of a row outside the parcel crashes the
+  server** (an unhandled rejection from the sandbox boundary in the clone's
+  hydrate), and the same boundary refuses `stockSheetFor` there.
+- **`analyze` is an unknown verb to the NPC boiler** (harmless: her look at
+  the pan settles the boil).
+- **`get X from <holder>` among identical holders** binds the first, not the
+  one holding X; and a non-container holder is refused "isn't a place".
+- **The receiving bench answers to `counter`** (trade-haulage's row), which
+  collides in every room that also has a counter.
 - **The mojito is unmakeable at the Lounge by design** (agent-coordination's
   standing vacancy), so the drive's step 10 asserts the supply under it.
 
