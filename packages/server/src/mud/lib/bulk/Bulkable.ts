@@ -885,6 +885,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getBulkMaterial(affordance: BulkAffordance): Material | null {
+      if (affordance === 'interior') this.reconcileSeepers();
       const path = this.getBulkMaterialPath(affordance);
       if (path === null) return null;
       return StuffApi.findByTemplatePath<Material>(path) ?? null;
@@ -961,6 +962,34 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
+    /** Reentry guard for {@link reconcileSeepers} (a seep writes back into this slot). */
+    private _seepersReconciling = false;
+
+    /**
+     * ⭐ Bring current whatever seeps INTO this vessel — a filter set in its
+     * mouth, a body standing on it — before saying what it holds. A seep is
+     * integrated on the SEEPER's read, so a crock looked into while its
+     * filter went unread showed nothing dripped in three hours (the
+     * ceramics drive C, run 37). Load on use: the read that needs the
+     * answer brings the chain current.
+     */
+    private reconcileSeepers(): void {
+      if (this._seepersReconciling) return;
+      const self = this as unknown as Stuff;
+      this._seepersReconciling = true;
+      try {
+        const near: Stuff[] = [];
+        if (MixinApi.isContainer(self)) near.push(...(self.getContents() as Stuff[]));
+        if (MixinApi.isPlacing(self)) near.push(...(self.getPlaced('on') as Stuff[]));
+        for (const c of near) {
+          if (c === self || !MixinApi.isBulkable(c) || !c.hasInteriorBulk()) continue;
+          c.getBulkAmount('interior');
+        }
+      } finally {
+        this._seepersReconciling = false;
+      }
+    }
+
     /**
      * ⭐⭐ **What a vessel's faces do to what it holds** (ceramics M6–M8),
      * integrated on read since the payload's `faceCheckedS`:
@@ -983,6 +1012,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private reconcileFaceExchange(): void {
       if (this._faceExchanging) return;
+      this.reconcileSeepers();
       const self = this as unknown as Stuff;
       if (!MixinApi.isFaced(self) || !this.interiorBulk) return;
       const litres = this._interiorAmount.rawValue();

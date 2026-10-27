@@ -133,6 +133,19 @@ describe('⭐⭐ the ceramic water filter', () => {
     expect(c.getBulkMaterial('interior')?.getTemplatePath()).toBe(WATER);
   });
 
+  it('⭐ looking into the CROCK alone shows what dripped — nobody has to read the filter (drive C, run 37)', () => {
+    const room = makeStuff(() => new Room());
+    const c = crock();
+    ContainmentApi.move(c, room);
+    const f = filterOf(body, { m: fouled, l: 2 });
+    ContainmentApi.move(f, c);
+    f.getBulkAmount('interior'); // the pour opens the face clock
+    advance(3 * 3600);
+    // The crock is read first, and only the crock.
+    expect(c.getBulkMaterial('interior')?.getTemplatePath()).toBe(WATER);
+    expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
+  });
+
   it('⭐ tainted water comes through TAINTED, and its dissolved lead with it', () => {
     const room = makeStuff(() => new Room());
     const c = crock();
