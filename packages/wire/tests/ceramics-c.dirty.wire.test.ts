@@ -255,7 +255,7 @@ async function until(s: Session, keyword: string, re: RegExp, step = '1 day', ma
 /** Light the kiln with charcoal and hold it. */
 async function fireKiln(s: Session, hold: string, extra = ''): Promise<string> {
   await mint(SHOP, CHARCOAL, 4);
-  await say(s, 'get charcoal');
+  await say(s, 'get 1 charcoal');
   await say(s, 'stoke charcoal into kiln');
   const lit = await say(s, 'ignite kiln');
   expect(lit).toMatch(/catch|light|burn|alight/i);
@@ -425,7 +425,7 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     }
     expect(loaded.join(' '), 'the ware in the kiln').toMatch(/put [^.]*(jug|crock)[^.]* in an updraft kiln/i);
     await mint(SHOP, CHARCOAL, 4);
-    await say(potter, 'get charcoal');
+    await say(potter, 'get 1 charcoal');
     await say(potter, 'stoke charcoal into kiln');
     await say(potter, 'ignite kiln');
     await say(novice, 'get 1 cones');
@@ -774,7 +774,7 @@ suite('⭐ 20 — flame and body', () => {
     // The cook fire.
     await mint(SHOP, CAMPFIRE);
     await mint(SHOP, CHARCOAL, 2);
-    await say(potter, 'get charcoal');
+    await say(potter, 'get 1 charcoal');
     await say(potter, 'stoke charcoal into campfire');
     await say(potter, 'ignite campfire');
     // ⚠ ON, not in: a campfire takes things on it (run 27: "it takes on").
