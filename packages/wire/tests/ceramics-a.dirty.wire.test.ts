@@ -636,6 +636,9 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     await say(digger, 'get clay');
     for (const d of ['north', 'east', 'east']) await say(digger, d);
     await act(digger, 'shape clay into brick', '9 hours');
+    // ⚠ A nine-hour day ends after dark, and in the dark `get bricks` sees
+    // none on the pallet (run 34): fetch them in the morning, as 4 does.
+    await toHour(9, 15);
     await say(digger, 'get bricks');
     await say(digger, 'south');
     await say(digger, 'put bricks on hack');
@@ -706,6 +709,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     expect(await examine(digger, 'here:i:table')).toMatch(/old|mould/i);
     const day = await act(digger, 'shape clay at old table into brick', '9 hours');
     expect(day, `the old mould: ${day}`).toMatch(/brick/i);
+    await toHour(9, 15); // the day ends after dark; fetch them by daylight (run 34)
     await say(digger, 'get bricks');
     // Dry them in the hacks: old pit → pit → yard → temper → shed → hacks.
     for (const d of ['east', 'north', 'east', 'east', 'south']) await say(digger, d);
