@@ -264,6 +264,9 @@ async function fireKiln(s: Session, hold: string, extra = ''): Promise<string> {
 
 let novice: Session;
 let potter: Session;
+// The potter's trimmed mug from 16, by id: 16 ends by setting every piece
+// down, and 16b fits the wet handle to THIS mug (run 36 looked in hand).
+let trimmedMug: string | undefined;
 let novicesFirstMug = '';
 
 beforeAll(async () => {
@@ -346,6 +349,7 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     const foot = (await act(potter, `carve foot on #${mine!.stuffId}`, '30 minutes')).said;
     expect(foot, `trim: ${foot}`).toMatch(/foot|trim|pare/i);
     expect(await examine(potter, `#${mine!.stuffId}`)).toMatch(/turned foot/i);
+    trimmedMug = mine!.stuffId;
     await say(potter, 'get jug');
     // ⚠ The handle firms up on its own clock: "still too soft to join — it
     // would sag off" (run 28). It firms ON THE BOARD, in the shop's air — a
@@ -386,9 +390,9 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     // A fresh handle, thrown now, onto the potter's leather-hard MUG (the
     // one trimmed above, still in hand) — a jar has no seat for a handle
     // (run 27: "nothing in it to fit anything to"). Followed by identity.
-    const rows = await potter.query('me:i:mug', { fields: ['displayName'] }).catch(() => []);
-    const mug = (rows as { stuffId?: string }[])[0]?.stuffId;
-    expect(mug, 'the trimmed mug in hand').toBeTruthy();
+    const mug = trimmedMug;
+    expect(mug, 'the trimmed mug from 16').toBeTruthy();
+    expect(await say(potter, `get #${mug}`)).toMatch(/pick up|already/i);
     potter = await clayFor(potter, 1);
     await act(potter, 'shape clay into handle', '1 hour');
     // ⚠ The throw may still be going after the hour: wait for the handle.
