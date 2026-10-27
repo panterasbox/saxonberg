@@ -174,6 +174,19 @@ args:
     expect(targets).not.toContain('\\"');
   });
 
+  it('⭐ and with `from` an argument of its own, the name and the source part', () => {
+    const GET_FROM = `${GET}  - name: source
+    type: object
+    required: false
+    greedy: true
+    prepositions: [from]
+`;
+    const m = bind('get "plant pot" from the brick kiln', GET_FROM);
+    expect(JSON.stringify(m.targets)).toContain('plant pot');
+    expect(JSON.stringify(m.targets)).not.toContain('kiln');
+    expect(JSON.stringify(m.source)).toContain('the brick kiln');
+  });
+
   it('while a trailing STRING field still keeps its quotes (`say`)', () => {
     expect(bind('post "hello world"', TRAILING).line).toBe('"hello world"');
   });

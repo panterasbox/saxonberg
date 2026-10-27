@@ -15,7 +15,7 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import type { MqlManyResult } from '../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
@@ -32,6 +32,8 @@ import { ProxyApi } from '../../../../api/proxy';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
+  /** `get crock from kiln` — only what is in or on this is taken. */
+  source?: MqlOneResult;
 }
 
 interface GetPayload {
@@ -44,7 +46,8 @@ export default class GetController extends CommandController<GetModel> {
     model: GetModel,
     context: CommandContext
   ): Promise<void> {
-    const { stuff, quantity, raw } = model.targets;
+    const { quantity, raw } = model.targets;
+    let stuff = model.targets.stuff;
     const giver = context.commandGiver;
     if (!MixinApi.isContainer(giver)) {
       throw new Error(
@@ -58,6 +61,20 @@ export default class GetController extends CommandController<GetModel> {
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
+    // ⭐ `from <source>`: the targets are what is in or on it, nothing
+    // else the words happen to match.
+    const source = model.source?.stuff ?? null;
+    if (source) {
+      stuff = stuff.filter((s) => this.isWithin(s, source));
+      if (stuff.length === 0) {
+        MessageApi.scene(giver)
+          .topic('sense.survey')
+          .toSelf(Mml.compose`You don't see any '${raw}' in ${Mml.thing(source)}.`)
+          .send();
+        context.note({ kind: 'empty-result', field: 'targets', query: raw });
+        return;
+      }
+    }
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, raw, context);
     }
@@ -107,6 +124,19 @@ export default class GetController extends CommandController<GetModel> {
     );
 
     return this.renderResult(result, raw, context);
+  }
+
+  /** Is `s` in `host`, or placed on it, at any depth? */
+  private isWithin(s: Stuff, host: Stuff): boolean {
+    let at: Stuff | null = s;
+    for (let depth = 0; at && depth < 8; depth++) {
+      if (!MixinApi.isContainable(at)) return false;
+      if (at.getPlacement()?.host.stuffId === host.stuffId) return true;
+      const up: Stuff | null = at.getContainer();
+      if (up?.stuffId === host.stuffId) return true;
+      at = up;
+    }
+    return false;
   }
 
   private async executeWholeSet(

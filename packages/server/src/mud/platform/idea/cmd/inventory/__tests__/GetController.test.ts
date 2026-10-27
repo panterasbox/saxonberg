@@ -169,6 +169,60 @@ describe('GetController — bareword path (no quantity)', () => {
     expect(bench.getContainer()).toBe(other);
   });
 
+  // ⭐ `get crock from kiln`: only what is in the named source is taken.
+  // Before `from` was an argument, "from kiln" was two more words for the
+  // targets to match — the ceramics drives lifted at the kiln every time,
+  // and `get "plant pot" from kiln` took the potter's stamp off the bench.
+  it('takes only what is in the named source, and leaves the rest of the matches', async () => {
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const kiln = makeStuff(() => new Rack());
+    ContainmentApi.move(kiln, loc);
+    const inside = makeStuff(() => {
+      const s = new Sword();
+      s.setName('pot');
+      return s;
+    });
+    ContainmentApi.move(inside, kiln);
+    const loose = makeStuff(() => {
+      const s = new Sword();
+      s.setName('potter stamp');
+      return s;
+    });
+    ContainmentApi.move(loose, loc);
+
+    const controller = makeStuff(() => new GetController());
+    const model = makeModel(makeResult([inside, loose, kiln as unknown as Stuff], 'pot'));
+    (model as unknown as { source: unknown }).source = { stuff: kiln, raw: 'kiln' };
+    await controller.execute(model, makeContext(giver, loc));
+    expect(inside.getContainer()).toBe(giver);
+    expect(loose.getContainer()).toBe(loc);
+    expect(kiln.getContainer()).toBe(loc);
+  });
+
+  it('says so when nothing by that name is in the source', async () => {
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const kiln = makeStuff(() => new Rack());
+    ContainmentApi.move(kiln, loc);
+    const loose = makeStuff(() => {
+      const s = new Sword();
+      s.setName('pot');
+      return s;
+    });
+    ContainmentApi.move(loose, loc);
+
+    const controller = makeStuff(() => new GetController());
+    const ctx = makeContext(giver, loc);
+    const model = makeModel(makeResult([loose], 'pot'));
+    (model as unknown as { source: unknown }).source = { stuff: kiln, raw: 'kiln' };
+    await controller.execute(model, ctx);
+    expect(loose.getContainer()).toBe(loc);
+    expect(ctx.getNotes().some((n) => n.kind === 'empty-result')).toBe(true);
+  });
+
   it('moves a single item from the location into inventory', async () => {
     const loc = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver());
