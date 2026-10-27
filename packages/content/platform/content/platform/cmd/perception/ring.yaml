@@ -18,8 +18,13 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # Greedy, as the one trailing name: `ring earthenware brick` is a thing,
+  # and the non-greedy field answered "That doesn't match any known command
+  # shape: ring" to it (ceramics drive A, run 39) — `look` and `get` read a
+  # trailing name the same way. Quoting still works.
   - name: target
     type: object
     required: true
+    greedy: true
     scope: ["reachable"]
     requires: [TangibleMixin]
