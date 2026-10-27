@@ -1,0 +1,11 @@
+# Blackstrap — what will not grain. A pan that was never tempered, or
+# molasses boiled for the third time, reaches the strike's thickness and
+# stays a syrup. ⭐ No arrows: it never becomes sugar, which is the whole
+# lesson. It is the distiller's (dark rum).
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: blackstrap
+  keywords: [blackstrap, molasses, treacle]
+  appearance: black, bitter and thick as tar
+  tags: ["liquid", "food", "molasses", "blackstrap"]
+  concentratesTo: []

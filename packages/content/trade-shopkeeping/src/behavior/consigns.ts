@@ -53,11 +53,15 @@
  * cadence is the authored one.
  *
  * config: `{ stock: string, shelf: string, ask: Record<string, number>,
- * defaultAsk?: number, batch?: number }` — `stock` the outfit's own
+ * defaultAsk?: number, batch?: number, carries?: string[] }` — `stock` the outfit's own
  * `Stock` (template path), `shelf` the host counter (template path,
  * materialized on demand), `ask` minor units by census key, `defaultAsk`
  * for a good whose key the table lacks (default 10), `batch` goods per
- * beat (default 6).
+ * beat (default 6), `carries` the template paths the hand takes up (absent:
+ * every chattel good on the floor). ⭐ A floor that also holds the house's
+ * own INPUTS — the Sugar House buys raw sugar by the block to refine —
+ * names what it makes, or the hand hauls the feedstock out to sell (found
+ * by the sugar drive: a 20 kg block nobody could lift, every beat).
  *
  * ⭐ The listing's BASIS is the counter's policy, not this config's
  * (economic bootstrap D11): at a `purchasing: terms` counter the `--ask`
@@ -194,7 +198,7 @@ export const brain = class {
     // with no line on the shelf is a brokerage listing as before.
     const room = shelfHeadroom(shelf);
     const goods = (stock.getContents() as Stuff[])
-      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g) && room.take(g))
+      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g) && carries(ctx.config, g) && room.take(g))
       .slice(0, batch);
     if (goods.length === 0) return;
     const counterRoom = shelf.getContainer();
@@ -341,6 +345,13 @@ function shelfHeadroom(shelf: Stuff): { take: (good: Stuff) => boolean } {
       return true;
     },
   };
+}
+
+/** Does the hand take this good up — is it one the config `carries` (absent: all)? */
+function carries(config: Record<string, unknown>, good: Stuff): boolean {
+  const list = config.carries;
+  if (!Array.isArray(list)) return true;
+  return list.includes(good.getTemplatePath() ?? '');
 }
 
 /** The ask for a good: its census key in the table, else the default. */

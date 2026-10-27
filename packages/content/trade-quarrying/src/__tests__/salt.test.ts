@@ -132,7 +132,12 @@ describe('the two apparatuses are ROWS, and neither is a class', () => {
     // whose entire mechanism is that a covered pan does not work. The
     // rung that means "standing open" is `open`, and `setClosure` throws
     // on anything outside the vocabulary now.
-    expect(d.closure).toBe('open');
+    //
+    // ⭐ (sugar) And `open` turned out to be the wrong rung too: a closure
+    // says how well the WALLS hold, and `open` is a sieve — the brine ran
+    // out of the pan. The pan is `liquidTight`; standing open is the lid's
+    // business, which is `open: true` above.
+    expect(d.closure).toBe('liquidTight');
     expect(d.interiorBulk).toBe(true);
   });
 

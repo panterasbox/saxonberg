@@ -120,9 +120,19 @@ describe('the shipped packs (real discovery, no install)', () => {
     // ⭐ 64 → 66: the silk build adds `trade-sericulture` and the underwater
     // build `trade-diving` — both branches wrote 65 and git merged the line
     // CLEAN; the sum is 66 (the hazard above, a sixth time).
-    // 66 → 67: the potash build adds `trade-potash` (⚠ sugar adds one too —
-    // whoever lands second recounts the SUM).
-    expect(ids).toHaveLength(67);
+    // 66 → 67: the potash build adds `trade-potash`.
+    // ⭐ 67 → 69: the sugar build adds `trade-sugar` and its venue
+    // `waponi-woo` (sugar W5; it landed after potash and recounted the SUM).
+    expect(ids).toHaveLength(69);
+    // The island orders after the trade whose cane and train it rows, the
+    // realm it hangs off, and the water whose sea reaches it.
+    expect(ids.indexOf('waponi-woo')).toBeGreaterThan(ids.indexOf('trade-sugar'));
+    expect(ids.indexOf('waponi-woo')).toBeGreaterThan(ids.indexOf('terminus'));
+    expect(ids.indexOf('waponi-woo')).toBeGreaterThan(ids.indexOf('water'));
+    // ⭐ The sugar trade buys its lime off the quarry's shelf, and the
+    // sugar house in Terminus is built from its rows.
+    expect(ids.indexOf('trade-sugar')).toBeGreaterThan(ids.indexOf('trade-quarrying'));
+    expect(ids.indexOf('terminus')).toBeGreaterThan(ids.indexOf('trade-sugar'));
     expect(ids[0]).toBe('platform');
     // ⭐ The venue orders after its trade and the water system its pool
     // and its sheet are.

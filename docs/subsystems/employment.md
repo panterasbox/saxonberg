@@ -769,7 +769,11 @@ retired.
   (`world/<venue>/__tests__/offstage.test.ts`).
 - **`restocks`** (libations) — the keeper reads the par sheet and buys
   the shortfall; **`consigns`** — a producer's floor hand carries stock
-  to a distributor's counter and consigns it as the business. Both are
+  to a distributor's counter and consigns it as the business. A floor that
+  also holds the house's own INPUTS names what it makes in `carries:`
+  (template paths; absent, every chattel good) — the Sugar House buys raw
+  sugar in to refine, and its hand hauled the 20 kg feedstock blocks out to
+  sell until it did (sugar build). Both are
   kernel, generic, and drive the **literal verbs** through
   `CommandApi.forceCommand` (`wallet use house`, `buy`, `put … on`,
   `pour … into`, `get`, `wash`; `get`, `consign … --ask`) — nothing an NPC
@@ -1124,6 +1128,30 @@ why a role fielded by a body that does not trade (a watch) states its
   sign), and `stockSheetFor` unions the operated counters' supplied lines.
   `resolveHouse` matches a business operating a FIXTURE in the room (the
   bank's counter in the hall), not only the room.
+
+### ⭐ The unpaid hand walks off (sugar, 2026-10)
+
+A refused wage is a **fact the payroll reports**; what to do about it is
+the **worker's decision**. `settleShiftWageImpl` is where both shift ends
+settle (the roster tick and `clock off`). On an `insufficient-funds`
+refusal it calls `worker.onWageRefused(business, owed, oldestAt, now)`,
+reading the book through `Business.arrearsOwedTo(workerKey)`. A person is
+told what stands owed to them by name. A hired NPC works on until the
+oldest unpaid wage is older than `employment.unpaidStandGameDays` (grain,
+seeded `"3"` in `treasury.yaml`), then quits and says so to the room. A
+quit is terminal: the roster tick skips it, and `endShift` will not
+overwrite it.
+
+**The vacancy is derived from the roster.** `openingsFor` is
+`max(headcount, distinct rostered assignees) − holders`, so a rostered
+seat is a place whether or not the Position authored a `headcount`. A
+hand who walks off leaves an opening that the help-wanted sign and
+`apply` already read. The opening appears only on positive evidence
+(the hand's own `quit` record), so an unloaded NPC never shows as a
+phantom vacancy.
+
+This came from the unfree-labour slate: nobody works for nothing by
+accident.
 
 ## History
 

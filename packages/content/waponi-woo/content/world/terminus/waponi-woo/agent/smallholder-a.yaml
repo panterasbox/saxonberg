@@ -1,0 +1,29 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Marta Ruiz
+  keywords: [smallholder, marta, ruiz]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: smallholder with a basket of cane setts
+  register: indefinite
+  longDescription: |
+    A small, quick woman in a wide hat who grows cane on her own piece and sells it at the estate's scale, and says so to anyone who asks.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: farmer
+  competence:
+    - { discipline: agriculture, asserting: proficient }
+  behaviors:
+    - brain: /trade/sugar/behavior/cuts
+      trigger: candidate
+      config:
+        to: [northeast, north]
+        back: [south, southwest]
+        deliver: sell
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "My cane, my piece. The estate pays by weight."

@@ -1,11 +1,12 @@
 /**
- * The iron pot keeps count of its alkali across the boil (potash D11).
+ * The iron pot boils lye down to black salts (potash D11, converged on the
+ * sugar build's plateau — `potash-on-sugar`).
  *
- * ⭐ The kernel plateau takes the water off; the pot keeps the alkali and
- * rewrites the strength, so the egg rides higher as it boils down; when
- * the water is gone the pot casts a cake of black salts of the alkali over
- * its purity, graded as the lye was. The plateau is stood in for here by
- * the litres falling between reads — that is all the pot ever sees of it.
+ * ⭐ The kernel plateau takes the water off and KEEPS the alkali, so the
+ * strength climbs and the egg rides higher; boiled down to saturation the
+ * pot casts a cake of black salts of the alkali over its purity, graded as
+ * the lye was. The plateau is stood in for here by what it does between
+ * two reads: the litres fall and the dissolved mass stays.
  */
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -59,13 +60,13 @@ describe('the iron pot', () => {
     return p;
   }
   const strength = (p: IronPot): number => p.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0;
-  /** The plateau's work, between two reads: litres off as steam. */
+  /** The plateau's work, between two reads: water off as steam, the alkali kept. */
   const boilTo = (p: IronPot, litres: number): void => {
-    if (litres > 0) p.setBulkAmount('interior', Quantity.of(litres, 'L'));
-    else {
-      p.setBulkAmount('interior', Quantity.of(0, 'L'));
-      p.setBulkMaterial('interior', null);
-    }
+    const was = p.getBulkAmount('interior').rawValue();
+    const payload = p.getBulkPayload('interior') ?? {};
+    const kg = (payload.dissolvedSolidsKgPerL ?? 0) * was;
+    p.setBulkAmount('interior', Quantity.of(litres, 'L'));
+    p.setBulkPayload('interior', { ...payload, dissolvedSolidsKgPerL: kg / litres });
     p.getContents();
   };
 
@@ -79,11 +80,11 @@ describe('the iron pot', () => {
     expect(strength(p)).toBeCloseTo(0.36, 6);
   });
 
-  it('⭐⭐ boiled dry, it casts black salts of the alkali over the purity, graded as the lye', () => {
+  it('⭐⭐ boiled down, it casts black salts of the alkali over the purity, graded as the lye', () => {
     const p = pot(30, 0.06);
     p.getContents();
     boilTo(p, 10);
-    boilTo(p, 0);
+    boilTo(p, 1.5);
     expect(cast).toHaveBeenCalledTimes(1);
     const pool = cast.mock.calls[0]![0] as { material: Material; massKg: number };
     expect(pool.material.getTemplatePath()).toBe(SALTS);
@@ -134,12 +135,12 @@ describe('the iron pot', () => {
   it('⭐ a weak lye boiled the same way leaves a third of the cake (AC 5, AC 6)', () => {
     const p = pot(30, 0.02);
     p.getContents();
-    boilTo(p, 0);
+    boilTo(p, 0.5); // 0.6 kg in half a litre: past saturation
     const pool = cast.mock.calls[0]![0] as { massKg: number };
     expect(pool.massKg).toBeCloseTo(0.6 / 0.65, 6);
   });
 
-  it('a pour INTO a working pot re-bases the count off the blended strength', () => {
+  it('a pour INTO a working pot reads the blended strength (the pour folds it)', () => {
     const p = pot(20, 0.06);
     p.getContents();
     boilTo(p, 10); // 1.2 kg in 10 L: 0.12

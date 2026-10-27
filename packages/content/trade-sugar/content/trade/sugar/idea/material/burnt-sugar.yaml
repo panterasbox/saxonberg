@@ -1,0 +1,9 @@
+# Burnt sugar — the end of the arrows. Nothing comes of it.
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: burnt sugar
+  keywords: [burnt-sugar, burnt, sugar]
+  appearance: black and acrid, set hard at the edges
+  tags: ["liquid", "burnt"]
+  concentratesTo: []
+  edibility: false

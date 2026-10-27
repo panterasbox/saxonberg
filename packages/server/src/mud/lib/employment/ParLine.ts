@@ -48,6 +48,13 @@ export interface ParLineData {
    * re-ordered while a unit is still on the shelf).
    */
   exemplar?: string;
+  /**
+   * ⭐ What the house pays to have ONE unit of this line delivered — goods
+   * plus carriage, in minor units (sugar W6). Set, it prices the order by
+   * the shortfall, and the keeper orders only what the house can fund at
+   * that rate; unset (0), the keeper's brain prices every line alike.
+   */
+  rewardPerUnit?: number;
 }
 
 export class ParLine {
@@ -58,6 +65,7 @@ export class ParLine {
     public readonly unit: ParUnit,
     public readonly supplier: string,
     public readonly exemplar: string,
+    public readonly rewardPerUnit: number,
   ) {}
 
   /** Coerce a loosely-typed (authored / hydrated) blob into a ParLine. */
@@ -66,6 +74,7 @@ export class ParLine {
       ? (data.unit as ParUnit)
       : 'count';
     const level = Number(data.level ?? 0);
+    const perUnit = Number(data.rewardPerUnit ?? 0);
     return new ParLine(
       String(data.category ?? ''),
       String(data.minGrade ?? ''),
@@ -73,6 +82,7 @@ export class ParLine {
       unit,
       String(data.supplier ?? ''),
       String(data.exemplar ?? ''),
+      Number.isInteger(perUnit) && perUnit > 0 ? perUnit : 0,
     );
   }
 
@@ -85,6 +95,7 @@ export class ParLine {
       ...(this.minGrade ? { minGrade: this.minGrade } : {}),
       ...(this.supplier ? { supplier: this.supplier } : {}),
       ...(this.exemplar ? { exemplar: this.exemplar } : {}),
+      ...(this.rewardPerUnit ? { rewardPerUnit: this.rewardPerUnit } : {}),
     };
   }
 }

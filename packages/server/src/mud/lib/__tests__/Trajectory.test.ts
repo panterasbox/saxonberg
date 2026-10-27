@@ -137,3 +137,21 @@ describe('TrajectoryLog', () => {
     expect(records).toHaveLength(1);
   });
 });
+
+describe('Piecewise.secondsAtOrAbove — exact, not sampled (sugar D2)', () => {
+  it('a rising curve counts from the moment it crosses', () => {
+    // 300 → 400 over τ = 100: crosses 373 at 100·ln(100/27).
+    const pw = new Piecewise([{ fromS: 0, toS: 1000, startValue: 300, target: 400, tau: 100 }]);
+    const cross = 100 * Math.log(100 / 27);
+    expect(pw.secondsAtOrAbove(373)).toBeCloseTo(1000 - cross, 6);
+  });
+
+  it('a falling curve counts until it crosses; flat stretches all or nothing', () => {
+    const pw = new Piecewise([
+      { fromS: 0, toS: 1000, startValue: 400, target: 300, tau: 100 },
+      { fromS: 1000, toS: 1500, startValue: 380, target: 380, tau: 0 },
+      { fromS: 1500, toS: 1600, startValue: 350, target: 350, tau: 0 },
+    ]);
+    expect(pw.secondsAtOrAbove(373)).toBeCloseTo(100 * Math.log(100 / 73) + 500, 6);
+  });
+});

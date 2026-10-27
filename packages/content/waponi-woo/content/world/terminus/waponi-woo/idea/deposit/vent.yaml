@@ -1,0 +1,10 @@
+# The vent field's ground — native sulfur crusted on the surface round
+# the fumaroles over the island's old lava. ⚠ No tuff row exists yet:
+# granite stands in for the rock beneath.
+class: /system/ground/idea/Deposit
+data:
+  name: vent
+  stratigraphy:
+    - { toZ: -1, host: /stuff/idea/material/mineral/sulfur, wins: /trade/quarrying/thing/sulfur }
+    - { toZ: -400, host: /stuff/idea/material/rock/granite }
+  waterTable: -30

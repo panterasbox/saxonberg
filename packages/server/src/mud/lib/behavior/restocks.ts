@@ -66,13 +66,16 @@
  * to, `bench` the receiving bench orders land on, and `reward` what the
  * house pays for one delivered line — **goods plus carriage**, because
  * the hauler fronts the purchase. The supplier is never config: it comes
- * from each par line.
+ * from each par line — and so may the price: a line with `rewardPerUnit`
+ * is paid by the unit and ordered only as far as the house can fund it.
  */
 
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
 import { EmploymentApi, type Business, type StockSheetLine } from '../../api/employment';
 import { ContractApi } from '../../api/contract';
+import { BankingApi } from '../../api/banking';
 import type { ConditionData } from '../employment/Condition';
 import type { CommandGiver } from '../command/CommandGiver';
 import type { Stuff } from '../stuff/Stuff';
@@ -85,7 +88,7 @@ import type { TaskKind } from './Urgency';
 import { Urgency } from './Urgency';
 
 /** How a par unit is said in an order — the `job post` phrase's words. */
-const UNIT_WORD: Record<string, string> = { L: 'litres', kg: 'kilos' };
+const UNIT_WORD: Record<string, string> = { L: 'litres', kg: 'kilos', count: 'pieces' };
 
 const DEFAULT_BATCH = 12;
 /**
@@ -186,7 +189,7 @@ export const brain = class {
     const boardPath = ctx.config.board;
     const benchPath = ctx.config.bench;
     if (typeof boardPath === 'string' && typeof benchPath === 'string') {
-      await order(keeper, bySupplier, {
+      await order(keeper, business, bySupplier, {
         boardPath,
         benchPath,
         reward: positiveInt(ctx.config.reward, DEFAULT_REWARD),
@@ -265,12 +268,25 @@ async function businessHere(
   );
 }
 
-/** The room of a supplier's live counter — the first operating location holding a Stock. */
-function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
-  const supplier = StuffApi.findByTemplatePath(supplierPath);
+/**
+ * The room of a supplier's counter — the first operating location holding a
+ * Stock. ⭐ LOADED ON USE (sugar W6): the supplier is an authored reference
+ * (the par line names it), so it is followed, never only looked up — a
+ * supplier across the sea that nobody has visited is not loaded, and a
+ * registry read alone would never order from it at all.
+ */
+async function counterRoomOf(supplierPath: string): Promise<(Stuff & Container) | null> {
+  const supplier = await StuffApi.singleton(supplierPath).catch(() => null);
   if (!supplier || !MixinApi.isBusiness(supplier)) return null;
   for (const locPath of supplier.getOperatingLocations()) {
-    const loc = StuffApi.findByTemplatePath(locPath);
+    // ⚠ Only a PLACE is loaded by its path — the location graph says which
+    // paths are places. An operating location may name the counter itself
+    // (`…/thing/stock`), and a singleton read of a thing whose room is not
+    // loaded would mint a stray counter; the room loads its own as a prop.
+    // `singleton` IS the get-or-create: its first act is the index read.
+    const loc = (await NavigationApi.node(locPath).catch(() => null))
+      ? await StuffApi.singleton(locPath).catch(() => null)
+      : StuffApi.findByTemplatePath(locPath);
     if (!loc || !MixinApi.isContainer(loc)) continue;
     const hasCounter = (loc.getContents() as Stuff[]).some((c) =>
       MixinApi.isConsignmentShelf(c),
@@ -279,7 +295,6 @@ function counterRoomOf(supplierPath: string): (Stuff & Container) | null {
   }
   return null;
 }
-
 
 /** The primary keyword of the live instance of `templatePath` in `room`. */
 function fixtureKeyword(room: Stuff & Container, templatePath: unknown): string | null {
@@ -379,15 +394,22 @@ function positiveInt(v: unknown, fallback: number): number {
  */
 async function order(
   keeper: Keeper,
+  business: Stuff & Business,
   bySupplier: Map<string, StockSheetLine[]>,
   opts: { boardPath: string; benchPath: string; reward: number; batch: number },
 ): Promise<void> {
   let budget = opts.batch;
   let traded = false;
   const pending = await pendingKinds(opts.boardPath, opts.benchPath);
+  // ⭐ What the house can still escrow this beat (sugar W6): a line priced
+  // per unit orders only as much as this pays for — a house with fifty
+  // in the till asks for three blocks, not eight it cannot pay for, and
+  // a refused posting would have ordered nothing at all.
+  // Read on the first such line only: a flat-priced house never asks.
+  let funds: number | null = null;
   for (const [supplierPath, lines] of bySupplier) {
     if (budget <= 0) break;
-    const counterRoom = counterRoomOf(supplierPath);
+    const counterRoom = await counterRoomOf(supplierPath);
     if (!counterRoom) continue;
     const fromPath = counterRoom.getTemplatePath() ?? '';
     if (fromPath === '') continue;
@@ -402,8 +424,12 @@ async function order(
       const kind = onHand?.getTemplatePath() ?? line.line.exemplar;
       if (!kind) continue;
       // Already on the board and still un-carried: wait for it.
-      const key =
-        line.line.unit === 'count' ? kind : `cat:${line.line.category}`;
+      // ⚠ A FUNGIBLE good is ordered by its category, never its row: a
+      // stack has no identity a kind-bound gig can count, so the board
+      // refuses it ("fungible goods can't be contracted") and the line
+      // was never ordered — the sugar house's lime, found by its drive.
+      const byKind = line.line.unit === 'count' && !isFungible(onHand, kind);
+      const key = byKind ? kind : `cat:${line.line.category}`;
       if (pending.has(key)) continue;
       // What she names: the unit on the rail by keyword, or the kind by
       // its path when there is nothing to point at.
@@ -431,19 +457,37 @@ async function order(
        * to convert, and how somebody fills it — bottles, a keg, a
        * demijohn, bought or carried from home — is their business.
        */
-      const shortfall = Math.round(line.shortfall * 1000) / 1000;
+      let shortfall = Math.round(line.shortfall * 1000) / 1000;
+      if (line.line.unit === 'count') shortfall = Math.ceil(shortfall);
+      let reward = opts.reward;
+      const perUnit = line.line.rewardPerUnit;
+      if (perUnit > 0) {
+        funds ??= BankingApi.balanceOf(
+          await EmploymentApi.operatingAccountOf(business),
+        ).minor;
+        shortfall = Math.min(shortfall, Math.floor(funds / perUnit));
+        if (shortfall <= 0) continue;
+        reward = Math.ceil(shortfall * perUnit);
+      }
       const phrase =
-        line.line.unit === 'count'
-          ? `supply ${Math.ceil(shortfall)} ${naming}`
+        byKind
+          ? `supply ${shortfall} ${naming}`
           : `supply ${shortfall} ${UNIT_WORD[line.line.unit]} of ${line.line.category}`;
       await keeper.forceCommand(
-        `job post ${phrase} to ${opts.benchPath} for ${opts.reward} ` +
+        `job post ${phrase} to ${opts.benchPath} for ${reward} ` +
           `--bounty --business --from ${fromPath}`,
       );
+      if (funds !== null) funds -= reward;
       pending.add(key);
       budget -= 1;
     }
   }
+}
+
+/** Whether the good a count line names is a merging stack. */
+function isFungible(onHand: Stuff | null, kind: string): boolean {
+  const exemplar = onHand ?? StuffApi.findAllByTemplatePath(kind)[0] ?? null;
+  return exemplar !== null && MixinApi.isStackable(exemplar);
 }
 
 /**

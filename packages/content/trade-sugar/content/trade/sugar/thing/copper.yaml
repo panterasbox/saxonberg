@@ -1,0 +1,21 @@
+# The sugar copper — a refinery's boiling pan: a hundred and twenty litres
+# of beaten copper, open, set on the arch to boil. ⭐ What boils in it is
+# the kernel's plateau reading the liquor's own material; the copper's
+# grade (written by `temper` and `skim`) is what the strike arrow reads.
+class: /trade/sugar/thing/Copper
+data:
+  shortDescription: sugar copper
+  keywords: [copper, pan, "sugar copper", kettle]
+  # The word a card link names it by — without it the link fell back to the
+  # class's `vat`, which every pan, tub and cistern on a floor answers to.
+  primaryKeyword: copper
+  register: indefinite
+  longDescription: >-
+    A deep round-bellied pan of beaten copper, wider than your arms, its
+    lip rolled over a wire and its inside gone dark with years of sugar.
+    A long-handled skimmer and a ladle hang from its rim.
+  _materialPath: /stuff/idea/material/element/copper
+  interiorCapacity: 120
+  closure: liquidTight
+  open: true
+  mass: 45

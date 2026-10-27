@@ -73,6 +73,7 @@ import { PersistableApi } from '../../../api/persistable';
 import type {
   CraftRequest,
   CraftOutcome,
+  CraftFailure,
   CraftDeclineReason,
   RecipeView,
   MakerMode,
@@ -534,6 +535,42 @@ async function outputVesselKind(recipe: Recipe): Promise<string> {
   const row = await Template.findByPath(recipe.getOutputTemplate());
   const kind = (row?.data as { category?: unknown } | undefined)?.category;
   return typeof kind === 'string' ? kind : '';
+}
+
+/**
+ * ⭐⭐ **A vessel filled by a recipe becomes the recipe's product.** The
+ * pool claims by vessel KIND (`claimGlass`), so the sack a loaf is pounded
+ * into may be a plain `sack` (or a drained salt sack); filled, it is a
+ * sack of sugar, and everything that identifies goods (a counter's lines,
+ * a hand's `carries:`, a price, the census, `buy sugar`) must see one.
+ * Its identity (the row path, the census key, its name, keywords and
+ * description) is taken from the product row; what it holds, its grade,
+ * its maker and its wear stay its own. Succession, not a re-mint: the
+ * sack is the same sack (sugar, 2026-10-27: the Sugar House filled plain
+ * sacks no counter, hand or bar would ever recognize).
+ *
+ * Only when the recipe names a PRODUCT, a row that authors what it is
+ * full of (`interiorMaterial`): a bar's recipe names its glass, and a
+ * crystal coupe must not become a plain one by holding a martini.
+ */
+async function becomeProduct(vessel: Stuff, productPath: string): Promise<void> {
+  if (vessel.getTemplatePath() === productPath) return;
+  const row = await Template.findByPath(productPath);
+  const data = (row?.data ?? {}) as Record<string, unknown>;
+  if (typeof data.interiorMaterial !== 'string' || data.interiorMaterial === '') return;
+  vessel.setTemplatePath(productPath);
+  const text = (k: string): string | null =>
+    typeof data[k] === 'string' && data[k] !== '' ? (data[k] as string) : null;
+  if (MixinApi.isCirculating(vessel) && text('censusKey')) vessel.setCensusKey(text('censusKey')!);
+  if (MixinApi.isVisible(vessel)) {
+    if (text('shortDescription')) vessel.setShortDescription(text('shortDescription')!);
+    if (text('longDescription')) vessel.setLongDescription(text('longDescription')!);
+    if (text('register')) vessel.setRegister(text('register') as Parameters<typeof vessel.setRegister>[0]);
+  }
+  if (MixinApi.isPerceptible(vessel)) {
+    if (Array.isArray(data.keywords)) vessel.setKeywords(data.keywords.map(String));
+    if (text('primaryKeyword')) vessel.setPrimaryKeyword(text('primaryKeyword')!);
+  }
 }
 
 function claimGlass(
@@ -3269,6 +3306,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       ice,
       garnish,
     );
+    await becomeProduct(output, recipe.getOutputTemplate());
   }
 
   if (!MixinApi.isCrafted(output)) {

@@ -810,6 +810,14 @@ cross-cutting setting alongside sound's.
   the universe defaults are NOT settings; the chain's terminal
   step reads from the root biome at `/stuff/idea/biome/universe`.
 
+## The planet's radius (sugar D12, 2026-10)
+
+`Biome._planetRadiusM` (authorable, `inherit: never`) is read off the
+ROOT biome only: one world, one radius. See
+[expanse.md](./expanse.md) § The planet is a setting.
+`BiomeApi.standardGravity()` is the root's `defaultGravity` (9.81
+fallback): the one read for code that wanted Earth's constant.
+
 ## History
 
 Three substantive design shifts during the biome substrate build

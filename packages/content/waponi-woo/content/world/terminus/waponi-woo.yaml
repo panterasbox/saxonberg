@@ -1,0 +1,16 @@
+# Waponi Woo — the cane island (sugar D11). ⭐ Thirty degrees on the
+# smaller world: frost-free by the climate's own expression (nothing here
+# says "no frost"), warm enough that cane grows all year but for the
+# coolest winter nights (~284 K on a January night, measured). An island:
+# no continentality to speak of. The volcano is why the ground is rich.
+class: /platform/idea/location/CartesianZone
+data:
+  name: Waponi Woo
+  cellSize: 20.0
+  address: terminus/waponi-woo
+  latitude: 30
+  continentality: 0
+  elevation: 40
+  climateOffsetK: 0
+  deposit: /world/terminus/waponi-woo/idea/deposit/vent
+  groundCharacter: /world/terminus/waponi-woo/idea/ground

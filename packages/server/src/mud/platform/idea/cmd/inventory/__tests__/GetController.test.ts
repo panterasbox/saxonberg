@@ -135,6 +135,70 @@ describe('GetController — bareword path (no quantity)', () => {
     expect(sword.getContainer()).toBe(giver);
   });
 
+  // ⭐ `get X from Y` (sugar, 2026-10-26): the targets bind every X here,
+  // one level into open containers; the source keeps only what Y holds.
+  describe('from a named holder', () => {
+    function twoRacks() {
+      const loc = makeStuff(() => new Place());
+      const giver = makeStuff(() => new TestGiver());
+      ContainmentApi.move(giver, loc);
+      const racks = [0, 1].map(() => {
+        const r = makeStuff(() => new Rack());
+        ContainmentApi.move(r, loc);
+        return r;
+      });
+      const swords = racks.map((r) => {
+        const s = makeStuff(() => {
+          const sw = new Sword();
+          sw.setName('sword');
+          return sw;
+        });
+        ContainmentApi.move(s, r);
+        return s;
+      });
+      return { loc, giver, racks, swords };
+    }
+    const fromModel = (targets: MqlManyResult, source: Stuff | null, raw = 'rack') =>
+      ({ targets, source: { stuff: source, raw } }) as ModelData as unknown as GetExecModel;
+
+    it('takes only what the named holder holds', async () => {
+      const { loc, giver, racks, swords } = twoRacks();
+      const controller = makeStuff(() => new GetController());
+      await controller.execute(
+        fromModel(makeResult(swords, 'sword'), racks[1]!),
+        makeContext(giver, loc),
+      );
+      expect(swords[1]!.getContainer()).toBe(giver);
+      expect(swords[0]!.getContainer()).toBe(racks[0]);
+    });
+
+    it('says so when the holder holds none of it, and takes nothing', async () => {
+      const { loc, giver, racks, swords } = twoRacks();
+      ContainmentApi.move(swords[1]!, loc);
+      const controller = makeStuff(() => new GetController());
+      const ctx = makeContext(giver, loc);
+      await controller.execute(
+        fromModel(makeResult([swords[1]!], 'sword'), racks[1]!),
+        ctx,
+      );
+      expect(swords[1]!.getContainer()).toBe(loc);
+      expect(ctx.getNotes()).toContainEqual(
+        expect.objectContaining({ kind: 'empty-result', field: 'targets', query: 'sword' }),
+      );
+    });
+
+    it('refuses a holder that is not here', async () => {
+      const { loc, giver, swords } = twoRacks();
+      const controller = makeStuff(() => new GetController());
+      const ctx = makeContext(giver, loc);
+      await controller.execute(fromModel(makeResult(swords, 'sword'), null, 'chest'), ctx);
+      expect(swords.every((s) => s.getContainer() !== giver)).toBe(true);
+      expect(ctx.getNotes()).toContainEqual(
+        expect.objectContaining({ kind: 'empty-result', field: 'source', query: 'chest' }),
+      );
+    });
+  });
+
   // ⭐ The narrow test that replaced a wall screen's `canMove` veto (the
   // `Screen` class is since retired; `fixedInPlace` is the row's word and
   // any Containable can set it). A bolted-down

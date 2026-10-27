@@ -24,6 +24,10 @@ data:
   toxicity: []
   corrosiveTo: [protein, tissue]
   tags: [liquid, caustic, alkali, lye]
+  # ⭐ Its strength, kg of alkali per litre — soap strength as stocked
+  # (potash-on-sugar: was the `UNMEASURED_LYE_KG_PER_L` constant). A
+  # hopper's leach and a boil-down write the liquor's own figure over it.
+  solidsKgPerL: 0.04
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/lye

@@ -1,0 +1,9 @@
+# The Sugar House — a Terminus refinery (sugar W1). It buys raw sugar,
+# dissolves it, tempers and skims it, boils it to the strike in a copper
+# on a brick arch, and cures the loaves in cones while the molasses
+# drains (W2). A CartesianZone, the rubber works' shape.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Sugar House
+  cellSize: 3.0
+  favours: [sugar]

@@ -1,0 +1,18 @@
+# Pound sugar — a piece of loaf sugar through a quern is loose sugar of the
+# piece's grade (sugar D6: pounding is `mill`; a quern is a millstone).
+recipeId: pound-sugar
+name: Pounded sugar
+keywords: ["pound-sugar", "pounded sugar", "loose sugar"]
+inputSlots:
+- slot: piece
+  kind: item
+  category: loaf-sugar
+  minGrade: poor
+  count: 1
+toolCapabilities:
+- millstone
+outputApplication: bulk
+outputTemplate: /trade/cooking/thing/sugar-sack
+outputMaterial: /trade/cooking/idea/material/sugar
+outputPortionL: 1.25
+outputAppearance: fine loose sugar, its colour the piece's

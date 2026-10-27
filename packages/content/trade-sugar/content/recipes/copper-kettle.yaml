@@ -1,0 +1,23 @@
+# A train copper — beaten from forgeable stock at the anvil (sugar D17):
+# the Jamaica train's part, and so the trade that mends the train is
+# known (assembly D11). The cook-pot recipe's shape at a coppersmith's size.
+recipeId: copper-kettle
+name: Train copper
+keywords:
+- copper-kettle
+- train copper
+inputSlots:
+- slot: stock
+  category: forgeable
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities:
+- striking
+- anvil
+outputTemplate: /trade/sugar/thing/copper-kettle
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 800
+difficulty: standard
+discipline: smithing

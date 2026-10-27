@@ -252,7 +252,7 @@ soap the specific alkali decides the product.
 
 ## 9. Shared with sugar
 
-The sugar build (its [requirements](../../requirements/sugar-requirements.md),
+The sugar build (its [slate](./sugar-slate.md),
 a draft to be talked through in its own session) shares: **the boil** (brine,
 sap, lye and cane juice — four `evaporative` profiles of one mechanism) ·
 **the set** (the pot cake here; the conical sugar-loaf mould that **drains**

@@ -159,8 +159,11 @@ describe('finishing in the piece', () => {
   it('the water holds at the boil and boils down — it does not flash dry', () => {
     const c = copper(12);
     ContainmentApi.move(c, litRange(), 'on');
-    for (let h = 1; h <= 8; h++) {
-      setNow(h * 60 * MIN);
+    // ⭐ Two hours, not eight: the range has POWER now (sugar D2) — a
+    // couple of kilowatts reaching the pan boils off a few litres an hour,
+    // so eight hours on the fire would (rightly) boil a 12 L copper dry.
+    for (let m = 15; m <= 120; m += 15) {
+      setNow(m * MIN);
       c.getTemperature();
     }
     expect(c.getContentsTemperature().rawValue()).toBeLessThanOrEqual(373);

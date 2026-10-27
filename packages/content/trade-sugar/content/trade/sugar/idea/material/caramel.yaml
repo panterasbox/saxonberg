@@ -1,0 +1,8 @@
+# Caramel — pushed past the strike. It will not grain any more; it is
+# colour for a dark rum and a bitter edge in a cake.
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: caramel
+  keywords: [caramel, burnt-sugar]
+  appearance: dark amber and smoking, smelling of burnt toffee
+  tags: ["liquid", "food", "caramel"]

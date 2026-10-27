@@ -1,0 +1,19 @@
+# A hogshead — the cask an estate cures its raw sugar in (sugar W5): the
+# strike poured in sets into a block of raw sugar while the molasses drains
+# out through the holes in its floor into the pot below.
+class: /platform/thing/Mould
+data:
+  shortDescription: curing hogshead
+  keywords: [hogshead, cask, "curing hogshead", barrel]
+  register: indefinite
+  longDescription: >-
+    A big rough cask with its head knocked out and holes bored in its floor,
+    stopped with cane stalks, black with molasses below.
+  interiorBulk: true
+  interiorCapacity: 40
+  closure: liquidTight
+  castTemplate: /trade/sugar/thing/raw-sugar-block
+  reusable: true
+  discipline: sugar-refining
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 25

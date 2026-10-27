@@ -129,6 +129,32 @@ export class Piecewise {
   }
 
   /**
+   * ⭐ Seconds the curve spends at or above `threshold` — exact, not
+   * sampled: each stretch is one monotone exponential, so it crosses the
+   * threshold at most once, at `τ·ln((start − target)/(threshold −
+   * target))`. What a boil's clock needs (sugar D2): eight samples over an
+   * hour-long gap misjudged the moment a pot came to the boil by minutes.
+   */
+  public secondsAtOrAbove(threshold: number): number {
+    let total = 0;
+    for (const st of this.stretches) {
+      const dur = st.toS - st.fromS;
+      if (!(dur > 0)) continue;
+      const startUp = st.startValue >= threshold;
+      const endUp = stretchAt(st, st.toS) >= threshold;
+      if (startUp && endUp) total += dur;
+      else if (startUp !== endUp && st.tau > 0) {
+        const cross =
+          st.tau *
+          Math.log((st.startValue - st.target) / (threshold - st.target));
+        const t = Math.min(dur, Math.max(0, cross));
+        total += startUp ? t : dur - t;
+      }
+    }
+    return total;
+  }
+
+  /**
    * ∫ f(value(s)) ds over the whole window — Simpson per stretch
    * (`subSteps` even sub-intervals, forced even). This is `ThermalDose`'s
    * integrator, generalised to a moving driver: for one constant-ambient

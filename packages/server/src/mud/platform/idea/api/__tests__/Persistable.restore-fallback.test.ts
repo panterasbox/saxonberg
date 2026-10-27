@@ -23,6 +23,7 @@ import { Idea } from "../../../../lib/stuff/Idea";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { ContainableMixin } from "../../../../lib/spatial/Containable";
+import { SealableMixin } from "../../../../lib/spatial/Sealable";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
 
 class Room extends ContainerMixin(Idea) {}
@@ -34,6 +35,9 @@ class Sleeper extends PersistableMixin(ContainableMixin(Idea)) {
     await super.onRestored();
   }
 }
+
+/** A lidded thing — `open` is both its persisted noun and a verb. */
+class Lidded extends PersistableMixin(SealableMixin(ContainableMixin(Idea))) {}
 
 /* ─────────────────────────── harness ───────────────────────────────── */
 
@@ -140,5 +144,18 @@ describe("the return-login backstop", () => {
     const again = makeStuffAtPath(() => new Sleeper(), "/test/fresh");
     await PersistableApi.materialize(again);
     expect(restored).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("⭐ a field whose name is also a method", () => {
+  it("captures Sealable's `open` as its boolean, and the restore takes it", async () => {
+    const vat = makeStuffAtPath(() => new Lidded(), "/test/cistern");
+    vat.setOpen(true);
+    await PersistableApi.capture(vat);
+    expect(JSON.stringify(snapshots)).not.toMatch(/function|open\(\)/);
+    StuffApi.unregister(vat);
+    const again = makeStuffAtPath(() => new Lidded(), "/test/cistern");
+    await PersistableApi.materialize(again);
+    expect(again.isOpen()).toBe(true);
   });
 });

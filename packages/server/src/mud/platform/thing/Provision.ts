@@ -15,6 +15,7 @@
 import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
+import { KineticMixin } from '../../lib/material/Kinetic';
 import { FreshnessMixin } from '../../lib/material/Freshness';
 import { WaterActivityMixin } from '../../lib/material/WaterActivity';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
@@ -65,7 +66,7 @@ const ProvisionBase = SampledMixin(
     ComposedMixin(
       ContaminableMixin(
         WaterActivityMixin(
-          ThermalDoseMixin(FreshnessMixin(ThermalMixin(Good))),
+          ThermalDoseMixin(KineticMixin(FreshnessMixin(ThermalMixin(Good)))),
         ),
       ),
     ),
