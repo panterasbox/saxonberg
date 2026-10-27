@@ -3199,3 +3199,38 @@ started clean. Nearly every failure was the drives' own, each fixed:
     data overlay.
   - `get charcoal` took every basket, and the potter could not lift a
     bowl. Each takes one.
+
+**Run 35** (D 23/23 · A lost to seasons · B 5/6 · C 5/21 on its old copy).
+Drive defects, all fixed:
+- **A:** the year now starts in late autumn (day 230–260). In early winter
+  the rain fell as snow, so 5a never got its rain, and the brickmaker froze
+  on the open yard. 5b walks on into early winter and knows its fresh
+  stack by its new id; a frost may burst it before the morning read. The
+  winter pass re-homes and reads by day.
+- **B:** 13 pours the crucible straight off the smelt. Doused and left,
+  the copper froze, dropped out of the crucible (a crucible is no mould)
+  as a lump in the furnace, and the next charge was ore and metal
+  together.
+- **C:** each fix below is a drive fix:
+  - 16 finds the potter's own handle on the boards (by "Made by").
+  - 18 hands its own lead pig (the NPC potter used the shop's) and names
+    the two crocks by id.
+  - 18b loads its own ware before opening the kiln hot.
+  - 21 finds the filled jar by bulk material.
+  - 22 hands a filter when the stall's one is sold.
+  - 23 looks for the bowls in hand and hands the tinker the piece the hot
+    kiln cracked.
+  - 24 finds each mug by its maker.
+- **Harness:** a clock jump asked for while another is settling waits it
+  out ("the clock is paused" after a drive was stopped mid-jump), and
+  `test-nourish` also warms a chilled body (the off-camera hours are
+  spent by a fire; the work's heat is left alone).
+- **Game defects the drives found:**
+  - **The mug had no handle line** although its prose promised "a seat
+    for a handle" (d9d6f325a).
+  - **Cones were read by `awareness`**, so the practised potter read the
+    spy-hole exactly as the novice did. A tool may now name its craft
+    (`Tooled.getDiscipline`), and the cones name `pottery` (ca6e84086).
+  - **`get "plant pot" from kiln` was a parser error**: a quoted name
+    inside a longer object span kept its quotes on the way to MQL
+    (42f69c4fd). This is the recorded two-word-name finding, now fixed.
