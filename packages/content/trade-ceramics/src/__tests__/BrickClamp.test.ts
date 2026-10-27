@@ -167,6 +167,25 @@ describe('the clamp', () => {
     expect(got.get('skin')).toBe('terracotta');
   });
 
+  it('⭐ lit at noon and fired at dusk, the three bodies still come out — the setting is fixed at the LIGHT (drive A, run 38)', async () => {
+    const { clamp } = await clampWith(20, 0.6);
+    // `ignite` starts the firing…
+    await clamp.onFireStart(null);
+    for (const c of clamp.getContents()) {
+      const b = c as unknown as { restamp(): Promise<void>; reconcileThermal(): void };
+      await b.restamp();
+      b.reconcileThermal();
+    }
+    advance(8 * 3600);
+    // …and `fire` at dusk continues it, splitting nothing again.
+    const stacks = clamp.getContents().length;
+    await burn(clamp);
+    expect(clamp.getContents().length).toBe(stacks);
+    const got = bodies(clamp);
+    expect(got.get('channel')).toBe('clinker');
+    expect(got.get('skin')).toBe('terracotta');
+  });
+
   it('⭐ a starved, reducing burn turns the middle blue', async () => {
     const { clamp } = await clampWith(20, 0.5);
     await burn(clamp);

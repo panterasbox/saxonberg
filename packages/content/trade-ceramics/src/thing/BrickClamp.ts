@@ -127,6 +127,10 @@ export default class BrickClamp extends BrickClampBase {
       const piece = c as Stuff;
       const pos = positioned(piece);
       if (piece.isDestroyed() || pos === null) continue;
+      // ⭐ Set ONCE: lighting starts the firing and `fire` continues it, and
+      // a brick already set keeps its place (a second call would split the
+      // middle again).
+      if (pos.getClampPosition() !== '') continue;
       pos.setClampPosition('middle');
       if (!MixinApi.isStackable(piece) || piece.getQuantity() < 3) continue;
       const q = piece.getQuantity();
