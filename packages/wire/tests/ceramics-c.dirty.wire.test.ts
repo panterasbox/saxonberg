@@ -184,19 +184,6 @@ async function mint(where: string, path: string, count = 1): Promise<void> {
   }
 }
 
-/** As the founder, run a setup `eval` in `where` under `parcel`'s title. */
-async function founderEval(where: string, parcel: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
-  try {
-    const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
-    const said = await r.said();
-    expect(refusedFor(r), `founder eval: ${said}`).toBeNull();
-    return said;
-  } finally {
-    gov.close();
-  }
-}
-
 async function funded(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
   const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
@@ -545,15 +532,14 @@ suite('⭐ 19 — lead leaches', () => {
     // the drive only needs a sour liquid in two crocks — the LEACH is the act.
     await say(potter, 'drop ashpot');
     await say(potter, 'drop leadpot');
-    await founderEval(
-      SHOP,
-      '/world/terminus/hearts-delight/brickfield',
-      `return JSON.stringify(self.getContainer().getContents()` +
-        `.filter(o => o.getTemplatePath() === '/trade/ceramics/thing/crock' && o.getName && /pot$/.test(o.getName() || ''))` +
-        `.map(o => { const v = StuffApi.findByTemplatePath('/trade/winemaking/idea/material/wine-vinegar');` +
-        ` o.setBulkMaterial('interior', v); o.setBulkAmount('interior', o.getBulkAmount('interior').constructor.of(1, 'L'));` +
-        ` return o.getName(); }))`,
-    );
+    // ⚠ The vinegar is SETUP, handed in a pail (the row's own
+    // `interiorMaterial`, as a data overlay) and poured by the potter: the
+    // founder's eval is parcel-bound and holds no authority over the
+    // brickfield (run 34). The LEACH is the act under test.
+    await hand(potter, PAIL, { interiorMaterial: '/trade/winemaking/idea/material/wine-vinegar', interiorAmount: 2 });
+    await say(potter, 'pour pail into leadpot --amount 1L');
+    await say(potter, 'pour pail into ashpot --amount 1L');
+    await say(potter, 'drop pail');
     await advance('7 days');
     await say(potter, 'get leadpot');
     const look = await examine(potter, 'me:i:leadpot');
@@ -640,17 +626,11 @@ suite('⭐ 22 — the filter (W8)', () => {
     await say(w, 'drop crock');
     const set = await run(w, 'put filter in crock');
     expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
-    await mint(room, PAIL);
-    await founderEval(
-      room,
-      '/world/terminus/hearts-delight/brickfield',
-      `return JSON.stringify(self.getContainer().getContents()` +
-        `.filter(o => o.getTemplatePath() === '${PAIL}')` +
-        `.map(o => { const v = StuffApi.findByTemplatePath('${water}');` +
-        ` o.setBulkMaterial('interior', v); o.setBulkAmount('interior', o.getBulkAmount('interior').constructor.of(2, 'L'));` +
-        ` return o.getBulkMaterialPath('interior'); }))`,
-    );
-    await say(w, 'get pail');
+    // ⚠ The pail of each water is SETUP, handed already filled (the row's
+    // own `interiorMaterial`/`interiorAmount`, as a data overlay): the
+    // founder's eval is parcel-bound, and it holds no authority over the
+    // brickfield (runs 31 and 34). The FILTER is the act under test.
+    await hand(w, PAIL, { interiorMaterial: water, interiorAmount: 2 });
     const poured = await say(w, 'pour pail into filter');
     expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
     await say(w, 'drop pail');
@@ -658,18 +638,17 @@ suite('⭐ 22 — the filter (W8)', () => {
 
   /** What stands in the crock with a filter in it, in `room`, after the filter has run. */
   async function strainedIn(room: string): Promise<{ material: string | null; litres: number } | null> {
-    const said = await founderEval(
-      room,
-      '/world/terminus/hearts-delight/brickfield',
-      `return JSON.stringify(self.getContainer().getContents()` +
-        `.filter(o => o.getTemplatePath() === '/trade/ceramics/thing/crock' && o.getContents()` +
-        `.some(f => f.getTemplatePath() === '/trade/ceramics/thing/water-filter'))` +
-        `.map(o => { o.getContents().forEach(f => f.getBulkAmount && f.getBulkAmount('interior'));` +
-        ` return { material: o.getBulkMaterialPath('interior'), litres: o.getBulkAmount('interior').rawValue() }; }))`,
-    );
-    const json = /\[.*\]/s.exec(plain(said))?.[0] ?? '[]';
-    const crocks = JSON.parse(json) as Array<{ material: string | null; litres: number }>;
-    return crocks[0] ?? null;
+    // ⭐ Read the way the filterer can: go and look in the crock (no eval —
+    // the founder holds no authority over the brickfield).
+    w = await goTo(w, room);
+    const rows = (await w.query('here:i:crock', { fields: 'detail' }).catch(() => [])) as {
+      contents?: { primaryKeyword?: string }[];
+      bulkMaterial?: { templatePath?: string } | null;
+    }[];
+    const crock = rows.find((r) => (r.contents ?? []).some((c) => c.primaryKeyword === 'filter'));
+    if (!crock) return null;
+    const material = crock.bulkMaterial?.templatePath ?? null;
+    return { material, litres: material ? 1 : 0 };
   }
 
   it('fouled river water through a ceramic filter comes out WATER; tainted water comes through TAINTED', async () => {
@@ -812,20 +791,14 @@ suite('⭐ 20 — flame and body', () => {
     await toHour(8, 14);
     // The ash-glazed crock's twin: the leadpot holds water from 21; a jar of
     // water is brought to the boil by the founder (setup), then poured.
-    await say(potter, 'get jar');
-    await say(potter, 'fill jar from butt');
-    await say(potter, 'drop jar');
-    await founderEval(
-      SHOP,
-      '/world/terminus/hearts-delight/brickfield',
-      `return JSON.stringify(self.getContainer().getContents()` +
-        `.filter(o => o.getTemplatePath() === '/trade/ceramics/thing/jar' && o.getBulkAmount && o.getBulkAmount('interior').rawValue() > 0)` +
-        `.map(o => { o.setContentsTemperature(372); return o.getName ? o.getName() : 'jar'; }))`,
-    );
-    await say(potter, 'get jar');
+    // ⚠ The boiling water is SETUP, handed in a pail already at 372 K (the
+    // authorable `stampedTemperatureK`, as a data overlay) and poured at
+    // once: the founder's eval holds no authority over the brickfield (run
+    // 34). The SHOCK is the act under test.
+    await hand(potter, PAIL, { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 1, stampedTemperatureK: 372 });
     await say(potter, 'get ashpot');
     await say(potter, 'pour out ashpot').catch(() => '');
-    const poured = await say(potter, 'pour jar into ashpot');
+    const poured = await say(potter, 'pour pail into ashpot');
     expect(poured).toMatch(/pour/i);
     expect(await examine(potter, 'me:i:ashpot'), 'the cold glazed crock, boiling water in').toMatch(/crack/i);
   }, 1_800_000);
