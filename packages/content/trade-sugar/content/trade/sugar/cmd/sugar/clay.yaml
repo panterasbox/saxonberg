@@ -1,0 +1,28 @@
+verbs: [clay]
+controller: /trade/sugar/idea/cmd/sugar/ClayController
+description: "Clay a sugar loaf so it washes white from the head"
+help: |
+  `clay loaf with clay` packs a lump of wet clay on the base of a sugar
+  loaf standing in its cone. ⭐ The water in the clay works down through
+  the loaf over the next ten days, washing the molasses off the crystals
+  as it goes and out into the pot below: the head comes clean first and
+  white, the middle pale, and the foot stays brown. One loaf, three
+  grades — `cut` it with nips to have them apart. A loaf never clayed is
+  muscovado throughout.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: loaf
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: [PercolatingMixin]
+  - name: clay
+    type: object
+    required: true
+    greedy: true
+    prepositions: [with, using]
+    scope: ["reachable"]
+    requires: [TangibleMixin]

@@ -153,6 +153,19 @@ const lineHome = (path: string) =>
         (l) => l.itemTemplatePath === path,
       ),
   );
+/**
+ * ⭐ Floor rows that are MADE on the premises, not faucets: their lines
+ * stand at `par: 0` on purpose and the shelf holds only what was made
+ * (sugar D8 — Veshko's rum off its own still, from the Sugar House's
+ * molasses; the Sugar House's sack off its own loaves, which retired the
+ * pantry's faucet sugar).
+ */
+const MADE_HERE = [
+  '/trade/distilling/thing/rum-dark',
+  '/trade/distilling/thing/rum-light',
+  '/trade/cooking/thing/sugar-sack',
+];
+
 const parOf = (path: string): number | undefined =>
   ((lineHome(path)?.data.stockLines ?? []) as Array<{ itemTemplatePath: string; par: number }>)
     .find((l) => l.itemTemplatePath === path)?.par;
@@ -206,7 +219,11 @@ describe('libations annexes — the floor rows fit the faucet', () => {
       expect(home, `${r.path} is no Stock's line`).toBeDefined();
       expect(home!.pack, r.path).toBe('terminus');
       expect(home!.path.startsWith(PREMISES), r.path).toBe(true);
-      expect(parOf(r.path), r.path).toBeGreaterThan(0);
+      if (MADE_HERE.includes(r.path)) {
+        expect(parOf(r.path), `${r.path} is MADE here — it imports nothing`).toBe(0);
+      } else {
+        expect(parOf(r.path), r.path).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -288,7 +305,9 @@ describe('libations annexes — the hands name the host', () => {
     // not a libations floor, but it is the identical pattern, so the per-hand
     // invariants below (names the counter, homes every key it stocks, holds a
     // purchasing seat) hold for it unchanged.
-    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length + 1);
+    // ⭐ +1 more: the SUGAR HOUSE's hand (sugar W2), consigning the
+    // house's sacks and casks to the distributor — the same beat again.
+    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length + 2);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/trade/shopkeeping/behavior/consigns',

@@ -4,12 +4,17 @@ description: "Pick up objects from your location"
 help: |
   Pick something up off the ground or out of the room and move it
   into your inventory. You can only get things that are here with
-  you — to take something out of a container or off a surface, name
-  it and `get` reaches in. Say where from (`get crock from kiln`) and
-  only what is in or on that is taken.
+  you. To take something out of a container or off a surface, name
+  it and `get` reaches in — or say where it is, `from` or `off`, when
+  more than one thing here answers to the name.
 
   Name several things at once to grab them in one go. You can't get
   what you're already carrying.
+examples:
+  - cmd: get coin
+    note: Pick up a thing here, or reach into an open container for it
+  - cmd: get loaf from cone
+    note: Take it out of one container (or `off` one surface) in particular
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -23,16 +28,18 @@ args:
     requires: [VisibleMixin, ContainableMixin]
     validators:
       - /lib/command/validators/mustBeInLocation
-  # ⭐ Where from — `get crock from kiln`. Without it, "from kiln" was
-  # two more words for the targets to match, and every such `get` also
-  # tried to lift the kiln (the ceramics drives: "an updraft kiln is
-  # fixed in place", and `get "plant pot" from kiln` took the potter's
-  # stamp and strained at the potter). The targets stop at `from`.
-  # Greedy, as the last arg: `from the brick kiln` is one name.
+  # ⭐ WHERE FROM — optional. `peers` already reaches one level into an
+  # open container standing here, so the targets bind without it; naming
+  # the holder narrows them to what is IN it or ON it (`get block from
+  # hogshead`). Without this arg the words `from hogshead` went to the
+  # targets query and MQL refused them as a parse error (sugar, 2026-10-26).
   - name: source
     type: object
     required: false
+    # Greedy: `get loaf from the sugar cone` is several words.
     greedy: true
-    prepositions: [from]
+    prepositions: [from, off]
     scope: "peers"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]
+    validators:
+      - /lib/command/validators/mustBeInLocation

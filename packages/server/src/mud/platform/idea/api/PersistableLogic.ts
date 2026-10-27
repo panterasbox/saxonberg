@@ -497,7 +497,18 @@ function captureFields(
   const out: Record<string, unknown> = {};
   for (const field of fields) {
     if (!(field in host)) continue;
-    const value = self[field];
+    let value = self[field];
+    // ⚠ A function is never data. `Sealable`'s noun `open` is also its
+    // verb `open()`, so the bracket read found the method, the snapshot
+    // stored it, and the restore's `setOpen` refused it — the whole
+    // place failed to come back (the sugar estate's cistern, drive 25).
+    // The boolean-noun convention says where the value is: `isOpen()`.
+    if (typeof value === "function") {
+      const cap = field.charAt(0).toUpperCase() + field.slice(1);
+      const read = self[`is${cap}`] ?? self[`get${cap}`];
+      if (typeof read !== "function") continue;
+      value = (read as () => unknown).call(host);
+    }
     const mPath = marshallers[field];
     // A null/undefined marshalled field round-trips as-is: the marshaller's
     // `toStored` expects a live value (a Quantity), so an unset optional field

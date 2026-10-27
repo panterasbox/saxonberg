@@ -110,6 +110,15 @@ export default class Biome extends BiomeBase {
   protected _defaultGravity: Quantity<'m/s²'> | null = null;
 
   /**
+   * ⭐ The planet's radius, metres (sugar D12, the-world slate) — read off
+   * the ROOT biome only: one world, one radius. `null` = Earth's. It sets
+   * the chart (nautical miles per degree) and how far the eye sees over
+   * the curve; gravity is authored separately (the heavy-world postulate
+   * keeps it 9.81 on a smaller planet).
+   */
+  protected _planetRadiusM: number | null = null;
+
+  /**
    * Default atmosphere tag (`'air'`, `'water'`, `'vacuum'`, …).
    * Plain string — atmosphere isn't a scalar so it doesn't fit
    * the `Quantity` tag-table shape. `null` falls through.
@@ -166,6 +175,7 @@ export default class Biome extends BiomeBase {
     _defaultHumidity: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('%') },
     _defaultWind: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s') },
     _defaultGravity: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('m/s²') },
+    _planetRadiusM: { persistent: true, authorable: true, inherit: 'never' },
     _defaultAmbientSoundLevel: { persistent: true, inherit: 'never', spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('dB') },
   };
 
@@ -283,6 +293,13 @@ export default class Biome extends BiomeBase {
     }
     Biome.assertQuantity(value, 'm/s', 'defaultWind');
     this._defaultWind = value;
+  }
+
+  public getPlanetRadiusM(): number | null {
+    return this._planetRadiusM;
+  }
+  public setPlanetRadiusM(value: number | null): void {
+    this._planetRadiusM = value !== null && Number.isFinite(value) && value > 0 ? value : null;
   }
 
   public getDefaultGravity(): Quantity<'m/s²'> | null {

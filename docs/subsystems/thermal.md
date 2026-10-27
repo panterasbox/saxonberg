@@ -1051,10 +1051,33 @@ passes under it.
   `PURIFY_HOLD_S` (60 s) the material swaps. Fouled water → water, wood
   tar → pitch (tar gained a latent heat so it plateaus instead of
   flashing). No clock (a unit test, a clockless spell) means no hold.
-- ⚠ Still open: the Newton model is τ = R·C with no burner POWER, so a
-  large vessel on a range heats slowly (30 L takes ~5 game hours to a
-  simmer); the copper is sized at 12 L for it. A power-limited heat
-  transfer is this subsystem's.
+- ⭐⭐ **A fire has power, not just a temperature** (sugar W1a, D2, closing
+  the item silk left open). `Burner.heatTransferFraction` (authorable,
+  default 0.5) is the share of `burnPowerW` that reaches what the fire
+  heats; `deliveredPowerW()` is the product. `ThermalMixin.heatSource()`
+  is the lit furnace a body is in or on, so a reader can ask the fire for
+  its power as well as its temperature. The power enters as a **resistance
+  in `effectiveR()`**: `R_fire = (T_fire − T_room) / P_delivered`, a
+  constant of the fire. That keeps the curve one exponential, so a watched
+  pot heats exactly as an unwatched one.
+  - A pot **set on** a fire is in the flame, so the flame replaces the
+    still-air term: `R = R_wall + R_fire`. A 30 L copper on a hearth now
+    warms at the hearth's watts, where before it took the air's ~10 hours.
+  - A body **in** an oven sits in the oven's hot air, so the slower
+    coupling limits: `max(R_air + R_wall, R_fire)`. A loaf bakes as
+    before, and a huge charge can no longer heat faster than the fire
+    delivers.
+  - **At the boil**, `reconcileBulkPhase` spends the fire's power at the
+    boil, `(T_fire − bp)·C/τ`, over the seconds spent there. Those seconds
+    come from `Piecewise.secondsAtOrAbove`, which is exact, not sampled.
+    The boil clock runs for every plateau material and starts where the
+    phase pass last looked: a transient stamp, seeded from the persisted
+    thermal stamp after a restart. So an unread pot boils off what the
+    fire gave it, not one capacity's worth per gap. With no fire the
+    overshoot still stands: a pot taken off the boil boils on a moment,
+    then stops.
+  - Rough scale: 4 kW delivered boils off ~5 L an hour. Silk's 12 L copper
+    on a range now boils dry in about three hours unattended.
 
 ## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8)
 

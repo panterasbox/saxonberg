@@ -1,0 +1,16 @@
+# Dark rum wort — molasses and water, before the yeast has had it (sugar D8).
+class: /platform/idea/material/ConsumableMaterial
+data:
+  name: dark rum wort
+  keywords: [wort, rum, "dark rum wort"]
+  appearance: "a black, sticky-sweet wort"
+  density: 1050
+  thermalConductivity: 0.5
+  specificHeat: 3900
+  edibility: true
+  nutrients: ["water", "sugar"]
+  nutrientAmounts:
+    sugar: 120
+  tags: ["liquid", "dark-rum-wort"]
+  composition: []
+  biologicalSource: null

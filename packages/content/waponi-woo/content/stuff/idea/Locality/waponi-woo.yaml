@@ -1,0 +1,9 @@
+# The island as a locality — off the watershed (it is a sea island; its
+# streams run straight to the sea and nothing upstream of anyone).
+class: /platform/idea/Locality
+data:
+  name: Waponi Woo
+  _address: terminus/waponi-woo
+  _weatherPin:
+    type: clear
+    mode: alive

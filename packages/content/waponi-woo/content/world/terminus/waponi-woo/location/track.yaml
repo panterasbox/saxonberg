@@ -1,0 +1,45 @@
+
+class: /platform/location/Locale
+data:
+  shortDescription: "estate track"
+  keywords: [track, road, estate]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A cart track of red earth climbs between walls of cane taller than a cart. East and southeast the cane pieces open out; west is the mill yard, with the boiling house's chimney beyond it; the estate store stands to the north. A footpath goes northwest into the forest, and a steeper one northeast toward the smoking mountain. Southwest, a lane runs down to the smallholdings.
+  coords: { x: 0, y: 1, z: 0 }
+  exits:
+    south:
+      destination: /world/terminus/waponi-woo/location/landing
+      media: [ground]
+      edgeMinutes: 3
+    east:
+      destination: /world/terminus/waponi-woo/location/cane-piece
+      media: [ground]
+      edgeMinutes: 2
+    southeast:
+      destination: /world/terminus/waponi-woo/location/lower-piece
+      media: [ground]
+      edgeMinutes: 3
+    west:
+      destination: /world/terminus/waponi-woo/location/mill-yard
+      media: [ground]
+      edgeMinutes: 2
+    north:
+      destination: /world/terminus/waponi-woo/location/store
+      media: [ground]
+      edgeMinutes: 1
+    northwest:
+      destination: /world/terminus/waponi-woo/location/forest
+      media: [ground]
+      edgeMinutes: 6
+    northeast:
+      destination: /world/terminus/waponi-woo/location/volcano
+      media: [ground]
+      edgeMinutes: 20
+    southwest:
+      destination: /world/terminus/waponi-woo/location/smallholding-a
+      media: [ground]
+      edgeMinutes: 8

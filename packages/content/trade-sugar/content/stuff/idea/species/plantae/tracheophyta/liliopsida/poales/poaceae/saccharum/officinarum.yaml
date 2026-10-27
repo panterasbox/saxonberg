@@ -1,0 +1,18 @@
+# Sugar cane — a giant tropical grass whose stem is a store of sucrose.
+# ⭐ Frost kills it and a short summer will not ripen it: it is a crop of
+# the warm latitudes, which is why Terminus buys its sugar from an island.
+class: /platform/idea/species/Species
+data:
+  binomial: Saccharum officinarum
+  commonNames: ["sugar cane", "cane", "noble cane"]
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: asexual
+  lifespanMin: 1
+  lifespanMax: 6
+  diet: none
+  longDescription: >-
+    Cane standing taller than a man, jointed like bamboo and as thick as a
+    wrist, its leaves long and saw-edged and rattling in the wind.
+  nameBankKeys: []

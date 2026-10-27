@@ -73,7 +73,7 @@ beforeEach(() => StuffApi.clearAll());
 afterEach(() => vi.restoreAllMocks());
 
 describe('⭐ an opening is derived, never stored', () => {
-  it('a seat with no headcount advertises nothing — exactly today', () => {
+  it('a seat with no headcount and nobody rostered advertises nothing', () => {
     const biz = seed([{ key: 'clerk', label: 'clerking', wageRate: 5 }]);
     expect(biz.openingsFor('clerk')).toBe(0);
     expect(biz.openings()).toEqual([]);
@@ -121,6 +121,24 @@ describe('⭐ an opening is derived, never stored', () => {
     biz.rosterSlots = [
       { positionKey: 'hand', assignee: BOB, schedule: [] },
     ] as never;
+    expect(biz.openingsFor('hand')).toBe(0);
+  });
+
+  it('⭐ a rostered hand who walks off leaves a vacancy with NO headcount (sugar D10)', () => {
+    const biz = seed([{ key: 'hand', noun: 'hand', label: 'hauling', wageRate: 4 }]);
+    biz.rosterSlots = [
+      { positionKey: 'hand', assignee: BOB, schedule: [] },
+    ] as never;
+    // Rostered and not known to have left: the seat is held.
+    expect(biz.openingsFor('hand')).toBe(0);
+    const bob = applicant(BOB);
+    bob.employments = [
+      { organizationPath: BIZ, positionKey: 'hand', status: 'quit', hiredAt: 0, onShiftSince: null },
+    ];
+    expect(biz.openingsFor('hand')).toBe(1);
+    expect(biz.openings().map((o) => o.position.key)).toEqual(['hand']);
+    // A new hand takes it; the place closes by arithmetic.
+    hold(applicant(ALICE), 'hand');
     expect(biz.openingsFor('hand')).toBe(0);
   });
 });

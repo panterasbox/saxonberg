@@ -27,7 +27,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
-import { LyeStrength, UNMEASURED_LYE_KG_PER_L } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
+import { LyeStrength } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -106,7 +106,7 @@ export default class Hopper extends ContainerMixin(Vat) {
     // A lye poured back that nobody measured is taken at soap strength.
     const carried =
       payload?.dissolvedSolidsKgPerL ??
-      (this.getBulkMaterial('interior')?.hasTag('lye') ? UNMEASURED_LYE_KG_PER_L : 0);
+      (this.getBulkMaterial('interior')?.getSolidsKgPerL() ?? 0);
     const kgPerL = carried + (alkaliKg / litres) * kept;
     // ⭐ The lye is whose the ash was (the communal-oven rule): your heaps
     // in the ashery's hopper make your lye. Rain makes no claim; heaps of

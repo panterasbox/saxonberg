@@ -1,0 +1,13 @@
+# Waponi Woo — the cane island (sugar D11): 240 nautical miles due south of
+# the origin, about a day and a half's sail. ⭐ The focus is in METRES, so
+# it never moves: on the smaller world (the-world slate) it is 12° of
+# latitude on the chart; on today's Earth-sized chart, 4°. The island's
+# own pack ships the landing; this node is the cross-pack edit the
+# crossroads back-exit precedent allows.
+class: /platform/idea/ExpanseNode
+data:
+  name: Waponi Woo
+  alternateNames: [waponi, woo, "waponi woo", island]
+  kind: place
+  destination: /world/terminus/waponi-woo/location/landing
+  focus: { rho: 444480, theta: 180, radius: 1852 }

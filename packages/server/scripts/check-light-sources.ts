@@ -180,6 +180,10 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  * also authors as a detail you can look at.
  */
 export const SKYLIT_INTERIORS: readonly string[] = [
+  '/world/terminus/goods-yards/sugar-house/location/ground/boiling-floor', // the roof louvre the copper's steam goes up through — the sugar build's live walk found the house dark at noon
+  '/world/terminus/goods-yards/sugar-house/location/ground/curing-house', // small shuttered windows high in the end wall
+  '/world/terminus/goods-yards/sugar-house/location/ground/store', // a barred window over the counter
+  '/world/terminus/waponi-woo/boiling-house/location/curing-house', // slatted openings under the eaves, for the drain's air
   '/world/terminus/rejection/hanging-wood/lean-to', // open along its front to the ashery clearing — daylight under the eaves
   '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
   '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench

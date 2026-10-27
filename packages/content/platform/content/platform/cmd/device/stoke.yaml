@@ -14,8 +14,9 @@ verbs: [stoke, fuel]
 controller: /platform/idea/cmd/device/StokeController
 description: "Put fuel in a fire"
 help: |
-  Put fuel in a fire — `stoke forge with charcoal`, `stoke hearth oak`,
-  or just `stoke log` when there is only one fire standing by.
+  Put fuel in a fire — `stoke charcoal into forge`, `stoke oak into
+  hearth`, or just `stoke log` when there is only one fire standing by.
+  The fuel comes first: it is what you are putting in.
 
   What you put in matters. A fire burns what it is given: charcoal runs
   hot enough to work iron, oak does not, and peat puts its own smoke

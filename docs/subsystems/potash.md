@@ -39,7 +39,9 @@ hopper's, the pot's and the kiln's.
   leach adds `Σ(heap mass × strength) / litres × (1 − 0.04 × °dH)` to what a
   poured-back lye carried. Bands (`potash.lye.*`): water < 0.005 ≤ weak <
   0.03 ≤ soap strength < 0.06 ≤ strong. An unmeasured lye (a flask off a
-  shelf) is taken at soap strength, `UNMEASURED_LYE_KG_PER_L`.
+  shelf) reads its material's own `solidsKgPerL` (lye and caustic lye
+  author 0.04, soap strength) — the constant retired with
+  `potash-on-sugar`.
 - **The egg.** It sinks in water; stands on its point in a weak lye (a
   novice cannot tell that from water — *it sinks*); shows a coin of shell at
   soap strength; rides high when strong. A kept, blown test egg — a `Tool`
@@ -109,8 +111,10 @@ The chain's goods are titled by the kernel's fresh-good rule
 
 ## Limits and seams
 
-- **The boil runs on read.** The plateau and the pot's count reconcile when
-  someone reads the pot; a pour and a boil-off between two reads net out.
+- **The boil runs on read.** The kernel plateau reconciles when someone
+  reads the pot, keeping the alkali as the water leaves; the pot reads the
+  strength the plateau wrote and casts the black salts at saturation. It
+  keeps no count of its own.
   ⚠ A long unobserved stretch is ONE step of the plateau: a pot left 24 h on a
   burning hearth barely boils, while read hourly it sets in hours (the live
   walk, 2026-10-22). This belongs to silk's plateau, and the drive reads
@@ -124,16 +128,19 @@ The chain's goods are titled by the kernel's fresh-good rule
   ash, because the town's hearths have burned little: *a supplement, not a
   living* (AC 9).
 
-- **The boil runs on read.** The plateau and the pot's count reconcile when
-  someone reads the pot; a pour and a boil-off between two reads net out.
-- ⭐⭐ **`potash-on-sugar`** — the named convergence once the sugar build's
-  plateau (solids kept as water leaves, `concentratesTo` arrows, power-limited
-  heat) is on master: delete potash's `dissolvedSolidsKgPerL` declaration and
-  its lye-only fold in `BulkableLogic`; lye authors `solidsKgPerL` (replacing
-  `UNMEASURED_LYE_KG_PER_L`) and an arrow to black salts; delete
-  `IronPot.reconcileBoil`, `alkaliKg`, `lastSeenL`; the drive gains the
-  equal-potash TIMING checkpoint (AC 5's time half); `Ash` composes
-  `PercolatingMixin` and the hopper stops destroying the heaps.
+- **The boil runs on read.** The kernel plateau reconciles when someone
+  reads the pot, keeping the alkali as the water leaves; the pot reads the
+  strength the plateau wrote and casts the black salts at saturation. It
+  keeps no count of its own.
+- ✅ **`potash-on-sugar` landed with the sugar build (MR !439, 2026-10-24).**
+  Potash's `dissolvedSolidsKgPerL` declaration and its lye-only fold in
+  `BulkableLogic` are gone (a lye's strength is the same fold as a juice's
+  sugar); lye authors `solidsKgPerL` (replacing `UNMEASURED_LYE_KG_PER_L`);
+  `IronPot`'s `alkaliKg`/`lastSeenL` count and its re-base are gone — the pot
+  reads the plateau and casts at saturation. **Still open:** the drive's
+  equal-potash TIMING checkpoint (AC 5's time half), and `Ash` composing
+  `PercolatingMixin` so the hopper stops destroying the heaps (it still
+  turns a heap into spent ash in one step).
 - Rain spoiling open ash, big ash (burnt ground), spent ash on a field, the
   kelp burn, a fresh hen's egg as a hand tool, a solid put into a filled vat
   re-matching, person-to-person purchase, river freight — see the potash

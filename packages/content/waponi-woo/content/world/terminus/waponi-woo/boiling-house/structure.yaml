@@ -1,0 +1,14 @@
+class: /platform/idea/Structure
+data:
+  extent: /world/terminus/waponi-woo/boiling-house
+  entrance: /world/terminus/waponi-woo/boiling-house/location/train-floor
+  shortDescription: boiling house
+  register: definite
+  keywords: [house, "boiling house", chimney]
+  longDescription: >-
+    A long stone house with a tall chimney at one end, open-sided to the
+    yard, steam and woodsmoke pouring out of it and a sweet burnt smell
+    that carries down to the sea.
+  heightM: 8
+  storeys:
+    - { key: ground, extent: /world/terminus/waponi-woo/boiling-house/location }

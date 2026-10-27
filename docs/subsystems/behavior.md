@@ -247,6 +247,15 @@ candidate brain `urgency(ctx)`, sorts, and runs **exactly one** winner.
 | `pressing` | beats every `wanted`, whatever KIND it is |
 | `critical` | beats everything, **preempts a running interruptible task**, and wakes the agent early |
 
+⭐ **A `critical` winner keeps the agent on the short beat** (sugar build,
+2026-10-24): after a critical act the agent re-decides at the debounce
+(`behavior.beatMinGapMs`, 3 s) until nothing is critical. Before this, only
+a perceived fight or voice woke it early, so a critical task that changes
+on a CLOCK (a pan coming to the strike: syrup to caramel in about two game
+minutes on a full fire) was checked on the twenty-second beat (four game
+minutes; twenty-four unwatched) and missed its window every time. The
+debounce bounds the cost.
+
 ⭐ Four bands because each is a **distinct arbiter behaviour** — that is the
 test a band vocabulary has to pass, and it is why there is no fifth.
 Competence has five and light has six; those are estimator thresholds and
@@ -610,6 +619,25 @@ said so. A player-owned business therefore *chooses* its hours and pays
 for them — night trade against night wages — so the 24-hour city is
 something you build, not a default, and *"the one place open all night"*
 is literally a rostering choice, never a carve-out.
+
+⭐⭐ **Forced, or the hand's own act — two different things (sugar
+build, 2026-10-20).** `forceCommand` stamps the frame forced, and a forced
+frame is **unattributable by design**: `ExecutionContextApi.getActingAuthor`
+returns null, so a driven act never lands on a player's name. That is
+right for something done TO a body, and wrong for a hand's own WORK: every
+maker verb (`mill`, `cut`, `cook`, `order`…) resolves its maker from the
+acting author, and a forced one found nobody — the island's miller declined
+`no-maker` at every bundle, and the shipped `cellars` brain's `order` had
+declined the same way since it shipped. **A brain doing its own work uses
+`executeCommand`** (`prints`, `cellars`' crush, and the sugar brains);
+`forceCommand` stays for acts that are not the body's to own. Neither
+skips a gate.
+
+⚠ **A clock jump runs no brain.** Beats are real-time; a `WorldClockApi`
+advance moves every clock-reconciled stock (a boil, a cure, growth) but
+fires no cadence, so a wire drive or probe that jumps twelve hours sees an
+NPC chain do nothing at all. Watch working hours in real time (the sugar
+drive's `buyEstateBlocks`) and jump only the nights.
 
 ⭐ **`consigns` and `restocks` are the first brains that dispatch
 commands.** Neither calls an Api that moves money: every act is a literal

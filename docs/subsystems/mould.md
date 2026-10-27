@@ -114,7 +114,7 @@ casts TRUE.
 | process | the material's fact | driven by |
 |---|---|---|
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets (passing `temperatureK`, the set edge) |
-| **draining** | `Material.drainSetting { days, becomes?, moisture, loadRef, absorbedByMould? }` | `MouldMixin.reconcileSetting` |
+| **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture, loadRef, absorbedByMould? }` | `MouldMixin.reconcileSetting` |
 | **curing** | `Material.cureSetting { minutes, becomes? }` | `MouldMixin.reconcileSetting` — no act, no load, no heat |
 | **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor drains through `drainsInto()` |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
@@ -275,6 +275,14 @@ The pool's payload is carried onto a cast that can hold it: `maker`
 as `castDiscipline` (repair D1), freshness, pathogens, a set's moisture,
 `alloying` (ceramics ruling C), `madeFrom`.
 
+**Which material the cast is** (`SetPool.stampMaterial`): a drain set
+stamps `becomes` — or, when `becomesAs` names the shape this mould casts,
+that shape's material (sugar, 2026-10-26: one strike sets as loaf sugar in
+a cone and as raw sugar in a hogshead's block); a freeze stamps the pool's
+material when the pool is not `liquid`-tagged (one ingot row serves
+copper, tin and iron) and otherwise keeps the shape row's own (an ice
+block is ice, never water).
+
 ## What composing it claims
 
 *A made, wearing vessel that holds what set in it.* Requires `Bulkable`,
@@ -298,6 +306,35 @@ own shape answers both with its own refusal.
 - **The curfew bell** hangs on the Terminus market square; anyone rings it
   (`ring`, the `Bell`'s own `ringSound`).
 - **The creamery's cheese press**, beside the stone.
+
+## ⭐ The mould keeps its drainings (sugar, 2026-10)
+
+A drain set no longer throws away what it drives out. `DrainSetting`
+gains `drains` (what the drained matter IS, e.g. molasses off a sugar
+loaf) and `drainPerBand` (an extra share per grade band below `fine`: a
+poor strike gives up more and keeps less). When the mould stands ON a
+vessel that can take them (`drainsInto()`: the placement host, Bulkable,
+with an interior), the drainings are credited to it **as the set
+progresses**. Each step credits `total × progress`, tracked in
+`setDrainedKg`, and the remainder lands at the set. The cast's mass is
+what is left. The drainings get a **fresh payload**, not the pool's,
+so they cannot carry the pool's treatment, and a grade one band below
+the mould's. A sugar cone on its curing pot is the first consumer; a
+mould on a board keeps today's behaviour (the whey runs away).
+
+## ⭐ Percolation — a liquid through a porous solid (sugar, 2026-10)
+
+`PercolatingMixin` (`lib/material/Percolating.ts`) composes on a porous
+SOLID. `receivePercolant(litres)` puts liquid on it. The **reach**
+(`0..1`) advances on read over the host's `percolationDays()` while
+liquid is working, and each advance calls the host's
+`@hook onPercolated(from, to)`. `percolatesInto()` names where what
+comes out goes: the vessel below the mould the solid sits in (a loaf in
+its cone on a pot), else the vessel it is placed on. A clayed sugar loaf
+is the first consumer: its head washes white past a third of the reach,
+its middle past two-thirds, its foot when the water is through, and
+the molasses it carries out runs into the pot. The lye hopper's ash is
+the planned second consumer (the potash build).
 
 ## Deferred
 

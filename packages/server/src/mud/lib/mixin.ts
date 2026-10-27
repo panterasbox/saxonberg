@@ -535,6 +535,10 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
+  // ⭐ What a substance does by itself over time, at a rate set by
+  // temperature — sucrose inverting, starch staling (inert until its
+  // Material declares `kinetics`). Not spoilage: that is a population.
+  Kinetic: 'KineticMixin',
   // ⭐ Reduce matter, then separate it — the grinding primitive. A mill
   // takes grain and yields flour plus bran; a stamp mill takes ore and
   // yields concentrate plus tailings, on the same three fields. Isn't a
@@ -622,6 +626,9 @@ export const Mixins = {
   // ⭐ A vessel that decides the SHAPE of what sets in it, and keeps it —
   // a cheese hoop, an ingot mould, an ice pan (dairy D9).
   Mould: 'MouldMixin',
+  // ⭐ A porous SOLID a liquid seeps down through, carrying something out
+  // of it — a clayed sugar loaf, later the lye hopper's ash (sugar D3).
+  Percolating: 'PercolatingMixin',
   // ⭐ A SOLID that converts on a shelf by its own temperature — a wheel
   // of cheese. Maturing's discrete twin (dairy D9).
   Ripening: 'RipeningMixin',
@@ -878,6 +885,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // A mould — the refusal names what one is for.
   MouldMixin: "{} isn't a mould",
+  // Percolation — the refusal names what it needs.
+  PercolatingMixin: "nothing soaks down through {}",
   RipeningMixin: "{} doesn't ripen",
 
   // A pump — the refusal names what one does.

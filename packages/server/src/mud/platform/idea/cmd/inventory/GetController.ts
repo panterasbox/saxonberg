@@ -32,7 +32,7 @@ import { ProxyApi } from '../../../../api/proxy';
 
 interface GetModel extends CommandModel {
   targets: MqlManyResult;
-  /** `get crock from kiln` — only what is in or on this is taken. */
+  /** `from <holder>` / `off <surface>` — narrows the targets to what it holds. */
   source?: MqlOneResult;
 }
 
@@ -47,8 +47,30 @@ export default class GetController extends CommandController<GetModel> {
     context: CommandContext
   ): Promise<void> {
     const { quantity, raw } = model.targets;
-    let stuff = model.targets.stuff;
     const giver = context.commandGiver;
+    // ⭐ `get X from Y`: the targets already bound everything here that
+    // answers to X (one level into open containers); the source keeps
+    // only what Y holds — in it, or on it.
+    const source = model.source?.stuff ?? null;
+    if (model.source && !source) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`You don't see any '${model.source.raw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'source', query: model.source.raw });
+      return;
+    }
+    const stuff = source
+      ? model.targets.stuff.filter((s) => GetController.heldBy(s, source))
+      : model.targets.stuff;
+    if (source && stuff.length === 0) {
+      MessageApi.scene(giver)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`You don't find any '${raw}' in ${Mml.thing(source)}.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'targets', query: raw });
+      return;
+    }
     if (!MixinApi.isContainer(giver)) {
       throw new Error(
         `GetController: commandGiver ${giver.stuffId} is not a Container`
@@ -61,20 +83,6 @@ export default class GetController extends CommandController<GetModel> {
     // Defensive: placeless avatars are blocked at the inbound gate, so a
     // real `get` always has a location by the time the controller runs.
     if (!context.location) return;
-    // ⭐ `from <source>`: the targets are what is in or on it, nothing
-    // else the words happen to match.
-    const source = model.source?.stuff ?? null;
-    if (source) {
-      stuff = stuff.filter((s) => this.isWithin(s, source));
-      if (stuff.length === 0) {
-        MessageApi.scene(giver)
-          .topic('sense.survey')
-          .toSelf(Mml.compose`You don't see any '${raw}' in ${Mml.thing(source)}.`)
-          .send();
-        context.note({ kind: 'empty-result', field: 'targets', query: raw });
-        return;
-      }
-    }
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, raw, context);
     }
@@ -124,19 +132,6 @@ export default class GetController extends CommandController<GetModel> {
     );
 
     return this.renderResult(result, raw, context);
-  }
-
-  /** Is `s` in `host`, or placed on it, at any depth? */
-  private isWithin(s: Stuff, host: Stuff): boolean {
-    let at: Stuff | null = s;
-    for (let depth = 0; at && depth < 8; depth++) {
-      if (!MixinApi.isContainable(at)) return false;
-      if (at.getPlacement()?.host.stuffId === host.stuffId) return true;
-      const up: Stuff | null = at.getContainer();
-      if (up?.stuffId === host.stuffId) return true;
-      at = up;
-    }
-    return false;
   }
 
   private async executeWholeSet(
@@ -210,6 +205,15 @@ export default class GetController extends CommandController<GetModel> {
       return;
     }
     return;
+  }
+
+  /** Is `s` in `holder`, or placed on it? */
+  private static heldBy(s: Stuff, holder: Stuff): boolean {
+    if (!MixinApi.isContainable(s)) return false;
+    return (
+      s.getContainer()?.stuffId === holder.stuffId ||
+      s.getPlacement()?.host.stuffId === holder.stuffId
+    );
   }
 
   /**

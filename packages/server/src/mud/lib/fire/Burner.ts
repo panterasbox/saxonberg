@@ -84,6 +84,9 @@ const BURNER_DEFAULTS = {
   /** Fraction of the temperature gap a lit furnace closes on a scope Meltable
    * per `heatContents` call (a lumped radiant-transfer coefficient). */
   HEAT_TRANSFER_FRACTION: 0.5,
+  /** The share of a fire's power that reaches what it heats — a pot on
+   * it, a loaf in it — when the row authors none (sugar D2). */
+  DEFAULT_POWER_TRANSFER_FRACTION: 0.5,
 } as const;
 
 /**
@@ -156,6 +159,14 @@ export interface Burner extends Pumpable {
   fuelShareOf(material: Material): number;
   /** How fast it is burning right now, in watts. */
   burnPowerW(): number;
+  /**
+   * ⭐ The share of {@link burnPowerW} that reaches what this fire heats
+   * (sugar D2): the rest goes up the flue and into the room. An open
+   * kettle on a poor arch authors less; a train of pans more.
+   */
+  getHeatTransferFraction(): number;
+  /** The watts reaching what this fire heats: power × transfer fraction. */
+  deliveredPowerW(): number;
   /**
    * How completely it is burning, `0..1` — ⭐ the one number the heat,
    * the light and the exhaust all read.
@@ -276,6 +287,7 @@ export interface Burner extends Pumpable {
   setBurnTemperatureK(value: number): void;
   setBellowsMultiplier(value: number): void;
   setMaxBurnPowerW(value: number): void;
+  setHeatTransferFraction(value: number): void;
   setFuelCapacityKg(value: number): void;
   setFlameEnclosed(value: boolean): void;
   // Gated (Api) lit-state writer.
@@ -448,6 +460,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       bellowsActive: { persistent: true, runtimeState: true },
       lit: { persistent: true, runtimeState: true },
       maxBurnPowerW: { persistent: true, authorable: true },
+      heatTransferFraction: { persistent: true, authorable: true },
       fuelCapacityKg: { persistent: true, authorable: true },
       fuelBed: { persistent: true, authorable: true },
       draught: { persistent: true, authorable: true },
@@ -762,6 +775,12 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
      * forge 20 kW, a hearth 6 kW, a lamp 80 W.
      */
     public maxBurnPowerW: number = 0;
+    /**
+     * The share of the power that reaches what is in or on this fire
+     * (sugar D2) — `0..1`. See {@link Burner.getHeatTransferFraction}.
+     */
+    public heatTransferFraction: number =
+      BURNER_DEFAULTS.DEFAULT_POWER_TRANSFER_FRACTION;
     /** How much fuel the bed holds, in kg. */
     public fuelCapacityKg: number = 0;
     /**
@@ -1154,6 +1173,17 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     }
     public setMaxBurnPowerW(value: number): void {
       if (Number.isFinite(value) && value >= 0) this.maxBurnPowerW = value;
+    }
+    public setHeatTransferFraction(value: number): void {
+      if (Number.isFinite(value) && value > 0 && value <= 1) {
+        this.heatTransferFraction = value;
+      }
+    }
+    public getHeatTransferFraction(): number {
+      return this.heatTransferFraction;
+    }
+    public deliveredPowerW(): number {
+      return this.burnPowerW() * this.getHeatTransferFraction();
     }
     public setFuelCapacityKg(value: number): void {
       if (Number.isFinite(value) && value >= 0) this.fuelCapacityKg = value;

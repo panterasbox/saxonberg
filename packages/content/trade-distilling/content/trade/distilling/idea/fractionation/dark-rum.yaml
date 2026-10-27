@@ -1,0 +1,45 @@
+# The dark rum run (sugar D8) — the wash's cut, on molasses: the hearts
+# carry the burnt-sugar character over, more of it in the dark.
+class: /platform/idea/fractionation/FractionSchedule
+data:
+  key: dark-rum
+  inputCategory: dark-rum-wash
+  discipline: distilling
+  requiresHeatK: 351
+  productMaterial: /trade/distilling/idea/material/rum-dark
+  residueMaterial: /trade/distilling/idea/material/stillage
+  readBlur: 0.02
+  gradeStretch: 0.0075
+  fractions:
+    - key: foreshots
+      upTo: 0.005
+      character: >-
+        The first of it comes over sharp and wrong — solvent, something
+        behind the nose rather than in it.
+      gradeBand: poor
+      aromaticCarry: 0
+      toxins:
+        - { type: methanol, amount: 12000 }
+    - key: heads
+      upTo: 0.03
+      character: >-
+        Hot and raw, with a burnt-sugar edge that catches at the throat.
+      gradeBand: fair
+      aromaticCarry: 0.5
+      toxins:
+        - { type: methanol, amount: 3000 }
+    - key: hearts
+      upTo: 0.18
+      character: >-
+        Round now, molasses and banana and a little smoke, sitting on the
+        nose instead of climbing up it.
+      gradeBand: fine
+      aromaticCarry: 4
+      toxins:
+        - { type: methanol, amount: 40 }
+    - key: tails
+      upTo: 0.23
+      character: >-
+        Going heavy and oily, the sweetness turning to something like tar.
+      gradeBand: poor
+      aromaticCarry: 9

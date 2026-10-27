@@ -51,6 +51,7 @@
  */
 
 import { HeatTransition, type HeatTransitionSpec } from './HeatTransition';
+import { Kinetics, type KineticSpec } from './Kinetics';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
@@ -60,6 +61,7 @@ import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { VetoResult } from '../errors';
+import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
@@ -145,8 +147,28 @@ export interface ElementChemistry {
 export interface DrainSetting {
   days: number;
   becomes?: string;
+  /**
+   * ⭐ What the set thing is when it sets AS a given shape — keyed by the
+   * cast's template path, falling back to `becomes` (sugar: the strike
+   * set as a cone's loaf is loaf sugar; set as a hogshead's block, purged
+   * coarse and never clayed, it is raw sugar). The mould decides the
+   * shape; this lets the material say what that shape of it is.
+   */
+  becomesAs?: Record<string, string>;
   moisture: { unloaded: number; loaded: number };
   loadRef: number;
+  /**
+   * ⭐ What the drained-off matter IS (sugar D16) — molasses off a sugar
+   * loaf. When set, a mould standing ON a vessel credits that vessel with
+   * the drainings as they drain; absent, they go nowhere (the cheese
+   * hoop's whey runs off its board).
+   */
+  drains?: string;
+  /**
+   * Extra share of the pool that drains away per grade band below `fine`
+   * — a poor strike gives up more molasses and keeps less sugar.
+   */
+  drainPerBand?: number;
   /**
    * ⭐ The MOULD drinks the water, not a drain (ceramics D24 — slip
    * casting): it sets only in an absorbent mould, the water goes into the
@@ -176,6 +198,27 @@ export interface ChillArrow {
   mouldConductivityAbove: number;
   becomes: string;
 }
+
+/**
+ * ⭐ One stage of a boiled-down solution (sugar D1): once the liquor's
+ * dissolved-solids mass fraction reaches `fromW` on the boil plateau, it
+ * becomes the material `becomes` — unless `minBand` is set and the
+ * vessel's grade is below it, when it becomes `elseBecomes` instead
+ * (*what will not grain is blackstrap*). The `purifiedByBoiling` shape,
+ * keyed on concentration rather than time.
+ */
+export interface ConcentrationArrow {
+  fromW: number;
+  becomes: string;
+  minBand?: GradeBand;
+  elseBecomes?: string;
+}
+
+/**
+ * Density of the dissolved solids (kg/L) the mass-fraction read assumes —
+ * sucrose's, and near enough for any sugar or salt a pan boils down.
+ */
+const SOLUTE_DENSITY_KG_PER_L = 1.6;
 
 /**
  * Link from a biological Material to the Species it came from, plus
@@ -566,6 +609,12 @@ export default class Material extends SingletonMixin(
   // evaluated fails at the row.
   private _heatTransitions: HeatTransition[] = [];
 
+  // ⭐⭐ What this substance does by itself over time, at a rate set by
+  // temperature (kinetics — sucrose inverting, starch staling). `null` is
+  // inert. Validated by constructing the value object, so a curve that
+  // cannot be evaluated fails at the row. `KineticMixin` on the good runs it.
+  private _kinetics: Kinetics | null = null;
+
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
 
   protected get meltingPoint(): Quantity<'K'> {
@@ -667,12 +716,22 @@ export default class Material extends SingletonMixin(
         Number.isFinite(value.loadRef) &&
         value.loadRef > 0 &&
         (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== '')) &&
-        (value.absorbedByMould === undefined || typeof value.absorbedByMould === 'boolean')
+        (value.absorbedByMould === undefined || typeof value.absorbedByMould === 'boolean') &&
+        (value.drains === undefined || (typeof value.drains === 'string' && value.drains !== '')) &&
+        (value.becomesAs === undefined ||
+          (value.becomesAs !== null &&
+            typeof value.becomesAs === 'object' &&
+            Object.entries(value.becomesAs).every(
+              ([shape, path]) => shape !== '' && typeof path === 'string' && path !== '',
+            ))) &&
+        (value.drainPerBand === undefined ||
+          (Number.isFinite(value.drainPerBand) && value.drainPerBand >= 0 && value.drainPerBand < 1))
       )
     ) {
       throw new RangeError(
         'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
-          'loadRef > 0, and becomes a path or absent',
+          'loadRef > 0, becomes and drains each a path or absent, becomesAs a shape → path map or absent, ' +
+          'and 0 <= drainPerBand < 1',
       );
     }
     this.drainSetting = {
@@ -681,6 +740,9 @@ export default class Material extends SingletonMixin(
       loadRef: value.loadRef,
       ...(value.becomes ? { becomes: value.becomes } : {}),
       ...(value.absorbedByMould === true ? { absorbedByMould: true } : {}),
+      ...(value.becomesAs ? { becomesAs: { ...value.becomesAs } } : {}),
+      ...(value.drains ? { drains: value.drains } : {}),
+      ...(value.drainPerBand ? { drainPerBand: value.drainPerBand } : {}),
     };
   }
 
@@ -726,10 +788,10 @@ export default class Material extends SingletonMixin(
   }
   /** The material this sets as in a mould of conductivity `k`, or `null` (itself). */
   public chilledIn(mouldConductivity: number): string | null {
-    for (const a of this.chillsTo) {
-      if (mouldConductivity > a.mouldConductivityAbove) return a.becomes;
-    }
-    return null;
+    // ⚠ No `const` above `static fieldMeta`: the wiki spoiler snapshot
+    // names a field's owner by the nearest declaration, and a local here
+    // filed every Material field under `a.*`.
+    return this.chillsTo.find((arrow) => mouldConductivity > arrow.mouldConductivityAbove)?.becomes ?? null;
   }
 
   /**
@@ -740,10 +802,12 @@ export default class Material extends SingletonMixin(
    * authors neither.
    */
   public castShrinkage(): number {
-    const mp = this.getMeltingPoint().rawValue();
-    const a = this.getThermalExpansion();
-    if (!(mp > 293) || !(a > 0)) return 0;
-    return Math.min(0.1, a * (mp - 293));
+    return Material.shrinkageOf(this.getThermalExpansion(), this.getMeltingPoint().rawValue());
+  }
+
+  /** `α × (mp − 293)`, capped at 10 %; `0` without both (no locals here — see `chilledIn`). */
+  private static shrinkageOf(alpha: number, mp: number): number {
+    return !(mp > 293) || !(alpha > 0) ? 0 : Math.min(0.1, alpha * (mp - 293));
   }
   /** Whether freezing ruins this material (blood) rather than casting it. */
   public isRuinedByFreezing(): boolean {
@@ -1150,6 +1214,7 @@ export default class Material extends SingletonMixin(
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
     elasticity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
+    kinetics: { persistent: true, authorable: true },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
@@ -1231,6 +1296,8 @@ export default class Material extends SingletonMixin(
     // water comes through a filter clean is the lesson, and that tainted
     // water does not is the harder one.
     filteredTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    boilingPointElevation: { persistent: true, authorable: true },
+    concentratesTo: { persistent: true, authorable: true },
   };
 
   public getName(): string { return this.name; }
@@ -1646,6 +1713,23 @@ export default class Material extends SingletonMixin(
     this.vaporizesAboveK = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
+  /** ⭐ The changes this substance undergoes over time, or `null` (inert). */
+  public getKinetics(): Kinetics | null {
+    return this._kinetics;
+  }
+  /** The authored spec as stored (the row's own shape), or `null`. */
+  protected get kinetics(): KineticSpec[] | null {
+    return this._kinetics?.toSpec() ?? null;
+  }
+  protected set kinetics(value: KineticSpec[] | null) {
+    this._kinetics =
+      value === null || value === undefined || value.length === 0 ? null : new Kinetics(value);
+  }
+  /** Set the kinetic spec; throws on a curve that cannot be evaluated. */
+  public setKinetics(value: KineticSpec[] | null): void {
+    this.kinetics = value;
+  }
+
   /** Read melting point (`Quantity<'K'>`; `0` = does not melt). */
   public getMeltingPoint(): Quantity<'K'> {
     return this._meltingPoint;
@@ -1698,6 +1782,123 @@ export default class Material extends SingletonMixin(
 
   public setPurifiedByBoiling(value: string): void {
     this.purifiedByBoiling = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ Dissolved solids a fresh litre of this carries, kg/L (sugar D1):
+   * maple sap 0.025, cane juice 0.16, raw liquor 0.6. `0` for everything
+   * that is not a solution anyone boils down. The plateau rewrites the
+   * figure on the bulk's payload as it boils water off; this is where a
+   * fill with no payload figure starts.
+   */
+  protected solidsKgPerL = 0;
+
+  public getSolidsKgPerL(): number {
+    return this.solidsKgPerL;
+  }
+  public setSolidsKgPerL(value: number): void {
+    this.solidsKgPerL = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /**
+   * The mass fraction `w` of dissolved solids at `solidsKgPerL` — the one
+   * derived read the boil, its arrows and the hydrometer share. The water
+   * in a litre is what the solids have not displaced.
+   */
+  public solidsMassFraction(solidsKgPerL: number): number {
+    if (!(solidsKgPerL > 0)) return 0;
+    const waterKg = Math.max(0, 1 - solidsKgPerL / SOLUTE_DENSITY_KG_PER_L);
+    return solidsKgPerL / (solidsKgPerL + waterKg);
+  }
+
+  /**
+   * ⭐ How far the boiling point climbs as the solution thickens (sugar
+   * D1): `[[w, ΔK], …]`, `w` ascending in `[0, 1]`, read piecewise
+   * linearly. Empty — water's behaviour — means no elevation.
+   */
+  protected boilingPointElevation: Array<[number, number]> = [];
+
+  public getBoilingPointElevation(): ReadonlyArray<readonly [number, number]> {
+    return this.boilingPointElevation;
+  }
+  public setBoilingPointElevation(value: Array<[number, number]> | null): void {
+    if (value === null || value === undefined || value.length === 0) {
+      this.boilingPointElevation = [];
+      return;
+    }
+    let prev = -1;
+    for (const pt of value) {
+      if (
+        !Array.isArray(pt) ||
+        pt.length !== 2 ||
+        !(pt[0] >= 0 && pt[0] <= 1) ||
+        !(pt[0] > prev) ||
+        !(Number.isFinite(pt[1]) && pt[1] >= 0)
+      ) {
+        throw new RangeError(
+          'Material.setBoilingPointElevation: need [[w, ΔK], …] with w ascending in [0, 1] and ΔK >= 0',
+        );
+      }
+      prev = pt[0];
+    }
+    this.boilingPointElevation = value.map(([w, k]) => [w, k] as [number, number]);
+  }
+
+  /** The boiling point (K) at solids mass fraction `w` — the plain boil plus the elevation. */
+  public boilingPointAt(w: number): number {
+    const base = this._boilingPoint.rawValue();
+    const curve = this.boilingPointElevation;
+    if (curve.length === 0 || !(base > 0)) return base;
+    if (w <= curve[0]![0]) return base + curve[0]![1];
+    for (let i = 1; i < curve.length; i++) {
+      const [w1, k1] = curve[i]!;
+      if (w <= w1) {
+        const [w0, k0] = curve[i - 1]!;
+        return base + k0 + ((w - w0) / (w1 - w0)) * (k1 - k0);
+      }
+    }
+    return base + curve[curve.length - 1]![1];
+  }
+
+  /**
+   * ⭐ What this solution becomes as it boils down (sugar D1) — stages in
+   * ascending `fromW`. The plateau fires the highest arrow the liquor has
+   * reached. See {@link ConcentrationArrow}.
+   */
+  protected concentratesTo: ConcentrationArrow[] = [];
+
+  public getConcentratesTo(): readonly ConcentrationArrow[] {
+    return this.concentratesTo;
+  }
+  public setConcentratesTo(value: ConcentrationArrow[] | null): void {
+    if (value === null || value === undefined || value.length === 0) {
+      this.concentratesTo = [];
+      return;
+    }
+    let prev = 0;
+    for (const a of value) {
+      if (
+        a === null ||
+        typeof a !== 'object' ||
+        !(a.fromW > prev && a.fromW <= 1) ||
+        typeof a.becomes !== 'string' ||
+        a.becomes.trim() === '' ||
+        (a.minBand !== undefined && !Grade.isBand(a.minBand)) ||
+        (a.minBand === undefined) !== (a.elseBecomes === undefined) ||
+        (a.elseBecomes !== undefined &&
+          (typeof a.elseBecomes !== 'string' || a.elseBecomes.trim() === ''))
+      ) {
+        throw new RangeError(
+          'Material.setConcentratesTo: need fromW ascending in (0, 1], becomes a path, minBand a grade band, and elseBecomes present iff minBand',
+        );
+      }
+      prev = a.fromW;
+    }
+    this.concentratesTo = value.map((a) => ({
+      fromW: a.fromW,
+      becomes: a.becomes.trim(),
+      ...(a.minBand ? { minBand: a.minBand, elseBecomes: a.elseBecomes!.trim() } : {}),
+    }));
   }
 
   /** Read boiling point (`Quantity<'K'>`; `0` = does not boil). */
@@ -1927,22 +2128,6 @@ export default class Material extends SingletonMixin(
    * recursive composition? */
   public containsElement(elementSymbol: string): boolean {
     return materialLogic().containsElement(this as unknown as never, elementSymbol);
-  }
-
-  /**
-   * ⭐ Dissolved solids a fresh litre of this carries, kg/L (sugar D1):
-   * maple sap 0.025, cane juice 0.16, raw liquor 0.6. `0` for everything
-   * that is not a solution anyone boils down. The plateau rewrites the
-   * figure on the bulk's payload as it boils water off; this is where a
-   * fill with no payload figure starts.
-   */
-  protected solidsKgPerL = 0;
-
-  public getSolidsKgPerL(): number {
-    return this.solidsKgPerL;
-  }
-  public setSolidsKgPerL(value: number): void {
-    this.solidsKgPerL = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   /**

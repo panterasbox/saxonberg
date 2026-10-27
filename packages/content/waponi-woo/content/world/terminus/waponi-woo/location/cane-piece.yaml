@@ -1,0 +1,26 @@
+# the upper cane piece — cane ground (sugar W5): the estate's or a smallholder's own field.
+class: /trade/farming/location/SingletonField
+data:
+  fieldName: the upper cane piece
+  shortDescription: "upper cane piece"
+  keywords: [field, cane, piece, "upper cane piece"]
+  register: definite
+  longDescription: |
+    Cane stands in close rows higher than your head, rattling, the red earth between the rows cracked and dark. Cut stalks lie where the cutters stopped.
+  coords: { x: 1, y: 1, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 60000
+  ambientColorTemperature: 5800
+  groundSpotX: 3
+  groundSpotY: 3
+  areaM2: 8000
+  props:
+    - { template: /world/terminus/waponi-woo/thing/standing-cane, count: 6 }
+  exits:
+    west:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 2
+  cast:
+    - /world/terminus/waponi-woo/agent/cutter-1
+    - /world/terminus/waponi-woo/agent/cutter-2

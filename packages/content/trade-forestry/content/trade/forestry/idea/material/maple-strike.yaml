@@ -1,0 +1,11 @@
+# The maple strike — syrup boiled on to nine-tenths sugar, which grains as
+# it cools. Poured into a mould it sets into maple sugar (the mould's
+# drain-setting, sugar W2). The end of the maple arrows: held on the fire
+# it only thickens.
+extends: /trade/forestry/idea/material/maple-syrup
+data:
+  name: maple strike
+  keywords: [maple-strike, strike, maple, sugar]
+  appearance: dark amber and heavy, clouding with grain as it cools
+  tags: ["liquid", "food", "strike", "maple-strike"]
+  solidsKgPerL: 1.4

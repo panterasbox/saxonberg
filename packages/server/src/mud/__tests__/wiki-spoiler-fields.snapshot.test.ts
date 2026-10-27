@@ -325,6 +325,33 @@
  *   says it out loud: every exit into unpublished ground refuses with a
  *   reason naming the place. A flag whose state is announced at the
  *   door is not hidden knowledge.
+ *
+ * **Ceramics (+54 fields, −1).** ⭐ Eight are spoilers, every one a
+ * MEASURED property of matter, the boiling-point precedent:
+ *   - `Material.heatTransitions` · `vaporizesAboveK` · `thermalExpansion`
+ *     · `acidity` · `solubility` · `chillsTo`: what a kiln, a crazed
+ *     glaze, a chill mould or a saturated pan teaches you;
+ *   - `Material.leaches` and `filteredTo`, the two whose spoiler IS the
+ *     lesson: the lead in a glaze nobody tells you about, and that a
+ *     filter cleans fouled water but not tainted.
+ *
+ *   Everything else is level 0, because it is printed or felt:
+ *   - the green ware's state (`GreenwareMixin.*`, `greenBurstBy` included,
+ *     which the look line names);
+ *   - a form's numbers (`Form.*`, shown in the throw);
+ *   - a mould's cavity and its pour (`MouldMixin.*`), the press's turns
+ *     (`ScrewPress.*`), coats and flaws (`FacedMixin.*`,
+ *     `TangibleMixin.*`);
+ *   - the bookkeeping clocks (`ThermalMixin.heatWork` etc.);
+ *   - `Door.closesBehind`, which you see the door do.
+ *
+ *   `Material.crosslinking` folded into `heatTransitions` (one rule fires
+ *   everything).
+ *
+ *   ⚠ The scan files a field under the nearest `const` above
+ *   `fieldMeta`, and two ceramics methods declared locals there: every
+ *   Material field read `a.*` until `chilledIn` and `castShrinkage` lost
+ *   them.
 
  */
 

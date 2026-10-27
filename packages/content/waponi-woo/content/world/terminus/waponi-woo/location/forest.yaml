@@ -1,0 +1,28 @@
+# The island's forest — the boiling house's firewood (sugar D17, AC 10):
+# the stand thins as it is felled, as forestry shipped it.
+class: /trade/forestry/location/Wood
+data:
+  shortDescription: "island forest"
+  keywords: [forest, wood, trees, jungle]
+  register: definite
+  woodName: the island forest
+  areaM2: 200
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  ambientIntensity: 2000
+  ambientColorTemperature: 5600
+  longDescription: |
+    Tall dark-trunked trees close over the path, mahogany mostly, buttressed at the root and hung with creepers. Stumps along the edge show where the estate has been cutting for the boiling house, and the light comes in further there than it should.
+  coords: { x: -1, y: 3, z: 0 }
+  mix:
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/meliaceae/swietenia/mahagoni
+      name: mahogany
+      woodMaterialPath: /stuff/idea/material/wood/mahogany
+      seedPath: /trade/forestry/thing/seed/acorn
+      standing: 10
+      capacity: 12
+      incrementPerYear: 1
+  exits:
+    southeast:
+      destination: /world/terminus/waponi-woo/location/track
+      media: [ground]
+      edgeMinutes: 6

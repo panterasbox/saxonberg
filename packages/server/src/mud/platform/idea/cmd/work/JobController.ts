@@ -50,6 +50,12 @@ const UNIT_WORDS: Record<string, "L" | "kg" | "count"> = {
   kilos: "kg",
   kilogram: "kg",
   kilograms: "kg",
+  // ⭐ A COUNTED category (sugar W6): `supply 4 pieces of liming` — whole
+  // things, any row that carries the tag, stacks included. The engine
+  // always held this (a category condition in `count`); the phrase did
+  // not, so a fungible good could not be ordered at all.
+  piece: "count",
+  pieces: "count",
 };
 
 interface JobModel extends CommandModel {

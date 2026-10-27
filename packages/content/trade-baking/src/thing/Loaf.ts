@@ -1,8 +1,8 @@
 /**
  * Loaf — bread you can hold, and the far end of the whole chain.
  *
- * `StalingMixin(NutritionLabelMixin(Provision))`. Three things it is, in
- * order of how surprising they are:
+ * `NutritionLabelMixin(Provision)`. Three things it is, in order of how
+ * surprising they are:
  *
  *  1. a **`Provision`** — so it spoils, carries a maker's mark and a
  *     grade, has a temperature, and (since the grain chain) carries a
@@ -10,8 +10,11 @@
  *  2. a **`NutritionLabel`** host — the second composer beside `Dish`,
  *     because a loaf is the first tangible food whose label is not just
  *     its material: it is made of what the miller decided to keep;
- *  3. a **`Stales`** host — ⭐ the one thing on this list that is not
- *     spoilage and must never be confused with it.
+ *  3. it **stales** — ⭐ the one thing on this list that is not spoilage
+ *     and must never be confused with it. Staling is the bread MATERIAL's
+ *     kinetics (retrogradation, authored on its row) run by the kernel's
+ *     `KineticMixin` on `Provision`; baking's own `StalingMixin` retired
+ *     into it (sugar build, 2026-10-24).
  *
  * ## ⭐⭐ The appearance is WORDS for a continuous number
  *
@@ -29,7 +32,6 @@ import { NutritionLabelMixin } from '@saxonberg/server/mud/lib/metabolism/Nutrit
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StalingMixin } from '../lib/Staling';
 
 /** The bran materials a loaf's composition may name. */
 const BRAN_PATHS = ['/stuff/idea/material/food/bran'];
@@ -72,6 +74,6 @@ function crumbAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-export default class Loaf extends StalingMixin(NutritionLabelMixin(Provision)) {
+export default class Loaf extends NutritionLabelMixin(Provision) {
   static markupAugmenters: MarkupAugmenter[] = [crumbAugmenter];
 }

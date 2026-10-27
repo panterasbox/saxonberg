@@ -608,6 +608,7 @@ const CITATIONS: Record<string, string> = {
   extends: "row inheritance — mechanism 4 reads it from the CHILD's side",
   class: "a class path, not a row",
   classPath: "a class path, not a row",
+  carries: "a consigns hand names the goods it takes up — the stock's lines place them",
   operatingLocations: "a business lists where it trades; it clones nothing",
   works: "a reach names the works on it — read live or from the row, never placed (the scan sweep)",
   exemplar: "a par line's example good — it arrives by purchase, not by minting",

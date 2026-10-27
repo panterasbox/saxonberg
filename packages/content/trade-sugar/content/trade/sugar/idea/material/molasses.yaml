@@ -1,0 +1,10 @@
+# Molasses — what drains out of a setting loaf. ⭐ It is still sugar: boiled
+# again it strikes again (one band darker each time) until it is too
+# poor to grain, and then it is blackstrap.
+extends: /trade/sugar/idea/material/raw-liquor
+data:
+  name: molasses
+  keywords: [molasses, treacle, first-molasses]
+  appearance: dark brown and sticky, sweet with a bitter edge
+  tags: ["liquid", "food", "molasses", "first-molasses", "sweetener"]
+  solidsKgPerL: 0.8

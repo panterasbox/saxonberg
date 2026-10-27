@@ -53,7 +53,11 @@ import { execFileSync } from "child_process";
 import { readlinkSync, readFileSync } from "fs";
 
 const REPO_MARKER = "saxonberg";
-const GRACE_MS = 2000;
+// ⚠ A caller restarting a world it means to read back (a wire drive's
+// restart) passes a longer grace: SIGKILL after two seconds skips the
+// shutdown capture, and every unsaved host is lost (the sugar drive's
+// copper was).
+const GRACE_MS = Number(process.env.PREFLIGHT_GRACE_MS ?? 2000);
 
 /** Run a command, returning stdout or '' — never throws. */
 function sh(cmd, args) {

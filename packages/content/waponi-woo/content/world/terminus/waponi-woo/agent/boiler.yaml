@@ -1,0 +1,53 @@
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  name: Grace Achterberg
+  keywords: [boiler, grace, achterberg, skimmer]
+  pronouns: she
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: boiler with a long skimmer, red-faced from the fire
+  register: indefinite
+  longDescription: |
+    A broad, red-faced woman with a long-handled skimmer, who reads the coppers by the colour of the steam.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  archetype: hand
+  competence:
+    - { discipline: sugar-refining, asserting: proficient }
+  behaviors:
+    # ⭐ The same refiner's brain as Terminus's, in the island's words
+    # (sugar W6): juice from the mill's tub into a kettle over the train,
+    # struck into a hogshead on its pot, the cured block carried to the
+    # estate counter (south, east, north — and back).
+    - brain: /trade/sugar/behavior/refines
+      trigger: candidate
+      config:
+        kettle: kettle
+        fire: train
+        mould: hogshead
+        pot: pot
+        fuels: [bagasse, log]
+        # Keep the bed charged: the train burns at twenty kilowatts only on
+        # some fourteen kilos of fuel (1.5 kW a kilo); a log at a time ran it
+        # at three, and a batch never reached syrup.
+        charge: 14
+        # A burnt batch is spilled and the pan started again.
+        spoilt: spill
+        # A full train kettle is ladled at the strike, never lifted.
+        ladle: true
+        source: juice
+        # The pan is charged from the cistern a batch at a time — forty
+        # litres strikes in about two hours on the train (drive 13).
+        cistern: cistern
+        batch: 40
+        finish: block
+        counter: /world/terminus/waponi-woo/thing/stock
+        out: south east north
+        back: south west north
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "skims the grand copper and flicks the scum into a pail." }
+          - { kind: free, value: "pulls a drop of liquor between finger and thumb." }

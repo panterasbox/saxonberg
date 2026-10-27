@@ -1,0 +1,16 @@
+# The island's ground — weathered volcanic ash (sugar D11). ⭐ Character
+# still prices IMPROVEMENT, never yield: what this row says is what was
+# there before anyone worked it — far more nitrogen and organic matter
+# than rough ground anywhere at Terminus, and free-draining. The first
+# crops off it are the best; working it down is the planter's lesson.
+class: /system/ground/idea/GroundCharacter
+data:
+  name: the ash land
+  pins: {}
+  bands:
+    - from: [-5, -5]
+      to: [5, 5]
+      nitrogenPct: 45
+      organicPct: 60
+      drainageScale: 1.2
+      note: weathered volcanic ash under the cane pieces

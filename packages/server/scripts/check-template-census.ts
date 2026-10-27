@@ -129,6 +129,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const f of [
     '_biomePath', '_speciesPath', '_bodyPlanPath',
     '_parentCladePath', '_materialPath', '_defaultMaterialPath',
+    // ⭐ `_familyPath` (sugar D5) — the ingredient family a material
+    // cites, followed by a refusal to say "honey is a different
+    // sweetener". A rowless one silently loses the sentence.
+    '_familyPath',
     // ⭐ The mana-device citations (TPA reform W5/W6). `mainsRef` names
     // the line a device is wired to and `bornWithCell` the cell a gate
     // shipped with — both resolved live, so a rowless one is a device
@@ -286,6 +290,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   }
   if (data.formTemplates && typeof data.formTemplates === 'object') {
     for (const v of Object.values(data.formTemplates as Record<string, unknown>)) push('formTemplates', v);
+  }
+  // ⭐ `concentratesTo` (sugar D1) — the stages a boiled-down solution
+  // becomes, resolved live on the boil plateau. A rowless arrow is a pan
+  // that boils past the strike and becomes nothing in particular.
+  if (Array.isArray(data.concentratesTo)) {
+    for (const a of data.concentratesTo as Array<Record<string, unknown>>) {
+      push('concentratesTo', a.becomes);
+      push('concentratesTo', a.elseBecomes);
+    }
   }
   if (data.drainSetting && typeof data.drainSetting === 'object') {
     push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);

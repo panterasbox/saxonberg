@@ -1,0 +1,12 @@
+# A curing pot — a sugar cone stands on it point-down and its molasses
+# runs into it as the loaf sets (sugar D16).
+class: /trade/sugar/thing/CuringPot
+data:
+  shortDescription: curing pot
+  keywords: [pot, "curing pot", "molasses pot"]
+  register: indefinite
+  longDescription: >-
+    A squat glazed pot with a wide mouth sized to take the point of a sugar
+    cone, its inside black with molasses.
+  _materialPath: /stuff/idea/material/ceramic/ceramic
+  mass: 5

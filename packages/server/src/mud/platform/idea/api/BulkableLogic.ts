@@ -44,8 +44,7 @@ import type {
 } from '../../../api/bulk';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
-// The `dissolvedSolidsKgPerL` payload field is declared by LyeStrength's merge.
-import { UNMEASURED_LYE_KG_PER_L } from '../../../lib/cleanliness/LyeStrength';
+// The `dissolvedSolidsKgPerL` payload field is declared by Thermal's merge.
 import { ContentsTitle } from '../../../lib/chattel/ContentsTitle';
 
 const BULK_FIELD = 'bulk';
@@ -680,6 +679,9 @@ export class BulkableLogic extends ApiLogic {
       // ⭐ Dissolved solids blend by VOLUME too (sugar D1): a pail of thin
       // juice tipped into a thick pan thins it. Either side without a
       // figure is a fresh fill at its material's own strength.
+      // ⭐ A lye's strength is this same fold (potash-on-sugar): lye
+      // authors its `solidsKgPerL`, and a pail of weak lye tipped into a
+      // pot of strong thins it exactly as thin juice thins a thick pan.
       const fromSolids =
         fromPayload?.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
       if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
@@ -720,23 +722,6 @@ export class BulkableLogic extends ApiLogic {
         });
       }
 
-      // ⭐ A lye's strength blends by VOLUME (potash D5): a pail of weak
-      // lye tipped into a pot of strong thins it. ⚠ Lye only, and only
-      // until the sugar build's fold of the same field lands — then this
-      // block is DELETED (`potash-on-sugar`), since that fold covers it.
-      if (!toWasEmpty && material.hasTag('lye')) {
-        const held = to.getPayload();
-        // A lye nobody measured is taken at soap strength (LyeStrength).
-        const fromK = fromPayload?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L;
-        const toK = held?.dissolvedSolidsKgPerL ?? UNMEASURED_LYE_KG_PER_L;
-        const total = applied + toAmountBefore;
-        if (total > 0 && (fromK > 0 || toK > 0)) {
-          to.setPayload({
-            ...(held ?? {}),
-            dissolvedSolidsKgPerL: (applied * fromK + toAmountBefore * toK) / total,
-          });
-        }
-      }
     }
 
     // ⭐ (cleanliness D22) A VOLATILE liquid poured into the open gives off

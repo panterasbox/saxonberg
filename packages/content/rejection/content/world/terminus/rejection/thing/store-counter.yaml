@@ -73,6 +73,11 @@ data:
     - { itemTemplatePath: /trade/smelting/thing/crucible, par: 2 }
     - { itemTemplatePath: /stuff/thing/lead-pig, par: 2 }
     - { itemTemplatePath: /stuff/thing/tin-bar, par: 2 }
+    # ⭐ Lime, for the sugar house (sugar D7): a refiner tempers every
+    # copper with a lump of it, and the quarry's shelf is where the
+    # realm's lime already is. Nobody burns lime yet — the limeburner seat
+    # is an open finding — so it is stocked here like the other kit.
+    - { itemTemplatePath: /trade/quarrying/thing/quicklime, par: 4 }
   # ⚠ The field is `prices:` — a path→figure MAP, not an `offers:` list.
   # It was authored as a list first and every `buy` answered *"isn't for
   # sale"*: a `Stock` with stock lines and no prices holds the goods and
@@ -115,3 +120,4 @@ data:
     /trade/smelting/thing/crucible: 15
     /stuff/thing/lead-pig: 20
     /stuff/thing/tin-bar: 25
+    /trade/quarrying/thing/quicklime: 3
