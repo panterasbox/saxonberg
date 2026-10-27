@@ -218,6 +218,11 @@ describe('the slot — the leach and the weep', () => {
     expect(bare.getBulkAmount('interior').rawValue()).toBeLessThan(2);
     expect(bare.getWetness()).toBeGreaterThan(0);
     expect(glazed.getBulkAmount('interior').rawValue()).toBeCloseTo(2, 6);
+    // ⭐ …and a look SAYS it (drive C, run 37: "thoroughly dried").
+    expect(bare.weeps()).toBe(true);
+    expect(glazed.weeps()).toBe(false);
+    expect(bare.getMarkupLong(bare as never, {})).toMatch(/damp and beaded/);
+    expect(glazed.getMarkupLong(glazed as never, {})).not.toMatch(/damp and beaded/);
   });
 
   it('⭐ evaporation carries heat away — a wet jar sits below its air; a dry one at it', async () => {

@@ -1084,15 +1084,6 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
     }
 
-    /** Does this vessel hold a liquid its porous outside lets through? */
-    private weeps(): boolean {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isFaced(self) || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return false;
-      const held = self.getBulkMaterial('interior');
-      if (held === null || !held.hasTag('liquid')) return false;
-      if (!(self.getBulkAmount('interior').rawValue() > 0)) return false;
-      return !self.holdsWater('outside') || !self.holdsWater('inside');
-    }
 
     public evaporativeDepressionK(airK: number): number {
       const self = this.thermalHost;
@@ -1106,7 +1097,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ A vessel WEEPING through its body keeps its outside wet for as
       // long as it weeps — the surface is the film, whatever the body's
       // average saturation (the weeping jar).
-      if (wetness < 1 && this.weeps()) wetness = 1;
+      const body = self as unknown as Stuff;
+      if (wetness < 1 && MixinApi.isFaced(body) && body.weeps()) wetness = 1;
       if (!(wetness > 0.01)) return 0;
       const air = scope.getAir();
       const wb = new Evaporation(air.humidityPct, air.windMs, airK).wetBulbK();

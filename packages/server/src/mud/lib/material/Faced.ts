@@ -73,6 +73,11 @@ export interface Faced {
   cleansAs(): number;
   /** Is any coat on any face still wet? */
   hasWetCoats(): boolean;
+  /**
+   * Does this vessel hold a liquid its porous body lets through? Its
+   * outside is a wet film for as long as it does (the weeping jar).
+   */
+  weeps(): boolean;
   /** The aromas a porous face has kept from what it held (the crock that remembers). */
   absorbedAromas(face: FaceName): readonly AromaTag[];
   /** Record what a porous face keeps — the slot's face exchange writes it. */
@@ -119,6 +124,10 @@ const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
     const glaze = materialAt(top.material)?.getName() || 'glaze';
     lines.push(COAT_WORDS[top.state](glaze, face));
   }
+  // ⭐ A weeping vessel's outside is wet for as long as it weeps — the one
+  // rule the evaporative cooling reads too (drive C, run 37: the jar of
+  // water read "thoroughly dried" while the thermometer found it cool).
+  if (host.weeps()) lines.push('Its outside is damp and beaded where what it holds seeps through.');
   if (lines.length === 0) return text;
   const all = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
@@ -167,6 +176,15 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return MixinApi.isBulkable(self) && self.hasInteriorBulk()
         ? ['outside', 'inside']
         : ['outside'];
+    }
+
+    public weeps(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return false;
+      const held = self.getBulkMaterial('interior');
+      if (held === null || !held.hasTag('liquid')) return false;
+      if (!(self.getBulkAmount('interior').rawValue() > 0)) return false;
+      return !this.holdsWater('outside') || !this.holdsWater('inside');
     }
 
     public getCoats(face: FaceName): readonly CoatLayer[] {
