@@ -847,11 +847,21 @@ suite('⭐ 24 — the shelf', () => {
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
     novice = await goTo(novice, SHOP);
-    const first = await examine(novice, 'me:i:mug');
     potter = await goTo(potter, SHOP);
+    // ⭐ Each mug by its MAKER, wherever it is now: the novice's first one
+    // had changed hands by 24 — it was in the potter's (run 35).
+    const mugBy = async (maker: string): Promise<string> => {
+      for (const [s, where] of [[novice, 'me:i:mug'], [potter, 'me:i:mug'], [potter, 'here:i:mug']] as const) {
+        const rows = (await s.query(where, { fields: 'detail' }).catch(() => [])) as { longDescription?: string }[];
+        const mine = rows.find((r) => String(r.longDescription ?? '').includes(`Made by ${maker}`));
+        if (mine) return String(mine.longDescription);
+      }
+      return '';
+    };
+    const first = await mugBy(novice.handle);
     potter = await clayFor(potter, 1);
     await act(potter, 'shape clay into mug', '1 hour');
-    const latest = await examine(potter, 'me:i:mug');
+    const latest = await mugBy(potter.handle);
     expect(first).toMatch(/heavy|thick/i);
     expect(latest).toMatch(/light|thin/i);
     expect(first).not.toEqual(latest);
