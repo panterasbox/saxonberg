@@ -3,7 +3,7 @@
 class: /trade/ceramics/thing/FlowerPot
 data:
   shortDescription: small plant pot
-  keywords: [pot, "plant pot", "flower pot", "small pot", small, "clay pot"]
+  keywords: [pot, "plant pot", "small plant pot", "flower pot", "small pot", small, "clay pot"]
   register: indefinite
   longDescription: >-
     A clay flower pot with a hole in the bottom.

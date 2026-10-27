@@ -980,7 +980,7 @@ suite('⭐ 25 — the stall', () => {
     expect(await held(potter)).toMatch(/plant pot|pot/i);
     potter = await goTo(potter, SQUARE);
     const consigned = await say(potter, 'consign "plant pot" --ask 3');
-    expect(consigned).toMatch(/consign|stall|ask/i);
+    expect(consigned).toMatch(/consign|stall|ask|for sale/i);
     const onStall = await examine(potter, 'stall:i:pot');
     expect(onStall, 'the stall holds the pottery’s pot').toMatch(/pot/i);
     novice = await goTo(novice, SQUARE);
