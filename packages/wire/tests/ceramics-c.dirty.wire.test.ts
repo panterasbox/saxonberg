@@ -467,6 +467,9 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
 
 suite('⭐ 18 — glaze', () => {
   it('stir an ash glaze and a lead glaze; dip two crocks inside; glost-fire them — glazed, marked and dated', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     // The two tubs: ash (or lead) with a little clay and water, stirred.
     potter = await clayFor(potter, 1);
     await say(potter, 'get pail');
@@ -514,6 +517,9 @@ suite('⭐ 18 — glaze', () => {
   }, 7_200_000);
 
   it('a kiln opened HOT dunts its ware — some visibly, one only to the ear, and `ring` finds it', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     // A third firing of what is left: opened while it still glows.
     // (What is left in the kiln is not read by `kiln:i` — see 17.)
     await fireKiln(potter, '6 hours');
@@ -532,6 +538,9 @@ suite('⭐ 18 — glaze', () => {
 
 suite('⭐ 19 — lead leaches', () => {
   it('vinegar kept a week in the lead-glazed crock: no sense says anything, and it carries lead; the ash crock does not', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     // ⚠ Setup by the founder: vinegar is a winemaker's spoilt wine, and
     // the drive only needs a sour liquid in two crocks — the LEACH is the act.
     await say(potter, 'drop ashpot');
@@ -566,6 +575,9 @@ suite('⭐ 19 — lead leaches', () => {
 
 suite('⭐ 21 — the weeping jar', () => {
   it('an unglazed jar of water weeps, its outside wet and its water below room heat; a glazed one holds at room heat', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     await mint(SHOP, THERMOMETER);
     await say(potter, 'get thermometer');
     await say(potter, 'get jar');
@@ -676,6 +688,9 @@ suite('⭐ 22 — the filter (W8)', () => {
 
 suite('⭐ 23 — breakage and mending', () => {
   it('the thin bowl dropped on stone breaks to sherds; the novice’s thick mug survives; on earth the thin bowl survives', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     // A second thin bowl, fired, for the earth floor.
     potter = await goTo(potter, SHOP);
     const bowls = await examine(potter, 'here:i:bowl');
@@ -701,6 +716,9 @@ suite('⭐ 23 — breakage and mending', () => {
   }, 1_800_000);
 
   it('`grind` the sherds — grog', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     potter = await goTo(potter, SQUARE);
     await say(potter, 'get sherds');
     potter = await goTo(potter, MILL);
@@ -731,6 +749,9 @@ suite('⭐ 23 — breakage and mending', () => {
 
 suite('⭐ 20 — flame and body', () => {
   it('a stoneware crock on a cook fire cracks; a grogged earthenware pot on the same fire survives', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     potter = await goTo(potter, SHOP);
     // Stoneware: a crock fired hot and long, wide open.
     potter = await clayFor(potter, 2);
@@ -778,6 +799,9 @@ suite('⭐ 20 — flame and body', () => {
   }, 7_200_000);
 
   it('boiling water poured into a cold glazed mug cracks it — thermal shock', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     // The ash-glazed crock's twin: the leadpot holds water from 21; a jar of
     // water is brought to the boil by the founder (setup), then poured.
     await say(potter, 'get jar');
@@ -801,6 +825,9 @@ suite('⭐ 20 — flame and body', () => {
 
 suite('⭐ 24 — the shelf', () => {
   it('the novice’s first mug and the practiced potter’s latest read differently — heft, wall, finish', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     novice = await goTo(novice, SHOP);
     const first = await examine(novice, 'me:i:mug');
     potter = await goTo(potter, SHOP);
@@ -815,6 +842,9 @@ suite('⭐ 24 — the shelf', () => {
 
 suite('⭐ 25 — the stall', () => {
   it('a plant pot consigned at the Terminus potter’s stall is bought with its maker and body', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     // The practiced potter's bisque plant pot from 17, consigned into the
     // stall's own plant-pot line.
     potter = await goTo(potter, SHOP);
@@ -833,6 +863,9 @@ suite('⭐ 25 — the stall', () => {
   }, 1_800_000);
 
   it('the general store’s plant-pot line is the pottery’s row — local first, an import dearer', async () => {
+    // Read and act by daylight: in the dark a query sees nothing, and a
+    // named piece in your own hand cannot be bound (run 34's glaze, at night).
+    await toHour(8, 14);
     novice = await goTo(novice, STORE);
     const bought = await say(novice, 'buy small plant pot');
     expect(bought).toMatch(/you buy/i);
