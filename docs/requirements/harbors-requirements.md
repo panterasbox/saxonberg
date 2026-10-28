@@ -3,7 +3,7 @@
 **Kind:** feature
 **Leads from:** kernel (first consumer: the Port of Terminus, built in this
 build — the *Hesper* berthed, a yard selling ship kinds, a sinking driven at
-the port; then Waponi Woo's jetty, converted here after sugar merges)
+the port; then Waponi Woo's jetty — sugar merged 2026-10-27)
 
 A ship today is a one-off: the *Hesper* and the *Ostrander* are authored
 singletons, reached only by hard-wired one-way `aboard` exits, owned by
@@ -112,7 +112,7 @@ herself on the bottom.
 - **A sunk ship is her own wreck**: on the bottom where she went down, her
   rooms under water, her cargo in her hold, her title intact; divers can go
   down to her; nobody knows where she lies until someone charts her.
-- **Waponi Woo's jetty becomes a quay with berths** (after sugar merges), and
+- **Waponi Woo's jetty becomes a quay with berths**, and
   the *Hesper*'s and *Ostrander*'s hard-wired `aboard` exits become berths.
 
 ## Non-goals
@@ -180,7 +180,7 @@ herself on the bottom.
 
 - **The *Hesper*** (lies at the bar; one-way `aboard` from the estuary mouth
   and Gannet Rock) → berthed at the new port; Gannet Rock's ledge keeps a
-  landing for boats. Her hold becomes persistent like any ship's rooms.
+  landing for boats. (Her hold is already persistent — sugar did that.)
 - **The *Ostrander*** (one-way `aboard` from Wharfside, the woodyard, the falls
   landing) → berths at Wharfside; the woodyard and falls landing become berths
   she comes alongside.
@@ -188,16 +188,22 @@ herself on the bottom.
   sits beside it; the mouth stays a landing.
 - **The-pool node** (going ashore there puts you in the water) — the harbor is
   where a ship goes ashore dry.
-- **Waponi Woo** (sugar's, on its branch): its jetty and the hard-wired
-  `aboard` become a quay with berths — **after sugar merges** (decided: sugar
-  first).
+- **Waponi Woo** (sugar's, merged 2026-10-27): its jetty — a plain landing
+  with a one-way `aboard` hard-wired to the *Hesper* — becomes a quay with
+  berths.
+- ⚠ **Sugar's island-sugar loop** (the Sugar House's bounty: a player buys a
+  block at the estate, goes aboard the *Hesper* at Waponi Woo, sails her home
+  over the bar, delivers it) depends on a player taking her helm. Under this
+  build's rule (only her master steers) the loop survives by **charter**
+  (below); **sugar's drive step 20 changes to charter her first** — this
+  build owns that edit.
 - **The harbor works** (Nell Abery, the pilot; the harbor board) gains the
   harbormaster's seat.
 - **Today's ships get owners**: the *Hesper* and **two new regulars** (authored
   in Stage A, of different lengths, with NPC masters — the port's traffic)
   belong to a new **shipping line** (a corpo); the *Ostrander* belongs to the
   **city** (a public river service). Today's *Hesper's company* business is
-  how the line runs her.
+  how the line runs her — and how she is **chartered**.
 - **The Hesper's bilge pump** (a wearing tool prop today) becomes the pump
   that works her bilge.
 - **Verbs**: `hail` (signal a sail) now also reaches a harbor office;
@@ -239,6 +245,18 @@ band MEANS differs by kind: a worn house reads worn; a worn hull leaks. A
 sleeping ship's leak catches up when she is next looked at (lens 1): a
 neglected ship at her berth has **settled onto the shallow harbor bottom** and
 can be pumped out; at anchor in deep water she would have sunk.
+
+### The *Hesper* is chartered
+Lens 1 (a charter — hiring the whole ship — is how a merchant historically
+moved a cargo; the slate § 17), lens 3b (the player stays the carrier, the
+hole sugar's economy was built around) and lens 6 (the charterer pays the
+line). Closed by rules already set: chartered **by the day**, like the canoe
+hire; arranged **aboard her wherever she lies** (her company's hand keeps the
+book) or at the line's desk on the Town Quay; **the charterer is her master
+for the charter** — the helm is theirs, and so is clearing her dues; when the
+charter ends she lies where she was left, and the next charterer finds her
+there. Chartering the line's regulars is the same rows, if the line offers
+them.
 
 ### Mooring has no new verb
 `course <quay>` moors her alongside it; any other course unmoors; the way
@@ -377,47 +395,50 @@ an obstruction. Nobody knows where she lies until someone charts her.
    quay; the dues are in the harbor works' books.
 6. Hail at night: lie in the roads until the office opens.
 
-**A2 — sugar's island** (sugar merges before this build starts; driven
-with Stage A)
-7. The *Hesper* sails to Waponi Woo, hails, berths alongside its quay; ashore
-    by the way named for her; home again to her berth at Terminus.
+**A2 — the charter, and sugar's island**
+7. Aboard the *Hesper* at Waponi Woo, charter her for two days: you are her
+   master; `course bar` is yours to give. Without the charter, it is refused.
+8. Sail home, hail, berth at the Town Quay; clear her dues; go ashore by the
+   way named for her; the charter's two days are in the line's books.
+9. Charter her again and sail to Waponi Woo: she hails and berths alongside
+   its quay; ashore by the way named for her — no hard-wired exit remains.
 
 ### Stage B — the boats
 
 **B1 — owning a ship**
-8. At the yard, `buy` a smack and name her as she is registered (a name
+10. At the yard, `buy` a smack and name her as she is registered (a name
    already in the register is refused): she lies at the yard's quay; the
    register lists her in your name, 64 shares, under Terminus' flag.
-9. A second player buys another of the same kind: her rooms are hers; what you
+11. A second player buys another of the same kind: her rooms are hers; what you
    leave in your hold is not in hers. The second player cannot go aboard
    yours while her gangway is locked, and cannot set your course; hand them
    her key and they can come aboard (still not take the helm).
-10. Sell 16 shares to the second player at a price both accept; the money and
+12. Sell 16 shares to the second player at a price both accept; the money and
    the shares move together; the register shows both owners.
-11. At sea, `government`: Terminus City, her flag state.
-12. Leave her; she sleeps; restart the server; come back: she is where you
+13. At sea, `government`: Terminus City, her flag state.
+14. Leave her; she sleeps; restart the server; come back: she is where you
     left her, with what you left in her. Come back after weeks of game time:
     her hull reads worn and she has settled at her berth; pump her out.
 
 **B2 — owning a boat**
-13. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
+15. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
     (`look` says so); overload her in a chop and she swamps.
-14. Hire a canoe from Ada Fenn for two days; paddle off; return it; the hire
+16. Hire a canoe from Ada Fenn for two days; paddle off; return it; the hire
     is two days' money.
 
 **B3 — the hull's decline**
-15. Aboard an old ship whose caulking is worn, sound the well: there is water
+17. Aboard an old ship whose caulking is worn, sound the well: there is water
     in the bilge, rising.
-16. `pump` the bilge pump: the level falls while you work; stop, and it rises.
-17. Let it go: the lowest rooms flood, then the next; you are told she is
+18. `pump` the bilge pump: the level falls while you work; stop, and it rises.
+19. Let it go: the lowest rooms flood, then the next; you are told she is
     settling; she goes down.
-18. Still aboard, you are in her rooms under water; swim up the column to the
+20. Still aboard, you are in her rooms under water; swim up the column to the
     surface.
-19. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
+21. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
     the hold — and she is still in your name in the register.
-20. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
+22. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
     with what is in her.
-21. `maintain` her hull with a caulker's kit: the leak stops, and the hull
+23. `maintain` her hull with a caulker's kit: the leak stops, and the hull
     reads sound. Mooring, pumping and handling her have counted toward
     seamanship.
 
@@ -436,8 +457,10 @@ with Stage A)
 - Berth dues for a stay appear in the owner's account and the harbor works';
   a ship cannot clear the harbor with dues owing.
 - A ship hailing out of office hours is sent to the roads until it opens.
-- After sugar merges, Waponi Woo is reached by berthing, not by a hard-wired
-  exit.
+- Waponi Woo is reached by berthing, not by a hard-wired exit.
+- The *Hesper*'s helm is refused to anyone without a charter (or the line's
+  appointment); a charterer holds it for the days paid, and sugar's island
+  loop is carried home that way.
 
 ### Stage B — the boats
 
@@ -475,5 +498,5 @@ with Stage A)
   [underwater.md](../subsystems/underwater.md) · [civics.md](../subsystems/civics.md) ·
   [employment.md](../subsystems/employment.md) · [retail.md](../subsystems/retail.md) ·
   [corpo.md](../subsystems/corpo.md) · [location-graph.md](../subsystems/location-graph.md)
-- In flight: sugar (`reqs/sugar`, build-1) — merges first; its held voyage
-  wave meets this build at Waponi Woo.
+- Sugar (merged 2026-10-27, MR !439): its island-sugar loop meets this build
+  at Waponi Woo, and its drive step 20 gains the charter.
