@@ -46,6 +46,11 @@ entry also carries the two axes confinement sits on — **who may amend**
 `wall · camera · witness · norm`) — and the ceiling argument now
 recorded here as Q8.
 
+> ⭐ **2026-10-28 → [law-and-order-slate](./law-and-order-slate.md) § 7** — banishment is the
+> primary remedy and every form is a dial; sentences bind the character; gaol is one option on a
+> sentence menu; penal geography adds relegation against deportation, the ticket of leave, and
+> *interior jurisdiction: inmates* — the inmate polity.
+
 ## The three enforcement tiers — and the guardrail above all of them
 
 | Tier | Offense class | Handled by | Face |
