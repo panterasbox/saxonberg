@@ -1,0 +1,24 @@
+# A hay rick — the winter, stacked in summer (cover build D11).
+#
+# ⭐ A trough that names this rick in `suppliedBy` is kept from it while
+# nobody is watching: the hand's standing job of forking hay down,
+# abstracted over an interval no brain can act in. It still costs
+# somebody the activity — the hay had to be mown and stacked in season,
+# and a rick nobody filled feeds nothing.
+#
+# The kernel's generic concrete container (no lid, discrete goods in it),
+# fixed where it is built.
+class: /platform/thing/Vessel
+data:
+  shortDescription: hay rick
+  keywords: [rick, hayrick, stack, haystack, hay-rick]
+  register: indefinite
+  longDescription: >-
+    A stack of hay built up square on a bed of brush to keep it off the
+    wet ground, its top raked down and thatched against the rain. Bales
+    are pulled from the near end as they are wanted.
+  fixedInPlace: true
+  mass: 40
+  # The bed of brush and the thatch — the HAY is what is put in it. ⚠ Not
+  # the hay material: a rick that read as food would be eaten itself.
+  _materialPath: /stuff/idea/material/wood/oak-brash

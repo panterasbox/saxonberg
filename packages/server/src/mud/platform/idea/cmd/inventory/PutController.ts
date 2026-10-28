@@ -316,6 +316,11 @@ export default class PutController extends CommandController<PutModel> {
     }
     // Either way custody moved and title did not — `move` re-derives the
     // owner's record of where it now sits. (D8)
+    // ⭐ A feeder records who last filled it — the field it had, and
+    // nothing ever wrote it (cover build W4).
+    if (MixinApi.isFeeder(target) && MixinApi.isTangible(item) && item.isEdible()) {
+      target.noteFilledBy(giver);
+    }
 
     if (mode === 'slot') {
       MessageApi.scene(giver)

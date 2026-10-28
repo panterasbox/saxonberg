@@ -74,6 +74,12 @@ const NITROGEN_PER_PROTEIN = 1 / 6.25;
  */
 const RESERVE_POINTS_PER_G_N = 0.0004;
 
+/**
+ * Kilograms in a bale — what one person lifts onto a rick or into a
+ * trough (cover build D11). A small square bale is about this.
+ */
+const BALE_KG = 25;
+
 export default class MowController extends FieldWorkController {
   async execute(model: MowModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -111,12 +117,12 @@ export default class MowController extends FieldWorkController {
       beginSelf: Mml.compose`You set the edge of ${Mml.thing(scythe)} into the grass and start the first swathe.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts mowing, working across the field in long even swathes.`,
       onComplete: () => {
-        void this.finish(context, reading, cuttable);
+        void MowController.finish(context, reading, cuttable);
       },
     });
   }
 
-  private async finish(
+  private static async finish(
     context: CommandContext,
     reading: NonNullable<Awaited<ReturnType<FieldWorkController['fieldOf']>>>,
     cuttable: number,
@@ -125,7 +131,15 @@ export default class MowController extends FieldWorkController {
     const { field } = reading;
     const taken = field.drawSward(cuttable);
     if (taken <= 0) {
-      this.decline(context, Mml.compose`There was less on it than you thought.`, 'nothing-cut');
+      MessageApi.scene(context.commandGiver)
+        .topic(FIELD_TOPIC)
+        .toSelf(Mml.compose`There was less on it than you thought.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-cut',
+        detail: 'nothing-cut',
+      });
       return;
     }
 
@@ -135,22 +149,28 @@ export default class MowController extends FieldWorkController {
     const nitrogenG = proteinG * NITROGEN_PER_PROTEIN;
     const exported = field.drawNutrient(nitrogenG * RESERVE_POINTS_PER_G_N);
 
-    let hay: Stuff | null = null;
-    try {
-      hay = await StuffApi.clone<Stuff>(HAY_ROW);
-    } catch {
-      hay = null;
-    }
-    if (hay) {
+    // ⭐ Made up into BALES a person can carry (cover build D11), not one
+    // bale the weight of the whole cut: the hay goes into a rick a forkful
+    // at a time, and a trough draws it a bale at a time.
+    const moisture = field.soilMoistureFraction();
+    const bales = Math.max(1, Math.ceil(taken / BALE_KG));
+    for (let i = 0; i < bales; i++) {
+      const kg = i < bales - 1 ? BALE_KG : taken - BALE_KG * (bales - 1);
+      let hay: Stuff | null = null;
+      try {
+        hay = await StuffApi.clone<Stuff>(HAY_ROW);
+      } catch {
+        hay = null;
+      }
+      if (!hay) break;
       // The cut IS the mass. Nobody authors how much hay a field gives.
       const massed = hay as unknown as { setMass?(q: Quantity<'kg'>): void };
-      massed.setMass?.(Quantity.of(round2(taken), 'kg'));
+      massed.setMass?.(Quantity.of(round2(kg), 'kg'));
       // ⚠⚠ **And the cut carries the field's wetness into the barn**
       // (D48). This one line is the whole of the hay fire: what decides
       // whether a rick heats is what went into it, and you cannot see
       // that afterwards. Cutting in a wet spell is invisible today and
       // catastrophic in a month.
-      const moisture = field.soilMoistureFraction();
       if (moisture !== null) {
         (hay as unknown as { baledMoistureFraction?: number })
           .baledMoistureFraction = round2(0.1 + moisture * 0.3);

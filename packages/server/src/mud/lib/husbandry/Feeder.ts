@@ -39,6 +39,8 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
+import { Quantity } from '../quantity';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { FeederKind } from '../../platform/idea/species/Species';
 
@@ -64,6 +66,23 @@ export interface Feeder {
   getLastFilledBy(): string;
   /** Record who filled it — the delegable floor, made legible. */
   noteFilledBy(person: Stuff): void;
+  /**
+   * ⭐ The store this feeder is kept from — the identity path of a rick, a
+   * bin, a loft — or `''` (cover build D11). A trough whose keeper stacks
+   * the rick in season is kept full from it while nobody is watching: the
+   * staff's standing job, abstracted over an interval no brain can act
+   * in, which still costs somebody the mowing and the stacking.
+   */
+  getSuppliedBy(): string;
+  setSuppliedBy(path: string): void;
+  /**
+   * Take up to `kg` of edible matter out of this feeder by MASS — off its
+   * own offerings first, then, when they run out, off the store it is
+   * kept from. Returns the kilograms actually taken. A good eaten to
+   * nothing is destroyed. Sync: the field's grazing integral calls it
+   * inside its stepped loop.
+   */
+  drawFodder(kg: number): number;
 }
 
 export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
@@ -78,11 +97,14 @@ export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
     static fieldMeta: FieldMeta = {
       feederKind: { persistent: true, authorable: true },
       lastFilledBy: { persistent: true },
+      suppliedBy: { persistent: true, authorable: true },
     };
 
     /** ⚠ `bowl` is the default because it is the commonest, not the only. */
     public feederKind: FeederKind = 'bowl';
     public lastFilledBy = '';
+    /** Identity path of the store this is kept from; `''` = none. */
+    public suppliedBy = '';
 
     public getFeederKind(): FeederKind {
       return this.feederKind;
@@ -102,7 +124,12 @@ export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.isContainer(self)) return [];
       const out: Stuff[] = [];
       for (const thing of self.getContents()) {
-        if (MixinApi.isTangible(thing) && thing.isEdible()) out.push(thing);
+        // A good eaten down to nothing is gone, whatever its teardown is
+        // still doing.
+        if (thing.isDestroyed()) continue;
+        if (MixinApi.isTangible(thing) && thing.isEdible() && thing.getMass().rawValue() > 0) {
+          out.push(thing);
+        }
       }
       return out;
     }
@@ -114,6 +141,50 @@ export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
     public noteFilledBy(person: Stuff): void {
       this.lastFilledBy = person.getIdentityPath() ?? '';
     }
+
+    public getSuppliedBy(): string {
+      return this.suppliedBy;
+    }
+
+    public setSuppliedBy(path: string): void {
+      this.suppliedBy = path ?? '';
+    }
+
+    public drawFodder(kg: number): number {
+      if (!Number.isFinite(kg) || kg <= 0) return 0;
+      const self = this as unknown as Stuff;
+      let left = drawFrom(self, kg);
+      if (left > 0 && this.suppliedBy) {
+        // ⚠ Load on use: the authored path names the store; nothing is
+        // searched for. A store that is not loaded supplies nothing.
+        const store = StuffApi.findByTemplatePath(this.suppliedBy);
+        if (store) left = drawFrom(store, left);
+      }
+      return kg - left;
+    }
   }
   return FeederMixin;
+}
+
+/**
+ * Draw up to `kg` of edible matter off `holder`'s contents by mass, and
+ * return what is still wanted. A good eaten to nothing is weighed to zero
+ * at once (so a second draw in the same integral skips it) and destroyed.
+ */
+function drawFrom(holder: Stuff, kg: number): number {
+  if (!MixinApi.isContainer(holder)) return kg;
+  let left = kg;
+  for (const thing of holder.getContents()) {
+    if (left <= 0) break;
+    if (thing.isDestroyed()) continue;
+    if (!MixinApi.isTangible(thing) || !thing.isEdible()) continue;
+    const mass = thing.getMass().rawValue();
+    if (!(mass > 0)) continue;
+    const take = Math.min(mass, left);
+    left -= take;
+    const rest = Math.round((mass - take) * 1000) / 1000;
+    thing.setMass(Quantity.of(rest, 'kg'));
+    if (rest <= 0) void StuffApi.destruct(thing);
+  }
+  return left;
 }

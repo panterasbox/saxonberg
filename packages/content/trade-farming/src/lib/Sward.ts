@@ -188,7 +188,15 @@ export interface Sward {
    * matters — and for a field it matters enormously, because what an
    * animal eats standing on the ground comes back onto the ground.
    */
-  onSwardIntegrated(dryMatterEatenKg: number, days: number): void;
+  onSwardIntegrated(dryMatterEatenKg: number, days: number, fedKg?: number): void;
+  /**
+   * @hook Feed a SHORTFALL from somewhere other than the sward — hay in a
+   * trough standing on the ground (cover build D11). Called once per step
+   * of the integral with what the mouths wanted and the grass did not
+   * give; returns the kilograms actually fed. Default `0`: a paddock that
+   * is only grass is only grass.
+   */
+  swardShortfallFed(kgNeeded: number): number;
 }
 
 export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
@@ -245,8 +253,13 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     }
 
     /** See {@link Sward.onSwardIntegrated}. */
-    public onSwardIntegrated(_dryMatterEatenKg: number, _days: number): void {
+    public onSwardIntegrated(_dryMatterEatenKg: number, _days: number, _fedKg?: number): void {
       /* nothing by default — a paddock that is only grass is only grass */
+    }
+
+    /** See {@link Sward.swardShortfallFed}. */
+    public swardShortfallFed(_kgNeeded: number): number {
+      return 0;
     }
 
     // ---------- state ----------
@@ -364,6 +377,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         const steps = Math.min(365, Math.max(1, Math.ceil(days)));
         const dt = days / steps;
         let grazed = 0;
+        let fed = 0;
         for (let i = 0; i < steps; i++) {
           const fraction = ceiling > 0 ? standing / ceiling : 0;
           // D9: below the residual the RATE is penalised, and the penalty
@@ -380,9 +394,16 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
           const growth =
             PEAK_GROWTH_KG_PER_M2_DAY * area * factor * recovery * headroom * dt;
           standing = Math.min(ceiling, standing + growth);
-          const eaten = Math.min(standing, demandPerDay * dt);
+          const wanted = demandPerDay * dt;
+          const eaten = Math.min(standing, wanted);
           standing -= eaten;
           grazed += eaten;
+          // ⭐ What the grass did not give, the trough may (cover build
+          // D11) — asked per STEP, so a herd that eats the sward down
+          // mid-window turns to the hay at the step it ran out, not at
+          // the end of the window.
+          const short = wanted - eaten;
+          if (short > 1e-9) fed += Math.max(0, Math.min(short, this.swardShortfallFed(short)));
         }
 
         const delta = standing - r.current.rawValue();
@@ -393,7 +414,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         this.swardStamp = nowS;
         // ⚠ AFTER the stamp, so a host that reads its own soil in the
         // hook cannot re-enter this reconcile through it.
-        this.onSwardIntegrated(grazed, days);
+        this.onSwardIntegrated(grazed, days, fed);
       } finally {
         this._reconcilingSward = false;
       }
