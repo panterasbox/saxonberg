@@ -346,12 +346,17 @@ export default class CraftVessel extends CraftVesselBase {
       if (tags.includes('carbonated')) parts.push('fizzing');
     }
     const contents = this.getContents();
-    if (contents.length > 0) {
-      parts.push(
-        `with ${contents.map((c) => c.getPresentation()).join(' and ')}`,
-      );
-    }
-    const working = parts.length > 0 ? ` It is ${parts.join(', ')}.` : '';
+    const things = contents.map((c) => c.getPresentation()).join(' and ');
+    // A garnish rides the drink ("shaken, with a twist"); a thing standing
+    // in a bare vessel is its own sentence — "It is with a water filter"
+    // read as nobody speaks (the ceramics probe).
+    if (contents.length > 0 && parts.length > 0) parts.push(`with ${things}`);
+    const working =
+      parts.length > 0
+        ? ` It is ${parts.join(', ')}.`
+        : contents.length > 0
+          ? ` There is ${things} in it.`
+          : '';
     const verdict = (this as unknown as Crafted).renderVerdict();
     return `${base}${working} ${verdict}`;
   }
