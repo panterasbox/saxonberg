@@ -2218,6 +2218,97 @@ change; e is independent and may land any time after a).
   0.6 kg water, `dough.yaml`); a batter, not a dough. Rows, baking's.
 - `Clay`'s stash fold → `absorbMakeup`.
 
+## Re-plan R2 — the overlap sweep (review, 2026-10-28)
+
+> **Why this exists.** The owner's review kept finding this MR re-modelling
+> something the engine already modelled (drying, marks, combining, dips,
+> forming, heat-driven change — B79–B86, R1). A read-only survey of every
+> piece of substrate the branch ADDS (new kernel files, new public methods,
+> new `Material` fields, new setting families, new pack `lib/` mixins)
+> against the whole codebase found 20 more. The owner agreed the split:
+> **the 6 player-visible bugs and the 9 duplicates are fixed in THIS MR**
+> (W-R2a…); **the 5 design overlaps go to a slate**
+> (`docs/slates/builds/matter-model-overlaps-slate.md`). Written before a
+> context compaction so a fresh session can execute it from here.
+>
+> **Review rules that bind this work** (owner, 2026-10-28 — memory
+> `review-isolate-dont-drive`): each bug is isolated and fixed in a small
+> window; NO game-clock-dependent tests (wire drives, lived time) until the
+> whole MR review is done; the full suite only at `/finalize`; routine
+> checks (tsc, single lint gates, vitest beside the change) are chosen per
+> change — run what the change could break, skip a guaranteed pass. While a
+> background agent shares the tree: never stage what it staged — check
+> `git diff --cached --stat` before every commit, or commit by pathspec.
+>
+> **In flight when this was written:** the `HeatTransition` → `Kinetics`
+> merge (B87, below) — an agent was converting ~25 `heatTransitions:` rows
+> to `kinetics:` and folding `HeatTransition.ts` into `Kinetics.ts` with
+> one per-good record on the thermal host; it was told not to commit,
+> stage, or touch the plan/slates. If its work is in the tree uncommitted:
+> review it (no number may change for any row), run its scoped checks
+> (server + pack tsc one at a time, the kinetics/thermal/faced/greenware/
+> fire/compounding tests, baking staling, sugar inversion, rubber cure,
+> quarrying lime, glass melt, fuel char, ceramics; lint:instanceable,
+> lib-statics, imports, module-scope, mixin-names, schema, census,
+> field-meta, perishable, the wiki field snapshot), then commit.
+
+### The six bugs (player-visible wrong results)
+
+| # | Bug | Where (at survey time) | Fix |
+|---|---|---|---|
+| R2-B1 (survey 3) | "Hot enough to catch fire" in the NEW paths reads the raw autoignition point and skips the fire system's wet penalty — a soaked thing ignites as if dry | `Tangible.canReceiveAtK` 'burns' arm (`lib/material/Tangible.ts` ~835–842); `Burner.catchContents` (`lib/fire/Burner.ts` ~605–617) | both read the effective autoignition point (`Combustible.getEffectiveAutoignitionK` / `FireLogic.wetPenaltyKOf`, `lib/fire/Combustible.ts` ~191–212). Test: a wet combustible receiver survives a pour hot enough for a dry one |
+| R2-B2 (survey 4) | Clay's crack risk has two formulas: `Greenware.dryingCrackRisk` (1.6·fat − 1.2·open) and `Clay.crackRisk` (same coefficients, different opener tags — no `sand` — plus weathering) — `analyze clay` (ClayReading) reports one, the pot checks by the other | `lib/material/Greenware.ts` ~433–449; `trade-quarrying/src/thing/Clay.ts` ~288–291 | ONE formula (kernel, Greenware's — the drying-crack rule is the water model's, B79); Clay's reading calls it, plasticity/weathering folded in as one term. Test: reading and outcome agree |
+| R2-B3 (survey 5) | Three incandescence tables disagree by ~1000 K: `TemperatureReading.glowOf` (dull red < 950 K), `LookController.glowInTheDark` (dull red < 2000 K), `Gather.glowBand` (relative to the working floor) | `platform/idea/reading/TemperatureReading.ts` ~181; `platform/idea/cmd/perception/LookController.ts` ~501–513; `trade-glass/src/thing/Gather.ts` ~186 | one incandescence-word function on the light/thermal kernel (beside `KELVIN_TAGS` in the light Api — check `lib/perception/Light.ts`/`api/light`), real thresholds (dull red ~800–950 K, cherry ~1000–1150, orange ~1250, yellow ~1400, white ~1500+); the gather keeps its own RELATIVE "going" band only as a working-window read, not a colour |
+| R2-B4 (survey 11) | Acidity and the `acid` tag are not tied: vitriol (`base-library/content/stuff/idea/material/bulk/vitriol.yaml`, tags `[liquid, caustic, acid]`) authors no `acidity`, so a lead glaze leaches nothing into it; only food/brew rows author `acidity` | `lib/material/Material.ts` ~1675 (`acidity`); the leach in `lib/bulk/Bulkable.ts` face exchange | derive or gate: every `acid`-tagged material authors an `acidity` (vitriol high), enforced by a lint (or `getAcidity` defaults from the tag — prefer the authored number + a gate). Test: vitriol in a lead-glazed crock carries lead |
+| R2-B5 (survey 13) | Frost-burst green ware does not use the shipped breakage path: `Greenware.reconcileGreen` sets `greenRuin='shattered'` + a crack (the piece stays whole), while `Tangible.sufferImpact` has a `'frost'` cause nothing calls, `Atmospheric.freezeThawDaysSince` claims (in its comment) to be what frost-breaks green ware, and `docs/subsystems/materials-response.md` (~378) documents the uncalled path | `lib/material/Greenware.ts` ~410–417; `lib/material/Tangible.ts` ~84; `lib/biome/Atmospheric.ts` ~2264 | decide ONE detector (the piece's own trajectory crossing freezing while wet — Greenware's) and ONE outcome; either route the burst through `sufferImpact({cause:'frost'})` (the piece breaks to its `brokenTemplate`) or keep "shattered in place" and delete the dead cause; fix the Atmospheric comment and materials-response.md to match |
+| R2-B6 (survey 18) | A cracked piece merges into a sound stack: `Stackable.canMergeWith` compares material, fired and coat signatures but never flaws; `Brick.canMergeWith` repeats the material check and adds maker/green state by hand | `lib/stuff/Stackable.ts` (canMergeWith ~250); `trade-ceramics/src/thing/Brick.ts` ~60–76 | a flaw signature in `Stackable.canMergeWith` (beside fired/coat); `maker` as a declarative `stackIdentity` field (Crafted); the green-state check moves into Greenware's own `canMergeWith`; Brick's override shrinks to nothing it does not need. Test: a checked brick does not merge into a sound stack |
+
+### The nine duplicates (merge — same question answered twice)
+
+| # | Duplicate | Where | Decision |
+|---|---|---|---|
+| R2-D1 (survey 1) | ⭐ **Two integrity models on one jug.** `Tangible` flaws (`FlawKind`/`Flaw`, `impactStrengthJ`, `sufferImpact` → destroyed into `brokenTemplate`, `rivetFlaws` → `mended:'riveted'`) vs `DurableMixin` condition / `isBroken()` / `recordMend` (+ a `'riveted'` MendRecord). `Ware` composes both; a crack does not lower condition, condition does not weaken impact strength, "broken" means capability-lost in one and destroyed in the other, and a rivet is recorded TWICE (`platform/idea/api/CraftingLogic.ts` ~4245–4246) | `lib/material/Tangible.ts` ~64–75, ~673, ~749, ~777; `lib/material/Durable.ts` ~46, 53, 77; `trade-ceramics/src/thing/Ware.ts` ~26 | the BIGGEST item — read `docs/subsystems/assembly.md` (localized wear, repair) and `materials-response.md` first. Direction: ONE integrity record — flaws are the localized damage (assembly's wear is per part, flaws per body), and condition DERIVES from them for a one-piece good (a flaw is a penalty on condition), so `isBroken`/repair/mend read one fact; a rivet is a `MendRecord` only (`rivetFlaws` marks the flaw mended by reading the record, or retires). Keep "destroyed into sherds" (a brittle body breaking) distinct from "worn out" (condition 0) in WORDS, but drive both from the one record. Plan this one before coding: list every reader of `getFlaws`, `addFlaw`, `isBroken`, `getCondition`, `recordMend`, `rivetFlaws` |
+| R2-D2 (survey 2) | "Does it shatter on impact?" — `'brittle'` tag + `Tangible.impactVerdict` (~764) vs `DeliveryProfile.deriveIntegrity` shatter-by-toughness (`lib/combat/DeliveryProfile.ts` ~101, 213–218); the floor-hardness formula copied 3× (Tangible ~767–770, inside `sufferImpact`, `platform/idea/cmd/inventory/ThrowController.ts` ~217–223) | as listed | `impactVerdict` is the one answer; `DeliveryProfile.breaksOnArrival` delegates to it; ThrowController calls it (no inline formula). Reconcile the tag-vs-toughness rule into one derivation (toughness threshold, with `brittle` derivable or retired) |
+| R2-D3 (survey 9) | Plaster setting (`Material.cureSetting` integrated in the Mould pool, `lib/mould/Mould.ts` ~602–607) is an order-0 constant-rate kinetic | `lib/material/Material.ts` ~186 | fold into `Kinetics` (after B87 lands): plaster's set is a `kinetics:` entry; the mould reads the extent |
+| R2-D4 (survey 14) | `ring`'s struck sound has its own shape (`RingSound {sound, db, carries}`, Tangible ~271) and `RingController` emits via `Scene.toAudible` directly, not `AudibleMixin.emit {db, character, description}`; the curfew `Bell` (`trade-smelting/src/thing/Bell.ts` ~39) is not `Ringable`, so signal listeners never hear it | `platform/idea/cmd/perception/RingController.ts` ~33–49; `lib/perception/Audible.ts` | map `RingSound` onto `AudibleEmitOptions` and emit through the audible system; compose `Ringable` on `Bell` (ringing a bell IS a ring) |
+| R2-D5 (survey 15) | The cone temperature reading computes its own band (the better of the tool's discipline and the channel band), bypassing `Reading.bandOf` — "the one copy" (min with the instrument ceiling) | `platform/idea/reading/TemperatureReading.ts` ~80–88; `lib/instrument/Reading.ts` ~47–52, 633 | `Reading.bandOf` accepts the instrument's discipline; the cone path calls it |
+| R2-D6 (survey 16) | Two "this was cast" records: `Tangible.castFrom` / `CastProvenance` (~734, this MR) vs `Crafted.castDiscipline` (`lib/craft/Crafted.ts` ~142, master) | as listed | one cast record (kind, whose, when, discipline) — on the thing that has a cast provenance |
+| R2-D7 (survey 17) | A misrun casting states its fault three ways: baked `setShortDescription('misrun …')` (`lib/mould/Mould.ts` ~1150–1156), a grade drop, and a `casting` flaw rendered by `flawAugmenter` (Tangible ~292) | as listed | the flaw is the fact; its words come from the augmenter (derived, never baked); the grade drop follows from the flaw (D1's record) |
+| R2-D8 (survey 19) | NPC route walking (`Way` / `waysOf` / `walkRoute`) copied 4× in trade-ceramics brains (`src/behavior/relines.ts` ~180/196, `sets.ts` ~226/242, `pots.ts` ~262/278, `moulds.ts` ~262/278), and in trade-shopkeeping `src/behavior/stocks.ts` ~251/276 | as listed | one shared walking helper — a brain module may not export free helpers to another pack, so check `docs/subsystems/behavior.md` for the sanctioned home (a kernel Api static or a `lib/behavior` substrate class); do not invent a module category |
+| R2-D9 (survey 20) | The statute-measure rule (gauger's seat, off-standard 5 %) copied between `trade-ceramics/src/idea/reading/SizeReading.ts` ~36–37, 91–96 and `trade-coopering/src/idea/reading/CapacityReading.ts` ~35–38, 73 | as listed | one statute-measure substrate (kernel `lib/instrument/` or the readings' shared base) both readings use |
+
+### Waves (execute in this order; each its own commit)
+
+- **W-R2a — bugs B1, B3, B4, B6** (small, independent; each with its test).
+- **W-R2b — B2 + B5** (green ware: one crack formula, one frost path; docs fixed).
+- **W-R2c — D2, D4, D5, D6, D7, D9** (mechanical merges).
+- **W-R2d — D8** (the walking helper — check behavior.md for the home first).
+- **W-R2e — D3** (plaster into Kinetics — after B87 is committed).
+- **W-R2f — D1** (integrity: plan it first — the readers list — then one record).
+
+Each wave: scoped checks only (no drives), commit, push, mark done here with
+a one-line note. Record each wave's decisions as B88+ in "Build decisions".
+
+### The five design overlaps → slate
+
+`docs/slates/builds/matter-model-overlaps-slate.md`: crystallizing by
+solubility vs sugar's graining (survey 6), two leak models — porous face vs
+sprung stave (7), two seep-receiver finders (8), two wall-to-contents
+flavour exchanges (10), vaporizing a solid vs the vapour route (12).
+
+### What the survey judged legitimately different (do not re-litigate)
+
+Thermal shock vs materials-response heat (wounds through coverings vs flaws
+in an object); furnace lining wear (already `Assembled.wearLine`); relines
+vs residence maintains (only the walking code shared — D8); the screw
+press's force (already the mould's `loadN`); `wetBulbK` (single-sourced);
+Ringable as a one-verb hook (only its sound shape, D4); Clay/Gather hand
+tables (per-material tuning behind the kernel `FormingHand`);
+`Material.formTemplates` (a fallback behind `Form.product`);
+`heatWork.firedBy` vs `Crafted.maker` (different people); `Impression`
+(no key-copy mechanism to overlap); freeze-thaw counting vs residence
+shell weathering (only if wall spalling is built).
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of
