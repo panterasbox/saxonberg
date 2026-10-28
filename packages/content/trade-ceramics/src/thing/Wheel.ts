@@ -19,7 +19,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { FormingMixin } from '../lib/Forming';
+import { FormingMixin, type FormableClass } from '@saxonberg/server/mud/lib/craft/Forming';
+import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 
 const SHAPING = ['platform/cmd/crafting/shape.yaml'];
 
@@ -34,13 +35,20 @@ export default class Wheel extends WheelBase implements ShapePlanner {
     peers: SHAPING,
   };
 
+  protected override formingMassClass(): FormableClass {
+    return Clay;
+  }
+
+  protected override formingDiscipline(): string {
+    return 'pottery';
+  }
+
   public async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
     const target = await this.resolveForming(req);
-    if (target === null || !('clay' in target)) return target;
-    const { clay, form, product } = target;
-    const discipline = form.word?.discipline || 'pottery';
-    const hand = await clay.potterHand(req.actor, discipline);
-    if (form.formClass !== 'flat' && form.capacityL > hand.maxL) return clay.refuseBeyond(hand);
+    if (target === null || !('mass' in target)) return target;
+    const { form, product, hand, discipline } = target;
+    const clay = target.mass;
+    if (!(clay instanceof Clay)) return null;
     const actor = req.actor;
     const self = this as unknown as Stuff;
     return {

@@ -24,7 +24,8 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import { FormingMixin } from '../lib/Forming';
+import { FormingMixin, type FormableClass } from '@saxonberg/server/mud/lib/craft/Forming';
+import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 
 const SHAPING = ['platform/cmd/crafting/shape.yaml'];
 
@@ -56,16 +57,24 @@ export default class BrickTable extends BrickTableBase implements ShapePlanner {
     peers: SHAPING,
   };
 
+  protected override formingMassClass(): FormableClass {
+    return Clay;
+  }
+
+  protected override formingDiscipline(): string {
+    return 'brickmaking';
+  }
+
   protected override formClasses(): readonly FormClass[] {
     return ['block', 'flat'];
   }
 
   public async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
     const target = await this.resolveForming(req);
-    if (target === null || !('clay' in target)) return target;
-    const { clay, form, product } = target;
-    const discipline = form.word?.discipline || 'brickmaking';
-    const hand = await clay.potterHand(req.actor, discipline);
+    if (target === null || !('mass' in target)) return target;
+    const { form, product, hand, discipline } = target;
+    const clay = target.mass;
+    if (!(clay instanceof Clay)) return null;
     const hours = dial('ceramics.brickTable.hours', 8);
     const rate = dial(`ceramics.brickTable.rate.${hand.band}`, RATE[hand.band]);
     const self = this as unknown as Stuff;

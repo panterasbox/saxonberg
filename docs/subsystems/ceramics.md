@@ -116,9 +116,16 @@ YIELDS the piece (`Clay.yieldPieces`).
   `discipline`), loaded by path from the instrument's `forms:` list — nothing
   scans. `tall jug holding 3 pints`, `open vessel holding 2 litres`; an
   unknown word is refused naming the five classes.
+- ⭐ **The instrument is a kernel `FormingMixin`** (`lib/craft/Forming.ts`,
+  made general in review, 2026-10-28): it owns the words, the class check,
+  the product and the hand check for ANY plastic mass — the wheel and the
+  brick table work clay, the glass blowpipe works a gather — and each
+  composer says which mass it works (`formingMassClass` / `formingMass`) and
+  plans its own work (`ShapePlanner`). The mass implements `Formable`
+  (`formingHand`, `refuseBeyond` — `lib/craft/Shapeable.ts`).
 - **The product row**: the word's `product`, else the instrument's
-  `formTemplates[class]`, else the clay material's `formTemplates[class]`.
-- **The hand decides, deterministically** (`Clay.potterHand`): wall mass =
+  `formTemplates[class]`, else the mass's material's `formTemplates[class]`.
+- **The hand decides, deterministically** (`Clay.formingHand`): wall mass =
   the form's nominal (`0.75·V^⅔` kg for an open vessel, more for closed and
   tall) × `ceramics.wall.factor.<band>` (untrained 1.8 … expert 0.85);
   the largest vessel = `ceramics.wall.maxL.<band>` — asked for more, the

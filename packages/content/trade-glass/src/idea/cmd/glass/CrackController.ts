@@ -28,10 +28,6 @@ import Gather, { GLASSWORK_TOPIC } from "../../../thing/Gather";
 const CRACK_MS = 3_000;
 const CRACK_W = 120;
 const CULLET_ROW = "/stuff/thing/Casting";
-const PRODUCT: Record<string, string> = {
-  bottle: "/trade/glass/thing/bottle",
-  cylinder: "/trade/glass/thing/cylinder",
-};
 
 /** The Detailed/Visible label surface, for naming the minted moil. */
 interface Labelled {
@@ -82,8 +78,9 @@ export default class CrackController extends ManualBuildController<CrackModel> {
       beginSelf: Mml.compose`You wet a line at the neck and crack the piece off the pipe.`,
       onComplete: () => {
         if (gather.isDestroyed()) return;
-        const form = gather.getForm();
-        const productRow = PRODUCT[form];
+        // ⭐ The piece is what the blow made it — the `Form` row's product,
+        // recorded on the gather when it took the form.
+        const productRow = gather.getFormProduct();
         // An unformed or cooled gather is not a piece — it comes off as cullet.
         if (!productRow || !gather.isWorkable()) {
           void gather.loseToCullet(giver, "There was no formed piece to crack off.");
@@ -117,7 +114,8 @@ export default class CrackController extends ManualBuildController<CrackModel> {
     if (MixinApi.isCrafted(product)) {
       product.stamp({
         maker: giver.getIdentityPath() ?? "",
-        grade: Grade.of("fair"),
+        // The blower's hand graded the blow (a glassblower's competence).
+        grade: gather.getFormGrade() ?? Grade.of("fair"),
         recipe: "glass-blow",
         craftedAt: WorldClockApi.getNow().rawValue(),
       });

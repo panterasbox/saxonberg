@@ -1656,6 +1656,480 @@ left a fork the lens that chose is named.
   a fresh payload by design — whether separated whey should inherit the
   curd's microbial load is open.
 
+- **B82 — review: Forming is the kernel's, for any plastic mass
+  (2026-10-28).** The pack-lib `FormingMixin` had no `_mixinName`, duck-typed
+  clay (`yieldPieces`) and form rows (`toWord`), swallowed a failed row load,
+  and was clay-only while the glass blowpipe hardcoded `["bottle","cylinder"]`
+  and `crack` mapped form→product in a table with a flat "fair" grade. Lens 2
+  chose: a blown vessel is a row. `lib/craft/Forming.ts` (registered,
+  `Mixins.Forming`) owns words, class check, product and the hand check; a
+  `Formable` mass (`formingHand`, `refuseBeyond`) — Clay and the glass
+  Gather; each instrument names its mass (`formingMassClass` → Clay;
+  the pipe's `formingMass` → its gather). Glass `Form` rows bottle and
+  cylinder; the gather records product and grade; `crack` mints from them.
+  ⚠ An untrained blower's bottle now grades poor (was always fair).
+  Deferred: the smith's `hammer` also forms a plastic mass but names its
+  product through a recipe build — the R1 naming question.
+
+## Re-plan R1 — combining is one rule (review, 2026-10-28)
+
+The review found *several inputs become one product* shipped TWICE (the
+recipe build in `K/lib/craft/ManualBuild.ts` → `mintFromBuildImpl`
+`K/platform/idea/api/CraftingLogic.ts` l.2612; the by-mass fold in
+`K/lib/material/Mixing.ts` l.160–255, this MR's D34) and composition carried
+FOUR ways (`BulkPayload.composition: BlendPart[]` in servings,
+`ComposedMixin` in servings on `Provision`, `CompositionMixin.alloying` +
+`BulkPayload.alloying` in mass fractions, `Material.composition` for the
+kind). The owner ruled; this section is the engineering of that ruling. Per
+`workflow.md` § 4 it is a placement re-plan, not a review round: five waves,
+each landable, no clock run until the whole MR review is done — every wave
+is proved by unit tests, the touched packs' vitest and the gates named per
+wave, chosen per change (a guaranteed pass is not run).
+
+### Grounding (every claim opened)
+
+- **A "serving" today is one recipe slot or one unit, not a mass.**
+  `deriveBlendPayload` (CraftingLogic l.1390–1474) is fed `servings: 1` per
+  bulk slot and `servings: m.count` per item (l.1792, l.1800; `mintVessel`
+  l.2936 the same), and its own doc says so (l.1383–1386: *a martini was gin
+  19 + vermouth 7*). `Material.nutrientAmounts` is documented *mg per
+  serving* (`K/lib/material/Material.ts` l.945) but the rows are
+  heterogeneous: milk `fat: 34000` is per LITRE
+  (`trade-ranching/…/food/milk.yaml` l.33), root-vegetable `carb: 17000` is
+  per 100 g, and `CompositionShare` reads them as per KILOGRAM (l.14). The
+  mill carries its own `SERVING_KG: 0.1` (`K/lib/craft/Comminuting.ts` l.62,
+  used l.359). Nothing has ever reconciled these because the amounts are
+  **display only**: `Metabolic.routeIntake` routes nutrients by TAG ×
+  litres (`K/lib/metabolism/Metabolic.ts` l.1627–1631) and never reads the
+  label. The one serving-scaled number a BODY feels is the toxin dose:
+  `BlendLabel.toxicityOf` multiplies each part's dose by its servings
+  (`K/lib/metabolism/BlendLabel.ts` l.197) and `routeIntake` adds that whole
+  dose ONCE per ingest however large the sip (l.1632–1637; a sip is 0.03 L,
+  `SipController` l.24). So a martini is 26 "mg" of alcohol per sip of it,
+  today, whether the glass is full or nearly empty.
+- **A pour does not fold a composition.** `BulkableLogic.blendPayloads`
+  (l.110–162) folds `dissolvedToxins`, `dissolvedAromatics`, `alloying`
+  (volume-weighted, `blendComposition` l.1063) and `maturedDays`; `composition`
+  is not in it. Into an EMPTY destination `transfer` copies the whole payload
+  (absolute servings — a half-pot poured off carries the whole pot's dose);
+  into a non-empty one the source's composition is DROPPED. The fraction
+  carrier (`alloying`) already pours, draws and splits correctly; the
+  servings carrier cannot, because servings are extensive and every
+  per-litre domain in that fold is intensive.
+- **The two expansions.** CraftingLogic l.1406–1446 expands an input's
+  parts by servings share; `Mixing.constituentsOf` l.71–82 expands by the
+  piece's `getEffectiveComposition()`, else the kind composition, else the
+  material whole. Same question, two answers (one never sees kind
+  composition, the other never sees a food's parts). The bulk belly's
+  expansion is a third copy inline (Mixing l.188–196).
+- **Readers of servings** (all to convert): `BlendLabel` ×3 (l.68, 106,
+  180), `NutritionLabel.labelFaceOf` (l.114–122), `Palatable` l.243 (names
+  and tastes; does not weight by servings), `Freshness.ingestPayload`
+  (l.1022–1026), `Loaf.branShareOf` (`trade-baking/src/thing/Loaf.ts`
+  l.45–55 — a ratio of servings), `Hive.combComposition`
+  (`trade-apiculture/src/thing/Hive.ts` l.428–436 — already a SHARE named
+  `servings`), `MillController` l.556–563 (stamps `Comminuting`'s
+  servings), CraftingLogic l.1792–1801, 1987–2023 (the `Composed` output
+  merge), 2141–2155, 2928–2938. Readers of `alloying` on the payload (to
+  rename): `BulkableLogic` l.153, 658–664; `Mould.ts` l.929–930, 1241;
+  `Thermal.ts` l.1260, 1550–1557, 2194, 2575; `Mixing.ts` l.188, 226;
+  `Composition.ts` l.34–43 (the declaration). Readers of the piece's
+  `alloying` by method stay as they are (`getAlloying`/`fractionOf`/
+  `setAlloying` — 40 sites across glass, smelting, smithing, potash, fuel,
+  quarrying, ceramics; the method NAMES change in W-R1a and nothing else).
+- **Rows.** `alloying:` is authored on 2 rows (`trade-fuel/…/thing/wood-ash`,
+  `trade-potash/…/thing/black-salts`); `composition:` in servings on 2 non-
+  material rows (`trade-baking/…/thing/white-loaf`, `wholemeal-loaf`); the
+  other 344 `composition:` rows are `Material` kinds and are untouched. 347
+  of 347 material rows author `density`; 98 author `nutrientAmounts`; 44
+  author a non-zero toxin dose (20 alcoholic drinks, 3 medicines, 4 fuels,
+  gases, two waters, the spoiled ration). No migrations: the dev DB drops.
+- **Recipes: 185**, not 97 (`grep -rl '^recipeId:' packages/content`). 93
+  single-slot, 29 with ≥2 bulk slots and no items, 23 bulk + items, 40
+  multi-item only. Reachable BY HAND (where matching ratio matters):
+  hospitality's 25 (shaker / mixing glass → `StrainController`), cooking's
+  24 (`CookPot` → `PlateController`), baking's 3 doughs (`DoughTrough`
+  l.107), smithing's ladder (`QuenchController` l.158, one item slot each).
+  Every other recipe is the one-shot `craftImpl` (l.3015), which DRAWS
+  exactly each slot's measure (`consumeBulkInputs` l.2236–2250), so its
+  proportion is exact by construction and D2 cannot change its outcome.
+- **The pour banks a flat 0.06 L of anything** (`K/platform/idea/cmd/
+  crafting/PourController.ts` l.34, l.127–129). Under D2 that alone would
+  turn every unequal cocktail (martini 6:1, manhattan 2:1:dash) into
+  pot-luck — see R1-D4. The bulk pour already takes `--amount`
+  (`platform/cmd/bulk/pour.yaml` l.10, l.24; the whiskey drive uses it).
+- **The build buffer carries the loads; the by-mass fold carries nothing.**
+  `BuildContribution` banks `freshnessLoad`, `pathogenLoads`, `tags`,
+  `materialPath`, `composition` (ManualBuild l.60–122) and the mint runs
+  `buildMicrobialLoad` (l.1297) + `kitInoculum` (l.1074) + `applyMethodFit`
+  (l.2708); `Mixing.blend` stamps mass, makeup and maker only — a spoiled
+  curd compounded into a slip comes out clean. One route must carry both.
+- **No drive strains a cocktail** (`grep -l strain packages/wire/tests`
+  finds none of hospitality's); the bar is unit-tested only
+  (`CraftingLogic.buildmint.test.ts`, `ManualBuild.test.ts`,
+  `libations-steps.test.ts`). The compounding drives are ceramics-a (`knead
+  pit` l.498), ceramics-c (`stir "ash tub"` l.525, `"lead tub"` l.536),
+  ceramics-d (`stir "plaster tub"` l.532, `"slip tub"` l.554), glass (`stir
+  pot` l.200), rubber (`knead tub` l.386); cooking's drive orders a stew
+  (one bulk slot); grain-chain reaches `knead`'s gate only.
+- **The import edge.** No `lint:*` gate pins `lib/bulk` ↛ `lib/craft` /
+  `lib/metabolism` specifically (`check-mud-imports.ts` is the driver/mudlib
+  boundary); the edge is held by the load-time cycle `BlendIdentity.ts`
+  l.59–64 records and by the declaration-merging convention (`bulk.md` §
+  `BulkPayload`). The plan keeps it by construction: the record is declared
+  from `lib/material`, as `alloying` is today.
+- **Separation already has one move.** B81 made `BulkableApi.transfer` the
+  one move between slots with `via: { through: 'pores', arrivesAs }`
+  (`K/api/bulk.ts` l.77–84, l.306–313); `Mould.creditDrainings` (l.966–992)
+  still fills the vessel below by hand with a `null` payload and a grade one
+  band down.
+
+### Decisions
+
+- **R1-D1 — one composition record, by mass (the owner).** ⭐ Refinement,
+  from the pour fold above: the record is stored as a **mass FRACTION** of
+  its host (`CompositionEntry { materialPath, fraction }`, the type
+  `Material.ts` l.94 already defines) and a part's absolute mass is
+  `fraction × hostKg` — a piece's `getMass()`, a pool's `litres × density`.
+  Fractions are intensive, which is exactly why the shipped `alloying` fold
+  survives every pour, draw, split and top-up and the servings carrier
+  survived none of them. Servings DERIVE at the read:
+  `servings_i = fraction_i × hostKg / servingKg_i`, where `servingKg_i` is
+  the part material's authored `servingKg` else `nutrition.servingLitres`
+  (0.25) × its density. **One per-piece mixin:** `CompositionMixin` absorbs
+  `ComposedMixin`; `Provision` composes `CompositionMixin` and the loaf's
+  bran share is `fractionOf(bran)`. *Decided by the owner; the fraction
+  representation by lens 1 (a pour is arithmetic a player can predict, and
+  it already is for a melt).*
+  - **What changes, exactly.** (i) A blend's per-ingest toxin dose now
+    scales with the mass still in the vessel: a full martini glass is 26 as
+    today; half a glass gives 13 a sip, and pouring half off no longer
+    duplicates the dose into both glasses (today it does — absolute
+    servings copied). Intended. (ii) With the default serving and NO
+    `servingKg` authored, every cocktail's dose would fall 3–10× (60 ml of
+    gin is a quarter of a 250 ml serving). So W-R1a authors `servingKg` on
+    the 20 alcoholic rows, bitters and the 3 medicines at their bar measure
+    × density (gin · vodka · tequila · whiskey · blended-whisky ·
+    grain-whisky · rum-light · rum-dark 0.06 L; neutral-spirit 0.12;
+    sweet-vermouth · bitter-liqueur · aperitivo 0.03; dry-vermouth 0.01;
+    orange-liqueur 0.02; bitters 0.002; ale · lager · cask-ale 0.5; white ·
+    red · sparkling 0.15; wash rows 1.0; medicines 0.25). Then a recipe
+    using a spirit AT its measure is unchanged and one using it elsewhere
+    scales honestly — the named deltas: whiskey-ginger (whiskey 0.05: 40 →
+    33), gin-tonic and tom-collins (gin 0.05: 19 → 16), negroni (gin 0.03:
+    19 → 9.5), daiquiri (rum 0.06 vs the modal 0.05: 19 → 23),
+    cosmopolitan (vodka 0.045: 19 → 17), aperol-spritz (sparkling 0.09 vs
+    0.15: 12 → 7), vat-whisky, compound-gin and the two vermouths (one-shot,
+    neutral spirit at 0.6/0.12 vs its 0.12). Nine hand-build cocktails and
+    four one-shot blends change their alcohol figure; 16 cocktails are
+    byte-identical. (iii) Nutrition LABEL numbers (display only) move the
+    same way; the two loaf rows and the mill keep theirs exactly because
+    `wheat-flour`, `bran`, `meal` and `grist` author `servingKg: 0.1` — the
+    mill's constant — and the loaf rows re-author in fractions (flour
+    0.8125 / bran 0.1875 is `6.5 : 1.5`). (iv) A stew poured into a pot of
+    stew now keeps its ingredients (today dropped). (v) Nothing a body
+    feels from a NON-blend changes: an empty record falls through to the
+    material's own dose, as today (BlendLabel l.189–190).
+- **R1-D2 — recipes match by proportion (the owner).** Refinement, the
+  rule in full: over a recipe's BULK slots the target fraction of slot *i*
+  is `t_i = measureL_i × ρ_i / Σ`, and the build's `a_i` is the SUM of every
+  bulk contribution carrying slot *i*'s category (two pours of gin are one
+  gin — today a second pour is a leftover and refuses), both at the banked
+  material's density; `d = max_i |a_i − t_i|`. **Match** iff every slot's
+  category is present, `d ≤ crafting.proportion.tolerance` (0.12), the heat
+  and medium gates hold (unchanged, l.2276–2289), item slots are covered
+  (R1-D3), and `Σ a ≥ crafting.proportion.minScale (0.5) × Σ t` — a half
+  measure is still a martini, a thimble is a taste. **Grade:** `d ≤ tol/3`
+  costs nothing; `≤ 2·tol/3` one band; `≤ tol` two bands, then the shipped
+  weakest-link / control floor / method-fit rules. A slot authored
+  `measureL: 0` (`steep-barley`'s barley) is presence-only and outside the
+  sum. A contribution whose category matches no slot is still a leftover →
+  no match → the shipped pot-luck / worked-lump path. *Decided by the
+  owner; the thirds and the scale floor by lens 1 (a lean batch is a poorer
+  batch; a quarter batch is not a batch).*
+- **R1-D3 — item slots are COUNTED, never weighed.** A recipe row carries no
+  mass for an item slot, and the content's unit masses behind one tag span
+  five orders of magnitude (`wood` 0.03–2400 kg, `metal` 0.005–18000, the
+  survey in this re-plan); `dough`'s `salt ×1` is a 1 kg salt unit, which
+  would be 46 % of the dough by mass. The authored proportion for an item IS
+  its count (*2 roots, 1 meat*), so the count check stays exactly as
+  `buildSatisfies` l.2326–2345 has it, surplus units of a listed category
+  summing into the slot. A workpiece build (one item, no bulk) therefore
+  matches as today. *Lens 1 (the derivable answer is the one the row
+  states); taken by the planner as the owner delegated — say if wrong.*
+- **R1-D4 — a pour is ONE SERVING of what you pour.** `pour x into shaker`
+  banks `servingKg(material) / density` litres (gin 60 ml, dry vermouth
+  10 ml, bitters 2 ml) and `--amount` overrides it, the bulk pour's own
+  option; `STANDARD_POUR_L` retires. Three pours of sweet vermouth is a
+  negroni's measure — the arithmetic is the play. *Lens 2 chose (one row
+  field, `servingKg`, is both the nutrition serving and the jigger; a new
+  spirit needs no code) with lens 3a behind it (a bartender does not pour
+  60 ml of bitters).* ⚠ This changes what a shipped verb does and is the
+  one item here the owner may want to veto; the alternative is a flat pour
+  plus `--amount` on every unequal recipe.
+- **R1-D5 — the names, once.** The per-instance record is **`makeup`** —
+  what THIS piece or pool is made of — on `CompositionMixin`
+  (`makeup: CompositionEntry[]`, `getMakeup()` / `setMakeup()` /
+  `fractionOf()` / `effectiveMakeup()` / `absorbMakeup()`) and on
+  `BulkPayload.makeup`; `Material.composition` keeps its name (it is the
+  KIND's, 344 rows). `alloying` and `composition` (the servings one) and
+  `BlendPart` retire; `ComposedMixin`, `Mixins.Composed`, `isComposed`
+  retire into `CompositionMixin` / `Mixins.Composition` / `isComposition`.
+  "Blend" stays the recipe's word only (`BlendIdentity`, `BlendLabel`,
+  `recipeId`). The by-contents vessel is **`CompoundingMixin`**
+  (`K/lib/material/Compounding.ts`, `Mixins.Compounding`,
+  `isCompounding`, refusal *"{} isn't something you compound in"*), its
+  fields **`productMaterial`** / **`productTemplate`** (the vessel names its
+  PRODUCT, as a mould names a shape), its act `compound(by)`, its kernel
+  twin **`K/platform/thing/CompoundingVessel`**; `MixingVesselMixin`,
+  `MixingVessel`, `blendMaterial`, `blendTemplate`, `BlendOutcome` retire —
+  the bar keeps *mixing glass* and `mix` uncontested. Dials:
+  `nutrition.servingLitres`, `crafting.proportion.tolerance`,
+  `crafting.proportion.minScale` (`AppSettingKeys`, the `crafting.*` block
+  at `K/lib/config/AppSettings.ts` l.2120). American English throughout.
+- **R1-D6 — one fold, in the material logic.** The recursive *what is this
+  input made of* and the mass-weighted fold are two statics on
+  `MaterialApi` forwarding to `MaterialLogic` (the F4 face that already
+  owns `compositionOf`): `MaterialApi.makeupOf(material, own?)` → the
+  piece's own effective makeup, else the kind composition, else the
+  material whole (Mixing's `constituentsOf` rule, which is the right one —
+  CraftingLogic's never saw a kind composition); `MaterialApi.foldMakeup
+  (parts: { material, kg, makeup? }[])` → one `CompositionEntry[]` by mass.
+  No free helper (both expansions were module-private functions and the
+  lint tripwire is why), no new statics in `lib/` (`lint:lib-statics`);
+  `absorbMakeup` stays on the mixin as the two-body form. `CraftingLogic`'s
+  three expansions and `Mixing`'s two call these.
+- **R1-D7 — one mint, two namers; two ways of holding inputs stay.**
+  `mintFromBuildImpl` takes EITHER `contributions` (a buffer: the shaker,
+  the pot, the trough, the workpiece) OR `charge: vessel` (a compounding
+  vessel's physical contents); a charge becomes contributions by the
+  vessel's own `chargeContributions()` (each piece: `kind: 'item'`, `count`,
+  `massKg`, tags, material, makeup, freshness, pathogens; the belly: one
+  bulk contribution) and from there the ONE path runs — reverse-match (D2),
+  grade, method fit, `buildMicrobialLoad` + kit, maker — then the **namer**:
+  the vessel's `productMaterial` when it names one (a glaze tub makes glaze
+  whatever went in — D34's claim, unchanged), else the matched recipe's
+  output, else the generic pot-luck / worked lump. A charge is consumed at
+  the mint (pieces destructed, belly emptied), as a buffer was consumed at
+  the pour. `BuildContribution` gains `massKg` (banked by `add`,
+  `bankWorkpiece` and the charge; a bulk contribution's mass is
+  `measureL × ρ`, derived). Smithing rides it unchanged. The one-shot
+  `craftImpl` keeps its own draw and consume (it holds nothing) and calls
+  the same `foldMakeup`. `BlendIdentity`/`recipeId` and `productMaterial`
+  coexist: a vessel-named product has a material and no recipe, a
+  recipe-named one a recipe and a generic material — every reader already
+  falls back one to the other.
+- **R1-D8 — a mould's drainings are a transfer, and the population goes
+  with the liquid (the coordinator's item).** `Mould.creditDrainings`
+  becomes `BulkableApi.transfer(pool, below, { kind: 'measure', litres,
+  mode: 'lenient' }, { through: 'set', arrivesAs: drain.drains })` — the
+  one move (B81) with a second `through`: the inverse of `'pores'`. Through
+  a set, the **suspended passes** (microbial load and pathogens at the
+  pool's concentration — a population lives in the liquid phase too, which
+  is the whole reason `whey.yaml` l.3–5 calls a crock of whey a living
+  starter and backslopping works) and the **dissolved passes** (toxins,
+  aromatics, solids — per-litre, intensive); the **identity does not**
+  (`recipeId`, `makeup`, `appearance`, `keywords`, `maturedDays` are the
+  curd's; the drainings are `arrivesAs` whole); the **maker passes**
+  (harm from the whey names the cheesemaker); the water state is the
+  arriving material's own; the grade stays one band below the pool's,
+  applied after the move as today. It is a SEPARATION, so it does not ride
+  the fold (many → one); it rides the one move with its own `through` —
+  what a filter holds back, a set lets through. The pool is now debited by
+  the move, so the set's `poolKg` (Mould l.603) reads `amountL` PLUS
+  `setDrainedKg` for the original charge; `clearPool` clears what is left.
+  *Lens 1 chose (a starter is a culture because it carries the ferment; a
+  fresh payload made that a lie), lens 3a behind it (a spoiled curd's whey
+  cannot come out clean).* Wave W-R1e.
+- **R1-D9 — `dissolve` is a deferred seam, not a fold.** A future act that
+  dissolves a solid into a liquid goes the dissolved-solids way
+  (`dissolvedSolidsKgPerL`, the solubility table `Material.ts` l.2148–2160),
+  never into `makeup`: a solution is one phase with a concentration, a
+  compound is parts by mass. Recorded in § *Deferred seams*.
+
+### Host placement (this re-plan's additions)
+
+| new thing | host | what composing it claims | why not the alternative |
+|---|---|---|---|
+| `makeup`, `getMakeup`/`setMakeup`/`fractionOf`/`effectiveMakeup`/`absorbMakeup` | `CompositionMixin` (the shipped `Composition` hosts + `Provision`, which composed `Composed`) | every food can be made of parts — `Composed`'s own claim at `Provision.ts` l.66, and `fractionOf(bran)` is what the loaf wanted | a second servings mixin was the rework |
+| `BulkPayload.makeup` | declared from `K/lib/material/Composition.ts` (as `alloying` is at l.34–43) | a pool remembers what went into it, intensively | on `lib/bulk` it would import a subsystem |
+| `Material.servingKg` (+ `getServingKg()`) | `Material` | any material may say what one serving of it is; default derived | a serving table in the kernel is a list with no author |
+| `CompoundingMixin` (`productMaterial`, `productTemplate`, `compound(by)`, `chargeContributions()`, `kneadPlanFor`) | `K/platform/thing/CompoundingVessel` (`Good`), `trade-ceramics` `TemperPit` (`Thing`) | a vessel that names its product and compounds its contents | on `Container` it would claim every chest |
+| `BuildContribution.massKg` | the value object (`ManualBuild.ts`) | a banked item knows its mass | — |
+| `TransferVia.through: 'set'` | `K/api/bulk.ts` `TransferVia` | a move may be a separation that keeps the suspended | a hand-rolled move beside `transfer` was B81's finding |
+
+Nothing lands on `Thing`, `Good`, `Tangible` or `Container`.
+
+### Waves
+
+**W-R1a — the record.** Files: `K/lib/material/Composition.ts` (field
+`makeup`, the renamed surface, the `BulkPayload.makeup` declaration;
+`absorbMakeup`), `K/lib/metabolism/Composed.ts` DELETED (+ its test moved
+to `Composition.test.ts`), `K/lib/bulk/Bulkable.ts` (`BlendPart` and
+`composition` removed; the doc block at l.212–228 rewritten), `K/lib/mixin.ts`
+(`Composed` entry l.553 and its refusal removed), `K/api/mixin.ts`
+(`isComposed` l.1552 removed; 10 call sites → `isComposition`),
+`K/platform/thing/Provision.ts` l.66, `K/lib/material/Material.ts`
+(`servingKg` + fieldMeta + accessor; the l.945/957 docs say *per serving,
+see `servingKg`*), `K/api/material.ts` + `MaterialLogic` (`servingKgOf
+(material)`, `servingsOf(material, kg)`), `K/lib/metabolism/BlendLabel.ts`
+(every reader takes `hostKg`; servings derived), `NutritionLabel.ts`
+(both faces pass the mass), `Palatable.ts`, `K/lib/material/Freshness.ts`
+l.1022, `K/lib/craft/ManualBuild.ts` (`composition?` → `makeup?`),
+`K/lib/craft/Comminuting.ts` (`SERVING_KG` deleted; the product's makeup is
+`[inner 1−outerShare, outer outerShare]`), the `alloying` payload readers
+(`BulkableLogic` ×2, `Mould` ×2, `Thermal` ×4, `Mixing` ×2) renamed,
+`CraftingLogic` (`alloying`/`composition` names only — the expansions wait
+for W-R1b), `K/lib/config/AppSettings.ts` (`nutritionServingLitres`).
+Packs: `trade-baking` `Loaf.ts` (bran share by `fractionOf`), the two loaf
+rows (`makeup:` in fractions), `trade-apiculture` `Hive.ts` l.428–436
+(`fraction`), `trade-milling` `MillController.ts` l.556–563, `trade-fuel`
+`wood-ash.yaml` + `Ash.ts`, `trade-potash` `black-salts.yaml` + `IronPot.ts`,
+`trade-quarrying` `Clay.ts` (`getAlloying` → `getMakeup`, l.548 stash),
+`trade-glass`, `trade-smelting`, `trade-smithing`, `trade-ceramics` method
+renames; `servingKg` authored on the rows R1-D1 lists. Tests: the 16
+`servings` assertions in `Composed.test`, `TastePalate.test`, the
+`BlendLabel` tests, `rows.test`/`staling.test` (baking), `mill.test`
+rewritten in fractions; NEW `BlendLabel.servings.test.ts` pins the martini
+at 26 full / 13 half, the loaf label byte-identical, and the nine deltas
+R1-D1 names. Docs: `bulk.md` (§ `BulkPayload` table; the five-link table l.64–75 names
+`ComposedMixin`), `apiculture.md` l.219, `architecture.md`'s mention,
+`metabolism.md`, `mixins.md`.
+Gates: `lint:mixin-names`, `lint:field-meta`, `lint:instanceable`,
+`lint:imports`, `lint:closed-vocabularies`; `test:near` + the eleven packs'
+vitest. Acceptance: one record type, one mixin, no `servings` in source
+outside `MaterialLogic.servingsOf`; a half-poured pot keeps its makeup.
+Commit: `refactor(composition): one makeup record by mass — Composed
+absorbed, servings derived`.
+
+**W-R1b — the fold and the names.** Files: `K/api/material.ts` +
+`K/platform/idea/api/MaterialLogic.ts` (`makeupOf`, `foldMakeup`);
+`K/lib/material/Mixing.ts` → `git mv` `Compounding.ts` (`CompoundingMixin`;
+`productMaterial`/`productTemplate`; `chargeContributions()`; `compound(by)`
+and `kneadPlanFor` forward to `CraftingApi.mintFromBuild({ charge, makerPath
+})` — the body of `blend` goes in W-R1c, so this wave keeps `blend` calling
+`foldMakeup` and renames only); `K/platform/thing/MixingVessel.ts` → `git mv`
+`CompoundingVessel.ts`; `K/lib/mixin.ts` l.720 + refusal l.1008;
+`K/api/mixin.ts` l.1761; `K/platform/idea/cmd/crafting/StirController.ts`
+l.50 (`isCompounding`); `stir.yaml`/`knead.yaml`/`dip.yaml` defaults
+(`mixin.CompoundingMixin`); `K/lib/craft/ManualBuild.ts` (`massKg` banked
+by `bankWorkpiece`), `PourController.ts` l.184–200 (`add` banks
+`getMass() × count`); the 7 rows (`class: /platform/thing/CompoundingVessel`,
+`productMaterial:`, `productTemplate:` — `trade-ceramics` slip/plaster
+tubs, `trade-glass` batch-pot, `trade-rubber` mixing-tub, `hearts-delight`
+ash/lead tubs + temper-pit); `trade-ceramics/src/thing/TemperPit.ts`
+(l.29, 49, 105–140 — `mixBy` → `compoundBy`); `CraftingLogic` l.1406–1446,
+1987–2023 and `Mixing`'s two expansions → `MaterialApi.makeupOf`/
+`foldMakeup`. Plan text: D34, B2, B80 and the W0 bullet name the new names
+(a one-line *renamed in R1* note each, not a rewrite). Gates:
+`lint:mixin-names`, `lint:instanceable` (the row `class:` moves),
+`lint:reachability` + `lint:arg-kinds` (the three views' defaults),
+`lint:lib-statics` (zero new statics in `lib/`), `lint:object-verbs`;
+`test:near` + ceramics/glass/rubber/hearts-delight vitest. Acceptance: one
+expansion function in the tree; every row names the new class; the
+`TemperPit.test` and glass batch test green unchanged. Commit:
+`refactor(compounding): one makeup fold in MaterialLogic; MixingVessel is
+CompoundingVessel`.
+
+**W-R1c — one mint.** Files: `K/api/crafting.ts` (`BuildMintRequest.charge?:
+Stuff`, `contributions` optional when `charge` is given), `CraftingLogic.ts`
+`mintFromBuildImpl` l.2612–2675 (a charge → `chargeContributions()`; after a
+successful mint `consumeCharge(vessel)`; the namer order R1-D7 in
+`mintVessel` l.2871–2960 and a new `mintProduct` arm for a `productTemplate`
+— clone, `setMaterial(productMaterial)`, `setMass(Σ)`, `setMakeup(fold)`,
+maker, `ContainmentApi.move` into the vessel — carved from `Mixing.blend`
+l.231–254; the bulk arm rewrites the belly as `Mixing.blend` l.217–228 did),
+`buildMicrobialLoad` l.1297 weights by `massKg ?? 0.1 × count` for items;
+`Compounding.ts` `compound(by)` is now the forward + the narration
+(`narrateBlend` l.264–287 kept as the mixin's private `narrate`), `blend`
+deleted. The glaze tub's `dip` affordance (B80) is untouched. Tests:
+`CraftingLogic.charge.test.ts` (a charge of two pieces + a belly mints the
+vessel's product with the mass fold, carries a spoiled piece's load and
+pathogens, stamps the maker, consumes the charge; a vessel with no
+`productMaterial` and no recipe falls to pot-luck), `TemperPit.test` and the
+glass/rubber pack tests green. Gates: `lint:object-verbs`,
+`lint:thin-forwarder`, `lint:unconsumed-seams`; `test:near` + the packs.
+Acceptance: `grep -rn "blend(" lib/material` is empty; one function mints
+every made-of-several thing. Commit: `refactor(crafting): one mint for a
+buffer and a charge; the vessel or the recipe names it`.
+
+**W-R1d — proportional matching and the serving pour.** Files:
+`CraftingLogic.ts` `matchBuild` l.2268–2297 + `buildSatisfies` l.2323–2370 →
+`buildFit(recipe, contributions): { ok, d } | null` implementing R1-D2 +
+R1-D3 (categories summed; zero-measure presence-only; leftovers refuse;
+scale floor; heat/medium gates verbatim), the grade step at l.2628–2640
+takes the bands `d` costs before the base floor; `AppSettings.ts`
+(`craftingProportionTolerance`, `craftingProportionMinScale`);
+`PourController.ts` (`STANDARD_POUR_L` retired; the measure is
+`MaterialApi.servingKgOf(material) / ρ`; `--amount` parsed as the bulk
+pour's `pour.yaml` l.24 option) and `platform/cmd/crafting/pour.yaml` (the
+option + help: *a pour is one serving; `--amount` to measure*). Tests:
+`CraftingLogic.buildmint.test.ts` l.133–134 and l.166–167 rewritten
+(0.06 + 0.01 matches; 0.06 + 0.06 is pot-luck — the two shipped outcomes
+that change); NEW `CraftingLogic.proportion.test.ts` (martini at 60+10 →
+full grade; 60+20 → two bands; 60+30 → pot-luck; two gin pours sum; a
+0.5-scale martini matches; a thimble does not; steep-barley's zero slot;
+an unlisted pour refuses); `PourController.test` (gin pours 0.06, vermouth
+0.01, bitters 0.002; `--amount 30ml`). `crafting.md` § the reverse-match
+(l.940–960) rewritten; `help pour`. Gates: `lint:arg-kinds`,
+`lint:reachability`, `lint:authored-prose`, `lint:drive-scripts` (no drive
+edits expected — none strains); `test:near` + hospitality, cooking,
+baking, smithing vitest. Acceptance: the proportion test green; anvil
+ladder, cooking-manual, DoughTrough tests green unchanged. Commit:
+`feat(crafting): recipes match by proportion; a pour is one serving`.
+
+**W-R1e — drainings through a set.** Files: `K/api/bulk.ts` l.84
+(`TransferVia = { through: 'pores' | 'set'; arrivesAs? }`), `BulkableLogic`
+`transfer` (the `'set'` arm: carry freshness, pathogens, the per-litre
+domains and `maker`; drop identity; `arrivesAs` names the matter),
+`K/lib/mould/Mould.ts` l.966–992 (`creditDrainings` = the transfer + the
+one-band grade), l.603 (`poolKg` from `amountL` + `setDrainedKg`), l.701
+`clearPool`. Tests: `Mould.drainings.test.ts` (a curd at load L with
+pathogens P: the whey below reads L and P, is `whey`, has no `recipeId`,
+names the maker; the set solid's mass is unchanged by the debit), the
+shipped `Mould` and `WaterFilter` tests green. `mould.md` + `bulk.md` (the
+two `through`s). Gates: `lint:unconsumed-seams`, `lint:pathogens`;
+`test:near` + dairying/sugar vitest. Commit: `fix(mould): drainings are a
+transfer through the set — the population goes with the whey`.
+
+Order: a → b → c → d → e (the representation lands before any matching
+change; e is independent and may land any time after a).
+
+### Risks, and what only a drive can prove
+
+- **Wire drives are not run in these waves** (the owner's review rule).
+  What they alone would prove, to be run once at the review's end:
+  ceramics-a/c/d, glass and rubber (compounding through the one mint —
+  masses, the glaze's coat, the rubber's sulfur fraction), cooking (`order
+  stew` through the pot), grain-chain (`knead`'s gate). The bar has no
+  drive; its coverage is the new proportion + pour tests, and a bar drive
+  is a debt this re-plan names (§ *Deferred seams*).
+- **Mass vs volume in the fold.** `t_i` and `a_i` both use the banked
+  material's density, so a recipe authored in litres is matched in litres
+  effectively; the fraction record is by mass. A category spanning densities
+  (`fat`: tallow vs oil) matches by what was poured — intended.
+- **The pour's serving default** (0.25 L) is wrong for any un-authored
+  spirit; `servingKg` is authored on every row with a dose. A pack that
+  ships a new liquor without `servingKg` pours a quarter litre: a
+  `lint:perishable`-style gate (`lint:servings`: every material authoring
+  a toxin dose authors `servingKg`) is cheap and named in W-R1a.
+- **Clay's own stash fold** (`Clay.ts` l.575–586) is a third fold left in
+  place this round (it folds a stack's `weatheredDays` with its makeup);
+  it should call `absorbMakeup` — noted, not done, so the ceramics drives
+  stay untouched.
+
+### Deferred seams (from this re-plan)
+
+- `dissolve` → `dissolvedSolidsKgPerL`, never `makeup` (R1-D9).
+- A bar wire drive (`hospitality.dirty.wire.test.ts`): pour · stir · strain
+  a martini and a negroni by serving, read the glass's dose.
+- `nutrientAmounts` units are heterogeneous (per litre, per 100 g, per
+  serving) and display-only; a nutrition pass should re-base them on
+  `servingKg` — a slate item, not this MR.
+- The dough rows hydrate above 100 % by mass (flour 1 L = 0.565 kg against
+  0.6 kg water, `dough.yaml`); a batter, not a dough. Rows, baking's.
+- `Clay`'s stash fold → `absorbMakeup`.
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of

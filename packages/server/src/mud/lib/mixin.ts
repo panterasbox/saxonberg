@@ -718,6 +718,9 @@ export const Mixins = {
   // ⭐ Mixing is one rule (ceramics R1) — "what is put in me becomes one
   // blend, its fractions the inputs' by mass". The vessel names the blend.
   MixingVessel: 'MixingVesselMixin',
+  // ⭐ Forming (ceramics D14/D16, made general in review) — "I shape a plastic
+  // mass into a form a word names": the wheel, the brick table, the blowpipe.
+  Forming: 'FormingMixin',
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
   // inside; each carries coats, outermost first". On every Good.
   Faced: 'FacedMixin',
@@ -1006,6 +1009,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
   MixingVesselMixin: "{} isn't something you mix in",
+  FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and

@@ -15,6 +15,8 @@
 import type { Stuff } from '../stuff/Stuff';
 import type { Mml } from '../../api/mml';
 import type { AbortReason } from '@saxonberg/types';
+import type { Grade } from './Grade';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
 
 export interface ShapeRequest {
   /** Who is shaping. */
@@ -55,4 +57,30 @@ export interface Shapeable {
 export interface ShapePlanner {
   /** The plan, a refusal, or `null` when this instrument has nothing to say. */
   shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null>;
+}
+
+/**
+ * ⭐ What a maker's hand can do with a plastic mass — read off their
+ * competence in the form's discipline. The mass says what its band is worth
+ * (a potter's wall, a glassblower's breath): the instrument only asks.
+ */
+export interface FormingHand {
+  band: CompetenceBandName;
+  /** The wall mass over a proficient hand's (1 = proficient). */
+  wallFactor: number;
+  /** The largest vessel this hand can raise, L. */
+  maxL: number;
+  /** The grade its work comes out at. */
+  grade: Grade;
+}
+
+/**
+ * ⭐ A plastic mass an instrument FORMS (`FormingMixin`): clay on a wheel or
+ * in a brick mould, a gather of glass on a pipe. The instrument resolves the
+ * form; the mass says what this maker's hand can do with it, and refuses in
+ * its own trade's words when the form is beyond them.
+ */
+export interface Formable {
+  formingHand(actor: Stuff, discipline: string): Promise<FormingHand>;
+  refuseBeyond(hand: FormingHand): ShapeRefusal;
 }

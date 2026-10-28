@@ -154,11 +154,20 @@ glass plan's deferred-seams table.
 ### `shape` is the platform's (ceramics W4)
 
 `shape` was promoted out of this pack (`platform/cmd/crafting/shape.yaml`):
-the BLOWPIPE plans its gather's two forms (`Blowpipe.shapePlanFor` — bottle
-or cylinder, the blow and the jacks in one move, re-validated at commit, lost
-to cullet if it set), exactly as before, and `shape bottle` binds word for
-word (with no `into`, the one word is the form). A wheel plans a pot through
-the same protocol.
+the BLOWPIPE plans its gather's forms (`Blowpipe.shapePlanFor` — the blow and
+the jacks in one move, re-validated at commit, lost to cullet if it set), and
+`shape bottle` binds word for word (with no `into`, the one word is the form).
+A wheel plans a pot through the same protocol.
+
+⭐ **The forms are ROWS (ceramics review, 2026-10-28).** The pipe composes the
+kernel's `FormingMixin`, as the potter's wheel does: its row lists `Form` rows
+(`/trade/glass/idea/form/{bottle,cylinder}` — a closed vessel and a tall open
+one), so a blown jar or flask is one more row. The gather is `Formable`: the
+blower's competence in `glasswork` sets the largest vessel they can blow
+(`glass.blow.maxL.<band>`, untrained 2 L … expert 20 L) and the blow's grade
+(untrained poor … expert exceptional). The blow records the row it will
+crack off as and that grade on the gather, and `crack` mints from them — the
+hardcoded form→product table and the flat "fair" are gone.
 
 ## Note — the potash build (2026-10-19)
 

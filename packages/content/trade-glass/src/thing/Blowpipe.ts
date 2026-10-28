@@ -16,47 +16,59 @@ import type {
   ShapeRequest,
 } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
+import { FormingMixin } from "@saxonberg/server/mud/lib/craft/Forming";
+import type { FormClass } from "@saxonberg/server/mud/lib/craft/FormSpec";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import { Mml } from "@saxonberg/server/mud/api/mml";
-import Gather, { type GatherForm, GLASSWORK_TOPIC } from "./Gather";
+import Gather, { GLASSWORK_TOPIC, GLASSWORK_TYPE } from "./Gather";
 
 /** Working a gather into its form, game-ms — and the effort of it. */
 const SHAPE_MS = 10_000;
 const SHAPE_W = 250;
-/** The two forms a gather is blown into. */
-const FORMS: readonly GatherForm[] = ["bottle", "cylinder"];
 
 const HOT_SHOP = [
   "trade/glass/cmd/glass/gob.yaml",
   // ⭐ The platform's `shape` (ceramics D14): the PIPE plans its gather's
-  // two forms; a wheel plans a pot.
+  // forms (its row's `forms:` — `Form` rows, as a wheel's are); a wheel
+  // plans a pot.
   "platform/cmd/crafting/shape.yaml",
   "trade/glass/cmd/glass/reheat.yaml",
   "trade/glass/cmd/glass/crack.yaml",
 ];
 
-export default class Blowpipe extends ContainerMixin(Tool) implements ShapePlanner {
+export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) implements ShapePlanner {
   // ⭐ A verb an object affords is a static on the class — the pipe
   // affords the hot shop to whoever holds it (environment = the carrier).
   static commandContributions: CommandContributions = {
     environment: HOT_SHOP,
   };
 
+  /** A pipe blows vessels — closed (a bottle) and open (a pane's cylinder). */
+  protected override formClasses(): readonly FormClass[] {
+    return ["closed", "open"];
+  }
+
+  protected override formingDiscipline(): string {
+    return GLASSWORK_TYPE;
+  }
+
+  /** The mass a pipe works is the gather ON it — nothing else. */
+  protected override formingMass(_req: ShapeRequest): Gather | null {
+    return (this.getContents().find((c: Stuff) => c instanceof Gather) as Gather | undefined) ?? null;
+  }
+
   /**
-   * ⭐ The pipe plans the shape of the gather on it — a bottle, or a
-   * cylinder for a pane (the blow and the jacks in one move). `null` with no
-   * gather on it: the shape is not this pipe's business.
+   * ⭐ The pipe plans the shape of the gather on it — any form its row lists
+   * (a bottle, a cylinder for a pane), the blow and the jacks in one move.
+   * `null` with no gather on it: the shape is not this pipe's business.
    */
   public async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
-    const gather = this.getContents().find((c) => c instanceof Gather) as Gather | undefined;
-    if (gather === undefined) return null;
-    const form = req.formText.trim().toLowerCase().replace(/^(a|an|the)\s+/, "");
-    if (!FORMS.includes(form as GatherForm)) {
-      return {
-        ok: false,
-        reason: "no-form",
-        line: Mml.compose`Shape it into what? A bottle, or a cylinder for a pane.`,
-      };
-    }
+    const target = await this.resolveForming(req);
+    if (target === null || !("mass" in target)) return target;
+    const gather = target.mass;
+    if (!(gather instanceof Gather)) return null;
+    const form = target.form.describe();
+    const key = target.form.word?.key ?? form;
     const actor = req.actor;
     if (!gather.isWorkable()) {
       void gather.loseToCullet(actor, "It has already set hard.");
@@ -76,7 +88,7 @@ export default class Blowpipe extends ContainerMixin(Tool) implements ShapePlann
           void gather.loseToCullet(actor, "It set before you were done.");
           return;
         }
-        gather.setForm(form as GatherForm);
+        gather.takeForm(key, target.product, target.hand.grade);
         MessageApi.scene(actor)
           .topic(GLASSWORK_TOPIC)
           .toSelf(Mml.compose`The glass takes the form of a ${Mml.fromMarkup(form)}. Crack it off while it holds.`)

@@ -8,7 +8,7 @@
  * has finished is emptied before it is loaded; fired ware in hand is
  * shelved (or glazed and put back) before more is thrown; clay is dug only
  * when there is none to throw. ⭐ The potter's own `pottery` band is what
- * decides each pot's wall, its largest form and its grade (`Clay.potterHand`)
+ * decides each pot's wall, its largest form and its grade (`Clay.formingHand`)
  * — nothing here touches a number.
  *
  * Every step is the LITERAL verb through `forceCommand`: `dig clay`, `shape

@@ -25,10 +25,21 @@ import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
+import type { CompetenceBandName } from "@saxonberg/server/mud/lib/advancement/CompetenceBand";
+import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
+import type {
+  Formable,
+  FormingHand,
+  ShapeRefusal,
+} from "@saxonberg/server/mud/lib/craft/Shapeable";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 
-/** The worked form a gather is in. */
-export type GatherForm = "gather" | "bubble" | "bottle" | "cylinder";
+/**
+ * The worked form a gather is in: a fresh `gather`, a `bubble`, or the key of
+ * the `Form` row it was blown into (`bottle`, `cylinder` — any row a pipe
+ * lists, so a blown jar is a row and not a union member).
+ */
+export type GatherForm = "gather" | "bubble" | (string & {});
 
 /** The engagement type + message topic the hot shop shares. */
 export const GLASSWORK_TYPE = "glasswork";
@@ -57,16 +68,44 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * ⭐ A glassblower's hand, by band (the potter's shape, for breath): the
+ * largest vessel a band can blow (liters) and the grade its work comes out
+ * at. Dials `glass.blow.maxL.<band>`. An untrained blower can still blow a
+ * bottle and a pane's cylinder — badly.
+ */
+const BLOW_MAX_L: Readonly<Record<CompetenceBandName, number>> = {
+  untrained: 2,
+  novice: 3,
+  competent: 5,
+  proficient: 10,
+  expert: 20,
+};
+const BLOW_GRADE: Readonly<Record<CompetenceBandName, number>> = {
+  untrained: 0,
+  novice: 1,
+  competent: 1,
+  proficient: 2,
+  expert: 3,
+};
+
 const GatherBase = AlloyedMixin(ThermalMixin(Good));
 
-export default class Gather extends GatherBase {
+export default class Gather extends GatherBase implements Formable {
   // ⚠ Own-property only — the framework merges the mixin chain's own
   // fieldMeta up the prototype chain (MixinApi.getAllFieldMeta), so this
   // declares only Gather's new field. `authorable` because the row seeds
   // `form: gather` and `gob` resets it.
   static fieldMeta: FieldMeta = {
     form: { persistent: true, authorable: true },
+    formProduct: { persistent: true, runtimeState: true },
+    formGrade: { persistent: true, runtimeState: true },
   };
+
+  /** The row the piece is cracked off as — the blown form's (`Form.product`). */
+  public formProduct = "";
+  /** The grade the blower's hand gave the blow. */
+  public formGrade = "";
 
   /** What the gather has been worked into so far. */
   public form: GatherForm = "gather";
@@ -77,6 +116,47 @@ export default class Gather extends GatherBase {
 
   public setForm(value: GatherForm): void {
     this.form = value;
+    // A gather worked back (`gob`) is no longer any piece.
+    if (value === "gather" || value === "bubble") {
+      this.formProduct = "";
+      this.formGrade = "";
+    }
+  }
+
+  /** Blown into a form a word names: the piece it will crack off as, and how well. */
+  public takeForm(key: string, product: string, grade: Grade): void {
+    this.form = key;
+    this.formProduct = product;
+    this.formGrade = grade.getBand();
+  }
+
+  /** The row `crack` mints, or `""` when it was blown into nothing. */
+  public getFormProduct(): string {
+    return this.formProduct;
+  }
+
+  /** The grade of the blow, or `null` when nothing was blown. */
+  public getFormGrade(): Grade | null {
+    return this.formGrade !== "" && Grade.isBand(this.formGrade) ? Grade.of(this.formGrade) : null;
+  }
+
+  public async formingHand(actor: Stuff, discipline: string): Promise<FormingHand> {
+    let band: CompetenceBandName = "untrained";
+    if (MixinApi.isAdvancing(actor)) band = await actor.competenceBandFor(discipline);
+    return {
+      band,
+      wallFactor: 1,
+      maxL: dial(`glass.blow.maxL.${band}`, BLOW_MAX_L[band]),
+      grade: Grade.fromOrdinal(BLOW_GRADE[band]),
+    };
+  }
+
+  public refuseBeyond(hand: FormingHand): ShapeRefusal {
+    return {
+      ok: false,
+      reason: "beyond-your-hand",
+      line: Mml.compose`That is more glass than you can blow yet — a ${hand.band} glassblower blows a vessel of up to ${String(hand.maxL)} liters.`,
+    };
   }
 
   /**

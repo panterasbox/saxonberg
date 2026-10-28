@@ -50,6 +50,8 @@ import type {
   ShapePlan,
   ShapeRefusal,
   ShapeRequest,
+  Formable,
+  FormingHand,
 } from '@saxonberg/server/mud/lib/craft/Shapeable';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -61,15 +63,8 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
  * largest form a band can raise is its ceiling, refused above. Dials are
  * `ceramics.wall.factor.<band>` / `ceramics.wall.maxL.<band>`.
  */
-export interface PotterHand {
-  band: CompetenceBandName;
-  /** The wall mass over a proficient hand's. */
-  wallFactor: number;
-  /** The largest vessel this hand can raise, L. */
-  maxL: number;
-  /** The grade its work comes out at. */
-  grade: Grade;
-}
+/** A potter's hand — the kernel's `FormingHand`, read for clay. */
+export type PotterHand = FormingHand;
 
 const WALL_FACTOR: Readonly<Record<CompetenceBandName, number>> = {
   untrained: 1.8,
@@ -188,7 +183,7 @@ const clayAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 
 const ClayBase = CompositionMixin(WaterActivityMixin(Lump));
 
-export default class Clay extends ClayBase implements Shapeable {
+export default class Clay extends ClayBase implements Shapeable, Formable {
   static markupAugmenters: MarkupAugmenter[] = [clayAugmenter];
 
   static fieldMeta: FieldMeta = {
@@ -323,7 +318,7 @@ export default class Clay extends ClayBase implements Shapeable {
    * ⭐ The hand that is shaping, read off its competence — a deterministic
    * table, the grain the pack's dials tune.
    */
-  public async potterHand(actor: Stuff, discipline: string): Promise<PotterHand> {
+  public async formingHand(actor: Stuff, discipline: string): Promise<FormingHand> {
     let band: CompetenceBandName = 'untrained';
     if (MixinApi.isAdvancing(actor)) band = await actor.competenceBandFor(discipline);
     return {
@@ -469,7 +464,7 @@ export default class Clay extends ClayBase implements Shapeable {
   }
 
   /** The refusal that names the hand's band — the progression, said. */
-  public refuseBeyond(hand: PotterHand): ShapeRefusal {
+  public refuseBeyond(hand: FormingHand): ShapeRefusal {
     return {
       ok: false,
       reason: 'beyond-your-hand',
@@ -513,7 +508,7 @@ export default class Clay extends ClayBase implements Shapeable {
         line: Mml.compose`You could coil ${Mml.thing(self)} into a shape, but it would be nothing anybody has a name for. Work it on a wheel, or in a mould.`,
       };
     }
-    const hand = await this.potterHand(req.actor, 'pottery');
+    const hand = await this.formingHand(req.actor, 'pottery');
     if (form.formClass !== 'block' && form.formClass !== 'flat' && form.capacityL > hand.maxL) {
       return this.refuseBeyond(hand);
     }
