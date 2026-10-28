@@ -3444,3 +3444,16 @@ cracks across the melts.
     grind and 20a's grogged pot fell with it.
 - **Polish:** a thing standing in a bare vessel reads "There is a water
   filter in it.", not "It is with a water filter."
+
+**Run 41** (D 22/23 · ⭐ A 20/20 · ⭐ B 6/6 · C 11/21). A and B stay green.
+- **D 32:** the fill passes now, but `fire hearth for 12 hours` timed out at
+  30 s. Re-sent to the standing world, it answered in 57 ms. The cause is
+  unexplained; profile it if it repeats.
+- **C 21 timed out at 30 minutes.** It moved the season with a session
+  open, so each lived step was 4 hours, not 24. The test kept running after
+  its timeout and left the clock paused, which failed 22, 23c, 20a, 24 and
+  25 on "the clock is paused". 21 now moves the season with nobody in the
+  world (a7e53ca95).
+- **C 23:** the dropped "thin" bowl was unfired ("still alluvial clay"), so
+  it was not brittle and held on stone. 23 now drops only a fired bowl
+  (39c73a2e6). 23b's grind fell with it.
