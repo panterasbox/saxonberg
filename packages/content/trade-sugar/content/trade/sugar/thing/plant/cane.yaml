@@ -14,9 +14,11 @@ data:
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/saccharum/officinarum
   _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
-  seedTemplatePath: /trade/sugar/thing/seed/cane-sett
   harvestTemplatePath: /trade/sugar/thing/crop/cane
   nutrientDraw: 40
+  # ⭐ Cut with a knife (cover build D3): the cane knife's swath is the
+  # ground one stroke works. Bare hands cut a little, and badly.
+  harvestTool: reaping
   profile:
     moistureHappyAt: 0.4
     moistureWiltAt: 0.1
@@ -28,15 +30,22 @@ data:
     rootDemand: { seedling: 0.3, young: 1.5, established: 3.0, mature: 4.0 }
     daysToStage: { young: 30, established: 120, mature: 330 }
     # ⭐⭐ RATOON — cut, and it comes again from the root (the polycarp
-    # cycle; the plant keeps its place). A stand is one cutting block of
-    # its piece and the gang works the piece round, so `fruitFillDays` is
-    # the ROTATION back to this block, not the plant's own year (an
-    # abstraction that still costs the cut, the carry, the crush and the
-    # boil). As an annual — which it shipped as — a cut ENDED the plant:
-    # the estate's twenty-four stands were about four blocks of sugar,
-    # ever (sugar drive 8). ONE bundle a cut, five days round: a cut is
-    # what one person carries to the mill — three thirty-kilo bundles
-    # (the first try) froze every cutter in place, `locomotion-gate-failed`
-    # on every step of the errand.
+    # cycle; the plant keeps its place). ⭐ An AREA crop since the cover
+    # build: one plant stands over the whole piece and each `harvest` cuts
+    # one knife's swath of it (about a bundle), so the gang works the
+    # piece round by AREA and the fill below is the ratoon's own regrowth
+    # once the last of the piece is down — not, as it was, a five-day
+    # stand-in for the rotation. ⚠ One bundle a stroke still: three
+    # thirty-kilo bundles froze every cutter in place
+    # (`locomotion-gate-failed`, sugar drive 8), so the knife's swath is
+    # sized to one.
     fruitSetCount: 1
-    fruitFillDays: 5
+    fruitFillDays: 120
+    # ⭐ The yield is two numbers (cover build D2): 0.8 kg of sett a square
+    # metre, ten times that back — about 80 tonnes a hectare, which is a
+    # plantation's figure. Each ratoon gives about an eighth less, so a
+    # piece cut five or six times is tired and wants grubbing out and
+    # replanting from cut cane.
+    seedRateKgPerM2: 0.8
+    yieldRatio: 10
+    yieldDeclinePerCycle: 0.12

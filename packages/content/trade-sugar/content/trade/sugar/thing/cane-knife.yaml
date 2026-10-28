@@ -1,0 +1,22 @@
+# A cane knife — the cutter's machete, broad and heavy at the tip (cover
+# build D3). It reaps (a stroke takes a swath of the piece) and it cuts
+# (what a billhook does), so the harvest view's default binds it either
+# way.
+#
+# ⭐ `swathM2: 4` is about one thirty-kilo bundle of standing cane a
+# stroke: cane yields some ninety times what wheat does by the square
+# metre, so the knife works far less ground than a sickle and comes away
+# with far more.
+class: /platform/thing/Tool
+data:
+  keywords: [knife, "cane knife", machete, cutlass]
+  shortDescription: cane knife
+  register: indefinite
+  longDescription: >-
+    A broad, heavy blade with a hooked back at the tip for stripping the
+    leaves, the wooden grip worn pale where a hand has held it all season.
+  mass: 0.9
+  capabilities: ["reaping", "cutting"]
+  swathM2: 4
+  constructionForm: bladed
+  _materialPath: /stuff/idea/material/element/iron

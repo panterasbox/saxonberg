@@ -15,7 +15,7 @@ data:
   groundSpotY: 3
   areaM2: 1200
   props:
-    - { template: /world/terminus/waponi-woo/thing/standing-cane, count: 6 }
+    - /world/terminus/waponi-woo/thing/standing-cane-marta
   exits:
     northeast:
       destination: /world/terminus/waponi-woo/location/track

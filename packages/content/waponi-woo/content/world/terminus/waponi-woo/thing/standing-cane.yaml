@@ -2,6 +2,10 @@
 # long before anyone arrived to watch it (the Hanging Wood's mature-maple
 # precedent). Cut it and it is a bundle that inverts on the clock; the
 # ratoon comes back from the root.
+#
+# ⭐ ONE crop per piece (cover build): each piece's row extends this one
+# with its own sown area, and the cutters cut it a swath at a time. Two
+# ratoons already cut — an established piece, not a new planting.
 extends: /trade/sugar/thing/plant/cane
 data:
   growthStage: mature
@@ -11,3 +15,4 @@ data:
   _flowering: true
   _seedSet: true
   _fruitFill: 1
+  _cycleCount: 2

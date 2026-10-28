@@ -43,6 +43,32 @@ describe('trade-sugar rows', () => {
     expect(cane.data.profile.fruitFillDays).toBeGreaterThan(0);
   });
 
+  it('⭐ cane is an AREA crop that declines each ratoon (cover build)', () => {
+    const cane = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/plant/cane'), 'utf8'));
+    expect(cane.data.profile.seedRateKgPerM2).toBeGreaterThan(0);
+    expect(cane.data.profile.yieldRatio).toBeGreaterThan(1);
+    expect(cane.data.profile.yieldDeclinePerCycle).toBeGreaterThan(0);
+    expect(cane.data.harvestTool).toBe('reaping');
+    expect(cane.data.seedTemplatePath).toBeUndefined();
+  });
+
+  it('⭐ cane is planted from cut cane: the bundle grows into the plant', () => {
+    const bundle = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/crop/cane'), 'utf8'));
+    expect(bundle.class).toBe('/trade/sugar/thing/CaneBundle');
+    expect(bundle.data.growsIntoPath).toBe('/trade/sugar/thing/plant/cane');
+  });
+
+  it('the cane knife reaps about a bundle a stroke', () => {
+    const knife = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/cane-knife'), 'utf8'));
+    const cane = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/plant/cane'), 'utf8'));
+    const bundle = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/crop/cane'), 'utf8'));
+    expect(knife.data.capabilities).toContain('reaping');
+    const kg = knife.data.swathM2 * cane.data.profile.seedRateKgPerM2 * cane.data.profile.yieldRatio;
+    // One bundle and a bit — never three (they froze every cutter).
+    expect(kg / bundle.data.mass).toBeGreaterThanOrEqual(1);
+    expect(kg / bundle.data.mass).toBeLessThan(2);
+  });
+
   it('every extends names a shipped parent', () => {
     for (const { file, row } of rows) {
       if (row?.extends?.startsWith('/trade/sugar/')) {

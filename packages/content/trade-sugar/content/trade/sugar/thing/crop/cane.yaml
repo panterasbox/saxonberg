@@ -1,5 +1,8 @@
 # A bundle of cut cane — mill it the day it is cut (sugar D15: it inverts).
-class: /platform/thing/Crop
+# ⭐ And it is what cane is PLANTED from (cover build D15): lengths of
+# stalk laid in a ploughed furrow sprout at every joint, so `sow cane`
+# with a bundle in hand starts a new piece. No sett row, no new act.
+class: /trade/sugar/thing/CaneBundle
 data:
   shortDescription: bundle of cut cane
   keywords: [cane, "cut cane", bundle, "bundle of cut cane", stalks]
@@ -8,3 +11,4 @@ data:
     Lengths of cane stripped of their leaves and tied in a bundle, heavy and sweet-smelling at the cut ends.
   _materialPath: /trade/sugar/idea/material/cane-stalk
   mass: 30
+  growsIntoPath: /trade/sugar/thing/plant/cane
