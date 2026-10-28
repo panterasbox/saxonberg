@@ -149,18 +149,30 @@ describe('the weather', () => {
     expect(cold.getBurstBy()).toBe('frost');
   });
 
-  it('fat clay dried fast checks; the same clay opened with sand does not', () => {
+  it('fat clay dried fast checks; the same clay opened with sand does not', async () => {
+    // ⭐ Dried through the AIR, as a pot dries: the check is the water
+    // model's rule for every drying solid (a board in a hot kiln too), and
+    // a green piece only says how readily its clay cracks.
+    class Yard extends Place {}
+    const yard = makeStuff(() => new Yard());
     const fat = piece(1, [{ materialPath: mineral.getTemplatePath()!, fraction: 0.8 }]);
     const lean = piece(1, [
       { materialPath: mineral.getTemplatePath()!, fraction: 0.4 },
       { materialPath: sand.getTemplatePath()!, fraction: 0.5 },
     ]);
-    for (const p of [fat, lean]) p.reconcileGreen();
-    advance(3600);
+    // A hot, dry, windy day — far harsher drying than a pot stands.
+    const harsh = new Evaporation(10, 12, 315);
+    vi.spyOn(BiomeApi, 'airFor').mockReturnValue(harsh as never);
+    vi.spyOn(BiomeApi, 'airSegmentsFor').mockImplementation(((_s: unknown, t0: number, t1: number) => [
+      { air: harsh, durationS: t1 - t0, rainMmPerH: 0 },
+    ]) as never);
     for (const p of [fat, lean]) {
-      p.setWaterState({ moisture: 0.6, solute: 0 });
-      p.reconcileGreen();
+      await ContainmentApi.move(p as never, yard as never);
+      p.getMoisture(); // the clock starts
     }
+    advance(3600);
+    for (const p of [fat, lean]) p.greenState();
+    expect(fat.getMoisture()).toBeLessThan(1);
     expect(fat.getFlaws().some((f) => f.kind === 'check')).toBe(true);
     expect(lean.getFlaws()).toEqual([]);
   });

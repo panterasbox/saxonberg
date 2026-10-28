@@ -91,9 +91,10 @@ no common ancestor, which is the kernel test). Each composer composes
     SLUMPS it — the hack cover is what stops it;
   - its temperature below freezing (frost) or above boiling (a wet piece in a
     kiln — the steam burst) while it still holds water SHATTERS it;
-  - drying faster than its clay stands — dryness per hour × crack risk (fat
-    clay high; sand, grog, breeze low, read off its composition) past
-    `green.crackRate` — CHECKS it (a drying crack).
+  - drying faster than its clay stands CHECKS it (a drying crack) — the
+    water model's one rule for every drying solid (`cure.crackRate`), a
+    board in a hot kiln included; green ware only supplies its clay's crack
+    risk (fat clay high; sand, grog, breeze low, read off its composition).
 - ⭐⭐ **Green ends at firing (R2).** Every read answers only while the body
   is its plastic clay and its heat history has converted nothing. The first
   rung ends it: a fired pot's relation to water is its porosity, weep and

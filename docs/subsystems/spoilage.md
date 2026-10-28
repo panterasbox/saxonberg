@@ -640,6 +640,33 @@ a stamp and integrates the whole window exactly, segment by segment
 (`BiomeApi.airSegmentsFor`). The trade is deliberate: the alternative is
 stamping every fresh `Provision` in every open room on every `look`.
 
+⭐⭐ **It is the ONE model of a solid drying in air (ceramics review,
+2026-10-28).** Wood used to season on a clock of its own (`SeasoningMixin`'s
+fraction on the maturation curve) and the two disagreed where a player could
+see it — a ham in a damp shed took water back and a board beside it only
+stalled; a pot checked for drying too *fast* and a board for drying too
+*hot*. Now `Timber` and `SoapBar` compose this mixin too, and green clay's
+leather-hard and a board's seasoned are both READINGS of its moisture. What
+the shared walk does for every exposed host, segment by segment:
+
+- **the air is the ENCLOSING scope's** — a stack placed `in` a drying
+  chamber reads the chamber's air, not the room's;
+- **rain puts water back** — `cure.rewetPerMm` of moisture per mm, scaled
+  by exposure (a segment's rain is `0` under a roof);
+- **drying too fast CHECKS it** — dryness gained per hour (per segment, so a
+  hot afternoon is not averaged away by the night) × the host's
+  `dryingCrackRisk()` hook past `cure.crackRate` lays one `check` flaw. The
+  default risk is `0` (food does not check); green clay's is its
+  composition's (fat high, sand and grog low); a board's is scaled to its
+  own species' rate, so it checks when the air dries it four times harder
+  than good drying air (a careless kiln) and never in weather;
+- **the base rate is the host's** — `dryingRatePerHour()`, `undefined` for
+  the `cure.dryingPerHour` dial; a seasoning host derives its species' from
+  `Material.seasoningDays`.
+
+`dryness()` is moisture read against the air's equilibrium — *as dry as
+this air will let it get* — and is what green clay's states are bands of.
+
 ⭐ **The rate itself is `lib/material/Evaporation.ts`** — one value object,
 no statics, `evaporationFactor(equilibriumRhPct = 100)` = the vapour
 deficit × the wind term × a doubling per 10 K, capped at 373 K. Read

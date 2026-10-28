@@ -1,26 +1,27 @@
 /**
- * SeasoningMixin — converted wood that DRIES over time, at its species'
- * rate, in the air it stands in (assembly D2, AC 19).
+ * SeasoningMixin — converted wood (and a bar of soap) READ as it dries: green,
+ * drying, seasoned (assembly D2, AC 19).
  *
- * The second host of the maturation clock (`MaturationClock`): the same
- * stall-below / happy / damage-above curve, read over a different host. A
- * `MaturingMixin` vessel matures a BATCH in its interior slot; a stack of
- * boards has no slot and no batch — it has a material that gives up water
- * to the air. So this owns one fraction, `seasonedFraction` (0 green → 1
- * seasoned), and reconciles it on read over the air segments it slept
- * through: `BiomeApi.airSegmentsFor`, the evaporative mechanism's read,
- * walked segment by segment because a dry week and a wet one do opposite
- * things and their average does neither.
+ * ⭐⭐ **A reading, not a clock** (ceramics review, 2026-10-28). The water
+ * is the host's `WaterActivityMixin` — the one model of a solid giving its
+ * water to the air, which food, hides, turf and green clay already ran on.
+ * Seasoning had a second one (its own fraction on the maturation clock, a
+ * flat rain penalty, a damage band for heat), and the two disagreed where a
+ * player could see it: a ham in a damp shed took water back and a board
+ * beside it only stalled; a pot checked for drying too FAST and a board for
+ * drying too HOT. Now there is one law, and this is wood's words for it.
  *
- * - **The rate** is the species' (`Material.seasoningDays` — oak a year,
- *   pine half that) times how hard THIS air is drying it, against good
- *   drying air: `Evaporation.evaporationFactor` with wood's equilibrium
- *   (it stops drying in air near saturation — a damp shed seasons nothing),
- *   times the clock's temperature curve (nothing below freezing).
- * - ⭐ **Rain sets it back** on a stack in the open (a segment's rain is
- *   0 indoors) — the evaporative precedent, *"rain reverses it"*.
- * - ⭐ **Too hot is damage** — a board dried hard checks and splits. The
- *   worst stretch is kept; grade reads cap at it, the clock's band rule.
+ * - **Seasoned** is an absolute moisture: most of the way from green to
+ *   what air at wood's saturation holds
+ *   ({@link SATURATION_RH_PCT}). Air wetter than that
+ *   cannot season wood — a damp shed seasons nothing — and a seasoned board
+ *   left in it takes the water back.
+ * - **The rate** is the species' — `Material.seasoningDays` (oak a year,
+ *   pine half), handed to the water model as its drying rate.
+ * - **Rain sets it back** and **too fast checks it** — both the water
+ *   model's, for every drying solid; a board stands drying up to
+ *   {@link WOOD_CHECKS_AT} times harder than good air. A checked board
+ *   grades no better than fair.
  * - **Vacuous** on a material with `seasoningDays 0`: it is neither green
  *   nor seasoned, and every read answers as though the mixin were absent.
  *
@@ -30,39 +31,36 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { MixinApi } from '../../api/mixin';
-import { BiomeApi } from '../../api/biome';
-import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
-import { Evaporation } from '../material/Evaporation';
 import { Grade } from '../craft/Grade';
-import {
-  MaturationClock,
-  SECONDS_PER_GAME_DAY,
-  type ClockProfile,
-} from './MaturationClock';
+import { WaterActivity, type WaterActive } from '../material/WaterActivity';
+import { Evaporation } from '../material/Evaporation';
 import type { MarkupAugmenter } from '../../api/mml';
 
-/** Relative humidity (%) wood stops drying at — its equilibrium. */
-const WOOD_EQUILIBRIUM_RH_PCT = 85;
+/**
+ * ⭐ Good drying air — what a material's `seasoningDays` is quoted against:
+ * a dry, breezy, mild day, on a rack. Kernel constant.
+ */
+const GOOD_AIR = new Evaporation(55, 2, 290);
 
-/** Good drying air: what `seasoningDays` is quoted against. */
-const REFERENCE_AIR = new Evaporation(55, 2, 290);
+/**
+ * The relative humidity (%) of air at wood's SATURATION — what *seasoned*
+ * is measured against. Seasoned is having dried `wood.seasonedThreshold`
+ * of the way from green to what this air holds, so wetter air than this
+ * can never season it.
+ */
+const SATURATION_RH_PCT = 85;
 
-/** Seasoned fraction lost per mm of rain on a stack in the open. Grain. */
-const REWET_PER_MM = 0.002;
-
-/** The clock curve seasoning runs on — kernel constants (assembly D2). */
-const SEASONING_CURVE: ClockProfile = {
-  getStallBelowK: () => 273,
-  getHappyK: () => 290,
-  // Dried too hot, wood checks: a kiln run carelessly ruins boards.
-  getDamageAboveK: () => 330,
-  getRatePerDay: () => 1,
-  getStallAboveK: () => null,
-};
+/**
+ * How many times harder than good drying air a board stands being dried
+ * before it checks — a kiln run carelessly hot. ⭐ Relative to the
+ * species' OWN rate: a wood that seasons in months is not judged by the
+ * clay's yardstick, which is measured in days.
+ */
+const WOOD_CHECKS_AT = 4;
 
 export interface Seasoning {
   /** 0 green → 1 seasoned. Reconciles first. `0` for a non-seasoning material. */
@@ -124,16 +122,14 @@ function seasoningAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${both}` : both;
 }
 
-export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
+export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActive>>(Base: TBase) {
   return class SeasoningMixin extends Base implements Seasoning {
     static _mixinName: string = 'SeasoningMixin';
-
     static markupAugmenters: MarkupAugmenter[] = [seasoningAugmenter];
-
     static fieldMeta: FieldMeta = {
-      seasonedFraction: { persistent: true, runtimeState: true, authorable: true },
-      seasonClockStamp: { persistent: true, runtimeState: true },
-      seasonWorst: { persistent: true, runtimeState: true },
+      // ⭐ A SEED, not a stored value: how seasoned a minted piece arrives
+      // (a stave, a sawn board), written into the water state once.
+      seasonedFraction: { authorable: true, seed: true },
       // A quarter-sawn board and a through-sawn one do not merge.
       quarterSawn: { persistent: true, runtimeState: true, authorable: true, stackIdentity: true },
       // ⭐ A face wide enough to cup across — a board. Authored on the
@@ -156,9 +152,6 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       return '';
     }
 
-    public seasonedFraction = 0;
-    public seasonClockStamp = 0;
-    public seasonWorst = 1;
     public quarterSawn = false;
     public wideFace = false;
 
@@ -169,71 +162,46 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       return m ? m.getSeasoningDays() : 0;
     }
 
-    /** Integrate the fraction over the air since the last read. */
-    private reconcileSeasoning(): void {
+    /** The moisture `fraction` of the way from green to seasoned. */
+    private moistureSeasonedTo(fraction: number): number {
+      const sat = WaterActivity.equilibriumMoisture(SATURATION_RH_PCT);
+      return 1 - Math.max(0, Math.min(1, fraction)) * (1 - sat);
+    }
+
+    /**
+     * ⭐ How fast this dries in GOOD air, as the fraction of its gap to that
+     * air closed per game-hour — from `seasoningDays`, the days it takes
+     * there to reach the `wood.seasonedThreshold` mark. Derived, never
+     * tabulated: the moisture approaches the air's equilibrium
+     * exponentially, so the mark is reached at `k·t = −ln((m* − eq) ÷ (1 − eq))`.
+     */
+    private goodAirPerHour(): number | undefined {
       const days = this.seasoningDaysOf();
-      const nowS = WorldClockApi.getNow().rawValue();
-      if (days <= 0 || this.seasonedFraction >= 1) {
-        this.seasonClockStamp = nowS;
-        return;
-      }
-      if (this.seasonClockStamp === 0 || nowS <= this.seasonClockStamp) {
-        this.seasonClockStamp = nowS;
-        return;
-      }
-      const self = this as unknown as Stuff;
-      // The air of whatever this stands in — a yard, a loft, a shed. ⭐ The
-      // ENCLOSING scope, not the container: a stack placed `in` a chamber
-      // (a drying loft) has `container = the room` and enclosing scope =
-      // the chamber, and it is the chamber's air that dries it. Off a
-      // placement — or under one that does not enclose (`on` a rack) — the
-      // enclosing scope IS the container, so nothing else changes. The
-      // walk steps out until something holds things or has air of its own.
-      let scope: Stuff | null = MixinApi.isContainable(self)
-        ? self.getEnclosingScope()
-        : null;
-      while (
-        scope !== null &&
-        !MixinApi.isContainer(scope) &&
-        !MixinApi.isAtmospheric(scope)
-      ) {
-        scope = MixinApi.isContainable(scope) ? scope.getEnclosingScope() : null;
-      }
-      if (scope === null) {
-        this.seasonClockStamp = nowS;
-        return;
-      }
-      const reference = REFERENCE_AIR.evaporationFactor(WOOD_EQUILIBRIUM_RH_PCT);
-      let f = this.seasonedFraction;
-      let worst = this.seasonWorst;
-      let segments: ReturnType<typeof BiomeApi.airSegmentsFor> = [];
-      try {
-        segments = BiomeApi.airSegmentsFor(scope, this.seasonClockStamp, nowS);
-      } catch {
-        segments = [];
-      }
-      for (const seg of segments) {
-        if (!(seg.durationS > 0)) continue;
-        const segDays = seg.durationS / SECONDS_PER_GAME_DAY;
-        const temp = MaturationClock.rateAt(SEASONING_CURVE, seg.air.tempK);
-        const drying = reference > 0 ? seg.air.evaporationFactor(WOOD_EQUILIBRIUM_RH_PCT) / reference : 0;
-        f = Math.min(1, f + (temp * drying * segDays) / days);
-        const sat = MaturationClock.damageSat(SEASONING_CURVE, seg.air.tempK);
-        if (sat < worst) worst = sat;
-        if (seg.rainMmPerH > 0) {
-          const mm = seg.rainMmPerH * (seg.durationS / 3600);
-          f = Math.max(0, f - mm * REWET_PER_MM);
-        }
-      }
-      this.seasonedFraction = f;
-      this.seasonWorst = worst;
-      this.seasonClockStamp = nowS;
+      if (!(days > 0)) return undefined;
+      const at = Math.min(0.99, Math.max(0.01, dial(AppSettingKeys.woodSeasonedThreshold, 0.8)));
+      const eq = WaterActivity.equilibriumMoisture(GOOD_AIR.humidityPct);
+      const mark = this.moistureSeasonedTo(at);
+      if (!(mark > eq)) return undefined;
+      return -Math.log((mark - eq) / (1 - eq)) / (days * 24);
+    }
+
+    /** The species' rate, as the base the water model scales by the air. */
+    public dryingRatePerHour(): number | undefined {
+      const good = this.goodAirPerHour();
+      const air = GOOD_AIR.evaporationFactor();
+      return good !== undefined && air > 0 ? good / air : undefined;
+    }
+
+    public seedSeasonedFraction(value: number): void {
+      if (typeof value !== 'number' || !Number.isFinite(value)) return;
+      this.setSeasonedFraction(value);
     }
 
     getSeasonedFraction(): number {
       if (this.seasoningDaysOf() <= 0) return 0;
-      this.reconcileSeasoning();
-      return this.seasonedFraction;
+      const m = (this as unknown as WaterActive).getMoisture();
+      const sat = WaterActivity.equilibriumMoisture(SATURATION_RH_PCT);
+      return Math.max(0, Math.min(1, (1 - m) / (1 - sat)));
     }
 
     isSeasoned(): boolean {
@@ -260,22 +228,40 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
       return MixinApi.isConstructed(self) && self.getConstructionForm() === 'sawn';
     }
 
+    /** Written as moisture: `f` of the way from green to seasoned. */
     setSeasonedFraction(f: number): void {
-      this.seasonedFraction = Math.max(0, Math.min(1, Number(f) || 0));
-      this.seasonClockStamp = WorldClockApi.getNow().rawValue();
+      const water = this as unknown as WaterActive;
+      water.setWaterState({
+        moisture: this.moistureSeasonedTo(Number(f) || 0),
+        solute: water.getSolute(),
+      });
     }
 
     /**
-     * ⭐ Dried too hot, it checks: the grade reads no better than the worst
-     * stretch earned (the clock's band rule) — the board is what it went
-     * through. A board that never ran hot is unaffected.
+     * Scaled so the water model's one rule (`dryness/hour × risk` past
+     * `cure.crackRate`) fires when this air dries it {@link WOOD_CHECKS_AT}
+     * times faster than good drying air would
+     * ({@link goodAirPerHour}).
+     */
+    public dryingCrackRisk(): number {
+      const goodPerHour = this.goodAirPerHour();
+      if (goodPerHour === undefined || !(goodPerHour > 0)) return 0;
+      return dial(AppSettingKeys.cureCrackRate, 0.05) / (WOOD_CHECKS_AT * goodPerHour);
+    }
+
+    /**
+     * ⭐ Dried too fast, it checks — and a checked board grades no better
+     * than fair: it is what it went through.
      */
     getGrade(): Grade {
       const base = (Base.prototype as unknown as { getGrade?: () => Grade }).getGrade;
       const g = base ? base.call(this) : Grade.of('fair');
       if (this.seasoningDaysOf() <= 0) return g;
-      this.reconcileSeasoning();
-      return this.seasonWorst < 1 ? g.min(Grade.of(MaturationClock.bandFor(this.seasonWorst))) : g;
+      // Bring the water current: a check is laid by the drying it records.
+      (this as unknown as WaterActive).getMoisture();
+      const self = this as unknown as Stuff;
+      const checked = MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'check');
+      return checked ? g.min(Grade.of('fair')) : g;
     }
 
     /**
@@ -301,9 +287,9 @@ export function SeasoningMixin<TBase extends MixinConstructor>(Base: TBase) {
     onMerged(absorbed: Stuff): void {
       const stashed = this._absorbingSeason;
       this._absorbingSeason = null;
-      this.reconcileSeasoning();
       if (stashed !== null && stashed.stuffId === absorbed.stuffId) {
-        this.seasonedFraction = Math.min(this.seasonedFraction, stashed.fraction);
+        const mine = this.getSeasonedFraction();
+        if (stashed.fraction < mine) this.setSeasonedFraction(stashed.fraction);
       }
       const base = (Base.prototype as unknown as { onMerged?: (a: Stuff) => void }).onMerged;
       if (base) base.call(this, absorbed);

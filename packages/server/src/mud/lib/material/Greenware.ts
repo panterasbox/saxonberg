@@ -42,7 +42,7 @@ import { AppApi } from '../../api/app';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { AppSettingKeys } from '../config/AppSettings';
-import { WaterActivity } from './WaterActivity';
+import type { WaterActive } from './WaterActivity';
 import type { CommandContributions } from '../../api/command';
 import type Material from './Material';
 
@@ -64,8 +64,6 @@ export interface Greenware extends Carvable, Impressible {
   isGreen(): boolean;
   /** `plastic` · `leather-hard` · `bone-dry`, or `null` once fired. */
   greenState(): GreenState | null;
-  /** `0` just thrown … `1` as dry as the air allows. */
-  dryness(): number;
   /** What the weather did to it, if anything. */
   getRuin(): GreenRuin;
   /** What burst a shattered piece — ice in a frost, or steam in a kiln. */
@@ -163,7 +161,7 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base: TBase) {
+export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & WaterActive>>(Base: TBase) {
   class GreenwareMixin extends Base implements Greenware {
     static _mixinName = 'GreenwareMixin';
 
@@ -346,24 +344,10 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
       return true;
     }
 
-    public dryness(): number {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isWaterActive(self)) return 1;
-      const m = self.getMoisture();
-      // ⭐ Against the air the water was actually integrated in (locality and
-      // weather included). A second, quicker read of the air (the biome's
-      // bare default) disagreed with it: a brick dried to the Delight's real
-      // ~75 % was judged against 50 % and stayed leather-hard for ten weeks
-      // on the hack (the ceramics drive).
-      const eq = WaterActivity.equilibriumMoisture(self.getAirHumidityPct());
-      if (!(eq < 1)) return 0;
-      return Math.max(0, Math.min(1, (1 - m) / (1 - eq)));
-    }
-
     public greenState(): GreenState | null {
       this.reconcileGreen();
       if (!this.isGreen()) return null;
-      const d = this.dryness();
+      const d = (this as unknown as WaterActive).dryness();
       if (d >= greenDial(AppSettingKeys.greenBoneDryAt, 0.85)) return 'bone-dry';
       if (d >= greenDial(AppSettingKeys.greenLeatherAt, 0.3)) return 'leather-hard';
       return 'plastic';
@@ -403,9 +387,11 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
      *  - **shattered** — its temperature went below freezing while it still
      *    held water (dryness under bone-dry), or above boiling (a wet piece
      *    in a kiln — the steam burst, no special case);
-     *  - **cracked** — it dried faster than its clay stands: the drying rate
-     *    × its crack risk (fat clay high, sand and grog low) past
-     *    `green.crackRate` leaves a check (a drying crack).
+     *
+     * ⭐ Drying too fast is not here: it is the water model's rule for every
+     * drying solid (`WaterActive.dryingCrackRisk`, `cure.crackRate`), and a
+     * green piece's risk is its clay's (below) — a pot and a board check by
+     * one rule.
      */
     public reconcileGreen(): void {
       if (this._greenReconciling || this.greenRuin !== null) return;
@@ -415,7 +401,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
       if (nowS === null) return;
       this._greenReconciling = true;
       try {
-        const dry = this.dryness();
+        const dry = (this as unknown as WaterActive).dryness();
         const wet = MixinApi.isWet(self) ? self.getWetness() : 0;
         if (this.greenCheckedS === 0) {
           this.greenCheckedS = nowS;
@@ -444,13 +430,6 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
           this.greenRuin = 'shattered';
           this.greenBurstBy = minK < 273.15 ? 'frost' : 'steam';
           if (MixinApi.isTangible(self)) self.addFlaw('crack', true, nowS);
-        } else if (dry > this.greenLastDryness) {
-          const rate = (dry - this.greenLastDryness) / dtH;
-          if (rate * this.greenCrackRisk() > greenDial(AppSettingKeys.greenCrackRate, 0.05)) {
-            if (MixinApi.isTangible(self) && !self.getFlaws().some((f) => f.kind === 'check')) {
-              self.addFlaw('check', true, nowS);
-            }
-          }
         }
         this.greenCheckedS = nowS;
         this.greenLastDryness = dry;
@@ -466,7 +445,8 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet>>(Base
      * clay mineral) high, opened with sand, grog or breeze low. Read off the
      * piece's own composition when it carries one, else a middling clay.
      */
-    private greenCrackRisk(): number {
+    public dryingCrackRisk(): number {
+      if (!this.isGreen()) return 0;
       const self = this as unknown as Stuff;
       if (!MixinApi.isComposition(self)) return 0.5;
       let fat = 0;

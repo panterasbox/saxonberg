@@ -1,5 +1,6 @@
 /**
- * ⭐ Seasoning reads the ENCLOSING scope's air (assembly W7, D15): a stack
+ * ⭐ A drying solid reads the ENCLOSING scope's air (assembly W7, D15 —
+ * the water model's since seasoning folded into it): a stack
  * placed `in` a drying loft has `container = the yard` and enclosing scope
  * = the loft, and it is the loft's air that dries it.
  *
@@ -23,7 +24,9 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BiomeApi, type AirSegment } from '../../../api/biome';
 import { Evaporation } from '../../material/Evaporation';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { TemplatePaths } from '../../paths';
 
 class Yard extends Place {}
 
@@ -83,6 +86,11 @@ function stack(): Timber {
 
 beforeEach(async () => {
   StuffApi.clearAll();
+  // The water clock is dead without the clock registry STUFF.
+  stampTemplatePathForTest(
+    makeStuff(() => new WorldClockRegistry()),
+    TemplatePaths.worldClockRegistry,
+  );
   now = BASE;
   WorldClockApi._setNowProviderForTesting(() => now);
   await warmPlacements();
@@ -98,16 +106,18 @@ beforeEach(async () => {
   ContainmentApi.move(loft, yard);
   scopes = [];
   // The loft is GOOD drying air (the reference `seasoningDays` is quoted
-  // at); the yard is saturated and dries nothing.
+  // at); the yard is near saturation, wetter than wood can season in.
+  const airOf = (scope: Stuff): Evaporation =>
+    scope === loft ? new Evaporation(55, 2, 290) : new Evaporation(95, 0, 285);
+  vi.spyOn(BiomeApi, 'airFor').mockImplementation(((scope: Stuff) => airOf(scope)) as never);
+  vi.spyOn(BiomeApi, 'localHumidityFor').mockImplementation(((scope: Stuff) => airOf(scope).humidityPct) as never);
   (BiomeApi as unknown as { airSegmentsFor: unknown }).airSegmentsFor = (
     scope: Stuff,
     t0: number,
     t1: number,
   ): AirSegment[] => {
     scopes.push(scope);
-    const air =
-      scope === loft ? new Evaporation(55, 2, 290) : new Evaporation(95, 0, 285);
-    return [{ air, durationS: t1 - t0, rainMmPerH: 0 }];
+    return [{ air: airOf(scope), durationS: t1 - t0, rainMmPerH: 0 }];
   };
 });
 
@@ -130,10 +140,12 @@ describe('⭐ seasoning in a chamber', () => {
 
     expect(scopes.length).toBeGreaterThan(0);
     expect(scopes.every((s) => s === loft)).toBe(true);
-    expect(f).toBeCloseTo(0.5, 2);
+    // Halfway through its seasoningDays in good air (the water model's
+    // exponential approach puts it a little under halfway to the mark).
+    expect(f).toBeCloseTo(0.43, 1);
   });
 
-  it('the same stack loose in the yard reads the YARD — and dries nothing', () => {
+  it('the same stack loose in the yard reads the YARD — and never seasons there', () => {
     const t = stack();
     ContainmentApi.move(t, yard);
     t.getSeasonedFraction();
@@ -141,6 +153,8 @@ describe('⭐ seasoning in a chamber', () => {
     const f = t.getSeasonedFraction();
 
     expect(scopes.every((s) => s === yard)).toBe(true);
-    expect(f).toBe(0);
+    // It gives up only what 95 % air will take — far short of seasoned.
+    expect(f).toBeLessThan(0.4);
+    expect(t.isSeasoned()).toBe(false);
   });
 });

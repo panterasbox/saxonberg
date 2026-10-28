@@ -1609,6 +1609,27 @@ left a fork the lens that chose is named.
   lies in its grate and `sweep` rakes it in heaps, potash's alkali and all.
   `CommandGiver`'s fall-through landed twice; master's text kept.
 
+- **B79 — review: one model of a solid drying in air (2026-10-28).** The
+  review asked whether the new mixins compete with shipped ones; Greenware
+  did not (it was already a reading over `WaterActivityMixin`), but that
+  exposed `SeasoningMixin` running a SECOND drying model — its own fraction
+  on the maturation clock, a flat rain penalty, a damage band for heat. The
+  two disagreed visibly (a ham in a damp shed regained water, a board beside
+  it only stalled; a pot checked for drying too fast, a board for drying too
+  hot). Lens 1 chose: one derivable law — a solid gives water to the air
+  until it matches it, and drying it faster than it stands cracks it.
+  `Timber` and `SoapBar` compose the water model; Seasoning is wood's
+  reading of it (seasoned = an absolute moisture, 0.8 of the way to what
+  85 % air holds; `seasonedFraction` a row SEED). The water model gained,
+  for every drying solid: the enclosing scope's air (Seasoning's chamber
+  walk), rain (`cure.rewetPerMm`), the drying-too-fast check
+  (`cure.crackRate` × a `dryingCrackRisk()` hook — clay's from its
+  composition, a board's scaled to its species so only a hot kiln checks
+  it) and a `dryingRatePerHour()` hook (a board's from `seasoningDays`,
+  calibrated to the mark in good air on stickers). `green.crackRate`
+  retired into `cure.crackRate`. ⚠ An unstickered stack on bare ground now
+  dries at the ground's exposure (0.35), about three times slower.
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of

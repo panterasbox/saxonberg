@@ -4,7 +4,7 @@
  *
  * ⭐ It cures the way a board seasons: water leaving a solid into the air
  * it stands in, over its material's `seasoningDays` (hard soap, four
- * weeks) — `SeasoningMixin`, the same clock. A bar cut short is HARSH on
+ * weeks) — `SeasoningMixin`, read over the same water model as every drying solid. A bar cut short is HARSH on
  * skin and cloth; a cured one is mild. `look` tells you which before you
  * wash with it. Doctrine-legal (§ 3a): the clock started at an act, it is
  * a legible physical process, and it only ever improves the bar.
@@ -12,8 +12,9 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { SeasoningMixin } from '@saxonberg/server/mud/lib/maturation/Seasoning';
+import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
 
-export default class SoapBar extends SeasoningMixin(Good) {
+export default class SoapBar extends SeasoningMixin(WaterActivityMixin(Good)) {
   public override seasonPhrase(fraction: number): string {
     return fraction >= 0.95
       ? 'It is well cured — hard, pale and mild.'

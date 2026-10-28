@@ -422,29 +422,35 @@ raises integrity, so no list of acts is needed. The output's seasoned
 fraction is the greenest input's. `look` names a part's form (*a sawn oak
 shield-board*) and a stock piece reads its end grain in words.
 
-**Seasoning** — `lib/maturation/Seasoning.ts` (`SeasoningMixin`), the
-second host of the maturation clock. `MaturingMixin` could not host it
-(its composition guard demands an interior bulk slot — the batch IS the
-slot), so the host-agnostic curves were lifted, byte-identical, into
-`lib/maturation/MaturationClock.ts` (a pure value object; the gap loop
-stayed in `Maturing`). Seasoning owns one fraction (0 green → 1 seasoned),
-reconciled on read over `BiomeApi.airSegmentsFor`:
+**Seasoning** — `lib/maturation/Seasoning.ts` (`SeasoningMixin`), a
+READING over the host's `WaterActivityMixin` — the one model of a solid
+giving its water to the air ([spoilage.md](./spoilage.md) § the water
+state). ⚠ It ran a clock of its own until the ceramics review
+(2026-10-28): a fraction on the maturation curve, a flat rain penalty and a
+damage band for heat, which disagreed with the water model food, hides,
+turf and green clay already used. What it reads now:
 
-- rate = the species' `Material.seasoningDays` × how hard this air dries
-  (`Evaporation`, wood's equilibrium 85 % RH — a damp shed seasons
-  nothing) × the clock curve (stall below 273 K, happy at 290 K, damage
-  above 330 K);
-- rain on an exposed stack sets it back; dried too hot, the grade caps at
-  the worst stretch (the clock's band rule);
-- `isSeasoned()` ≥ `wood.seasonedThreshold` (0.8); vacuous on a material
-  with `seasoningDays 0`;
+- **seasoned** is an absolute moisture — `wood.seasonedThreshold` (0.8) of
+  the way from green to what air at wood's saturation (85 % RH) holds. So
+  wetter air than that never seasons it (a damp shed seasons nothing), and a
+  seasoned board left in it takes the water back. `seasonedFraction` on a
+  row is a SEED written into the moisture once;
+- **the rate** is the species' `Material.seasoningDays` — the days to that
+  mark in good drying air (55 % RH, a breeze, 290 K, on stickers), derived
+  into the water model's exponential approach (`dryingRatePerHour`). ⚠ On
+  bare ground the water model's ground exposure (0.35) applies, so an
+  unstickered stack takes about three times as long;
+- **rain sets it back** and **drying too fast checks it** — the water
+  model's rules for every drying solid; a board stands four times harder
+  drying than good air, and a checked board grades no better than fair;
+- vacuous on a material with `seasoningDays 0`;
 - ⭐ **a merge takes the greener** — and so `Timber` is
-  `SeasoningMixin(StackableMixin(…))`, Seasoning OUTSIDE, because the
-  outer class's `onMerged` is the one that runs.
+  `SeasoningMixin(WaterActivityMixin(StackableMixin(…)))`, Seasoning
+  OUTSIDE, because the outer class's `onMerged` is the one that runs.
 
 **`Timber`** (`platform/thing/Timber.ts`, kernel — its composers are
 three packs with no common ancestor) =
-`SeasoningMixin(StackableMixin(ConstructedMixin(CraftedMixin(Good))))`:
+`SeasoningMixin(WaterActivityMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))))`:
 billets, boards, staves, blanks and the carved wooden parts (hafts,
 handles, legs, rails — `Timber` so a green haft keeps its greenness and
 warps). `constructionForm` and `quarterSawn` are stack identity: riven

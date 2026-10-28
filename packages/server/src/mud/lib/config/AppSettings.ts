@@ -1457,6 +1457,17 @@ export const AppSettingKeys = {
    * not heaped.
    */
   cureGroundExposure: "cure.groundExposure",
+  /**
+   * Curing — a solid that dries faster than it stands CHECKS: dryness
+   * gained per game-hour × the host's drying crack risk past this leaves a
+   * drying crack. One rule for green clay and for timber.
+   */
+  cureCrackRate: "cure.crackRate",
+  /**
+   * Curing — fresh water a thing in the open takes back per mm of rain, as
+   * a fraction of its moisture, before its exposure scales it.
+   */
+  cureRewetPerMm: "cure.rewetPerMm",
   /** Curing — the relative humidity (%) assumed where nothing authors one. */
   cureAmbientHumidity: "cure.ambientHumidity",
   /** Curing — moisture at/below which a thing reads thoroughly dried. */
@@ -1896,8 +1907,6 @@ export const AppSettingKeys = {
   greenBoneDryAt: "green.boneDryAt",
   /** Green ware — a rise in wetness this large between looks slumps it. */
   greenSlumpWetting: "green.slumpWetting",
-  /** Green ware — drying rate (dryness/hour) × crack risk past this cracks it. */
-  greenCrackRate: "green.crackRate",
   /** Fire — ⭐ a lining's wear per hour of firing at its own refractory
    * limit, in bricks' worth (ceramics D19); it scales as (held ÷ limit)³. */
   fireLiningWearPerHour: "fire.lining.wearPerHour",

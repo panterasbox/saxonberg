@@ -16,11 +16,6 @@ settings:
   - key: green.slumpWetting
     value: "0.15"
 
-  # Dried faster than its clay stands: dryness gained per hour × the clay's
-  # crack risk (fat clay high, sand and grog low) past this checks it.
-  - key: green.crackRate
-    value: "0.05"
-
   # Two pieces joined with slip whose dryness differs by more than this —
   # a handle much wetter than its body — crack where they meet as they dry.
   - key: green.joinMismatch

@@ -39,6 +39,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { TemplatePaths } from '../../../../lib/paths';
+import { installDryingAir } from '../../../../lib/material/__tests__/drying-air';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -118,6 +119,7 @@ async function makePick(): Promise<Tool> {
 beforeEach(async () => {
   store = { recipes: [] };
   StuffApi.clearAll();
+  installDryingAir();
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(async (col: string, query: Record<string, unknown>) => {

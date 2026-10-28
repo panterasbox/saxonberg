@@ -4532,7 +4532,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
       const refused = leatherHardRefusal(piece);
       if (refused) return { ok: false, reason: 'not-leather-hard', detail: refused };
     }
-    if (MixinApi.isGreenware(whole) && MixinApi.isGreenware(part)) {
+    if (MixinApi.isWaterActive(whole) && MixinApi.isWaterActive(part)) {
       slipMismatch =
         Math.abs(whole.dryness() - part.dryness()) >
         dial(AppSettingKeys.greenJoinMismatch, 0.25);

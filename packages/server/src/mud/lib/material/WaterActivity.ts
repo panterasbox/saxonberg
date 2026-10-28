@@ -93,6 +93,10 @@ const WATER_DEFAULTS = {
   AMBIENT_TEMP_K: 288,
   /** Relative humidity (%) assumed where nothing authors one. */
   AMBIENT_HUMIDITY_PCT: 60,
+  /** Dryness gained per hour × crack risk past which a drying solid checks. */
+  CRACK_RATE: 0.05,
+  /** Moisture taken back per mm of rain, before exposure scales it. */
+  REWET_PER_MM: 0.002,
   /** Moisture at/below which a thing reads thoroughly dried. */
   BAND_DRIED_AT: 0.5,
   /** Moisture below which a thing reads partly dried. */
@@ -169,6 +173,8 @@ function waterAugmenter(
   }
   if (!MixinApi.isWaterActive(host)) return text;
   if (host.isDestroyed()) return text;
+  // A reading that speaks for its own water (a board's seasoning) says it.
+  if (MixinApi.isSeasoning(host)) return text;
   const line = WaterActivity.phraseFor(host.getWaterState());
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
@@ -220,7 +226,16 @@ function exposedScopeOf(host: Stuff): (Stuff & Container) | null {
   if (!MixinApi.isContainable(host)) return null;
   const where = host.getContainer();
   if (where === null || !(where instanceof Place)) return null;
-  return where as unknown as Stuff & Container;
+  // ⭐ The ENCLOSING scope's air, not the container's: a stack placed `in`
+  // a drying chamber has `container = the room` and enclosing scope = the
+  // chamber, and it is the chamber's air that dries it. Off a placement —
+  // or under one that does not enclose (`on` a rack) — the enclosing scope
+  // IS the container. (Seasoning's walk, kept when it folded in here.)
+  let scope: Stuff | null = host.getEnclosingScope();
+  while (scope !== null && !MixinApi.isContainer(scope) && !MixinApi.isAtmospheric(scope)) {
+    scope = MixinApi.isContainable(scope) ? scope.getEnclosingScope() : null;
+  }
+  return (scope ?? where) as unknown as Stuff & Container;
 }
 
 /**
@@ -326,6 +341,7 @@ export class WaterActivity {
   public static equilibriumMoisture(humidityPct: number): number {
     return clamp01(humidityPct / 100);
   }
+
 
   /**
    * Integrate the exchange of water with the surrounding air over
@@ -540,6 +556,26 @@ export interface WaterActive {
    * against THIS air, never a second read of it (ceramics drive).
    */
   getAirHumidityPct(): number;
+  /**
+   * `0` as-harvested … `1` as dry as THIS air will let it get — moisture
+   * read against the air's equilibrium. What green clay's leather-hard and
+   * bone-dry, and a board's seasoning, are bands of.
+   */
+  dryness(): number;
+  /**
+   * @hook How readily this cracks when it dries too fast, `≥ 0` — the
+   * multiplier on its dryness gained per hour that `cure.crackRate` is
+   * measured against. `0` (the default) never checks; a fat clay is near
+   * `1`; a slow-seasoning wood is scaled to its own species' rate.
+   */
+  dryingCrackRisk(): number;
+  /**
+   * @hook The base rate this dries at — the fraction of its gap to the air
+   * closed per game-hour before the air and the exposure scale it — or
+   * `undefined` for the `cure.dryingPerHour` dial. A board says its
+   * species' (`SeasoningMixin`).
+   */
+  dryingRatePerHour(): number | undefined;
 
   // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
@@ -630,6 +666,26 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
 
     public getSolute(): number {
       return this.getWaterState().solute;
+    }
+
+    public dryness(): number {
+      const m = this.getMoisture();
+      // ⭐ Against the air the water was actually integrated in (locality and
+      // weather included). A second, quicker read of the air (the biome's
+      // bare default) disagreed with it: a brick dried to the Delight's real
+      // ~75 % was judged against 50 % and stayed leather-hard for ten weeks
+      // on the hack (the ceramics drive).
+      const eq = WaterActivity.equilibriumMoisture(this.getAirHumidityPct());
+      if (!(eq < 1)) return 0;
+      return clamp01((1 - m) / (1 - eq));
+    }
+
+    public dryingCrackRisk(): number {
+      return 0;
+    }
+
+    public dryingRatePerHour(): number | undefined {
+      return undefined;
     }
 
     // ---------- writes ----------
@@ -734,23 +790,44 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
         }
 
         let moisture = this._moisture;
+        const ratePerHour = this.dryingRatePerHour();
+        const risk = this.dryingCrackRisk();
+        const crackRate = dial(AppSettingKeys.cureCrackRate, WATER_DEFAULTS.CRACK_RATE);
+        const rewetPerMm = dial(AppSettingKeys.cureRewetPerMm, WATER_DEFAULTS.REWET_PER_MM);
+        let checked = false;
         for (const seg of BiomeApi.airSegmentsFor(
           scope,
           this.waterClockStamp,
           nowS,
         )) {
           if (!(seg.durationS > 0)) continue;
+          const before = moisture;
           moisture = WaterActivity.advanceMoisture(
             moisture,
             seg.durationS,
             seg.air.humidityPct,
             undefined,
-            { air: seg.air, exposure },
+            { air: seg.air, exposure, ratePerHour },
           );
+          // ⭐ Dried faster than it stands, it CHECKS — read per segment, so
+          // one hot dry afternoon is not averaged away by the cool night.
+          const span = 1 - WaterActivity.equilibriumMoisture(seg.air.humidityPct);
+          if (risk > 0 && moisture < before && span > 0) {
+            const perHour = (before - moisture) / span / (seg.durationS / 3600);
+            if (perHour * risk > crackRate) checked = true;
+          }
+          // ⭐ Rain puts water back (a segment's rain is 0 under a roof).
+          if (seg.rainMmPerH > 0) {
+            const mm = seg.rainMmPerH * (seg.durationS / 3600);
+            moisture = clamp01(moisture + mm * rewetPerMm * exposure);
+          }
           this._airHumidityPct = seg.air.humidityPct;
         }
         this._moisture = moisture;
         this.waterClockStamp = nowS;
+        if (checked && MixinApi.isTangible(self) && !self.getFlaws().some((f) => f.kind === 'check')) {
+          self.addFlaw('check', true, nowS);
+        }
       } finally {
         this._reconcilingCure = false;
       }
