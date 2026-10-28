@@ -48,9 +48,12 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
+import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import { HeadSeed } from '../lib/HeadSeed';
 
 /**
  * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
@@ -159,6 +162,11 @@ export default class Livestock extends LivestockBase {
       'trade/ranching/cmd/ranching/milk.yaml',
       'trade/ranching/cmd/ranching/shear.yaml',
       'trade/ranching/cmd/ranching/gather.yaml',
+      // ⭐ Moving the herd is afforded BESIDE one of its animals as well
+      // as at the book (cover build D13, R3): a field is farming's and
+      // must not name a ranching view, so a keeper standing in a field
+      // moves the herd through a head of it.
+      'trade/ranching/cmd/ranching/move.yaml',
     ],
     environment: [],
   };
@@ -296,6 +304,43 @@ export default class Livestock extends LivestockBase {
 
   public getHeadIndex(): number {
     return this.headIndex;
+  }
+
+  /**
+   * ⭐ **A head on its herd's field eats what the field gives the herd**
+   * (cover build D10b): its flesh moves on the herd's fed fraction times
+   * its own seeded tail — the same rule the tally follows at the draft
+   * (`HeadSeed.conditionAfter`), so a head drafted and a head left in
+   * the book thin together. Anywhere else it is fed or not by the
+   * shipped path (a bowl, a hand, nothing).
+   *
+   * ⚠ Only a head of stock grazes the field it stands in — never a pet
+   * (fed from a bowl) and never a creature in general.
+   */
+  protected override partitionFlesh(stepMin: number): void {
+    const fed = this.grazedFraction();
+    if (fed === null) {
+      super.partitionFlesh(stepMin);
+      return;
+    }
+    if (!this.hasReserve('flesh')) return;
+    const own = fed * HeadSeed.tailFactor(HeadSeed.frameOf(this.herdId, this.headIndex));
+    const delta = HeadSeed.fleshRatePerMin(own) * stepMin;
+    if (delta !== 0) this.adjustReserve('flesh', Quantity.of(delta, '%'));
+  }
+
+  /**
+   * The herd's fed fraction on the field this head is standing in, or
+   * `null` when it is not standing on a field its herd grazes. A window
+   * that has only just opened reads as fed — nothing has gone short yet.
+   */
+  private grazedFraction(): number | null {
+    if (!this.herdId) return null;
+    const here = this.getContainer();
+    if (!(here instanceof Field)) return null;
+    const line = here.grazerLedger(this.herdId);
+    if (!line) return null;
+    return line.demandKg > 0 ? Math.min(1, line.fedKg / line.demandKg) : 1;
   }
 
   /** Bind this object to the record it was drafted out of. */

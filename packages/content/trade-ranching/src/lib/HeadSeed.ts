@@ -1,4 +1,7 @@
 import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
+import { METABOLIC_DEFAULTS } from '@saxonberg/server/mud/lib/metabolism/Metabolic';
+
+const MINUTES_PER_GAME_DAY = 1440;
 /**
  * HeadSeed — ⭐⭐ **head *n* is a deterministic function of the herd's
  * identity and its index** (D21).
@@ -100,6 +103,97 @@ export class HeadSeed {
       handling: overlay.handling ?? seeded.handling,
       ageDays: overlay.ageDays ?? seeded.ageDays,
     };
+  }
+
+  /**
+   * ⭐ A head's stable size deviation `[-1, 1]` alone — what its share of
+   * the feed rides on (cover build D10c). Cheap: one hash, the same one
+   * {@link sample} reads.
+   */
+  public static frameOf(herdId: string, index: number): number {
+    const h = hashString(`${herdId}#${index}`);
+    return round2(Seeded.unit(h, 0x5) * 2 - 1);
+  }
+
+  /**
+   * ⭐ **The tail**: a head's own fed fraction is the herd's scaled by
+   * its frame — the shy feeders at the low end of the frame get pushed
+   * off the trough, and they are the same heads every time (*seeded,
+   * never drawn*). `0.8` at the bottom of the frame, `1` at the top.
+   */
+  public static tailFactor(frame: number): number {
+    const f = Math.max(-1, Math.min(1, frame));
+    return 0.8 + (0.2 * (1 + f)) / 2;
+  }
+
+  /**
+   * The satiation a fed fraction is equivalent to (cover build D10) —
+   * grain, a mapping a balance pass may move: fully fed reads as a
+   * comfortable surplus, half-fed as maintenance, less as a shortfall.
+   */
+  public static satiationFor(fedFraction: number): number {
+    const f = Math.max(0, Math.min(1, fedFraction));
+    if (f >= 0.95) return 75;
+    if (f >= 0.5) return 50;
+    return (25 * f) / 0.5;
+  }
+
+  /**
+   * Percentage points of flesh a body gains (positive) or loses a game
+   * MINUTE on `fedFraction` of its want — ⭐ the two legs of the
+   * metabolism's own `partitionFlesh`, read off the same constants, so
+   * the undrafted tally and the drafted body follow ONE rule.
+   */
+  public static fleshRatePerMin(fedFraction: number): number {
+    const D = METABOLIC_DEFAULTS;
+    const s = HeadSeed.satiationFor(fedFraction);
+    if (s >= D.FLESH_SURPLUS_AT) {
+      return (D.FLESH_GAIN_PER_MIN * (s - D.FLESH_SURPLUS_AT)) / (100 - D.FLESH_SURPLUS_AT);
+    }
+    if (s <= D.FLESH_DEFICIT_AT) {
+      const deficit =
+        D.FLESH_DEFICIT_AT <= 0 ? 1 : (D.FLESH_DEFICIT_AT - s) / D.FLESH_DEFICIT_AT;
+      return -D.FLESH_LOSS_PER_MIN * deficit;
+    }
+    return 0;
+  }
+
+  /**
+   * ⭐ A head's condition replayed across the herd's fed windows since
+   * `fromS` (cover build D10a): only the part of each window after the
+   * head's own last known flesh counts. Windows are oldest first.
+   */
+  public static replay(
+    flesh: number,
+    fromS: number,
+    windows: readonly { fraction: number; days: number; end: number }[],
+    frame: number,
+  ): number {
+    let out = flesh;
+    for (const w of windows) {
+      if (w.end <= fromS) continue;
+      const after = (w.end - fromS) / 86_400;
+      out = HeadSeed.conditionAfter(out, w.fraction, Math.min(w.days, after), frame);
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ A head's condition after `days` on `herdFedFraction` of the
+   * herd's want (cover build D10a): its own share is the herd's times its
+   * tail, and the flesh moves on the metabolism's legs. Clamped
+   * `[0, 100]` — ⚠ **never lethal**: a starving head is thin, not dead.
+   */
+  public static conditionAfter(
+    flesh: number,
+    herdFedFraction: number,
+    days: number,
+    frame: number,
+  ): number {
+    if (!(days > 0)) return flesh;
+    const own = herdFedFraction * HeadSeed.tailFactor(frame);
+    const next = flesh + HeadSeed.fleshRatePerMin(own) * days * MINUTES_PER_GAME_DAY;
+    return round1(Math.max(0, Math.min(100, next)));
   }
 }
 

@@ -37,6 +37,10 @@ data:
   # factor. The RATIO is the teachable term and it is exact.
   # ⭐ Adult liveweight in kg. A grown cow in a working dairy-and-draught landrace — not a modern beef animal.
   adultMass: 550
+  # ⭐ How it is fed (cover build D9): it grazes the field it stands on,
+  # and eats hay from a trough when the grass runs short. What it eats
+  # is its size — `0.1 × adultMass^0.75` kilograms of dry matter a day.
+  feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
   production:

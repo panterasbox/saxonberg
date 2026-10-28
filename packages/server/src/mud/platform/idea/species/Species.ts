@@ -1588,6 +1588,18 @@ export default class Species extends SingletonMixin(
   }
 
   /**
+   * ⭐ **Kilograms of dry matter one adult eats a game day** (cover build
+   * D9): `0.1 × adultMass^0.75` — the metabolic-weight rule every feeding
+   * standard reduces to. A 600 kg cow eats about twelve, a 60 kg ewe
+   * about two and a quarter, a 2 kg hen a sixth of a kilo. A fact about a
+   * body's SIZE, so no row authors it; `0` for a species with no mass.
+   */
+  public dryMatterIntakeKgPerDay(): number {
+    const m = this.adultMass;
+    return m > 0 ? 0.1 * Math.pow(m, 0.75) : 0;
+  }
+
+  /**
    * ⭐ What one of these weighs at `ageDays` — the adult mass walked back
    * down the maturation curve, or `0` when the species does not say.
    *

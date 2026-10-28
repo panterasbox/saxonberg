@@ -51,12 +51,27 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import Field from '@saxonberg/content-trade-farming/src/location/Field';
 import HerdRegistry, {
   DEFAULT_FEMALE_FRACTION,
   DEFAULT_FOUNDING_MEAN_AGE_DAYS,
 } from '../idea/HerdRegistry';
 
 const HerdbookBase = FixtureMixin(Thing);
+
+/**
+ * ⭐ `look herdbook` says where the herd is grazing — or that it is on no
+ * field, eating nothing (cover build D12). Sync: it reads the book's own
+ * cache of the record.
+ */
+function grazingAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof Herdbook)) return text;
+  const line = host.grazingLine();
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
 
 /** The registry singleton's identity path. */
 const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
@@ -70,9 +85,19 @@ export default class Herdbook extends HerdbookBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    environment: ['trade/ranching/cmd/ranching/draft.yaml'],
-    peers: ['trade/ranching/cmd/ranching/draft.yaml'],
+    environment: [
+      'trade/ranching/cmd/ranching/draft.yaml',
+      // ⭐ Moving the herd is the book's act too (cover build D13).
+      'trade/ranching/cmd/ranching/move.yaml',
+    ],
+    peers: [
+      'trade/ranching/cmd/ranching/draft.yaml',
+      'trade/ranching/cmd/ranching/move.yaml',
+    ],
   };
+
+  /** Where the herd is grazing, read off the book (cover build). */
+  static markupAugmenters: MarkupAugmenter[] = [grazingAugmenter];
 
   static fieldMeta: FieldMeta = {
     herdId: { persistent: true, authorable: true },
@@ -83,7 +108,38 @@ export default class Herdbook extends HerdbookBase {
     femaleFraction: { persistent: true, authorable: true },
     holderRef: { persistent: true, authorable: true },
     homeExtent: { persistent: true, authorable: true },
+    grazing: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐ The field the herd starts on — its path (cover build D8). Applied
+   * to the record ONCE, when the record has never been put on a field;
+   * after that the record's own pointer, which `move` writes, is the
+   * truth.
+   */
+  protected grazing: string = '';
+
+  /**
+   * What the book last read of where its herd is, for `look` — a cache
+   * of the record, refreshed when the book is created and when the herd
+   * is moved here. `null` = not yet read.
+   */
+  private _grazingLine: string | null = null;
+
+  public getGrazing(): string { return this.grazing; }
+  public setGrazing(value: string): void { this.grazing = value ?? ''; }
+
+  /** The book's line about where its herd is, or `null` before it knows. */
+  public grazingLine(): string | null {
+    return this._grazingLine;
+  }
+
+  /** Record that the herd now grazes `fieldName` (`''` = no field). */
+  public noteGrazing(fieldName: string): void {
+    this._grazingLine = fieldName
+      ? `By the book, the herd is grazing ${fieldName}.`
+      : 'By the book, the herd is on no field, eating nothing it is given.';
+  }
 
   /** The register's key, and the seed every head in the herd is drawn from. */
   protected herdId: string = '';
@@ -173,8 +229,9 @@ export default class Herdbook extends HerdbookBase {
     if (!this.herdId || !this.speciesPath || this.tally <= 0) return;
     const registry = await this.registry();
     if (registry === null) return;
-    if ((await registry.read(this.herdId)) !== null) return;
-    await registry.file({
+    const existing = await registry.read(this.herdId);
+    if (existing === null) {
+      await registry.file({
       herdId: this.herdId,
       name: this.herdName || this.herdId,
       speciesPath: this.speciesPath,
@@ -187,6 +244,32 @@ export default class Herdbook extends HerdbookBase {
       drafted: [],
       overlay: {},
     });
+    }
+    await this.settleGrazing(registry);
+  }
+
+  /**
+   * ⭐ Put an authored herd on its authored field — once, get-or-create
+   * like the filing (cover build D8): a record that has been on a field
+   * keeps wherever `move` last put it.
+   */
+  private async settleGrazing(registry: HerdRegistry): Promise<void> {
+    const herd = await registry.read(this.herdId);
+    if (herd === null) return;
+    let path = herd.grazing ?? '';
+    if (!path && this.grazing) {
+      try {
+        const place = await StuffApi.singleton<Stuff>(this.grazing);
+        if (place instanceof Field) {
+          await registry.graze(this.herdId, place);
+          path = this.grazing;
+        }
+      } catch (err) {
+        console.error(`Herdbook: grazing '${this.grazing}' did not resolve`, err);
+      }
+    }
+    const field = path ? StuffApi.findByTemplatePath(path) : null;
+    this.noteGrazing(field ? field.getPresentation() : '');
   }
 
   /** The register, or `null` when there is no world to file into yet. */

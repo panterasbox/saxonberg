@@ -1,0 +1,37 @@
+verbs: [move]
+controller: /trade/ranching/idea/cmd/ranching/MoveController
+description: "Put a herd onto one of its fields"
+help: |
+  `move <herd> to <field>` puts a herd onto a field on its own ground,
+  where it eats the grass down — and, when the grass runs short, the
+  hay in any trough standing there.
+
+  You move a herd from its book, or standing beside one of its animals
+  you have drafted out. The herd's name is enough (`move the college
+  herd to the home field`); by its book, or beside one of its animals,
+  you can leave the herd out (`move to the lower meadow`).
+
+  Only whoever holds the herd's ground may move it, or a hand on shift
+  for whoever works the field. And a herd grazes where it belongs: a
+  field off its own ground is refused.
+
+  A herd on no field eats nothing but what it is given by hand. Read the
+  book to see where it is.
+examples:
+  - cmd: move college herd to home field
+    note: Put the herd on a field
+  - cmd: move to the lower meadow
+    note: By its book, the herd is the book's
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: herd
+    type: string
+    required: false
+    greedy: true
+  - name: field
+    type: string
+    required: false
+    greedy: true
+    prepositions: [to, onto]
