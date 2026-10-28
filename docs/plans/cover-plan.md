@@ -1263,6 +1263,22 @@ carries the cane-sett deletion that is W2's.
   within reach after one in hand. The drive's step 3 is "`plough` in the
   home field". The farmstead drive had been matching the refusal.
 
+- **B19 — honest stocking.** A live season run grazed the campus hectare
+  to the dirt by spring and it never recovered: six cows want ~68 kg DM a
+  day and a hectare grows at most 80 on a May day; below the residual the
+  rate is a quarter (D9's trap — the lesson is to move them off). Intake
+  now follows the head's AGE (`massAt`, the herd at its mean age); the
+  dairy pasture is 3 ha (the requirements said 1.2), the campus back
+  paddock 2 ha, the ricks eight stacks. The close keeps 3,600 m² with the
+  rick behind it.
+- **B20 — a standing crop reads as clearing not quite done**, so the
+  kernel's `grub` (which refuses ground with nothing left on it) can end
+  a crop on cleared ground; `plough` checks for a crop FIRST so it is
+  never the thing that grubs it. The close, a place now, got its missing
+  way back from the farmstead yard.
+- **Waves W6 `438d13ae3`, W7 drive `bd9af6c77` + `23c38dfa3`; MR !480
+  opened READY at code-complete.**
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
