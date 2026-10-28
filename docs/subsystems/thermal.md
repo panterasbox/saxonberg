@@ -992,6 +992,7 @@ passes under it.
 The second consumer of the latent-heat boil plateau: lye authors
 `latentHeatOfVaporization`, so an iron pot of it holds at the boil and
 loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
-keeps a pack-local count of the alkali across the boil-off and casts black
-salts when dry; it converges on the sugar build's solids-keeping plateau and
-is deleted then (`potash-on-sugar`, [potash.md](potash.md)).
+reads the strength the sugar build's solids-keeping plateau writes and casts
+black salts at saturation; its own pack-local count of the alkali was deleted
+when the two converged (`potash-on-sugar`, landed with sugar, MR !439 —
+[potash.md](potash.md)).

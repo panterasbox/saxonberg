@@ -482,6 +482,36 @@ at the end of this plan.
 Acceptance: the drive passes 19 + 7a; the full suite (`tools/suite`) at code-complete; MR opens READY.
 Commit: `build(cordage W6): the drive and the docs`.
 
+### W7 — carried: potash-on-sugar's remainder (the owner, 2026-10-28: *roll it into cordage*)
+
+Sugar's build landed the mandatory half (`bc60d11a5`: lye's own `solidsKgPerL`, one dissolved-solids
+fold, the pot casting at saturation off the plateau). Two items are left, both in
+[potash.md](../subsystems/potash.md) § *Still open*, and this build's drive world is the one that
+proves them:
+
+1. **Ash percolates.** `/trade/fuel/thing/Ash` composes kernel `PercolatingMixin`
+   (`lib/material/Percolating.ts`, sugar D3, whose header names the hopper as its second consumer).
+   Water or lye poured into the hopper is put on its heaps (`receivePercolant`, the hopper sharing
+   the litres by heap mass); each heap's `onPercolated(from, to)` gives up `alkali × (to − from)`
+   into the hopper's liquor (the same hardness waste and `ContentsTitle` rule `Hopper.leach` applies
+   today), and at reach 1 the heap is spent ash where it sits. `percolatesInto()` must answer the
+   hopper for a heap IN it (today it answers a mould's drain or a placement host — extend the kernel
+   rule by one rung: the holder when the holder is bulk-bearing, or override on `Ash`; record which).
+   `Hopper.matchProfile` stops destroying ash; `spend()`/`spending` go; the `lye-leach` maturation
+   profile is kept or retired by what the percolation leaves it to do (record which). The second
+   pass (lye poured back through fresh ash) keeps working. `percolationDays()` on Ash: half a game
+   day, today's leach time, so the drive's waits hold.
+2. **The equal-potash timing checkpoint** in `packages/wire/tests/potash.dirty.wire.test.ts`: the
+   weak lye that gives the same potash as the strong one takes MORE boiling hours, not only more wood
+   (potash AC 5's time half, true under the fire's power limit since sugar W1a).
+3. `docs/subsystems/thermal.md` § *Note — the potash build*: the pot no longer keeps its own count
+   (it reads the plateau and casts at saturation); `potash.md` § *Still open* closes.
+
+Acceptance: trade-chandlery, trade-fuel, trade-potash vitest green; the potash drive at its recorded
+12/13 (step 11 remains the glass's) plus the new timing step; a heap in a hopper reads as spent ash
+only once the water is through it. Commit: `build(cordage W7): potash-on-sugar's remainder — ash
+percolates, the boil's time half`.
+
 ## Reachability wiring
 
 | capability | verb | affordance | data | boot | arg gate |
