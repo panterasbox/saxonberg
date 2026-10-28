@@ -196,30 +196,33 @@ async function founderEval(where: string, parcel: string, code: string): Promise
   }
 }
 
-/**
- * A drafted head's flesh `[0, 100]`, read by the founder off the head
- * standing in `where` (⚠ never by `handle`: a thin wild cow put the
- * drive's player into the rail and out cold, a ranching hazard).
- */
-async function fleshOf(where: string, parcel: string, herdId: string, index: number): Promise<number> {
-  const said = await founderEval(
-    where,
-    parcel,
-    `return self.getContainer().getContents().filter(c => c.getHerdId && c.getHerdId() === "${herdId}" && c.getHeadIndex() === ${index}).map(c => c.getReserve("flesh").current.rawValue().toFixed(1)).join(",")`,
-  );
-  const m = /(\d+(?:\.\d+)?)/.exec(said.replace(/^[^:]*:/, ''));
-  expect(m, `no flesh read for ${herdId}#${index}: ${said}`).toBeTruthy();
-  return Number(m![1]);
+/** The stockman's condition bands, thinnest first (Creature's phrases). */
+const BANDS: Array<[RegExp, number]> = [
+  [/wasted — every rib/i, 0],
+  [/thin; you can count the ribs/i, 1],
+  [/in good flesh/i, 2],
+  [/well covered, running to fat/i, 3],
+  [/fat, and carrying more/i, 4],
+];
+
+/** The condition band a draft line reads, as a rank (0 wasted … 4 fat). */
+function bandOf(said: string): number {
+  for (const [re, rank] of BANDS) if (re.test(said)) return rank;
+  throw new Error(`no condition band in: ${said}`);
 }
 
-/** Head `index`'s flesh, drafted out of the college herd and returned. */
+/**
+ * Head `index`'s condition, drafted out of the college herd, read off the
+ * draft line, and returned. ⚠ Never by `handle`: a thin wild cow put the
+ * drive's player into the rail and out cold (a ranching hazard).
+ */
 async function collegeHead(index: number): Promise<number> {
   await goTo(YARD);
-  await doing(p, `draft ${index}`);
-  const flesh = await fleshOf(YARD, '/world/terminus/eternal', 'college-herd', index);
+  const said = await doing(p, `draft ${index}`);
   await doing(p, 'return cow');
-  note(`college head ${index}: flesh ${flesh}`);
-  return flesh;
+  const band = bandOf(said);
+  note(`college head ${index}: band ${band}`);
+  return band;
 }
 
 /** Head 3's flesh in spring, before the paddock (step 14's baseline). */
@@ -325,7 +328,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     note(`paddock grass: «${/The grass is ([^.]*)\./.exec(before)?.[1]}» → «${/The grass is ([^.]*)\./.exec(after)?.[1]}»`);
     // A fortnight on fresh grass: the head holds, or gains.
     const fed = await collegeHead(3);
-    expect(fed).toBeGreaterThanOrEqual(spring3 - 0.5);
+    expect(fed, 'a fortnight on fresh grass: it holds, or gains').toBeGreaterThanOrEqual(spring3);
   }, 1_800_000);
 
   it('6. through the season the stages are named in words', async () => {
@@ -468,8 +471,6 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     const shyWinter = await collegeHead(2);
     note(`winter: head 1 ${autumn} → ${winter}; head 2 ${shyAutumn} → ${shyWinter}`);
     expect(winter, 'unfed through the winter, it thins').toBeLessThan(autumn);
-    // ⚠ Thin, never dead: flesh is clamped and emaciation is non-lethal.
-    expect(winter).toBeGreaterThanOrEqual(0);
   }, 3_600_000);
 
   it('16. hay in the trough feeds them, and the trough empties', async () => {
@@ -501,8 +502,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // kept her in condition, and milk follows condition.
     await goTo(BYRE);
     await act(p, 'get pail');
-    await doing(p, 'draft 1 from dairy');
-    note(`dairy cow 1: flesh ${await fleshOf(BYRE, '/world/terminus/hearts-delight', 'delight-dairy', 1)}`);
+    const cow = await doing(p, 'draft 1 from dairy');
+    expect(bandOf(cow), 'a winter on the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);
     const milked = await act(p, 'milk cow');
     expect(milked.said).toMatch(/milk/i);
     expect(milked.said).not.toMatch(/nothing comes|dry/i);
