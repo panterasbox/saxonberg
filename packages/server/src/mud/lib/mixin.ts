@@ -716,6 +716,9 @@ export const Mixins = {
   // ⭐ Combining is one rule (ceramics R1) — "what is put in me becomes one
   // product, its makeup the inputs' by mass". The vessel names the product.
   Compounding: 'CompoundingMixin',
+  // ⭐ A dip bath (ceramics review) — "I plan the dip of what is put in me":
+  // the dip pot, a glaze tub, a pot of molten glass.
+  DipBath: 'DipBathMixin',
   // ⭐ Forming (ceramics D14/D16, made general in review) — "I shape a plastic
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
@@ -1007,6 +1010,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
   CompoundingMixin: "{} isn't something you compound in",
+  DipBathMixin: "{} isn't something you can dip things in",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
   GreenwareMixin: "{} isn't green clay",

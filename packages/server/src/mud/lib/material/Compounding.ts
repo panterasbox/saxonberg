@@ -45,6 +45,7 @@ import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
 import type { KneadPlan, KneadPlanner, KneadRefusal, KneadRequest } from '../craft/Kneadable';
 import type { DipPlan, DipPlanner, DipRefusal, DipRequest } from '../craft/DipPlanner';
+import { DipBathMixin } from '../craft/DipBath';
 import type { FaceName } from './Faced';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -85,7 +86,9 @@ export interface Compounding extends KneadPlanner, DipPlanner {
 }
 
 export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  class CompoundingMixin extends Base implements Compounding {
+  // ⭐ A tub is a dip BATH (`DipBathMixin`): it binds as `dip`'s bath, and
+  // affords `dip`, by what it is.
+  class CompoundingMixin extends DipBathMixin(Base) implements Compounding {
     static _mixinName = 'CompoundingMixin';
 
     /**
@@ -100,12 +103,10 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       environment: [
         'platform/cmd/crafting/stir.yaml',
         'platform/cmd/crafting/knead.yaml',
-        'platform/cmd/crafting/dip.yaml',
       ],
       peers: [
         'platform/cmd/crafting/stir.yaml',
         'platform/cmd/crafting/knead.yaml',
-        'platform/cmd/crafting/dip.yaml',
       ],
     };
 

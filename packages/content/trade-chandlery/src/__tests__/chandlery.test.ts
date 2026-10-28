@@ -188,7 +188,8 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
         'utf8',
       ),
     ) as { verbs: string[]; args: { name: string }[] };
-    expect(dip.verbs).toEqual(['dip', 'melt']);
+    // `gob` is glass's word for the same act (a gather out of a melt).
+    expect(dip.verbs).toEqual(['dip', 'melt', 'gob']);
     // ⚠ And the thing dipped is declared FIRST. Positionals bind in
     // declared order, so with the bath ahead of it `dip the cake` hands
     // the cake to the bath — the defect the milling trade paid for with

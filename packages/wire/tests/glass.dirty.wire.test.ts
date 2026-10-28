@@ -140,14 +140,14 @@ suite('⭐ glass — the glasshouse in the woods', () => {
   }, 60_000);
 
   it('4. ⭐ `gob` is AFFORDED by the blowpipe and reaches its controller', async () => {
-    // ⚠ The hot-shop gather is `gob`, not `dip`: the chandlery trade (on
-    // master) owns `dip` for dip-coating a wick, the generative definition;
-    // glass's act is a gather, so it takes the glassblower's word `gob`.
+    // ⭐ `gob` is an alias of the platform's `dip` (ceramics review): the
+    // melt is a dip bath that plans the gather, and the blowpipe affords
+    // the word so a bare `gob` is heard.
     expectOk(await g.cmd('get blowpipe'));
     const out = await g.cmd('gob');
     expect(verbUnderstood(out)).toBe(true);
-    // No fluid melt in a cold glasshouse → the controller refuses in words
-    // (`no-melt` / `melt-cold`), proving the hot-shop verb is wired.
+    // No fluid melt in a cold glasshouse → refused in words (`melt-cold`
+    // from a stiff melt, or no bath at all), proving the verb is wired.
     expect(refusedFor(out)).toMatch(/melt|pipe|gather/i);
   }, 60_000);
 });

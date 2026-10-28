@@ -27,7 +27,6 @@ import type { Bulkable } from '../../../../lib/bulk/Bulkable';
 import type { FaceName } from '../../../../lib/material/Faced';
 import type {
   DipPlan,
-  DipPlanner,
   DipRefusal,
   DipRequest,
 } from '../../../../lib/craft/DipPlanner';
@@ -45,10 +44,6 @@ interface DipModel extends CommandModel {
   side?: string;
 }
 
-/** Does this bath plan a dip? Duck-probed — a protocol is not a mixin. */
-function isDipPlanner(s: Stuff): s is Stuff & DipPlanner {
-  return typeof (s as unknown as Partial<DipPlanner>).dipPlanFor === 'function';
-}
 
 
 export default class DipController extends ManualBuildController<DipModel> {
@@ -90,7 +85,7 @@ export default class DipController extends ManualBuildController<DipModel> {
 
     let answer: DipPlan | DipRefusal | null = null;
     for (const bath of baths) {
-      if (!isDipPlanner(bath)) continue;
+      if (!MixinApi.isDipBath(bath)) continue;
       answer = await bath.dipPlanFor(target, req);
       if (answer !== null) break;
     }
@@ -132,7 +127,11 @@ export default class DipController extends ManualBuildController<DipModel> {
    */
   private noBathAnswered(target: Stuff | null, baths: readonly Stuff[]): DipRefusal {
     if (target === null) {
-      return { ok: false, reason: 'no-target', line: Mml.compose`Dip what? Name the thing you mean to dip.` };
+      return {
+        ok: false,
+        reason: 'no-target',
+        line: Mml.compose`Dip what, in what? There is no bath here — a pot of fat, a tub of glaze, a pot of molten glass.`,
+      };
     }
     const wet = baths.find(
       (b) =>

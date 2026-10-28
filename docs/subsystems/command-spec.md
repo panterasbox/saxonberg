@@ -195,14 +195,18 @@ the spec is shaped to make it cheap when someone wants it.
 
 When two trades turn out to perform ONE act, the collision ladder's rung 2
 applies: unify behind an interface. `dip` moved from `trade-chandlery` to
-`platform/cmd/crafting/dip.yaml` (alias `melt`) with a dumb
-`DipController`: every bound bath is asked `DipPlanner.dipPlanFor(target,
-req)` (`lib/craft/DipPlanner.ts`, the `Cuttable`/`Kneadable` shape), the
-first plan or refusal wins, and only then does the kernel default run — a
-bath whose material `laysCoat` lays a WET coat on the good's faces
-(`FacedMixin.layCoat`). The chandler's `DipPot` plans its candle (a
-zero-length plan runs inside the command frame, because the craft resolves
-from the actor's reach). Grammar: `dip [<thing>] [inside|outside] [in
+`platform/cmd/crafting/dip.yaml` (aliases `melt`, `gob`) with a dumb
+`DipController`: every bound bath — anything composing `DipBathMixin`
+(`lib/craft/DipBath.ts`), bound by that mixin — is asked
+`dipPlanFor(target, req)` (`lib/craft/DipPlanner.ts`, the
+`Cuttable`/`Kneadable` shape), and the first plan or refusal wins; when
+none answers the controller only words the refusal. The chandler's
+`DipPot` plans its candle (a zero-length plan runs inside the command
+frame, because the craft resolves from the actor's reach); a glaze or slip
+tub (`CompoundingMixin`) lays a WET coat on the good's faces; glass's
+`Melt` turns up a gather on the pipe (the named one, else the empty pipe in
+hand — so a bare `gob` works). A dip leaves a LAYER: `dye` and `quench` are
+their own acts. Grammar: `dip [<thing>] [inside|outside] [in
 <bath>] [inside|outside]` — the face is a bare optional word that the
 binder's lookahead skips when the next token is the bath's preposition.
 The paint slate's reservation is honoured: `dip` is the coat-from-bath
@@ -362,11 +366,16 @@ lacks. Work down these, in order; the order is the point.
    verb should model *one* thing, so if the two claimants are the same
    act, they are one verb: fold them behind one interface. But a shared
    word over genuinely *different* mechanics cannot be unified without
-   lying about one of them — `dip` a wick to **coat** it (accrete a layer
-   from the bath) and `dip` a pipe to **gather** a gob (lift a mass of the
-   bath itself) are not one act. **The tell:** if unifying would need a
-   guard that re-asks *which mechanic is this*, the models are distinct
-   and one claimant must take a different word. Which one is rungs 2–3.
+   lying about one of them — mining's `drive` (cut a level through rock)
+   and a vehicle's `drive` are not one act. **The tell:** if unifying would
+   need a guard that re-asks *which mechanic is this*, the models are
+   distinct and one claimant must take a different word. Which one is rungs
+   2–3. ⚠ This example used to be `dip` a wick vs `dip` a pipe, and it was
+   REVERSED (ceramics review, 2026-10-28): once the BATH plans the dip
+   (`DipBathMixin`), nothing re-asks which mechanic it is — the pot plans a
+   candle, the tub a coat, the melt a gather — and a gather is a layer the
+   pipe accretes, dip by dip. A protocol where the *object* plans can make
+   one act of what a guard-in-the-verb could not.
 
 2. ⭐⭐ **Generativity — the word stays with the definition future content
    builds on.** Ask of each meaning: *is this a platform primitive other

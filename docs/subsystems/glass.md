@@ -35,7 +35,7 @@ second glasshouse is rows.
      colour of its sand, derivably, and the fired charge is gatherable
      while it is hot.
 3. **Work it hot** on a blowpipe through the **hot-work window** — the one
-   new mechanism (see § The hot-work window): `gob` a gather, `shape` it
+   new mechanism (see § The hot-work window): `gob` a gather (`dip pipe in melt` — `gob` is an alias of the platform's `dip`; the melt is a dip bath), `shape` it
    (bottle or cylinder), `reheat` to buy time, `crack` it off. Dawdle and
    the gather cools past working and is lost to cullet.
 4. **Work it cold** at the bench: `scribe` a line, `snap` a scored sheet,
@@ -103,9 +103,9 @@ Broken glass re-melts by **phase change** (ceramics W0, ruling C — the
 into the pot standing beside it (`poolVesselIn` — never into a floorless
 chamber's void), the pool carrying the piece's `alloying` in its payload.
 The pool blends by volume with what is already in the pot and sets back
-into a lump that reads the iron again; and `gob` takes any hot glass —
-a fired batch, a cullet lump brought back up to working heat, a bottle
-put in hot. The kernel `salvage` branch for meltable non-metals
+into a lump that reads the iron again. A gather comes from the POT (a
+`Melt`): a cullet lump or an old bottle goes back in to remelt, as a
+glassblower's does. The kernel `salvage` branch for meltable non-metals
 (crafting.md) does the same off the fire. So mixed cullet can never make
 clear ware: one green piece in the pot tints the lot.
 

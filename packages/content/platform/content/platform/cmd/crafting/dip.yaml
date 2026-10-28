@@ -30,7 +30,7 @@
 # softens, slumps and goes clear* and then *a candle builds up on the
 # wick* — two sentences for one act, so the alias never silently
 # overshoots the word the player typed.
-verbs: [dip, melt]
+verbs: [dip, melt, gob]
 controller: /platform/idea/cmd/crafting/DipController
 description: "Dip a thing in a bath and draw it out with the bath on it — a candle, a glaze"
 help: |
@@ -54,6 +54,14 @@ help: |
   whatever glaze or slip is in the tub on the crock; `dip crock inside in
   tub` coats only the inside (`outside` likewise), and a glaze sets when the
   crock is fired. A bath that does not lay a coat — water — says so.
+  ⭐ **A gather of glass is the same act.** `dip pipe in melt` — or `gob`,
+  the glassblower's word — lowers the blowpipe into a pot of molten glass
+  and turns up a glowing gather on its end; with nothing named, it is the
+  empty pipe in your hands and the melt in reach. From the moment you lift
+  it the glass is COOLING: `shape` it and `crack` it off before it sets, or
+  `reheat` it. A gather comes from the pot — a cullet lump or an old bottle
+  goes back in to remelt.
+
   ⚠ A dip leaves a LAYER: dyeing (`dye`) goes into the cloth and a quench
   (`quench`) only cools, so neither is a dip.
 
@@ -86,15 +94,17 @@ args:
   - name: face
     type: string
     required: false
-  # ⭐ Declared so the binder resolves it. Every reachable bulk vessel is a
-  # candidate; the controller asks each, in order, whether it plans a dip.
+  # ⭐ Declared so the binder resolves it. Every reachable DIP BATH
+  # (`DipBathMixin` — a dip pot, a glaze tub, a pot of molten glass) is a
+  # candidate; the controller asks each, in order, what dip it plans. A thing
+  # that is no bath (a bucket of water) is refused at the binder, in words.
   - name: bath
     type: objects
     required: false
     prepositions: [in, into, from]
-    default: "reachable:[mixin.BulkableMixin]"
+    default: "reachable:[mixin.DipBathMixin]"
     scope: ["reachable"]
-    requires: [BulkableMixin]
+    requires: [DipBathMixin]
   # …and the face said after the bath (`dip crock in bucket inside`).
   - name: side
     type: string

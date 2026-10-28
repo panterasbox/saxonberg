@@ -8,9 +8,12 @@
  * `Bulkable`: the firing path is item-only and clones cold, so making the
  * melt a liquid pool would need a seam the firing path does not have.
  *
- * `gob` draws gathers from it by mass (`takeGather`); a melt that has
- * stiffened below its working heat refuses the pipe and is simply fired
- * again.
+ * ⭐ It is a DIP BATH (`DipBathMixin`, ceramics review): `dip pipe in melt`
+ * — or `gob`, the glassblower's word, an alias of `dip` — lowers the pipe
+ * in and turns up a gather, drawn by mass (`takeGather`). A gather is
+ * taken from the pot; a cullet lump or an old bottle goes back in the pot
+ * to remelt. A melt that has stiffened below its working heat refuses the
+ * pipe and is simply fired again.
  */
 
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
@@ -20,6 +23,21 @@ import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { AppApi } from "@saxonberg/server/mud/api/app";
 import type { CompositionEntry } from "@saxonberg/server/mud/lib/material/Material";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
+import type { Engaged } from "@saxonberg/server/mud/lib/activity/Engaged";
+import type { DipPlan, DipRefusal, DipRequest } from "@saxonberg/server/mud/lib/craft/DipPlanner";
+import { DipBathMixin } from "@saxonberg/server/mud/lib/craft/DipBath";
+import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
+import { SchedulerApi } from "@saxonberg/server/mud/api/scheduler";
+import { MessageApi } from "@saxonberg/server/mud/api/message";
+import { Mml } from "@saxonberg/server/mud/api/mml";
+import Gather, { GLASSWORK_TOPIC } from "./Gather";
+import Blowpipe from "./Blowpipe";
+import { HotWorkWatch } from "../lib/HotWork";
+
+const GATHER_ROW = "/trade/glass/thing/gather";
 
 /** Numeric pack-setting read with a seeded-literal fallback. */
 function dial(key: string, fallback: number): number {
@@ -33,7 +51,7 @@ function dial(key: string, fallback: number): number {
   }
 }
 
-const MeltBase = AlloyedMixin(ThermalMixin(Good));
+const MeltBase = DipBathMixin(AlloyedMixin(ThermalMixin(Good)));
 
 export default class Melt extends MeltBase {
   /**
@@ -41,6 +59,65 @@ export default class Melt extends MeltBase {
    * melting point. A cooled melt is a solid pot of glass that refuses the
    * pipe until it is fired again.
    */
+  /**
+   * ⭐ A pipe dipped in the melt turns up a gather — the named pipe, else the
+   * empty blowpipe in the glassblower's hands (a bare `gob`). From the
+   * moment it is lifted it COOLS: the hot-work watch is the window.
+   */
+  public override async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
+    const actor = req.actor;
+    if (target !== null && !(target instanceof Blowpipe)) {
+      return {
+        ok: false,
+        reason: "not-a-pipe",
+        line: Mml.compose`You gather hot glass on a blowpipe, not on ${Mml.thing(target)}.`,
+      };
+    }
+    const pipe = target ?? emptyPipeOf(actor);
+    if (pipe === null || pipe.getContents().some((c) => c instanceof Gather)) {
+      return {
+        ok: false,
+        reason: "no-pipe",
+        line: Mml.compose`You need an empty blowpipe in hand — the one you have is already carrying a gather.`,
+      };
+    }
+    if (!this.isFluid()) {
+      return {
+        ok: false,
+        reason: "melt-cold",
+        line: Mml.compose`${Mml.thing(this as unknown as Stuff)} has stiffened — there is no gathering from it cold. Work the bellows and fire it again.`,
+      };
+    }
+    if (!MixinApi.isEngaged(actor)) {
+      return { ok: false, reason: "cannot-engage", line: Mml.compose`You cannot give this your attention just now.` };
+    }
+    return {
+      ok: true,
+      durationMs: 0,
+      effortW: 0,
+      beginSelf: Mml.compose`You lower the pipe into ${Mml.thing(this as unknown as Stuff)}.`,
+      onComplete: async (): Promise<void> => {
+        const gatherKg = dial("glass.hotwork.gatherKg", 0.4);
+        const meltK = this.getTemperature().rawValue();
+        const makeup = this.takeGather(gatherKg);
+        const gather = await StuffApi.clone<Gather>(GATHER_ROW);
+        gather.setMass(Quantity.of(gatherKg, "kg"));
+        gather.setStampedTemperatureK(meltK);
+        gather.setForm("gather");
+        if (makeup.length > 0) gather.setMakeup(makeup);
+        ContainmentApi.move(gather as unknown as Stuff & Containable, pipe);
+        SchedulerApi.start(
+          new HotWorkWatch({ actor: actor as unknown as Stuff & Engaged, pipe: pipe as unknown as Stuff, gather }),
+        );
+        MessageApi.scene(actor)
+          .topic(GLASSWORK_TOPIC)
+          .toSelf(Mml.compose`You lower the pipe into ${Mml.thing(this as unknown as Stuff)} and turn up a glowing gather. Work it while it is hot.`)
+          .toPeers(Mml.compose`${Mml.actor(actor)} gathers a blob of hot glass on a blowpipe.`)
+          .send();
+      },
+    };
+  }
+
   public isFluid(): boolean {
     const mp = this.getMaterial()?.getMeltingPoint().rawValue() ?? 0;
     if (mp <= 0) return false;
@@ -65,4 +142,13 @@ export default class Melt extends MeltBase {
     }
     return alloying;
   }
+}
+
+/** The empty blowpipe in `actor`'s hands, else `null`. */
+function emptyPipeOf(actor: Stuff): Blowpipe | null {
+  if (!MixinApi.isContainer(actor)) return null;
+  for (const c of actor.getContents()) {
+    if (c instanceof Blowpipe && !c.getContents().some((g) => g instanceof Gather)) return c;
+  }
+  return null;
 }

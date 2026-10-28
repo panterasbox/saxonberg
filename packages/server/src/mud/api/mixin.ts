@@ -143,6 +143,7 @@ import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
 import type { Compounding } from '../lib/material/Compounding';
+import type { DipBath } from '../lib/craft/DipBath';
 import type { Faced } from '../lib/material/Faced';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
@@ -1750,6 +1751,10 @@ export class MixinApi {
 
   public static isCompounding(obj: Stuff): obj is Stuff & Compounding {
     return this.hasMixin(obj, Mixins.Compounding);
+  }
+
+  public static isDipBath(obj: Stuff): obj is Stuff & DipBath {
+    return this.hasMixin(obj, Mixins.DipBath);
   }
 
   public static isFaced(obj: Stuff): obj is Stuff & Faced {

@@ -1,6 +1,6 @@
 /**
  * Blowpipe — the glassmaker's iron: a `Tool` that HOLDS one gather
- * (`ContainerMixin`). It affords the hot shop (`gob`/`shape`/`reheat`/
+ * (`ContainerMixin`). It affords the hot shop (`dip`/`gob`, `shape`/`reheat`/
  * `crack`) to whoever holds it — the affordance static lands in W5 with
  * those views. The capability `blowpipe` is authored on the row and is
  * what the `gob`/`shape`/`reheat`/`crack` views bind their `pipe` arg to.
@@ -27,7 +27,9 @@ const SHAPE_MS = 10_000;
 const SHAPE_W = 250;
 
 const HOT_SHOP = [
-  "trade/glass/cmd/glass/gob.yaml",
+  // ⭐ The gather is the platform's `dip` (its `gob` alias): the MELT plans it
+  // (`DipBathMixin`); the pipe affords the word so a bare `gob` is heard.
+  "platform/cmd/crafting/dip.yaml",
   // ⭐ The platform's `shape` (ceramics D14): the PIPE plans its gather's
   // forms (its row's `forms:` — `Form` rows, as a wheel's are); a wheel
   // plans a pot.

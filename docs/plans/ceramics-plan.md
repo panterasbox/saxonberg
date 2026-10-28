@@ -1709,10 +1709,17 @@ left a fork the lens that chose is named.
   the chandler's pot does; the controller only words a refusal when no
   bath answers. `DipPlanner` and `dip`'s help say a dip leaves a LAYER, so
   `dye` (into the fiber) and `quench` (only cools) stay their own acts.
-  ⚠ Open: glass's `gob` is a dip by that definition, but it gathers from
-  non-bulk hot glass (a melt, a cullet lump, a bottle) and the drive types
-  a bare `gob` — folding it into `dip` needs dip's grammar to find
-  non-vessel baths and a held tool, a kernel question taken to the owner.
+  ✅ Then (owner chose (a)): a kernel `DipBathMixin` (`Mixins.DipBath`,
+  `isDipBath`, affords `dip`) is what a bath IS — the dip pot, every
+  compounding tub and glass's `Melt` compose it, and `dip`'s bath arg binds
+  it (a bucket of water is refused at the binder). The melt plans the
+  gather (the named pipe, else the empty pipe in hand); `gob` is a `dip`
+  alias; GobController and its view retired. A gather comes from the pot —
+  a cullet lump or bottle remelts first (lens 1, the glasshouse's own
+  practice). ⚠ This REVERSES command-spec's collision-ladder example (wick
+  vs pipe were "not one act"): with the bath planning, no guard re-asks the
+  mechanic, and a gather is an accreted layer. The ladder's example is now
+  mining's `drive` vs a vehicle's, with the reversal noted.
 
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 

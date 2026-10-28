@@ -41,6 +41,7 @@ import type {
   DipRefusal,
   DipRequest,
 } from '@saxonberg/server/mud/lib/craft/DipPlanner';
+import { DipBathMixin } from '@saxonberg/server/mud/lib/craft/DipBath';
 import type { CraftOutcome } from '@saxonberg/server/mud/api/crafting';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { CraftingDecline } from '@saxonberg/server/mud/lib/craft/CraftingDecline';
@@ -57,7 +58,7 @@ const RECIPE = 'candle';
 /** The step that fills the pot when what you have is a cake. */
 const MELT_RECIPE = 'melt-wax';
 
-export default class DipPot extends CraftVessel implements DipPlanner {
+export default class DipPot extends DipBathMixin(CraftVessel) implements DipPlanner {
   /**
    * ⭐ The instrument affords the verb — a static on the class, never a
    * row key: a row's `commandContributions:` is dead silently. One entry
@@ -69,7 +70,7 @@ export default class DipPot extends CraftVessel implements DipPlanner {
     environment: [DIP_VIEW],
   };
 
-  public async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
+  public override async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
     const giver = req.actor;
     return {
       ok: true,
