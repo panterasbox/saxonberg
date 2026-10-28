@@ -80,3 +80,41 @@ build converted its own (`Pullable`, `Tossable`, `TakesFish`).
 narrow a target by `typeof x.method === 'function'` today — count them,
 hold the ceiling, drive it to zero, and let the views name the mixins in
 `requires:` (each one moves an `any` off `lint:arg-kinds`).
+
+## ⭐⭐ The cuts sweep — every cut through one protocol (the ceramics review, 2026-10-28)
+
+The ceramics MR made its own act protocols consistent (one `ActPlan` /
+`ActRefusal` / `ActOutcome`, one registered marker mixin per protocol —
+`KneadVesselMixin`, `ShapeableMixin`, `CarvableMixin`, `ImpressibleMixin`,
+`TurnableMixin`, `HandWorkedMixin`, `DipBathMixin`, `StrikingDieMixin`,
+`FormingMixin` — a uniform null contract, `<act>PlanFor(req)`). Its survey
+found the same act — cutting a thing into pieces — done by seven shipped
+trades, each its own controller keyed to its own classes, none through
+`Cuttable` / `CutPlanner` (the one that does is tailoring's shears):
+
+| verb | where | how it decides today |
+|---|---|---|
+| `saw` | trade-carpentry `SawController` | `instanceof Bole / Billet / Sawmill` |
+| `rive` | trade-forestry `RiveController` | `instanceof`; the billet arm is recipe-matched |
+| `fell` (cross-cutting a bole) | trade-forestry `FellController` | the controller |
+| `butcher` | trade-cooking `ButcherController` | `Species.dressOut` |
+| `shear` | trade-ranching `ShearController` | the controller |
+| `scribe` / `snap` / `groze` | trade-glass cold work | `instanceof Sheet` |
+| `mark` / `scrape` (the ice grid) | trade-ice | the controller, ahead of `IceSheet`'s `Cuttable` |
+
+**The build:** `Cuttable` becomes a registered protocol mixin (the target
+plans a cut — a bole, a billet, a carcass, a fleece, a pane, an ice field)
+and `CutPlanner` one too (the tool plans — a saw, a froe, a knife, shears,
+a scribing wheel); each controller above becomes input and output only
+([controllers-are-io](./controllers-are-io-slate.md)). Whether `saw` /
+`rive` / `butcher` / `shear` / `scribe` stay separate verbs over the one
+protocol or fold into `cut` with aliases is the collision ladder's call per
+verb — the act is one; the WORDS are what players say. ⚠ The ground's
+`Workable` (`split`, `dig` — `planWork` / `completeWork`) is the protocol
+`Cuttable` cites as its model and is the other half of the same question:
+one plan-then-complete shape, or two.
+
+**Also left from that survey, smaller:** `carve`'s recipe path (wood parts
+by recipe beside the planned carvings — the combining re-plan's naming
+question, ceramics R1); glass `reheat`/`crack` and sugar `temper`/`clay`
+are pack-internal `instanceof` and need nothing.
