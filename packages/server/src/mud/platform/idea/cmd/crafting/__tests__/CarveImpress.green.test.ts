@@ -30,16 +30,15 @@ import {
   makeTool,
 } from './branch-fixtures';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
+import { MarkedMixin } from '../../../../../lib/description/Marked';
 
-class Pot extends GreenwareMixin(WaterActivityMixin(ThermalMixin(CraftedMixin(Good)))) {
+class Pot extends GreenwareMixin(MarkedMixin(WaterActivityMixin(ThermalMixin(CraftedMixin(Good))))) {
   static _mixinName = 'CarveImpressTestPot';
 }
 
-/** A potter's die: answers whose mark it presses. */
-class TestStamp extends Good {
-  public markIdentity(): string {
-    return '/platform/agent/Avatar/potter';
-  }
+/** A potter's die: its face bears whose mark it presses. */
+class TestStamp extends MarkedMixin(Good) {
+  public override markDevice = '/platform/agent/Avatar/potter';
 }
 
 let room: TestActor;
@@ -139,10 +138,10 @@ describe('impress a stamp', () => {
       'impress stamp on jug',
     );
     expect(refusal(ctx)).toBeUndefined();
-    expect(jug.getMark()).toBe('/platform/agent/Avatar/potter');
+    expect(jug.getMarkDevice()).toBe('/platform/agent/Avatar/potter');
     jug.setMaterial(fired);
     expect(jug.isGreen()).toBe(false);
-    expect(jug.getMark()).toBe('/platform/agent/Avatar/potter');
+    expect(jug.getMarkDevice()).toBe('/platform/agent/Avatar/potter');
   });
 
   it('bone-dry refuses the stamp; a thing that takes no impression is told so', async () => {
@@ -158,7 +157,7 @@ describe('impress a stamp', () => {
       'impress stamp on jug',
     );
     expect(refusal(a)).toBe('too-dry');
-    expect(dry.getMark()).toBe('');
+    expect(dry.getMarkDevice()).toBe('');
     const b = await run(
       makeStuff(() => new ImpressController()),
       { pattern: ref(stamp as unknown as Stuff, 'stamp'), medium: ref(rock, 'rock') },

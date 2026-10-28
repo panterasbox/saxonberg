@@ -231,8 +231,8 @@ glassblower's `shape bottle` binds as it always did.
   billhook`) binds as before.
 - **`impress`** (alias `mold`), new: `impress <pattern> on|in|into <medium>`.
   The MEDIUM answers `Impressible.takeImpression` — a leather-hard pot takes
-  its maker's mark (`Crafted.mark`, from the pattern's `markIdentity()` or
-  its maker); moulding's media take a whole impression (W7). A press is a
+  the device the pattern's face bears (`MarkedMixin.takeDeviceFrom` — a
+  tool that bears none leaves a dent); moulding's media take a whole impression (W7). A press is a
   moment: it runs in the command, and a refusal is the medium's own words.
 - **`hammer <blank> on <die>`** stays smithing's, with a structural probe: an
   anvil that answers `strikeWith(blank, blowJ, by)` is a die, and it decides

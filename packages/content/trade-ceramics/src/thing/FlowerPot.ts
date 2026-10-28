@@ -14,6 +14,7 @@ import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 
 /**
  * ⭐ A potter's own pot says how it came out and whose it is — the
@@ -28,7 +29,7 @@ const verdictAugmenter: MarkupAugmenter = (text: string, host: Stuff): string =>
 };
 
 const FlowerPotBase = GreenwareMixin(
-  WaterActivityMixin(ThermalMixin(DurableMixin(CraftedMixin(PlantPot)))),
+  MarkedMixin(WaterActivityMixin(ThermalMixin(DurableMixin(CraftedMixin(PlantPot))))),
 );
 
 export default class FlowerPot extends FlowerPotBase {

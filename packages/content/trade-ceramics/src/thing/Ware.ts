@@ -21,9 +21,10 @@ import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 
 const WareBase = GreenwareMixin(
-  WaterActivityMixin(AssembledMixin(NamedMixin(DurableMixin(CompositionMixin(CraftVessel))))),
+  MarkedMixin(WaterActivityMixin(AssembledMixin(NamedMixin(DurableMixin(CompositionMixin(CraftVessel)))))),
 );
 
 export default class Ware extends WareBase {}

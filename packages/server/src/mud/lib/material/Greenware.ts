@@ -128,18 +128,11 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   const extra: string[] = [];
   const work = host.getGreenWork();
   if (work.length > 0) extra.push(`It has ${work.join(' and ')}.`);
-  // ⭐ The base (ceramics S5): whose mark, and — once fired — when.
-  const mark = MixinApi.isCrafted(host) ? host.getMark() : '';
-  const who = markName(mark);
+  // ⭐ Once fired — when (ceramics S5). Whose mark it bears is the
+  // `MarkedMixin` device's own line, not this one.
   const rec = MixinApi.isThermal(host) ? host.getHeatWork() : null;
   const firedAt = state === null && rec !== null && rec.lastTransitionAtS !== null ? rec.lastTransitionAtS : null;
-  if (who !== null) {
-    extra.push(
-      firedAt !== null
-        ? `Its base bears ${who}'s mark, and it was fired ${DefaultCalendar.singleton().formatDate(Quantity.of(firedAt, 's'))}.`
-        : `Its base bears ${who}'s mark.`,
-    );
-  } else if (firedAt !== null) {
+  if (firedAt !== null) {
     extra.push(`It was fired ${DefaultCalendar.singleton().formatDate(Quantity.of(firedAt, 's'))}.`);
   }
   // ⭐ Fired somewhere else — an import off the general store's shelf has no
@@ -251,24 +244,20 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
 
     /**
      * ⭐ A leather-hard piece takes a MARK (ceramics S5): the stamp's own
-     * identity — whose mark it is — pressed into the base. A pattern that
-     * answers `markIdentity()` (the potter's stamp) names it; otherwise its
-     * maker does.
+     * identity — whose mark it is — pressed into the base. The stamp's face
+     * bears a device (`MarkedMixin`) and the piece takes it; a tool that
+     * bears none leaves only a dent.
      */
     public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ImpressOutcome> {
       const self = this as unknown as Stuff;
       const refused = this.leatherHardRefusal('stamp');
       if (refused !== null) return refused;
-      if (!MixinApi.isCrafted(self)) {
+      if (!MixinApi.isMarked(self)) {
         return { ok: false, reason: 'not-markable', line: Mml.compose`There is nowhere on ${Mml.thing(self)} a mark would mean anything.` };
       }
-      const probe = pattern as unknown as { markIdentity?(): string };
-      const identity =
-        typeof probe.markIdentity === 'function'
-          ? probe.markIdentity()
-          : MixinApi.isCrafted(pattern)
-            ? pattern.getMaker()
-            : '';
+      // ⭐ The tool's face bears a device; pressing it copies the device into
+      // the clay (`MarkedMixin`). Anything else leaves only a dent.
+      const identity = MixinApi.isMarked(pattern) ? self.takeDeviceFrom(pattern) : '';
       if (identity === '') {
         return {
           ok: false,
@@ -276,7 +265,6 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
           line: Mml.compose`${Mml.thing(pattern)} leaves a dent, and no mark anybody would know.`,
         };
       }
-      self.setMark(identity);
       const who = markName(identity) ?? 'its maker';
       return {
         ok: true,

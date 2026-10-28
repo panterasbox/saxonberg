@@ -42,6 +42,9 @@ import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
+import { PerceptionApi } from '../../api/perception';
+import type { MarkupAugmenter } from '../../api/mml';
 
 /** How wet inked paper must be before the ink runs (0..1). */
 const INK_RUNS_AT = 0.5;
@@ -147,13 +150,41 @@ export interface Marked {
    * your own.
    */
   writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string };
+  /**
+   * ⭐ WHOSE mark this bears — a DEVICE, not words: a potter's stamp on a
+   * pot's base, a die's device on a struck token, the device cut in the
+   * stamp or the die itself (ceramics review, 2026-10-28). An identity
+   * path; `''` = none. One mark, wherever it was pressed: impressing copies
+   * the tool's device onto the soft thing (`takeDeviceFrom`).
+   */
+  getMarkDevice(): string;
+  setMarkDevice(identityPath: string): void;
+  /** Press `tool`'s device into this — an embossed mark, felt in the dark. */
+  takeDeviceFrom(tool: Stuff & Marked): string;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
   markForm: string;
   markScript: string;
   writingRoom: number;
+  markDevice: string;
 }
+
+/**
+ * ⭐ The device a thing bears, in words a look gives it: whose mark. An
+ * embossed device is felt as well as seen, so it reads in the dark; an inked
+ * one needs light. A thing that bears none says nothing.
+ */
+const deviceAugmenter: MarkupAugmenter = (text, host, viewer, opts) => {
+  if (opts?.filter) return text;
+  if (!MixinApi.isMarked(host)) return text;
+  const device = host.getMarkDevice();
+  if (device === '') return text;
+  if (host.requiresLightToRead() && !PerceptionApi.canMakeOutMarks(viewer, host)) return text;
+  const who = StuffApi.findByTemplatePath<Stuff>(device)?.getPresentation() ?? 'someone';
+  const line = `It bears ${who}'s mark.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+};
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MarkedMixin extends Base implements Marked {
@@ -179,7 +210,11 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       environment: ['platform/cmd/perception/read.yaml', 'platform/cmd/inventory/write.yaml'],
     };
 
+    static markupAugmenters: MarkupAugmenter[] = [deviceAugmenter];
+
     static fieldMeta: FieldMeta = {
+      // A stamped brick and a bare one, or tokens off two dies, do not stack.
+      markDevice: { persistent: true, authorable: true, stackIdentity: true },
       markText: { persistent: true, authorable: true },
       markForm: { persistent: true, authorable: true },
       markScript: { persistent: true, authorable: true },
@@ -197,6 +232,24 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Characters this surface still takes; 0 takes no writing (the default). */
     public writingRoom: number = 0;
+    /** Whose device this bears — an identity path; `''` = none. */
+    public markDevice: string = '';
+
+    public getMarkDevice(): string {
+      return this.markDevice;
+    }
+
+    public setMarkDevice(identityPath: string): void {
+      this.markDevice = typeof identityPath === 'string' ? identityPath.trim() : '';
+    }
+
+    public takeDeviceFrom(tool: Stuff & Marked): string {
+      const device = tool.getMarkDevice();
+      if (device === '') return '';
+      this.markDevice = device;
+      this.markForm = 'embossed';
+      return device;
+    }
 
     /**
      * ⭐ What the marks say — unless they were inked on something you can

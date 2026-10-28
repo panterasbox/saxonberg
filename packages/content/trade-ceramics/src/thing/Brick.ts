@@ -17,14 +17,15 @@ import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 
 /** Where a brick sat in a clamp (ceramics D15) — `''` when it has not. */
 export type ClampPosition = 'channel' | 'middle' | 'skin' | '';
 
 const BrickBase = GreenwareMixin(
-  WaterActivityMixin(
+  MarkedMixin(WaterActivityMixin(
     StackableMixin(DurableMixin(CraftedMixin(CompositionMixin(ThermalMixin(Good))))),
-  ),
+  )),
 );
 
 export default class Brick extends BrickBase {
@@ -114,9 +115,10 @@ export default class Brick extends BrickBase {
       const rec = this.getHeatWork();
       if (rec !== null) splitoff.adoptHeatWork(rec);
     }
-    if (MixinApi.isCrafted(splitoff)) {
-      splitoff.setMaker(this.getMaker());
-      splitoff.setMark(this.getMark());
+    if (MixinApi.isCrafted(splitoff)) splitoff.setMaker(this.getMaker());
+    if (MixinApi.isMarked(splitoff)) {
+      splitoff.setMarkDevice(this.getMarkDevice());
+      splitoff.setMarkForm(this.getMarkForm());
     }
     const self = this as unknown as Stuff;
     if (MixinApi.isGraded(self) && MixinApi.isGraded(splitoff)) splitoff.setGrade(self.getGrade());

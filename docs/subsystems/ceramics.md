@@ -163,13 +163,20 @@ At LEATHER-HARD a green piece is worked on, and the piece answers the verb
   pared off, the work recorded in words (`a turned foot`), pottery credited.
   Plastic refuses (`too-soft` — it would smear), bone-dry refuses (`too-dry`
   — it would crack), a fired or ruined piece refuses.
-- **`impress stamp on jug`** — `takeImpression`: the base takes WHOSE MARK the
-  stamp carries (`Crafted.mark`, an identity path: the stamp's
-  `markIdentity()`, else its maker). The potter's `Stamp` (`/trade/ceramics/
-  thing/Stamp`, a `Crafted` good with an authorable `markOf`) affords
-  `impress`. The same leather-hard refusals.
-- **The base**: once fired, a piece's look reads *its base bears X's mark,
-  and it was fired <date>* — the date is its heat history's
+- **`impress stamp on jug`** — `takeImpression`: the base takes the DEVICE
+  the stamp's face bears (`MarkedMixin.markDevice`, an identity path —
+  `takeDeviceFrom`, an embossed mark felt as well as seen). The potter's
+  `Stamp` (`/trade/ceramics/thing/Stamp`, a `Marked` + `Crafted` good: an
+  authorable `markDevice`, else whoever cut it) affords `impress`; a tool
+  that bears no device leaves only a dent. The same leather-hard refusals.
+  ⭐ One mark, one home (review, 2026-10-28): the potter's stamp, a die's
+  device on a struck token and the device cut in the stamp or the die are
+  all `MarkedMixin`'s — ware, bricks, flower pots, ingots, castings, stamps
+  and dies compose it, a stamped brick does not stack with a bare one, and
+  `read` names whose mark it is. A commercial BRAND (`BrandedMixin`) is a
+  claim of whose product, kept separate: the two can disagree (a forgery).
+- **The base**: once fired, a piece's look reads *it bears X's mark* (the
+  device's own line) and *it was fired <date>* — the date is its heat history's
   `lastTransitionAtS`. ⭐ A shelf of a player's own pots is their improvement,
   visible: the heavy first mug and the light later one, marked and dated.
 
@@ -273,7 +280,7 @@ face) and the floor refuses *at the water*. The valley's first pit
 | moulding shed | two brick tables; the gauging rod (`measure size`); the two moulders |
 | hacks | `enclosure: none`, a canvas `roof:` — rain kept off, the field's air (a frost still reaches a wet brick) |
 | clamp ground | the clamp, the pit firing, coal; the **brick stack** (the brickmaster's counter: bricks, firebricks, tiles, and breeze as its one import line); the setter |
-| potter's shop | the wheel, the updraft kiln, the ash- and lead-glaze tubs, the potter's stamp (`markOf` the potter), four sets of cones, the **ware shelf**, a water butt, ash, a pig of lead, charcoal; the potter |
+| potter's shop | the wheel, the updraft kiln, the ash- and lead-glaze tubs, the potter's stamp (`markDevice` the potter), four sets of cones, the **ware shelf**, a water butt, ash, a pig of lead, charcoal; the potter |
 
 Every place but the pit (`OpenWorking` is persistable itself) and the
 pond is a `PersistentLocale`: a heap's winter, a day's green bricks, a

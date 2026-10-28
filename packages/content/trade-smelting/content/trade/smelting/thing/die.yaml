@@ -17,4 +17,4 @@ data:
   capabilities: [anvil]
   strikes: /trade/smelting/thing/token
   # Whose device it is — the Rejection founder's (a struck token says so).
-  markOf: /world/terminus/rejection/agent/founder
+  markDevice: /world/terminus/rejection/agent/founder

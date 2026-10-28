@@ -15,6 +15,7 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -44,7 +45,7 @@ const FACE_M2 = 1e-4;
  */
 const STRIKING = ['trade/smithing/cmd/crafting/hammer.yaml', 'platform/cmd/crafting/impress.yaml'];
 
-export default class Die extends ToolMixin(DurableMixin(CraftedMixin(Good))) {
+export default class Die extends MarkedMixin(ToolMixin(DurableMixin(CraftedMixin(Good)))) {
   static commandContributions: CommandContributions = {
     environment: STRIKING,
     peers: STRIKING,
@@ -52,13 +53,12 @@ export default class Die extends ToolMixin(DurableMixin(CraftedMixin(Good))) {
 
   static fieldMeta: FieldMeta = {
     strikes: { persistent: true, authorable: true, ref: 'identity:kind' },
-    markOf: { persistent: true, authorable: true },
   };
 
   /** The row a struck blank becomes — the die's shape (a token). */
   public strikes = '';
-  /** Whose device the die was cut with — an identity path; `''` = its maker's. */
-  public markOf = '';
+  /** The device is cut into the face — felt as well as seen. */
+  public override markForm = 'embossed';
 
   public getStrikes(): string {
     return this.strikes;
@@ -67,9 +67,9 @@ export default class Die extends ToolMixin(DurableMixin(CraftedMixin(Good))) {
     this.strikes = typeof value === 'string' ? value.trim() : '';
   }
 
-  /** Whose die this is — the device's owner, else its maker. */
-  public markIdentity(): string {
-    return this.markOf || this.getMaker();
+  /** ⭐ Whose device the face is cut with — authored, else whoever cut it. */
+  public override getMarkDevice(): string {
+    return super.getMarkDevice() || this.getMaker();
   }
 
   /**
@@ -95,13 +95,8 @@ export default class Die extends ToolMixin(DurableMixin(CraftedMixin(Good))) {
     if (forceN < stiffN) {
       return Mml.compose`The hammer rings off ${Mml.thing(blank)} and the device barely shows on it. It is too hard to strike cold — heat it, or strike harder.`;
     }
-    let token: Stuff;
-    try {
-      token = await StuffApi.clone<Stuff>(this.strikes, undefined, { madeFrom: [blank] });
-    } catch {
-      return Mml.compose`Nothing comes of it.`;
-    }
-    const whose = this.markIdentity();
+    const token = await StuffApi.clone<Stuff>(this.strikes, undefined, { madeFrom: [blank] });
+    const whose = this.getMarkDevice();
     if (MixinApi.isTangible(token)) {
       token.setMaterial(mat);
       token.setMass(Quantity.of(blank.getMass().rawValue(), 'kg'));
@@ -111,19 +106,17 @@ export default class Die extends ToolMixin(DurableMixin(CraftedMixin(Good))) {
         takenAtS: WorldClockApi.getNow().rawValue(),
       });
     }
-    const who = whose ? StuffApi.findByTemplatePath<Stuff>(whose)?.getPresentation() ?? '' : '';
-    const t2 = token as unknown as { getLongDescription?(): string; setLongDescription?(s: string): void };
-    t2.setLongDescription?.(
-      `${t2.getLongDescription?.() ?? ''} Struck from ${who ? `${who}'s` : 'a'} die: the device stands up crisp on both faces.`.trim(),
-    );
+    // ⭐ The die's device is pressed into the token: it BEARS the mark
+    // (`MarkedMixin`), and its look says whose — never written into its prose.
+    if (MixinApi.isMarked(token)) token.takeDeviceFrom(this);
     const scope = MixinApi.isContainable(blank) ? blank.getContainer() : null;
     await StuffApi.destruct(blank);
     const into = scope !== null && MixinApi.isContainer(scope) ? scope : MixinApi.isContainer(by) ? by : null;
     if (into !== null && MixinApi.isContainable(token)) {
       ContainmentApi.move(token as Stuff & Containable, into as Stuff & Container);
     }
-    await PersistableApi.captureHostOf(token).catch(() => undefined);
-    if (MixinApi.isDurable(self)) (self as unknown as { wear(n?: number): void }).wear();
+    await PersistableApi.captureHostOf(token);
+    if (MixinApi.isDurable(self)) self.wear();
     return Mml.compose`The die bites. ${Mml.thing(token)} comes up off it with the device sharp on its face.`;
   }
 }

@@ -24,7 +24,10 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { ManualBuildMixin } from '../../lib/craft/ManualBuild';
 import { AlloyedMixin } from '../../lib/material/Alloyed';
+import { MarkedMixin } from '../../lib/description/Marked';
 
-const IngotBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))));
+// ⭐ An ingot or a struck token may bear a stamped device — a smelter's mark,
+// a die's (`MarkedMixin`); a plain one bears none and reads as before.
+const IngotBase = MarkedMixin(AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good)))));
 
 export default class Ingot extends IngotBase {}

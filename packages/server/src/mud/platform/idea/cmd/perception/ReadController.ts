@@ -33,6 +33,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { StuffApi } from '../../../../api/stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { COMMON_SCRIPT } from '../../../../lib/description/Marked';
 import { MessageApi } from '../../../../api/message';
@@ -135,10 +136,15 @@ export default class ReadController extends CommandController<ReadModel> {
     }
 
     const text = target.getMarkText();
+    // ⭐ A device is read as whose it is (a potter's mark, a die's device).
+    const device = target.getMarkDevice();
+    const whose = device !== '' ? StuffApi.findByTemplatePath<Stuff>(device)?.getPresentation() ?? 'someone' : '';
     const body =
       text.length > 0
         ? Mml.compose`${Mml.thing(target)} reads: ${text}`
-        : Mml.compose`${Mml.thing(target)} is blank.`;
+        : whose !== ''
+          ? Mml.compose`${Mml.thing(target)} bears ${whose}'s mark.`
+          : Mml.compose`${Mml.thing(target)} is blank.`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
 
     // ── …and whatever reading it sets off ──

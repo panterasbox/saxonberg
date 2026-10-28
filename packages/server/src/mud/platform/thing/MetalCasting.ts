@@ -14,7 +14,9 @@ import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { AlloyedMixin } from '../../lib/material/Alloyed';
+import { MarkedMixin } from '../../lib/description/Marked';
 
-const MetalCastingBase = AlloyedMixin(MeltableMixin(ThermalMixin(Good)));
+// A casting may bear a founder's stamped device, as an ingot may (`MarkedMixin`).
+const MetalCastingBase = MarkedMixin(AlloyedMixin(MeltableMixin(ThermalMixin(Good))));
 
 export default class MetalCasting extends MetalCastingBase {}

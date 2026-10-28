@@ -1689,6 +1689,19 @@ left a fork the lens that chose is named.
   dressmaker's pattern (a cut, not a shape) would share only the word —
   nothing builds one.
 
+- **B84 — review: one mark, `MarkedMixin`'s device (2026-10-28).** The
+  build had added `Crafted.mark` (the potter's stamp) and recorded a die's
+  device in a struck token's cast provenance plus baked prose, with
+  Greenware duck-probing a pack-defined `markIdentity()`. A maker's mark, a
+  mint mark and a seal are one thing — a device pressed into a surface —
+  and `MarkedMixin` already models marks a thing bears (inked or embossed,
+  felt in the dark). It gains `markDevice` (stack identity), a look line
+  and `takeDeviceFrom`; `read` names a device; stamps and dies bear one
+  (authored `markDevice`, else their cutter); ware, bricks, flower pots,
+  ingots and castings take one. `Crafted.mark` retired; rows' `markOf` →
+  `markDevice`. `BrandedMixin` stays the commercial claim (lens 1: a mark
+  you can touch and a claim of ownership can disagree).
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
