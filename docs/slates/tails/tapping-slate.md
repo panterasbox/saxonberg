@@ -7,7 +7,7 @@
 > source is Russian dandelion, **dug** as a crop rather than tapped.
 > *"Latex is resin's mechanism exactly"* still holds for the Hevea half.
 
-> **Status: ⭐ SAP SHIPPED 2026-10-01 · RESIN UNBUILT** — the taps build
+> **Status: PARTIAL** — ⭐ SAP SHIPPED 2026-10-01 · RESIN UNBUILT — the taps build
 > took the whole mechanism and the sap vertical;
 > [taps.md](../../subsystems/taps.md) is the subsystem doc.
 >
@@ -34,7 +34,7 @@
 >   of its standards are big enough to tap. Deferred: the sugarbush is
 >   named stems in a panel, so nothing needed it yet.
 > - **Maple's freeze–thaw window** — blocked on a realm with a real
->   winter, which is now [climate-slate](./climate-slate.md) and this is
+>   winter, which is now [climate-slate](../builds/climate-slate.md) and this is
 >   its first consumer.
 > - **The relief** (`instruct keep`) — specified and not shipped; its
 >   host is build-3's `lib/character/Avatar`. Goes to the dairy build.
@@ -424,7 +424,7 @@ criterion 1 refuses every post-medieval material forever. The real
 blocker is that the **industrial epoch has no on-ramp** — the doctrine's
 delivery mechanism was conferral, and conferral is retired. See
 [rubber-slate](../tails/rubber-slate.md) and
-[inquiry-slate § From law to technology](./inquiry-slate.md).
+[inquiry-slate § From law to technology](../builds/inquiry-slate.md).
 **Latex remains tapping's mechanism exactly**, so this slate still
 carries rubber's supply side.
 
@@ -517,4 +517,4 @@ See also: [forestry.md](../../subsystems/forestry.md) ·
 [maturation.md](../../subsystems/maturation.md) ·
 [spoilage.md](../../subsystems/spoilage.md) ·
 [field-substrate-slate](../tails/field-substrate-slate.md) ·
-[api-normalization-slate](./api-normalization-slate.md)
+[api-normalization-slate](../builds/api-normalization-slate.md)

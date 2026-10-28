@@ -13,7 +13,7 @@
 > falling, and staying up gated on lift and power · air as a medium row · seeing and being
 > seen · airspace · weather · magic's price · the flyers (balloons, airships, creatures and
 > pigeons, gliders and planes, magical flight)
-> **Size:** several builds — this slate is their common ground
+> **Size:** a build program — several builds; this slate is their common ground
 
 ## 0. The shape maritime already gave us
 
