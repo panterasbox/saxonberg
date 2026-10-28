@@ -146,8 +146,17 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   // firing here to describe, and read as nothing at all (drive C, run 37).
   // Its body is still plain to see.
   if (state === null && (rec === null || rec.lastTransitionAtS === null) && MixinApi.isTangible(host)) {
-    const body = host.getMaterial()?.getName();
-    if (body) extra.unshift(`It is fired ${body}.`);
+    const mat = host.getMaterial();
+    const body = mat?.getName();
+    // A piece the fire reached but never turned is still its clay: say that,
+    // not "fired alluvial clay" (drive C, run 39).
+    if (body) {
+      extra.unshift(
+        mat?.hasTag('plastic')
+          ? `It has been in the fire, but not long or hot enough to turn: it is still ${body}.`
+          : `It is fired ${body}.`,
+      );
+    }
   }
   const all = [line, ...extra].filter((l) => l !== '').join(' ');
   if (all === '') return text;
