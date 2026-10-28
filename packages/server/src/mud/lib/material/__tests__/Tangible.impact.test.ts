@@ -147,7 +147,7 @@ describe('thermal shock — heat too fast', () => {
     mug.layCoat('outside', '/x', 0);
     // A fused coat lowers what the body stands.
     (mug as unknown as { coats: Record<string, unknown[]> }).coats = {
-      outside: [{ material: '/x', thicknessM: 0.0003, state: 'fused' }],
+      outside: [{ material: '/x', thicknessM: 0.0003, state: 'set' }],
     };
     mug.reconcileThermal();
     mug.setContentsTemperature(373);

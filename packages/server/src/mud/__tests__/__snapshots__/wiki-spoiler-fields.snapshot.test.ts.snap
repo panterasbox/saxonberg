@@ -727,6 +727,7 @@ Material.castTemplate = 0
 Material.chillsTo = 1 (name 0)
 Material.cleanser = 0
 Material.cleavability = 0
+Material.coatWord = 0
 Material.combustionImparts = 1 (name 0)
 Material.combustionProducts = 1 (name 0)
 Material.composition = 0

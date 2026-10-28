@@ -28,7 +28,6 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
-import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { EnclosureSpec } from '../spatial/Enclosed';
 import type Material from './Material';
@@ -43,7 +42,7 @@ import type { MarkupAugmenter } from '../../api/mml';
 export type FaceName = 'outside' | 'inside';
 
 /** What a coat has come to. */
-export type CoatState = 'wet' | 'fused' | 'crazed' | 'run' | 'crawled';
+export type CoatState = 'wet' | 'set' | 'crazed' | 'run' | 'crawled';
 
 /** One coat — construction's layer, with the state a firing gave it. */
 export interface CoatLayer extends EnclosureSpec {
@@ -99,14 +98,26 @@ function materialAt(path: string): Material | null {
   return StuffApi.findByTemplatePath<Material>(path) ?? null;
 }
 
-/** A coat's state, in the words a look gives it. */
-const COAT_WORDS: Record<CoatState, (glaze: string, face: FaceName) => string> = {
-  wet: (g, f) => `It has a wet coat of ${g} on the ${f}, not yet fired.`,
-  fused: (g, f) => `It is glazed on the ${f} with ${g}.`,
-  crazed: (g, f) => `The ${g} on its ${f} is crazed with fine cracks.`,
-  run: (g, f) => `The ${g} on its ${f} has run and pooled toward the foot.`,
-  crawled: (g, f) => `The ${g} on its ${f} has crawled back off bare patches.`,
+/**
+ * A coat's state, in the words a look gives it. ⭐ The word for a sound coat
+ * is the coat MATERIAL's (`coatWord` — glazed, painted, tarred), and a wet
+ * one says what will set it: the fire, for a coat whose material sets by
+ * heat. The faults are every coat's — paint crazes, crawls and runs too.
+ */
+const COAT_WORDS: Record<CoatState, (coat: Material | null, face: FaceName) => string> = {
+  wet: (m, f) =>
+    `It has a wet coat of ${nameOf(m)} on the ${f}, not yet ${
+      (m?.getHeatTransitions().length ?? 0) > 0 ? 'fired' : 'set'
+    }.`,
+  set: (m, f) => `It is ${m?.getCoatWord() ?? 'coated'} on the ${f} with ${nameOf(m)}.`,
+  crazed: (m, f) => `The ${nameOf(m)} on its ${f} is crazed with fine cracks.`,
+  run: (m, f) => `The ${nameOf(m)} on its ${f} has run and pooled toward the foot.`,
+  crawled: (m, f) => `The ${nameOf(m)} on its ${f} has crawled back off bare patches.`,
 };
+
+function nameOf(m: Material | null): string {
+  return m?.getName() || 'coating';
+}
 
 /**
  * ⭐ What a look says of the coats: the outermost on each face, wet or
@@ -121,8 +132,7 @@ const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   for (const face of host.faces()) {
     const top = host.getCoats(face)[0];
     if (!top) continue;
-    const glaze = materialAt(top.material)?.getName() || 'glaze';
-    lines.push(COAT_WORDS[top.state](glaze, face));
+    lines.push(COAT_WORDS[top.state](materialAt(top.material), face));
   }
   // ⭐ A weeping vessel's outside is wet for as long as it weeps — the one
   // rule the evaporative cooling reads too (drive C, run 37: the jar of
@@ -137,14 +147,6 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class FacedMixin extends Base implements Faced {
     static _mixinName = 'FacedMixin';
 
-    /**
-     * ⭐ `dip` is afforded by the thing being dipped — a held mug and a mug
-     * on a shelf alike (`environment` + `peers`). A static on the CLASS.
-     */
-    static commandContributions: CommandContributions = {
-      environment: ['platform/cmd/crafting/dip.yaml'],
-      peers: ['platform/cmd/crafting/dip.yaml'],
-    };
 
     static markupAugmenters: MarkupAugmenter[] = [coatAugmenter];
 
@@ -236,7 +238,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           if ((coat.dirtyAtLay ?? 0) > crawlAt) return { ...coat, state: 'crawled' as const };
           const coatAlpha = mat?.getThermalExpansion() ?? 0;
           if (coatAlpha - bodyAlpha > crazeAt) return { ...coat, state: 'crazed' as const };
-          return { ...coat, state: 'fused' as const };
+          return { ...coat, state: 'set' as const };
         });
       }
       if (changed > 0) this.coats = next;
@@ -254,12 +256,16 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // ⭐ A crack through the wall leaks whatever is laid on it (M5).
       const self = this as unknown as Stuff;
       if (MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'crack')) return false;
+      // ⭐ A sound coat holds water when its MATERIAL is tight — a glaze is,
+      // a limewash would not be; a run coat still covers. Crazed and crawled
+      // coats have opened, and the body answers.
+      const tight = dial(AppSettingKeys.facesHoldsWaterBelow, 0.03);
       const top = this.getCoats(face)[0];
-      if (top !== undefined) {
-        if (top.state === 'fused') return true;
-        if (top.state === 'run') return true;
+      if (top !== undefined && (top.state === 'set' || top.state === 'run')) {
+        const coat = materialAt(top.material);
+        if (coat !== null && coat.getWaterAbsorptionCapacity().rawValue() / 100 <= tight) return true;
       }
-      return this.porosity() <= dial(AppSettingKeys.facesHoldsWaterBelow, 0.03);
+      return this.porosity() <= tight;
     }
 
     public cleansAs(): number {

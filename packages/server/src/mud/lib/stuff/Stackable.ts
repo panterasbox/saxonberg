@@ -44,6 +44,7 @@ import type { Stuff } from './Stuff';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import type { Thermal } from '../thermal/Thermal';
+import type { Faced } from '../material/Faced';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
 import { StuffApi } from '../../api/stuff';
@@ -247,6 +248,11 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
       if (MixinApi.isThermal(self) && MixinApi.isThermal(other)) {
         if (firedSignature(self) !== firedSignature(other)) return false;
       }
+      // A glazed tile and a bare one are different goods: coats are a
+      // per-piece record, compared by value (identity fields are scalars).
+      if (MixinApi.isFaced(self) && MixinApi.isFaced(other)) {
+        if (coatSignature(self) !== coatSignature(other)) return false;
+      }
 
       // Union of both classes' stackIdentityFields. Equal values required
       // for every field. Reads through the public getter pattern (per
@@ -372,6 +378,14 @@ function firedSignature(s: Stuff & Thermal): string {
     .map(([k, c]) => `${k}:${Math.round(c.degree * 20)}`)
     .sort()
     .join(',');
+}
+
+/** A face's coats as one comparable string — material and state, by face. */
+function coatSignature(s: Stuff & Faced): string {
+  return s
+    .faces()
+    .map((f) => `${f}:${s.getCoats(f).map((c) => `${c.material}/${c.state}`).join('>')}`)
+    .join('|');
 }
 
 /**

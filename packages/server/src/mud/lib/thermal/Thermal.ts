@@ -1265,7 +1265,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const glazed =
         MixinApi.isFaced(self) &&
-        [...self.getCoats("outside"), ...self.getCoats("inside")].some((c) => c.state === "fused");
+        [...self.getCoats("outside"), ...self.getCoats("inside")].some((c) => c.state === "set");
       const strain = heatWorkDial(AppSettingKeys.impactShockStrain, 0.0003);
       return (
         (strain / alpha) *
@@ -1292,7 +1292,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         return;
       }
       const glazedOutside =
-        MixinApi.isFaced(self) && self.getCoats("outside").some((c) => c.state === "fused");
+        MixinApi.isFaced(self) && self.getCoats("outside").some((c) => c.state === "set");
       self.addFlaw("dunt", glazedOutside);
     }
 

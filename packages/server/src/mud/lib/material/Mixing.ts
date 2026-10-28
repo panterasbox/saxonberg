@@ -86,18 +86,23 @@ export function MixingVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     static _mixinName = 'MixingVesselMixin';
 
     /**
-     * ⭐ The vessel affords both words: `stir` and `knead`, environment and
-     * peers (a tub you stand at, a bucket on the bench). A static on the
-     * CLASS — a row's `commandContributions:` is dead silently.
+     * ⭐ The vessel affords `stir` and `knead`, and `dip` — a glaze is mixed
+     * in a tub and pots are dipped in the tub (the BATH affords the dip, as
+     * chandlery's dip pot does; a good being dippable is not a fact about
+     * the good). Environment and peers: a tub you stand at, a bucket on the
+     * bench. A static on the CLASS — a row's `commandContributions:` is dead
+     * silently.
      */
     static commandContributions: CommandContributions = {
       environment: [
         'platform/cmd/crafting/stir.yaml',
         'platform/cmd/crafting/knead.yaml',
+        'platform/cmd/crafting/dip.yaml',
       ],
       peers: [
         'platform/cmd/crafting/stir.yaml',
         'platform/cmd/crafting/knead.yaml',
+        'platform/cmd/crafting/dip.yaml',
       ],
     };
 

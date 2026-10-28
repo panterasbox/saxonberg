@@ -22,7 +22,19 @@ and a fixture take paint through construction's layers. Composing it on
 
 State-free until a coat is laid (`coats: {}`). Every good can answer the claim
 it makes, *"it has an outside, and something may be laid on it"*, which is the
-test for composing on the base.
+test for composing on the base — glaze, paint, tar, varnish and wax go on pots,
+carts, signs, tools, hulls and cheeses alike.
+
+⚠ **The claim is about the GOOD; the verb is the BATH's.** Being dippable is not
+a fact about a good, so `Faced` affords nothing: `dip` is afforded by the vessel
+you dip into (`MixingVesselMixin` — the glaze and slip tubs; chandlery's dip
+pot). It was on every good for a while, and every good in reach offered `dip`
+(ceramics review, 2026-10-28).
+
+⭐ **Coats are a per-piece record**, so a coated stack does not merge with a
+bare one: `StackableMixin.canMergeWith` compares a coat signature (material and
+state, by face) beside Thermal's fired signature — identity fields are scalars
+compared by `===`, and a coat list is not one.
 
 | method | answers |
 |---|---|
@@ -30,15 +42,15 @@ test for composing on the base.
 | `getCoats(face)` | the coats on a face, outermost first |
 | `outermost(face)` | the material that meets the world: the top coat's (unless crawled), else the body's |
 | `layCoat(face, material, thicknessM, dirtyAtLay?)` | a WET coat, outermost (`dip` calls it) |
-| `fuseCoats(peakK)` | fuses every wet coat this heat reaches |
-| `holdsWater(face)` | a sound fused coat, or a tight body |
+| `fuseCoats(peakK)` | sets every wet coat this heat reaches (a coat that sets by heat — a glaze) |
+| `holdsWater(face)` | a sound coat of a tight material, or a tight body |
 | `porosity()` | the body's open porosity, `0..1` |
 | `cleansAs()` | how hard it is to get clean, `≥ 1` |
 
-## A coat is laid wet and fused by heat
+## A coat is laid wet and set — a glaze, by heat
 
 `dip` lays a coat **wet** from a bath whose material `laysCoat`. The coat is
-**fused** by heat: the coat is not a Stuff and has no heat history of its own,
+**set** — a glaze by heat: the coat is not a Stuff and has no heat history of its own,
 so `fuseCoats(peakK)` reads the coat material's **first heat transition**.
 `referenceK` is the heat that fuses it, and `scorchAboveK` the heat past which
 it runs. The host's heat-work reconcile calls it with the hottest the body got
@@ -46,10 +58,25 @@ in the window being integrated. At the fuse a coat becomes:
 
 | state | when |
 |---|---|
-| `fused` | sound: it holds water and wipes clean |
+| `set` | sound: it wipes clean, and holds water if its material is tight |
 | `run` | fired past the glaze's `scorchAboveK`: it runs to the foot and pools |
 | `crawled` | laid over dirt (`dirtyAtLay` > `faces.crawlDirt`, 0.3): it pulls back off bare patches, and a crawled coat does not count as the outermost |
 | `crazed` | the coat's `thermalExpansion` exceeds the body's by more than `faces.crazeMismatch` (1.5 × 10⁻⁶ /K): it shrinks more on cooling, cracks, weeps a little and holds dirt |
+
+⭐ **The words are the coat material's, not the mixin's.** A set coat reads
+*"It is `coatWord` on the outside with …"* — the material row's `coatWord`
+(`glazed`; absent reads `coated`), so a paint row says `painted` and no
+look line changes. A wet coat says *not yet fired* when its material sets by
+heat, *not yet set* otherwise. The faults (`crazed`, `run`, `crawled`) are
+every coat's: paint crazes, crawls over grease and runs too.
+
+⭐⭐ **Paint extends this, not beside it** ([paint-slate](../slates/builds/paint-slate.md)).
+What the paint build adds to `Faced`: setting by the coat material's BINDER
+(carbonation, oxidation, evaporation — heat is the glaze's case), WEAR (a coat
+is the sacrificial layer that weathers so the body does not), a thing's COLOR
+read from its opaque outermost coat over its dyed fiber over its body, and one
+coat stack shared with construction's wall layers so a wall and a cart weather
+by one rule.
 
 The glazes are rows: `/stuff/idea/material/glaze/{lead,ash,salt,tin}` (commons rows in base-library — R4: the crocks that wear them live in packs that do not depend on trade-ceramics).
 
@@ -67,8 +94,9 @@ water absorption (`waterAbsorptionCapacity` / 100) for a `fired` or `porous`
 material. The firing swaps the material (terracotta 15 %, earthenware 8 %,
 stoneware 1.5 %), so porosity follows the heat-work without a field of its own.
 
-`holdsWater(face)` is true for a fused (or run) top coat, or for a body at or
-under `faces.holdsWaterBelow` (0.03). So stoneware holds water bare, terracotta
+`holdsWater(face)` is true for a set (or run) top coat whose MATERIAL is tight
+(its own water absorption at or under `faces.holdsWaterBelow`, 0.03 — every
+glaze is 0; a limewash would not be), or for a body at or under the same dial. So stoneware holds water bare, terracotta
 weeps, and a glazed crock holds.
 
 ## ⭐⭐ The lead leach — the inside face gives to the contents (M7)

@@ -21,6 +21,7 @@ data:
   toughness: 3
   thermalExpansion: 7.0e-6
   laysCoat: true
+  coatWord: glazed
   heatTransitions:
     - key: fuse
       referenceK: 1250

@@ -1630,6 +1630,20 @@ left a fork the lens that chose is named.
   retired into `cure.crackRate`. ⚠ An unstickered stack on bare ground now
   dries at the ground's exposure (0.35), about three times slower.
 
+- **B80 — review: Faced vs Dyed, and Faced made ready for paint (2026-10-28).**
+  They do not compete: a coat becomes the outermost material (what meets the
+  world), a dye goes into the fiber — the paint slate's own dye/pigment line.
+  Faced is the paint slate's coat substrate on goods, so its glaze-only words
+  were generalized now (lens 2 — a paint row should need no code): `fused` →
+  `set`; a set coat holds water when its MATERIAL is tight; the look word is
+  the coat material's `coatWord` (`glazed` on the four glaze rows). Composition
+  audit: `Faced` on `Good` stands (the claim is true of every good), but it
+  had been AFFORDING `dip` on every good — the bath affords it now
+  (`MixingVesselMixin`, and chandlery's dip pot as on master); and a coated
+  stack no longer merges with a bare one (a coat signature in `canMergeWith`).
+  The paint slate gains § 0: setting by binder, wear, one color read, and one
+  stack shared with construction's layers are the paint build's, on `Faced`.
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of

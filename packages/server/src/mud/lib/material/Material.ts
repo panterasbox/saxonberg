@@ -1278,6 +1278,9 @@ export default class Material extends SingletonMixin(
     leaches: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     // A bath of this lays a coat (a glaze slip) — what `dip` reads.
     laysCoat: { persistent: true, authorable: true },
+    // The word a look uses for a sound coat of this — "glazed", later
+    // "painted", "tarred", "varnished". Absent reads "coated".
+    coatWord: { persistent: true, authorable: true },
     // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
     // breaks to sherds; glass keeps its cullet (the cast template).
     brokenTemplate: { persistent: true, authorable: true },
@@ -1698,6 +1701,15 @@ export default class Material extends SingletonMixin(
   }
   public setLaysCoat(value: boolean): void {
     this.laysCoat = value === true;
+  }
+
+  /** What a look calls a thing with a sound coat of this: *It is glazed …*. */
+  protected coatWord = '';
+  public getCoatWord(): string {
+    return this.coatWord !== '' ? this.coatWord : 'coated';
+  }
+  public setCoatWord(value: string): void {
+    this.coatWord = typeof value === 'string' ? value.trim() : '';
   }
 
   /**

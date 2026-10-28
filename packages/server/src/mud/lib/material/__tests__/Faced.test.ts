@@ -18,7 +18,8 @@ import { BulkableMixin } from '../../bulk/Bulkable';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ContainmentApi } from '../../../api/containment';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+import { StackableMixin } from '../../stuff/Stackable';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
@@ -26,6 +27,9 @@ class Jar extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'FacedTestJar';
 }
 class Room extends Place {}
+class Tiles extends StackableMixin(Good) {
+  static _mixinName = 'FacedTestTiles';
+}
 
 let real = 0;
 const SCALE = 12;
@@ -86,6 +90,7 @@ beforeEach(() => {
   const glaze = (name: string, refK: number, runK: number, alpha: number, leaches: boolean): Material =>
     mat(name, (m) => {
       m.setLaysCoat(true);
+      m.setCoatWord('glazed');
       m.setThermalExpansion(alpha);
       m.setHeatTransitions([
         {
@@ -123,7 +128,7 @@ describe('coats', () => {
     expect(j.getCoats('inside')[0]?.state).toBe('wet');
     expect(j.fuseCoats(1100)).toBe(0);
     expect(j.fuseCoats(1300)).toBe(1);
-    expect(j.getCoats('inside')[0]?.state).toBe('fused');
+    expect(j.getCoats('inside')[0]?.state).toBe('set');
     expect(j.outermost('inside')).toBe(ash);
   });
 
@@ -156,7 +161,7 @@ describe('coats', () => {
     const b = jarOf(terracotta);
     b.layCoat('inside', ash.getTemplatePath()!, 0);
     b.fuseCoats(1300);
-    expect(b.getCoats('inside')[0]?.state).toBe('fused');
+    expect(b.getCoats('inside')[0]?.state).toBe('set');
   });
 
   it('over-fired, a coat RUNS; laid over grease, it CRAWLS', () => {
@@ -277,5 +282,27 @@ describe('the slot — the leach and the weep', () => {
     advance(12 * 3600);
     expect(bare.getContentsTemperature().rawValue()).toBeLessThanOrEqual(297);
     expect(glazed.getContentsTemperature().rawValue()).toBeCloseTo(300, 0);
+  });
+});
+
+describe('⭐ coats are a per-piece record — a coated stack does not merge with a bare one', () => {
+  function tiles(): Tiles {
+    const t = makeStuff(() => new Tiles());
+    t.setMaterial(terracotta);
+    t.setMass(Quantity.of(1, 'kg'));
+    stampTemplatePathForTest(t, '/x/thing/tile');
+    return t;
+  }
+
+  it('bare tiles merge; a glazed lot and a bare lot do not', () => {
+    const a = tiles();
+    const b = tiles();
+    expect(a.canMergeWith(b)).toBe(true);
+    b.layCoat('outside', ash.getTemplatePath()!, 0);
+    expect(a.canMergeWith(b)).toBe(false);
+    a.layCoat('outside', ash.getTemplatePath()!, 0);
+    expect(a.canMergeWith(b)).toBe(true);
+    a.fuseCoats(1300);
+    expect(a.canMergeWith(b)).toBe(false);
   });
 });

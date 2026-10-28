@@ -298,6 +298,6 @@ describe('vapor in the chamber’s air', () => {
     expect(pot.getMaterial()?.getTemplatePath()).toBe(stone.getTemplatePath());
     const coat = pot.getCoats('outside')[0];
     expect(coat?.material).toBe(glaze.getTemplatePath());
-    expect(coat?.state).toBe('fused');
+    expect(coat?.state).toBe('set');
   });
 });
