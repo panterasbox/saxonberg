@@ -966,6 +966,9 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
+    /** When the interior last filled from empty — where an unread face clock starts. */
+    private _interiorFilledAtS: number | null = null;
+
     /** Reentry guard for {@link reconcileSeepers} (a seep writes back into this slot). */
     private _seepersReconciling = false;
 
@@ -1063,10 +1066,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       const nowS = bulkNowSeconds();
       if (nowS === null) return;
       const payload: BulkPayload = { ...(this.interiorPayload ?? {}) };
-      const last = payload.faceCheckedS;
+      const last = payload.faceCheckedS ?? this._interiorFilledAtS ?? undefined;
       if (last === undefined) {
         payload.faceCheckedS = nowS;
         this.interiorPayload = payload;
+        this._interiorFilledAtS = null;
         return;
       }
       const dt = nowS - last;
@@ -1142,6 +1146,8 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         }
         payload.faceCheckedS = nowS;
         this.interiorPayload = payload;
+        // The fill stamp is spent: from here the payload's own clock runs.
+        this._interiorFilledAtS = null;
         if (left !== litres) this.interiorAmount = Quantity.of(left, BULK_VOLUME_UNIT);
       } finally {
         this._faceExchanging = false;
@@ -1186,6 +1192,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       if (affordance === 'interior') {
         const before = this._interiorAmount.rawValue();
         this.interiorAmount = amount;
+        // ⭐ The faces start working when the liquid ARRIVES, not when somebody
+        // first looks: a filter poured and left unread for three hours had
+        // passed nothing, because that first read only opened the clock
+        // (drive C, runs 38–40).
+        if (!(before > 0) && amount.rawValue() > 0) this._interiorFilledAtS = bulkNowSeconds();
         MqlSubscriptionApi.fireFieldChange(
           this,
           'bulkAmount',

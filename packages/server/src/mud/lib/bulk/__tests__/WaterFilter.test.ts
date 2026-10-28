@@ -139,7 +139,9 @@ describe('⭐⭐ the ceramic water filter', () => {
     ContainmentApi.move(c, room);
     const f = filterOf(body, { m: fouled, l: 2 });
     ContainmentApi.move(f, c);
-    f.getBulkAmount('interior'); // the pour opens the face clock
+    // ⭐ NOT read after the pour: the clock starts when the water ARRIVES,
+    // not at the first look (drive C, runs 38–40 — a filter nobody looked
+    // at had passed nothing in three hours).
     advance(3 * 3600);
     // The crock is read first, and only the crock — and the way a LOOK
     // reads it (the contents line checks the slot's material path first).
