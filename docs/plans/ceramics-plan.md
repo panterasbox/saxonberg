@@ -3384,3 +3384,42 @@ time.
       a bought bowl for the earth floor when it has only one of its own;
     - 24 falls back to 15's reading of the novice's mug;
     - 25 names the potter's stall.
+
+**Run 39** (D 22/23 · A 18/20 · B 4/6 · C 14/21). Passing for the first
+time:
+- the clamp's three grades by position (clinker, earthenware,
+  terracotta);
+- A 5b's frost burst;
+- the tinker riveting a cracked bowl, and the mend showing;
+- the cold glazed mug cracking under boiling water;
+- the shelf.
+
+Fixed this round:
+- **D:** the seeper gather read the world placement catalogue from inside
+  the founder's jurisdiction-bound eval. The gather sits in the same
+  SecurityError guard now (8be5b2fbb).
+- **⭐ Game defects:**
+  - **"firebrick" renamed "refractory fireclay brick".** 789cf9f33 renamed
+    every fired brick, and B found no firebrick in hand. Only a stem that
+    says green is renamed (3251234e0).
+  - **The shed's bricks fired 6 % over statute.** The row was 3.6 kg against
+    the statute brick's 2.99, and the measure derives size from mass. The
+    row now holds the statute's fired mass (5457cd934).
+  - **`ring earthenware brick` was "no known command shape".** ring's one
+    object arg is greedy now (bfbab9e16).
+  - **⭐ Nothing could report what a vessel holds.** `analyze chemistry`
+    read the vessel's body only, so C 19's "it carries lead" passed on
+    the crock's NAME ("leadpot"). The reading adds the contents and
+    anything dissolved in them. The crock under a filter still looked
+    empty because the contents line reads the material PATH first; that
+    read brings the seepers current now (335a19860).
+  - **A potter's plant pot never said who made it.** It renders its
+    verdict now (1ee14c9b6).
+  - **A piece the fire never turned read "fired alluvial clay".** It now
+    says it is still clay (fa42c4c6a).
+- **C drive fixes:**
+  - 18 unloads the glost kiln by daylight;
+  - 21 hands a terracotta jar when none was bisqued;
+  - 23 empties the kiln of mugs before looking for the novice's;
+  - 25 drops a quoted look MQL cannot parse (an apostrophe inside
+    quotes).
