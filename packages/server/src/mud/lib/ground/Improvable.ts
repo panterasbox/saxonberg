@@ -172,6 +172,13 @@ const OWING_PHRASE: Readonly<Record<ImprovementJob, string>> = {
  * 250 game days — a bit under nine real days of total neglect. Slow
  * enough to be a slope; fast enough that a derelict farm exists.
  */
+/**
+ * Progress at which a job counts as done (see `Improvable.isComplete`).
+ * Clearing at its reversion rate falls below it after about twelve game
+ * days of nobody keeping the ground — a light going-over again.
+ */
+export const IMPROVEMENT_DONE_AT = 0.95;
+
 const REVERT_PER_GAME_DAY: Readonly<Record<ImprovementJob, number>> = {
   clearing: 0.004,
   draining: 0.0012,
@@ -186,6 +193,15 @@ export interface Improvable {
   bankWork(job: ImprovementJob, amount: number, cost: ImprovementCost): number;
   /** Progress on one job, `[0, 1]`, reconciled. */
   progressOn(job: ImprovementJob, cost: ImprovementCost): number;
+  /**
+   * ⭐ Whether a job is DONE — progress at or above
+   * {@link IMPROVEMENT_DONE_AT}, not exactly 1. Reversion is a fraction of
+   * the work per game day, so finished work reads 0.9999 a few game
+   * minutes later: "cleared" read as `>= 1` was true for an instant and
+   * then never again, and every refusal that asked it (`plough`, `grub`,
+   * `ditch`, `lime`) let the job be finished over and over (cover build).
+   */
+  isComplete(job: ImprovementJob, cost: ImprovementCost): boolean;
   /** Which jobs this ground still owes work on, worst first. */
   owing(cost: ImprovementCost): ImprovementJob[];
   /** The overall band — the coarse read (D86). */
@@ -328,7 +344,7 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     }
 
     public owing(cost: ImprovementCost): ImprovementJob[] {
-      return IMPROVEMENT_JOBS.filter((j) => this.progressOn(j, cost) < 1).sort(
+      return IMPROVEMENT_JOBS.filter((j) => !this.isComplete(j, cost)).sort(
         (a, b) => this.progressOn(a, cost) - this.progressOn(b, cost),
       );
     }
@@ -355,7 +371,11 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     }
 
     public isPlantable(cost: ImprovementCost): boolean {
-      return this.progressOn('clearing', cost) >= 1;
+      return this.isComplete('clearing', cost);
+    }
+
+    public isComplete(job: ImprovementJob, cost: ImprovementCost): boolean {
+      return this.progressOn(job, cost) >= IMPROVEMENT_DONE_AT;
     }
 
     // ───────────────────── the host hooks (defaults) ─────────────────────

@@ -48,7 +48,7 @@ export default class LimeController extends GroundWorkController {
       return;
     }
     const { ground, bill } = reading;
-    if (ground.progressOn('liming', bill) >= 1) {
+    if (ground.isComplete('liming', bill)) {
       this.decline(
         context,
         bill.liming <= 0

@@ -40,7 +40,7 @@ export default class GrubController extends GroundWorkController {
       return;
     }
     const { ground, bill } = reading;
-    if (ground.progressOn('clearing', bill) >= 1) {
+    if (ground.isComplete('clearing', bill)) {
       this.decline(
         context,
         Mml.compose`There is nothing left on this ground to grub out.`,

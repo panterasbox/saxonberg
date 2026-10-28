@@ -44,7 +44,7 @@ export default class DitchController extends GroundWorkController {
       return;
     }
     const { ground, bill } = reading;
-    if (ground.progressOn('draining', bill) >= 1) {
+    if (ground.isComplete('draining', bill)) {
       this.decline(
         context,
         bill.draining <= 0

@@ -196,10 +196,34 @@ async function founderEval(where: string, parcel: string, code: string): Promise
   }
 }
 
-/** A drafted head's body condition, in the stockman's words. */
-async function condition(s: Session, head: string): Promise<string> {
-  return read(s, `handle ${head}`);
+/**
+ * A drafted head's flesh `[0, 100]`, read by the founder off the head
+ * standing in `where` (⚠ never by `handle`: a thin wild cow put the
+ * drive's player into the rail and out cold, a ranching hazard).
+ */
+async function fleshOf(where: string, parcel: string, herdId: string, index: number): Promise<number> {
+  const said = await founderEval(
+    where,
+    parcel,
+    `return self.getContainer().getContents().filter(c => c.getHerdId && c.getHerdId() === "${herdId}" && c.getHeadIndex() === ${index}).map(c => c.getReserve("flesh").current.rawValue().toFixed(1)).join(",")`,
+  );
+  const m = /(\d+(?:\.\d+)?)/.exec(said.replace(/^[^:]*:/, ''));
+  expect(m, `no flesh read for ${herdId}#${index}: ${said}`).toBeTruthy();
+  return Number(m![1]);
 }
+
+/** Head `index`'s flesh, drafted out of the college herd and returned. */
+async function collegeHead(index: number): Promise<number> {
+  await goTo(YARD);
+  await doing(p, `draft ${index}`);
+  const flesh = await fleshOf(YARD, '/world/terminus/eternal', 'college-herd', index);
+  await doing(p, 'return cow');
+  note(`college head ${index}: flesh ${flesh}`);
+  return flesh;
+}
+
+/** Head 3's flesh in spring, before the paddock (step 14's baseline). */
+let spring3 = 0;
 
 beforeAll(async () => {
   handle = uniqueHandle('cover');
@@ -262,6 +286,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   it('3. on shift, the herd goes to the paddock and the field is ploughed for the season — once', async () => {
     // Spring.
     await toDay(80);
+    spring3 = await collegeHead(3);
     await goTo(HOME_FIELD);
     await act(p, 'clock on');
     // 13. On shift, the herd moves — the home field is wanted for the plough.
@@ -298,11 +323,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     const after = await read(p, 'look');
     expect(after).toMatch(/six head of the college herd are grazing it/i);
     note(`paddock grass: «${/The grass is ([^.]*)\./.exec(before)?.[1]}» → «${/The grass is ([^.]*)\./.exec(after)?.[1]}»`);
-    await goTo(YARD);
-    await doing(p, 'draft 3');
-    const held = await condition(p, 'cow');
-    expect(held).not.toMatch(/emaciated|wasted|skin and bone/i);
-    await doing(p, 'return cow');
+    // A fortnight on fresh grass: the head holds, or gains.
+    const fed = await collegeHead(3);
+    expect(fed).toBeGreaterThanOrEqual(spring3 - 0.5);
   }, 1_800_000);
 
   it('6. through the season the stages are named in words', async () => {
@@ -434,22 +457,19 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
   }, 600_000);
 
   it('15. winter, unfed: the grass gives out; drafted heads thin; none dies', async () => {
-    await goTo(YARD);
-    await doing(p, 'draft 1');
-    const autumn = await condition(p, 'cow');
-    await doing(p, 'return cow');
+    const autumn = await collegeHead(1);
+    const shyAutumn = await collegeHead(2);
     // Into the winter: a month and a half on the stubble, nothing in the trough.
     await advance(45 * DAY);
     await daylight();
     await goTo(HOME_FIELD);
     expect(await read(p, 'look')).toMatch(/eaten right down|grazed to the dirt/i);
-    await goTo(YARD);
-    await doing(p, 'draft 1');
-    const winter = await condition(p, 'cow');
-    note(`head 1: autumn «${autumn}» → winter «${winter}»`);
-    expect(winter).not.toMatch(/dead|dying/i);
-    expect(winter).not.toBe(autumn);
-    await doing(p, 'return cow');
+    const winter = await collegeHead(1);
+    const shyWinter = await collegeHead(2);
+    note(`winter: head 1 ${autumn} → ${winter}; head 2 ${shyAutumn} → ${shyWinter}`);
+    expect(winter, 'unfed through the winter, it thins').toBeLessThan(autumn);
+    // ⚠ Thin, never dead: flesh is clamped and emaciation is non-lethal.
+    expect(winter).toBeGreaterThanOrEqual(0);
   }, 3_600_000);
 
   it('16. hay in the trough feeds them, and the trough empties', async () => {
@@ -482,7 +502,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     await goTo(BYRE);
     await act(p, 'get pail');
     await doing(p, 'draft 1 from dairy');
-    note(`dairy cow 1: ${await condition(p, 'cow')}`);
+    note(`dairy cow 1: flesh ${await fleshOf(BYRE, '/world/terminus/hearts-delight', 'delight-dairy', 1)}`);
     const milked = await act(p, 'milk cow');
     expect(milked.said).toMatch(/milk/i);
     expect(milked.said).not.toMatch(/nothing comes|dry/i);

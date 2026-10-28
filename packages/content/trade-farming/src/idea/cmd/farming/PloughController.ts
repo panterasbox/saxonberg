@@ -120,7 +120,7 @@ export default class PloughController extends FieldWorkController {
       );
       return;
     }
-    const clearing = field.progressOn('clearing', bill) < 1;
+    const clearing = !field.isComplete('clearing', bill);
     if (!clearing && field.isSeedbedFresh()) {
       this.decline(
         context,

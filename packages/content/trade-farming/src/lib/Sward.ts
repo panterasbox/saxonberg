@@ -158,7 +158,7 @@ export interface Sward {
    */
   drawSward(kg: number): number;
   /** Install the sward reserve for this ground's area. Idempotent. */
-  installSward(): void;
+  installSward(startFraction?: number): void;
 
   // ---------- the hooks a host answers ----------
 
@@ -268,7 +268,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return this.swardAreaM2() * SWARD_CEILING_KG_PER_M2;
     }
 
-    public installSward(): void {
+    public installSward(startFraction: number = SWARD_RESIDUAL_FRACTION): void {
       const host = this as unknown as Stuff & Reserved;
       if (host.hasReserve(SWARD_RESERVE_KEY)) return;
       const ceiling = this.swardCeilingKg();
@@ -281,7 +281,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
           // just come out of the rough carries the grass that was already
           // on it, and the player's first decision is whether to graze it
           // or let it get ahead.
-          Quantity.of(ceiling * SWARD_RESIDUAL_FRACTION, 'kg'),
+          Quantity.of(ceiling * clamp01(startFraction), 'kg'),
           'cultivation',
           null,
         ),

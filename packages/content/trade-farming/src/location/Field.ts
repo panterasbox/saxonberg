@@ -88,7 +88,7 @@ import {
   type ImprovementCost,
   type ImprovementJob,
 } from '@saxonberg/server/mud/lib/ground/Improvable';
-import { SwardMixin } from '../lib/Sward';
+import { SwardMixin, SWARD_RESIDUAL_FRACTION } from '../lib/Sward';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -217,6 +217,9 @@ export interface GrazerEntry {
  * ploughing again.
  */
 const SEEDBED_DAYS = 90;
+
+/** The share of its ceiling an authored field's grass starts at. */
+const AUTHORED_SWARD_START = 0.8;
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -537,7 +540,8 @@ export default class Field extends FieldBase {
    */
   public override progressOn(job: ImprovementJob, cost: ImprovementCost): number {
     const done = super.progressOn(job, cost);
-    return job === 'clearing' && this.getCrop() ? Math.min(done, 0.99) : done;
+    // Below the done mark, so `grub` (which refuses complete ground) takes it.
+    return job === 'clearing' && this.getCrop() ? Math.min(done, 0.9) : done;
   }
 
   /**
@@ -1218,7 +1222,10 @@ export default class Field extends FieldBase {
    * Install the sward alongside the soil reserves — one call, because a
    * field with soil and no grass on it is not a state the world has.
    */
-  public installFieldReserves(sample: GroundSample): void {
+  public installFieldReserves(
+    sample: GroundSample,
+    swardStart: number = SWARD_RESIDUAL_FRACTION,
+  ): void {
     // ⚠⚠ **A field with no area is not yet a field.** Registration runs
     // BEFORE `plot` has sized a minted one, so installing here would
     // seed a zero-capacity moisture reserve — and because both installs
@@ -1228,7 +1235,7 @@ export default class Field extends FieldBase {
     // of thing an authored-content path breaks silently.
     if (this.areaM2 <= 0) return;
     this.installSoilReserves(sample);
-    this.installSward();
+    this.installSward(swardStart);
     // Learn where — and when — it is, the moment it exists.
     void this.restampSeason();
   }
@@ -1258,7 +1265,10 @@ export default class Field extends FieldBase {
     // sized off procedural sand while `look` and `analyze soil` reported
     // authored loam would be visibly two different fields to one player.
     const model = await GroundCharacter.forZone(this.getZone());
-    this.installFieldReserves(this.groundSample(model, seed));
+    // ⭐ An AUTHORED field is a kept pasture, not rough ground just broken
+    // (cover build): its grass starts as a good even cover. A plotted
+    // field starts at the residual — the sod it was cut out of.
+    this.installFieldReserves(this.groundSample(model, seed), AUTHORED_SWARD_START);
     void this.restampSeason();
   }
 
