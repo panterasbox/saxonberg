@@ -3423,3 +3423,24 @@ Fixed this round:
   - 23 empties the kiln of mugs before looking for the novice's;
   - 25 drops a quoted look MQL cannot parse (an apostrophe inside
     quotes).
+
+**Run 40** (D 22/23 · ⭐ A 20/20 · ⭐ B 6/6 · C 16/21). A and B are green for
+the first time: the statute brick reads true, and the crucible wears and
+cracks across the melts.
+- **⭐ D 32, found at last:** a live probe put the denied call at
+  `ContainmentLogic.placement`. The salt pan stands ON the hearth, and
+  every placed body's reconcile reads the placement catalogue to find its
+  air. The catalogue and its `Placement` rows are closed shared
+  vocabulary, now `commons`; the ceiling rises 25 → 27 with that caller
+  audit (2c9a0c234). The Bulkable guards stay for genuine out-of-reach
+  seepers.
+- **⭐ The filter's crock stayed empty:** the face exchange's clock opened
+  on the vessel's FIRST READ, so a filter nobody looked at had passed
+  nothing. The clock now starts when the interior fills (a113c2166).
+- **C:**
+  - 21's handed jar cracked over the six hours. It runs in the warm
+    season now, and records the jar right after the fill.
+  - 23 drops the THIN bowl on stone; a sound but thick one held, and 23b's
+    grind and 20a's grogged pot fell with it.
+- **Polish:** a thing standing in a bare vessel reads "There is a water
+  filter in it.", not "It is with a water filter."
