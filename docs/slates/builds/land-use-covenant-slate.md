@@ -22,6 +22,13 @@
 > extent, as a term of its provisioning rather than a per-run decision.
 > See § below and [content-generation-slate](./content-generation-slate.md).
 
+> ⭐⭐ **2026-10-28 — magic is a SECOND covenant term, not the top of the
+> ladder** ([emergency-services-slate](./emergency-services-slate.md) § 5,
+> the owner). Magic and future tech share *function*, not *permission*: a
+> medieval parcel may allow magic. The magic term filters by verb and noun —
+> the soft, voted twin of `suppressesMagic` — and every object carries two
+> stamps, the epoch it was built in and whether it is magical; both must pass.
+
 **Captured 2026-09-17**, out of the forestry design conversation, from
 the user's framing:
 
