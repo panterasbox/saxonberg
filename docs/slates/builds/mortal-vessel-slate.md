@@ -203,6 +203,28 @@ Ruled 2026-07-31, so the content build inherits it rather than re-deriving it:
   routine paid service, death is a toll booth. The stakes live in what is on
   the corpse and what you owe when you walk out.
 
+## ⛔⛔ The vessel is not clean — death must not heal **[DECIDED — the owner, 2026-10-28; the mechanism OPEN]**
+
+Today `reembody` returns a clean body — vitals and wounds reset — so death is the cheapest cure in the
+game. The owner:
+
+*"If death heals you, that is absolutely not how it's supposed to work, and we should update our
+docs as such. It's supposed to be completely variable, with a whole economy around how effective
+re-embodying is. … Maybe the body is fucked up in some way, or maybe it's just reflective of the
+state you died in, but the point is death is not cheap. One way to actually do it diegetically is to
+have players grow clones of themselves through some kind of future/magic epoch capability, and those
+clones themselves are imperfect or may require upkeep. Plus they're only physical, so anything about
+your identity and not your body remains after the clone is minted and applied. … I don't really know
+how to price death in our system. It's not like we can just take away your exp and call it a day,
+but death should absolutely feel like 'losing'. … Even if we did the whole afterlife-based content,
+you'd probably as a content author also want to create a way to 'cross over' without getting
+fatally injured."*
+
+- **Decided:** death does not heal; how good the returned body is varies, and an economy prices it;
+  identity survives untouched; death feels like losing.
+- **Open:** the floor vessel, the vendors' vessels, the price of each — discussed in the
+  [emergency-services](./emergency-services-slate.md) conversation of 2026-10-28.
+
 ## Absorbed from mortality-slate — The recuperation model — resolved
 
 **Resolved, not left open.** What diminishment *should be* was undesigned
