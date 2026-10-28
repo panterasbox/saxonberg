@@ -846,6 +846,8 @@ suite('⭐ 23 — breakage and mending', () => {
     // The THIN one goes on the stone — a thick wall stands the drop (run 40
     // dropped a sound but not thin bowl, and it held).
     const thin = (r: Row): boolean => /wall thin/i.test(String(r.longDescription ?? ''));
+    // eslint-disable-next-line no-console -- the drive's own record: which bowls, and what each reads
+    console.log(`  [drive] bowls: ${JSON.stringify(allBowls.map((r) => [r.stuffId, String(r.longDescription ?? '').replace(/\s+/g, ' ').slice(0, 220)]))}`);
     const bowls = [
       ...allBowls.filter((r) => sound(r) && thin(r)),
       ...allBowls.filter((r) => thin(r) && !sound(r)),
