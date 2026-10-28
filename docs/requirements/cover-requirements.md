@@ -1,6 +1,7 @@
 # Arable and grazing (the cover build) — requirements
 
 **Kind:** feature
+**Revised at planning (2026-10-28, owner-accepted):** R1 no written theft record (title is the record) · R2 the rick carries the unwatched month · R3 `move` at the herdbook or beside a drafted head · R4 the Hearts Delight pastures, the campus field and the goat pen resized/added.
 **Leads from:** content. The first consumers are named: Waponi Woo's cane pieces (whose loose cane dies a season into a world today), Hearts Delight's farm (its wheat field, its flock and its dairy) and the campus farm (its ley and its herd). The kernel change is narrow: a field can hold a crop the way a bed does.
 
 The game has fields, soil, a sward and herds, and no farming. No crop grows in a field; nothing grazes the grass; nothing eats the hay a scythe cuts. This build makes the two halves of agriculture work on the ground that already exists: **Stage A, arable** (a field holds one crop, sown and harvested by area, rotated through the grass that grows back) and **Stage B, grazing** (a herd stands on a field and eats it; hay carries it through the winter; its condition follows what it ate). Seeded by [cover-slate](../slates/builds/cover-slate.md) §§ 8–10 (the design, settled with the owner 2026-10-28) and [ranching-slate](../slates/builds/ranching-slate.md) (the feed loop).
@@ -46,7 +47,7 @@ The game has fields, soil, a sward and herds, and no farming. No crop grows in a
 - **Harvesting takes an area per act, at a rate the tool sets** (a sickle, a cane knife), and yields in proportion to the area cut; a field is real days of work.
 - A harvest exports the field's nitrogen; a once-cropped field goes to stubble, and the grass grows back over it as fallow; ploughing turns that grass under and feeds the next crop.
 - Cane regrows from its stools after each cut (a ratoon) and yields a little less each cycle, so tired cane is worth grubbing out and replanting from cut cane.
-- The crop belongs to whoever holds the field: a hired hand's harvest is the holder's; another's standing crop can be taken, and the taking is recorded as theft.
+- The crop belongs to whoever holds the field: a hired hand's harvest is the holder's; another's standing crop can be taken, and the sheaf stays the holder's: its title shows whose it is (the game writes no theft record; the chain of title is the record, and judging a taking is the courts' to rule).
 - **The island's cane lives:** the estate's cane pieces and the smallholdings keep yielding season after season.
 - `look` reads a crop in words ("a third of the piece still standing", "the ears filling"), never as numbers.
 
@@ -55,7 +56,7 @@ The game has fields, soil, a sward and herds, and no farming. No crop grows in a
 - A herd eats what its animals need for their size; the grass shows it (the shipped "grazed-out / short / ready / ahead of them" bands); its condition follows what it got, and the thin ones are the shy feeders.
 - In winter, or on a bare field, the herd eats hay from a trough on the field or in its byre; with neither, it thins and its production (milk) stops, but it does not die.
 - A herd moved onto a harvested field eats the stubble.
-- **Every authored herd is fed honestly:** pastures sized to their herds, and at Hearts Delight and Rejection the venue's staff mow hay in summer and fill the trough in winter, so the dairy keeps giving milk with nobody watching. The campus herd is the player's to keep, which is what the teaching farm is for.
+- **Every authored herd is fed honestly:** pastures sized to their herds, and at Hearts Delight and Rejection the venue's staff mow hay in summer and keep a **hay rick** stacked; the venue's trough is kept from the rick, so the dairy keeps giving milk with nobody watching (no one works during a clock jump; the rick is what carries the month). The campus herd is the player's to keep, which is what the teaching farm is for.
 
 ## Non-goals
 
@@ -89,15 +90,17 @@ The game has fields, soil, a sward and herds, and no farming. No crop grows in a
 - **Hearts Delight:**
   - The upper bench's three loose wheat plants become the field's wheat crop.
   - The flock moves off the wheat onto the orchard close (sheep under the cherries).
-  - The dairy cows get a pasture sized to six cows, with hay for the winter.
+  - The dairy cows get a new 12,000 m² pasture, and a new 6,000 m² lower meadow is mown for hay; a hay rick and a trough stand by the dairy.
+  - The orchard close grows from 1,200 to 3,600 m² to carry the flock (its title row changes; a fresh world).
+  - The hens graze with the flock (there is no grain line for them).
   - Odell, the dairywoman and the dairy lad take on the mowing and the foddering.
   - The barn's eight wheat props are the farm's harvest.
 - **The campus farm:**
-  - The home field is resized to carry its six cattle on grass in the growing season.
+  - The home field grows from 400 to 10,000 m² to carry its six cattle on grass in the growing season.
   - Its yard's "hay barn" and "water trough" props become a hay store and a real trough.
   - Its scythe, plough and spade stay props.
   - The farmstead drive's "`mow` refuses on day one" and "`plough` succeeds" both change meaning (plough now readies a seedbed each season), and the drive moves with them.
-- **Rejection's goat pen:** a trough and a hay supply for three nannies.
+- **Rejection's goat pen** becomes a small field: a trough kept from a hay rick for three nannies.
 - **The general store:**
   - New stock: seed wheat, seed barley, a sickle, a cane knife and the scythe. It already sells the trough.
   - The plough stays a carpentry make.
@@ -129,12 +132,12 @@ Cane yields a little less each cycle, so replanting is a decision.
 
 ### Whose crop
 
-The field's holder's. Sowing another's titled field is refused; harvesting another's standing crop is permitted and recorded as theft.
+The field's holder's. Sowing another's titled field is refused; harvesting another's standing crop is permitted, and the sheaf stays the holder's by title.
 
 ### `move <herd> to <field>`
 
 - **Who:** issued by the herd's keeper, meaning its holder or the holder's staff on shift.
-- **Where:** at its herdbook or on the field where it stands.
+- **Where:** at its herdbook, or beside one of its drafted animals.
 - **Which fields:** only the holder's own fields within the herd's home holding; anything else is refused in words.
 - **How long:** the herd is there on arrival; the walk is not timed.
 
@@ -169,7 +172,7 @@ No new act.
 3. **Immersion and participation.**
    - *Immersion:* the field and the herd are read in words, and an unfed dairy visibly stops giving milk.
    - *Participation:* the estate and the farm have reaper-, mower- and fodderer-shaped holes. The campus herd is a player's to keep alive or let thin.
-4. **Values.** The hard call was an unfed herd, settled by the owner: fed honestly by its staff, and thinning (never dying) when nobody does it. Theft of a standing crop is permitted and recorded, never prevented.
+4. **Values.** The hard call was an unfed herd, settled by the owner: fed honestly by its staff, and thinning (never dying) when nobody does it. Taking a standing crop is permitted and never prevented; the sheaf keeps its holder's title, and ruling on the taking is left to the courts.
 5. **Continuity.** Sickle to scythe to reaper, broadcast to drill: the same verbs with a bigger area per act. A tractor answers `plough`.
 6. **Economy.**
    - *Produces:* wheat, barley, cane at season scale, hay, condition and milk.
@@ -192,20 +195,20 @@ Run on a fresh world. "A day" is a game day; clock jumps are the drive's.
 6. **Jump through the season.** `look` names the stages: emerging, tillering, in ear, ripening, ripe. `analyze ground` (the soil kit) before sowing, and again after the harvest, shows the nitrogen down.
 7. **Harvest:** `harvest wheat` with the sickle cuts a swath and gives sheaves. Their grade is the crop's worst stretch. The field reads part-cut, and after enough acts "cut down to the stubble". Bare-handed, `harvest` cuts a smaller swath.
 8. **Stubble to fallow:** jump a season. The field reads grass coming back over the stubble; `mow` would find nothing worth a scythe yet.
-9. **Whose crop:** at Hearts Delight's ripe upper bench, `harvest wheat`. The sheaf is the farm's, and the taking is on the record as theft. `sow` on that field is refused (not yours to sow).
+9. **Whose crop:** at Hearts Delight's ripe upper bench, `harvest wheat`. The sheaf is the farm's: examined, its title names the farm, not the player. `sow` on that field is refused (not yours to sow).
 10. At **Waponi Woo's upper cane piece**, `look`: an established cane crop, ratooning. Watch the cutters: they cut the piece by area and carry the bundles to the mill.
 11. **The cane lives:** jump 120 days (past where the loose cane used to die). The cane piece has regrown and the cutters are cutting again; the estate still shelves blocks.
 12. **Ratoon decline:** after several ratoons `look` reads tired stools and a thinner stand. `grub` it out, `plough`, then `sow cane` with cut cane bundles: a new planting.
 
 **Stage B: grazing**
 
-13. At the **campus yard**, read the herdbook: the college herd is on the home field. `move college herd to <field>` from the yard (or the field), on shift. The field reads six cattle grazing it. Off shift, or as a stranger, `move` is refused.
+13. At the **campus yard**, read the herdbook: the college herd is on the home field. `move college herd to <field>` at the herdbook, on shift. The field reads six cattle grazing it. Off shift, or as a stranger, `move` is refused.
 14. **Grazing:** jump two weeks of summer. The grass band falls ("short"); `draft` a head and `handle` it: condition holding.
 15. **Winter, unfed:** jump into winter with no hay. The grass stops ("grazed-out"); drafted heads read thinner, and the shy feeder (the seeded thin one) thinner still. None dies.
 16. **Hay:** in summer, `mow` the meadow for hay; in winter, `put hay in trough` on the field. Jump two weeks: the herd's condition holds and the trough empties.
 17. **Stubble:** after the campus wheat is cut, `move college herd to` the stubble field. They eat it down.
-18. **Hearts Delight, unattended:** jump a winter month with nobody playing. The dairy's trough has had hay put in it by the staff; `draft` a cow and `milk` it: milk comes. The flock is grazing the orchard close under the cherries.
-19. **Rejection's goats:** the goat pen has a trough with hay in it; a drafted nanny is in fair condition after a winter month.
+18. **Hearts Delight, unattended:** jump a winter month with nobody playing. The dairy's trough has drawn hay from the rick the staff stacked in summer, and the rick is lower; `draft` a cow and `milk` it: milk comes. The flock is grazing the orchard close under the cherries. (While the valley is loaded, the staff are seen mowing, stacking and forking.)
+19. **Rejection's goats:** the goat pen (a small field now) has a trough kept from a rick; a drafted nanny is in fair condition after a winter month.
 
 ## Acceptance criteria
 
@@ -217,14 +220,14 @@ Run on a fresh world. "A day" is a game day; clock jumps are the drive's.
 - The soil reads lower in nitrogen after a crop than before it.
 - A once-cropped field reads as stubble, and grass grows back over it in the following season.
 - A cane field regrows after cutting and keeps yielding past 120 days; its yield falls across ratoons, and replanting from cut cane restores it.
-- Goods harvested by a hired hand, or taken by a stranger, belong to the field's holder; the stranger's taking is on the record as theft.
+- Goods harvested by a hired hand, or taken by a stranger, belong to the field's holder; examined, the stranger's sheaf names the field's holder.
 - `move <herd> to <field>` puts the herd on the field, and the field shows it; the move is refused to anyone who is not the herd's keeper (its holder, or the holder's staff on shift) and for a field outside the herd's home holding.
 - A player hired as a campus farm labourer, on shift, may sow the university's field and move its herd; the same player off shift may not.
 - A grazed field's grass band falls under a herd and recovers when the herd leaves.
 - A herd with no grass and no hay thins and stops producing, but no animal dies of it. One with hay in a trough holds its condition, and the trough empties.
 - In one herd, some heads are thinner than others under the same feed, and the same heads every time.
 - A herd moved onto a harvested field eats the stubble down.
-- With no player present for a winter month, Hearts Delight's dairy still gives milk, and Rejection's goats are not thin.
+- With no player present for a winter month, Hearts Delight's dairy still gives milk, its rick is lower by what the herd ate, and Rejection's goats are not thin.
 - The general store sells a sickle, a cane knife, a scythe, seed wheat and seed barley.
 - Waponi Woo's estate still shelves blocks a season into a world.
 
