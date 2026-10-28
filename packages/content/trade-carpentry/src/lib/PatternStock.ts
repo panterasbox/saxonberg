@@ -32,6 +32,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import Pattern from '../thing/Pattern';
 
 /** The pattern row a carving mints. */
 const PATTERN_ROW = '/trade/carpentry/thing/pattern';
@@ -45,9 +46,7 @@ function metalNamed(word: string): Material | null {
   const w = word.trim().toLowerCase();
   if (w === '') return null;
   for (const m of MaterialApi.findByTag('metal')) {
-    if (m.getName().toLowerCase() === w) return m;
-    const kw = m as unknown as { hasKeyword?(k: string): boolean };
-    if (typeof kw.hasKeyword === 'function' && kw.hasKeyword(w)) return m;
+    if (m.getName().toLowerCase() === w || m.hasKeyword(w)) return m;
   }
   return null;
 }
@@ -121,45 +120,38 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         onComplete: () => {
           void (async () => {
             if (self.isDestroyed() || actor.isDestroyed()) return;
-            let pattern: Stuff;
-            try {
-              pattern = await StuffApi.clone<Stuff>(PATTERN_ROW, undefined, { madeFrom: [self] });
-            } catch (err) {
-              console.warn('PatternStock: cannot mint a pattern:', err);
-              return;
+            // ⚠ The row is this pack's own: a pattern that is not a
+            // `Pattern` is an authoring error, and it is said, not skipped.
+            const pattern = await StuffApi.clone<Stuff>(PATTERN_ROW, undefined, { madeFrom: [self] });
+            if (!(pattern instanceof Pattern)) {
+              throw new TypeError(`PatternStock: '${PATTERN_ROW}' did not mint a Pattern`);
             }
-            const held = pattern as unknown as {
-              setHeldImpression?(d: typeof shape): void;
-              setShortDescription?(s: string): void;
-              getKeywords?(): readonly string[];
-              setKeywords?(k: string[]): void;
-            };
-            held.setHeldImpression?.({
+            pattern.setHeldImpression({
               ...shape,
               volumeL: shape.volumeL * grow,
               allowance,
             });
             const form = shape.formDescription.replace(/^(a|an)\s+/i, '');
-            held.setShortDescription?.(`pattern of ${shape.formDescription}`);
-            const kw = new Set(held.getKeywords?.() ?? []);
+            pattern.setShortDescription(`pattern of ${shape.formDescription}`);
+            const kw = new Set(pattern.getKeywords());
             for (const w of form.split(/\s+/)) if (w) kw.add(w);
-            held.setKeywords?.([...kw]);
-            if (MixinApi.isTangible(pattern) && wood !== null) {
+            pattern.setKeywords([...kw]);
+            if (wood !== null) {
               pattern.setMaterial(wood);
               pattern.setMass(Quantity.of(patternKg, 'kg'));
             }
             const maker = actor.getIdentityPath() ?? '';
-            if (MixinApi.isCrafted(pattern) && maker !== '') pattern.setMaker(maker);
+            if (maker !== '') pattern.setMaker(maker);
             // The stock is spent — one piece of it.
             if (MixinApi.isStackable(self) && self.getQuantity() > 1) {
               self.setQuantity(self.getQuantity() - 1);
             } else {
               await StuffApi.destruct(self);
             }
-            if (MixinApi.isContainable(pattern) && MixinApi.isContainer(actor)) {
+            if (MixinApi.isContainer(actor)) {
               ContainmentApi.move(pattern as Stuff & Containable, actor as Stuff & Container);
             }
-            await PersistableApi.captureHostOf(pattern).catch(() => undefined);
+            await PersistableApi.captureHostOf(pattern);
             if (MixinApi.isAdvancing(actor)) {
               await actor.creditDeed({ discipline: 'carpentry', difficulty: 'standard', outcome: 'success' });
             }
