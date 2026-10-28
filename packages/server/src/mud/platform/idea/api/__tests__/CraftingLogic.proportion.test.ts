@@ -35,7 +35,7 @@ const GIN = "/stuff/idea/material/spirit/gin";
 const VERMOUTH = "/stuff/idea/material/spirit/vermouth";
 const MARTINI_MAT = "/stuff/idea/material/cocktail/martini";
 const MIXED_MAT = "/platform/idea/material/blend";
-const DAVE = "/world/lounge/dave-proportion";
+const DAVE = "/test/lounge/dave-proportion";
 
 class TestMaker extends NamedMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestMakerProportion";

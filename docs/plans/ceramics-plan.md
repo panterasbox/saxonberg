@@ -1678,6 +1678,17 @@ left a fork the lens that chose is named.
   Deferred: the smith's `hammer` also forms a plastic mass but names its
   product through a recipe build — the R1 naming question.
 
+- **B83 — review: one word, one thing for "pattern" (2026-10-28).** A
+  pattern is the founder's shape to cast from (carpentry's `Pattern`, which
+  holds the mould subsystem's `Impression` — the shape-copy idea is already
+  unified there, with the sand flask and the potter's stamp). The green-ware
+  decoration `carve pattern on bowl` became `carve design on bowl`; it had
+  shared verb and noun with `carve pattern of <thing> from <board>`.
+  PatternStock's four duck probes became `instanceof Pattern` and a direct
+  `Material.hasKeyword`, and its two swallowed failures now surface. A
+  dressmaker's pattern (a cut, not a shape) would share only the word —
+  nothing builds one.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
