@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**375 slates.** 131 greenfield · 105 continuations · 67 waves · 72 tails.
+**383 slates.** 139 greenfield · 105 continuations · 67 waves · 72 tails.
 
-## ⭐ Greenfield — nothing shipped yet (131)
+## ⭐ Greenfield — nothing shipped yet (139)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -61,7 +61,7 @@ respect.
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
 | [cannery-and-bottling](./builds/cannery-and-bottling-slate.md) | acidity as a hurdle (the pH 4.6 line) · the seal as anaerobic · the water bath and the pressure retort · the blown can and the leaker … |
 | [card-sizes](./builds/card-sizes-slate.md) | the size axis on a card (glance · feed · focal · full) and a body per size … |
-| [carrying-a-person](./builds/carrying-a-person-slate.md) | all of it — the act, the weight, consent, where the body goes when you are hurt. |
+| [carrying-a-person](./builds/carrying-a-person-slate.md) | `carry` and `set down` · the method derived (piggyback, fireman's carry, drag, seat carry, litter) · the carried person as a coupling · the share of the load per bearer … |
 | [chemical-works](./builds/chemical-works-slate.md) | `trade-chemicals` · sulfuric acid · nitric acid · soda … |
 | [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback, as a second modality on the `cockpit.watch` push) · the source's home (Location field vs in-world device — Q1) + the autoplay gesture + mix · the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) … |
 | [client-parcel](./builds/client-parcel-slate.md) | the sixth axis in the five-axis table · `/client` as a namespace root + a path→directory row · the `ParcelRecord` + title · the client committee's charter (three sentences, § 6) … |
@@ -82,9 +82,11 @@ respect.
 | [decomposition](./builds/decomposition-slate.md) | ⭐ AUTHORED decay states in model-native terms — per part, by mechanism — that behave, read, repair and continue · authored as a STATE or as a HISTORY the physics derives once at creation · per-material susceptibility per mechanism · the exposure clock kept as the rule (an act starts it, shelter stops it — Law 2 intact) and built only where a consumer needs it … |
 | [decor](./builds/decor-slate.md) | ⛔ **not** a decor score — the visitor's CHOICE as the read · the high-grade branch of the shipped material chains (dressed · glazed · dyed … |
 | [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank … |
+| [deep-links](./builds/deep-links-slate.md) | the intent route and its closed set · the confirm card · link-only argument rules (watch targets limited to registered streamers) · arriving signed out (guest, or sign in with Twitch) … |
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content … |
 | [diplomacy](./builds/diplomacy-slate.md) | the embassy as a jurisdiction that cuts the HOST'S SEATS, never its laws (inviolability) · the envoy's immunity and persona non grata as the host's one remedy · the diplomatic bag and the tax exemption · asylum (it falls out) … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes · the treasury lane (⚠ blocked on the fiscal cycle) … |
+| [emergency-services](./builds/emergency-services-slate.md) | one spine, the call for help · response time from density, epoch or magic, and budget · the kit per epoch · the responders and who pays, per density … |
 | [end-of-life](./builds/end-of-life-slate.md) | custody of the body + terminal decay → **remains** · the |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field … |
 | [estate-nesting](./builds/estate-nesting-slate.md) | ⭐⭐ decide what an estate entry should CARRY — a reference, a copy, or a copy under a cap · the 16 MB document ceiling and what happens at it · whether a good's state belongs in the owner's record at all now that `EstateEntry.key` proves it need not · the migration for entries already written |
@@ -94,12 +96,14 @@ respect.
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the derive-on-read fall with NO readable fidelity · the surprising-write narration … |
 | [feedback](./builds/feedback-slate.md) | the one fixed axis (template + engagement) · the solicited experience prompt at engagement termination · a template as a |
 | [festival](./builds/festival-slate.md) | the show (measured and judged classes, the schedule, the judge, the ribbon as a deed) · the showground that buds for the event's window · the festival row and who may declare one · the kit … |
+| [field-medicine](./builds/field-medicine-slate.md) | what medicine is for in this medium · the feeling per settlement · public health against response · the fourteen scenarios … |
 | [flooding](./builds/flooding-slate.md) | the whole conversation, opening with the founder's two questions · ⭐ dam failure, designed 2026-10-20 (below) |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
 | [gems-and-precious-metals](./builds/gems-and-precious-metals-slate.md) | gem optics derived from rows (trace-element color, refractive index, dispersion, hardness, cleavage) · the identification ladder and paste · the lapidary and the abrasive ladder · gold, silver, platinum; cupellation; the touchstone … |
 | [gitlab-and-discord](./builds/gitlab-and-discord-slate.md) | the one pipeline (the game's release first, mirrored out) · Discord channel webhooks · merged against live · the deploy-time "what went live" read … |
 | [gitlab-and-packs](./builds/gitlab-and-packs-slate.md) | the three front doors · the names (pack · mod · DLC) … |
 | [giving](./builds/giving-slate.md) | reading patronage off Twitch, YouTube, Patreon (and later Kick) · converting it to dollars **at net** — what reached the commons — with the platform's cut shown · attribution by claim: a held gift attaches when its giver signs in with or links that account · YouTube channel linking and Patreon linking (the two prerequisites) … |
+| [guarantees-of-play](./builds/guarantees-of-play-slate.md) | passage — a presence banishment never covers the way out · the comms floor — exclusion never touches the aether, a gaol included · play never spent without consent — the sentence menu, the custody limit, only a seat's custody surviving logout · rescue — exclusion never gates aid to the dying … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema (+ the charter validation pass) · the `guild:` GroupProvider + ranks · the three membership tiers + the witnessed rank exam · focus-tagged `TranscriptEntry` + charter-weighted `Competence` … |
 | [gunpowder](./builds/gunpowder-slate.md) | the nitre bed (leached through potash) and the saltpeter man · the powder mill (grind, mix wet, incorporate, corn, glaze, dry) · grain size as burn rate · powder carries its own oxygen … |
 | [horology](./builds/horology-slate.md) | the 12× decisions · the clock/timer split and elapsed time on the instrumentation ladder · drift derived from the mechanism (escapement, grade, temperature, wear, motion) · the reference chain (observatory → regulator → time ball, noon gun, bells) … |
@@ -113,6 +117,7 @@ respect.
 | [intervention](./builds/intervention-slate.md) | the sideless participant · a relation whose object is a |
 | [irrigation](./builds/irrigation-slate.md) | the bed↔conduit join · the irrigator's acts (headgate, ditch, the turn) · the ditch boss and the district · measuring water (the weir, the miner's inch) … |
 | [labor-standing](./builds/labor-standing-slate.md) | ⭐ **`/studio/` in `UNRELEASED_PREFIXES`** (a one-line live gap) · ⭐ **path-grained routing** (which dissolves most of the problem) · the contributor set as a **declared fact** · the role × magnitude vocabularies … |
+| [law-and-order](./builds/law-and-order-slate.md) | the feeling per settlement type · prevention as cadence, response as witness · the eleven scenarios · the four-part module (situation, playbook, policy, duty) … |
 | [live-drive](./builds/live-drive-slate.md) | the sidecar that holds the agent session · the channel bridge (prompts in, replies out) · the agent's own character + how it logs in · the approval posture for a live audience … |
 | [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the salience gate + the active-cast set · the forced-cast command-bus seam (no `force` exists) · the ambient narrator … |
 | [llm-economy](./builds/llm-economy-slate.md) | the appropriation document + its lapse · the share→quota derivation · the three budget lines and their non-fungibility · the declare/review/report/throttle loop … |
@@ -127,11 +132,13 @@ respect.
 | [newbie-wilds](./builds/newbie-wilds-slate.md) | the area zone + room map (threshold · crossroads hub · shared hunting woods · the wolfshead's lair … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) + the authoring surface (Q1) · the subject-scoped derive over chronicle/participation/advancement + the projection map (Q2) + whether participation shares the store (Q5) · the aggregate headline + its weighting (Q4) · milestones → recognition via belief (Q3) … |
+| [off-grid](./builds/off-grid-slate.md) | the phone as the starting carrier, the implant elective · the corrected ladder (the implant is future, the cell phone modern) · what each carrier addresses · coverage as field strength, built by relays and nodes … |
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
 | [organized-religion](./builds/organized-religion-slate.md) | the charter readout (structure derived, the vibe a claim) · the three polities on the Organization substrate · territorial vs gathered · title decides the schism … |
 | [paint](./builds/paint-slate.md) | the coat as the outermost, sacrificial layer · paint derived from a pigment and a binder (lime, linseed, glue, casein, egg, resin) · how each binder sets (carbonation, oxidation, evaporation) · pigments (earths, lampblack, chalk, verdigris, lead white) and the dye/pigment line, the lake … |
 | [paper-and-printing](./builds/paper-and-printing-slate.md) | the printed thing as the **static rung of a display** (never a special class) · the honest dynamics per rung (frozen, unpowered, costly to copy, irrevocable) · paper from rags (beat, form, couch, press, dry, size), the watermark, parchment · iron-gall and printing ink … |
 | [performance](./builds/performance-slate.md) | the stage as a source the room hears (the performer's live stream; audio by default, video by the performer's choice) · the stage presentation (performer foregrounded, NPC chatter silenced, the audience murmuring) · the theater before, around and after · measurement in three layers (happened … |
+| [person-targeting](./builds/person-targeting-slate.md) | `$name` bound to an expression · an identity literal · `[group.…]` and `[contacts.…]` filters · ⭐ group names — committees and studios named by the extent they hold (public or private by who manages it), official groups by bare name, social groups within their creator … |
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · `neutralizedBy` + `rinse [with <substance>]` (the first row of the pharmacopoeia) · extraction as a process · glass vessels … |
 | [place-surfaces](./builds/place-surfaces-slate.md) | placement rows for the **wall** and **ceiling**, derived from rubber's exposure · the room itself as the host of its own surfaces · MQL `via.surface` · `mountsOn` on things … |
 | [plastics](./builds/plastics-slate.md) | the mould as capital and the toolmaker · thermoset and thermoplastic, derived · by-product feedstocks (coal tar and wood spirit, later crude) · Bakelite displacing ebonite as the first consumer … |
@@ -154,6 +161,7 @@ respect.
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
 | [sericulture](./builds/sericulture-slate.md) | all of it: the mulberry, the worm, the rearing, the stifling decision, reeling, throwing, degumming, wild silk, the disease, the venue and its climate. |
 | [ships-and-harbors](./builds/ships-and-harbors-slate.md) | boats in water rooms only, ships alone in the field · boats as minted, Durable, chattel assemblies with capacity and derived draught · the expanse Warren budding sea rooms where ships stop · *a ship is always alongside a room* — exits wired on arrival, unwired on departure, named for her, transient … |
+| [site-conditions](./builds/site-conditions-slate.md) | eyes and ears as parts serving `vision` and `hearing` · the vision profile reading the capacity · the shade's faint perception as fixed-impaired senses · two lungs … |
 | [size](./builds/size-slate.md) | sizes as real measures, derived where they can be · a body's envelope (stature × posture, girth, plus what it carries, worn and mounted) · exits with a clearance and defaults by kind · refusals that say what would work, never auto-posture … |
 | [sleep](./builds/sleep-slate.md) | the wake reconcile (state at logout + time away) across every body clock · rest quality from bed, how kept, what you wore, the room's heat · what a night soils · pyjamas as a consequence, never a chore … |
 | [smoking](./builds/smoking-slate.md) | inhalation as a route · nicotine and THC as substance rows · dependence (tolerance, craving, withdrawal, free recovery) · lungs through `wind` and the silent exposure stock … |
