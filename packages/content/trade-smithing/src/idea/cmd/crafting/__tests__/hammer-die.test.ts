@@ -1,6 +1,6 @@
 /**
  * ⭐ `hammer <blank> on <die>` (ceramics D14): the anvil the binder bound
- * may be a DIE — anything that answers `strikeWith` — and then the die,
+ * may be a DIE — a `StrikingDieMixin` — and then the die,
  * not the forge's build, decides what the blow made. A plain anvil
  * answers nothing and the forging runs as ever (the other suites).
  */
@@ -15,6 +15,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import { StrikingDieMixin } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import {
   TestActor,
@@ -28,9 +29,9 @@ import {
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
 /** A die: an anvil-capable tool that takes a blank's shape from a blow. */
-class TestDie extends Tool {
+class TestDie extends StrikingDieMixin(Tool) {
   public struck: { blank: string; blowJ: number }[] = [];
-  public async strikeWith(blank: Stuff, blowJ: number, _by: Stuff): Promise<ReturnType<typeof Mml.compose>> {
+  public override async strikeWith(blank: Stuff, blowJ: number, _by: Stuff): Promise<Mml> {
     this.struck.push({ blank: blank.stuffId, blowJ });
     return Mml.compose`The die bites the blank.`;
   }

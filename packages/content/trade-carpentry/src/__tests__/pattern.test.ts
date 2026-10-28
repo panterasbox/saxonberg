@@ -76,7 +76,7 @@ describe('carve pattern (ceramics D23)', () => {
     sword.setMass(Quantity.of(1, 'kg'));
     const knife = makeStuff(() => new Tool());
     knife.setCapabilities(['cutting']);
-    const plan = await board.carvePlan({ actor: hands, word: 'pattern', knife, of: sword, forWord: 'bronze' });
+    const plan = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: sword, forWord: 'bronze' });
     expect(plan.ok).toBe(true);
     if (!plan.ok) return;
     plan.onComplete();
@@ -102,11 +102,11 @@ describe('carve pattern (ceramics D23)', () => {
     thing.setMaterial(StuffApi.findByTemplatePath<Material>(OAK)!);
     thing.setMass(Quantity.of(1, 'kg'));
     const hands = makeStuff(() => new TestHands());
-    const noEdge = await board.carvePlan({ actor: hands, word: 'pattern', knife: null, of: thing, forWord: '' });
+    const noEdge = await board.carvePlanFor({ actor: hands, word: 'pattern', knife: null, of: thing, forWord: '' });
     expect(noEdge.ok).toBe(false);
     const knife = makeStuff(() => new Tool());
     knife.setCapabilities(['cutting']);
-    const noMetal = await board.carvePlan({ actor: hands, word: 'pattern', knife, of: thing, forWord: '' });
+    const noMetal = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: thing, forWord: '' });
     expect(noMetal.ok).toBe(false);
     if (!noMetal.ok) expect(noMetal.reason).toBe('no-metal');
   });

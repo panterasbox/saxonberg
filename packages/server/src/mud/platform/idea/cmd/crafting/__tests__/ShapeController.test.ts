@@ -10,26 +10,25 @@ import ShapeController from '../ShapeController';
 import Good from '../../../../../lib/stuff/Good';
 import { Mml } from '../../../../../api/mml';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
+import { ShapeableMixin } from '../../../../../lib/craft/Shapeable';
 import type { ShapeRequest } from '../../../../../lib/craft/Shapeable';
+import { FormingMixin } from '../../../../../lib/craft/Forming';
 import type { CommandContext } from '../../../../../api/command';
 import { TestActor, standUpBranchHarness, makeContext } from './branch-fixtures';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 
-class Pipe extends Good {
+class Pipe extends FormingMixin(Good) {
   public seen: ShapeRequest | null = null;
-  public async shapePlanFor(req: ShapeRequest) {
+  public override async shapePlanFor(req: ShapeRequest) {
     this.seen = req;
     return { ok: true as const, durationMs: 1, effortW: 1, beginSelf: Mml.compose`go`, onComplete: () => {} };
   }
 }
-class Idle extends Good {
-  public async shapePlanFor() {
-    return null;
-  }
-}
-class Lump extends Good {
+/** An instrument with nothing to say — the default plan, `null`. */
+class Idle extends FormingMixin(Good) {}
+class Lump extends ShapeableMixin(Good) {
   public asked = false;
-  public async shapePlan() {
+  public override async shapePlanFor() {
     this.asked = true;
     return { ok: false as const, reason: 'too-dry', line: Mml.compose`too dry` };
   }

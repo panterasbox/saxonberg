@@ -17,7 +17,7 @@ import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { makeStuff, makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import type { DipPlan, DipRefusal } from "@saxonberg/server/mud/lib/craft/DipPlanner";
+import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
 import Melt from "../thing/Melt";
 import Blowpipe from "../thing/Blowpipe";
 import Gather from "../thing/Gather";
@@ -63,31 +63,31 @@ describe("⭐ the melt is a dip bath — a gather", () => {
 
   it("a bare dip finds the empty pipe in hand and plans the gather", async () => {
     const { actor } = blower(true);
-    const plan = (await melt(1300).dipPlanFor(null, { actor, target: null, faces: null, raw: null })) as DipPlan;
+    const plan = (await melt(1300).dipPlanFor({ actor, target: null, faces: null, raw: null })) as ActPlan;
     expect(plan.ok).toBe(true);
     expect(plan.durationMs).toBe(0);
   });
 
   it("a stiff melt refuses the pipe", async () => {
     const { actor, pipe } = blower(true);
-    const out = (await melt(800).dipPlanFor(pipe, { actor, target: pipe, faces: null, raw: "pipe" })) as DipRefusal;
+    const out = (await melt(800).dipPlanFor({ actor, target: pipe, faces: null, raw: "pipe" })) as ActRefusal;
     expect(out.reason).toBe("melt-cold");
   });
 
   it("no empty pipe in hand — or one already carrying a gather — is refused", async () => {
     const { actor } = blower(false);
-    const none = (await melt(1300).dipPlanFor(null, { actor, target: null, faces: null, raw: null })) as DipRefusal;
+    const none = (await melt(1300).dipPlanFor({ actor, target: null, faces: null, raw: null })) as ActRefusal;
     expect(none.reason).toBe("no-pipe");
     const loaded = blower(true);
     ContainmentApi.move(makeStuff(() => new Gather()) as never, loaded.pipe as never);
-    const full = (await melt(1300).dipPlanFor(null, { actor: loaded.actor, target: null, faces: null, raw: null })) as DipRefusal;
+    const full = (await melt(1300).dipPlanFor({ actor: loaded.actor, target: null, faces: null, raw: null })) as ActRefusal;
     expect(full.reason).toBe("no-pipe");
   });
 
   it("something that is not a pipe is not gathered on", async () => {
     const { actor } = blower(true);
     const stick = makeStuff(() => new Good()) as unknown as Stuff;
-    const out = (await melt(1300).dipPlanFor(stick, { actor, target: stick, faces: null, raw: "stick" })) as DipRefusal;
+    const out = (await melt(1300).dipPlanFor({ actor, target: stick, faces: null, raw: "stick" })) as ActRefusal;
     expect(out.reason).toBe("not-a-pipe");
   });
 });

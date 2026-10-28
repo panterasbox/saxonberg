@@ -16,11 +16,9 @@
 import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type {
-  CarvePlan,
-  CarveRefusal,
-  CarveRequest,
-} from '@saxonberg/server/mud/lib/craft/Carvable';
+import { CarvableMixin } from '@saxonberg/server/mud/lib/craft/Carvable';
+import type { CarveRequest } from '@saxonberg/server/mud/lib/craft/Carvable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -52,14 +50,15 @@ function metalNamed(word: string): Material | null {
 }
 
 export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class PatternStockMixin extends Base {
+  // ⭐ Pattern stock is CARVED (`CarvableMixin`) — it plans the carving.
+  return class PatternStockMixin extends CarvableMixin(Base) {
     static _mixinName = 'PatternStockMixin';
 
     /**
      * ⭐ Plan a pattern: the thing's shape, cut a shade oversize for the
      * metal named (or the thing's own metal), from this piece of wood.
      */
-    public async carvePlan(req: CarveRequest): Promise<CarvePlan | CarveRefusal> {
+    public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal> {
       const self = this as unknown as Stuff;
       const of = req.of ?? null;
       if (!/^pattern/.test(req.word.trim().toLowerCase()) || of === null) {

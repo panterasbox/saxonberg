@@ -1,7 +1,7 @@
 /**
  * DipController — `dip [<thing>] [inside|outside] [in <bath>]` (alias
  * `melt`). ⭐ Dumb by construction (ceramics D14): the BATH plans the dip
- * (`DipPlanner.dipPlanFor`) and this controller engages the plan it is
+ * (`DipBathMixin.dipPlanFor`) and this controller engages the plan it is
  * handed. It never names a pot, a candle or a glaze.
  *
  * Promoted from `trade-chandlery` (the `dry` and `knead` precedent): a wick
@@ -25,16 +25,11 @@ import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Bulkable } from '../../../../lib/bulk/Bulkable';
 import type { FaceName } from '../../../../lib/material/Faced';
-import type {
-  DipPlan,
-  DipRefusal,
-  DipRequest,
-} from '../../../../lib/craft/DipPlanner';
+import type { DipRequest } from '../../../../lib/craft/DipBath';
+import type { ActPlan, ActRefusal } from '../../../../lib/craft/ActPlan';
 import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
-const TOPIC = 'act.deed';
 const FACE_WORDS: readonly FaceName[] = ['inside', 'outside'];
 
 interface DipModel extends CommandModel {
@@ -43,8 +38,6 @@ interface DipModel extends CommandModel {
   bath?: MqlManyResult;
   side?: string;
 }
-
-
 
 export default class DipController extends ManualBuildController<DipModel> {
   async execute(model: DipModel, context: CommandContext): Promise<void> {
@@ -83,10 +76,10 @@ export default class DipController extends ManualBuildController<DipModel> {
       raw: model.target?.raw ?? null,
     };
 
-    let answer: DipPlan | DipRefusal | null = null;
+    let answer: ActPlan | ActRefusal | null = null;
     for (const bath of baths) {
       if (!MixinApi.isDipBath(bath)) continue;
-      answer = await bath.dipPlanFor(target, req);
+      answer = await bath.dipPlanFor(req);
       if (answer !== null) break;
     }
     if (answer === null) answer = this.noBathAnswered(target, baths);
@@ -95,29 +88,9 @@ export default class DipController extends ManualBuildController<DipModel> {
       this.declineStep(context, answer.line, answer.reason);
       return;
     }
-    const plan = answer;
-    // ⚠ A zero-length plan runs NOW, inside the command frame: a bath whose
-    // act is a craft resolved from the actor's reach (the chandler's
-    // candle) needs the acting author the engaged completion would lose.
-    if (plan.durationMs <= 0) {
-      const out = await plan.onComplete();
-      if (out && !out.ok) this.declineStep(context, out.line, out.reason);
-      return;
-    }
-    this.engageStep(context, {
-      durationMs: plan.durationMs,
-      effortW: plan.effortW,
-      beginSelf: plan.beginSelf,
-      beginPeers: plan.beginPeers,
-      onComplete: () => {
-        void Promise.resolve(plan.onComplete()).then((out) => {
-          if (out && !out.ok && !giver.isDestroyed()) {
-            MessageApi.scene(giver).topic(TOPIC).toSelf(out.line).send();
-          }
-        });
-      },
-      onAbort: plan.onAbort,
-    });
+    // ⚠ A zero-length plan runs NOW, inside the command frame (the
+    // chandler's candle) — `engagePlan` keeps that rule for every act.
+    await this.engagePlan(context, answer);
   }
 
   /**
@@ -125,7 +98,7 @@ export default class DipController extends ManualBuildController<DipModel> {
    * ⚠ Words only — every bath plans its own dip (a chandler's pot its
    * candle, a glaze tub its coat: `CompoundingMixin`); this decides nothing.
    */
-  private noBathAnswered(target: Stuff | null, baths: readonly Stuff[]): DipRefusal {
+  private noBathAnswered(target: Stuff | null, baths: readonly Stuff[]): ActRefusal {
     if (target === null) {
       return {
         ok: false,

@@ -4,7 +4,7 @@
  * ⭐⭐ **Promoted to the platform (ceramics D14), and dumb.** `carve` is one
  * act — cutting away to a form with an edge — and two things can be carved:
  *
- *  1. a TARGET that plans its own carving (`Carvable.carvePlan`): a
+ *  1. a TARGET that plans its own carving (`CarvableMixin.carvePlanFor`): a
  *     leather-hard pot turns a foot, trims, takes a pattern
  *     (`GreenwareMixin`), and says itself when it is too soft or too dry;
  *  2. otherwise the generic CARVING-RECIPE path below — carpentry's whole
@@ -47,8 +47,6 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Carvable } from '../../../../lib/craft/Carvable';
 
 const TOPIC = 'act.deed';
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
@@ -92,7 +90,17 @@ export default class CarveController extends ManualBuildController<CarveModel> {
         return;
       }
       const stock = model.stock?.stuff ?? model.target?.stuff ?? null;
-      if (stock === null || !isCarvable(stock)) {
+      const plan =
+        stock !== null && MixinApi.isCarvable(stock)
+          ? await stock.carvePlanFor({
+              actor: giver,
+              word,
+              knife: model.knife?.stuff ?? null,
+              of,
+              forWord: (model.for?.raw ?? '').trim().toLowerCase(),
+            })
+          : null;
+      if (plan === null) {
         this.turnDown(
           context,
           'no-stock',
@@ -100,25 +108,11 @@ export default class CarveController extends ManualBuildController<CarveModel> {
         );
         return;
       }
-      const plan = await stock.carvePlan({
-        actor: giver,
-        word,
-        knife: model.knife?.stuff ?? null,
-        of,
-        forWord: (model.for?.raw ?? '').trim().toLowerCase(),
-      });
       if (!plan.ok) {
         this.turnDown(context, plan.reason, plan.line);
         return;
       }
-      this.engageStep(context, {
-        durationMs: plan.durationMs,
-        effortW: plan.effortW,
-        beginSelf: plan.beginSelf,
-        beginPeers: plan.beginPeers,
-        onComplete: plan.onComplete,
-        onAbort: plan.onAbort,
-      });
+      await this.engagePlan(context, plan);
       return;
     }
 
@@ -133,23 +127,18 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       return;
     }
     if (target !== null) {
-      if (!isCarvable(target)) {
+      const plan = MixinApi.isCarvable(target)
+        ? await target.carvePlanFor({ actor: giver, word, knife: model.knife?.stuff ?? null })
+        : null;
+      if (plan === null) {
         this.turnDown(context, 'not-carvable', Mml.compose`There is nothing to carve on ${Mml.thing(target)}.`);
         return;
       }
-      const plan = await target.carvePlan({ actor: giver, word, knife: model.knife?.stuff ?? null });
       if (!plan.ok) {
         this.turnDown(context, plan.reason, plan.line);
         return;
       }
-      this.engageStep(context, {
-        durationMs: plan.durationMs,
-        effortW: plan.effortW,
-        beginSelf: plan.beginSelf,
-        beginPeers: plan.beginPeers,
-        onComplete: plan.onComplete,
-        onAbort: plan.onAbort,
-      });
+      await this.engagePlan(context, plan);
       return;
     }
 
@@ -241,11 +230,6 @@ export default class CarveController extends ManualBuildController<CarveModel> {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(text).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
-
-/** Does this thing plan its own carving? Duck-probed — a protocol, not a mixin. */
-function isCarvable(s: Stuff): s is Stuff & Carvable {
-  return typeof (s as unknown as Partial<Carvable>).carvePlan === 'function';
 }
 
 /**

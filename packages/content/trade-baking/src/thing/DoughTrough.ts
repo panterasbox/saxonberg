@@ -32,12 +32,9 @@ import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type {
-  KneadPlan,
-  KneadPlanner,
-  KneadRefusal,
-  KneadRequest,
-} from '@saxonberg/server/mud/lib/craft/Kneadable';
+import { KneadVesselMixin } from '@saxonberg/server/mud/lib/craft/KneadVessel';
+import type { KneadRequest } from '@saxonberg/server/mud/lib/craft/KneadVessel';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
@@ -52,12 +49,13 @@ const KNEAD_MS = 10 * 60 * 1000;
  */
 const BAKING = [
   'platform/cmd/crafting/pour.yaml',
-  // ⭐ The platform's `knead` (ceramics D14): the trough plans it.
-  'platform/cmd/crafting/knead.yaml',
   'trade/baking/cmd/baking/bake.yaml',
 ];
 
-export default class DoughTrough extends ManualBuildMixin(Vat) implements KneadPlanner {
+// ⭐ The platform's `knead` (ceramics D14): the trough is a knead VESSEL
+// (`KneadVesselMixin`) — it plans the knead, and affords the verb by what
+// it is.
+export default class DoughTrough extends KneadVesselMixin(ManualBuildMixin(Vat)) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: BAKING,
@@ -80,7 +78,7 @@ export default class DoughTrough extends ManualBuildMixin(Vat) implements KneadP
    * weakest-link, and carries the flour's parts into the dough's payload.
    * What happens next (the proof) is the cloth's business, not the verb's.
    */
-  public async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
+  public override async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
     if (this.isBuildEmpty()) {
       return {
         ok: false,

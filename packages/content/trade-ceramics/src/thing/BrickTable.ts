@@ -12,22 +12,15 @@ import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
-import type {
-  ShapePlan,
-  ShapePlanner,
-  ShapeRefusal,
-  ShapeRequest,
-} from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { FormingMixin, type FormableClass } from '@saxonberg/server/mud/lib/craft/Forming';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
-
-const SHAPING = ['platform/cmd/crafting/shape.yaml'];
 
 /** Bricks an hour, by band — the grain `ceramics.brickTable.rate.<band>` tunes. */
 const RATE: Readonly<Record<CompetenceBandName, number>> = {
@@ -51,12 +44,8 @@ function dial(key: string, fallback: number): number {
 
 const BrickTableBase = FormingMixin(ToolMixin(DurableMixin(Good)));
 
-export default class BrickTable extends BrickTableBase implements ShapePlanner {
-  static commandContributions: CommandContributions = {
-    environment: SHAPING,
-    peers: SHAPING,
-  };
-
+// ⭐ It FORMS (`FormingMixin`), which is also what affords `shape`.
+export default class BrickTable extends BrickTableBase {
   protected override formingMassClass(): FormableClass {
     return Clay;
   }
@@ -69,7 +58,7 @@ export default class BrickTable extends BrickTableBase implements ShapePlanner {
     return ['block', 'flat'];
   }
 
-  public async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
     const target = await this.resolveForming(req);
     if (target === null || !('mass' in target)) return target;
     const { form, product, hand, discipline } = target;

@@ -9,32 +9,21 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type {
-  ShapePlan,
-  ShapePlanner,
-  ShapeRefusal,
-  ShapeRequest,
-} from '@saxonberg/server/mud/lib/craft/Shapeable';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import type { ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { FormingMixin, type FormableClass } from '@saxonberg/server/mud/lib/craft/Forming';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 
-const SHAPING = ['platform/cmd/crafting/shape.yaml'];
-
 /** Throwing one pot, game-minutes. */
 const THROW_MS = 5 * 60_000;
 
 const WheelBase = FormingMixin(ToolMixin(DurableMixin(Good)));
 
-export default class Wheel extends WheelBase implements ShapePlanner {
-  static commandContributions: CommandContributions = {
-    environment: SHAPING,
-    peers: SHAPING,
-  };
-
+// ⭐ It FORMS (`FormingMixin`), which is also what affords `shape`.
+export default class Wheel extends WheelBase {
   protected override formingMassClass(): FormableClass {
     return Clay;
   }
@@ -43,7 +32,7 @@ export default class Wheel extends WheelBase implements ShapePlanner {
     return 'pottery';
   }
 
-  public async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
     const target = await this.resolveForming(req);
     if (target === null || !('mass' in target)) return target;
     const { form, product, hand, discipline } = target;

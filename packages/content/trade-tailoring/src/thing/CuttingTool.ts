@@ -32,12 +32,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type {
-  CutPlan,
-  CutPlanner,
-  CutRefusal,
-  CutRequest,
-} from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { CutPlanner, CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -77,11 +73,11 @@ export default class CuttingTool extends Tool implements CutPlanner {
    * stamps a body's measurements; nobody is stock. `null` for anything
    * that is not cloth: these shears have nothing to say about it.
    */
-  public async cutPlanFor(target: Stuff, req: CutRequest): Promise<CutPlan | CutRefusal | null> {
+  public async cutPlanFor(target: Stuff, req: CutRequest): Promise<ActPlan | ActRefusal | null> {
     if (!MixinApi.isStackable(target)) return null;
     if (!MixinApi.isConstructed(target) || !target.getConstruction()?.isCovering()) return null;
     const cloth = target;
-    const refuse = (reason: string, line: ReturnType<typeof Mml.compose>): CutRefusal => ({
+    const refuse = (reason: string, line: ReturnType<typeof Mml.compose>): ActRefusal => ({
       ok: false,
       reason,
       line,

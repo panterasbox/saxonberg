@@ -21,11 +21,8 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type {
-  KneadPlan,
-  KneadRefusal,
-  KneadRequest,
-} from '@saxonberg/server/mud/lib/craft/Kneadable';
+import type { KneadRequest } from '@saxonberg/server/mud/lib/craft/KneadVessel';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { CompoundingMixin } from '@saxonberg/server/mud/lib/material/Compounding';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
@@ -64,7 +61,7 @@ export default class TemperPit extends TemperPitBase {
     return this.getBulkAmount('interior').rawValue();
   }
 
-  public override async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
+  public override async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
     const self = this as unknown as Stuff;
     const pieces = this.getContents().filter((c) => MixinApi.isTangible(c)) as Stuff[];
     if (pieces.length === 0) {

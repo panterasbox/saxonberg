@@ -45,14 +45,10 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { FormGrammar, ParsedForm } from '@saxonberg/server/mud/lib/craft/FormSpec';
-import type {
-  Shapeable,
-  ShapePlan,
-  ShapeRefusal,
-  ShapeRequest,
-  Formable,
-  FormingHand,
-} from '@saxonberg/server/mud/lib/craft/Shapeable';
+import { ShapeableMixin } from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { Formable, FormingHand } from '@saxonberg/server/mud/lib/craft/Forming';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -181,9 +177,11 @@ const clayAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
 
-const ClayBase = CompositionMixin(WaterActivityMixin(Lump));
+// ⭐ Clay is SHAPED by hand (`ShapeableMixin` — it plans the coil, and
+// affords `shape` to whoever holds it or stands beside it).
+const ClayBase = ShapeableMixin(CompositionMixin(WaterActivityMixin(Lump)));
 
-export default class Clay extends ClayBase implements Shapeable, Formable {
+export default class Clay extends ClayBase implements Formable {
   static markupAugmenters: MarkupAugmenter[] = [clayAugmenter];
 
   static fieldMeta: FieldMeta = {
@@ -464,7 +462,7 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
   }
 
   /** The refusal that names the hand's band — the progression, said. */
-  public refuseBeyond(hand: FormingHand): ShapeRefusal {
+  public refuseBeyond(hand: FormingHand): ActRefusal {
     return {
       ok: false,
       reason: 'beyond-your-hand',
@@ -493,7 +491,7 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
    * raise, slowly — the product row is the material's `formTemplates` for
    * the class. Credits pottery.
    */
-  public async shapePlan(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal> {
     const self = this as unknown as Stuff;
     const parsed = new FormGrammar([]).parse(req.formText);
     if (!(parsed instanceof ParsedForm)) {

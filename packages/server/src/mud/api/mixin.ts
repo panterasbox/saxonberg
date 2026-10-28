@@ -144,6 +144,14 @@ import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
 import type { Compounding } from '../lib/material/Compounding';
 import type { DipBath } from '../lib/craft/DipBath';
+import type { KneadVessel } from '../lib/craft/KneadVessel';
+import type { Shapeable } from '../lib/craft/Shapeable';
+import type { Forming } from '../lib/craft/Forming';
+import type { Carvable } from '../lib/craft/Carvable';
+import type { Impressible } from '../lib/craft/Impressible';
+import type { Turnable } from '../lib/craft/Turnable';
+import type { HandWorked } from '../lib/craft/HandWorked';
+import type { StrikingDie } from '../lib/craft/StrikingDie';
 import type { Faced } from '../lib/material/Faced';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
@@ -1755,6 +1763,38 @@ export class MixinApi {
 
   public static isDipBath(obj: Stuff): obj is Stuff & DipBath {
     return this.hasMixin(obj, Mixins.DipBath);
+  }
+
+  public static isKneadVessel(obj: Stuff): obj is Stuff & KneadVessel {
+    return this.hasMixin(obj, Mixins.KneadVessel);
+  }
+
+  public static isShapeable(obj: Stuff): obj is Stuff & Shapeable {
+    return this.hasMixin(obj, Mixins.Shapeable);
+  }
+
+  public static isForming(obj: Stuff): obj is Stuff & Forming {
+    return this.hasMixin(obj, Mixins.Forming);
+  }
+
+  public static isCarvable(obj: Stuff): obj is Stuff & Carvable {
+    return this.hasMixin(obj, Mixins.Carvable);
+  }
+
+  public static isImpressible(obj: Stuff): obj is Stuff & Impressible {
+    return this.hasMixin(obj, Mixins.Impressible);
+  }
+
+  public static isTurnable(obj: Stuff): obj is Stuff & Turnable {
+    return this.hasMixin(obj, Mixins.Turnable);
+  }
+
+  public static isHandWorked(obj: Stuff): obj is Stuff & HandWorked {
+    return this.hasMixin(obj, Mixins.HandWorked);
+  }
+
+  public static isStrikingDie(obj: Stuff): obj is Stuff & StrikingDie {
+    return this.hasMixin(obj, Mixins.StrikingDie);
   }
 
   public static isFaced(obj: Stuff): obj is Stuff & Faced {

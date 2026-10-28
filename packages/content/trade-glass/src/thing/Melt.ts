@@ -26,8 +26,9 @@ import type { CompositionEntry } from "@saxonberg/server/mud/lib/material/Materi
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 import type { Engaged } from "@saxonberg/server/mud/lib/activity/Engaged";
-import type { DipPlan, DipRefusal, DipRequest } from "@saxonberg/server/mud/lib/craft/DipPlanner";
 import { DipBathMixin } from "@saxonberg/server/mud/lib/craft/DipBath";
+import type { DipRequest } from "@saxonberg/server/mud/lib/craft/DipBath";
+import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { SchedulerApi } from "@saxonberg/server/mud/api/scheduler";
@@ -64,8 +65,9 @@ export default class Melt extends MeltBase {
    * empty blowpipe in the glassblower's hands (a bare `gob`). From the
    * moment it is lifted it COOLS: the hot-work watch is the window.
    */
-  public override async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
+  public override async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
     const actor = req.actor;
+    const target = req.target;
     if (target !== null && !(target instanceof Blowpipe)) {
       return {
         ok: false,

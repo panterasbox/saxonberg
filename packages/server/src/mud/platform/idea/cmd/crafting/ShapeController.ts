@@ -1,9 +1,10 @@
 /**
  * ShapeController — `shape [<material>] [with <instrument>] [into <form>]`.
  * ⭐ Dumb by construction (ceramics D14): the INSTRUMENT plans the shape
- * (`ShapePlanner.shapePlanFor` — a wheel, a brick table, a blowpipe); when
+ * (`FormingMixin.shapePlanFor` — a wheel, a brick table, a blowpipe); when
  * none has anything to say, the MATERIAL plans it by hand
- * (`Shapeable.shapePlan`). This controller never names clay or glass.
+ * (`ShapeableMixin.shapePlanFor`). This controller never names clay or
+ * glass.
  *
  * Promoted from `trade-glass` (the `dry` precedent): a gather on a pipe
  * and clay on a wheel are one act, and a second trade's instrument is a
@@ -17,27 +18,15 @@ import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type {
-  Shapeable,
-  ShapePlan,
-  ShapePlanner,
-  ShapeRefusal,
-  ShapeRequest,
-} from '../../../../lib/craft/Shapeable';
+import type { ShapeRequest } from '../../../../lib/craft/Shapeable';
+import type { ActPlan, ActRefusal } from '../../../../lib/craft/ActPlan';
+import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 
 interface ShapeModel extends CommandModel {
   material?: MqlOneResult;
   instrument?: MqlManyResult;
   form?: string;
-}
-
-function isPlanner(s: Stuff): s is Stuff & ShapePlanner {
-  return typeof (s as unknown as Partial<ShapePlanner>).shapePlanFor === 'function';
-}
-
-function isShapeable(s: Stuff): s is Stuff & Shapeable {
-  return typeof (s as unknown as Partial<Shapeable>).shapePlan === 'function';
 }
 
 export default class ShapeController extends ManualBuildController<ShapeModel> {
@@ -56,14 +45,14 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
       commandText: context.commandText,
     };
 
-    let plan: ShapePlan | ShapeRefusal | null = null;
+    let plan: ActPlan | ActRefusal | null = null;
     for (const tool of model.instrument?.stuff ?? []) {
-      if (tool === material || !isPlanner(tool)) continue;
+      if (tool === material || !MixinApi.isForming(tool)) continue;
       plan = await tool.shapePlanFor(req);
       if (plan !== null) break;
     }
-    if (plan === null && material !== null && isShapeable(material)) {
-      plan = await material.shapePlan(req);
+    if (plan === null && material !== null && MixinApi.isShapeable(material)) {
+      plan = await material.shapePlanFor(req);
     }
     if (plan === null) {
       this.declineStep(
@@ -79,13 +68,6 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
       this.declineStep(context, plan.line, plan.reason);
       return;
     }
-    this.engageStep(context, {
-      durationMs: plan.durationMs,
-      effortW: plan.effortW,
-      beginSelf: plan.beginSelf,
-      beginPeers: plan.beginPeers,
-      onComplete: plan.onComplete,
-      onAbort: plan.onAbort,
-    });
+    await this.engagePlan(context, plan);
   }
 }

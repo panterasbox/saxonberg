@@ -23,6 +23,7 @@ import type { MqlManyResult } from "../../../../api/mql";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Tooled } from "../../../../lib/craft/Tooled";
+import type { ActPlan } from "../../../../lib/craft/ActPlan";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -121,6 +122,42 @@ export abstract class ManualBuildController<
       kind: "controller-rejected",
       reason: "start-rejected",
       detail: !result.ok && result.reason === "start-rejected" ? result.error.message : "",
+    });
+  }
+
+  /**
+   * ⭐ Engage a plan an object handed back (`ActPlan` — `knead`, `shape`,
+   * `carve`, `cut`, `dip`, `stir` on a compounding vessel): the ONE
+   * engage-a-plan routine, so every act protocol is run the same way.
+   *
+   *  - A zero-length plan runs NOW, inside the command frame: an act that
+   *    is a craft resolved from the actor's reach (the chandler's candle)
+   *    needs the acting author the engaged completion would lose; a
+   *    refusal it returns declines the command.
+   *  - Otherwise it is an engaged step ({@link engageStep}); a refusal its
+   *    completion returns (the world changed under the step) is told to
+   *    the actor when it lands.
+   */
+  protected async engagePlan(context: CommandContext, plan: ActPlan): Promise<void> {
+    if (plan.durationMs <= 0) {
+      const out = await plan.onComplete();
+      if (out && !out.ok) this.declineStep(context, out.line, out.reason);
+      return;
+    }
+    const giver = context.commandGiver;
+    this.engageStep(context, {
+      durationMs: plan.durationMs,
+      effortW: plan.effortW,
+      beginSelf: plan.beginSelf,
+      beginPeers: plan.beginPeers,
+      onComplete: () => {
+        void Promise.resolve(plan.onComplete()).then((out) => {
+          if (out && !out.ok && !giver.isDestroyed()) {
+            MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(out.line).send();
+          }
+        });
+      },
+      onAbort: plan.onAbort,
     });
   }
 

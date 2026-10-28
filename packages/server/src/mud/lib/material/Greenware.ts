@@ -34,8 +34,11 @@ import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
 import { Quantity } from '../quantity';
 import { DefaultCalendar } from '../time/DefaultCalendar';
-import type { Carvable, CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
-import type { Impressible, ImpressOutcome } from '../craft/Impressible';
+import { CarvableMixin } from '../craft/Carvable';
+import type { Carvable, CarveRequest } from '../craft/Carvable';
+import { ImpressibleMixin } from '../craft/Impressible';
+import type { Impressible } from '../craft/Impressible';
+import type { ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
@@ -43,7 +46,6 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { WaterActive } from './WaterActivity';
-import type { CommandContributions } from '../../api/command';
 import type Material from './Material';
 
 /** How wet a green piece is. */
@@ -157,22 +159,15 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 };
 
 export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & WaterActive>>(Base: TBase) {
-  class GreenwareMixin extends Base implements Greenware {
+  // ⭐ A green piece is CARVED (`CarvableMixin`) — trim, turn a foot, cut a
+  // design — and takes an IMPRESSION (`ImpressibleMixin`) — a maker's mark —
+  // and so affords `carve` and `impress` to whoever is holding it or beside
+  // it. Its own plan asks for the edge. Without the affordance `carve foot
+  // on mug` was "I don't understand" (the ceramics drive).
+  class GreenwareMixin extends CarvableMixin(ImpressibleMixin(Base)) implements Greenware {
     static _mixinName = 'GreenwareMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [greenAugmenter];
-
-    /**
-     * ⭐ A green piece affords `carve` — trim, turn a foot, cut a design —
-     * whoever is holding it or beside it. Its own plan asks for the edge.
-     * Without this nothing conferred the verb on a leather-hard pot, and
-     * `carve foot on mug` was "I don't understand" (the ceramics drive).
-     */
-    static commandContributions: CommandContributions = {
-      self: [],
-      environment: ['platform/cmd/crafting/carve.yaml'],
-      peers: ['platform/cmd/crafting/carve.yaml'],
-    };
 
     static fieldMeta: FieldMeta = {
       greenRuin: { persistent: true, runtimeState: true },
@@ -196,7 +191,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
      * turn a foot, cut a design — at LEATHER-HARD only. Too soft, it
      * smears; too dry, it cracks. Credits pottery.
      */
-    public async carvePlan(req: CarveRequest): Promise<CarvePlan | CarveRefusal> {
+    public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal> {
       const self = this as unknown as Stuff;
       const word = req.word.trim().toLowerCase();
       const cut = CARVINGS[word];
@@ -248,7 +243,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
      * bears a device (`MarkedMixin`) and the piece takes it; a tool that
      * bears none leaves only a dent.
      */
-    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ImpressOutcome> {
+    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ActOutcome | ActRefusal> {
       const self = this as unknown as Stuff;
       const refused = this.leatherHardRefusal('stamp');
       if (refused !== null) return refused;
@@ -273,7 +268,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
     }
 
     /** `null` when the piece is leather-hard and sound; a refusal otherwise. */
-    private leatherHardRefusal(act: 'trim' | 'stamp'): CarveRefusal | null {
+    private leatherHardRefusal(act: 'trim' | 'stamp'): ActRefusal | null {
       const self = this as unknown as Stuff;
       if (this.greenRuin !== null) {
         return { ok: false, reason: 'ruined', line: Mml.compose`${Mml.thing(self)} is ruined — knead it back and start again.` };

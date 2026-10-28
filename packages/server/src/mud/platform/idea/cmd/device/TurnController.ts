@@ -2,7 +2,7 @@
  * TurnController — `turn <thing>` / `turn back <thing>`: work a screw or a
  * handle by turning it (ceramics D25).
  *
- * ⭐ Dumb: the THING turns ({@link Turnable}) and says what that did — a
+ * ⭐ Dumb: the THING turns (`TurnableMixin`) and says what that did — a
  * screw press bears down on the mould on its bed, and a charge with green
  * strength comes free. A thing that does not turn is told so here, and
  * nothing else is decided.
@@ -11,8 +11,7 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Turnable } from '../../../../lib/craft/Turnable';
+import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
@@ -23,13 +22,6 @@ interface TurnModel extends CommandModel {
   subcommand?: string;
 }
 
-/** Does `x` turn? A module-private narrowing, by shape. */
-function asTurnable(x: Stuff): (Stuff & Turnable) | null {
-  return typeof (x as unknown as Partial<Turnable>).turnBy === 'function'
-    ? (x as Stuff & Turnable)
-    : null;
-}
-
 export default class TurnController extends CommandController<TurnModel> {
   async execute(model: TurnModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -38,13 +30,12 @@ export default class TurnController extends CommandController<TurnModel> {
       this.declineTurn(context, Mml.compose`Turn what? There is nothing like that here.`, 'no-target');
       return;
     }
-    const turnable = asTurnable(target);
-    if (turnable === null) {
+    if (!MixinApi.isTurnable(target)) {
       this.declineTurn(context, Mml.compose`There is nothing to turn on ${Mml.thing(target)}.`, 'not-turnable');
       return;
     }
     const back = (model.subcommand ?? '').trim().toLowerCase() === 'back';
-    const out = await turnable.turnBy(giver, back);
+    const out = await target.turnBy(giver, back);
     if (!out.ok) {
       this.declineTurn(context, out.line, out.reason);
       return;

@@ -106,7 +106,9 @@ no common ancestor, which is the kernel test). Each composer composes
 
 `shape [<material>] [with|on|at <instrument>] [into <form…>]` is the
 platform's (promoted from glass — `command-spec.md`). The INSTRUMENT plans
-(`ShapePlanner`), else the MATERIAL plans by hand (`Shapeable`); the clay
+(`FormingMixin.shapePlanFor`), else the MATERIAL plans by hand
+(`ShapeableMixin.shapePlanFor` — `Clay` is one, so a lump in hand affords
+`shape`); the clay
 YIELDS the piece (`Clay.yieldPieces`).
 
 - **A form** (`lib/craft/FormSpec.ts`) is a class (open · closed · flat ·
@@ -121,8 +123,9 @@ YIELDS the piece (`Clay.yieldPieces`).
   the product and the hand check for ANY plastic mass — the wheel and the
   brick table work clay, the glass blowpipe works a gather — and each
   composer says which mass it works (`formingMassClass` / `formingMass`) and
-  plans its own work (`ShapePlanner`). The mass implements `Formable`
-  (`formingHand`, `refuseBeyond` — `lib/craft/Shapeable.ts`).
+  plans its own work (`shapePlanFor`); the mixin affords `shape`. The mass
+  implements `Formable` (`formingHand`, `refuseBeyond` —
+  `lib/craft/Forming.ts`).
 - **The product row**: the word's `product`, else the instrument's
   `formTemplates[class]`, else the mass's material's `formTemplates[class]`.
 - **The hand decides, deterministically** (`Clay.formingHand`): wall mass =
@@ -156,10 +159,11 @@ YIELDS the piece (`Clay.yieldPieces`).
 ## ⭐ Trimming and the maker's mark (S5, W4)
 
 At LEATHER-HARD a green piece is worked on, and the piece answers the verb
-(`GreenwareMixin` implements `Carvable` and `Impressible`):
+(`GreenwareMixin` is a `CarvableMixin` and an `ImpressibleMixin`, which
+afford `carve` and `impress`):
 
 - **`carve foot on mug`** / `carve trim on jug` / `carve design on bowl` —
-  the green piece's `carvePlan`: a few minutes with any edge, a little mass
+  the green piece's `carvePlanFor`: a few minutes with any edge, a little mass
   pared off, the work recorded in words (`a turned foot`), pottery credited.
   Plastic refuses (`too-soft` — it would smear), bone-dry refuses (`too-dry`
   — it would crack), a fired or ruined piece refuses.

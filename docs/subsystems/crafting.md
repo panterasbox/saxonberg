@@ -519,9 +519,10 @@ deleted. The controller is dumb and asks two sides in order:
    `CuttingTool` plans any cloth, because the bolt is the weaver's and
    the pattern the tailor's.
 
-A plan is an engaged step (`durationMs`, `effortW`, `beginSelf`/
-`beginPeers`, `onComplete`), so **the planner owns its completion
-message and its mint**; a `CutRefusal` is declined in the planner's
+A plan is an engaged step — an `ActPlan` (`lib/craft/ActPlan.ts`, the one
+vocabulary every crafting act protocol answers in): `durationMs`,
+`effortW`, `beginSelf`/`beginPeers`, `onComplete` — so **the planner owns its completion
+message and its mint**; an `ActRefusal` is declined in the planner's
 words. Tailoring's three options (`--for`, `--tight`, `--generous`) ride
 the request as an option bag. A second cuttable good (a saddler's hide)
 answers either side with no kernel edit, and the instrument affords the
@@ -1804,12 +1805,13 @@ the feed was dropped. It folds the source payload through
 
 - **`churn`** joins `stir`/`shake` on `stir.yaml` (method `churned`).
   ⭐ The view is `requires: any` now and the controller narrows to two arms:
-  a build vessel records the method; a vessel answering the kernel's
-  **`HandWorked { workByHand(method) }`** shape (`lib/craft/ManualBuild.ts`)
-  works its own charge and says what came of it. ⚠ Why not a build
+  a build vessel records the method; a hand-worked vessel (the kernel's
+  **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
+  `lib/craft/HandWorked.ts` since the ceramics review) works its own charge
+  and says what came of it. ⚠ Why not a build
   vessel: a `pour` into a build vessel BANKS the matter as a contribution
   and drains the source, so cream poured into a build-vessel churn would
-  vanish. The churn confers the view itself (a static on its class).
+  vanish. `HandWorkedMixin` confers the view (a static on its class).
 - **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a
   cheese vat) is SET ON the lit `Placing` fire in reach
   (`reachableHeatSource()`), so its contents really warm; `requires: any`

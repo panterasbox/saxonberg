@@ -1,9 +1,10 @@
 /**
  * Die — ⭐ a striking die (ceramics S16): a hard block cut with a device,
  * that a blank laid on it and struck takes the shape of. `hammer <blank> on
- * <die>` — the smith's verb asks the anvil it was given whether it
- * `strikeWith`s (a structural probe), and this one does: the blow's force
- * against the blank's stiffness decides whether the device comes up.
+ * <die>` — the smith's verb asks the anvil it was given whether it is a
+ * striking die (the kernel's `StrikingDieMixin`), and this one is: the
+ * blow's force against the blank's stiffness decides whether the device
+ * comes up.
  *
  * It is the smith's `anvil` (a `Tool` with that capability on its row) so
  * the hammer's binder takes it, and its function IS its shape — so a die
@@ -18,6 +19,7 @@ import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { StrikingDieMixin } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -37,15 +39,18 @@ const STROKE_M = 0.002;
 const FACE_M2 = 1e-4;
 
 /**
- * ⭐ A die affords the blow itself — `hammer <blank> on <die>`, and the
- * universal `impress die on <blank>`. Only the smith's ANVIL afforded
- * `hammer`, so a die standing in a foundry offered nothing and no token
- * could be struck there (the ceramics drive: "I don't understand
- * 'hammer'"). Smelting already depends on smithing, whose view it is.
+ * ⭐ A die affords the blow itself — `hammer <blank> on <die>`. Only the
+ * smith's ANVIL afforded `hammer`, so a die standing in a foundry offered
+ * nothing and no token could be struck there (the ceramics drive: "I don't
+ * understand 'hammer'"). Smelting already depends on smithing, whose view
+ * it is. And `impress`: its face bears a device (`MarkedMixin`), so pressed
+ * into leather-hard clay it leaves its mark as a stamp does. ⚠ That is not
+ * a strike — a strike needs the hammer's blow energy, which `impress` does
+ * not carry, so a blank is struck only by `hammer`.
  */
 const STRIKING = ['trade/smithing/cmd/crafting/hammer.yaml', 'platform/cmd/crafting/impress.yaml'];
 
-export default class Die extends MarkedMixin(ToolMixin(DurableMixin(CraftedMixin(Good)))) {
+export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableMixin(CraftedMixin(Good))))) {
   static commandContributions: CommandContributions = {
     environment: STRIKING,
     peers: STRIKING,
@@ -78,7 +83,7 @@ export default class Die extends MarkedMixin(ToolMixin(DurableMixin(CraftedMixin
    * nears its melting point). Strong enough, the blank becomes the die's
    * shape, carrying whose die it was; too weak, the device barely shows.
    */
-  public async strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<ReturnType<typeof Mml.compose>> {
+  public override async strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<Mml> {
     const self = this as unknown as Stuff;
     if (!MixinApi.isTangible(blank) || this.strikes === '') {
       return Mml.compose`Nothing comes of it — ${Mml.thing(blank)} is no blank for this die.`;

@@ -197,10 +197,10 @@ When two trades turn out to perform ONE act, the collision ladder's rung 2
 applies: unify behind an interface. `dip` moved from `trade-chandlery` to
 `platform/cmd/crafting/dip.yaml` (aliases `melt`, `gob`) with a dumb
 `DipController`: every bound bath — anything composing `DipBathMixin`
-(`lib/craft/DipBath.ts`), bound by that mixin — is asked
-`dipPlanFor(target, req)` (`lib/craft/DipPlanner.ts`, the
-`Cuttable`/`Kneadable` shape), and the first plan or refusal wins; when
-none answers the controller only words the refusal. The chandler's
+(`lib/craft/DipBath.ts`, the protocol and the mixin in one file), bound by
+that mixin — is asked `dipPlanFor(req)` (the target rides the request),
+and the first plan or refusal wins; when none answers (`null`) the
+controller only words the refusal. The chandler's
 `DipPot` plans its candle (a zero-length plan runs inside the command
 frame, because the craft resolves from the actor's reach); a glaze or slip
 tub (`CompoundingMixin`) lays a WET coat on the good's faces; glass's
@@ -209,15 +209,39 @@ hand — so a bare `gob` works). A dip leaves a LAYER: `dye` and `quench` are
 their own acts. Grammar: `dip [<thing>] [inside|outside] [in
 <bath>] [inside|outside]` — the face is a bare optional word that the
 binder's lookahead skips when the next token is the bath's preposition.
-The paint slate's reservation is honoured: `dip` is the coat-from-bath
-primitive; `paint` will be the brush. `knead` (W0) is the same promotion.
+The paint slate's reservation is honored: `dip` is the coat-from-bath
+primitive; `paint` will be the brush. `knead` (W0) is the same promotion:
+the VESSEL plans (`KneadVesselMixin.kneadPlanFor`, `lib/craft/KneadVessel.ts`
+— a trough, a compounding tub, a temper pit), and `stir` on a compounding
+vessel asks the same plan with its own word (`req.verb`).
+
+⭐⭐ **One vocabulary for every act protocol** (`lib/craft/ActPlan.ts`,
+ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
+`0` runs now, in the command frame — effort, the begin lines, and an
+`onComplete` that may itself return a refusal), an `ActRefusal`
+(`{ ok: false, reason, line }`), or `null` = *nothing to say*, and the
+controller asks the next candidate or words a refusal from what is there.
+An instant act (`impress`, `turn`, the hand-worked `stir`) answers an
+`ActOutcome` (`{ ok: true, line, peers? }`) or an `ActRefusal`. Every
+controller engages a plan through ONE routine,
+`ManualBuildController.engagePlan`. Each protocol is a registered marker
+mixin named for what the object IS — `DipBathMixin`, `KneadVesselMixin`,
+`ShapeableMixin` (and `FormingMixin` for an instrument), `CarvableMixin`,
+`ImpressibleMixin`, `TurnableMixin`, `HandWorkedMixin`, `StrikingDieMixin`
+— with a default hook, detected by `MixinApi.isX` (never a method probe),
+and, where the view is the kernel's, affording its verb on the class. A
+planner is `<act>PlanFor(req)`, the target inside the request. (`cut`'s
+`Cuttable`/`CutPlanner` speak the same plan types; their detection is still
+by shape.)
 
 ### `shape` (ceramics W4) — the same rung
 
 One act — forming a soft material into a form — promoted from `trade-glass`
 behind `lib/craft/Shapeable.ts`: the INSTRUMENT plans
-(`ShapePlanner.shapePlanFor` — the blowpipe, the potter's wheel, the brick
-table), else the MATERIAL by hand (`Shapeable.shapePlan` — clay coils).
+(`FormingMixin.shapePlanFor` — the blowpipe, the potter's wheel, the brick
+table; `FormingMixin` affords the verb), else the MATERIAL by hand
+(`ShapeableMixin.shapePlanFor` — clay coils, and a lump in your hands
+affords `shape`).
 `shape [<material>] [with|on|at <instrument>] [into <form…>]`, the form
 greedy and last; with no `into`, the material arg's word IS the form, so the
 glassblower's `shape bottle` binds as it always did.
@@ -226,21 +250,25 @@ glassblower's `shape bottle` binds as it always did.
 
 - **`carve`** moved from `trade-carpentry` to `platform/cmd/crafting/carve.yaml`
   (`carve <part> [on <target>] [from <stock>] [with <edge>]`). A TARGET that
-  answers `Carvable.carvePlan` plans its own carving — a leather-hard pot
-  turns a foot, trims, takes a pattern (`GreenwareMixin`), and says itself
-  when it is too soft or too dry. With no target the controller runs the
-  generic carving-RECIPE path (one item of wood, an edge, no heat) exactly as
-  carpentry did; `Board` and `Blank` afford the platform view. Every shipped
+  is a `CarvableMixin` plans its own carving (`carvePlanFor`) — a
+  leather-hard pot turns a foot, trims, cuts a design (`GreenwareMixin`), a
+  mould cuts a riser, a board or a blank a founder's pattern
+  (`PatternStockMixin`) — and says itself when it is too soft or too dry.
+  With no target the controller runs the generic carving-RECIPE path (one
+  item of wood, an edge, no heat) exactly as carpentry did;
+  `CarvableMixin` affords the platform view. Every shipped
   form (`carve haft`, `carve peg from the blank`, `carve handle with the
   billhook`) binds as before.
 - **`impress`** (alias `mold`), new: `impress <pattern> on|in|into <medium>`.
-  The MEDIUM answers `Impressible.takeImpression` — a leather-hard pot takes
+  The MEDIUM (`ImpressibleMixin`) answers `takeImpression` — a leather-hard pot takes
   the device the pattern's face bears (`MarkedMixin.takeDeviceFrom` — a
   tool that bears none leaves a dent); moulding's media take a whole impression (W7). A press is a
   moment: it runs in the command, and a refusal is the medium's own words.
-- **`hammer <blank> on <die>`** stays smithing's, with a structural probe: an
-  anvil that answers `strikeWith(blank, blowJ, by)` is a die, and it decides
-  what the blow made.
+- **`hammer <blank> on <die>`** stays smithing's: an anvil that is a
+  `StrikingDieMixin` (the kernel's, because the die is smelting's and
+  smelting depends on smithing) answers `strikeWith(blank, blowJ, by)`, and
+  it decides what the blow made. ⚠ It is not an impression — a strike needs
+  the hammer's blow energy, which `impress` does not carry.
 
 ## YAML view — top-level shape
 

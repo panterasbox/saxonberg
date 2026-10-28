@@ -109,12 +109,11 @@ export default class HammerController extends ManualBuildController<HammerModel>
     }
 
     // ⭐ (ceramics D14) `hammer <blank> on <die>`: the anvil the binder
-    // bound may be a DIE — a thing that answers `strikeWith` (a structural
-    // probe: this pack cannot name the founder's class, and need not). The
-    // die takes the blank's shape from the blow and says what came of it;
-    // a plain anvil answers nothing and the forging below runs as ever.
-    // `impress die on blank` is the same act said the universal way.
-    if (isDie(anvil)) {
+    // bound may be a striking DIE (the kernel's `StrikingDieMixin` — this
+    // pack cannot name the founder's class, and need not). The die takes
+    // the blank's shape from the blow and says what came of it; a plain
+    // anvil is no die and the forging below runs as ever.
+    if (MixinApi.isStrikingDie(anvil)) {
       const die = anvil;
       this.engageStep(context, {
         durationMs: this.paceMs(HAMMER_MS, anvil, ['anvil']),
@@ -203,16 +202,6 @@ function isUnforgeable(target: Stuff): boolean {
 
 /** The energy of one hand-hammer blow on a die, J — a sledge's is more. */
 const HAMMER_BLOW_J = 60;
-
-/** What a die answers when a blank is struck on it. */
-interface Die {
-  strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<ReturnType<typeof Mml.compose>>;
-}
-
-/** A die: an anvil that takes a blank's shape from a blow. Duck-probed. */
-function isDie(anvil: Stuff): anvil is Stuff & Die {
-  return typeof (anvil as unknown as Partial<Die>).strikeWith === 'function';
-}
 
 /** A bloom: the one thing that can say how much slag is trapped in it. */
 function isBloom(target: Stuff): boolean {

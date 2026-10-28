@@ -27,11 +27,8 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { CompetenceBandName } from "@saxonberg/server/mud/lib/advancement/CompetenceBand";
 import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
-import type {
-  Formable,
-  FormingHand,
-  ShapeRefusal,
-} from "@saxonberg/server/mud/lib/craft/Shapeable";
+import type { Formable, FormingHand } from "@saxonberg/server/mud/lib/craft/Forming";
+import type { ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 
 /**
@@ -151,7 +148,7 @@ export default class Gather extends GatherBase implements Formable {
     };
   }
 
-  public refuseBeyond(hand: FormingHand): ShapeRefusal {
+  public refuseBeyond(hand: FormingHand): ActRefusal {
     return {
       ok: false,
       reason: "beyond-your-hand",

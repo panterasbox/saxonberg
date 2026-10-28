@@ -6,7 +6,7 @@
  * `dip` and the trade was unreachable — the affordance link, which fails
  * closed and silent. Since the ceramics build (D14) `dip` is the
  * PLATFORM's (one act: a thing into a bath and out with the bath on it),
- * and this pot is a `DipPlanner`: asked by the platform controller, it
+ * and this pot is a dip BATH (`DipBathMixin`): asked by the platform controller, it
  * plans a CANDLE.
  *
  * ## ⭐⭐⭐ ONE act over two fats, and the melt is the first half of it
@@ -34,14 +34,9 @@
 
 import CraftVessel from '@saxonberg/server/mud/platform/thing/CraftVessel';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type {
-  DipPlan,
-  DipPlanner,
-  DipRefusal,
-  DipRequest,
-} from '@saxonberg/server/mud/lib/craft/DipPlanner';
 import { DipBathMixin } from '@saxonberg/server/mud/lib/craft/DipBath';
+import type { DipRequest } from '@saxonberg/server/mud/lib/craft/DipBath';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { CraftOutcome } from '@saxonberg/server/mud/api/crafting';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { CraftingDecline } from '@saxonberg/server/mud/lib/craft/CraftingDecline';
@@ -58,7 +53,7 @@ const RECIPE = 'candle';
 /** The step that fills the pot when what you have is a cake. */
 const MELT_RECIPE = 'melt-wax';
 
-export default class DipPot extends DipBathMixin(CraftVessel) implements DipPlanner {
+export default class DipPot extends DipBathMixin(CraftVessel) {
   /**
    * ⭐ The instrument affords the verb — a static on the class, never a
    * row key: a row's `commandContributions:` is dead silently. One entry
@@ -70,14 +65,15 @@ export default class DipPot extends DipBathMixin(CraftVessel) implements DipPlan
     environment: [DIP_VIEW],
   };
 
-  public override async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
+  public override async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
     const giver = req.actor;
+    const target = req.target;
     return {
       ok: true,
       durationMs: 0,
       effortW: 0,
       beginSelf: Mml.compose`You run a wick down into the pot.`,
-      onComplete: async (): Promise<DipRefusal | void> => {
+      onComplete: async (): Promise<ActRefusal | void> => {
         let outcome: CraftOutcome = await dipOnce();
         // ⭐⭐ THE SEAM: a cold cake on the bench — melt it and try again.
         if (!outcome.ok && outcome.reason === 'insufficient-input') {

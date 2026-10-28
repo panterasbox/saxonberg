@@ -163,7 +163,7 @@ A wheel plans a pot through the same protocol.
 ⭐ **The forms are ROWS (ceramics review, 2026-10-28).** The pipe composes the
 kernel's `FormingMixin`, as the potter's wheel does: its row lists `Form` rows
 (`/trade/glass/idea/form/{bottle,cylinder}` — a closed vessel and a tall open
-one), so a blown jar or flask is one more row. The gather is `Formable`: the
+one), so a blown jar or flask is one more row. The gather is `Formable` (`lib/craft/Forming.ts`): the
 blower's competence in `glasswork` sets the largest vessel they can blow
 (`glass.blow.maxL.<band>`, untrained 2 L … expert 20 L) and the blow's grade
 (untrained poor … expert exceptional). The blow records the row it will

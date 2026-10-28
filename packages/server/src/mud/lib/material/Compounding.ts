@@ -10,9 +10,10 @@
  * (`productMaterial`), exactly as a mould names a cast's shape, and the
  * inputs decide what is IN it.
  *
- * The verb follows the state of the matter: `knead` a plastic mass (this
- * mixin is the kernel's default `KneadPlanner`), `stir` a slurry, powder or
- * liquid (`StirController`'s compounding arm). Both end at {@link compound}.
+ * The verb follows the state of the matter: `knead` a plastic mass, `stir`
+ * a slurry, powder or liquid — one act, and this mixin is the kernel's
+ * default knead vessel (`KneadVesselMixin`): both verbs ask its
+ * `kneadPlanFor`, and both end at {@link compound}.
  *
  * ```yaml
  * class: /platform/thing/CompoundingVessel
@@ -43,9 +44,11 @@ import { MixinApi } from '../../api/mixin';
 import { CraftingApi } from '../../api/crafting';
 import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
-import type { KneadPlan, KneadPlanner, KneadRefusal, KneadRequest } from '../craft/Kneadable';
-import type { DipPlan, DipPlanner, DipRefusal, DipRequest } from '../craft/DipPlanner';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import { KneadVesselMixin } from '../craft/KneadVessel';
+import type { KneadRequest, KneadVessel } from '../craft/KneadVessel';
 import { DipBathMixin } from '../craft/DipBath';
+import type { DipBath, DipRequest } from '../craft/DipBath';
 import type { FaceName } from './Faced';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -55,6 +58,12 @@ import { MessageApi } from '../../api/message';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
 const KNEAD_MS = 15 * 60 * 1000;
+/**
+ * Stirring a slurry, a powder or a liquid even, game-ms — a few minutes and
+ * light work, where kneading a plastic mass is a long, heavy job. The state
+ * of the matter is the verb the player chose (`stir` vs `knead`).
+ */
+const STIR_MS = 2 * 60 * 1000;
 
 /** What compounding came to. */
 export type CompoundOutcome =
@@ -64,7 +73,7 @@ export type CompoundOutcome =
       reason: 'empty' | 'already-compounded' | 'mint-failed';
     };
 
-export interface Compounding extends KneadPlanner, DipPlanner {
+export interface Compounding extends KneadVessel, DipBath {
   /** The material this vessel's product IS. */
   getProductMaterial(): string;
   /** The row a SOLID product is minted as; `''` = the product is this vessel's bulk. */
@@ -86,28 +95,24 @@ export interface Compounding extends KneadPlanner, DipPlanner {
 }
 
 export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  // ⭐ A tub is a dip BATH (`DipBathMixin`): it binds as `dip`'s bath, and
-  // affords `dip`, by what it is.
-  class CompoundingMixin extends DipBathMixin(Base) implements Compounding {
+  // ⭐ A tub is a dip BATH (`DipBathMixin`) and a knead VESSEL
+  // (`KneadVesselMixin`): it binds as `dip`'s bath and `knead`'s vessel, and
+  // affords both, by what it is.
+  class CompoundingMixin extends KneadVesselMixin(DipBathMixin(Base)) implements Compounding {
     static _mixinName = 'CompoundingMixin';
 
     /**
-     * ⭐ The vessel affords `stir` and `knead`, and `dip` — a glaze is mixed
-     * in a tub and pots are dipped in the tub (the BATH affords the dip, as
-     * chandlery's dip pot does; a good being dippable is not a fact about
-     * the good). Environment and peers: a tub you stand at, a bucket on the
-     * bench. A static on the CLASS — a row's `commandContributions:` is dead
+     * ⭐ The vessel affords `stir` — and `knead` and `dip` by what it is
+     * (`KneadVesselMixin`, `DipBathMixin`): a glaze is mixed in a tub and
+     * pots are dipped in the tub (the BATH affords the dip, as chandlery's
+     * dip pot does; a good being dippable is not a fact about the good).
+     * Environment and peers: a tub you stand at, a bucket on the bench. A
+     * static on the CLASS — a row's `commandContributions:` is dead
      * silently.
      */
     static commandContributions: CommandContributions = {
-      environment: [
-        'platform/cmd/crafting/stir.yaml',
-        'platform/cmd/crafting/knead.yaml',
-      ],
-      peers: [
-        'platform/cmd/crafting/stir.yaml',
-        'platform/cmd/crafting/knead.yaml',
-      ],
+      environment: ['platform/cmd/crafting/stir.yaml'],
+      peers: ['platform/cmd/crafting/stir.yaml'],
     };
 
     static fieldMeta: FieldMeta = {
@@ -169,10 +174,6 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     }
 
     /**
-     * ⭐ The kernel's default knead: work what is in the vessel into one
-     * product. The narration reads the outcome; the mint is {@link compound}'s.
-     */
-    /**
      * ⭐ A tub of something that lays a coat (`Material.laysCoat` — a glaze, a
      * slip) is a coat BATH: `dip crock in tub` lays a WET coat of it on the
      * named faces, and the tub gives up what the skin holds — thickness ×
@@ -182,8 +183,9 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
      * no coat (the dip verb says so). The coat SETS by its own material's
      * rule (`FacedMixin`), the fire for a glaze.
      */
-    public async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
+    public async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
       const self = this as unknown as Stuff;
+      const target = req.target;
       if (target === null || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
       const material = self.getBulkMaterial('interior');
       if (material === null || !material.getLaysCoat() || !(self.getBulkAmount('interior').rawValue() > 0)) {
@@ -238,7 +240,13 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       };
     }
 
-    public async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
+    /**
+     * ⭐ The kernel's default knead: work what is in the vessel into one
+     * product — asked by `knead` and by `stir` alike (`req.verb`), the word
+     * following the state of the matter. The narration reads the outcome;
+     * the mint is {@link compound}'s.
+     */
+    public async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
       const self = this as unknown as Stuff & Container;
       const any = self.getContents().some((c) => MixinApi.isTangible(c)) ||
         (MixinApi.isBulkable(self) && self.hasInteriorBulk() &&
@@ -251,14 +259,21 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         };
       }
       const giver = req.actor;
+      const verb = req.verb ?? 'knead';
       return {
         ok: true,
-        durationMs: KNEAD_MS,
-        effortW: 380,
-        beginSelf: Mml.compose`You set your hands to what is in ${Mml.thing(self)}, folding it over and over on itself.`,
-        beginPeers: Mml.compose`${Mml.actor(giver)} works at ${Mml.thing(self)} with both hands.`,
+        durationMs: verb === 'knead' ? KNEAD_MS : STIR_MS,
+        effortW: verb === 'knead' ? 380 : 150,
+        beginSelf:
+          verb === 'knead'
+            ? Mml.compose`You set your hands to what is in ${Mml.thing(self)}, folding it over and over on itself.`
+            : Mml.compose`You begin to ${verb} ${Mml.thing(self)}, working what is in it together.`,
+        beginPeers:
+          verb === 'knead'
+            ? Mml.compose`${Mml.actor(giver)} works at ${Mml.thing(self)} with both hands.`
+            : Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(self)}.`,
         onComplete: () => {
-          void this.compound(giver, 'knead');
+          void this.compound(giver, verb);
         },
       };
     }
@@ -302,8 +317,8 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
 }
 
 /**
- * Say what compounding came to — shared by `knead` here and `stir`'s
- * compounding arm (both end at {@link Compounding.compound}).
+ * Say what compounding came to — the end of a `knead` or a `stir` (both
+ * end at {@link Compounding.compound}).
  */
 function narrate(giver: Stuff, vessel: Stuff, out: CompoundOutcome, verb: string): void {
   if (giver.isDestroyed()) return;

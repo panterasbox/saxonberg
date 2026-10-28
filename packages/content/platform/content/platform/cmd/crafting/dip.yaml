@@ -3,9 +3,9 @@
 # hot fat until a candle builds up, and a bisque crock into a glaze slip
 # until it carries a coat, are one act — put a thing in a bath and draw it
 # out with the bath on it. The controller is dumb: it asks the bound bath
-# (`DipPlanner.dipPlanFor`), and a bath whose material lays a coat
+# (`DipBathMixin.dipPlanFor`), and a bath whose material lays a coat
 # (`laysCoat`) is the kernel's default. The paint slate's reservation is
-# honoured: `dip` is the coat-from-bath primitive.
+# honored: `dip` is the coat-from-bath primitive.
 #
 # ⭐⭐⭐ **`melt` is an ALIAS, not a second verb** — the same call the
 # milling trade's `grind` lost, for the same reason.

@@ -27,9 +27,9 @@ args:
     required: true
     scope: ["reachable"]
     requires: [TangibleMixin]
-  # ⭐ The soft thing it is pressed into. `requires: any` — what decides is
-  # whether it answers `takeImpression` (a protocol, not a mixin), which the
-  # controller asks.
+  # ⭐ The soft thing it is pressed into. `requires: any` — the controller
+  # narrows to an impressible medium (`ImpressibleMixin`) and refuses
+  # anything else in its own words, and the medium answers what it takes.
   - name: medium
     type: object
     required: true

@@ -31,9 +31,9 @@ args:
     scope: ["reachable"]
     # ⭐ Bare `knead` works the trough or tub you are at — DECLARED, so the
     # binder resolves it (`lint:instrument-args`). A union of the two
-    # shipped planners.
+    # shipped kinds of knead vessel (a build vessel, a compounding one).
     default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
-    # ⚠ `requires:` names mixins only and a planner is a protocol, so the
-    # gate is `any` and the controller asks the vessel for its plan (the
-    # `cut` precedent).
+    # ⚠ `any`, narrowed by the controller: a knead vessel
+    # (`KneadVesselMixin`) is asked for its plan, and anything else the
+    # default bound (a shaker) is refused in the controller's own words.
     requires: any

@@ -6,9 +6,10 @@
  * proportion (`FormSpec`), and the familiar words are `Form` rows — so a new
  * pot, a new brick or a new blown vessel is a row, never code.
  *
- * The instrument PLANS `shape` (`ShapePlanner`, which each composer
+ * The instrument PLANS `shape` (`shapePlanFor`, which each composer
  * implements — the throw, the day at the table and the blow are different
- * work). What this mixin owns is what they share:
+ * work; the default has nothing to say, `null`) and affords the verb. What
+ * this mixin owns is what they share:
  *
  *  - its words (`forms:` — `Form` rows loaded by path when asked; nothing
  *    scans) and the classes it makes (`formClasses`, a hook);
@@ -25,13 +26,45 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { CommandContributions } from '../../api/command';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
+import type { Grade } from './Grade';
 import type { FormClass, FormWord } from './FormSpec';
 import { FormGrammar, ParsedForm } from './FormSpec';
-import type { Formable, FormingHand, ShapeRefusal, ShapeRequest } from './Shapeable';
+import type { ShapeRequest } from './Shapeable';
+import type { ActPlan, ActRefusal } from './ActPlan';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 import Form from '../../platform/idea/Form';
+
+const SHAPING = ['platform/cmd/crafting/shape.yaml'];
+
+/**
+ * ⭐ What a maker's hand can do with a plastic mass — read off their
+ * competence in the form's discipline. The mass says what its band is worth
+ * (a potter's wall, a glassblower's breath): the instrument only asks.
+ */
+export interface FormingHand {
+  band: CompetenceBandName;
+  /** The wall mass over a proficient hand's (1 = proficient). */
+  wallFactor: number;
+  /** The largest vessel this hand can raise, L. */
+  maxL: number;
+  /** The grade its work comes out at. */
+  grade: Grade;
+}
+
+/**
+ * ⭐ A plastic mass an instrument FORMS: clay on a wheel or in a brick
+ * mould, a gather of glass on a pipe. The instrument resolves the form; the
+ * mass says what this maker's hand can do with it, and refuses in its own
+ * trade's words when the form is beyond them.
+ */
+export interface Formable {
+  formingHand(actor: Stuff, discipline: string): Promise<FormingHand>;
+  refuseBeyond(hand: FormingHand): ActRefusal;
+}
 
 /** What a forming instrument resolved for a shape. */
 export interface FormingTarget {
@@ -52,11 +85,19 @@ export type FormableClass = MixinConstructor<Stuff & Formable>;
 export interface Forming {
   /** The Form rows this instrument makes, by path. */
   getForms(): readonly string[];
+  /** The plan, a refusal, or `null` when this instrument has nothing to say. */
+  shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null>;
 }
 
 export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class FormingMixin extends Base implements Forming {
     static _mixinName = 'FormingMixin';
+
+    /** ⭐ The instrument affords `shape`: you stand at a wheel, or hold a pipe. */
+    static commandContributions: CommandContributions = {
+      environment: SHAPING,
+      peers: SHAPING,
+    };
 
     static fieldMeta: FieldMeta = {
       forms: { persistent: true, authorable: true },
@@ -70,6 +111,11 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
 
     public getForms(): readonly string[] {
       return this.forms;
+    }
+
+    /** @hook The shape this instrument plans — `null` when it has nothing to say. */
+    public async shapePlanFor(_req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
+      return null;
     }
 
     /** @hook The form classes this instrument makes. */
@@ -132,7 +178,7 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * `null` when there is no mass to work (a blowpipe's gather is not the
      * wheel's business).
      */
-    protected async resolveForming(req: ShapeRequest): Promise<FormingTarget | ShapeRefusal | null> {
+    protected async resolveForming(req: ShapeRequest): Promise<FormingTarget | ActRefusal | null> {
       const mass = this.formingMass(req);
       if (mass === null) return null;
       const parsed = new FormGrammar(await this.formWords()).parse(req.formText);

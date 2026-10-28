@@ -49,7 +49,8 @@ reusable one) or breaks to release it (a consumed one).
 
 `impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`,
 alias `mold`; `ImpressController` is dumb). The MEDIUM answers through the
-`Impressible` protocol:
+`Impressible` protocol (`ImpressibleMixin`, `lib/craft/Impressible.ts` — an
+`ActOutcome` or an `ActRefusal`, at once):
 
 | medium | what it takes |
 |---|---|
@@ -215,7 +216,7 @@ is its own riser and is judged on neither):
   cast reads *misrun …*, grade poor, a visible casting flaw.
 - **shrinkage** iff no `riser`: porous where it froze last — a visible
   casting flaw (which buzzes when `ring`ed) and one grade down. `carve riser
-  on <flask>` (any edge — the `Carvable` protocol on `MouldMixin`) cuts one
+  on <flask>` (any edge — `MouldMixin` is a `CarvableMixin`) cuts one
   into a rammed mould; the bell pit authors `riser: true`.
 
 ⭐ Nothing is rolled. A competent founder reads it in advance — the melt's
@@ -228,7 +229,7 @@ heat through `analyze temperature <crucible>`, the flask's damp through
 **screw press** it stands on (`placement.host.pressForceN()` — a duck, so
 any press a pack ships loads a mould the same way). `ScrewPress`
 (`platform/thing`, `PlacingMixin(Good)`, `newtonsPerTurn`, `maxTurns`,
-`turns`) speaks the **`Turnable`** protocol (`lib/craft/Turnable.ts`) that
+`turns`) is a **`TurnableMixin`** (`lib/craft/Turnable.ts`, which also affords the verb) that
 the platform verb **`turn`** (`cmd/device/turn.yaml`, alias `tighten`;
 `turn back <press>` slackens it) asks — so a windlass can take the word
 later. A turn first banks every mould's set at the OLD load, then adds
@@ -244,7 +245,8 @@ curd stays: it is bulk and drains.
 
 **The blow** is the die's, not the mould's: `hammer <blank> on <die>` —
 `trade-smelting`'s `Die` is a `Tool` offering `anvil` (so the hammer's
-binder takes it) that answers `strikeWith(blank, blowJ, by)`: the blow's
+binder takes it) and a `StrikingDieMixin` (the kernel's, `lib/craft/StrikingDie.ts` — smithing's
+controller cannot name smelting's class) that answers `strikeWith(blank, blowJ, by)`: the blow's
 force (its energy over a 2 mm stroke) against the blank's hardness over a
 token's face, eased as it nears its melting point. The token carries whose
 die struck it as `castFrom` provenance.
@@ -287,14 +289,15 @@ block is ice, never water).
 
 *A made, wearing vessel that holds what set in it.* Requires `Bulkable`,
 `Thermal`, `Container`. ⛔ Not every vessel is a mould. `MouldMixin`
-affords `impress` and `carve` (environment + peers) — a mould cut to its
+is an `ImpressibleMixin` and a `CarvableMixin`, which afford `impress` and
+`carve` (environment + peers) — a mould cut to its
 own shape answers both with its own refusal.
 
 | host | composition | rows |
 |---|---|---|
 | `platform/thing/Mould` | `Mould(Assembled(Durable(Crafted(Thermal(Bulkable(Container(Good)))))))` | `ice-pan`, `ingot-mould`, `chill-mould`, `flask`, `wax-block`, `bell-pit` (smelting), `plaster-case` (two-piece), `plaster-mould`, `tile-mould` (ceramics), the rubber moulds, the soap frame |
 | `trade-dairying` `Hoop` | `Placing(Mould(Durable(CraftVessel)))` | `hoop` |
-| `platform/thing/ScrewPress` | `Placing(Good)` + `Turnable` | `tile-press` (ceramics), the creamery's `cheese-press` |
+| `platform/thing/ScrewPress` | `Turnable(Placing(Good))` | `tile-press` (ceramics), the creamery's `cheese-press` |
 
 ## Where it stands
 

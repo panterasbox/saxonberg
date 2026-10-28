@@ -9,12 +9,8 @@
 import Tool from "@saxonberg/server/mud/platform/thing/Tool";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
-import type {
-  ShapePlan,
-  ShapePlanner,
-  ShapeRefusal,
-  ShapeRequest,
-} from "@saxonberg/server/mud/lib/craft/Shapeable";
+import type { ShapeRequest } from "@saxonberg/server/mud/lib/craft/Shapeable";
+import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { FormingMixin } from "@saxonberg/server/mud/lib/craft/Forming";
 import type { FormClass } from "@saxonberg/server/mud/lib/craft/FormSpec";
@@ -30,15 +26,14 @@ const HOT_SHOP = [
   // ⭐ The gather is the platform's `dip` (its `gob` alias): the MELT plans it
   // (`DipBathMixin`); the pipe affords the word so a bare `gob` is heard.
   "platform/cmd/crafting/dip.yaml",
-  // ⭐ The platform's `shape` (ceramics D14): the PIPE plans its gather's
-  // forms (its row's `forms:` — `Form` rows, as a wheel's are); a wheel
-  // plans a pot.
-  "platform/cmd/crafting/shape.yaml",
+  // ⭐ The platform's `shape` (ceramics D14) is the pipe's by what it is:
+  // it FORMS (`FormingMixin` affords the verb) — it plans its gather's forms
+  // (its row's `forms:` — `Form` rows, as a wheel's are); a wheel plans a pot.
   "trade/glass/cmd/glass/reheat.yaml",
   "trade/glass/cmd/glass/crack.yaml",
 ];
 
-export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) implements ShapePlanner {
+export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) {
   // ⭐ A verb an object affords is a static on the class — the pipe
   // affords the hot shop to whoever holds it (environment = the carrier).
   static commandContributions: CommandContributions = {
@@ -64,7 +59,7 @@ export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) impleme
    * (a bottle, a cylinder for a pane), the blow and the jacks in one move.
    * `null` with no gather on it: the shape is not this pipe's business.
    */
-  public async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
     const target = await this.resolveForming(req);
     if (target === null || !("mass" in target)) return target;
     const gather = target.mass;

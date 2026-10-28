@@ -719,6 +719,22 @@ export const Mixins = {
   // ⭐ A dip bath (ceramics review) — "I plan the dip of what is put in me":
   // the dip pot, a glaze tub, a pot of molten glass.
   DipBath: 'DipBathMixin',
+  // ⭐ The crafting act protocols (ceramics review, 2026-10-28) — each the
+  // thing an act is asked of, declared as what it IS:
+  // "I plan a knead of what is in me" — a trough, a tub, a temper pit.
+  KneadVessel: 'KneadVesselMixin',
+  // "A hand can shape me" — a lump of clay coiled into a pot.
+  Shapeable: 'ShapeableMixin',
+  // "I plan being carved" — green ware, a mould's riser, pattern stock.
+  Carvable: 'CarvableMixin',
+  // "A pattern pressed into me leaves something" — green ware, a sand flask.
+  Impressible: 'ImpressibleMixin',
+  // "I am worked by turning" — a screw press.
+  Turnable: 'TurnableMixin',
+  // "My charge is worked by hand, not built" — a butter churn.
+  HandWorked: 'HandWorkedMixin',
+  // "A blank struck on me takes my shape" — a striking die.
+  StrikingDie: 'StrikingDieMixin',
   // ⭐ Forming (ceramics D14/D16, made general in review) — "I shape a plastic
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
@@ -1011,6 +1027,13 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   StackableMixin: "{} doesn't come in stacks",
   CompoundingMixin: "{} isn't something you compound in",
   DipBathMixin: "{} isn't something you can dip things in",
+  KneadVesselMixin: "{} isn't something you could knead in",
+  ShapeableMixin: "{} won't take a shape in your hands",
+  CarvableMixin: "{} isn't something you could carve",
+  ImpressibleMixin: "{} is not soft enough to take an impression",
+  TurnableMixin: "{} has nothing to turn",
+  HandWorkedMixin: "{} isn't something you work by hand",
+  StrikingDieMixin: "{} isn't a die you could strike a blank on",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
   GreenwareMixin: "{} isn't green clay",

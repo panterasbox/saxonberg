@@ -60,7 +60,6 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { MessageApi } from '../../api/message';
 import { ConditionApi } from '../../api/condition';
-import type { CommandContributions } from '../../api/command';
 import { Mml } from '../../api/mml';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
@@ -78,8 +77,11 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { Grade } from '../craft/Grade';
 import { Impression } from './Impression';
 import type { ImpressionData } from './Impression';
-import type { ImpressOutcome } from '../craft/Impressible';
-import type { CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
+import { ImpressibleMixin } from '../craft/Impressible';
+import type { Impressible } from '../craft/Impressible';
+import { CarvableMixin } from '../craft/Carvable';
+import type { Carvable, CarveRequest } from '../craft/Carvable';
+import type { ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
 
 /** What a pool hands a mould when it sets. */
 export interface SetPool {
@@ -130,7 +132,7 @@ export interface MadeFromHolding {
 }
 
 /** Public shape contributed by MouldMixin. */
-export interface Mould {
+export interface Mould extends Carvable, Impressible {
   /** The template a set pool of `material` becomes in this mould. */
   castTemplateFor(material: Material): string;
   /**
@@ -269,28 +271,15 @@ function nameOf(identity: string): string | null {
 /** ⭐ The edge a riser is cut with — any cutting tool (`carve`'s word). */
 const CUTTING = 'cutting';
 
-/**
- * What a mould affords: a pattern can be pressed into it, and a riser cut
- * in it.
- */
-const IMPRESSING = ['platform/cmd/crafting/impress.yaml', 'platform/cmd/crafting/carve.yaml'];
-
 export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class MouldMixin extends Base implements Mould {
+  // ⭐ A soft medium takes an IMPRESSION (`ImpressibleMixin`, ceramics D21) —
+  // a sand flask on the floor, a wax block in your hand — and a riser is
+  // CARVED in it (`CarvableMixin`); both afford their verbs by what the
+  // mould is. A mould cut to its own shape answers with its own refusal.
+  return class MouldMixin extends CarvableMixin(ImpressibleMixin(Base)) implements Mould {
     static _mixinName: string = 'MouldMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [mouldAugmenter];
-
-    /**
-     * ⭐ A soft medium affords `impress` (ceramics D21): a sand flask on the
-     * floor, a wax block in your hand. A mould cut to its own shape answers
-     * the verb with its own refusal.
-     */
-    static commandContributions: CommandContributions = {
-      self: [],
-      environment: IMPRESSING,
-      peers: IMPRESSING,
-    };
 
     static fieldMeta: FieldMeta = {
       castTemplate: { persistent: true, authorable: true, ref: 'identity:kind' },
@@ -792,7 +781,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * it, a wax block, a plaster case whose slurry has not yet cured. The
      * medium answers; the verb is dumb.
      */
-    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ImpressOutcome> {
+    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ActOutcome | ActRefusal> {
       const self = this as unknown as Stuff;
       if (!this.impressible) {
         return {
@@ -864,7 +853,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * into a rammed mould, so the last metal to freeze is fed and the cast
      * comes out sound. Any edge does it.
      */
-    public async carvePlan(req: CarveRequest): Promise<CarvePlan | CarveRefusal> {
+    public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal> {
       const self = this as unknown as Stuff;
       const word = req.word.trim().toLowerCase();
       if (word !== 'riser' && word !== 'runner' && word !== 'gate') {

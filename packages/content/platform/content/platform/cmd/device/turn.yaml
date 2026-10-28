@@ -25,9 +25,10 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args: &turnable
-  # `requires: any` — a press, and later a windlass or a capstan, share no
-  # mixin; the controller narrows by SHAPE (the `Turnable` protocol) and
-  # every refusal is the thing's own sentence (the `pump.yaml` reasoning).
+  # `requires: any` — the controller narrows to a thing that turns (a press,
+  # and later a windlass or a capstan: `TurnableMixin`) and says so in its
+  # own words when it does not; every other refusal is the thing's own
+  # sentence (the `pump.yaml` reasoning).
   - name: target
     type: object
     required: true

@@ -17,22 +17,15 @@
 import Good from '../../lib/stuff/Good';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import type { FieldMeta } from '../../lib/mixin';
-import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type { Turnable, TurnOutcome } from '../../lib/craft/Turnable';
+import { TurnableMixin } from '../../lib/craft/Turnable';
+import type { ActOutcome, ActRefusal } from '../../lib/craft/ActPlan';
 import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
 
-const TURNING = ['platform/cmd/device/turn.yaml'];
-
-export default class ScrewPress extends PlacingMixin(Good) implements Turnable {
-  static commandContributions: CommandContributions = {
-    self: [],
-    environment: TURNING,
-    peers: TURNING,
-  };
-
+// ⭐ It is TURNED (`TurnableMixin`), which is also what affords `turn`.
+export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
   static fieldMeta: FieldMeta = {
     newtonsPerTurn: { persistent: true, authorable: true },
     maxTurns: { persistent: true, authorable: true },
@@ -72,7 +65,7 @@ export default class ScrewPress extends PlacingMixin(Good) implements Turnable {
     return this.getPlaced('on').filter((s) => MixinApi.isMould(s as Stuff)) as Stuff[];
   }
 
-  public async turnBy(actor: Stuff, back: boolean): Promise<TurnOutcome> {
+  public override async turnBy(actor: Stuff, back: boolean): Promise<ActOutcome | ActRefusal> {
     const self = this as unknown as Stuff;
     const moulds = this.moulds();
     // ⭐ Bank the set at the OLD load before the load changes — a drain set
