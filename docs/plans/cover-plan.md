@@ -424,11 +424,15 @@ and the harvest follows `madeFrom`.** A group cannot own chattel
 operates the field** (`EmploymentApi.operatorsAt(field)[0]`) when there
 is one, else the sower when the sower personally holds the extent, else
 untitled (the hand that cuts it owns the take — rung 3, today's Waponi
-smallholder outcome). The stamp happens at `sow` and at
-`Field.onCreate` for an authored crop (fire-and-forget, the
-`Plant.onFloweringLatched` shape, retried on the first `harvest` through
-`Field.ensureCropTitle()` called from `Field`'s own `look` augmenter
-path). The harvest mints with `madeFrom: plant` (shipped), so a hired
+smallholder outcome). The stamp is settled at the two ACTS that
+need it, never as a side effect of reading: at `sow` (the act that
+clones the crop) and at `Field.onCreate` for an authored crop
+(fire-and-forget, the `Plant.onFloweringLatched` shape); and the
+**harvest awaits `Field.ensureCropTitle()` before it mints**, which is
+also where an operator Business that stands up lazily is first
+resolved. ⛔ No `look` / augmenter path writes a title: a read that
+mutates ownership is the wrong place (owner's correction at the plan
+handoff, 2026-10-28). The harvest mints with `madeFrom: plant` (shipped), so a hired
 hand's sheaf and a stranger's sheaf are both the operator's. The title
 gate for `sow`: `AccessApi.heldExtents(giver)` covers the field's parcel
 extent, OR `giver.isOnShiftFor(operator.getOrganizationPath())` for an
@@ -722,7 +726,7 @@ presentation.* Files:
   isAreaCrop()`); `cropAreaM2()`; `swardAreaM2()` becomes `areaM2 −
   cropAreaM2()`; `sowingRefusal()` override; `isSeedbedFresh()`;
   `turnUnder()` (draw sward → organic matter, stamp); `bankWork`
-  override ending a standing crop on `clearing`; `ensureCropTitle()`;
+  override ending a standing crop on `clearing`; `ensureCropTitle()` (called by `sow`, `onCreate` and the harvest, awaited before the mint; ⛔ never from the augmenter);
   `static markupAugmenters = [fieldAugmenter]` rendering, in words only:
   the sward band (`swardPhrase()`), the crop (`cropStagePhrase` +
   `cropAreaPhrase`, *cut down to the stubble* when a crop ended and the
@@ -968,7 +972,7 @@ sized to it, with a trough and a rick behind it`.
 | ratoon decline | — | — | `yieldDeclinePerCycle` on `plant/cane.yaml` | none | — |
 | plough the seedbed | `plough` (shipped) | `Field.inventory` (shipped) | — | none | tool `ploughing` (shipped) |
 | grub out a crop | `grub` (kernel, shipped) | `ImprovableMixin` (shipped) | — | none | — |
-| the crop's title | — | — | the operator business's `operatingLocations` must name the field (campus ✓, Hearts Delight ✓ bench; W6 adds the pastures) | the Business stands up lazily — `ensureCropTitle` retries at first harvest | — |
+| the crop's title | — | — | the operator business's `operatingLocations` must name the field (campus ✓, Hearts Delight ✓ bench; W6 adds the pastures) | the Business stands up lazily — the harvest awaits `ensureCropTitle()` before minting (never a look path) | — |
 | `move <herd> to <field>` | `move` (new, ranching) | `Herdbook.environment+peers`, `Livestock.peers` | `homeExtent` on the book/record; `fieldName` on the target | none | both args strings (no mixin binder) — the controller resolves and refuses in words |
 | the herd's intake | — (reconcile-on-read) | — | `grazing:` on the book; `feedingStyle` + `adultMass` on the species rows | ⚠ **none needed**: a field reconciles when read, and the drive's first `look`/`draft` after a jump reads it; nothing must be `boot:`-listed for the integral to run | — |
 | hay in the trough | `put hay in trough` (shipped `put`) | `Feeder` is a Container (shipped) | trough row's `feederKind`; `suppliedBy` on venue troughs | none | `put` targets a Container (shipped) |
