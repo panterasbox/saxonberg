@@ -54,7 +54,7 @@ off a heap is the heap's clay.
 
 ## ⭐ Tempering is mixing — the temper pit (S3, R1)
 
-`/trade/ceramics/thing/TemperPit` is a kernel `MixingVessel` dug into the
+`/trade/ceramics/thing/TemperPit` is the kernel's `CompoundingMixin` dug into the
 yard (`Thing`, fixed): put clay and sand (grog, breeze) in, `knead pit`, and
 the kernel's blend folds them into ONE clay by mass — the pit's row names the
 clay's own row and material as the blend, so tempered clay is still `Clay`,
@@ -282,7 +282,7 @@ floors are the alluvial clay, unworked outdoors and beaten in the sheds
 — the ground soils you.
 
 **Glazes are mixing, not recipes (R1).** Each tub is a kernel
-`MixingVessel` whose `blendMaterial` is its glaze (`glaze/ash`,
+`CompoundingVessel` whose `productMaterial` is its glaze (`glaze/ash`,
 `glaze/lead`): put ash (or lead) in with a little clay and water, `stir
 tub`, and the slurry is that glaze by the vessel's name and its make-up by
 what was weighed. The *vessel* names the glaze — there is no

@@ -1,11 +1,11 @@
 # The temper pit (ceramics S3, D34) — a brick-lined pit of water dug into
 # the yard. Put clay in it, and sand or breeze, and `knead pit`: what comes
 # out is ONE clay, the Delight's own, leaner by exactly the sand that went
-# in, at the window. The pit's water is never part of the blend; the tread
+# in, at the window. The pit's water is never part of the clay; the tread
 # takes a little of it up.
 #
-# ⚠ A world row, not a trade row: the blend is CALLED the Delight's
-# alluvial clay (the vessel names the blend, the inputs decide what is in
+# ⚠ A world row, not a trade row: the product is CALLED the Delight's
+# alluvial clay (the vessel names the product, the inputs decide what is in
 # it), and a trade pack's row may not name a realm's material (R4).
 class: /trade/ceramics/thing/TemperPit
 data:
@@ -24,6 +24,6 @@ data:
   # It starts the season with water in it (the soft-soap jar's authored
   # fill); the pail and the pond keep it topped up.
   interiorAmount: 200
-  blendMaterial: /world/terminus/hearts-delight/idea/material/alluvial-clay
-  blendTemplate: /trade/quarrying/thing/clay
+  productMaterial: /world/terminus/hearts-delight/idea/material/alluvial-clay
+  productTemplate: /trade/quarrying/thing/clay
   discipline: brickmaking

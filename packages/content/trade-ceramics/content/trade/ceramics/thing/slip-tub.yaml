@@ -1,8 +1,8 @@
-# The slip tub (ceramics W7) — a mixing vessel for slip: clay and water
-# stirred together until it pours like cream (`stir tub`). ⭐ Mixing is one
-# rule (R1): the tub names the blend, the clay and water you put in decide
-# what is in it.
-class: /platform/thing/MixingVessel
+# The slip tub (ceramics W7) — a compounding vessel for slip: clay and
+# water stirred together until it pours like cream (`stir tub`). ⭐
+# Combining is one rule (R1): the tub names the product, the clay and water
+# you put in decide what is in it.
+class: /platform/thing/CompoundingVessel
 data:
   shortDescription: slip tub
   keywords: [tub, "slip tub"]
@@ -16,4 +16,4 @@ data:
   interiorBulk: true
   interiorCapacity: 20
   closure: liquidTight
-  blendMaterial: /trade/ceramics/idea/material/slip
+  productMaterial: /trade/ceramics/idea/material/slip

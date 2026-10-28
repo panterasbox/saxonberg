@@ -19,7 +19,7 @@ second glasshouse is rows.
 2. **Mix the batch, then fire it** — ⭐ two acts, and neither is a recipe
    (ceramics W0: mixing is one rule, firing is one rule).
    - **Mix.** Put sand, ash and lime in the glasshouse's **batch pot** (a
-     kernel `MixingVessel` row, `/trade/glass/thing/batch-pot`) and `stir
+     kernel `CompoundingVessel` row, `/trade/glass/thing/batch-pot`) and `stir
      pot`. The pot folds what was put in it **by mass** into one charge of
      batch (`/trade/glass/thing/batch`, a `Melt` piece of the batch
      material) whose `alloying` is COMPUTED from the inputs: the batch's
@@ -125,7 +125,7 @@ imparting into what melts in it, on the heat-work rung.
 - **Colour on `Light`** (light.md) — `Light.colour`, a boundary's
   `transmittanceColour`, the vision walk's chroma; a stained `Window`
   colours the room through it, and two windows' colours add.
-- **The firing carry** — since ceramics W0 the batch is a `MixingVessel`
+- **The firing carry** — since ceramics W0 the batch is a `CompoundingVessel`
   blend (alloying folded by mass) and the firing a heat transition on the
   batch material (`massRetained 0.72`, the piece keeps its alloying); a
   remelt is phase change with the pool carrying `BulkPayload.alloying`.

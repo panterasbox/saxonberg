@@ -81,6 +81,12 @@ export interface BuildContribution {
   /** Units banked — item contributions only (default 1). */
   count?: number;
   /**
+   * ⭐ The kilograms banked — item contributions only: every unit's mass,
+   * read when it went in (ceramics re-plan R1-D7). A bulk contribution's
+   * mass is derived, `measureL × ρ`, and is never banked.
+   */
+  massKg?: number;
+  /**
    * ⭐ The contribution's **microbial load** at the moment it was banked.
    *
    * A build buffer is a snapshot — the bottle it was poured from may be
@@ -221,6 +227,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
         gradeBand: MixinApi.isGraded(host) ? host.getGradeBand() : "fair",
         kind: "item",
         count: 1,
+        massKg: host.getMass().rawValue(),
         tags: [...material.getTags()],
         materialPath: material.getTemplatePath() ?? undefined,
         freshnessLoad: MixinApi.isFresh(host) ? host.getMicrobialLoad() : 0,

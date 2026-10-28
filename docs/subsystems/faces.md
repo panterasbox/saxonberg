@@ -27,7 +27,7 @@ carts, signs, tools, hulls and cheeses alike.
 
 ⚠ **The claim is about the GOOD; the verb is the BATH's.** Being dippable is not
 a fact about a good, so `Faced` affords nothing: `dip` is afforded by the vessel
-you dip into (`MixingVesselMixin` — the glaze and slip tubs; chandlery's dip
+you dip into (`CompoundingMixin` — the glaze and slip tubs; chandlery's dip
 pot). It was on every good for a while, and every good in reach offered `dip`
 (ceramics review, 2026-10-28).
 

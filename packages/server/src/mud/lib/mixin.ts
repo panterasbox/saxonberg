@@ -713,9 +713,9 @@ export const Mixins = {
   // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
   // Driven by heat (the host reconcilePhase), not fire-specific.
   Meltable: 'MeltableMixin',
-  // ⭐ Mixing is one rule (ceramics R1) — "what is put in me becomes one
-  // blend, its fractions the inputs' by mass". The vessel names the blend.
-  MixingVessel: 'MixingVesselMixin',
+  // ⭐ Combining is one rule (ceramics R1) — "what is put in me becomes one
+  // product, its makeup the inputs' by mass". The vessel names the product.
+  Compounding: 'CompoundingMixin',
   // ⭐ Forming (ceramics D14/D16, made general in review) — "I shape a plastic
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
@@ -1006,7 +1006,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
-  MixingVesselMixin: "{} isn't something you mix in",
+  CompoundingMixin: "{} isn't something you compound in",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
   GreenwareMixin: "{} isn't green clay",

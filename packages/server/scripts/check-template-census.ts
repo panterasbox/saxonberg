@@ -219,11 +219,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // crossing's `ferry` the boat that works it and its `service` the
     // timetable it runs to (W12).
     'destination', 'along', 'entrance', 'house', 'expanse', 'of',
-    // ⭐ The mixing citations (ceramics R1): what a vessel's blend IS and
-    // the row a solid blend is minted as. Resolved live at the end of a
-    // `stir` or a `knead`, and a rowless one is a blend that consumes its
-    // inputs and mints nothing.
-    'blendMaterial', 'blendTemplate',
+    // ⭐ The compounding citations (ceramics R1): what a vessel's product
+    // IS and the row a solid product is minted as. Resolved live at the end
+    // of a `stir` or a `knead`, and a rowless one is a compounding that
+    // consumes its inputs and mints nothing.
+    'productMaterial', 'productTemplate',
     // ⭐ A form word's `product` (ceramics D16) — the row a shaped piece is
     // minted as, resolved live at the end of a `shape`; a rowless one is a
     // throw that consumes the clay and mints nothing.

@@ -181,15 +181,18 @@ export default class PourController extends ManualBuildController<PourModel> {
       beginPeers: Mml.compose`${Mml.actor(giver)} adds ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`,
       onComplete: () => {
         if (ingredient.isDestroyed()) return; // gone mid-step — nothing to add
+        const count = MixinApi.isStackable(ingredient)
+          ? ingredient.getQuantity()
+          : 1;
         build.addContribution({
           measureL: 0,
           gradeBand: MixinApi.isGraded(ingredient)
             ? ingredient.getGradeBand()
             : "fair",
           kind: "item",
-          count: MixinApi.isStackable(ingredient)
-            ? ingredient.getQuantity()
-            : 1,
+          count,
+          // Every unit's mass — `getMass()` is one unit's.
+          massKg: ingredient.getMass().rawValue() * count,
           tags: [...material.getTags()],
           materialPath: material.getTemplatePath() ?? undefined,
           pathogenLoads: MixinApi.isContaminable(ingredient)

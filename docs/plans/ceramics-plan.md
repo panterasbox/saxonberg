@@ -1220,7 +1220,10 @@ left a fork the lens that chose is named.
   bucket. The glass batch's iron is its sand's by this fold (glass.md's
   colour-as-grade unchanged); the glaze's flux names the coat. *Decided
   by* lens 1 (a blend is arithmetic a player can predict) and the owner's
-  R1.
+  R1. *(Renamed in re-plan R1, W-R1b: `CompoundingMixin` in
+  `K/lib/material/Compounding.ts`, `productMaterial`/`productTemplate`,
+  `compound(by, verb)`, the kernel twin `CompoundingVessel`; the fold is
+  `MaterialApi.foldMakeup`.)*
 
 ### Build decisions (recorded as the build made them)
 
@@ -1234,6 +1237,8 @@ left a fork the lens that chose is named.
 - **B2 (W0) — The pool field is `BulkPayload.alloying`, not `composition`.**
   `composition` is already the drink blend's (`BlendPart[]`). It is the
   piece's own `alloying`, molten. ⚠ The sibling note's name changes.
+  *(Renamed in re-plan R1: both are `BulkPayload.makeup` now, by mass
+  fraction — W-R1a.)*
 - **B3 (W0) — `requiresStarvedAir: true`, not `requiresAtmosphereBelow: <n>`.**
   One dial, two readers (R3): the transition and `FireLogic.mediumBurns` both
   read `fire.air.flamingCompleteness`; a number on each wood row would drift.
@@ -1639,7 +1644,8 @@ left a fork the lens that chose is named.
   the coat material's `coatWord` (`glazed` on the four glaze rows). Composition
   audit: `Faced` on `Good` stands (the claim is true of every good), but it
   had been AFFORDING `dip` on every good — the bath affords it now
-  (`MixingVesselMixin`, and chandlery's dip pot as on master); and a coated
+  (`MixingVesselMixin` — `CompoundingMixin` since re-plan R1 W-R1b — and
+  chandlery's dip pot as on master); and a coated
   stack no longer merges with a bare one (a coat signature in `canMergeWith`).
   The paint slate gains § 0: setting by binder, wear, one color read, and one
   stack shared with construction's layers are the paint build's, on `Faced`.
@@ -2040,6 +2046,14 @@ expansion function in the tree; every row names the new class; the
 `refactor(compounding): one makeup fold in MaterialLogic; MixingVessel is
 CompoundingVessel`.
 
+✅ **W-R1b done (2026-10-28).** One fold (`MaterialApi.makeupOf`/`foldMakeup`
+→ `MaterialLogic`); CraftingLogic's three call sites and `blend` (now over
+`chargeContributions()`) use it; the act is `compound(by, verb)` (TemperPit's
+too). Decided here: whatever a record or kind composition leaves unaccounted is
+the material ITSELF (a shoulder is 0.12 fat + 0.88 shoulder; a diluted pour's
+thinned makeup folds its water as the slot's own material), and a charged
+stack weighs every unit (`getMass() × count`; `blend` had counted one).
+
 **W-R1c — one mint.** Files: `K/api/crafting.ts` (`BuildMintRequest.charge?:
 Stuff`, `contributions` optional when `charge` is given), `CraftingLogic.ts`
 `mintFromBuildImpl` l.2612–2675 (a charge → `chargeContributions()`; after a
@@ -2411,7 +2425,9 @@ batch pot.
 - `K/lib/thermal/Thermal.ts`: `poolVesselIn(scope)` in `doMelt`; the
   `Burning`-host and `requiresAtmosphereBelow` skips in
   `reconcileHeatWork`.
-- Mixing (D34): `K/lib/material/Mixing.ts` (`MixingVesselMixin` +
+- Mixing (D34; *renamed in re-plan R1 W-R1b — `Compounding.ts`,
+  `CompoundingMixin`, `CompoundingVessel`, `productMaterial`/
+  `productTemplate`*): `K/lib/material/Mixing.ts` (`MixingVesselMixin` +
   `Mixins.MixingVessel` + `isMixingVessel`), `K/platform/thing/
   MixingVessel.ts` (`MixingVesselMixin(ContainerMixin(BulkableMixin(
   ThermalMixin(Good))))`); `K/platform/idea/cmd/crafting/StirController.ts`

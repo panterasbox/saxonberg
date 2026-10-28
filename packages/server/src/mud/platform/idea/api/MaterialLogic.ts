@@ -7,12 +7,14 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import Material from '../../../lib/material/Material';
+import type { CompositionEntry } from '../../../lib/material/Material';
 import type {
   MaterialComposition,
   AttenuationResult,
   TraumaResolution,
   OutcomeBand,
   ResistanceCandidate,
+  MakeupPart,
 } from '../../../api/material';
 import type { ContactWetness } from '../../../api/material';
 import { StuffApi } from '../../../api/stuff';
@@ -282,6 +284,66 @@ export class MaterialLogic extends ApiLogic {
     if (!Number.isFinite(kg) || kg <= 0) return 0;
     return kg / servingKg(material);
   }
+
+  // ---------- what a thing is made of (ceramics re-plan R1-D6) ----------
+
+  /** See {@link MaterialApi.makeupOf}. */
+  @CallSecurity(MaterialApiCallers)
+  public makeupOf(
+    material: Material | null,
+    own?: readonly CompositionEntry[],
+  ): CompositionEntry[] {
+    return makeupOfImpl(material, own);
+  }
+
+  /** See {@link MaterialApi.foldMakeup}. */
+  @CallSecurity(MaterialApiCallers)
+  public foldMakeup(parts: readonly MakeupPart[]): CompositionEntry[] {
+    const kgByPath = new Map<string, number>();
+    for (const part of parts) {
+      if (!(part.kg > 0)) continue;
+      for (const e of makeupOfImpl(part.material, part.makeup)) {
+        kgByPath.set(e.materialPath, (kgByPath.get(e.materialPath) ?? 0) + e.fraction * part.kg);
+      }
+    }
+    const total = [...kgByPath.values()].reduce((a, b) => a + b, 0);
+    if (!(total > 0)) return [];
+    return [...kgByPath]
+      .map(([materialPath, kg]) => ({ materialPath, fraction: kg / total }))
+      .filter((e) => e.fraction > MAKEUP_EPSILON);
+  }
+}
+
+// ---------- the makeup expansion (module-private) ----------
+
+/** The smallest fraction of a makeup worth keeping. */
+const MAKEUP_EPSILON = 1e-6;
+
+/**
+ * The one expansion behind {@link MaterialApi.makeupOf}: the record, else
+ * the kind, else the whole — then the remainder is the material itself
+ * (and an over-full record is scaled to 1).
+ */
+function makeupOfImpl(
+  material: Material | null,
+  own?: readonly CompositionEntry[],
+): CompositionEntry[] {
+  const recorded = (own ?? []).filter((e) => e.materialPath && e.fraction > MAKEUP_EPSILON);
+  const entries =
+    recorded.length > 0
+      ? recorded.map((e) => ({ ...e }))
+      : (material?.getComposition() ?? [])
+          .filter((e) => e.materialPath && e.fraction > MAKEUP_EPSILON)
+          .map((e) => ({ ...e }));
+  const sum = entries.reduce((a, e) => a + e.fraction, 0);
+  if (sum > 1) return entries.map((e) => ({ ...e, fraction: e.fraction / sum }));
+  const self = material?.getTemplatePath() ?? '';
+  const rest = 1 - sum;
+  if (self === '' || !(rest > MAKEUP_EPSILON)) return entries;
+  const mine = entries.find((e) => e.materialPath === self);
+  if (mine) mine.fraction += rest;
+  else entries.push({ materialPath: self, fraction: rest });
+  return entries;
 }
 
 // ---------- response-function internals (module-private free functions) ----------

@@ -96,7 +96,7 @@ import type {
   FitRequest,
   FitOutcome,
 } from '../../../api/crafting';
-import { MaterialApi } from '../../../api/material';
+import { MaterialApi, type MakeupPart } from '../../../api/material';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { CLEAN_TIERS } from '../../../lib/cleanliness/Soilable';
@@ -1377,23 +1377,6 @@ function resolveSpoilage(
 }
 
 /**
- * One consumed input to a blend or a made-of-parts mint: its Material, the
- * mass of it that went in, and — when it was already a blend — what it was
- * itself made of.
- */
-interface MakeupPart {
-  material: Material;
-  /** Kilograms of this input consumed into the product. */
-  kg: number;
-  /**
-   * ⭐⭐ **What this input was itself made of**, by mass fraction, when it
-   * was already a blend. See the expansion in {@link foldMakeupParts} —
-   * this is the whole of D25.
-   */
-  makeup?: readonly CompositionEntry[];
-}
-
-/**
  * The kilograms a consumed input contributes to a product's makeup: a
  * bulk draw is its litres at its density; an item is `count` servings of
  * its material — the "each unit is one serving" rule the craft has always
@@ -1405,41 +1388,6 @@ function bulkPartKg(material: Material, litres: number): number {
 }
 function itemPartKg(material: Material, count: number): number {
   return Math.max(0, count) * MaterialApi.servingKgOf(material);
-}
-
-/**
- * ⭐ Fold consumed inputs into ONE makeup by mass (ceramics re-plan
- * R1-D1): each input contributes its own material, or — when it was
- * already a blend — its parts, each `fraction × kg`; the result is every
- * path's share of the total mass, in first-seen order.
- *
- * ⭐⭐ **A consumed input's PARTS, not its identity** (grain-chain D25).
- * "Macros in = macros out" applied to what the input was actually made
- * of: flour whose payload says *72 % endosperm, 28 % bran* contributes
- * endosperm and bran, not "flour" — or the loaf at the far end is white
- * however dark the flour was, silently. A parts-less input behaves
- * exactly as before: one part, its own material.
- */
-function foldMakeupParts(parts: readonly MakeupPart[]): CompositionEntry[] {
-  const kgByPath = new Map<string, number>();
-  const add = (path: string, kg: number): void => {
-    if (!path || !(kg > 0)) return;
-    kgByPath.set(path, (kgByPath.get(path) ?? 0) + kg);
-  };
-  for (const part of parts) {
-    const inner = part.makeup ?? [];
-    const innerTotal = inner.reduce((a, b) => a + (b.fraction > 0 ? b.fraction : 0), 0);
-    if (innerTotal > 0) {
-      for (const sub of inner) {
-        if (sub.fraction > 0) add(sub.materialPath, (sub.fraction / innerTotal) * part.kg);
-      }
-      continue;
-    }
-    add(part.material.getTemplatePath() ?? '', part.kg);
-  }
-  const total = [...kgByPath.values()].reduce((a, b) => a + b, 0);
-  if (!(total > 0)) return [];
-  return [...kgByPath].map(([materialPath, kg]) => ({ materialPath, fraction: kg / total }));
 }
 
 /**
@@ -1466,7 +1414,7 @@ function deriveBlendPayload(
   // fact below — the tastes, the tags, the label — is a function of
   // exactly this, and carrying it properly is what lets each subsystem
   // compute its own instead of being handed the answer.
-  const makeup = foldMakeupParts(parts);
+  const makeup = MaterialApi.foldMakeup(parts);
   // ⚠⚠ The nutrition, the toxins and the edibility are NOT computed here
   // any more — they are functions of the composition below, and
   // `BlendLabel` computes them on read. What IS recorded is the heat the
@@ -1828,7 +1776,7 @@ async function applyBulkOutput(
         ...matchedItems.map((m) => ({
           material: m.material,
           kg: itemPartKg(m.material, m.count),
-          makeup: MixinApi.isComposition(m.stuff) ? m.stuff.getMakeup() : undefined,
+          makeup: MixinApi.isComposition(m.stuff) ? m.stuff.effectiveMakeup() : undefined,
         })),
       ],
       effectiveHeatK,
@@ -2010,10 +1958,10 @@ async function applyTangibleOutput(
   // ⭐ …and what it is MADE OF (D26). The inputs' parts, folded by mass,
   // land on the output's `CompositionMixin` face — the fifth and last
   // link of the chain that carries an extraction from the mill to the
-  // plate. A parts-less input contributes its own material, exactly as
-  // `deriveBlendPayload` does for a blend.
+  // plate. One fold for both (`MaterialApi.foldMakeup`): a parts-less
+  // input contributes its kind's composition, else its own material.
   if (MixinApi.isComposition(output)) {
-    const makeup = foldMakeupParts([
+    const makeup = MaterialApi.foldMakeup([
       ...matched.flatMap((m) =>
         m.material
           ? [
@@ -2028,7 +1976,7 @@ async function applyTangibleOutput(
       ...matchedItems.map((m) => ({
         material: m.material,
         kg: itemPartKg(m.material, m.count),
-        makeup: MixinApi.isComposition(m.stuff) ? m.stuff.getMakeup() : undefined,
+        makeup: MixinApi.isComposition(m.stuff) ? m.stuff.effectiveMakeup() : undefined,
       })),
     ]);
     if (makeup.length > 0) output.setMakeup(makeup);
@@ -2159,7 +2107,7 @@ async function applyEdibleOutput(
       matchedItems.map((m) => ({
         material: m.material,
         kg: itemPartKg(m.material, m.count),
-        makeup: MixinApi.isComposition(m.stuff) ? m.stuff.getMakeup() : undefined,
+        makeup: MixinApi.isComposition(m.stuff) ? m.stuff.effectiveMakeup() : undefined,
       })),
       effectiveHeatK,
       makerPath,

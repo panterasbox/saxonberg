@@ -3,7 +3,7 @@
 > Shipped by the rubber build (2026-10). Pack: `trade-rubber` at
 > `/trade/rubber`. Kernel: the heat-work face of `ThermalMixin` +
 > `lib/material/HeatTransition.ts` (ceramics M1 — the cure was the first
-> transition), `MixingVesselMixin` (ceramics R1), `fire … for`, the mould
+> transition), `CompoundingMixin` (ceramics R1), `fire … for`, the mould
 > seam in `Thermal.applyRung`, `Mould.holdsCast`. Places: the rubber
 > works off the Terminus goods yards. Model of what is over a place:
 > [construction.md](./construction.md).
@@ -40,7 +40,7 @@
 ## Compounding — mixing, not a recipe
 
 ⭐ Raw rubber does not cure by itself: it is milled with sulfur first, at
-the works' **mixing tub** (`thing/mixing-tub`, a kernel `MixingVessel`
+the works' **mixing tub** (`thing/mixing-tub`, a kernel `CompoundingVessel`
 row). `put raw-rubber in tub`, `put sulfur in tub`, `knead tub` — and the
 tub folds what went in into ONE piece of **compounded stock**
 (`thing/compounded-stock`, a `Casting`, material

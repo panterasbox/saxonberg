@@ -1,10 +1,10 @@
 # The mixing tub — where raw rubber is milled with sulfur before the cure.
 #
-# ⭐ Mixing is one rule (ceramics R1): put raw rubber and sulfur in and
+# ⭐ Combining is one rule (ceramics R1): put raw rubber and sulfur in and
 # `knead tub`, and what comes out is ONE piece of compounded rubber whose
 # sulfur fraction is the sulfur's share of what went in, by mass. No recipe
 # and no ratio: a little sulfur is a soft rubber, a fifth is ebonite.
-class: /platform/thing/MixingVessel
+class: /platform/thing/CompoundingVessel
 data:
   shortDescription: mixing tub
   keywords: [tub, "mixing tub", mixing]
@@ -16,5 +16,5 @@ data:
   mass: 30
   fixedInPlace: true
   interiorBulk: false
-  blendMaterial: /stuff/idea/material/organic/compounded-rubber
-  blendTemplate: /trade/rubber/thing/compounded-stock
+  productMaterial: /stuff/idea/material/organic/compounded-rubber
+  productTemplate: /trade/rubber/thing/compounded-stock

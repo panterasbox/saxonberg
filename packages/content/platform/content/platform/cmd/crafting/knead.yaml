@@ -32,7 +32,7 @@ args:
     # ⭐ Bare `knead` works the trough or tub you are at — DECLARED, so the
     # binder resolves it (`lint:instrument-args`). A union of the two
     # shipped planners.
-    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.MixingVesselMixin]"
+    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
     # ⚠ `requires:` names mixins only and a planner is a protocol, so the
     # gate is `any` and the controller asks the vessel for its plan (the
     # `cut` precedent).

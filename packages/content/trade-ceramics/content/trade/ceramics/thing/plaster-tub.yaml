@@ -1,7 +1,7 @@
 # The plaster tub (ceramics W7) — burnt gypsum and water stirred to a slurry
 # (`stir tub`) that has a quarter of an hour in it before it sets. Pour it
 # into a case while it still pours.
-class: /platform/thing/MixingVessel
+class: /platform/thing/CompoundingVessel
 data:
   shortDescription: plaster tub
   keywords: [tub, "plaster tub"]
@@ -15,4 +15,4 @@ data:
   interiorBulk: true
   interiorCapacity: 10
   closure: liquidTight
-  blendMaterial: /trade/ceramics/idea/material/plaster-slurry
+  productMaterial: /trade/ceramics/idea/material/plaster-slurry

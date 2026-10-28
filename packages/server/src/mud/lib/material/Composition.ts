@@ -36,6 +36,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CompositionEntry } from './Material';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 
 // ⭐ A pool carries its makeup (ceramics ruling C, revision 2; one record
 // since re-plan R1): declared from the folder that owns the concept (the
@@ -124,10 +126,9 @@ export function CompositionMixin<TBase extends MixinConstructor>(Base: TBase) {
     public effectiveMakeup(): CompositionEntry[] {
       const minor = this.makeup.filter((e) => e.fraction > EPSILON);
       const dissolved = minor.reduce((sum, e) => sum + e.fraction, 0);
-      const host = (this as unknown as {
-        getMaterial?(): { getComposition?(): readonly CompositionEntry[] } | null;
-      }).getMaterial?.();
-      const kind = host?.getComposition?.() ?? [];
+      const self = this as unknown as Stuff;
+      const host = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      const kind = host?.getComposition() ?? [];
       const remainder = Math.max(0, 1 - dissolved);
       // ⚠ A pure element authors an EMPTY composition, so there is
       // nothing to scale and the makeup entries are the whole answer

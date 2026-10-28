@@ -551,7 +551,7 @@ const FAUCETS: Record<string, string> = {
   adornments: "cloned onto the host",
   trapTemplate: "a hazard mints it",
   castTemplate: "what a frozen pool becomes",
-  blendTemplate: "a mixing vessel mints its blend (ceramics R1)",
+  productTemplate: "a compounding vessel mints its product (ceramics R1)",
   // ⭐ An instrument's or a clay's `formTemplates:` map, keyed by form class
   // (ceramics D16): a `shape` mints the row the class names.
   product: "a Form word's product — a `shape` mints it (ceramics D16)",

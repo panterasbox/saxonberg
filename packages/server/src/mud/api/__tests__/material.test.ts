@@ -227,3 +227,62 @@ describe('MaterialLogic singleton encapsulation', () => {
     expect(() => logic!.findByTag('iron')).toThrow(SecurityError);
   });
 });
+
+describe('MaterialApi.makeupOf / foldMakeup — combining is one rule (ceramics re-plan R1-D6)', () => {
+  beforeEach(() => StuffApi.clearAll());
+  afterEach(() => StuffApi.clearAll());
+
+  function mat(path: string, composition: { materialPath: string; fraction: number }[] = []): Material {
+    const m = makeStuff(() => new Material());
+    stampTemplatePathForTest(m, path);
+    m.setComposition(composition);
+    return m;
+  }
+  const share = (entries: readonly { materialPath: string; fraction: number }[], p: string): number =>
+    entries.find((e) => e.materialPath === p)?.fraction ?? 0;
+
+  it('a material with no record and no kind composition is itself, whole', () => {
+    const gin = mat('/stuff/idea/material/_fold/gin');
+    expect(MaterialApi.makeupOf(gin)).toEqual([{ materialPath: '/stuff/idea/material/_fold/gin', fraction: 1 }]);
+  });
+
+  it('⭐ a partial kind composition leaves the rest to the material itself — no mass goes missing', () => {
+    const shoulder = mat('/stuff/idea/material/_fold/shoulder', [
+      { materialPath: '/stuff/idea/material/_fold/fat', fraction: 0.12 },
+    ]);
+    const out = MaterialApi.makeupOf(shoulder);
+    expect(share(out, '/stuff/idea/material/_fold/fat')).toBeCloseTo(0.12, 9);
+    expect(share(out, '/stuff/idea/material/_fold/shoulder')).toBeCloseTo(0.88, 9);
+  });
+
+  it('a piece’s own record wins over the kind; an over-full record scales to 1', () => {
+    const clay = mat('/stuff/idea/material/_fold/clay', [
+      { materialPath: '/stuff/idea/material/_fold/mineral', fraction: 1 },
+    ]);
+    const own = [
+      { materialPath: '/stuff/idea/material/_fold/mineral', fraction: 1 },
+      { materialPath: '/stuff/idea/material/_fold/sand', fraction: 1 },
+    ];
+    const out = MaterialApi.makeupOf(clay, own);
+    expect(share(out, '/stuff/idea/material/_fold/mineral')).toBeCloseTo(0.5, 9);
+    expect(share(out, '/stuff/idea/material/_fold/sand')).toBeCloseTo(0.5, 9);
+  });
+
+  it('⭐ folds by mass, expanding each part: 8 kg of 0.4 % iron sand in 16 kg is 0.2 % iron', () => {
+    const sand = mat('/stuff/idea/material/_fold/sand');
+    const ash = mat('/stuff/idea/material/_fold/ash');
+    const iron = '/stuff/idea/material/_fold/iron';
+    const out = MaterialApi.foldMakeup([
+      { material: sand, kg: 8, makeup: [{ materialPath: iron, fraction: 0.004 }] },
+      { material: ash, kg: 8 },
+    ]);
+    expect(share(out, iron)).toBeCloseTo(0.002, 9);
+    expect(share(out, '/stuff/idea/material/_fold/sand')).toBeCloseTo(0.498, 9);
+    expect(share(out, '/stuff/idea/material/_fold/ash')).toBeCloseTo(0.5, 9);
+    expect(out.reduce((a, e) => a + e.fraction, 0)).toBeCloseTo(1, 9);
+  });
+
+  it('nothing weighed folds to nothing', () => {
+    expect(MaterialApi.foldMakeup([{ material: mat('/stuff/idea/material/_fold/x'), kg: 0 }])).toEqual([]);
+  });
+});

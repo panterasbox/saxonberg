@@ -1,8 +1,8 @@
-# The lead-glaze tub (ceramics S8, R1) — a MIXING vessel: lead, a little
+# The lead-glaze tub (ceramics S8, R1) — a COMPOUNDING vessel: lead, a little
 # clay and water, stirred, is a lead glaze — glossy, runs smooth at
 # earthenware heat, and (M7) gives lead to anything sour kept against it,
 # which nothing about it says.
-class: /platform/thing/MixingVessel
+class: /platform/thing/CompoundingVessel
 data:
   shortDescription: lead-glaze tub
   # ⚠ Never bare `lead`: the pig of lead answers to it.
@@ -15,4 +15,4 @@ data:
   fixedInPlace: true
   interiorBulk: true
   interiorCapacity: 40
-  blendMaterial: /stuff/idea/material/glaze/lead
+  productMaterial: /stuff/idea/material/glaze/lead

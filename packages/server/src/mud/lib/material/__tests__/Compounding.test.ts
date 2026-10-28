@@ -1,14 +1,15 @@
 /**
- * ⭐⭐ Mixing is ONE rule (ceramics R1, D34): what goes into a mixing vessel
- * comes out as ONE blend whose make-up is the inputs' by mass. No recipe,
- * no ratio — a little more sulfur is a harder rubber.
+ * ⭐⭐ Combining is ONE rule (ceramics R1, D34): what goes into a
+ * compounding vessel comes out as ONE product whose makeup is the inputs'
+ * by mass. No recipe, no ratio — a little more sulfur is a harder rubber.
  */
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Material from '../Material';
-import MixingVessel from '../../../platform/thing/MixingVessel';
+import CompoundingVessel from '../../../platform/thing/CompoundingVessel';
 import Casting from '../../../platform/thing/Casting';
+import Scrap from '../../../platform/thing/Scrap';
 import { HeatTransition } from '../HeatTransition';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -46,11 +47,11 @@ function lumpOf(path: string, kg: number): Casting {
   return t;
 }
 
-function tub(blendTemplate: string, blendMaterial: string): MixingVessel {
+function tub(productTemplate: string, productMaterial: string): CompoundingVessel {
   return makeStuff(() => {
-    const v = new MixingVessel();
-    (v as unknown as { blendMaterial: string }).blendMaterial = blendMaterial;
-    (v as unknown as { blendTemplate: string }).blendTemplate = blendTemplate;
+    const v = new CompoundingVessel();
+    (v as unknown as { productMaterial: string }).productMaterial = productMaterial;
+    (v as unknown as { productTemplate: string }).productTemplate = productTemplate;
     v.interiorBulk = true;
     v.setInteriorCapacity(Quantity.of(20, 'L'));
     return v;
@@ -137,11 +138,39 @@ describe('the blend is the inputs, by mass', () => {
     const v = tub(STOCK_ROW, COMPOUND);
     ContainmentApi.move(lumpOf(COMPOUND, 1) as never, v as never);
     const out = await v.blend(null);
-    expect(out).toEqual({ ok: false, reason: 'already-blended' });
+    expect(out).toEqual({ ok: false, reason: 'already-compounded' });
   });
 
   it('an empty vessel blends nothing', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
     expect(await v.blend(null)).toEqual({ ok: false, reason: 'empty' });
+  });
+});
+
+describe('the charge', () => {
+  it('⭐ a stack weighs every unit in it — three 1 kg lumps of sulfur are 3 kg', async () => {
+    const v = tub(STOCK_ROW, COMPOUND);
+    ContainmentApi.move(lumpOf(RAW, 3) as never, v as never);
+    const sulfur = makeStuff(() => new Scrap());
+    sulfur.setMass(Quantity.of(1, 'kg'));
+    sulfur.setMaterial(StuffApi.findByTemplatePath<Material>(SULFUR) as unknown as Material);
+    sulfur.setQuantity(3);
+    ContainmentApi.move(sulfur as never, v as never);
+    const charge = v.chargeContributions();
+    expect(charge.map((c) => c.massKg)).toEqual([3, 3]);
+    const out = await v.blend(null);
+    expect(out.ok && out.massKg).toBeCloseTo(6, 6);
+    const stock = v.getContents()[0] as unknown as Casting;
+    expect(stock.fractionOf(SULFUR)).toBeCloseTo(0.5, 6);
+  });
+
+  it('the belly is one bulk contribution, its makeup and loads read off the slot', () => {
+    const v = tub('', SLIP);
+    v.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(WATER)!);
+    v.setBulkAmount('interior', Quantity.of(2, 'L'));
+    const [belly] = v.chargeContributions();
+    expect(belly?.kind).toBeUndefined();
+    expect(belly?.measureL).toBe(2);
+    expect(belly?.materialPath).toBe(WATER);
   });
 });

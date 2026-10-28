@@ -85,6 +85,20 @@ export interface MaterialComposition {
   flat: Record<string, number>;
 }
 
+/**
+ * One input to a fold of several into one ({@link MaterialApi.foldMakeup}):
+ * its Material, the kilograms of it that went in, and — when the piece or
+ * pool already records one — what it was itself made of, by mass fraction
+ * (a piece's `effectiveMakeup()`, a pool's `BulkPayload.makeup`).
+ */
+export interface MakeupPart {
+  material: Material;
+  /** Kilograms of this input folded into the product. */
+  kg: number;
+  /** What this input was itself made of; absent = read it off the kind. */
+  makeup?: readonly CompositionEntry[];
+}
+
 // ---------- the materials-response function (three-axis) ----------
 
 /**
@@ -471,6 +485,34 @@ export class MaterialApi {
    */
   public static servingsOf(material: Material, kg: number): number {
     return logic().servingsOf(material, kg);
+  }
+
+  // ---------- what a thing is made of (ceramics re-plan R1-D6) ----------
+
+  /**
+   * ⭐ **What one input is made of**, as entries summing to 1 by mass: the
+   * piece's or pool's `own` record when it has one, else `material`'s
+   * kind composition, else the material whole. Whatever a record leaves
+   * unaccounted is the material itself — a shoulder authored as 12 %
+   * animal fat is 88 % shoulder, and a bar recording 0.6 % carbon is
+   * 99.4 % its own iron — so no input's mass goes missing from a fold.
+   */
+  public static makeupOf(
+    material: Material | null,
+    own?: readonly CompositionEntry[],
+  ): CompositionEntry[] {
+    return logic().makeupOf(material, own);
+  }
+
+  /**
+   * ⭐⭐ **Combining is one rule**: fold several inputs into ONE makeup by
+   * mass. Each part contributes {@link makeupOf} itself, each entry
+   * `fraction × kg`; the result is every material's share of the whole,
+   * in first-seen order. Flour that knows it is 28 % bran gives bran, not
+   * "flour"; a sand that carries 0.4 % iron gives the batch its iron.
+   */
+  public static foldMakeup(parts: readonly MakeupPart[]): CompositionEntry[] {
+    return logic().foldMakeup(parts);
   }
 }
 

@@ -142,7 +142,7 @@ import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
-import type { MixingVessel } from '../lib/material/Mixing';
+import type { Compounding } from '../lib/material/Compounding';
 import type { Faced } from '../lib/material/Faced';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
@@ -1748,8 +1748,8 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Meltable);
   }
 
-  public static isMixingVessel(obj: Stuff): obj is Stuff & MixingVessel {
-    return this.hasMixin(obj, Mixins.MixingVessel);
+  public static isCompounding(obj: Stuff): obj is Stuff & Compounding {
+    return this.hasMixin(obj, Mixins.Compounding);
   }
 
   public static isFaced(obj: Stuff): obj is Stuff & Faced {

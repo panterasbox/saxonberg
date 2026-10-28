@@ -54,8 +54,8 @@ function pit(withWater: boolean): TemperPit {
   const p = makeStuff(() => new TemperPit());
   p.interiorBulk = true;
   p.setInteriorCapacity(Quantity.of(400, 'L'));
-  p.blendMaterial = clayMat.getTemplatePath()!;
-  p.blendTemplate = '/trade/quarrying/thing/clay';
+  p.productMaterial = clayMat.getTemplatePath()!;
+  p.productTemplate = '/trade/quarrying/thing/clay';
   if (withWater) {
     p.setBulkMaterial('interior', water);
     p.setBulkAmount('interior', Quantity.of(100, 'L'));

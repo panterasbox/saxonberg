@@ -1,9 +1,9 @@
 /**
  * ⭐⭐ The glass batch is MIXED, then FIRED — and neither is a recipe
- * (ceramics W0: R1 mixing is one rule, M1 firing is one rule).
+ * (ceramics W0: R1 combining is one rule, M1 firing is one rule).
  *
  * The three retired rows (`glass-batch`, `glass-batch-amber`,
- * `remelt-cullet`) are replaced by: a batch pot (a kernel `MixingVessel`
+ * `remelt-cullet`) are replaced by: a batch pot (a kernel `CompoundingVessel`
  * row) that folds what is put in it by mass — so the batch's iron IS its
  * sand's iron, and charcoal in the pot is amber — and a batch MATERIAL
  * whose heat transition melts it to glass, keeping 72 % of its mass and
@@ -18,7 +18,7 @@ import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { parse } from "yaml";
 import Material from "@saxonberg/server/mud/platform/idea/material/Material";
-import MixingVessel from "@saxonberg/server/mud/platform/thing/MixingVessel";
+import CompoundingVessel from "@saxonberg/server/mud/platform/thing/CompoundingVessel";
 import Oven from "@saxonberg/server/mud/platform/thing/Oven";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import Place from "@saxonberg/server/mud/lib/stuff/Place";
@@ -89,9 +89,9 @@ describe("the shipped rows", () => {
 
   it("the batch pot is a mixing vessel naming the batch rows; no recipe survives", () => {
     const pot = row(thingDir, "batch-pot.yaml");
-    expect(pot.class).toBe("/platform/thing/MixingVessel");
-    expect(pot.data["blendMaterial"]).toBe("/trade/glass/idea/material/batch");
-    expect(pot.data["blendTemplate"]).toBe("/trade/glass/thing/batch");
+    expect(pot.class).toBe("/platform/thing/CompoundingVessel");
+    expect(pot.data["productMaterial"]).toBe("/trade/glass/idea/material/batch");
+    expect(pot.data["productTemplate"]).toBe("/trade/glass/thing/batch");
     const batch = row(thingDir, "batch.yaml");
     expect(batch.class).toBe("/trade/glass/thing/Melt");
     expect(batch.data["makeup"]).toBeUndefined(); // computed, never authored
@@ -141,10 +141,10 @@ describe("mix, then fire", () => {
     WorldClockApi._resetForTesting();
   });
 
-  function pot(): MixingVessel {
-    const v = makeStuff(() => new MixingVessel());
-    (v as unknown as { blendMaterial: string }).blendMaterial = batchM.getTemplatePath()!;
-    (v as unknown as { blendTemplate: string }).blendTemplate = "/trade/glass/thing/batch";
+  function pot(): CompoundingVessel {
+    const v = makeStuff(() => new CompoundingVessel());
+    (v as unknown as { productMaterial: string }).productMaterial = batchM.getTemplatePath()!;
+    (v as unknown as { productTemplate: string }).productTemplate = "/trade/glass/thing/batch";
     return v;
   }
 
@@ -154,7 +154,7 @@ describe("mix, then fire", () => {
     return s;
   }
 
-  async function charge(v: MixingVessel, extras: Stuff[] = []): Promise<Melt> {
+  async function charge(v: CompoundingVessel, extras: Stuff[] = []): Promise<Melt> {
     for (const p of [sandOf(0.004), sandOf(0.004), piece(() => new Lump(), ashM, 4), piece(() => new Lump(), limeM, 4), ...extras]) {
       ContainmentApi.move(p as never, v as never);
     }
