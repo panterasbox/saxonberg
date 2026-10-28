@@ -840,7 +840,11 @@ suite('⭐ 23 — breakage and mending', () => {
     const sound = (r: Row): boolean => !/crack|dunt|burst|slumped/i.test(String(r.longDescription ?? ''));
     // Sound bowls first; a dunted one will do for the second (18b's hot
     // opening dunts what it holds — run 37 found one sound bowl).
-    const ruined = (r: Row): boolean => /burst|slumped/i.test(String(r.longDescription ?? ''));
+    // ⚠ And FIRED: a bowl 18b's short firing reached but never turned is
+    // still clay — not brittle, so it does not shatter (run 41: "still
+    // alluvial clay" held on the setts). Green ware is no use either.
+    const ruined = (r: Row): boolean =>
+      /burst|slumped|still [a-z ]*clay|It is green/i.test(String(r.longDescription ?? ''));
     const allBowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
       .filter((r) => r.stuffId && by(r, potter) && !ruined(r));
     // The THIN one goes on the stone — a thick wall stands the drop (run 40
