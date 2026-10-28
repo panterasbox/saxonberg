@@ -38,8 +38,6 @@ import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import Field from '@saxonberg/content-trade-farming/src/location/Field';
 import HerdRegistry, { type HerdRecord } from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
-import Herdbook from '../../../thing/Herdbook';
-import Livestock from '../../../agent/Livestock';
 
 interface MoveModel extends CommandModel {
   herd?: string;
@@ -50,11 +48,11 @@ export default class MoveController extends CommandController<MoveModel> {
   async execute(model: MoveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
-    const herd = await this.pickHerd(registry, giver, model.herd);
+    const herd = await this.pickHerd(registry, model.herd);
     if (!herd) {
       this.decline(
         context,
-        Mml.compose`Move which herd? Stand by its book, or beside one of its animals.`,
+        Mml.compose`Move which herd? Name it — the college herd, the dairy herd.`,
         'no-herd',
       );
       return;
@@ -100,7 +98,6 @@ export default class MoveController extends CommandController<MoveModel> {
       return;
     }
     await registry.graze(herd.herdId, field);
-    this.noteBooks(giver, herd.herdId, field);
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
@@ -111,47 +108,25 @@ export default class MoveController extends CommandController<MoveModel> {
   }
 
   /**
-   * The herd named, else the one whose book stands here, else the one a
-   * drafted head beside the keeper came out of.
+   * The herd named — its name, a word of it, with or without the article
+   * or a trailing "herd" — else the only herd filed. ⚠ Never found by
+   * walking the room: resolution is the binder's (lint:instrument-args).
    */
   private async pickHerd(
     registry: HerdRegistry,
-    giver: Stuff,
     named?: string,
   ): Promise<HerdRecord | null> {
     const words = (named ?? '').trim();
-    if (words) {
-      const byName = await registry.named(words);
-      if (byName) return byName;
-      // `move the college herd` — the article is not part of the name.
-      const bare = words.replace(/^the\s+/i, '');
-      if (bare !== words) {
-        const again = await registry.named(bare);
-        if (again) return again;
-      }
-      // ⭐ A herd named by a word of its name with "herd" said after it.
-      const head = bare.replace(/\s+(herd|flock|book)$/i, '');
-      if (head !== bare) {
-        const byWord = await registry.named(head);
-        if (byWord) return byWord;
-      }
-      return null;
+    if (!words) return registry.sole();
+    const byName = await registry.named(words);
+    if (byName) return byName;
+    const bare = words.replace(/^the\s+/i, '');
+    if (bare !== words) {
+      const again = await registry.named(bare);
+      if (again) return again;
     }
-    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (!here || !MixinApi.isContainer(here)) return null;
-    for (const thing of here.getContents()) {
-      const id =
-        thing instanceof Herdbook
-          ? thing.getHerdId()
-          : thing instanceof Livestock
-            ? thing.getHerdId()
-            : '';
-      if (id) {
-        const herd = await registry.read(id);
-        if (herd) return herd;
-      }
-    }
-    return null;
+    const head = bare.replace(/\s+(herd|flock|book|register|tally)$/i, '');
+    return head !== bare ? registry.named(head) : null;
   }
 
   /**
@@ -215,17 +190,6 @@ export default class MoveController extends CommandController<MoveModel> {
       if (name === want || place.hasKeyword(want)) return place;
     }
     return null;
-  }
-
-  /** Tell the herd's book in this room where its herd now grazes. */
-  private noteBooks(giver: Stuff, herdId: string, field: Field): void {
-    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (!here || !MixinApi.isContainer(here)) return;
-    for (const thing of here.getContents()) {
-      if (thing instanceof Herdbook && thing.getHerdId() === herdId) {
-        thing.noteGrazing(field.getPresentation());
-      }
-    }
   }
 
   /** Decline diegetically, and file the structured reason. */

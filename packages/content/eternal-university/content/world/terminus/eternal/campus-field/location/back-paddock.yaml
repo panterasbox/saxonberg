@@ -1,0 +1,26 @@
+# The back paddock — the campus farm's second field (cover build W6).
+#
+# ⭐ A rotation needs two fields: the college herd is moved off the home
+# field while its crop stands and back onto the stubble once it is cut
+# (lens 1 — the lesson is the move, and one field cannot teach it).
+class: /trade/farming/location/SingletonField
+data:
+  fieldName: the back paddock
+  shortDescription: back paddock
+  keywords: [paddock, "back paddock", field, grass]
+  register: definite
+  longDescription: |
+    A walled paddock behind the home field, rougher than it and never
+    ploughed, the grass tussocky along the wall foot. A gate in the near
+    wall leads back to the home field.
+  coords: { x: 1, y: 0, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  groundSpotX: 6
+  groundSpotY: 7
+  areaM2: 4000
+  legumeFraction: 0.1
+  exits:
+    west:
+      destination: /world/terminus/eternal/campus-field/location/home-field

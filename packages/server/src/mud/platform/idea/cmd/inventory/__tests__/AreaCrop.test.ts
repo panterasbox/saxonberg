@@ -450,7 +450,7 @@ describe('the area crop', () => {
 
     it('one cast covers the hand area; a later cast widens the crop', async () => {
       const { giver, ground } = scene();
-      const seed = makeSeed(25); // enough for 250 m²
+      const seed = makeSeed(100); // enough for 1,000 m²
       ContainmentApi.move(seed, giver);
       const ctrl = () => makeStuff(() => new PlantController());
       await ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, makeContext(giver, ground, 'sow'));
@@ -459,10 +459,10 @@ describe('the area crop', () => {
       await settle();
       const sown = ground.getContents().filter((s): s is Plant => s instanceof Plant);
       expect(sown).toHaveLength(1);
-      expect(sown[0]!.getSownAreaM2()).toBeCloseTo(200);
+      expect(sown[0]!.getSownAreaM2()).toBeCloseTo(800);
       expect(
         (seed as unknown as { getMass(): Quantity<'kg'> }).getMass().rawValue(),
-      ).toBeCloseTo(5);
+      ).toBeCloseTo(20);
     });
 
     it('⭐ the ground may refuse, in its own words', async () => {

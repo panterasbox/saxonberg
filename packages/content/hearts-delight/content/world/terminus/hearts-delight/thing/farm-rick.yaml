@@ -1,0 +1,6 @@
+# The farm's rick in the barn — last summer's hay (cover build W6). The
+# troughs on the lower meadow and in the close are kept from it.
+extends: /trade/farming/thing/rick
+data:
+  props:
+    - { template: /trade/farming/thing/hay-stack, count: 4 }

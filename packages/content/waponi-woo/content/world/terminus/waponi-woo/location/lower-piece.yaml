@@ -3,7 +3,7 @@ class: /trade/farming/location/SingletonField
 data:
   fieldName: the lower cane piece
   shortDescription: "lower cane piece"
-  keywords: [field, cane, piece, "lower cane piece"]
+  keywords: [field, piece, "lower cane piece"]
   register: definite
   longDescription: |
     A long sloping piece of cane running down toward the sea, newer than the upper piece and not so tall, the young cane bright green.

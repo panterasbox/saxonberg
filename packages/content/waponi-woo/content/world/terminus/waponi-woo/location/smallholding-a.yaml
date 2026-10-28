@@ -3,7 +3,7 @@ class: /trade/farming/location/SingletonField
 data:
   fieldName: Marta Ruiz's piece
   shortDescription: "Ruiz smallholding"
-  keywords: [field, cane, piece, "Ruiz smallholding"]
+  keywords: [field, piece, "Ruiz smallholding"]
   register: definite
   longDescription: |
     A small piece of cane behind a thatched hut, kept clean of weeds by somebody who does it every day. Chickens. A lane runs back up to the estate track, and on west to the next holding.

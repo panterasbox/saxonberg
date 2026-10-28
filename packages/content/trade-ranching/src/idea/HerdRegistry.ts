@@ -63,6 +63,9 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import Species, { FEEDER_KINDS } from '@saxonberg/server/mud/platform/idea/species/Species';
 import Field from '@saxonberg/content-trade-farming/src/location/Field';
+// ⚠ A cycle (the book imports the register), safe because the book is
+// only read inside a method, never while either module evaluates.
+import Herdbook from '../thing/Herdbook';
 
 /**
  * Where the register lives in the path-addressed document tree.
@@ -156,6 +159,13 @@ export interface HerdRecord {
    * for a field.
    */
   grazing?: string;
+  /**
+   * The template path of the book the herd was filed from, when an
+   * authored book filed it — so a move can tell the book where its herd
+   * went (its `look` line). Load on use: the record points at its book;
+   * nothing searches for one.
+   */
+  bookPath?: string;
   /**
    * ⭐ What the herd was fed, window by window (cover build D10): each
    * closed window's fed fraction, its length and when it ended, oldest
@@ -497,6 +507,10 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
       delete herd.grazing;
     }
     await this.update(herd);
+    // ⭐ The book on the wall says where the herd is — told by the act,
+    // read by `look`.
+    const book = herd.bookPath ? StuffApi.findByTemplatePath(herd.bookPath) : null;
+    if (book instanceof Herdbook) book.noteGrazing(to ? to.getPresentation() : '');
     return herd;
   }
 
@@ -575,6 +589,7 @@ function herdOf(data: unknown): HerdRecord | null {
       : {}),
     drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
     ...(typeof d.grazing === 'string' && d.grazing !== '' ? { grazing: d.grazing } : {}),
+    ...(typeof d.bookPath === 'string' && d.bookPath !== '' ? { bookPath: d.bookPath } : {}),
     ...(Array.isArray(d.fed) ? { fed: (d.fed as FedWindow[]).filter(isFedWindow) } : {}),
     overlay:
       typeof d.overlay === 'object' && d.overlay !== null

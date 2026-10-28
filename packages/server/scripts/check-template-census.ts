@@ -801,6 +801,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // `homeExtent` names a real zone, which is the jurisdictional anchor
     // straying is derived against. Both flagged by clause (d).
     'speciesPath', 'homeExtent',
+    // ⭐ (cover build D8) The field an authored herd starts on — a real
+    // field row, applied once to the record.
+    'grazing',
     'gangueMaterialPath',
   ] as const) {
     push(scalar, data[scalar]);
@@ -1204,7 +1207,7 @@ const BY_ENTRY_FIELDS = ['props', 'cast', 'costume', 'adornments'] as const;
  *
  * Census-then-ratchet: it may fall, never rise.
  */
-const PURE_REPEAT_CEILING = 47;
+const PURE_REPEAT_CEILING = 45;
 
 function countPureRepeats(rows: Map<string, string>): number {
   let extra = 0;

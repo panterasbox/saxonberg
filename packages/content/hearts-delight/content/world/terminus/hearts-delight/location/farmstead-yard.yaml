@@ -30,6 +30,10 @@ data:
       destination: /world/terminus/hearts-delight/bench-field/location/upper-bench
       media: [ground]
       edgeMinutes: 4
+    west:
+      destination: /world/terminus/hearts-delight/bench-field/location/lower-meadow
+      media: [ground]
+      edgeMinutes: 1
   props:
     - /world/terminus/hearts-delight/thing/farm-shelf
     # ⭐ The flock book — on the shelf with the price slate, because that

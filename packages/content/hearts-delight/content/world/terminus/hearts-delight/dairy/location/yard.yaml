@@ -13,7 +13,7 @@ data:
   longDescription: |
     A muddy yard on the flats with a long low byre along one side of it and water meadow running away behind to the willows on the river. The gate is chained back. There is a smell of cows and wet straw and, faintly, of the river.
 
-    The byre door stands open to the east.
+    The byre door stands open to the east, and the pasture gate to the south.
   coords: { x: 0, y: -6, z: 0 }
   exits:
     north:
@@ -22,6 +22,10 @@ data:
       edgeMinutes: 6
     east:
       destination: /world/terminus/hearts-delight/dairy/location/byre
+      media: [ground]
+      edgeMinutes: 1
+    south:
+      destination: /world/terminus/hearts-delight/dairy/location/pasture
       media: [ground]
       edgeMinutes: 1
   # ⭐ The midden the byre is mucked out onto (cleanliness D20) — and the

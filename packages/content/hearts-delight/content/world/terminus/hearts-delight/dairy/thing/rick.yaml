@@ -1,0 +1,7 @@
+# The dairy's rick at the head of the pasture — last summer's hay to
+# start the world (cover build W6), what the trough draws on while nobody
+# is watching, and where the dairy lad stacks what he mows.
+extends: /trade/farming/thing/rick
+data:
+  props:
+    - { template: /trade/farming/thing/hay-stack, count: 4 }

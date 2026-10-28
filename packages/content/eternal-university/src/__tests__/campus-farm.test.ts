@@ -56,7 +56,7 @@ describe('the campus farm', () => {
     // system's (`/system/ground/idea/GroundCharacter`, moved out of the
     // farming trade by the ground build — dirt is there whether or not
     // anybody is farming it); everything else is the platform's.
-    expect(classes).toContain('/trade/farming/location/Field');
+    expect(classes).toContain('/trade/farming/location/SingletonField');
     expect(classes).toContain('/system/ground/idea/GroundCharacter');
     for (const cls of classes) {
       expect(
@@ -75,7 +75,13 @@ describe('the campus farm', () => {
     const yard = parse(
       readFileSync(`${FARM_DIRS[0]}/location/yard.yaml`, 'utf8'),
     ) as { data: { props: string[] } };
-    const props = yard.data.props.join(' ');
+    // ⭐ The farmstead is the yard AND the home field its business works:
+    // the plough lives at the field's headland (cover build), where it is
+    // used, so traction is answered there.
+    const field = parse(
+      readFileSync(`${FARM_DIRS[1]}/location/home-field.yaml`, 'utf8'),
+    ) as { data: { props: string[] } };
+    const props = [...yard.data.props, ...field.data.props].join(' ');
     // byre: shelter, enclosure, water, feed, muck
     for (const bound of ['byre', 'yard-wall', 'trough', 'hay-barn', 'midden']) {
       expect(props).toContain(bound);

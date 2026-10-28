@@ -82,4 +82,6 @@ data:
   # ⚠ The FLATS, not the bench — the ground with the water rights and the
   # ploughing to do. The bench is sheep country and the flock book says
   # why.
-  homeExtent: /world/terminus/hearts-delight/location/farmstead-yard
+  homeExtent: /world/terminus/hearts-delight
+  # ⭐ On the lower meadow (cover build D8) — applied once.
+  grazing: /world/terminus/hearts-delight/bench-field/location/lower-meadow

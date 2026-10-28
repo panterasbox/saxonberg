@@ -3,7 +3,7 @@ class: /trade/farming/location/SingletonField
 data:
   fieldName: the Okafor piece
   shortDescription: "Okafor smallholding"
-  keywords: [field, cane, piece, "Okafor smallholding"]
+  keywords: [field, piece, "Okafor smallholding"]
   register: definite
   longDescription: |
     A narrow strip of cane between stone walls, with yams in the margins and a goat tethered on the edge of it.

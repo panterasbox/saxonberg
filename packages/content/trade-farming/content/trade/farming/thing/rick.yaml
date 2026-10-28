@@ -6,12 +6,12 @@
 # somebody the activity — the hay had to be mown and stacked in season,
 # and a rick nobody filled feeds nothing.
 #
-# The kernel's generic concrete container (no lid, discrete goods in it),
-# fixed where it is built.
-class: /platform/thing/Vessel
+# A `Rick` (the kernel's lidless Vessel, made Staged): a venue's rick row
+# can say what it was stacked with.
+class: /trade/farming/thing/Rick
 data:
   shortDescription: hay rick
-  keywords: [rick, hayrick, stack, haystack, hay-rick]
+  keywords: [rick, hayrick, hay-rick, "hay rick"]
   register: indefinite
   longDescription: >-
     A stack of hay built up square on a bed of brush to keep it off the

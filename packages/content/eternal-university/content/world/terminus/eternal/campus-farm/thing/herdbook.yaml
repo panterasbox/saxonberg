@@ -55,6 +55,9 @@ data:
   # that appoints its labourer.
   holderRef: organization:/stuff/idea/Government/eternal-university
   homeExtent: /world/terminus/eternal/campus-field
+  # ⭐ Where the herd starts (cover build D8) — applied once; after that
+  # `move` is the truth, and the book says where they are.
+  grazing: /world/terminus/eternal/campus-field/location/home-field
   details:
     numbers:
       keywords: [numbers, columns, entries, hand]

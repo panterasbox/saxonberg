@@ -19,4 +19,6 @@ data:
   foundingMeanAgeDays: 45
   femaleFraction: 0.5
   holderRef: organization:/world/terminus/hearts-delight/idea/dairy-business
-  homeExtent: /world/terminus/hearts-delight/dairy/location/yard
+  homeExtent: /world/terminus/hearts-delight
+  # ⭐ On the pasture (cover build D8) — applied once.
+  grazing: /world/terminus/hearts-delight/dairy/location/pasture

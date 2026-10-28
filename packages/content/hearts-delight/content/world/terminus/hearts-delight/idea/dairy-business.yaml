@@ -21,3 +21,7 @@ data:
   operatingLocations:
     - /world/terminus/hearts-delight/dairy/location/yard
     - /world/terminus/hearts-delight/dairy/location/byre
+    # ⭐ The fields the dairy works (cover build W6): the cows' pasture and
+    # the meadow shut up for hay.
+    - /world/terminus/hearts-delight/dairy/location/pasture
+    - /world/terminus/hearts-delight/dairy/location/hay-meadow

@@ -45,3 +45,5 @@ data:
   operatingLocations:
     - /world/terminus/eternal/campus-farm/location/yard
     - /world/terminus/eternal/campus-field/location/home-field
+    # ⭐ The second field (cover build W6): the herd's other ground.
+    - /world/terminus/eternal/campus-field/location/back-paddock

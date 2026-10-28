@@ -70,7 +70,9 @@ data:
   # `campus-field` has a row of its own and this does not), and
   # `lint:census` is what says so. Title walks up to the locality by
   # longest prefix either way.
-  homeExtent: /world/terminus/hearts-delight/bench-field/location/upper-bench
+  homeExtent: /world/terminus/hearts-delight
+  # ⭐ In the close under the cherries (cover build D8) — applied once.
+  grazing: /world/terminus/hearts-delight/bench-field/location/orchard-close
   details:
     lambed:
       keywords: [lambed, column, columns, entries, numbers]

@@ -122,7 +122,7 @@ export const CEILINGS: Readonly<Record<GraphRule, number | null>> = {
   "cross-zone-one-sided": 1,
   "unreachable-from-entrance": 12,
   "asymmetric-edge": 4,
-  "destination-is-a-kind": 2,
+  "destination-is-a-kind": 0,
 };
 
 /** Is this row's effective class a place-or-kind location at all? */

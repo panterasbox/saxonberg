@@ -282,7 +282,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
 
   /**
    * ⭐ **Broadcast a seed over ground** (cover build D4). One act covers
-   * `husbandry.sowHandM2`, or less when the seed or the ground runs out;
+   * `husbandry.sowHandM2` (a strip across the field), or less when the seed or the ground runs out;
    * seed is spent at the crop's own `seedRateKgPerM2`, so a third of a
    * field's seed sows a third of it. The first act creates the crop; a
    * later act of the same kind widens it. Engaged, so it lands at
@@ -317,12 +317,8 @@ export default class PlantController extends EngagedActController<PlantModel> {
       return;
     }
 
-    const refusal = ground.sowingRefusal();
-    if (refusal) {
-      this.decline(context, Mml.fromMarkup(refusal), 'ground-refuses-sowing');
-      return;
-    }
-
+    // Whose ground it is outranks what state it is in: a stranger is told
+    // it is not theirs, never that it wants ploughing.
     const zoned = await landUseRefusal(ground);
     if (zoned) {
       this.decline(context, zoned, 'land-use-forbids-cultivation');
@@ -334,6 +330,12 @@ export default class PlantController extends EngagedActController<PlantModel> {
         Mml.compose`This is not your ground to sow.`,
         'not-held',
       );
+      return;
+    }
+
+    const refusal = ground.sowingRefusal();
+    if (refusal) {
+      this.decline(context, Mml.fromMarkup(refusal), 'ground-refuses-sowing');
       return;
     }
 
@@ -372,7 +374,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
       groundM2 - (standing ? standing.getSownAreaM2() : 0),
     );
     const area = Math.min(
-      dial(AppSettingKeys.husbandrySowHandM2, 100),
+      dial(AppSettingKeys.husbandrySowHandM2, 400),
       seedKg / rate,
       free,
     );
@@ -389,7 +391,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
     }
 
     this.engageAct(context, {
-      durationMs: Math.round(3000 + area * 30),
+      durationMs: Math.round(3000 + area * 10),
       cost: 5,
       beginSelf: Mml.compose`You walk the ground, casting ${Mml.thing(seed)} in wide arcs.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} walks the ground, broadcasting seed.`,
@@ -441,7 +443,14 @@ async function maySow(giver: Stuff, ground: Stuff): Promise<boolean> {
  * shares its template path), else the template path.
  */
 function groundPath(ground: Stuff): string {
-  const keyed = MixinApi.isPersistable(ground) ? ground.getPersistenceKey() : null;
+  // ⚠ Only an EXPLICIT key — an establishing context's per-instance key
+  // (a lot's parcel extent). A keyless host stashes a scope-derived owner
+  // there, which is no path at all, so the parcel registry would answer
+  // *nobody's ground* and a stranger could sow the university's field.
+  const keyed =
+    MixinApi.isPersistable(ground) && ground.isPersistenceKeyExplicit()
+      ? ground.getPersistenceKey()
+      : null;
   return keyed ?? ground.getTemplatePath() ?? '';
 }
 

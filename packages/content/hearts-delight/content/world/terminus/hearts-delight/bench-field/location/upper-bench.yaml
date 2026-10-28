@@ -17,11 +17,13 @@
 #
 # `areaM2: 4000` — ten times the college's home field, and a tenth as
 # good. That is what dryland arable is.
-class: /trade/farming/location/Field
+class: /trade/farming/location/SingletonField
 data:
   fieldName: the upper bench
   shortDescription: upper bench
-  keywords: [bench, field, ground, corn, wheat]
+  # ⚠ Not `wheat` or `corn`: the CROP answers to those (cover build) —
+  # `harvest wheat` bound the field while the stand of wheat stood in it.
+  keywords: [bench, field, ground, "upper bench"]
   register: definite
   _address: terminus/hearts-delight/upper-bench
   longDescription: |

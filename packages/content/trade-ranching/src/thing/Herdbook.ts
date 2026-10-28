@@ -254,8 +254,14 @@ export default class Herdbook extends HerdbookBase {
    * keeps wherever `move` last put it.
    */
   private async settleGrazing(registry: HerdRegistry): Promise<void> {
-    const herd = await registry.read(this.herdId);
+    let herd = await registry.read(this.herdId);
     if (herd === null) return;
+    // ⭐ The record points at its book, so a move can tell the book.
+    const own = this.getTemplatePath() ?? '';
+    if (own && herd.bookPath !== own) {
+      herd = { ...herd, bookPath: own };
+      await registry.update(herd);
+    }
     let path = herd.grazing ?? '';
     if (!path && this.grazing) {
       try {

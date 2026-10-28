@@ -19,3 +19,5 @@ data:
   femaleFraction: 1
   holderRef: organization:/world/terminus/rejection/idea/provisioning-business
   homeExtent: /world/terminus/rejection/kestrel-road/goat-pen
+  # ⭐ The pen is a small field now (cover build D12) — applied once.
+  grazing: /world/terminus/rejection/kestrel-road/goat-pen

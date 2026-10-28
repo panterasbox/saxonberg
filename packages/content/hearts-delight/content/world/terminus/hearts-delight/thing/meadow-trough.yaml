@@ -1,0 +1,8 @@
+# The trough by the lower meadow gate — kept from the farm's rick in the
+# barn (cover build D11).
+extends: /stuff/thing/vessel/trough
+data:
+  shortDescription: stone trough
+  keywords: [trough, manger]
+  fixedInPlace: true
+  suppliedBy: /world/terminus/hearts-delight/thing/farm-rick

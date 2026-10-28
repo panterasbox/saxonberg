@@ -69,4 +69,6 @@ data:
   tally: 6
   foundingMeanAgeDays: 210
   holderRef: organization:/world/terminus/hearts-delight/idea/farm-business
-  homeExtent: /world/terminus/hearts-delight/location/farmstead-yard
+  homeExtent: /world/terminus/hearts-delight
+  # ⭐ On the lower meadow (cover build D8) — applied once.
+  grazing: /world/terminus/hearts-delight/bench-field/location/lower-meadow

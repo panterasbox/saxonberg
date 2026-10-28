@@ -7,9 +7,9 @@ help: |
   hay in any trough standing there.
 
   You move a herd from its book, or standing beside one of its animals
-  you have drafted out. The herd's name is enough (`move the college
-  herd to the home field`); by its book, or beside one of its animals,
-  you can leave the herd out (`move to the lower meadow`).
+  you have drafted out, and you name it: `move the college herd to the
+  home field`. The field is one you can see from where you stand — this
+  one (`here`), or one a way from here leads to.
 
   Only whoever holds the herd's ground may move it, or a hand on shift
   for whoever works the field. And a herd grazes where it belongs: a
@@ -20,8 +20,8 @@ help: |
 examples:
   - cmd: move college herd to home field
     note: Put the herd on a field
-  - cmd: move to the lower meadow
-    note: By its book, the herd is the book's
+  - cmd: move dairy herd to here
+    note: Onto the field you are standing in
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

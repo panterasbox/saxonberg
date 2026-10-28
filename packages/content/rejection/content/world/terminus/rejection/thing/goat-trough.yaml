@@ -1,0 +1,9 @@
+# The goats' trough — kept from the rick (cover build D11): while nobody
+# forks it, the trough draws on the rick, which is the hand's standing
+# job abstracted over the weeks nobody is watching.
+extends: /stuff/thing/vessel/trough
+data:
+  shortDescription: wooden trough
+  keywords: [trough, manger, feed]
+  fixedInPlace: true
+  suppliedBy: /world/terminus/rejection/thing/goat-rick

@@ -3,7 +3,7 @@ class: /trade/farming/location/SingletonField
 data:
   fieldName: the upper cane piece
   shortDescription: "upper cane piece"
-  keywords: [field, cane, piece, "upper cane piece"]
+  keywords: [field, piece, "upper cane piece"]
   register: definite
   longDescription: |
     Cane stands in close rows higher than your head, rattling, the red earth between the rows cracked and dark. Cut stalks lie where the cutters stopped.

@@ -1,0 +1,25 @@
+# The hay meadow below the pasture — shut up for hay, never grazed
+# (cover build W6). The dairy lad mows it in summer and stacks the rick at
+# the head of the pasture, which is the cows' winter.
+class: /trade/farming/location/SingletonField
+data:
+  fieldName: the hay meadow
+  shortDescription: hay meadow
+  keywords: [meadow, "hay meadow", field, grass, hay]
+  register: definite
+  _address: terminus/hearts-delight/dairy/hay-meadow
+  longDescription: |
+    A long strip of meadow down by the river, shut up behind a hurdle so the cows cannot get at it, the grass knee-high and full of sorrel and buttercup in season.
+  coords: { x: 0, y: -8, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  groundSpotX: 14
+  groundSpotY: 1
+  areaM2: 6000
+  legumeFraction: 0.2
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/dairy/location/pasture
+      media: [ground]
+      edgeMinutes: 2

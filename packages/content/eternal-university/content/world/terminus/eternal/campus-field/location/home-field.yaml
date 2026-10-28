@@ -15,16 +15,17 @@
 # ⚠ It authors no reserves, because it cannot: `reserves` is engine
 # state. The class stands itself up at registration from its own ground —
 # which is exactly what makes authoring one possible without code.
-class: /trade/farming/location/Field
+class: /trade/farming/location/SingletonField
 data:
   fieldName: the home field
   shortDescription: home field
   keywords: [field, "home field", ground, ley, home]
   register: definite
   longDescription: |
-    Four hundred square metres of good level ground behind the yard, laid
-    down to a clover ley that is a shade greener than it has any business
-    being. The gate back to the yard hangs true.
+    A hectare of good level ground behind the yard, laid down to a clover
+    ley that is a shade greener than it has any business being. A hay
+    trough stands by the gate back to the yard, which hangs true, and a
+    second gate at the far side lets onto the back paddock.
   coords: { x: 0, y: 0, z: 0 }
   # ⭐ A meadow, which is the biome a ley in grass actually is — and
   # being SkyExposed is doing real work rather than set dressing: the
@@ -50,8 +51,22 @@ data:
   ambientColorTemperature: 5800
   groundSpotX: 4
   groundSpotY: 7
-  areaM2: 400
+  # ⭐ A hectare (cover build R4): enough to sow a crop on part of it and
+  # graze the college herd on the rest. Four hundred square metres was a
+  # garden.
+  areaM2: 10000
   legumeFraction: 0.4
+  # ⭐ The trough stands ON the field (cover build D11): the field's
+  # grazing integral reads the feeders standing in it. No rick behind it
+  # — on the teaching farm, the student forks the hay.
+  props:
+    - /world/terminus/eternal/campus-farm/thing/field-trough
+    # ⭐ The plough lives at the headland (cover build): too heavy to carry,
+    # it is used where it lies.
+    - /trade/farming/thing/plough
   exits:
     yard:
       destination: /world/terminus/eternal/campus-farm/location/yard
+    # ⚠ Cardinal: two fields in one zone (Location.addExit).
+    east:
+      destination: /world/terminus/eternal/campus-field/location/back-paddock

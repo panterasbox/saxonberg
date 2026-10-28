@@ -47,7 +47,7 @@ requires:
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/idea/farm-business }
       landUse: agricultural
-      areaM2: 1200
+      areaM2: 3600
     # ⭐ (dairy D14) The dairy farm — titled to the dairy household, the
     # close's precedent: the herd is demonstrably somebody's.
     - extent: /world/terminus/hearts-delight/dairy

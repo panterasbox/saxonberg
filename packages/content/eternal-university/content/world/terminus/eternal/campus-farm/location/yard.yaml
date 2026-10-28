@@ -59,7 +59,6 @@ data:
     - /trade/farming/thing/spade
     - /trade/farming/thing/soil-kit
     - /trade/farming/thing/scythe
-    - /trade/farming/thing/plough
   exits:
     field:
       destination: /world/terminus/eternal/campus-field/location/home-field

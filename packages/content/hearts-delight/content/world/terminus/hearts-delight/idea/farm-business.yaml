@@ -28,3 +28,6 @@ data:
   operatingLocations:
     - /world/terminus/hearts-delight/location/farmstead-yard
     - /world/terminus/hearts-delight/bench-field/location/upper-bench
+    # ⭐ The stock's fields (cover build W6).
+    - /world/terminus/hearts-delight/bench-field/location/lower-meadow
+    - /world/terminus/hearts-delight/bench-field/location/orchard-close

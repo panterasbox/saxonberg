@@ -28,10 +28,12 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    # ⚠ `me:i` — IN HAND, as the controller walked before the default was
-    # declared; a scythe on the ground is picked up first. (`reachable` for a
-    # day widened every hand tool to the room. Naming one still reaches it.)
-    default: "me:i:[capability.ploughing]"
+    # ⚠ `me:i` — IN HAND first, as the controller walked before the default
+    # was declared. ⭐ Then a plough standing in the field (cover build): a
+    # plough is a beam and a share heavier than a body carries, and it is
+    # left at the headland of the field it works — it is the one tool that
+    # is used where it lies.
+    default: "me:i:[capability.ploughing],reachable:[capability.ploughing]"
     scope: ["reachable"]
     requires: [ToolMixin]
   - name: detail

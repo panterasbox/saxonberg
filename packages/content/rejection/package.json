@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Rejection \u2014 the first mining town: the pithead, the Ferrow diggings, the deposit, the four businesses. Content only; no src.",
+  "description": "Rejection — the first mining town: the pithead, the Ferrow diggings, the deposit, the four businesses. Content only; no src.",
   "dependencies": {
     "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-generic-objects": "workspace:*",
@@ -13,6 +13,7 @@
     "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/content-trade-dairying": "workspace:*",
     "@saxonberg/content-trade-drilling": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
     "@saxonberg/content-trade-forestry": "workspace:*",
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-glass": "workspace:*",

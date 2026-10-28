@@ -820,6 +820,9 @@ importers:
       '@saxonberg/content-trade-drilling':
         specifier: workspace:*
         version: link:../trade-drilling
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
       '@saxonberg/content-trade-forestry':
         specifier: workspace:*
         version: link:../trade-forestry

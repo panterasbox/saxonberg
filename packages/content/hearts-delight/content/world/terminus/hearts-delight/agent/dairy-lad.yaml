@@ -17,7 +17,21 @@ data:
   archetype: farmer
   competence:
     - { discipline: stockmanship, asserting: competent }
+  # ⭐ The scythe the hay meadow is mown with (cover build D14).
+  props:
+    - /trade/farming/thing/scythe
   behaviors:
+    # ⭐ The fodderer (cover build D14): mows the hay meadow when it is
+    # ready, carries the bales up to the rick at the head of the pasture,
+    # and forks one into the trough when it stands empty. Words, never
+    # commands.
+    - brain: /trade/ranching/behavior/fodders
+      trigger: candidate
+      config:
+        meadow: [south]
+        home: [north]
+        store: rick
+        trough: trough
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

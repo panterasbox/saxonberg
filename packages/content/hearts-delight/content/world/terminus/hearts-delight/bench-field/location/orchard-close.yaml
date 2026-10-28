@@ -20,7 +20,7 @@
 # the build's own finding — a beekeeper is a SECOND PARTY on land they do
 # not own, and you cannot be a second party to a farm that already keeps
 # its own hives.
-class: /trade/farming/location/Field
+class: /trade/farming/location/SingletonField
 data:
   fieldName: the close
   # ⚠ No article in the stem — `register: definite` below is what puts
@@ -30,7 +30,7 @@ data:
   register: definite
   _address: terminus/hearts-delight/close
   longDescription: |
-    A third of an acre of the best ground on this side of the valley, walled on two sides and hedged on the third, with three old cherry trees standing well apart in it and clover thick as a carpet underneath them. Somebody has kept the grass off it for years.
+    Most of an acre of the best ground on this side of the valley, walled on two sides and hedged on the third, with three old cherry trees standing well apart in it and clover thick as a carpet underneath them. Somebody has kept the grass off it for years.
 
     In flower the whole close hums, and it is loud enough that you notice it before you have got the gate shut.
   coords: { x: -20, y: 3, z: 6 }
@@ -39,7 +39,9 @@ data:
   ambientColorTemperature: 5800
   groundSpotX: 9
   groundSpotY: 4
-  areaM2: 1200
+  # ⭐ Enough for the flock (cover build R4): twelve ewes graze it under
+  # the trees, with a trough kept from the barn's rick.
+  areaM2: 3600
   # ⭐ A clover ley under the trees — the one authored number this whole
   # forage read rests on, and it is authored because nothing writes it.
   legumeFraction: 0.4
@@ -71,3 +73,4 @@ data:
     - { template: /trade/farming/thing/plant/cherry, as: cherry-north }
     - { template: /trade/farming/thing/plant/cherry, as: cherry-middle }
     - { template: /trade/farming/thing/plant/cherry, as: cherry-south }
+    - /world/terminus/hearts-delight/thing/close-trough
