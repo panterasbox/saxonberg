@@ -25,6 +25,10 @@
 Sibling: [off-grid-slate](./off-grid-slate.md) — the aether, the carriers, and what going off grid
 costs.
 
+Dug in, 2026-10-28: [law-and-order-slate](./law-and-order-slate.md) (policing) ·
+[field-medicine-slate](./field-medicine-slate.md) (emergency care, scene by scene) ·
+[site-conditions-slate](./site-conditions-slate.md) (senses as parts, conditions by site and trade).
+
 ## 0. The ask **[DECIDED — the owner]**
 
 *"I wanna start designing two related things, law enforcement and emergency services. Cops and
