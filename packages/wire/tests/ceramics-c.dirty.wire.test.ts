@@ -837,6 +837,11 @@ suite('⭐ 23 — breakage and mending', () => {
     const stoneBowl = bowls[0]!;
     const earthBowl = bowls[1] ?? (await hand(potter, '/trade/ceramics/thing/bowl'));
     for (const id of [stoneBowl, earthBowl]) await say(potter, `get #${id}`);
+    // 17 bisqued by the word, and the novice's mug can still be in the kiln
+    // (run 39): anything mug-shaped in there comes out first.
+    for (let i = 0; i < 4; i++) {
+      if (!/pick up/i.test(await say(potter, 'get mug from kiln'))) break;
+    }
     const thick = [...(await rows(potter, 'here:i:mug')), ...(await rows(potter, 'me:i:mug')), ...(await rows(novice, 'me:i:mug'))]
       .find((r) => r.stuffId && by(r, novice));
     expect(thick?.stuffId, 'the novice\'s thick mug').toBeDefined();
