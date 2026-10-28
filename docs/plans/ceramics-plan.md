@@ -1702,6 +1702,18 @@ left a fork the lens that chose is named.
   `markDevice`. `BrandedMixin` stays the commercial claim (lens 1: a mark
   you can touch and a claim of ownership can disagree).
 
+- **B85 — review: every bath plans its own dip; a dip leaves a layer
+  (2026-10-28).** The coat dip lived in `DipController` (finding a coat
+  bath, the skin's litres, `layCoat`, narration) — a controller deciding.
+  The glaze/slip tub (`CompoundingMixin`) now implements `DipPlanner` as
+  the chandler's pot does; the controller only words a refusal when no
+  bath answers. `DipPlanner` and `dip`'s help say a dip leaves a LAYER, so
+  `dye` (into the fiber) and `quench` (only cools) stay their own acts.
+  ⚠ Open: glass's `gob` is a dip by that definition, but it gathers from
+  non-bulk hot glass (a melt, a cullet lump, a bottle) and the drive types
+  a bare `gob` — folding it into `dip` needs dip's grammar to find
+  non-vessel baths and a held tool, a kernel question taken to the owner.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

@@ -44,6 +44,11 @@ import { CraftingApi } from '../../api/crafting';
 import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
 import type { KneadPlan, KneadPlanner, KneadRefusal, KneadRequest } from '../craft/Kneadable';
+import type { DipPlan, DipPlanner, DipRefusal, DipRequest } from '../craft/DipPlanner';
+import type { FaceName } from './Faced';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import { Quantity } from '../quantity';
 import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
 
@@ -58,7 +63,7 @@ export type CompoundOutcome =
       reason: 'empty' | 'already-compounded' | 'mint-failed';
     };
 
-export interface Compounding extends KneadPlanner {
+export interface Compounding extends KneadPlanner, DipPlanner {
   /** The material this vessel's product IS. */
   getProductMaterial(): string;
   /** The row a SOLID product is minted as; `''` = the product is this vessel's bulk. */
@@ -166,6 +171,72 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
      * ⭐ The kernel's default knead: work what is in the vessel into one
      * product. The narration reads the outcome; the mint is {@link compound}'s.
      */
+    /**
+     * ⭐ A tub of something that lays a coat (`Material.laysCoat` — a glaze, a
+     * slip) is a coat BATH: `dip crock in tub` lays a WET coat of it on the
+     * named faces, and the tub gives up what the skin holds — thickness ×
+     * the good's surface area, taken as a cube's (`6 · V^⅔`). Plain on
+     * purpose: a bucket of slip glazes a shelf of crocks, not one. `null` —
+     * not this tub's business — when nothing is named or what it holds lays
+     * no coat (the dip verb says so). The coat SETS by its own material's
+     * rule (`FacedMixin`), the fire for a glaze.
+     */
+    public async dipPlanFor(target: Stuff | null, req: DipRequest): Promise<DipPlan | DipRefusal | null> {
+      const self = this as unknown as Stuff;
+      if (target === null || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
+      const material = self.getBulkMaterial('interior');
+      if (material === null || !material.getLaysCoat() || !(self.getBulkAmount('interior').rawValue() > 0)) {
+        return null;
+      }
+      if (!MixinApi.isFaced(target)) {
+        return {
+          ok: false,
+          reason: 'not-faced',
+          line: Mml.compose`${Mml.thing(target)} has nothing a coat could lie on.`,
+        };
+      }
+      const onto: FaceName[] = (req.faces ?? target.faces()).filter((f) => target.faces().includes(f));
+      if (onto.length === 0) {
+        return { ok: false, reason: 'no-such-face', line: Mml.compose`${Mml.thing(target)} has no inside to coat.` };
+      }
+      const thicknessM = compoundDial(AppSettingKeys.facesDipThicknessM, 0.0003);
+      const litres = skinLitres(target, thicknessM) * onto.length;
+      const where = onto.length === 2 ? 'inside and out' : onto[0] === 'inside' ? 'inside' : 'outside';
+      const path = material.getTemplatePath() ?? '';
+      const sets = material.getHeatTransitions().length > 0 ? 'It will set when it is fired.' : 'Let it set.';
+      const giver = req.actor;
+      return {
+        ok: true,
+        durationMs: DIP_MS,
+        effortW: 80,
+        beginSelf: Mml.compose`You lower ${Mml.thing(target)} into ${Mml.thing(self)} and draw it out slowly, letting it drain.`,
+        beginPeers: Mml.compose`${Mml.actor(giver)} dips ${Mml.thing(target)} into ${Mml.thing(self)}.`,
+        onComplete: () => {
+          if (target.isDestroyed() || self.isDestroyed() || !MixinApi.isBulkable(self)) return;
+          const have = self.getBulkAmount('interior').rawValue();
+          if (!(have > 0)) {
+            return {
+              ok: false,
+              reason: 'nothing-to-dip-in',
+              line: Mml.compose`The bath has run dry before the coat could take.`,
+            };
+          }
+          self.setBulkAmount('interior', Quantity.of(Math.max(0, have - litres), 'L'));
+          for (const face of onto) {
+            const soil = MixinApi.isSoilable(target) ? Math.max(target.soilAt(face), target.soilAt('')) : 0;
+            target.layCoat(face, path, thicknessM, soil);
+          }
+          if (!giver.isDestroyed()) {
+            MessageApi.scene(giver)
+              .topic('act.deed')
+              .toSelf(Mml.compose`${Mml.thing(target)} comes out ${where} under a wet skin of ${material.getName()}. ${sets}`)
+              .send();
+          }
+          return undefined;
+        },
+      };
+    }
+
     public async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
       const self = this as unknown as Stuff & Container;
       const any = self.getContents().some((c) => MixinApi.isTangible(c)) ||
@@ -256,4 +327,28 @@ function narrate(giver: Stuff, vessel: Stuff, out: CompoundOutcome, verb: string
           : Mml.compose`It will not come together — and that is a fault in the books, not in your hands.`,
     )
     .send();
+}
+
+/** Dipping a pot and drawing it out, letting it drain — a game-minute. */
+const DIP_MS = 60_000;
+
+function compoundDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Litres a skin of `thicknessM` over one face of the good takes. */
+function skinLitres(target: Stuff, thicknessM: number): number {
+  if (!MixinApi.isTangible(target)) return 0;
+  const kg = target.getMass().rawValue();
+  const density = target.getMaterial()?.getDensity().rawValue() || 2000;
+  const volumeM3 = kg / density;
+  const areaM2 = 6 * Math.pow(Math.max(0, volumeM3), 2 / 3);
+  return areaM2 * thicknessM * 1000;
 }

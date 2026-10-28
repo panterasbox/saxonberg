@@ -2,12 +2,16 @@
  * DipPlanner — ⭐ the protocol behind the platform's `dip` (ceramics D14,
  * the collision ladder's rung 2: one act, unified behind an interface).
  *
- * `dip` is one act — putting a thing into a bath and drawing it out with
- * something of the bath on it: a wick into hot fat until a candle builds
- * up, a bisque crock into a glaze slip until it carries a coat. The verb
- * is dumb; the BATH plans. A chandler's pot plans a candle (and melts a
- * cold cake first); a bath whose material lays a coat (`Material.laysCoat`)
- * is the kernel's default and lays a WET coat on the dipped good's face.
+ * `dip` is one act — putting a thing into a bath and drawing it out with a
+ * LAYER of the bath on it: a wick into hot fat until a candle builds up, a
+ * bisque crock into a glaze slip until it carries a coat. ⚠ A layer, and
+ * that is the line: a dye goes INTO the fiber (`dye`), a quench only cools
+ * (`quench`) — both are a thing in a bath and drawn out, and neither leaves
+ * anything ON it, so neither is a dip (the paint slate's "dip stays
+ * dip-coating"). The verb is dumb; the BATH plans. A chandler's pot plans
+ * a candle (and melts a cold cake first); a tub whose material lays a coat
+ * (`Material.laysCoat`, `CompoundingMixin`) lays a WET coat on the dipped
+ * good's face.
  * The paint slate's reservation is honoured: `dip` is the coat-from-bath
  * primitive, and `paint` will be the brush.
  *

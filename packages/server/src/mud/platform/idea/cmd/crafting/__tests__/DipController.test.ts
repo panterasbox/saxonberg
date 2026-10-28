@@ -10,7 +10,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DipController from '../DipController';
-import Receptacle from '../../../../thing/Receptacle';
+import CompoundingVessel from '../../../../thing/CompoundingVessel';
 import Material from '../../../../../lib/material/Material';
 import { Quantity } from '../../../../../lib/quantity';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -48,8 +48,9 @@ function material(path: string, laysCoat: boolean): Material {
 }
 
 /** A vessel; `holding` fills its interior with litres of a material. */
-function vessel(holding?: { path: string; litres: number }): Receptacle {
-  const v = makeStuff(() => new Receptacle());
+/** A tub — the bath that plans a coat dip (`CompoundingMixin`). */
+function vessel(holding?: { path: string; litres: number }): CompoundingVessel {
+  const v = makeStuff(() => new CompoundingVessel());
   v.interiorBulk = true;
   v.setInteriorCapacity(Quantity.of(20, 'L'));
   v.setMass(Quantity.of(1.5, 'kg'));
