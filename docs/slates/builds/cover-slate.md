@@ -11,10 +11,12 @@
 > crop is the titleholder's · the island's cane moved onto it (⚠ it dies
 > today, § 9) · `Plant`'s `harvest` retired if nothing loose remains.
 > **Then COVER** (§ 4): the sward and the stand onto kernel rows (species
-> parameters, the stand's full integral). Grazing and feeding: being scoped
-> with ranching (§ 10).
-> **Size:** arable is a build (trade-farming + a kernel bed seam + sugar
-> content); cover is a second, smaller one.
+> parameters, the stand's full integral). ⭐ **Stage B, grazing and feeding,
+> is folded in** (§ 10): the herd stands on a field, eats by metabolic weight,
+> its condition follows what it ate, hay in a trough carries the winter.
+> **Size:** one large build in two stages: A arable (trade-farming + a kernel
+> bed seam + sugar content), B grazing (trade-ranching + the field hook + the
+> herd record + the condition coupling). Cover (§ 4) is a later, smaller one.
 
 **Sits on:** [soil.md](../../subsystems/soil.md) (the field, the sward) ·
 [husbandry.md](../../subsystems/husbandry.md) (the growth model, monocarp vs
@@ -268,10 +270,54 @@ spends.
 - **The plant's parameters are on its `Plant` row**, not `Species`
   (husbandry.md: "migrates onto `Species` in phase 5").
 
-## 10. Grazing and feeding — being scoped (2026-10-28)
+## 10. ⭐⭐ Stage B — grazing and feeding (folded in 2026-10-28)
 
 The owner: *"I want to dig into ranching even if we're not building it now.
-Maybe if it's light enough we pull in everything for grazing."* Today nothing
-grazes (`grazingDemandPerGameDay` has a call site and no implementer), nothing
-eats hay (`HayBale` only self-heats), `feed` needs a bed target, and
-`Livestock` has no behavior. Scope in progress; see the ranching slate.
+Maybe if it's light enough we pull in everything for grazing,"* then *"let's
+fold all this in."* It is light on DESIGN (the [ranching
+slate](./ranching-slate.md) decided nearly all of it) and medium on code, and
+it shares Stage A's field, soil and sward, so it is this build's second stage.
+Stubble grazing needs arable to exist, which sets the order.
+
+**What it sits on (shipped):** the herd is a RECORD (the herdbook, anchored by
+a `Herdbook` fixture in the byre); a head is an object only when drafted
+([ranching.md](../../subsystems/ranching.md) § Draft and return). The energy
+cascade (intake → maintenance → cold → growth → production → `flesh`) is
+shipped and has no input. The sward has the grazing hook
+(`swardGrazingDemandPerGameDay`, eaten = demand × dt per step, organic matter
+and nitrogen returned in place, wet-ground poaching, the over- and
+under-grazing bands) and no mouths. `Feeder` vessels (bowl · trough · hopper,
+a species' kinds) and the pets' `feeds` brain exist for live animals.
+
+**G1 — Where the herd stands: `move herd <field>`** at the herdbook. The
+FIELD records which herd grazes it, because the field's read is what needs the
+answer (*load on use: a reverse question means the reference points the wrong
+way, so flip it*). The herd record keeps its claimed home; containment of a
+drafted head is its position, and the disagreement is straying (D95).
+
+**G2 — What a head eats.** Daily dry-matter intake derived from the species'
+body mass by metabolic weight (one constant, no per-row authoring), times the
+head count, is the field's grazing demand. *Pedagogy:* derivable, not a
+table.
+
+**G3 — What was eaten reaches the animals.** The sward reports the share of
+the demand it met; the herd record keeps that fed fraction over time; a head's
+`flesh` reconciles from it when drafted or read. A seeded per-head share (shy
+feeders get less) makes **the tail**, the three thin ones ranching.md says the
+management game is about. *Seeded, never drawn.*
+
+**G4 — Hay in winter.** A hay trough on the field or in the byre: when the
+sward falls short the herd eats from the trough (the shipped `Feeder`). `mow`
+finally has a consumer, and the winter-feed budget (the ranching slate's "year's
+spine": enough hay to reach February, or sell down in autumn) bites.
+
+**G5 — Stubble grazing**, the bridge to Stage A: a herd moved onto a harvested
+field eats what is there.
+
+*Economy chose (lens 6):* it closes both dead consumers at once, grass gets
+mouths and hay gets an eater. *Pedagogy (lens 1):* the winter-feed forecast.
+
+**Deferred (they stay in the ranching slate's Left):** paddock subdivision,
+gates and the herd in the wheat (the escape resolved at reconcile) · the hired
+hand's grazing cadence and its utilization penalty · breeding and births · the
+sward stick (an instrument read of the pasture).
