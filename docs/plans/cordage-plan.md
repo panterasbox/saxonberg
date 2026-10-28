@@ -380,6 +380,31 @@ No guard re-narrows a host set: the only `kind` switch (`line|hose`) is gone wit
 Each wave: `pnpm test:near` + the touched packs' `pnpm test` + `lint:family` green, one commit,
 push. The full suite only at code-complete and at `/finalize` (`tools/suite`).
 
+### ⭐⭐ Ordering — wait for CERAMICS before W1 (the owner, 2026-10-28)
+
+The ceramics build (`reqs/ceramics`, build-3, MR !437) was still open at plan time and changes the
+ground W1 stands on. **Start `/build` after it merges to master.** If quota frees first, W0 (and W7,
+which touches neither) may run first; then `git merge origin/master` before W1 and re-ground.
+
+What ceramics brings, and what each changes here:
+
+1. ⭐ **Faces and coats + `dip` promoted to the kernel** (`lib/material/Faced.ts`,
+   `lib/craft/DipPlanner.ts`, `platform/cmd/crafting/dip.yaml` with `melt` as its alias,
+   `platform/idea/cmd/crafting/DipController.ts`; the bath plans the dip and a bath whose material
+   `laysCoat` lays a coat). ⇒ **Re-plan D13 onto it before writing it**: tarring is pitch laying a
+   coat on the rope's face; a rope whose face carries a tar coat does not rot. The kernel
+   `Dippable` protocol and the 8-line branch in the chandlery's `DipController` are DROPPED (that
+   controller's role moves to the kernel). Record the re-plan as a D13 amendment.
+2. **Pitch and tar moved** to `base-library` (`stuff/idea/material/bulk/{pitch,wood-tar,coal-tar}.yaml`).
+   Re-point every path this plan cites; whether they still need `tags: [tar]` falls out of item 1
+   (a coat names its material).
+3. **Two new Joint rows**, `dry-laid` and `slip` (label *"slipped"*). D7's clove-hitch failure word
+   `slipped` would read the same as the slip joint's label in one vocabulary — pick a failure word
+   that does not (e.g. `slid`), or confirm the two never meet in one sentence, against the merged
+   `JOINT_FAILURES` list.
+4. **Retail's `Stock` refactor** (`Stock.counterFor`, which stall sells a line). D17's
+   `Good.worthFactor()` buy-back seam lands in the same code — build it against the merged `Stock`.
+
 ### W0 — rope is the kernel's line with two ends (D1, D2, D3, D8 part, D19 prep)
 Files: new `lib/spatial/Line.ts` (from `Lifeline.ts`), `lib/spatial/Tieable.ts`,
 `platform/thing/{Rope,LineEnd,RopeEnd}.ts` (Rope minimal: fiber/diameter/length, strength read,
