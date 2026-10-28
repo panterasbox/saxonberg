@@ -153,7 +153,7 @@ build, and it is beautiful here for four reasons:
    already describes, arriving inside one trade.
 3. ⭐⭐ **It disrupts the naval-stores tapper.** Wood tar from a retort
    undercuts pine tar from tapping ([rubber-slate](../tails/rubber-slate.md) /
-   [tapping-slate](./tapping-slate.md)). **This is the first time a new
+   [tapping-slate](../tails/tapping-slate.md)). **This is the first time a new
    technology destroys an existing player vocation** — which is real
    industrial history, is extraordinary to teach honestly, and must be
    *deliberate, visible and survivable* rather than an accident somebody
@@ -312,7 +312,7 @@ argued.
 See also: [rubber-slate](../tails/rubber-slate.md) (the law, and the first
 polymer) · [drilling-slate](./drilling-slate.md) (the sibling vertical) ·
 [inquiry-slate](./inquiry-slate.md) (the epoch on-ramp — ⚠ **blocks
-Stage B only**, not this slate) · [tapping-slate](./tapping-slate.md) (the vocation this
+Stage B only**, not this slate) · [tapping-slate](../tails/tapping-slate.md) (the vocation this
 disrupts) · [maturation.md](../../subsystems/maturation.md) (the cuts
 rung)
 

@@ -11,7 +11,7 @@
 > graduate-to-top-level-doctrine call (user's) · ⭐⭐⭐ **the RGO law**
 > — *an RGO is a reservoir with a recharge law, drawn by an act,
 > crediting a Discipline; depletion is recharge = 0* — stated in
-> [tapping-slate](../builds/tapping-slate.md), which is the first
+> [tapping-slate](./tapping-slate.md), which is the first
 > build required to land ON it rather than beside it
 > ⭐⭐⭐ **The RGO SPINE is designed (2026-10-08, § end)** — an RGO is a
 > `(capacity field, recharge law)` pair, so **seeded/derived describes the

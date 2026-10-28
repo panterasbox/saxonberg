@@ -10,7 +10,7 @@
 > · a free local-server tool app on Steam · ⭐⭐ **realm portability** (export and
 > import of realm STATE, which ends the drop-the-database doctrine) · the live
 > changelog from git into the press ticker · Valve's policy checks
-> **Size:** several builds; the order is § 9
+> **Size:** a build program — several builds; the order is § 9
 
 ## 0. The frame
 

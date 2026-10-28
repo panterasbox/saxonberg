@@ -90,7 +90,7 @@ Two corrections from reading what landed:
    data half was never pack-side: **a tap is a `production:` block on a species
    row.** What remains pack-side is **`ProducingMixin`** (the host face), and
    the promotion is smaller than this slate first framed it.
-2. **[tapping-slate](./tapping-slate.md) owns the move**, listing
+2. **[tapping-slate](../tails/tapping-slate.md) owns the move**, listing
    *"`ProducingMixin`'s promotion out of `trade-ranching`"* under its own Left.
    So this slate tracks it rather than claiming it — and its own status line is
    the best summary of why it is a promotion at all: *"every piece it needs
