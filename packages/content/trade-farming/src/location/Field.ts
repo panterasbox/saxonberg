@@ -530,6 +530,17 @@ export default class Field extends FieldBase {
   }
 
   /**
+   * ⭐ A standing crop is something on the ground to grub out (cover
+   * build D5), so clearing reads as not quite done while one stands —
+   * the kernel's `grub` refuses only ground with nothing left on it.
+   * The crop gone, the ground reads as cleared as it was.
+   */
+  public override progressOn(job: ImprovementJob, cost: ImprovementCost): number {
+    const done = super.progressOn(job, cost);
+    return job === 'clearing' && this.getCrop() ? Math.min(done, 0.99) : done;
+  }
+
+  /**
    * ⭐ **Grubbing ends a crop** (cover build D5): clearing work banked on
    * a field with a crop standing in it takes the crop out first — tired
    * cane is grubbed before it is replanted.

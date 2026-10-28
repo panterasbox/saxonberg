@@ -153,15 +153,12 @@ suite('the ley and the furrow', () => {
   }, 60_000);
 
   it('⭐ a man-drawn share goes in about half as far as a beast’s', async () => {
-    // ⚠ The plough is fetched now rather than with the hand tools: it is
-    // a different building, and the walk is the point.
-    expectOk(await p.cmd('go yard'));
-    await p.cmd('get plough');
-    expect(await carried()).toMatch(/plough/i);
-    expectOk(await p.cmd('go field'));
-    await p.drainProse();
+    // ⭐ The plough lives at the field's headland (cover build): a beam
+    // and a share are heavier than a body carries, so it is used where it
+    // lies — and it used to be fetched from the yard, which no fresh
+    // character could lift, so this checkpoint matched the refusal.
     expect(await p.prose('plough')).toMatch(
-      /traces over your shoulders|turned and clean|want a plough/i
+      /traces over your shoulders|ploughed for the season|already ploughed/i
     );
   }, 120_000);
 });

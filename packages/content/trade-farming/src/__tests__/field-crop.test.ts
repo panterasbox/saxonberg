@@ -145,6 +145,15 @@ describe('a field holds a crop', () => {
     expect(destruct).toHaveBeenCalledWith(p);
   });
 
+  it('a standing crop is something to grub out: clearing reads unfinished', () => {
+    const f = field();
+    const bill = { clearing: 1, stonePicking: 0, draining: 0, liming: 0 } as never;
+    f.bankWork('clearing', 5, bill);
+    expect(f.progressOn('clearing', bill)).toBe(1);
+    crop(f, 300);
+    expect(f.progressOn('clearing', bill)).toBeLessThan(1);
+  });
+
   it('a crop leaving leaves stubble, and look says so', () => {
     const f = field();
     const p = crop(f, 400);

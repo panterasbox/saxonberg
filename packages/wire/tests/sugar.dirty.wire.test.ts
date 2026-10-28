@@ -738,8 +738,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor.close();
     await daylight();
     sailor = await goTo(sailorHandle, `${W}/location/cane-piece`);
-    await act(sailor, 'harvest cane');
-    await act(sailor, 'harvest cane');
+    // ⭐ By hand, a swath at a time (cover build): bare hands cut about
+    // half a bundle a stroke, so the sailor cuts until two are in hand.
+    for (let i = 0; i < 8 && (await sailor.query('me:i:bundle')).length < 2; i++) {
+      await act(sailor, 'harvest cane');
+    }
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/mill-yard`);
     // Two bundles in hand: one is crushed, the other is KEPT in hand for the
@@ -773,7 +776,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor.close();
     await daylight();
     sailor = await goTo(sailorHandle, `${W}/location/lower-piece`);
-    await act(sailor, 'harvest cane');
+    for (let i = 0; i < 4 && (await sailor.query('me:i:bundle')).length < 1; i++) {
+      await act(sailor, 'harvest cane');
+    }
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/store`);
     // ⭐ The estate pays for cane out of what its till has taken. In an idle

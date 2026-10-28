@@ -109,8 +109,10 @@ export default class PloughController extends FieldWorkController {
     // ⭐ Clearing owed: the bout banks clearing (the one-time improvement).
     // Cleared: it turns the sward under for a seedbed (D4) — refused under
     // a standing crop, and refused twice in one season.
-    const clearing = field.progressOn('clearing', bill) < 1;
-    if (!clearing && field.getCrop()) {
+    // ⚠ The crop first: while one stands the field reads its clearing as
+    // unfinished (a crop is something to grub out), and a plough must
+    // never be the thing that grubs it.
+    if (field.getCrop()) {
       this.decline(
         context,
         Mml.compose`A crop stands in it. Cut it or grub it out before you plough.`,
@@ -118,6 +120,7 @@ export default class PloughController extends FieldWorkController {
       );
       return;
     }
+    const clearing = field.progressOn('clearing', bill) < 1;
     if (!clearing && field.isSeedbedFresh()) {
       this.decline(
         context,
