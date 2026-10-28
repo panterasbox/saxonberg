@@ -989,7 +989,12 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         try {
           if (MixinApi.isPlacing(self)) near.push(...self.getPlaced('on'));
         } catch (err) {
-          if (!(err instanceof SecurityError)) throw err;
+          if (
+              !(err instanceof SecurityError) &&
+              !(err instanceof Error && err.message.startsWith('sandbox boundary denied'))
+            ) {
+              throw err;
+            }
         }
         for (const c of near) {
           // Only a FACED vessel seeps (its faces are what let a liquid through).
@@ -1001,7 +1006,12 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
             // a sandboxed eval looking into a pan may not peek at what stands
             // across its boundary (drive D, run 38). That seeper is brought
             // current on its own read. Anything else is a real fault.
-            if (!(err instanceof SecurityError)) throw err;
+            if (
+              !(err instanceof SecurityError) &&
+              !(err instanceof Error && err.message.startsWith('sandbox boundary denied'))
+            ) {
+              throw err;
+            }
           }
         }
       } finally {
