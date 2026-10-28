@@ -36,7 +36,9 @@ data:
       edgeMinutes: 1
     # The way back up to the close — it always had a way down (the
     # location graph saw it once the close became a place, cover W6).
-    close:
+    # ⚠ Cardinal: the close is in this zone (Location.addExit), and `up`
+    # is the bench's.
+    northwest:
       destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
       media: [ground]
       edgeMinutes: 3
