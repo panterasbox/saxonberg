@@ -42,11 +42,9 @@ data:
   # ⭐⭐ Coke is coal's transition (ceramics ruling A): held hot in a
   # starved chamber (a shut retort) the volatiles come off as tar and gas
   # and the carbon stays. Given air, it simply burns.
-  heatTransitions:
+  kinetics:
     - key: coke
-      referenceK: 1100
-      zK: 60
-      fullDoseS: 14400
+      rate: { referenceK: 1100, zK: 60, fullDoseS: 14400 }
       massRetained: 0.7
       requiresStarvedAir: true
       volatiles:

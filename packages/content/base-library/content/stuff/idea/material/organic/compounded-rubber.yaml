@@ -26,11 +26,9 @@ data:
   waterAbsorptionCapacity: 0.5
   elasticity: 250
   castTemplate: /trade/rubber/thing/compounded-stock
-  heatTransitions:
+  kinetics:
     - key: cure
-      referenceK: 418
-      zK: 12
-      fullDoseS: 1800
+      rate: { referenceK: 418, zK: 12, fullDoseS: 1800 }
       agent:
         # The quarry's sulfur lump is `mineral/sulfur`, whole (its row
         # authors no composition), so this is the path the mixing fold

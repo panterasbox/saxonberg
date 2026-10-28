@@ -53,11 +53,9 @@ data:
   #
   # A starved (reducing) firing takes each rung's twin. Past 1560 K a common
   # clay bloats and glasses into clinker — the clamp's fire-channel brick.
-  heatTransitions:
+  kinetics:
     - key: terracotta
-      referenceK: 1200
-      zK: 30
-      fullDoseS: 7200
+      rate: { referenceK: 1200, zK: 30, fullDoseS: 7200 }
       # The organics and the bound water burn off — about a twelfth.
       massRetained: 0.92
       discipline: pottery
@@ -66,18 +64,14 @@ data:
           becomes: /stuff/idea/material/ceramic/terracotta
           reducing: /stuff/idea/material/ceramic/terracotta-reduced
     - key: earthenware
-      referenceK: 1330
-      zK: 30
-      fullDoseS: 7200
+      rate: { referenceK: 1330, zK: 30, fullDoseS: 7200 }
       discipline: pottery
       ladder:
         - atDegree: 1
           becomes: /stuff/idea/material/ceramic/earthenware
           reducing: /stuff/idea/material/ceramic/earthenware-reduced
     - key: stoneware
-      referenceK: 1480
-      zK: 30
-      fullDoseS: 7200
+      rate: { referenceK: 1480, zK: 30, fullDoseS: 7200 }
       scorchAboveK: 1560
       scorched: /stuff/idea/material/ceramic/clinker
       discipline: pottery

@@ -2,7 +2,7 @@
 
 > Built by the ceramics & moulding build (2026-10, `reqs/ceramics`). The
 > mechanism a firing runs on is the kernel's and is documented where it
-> lives — [thermal.md](./thermal.md) § heat-work (firing is ONE rule),
+> lives — [thermal.md](./thermal.md) § Kinetics (firing is ONE rule),
 > [faces.md](./faces.md) (coats and glazes), [materials-response.md](./materials-response.md)
 > (brittle bodies, flaws, `ring`). This doc is the TRADE: what clay is, how
 > it is won, weathered, tempered, shaped and fired, and who does it.

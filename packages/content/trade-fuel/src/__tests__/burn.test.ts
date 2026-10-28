@@ -26,7 +26,7 @@ import CharcoalPit from '../thing/CharcoalPit';
 import Crop from '@saxonberg/server/mud/platform/thing/Crop';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import type { HeatTransitionSpec } from '@saxonberg/server/mud/lib/material/HeatTransition';
+import type { KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -64,7 +64,7 @@ function material(path: string): Material {
     m.setAutoignitionTemperature(Quantity.of(n('autoignitionTemperature'), 'K'));
     m.setHeatOfCombustion(Quantity.of(n('heatOfCombustion'), 'MJ/kg'));
     m.setAshFraction(n('ashFraction'));
-    if (data.heatTransitions) m.setHeatTransitions(data.heatTransitions as HeatTransitionSpec[]);
+    if (data.kinetics) m.setKinetics(data.kinetics as KineticSpec[]);
     return m;
   }, path) as unknown as Material;
 }
@@ -237,11 +237,11 @@ describe('charcoal, read off the MATERIAL', () => {
   it('⭐ every wood chars to the same two commons rows (ruling A, R4)', () => {
     for (const w of ['ash', 'beech', 'birch', 'elm', 'hazel', 'maple', 'oak', 'pine', 'willow', 'yew']) {
       const data = baseRow(`stuff/idea/material/wood/${w}.yaml`).data as {
-        heatTransitions: HeatTransitionSpec[];
+        kinetics: KineticSpec[];
       };
-      const char = data.heatTransitions.find((t) => t.key === 'char')!;
+      const char = data.kinetics.find((t) => t.key === 'char')!;
       expect(char.requiresStarvedAir).toBe(true);
-      expect(char.ladder.map((r) => r.becomes)).toEqual([BRANDS, CHARCOAL]);
+      expect((char.ladder ?? []).map((r) => r.becomes)).toEqual([BRANDS, CHARCOAL]);
     }
   });
 

@@ -92,12 +92,10 @@ beforeEach(() => {
       m.setLaysCoat(true);
       m.setCoatWord('glazed');
       m.setThermalExpansion(alpha);
-      m.setHeatTransitions([
+      m.setKinetics([
         {
           key: 'fuse',
-          referenceK: refK,
-          zK: 30,
-          fullDoseS: 3600,
+          rate: { referenceK: refK, zK: 30, fullDoseS: 3600 },
           scorchAboveK: runK,
           ladder: [{ atDegree: 1, becomes: `/stuff/idea/material/_faced/${name}` }],
         },

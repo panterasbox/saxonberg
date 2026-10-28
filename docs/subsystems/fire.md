@@ -377,7 +377,7 @@ nothing about the charge:
    the kiln — `fire kiln`, `burn kiln` and `fire in retort` bind as before)
    sets the air;
 2. it refuses `no-charge` and `not-lit` (⚠ *unlit is COLD, not cool*);
-3. it stamps `heatWork.firedBy` on every body in the chamber (and one level
+3. it stamps `kineticRecord.firedBy` on every body in the chamber (and one level
    into a mould standing in it), and holds the chamber at heat — a sealed-down, watched step on the
    attention slot, a minute's effort however long the hold;
 4. at the end the chamber SETTLES (`Burner.settleFiring(by)`): each body
@@ -388,12 +388,12 @@ nothing about the charge:
    off each body's record.
 
 ⭐⭐⭐ **Firing is ONE rule, and it is not in this verb.** Every body that has
-been hot carries a heat history (`ThermalMixin.heatWork`, see
-[thermal.md](./thermal.md) § heat-work), and every material heat changes says
-how on its own row (`Material.heatTransitions`, evaluated by
-`lib/material/HeatTransition.ts`). Limestone becomes quicklime at 56 % of its
+been hot carries a heat history (`ThermalMixin.kineticRecord`, see
+[thermal.md](./thermal.md) § Kinetics), and every material heat changes says
+how on its own row (`Material.kinetics`, evaluated by
+`lib/material/Kinetics.ts` — the same evaluator staling runs). Limestone becomes quicklime at 56 % of its
 mass; clay becomes terracotta, then earthenware, then stoneware, by three
-transitions with their own reference heats; wood in a STARVED chamber chars
+changes with their own reference heats; wood in a STARVED chamber chars
 and its tar goes to whatever takes volatiles; compounded rubber cures by its
 own sulfur fraction. A lime lump in a burning barn and one in a limekiln are
 the same event. There is no recipe path: the six firing rows (`burn-lime`,

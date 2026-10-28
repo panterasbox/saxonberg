@@ -316,32 +316,33 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   }
   // ⭐ (ceramics W4/W7) Whose mark a stamp or a die was cut with — a
   // person's row, read live when a pot is marked or a token struck.
-  push('markOf', data.markOf);
-  // ⭐ `heatTransitions[]` (ceramics M1) — what heat makes of a material:
-  // each rung's `becomes` and `reducing`, the `over` and `scorched`
-  // materials, the agent, the volatiles and the vapor coats. Every one is
-  // resolved live in a reconcile nobody watches, and a rowless rung is a
-  // firing that banks heat-work and never changes the piece.
-  if (Array.isArray(data.heatTransitions)) {
-    for (const t of data.heatTransitions as Array<Record<string, unknown>>) {
+  push('markDevice', data.markDevice);
+  // ⭐ `kinetics[]` (ceramics M1; heat transitions folded in) — what heat
+  // and time make of a material: each rung's `becomes` and `reducing`, the
+  // `over` and `scorched` materials, the agent, the volatiles and the vapor
+  // coats. Every one is resolved live in a reconcile nobody watches, and a
+  // rowless rung is a firing that banks heat-work and never changes the
+  // piece.
+  if (Array.isArray(data.kinetics)) {
+    for (const t of data.kinetics as Array<Record<string, unknown>>) {
       if (!t || typeof t !== 'object') continue;
       for (const r of (Array.isArray(t.ladder) ? t.ladder : []) as Array<Record<string, unknown>>) {
         if (!r || typeof r !== 'object') continue;
-        push('heatTransitions', r.becomes);
-        push('heatTransitions', r.reducing);
+        push('kinetics', r.becomes);
+        push('kinetics', r.reducing);
       }
-      push('heatTransitions', t.over);
-      push('heatTransitions', t.scorched);
+      push('kinetics', t.over);
+      push('kinetics', t.scorched);
       if (t.agent && typeof t.agent === 'object') {
-        push('heatTransitions', (t.agent as Record<string, unknown>).material);
+        push('kinetics', (t.agent as Record<string, unknown>).material);
       }
       for (const v of (Array.isArray(t.volatiles) ? t.volatiles : []) as Array<Record<string, unknown>>) {
-        if (v && typeof v === 'object') push('heatTransitions', v.material);
+        if (v && typeof v === 'object') push('kinetics', v.material);
       }
       if (t.vapor && typeof t.vapor === 'object') {
         for (const [k, v] of Object.entries(t.vapor as Record<string, unknown>)) {
-          push('heatTransitions', k);
-          push('heatTransitions', v);
+          push('kinetics', k);
+          push('kinetics', v);
         }
       }
     }

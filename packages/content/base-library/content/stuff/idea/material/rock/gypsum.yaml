@@ -25,11 +25,9 @@ data:
   # W7): held at about 420 K for an hour it gives up three-quarters of its
   # water and is PLASTER, which takes the water back and sets again in any
   # shape it is poured into. A core oven's gentle heat is the right one.
-  heatTransitions:
+  kinetics:
     - key: plaster
-      referenceK: 420
-      zK: 15
-      fullDoseS: 3600
+      rate: { referenceK: 420, zK: 15, fullDoseS: 3600 }
       massRetained: 0.84
       discipline: pottery
       ladder:

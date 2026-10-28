@@ -171,7 +171,7 @@ model's shape: ⭐ *a mould that casts a mould hands it the cavity*
 case is ready for the next).
 
 Gypsum burns to plaster by the ONE heat rule (`rock/gypsum`'s
-`heatTransitions` → `mineral/plaster`, ~420 K for an hour): the foundry's
+`kinetics` → `mineral/plaster`, ~420 K for an hour): the foundry's
 **core oven** holds that gentle heat.
 
 ## ⭐⭐ The envelope (S12)

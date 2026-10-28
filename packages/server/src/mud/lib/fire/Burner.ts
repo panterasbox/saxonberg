@@ -564,7 +564,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
             body.getTemperature();
             // A piece that vaporized (salt) left the chamber on that read.
             if (body.isDestroyed()) continue;
-            for (const d of body.drainHeatWorkCredits()) disciplines.push(d);
+            for (const d of body.drainKineticCredits()) disciplines.push(d);
           }
         }
         for (const c of [...self.getContents()]) {
@@ -580,16 +580,16 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
               // the cast and destructed by the read above: its credits
               // went with its record to the cast, which is drained below.
               if (piece.isDestroyed()) continue;
-              for (const d of piece.drainHeatWorkCredits()) disciplines.push(d);
+              for (const d of piece.drainKineticCredits()) disciplines.push(d);
             }
           }
-          if (MixinApi.isThermal(body)) await body.settleTransitions();
+          if (MixinApi.isThermal(body)) await body.settleKinetics();
           // The casts a rung just minted in a mould carry the credit now.
           if (MixinApi.isMould(body) && MixinApi.isContainer(body)) {
             for (const inner of body.getContents()) {
               const cast = inner as unknown as Stuff;
               if (!cast.isDestroyed() && MixinApi.isThermal(cast)) {
-                for (const d of cast.drainHeatWorkCredits()) disciplines.push(d);
+                for (const d of cast.drainKineticCredits()) disciplines.push(d);
               }
             }
           }

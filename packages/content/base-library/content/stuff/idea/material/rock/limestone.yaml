@@ -3,7 +3,7 @@
 #
 # Two products out of one rock, and one of them needs a fire: straight into
 # a smelt it takes the gangue off as a running slag, and held hot it
-# calcines to quicklime (its `heatTransitions` below). That is the whole of why a limekiln stands at a
+# calcines to quicklime (its `kinetics` below). That is the whole of why a limekiln stands at a
 # quarry — the rock is heavy and the lime is light, so you burn it where you
 # dig it.
 #
@@ -36,11 +36,9 @@ data:
   # mass — in a limekiln, a pottery kiln or a burning barn alike. Fired
   # short it comes out burnt to the skin and raw at the heart, and weighs
   # in between. No recipe, no "burn-lime" row.
-  heatTransitions:
+  kinetics:
     - key: calcine
-      referenceK: 1170
-      zK: 60
-      fullDoseS: 3600
+      rate: { referenceK: 1170, zK: 60, fullDoseS: 3600 }
       massRetained: 0.56
       discipline: quarrying
       ladder:

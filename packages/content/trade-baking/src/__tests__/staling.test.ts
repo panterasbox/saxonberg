@@ -13,7 +13,7 @@
  *
  * ⭐ Staling is the bread MATERIAL's kinetics since the sugar build
  * (2026-10-24): the curve is read off `bread.yaml` here, so these tests
- * prove the AUTHORED row, run by the kernel's `KineticMixin` on
+ * prove the AUTHORED row, run by the kernel's `ThermalMixin` on
  * `Provision`.
  */
 

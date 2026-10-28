@@ -112,8 +112,8 @@ export default class Brick extends BrickBase {
       const k = this.getTemperature().rawValue();
       splitoff.setStampedTemperatureK(k);
       splitoff.setLastAmbientK(this.lastAmbientK);
-      const rec = this.getHeatWork();
-      if (rec !== null) splitoff.adoptHeatWork(rec);
+      const rec = this.getKineticRecord();
+      if (rec !== null) splitoff.adoptKineticRecord(rec);
     }
     if (MixinApi.isCrafted(splitoff)) splitoff.setMaker(this.getMaker());
     if (MixinApi.isMarked(splitoff)) {

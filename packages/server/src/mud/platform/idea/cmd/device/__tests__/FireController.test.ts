@@ -4,7 +4,7 @@
  *
  * Until the ceramics build this controller scanned the recipe catalogue for
  * a firing. Now firing is one rule: every body in a lit chamber banks
- * heat-work, and its material's `heatTransitions` say what that makes of
+ * heat-work, and its material's `kinetics` say what that makes of
  * it. So this file authors **its own material with its own transition** and
  * asserts that a bare `Oven` turns it — by the hold, with the verb naming
  * nothing. And it holds the census: no installed recipe row still has the
@@ -111,12 +111,10 @@ beforeEach(async () => {
     m.setSpecificHeat(Quantity.of(800, 'J/(kg·K)'));
     m.setThermalConductivity(Quantity.of(1, 'W/(m·K)'));
     // ⭐⭐ THE TEST'S OWN TRANSITION. Nothing in the controller knows it.
-    m.setHeatTransitions([
+    m.setKinetics([
       {
         key: 'burn',
-        referenceK: 1100,
-        zK: 60,
-        fullDoseS: 1800,
+        rate: { referenceK: 1100, zK: 60, fullDoseS: 1800 },
         massRetained: 0.5,
         discipline: 'quarrying',
         ladder: [{ atDegree: 1, becomes: BURNT_M }],
@@ -185,7 +183,7 @@ describe('⭐⭐ the material decides — the verb only holds the heat', () => {
     expect(piece.getMaterial()?.getTemplatePath()).toBe(BURNT_M);
     expect(piece.getMass().rawValue()).toBeCloseTo(2.5, 1);
     // …and whoever held the firing is stamped on it.
-    expect(piece.getHeatWork()?.firedBy).toBe('/platform/agent/Avatar/burner-1');
+    expect(piece.getKineticRecord()?.firedBy).toBe('/platform/agent/Avatar/burner-1');
   });
 
   it('⭐⭐ the affordance: the APPLIANCE carries `fire`, beside its own five', () => {

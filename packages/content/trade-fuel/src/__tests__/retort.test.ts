@@ -26,7 +26,7 @@ import Gasometer from '../thing/Gasometer';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Location from '@saxonberg/server/mud/lib/location/Location';
-import { HeatTransition, type HeatTransitionSpec } from '@saxonberg/server/mud/lib/material/HeatTransition';
+import { KineticChange, type KineticSpec } from '@saxonberg/server/mud/lib/material/Kinetics';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
@@ -122,8 +122,8 @@ describe('the retort', () => {
 
   describe('the rows say what the mechanism needs', () => {
     /** A material row's heat transition, by key. */
-    function transition(rel: string, key: string): HeatTransitionSpec {
-      const specs = (row(rel).data as { heatTransitions: HeatTransitionSpec[] }).heatTransitions;
+    function transition(rel: string, key: string): KineticSpec {
+      const specs = (row(rel).data as { kinetics: KineticSpec[] }).kinetics;
       const t = specs.find((x) => x.key === key);
       if (!t) throw new Error(`${rel} has no '${key}' transition`);
       return t;
@@ -133,9 +133,9 @@ describe('the retort', () => {
       // ⭐ Ceramics ruling A: no retort recipe — wood chars and coal cokes
       // by their own heat transitions, and the tar and gas are the
       // transitions' third product, wherever the charge is held.
-      const wood = new HeatTransition(transition('stuff/idea/material/wood/hazel.yaml', 'char'));
+      const wood = new KineticChange(transition('stuff/idea/material/wood/hazel.yaml', 'char'));
       expect(wood.getVolatiles()).toEqual([{ material: TAR, litresPerKg: 0.08 }]);
-      const coal = new HeatTransition(transition('stuff/idea/material/mineral/coal.yaml', 'coke'));
+      const coal = new KineticChange(transition('stuff/idea/material/mineral/coal.yaml', 'coke'));
       expect(coal.getVolatiles().map((v) => v.material)).toEqual([COAL_TAR, COAL_GAS]);
     });
 
@@ -143,19 +143,19 @@ describe('the retort', () => {
       // A retort that quietly made no tar would still produce its char
       // and still look right, which is the shape of defect this refuses.
       const base = transition('stuff/idea/material/wood/hazel.yaml', 'char');
-      const withVolatiles = (v: unknown): HeatTransitionSpec =>
-        ({ ...base, volatiles: v }) as HeatTransitionSpec;
-      expect(() => new HeatTransition(withVolatiles([{ material: TAR, litresPerKG: 0.08 }]))).toThrow(/litresPerKg/);
-      expect(() => new HeatTransition(withVolatiles([{ material: TAR, litresPerKg: 0 }]))).toThrow(/litresPerKg/);
+      const withVolatiles = (v: unknown): KineticSpec =>
+        ({ ...base, volatiles: v }) as KineticSpec;
+      expect(() => new KineticChange(withVolatiles([{ material: TAR, litresPerKG: 0.08 }]))).toThrow(/litresPerKg/);
+      expect(() => new KineticChange(withVolatiles([{ material: TAR, litresPerKg: 0 }]))).toThrow(/litresPerKg/);
     });
 
     it('⭐⭐ the charges are told apart by MATERIAL — wood chars, coal cokes', () => {
       // ⚠ Coal shares `fuel` and `carbon` with charcoal and coke; nothing
       // has to tell them apart by tag any more, because each charge's own
       // material says what heat makes of it.
-      expect(transition('stuff/idea/material/wood/hazel.yaml', 'char').ladder.at(-1)!.becomes)
+      expect(transition('stuff/idea/material/wood/hazel.yaml', 'char').ladder!.at(-1)!.becomes)
         .toBe('/stuff/idea/material/organic/charcoal');
-      expect(transition('stuff/idea/material/mineral/coal.yaml', 'coke').ladder.at(-1)!.becomes)
+      expect(transition('stuff/idea/material/mineral/coal.yaml', 'coke').ladder!.at(-1)!.becomes)
         .toBe('/stuff/idea/material/organic/coke');
       // Both only where a flame cannot burn — a SHUT retort.
       expect(transition('stuff/idea/material/mineral/coal.yaml', 'coke').requiresStarvedAir).toBe(true);

@@ -24,12 +24,10 @@ data:
   tags: ["granular", "solid", "batch"]
   composition: []
   biologicalSource: null
-  heatTransitions:
+  kinetics:
     - key: melt
       # Above the liquidus — a kiln reaches it with the bellows going.
-      referenceK: 1400
-      zK: 60
-      fullDoseS: 3600
+      rate: { referenceK: 1400, zK: 60, fullDoseS: 3600 }
       # The gall and the gases leave; the glass keeps 72 % of the batch.
       massRetained: 0.72
       discipline: glasswork

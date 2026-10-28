@@ -151,12 +151,10 @@ beforeEach(async () => {
     // the chamber's heat within a minute — the hold is the cure, not the
     // warm-up.
     m.setSpecificHeat(Quantity.of(400, 'J/(kg·K)'));
-    m.setHeatTransitions([
+    m.setKinetics([
       {
         key: 'cure',
-        referenceK: 418,
-        zK: 12,
-        fullDoseS: 1800,
+        rate: { referenceK: 418, zK: 12, fullDoseS: 1800 },
         agent: { material: AGENT, optimum: 0.03, over: 0.2 },
         scorchAboveK: 455,
         ladder: [{ atDegree: 0.6, becomes: CURED }],
@@ -259,7 +257,7 @@ describe('⭐⭐ the cure is the stock, the heat and the time', () => {
     expect(m.getContents().some((c) => c.getTemplatePath() === CAST_ROW)).toBe(false);
     expect(StuffApi.findById(piece.stuffId)).toBe(piece);
     expect(materialPathOf(piece)).toBe(FEED);
-    const degree = piece.getHeatWork()?.conversions['cure']?.degree ?? 0;
+    const degree = piece.getKineticRecord()?.changes['cure']?.extent ?? 0;
     expect(degree).toBeGreaterThan(0);
     expect(degree).toBeLessThan(0.6);
   });

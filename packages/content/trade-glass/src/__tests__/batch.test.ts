@@ -22,8 +22,7 @@ import CompoundingVessel from "@saxonberg/server/mud/platform/thing/CompoundingV
 import Oven from "@saxonberg/server/mud/platform/thing/Oven";
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import Place from "@saxonberg/server/mud/lib/stuff/Place";
-import { HeatTransition } from "@saxonberg/server/mud/lib/material/HeatTransition";
-import type { HeatTransitionSpec } from "@saxonberg/server/mud/lib/material/HeatTransition";
+import { KineticChange, type KineticSpec } from "@saxonberg/server/mud/lib/material/Kinetics";
 import type { Burner } from "@saxonberg/server/mud/lib/fire/Burner";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import { chargeHot } from "@saxonberg/server/mud/lib/fire/__tests__/burner-fuel";
@@ -77,9 +76,9 @@ function piece<T extends Good>(make: () => T, m: Material, kg: number): T {
 describe("the shipped rows", () => {
   it("the batch material melts to glass by its own transition, keeping 72 %", () => {
     const r = row(materialDir, "batch.yaml");
-    const specs = r.data["heatTransitions"] as HeatTransitionSpec[];
+    const specs = r.data["kinetics"] as KineticSpec[];
     expect(specs).toHaveLength(1);
-    const t = new HeatTransition(specs[0]!);
+    const t = new KineticChange(specs[0]!);
     expect(t.getMassRetained()).toBeCloseTo(0.72, 6);
     expect(t.getReferenceK()).toBe(1400);
     expect(t.getDiscipline()).toBe("glasswork");
@@ -119,12 +118,10 @@ describe("mix, then fire", () => {
       m.setMeltingPoint(Quantity.of(1300, "K"));
     });
     batchM = mat("glass batch", (m) =>
-      m.setHeatTransitions([
+      m.setKinetics([
         {
           key: "melt",
-          referenceK: 1400,
-          zK: 60,
-          fullDoseS: 3600,
+          rate: { referenceK: 1400, zK: 60, fullDoseS: 3600 },
           massRetained: 0.72,
           discipline: "glasswork",
           ladder: [{ atDegree: 1, becomes: glass.getTemplatePath()! }],

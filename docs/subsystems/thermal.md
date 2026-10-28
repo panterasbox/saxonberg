@@ -164,20 +164,44 @@ The census-ratchet `lint:reconcile-chains` holds the line: a new
 (a logout), but dead matter integrates its absence, which is what makes a
 fridge losing power for a week spoil its contents.
 
-### ⭐⭐⭐ Heat-work — a body that has been hot carries what the heat did (ceramics M1)
+### ⭐⭐⭐ Kinetics — a body carries what heat and time did to it (ceramics M1)
 
-Firing is ONE rule, and it lives here. `ThermalMixin` keeps one persistent
-runtime record, `heatWork: HeatWorkRecord | null`, and one private
-`reconcileHeatWork()` called at the end of `reconcileThermal()` — after the
-phase pass, outside the reentry guard, under its own guard. It is **inert**
-(one material lookup that answers no) unless the body's material declares
-`heatTransitions`; a plate on a shelf never keeps a record, and a cold lump
-of limestone keeps none until it has been hot.
+Firing is ONE rule, and it lives here — and since 2026-10-28 it is the
+same rule as staling and inversion: the ceramics build's heat transitions
+and the sugar build's kinetics folded into ONE evaluator,
+`lib/material/Kinetics.ts` (`KineticChange`), read off the material row's
+`kinetics:` list. `ThermalMixin` keeps one persistent runtime record,
+`kineticRecord: KineticRecord | null`, and one private
+`reconcileKineticRecord()` called at the end of `reconcileThermal()` — after
+the phase pass, outside the reentry guard, under its own guard. It is
+**inert** (one material lookup that answers no) unless the body's material
+declares `kinetics`; a plate on a shelf never keeps a record, and a cold
+lump of limestone keeps none until it has been hot. `KineticMixin` retired
+into it: the change needs the good's own temperature trajectory, which is
+this mixin's, so the record is too.
 
-For each transition (`lib/material/HeatTransition.ts`):
+A change's **rate law** is one of two (`rate:` on the row):
+
+- **a dose to completion** — `rate: { referenceK, zK, fullDoseS }`, the
+  firing law below; it accrues only while the body is near its reference
+  heat (`referenceK − 3·zK`), and integrates from the body's own history;
+- **a point curve** — `rate: [[K, perHour]…]` with an `order` (0
+  accumulates, 1 turns what is left), negative for a reversal held at
+  `floor`; it runs at every temperature, and its clock starts at the good's
+  first read (staling and inversion — see
+  [spoilage.md](./spoilage.md#kinetics--what-a-substance-does-by-itself-over-time)).
+
+Everything else is either law's to use: a `ladder`, `grade` bands lost by
+extent (from the grade the clock started at), `words`/`senses` that `look`
+reads (the `ThermalMixin` markup augmenter), `massRetained`, `volatiles`,
+`scorchAboveK`/`scorched`, `agent`/`over` (a dose law's), `vapor`,
+`discipline`. A rung's material is a rung on a `ladder` — there is no
+top-level `becomes`, and the row says so loudly.
+
+For each dose-law change:
 
 - **dose** `+= ∫ 10^((T − referenceK)/zK) dt` off the body's OWN
-  `temperatureTrajectory` since `heatWork.checkedS` — so a brick nobody read
+  `temperatureTrajectory` since `kineticRecord.checkedS` — so a brick nobody read
   for three days is credited for three days (the trajectory contract above,
   and the same integrand as `ThermalDose`);
 - **degree** `= min(1, dose/fullDoseS) · min(1, agent/optimum)`, the agent
@@ -185,7 +209,8 @@ For each transition (`lib/material/HeatTransition.ts`):
   summed from neighbours (ruling B);
 - a **rung** is reached when the degree passes its `atDegree`: the piece's
   MATERIAL swaps (its reducing twin when the dose-weighted burner
-  completeness sat below `thermal.heatWork.reducingBelow`; the `over`
+  completeness sat below `thermal.heatWork.reducingBelow` — the dial keeps
+  its name: heat-work is the potter's word for the dose; the `over`
   material when its agent is at or past `agent.over`; the `scorched`
   material past `scorchAboveK`), its mass follows `raw · Π(1 − degree ·
   (1 − massRetained))`, and its prose is restamped (the old material's name
@@ -194,16 +219,18 @@ For each transition (`lib/material/HeatTransition.ts`):
   `receiveVolatiles` probe or else the air of the place;
 - standing in a `Mould` that is not its own cast, the piece instead hands
   the mould a pool at the rung (`castInto`) and is destructed — the cast
-  `adoptHeatWork`s the record, so a cure keeps grading as its degree rises;
+  `adoptKineticRecord`s the record, so a cure keeps grading as its degree
+  rises;
 - `requiresStarvedAir` (pyrolysis) accrues only in a burner chamber below
   `fire.air.flamingCompleteness` — the dial `FireLogic.mediumBurns` reads; a
   `Burning` combustible accrues nothing.
 
-The transitions read are the ORIGIN material's (`heatWork.origin`), so a clay
+The changes read are the ORIGIN material's (`kineticRecord.origin`), so a clay
 keeps climbing through terracotta to stoneware. ⭐ The piece keeps its
 identity throughout: the same jug comes out of the kiln it went in. `fire`
-stamps `heatWork.firedBy`; a rung records its `discipline` in
-`heatWork.uncredited`, which `Burner.settleFiring` drains to the firer — an
+stamps `kineticRecord.firedBy`; a rung records its `discipline` in
+`kineticRecord.uncredited`, which `Burner.settleFiring` drains to the firer
+(`drainKineticCredits`, after `settleKinetics` awaits the casts) — an
 unwatched rung waits for whoever held the firing. Two stacks of different
 material, or fired differently, no longer merge (`Stackable.canMergeWith`).
 

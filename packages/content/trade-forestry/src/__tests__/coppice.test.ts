@@ -45,10 +45,10 @@ describe('the coppice', () => {
     // (ceramics ruling A): hazel chars where a flame cannot burn.
     const hazel = row('base-library/content/stuff/idea/material/wood/hazel.yaml').data as {
       tags: string[];
-      heatTransitions: Array<{ key: string; requiresStarvedAir: boolean }>;
+      kinetics: Array<{ key: string; requiresStarvedAir: boolean }>;
     };
     expect(hazel.tags).toContain('wood');
-    expect(hazel.heatTransitions.find((t) => t.key === 'char')?.requiresStarvedAir).toBe(true);
+    expect(hazel.kinetics.find((t) => t.key === 'char')?.requiresStarvedAir).toBe(true);
   });
 
   it('⭐ the stool is cut with a billhook, credits silviculture, and is READY on a fresh boot', () => {
@@ -99,9 +99,9 @@ describe('the coppice', () => {
     // 48 × 3.2 kg × 0.25 ≈ 38 kg of charcoal — every length, no baskets.
     const cordwood = row('trade-forestry/content/trade/forestry/thing/cordwood.yaml').data as { mass: number };
     const hazel = row('base-library/content/stuff/idea/material/wood/hazel.yaml').data as {
-      heatTransitions: Array<{ key: string; massRetained: number }>;
+      kinetics: Array<{ key: string; massRetained: number }>;
     };
-    const retained = hazel.heatTransitions.find((t) => t.key === 'char')!.massRetained;
+    const retained = hazel.kinetics.find((t) => t.key === 'char')!.massRetained;
     const charcoalKgPerYear = lengthsPerYear * cordwood.mass * retained;
     expect(charcoalKgPerYear).toBeCloseTo(38.4, 1);
     // ⚠ OPEN (ceramics W0): the panel rows' headers still state SIX SMELTS

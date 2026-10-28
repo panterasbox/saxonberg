@@ -16,8 +16,8 @@
  * for a firing whose slots the charge satisfied, and ran it — a second
  * path beside the physics, so a pot fired in a house fire and a pot fired
  * in a kiln were different events. Now every body that has been hot
- * carries its own heat history (`ThermalMixin.heatWork`), and its
- * material says what that history makes of it (`Material.heatTransitions`).
+ * carries its own kinetic record (`ThermalMixin.kineticRecord`), and its
+ * material says what that history makes of it (`Material.kinetics`).
  * This verb **lights nothing and decides nothing**: it sets the air, holds
  * the chamber at heat for as long as you tend it, and at the end asks the
  * chamber to settle (`Burner.settleFiring`) — each piece reads itself — and
@@ -37,7 +37,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Burner } from '../../../../lib/fire/Burner';
-import type { HeatWorkRecord } from '../../../../lib/material/HeatTransition';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -250,16 +249,7 @@ function chargeBodies(kiln: Stuff & Container): Stuff[] {
 /** How a piece reads after a firing, from its own record — or `null`. */
 function firedWord(body: Stuff): string | null {
   if (!MixinApi.isThermal(body)) return null;
-  const rec: Readonly<HeatWorkRecord> | null = body.getHeatWork();
-  if (rec === null) return null;
-  const degrees = Object.values(rec.conversions).map((c) => c.degree);
-  if (degrees.length === 0) return null;
-  const d = Math.max(...degrees);
-  if (d <= 0) return null;
-  if (d < 1 && Object.values(rec.conversions).every((c) => c.rung < 0)) {
-    return 'burnt to the skin and raw at the heart';
-  }
-  return null;
+  return body.isPartConverted() ? 'burnt to the skin and raw at the heart' : null;
 }
 
 /**
@@ -288,7 +278,7 @@ async function settle(
   // a recipe's figures.
   for (const body of chargeBodies(kiln)) {
     if (body.isDestroyed() || !MixinApi.isSoilable(body) || !MixinApi.isThermal(body)) continue;
-    const rec = body.getHeatWork();
+    const rec = body.getKineticRecord();
     const peak = rec?.peakK ?? body.getTemperature().rawValue();
     body.recordHeat(peak, rec?.aboveS ?? 0);
   }

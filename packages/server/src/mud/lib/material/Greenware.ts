@@ -132,7 +132,7 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (work.length > 0) extra.push(`It has ${work.join(' and ')}.`);
   // ⭐ Once fired — when (ceramics S5). Whose mark it bears is the
   // `MarkedMixin` device's own line, not this one.
-  const rec = MixinApi.isThermal(host) ? host.getHeatWork() : null;
+  const rec = MixinApi.isThermal(host) ? host.getKineticRecord() : null;
   const firedAt = state === null && rec !== null && rec.lastTransitionAtS !== null ? rec.lastTransitionAtS : null;
   if (firedAt !== null) {
     extra.push(`It was fired ${DefaultCalendar.singleton().formatDate(Quantity.of(firedAt, 's'))}.`);
@@ -323,8 +323,8 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
       const mat = self.getMaterial();
       if (mat === null || !mat.hasTag('plastic')) return false;
       if (MixinApi.isThermal(self)) {
-        const rec = self.getHeatWork();
-        if (rec !== null && Object.values(rec.conversions).some((c) => c.degree > 0)) return false;
+        const rec = self.getKineticRecord();
+        if (rec !== null && Object.values(rec.changes).some((c) => c.extent > 0)) return false;
       }
       return true;
     }

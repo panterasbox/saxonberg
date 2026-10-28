@@ -54,11 +54,9 @@ data:
   # `fire.air.flamingCompleteness` — it cooks its volatiles out and keeps a
   # quarter of its mass as carbon. Starved too far (too cool) it only gets
   # to brands; given air it catches and burns to ash instead. One rule.
-  heatTransitions:
+  kinetics:
     - key: char
-      referenceK: 650
-      zK: 40
-      fullDoseS: 90000
+      rate: { referenceK: 650, zK: 40, fullDoseS: 90000 }
       massRetained: 0.25
       requiresStarvedAir: true
       volatiles:

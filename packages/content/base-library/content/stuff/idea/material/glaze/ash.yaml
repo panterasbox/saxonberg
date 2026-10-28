@@ -2,8 +2,8 @@
 # there is. A stoneware glaze: it wants a hot kiln, runs green-brown where it
 # pools, and gives nothing to what it holds.
 #
-# ⭐ A coat is not a piece: its fuse reads this row's first heat transition —
-# `referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
+# ⭐ A coat is not a piece: its fuse reads this row's first kinetics change —
+# `rate.referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
 # names the glaze itself, so the spec stays valid and changes nothing.
 class: /platform/idea/material/Material
 data:
@@ -20,11 +20,9 @@ data:
   thermalExpansion: 5.0e-6
   laysCoat: true
   coatWord: glazed
-  heatTransitions:
+  kinetics:
     - key: fuse
-      referenceK: 1500
-      zK: 30
-      fullDoseS: 1800
+      rate: { referenceK: 1500, zK: 30, fullDoseS: 1800 }
       scorchAboveK: 1600
       scorched: /stuff/idea/material/glaze/ash
       ladder:

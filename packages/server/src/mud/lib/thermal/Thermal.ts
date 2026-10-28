@@ -59,10 +59,11 @@ import { Decay } from "../Decay";
 import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../config/AppSettings";
 import type {
-  HeatTransition,
-  HeatWorkConversion,
-  HeatWorkRecord,
-} from "../material/HeatTransition";
+  KineticChange,
+  KineticProgress,
+  KineticRecord,
+} from "../material/Kinetics";
+import type { MarkupAugmenter } from "../../api/mml";
 import type { Atmospheric as AtmosphericScope } from "../biome/Atmospheric";
 import type { Mould } from "../mould/Mould";
 import type { Composition } from "../material/Composition";
@@ -329,27 +330,45 @@ export interface Thermal {
   /** The lit furnace this body is in or on, or `null` (sugar D2). */
   heatSource(): (Stuff & Burner) | null;
   /**
-   * ⭐ This body's heat history (ceramics M1), or `null` when it has none —
-   * a body whose material declares no `heatTransitions` never keeps one.
+   * ⭐ This body's kinetic record — how far each change its material
+   * undergoes has gone, and the heat history a firing reads — or `null`
+   * when it has none: a body whose material declares no `kinetics` never
+   * keeps one.
    */
-  getHeatWork(): Readonly<HeatWorkRecord> | null;
+  getKineticRecord(): Readonly<KineticRecord> | null;
   /** `fire` stamps who held the firing — an unwatched rung credits them. */
   stampFiredBy(identity: string): void;
   /** The Disciplines this body's rungs have earned, handed over once. */
-  drainHeatWorkCredits(): string[];
+  drainKineticCredits(): string[];
+  /**
+   * How far change `key` has gone, `0..1` — reconciles on read; `0` when the
+   * material has no such change.
+   */
+  getKineticExtent(key: string): number;
+  /** Each change's words at its current extent, with the senses they are read through. */
+  kineticPhrases(): { key: string; phrase: string; senses?: readonly string[] }[];
+  /** Reconcile every change to now (and start a point curve's clock on its first read). */
+  reconcileKinetics(): void;
+  /** Set a change's extent outright — the mint, and the test seam. */
+  setKineticExtent(key: string, value: number): void;
+  /**
+   * ⭐ Part-converted: a change with a ladder has begun and reached no rung
+   * — *burnt to the skin and raw at the heart*.
+   */
+  isPartConverted(): boolean;
   /**
    * ⭐ How far evaporation pulls this body below its air, K (ceramics M8):
    * `wetness × (T_air − T_wetbulb) × thermal.evaporation.efficiency`. Air
    * only — `0` immersed, in a fire, in a cold box, or dry.
    */
   evaporativeDepressionK(airK: number): number;
-  /** A cast continues the heat history of the piece it was poured from. */
-  adoptHeatWork(record: Readonly<HeatWorkRecord>): void;
+  /** A cast continues the kinetic record of the piece it was poured from. */
+  adoptKineticRecord(record: Readonly<KineticRecord>): void;
   /**
    * Resolves when every cast a rung handed a mould has been minted — so a
    * firing's end can say what came out of it.
    */
-  settleTransitions(): Promise<void>;
+  settleKinetics(): Promise<void>;
   /** Stamped temperature T0 (raw K) — the decomposed scalar. */
   stampedTemperatureK: number;
   /** Game-time (seconds) of the last reconcile / re-stamp; 0 = unseeded. */
@@ -586,6 +605,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ThermalMixin extends Base implements Thermal {
     static _mixinName = "ThermalMixin";
 
+    /** ⭐ `look` reads each kinetic change in words (staling, inversion). */
+    static markupAugmenters: MarkupAugmenter[] = [kineticAugmenter];
+
     static fieldMeta: FieldMeta = {
       // ⭐ **Authorable since the placement build (D24), and the drive is
       // what asked for it.** A SPACE could always author its own
@@ -615,16 +637,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // thermal fields: a reboot loses the history (the plan's F2), which
       // is acceptable — the next read re-seeds a flat segment.
       thermalLog: { persistent: true, runtimeState: true },
-      // ⭐ The heat history (ceramics M1): what this body has been through
-      // in the fire, banked as heat-work. `null` until its material
-      // declares a transition — a plate on a shelf never keeps one.
-      heatWork: { persistent: true, runtimeState: true },
+      // ⭐ The kinetic record: how far each change its material undergoes
+      // has gone — a firing's heat-work, a loaf's staling. `null` until its
+      // material declares a change — a plate on a shelf never keeps one.
+      kineticRecord: { persistent: true, runtimeState: true },
       coatsCheckedS: { persistent: true, runtimeState: true },
       shockCheckedS: { persistent: true, runtimeState: true },
     };
 
-    /** See {@link Thermal.getHeatWork}. */
-    public heatWork: HeatWorkRecord | null = null;
+    /** See {@link Thermal.getKineticRecord}. */
+    public kineticRecord: KineticRecord | null = null;
 
     /** Game-second the coats were last looked at for a fuse (runtime). */
     public coatsCheckedS = 0;
@@ -633,11 +655,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     public shockCheckedS = 0;
 
     /**
-     * Reentry guard for the heat-work pass (the phase pass's precedent):
+     * Reentry guard for the kinetic pass (the phase pass's precedent):
      * applying a rung reads the body, which reconciles it. TypeScript
      * `private` for the proxy reason above. Transient.
      */
-    private _heatWorkReconciling = false;
+    private _kineticsReconciling = false;
 
     public stampedTemperatureK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
     public thermalClockStamp = 0;
@@ -1104,7 +1126,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const wb = new Evaporation(air.humidityPct, air.windMs, airK).wetBulbK();
       const gap = airK - wb;
       if (!(gap > 0)) return 0;
-      return gap * wetness * heatWorkDial(AppSettingKeys.thermalEvaporationEfficiency, 0.8);
+      return gap * wetness * thermalDial(AppSettingKeys.thermalEvaporationEfficiency, 0.8);
     }
 
     public temperatureTrajectory(fromS: number, toS: number): Piecewise {
@@ -1225,12 +1247,13 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.reconcilePhase();
       }
 
-      // ⭐⭐ **And a body that has been hot carries what the heat did to
-      // it** (ceramics M1). After the phase pass, on the same lazy read,
-      // outside the reentry guard — so a brick in a clamp, a pot in a house
-      // fire and a crucible in a furnace are ONE rule. One lookup that
-      // answers no for every material that declares nothing.
-      this.reconcileHeatWork();
+      // ⭐⭐ **And a body carries what heat and time did to it** — its
+      // material's kinetics (ceramics M1; the sugar build's staling and
+      // inversion). After the phase pass, on the same lazy read, outside
+      // the reentry guard — so a brick in a clamp, a pot in a house fire,
+      // a crucible in a furnace and a loaf on a shelf are ONE rule. One
+      // lookup that answers no for every material that declares nothing.
+      this.reconcileKineticRecord();
       // ⭐ …and a wet coat on it fuses when the body reaches its heat
       // (ceramics M6) — a glaze laid on bisque, glost-fired.
       this.reconcileCoats();
@@ -1266,7 +1289,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const glazed =
         MixinApi.isFaced(self) &&
         [...self.getCoats("outside"), ...self.getCoats("inside")].some((c) => c.state === "set");
-      const strain = heatWorkDial(AppSettingKeys.impactShockStrain, 0.0003);
+      const strain = thermalDial(AppSettingKeys.impactShockStrain, 0.0003);
       return (
         (strain / alpha) *
         (1 + 10 * porosity) /
@@ -1284,7 +1307,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isTangible(self)) return;
       const tol = this.shockToleranceK();
       if (!Number.isFinite(tol)) return;
-      const wallS = heatWorkDial(AppSettingKeys.impactShockWallS, 60);
+      const wallS = thermalDial(AppSettingKeys.impactShockWallS, 60);
       const severity = Math.max(stepK / tol, (rateKPerS * wallS) / tol);
       if (!(severity > 1)) return;
       if (severity > 2) {
@@ -1335,54 +1358,175 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       self.fuseCoats(peak);
     }
 
-    // ---------- the heat history (ceramics M1) ----------
+    // ---------- kinetics: what heat and time do to its material ----------
 
-    public getHeatWork(): Readonly<HeatWorkRecord> | null {
-      return this.heatWork;
+    public getKineticRecord(): Readonly<KineticRecord> | null {
+      return this.kineticRecord;
     }
 
     public stampFiredBy(identity: string): void {
       if (typeof identity !== "string" || identity === "") return;
-      const rec = this.heatWork ?? freshHeatWork();
+      const rec = this.kineticRecord ?? freshKineticRecord();
       rec.firedBy = identity;
-      this.heatWork = rec;
+      this.kineticRecord = rec;
     }
 
-    public drainHeatWorkCredits(): string[] {
-      const rec = this.heatWork;
+    public drainKineticCredits(): string[] {
+      const rec = this.kineticRecord;
       if (rec === null || rec.uncredited.length === 0) return [];
       const out = [...rec.uncredited];
-      this.heatWork = { ...rec, uncredited: [] };
+      this.kineticRecord = { ...rec, uncredited: [] };
       return out;
     }
 
-    public adoptHeatWork(record: Readonly<HeatWorkRecord>): void {
-      this.heatWork = cloneHeatWork(record);
+    public adoptKineticRecord(record: Readonly<KineticRecord>): void {
+      this.kineticRecord = cloneKineticRecord(record);
     }
 
-    public async settleTransitions(): Promise<void> {
+    public async settleKinetics(): Promise<void> {
       while (PENDING_CASTS.size > 0) {
         await Promise.allSettled([...PENDING_CASTS]);
       }
     }
 
+    public getKineticExtent(key: string): number {
+      this.reconcileKinetics();
+      return this.kineticRecord?.changes[key]?.extent ?? 0;
+    }
+
+    public kineticPhrases(): { key: string; phrase: string; senses?: readonly string[] }[] {
+      // ⭐ Inertness BEFORE the clock: a body whose material declares no
+      // change reads and writes nothing (a look at a chair costs a lookup).
+      const kinetics = this.kineticSource()?.getKinetics() ?? null;
+      if (kinetics === null) return [];
+      this.reconcileKinetics();
+      const rec = this.kineticRecord;
+      return kinetics.changes().map((change) => {
+        const senses = change.getSenses();
+        return {
+          key: change.getKey(),
+          phrase: change.phrase(rec?.changes[change.getKey()]?.extent ?? 0),
+          ...(senses ? { senses } : {}),
+        };
+      });
+    }
+
+    public reconcileKinetics(): void {
+      // The temperature reconcile ends in the kinetic pass whenever time
+      // has passed; a read that finds no elapsed temperature time (a first
+      // touch, a body read this instant) still integrates its own record
+      // to now — and starts a point curve's clock on its first read.
+      if (!this._thermalReconciling) this.reconcileThermal();
+      if (this._kineticsReconciling) return;
+      this._kineticsReconciling = true;
+      try {
+        this.integrateKineticsToNow();
+      } finally {
+        this._kineticsReconciling = false;
+      }
+    }
+
+    public setKineticExtent(key: string, value: number): void {
+      if (!Number.isFinite(value)) return;
+      const self = this.thermalHost;
+      const source = this.kineticSource();
+      const kinetics = source?.getKinetics() ?? null;
+      const change = kinetics?.change(key);
+      const rec = this.kineticRecord !== null ? cloneKineticRecord(this.kineticRecord) : freshKineticRecord();
+      if (rec.origin === null) rec.origin = source?.getTemplatePath() ?? null;
+      const prior = rec.changes[key] ?? freshProgress(change);
+      const conv: KineticProgress = { ...prior, extent: Math.max(0, Math.min(1, value)) };
+      rec.changes[key] = conv;
+      const nowS = this.thermalNowSeconds();
+      if (nowS !== null) rec.checkedS = nowS;
+      this.kineticRecord = rec;
+      if (kinetics === null || change === undefined) return;
+      const reached: { c: KineticChange; conv: KineticProgress }[] = [];
+      const idx = change.rungIndexFor(conv.extent);
+      if (idx > conv.rung) {
+        conv.rung = idx;
+        reached.push({ c: change, conv });
+      }
+      if (MixinApi.isTangible(self)) {
+        this.applyKineticConsequences(kinetics.changes(), reached, nowS ?? 0);
+      }
+    }
+
+    public isPartConverted(): boolean {
+      const rec = this.kineticRecord;
+      if (rec === null) return false;
+      const kinetics = this.kineticSource()?.getKinetics() ?? null;
+      if (kinetics === null) return false;
+      const laddered = kinetics
+        .changes()
+        .filter((c) => c.getLadder().length > 0)
+        .map((c) => rec.changes[c.getKey()])
+        .filter((p): p is KineticProgress => p !== undefined);
+      if (laddered.length === 0) return false;
+      const d = Math.max(...laddered.map((p) => p.extent));
+      return d > 0 && d < 1 && laddered.every((p) => p.rung < 0);
+    }
+
     /**
-     * ⭐ Bank the heat-work since the last read and apply any rung reached.
-     *
-     * The dose is integrated off this body's OWN temperature trajectory
-     * (`Piecewise.integrate(T ↦ 10^((T − ref)/z))`, the thermal-dose shape),
-     * so a brick nobody read for three days is credited for three days.
-     * The transitions read are the ORIGIN material's — the clay's, not the
-     * terracotta's it has already become — so a piece keeps climbing its
-     * ladder through every rung.
+     * The material whose changes run on this body: the one it WAS when its
+     * record began (the clay's, not the terracotta's it has already become),
+     * so a piece keeps climbing its ladder through every rung — else its
+     * own. `null` with no material.
      */
-    private reconcileHeatWork(): void {
-      if (this._heatWorkReconciling) return;
+    private kineticSource(): Material | null {
+      const self = this.thermalHost;
+      if (!MixinApi.isTangible(self)) return null;
+      const current = self.getMaterial();
+      if (current === null) return null;
+      const rec = this.kineticRecord;
+      return rec !== null && rec.origin !== null && rec.origin !== current.getTemplatePath()
+        ? StuffApi.findByTemplatePath<Material>(rec.origin) ?? current
+        : current;
+    }
+
+    /**
+     * ⭐ A point curve's clock starts at the FIRST READ, not at the mint (the
+     * honest limit `Freshness` shares: nothing records a good's making time
+     * to integrate from). A dose law needs no start — it integrates from the
+     * body's own temperature history, which begins when the body does.
+     */
+    private beginKineticClock(source: Material, changes: readonly KineticChange[], nowS: number): void {
+      if (!changes.some((c) => !c.isDoseLaw())) return;
+      const prior = this.kineticRecord;
+      if (prior !== null && prior.checkedS !== null) return;
+      const rec = prior !== null ? cloneKineticRecord(prior) : freshKineticRecord();
+      if (rec.origin === null) rec.origin = source.getTemplatePath();
+      rec.checkedS = nowS;
+      this.captureStartBand(rec, changes);
+      this.kineticRecord = rec;
+    }
+
+    /** The grade a `grade` table lowers from — taken once, as the clock starts. */
+    private captureStartBand(rec: KineticRecord, changes: readonly KineticChange[]): void {
+      const self = this.thermalHost as unknown as Stuff;
+      if (rec.startBand !== null || !MixinApi.isGraded(self)) return;
+      if (!changes.some((c) => c.hasGradeTable())) return;
+      rec.startBand = self.getGrade().getBand();
+    }
+
+    /**
+     * ⭐ Bank what heat and time did since the last read and apply any rung
+     * reached.
+     *
+     * Each change is integrated off this body's OWN temperature trajectory
+     * (`Piecewise.integrate(rateAt)`, the thermal-dose shape), so a brick
+     * nobody read for three days is credited for three days and a loaf
+     * cooling out of the oven passes THROUGH the band where starch moves
+     * fastest. The changes read are the ORIGIN material's
+     * ({@link kineticSource}).
+     */
+    private reconcileKineticRecord(): void {
+      if (this._kineticsReconciling) return;
       const self = this.thermalHost;
       if (!MixinApi.isTangible(self)) return;
       const current = self.getMaterial();
       if (current === null) return;
-      this._heatWorkReconciling = true;
+      this._kineticsReconciling = true;
       try {
         // A material that becomes vapor in a lit chamber (salt at peak
         // heat) leaves the piece and enters the chamber's air (ruling B).
@@ -1392,19 +1536,20 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // green state before the burst was seen.
         const piece = this as unknown as Stuff;
         if (MixinApi.isGreenware(piece)) piece.reconcileGreen();
-        const rec = this.heatWork;
-        const source =
-          rec !== null && rec.origin !== null && rec.origin !== current.getTemplatePath()
-            ? StuffApi.findByTemplatePath<Material>(rec.origin) ?? current
-            : current;
-        const transitions = source.getHeatTransitions();
-        if (transitions.length === 0) return;
-        const nowS = this.thermalNowSeconds();
-        if (nowS === null) return;
-        this.integrateHeatWork(source, transitions, nowS);
+        this.integrateKineticsToNow();
       } finally {
-        this._heatWorkReconciling = false;
+        this._kineticsReconciling = false;
       }
+    }
+
+    /** Integrate the record to now — inert when the material declares nothing. */
+    private integrateKineticsToNow(): void {
+      const source = this.kineticSource();
+      const kinetics = source?.getKinetics() ?? null;
+      if (source === null || kinetics === null) return;
+      const nowS = this.thermalNowSeconds();
+      if (nowS === null) return;
+      this.integrateKinetics(source, kinetics.changes(), nowS);
     }
 
     /** Vaporize into the chamber holding this body, if hot enough there. */
@@ -1419,31 +1564,48 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       return true;
     }
 
-    private integrateHeatWork(
+    private integrateKinetics(
       source: Material,
-      transitions: readonly HeatTransition[],
+      changes: readonly KineticChange[],
       nowS: number,
     ): void {
       const self = this.thermalHost;
       const ring = this.thermalRing();
-      const prior = this.heatWork;
+      const prior = this.kineticRecord;
+      // ⭐ A point curve accrues only once its clock is running (see
+      // `beginKineticClock`); a dose law integrates from the body's history.
+      const running = prior !== null && prior.checkedS !== null;
+      const hasCurve = changes.some((c) => !c.isDoseLaw());
       const fromS = prior?.checkedS ?? ring.horizonS() ?? nowS;
-      if (!(nowS > fromS)) return;
+      if (!(nowS > fromS)) {
+        if (hasCurve && !running) this.beginKineticClock(source, changes, nowS);
+        return;
+      }
       const pw = ring.window(fromS, nowS, this.stampedTemperatureK);
       let peak = 0;
       for (const sample of pw.samples(8)) {
         if (sample.value > peak) peak = sample.value;
       }
       peak = Math.max(peak, this.stampedTemperatureK);
-      const floor = Math.min(...transitions.map((t) => t.floorK()));
-      if (peak < floor) {
+      const dosed = changes.filter((c) => c.isDoseLaw());
+      // The coldest temperature any dose law accrues at; a curve has none.
+      const floor = Math.min(...dosed.map((c) => c.floorK()));
+      const hot = peak >= floor;
+      if (!hot && !hasCurve) {
         // Cold: nothing accrues. A body with no record keeps none.
-        if (prior !== null) this.heatWork = { ...prior, checkedS: nowS };
+        if (prior !== null) this.kineticRecord = { ...prior, checkedS: nowS };
         return;
       }
-      const rec = prior !== null ? cloneHeatWork(prior) : freshHeatWork();
+      const rec = prior !== null ? cloneKineticRecord(prior) : freshKineticRecord();
       if (rec.origin === null) rec.origin = source.getTemplatePath();
-      if (rec.originMassKg === null) rec.originMassKg = self.getMass().rawValue();
+      // ⭐ A change that takes mass away needs the mass it started from: every
+      // dose law (a firing), and a curve that names a retention or volatiles.
+      const convertsMass = changes.some(
+        (c) => !c.isDoseLaw() && (c.getMassRetained() < 1 || c.getVolatiles().length > 0),
+      );
+      if (rec.originMassKg === null && (hot || convertsMass)) {
+        rec.originMassKg = self.getMass().rawValue();
+      }
       rec.peakK = Math.max(rec.peakK, peak);
       for (const st of pw.stretches) {
         if (st.tau > 0 && st.toS > st.fromS) {
@@ -1459,62 +1621,72 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const completeness = chamber !== null ? chamber.completeness() : 1;
       const starved =
         chamber !== null &&
-        completeness < heatWorkDial(AppSettingKeys.fireAirFlamingCompleteness, 0.6);
+        completeness < thermalDial(AppSettingKeys.fireAirFlamingCompleteness, 0.6);
       const burning = MixinApi.isCombustible(self) && self.isBurning();
 
-      const reached: { t: HeatTransition; conv: HeatWorkConversion }[] = [];
-      for (const t of transitions) {
-        const key = t.getKey();
-        const conv: HeatWorkConversion = rec.conversions[key] ?? {
-          dose: 0,
-          degree: 0,
-          rung: t.rungIndexFor(0),
-        };
-        // ⚠ A burning body is burning, not converting; and pyrolysis
-        // happens only where a flame could not.
+      const reached: { c: KineticChange; conv: KineticProgress }[] = [];
+      for (const c of changes) {
+        const key = c.getKey();
+        const dose = c.isDoseLaw();
+        const prev = rec.changes[key] ?? freshProgress(c);
+        // ⚠ A burning body is burning, not converting; pyrolysis happens
+        // only where a flame could not; a dose law accrues only when hot
+        // and a curve only once its clock runs.
         if (burning) continue;
-        if (t.requiresStarvedAir() && !starved) continue;
-        const dDose = pw.integrate((k) => t.rateAt(k), 8);
-        if (!(dDose > 0)) continue;
-        const before = conv.degree;
-        conv.dose += dDose;
-        const agentFraction = this.agentFractionFor(t);
-        if (t.getAgent() !== null) conv.agentFraction = agentFraction;
-        conv.degree = Math.max(before, t.degreeFor(conv.dose, agentFraction));
-        const w = rec.atmosphere.weight;
-        rec.atmosphere.completeness =
-          (rec.atmosphere.completeness * w + completeness * dDose) / (w + dDose);
-        rec.atmosphere.weight = w + dDose;
-        for (const sample of pw.samples(8)) {
-          if (sample.value >= t.floorK()) rec.aboveS += sample.durationS / transitions.length;
+        if (c.requiresStarvedAir() && !starved) continue;
+        if (dose ? !hot : !running) continue;
+        const integral = pw.integrate((k) => c.rateAt(k), 8);
+        if (dose && !(integral > 0)) continue;
+        const agentFraction = this.agentFractionFor(c);
+        const conv = c.accrue(prev, integral, agentFraction);
+        if (c.getAgent() !== null) conv.agentFraction = agentFraction;
+        if (dose) {
+          const w = rec.atmosphere.weight;
+          rec.atmosphere.completeness =
+            (rec.atmosphere.completeness * w + completeness * integral) / (w + integral);
+          rec.atmosphere.weight = w + integral;
+          for (const sample of pw.samples(8)) {
+            if (sample.value >= c.floorK()) rec.aboveS += sample.durationS / dosed.length;
+          }
         }
         // The third product: what leaves the piece as it converts.
-        const dDegree = conv.degree - before;
+        const dDegree = conv.extent - prev.extent;
         if (dDegree > 0) {
-          for (const v of t.getVolatiles()) {
+          for (const v of c.getVolatiles()) {
             routeVolatile(self as unknown as Stuff, v.material,
               v.litresPerKg * (rec.originMassKg ?? 0) * dDegree);
           }
         }
-        rec.conversions[key] = conv;
-        const idx = t.rungIndexFor(conv.degree);
+        rec.changes[key] = conv;
+        const idx = c.rungIndexFor(conv.extent);
         if (idx > conv.rung) {
           conv.rung = idx;
-          reached.push({ t, conv });
+          reached.push({ c, conv });
         }
       }
       rec.checkedS = nowS;
-      this.heatWork = rec;
-      this.rescaleConvertedMass(transitions);
-      this.regradeCure(transitions);
-      for (const { t, conv } of reached) {
-        if (this.applyRung(t, conv, nowS) === "cast") return;
+      if (hasCurve && !running) this.captureStartBand(rec, changes);
+      this.kineticRecord = rec;
+      this.applyKineticConsequences(changes, reached, nowS);
+    }
+
+    /** Mass, grade, and every rung reached — in that order. */
+    private applyKineticConsequences(
+      changes: readonly KineticChange[],
+      reached: readonly { c: KineticChange; conv: KineticProgress }[],
+      nowS: number,
+    ): void {
+      this.rescaleConvertedMass(changes);
+      this.applyGradeLoss(changes);
+      this.regradeCure(changes);
+      for (const { c, conv } of reached) {
+        if (this.applyRung(c, conv, nowS) === "cast") return;
       }
     }
 
     /** The piece's own share of an agent (ruling B) — never its neighbours'. */
-    private agentFractionFor(t: HeatTransition): number {
-      const agent = t.getAgent();
+    private agentFractionFor(c: KineticChange): number {
+      const agent = c.getAgent();
       if (agent === null) return 0;
       const self = this.thermalHost as unknown as Stuff;
       if (MixinApi.isComposition(self)) {
@@ -1522,21 +1694,21 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // ⭐ A cast carries no composition of its own; the record remembers
       // what the piece it was poured from carried.
-      return this.heatWork?.conversions[t.getKey()]?.agentFraction ?? 0;
+      return this.kineticRecord?.changes[c.getKey()]?.agentFraction ?? 0;
     }
 
     /**
-     * ⭐ Part-conversion is mass: `raw × Π(1 − degree × (1 − retained))` —
+     * ⭐ Part-conversion is mass: `raw × Π(1 − extent × (1 − retained))` —
      * a half-burnt limestone has lost half its CO₂, and weighs it.
      */
-    private rescaleConvertedMass(transitions: readonly HeatTransition[]): void {
-      const rec = this.heatWork;
+    private rescaleConvertedMass(changes: readonly KineticChange[]): void {
+      const rec = this.kineticRecord;
       if (rec === null || rec.originMassKg === null) return;
       let factor = 1;
-      for (const t of transitions) {
-        const c = rec.conversions[t.getKey()];
-        if (!c) continue;
-        factor *= 1 - c.degree * (1 - t.getMassRetained());
+      for (const c of changes) {
+        const p = rec.changes[c.getKey()];
+        if (!p) continue;
+        factor *= 1 - p.extent * (1 - c.getMassRetained());
       }
       const kg = rec.originMassKg * factor;
       const self = this.thermalHost;
@@ -1559,25 +1731,39 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ A change with a `grade` table lowers the grade from where the clock
+     * started by every change's bands at its extent — cut cane loses a band
+     * as it inverts.
+     */
+    private applyGradeLoss(changes: readonly KineticChange[]): void {
+      const rec = this.kineticRecord;
+      const self = this.thermalHost as unknown as Stuff;
+      if (rec === null || rec.startBand === null || !Grade.isBand(rec.startBand)) return;
+      if (!MixinApi.isGraded(self) || !changes.some((c) => c.hasGradeTable())) return;
+      const drop = changes.reduce((d, c) => d + c.gradeDrop(rec.changes[c.getKey()]?.extent ?? 0), 0);
+      self.setGrade(Grade.fromOrdinal(Grade.of(rec.startBand).getOrdinal() - drop));
+    }
+
+    /**
      * ⭐ A cure with an agent grades the piece by how far it went — the
      * weaker of the piece's own grade before the cure and the cure's, re-read
      * as the degree rises. A kiln fault (scorched) is always poor.
      */
-    private regradeCure(transitions: readonly HeatTransition[]): void {
-      const rec = this.heatWork;
+    private regradeCure(changes: readonly KineticChange[]): void {
+      const rec = this.kineticRecord;
       const self = this.thermalHost as unknown as Stuff;
       if (rec === null || !MixinApi.isGraded(self)) return;
-      for (const t of transitions) {
-        const c = rec.conversions[t.getKey()];
-        if (!c || c.rung < 0 || t.getAgent() === null) continue;
-        if (c.rung < t.getLadder().length - 1) continue;
+      for (const c of changes) {
+        const p = rec.changes[c.getKey()];
+        if (!p || p.rung < 0 || c.getAgent() === null) continue;
+        if (p.rung < c.getLadder().length - 1) continue;
         if (rec.gradeCap === null) rec.gradeCap = self.getGrade().getBand();
-        const out = t.outcomeAt(c.rung, {
+        const out = c.outcomeAt(p.rung, {
           peakK: rec.peakK,
-          agentFraction: this.agentFractionFor(t),
+          agentFraction: this.agentFractionFor(c),
           reducing: false,
         });
-        const cure = t.gradeOf(c.degree, this.agentFractionFor(t), out?.kind ?? "rung");
+        const cure = c.gradeOf(p.extent, this.agentFractionFor(c), out?.kind ?? "rung");
         self.setGrade(Grade.of(rec.gradeCap as never).min(cure));
       }
     }
@@ -1589,30 +1775,30 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * otherwise: the same jug comes out of the kiln it went in.
      */
     private applyRung(
-      t: HeatTransition,
-      conv: HeatWorkConversion,
+      c: KineticChange,
+      conv: KineticProgress,
       nowS: number,
     ): "swap" | "cast" | "none" {
-      const rec = this.heatWork;
+      const rec = this.kineticRecord;
       if (rec === null) return "none";
       const self = this.thermalHost;
       const reducing =
         rec.atmosphere.weight > 0 &&
         rec.atmosphere.completeness <
-          heatWorkDial(AppSettingKeys.thermalHeatWorkReducingBelow, 0.6);
-      const out = t.outcomeAt(conv.rung, {
+          thermalDial(AppSettingKeys.thermalHeatWorkReducingBelow, 0.6);
+      const out = c.outcomeAt(conv.rung, {
         peakK: rec.peakK,
-        agentFraction: this.agentFractionFor(t),
+        agentFraction: this.agentFractionFor(c),
         reducing,
       });
       if (out === null) return "none";
       const mat = StuffApi.findByTemplatePath<Material>(out.materialPath);
       if (!mat) {
-        console.error(`Thermal: heat transition '${t.getKey()}' names '${out.materialPath}', which does not resolve`);
+        console.error(`Thermal: kinetic change '${c.getKey()}' names '${out.materialPath}', which does not resolve`);
         return "none";
       }
       rec.lastTransitionAtS = nowS;
-      const discipline = t.getDiscipline();
+      const discipline = c.getDiscipline();
       if (discipline !== "") rec.uncredited.push(discipline);
       if (out.kind === "scorched" && MixinApi.isGraded(self as unknown as Stuff)) {
         (self as unknown as Stuff & { setGrade(g: Grade): void }).setGrade(Grade.of("poor"));
@@ -1627,7 +1813,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       ) {
         const mould = holder as Stuff & Mould;
         const massKg = self.getMass().rawValue();
-        const record = cloneHeatWork(rec);
+        const record = cloneKineticRecord(rec);
         const maker = MixinApi.isCrafted(self as unknown as Stuff)
           ? (self as unknown as { getMaker(): string }).getMaker()
           : "";
@@ -1638,8 +1824,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // what the mould gives it and how far the cure went — and the record
         // keeps the cap, so the grade re-reads as the cure goes on.
         const cure =
-          t.getAgent() !== null
-            ? t.gradeOf(conv.degree, this.agentFractionFor(t), out.kind)
+          c.getAgent() !== null
+            ? c.gradeOf(conv.extent, this.agentFractionFor(c), out.kind)
             : null;
         const minting: Promise<unknown> = mould
           .castInto({ material: mat, massKg, payload: null, stampMaterial: true })
@@ -1655,7 +1841,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
               record.gradeCap = cast.getGrade().getBand();
               cast.setGrade(cast.getGrade().min(cure));
             }
-            if (MixinApi.isThermal(cast)) cast.adoptHeatWork(record);
+            if (MixinApi.isThermal(cast)) cast.adoptKineticRecord(record);
             if (out.kind !== "rung") describeOffRung(cast, mat);
           })
           .finally(() => PENDING_CASTS.delete(minting));
@@ -1665,16 +1851,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const was = MixinApi.isTangible(self as unknown as Stuff) ? self.getMaterial() : null;
       (self as unknown as { setMaterial(m: Material): void }).setMaterial(mat);
-      const rung = t.getLadder()[conv.rung];
+      const rung = c.getLadder()[conv.rung];
       restampProse(self as unknown as Stuff, rec, was, mat, rung?.describes ?? "");
       // ⭐ A vapor in the chamber's air at the rung lays a fused coat on the
       // outside (ruling B): salt thrown into a kiln at peak heat glazes the
-      // stoneware in it. The coat's material is the transition's to name.
+      // stoneware in it. The coat's material is the change's to name.
       const chamber = holder !== null && MixinApi.isBurner(holder) ? holder : null;
       const piece = self as unknown as Stuff;
       if (chamber !== null && MixinApi.isFaced(piece)) {
         const vapors = chamber.getChamberVapors();
-        for (const [vapor, coat] of Object.entries(t.getVapor())) {
+        for (const [vapor, coat] of Object.entries(c.getVapor())) {
           if (!((vapors[vapor] ?? 0) > 0)) continue;
           piece.layCoat("outside", coat, 0);
           piece.fuseCoats(rec.peakK);
@@ -1884,40 +2070,64 @@ const PENDING_CASTS = new Set<Promise<unknown>>();
 /** The crop each vessel is minting, by stuff id (see `setCrystals`). */
 const CROPS_MINTING = new Map<string, { kg: number }>();
 
-function freshHeatWork(): HeatWorkRecord {
+function freshKineticRecord(): KineticRecord {
   return {
-    peakK: 0,
-    aboveS: 0,
-    atmosphere: { completeness: 1, weight: 0, vapors: [] },
     checkedS: null,
-    conversions: {},
-    lastTransitionAtS: null,
+    changes: {},
     origin: null,
     originMassKg: null,
+    startBand: null,
+    gradeCap: null,
+    peakK: 0,
+    aboveS: 0,
+    maxRateKPerS: 0,
+    atmosphere: { completeness: 1, weight: 0, vapors: [] },
+    lastTransitionAtS: null,
     prose: { prefix: "", sentence: "" },
     firedBy: null,
-    maxRateKPerS: 0,
     uncredited: [],
-    gradeCap: null,
   };
 }
 
 /** A deep copy — the record is persisted, and a copy must not alias it. */
-function cloneHeatWork(r: Readonly<HeatWorkRecord>): HeatWorkRecord {
-  const conversions: Record<string, HeatWorkConversion> = {};
-  for (const [k, c] of Object.entries(r.conversions ?? {})) conversions[k] = { ...c };
+function cloneKineticRecord(r: Readonly<KineticRecord>): KineticRecord {
+  const changes: Record<string, KineticProgress> = {};
+  for (const [k, c] of Object.entries(r.changes ?? {})) changes[k] = { ...c };
   return {
-    ...freshHeatWork(),
+    ...freshKineticRecord(),
     ...r,
     atmosphere: {
       completeness: r.atmosphere?.completeness ?? 1,
       weight: r.atmosphere?.weight ?? 0,
       vapors: [...(r.atmosphere?.vapors ?? [])],
     },
-    conversions,
+    changes,
     uncredited: [...(r.uncredited ?? [])],
     prose: { prefix: r.prose?.prefix ?? "", sentence: r.prose?.sentence ?? "" },
   };
+}
+
+/** A change's progress before anything has accrued. */
+function freshProgress(c: KineticChange | undefined): KineticProgress {
+  return { extent: 0, rung: c?.rungIndexFor(0) ?? -1, ...(c?.isDoseLaw() ? { dose: 0 } : {}) };
+}
+
+/** `look` reads each change in words, through the senses its row names. */
+function kineticAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+  opts?: { filter?: readonly string[] },
+): string {
+  if (!MixinApi.isThermal(host) || host.isDestroyed()) return text;
+  const lines = host
+    .kineticPhrases()
+    .filter((p) => !opts?.filter || !p.senses || p.senses.some((c) => opts.filter!.includes(c)))
+    .map((p) => p.phrase)
+    .filter((l) => l !== "");
+  if (lines.length === 0) return text;
+  const block = lines.join(" ");
+  return text && text.length > 0 ? `${text}\n\n${block}` : block;
 }
 
 /**
@@ -1930,7 +2140,7 @@ function cloneHeatWork(r: Readonly<HeatWorkRecord>): HeatWorkRecord {
  */
 function restampProse(
   piece: Stuff,
-  rec: HeatWorkRecord,
+  rec: KineticRecord,
   from: Material | null,
   to: Material,
   describes: string,
@@ -1983,7 +2193,7 @@ function escapeRe(s: string): string {
 }
 
 /** One numeric dial read, falling back to the literal when unseeded. */
-function heatWorkDial(key: string, fallback: number): number {
+function thermalDial(key: string, fallback: number): number {
   try {
     const raw = AppApi.setting(key);
     if (raw == null || raw === "") return fallback;

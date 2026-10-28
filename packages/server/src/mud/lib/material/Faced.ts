@@ -10,7 +10,7 @@
  * body holds water or weeps (`holdsWater`), and how it cleans.
  *
  * A coat is laid WET (`dip`) and FUSED by heat — the glaze's own material
- * says at what heat (its first `heatTransitions` reference) and past what
+ * says at what heat (its first `kinetics` change's reference) and past what
  * heat it runs (`scorchAboveK`). At the fuse:
  *
  *  - a coat that shrinks more than its body on cooling (`thermalExpansion`
@@ -107,7 +107,7 @@ function materialAt(path: string): Material | null {
 const COAT_WORDS: Record<CoatState, (coat: Material | null, face: FaceName) => string> = {
   wet: (m, f) =>
     `It has a wet coat of ${nameOf(m)} on the ${f}, not yet ${
-      (m?.getHeatTransitions().length ?? 0) > 0 ? 'fired' : 'set'
+      m?.getKinetics() ? 'fired' : 'set'
     }.`,
   set: (m, f) => `It is ${m?.getCoatWord() ?? 'coated'} on the ${f} with ${nameOf(m)}.`,
   crazed: (m, f) => `The ${nameOf(m)} on its ${f} is crazed with fine cracks.`,
@@ -228,11 +228,12 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          const spec = mat?.getHeatTransitions()[0]?.toSpec();
-          const fuseK = spec?.referenceK ?? mat?.getMeltingPoint().rawValue() ?? 0;
+          const change = mat?.getKinetics()?.changes()[0];
+          const fuseK = change?.getReferenceK() ?? mat?.getMeltingPoint().rawValue() ?? 0;
           if (!(fuseK > 0) || peakK < fuseK) return coat;
           changed += 1;
-          if (spec?.scorchAboveK !== undefined && peakK > spec.scorchAboveK) {
+          const scorchK = change?.getScorchAboveK() ?? null;
+          if (scorchK !== null && peakK > scorchK) {
             return { ...coat, state: 'run' as const };
           }
           if ((coat.dirtyAtLay ?? 0) > crawlAt) return { ...coat, state: 'crawled' as const };

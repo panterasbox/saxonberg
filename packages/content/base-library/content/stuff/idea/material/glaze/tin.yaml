@@ -2,8 +2,8 @@
 # maiolica, faience; a white face to paint on. An import line. It carries
 # the lead it is made of.
 #
-# ⭐ A coat is not a piece: its fuse reads this row's first heat transition —
-# `referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
+# ⭐ A coat is not a piece: its fuse reads this row's first kinetics change —
+# `rate.referenceK` fuses a wet coat, `scorchAboveK` runs it. The rung
 # names the glaze itself, so the spec stays valid and changes nothing.
 class: /platform/idea/material/Material
 data:
@@ -20,11 +20,9 @@ data:
   thermalExpansion: 6.0e-6
   laysCoat: true
   coatWord: glazed
-  heatTransitions:
+  kinetics:
     - key: fuse
-      referenceK: 1250
-      zK: 30
-      fullDoseS: 1800
+      rate: { referenceK: 1250, zK: 30, fullDoseS: 1800 }
       scorchAboveK: 1400
       scorched: /stuff/idea/material/glaze/tin
       ladder:

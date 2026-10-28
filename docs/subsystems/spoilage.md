@@ -502,8 +502,8 @@ the way (`refreshFloor`), and only so many times before it is a rusk.
 **Where it lives — kinetics (since the sugar build, 2026-10-24).**
 Staling is the bread MATERIAL's **kinetics**: a `kinetics:` change keyed
 `staling` on `bread.yaml` (and `dog-bread.yaml`), run by the kernel's
-`KineticMixin` (`lib/material/Kinetic.ts`), which `Provision` composes
-beside `FreshnessMixin`. So a loaf spoils AND stales, on two gauges that
+`ThermalMixin` (its kinetic record — `KineticMixin` folded into it,
+2026-10-28), which `Provision` composes beneath `FreshnessMixin`. So a loaf spoils AND stales, on two gauges that
 share no band word. Baking's `StalingMixin` retired into it, along with
 sugar's `InvertingMixin` (cut cane's sucrose inverting), because the two
 were one mechanism with one curve each.
@@ -511,8 +511,11 @@ were one mechanism with one curve each.
 ### Kinetics — what a substance does by itself over time
 
 `Kinetics` (`lib/material/Kinetics.ts`, a value object on the material row,
-the `Crosslinking` shape) lists the changes a substance undergoes. Each
-has:
+the `Crosslinking` shape) lists the changes a substance undergoes — the
+same evaluator a firing runs (see
+[thermal.md § Kinetics](./thermal.md)), whose dose law
+(`rate: { referenceK, zK, fullDoseS }`) is the other rate law. A
+point-curve change has:
 
 - **`order`:** 0 accumulates at the rate (staling); 1 turns what is left
   (inversion, first order);
@@ -523,14 +526,17 @@ has:
 - **`floor`:** how far a reversal brings it back (never all the way, and
   it never raises an extent already under it);
 - **`grade`:** `[extent, bands lost]` from the grade the good started at;
-- **`becomes`:** the material it is at extent 1;
+- **`ladder`:** the material it becomes at an extent (`- { atDegree: 1,
+  becomes: … }` — a top-level `becomes` is refused);
 - **`words`** and **`senses`:** what `look` says, by extent, through which
   channels.
 
-`KineticMixin` holds an extent per change, one clock stamp and the
-starting grade. It is inert until the material declares kinetics (the
-sparse rule: inert matter reads and writes nothing). The clock starts when
-the thing is made (`onCreate`). It **integrates over the good's
+`ThermalMixin`'s kinetic record holds an extent per change, one clock
+stamp and the starting grade. It is inert until the material declares
+kinetics (the sparse rule: inert matter reads and writes nothing). ⚠ A
+curve's clock starts at the good's FIRST READ (of its temperature or its
+kinetics), not when it is made — nothing records a good's making time to
+integrate from. It **integrates over the good's
 temperature trajectory** rather than sampling, so a loaf cooling through
 the fast band and a bundle of cane carried from sun to shade are both
 honest. Like `Freshness`, there is no far-past guard.

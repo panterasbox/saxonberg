@@ -1720,6 +1720,26 @@ left a fork the lens that chose is named.
   vs pipe were "not one act"): with the bath planning, no guard re-asks the
   mechanic, and a gather is an accreted layer. The ladder's example is now
   mining's `drive` vs a vehicle's, with the reversal noted.
+- **B86 — review: a bath is a `DipBath`** (recorded inside B85 above).
+- **B87 — review: heat-driven change has ONE evaluator (2026-10-28).**
+  `HeatTransition` (this MR's firing rule) was a second copy of the shipped
+  `Kinetics` (staling, cane inversion). It is now merged into
+  `KineticChange` in `lib/material/Kinetics.ts`, and rows have one field,
+  `kinetics:`. Each entry declares a `rate`: either the dose law
+  `{referenceK, zK, fullDoseS}` or a `[[K, perHour]]` point curve with an
+  `order`. The per-good record (`KineticRecord`, formerly `heatWork`) lives
+  on `ThermalMixin`, because the change integrates the good's own
+  temperature trajectory. `KineticMixin` retired; every host of it already
+  composed Thermal. 25 entries in 22 rows were converted mechanically, and
+  no number changed (verified per file). Deltas with no effect on shipped
+  rows:
+  - a loaf's staling line now precedes its freshness line;
+  - the start-band grade re-pin applies only where a change declares a
+    `grade` table (cane);
+  - a top-level `becomes` is refused (a ladder rung instead).
+
+  Fixed with it: the census read the retired `markOf` (B84's rename), so it
+  now reads `markDevice`.
 
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 

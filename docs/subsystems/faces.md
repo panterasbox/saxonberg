@@ -51,9 +51,9 @@ compared by `===`, and a coat list is not one.
 
 `dip` lays a coat **wet** from a bath whose material `laysCoat`. The coat is
 **set** — a glaze by heat: the coat is not a Stuff and has no heat history of its own,
-so `fuseCoats(peakK)` reads the coat material's **first heat transition**.
-`referenceK` is the heat that fuses it, and `scorchAboveK` the heat past which
-it runs. The host's heat-work reconcile calls it with the hottest the body got
+so `fuseCoats(peakK)` reads the coat material's **first kinetics change**.
+Its `rate.referenceK` is the heat that fuses it, and `scorchAboveK` the heat
+past which it runs. The host's kinetic reconcile calls it with the hottest the body got
 in the window being integrated. At the fuse a coat becomes:
 
 | state | when |

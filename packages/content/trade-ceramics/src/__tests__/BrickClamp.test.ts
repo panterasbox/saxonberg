@@ -67,15 +67,13 @@ function setup(): void {
   for (const n of ['terracotta', 'grey', 'earthenware', 'blue', 'stoneware', 'celadon', 'clinker']) mat(n);
   const t = (key: string, ref: number, becomes: string, reducing: string, scorch?: number) => ({
     key,
-    referenceK: ref,
-    zK: 30,
-    fullDoseS: 7200,
+    rate: { referenceK: ref, zK: 30, fullDoseS: 7200 },
     ...(scorch ? { scorchAboveK: scorch, scorched: P('clinker') } : {}),
     ladder: [{ atDegree: 1, becomes: P(becomes), reducing: P(reducing) }],
   });
   clay = mat('clay', (m) => {
     m.setTags(['earth', 'plastic', 'clay']);
-    m.setHeatTransitions([
+    m.setKinetics([
       t('terracotta', 1200, 'terracotta', 'grey'),
       t('earthenware', 1330, 'earthenware', 'blue'),
       t('stoneware', 1480, 'stoneware', 'celadon', 1560),

@@ -50,7 +50,6 @@
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
-import { HeatTransition, type HeatTransitionSpec } from './HeatTransition';
 import { Kinetics, type KineticSpec } from './Kinetics';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -602,17 +601,12 @@ export default class Material extends SingletonMixin(
     this._elasticity = value;
   }
 
-  // ⭐⭐ What heat does to this material (ceramics M1 — the rubber build's
-  // cure, generalised): the transitions a body of it undergoes as it
-  // banks heat-work. Empty — almost every material — is inert. Validated
-  // by constructing each value object, so a curve that cannot be
-  // evaluated fails at the row.
-  private _heatTransitions: HeatTransition[] = [];
-
-  // ⭐⭐ What this substance does by itself over time, at a rate set by
-  // temperature (kinetics — sucrose inverting, starch staling). `null` is
-  // inert. Validated by constructing the value object, so a curve that
-  // cannot be evaluated fails at the row. `KineticMixin` on the good runs it.
+  // ⭐⭐ How this substance changes over time at a rate set by temperature
+  // (kinetics — a firing, a cure, sucrose inverting, starch staling; the
+  // ceramics build's heat transitions folded in). `null` — almost every
+  // material — is inert. Validated by constructing the value object, so a
+  // curve that cannot be evaluated fails at the row. `ThermalMixin` on the
+  // good runs it.
   private _kinetics: Kinetics | null = null;
 
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
@@ -1233,7 +1227,6 @@ export default class Material extends SingletonMixin(
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
     elasticity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-    kinetics: { persistent: true, authorable: true },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
@@ -1283,9 +1276,10 @@ export default class Material extends SingletonMixin(
       spoiler: 1,
       spoilerName: 0,
     },
-    // ── What heat does to it (ceramics M1) — a firing is one rule ──
-    // ⭐ Measured facts like the boiling point: what a kiln teaches you.
-    heatTransitions: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ── How it changes at a temperature — a firing is one rule ──
+    // ⭐ Measured facts like the boiling point: what a kiln, a larder and
+    // a cane field teach you.
+    kinetics: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     vaporizesAboveK: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     // ── Faces and coats (ceramics M6–M8) ──
     // ⭐ How much it grows per kelvin — a glaze that shrinks more than its
@@ -1635,31 +1629,6 @@ export default class Material extends SingletonMixin(
   /** Set elasticity. Strict on `Quantity<'%'>`. */
   public setElasticity(value: Quantity<'%'>): void {
     this.elasticity = value;
-  }
-
-  /** ⭐ The transitions heat drives in this material (empty = inert). */
-  public getHeatTransitions(): readonly HeatTransition[] {
-    return this._heatTransitions;
-  }
-  /** The authored specs as stored (the row's own shape). */
-  protected get heatTransitions(): HeatTransitionSpec[] {
-    return this._heatTransitions.map((t) => t.toSpec());
-  }
-  protected set heatTransitions(value: HeatTransitionSpec[] | null) {
-    const list = Array.isArray(value) ? value : [];
-    const seen = new Set<string>();
-    this._heatTransitions = list.map((spec) => {
-      const t = new HeatTransition(spec);
-      if (seen.has(t.getKey())) {
-        throw new RangeError(`Material.heatTransitions: duplicate key '${t.getKey()}'`);
-      }
-      seen.add(t.getKey());
-      return t;
-    });
-  }
-  /** Set the transitions; throws on a curve that cannot be evaluated. */
-  public setHeatTransitions(value: HeatTransitionSpec[] | null): void {
-    this.heatTransitions = value;
   }
 
   /** ⭐ Linear thermal expansion, 1/K (`0` = not authored). */

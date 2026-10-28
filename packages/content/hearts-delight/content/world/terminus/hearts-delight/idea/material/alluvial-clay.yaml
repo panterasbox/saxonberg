@@ -5,7 +5,7 @@
 # red of the iron in it (ceramics M3).
 #
 # A child of the common clay row: it fires by the same three transitions
-# (`heatTransitions` inherited) and differs only in what is in it.
+# (`kinetics` inherited) and differs only in what is in it.
 extends: /stuff/idea/material/earth/clay
 data:
   name: alluvial clay

@@ -372,10 +372,10 @@ function titled(stuff: Stuff): boolean {
 
 /** How far a piece's firing went, coarsely — two piles fired alike merge. */
 function firedSignature(s: Stuff & Thermal): string {
-  const rec = s.getHeatWork();
+  const rec = s.getKineticRecord();
   if (rec === null) return '';
-  return Object.entries(rec.conversions)
-    .map(([k, c]) => `${k}:${Math.round(c.degree * 20)}`)
+  return Object.entries(rec.changes)
+    .map(([k, c]) => `${k}:${Math.round(c.extent * 20)}`)
     .sort()
     .join(',');
 }

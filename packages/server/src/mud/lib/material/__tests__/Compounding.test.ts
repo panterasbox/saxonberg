@@ -10,7 +10,7 @@ import Material from '../Material';
 import CompoundingVessel from '../../../platform/thing/CompoundingVessel';
 import Casting from '../../../platform/thing/Casting';
 import Scrap from '../../../platform/thing/Scrap';
-import { HeatTransition } from '../HeatTransition';
+import { KineticChange } from '../Kinetics';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -111,11 +111,9 @@ describe('the product is the inputs, by mass', () => {
     ContainmentApi.move(lumpOf(SULFUR, 0.25) as never, v as never);
     await mint(v);
     const stock = v.getContents()[0] as unknown as Casting;
-    const cure = new HeatTransition({
+    const cure = new KineticChange({
       key: 'cure',
-      referenceK: 418,
-      zK: 12,
-      fullDoseS: 1800,
+      rate: { referenceK: 418, zK: 12, fullDoseS: 1800 },
       agent: { material: SULFUR, optimum: 0.03, over: 0.2 },
       ladder: [{ atDegree: 0.6, becomes: 'rubber' }],
       over: 'ebonite',

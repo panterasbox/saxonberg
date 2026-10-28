@@ -1,9 +1,9 @@
 # Rubber — the material that keeps water and current out
 
 > Shipped by the rubber build (2026-10). Pack: `trade-rubber` at
-> `/trade/rubber`. Kernel: the heat-work face of `ThermalMixin` +
-> `lib/material/HeatTransition.ts` (ceramics M1 — the cure was the first
-> transition), `CompoundingMixin` (ceramics R1), `fire … for`, the mould
+> `/trade/rubber`. Kernel: the kinetic record of `ThermalMixin` +
+> `lib/material/Kinetics.ts` (ceramics M1 — the cure was the first
+> fired change), `CompoundingMixin` (ceramics R1), `fire … for`, the mould
 > seam in `Thermal.applyRung`, `Mould.holdsCast`. Places: the rubber
 > works off the Terminus goods yards. Model of what is over a place:
 > [construction.md](./construction.md).
@@ -49,9 +49,10 @@ of what went in, **by mass** (ceramics R1: mixing is one rule — no recipe,
 no ratio). Three lumps of raw rubber (1.5 kg) and one nodule (50 g) is
 about 3 %; one lump and three nodules is about a quarter.
 
-## The cure — a heat transition on the compound
+## The cure — a kinetic change on the compound
 
-Compounded rubber's row carries a `heatTransitions` entry (`key: cure`)
+Compounded rubber's row carries a `kinetics` entry (`key: cure`, the dose
+law `rate: { referenceK: 418, zK: 12, fullDoseS: 1800 }`)
 — the rubber build's `crosslinking` spec, generalised by the ceramics
 build into the one rule every fired material rides. The stock banks
 heat-work off its OWN temperature trajectory wherever it is hot (`dose =

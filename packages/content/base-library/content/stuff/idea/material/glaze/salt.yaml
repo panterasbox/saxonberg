@@ -3,8 +3,8 @@
 # takes this coat (ceramics ruling B): the pitted orange-peel skin of a
 # stoneware jug.
 #
-# ⭐ A coat is not a piece: its fuse reads this row's first heat transition —
-# `referenceK` fuses a wet coat. The rung
+# ⭐ A coat is not a piece: its fuse reads this row's first kinetics change —
+# `rate.referenceK` fuses a wet coat. The rung
 # names the glaze itself, so the spec stays valid and changes nothing.
 class: /platform/idea/material/Material
 data:
@@ -21,11 +21,9 @@ data:
   thermalExpansion: 5.5e-6
   laysCoat: false
   coatWord: glazed
-  heatTransitions:
+  kinetics:
     - key: fuse
-      referenceK: 1350
-      zK: 30
-      fullDoseS: 1800
+      rate: { referenceK: 1350, zK: 30, fullDoseS: 1800 }
       ladder:
         - { atDegree: 1, becomes: /stuff/idea/material/glaze/salt }
   edibility: false

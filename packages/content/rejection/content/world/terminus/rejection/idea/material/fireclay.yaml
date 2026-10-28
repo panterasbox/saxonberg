@@ -17,20 +17,16 @@ data:
     - { materialPath: /stuff/idea/material/earth/sand, fraction: 0.18 }
     - { materialPath: /stuff/idea/material/mineral/goethite, fraction: 0.01 }
     - { materialPath: /stuff/idea/material/organic/peat, fraction: 0.03 }
-  heatTransitions:
+  kinetics:
     - key: terracotta
-      referenceK: 1250
-      zK: 30
-      fullDoseS: 7200
+      rate: { referenceK: 1250, zK: 30, fullDoseS: 7200 }
       massRetained: 0.93
       discipline: brickmaking
       ladder:
         - atDegree: 1
           becomes: /stuff/idea/material/ceramic/terracotta
     - key: refractory
-      referenceK: 1550
-      zK: 30
-      fullDoseS: 7200
+      rate: { referenceK: 1550, zK: 30, fullDoseS: 7200 }
       scorchAboveK: 1800
       scorched: /stuff/idea/material/ceramic/clinker
       discipline: brickmaking

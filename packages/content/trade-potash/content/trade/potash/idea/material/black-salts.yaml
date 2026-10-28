@@ -25,11 +25,9 @@ data:
   # ash, keeping 80 % of its mass — and its potash, which concentrates in
   # what is left (0.65 → ~0.81). The same cake comes out of the kiln it went
   # in, whose it was and graded as it was (potash D12).
-  heatTransitions:
+  kinetics:
     - key: calcine
-      referenceK: 900
-      zK: 60
-      fullDoseS: 3600
+      rate: { referenceK: 900, zK: 60, fullDoseS: 3600 }
       massRetained: 0.8
       discipline: ashery
       ladder:

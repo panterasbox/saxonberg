@@ -13,8 +13,9 @@
  *  3. it **stales** — ⭐ the one thing on this list that is not spoilage
  *     and must never be confused with it. Staling is the bread MATERIAL's
  *     kinetics (retrogradation, authored on its row) run by the kernel's
- *     `KineticMixin` on `Provision`; baking's own `StalingMixin` retired
- *     into it (sugar build, 2026-10-24).
+ *     `ThermalMixin` on `Provision`; baking's own `StalingMixin` retired
+ *     into it (sugar build, 2026-10-24; `KineticMixin` folded into the
+ *     thermal record, 2026-10-28).
  *
  * ## ⭐⭐ The appearance is WORDS for a continuous number
  *

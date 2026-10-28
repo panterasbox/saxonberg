@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../../material/Material';
-import type { HeatTransitionSpec } from '../../material/HeatTransition';
+import type { KineticSpec } from '../../material/Kinetics';
 import { ThermalMixin } from '../Thermal';
 import Oven from '../../../platform/thing/Oven';
 import { Quantity } from '../../quantity';
@@ -49,7 +49,7 @@ function advance(gameSec: number): void {
 }
 
 let seq = 0;
-function material(name: string, opts: { transitions?: HeatTransitionSpec[]; appearance?: string } = {}): Material {
+function material(name: string, opts: { transitions?: KineticSpec[]; appearance?: string } = {}): Material {
   seq += 1;
   const path = `/stuff/idea/material/_heatwork/${name}-${seq}`;
   return makeStuffAtPath(() => {
@@ -59,7 +59,7 @@ function material(name: string, opts: { transitions?: HeatTransitionSpec[]; appe
     m.setThermalConductivity(Quantity.of(1, 'W/(m·K)'));
     m.setDensity(Quantity.of(2000, 'kg/m³'));
     if (opts.appearance) m.setAppearance(opts.appearance);
-    if (opts.transitions) m.setHeatTransitions(opts.transitions);
+    if (opts.transitions) m.setKinetics(opts.transitions);
     return m;
   }, path) as unknown as Material;
 }
@@ -111,9 +111,7 @@ describe('heat-work — the one rule', () => {
       transitions: [
         {
           key: 'calcine',
-          referenceK: 1170,
-          zK: 60,
-          fullDoseS: 3600,
+          rate: { referenceK: 1170, zK: 60, fullDoseS: 3600 },
           massRetained: 0.56,
           discipline: 'quarrying',
           ladder: [{ atDegree: 1, becomes: quick.getTemplatePath()! }],
@@ -142,8 +140,8 @@ describe('heat-work — the one rule', () => {
     await load(kiln, piece);
     advance(2 * 3600);
     piece.getTemperature();
-    const rec = piece.getHeatWork();
-    const degree = rec?.conversions['calcine']?.degree ?? 0;
+    const rec = piece.getKineticRecord();
+    const degree = rec?.changes['calcine']?.extent ?? 0;
     expect(degree).toBeGreaterThan(0);
     expect(degree).toBeLessThan(1);
     expect(piece.getMaterial()?.getTemplatePath()).toBe(lime.getTemplatePath());
@@ -158,7 +156,7 @@ describe('heat-work — the one rule', () => {
     piece.reconcileThermal();
     advance(24 * 3600);
     piece.getTemperature();
-    expect(piece.getHeatWork()).toBeNull();
+    expect(piece.getKineticRecord()).toBeNull();
   });
 
   it('the credit waits for whoever held the firing, and is handed over once', async () => {
@@ -168,9 +166,9 @@ describe('heat-work — the one rule', () => {
     piece.stampFiredBy('/platform/agent/Avatar/firer');
     advance(6 * 3600);
     piece.getTemperature();
-    expect(piece.getHeatWork()?.firedBy).toBe('/platform/agent/Avatar/firer');
-    expect(piece.drainHeatWorkCredits()).toEqual(['quarrying']);
-    expect(piece.drainHeatWorkCredits()).toEqual([]);
+    expect(piece.getKineticRecord()?.firedBy).toBe('/platform/agent/Avatar/firer');
+    expect(piece.drainKineticCredits()).toEqual(['quarrying']);
+    expect(piece.drainKineticCredits()).toEqual([]);
   });
 });
 
@@ -187,9 +185,7 @@ describe('pyrolysis — a flame needs air', () => {
       transitions: [
         {
           key: 'char',
-          referenceK: 650,
-          zK: 40,
-          fullDoseS: 90_000,
+          rate: { referenceK: 650, zK: 40, fullDoseS: 90_000 },
           massRetained: 0.25,
           requiresStarvedAir: true,
           volatiles: [{ material: '/stuff/idea/material/bulk/wood-tar', litresPerKg: 0.08 }],
@@ -241,9 +237,7 @@ describe('the atmosphere of a firing', () => {
       transitions: [
         {
           key: 'fire',
-          referenceK: 1150,
-          zK: 100,
-          fullDoseS: 3600,
+          rate: { referenceK: 1150, zK: 100, fullDoseS: 3600 },
           ladder: [{ atDegree: 0.5, becomes: red.getTemplatePath()!, reducing: blue.getTemplatePath()! }],
         },
       ],
@@ -273,7 +267,7 @@ describe('vapor in the chamber’s air', () => {
 
   it('⭐ salt vapor at the rung lays a fused salt-glaze coat on the outside (ruling B)', async () => {
     const glaze = material('salt glaze', {
-      transitions: [{ key: 'fuse', referenceK: 1300, zK: 30, fullDoseS: 3600, ladder: [{ atDegree: 1, becomes: '/x' }] }],
+      transitions: [{ key: 'fuse', rate: { referenceK: 1300, zK: 30, fullDoseS: 3600 }, ladder: [{ atDegree: 1, becomes: '/x' }] }],
     });
     const salt = material('salt');
     const stone = material('stoneware');
@@ -281,9 +275,7 @@ describe('vapor in the chamber’s air', () => {
       transitions: [
         {
           key: 'stoneware',
-          referenceK: 1350,
-          zK: 30,
-          fullDoseS: 3600,
+          rate: { referenceK: 1350, zK: 30, fullDoseS: 3600 },
           ladder: [{ atDegree: 1, becomes: stone.getTemplatePath()! }],
           vapor: { [salt.getTemplatePath()!]: glaze.getTemplatePath()! },
         },

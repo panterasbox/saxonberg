@@ -340,9 +340,10 @@
  *
  * **Ceramics (+54 fields, −1).** ⭐ Eight are spoilers, every one a
  * MEASURED property of matter, the boiling-point precedent:
- *   - `Material.heatTransitions` · `vaporizesAboveK` · `thermalExpansion`
- *     · `acidity` · `solubility` · `chillsTo`: what a kiln, a crazed
- *     glaze, a chill mould or a saturated pan teaches you;
+ *   - `Material.heatTransitions` (now `kinetics`) · `vaporizesAboveK`
+ *     · `thermalExpansion` · `acidity` · `solubility` · `chillsTo`: what
+ *     a kiln, a crazed glaze, a chill mould or a saturated pan teaches
+ *     you;
  *   - `Material.leaches` and `filteredTo`, the two whose spoiler IS the
  *     lesson: the lead in a glaze nobody tells you about, and that a
  *     filter cleans fouled water but not tainted.
@@ -354,11 +355,18 @@
  *   - a mould's cavity and its pour (`MouldMixin.*`), the press's turns
  *     (`ScrewPress.*`), coats and flaws (`FacedMixin.*`,
  *     `TangibleMixin.*`);
- *   - the bookkeeping clocks (`ThermalMixin.heatWork` etc.);
+ *   - the bookkeeping clocks (`ThermalMixin.heatWork`, now
+ *     `kineticRecord`, etc.);
  *   - `Door.closesBehind`, which you see the door do.
  *
  *   `Material.crosslinking` folded into `heatTransitions` (one rule fires
  *   everything).
+ *
+ * **Kinetics (2026-10-28, −4).** `Material.heatTransitions` folded into
+ * `Material.kinetics`, which takes its spoiler level (1, name 0): the
+ * merged rows carry every fired material's temperatures, measured facts a
+ * kiln teaches. `KineticMixin.*` (3) retired into the thermal record,
+ * `ThermalMixin.kineticRecord` (level 0, bookkeeping).
  *
  *   ⚠ The scan files a field under the nearest `const` above
  *   `fieldMeta`, and two ceramics methods declared locals there: every

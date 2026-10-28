@@ -115,7 +115,6 @@ import type { Launcher } from '../lib/combat/Launcher';
 import type { ThermalRegulation } from '../lib/thermal/ThermalRegulation';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
-import type { Kinetic } from '../lib/material/Kinetic';
 import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Comminuting } from '../lib/craft/Comminuting';
 import type { WaterActive } from '../lib/material/WaterActivity';
@@ -1525,16 +1524,6 @@ export class MixinApi {
    */
   public static isFresh(obj: Stuff): obj is Stuff & Fresh {
     return this.hasMixin(obj, Mixins.Fresh);
-  }
-
-  /**
-   * Narrow to a good that runs its material's kinetics (staling, inversion).
-   * ⚠ Distinct from {@link isFresh}: that is a microbial population and
-   * decides safety; this is a reaction running to completion and decides
-   * quality.
-   */
-  public static isKinetic(obj: Stuff): obj is Stuff & Kinetic {
-    return this.hasMixin(obj, Mixins.Kinetic);
   }
 
   /**

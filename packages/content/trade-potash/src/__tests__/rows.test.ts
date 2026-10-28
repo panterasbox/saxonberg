@@ -42,16 +42,16 @@ describe('the ashery rows', () => {
 });
 
 describe('the calcining (potash D12)', () => {
-  // ⭐ Calcining is the one firing rule (ceramics M1): a heat transition on
+  // ⭐ Calcining is the one firing rule (ceramics M1): a kinetic change on
   // the black salts' own row, never a recipe — the cake keeps its identity.
   const salts = row('trade/potash/idea/material/black-salts.yaml');
-  const calcine = (salts.data.heatTransitions as {
-    key: string; referenceK: number; massRetained: number; discipline: string;
+  const calcine = (salts.data.kinetics as {
+    key: string; rate: { referenceK: number }; massRetained: number; discipline: string;
     ladder: { becomes: string }[];
   }[]).find((t) => t.key === 'calcine')!;
 
   it('⭐ black salts become pearl ash at a red heat, credited to the ashery', () => {
-    expect(calcine.referenceK).toBe(900);
+    expect(calcine.rate.referenceK).toBe(900);
     expect(calcine.ladder.at(-1)!.becomes).toBe('/trade/potash/idea/material/pearl-ash');
     expect(calcine.discipline).toBe('ashery');
   });
