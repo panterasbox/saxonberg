@@ -161,6 +161,10 @@ question, not a design default** — and the structure is what settles it.
 
 ## 8. ⭐⭐⭐ Rights across parcels **[DECIDED — the owner; the list OPEN]**
 
+> ⭐ **2026-10-28 — the list is decided** as Tier B *guarantees of play*, not convention rights:
+> [measurement.md](../../measurement.md) § Guarantees of play ·
+> [guarantees-of-play-slate](./guarantees-of-play-slate.md).
+
 The owner: *"If someone commits a Terminus crime in Terminus then they go to Terminus jail. What
 gives Terminus the authority to jail the player? That's just a private committee, it's not the
 Compact. That's why the Compact needs to ensure you have certain rights across parcels. And then
