@@ -12,6 +12,10 @@
 > people left standing
 > **Size:** a build
 
+> ⭐ **2026-10-28 → [emergency-services-slate](./emergency-services-slate.md) § 9a** — the
+> coroner's office: the morgue as the durable host for custody, the polity pays, staged NPCs are
+> restaged, the dead testify at their own inquest.
+
 ---
 
 ## The gap

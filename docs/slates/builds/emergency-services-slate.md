@@ -18,7 +18,8 @@
 > the camp watch) · carrying a person · the trip plan and the overdue search · the lodge archetype
 > · corpse retrieval and custody · the seat specified by its NPC (witness for conduct, wall for
 > kit, the policy check at the act) · a player answerable for every NPC (the defendant, the cure
-> order, compensation) · scope of practice · the coroner
+> order, compensation) · scope of practice · the coroner (the morgue as the durable host, the
+> office's bundle, cause against manner, the dead testifying, coroner or medical examiner)
 > **Size:** a build
 
 Sibling: [off-grid-slate](./off-grid-slate.md) — the aether, the carriers, and what going off grid
@@ -348,10 +349,89 @@ the unconscious, **restraining** the delirious, **quarantine**, ⭐ **mandatory 
 wound reported to the watch, a second bridge between the services) — it is **scope of practice**,
 the police pattern with a few dials.
 
-## 9a. Not yet discussed
+## 9a. ⭐⭐⭐ The coroner
 
-1. **The coroner** — custody of a body, the death investigation, the bridge between the two
-   services.
+The bridge between the two services: every death care does not prevent becomes the question *was
+it a crime?* [end-of-life-slate](./end-of-life-slate.md) owns custody of the body, remains and *"the
+coroner economy"*; this is the office. What ships: `analyze postmortem` (cause inferred from the
+wounds, never read off the stamp; readability falls with decay; the `forensics` Discipline),
+per-corpse identity, `order burial`.
+
+### The decisions **[DECIDED — the owner]**
+
+*"Morgue as durable host, NPCs don't come back, polity pays."* And then: *"Cast NPCs come back too —
+anything staged gets restaged. If we have to deal with some diegetic disagreement, we'll deal with
+it."*
+
+- ⭐ **The morgue is the durable host.** A corpse is not persisted — mortality.md: it *"does not
+  survive a restart"* — so a deploy erases the evidence, the body and the gear on it. Custody moves
+  the body into a host that persists (*capture the host*), and the body, the evidence and the
+  effects survive together. ⚠ Everything outside a morgue still vanishes at a restart — what the
+  party carries out is safe on a persisted body; what is left in the den is not.
+- **NPCs do not come back the way players do** — no shade, no `passage`. **Anything staged is
+  restaged**, cast and extras alike. The corpse stays behind as evidence while the restaged NPC
+  walks the world; the diegetic disagreement is dealt with when it arises.
+- **The polity pays.** The coroner is a department with a budget line, like the watch; an
+  unclaimed body goes to potter's field at public cost.
+
+### The office's bundle **[LEAN]**
+
+1. **Custody** of the body — end-of-life's stage 1.
+2. **Identity** — who is this.
+3. **Cause and manner** of death.
+4. **The effects** — the gear inventoried and held for the owner: § 7's custody, run by an office.
+5. **Release** — to whoever claims the body, or to potter's field.
+6. **Referral** — an unlawful death goes to the watch, as medicine's mandatory reporting does.
+
+### ⭐⭐ Cause is a fact; manner is a finding **[LEAN]**
+
+- **Cause** is the mechanism — the engine knows it, the coroner infers it from the body.
+- **Manner** — natural, accident, homicide, suicide, undetermined — is a **legal finding**, the
+  intrinsic/social split again.
+- **The evidence firewall holds.** The harm ledger already derives who killed whom; the coroner
+  never reads it. The finding is a **claim on the record**, from the body and the witnesses, and
+  can be wrong — *honest error* is how a murder is ruled an accident. A finding is appealable to
+  the local court.
+
+### ⭐⭐⭐ The dead testify at their own inquest **[LEAN]**
+
+A player comes back, so the victim can stand before the coroner and say who did it:
+
+- **belief makes it honestly uncertain** — ambushed from behind, in the dark, by someone hooded;
+- **it is testimony, so it can be a lie** — framing a rival, a faked death for a burial club's
+  payout; the enforcement slate's lie discriminator covers it;
+- **no speak-with-dead magic is needed** — a corpse holds no mind, and the person is already
+  walking around.
+
+### By epoch and density **[LEAN]**
+
+| | who | how |
+|---|---|---|
+| village | the priest and neighbors | the township keeps the body unmoved until authority comes |
+| medieval | ⭐ the crowner (1194) | an inquest *on view of the body*, with a jury of local men; the township fined for burying first |
+| industrial | the coroner and the police surgeon | inquest and autopsy |
+| modern | ⭐ the medical examiner | a physician, autopsy, toxicology |
+| future | — | the implant's record of how you died — instrument evidence, contestable |
+| the wilds | nobody | no inquest — the necropolis's impunity hole, by the same mechanism |
+
+Two committee dials, not defaults:
+
+- **Coroner or medical examiner** — many US counties still *elect* a coroner with no medical
+  training, others appoint a physician. Legitimacy against expertise, the same axis as *the
+  credential required to serve*.
+- **The inquest jury is sortition** — the constitution's one process at local scale.
+
+### ⭐ The deodand — law a polity may write **[LEAN]**
+
+The medieval coroner was a revenue officer: whatever caused a death was forfeited to the crown, the
+ancestor of **civil asset forfeiture**. Never the funding — the polity pays — but law content a
+polity may adopt, with the controversy that comes with it.
+
+### The seat **[LEAN]**
+
+Seat-first, as § 9 decided: the NPC coroner is the procedure (custody, examine, inventory, find,
+release, refer); a player coroner's judgment is the examination and the finding, graded by the
+shipped competence ladder.
 
 ## 10. The lens pass
 
@@ -370,9 +450,12 @@ the police pattern with a few dials.
 ## 11. Open
 
 1. **The suburb's care** — thin by design, or the first volunteer squad.
-2. **The coroner.**
+2. **The corpse outside a morgue** — it still vanishes at a restart, so the corpse run races
+   deploys as well as decay.
 3. **The litter** — what carrying a person takes.
 4. **The trip plan's shape** — a book at the lodge, or anything a `route` plan is left with.
 5. **Suing as an exploit** — provoking an NPC into excessive force to sue its authors: is the
    courts slate's cost of filing enough, or is the provocation an offense of its own?
 6. **Compensation** — whether the Compact court awards damages, and the scale.
+7. **The restaged NPC beside its own corpse** — the diegetic disagreement, when it arises.
+8. **Whether the decay clock reads temperature** — what would make the morgue a cold store.
