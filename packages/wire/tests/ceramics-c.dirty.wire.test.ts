@@ -566,6 +566,9 @@ suite('⭐ 18 — glaze', () => {
     await fireKiln(potter, '10 hours');
     await say(potter, 'douse kiln');
     await advance('1 day');
+    // Unloaded by daylight: a ten-hour firing ends after dark, and in the dark
+    // shop the kiln is "something" with nothing to be found in it (run 39).
+    await toHour(8, 14);
     await say(potter, 'get ashpot from kiln');
     await say(potter, 'get leadpot from kiln');
     const glazed = await examine(potter, 'me:i:leadpot');
