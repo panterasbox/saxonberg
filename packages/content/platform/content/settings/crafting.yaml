@@ -67,6 +67,15 @@ settings:
   - key: crafting.iceKg
     value: "0.15"
 
+  # ── matching by proportion (ceramics re-plan R1-D2): a build is a recipe
+  # while every bulk slot's mass fraction sits within the tolerance of the
+  # recipe's, and it holds at least minScale of the recipe's measured mass.
+  - key: crafting.proportion.tolerance
+    value: "0.12"
+
+  - key: crafting.proportion.minScale
+    value: "0.5"
+
   # ── nutrition: one serving of a material whose row authors no
   # `servingKg`, in litres at its density — the unit of every per-serving
   # label amount and toxin dose (ceramics re-plan R1-D1).

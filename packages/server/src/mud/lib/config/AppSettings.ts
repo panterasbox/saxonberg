@@ -2176,6 +2176,14 @@ export const AppSettingKeys = {
   /** Crafting — kilograms of ice an iced drink takes from the reachable
    * ice bin at the fill (the bar's scoop). */
   craftingIceKg: "crafting.iceKg",
+  /** Crafting — the furthest any one bulk slot's mass fraction may sit
+   * from the recipe's and the build still BE that recipe (ceramics re-plan
+   * R1-D2); a third of it is free, two thirds cost a band, the rest two. */
+  craftingProportionTolerance: "crafting.proportion.tolerance",
+  /** Crafting — the smallest share of a recipe's measured mass a build may
+   * hold and still be that recipe: a half measure is a martini, a thimble
+   * is a taste (ceramics re-plan R1-D2). */
+  craftingProportionMinScale: "crafting.proportion.minScale",
   /** Nutrition — litres of a material that make one serving when its row
    * authors no `servingKg` (at the material's density). The unit every
    * per-serving label amount and toxin dose is per (ceramics re-plan

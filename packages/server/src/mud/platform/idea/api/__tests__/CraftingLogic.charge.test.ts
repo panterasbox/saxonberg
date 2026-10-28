@@ -155,7 +155,9 @@ describe("a charge runs the one mint", () => {
     expect(out.recipeId).toBe("");
     expect(p.isDestroyed()).toBe(true);
     expect(v.getBulkMaterial("interior")?.getTemplatePath()).toBe(COOKED);
-    expect(v.getBulkAmount("interior").rawValue()).toBeGreaterThan(0);
+    // ⭐ Mass conserved: 1 kg of herb is 1 L of the generic at 1000 kg/m³,
+    // never a fixed portion.
+    expect(v.getBulkAmount("interior").rawValue()).toBeCloseTo(1, 6);
     expect(v.getBulkPayload("interior")?.maker).toBe(MAKER);
   });
 

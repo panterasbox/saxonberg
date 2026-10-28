@@ -2107,6 +2107,14 @@ baking, smithing vitest. Acceptance: the proportion test green; anvil
 ladder, cooking-manual, DoughTrough tests green unchanged. Commit:
 `feat(crafting): recipes match by proportion; a pour is one serving`.
 
+✅ **W-R1d done (2026-10-28).** `buildFit` matches by proportion + counts items
+(R1-D2/D3), the bands cost before the base floor; a pour is one serving with
+`--amount`. Decided here: equal heat falls to the CLOSER proportion; a charge's
+pot-luck conserves mass (a plated one keeps the 0.3 L portion); every load
+weighting and the one-shot item parts weigh by real mass. Plan fixes:
+steep-barley's slot authors NO `measureL` (absent = presence-only); there is no
+`PourController.test` — the pour is pinned in hospitality's `manual-build.test`.
+
 **W-R1e — drainings through a set.** Files: `K/api/bulk.ts` l.84
 (`TransferVia = { through: 'pores' | 'set'; arrivesAs? }`), `BulkableLogic`
 `transfer` (the `'set'` arm: carry freshness, pathogens, the per-litre

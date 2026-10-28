@@ -1245,8 +1245,9 @@ interface SpoilageOutcome {
  *     sterile and goes off faster than the raw stock it was made from,
  *     which is exactly what leftovers do.
  *
- * Bulk draws weigh by litres and discrete inputs by mass — near enough the
- * same units for food, and the blend is the same one a pour uses.
+ * Every input weighs by mass — a draw is its litres at its density, an item
+ * its units' own mass (re-plan R1-D1) — and the blend is the same one a
+ * pour uses.
  */
 function outputMicrobialLoad(
   effectiveHeatK: number,
@@ -1258,17 +1259,16 @@ function outputMicrobialLoad(
   let total = 0;
   const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const m of matched) {
-    const w = m.measureL;
+    // By mass, as every other fold (re-plan R1-D1): a litre of syrup is
+    // more of the dish than a litre of spirit.
+    const w = pourKg(m.material, m.measureL);
     if (w <= 0) continue;
     weighted += new Freshness(m.slot).load() * w;
     parts.push({ loads: new Contamination(m.slot).loads(), weight: w });
     total += w;
   }
   for (const m of matchedItems) {
-    const unitKg = MixinApi.isTangible(m.stuff)
-      ? m.stuff.getMass().rawValue()
-      : 0;
-    const w = (unitKg > 0 ? unitKg : 0.1) * m.count;
+    const w = matchedItemKg(m);
     const load = MixinApi.isFresh(m.stuff) ? m.stuff.getMicrobialLoad() : 0;
     weighted += load * w;
     // ⭐ The contamination the INPUTS brought with them — a carcass cut
@@ -1307,7 +1307,9 @@ function buildMicrobialLoad(
   for (const c of contributions) {
     // ⭐ An item weighs the mass banked with it (re-plan R1-D7); one
     // banked with none falls back to the old tenth of a kilogram a unit.
-    const w = c.kind === 'item' ? c.massKg ?? 0.1 * (c.count ?? 1) : c.measureL;
+    // A pour weighs its litres at its banked material's density, as the
+    // makeup fold does.
+    const w = c.kind === 'item' ? c.massKg ?? 0.1 * (c.count ?? 1) : bulkContributionKg(c);
     if (w <= 0) continue;
     weighted += (c.freshnessLoad ?? 0) * w;
     parts.push({ loads: c.pathogenLoads ?? {}, weight: w });
@@ -1390,8 +1392,35 @@ function resolveSpoilage(
 function bulkPartKg(material: Material, litres: number): number {
   return (Math.max(0, litres) * material.getDensity().rawValue()) / 1000;
 }
+/**
+ * A pour's kilograms for a load weighting — at its material's density,
+ * else (no material, or a row with no density) as water, so a load is
+ * never dropped for want of a number.
+ */
+function pourKg(material: Material | null, litres: number): number {
+  const kg = material ? bulkPartKg(material, litres) : 0;
+  return kg > 0 ? kg : Math.max(0, litres);
+}
+/** A banked pour's kilograms (see {@link pourKg}). */
+function bulkContributionKg(c: BuildContribution): number {
+  return pourKg(
+    c.materialPath
+      ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
+      : null,
+    c.measureL,
+  );
+}
 function itemPartKg(material: Material, count: number): number {
   return Math.max(0, count) * MaterialApi.servingKgOf(material);
+}
+/**
+ * The kilograms a matched one-shot item weighs: every unit's own mass, the
+ * build path's rule (a banked `massKg`), so the same roots weigh the same
+ * whichever route cooked them; a massless unit falls back to a serving.
+ */
+function matchedItemKg(m: MatchedItemInput): number {
+  const unitKg = MixinApi.isTangible(m.stuff) ? m.stuff.getMass().rawValue() : 0;
+  return unitKg > 0 ? unitKg * Math.max(0, m.count) : itemPartKg(m.material, m.count);
 }
 
 /**
@@ -1779,7 +1808,7 @@ async function applyBulkOutput(
         ),
         ...matchedItems.map((m) => ({
           material: m.material,
-          kg: itemPartKg(m.material, m.count),
+          kg: matchedItemKg(m),
           makeup: MixinApi.isComposition(m.stuff) ? m.stuff.effectiveMakeup() : undefined,
         })),
       ],
@@ -1979,7 +2008,7 @@ async function applyTangibleOutput(
       ),
       ...matchedItems.map((m) => ({
         material: m.material,
-        kg: itemPartKg(m.material, m.count),
+        kg: matchedItemKg(m),
         makeup: MixinApi.isComposition(m.stuff) ? m.stuff.effectiveMakeup() : undefined,
       })),
     ]);
@@ -2110,7 +2139,7 @@ async function applyEdibleOutput(
       recipe.getKeywords(),
       matchedItems.map((m) => ({
         material: m.material,
-        kg: itemPartKg(m.material, m.count),
+        kg: matchedItemKg(m),
         makeup: MixinApi.isComposition(m.stuff) ? m.stuff.effectiveMakeup() : undefined,
       })),
       effectiveHeatK,
@@ -2211,29 +2240,41 @@ function consumeBulkInputs(matched: MatchedInput[]): void {
   }
 }
 
+/** How a build sits against one recipe: `d`, the worst slot's distance. */
+interface BuildFit {
+  /** `max_i |a_i − t_i|` over the recipe's measured bulk categories. */
+  d: number;
+}
+
+/** A recipe a build matched, and how far off its proportion it was. */
+interface BuildMatch {
+  recipe: Recipe;
+  d: number;
+}
+
 /**
- * Reverse-match a manual-build buffer to a recipe: a recipe is satisfied
- * when its heat gate is at/under the build's latched heat, each **bulk**
- * slot is covered by a distinct bulk contribution (same category, measure
- * at/above the slot, grade at/above the floor), each **item** slot's
- * count is covered by item contributions (category by the same tag rule
- * `craftImpl` matches with, grade at/above the floor), AND no
- * contribution is left over — a faithful build is exactly the recipe,
- * not a superset. When several recipes are satisfied by the same buffer
- * (the smithing ladder: poker and knife are both one ferrous item —
- * only their heat gates differ), **the work determines the form**: the
- * most heat-demanding satisfied recipe wins (you worked it at knife
- * heat, you drew a knife; ease off the bellows to make the poker).
- * Ties fall to catalogue order. Returns null for an off-spec build
- * (→ the generic mint). The knowledge/deed gate rides on top.
+ * Reverse-match a manual-build buffer to a recipe (ceramics re-plan
+ * R1-D2/D3): a recipe is satisfied when its heat gate is at/under the
+ * build's latched heat (clamped by its medium), and {@link buildFit}
+ * finds the build in the recipe's PROPORTION — its bulk categories at
+ * their authored fractions within the tolerance, its item slots counted,
+ * nothing left over. When several recipes are satisfied by the same
+ * buffer (the smithing ladder: poker and knife are both one ferrous
+ * item — only their heat gates differ), **the work determines the
+ * form**: the most heat-demanding satisfied recipe wins (you worked it
+ * at knife heat, you drew a knife; ease off the bellows to make the
+ * poker). Equal heat falls to the closer proportion, then to catalogue
+ * order. Returns null for an off-spec build (→ the generic mint). The
+ * knowledge/deed gate rides on top.
  */
 function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
   mediumCaps: ReadonlyMap<RecipeMedium, number> = new Map(),
-): Recipe | null {
-  let best: Recipe | null = null;
+  densities: ReadonlyMap<string, number> = new Map(),
+): BuildMatch | null {
+  let best: BuildMatch | null = null;
   for (const recipe of recipes) {
     // The medium clamp, the by-hand twin of `craftImpl`'s: a recipe
     // worked THROUGH water was never worked hotter than the water got,
@@ -2249,9 +2290,12 @@ function matchBuild(
       if (cap > 0 && cap < effectiveK) effectiveK = cap;
     }
     if (recipe.getRequiresHeatK() > effectiveK) continue; // never worked hot enough
-    if (!buildSatisfies(recipe, contributions)) continue;
-    if (!best || recipe.getRequiresHeatK() > best.getRequiresHeatK()) {
-      best = recipe;
+    const fit = buildFit(recipe, contributions, densities);
+    if (!fit) continue;
+    const heat = recipe.getRequiresHeatK();
+    const bestHeat = best?.recipe.getRequiresHeatK() ?? -Infinity;
+    if (!best || heat > bestHeat || (heat === bestHeat && fit.d < best.d - EPS)) {
+      best = { recipe, d: fit.d };
     }
   }
   return best;
@@ -2281,55 +2325,154 @@ async function resolveMediumCaps(
   return caps;
 }
 
-/** Whether `contributions` exactly cover `recipe`'s slots (no leftovers). */
-function buildSatisfies(
+/**
+ * Pre-resolve the density (kg/m³) of every material the buffer banked, so
+ * the synchronous {@link buildFit} weighs a pour by mass. A contribution
+ * naming no material weighs as water.
+ */
+async function resolveDensities(
+  contributions: readonly BuildContribution[],
+): Promise<Map<string, number>> {
+  const densities = new Map<string, number>();
+  for (const c of contributions) {
+    if (!c.materialPath || densities.has(c.materialPath)) continue;
+    const material = await StuffApi.singleton<Material>(c.materialPath);
+    densities.set(c.materialPath, material.getDensity().rawValue());
+  }
+  return densities;
+}
+
+/** Whether a contribution carries `category` — its named one or a tag. */
+function carriesCategory(c: BuildContribution, category: string): boolean {
+  return c.category === category || (c.tags ?? []).includes(category);
+}
+
+/**
+ * ⭐⭐ **A recipe is a proportion, not a list of minimums** (ceramics
+ * re-plan R1-D2/D3). Returns how far off the build is, or null when it
+ * is not this recipe at all.
+ *
+ *  - **Bulk slots are weighed.** Every bulk contribution joins the first
+ *    bulk slot (in recipe order) whose category it carries and whose
+ *    grade floor it meets, so two pours of gin are one gin. Over the
+ *    measured categories the target fraction is `t_i = measureL_i × ρ_i
+ *    / Σ` and the build's is `a_i = kg_i / Σ`, both at the BANKED
+ *    material's density; the build matches while `d = max_i |a_i − t_i|`
+ *    is within `crafting.proportion.tolerance`. A slot authored
+ *    `measureL: 0` (steep-barley's barley) is presence-only and outside
+ *    the sum.
+ *  - **The scale floor.** The build's measured mass must reach
+ *    `crafting.proportion.minScale` of the recipe's — a half measure is
+ *    still a martini, a thimble is a taste.
+ *  - **Item slots are COUNTED, never weighed** (R1-D3): a recipe row
+ *    carries no mass for an item, and the authored proportion for one IS
+ *    its count. The count rule is the shipped one — a stack banked as one
+ *    contribution sums into its slot.
+ *  - **No leftovers.** A contribution that joins no slot means the build
+ *    is something else (→ the generic pot-luck / worked lump).
+ */
+function buildFit(
   recipe: Recipe,
   contributions: readonly BuildContribution[],
-): boolean {
+  densities: ReadonlyMap<string, number> = new Map(),
+): BuildFit | null {
   const used = new Set<number>();
-  for (const slot of recipe.getInputSlots()) {
+  const slots = recipe.getInputSlots();
+  for (const slot of slots) {
+    if (!Recipe.isItemSlot(slot)) continue;
     const minGrade = Grade.of(slot.minGrade);
-    if (Recipe.isItemSlot(slot)) {
-      let need = slot.count ?? 1;
-      for (let i = 0; i < contributions.length && need > 0; i++) {
-        if (used.has(i)) continue;
-        const c = contributions[i]!;
-        if (c.kind !== 'item') continue;
-        if (
-          c.category !== slot.category &&
-          !(c.tags ?? []).includes(slot.category)
-        ) {
-          continue;
-        }
-        if (Grade.of(c.gradeBand).compareTo(minGrade) < 0) continue;
-        used.add(i);
-        need -= c.count ?? 1;
-      }
-      if (need > 0) return false;
-    } else {
-      let found = -1;
-      for (let i = 0; i < contributions.length; i++) {
-        if (used.has(i)) continue;
-        const c = contributions[i]!;
-        if ((c.kind ?? 'bulk') !== 'bulk') continue;
-        // Tags are the authority for BOTH kinds now; an explicitly
-        // named `category` still matches (tests and hand-built
-        // contributions set one).
-        if (
-          (c.category === slot.category ||
-            (c.tags ?? []).includes(slot.category)) &&
-          c.measureL >= (slot.measureL ?? 0) - EPS &&
-          Grade.of(c.gradeBand).compareTo(minGrade) >= 0
-        ) {
-          found = i;
-          break;
-        }
-      }
-      if (found < 0) return false;
-      used.add(found);
+    let need = slot.count ?? 1;
+    for (let i = 0; i < contributions.length && need > 0; i++) {
+      if (used.has(i)) continue;
+      const c = contributions[i]!;
+      if (c.kind !== 'item') continue;
+      if (!carriesCategory(c, slot.category)) continue;
+      if (Grade.of(c.gradeBand).compareTo(minGrade) < 0) continue;
+      used.add(i);
+      need -= c.count ?? 1;
+    }
+    if (need > 0) return null;
+  }
+
+  // The bulk categories, in recipe order: what the recipe asks of each
+  // (litres) and what the build banked into each (litres + kg).
+  const bulkSlots = slots.filter((s) => !Recipe.isItemSlot(s));
+  const wanted = new Map<string, { targetL: number; L: number; kg: number; n: number }>();
+  for (const slot of bulkSlots) {
+    const seen = wanted.get(slot.category);
+    if (seen) seen.targetL += Math.max(0, slot.measureL ?? 0);
+    else {
+      wanted.set(slot.category, {
+        targetL: Math.max(0, slot.measureL ?? 0),
+        L: 0,
+        kg: 0,
+        n: 0,
+      });
     }
   }
-  return used.size === contributions.length; // a faithful build, exactly
+  for (let i = 0; i < contributions.length; i++) {
+    if (used.has(i)) continue;
+    const c = contributions[i]!;
+    if ((c.kind ?? 'bulk') !== 'bulk') continue;
+    const slot = bulkSlots.find(
+      (s) =>
+        carriesCategory(c, s.category) &&
+        Grade.of(c.gradeBand).compareTo(Grade.of(s.minGrade)) >= 0,
+    );
+    if (!slot) continue; // a leftover — refused below
+    const into = wanted.get(slot.category)!;
+    const rho = (c.materialPath ? densities.get(c.materialPath) : undefined) || 1000;
+    into.L += Math.max(0, c.measureL);
+    into.kg += (Math.max(0, c.measureL) * rho) / 1000;
+    into.n += 1;
+    used.add(i);
+  }
+  if (used.size !== contributions.length) return null; // a faithful build, exactly
+
+  let targetKg = 0;
+  let builtKg = 0;
+  const measured: { tKg: number; aKg: number }[] = [];
+  for (const w of wanted.values()) {
+    if (w.n === 0) return null; // every category present
+    if (w.targetL <= EPS) continue; // presence-only
+    // The slot's density is what was banked into it — a recipe authored in
+    // litres is matched in litres, effectively, and recorded by mass.
+    const rho = w.L > EPS ? (w.kg * 1000) / w.L : 1000;
+    const tKg = (w.targetL * rho) / 1000;
+    measured.push({ tKg, aKg: w.kg });
+    targetKg += tKg;
+    builtKg += w.kg;
+  }
+  if (targetKg <= EPS) return { d: 0 };
+  if (builtKg < proportionMinScale() * targetKg - EPS) return null; // a taste
+  if (builtKg <= EPS) return null;
+  let d = 0;
+  for (const m of measured) {
+    d = Math.max(d, Math.abs(m.aKg / builtKg - m.tKg / targetKg));
+  }
+  return d <= proportionTolerance() + EPS ? { d } : null;
+}
+
+/** The `crafting.proportion.tolerance` dial — the furthest a slot may sit. */
+function proportionTolerance(): number {
+  return dial(AppSettingKeys.craftingProportionTolerance, 0.12);
+}
+
+/** The `crafting.proportion.minScale` dial — the smallest batch that counts. */
+function proportionMinScale(): number {
+  return dial(AppSettingKeys.craftingProportionMinScale, 0.5);
+}
+
+/**
+ * What an off-proportion build costs its grade (R1-D2): within a third of
+ * the tolerance nothing, within two thirds one band, else two — a lean
+ * batch is a poorer batch.
+ */
+function proportionBands(d: number): number {
+  const tol = proportionTolerance();
+  if (d <= tol / 3 + EPS) return 0;
+  if (d <= (2 * tol) / 3 + EPS) return 1;
+  return 2;
 }
 
 /**
@@ -2607,20 +2750,26 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     named === null
       ? await resolveMediumCaps(contributions)
       : new Map<RecipeMedium, number>();
-  const recipe =
+  const match =
     named === null
       ? matchBuild(
           (await requireCatalogue()).allRecipes(),
           contributions,
           req.heatedToK ?? 0,
           mediumCaps,
+          await resolveDensities(contributions),
         )
       : null;
+  const recipe = match?.recipe ?? null;
 
-  // Weakest-link grade over the buffer, floored at a matched recipe's base.
+  // Weakest-link grade over the buffer, less what an off-proportion build
+  // costs (R1-D2), floored at a matched recipe's base.
   let grade = Grade.deriveAtFixedControl(
     contributions.map((c) => Grade.of(c.gradeBand)),
   );
+  if (match) {
+    grade = Grade.fromOrdinal(grade.getOrdinal() - proportionBands(match.d));
+  }
   if (recipe) {
     const base = recipe.getBaseGrade();
     if (base) grade = grade.max(base);
@@ -3071,12 +3220,6 @@ async function mintVessel(
     // Conservation for a bulk build: Σ buffer measures → the vessel volume.
     // An edible recipe fills its authored portion; an off-spec item build
     // lands the generic cooked portion.
-    let amountL = contributions.reduce((sum, c) => sum + c.measureL, 0);
-    if (recipe && recipe.getOutputApplication() === 'edible') {
-      amountL = recipe.getOutputPortionL();
-    } else if (!recipe && hasItems) {
-      amountL = Math.max(amountL, GENERIC_COOKED_PORTION_L);
-    }
     // The blend base: an authored substance (the override channel) wins;
     // else the ONE generic per phase-kind, with the actual identity +
     // macros DERIVED onto the vessel's payload from what was banked
@@ -3086,6 +3229,23 @@ async function mintVessel(
       ? GENERIC_COOKED_MATERIAL
       : GENERIC_MIXED_MATERIAL;
     const material = await StuffApi.singleton<Material>(authored || genericPath);
+    let amountL = contributions.reduce((sum, c) => sum + c.measureL, 0);
+    if (recipe && recipe.getOutputApplication() === 'edible') {
+      amountL = recipe.getOutputPortionL();
+    } else if (!recipe && hasItems && charge !== null) {
+      // ⭐ A charge's pot-luck is what was IN the vessel: the pieces and
+      // the belly, conserved by mass at the generic's density — the same
+      // rule as a vessel-named product (above).
+      const totalKg = (await buildParts(contributions)).reduce(
+        (sum, p) => sum + p.kg,
+        0,
+      );
+      amountL = (totalKg / (material.getDensity().rawValue() || 1000)) * 1000;
+    } else if (!recipe && hasItems) {
+      // A plated pot-luck is a PORTION of the pot, as a matched edible
+      // recipe's is (`outputPortionL`) — never the pot's whole mass.
+      amountL = Math.max(amountL, GENERIC_COOKED_PORTION_L);
+    }
     outSlot.setMaterial(material);
     outSlot.setAmount(Quantity.of(amountL, 'L'));
     if (!authored) {

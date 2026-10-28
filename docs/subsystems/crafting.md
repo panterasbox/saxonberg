@@ -930,10 +930,15 @@ activity substrate's first durative-verb consumer — see
 [activity.md](./activity.md)): the effect lands **at completion**, so a
 barge-in `cancel` mid-step leaves partial matter standing.
 
-- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit a standard
-  measure off the chosen reachable graded bottle (to the discard sink —
-  conservation) and bank a graded `BuildContribution` into the vessel's
-  buffer. `add` (no vessel) finds the build vessel you're working in.
+- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit **one
+  serving** of what is poured off the chosen reachable graded bottle (the
+  material's `servingKg` at its density, `MaterialApi.servingKgOf` — gin
+  60 ml, dry vermouth 10 ml, bitters 2 ml; `--amount 30ml` measures
+  instead) to the discard sink — conservation — and bank a graded
+  `BuildContribution` into the vessel's buffer. One row field is both the
+  nutrition serving and the jigger, so a new spirit needs no code; three
+  pours of sweet vermouth is a negroni's measure. `add` (no vessel) finds
+  the build vessel you're working in.
 - **`stir`** / **`shake <vessel>`** — record the mix method on the build.
 - **`strain [<vessel>] into <glass>`** — the **terminal mint**.
 - **`garnish <glass> with <garnish>`** — the finishing flourish.
@@ -941,12 +946,41 @@ barge-in `cancel` mid-step leaves partial matter standing.
 The vessel is a `ManualBuildMixin` build vessel (`CocktailShaker` backs
 both the shaker and the mixing glass — `capabilities` decide which recipe
 tool it satisfies). At `strain`, **`CraftingApi.mintFromBuild`**
-reverse-matches the accumulated contributions to a recipe (`matchBuild`:
-heat gate ≤ the build's latched heat, bulk slots each covered by a
-distinct contribution, item slots' counts covered by the tag rule, **no
-leftovers** — a faithful build is exactly the recipe) and mints the
+reverse-matches the accumulated contributions to a recipe and mints the
 graded, maker's-marked drink into the glass, **reusing the one quality
-model** (weakest-link `Grade`, the `applyBulkOutput` fill). An off-spec
+model** (weakest-link `Grade`, the `applyBulkOutput` fill).
+
+⭐⭐ **A recipe is a proportion, not a list of minimums** (ceramics re-plan
+R1-D2/D3; `matchBuild` → `buildFit`). A build is a recipe when:
+
+- the heat gate holds (≤ the build's latched heat, clamped by the
+  recipe's medium) — unchanged;
+- **every bulk category is present and in proportion.** Each bulk
+  contribution joins the first bulk slot whose category it carries and
+  whose grade floor it meets, so two pours of gin are one gin. Over the
+  measured categories the target fraction is `t_i = measureL_i × ρ_i / Σ`
+  and the build's `a_i = kg_i / Σ`, both at the BANKED material's
+  density, and `d = max_i |a_i − t_i|` must sit within
+  `crafting.proportion.tolerance` (0.12). A bulk slot with no
+  `measureL` is presence-only and outside the sum;
+- **the batch is big enough:** the build's measured mass reaches
+  `crafting.proportion.minScale` (0.5) of the recipe's — a half measure
+  is still a martini, a thimble is a taste;
+- **item slots are COUNTED, never weighed** — a row carries no mass for
+  an item and the authored proportion for one IS its count (a stack sums
+  into its slot), so a workpiece build matches as it always did;
+- **no leftovers** — a contribution that joins no slot makes the build
+  something else.
+
+Off the proportion costs grade, taken before the recipe's base floor:
+`d ≤ tol/3` is free, `≤ 2·tol/3` one band, `≤ tol` two — a lean batch is
+a poorer batch. When several recipes match, the most heat-demanding wins
+(the smithing ladder), then the closer proportion (a wet martini's
+60 : 20 is the wet martini, not a lean dry one), then catalogue order.
+The one-shot `craft` is untouched: it draws exactly each slot's measure,
+so its proportion is exact by construction.
+
+An off-spec
 build still yields *a* thing — the generic blend base named by its own
 row (`mixed drink` / `cooked fare`), its payload still honestly summed
 from what went in — but matches no recipe (`recipeId === ''`), the
@@ -994,7 +1028,10 @@ against it at the mint; reset by `clearBuild`).
   inputs' spoilage + kit, the maker — then the **namer**: the vessel's
   `productMaterial` (a piece cloned from `productTemplate`, else the
   belly), else the matched recipe, else the pot-luck. The charge is
-  consumed by the mint.
+  consumed by the mint. A charge's pot-luck conserves mass — everything
+  that was in the vessel, at the generic's density — where a PLATED
+  pot-luck is a portion of the pot (`outputPortionL`'s rule, the generic
+  0.3 L), never its whole mass.
 
 `quench`/`plate` replicate `strain`'s capture tail
 (`ScriptApi.captureManualBuild`) — the first faithful hand build mints
