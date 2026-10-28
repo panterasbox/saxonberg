@@ -61,12 +61,12 @@ export default class DitchController extends GroundWorkController {
       beginSelf: Mml.compose`You open a line along the fall of the ground with ${Mml.thing(tool)}, throwing the spoil to the high side.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts cutting a ditch along the fall of the ground.`,
       onComplete: () => {
-        void this.finish(context, reading);
+        void DitchController.finish(context, reading);
       },
     });
   }
 
-  private async finish(context: CommandContext, reading: GroundReading): Promise<void> {
+  private static async finish(context: CommandContext, reading: GroundReading): Promise<void> {
     const giver = context.commandGiver;
     const { ground, bill } = reading;
     const after = ground.bankWork('draining', LABOUR_PER_ACT, bill);

@@ -58,6 +58,16 @@
  * `Slottable`s in a bed, which is exactly why `CultivableMixin` could not
  * be the vehicle and why W1 split soil out of it.
  *
+ * ## ⭐ The crop (cover build)
+ *
+ * A field holds ONE area crop: a single `Plant` standing loose in its
+ * contents with a sown area, rooted in the field's soil by containment
+ * (the kernel's `getBed()`). The rest of the field is sward. `plough`
+ * turns the sward under and stamps a SEEDBED good for one season; `sow`
+ * asks the field (`sowingRefusal`) and the field answers from that
+ * stamp. The crop is titled to the business that works the field
+ * (`ensureCropTitle`), so whoever cuts it, the sheaf is the holder's.
+ *
  * See [docs/subsystems/soil.md] and [docs/subsystems/smallholding.md].
  */
 
@@ -96,6 +106,11 @@ import GroundCharacter, {
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Growing } from '@saxonberg/server/mud/lib/husbandry/Growing';
+import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 
 /** What a spadeful of a stony headland leaves standing at the edge. */
 const STONE_ROW = '/trade/farming/thing/field-stone';
@@ -175,6 +190,68 @@ const BLOOM_MIN_K = 285;
 /** Day length below which the bloom is over (or has not started). */
 const BLOOM_MIN_DAYLIGHT = 0.45;
 
+/**
+ * ⭐ One herd's line in the field's grazing ledger (cover build D8): what
+ * it wants, what vessels it will eat from, and what it has been given
+ * since it came onto the field. A PLAIN object, never a `Map` (a Map
+ * field has no BSON shape).
+ */
+export interface GrazerEntry {
+  /** How the herd reads in `look` — *six head of the college herd*. */
+  label: string;
+  /** Kilograms of dry matter the herd wants a game day. */
+  demandKgPerDay: number;
+  /** The feeder kinds its species eats from (`trough`, `hopper`…). */
+  feederKinds: string[];
+  /** Kilograms it was given (grass + hay) since `since`. */
+  fedKg: number;
+  /** Kilograms it wanted since `since`. */
+  demandKg: number;
+  /** Game-seconds the window opened. */
+  since: number;
+}
+
+/**
+ * Game-days a ploughed seedbed stays fit to sow (cover build D4) — about
+ * a season. Past it the sward has crept back and the ground wants
+ * ploughing again.
+ */
+const SEEDBED_DAYS = 90;
+
+const SECONDS_PER_GAME_DAY = 86_400;
+
+/**
+ * Litres a square metre of standing crop transpires a game day — a full
+ * sward's figure (0.3 kg/m² × 4 L/kg), because a field of wheat in leaf
+ * drinks the ground about as hard as a full pasture does. A crop row's
+ * `litresPerGameDay` is a single plant's and cannot be read per square
+ * metre.
+ */
+const CROP_TRANSPIRATION_L_PER_M2_DAY = 1.2;
+
+/**
+ * Percentage points of organic matter one kilogram per square metre of
+ * sward adds when it is ploughed under (cover build D4): a full sward
+ * (0.3 kg/m²) turned in is about one point — the green manure that
+ * feeds the next crop, and why breaking a ley grows a good first crop.
+ */
+const OM_PER_KG_PER_M2_TURNED = 3;
+
+/**
+ * ⭐ The field's own lines in `look` — in words, never numbers: the crop
+ * and its stage, the stubble, a fresh seedbed, the grass. Sync and pure:
+ * an augmenter only READS (⛔ it never settles a title — that is the
+ * acts' job).
+ */
+function fieldAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  const field = host as unknown as Field;
+  if (typeof field.fieldLines !== 'function') return text;
+  const lines = field.fieldLines();
+  if (lines.length === 0) return text;
+  const block = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${block}` : block;
+}
+
 // The ground half — composed FIRST and separately, because soil's host
 // constraint is `Stuff & Reserved` alone. Naming the intermediate stack
 // is not cosmetic: inference through this many nested generic mixin
@@ -214,8 +291,17 @@ export default class Field extends FieldBase {
    */
   static commandContributions = {
     // `inventory`: a location's occupants hear it (`self` is a giver's).
-    inventory: ['trade/farming/cmd/farming/plough.yaml'],
+    inventory: [
+      'trade/farming/cmd/farming/plough.yaml',
+      // ⭐ A field affords SOWING to whoever stands in it (cover build):
+      // the platform view, named here the way `plough` is. A bed affords
+      // it through `CultivableMixin`; ground with no slot had nothing.
+      'platform/cmd/inventory/plant.yaml',
+    ],
   };
+
+  /** The crop, the stubble, the seedbed and the grass, in words. */
+  static markupAugmenters: MarkupAugmenter[] = [fieldAugmenter];
 
   static fieldMeta: FieldMeta = {
     fieldName: { persistent: true, authorable: true },
@@ -225,7 +311,31 @@ export default class Field extends FieldBase {
     legumeFraction: { persistent: true, authorable: true },
     _ambientK: { persistent: true, runtimeState: true },
     _daylightFraction: { persistent: true, runtimeState: true },
+    seedbedStamp: { persistent: true },
+    stubbleStamp: { persistent: true },
+    grazers: { persistent: true },
   };
+
+  /**
+   * ⭐ **Who grazes this field** (cover build D8), by herd id. Ranching
+   * writes it through `setGrazer`/`clearGrazer`; the field keeps each
+   * line's fed window inside its own sward integral. The field never
+   * searches for a herd — the herd's move wrote itself here.
+   */
+  public grazers: Record<string, GrazerEntry> = {};
+
+  /**
+   * Game-seconds the sward was last turned under for a seedbed; `0` =
+   * never ploughed for a crop (cover build D4).
+   */
+  public seedbedStamp = 0;
+
+  /**
+   * Game-seconds the last crop ended (cut down or grubbed out), `0` when
+   * none has — what lets the field read *stubble* rather than bare
+   * grass. Cleared by the next ploughing.
+   */
+  public stubbleStamp = 0;
 
   /**
    * ⭐ **D88 — holders name their fields.** Real farms always have: the
@@ -318,6 +428,273 @@ export default class Field extends FieldBase {
     this.groundSpotY = Math.round(spot[1]);
   }
 
+
+  // ---------- ⭐ the crop (cover build) ----------
+
+  /** The area crop standing in this field, or `null`. */
+  public getCrop(): (Stuff & Growing) | null {
+    for (const c of this.getContents()) {
+      if (MixinApi.isGrowing(c) && c.isAreaCrop()) return c;
+    }
+    return null;
+  }
+
+  /** Square metres the crop stands over (sown, cut or not). */
+  public cropAreaM2(): number {
+    const crop = this.getCrop();
+    return crop ? Math.min(this.areaM2, crop.getSownAreaM2()) : 0;
+  }
+
+  /** Whether the ground was ploughed within the season. */
+  public isSeedbedFresh(): boolean {
+    if (this.seedbedStamp <= 0) return false;
+    const now = fieldNowSeconds();
+    if (now === null) return true;
+    return now - this.seedbedStamp < SEEDBED_DAYS * SECONDS_PER_GAME_DAY;
+  }
+
+  /**
+   * ⭐ The ground answers `sow` (the kernel's hook). A crop of the same
+   * kind may always be widened; otherwise the ground must have been
+   * ploughed this season. The verb refuses a DIFFERENT crop itself.
+   */
+  public override sowingRefusal(): string | null {
+    if (this.getCrop()) return null;
+    if (this.isSeedbedFresh()) return null;
+    return this.seedbedStamp > 0
+      ? 'The seedbed has gone back to grass. Plough it again before you sow.'
+      : 'This ground has not been ploughed for a crop. Plough it first.';
+  }
+
+  /**
+   * ⭐ **Turn the sward under** (cover build D4): the standing grass goes
+   * into the ground as organic matter and the seedbed is stamped. What a
+   * plough does to a field after its clearing is done.
+   */
+  public turnUnder(): void {
+    const kg = this.drawSward(this.standingDryMatterKg());
+    if (kg > 0 && this.areaM2 > 0) {
+      this.addOrganicMatter((kg / this.areaM2) * OM_PER_KG_PER_M2_TURNED);
+    }
+    const now = fieldNowSeconds();
+    this.seedbedStamp = now ?? 1;
+    this.stubbleStamp = 0;
+  }
+
+  /**
+   * ⭐ **Whose the crop is** (cover build D6): the business that works
+   * this field, stood up if it has to be. A group cannot hold goods, so
+   * *the holder* is realized as the operator; with none, the crop keeps
+   * whatever title its arrival gave it (the sower's, or nobody's).
+   * ⛔ Called by the acts — sow and harvest — never by a read.
+   */
+  public override async ensureCropTitle(): Promise<void> {
+    await this.settleCropTitle(true);
+  }
+
+  private async settleCropTitle(standUp: boolean): Promise<void> {
+    const crop = this.getCrop();
+    if (!crop || !MixinApi.isChattel(crop)) return;
+    const path = this.getTemplatePath() ?? '';
+    const live = EmploymentApi.operatorsAt(this as unknown as Stuff)[0] ?? null;
+    const operator =
+      live ?? (standUp && path ? await EmploymentApi.ensureOperatorAt(path) : null);
+    if (!operator || crop.isDestroyed()) return;
+    const owner = operator.getIdentityPath() ?? '';
+    const stamped = crop.stampedOwner();
+    if (stamped && stamped.kind === 'organization' && stamped.templatePath === owner) {
+      return;
+    }
+    await (stamped
+      ? crop.transferChattel(operator)
+      : crop.stampChattel(operator));
+  }
+
+  /**
+   * ⭐ A crop ARRIVING is the field's moment to learn it was sown, and an
+   * authored crop's to be titled to the live operator (no house is stood
+   * up by an arrival — that is the harvest's act).
+   */
+  public onContainableAdded(thing: Stuff & Containable): void {
+    if (MixinApi.isGrowing(thing) && thing.isAreaCrop()) {
+      this.stubbleStamp = 0;
+      void this.settleCropTitle(false).catch(() => undefined);
+    }
+  }
+
+  /** A crop LEAVING — cut down or grubbed out — leaves stubble. */
+  public onContainableRemoved(thing: Stuff & Containable): void {
+    if (MixinApi.isGrowing(thing) && thing.isAreaCrop()) {
+      this.stubbleStamp = fieldNowSeconds() ?? 1;
+    }
+  }
+
+  /**
+   * ⭐ **Grubbing ends a crop** (cover build D5): clearing work banked on
+   * a field with a crop standing in it takes the crop out first — tired
+   * cane is grubbed before it is replanted.
+   */
+  public override bankWork(
+    job: ImprovementJob,
+    amount: number,
+    cost: ImprovementCost,
+  ): number {
+    if (job === 'clearing') {
+      const crop = this.getCrop();
+      if (crop) void StuffApi.destruct(crop);
+    }
+    return super.bankWork(job, amount, cost);
+  }
+
+  /**
+   * The field's own lines, in words: the crop and its stage, the
+   * stubble, a fresh seedbed, the grass. ⭐ A pure read.
+   */
+  public fieldLines(): string[] {
+    const lines: string[] = [];
+    const crop = this.getCrop();
+    if (crop) {
+      const area = crop.cropAreaPhrase(this.areaM2);
+      const name = crop.getPresentation();
+      lines.push(
+        `${capitalize(name)} grows ${area || 'here'}, ${crop.cropStagePhrase()}.`,
+      );
+      if (crop.getSownAreaM2() > crop.standingAreaM2() + 1) {
+        lines.push('Part of it is cut, the stubble showing between the rows.');
+      }
+      if (crop.isTiredRatoon()) {
+        lines.push('The stools are tired, and the stand comes up thin.');
+      }
+    } else if (this.stubbleStamp > 0) {
+      const band = this.swardBand();
+      lines.push(
+        band === 'bare'
+          ? 'It is cut down to the stubble.'
+          : band === 'grazed-out' || band === 'short'
+            ? 'Grass is coming back over the stubble.'
+            : `The stubble is lost under the grass, ${this.swardPhrase()}.`,
+      );
+      lines.push(...this.grazerLines());
+      return lines;
+    } else if (this.isSeedbedFresh()) {
+      lines.push('It is ploughed for the season, the furrows waiting for seed.');
+      return lines;
+    }
+    if (this.swardAreaM2() >= 1) {
+      lines.push(
+        crop
+          ? `The grass on the rest of it is ${this.swardPhrase()}.`
+          : `The grass is ${this.swardPhrase()}.`,
+      );
+    }
+    lines.push(...this.grazerLines());
+    return lines;
+  }
+
+
+  // ---------- ⭐ the grazing ledger (cover build D8, D11) ----------
+
+  /** Put a herd on this field, or replace its line. Opens a fresh window. */
+  public setGrazer(herdId: string, entry: Omit<GrazerEntry, 'fedKg' | 'demandKg' | 'since'>): void {
+    // Settle the window the herd is joining, so it is not billed for it.
+    this.reconcileSward();
+    const now = fieldNowSeconds() ?? 0;
+    this.grazers = {
+      ...this.grazers,
+      [herdId]: {
+        label: entry.label,
+        demandKgPerDay: Math.max(0, entry.demandKgPerDay),
+        feederKinds: [...entry.feederKinds],
+        fedKg: 0,
+        demandKg: 0,
+        since: now,
+      },
+    };
+  }
+
+  /** Take a herd off this field. Returns its closed line, or `null`. */
+  public clearGrazer(herdId: string): GrazerEntry | null {
+    this.reconcileSward();
+    const entry = this.grazers[herdId];
+    if (!entry) return null;
+    const rest = { ...this.grazers };
+    delete rest[herdId];
+    this.grazers = rest;
+    return { ...entry, feederKinds: [...entry.feederKinds] };
+  }
+
+  /**
+   * A herd's line, reconciled — what it has been fed since it came on.
+   * `null` when the herd is not on this field.
+   */
+  public grazerLedger(herdId: string): GrazerEntry | null {
+    this.reconcileSward();
+    const entry = this.grazers[herdId];
+    return entry ? { ...entry, feederKinds: [...entry.feederKinds] } : null;
+  }
+
+  /**
+   * Close a herd's window and open a fresh one: returns the fraction it
+   * was fed over the window just closed (1 when it wanted nothing), and
+   * the window's length in game-days. What the record folds into its
+   * history.
+   */
+  public foldGrazer(herdId: string): { fraction: number; days: number } | null {
+    this.reconcileSward();
+    const entry = this.grazers[herdId];
+    if (!entry) return null;
+    const now = fieldNowSeconds() ?? entry.since;
+    const days = Math.max(0, (now - entry.since) / SECONDS_PER_GAME_DAY);
+    const fraction = entry.demandKg > 0 ? Math.min(1, entry.fedKg / entry.demandKg) : 1;
+    this.grazers = {
+      ...this.grazers,
+      [herdId]: { ...entry, fedKg: 0, demandKg: 0, since: now },
+    };
+    return { fraction, days };
+  }
+
+  /** The herds on this field, by id. */
+  public grazerIds(): string[] {
+    return Object.keys(this.grazers);
+  }
+
+  /** The feeder kinds any grazer here eats from. */
+  private grazerFeederKinds(): Set<string> {
+    const kinds = new Set<string>();
+    for (const e of Object.values(this.grazers)) {
+      for (const k of e.feederKinds) kinds.add(k);
+    }
+    return kinds;
+  }
+
+  /**
+   * ⭐ **The trough feeds what the grass did not** (D11): every feeder
+   * standing on this field whose kind a grazer eats from, drawn by mass —
+   * and a feeder kept from a store draws on the store when it is empty.
+   */
+  public override swardShortfallFed(kgNeeded: number): number {
+    if (!(kgNeeded > 0)) return 0;
+    const kinds = this.grazerFeederKinds();
+    if (kinds.size === 0) return 0;
+    let left = kgNeeded;
+    for (const thing of this.getContents()) {
+      if (left <= 0) break;
+      if (!MixinApi.isFeeder(thing) || thing.isDestroyed()) continue;
+      if (!kinds.has(thing.getFeederKind())) continue;
+      left -= thing.drawFodder(left);
+    }
+    return kgNeeded - left;
+  }
+
+  /** `look`'s line per herd: *six head of the college herd are grazing it*. */
+  private grazerLines(): string[] {
+    const out: string[] = [];
+    for (const e of Object.values(this.grazers)) {
+      if (e.label) out.push(`${capitalize(e.label)} ${e.label.startsWith('one ') ? 'is' : 'are'} grazing it.`);
+    }
+    return out;
+  }
+
   // ---------- the two hooks SoilMixin asks of its host ----------
 
   /**
@@ -368,14 +745,23 @@ export default class Field extends FieldBase {
    * different kind of ground.
    */
   public override soilWaterDemandPerGameDay(): number {
-    return this.swardTranspirationPerGameDay();
+    // ⭐ And a crop standing in it drinks too (cover build) — per square
+    // metre still standing.
+    const crop = this.getCrop();
+    const cropDemand = crop
+      ? crop.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY
+      : 0;
+    return this.swardTranspirationPerGameDay() + cropDemand;
   }
 
   // ---------- the three hooks the sward asks of its host ----------
 
-  /** Every square metre of a field is sward, until something else is sown. */
+  /**
+   * Every square metre of a field is sward, until something else is
+   * sown — ⭐ and then the crop's ground is not (cover build).
+   */
   public override swardAreaM2(): number {
-    return this.areaM2;
+    return Math.max(0, this.areaM2 - this.cropAreaM2());
   }
 
   /**
@@ -495,7 +881,10 @@ export default class Field extends FieldBase {
    * which reads this field. Same hazard, same discipline, as the soil's.
    */
   public override swardGrazingDemandPerGameDay(): number {
+    // ⭐ The herds whose moves wrote themselves here (cover build D8) —
+    // a drafted head is counted through its herd's line, never twice.
     let demand = 0;
+    for (const e of Object.values(this.grazers)) demand += e.demandKgPerDay;
     for (const occupant of this.getContents()) {
       const grazer = occupant as unknown as {
         grazingDemandPerGameDay?(): number;
@@ -519,7 +908,12 @@ export default class Field extends FieldBase {
    * **No path credits nitrogen from nowhere.** The two openings are the
    * real ones — fixation in, leaching out — and both are named.
    */
-  public override onSwardIntegrated(dryMatterEatenKg: number, days: number): void {
+  public override onSwardIntegrated(
+    dryMatterEatenKg: number,
+    days: number,
+    fedKg = 0,
+  ): void {
+    this.apportionGrazers(dryMatterEatenKg + fedKg, days);
     if (dryMatterEatenKg > 0) {
       this.cycleGrazedNitrogen(dryMatterEatenKg);
       // Hooves. Intensity is what they ate, because that is how long
@@ -527,6 +921,29 @@ export default class Field extends FieldBase {
       this.poachByOccupants(dryMatterEatenKg * 0.02);
     }
     this.fixLegumeNitrogen(days);
+  }
+
+  /**
+   * Share what the mouths got (grass + hay) across the herds by their
+   * demand, and add the window to each line (D8). Each herd's fed
+   * fraction is then `fedKg / demandKg` — the one number the herd's
+   * condition reads.
+   */
+  private apportionGrazers(givenKg: number, days: number): void {
+    const entries = Object.entries(this.grazers);
+    if (entries.length === 0 || !(days > 0)) return;
+    const total = entries.reduce((n, [, e]) => n + e.demandKgPerDay, 0);
+    if (!(total > 0)) return;
+    const next: Record<string, GrazerEntry> = {};
+    for (const [id, e] of entries) {
+      const share = e.demandKgPerDay / total;
+      next[id] = {
+        ...e,
+        fedKg: e.fedKg + givenKg * share,
+        demandKg: e.demandKg + e.demandKgPerDay * days,
+      };
+    }
+    this.grazers = next;
   }
 
   // ---------- ⭐⭐ the nitrogen ledger, at BOTH ends ----------
@@ -849,4 +1266,14 @@ export default class Field extends FieldBase {
 
 function clampUnit(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+function capitalize(text: string): string {
+  return text.length > 0 ? text[0]!.toUpperCase() + text.slice(1) : text;
+}
+
+/** Game-seconds now, or `null` before the clock exists (pre-boot, tests). */
+function fieldNowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+  return WorldClockApi.getNow().rawValue();
 }

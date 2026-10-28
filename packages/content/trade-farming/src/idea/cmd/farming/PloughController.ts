@@ -27,6 +27,14 @@
  * ⚠ It is deliberately NOT a second improvement axis. A field does not
  * need a "ploughed" state on top of a cleared one; what a plough buys is
  * the same ground, sooner, for a smaller share of somebody's back.
+ *
+ * ## ⭐ The seedbed (cover build D4)
+ *
+ * Once the clearing is done, ploughing is SEASONAL: a bout turns the
+ * sward under — the grass goes into the ground as organic matter — and
+ * the field is ploughed for the season, which is what `sow` asks for. A
+ * second bout that season is refused, and so is ploughing under a
+ * standing crop (grub it out, or cut it).
  */
 
 import { FieldWorkController, FIELD_TOPIC, LABOUR_PER_ACT } from './FieldWorkController';
@@ -37,6 +45,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface PloughModel extends CommandModel {
@@ -97,11 +106,23 @@ export default class PloughController extends FieldWorkController {
       }
     }
     const { field, sample, bill } = reading;
-    if (field.progressOn('clearing', bill) >= 1) {
+    // ⭐ Clearing owed: the bout banks clearing (the one-time improvement).
+    // Cleared: it turns the sward under for a seedbed (D4) — refused under
+    // a standing crop, and refused twice in one season.
+    const clearing = field.progressOn('clearing', bill) < 1;
+    if (!clearing && field.getCrop()) {
       this.decline(
         context,
-        Mml.compose`This ground is turned and clean. There is nothing more a plough will do to it.`,
-        'already-clear',
+        Mml.compose`A crop stands in it. Cut it or grub it out before you plough.`,
+        'crop-stands',
+      );
+      return;
+    }
+    if (!clearing && field.isSeedbedFresh()) {
+      this.decline(
+        context,
+        Mml.compose`It is already ploughed for the season. It wants seed, not another furrow.`,
+        'already-ploughed',
       );
       return;
     }
@@ -133,19 +154,38 @@ export default class PloughController extends FieldWorkController {
         if (MixinApi.isDurable(plough) && !plough.isDestroyed()) {
           plough.wear(SHARE_WEAR_PER_BOUT);
         }
-        void this.finish(context, reading, draught, beast);
+        void PloughController.finish(context, reading, draught, beast, clearing);
       },
     });
   }
 
-  private async finish(
+  private static async finish(
     context: CommandContext,
     reading: NonNullable<Awaited<ReturnType<FieldWorkController['fieldOf']>>>,
     draught: number,
     beast: boolean,
+    clearing: boolean,
   ): Promise<void> {
     const giver = context.commandGiver;
     const { field, bill } = reading;
+    if (!clearing) {
+      // ⭐ The seedbed: the grass goes under, and the field is ploughed
+      // for the season (D4).
+      field.turnUnder();
+      try {
+        await PersistableApi.captureHostOf(field as unknown as Stuff);
+      } catch (err) {
+        console.warn('PloughController: capture after ploughing failed:', err);
+      }
+      MessageApi.scene(giver)
+        .topic(FIELD_TOPIC)
+        .toSelf(
+          Mml.compose`The grass goes under in long dark slices. Ploughed for the season.`,
+        )
+        .send();
+      await this.credit(giver, 1);
+      return;
+    }
     // ⭐⭐ **The ox works ground a person cannot, at the same rate.** One
     // act, many acts' worth of work — and the multiplier is the animal's
     // mass, not a number in this file.

@@ -79,12 +79,12 @@ export default class FlattenController extends ManualBuildController<FlattenMode
       beginSelf: Mml.compose`You soften ${Mml.thing(cyl)} at the furnace and open it out flat.`,
       onComplete: () => {
         if (cyl.isDestroyed()) return;
-        void this.flatten(cyl, giver);
+        void FlattenController.flatten(cyl, giver);
       },
     });
   }
 
-  private async flatten(cyl: Sheet, giver: Stuff): Promise<void> {
+  private static async flatten(cyl: Sheet, giver: Stuff): Promise<void> {
     const mass = cyl.getMass().rawValue();
     const alloying = cyl.getAlloying().map((e) => ({ ...e }));
     const where = MixinApi.isContainable(cyl)

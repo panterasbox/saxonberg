@@ -89,12 +89,12 @@ export default class CrackController extends ManualBuildController<CrackModel> {
           void gather.loseToCullet(giver, "There was no formed piece to crack off.");
           return;
         }
-        void this.crackOff(gather, productRow, giver);
+        void CrackController.crackOff(gather, productRow, giver);
       },
     });
   }
 
-  private async crackOff(
+  private static async crackOff(
     gather: Gather,
     productRow: string,
     giver: Stuff,

@@ -144,12 +144,21 @@ export abstract class GroundWorkController<
   /**
    * Credit the labour.
    *
+   * ⚠⚠ **Static, and so is every act's `finish`.** A controller is one
+   * clone per execution and the dispatcher destructs it the moment
+   * `execute` returns — while the engagement is still pending — and a
+   * method called on a destructed Stuff is a SILENT no-op. Every ground
+   * act called `this.finish` from its completion, so none of `grub`,
+   * `ditch`, `lime`, `plough` or `mow` ever banked its work in a live
+   * game: the begin prose played and nothing happened (found by the cover
+   * build, 2026-10-28). Class statics outlive the instance.
+   *
    * ⚠ Difficulty is read off the GROUND at the moment of the act, not off a
    * counter: finishing hard ground is a hard check and turning over kind
    * ground is a trivial one, which is the estimator's own anti-grind
    * property doing the work rather than a bespoke guard.
    */
-  protected async credit(giver: Stuff, required: number): Promise<void> {
+  protected static async credit(giver: Stuff, required: number): Promise<void> {
     if (!MixinApi.isAdvancing(giver)) return;
     await giver.creditDeed({
       discipline: AGRICULTURE,

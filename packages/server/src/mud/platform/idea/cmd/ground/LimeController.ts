@@ -74,12 +74,12 @@ export default class LimeController extends GroundWorkController {
       beginSelf: Mml.compose`You break up ${Mml.thing(agent)} and cast it out across the ground.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} spreads something pale across the ground, handful by handful.`,
       onComplete: () => {
-        void this.finish(context, reading, agent);
+        void LimeController.finish(context, reading, agent);
       },
     });
   }
 
-  private async finish(
+  private static async finish(
     context: CommandContext,
     reading: GroundReading,
     agent: Stuff,

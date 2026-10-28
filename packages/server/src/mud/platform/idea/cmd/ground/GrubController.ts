@@ -58,12 +58,12 @@ export default class GrubController extends GroundWorkController {
       beginSelf: Mml.compose`You set to with ${Mml.thing(tool)}, cutting into the thorn and levering out what is under it.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to grubbing out the rough ground.`,
       onComplete: () => {
-        void this.finish(context, reading, required);
+        void GrubController.finish(context, reading, required);
       },
     });
   }
 
-  private async finish(
+  private static async finish(
     context: CommandContext,
     reading: GroundReading,
     required: number,
