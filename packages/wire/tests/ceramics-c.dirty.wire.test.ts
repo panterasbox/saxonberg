@@ -675,7 +675,16 @@ suite('⭐ 21 — the weeping jar', () => {
     // ⭐ A SUMMER effect, in summer: by 21 the drive is weeks on from its
     // warm start, and a jar of water left through a frost cracks honestly
     // and weeps nothing (run 40: "It is cracked"). A no-op inside the season.
-    await toWarmSeason([potter, novice]);
+    // ⚠ With nobody in the world: lived time in 4-hour steps for two open
+    // bodies took the whole 30-minute budget (run 41). Closed, the clock
+    // jumps a day at a time (`advanceLiving`), and both come back where
+    // they were (`goTo`).
+    const potterAt = SHOP;
+    potter.close();
+    novice.close();
+    await toWarmSeason();
+    potter = await goTo(potter, potterAt);
+    novice = await goTo(novice, SHOP);
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
