@@ -85,10 +85,18 @@ describe('green bricks on a stack', () => {
     const clinker = brick(0.1);
     sound.setMaterial(fired('earthenware'));
     clinker.setMaterial(fired('clinker'));
+    // The shed's row says "green brick" (the stem a firing renames).
+    sound.setShortDescription('green brick');
+    clinker.setShortDescription('green brick');
     expect(sound.canMergeWith(clinker as unknown as Stuff)).toBe(false);
     // ⭐ …and each is named for its body, not "green" (run 37).
     expect(sound.getShortDescription()).toBe('earthenware brick');
     expect(clinker.getShortDescription()).toBe('clinker brick');
     expect(brick(0.52).getShortDescription()).not.toMatch(/earthenware|clinker/);
+    // A row that already names the fired thing keeps its name (the firebrick).
+    const fire = brick(0.1);
+    fire.setMaterial(fired('refractory fireclay'));
+    fire.setShortDescription('firebrick');
+    expect(fire.getShortDescription()).toBe('firebrick');
   });
 });

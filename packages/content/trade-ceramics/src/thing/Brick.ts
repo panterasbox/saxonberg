@@ -86,6 +86,9 @@ export default class Brick extends BrickBase {
     // `isGreen`, not `greenState`: a name is read on every look and must not
     // run the weather reconcile.
     if (this.isGreen()) return stem;
+    // Only a stem that SAYS green is renamed: "firebrick" is already the
+    // fired thing's name (run 39 read "a refractory fireclay brick").
+    if (!/^green\b/i.test(stem)) return stem;
     const name = this.getMaterial()?.getName() ?? '';
     if (!name) return stem.replace(/^green\s+/i, '');
     return `${name} brick`;
