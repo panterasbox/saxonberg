@@ -1179,6 +1179,90 @@ Read first, in this order:
 
 ---
 
+## Build record — waves and the decisions the build made
+
+*(written during `/build`, 2026-10-28; each line says what decided it)*
+
+**Waves.** W0 `736498927` · W1 `79bb513f2` · W2 `d3bb5cfa5` · W3
+`c5fefb76a` · W4 `4ac51e7ac` · W5 `02f10cab9` — W6 and W7 below. Field's
+grazing ledger (W4) landed inside W1's `Field.ts` commit; W0's commit
+carries the cane-sett deletion that is W2's.
+
+**Decisions beyond the plan:**
+
+- **B1 — the hand swath is 2 m², not 10; the cane knife's is 4 m², not
+  30.** Cane yields ~90× wheat per m², so 30 m² of cane is eight 30 kg
+  bundles a stroke (three froze every cutter in sugar drive 8), and a
+  10 m² hand swath out-cut the knife. Work per acre is still the tool's
+  number. *Lens: immersion (a stroke is a bundle).*
+- **B2 — what a harvester cannot carry is left lying in the row**
+  (`wouldExceedCeiling`), and the LAST swath makes up the remainder as one
+  short good, so nothing is lost to rounding.
+- **B3 — a sowing cast is 400 m² (a strip across the field), 3 s + 10 ms
+  per m²**, not 100 m²: a sack of seed wheat sows 1,667 m² in about four
+  casts rather than seventeen.
+- **B4 — the title gate is asked BEFORE the seedbed**, so a stranger is
+  told the ground is not theirs, never that it wants ploughing. ⚠ It reads
+  the field's identity by its EXPLICIT key only: a keyless host stashes a
+  scope-derived owner where the key goes, which resolves to no parcel —
+  the first live probe found a stranger allowed onto the university's
+  field that way.
+- **B5 — `ensureCropTitle` is a `Soil` @hook** (default: nothing to
+  settle) so the kernel's harvest and sow can await it; the field is the
+  only override. An ARRIVING crop takes only a LIVE operator (no house is
+  stood up by an arrival); the acts stand it up lazily.
+- **B6 — the crop drinks the field per square metre standing**
+  (1.2 L/m²/day, a full sward's figure): a row's `litresPerGameDay` is one
+  plant's.
+- **B7 — ploughing under adds `kg/area × 3` points of organic matter**
+  (a full sward ≈ one point), not `kg × 0.0003`, which was negligible.
+- **B8 — ⭐ a destructed controller's method is a silent no-op**, so
+  `grub`, `ditch`, `lime`, `plough`, `mow`, `flatten` and `crack` never
+  landed their effect in a live game (their begin prose played). The
+  completions are statics now; `lint:completion-this` 7 → 0. Found because
+  D5 needs `grub` to end a crop.
+- **B9 — cane's `fruitFillDays` 5 → 120.** The five days stood in for the
+  rotation round the piece; with area cutting the area IS the rotation,
+  and the fill is the ratoon regrowing once the last of the piece is down.
+- **B10 — a piece's crop is an `extends:` row per piece** (props carry no
+  data overrides). Pieces and the bench drop the crop's words from their
+  OWN keywords (`cane`, `wheat`, `corn`) — `harvest wheat` bound the field.
+- **B11 — the herd's fed history is a capped list of windows**
+  (`fraction, days, end`, 24 kept), not `{ fraction, stamp }`: a head's
+  condition replays the windows after its own last-known flesh
+  (`HeadOverlay.fleshAt`, written at return).
+- **B12 — the drafted head's feeding overrides `partitionFlesh`**, not
+  `integrateSlice` + `ingest`: the ingest path is litre-capped for a
+  person's stomach and re-enters the reconcile. The body takes the herd's
+  fed share × its tail on the same two legs the tally replays — one rule.
+- **B13 — `move` names the herd** (or the only one filed); it never walks
+  the room for a book (`lint:instrument-args`). The record carries
+  `bookPath`, written by the book, and `graze` tells that book where the
+  herd went — the book's `look` line.
+- **B14 — the rick is a pack class `Rick = StagedMixin(Vessel)`** so a
+  venue's rick row can declare its stacks; `hay-stack` is a 400 kg stack
+  drawn by weight. ⚠ Not `Crate` (Circulating would census and respawn
+  it), not `Stockpile` (its ledger would fight a mass draw), not `Chest`
+  (a lid).
+- **B15 — the fodderer waits in the meadow**, forks only into a trough it
+  stands beside (the dairy's rick and trough stand together at the head of
+  the pasture), and is the dairy lad's alone. The farm's and the goats'
+  ricks are seeded stacks; the unwatched month is the troughs'
+  `suppliedBy` (R2). Odell and Rejection's hand run no fodderer.
+- **B16 — new places:** the dairy pasture and hay meadow, the lower
+  meadow, and the campus BACK PADDOCK (a rotation needs two fields: the
+  drive moves the herd off the home field and back onto its stubble —
+  lens 1). The yard's stone trough stays the campus WATER (the farm
+  archetype's slot); the home field gets its own hay trough.
+- **B17 — every authored field is a `SingletonField`.** A plain `Field`
+  is a KIND: an exit or a pointer resolving it by path mints a stray
+  instance, and the bench's crop vanished that way on the first probe.
+  `lint:location-graph` destination-is-a-kind 2 → 0.
+- **B18 — the plough lives at the field's headland** (42 kg by its bill;
+  a fresh body cannot lift it), and the view's default binds a plough
+  within reach after one in hand. The drive's step 3 is "`plough` in the
+  home field". The farmstead drive had been matching the refusal.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

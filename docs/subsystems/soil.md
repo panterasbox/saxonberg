@@ -351,24 +351,36 @@ difference is whether the mouth was here, and that difference is where
 the nitrogen goes — so **fertility follows the mouths** is a sentence a
 player derives rather than a rule they are told.
 
-⚠ **The *crop* row has no producer yet** (verified 2026-09-19). `plant`/`sow`
-require a `CultivableMixin` target and `Field` composes none — its own
-header says *a field's crop is not four `Slottable`s in a bed* — and
-`Improvable.isPlantable` (D54, *newly plotted ground is not plantable*)
-has no caller. So a field today grows **sward** — hay and grazing — and
-arable crops grow in pots and beds. The row describes the nutrient flow an
-arable field WILL have (exported); the aggregate density that fills it is
-[farming-slate § The land model](../slates/builds/farming-slate.md)'s open
-item, not shipped behaviour.
+⭐ **The *crop* row has its producer** (cover build, 2026-10-28). A field
+holds ONE area crop — a single `Plant` loose in its contents with a sown
+area, rooted in the field's soil by containment (`Growing.getBed()`, see
+[husbandry.md](husbandry.md#ground-is-a-bed-by-containment-and-the-area-crop-cover-build-2026-10-28)).
+The crop's ground leaves the sward (`swardAreaM2 = area − crop`), and
+what stands drinks the soil per square metre. `plough` (once the clearing
+is done) turns the sward under — the grass into organic matter — and
+stamps a **seedbed good for a season**; `sow` asks the field
+(`sowingRefusal`) and the field answers from that stamp; a second plough
+that season, and a plough under a standing crop, are refused. `grub` ends
+a standing crop. A crop leaving (cut down, grubbed out) leaves
+**stubble**, which reads until the grass comes back over it. The crop is
+**titled to the business that works the field** (`ensureCropTitle`, a
+`Soil` hook the harvest awaits before it mints) — so whoever cuts it, the
+sheaf is the holder's; *the holder* is realized as the operator because a
+group cannot hold goods. `look` reads all of it in words.
 
-⚠ **The *graze* row has no mouth yet either** (verified 2026-09-19).
-`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()`
-over the field's occupants, and no class in the tree declares that method
-— `Livestock` included; `Sward.test.ts` overrides the field hook with a
-constant. So in play the sward is drawn down by `mow` alone,
-`cycleGrazedNitrogen` never runs, and *fertility follows the mouths* is
-true of the code and not yet of the game. The grazer is
-[ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
+⭐ **The *graze* row has its mouth** (cover build). The field keeps a
+**grazing ledger** by herd id (`setGrazer` / `clearGrazer` /
+`grazerLedger` / `foldGrazer`): each line's demand
+(`tally × Species.dryMatterIntakeKgPerDay()`, `0.1 × adultMass^0.75`), the
+feeder kinds it eats from, and what it was given against what it wanted
+since it came on. The sward's demand is the sum of the lines; what the
+grass does not give, **the troughs on the field give** — asked once per
+step of the integral (`swardShortfallFed`), drawn by mass, and a trough
+whose `suppliedBy` names a rick draws on the rick when it is empty. So
+*fertility follows the mouths* is true of the game now:
+`cycleGrazedNitrogen` runs on what the herd actually ate. A herd is put
+on a field by ranching's `move` ([ranching.md](ranching.md)); a herd on
+no field eats nothing.
 
 ⚠⚠ The key is **`sward`, not `forage`**. What a *person* gathers off
 rough ground is forage; the standing grass a *cow* eats is the sward.

@@ -807,3 +807,57 @@ existed behaves.
 ⚠ `settleCycle()` and the death branch release the latch. The seam was
 pre-authorised: `fruitFillDays`' own docstring named the set moment as
 the home for alternate bearing.
+
+## ⭐⭐ Ground is a bed by containment, and the area crop (cover build, 2026-10-28)
+
+**`getBed()` asks two questions.** The slot host when the plant sits in
+one (a pot, a garden bed — *a pot is a bed with one slot*), else **the
+soil-bearing ground it stands in, when that ground holds no slot** (a
+field). A field is not a vessel of soil with an N-slot, so it composes no
+`Cultivable`; it only has to be `Soil`. Before this a plant standing in a
+field read `null`, `satWater(null)` is 0, and every crop authored into a
+field quietly died of thirst. ⚠ A plant merely sitting in a pot's
+CONTENTS (moved in, not yet seated) is still not rooted: a cultivable
+ground roots through its slot. `rootRoom()` narrows on `isCultivable` —
+only a pot or a bed has a root ceiling.
+
+**The area crop is ONE plant with a sown area.** `GrowingMixin` carries
+`sownAreaM2` (0 = an individual plant, every shipped row unchanged), the
+ratoon `_cycleCount`, the area cut this cycle and the kilograms cut but
+not yet made up into a whole good. The profile carries two numbers and an
+optional third:
+
+| field | meaning |
+|---|---|
+| `seedRateKgPerM2` | the seed a broadcast sowing spends — and the marker: no rate, *planted one at a time* |
+| `yieldRatio` | the yield-to-seed ratio every agrarian history quotes (wheat 6, barley 7, cane 10) |
+| `yieldDeclinePerCycle` | the share a ratoon loses each cycle (cane 0.12); absent = 0 |
+
+The standing crop at ripeness is `area × rate × ratio × (1 − decline)^cycles`
+kilograms — no yield table; a third of the seed sown is a third of the
+yield. `takeSwath(m²)` cuts and reports `{ kg, areaCut, last }`;
+`settleRatoon()` closes a ratoon's cycle (the whole area stands again,
+one cycle older). The farmer's words come off the stage — *just
+emerging · tillering · in ear · ripening · ripe* — and the area off the
+fraction still standing, never a number. An area crop sets no seed when
+it flowers: its seed IS its harvest.
+
+**The tool owns the swath.** `ToolMixin.swathM2` is the ground one act
+with this tool works (a sickle 40, a scythe 60, a cane knife 4 — about one
+30 kg bundle of cane); bare hands read `husbandry.handSwathM2` (2). Work
+per acre is the tool's number and yield per acre the crop's, so a reaper
+is a row with a bigger number.
+
+**The verbs.** `harvest` on an area crop is an engaged act: one swath,
+goods minted by the crop row's own mass, the remainder carried on the
+plant, the last swath made up as one short good, nitrogen drawn in
+proportion, and what the harvester cannot carry left lying in the row. A
+monocarp ends at its last swath; a ratoon settles. `sow` with no pot
+named (or naming slotless ground) BROADCASTS: one cast covers
+`husbandry.sowHandM2` (400), spends seed at the rate, makes the crop or
+widens one of the same kind, and refuses a different one. The ground is
+asked twice through `Soil` hooks — `sowingRefusal()` (the seedbed is the
+ground's state) and `ensureCropTitle()` (whose the crop is; a field
+titles it to the business that works it, and the harvest awaits it before
+it mints). Who may sow is title: the parcel's holder, or a hand on shift
+for the field's operator. See [soil.md](soil.md) for the field half.

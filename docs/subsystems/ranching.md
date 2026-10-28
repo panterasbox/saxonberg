@@ -219,16 +219,44 @@ decorative. Two optimisation idioms on one reconcile engine — a player who
 learns both has learned two real things, not one thing twice. (Graduated
 from the ranching slate, 2026-09-19.)
 
-⚠ **The cascade has no INPUT yet** (verified 2026-09-19). Nothing grazes:
-`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()` over
-the field's occupants and **no class declares that method** — `Livestock`
-included. Nothing feeds a head: the platform `feed` verb requires a
-`CultivableMixin` target (compost into a bed), and `Livestock` composes no
-`BehavedMixin`, so the `feeds` / `eats` brains never run on it. The
-partition leg therefore runs on whatever satiation a drafted head carries,
-the winter-feed budget above cannot yet bite, and *"a herd eats whether or
-not it produces"* is not yet true of this game. The feed loop is
-[ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
+⭐⭐ **The cascade has its INPUT** (cover build, 2026-10-28). A herd
+stands on a field or eats nothing:
+
+- **`move <herd> to <field>`** (afforded at the herdbook and beside a
+  drafted head) puts the herd's line on a field near the keeper and on
+  its own home ground; the keeper is whoever holds that ground, or a hand
+  on shift for the field's operator. A herdbook may author where its herd
+  STARTS (`grazing:`), applied once; after that `move` is the truth, and
+  `look herdbook` says where they are.
+- **Intake is the body's size**: `Species.dryMatterIntakeKgPerDay()` =
+  `0.1 × adultMass^0.75` — a 550 kg cow about eleven kilograms of dry
+  matter, a ewe two, a hen a sixth of one. The herd's demand is the tally
+  times that, written into the field's ledger with the feeder kinds its
+  species eats from.
+- **The field feeds it** — the sward first, then any trough on the field
+  of a kind it eats from, then the rick behind a trough
+  ([soil.md](soil.md)). Each window closed (by `move`, by `draft`) is
+  folded into the record's **fed history**: the share it got, how long,
+  when it ended.
+- **Condition follows the feed on ONE rule.** A head drafted out replays
+  the fed windows since its own last-known flesh (`HeadOverlay.fleshAt`,
+  written at return; else the herd's founding), and a head standing on its
+  herd's field takes its flesh from the field's ledger as the slice runs
+  (`Livestock` overrides `partitionFlesh`). Both use the metabolism's own
+  two legs over the satiation a fed fraction is worth (fully fed: a small
+  surplus; half: maintenance; less: a shortfall), and both are clamped —
+  **a starving head thins, it does not die**. Milk follows, because
+  `productionFactor` reads `flesh`.
+- ⭐ **The tail is seeded**: a head's own share is the herd's times
+  `0.8 + 0.2 × (1 + frame)/2`, so on short rations the low-frame heads —
+  the same heads every time — thin first. `HeadSeed.frame` finally has a
+  reader.
+- **The unwatched month** is the rick: a trough whose `suppliedBy` names a
+  rick draws on it while nobody is playing (a clock jump runs no brain).
+  The staff's standing job — the `fodders` brain mows the hay meadow,
+  stacks the rick and forks an empty trough while the valley is loaded —
+  is what fills the rick; the draw-through is that job abstracted over the
+  interval no brain can act in, and a rick nobody stacked feeds nothing.
 
 ---
 
