@@ -1660,7 +1660,8 @@ left a fork the lens that chose is named.
   unboiled water was safe to drink). ⚠ Not covered and noted: a mould's
   set DRAININGS (whey off the curd, `Mould.creditDrainings`) are minted with
   a fresh payload by design — whether separated whey should inherit the
-  curd's microbial load is open.
+  curd's microbial load is open. *(Resolved: re-plan R1-D8, W-R1e — it
+  does.)*
 
 - **B82 — review: Forming is the kernel's, for any plastic mass
   (2026-10-28).** The pack-lib `FormingMixin` had no `_mixinName`, duck-typed
@@ -1678,6 +1679,8 @@ left a fork the lens that chose is named.
   product through a recipe build — the R1 naming question.
 
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
+
+✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
 
 The review found *several inputs become one product* shipped TWICE (the
 recipe build in `K/lib/craft/ManualBuild.ts` → `mintFromBuildImpl`
@@ -2128,6 +2131,11 @@ shipped `Mould` and `WaterFilter` tests green. `mould.md` + `bulk.md` (the
 two `through`s). Gates: `lint:unconsumed-seams`, `lint:pathogens`;
 `test:near` + dairying/sugar vitest. Commit: `fix(mould): drainings are a
 transfer through the set — the population goes with the whey`.
+
+✅ **W-R1e done (2026-10-28).** `through: 'set'` (whitelist `throughSet`); the
+drainings are two transfers (below, the overflow to no sink), `poolKg` adds
+`setDrainedKg` back. Plan fixes: no curd authored `drains:` — both now drain
+`whey` (lens 1); solids and holder grade/mark stay the solid's.
 
 Order: a → b → c → d → e (the representation lands before any matching
 change; e is independent and may land any time after a).

@@ -340,12 +340,14 @@ export class BulkableLogic extends ApiLogic {
       notes.push({ kind: 'empty-result', field: BULK_FIELD, query: '' });
       return { applied: 0, status: 'declined', notes };
     }
-    // ⭐ Through pores (a filter): what ARRIVES may be a different material
-    // — the wall's `filteredTo` — and only what is dissolved comes with it.
+    // ⭐ Through pores (a filter) or out of a set (a mould's drainings): what
+    // ARRIVES may be a different material — the wall's `filteredTo`, the
+    // curd's whey — and only part of the source's payload comes with it.
     // Everything below reads the arriving material; the source's own is
     // `drawnMaterial` (its dissolved-solids default).
     const pores = via?.through === 'pores';
-    const material: Material = (pores ? via?.arrivesAs : null) ?? drawnMaterial;
+    const set = via?.through === 'set';
+    const material: Material = via?.arrivesAs ?? drawnMaterial;
     const arrivingPath = material.getTemplatePath() ?? from.getMaterialPath();
 
     // 2. Material compatibility on the destination. Before declining a
@@ -357,7 +359,10 @@ export class BulkableLogic extends ApiLogic {
     if (to !== null && !to.isEmpty()) {
       const toPath = to.getMaterialPath();
       if (toPath !== null && toPath !== arrivingPath) {
-        const inoculated = tryInoculate(from, to, amount, notes);
+        // A seep or a drain arrives as something else (`via`) and is never a
+        // pitch: inoculation classifies the SOURCE's material, which is not
+        // what lands.
+        const inoculated = via === undefined ? tryInoculate(from, to, amount, notes) : null;
         if (inoculated !== null) return inoculated;
         notes.push({
           kind: 'target-declined',
@@ -496,7 +501,9 @@ export class BulkableLogic extends ApiLogic {
     // for the same reason: tipping brine into fresh stock partly cures
     // the stock, and tipping fresh stock into brine dilutes it. Reading
     // both BEFORE the debit matters — a full drain clears the payload.
-    const fromCure = new WaterActivity(from).state();
+    // Out of a set the drainings' water state is their own material's: the
+    // set is what changed the solid's.
+    const fromCure = set ? null : new WaterActivity(from).state();
     const toCureBefore = to !== null ? new WaterActivity(to).state() : null;
     // ⚠⚠ And the silent population, by the same mass-weighted rule. A
     // pathogen that did not blend on the pour would make decanting a
@@ -528,7 +535,11 @@ export class BulkableLogic extends ApiLogic {
     // whose interior is homogeneous; a fractionating host answers with the
     // span it is actually about to give up.
     const drawnPayload = from.payloadForDraw(applied);
-    const fromPayload = pores ? throughPores(drawnPayload) : drawnPayload;
+    const fromPayload = pores
+      ? throughPores(drawnPayload)
+      : set
+        ? throughSet(drawnPayload)
+        : drawnPayload;
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -543,8 +554,10 @@ export class BulkableLogic extends ApiLogic {
         // maker's mark when both sides can hold one. Same rule as the
         // payload: identity rides into an EMPTY destination only; a
         // top-up keeps the destination's own identity (blend identity
-        // is out of scope, like blend merging above).
-        carryBatchIdentity(fromHolder, toHolder);
+        // is out of scope, like blend merging above). ⚠ Not out of a set:
+        // the batch is the solid, and the drainings are not it (the mould
+        // grades them itself).
+        if (!set) carryBatchIdentity(fromHolder, toHolder);
       }
       // ⭐⭐ Bring the destination CURRENT before the matter lands. Setting
       // a vessel's temperature first reconciles it up to now at the heat it
@@ -660,7 +673,7 @@ export class BulkableLogic extends ApiLogic {
       // good cask would LAUNDER it: the grade is the destination's and the
       // matter is the mixture. The maker's mark is untouched either way —
       // a top-up never re-signs somebody else's work.
-      if (!toWasEmpty) carryTopUpGrade(fromHolder, toHolder);
+      if (!toWasEmpty && !set) carryTopUpGrade(fromHolder, toHolder);
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -699,8 +712,12 @@ export class BulkableLogic extends ApiLogic {
       // ⭐ A lye's strength is this same fold (potash-on-sugar): lye
       // authors its `solidsKgPerL`, and a pail of weak lye tipped into a
       // pot of strong thins it exactly as thin juice thins a thick pan.
+      // Out of a set the strength is the drainings' own: the set took the
+      // solids (a sugar loaf IS the sugar), so the strike's figure would
+      // be a lie on the molasses.
       const fromSolids =
-        fromPayload?.dissolvedSolidsKgPerL ?? drawnMaterial.getSolidsKgPerL();
+        fromPayload?.dissolvedSolidsKgPerL ??
+        (set ? material : drawnMaterial).getSolidsKgPerL();
       if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
         const held = to.getPayload();
         const heldMat = to.getMaterial() ?? material;
@@ -898,6 +915,31 @@ function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
 function throughPores(payload: BulkPayload | null): BulkPayload | null {
   if (payload === null) return null;
   const { freshness: _f, pathogens: _p, blood: _b, faceCheckedS: _c, ...passed } = payload;
+  return Object.keys(passed).length > 0 ? passed : null;
+}
+
+/**
+ * ⭐ What leaves a setting solid with its drainings (a mould's set): the
+ * suspended population and the dissolved, and whose it is and who made it
+ * — never the solid's identity (recipe, makeup, appearance, keywords,
+ * age), its treatment or its thermal and water bookkeeping. A whitelist, so
+ * a field a later subsystem declares is the solid's until it says it is
+ * the liquid's.
+ */
+function throughSet(payload: BulkPayload | null): BulkPayload | null {
+  if (payload === null) return null;
+  const passed: BulkPayload = {};
+  if (payload.freshness) passed.freshness = { ...payload.freshness };
+  if (payload.pathogens) passed.pathogens = { ...payload.pathogens };
+  if (payload.pathogenStamp !== undefined) passed.pathogenStamp = payload.pathogenStamp;
+  if (payload.dissolvedToxins) passed.dissolvedToxins = payload.dissolvedToxins.map((t) => ({ ...t }));
+  if (payload.formedToxins) passed.formedToxins = payload.formedToxins.map((t) => ({ ...t }));
+  if (payload.dissolvedAromatics) {
+    passed.dissolvedAromatics = payload.dissolvedAromatics.map((t) => ({ ...t }));
+  }
+  if (payload.hardnessDgh !== undefined) passed.hardnessDgh = payload.hardnessDgh;
+  if (payload.maker) passed.maker = payload.maker;
+  if ('contentsOwner' in payload) passed.contentsOwner = payload.contentsOwner;
   return Object.keys(passed).length > 0 ? passed : null;
 }
 

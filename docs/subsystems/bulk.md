@@ -411,6 +411,21 @@ pathogens, blood), and the liquid may arrive as the wall's
 `Material.filteredTo` (fouled river water comes through as water). The
 mismatch check and the closure read the ARRIVING material.
 
+`{ through: 'set', arrivesAs }` is its inverse — what a filter holds back, a
+set lets through — and is how a mould's drainings leave a setting solid
+(whey off a curd, molasses out of a sugar cone; [mould.md](./mould.md)).
+The **suspended** passes (the microbial load and the pathogens at the pool's
+concentration: a crock of whey is a living starter because it carries the
+culture, and a spoiled curd's whey cannot come out clean); the **dissolved**
+passes (toxins, formed toxins, aromas, hardness); whose it is and who made
+it pass (harm from the whey names the cheesemaker). The pool's **identity**
+does not — recipe, makeup, appearance, keywords, age, treatment, thermal
+bookkeeping, and the batch grade and mark of the holder — and neither do its
+water state or its dissolved-solids strength, which the set is what changed
+(a sugar loaf IS the sugar): the drainings arrive as `arrivesAs`, whole, at
+that material's own. The payload is a whitelist (`throughSet`), so a field a
+later subsystem declares stays with the solid until it says otherwise.
+
 `amount` is a `TransferAmount`: `{ kind: 'all' }` (the whole source,
 clamped to the destination's room — `drink` / `spill` / default `pour`)
 or `{ kind: 'measure'; litres; mode }` (a specific volume — `fill`-to-

@@ -314,13 +314,24 @@ gains `drains` (what the drained matter IS, e.g. molasses off a sugar
 loaf) and `drainPerBand` (an extra share per grade band below `fine`: a
 poor strike gives up more and keeps less). When the mould stands ON a
 vessel that can take them (`drainsInto()`: the placement host, Bulkable,
-with an interior), the drainings are credited to it **as the set
-progresses**. Each step credits `total × progress`, tracked in
-`setDrainedKg`, and the remainder lands at the set. The cast's mass is
-what is left. The drainings get a **fresh payload**, not the pool's,
-so they cannot carry the pool's treatment, and a grade one band below
-the mould's. A sugar cone on its curing pot is the first consumer; a
-mould on a board keeps today's behaviour (the whey runs away).
+with an interior), the drainings run into it **as the set progresses**:
+each step drains `total × progress`, tracked in `setDrainedKg`, and the
+remainder goes at the set.
+
+⭐ **The drainings are a transfer through the set** (re-plan R1-D8):
+`BulkableApi.transfer(pool, below, …, { through: 'set', arrivesAs })`, the
+one move ([bulk.md](./bulk.md) § `TransferVia`). The population and the
+dissolved go with the liquid, the maker goes with it, the solid's identity
+does not, and the drainings are their own material at its own strength. The
+grade is one band below the mould's, never above what the vessel below
+already held. What that vessel has no room for — or all of it, when nothing
+is beneath or the vessel holds a different liquor — runs away (a transfer to
+no sink). ⚠ The pool is therefore DEBITED as it sets: the set reads the
+charge it started from as what is in it plus `setDrainedKg` at the
+drainings' density, and the cast's mass is that charge less what drained.
+Consumers: a sugar cone on its curing pot (molasses), and a cheese hoop
+standing on a vessel (both curds author `drains: whey`); a mould on a board
+lets its drainings run away.
 
 ## ⭐ Percolation — a liquid through a porous solid (sugar, 2026-10)
 

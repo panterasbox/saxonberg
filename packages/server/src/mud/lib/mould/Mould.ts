@@ -54,6 +54,7 @@ import { Mixins } from '../mixin';
 import type { AnyConstructor } from '../../api/mixin';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
@@ -365,7 +366,10 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public pourSuperheatK = 0;
     /** A hot pour flashed this damp mould's water to steam. */
     public blown = false;
-    /** Kilograms of drainings credited to the vessel below so far (sugar D16). */
+    /**
+     * Kilograms of drainings the set has driven out of the pool so far —
+     * into the vessel below, or away (sugar D16; R1-D8).
+     */
     public setDrainedKg = 0;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
@@ -600,7 +604,11 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const elapsed = nowS - this.setStamp;
         this.setStamp = nowS;
         if (!(elapsed > 0)) return;
-        const poolKg = (amountL / 1000) * material.getDensity().rawValue();
+        // ⭐ The charge the set started from: what is in the mould plus what
+        // its drainings have already taken out of it (they leave by
+        // transfer, R1-D8, so the pool shrinks as it sets).
+        const poolKg =
+          ((amountL + this.drainedLitres(drain)) / 1000) * material.getDensity().rawValue();
 
         if (drain === null && cure !== null) {
           // ⭐ The cure: a chemical set, no act and no load.
@@ -958,37 +966,58 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * Credit the vessel below up to `totalKg` of drainings. ⭐ A fresh
-     * payload — the drainings are a different matter, and carrying the
-     * pool's would hand them its treatment — and a grade one band below
-     * the pool's (the mould's).
+     * ⭐ Drain the pool down to `totalKg` of drainings given up — a
+     * TRANSFER through the set (R1-D8), the one move: the population and
+     * the dissolved go with the liquid, the solid's identity does not, the
+     * maker does. They run into the vessel the mould stands on when it can
+     * take them (`drainsInto()`; a vessel holding a different liquor takes
+     * none), a grade one band below the pool's — never above what that
+     * vessel already held — and what it has no room for runs away.
      */
     private creditDrainings(drain: DrainSetting, totalKg: number): void {
       const deltaKg = totalKg - this.setDrainedKg;
       if (!drain.drains || !(deltaKg > 0)) return;
-      const into = this.drainsInto();
       const what = StuffApi.findByTemplatePath<Material>(drain.drains);
-      if (into === null || !what) return;
-      const held = into.getBulkMaterial('interior');
-      if (held !== null && held.getTemplatePath() !== what.getTemplatePath()) return;
+      if (!what) return;
       const density = what.getDensity().rawValue();
       if (!(density > 0)) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self)) return;
+      const pool = self.getBulk('interior');
+      let into = this.drainsInto();
+      const held = into?.getBulkMaterial('interior') ?? null;
+      if (held !== null && held.getTemplatePath() !== what.getTemplatePath()) into = null;
       const litres = (deltaKg / density) * 1000;
-      const had = into.getBulkAmount('interior').rawValue();
-      const cap = (into as unknown as { getInteriorCapacity(): Quantity<'L'> | null })
-        .getInteriorCapacity();
-      const room = (cap?.rawValue() ?? Infinity) - had;
-      if (!(room > 0)) return;
-      if (held === null) {
-        into.setBulkMaterial('interior', what);
-        into.setBulkPayload('interior', null);
-        const self = this as unknown as Stuff;
-        if (MixinApi.isGraded(self) && MixinApi.isGraded(into)) {
-          into.setGrade(Grade.fromOrdinal(self.getGrade().getOrdinal() - 1));
-        }
+      const via = { through: 'set', arrivesAs: what } as const;
+      const caught =
+        into === null
+          ? 0
+          : BulkableApi.transfer(pool, into.getBulk('interior'), {
+              kind: 'measure',
+              litres,
+              mode: 'lenient',
+            }, via).applied;
+      const ranAway =
+        litres - caught > 1e-12
+          ? BulkableApi.transfer(pool, null, {
+              kind: 'measure',
+              litres: litres - caught,
+              mode: 'lenient',
+            }, via).applied
+          : 0;
+      if (into !== null && caught > 0 && MixinApi.isGraded(self) && MixinApi.isGraded(into)) {
+        const band = Grade.fromOrdinal(self.getGrade().getOrdinal() - 1);
+        into.setGrade(held === null ? band : into.getGrade().min(band));
       }
-      into.setBulkAmount('interior', Quantity.of(had + Math.min(litres, room), 'L'));
-      this.setDrainedKg = totalKg;
+      this.setDrainedKg += ((caught + ranAway) / 1000) * density;
+    }
+
+    /** Litres the drainings have taken out of the pool so far (R1-D8). */
+    private drainedLitres(drain: DrainSetting | null): number {
+      if (!drain?.drains || !(this.setDrainedKg > 0)) return 0;
+      const what = StuffApi.findByTemplatePath<Material>(drain.drains);
+      const density = what?.getDensity().rawValue() ?? 0;
+      return density > 0 ? (this.setDrainedKg / density) * 1000 : 0;
     }
 
     public async castInto(pool: SetPool): Promise<Stuff | null> {
