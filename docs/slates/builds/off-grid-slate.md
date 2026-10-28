@@ -192,6 +192,27 @@ idea of 'screens' in fiction, so there's more to design out there"*
 phone call, so: does it need the modern carrier? The hardest case of authors against capital; its
 own pass.
 
+### ⏸ Deferred until players ask **[DECIDED — the owner, 2026-10-28]**
+
+*"If it's an extra cost I'd probably wait on doing any of this until people actually ask for it.
+Because if they use Discord anyway, who cares about it."* — the *wait for players to design it*
+doctrine applied to infrastructure: an SFU, TURN relays and a moderation problem with no demand yet.
+*"Whatever works is fine"* on the details. The starting shape, so nobody re-derives it:
+
+- **Voice rides the two transports that exist** — room voice is acoustic (people in the room hear
+  you), calls are aether (party, friends, groups); off grid, coverage and carriers apply as for text.
+- **What a carrier carries** is its honest epoch property — the needle letters, the aether-radio
+  voice, the cell phone video, the implant everything.
+- ⭐ **A place governs what is spoken aloud in it, never the aether** — an author may set room voice
+  off (quiet hours, the library); calls stay on the comms floor.
+- **Voice reveals the player** past disguise and belief — room voice is a group's choice, never the
+  default with strangers.
+- **Video is calls only**, on a held screen; projecting a call onto a room's display needs the remote
+  caller's consent.
+- **Safety** — friends-only by default; record-on-report kept locally (PlayStation 5, Riot), to meta
+  moderation only; minors; captions.
+- **An open-source media server** (LiveKit, Apache-2.0) so any realm can run its own.
+
 ## 10. The lens pass
 
 1. **Pedagogy** — coverage as infrastructure: why signal follows people.
@@ -212,5 +233,5 @@ own pass.
 2. **Logging in off grid.**
 3. **Isolation as geography, never sanction** — confirm.
 4. **Which rights are secured by the platform** ahead of the convention.
-5. **Voice, video and screens.**
+5. **Voice, video and screens** — deferred until players ask (§ 9).
 6. **What the wilds' field is** — weak (slow and short) or absent (phones dead).
