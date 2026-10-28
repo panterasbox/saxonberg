@@ -16,7 +16,9 @@
 > · the kit per epoch · the responders and who pays, per density · magic as its own permission
 > (the grid, two stamps) · the derived magic limits · the party (everyone's kit, the rule of four,
 > the camp watch) · carrying a person · the trip plan and the overdue search · the lodge archetype
-> · corpse retrieval and custody · players and NPCs in the seats · the coroner
+> · corpse retrieval and custody · the seat specified by its NPC (witness for conduct, wall for
+> kit, the policy check at the act) · a player answerable for every NPC (the defendant, the cure
+> order, compensation) · scope of practice · the coroner
 > **Size:** a build
 
 Sibling: [off-grid-slate](./off-grid-slate.md) — the aether, the carriers, and what going off grid
@@ -233,16 +235,123 @@ betting, and the bestiary's readout lets them price the bet.
 - ⚠ **No trip plan or overdue trigger** — `route` makes the plan; nothing leaves it with anyone.
 - **The NPC field medic for hire** needs the medic brain medic-judgment lists as unbuilt.
 
-## 9. Not yet discussed
+## 9. ⭐⭐⭐ Players and NPCs in the seats
 
-1. **Players and NPCs in the seats** — both, approached differently (§ 0).
-2. **The coroner** — custody of a body, the death investigation, the bridge between the two
+### The NPC specifies the seat **[DECIDED — the owner]**
+
+*"I basically want to completely design the NPC, and then the player is going to be performing some
+kind of variant of that experience. It's a little weird, because the NPC experience is usually a
+subset of the player's, because a player has more agency — but in this regard I think we want the
+opposite to be true, because we're dealing with governance. At least the law enforcement stuff.
+The medical services one I don't feel as strongly about."*
+
+The policing slate makes policy **executable** — the brain reads the commissioner's dials at the
+act — so the NPC officer is the policy embodied, and the seat has a complete definition:
+
+- **A player's authority is never more than the NPC's** — the seat grants only what policy grants
+  the brain.
+- **A player's conduct may differ** — judgment where the brain applies a dial mechanically,
+  measured against the same dial. That is the player's agency.
+- ⚠ **A seat confers authority, never verbs** (verb conferral is retired). Anyone may `restrain`;
+  a citizen's arrest is real. The seat adds **standing** — the ledger reads the same act as
+  authorized force or as assault by who did it, under what policy, on duty or not (the
+  intervention slate's *terms that authorize force to stop force*). A citizen who tries what only
+  an officer may do is told who may.
+
+### Witness for conduct, wall for kit **[DECIDED — the owner; lens 1 chose]**
+
+- **A player officer who goes past policy is not refused; the act is recorded.** The policing
+  slate's lesson is *legal but against policy* — fired, not charged — and its loop runs on *the
+  gap between written policy and actual practice.* NPCs cannot produce that gap; only players can.
+- **The kit is a wall.** The armory issues the department's sidearm only on duty, and it comes
+  back at the end of the shift — an object refused at a boundary. *No firearms, except a
+  warrant-holder on duty* is a license in the law, applied uniformly, not an exception.
+
+### ⭐⭐ The policy check at the act **[LEAN]**
+
+Every dial is a predicate on the record, for any officer: **was the stop above the threshold** (the
+threshold is about **belief**, and the engine knows what the officer's *character* believed) · was
+force within the ceiling · was there authority to search · was aid rendered.
+
+⭐ Belief is in-fiction knowledge, so **an officer who stops someone on what they read on Discord
+has no belief to justify it**, and the record shows an off-policy stop — an honest answer to *one
+line is every line* ([off-grid-slate](./off-grid-slate.md) § 3), at least for officers. The dials
+are the counterfactual; nothing simulates what an NPC would have done.
+
+### NPC corruption is authored, never emergent **[DECIDED — the owner]**
+
+An NPC follows policy exactly. The policing slate's *constable on the take* is a cast NPC with a
+second master, written and named. An NPC never deviates by accident.
+
+### ⭐⭐⭐ A player answers for every NPC **[DECIDED — the owner]**
+
+*"There's always a player accountable for everything that happens in the game. If an NPC uses
+excessive force, the committee that maintains the parcel the NPC comes from is the defendant. They
+may have acted within the poetic license given to all authors by the Compact, or they may have been
+violating baseline player rights also guaranteed by the Compact. That would need to be adjudicated
+in Compact courts, and if the NPC was out of bounds it may compel code changes, as well as maybe
+even something recompensatory by the defendant."*
+
+- **The defendant is found by where the NPC comes from, not where it acted** — title is who
+  maintains the code, not who owns the land in the fiction; chattel's parcel rung keys on the
+  template path the same way.
+- **Two outcomes:** within **poetic license** (a harsh town, a brutal watch — consented to on entry
+  under posted law), or over the **rights floor**. ⚠ The line between them is the rights list, and
+  Art. IX is open ([off-grid-slate](./off-grid-slate.md) § 8) — one more reason it cannot wait for
+  the convention.
+- **Both faces of Art. VI judge it** — **verification** (*"that an implementation meets the
+  requirement it claims; code review"*: did the code do what the posted policy says?) and
+  **spirit** (was it fair?).
+- **The remedy** — code changes are Art. VI § 7's **cure order** with a remediation window, as
+  drafted. ⚠ **Compensation is new**: Art. VI has no damages. It would be paid from the defendant
+  committee's account through the ledger's one payment path.
+
+#### Sometimes there are two defendants **[LEAN]**
+
+Policy is read where the NPC stands, so a brain can follow its code while following *another*
+committee's policy:
+
+| what went wrong | defendant |
+|---|---|
+| the brain broke the policy (a bug, a bad brain) | the committee holding title over the brain's code |
+| the brain followed a policy that breaks the rights floor | the committee whose extent the policy covers |
+| a kernel brain misbehaved | ⭐ the executive — the platform has maintainers too |
+
+#### The record an NPC act needs **[LEAN]**
+
+The **policy version** in force (already designed) · ⭐ **the code version** the brain ran at —
+verification needs to know which code acted · **the NPC's belief** at the act, against the dials.
+
+#### Two tracks, kept apart **[LEAN]**
+
+- **In the fiction** — the department, the policy, discipline, the local courts.
+- **Outside the fiction** — the Compact court, the authors, cure orders, compensation. The prison
+  slate's guardrail the other way round: real responsibility never gets a costume, and never gets
+  lost inside one.
+
+### The practical differences **[LEAN]**
+
+| | NPC officer | player officer |
+|---|---|---|
+| availability | always on shift | clocks on and off; an NPC covers a beat no player holds (the call slate's `rota`) |
+| logging off mid-arrest | — | custody passes to an NPC, never dropped |
+| judgment | the dials, mechanically | their own, measured against the dials |
+| a breach | the policy's, and the code's maintainers' | theirs, and on the department's record |
+| the kit | from the armory | from the armory, only on duty |
+| the seat | appointed | appointed by the commissioner; the Discipline as a requirement is a committee dial |
+
+### Medicine, more lightly **[LEAN]**
+
+The usual direction fits: medic-judgment grades the *decision*, so the player is the superset and
+an NPC medic is the floor. Where medicine acts on a person without asking — **implied consent** for
+the unconscious, **restraining** the delirious, **quarantine**, ⭐ **mandatory reporting** (a stab
+wound reported to the watch, a second bridge between the services) — it is **scope of practice**,
+the police pattern with a few dials.
+
+## 9a. Not yet discussed
+
+1. **The coroner** — custody of a body, the death investigation, the bridge between the two
    services.
-3. **Licensed equipment** — the off-grid conversation's lean: law enforcement's more modern kit is
-   a **license**, not an exception (*no firearms, except a warrant-holder on duty*): held by the
-   seat, active only clocked on, the weapon checked out of the department's armory and back, every
-   draw on the ledger. The same for players and NPCs: an NPC follows the policy exactly, a player
-   answers to the record, the seat and the courts. **[LEAN]**
 
 ## 10. The lens pass
 
@@ -256,12 +365,14 @@ betting, and the bestiary's readout lets them price the bet.
 5. **Continuity** — one summons in every skin, from the bell to the implant.
 6. **Economy** — kit against loot; who pays shifts with density; retrieval paid by the dead.
 7. **Governance** — the license follows the seat; the magic permission is a vote; surveillance
-   follows the line.
+   follows the line; ⭐ a player answers for every NPC, the kernel's included.
 
 ## 11. Open
 
 1. **The suburb's care** — thin by design, or the first volunteer squad.
-2. **The players and NPCs in the seats.**
-3. **The coroner.**
-4. **The litter** — what carrying a person takes.
-5. **The trip plan's shape** — a book at the lodge, or anything a `route` plan is left with.
+2. **The coroner.**
+3. **The litter** — what carrying a person takes.
+4. **The trip plan's shape** — a book at the lodge, or anything a `route` plan is left with.
+5. **Suing as an exploit** — provoking an NPC into excessive force to sue its authors: is the
+   courts slate's cost of filing enough, or is the provocation an offense of its own?
+6. **Compensation** — whether the Compact court awards damages, and the scale.
