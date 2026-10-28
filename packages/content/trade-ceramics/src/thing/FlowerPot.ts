@@ -11,9 +11,26 @@ import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActi
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+
+/**
+ * ⭐ A potter's own pot says how it came out and whose it is — the
+ * `GradedReceptacle` mark rule: an import with no maker says nothing. The
+ * pot composed `Crafted` and nothing rendered it, so the consigned pot a
+ * buyer took home off the stall read no maker at all (drive C, run 39).
+ */
+const verdictAugmenter: MarkupAugmenter = (text: string, host: Stuff): string => {
+  if (!MixinApi.isCrafted(host) || host.getMaker() === '') return text;
+  const verdict = host.renderVerdict();
+  return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
+};
 
 const FlowerPotBase = GreenwareMixin(
   WaterActivityMixin(ThermalMixin(DurableMixin(CraftedMixin(PlantPot)))),
 );
 
-export default class FlowerPot extends FlowerPotBase {}
+export default class FlowerPot extends FlowerPotBase {
+  static markupAugmenters: MarkupAugmenter[] = [verdictAugmenter];
+}

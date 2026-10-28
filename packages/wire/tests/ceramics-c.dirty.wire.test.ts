@@ -1044,8 +1044,6 @@ suite('⭐ 25 — the stall', () => {
     // ⚠ Not `stall:i`: a consigned piece is a line on the stall's stock, not
     // a thing in it, and the read listed nothing (run 37). What the buyer
     // gets is the record — the potter's own pot, by its maker.
-    // Named: three stalls stand in the square, and a bare `stall` asks which.
-    await say(potter, `look "potter's stall"`);
     novice = await goTo(novice, SQUARE);
     const bought = await say(novice, 'buy "plant pot"');
     expect(bought).toMatch(/you buy/i);
