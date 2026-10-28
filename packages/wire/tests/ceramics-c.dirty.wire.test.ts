@@ -834,7 +834,14 @@ suite('⭐ 23 — breakage and mending', () => {
     const ruined = (r: Row): boolean => /burst|slumped/i.test(String(r.longDescription ?? ''));
     const allBowls = [...(await rows(potter, 'here:i:bowl')), ...(await rows(potter, 'me:i:bowl'))]
       .filter((r) => r.stuffId && by(r, potter) && !ruined(r));
-    const bowls = [...allBowls.filter(sound), ...allBowls.filter((r) => !sound(r))].map((r) => r.stuffId!);
+    // The THIN one goes on the stone — a thick wall stands the drop (run 40
+    // dropped a sound but not thin bowl, and it held).
+    const thin = (r: Row): boolean => /wall thin/i.test(String(r.longDescription ?? ''));
+    const bowls = [
+      ...allBowls.filter((r) => sound(r) && thin(r)),
+      ...allBowls.filter((r) => thin(r) && !sound(r)),
+      ...allBowls.filter((r) => !thin(r)),
+    ].map((r) => r.stuffId!);
     expect(bowls.length, 'a bowl of the potter\'s').toBeGreaterThanOrEqual(1);
     // The earth floor's bowl may be anyone's: when 17–20 left only one of the
     // potter's (run 38), a bought one is handed (setup — the act is the
