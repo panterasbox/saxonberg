@@ -263,8 +263,24 @@ export class MaterialLogic extends ApiLogic {
   public blendToxicity(
     payload: BulkPayload | null,
     blend: Material | null,
+    hostKg: number,
   ): readonly ToxinTag[] {
-    return BlendLabel.toxicityOf(payload, blend);
+    return BlendLabel.toxicityOf(payload, blend, hostKg);
+  }
+
+  // ---------- the serving (ceramics re-plan R1-D1) ----------
+
+  /** See {@link MaterialApi.servingKgOf}. */
+  @CallSecurity(MaterialApiCallers)
+  public servingKgOf(material: Material): number {
+    return servingKg(material);
+  }
+
+  /** See {@link MaterialApi.servingsOf}. */
+  @CallSecurity(MaterialApiCallers)
+  public servingsOf(material: Material, kg: number): number {
+    if (!Number.isFinite(kg) || kg <= 0) return 0;
+    return kg / servingKg(material);
   }
 }
 
@@ -286,6 +302,18 @@ function clamp01(n: number): number {
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * clamp01(t);
+}
+
+/** One serving of `material`, kg — the authored row, else the dial at its density. */
+function servingKg(material: Material): number {
+  const authored = material.getServingKg();
+  if (authored > 0) return authored;
+  const litres = dial(AppSettingKeys.nutritionServingLitres, 0.25);
+  const kg = (litres * material.getDensity().rawValue()) / 1000;
+  // ⚠ A material with no density (an Idea-only row, a test stub) still
+  // has a serving: a quarter litre of water's worth. Zero would make
+  // every part of it infinitely many servings.
+  return kg > 0 ? kg : litres;
 }
 
 /** Numeric AppSetting read, falling back to the seeded literal. */

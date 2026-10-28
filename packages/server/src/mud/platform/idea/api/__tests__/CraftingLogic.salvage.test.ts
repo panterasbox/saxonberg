@@ -205,7 +205,7 @@ describe('CraftingLogic.salvage', () => {
     const piece = makeStuff(() => new GlassPiece());
     piece.setMaterial(mat(GLASS));
     piece.setMass(Quantity.of(0.6, 'kg'));
-    piece.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+    piece.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
     ContainmentApi.move(piece, room);
 
     const outcome = await salvageAs(piece);

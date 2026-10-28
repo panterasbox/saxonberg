@@ -545,12 +545,6 @@ export const Mixins = {
   // recipe (there is no residue COUNT — the split is continuous) and
   // isn't a tool capability (it is what the instrument DOES with one).
   Comminuting: 'ComminutingMixin',
-  // ⭐ What a discrete food is MADE OF — the same `BlendPart[]` a blend
-  // carries on its payload, so a chain that ends in something you hold
-  // does not lose what a chain ending in something you pour keeps. Isn't
-  // a recipe (that is `Crafted.recipe`) and isn't nutrition (that is read
-  // off these parts); it is the ingredient list itself.
-  Composed: 'ComposedMixin',
   // ⭐ The DONENESS gauge — how much cooking a food has had, integrated
   // over time and temperature. Not the spoilage gauge and not re-based on
   // it: the kill's Arrhenius and browning's decade interval are different
@@ -574,6 +568,10 @@ export const Mixins = {
   // dissolved in a piece (true of a glass or ice lump, which is why the
   // generic Casting composes it alone); TEMPER is what a heat treatment
   // left (true of metal only). Alloyed is the two together.
+  // ⭐ One record since ceramics re-plan R1: `makeup`, by mass fraction,
+  // is ALSO what a discrete food is made of (it absorbed `Composed`), so
+  // Provision composes it — a loaf's bran and a bar's carbon are the same
+  // record read the same way.
   Composition: 'CompositionMixin',
   Tempered: 'TemperedMixin',
   // ⭐ STORAGE (storage-and-ice D1): a holder whose contents are a LEDGER

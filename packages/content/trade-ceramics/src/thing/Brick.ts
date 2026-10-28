@@ -105,7 +105,7 @@ export default class Brick extends BrickBase {
     const cut = splitoff as unknown as Partial<Brick>;
     const material = this.getMaterial();
     if (material && typeof cut.setMaterial === 'function') cut.setMaterial(material);
-    if (typeof cut.setAlloying === 'function') cut.setAlloying(this.getAlloying());
+    if (typeof cut.setMakeup === 'function') cut.setMakeup(this.getMakeup());
     if (typeof cut.setWaterState === 'function') cut.setWaterState(this.getWaterState());
     if (MixinApi.isThermal(splitoff)) {
       const k = this.getTemperature().rawValue();

@@ -21,7 +21,7 @@ import { WaterActivityMixin } from '../../lib/material/WaterActivity';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { SampledMixin } from '../../lib/instrument/Sampled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
-import { ComposedMixin } from '../../lib/metabolism/Composed';
+import { CompositionMixin } from '../../lib/material/Composition';
 import type { Crafted } from '../../lib/craft/Crafted';
 
 // Thermal AND Freshness, because a Provision IS food by construction —
@@ -44,11 +44,13 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // would even mean (so Crafted must be above it). **Every food can be
 // cooked** — true of this class by name, which is the whole reason the
 // gauge is here and not on `Thing`.
-// ⭐ And Composed: **every food can be made of parts** — a loaf, a
+// ⭐ And Composition: **every food can be made of parts** — a loaf, a
 // sausage, a cutlet in batter. A chain that ends in something you HOLD
 // used to lose everything a chain ending in something you POUR keeps,
-// because only a bulk payload carried a composition. An empty list is
-// the default and costs nothing.
+// because only a bulk payload carried a composition. One record by mass
+// fraction (`makeup`) since ceramics re-plan R1, the same one a bar of
+// steel carries its carbon in. An empty list is the default and costs
+// nothing.
 // ⭐ `SampledMixin` outermost: three inert fields saying where this
 // portion was taken from, so a piece of food can be carried to a bench
 // and read. It is the ONE widening this build makes to a shipped host,
@@ -63,7 +65,7 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // second clock anywhere.
 const ProvisionBase = SampledMixin(
   CraftedMixin(
-    ComposedMixin(
+    CompositionMixin(
       ContaminableMixin(
         WaterActivityMixin(
           ThermalDoseMixin(KineticMixin(FreshnessMixin(ThermalMixin(Good)))),

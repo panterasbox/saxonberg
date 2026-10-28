@@ -1258,7 +1258,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // because the row records no composition to credit).
       let grog = mat.hasTag("refractory") ? 0.4 : 0;
       if (MixinApi.isComposition(self)) {
-        for (const e of self.getAlloying()) {
+        for (const e of self.getMakeup()) {
           const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
           if (m?.hasTag("grog")) grog += e.fraction;
         }
@@ -1548,9 +1548,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         // keep their potash in less cake. Capped at the whole.
         const piece = self as unknown as Stuff;
         if (kg > 0 && MixinApi.isComposition(piece)) {
-          const alloying = piece.getAlloying();
+          const alloying = piece.getMakeup();
           if (alloying.length > 0) {
-            piece.setAlloying(
+            piece.setMakeup(
               alloying.map((e) => ({ ...e, fraction: Math.min(1, (e.fraction * was) / kg) })),
             );
           }
@@ -2192,7 +2192,7 @@ function doMelt(m: Stuff & Meltable, mat: Material | null): void {
   const scope = (m as unknown as { getContainer(): Stuff | null }).getContainer();
   // ⭐ What was dissolved in the piece goes with it into the pool.
   const dissolved = MixinApi.isComposition(m as unknown as Stuff)
-    ? [...(m as unknown as Composition).getAlloying()]
+    ? [...(m as unknown as Composition).getMakeup()]
     : [];
   StuffApi.destruct(m as unknown as Stuff);
   if (scope === null || !MixinApi.isContainer(scope)) return;
@@ -2206,7 +2206,7 @@ function doMelt(m: Stuff & Meltable, mat: Material | null): void {
     if (cur <= 0 || pot.getBulkMaterial('interior') === null) pot.setBulkMaterial('interior', mat);
     pot.setBulkAmount('interior', Quantity.of(cur + litres, 'L'));
     const folded = BulkableApi.blendPayloads(
-      dissolved.length > 0 ? { alloying: dissolved } : null,
+      dissolved.length > 0 ? { makeup: dissolved } : null,
       litres,
       payload,
       cur,
@@ -2572,9 +2572,9 @@ function reconcileBulkPhase(
       }
       c.setMass(Quantity.of(massKg, 'kg'));
       // ⭐ The pool's composition sets into the lump (ceramics ruling C).
-      const dissolved = setPayload?.alloying;
+      const dissolved = setPayload?.makeup;
       if (dissolved && dissolved.length > 0 && MixinApi.isComposition(cast as Stuff)) {
-        (cast as Stuff & Composition).setAlloying(dissolved);
+        (cast as Stuff & Composition).setMakeup(dissolved);
       }
       if (scope && MixinApi.isContainer(scope)) {
         void ContainmentApi.move(

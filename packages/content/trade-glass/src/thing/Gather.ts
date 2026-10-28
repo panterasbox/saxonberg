@@ -208,7 +208,7 @@ export default class Gather extends GatherBase implements Formable {
     const where = MixinApi.isContainable(self) ? self.getContainer() : null;
     const massKg = this.getMass().rawValue();
     const material = this.getMaterial();
-    const alloying = this.getAlloying().map((e) => ({ ...e }));
+    const alloying = this.getMakeup().map((e) => ({ ...e }));
     try {
       const cullet = await StuffApi.clone<Stuff>(CULLET_ROW, undefined, {
         madeFrom: this as unknown as Stuff,
@@ -219,7 +219,7 @@ export default class Gather extends GatherBase implements Formable {
       }
       (cullet as unknown as Labelled).setShortDescription("lump of cullet");
       (cullet as unknown as Labelled).setKeywords(["cullet", "lump", "glass"]);
-      if (MixinApi.isComposition(cullet) && alloying.length > 0) cullet.setAlloying(alloying);
+      if (MixinApi.isComposition(cullet) && alloying.length > 0) cullet.setMakeup(alloying);
       const dest =
         where && MixinApi.isContainer(where)
           ? (where as Stuff & Container)

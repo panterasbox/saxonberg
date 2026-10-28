@@ -4,7 +4,7 @@
  * Whole objects remelt by phase change — no recipe, no class changing at a
  * rung. A green (iron-bearing) piece of glass melts in a lit kiln into the
  * pot standing beside it (`poolVesselIn`), the pool's payload carries what
- * was dissolved in the piece (`alloying`), and when the pool sets the lump
+ * was dissolved in the piece (`makeup`), and when the pool sets the lump
  * reads the iron back — so a green bottle remelted comes back green. Two
  * pools blend their composition by volume.
  */
@@ -84,7 +84,7 @@ describe('a pool remembers what melted into it', () => {
     const cullet = makeStuff(() => new Casting());
     cullet.setMaterial(g);
     cullet.setMass(Quantity.of(1, 'kg'));
-    cullet.setAlloying([{ materialPath: IRON, fraction: 0.006 }]);
+    cullet.setMakeup([{ materialPath: IRON, fraction: 0.006 }]);
     cullet.setStampedTemperatureK(293);
     cullet.setLastAmbientK(293);
     await ContainmentApi.move(cullet, kiln as never);
@@ -98,7 +98,7 @@ describe('a pool remembers what melted into it', () => {
     // The pot caught it — not the floor of a floorless chamber.
     expect(pot.getBulkMaterialPath('interior')).toBe(g.getTemplatePath());
     expect(pot.getBulkAmount('interior').rawValue()).toBeCloseTo(0.4, 3);
-    expect(pot.getBulkPayload('interior')?.alloying).toEqual([
+    expect(pot.getBulkPayload('interior')?.makeup).toEqual([
       { materialPath: IRON, fraction: 0.006 },
     ]);
 
@@ -122,13 +122,13 @@ describe('a pool remembers what melted into it', () => {
 
   it('two pools blend their composition by volume', () => {
     const out = BulkableApi.blendPayloads(
-      { alloying: [{ materialPath: IRON, fraction: 0.006 }] },
+      { makeup: [{ materialPath: IRON, fraction: 0.006 }] },
       1,
-      { alloying: [{ materialPath: IRON, fraction: 0 }] },
+      { makeup: [{ materialPath: IRON, fraction: 0 }] },
       2,
     );
-    expect(out.alloying?.[0]?.fraction).toBeCloseTo(0.002, 6);
+    expect(out.makeup?.[0]?.fraction).toBeCloseTo(0.002, 6);
     const clear = BulkableApi.blendPayloads(null, 1, null, 1);
-    expect(clear.alloying).toBeUndefined();
+    expect(clear.makeup).toBeUndefined();
   });
 });

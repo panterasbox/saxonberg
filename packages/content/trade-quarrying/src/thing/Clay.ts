@@ -3,7 +3,7 @@
  *
  * The clay brick you get is the clay you built. A clay MATERIAL row says
  * what a kind of clay is made of (`earth/clay`: half clay mineral, a third
- * sand, some iron, lime and organic matter); this lump's own `alloying`
+ * sand, some iron, lime and organic matter); this lump's own `makeup`
  * records what was kneaded into it since (sand, grog, breeze — the temper
  * pit's blend by mass). Everything a brickmaker or a potter reads off a clay
  * DERIVES from that composition:
@@ -204,7 +204,7 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
     /** One of its lumps, kg — lumps differ, and the pool keeps every kilogram. */
     eachKg: number;
     weatheredDays: number;
-    alloying: CompositionEntry[];
+    makeup: CompositionEntry[];
   } | null = null;
 
   /** Reentry guard for the weathering read. */
@@ -269,7 +269,7 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
 
   /** The constituent shares, from the effective composition. */
   public shares(): ClayShares {
-    return sharesOf(this.getEffectiveComposition());
+    return sharesOf(this.effectiveMakeup());
   }
 
   /**
@@ -399,7 +399,7 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
         .setInteriorCapacity(Quantity.of(order.form.capacityL, 'L'));
     }
     if (MixinApi.isComposition(product)) {
-      product.setAlloying(this.getEffectiveComposition());
+      product.setMakeup(this.effectiveMakeup());
     }
     if (MixinApi.isWaterActive(product)) product.setWaterState(this.getWaterState());
     const maker = order.actor.getIdentityPath() ?? '';
@@ -532,15 +532,14 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
   /** Capture the absorbed lot before it is destructed (Ore's rule). */
   public override canMergeWith(other: Stuff): boolean {
     const ok = super.canMergeWith(other);
-    const lot = other as unknown as Partial<Clay>;
     this._absorbing =
-      ok && typeof lot.getWeatheredDays === 'function' && typeof lot.getQuantity === 'function'
+      ok && other instanceof Clay
         ? {
             stuffId: other.stuffId,
-            quantity: lot.getQuantity(),
-            eachKg: MixinApi.isTangible(other) ? other.getMass().rawValue() : this.getMass().rawValue(),
-            weatheredDays: lot.getWeatheredDays(),
-            alloying: [...(lot.getAlloying?.() ?? [])],
+            quantity: other.getQuantity(),
+            eachKg: other.getMass().rawValue(),
+            weatheredDays: other.getWeatheredDays(),
+            makeup: [...other.getMakeup()],
           }
         : null;
     return ok;
@@ -572,13 +571,13 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
       if (totalKg > 0) this.setMass(Quantity.of(totalKg / total, 'kg'));
       this.weatheredDays = this.weatheredDays * wMine + stashed.weatheredDays * wTheirs;
       const acc = new Map<string, number>();
-      for (const e of this.getAlloying()) {
+      for (const e of this.getMakeup()) {
         acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * wMine);
       }
-      for (const e of stashed.alloying) {
+      for (const e of stashed.makeup) {
         acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * wTheirs);
       }
-      this.setAlloying([...acc].map(([materialPath, fraction]) => ({ materialPath, fraction })));
+      this.setMakeup([...acc].map(([materialPath, fraction]) => ({ materialPath, fraction })));
     }
     super.onMerged(absorbed);
   }
@@ -587,7 +586,7 @@ export default class Clay extends ClayBase implements Shapeable, Formable {
   public override onSplit(splitoff: Stuff): void {
     const cut = splitoff as unknown as Partial<Clay>;
     if (typeof cut.setWeatheredDays === 'function') cut.setWeatheredDays(this.weatheredDays);
-    if (typeof cut.setAlloying === 'function') cut.setAlloying(this.getAlloying());
+    if (typeof cut.setMakeup === 'function') cut.setMakeup(this.getMakeup());
     // …and the heap's lump size: the split-off is a fresh clone of the ROW,
     // so without this a 0.9 kg remnant split off came back a 12 kg lump.
     if (MixinApi.isTangible(splitoff)) splitoff.setMass(this.getMass());

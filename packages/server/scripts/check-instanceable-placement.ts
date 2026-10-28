@@ -313,7 +313,10 @@ export function packBrainShapeOk(source: string): boolean {
 // 361 → 353 (the potash build, 2026-10-19): `chemistry: null` came off
 // the ten wood rows, five of which the brash rows `extends:`.
 // Both landed (ceramics merged potash, 2026-10-22): 353 − 1.
-const ORPHAN_DATA_KEY_CEILING = 352;
+// 352 → 350 (ceramics re-plan R1, W-R1a, 2026-10-28): measured at 350
+// when the composition record became `makeup`; the two were not isolated
+// between this wave and the forming refactor just before it.
+const ORPHAN_DATA_KEY_CEILING = 350;
 
 
 function main(): void {

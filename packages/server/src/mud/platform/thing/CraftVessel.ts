@@ -310,7 +310,19 @@ export default class CraftVessel extends CraftVesselBase {
         const room = slot.remaining();
         const credit = Math.min(meltKg, Number.isFinite(room) ? room : meltKg);
         if (credit > 0) {
-          slot.setAmount(Quantity.of(slot.getAmount().rawValue() + credit, 'L'));
+          const before = slot.getAmount().rawValue();
+          slot.setAmount(Quantity.of(before + credit, 'L'));
+          // ⭐ The melt joins the drink and is no part of its makeup, so
+          // each recorded part keeps its mass: its fraction thins (ceramics
+          // re-plan R1-D1). Without this a melting glass grows its dose.
+          const held = slot.getPayload();
+          if (held?.makeup && held.makeup.length > 0) {
+            const keep = before / (before + credit);
+            slot.setPayload({
+              ...held,
+              makeup: held.makeup.map((e) => ({ ...e, fraction: e.fraction * keep })),
+            });
+          }
         }
       }
       if (this.iceKg > 0) {

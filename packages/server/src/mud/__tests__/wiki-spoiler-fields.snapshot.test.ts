@@ -125,6 +125,15 @@
  *   - The relabel: `AlloyedMixin` split into `CompositionMixin.alloying`
  *     and `TemperedMixin.temper`, each keeping its level-1 tag (the
  *     figure is earned by `analyze chemistry`; that it exists is public).
+ * **Ceramics re-plan R1 (one record, by mass).**
+ *   - The relabel: `CompositionMixin.alloying` is `CompositionMixin.makeup`
+ *     and absorbed `ComposedMixin.composition`. It keeps the level-1 tag
+ *     with its name at 0: the fractions of a loaf are as much chemistry
+ *     as the carbon in a bar, and the loaf's nutrition LABEL — the
+ *     reading the grain chain needs legible — derives from them and is
+ *     shown on `look` regardless of this panel.
+ *   - `Material.servingKg` — level 1 (name 0), collapsed like the
+ *     nutrient amounts and toxin doses it is the unit of.
  *   - `IceBlock.iceQuality` — level 0. The grade is what the eye sees:
  *     black ice is clear and white ice is white, and the trade sold by
  *     it in the open.
@@ -176,7 +185,10 @@
  *   - `ComposedMixin.composition` — what a food is made of. This **is**
  *     the nutrition label, which the game deliberately shows. Tagging
  *     it a spoiler would hide the one reading that makes the whole
- *     extraction chain legible.
+ *     extraction chain legible. ⚠ Retired by ceramics re-plan R1: a
+ *     food's parts are `CompositionMixin.makeup` now (below), and the
+ *     LABEL still shows them — it is derived (`NutritionLabel`), not this
+ *     panel's raw field.
  *   - `ThermalDoseMixin` ×4 — how cooked a thing is, plus the gauge's
  *     clock stamps. The dose is already read out as a **band** on
  *     `look`; a panel showing the same fact is not a leak.

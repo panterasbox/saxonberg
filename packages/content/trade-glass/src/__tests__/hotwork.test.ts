@@ -51,7 +51,7 @@ function gather(tempK: number): Gather {
   g.setMass(Quantity.of(0.4, "kg"));
   g.setStampedTemperatureK(tempK);
   g.setLastAmbientK(tempK);
-  g.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+  g.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
   return g;
 }
 

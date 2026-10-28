@@ -216,9 +216,10 @@ terracotta, earthenware, stoneware — each with its own reference heat: time
 finishes the band you are in and cannot carry a terracotta firing to
 stoneware.
 
-**A molten pool keeps its composition** (ruling C): `BulkPayload.alloying`
-(⚠ not `composition`, which is the drink blend's) is seeded by `doMelt` from
-the melting piece's `getAlloying()`, folded by volume on every pour, and set
+**A molten pool keeps its composition** (ruling C): `BulkPayload.makeup`
+(one record with a drink blend's since ceramics re-plan R1) is seeded by
+`doMelt` from the melting piece's `getMakeup()`, folded by volume on every
+pour, and set
 back into a `Composition` cast at the freeze edge — so a green bottle remelted
 comes back green. `doMelt` pools into a vessel standing in the same chamber
 (empty, or holding the same material; never a mould) before it falls to the

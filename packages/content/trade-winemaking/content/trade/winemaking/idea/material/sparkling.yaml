@@ -5,6 +5,8 @@ data:
   keywords: [sparkling, wine, fizz]
   appearance: "a pale sparkling wine, beading in the glass"
   density: 995
+  # One serving, kg (the unit of its label and its dose): a 150 ml glass at 995 kg/m³.
+  servingKg: 0.14925
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true

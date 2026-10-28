@@ -242,12 +242,12 @@ describe('⭐ the crumb phrase is WORDS for a continuous number', () => {
     expect(branShareOf(l)).toBe(0);
   });
 
-  it('the bran share is read off the composition', () => {
+  it('the bran share is read off the makeup', () => {
     const l = loaf();
-    expect(MixinApi.isComposed(l)).toBe(true);
-    l.setComposition([
-      { materialPath: FLOUR, servings: 7.2 },
-      { materialPath: BRAN, servings: 2.8 },
+    expect(MixinApi.isComposition(l)).toBe(true);
+    l.setMakeup([
+      { materialPath: FLOUR, fraction: 0.72 },
+      { materialPath: BRAN, fraction: 0.28 },
     ]);
     expect(branShareOf(l)).toBeCloseTo(0.28, 6);
   });
@@ -258,13 +258,13 @@ describe('⭐ the crumb phrase is WORDS for a continuous number', () => {
     // differently, and that is the right way round.
     const a = loaf();
     const b = loaf();
-    a.setComposition([
-      { materialPath: FLOUR, servings: 9.7 },
-      { materialPath: BRAN, servings: 0.3 },
+    a.setMakeup([
+      { materialPath: FLOUR, fraction: 0.97 },
+      { materialPath: BRAN, fraction: 0.03 },
     ]);
-    b.setComposition([
-      { materialPath: FLOUR, servings: 9.6 },
-      { materialPath: BRAN, servings: 0.4 },
+    b.setMakeup([
+      { materialPath: FLOUR, fraction: 0.96 },
+      { materialPath: BRAN, fraction: 0.04 },
     ]);
     expect(branShareOf(a)).not.toBeCloseTo(branShareOf(b), 6);
   });

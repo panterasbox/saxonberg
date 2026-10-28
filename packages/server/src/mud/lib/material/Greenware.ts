@@ -453,7 +453,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
       if (!MixinApi.isComposition(self)) return 0.5;
       let fat = 0;
       let open = 0;
-      for (const e of self.getEffectiveComposition()) {
+      for (const e of self.effectiveMakeup()) {
         const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
         if (m === null || m === undefined) continue;
         if (m.hasTag('clay-mineral')) fat += e.fraction;

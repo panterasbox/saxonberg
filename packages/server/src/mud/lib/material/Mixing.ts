@@ -70,7 +70,7 @@ const EPSILON = 1e-6;
 /** What one input is made of, as composition entries summing to 1. */
 function constituentsOf(input: Stuff): CompositionEntry[] {
   if (MixinApi.isComposition(input)) {
-    const own = input.getEffectiveComposition().filter((e) => e.fraction > EPSILON);
+    const own = input.effectiveMakeup().filter((e) => e.fraction > EPSILON);
     if (own.length > 0) return own;
   }
   const mat = MixinApi.isTangible(input) ? input.getMaterial() : null;
@@ -185,7 +185,7 @@ export function MixingVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         const held = self.getBulkMaterial('interior');
         if (bulkL > 0 && held !== null) {
           const kg = (bulkL / 1000) * held.getDensity().rawValue();
-          const entries = self.getBulkPayload('interior')?.alloying;
+          const entries = self.getBulkPayload('interior')?.makeup;
           const own: CompositionEntry[] =
             entries && entries.length > 0
               ? entries
@@ -223,7 +223,7 @@ export function MixingVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         for (const piece of pieces) await StuffApi.destruct(piece);
         self.setBulkMaterial('interior', material);
         self.setBulkAmount('interior', Quantity.of((totalKg / density) * 1000, 'L'));
-        const payload = { ...(self.getBulkPayload('interior') ?? {}), alloying: folded };
+        const payload = { ...(self.getBulkPayload('interior') ?? {}), makeup: folded };
         self.setBulkPayload('interior', payload);
         return { ok: true, product: null, massKg: totalKg, inputs };
       }
@@ -238,7 +238,7 @@ export function MixingVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         product.setMaterial(material);
         product.setMass(Quantity.of(totalKg, 'kg'));
       }
-      if (MixinApi.isComposition(product)) product.setAlloying(folded);
+      if (MixinApi.isComposition(product)) product.setMakeup(folded);
       if (maker !== '' && MixinApi.isCrafted(product) && product.getMaker() === '') {
         product.setMaker(maker);
       }

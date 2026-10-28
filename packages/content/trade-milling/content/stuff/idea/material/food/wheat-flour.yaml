@@ -28,6 +28,8 @@ data:
   keywords: [flour, wheat, meal]
   appearance: fine and pale, soft to the hand
   density: 570
+  # One serving, kg (the unit of its label and its dose): 100 g — the mill's serving.
+  servingKg: 0.1
   specificHeat: 1800
   thermalConductivity: 0.14
   electricalConductivity: 1.0e-9

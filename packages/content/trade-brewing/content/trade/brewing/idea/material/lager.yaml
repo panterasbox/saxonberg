@@ -5,6 +5,8 @@ data:
   keywords: [lager, beer, brew]
   appearance: "a pale, bright lager"
   density: 1008
+  # One serving, kg (the unit of its label and its dose): a pint, near enough — 500 ml at 1008 kg/m³.
+  servingKg: 0.504
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true

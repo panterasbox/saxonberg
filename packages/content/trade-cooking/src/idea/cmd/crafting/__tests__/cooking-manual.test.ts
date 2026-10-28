@@ -167,11 +167,22 @@ describe('the by-hand cooking path', () => {
     // payload — identity from the recipe, macros summed from the inputs
     // (macros in = macros out: 2 veg × 17000 carb + 1 meat × 26000
     // protein). No per-dish material row exists.
+    // ⭐ The record is by mass (ceramics re-plan R1-D1): each unit is one
+    // serving of its material, and these fixtures author no density, so a
+    // serving is the dial's 0.25 kg — read against the 0.75 kg that went
+    // in, the label is exactly the inputs'.
+    const IN_KG = 0.75;
     expect(slot.getMaterialPath()).toBe(COOKED);
     const payload = slot.getPayload()!;
     expect(BlendIdentity.nameOf(payload, null)).toBe('Hearty Stew');
     expect(BlendIdentity.appearanceOf(payload, null)).toMatch(/thick brown stew/);
-    expect(BlendLabel.amountsOf(payload, null)).toEqual({ carb: 34000, protein: 26000 });
+    const amounts = BlendLabel.amountsOf(payload, null, IN_KG);
+    expect(amounts.carb).toBeCloseTo(34000, 6);
+    expect(amounts.protein).toBeCloseTo(26000, 6);
+    expect(payload.makeup).toEqual([
+      { materialPath: VEG, fraction: 2 / 3 },
+      { materialPath: MEAT, fraction: 1 / 3 },
+    ]);
     expect(BlendLabel.isEdible(payload, null)).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9); // the portion
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe(
@@ -210,8 +221,9 @@ describe('the by-hand cooking path', () => {
     expect(
       BlendIdentity.nameOf(slot.getPayload()!, slot.getMaterial()),
     ).toBe('cooked fare');
+    // One veg, one 0.25 kg serving (no density authored): its own label.
     expect(
-      BlendLabel.amountsOf(slot.getPayload()!, slot.getMaterial()),
+      BlendLabel.amountsOf(slot.getPayload()!, slot.getMaterial(), 0.25),
     ).toEqual({ carb: 17000 });
     expect(slot.getAmount().rawValue()).toBeGreaterThan(0);
     expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe('');

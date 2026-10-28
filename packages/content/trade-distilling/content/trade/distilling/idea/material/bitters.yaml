@@ -8,6 +8,8 @@ data:
   keywords: [aromatic, bitters]
   appearance: a dark, intensely aromatic tincture
   density: 940
+  # One serving, kg (the unit of its label and its dose): a dash, 2 ml at 940 kg/m³.
+  servingKg: 0.00188
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true

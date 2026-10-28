@@ -126,7 +126,7 @@ describe('the blend is the inputs, by mass', () => {
     const out = await v.blend(null);
     expect(out.ok).toBe(true);
     expect(v.getBulkMaterial('interior')?.getTemplatePath()).toBe(SLIP);
-    const alloying = v.getBulkPayload('interior')?.alloying ?? [];
+    const alloying = v.getBulkPayload('interior')?.makeup ?? [];
     const share = (p: string): number => alloying.find((e) => e.materialPath === p)?.fraction ?? 0;
     expect(share(WATER)).toBeCloseTo(0.5, 6);
     expect(share(RAW)).toBeCloseTo(0.5, 6);

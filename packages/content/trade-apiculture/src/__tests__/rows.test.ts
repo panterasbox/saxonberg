@@ -170,7 +170,7 @@ describe('the comb', () => {
   it('⭐ a Provision, because it spoils and because it CARRIES', () => {
     const comb = thing('comb');
     // `lint:perishable` needs a Freshness host for a spoiling material;
-    // `ComposedMixin` — also Provision's — is what carries what the bees
+    // `CompositionMixin` — also Provision's — is what carries what the bees
     // foraged into the jar, so clover honey and cherry honey differ with
     // no row authored for either.
     expect(comb.class).toBe('/platform/thing/Provision');

@@ -127,27 +127,15 @@ export const BULK_VOLUME_UNIT = 'L' as const;
  * through the default applier with no marshaller.
  */
 /**
- * One ingredient of a blend: which Material, and how many servings of it
- * went in. `servings` is the craft's own unit — the same number the
- * nutrition label already multiplies by — so a per-litre reading is an
- * honest division rather than a guess.
- */
-export interface BlendPart {
-  /** templatePath of the ingredient Material. */
-  materialPath: string;
-  /** Servings of it consumed into this blend. */
-  servings: number;
-}
-
-/**
  * ⭐⭐ **What a blend IS, and nothing else.** Two facts live here —
- * `recipeId` (what made it) and `composition` (what went in) — plus
+ * `recipeId` (what made it) and `makeup` (what went in) — plus
  * `cookedAtK`, which the making could not otherwise recover.
  *
  * ⚠ Other subsystems add their own carried facts by DECLARATION MERGING
  * from their own folders, which is how a value object gets the thing a
  * class gets from a mixin: `formedToxins` is declared by
- * `lib/metabolism`, `freshness` by `lib/material/Freshness`. That is why
+ * `lib/metabolism`, `freshness` by `lib/material/Freshness`, and even
+ * `makeup` itself by `lib/material/Composition`. That is why
  * `lib/bulk` imports no subsystem — continuous volume is all this file
  * knows about, and `pnpm lint:imports` is what keeps it that way.
  */
@@ -208,24 +196,25 @@ export interface BulkPayload {
    * cooked-off dose back from the dead. `0` / absent = never heated.
    */
   cookedAtK?: number;
-  /**
-   * ⭐⭐ **The composition — what went in, and how much.** Material PATHS
-   * with their servings, in the order first consumed, summed per
-   * material. Absent on a blend that derived nothing.
+  /*
+   * ⭐⭐ **What went in, and how much** is `makeup` — mass FRACTIONS of
+   * this pool by Material path, declared from `lib/material/Composition`
+   * (ceramics re-plan R1-D1). It was `composition: BlendPart[]` in
+   * absolute servings, and before that `parts: string[]`, *"the
+   * ingredients by their Materials' display names"* — and a name is not a
+   * handle. Nothing could ask a name for a taste, a toxin or a tag, so
+   * every subsystem had to be handed its answer pre-computed, and the only
+   * place to put those answers was this type.
    *
-   * ⚠ This was `parts: string[]`, *"the ingredients by their Materials'
-   * display names"* — and a name is not a handle. Nothing could ask a
-   * name for a taste, a toxin or a tag, so every subsystem had to be
-   * handed its answer pre-computed, and the only place to put those
-   * answers was this type: `tastes`, `tags`, the whole nutrition label.
-   * That is how a continuous-volume payload came to carry seven
-   * subsystems' vocabulary and why `lib/bulk` imports `lib/metabolism`.
-   *
-   * ⭐ With paths and servings, each subsystem derives its own facts on
-   * read, in its own folder. See `docs/subsystems/bulk.md` §
+   * ⭐ With paths, each subsystem derives its own facts on read, in its
+   * own folder. And with FRACTIONS rather than servings the record is
+   * intensive like every other per-litre domain here, so it survives a
+   * pour: servings were extensive, and a half pot poured off carried the
+   * whole pot's dose while a top-up dropped the source's parts outright.
+   * A part's mass is `fraction × litres × density`; its servings derive
+   * from that (`MaterialApi.servingsOf`). See `docs/subsystems/bulk.md` §
    * `BulkPayload`.
    */
-  composition?: BlendPart[];
 
   /**
    * ⭐ Game-second the vessel's faces last gave to or took from these
@@ -333,6 +322,18 @@ export class BulkSlot {
   /** Current amount (always `Quantity<'L'>`; `0 L` when empty). */
   getAmount(): Quantity<'L'> {
     return this.host.getBulkAmount(this.affordance);
+  }
+
+  /**
+   * ⭐ The mass this slot holds, kg — its litres at its material's
+   * density, `0` when empty. What a pool's `makeup` fractions are
+   * fractions OF: a part's mass is `fraction × getMassKg()`.
+   */
+  getMassKg(): number {
+    const material = this.getMaterial();
+    if (material === null) return 0;
+    const kg = (this.getAmount().rawValue() * material.getDensity().rawValue()) / 1000;
+    return Number.isFinite(kg) && kg > 0 ? kg : 0;
   }
 
   /** Authored capacity, or `null` for an uncapped slot (a puddle). */

@@ -854,7 +854,7 @@ async function runIntoCrucible(
       // what the charge put in it, and the ingot the crucible pours takes
       // it off the pool at the set.
       if (carbon > 0) {
-        source.setBulkPayload('interior', { alloying: [{ materialPath: CARBON, fraction: carbon }] });
+        source.setBulkPayload('interior', { makeup: [{ materialPath: CARBON, fraction: carbon }] });
       }
       source.setContentsTemperature(heldK);
       const from = BulkableApi.slotFor(source, undefined);

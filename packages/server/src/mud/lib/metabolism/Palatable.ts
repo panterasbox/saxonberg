@@ -61,7 +61,7 @@ import type { Stuff } from "../stuff/Stuff";
 import type { MarkupAugmenter } from "../../api/mml";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
-import type { BlendPart } from "../bulk/Bulkable";
+import type { CompositionEntry } from "../material/Material";
 import type Material from "../material/Material";
 import {
   COMPETENCE_BANDS,
@@ -85,19 +85,19 @@ const TASTE_CHANNEL = "taste";
 const SMELL_CHANNEL = "smell";
 
 /**
- * The ingredients' display names, resolved from the composition.
+ * The ingredients' display names, resolved from the makeup.
  *
- * ⭐ The composition carries Material PATHS, not names — a name is not a
+ * ⭐ The makeup carries Material PATHS, not names — a name is not a
  * handle, and every derived reading below needs a handle. Resolving here
  * is the price, and it is the right price: the alternative was the blend
  * carrying a pre-computed answer for every subsystem that might ask.
  */
 function ingredientsOf(
-  composition: readonly BlendPart[] | undefined,
+  makeup: readonly CompositionEntry[] | undefined,
 ): Material[] {
-  if (!composition || composition.length === 0) return [];
+  if (!makeup || makeup.length === 0) return [];
   const out: Material[] = [];
-  for (const part of composition) {
+  for (const part of makeup) {
     const material = StuffApi.findByTemplatePath<Material>(part.materialPath);
     if (material) out.push(material);
   }
@@ -240,7 +240,7 @@ function palateAugmenter(
 
   const payload = host.getBulkPayload("interior");
   const material = host.getBulkMaterial("interior");
-  const ingredients = ingredientsOf(payload?.composition);
+  const ingredients = ingredientsOf(payload?.makeup);
   const line = renderPalate(
     tastesOf(ingredients, material),
     ingredientNames(ingredients),

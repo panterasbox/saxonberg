@@ -2002,6 +2002,15 @@ outside `MaterialLogic.servingsOf`; a half-poured pot keeps its makeup.
 Commit: `refactor(composition): one makeup record by mass — Composed
 absorbed, servings derived`.
 
+✅ **W-R1a done (2026-10-28).** One `makeup` record by mass fraction;
+servings derive only in `MaterialLogic.servingsOf`, every reader takes
+`hostKg` (`BulkSlot.getMassKg`; `ingest(…, hostKg)` read before the draw).
+Decided here: items weigh `count × servingKg` until W-R1c banks `massKg`;
+dilution and ice melt THIN the makeup (else a stirred glass grows its dose);
+`lint:servings` deferred (it would force a serving onto gases and fuels).
+Surprise: at the authored measures 14 cocktails change and 6 hold — the
+R1-D1 delta list is off (daiquiri holds at 19; negroni 38 → 28.5).
+
 **W-R1b — the fold and the names.** Files: `K/api/material.ts` +
 `K/platform/idea/api/MaterialLogic.ts` (`makeupOf`, `foldMakeup`);
 `K/lib/material/Mixing.ts` → `git mv` `Compounding.ts` (`CompoundingMixin`;

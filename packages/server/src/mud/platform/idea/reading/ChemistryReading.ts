@@ -126,7 +126,7 @@ export default class ChemistryReading extends Reading {
       ? (target.stuff as Stuff & Tempered)
       : null;
     const composition = alloyed
-      ? alloyed.getEffectiveComposition()
+      ? alloyed.effectiveMakeup()
       : material.getComposition();
     if (composition.length > 0) {
       lines.push(Mml.compose`  composition:`);

@@ -5,6 +5,8 @@ data:
   keywords: [sweet, vermouth]
   appearance: "ruby-red, bittersweet vermouth"
   density: 1010
+  # One serving, kg (the unit of its label and its dose): one 30 ml measure at 1010 kg/m³.
+  servingKg: 0.0303
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true

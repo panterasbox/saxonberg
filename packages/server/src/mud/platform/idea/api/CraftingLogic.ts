@@ -54,8 +54,8 @@ import {
 import { ContainmentApi } from '../../../api/containment';
 import { StackableApi } from '../../../api/stackable';
 import type RecipeCatalogue from '../RecipeCatalogue';
-import type { BulkSlot, BlendPart,
-  BulkPayload } from '../../../lib/bulk/Bulkable';
+import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
+import type { CompositionEntry } from '../../../lib/material/Material';
 import type { Tooled } from '../../../lib/craft/Tooled';
 import type { PricedOffer } from '../../../lib/commerce/PricedOffer';
 import type { PartLine, JointState, Assembled, Bill } from '../../../lib/craft/Assembled';
@@ -143,7 +143,7 @@ function lumpTemplateFor(material: Material | null | undefined): string {
  */
 function carryChemistry(to: Stuff, from: Stuff): void {
   if (MixinApi.isComposition(to) && MixinApi.isComposition(from)) {
-    to.setAlloying(from.getAlloying());
+    to.setMakeup(from.getMakeup());
   }
   if (MixinApi.isTempered(to) && MixinApi.isTempered(from)) {
     to.setTemper(from.getTemper());
@@ -1377,12 +1377,79 @@ function resolveSpoilage(
 }
 
 /**
+ * One consumed input to a blend or a made-of-parts mint: its Material, the
+ * mass of it that went in, and — when it was already a blend — what it was
+ * itself made of.
+ */
+interface MakeupPart {
+  material: Material;
+  /** Kilograms of this input consumed into the product. */
+  kg: number;
+  /**
+   * ⭐⭐ **What this input was itself made of**, by mass fraction, when it
+   * was already a blend. See the expansion in {@link foldMakeupParts} —
+   * this is the whole of D25.
+   */
+  makeup?: readonly CompositionEntry[];
+}
+
+/**
+ * The kilograms a consumed input contributes to a product's makeup: a
+ * bulk draw is its litres at its density; an item is `count` servings of
+ * its material — the "each unit is one serving" rule the craft has always
+ * used, now stated as a mass. (Re-plan R1 W-R1c replaces the item arm
+ * with the unit's banked mass.)
+ */
+function bulkPartKg(material: Material, litres: number): number {
+  return (Math.max(0, litres) * material.getDensity().rawValue()) / 1000;
+}
+function itemPartKg(material: Material, count: number): number {
+  return Math.max(0, count) * MaterialApi.servingKgOf(material);
+}
+
+/**
+ * ⭐ Fold consumed inputs into ONE makeup by mass (ceramics re-plan
+ * R1-D1): each input contributes its own material, or — when it was
+ * already a blend — its parts, each `fraction × kg`; the result is every
+ * path's share of the total mass, in first-seen order.
+ *
+ * ⭐⭐ **A consumed input's PARTS, not its identity** (grain-chain D25).
+ * "Macros in = macros out" applied to what the input was actually made
+ * of: flour whose payload says *72 % endosperm, 28 % bran* contributes
+ * endosperm and bran, not "flour" — or the loaf at the far end is white
+ * however dark the flour was, silently. A parts-less input behaves
+ * exactly as before: one part, its own material.
+ */
+function foldMakeupParts(parts: readonly MakeupPart[]): CompositionEntry[] {
+  const kgByPath = new Map<string, number>();
+  const add = (path: string, kg: number): void => {
+    if (!path || !(kg > 0)) return;
+    kgByPath.set(path, (kgByPath.get(path) ?? 0) + kg);
+  };
+  for (const part of parts) {
+    const inner = part.makeup ?? [];
+    const innerTotal = inner.reduce((a, b) => a + (b.fraction > 0 ? b.fraction : 0), 0);
+    if (innerTotal > 0) {
+      for (const sub of inner) {
+        if (sub.fraction > 0) add(sub.materialPath, (sub.fraction / innerTotal) * part.kg);
+      }
+      continue;
+    }
+    add(part.material.getTemplatePath() ?? '', part.kg);
+  }
+  const total = [...kgByPath.values()].reduce((a, b) => a + b, 0);
+  if (!(total > 0)) return [];
+  return [...kgByPath].map(([materialPath, kg]) => ({ materialPath, fraction: kg / total }));
+}
+
+/**
  * Derive a blend's {@link BulkPayload} from its consumed inputs —
- * **macros in = macros out** (the fixed-vocabulary rule's engine): union
- * the parts' nutrient routing tags, sum their per-serving label amounts
- * and toxin doses (each consumed slot/unit is one serving — exactly the
- * arithmetic the retired hand-authored cocktail rows encoded: a martini
- * was gin 19 + vermouth 7 = 26 mg of alcohol). Identity (name /
+ * **macros in = macros out** (the fixed-vocabulary rule's engine): what
+ * went in is recorded as a `makeup` by mass fraction, and the label, the
+ * toxins and the tags are read off it (`BlendLabel`), each part's servings
+ * derived from its share of the vessel's mass — a martini is gin at its
+ * bar measure (one serving, 19) + vermouth at its (one serving, 7) = the
+ * 26 mg the retired hand-authored row encoded. Identity (name /
  * appearance / keywords) comes from the matched recipe — inherently
  * per-dish content that lives on the Recipe, never a Material row — or
  * from the generic blend material for an off-spec build.
@@ -1391,59 +1458,15 @@ function deriveBlendPayload(
   recipeId: string,
   appearance: string,
   keywords: readonly string[],
-  parts: {
-    material: Material;
-    servings: number;
-    /**
-     * ⭐⭐ **What this input was itself made of**, when it was already a
-     * blend. See the expansion below — this is the whole of D25.
-     */
-    composition?: readonly BlendPart[];
-  }[],
+  parts: readonly MakeupPart[],
   effectiveHeatK = 0,
   makerPath = '',
 ): BulkPayload {
-  // ⭐ The composition: what went in, by PATH, with its servings summed
-  // per material and first-seen order kept. Every derived fact below —
-  // the tastes, the tags, the label — is a function of exactly this, and
-  // carrying it properly is what lets each subsystem compute its own
-  // instead of being handed the answer. See the bulk-decomposition plan.
-  const composition = new Map<string, number>();
-  for (const part of parts) {
-    // ⭐⭐ **A consumed input's PARTS, not its identity** (grain-chain
-    // D25). "Macros in = macros out" applied to what the input was
-    // actually made of: an input that is itself a blend contributes the
-    // things it was made from, scaled to the amount consumed, rather than
-    // collapsing to its own blend name.
-    //
-    // ⚠ Without this the whole chain has a hole in the middle. Flour
-    // whose payload says *72 % endosperm, 28 % bran* becomes, at the
-    // kneading trough, simply "flour" — and the loaf that comes out the
-    // far end is white however dark the flour was, silently, with nothing
-    // anywhere to say so. Five links carry the extraction from the mill
-    // to the plate and this is the one that used to drop it.
-    //
-    // A parts-less input behaves exactly as before: one part, its own
-    // material, its own servings.
-    const inner = part.composition ?? [];
-    if (inner.length > 0) {
-      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
-      if (innerTotal > 0) {
-        for (const sub of inner) {
-          const share = (sub.servings / innerTotal) * part.servings;
-          composition.set(
-            sub.materialPath,
-            (composition.get(sub.materialPath) ?? 0) + share,
-          );
-        }
-        continue;
-      }
-    }
-    const partPath = part.material.getTemplatePath();
-    if (partPath) {
-      composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
-    }
-  }
+  // ⭐ The makeup: what went in, by PATH, by mass fraction. Every derived
+  // fact below — the tastes, the tags, the label — is a function of
+  // exactly this, and carrying it properly is what lets each subsystem
+  // compute its own instead of being handed the answer.
+  const makeup = foldMakeupParts(parts);
   // ⚠⚠ The nutrition, the toxins and the edibility are NOT computed here
   // any more — they are functions of the composition below, and
   // `BlendLabel` computes them on read. What IS recorded is the heat the
@@ -1464,12 +1487,7 @@ function deriveBlendPayload(
   // `(material, litres, payload)`; the eater never sees the bowl, so the
   // vessel's own `CraftedMixin` stamp cannot answer for it.
   if (makerPath) payload.maker = makerPath;
-  if (composition.size > 0) {
-    payload.composition = [...composition].map(([materialPath, servings]) => ({
-      materialPath,
-      servings,
-    }));
-  }
+  if (makeup.length > 0) payload.makeup = makeup;
   return payload;
 }
 
@@ -1515,7 +1533,19 @@ async function finishGlass(
     const room = outSlot.remaining();
     const add = Math.min(effect.dilutionL, Number.isFinite(room) ? room : effect.dilutionL);
     if (add > 0) {
-      outSlot.setAmount(Quantity.of(outSlot.getAmount().rawValue() + add, 'L'));
+      const before = outSlot.getAmount().rawValue();
+      outSlot.setAmount(Quantity.of(before + add, 'L'));
+      // ⭐ The water is no part of the makeup, so each recorded part keeps
+      // its mass and its fraction thins (ceramics re-plan R1-D1) — a
+      // stirred martini is still gin 19 + vermouth 7, not more.
+      const held = outSlot.getPayload();
+      if (held?.makeup && held.makeup.length > 0 && before > 0) {
+        const keep = before / (before + add);
+        outSlot.setPayload({
+          ...held,
+          makeup: held.makeup.map((e) => ({ ...e, fraction: e.fraction * keep })),
+        });
+      }
     }
   }
   // The fill temperature: the volume-weighted blend of what was drawn,
@@ -1766,7 +1796,7 @@ async function applyBulkOutput(
     return;
   }
   // The derived default: the generic blend base + a payload computed
-  // from the drawn inputs (each slot's draw = one serving).
+  // from the drawn inputs (each slot's draw at its measure's mass).
   const material = await StuffApi.singleton<Material>(GENERIC_MIXED_MATERIAL);
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(totalL, 'L'));
@@ -1789,18 +1819,16 @@ async function applyBulkOutput(
             ? [
                 {
                   material: m.material,
-                  servings: 1,
-                  composition: m.slot.getPayload()?.composition,
+                  kg: bulkPartKg(m.material, m.measureL),
+                  makeup: m.slot.getPayload()?.makeup,
                 },
               ]
             : [],
         ),
         ...matchedItems.map((m) => ({
           material: m.material,
-          servings: m.count,
-          composition: MixinApi.isComposed(m.stuff)
-            ? m.stuff.getComposition()
-            : undefined,
+          kg: itemPartKg(m.material, m.count),
+          makeup: MixinApi.isComposition(m.stuff) ? m.stuff.getMakeup() : undefined,
         })),
       ],
       effectiveHeatK,
@@ -1979,47 +2007,31 @@ async function applyTangibleOutput(
   // metal is its Material row.
   if (primary) carryChemistry(output, primary.stuff);
 
-  // ⭐ …and what it is MADE OF (D26). The bulk inputs' parts, merged and
-  // scaled, land on the output's `ComposedMixin` face — the fifth and
-  // last link of the chain that carries an extraction from the mill to
-  // the plate. A parts-less input contributes its own material, exactly
-  // as `derivePayload` does for a blend.
-  if (MixinApi.isComposed(output)) {
-    const merged = new Map<string, number>();
-    const contribute = (path: string, servings: number): void => {
-      if (!path || !(servings > 0)) return;
-      merged.set(path, (merged.get(path) ?? 0) + servings);
-    };
-    for (const m of matched) {
-      const inner = m.slot.getPayload()?.composition ?? [];
-      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
-      if (innerTotal > 0) {
-        for (const sub of inner) {
-          contribute(sub.materialPath, (sub.servings / innerTotal) * m.measureL);
-        }
-      } else if (m.material) {
-        contribute(m.material.getTemplatePath() ?? '', m.measureL);
-      }
-    }
-    for (const m of matchedItems) {
-      const inner = MixinApi.isComposed(m.stuff) ? m.stuff.getComposition() : [];
-      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
-      if (innerTotal > 0) {
-        for (const sub of inner) {
-          contribute(sub.materialPath, (sub.servings / innerTotal) * m.count);
-        }
-      } else {
-        contribute(m.material.getTemplatePath() ?? '', m.count);
-      }
-    }
-    if (merged.size > 0) {
-      output.setComposition(
-        [...merged].map(([materialPath, servings]) => ({
-          materialPath,
-          servings,
-        })),
-      );
-    }
+  // ⭐ …and what it is MADE OF (D26). The inputs' parts, folded by mass,
+  // land on the output's `CompositionMixin` face — the fifth and last
+  // link of the chain that carries an extraction from the mill to the
+  // plate. A parts-less input contributes its own material, exactly as
+  // `deriveBlendPayload` does for a blend.
+  if (MixinApi.isComposition(output)) {
+    const makeup = foldMakeupParts([
+      ...matched.flatMap((m) =>
+        m.material
+          ? [
+              {
+                material: m.material,
+                kg: bulkPartKg(m.material, m.measureL),
+                makeup: m.slot.getPayload()?.makeup,
+              },
+            ]
+          : [],
+      ),
+      ...matchedItems.map((m) => ({
+        material: m.material,
+        kg: itemPartKg(m.material, m.count),
+        makeup: MixinApi.isComposition(m.stuff) ? m.stuff.getMakeup() : undefined,
+      })),
+    ]);
+    if (makeup.length > 0) output.setMakeup(makeup);
   }
 
   // ⭐⭐ **The matter's own state rides the transform.** A tangible output
@@ -2146,10 +2158,8 @@ async function applyEdibleOutput(
       recipe.getKeywords(),
       matchedItems.map((m) => ({
         material: m.material,
-        servings: m.count,
-        composition: MixinApi.isComposed(m.stuff)
-          ? m.stuff.getComposition()
-          : undefined,
+        kg: itemPartKg(m.material, m.count),
+        makeup: MixinApi.isComposition(m.stuff) ? m.stuff.getMakeup() : undefined,
       })),
       effectiveHeatK,
       makerPath,
@@ -2923,19 +2933,15 @@ async function mintVessel(
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(amountL, 'L'));
   if (!authored) {
-    const parts: {
-      material: Material;
-      servings: number;
-      composition?: readonly BlendPart[];
-    }[] = [];
+    const parts: MakeupPart[] = [];
     for (const c of req.contributions) {
       if (!c.materialPath) continue;
       const m = await StuffApi.singleton<Material>(c.materialPath);
       parts.push({
         material: m,
-        servings: c.kind === 'item' ? (c.count ?? 1) : 1,
+        kg: c.kind === 'item' ? itemPartKg(m, c.count ?? 1) : bulkPartKg(m, c.measureL),
         // The banked pour remembers what its source was made of (D25).
-        composition: c.composition,
+        makeup: c.makeup,
       });
     }
     outSlot.setPayload(
@@ -4227,7 +4233,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       // material's — glass authors an empty composition, so the whole
       // item is one constituent and this carries its iron forward.
       if (meltable && MixinApi.isComposition(item) && MixinApi.isComposition(cast)) {
-        cast.setAlloying(item.getAlloying());
+        cast.setMakeup(item.getMakeup());
       }
       meltOutputs.push(cast);
       meltRecoveredKg += yieldKg;

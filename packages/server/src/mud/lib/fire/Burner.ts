@@ -696,7 +696,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         );
         if (!heap) break;
         if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(mass, 'kg'));
-        if (MixinApi.isComposition(heap)) heap.setAlloying([{ materialPath: alkaliPath, fraction: strength }]);
+        if (MixinApi.isComposition(heap)) heap.setMakeup([{ materialPath: alkaliPath, fraction: strength }]);
         if (opts.into && MixinApi.isContainer(opts.into) && MixinApi.isContainable(heap)) {
           ContainmentApi.move(heap, opts.into);
         }

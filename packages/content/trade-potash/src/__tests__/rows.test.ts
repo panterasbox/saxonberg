@@ -57,7 +57,7 @@ describe('the calcining (potash D12)', () => {
   });
 
   it('⭐ pearl ash authors no purity of its own — the firing writes it', () => {
-    expect(row('trade/potash/thing/pearl-ash.yaml').data.alloying).toBeUndefined();
+    expect(row('trade/potash/thing/pearl-ash.yaml').data.makeup).toBeUndefined();
     expect(calcine.massRetained).toBeCloseTo(0.8, 6);
   });
 

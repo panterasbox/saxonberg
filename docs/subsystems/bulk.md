@@ -41,8 +41,9 @@ the deferred tail.
 
 ## ⭐⭐ Composition flows THROUGH a blend
 
-`BulkPayload.composition` is a `BlendPart[]` — what went in, by Material
-path and servings. Until the grain chain, `derivePayload` made **one part
+`BulkPayload.makeup` is a `CompositionEntry[]` — what went in, by Material
+path and **mass fraction** of the pool (ceramics re-plan R1-D1; it was
+`composition: BlendPart[]` in absolute servings). Until the grain chain, `derivePayload` made **one part
 per consumed input MATERIAL**, so an input that was *itself* a blend
 contributed its blend identity and its own parts were lost.
 
@@ -52,8 +53,8 @@ kneading trough, simply "flour" — and the loaf out the far end was white
 however dark the flour was, silently, with nothing anywhere to say so.
 
 The rule is now **macros in = macros out, applied to what the input was
-actually made of**: a consumed input carrying a composition expands into
-its parts, scaled by the fraction consumed. A parts-less input behaves
+actually made of**: a consumed input carrying a makeup expands into its
+parts, each `fraction × kg` of what was consumed. A parts-less input behaves
 exactly as before (one part, its own material) — pinned by a test,
 because every cocktail shipped before this build depends on it.
 
@@ -67,15 +68,42 @@ and silent:**
 | # | link | where |
 |---|---|---|
 | 1 | the working stamps the product payload | `ComminutingMixin.planComminution` |
-| 2 | a pour banks the source's parts | `BuildContribution.composition` |
+| 2 | a pour banks the source's parts | `BuildContribution.makeup` |
 | 3 | `derivePayload` expands a consumed input's parts | `CraftingLogic` |
 | 4 | a product swap keeps the payload | `Bulkable.setBulkMaterial` |
-| 5 | a tangible mint writes the merged parts | `ComposedMixin` on `Provision` |
+| 5 | a tangible mint writes the merged parts | `CompositionMixin` on `Provision` |
 
-`ComposedMixin` is link 5's home: **every food can be made of parts** — a
-loaf, a sausage, a cutlet in batter — so it composes on `Provision`, and
-an empty list costs nothing. `EatController` carries it to the mouth and
-`NutritionLabel` reads it, or the chain would evaporate at the last inch.
+`CompositionMixin` is link 5's home: **every food can be made of parts** —
+a loaf, a sausage, a cutlet in batter — so it composes on `Provision`, and
+an empty list costs nothing. It is the SAME record a bar of steel keeps
+its carbon in (`makeup`, by mass fraction); `ComposedMixin`, which carried
+a food's parts in servings, was absorbed into it. `Freshness.ingestPayload`
+carries it to the mouth and `NutritionLabel` reads it, or the chain would
+evaporate at the last inch.
+
+### ⭐⭐ One record, by mass — and servings derive (ceramics re-plan R1-D1)
+
+The makeup is stored as **fractions** of its host, and a part's absolute
+mass is `fraction × hostKg` — a piece's `getMass()`, a pool's
+`BulkSlot.getMassKg()` (litres × density). Fractions are intensive, which
+is why the record survives every pour, draw, split and top-up: a half pot
+poured off is made of what the whole pot was, and a top-up folds the two
+by volume (`BulkableApi.blendPayloads`). The servings record it replaced
+was extensive, so a pour off a pot copied the whole pot's dose into the
+bowl, and a pour into a non-empty pot dropped the source's parts.
+
+**Nothing stores a serving.** A part's servings are
+`MaterialApi.servingsOf(part, fraction × hostKg)`, over the part
+material's `servingKg` (`MaterialApi.servingKgOf`: the row's authored
+serving, else the `nutrition.servingLitres` dial — a quarter litre — at
+its density). So every reader that scales by servings takes the HOST's
+mass: `BlendLabel.amountsOf` / `toxicityOf`, `MaterialApi.blendToxicity`,
+and the ingest (`Metabolic.ingest(…, hostKg)`, the mass of the glass or
+the loaf BEFORE the draw). A full martini is gin 19 + vermouth 7; a
+half-drunk one is 13; a spirit's `servingKg` is its bar measure, so a
+recipe that uses it AT its measure is one serving of it. Water that joins
+a blend without being part of its makeup (a working's dilution, an ice
+melt) thins the fractions so each recorded part keeps its mass.
 
 
 ## ⭐ `category` — the vessel kind, and the tie between an empty and a product
@@ -517,7 +545,7 @@ reduced it to facts nothing else can recover:
 
 | field | why it cannot derive | declared in |
 |---|---|---|
-| `composition` | **what went in** — Material PATHS + servings. Everything below reads this. | `lib/bulk` |
+| `makeup` | **what went in** — Material PATHS + mass fractions of the pool. Everything below reads this. | `lib/material/Composition` |
 | `recipeId` | which recipe made it. Not a property of the ingredients: the same inputs worked by a cook and a bartender are different makings. | `lib/bulk` |
 | `cookedAtK` | the temperature the working REACHED. The heat-labile toxin kill depends on it. | `lib/bulk` |
 | `appearance` | ⚠ a boundary: rendered by `bulkContentsAugmenter` in `lib/bulk`, which may not import `lib/craft` to ask the recipe. | `lib/bulk` |
@@ -526,12 +554,13 @@ reduced it to facts nothing else can recover:
 | `freshness` | live state: microbial load + its clock stamp. | `lib/material/Freshness` |
 
 Everything else is **read**: the tastes and the tags (`BlendLabel` unions
-the ingredients'), the whole nutrition label (`BlendLabel`, shares scaled
-by servings — which is why the composition carries them), the name and
+the ingredients'), the whole nutrition label (`BlendLabel`, each part's
+servings derived from its share of the host's mass — which is why the
+makeup carries shares), the name and
 the discipline (`BlendIdentity`, off the recipe, falling back to the
 Material).
 
-⭐ **The last two rows are the interesting part: a value object cannot
+⭐ **The declared-elsewhere rows are the interesting part: a value object cannot
 compose a mixin, so the subsystems that own those facts declare their
 fields by DECLARATION MERGING from their own folders.** That is the
 payload-shaped equivalent of composing a mixin, and it is a technique the

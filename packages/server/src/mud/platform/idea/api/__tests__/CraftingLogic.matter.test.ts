@@ -284,8 +284,8 @@ describe('matter, not mark — the gather predicate', () => {
     expect(slot.getMaterialPath()).toBe(JUICE_MAT);
     const payload = slot.getPayload()!;
     expect(
-      payload.composition ?? [],
-      'no composition — the authored material is the whole answer',
+      payload.makeup ?? [],
+      'no makeup — the authored material is the whole answer',
     ).toHaveLength(0);
   });
 

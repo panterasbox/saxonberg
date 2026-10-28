@@ -150,9 +150,9 @@ export class BulkableLogic extends ApiLogic {
     // parcels can make a blend younger than its oldest half.
     // ⭐ A pool's composition (ceramics ruling C) folds by volume — the
     // dissolved-toxin shape over `materialPath`.
-    const alloying = blendComposition(from?.alloying, fromL, to?.alloying, toL);
-    if (alloying.length === 0) delete base.alloying;
-    else base.alloying = alloying;
+    const makeup = blendComposition(from?.makeup, fromL, to?.makeup, toL);
+    if (makeup.length === 0) delete base.makeup;
+    else base.makeup = makeup;
 
     const ages = [from?.maturedDays, to?.maturedDays].filter(
       (d): d is number => typeof d === 'number' && d > 0,
@@ -199,6 +199,7 @@ export class BulkableLogic extends ApiLogic {
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): void {
     if (material === null) return;
     const eater = actor as unknown as {
@@ -207,10 +208,11 @@ export class BulkableLogic extends ApiLogic {
         q: Quantity<'L'>,
         phase?: 'solid' | 'liquid',
         payload?: BulkPayload | null,
+        hostKg?: number,
       ) => void;
     };
     if (typeof eater.ingest === 'function') {
-      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid', payload);
+      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid', payload, hostKg);
     }
     // The substance's own leg, duck-typed exactly as the drinker's is
     // two lines above. A potion is a liquid that carries a working
@@ -236,6 +238,7 @@ export class BulkableLogic extends ApiLogic {
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): number {
     if (material === null) return 0;
     const eater = actor as unknown as {
@@ -244,6 +247,7 @@ export class BulkableLogic extends ApiLogic {
         q: Quantity<'L'>,
         phase?: 'solid' | 'liquid',
         payload?: BulkPayload | null,
+        hostKg?: number,
       ) => number | void;
     };
     if (typeof eater.ingest !== 'function') return 0;
@@ -252,6 +256,7 @@ export class BulkableLogic extends ApiLogic {
       Quantity.of(litres, 'L'),
       'solid',
       payload,
+      hostKg,
     );
     return typeof accepted === 'number' ? accepted : litres;
   }
@@ -667,12 +672,12 @@ export class BulkableLogic extends ApiLogic {
       // Kestrel tipped into a copper of rainwater makes it a little hard.
       // ⭐ A molten pool's composition blends by VOLUME (ceramics ruling
       // C): a green cullet tipped into a clear melt tints it.
-      if (!toWasEmpty && (fromPayload?.alloying || to.getPayload()?.alloying)) {
+      if (!toWasEmpty && (fromPayload?.makeup || to.getPayload()?.makeup)) {
         const held = to.getPayload();
-        const alloying = blendComposition(fromPayload?.alloying, applied, held?.alloying, toAmountBefore);
+        const makeup = blendComposition(fromPayload?.makeup, applied, held?.makeup, toAmountBefore);
         const next: BulkPayload = { ...(held ?? {}) };
-        if (alloying.length > 0) next.alloying = alloying;
-        else delete next.alloying;
+        if (makeup.length > 0) next.makeup = makeup;
+        else delete next.makeup;
         to.setPayload(next);
       }
       const fromDgh = fromPayload?.hardnessDgh;

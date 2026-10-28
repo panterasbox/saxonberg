@@ -736,6 +736,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
         material,
         EAT_PORTION_LITRES,
         payload,
+        MixinApi.isTangible(food) ? food.getMass().rawValue() : undefined,
       );
       if (accepted < EAT_PORTION_LITRES - 1e-9) return false;
 

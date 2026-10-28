@@ -927,7 +927,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           massKg * mouldDial(AppSettingKeys.mouldPressNPerKg, 2000) * Math.pow(1 - Math.min(1, moisture), 2);
         if (load < stiffN) continue;
         const payload: BulkPayload | null = MixinApi.isComposition(charge)
-          ? { alloying: charge.getEffectiveComposition().map((e) => ({ ...e })) }
+          ? { makeup: charge.effectiveMakeup().map((e) => ({ ...e })) }
           : null;
         const maker = MixinApi.isCrafted(charge) ? charge.getMaker() : '';
         if (payload && maker) payload.maker = maker;
@@ -1238,8 +1238,8 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
   }
   // ⭐ What was dissolved in the pool sets into the cast (ceramics ruling
   // C): a green bottle remelted comes back green; a pig's carbon rides.
-  if (p?.alloying && p.alloying.length > 0 && MixinApi.isComposition(cast)) {
-    cast.setAlloying(p.alloying);
+  if (p?.makeup && p.makeup.length > 0 && MixinApi.isComposition(cast)) {
+    cast.setMakeup(p.makeup);
   }
   if (p?.madeFrom) {
     const probe = cast as unknown as Partial<MadeFromHolding>;

@@ -587,6 +587,7 @@ export default class TreatController extends CommandController<TreatModel> {
       Quantity.of(dose, 'L'),
       'liquid',
       vessel.getBulkPayload('interior'),
+      (have * material.getDensity().rawValue()) / 1000,
     );
     if (taken > 0) vessel.debitBulk('interior', taken);
   }

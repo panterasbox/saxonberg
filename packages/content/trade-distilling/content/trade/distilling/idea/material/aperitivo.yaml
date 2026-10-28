@@ -8,6 +8,8 @@ data:
   keywords: [aperitivo]
   appearance: a bright red, bittersweet aperitivo
   density: 940
+  # One serving, kg (the unit of its label and its dose): one 30 ml measure at 940 kg/m³.
+  servingKg: 0.0282
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true

@@ -54,7 +54,7 @@ export default class Melt extends MeltBase {
    * under half a gather, the pot is spent and destructs itself.
    */
   public takeGather(kg: number): CompositionEntry[] {
-    const alloying = this.getAlloying().map((e) => ({ ...e }));
+    const alloying = this.getMakeup().map((e) => ({ ...e }));
     const have = this.getMass().rawValue();
     const drawn = Math.min(kg, have);
     const left = have - drawn;

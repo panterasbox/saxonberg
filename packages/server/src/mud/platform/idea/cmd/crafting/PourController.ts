@@ -122,7 +122,7 @@ export default class PourController extends ManualBuildController<PourModel> {
         // the same moment: a blend poured from a blend must arrive at the
         // mint knowing its ingredients, or the by-hand route silently
         // flattens them into the source's own name.
-        const sourceComposition = slot.getPayload()?.composition;
+        const sourceMakeup = slot.getPayload()?.makeup;
         const result = BulkableApi.transfer(slot, null, {
           kind: "measure",
           litres: STANDARD_POUR_L,
@@ -144,7 +144,7 @@ export default class PourController extends ManualBuildController<PourModel> {
           materialPath: material?.getTemplatePath() ?? undefined,
           freshnessLoad,
           pathogenLoads,
-          composition: sourceComposition,
+          makeup: sourceMakeup,
         });
         vessel.recordCommand(commandText);
         MessageApi.scene(giver)

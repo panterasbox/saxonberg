@@ -59,7 +59,7 @@ function piece(moisture: number, alloying: { materialPath: string; fraction: num
     p.setStampedTemperatureK(290);
     p.setLastAmbientK(290);
     p.setWaterState({ moisture, solute: 0 });
-    p.setAlloying(alloying);
+    p.setMakeup(alloying);
     return p;
   });
 }

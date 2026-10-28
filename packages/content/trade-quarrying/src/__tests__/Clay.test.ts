@@ -116,10 +116,10 @@ describe('what a clay is made of', () => {
     const before = f.crackRisk();
     // A temper of one part sand to three of clay, recorded as the lump's
     // whole make-up by mass (what the temper pit's blend writes).
-    const eff = f.getEffectiveComposition();
+    const eff = f.effectiveMakeup();
     const blended = eff.map((e) => ({ ...e, fraction: e.fraction * 0.75 }));
     blended.push({ materialPath: sand.getTemplatePath()!, fraction: 0.25 });
-    f.setAlloying(blended);
+    f.setMakeup(blended);
     expect(f.crackRisk()).toBeLessThan(before);
     expect(f.shares().opener).toBeGreaterThan(0.3);
   });
@@ -207,7 +207,7 @@ describe('a clay’s year', () => {
     const b = lumpOf(common);
     a.setWeatheredDays(40);
     b.setWeatheredDays(0);
-    b.setAlloying([{ materialPath: sand.getTemplatePath()!, fraction: 0.2 }]);
+    b.setMakeup([{ materialPath: sand.getTemplatePath()!, fraction: 0.2 }]);
     stampTemplatePathForTest(a, '/trade/quarrying/thing/clay');
     stampTemplatePathForTest(b, '/trade/quarrying/thing/clay');
     expect(a.canMergeWith(b)).toBe(true);

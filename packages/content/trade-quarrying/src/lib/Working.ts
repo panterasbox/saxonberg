@@ -693,7 +693,7 @@ export function OpenWorkingMixin<
         seed,
       );
       if (sample.grade > 0 && sample.mineralPath && MixinApi.isComposition(thing)) {
-        thing.setAlloying([
+        thing.setMakeup([
           { materialPath: sample.mineralPath, fraction: sample.grade },
         ]);
       }

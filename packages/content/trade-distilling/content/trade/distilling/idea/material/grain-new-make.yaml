@@ -15,6 +15,8 @@ data:
   keywords: ["grain spirit", "grain new-make", grain, spirit]
   appearance: "a thin, water-clear spirit with little smell to it"
   density: 930
+  # One serving, kg (the unit of its label and its dose): one 60 ml measure at 930 kg/m³.
+  servingKg: 0.0558
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true

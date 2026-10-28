@@ -942,7 +942,8 @@ export default class Material extends SingletonMixin(
   protected nutrients: string[] = [];
 
   /**
-   * Inspectable nutrient amounts (tag → mg per serving) — the
+   * Inspectable nutrient amounts (tag → mg per serving, see
+   * {@link servingKg}) — the
    * education-by-reference profile `examine <food>` surfaces. Parallel
    * to {@link nutrients}: the tags drive routing, these amounts are
    * data + display only (no body-side machinery). A flat
@@ -952,9 +953,27 @@ export default class Material extends SingletonMixin(
   protected nutrientAmounts: Record<string, number> = {};
 
   /**
+   * ⭐ **What one serving of this material is, in kg** — the unit every
+   * per-serving number on this row ({@link nutrientAmounts},
+   * {@link toxicity}) is per (ceramics re-plan R1-D1). `0` = unauthored,
+   * and the serving derives as the `nutrition.servingLitres` dial (a
+   * quarter litre) at this material's density — read it through
+   * `MaterialApi.servingKgOf`, never here, so the default lives in one
+   * place.
+   *
+   * ⭐ A blend stores what went into it as mass FRACTIONS (`makeup`), and
+   * a part's servings derive at the read: `fraction × hostKg / servingKg`.
+   * So this is what keeps a martini at gin 19 + vermouth 7: gin's serving
+   * is its bar measure (60 ml × 940 kg/m³), and a recipe that uses gin AT
+   * its measure gives exactly one serving of it.
+   */
+  protected servingKg = 0;
+
+  /**
    * Per-consumable toxin doses — `{type, amount}[]`. `type` is the toxin
    * (and its `Condition` key, e.g. `'alcohol'`); `amount` is the dose
-   * per serving (mg for solids / derived for liquids). The per-body rate
+   * per serving (see {@link servingKg}; mg for solids / derived for
+   * liquids). The per-body rate
    * params (absorption, clearance, potency, severity bands) live on the
    * toxin's `Condition` seed, NOT here — the same amount-vs-rate split as
    * nutrients. A list of flat objects → default-applier round-trip (the
@@ -1235,6 +1254,9 @@ export default class Material extends SingletonMixin(
     edibility: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ What one serving is, kg — the unit of the two rows around it.
+    // Collapsed like its siblings: knowing it is knowing the label.
+    servingKg: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
     combustionImparts: { persistent: true, spoiler: 1, spoilerName: 0 },
     // ⭐ (cleanliness D22, D24) What burning it gives off, what share of the
@@ -1367,6 +1389,14 @@ export default class Material extends SingletonMixin(
       }
     }
     this.nutrientAmounts = { ...value };
+  }
+
+  /** The AUTHORED serving, kg; `0` = unauthored (see `MaterialApi.servingKgOf`). */
+  public getServingKg(): number {
+    return this.servingKg;
+  }
+  public setServingKg(value: number): void {
+    this.servingKg = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   public getToxicity(): readonly ToxinTag[] { return this.toxicity; }

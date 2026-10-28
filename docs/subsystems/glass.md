@@ -81,7 +81,8 @@ dial, and the one place the build's "derivable throughout" bends.
 
 What is dissolved in a piece and what a heat treatment left in it are
 two claims: `CompositionMixin` (`lib/material/Composition.ts` —
-`alloying`, `fractionOf`, `setAlloying`) and `TemperedMixin`
+`makeup`, `fractionOf`, `setMakeup` — `alloying` until ceramics re-plan
+R1) and `TemperedMixin`
 (`lib/material/Tempered.ts` — `temper`). `AlloyedMixin` is the two
 together, what metal stock composes; a lump of glass, wax or ice keeps
 its fractions and claims no temper. So `/stuff/thing/Casting` (cullet,

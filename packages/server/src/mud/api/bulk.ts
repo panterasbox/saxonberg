@@ -204,15 +204,18 @@ export class BulkableApi {
    * method; v1 no-op). Used by `drink` / `sip`. Duck-typed so a
    * non-Creature giver can't crash the verb; `null` material is a
    * no-op. The bridge lives in the Api layer so both verbs route
-   * through one place.
+   * through one place. `hostKg` is the mass of what it was drawn from,
+   * read BEFORE the draw (`BulkSlot.getMassKg`) — what a blend's makeup
+   * is read against.
    */
   static ingest(
     actor: Stuff,
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): void {
-    logic().ingest(actor, material, litres, payload);
+    logic().ingest(actor, material, litres, payload, hostKg);
   }
 
   /**
@@ -229,8 +232,9 @@ export class BulkableApi {
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): number {
-    return logic().ingestSolid(actor, material, litres, payload);
+    return logic().ingestSolid(actor, material, litres, payload, hostKg);
   }
 
   /**

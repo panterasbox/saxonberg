@@ -65,11 +65,11 @@ describe('AlloyedMixin', () => {
 
   it('⭐ an un-set piece alloys NOTHING — the sparse default', () => {
     const b = bar(STEEL);
-    expect(b.getAlloying()).toEqual([]);
+    expect(b.getMakeup()).toEqual([]);
     expect(b.fractionOf(CARBON)).toBe(0);
     expect(b.getTemper()).toBe('none');
     // …and reads exactly the material's own kind composition.
-    expect(b.getEffectiveComposition()).toEqual([
+    expect(b.effectiveMakeup()).toEqual([
       { materialPath: IRON, fraction: 0.998 },
       { materialPath: CARBON, fraction: 0.002 },
     ]);
@@ -93,11 +93,11 @@ describe('AlloyedMixin', () => {
   it('⚠ setFractionOf(0) REMOVES rather than storing a zero', () => {
     const b = bar(IRON);
     b.setFractionOf(CARBON, 0.006);
-    expect(b.getAlloying()).toHaveLength(1);
+    expect(b.getMakeup()).toHaveLength(1);
     b.setFractionOf(CARBON, 0);
     // A bar carburized and melted back down must be indistinguishable
     // from one that never was.
-    expect(b.getAlloying()).toEqual([]);
+    expect(b.getMakeup()).toEqual([]);
     expect(b.fractionOf(CARBON)).toBe(0);
   });
 
@@ -108,15 +108,15 @@ describe('AlloyedMixin', () => {
     b.setFractionOf(CARBON, -1);
     expect(b.fractionOf(CARBON)).toBe(0);
     b.setFractionOf('', 0.5);
-    expect(b.getAlloying()).toEqual([]);
-    b.setAlloying([{ materialPath: CARBON, fraction: Number.NaN }]);
-    expect(b.getAlloying()).toEqual([]);
+    expect(b.getMakeup()).toEqual([]);
+    b.setMakeup([{ materialPath: CARBON, fraction: Number.NaN }]);
+    expect(b.getMakeup()).toEqual([]);
   });
 
   it('⭐ the effective composition scales the KIND by what is left', () => {
     const b = bar(STEEL);
     b.setFractionOf(CARBON, 0.008);
-    const composition = b.getEffectiveComposition();
+    const composition = b.effectiveMakeup();
     // The kind's entries, scaled by 1 − 0.008…
     expect(composition[0]).toEqual({ materialPath: IRON, fraction: 0.998 * 0.992 });
     // …and the instance's own on the end.
@@ -133,19 +133,19 @@ describe('AlloyedMixin', () => {
     // deliberately omits, so this reports only what is dissolved.
     const b = bar(IRON);
     b.setFractionOf(CARBON, 0.006);
-    expect(b.getEffectiveComposition()).toEqual([
+    expect(b.effectiveMakeup()).toEqual([
       { materialPath: CARBON, fraction: 0.006 },
     ]);
   });
 
-  it('setAlloying merges duplicate entries and drops empty ones', () => {
+  it('setMakeup merges duplicate entries and drops empty ones', () => {
     const b = bar(IRON);
-    b.setAlloying([
+    b.setMakeup([
       { materialPath: CARBON, fraction: 0.004 },
       { materialPath: CARBON, fraction: 0.002 },
       { materialPath: IRON, fraction: 0 },
     ]);
-    expect(b.getAlloying()).toEqual([{ materialPath: CARBON, fraction: 0.006 }]);
+    expect(b.getMakeup()).toEqual([{ materialPath: CARBON, fraction: 0.006 }]);
   });
 
   it('temper is a two-value vocabulary and refuses anything else', () => {

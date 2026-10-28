@@ -217,7 +217,7 @@ function isClay(s: Stuff): boolean {
 
 /** Tempered = something was kneaded into it (its own make-up is recorded). */
 function isTempered(s: Stuff): boolean {
-  return MixinApi.isComposition(s) && s.getAlloying().length > 0;
+  return MixinApi.isComposition(s) && s.getMakeup().length > 0;
 }
 
 /** Sand, grog or breeze — the materials a temper reads as openers. */

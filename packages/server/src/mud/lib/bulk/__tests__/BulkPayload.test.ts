@@ -40,11 +40,13 @@ function makeVessel(amountL: number): TestVessel {
 // The name, the appearance, the label and the tastes are all READ off
 // these — so this suite asserts the round-trip of the facts, not of a
 // derived string.
+const ROOT = '/stuff/idea/material/food/root-vegetable';
+const MEAT = '/stuff/idea/material/food/stew-meat';
 const STEW_PAYLOAD: BulkPayload = {
   recipeId: 'hearty-stew',
-  composition: [
-    { materialPath: '/stuff/idea/material/food/root-vegetable', servings: 1 },
-    { materialPath: '/stuff/idea/material/food/stew-meat', servings: 2 },
+  makeup: [
+    { materialPath: ROOT, fraction: 1 / 3 },
+    { materialPath: MEAT, fraction: 2 / 3 },
   ],
 };
 
@@ -61,7 +63,7 @@ describe('BulkPayload on a slot', () => {
     const slot = BulkableApi.slotFor(v, undefined)!;
     slot.setPayload(STEW_PAYLOAD);
     expect(slot.getPayload()!.recipeId).toBe('hearty-stew');
-    expect(slot.getPayload()!.composition).toHaveLength(2);
+    expect(slot.getPayload()!.makeup).toHaveLength(2);
     expect(slot.getPayload()).not.toBe(STEW_PAYLOAD); // stored copy
 
     // Draining the slot clears the payload with the matter.
@@ -91,10 +93,36 @@ describe('BulkPayload on a slot', () => {
     expect(res.applied).toBeCloseTo(0.2, 9);
     // The bowl holds the same blend; the pot (still half full) keeps its.
     // ⚠ The SHARES ride along too — a transfer that kept the recipe and
-    // dropped the composition would still name the drink correctly and
+    // dropped the makeup would still name the drink correctly and
     // silently flatten its nutrition to nothing.
+    // ⭐ And BOTH halves keep the whole makeup (R1-D1): a fraction is
+    // intensive, so a half pot poured off is made of what the pot was —
+    // where absolute servings copied the whole pot's dose into the bowl.
     expect(to.getPayload()!.recipeId).toBe('hearty-stew');
     expect(from.getPayload()!.recipeId).toBe('hearty-stew');
-    expect(to.getPayload()!.composition?.map((c) => c.servings)).toEqual([1, 2]);
+    expect(to.getPayload()!.makeup).toEqual(STEW_PAYLOAD.makeup);
+    expect(from.getPayload()!.makeup).toEqual(STEW_PAYLOAD.makeup);
+  });
+
+  it('⭐ a stew poured into a pot of stew keeps its ingredients — the makeup folds by volume', () => {
+    makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('broth');
+      return m;
+    }, BROTH);
+    const pot = makeVessel(0.2);
+    const other = makeVessel(0.2);
+    const from = BulkableApi.slotFor(pot, undefined)!;
+    const to = BulkableApi.slotFor(other, undefined)!;
+    from.setPayload(STEW_PAYLOAD);
+    to.setPayload({ makeup: [{ materialPath: ROOT, fraction: 1 }] });
+
+    BulkableApi.transfer(from, to, { kind: 'all' });
+    // Equal volumes: root (1/3 + 1)/2, meat (2/3 + 0)/2. The source's
+    // parts used to be DROPPED by a pour into a non-empty pot.
+    const share = (path: string): number =>
+      to.getPayload()!.makeup?.find((e) => e.materialPath === path)?.fraction ?? 0;
+    expect(share(ROOT)).toBeCloseTo(2 / 3, 9);
+    expect(share(MEAT)).toBeCloseTo(1 / 3, 9);
   });
 });

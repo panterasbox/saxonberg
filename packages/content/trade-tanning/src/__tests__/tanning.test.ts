@@ -144,7 +144,7 @@ describe('the hide is what tans; the pit is the condition', () => {
     expect(MixinApi.isCrafted(h)).toBe(true);
     expect(MixinApi.isTangible(h)).toBe(true);
     // The food-only machinery is absent.
-    expect(MixinApi.isComposed(h)).toBe(false);
+    expect(MixinApi.isComposition(h)).toBe(false);
   });
 
   it('⭐ a hide on the ground does not tan, and needs no guard to say so', () => {

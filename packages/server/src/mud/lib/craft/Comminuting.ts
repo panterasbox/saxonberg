@@ -29,8 +29,8 @@
  * is the whole point: a band ladder would make two settings identical and
  * turn a decision into a menu.
  *
- * The product's payload carries that as a `composition` (inner part +
- * outer part) and a `water.moisture`, so the nutrition label, the tags and
+ * The product's payload carries that as a `makeup` (inner part +
+ * outer part, by mass fraction) and a `water.moisture`, so the nutrition label, the tags and
  * the keeping all move continuously with `e` through machinery that
  * already existed. **No material row per band.**
  *
@@ -49,7 +49,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { BlendPart } from '../bulk/Bulkable';
+import type { CompositionEntry } from '../material/Material';
 import type { WaterState } from '../material/WaterActivity';
 import { Grade } from './Grade';
 import { MixinApi } from '../../api/mixin';
@@ -58,8 +58,6 @@ import type Material from '../material/Material';
 
 /** Comminution defaults — playtest numbers, not decisions. */
 const COMMINUTION_DEFAULTS = {
-  /** Kilograms in one nutrition "serving" — the composition's unit. */
-  SERVING_KG: 0.1,
   /** Density (kg/m3) assumed for matter whose Material tabulates none. */
   DEFAULT_DENSITY: 600,
   /** The product's moisture at pure-inner extraction (the driest case). */
@@ -89,8 +87,13 @@ export interface ComminutionPlan {
    * in `extraction`, and the number every derived reading comes from.
    */
   outerShare: number;
-  /** The product payload's composition (inner part + outer part). */
-  composition: BlendPart[];
+  /**
+   * The product payload's makeup — inner part `1 − outerShare`, outer
+   * part `outerShare`, by mass fraction. A part's servings derive at the
+   * read from its row's `servingKg` (flour's and bran's are the 100 g this
+   * mill used to carry as its own constant).
+   */
+  makeup: CompositionEntry[];
   /** The product payload's water state — wetter as the outer share rises. */
   water: WaterState;
   /** Grade of the product: weakest link of the input and the instrument. */
@@ -355,20 +358,13 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
       const b = clamp(boltFraction, 0, 1);
       const outerShare = e > 0 ? Math.max(0, e - (1 - b)) / e : 0;
 
-      const composition: BlendPart[] = [];
-      const servings = productKg / COMMINUTION_DEFAULTS.SERVING_KG;
-      if (servings > 0) {
+      const makeup: CompositionEntry[] = [];
+      if (productKg > 0) {
         if (productMaterial) {
-          composition.push({
-            materialPath: productMaterial,
-            servings: servings * (1 - outerShare),
-          });
+          makeup.push({ materialPath: productMaterial, fraction: 1 - outerShare });
         }
         if (residueMaterial && outerShare > 0) {
-          composition.push({
-            materialPath: residueMaterial,
-            servings: servings * outerShare,
-          });
+          makeup.push({ materialPath: residueMaterial, fraction: outerShare });
         }
       }
 
@@ -408,7 +404,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
         tollKg,
         tollL: litresOf(tollKg, productMaterial),
         outerShare,
-        composition,
+        makeup,
         water,
         grade,
         productMaterial,

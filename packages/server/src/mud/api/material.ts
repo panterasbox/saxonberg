@@ -432,9 +432,12 @@ export class MaterialApi {
   }
 
   /**
-   * The per-serving toxin doses in a blend: the ingredients' own, scaled
-   * by their servings and filtered by the heat the working actually
-   * reached, PLUS whatever the making or the keeping formed.
+   * The per-ingest toxin doses in a blend: the ingredients' own, scaled
+   * by their servings in `hostKg` of it (each part is `fraction × hostKg`
+   * of the whole) and filtered by the heat the working actually reached,
+   * PLUS whatever the making or the keeping formed. `hostKg` is the whole
+   * host the ingest is from — a glass's contents, a loaf — so a full
+   * martini is 26 and a half-drunk one 13.
    *
    * ⚠ A **formed** toxin rides past the heat filter unless its author
    * marked it labile — heat stops growth, it does not un-poison what the
@@ -443,8 +446,31 @@ export class MaterialApi {
   public static blendToxicity(
     payload: BulkPayload | null,
     blend: Material | null,
+    hostKg: number,
   ): readonly ToxinTag[] {
-    return logic().blendToxicity(payload, blend);
+    return logic().blendToxicity(payload, blend, hostKg);
+  }
+
+  // ---------- the serving ----------
+
+  /**
+   * ⭐ **One serving of `material`, kg** — the unit every per-serving
+   * label amount and toxin dose on its row is per. The row's authored
+   * `servingKg` (a spirit's bar measure, flour's 100 g), else the
+   * `nutrition.servingLitres` dial (a quarter litre) at its density.
+   */
+  public static servingKgOf(material: Material): number {
+    return logic().servingKgOf(material);
+  }
+
+  /**
+   * ⭐ **How many servings `kg` of `material` is** — the ONE place a
+   * serving count exists (ceramics re-plan R1-D1). Nothing stores
+   * servings: a blend stores what went in as mass fractions, and a
+   * part's servings are `servingsOf(part, fraction × hostKg)` at the read.
+   */
+  public static servingsOf(material: Material, kg: number): number {
+    return logic().servingsOf(material, kg);
   }
 }
 

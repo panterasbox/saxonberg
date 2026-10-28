@@ -52,7 +52,7 @@ function good(f: Fake) {
     isGreen: () => f.green === true,
     isFireable: () => f.fireable === true,
     getRuin: () => f.ruin ?? null,
-    getAlloying: () => Array.from({ length: f.alloy ?? 0 }, () => ({ materialPath: '/sand', fraction: 0.1 })),
+    getMakeup: () => Array.from({ length: f.alloy ?? 0 }, () => ({ materialPath: '/sand', fraction: 0.1 })),
     stampedOwner: () => (f.player ? { kind: 'player', templatePath: '/p' } : null),
     getMaker: () => f.maker ?? '',
     getTemperature: () => ({ rawValue: () => f.tempK ?? 290 }),

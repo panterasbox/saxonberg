@@ -64,6 +64,8 @@ export default class SipController extends CommandController<SipModel> {
     // ⭐ The INGEST payload, not the stored one: whatever the matter
     // has spoiled into rides along with it (see `Freshness.withDose`).
     const payload = new Freshness(fromSlot).ingestPayload();
+    // The whole host BEFORE the sip — what a blend's makeup is read against.
+    const hostKg = fromSlot.getMassKg();
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
       litres: SIP_LITRES,
@@ -79,7 +81,7 @@ export default class SipController extends CommandController<SipModel> {
       return;
     }
 
-    BulkableApi.ingest(giver, material, result.applied, payload);
+    BulkableApi.ingest(giver, material, result.applied, payload, hostKg);
 
     const appearance =
       CraftingApi.blendAppearance(payload, material) || 'it';

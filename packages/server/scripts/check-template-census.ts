@@ -558,20 +558,22 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
-   * ⭐ `alloying[].materialPath` — the PER-INSTANCE half of the same
-   * fact, and the same vocabulary. `AlloyedMixin` says what is dissolved
-   * in one particular bar; `composition` says what the kind is. An
-   * authored row that seeds a starting carbon (the smithy's props, a
-   * fixture) names the constituent by path exactly as a composition
-   * does, and an unresolvable one would make `getEffectiveComposition`
-   * and `analyze chemistry` quietly wrong about what the metal IS —
-   * which is precisely why the composition walk above exists.
+   * ⭐ `makeup[].materialPath` — the PER-INSTANCE half of the same
+   * fact, and the same vocabulary (it was `alloying` until ceramics
+   * re-plan R1). `CompositionMixin` says what one particular bar, cake
+   * or loaf is made of; `composition` says what the kind is. An authored
+   * row that seeds a starting carbon (the smithy's props, a fixture) or a
+   * counter loaf's flour and bran names the constituent by path exactly as
+   * a composition does, and an unresolvable one would make
+   * `effectiveMakeup`, the nutrition label and `analyze chemistry`
+   * quietly wrong about what the thing IS — which is precisely why the
+   * composition walk above exists.
    */
-  const alloying = data.alloying;
-  if (Array.isArray(alloying)) {
-    for (const part of alloying) {
+  const makeup = data.makeup;
+  if (Array.isArray(makeup)) {
+    for (const part of makeup) {
       if (part && typeof part === 'object') {
-        push('alloying.materialPath', (part as Record<string, unknown>).materialPath);
+        push('makeup.materialPath', (part as Record<string, unknown>).materialPath);
       }
     }
   }

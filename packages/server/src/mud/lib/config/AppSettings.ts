@@ -2176,6 +2176,11 @@ export const AppSettingKeys = {
   /** Crafting — kilograms of ice an iced drink takes from the reachable
    * ice bin at the fill (the bar's scoop). */
   craftingIceKg: "crafting.iceKg",
+  /** Nutrition — litres of a material that make one serving when its row
+   * authors no `servingKg` (at the material's density). The unit every
+   * per-serving label amount and toxin dose is per (ceramics re-plan
+   * R1-D1); read through `MaterialApi.servingKgOf`. */
+  nutritionServingLitres: "nutrition.servingLitres",
 
   /*
    * Wiki — the render budget (docs/subsystems/wiki.md).

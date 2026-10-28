@@ -117,7 +117,6 @@ import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
 import type { Kinetic } from '../lib/material/Kinetic';
 import type { Dosed } from '../lib/thermal/ThermalDose';
-import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
 import type { WaterActive } from '../lib/material/WaterActivity';
 import type { Alloyed } from '../lib/material/Alloyed';
@@ -1544,16 +1543,6 @@ export class MixinApi {
   }
 
   /**
-   * A host that can be **made of parts** — a discrete food carrying the
-   * ingredient list a blend carries on its payload. Composed on
-   * `Provision`; an empty list is the sparse default, and readers fall
-   * back to the host's own Material exactly as they do for a blend.
-   */
-  public static isComposed(obj: Stuff): obj is Stuff & Composed {
-    return this.hasMixin(obj, Mixins.Composed);
-  }
-
-  /**
    * A host carrying the **doneness** gauge — how much cooking it has had.
    * Composed on `Provision` (every food can be cooked), so the predicate
    * is true of all food; what decides whether it reads as anything is
@@ -1587,9 +1576,10 @@ export class MixinApi {
   }
 
   /**
-   * A piece that can say what is dissolved in it — metal stock, AND a
-   * re-meltable lump of glass, wax or ice (the generic `Casting`). Ask
-   * this, not {@link isAlloyed}, when only the fractions matter.
+   * A piece that can say what it is made of, by mass fraction — metal
+   * stock, a re-meltable lump of glass, wax or ice (the generic
+   * `Casting`), AND every food (`Provision`: a loaf's flour and bran).
+   * Ask this, not {@link isAlloyed}, when only the fractions matter.
    */
   public static isComposition(obj: Stuff): obj is Stuff & Composition {
     return this.hasMixin(obj, Mixins.Composition);

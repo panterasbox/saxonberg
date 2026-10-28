@@ -492,7 +492,7 @@ describe('a won load remembers its assay (glass W3)', () => {
     const plan = (await pit.planWork(actor, spade(), 'sand')) as WorkPlan;
     await pit.completeWork(actor, spade(), plan.token);
     expect(lastWon).not.toBeNull();
-    const won = lastWon as unknown as { getAlloying(): readonly unknown[] };
-    expect(won.getAlloying()).toHaveLength(0);
+    const won = lastWon as unknown as { getMakeup(): readonly unknown[] };
+    expect(won.getMakeup()).toHaveLength(0);
   });
 });

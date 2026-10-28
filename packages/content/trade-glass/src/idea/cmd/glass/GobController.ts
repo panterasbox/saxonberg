@@ -75,7 +75,7 @@ function isWorkable(p: GlassPiece): boolean {
  * gather again is gone into the gather.
  */
 function takeFrom(p: GlassPiece, kg: number): CompositionEntry[] {
-  const alloying = p.getAlloying().map((e) => ({ ...e }));
+  const alloying = p.getMakeup().map((e) => ({ ...e }));
   const left = p.getMass().rawValue() - Math.min(kg, p.getMass().rawValue());
   if (left < kg * 0.5) void StuffApi.destruct(p);
   else p.setMass(Quantity.of(left, "kg"));
@@ -138,7 +138,7 @@ export default class GobController extends ManualBuildController<GobModel> {
     gather.setMass(Quantity.of(gatherKg, "kg"));
     gather.setStampedTemperatureK(meltK);
     gather.setForm("gather");
-    if (MixinApi.isComposition(gather) && alloying.length > 0) gather.setAlloying(alloying);
+    if (MixinApi.isComposition(gather) && alloying.length > 0) gather.setMakeup(alloying);
     ContainmentApi.move(gather as unknown as Stuff & Containable, pipe);
 
     const watch = new HotWorkWatch({

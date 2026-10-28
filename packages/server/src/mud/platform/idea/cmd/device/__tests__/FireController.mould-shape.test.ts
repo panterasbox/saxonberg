@@ -90,7 +90,7 @@ function stockOf(agent: number, kg = 0.2): Casting {
   stampTemplatePathForTest(t, STOCK_ROW);
   t.setMass(Quantity.of(kg, 'kg'));
   t.setMaterial(StuffApi.findByTemplatePath<Material>(FEED) as unknown as Material);
-  t.setAlloying([
+  t.setMakeup([
     { materialPath: FEED, fraction: 1 - agent },
     { materialPath: AGENT, fraction: agent },
   ]);

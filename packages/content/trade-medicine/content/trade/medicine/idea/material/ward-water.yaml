@@ -5,6 +5,8 @@ data:
   keywords: [ward-water, draught, antibiotic, wardmoss]
   appearance: a dark green infusion
   density: 1000
+  # One serving, kg (the unit of its label and its dose): a 250 ml draught at 1000 kg/m³.
+  servingKg: 0.25
   edibility: true
   toxicity:
     - { type: antibiosis, amount: 2 }

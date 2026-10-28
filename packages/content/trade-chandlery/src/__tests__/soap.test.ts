@@ -163,7 +163,7 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     const a = makeStuff(() => new TestAsh());
     a.setMaterial(material(['organic', 'potash']));
     a.setMass(Quantity.of(kg, 'kg'));
-    a.setAlloying([{ materialPath: POTASH, fraction: strength }]);
+    a.setMakeup([{ materialPath: POTASH, fraction: strength }]);
     ContainmentApi.move(a, h);
     return a;
   }
@@ -322,7 +322,7 @@ describe('⭐ ash put into liquor already in the hopper leaches too (the drive)'
     const a = makeStuff(() => new TestAsh());
     a.setMaterial(material(['organic', 'potash']));
     a.setMass(Quantity.of(2, 'kg'));
-    a.setAlloying([{ materialPath: POTASH, fraction: 0.15 }]);
+    a.setMakeup([{ materialPath: POTASH, fraction: 0.15 }]);
     ContainmentApi.move(a, h);
     expect(h.getBulkPayload('interior')?.dissolvedSolidsKgPerL).toBeCloseTo(0.02 + 0.03, 6);
   });

@@ -94,7 +94,7 @@ describe("the shipped rows", () => {
     expect(pot.data["blendTemplate"]).toBe("/trade/glass/thing/batch");
     const batch = row(thingDir, "batch.yaml");
     expect(batch.class).toBe("/trade/glass/thing/Melt");
-    expect(batch.data["alloying"]).toBeUndefined(); // computed, never authored
+    expect(batch.data["makeup"]).toBeUndefined(); // computed, never authored
   });
 });
 
@@ -150,7 +150,7 @@ describe("mix, then fire", () => {
 
   function sandOf(ironFraction: number, kg = 4): Sand {
     const s = piece(() => new Sand(), sandM, kg);
-    s.setAlloying([{ materialPath: IRON, fraction: ironFraction }]);
+    s.setMakeup([{ materialPath: IRON, fraction: ironFraction }]);
     return s;
   }
 
