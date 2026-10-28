@@ -56,7 +56,9 @@ export type GreenRuin = 'slumped' | 'shattered' | null;
 const CARVINGS: Readonly<Record<string, { line: string; keep: number }>> = {
   foot: { line: 'a turned foot', keep: 0.95 },
   trim: { line: 'a trimmed wall', keep: 0.95 },
-  pattern: { line: 'a pattern cut into it', keep: 0.98 },
+  // ⭐ `design`, not `pattern`: a pattern is the founder's shape to cast from
+  // (`carve pattern of <thing> from <board>`) — one word, one thing.
+  design: { line: 'a design cut into it', keep: 0.98 },
 };
 
 export interface Greenware extends Carvable, Impressible {
@@ -168,7 +170,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
     static markupAugmenters: MarkupAugmenter[] = [greenAugmenter];
 
     /**
-     * ⭐ A green piece affords `carve` — trim, turn a foot, cut a pattern —
+     * ⭐ A green piece affords `carve` — trim, turn a foot, cut a design —
      * whoever is holding it or beside it. Its own plan asks for the edge.
      * Without this nothing conferred the verb on a leather-hard pot, and
      * `carve foot on mug` was "I don't understand" (the ceramics drive).
@@ -198,7 +200,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
 
     /**
      * ⭐ The kernel's carve for a green piece (ceramics W4): trim the wall,
-     * turn a foot, cut a pattern — at LEATHER-HARD only. Too soft, it
+     * turn a foot, cut a design — at LEATHER-HARD only. Too soft, it
      * smears; too dry, it cracks. Credits pottery.
      */
     public async carvePlan(req: CarveRequest): Promise<CarvePlan | CarveRefusal> {
@@ -209,7 +211,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
         return {
           ok: false,
           reason: 'not-carvable',
-          line: Mml.compose`You can trim ${Mml.thing(self)}, turn a foot on it, or cut a pattern into it.`,
+          line: Mml.compose`You can trim ${Mml.thing(self)}, turn a foot on it, or cut a design into it.`,
         };
       }
       const refused = this.leatherHardRefusal('trim');

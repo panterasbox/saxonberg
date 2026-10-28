@@ -158,7 +158,7 @@ YIELDS the piece (`Clay.yieldPieces`).
 At LEATHER-HARD a green piece is worked on, and the piece answers the verb
 (`GreenwareMixin` implements `Carvable` and `Impressible`):
 
-- **`carve foot on mug`** / `carve trim on jug` / `carve pattern on bowl` —
+- **`carve foot on mug`** / `carve trim on jug` / `carve design on bowl` —
   the green piece's `carvePlan`: a few minutes with any edge, a little mass
   pared off, the work recorded in words (`a turned foot`), pottery credited.
   Plastic refuses (`too-soft` — it would smear), bone-dry refuses (`too-dry`
