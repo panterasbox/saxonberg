@@ -1593,9 +1593,11 @@ export default class Species extends SingletonMixin(
    * standard reduces to. A 600 kg cow eats about twelve, a 60 kg ewe
    * about two and a quarter, a 2 kg hen a sixth of a kilo. A fact about a
    * body's SIZE, so no row authors it; `0` for a species with no mass.
+   * Given an age, the size is the body's at that age ({@link massAt}).
    */
-  public dryMatterIntakeKgPerDay(): number {
-    const m = this.adultMass;
+  public dryMatterIntakeKgPerDay(ageDays?: number): number {
+    // ⭐ A calf is not a cow: with an age, the body's mass at that age.
+    const m = ageDays === undefined ? this.adultMass : this.massAt(ageDays);
     return m > 0 ? 0.1 * Math.pow(m, 0.75) : 0;
   }
 

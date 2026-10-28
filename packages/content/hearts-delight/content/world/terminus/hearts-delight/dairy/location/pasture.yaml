@@ -2,9 +2,10 @@
 #
 # ⭐ A herd grazes a field or it grazes nothing (D12). The cows used to
 # have a meadow that was a sentence in the yard's description; this is
-# the field, sized to the herd (twelve thousand square metres: about a
-# hectare and a quarter for six cows and their calves), with the rick
-# and the trough at the head of it.
+# the field, sized to the herd: three hectares for six cows and their
+# calves — a cow wants about half a hectare through a season, because a
+# good sward grows at most eighty kilos a hectare on a May day and a cow
+# eats eleven (cover build B19). The rick and the trough are at its head.
 class: /trade/farming/location/SingletonField
 data:
   fieldName: the dairy pasture
@@ -20,7 +21,7 @@ data:
   ambientColorTemperature: 5800
   groundSpotX: 14
   groundSpotY: 2
-  areaM2: 12000
+  areaM2: 30000
   legumeFraction: 0.3
   exits:
     north:

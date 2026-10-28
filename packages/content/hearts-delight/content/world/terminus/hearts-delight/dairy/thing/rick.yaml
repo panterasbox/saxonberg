@@ -4,4 +4,4 @@
 extends: /trade/farming/thing/rick
 data:
   props:
-    - { template: /trade/farming/thing/hay-stack, count: 4 }
+    - { template: /trade/farming/thing/hay-stack, count: 8 }

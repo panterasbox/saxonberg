@@ -255,21 +255,20 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await doing(p, 'go field');
     await refused(p, 'sow wheat', 'not-held');
     await doing(p, 'go yard');
-    // Hired and on shift, it moves — the home field is wanted for the plough.
+    // Hired: the labourer's seat.
     await doing(p, 'apply for labourer');
-    await doing(p, 'clock on');
-    await doing(p, 'go field');
-    await doing(p, 'move college herd to back paddock');
-    await doing(p, 'go east');
-    expect(await read(p, 'look')).toMatch(/six head of the college herd are grazing it/i);
-    await doing(p, 'go west');
   }, 600_000);
 
-  it('3. on shift, the field is ploughed for the season — once', async () => {
+  it('3. on shift, the herd goes to the paddock and the field is ploughed for the season — once', async () => {
     // Spring.
     await toDay(80);
     await goTo(HOME_FIELD);
     await act(p, 'clock on');
+    // 13. On shift, the herd moves — the home field is wanted for the plough.
+    await doing(p, 'move college herd to back paddock');
+    await doing(p, 'go east');
+    expect(await read(p, 'look')).toMatch(/six head of the college herd are grazing it/i);
+    await doing(p, 'go west');
     let said = '';
     for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
       said = (await act(p, 'plough')).said + ' ' + (await read(p, 'look'));
@@ -288,6 +287,22 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     void said;
     expect(await read(p, 'inventory')).not.toMatch(/seed wheat/i);
     expect(await read(p, 'look')).toMatch(/stand of wheat grows over about a third of it/i);
+  }, 1_800_000);
+
+  it('14. grazing: a fortnight on the paddock takes the grass down; a drafted head holds condition', async () => {
+    await goTo(PADDOCK);
+    const before = await read(p, 'look');
+    await advance(14 * DAY);
+    await daylight();
+    await goTo(PADDOCK);
+    const after = await read(p, 'look');
+    expect(after).toMatch(/six head of the college herd are grazing it/i);
+    note(`paddock grass: «${/The grass is ([^.]*)\./.exec(before)?.[1]}» → «${/The grass is ([^.]*)\./.exec(after)?.[1]}»`);
+    await goTo(YARD);
+    await doing(p, 'draft 3');
+    const held = await condition(p, 'cow');
+    expect(held).not.toMatch(/emaciated|wasted|skin and bone/i);
+    await doing(p, 'return cow');
   }, 1_800_000);
 
   it('6. through the season the stages are named in words', async () => {

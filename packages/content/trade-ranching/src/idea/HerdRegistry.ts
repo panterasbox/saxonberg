@@ -493,7 +493,11 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     }
     if (to) {
       const species = await loadSpecies(herd.speciesPath);
-      const each = species?.dryMatterIntakeKgPerDay() ?? 0;
+      // A herd eats what its heads' SIZE says — at the herd's mean age,
+      // so a register of calves eats like calves.
+      const now = nowSeconds() ?? herd.founded;
+      const meanAge = herd.foundingMeanAgeDays + Math.max(0, (now - herd.founded) / SECONDS_PER_GAME_DAY);
+      const each = species?.dryMatterIntakeKgPerDay(meanAge) ?? 0;
       const kinds = (species?.getFeedingStyles() ?? []).filter((k) =>
         (FEEDER_KINDS as readonly string[]).includes(k),
       );

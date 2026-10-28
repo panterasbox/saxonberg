@@ -19,7 +19,9 @@ data:
   ambientColorTemperature: 5800
   groundSpotX: 6
   groundSpotY: 7
-  areaM2: 4000
+  # ⭐ Two hectares: what six cattle need through a season (cover build
+  # B19). The home field's hectare cannot carry them and grow a crop.
+  areaM2: 20000
   legumeFraction: 0.1
   exits:
     west:
