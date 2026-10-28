@@ -884,14 +884,16 @@ suite('⭐⭐ 32 — crystallize', () => {
     // has to LOSE water before anything sets.
     const filled = await founderEval(
       SALT_FLAT,
-      `return (() => { const pan = self.getContainer().getContents()` +
+      // ⚠ Wrapped to return the STACK on a throw: runs 38–40 answered "sandbox
+      // boundary denied peek()" here and named no caller.
+      `return (() => { try { const pan = self.getContainer().getContents()` +
         `.find(o => o.getTemplatePath() === '/trade/quarrying/thing/salt-pan');` +
         ` const brine = StuffApi.findByTemplatePath('/stuff/idea/material/bulk/salt-water');` +
         ` if (!(pan && brine)) return 'no pan or no brine';` +
         ` pan.setBulkMaterial('interior', brine);` +
         ` pan.setBulkAmount('interior', pan.getBulkAmount('interior').constructor.of(20, 'L'));` +
         ` pan.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.28 });` +
-        ` return 'brine: 20 L'; })()`,
+        ` return 'brine: 20 L'; } catch (e) { return 'STACK ' + String(e && e.stack).slice(0, 3000); } })()`,
     );
     expect(filled, `the pan filled: ${filled}`).toMatch(/brine: 20 L/);
     const first = await saltern();
