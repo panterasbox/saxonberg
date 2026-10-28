@@ -17,6 +17,9 @@ data:
   seedTemplatePath: /trade/farming/thing/seed/barley
   harvestTemplatePath: /trade/farming/thing/crop/barley
   nutrientDraw: 18
+  # ⭐ Cut with a sickle or a scythe (cover build D3); bare hands cut a
+  # little.
+  harvestTool: reaping
   profile:
     moistureHappyAt: 0.3
     moistureWiltAt: 0.05
@@ -27,3 +30,9 @@ data:
     warmHappyK: 289
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
     daysToStage: { young: 16, established: 50, mature: 100 }
+    # ⭐ The field crop is two numbers (cover build D2): the seed rate a
+    # broadcast sowing spends, and the yield-to-seed ratio every agrarian
+    # history quotes. A third of a field's seed sows a third of it, and
+    # yields a third.
+    seedRateKgPerM2: 0.016
+    yieldRatio: 7

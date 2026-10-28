@@ -279,6 +279,8 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   { prefix: "/trade/sericulture/", dir: () => SERICULTURE_DIR },
+  // ⭐ The cane knife (cover build) — the sugar trade's tool, sold here.
+  { prefix: "/trade/sugar/", dir: () => fileURLToPath(new URL("../../../trade-sugar/content/trade/sugar/", import.meta.url)) },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
   // The billhook (repair W5).
   { prefix: "/trade/forestry/", dir: () => FORESTRY_DIR },

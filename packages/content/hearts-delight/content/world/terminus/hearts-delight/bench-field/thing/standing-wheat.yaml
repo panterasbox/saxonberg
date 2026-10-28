@@ -1,0 +1,12 @@
+# The wheat on the upper bench — ONE crop over three-quarters of the
+# field (cover build), sown last autumn and well established: the
+# headland and the stony top end are still grass. It ripens on the
+# season, and the farm cuts it.
+extends: /trade/farming/thing/plant/wheat
+data:
+  sownAreaM2: 3000
+  growthStage: established
+  # Fifty-five good days in — the established mark, so the season ripens
+  # it rather than starting it again.
+  _maturity: 4752000
+  _vigor: 0.75

@@ -2,9 +2,12 @@
 class: /platform/thing/Seed
 data:
   shortDescription: sack of barley seed
-  keywords: [seed, seeds, barley, sack]
+  keywords: [seed, seeds, barley, sack, "seed barley", "barley seed", "sack of barley seed"]
   register: indefinite
   longDescription: |
     Plump hulled grain, kept back from last year's crop and screened for the drill.
   growsIntoPath: /trade/farming/thing/plant/barley
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/hordeum/vulgare
+  # ⭐ A 25 kg sack — what a broadcast sowing spends at the crop's own
+  # seed rate (cover build D4).
+  mass: 25

@@ -51,7 +51,6 @@ data:
       destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
       media: [ground]
       edgeMinutes: 2
+  # ⭐ One crop of wheat (cover build), not three loose plants.
   props:
-    - /trade/farming/thing/plant/wheat
-    - /trade/farming/thing/plant/wheat
-    - /trade/farming/thing/plant/wheat
+    - /world/terminus/hearts-delight/bench-field/thing/standing-wheat

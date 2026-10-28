@@ -31,6 +31,9 @@ data:
   # it — crude protein is nitrogen x 6.25, so the draw and the grain's
   # own figures are the same fact seen twice.
   nutrientDraw: 22
+  # ⭐ Cut with a sickle or a scythe (cover build D3); bare hands cut a
+  # little.
+  harvestTool: reaping
   profile:
     moistureHappyAt: 0.35
     moistureWiltAt: 0.08
@@ -41,3 +44,9 @@ data:
     warmHappyK: 291
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
     daysToStage: { young: 18, established: 55, mature: 110 }
+    # ⭐ The field crop is two numbers (cover build D2): the seed rate a
+    # broadcast sowing spends, and the yield-to-seed ratio every agrarian
+    # history quotes. A third of a field's seed sows a third of it, and
+    # yields a third.
+    seedRateKgPerM2: 0.015
+    yieldRatio: 6

@@ -146,6 +146,8 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   // mints life (the nucleus) belongs in a shop for the same reason.
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   { prefix: "/trade/sericulture/", dir: () => SERICULTURE_DIR },
+  // ⭐ The cane knife (cover build) — the sugar trade's tool, sold here.
+  { prefix: "/trade/sugar/", dir: () => fileURLToPath(new URL("../../../trade-sugar/content/trade/sugar/", import.meta.url)) },
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },

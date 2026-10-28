@@ -44,6 +44,13 @@ data:
     # has an edge to find outside a weapon, and the hook comes apart into a
     # blade and a handle — the drive's first lesson in parts.
     - { itemTemplatePath: /trade/forestry/thing/billhook, par: 1 }
+    # ⭐ The field crops' hand tools and seed (cover build): a sickle and a
+    # cane knife to cut a swath, a scythe to mow or reap a wider one (the
+    # seed corn is with the garden seed, below). Before this a field crop
+    # could be neither sown nor cut by anyone who walked in off the street.
+    - { itemTemplatePath: /trade/farming/thing/sickle, par: 2 }
+    - { itemTemplatePath: /trade/sugar/thing/cane-knife, par: 2 }
+    - { itemTemplatePath: /trade/farming/thing/scythe, par: 1 }
     # ⭐⭐ **Armour, finally BUYABLE.** Six armour rows shipped months ago
     # and not one was referenced by any `props:`, `cast:` or stock line —
     # so the whole outside-in covering model (the resist fold, the layer
@@ -127,6 +134,11 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/mint, par: 3 }
     - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
+    # ⭐ Seed corn by the sack (cover build). ⚠ BELOW the potting soil:
+    # these answer to `sack` too, and `buy` takes the first match — the
+    # bare noun stays the soil.
+    - { itemTemplatePath: /trade/farming/thing/seed/wheat, par: 4 }
+    - { itemTemplatePath: /trade/farming/thing/seed/barley, par: 4 }
     # ⭐⭐ **The beekeeper's kit — and it is HERE rather than in the
     # valley, deliberately.**
     #
@@ -445,6 +457,16 @@ data:
     # A billhook between the clasp-knife and the lantern: an afternoon's
     # wages for a tool that earns its keep in the coppice.
     /trade/forestry/thing/billhook: 8
+    # ⭐ The field crops' hand tools and seed (cover build). A sickle is a
+    # little less than a billhook (less iron); a cane knife about one; a
+    # scythe is a good deal more (a long blade and a snath). A sack of seed
+    # corn is a morning's wages — what a third of a small field costs to
+    # sow, against a harvest that gives it back six or seven times.
+    /trade/farming/thing/sickle: 6
+    /trade/sugar/thing/cane-knife: 7
+    /trade/farming/thing/scythe: 14
+    /trade/farming/thing/seed/wheat: 5
+    /trade/farming/thing/seed/barley: 4
     # ⚠ Priced against the shipped ladder (stipend 20, wages 4-6 per
     # game-hour, bed 45, wagon 95), not as a balance claim. The shape is
     # the claim: boots are an afternoon's wages and a breastplate is a
