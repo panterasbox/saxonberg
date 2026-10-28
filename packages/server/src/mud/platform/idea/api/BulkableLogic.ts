@@ -41,6 +41,7 @@ import type {
   TransferAmount,
   TransferResult,
   TransferStatus,
+  TransferVia,
 } from '../../../api/bulk';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
@@ -318,6 +319,7 @@ export class BulkableLogic extends ApiLogic {
     from: BulkSlot,
     to: BulkSlot | null,
     amount: TransferAmount,
+    via?: TransferVia,
   ): TransferResult {
     const notes: BulkNote[] = [];
 
@@ -328,11 +330,18 @@ export class BulkableLogic extends ApiLogic {
     const source = from.getHolder();
     if (MixinApi.isMaturing(source)) source.reconcileFerment();
 
-    const material = from.getMaterial();
-    if (from.isEmpty() || material === null) {
+    const drawnMaterial = from.getMaterial();
+    if (from.isEmpty() || drawnMaterial === null) {
       notes.push({ kind: 'empty-result', field: BULK_FIELD, query: '' });
       return { applied: 0, status: 'declined', notes };
     }
+    // ⭐ Through pores (a filter): what ARRIVES may be a different material
+    // — the wall's `filteredTo` — and only what is dissolved comes with it.
+    // Everything below reads the arriving material; the source's own is
+    // `drawnMaterial` (its dissolved-solids default).
+    const pores = via?.through === 'pores';
+    const material: Material = (pores ? via?.arrivesAs : null) ?? drawnMaterial;
+    const arrivingPath = material.getTemplatePath() ?? from.getMaterialPath();
 
     // 2. Material compatibility on the destination. Before declining a
     // mismatch, offer it to a Maturing destination as an INOCULATION
@@ -342,7 +351,7 @@ export class BulkableLogic extends ApiLogic {
     // declines exactly as before.
     if (to !== null && !to.isEmpty()) {
       const toPath = to.getMaterialPath();
-      if (toPath !== null && toPath !== from.getMaterialPath()) {
+      if (toPath !== null && toPath !== arrivingPath) {
         const inoculated = tryInoculate(from, to, amount, notes);
         if (inoculated !== null) return inoculated;
         notes.push({
@@ -370,7 +379,7 @@ export class BulkableLogic extends ApiLogic {
         const floor = this.floorSurfaceNear(receiver);
         const spilt =
           floor !== null
-            ? this.transfer(from, floor, amount)
+            ? this.transfer(from, floor, amount, via)
             : { applied: 0, notes: [] as BulkNote[] };
         notes.push(...spilt.notes);
         notes.push({
@@ -438,7 +447,7 @@ export class BulkableLogic extends ApiLogic {
           notes,
         };
       }
-      const inner = this.transfer(from, floor, amount);
+      const inner = this.transfer(from, floor, amount, via);
       return {
         applied: inner.applied,
         status: 'drained',
@@ -474,7 +483,9 @@ export class BulkableLogic extends ApiLogic {
     // (identity, riding into an EMPTY destination only), blends by mass on
     // EVERY pour. Otherwise decanting a spoiled pot into a fresh one would
     // launder it: the pour-to-reset exploit.
-    const fromLoad = new Freshness(from).load();
+    // Through pores the suspended matter stays behind: no microbial load,
+    // no pathogens — a ceramic filter is how unboiled water was made safe.
+    const fromLoad = pores ? 0 : new Freshness(from).load();
     const toLoadBefore = to !== null ? new Freshness(to).load() : 0;
     // ⭐ The water state rides the matter exactly as the load does, and
     // for the same reason: tipping brine into fresh stock partly cures
@@ -485,7 +496,7 @@ export class BulkableLogic extends ApiLogic {
     // ⚠⚠ And the silent population, by the same mass-weighted rule. A
     // pathogen that did not blend on the pour would make decanting a
     // laundry: tip the bad stew into a clean pot and it comes out safe.
-    const fromPathogens = new Contamination(from).loads();
+    const fromPathogens = pores ? {} : new Contamination(from).loads();
     const toPathogensBefore =
       to !== null ? new Contamination(to).loads() : {};
     // ⚠⚠ And the DISSOLVED dose, by the same mass-weighted rule as the
@@ -511,7 +522,8 @@ export class BulkableLogic extends ApiLogic {
     // slot's whole payload. Identical to `getPayload()` for every holder
     // whose interior is homogeneous; a fractionating host answers with the
     // span it is actually about to give up.
-    const fromPayload = from.payloadForDraw(applied);
+    const drawnPayload = from.payloadForDraw(applied);
+    const fromPayload = pores ? throughPores(drawnPayload) : drawnPayload;
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -683,7 +695,7 @@ export class BulkableLogic extends ApiLogic {
       // authors its `solidsKgPerL`, and a pail of weak lye tipped into a
       // pot of strong thins it exactly as thin juice thins a thick pan.
       const fromSolids =
-        fromPayload?.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
+        fromPayload?.dissolvedSolidsKgPerL ?? drawnMaterial.getSolidsKgPerL();
       if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
         const held = to.getPayload();
         const heldMat = to.getMaterial() ?? material;
@@ -872,6 +884,18 @@ function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
  * applied by the vessel itself. Returns `null` when the pour is a
  * plain mismatch (the caller declines as before).
  */
+/**
+ * ⭐ What passes a porous wall: the payload with its SUSPENDED matter left
+ * behind — the microbial load, the pathogens, the blood cells — and the
+ * face clock of the vessel it left. Dissolved toxins, aromas, solids, the
+ * water's hardness and whose it is all come through.
+ */
+function throughPores(payload: BulkPayload | null): BulkPayload | null {
+  if (payload === null) return null;
+  const { freshness: _f, pathogens: _p, blood: _b, faceCheckedS: _c, ...passed } = payload;
+  return Object.keys(passed).length > 0 ? passed : null;
+}
+
 function tryInoculate(
   from: BulkSlot,
   to: BulkSlot,

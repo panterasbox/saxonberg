@@ -1644,6 +1644,18 @@ left a fork the lens that chose is named.
   The paint slate gains § 0: setting by binder, wear, one color read, and one
   stack shared with construction's layers are the paint build's, on `Faced`.
 
+- **B81 — review: one move between slots (2026-10-28).** The filter's seep
+  (`seepInto`) and the crystallizing pan's bittern drain (`drainLiquorInto`)
+  were hand-rolled transfers beside `BulkableApi.transfer`, each with its own
+  copy of the dissolved-solids fold and none of transfer's spoilage, water,
+  pathogen, surface-load, grade, ownership or survival rules. Both are now
+  transfers; the filter's is `via: { through: 'pores', arrivesAs }` — the
+  dissolved passes, the suspended stays (lens 1: a ceramic filter is why
+  unboiled water was safe to drink). ⚠ Not covered and noted: a mould's
+  set DRAININGS (whey off the curd, `Mould.creditDrainings`) are minted with
+  a fresh payload by design — whether separated whey should inherit the
+  curd's microbial load is open.
+
 ## ⭐⭐ Host placement
 
 Every new field, mixin and class, with what composing it claims of

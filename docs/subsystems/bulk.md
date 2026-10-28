@@ -364,8 +364,24 @@ note kinds (`quantity-clamped`, `quantity-clamped-rejected`,
 `empty-result`, `target-declined`) — **no new note kinds**.
 
 ```
-transfer(from: BulkSlot, to: BulkSlot | null, amount): TransferResult
+transfer(from: BulkSlot, to: BulkSlot | null, amount, via?): TransferResult
 ```
+
+⭐ **It is the ONE move between slots.** Anything that sends liquid from one
+vessel into another — a pour, a filter's seep, a mould's spent liquor
+running off into its tub — goes through it, so every fact the matter carries
+(spoilage, water state, pathogens, a vessel's own surface load, the
+dissolved doses, solids, hardness, ownership, the grade top-up rule, the
+receiver's survival) moves by one set of rules. ⚠ The ceramics build
+hand-rolled two copies (the filter's seep and the bittern drain) and they
+silently skipped most of that; the review routed both back here.
+
+`via` is a `TransferVia`. `{ through: 'pores', arrivesAs? }` is a move
+through a porous wall: what is **dissolved** passes (toxins, aromas, solids,
+hardness), what is **suspended** stays behind (the microbial load, the
+pathogens, blood), and the liquid may arrive as the wall's
+`Material.filteredTo` (fouled river water comes through as water). The
+mismatch check and the closure read the ARRIVING material.
 
 `amount` is a `TransferAmount`: `{ kind: 'all' }` (the whole source,
 clamped to the destination's room — `drink` / `spill` / default `pour`)

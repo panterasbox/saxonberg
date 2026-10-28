@@ -169,6 +169,30 @@ describe('⭐⭐ the ceramic water filter', () => {
     expect(dose?.amount).toBeCloseTo(3, 9);
   });
 
+  it('⭐ the pores keep back what is SUSPENDED — the microbes and the pathogens — and pass what is dissolved', () => {
+    const room = makeStuff(() => new Room());
+    const c = crock();
+    ContainmentApi.move(c, room);
+    const f = filterOf(body, {
+      m: tainted,
+      l: 2,
+      payload: {
+        dissolvedToxins: [{ type: 'lead-poisoning', amount: 3 }],
+        pathogens: { 'test-flux': 5 },
+        freshness: { load: 0.6, stamp: 0 },
+      },
+    });
+    ContainmentApi.move(f, c);
+    f.getBulkAmount('interior');
+    advance(3 * 3600);
+    f.getBulkAmount('interior');
+    expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
+    const through = c.getBulkPayload('interior');
+    expect(through?.dissolvedToxins?.find((t) => t.type === 'lead-poisoning')?.amount).toBeCloseTo(3, 9);
+    expect(Object.keys(through?.pathogens ?? {})).toEqual([]);
+    expect(through?.freshness?.load ?? 0).toBe(0);
+  });
+
   it('it is a FLOW, not a weep: a filter in a crock passes far more than the same filter weeps in the open', () => {
     const room = makeStuff(() => new Room());
     const c = crock();

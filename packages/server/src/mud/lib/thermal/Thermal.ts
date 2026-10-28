@@ -2662,9 +2662,11 @@ function crystallizeIfOver(
 }
 
 /**
- * The spent liquor runs down into the vessel the mold stands on — up to
- * what that vessel has room for; what it cannot take stays in the mould.
- * A different liquor already below is not mixed into: it stays put.
+ * The spent liquor runs down into the vessel the mold stands on — a
+ * TRANSFER, the one primitive, so it carries what the liquor carries and
+ * the receiver is asked whether it survives it. What the vessel below has
+ * no room for stays in the mould; a different liquor already below is not
+ * mixed into (the transfer declines the mismatch).
  */
 function drainLiquorInto(
   v: Stuff & Bulkable,
@@ -2672,32 +2674,11 @@ function drainLiquorInto(
   below: Stuff & Bulkable,
   litres: number,
 ): void {
-  const mat = v.getBulkMaterial(aff);
-  if (mat === null) return;
-  const held = below.getBulkAmount('interior').rawValue();
-  const heldMat = below.getBulkMaterial('interior');
-  if (held > 0 && heldMat !== null && heldMat.getTemplatePath() !== mat.getTemplatePath()) return;
-  const cap = below.getBulkCapacity('interior')?.rawValue() ?? Infinity;
-  const room = Math.max(0, cap - held);
-  const moved = Math.min(litres, room);
-  if (!(moved > 0)) return;
-  const payload = v.getBulkPayload(aff);
-  if (held <= 0 || heldMat === null) below.setBulkMaterial('interior', mat);
-  below.setBulkAmount('interior', Quantity.of(held + moved, 'L'));
-  const heldPayload = below.getBulkPayload('interior');
-  const folded = BulkableApi.blendPayloads(payload, moved, heldPayload, held);
-  // The dissolved solids fold by volume (sugar's pour rule, here for a drain).
-  const fromSolids = payload?.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
-  const toSolids = heldPayload?.dissolvedSolidsKgPerL ?? (heldMat?.getSolidsKgPerL() ?? 0);
-  const solids = (moved * fromSolids + held * toSolids) / (moved + held);
-  if (solids > 0) folded.dissolvedSolidsKgPerL = solids;
-  below.setBulkPayload('interior', Object.keys(folded).length > 0 ? folded : null);
-  const left = litres - moved;
-  v.setBulkAmount(aff, Quantity.of(left, 'L'));
-  if (left <= 0) {
-    v.setBulkMaterial(aff, null);
-    v.setBulkPayload(aff, null);
-  }
+  BulkableApi.transfer(v.getBulk(aff), below.getBulk('interior'), {
+    kind: 'measure',
+    litres,
+    mode: 'lenient',
+  });
 }
 
 /**

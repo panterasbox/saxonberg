@@ -72,6 +72,18 @@ export type TransferAmount =
   | { kind: 'measure'; litres: number; mode: 'strict' | 'lenient' };
 
 /**
+ * ⭐ HOW the matter moves, when it is not simply poured.
+ *
+ *   - `{ through: 'pores' }` — through a porous wall (a ceramic water
+ *     filter): what is DISSOLVED passes (toxins, aromas, solids, salt), what
+ *     is SUSPENDED stays behind (the microbial load, pathogens, blood), and
+ *     the liquid may arrive as a different material (`arrivesAs` — the
+ *     wall's `Material.filteredTo`: fouled river water comes through as
+ *     water). Everything else is the ordinary pour.
+ */
+export type TransferVia = { through: 'pores'; arrivesAs?: Material | null };
+
+/**
  * Outcome of a `transfer`. `status`:
  *   - `'declined'` — nothing moved (empty source, material mismatch,
  *     strict shortfall).
@@ -287,13 +299,17 @@ export class BulkableApi {
    *      source stamps the maker's mark too (the fermentation grade
    *      seam — a bottle filled from a `fine` batch is `fine`, and
    *      attributable).
+   *
+   * `via` — see {@link TransferVia}: a filter's seep is a transfer through
+   * pores, never a second hand-rolled move.
    */
   static transfer(
     from: BulkSlot,
     to: BulkSlot | null,
     amount: TransferAmount,
+    via?: TransferVia,
   ): TransferResult {
-    return logic().transfer(from, to, amount);
+    return logic().transfer(from, to, amount, via);
   }
 
   /**
