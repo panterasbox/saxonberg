@@ -569,6 +569,10 @@ refuses it, and a second refusal would just be a worse error message.
 `embodied-tagging.test.ts` pins the inventory, so a new verb in a material
 category fails until someone decides which half it belongs to.
 
+> ⭐ **2026-10-28 → [site-conditions-slate](../slates/builds/site-conditions-slate.md) § 1** — a
+> shade perceives faintly (its senses fixed at *impaired*, capped near *dim*), and nothing heals
+> until re-embodiment (the owner).
+
 ### What confines a shade
 
 Nothing bespoke. A shade is a baseline vessel with **no keys, no credential
