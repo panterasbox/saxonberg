@@ -22,7 +22,7 @@ import type Material from '../../../lib/material/Material';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
-import type { IgniteOutcome } from '../../../api/fire';
+import type { IgniteOutcome, Incandescence } from '../../../api/fire';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
 /** The F1 object face: a Combustible host forwards its own combustion. */
@@ -138,6 +138,22 @@ export class FireLogic extends ApiLogic {
     return wetPenaltyKOf(item);
   }
 
+  /**
+   * ⭐ The incandescence of a surface at `kelvin` (see `FireApi`): Draper's
+   * point ~800 K is the first dull red; cherry from ~950 K, orange from
+   * ~1150 K, yellow from ~1300 K, white from ~1500 K. Physics, not tuning,
+   * so the scale is a table and not a dial.
+   */
+  @CallSecurity(FireApiCallers)
+  public incandescenceOf(kelvin: number): Incandescence | null {
+    if (!(kelvin >= 800)) return null;
+    if (kelvin < 950) return 'dull red';
+    if (kelvin < 1150) return 'cherry red';
+    if (kelvin < 1300) return 'orange';
+    if (kelvin < 1500) return 'yellow';
+    return 'white';
+  }
+
   /** See {@link Combustible.tryAutoignite}. */
   @CallSecurity(FireCallers)
   public tryAutoignite(stuff: Stuff): boolean {
@@ -189,41 +205,11 @@ function dial(key: string, fallback: number): number {
 }
 
 /**
- * The extra temperature (K) an object's held water raises its ignition
- * threshold by — mass-independent, because the fuel mass cancels between
- * the water-boil energy and the thermal capacity. A soaked log resists
- * ignition regardless of its size.
- *
- * ⭐ The single home for the formula. `CombustibleMixin.wetPenaltyK`
- * forwards here, and `stoke` asks the same question of an object that
- * may not be a Combustible at all.
+ * The held-water ignition penalty (K) — the formula is the body's own
+ * (`TangibleMixin.getWetIgnitionPenaltyK`); a non-body has none.
  */
 function wetPenaltyKOf(item: Stuff): number {
-  const mat = MixinApi.isTangible(item) ? item.getMaterial() : null;
-  if (!mat) return 0;
-  const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
-  if (capacityFraction <= 0) return 0;
-  const c = mat.getSpecificHeat().rawValue();
-  if (c <= 0) return 0;
-
-  let held = 0;
-  if (MixinApi.isWet(item)) {
-    const saturation = item.getWetness();
-    if (saturation > 0) held += saturation;
-  }
-  if (MixinApi.isWaterActive(item)) {
-    // Above the `dried` band the fuel still carries its own water; at or
-    // below it, it is dry fuel and contributes nothing.
-    const driedAt = dial(AppSettingKeys.cureBandDriedAt, 0.5);
-    const span = 1 - driedAt;
-    if (span > 0) {
-      const own = (item.getMoisture() - driedAt) / span;
-      if (own > 0) held += own > 1 ? 1 : own;
-    }
-  }
-  if (held <= 0) return 0;
-  const lVap = dial(AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg, 2260000);
-  return (held * capacityFraction * lVap) / c;
+  return MixinApi.isTangible(item) ? item.getWetIgnitionPenaltyK() : 0;
 }
 
 /** One string dial read, falling back to the literal when unseeded. */

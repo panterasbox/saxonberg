@@ -64,7 +64,10 @@ own Newton drift the moment it leaves the pot — no new timing machinery.
 `isWorkable()` is `getTemperature() ≥ workingFloorK()` (0.75 × the glass's
 melting point). `HotWorkWatch` (a `SustainedEngagement` on `attention`,
 hosted by the blowpipe) ticks every `glass.hotwork.tickGameS`, narrates a
-glow-band crossing, and when the gather goes cold converts it to cullet
+work-band crossing (`workBand()`: runs · soft · stiffening · setting,
+relative to the working floor) coloured by the gather's own heat on the one
+incandescence scale (`FireApi.incandescenceOf` — the kiln's and the smith's
+words; a gather at 1450 K glows yellow, never "white"), and when the gather goes cold converts it to cullet
 (`Gather.loseToCullet` — the verb on the object: full mass back, its iron
 kept, one step greener). `shape`/`crack` are `hands` steps whose
 `onComplete` re-validates `isWorkable()` at the commit point — the

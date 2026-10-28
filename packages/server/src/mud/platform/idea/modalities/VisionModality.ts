@@ -231,18 +231,24 @@ export class VisionModality extends Modality {
    * and outdoors at night the sky over a place and its neighbours fills them
    * (the ceramics drive A, run 32). The sky and a street's public lighting
    * are not things giving light, so a dark place with no fire near reads
-   * none. A burner gives light only while lit and fuelled.
+   * none. A burner gives light only while lit and fuelled. `heatK` is a
+   * lit burner's own temperature (its glow's colour), `null` for a light
+   * with no hot body to read.
    */
   public brightestFireNear(
     loc: Stuff & Container,
-  ): { flux: number; colorTemperatureK: number | null; direction: string | null } | null {
-    let best: { flux: number; colorTemperatureK: number | null; direction: string | null } | null = null;
+  ): { flux: number; colorTemperatureK: number | null; heatK: number | null; direction: string | null } | null {
+    let best: { flux: number; colorTemperatureK: number | null; heatK: number | null; direction: string | null } | null =
+      null;
     const consider = (place: Stuff & Container, direction: string | null): void => {
       for (const c of place.getContents() as Stuff[]) {
         if (!MixinApi.isLightSource(c)) continue;
         const flux = c.getEmittedFlux().rawValue();
         if (!(flux > 0) || (best !== null && flux <= best.flux)) continue;
-        best = { flux, colorTemperatureK: c.getEmittedColorTemperature()?.rawValue() ?? null, direction };
+        // ⭐ A burner's glow is its own heat (R2-B3): a clamp at 1250 K
+        // glows orange whatever colour its light was authored.
+        const heatK = MixinApi.isBurner(c) && c.isLit() ? c.getHeldTemperatureK() : null;
+        best = { flux, colorTemperatureK: c.getEmittedColorTemperature()?.rawValue() ?? null, heatK, direction };
       }
     };
     consider(loc, null);

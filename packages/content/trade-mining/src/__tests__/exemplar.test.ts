@@ -417,7 +417,7 @@ describe('the venue itself', () => {
     ]);
   });
 
-  it('⭐ SIX businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {
+  it('⭐ SEVEN businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {
     const businesses = files(
       join(REJECTION, 'content/world/terminus/rejection/idea'),
       (f) => f.endsWith('-business.yaml'),
@@ -426,8 +426,9 @@ describe('the venue itself', () => {
     // about the invariant below: it buys its sand, its fuel and its flux
     // out of revenue like the smelter does. The sixth is the Hanging Wood
     // ashery (potash W6), on the same terms: it buys nothing it does not
-    // pay for out of what it sells.
-    expect(businesses.length).toBe(6);
+    // pay for out of what it sells. The seventh is the foundry (ceramics
+    // W7, the bell pit and the moulds), on the same terms again.
+    expect(businesses.length).toBe(7);
     for (const rel of businesses) {
       const b = row(rel);
       expect(b.class).toBe('/platform/idea/Business');

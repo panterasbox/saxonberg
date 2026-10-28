@@ -194,6 +194,17 @@ describe('⭐⭐ a dark room withholds its description', () => {
     expect(text).toMatch(/You can see a dull red glow to the east/);
   });
 
+  it('⭐ a burning clamp glows by its OWN heat, on the one incandescence scale (R2-B3)', async () => {
+    // Authored light 1700 K, but the clamp's chamber is at 1250 K: orange,
+    // the colour a kiln at that heat reads through its spy-hole.
+    const { MixinApi } = await import('../../../../../api/mixin');
+    const clamp = Object.assign(fire(120, 1700), { isLit: () => true, getHeldTemperatureK: () => 1250 });
+    await eastTo([clamp]);
+    vi.spyOn(MixinApi, 'isBurner').mockImplementation(((o: unknown) => o === clamp) as never);
+    const text = await lookText();
+    expect(text).toMatch(/You can see an orange glow to the east/);
+  });
+
   it('…but a cold clamp, or no fire at all, is no glow', async () => {
     await eastTo([fire(0, 1700), { stuffId: 'brick' }]);
     const text = await lookText();

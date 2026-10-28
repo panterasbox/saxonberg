@@ -16,6 +16,7 @@ import type { CommandContext } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { BiomeApi } from '../../../api/biome';
+import { FireApi } from '../../../api/fire';
 import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -175,15 +176,23 @@ export default class TemperatureReading extends BiomeReading {
 }
 
 /**
- * ⭐ The colour of a fire's heat — Draper's point (~800 K) onward. The
- * words a potter and a smith share; no instrument needed.
+ * ⭐ The colour of a fire's heat — the one incandescence scale
+ * (`FireApi.incandescenceOf`), worded for a kiln's interior.
  */
 function glowOf(kelvin: number): string {
-  if (kelvin < 950) return 'Inside, it glows a dull red you can barely see by day.';
-  if (kelvin < 1150) return 'It glows cherry red.';
-  if (kelvin < 1300) return 'It glows a bright orange.';
-  if (kelvin < 1500) return 'It glows yellow, too bright to look into for long.';
-  return 'It is white-hot inside — you cannot look into it at all.';
+  switch (FireApi.incandescenceOf(kelvin)) {
+    case null:
+    case 'dull red':
+      return 'Inside, it glows a dull red you can barely see by day.';
+    case 'cherry red':
+      return 'It glows cherry red.';
+    case 'orange':
+      return 'It glows a bright orange.';
+    case 'yellow':
+      return 'It glows yellow, too bright to look into for long.';
+    case 'white':
+      return 'It is white-hot inside — you cannot look into it at all.';
+  }
 }
 
 /**

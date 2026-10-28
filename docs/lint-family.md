@@ -1551,6 +1551,11 @@ configured**.
   name only — it reported its band, `remove curse` worked on it, and
   nothing said the axis was inert. ⭐ The only honest way to skip BUC is
   to not compose the mixin.
+- **`lint:acidity`** — a material tagged `acid` authors its `acidity`.
+  The tag is a word and the number is what the world reads: a glazed face
+  leaches by the contents' acidity, so vitriol (tagged `acid`, no number)
+  took no lead from a lead glaze, silently (ceramics review R2-B4). The
+  converse is not a rule — wine is acidic without being an acid.
 - **`lint:perishable`** — every row made of matter that can rot is a
   class that can rot. Perishability belongs to the **Material**, not the
   class, which argues for composing `FreshnessMixin` as widely as

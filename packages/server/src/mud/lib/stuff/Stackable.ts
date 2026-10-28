@@ -45,6 +45,8 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import type { Thermal } from '../thermal/Thermal';
 import type { Faced } from '../material/Faced';
+import type { Tangible } from '../material/Tangible';
+import type { Greenware } from '../material/Greenware';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
 import { StuffApi } from '../../api/stuff';
@@ -253,6 +255,18 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
       if (MixinApi.isFaced(self) && MixinApi.isFaced(other)) {
         if (coatSignature(self) !== coatSignature(other)) return false;
       }
+      // ⭐ A cracked brick and a sound one are different goods (R2-B6) — by
+      // the flaws an EYE can find. A hidden one does not split the pile
+      // (refusing would tell what only `ring` may); it rides the merge.
+      if (MixinApi.isTangible(self) && MixinApi.isTangible(other)) {
+        if (flawSignature(self) !== flawSignature(other)) return false;
+      }
+      // ⭐ A pile of green ware has ONE water state and one ruin: a fresh wet
+      // brick folded into a bone-dry stack lost its water, and the frost had
+      // nothing to burst (ceramics drive A, run 21).
+      if (MixinApi.isGreenware(self) && MixinApi.isGreenware(other)) {
+        if (greenSignature(self) !== greenSignature(other)) return false;
+      }
 
       // Union of both classes' stackIdentityFields. Equal values required
       // for every field. Reads through the public getter pattern (per
@@ -378,6 +392,22 @@ function firedSignature(s: Stuff & Thermal): string {
     .map(([k, c]) => `${k}:${Math.round(c.extent * 20)}`)
     .sort()
     .join(',');
+}
+
+/** The flaws an eye can find, as one comparable string (hidden ones excluded). */
+function flawSignature(s: Stuff & Tangible): string {
+  return s
+    .getFlaws()
+    .filter((f) => f.visible)
+    .map((f) => `${f.kind}/${f.mended ?? ''}`)
+    .sort()
+    .join(',');
+}
+
+/** A green piece's water state and ruin; '' once fired (no longer green). */
+function greenSignature(s: Stuff & Greenware): string {
+  const state = s.greenState();
+  return state === null ? '' : `${state}/${s.getRuin() ?? ''}`;
 }
 
 /** A face's coats as one comparable string — material and state, by face. */

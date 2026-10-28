@@ -24,6 +24,10 @@ data:
   thermalConductivity: 0.4
   specificHeat: 1380
   tags: [liquid, caustic, acid]
+  # ⭐ The strongest acid in the world (review R2-B4): what a glazed face
+  # leaches by. A lead glaze gives lead into vitriol faster than into
+  # vinegar (0.9) — `lint:acidity` holds every `acid` row to a number.
+  acidity: 1
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/vitriol

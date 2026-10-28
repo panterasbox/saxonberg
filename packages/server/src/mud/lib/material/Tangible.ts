@@ -218,6 +218,15 @@ export interface Tangible {
   /** Record a flaw (`atS`: when, if the caller knows — the clock is the caller's). */
   addFlaw(kind: FlawKind, visible: boolean, atS?: number): void;
   /**
+   * ⭐ A pile's flaws when it splits or merges (R2-B6): `visible` copies
+   * the flaws an eye can find (a split-off of a cracked pile is cracked —
+   * they are why it is its own pile), `!visible` the hidden ones (a merge
+   * carries them, so stacking never launders a crack). Hidden flaws never
+   * split a stack: a pile refusing to merge would tell what only `ring`
+   * may (Blessable's rule).
+   */
+  takeFlawsFrom(other: Stuff, visible: boolean): void;
+  /**
    * Rivet every unmended crack and dunt (a tinker's mend, ceramics): the
    * staples show, so a riveted flaw is visible. Returns how many.
    */
@@ -248,6 +257,22 @@ export interface Tangible {
   ringSound(): RingSound;
   /** Can this receive a pour at `k` K? (ceramics S13 — W7 reads it.) */
   canReceiveAtK(k: number): PourReception;
+  /**
+   * ⭐ The temperature (K) at which THIS piece catches, or 0 when its
+   * material never burns: the material's autoignition point raised by
+   * {@link getWetIgnitionPenaltyK}. A soaked board survives a pour that
+   * would ignite a dry one.
+   */
+  getIgnitionPointK(): number;
+  /**
+   * ⭐ The ONE held-water ignition formula: the extra temperature (K) the
+   * water this piece holds raises its ignition threshold by. Surface
+   * wetness (a log left in the rain) and the matter's own water (a turf
+   * cut from a bog) add. Mass-independent: the fuel mass cancels between
+   * the water-boil energy and the thermal capacity. `stoke`, `ignite`, a
+   * pour and a firing chamber all read this.
+   */
+  getWetIgnitionPenaltyK(): number;
   /**
    * ⭐ What this was cast from — the impression's kind and whose thing it
    * was (ceramics M9) — or `null` when it was not cast from one. A cast
@@ -670,6 +695,12 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.flaws = [...this.flaws, { kind, visible, atS }];
     }
 
+    public takeFlawsFrom(other: Stuff, visible: boolean): void {
+      if (!MixinApi.isTangible(other)) return;
+      const taken = other.getFlaws().filter((f) => f.visible === visible);
+      if (taken.length > 0) this.flaws = [...this.flaws, ...taken.map((f) => ({ ...f }))];
+    }
+
     public rivetFlaws(): number {
       let n = 0;
       this.flaws = this.flaws.map((f) => {
@@ -837,9 +868,44 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (mat === null || !(k > 0)) return 'holds';
       const melts = mat.getMeltingPoint().rawValue();
       if (melts > 0 && k >= melts) return 'melts';
-      const burns = mat.getAutoignitionTemperature().rawValue();
+      const burns = this.getIgnitionPointK();
       if (burns > 0 && k >= burns) return 'burns';
       return 'holds';
+    }
+
+    public getIgnitionPointK(): number {
+      const mat = this.getMaterial();
+      const base = mat === null ? 0 : mat.getAutoignitionTemperature().rawValue();
+      if (!(base > 0)) return 0;
+      return base + this.getWetIgnitionPenaltyK();
+    }
+
+    public getWetIgnitionPenaltyK(): number {
+      const mat = this.getMaterial();
+      if (mat === null) return 0;
+      const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
+      if (capacityFraction <= 0) return 0;
+      const c = mat.getSpecificHeat().rawValue();
+      if (c <= 0) return 0;
+      const self = this as unknown as Stuff;
+      let held = 0;
+      if (MixinApi.isWet(self)) {
+        const saturation = self.getWetness();
+        if (saturation > 0) held += saturation;
+      }
+      if (MixinApi.isWaterActive(self)) {
+        // Above the `dried` band the fuel still carries its own water; at or
+        // below it, it is dry fuel and contributes nothing.
+        const driedAt = tangibleDial(AppSettingKeys.cureBandDriedAt, 0.5);
+        const span = 1 - driedAt;
+        if (span > 0) {
+          const own = (self.getMoisture() - driedAt) / span;
+          if (own > 0) held += own > 1 ? 1 : own;
+        }
+      }
+      if (held <= 0) return 0;
+      const lVap = tangibleDial(AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg, 2260000);
+      return (held * capacityFraction * lVap) / c;
     }
   };
 }

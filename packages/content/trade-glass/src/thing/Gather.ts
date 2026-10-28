@@ -42,8 +42,12 @@ export type GatherForm = "gather" | "bubble" | (string & {});
 export const GLASSWORK_TYPE = "glasswork";
 export const GLASSWORK_TOPIC = "act.deed";
 
-/** The glow band, hottest first — what the window watch narrates. */
-export type GlowBand = "white" | "yellow" | "orange" | "going";
+/**
+ * How workable the gather is, most fluid first — RELATIVE to the glass's
+ * own working floor, which the window watch narrates. Its COLOUR is the one
+ * incandescence scale (`FireApi.incandescenceOf`), never this band.
+ */
+export type WorkBand = "runs" | "soft" | "stiffening" | "setting";
 
 const CULLET_ROW = "/stuff/thing/Casting";
 
@@ -182,14 +186,14 @@ export default class Gather extends GatherBase implements Formable {
     return super.effectiveR() * dial("glass.hotwork.gatherRFactor", 10);
   }
 
-  /** ⭐ The glow band this gather reads as — the window watch's narration. */
-  public glowBand(): GlowBand {
+  /** ⭐ How workable this gather is now — the window watch's narration. */
+  public workBand(): WorkBand {
     const t = this.getTemperature().rawValue();
     const floor = this.workingFloorK();
-    if (t >= floor + 400) return "white";
-    if (t >= floor + 200) return "yellow";
-    if (t >= floor + 50) return "orange";
-    return "going";
+    if (t >= floor + 400) return "runs";
+    if (t >= floor + 200) return "soft";
+    if (t >= floor + 50) return "stiffening";
+    return "setting";
   }
 
   /**

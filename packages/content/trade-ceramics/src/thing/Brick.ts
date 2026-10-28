@@ -50,34 +50,6 @@ export default class Brick extends BrickBase {
   }
 
   /**
-   * ⭐ Green bricks stack only with bricks in the SAME green state and the
-   * same ruin. A stack has one water state, so a fresh wet brick set down
-   * beside a bone-dry one merged into "2 green bricks" of the dry one's
-   * state and the wet brick's water was lost — the frost the drive left it
-   * out for had nothing to burst (the ceramics drive A, run 21). Fired
-   * bricks stack by the ordinary rule.
-   */
-  public override canMergeWith(other: Stuff): boolean {
-    if (!super.canMergeWith(other)) return false;
-    // ⭐ And only with bricks of the same MAKER. A stack bears no title (it
-    // is owned by possession), so the maker is the one thing that says
-    // whose a pile of bricks set out on a hack is — and a player's nine
-    // folded into the gang's fourteen would be the gang's (drive A, run 32).
-    if (MixinApi.isCrafted(other) && other.getMaker() !== this.getMaker()) return false;
-    // ⭐ And only with bricks of the same BODY: a stack has one material, so
-    // the clamp's three grades — clinker, earthenware, a soft place brick —
-    // picked up together were folded into one stack of whichever came first
-    // (drive A, run 37).
-    const theirMaterial = MixinApi.isTangible(other) ? other.getMaterial() : null;
-    if ((theirMaterial?.getTemplatePath() ?? null) !== (this.getMaterial()?.getTemplatePath() ?? null)) return false;
-    const o = other as unknown as Partial<Brick>;
-    const mineGreen = this.greenState();
-    const theirsGreen = typeof o.greenState === 'function' ? o.greenState() : null;
-    if (mineGreen === null && theirsGreen === null) return true;
-    return mineGreen === theirsGreen && this.getRuin() === (typeof o.getRuin === 'function' ? o.getRuin() : null);
-  }
-
-  /**
    * ⭐ A fired brick is named for its body — *earthenware brick*, *clinker
    * brick* — the way a candle is named for its fat. The row's stem is
    * "green brick", and a burnt brick still read "green" (drive A, run 37).
@@ -115,11 +87,9 @@ export default class Brick extends BrickBase {
       const rec = this.getKineticRecord();
       if (rec !== null) splitoff.adoptKineticRecord(rec);
     }
-    if (MixinApi.isCrafted(splitoff)) splitoff.setMaker(this.getMaker());
-    if (MixinApi.isMarked(splitoff)) {
-      splitoff.setMarkDevice(this.getMarkDevice());
-      splitoff.setMarkForm(this.getMarkForm());
-    }
+    // The maker and the mark's device are stack identity: the split copies
+    // them. The mark's FORM (inked or embossed) is not, so it rides here.
+    if (MixinApi.isMarked(splitoff)) splitoff.setMarkForm(this.getMarkForm());
     const self = this as unknown as Stuff;
     if (MixinApi.isGraded(self) && MixinApi.isGraded(splitoff)) splitoff.setGrade(self.getGrade());
     super.onSplit(splitoff);

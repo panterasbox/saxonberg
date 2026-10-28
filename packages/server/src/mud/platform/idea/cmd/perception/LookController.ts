@@ -41,6 +41,7 @@ import { CardApi } from '../../../../api/card';
 import { BulkableApi } from '../../../../api/bulk';
 import { EmploymentApi } from '../../../../api/employment';
 import { PerceptionApi } from '../../../../api/perception';
+import { FireApi } from '../../../../api/fire';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
 import type Exit from '../../../../lib/boundary/Exit';
@@ -508,9 +509,21 @@ export default class LookController extends CommandController<LookModel> {
       return null;
     }
     if (fire === null) return null;
+    // ⭐ A hot body glows on the one incandescence scale (R2-B3); a light
+    // with no hot body to read (a lamp, a worked flame) by its authored
+    // colour.
+    const glow = fire.heatK === null ? null : FireApi.incandescenceOf(fire.heatK);
     const k = fire.colorTemperatureK;
     const hue =
-      k === null ? 'a glow' : k < 2000 ? 'a dull red glow' : k < 3000 ? 'an orange glow' : 'a pale glow';
+      glow !== null
+        ? `${glow === 'orange' ? 'an' : 'a'} ${glow} glow`
+        : k === null
+          ? 'a glow'
+          : k < 2000
+            ? 'a dull red glow'
+            : k < 3000
+              ? 'an orange glow'
+              : 'a pale glow';
     const where = fire.direction ? ` to the ${fire.direction}` : '';
     return Mml.compose`You can see ${hue}${where}.`;
   }

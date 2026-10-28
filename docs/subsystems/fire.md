@@ -86,6 +86,18 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   is the heat-threshold path (spread + tests); `ignite()` is the
   deliberate `ignite`-verb path (a hand-flame; the wetness penalty must be
   below the manual-drying headroom, else "too wet to catch").
+  ⭐ The formula is the BODY's (`TangibleMixin.getWetIgnitionPenaltyK`, and
+  `getIgnitionPointK` = autoignition + it): `stoke`, `ignite`, a hot pour
+  (`canReceiveAtK`) and a firing chamber catching its contents
+  (`Burner.catchContents`) all read the one number, so a soaked board
+  survives a pour that would light a dry one (ceramics review R2-B1).
+- **Incandescence is one scale** (`FireApi.incandescenceOf(K)`): dull red
+  from Draper's point ~800 K, cherry ~950, orange ~1150, yellow ~1300,
+  white ~1500. A kiln's spy-hole (`analyze temperature`), a glass gather on
+  the pipe and a lit burner's glow seen in the dark (`look`, by the
+  burner's own held heat) all speak it; only a light with no hot body (a
+  lamp, a worked flame) is worded by its authored colour temperature
+  (ceramics review R2-B3).
 - **Consumption end-state (D4).** Fuel drains → the material transforms to its
   `charMaterialPath` (ash/char, embers cooling via passive `Thermal`); a
   **structural** object (a door, a bridge) burns through and destructs

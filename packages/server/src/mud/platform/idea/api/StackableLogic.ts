@@ -145,6 +145,9 @@ export class StackableLogic extends ApiLogic {
     for (const f of fields) {
       StuffApi.copyField(source, splitoff, f);
     }
+    // A split-off of a cracked pile is cracked: visible flaws are part of
+    // what makes it this pile (Stackable.canMergeWith's flaw signature).
+    if (MixinApi.isTangible(splitoff)) splitoff.takeFlawsFrom(source, true);
 
     splitoff.setQuantity(n);
     source.setQuantity(source.getQuantity() - n);
@@ -185,6 +188,7 @@ export class StackableLogic extends ApiLogic {
       );
     }
     survivor.setQuantity(survivor.getQuantity() + absorbed.getQuantity());
+    if (MixinApi.isTangible(survivor)) survivor.takeFlawsFrom(absorbed, false);
     StuffApi.destruct(absorbed);
     survivor.onMerged(absorbed);
   }

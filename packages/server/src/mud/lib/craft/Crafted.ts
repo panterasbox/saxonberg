@@ -114,7 +114,10 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'CraftedMixin';
 
     static fieldMeta: FieldMeta = {
-      maker: { persistent: true, runtimeState: true },
+      // ⭐ Whose a pile is (R2-B6): a stack bears no title, so the maker is
+      // what says whose — a player's nine bricks folded into the gang's
+      // fourteen would be the gang's (ceramics drive A, run 32).
+      maker: { persistent: true, runtimeState: true, stackIdentity: true },
       recipe: { persistent: true, runtimeState: true },
       craftedAt: { persistent: true, runtimeState: true },
       castDiscipline: { persistent: true, runtimeState: true },

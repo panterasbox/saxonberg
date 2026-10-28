@@ -1741,6 +1741,23 @@ left a fork the lens that chose is named.
   Fixed with it: the census read the retired `markOf` (B84's rename), so it
   now reads `markDevice`.
 
+- **B88 — W-R2a (2026-10-28).**
+  - The four fixes are recorded in the wave note.
+  - B6's design: only VISIBLE flaws split a stack. A hidden one does not,
+    because a refused merge would reveal it. That follows Blessable's
+    precedent ("you would learn an item was cursed by watching it refuse to
+    stack"). A hidden flaw rides the merge instead
+    (`Tangible.takeFlawsFrom(absorbed, false)`), so stacking cannot launder
+    a crack.
+  - A split-off carries the pile's visible flaws.
+  - `Crafted.maker` is now stack identity for EVERY crafted stackable, not
+    only bricks. Two smiths' nails no longer merge; a pile's maker says
+    whose it is.
+  - The green-state check moved into `Stackable` beside the fired and coat
+    signatures. `Brick.canMergeWith` is gone. `Brick.onSplit` no longer
+    hand-copies the maker or the mark's device (the split copies
+    identity), only the mark's form.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
@@ -2299,7 +2316,15 @@ change; e is independent and may land any time after a).
 
 ### Waves (execute in this order; each its own commit)
 
-- **W-R2a — bugs B1, B3, B4, B6** (small, independent; each with its test).
+- ✅ **W-R2a — bugs B1, B3, B4, B6** (small, independent; each with its test).
+  Done 2026-10-28 (B88). B1: the wetness formula moved ONTO the body
+  (`TangibleMixin.getWetIgnitionPenaltyK` / `getIgnitionPointK`), and
+  FireLogic forwards to it — importing FireLogic into Tangible was a
+  load-order cycle (Thing → Tangible → FireLogic → BoundaryAnchor → Thing).
+  B3: `FireApi.incandescenceOf`; the gather's band renamed `workBand`
+  (runs · soft · stiffening · setting), coloured by the scale; `look`'s
+  dark glow reads a lit burner's held heat. B4: vitriol `acidity: 1`
+  plus the new `lint:acidity`. B6: see B88.
 - **W-R2b — B2 + B5** (green ware: one crack formula, one frost path; docs fixed).
 - **W-R2c — D2, D4, D5, D6, D7, D9** (mechanical merges).
 - **W-R2d — D8** (the walking helper — check behavior.md for the home first).
