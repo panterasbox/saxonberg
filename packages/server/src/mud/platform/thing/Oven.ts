@@ -76,6 +76,12 @@ export default class Oven extends OvenBase {
     if (!MixinApi.isPlacing(self)) return null;
     for (const item of self.getPlaced('on')) {
       if (!MixinApi.isBulkable(item)) continue;
+      // ⚠ The closure FIRST: a fuel bottle is sealed, and the closure is a
+      // field. Reading a pan's contents reconciles the pan, and a pan on
+      // this fire reads this fire's heat, which reads this slot — a salt
+      // pan on the brine hearth ran that loop on every light read, and
+      // `fire` never answered (ceramics drive D 32).
+      if (BulkableApi.compareClosure(item.getClosure(), 'sealed') < 0) continue;
       if (!item.isGasRetained('interior')) continue;
       const material = item.getBulkMaterial('interior');
       if (!material) continue;
