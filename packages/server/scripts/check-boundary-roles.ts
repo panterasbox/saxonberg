@@ -70,7 +70,7 @@ const VOCAB = fileURLToPath(
  * in the same commit, which is the whole point: the diff shows somebody
  * widened the sandbox boundary.
  */
-export const COMMONS_CEILING = 25; // +1 Biome (ceramics, 2026-10-22): every body's reconcile reads it
+export const COMMONS_CEILING = 27; // +1 Biome (ceramics, 2026-10-22): every body's reconcile reads it; +2 PlacementCatalogue + Placement (ceramics, 2026-10-28): every PLACED body's reconcile reads them (`getEnclosingScope`), and a governed eval in a parcel was refused at a pan on a hearth
 
 export interface RoleDeclaration {
   file: string;
