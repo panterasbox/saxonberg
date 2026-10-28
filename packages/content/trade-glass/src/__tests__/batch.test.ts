@@ -31,6 +31,7 @@ import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
+import { CraftingApi } from "@saxonberg/server/mud/api/crafting";
 import "@saxonberg/server/mud/platform/idea/WorldClockRegistry";
 import {
   makeStuff,
@@ -158,9 +159,9 @@ describe("mix, then fire", () => {
     for (const p of [sandOf(0.004), sandOf(0.004), piece(() => new Lump(), ashM, 4), piece(() => new Lump(), limeM, 4), ...extras]) {
       ContainmentApi.move(p as never, v as never);
     }
-    const out = await v.blend(null);
+    const out = await CraftingApi.mintFromBuild({ charge: v });
     expect(out.ok).toBe(true);
-    const product = (out as { product: Stuff | null }).product as Melt;
+    const product = (out as { output: Stuff }).output as Melt;
     expect(product).toBeInstanceOf(Melt);
     return product;
   }

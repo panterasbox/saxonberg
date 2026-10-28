@@ -14,6 +14,7 @@ import { HeatTransition } from '../HeatTransition';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
+import { CraftingApi } from '../../../api/crafting';
 import type { Stuff } from '../../stuff/Stuff';
 import {
   makeStuff,
@@ -83,12 +84,17 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-describe('the blend is the inputs, by mass', () => {
+/** Compound the vessel's charge through the one mint (re-plan R1-D7). */
+function mint(v: CompoundingVessel): ReturnType<typeof CraftingApi.mintFromBuild> {
+  return CraftingApi.mintFromBuild({ charge: v });
+}
+
+describe('the product is the inputs, by mass', () => {
   it('⭐ 970 g of raw rubber and 30 g of sulfur knead to stock carrying 3 % sulfur', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
     ContainmentApi.move(lumpOf(RAW, 0.97) as never, v as never);
     ContainmentApi.move(lumpOf(SULFUR, 0.03) as never, v as never);
-    const out = await v.blend(null);
+    const out = await mint(v);
     expect(out.ok).toBe(true);
     const stock = v.getContents().find((c) => c.getTemplatePath() === STOCK_ROW) as unknown as Casting;
     expect(stock).toBeDefined();
@@ -103,7 +109,7 @@ describe('the blend is the inputs, by mass', () => {
     const v = tub(STOCK_ROW, COMPOUND);
     ContainmentApi.move(lumpOf(RAW, 0.75) as never, v as never);
     ContainmentApi.move(lumpOf(SULFUR, 0.25) as never, v as never);
-    await v.blend(null);
+    await mint(v);
     const stock = v.getContents()[0] as unknown as Casting;
     const cure = new HeatTransition({
       key: 'cure',
@@ -119,12 +125,12 @@ describe('the blend is the inputs, by mass', () => {
     expect(cure.outcomeAt(cure.rungIndexFor(degree), { peakK: 418, agentFraction: agent, reducing: false })?.materialPath).toBe('ebonite');
   });
 
-  it('with no row to mint, the blend is the vessel’s own bulk, carrying its make-up', async () => {
+  it('with no row to mint, the product is the vessel’s own bulk, carrying its make-up', async () => {
     const v = tub('', SLIP);
     v.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(WATER)!);
     v.setBulkAmount('interior', Quantity.of(1, 'L'));
     ContainmentApi.move(lumpOf(RAW, 1) as never, v as never);
-    const out = await v.blend(null);
+    const out = await mint(v);
     expect(out.ok).toBe(true);
     expect(v.getBulkMaterial('interior')?.getTemplatePath()).toBe(SLIP);
     const alloying = v.getBulkPayload('interior')?.makeup ?? [];
@@ -134,16 +140,16 @@ describe('the blend is the inputs, by mass', () => {
     expect(v.getContents()).toHaveLength(0);
   });
 
-  it('one piece that is already the blend is refused — there is nothing to work in', async () => {
+  it('one piece that is already the product is refused — there is nothing to work in', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
     ContainmentApi.move(lumpOf(COMPOUND, 1) as never, v as never);
-    const out = await v.blend(null);
-    expect(out).toEqual({ ok: false, reason: 'already-compounded' });
+    const out = await mint(v);
+    expect(out).toEqual({ ok: false, reason: 'insufficient-input', detail: 'already-compounded' });
   });
 
-  it('an empty vessel blends nothing', async () => {
+  it('an empty vessel compounds nothing', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
-    expect(await v.blend(null)).toEqual({ ok: false, reason: 'empty' });
+    expect(await mint(v)).toEqual({ ok: false, reason: 'insufficient-input', detail: 'empty-build' });
   });
 });
 
@@ -158,8 +164,8 @@ describe('the charge', () => {
     ContainmentApi.move(sulfur as never, v as never);
     const charge = v.chargeContributions();
     expect(charge.map((c) => c.massKg)).toEqual([3, 3]);
-    const out = await v.blend(null);
-    expect(out.ok && out.massKg).toBeCloseTo(6, 6);
+    const out = await mint(v);
+    expect(out.ok && (out.output as unknown as Casting).getMass().rawValue()).toBeCloseTo(6, 6);
     const stock = v.getContents()[0] as unknown as Casting;
     expect(stock.fractionOf(SULFUR)).toBeCloseTo(0.5, 6);
   });

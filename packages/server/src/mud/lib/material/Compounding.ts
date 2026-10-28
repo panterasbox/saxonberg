@@ -21,8 +21,13 @@
  *   productTemplate: /trade/rubber/thing/compounded-stock   # absent = bulk
  * ```
  *
- * ⭐ What each input contributes is what it IS made of — the one fold,
- * `MaterialApi.foldMakeup`, over the vessel's {@link chargeContributions}:
+ * ⭐ The vessel makes nothing itself: {@link Compounding.compound} hands its
+ * contents to the ONE mint, `CraftingApi.mintFromBuild({ charge })`
+ * (re-plan R1-D7), which reads them as {@link chargeContributions} — the
+ * record a shaker banks — and runs the path every made-of-several thing
+ * runs (grade, the inputs' spoilage, the maker), with this vessel's
+ * product as the namer. What each input contributes is what it IS made of
+ * — the one fold, `MaterialApi.foldMakeup`:
  * a piece that records its own makeup gives that; otherwise its material's
  * kind composition; otherwise the material itself, whole. So the glass
  * batch's iron is its sand's, and a compounded rubber's sulfur fraction is
@@ -32,15 +37,10 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
-import type { Containable } from '../spatial/Containable';
 import type { Container } from '../spatial/Container';
-import type Material from './Material';
 import type { BuildContribution } from '../craft/ManualBuild';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
-import { ContainmentApi } from '../../api/containment';
-import { MaterialApi, type MakeupPart } from '../../api/material';
-import { Quantity } from '../quantity';
+import { CraftingApi } from '../../api/crafting';
 import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
 import type { KneadPlan, KneadPlanner, KneadRefusal, KneadRequest } from '../craft/Kneadable';
@@ -55,7 +55,7 @@ export type CompoundOutcome =
   | { ok: true; product: Stuff | null; massKg: number; inputs: number }
   | {
       ok: false;
-      reason: 'empty' | 'already-compounded' | 'no-product-material' | 'mint-failed';
+      reason: 'empty' | 'already-compounded' | 'mint-failed';
     };
 
 export interface Compounding extends KneadPlanner {
@@ -72,11 +72,10 @@ export interface Compounding extends KneadPlanner {
    */
   chargeContributions(): BuildContribution[];
   /**
-   * ⭐ Fold everything in the vessel into ONE product, its makeup the
-   * inputs' by mass; destruct the inputs; mint the product; stamp the maker.
+   * ⭐ Compound what is in the vessel into ONE product through the one
+   * mint (`CraftingApi.mintFromBuild({ charge })`), and tell `by` what came
+   * of it — the end of a `knead` or a `stir`.
    */
-  blend(by: Stuff | null): Promise<CompoundOutcome>;
-  /** Compound, and tell `by` what came of it — the end of a `knead` or a `stir`. */
   compound(by: Stuff, verb: string): Promise<CompoundOutcome>;
 }
 
@@ -165,7 +164,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
 
     /**
      * ⭐ The kernel's default knead: work what is in the vessel into one
-     * product. The narration reads the outcome; the fold is {@link blend}.
+     * product. The narration reads the outcome; the mint is {@link compound}'s.
      */
     public async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
       const self = this as unknown as Stuff & Container;
@@ -193,90 +192,38 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     }
 
     public async compound(by: Stuff, verb: string): Promise<CompoundOutcome> {
-      const out = await this.blend(by);
-      narrate(by, this as unknown as Stuff, out, verb);
+      const self = this as unknown as Stuff;
+      const inputs = this.chargeContributions().length;
+      // ⭐ The ONE mint (re-plan R1-D7): the charge runs the path a
+      // shaker's buffer runs, and this vessel's product names what it makes.
+      const minted = await CraftingApi.mintFromBuild({
+        charge: self,
+        makerPath: by.isDestroyed() ? '' : by.getIdentityPath() ?? '',
+      });
+      let out: CompoundOutcome;
+      if (minted.ok) {
+        // A solid product is its own piece; a bulk one is this vessel's belly.
+        const product = minted.output === self ? null : minted.output;
+        const massKg =
+          product !== null
+            ? MixinApi.isTangible(product) ? product.getMass().rawValue() : 0
+            : MixinApi.isBulkable(self) && self.hasInteriorBulk()
+              ? self.getBulk('interior').getMassKg()
+              : 0;
+        out = { ok: true, product, massKg, inputs };
+      } else {
+        out = {
+          ok: false,
+          reason:
+            minted.detail === 'empty-build'
+              ? 'empty'
+              : minted.detail === 'already-compounded'
+                ? 'already-compounded'
+                : 'mint-failed',
+        };
+      }
+      narrate(by, self, out, verb);
       return out;
-    }
-
-    public async blend(by: Stuff | null): Promise<CompoundOutcome> {
-      const self = this as unknown as Stuff & Container;
-      const material = this.productMaterial
-        ? StuffApi.findByTemplatePath<Material>(this.productMaterial) ?? null
-        : null;
-      if (material === null) return { ok: false, reason: 'no-product-material' };
-
-      // The inputs: every piece of matter in it and the bulk in its belly,
-      // read as the charge and folded by mass in the ONE place that folds.
-      const pieces = self
-        .getContents()
-        .filter((c) => !c.isDestroyed() && MixinApi.isTangible(c)) as Stuff[];
-      const parts: MakeupPart[] = [];
-      let totalKg = 0;
-      let bulkL = 0;
-      for (const c of this.chargeContributions()) {
-        const m = c.materialPath
-          ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
-          : null;
-        if (m === null) continue;
-        const kg =
-          c.kind === 'item'
-            ? c.massKg ?? 0
-            : (c.measureL * m.getDensity().rawValue()) / 1000;
-        if (!(kg > 0)) continue;
-        if (c.kind !== 'item') bulkL = c.measureL;
-        parts.push({ material: m, kg, makeup: c.makeup });
-        totalKg += kg;
-      }
-      if (!(totalKg > 0)) return { ok: false, reason: 'empty' };
-      const inputs = pieces.length + (bulkL > 0 ? 1 : 0);
-      if (inputs === 1 && pieces.length === 1) {
-        const only = pieces[0]!;
-        const m = MixinApi.isTangible(only) ? only.getMaterial() : null;
-        if (m !== null && m.getTemplatePath() === material.getTemplatePath()) {
-          return { ok: false, reason: 'already-compounded' };
-        }
-      }
-      const folded = MaterialApi.foldMakeup(parts);
-      const maker = by !== null && !by.isDestroyed() ? by.getIdentityPath() ?? '' : '';
-
-      if (this.productTemplate === '') {
-        // ⭐ A bulk product: the vessel's belly becomes it.
-        if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) {
-          return { ok: false, reason: 'mint-failed' };
-        }
-        const density = material.getDensity().rawValue() || 1000;
-        for (const piece of pieces) await StuffApi.destruct(piece);
-        self.setBulkMaterial('interior', material);
-        self.setBulkAmount('interior', Quantity.of((totalKg / density) * 1000, 'L'));
-        const payload = { ...(self.getBulkPayload('interior') ?? {}), makeup: folded };
-        self.setBulkPayload('interior', payload);
-        return { ok: true, product: null, massKg: totalKg, inputs };
-      }
-
-      let product: Stuff;
-      try {
-        product = await StuffApi.clone<Stuff>(this.productTemplate, undefined, { madeFrom: pieces });
-      } catch {
-        return { ok: false, reason: 'mint-failed' };
-      }
-      if (MixinApi.isTangible(product)) {
-        product.setMaterial(material);
-        product.setMass(Quantity.of(totalKg, 'kg'));
-      }
-      if (MixinApi.isComposition(product)) product.setMakeup(folded);
-      if (maker !== '' && MixinApi.isCrafted(product) && product.getMaker() === '') {
-        product.setMaker(maker);
-      }
-      for (const piece of pieces) await StuffApi.destruct(piece);
-      if (bulkL > 0 && MixinApi.isBulkable(self)) {
-        self.setBulkAmount('interior', Quantity.of(0, 'L'));
-        self.setBulkMaterial('interior', null);
-        self.setBulkPayload('interior', null);
-      }
-      if (MixinApi.isContainable(product)) {
-        ContainmentApi.move(product as Stuff & Containable, self);
-      }
-      return { ok: true, product, massKg: totalKg, inputs };
     }
   }
   return CompoundingMixin;

@@ -104,6 +104,7 @@ import { CleanserUse } from '../../../lib/cleanliness/CleanserUse';
 import Scrap from '../../thing/Scrap';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
+import type { Compounding } from '../../../lib/material/Compounding';
 import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
@@ -1304,7 +1305,9 @@ function buildMicrobialLoad(
   let total = 0;
   const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const c of contributions) {
-    const w = c.kind === 'item' ? 0.1 * (c.count ?? 1) : c.measureL;
+    // ⭐ An item weighs the mass banked with it (re-plan R1-D7); one
+    // banked with none falls back to the old tenth of a kilogram a unit.
+    const w = c.kind === 'item' ? c.massKg ?? 0.1 * (c.count ?? 1) : c.measureL;
     if (w <= 0) continue;
     weighted += (c.freshnessLoad ?? 0) * w;
     parts.push({ loads: c.pathogenLoads ?? {}, weight: w });
@@ -1379,9 +1382,10 @@ function resolveSpoilage(
 /**
  * The kilograms a consumed input contributes to a product's makeup: a
  * bulk draw is its litres at its density; an item is `count` servings of
- * its material — the "each unit is one serving" rule the craft has always
- * used, now stated as a mass. (Re-plan R1 W-R1c replaces the item arm
- * with the unit's banked mass.)
+ * its material — the "each unit is one serving" rule the one-shot craft
+ * still uses. A build contribution weighs the mass banked with it instead
+ * (re-plan R1-D7, `buildParts`), and falls back here only when it banked
+ * none.
  */
 function bulkPartKg(material: Material, litres: number): number {
   return (Math.max(0, litres) * material.getDensity().rawValue()) / 1000;
@@ -2557,32 +2561,65 @@ async function landOutput(
 }
 
 /**
- * Mint from a completed manual build. See
- * {@link CraftingApi.mintFromBuild}. Reuses the craft quality model —
- * weakest-link `Grade`, the output seams' apply shapes, and
- * `CraftedMixin.stamp` — but draws its inputs from the already-banked
- * build buffer (no re-consume). Dispatches on the request: a `workpiece`
- * mints the tangible path (clone the matched recipe's output / the
- * generic worked lump, consuming the workpiece); a `vessel` is
- * filled (the bar's drink, a matched recipe's edible portion, or the
- * generic pot-luck for an off-spec item build).
+ * ⭐ **The ONE mint for a thing made of several** (ceramics re-plan
+ * R1-D7). See {@link CraftingApi.mintFromBuild}. Reuses the craft quality
+ * model — weakest-link `Grade`, the output seams' apply shapes, and
+ * `CraftedMixin.stamp` — over one record of what went in, held either of
+ * two ways:
+ *
+ *  - a **buffer** (`contributions`) — the shaker, the pot, the trough, the
+ *    workpiece — banked as it went in and already debited (no re-consume);
+ *  - a **charge** (`charge`) — a compounding vessel's physical contents,
+ *    read by the vessel's own `chargeContributions()` and consumed HERE.
+ *
+ * From there one path runs — reverse-match, grade, method fit, the
+ * inputs' spoilage + the kit, the maker — and then the **namer**: the
+ * charge vessel's `productMaterial` when it names one (a glaze tub makes
+ * glaze whatever went in; no recipe is consulted, so a vessel-named
+ * product has a material and no recipe), else the matched recipe's
+ * output, else the generic pot-luck / worked lump.
  */
 async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
-  if (req.contributions.length === 0) {
+  const charge = req.charge ?? null;
+  if (charge !== null && !MixinApi.isCompounding(charge)) {
+    return { ok: false, reason: 'no-output', detail: 'not-compounding' };
+  }
+  const contributions =
+    charge !== null ? charge.chargeContributions() : req.contributions ?? [];
+  if (contributions.length === 0) {
     return { ok: false, reason: 'insufficient-input', detail: 'empty-build' };
   }
-  const catalogue = await requireCatalogue();
-  const mediumCaps = await resolveMediumCaps(req.contributions);
-  const recipe = matchBuild(
-    catalogue.allRecipes(),
-    req.contributions,
-    req.heatedToK ?? 0,
-    mediumCaps,
-  );
+  // ⭐ The namer a charge vessel brings with it, resolved up front: a
+  // named product consults no recipe at all.
+  let named: Material | null = null;
+  if (charge !== null && charge.getProductMaterial() !== '') {
+    named = StuffApi.findByTemplatePath<Material>(charge.getProductMaterial()) ?? null;
+    if (named === null) {
+      return { ok: false, reason: 'no-output', detail: 'product-material-missing' };
+    }
+    // One piece that already IS the product: there is nothing to work in.
+    const only = contributions.length === 1 ? contributions[0]! : null;
+    if (only?.kind === 'item' && only.materialPath === named.getTemplatePath()) {
+      return { ok: false, reason: 'insufficient-input', detail: 'already-compounded' };
+    }
+  }
+  const mediumCaps =
+    named === null
+      ? await resolveMediumCaps(contributions)
+      : new Map<RecipeMedium, number>();
+  const recipe =
+    named === null
+      ? matchBuild(
+          (await requireCatalogue()).allRecipes(),
+          contributions,
+          req.heatedToK ?? 0,
+          mediumCaps,
+        )
+      : null;
 
   // Weakest-link grade over the buffer, floored at a matched recipe's base.
   let grade = Grade.deriveAtFixedControl(
-    req.contributions.map((c) => Grade.of(c.gradeBand)),
+    contributions.map((c) => Grade.of(c.gradeBand)),
   );
   if (recipe) {
     const base = recipe.getBaseGrade();
@@ -2596,7 +2633,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   grade = applyMethodFit(
     grade,
     recipe,
-    req.contributions.map((c) => c.materialPath),
+    contributions.map((c) => c.materialPath),
   );
 
   // Resolve the maker. Prefer a live acting author (completed-sync /
@@ -2629,7 +2666,149 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     const cap = mediumCaps.get(mintMedium) ?? 0;
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
-  return mintVessel(req, recipe, grade, makerPath, makerStuff, effectiveHeatK);
+  const build: MintBuild = {
+    contributions,
+    charge,
+    named,
+    recipe,
+    grade,
+    makerPath,
+    makerStuff,
+    effectiveHeatK,
+  };
+  if (charge !== null && named !== null && charge.getProductTemplate() !== '') {
+    return mintProduct(charge, named, build);
+  }
+  return mintVessel(charge ?? req.vessel ?? null, req.method ?? null, build);
+}
+
+/** The one path's state, handed from {@link mintFromBuildImpl} to a namer. */
+interface MintBuild {
+  contributions: readonly BuildContribution[];
+  /** The compounding vessel whose contents are the build, else null. */
+  charge: (Stuff & Compounding) | null;
+  /** The charge vessel's product material, when it names one. */
+  named: Material | null;
+  recipe: Recipe | null;
+  grade: Grade;
+  makerPath: string;
+  makerStuff: Stuff | null;
+  effectiveHeatK: number;
+}
+
+/**
+ * The parts of a build by mass, for the one fold: a bulk contribution is
+ * its litres at its density; an item is the mass banked with it (every
+ * unit), else — a contribution banked with no mass — `count` servings.
+ */
+async function buildParts(
+  contributions: readonly BuildContribution[],
+): Promise<MakeupPart[]> {
+  const parts: MakeupPart[] = [];
+  for (const c of contributions) {
+    if (!c.materialPath) continue;
+    const m = await StuffApi.singleton<Material>(c.materialPath);
+    parts.push({
+      material: m,
+      kg:
+        c.kind === 'item'
+          ? c.massKg ?? itemPartKg(m, c.count ?? 1)
+          : bulkPartKg(m, c.measureL),
+      // The banked pour remembers what its source was made of (D25).
+      makeup: c.makeup,
+    });
+  }
+  return parts;
+}
+
+/**
+ * What the build's inputs bring to the product's spoilage: the banked
+ * loads (killed if the working got hot enough), and — food only, as at
+ * the bench — the dish it goes into and the hand that made it (D14).
+ */
+function buildSpoilage(build: MintBuild, vessel: Stuff): SpoilageOutcome {
+  const perishable = build.contributions.some((c) =>
+    Freshness.isPerishable(
+      c.materialPath
+        ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
+        : null,
+    ),
+  );
+  return buildMicrobialLoad(
+    build.effectiveHeatK,
+    build.recipe?.getHoldS() ?? ThermalDose.defaultHoldS(),
+    build.contributions,
+    perishable ? kitInoculum([vessel], build.makerStuff) : {},
+  );
+}
+
+/** The live pieces a charge holds — what `chargeContributions()` read. */
+function chargePieces(charge: Stuff): Stuff[] {
+  if (!MixinApi.isContainer(charge)) return [];
+  return charge
+    .getContents()
+    .filter(
+      (c) => !c.isDestroyed() && MixinApi.isTangible(c) && c.getMaterial() !== null,
+    );
+}
+
+/**
+ * ⭐ A charge is consumed at the mint, as a buffer was consumed at the
+ * pour: every piece destructed, the belly emptied.
+ */
+async function consumeCharge(charge: Stuff): Promise<void> {
+  for (const piece of chargePieces(charge)) await StuffApi.destruct(piece);
+  if (MixinApi.isBulkable(charge) && charge.hasInteriorBulk()) {
+    charge.setBulkAmount('interior', Quantity.of(0, 'L'));
+    charge.setBulkMaterial('interior', null);
+    charge.setBulkPayload('interior', null);
+  }
+}
+
+/**
+ * The namer for a charge vessel that names a SOLID product (`productTemplate`):
+ * one piece, cloned from the row, made of the named material at the mass of
+ * everything that went in, its makeup the inputs' by mass, carrying their
+ * spoilage, stamped, and put back in the vessel.
+ */
+async function mintProduct(
+  charge: Stuff & Compounding,
+  named: Material,
+  build: MintBuild,
+): Promise<CraftOutcome> {
+  const parts = await buildParts(build.contributions);
+  const totalKg = parts.reduce((sum, p) => sum + p.kg, 0);
+  if (!(totalKg > 0)) {
+    return { ok: false, reason: 'insufficient-input', detail: 'empty-build' };
+  }
+  const product = await StuffApi.clone<Stuff>(charge.getProductTemplate(), undefined, {
+    madeFrom: chargePieces(charge),
+  });
+  if (MixinApi.isTangible(product)) {
+    product.setMaterial(named);
+    product.setMass(Quantity.of(totalKg, 'kg'));
+  }
+  if (MixinApi.isComposition(product)) product.setMakeup(MaterialApi.foldMakeup(parts));
+  // ⚠ A piece has no payload to carry a formed toxin, so — as the
+  // one-shot tangible output — the load and the silent half ride it.
+  if (MixinApi.isFresh(product)) {
+    const outcome = buildSpoilage(build, charge);
+    product.setMicrobialLoad(outcome.load);
+    if (MixinApi.isContaminable(product)) product.setPathogenLoads(outcome.pathogens);
+  }
+  if (MixinApi.isCrafted(product)) {
+    product.stamp({
+      maker: build.makerPath,
+      grade: build.grade,
+      recipe: '',
+      craftedAt: WorldClockApi.getNow().rawValue(),
+    });
+  }
+  await consumeCharge(charge);
+  if (MixinApi.isContainable(product) && MixinApi.isContainer(charge)) {
+    ContainmentApi.move(product, charge);
+  }
+  return { ok: true, output: product, grade: build.grade, recipeId: '' };
 }
 
 /**
@@ -2825,23 +3004,29 @@ async function mintWorkpiece(
   return { ok: true, output: lump, grade, recipeId: '' };
 }
 
-/** The vessel terminal mint: fill the destination glass/dish + stamp. */
+/**
+ * The vessel terminal mint: fill the destination glass/dish + stamp. For a
+ * charge the destination is the compounding vessel itself — its belly
+ * becomes the product (the named material, else the recipe's, else the
+ * generic pot-luck) once the charge is consumed; the glass finish and the
+ * vessel's own stamp are a glass's, so a tub takes neither unless it is
+ * Crafted.
+ */
 async function mintVessel(
-  req: BuildMintRequest,
-  recipe: Recipe | null,
-  grade: Grade,
-  makerPath: string,
-  makerStuff: Stuff | null,
-  effectiveHeatK: number,
+  vessel: Stuff | null,
+  method: Technique | null,
+  build: MintBuild,
 ): Promise<CraftOutcome> {
-  const vessel = req.vessel;
+  const { contributions, charge, named, recipe, makerPath, makerStuff, effectiveHeatK } =
+    build;
+  let grade = build.grade;
   if (!vessel) {
     return { ok: false, reason: 'no-output', detail: 'no-destination' };
   }
   if (!MixinApi.isBulkable(vessel)) {
     return { ok: false, reason: 'no-output', detail: 'vessel-not-bulkable' };
   }
-  if (!MixinApi.isCrafted(vessel)) {
+  if (charge === null && !MixinApi.isCrafted(vessel)) {
     return { ok: false, reason: 'no-output', detail: 'vessel-not-crafted' };
   }
   const outSlot = BulkableApi.slotFor(vessel, undefined);
@@ -2858,108 +3043,107 @@ async function mintVessel(
     'pot',
   ]);
 
-  const hasItems = req.contributions.some((c) => c.kind === 'item');
   const recipeId = recipe ? recipe.getRecipeId() : '';
-  // Conservation for a bulk build: Σ buffer measures → the vessel volume.
-  // An edible recipe fills its authored portion; an off-spec item build
-  // lands the generic cooked portion.
-  let amountL = req.contributions.reduce((sum, c) => sum + c.measureL, 0);
-  if (recipe && recipe.getOutputApplication() === 'edible') {
-    amountL = recipe.getOutputPortionL();
-  } else if (!recipe && hasItems) {
-    amountL = Math.max(amountL, GENERIC_COOKED_PORTION_L);
-  }
-  // The blend base: an authored substance (the override channel) wins;
-  // else the ONE generic per phase-kind, with the actual identity +
-  // macros DERIVED onto the vessel's payload from what was banked
-  // (macros in = macros out — the fixed-vocabulary rule).
-  const authored = recipe?.getOutputMaterial() ?? '';
-  const genericPath = hasItems
-    ? GENERIC_COOKED_MATERIAL
-    : GENERIC_MIXED_MATERIAL;
-  const material = await StuffApi.singleton<Material>(authored || genericPath);
-  outSlot.setMaterial(material);
-  outSlot.setAmount(Quantity.of(amountL, 'L'));
-  if (!authored) {
-    const parts: MakeupPart[] = [];
-    for (const c of req.contributions) {
-      if (!c.materialPath) continue;
-      const m = await StuffApi.singleton<Material>(c.materialPath);
-      parts.push({
-        material: m,
-        kg: c.kind === 'item' ? itemPartKg(m, c.count ?? 1) : bulkPartKg(m, c.measureL),
-        // The banked pour remembers what its source was made of (D25).
-        makeup: c.makeup,
-      });
+  // What the belly held before the charge was consumed — a named product
+  // keeps its dissolved state (only its identity is the vessel's to say).
+  const held = outSlot.getPayload();
+  if (charge !== null) await consumeCharge(charge);
+
+  if (named !== null) {
+    // ⭐ The vessel names a BULK product: its belly becomes it, at the mass
+    // of everything that went in, its makeup the inputs' by mass.
+    const parts = await buildParts(contributions);
+    const totalKg = parts.reduce((sum, p) => sum + p.kg, 0);
+    const density = named.getDensity().rawValue() || 1000;
+    const kept = { ...(held ?? {}) };
+    delete kept.recipeId;
+    delete kept.appearance;
+    delete kept.keywords;
+    outSlot.setMaterial(named);
+    outSlot.setAmount(Quantity.of((totalKg / density) * 1000, 'L'));
+    outSlot.setPayload({
+      ...kept,
+      makeup: MaterialApi.foldMakeup(parts),
+      ...(makerPath ? { maker: makerPath } : {}),
+    });
+  } else {
+    const hasItems = contributions.some((c) => c.kind === 'item');
+    // Conservation for a bulk build: Σ buffer measures → the vessel volume.
+    // An edible recipe fills its authored portion; an off-spec item build
+    // lands the generic cooked portion.
+    let amountL = contributions.reduce((sum, c) => sum + c.measureL, 0);
+    if (recipe && recipe.getOutputApplication() === 'edible') {
+      amountL = recipe.getOutputPortionL();
+    } else if (!recipe && hasItems) {
+      amountL = Math.max(amountL, GENERIC_COOKED_PORTION_L);
     }
-    outSlot.setPayload(
-      // ⚠ No recipe here is the by-hand path: the working has a material
-      // and no recipe, so the identity falls back to the Material exactly
-      // as `BlendIdentity` does for water in a butt.
-      deriveBlendPayload(
-        recipe ? recipe.getRecipeId() : '',
-        recipe ? recipe.getOutputAppearance() : '',
-        recipe ? recipe.getKeywords() : material.getKeywords(),
-        parts,
-        effectiveHeatK,
-        makerPath,
-      ),
-    );
-  } else if (makerPath) {
-    // An authored-substance build still had a hand behind it.
-    outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
+    // The blend base: an authored substance (the override channel) wins;
+    // else the ONE generic per phase-kind, with the actual identity +
+    // macros DERIVED onto the vessel's payload from what was banked
+    // (macros in = macros out — the fixed-vocabulary rule).
+    const authored = recipe?.getOutputMaterial() ?? '';
+    const genericPath = hasItems
+      ? GENERIC_COOKED_MATERIAL
+      : GENERIC_MIXED_MATERIAL;
+    const material = await StuffApi.singleton<Material>(authored || genericPath);
+    outSlot.setMaterial(material);
+    outSlot.setAmount(Quantity.of(amountL, 'L'));
+    if (!authored) {
+      outSlot.setPayload(
+        // ⚠ No recipe here is the by-hand path: the working has a material
+        // and no recipe, so the identity falls back to the Material exactly
+        // as `BlendIdentity` does for water in a butt.
+        deriveBlendPayload(
+          recipe ? recipe.getRecipeId() : '',
+          recipe ? recipe.getOutputAppearance() : '',
+          recipe ? recipe.getKeywords() : material.getKeywords(),
+          await buildParts(contributions),
+          effectiveHeatK,
+          makerPath,
+        ),
+      );
+    } else if (makerPath) {
+      // An authored-substance build still had a hand behind it.
+      outSlot.setPayload({ ...(outSlot.getPayload() ?? {}), maker: makerPath });
+    }
   }
   // The spoilage the buffer brought with it: killed off if the working
   // actually got hot enough, otherwise blended through (a lazy
   // warm-through launders nothing) — and either way, what the killed
   // population already made stays in the dish.
-  applySpoilage(
-    outSlot,
-    buildMicrobialLoad(
-      effectiveHeatK,
-      recipe?.getHoldS() ?? ThermalDose.defaultHoldS(),
-      req.contributions,
-      // ⭐ The dish it goes into and the hand that made it (D14) — food
-      // only, as at the bench.
-      req.contributions.some((c) =>
-        Freshness.isPerishable(
-          c.materialPath
-            ? StuffApi.findByTemplatePath<Material>(c.materialPath) ?? null
-            : null,
-        ),
-      )
-        ? kitInoculum([vessel], makerStuff)
-        : {},
-    ),
-  );
+  applySpoilage(outSlot, buildSpoilage(build, vessel));
 
-  // The working finishes the glass: chill + dilution, the technique
-  // stamp, the soil mark. Ice and garnish are the hand's own steps
-  // (`garnish <glass> with <x>`), not the strain's.
-  //
-  // ⭐ The hand path NAMES the working by verb (stir / shake / muddle
-  // recorded it) but takes its NUMBERS from the instrument in reach —
-  // you cannot shake without a shaker, and the shaker is what knows what
-  // shaking does. An unauthored word finishes neutral.
-  const handMethod = req.method ?? Techniques.BUILT;
-  await finishGlass(
-    vessel,
-    outSlot,
-    {
-      name: handMethod,
-      effect: Techniques.effectFor(handMethod, reachableTools(makerStuff)),
-    },
-    [],
-    null,
-    [],
-  );
+  if (charge === null) {
+    // The working finishes the glass: chill + dilution, the technique
+    // stamp, the soil mark. Ice and garnish are the hand's own steps
+    // (`garnish <glass> with <x>`), not the strain's.
+    //
+    // ⭐ The hand path NAMES the working by verb (stir / shake / muddle
+    // recorded it) but takes its NUMBERS from the instrument in reach —
+    // you cannot shake without a shaker, and the shaker is what knows what
+    // shaking does. An unauthored word finishes neutral.
+    const handMethod = method ?? Techniques.BUILT;
+    await finishGlass(
+      vessel,
+      outSlot,
+      {
+        name: handMethod,
+        effect: Techniques.effectFor(handMethod, reachableTools(makerStuff)),
+      },
+      [],
+      null,
+      [],
+    );
+  }
 
-  vessel.stamp({
-    maker: makerPath,
-    grade,
-    recipe: recipeId,
-    craftedAt: WorldClockApi.getNow().rawValue(),
-  });
+  if (MixinApi.isCrafted(vessel)) {
+    vessel.stamp({
+      maker: makerPath,
+      grade,
+      recipe: recipeId,
+      craftedAt: WorldClockApi.getNow().rawValue(),
+    });
+  }
 
   if (recipe) await recordCraftEvidence(makerStuff, recipe);
   return { ok: true, output: vessel, grade, recipeId };

@@ -162,8 +162,9 @@ export interface RecipeView {
  * buffer is reverse-matched to a recipe (for the output material + grade
  * floor + recipe id) and the destination vessel is filled + stamped. The
  * maker is derived from execution context, never the wire (as with
- * {@link CraftRequest}); the inputs were already debited off the bottles
- * at pour-time, so the mint does not re-consume.
+ * {@link CraftRequest}); a buffer's inputs were already debited off the
+ * bottles at pour-time, so the mint does not re-consume them — a
+ * compounding vessel's `charge` is the one build the mint consumes.
  */
 export interface BuildMintRequest {
   /**
@@ -177,8 +178,21 @@ export interface BuildMintRequest {
    * onto the recipe's cloned output (or the generic worked lump).
    */
   workpiece?: Stuff;
-  /** The accumulated build buffer (banked contributions). */
-  contributions: BuildContribution[];
+  /**
+   * ⭐ A compounding vessel whose physical CONTENTS are the build
+   * (ceramics re-plan R1-D7) — the tub, the batch pot, the temper pit.
+   * The charge is read as the record a shaker banks (the vessel's own
+   * `chargeContributions()`), runs the one path, and is consumed by the
+   * mint: its pieces destructed, its belly emptied. The vessel's
+   * `productMaterial` names the product when it names one; otherwise the
+   * matched recipe does, else the generic pot-luck — into the vessel.
+   */
+  charge?: Stuff;
+  /**
+   * The accumulated build buffer (banked contributions). Ignored when
+   * `charge` is given — the charge IS the build.
+   */
+  contributions?: BuildContribution[];
   /** The highest heat (K) the build was worked at (the vessel's latch);
    * a recipe with `requiresHeatK` above it never reverse-matches. */
   heatedToK?: number;
@@ -515,13 +529,16 @@ export class CraftingApi {
   }
 
   /**
-   * Mint a drink from a completed manual build — the terminal-step
-   * sibling of {@link craft}. Reverse-matches the accumulated buffer to a
-   * recipe (generic `mixed drink` if none), derives the weakest-link
-   * grade, fills the destination vessel, and stamps it with the maker's
-   * mark — reusing the **one** quality model (`Grade` +
-   * `CraftedMixin.stamp`). The inputs were debited at pour-time, so this
-   * does not re-consume. See {@link CraftingLogic.mintFromBuild}.
+   * ⭐ The ONE mint for a thing made of several (ceramics re-plan R1-D7) —
+   * the terminal-step sibling of {@link craft}. The build is a banked
+   * buffer (a shaker, a pot, a trough, a workpiece — debited at pour-time,
+   * so not re-consumed) or a compounding vessel's `charge` (consumed
+   * here). Reverse-matches it to a recipe, derives the weakest-link grade,
+   * carries the inputs' spoilage, and names the product: the charge
+   * vessel's `productMaterial` when it names one, else the recipe's
+   * output, else the generic pot-luck / worked lump — reusing the **one**
+   * quality model (`Grade` + `CraftedMixin.stamp`). See
+   * {@link CraftingLogic.mintFromBuild}.
    */
   public static async mintFromBuild(
     request: BuildMintRequest,

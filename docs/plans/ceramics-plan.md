@@ -2076,6 +2076,12 @@ Acceptance: `grep -rn "blend(" lib/material` is empty; one function mints
 every made-of-several thing. Commit: `refactor(crafting): one mint for a
 buffer and a charge; the vessel or the recipe names it`.
 
+✅ **W-R1c done (2026-10-28).** `mintFromBuild({ charge })` reads the vessel's
+`chargeContributions()` and runs the one path; `compound` forwards and maps the
+outcome, `blend` is gone. Decided here: a vessel-named product skips the
+reverse-match (no recipe, no evidence); a tub takes no glass finish and no stamp
+unless Crafted; build items weigh their banked `massKg` (stew label → 1.6 kg in).
+
 **W-R1d — proportional matching and the serving pour.** Files:
 `CraftingLogic.ts` `matchBuild` l.2268–2297 + `buildSatisfies` l.2323–2370 →
 `buildFit(recipe, contributions): { ok, d } | null` implementing R1-D2 +

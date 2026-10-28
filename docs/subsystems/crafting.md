@@ -985,6 +985,16 @@ against it at the mint; reset by `clearBuild`).
   <dish>` (the terminal mint — a matched edible recipe fills the dish
   with the authored food Material at the portion; off-spec mints the
   generic **pot-luck** fill).
+- **Compounding** — ⭐ the same mint over a vessel's **charge** rather
+  than a buffer (ceramics re-plan R1-D7): `knead`/`stir` at a
+  `CompoundingMixin` vessel (a glaze tub, the batch pot, a temper pit)
+  calls `mintFromBuild({ charge })`; the vessel's
+  `chargeContributions()` reads its pieces and belly as contributions
+  (each piece's `massKg` banked), and the one path runs — grade, the
+  inputs' spoilage + kit, the maker — then the **namer**: the vessel's
+  `productMaterial` (a piece cloned from `productTemplate`, else the
+  belly), else the matched recipe, else the pot-luck. The charge is
+  consumed by the mint.
 
 `quench`/`plate` replicate `strain`'s capture tail
 (`ScriptApi.captureManualBuild`) — the first faithful hand build mints
