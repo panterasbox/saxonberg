@@ -655,10 +655,13 @@ suite('⭐ 19 — lead leaches', () => {
     const taste = await say(potter, 'taste leadpot');
     for (const sense of [look, smell, taste]) expect(sense, 'no sense reports the lead').not.toMatch(/\blead\b(?! glaze)/i);
     const chem = await say(potter, 'analyze chemistry leadpot');
-    expect(chem, `the lead crock's vinegar: ${chem}`).toMatch(/lead/i);
+    // ⚠ The CONTENTS line, not the word: /lead/ matched the crock's own
+    // name, "leadpot", so this passed with nothing read (run 39).
+    expect(chem, `the lead crock's vinegar: ${chem}`).toMatch(/dissolved lead/i);
     await say(potter, 'get ashpot');
     const clean = await say(potter, 'analyze chemistry ashpot');
-    expect(clean, `the ash crock's vinegar: ${clean}`).not.toMatch(/\blead\b/i);
+    expect(clean, `the ash crock's vinegar: ${clean}`).toMatch(/contents:/i);
+    expect(clean).not.toMatch(/dissolved lead/i);
     // ⚠ `drink leadpot`, not `drink from leadpot`: the second is no shape
     // of the verb, and its refusal says "drink" — which this regex matched.
     const drank = await act(potter, 'drink leadpot --amount 100ml');
@@ -793,13 +796,14 @@ suite('⭐ 22 — the filter (W8)', () => {
     const strained = await strainedIn(YARD);
     expect(strained, 'the yard\'s crock with its filter').not.toBeNull();
     expect(strained!.look, 'water came through').toMatch(/holds .*water/i);
-    expect(strained!.chem, `the strained water: ${strained!.chem}`).not.toMatch(/foul|dysentery|lead/i);
+    expect(strained!.chem, `the strained water: ${strained!.chem}`).toMatch(/contents: water\b/i);
+    expect(strained!.chem).not.toMatch(/dissolved/i);
 
     // ⭐ The lead is dissolved: it went straight through the pores.
     const through = await strainedIn(TEMPER);
     expect(through, 'the temper pit\'s crock with its filter').not.toBeNull();
     expect(through!.look, 'the tainted water came through').toMatch(/holds .*water/i);
-    expect(through!.chem, `the tainted water: ${through!.chem}`).toMatch(/lead|taint/i);
+    expect(through!.chem, `the tainted water: ${through!.chem}`).toMatch(/contents: tainted|dissolved lead/i);
   }, 1_800_000);
 });
 

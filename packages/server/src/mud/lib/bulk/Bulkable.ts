@@ -880,13 +880,16 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getBulkMaterialPath(affordance: BulkAffordance): string | null {
+      // ⭐ Every read of the interior brings its seepers current — the empty
+      // check reads the PATH first, and an empty crock under a dripping
+      // filter stayed "empty" (drive C, runs 38–39).
+      if (affordance === 'interior') this.reconcileSeepers();
       return affordance === 'interior'
         ? this.interiorMaterial
         : this.surfaceMaterial;
     }
 
     public getBulkMaterial(affordance: BulkAffordance): Material | null {
-      if (affordance === 'interior') this.reconcileSeepers();
       const path = this.getBulkMaterialPath(affordance);
       if (path === null) return null;
       return StuffApi.findByTemplatePath<Material>(path) ?? null;

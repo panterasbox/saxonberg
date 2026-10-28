@@ -141,7 +141,9 @@ describe('⭐⭐ the ceramic water filter', () => {
     ContainmentApi.move(f, c);
     f.getBulkAmount('interior'); // the pour opens the face clock
     advance(3 * 3600);
-    // The crock is read first, and only the crock.
+    // The crock is read first, and only the crock — and the way a LOOK
+    // reads it (the contents line checks the slot's material path first).
+    expect(c.getContentsDescriptionFor(c as never, 'interior')).not.toBeNull();
     expect(c.getBulkMaterial('interior')?.getTemplatePath()).toBe(WATER);
     expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
   });
