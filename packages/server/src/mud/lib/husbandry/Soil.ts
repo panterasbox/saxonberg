@@ -247,6 +247,22 @@ export interface Soil {
    * made concrete — the seeded character modulating a derived reserve.
    */
   soilLeachRate(): number;
+  /**
+   * @hook Why this ground refuses a SOWING right now, in words, or
+   * `null` when it may be sown (cover build D4). Default `null` — a pot
+   * or a bed is never refused by its ground. A field answers *not
+   * ploughed for the season* or *a different crop stands in it*: the
+   * seedbed is the ground's state, so the verb asks the ground.
+   */
+  sowingRefusal(): string | null;
+  /**
+   * @hook Settle WHOSE the crop standing in this ground is, before a
+   * harvest mints from it or right after a sowing creates it (cover
+   * build D6). Default resolves at once — a pot's plant is whoever
+   * planted it. A field stamps its crop to the business that works it.
+   * ⛔ Called by the ACTS that need it (sow, harvest), never by a read.
+   */
+  ensureCropTitle(): Promise<void>;
 }
 
 /**
@@ -321,6 +337,16 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      */
     public soilLeachRate(): number {
       return 0.0006;
+    }
+
+    /** See {@link Soil.sowingRefusal}. */
+    public sowingRefusal(): string | null {
+      return null;
+    }
+
+    /** See {@link Soil.ensureCropTitle}. */
+    public async ensureCropTitle(): Promise<void> {
+      /* host hook */
     }
 
     // ---------- soil state: its OWN checkpoint ----------

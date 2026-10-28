@@ -12,6 +12,14 @@ settings:
   - key: husbandry.maxSteps
     value: "2000"
 
+  # Cover build D3: the square metres a bare-handed harvest cuts, and
+  # what one broadcast sowing covers. A tool's swathM2 replaces the first.
+  - key: husbandry.handSwathM2
+    value: "10"
+
+  - key: husbandry.sowHandM2
+    value: "100"
+
   - key: husbandry.vigorTauSec
     value: "3801600"
 

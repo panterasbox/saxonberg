@@ -24,6 +24,12 @@ help: |
 
   Harvesting takes nitrogen out of the ground with it. An unfed bed
   yields worse each time round — `feed` is what puts it back.
+
+  A FIELD crop is cut a swath at a time. Each `harvest` takes a stretch
+  of the crop and gives what that stretch yields; a sickle or a cane
+  knife cuts far more ground than bare hands, and a scythe more again.
+  Keep cutting until it is down to the stubble. What you cannot carry
+  you leave lying in the row.
 examples:
   - cmd: harvest the carrots
     note: Take the crop; an annual plant is spent
@@ -31,6 +37,8 @@ examples:
     note: A ripe tree gives its whole set and keeps its place
   - cmd: pick the bed
     note: Naming the ground picks its ripest plant
+  - cmd: harvest wheat with sickle
+    note: Cut a swath of a field crop
 validators:
   - /lib/command/validators/requiresAnimate
   # Pulling a carrot and turning compost into a bed are both acts on
@@ -48,12 +56,13 @@ args:
   # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:instrument-args`).
   # Only a plant that names a `harvestTool` reads it (a coppice stool
   # is cut with a billhook; a carrot is pulled by hand and ignores
-  # whatever bound). `cutting` is the one kind any shipped plant asks
-  # for today; a plant wanting another kind names its tool with `with`.
+  # whatever bound). A field crop is cut with whatever reaps (a sickle,
+  # a cane knife, a scythe) and its `swathM2` says how much one act
+  # takes; with nothing that reaps, bare hands (cover build D3).
   - name: tool
     type: object
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.cutting]"
+    default: "reachable:[capability.reaping],reachable:[capability.cutting]"
     scope: ["reachable"]
     requires: [ToolMixin]

@@ -171,7 +171,9 @@ export default class RepotController extends CommandController<RepotModel> {
     // itself; the destination is settled here because only the caller
     // knows this is a transplant rather than a persistence re-seat.)
     target.reconcileSoil();
-    if (origin) origin.vacate(PLANT_SLOT, subject);
+    if (origin && MixinApi.isCultivable(origin)) {
+      origin.vacate(PLANT_SLOT, subject);
+    }
     ContainmentApi.move(subject, target);
     target.occupy(subject, PLANT_SLOT);
 

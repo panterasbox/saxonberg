@@ -1481,6 +1481,12 @@ export const AppSettingKeys = {
   /** Husbandry — the step cap a long absence is integrated within (dt
    * grows to compensate — a step cap, never a time cap). */
   husbandryMaxSteps: "husbandry.maxSteps",
+  /** Husbandry — square metres one bare-handed `harvest` or `sow` works
+   * on an area crop, when no tool says otherwise (cover build D3). The
+   * tool's `swathM2` replaces it. */
+  husbandryHandSwathM2: "husbandry.handSwathM2",
+  /** Husbandry — square metres one `sow` act broadcasts by hand. */
+  husbandrySowHandM2: "husbandry.sowHandM2",
   /** Husbandry — vigor relaxation time constant (game-seconds): the e-fold
    * toward the limiting satisfaction. Sets the neglect fuse's slope. */
   husbandryVigorTauSec: "husbandry.vigorTauSec",

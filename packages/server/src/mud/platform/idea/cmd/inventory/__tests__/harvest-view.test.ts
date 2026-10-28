@@ -44,7 +44,9 @@ describe('harvest.yaml — the tool is an ARGUMENT', () => {
     expect(tool).toBeDefined();
     expect(tool!.type).toBe('object');
     expect(tool!.required).toBe(false);
-    expect(tool!.default).toBe('reachable:[capability.cutting]');
+    expect(tool!.default).toBe(
+      'reachable:[capability.reaping],reachable:[capability.cutting]',
+    );
     expect(tool!.prepositions).toEqual(['with', 'using']);
     expect([tool!.requires].flat()).toEqual(['ToolMixin']);
   });

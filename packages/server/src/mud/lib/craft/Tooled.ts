@@ -47,6 +47,15 @@ export interface Tooled {
    */
   getEpoch(): Epoch | null;
   setEpoch(value: Epoch | null): void;
+  /**
+   * ⭐ Square metres of ground one act with this tool works — a sickle's
+   * swath, a cane knife's, a scythe's (cover build D3). `0` = not an
+   * area tool. *Work per acre is the tool's number; yield per acre is
+   * the crop's* — so a reaper is a row with a bigger number and answers
+   * the same verb.
+   */
+  getSwathM2(): number;
+  setSwathM2(value: number): void;
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -56,6 +65,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       capabilities: { persistent: true, authorable: true },
       epoch: { persistent: true, authorable: true },
+      swathM2: { persistent: true, authorable: true },
     };
 
     /**
@@ -69,6 +79,18 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The epoch stamp; `null` = unstated. */
     public epoch: Epoch | null = null;
+
+    /** Square metres one act works; `0` = not an area tool. */
+    public swathM2 = 0;
+
+    getSwathM2(): number {
+      return this.swathM2;
+    }
+
+    setSwathM2(value: number): void {
+      const n = Number(value);
+      this.swathM2 = Number.isFinite(n) && n > 0 ? n : 0;
+    }
 
     getEpoch(): Epoch | null {
       return this.epoch;

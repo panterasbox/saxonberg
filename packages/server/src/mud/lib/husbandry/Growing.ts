@@ -48,10 +48,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { Cultivable } from './Cultivable';
 import type { Soil } from './Soil';
-import type { Slotted } from '../slot/Slotted';
-import type { Bulkable } from '../bulk/Bulkable';
 import type { Difficulty } from '../advancement/ActSignature';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -169,7 +166,48 @@ export interface GrowthProfileData {
    * know the bees exist.
    */
   pollinationBaseline?: number;
+  /**
+   * ⭐ **The area crop** (cover build, D2). Kilograms of seed sown per
+   * square metre — what makes this plant sowable BY AREA on a field.
+   * Absent = planted one at a time (a pot, a bed, a tree): `sow` refuses
+   * to broadcast it, and every row that shipped before arable is
+   * byte-identical.
+   */
+  seedRateKgPerM2?: number;
+  /**
+   * The yield-to-seed ratio — the number every agrarian history quotes
+   * (wheat about six, barley seven, cane about ten over its sett). The
+   * standing crop at ripeness is `sownAreaM2 × seedRateKgPerM2 ×
+   * yieldRatio`, so a third of the seed sown is a third of the yield and
+   * there is no yield table anywhere.
+   */
+  yieldRatio?: number;
+  /**
+   * The fraction of yield a ratoon loses each cycle it is cut and
+   * regrows (cane about 0.12). Absent = 0: a coppice stool keeps its
+   * vigor, and a monocarp has only one cycle to lose nothing over.
+   */
+  yieldDeclinePerCycle?: number;
 }
+
+/** What one swath of an area crop gave (see {@link Growing.takeSwath}). */
+export interface SwathTaken {
+  /** Kilograms of crop the swath cut. */
+  kg: number;
+  /** Square metres actually cut (the remainder of the crop at most). */
+  areaCut: number;
+  /** True when this swath took the last of the standing crop. */
+  last: boolean;
+}
+
+/** The stage of an area crop as a farmer names it (never a number). */
+export type CropStage =
+  | 'emerging'
+  | 'tillering'
+  | 'in-ear'
+  | 'ripening'
+  | 'ripe'
+  | 'dead';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 /** Containment hops the light sample climbs before giving up. */
@@ -285,12 +323,13 @@ export interface Growing {
   /** A harvestable plant of this kind beside this one, or null. */
   ripeSibling(): (Stuff & Growing) | null;
   /**
-   * The ground this is rooted in — a pot or a garden bed — or null when
-   * unrooted. Speaks the `Cultivable` interface rather than a concrete
-   * class: *a pot is a bed with one slot*, and the plant has no business
-   * knowing which it is sitting in.
+   * The ground this is rooted in, or null when unrooted: the slot host
+   * when it sits in one (a pot, a garden bed — *a pot is a bed with one
+   * slot*), else ⭐ **the soil-bearing ground it stands in** (a field —
+   * cover build D1). A plant has no business knowing which; a caller
+   * that needs the slot surface narrows with `MixinApi.isCultivable`.
    */
-  getBed(): (Stuff & Cultivable & Soil & Container & Bulkable & Slotted) | null;
+  getBed(): (Stuff & Soil & Container) | null;
   /**
    * How hard it is to move this to another pot — the `horticulture`
    * difficulty the `repot` verb credits. Root disturbance scales with
@@ -336,6 +375,58 @@ export interface Growing {
    */
   getFruitSetCount(): number;
 
+  // ---------- the area crop (cover build) ----------
+
+  /**
+   * Square metres this plant stands over as a CROP — `0` for an
+   * individual plant (a pot, a bed, a tree), which is every row that
+   * shipped before arable. See {@link GrowthProfileData.seedRateKgPerM2}.
+   */
+  getSownAreaM2(): number;
+  setSownAreaM2(value: number): void;
+  /** Widen the crop by `m2` — a later sowing of the same kind. */
+  addSownAreaM2(m2: number): void;
+  /** Whether this is an area crop (a sown area over a sowable profile). */
+  isAreaCrop(): boolean;
+  /** Square metres still standing to be cut this cycle. */
+  standingAreaM2(): number;
+  /**
+   * Kilograms the standing crop holds right now: the whole yield of the
+   * unharvested area while it is harvestable, `0` before. Reconciles.
+   */
+  standingYieldKg(): number;
+  /**
+   * Cut up to `areaM2` of the standing crop: reduces what stands and
+   * returns what came off. `last` says the crop is exhausted for the
+   * cycle — the caller ends a monocarp or settles a ratoon.
+   */
+  takeSwath(areaM2: number): SwathTaken;
+  /**
+   * Close a ratoon's cycle after its last swath: settle the fruit cycle,
+   * restore the full area to stand again, and count the cycle (the
+   * decline reads it).
+   */
+  settleRatoon(): void;
+  /** How many times this ratoon has been cut down and regrown. */
+  getCycleCount(): number;
+  /**
+   * Kilograms cut but not yet made up into a whole good — carried to the
+   * next swath so nothing is lost to rounding.
+   */
+  getHarvestCarryKg(): number;
+  setHarvestCarryKg(value: number): void;
+  /** The crop's stage as a farmer names it. */
+  getCropStage(): CropStage;
+  /** *"a young crop, tillering"* — the stage in words. */
+  cropStagePhrase(): string;
+  /**
+   * How much of `ofAreaM2` the standing crop covers, in words — *"over
+   * about a third of it"*. Never a number.
+   */
+  cropAreaPhrase(ofAreaM2: number): string;
+  /** True when a ratoon has been cut so often its yield is failing. */
+  isTiredRatoon(): boolean;
+
   // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   growthClockStamp: number;
@@ -350,6 +441,43 @@ export interface Growing {
   _fruitSetCount: number;
   _pollination: number;
   profile: GrowthProfileData | null;
+}
+
+/**
+ * An area crop's stage as a farmer names it. A grain's words, and the
+ * ones the requirements name — emerging, tillering, in ear, ripening,
+ * ripe — because a field of wheat is the crop people read off a field.
+ */
+const CROP_STAGE_OF: Record<GrowthStage, CropStage> = {
+  seedling: 'emerging',
+  young: 'tillering',
+  established: 'in-ear',
+  mature: 'ripening',
+};
+
+const CROP_STAGE_PHRASE: Record<CropStage, string> = {
+  emerging: 'just emerging',
+  tillering: 'a young crop, tillering',
+  'in-ear': 'in ear, the ears filling',
+  ripening: 'ripening',
+  ripe: 'ripe and ready to cut',
+  dead: 'dead where it stands',
+};
+
+/**
+ * A fraction of ground in words — never a number. The bands are the
+ * ones a person eyeing a field would say aloud.
+ */
+function areaFractionPhrase(f: number): string {
+  if (f >= 0.97) return 'over all of it';
+  if (f >= 0.85) return 'over nearly all of it';
+  if (f >= 0.7) return 'over about three-quarters of it';
+  if (f >= 0.58) return 'over about two-thirds of it';
+  if (f >= 0.42) return 'over about half of it';
+  if (f >= 0.29) return 'over about a third of it';
+  if (f >= 0.2) return 'over about a quarter of it';
+  if (f > 0) return 'over a strip of it';
+  return '';
 }
 
 /** The player-facing size phrase per stage (how big, never a number). */
@@ -447,6 +575,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       _fruitSetCount: { persistent: true },
       _pollination: { persistent: true },
       profile: { persistent: true },
+      // The area crop (cover build). An individual plant keeps 0 in
+      // all three and is byte-identical.
+      sownAreaM2: { persistent: true, authorable: true },
+      _cycleCount: { persistent: true, authorable: true },
+      _harvestedAreaM2: { persistent: true },
+      _harvestCarryKg: { persistent: true },
       // ⭐ Moved off the `Plant` CLASS. `harvest` and `repot` used to
       // narrow with `instanceof Plant` while their specs declared
       // `requires: GrowingMixin` — two predicates for one gate, the
@@ -521,6 +655,15 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     public _pollination = 1;
     /** The authored reaction norm (see {@link GrowthProfileData}). */
     public profile: GrowthProfileData | null = null;
+
+    /** Square metres sown; 0 = an individual plant. */
+    public sownAreaM2 = 0;
+    /** Ratoon cycles cut and regrown — the decline's exponent. */
+    public _cycleCount = 0;
+    /** Square metres already cut this cycle. */
+    public _harvestedAreaM2 = 0;
+    /** Kilograms cut but not yet made up into a whole good. */
+    public _harvestCarryKg = 0;
 
     /** Reentry guard — a reconcile must never recurse through a read. */
     private _reconcilingGrowth = false;
@@ -632,6 +775,104 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       this._pollination = 1;
     }
 
+
+    // ---------- the area crop (cover build D2) ----------
+
+    public getSownAreaM2(): number {
+      return this.sownAreaM2;
+    }
+
+    public setSownAreaM2(value: number): void {
+      this.sownAreaM2 = Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    public addSownAreaM2(m2: number): void {
+      if (!Number.isFinite(m2) || m2 <= 0) return;
+      this.sownAreaM2 += m2;
+    }
+
+    public isAreaCrop(): boolean {
+      return this.sownAreaM2 > 0 && (this.profile?.seedRateKgPerM2 ?? 0) > 0;
+    }
+
+    public standingAreaM2(): number {
+      return Math.max(0, this.sownAreaM2 - this._harvestedAreaM2);
+    }
+
+    /**
+     * Kilograms one square metre gives at ripeness: seed rate × yield
+     * ratio, less the ratoon decline compounded over the cycles cut.
+     * Two row numbers and one optional third — no yield table.
+     */
+    private yieldPerM2(): number {
+      const p = this.profile;
+      if (!p) return 0;
+      const rate = p.seedRateKgPerM2 ?? 0;
+      const ratio = p.yieldRatio ?? 0;
+      const decline = clamp01(p.yieldDeclinePerCycle ?? 0);
+      return rate * ratio * Math.pow(1 - decline, Math.max(0, this._cycleCount));
+    }
+
+    public standingYieldKg(): number {
+      if (!this.isAreaCrop() || !this.isHarvestable()) return 0;
+      return this.standingAreaM2() * this.yieldPerM2();
+    }
+
+    public takeSwath(areaM2: number): SwathTaken {
+      if (!this.isAreaCrop() || !this.isHarvestable()) {
+        return { kg: 0, areaCut: 0, last: false };
+      }
+      const standing = this.standingAreaM2();
+      const areaCut = Math.max(0, Math.min(areaM2, standing));
+      this._harvestedAreaM2 += areaCut;
+      // A sliver under a square metre is not worth another act: the
+      // swath that leaves less than that takes it too.
+      const left = standing - areaCut;
+      const last = left < 1;
+      if (last) this._harvestedAreaM2 = this.sownAreaM2;
+      const cut = last ? standing : areaCut;
+      return { kg: cut * this.yieldPerM2(), areaCut: cut, last };
+    }
+
+    public settleRatoon(): void {
+      this.settleCycle();
+      this._harvestedAreaM2 = 0;
+      this._cycleCount += 1;
+    }
+
+    public getCycleCount(): number {
+      return this._cycleCount;
+    }
+
+    public getHarvestCarryKg(): number {
+      return this._harvestCarryKg;
+    }
+
+    public setHarvestCarryKg(value: number): void {
+      this._harvestCarryKg = Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    public getCropStage(): CropStage {
+      if (this.getConditionBand() === 'dead') return 'dead';
+      if (this.isHarvestable()) return 'ripe';
+      return CROP_STAGE_OF[this.getGrowthStage()];
+    }
+
+    public cropStagePhrase(): string {
+      return CROP_STAGE_PHRASE[this.getCropStage()];
+    }
+
+    public cropAreaPhrase(ofAreaM2: number): string {
+      if (!(ofAreaM2 > 0)) return '';
+      return areaFractionPhrase(this.standingAreaM2() / ofAreaM2);
+    }
+
+    public isTiredRatoon(): boolean {
+      const d = clamp01(this.profile?.yieldDeclinePerCycle ?? 0);
+      if (d <= 0) return false;
+      return Math.pow(1 - d, this._cycleCount) < 0.6;
+    }
+
     /*
      * ⭐ The harvest + rooting surface, moved here from the `Plant`
      * class. `harvest` and `repot` narrowed with `instanceof Plant`
@@ -719,16 +960,37 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * OUTSIDE this one on `Plant` — so it cannot be assumed on the
      * base. Asking `MixinApi.isSlottable` is the project's own answer
      * to that (narrow locally rather than demand composition order),
-     * and it makes an unslotted grower read `null` instead of throwing.
+     * and it makes an unslotted grower read its container instead of
+     * throwing.
+     *
+     * ⭐⭐ **Ground is a bed by CONTAINMENT** (cover build D1). The slot
+     * host wins when there is one — a pot, a garden bed — and otherwise
+     * the soil-bearing ground the plant stands in roots it. A field is
+     * not a vessel of soil with an N-slot, so it composes no
+     * `Cultivable`; it only has to be ground. Before this, a plant
+     * standing in a field read `null`, `satWater(null)` is 0, and every
+     * crop authored into a field quietly died of thirst.
      */
-    public getBed():
-      | (Stuff & Cultivable & Soil & Container & Bulkable & Slotted)
-      | null {
+    public getBed(): (Stuff & Soil & Container) | null {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isSlottable(self)) return null;
-      const host = self.getOccupiedHost();
-      if (!host) return null;
-      return MixinApi.isCultivable(host) ? host : null;
+      if (MixinApi.isSlottable(self)) {
+        const host = self.getOccupiedHost();
+        if (host && MixinApi.isCultivable(host)) return host;
+      }
+      // ⚠ Only ground that holds NO slot. A pot or a bed roots a plant
+      // through its slot — its soil is shared by slot occupancy — so a
+      // plant merely sitting in its contents (moved in, not yet seated)
+      // is not rooted there.
+      const ground = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (
+        ground &&
+        MixinApi.isSoil(ground) &&
+        MixinApi.isContainer(ground) &&
+        !MixinApi.isCultivable(ground)
+      ) {
+        return ground;
+      }
+      return null;
     }
 
     public transplantDifficulty(): Difficulty {

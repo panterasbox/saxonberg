@@ -146,7 +146,11 @@ export default class Plant extends PlantBase {
    * hold moisture for it, and modelling it twice would double-punish).
    */
   protected override rootRoom(): number | null {
-    return this.getBed()?.rootRoomPerPlant() ?? null;
+    // ⭐ Only a pot or a bed has a root CEILING. Ground the plant stands
+    // in (a field — cover build D1) roots it without one: `null`, the
+    // shipped meaning of "not a root constraint".
+    const bed = this.getBed();
+    return bed && MixinApi.isCultivable(bed) ? bed.rootRoomPerPlant() : null;
   }
 
   /**
@@ -267,6 +271,9 @@ export default class Plant extends PlantBase {
   protected override onFloweringLatched(): void {
     const path = this.seedTemplatePath;
     if (!path) return;
+    // ⭐ An area crop's seed IS its harvest — a field of wheat does not
+    // drop a sack of seed wheat at its feet every time it flowers.
+    if (this.isAreaCrop()) return;
     const bed = this.getBed();
     const target: Stuff | null =
       bed ?? (MixinApi.isContainable(this) ? this.getContainer() : null);

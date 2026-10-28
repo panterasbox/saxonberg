@@ -34,7 +34,7 @@
  * refusal names the stage), else refuses with "nothing is growing".
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
+import { EngagedActController } from '../../../../lib/command/EngagedActController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
@@ -48,7 +48,10 @@ import { WorldClockApi } from '../../../../api/worldclock';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Grade, type GradeBand } from '../../../../lib/craft/Grade';
+import { Quantity } from '../../../../lib/quantity';
 import type { Growing } from '../../../../lib/husbandry/Growing';
+import type { Soil } from '../../../../lib/husbandry/Soil';
+import type { Tooled } from '../../../../lib/craft/Tooled';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Container } from '../../../../lib/spatial/Container';
@@ -77,7 +80,7 @@ interface HarvestModel extends CommandModel {
   tool?: MqlOneResult;
 }
 
-export default class HarvestController extends CommandController<HarvestModel> {
+export default class HarvestController extends EngagedActController<HarvestModel> {
   async execute(model: HarvestModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const named = model.target.stuff;
@@ -156,7 +159,10 @@ export default class HarvestController extends CommandController<HarvestModel> {
     // off with a billhook, not by hand. The plant says WHICH capability;
     // the view's default found the candidate; this only checks it.
     const need = plant.getHarvestTool();
-    if (need) {
+    // ⭐ An AREA crop is cut by hand or with a tool, never refused for
+    // want of one: the tool sets the swath, bare hands cut a little
+    // (cover build D3).
+    if (need && !plant.isAreaCrop()) {
       const tool = model.tool?.stuff ?? null;
       if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability(need)) {
         MessageApi.scene(giver)
@@ -203,11 +209,16 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
+    if (plant.isAreaCrop()) {
+      this.engageSwath(context, plant, cropPath, model.tool?.stuff ?? null);
+      return;
+    }
+
     // (1) Read the verdict BEFORE anything changes — the window closes
     // with the pick, and an ended annual takes its reading with it. The
     // Discipline is read here for the same reason: an annual is gone by
     // the time the deed is credited.
-    const band = this.bandFor(plant.getWorstLimiting());
+    const band = bandFor(plant.getWorstLimiting());
     const discipline = plant.getDiscipline();
     const bed = plant.getBed();
     const polycarp = plant.isPolycarp();
@@ -230,7 +241,7 @@ export default class HarvestController extends CommandController<HarvestModel> {
             maker: maker.getTemplatePath() ?? '',
             grade: Grade.of(band),
             recipe: cropPath,
-            craftedAt: this.nowSeconds(),
+            craftedAt: nowSeconds(),
           });
         } else if (MixinApi.isGraded(crop)) {
           // A merely-graded crop (no maker's mark) still carries the
@@ -319,29 +330,232 @@ export default class HarvestController extends CommandController<HarvestModel> {
     }
   }
 
+
   /**
-   * Map the worst limiting satisfaction to a quality band. Ascending
-   * floors, so a plant that was never meaningfully short of anything
-   * earns `masterful` and one bad fortnight costs a band permanently.
+   * ⭐ **The area crop: one act cuts one swath** (cover build D3). The
+   * swath belongs to the TOOL (`swathM2`), bare hands cut the
+   * `husbandry.handSwathM2` dial, and the act occupies the hands for a
+   * time that grows with the ground worked. Everything lands at
+   * completion — a barge-in leaves the crop standing.
    */
-  private bandFor(worst: number): GradeBand {
-    if (worst >= dial(AppSettingKeys.husbandryGradeMasterfulAt, 0.95)) {
-      return 'masterful';
+  private engageSwath(
+    context: CommandContext,
+    plant: Stuff & Growing,
+    cropPath: string,
+    bound: Stuff | null,
+  ): void {
+    const tool: (Stuff & Tooled) | null =
+      bound && MixinApi.isTool(bound) ? bound : null;
+    const hand = dial(AppSettingKeys.husbandryHandSwathM2, 2);
+    const swathM2 = tool && tool.getSwathM2() > 0 ? tool.getSwathM2() : hand;
+    const presentation = plant.getPresentation();
+    this.engageAct(context, {
+      durationMs: Math.round(3000 + swathM2 * 60),
+      cost: 6,
+      beginSelf: tool
+        ? Mml.compose`You bend to ${presentation} with ${Mml.thing(tool)} and cut.`
+        : Mml.compose`You bend to ${presentation} and pull it by hand.`,
+      beginPeers: Mml.compose`${Mml.actor(context.commandGiver)} bends to ${presentation} and cuts.`,
+      onComplete: () => {
+        // ⚠⚠ A MODULE function: this controller is destructed the
+        // moment `execute` returns (see `TapActController`).
+        void landSwath(context, plant, cropPath, swathM2);
+      },
+    });
+  }
+}
+
+/**
+ * Map the worst limiting satisfaction to a quality band. Ascending
+ * floors, so a plant that was never meaningfully short of anything
+ * earns `masterful` and one bad fortnight costs a band permanently.
+ */
+function bandFor(worst: number): GradeBand {
+  if (worst >= dial(AppSettingKeys.husbandryGradeMasterfulAt, 0.95)) {
+    return 'masterful';
+  }
+  if (worst >= dial(AppSettingKeys.husbandryGradeExceptionalAt, 0.8)) {
+    return 'exceptional';
+  }
+  if (worst >= dial(AppSettingKeys.husbandryGradeFineAt, 0.6)) return 'fine';
+  if (worst >= dial(AppSettingKeys.husbandryGradeFairAt, 0.35)) return 'fair';
+  return 'poor';
+}
+
+/** Game-seconds now, or 0 when no clock is running (tests / pre-boot). */
+function nowSeconds(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * The swath landed. ⚠ A module function over captured locals: the
+ * controller that started it is already destructed.
+ *
+ * The cut is re-checked here because the world moved while the hands
+ * worked: the harvester may have walked off, or somebody else may have
+ * cut the last of it.
+ */
+async function landSwath(
+  context: CommandContext,
+  plant: Stuff & Growing,
+  cropPath: string,
+  swathM2: number,
+): Promise<void> {
+  const giver = context.commandGiver;
+  if (giver.isDestroyed() || plant.isDestroyed()) return;
+  const where = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+  const bed = plant.getBed();
+  if (!where || (bed as Stuff | null) !== where) {
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`Nothing came of it — you are not standing in it any more.`)
+      .send();
+    return;
+  }
+  if (!plant.isHarvestable()) {
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`There is nothing left standing to cut.`)
+      .send();
+    return;
+  }
+  // ⭐ Whose crop it is is settled by the ground BEFORE anything is
+  // minted — the take follows `madeFrom: plant`, so the plant's title
+  // must already be right (cover build D6). Never a look path.
+  try {
+    if (bed && MixinApi.isSoil(bed)) await (bed as Stuff & Soil).ensureCropTitle();
+  } catch (err) {
+    console.warn('HarvestController: settling the crop title failed:', err);
+  }
+  if (giver.isDestroyed() || plant.isDestroyed()) return;
+
+  // (1) The verdict and the Discipline BEFORE anything changes.
+  const band = bandFor(plant.getWorstLimiting());
+  const discipline = plant.getDiscipline();
+  const presentation = plant.getPresentation();
+  const sownM2 = plant.getSownAreaM2();
+  const cut = plant.takeSwath(swathM2);
+  if (cut.areaCut <= 0) return;
+
+  // (2) Mint by the crop row's own mass; the remainder is carried on
+  // the plant to the next swath, and the LAST swath makes up whatever
+  // is left as one short good, so nothing is lost to rounding.
+  const maker =
+    (ExecutionContextApi.getActingAuthor() as Stuff | null) ?? giver;
+  let total = cut.kg + plant.getHarvestCarryKg();
+  const crops: Stuff[] = [];
+  let dropped = 0;
+  try {
+    while (total > 0) {
+      const crop = await StuffApi.clone<Stuff>(cropPath, undefined, {
+        madeFrom: plant,
+      });
+      const unit = MixinApi.isTangible(crop) ? crop.getMass().rawValue() : 0;
+      if (!(unit > 0) || total < unit) {
+        if (!cut.last) {
+          await StuffApi.destruct(crop);
+          break;
+        }
+        // The last of it: a short good of what is left.
+        if (MixinApi.isTangible(crop) && unit > 0) crop.setMass(Quantity.of(total, 'kg'));
+        total = 0;
+      } else {
+        total -= unit;
+      }
+      if (MixinApi.isCrafted(crop)) {
+        crop.stamp({
+          maker: maker.getTemplatePath() ?? '',
+          grade: Grade.of(band),
+          recipe: cropPath,
+          craftedAt: nowSeconds(),
+        });
+      } else if (MixinApi.isGraded(crop)) {
+        crop.setGrade(Grade.of(band));
+      }
+      // ⭐ What the harvester cannot carry is left lying where they
+      // stand — cut cane is piled in the row for the cart, not carried
+      // off one armful per stroke.
+      const carry =
+        MixinApi.isContainer(giver) &&
+        !(MixinApi.isLoadBearing(giver) && giver.wouldExceedCeiling(crop));
+      if (MixinApi.isContainable(crop)) {
+        ContainmentApi.move(
+          crop as Stuff & Containable,
+          (carry ? giver : where) as Stuff & Container,
+        );
+      }
+      if (!carry) dropped++;
+      crops.push(crop);
     }
-    if (worst >= dial(AppSettingKeys.husbandryGradeExceptionalAt, 0.8)) {
-      return 'exceptional';
-    }
-    if (worst >= dial(AppSettingKeys.husbandryGradeFineAt, 0.6)) return 'fine';
-    if (worst >= dial(AppSettingKeys.husbandryGradeFairAt, 0.35)) return 'fair';
-    return 'poor';
+  } catch (err) {
+    console.warn(`HarvestController: could not mint '${cropPath}':`, err);
+  }
+  plant.setHarvestCarryKg(cut.last ? 0 : total);
+
+  // (3) The nitrogen goes with the crop, in proportion to what was cut.
+  const draw = plant.getNutrientDraw();
+  if (bed && draw > 0 && sownM2 > 0) {
+    bed.drawNutrient((draw * cut.areaCut) / sownM2);
   }
 
-  /** Game-seconds now, or 0 when no clock is running (tests / pre-boot). */
-  private nowSeconds(): number {
-    try {
-      return WorldClockApi.getNow().rawValue();
-    } catch {
-      return 0;
-    }
+  const polycarp = plant.isPolycarp();
+  if (cut.last) {
+    if (polycarp) plant.settleRatoon();
+    else await StuffApi.destruct(plant);
   }
+
+  try {
+    if (bed) await PersistableApi.captureHostOf(bed);
+    if (!plant.isDestroyed()) await PersistableApi.captureHostOf(plant);
+  } catch (err) {
+    console.warn('HarvestController: capture after a swath failed:', err);
+  }
+
+  try {
+    if (MixinApi.isAdvancing(giver)) {
+      await giver.creditDeed({
+        discipline,
+        difficulty: 'easy',
+        outcome: 'success',
+      });
+    }
+  } catch (err) {
+    console.warn('HarvestController: recording the deed failed:', err);
+  }
+
+  const left = cut.last
+    ? polycarp
+      ? 'That is the last of it; the stools will come again.'
+      : 'That is the last of it, cut down to the stubble.'
+    : standingPhrase(sownM2 > 0 ? plant.standingAreaM2() / sownM2 : 0);
+  const took =
+    crops.length === 0
+      ? Mml.compose`You cut a swath of ${presentation} and bind it — not yet enough to make up a load.`
+      : crops.length === 1
+        ? Mml.compose`You cut a swath of ${presentation} and make up ${Mml.thing(crops[0]!)}.`
+        : Mml.compose`You cut a swath of ${presentation} and make up ${Mml.thing(crops[0]!)} — ${String(crops.length)} in all.`;
+  const lying =
+    dropped > 0
+      ? dropped === crops.length
+        ? ' You leave it lying in the row; you cannot carry more.'
+        : ` You leave ${String(dropped)} lying in the row; you cannot carry more.`
+      : '';
+  MessageApi.scene(giver)
+    .topic(TOPIC)
+    .toSelf(Mml.compose`${took}${lying} ${left}`)
+    .toPeers(Mml.compose`${Mml.actor(giver)} cuts a swath of ${presentation}.`)
+    .send();
+}
+
+/** How much of the crop still stands, in words. */
+function standingPhrase(f: number): string {
+  if (f >= 0.85) return 'Nearly all of it is still standing.';
+  if (f >= 0.6) return 'Most of it is still standing.';
+  if (f >= 0.4) return 'About half of it is still standing.';
+  if (f >= 0.15) return 'Some of it is still standing.';
+  return 'Only a strip of it is still standing.';
 }
