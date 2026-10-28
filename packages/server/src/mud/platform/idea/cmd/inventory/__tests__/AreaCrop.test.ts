@@ -295,6 +295,25 @@ describe('the area crop', () => {
       expect(p.getSoilMoisture()).toBeGreaterThan(0);
     });
 
+    it('⭐ the light is the field’s, not the dark warren the field sits in', () => {
+      // A field that is itself held by something — its warren — the way a
+      // real `Field` is (a `Location` is containable).
+      class HeldGround extends SoilMixin(ReservedMixin(AmbientLitMixin(ContainableMixin(Place)))) {}
+      const ground = makeStuff(() => {
+        const g = new HeldGround();
+        g.setAmbientFlux(400);
+        g.setReserve(new Reserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(10, 'L'), Quantity.of(10, 'L'), 'cultivation', 'wilting'));
+        return g;
+      });
+      const warren = makeStuff(() => new (ContainerMixin(ContainableMixin(Idea)))());
+      ContainmentApi.move(ground as never, warren as never);
+      const p = makeStuffAtPath(() => newPlant(), PLANT_PATH);
+      p.setSownAreaM2(100);
+      ContainmentApi.move(p, ground as never);
+      // `getLimitingFactor` samples light live: a lit field is not dark.
+      expect(p.getLimitingFactor()).not.toBe('light');
+    });
+
     it('a plant loose in ground with no soil is unrooted', () => {
       const room = makeStuff(() => new (AmbientLitMixin(Place))());
       const p = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));

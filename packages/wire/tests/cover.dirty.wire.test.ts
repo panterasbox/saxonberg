@@ -126,6 +126,19 @@ async function doing(s: Session, text: string): Promise<string> {
   return said;
 }
 
+/**
+ * Work that tires a body: act, and when the body says it is too tired,
+ * rest an hour of game time and go again — the way a person sows a field.
+ */
+async function work(s: Session, text: string): Promise<{ r: CommandResult; said: string }> {
+  let out = await act(s, text);
+  for (let i = 0; i < 6 && refusedFor(out.r) === 'too-tired'; i++) {
+    await advance(3_600);
+    out = await act(s, text);
+  }
+  return out;
+}
+
 /** Act, and require a refusal for `reason`. */
 async function refused(s: Session, text: string, reason: string): Promise<string> {
   const { r, said } = await act(s, text);
@@ -299,7 +312,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await doing(p, 'go west');
     let said = '';
     for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-      said = (await act(p, 'plough')).said + ' ' + (await read(p, 'look'));
+      said = (await work(p, 'plough')).said + ' ' + (await read(p, 'look'));
     }
     expect(said).toMatch(/ploughed for the season/i);
     await refused(p, 'plough', 'already-ploughed');
@@ -308,11 +321,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   it('4. sowing takes an area per act and spends the seed in proportion: about a third sown', async () => {
     const first = await doing(p, 'sow wheat');
     expect(first).toMatch(/walk the ground, casting|seed goes into the ground/i);
-    let said = '';
     for (let i = 0; i < 12 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
-      said = await doing(p, 'sow wheat');
+      const { r, said } = await work(p, 'sow wheat');
+      expect(refusedFor(r), said).toBeNull();
     }
-    void said;
     expect(await read(p, 'inventory')).not.toMatch(/seed wheat/i);
     expect(await read(p, 'look')).toMatch(/stand of wheat grows over about a third of it/i);
   }, 1_800_000);
@@ -361,7 +373,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     expect(looked).toMatch(/ripe and ready to cut/i);
     await refused(p, 'sow wheat', 'not-held');
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {
-      await doing(p, 'harvest wheat');
+      await work(p, 'harvest wheat');
     }
     const held = await p.query('me:i:wheat');
     expect(held.length, 'the stranger holds the sheaf').toBeGreaterThan(0);
@@ -386,7 +398,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     expect((await p.query('me:i:wheat:mine')).length).toBe(0);
     let looked = '';
     for (let i = 0; i < 120; i++) {
-      const { said } = await act(p, 'harvest wheat');
+      const { said } = await work(p, 'harvest wheat');
       if (/cut down to the stubble|nothing left standing/i.test(said)) break;
     }
     looked = await read(p, 'look');

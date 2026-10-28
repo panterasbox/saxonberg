@@ -60,6 +60,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
 import type { Light } from '../perception/Light';
+import Place from '../stuff/Place';
 import type { MarkupAugmenter } from '../../api/mml';
 
 /** The four growth stages, in order. */
@@ -1315,6 +1316,13 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
           if (MixinApi.isSealable(env) && !env.isOpen()) {
             return this.luxAt(env);
           }
+          // ⭐ A PLACE is where the light is (cover build). The climb went
+          // on past a field into the warren or zone that holds it — a
+          // container with no light — and every crop in a field starved
+          // of light in a summer noon. `instanceof Place`: the question
+          // is "is this the world or the inside of something" (the
+          // `WaterActivity` / `Display` precedent).
+          if (env instanceof Place) return this.luxAt(env);
           const parent: Stuff | null = MixinApi.isContainable(env)
             ? env.getContainer()
             : null;
