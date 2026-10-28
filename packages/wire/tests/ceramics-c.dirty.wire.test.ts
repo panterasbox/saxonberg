@@ -672,6 +672,10 @@ suite('⭐ 19 — lead leaches', () => {
 
 suite('⭐ 21 — the weeping jar', () => {
   it('an unglazed jar of water weeps, its outside wet and its water below room heat; a glazed one holds at room heat', async () => {
+    // ⭐ A SUMMER effect, in summer: by 21 the drive is weeks on from its
+    // warm start, and a jar of water left through a frost cracks honestly
+    // and weeps nothing (run 40: "It is cracked"). A no-op inside the season.
+    await toWarmSeason([potter, novice]);
     // Read and act by daylight: in the dark a query sees nothing, and a
     // named piece in your own hand cannot be bound (run 34's glaze, at night).
     await toHour(8, 14);
@@ -698,6 +702,7 @@ suite('⭐ 21 — the weeping jar', () => {
       (await hand(potter, '/trade/ceramics/thing/jar', { _materialPath: '/stuff/idea/material/ceramic/terracotta' }));
     await say(potter, `get #${full}`);
     await say(potter, `fill #${full} from butt`);
+    await examine(potter, `#${full}`); // the record: sound, or cracked by the fill
     await say(potter, 'fill leadpot from butt');
     await say(potter, `drop #${full}`);
     await say(potter, 'drop leadpot');
