@@ -149,3 +149,6 @@ The four-row matrix lives in the rulebook — the ruling, the authors' requireme
    pace of its own?
 4. **The economy** — price wages and rent per real hour, so the money supply does not move with the
    calendar?
+5. ⚠ **The pace of travel** — a voyage runs on the calendar while a bleed runs at encounter pace, so a
+   medevac flight is twelve times faster relative to the bleeding than in reality. Declared as needing
+   a decision 2026-10-29 ([flight-slate](./flight-slate.md) § 10a).
