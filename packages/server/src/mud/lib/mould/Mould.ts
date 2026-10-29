@@ -465,8 +465,11 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public castTemplateFor(material: Material): string {
       const self = this as unknown as Stuff;
       // ⭐ A cracked mould casts a lump — the shape is the mould's only
-      // while the mould is whole.
-      if (MixinApi.isDurable(self) && self.isBroken()) {
+      // while the mould is whole: worn out (broken), or an unmended crack
+      // through the cavity (the one damage record, review R2-D1).
+      const cracked =
+        MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended);
+      if ((MixinApi.isDurable(self) && self.isBroken()) || cracked) {
         return material.getCastTemplate();
       }
       return this.castTemplate || material.getCastTemplate();
@@ -1151,14 +1154,12 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (closed && (shortPour || superheat < need)) {
           // A misrun: it froze before the cavity filled. The flaw is the
           // fact; `look` words it (review R2-D7), nothing is baked.
+          // Its grade falls to poor by the flaw (`gradeAfterFaults`).
           cast.addFlaw('misrun', true, nowS);
-          if (MixinApi.isGraded(cast)) cast.setGrade(Grade.of('poor'));
         } else if (closed && !this.riser) {
           // Shrinkage: the last part to freeze had nothing to feed it.
+          // A grade down, by the flaw (`gradeAfterFaults`).
           cast.addFlaw('shrinkage', true, nowS);
-          if (MixinApi.isGraded(cast)) {
-            cast.setGrade(Grade.fromOrdinal(cast.getGrade().getOrdinal() - 1));
-          }
         }
       }
       if (blown && MixinApi.isGraded(cast)) cast.setGrade(Grade.of('poor'));

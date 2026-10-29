@@ -45,6 +45,8 @@ import type { CommandContributions } from '../../api/command';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { Grade } from '../craft/Grade';
+import { WorldClockApi } from '../../api/worldclock';
 import type Material from './Material';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
@@ -77,7 +79,12 @@ export interface Flaw {
   visible: boolean;
   /** Game-second it happened. */
   atS: number;
-  /** How it was mended, if it was — a tinker's rivets across a crack. */
+  /**
+   * How it was mended, if it was — a tinker's rivets across a crack.
+   * ⭐ DERIVED on read (review R2-D1), never stored: a crack or dunt is
+   * riveted when the body's mend record (`Durable.getMends`) holds a
+   * `riveted` mend made at or after it. The rivet is recorded once.
+   */
   mended?: 'riveted';
 }
 
@@ -130,6 +137,15 @@ export interface CastProvenance {
   discipline?: string;
 }
 
+/** Game-seconds now, or 0 with no clock (a unit world). */
+function tangibleNowS(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
+
 /** One numeric dial read, falling back to the literal when unseeded. */
 function tangibleDial(key: string, fallback: number): number {
   try {
@@ -165,13 +181,28 @@ function presentNameOf(identity: string): string {
   return who ? who.getPresentation() : '';
 }
 
-/** How much a flaw costs a body's strength. */
-const FLAW_PENALTY: Readonly<Record<FlawKind, number>> = {
+/**
+ * ⭐⭐ Two kinds of flaw (review R2-D1). DAMAGE — something that happened to
+ * the body — costs it integrity: its condition (`Durable.getCondition` =
+ * wear × integrity) and its strength under a blow read the one number. A
+ * fault in the MAKING is the work's quality: it lowers the grade
+ * (`gradeAfterFaults`), and the body is as sound as its making allows.
+ */
+const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
   dunt: 0.3,
   crack: 0.5,
-  misrun: 0.3,
-  shrinkage: 0.3,
   check: 0.15,
+};
+
+/**
+ * What a fault in the making does to the grade: a CEILING — it is at most
+ * this good. ⚠ A ceiling, never a drop: a grade read and written back
+ * (`setGrade(x.getGrade().min(…))`, a repair, a split) must not fall again
+ * on every round trip, and a ceiling applied twice is the same ceiling.
+ */
+const MAKING_FAULT: Readonly<Partial<Record<FlawKind, string>>> = {
+  misrun: 'poor',
+  shrinkage: 'fair',
 };
 
 /**
@@ -248,10 +279,14 @@ export interface Tangible {
    */
   takeFlawsFrom(other: Stuff, visible: boolean): void;
   /**
-   * Rivet every unmended crack and dunt (a tinker's mend, ceramics): the
-   * staples show, so a riveted flaw is visible. Returns how many.
+   * ⭐ How whole this body is, `0.1..1`, by its DAMAGE (cracks, dunts,
+   * checks; a riveted one costs half — the staples hold it). The one
+   * number its condition and its strength under a blow read (review
+   * R2-D1). Faults in the making are not damage: see `gradeAfterFaults`.
    */
-  rivetFlaws(): number;
+  getIntegrity(): number;
+  /** The grade `made` after this body's faults in the making (a misrun, shrinkage). */
+  gradeAfterFaults(made: Grade): Grade;
   /**
    * ⭐ The energy a blow must deliver to break this body, J — its
    * material's toughness × its volume, a thicker wall disproportionately
@@ -716,27 +751,51 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     // ---------- brittleness, flaws and the ring (ceramics M5) ----------
 
     public getFlaws(): readonly Flaw[] {
-      return this.flaws;
+      // ⭐ Whether a crack is riveted is read off the ONE mend record
+      // (review R2-D1): a `riveted` mend made at or after it. The staples
+      // show, so a riveted flaw is visible.
+      const self = this as unknown as Stuff;
+      const rivets = MixinApi.isDurable(self)
+        ? self.getMends().filter((m) => m.kind === 'riveted').map((m) => m.at)
+        : [];
+      if (rivets.length === 0) return this.flaws;
+      return this.flaws.map((f) =>
+        (f.kind === 'crack' || f.kind === 'dunt') && rivets.some((at) => at >= f.atS)
+          ? { ...f, visible: true, mended: 'riveted' as const }
+          : f,
+      );
     }
 
-    public addFlaw(kind: FlawKind, visible: boolean, atS = 0): void {
-      this.flaws = [...this.flaws, { kind, visible, atS }];
+    public addFlaw(kind: FlawKind, visible: boolean, atS?: number): void {
+      // ⭐ A flaw is stamped with when it happened (the clock, when the
+      // caller has no better time): a rivet mends what came BEFORE it.
+      const when = atS ?? tangibleNowS();
+      this.flaws = [...this.flaws, { kind, visible, atS: when }];
     }
 
     public takeFlawsFrom(other: Stuff, visible: boolean): void {
       if (!MixinApi.isTangible(other)) return;
       const taken = other.getFlaws().filter((f) => f.visible === visible);
-      if (taken.length > 0) this.flaws = [...this.flaws, ...taken.map((f) => ({ ...f }))];
+      if (taken.length > 0) {
+        this.flaws = [...this.flaws, ...taken.map((f) => ({ kind: f.kind, visible: f.visible, atS: f.atS }))];
+      }
     }
 
-    public rivetFlaws(): number {
-      let n = 0;
-      this.flaws = this.flaws.map((f) => {
-        if ((f.kind !== 'crack' && f.kind !== 'dunt') || f.mended) return f;
-        n++;
-        return { ...f, visible: true, mended: 'riveted' as const };
-      });
-      return n;
+    public getIntegrity(): number {
+      let penalty = 0;
+      for (const f of this.getFlaws()) {
+        penalty += (DAMAGE_PENALTY[f.kind] ?? 0) * (f.mended ? 0.5 : 1);
+      }
+      return Math.max(0.1, 1 - penalty);
+    }
+
+    public gradeAfterFaults(made: Grade): Grade {
+      let grade = made;
+      for (const f of this.flaws) {
+        const ceiling = MAKING_FAULT[f.kind];
+        if (ceiling) grade = grade.min(Grade.of(ceiling));
+      }
+      return grade;
     }
 
     public leaveImpression(nowS: number): ImpressionData | null {
@@ -817,10 +876,11 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       const v = this._mass.rawValue() / density;
       const vRef = tangibleDial(AppSettingKeys.impactReferenceVolumeM3, 0.0001);
       const share = tangibleDial(AppSettingKeys.impactFractureShare, 0.0018);
-      let penalty = 0;
-      // A riveted crack still weakens the body, by half: the staples hold it.
-      for (const f of this.flaws) penalty += (FLAW_PENALTY[f.kind] ?? 0.2) * (f.mended ? 0.5 : 1);
-      return toughness * 1e6 * v * (v / vRef) * share * Math.max(0.1, 1 - penalty);
+      // ⭐ How sound it is — the ONE number (review R2-D1): a worn tool's
+      // condition (wear × integrity), else the body's integrity alone.
+      const self = this as unknown as Stuff;
+      const sound = MixinApi.isDurable(self) ? self.getCondition() : this.getIntegrity();
+      return toughness * 1e6 * v * (v / vRef) * share * Math.max(0.1, sound);
     }
 
     public impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break' {

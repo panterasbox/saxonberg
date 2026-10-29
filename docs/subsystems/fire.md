@@ -87,10 +87,13 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   deliberate `ignite`-verb path (a hand-flame; the wetness penalty must be
   below the manual-drying headroom, else "too wet to catch").
   ⭐ The formula is the BODY's (`TangibleMixin.getWetIgnitionPenaltyK`, and
-  `getIgnitionPointK` = autoignition + it): `stoke`, `ignite`, a hot pour
-  (`canReceiveAtK`) and a firing chamber catching its contents
-  (`Burner.catchContents`) all read the one number, so a soaked board
-  survives a pour that would light a dry one (ceramics review R2-B1).
+  `getIgnitionPointK` = autoignition + it): `stoke`, `ignite` and a hot
+  pour (`canReceiveAtK`) read the one number, so a soaked board survives a
+  pour that would light a dry one (ceramics review R2-B1). ⚠ A firing
+  chamber catching its contents (`Burner.catchContents`) reads the DRY
+  point on purpose: a piece that has sat at that heat in a drawing chamber
+  has driven its water off, and the thermal model has no boiling plateau
+  to show it.
 - **Incandescence is one scale** (`FireApi.incandescenceOf(K)`): dull red
   from Draper's point ~800 K, cherry ~950, orange ~1150, yellow ~1300,
   white ~1500. A kiln's spy-hole (`analyze temperature`), a glass gather on

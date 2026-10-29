@@ -4221,7 +4221,8 @@ async function mendAssembly(
  * anyone can, by ringing the piece, so a dunt is diagnosed like a crack.
  */
 async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
-  if (!MixinApi.isTangible(item)) return;
+  // A rivet is a mend, and a mend is recorded on a durable good.
+  if (!MixinApi.isTangible(item) || !MixinApi.isDurable(item)) return;
   if (!(item.getMaterial()?.hasTag('brittle') ?? false)) return;
   const open = item.getFlaws().filter((f) => (f.kind === 'crack' || f.kind === 'dunt') && !f.mended);
   if (open.length === 0) return;
@@ -4241,9 +4242,10 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
     m.faults.push(unmendable('', 'cracked', 'riveted', 'it', discipline, band, how.reason, how.detail));
     return;
   }
-  if (m.commit) {
-    item.rivetFlaws();
-    if (MixinApi.isDurable(item)) item.recordMend(mendRecord(m, band, discipline, 'riveted', 'sound'));
+  // ⭐ The rivet is recorded ONCE, as a mend (review R2-D1): the flaws it
+  // closed read it (`Tangible.getFlaws`), and the condition comes back.
+  if (m.commit && MixinApi.isDurable(item)) {
+    item.recordMend(mendRecord(m, band, discipline, 'riveted', 'sound'));
   }
   m.faults.push({
     part: '', kind: 'cracked', named: 'it', action: 'riveted', discipline, band,
@@ -4253,7 +4255,8 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
 
 /** A thing of one piece is one line: its own fields (repair D8). */
 async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void> {
-  const before = item.getCondition();
+  // The WEAR is this rung's; damage (a crack) is the rivet's (mendCracks).
+  const before = item.getWearCondition();
   if (1 - before <= EPS) return;
   const broken = item.isBroken();
   const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
@@ -4860,7 +4863,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   // worn haft in the whole, a honed head keeps its edge, a named blade
   // keeps its name. Never forced sound.
   const carried = carriedState(part);
-  const partCondition = MixinApi.isDurable(part) ? part.getCondition() : undefined;
+  const partCondition = MixinApi.isDurable(part) ? part.getWearCondition() : undefined;
   const makerId = maker.getIdentityPath() ?? '';
   consumeItemInputs([
     {

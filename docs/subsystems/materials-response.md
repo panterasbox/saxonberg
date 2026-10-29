@@ -533,8 +533,10 @@ freezing while wet (ceramics.md § green ware) — never broken into sherds.
   VolumeM3`) × `impact.fractureShare`, V = mass ÷ density — a thicker wall
   is disproportionately stronger, so a novice's heavy mug survives the drop
   that breaks a master's thin bowl. `Infinity` for a body whose material is
-  not `brittle`-tagged (wood dents; it does not shatter). Each flaw costs a
-  share of it (a crack half, a dunt a third).
+  not `brittle`-tagged (wood dents; it does not shatter). ⭐ Scaled by how
+  sound the body is — its `DurableMixin.getCondition()` (wear × integrity),
+  else `TangibleMixin.getIntegrity()` alone: so a worn tool is weaker under
+  a blow as well as cracked one (review R2-D1).
 - **The floor's say**: the energy delivered is scaled by `min(1, floor
   hardness ÷ body hardness)` — strewn earth (5 MPa) takes the blow; a
   flagstone gives it all back.
@@ -543,8 +545,24 @@ freezing while wet (ceramics.md § green ware) — never broken into sherds.
   `brokenTemplate` (fired clay → `/stuff/thing/sherds`, a `Scrap` stack the
   millstone grinds to grog; glass → its cullet via `castTemplate`) at its own
   mass, and what it held goes onto the floor.
-- **Flaws** (`flaws: {kind: dunt|crack|casting|check, visible, atS}[]`) are
-  hidden or seen. A crack through the wall leaks (`Faced.holdsWater` false).
+- **Flaws** (`flaws: {kind, visible, atS}[]`) are hidden or seen, and of
+  two kinds (⭐ the ONE damage record, review R2-D1):
+  - **damage** — `crack` (½), `dunt` (0.3), `check` (0.15): integrity is
+    `max(0.1, 1 − Σ penalty)`, a riveted one costing half. A durable good's
+    condition is its wear gauge × integrity, so a cracked jug reads *worn*,
+    enough cracks break it, and `isBroken` / repair / the condition word
+    read the one number. A crack through the wall leaks
+    (`Faced.holdsWater` false) and spoils a mould's cavity (it casts a lump).
+  - **a fault in the making** — `misrun`, `shrinkage`: a CEILING on the
+    grade (`gradeAfterFaults`: at most poor, at most fair), derived on read
+    from the stored made band — a ceiling, never a drop, so a grade read
+    and written back never falls again.
+  - A rivet is a `riveted` MendRecord, recorded once; a crack or dunt made
+    before it reads `mended` (and visible — the staples show), one after it
+    does not. Flaws are stamped with the clock when they happen.
+  - ⚠ "Broken" (capability lost, still in one piece) and "shattered"
+    (destroyed into sherds by a blow) stay distinct words, both read off
+    the one record.
 - **`ring <thing>`** (platform, perception) asks the thing: a sound hard body
   rings clear (hardness ≥ `impact.ringsAboveHardness`, or a metal), a soft one
   (a place brick) sounds dead, anything flawed gives a buzzing clack — the

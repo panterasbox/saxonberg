@@ -613,15 +613,21 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         if (MixinApi.isCombustible(body)) continue;
         const mat = body.getMaterial();
         if (mat === null) continue;
-        // The piece's own ignition point — a wet one catches hotter.
-        const ignK = body.getIgnitionPointK();
+        // ⚠ The DRY ignition point, deliberately (review R2-B1, corrected):
+        // a piece that has sat at this heat inside a drawing chamber has
+        // driven its water off — the thermal model has no boiling plateau,
+        // so its temperature overstates a wet body's and the wet penalty
+        // would hold green cordwood back forever (the fuel pack's burn
+        // test). The wet penalty is a POUR's: sudden heat on a cold, wet
+        // receiver (`canReceiveAtK`).
+        const ignK = mat.getAutoignitionTemperature().rawValue();
         if (!(ignK > 0) || !(mat.getHeatOfCombustion().rawValue() > 0)) continue;
         if (body.getTemperature().rawValue() < ignK) continue;
         // ⭐ It is fuel now: onto the bed, where the burner's own path burns
         // it and leaves its ash in the grate. No second combustion model.
         // ⚠ Not through `stoke`'s too-wet refusal: that gate is about a
-        // HAND-flame drying a sodden log; this piece has already reached
-        // its wet ignition point inside a drawing chamber.
+        // HAND-flame drying a sodden log, and a piece already at its
+        // ignition point inside a drawing chamber has driven its water off.
         this.bedItem(body);
       }
     }

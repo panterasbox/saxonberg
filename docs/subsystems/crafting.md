@@ -1256,7 +1256,10 @@ the named antipattern):
   independently observable via `analyze`.
 
 **Broken is capability loss, not a state machine**:
-`DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`; a
+`DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`, where
+⭐ condition is the wear gauge × the body's integrity (its cracks and dunts —
+the one damage record, review R2-D1; repair restores the gauge,
+`getWearCondition`, and a rivet the damage); a
 broken tool's `hasCapability` goes dark (it fails recipe tool-matching
 until repaired); a broken weapon's delivery is clamped to
 `crafting.brokenDeliveryFloor` (combat's bounded

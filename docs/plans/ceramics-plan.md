@@ -1816,6 +1816,43 @@ left a fork the lens that chose is named.
     set when it is fired". Both now ask `Kinetics.setsByHeat()` (any dose
     law).
 
+- **B93 — W-R2f, one damage record (2026-10-28; the owner approved the
+  five points).**
+  - The survey found 11 production readers of flaws and 16 of condition.
+    The two models disagreed:
+    - a cracked jug read "sound";
+    - a worn tool was as strong under a blow as a new one;
+    - the mould's "a cracked mould casts a lump" read the wear gauge;
+    - the crucible added a crack by hand to match being worn out;
+    - a rivet was recorded twice.
+  - **Condition = wear × integrity.** `Durable.getCondition()` derives;
+    `getWearCondition()` is the stored gauge (repair's own-fields rung reads
+    it, and a part line carries it). `isBroken` reads condition.
+  - **Integrity** is `Tangible.getIntegrity()`, over DAMAGE (crack, dunt,
+    check; riveted at half). `impactStrengthJ` reads condition, else
+    integrity.
+  - **A rivet** is a `riveted` MendRecord only. `getFlaws()` derives
+    `mended` (and visibility) from it. `rivetFlaws()` and the stored flag
+    are retired. `addFlaw` stamps the clock when no time is given.
+  - **A fault in the making** (misrun, shrinkage) is a grade CEILING,
+    derived in `Graded.getGrade()`: at most poor, at most fair. ⚠ A
+    ceiling, not "down one": a grade read and written back
+    (`setGrade(x.getGrade().min(…))` at ~6 sites, a repair, a split) would
+    otherwise fall again each round trip. The mould no longer sets grade.
+  - **The mould's cavity:** one crack reads "worn", not broken (integrity
+    0.5). A crack spoils the cavity specifically, so `castTemplateFor` also
+    refuses on an unmended crack, the same way `Faced.holdsWater` does.
+  - The crucible's crack stays: it is the fact `look` shows, and it is now
+    consistent.
+  - ⚠ Found while running the fuel pack: W-R2a's B1 had made
+    `Burner.catchContents` read the WET ignition point. A piece that has
+    sat at that heat in a drawing chamber has driven its water off, and
+    the thermal model has no boiling plateau to show it, so green cordwood
+    in an opened clamp never caught. The chamber reads the dry point again,
+    with that reasoning in the comment. The pour keeps the wet penalty.
+  - Not done: a part fitted into a whole carries its wear but not its
+    flaws. That gap predates this wave.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
@@ -2406,7 +2443,10 @@ change; e is independent and may land any time after a).
 - ✅ **W-R2e — D3** (plaster into Kinetics — after B87 is committed).
   Done 2026-10-28 (B92). Plaster slurry authors a `kinetics:` set; the
   mould reads `Kinetics.poolSet()`; `cureSetting` retired.
-- **W-R2f — D1** (integrity: plan it first — the readers list — then one record).
+- ✅ **W-R2f — D1** (integrity: plan it first — the readers list — then one record).
+  Done 2026-10-28 (B93), the owner's five points: condition = wear ×
+  integrity; strength reads it; a rivet is a mend only; a fault in the
+  making is a grade ceiling; broken and shattered stay distinct.
 
 Each wave: scoped checks only (no drives), commit, push, mark done here with
 a one-line note. Record each wave's decisions as B88+ in "Build decisions".

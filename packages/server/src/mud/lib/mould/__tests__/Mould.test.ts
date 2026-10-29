@@ -218,6 +218,15 @@ describe('moulds — the container decides the shape', () => {
     expect(cast.getCastFrom()?.discipline).toBe('smelting');
   });
 
+  it('⭐ an actual CRACK spoils the cavity too: a cracked mould casts a lump (review R2-D1)', async () => {
+    const cracked = fillVessel(mould(BLOCK), water(), 1, 150);
+    cracked.addFlaw('crack', true);
+    expect(cracked.isBroken()).toBe(false); // worn by the crack, not worn out
+    cracked.reconcilePhase();
+    await settle();
+    expect(cloned).toEqual([LUMP]);
+  });
+
   it('a cracked mould casts a lump; a whole one wears by wearPerCast', async () => {
     const broken = fillVessel(mould(BLOCK), water(), 1, 150);
     broken.setCondition(0);
