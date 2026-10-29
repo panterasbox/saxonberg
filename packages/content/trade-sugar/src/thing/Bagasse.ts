@@ -6,6 +6,6 @@
  */
 
 import Firewood from '@saxonberg/server/mud/platform/thing/Firewood';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 
-export default class Bagasse extends WaterActivityMixin(Firewood) {}
+export default class Bagasse extends MoistureMixin(Firewood) {}

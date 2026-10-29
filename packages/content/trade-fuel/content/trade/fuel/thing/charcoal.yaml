@@ -17,7 +17,7 @@ data:
   mass: 8
   # ⭐⭐⭐ **Bone dry, SEEDED — and the fire build's drive is why.**
   #
-  # `WaterActivityMixin`'s sparse default is `_moisture = 1` (as
+  # `MoistureMixin`'s sparse default is `_moisture = 1` (as
   # harvested), which is right for food and ⛔ catastrophically wrong for
   # a product of a three-day fire: `stoke charcoal into forge` was
   # refused *"It is too sodden to catch."* on the drive's third

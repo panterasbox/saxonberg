@@ -7,7 +7,7 @@ The tanning trade: a hide becomes leather in a pit of bark and water.
 transform. So it is NOT `MaturingMixin` — that converts one bulk batch
 keyed to a vessel's interior material, and here what changes is each
 individual skin while what depletes is the liquor. It is
-`WaterActivityMixin`'s shape: an item's own state advancing against the
+`MoistureMixin`'s shape: an item's own state advancing against the
 thing it is sitting in, reconciled on read.
 
 - `src/lib/Tanning.ts` — the mixin, and the dials. Composed by `Hide`

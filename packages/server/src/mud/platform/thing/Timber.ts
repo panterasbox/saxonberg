@@ -24,7 +24,7 @@
 import Good from './Good';
 import { StackableMixin } from '../../lib/stuff/Stackable';
 import { SeasoningMixin } from '../../lib/maturation/Seasoning';
-import { WaterActivityMixin } from '../../lib/material/WaterActivity';
+import { MoistureMixin } from '../../lib/material/Moisture';
 import { ConstructedMixin } from '../../lib/material/Constructed';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { DurableMixin } from '../../lib/material/Durable';
@@ -41,7 +41,7 @@ import type { CommandContributions } from '../../api/command';
 // sound one (the `constructionForm` precedent). Not Assembled: a stack of
 // staves is stock, not a whole — it goes INTO a thing of parts.
 const TimberBase = SeasoningMixin(
-  WaterActivityMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))),
+  MoistureMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))),
 );
 
 export default class Timber extends TimberBase {

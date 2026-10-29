@@ -8,8 +8,8 @@
 
 import Mould from '@saxonberg/server/mud/platform/thing/Mould';
 import { GreenwareMixin } from '@saxonberg/server/mud/lib/material/Greenware';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 
-const ConeBase = GreenwareMixin(WaterActivityMixin(Mould));
+const ConeBase = GreenwareMixin(MoistureMixin(Mould));
 
 export default class Cone extends ConeBase {}

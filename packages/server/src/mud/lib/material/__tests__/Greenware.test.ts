@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Material from '../Material';
 import { ThermalMixin } from '../../thermal/Thermal';
-import { WaterActivityMixin } from '../WaterActivity';
+import { MoistureMixin } from '../Moisture';
 import { CompositionMixin } from '../Composition';
 import { GreenwareMixin } from '../Greenware';
 import { Quantity } from '../../quantity';
@@ -24,7 +24,7 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
-class Piece extends GreenwareMixin(WaterActivityMixin(ThermalMixin(CompositionMixin(Good)))) {
+class Piece extends GreenwareMixin(MoistureMixin(ThermalMixin(CompositionMixin(Good)))) {
   static _mixinName = 'GreenwareTestPiece';
 }
 

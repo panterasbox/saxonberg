@@ -11,7 +11,7 @@ import ImpressController from '../ImpressController';
 import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
 import { GreenwareMixin } from '../../../../../lib/material/Greenware';
-import { WaterActivityMixin } from '../../../../../lib/material/WaterActivity';
+import { MoistureMixin } from '../../../../../lib/material/Moisture';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
 import { CraftedMixin } from '../../../../../lib/craft/Crafted';
 import { Quantity } from '../../../../../lib/quantity';
@@ -32,7 +32,7 @@ import {
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import { MarkedMixin } from '../../../../../lib/description/Marked';
 
-class Pot extends GreenwareMixin(MarkedMixin(WaterActivityMixin(ThermalMixin(CraftedMixin(Good))))) {
+class Pot extends GreenwareMixin(MarkedMixin(MoistureMixin(ThermalMixin(CraftedMixin(Good))))) {
   static _mixinName = 'CarveImpressTestPot';
 }
 

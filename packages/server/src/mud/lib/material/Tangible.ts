@@ -586,7 +586,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         const saturation = self.getWetness();
         if (saturation > 0) held += saturation;
       }
-      if (MixinApi.isWaterActive(self)) {
+      if (MixinApi.isMoist(self)) {
         // Above the `dried` band the fuel still carries its own water; at or
         // below it, it is dry fuel and contributes nothing.
         const driedAt = tangibleDial(AppSettingKeys.cureBandDriedAt, 0.5);

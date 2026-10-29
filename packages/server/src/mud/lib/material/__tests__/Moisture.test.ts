@@ -1,5 +1,5 @@
 /**
- * WaterActivityMixin — the per-instance water state, and the acts that change it.
+ * MoistureMixin — the per-instance water state, and the acts that change it.
  *
  * Four things this pins, and the first is the one the whole build rests
  * on: **`moisture: 1, solute: 0` derives the Material's tabulated `a_w`
@@ -15,7 +15,7 @@ import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Material from '../Material';
 import { Freshness } from '../Freshness';
-import { WaterActivity } from '../WaterActivity';
+import { Moisture } from '../Moisture';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
@@ -62,7 +62,7 @@ function food(mat: Material, tempK = 293): Provision {
 
 const MEAT_EA = 80_000;
 
-describe('WaterActivityMixin — the water state a treatment changes', () => {
+describe('MoistureMixin — the water state a treatment changes', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
     WorldClockApi._resetForTesting();
@@ -84,7 +84,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
     for (const aw of [0.15, 0.6, 0.85, 0.97, 0.99]) {
       const mat = material(MEAT_EA, aw);
       expect(Freshness.waterActivityOf(mat, null)).toBe(aw);
-      expect(Freshness.waterActivityOf(mat, WaterActivity.untreated())).toBe(aw);
+      expect(Freshness.waterActivityOf(mat, Moisture.untreated())).toBe(aw);
     }
   });
 
@@ -195,16 +195,16 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
   it('⚠ nothing dries on its own — the passive arm is ONE-WAY', () => {
     // A gauge that lowered moisture passively would quietly preserve
     // every ration in the pantry, and drying would stop being an act.
-    expect(WaterActivity.advanceMoisture(1, 1000 * HOUR, 20)).toBe(1);
-    expect(WaterActivity.advanceMoisture(0.5, 1000 * HOUR, 20)).toBe(0.5);
-    expect(WaterActivity.advanceMoisture(0.2, 1000 * HOUR, 90)).toBeGreaterThan(0.2);
+    expect(Moisture.advanceMoisture(1, 1000 * HOUR, 20)).toBe(1);
+    expect(Moisture.advanceMoisture(0.5, 1000 * HOUR, 20)).toBe(0.5);
+    expect(Moisture.advanceMoisture(0.2, 1000 * HOUR, 90)).toBeGreaterThan(0.2);
   });
 
   it('a dry store holds it and damp air gives it back — the equilibrium is the humidity', () => {
-    expect(WaterActivity.equilibriumMoisture(25)).toBeCloseTo(0.25, 10);
-    expect(WaterActivity.equilibriumMoisture(95)).toBeCloseTo(0.95, 10);
-    const inDryStore = WaterActivity.advanceMoisture(0.3, 500 * HOUR, 25);
-    const inSteam = WaterActivity.advanceMoisture(0.3, 500 * HOUR, 95);
+    expect(Moisture.equilibriumMoisture(25)).toBeCloseTo(0.25, 10);
+    expect(Moisture.equilibriumMoisture(95)).toBeCloseTo(0.95, 10);
+    const inDryStore = Moisture.advanceMoisture(0.3, 500 * HOUR, 25);
+    const inSteam = Moisture.advanceMoisture(0.3, 500 * HOUR, 95);
     expect(inDryStore).toBe(0.3);
     expect(inSteam).toBeGreaterThan(0.5);
   });
@@ -212,14 +212,14 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
   // ---- criterion 4: legible as treated, without a number ----
 
   it('an untreated thing says nothing at all — it does not say "fresh"', () => {
-    expect(WaterActivity.phraseFor(WaterActivity.untreated())).toBeNull();
-    expect(WaterActivity.phraseFor(null)).toBeNull();
+    expect(Moisture.phraseFor(Moisture.untreated())).toBeNull();
+    expect(Moisture.phraseFor(null)).toBeNull();
   });
 
   it('a treated thing reads in band words, never a number', () => {
-    const salted = WaterActivity.phraseFor({ moisture: 1, solute: 0.5 })!;
-    const dried = WaterActivity.phraseFor({ moisture: 0.3, solute: 0 })!;
-    const both = WaterActivity.phraseFor({ moisture: 0.3, solute: 0.5 })!;
+    const salted = Moisture.phraseFor({ moisture: 1, solute: 0.5 })!;
+    const dried = Moisture.phraseFor({ moisture: 0.3, solute: 0 })!;
+    const both = Moisture.phraseFor({ moisture: 0.3, solute: 0.5 })!;
     expect(salted).toBe('It has been heavily salted.');
     expect(dried).toBe('It has been thoroughly dried.');
     expect(both).toBe('It has been thoroughly dried and heavily salted.');
@@ -229,7 +229,7 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
   });
 
   it('lighter treatments read lighter', () => {
-    expect(WaterActivity.phraseFor({ moisture: 0.7, solute: 0.15 })).toBe(
+    expect(Moisture.phraseFor({ moisture: 0.7, solute: 0.15 })).toBe(
       'It has been partly dried and lightly salted.',
     );
   });
@@ -242,12 +242,12 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
       t.setMaterial(material(0));
       return t;
     });
-    expect(MixinApi.isWaterActive(plank)).toBe(false);
+    expect(MixinApi.isMoist(plank)).toBe(false);
   });
 
   it('…and `Provision` carries BOTH gauges, which are different facts', () => {
     const p = food(material(MEAT_EA));
-    expect(MixinApi.isWaterActive(p)).toBe(true);
+    expect(MixinApi.isMoist(p)).toBe(true);
     expect(MixinApi.isFresh(p)).toBe(true);
   });
 
@@ -256,9 +256,9 @@ describe('WaterActivityMixin — the water state a treatment changes', () => {
   it('blending water states is mass-weighted, like the load', () => {
     const brine = { moisture: 1, solute: 0.8 };
     const stock = { moisture: 1, solute: 0 };
-    const half = WaterActivity.blend(brine, 1, stock, 1);
+    const half = Moisture.blend(brine, 1, stock, 1);
     expect(half.solute).toBeCloseTo(0.4, 10);
-    const splash = WaterActivity.blend(brine, 0.1, stock, 0.9);
+    const splash = Moisture.blend(brine, 0.1, stock, 0.9);
     expect(splash.solute).toBeCloseTo(0.08, 10);
   });
 

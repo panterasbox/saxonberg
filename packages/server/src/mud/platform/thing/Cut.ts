@@ -3,7 +3,7 @@
  *
  * The instanceable twin of `CutMixin`, composing on `Provision` so a cut
  * inherits everything meat already needed: Freshness (it rots on the
- * shipped clock), WaterActivity (it cures and dries on the shipped
+ * shipped clock), Moisture (it cures and dries on the shipped
  * recipes), Contaminable (the butcher's hand and the carcass's own load
  * ride onto it), ThermalDose, Crafted, Composed and Sampled.
  *

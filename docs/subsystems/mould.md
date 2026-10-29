@@ -241,7 +241,7 @@ the platform verb **`turn`** (`cmd/device/turn.yaml`, alias `tighten`;
 later. A turn first banks every mould's set at the OLD load, then adds
 force, then asks each mould on the bed to `pressRelease()`.
 
-**Shape-and-release** (`pressKind: press`): a WaterActive solid charge (not
+**Shape-and-release** (`pressKind: press`): a Moist solid charge (not
 the mould's own cast) whose moisture is ≥ 0.05 resists with `mass ×
 mould.pressNPerKg × (1 − moisture)²` — wet clay gives, stiff clay wants
 turns. When the load beats it, the charge (up to the cavity's volume — the

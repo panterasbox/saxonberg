@@ -50,7 +50,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CompositionEntry } from '../material/Material';
-import type { WaterState } from '../material/WaterActivity';
+import type { WaterState } from '../material/Moisture';
 import { Grade } from './Grade';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';

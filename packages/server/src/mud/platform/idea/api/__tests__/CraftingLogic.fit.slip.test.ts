@@ -23,7 +23,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
-import { WaterActivityMixin } from '../../../../lib/material/WaterActivity';
+import { MoistureMixin } from '../../../../lib/material/Moisture';
 import { GreenwareMixin } from '../../../../lib/material/Greenware';
 import { AssembledMixin } from '../../../../lib/craft/Assembled';
 import { DurableMixin } from '../../../../lib/material/Durable';
@@ -41,11 +41,11 @@ class TestPotter extends ThermalMixin(ContainerMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestPotterSlip';
 }
 class GreenJug extends GreenwareMixin(
-  WaterActivityMixin(AssembledMixin(DurableMixin(ThermalMixin(Good)))),
+  MoistureMixin(AssembledMixin(DurableMixin(ThermalMixin(Good)))),
 ) {
   static _mixinName = 'TestGreenJugSlip';
 }
-class GreenHandle extends GreenwareMixin(WaterActivityMixin(ThermalMixin(Good))) {
+class GreenHandle extends GreenwareMixin(MoistureMixin(ThermalMixin(Good))) {
   static _mixinName = 'TestGreenHandleSlip';
 }
 

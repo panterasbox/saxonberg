@@ -7,7 +7,7 @@
  * stamped (leather-hard), whether it can go in a kiln (bone-dry), and
  * whether the weather ruins it — rain SLUMPS a soft piece, frost BURSTS a
  * wet one, drying too fast CRACKS a fat clay. Green ware re-wets the way
- * turf does: `WaterActivityMixin` is the water, and every composer composes
+ * turf does: `MoistureMixin` is the water, and every composer composes
  * it itself (Turf's dries-but-does-not-rot shape — nothing here tabulates a
  * spoil activation energy, so `lint:perishable` has nothing to ask).
  *
@@ -46,7 +46,7 @@ import { AppApi } from '../../api/app';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { AppSettingKeys } from '../config/AppSettings';
-import type { WaterActive } from './WaterActivity';
+import type { Moist } from './Moisture';
 import type Material from './Material';
 
 /** How wet a green piece is. */
@@ -159,7 +159,7 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & WaterActive>>(Base: TBase) {
+export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Moist>>(Base: TBase) {
   // ⭐ A green piece is CARVED (`CarvableMixin`) — trim, turn a foot, cut a
   // design — and takes an IMPRESSION (`ImpressibleMixin`) — a maker's mark —
   // and so affords `carve` and `impress` to whoever is holding it or beside
@@ -333,7 +333,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
     public greenState(): GreenState | null {
       this.reconcileGreen();
       if (!this.isGreen()) return null;
-      const d = (this as unknown as WaterActive).dryness();
+      const d = (this as unknown as Moist).dryness();
       if (d >= greenDial(AppSettingKeys.greenBoneDryAt, 0.85)) return 'bone-dry';
       if (d >= greenDial(AppSettingKeys.greenLeatherAt, 0.3)) return 'leather-hard';
       return 'plastic';
@@ -375,7 +375,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
      *    in a kiln — the steam burst, no special case);
      *
      * ⭐ Drying too fast is not here: it is the water model's rule for every
-     * drying solid (`WaterActive.dryingCrackRisk`, `cure.crackRate`), and a
+     * drying solid (`Moist.dryingCrackRisk`, `cure.crackRate`), and a
      * green piece's risk is its clay's (below) — a pot and a board check by
      * one rule.
      */
@@ -387,7 +387,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
       if (nowS === null) return;
       this._greenReconciling = true;
       try {
-        const dry = (this as unknown as WaterActive).dryness();
+        const dry = (this as unknown as Moist).dryness();
         const wet = MixinApi.isWet(self) ? self.getWetness() : 0;
         if (this.greenCheckedS === 0) {
           this.greenCheckedS = nowS;

@@ -1,7 +1,7 @@
 # Matter-model overlaps — five places the engine answers one question twice
 
 > **Status: UNBUILT · opened 2026-10-28 (owner, ceramics MR !437 review).**
-> **Left:** all five overlaps below — each is a design decision, not a
+> **Left:** all six overlaps below — each is a design decision, not a
 > mechanical merge.
 > **Size:** a build (or five small ones, each riding the build named on it).
 
@@ -99,6 +99,30 @@ Line numbers are as of 2026-10-28.
 - **Rides into:** `fire-combustion-slate.md` or
   `destructive-distillation-slate.md`, whichever builds first. Both own
   chamber vapors.
+
+## 6. Two water records on one body: surface wetness vs held moisture (ceramics review, 2026-10-29)
+
+- `WetMixin` is SURFACE water: a coat in the rain, the film that slumps a
+  soft green pot (`Greenware` reads its wetness rising), drying off by the
+  air.
+- `MoistureMixin` is water HELD in the matter (`moisture`, `solute`): what
+  a brick, a board, a ham and a bar of soap dry and cure by. Since the
+  ceramics MR, rain raises it too (`cure.rewetPerMm`, scaled by exposure).
+- **Both are raised by the same rain, independently.** The fire's ignition
+  penalty deliberately adds the two ("two waters, one arithmetic"), and
+  they are physically different, so this is not a bug. But nothing moves
+  surface water INTO a porous body over time: a soaked green brick's film
+  never soaks in; only the separate per-mm rule raises its moisture.
+- **The question:** for a porous body (by its material's
+  `waterAbsorptionCapacity`), is rain one flow — onto the surface, then
+  absorbed at the body's own rate into held moisture, with the surface
+  film draining what the body cannot take? Then a glazed pot sheds the
+  rain and terracotta drinks it, and nobody authors that as a rule. Or are
+  the two records kept separate on purpose, with only the doc saying so?
+- **Rides into:** the next build that puts a porous thing out in the
+  weather on purpose (the cover/arable build's stooked sheaves, a
+  construction build's green masonry). Construction's own wall layers are
+  the third water record to reconcile when it does.
 
 ## Judged legitimately different (not this slate)
 

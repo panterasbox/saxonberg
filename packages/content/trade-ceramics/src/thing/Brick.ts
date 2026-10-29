@@ -8,7 +8,7 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { GreenwareMixin } from '@saxonberg/server/mud/lib/material/Greenware';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
@@ -23,7 +23,7 @@ import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 export type ClampPosition = 'channel' | 'middle' | 'skin' | '';
 
 const BrickBase = GreenwareMixin(
-  MarkedMixin(WaterActivityMixin(
+  MarkedMixin(MoistureMixin(
     StackableMixin(DurableMixin(CraftedMixin(CompositionMixin(ThermalMixin(Good))))),
   )),
 );

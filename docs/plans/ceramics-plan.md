@@ -1902,6 +1902,29 @@ left a fork the lens that chose is named.
     not Crafted. None is durable (never mended), none is a part, and the
     mould matches them by template path.
 
+- **B96 — WaterActivity becomes MoistureMixin (owner, 2026-10-29).**
+  - **Renamed.** "Water activity" (a_w, what a microbe can use) is one
+    READING of the state, the food one. A brick, a board and a bar of
+    soap carry the state without being food, and the name was showing on
+    their cards. It mirrors Freshness exactly: mixin `MoistureMixin`,
+    interface `Moist`, value class `Moisture`, predicate `isMoist`,
+    registry key `Mixins.Moist`. a_w stays a reading
+    (`Freshness.waterActivityOf`). It is a sweep: 75 files across code,
+    YAML comments, docs and slates. This plan's history keeps the old
+    name.
+  - **Header fixed.** It said *"the passive arm only ever RAISES
+    moisture — nothing dries on its own"*, but the reconcile dries
+    anything exposed to moving air, and this MR's drying unification
+    (B79) stands on that. It now states the exposed arm (dry toward the
+    air, rain re-wets, too-fast drying checks) and the enclosed arm
+    (only takes damp back).
+  - **Reverse dependency removed.** The look line skipped itself `if
+    (MixinApi.isSeasoning(host))`: a base mixin knowing one mixin above
+    it. It is now a `waterPhrase()` hook that Seasoning overrides to
+    `null`, because its own reading speaks for its water.
+  - **Slated:** surface wetness (`Wet`) and held moisture are both raised
+    by rain, independently. That is matter-model-overlaps § 6.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

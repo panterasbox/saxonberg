@@ -2,7 +2,7 @@
  * The root biome a drying solid's water reads its air off — the test-side
  * stand-in for `base-library`'s `universe.yaml`.
  *
- * ⭐ Anything that composes `WaterActivityMixin` and has been dried (a board
+ * ⭐ Anything that composes `MoistureMixin` and has been dried (a board
  * minted seasoned, a cured ham) reads the air of wherever it is, and with
  * no authored air on the room that read reaches the root biome. Unit
  * fixtures that put such a thing in a bare `Location` install this first.

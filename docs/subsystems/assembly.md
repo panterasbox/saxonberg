@@ -423,7 +423,7 @@ fraction is the greenest input's. `look` names a part's form (*a sawn oak
 shield-board*) and a stock piece reads its end grain in words.
 
 **Seasoning** — `lib/maturation/Seasoning.ts` (`SeasoningMixin`), a
-READING over the host's `WaterActivityMixin` — the one model of a solid
+READING over the host's `MoistureMixin` — the one model of a solid
 giving its water to the air ([spoilage.md](./spoilage.md) § the water
 state). ⚠ It ran a clock of its own until the ceramics review
 (2026-10-28): a fraction on the maturation curve, a flat rain penalty and a
@@ -445,12 +445,12 @@ turf and green clay already used. What it reads now:
   drying than good air, and a checked board grades no better than fair;
 - vacuous on a material with `seasoningDays 0`;
 - ⭐ **a merge takes the greener** — and so `Timber` is
-  `SeasoningMixin(WaterActivityMixin(StackableMixin(…)))`, Seasoning
+  `SeasoningMixin(MoistureMixin(StackableMixin(…)))`, Seasoning
   OUTSIDE, because the outer class's `onMerged` is the one that runs.
 
 **`Timber`** (`platform/thing/Timber.ts`, kernel — its composers are
 three packs with no common ancestor) =
-`SeasoningMixin(WaterActivityMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))))`:
+`SeasoningMixin(MoistureMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))))`:
 billets, boards, staves, blanks and the carved wooden parts (hafts,
 handles, legs, rails — `Timber` so a green haft keeps its greenness and
 warps). `constructionForm` and `quarterSawn` are stack identity: riven

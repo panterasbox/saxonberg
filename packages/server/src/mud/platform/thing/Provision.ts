@@ -16,7 +16,7 @@ import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
 import { FreshnessMixin } from '../../lib/material/Freshness';
-import { WaterActivityMixin } from '../../lib/material/WaterActivity';
+import { MoistureMixin } from '../../lib/material/Moisture';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { SampledMixin } from '../../lib/instrument/Sampled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
@@ -28,11 +28,11 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // reads its host's temperature, which is why the two travel together.
 // Neither is on `Thing`: see `lib/stuff/Thing.ts` for why, and
 // `lint:perishable` for what makes the narrowing safe.
-// ⭐ Contaminable and WaterActivity beside Freshness, NOT folded into it. Three
+// ⭐ Contaminable and Moisture beside Freshness, NOT folded into it. Three
 // different facts about one cut of meat: what is growing in it on its own
-// (Freshness), how much water it has to grow in (WaterActivity), and what somebody
+// (Freshness), how much water it has to grow in (Moisture), and what somebody
 // PUT in it (Contaminable — an event, never a clock).
-// ⭐ WaterActivity beside Freshness, NOT folded into it. The spoilage gauge
+// ⭐ Moisture beside Freshness, NOT folded into it. The spoilage gauge
 // carries a population living in the matter; the water gauge carries the
 // matter's own water state, and only one of them is true of a hide or a
 // plank. They coincide on `Provision` today and the split is what lets a
@@ -66,7 +66,7 @@ const ProvisionBase = SampledMixin(
   CraftedMixin(
     CompositionMixin(
       ContaminableMixin(
-        WaterActivityMixin(
+        MoistureMixin(
           ThermalDoseMixin(FreshnessMixin(ThermalMixin(Good))),
         ),
       ),

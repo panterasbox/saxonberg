@@ -1,6 +1,9 @@
 /**
- * WaterActivityMixin — ⭐ **the water state of a particular piece of matter, and
- * the acts that change it.**
+ * MoistureMixin — ⭐ **the water state of a particular piece of matter, and
+ * the acts and the air that change it.** (It was `WaterActivityMixin` until
+ * 2026-10-29: water activity — the share of its water a microbe can use —
+ * is one READING of this state, the food one, and a brick, a board and a
+ * bar of soap carry the state without being food. Review B96.)
  *
  * A Material tabulates a water activity: how much of its water a microbe
  * can actually use. That number is a fact about *stew meat*, and it was
@@ -42,13 +45,29 @@
  * ambient equilibrium. So a dry store is worth building and a steamy
  * kitchen is the worst place to hang a ham.
  *
- * ⚠ **The passive arm only ever RAISES moisture.** Nothing dries on its
- * own — drying is an *act*, and a gauge that quietly dried everything in
- * the pantry would both undo that and change how every shipped row
- * behaves. An untreated instance (`moisture: 1`) therefore reads and
- * writes NOTHING: the reconcile returns before it touches the clock, which
- * is the same sparse-storage ordering `FreshnessMixin` learned the hard
- * way.
+ * ⭐ **What changes it without an act is the AIR, and only where the air
+ * reaches** (`exposureOf`):
+ *
+ *   - **exposed** — on a rack, a hack, the open ground, a drying room —
+ *     it comes to terms with the air it is in: it DRIES toward that air's
+ *     equilibrium at that air's rate (the host's `dryingRatePerHour` hook
+ *     sets the base: a board seasons at its species' pace), and rain on it
+ *     puts water back (`cure.rewetPerMm`, scaled by exposure). Dried faster
+ *     than it stands (`dryingCrackRisk` × the rate past `cure.crackRate`),
+ *     it CHECKS — a visible `check` flaw on an article's integrity. This is
+ *     what green ware, timber and soap read: the one model of a solid
+ *     drying in air (review B79).
+ *   - **enclosed** — in a sack, a chest, a pot, a body's inventory — the
+ *     one-way arm only: a dried thing slowly takes damp back toward the
+ *     ambient equilibrium, and nothing dries. A ham in a closed sack does
+ *     not dry.
+ *
+ * ⚠ **Sparse by construction.** An untreated instance (`moisture: 1`)
+ * that is enclosed reads and writes NOTHING: the reconcile returns before
+ * it touches the clock, the same sparse-storage ordering `FreshnessMixin`
+ * learned the hard way. (⚠ Until B96 this paragraph said *"the passive arm
+ * only ever RAISES moisture — nothing dries on its own"*, which the exposed
+ * arm had already made false.)
  *
  * See [docs/subsystems/spoilage.md].
  */
@@ -171,11 +190,11 @@ function waterAugmenter(
   if (opts?.filter && !opts.filter.some((c) => WATER_CHANNELS.includes(c))) {
     return text;
   }
-  if (!MixinApi.isWaterActive(host)) return text;
+  if (!MixinApi.isMoist(host)) return text;
   if (host.isDestroyed()) return text;
-  // A reading that speaks for its own water (a board's seasoning) says it.
-  if (MixinApi.isSeasoning(host)) return text;
-  const line = WaterActivity.phraseFor(host.getWaterState());
+  // The host says it: a reading that speaks for its own water (a board's
+  // seasoning) overrides the hook to say nothing here.
+  const line = host.waterPhrase();
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
@@ -247,7 +266,7 @@ function exposedScopeOf(host: Stuff): (Stuff & Container) | null {
  * exception, same reasoning: this is water-activity POLICY, and `lib/bulk` should
  * carry the `water` field the way it carries `freshness`, as data.
  */
-export class WaterActivity {
+export class Moisture {
   /**
    * A gauge bound to the slot it measures. ⭐ The model lives in this
    * class's statics (pure, shared); the READS and WRITES of one slot's
@@ -294,7 +313,7 @@ export class WaterActivity {
     water: WaterState | null,
     treatment: { moisture?: number; solute?: number },
   ): WaterState {
-    const base = water ?? WaterActivity.untreated();
+    const base = water ?? Moisture.untreated();
     const moisture =
       treatment.moisture === undefined
         ? base.moisture
@@ -317,8 +336,8 @@ export class WaterActivity {
     b: WaterState | null,
     amountB: number,
   ): WaterState {
-    const left = a ?? WaterActivity.untreated();
-    const right = b ?? WaterActivity.untreated();
+    const left = a ?? Moisture.untreated();
+    const right = b ?? Moisture.untreated();
     const total = amountA + amountB;
     if (!(total > 0)) return { ...left };
     return {
@@ -387,7 +406,7 @@ export class WaterActivity {
   ): number {
     const from = clamp01(moisture);
     if (!(elapsedS > 0)) return from;
-    const target = WaterActivity.equilibriumMoisture(humidityPct);
+    const target = Moisture.equilibriumMoisture(humidityPct);
     const hours = elapsedS / WATER_DEFAULTS.SECONDS_PER_HOUR;
 
     if (target > from) {
@@ -483,7 +502,7 @@ export class WaterActivity {
 
   /**
    * A blend's water state, **reconciled on read** against the holder's
-   * surroundings — the bulk twin of `WaterActivityMixin.getWaterState()`.
+   * surroundings — the bulk twin of `MoistureMixin.getWaterState()`.
    *
    * ⭐ **Sparse by construction.** A slot whose matter is untreated has no
    * `water` record and never gets one: there is nothing to integrate, so
@@ -492,7 +511,7 @@ export class WaterActivity {
    */
   state(): WaterState | null {
     const payload = this.slot.getPayload();
-    const water = WaterActivity.stateOf(payload);
+    const water = Moisture.stateOf(payload);
     if (!water || !payload) return null;
     const nowS = nowSeconds();
     if (nowS === null) return water;
@@ -501,10 +520,10 @@ export class WaterActivity {
       this.slot.setPayload({ ...payload, waterStamp: nowS });
       return water;
     }
-    const moisture = WaterActivity.advanceMoisture(
+    const moisture = Moisture.advanceMoisture(
       water.moisture,
       nowS - stamp,
-      WaterActivity.ambientHumidityOf(this.slot.getHolder()),
+      Moisture.ambientHumidityOf(this.slot.getHolder()),
     );
     const next: WaterState = { moisture, solute: water.solute };
     this.slot.setPayload({ ...payload, water: next, waterStamp: nowS });
@@ -520,7 +539,7 @@ export class WaterActivity {
   stampState(water: WaterState | null): void {
     if (this.slot.getMaterial() === null) return;
     const payload = this.slot.getPayload() ?? {};
-    if (WaterActivity.isUntreated(water)) {
+    if (Moisture.isUntreated(water)) {
       if (payload.water === undefined) return;
       const { water: _drop, waterStamp: _drops, ...rest } = payload;
       this.slot.setPayload(rest);
@@ -535,7 +554,7 @@ export class WaterActivity {
   }
 }
 
-export interface WaterActive {
+export interface Moist {
   /** The current water state (reconciles rehydration on read). */
   getWaterState(): WaterState;
   /** How much of the material's own water is left, `[0, 1]`. */
@@ -576,6 +595,13 @@ export interface WaterActive {
    * species' (`SeasoningMixin`).
    */
   dryingRatePerHour(): number | undefined;
+  /**
+   * @hook The sentence `look` adds about this thing's water (cured, dried,
+   * soaked), or `null` for none. Default: the cure state's own phrase. A
+   * host whose own reading speaks for its water (a board's seasoning)
+   * overrides it to `null` — so this mixin never has to know who that is.
+   */
+  waterPhrase(): string | null;
 
   // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
@@ -584,9 +610,9 @@ export interface WaterActive {
   waterClockStamp: number;
 }
 
-export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class WaterActivityMixin extends Base implements WaterActive {
-    static _mixinName = 'WaterActivityMixin';
+export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class MoistureMixin extends Base implements Moist {
+    static _mixinName = 'MoistureMixin';
 
     static fieldMeta: FieldMeta = {
       _moisture: { persistent: true },
@@ -661,7 +687,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
 
     public getAirHumidityPct(): number {
       this.getWaterState();
-      return this._airHumidityPct ?? WaterActivity.ambientHumidityOf(this as unknown as Stuff);
+      return this._airHumidityPct ?? Moisture.ambientHumidityOf(this as unknown as Stuff);
     }
 
     public getSolute(): number {
@@ -675,7 +701,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
       // bare default) disagreed with it: a brick dried to the Delight's real
       // ~75 % was judged against 50 % and stayed leather-hard for ten weeks
       // on the hack (the ceramics drive).
-      const eq = WaterActivity.equilibriumMoisture(this.getAirHumidityPct());
+      const eq = Moisture.equilibriumMoisture(this.getAirHumidityPct());
       if (!(eq < 1)) return 0;
       return clamp01((1 - m) / (1 - eq));
     }
@@ -686,6 +712,10 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
 
     public dryingRatePerHour(): number | undefined {
       return undefined;
+    }
+
+    public waterPhrase(): string | null {
+      return Moisture.phraseFor(this.getWaterState()) || null;
     }
 
     // ---------- writes ----------
@@ -699,7 +729,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
     }
 
     public treat(treatment: { moisture?: number; solute?: number }): void {
-      this.setWaterState(WaterActivity.applyTreatment(this.getWaterState(), treatment));
+      this.setWaterState(Moisture.applyTreatment(this.getWaterState(), treatment));
     }
 
     // ---------- reconcile-on-read ----------
@@ -750,12 +780,12 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
       const airNow =
         scope === null
           ? new Evaporation(
-              WaterActivity.ambientHumidityOf(self),
+              Moisture.ambientHumidityOf(self),
               0,
               WATER_DEFAULTS.AMBIENT_TEMP_K,
             )
           : BiomeApi.airFor(scope);
-      const target = WaterActivity.equilibriumMoisture(airNow.humidityPct);
+      const target = Moisture.equilibriumMoisture(airNow.humidityPct);
       const canWet = target > this._moisture;
       const canDry =
         exposure > 0 &&
@@ -780,10 +810,10 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
       try {
         if (exposure <= 0 || scope === null) {
           // Enclosed: the one-way arm, unchanged. No `drying` half.
-          this._moisture = WaterActivity.advanceMoisture(
+          this._moisture = Moisture.advanceMoisture(
             this._moisture,
             elapsed,
-            WaterActivity.ambientHumidityOf(self),
+            Moisture.ambientHumidityOf(self),
           );
           this.waterClockStamp = nowS;
           return;
@@ -802,7 +832,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
         )) {
           if (!(seg.durationS > 0)) continue;
           const before = moisture;
-          moisture = WaterActivity.advanceMoisture(
+          moisture = Moisture.advanceMoisture(
             moisture,
             seg.durationS,
             seg.air.humidityPct,
@@ -811,7 +841,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
           );
           // ⭐ Dried faster than it stands, it CHECKS — read per segment, so
           // one hot dry afternoon is not averaged away by the cool night.
-          const span = 1 - WaterActivity.equilibriumMoisture(seg.air.humidityPct);
+          const span = 1 - Moisture.equilibriumMoisture(seg.air.humidityPct);
           if (risk > 0 && moisture < before && span > 0) {
             const perHour = (before - moisture) / span / (seg.durationS / 3600);
             if (perHour * risk > crackRate) checked = true;

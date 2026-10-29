@@ -19,7 +19,7 @@ whole subject.**
 
 And a third fact, which is about the matter rather than about anything
 living in it: how much water is actually available to grow in. That is
-`WaterActivityMixin`, and it is what drying and salting change.
+`MoistureMixin`, and it is what drying and salting change.
 
 Every `Provision` carries all three, and they are three different
 questions about one cut of meat: *what is growing in it on its own*,
@@ -38,7 +38,7 @@ senses, knowable by procedure.**
 
 Source: `lib/material/Freshness.ts` (the spoilage mixin + the shared
 arithmetic), `lib/material/Contaminable.ts` (the silent population),
-`lib/material/WaterActivity.ts` (the water state), `lib/material/Material.ts`
+`lib/material/Moisture.ts` (the water state), `lib/material/Material.ts`
 (the two tabulated constants), the `freshness.*` / `cure.*` dials in
 `lib/config/AppSettings.ts` and their seeds in the platform pack's
 `content/settings/`. The pathogen roster is authored as `Condition` rows
@@ -297,7 +297,7 @@ unaffected by its arrival.
 
 Each gauge declares its **own** payload field from its own module —
 `freshness` from `Freshness.ts`, `pathogens` + `pathogenStamp` from
-`Contaminable.ts`, `moisture`/`solute` from `WaterActivity.ts` — rather than
+`Contaminable.ts`, `moisture`/`solute` from `Moisture.ts` — rather than
 sharing one `{ load, stamp }`. A shared shape could not hold the
 pathogens' per-organism map, and per-module declaration is what lets the
 pour blend and the material shadow keep working as each subsystem adds a
@@ -561,7 +561,7 @@ bread row on a class that cannot stale.
 
 ## The water state — what drying and curing actually change
 
-`WaterActivityMixin` (`lib/material/WaterActivity.ts`) carries two scalars that describe
+`MoistureMixin` (`lib/material/Moisture.ts`) carries two scalars that describe
 the **matter**, not anything living in it:
 
 - **`moisture`** `[0, 1]` — how much of the material's own water is still
@@ -1020,7 +1020,7 @@ test, not a driven act.
   blend base is excluded from the craft gather's intermediate test, and
   there is a negative test that says so.
 
-## History — `CuredMixin` became `WaterActivityMixin` (2026-09-24)
+## History — `CuredMixin` became `MoistureMixin` (2026-09-24)
 
 The water-state mixin was called **`CuredMixin`** from the food-safety
 build until the extraction build, and its own opening line always said
@@ -1036,15 +1036,15 @@ So the substrate now names the quantity it derives:
 
 | was | is |
 |---|---|
-| `Cure` (the arithmetic) | `WaterActivity` |
+| `Cure` (the arithmetic) | `Moisture` |
 | `CureState` (the two scalars) | `WaterState` |
-| `Cured` (the host interface) | `WaterActive` |
-| `CuredMixin` | `WaterActivityMixin` |
-| `Mixins.Cured` · `MixinApi.isCured` | `Mixins.WaterActive` · `MixinApi.isWaterActive` |
+| `Cured` (the host interface) | `Moist` |
+| `CuredMixin` | `MoistureMixin` |
+| `Mixins.Cured` · `MixinApi.isCured` | `Mixins.Moist` · `MixinApi.isMoist` |
 | `getCureState` · `setCureState` · `reconcileCure` | `getWaterState` · `setWaterState` · `reconcileWater` |
 | `cureClockStamp` (persistent) | `waterClockStamp` |
 | `BulkPayload.cure` · `.cureStamp` | `BulkPayload.water` · `.waterStamp` |
-| `lib/material/Cured.ts` | `lib/material/WaterActivity.ts` |
+| `lib/material/Cured.ts` | `lib/material/Moisture.ts` |
 
 ⭐ **The act keeps its word, and that is the line.** `cure` is still a
 verb, `CureController` still packs meat in salt, `salt-cure` is still a

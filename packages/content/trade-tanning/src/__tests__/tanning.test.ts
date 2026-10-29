@@ -140,7 +140,7 @@ describe('the hide is what tans; the pit is the condition', () => {
     // ⚠ NOT a Provision: a hide is not food. These four are what tanning
     // actually rests on.
     expect(MixinApi.isFresh(h)).toBe(true);
-    expect(MixinApi.isWaterActive(h)).toBe(true);
+    expect(MixinApi.isMoist(h)).toBe(true);
     expect(MixinApi.isCrafted(h)).toBe(true);
     expect(MixinApi.isTangible(h)).toBe(true);
     // The food-only machinery is absent.

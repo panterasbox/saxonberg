@@ -69,7 +69,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type Material from './Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
-import { WaterActivity, type WaterState } from './WaterActivity';
+import { Moisture, type WaterState } from './Moisture';
 import { Contamination } from './Contaminable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -699,9 +699,9 @@ export class Freshness {
     }
     // ⚠ The water state FIRST, and reconciled: a blend that has been
     // rehydrating in a damp cellar spoils at the a_w it has NOW, and
-    // `WaterActivity.stateFor` may rewrite the payload — so read it before the
+    // `Moisture.stateFor` may rewrite the payload — so read it before the
     // freshness write, or the write below stamps over it.
-    const water = new WaterActivity(this.slot).state();
+    const water = new Moisture(this.slot).state();
     const load = advanceFreshnessOverHost(
       this.slot.getHolder(),
       gauge.load,
@@ -1100,7 +1100,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
           this.freshnessClockStamp,
           nowS,
           material,
-          MixinApi.isWaterActive(self) ? self.getWaterState() : null,
+          MixinApi.isMoist(self) ? self.getWaterState() : null,
         );
         this.freshnessClockStamp = nowS;
         this.rotAwayIfLong(nowS);

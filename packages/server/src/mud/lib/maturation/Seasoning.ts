@@ -3,7 +3,7 @@
  * drying, seasoned (assembly D2, AC 19).
  *
  * ⭐⭐ **A reading, not a clock** (ceramics review, 2026-10-28). The water
- * is the host's `WaterActivityMixin` — the one model of a solid giving its
+ * is the host's `MoistureMixin` — the one model of a solid giving its
  * water to the air, which food, hides, turf and green clay already ran on.
  * Seasoning had a second one (its own fraction on the maturation clock, a
  * flat rain penalty, a damage band for heat), and the two disagreed where a
@@ -36,7 +36,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
 import { Grade } from '../craft/Grade';
-import { WaterActivity, type WaterActive } from '../material/WaterActivity';
+import { Moisture, type Moist } from '../material/Moisture';
 import { Evaporation } from '../material/Evaporation';
 import type { MarkupAugmenter } from '../../api/mml';
 
@@ -122,7 +122,7 @@ function seasoningAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${both}` : both;
 }
 
-export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActive>>(Base: TBase) {
+export function SeasoningMixin<TBase extends MixinConstructor<Stuff & Moist>>(Base: TBase) {
   return class SeasoningMixin extends Base implements Seasoning {
     static _mixinName: string = 'SeasoningMixin';
     static markupAugmenters: MarkupAugmenter[] = [seasoningAugmenter];
@@ -164,7 +164,7 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActiv
 
     /** The moisture `fraction` of the way from green to seasoned. */
     private moistureSeasonedTo(fraction: number): number {
-      const sat = WaterActivity.equilibriumMoisture(SATURATION_RH_PCT);
+      const sat = Moisture.equilibriumMoisture(SATURATION_RH_PCT);
       return 1 - Math.max(0, Math.min(1, fraction)) * (1 - sat);
     }
 
@@ -179,13 +179,18 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActiv
       const days = this.seasoningDaysOf();
       if (!(days > 0)) return undefined;
       const at = Math.min(0.99, Math.max(0.01, dial(AppSettingKeys.woodSeasonedThreshold, 0.8)));
-      const eq = WaterActivity.equilibriumMoisture(GOOD_AIR.humidityPct);
+      const eq = Moisture.equilibriumMoisture(GOOD_AIR.humidityPct);
       const mark = this.moistureSeasonedTo(at);
       if (!(mark > eq)) return undefined;
       return -Math.log((mark - eq) / (1 - eq)) / (days * 24);
     }
 
     /** The species' rate, as the base the water model scales by the air. */
+    /** @hook A board's seasoning speaks for its water (its own augmenter). */
+    public waterPhrase(): string | null {
+      return null;
+    }
+
     public dryingRatePerHour(): number | undefined {
       const good = this.goodAirPerHour();
       const air = GOOD_AIR.evaporationFactor();
@@ -199,8 +204,8 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActiv
 
     getSeasonedFraction(): number {
       if (this.seasoningDaysOf() <= 0) return 0;
-      const m = (this as unknown as WaterActive).getMoisture();
-      const sat = WaterActivity.equilibriumMoisture(SATURATION_RH_PCT);
+      const m = (this as unknown as Moist).getMoisture();
+      const sat = Moisture.equilibriumMoisture(SATURATION_RH_PCT);
       return Math.max(0, Math.min(1, (1 - m) / (1 - sat)));
     }
 
@@ -230,7 +235,7 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActiv
 
     /** Written as moisture: `f` of the way from green to seasoned. */
     setSeasonedFraction(f: number): void {
-      const water = this as unknown as WaterActive;
+      const water = this as unknown as Moist;
       water.setWaterState({
         moisture: this.moistureSeasonedTo(Number(f) || 0),
         solute: water.getSolute(),
@@ -258,7 +263,7 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActiv
       const g = base ? base.call(this) : Grade.of('fair');
       if (this.seasoningDaysOf() <= 0) return g;
       // Bring the water current: a check is laid by the drying it records.
-      (this as unknown as WaterActive).getMoisture();
+      (this as unknown as Moist).getMoisture();
       const self = this as unknown as Stuff;
       const checked = MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'check');
       return checked ? g.min(Grade.of('fair')) : g;

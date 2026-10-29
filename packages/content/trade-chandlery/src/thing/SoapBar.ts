@@ -12,9 +12,9 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { SeasoningMixin } from '@saxonberg/server/mud/lib/maturation/Seasoning';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 
-export default class SoapBar extends SeasoningMixin(WaterActivityMixin(Good)) {
+export default class SoapBar extends SeasoningMixin(MoistureMixin(Good)) {
   public override seasonPhrase(fraction: number): string {
     return fraction >= 0.95
       ? 'It is well cured — hard, pale and mild.'

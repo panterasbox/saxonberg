@@ -33,7 +33,7 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -181,7 +181,7 @@ const clayAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 
 // ⭐ Clay is SHAPED by hand (`ShapeableMixin` — it plans the coil, and
 // affords `shape` to whoever holds it or stands beside it).
-const ClayBase = ShapeableMixin(CompositionMixin(WaterActivityMixin(Lump)));
+const ClayBase = ShapeableMixin(CompositionMixin(MoistureMixin(Lump)));
 
 export default class Clay extends ClayBase implements Formable {
   static markupAugmenters: MarkupAugmenter[] = [clayAugmenter];
@@ -405,7 +405,7 @@ export default class Clay extends ClayBase implements Formable {
     if (MixinApi.isComposition(product)) {
       product.setMakeup(this.effectiveMakeup());
     }
-    if (MixinApi.isWaterActive(product)) product.setWaterState(this.getWaterState());
+    if (MixinApi.isMoist(product)) product.setWaterState(this.getWaterState());
     const maker = order.actor.getIdentityPath() ?? '';
     if (MixinApi.isCrafted(product) && maker !== '') product.setMaker(maker);
     if (MixinApi.isGraded(product)) product.setGrade(order.hand.grade);

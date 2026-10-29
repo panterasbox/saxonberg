@@ -22,7 +22,7 @@ is fatter (0.72 clay mineral, 0.12 sand); Rejection's fireclay, the coal's
 seat-earth, is nearly all clay mineral with almost no iron. A lump's own
 `alloying` (`CompositionMixin`) records what was kneaded in after.
 
-`/trade/quarrying/thing/Clay` = `CompositionMixin(WaterActivityMixin(Lump))`
+`/trade/quarrying/thing/Clay` = `CompositionMixin(MoistureMixin(Lump))`
 reads everything off the effective composition, sorting constituents by
 their materials' TAGS (`clay-mineral`, `silica`/`grog`/`breeze` = openers,
 `iron`, `carbonate`, `organic`) — so a second clay of any realm reads with
@@ -78,7 +78,7 @@ A shaped piece of clay is GREEN until it is fired: the kernel's
 `GreenwareMixin` (`lib/material/Greenware.ts`, composed by the pack's ware,
 bricks, flower pots and cones, and by dairying's setting pan — two packs with
 no common ancestor, which is the kernel test). Each composer composes
-`WaterActivityMixin` itself: green ware re-wets the way turf does.
+`MoistureMixin` itself: green ware re-wets the way turf does.
 
 - **State is DRYNESS against the air**: `d = (1 − moisture) ÷ (1 − the air's
   equilibrium)` — `plastic` below `green.leatherAt` (0.3), `leather-hard` to
@@ -153,7 +153,7 @@ YIELDS the piece (`Clay.yieldPieces`).
   hour, ONE stack, as far as the clay goes; the moulder ends up muddy.
   **Hands** coil any class, slowly (`ceramics.hand.minutes`), into the clay
   material's `formTemplates`.
-- The goods: `Ware` (`Greenware(WaterActivity(Assembled(Named(Durable(
+- The goods: `Ware` (`Greenware(Moisture(Assembled(Named(Durable(
   Composition(CraftVessel))))))` — mugs, jugs, jars, crocks, bowls, flasks,
   crucibles, handles), `Brick` (a green stack), `FlowerPot` (the kernel
   `PlantPot`, potter-made), `Cone` (a kernel `Mould` thrown green — the

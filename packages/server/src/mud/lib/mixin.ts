@@ -551,7 +551,7 @@ export const Mixins = {
   // move a thing's effective water activity off its Material's tabulated
   // base. NOT the spoilage gauge: this is the matter, that is the
   // population living in it.
-  WaterActive: 'WaterActivityMixin',
+  Moist: 'MoistureMixin',
   // ⭐ The per-instance MINOR CONSTITUENTS of a piece of metal — what is
   // dissolved in THIS bar, in the same {materialPath, fraction}
   // vocabulary Material.composition speaks. A Material is a singleton,

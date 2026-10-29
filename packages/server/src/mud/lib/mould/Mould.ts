@@ -914,7 +914,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const c of super.getContents()) {
         const charge = c as Stuff;
         if (charge.isDestroyed() || !MixinApi.isTangible(charge)) continue;
-        if (!MixinApi.isWaterActive(charge)) continue;
+        if (!MixinApi.isMoist(charge)) continue;
         if (charge.getTemplatePath() === this.castTemplate) continue;
         const material = charge.getMaterial();
         if (material === null) continue;
@@ -1258,7 +1258,7 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
   if (p?.pathogens && MixinApi.isContaminable(cast)) {
     cast.setPathogenLoads({ ...p.pathogens });
   }
-  if (pool.moisture !== undefined && MixinApi.isWaterActive(cast)) {
+  if (pool.moisture !== undefined && MixinApi.isMoist(cast)) {
     const solute = p?.water?.solute ?? 0;
     cast.setWaterState({ moisture: pool.moisture, solute });
   }

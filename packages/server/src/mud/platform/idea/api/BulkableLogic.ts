@@ -21,7 +21,7 @@ import type Material from '../../../lib/material/Material';
 import type { CompositionEntry } from '../../../lib/material/Material';
 import '../../../lib/material/Composition';
 import { Freshness } from '../../../lib/material/Freshness';
-import { WaterActivity } from '../../../lib/material/WaterActivity';
+import { Moisture } from '../../../lib/material/Moisture';
 import { Contamination } from '../../../lib/material/Contaminable';
 import { Blood } from '../../../lib/vitals/Blood';
 import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
@@ -503,8 +503,8 @@ export class BulkableLogic extends ApiLogic {
     // both BEFORE the debit matters — a full drain clears the payload.
     // Out of a set the drainings' water state is their own material's: the
     // set is what changed the solid's.
-    const fromCure = set ? null : new WaterActivity(from).state();
-    const toCureBefore = to !== null ? new WaterActivity(to).state() : null;
+    const fromCure = set ? null : new Moisture(from).state();
+    const toCureBefore = to !== null ? new Moisture(to).state() : null;
     // ⚠⚠ And the silent population, by the same mass-weighted rule. A
     // pathogen that did not blend on the pour would make decanting a
     // laundry: tip the bad stew into a clean pot and it comes out safe.
@@ -592,8 +592,8 @@ export class BulkableLogic extends ApiLogic {
         );
       }
       if (fromCure !== null || toCureBefore !== null) {
-        new WaterActivity(
-          to).stampState(WaterActivity.blend(fromCure, applied, toCureBefore, toAmountBefore),
+        new Moisture(
+          to).stampState(Moisture.blend(fromCure, applied, toCureBefore, toAmountBefore),
         );
       }
       // ⭐⭐ **A dirty vessel contaminates what you fill it with**, and its

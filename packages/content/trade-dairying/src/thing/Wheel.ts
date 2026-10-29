@@ -200,6 +200,6 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
     if (MixinApi.isCrafted(wedge) && this.getMaker()) wedge.setMaker(this.getMaker());
     if (MixinApi.isFresh(wedge)) wedge.setMicrobialLoad(this.getMicrobialLoad());
     if (MixinApi.isContaminable(wedge)) wedge.setPathogenLoads(this.getPathogenLoads());
-    if (MixinApi.isWaterActive(wedge)) wedge.setWaterState(this.getWaterState());
+    if (MixinApi.isMoist(wedge)) wedge.setWaterState(this.getWaterState());
   }
 }

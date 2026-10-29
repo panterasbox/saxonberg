@@ -94,7 +94,7 @@ no wings. Nothing errored, because nothing checked.
 ## A cut claims muscles
 
 `CutMixin` + `platform/thing/Cut` (on `Provision`, inheriting Freshness,
-WaterActivity, Contaminable, Crafted).
+Moisture, Contaminable, Crafted).
 
 - `tissues: string[]` — the muscles it takes. ⭐ **A porterhouse is two
   entries**, and nothing special-cases it.

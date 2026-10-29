@@ -7,7 +7,7 @@
 
 import PlantPot from '@saxonberg/server/mud/platform/thing/PlantPot';
 import { GreenwareMixin } from '@saxonberg/server/mud/lib/material/Greenware';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
@@ -29,7 +29,7 @@ const verdictAugmenter: MarkupAugmenter = (text: string, host: Stuff): string =>
 };
 
 const FlowerPotBase = GreenwareMixin(
-  MarkedMixin(WaterActivityMixin(ThermalMixin(DurableMixin(CraftedMixin(PlantPot))))),
+  MarkedMixin(MoistureMixin(ThermalMixin(DurableMixin(CraftedMixin(PlantPot))))),
 );
 
 export default class FlowerPot extends FlowerPotBase {

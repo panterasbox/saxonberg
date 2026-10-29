@@ -32,7 +32,7 @@ import {
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
 import { ThermalDose } from '../../../lib/thermal/ThermalDose';
-import { WaterActivity } from '../../../lib/material/WaterActivity';
+import { Moisture } from '../../../lib/material/Moisture';
 import type { MadeFromHolding } from '../../../lib/mould/Mould';
 import {
   Contamination,
@@ -2043,16 +2043,16 @@ async function applyTangibleOutput(
       output.setPathogenLoads(outcome.pathogens);
     }
   }
-  if (MixinApi.isWaterActive(output)) {
+  if (MixinApi.isMoist(output)) {
     // The input's own water state first — a dried cut smoked is still a
     // dried cut — then the recipe's treatment, stronger-axis-wins.
     const inherited =
-      primary && MixinApi.isWaterActive(primary.stuff)
+      primary && MixinApi.isMoist(primary.stuff)
         ? primary.stuff.getWaterState()
-        : WaterActivity.untreated();
+        : Moisture.untreated();
     const treatment = recipe.getCure();
     output.setWaterState(
-      treatment ? WaterActivity.applyTreatment(inherited, treatment) : inherited,
+      treatment ? Moisture.applyTreatment(inherited, treatment) : inherited,
     );
   }
   // ⭐ What it was made FROM rides a transform that keeps the thing (a
@@ -4836,7 +4836,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
       const refused = leatherHardRefusal(piece);
       if (refused) return { ok: false, reason: 'not-leather-hard', detail: refused };
     }
-    if (MixinApi.isWaterActive(whole) && MixinApi.isWaterActive(part)) {
+    if (MixinApi.isMoist(whole) && MixinApi.isMoist(part)) {
       slipMismatch =
         Math.abs(whole.dryness() - part.dryness()) >
         dial(AppSettingKeys.greenJoinMismatch, 0.25);

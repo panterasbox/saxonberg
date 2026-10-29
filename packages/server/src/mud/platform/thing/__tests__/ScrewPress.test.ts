@@ -20,7 +20,7 @@ import { ThermalMixin } from '../../../lib/thermal/Thermal';
 import { BulkableMixin } from '../../../lib/bulk/Bulkable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { PlacingMixin } from '../../../lib/spatial/Placing';
-import { WaterActivityMixin } from '../../../lib/material/WaterActivity';
+import { MoistureMixin } from '../../../lib/material/Moisture';
 import { CompositionMixin } from '../../../lib/material/Composition';
 import { Quantity } from '../../../lib/quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -39,10 +39,10 @@ class TestHoop extends PlacingMixin(
 class TestRoom extends ContainerMixin(Good) {
   static _mixinName = 'TestPressRoom';
 }
-class TestClay extends CompositionMixin(WaterActivityMixin(Good)) {
+class TestClay extends CompositionMixin(MoistureMixin(Good)) {
   static _mixinName = 'TestPressClay';
 }
-class TestTile extends WaterActivityMixin(Good) {
+class TestTile extends MoistureMixin(Good) {
   static _mixinName = 'TestPressTile';
 }
 

@@ -117,7 +117,7 @@ import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
 import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Comminuting } from '../lib/craft/Comminuting';
-import type { WaterActive } from '../lib/material/WaterActivity';
+import type { Moist } from '../lib/material/Moisture';
 import type { Alloyed } from '../lib/material/Alloyed';
 import type { Composition } from '../lib/material/Composition';
 import type { Tempered } from '../lib/material/Tempered';
@@ -1561,8 +1561,8 @@ export class MixinApi {
    * curing axis. Distinct from {@link isFresh}: that is the population
    * living in the matter, this is the matter's own available water.
    */
-  public static isWaterActive(obj: Stuff): obj is Stuff & WaterActive {
-    return this.hasMixin(obj, Mixins.WaterActive);
+  public static isMoist(obj: Stuff): obj is Stuff & Moist {
+    return this.hasMixin(obj, Mixins.Moist);
   }
 
   /**
