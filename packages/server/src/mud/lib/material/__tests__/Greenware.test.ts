@@ -12,6 +12,8 @@ import { ThermalMixin } from '../../thermal/Thermal';
 import { MoistureMixin } from '../Moisture';
 import { CompositionMixin } from '../Composition';
 import { GreenwareMixin } from '../Greenware';
+import type { ActRefusal } from '../../craft/ActPlan';
+import { Mml } from '../../../api/mml';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
 import { MaterialApi } from '../../../api/material';
@@ -23,6 +25,20 @@ import { vi } from 'vitest';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+
+/** A host with its OWN carve and impress (a mould's), under green ware. */
+class HostWithActs extends ThermalMixin(CompositionMixin(Good)) {
+  static _mixinName = 'GreenwareTestHostWithActs';
+  public async carvePlanFor(): Promise<ActRefusal> {
+    return { ok: false, reason: 'host-carve', line: Mml.compose`the host's own carve` };
+  }
+  public async takeImpression(): Promise<ActRefusal> {
+    return { ok: false, reason: 'host-impress', line: Mml.compose`the host's own impression` };
+  }
+}
+class ClayMould extends GreenwareMixin(MoistureMixin(HostWithActs)) {
+  static _mixinName = 'GreenwareTestClayMould';
+}
 
 class Piece extends GreenwareMixin(MoistureMixin(ThermalMixin(CompositionMixin(Good)))) {
   static _mixinName = 'GreenwareTestPiece';
@@ -132,6 +148,8 @@ describe('the weather', () => {
     advance(12 * 3600);
     expect(wet.getRuin()).toBe('shattered');
     expect(dry.getRuin()).toBeNull();
+    // The ruin is the fact: no crack flaw as well (B99).
+    expect(wet.getFlaws()).toHaveLength(0);
   });
 
   it('⭐ a damp piece in a kiln bursts on its steam, and says so — not "the frost"', () => {
@@ -195,6 +213,25 @@ describe('⭐ one crack rule (review R2-B2)', () => {
 });
 
 describe('⭐⭐ green ends at firing (R2)', () => {
+  it('⭐ once fired, carve and impress are the HOST\'s own again — green ware never shadows them (B99)', async () => {
+    const m = makeStuff(() => {
+      const p = new ClayMould();
+      p.setMass(Quantity.of(2, 'kg'));
+      p.setMaterial(clay);
+      p.setStampedTemperatureK(290);
+      p.setLastAmbientK(290);
+      p.setWaterState({ moisture: 1, solute: 0 });
+      return p;
+    });
+    const req = { actor: m, word: 'trim', knife: null, commandText: 'carve trim on it' } as never;
+    // Green: green ware's own carve (too soft to trim).
+    expect((await m.carvePlanFor(req)).ok === false && (await m.carvePlanFor(req) as ActRefusal).reason).toBe('too-soft');
+    // Fired (no longer plastic clay): the host's own acts.
+    m.setMaterial(terracotta);
+    expect(((await m.carvePlanFor(req)) as ActRefusal).reason).toBe('host-carve');
+    expect(((await m.takeImpression(m, m)) as ActRefusal).reason).toBe('host-impress');
+  });
+
   it('⭐ a piece fired elsewhere (an import) says its body — it read as nothing (drive C, run 37)', () => {
     const p = piece(0.1);
     p.setMaterial(terracotta);

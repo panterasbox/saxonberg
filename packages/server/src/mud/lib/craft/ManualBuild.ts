@@ -95,6 +95,12 @@ export interface BuildContribution {
    * derived blend payload (macros in = macros out). */
   materialPath?: string;
   /**
+   * The source PIECE's kind (its row), for an item — so "one piece that
+   * already is the product" can tell a lump of the clay from a jug made of
+   * it (the reclaim, B99).
+   */
+  templatePath?: string;
+  /**
    * ⭐ **What the source was itself made of**, by mass fraction, when it
    * was already a blend — banked with the matter for exactly the reason
    * the loads are (above): the bottle it was poured from may be drained

@@ -1972,6 +1972,29 @@ left a fork the lens that chose is named.
     rubber's cure kinetic), and SoapBar says its own words through
     `seasonPhrase`.
 
+- **B99 — Greenware (owner, 2026-10-29).**
+  - **No lifelong shadowing.** Greenware embeds Carvable and Impressible,
+    and it overrode `carvePlanFor`/`takeImpression` without deferring, so
+    a `Cone` (Greenware over `Mould`) lost the mould's own carve and
+    impress forever, even after firing. Once not green, it now hands the
+    act to the host's own plan if there is one (`Base.prototype`).
+  - **The reclaim, built.** A ruined piece's refusal said *"knead it back
+    and start again"*, and nothing did that. The temper pit already folds
+    any tangible piece by makeup, so a green jug reclaims. What was
+    missing:
+    - the pit refusing what treading cannot work in (only plastic or
+      granular matter; a fired pot is refused by name, with the way to
+      grog);
+    - crafting's "one piece that already IS the product" comparing the
+      piece's KIND as well as its material (`BuildContribution.templatePath`),
+      so a jug of the pit's clay is the reclaim and a lone lump of it is
+      still refused;
+    - an honest refusal naming the pit.
+  - **A burst is recorded once.** `shattered` no longer adds a crack flaw:
+    it read twice in `look` and lowered the condition of a ruined thing.
+  - **`greenWork` → `workedFeatures`.** It is the piece's worked features
+    (a turned foot), which is why it survives firing, not green state.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

@@ -148,6 +148,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
           massKg: piece.getMass().rawValue() * count,
           tags: [...material.getTags()],
           materialPath: material.getTemplatePath() ?? undefined,
+          templatePath: piece.getTemplatePath() ?? undefined,
           makeup: MixinApi.isComposition(piece) ? piece.effectiveMakeup() : undefined,
           freshnessLoad: MixinApi.isFresh(piece) ? piece.getMicrobialLoad() : 0,
           pathogenLoads: MixinApi.isContaminable(piece) ? piece.getPathogenLoads() : {},

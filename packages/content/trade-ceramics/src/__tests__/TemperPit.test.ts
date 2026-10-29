@@ -16,6 +16,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 import TemperPit from '../thing/TemperPit';
+import Ware from '../thing/Ware';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 
 class Yard extends Place {}
@@ -40,9 +41,9 @@ let water: Material;
 beforeEach(() => {
   installV1QuantityMarshallers();
   const mineral = material('clay-mineral', ['clay-mineral']);
-  sandMat = material('sand', ['silica']);
+  sandMat = material('sand', ['silica', 'granular']); // the real row's tags
   water = material('water', ['liquid', 'water']);
-  clayMat = material('fat clay', ['clay'], [
+  clayMat = material('fat clay', ['clay', 'plastic'], [
     { materialPath: mineral.getTemplatePath()!, fraction: 0.8 },
     { materialPath: sandMat.getTemplatePath()!, fraction: 0.2 },
   ]);
@@ -95,6 +96,40 @@ describe('the temper pit', () => {
     expect(p.getBulkAmount('interior').rawValue()).toBeLessThan(100);
     expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(98);
     expect(p.getBulkMaterial('interior')).toBe(water);
+  });
+
+  it('⭐ RECLAIM: a ruined green piece is still clay — trodden back in, it comes out clay (B99)', async () => {
+    const yard = makeStuff(() => new Yard());
+    const p = pit(true);
+    await ContainmentApi.move(p, yard);
+    // A jug of the pit's own clay — its own kind (row), not a lump of it.
+    const jug = makeStuffAtPath(() => new Ware(), '/trade/ceramics/thing/jug') as unknown as Ware;
+    jug.setMass(Quantity.of(2, 'kg'));
+    jug.setMaterial(clayMat);
+    jug.greenRuin = 'slumped'; // rain got at it on the open yard
+    await ContainmentApi.move(jug, p);
+    const actor = makeStuff(() => new TestActor());
+    await ContainmentApi.move(actor, yard);
+    const plan = await p.kneadPlanFor({ actor, commandText: 'knead pit' });
+    expect(plan.ok).toBe(true);
+    if (plan.ok) plan.onComplete();
+    // The tread completes async; a ware's destruct takes more turns than a lump's.
+    for (let i = 0; i < 200 && !jug.isDestroyed(); i++) await new Promise<void>((r) => setTimeout(r, 0));
+    expect(jug.isDestroyed()).toBe(true);
+    const out = p.getContents().find((c) => c instanceof Clay) as Clay | undefined;
+    expect(out?.getMass().rawValue()).toBeCloseTo(2, 6);
+  });
+
+  it('a fired pot will not tread in — refused by name, with the way (B99)', async () => {
+    const p = pit(true);
+    await put(p, clayMat, 9, true);
+    await put(p, material('terracotta', ['ceramic', 'fired']), 1, false);
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    expect(plan.ok).toBe(false);
+    if (!plan.ok) {
+      expect(plan.reason).toBe('not-treadable');
+      expect(String(plan.line)).toMatch(/grog/);
+    }
   });
 
   it('a dry pit refuses — it wants water', async () => {

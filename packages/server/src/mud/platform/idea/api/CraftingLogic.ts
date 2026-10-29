@@ -2743,9 +2743,16 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
     if (named === null) {
       return { ok: false, reason: 'no-output', detail: 'product-material-missing' };
     }
-    // One piece that already IS the product: there is nothing to work in.
+    // One piece that already IS the product — its material AND its kind —
+    // there is nothing to work in. ⭐ A jug made of the pit's clay is not the
+    // product (a lump is): treading it in is the reclaim (B99).
     const only = contributions.length === 1 ? contributions[0]! : null;
-    if (only?.kind === 'item' && only.materialPath === named.getTemplatePath()) {
+    const productKind = charge.getProductTemplate();
+    if (
+      only?.kind === 'item' &&
+      only.materialPath === named.getTemplatePath() &&
+      (productKind === '' || only.templatePath === undefined || only.templatePath === productKind)
+    ) {
       return { ok: false, reason: 'insufficient-input', detail: 'already-compounded' };
     }
   }

@@ -108,7 +108,7 @@ describe('carve on a pot', () => {
     );
     expect(refusal(ctx)).toBeUndefined();
     await completeStep(4 * 60 * 1000);
-    expect(mug.getGreenWork()).toContain('a turned foot');
+    expect(mug.getWorkedFeatures()).toContain('a turned foot');
     expect(mug.getMass().rawValue()).toBeLessThan(1);
   });
 

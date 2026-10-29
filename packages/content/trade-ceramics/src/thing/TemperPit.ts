@@ -3,6 +3,10 @@
  * tread clay and sand into until the whole mass is even and at the WINDOW —
  * wet enough to throw into a mould, stiff enough to stand (ceramics S3, D34).
  *
+ * ⭐ **And it RECLAIMS** (B99): green ware is still clay, so a slumped or
+ * frost-burst piece put back in the pit is trodden into clay again. What
+ * cannot be trodden in — a fired pot, a stone — is refused, by name.
+ *
  * Combining is ONE rule (R1): what is put in the pit becomes one product
  * whose makeup is the inputs' by mass. The pit's row names the clay's own row
  * and material as its product, so tempered clay is still `Clay` — a stack whose
@@ -69,6 +73,22 @@ export default class TemperPit extends TemperPitBase {
         ok: false,
         reason: 'empty',
         line: Mml.compose`${Mml.thing(self)} has no clay in it. Put the clay and whatever you mean to temper it with in first.`,
+      };
+    }
+    // ⭐ Only what treading can work in: plastic clay — green ware included,
+    // ruined or not, which is how a slumped or burst piece is RECLAIMED
+    // (B99) — and loose granular openers (sand, grog, breeze). A fired pot,
+    // a stone or a tool cannot be trodden into clay; a fired piece broken to
+    // sherds goes to the millstone and comes back as grog.
+    const hard = pieces.find((p) => {
+      const mat = MixinApi.isTangible(p) ? p.getMaterial() : null;
+      return mat === null || !(mat.hasTag('plastic') || mat.hasTag('granular'));
+    });
+    if (hard !== undefined) {
+      return {
+        ok: false,
+        reason: 'not-treadable',
+        line: Mml.compose`${Mml.thing(hard)} will not tread into clay. Take it out — what is fired must be broken and ground to grog first.`,
       };
     }
     if (!(this.waterLitres() > 0)) {

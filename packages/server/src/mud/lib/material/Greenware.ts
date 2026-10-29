@@ -82,7 +82,7 @@ export interface Greenware extends Carvable, Impressible {
   /** Bring the weather's effects current (called on every read above). */
   reconcileGreen(): void;
   /** What has been worked on it at leather-hard (a turned foot …). */
-  getGreenWork(): readonly string[];
+  getWorkedFeatures(): readonly string[];
 }
 
 /** A person's (or anything's) name for a mark, from an identity path. */
@@ -129,7 +129,7 @@ const greenAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   else if (state === 'leather-hard') line = 'It is green and leather-hard: firm enough to trim, still cool and damp.';
   else if (state === 'bone-dry') line = 'It is green and bone-dry: pale, light, and ready for the kiln.';
   const extra: string[] = [];
-  const work = host.getGreenWork();
+  const work = host.getWorkedFeatures();
   if (work.length > 0) extra.push(`It has ${work.join(' and ')}.`);
   // ⭐ Once fired — when (ceramics S5). Whose mark it bears is the
   // `MarkedMixin` device's own line, not this one.
@@ -177,14 +177,18 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
       greenLastDryness: { persistent: true, runtimeState: true },
       greenLastWetness: { persistent: true, runtimeState: true },
       greenWetted: { persistent: true, runtimeState: true },
-      greenWork: { persistent: true, runtimeState: true },
+      workedFeatures: { persistent: true, runtimeState: true },
     };
 
-    /** What was worked on it at leather-hard, in words (survives firing). */
-    public greenWork: string[] = [];
+    /**
+     * What was worked on it at leather-hard, in words — a turned foot, a
+     * trimmed wall, a design. ⭐ Not green STATE: the piece's worked features,
+     * which is why they survive firing (a fired mug still has its foot).
+     */
+    public workedFeatures: string[] = [];
 
-    public getGreenWork(): readonly string[] {
-      return this.greenWork;
+    public getWorkedFeatures(): readonly string[] {
+      return this.workedFeatures;
     }
 
     /**
@@ -193,6 +197,14 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
      * smears; too dry, it cracks. Credits pottery.
      */
     public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal> {
+      // ⭐ Once it is not green, the act is the HOST's own, if it has one (a
+      // clay mould carves a riser like any mould) — green ware must never
+      // shadow it for life (B99).
+      if (!this.isGreen()) {
+        const host = (Base.prototype as { carvePlanFor?: (r: CarveRequest) => Promise<ActPlan | ActRefusal> })
+          .carvePlanFor;
+        if (host) return host.call(this, req);
+      }
       const self = this as unknown as Stuff;
       const word = req.word.trim().toLowerCase();
       const cut = CARVINGS[word];
@@ -224,7 +236,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
           if (MixinApi.isTangible(self)) {
             self.setMass(Quantity.of(self.getMass().rawValue() * cut.keep, 'kg'));
           }
-          if (!this.greenWork.includes(cut.line)) this.greenWork = [...this.greenWork, cut.line];
+          if (!this.workedFeatures.includes(cut.line)) this.workedFeatures = [...this.workedFeatures, cut.line];
           if (!actor.isDestroyed()) {
             MessageApi.scene(actor)
               .topic('act.deed')
@@ -244,7 +256,15 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
      * bears a device (`MarkedMixin`) and the piece takes it; a tool that
      * bears none leaves only a dent.
      */
-    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ActOutcome | ActRefusal> {
+    public async takeImpression(pattern: Stuff, actor: Stuff): Promise<ActOutcome | ActRefusal> {
+      // ⭐ The host's own impression once it is not green (a clay mould takes
+      // a pattern like any mould) — B99.
+      if (!this.isGreen()) {
+        const host = (Base.prototype as {
+          takeImpression?: (p: Stuff, a: Stuff) => Promise<ActOutcome | ActRefusal>;
+        }).takeImpression;
+        if (host) return host.call(this, pattern, actor);
+      }
       const self = this as unknown as Stuff;
       const refused = this.leatherHardRefusal('stamp');
       if (refused !== null) return refused;
@@ -272,7 +292,13 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
     private leatherHardRefusal(act: 'trim' | 'stamp'): ActRefusal | null {
       const self = this as unknown as Stuff;
       if (this.greenRuin !== null) {
-        return { ok: false, reason: 'ruined', line: Mml.compose`${Mml.thing(self)} is ruined — knead it back and start again.` };
+        // ⭐ The way out exists (B99): it is still clay, and a temper pit takes
+        // it back — put it in with water and tread it.
+        return {
+          ok: false,
+          reason: 'ruined',
+          line: Mml.compose`${Mml.thing(self)} is ruined. It is still clay, though — put it back in a temper pit and tread it in again.`,
+        };
       }
       const state = this.greenState();
       if (state === null) {
@@ -415,7 +441,8 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
         } else if (wetPiece && (minK < 273.15 || maxK > 373.15)) {
           this.greenRuin = 'shattered';
           this.greenBurstBy = minK < 273.15 ? 'frost' : 'steam';
-          if (MixinApi.isIntegrity(self)) self.addFlaw('crack', true, nowS);
+          // ⚠ No crack flaw as well: the ruin IS the fact (B99) — it read
+          // twice in `look` and lowered the condition of a ruined thing.
         }
         this.greenCheckedS = nowS;
         this.greenLastDryness = dry;

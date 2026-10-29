@@ -65,6 +65,16 @@ pit refuses *it wants water*), the tread takes up
 the pit's water is never a constituent. `ceramics.temper.minutes` of both
 hands; credits the pit row's `discipline` (brickmaking).
 
+⭐ **It reclaims (B99).** Green ware is still clay, so a slumped or
+frost-burst piece put back in the pit with water is trodden into clay again
+(the ruined piece's own refusal says so). The pit takes only what treading
+can work in: plastic clay and loose granular openers (sand, grog, breeze).
+A fired pot, a stone or a tool is refused by name (`not-treadable`); fired
+ware broken to sherds goes to the millstone and comes back as grog. ⚠ "One
+piece that already IS the product" (nothing to work in) now compares the
+piece's KIND as well as its material: a lump of the pit's clay alone is
+refused, a jug made of that clay is the reclaim.
+
 ## `analyze clay` (the reading)
 
 `/trade/ceramics/idea/reading/clay` (`ClayReading`) — no instrument: roll a
@@ -90,7 +100,10 @@ no common ancestor, which is the kernel test). Each composer composes
   - its wetness rising past `green.slumpWetting` (rain on an open yard)
     SLUMPS it — the hack cover is what stops it;
   - its temperature below freezing (frost) or above boiling (a wet piece in a
-    kiln — the steam burst) while it still holds water SHATTERS it;
+    kiln — the steam burst) while it still holds water SHATTERS it — the
+    ruin is the fact, with no crack flaw beside it (B99);
+  - a ruined piece goes back to the temper pit (above), where it is
+    trodden into clay again;
   - drying faster than its clay stands CHECKS it (a drying crack) — the
     water model's one rule for every drying solid (`cure.crackRate`), a
     board in a hot kiln included; green ware only supplies its clay's crack
@@ -168,9 +181,13 @@ afford `carve` and `impress`):
 
 - **`carve foot on mug`** / `carve trim on jug` / `carve design on bowl` —
   the green piece's `carvePlanFor`: a few minutes with any edge, a little mass
-  pared off, the work recorded in words (`a turned foot`), pottery credited.
-  Plastic refuses (`too-soft` — it would smear), bone-dry refuses (`too-dry`
-  — it would crack), a fired or ruined piece refuses.
+  pared off, the work recorded in words (`a turned foot`, the piece's
+  `workedFeatures`, which survive firing), pottery credited. Plastic refuses
+  (`too-soft` — it would smear), bone-dry refuses (`too-dry` — it would
+  crack), a ruined piece refuses (naming the reclaim). ⭐ Once it is fired,
+  `carve` and `impress` are the HOST's own again: green ware defers to the
+  class below it (a clay mould carves a riser and takes a pattern like any
+  mould) and never shadows it for life (B99).
 - **`impress stamp on jug`** — `takeImpression`: the base takes the DEVICE
   the stamp's face bears (`MarkedMixin.markDevice`, an identity path —
   `takeDeviceFrom`, an embossed mark felt as well as seen). The potter's
