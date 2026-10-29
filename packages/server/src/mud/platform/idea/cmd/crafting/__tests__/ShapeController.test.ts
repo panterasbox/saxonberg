@@ -13,6 +13,7 @@ import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { ShapeableMixin } from '../../../../../lib/craft/Shapeable';
 import type { ShapeRequest } from '../../../../../lib/craft/Shapeable';
 import { FormingMixin } from '../../../../../lib/craft/Forming';
+import type { FormableClass, FormingHand } from '../../../../../lib/craft/Forming';
 import type { CommandContext } from '../../../../../api/command';
 import { TestActor, standUpBranchHarness, makeContext } from './branch-fixtures';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -26,6 +27,26 @@ class Pipe extends FormingMixin(Good) {
 }
 /** An instrument with nothing to say — the default plan, `null`. */
 class Idle extends FormingMixin(Good) {}
+/** A plastic mass, for an instrument that declares no form classes. */
+class Putty extends Good {
+  // Never reached: the class check refuses before the hand is read.
+  public async formingHand(): Promise<FormingHand> {
+    throw new Error('the hand was read');
+  }
+  public refuseBeyond(): never {
+    throw new Error('the hand was read');
+  }
+}
+/** ⭐ B102: works a mass, and declares no classes — the kernel lends none. */
+class Undeclared extends FormingMixin(Good) {
+  protected override formingMassClass(): FormableClass {
+    return Putty;
+  }
+  public override async shapePlanFor(req: ShapeRequest) {
+    const t = await this.resolveForming(req);
+    return t === null || !('mass' in t) ? t : null;
+  }
+}
 class Lump extends ShapeableMixin(Good) {
   public asked = false;
   public override async shapePlanFor() {
@@ -76,5 +97,15 @@ describe('shape asks; it never decides', () => {
 
   it('nothing to shape and nothing to shape it on is refused in words', async () => {
     expect(declined(await shape({ form: 'mug' }))).toBe('nothing-to-shape');
+  });
+
+  it('⭐ an instrument that declares no form classes makes no shape (B102)', async () => {
+    const putty = makeStuff(() => new Putty());
+    const ctx = await shape({
+      material: { stuff: putty, raw: 'putty' },
+      instrument: { stuff: [makeStuff(() => new Undeclared())] },
+      form: 'open vessel holding 2 pints',
+    });
+    expect(declined(ctx)).toBe('wrong-instrument');
   });
 });

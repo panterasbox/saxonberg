@@ -118,14 +118,22 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
       return null;
     }
 
-    /** @hook The form classes this instrument makes. */
+    /**
+     * @hook The form classes this instrument makes. None by default: what a
+     * wheel throws is the wheel's to say, not the kernel's (B102) — an
+     * instrument that declares none refuses every shape.
+     */
     protected formClasses(): readonly FormClass[] {
-      return ['open', 'closed', 'flat', 'cone'];
+      return [];
     }
 
-    /** @hook The discipline a word that names none is worked in. */
+    /**
+     * @hook The discipline a word that names none is worked in. None by
+     * default (B102): an instrument that makes a shape and names no
+     * discipline is an authoring error, thrown before anything is worked.
+     */
     protected formingDiscipline(): string {
-      return 'pottery';
+      return '';
     }
 
     /** @hook The class of mass this instrument works (clay) — or `null`. */
@@ -207,6 +215,11 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
         };
       }
       const discipline = parsed.word?.discipline || this.formingDiscipline();
+      if (discipline === '') {
+        throw new TypeError(
+          `FormingMixin: ${self.getTemplatePath() ?? 'an instrument'} names no forming discipline for '${req.formText}'`,
+        );
+      }
       const hand = await mass.formingHand(req.actor, discipline);
       // A block or a flat piece is the mould's size, not the hand's.
       const raised = parsed.formClass !== 'block' && parsed.formClass !== 'flat';

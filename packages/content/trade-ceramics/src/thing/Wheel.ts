@@ -1,6 +1,6 @@
 /**
  * Wheel — the potter's wheel (ceramics S4, D16): it throws ROUND forms —
- * open, closed and flat — one pot to a `shape`, and the potter's hand
+ * open, closed, flat and the cone — one pot to a `shape`, and the potter's hand
  * decides the pot. A `Tool` (capability `wheel`) so `shape`'s instrument
  * arg binds it, fixed where it stands.
  */
@@ -15,6 +15,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { FormingMixin, type FormableClass } from '@saxonberg/server/mud/lib/craft/Forming';
+import type { FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 
 /** Throwing one pot, game-minutes. */
@@ -26,6 +27,11 @@ const WheelBase = FormingMixin(ToolMixin(DurableMixin(Good)));
 export default class Wheel extends WheelBase {
   protected override formingMassClass(): FormableClass {
     return Clay;
+  }
+
+  /** Round forms — and the cone (a sugar mould, a funnel) is thrown too. */
+  protected override formClasses(): readonly FormClass[] {
+    return ['open', 'closed', 'flat', 'cone'];
   }
 
   protected override formingDiscipline(): string {
