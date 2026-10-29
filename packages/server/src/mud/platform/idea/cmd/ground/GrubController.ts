@@ -20,6 +20,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { GroundReading } from './GroundWorkController';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface GrubModel extends CommandModel {
@@ -82,7 +83,7 @@ export default class GrubController extends GroundWorkController {
       .topic(GROUND_TOPIC)
       .toSelf(
         done
-          ? Mml.compose`The last of it comes out. ${ground.improvementPhrase(bill)}.${spoilLine}`
+          ? Mml.compose`The last of it comes out. ${GrammarApi.cap(ground.improvementPhrase(bill))}.${spoilLine}`
           : Mml.compose`Another swathe of it comes out; ${ground.improvementCause(bill) ?? 'there is more to do'}.${spoilLine}`,
       )
       .send();

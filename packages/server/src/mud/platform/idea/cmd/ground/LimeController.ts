@@ -25,6 +25,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
+import { GrammarApi } from '../../../../api/grammar';
 
 /**
  * The material tag a liming agent carries. ⭐ An open vocabulary, like every
@@ -93,7 +94,7 @@ export default class LimeController extends GroundWorkController {
       .topic(GROUND_TOPIC)
       .toSelf(
         after >= 1
-          ? Mml.compose`That is the last of what this ground wanted. ${ground.improvementPhrase(bill)}.`
+          ? Mml.compose`That is the last of what this ground wanted. ${GrammarApi.cap(ground.improvementPhrase(bill))}.`
           : Mml.compose`It goes on white and weathers in. There is more owing before the sourness is out of it.`,
       )
       .send();

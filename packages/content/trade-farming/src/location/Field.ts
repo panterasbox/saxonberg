@@ -550,6 +550,20 @@ export default class Field extends FieldBase {
   }
 
   /**
+   * ⭐ **A field in use is a field kept** (cover build B35): stock and a
+   * standing crop keep the scrub down, so clearing does not revert while a
+   * herd grazes it or a crop stands on it. Without this a kept clover ley
+   * grazed all winter "had scrub on it yet" by spring and took two
+   * clearing ploughs before a seedbed (found walking it in the browser).
+   */
+  public override improvementReversion(job: ImprovementJob): number {
+    if (job === 'clearing' && (Object.keys(this.grazers).length > 0 || this.getCrop())) {
+      return 0;
+    }
+    return super.improvementReversion(job);
+  }
+
+  /**
    * ⭐ **Grubbing ends a crop** (cover build D5): clearing work banked on
    * a field with a crop standing in it takes the crop out first — tired
    * cane is grubbed before it is replanted.
@@ -616,8 +630,10 @@ export default class Field extends FieldBase {
 
   /** Put a herd on this field, or replace its line. Opens a fresh window. */
   public setGrazer(herdId: string, entry: Omit<GrazerEntry, 'fedKg' | 'demandKg' | 'since'>): void {
-    // Settle the window the herd is joining, so it is not billed for it.
+    // Settle the window the herd is joining, so it is not billed for it —
+    // and the upkeep window, which was kept or not by who was on it.
     this.reconcileSward();
+    this.reconcileImprovement();
     const now = fieldNowSeconds() ?? 0;
     this.grazers = {
       ...this.grazers,
@@ -635,6 +651,7 @@ export default class Field extends FieldBase {
   /** Take a herd off this field. Returns its closed line, or `null`. */
   public clearGrazer(herdId: string): GrazerEntry | null {
     this.reconcileSward();
+    this.reconcileImprovement();
     const entry = this.grazers[herdId];
     if (!entry) return null;
     const rest = { ...this.grazers };

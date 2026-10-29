@@ -46,6 +46,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface PloughModel extends CommandModel {
@@ -197,10 +198,10 @@ export default class PloughController extends FieldWorkController {
       .topic(FIELD_TOPIC)
       .toSelf(
         after >= 1
-          ? Mml.compose`The last of it goes over. ${field.improvementPhrase(bill)}.`
+          ? Mml.compose`The last of it goes over. ${GrammarApi.cap(field.improvementPhrase(bill))}.`
           : beast
-            ? Mml.compose`Four bouts and the end of it is in sight. ${field.improvementCause(bill) ?? 'There is more to do'}.`
-            : Mml.compose`You get a few yards and stop, and your back tells you what an ox is for. ${field.improvementCause(bill) ?? 'There is more to do'}.`,
+            ? Mml.compose`Four bouts and the end of it is in sight. ${GrammarApi.cap(field.improvementCause(bill) ?? 'there is more to do')}.`
+            : Mml.compose`You get a few yards and stop, and your back tells you what an ox is for. ${GrammarApi.cap(field.improvementCause(bill) ?? 'there is more to do')}.`,
       )
       .send();
     await this.credit(giver, bill.clearing + bill.stonePicking);

@@ -24,6 +24,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { GroundReading } from './GroundWorkController';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface DitchModel extends CommandModel {
@@ -75,7 +76,7 @@ export default class DitchController extends GroundWorkController {
       .topic(GROUND_TOPIC)
       .toSelf(
         after >= 1
-          ? Mml.compose`The line runs clean to the bottom and the water follows it. ${ground.improvementPhrase(bill)}.`
+          ? Mml.compose`The line runs clean to the bottom and the water follows it. ${GrammarApi.cap(ground.improvementPhrase(bill))}.`
           : Mml.compose`Another length of it is open. It will take more before the wet corner dries.`,
       )
       .send();

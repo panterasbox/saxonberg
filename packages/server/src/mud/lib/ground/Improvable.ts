@@ -218,6 +218,14 @@ export interface Improvable {
   isPlantable(cost: ImprovementCost): boolean;
   /** Reconcile reversion over elapsed game-time. Sync, read-triggered. */
   reconcileImprovement(): void;
+  /**
+   * @hook How fast `job` reverts on this ground right now, as a factor on
+   * its rate in `[0, 1]` (`1` — the default — is ground nobody keeps).
+   * ⭐ Use is upkeep: a field stocked or cropped does not scrub over,
+   * because the stock and the crop are what keep the scrub down (cover
+   * build). Read once per reversion window, at the read.
+   */
+  improvementReversion(job: ImprovementJob): number;
 
   // ───────────────────────── the host hooks ─────────────────────────
 
@@ -397,6 +405,11 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       return [];
     }
 
+    /** See {@link Improvable.improvementReversion}. */
+    public improvementReversion(_job: ImprovementJob): number {
+      return 1;
+    }
+
     /**
      * Integrate reversion over elapsed game-time (D58).
      *
@@ -429,7 +442,8 @@ export function ImprovableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
           // requirement is the ground's — so hard ground reverts in the
           // same *proportion* as easy ground, which is what makes the
           // band comparable across two different fields.
-          next[job] = Math.max(0, done * (1 - REVERT_PER_GAME_DAY[job] * days));
+          const kept = clamp01(this.improvementReversion(job));
+          next[job] = Math.max(0, done * (1 - REVERT_PER_GAME_DAY[job] * kept * days));
         }
         this.improvementWork = next;
         this.improvementStamp = nowS;

@@ -170,6 +170,27 @@ describe('the field feeds its grazers', () => {
     expect(f.swardGrazingDemandPerGameDay()).toBe(0);
   });
 
+  it('⭐ a field in use is a field kept: grazed, its clearing does not revert; left, it does', () => {
+    const kept = field(400);
+    const left = field(400);
+    for (const f of [kept, left]) {
+      f.improvementWork = { clearing: 100 };
+      f.reconcileImprovement(); // stamp the upkeep clock
+    }
+    kept.setGrazer('herd-a', { label: 'six head of cattle', demandKgPerDay: 1, feederKinds: ['trough'] });
+    at(80);
+    kept.reconcileImprovement();
+    left.reconcileImprovement();
+    // ⭐ The herd keeps the scrub down; a field nobody uses goes back.
+    expect(kept.improvementWork.clearing).toBe(100);
+    expect(left.improvementWork.clearing).toBeLessThan(100);
+    // And taking the herd off settles the grazed window first, so the
+    // winter it spent there is counted as kept.
+    at(81);
+    kept.clearGrazer('herd-a');
+    expect(kept.improvementWork.clearing).toBe(100);
+  });
+
   it('look names the herd grazing it', () => {
     const f = field(400);
     settle(f);
