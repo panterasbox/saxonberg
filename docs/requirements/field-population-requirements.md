@@ -114,7 +114,7 @@ Therefore what is genuinely new here is:
 
 - **The Delight bench:** its prose names the bare top end. It gets three
   patches: *the top end*, *the middle*, *the lane end*.
-- **The campus home field:** *by the gate*, *the middle* and *the far
+- **The campus home field:** *the gate end*, *the middle* and *the far
   side* by the paddock. The cover drive sows and cuts it.
 - **The Waponi cane pieces, the hay meadow and the other fields** author
   no patches. Each reads as one patch, exactly as today.
