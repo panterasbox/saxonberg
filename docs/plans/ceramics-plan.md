@@ -2035,6 +2035,26 @@ left a fork the lens that chose is named.
     the tub to zero. Now it is refused at plan and at completion
     (`bath-too-low`), and the tub keeps what it had.
 
+- **⏭ NEXT — Forming (owner APPROVED, 2026-10-29; to be done right after a
+  context compaction).** Take pottery's defaults out of the kernel's
+  `FormingMixin` (`lib/craft/Forming.ts`): `formClasses()` defaults to `[]`
+  and `formingDiscipline()` to `''`. An instrument that declares neither
+  refuses `shape` honestly (`wrong-instrument`). The `Wheel`
+  (`trade-ceramics/src/thing/Wheel.ts`) declares its own classes (`open`,
+  `closed`, `flat`, `cone`), as `BrickTable` and `Blowpipe` already do. All
+  three already override the discipline. Kept as-is, by decision:
+  `Formable` stays a plain interface, since no verb binds it (each
+  instrument names its mass class and finds it by `instanceof`), and
+  `formTemplates` stays a fallback (R2's "legitimately different" list).
+  Record it as B102.
+- **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
+  (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
+  (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding
+  (B101) · Forming (B102, pending). Still to review from the MR's new
+  mixins: the eight protocol mixins are parked by the verb-interfaces
+  slate's decision (earned or verb-checks). Ask the owner which mixin or
+  system is next.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
