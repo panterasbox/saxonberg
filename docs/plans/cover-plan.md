@@ -1364,6 +1364,22 @@ carries the cane-sett deletion that is W2's.
 - **B34 — sow refuses a stranger on title before what stands on the
   ground** (the order its own comment already gave).
 
+- **B35 — a field in use is a field kept.** Clearing reverts on unkept
+  ground (about twelve game days below "done"); a new Improvable hook,
+  `improvementReversion(job)`, lets Field hold clearing while a herd
+  grazes it or a crop stands on it, and the upkeep window settles when a
+  herd comes on or goes off.
+- **B36 — a ripe field crop holds until it is cut.** Stress no longer
+  kills a ripe stand (the bench read "dead where it stands" by day 214).
+  What a crop loses standing uncut is a later slate's.
+- **B37 — an authored field starts cleared** (kept ground); a plotted
+  one stays rough (D54). Same `areaM2 > 0` test as the reserves.
+- **Prose (browser walk):** five ground-work sentences, sow, draft,
+  milk and handle opened with a lowercase clause; the sward's
+  "ready for them / ahead of them" assumed a herd on meadows and cane
+  pieces; the close promised "clover thick as a carpet" beside a live
+  line saying it was grazed to the dirt.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
@@ -1415,4 +1431,27 @@ Drives 1–5 are in the build record above (B8, B17–B25). Since then:
   money eat a ration off the counter and pick up its stock unpaid
   (shopkeeping); the harness's `here:hay` query read 0 with twenty cuts
   lying in plain sight (wire harness).
+- **Live browser walk (after drive 12, headless Chromium driving the
+  real client on its own ports: server 2014, client 5194).** Every
+  drive step was walked as a player, using clock jumps and founder eval
+  where time or state needed staging. It found what the wire drive
+  could not: B35 (a grazed ley "had scrub on it yet" and took two
+  clearing ploughs), B36 (a ripe crop died standing), B37 (a grubbed cane
+  piece needed plough after plough), and the prose above. The rest read
+  right:
+  - the title refusals for the herd and the field;
+  - sowing a third of the field from two sacks;
+  - the season's stages in words;
+  - mowing leaving cuts of hay that persist;
+  - the cut being the university's, not the labourer's;
+  - the herd fat on the home field with the trough drawn;
+  - Waponi rained on and farmable;
+  - the dairy cow milked (0.3 L, against the dairywoman's own beat).
+  Findings for other owners:
+  - `get hay` binds EVERY matching cut (25 "doesn't budge" lines; `get
+    pail` took three pails). `get 1 hay` works. That is the platform's
+    `get` cardinality.
+  - Drafted cows are milked by the dairywoman the moment a clock jump
+    ends, so a player waiting by jump finds "nothing in her yet". That is
+    correct, and worth knowing for any drive.
 
