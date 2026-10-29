@@ -162,6 +162,11 @@ async function read(s: Session, text: string): Promise<string> {
 
 /** Jump the clock, ten game-days at most a step, and prove it moved. */
 async function advance(seconds: number): Promise<void> {
+  // ⚠ A day or more away is spent INDOORS. The hand is logged in, and a
+  // body left standing in an open field in a student shirt through a
+  // winter month goes hypothermic and drops (drive 8, step 18). Every
+  // step walks back to where it needs to be after a jump.
+  if (seconds >= DAY && p) await goTo(STORE);
   let left = seconds;
   while (left > 0) {
     const step = Math.min(left, 10 * DAY);
@@ -363,7 +368,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       await read(p, 'look wheat');
       // ⭐ Step 16's hay: the rest of the field is mown when it is ready,
       // and the bales lie where they fell until the winter.
-      if (!mown && /about ready for them|well ahead of them/i.test(looked)) {
+      if (!mown && /a good even cover|about ready for them|well ahead of them/i.test(looked)) {
         await goTo(YARD);
         await act(p, 'get scythe');
         await goTo(HOME_FIELD);
@@ -385,6 +390,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     const looked = await read(p, 'look');
     expect(looked).toMatch(/ripe and ready to cut/i);
     await refused(p, 'sow seed', 'not-held');
+    // Put the seed down: what is in hand next is the cut, and the cut is
+    // the farm's — the sack of seed is the stranger's own.
+    await act(p, 'drop seed');
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {
       await work(p, 'harvest wheat');
     }
@@ -529,13 +537,20 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
   it('15. winter, unfed: the grass gives out; drafted heads thin; none dies', async () => {
     const autumn = await collegeHead(1);
     const shyAutumn = await collegeHead(2);
-    // Into the winter: a month and a half on the stubble, nothing in the trough.
-    await advance(45 * DAY);
-    await daylight();
+    // Into the winter on the stubble, nothing in the trough — a fortnight
+    // at a time until the fattest head shows it (a fat beast carries a
+    // long way into a hungry winter; the bands are coarse).
+    let winter = autumn;
+    let shyWinter = shyAutumn;
+    for (let i = 0; i < 8 && winter >= autumn; i++) {
+      await advance(15 * DAY);
+      await daylight();
+      winter = await collegeHead(1);
+      shyWinter = await collegeHead(2);
+      // None dies: a head that can be drafted is a head still standing.
+    }
     await goTo(HOME_FIELD);
     expect(await read(p, 'look')).toMatch(/eaten right down|grazed to the dirt/i);
-    const winter = await collegeHead(1);
-    const shyWinter = await collegeHead(2);
     note(`winter: head 1 ${autumn} → ${winter}; head 2 ${shyAutumn} → ${shyWinter}`);
     expect(winter, 'unfed through the winter, it thins').toBeLessThan(autumn);
   }, 3_600_000);
