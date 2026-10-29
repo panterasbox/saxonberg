@@ -1300,6 +1300,24 @@ carries the cane-sett deletion that is W2's.
   kept ley); a plotted one at the residual.
 - **B25 — the Okafor piece keeps a spade and a plough at the headland**
   (the drive's founder holds the ground but cannot clone a farming tool).
+- **B26 — a field drinks by its season** (`Soil.soilDrawFactor` hook;
+  Field's mean seasonal draw, 0.1 + 0.9 × warmth over the window). The
+  bed's draw had been scaled by the warmth it held at boot, so a field
+  drank as hard in winter as in summer, forever. A midsummer staging probe
+  found every field dry: bench wheat refused "the soil is dry", the
+  pastures grazed to dirt, the Waponi cane dead. Field's `ambientAt` /
+  `daylightAt` now default to *now*, not the boot day.
+- **B27 — Waponi rains.** Its locality was pinned `clear` and never
+  rained; it is a wet tropical island now, a climate lean (`rain 8 ·
+  storm 3 · clear 0.5`), measured at ≈6.5 mm a day over a year against
+  cane's ~5 mm draw. Lens 1 chose it: cane country is wet, and a
+  derivable world can't grow cane on an island that never rains.
+- ⚠ **Finding for the weather owner (not fixed here): the realm is near
+  rainless.** An unleaned locality rains ~2% of segments, ≈0.1–0.4 mm a
+  day, against ~1–5 mm of field evapotranspiration. Every unirrigated
+  field in the realm dries out over a season. The owner chose to keep
+  this build's fix field-side and local (Waponi) and leave the realm
+  calibration to the weather slate.
 
 ## Drive record
 
