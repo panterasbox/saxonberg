@@ -1249,7 +1249,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * so warmth can be read at any moment of a window. A failure leaves
      * both null — the single-sample fallback.
      */
-    private async resolveClimateOffset(place: Stuff, ambientK: number): Promise<void> {
+    private async resolveClimateOffset(place: Stuff, _ambientK: number): Promise<void> {
       try {
         const nowS = this.growthNowSeconds();
         if (nowS === null) return;
@@ -1266,7 +1266,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         const climate = dailyMeanClimate(site, nowS);
         if (!Number.isFinite(climate)) return;
         this._climateSite = site;
-        this._ambientOffsetK = ambientK - climate;
+        // ⚠⚠ ZERO under open sky (cover build B32). The place IS its
+        // climate there (the site's own offset is already in the mean);
+        // `ambientK - climate` was this moment's weather and hour, and
+        // carried across a window it chilled a whole unwatched summer by
+        // whatever the night was doing when the place was first read.
+        this._ambientOffsetK = 0;
       } catch {
         this._climateSite = null;
         this._ambientOffsetK = null;

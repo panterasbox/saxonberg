@@ -952,7 +952,11 @@ export default class Field extends FieldBase {
           const climate = dailyMeanClimate(site, now);
           if (Number.isFinite(climate)) {
             this._swardSite = site;
-            this._swardOffsetK = this._ambientK - climate;
+            // ⚠⚠ ZERO under open sky (cover build B32): the field IS its
+            // climate. The difference from the mean at this moment is
+            // the moment's weather and hour; carried across a window it
+            // grew a whole unwatched summer 7.7 K cold (a staged year).
+            this._swardOffsetK = 0;
           }
         }
         this._swardSky = await CelestialApi.profileFor(self as unknown as Stuff);

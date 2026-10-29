@@ -1336,6 +1336,20 @@ carries the cane-sett deletion that is W2's.
   it again; step 7 rests at dusk; step 9 buys seed before testing the
   title refusal.
 
+- **B31 — a long soil window is walked, not lumped.** `reconcileSoil`
+  poured a window's whole rain in first (capped at capacity, and the
+  weather walk caps one call at 30 days), then took the whole drink out.
+  A pasture first read 260 days in came back at moisture 0. It is walked
+  a day at a time now (at most 180 steps). Two RainToSoil tests pin it.
+- **B32 — under open sky the place IS its climate** (offset 0, in both
+  `Growing` and `Field`). B22 cached `ambient − dailyMean` at the moment
+  of the first read, which is that moment's weather and hour (−7.7 K on
+  the staged pasture), and applied it to every step, so an unwatched
+  summer grew cold. Staged single-window reads at days 200/230/260/290
+  now match monthly reads: the sward is at 0.41 on day 200, the rick is
+  full to day 260 and drawn to 1.9 t by day 290, and the herd is fed
+  throughout.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
@@ -1351,3 +1365,9 @@ Drives 1–5 are in the build record above (B8, B17–B25). Since then:
   uncaptured, B29 Waponi zoning, step 12) and drive defects (B30): a
   dusk loop, seed not held, a seat vacated by absence, and step 18 asking
   for an unwatched year. Steps 8, 15 and 16 failed downstream of 7 and 17.
+- **Drive 7 — 11 of 17.** Steps 12 and 17 now pass. It found the sow
+  refusal order (title must come before "another crop stands", step 9),
+  step 7's tired first cut, and the real defect behind step 18 and the
+  wasted herds: an unwatched field integrated over a long window came
+  back dry and cold (B31, B32). Both were reproduced and verified
+  in isolation by jumping a fresh world and reading the pasture once.
