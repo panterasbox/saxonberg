@@ -1350,6 +1350,20 @@ carries the cane-sett deletion that is W2's.
   full to day 260 and drawn to 1.9 t by day 290, and the herd is fed
   throughout.
 
+- **B33 — a dried-off cow says she has dried off**, not "come back
+  later". Milk is an `expire` tap: nobody milked her through her window,
+  so she stopped for the lactation (taps.md).
+- ⚠ **Requirement deviation (step 18's "milk comes").** The Delight is
+  unattended from the start of the world, and with no standing
+  instruction to milk (cut from taps, owned by the standing-instructions
+  slate) every cow has dried off long before an unwatched winter month.
+  The drive holds the line on what this build owns: the rick was drawn
+  on (3,200 → 2,446 kg over the month), the cow is in flesh, and she
+  says she has dried off. Milk after an unwatched month needs a standing
+  instruction, which goes to the standing-instructions slate.
+- **B34 — sow refuses a stranger on title before what stands on the
+  ground** (the order its own comment already gave).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
@@ -1371,3 +1385,14 @@ Drives 1–5 are in the build record above (B8, B17–B25). Since then:
   wasted herds: an unwatched field integrated over a long window came
   back dry and cold (B31, B32). Both were reproduced and verified
   in isolation by jumping a fresh world and reading the pasture once.
+- **Drive 8 — 11 of 17.** Step 18's rick was drawn (B31/B32 hold). The
+  rest were the drive: a hand left logged in in an open field through
+  month-long jumps went unconscious; bought seed counted as "the take";
+  warm summers ripened the wheat before the grass was ready to mow; a
+  fat head needs longer than 45 days to thin.
+- **Drive 9 — 13 of 17.** The hand died of an autumn night in the home
+  field during step 7 (a sub-day jump left it standing in the open), and
+  the drive's `here:hay` query read 0 with twenty cuts lying in the field
+  (a staged probe proved the bales persist, so B28 holds). A dried-off
+  cow said "come back later" (B33).
+
