@@ -238,7 +238,15 @@ export default class Livestock extends LivestockBase {
   }
 
   public override tapEmptyPhrase(key: string): string {
-    if (key === 'milk') return 'There is nothing in her yet. Come back later.';
+    if (key === 'milk') {
+      // ⚠ Dried off is not "not yet": nobody milked her through her
+      // window and she stopped for this lactation (taps: an absence costs
+      // a season). Telling the player to come back later sends them back
+      // to an udder that will not fill until she calves again.
+      return this.isDriedOff('milk')
+        ? 'She has dried off — nobody milked her, and she has stopped. She will not come back into milk until she calves again.'
+        : 'There is nothing in her yet. Come back later.';
+    }
     if (key === 'wool') return 'There is nothing on it worth the shears yet.';
     if (key === 'eggs') return 'Nothing in the nest.';
     return super.tapEmptyPhrase(key);
