@@ -10,8 +10,8 @@
  * the hammer's binder takes it, and its function IS its shape — so a die
  * cast from an impression of a die strikes too (M9).
  *
- * The struck piece carries the die's PROVENANCE: whose die it was, recorded
- * as a cast records the thing it was taken from (`castFrom`), never judged.
+ * The struck piece carries the die's PROVENANCE: whose die it was — the
+ * device it bears (`MarkedMixin`), recorded and never judged.
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
@@ -29,7 +29,6 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
@@ -101,16 +100,12 @@ export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableM
       return Mml.compose`The hammer rings off ${Mml.thing(blank)} and the device barely shows on it. It is too hard to strike cold — heat it, or strike harder.`;
     }
     const token = await StuffApi.clone<Stuff>(this.strikes, undefined, { madeFrom: [blank] });
-    const whose = this.getMarkDevice();
     if (MixinApi.isTangible(token)) {
       token.setMaterial(mat);
       token.setMass(Quantity.of(blank.getMass().rawValue(), 'kg'));
-      token.setCastFrom({
-        kindPath: this.strikes,
-        takenFromIdentity: whose,
-        takenAtS: WorldClockApi.getNow().rawValue(),
-      });
     }
+    // ⚠ No cast record: a struck token is not cast, and whose device it
+    // bears is the mark's (`takeDeviceFrom`, B84) — the one record (B95).
     // ⭐ The die's device is pressed into the token: it BEARS the mark
     // (`MarkedMixin`), and its look says whose — never written into its prose.
     if (MixinApi.isMarked(token)) token.takeDeviceFrom(this);

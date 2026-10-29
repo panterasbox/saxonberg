@@ -674,8 +674,11 @@ function isItemCandidate(c: Stuff): boolean {
     // ⭐ A crafted thing is a finished good, not stock — EXCEPT converted
     // wood (a billet, a board, a stave): it is stamped because somebody
     // rove or sawed it, and it exists to be worked. The seasoning axis is
-    // what marks it (composed by `Timber` alone, assembly D12).
-    (!MixinApi.isCrafted(c) || isEdibleMatter(c) || MixinApi.isSeasoning(c)) &&
+    // what marks it (composed by `Timber` alone, assembly D12). ⭐ And
+    // except what melts back: an ingot, a casting, a lump of raw rubber is
+    // made (B95: a casting has a maker and a grade) and exists to be
+    // worked — the melt is what makes it stock.
+    (!MixinApi.isCrafted(c) || isEdibleMatter(c) || MixinApi.isSeasoning(c) || MixinApi.isMeltable(c)) &&
     !MixinApi.isContainer(c) &&
     !MixinApi.isBulkable(c) &&
     !MixinApi.isOrganism(c)
@@ -4231,7 +4234,7 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
     {
       recipe: crafted ? item.getRecipe() : '',
       template: item.getTemplatePath() ?? '',
-      castDiscipline: MixinApi.isTangible(item) ? (item.getCastFrom()?.discipline ?? '') : '',
+      castDiscipline: MixinApi.isCrafted(item) ? (item.getCastFrom()?.discipline ?? '') : '',
     },
     m.catalogue,
   );
@@ -4264,7 +4267,7 @@ async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void
   const own = {
     recipe: crafted ? item.getRecipe() : '',
     template: item.getTemplatePath() ?? '',
-    castDiscipline: MixinApi.isTangible(item) ? (item.getCastFrom()?.discipline ?? '') : '',
+    castDiscipline: MixinApi.isCrafted(item) ? (item.getCastFrom()?.discipline ?? '') : '',
   };
   const discipline = disciplineOf(own, m.catalogue);
   const { band, terms } = await termsFor(m.hand, discipline);
@@ -4815,7 +4818,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   // this line's very kind is the same shape as the one it replaces, so it
   // drops into the old joint — no instrument, no band, no joint re-made.
   // Derived from the cast's provenance; no authored flag.
-  const castKind = MixinApi.isTangible(part) ? (part.getCastFrom()?.kindPath ?? '') : '';
+  const castKind = MixinApi.isCrafted(part) ? (part.getCastFrom()?.kindPath ?? '') : '';
   const interchangeable = castKind !== '' && castKind === line.template;
   for (const j of interchangeable ? [] : jointsOf(whole, line.part)) {
     const row = await cat.warmed(j.method);
@@ -4968,7 +4971,7 @@ async function mintMember(
     }
     if (line.name && MixinApi.isNamed(out)) out.setName(line.name);
     if (MixinApi.isCrafted(out) && line.recipe) out.setRecipe(line.recipe);
-    if (line.castDiscipline && MixinApi.isTangible(out)) {
+    if (line.castDiscipline && MixinApi.isCrafted(out)) {
       out.setCastFrom({ kindPath: '', takenFromIdentity: '', takenAtS: 0, discipline: line.castDiscipline });
     }
   }
@@ -5002,7 +5005,7 @@ function carriedState(part: Stuff): Partial<PartLine> {
     const recipe = part.getRecipe();
     if (recipe) out.recipe = recipe;
   }
-  const cast = MixinApi.isTangible(part) ? (part.getCastFrom()?.discipline ?? '') : '';
+  const cast = MixinApi.isCrafted(part) ? (part.getCastFrom()?.discipline ?? '') : '';
   if (cast) out.castDiscipline = cast;
   return out;
 }

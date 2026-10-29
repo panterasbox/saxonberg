@@ -60,30 +60,6 @@ import { TemplatePaths } from '../paths';
 import type { ImpressionData } from '../mould/Impression';
 import type { MarkupAugmenter } from '../../api/mml';
 
-/**
- * ⭐ Where a CAST's shape came from (ceramics M9): the kind of thing an
- * impression was taken of, whose it was, and when — provenance, recorded
- * and never judged. A cast is a fresh thing of that kind; this is all it
- * keeps of the original. `null` on anything not cast from an impression.
- */
-export interface CastProvenance {
-  /**
-   * The template path of the kind the impression was taken from — `''`
-   * when it set in the mould's OWN shape (an ingot, a bell from its pit).
-   */
-  kindPath: string;
-  /** Whose thing it was — an identity path, or `''`. */
-  takenFromIdentity: string;
-  /** Game-second the impression was taken. */
-  takenAtS: number;
-  /**
-   * ⭐ The trade of the MOULD it set in (repair D1's third read) — who
-   * mends it. A value, not a ref: a consumed mould is gone after the cast.
-   * The ONE cast record (review R2-D6; `Crafted.castDiscipline` retired).
-   */
-  discipline?: string;
-}
-
 /** One numeric dial read, falling back to the literal when unseeded. */
 function tangibleDial(key: string, fallback: number): number {
   try {
@@ -196,14 +172,6 @@ export interface Tangible {
    */
   getWetIgnitionPenaltyK(): number;
   /**
-   * ⭐ What this was cast from — the impression's kind and whose thing it
-   * was (ceramics M9) — or `null` when it was not cast from one. A cast
-   * part whose kind is a line's part kind fits without a new joint (D27).
-   */
-  getCastFrom(): CastProvenance | null;
-  /** Record a cast's provenance (the mould's cast path writes it). */
-  setCastFrom(value: CastProvenance | null): void;
-  /**
    * @hook ⭐ The shape this leaves pressed into something soft (ceramics
    * M9, D21): its kind, its volume, how it reads, whose it is — and what
    * the shape carries because the shape IS the function (a key's wards).
@@ -250,13 +218,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       _materialPath: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       _detailMaterialPaths: { persistent: true, authorable: true, authorPicker: 'Material', ref: 'identity:constituent' },
       mass: { persistent: true, marshaller: QuantityMarshaller.pathFor('kg'), authorable: true },
-      // ⭐ What a cast was cast FROM (ceramics M9) — the impression's kind
-      // and provenance. Runtime state: only a pour writes it.
-      castFrom: { persistent: true, runtimeState: true },
     };
-
-    /** See {@link Tangible.getCastFrom}. */
-    public castFrom: CastProvenance | null = null;
 
     /**
      * Live-query subscribable fields.
@@ -602,24 +564,6 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         carried,
         undercut: parts.length > 1,
       };
-    }
-
-    public getCastFrom(): CastProvenance | null {
-      return this.castFrom;
-    }
-
-    public setCastFrom(value: CastProvenance | null): void {
-      const kindPath = typeof value?.kindPath === 'string' ? value.kindPath : '';
-      const discipline = typeof value?.discipline === 'string' ? value.discipline : '';
-      this.castFrom =
-        value && (kindPath !== '' || discipline !== '')
-          ? {
-              kindPath,
-              takenFromIdentity: value.takenFromIdentity ?? '',
-              takenAtS: Number.isFinite(value.takenAtS) ? value.takenAtS : 0,
-              ...(discipline !== '' ? { discipline } : {}),
-            }
-          : null;
     }
 
     public getIgnitionPointK(): number {

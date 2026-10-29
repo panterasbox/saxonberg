@@ -86,6 +86,15 @@ export interface Crafted extends Graded {
   setMaker(value: string): void;
   /** The recipe id this was made from. */
   getRecipe(): string;
+  /**
+   * ⭐ What this was cast from — the impression's kind, whose thing it was,
+   * and the trade of the mould it set in (ceramics M9, repair D1) — or
+   * `null` when it was not cast. A cast part whose kind is a line's part
+   * kind fits without a new joint (D27).
+   */
+  getCastFrom(): CastProvenance | null;
+  /** Record a cast's provenance (the mould's cast path writes it). */
+  setCastFrom(value: CastProvenance | null): void;
   setRecipe(value: string): void;
   /** Game-clock seconds at which it was crafted. */
   getCraftedAt(): number;
@@ -98,6 +107,32 @@ export interface Crafted extends Graded {
    * uniform prose at a fixed control level.
    */
   renderVerdict(): string;
+}
+
+/**
+ * ⭐ Where a CAST's shape came from (ceramics M9): the kind of thing an
+ * impression was taken of, whose it was, and when — provenance, recorded
+ * and never judged. A cast is a fresh thing of that kind; this is all it
+ * keeps of the original. `null` on anything not cast. It lives on `Crafted` — how a thing was
+ * MADE, beside its maker and recipe (B95; it was on `Tangible`, where every
+ * wall and person carried it).
+ */
+export interface CastProvenance {
+  /**
+   * The template path of the kind the impression was taken from — `''`
+   * when it set in the mould's OWN shape (an ingot, a bell from its pit).
+   */
+  kindPath: string;
+  /** Whose thing it was — an identity path, or `''`. */
+  takenFromIdentity: string;
+  /** Game-second the impression was taken. */
+  takenAtS: number;
+  /**
+   * ⭐ The trade of the MOULD it set in (repair D1's third read) — who
+   * mends it. A value, not a ref: a consumed mould is gone after the cast.
+   * The ONE cast record (review R2-D6; `Crafted.castDiscipline` retired).
+   */
+  discipline?: string;
 }
 
 export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -117,6 +152,9 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       maker: { persistent: true, runtimeState: true, stackIdentity: true },
       recipe: { persistent: true, runtimeState: true },
       craftedAt: { persistent: true, runtimeState: true },
+      // ⭐ What a cast was cast FROM (ceramics M9) and in which trade's
+      // mould. Runtime state: only a pour (or a strike) writes it.
+      castFrom: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -160,6 +198,27 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
     setRecipe(value: string): void {
       this.recipe = value;
+    }
+
+    /** See {@link Crafted.getCastFrom}. */
+    public castFrom: CastProvenance | null = null;
+
+    public getCastFrom(): CastProvenance | null {
+      return this.castFrom;
+    }
+
+    public setCastFrom(value: CastProvenance | null): void {
+      const kindPath = typeof value?.kindPath === 'string' ? value.kindPath : '';
+      const discipline = typeof value?.discipline === 'string' ? value.discipline : '';
+      this.castFrom =
+        value && (kindPath !== '' || discipline !== '')
+          ? {
+              kindPath,
+              takenFromIdentity: value.takenFromIdentity ?? '',
+              takenAtS: Number.isFinite(value.takenAtS) ? value.takenAtS : 0,
+              ...(discipline !== '' ? { discipline } : {}),
+            }
+          : null;
     }
 
     getCraftedAt(): number {

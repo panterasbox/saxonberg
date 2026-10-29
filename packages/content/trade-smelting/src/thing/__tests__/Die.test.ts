@@ -77,7 +77,8 @@ describe('a striking die (ceramics S16)', () => {
     const token = room.getContents().find((c) => c.getTemplatePath() === TOKEN) as unknown as Ingot;
     expect(token).toBeDefined();
     expect(token.getMaterial()?.getTemplatePath()).toBe(PEWTER);
-    expect(token.getCastFrom()?.takenFromIdentity).toBe('/platform/agent/Avatar/the-founder');
+    // Whose die it was is the device the token bears (B95: no cast record).
+    expect(token.getMarkDevice()).toBe('/platform/agent/Avatar/the-founder');
   });
 
   it('a hard cold blank barely takes it — heat it, or strike harder', async () => {

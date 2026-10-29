@@ -491,7 +491,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         if (this.castTemplate !== '' && path === this.castTemplate) return true;
         if (kind !== '' && path === kind) return true;
         const s = c as Stuff;
-        if (MixinApi.isTangible(s) && s.getCastFrom() !== null) return true;
+        if (MixinApi.isCrafted(s) && s.getCastFrom() !== null) return true;
         const m = MixinApi.isTangible(s) ? (s.getMaterial() ?? null) : null;
         if (m !== null && m.getCastTemplate() === path) return true;
       }
@@ -1098,7 +1098,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           runnerKg = metal ? Math.max(0, pool.massKg - castKg) : 0;
         }
         if (MixinApi.isAssembled(cast)) cast.setBill(null); // one piece
-        if (MixinApi.isTangible(cast)) {
+        if (MixinApi.isCrafted(cast)) {
           cast.setCastFrom({
             kindPath: imp.getKindPath(),
             takenFromIdentity: imp.getTakenFromIdentity(),
@@ -1243,7 +1243,7 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
   // — so a cast part is mended under the trade that cast it. On the one
   // cast record, beside the impression it was taken from (review R2-D6).
   const castBy = MixinApi.isMould(mould) ? mould.getMouldDiscipline() : '';
-  if (castBy !== '' && MixinApi.isTangible(cast)) {
+  if (castBy !== '' && MixinApi.isCrafted(cast)) {
     const from = cast.getCastFrom();
     cast.setCastFrom({
       kindPath: from?.kindPath ?? '',

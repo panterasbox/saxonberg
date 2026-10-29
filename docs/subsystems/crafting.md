@@ -1255,6 +1255,15 @@ the named antipattern):
   Sharpen never touches condition; repair never touches keenness —
   independently observable via `analyze`.
 
+⭐ **A casting is MADE (B95).** `Casting`, `Ingot` and `MetalCasting`
+compose `CraftedMixin`: a cast carries its maker (the pool's, else the
+mould's), a grade (the mould's, capped by its making faults) and its cast
+record (`castFrom`: the impression it was taken from and the trade of the
+mould it set in). Crafting still takes them as STOCK, because what melts
+back exists to be worked (`isItemCandidate`: crafted but `Meltable`, like
+converted wood's `Seasoning`). A cured or fired product is capped by its
+stock's grade: weakest link.
+
 **Broken is capability loss, not a state machine**:
 `DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`, where
 ⭐ condition is the wear gauge × the body's integrity (its cracks and dunts —
@@ -1289,7 +1298,7 @@ The condition comes up to the ceiling, never down; the grade loss
 COMPOUNDS (a second untrained mend loses another band). The trade is
 `disciplineOf(line)` — the recipe that made the member, else the recipe
 that makes its row (`RecipeCatalogue.recipeFor`, `tangible` recipes
-only), else the trade of the mould it was cast in (`Tangible.getCastFrom().discipline` —
+only), else the trade of the mould it was cast in (`Crafted.getCastFrom().discipline` —
 the one cast record, review R2-D6);
 a part with no knowable trade is mended as if competent (`lint:bills`
 arm 8 names every such part). The instrument is the PART's material's:

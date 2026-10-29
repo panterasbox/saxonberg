@@ -1873,11 +1873,34 @@ left a fork the lens that chose is named.
     Graded, Stackable(Logic), throw, drop, ring, Thermal's shock crack,
     Faced, WaterActivity, Seasoning, Greenware, Mould, repair, the
     crucible.
-  - **⚠ OPEN, the owner's call — `castFrom` stays on Tangible for now.**
-    Moving it to `Crafted` (how a thing was made) would silently drop it
-    from `Casting`, `Ingot` and `MetalCasting`, which do not compose
-    `Crafted`. So a metal casting records no maker and has no grade, and
-    W-R2f's misrun ceiling cannot reach it.
+  - `castFrom` was decided in B95.
+
+- **B95 — a casting is MADE (owner chose option 1, 2026-10-29).**
+  - `Casting`, `Ingot` and `MetalCasting` compose `CraftedMixin`
+    (outermost below Marked: deep in the chain, TypeScript inference
+    collapsed and lost the grade surface). A cast now has a maker, a grade
+    and the cast record. `castFrom` and `CastProvenance` moved from
+    Tangible to `Crafted`. The rubber castings come with it, since they
+    are `Casting` rows.
+  - **Crafting's stock rule:** "a crafted thing is a finished good, not
+    stock" gained the third exception, *what melts back* (`isMeltable`),
+    beside food and converted wood. This kept every smithing path:
+    ingots are stock again.
+  - **Weakest link, now live for castings:** a cure's product is capped
+    by its stock's grade. Live stock comes from `fine` moulds and pans
+    (every rubber mould and the coagulating pan author `fine`), so fine
+    goods stay reachable. Pinned by a test: fair stock cured well comes
+    out fair.
+  - **The die's strike no longer writes a cast record** onto the token. A
+    struck token is not cast, and whose device it bears is already the
+    mark's (B84), so that record was a duplicate.
+  - **Two tests pinned "not Crafted" to mean "carries no provenance"**
+    (salvaged iron; a smith's off-spec lump). They now pin the meaning:
+    no maker, no recipe, no cast record, made grade fair.
+  - **Not covered, and losing nothing:** ice blocks, soap bars, dairy
+    wheels, ash and the bare-`Thing` rubber hose and sheet are cast but
+    not Crafted. None is durable (never mended), none is a part, and the
+    mould matches them by template path.
 
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 

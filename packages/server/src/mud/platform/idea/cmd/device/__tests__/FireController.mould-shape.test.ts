@@ -30,6 +30,7 @@ import Garment from '../../../../thing/equipment/Garment';
 import Mould from '../../../../thing/Mould';
 import Material from '../../../../../lib/material/Material';
 import { Grade } from '../../../../../lib/craft/Grade';
+import { MixinApi } from '../../../../../api/mixin';
 import { Quantity } from '../../../../../lib/quantity';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -94,6 +95,10 @@ function stockOf(agent: number, kg = 0.2): Casting {
     { materialPath: FEED, fraction: 1 - agent },
     { materialPath: AGENT, fraction: agent },
   ]);
+  // ⭐ A casting is made (B95), so the stock has a grade, and the weaker of
+  // it and the cure is what the cast comes out at (weakest link). Live
+  // stock comes out of a `fine` pan or mould; this is that stock.
+  if (MixinApi.isGraded(t)) t.setGrade(Grade.of('fine'));
   return t;
 }
 
@@ -246,6 +251,18 @@ describe('⭐⭐ the cure is the stock, the heat and the time', () => {
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
     expect(materialPathOf(cast)).toBe(CURED);
     expect((cast as unknown as { getGrade(): Grade }).getGrade().getBand()).toBe('fine');
+  });
+
+  it('⭐ the stock caps the cure: a fair stock cured well comes out fair (B95, weakest link)', async () => {
+    const m = mould('masterful');
+    ContainmentApi.move(m as never, kiln as never);
+    const piece = charge(m, 0.03);
+    if (MixinApi.isGraded(piece)) piece.setGrade(Grade.of('fair'));
+    await fire('30 minutes');
+    await draw();
+    const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
+    expect(materialPathOf(cast)).toBe(CURED);
+    expect((cast as unknown as { getGrade(): Grade }).getGrade().getBand()).toBe('fair');
   });
 
   it('a short low-sulfur hold never reaches the rung — it stays compounded stock', async () => {

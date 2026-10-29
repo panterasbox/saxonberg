@@ -101,7 +101,7 @@
  *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
  *     been mended (by Berta)* and `analyze condition` reads the rest by
  *     the appraiser's band; the panel shows what a look already does.
- *   - `TangibleMixin.castFrom` (it absorbed `CraftedMixin.castDiscipline`,
+ *   - `CraftedMixin.castFrom` (it absorbed `CraftedMixin.castDiscipline`,
  *     review R2-D6) — what a thing was cast from and the trade of the mould
  *     it set in. It is which trade MENDS it, and the mend's own refusal
  *     names that trade; nothing to hide.

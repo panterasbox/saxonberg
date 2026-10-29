@@ -15,8 +15,10 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { AlloyedMixin } from '../../lib/material/Alloyed';
 import { MarkedMixin } from '../../lib/description/Marked';
+// ⭐ A casting is MADE (B95): a maker, a grade, and what it was cast from.
+import { CraftedMixin } from '../../lib/craft/Crafted';
 
 // A casting may bear a founder's stamped device, as an ingot may (`MarkedMixin`).
-const MetalCastingBase = MarkedMixin(AlloyedMixin(MeltableMixin(ThermalMixin(Good))));
+const MetalCastingBase = MarkedMixin(CraftedMixin(AlloyedMixin(MeltableMixin(ThermalMixin(Good)))));
 
 export default class MetalCasting extends MetalCastingBase {}

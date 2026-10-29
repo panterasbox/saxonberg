@@ -51,7 +51,9 @@ class TestRoom extends ContainerMixin(Good) {
   static _mixinName = 'TestEnvelopeRoom';
 }
 /** A shaped thing with a length — the sword's row, standing in. */
-class TestSword extends Good {
+// A sword is a made thing (a `Weapon` is Crafted), so a cast of one keeps
+// what it was cast from (B95).
+class TestSword extends CraftedMixin(Good) {
   static _mixinName = 'TestEnvelopeSword';
   getLength(): number {
     return 0.9;
@@ -246,7 +248,7 @@ describe('the mould as an envelope (ceramics W7)', () => {
     pour(flask, PEWTER, 1.2, 600);
     const cast = await set(flask, PEWTER, 1.2);
     expect(cloned[0]).toBe(SWORD);
-    const c = cast as unknown as Good;
+    const c = cast as unknown as TestSword;
     expect(c.getMaterial()?.getTemplatePath()).toBe(PEWTER);
     // The cavity's volume in pewter, shrunk by pewter's own shrink.
     const s = mat(PEWTER).castShrinkage();
