@@ -36,6 +36,7 @@ import HerdRegistry, {
 } from '../../HerdRegistry';
 import { HeadSeed } from '../../../lib/HeadSeed';
 import type Livestock from '../../../agent/Livestock';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
 export const RANCHING_TOPIC = 'act.deed';
 
@@ -105,7 +106,7 @@ export default class DraftController extends CommandController<DraftModel> {
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
-        Mml.compose`You cut number ${index} out of ${herd.name} and look it over. ${animal.stockmanRead()}.`,
+        Mml.compose`You cut number ${index} out of ${herd.name} and look it over. ${GrammarApi.cap(animal.stockmanRead())}.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(giver)} cuts one out of the bunch and stands looking at it.`,

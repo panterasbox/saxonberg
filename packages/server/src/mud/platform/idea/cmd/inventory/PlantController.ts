@@ -550,7 +550,7 @@ async function landSowing(
     .topic(TOPIC)
     .toSelf(
       phrase
-        ? Mml.compose`The seed goes into the ground. ${Mml.thing(crop)} is sown ${phrase}.`
+        ? Mml.compose`The seed goes into the ground, and ${Mml.thing(crop)} is sown ${phrase}.`
         : Mml.compose`The seed goes into the ground.`,
     )
     .toPeers(Mml.compose`${Mml.actor(giver)} finishes a cast of seed.`)
