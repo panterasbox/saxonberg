@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**392 slates.** 145 greenfield · 107 continuations · 67 waves · 73 tails.
+**393 slates.** 146 greenfield · 107 continuations · 67 waves · 73 tails.
 
-## ⭐ Greenfield — nothing shipped yet (145)
+## ⭐ Greenfield — nothing shipped yet (146)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -189,6 +189,7 @@ respect.
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbor's TEXT is wizard-bar-slate's) · subject notification on record access … |
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
+| [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
 ## ⭐ Continuations — substrate shipped, a build's worth remains (107)
 
