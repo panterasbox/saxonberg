@@ -393,7 +393,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       await read(p, 'look wheat');
       // ⭐ Step 16's hay: the rest of the field is mown when it is ready,
       // and the bales lie where they fell until the winter.
-      if (!mown && /a good even cover|about ready for them|well ahead of them/i.test(looked)) {
+      if (!mown && /a good even cover|ready to graze|grown long/i.test(looked)) {
         await goTo(YARD);
         await act(p, 'get scythe');
         await goTo(HOME_FIELD);

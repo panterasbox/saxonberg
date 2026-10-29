@@ -30,7 +30,7 @@ data:
   register: definite
   _address: terminus/hearts-delight/close
   longDescription: |
-    Most of an acre of the best ground on this side of the valley, walled on two sides and hedged on the third, with three old cherry trees standing well apart in it and clover thick as a carpet underneath them. Somebody has kept the grass off it for years.
+    Most of an acre of the best ground on this side of the valley, walled on two sides and hedged on the third, with three old cherry trees standing well apart in it and the ground under them sown to clover. Somebody has kept the scrub off it for years.
 
     In flower the whole close hums, and it is loud enough that you notice it before you have got the gate shut.
   coords: { x: -20, y: 3, z: 6 }

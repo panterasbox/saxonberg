@@ -130,8 +130,10 @@ const SWARD_PHRASE: Readonly<Record<SwardBand, string>> = {
   bare: 'grazed to the dirt, with the crowns showing',
   'grazed-out': 'eaten right down; it will be slow to come again',
   short: 'short and even, still coming',
-  ready: 'a good even cover, about ready for them',
-  'ahead-of-them': 'well ahead of them — going stemmy, and seed heads showing',
+  // ⚠ No "them": a meadow and a cane piece are fields with no herd on
+  // them, and the line is read there too (browser walk).
+  ready: 'a good even cover, ready to graze or cut',
+  'ahead-of-them': 'grown long — going stemmy, and seed heads showing',
 };
 
 /** The public surface a paddock speaks. */
