@@ -91,6 +91,9 @@ export default class TemperPit extends TemperPitBase {
         line: Mml.compose`${Mml.thing(hard)} will not tread into clay. Take it out — what is fired must be broken and ground to grog first.`,
       };
     }
+    // Clay is trodden, never stirred (B101).
+    const wrong = this.workRefusal(req.verb);
+    if (wrong !== null) return wrong;
     if (!(this.waterLitres() > 0)) {
       return {
         ok: false,

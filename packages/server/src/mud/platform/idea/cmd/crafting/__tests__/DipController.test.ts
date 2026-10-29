@@ -10,7 +10,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DipController from '../DipController';
-import CompoundingVessel from '../../../../thing/CompoundingVessel';
+import GlazeTub from '../../../../thing/GlazeTub';
 import Material from '../../../../../lib/material/Material';
 import { Quantity } from '../../../../../lib/quantity';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -47,10 +47,9 @@ function material(path: string, laysCoat: boolean): Material {
   return m;
 }
 
-/** A vessel; `holding` fills its interior with litres of a material. */
-/** A tub — the bath that plans a coat dip (`CompoundingMixin`). */
-function vessel(holding?: { path: string; litres: number }): CompoundingVessel {
-  const v = makeStuff(() => new CompoundingVessel());
+/** A glaze tub — the bath that plans a coat dip (`GlazeTub`, B101). */
+function vessel(holding?: { path: string; litres: number }): GlazeTub {
+  const v = makeStuff(() => new GlazeTub());
   v.interiorBulk = true;
   v.setInteriorCapacity(Quantity.of(20, 'L'));
   v.setMass(Quantity.of(1.5, 'kg'));
@@ -105,6 +104,15 @@ describe('dip — the bath plans it', () => {
     expect(crock.getCoats('outside')).toHaveLength(0);
     // The bath gave up what the skin holds.
     expect(bucket.getBulkAmount('interior').rawValue()).toBeLessThan(8);
+  });
+
+  it('⭐ a bath with less left than a skin coats nothing — and keeps what it had (B101)', async () => {
+    const crock = vessel();
+    const bucket = vessel({ path: GLAZE, litres: 0.001 });
+    const ctx = await dip(crock, [bucket], 'inside');
+    expect(refused(ctx)).toBe('bath-too-low');
+    expect(crock.getCoats('inside')).toHaveLength(0);
+    expect(bucket.getBulkAmount('interior').rawValue()).toBeCloseTo(0.001, 9);
   });
 
   it('a bare `dip crock` coats every face it has', async () => {

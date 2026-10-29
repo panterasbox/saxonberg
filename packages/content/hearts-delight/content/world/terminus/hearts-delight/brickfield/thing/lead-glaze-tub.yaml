@@ -2,7 +2,7 @@
 # clay and water, stirred, is a lead glaze — glossy, runs smooth at
 # earthenware heat, and (M7) gives lead to anything sour kept against it,
 # which nothing about it says.
-class: /platform/thing/CompoundingVessel
+class: /platform/thing/GlazeTub
 data:
   shortDescription: lead-glaze tub
   # ⚠ Never bare `lead`: the pig of lead answers to it.

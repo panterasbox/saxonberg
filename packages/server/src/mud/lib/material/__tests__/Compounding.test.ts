@@ -151,6 +151,28 @@ describe('the product is the inputs, by mass', () => {
   });
 });
 
+describe('⭐ the work is the matter\'s, never the word (B101)', () => {
+  it('raw rubber and sulfur are a stiff mass: kneaded — stirring is refused, naming the knead', async () => {
+    (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['elastomer']);
+    const v = tub(STOCK_ROW, COMPOUND);
+    await ContainmentApi.move(lumpOf(RAW, 0.97), v);
+    await ContainmentApi.move(lumpOf(SULFUR, 0.03), v);
+    expect(v.workVerb()).toBe('knead');
+    const stirred = await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'stir tub', verb: 'stir' });
+    expect(stirred.ok).toBe(false);
+    if (!stirred.ok) expect(stirred.reason).toBe('wrong-work');
+    expect((await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'knead tub', verb: 'knead' })).ok).toBe(true);
+  });
+
+  it('a loose powder is stirred — kneading it is refused', async () => {
+    const v = tub(STOCK_ROW, COMPOUND);
+    await ContainmentApi.move(lumpOf(SULFUR, 1), v);
+    expect(v.workVerb()).toBe('stir');
+    const kneaded = await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'knead tub', verb: 'knead' });
+    expect(kneaded.ok).toBe(false);
+  });
+});
+
 describe('the charge', () => {
   it('⭐ a stack weighs every unit in it — three 1 kg lumps of sulfur are 3 kg', async () => {
     const v = tub(STOCK_ROW, COMPOUND);

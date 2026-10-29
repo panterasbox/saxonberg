@@ -2,7 +2,7 @@
 # water stirred together until it pours like cream (`stir tub`). ⭐
 # Combining is one rule (R1): the tub names the product, the clay and water
 # you put in decide what is in it.
-class: /platform/thing/CompoundingVessel
+class: /platform/thing/GlazeTub
 data:
   shortDescription: slip tub
   keywords: [tub, "slip tub"]

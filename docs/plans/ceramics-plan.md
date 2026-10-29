@@ -2017,6 +2017,24 @@ left a fork the lens that chose is named.
   - ⚠ For the owed drives: a ceramics drive that fires a glaze briefly
     may now find it still wet. Glazes need their heat-work.
 
+- **B101 — Compounding (owner, 2026-10-29).**
+  - **The work is the matter's.** `kneadPlanFor` took the player's verb,
+    so `stir` on the clay-and-sand temper finished in 2 minutes at 150 W
+    instead of 15 at 380 W. `workVerb()` now reads the contents: a
+    deformable mass (`plastic`, `elastomer`) is kneaded; powders,
+    granules and liquids are stirred. `workRefusal(verb)` refuses the
+    wrong one, naming the right one, and the temper pit (which overrides
+    the plan) asks it too. The drives already type the right verbs.
+  - **`GlazeTub`.** Compounding embedded `DipBathMixin`, so the temper pit,
+    the batch pot, the rubber tub and the plaster tub all afforded `dip`
+    and only declined it. The coat dip moved to a new class,
+    `platform/thing/GlazeTub` (`DipBathMixin(CompoundingVessel)`), named by
+    the two glaze tubs and the slip tub. An affordance is a static on the
+    class, so a distinct working is a distinct kind.
+  - **A low bath coats nothing.** It used to lay the whole coat and empty
+    the tub to zero. Now it is refused at plan and at completion
+    (`bath-too-low`), and the tub keeps what it had.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

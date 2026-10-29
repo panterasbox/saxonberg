@@ -3,7 +3,7 @@
 # that comes out is an ash glaze by the vessel's name and its make-up by
 # what you weighed. `dip crock inside in ash tub` lays a coat; the kiln
 # fuses it. An ash glaze gives nothing to what a pot holds (M7).
-class: /platform/thing/CompoundingVessel
+class: /platform/thing/GlazeTub
 data:
   shortDescription: ash-glaze tub
   # ⚠ Never bare `ash`: `put ash in ash tub` must bind the ASH to the ash.

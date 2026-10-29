@@ -313,11 +313,20 @@ clamp mid-burn and the ware on the boards survive a restart (AC 22). The
 floors are the alluvial clay, unworked outdoors and beaten in the sheds
 — the ground soils you.
 
-**Glazes are mixing, not recipes (R1).** Each tub is a kernel
-`CompoundingVessel` whose `productMaterial` is its glaze (`glaze/ash`,
-`glaze/lead`): put ash (or lead) in with a little clay and water, `stir
-tub`, and the slurry is that glaze by the vessel's name and its make-up by
-what was weighed. The *vessel* names the glaze — there is no
+**Glazes are mixing, not recipes (R1).** Each tub is a kernel `GlazeTub`
+(a `CompoundingVessel` that is also a coat BATH — B101) whose
+`productMaterial` is its glaze (`glaze/ash`, `glaze/lead`, the slip): put
+ash (or lead) in with a little clay and water, `stir tub`, and the slurry is
+that glaze by the vessel's name and its make-up by what was weighed. Then
+`dip` a pot in it. A bath with less left than the pot's skin takes coats
+nothing (`bath-too-low`).
+
+⭐ **The work is the matter's (B101).** A compounding vessel says whether its
+contents are KNEADED (a deformable mass: plastic clay, raw rubber; a quarter
+game-hour, heavy) or STIRRED (powders, granules, liquids; two light minutes),
+from what is in it (`workVerb`), and the wrong verb is refused, naming the
+right one. Stirring the temper used to be a two-minute shortcut past the
+kneading. The *vessel* names the glaze — there is no
 dominant-flux naming. Salt glaze is the chamber-vapor path with any salt a
 player brings (the Delight potter is an earthenware potter).
 

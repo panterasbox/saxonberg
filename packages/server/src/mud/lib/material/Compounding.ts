@@ -47,12 +47,6 @@ import { Contamination } from './Contaminable';
 import type { ActPlan, ActRefusal } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
 import type { KneadRequest, KneadVessel } from '../craft/KneadVessel';
-import { DipBathMixin } from '../craft/DipBath';
-import type { DipBath, DipRequest } from '../craft/DipBath';
-import type { FaceName } from './Faced';
-import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../config/AppSettings';
-import { Quantity } from '../quantity';
 import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
 
@@ -73,7 +67,7 @@ export type CompoundOutcome =
       reason: 'empty' | 'already-compounded' | 'mint-failed';
     };
 
-export interface Compounding extends KneadVessel, DipBath {
+export interface Compounding extends KneadVessel {
   /** The material this vessel's product IS. */
   getProductMaterial(): string;
   /** The row a SOLID product is minted as; `''` = the product is this vessel's bulk. */
@@ -87,6 +81,15 @@ export interface Compounding extends KneadVessel, DipBath {
    */
   chargeContributions(): BuildContribution[];
   /**
+   * ⭐ What the WORK is, read off what is in the vessel (B101): a deformable
+   * solid mass — plastic clay, raw rubber — is `knead`ed (long and heavy);
+   * powders, granules and liquids are `stir`red (a few light minutes). The
+   * verb a player types must match it; the matter decides, never the word.
+   */
+  workVerb(): 'knead' | 'stir';
+  /** The refusal for working it with the wrong verb, or `null` when `verb` is the work. */
+  workRefusal(verb: string | undefined): ActRefusal | null;
+  /**
    * ⭐ Compound what is in the vessel into ONE product through the one
    * mint (`CraftingApi.mintFromBuild({ charge })`), and tell `by` what came
    * of it — the end of a `knead` or a `stir`.
@@ -95,17 +98,17 @@ export interface Compounding extends KneadVessel, DipBath {
 }
 
 export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  // ⭐ A tub is a dip BATH (`DipBathMixin`) and a knead VESSEL
-  // (`KneadVesselMixin`): it binds as `dip`'s bath and `knead`'s vessel, and
-  // affords both, by what it is.
-  class CompoundingMixin extends KneadVesselMixin(DipBathMixin(Base)) implements Compounding {
+  // ⭐ A compounding vessel is a knead VESSEL (`KneadVesselMixin`): it binds
+  // as `knead`'s vessel and affords it. ⚠ NOT a dip bath: only a tub of
+  // something that lays a coat is one — that is `GlazeTub`, its own kind
+  // (B101: the temper pit and the batch pot afforded `dip` and declined it).
+  class CompoundingMixin extends KneadVesselMixin(Base) implements Compounding {
     static _mixinName = 'CompoundingMixin';
 
     /**
-     * ⭐ The vessel affords `stir` — and `knead` and `dip` by what it is
-     * (`KneadVesselMixin`, `DipBathMixin`): a glaze is mixed in a tub and
-     * pots are dipped in the tub (the BATH affords the dip, as chandlery's
-     * dip pot does; a good being dippable is not a fact about the good).
+     * ⭐ The vessel affords `stir` — and `knead` by what it is
+     * (`KneadVesselMixin`). Which of the two the work IS is the contents'
+     * (`workVerb`); a coat bath (`GlazeTub`) adds `dip`.
      * Environment and peers: a tub you stand at, a bucket on the bench. A
      * static on the CLASS — a row's `commandContributions:` is dead
      * silently.
@@ -175,73 +178,6 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
     }
 
     /**
-     * ⭐ A tub of something that lays a coat (`Material.laysCoat` — a glaze, a
-     * slip) is a coat BATH: `dip crock in tub` lays a WET coat of it on the
-     * named faces, and the tub gives up what the skin holds — thickness ×
-     * the good's surface area, taken as a cube's (`6 · V^⅔`). Plain on
-     * purpose: a bucket of slip glazes a shelf of crocks, not one. `null` —
-     * not this tub's business — when nothing is named or what it holds lays
-     * no coat (the dip verb says so). The coat SETS by its own material's
-     * rule (`FacedMixin`), the fire for a glaze.
-     */
-    public async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
-      const self = this as unknown as Stuff;
-      const target = req.target;
-      if (target === null || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
-      const material = self.getBulkMaterial('interior');
-      if (material === null || !material.getLaysCoat() || !(self.getBulkAmount('interior').rawValue() > 0)) {
-        return null;
-      }
-      if (!MixinApi.isFaced(target)) {
-        return {
-          ok: false,
-          reason: 'not-faced',
-          line: Mml.compose`${Mml.thing(target)} has nothing a coat could lie on.`,
-        };
-      }
-      const onto: FaceName[] = (req.faces ?? target.faces()).filter((f) => target.faces().includes(f));
-      if (onto.length === 0) {
-        return { ok: false, reason: 'no-such-face', line: Mml.compose`${Mml.thing(target)} has no inside to coat.` };
-      }
-      const thicknessM = compoundDial(AppSettingKeys.facesDipThicknessM, 0.0003);
-      const litres = skinLitres(target, thicknessM) * onto.length;
-      const where = onto.length === 2 ? 'inside and out' : onto[0] === 'inside' ? 'inside' : 'outside';
-      const path = material.getTemplatePath() ?? '';
-      const sets = material.getKinetics()?.setsByHeat() ? 'It will set when it is fired.' : 'Let it set.';
-      const giver = req.actor;
-      return {
-        ok: true,
-        durationMs: DIP_MS,
-        effortW: 80,
-        beginSelf: Mml.compose`You lower ${Mml.thing(target)} into ${Mml.thing(self)} and draw it out slowly, letting it drain.`,
-        beginPeers: Mml.compose`${Mml.actor(giver)} dips ${Mml.thing(target)} into ${Mml.thing(self)}.`,
-        onComplete: () => {
-          if (target.isDestroyed() || self.isDestroyed() || !MixinApi.isBulkable(self)) return;
-          const have = self.getBulkAmount('interior').rawValue();
-          if (!(have > 0)) {
-            return {
-              ok: false,
-              reason: 'nothing-to-dip-in',
-              line: Mml.compose`The bath has run dry before the coat could take.`,
-            };
-          }
-          self.setBulkAmount('interior', Quantity.of(Math.max(0, have - litres), 'L'));
-          for (const face of onto) {
-            const soil = MixinApi.isSoilable(target) ? Math.max(target.soilAt(face), target.soilAt('')) : 0;
-            target.layCoat(face, path, thicknessM, soil);
-          }
-          if (!giver.isDestroyed()) {
-            MessageApi.scene(giver)
-              .topic('act.deed')
-              .toSelf(Mml.compose`${Mml.thing(target)} comes out ${where} under a wet skin of ${material.getName()}. ${sets}`)
-              .send();
-          }
-          return undefined;
-        },
-      };
-    }
-
-    /**
      * ⭐ The kernel's default knead: work what is in the vessel into one
      * product — asked by `knead` and by `stir` alike (`req.verb`), the word
      * following the state of the matter. The narration reads the outcome;
@@ -259,8 +195,12 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
           line: Mml.compose`${Mml.thing(self)} is empty. Put what you mean to mix into it first.`,
         };
       }
+      // ⭐ The matter decides the work (B101): stirring clay was a two-minute
+      // shortcut past a quarter-hour of kneading.
+      const wrong = this.workRefusal(req.verb);
+      if (wrong !== null) return wrong;
+      const verb = req.verb ?? this.workVerb();
       const giver = req.actor;
-      const verb = req.verb ?? 'knead';
       return {
         ok: true,
         durationMs: verb === 'knead' ? KNEAD_MS : STIR_MS,
@@ -276,6 +216,29 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         onComplete: () => {
           void this.compound(giver, verb);
         },
+      };
+    }
+
+    public workVerb(): 'knead' | 'stir' {
+      const self = this as unknown as Stuff & Container;
+      const kneaded = self.getContents().some((c) => {
+        const mat = MixinApi.isTangible(c) ? c.getMaterial() : null;
+        return mat !== null && (mat.hasTag('plastic') || mat.hasTag('elastomer'));
+      });
+      return kneaded ? 'knead' : 'stir';
+    }
+
+    public workRefusal(verb: string | undefined): ActRefusal | null {
+      const work = this.workVerb();
+      if (verb === undefined || verb === work) return null;
+      const self = this as unknown as Stuff;
+      return {
+        ok: false,
+        reason: 'wrong-work',
+        line:
+          work === 'knead'
+            ? Mml.compose`What is in ${Mml.thing(self)} is a stiff mass — it will not stir. Knead it.`
+            : Mml.compose`There is nothing in ${Mml.thing(self)} to knead — it is loose or liquid. Stir it.`,
       };
     }
 
@@ -344,28 +307,4 @@ function narrate(giver: Stuff, vessel: Stuff, out: CompoundOutcome, verb: string
           : Mml.compose`It will not come together — and that is a fault in the books, not in your hands.`,
     )
     .send();
-}
-
-/** Dipping a pot and drawing it out, letting it drain — a game-minute. */
-const DIP_MS = 60_000;
-
-function compoundDial(key: string, fallback: number): number {
-  try {
-    const raw = AppApi.setting(key);
-    if (raw == null || raw === '') return fallback;
-    const n = Number.parseFloat(raw);
-    return Number.isFinite(n) ? n : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-/** Litres a skin of `thicknessM` over one face of the good takes. */
-function skinLitres(target: Stuff, thicknessM: number): number {
-  if (!MixinApi.isTangible(target)) return 0;
-  const kg = target.getMass().rawValue();
-  const density = target.getMaterial()?.getDensity().rawValue() || 2000;
-  const volumeM3 = kg / density;
-  const areaM2 = 6 * Math.pow(Math.max(0, volumeM3), 2 / 3);
-  return areaM2 * thicknessM * 1000;
 }

@@ -27,8 +27,10 @@ carts, signs, tools, hulls and cheeses alike.
 
 ⚠ **The claim is about the GOOD; the verb is the BATH's.** Being dippable is not
 a fact about a good, so `Faced` affords nothing: `dip` is afforded by the vessel
-you dip into (`CompoundingMixin` — the glaze and slip tubs; chandlery's dip
-pot). It was on every good for a while, and every good in reach offered `dip`
+you dip into (`GlazeTub` — the glaze and slip tubs; chandlery's dip pot;
+glass's melt). ⚠ Not every compounding vessel: the temper pit, the batch pot,
+the rubber tub and the plaster tub mix and are not baths, so they do not
+afford `dip` (B101). It was on every good for a while, and every good in reach offered `dip`
 (ceramics review, 2026-10-28).
 
 ⭐ **Coats are a per-piece record**, so a coated stack does not merge with a
