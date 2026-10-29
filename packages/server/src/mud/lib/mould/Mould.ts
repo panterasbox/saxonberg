@@ -1146,22 +1146,16 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const nowS = mouldNowSeconds() ?? 0;
         const closed = this.isClosedCavity();
         if (closed && (shortPour || superheat < need)) {
-          // A misrun: it froze before the cavity filled.
-          cast.addFlaw('casting', true, nowS);
+          // A misrun: it froze before the cavity filled. The flaw is the
+          // fact; `look` words it (review R2-D7), nothing is baked.
+          cast.addFlaw('misrun', true, nowS);
           if (MixinApi.isGraded(cast)) cast.setGrade(Grade.of('poor'));
-          c.setShortDescription?.(`misrun ${c.getShortDescription?.() ?? ''}`.trim());
-          c.setLongDescription?.(
-            `${c.getLongDescription?.() ?? ''} It froze before the mould was full: the thin parts are ragged and short, and an edge runs out into nothing.`.trim(),
-          );
         } else if (closed && !this.riser) {
           // Shrinkage: the last part to freeze had nothing to feed it.
-          cast.addFlaw('casting', true, nowS);
+          cast.addFlaw('shrinkage', true, nowS);
           if (MixinApi.isGraded(cast)) {
             cast.setGrade(Grade.fromOrdinal(cast.getGrade().getOrdinal() - 1));
           }
-          c.setLongDescription?.(
-            `${c.getLongDescription?.() ?? ''} Where it froze last it is porous, pitted with little shrinkage holes — the metal drew in and nothing fed it.`.trim(),
-          );
         }
       }
       if (blown && MixinApi.isGraded(cast)) cast.setGrade(Grade.of('poor'));
@@ -1240,9 +1234,19 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
     const maker = p?.maker || mouldMaker;
     if (maker) cast.setMaker(maker);
     if (MixinApi.isGraded(mould)) cast.setGrade(mould.getGrade());
-    // ⭐ …and WHICH TRADE (repair D1): the mould row's fact, not the
-    // pourer's — so a cast part is mended under the trade that cast it.
-    cast.setCastDiscipline(MixinApi.isMould(mould) ? mould.getMouldDiscipline() : '');
+  }
+  // ⭐ …and WHICH TRADE (repair D1): the mould row's fact, not the pourer's
+  // — so a cast part is mended under the trade that cast it. On the one
+  // cast record, beside the impression it was taken from (review R2-D6).
+  const castBy = MixinApi.isMould(mould) ? mould.getMouldDiscipline() : '';
+  if (castBy !== '' && MixinApi.isTangible(cast)) {
+    const from = cast.getCastFrom();
+    cast.setCastFrom({
+      kindPath: from?.kindPath ?? '',
+      takenFromIdentity: from?.takenFromIdentity ?? '',
+      takenAtS: from?.takenAtS ?? 0,
+      discipline: castBy,
+    });
   }
   if (p?.freshness && MixinApi.isFresh(cast)) {
     cast.setMicrobialLoad(p.freshness.load);

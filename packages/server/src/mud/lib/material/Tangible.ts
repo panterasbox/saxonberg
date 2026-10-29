@@ -59,9 +59,16 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import type { ImpressionData } from '../mould/Impression';
 import type { MarkupAugmenter } from '../../api/mml';
+import type { AudibleEmitOptions } from '../perception/Audible';
 
 /** The kinds of flaw a piece of matter can carry (ceramics M5). */
-export type FlawKind = 'dunt' | 'crack' | 'casting' | 'check';
+/**
+ * A body's flaw kinds. ⭐ A casting's two faults are kinds of their own
+ * (review R2-D7) so the flaw IS the fact and its words derive from it: a
+ * `misrun` froze before the cavity filled; `shrinkage` is the porous place
+ * that froze last with nothing to feed it.
+ */
+export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'check';
 
 /** A flaw in a body — a dunt from a heat shock, a crack, a casting fault. */
 export interface Flaw {
@@ -106,12 +113,21 @@ export type PourReception = 'holds' | 'melts' | 'burns';
  * keeps of the original. `null` on anything not cast from an impression.
  */
 export interface CastProvenance {
-  /** The template path of the kind the impression was taken from. */
+  /**
+   * The template path of the kind the impression was taken from — `''`
+   * when it set in the mould's OWN shape (an ingot, a bell from its pit).
+   */
   kindPath: string;
   /** Whose thing it was — an identity path, or `''`. */
   takenFromIdentity: string;
   /** Game-second the impression was taken. */
   takenAtS: number;
+  /**
+   * ⭐ The trade of the MOULD it set in (repair D1's third read) — who
+   * mends it. A value, not a ref: a consumed mould is gone after the cast.
+   * The ONE cast record (review R2-D6; `Crafted.castDiscipline` retired).
+   */
+  discipline?: string;
 }
 
 /** One numeric dial read, falling back to the literal when unseeded. */
@@ -153,7 +169,8 @@ function presentNameOf(identity: string): string {
 const FLAW_PENALTY: Readonly<Record<FlawKind, number>> = {
   dunt: 0.3,
   crack: 0.5,
-  casting: 0.3,
+  misrun: 0.3,
+  shrinkage: 0.3,
   check: 0.15,
 };
 
@@ -253,10 +270,10 @@ export interface Tangible {
   impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break';
   /**
    * ⭐ Tap it and listen: a sound hard body rings, a soft one is dead, a
-   * flawed one buzzes — and how loud, by its mass. `ring` tells it.
-   * `carries`, when a thing sets it, is what everybody else hears in place
-   * of watching you tap it — a signal bell under the water, heard by every
-   * diver in the column and placed by none (underwater C5).
+   * flawed one buzzes — and how loud, by its mass. `ring` tells it. A
+   * Ringable signal's sound is emitted from itself through the audible
+   * system — a signal bell under the water, heard by every diver in the
+   * column and placed by none (underwater C5).
    */
   ringSound(): RingSound;
   /** Can this receive a pour at `k` K? (ceramics S13 — W7 reads it.) */
@@ -297,19 +314,26 @@ export interface Tangible {
 }
 
 /** How a thing sounds when it is rung (`TangibleMixin.ringSound`). */
-export interface RingSound {
-  sound: string;
-  db: number;
+/**
+ * ⭐ How a struck thing sounds — the audible system's own vocabulary
+ * (`AudibleEmitOptions`, review R2-D4): `description` is what is heard (the
+ * note, the buzz of a crack), `character` the word for it heard faintly,
+ * `db` how loud a metre off. A Ringable signal sounds it through
+ * `AudibleMixin.emit`; an ordinary tapped thing is heard as the act.
+ */
+export interface RingSound extends AudibleEmitOptions {
+  description: string;
+  /** Does it ring clear (sound, hard, unflawed)? */
   rings: boolean;
-  /** What the others hear, when it is not the sight of the tap. */
-  carries?: string;
 }
 
 /** What a look says of a flaw an eye can find — and of a mend. */
 const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
   crack: 'It is cracked.',
   dunt: 'A fine crack runs through it where a shock of heat caught it.',
-  casting: 'It has a fault in the casting.',
+  misrun: 'It froze before the mould was full: the thin parts are ragged and short, and an edge runs out into nothing.',
+  shrinkage:
+    'Where it froze last it is porous, pitted with little shrinkage holes — the metal drew in and nothing fed it.',
   check: 'Fine checks run across its surface where it dried too fast.',
 };
 
@@ -771,12 +795,15 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public setCastFrom(value: CastProvenance | null): void {
+      const kindPath = typeof value?.kindPath === 'string' ? value.kindPath : '';
+      const discipline = typeof value?.discipline === 'string' ? value.discipline : '';
       this.castFrom =
-        value && typeof value.kindPath === 'string' && value.kindPath !== ''
+        value && (kindPath !== '' || discipline !== '')
           ? {
-              kindPath: value.kindPath,
+              kindPath,
               takenFromIdentity: value.takenFromIdentity ?? '',
               takenAtS: Number.isFinite(value.takenAtS) ? value.takenAtS : 0,
+              ...(discipline !== '' ? { discipline } : {}),
             }
           : null;
     }
@@ -799,14 +826,22 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     public impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break' {
       const mat = this.getMaterial();
       if (mat === null || !mat.hasTag('brittle') || !(spec.energyJ > 0)) return 'none';
-      // ⭐ The floor's say: a soft one (earth, boards) takes the blow by its
-      // own hardness; one as hard as the body (flagstone) gives it all back.
-      const own = Math.max(1, mat.getHardness().rawValue());
-      const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
-      const delivered = spec.energyJ * Math.min(1, Math.max(0, floor) / own);
+      const delivered = this.deliveredJ(spec);
       const strength = this.impactStrengthJ();
       if (delivered < strength * 0.5) return 'none';
       return delivered < strength ? 'crack' : 'break';
+    }
+
+    /**
+     * ⭐ The joules a blow delivers into this body — the floor's say, the ONE
+     * copy (review R2-D2): a soft surface (earth, boards) takes the blow by
+     * its own hardness; one as hard as the body (flagstone) gives it all
+     * back; `null` is the body itself.
+     */
+    private deliveredJ(spec: ImpactSpec): number {
+      const own = Math.max(1, this.getMaterial()?.getHardness().rawValue() ?? 1);
+      const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
+      return spec.energyJ * Math.min(1, Math.max(0, floor) / own);
     }
 
     public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {
@@ -815,11 +850,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (verdict === 'none') return { broke: false, flawed: false, pieces: null };
       if (verdict === 'crack') {
         // A crack — on the rim it shows; deep in the wall only `ring` finds it.
-        const mat = this.getMaterial()!;
-        const own = Math.max(1, mat.getHardness().rawValue());
-        const floor = spec.surface !== null ? spec.surface.getHardness().rawValue() : own;
-        const delivered = spec.energyJ * Math.min(1, Math.max(0, floor) / own);
-        this.addFlaw('crack', delivered >= this.impactStrengthJ() * 0.8);
+        this.addFlaw('crack', this.deliveredJ(spec) >= this.impactStrengthJ() * 0.8);
         return { broke: false, flawed: true, pieces: null };
       }
       // It breaks: into its material's broken form, where it was. (What a
@@ -854,7 +885,7 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.flaws.length === 0 &&
         (mat!.hasTag('metal') ||
           mat!.getHardness().rawValue() >= tangibleDial(AppSettingKeys.impactRingsAboveHardness, 55));
-      const sound = !sounding
+      const description = !sounding
         ? 'a dull knock, and nothing after it'
         : this.flaws.length > 0
           ? 'a flat, buzzing clack — there is a crack in it somewhere'
@@ -864,7 +895,12 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ How far it carries: a sounding body's note by its mass (a bell's
       // over the square, a mug's across a table); a dull knock barely at all.
       const kg = Math.max(0.01, this._mass.rawValue());
-      return { sound, db: rings ? 50 + 10 * Math.log10(kg) : 35, rings };
+      return {
+        description,
+        character: rings ? 'ring' : 'knock',
+        db: rings ? 50 + 10 * Math.log10(kg) : 35,
+        rings,
+      };
     }
 
     public canReceiveAtK(k: number): PourReception {

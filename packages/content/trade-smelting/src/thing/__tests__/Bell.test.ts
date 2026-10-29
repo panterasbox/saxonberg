@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import Bell from '../Bell';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -60,10 +61,16 @@ describe('a bell (ceramics S19)', () => {
   it('names its note, and a great bell is loud enough to carry', () => {
     const hand = bell(BRONZE, 1);
     const great = bell(BRONZE, 150);
-    expect(hand.ringSound().sound).toMatch(/high|clear/);
-    expect(great.ringSound().sound).toMatch(/deep/);
+    expect(hand.ringSound().description).toMatch(/high|clear/);
+    expect(great.ringSound().description).toMatch(/deep/);
     expect(great.ringSound().db).toBeGreaterThan(hand.ringSound().db + 20);
     expect(great.ringSound().rings).toBe(true);
+  });
+
+  it('⭐ a bell is a SIGNAL — Ringable and Audible: struck, it sounds from itself (review R2-D4)', () => {
+    const b = bell(BRONZE, 120);
+    expect(MixinApi.isRingable(b)).toBe(true);
+    expect(MixinApi.isAudible(b)).toBe(true);
   });
 
   it('⚠ a crack dulls it to a clank', () => {
@@ -71,6 +78,6 @@ describe('a bell (ceramics S19)', () => {
     cracked.addFlaw('crack', false);
     const s = cracked.ringSound();
     expect(s.rings).toBe(false);
-    expect(s.sound).toMatch(/clank/);
+    expect(s.description).toMatch(/clank/);
   });
 });

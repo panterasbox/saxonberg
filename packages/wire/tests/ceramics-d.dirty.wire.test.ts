@@ -690,8 +690,8 @@ suite('⭐⭐ 29 — make the pour fail (Chvorinov, the damp blow, the riser)', 
     // `misrun` is its description, not a word it answers to (run 22).
     await new Promise((r) => setTimeout(r, 1_500));
     const misrun = await examine(caster, 'pewter');
-    expect(misrun, `a cool pour into a blade: ${misrun}`).toMatch(/misrun/i);
-    expect(misrun).toMatch(/froze before the mould was full/i);
+    // The flaw's own look line says it (review R2-D7: no baked "misrun").
+    expect(misrun, `a cool pour into a blade: ${misrun}`).toMatch(/froze before the mould was full/i);
     await clearFloor();
   }, 1_800_000);
 

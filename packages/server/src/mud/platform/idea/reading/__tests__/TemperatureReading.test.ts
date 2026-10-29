@@ -229,8 +229,15 @@ describe('TemperatureReading', () => {
     }).analyze.bind(reading);
     const cones = await instrumentWith('pyrometry');
     (cones as unknown as { discipline: string }).discipline = 'pottery';
-    // The reading's own band (awareness) is the floor; the cones' craft lifts it.
-    await analyze(makeContext(avatar, room), kiln, 'untrained', cones, '');
+    // The reading's own band (awareness) is the floor; the cones' craft lifts
+    // it — in the BASE (`Reading.bandOf`, review R2-D5), so the instrument
+    // ceiling still caps it like every other reading.
+    const bandOf = (reading as unknown as {
+      bandOf(a: unknown, t: unknown): Promise<string>;
+    }).bandOf.bind(reading);
+    const band = await bandOf(avatar, cones);
+    expect(band).toBe('proficient');
+    await analyze(makeContext(avatar, room), kiln, band, cones, '');
     const read = (avatar.received.at(-1) as { body: string }).body;
     expect(read).toMatch(/cone 08 down, cone 04 bending, cone 6 standing/);
   });

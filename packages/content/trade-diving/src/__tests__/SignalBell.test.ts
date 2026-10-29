@@ -41,13 +41,13 @@ describe('the signal bell', () => {
     const r = bellOf(['alloy', 'metal']).ringSound();
     expect(r.rings).toBe(true);
     expect(r.db).toBeGreaterThanOrEqual(90);
-    expect(r.carries).toMatch(/bell rings out[^.]*nowhere/i);
+    expect(r.description).toMatch(/bell rings out[^.]*nowhere/i);
   });
 
   it('a bell that will not ring is only knocked — no carrying note', () => {
     const r = bellOf(['wood']).ringSound();
     expect(r.rings).toBe(false);
-    expect(r.carries).toBeUndefined();
+    expect(r.description).not.toMatch(/bell rings out/i);
   });
 
   it('⭐ a ringable signal: struck by the platform `ring`, it remembers when (the ferryman reads it — river W16)', () => {
@@ -55,6 +55,7 @@ describe('the signal bell', () => {
     WorldClockApi._setNowProviderForTesting(() => 5_000);
     const b = bellOf(['alloy', 'metal']);
     expect(MixinApi.isRingable(b)).toBe(true);
+    expect(MixinApi.isAudible(b)).toBe(true); // sounded through the audible system (R2-D4)
     expect(b.getLastRungAtS()).toBe(Number.NEGATIVE_INFINITY);
     b.struck();
     expect(Number.isFinite(b.getLastRungAtS())).toBe(true);

@@ -213,9 +213,12 @@ is its own riser and is judged on neither):
   blade; anything else as a cube) and `chill = effusivity ÷
   mould.sandEffusivity`. An arming sword in sand wants ~35 K in hand; a
   bell, a few. A pour that ran short of the cavity is a misrun too. The
-  cast reads *misrun …*, grade poor, a visible casting flaw.
+  cast carries a visible `misrun` flaw (its look says *it froze before the
+  mould was full*) and grade poor.
 - **shrinkage** iff no `riser`: porous where it froze last — a visible
-  casting flaw (which buzzes when `ring`ed) and one grade down. `carve riser
+  `shrinkage` flaw (which buzzes when `ring`ed) and one grade down. ⭐ The
+  flaw is the fact (review R2-D7): its words are the flaw augmenter's,
+  never baked into the cast's description. `carve riser
   on <flask>` (any edge — `MouldMixin` is a `CarvableMixin`) cuts one
   into a rammed mould; the bell pit authors `riser: true`.
 
@@ -274,7 +277,8 @@ credited (`hard`) when the watch is kept. Every other pour is unchanged.
 
 The pool's payload is carried onto a cast that can hold it: `maker`
 (payload's, else the mould's), the mould's grade, the mould's `discipline`
-as `castDiscipline` (repair D1), freshness, pathogens, a set's moisture,
+on the one cast record (`castFrom.discipline`, beside any impression it was
+taken from — repair D1, review R2-D6), freshness, pathogens, a set's moisture,
 `alloying` (ceramics ruling C), `madeFrom`.
 
 **Which material the cast is** (`SetPool.stampMaterial`): a drain set

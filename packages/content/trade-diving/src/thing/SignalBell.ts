@@ -12,6 +12,7 @@
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
+import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import type { RingSound } from '@saxonberg/server/mud/lib/material/Tangible';
 
 /** A struck bell carries like a shout, and further in water. */
@@ -21,7 +22,7 @@ const BELL_DB = 95;
  * ⭐ Ringable (river W16): a ferryman across the water knows it rang — what
  * a bell on a landing post is FOR — without importing this mod.
  */
-export default class SignalBell extends RingableMixin(Good) {
+export default class SignalBell extends RingableMixin(AudibleMixin(Good)) {
   /**
    * @hook ⭐ Struck, it rings loud — and what everybody else hears is the
    * bell, never the hand: under the water the medium carries it to the
@@ -31,10 +32,10 @@ export default class SignalBell extends RingableMixin(Good) {
     const base = super.ringSound();
     if (!base.rings) return base;
     return {
-      sound: 'a clear note that goes out and out',
+      description: 'a bell rings out, clear and close, from nowhere you can place',
+      character: 'bell',
       db: BELL_DB,
       rings: true,
-      carries: 'A bell rings out, clear and close, from nowhere you can place.',
     };
   }
 }

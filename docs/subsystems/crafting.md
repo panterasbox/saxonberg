@@ -1286,7 +1286,8 @@ The condition comes up to the ceiling, never down; the grade loss
 COMPOUNDS (a second untrained mend loses another band). The trade is
 `disciplineOf(line)` — the recipe that made the member, else the recipe
 that makes its row (`RecipeCatalogue.recipeFor`, `tangible` recipes
-only), else the trade of the mould it was cast in (`Crafted.castDiscipline`);
+only), else the trade of the mould it was cast in (`Tangible.getCastFrom().discipline` —
+the one cast record, review R2-D6);
 a part with no knowable trade is mended as if competent (`lint:bills`
 arm 8 names every such part). The instrument is the PART's material's:
 metal at reachable heat ≥ `crafting.repair.metalHeatK` (the anvil, when

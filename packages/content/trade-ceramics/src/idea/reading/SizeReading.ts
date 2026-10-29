@@ -16,13 +16,12 @@
  * mark; what the seat adds is standing.
  */
 
-import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
+import StatuteReading from '@saxonberg/server/mud/lib/instrument/StatuteReading';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { GovernmentApi } from '@saxonberg/server/mud/api/government';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
 /** Meters per unit a standard may be declared in. */
@@ -31,12 +30,10 @@ const PER_UNIT: Readonly<Record<string, number>> = { in: 0.0254, cm: 0.01, mm: 0
 /** The realm's default statute brick, inches (9 × 4½ × 2¼). */
 const DEFAULT_IN = { length: 9, width: 4.5, depth: 2.25 };
 
-/** How far from the standard a brick may be before it is off it. */
-const OFF_STANDARD_FRACTION = 0.05;
-/** The seat key a polity names its gauger by (the capacity precedent). */
-const GAUGER_SEAT = 'gauger';
+/** The three keys a polity declares its statute brick by. */
+const BRICK_KEYS = ['brick-length', 'brick-width', 'brick-depth'] as const;
 
-export default class SizeReading extends Reading {
+export default class SizeReading extends StatuteReading {
   protected override async measure(
     context: CommandContext,
     subject: Stuff | null,
@@ -58,39 +55,33 @@ export default class SizeReading extends Reading {
     const volume = subject.getMass().rawValue() / density;
 
     const actor = this.actorOf(context);
-    const place = this.placeOf(actor);
-    const chain = place && MixinApi.isContainer(place) ? await GovernmentApi.subjectTo(place) : [];
-    let unit = 'in';
-    let std = { ...DEFAULT_IN };
-    let where = 'the realm';
-    for (const gov of chain) {
-      const l = gov.standards.find((s) => s.key === 'brick-length');
-      const w = gov.standards.find((s) => s.key === 'brick-width');
-      const d = gov.standards.find((s) => s.key === 'brick-depth');
-      if (l && w && d && l.unit === w.unit && w.unit === d.unit && PER_UNIT[l.unit]) {
-        unit = l.unit;
-        std = { length: l.value, width: w.value, depth: d.value };
-        where = gov.name;
-        break;
-      }
-    }
+    // The statute walk, the 5 % line and the gauger's standing are the
+    // shared StatuteReading's (review R2-D9).
+    const { chain, ofRecord } = await this.jurisdictionOf(actor);
+    const declared = this.declaredStandard(chain, BRICK_KEYS, Object.keys(PER_UNIT));
+    const unit = declared?.unit ?? 'in';
+    const std = declared
+      ? {
+          length: declared.values['brick-length']!,
+          width: declared.values['brick-width']!,
+          depth: declared.values['brick-depth']!,
+        }
+      : { ...DEFAULT_IN };
+    const where = declared?.where ?? 'the realm';
     const per = PER_UNIT[unit] ?? 0.0254;
     // The standard's proportion, scaled to this brick's volume; the length
     // read off it is blurred by the reader's hand (the seeded bracket).
     const stdVolume = std.length * std.width * std.depth * per * per * per;
     const trueLength = std.length * Math.cbrt(volume / stdVolume);
     const length = this.observe(trueLength, band, this.seedFor(actor, subject, param)).centre;
-    const off = length / std.length - 1;
+    const standing = this.standing(length, std.length);
     const words = (n: number): string => (Math.round(n * 4) / 4).toString();
     const line =
-      Math.abs(off) <= OFF_STANDARD_FRACTION
+      standing === 'true'
         ? Mml.compose`It measures about ${words(length)} ${unit} long — a true brick by ${where}'s statute (${words(std.length)} × ${words(std.width)} × ${words(std.depth)}).`
-        : off > 0
+        : standing === 'over'
           ? Mml.compose`⚠ It measures about ${words(length)} ${unit} long — OVER ${where}'s statute brick of ${words(std.length)} ${unit}: off standard.`
           : Mml.compose`⚠ It measures about ${words(length)} ${unit} long — SHORT of ${where}'s statute brick of ${words(std.length)} ${unit}: off standard.`;
-    // The innermost polity here that seats a gauger is whose measure counts.
-    const gov = chain.find((g) => g.seats.some((st) => st.key === GAUGER_SEAT)) ?? null;
-    const ofRecord = gov !== null && (await GovernmentApi.holdsSeat(actor, gov.key, GAUGER_SEAT));
     this.report(
       context,
       ofRecord

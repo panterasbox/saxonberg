@@ -79,15 +79,7 @@ export default class TemperatureReading extends BiomeReading {
         // part. The set is SPENT by the firing it reads (a bent cone does
         // not stand up again).
         const cones = handTool !== null && handTool.getCapabilities().includes('pyrometry');
-        // ⭐ Read at the reader's band in the TOOL's craft when it names one
-        // (`Tooled.getDiscipline`): cones are read by a potter's eye, not the
-        // general awareness a thermometer wants — the better of the two.
-        const reader = context.commandGiver as unknown as Stuff;
-        const craft = cones && handTool !== null ? handTool.getDiscipline() : '';
-        const craftBand =
-          craft !== '' && MixinApi.isAdvancing(reader) ? await reader.competenceBandFor(craft) : null;
-        const coneBand = craftBand !== null && CompetenceBand.atOrAbove(craftBand, band) ? craftBand : band;
-        const line = cones ? `${glowOf(held)} ${conesOf(held, coneBand)}` : glowOf(held);
+        const line = cones ? `${glowOf(held)} ${conesOf(held, band)}` : glowOf(held);
         this.report(context, Mml.compose`${line}\n`);
         if (cones && handTool !== null && !handTool.isDestroyed()) {
           await StuffApi.destruct(handTool);

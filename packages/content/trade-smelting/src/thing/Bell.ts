@@ -18,6 +18,8 @@
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
+import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
+import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import type { RingSound } from '@saxonberg/server/mud/lib/material/Tangible';
 
@@ -36,7 +38,12 @@ function pitchRefHz(): number {
   }
 }
 
-export default class Bell extends CraftedMixin(ThermalMixin(Good)) {
+/**
+ * ⭐ Ringable (review R2-D4): a bell is a SIGNAL — struck, it sounds from
+ * itself through the audible system, and whoever listens for a bell (the
+ * curfew, a ferryman) knows it rang.
+ */
+export default class Bell extends RingableMixin(AudibleMixin(CraftedMixin(ThermalMixin(Good)))) {
   /**
    * ⭐ The bell's fundamental, Hz — by its mass and its metal. `0` when it
    * is not a metal at all (a wooden bell is a clapper).
@@ -79,12 +86,13 @@ export default class Bell extends CraftedMixin(ThermalMixin(Good)) {
     const db = 85 + 10 * Math.log10(kg);
     if (this.getFlaws().length > 0) {
       return {
-        sound: `a dull, cracked clank where ${this.noteName()} should be`,
+        description: `a dull, cracked clank where ${this.noteName()} should be`,
+        character: 'clank',
         db: db - 10,
         rings: false,
       };
     }
     const hum = kg >= 50 ? ' that you feel in your chest, and that hums on long after' : ' that hangs in the air';
-    return { sound: `${this.noteName()}${hum}`, db, rings: true };
+    return { description: `a bell rings ${this.noteName()}${hum}`, character: 'bell', db, rings: true };
   }
 }

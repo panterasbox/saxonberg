@@ -1770,6 +1770,26 @@ left a fork the lens that chose is named.
     trajectory crossing freezing while wet) has one outcome, and
     `sufferImpact` has no frost cause.
 
+- **B90 — W-R2c (2026-10-28).**
+  - D2 found a live bug: a thrown stoneware jug was never asked whether it
+    breaks. The profile's `toughness < 1` line called it recoverable (its
+    toughness is 7). Brittleness is now the one class; the arrival is the
+    body's verdict. ⚠ A thrown vessel that breaks is still destructed by
+    the throw, which leaves no sherds: routing it through `sufferImpact`
+    would spill its contents a second time after the splash shares. Left
+    as it was.
+  - D4: TypeScript cannot see `emit` through `AudibleMixin`'s untyped base,
+    so Ringable does not compose Audible inside itself. Each signal host
+    composes both (Bell, SignalBell), and `ring` emits when the target is
+    Audible. A struck signal is SEEN struck ("Alice strikes the bell") and
+    HEARD as the bell's own sound by everyone it reaches.
+  - D7: the baked name prefix "misrun …" is gone; the look line says it.
+    The grade drop stays set at the cast. Deriving the grade from flaws is
+    D1's (W-R2f). The ceramics-d drive's assertion follows.
+  - D9: the standard is the innermost polity that DECLARES it. Capacity
+    used to read only the gauger's polity. "Of record" is the innermost
+    polity that seats a gauger.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
@@ -2343,7 +2363,16 @@ change; e is independent and may land any time after a).
   in practice (no row is tagged `sand`; sand is `silica`). B5: the uncalled
   `'frost'` impact cause was deleted; the Atmospheric comment and
   materials-response.md were corrected.
-- **W-R2c — D2, D4, D5, D6, D7, D9** (mechanical merges).
+- ✅ **W-R2c — D2, D4, D5, D6, D7, D9** (mechanical merges). Done
+  2026-10-28 (B90).
+  - D2: `DeliveryInputs.brittle` replaces toughness; `canShatter()`; the
+    throw asks `impactVerdict`; one `deliveredJ` in Tangible.
+  - D4: `RingSound extends AudibleEmitOptions`; a Ringable + Audible signal
+    is emitted; the cast `Bell` is a signal.
+  - D5: `Reading.bandOf(actor, tool)`.
+  - D6: `castFrom.discipline`; `Crafted.castDiscipline` retired.
+  - D7: `misrun` / `shrinkage` flaw kinds whose words are derived.
+  - D9: `lib/instrument/StatuteReading`.
 - **W-R2d — D8** (the walking helper — check behavior.md for the home first).
 - **W-R2e — D3** (plaster into Kinetics — after B87 is committed).
 - **W-R2f — D1** (integrity: plan it first — the readers list — then one record).

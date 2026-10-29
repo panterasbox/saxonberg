@@ -6,7 +6,10 @@
  *
  * ⭐ It is STRUCK by the platform's `ring` — the one verb for tapping a thing
  * and listening (ceramics M5): how it sounds is the thing's own
- * `ringSound()`, and that it rang is remembered here.
+ * `ringSound()`, and that it rang is remembered here. ⭐ A signal is
+ * SOUNDED, not only struck (review R2-D4): a host composes `AudibleMixin`
+ * too, and `ring` emits its sound from the bell itself, so the street
+ * hears the bell and not the hand.
  */
 
 import type { MixinConstructor } from '../mixin';

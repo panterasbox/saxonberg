@@ -342,6 +342,15 @@ the whole feature silently inert. Against steel's 600/200 that ratio
 *is* brittleness: nearly as hard, almost none of the toughness. The
 values are honest, not tuned to make a flask break.
 
+⭐ **Shatter is the body's verdict (review R2-D2).** The profile's
+`shatter` integrity means only that the projectile CAN shatter — its
+material is `brittle`, the same predicate the breakage rule uses — and
+`canShatter()` says so. Whether THIS arrival breaks it is
+`TangibleMixin.impactVerdict`: the joules against its strength and the
+hardness of what it struck. The retired `toughness < 1` line called a
+hurled stoneware jug (toughness 7) recoverable, so the jug's own verdict
+was never asked.
+
 ## Two bugs this build found in shipped code
 
 **`CombatLogic.ts` re-seed (fixed).** `rangeBetween(...) === "close"` was

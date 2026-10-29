@@ -348,8 +348,9 @@ describe('the mould as an envelope (ceramics W7)', () => {
     cold.setRiser(true);
     pour(cold, PEWTER, 1.2, 505); // 5 K over its melting point
     const misrun = (await set(cold, PEWTER, 1.2)) as unknown as Good;
-    expect(desc(misrun).short).toMatch(/^misrun/);
-    expect(misrun.getFlaws().some((f) => f.kind === 'casting')).toBe(true);
+    // The flaw is the fact; its words are the look's, never baked (R2-D7).
+    expect(misrun.getFlaws().some((f) => f.kind === 'misrun' && f.visible)).toBe(true);
+    expect(desc(misrun).short).not.toMatch(/misrun/);
 
     const hot = sandFlask();
     ContainmentApi.move(hot, room());
@@ -367,8 +368,8 @@ describe('the mould as an envelope (ceramics W7)', () => {
     await bare.takeImpression(sword(), bare);
     pour(bare, PEWTER, 1.2, 600);
     const porous = (await set(bare, PEWTER, 1.2)) as unknown as Good;
-    expect(desc(porous).long).toMatch(/porous/i);
-    expect(porous.getFlaws().some((f) => f.kind === 'casting')).toBe(true);
+    expect(porous.getFlaws().some((f) => f.kind === 'shrinkage' && f.visible)).toBe(true);
+    expect(desc(porous).long).not.toMatch(/porous/i);
   });
 
   it('⭐ the chill: cast iron in an iron mould sets white; in sand, grey', async () => {

@@ -27,25 +27,34 @@ export default class RingController extends CommandController<RingModel> {
       context.note({ kind: 'controller-rejected', reason: 'no-target', detail: 'no-target' });
       return;
     }
-    // ⭐ The thing answers how it sounds; this tells it, and it carries
-    // by its loudness to whoever can hear (a bell to the next street).
+    // ⭐ The thing answers how it sounds; this tells it.
     const giver = context.commandGiver;
-    const { sound, db, rings, carries } = target.ringSound();
+    const sound = target.ringSound();
+    if (MixinApi.isRingable(target)) {
+      // ⭐ A bell, a gong — a SIGNAL (review R2-D4): you are seen to strike
+      // it, and the sound is the bell's own, emitted through the audible
+      // system to everybody it reaches (you included) — the street hears a
+      // bell, not a hand. It remembers it was struck, so whoever listens
+      // for it (a ferryman across the water) can answer (river W16).
+      MessageApi.scene(giver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You strike ${Mml.thing(target)}.`)
+        .toPeers(Mml.compose`${Mml.actor(giver)} strikes ${Mml.thing(target)}.`)
+        .send();
+      if (MixinApi.isAudible(target)) target.emit(sound);
+      target.struck();
+      return;
+    }
+    // Anything else is heard as the act: a tapped jug, by its loudness.
     const scene = MessageApi.scene(giver)
       .topic('act.deed')
-      .meta({ acousticDb: db })
-      .toSelf(Mml.compose`You tap ${Mml.thing(target)}. It gives ${sound}.`);
+      .meta({ acousticDb: sound.db })
+      .toSelf(Mml.compose`You tap ${Mml.thing(target)}. It gives ${sound.description}.`);
     if (MixinApi.isContainable(giver)) {
-      scene.toAudible(
-        carries !== undefined
-          ? Mml.compose`${carries}`
-          : Mml.compose`${Mml.actor(giver)} taps ${Mml.thing(target)}: ${sound}.`,
-        { descriptor: rings ? 'something ringing' : 'a knock' },
-      );
+      scene.toAudible(Mml.compose`${Mml.actor(giver)} taps ${Mml.thing(target)}: ${sound.description}.`, {
+        descriptor: sound.rings ? 'something ringing' : 'a knock',
+      });
     }
     scene.send();
-    // ⭐ A bell, a gong — a signal remembers it was struck, so whoever
-    // listens for it (a ferryman across the water) can answer (river W16).
-    if (MixinApi.isRingable(target)) target.struck();
   }
 }

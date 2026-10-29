@@ -271,7 +271,7 @@ export class CombatLogic extends ApiLogic {
     target: Stuff,
     contents: {
       litres: number;
-      toughness?: number;
+      brittle?: boolean;
       hardness?: number;
       massKg?: number;
     },
@@ -4599,7 +4599,7 @@ function resolveShotImpl(
     massKg: number;
     channel: Channel;
     calibreM?: number;
-    toughness?: number;
+    brittle?: boolean;
     hardness?: number;
   },
 ): { placement: Placement; profile: DeliveryProfile } {
@@ -4616,7 +4616,7 @@ function resolveShotImpl(
     channel: shot.channel,
     band,
     envelope,
-    toughness: shot.toughness,
+    brittle: shot.brittle,
     hardness: shot.hardness,
     calibreM: shot.calibreM,
     // ⭐ Ammunition is purpose-made to fly — that is the difference
@@ -4636,7 +4636,7 @@ function resolveThrownImpl(
   target: Stuff,
   contents: {
     litres: number;
-    toughness?: number;
+    brittle?: boolean;
     hardness?: number;
     massKg?: number;
   },
@@ -4656,7 +4656,7 @@ function resolveThrownImpl(
     channel: "blunt",
     band,
     envelope,
-    toughness: contents.toughness,
+    brittle: contents.brittle,
     hardness: contents.hardness,
   });
 
@@ -4668,7 +4668,7 @@ function resolveThrownImpl(
     beyondEffective: profile.beyondEnvelope,
   });
 
-  if (!profile.breaksOnArrival() || placement === "miss") {
+  if (!profile.canShatter() || placement === "miss") {
     return { placement, profile, shares: [], spilled: contents.litres };
   }
 

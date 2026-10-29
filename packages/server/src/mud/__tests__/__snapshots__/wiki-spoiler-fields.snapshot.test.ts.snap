@@ -383,7 +383,6 @@ CraftVessel.iceForm = 0
 CraftVessel.iceKg = 0
 CraftVessel.iceLatentJPerKg = 0
 CraftVessel.iceMeltK = 0
-CraftedMixin.castDiscipline = 0
 CraftedMixin.craftedAt = 0
 CraftedMixin.maker = 0
 CraftedMixin.recipe = 0

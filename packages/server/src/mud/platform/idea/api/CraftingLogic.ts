@@ -4230,7 +4230,7 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
     {
       recipe: crafted ? item.getRecipe() : '',
       template: item.getTemplatePath() ?? '',
-      castDiscipline: crafted ? item.getCastDiscipline() : '',
+      castDiscipline: MixinApi.isTangible(item) ? (item.getCastFrom()?.discipline ?? '') : '',
     },
     m.catalogue,
   );
@@ -4261,7 +4261,7 @@ async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void
   const own = {
     recipe: crafted ? item.getRecipe() : '',
     template: item.getTemplatePath() ?? '',
-    castDiscipline: crafted ? item.getCastDiscipline() : '',
+    castDiscipline: MixinApi.isTangible(item) ? (item.getCastFrom()?.discipline ?? '') : '',
   };
   const discipline = disciplineOf(own, m.catalogue);
   const { band, terms } = await termsFor(m.hand, discipline);
@@ -4964,9 +4964,9 @@ async function mintMember(
       for (const m of line.mends) out.recordMend(m);
     }
     if (line.name && MixinApi.isNamed(out)) out.setName(line.name);
-    if (MixinApi.isCrafted(out)) {
-      if (line.recipe) out.setRecipe(line.recipe);
-      if (line.castDiscipline) out.setCastDiscipline(line.castDiscipline);
+    if (MixinApi.isCrafted(out) && line.recipe) out.setRecipe(line.recipe);
+    if (line.castDiscipline && MixinApi.isTangible(out)) {
+      out.setCastFrom({ kindPath: '', takenFromIdentity: '', takenAtS: 0, discipline: line.castDiscipline });
     }
   }
   if (MixinApi.isStackable(out)) out.setQuantity(n);
@@ -4998,9 +4998,9 @@ function carriedState(part: Stuff): Partial<PartLine> {
   if (MixinApi.isCrafted(part)) {
     const recipe = part.getRecipe();
     if (recipe) out.recipe = recipe;
-    const cast = part.getCastDiscipline();
-    if (cast) out.castDiscipline = cast;
   }
+  const cast = MixinApi.isTangible(part) ? (part.getCastFrom()?.discipline ?? '') : '';
+  if (cast) out.castDiscipline = cast;
   return out;
 }
 

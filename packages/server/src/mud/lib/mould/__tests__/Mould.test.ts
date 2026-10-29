@@ -213,8 +213,9 @@ describe('moulds — the container decides the shape', () => {
     m.setDiscipline('smelting');
     m.reconcilePhase();
     await settle();
-    const cast = contentsOf(m)[0] as unknown as { getCastDiscipline(): string };
-    expect(cast.getCastDiscipline()).toBe('smelting');
+    const cast = contentsOf(m)[0] as unknown as { getCastFrom(): { discipline?: string } | null };
+    // The one cast record (review R2-D6): the mould's trade, no impression.
+    expect(cast.getCastFrom()?.discipline).toBe('smelting');
   });
 
   it('a cracked mould casts a lump; a whole one wears by wearPerCast', async () => {
