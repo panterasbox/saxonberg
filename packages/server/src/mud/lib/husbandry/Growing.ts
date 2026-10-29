@@ -1152,6 +1152,14 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         const areaCrop = this.isAreaCrop();
 
         for (let i = 0; i < steps; i++) {
+          // ⭐ A RIPE field crop is finished growing (cover build B36): it
+          // stands ready to cut until somebody cuts or grubs it, its grade
+          // already set by its worst stretch. Without this a ripe stand
+          // nobody had reached by autumn read "dead where it stands" and
+          // gave nothing to the sickle (found walking the bench). What an
+          // uncut crop loses standing — shattering, lodging — is a later
+          // slate's; a pot keeps the shipped rule.
+          if (areaCrop && this.currentStage() === 'mature') break;
           const satWarmth = this.satWarmth(windowStart + (i + 0.5) * dt);
           const limiting = Math.min(
             satWater,

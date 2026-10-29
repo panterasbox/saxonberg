@@ -384,6 +384,21 @@ describe('the area crop', () => {
       expect(single.getGrowthStage()).toBe('seedling');
     });
 
+    it('⭐ a ripe field crop holds until it is cut — drought does not kill it standing', () => {
+      const { ground } = scene();
+      const field = makeStuffAtPath(() => newPlant(), PLANT_PATH);
+      field.setSownAreaM2(100);
+      ContainmentApi.move(field, ground);
+      field.getGrowthStage();
+      (field as unknown as { growthStage: string }).growthStage = 'mature';
+      // A long dry spell with nothing in the ground: a growing crop dies
+      // of this; a ripe one is finished and stands ready to cut.
+      ground.setReserve(new Reserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(200, 'L'), Quantity.of(0, 'L'), 'cultivation', 'wilting'));
+      now = BASE + 120 * 86_400;
+      expect(field.getGrowthStage()).toBe('mature');
+      expect(field.takeSwath(10).kg).toBeGreaterThan(0);
+    });
+
     it('an individual plant is not an area crop', () => {
       const p = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
       expect(p.isAreaCrop()).toBe(false);
