@@ -11,7 +11,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { SeasoningMixin } from '@saxonberg/server/mud/lib/maturation/Seasoning';
+import { SeasoningMixin } from '@saxonberg/server/mud/lib/material/Seasoning';
 import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 
 export default class SoapBar extends SeasoningMixin(MoistureMixin(Good)) {

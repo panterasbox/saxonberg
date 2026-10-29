@@ -188,7 +188,7 @@ export class StackableLogic extends ApiLogic {
       );
     }
     survivor.setQuantity(survivor.getQuantity() + absorbed.getQuantity());
-    if (MixinApi.isIntegrity(survivor)) survivor.takeFlawsFrom(absorbed, false);
+    survivor.takeFromAbsorbed(absorbed);
     StuffApi.destruct(absorbed);
     survivor.onMerged(absorbed);
   }

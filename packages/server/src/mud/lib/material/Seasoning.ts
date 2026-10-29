@@ -25,8 +25,13 @@
  * - **Vacuous** on a material with `seasoningDays 0`: it is neither green
  *   nor seasoned, and every read answers as though the mixin were absent.
  *
- * ⭐ **A merge takes the greener** (`onMerged`): weakest-link doctrine
- * applied to time. A dry stack poured onto a green one loses its lead.
+ * ⭐ **A merge takes the greener** (`takeFromAbsorbed`): weakest-link
+ * doctrine applied to time. A dry stack poured onto a green one loses its
+ * lead.
+ * - **A checked board grades no better than fair** — Integrity's
+ *   making-fault ceiling (`check`), the one table (B98).
+ * - ⚠ **Not wood's form.** Quarter-sawn, the wide face and cupping are how
+ *   wood was CUT; they are `Timber`'s (a bar of soap seasons too).
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -34,10 +39,9 @@ import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
-import type Material from '../material/Material';
-import { Grade } from '../craft/Grade';
-import { Moisture, type Moist } from '../material/Moisture';
-import { Evaporation } from '../material/Evaporation';
+import type Material from './Material';
+import { Moisture, type Moist } from './Moisture';
+import { Evaporation } from './Evaporation';
 import type { MarkupAugmenter } from '../../api/mml';
 
 /**
@@ -69,18 +73,6 @@ export interface Seasoning {
   isSeasoned(): boolean;
   /** Would warp if worked now. Always false for a material that does not season. */
   isGreen(): boolean;
-  /** Was it quarter-sawn (cut radially — stabler, fewer boards)? */
-  isQuarterSawn(): boolean;
-  /** Is its face wide enough to cup across — a board? Authored. */
-  isWideFace(): boolean;
-  /**
-   * Has it CUPPED — a flat-sawn (through-sawn) piece that has dried, its
-   * face gone hollow across the width because the rings run across it and
-   * wood shrinks more along a ring than through one. Derived, never
-   * stored: a WIDE face (`wideFace` — a board; a dowel or a haft has no
-   * width to cup across), sawn, not quarter-sawn, and seasoned.
-   */
-  isCupped(): boolean;
   /** Set the seasoned fraction directly (a mint, a test, a sale of dry stock). */
   setSeasonedFraction(f: number): void;
   /**
@@ -91,6 +83,13 @@ export interface Seasoning {
   seasonPhrase(fraction: number): string;
   /** @hook How it was made, read off its form — `''` by default. */
   seasonGrainLine(): string;
+  /**
+   * @hook Has it MOVED as it dried — a flat-sawn board's face gone hollow
+   * (wood's word: cupped)? `false` by default: a bar of soap does not cup.
+   * The CUT that decides it is the composer's (`Timber`'s quarter-sawn and
+   * wide face); the drying is this mixin's.
+   */
+  isCupped(): boolean;
 }
 
 function dial(key: string, fallback: number): number {
@@ -130,12 +129,6 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & Moist>>(Ba
       // ⭐ A SEED, not a stored value: how seasoned a minted piece arrives
       // (a stave, a sawn board), written into the water state once.
       seasonedFraction: { authorable: true, seed: true },
-      // A quarter-sawn board and a through-sawn one do not merge.
-      quarterSawn: { persistent: true, runtimeState: true, authorable: true, stackIdentity: true },
-      // ⭐ A face wide enough to cup across — a board. Authored on the
-      // row; a part carved FROM a board does not carry it (a dowel cannot
-      // cup), which is why it is a field and not derived from the form.
-      wideFace: { persistent: true, authorable: true },
     };
 
     public seasonPhrase(fraction: number): string {
@@ -152,8 +145,9 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & Moist>>(Ba
       return '';
     }
 
-    public quarterSawn = false;
-    public wideFace = false;
+    public isCupped(): boolean {
+      return false;
+    }
 
     private seasoningDaysOf(): number {
       const self = this as unknown as Stuff;
@@ -219,20 +213,6 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & Moist>>(Ba
       return !this.isSeasoned();
     }
 
-    isQuarterSawn(): boolean {
-      return this.quarterSawn;
-    }
-
-    isWideFace(): boolean {
-      return this.wideFace === true;
-    }
-
-    isCupped(): boolean {
-      if (!this.wideFace || this.quarterSawn || !this.isSeasoned()) return false;
-      const self = this as unknown as Stuff;
-      return MixinApi.isConstructed(self) && self.getConstructionForm() === 'sawn';
-    }
-
     /** Written as moisture: `f` of the way from green to seasoned. */
     setSeasonedFraction(f: number): void {
       const water = this as unknown as Moist;
@@ -255,48 +235,15 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & Moist>>(Ba
     }
 
     /**
-     * ⭐ Dried too fast, it checks — and a checked board grades no better
-     * than fair: it is what it went through.
+     * ⭐ A merge takes the greener — weakest-link, applied to time. Read off
+     * the absorbed stack BEFORE it is destructed (the Stackable seam).
      */
-    getGrade(): Grade {
-      const base = (Base.prototype as unknown as { getGrade?: () => Grade }).getGrade;
-      const g = base ? base.call(this) : Grade.of('fair');
-      if (this.seasoningDaysOf() <= 0) return g;
-      // Bring the water current: a check is laid by the drying it records.
-      (this as unknown as Moist).getMoisture();
-      const self = this as unknown as Stuff;
-      const checked = MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'check');
-      return checked ? g.min(Grade.of('fair')) : g;
-    }
-
-    /**
-     * The absorbed lot's seasoned fraction, stashed by {@link canMergeWith}
-     * — the merge destructs the absorbed stack BEFORE `onMerged` fires, so
-     * that hook cannot read it (the `Ore` precedent). Keyed on stuffId and
-     * cleared on use, so a probe that never merges cannot leak.
-     */
-    private _absorbingSeason: { stuffId: string; fraction: number } | null = null;
-
-    canMergeWith(other: Stuff): boolean {
-      const base = (Base.prototype as unknown as { canMergeWith?: (o: Stuff) => boolean })
-        .canMergeWith;
-      const ok = base ? base.call(this, other) : true;
-      this._absorbingSeason =
-        ok && MixinApi.isSeasoning(other)
-          ? { stuffId: other.stuffId, fraction: other.getSeasonedFraction() }
-          : null;
-      return ok;
-    }
-
-    /** A merge takes the greener — weakest-link, applied to time. */
-    onMerged(absorbed: Stuff): void {
-      const stashed = this._absorbingSeason;
-      this._absorbingSeason = null;
-      if (stashed !== null && stashed.stuffId === absorbed.stuffId) {
-        const mine = this.getSeasonedFraction();
-        if (stashed.fraction < mine) this.setSeasonedFraction(stashed.fraction);
+    takeFromAbsorbed(absorbed: Stuff): void {
+      if (MixinApi.isSeasoning(absorbed)) {
+        const theirs = absorbed.getSeasonedFraction();
+        if (theirs < this.getSeasonedFraction()) this.setSeasonedFraction(theirs);
       }
-      const base = (Base.prototype as unknown as { onMerged?: (a: Stuff) => void }).onMerged;
+      const base = (Base.prototype as unknown as { takeFromAbsorbed?: (a: Stuff) => void }).takeFromAbsorbed;
       if (base) base.call(this, absorbed);
     }
   };

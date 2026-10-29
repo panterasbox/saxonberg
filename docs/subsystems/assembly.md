@@ -422,7 +422,7 @@ raises integrity, so no list of acts is needed. The output's seasoned
 fraction is the greenest input's. `look` names a part's form (*a sawn oak
 shield-board*) and a stock piece reads its end grain in words.
 
-**Seasoning** — `lib/maturation/Seasoning.ts` (`SeasoningMixin`), a
+**Seasoning** — `lib/material/Seasoning.ts` (`SeasoningMixin`), a
 READING over the host's `MoistureMixin` — the one model of a solid
 giving its water to the air ([spoilage.md](./spoilage.md) § the water
 state). ⚠ It ran a clock of its own until the ceramics review
@@ -442,11 +442,18 @@ turf and green clay already used. What it reads now:
   unstickered stack takes about three times as long;
 - **rain sets it back** and **drying too fast checks it** — the water
   model's rules for every drying solid; a board stands four times harder
-  drying than good air, and a checked board grades no better than fair;
+  drying than good air, and a checked board grades no better than fair
+  (Integrity's making-fault ceiling for `check`, the one table — B98);
 - vacuous on a material with `seasoningDays 0`;
-- ⭐ **a merge takes the greener** — and so `Timber` is
-  `SeasoningMixin(MoistureMixin(StackableMixin(…)))`, Seasoning
-  OUTSIDE, because the outer class's `onMerged` is the one that runs.
+- ⭐ **a merge takes the greener** — through Stackable's
+  `takeFromAbsorbed`, which the merge calls BEFORE it destructs the
+  absorbed stack (B98; it was a stash in `canMergeWith` read back in
+  `onMerged`, as `Ore` did). Seasoning is OUTSIDE Stackable in `Timber`, so
+  its override runs and chains to super;
+- ⭐ **not wood's form.** Quarter-sawn, the wide face and the CUT that
+  decides cupping are `Timber`'s fields (a bar of soap seasons too);
+  Seasoning keeps only the hook `isCupped()` (default false), which Timber
+  answers — a board MOVES as it dries.
 
 **`Timber`** (`platform/thing/Timber.ts`, kernel — its composers are
 three packs with no common ancestor) =
@@ -454,7 +461,8 @@ three packs with no common ancestor) =
 billets, boards, staves, blanks and the carved wooden parts (hafts,
 handles, legs, rails — `Timber` so a green haft keeps its greenness and
 warps). `constructionForm` and `quarterSawn` are stack identity: riven
-and sawn never merge. ⚠ The shipped `/trade/forestry/thing/timber` row is
+and sawn never merge. `quarterSawn` and `wideFace` are Timber's own
+fields (the cut), and `isCupped()` reads them with the seasoning. ⚠ The shipped `/trade/forestry/thing/timber` row is
 a plain `Good` and keeps its class; the name collision is recorded. Pack
 subclasses exist only to afford a pack's verb: `Billet` (forestry,
 `rive`), `Blank` and `Board` (carpentry, `carve`) — each spreads

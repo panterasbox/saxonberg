@@ -227,7 +227,7 @@ import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
 import type { Integrity } from '../lib/material/Integrity';
 import type { Assembled } from '../lib/craft/Assembled';
-import type { Seasoning } from '../lib/maturation/Seasoning';
+import type { Seasoning } from '../lib/material/Seasoning';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';

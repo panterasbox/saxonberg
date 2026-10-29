@@ -115,6 +115,10 @@ const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
 const MAKING_FAULT: Readonly<Partial<Record<FlawKind, string>>> = {
   misrun: 'poor',
   shrinkage: 'fair',
+  // ⭐ Dried too fast, it checked: a board, a pot — no better than fair. It
+  // is also damage (integrity, above); it was Seasoning's own `getGrade`
+  // override until B98.
+  check: 'fair',
 };
 
 /** Game-seconds now, or 0 with no clock (a unit world). */

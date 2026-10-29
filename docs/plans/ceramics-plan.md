@@ -1948,6 +1948,30 @@ left a fork the lens that chose is named.
   - **Left:** the census of silent null-guards in front of writes,
     silent-write-census-slate.
 
+- **B98 — Seasoning (owner, 2026-10-29).**
+  - **Wood's form moves to `Timber`.** `quarterSawn`, `wideFace` and the
+    cut that decides cupping were on the mixin, so a bar of soap carried
+    a `quarterSawn` field. Seasoning keeps one hook, `isCupped()`
+    (default false): a board MOVES as it dries. Timber answers it from
+    its cut. (A `Timber` class import into CraftingLogic was a load-order
+    cycle, which is why cupping stays a hook rather than an `instanceof`.)
+  - **"A checked board grades no better than fair"** was Seasoning's own
+    `getGrade` override, a second ceiling mechanism. It is now
+    `check: 'fair'` in Integrity's making-fault table, so a pot that
+    checked drying caps at fair too.
+  - **Merges read the absorbed stack BEFORE it is destructed**, through a
+    new Stackable hook, `takeFromAbsorbed`, which the merge calls after
+    summing quantities. The default carries hidden flaws (moved out of
+    StackableLogic's special case). `Ore` (mass-weighted grade) and
+    Seasoning (takes the greener) override it, and their `canMergeWith`
+    stashes are gone.
+  - **Moved** `lib/maturation/` → `lib/material/` (with its tests). It no
+    longer runs on the maturation clock; it reads Moisture, beside
+    Greenware.
+  - **The name stays.** "Cure" is taken twice (salt-curing in Moisture,
+    rubber's cure kinetic), and SoapBar says its own words through
+    `seasonPhrase`.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

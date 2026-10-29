@@ -104,6 +104,17 @@ export interface Stackable {
    * `super.onMerged(absorbed)`.
    */
   onMerged(absorbed: Stuff): void;
+
+  /**
+   * @hook ⭐ Take what this stack keeps from `absorbed`, read off it BEFORE
+   * it is destructed (`onMerged` fires after, when its accessors read
+   * nothing). Called by `StackableApi.merge` once the quantities are summed.
+   * Default: an article carries the absorbed pile's HIDDEN flaws (stacking
+   * never launders a crack, B88). A host that weights a lot (ore's grade)
+   * or takes the weakest (timber's seasoning) overrides it and calls super.
+   * (One seam for what used to be a `canMergeWith` side-effect stash, B98.)
+   */
+  takeFromAbsorbed(absorbed: Stuff): void;
 }
 
 export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
@@ -333,6 +344,11 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public onMerged(_absorbed: Stuff): void {
       // No-op terminal so subclasses can super.onMerged().
+    }
+
+    public takeFromAbsorbed(absorbed: Stuff): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isIntegrity(self)) self.takeFlawsFrom(absorbed, false);
     }
 
     // ------- the stack face (F1) — forwards into StackableLogic -------

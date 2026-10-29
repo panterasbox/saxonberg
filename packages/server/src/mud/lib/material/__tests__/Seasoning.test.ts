@@ -156,7 +156,8 @@ describe('SeasoningMixin', () => {
     advanceGameDays(2);
     t.getSeasonedFraction(); // the water brought current — the check is laid by it
     expect(t.getFlaws().some((f) => f.kind === 'check')).toBe(true);
-    expect(t.getGrade().getBand()).toBe('fair');
+    // The ceiling is Integrity's making-fault table (`check`), B98.
+    expect(MixinApi.isGraded(t) ? t.getGrade().getBand() : null).toBe('fair');
   });
 
   it('…and good drying air never checks it', () => {
@@ -173,10 +174,10 @@ describe('SeasoningMixin', () => {
     // Stacks merge only within one row.
     stampTemplatePathForTest(dry, '/x/thing/board');
     stampTemplatePathForTest(green, '/x/thing/board');
-    // The merge's own order: the probe (which stashes the absorbed lot),
-    // then the witness — the absorbed stack is gone by the time it fires.
+    // The merge reads the absorbed lot BEFORE destructing it (the Stackable
+    // seam, B98 — no stash in `canMergeWith`).
     expect(dry.canMergeWith(green)).toBe(true);
-    dry.onMerged(green);
+    dry.takeFromAbsorbed(green);
     expect(dry.getSeasonedFraction()).toBeCloseTo(0.1, 6);
   });
 
