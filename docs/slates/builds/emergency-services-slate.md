@@ -61,6 +61,10 @@ cry), which already decided that *radio changed the reach, not the mechanism*.
 
 ## 3. ⭐⭐ The dying windows decide what EMS is **[LEAN]**
 
+> ⚠ **Corrected 2026-10-29 → [pace-slate](./pace-slate.md) § 1:** these windows are **game**
+> seconds, so at 12× they are 7.5 to 50 *real* seconds. The design below assumes the stated figures as
+> real time, which the pace ruling (encounter pace) would make true.
+
 The windows run 90 seconds (asphyxiation, electrocution) to 10 minutes (starvation, toxin). A crew
 crossing a district rarely makes 90 seconds, so:
 

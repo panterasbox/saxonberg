@@ -171,6 +171,10 @@ in v1 until an admin verb lands).
 
 ### Why 12× — and what it costs to change
 
+> ⭐ **2026-10-29 → [pace-slate](../slates/builds/pace-slate.md)** — the pace ruling (encounter ·
+> session · absence · calendar) under which the scale changes the calendar alone; players see one
+> sentence: *the world turns twelve times faster than you do.*
+
 Reviewed and **held** 2026-07-31. The scale serves two experiences with
 different natural rates, and 12× is the only value that suits both:
 

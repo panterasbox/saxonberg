@@ -108,6 +108,10 @@ not dressings), so no one can be an MMO healer — a medic in a fight only stops
 where a polity's law marks medics **[DECIDED — lens 3a chose; the owner did not object]**. ⚠
 *"Dragging the victim clear also spares them"* — and no verb drags.
 
+> ⚠ **Corrected 2026-10-29 → [pace-slate](./pace-slate.md) § 1:** every window in these scenes is
+> stated in game seconds — 10 *real* seconds for a bleed-out at 12×. The scenes assume real minutes,
+> which the pace ruling's encounter pace would make true.
+
 **2 · Bleeding out.** Systolic pressure holds to about 15 % loss while **the pulse pressure narrows
 first**; shock at 30 %, the dying window at 36 %. A bystander's rag works and seeds sepsis days later —
 still the right call. The medic reads what the bystander cannot and chooses which wound first. Past

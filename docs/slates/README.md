@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**390 slates.** 143 greenfield · 107 continuations · 67 waves · 73 tails.
+**391 slates.** 144 greenfield · 107 continuations · 67 waves · 73 tails.
 
-## ⭐ Greenfield — nothing shipped yet (143)
+## ⭐ Greenfield — nothing shipped yet (144)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -138,6 +138,7 @@ respect.
 | [off-grid](./builds/off-grid-slate.md) | the phone as the starting carrier, the implant elective · the corrected ladder (the implant is future, the cell phone modern) · what each carrier addresses · coverage as field strength, built by relays and nodes … |
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
 | [organized-religion](./builds/organized-religion-slate.md) | the charter readout (structure derived, the vibe a claim) · the three polities on the Organization substrate · territorial vs gathered · title decides the schism … |
+| [pace](./builds/pace-slate.md) | the pace ruling (encounter · session · absence · calendar) … |
 | [paint](./builds/paint-slate.md) | the coat as the outermost, sacrificial layer · paint derived from a pigment and a binder (lime, linseed, glue, casein, egg, resin) · how each binder sets (carbonation, oxidation, evaporation) · pigments (earths, lampblack, chalk, verdigris, lead white) and the dye/pigment line, the lake … |
 | [paper-and-printing](./builds/paper-and-printing-slate.md) | the printed thing as the **static rung of a display** (never a special class) · the honest dynamics per rung (frozen, unpowered, costly to copy, irrevocable) · paper from rags (beat, form, couch, press, dry, size), the watermark, parchment · iron-gall and printing ink … |
 | [performance](./builds/performance-slate.md) | the stage as a source the room hears (the performer's live stream; audio by default, video by the performer's choice) · the stage presentation (performer foregrounded, NPC chatter silenced, the audience murmuring) · the theater before, around and after · measurement in three layers (happened … |

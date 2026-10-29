@@ -113,6 +113,10 @@ that knows the mechanism knows the number:
 
 Slow deaths leave the longest chance that someone reaches you.
 
+> ⚠⚠ **These are GAME seconds** (the record ticks on the world clock), so at 12× the real windows
+> run 2.5 s to 50 s — a bleed-out leaves time for about one typed command. Found 2026-10-29; the
+> proposed fix is encounter pace → [pace-slate](../slates/builds/pace-slate.md).
+
 ### The clock runs while you are disconnected
 
 > ⭐ **Why this divergence is the interesting one:**
