@@ -38,6 +38,9 @@ import { ConditionApi } from '../../../api/condition';
 import { WorldClockApi } from '../../../api/worldclock';
 import { TemplatePaths } from '../../paths';
 import type { Stuff } from '../../stuff/Stuff';
+import type { ImpressionData } from '../Impression';
+import { DetachedError } from '../../errors';
+import { MixinApi } from '../../../api/mixin';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
@@ -55,11 +58,14 @@ class TestRoom extends ContainerMixin(Good) {
 // what it was cast from (B95).
 class TestSword extends CraftedMixin(Good) {
   static _mixinName = 'TestEnvelopeSword';
-  getLength(): number {
-    return 0.9;
+  /** A blade's impression carries its length, as `Weapon`'s does (B104). */
+  public override leaveImpression(nowS: number): ImpressionData | null {
+    const shape = super.leaveImpression(nowS);
+    return shape === null ? null : { ...shape, lengthM: 0.9 };
   }
 }
-class TestLump extends Good {
+// A casting is Crafted (B95), so it is graded.
+class TestLump extends CraftedMixin(Good) {
   static _mixinName = 'TestEnvelopeLump';
 }
 /** A face — something that is an agent, and records anything it is told. */
@@ -412,6 +418,29 @@ describe('the mould as an envelope (ceramics W7)', () => {
     const lump = (await set(flask, PEWTER, 1.2)) as unknown as Good;
     expect(cloned[0]).toBe(LUMP);
     expect(desc(lump).short).toMatch(/blown/);
+    // ⭐ B104: the blow is a FLAW — the grade's ceiling and the look's words
+    // are its, nothing baked into the description.
+    expect(lump.getFlaws().map((f) => f.kind)).toContain('blowhole');
+    if (!MixinApi.isGraded(lump)) throw new Error('a casting is graded');
+    expect(lump.getGrade().getBand()).toBe('poor');
+    expect(desc(lump).long).not.toMatch(/steam holes/);
+  });
+
+  it('⭐ a one-use flask standing NOWHERE refuses to cast: DetachedError, nothing minted (B104)', async () => {
+    const flask = sandFlask();
+    await flask.takeImpression(sword(), flask);
+    await expect(set(flask, PEWTER, 1.2)).rejects.toThrow(DetachedError);
+    expect(cloned).toHaveLength(0);
+    expect(flask.isDestroyed()).toBe(false);
+  });
+
+  it('⭐ a cast row that will not mint THROWS — what set is not lost silently (B104)', async () => {
+    const flask = sandFlask();
+    ContainmentApi.move(flask, room());
+    await flask.takeImpression(sword(), flask);
+    vi.mocked(StuffApi.clone).mockRejectedValueOnce(new Error('no such row'));
+    await expect(set(flask, PEWTER, 1.2)).rejects.toThrow(/no such row/);
+    expect(flask.isDestroyed()).toBe(false);
   });
 
   it('⭐ draft: a one-piece reusable mould will not take a shape with an undercut', async () => {

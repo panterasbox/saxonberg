@@ -6,7 +6,8 @@
  * will go no further. `turn back press` slackens it off.
  *
  * ⭐ It loads a mould exactly as a weight put ON the mould does: the mould
- * asks its placement host for `pressForceN()` (`MouldMixin.loadN`), so a
+ * asks its placement host what it bears on it (`Placing.bearingLoadN`,
+ * read by `MouldMixin.loadN`), so a
  * cheese hoop on the bed drains faster and drier than a stone could press
  * it, and a tile mould charged with tempered clay is pressed — and the tile
  * releases — the moment the screw beats the clay's stiffness.
@@ -18,6 +19,7 @@ import Good from '../../lib/stuff/Good';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Containable } from '../../lib/spatial/Containable';
 import { TurnableMixin } from '../../lib/craft/Turnable';
 import type { ActOutcome, ActRefusal } from '../../lib/craft/ActPlan';
 import { PersistableApi } from '../../api/persistable';
@@ -58,6 +60,11 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
   /** ⭐ The force the platen bears down with on what stands on the bed, N. */
   public pressForceN(): number {
     return this.turns * this.newtonsPerTurn;
+  }
+
+  /** ⭐ What the platen bears on a thing standing on the bed. */
+  public override bearingLoadN(item: Stuff & Containable): number {
+    return item.getPlacement()?.name === 'on' ? Math.max(0, this.pressForceN()) : 0;
   }
 
   /** The moulds standing on the bed. */

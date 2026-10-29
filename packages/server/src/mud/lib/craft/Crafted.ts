@@ -95,6 +95,13 @@ export interface Crafted extends Graded {
   getCastFrom(): CastProvenance | null;
   /** Record a cast's provenance (the mould's cast path writes it). */
   setCastFrom(value: CastProvenance | null): void;
+  /**
+   * ⭐ The material it was made FROM (a material path), or `''` — a wheel
+   * of cheese says *a ewe's milk cheese* (dairy). Provenance beside the
+   * maker and the cast; it rides a set and a transform that keeps the thing.
+   */
+  getMadeFrom(): string;
+  setMadeFrom(materialPath: string): void;
   setRecipe(value: string): void;
   /** Game-clock seconds at which it was crafted. */
   getCraftedAt(): number;
@@ -155,6 +162,7 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ What a cast was cast FROM (ceramics M9) and in which trade's
       // mould. Runtime state: only a pour (or a strike) writes it.
       castFrom: { persistent: true, runtimeState: true },
+      madeFrom: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -202,6 +210,16 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** See {@link Crafted.getCastFrom}. */
     public castFrom: CastProvenance | null = null;
+
+    /** The material it was made from (a path), or `''`. */
+    public madeFrom: string = '';
+
+    public getMadeFrom(): string {
+      return this.madeFrom;
+    }
+    public setMadeFrom(materialPath: string): void {
+      this.madeFrom = typeof materialPath === 'string' ? materialPath : '';
+    }
 
     public getCastFrom(): CastProvenance | null {
       return this.castFrom;

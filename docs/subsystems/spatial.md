@@ -540,6 +540,13 @@ the verb reads into its refusal, so name it for a player.
 Item-side gates intentionally don't exist — the authoring intuition is
 host-side (*"this host refuses X"*), not item-side.
 
+### `Placing.bearingLoadN(item): number`
+
+`@hook` (B104): the force this host bears down on a thing placed on or in
+it, N, beyond the thing's own weight. `0` by default (a shelf, a bench, a
+floor); a `ScrewPress` answers its platen for what stands on its bed. A
+mould reads it as part of its load (`mould.md` § Pressing).
+
 ### `Placing.userFacingDetail`
 
 MQL keyword bridge, mirroring `SlotSpec.userFacingDetail`. An author

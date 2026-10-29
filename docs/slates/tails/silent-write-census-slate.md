@@ -40,6 +40,11 @@ to be a read and annotated as one.
   vessel, but the floor-less (yet attached) case is still a silent skip.
 - `Mould.creditDrainings`: what the vessel below has no room for "runs
   away". This one is a deliberate model, not a skip; annotate it as such.
+- `Thermal.reconcileBulkPhase`, a pool freezing in a vessel that is NOT a
+  mould: the lump is cloned and its `.catch(() => …)` swallows a failed
+  mint, the clone is duck-typed (`getMaterial?`), and a vessel standing
+  nowhere drops the lump in no place. Mould's own set path was fixed in
+  B104; this is its twin.
 
 - **An async completion has no root to reach** (ceramics review, B103).
   The scheduler's `onComplete` is synchronous (`SchedulerRegistry

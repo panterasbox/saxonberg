@@ -2753,15 +2753,21 @@ function reconcileBulkPhase(
       // the mould's shape row (one ingot row for copper, tin and iron); a
       // `liquid`-tagged pool (water) has its own solid row (ice), which the
       // shape row authors and keeps.
-      void v.castInto({
-        material: mat,
-        massKg,
-        payload: setPayload,
-        stampMaterial: !mat.hasTag('liquid'),
-        // ⭐ (ceramics D22) The pool sets at its melting point; what heat
-        // it was POURED with is the mould's record (`receivedPour`).
-        temperatureK: mp,
-      });
+      void v
+        .castInto({
+          material: mat,
+          massKg,
+          payload: setPayload,
+          stampMaterial: !mat.hasTag('liquid'),
+          // ⭐ (ceramics D22) The pool sets at its melting point; what heat
+          // it was POURED with is the mould's record (`receivedPour`).
+          temperatureK: mp,
+        })
+        // A cast that cannot be made throws (B104); a freeze runs inside a
+        // read, so nothing waits on it — said here, not left unhandled.
+        .catch((err: unknown) => {
+          console.error('Thermal: what froze in the mould could not be cast', err);
+        });
       return;
     }
     const scope = (v as unknown as { getContainer(): Stuff | null })

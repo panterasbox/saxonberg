@@ -1,7 +1,7 @@
 # Matter-model overlaps — five places the engine answers one question twice
 
 > **Status: UNBUILT · opened 2026-10-28 (owner, ceramics MR !437 review).**
-> **Left:** all six overlaps below — each is a design decision, not a
+> **Left:** all seven overlaps below — each is a design decision, not a
 > mechanical merge.
 > **Size:** a build (or five small ones, each riding the build named on it).
 
@@ -130,6 +130,27 @@ Line numbers are as of 2026-10-28.
   weather on purpose (the cover/arable build's stooked sheaves, a
   construction build's green masonry). Construction's own wall layers are
   the third water record to reconcile when it does.
+
+## 7. A vessel's own grade vs its batch's grade (ceramics review, 2026-10-29)
+
+- **Bulk's convention:** a vessel's grade and maker stand for its BATCH.
+  `carryBatchIdentity` (`BulkableLogic`) copies the source's grade, maker,
+  recipe and craft time onto the receiving vessel on a pour, and
+  `carryTopUpGrade` takes the lower of the two on a top-up. The sugar
+  strike's band, the lye's band on the potash pot and the cast's grade all
+  ride this.
+- **But a vessel is also a made thing.** A mould, a cask, a crucible is
+  Crafted, Durable and carries flaws: its OWN grade and maker are its
+  making. The first pour into it overwrites both. A mould's
+  `carryPayload` then gives the cast "the mould's grade", which is really
+  the pour's, and the mould's making is gone.
+- **The question:** does the batch's grade (and maker) move onto the
+  payload, so the vessel keeps its own and the cast reads min(batch,
+  mould)? That would also make a poor mould able to lower a cast, which
+  today it cannot.
+- **Rides into:** the next build that grades a made vessel separately
+  from its contents (coopering's cask, or a smithing crucible). It touches
+  every grade-carrying vessel, so it is not a mould fix.
 
 ## Judged legitimately different (not this slate)
 

@@ -348,7 +348,7 @@ describe('moulds — the container decides the shape', () => {
       const RAW = '/stuff/idea/material/_mould/raw-sugar';
       const raw = material(RAW, () => {});
       const s = strike();
-      s.setDrainSetting({ ...s.getDrainSetting()!, becomesAs: { [BLOCK]: RAW } });
+      s.setDrainSetting({ ...s.getDrainSetting()!.toSpec(), becomesAs: { [BLOCK]: RAW } });
       const hogshead = mould(BLOCK);
       fillVessel(hogshead, s, 5, 293);
       ContainmentApi.move(hogshead, room());

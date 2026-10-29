@@ -1264,6 +1264,11 @@ back exists to be worked (`isItemCandidate`: crafted but `Meltable`, like
 converted wood's `Seasoning`). A cured or fired product is capped by its
 stock's grade: weakest link.
 
+`Crafted` also carries `madeFrom` (B104): the MATERIAL a thing was made
+from (a wheel of cheese, *made from ewe's milk*). It rides a set (the
+mould's cast) and a transform that keeps the thing (a wheel salted). It
+was a duck-probed interface on dairying's wheel.
+
 **Broken is capability loss, not a state machine**:
 `DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`, where
 ⭐ condition is the wear gauge × the body's integrity (its cracks and dunts —

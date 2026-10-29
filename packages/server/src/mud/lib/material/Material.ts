@@ -51,6 +51,7 @@
  */
 
 import { Kinetics, type KineticSpec } from './Kinetics';
+import { DrainSetting, type DrainSettingSpec } from './DrainSetting';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
@@ -134,46 +135,6 @@ export interface ElementChemistry {
   formula?: string;
   /** Molar mass in g/mol. Element-or-compound. */
   molarMass?: Quantity<'g/mol'>;
-}
-
-/**
- * ⭐ The authored shape of a drain set (dairy D9b): over `days` unloaded
- * the matter gives up its free water and sets; a weight on the mould of
- * `poolKg × loadRef` doubles the rate and drives the moisture from
- * `unloaded` to `loaded`. `becomes` is the material the set thing IS
- * (curd → cheese); absent ⇒ the pool's own material.
- */
-export interface DrainSetting {
-  days: number;
-  becomes?: string;
-  /**
-   * ⭐ What the set thing is when it sets AS a given shape — keyed by the
-   * cast's template path, falling back to `becomes` (sugar: the strike
-   * set as a cone's loaf is loaf sugar; set as a hogshead's block, purged
-   * coarse and never clayed, it is raw sugar). The mould decides the
-   * shape; this lets the material say what that shape of it is.
-   */
-  becomesAs?: Record<string, string>;
-  moisture: { unloaded: number; loaded: number };
-  loadRef: number;
-  /**
-   * ⭐ What the drained-off matter IS (sugar D16) — molasses off a sugar
-   * loaf. When set, a mould standing ON a vessel credits that vessel with
-   * the drainings as they drain; absent, they go nowhere (the cheese
-   * hoop's whey runs off its board).
-   */
-  drains?: string;
-  /**
-   * Extra share of the pool that drains away per grade band below `fine`
-   * — a poor strike gives up more molasses and keeps less sugar.
-   */
-  drainPerBand?: number;
-  /**
-   * ⭐ The MOULD drinks the water, not a drain (ceramics D24 — slip
-   * casting): it sets only in an absorbent mould, the water goes into the
-   * mould's own wetness, and a wetter mould drinks slower.
-   */
-  absorbedByMould?: boolean;
 }
 
 /**
@@ -659,7 +620,7 @@ export default class Material extends SingletonMixin(
    * `reconcileSetting`: the MATERIAL says how it sets, the MOULD says what
    * shape it takes.
    */
-  public drainSetting: DrainSetting | null = null;
+  private _drainSetting: DrainSetting | null = null;
 
   /**
    * The identity path a frozen pool of this becomes: the authored row,
@@ -675,58 +636,18 @@ export default class Material extends SingletonMixin(
 
   /** How this matter sets by draining, or `null` when it does not. */
   public getDrainSetting(): DrainSetting | null {
-    return this.drainSetting;
+    return this._drainSetting;
   }
-  public setDrainSetting(value: DrainSetting | null): void {
-    if (value === null || value === undefined) {
-      this.drainSetting = null;
-      return;
-    }
-    // ⚠ No local `const` here: `wiki-spoiler-fields.snapshot` labels each
-    // field by the nearest `class`/`const` above this class's `fieldMeta`,
-    // which sits after the methods — a `const ok` filed every Material
-    // field under `ok`.
-    if (
-      !(
-        Number.isFinite(value.days) &&
-        value.days > 0 &&
-        value.moisture !== null &&
-        typeof value.moisture === 'object' &&
-        value.moisture.unloaded > 0 &&
-        value.moisture.unloaded <= 1 &&
-        value.moisture.loaded > 0 &&
-        value.moisture.loaded <= value.moisture.unloaded &&
-        Number.isFinite(value.loadRef) &&
-        value.loadRef > 0 &&
-        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== '')) &&
-        (value.absorbedByMould === undefined || typeof value.absorbedByMould === 'boolean') &&
-        (value.drains === undefined || (typeof value.drains === 'string' && value.drains !== '')) &&
-        (value.becomesAs === undefined ||
-          (value.becomesAs !== null &&
-            typeof value.becomesAs === 'object' &&
-            Object.entries(value.becomesAs).every(
-              ([shape, path]) => shape !== '' && typeof path === 'string' && path !== '',
-            ))) &&
-        (value.drainPerBand === undefined ||
-          (Number.isFinite(value.drainPerBand) && value.drainPerBand >= 0 && value.drainPerBand < 1))
-      )
-    ) {
-      throw new RangeError(
-        'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
-          'loadRef > 0, becomes and drains each a path or absent, becomesAs a shape → path map or absent, ' +
-          'and 0 <= drainPerBand < 1',
-      );
-    }
-    this.drainSetting = {
-      days: value.days,
-      moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
-      loadRef: value.loadRef,
-      ...(value.becomes ? { becomes: value.becomes } : {}),
-      ...(value.absorbedByMould === true ? { absorbedByMould: true } : {}),
-      ...(value.becomesAs ? { becomesAs: { ...value.becomesAs } } : {}),
-      ...(value.drains ? { drains: value.drains } : {}),
-      ...(value.drainPerBand ? { drainPerBand: value.drainPerBand } : {}),
-    };
+  /** The authored spec as stored (the row's own shape), or `null`. */
+  protected get drainSetting(): DrainSettingSpec | null {
+    return this._drainSetting?.toSpec() ?? null;
+  }
+  protected set drainSetting(value: DrainSettingSpec | null) {
+    this._drainSetting = value === null || value === undefined ? null : new DrainSetting(value);
+  }
+  /** Set the drain set; throws a `RangeError` on one that cannot be evaluated. */
+  public setDrainSetting(value: DrainSettingSpec | null): void {
+    this.drainSetting = value;
   }
 
   /** ⭐ What this sets as against a conducting mould (ceramics S12). */
@@ -1321,6 +1242,17 @@ export default class Material extends SingletonMixin(
 
   public getSpecificHeat(): Quantity<'J/(kg·K)'> {
     return this._specificHeat;
+  }
+  /**
+   * ⭐ Thermal effusivity √(kρc), J/(m²·K·s^½) — how fast this draws heat
+   * out of something hot laid against it: an iron mould chills a pour that
+   * sand lets run (Chvorinov). `0` when any of the three is unauthored.
+   */
+  public getEffusivity(): number {
+    const k = this._thermalConductivity.rawValue();
+    const rho = this.getDensity().rawValue();
+    const c = this._specificHeat.rawValue();
+    return k > 0 && rho > 0 && c > 0 ? Math.sqrt(k * rho * c) : 0;
   }
   public setSpecificHeat(value: Quantity<'J/(kg·K)'>): void {
     this.specificHeat = value;

@@ -2066,10 +2066,39 @@ left a fork the lens that chose is named.
      band. No carving recipe grades by band (the kernel's deferred skill
      seam), and a pattern should not be the one carving that does.
   6. `metalNamed` folded into the mixin as a protected method.
+- **B104 — Mould (owner, 2026-10-29).** Items 1–4 and 6 done, 5 slated.
+  1. **No quiet losses at the set.** `castInto` checks first: a one-use
+     mould standing nowhere, or a runner with nowhere to go, throws
+     `DetachedError` before anything is minted (`assertCanRelease` also
+     guards the reconcile before it empties a pool). A cast, runner or
+     `breaksTo` row that will not mint, or is not a tangible visible
+     thing, throws. The reconcile's and the thermal freeze's
+     fire-and-forget casts catch and log. `pressRelease` casts before it
+     spends the clay. `castInto` now returns `Promise<Stuff>`.
+  2. **The drain set's law is the matter's**: `lib/material/DrainSetting.ts`
+     (value class, spec stays plain on the row as `Kinetics` does):
+     `loadRatio`, `ratePerDay`, `moistureAt`, `drainedKg`, `becomesFor`.
+  3. **No duck typing.** `Placing.bearingLoadN(item)` (default 0;
+     `ScrewPress` answers its platen) replaces `pressForceN?()`.
+     `madeFrom` moved onto `Crafted`; `MadeFromHolding` is gone (Mould,
+     CraftingLogic and the dairy wheel). The cast is narrowed through
+     `MixinApi` instead of an optional-method bag. ⭐ Found doing it:
+     Chvorinov read a sword's length as `Number(Quantity)` = NaN, so every
+     blade was judged as a cube. A shape's length now rides its impression
+     (`ImpressionData.lengthM`; `Weapon` fills it). ⚠ For the drives: a real
+     sword now needs more superheat to pour sound (ceramics-d 34 should still
+     pass at 600 K pewter by my arithmetic).
+  4. **A blow is a flaw** (`blowhole`, ceiling poor, `look` words it). The
+     lump keeps its name (`blown lump of …`); the holes and the grade are
+     the flaw's.
+  5. **Slated**: matter-model overlap 7 (a vessel's grade vs its batch's).
+  6. `Material.getEffusivity()`; `hasRiser` on the `Mould` interface; the
+     `wear` cast and `getImpression`'s catch removed. Silent-write census
+     gained Thermal's non-mould lump path (Mould's twin).
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding
-  (B101) · Forming (B102) · PatternStock (B103). Still to review from the MR's new
+  (B101) · Forming (B102) · PatternStock (B103) · Mould (B104). Still to review from the MR's new
   mixins: the eight protocol mixins are parked by the verb-interfaces
   slate's decision (earned or verb-checks). Ask the owner which mixin or
   system is next.

@@ -8,8 +8,9 @@ anything, a pour that obeys its receiver and Chvorinov, one load from a
 weight or a screw, the cure and the slip cast, the founder and the bell.
 
 Source: `packages/server/src/mud/lib/mould/Mould.ts` (`MouldMixin`, the
-`Mould` interface, `SetPool`, `ReceivedPour`, `MadeFromHolding`),
-`lib/mould/Impression.ts` (the copied shape), the instanceable twin
+`Mould` interface, `SetPool`, `ReceivedPour`),
+`lib/mould/Impression.ts` (the copied shape), `lib/material/DrainSetting.ts`
+(the drain set's law, the matter's), the instanceable twin
 `platform/thing/Mould.ts`, and `platform/thing/ScrewPress.ts` (the press).
 
 ## ⭐⭐ The shared thing is the cavity (M2)
@@ -118,7 +119,7 @@ fair.
 | process | the material's fact | driven by |
 |---|---|---|
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets (passing `temperatureK`, the set edge) |
-| **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture, loadRef, absorbedByMould? }` | `MouldMixin.reconcileSetting` |
+| **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture, loadRef, absorbedByMould? }`, read as a `DrainSetting` value class (`loadRatio`, `ratePerDay`, `moistureAt`, `drainedKg`, `becomesFor` — the cure's `Kinetics` shape, B104) | `MouldMixin.reconcileSetting` integrates it |
 | **curing** | the material's `kinetics:` set (`Kinetics.poolSet()` — a point curve with a ladder) | `MouldMixin.reconcileSetting` — no act, no load; the rate at the mould's temperature |
 | **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor drains through `drainsInto()` |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
@@ -186,7 +187,7 @@ Gypsum burns to plaster by the ONE heat rule (`rock/gypsum`'s
 |---|---|
 | **conductivity** | the **chill**: `Material.chillsTo [{mouldConductivityAbove, becomes}]`, first match by the MOULD's thermal conductivity — cast iron sets WHITE in an iron chill mould (80 W/mK), GREY in sand |
 | **absorbency** (`absorbent`) | drinks a slip's water; drinks plain water poured into it (`receivedPour`) — so a watered flask is a damp flask |
-| **wetness** | a hot pour (> 373 K) into a mould wetter than `mould.blowWetness` (0.3) **BLOWS**: the cast is a ruined *blown lump* (grade poor), and the pourer is burned — `afterPouredInBy` (a `Bulkable` `@hook` the pour verb calls) inflicts `heat` on the hands through `ConditionApi`, so a glove takes the edge off |
+| **wetness** | a hot pour (> 373 K) into a mould wetter than `mould.blowWetness` (0.3) **BLOWS**: the cast is a *blown lump* carrying a visible `blowhole` flaw (its look says so; the flaw caps the grade at poor, B104 — it was a baked grade and baked prose), and the pourer is burned — `afterPouredInBy` (a `Bulkable` `@hook` the pour verb calls) inflicts `heat` on the hands through `ConditionApi`, so a glove takes the edge off |
 | **melting / ignition point** | **survival** (S13, below) |
 | **effusivity** √(kρc) | how fast it draws heat — the misrun's scale (below) |
 
@@ -215,8 +216,10 @@ melting point. At the set, for a metal in a **closed cavity**
 is its own riser and is judged on neither):
 
 - **misrun** iff `superheat < mould.misrunKcm × chill ÷ modulus`, the
-  modulus `V/A` in cm (a shape authoring `length` reads as a prism of it, a
-  blade; anything else as a cube) and `chill = effusivity ÷
+  modulus `V/A` in cm (a shape whose impression carries `lengthM` reads as a
+  prism of it, a blade — a `Weapon`'s does, B104; until then a sword's
+  `Quantity` length was read as `NaN` and every blade judged as a cube;
+  anything else as a cube) and `chill = effusivity ÷
   mould.sandEffusivity`. An arming sword in sand wants ~35 K in hand; a
   bell, a few. A pour that ran short of the cavity is a misrun too. The
   cast carries a visible `misrun` flaw (its look says *it froze before the
@@ -235,8 +238,10 @@ heat through `analyze temperature <crucible>`, the flask's damp through
 ## Pressing — one load from three sources (S16, D25)
 
 `Mould.loadN()` = what is placed **on** the mould × g, plus the
-**screw press** it stands on (`placement.host.pressForceN()` — a duck, so
-any press a pack ships loads a mould the same way). `ScrewPress`
+**screw press** it stands on: what its placement host bears down on it
+(`Placing.bearingLoadN(item)`, B104 — `0` for a shelf, the platen for a
+press; it was a duck-probed `pressForceN()`), so any press a pack ships
+loads a mould the same way. `ScrewPress`
 (`platform/thing`, `PlacingMixin(Good)`, `newtonsPerTurn`, `maxTurns`,
 `turns`) is a **`TurnableMixin`** (`lib/craft/Turnable.ts`, which also affords the verb) that
 the platform verb **`turn`** (`cmd/device/turn.yaml`, alias `tighten`;
@@ -371,3 +376,23 @@ the planned second consumer (the potash build).
 - **Bake and dry** as set processes on `reconcileSetting`.
 - **The sand's re-tempering** (`knead` the heap back to green sand).
 - **Glass press- and blow-moulding** — rows plus a set process.
+
+## ⭐ Failure policy at the set (B104)
+
+The set path follows *refuse, skip or throw*
+([spatial.md](./spatial.md) § Writes on a detached subject):
+
+- A **one-use mould standing nowhere** cannot break to release its cast:
+  `castInto` throws `DetachedError` before anything is minted, and the
+  setting reconcile checks the same thing before it empties the pool.
+  (It used to destroy itself and leave the cast in no place at all.)
+- A **runner with nowhere to go** is the same throw.
+- A **cast row that will not mint**, or is not a tangible, visible thing,
+  throws a `TypeError`; so does a `breaksTo` row that cannot be left. (A
+  failed mint was a console warning, and what set was lost.)
+- A set runs inside a READ, so nothing waits on its cast; the reconcile
+  and the thermal freeze catch and log the failure instead of leaving an
+  unhandled rejection. The deeper fix (an async completion with a root)
+  is in the silent-write-census slate.
+- `pressRelease` makes the cast before it spends the charge.
+

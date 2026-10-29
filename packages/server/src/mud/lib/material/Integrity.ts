@@ -51,9 +51,10 @@ import { Grade } from '../craft/Grade';
  * A body's flaw kinds. ⭐ A casting's two faults are kinds of their own
  * (review R2-D7) so the flaw IS the fact and its words derive from it: a
  * `misrun` froze before the cavity filled; `shrinkage` is the porous place
- * that froze last with nothing to feed it.
+ * that froze last with nothing to feed it; `blowhole` is a damp mould's
+ * steam through the metal (B104 — it was a baked grade and baked prose).
  */
-export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'check';
+export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check';
 
 /** A flaw in a body — a dunt from a heat shock, a crack, a casting fault. */
 export interface Flaw {
@@ -115,6 +116,7 @@ const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
 const MAKING_FAULT: Readonly<Partial<Record<FlawKind, string>>> = {
   misrun: 'poor',
   shrinkage: 'fair',
+  blowhole: 'poor',
   // ⭐ Dried too fast, it checked: a board, a pot — no better than fair. It
   // is also damage (integrity, above); it was Seasoning's own `getGrade`
   // override until B98.
@@ -211,6 +213,7 @@ const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
   misrun: 'It froze before the mould was full: the thin parts are ragged and short, and an edge runs out into nothing.',
   shrinkage:
     'Where it froze last it is porous, pitted with little shrinkage holes — the metal drew in and nothing fed it.',
+  blowhole: 'It is honeycombed with steam holes, where a damp mould blew under the pour.',
   check: 'Fine checks run across its surface where it dried too fast.',
 };
 

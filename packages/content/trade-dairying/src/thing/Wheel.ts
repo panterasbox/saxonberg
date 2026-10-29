@@ -29,7 +29,6 @@ import type {
   WorkPrognosis,
   WorkResult,
 } from '@saxonberg/server/mud/lib/ground/Workable';
-import type { MadeFromHolding } from '@saxonberg/server/mud/lib/mould/Mould';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -53,7 +52,7 @@ function madeFromAugmenter(
   opts?: { filter?: readonly string[] },
 ): string {
   if (!opts?.filter?.includes('taste')) return text;
-  const from = (host as unknown as Wheel).getMadeFrom();
+  const from = MixinApi.isCrafted(host) ? host.getMadeFrom() : '';
   if (!from) return text;
   const milk = StuffApi.findByTemplatePath<Material>(from);
   if (!milk) return text;
@@ -65,7 +64,7 @@ function madeFromAugmenter(
 
 const WheelBase = RipeningMixin(Provision);
 
-export default class Wheel extends WheelBase implements Splittable, MadeFromHolding {
+export default class Wheel extends WheelBase implements Splittable {
   /**
    * `split` — a wheel in the hand (`environment`: what you hold confers on
    * you) or on the shelf beside you (`peers`). ⚠ Not `self`, which is a
@@ -82,15 +81,12 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
   static fieldMeta: FieldMeta = {
     wedgesPerWheel: { persistent: true, authorable: true },
     wedgesLeft: { persistent: true, runtimeState: true },
-    madeFrom: { persistent: true, runtimeState: true },
   };
 
   /** How many wedges this wheel cuts into. */
   public wedgesPerWheel = DEFAULT_WEDGES;
   /** Wedges still in it; `-1` = uncut (the whole of `wedgesPerWheel`). */
   public wedgesLeft = -1;
-  /** The milk it was made from (a material path), or `''`. */
-  public madeFrom = '';
 
   /** The declared shape's marker. */
   public readonly splittable = true as const;
@@ -104,12 +100,6 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
   }
   public getWedgesLeft(): number {
     return this.wedgesLeft < 0 ? this.wedgesPerWheel : this.wedgesLeft;
-  }
-  public getMadeFrom(): string {
-    return this.madeFrom;
-  }
-  public setMadeFrom(materialPath: string): void {
-    this.madeFrom = typeof materialPath === 'string' ? materialPath : '';
   }
 
   // ───────────────────────── the Splittable shape ─────────────────────────

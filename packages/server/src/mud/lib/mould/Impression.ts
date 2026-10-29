@@ -42,6 +42,12 @@ export interface ImpressionData {
    * release (sand, wax) or one of two pieces takes it.
    */
   undercut?: boolean;
+  /**
+   * ⭐ Its length, m, when the shape is long (a blade, a rod) — what makes
+   * a cast's modulus a prism's and not a cube's (Chvorinov). Absent ⇒ the
+   * shape is read as compact.
+   */
+  lengthM?: number;
   /** How the thing it was taken from was called, at the time (`look` names it when the identity is not in the world). */
   takenFromName?: string;
 }
@@ -61,6 +67,7 @@ export class Impression {
       allowance:
         Number.isFinite(data.allowance) && (data.allowance as number) > 0 ? (data.allowance as number) : 0,
       undercut: data.undercut === true,
+      lengthM: Number.isFinite(data.lengthM) && (data.lengthM as number) > 0 ? (data.lengthM as number) : 0,
     };
   }
 
@@ -100,6 +107,11 @@ export class Impression {
   /** Does something stand out of the shape that a one-piece rigid mould cannot draw? */
   public hasUndercut(): boolean {
     return this.data.undercut === true;
+  }
+
+  /** The shape's length, m — `0` when it is compact (read as a cube). */
+  public getLengthM(): number {
+    return this.data.lengthM ?? 0;
   }
 
   /** The name the source went by when the impression was taken, or `''`. */
