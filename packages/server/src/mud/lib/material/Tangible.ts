@@ -80,8 +80,12 @@ export interface ImpactSpec {
   energyJ: number;
   /** What it struck — a floor's material, a target's; `null` = itself. */
   surface: Material | null;
-  /** What dealt it. */
-  cause: 'drop' | 'throw' | 'frost' | 'blow';
+  /**
+   * What dealt it. ⚠ Not frost: a frost bursts GREEN ware, which is still
+   * clay, so it is ruined in place by the piece's own record
+   * (`GreenwareMixin`) — never broken into sherds (review R2-B5).
+   */
+  cause: 'drop' | 'throw' | 'blow';
 }
 
 /** What a blow did. */

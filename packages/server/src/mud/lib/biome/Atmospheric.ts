@@ -2258,8 +2258,10 @@ export function AtmosphericMixin<
     /**
      * ⭐ How many days since `atS` this place's air crossed freezing
      * (ceramics S2) — `0` for a place that holds its own air (a heap kept
-     * indoors stops counting). What weathers a clay heap; what frost-breaks
-     * green ware and spalls a wall.
+     * indoors stops counting). What weathers a clay heap. ⚠ Not what bursts
+     * green ware: a piece reads its OWN temperature trajectory crossing
+     * freezing while it is wet (`GreenwareMixin.reconcileGreen`), because a
+     * dry piece in the same frost is fine (review R2-B5).
      */
     public freezeThawDaysSince(atS: number): number {
       if (this.exposure().holdsAir()) return 0;

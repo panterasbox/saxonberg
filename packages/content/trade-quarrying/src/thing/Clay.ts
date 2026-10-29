@@ -10,7 +10,8 @@
  *
  *  - `plasticity()` — its clay-mineral share, raised by weathering;
  *  - `crackRisk()` — fat (plastic) clay shrinks and cracks as it dries;
- *    sand, grog and breeze open it up;
+ *    sand, grog and breeze open it up (the kernel's one rule, which the
+ *    green piece dries by too);
  *  - `firedColor()` — the iron in it: red, buff, or near white;
  *  - `refractoriness()` — little iron, lime and organic flux, much clay
  *    mineral: a FIRECLAY that stands a furnace's heat.
@@ -34,6 +35,7 @@ import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition';
 import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -282,12 +284,16 @@ export default class Clay extends ClayBase implements Formable {
   }
 
   /**
-   * ⭐ How likely it is to crack as it dries, `0..1`: a fat clay shrinks
-   * hard; sand, grog and breeze open it so the water can leave.
+   * ⭐ How likely it is to crack as it dries, `0..1`: the kernel's ONE rule
+   * over its makeup (`MaterialApi.dryingCrackRiskOf`), the same number the
+   * green piece formed from it dries by (review R2-B2). A fat clay shrinks
+   * hard; sand, grog and breeze open it. ⚠ Weathering is NOT in it: a
+   * winter makes a clay throw better (`plasticity`), and a piece does not
+   * carry its heap's winter, so a weathered term here was a reading the
+   * pot never dried by.
    */
   public crackRisk(): number {
-    const r = this.plasticity() * 1.6 - this.shares().opener * 1.2;
-    return r < 0 ? 0 : r > 1 ? 1 : r;
+    return MaterialApi.dryingCrackRiskOf(this.effectiveMakeup());
   }
 
   /** The colour it fires, by the iron in it. */

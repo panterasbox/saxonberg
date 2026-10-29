@@ -1758,6 +1758,18 @@ left a fork the lens that chose is named.
     hand-copies the maker or the mark's device (the split copies
     identity), only the mark's form.
 
+- **B89 — W-R2b (2026-10-28).**
+  - Crack risk is composition only. Clay's copy added weathering, but a
+    green piece does not carry its heap's winter, so the reading promised
+    a risk the pot never dried by. Lens 1: crack risk stays derivable from
+    what the piece is made of. Weathering's lesson (a winter makes a clay
+    throw better) stays in `plasticity`.
+  - Frost on green ware ruins the piece IN PLACE, the same as a slump or a
+    steam burst. It is still clay, which a potter re-slakes; it is not a
+    fired pot breaking into sherds. So the one detector (the piece's own
+    trajectory crossing freezing while wet) has one outcome, and
+    `sufferImpact` has no frost cause.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
@@ -2325,7 +2337,12 @@ change; e is independent and may land any time after a).
   (runs · soft · stiffening · setting), coloured by the scale; `look`'s
   dark glow reads a lit burner's held heat. B4: vitriol `acidity: 1`
   plus the new `lint:acidity`. B6: see B88.
-- **W-R2b — B2 + B5** (green ware: one crack formula, one frost path; docs fixed).
+- ✅ **W-R2b — B2 + B5** (green ware: one crack formula, one frost path; docs fixed).
+  Done 2026-10-28 (B89). B2: `MaterialApi.dryingCrackRiskOf(makeup)` is
+  the one rule; Greenware and Clay call it. The opener tags already agreed
+  in practice (no row is tagged `sand`; sand is `silica`). B5: the uncalled
+  `'frost'` impact cause was deleted; the Atmospheric comment and
+  materials-response.md were corrected.
 - **W-R2c — D2, D4, D5, D6, D7, D9** (mechanical merges).
 - **W-R2d — D8** (the walking helper — check behavior.md for the home first).
 - **W-R2e — D3** (plaster into Kinetics — after B87 is committed).

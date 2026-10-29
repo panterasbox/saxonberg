@@ -514,6 +514,17 @@ export class MaterialApi {
   public static foldMakeup(parts: readonly MakeupPart[]): CompositionEntry[] {
     return logic().foldMakeup(parts);
   }
+
+  /**
+   * ⭐ How readily a body of this makeup cracks as it dries, `0..1`: the
+   * ONE rule (review R2-B2). A FAT body (much `clay-mineral`) shrinks hard
+   * and cracks; `silica` (sand), `grog` and `breeze` open it so the water
+   * can leave. Read by the clay a potter analyzes and by the green piece
+   * that is drying — so the reading and the outcome cannot disagree.
+   */
+  public static dryingCrackRiskOf(makeup: readonly CompositionEntry[]): number {
+    return logic().dryingCrackRiskOf(makeup);
+  }
 }
 
 SecurityApi.decorateApiClass(MaterialApi);

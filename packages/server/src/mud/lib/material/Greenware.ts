@@ -40,6 +40,7 @@ import { ImpressibleMixin } from '../craft/Impressible';
 import type { Impressible } from '../craft/Impressible';
 import type { ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
+import { MaterialApi } from '../../api/material';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { WorldClockApi } from '../../api/worldclock';
@@ -426,25 +427,15 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
     }
 
     /**
-     * How readily this clay cracks as it dries, `0..1`: a FAT clay (much
-     * clay mineral) high, opened with sand, grog or breeze low. Read off the
-     * piece's own composition when it carries one, else a middling clay.
+     * How readily this piece cracks as it dries — the ONE rule over its
+     * makeup (`MaterialApi.dryingCrackRiskOf`, the rule `analyze clay`
+     * reads). A piece that carries no makeup is a middling clay.
      */
     public dryingCrackRisk(): number {
       if (!this.isGreen()) return 0;
       const self = this as unknown as Stuff;
       if (!MixinApi.isComposition(self)) return 0.5;
-      let fat = 0;
-      let open = 0;
-      for (const e of self.effectiveMakeup()) {
-        const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
-        if (m === null || m === undefined) continue;
-        if (m.hasTag('clay-mineral')) fat += e.fraction;
-        if (m.hasTag('sand') || m.hasTag('grog') || m.hasTag('breeze') || m.hasTag('silica')) {
-          open += e.fraction;
-        }
-      }
-      return Math.max(0, Math.min(1, 1.6 * fat - 1.2 * open));
+      return MaterialApi.dryingCrackRiskOf(self.effectiveMakeup());
     }
   }
   return GreenwareMixin;

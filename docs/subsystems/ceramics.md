@@ -94,7 +94,11 @@ no common ancestor, which is the kernel test). Each composer composes
   - drying faster than its clay stands CHECKS it (a drying crack) — the
     water model's one rule for every drying solid (`cure.crackRate`), a
     board in a hot kiln included; green ware only supplies its clay's crack
-    risk (fat clay high; sand, grog, breeze low, read off its composition).
+    risk (fat clay high; sand, grog, breeze low, read off its composition by
+    the ONE rule `MaterialApi.dryingCrackRiskOf` — the number `analyze clay`
+    reads, so the reading and the pot agree; weathering raises a clay's
+    plasticity, never its crack risk, because a piece does not carry its
+    heap's winter — review R2-B2).
 - ⭐⭐ **Green ends at firing (R2).** Every read answers only while the body
   is its plastic clay and its heat history has converted nothing. The first
   rung ends it: a fired pot's relation to water is its porosity, weep and

@@ -296,6 +296,20 @@ export class MaterialLogic extends ApiLogic {
     return makeupOfImpl(material, own);
   }
 
+  /** See {@link MaterialApi.dryingCrackRiskOf}. */
+  @CallSecurity(MaterialApiCallers)
+  public dryingCrackRiskOf(makeup: readonly CompositionEntry[]): number {
+    let fat = 0;
+    let open = 0;
+    for (const e of makeup) {
+      const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
+      if (m === null || m === undefined) continue;
+      if (m.hasTag('clay-mineral')) fat += e.fraction;
+      else if (m.hasTag('silica') || m.hasTag('grog') || m.hasTag('breeze')) open += e.fraction;
+    }
+    return Math.max(0, Math.min(1, 1.6 * fat - 1.2 * open));
+  }
+
   /** See {@link MaterialApi.foldMakeup}. */
   @CallSecurity(MaterialApiCallers)
   public foldMakeup(parts: readonly MakeupPart[]): CompositionEntry[] {

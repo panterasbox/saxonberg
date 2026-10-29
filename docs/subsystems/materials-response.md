@@ -524,8 +524,10 @@ out — metal conducts (betrays), rubber insulates. See
 Breakage is ONE act on `TangibleMixin`, `sufferImpact({energyJ, surface,
 cause})`, and only a CAUSE calls it: `drop` (m·g·`impact.dropHeightM`),
 `throw` (the delivery profile's joules, when the profile says a vessel would
-shatter), frost on green ware, a blow. ⭐ `put`, `get` and carrying never do —
-nothing breaks from being handled.
+shatter), a blow. ⭐ `put`, `get` and carrying never do — nothing breaks from
+being handled. ⚠ Frost is NOT a cause here: it bursts only GREEN ware, which
+is still clay, so the piece is ruined in place by its own trajectory crossing
+freezing while wet (ceramics.md § green ware) — never broken into sherds.
 
 - **Strength** `impactStrengthJ()` = toughness × V × (V / `impact.reference
   VolumeM3`) × `impact.fractureShare`, V = mass ÷ density — a thicker wall

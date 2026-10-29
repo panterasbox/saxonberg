@@ -14,6 +14,7 @@ import { CompositionMixin } from '../Composition';
 import { GreenwareMixin } from '../Greenware';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
+import { MaterialApi } from '../../../api/material';
 import { BiomeApi } from '../../../api/biome';
 import { ContainmentApi } from '../../../api/containment';
 import Place from '../../stuff/Place';
@@ -72,7 +73,7 @@ beforeEach(() => {
   clay = mat('clay', ['earth', 'plastic', 'clay']);
   terracotta = mat('terracotta', ['ceramic', 'fired', 'brittle']);
   mineral = mat('clay mineral', ['mineral', 'clay-mineral']);
-  sand = mat('sand', ['mineral', 'sand']);
+  sand = mat('sand', ['mineral', 'silica']); // the base-library row's tag
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -175,6 +176,21 @@ describe('the weather', () => {
     expect(fat.getMoisture()).toBeLessThan(1);
     expect(fat.getFlaws().some((f) => f.kind === 'check')).toBe(true);
     expect(lean.getFlaws()).toEqual([]);
+  });
+});
+
+describe('⭐ one crack rule (review R2-B2)', () => {
+  it('the piece dries by the same number `analyze clay` reads off its makeup', () => {
+    const fat = [{ materialPath: mineral.getTemplatePath()!, fraction: 0.8 }];
+    const opened = [
+      { materialPath: mineral.getTemplatePath()!, fraction: 0.6 },
+      { materialPath: sand.getTemplatePath()!, fraction: 0.4 },
+    ];
+    for (const makeup of [fat, opened]) {
+      expect(piece(0.9, makeup).dryingCrackRisk()).toBe(MaterialApi.dryingCrackRiskOf(makeup));
+    }
+    expect(MaterialApi.dryingCrackRiskOf(fat)).toBeCloseTo(1, 6); // 1.6 × 0.8, capped
+    expect(MaterialApi.dryingCrackRiskOf(opened)).toBeCloseTo(1.6 * 0.6 - 1.2 * 0.4, 6); // 0.48
   });
 });
 

@@ -22,6 +22,7 @@ import {
   stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import Clay from '../thing/Clay';
 
 class Yard extends Place {}
@@ -122,6 +123,18 @@ describe('what a clay is made of', () => {
     f.setMakeup(blended);
     expect(f.crackRisk()).toBeLessThan(before);
     expect(f.shares().opener).toBeGreaterThan(0.3);
+  });
+});
+
+describe('⭐ one crack rule (review R2-B2)', () => {
+  it('the reading is the kernel rule the green piece dries by; a winter raises plasticity, not crack risk', () => {
+    const f = lumpOf(fat);
+    expect(f.crackRisk()).toBe(MaterialApi.dryingCrackRiskOf(f.effectiveMakeup()));
+    const raw = f.crackRisk();
+    const rawPlastic = f.plasticity();
+    f.setWeatheredDays(40);
+    expect(f.plasticity()).toBeGreaterThan(rawPlastic);
+    expect(f.crackRisk()).toBe(raw);
   });
 });
 
