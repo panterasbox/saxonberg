@@ -133,6 +133,11 @@ the heavy-world postulate.
 
 ## 7. ⭐ The radius belongs to the planet, not the universe (2026-10-24)
 
+> ⚠ **Host superseded 2026-10-29 → [worlds-slate](../builds/worlds-slate.md) § 2** (the owner): the
+> planet is **a biome** — the nearest in the `extends:` chain declaring a body — under a universe root
+> that becomes space, not the top of a zone tree. Gravity is derived from mass and radius, which keeps
+> the heavy world's 9.81 m/s² (§ 1) exactly.
+
 The owner, reviewing sugar: *"planet radius is something that needs to be
 scoped to content. Right now all our content is on one planet, but making
 content on a new planet needs to be expressible. The problem is the clock,
