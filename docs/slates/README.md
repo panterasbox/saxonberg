@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**391 slates.** 144 greenfield · 107 continuations · 67 waves · 73 tails.
+**392 slates.** 145 greenfield · 107 continuations · 67 waves · 73 tails.
 
-## ⭐ Greenfield — nothing shipped yet (144)
+## ⭐ Greenfield — nothing shipped yet (145)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -169,6 +169,7 @@ respect.
 | [size](./builds/size-slate.md) | sizes as real measures, derived where they can be · a body's envelope (stature × posture, girth, plus what it carries, worn and mounted) · exits with a clearance and defaults by kind · refusals that say what would work, never auto-posture … |
 | [sleep](./builds/sleep-slate.md) | the wake reconcile (state at logout + time away) across every body clock · rest quality from bed, how kept, what you wore, the room's heat · what a night soils · pyjamas as a consequence, never a chore … |
 | [smoking](./builds/smoking-slate.md) | inhalation as a route · nicotine and THC as substance rows · dependence (tolerance, craving, withdrawal, free recovery) · lungs through `wind` and the silent exposure stock … |
+| [stage-and-simulation](./builds/stage-and-simulation-slate.md) | Coordinated Metaversal Time as the one arrow · derived locality clocks and their registry · every age a date with one owner · role age, aged by recasting … |
 | [standing-instructions](./builds/standing-instructions-slate.md) | the whole of it — first, *may a player automate labour at all?* |
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
 | [stratigraphy-and-finds](./builds/stratigraphy-and-finds-slate.md) | ⭐ lore as evidence through finds and the museum · stratigraphy as a reading (index fossils for the surveyor; context as information) · fossils as nature's moulds and casts, seeded and exposed by digging and erosion · their uses (survey, coprolite fertilizer, collectors, gems) … |
@@ -250,7 +251,7 @@ are the named remainders.
 | [land-use-covenant](./builds/land-use-covenant-slate.md) | the covenant row on the title · the `epoch` stamp on every other trade's instrument rows + the act's declared `kind` · the one breach producer at the binder (a fifth `AccountabilityKind`) · the designation tier (polity-imposed, via legal-code) … |
 | [legal-code](./builds/legal-code-slate.md) | the extent-rooted placement (`<extent>/law/`) + re-deriving the realm/city tier against the address model · the instrument taxonomy + the closed clause-`kind` vocabulary · received law (`process: founding`) · prose + typed clauses, the prose⊗clause authoring tooling (interpolated values) and its lint … |
 | [legibility](./builds/legibility-slate.md) | Part C — contents **grouping** beside `looseContents`, consumed by the same three call sites, and the card's dead `+N more` · Part D — cut `sense`, point arrival at `look`, untagged prose becomes vision-channel prose |
-| [lineage](./builds/lineage-slate.md) | person + household records · a `kind: 'gallery'` field + row payload · the gallery UI (grid / detail / pin / reroll) · the typed hook vocabulary + the balance weights … |
+| [lineage](./builds/lineage-slate.md) | the age band — adult only, declared, moving only by the player's choice · person + household records · a `kind: 'gallery'` field + row payload · the gallery UI (grid / detail / pin / reroll) … |
 | [livelihood](./builds/livelihood-slate.md) | §1's death salience-by-place + the lethal-cost debt, and old age/succession · §2's whole adjudication stack (target standing × authorization legitimacy, institutions, liability-laundering, frontier law) + illicit arrangements · §3's systemic need-generator + NPC claiming, and the board's pricing + gating · §4's CB allocation + insolvency backstop for business credit, and a capital market … |
 | [lock](./builds/lock-slate.md) | ⭐⭐ **`lockcraft` and the locksmith** (§ 3) — the trade, the competence, the guild, and the answer to the two lenses the shipped design outright fails · the master key's seat (§ 1) · a readable key-holder record and selective revocation (§ 2) · the lock-technology namespace and the gate that must own it (§ 4) |
 | [logistics](./builds/logistics-slate.md) | piracy + turmoil (a road is safe if help arrives) · live cargo and drovers (the steer walks, the carcass rides) · infrastructure politics — tollgate, turnpike trust, the barricade on a lane edge, banditry, congestion, road wear · rail and the ore train (a data addition on the lane substrate; the train robbery is its integration test; ship with trains or arrive as a shock) … |

@@ -141,8 +141,9 @@ The four-row matrix lives in the rulebook — the ruling, the authors' requireme
 
 1. ⚠ **What the dying windows should be in real time** — the stated figures read as real seconds
    (90 s to 10 min) match the emergency designs.
-2. **Aging** — on the calendar a character ages twelve years per real year. A fifth pace for a
-   character's life, or the price of the calendar?
+2. ✅ **Aging — answered 2026-10-29**: players do not age (an adult age band, [lineage-slate](./lineage-slate.md));
+   lifespans are paced to be witnessed, pets on the calendar
+   ([stage-and-simulation-slate](./stage-and-simulation-slate.md) § 4).
 3. ⚠ **Attended work** — boiling, smelting and the sugar pan are physics, so calendar pace; they fit a
    session only because of 12×, so a scale change makes authors recheck them. Accept the leak, or a
    pace of its own?
