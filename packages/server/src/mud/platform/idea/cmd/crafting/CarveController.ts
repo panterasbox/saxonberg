@@ -4,11 +4,12 @@
  * ⭐⭐ **Promoted to the platform (ceramics D14), and dumb.** `carve` is one
  * act — cutting away to a form with an edge — and two things can be carved:
  *
- *  1. a TARGET that plans its own carving (`CarvableMixin.carvePlanFor`): a
- *     leather-hard pot turns a foot, trims, takes a pattern
- *     (`GreenwareMixin`), and says itself when it is too soft or too dry;
- *  2. otherwise the generic CARVING-RECIPE path below — carpentry's whole
- *     use of the verb, unchanged.
+ *  1. a thing that plans its own carving (`CarvableMixin.carvePlanFor`),
+ *     named ON (the target) or FROM (the stock): a leather-hard pot turns
+ *     a foot (`GreenwareMixin`), a board cuts a founder's pattern
+ *     (carpentry's `PatternStockMixin`), and each says itself why not;
+ *  2. when it has nothing to say (`null`), the generic CARVING-RECIPE path
+ *     below — the named thing is then the stock.
  *
  * Shapes one piece of wood into one part with an edge: a haft, a handle,
  * a peg, a dowel, a leg, a rail, a mallet. ⭐ **The by-hand rung of the
@@ -76,69 +77,50 @@ export default class CarveController extends ManualBuildController<CarveModel> {
     const giver = context.commandGiver;
     const word = (model.thing?.raw ?? '').trim().toLowerCase();
 
-    // ⭐ (ceramics D23) `carve pattern of <thing> [from <wood>] [for
-    // <metal>]` — the STOCK plans a pattern: a board or a blank cut
-    // oversize to the thing's shape by the metal's shrinkage.
-    if (model.of) {
-      const of = model.of.stuff ?? null;
-      if (of === null) {
+    // The object args, each told when it names nothing here.
+    for (const field of ['target', 'stock', 'of'] as const) {
+      const arg = model[field];
+      if (arg && (arg.stuff ?? null) === null) {
         MessageApi.scene(giver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`You don't see any '${model.of.raw}' to carve a pattern of.`)
+          .toSelf(Mml.compose`You don't see any '${arg.raw}' here.`)
           .send();
-        context.note({ kind: 'empty-result', field: 'of', query: model.of.raw });
+        context.note({ kind: 'empty-result', field, query: arg.raw });
         return;
       }
-      const stock = model.stock?.stuff ?? model.target?.stuff ?? null;
-      const plan =
-        stock !== null && MixinApi.isCarvable(stock)
-          ? await stock.carvePlanFor({
-              actor: giver,
-              word,
-              knife: model.knife?.stuff ?? null,
-              of,
-              forWord: (model.for?.raw ?? '').trim().toLowerCase(),
-            })
-          : null;
-      if (plan === null) {
-        this.turnDown(
-          context,
-          'no-stock',
-          Mml.compose`Carve it from what? Name a board or a blank — \`carve pattern of ${Mml.thing(of)} from board\`.`,
-        );
-        return;
-      }
-      if (!plan.ok) {
-        this.turnDown(context, plan.reason, plan.line);
-        return;
-      }
-      await this.engagePlan(context, plan);
-      return;
     }
 
-    // ⭐ A target that plans its own carving answers first.
+    // ⭐ ONE request, asked of the thing named — what to carve ON, else
+    // what to carve it FROM. It plans, refuses in its own words, or has
+    // nothing to say (`null`), and then the recipe path below takes the
+    // word: a board plans a pattern, and a peg off it is a recipe
+    // (B103 — this verb no longer knows what a pattern is).
     const target = model.target?.stuff ?? null;
-    if (model.target && target === null) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You don't see any '${model.target.raw}' here.`)
-        .send();
-      context.note({ kind: 'empty-result', field: 'target', query: model.target.raw });
-      return;
+    const named = target ?? model.stock?.stuff ?? null;
+    if (named !== null && MixinApi.isCarvable(named)) {
+      const plan = await named.carvePlanFor({
+        actor: giver,
+        word,
+        knife: model.knife?.stuff ?? null,
+        ...(model.of ? { of: model.of.stuff ?? null } : {}),
+        forWord: (model.for?.raw ?? '').trim().toLowerCase(),
+      });
+      if (plan !== null) {
+        if (!plan.ok) {
+          this.turnDown(context, plan.reason, plan.line);
+          return;
+        }
+        await this.engagePlan(context, plan);
+        return;
+      }
     }
-    if (target !== null) {
-      const plan = MixinApi.isCarvable(target)
-        ? await target.carvePlanFor({ actor: giver, word, knife: model.knife?.stuff ?? null })
-        : null;
-      if (plan === null) {
-        this.turnDown(context, 'not-carvable', Mml.compose`There is nothing to carve on ${Mml.thing(target)}.`);
-        return;
-      }
-      if (!plan.ok) {
-        this.turnDown(context, plan.reason, plan.line);
-        return;
-      }
-      await this.engagePlan(context, plan);
+    // A copy OF something is only ever a thing's own plan.
+    if (model.of) {
+      this.turnDown(
+        context,
+        'not-carvable',
+        Mml.compose`Nothing here will carve a copy of ${Mml.thing(model.of.stuff!)}. Name the piece to carve it from.`,
+      );
       return;
     }
 
@@ -186,15 +168,8 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       return;
     }
 
-    const stock = model.stock?.stuff ?? null;
-    if (model.stock && stock === null) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You don't see any '${model.stock.raw}' here.`)
-        .send();
-      context.note({ kind: 'empty-result', field: 'stock', query: model.stock.raw });
-      return;
-    }
+    // `carve peg on board` and `carve peg from board` are one carving.
+    const stock = model.stock?.stuff ?? target;
 
     const outcome = await CraftingApi.craft({
       recipeRef: recipe.getRecipeId(),

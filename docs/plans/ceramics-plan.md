@@ -2044,10 +2044,32 @@ left a fork the lens that chose is named.
   `BrickTable` and `Blowpipe` already did. Kept as-is, by decision:
   `Formable` stays a plain interface (no verb binds it), and `formTemplates`
   stays a fallback. A new `ShapeController` test pins the refusal.
+- **B103 — PatternStock: a stock that answers only a pattern (owner,
+  2026-10-29).** Six fixes, mixin kept (wax and plaster patterns are not
+  wood, so a base class would break):
+  1. `carvePlanFor` returns `null` for any word but a pattern, and
+     `CarveController` asks ONE request of the thing named on, else from;
+     `null` falls to the recipe path with that thing as stock. `carve peg on
+     board` used to be refused as "you can carve a pattern".
+  2. The controller lost its pattern branch and its "board or a blank"
+     words: it collects `word`/`of`/`for`/`knife` and asks.
+  3. `onComplete` is returned, not launched; the pattern lands in hand
+     before the stock is spent; a carver who cannot hold it throws.
+     `engagePlan`'s engaged completion now catches a rejected async
+     completion (the scheduler's completion is synchronous, so it had no
+     root); the deeper fix is slated in silent-write-census.
+  4. Green stock is refused (`green-stock`); seasoning lifts it. The
+     shipped board row is authored seasoned, so drive 34 is unaffected.
+  5. The pattern is stamped through `Crafted.stamp`, graded by
+     `Grade.deriveAtFixedControl` over the stock's grade (its making faults
+     already in it). ⚠ Deviation from the review note: NOT by the carver's
+     band. No carving recipe grades by band (the kernel's deferred skill
+     seam), and a pattern should not be the one carving that does.
+  6. `metalNamed` folded into the mixin as a protected method.
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding
-  (B101) · Forming (B102, pending). Still to review from the MR's new
+  (B101) · Forming (B102) · PatternStock (B103). Still to review from the MR's new
   mixins: the eight protocol mixins are parked by the verb-interfaces
   slate's decision (earned or verb-checks). Ask the owner which mixin or
   system is next.

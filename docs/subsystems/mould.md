@@ -108,7 +108,10 @@ the thing comes out *"a shade smaller than what it was taken from"*. A
 pattern carved for the metal (`carve pattern of <thing> from <board> for
 <metal>` — the board or blank plans it, `PatternStockMixin` in carpentry's
 `lib/`) holds the impression scaled `(1 + s)³` with `allowance: s`, and
-casts TRUE.
+casts TRUE. It must be cut from SEASONED stock: green wood shrinks after it
+is cut, so it is refused in those words. The pattern is graded like any
+carving, by the weakest link, so a checked board makes it no better than
+fair.
 
 ## How a thing sets — the MATTER's business
 

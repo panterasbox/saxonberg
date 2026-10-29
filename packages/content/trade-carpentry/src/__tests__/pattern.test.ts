@@ -20,12 +20,17 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { BiomeApi } from '@saxonberg/server/mud/api/biome';
+import { Evaporation } from '@saxonberg/server/mud/lib/material/Evaporation';
 
 class TestHands extends ContainerMixin(Good) {
   static _mixinName = 'TestPatternHands';
 }
 
 const OAK = '/stuff/idea/material/_pattern/oak';
+const GREEN_OAK = '/stuff/idea/material/_pattern/seasoning-oak';
 const BRONZE = '/stuff/idea/material/_pattern/bronze';
 const SWORD = '/stuff/thing/_pattern/sword';
 
@@ -45,6 +50,10 @@ describe('carve pattern (ceramics D23)', () => {
     installV1QuantityMarshallers();
     WorldClockApi._setNowProviderForTesting(() => 7000);
     material(OAK, (m) => m.setDensity(Quantity.of(750, 'kg/m³')));
+    material(GREEN_OAK, (m) => {
+      m.setDensity(Quantity.of(750, 'kg/m³'));
+      m.seasoningDays = 100;
+    });
     const bronze = material(BRONZE, (m) => {
       m.setTags(['metal']);
       m.setDensity(Quantity.of(8800, 'kg/m³'));
@@ -77,10 +86,9 @@ describe('carve pattern (ceramics D23)', () => {
     const knife = makeStuff(() => new Tool());
     knife.setCapabilities(['cutting']);
     const plan = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: sword, forWord: 'bronze' });
-    expect(plan.ok).toBe(true);
-    if (!plan.ok) return;
-    plan.onComplete();
-    for (let i = 0; i < 6; i++) await new Promise((r) => setTimeout(r, 0));
+    expect(plan?.ok).toBe(true);
+    if (!plan?.ok) return;
+    await plan.onComplete();
     const pattern = hands.getContents().find((c) => c instanceof Pattern) as Pattern | undefined;
     expect(pattern).toBeDefined();
     const imp = pattern!.leaveImpression(0)!;
@@ -103,11 +111,64 @@ describe('carve pattern (ceramics D23)', () => {
     thing.setMass(Quantity.of(1, 'kg'));
     const hands = makeStuff(() => new TestHands());
     const noEdge = await board.carvePlanFor({ actor: hands, word: 'pattern', knife: null, of: thing, forWord: '' });
-    expect(noEdge.ok).toBe(false);
+    expect(noEdge?.ok).toBe(false);
     const knife = makeStuff(() => new Tool());
     knife.setCapabilities(['cutting']);
     const noMetal = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: thing, forWord: '' });
-    expect(noMetal.ok).toBe(false);
-    if (!noMetal.ok) expect(noMetal.reason).toBe('no-metal');
+    expect(noMetal?.ok).toBe(false);
+    if (noMetal && !noMetal.ok) expect(noMetal.reason).toBe('no-metal');
+  });
+
+  /** A seasoned oak board in a carver's hands, a bronze sword, an edge. */
+  function bench(woodPath = OAK) {
+    const hands = makeStuffAtPath(() => new TestHands(), '/platform/agent/Avatar/pattern-maker');
+    const board = makeStuff(() => new Board());
+    board.setMaterial(StuffApi.findByTemplatePath<Material>(woodPath)!);
+    board.setMass(Quantity.of(6, 'kg'));
+    ContainmentApi.move(board, hands);
+    const sword = makeStuff(() => new Good());
+    stampTemplatePathForTest(sword, SWORD);
+    sword.setMaterial(StuffApi.findByTemplatePath<Material>(BRONZE)!);
+    sword.setMass(Quantity.of(1, 'kg'));
+    const knife = makeStuff(() => new Tool());
+    knife.setCapabilities(['cutting']);
+    return { hands, board, sword, knife };
+  }
+
+  it('⭐ any word but a pattern is not the board\'s to plan — `carve peg on board` is a recipe (B103)', async () => {
+    const { hands, board, knife } = bench();
+    expect(await board.carvePlanFor({ actor: hands, word: 'peg', knife })).toBeNull();
+  });
+
+  it('⭐ green stock is refused: it would shrink after it was cut (B103)', async () => {
+    // Still air: the board neither dries nor wets while it is asked.
+    const air = new Evaporation(55, 0, 290);
+    vi.spyOn(BiomeApi, 'airFor').mockImplementation((() => air) as never);
+    vi.spyOn(BiomeApi, 'localHumidityFor').mockImplementation((() => air.humidityPct) as never);
+    vi.spyOn(BiomeApi, 'airSegmentsFor').mockImplementation(((_s: unknown, t0: number, t1: number) => [
+      { air, durationS: t1 - t0, rainMmPerH: 0 },
+    ]) as never);
+    const { hands, board, sword, knife } = bench(GREEN_OAK);
+    board.setSeasonedFraction(0);
+    const plan = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: sword, forWord: 'bronze' });
+    expect(plan && !plan.ok ? plan.reason : null).toBe('green-stock');
+    board.setSeasonedFraction(1);
+    const later = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: sword, forWord: 'bronze' });
+    expect(later?.ok).toBe(true);
+  });
+
+  it('⭐ a checked board makes a pattern no better than fair — weakest link (B103)', async () => {
+    const { hands, board, sword, knife } = bench();
+    // (Narrowed: TS loses the grade surface down this mixin chain.)
+    if (!MixinApi.isGraded(board)) throw new Error('a board is graded');
+    board.setGrade(Grade.of('fine'));
+    board.addFlaw('check', true);
+    const plan = await board.carvePlanFor({ actor: hands, word: 'pattern', knife, of: sword, forWord: 'bronze' });
+    if (!plan?.ok) throw new Error('expected a plan');
+    await plan.onComplete();
+    const pattern = hands.getContents().find((c) => c instanceof Pattern) as Pattern;
+    if (!MixinApi.isGraded(pattern)) throw new Error('a pattern is graded');
+    expect(pattern.getGrade().getBand()).toBe('fair');
+    expect(pattern.getMaker()).not.toBe('');
   });
 });

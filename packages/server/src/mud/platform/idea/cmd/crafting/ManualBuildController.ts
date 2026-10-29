@@ -151,11 +151,20 @@ export abstract class ManualBuildController<
       beginSelf: plan.beginSelf,
       beginPeers: plan.beginPeers,
       onComplete: () => {
-        void Promise.resolve(plan.onComplete()).then((out) => {
-          if (out && !out.ok && !giver.isDestroyed()) {
-            MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(out.line).send();
-          }
-        });
+        // ⚠ The scheduler's completion is synchronous, so an async plan's
+        // throw would land after its root returned — an unhandled
+        // rejection nobody sees. Caught and said here, as the scheduler
+        // says a sync one (silent-write-census slate: async completions).
+        Promise.resolve()
+          .then(() => plan.onComplete())
+          .then((out) => {
+            if (out && !out.ok && !giver.isDestroyed()) {
+              MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(out.line).send();
+            }
+          })
+          .catch((err: unknown) => {
+            console.error('ManualBuildController: a planned act failed at completion', err);
+          });
       },
       onAbort: plan.onAbort,
     });

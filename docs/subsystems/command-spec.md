@@ -249,13 +249,15 @@ glassblower's `shape bottle` binds as it always did.
 ### `carve` and `impress` (ceramics W4) — the same rung
 
 - **`carve`** moved from `trade-carpentry` to `platform/cmd/crafting/carve.yaml`
-  (`carve <part> [on <target>] [from <stock>] [with <edge>]`). A TARGET that
-  is a `CarvableMixin` plans its own carving (`carvePlanFor`) — a
-  leather-hard pot turns a foot, trims, cuts a design (`GreenwareMixin`), a
-  mould cuts a riser, a board or a blank a founder's pattern
-  (`PatternStockMixin`) — and says itself when it is too soft or too dry.
-  With no target the controller runs the generic carving-RECIPE path (one
-  item of wood, an edge, no heat) exactly as carpentry did;
+  (`carve <part> [on <target>] [from <stock>] [with <edge>]`). The thing
+  named ON, else FROM, is asked one request; a `CarvableMixin` plans its
+  own carving (`carvePlanFor`) — a leather-hard pot turns a foot, trims,
+  cuts a design (`GreenwareMixin`), a mould cuts a riser, a board or a
+  blank a founder's pattern (`PatternStockMixin`) — and says itself why
+  not. When it has nothing to say (`null`) the controller runs the generic
+  carving-RECIPE path (one item of wood, an edge, no heat) with that thing
+  as the stock, so `carve peg on board` and `carve peg from board` are one
+  carving. The controller knows no pattern (B103);
   `CarvableMixin` affords the platform view. Every shipped
   form (`carve haft`, `carve peg from the blank`, `carve handle with the
   billhook`) binds as before.

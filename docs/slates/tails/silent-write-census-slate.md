@@ -41,6 +41,15 @@ to be a read and annotated as one.
 - `Mould.creditDrainings`: what the vessel below has no room for "runs
   away". This one is a deliberate model, not a skip; annotate it as such.
 
+- **An async completion has no root to reach** (ceramics review, B103).
+  The scheduler's `onComplete` is synchronous (`SchedulerRegistry
+  .safeInvokeComplete`): a sync throw is logged and the step aborted with
+  `thrown`, but a completion that returns a promise has already left the
+  root when it rejects. `ManualBuildController.engagePlan` now catches and
+  logs, so nothing is an unhandled rejection; still missing are the author
+  diagnostic and the `thrown` envelope a sync throw gets. The fix is the
+  scheduler awaiting a returned promise under `runRootGuarded('swallow')`.
+
 ## Rides into
 
 Any build. It is a sweep with a gate. The first consumer is the next build
