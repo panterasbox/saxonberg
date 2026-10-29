@@ -30,7 +30,7 @@ import { MixinApi } from '../../api/mixin';
 export interface Durable {
   /**
    * ⭐ Condition, 0 (worn out) .. 1 (pristine): the wear gauge times the
-   * body's integrity (`Tangible.getIntegrity` — its cracks, dunts and
+   * body's integrity (`Integrity.getIntegrity` — its cracks, dunts and
    * checks). ONE record (review R2-D1): a cracked jug reads worn, enough
    * cracks break it, and its strength under a blow reads this same number.
    */
@@ -182,7 +182,7 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getCondition(): number {
       const self = this as unknown as Stuff;
-      const integrity = MixinApi.isTangible(self) ? self.getIntegrity() : 1;
+      const integrity = MixinApi.isIntegrity(self) ? self.getIntegrity() : 1;
       return this._condition * integrity;
     }
 

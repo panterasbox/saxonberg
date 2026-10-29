@@ -247,7 +247,7 @@ async function landDrop(item: Stuff, room: Stuff, by: Stuff): Promise<void> {
   // ⭐ A dropped piece can MERGE into a like stack on the floor and be gone
   // by now (a brick onto the hacks' brick stack): the stack it joined did
   // not fall, so there is nothing to land.
-  if (item.isDestroyed() || !MixinApi.isTangible(item)) return;
+  if (item.isDestroyed() || !MixinApi.isIntegrity(item)) return;
   const kg = item.getMass()?.rawValue();
   if (typeof kg !== 'number' || !(kg > 0)) return;
   const floor = (MixinApi.isAdornable(room) ? room.getFloor() : null) as Stuff | null;

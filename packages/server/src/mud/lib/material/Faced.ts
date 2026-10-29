@@ -256,7 +256,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public holdsWater(face: FaceName): boolean {
       // ⭐ A crack through the wall leaks whatever is laid on it (M5).
       const self = this as unknown as Stuff;
-      if (MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'crack')) return false;
+      if (MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack')) return false;
       // ⭐ A sound coat holds water when its MATERIAL is tight — a glaze is,
       // a limewash would not be; a run coat still covers. Crazed and crawled
       // coats have opened, and the body answers.

@@ -214,7 +214,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
     // ⭐ (ceramics M5) And whether it breaks is the ONE breakage act: the
     // throw's joules against its own strength and what it struck — a
     // stoneware jug hurled at a wall breaks; one landing in hay does not.
-    if (plan.profile.canShatter() && plan.placement !== "miss" && MixinApi.isTangible(item)) {
+    if (plan.profile.canShatter() && plan.placement !== "miss" && MixinApi.isIntegrity(item)) {
       const struck = MixinApi.isTangible(target) ? target.getMaterial() : null;
       const flawedBefore = item.getFlaws().length;
       const impact = { energyJ: plan.profile.energyJ, surface: struck, cause: "throw" as const };

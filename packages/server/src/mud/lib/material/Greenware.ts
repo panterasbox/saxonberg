@@ -415,7 +415,7 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Wate
         } else if (wetPiece && (minK < 273.15 || maxK > 373.15)) {
           this.greenRuin = 'shattered';
           this.greenBurstBy = minK < 273.15 ? 'frost' : 'steam';
-          if (MixinApi.isTangible(self)) self.addFlaw('crack', true, nowS);
+          if (MixinApi.isIntegrity(self)) self.addFlaw('crack', true, nowS);
         }
         this.greenCheckedS = nowS;
         this.greenLastDryness = dry;

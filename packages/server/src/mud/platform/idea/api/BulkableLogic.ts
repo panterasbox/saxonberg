@@ -382,7 +382,7 @@ export class BulkableLogic extends ApiLogic {
       const receiver = to.getHolder() as unknown as Stuff;
       const pourK = from.getTemperatureK();
       const reception =
-        MixinApi.isTangible(receiver) && pourK !== null && pourK > 0
+        MixinApi.isBulkable(receiver) && pourK !== null && pourK > 0
           ? receiver.canReceiveAtK(pourK)
           : 'holds';
       if (reception !== 'holds') {

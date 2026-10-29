@@ -346,7 +346,7 @@ values are honest, not tuned to make a flask break.
 `shatter` integrity means only that the projectile CAN shatter — its
 material is `brittle`, the same predicate the breakage rule uses — and
 `canShatter()` says so. Whether THIS arrival breaks it is
-`TangibleMixin.impactVerdict`: the joules against its strength and the
+`IntegrityMixin.impactVerdict`: the joules against its strength and the
 hardness of what it struck. The retired `toughness < 1` line called a
 hurled stoneware jug (toughness 7) recoverable, so the jug's own verdict
 was never asked.

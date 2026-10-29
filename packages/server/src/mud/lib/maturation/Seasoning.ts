@@ -260,7 +260,7 @@ export function SeasoningMixin<TBase extends MixinConstructor<Stuff & WaterActiv
       // Bring the water current: a check is laid by the drying it records.
       (this as unknown as WaterActive).getMoisture();
       const self = this as unknown as Stuff;
-      const checked = MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'check');
+      const checked = MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'check');
       return checked ? g.min(Grade.of('fair')) : g;
     }
 

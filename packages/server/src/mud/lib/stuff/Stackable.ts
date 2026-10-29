@@ -45,7 +45,7 @@ import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
 import type { Thermal } from '../thermal/Thermal';
 import type { Faced } from '../material/Faced';
-import type { Tangible } from '../material/Tangible';
+import type { Integrity } from '../material/Integrity';
 import type { Greenware } from '../material/Greenware';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
@@ -258,7 +258,7 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
       // ⭐ A cracked brick and a sound one are different goods (R2-B6) — by
       // the flaws an EYE can find. A hidden one does not split the pile
       // (refusing would tell what only `ring` may); it rides the merge.
-      if (MixinApi.isTangible(self) && MixinApi.isTangible(other)) {
+      if (MixinApi.isIntegrity(self) && MixinApi.isIntegrity(other)) {
         if (flawSignature(self) !== flawSignature(other)) return false;
       }
       // ⭐ A pile of green ware has ONE water state and one ruin: a fresh wet
@@ -395,7 +395,7 @@ function firedSignature(s: Stuff & Thermal): string {
 }
 
 /** The flaws an eye can find, as one comparable string (hidden ones excluded). */
-function flawSignature(s: Stuff & Tangible): string {
+function flawSignature(s: Stuff & Integrity): string {
   return s
     .getFlaws()
     .filter((f) => f.visible)

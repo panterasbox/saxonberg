@@ -12,6 +12,7 @@ import Material from '../Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
 import { ReservedMixin } from '../../reserve';
+import { BulkableMixin } from '../../bulk/Bulkable';
 import { CombustibleMixin } from '../../fire/Combustible';
 import { Quantity } from '../../quantity';
 import {
@@ -20,9 +21,9 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-/** A board: wets, holds heat, and is not itself a fuel. */
-class Board extends WetMixin(ThermalMixin(Good)) {
-  static _mixinName = 'TestIgnitionBoard';
+/** A wooden tub: what a pour is poured INTO asks whether it survives it. */
+class Tub extends BulkableMixin(WetMixin(ThermalMixin(Good))) {
+  static _mixinName = 'TestIgnitionTub';
 }
 
 /** The same body as a fuel, to prove the two reads are one formula. */
@@ -44,7 +45,7 @@ function wood(): Material {
   }, `/stuff/idea/material/_test/ignition-wood-${n}`) as unknown as Material;
 }
 
-function body<T extends Board | Log>(make: () => T, mat: Material): T {
+function body<T extends Log | Tub>(make: () => T, mat: Material): T {
   return makeStuff(() => {
     const b = make();
     b.setMass(Quantity.of(1, 'kg'));
@@ -58,10 +59,10 @@ function body<T extends Board | Log>(make: () => T, mat: Material): T {
 describe('a body’s ignition point reads the water it holds (R2-B1)', () => {
   beforeEach(() => installV1QuantityMarshallers());
 
-  it('a dry board burns under a 700 K pour; a soaked one holds', () => {
+  it('a dry wooden tub burns under a 700 K pour; a soaked one holds', () => {
     const mat = wood();
-    const dry = body(() => new Board(), mat);
-    const wet = body(() => new Board(), mat);
+    const dry = body(() => new Tub(), mat);
+    const wet = body(() => new Tub(), mat);
     wet.wet(1);
     expect(dry.getIgnitionPointK()).toBe(570);
     expect(dry.canReceiveAtK(700)).toBe('burns');
@@ -79,7 +80,7 @@ describe('a body’s ignition point reads the water it holds (R2-B1)', () => {
   it('a material that never burns has no ignition point, wet or dry', () => {
     const mat = wood();
     mat.setAutoignitionTemperature(Quantity.of(0, 'K'));
-    const b = body(() => new Board(), mat);
+    const b = body(() => new Tub(), mat);
     b.wet(1);
     expect(b.getIgnitionPointK()).toBe(0);
     expect(b.canReceiveAtK(5000)).toBe('holds');

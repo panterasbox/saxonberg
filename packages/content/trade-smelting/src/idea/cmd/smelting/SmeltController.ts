@@ -877,7 +877,7 @@ async function runIntoCrucible(
     // at the end it CRACKS — a cracked crucible holds nothing.
     if (keptL > 0 && MixinApi.isDurable(crucible)) {
       crucible.wear(crucibleWearPerMelt());
-      if (crucible.isBroken() && MixinApi.isTangible(crucible) &&
+      if (crucible.isBroken() && MixinApi.isIntegrity(crucible) &&
         !crucible.getFlaws().some((f) => f.kind === 'crack')) {
         crucible.addFlaw('crack', true);
       }

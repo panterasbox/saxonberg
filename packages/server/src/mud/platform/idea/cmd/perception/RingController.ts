@@ -1,6 +1,6 @@
 /**
  * RingController — `ring <thing>`. ⭐ Dumb (ceramics M5, D8): the THING
- * answers how it sounds (`TangibleMixin.ring`) — clear when sound and hard,
+ * answers how it sounds (`IntegrityMixin.ringSound`) — clear when sound and hard,
  * dead when soft, a buzzing clack when cracked somewhere, even where no eye
  * can find it. The controller binds and asks.
  */
@@ -19,7 +19,7 @@ interface RingModel extends CommandModel {
 export default class RingController extends CommandController<RingModel> {
   execute(model: RingModel, context: CommandContext): void {
     const target = model.target?.stuff ?? null;
-    if (target === null || !MixinApi.isTangible(target)) {
+    if (target === null || !MixinApi.isIntegrity(target)) {
       MessageApi.scene(context.commandGiver)
         .topic('act.deed')
         .toSelf(Mml.compose`Ring what? There is nothing there to tap.`)

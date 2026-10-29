@@ -1853,6 +1853,32 @@ left a fork the lens that chose is named.
   - Not done: a part fitted into a whole carries its wear but not its
     flaws. That gap predates this wave.
 
+- **B94 — IntegrityMixin: the damage record leaves Tangible (owner,
+  2026-10-29).** This MR had put 561 lines on `TangibleMixin`, which every
+  Thing, Agent and fixture composes, so walls, floors and people claimed
+  flaws, a ring and a cast record.
+  - **New: `IntegrityMixin`** (`lib/material/Integrity.ts`, with state:
+    `flaws`), composed on `Good` and `Vessel` beside Chattel and
+    Concealable, the shipped pair for "an article". It holds flaws,
+    integrity, the impact strength/verdict/blow, `ringSound`, the making
+    faults' grade ceiling, and the ring verb's affordance (`ring.yaml`
+    binds `[IntegrityMixin]`).
+  - **`canReceiveAtK` moves to `BulkableMixin`**: the pour asks the
+    receiving vessel.
+  - **Stays on Tangible**, because it is true of all matter: material,
+    mass, the ignition point and its wet penalty, `throw`, and
+    `leaveImpression`. A face pressed into plaster is a likeness (M9), so
+    impressions are not articles-only.
+  - **Readers switched** from `isTangible` to `isIntegrity`: Durable,
+    Graded, Stackable(Logic), throw, drop, ring, Thermal's shock crack,
+    Faced, WaterActivity, Seasoning, Greenware, Mould, repair, the
+    crucible.
+  - **⚠ OPEN, the owner's call — `castFrom` stays on Tangible for now.**
+    Moving it to `Crafted` (how a thing was made) would silently drop it
+    from `Casting`, `Ingot` and `MetalCasting`, which do not compose
+    `Crafted`. So a metal casting records no maker and has no grade, and
+    W-R2f's misrun ceiling cannot reach it.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

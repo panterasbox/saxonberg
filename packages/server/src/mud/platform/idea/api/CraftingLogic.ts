@@ -4222,7 +4222,7 @@ async function mendAssembly(
  */
 async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
   // A rivet is a mend, and a mend is recorded on a durable good.
-  if (!MixinApi.isTangible(item) || !MixinApi.isDurable(item)) return;
+  if (!MixinApi.isIntegrity(item) || !MixinApi.isDurable(item)) return;
   if (!(item.getMaterial()?.hasTag('brittle') ?? false)) return;
   const open = item.getFlaws().filter((f) => (f.kind === 'crack' || f.kind === 'dunt') && !f.mended);
   if (open.length === 0) return;
@@ -4243,7 +4243,7 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
     return;
   }
   // ⭐ The rivet is recorded ONCE, as a mend (review R2-D1): the flaws it
-  // closed read it (`Tangible.getFlaws`), and the condition comes back.
+  // closed read it (`Integrity.getFlaws`), and the condition comes back.
   if (m.commit && MixinApi.isDurable(item)) {
     item.recordMend(mendRecord(m, band, discipline, 'riveted', 'sound'));
   }
@@ -4899,7 +4899,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   }
   // ⭐ The mismatched slip join: a crack that opens where the two meet as
   // they dry — a drying crack (`check`) on the whole, seen.
-  if (slipMismatch && MixinApi.isTangible(whole)) {
+  if (slipMismatch && MixinApi.isIntegrity(whole)) {
     whole.addFlaw('check', true, nowGameS());
   }
   // The whole is as good as its worst line (weakest link).

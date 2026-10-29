@@ -825,7 +825,7 @@ export function WaterActivityMixin<TBase extends MixinConstructor<Stuff>>(Base: 
         }
         this._moisture = moisture;
         this.waterClockStamp = nowS;
-        if (checked && MixinApi.isTangible(self) && !self.getFlaws().some((f) => f.kind === 'check')) {
+        if (checked && MixinApi.isIntegrity(self) && !self.getFlaws().some((f) => f.kind === 'check')) {
           self.addFlaw('check', true, nowS);
         }
       } finally {

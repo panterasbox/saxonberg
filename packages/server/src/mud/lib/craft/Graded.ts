@@ -61,7 +61,7 @@ export function GradedMixin<TBase extends MixinConstructor>(Base: TBase) {
       // says (review R2-D1/D7): derived from the flaw, never stamped.
       const made = Grade.of(this.gradeBand);
       const self = this as unknown as Stuff;
-      return MixinApi.isTangible(self) ? self.gradeAfterFaults(made) : made;
+      return MixinApi.isIntegrity(self) ? self.gradeAfterFaults(made) : made;
     }
 
     setGrade(value: Grade): void {

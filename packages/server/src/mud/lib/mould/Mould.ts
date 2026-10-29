@@ -35,7 +35,7 @@
  * ⭐ **The envelope** (S12): the mould's conductivity chills a metal (cast
  * iron sets white in iron, grey in sand — `Material.chillsTo`); its
  * wetness blows a hot pour; its melting or ignition point decides whether
- * it survives the pour at all (`TangibleMixin.canReceiveAtK`, asked by the
+ * it survives the pour at all (`BulkableMixin.canReceiveAtK`, asked by the
  * transfer for every vessel). And a metal pour obeys Chvorinov's rule
  * (S14): a thin shape poured too near its melting point freezes short (a
  * misrun); a closed cavity without a riser goes porous where it froze last.
@@ -468,7 +468,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // while the mould is whole: worn out (broken), or an unmended crack
       // through the cavity (the one damage record, review R2-D1).
       const cracked =
-        MixinApi.isTangible(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended);
+        MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended);
       if ((MixinApi.isDurable(self) && self.isBroken()) || cracked) {
         return material.getCastTemplate();
       }
@@ -1141,7 +1141,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
 
       // ⭐⭐ Chvorinov (S14) — a metal pour, judged by the physics of it.
-      if (metal && !blown && MixinApi.isTangible(cast)) {
+      if (metal && !blown && MixinApi.isIntegrity(cast)) {
         const density = material.getDensity().rawValue();
         const volumeM3 = density > 0 ? massKg / density : 0;
         const lengthM = typeof c.getLength === 'function' ? Number(c.getLength()) || 0 : 0;

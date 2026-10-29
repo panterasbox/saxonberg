@@ -193,7 +193,7 @@ A freshly rammed sand mould holds `mould.rammedWetness` (green sand, 0.15)
 ## ⭐⭐ Every pour obeys its receiver (S13)
 
 `BulkableLogic.transfer` asks the receiver **before anything moves**, for
-EVERY vessel: `TangibleMixin.canReceiveAtK(pourK)` → `holds` · `melts` ·
+EVERY vessel: `BulkableMixin.canReceiveAtK(pourK)` → `holds` · `melts` ·
 `burns` (its `meltingPoint`, then its `autoignitionTemperature`). On
 `melts` or `burns` the pour goes to the floor (the shipped puddle path) and
 the receiver is gone — melted into its material's `brokenTemplate` where it

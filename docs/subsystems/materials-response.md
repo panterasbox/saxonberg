@@ -521,7 +521,9 @@ out — metal conducts (betrays), rubber insulates. See
 
 ## ⭐⭐ Brittle bodies break by a cause (ceramics M5, 2026-10)
 
-Breakage is ONE act on `TangibleMixin`, `sufferImpact({energyJ, surface,
+Breakage is ONE act on `IntegrityMixin` (an ARTICLE's — composed on `Good`
+and `Vessel`; a wall's damage is construction's, a body's is harm's),
+`sufferImpact({energyJ, surface,
 cause})`, and only a CAUSE calls it: `drop` (m·g·`impact.dropHeightM`),
 `throw` (the delivery profile's joules, when the profile says a vessel would
 shatter), a blow. ⭐ `put`, `get` and carrying never do — nothing breaks from
@@ -535,7 +537,7 @@ freezing while wet (ceramics.md § green ware) — never broken into sherds.
   that breaks a master's thin bowl. `Infinity` for a body whose material is
   not `brittle`-tagged (wood dents; it does not shatter). ⭐ Scaled by how
   sound the body is — its `DurableMixin.getCondition()` (wear × integrity),
-  else `TangibleMixin.getIntegrity()` alone: so a worn tool is weaker under
+  else `IntegrityMixin.getIntegrity()` alone: so a worn tool is weaker under
   a blow as well as cracked one (review R2-D1).
 - **The floor's say**: the energy delivered is scaled by `min(1, floor
   hardness ÷ body hardness)` — strewn earth (5 MPa) takes the blow; a

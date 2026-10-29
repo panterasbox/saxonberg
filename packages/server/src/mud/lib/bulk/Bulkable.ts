@@ -59,7 +59,8 @@ import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MarkupAugmenter } from '../../api/mml';
 import type Material from '../material/Material';
-import type { ImpactOutcome, ImpactSpec, Tangible } from '../material/Tangible';
+import type { Tangible } from '../material/Tangible';
+import type { ImpactOutcome, ImpactSpec } from '../material/Integrity';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../cleanliness/WaterHardness';
 import { SecurityError } from '../security/errors';
@@ -428,7 +429,16 @@ export class BulkSlot {
 }
 
 /** Public shape contributed by BulkableMixin. */
+/** What a receiver does with a pour at a temperature (ceramics S13). */
+export type PourReception = 'holds' | 'melts' | 'burns';
+
 export interface Bulkable {
+  /**
+   * ⭐ Can this vessel receive a pour at `k` K — or does it melt (a tin cup
+   * under molten lead) or burn (a wooden mould under bronze)? Asked by the
+   * transfer of every receiving vessel before anything moves (ceramics S13).
+   */
+  canReceiveAtK(k: number): PourReception;
   /**
    * ⭐ The **vessel kind** — `coupe`, `can`, `keg`, `sack`. What this
    * holder IS, independent of what is in it, and the tie between an
@@ -928,11 +938,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
 
     /**
      * ⭐ A vessel that BREAKS spills what it held onto the floor first
-     * (ceramics M5) — the break itself is `TangibleMixin`'s.
+     * (ceramics M5) — the break itself is `IntegrityMixin`'s.
      */
     public async sufferImpact(spec: ImpactSpec): Promise<ImpactOutcome> {
-      const self = this as unknown as Stuff & Tangible;
-      if (this.interiorBulk && self.impactVerdict(spec) === 'break') {
+      const self = this as unknown as Stuff;
+      if (this.interiorBulk && MixinApi.isIntegrity(self) && self.impactVerdict(spec) === 'break') {
         const litres = this._interiorAmount.rawValue();
         const from = BulkableApi.slotFor(self, undefined);
         const floor = BulkableApi.floorSurfaceNear(self);
@@ -943,6 +953,18 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       const sup = (Base.prototype as { sufferImpact?: (s: ImpactSpec) => Promise<ImpactOutcome> }).sufferImpact;
       if (typeof sup !== 'function') return { broke: false, flawed: false, pieces: null };
       return sup.call(this, spec);
+    }
+
+    public canReceiveAtK(k: number): PourReception {
+      const self = this as unknown as Stuff;
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      if (mat === null || !(k > 0)) return 'holds';
+      const melts = mat.getMeltingPoint().rawValue();
+      if (melts > 0 && k >= melts) return 'melts';
+      // The receiver's own ignition point — a soaked one catches hotter.
+      const burns = MixinApi.isTangible(self) ? self.getIgnitionPointK() : 0;
+      if (burns > 0 && k >= burns) return 'burns';
+      return 'holds';
     }
 
     /**

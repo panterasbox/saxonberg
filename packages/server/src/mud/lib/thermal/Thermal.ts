@@ -1304,7 +1304,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private shockBody(stepK: number, rateKPerS: number): void {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isTangible(self)) return;
+      if (!MixinApi.isIntegrity(self)) return; // an article cracks; a wall's heat damage is construction's
       const tol = this.shockToleranceK();
       if (!Number.isFinite(tol)) return;
       const wallS = thermalDial(AppSettingKeys.impactShockWallS, 60);

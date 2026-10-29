@@ -225,6 +225,7 @@ import type { Graded } from '../lib/craft/Graded';
 import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
+import type { Integrity } from '../lib/material/Integrity';
 import type { Assembled } from '../lib/craft/Assembled';
 import type { Seasoning } from '../lib/maturation/Seasoning';
 import type { Keen } from '../lib/material/Keen';
@@ -2093,6 +2094,11 @@ export class MixinApi {
 
   /** A durable good with a wear-on-use condition gauge (tool / weapon /
    * armor). A `Tool` is also `Durable`; the reverse does not hold. */
+  /** An article that carries the one damage record — flaws, integrity, impact, ring. */
+  public static isIntegrity(obj: Stuff): obj is Stuff & Integrity & Tangible {
+    return this.hasMixin(obj, Mixins.Integrity);
+  }
+
   public static isDurable(obj: Stuff): obj is Stuff & Durable {
     return this.hasMixin(obj, Mixins.Durable);
   }

@@ -13,7 +13,7 @@
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
-import type { RingSound } from '@saxonberg/server/mud/lib/material/Tangible';
+import type { RingSound } from '@saxonberg/server/mud/lib/material/Integrity';
 
 /** A struck bell carries like a shout, and further in water. */
 const BELL_DB = 95;

@@ -21,7 +21,7 @@ import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
 import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import type { RingSound } from '@saxonberg/server/mud/lib/material/Tangible';
+import type { RingSound } from '@saxonberg/server/mud/lib/material/Integrity';
 
 /** Bell bronze — the reference metal: hardness ÷ density, MPa per kg/m³. */
 const BELL_BRONZE_STIFFNESS = 250 / 8800;
