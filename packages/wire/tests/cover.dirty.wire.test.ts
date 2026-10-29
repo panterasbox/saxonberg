@@ -449,7 +449,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // dusk — in the dark nothing in the field can be made out to cut.
     for (let i = 0; i < 120; i++) {
       await daylight();
-      if (i % 10 === 9) await drink();
+      await drink(); // ~1.8 game-hours of scything a cut (drive 12)
       const { said } = await work(p, 'harvest wheat');
       if (/cut down to the stubble|nothing left standing/i.test(said)) break;
     }

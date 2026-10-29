@@ -1395,4 +1395,24 @@ Drives 1–5 are in the build record above (B8, B17–B25). Since then:
   the drive's `here:hay` query read 0 with twenty cuts lying in the field
   (a staged probe proved the bales persist, so B28 holds). A dried-off
   cow said "come back later" (B33).
+- **Drive 10 — 13 of 17; drive 11 (instrumented, not committed) found
+  the cause.** The hand was dying in step 7 in every drive from 6 on.
+  It was neither cold nor hunger (a staged 120 days logged in left it in
+  good flesh) but **dehydration**: each scythe cut is about 1.8
+  game-hours of hard work. A drafted cow fills from the draft, so the
+  drive waits before milking.
+- **Drive 12 (the final pass) — 13 of 17.** The hand still died in
+  step 7 after about 20 cuts (≈36 h of scything) with one drink in ten,
+  and steps 8, 16 and 18 failed downstream of it (a shade cannot cut,
+  get hay, or hold a pail). It now drinks before every cut. **Not
+  re-driven**: the build's own claims held in that pass (rick drawn
+  3.2 t → lower, herds fed and thinned by season, title, zoning, bales),
+  and the remaining gap is the drive's body management, not the build.
+  Process finding: drives 6–12 were run as the fix loop. The owner's rule
+  is staging with wizard tools and ONE final pass, and seven 45-minute
+  runs cost most of a day.
+- **Findings for other owners:** the general store lets a hand with no
+  money eat a ration off the counter and pick up its stock unpaid
+  (shopkeeping); the harness's `here:hay` query read 0 with twenty cuts
+  lying in plain sight (wire harness).
 
