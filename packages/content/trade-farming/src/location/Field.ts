@@ -401,9 +401,10 @@ export default class Field extends FieldBase {
    */
   public inFlowerFraction(): number {
     if (this.legumeFraction <= 0) return 0;
-    const warmEnough = this._ambientK < 0 || this._ambientK >= BLOOM_MIN_K;
-    const lightEnough =
-      this._daylightFraction < 0 || this._daylightFraction >= BLOOM_MIN_DAYLIGHT;
+    const ambientK = this.ambientAt();
+    const daylight = this.daylightAt();
+    const warmEnough = ambientK < 0 || ambientK >= BLOOM_MIN_K;
+    const lightEnough = daylight < 0 || daylight >= BLOOM_MIN_DAYLIGHT;
     if (!warmEnough || !lightEnough) return 0;
     return this.legumeFraction * this.swardFraction();
   }
@@ -773,6 +774,26 @@ export default class Field extends FieldBase {
     return this.swardTranspirationPerGameDay() + cropDemand;
   }
 
+  /**
+   * ⭐ **Grass and crop drink by the season** (cover build): the draw is
+   * the window's mean evaporative demand — a tenth in the dead of winter,
+   * full in summer warmth — read at points across the window, so a
+   * winter nobody watched leaves the ground wet for the spring, and a
+   * summer drinks like one. With no season known, the shipped one.
+   */
+  public override soilDrawFactor(fromS: number, toS: number): number {
+    if (!this._swardSite || !(toS > fromS)) return super.soilDrawFactor(fromS, toS);
+    const samples = 12;
+    let sum = 0;
+    for (let i = 0; i < samples; i++) {
+      const t = fromS + ((i + 0.5) * (toS - fromS)) / samples;
+      const k = this.ambientAt(t);
+      const warm = k > 0 ? clampUnit((k - GRASS_BASE_K) / (GRASS_HAPPY_K - GRASS_BASE_K)) : 1;
+      sum += 0.1 + 0.9 * warm;
+    }
+    return sum / samples;
+  }
+
   // ---------- the three hooks the sward asks of its host ----------
 
   /**
@@ -858,7 +879,9 @@ export default class Field extends FieldBase {
   private _swardSky: CelestialProfile | null = null;
 
   /** Kelvin at game-second `atS` (the cached now when unknown). */
-  private ambientAt(atS?: number): number {
+  private ambientAt(at?: number): number {
+    // ⚠ "Now" is NOW: the cached ambient was resolved once, at placement.
+    const atS = at ?? fieldNowSeconds() ?? undefined;
     if (atS === undefined || !this._swardSite || this._swardOffsetK === null || this._ambientK <= 0) {
       return this._ambientK;
     }
@@ -871,7 +894,8 @@ export default class Field extends FieldBase {
   }
 
   /** Daylength as a fraction of the day at `atS` (the cached now when unknown). */
-  private daylightAt(atS?: number): number {
+  private daylightAt(at?: number): number {
+    const atS = at ?? fieldNowSeconds() ?? undefined;
     const sky = this._swardSky;
     const site = this._swardSite;
     if (atS === undefined || !sky || !site || !(sky.dayLengthSeconds > 0)) {

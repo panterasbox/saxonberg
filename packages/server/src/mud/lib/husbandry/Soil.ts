@@ -256,6 +256,14 @@ export interface Soil {
    */
   sowingRefusal(): string | null;
   /**
+   * @hook How hard the drinkers draw across the window `fromS..toS`, as a
+   * multiplier on their demand. Default: the shipped warmth read (a
+   * thermal host's last ambient). Ground that knows its season — a field
+   * — answers the window's MEAN, so a winter nobody watched does not
+   * drink like a summer (cover build).
+   */
+  soilDrawFactor(fromS: number, toS: number): number;
+  /**
    * @hook Settle WHOSE the crop standing in this ground is, before a
    * harvest mints from it or right after a sowing creates it (cover
    * build D6). Default resolves at once — a pot's plant is whoever
@@ -339,6 +347,11 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return 0.0006;
     }
 
+    /** See {@link Soil.soilDrawFactor}. */
+    public soilDrawFactor(_fromS: number, _toS: number): number {
+      return this.soilWarmth();
+    }
+
     /** See {@link Soil.sowingRefusal}. */
     public sowingRefusal(): string | null {
       return null;
@@ -412,7 +425,9 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         const reserve = reserved.getReserve(SOIL_MOISTURE_RESERVE_KEY);
         const capacity = reserve ? reserve.capacity.rawValue() : 0;
         const start = reserve ? reserve.current.rawValue() : 0;
-        const warmth = this.soilWarmth();
+        // ⭐ The draw is scaled by the window's evaporative demand — a host
+        // that knows its season answers for the whole window (cover build).
+        const warmth = this.soilDrawFactor(this.soilClockStamp, nowS);
         // Summed demand — more drinkers empty the ground faster, which is
         // water competition emerging from the same source of truth the
         // shared-soil root competition comes from. No new rule.
