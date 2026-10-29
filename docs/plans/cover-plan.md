@@ -1279,6 +1279,28 @@ carries the cane-sett deletion that is W2's.
 - **Waves W6 `438d13ae3`, W7 drive `bd9af6c77` + `23c38dfa3`; MR !480
   opened READY at code-complete.**
 
+- **B21 — a crop's light is its place's.** `sampleLux` climbed past a
+  field into whatever held it (a warren, a zone — no light), so every
+  field crop starved of light at a summer noon and stalled "in ear"
+  (drive 4). The climb stops at the first `Place`.
+- **B22 — a window integrates its season step by step.** The sward and
+  the crop each sampled warmth (and the sward daylength) once, at the
+  moment of the read, so a summer nobody watched integrated at the
+  autumn's cold: herds starved through grass that never grew, and an
+  unwatched crop could not ripen across a gap (drive 4). Both now read
+  the climate at each step's moment plus the place's offset from its
+  climate (a heated room keeps its heat), and the field reads daylength
+  off its sky; with no site known the one sample stands.
+- **B23 — "cleared" is a band (`Improvable.isComplete`, ≥ 0.95), not an
+  instant.** Reversion is a fraction of the work per game day, so `>= 1`
+  held for an instant: `plough` never reached a seedbed and
+  `grub`/`ditch`/`lime` re-finished forever (drive 2). A standing crop
+  holds clearing at 0.9 so `grub` ends it.
+- **B24 — an authored field's grass starts at 80% of its ceiling** (a
+  kept ley); a plotted one at the residual.
+- **B25 — the Okafor piece keeps a spade and a plough at the headland**
+  (the drive's founder holds the ground but cannot clone a farming tool).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
