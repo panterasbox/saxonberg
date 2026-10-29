@@ -30,22 +30,20 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 type Potter = Stuff & Mobile & Containable & Container & CommandGiver;
-type Way = { to: string; go: readonly string[]; back: readonly string[] };
 type Kiln = Stuff & Burner & Container;
 
 const CLAY = '/trade/quarrying/thing/clay';
@@ -87,17 +85,17 @@ export const brain = class {
     if (MixinApi.isEngaged(p) && p.getEngagements().some((e) => e.type !== BEHAVIOR_BEAT_TYPE)) return;
     const { shop, kiln: kilnPath, pit } = ctx.config;
     if (typeof shop !== 'string' || typeof kilnPath !== 'string' || typeof pit !== 'string') return;
-    const ways = waysOf(ctx);
-    const wayTo = (path: string): Way | null => ways.find((w) => w.to === path) ?? null;
 
+    // The routes this worker knows, from its `ways:` config.
+    const ways = new BrainRoutes(ctx.config);
     const standing = p.getContainer()?.getTemplatePath() ?? '';
     if (standing !== shop) {
       // ⭐ The spade is the PIT's: leave it there for the next hand (a
       // brain that carried the pit's spades home left the brickfield with
       // none — the ceramics drive).
       if (standing === pit && digsWith(p)) await p.forceCommand('drop spade');
-      const back = wayTo(standing);
-      if (back) await walkRoute(p, back.back);
+      const back = ways.to(standing);
+      if (back) await p.walkRoute(back.back);
       return;
     }
     const room = p.getContainer() as (Stuff & Container) | null;
@@ -192,8 +190,8 @@ export const brain = class {
     // 7. No clay: dig some at the brickmaster's pit (she stays for the
     //    dig and carries it home next beat).
     if (boardWare.length >= boards) return;
-    const toPit = wayTo(pit);
-    if (!toPit || !(await walkRoute(p, toPit.go))) return;
+    const toPit = ways.to(pit);
+    if (!toPit || !(await p.walkRoute(toPit.go))) return;
     if (!held.some((s) => MixinApi.isTool(s) && s.getCapabilities().includes('digging'))) {
       await p.forceCommand('get 1 spade');
     }
@@ -257,34 +255,6 @@ function stringList(v: unknown): string[] {
 
 function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.round(v) : fallback;
-}
-
-function waysOf(ctx: BrainContext): Way[] {
-  const rows = Array.isArray(ctx.config.ways) ? ctx.config.ways : [];
-  const dirs = (v: unknown): string[] =>
-    Array.isArray(v) ? v.filter((d): d is string => typeof d === 'string') : [];
-  const out: Way[] = [];
-  for (const row of rows) {
-    if (typeof row !== 'object' || row === null) continue;
-    const r = row as { to?: unknown; go?: unknown; back?: unknown };
-    if (typeof r.to !== 'string' || r.to === '') continue;
-    const way = { to: r.to, go: dirs(r.go), back: dirs(r.back) };
-    if (way.go.length === 0 || way.back.length === 0) continue;
-    out.push(way);
-  }
-  return out;
-}
-
-async function walkRoute(p: Potter, directions: readonly string[]): Promise<boolean> {
-  for (const direction of directions) {
-    const room = p.getContainer();
-    if (!room || !MixinApi.isExitable(room)) return false;
-    const exit = (room as Stuff & Exitable).getExits().get(direction);
-    if (!exit) return false;
-    const stepped = await LocomotionApi.traverseWithDefault(p, exit);
-    if (!stepped.ok) return false;
-  }
-  return true;
 }
 
 /** Is this body holding a digging tool (the pit's spade)? */

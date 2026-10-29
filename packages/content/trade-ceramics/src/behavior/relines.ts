@@ -23,7 +23,6 @@
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -31,14 +30,13 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
-import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
-type Way = { to: string; go: readonly string[]; back: readonly string[] };
 type Furnace = Stuff & Burner & Containable;
 
 /** The word a keeper buys and fits by. */
@@ -81,9 +79,10 @@ export const brain = class {
     const furnaceRoom = furnace.getContainer()?.getTemplatePath() ?? '';
     const start = keeper.getContainer()?.getTemplatePath() ?? '';
     if (furnaceRoom === '' || start === '') return;
-    const ways = waysOf(ctx);
-    const wayTo = (path: string): Way | null =>
-      path === start ? { to: path, go: [], back: [] } : (ways.find((w) => w.to === path) ?? null);
+    const ways = new BrainRoutes(ctx.config);
+    // Already at the furnace is a route of no steps.
+    const wayTo = (path: string): BrainRoute | null =>
+      path === start ? { to: path, go: [], back: [] } : ways.to(path);
     // A furnace he has no way to is not his to keep.
     const toFurnace = wayTo(furnaceRoom);
     if (toFurnace === null) return;
@@ -97,7 +96,7 @@ export const brain = class {
         counter && MixinApi.isContainable(counter) ? (counter.getContainer()?.getTemplatePath() ?? '') : '';
       const toCounter = counterRoom === '' ? null : wayTo(counterRoom);
       if (toCounter === null) return;
-      if (!(await walkRoute(keeper, toCounter.go))) return;
+      if (!(await keeper.walkRoute(toCounter.go))) return;
       try {
         await keeper.forceCommand('wallet use house');
         for (let held = firebrickHeld(keeper); held < needed; ) {
@@ -107,18 +106,18 @@ export const brain = class {
           held = now;
         }
       } finally {
-        await walkRoute(keeper, toCounter.back);
+        await keeper.walkRoute(toCounter.back);
       }
       if (keeper.getContainer()?.getTemplatePath() !== start) return;
     }
     if (firebrickHeld(keeper) === 0) return;
 
     // ── the reline: at the furnace, the literal verb.
-    if (!(await walkRoute(keeper, toFurnace.go))) return;
+    if (!(await keeper.walkRoute(toFurnace.go))) return;
     try {
       await keeper.forceCommand(`fit lining to ${keywordOf(furnace) ?? 'furnace'}`);
     } finally {
-      await walkRoute(keeper, toFurnace.back);
+      await keeper.walkRoute(toFurnace.back);
     }
   }
 } satisfies BrainStatics;
@@ -139,7 +138,7 @@ function furnaceOf(ctx: BrainContext): Furnace | null {
   const rooms: Stuff[] = [];
   const here = MixinApi.isContainable(ctx.host) ? ctx.host.getContainer() : null;
   if (here) rooms.push(here as Stuff);
-  for (const w of waysOf(ctx)) {
+  for (const w of new BrainRoutes(ctx.config).all()) {
     const room = StuffApi.findByTemplatePath(w.to);
     if (room) rooms.push(room);
   }
@@ -177,30 +176,3 @@ function keywordOf(s: Stuff): string | null {
   return s.getPrimaryKeyword() || s.getKeywords()[0] || null;
 }
 
-function waysOf(ctx: BrainContext): Way[] {
-  const rows = Array.isArray(ctx.config.ways) ? ctx.config.ways : [];
-  const dirs = (v: unknown): string[] =>
-    Array.isArray(v) ? v.filter((d): d is string => typeof d === 'string') : [];
-  const out: Way[] = [];
-  for (const row of rows) {
-    if (typeof row !== 'object' || row === null) continue;
-    const r = row as { to?: unknown; go?: unknown; back?: unknown };
-    if (typeof r.to !== 'string' || r.to === '') continue;
-    const way = { to: r.to, go: dirs(r.go), back: dirs(r.back) };
-    if (way.go.length === 0 || way.back.length === 0) continue;
-    out.push(way);
-  }
-  return out;
-}
-
-async function walkRoute(keeper: Keeper, directions: readonly string[]): Promise<boolean> {
-  for (const direction of directions) {
-    const room = keeper.getContainer();
-    if (!room || !MixinApi.isExitable(room)) return false;
-    const exit = (room as Stuff & Exitable).getExits().get(direction);
-    if (!exit) return false;
-    const stepped = await LocomotionApi.traverseWithDefault(keeper, exit);
-    if (!stepped.ok) return false;
-  }
-  return true;
-}

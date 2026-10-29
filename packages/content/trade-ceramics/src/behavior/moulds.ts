@@ -32,21 +32,19 @@
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PlayerApi } from '@saxonberg/server/mud/api/player';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 type Moulder = Stuff & Mobile & Containable & Container & CommandGiver;
-type Way = { to: string; go: readonly string[]; back: readonly string[] };
 
 const CLAY = '/trade/quarrying/thing/clay';
 const BRICK = '/trade/ceramics/thing/brick';
@@ -91,19 +89,19 @@ export const brain = class {
     const { shed, temper: temperPath, hacks, pit } = ctx.config;
     if (typeof shed !== 'string' || typeof temperPath !== 'string') return;
     if (typeof hacks !== 'string' || typeof pit !== 'string') return;
-    const ways = waysOf(ctx);
-    const wayTo = (path: string): Way | null => ways.find((w) => w.to === path) ?? null;
 
     // Away from the shed (an act ended elsewhere, a walk was refused):
     // come home the way he went, and only then work.
+    // The routes this worker knows, from its `ways:` config.
+    const ways = new BrainRoutes(ctx.config);
     const standing = roomOf(m);
     if (standing !== shed) {
       // ⭐ The spade is the PIT's: leave it there for the next hand (a
       // brain that carried the pit's spades home left the brickfield with
       // none — the ceramics drive).
       if (standing === pit && digsWith(m)) await m.forceCommand('drop spade');
-      const back = wayTo(standing);
-      if (back) await walkRoute(m, back.back);
+      const back = ways.to(standing);
+      if (back) await m.walkRoute(back.back);
       return;
     }
     const shedRoom = m.getContainer() as (Stuff & Container) | null;
@@ -113,12 +111,12 @@ export const brain = class {
     // 1. Green bricks in hand go to the hacks — set ON the hack, where the
     //    air reaches every face (dropped on the yard they never dried).
     if (count(m, (s) => isGreenBrick(s)) > 0) {
-      const way = wayTo(hacks);
-      if (!way || !(await walkRoute(m, way.go))) return;
+      const way = ways.to(hacks);
+      if (!way || !(await m.walkRoute(way.go))) return;
       try {
         await m.forceCommand('put bricks on hack');
       } finally {
-        await walkRoute(m, way.back);
+        await m.walkRoute(way.back);
       }
       return;
     }
@@ -148,7 +146,7 @@ export const brain = class {
     const pitThing = StuffApi.findByTemplatePath(temperPath);
     const temperRoom =
       pitThing && MixinApi.isContainable(pitThing) ? (pitThing.getContainer()?.getTemplatePath() ?? '') : '';
-    const toTemper = temperRoom === '' ? null : wayTo(temperRoom);
+    const toTemper = temperRoom === '' ? null : ways.to(temperRoom);
     const inPit =
       pitThing && MixinApi.isContainer(pitThing)
         ? ((pitThing.getContents() as Stuff[]).filter((s) => MixinApi.isTangible(s)) as Stuff[])
@@ -158,11 +156,11 @@ export const brain = class {
 
     // 4. A tempered clay waiting in the pit is fetched.
     if (toTemper && pitIsOurs && inPit.length === 1 && isClay(inPit[0]!) && isTempered(inPit[0]!)) {
-      if (!(await walkRoute(m, toTemper.go))) return;
+      if (!(await m.walkRoute(toTemper.go))) return;
       try {
         await m.forceCommand('get clay from pit');
       } finally {
-        await walkRoute(m, toTemper.back);
+        await m.walkRoute(toTemper.back);
       }
       return;
     }
@@ -171,7 +169,7 @@ export const brain = class {
     //    one in the yard, then tread it. He stays for the tread; the next
     //    beat walks him home.
     if (toTemper && pitIsOurs && inPit.some((s) => isClay(s) && !isTempered(s))) {
-      if (!(await walkRoute(m, toTemper.go))) return;
+      if (!(await m.walkRoute(toTemper.go))) return;
       const yard = m.getContainer() as (Stuff & Container) | null;
       const opened = inPit.some((s) => isOpener(s));
       if (!opened && yard && MixinApi.isContainer(yard)) {
@@ -186,19 +184,19 @@ export const brain = class {
 
     // 6. Raw clay in hand goes into the pit.
     if (toTemper && pitIsOurs && count(m, (s) => isClay(s) && !isTempered(s)) > 0) {
-      if (!(await walkRoute(m, toTemper.go))) return;
+      if (!(await m.walkRoute(toTemper.go))) return;
       try {
         await m.forceCommand('put clay in pit');
       } finally {
-        await walkRoute(m, toTemper.back);
+        await m.walkRoute(toTemper.back);
       }
       return;
     }
 
     // 7. No clay anywhere: dig some. The spade is the pit's own; he stays
     //    for the dig, and carries the lump home next beat.
-    const toPit = wayTo(pit);
-    if (!toPit || !(await walkRoute(m, toPit.go))) return;
+    const toPit = ways.to(pit);
+    if (!toPit || !(await m.walkRoute(toPit.go))) return;
     if (count(m, (s) => MixinApi.isTool(s) && s.getCapabilities().includes('digging')) === 0) {
       await m.forceCommand('get 1 spade');
     }
@@ -257,34 +255,6 @@ function roomOf(m: Moulder): string {
 
 function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.round(v) : fallback;
-}
-
-function waysOf(ctx: BrainContext): Way[] {
-  const rows = Array.isArray(ctx.config.ways) ? ctx.config.ways : [];
-  const dirs = (v: unknown): string[] =>
-    Array.isArray(v) ? v.filter((d): d is string => typeof d === 'string') : [];
-  const out: Way[] = [];
-  for (const row of rows) {
-    if (typeof row !== 'object' || row === null) continue;
-    const r = row as { to?: unknown; go?: unknown; back?: unknown };
-    if (typeof r.to !== 'string' || r.to === '') continue;
-    const way = { to: r.to, go: dirs(r.go), back: dirs(r.back) };
-    if (way.go.length === 0 || way.back.length === 0) continue;
-    out.push(way);
-  }
-  return out;
-}
-
-async function walkRoute(m: Moulder, directions: readonly string[]): Promise<boolean> {
-  for (const direction of directions) {
-    const room = m.getContainer();
-    if (!room || !MixinApi.isExitable(room)) return false;
-    const exit = (room as Stuff & Exitable).getExits().get(direction);
-    if (!exit) return false;
-    const stepped = await LocomotionApi.traverseWithDefault(m, exit);
-    if (!stepped.ok) return false;
-  }
-  return true;
 }
 
 /** Is this body holding a digging tool (the pit's spade)? */

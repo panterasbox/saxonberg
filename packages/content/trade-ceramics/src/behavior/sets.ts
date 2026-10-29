@@ -24,22 +24,20 @@
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PlayerApi } from '@saxonberg/server/mud/api/player';
-import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
+import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
 type Setter = Stuff & Mobile & Containable & Container & CommandGiver;
-type Way = { to: string; go: readonly string[]; back: readonly string[] };
 type Clamp = Stuff & Burner & Container;
 
 const BRICK = '/trade/ceramics/thing/brick';
@@ -80,13 +78,13 @@ export const brain = class {
     if (MixinApi.isEngaged(s) && s.getEngagements().some((e) => e.type !== BEHAVIOR_BEAT_TYPE)) return;
     const { home, clamp: clampPath, hacks } = ctx.config;
     if (typeof home !== 'string' || typeof clampPath !== 'string' || typeof hacks !== 'string') return;
-    const ways = waysOf(ctx);
-    const wayTo = (path: string): Way | null => ways.find((w) => w.to === path) ?? null;
 
+    // The routes this worker knows, from its `ways:` config.
+    const ways = new BrainRoutes(ctx.config);
     const standing = s.getContainer()?.getTemplatePath() ?? '';
     if (standing !== home) {
-      const back = wayTo(standing);
-      if (back) await walkRoute(s, back.back);
+      const back = ways.to(standing);
+      if (back) await s.walkRoute(back.back);
       return;
     }
     const ground = s.getContainer() as (Stuff & Container) | null;
@@ -130,12 +128,12 @@ export const brain = class {
     }
     // …and green ones that are NOT dry go back to the hacks.
     if (count(s.getContents() as Stuff[], isGreenBrick) > 0) {
-      const way = wayTo(hacks);
-      if (way && (await walkRoute(s, way.go))) {
+      const way = ways.to(hacks);
+      if (way && (await s.walkRoute(way.go))) {
         try {
           await s.forceCommand('drop bricks');
         } finally {
-          await walkRoute(s, way.back);
+          await s.walkRoute(way.back);
         }
       }
       return;
@@ -160,9 +158,9 @@ export const brain = class {
     }
 
     // 5. Bone-dry bricks in the hacks are fetched.
-    const way = wayTo(hacks);
+    const way = ways.to(hacks);
     if (!way) return;
-    if (!(await walkRoute(s, way.go))) return;
+    if (!(await s.walkRoute(way.go))) return;
     try {
       const rows = s.getContainer() as (Stuff & Container) | null;
       const dry = rows && MixinApi.isContainer(rows)
@@ -179,7 +177,7 @@ export const brain = class {
         want -= n;
       }
     } finally {
-      await walkRoute(s, way.back);
+      await s.walkRoute(way.back);
     }
   }
 } satisfies BrainStatics;
@@ -223,30 +221,3 @@ function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.round(v) : fallback;
 }
 
-function waysOf(ctx: BrainContext): Way[] {
-  const rows = Array.isArray(ctx.config.ways) ? ctx.config.ways : [];
-  const dirs = (v: unknown): string[] =>
-    Array.isArray(v) ? v.filter((d): d is string => typeof d === 'string') : [];
-  const out: Way[] = [];
-  for (const row of rows) {
-    if (typeof row !== 'object' || row === null) continue;
-    const r = row as { to?: unknown; go?: unknown; back?: unknown };
-    if (typeof r.to !== 'string' || r.to === '') continue;
-    const way = { to: r.to, go: dirs(r.go), back: dirs(r.back) };
-    if (way.go.length === 0 || way.back.length === 0) continue;
-    out.push(way);
-  }
-  return out;
-}
-
-async function walkRoute(s: Setter, directions: readonly string[]): Promise<boolean> {
-  for (const direction of directions) {
-    const room = s.getContainer();
-    if (!room || !MixinApi.isExitable(room)) return false;
-    const exit = (room as Stuff & Exitable).getExits().get(direction);
-    if (!exit) return false;
-    const stepped = await LocomotionApi.traverseWithDefault(s, exit);
-    if (!stepped.ok) return false;
-  }
-  return true;
-}

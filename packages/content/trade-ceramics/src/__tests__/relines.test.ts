@@ -10,6 +10,14 @@ import { brain } from '../behavior/relines';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
+import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
+
+/** The real walk (`MobileMixin.walkRoute`), lent to a fake worker. */
+const walkRoute = (
+  MobileMixin(class {} as never) as unknown as {
+    prototype: { walkRoute(this: unknown, directions: readonly string[]): Promise<boolean> };
+  }
+).prototype.walkRoute;
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 
 function setup(health: number, heldBricks: number, failed = 3) {
@@ -30,6 +38,9 @@ function setup(health: number, heldBricks: number, failed = 3) {
   let room: unknown = smelter;
   const commands: string[] = [];
   const host = {
+    walkRoute(directions: readonly string[]): Promise<boolean> {
+      return walkRoute.call(this, directions);
+    },
     getContainer: () => room,
     getContents: () => held,
     forceCommand: vi.fn(async (c: string) => {

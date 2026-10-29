@@ -11,6 +11,14 @@ import { brain as pots } from '../behavior/pots';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
+import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
+
+/** The real walk (`MobileMixin.walkRoute`), lent to a fake worker. */
+const walkRoute = (
+  MobileMixin(class {} as never) as unknown as {
+    prototype: { walkRoute(this: unknown, directions: readonly string[]): Promise<boolean> };
+  }
+).prototype.walkRoute;
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 
 const CLAY = '/trade/quarrying/thing/clay';
@@ -81,6 +89,9 @@ function world(rooms: Room[], start: string, heldGoods: Fake[]) {
   const held = heldGoods.map(good);
   const commands: string[] = [];
   const host = {
+    walkRoute(directions: readonly string[]): Promise<boolean> {
+      return walkRoute.call(this, directions);
+    },
     getContainer: () => roomObj(here),
     getContents: () => held,
     getEngagements: () => [],

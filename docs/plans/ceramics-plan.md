@@ -1790,6 +1790,20 @@ left a fork the lens that chose is named.
     used to read only the gauger's polity. "Of record" is the innermost
     polity that seats a gauger.
 
+- **B91 — W-R2d (2026-10-28).**
+  - The walk is the BODY's act (`MobileMixin.walkRoute`): Mobile already
+    owns the crossing and reaches the locomotion Api.
+  - Reading `ways:` is a named value object, `lib/behavior/BrainRoutes`
+    (the module taxonomy's value-object row), not a `BrainContext` helper.
+    Adding required members to `BrainContext` broke 17 hand-built contexts,
+    one in CombatLogic, for a concern only route-walking workers have.
+  - ⚠ `to(path)` keeps the copies' plain-lookup semantics. A brain standing
+    away asks for the route that ends where it stands, so an
+    "already there" shortcut would strand it. Relines keeps its one-line
+    "already at the furnace" case.
+  - The brickfield and relines tests lend the real `walkRoute` to their
+    fake workers, so they exercise the shared walk, not a test copy.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
@@ -2373,7 +2387,10 @@ change; e is independent and may land any time after a).
   - D6: `castFrom.discipline`; `Crafted.castDiscipline` retired.
   - D7: `misrun` / `shrinkage` flaw kinds whose words are derived.
   - D9: `lib/instrument/StatuteReading`.
-- **W-R2d — D8** (the walking helper — check behavior.md for the home first).
+- ✅ **W-R2d — D8** (the walking helper — check behavior.md for the home first).
+  Done 2026-10-28 (B91). `MobileMixin.walkRoute(directions)` and
+  `lib/behavior/BrainRoutes`; the five brains (ceramics relines, sets,
+  pots, moulds; shopkeeping stocks) lose 223 lines.
 - **W-R2e — D3** (plaster into Kinetics — after B87 is committed).
 - **W-R2f — D1** (integrity: plan it first — the readers list — then one record).
 

@@ -706,6 +706,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
+| `BrainRoutes` / `BrainRoute` | `lib/behavior/BrainRoutes.ts` | A worker brain's `ways:` config (`{ to, go, back }` rows), read once: `to(path)` (a plain lookup — standing away, ask for the route that ends where you stand and walk its `back`) and `all()`. The worker walks a leg with `MobileMixin.walkRoute(directions)`. ⭐ Five worker brains in two packs each carried their own copy of both (ceramics review R2-D8) |
 | The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,enforces,follows,feeds,homes,…}.ts` | Path-resolved strategy modules. ⚠ `shifts`/`covers` retired 2026-09-30 — presence and cover are the roster tick's; see [employment.md](./employment.md) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype — **substrate**; rows name a rung, not this |
 | `CastMixin` / `Cast` / `Extra` | `lib/npc/Cast.ts`, `platform/agent/` | The identity rungs ([identity.md](./identity.md)) |
