@@ -571,13 +571,20 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
 
   it('16. hay in the trough feeds them, and the trough empties', async () => {
     await goTo(HOME_FIELD);
-    const lying = await p.query('here:hay');
-    note(`bales lying in the home field: ${lying.length}`);
     expect(mown, 'the home field was mown for hay in the summer').toBe(true);
-    for (let i = 0; i < Math.min(lying.length, 6); i++) {
-      await act(p, 'get hay');
-      await act(p, 'put hay in trough');
+    // What a person does: pick up a cut, put it in the trough, until the
+    // field has none left or the trough has six. (⚠ The harness query
+    // `here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
+    // so the count is the acts, not a query.)
+    let forked = 0;
+    for (let i = 0; i < 6; i++) {
+      const got = await act(p, 'get hay');
+      if (refusedFor(got.r) !== null) break;
+      await doing(p, 'put hay in trough');
+      forked++;
     }
+    note(`cuts of hay forked into the trough: ${forked}`);
+    expect(forked, 'there was hay lying in the home field').toBeGreaterThan(0);
     expect(await read(p, 'look trough')).not.toMatch(/It is empty/);
     await advance(7 * DAY);
     await daylight();
