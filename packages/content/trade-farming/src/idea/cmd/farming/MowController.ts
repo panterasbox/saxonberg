@@ -35,6 +35,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
 
@@ -176,6 +177,14 @@ export default class MowController extends FieldWorkController {
           .baledMoistureFraction = round2(0.1 + moisture * 0.3);
       }
       ContainmentApi.move(hay as Stuff & Containable, field as unknown as Stuff & Container);
+    }
+    // ⭐ Capture the host, as `harvest` and `sow` do: the cut sward and the
+    // bales lying on it are the field's state now, and an idle field that
+    // is evicted uncaptured comes back as its row — bales and all gone.
+    try {
+      await PersistableApi.captureHostOf(field as unknown as Stuff);
+    } catch (err) {
+      console.warn('MowController: capture after mowing failed:', err);
     }
 
     MessageApi.scene(giver)

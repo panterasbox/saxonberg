@@ -370,10 +370,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   }, 3_600_000);
 
   it('9. the bench’s ripe wheat is the farm’s when a stranger cuts it; sowing there is refused', async () => {
+    // Seed in hand first: the last of it went into the home field, and
+    // with none held `sow wheat` names the standing crop (not plantable).
+    await goTo(STORE);
+    await doing(p, 'buy seed wheat');
     await goTo(BENCH);
     const looked = await read(p, 'look');
     expect(looked).toMatch(/ripe and ready to cut/i);
-    await refused(p, 'sow wheat', 'not-held');
+    await refused(p, 'sow seed', 'not-held');
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {
       await work(p, 'harvest wheat');
     }
@@ -399,10 +403,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // The take is the university's, not the labourer's.
     expect((await p.query('me:i:wheat:mine')).length).toBe(0);
     let looked = '';
+    // A third of a hectare is days of work: rest when tired, and stop at
+    // dusk — in the dark nothing in the field can be made out to cut.
     for (let i = 0; i < 120; i++) {
+      await daylight();
       const { said } = await work(p, 'harvest wheat');
       if (/cut down to the stubble|nothing left standing/i.test(said)) break;
     }
+    await daylight();
     looked = await read(p, 'look');
     expect(looked).toMatch(/cut down to the stubble/i);
   }, 3_600_000);
@@ -458,14 +466,52 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       gov.close();
     }
   }, 1_800_000);
+
+  it('18. Hearts Delight, unattended: a month on, the pasture trough drew on the rick; a cow still milks', async () => {
+    // ⭐ The requirement's month (R2: the rick carries the unwatched
+    // month). Nobody stacks hay at the Delight while nobody is there, so
+    // the month that counts is the one the grass gives out in — late in
+    // the first year, when the trough first turns to the rick. A whole
+    // unwatched year starves the herd, and that is the sim being right.
+    await toDay(255);
+    const RICK_KG =
+      "return self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(',')";
+    const kgOf = (said: string): number => Number(/([0-9.]+)/.exec(said)?.[1] ?? NaN);
+    const before = kgOf(await founderEval(PASTURE, '/world/terminus/hearts-delight', RICK_KG));
+    await advance(30 * DAY);
+    await daylight();
+    const after = kgOf(await founderEval(PASTURE, '/world/terminus/hearts-delight', RICK_KG));
+    note(`the dairy rick over the month the grass gave out: ${before} kg → ${after} kg`);
+    expect(after, 'the trough drew on the rick').toBeLessThan(before);
+    await goTo(PASTURE);
+    expect(await read(p, 'look')).toMatch(/head of the Delight dairy herd are grazing it/i);
+    await goTo(CLOSE);
+    expect(await read(p, 'look')).toMatch(/head of the Delight flock are grazing it/i);
+    // ⭐ And she milks: the pasture and the rick behind it kept her in
+    // condition, and milk follows condition.
+    await goTo(BYRE);
+    await act(p, 'get pail');
+    const cow = await doing(p, 'draft 1 from dairy');
+    expect(bandOf(cow), 'the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);
+    const milked = await act(p, 'milk cow');
+    expect(milked.said).toMatch(/milk/i);
+    expect(milked.said).not.toMatch(/nothing comes|dry/i);
+    await act(p, 'return cow');
+  }, 1_800_000);
 });
 
 /* ═══════════════════════ Stage B — grazing ═══════════════════════ */
 
 suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
   it('17. the herd goes back onto the stubble, and eats it down', async () => {
-    await goTo(HOME_FIELD);
-    await act(p, 'clock on');
+    // ⭐ A season away costs the seat: a holder absent past
+    // employment.absenceVacatesAfterDays is vacated (economic bootstrap
+    // D16), and the drive has been logged out for months. Back to the
+    // yard, take the seat again, and clock on.
+    await goTo(YARD);
+    await act(p, 'apply for labourer');
+    await doing(p, 'clock on');
+    await doing(p, 'go field');
     await doing(p, 'move college herd to here');
     const before = await read(p, 'look');
     expect(before).toMatch(/six head of the college herd are grazing it/i);
@@ -499,27 +545,6 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     await daylight();
     await goTo(HOME_FIELD);
     expect(await read(p, 'look trough')).toMatch(/It is empty/);
-  }, 1_800_000);
-
-  it('18. Hearts Delight, unattended: the pasture trough drew on the rick; a cow still milks', async () => {
-    await daylight();
-    await goTo(PASTURE);
-    const looked = await read(p, 'look');
-    expect(looked).toMatch(/head of the Delight dairy herd are grazing it/i);
-    const rick = await read(p, 'look rick');
-    note(`the dairy rick after a winter: ${rick}`);
-    await goTo(CLOSE);
-    expect(await read(p, 'look')).toMatch(/head of the Delight flock are grazing it/i);
-    // ⭐ And she milks: a winter on the pasture and the rick behind it
-    // kept her in condition, and milk follows condition.
-    await goTo(BYRE);
-    await act(p, 'get pail');
-    const cow = await doing(p, 'draft 1 from dairy');
-    expect(bandOf(cow), 'a winter on the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);
-    const milked = await act(p, 'milk cow');
-    expect(milked.said).toMatch(/milk/i);
-    expect(milked.said).not.toMatch(/nothing comes|dry/i);
-    await act(p, 'return cow');
   }, 1_800_000);
 
   it('19. Rejection’s goats: a small field with a trough kept from a rick', async () => {
