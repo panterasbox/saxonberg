@@ -65,6 +65,7 @@ const CLOSE = '/world/terminus/hearts-delight/bench-field/location/orchard-close
 const PASTURE = '/world/terminus/hearts-delight/dairy/location/pasture';
 const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
 const STORE = '/world/terminus/general-store/shop-floor';
+const SQUARE = '/world/terminus/market/square';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const HOME_FIELD = '/world/terminus/eternal/campus-field/location/home-field';
@@ -173,6 +174,8 @@ async function advance(seconds: number): Promise<void> {
   let left = seconds;
   while (left > 0) {
     const step = Math.min(left, 10 * DAY);
+    // ⭐ And it DRINKS. A logged-in body's clock runs through a jump.
+    if (park && step >= DAY) await drink();
     const { before, after } = await advanceWorldClock(`${Math.max(1, Math.round(step / 60))} minutes`);
     expect(after - before, 'world-time did not move').toBeGreaterThan(step * 0.9);
     left -= step;
@@ -205,6 +208,20 @@ async function dayOfYear(): Promise<number> {
 }
 
 /** Move the character by reopening the session where it needs to be. */
+/**
+ * A drink at the market standpipe, then back to where the hand stood.
+ * ⚠ The hand died of DEHYDRATION in drives 6–11, cutting wheat for hours
+ * with nothing to drink. (Food it can go without for months; a staged
+ * 120 days showed it still in good flesh.)
+ */
+async function drink(): Promise<void> {
+  const back = here;
+  await goTo(SQUARE);
+  await act(p, 'drink standpipe');
+  await act(p, 'drink standpipe');
+  if (back && back !== SQUARE) await goTo(back);
+}
+
 /** Where the hand last stood (set by {@link goTo}). */
 let here = '';
 
@@ -432,6 +449,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // dusk — in the dark nothing in the field can be made out to cut.
     for (let i = 0; i < 120; i++) {
       await daylight();
+      if (i % 10 === 9) await drink();
       const { said } = await work(p, 'harvest wheat');
       if (/cut down to the stubble|nothing left standing/i.test(said)) break;
     }
@@ -518,12 +536,11 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await act(p, 'get pail');
     const cow = await doing(p, 'draft 1 from dairy');
     expect(bandOf(cow), 'the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);
-    // ⚠ Requirement deviation (recorded in the plan and the MR): milk is
-    // an `expire` tap, and a cow nobody milked through her window dries
-    // off for the season (taps.md — the standing-instruction relief was
-    // cut). The Delight has been unattended since the world began, so
-    // she has. What the drive holds the line on is that she SAYS so,
-    // rather than "come back later".
+    // ⚠ Should she have dried off (milk is an `expire` tap and the
+    // Delight has had nobody milking it), she says so plainly (B33).
+    // A head cut out of the herd has nothing standing in her yet: she
+    // fills from the draft. Let her stand the morning.
+    await advance(6 * 3_600);
     const milked = await act(p, 'milk cow');
     expect(milked.said).toMatch(/milk her right out|pail fills|has dried off/i);
     expect(milked.said).not.toMatch(/come back later/i);
