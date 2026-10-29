@@ -68,6 +68,13 @@ import type Locality from "../../platform/idea/Locality";
 const SECONDS_PER_GAME_DAY = 86_400;
 
 /**
+ * The most steps one soil window is walked in — daily up to this, longer
+ * steps beyond it. Every step stays well inside the weather walk's
+ * 30-day segment cap, so no rain is dropped off the front of a window.
+ */
+const SOIL_MAX_STEPS = 180;
+
+/**
  * The fraction of newly-worked organic matter available as nitrogen
  * immediately. ⭐ Small on purpose: most of muck's value is next year's
  * and the year after's, which is what makes it an investment rather than
@@ -402,64 +409,87 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         return;
       }
 
-      // The sky pours in BEFORE the window drains, because that is the
-      // order it physically happened in: rain fell across the window the
-      // plants were drinking through. It runs on its OWN stamp, so it is
-      // unaffected by every early return below — ground whose soil window
-      // is empty may still have a month of rain to credit.
-      this.integrateRainfall(nowS);
-
-      // First touch: seed the stamp, integrate nothing.
+      // First touch: seed the stamp, integrate nothing. The sky still
+      // gets its say — ground whose soil window is empty may have a
+      // month of rain to credit, on the rain edge's OWN stamp.
       if (this.soilClockStamp === 0) {
+        this.integrateRainfall(nowS);
         this.soilClockStamp = nowS;
         return;
       }
-      const elapsed = nowS - this.soilClockStamp;
+      const from = this.soilClockStamp;
+      const elapsed = nowS - from;
       if (elapsed <= 0) {
+        this.integrateRainfall(nowS);
         this.soilClockStamp = nowS;
         return;
       }
 
+      // ⭐⭐ **A long window is walked, not lumped** (cover build B31).
+      // Rain fell across the window the plants were drinking through, a
+      // day at a time. Integrated as one lump — all the rain poured in
+      // first, capped at the ground's capacity, then the whole window's
+      // drink taken out — a field nobody read for a season came back
+      // bone dry while the same field read monthly stayed moist. So the
+      // sky pours in, then the window drains, one step at a time; the
+      // rain edge keeps its own stamp throughout.
+      const steps = Math.min(
+        SOIL_MAX_STEPS,
+        Math.max(1, Math.ceil(elapsed / SECONDS_PER_GAME_DAY)),
+      );
       this._reconcilingSoil = true;
       try {
-        const reserve = reserved.getReserve(SOIL_MOISTURE_RESERVE_KEY);
-        const capacity = reserve ? reserve.capacity.rawValue() : 0;
-        const start = reserve ? reserve.current.rawValue() : 0;
-        // ⭐ The draw is scaled by the window's evaporative demand — a host
-        // that knows its season answers for the whole window (cover build).
-        const warmth = this.soilDrawFactor(this.soilClockStamp, nowS);
-        // Summed demand — more drinkers empty the ground faster, which is
-        // water competition emerging from the same source of truth the
-        // shared-soil root competition comes from. No new rule.
-        const demandPerDay = this.soilWaterDemandPerGameDay();
-        const draw =
-          demandPerDay * (elapsed / SECONDS_PER_GAME_DAY) * warmth;
-
-        if (capacity > 0 && draw > 0) {
-          const end = Math.max(0, start - draw);
-          // The mean over the window. The drain is linear in time, so the
-          // mean is the midpoint UNLESS the soil ran dry partway: then it
-          // is a triangle over the fraction of the window before empty.
-          const startF = clamp01(start / capacity);
-          const endF = clamp01(end / capacity);
-          this._soilMeanMoisture =
-            end > 0
-              ? (startF + endF) / 2
-              : draw > 0
-                ? (startF * (start / draw)) / 2
-                : startF;
-          reserved.adjustReserve(
-            SOIL_MOISTURE_RESERVE_KEY,
-            Quantity.of(-(start - end), "L"),
-          );
-        } else if (capacity > 0) {
-          this._soilMeanMoisture = clamp01(start / capacity);
+        let meanSum = 0;
+        let meanSteps = 0;
+        let at = from;
+        for (let i = 1; i <= steps; i++) {
+          const to = i === steps ? nowS : from + (elapsed * i) / steps;
+          this.integrateRainfall(to);
+          const mean = this.drainSoilBetween(at, to);
+          if (mean !== null) {
+            meanSum += mean;
+            meanSteps++;
+          }
+          at = to;
         }
+        if (meanSteps > 0) this._soilMeanMoisture = meanSum / meanSteps;
         this.integrateNutrientCycle(elapsed / SECONDS_PER_GAME_DAY);
         this.soilClockStamp = nowS;
       } finally {
         this._reconcilingSoil = false;
       }
+    }
+
+    /**
+     * Drain one step of the soil window, `[fromS, toS)`, and return the
+     * step's mean moisture fraction (null when the ground holds no water
+     * reserve). The drain is linear in time, so the mean is the midpoint
+     * UNLESS the soil ran dry partway: then it is a triangle over the
+     * fraction of the step before empty.
+     */
+    private drainSoilBetween(fromS: number, toS: number): number | null {
+      const reserved = this.soilHost;
+      const reserve = reserved.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      const capacity = reserve ? reserve.capacity.rawValue() : 0;
+      if (!(capacity > 0)) return null;
+      const start = reserve ? reserve.current.rawValue() : 0;
+      // ⭐ The draw is scaled by the step's evaporative demand — a host
+      // that knows its season answers for it (cover build).
+      const warmth = this.soilDrawFactor(fromS, toS);
+      // Summed demand — more drinkers empty the ground faster, which is
+      // water competition emerging from the same source of truth the
+      // shared-soil root competition comes from. No new rule.
+      const demandPerDay = this.soilWaterDemandPerGameDay();
+      const draw = demandPerDay * ((toS - fromS) / SECONDS_PER_GAME_DAY) * warmth;
+      const startF = clamp01(start / capacity);
+      if (!(draw > 0)) return startF;
+      const end = Math.max(0, start - draw);
+      const endF = clamp01(end / capacity);
+      reserved.adjustReserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(-(start - end), "L"),
+      );
+      return end > 0 ? (startF + endF) / 2 : (startF * (start / draw)) / 2;
     }
 
     // ---------- the sky edge: rain reaches soil ----------

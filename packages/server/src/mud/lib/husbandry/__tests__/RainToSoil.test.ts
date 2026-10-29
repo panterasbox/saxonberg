@@ -24,7 +24,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GardenBed from '../../../platform/thing/GardenBed';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Biome from '../../biome/Biome';
@@ -139,6 +139,7 @@ beforeEach(() => {
 // byTemplatePath index and every reconcile silently no-ops thereafter
 // (the GardenBed suite's note, and it applies verbatim here).
 afterEach(() => {
+  vi.restoreAllMocks();
   WeatherApi._forceTypeForTesting(null);
   WorldClockApi._resetForTesting();
 });
@@ -294,5 +295,53 @@ describe('the rain edge — a bed fills from the sky', () => {
     setNow(10 * DAY);
     bed.reconcileSoil();
     expect(litres(bed)).toBe(0);
+  });
+});
+
+describe('the rain edge — ⭐⭐ a long window is walked, not lumped (cover B31)', () => {
+  it('a season unread credits the whole season of rain, not its last month', async () => {
+    WeatherApi._forceTypeForTesting('rain');
+    const bed = makeBed(4, 1_000_000);
+    await ContainmentApi.move(bed, makeRoom(true));
+    await bed.restampWatershed();
+    bed.reconcileSoil(); // opens the window
+    const opened = clock();
+
+    setNow(90 * DAY);
+    const closed = clock();
+    bed.reconcileSoil();
+
+    // The weather walk caps one call at 30 days; summed a month at a time
+    // the whole 90 days is what fell.
+    let expected = 0;
+    for (let t = opened; t < closed; t += 30 * DAY) {
+      expected += fellMm(t, Math.min(closed, t + 30 * DAY)) * 4;
+    }
+    expect(expected).toBeGreaterThan(fellMm(opened, closed) * 4 * 2);
+    // Within a percent: walked a day at a time, the segment phase falls
+    // a little differently than walked a month at a time.
+    expect(Math.abs(litres(bed) - expected) / expected).toBeLessThan(0.01);
+  });
+
+  it('ground that out-rains its drinkers stays wet whether read monthly or once a season', async () => {
+    WeatherApi._forceTypeForTesting('rain');
+    // A steady drinker, well under what the rain brings a day.
+    vi.spyOn(GardenBed.prototype, 'soilWaterDemandPerGameDay').mockReturnValue(10);
+    const readOnce = makeBed(4);
+    const readMonthly = makeBed(4);
+    for (const bed of [readOnce, readMonthly]) {
+      await ContainmentApi.move(bed, makeRoom(true));
+      await bed.restampWatershed();
+      bed.reconcileSoil();
+    }
+    for (let m = 1; m <= 3; m++) {
+      setNow(m * 30 * DAY);
+      readMonthly.reconcileSoil();
+    }
+    readOnce.reconcileSoil();
+    // ⚠ Lumped, the season's rain overflowed the 200 L in one pour and
+    // ninety days of drinking then emptied it: bone dry.
+    expect(litres(readMonthly)).toBeGreaterThan(150);
+    expect(litres(readOnce)).toBeGreaterThan(150);
   });
 });
