@@ -252,7 +252,11 @@ deferred generic office validator); the charter as a readable
 StoredDocument; multi-residence primary-home designation; re-rooting
 the sibling address roots; the University's institutional detail
 (Chancellor, colleges); the realm's ministries; the Compact's capital
-district (staging).
+district (staging); ⭐ **the operating-scale term** — a government's
+operating classes (*smallholding · estate · plantation*) as rows,
+measured by the engine and judged by an officer seat, the third
+dimension of the land-use covenant
+([land-use-covenant-slate § The operating-scale term](../slates/builds/land-use-covenant-slate.md)).
 
 ## Cross-references
 

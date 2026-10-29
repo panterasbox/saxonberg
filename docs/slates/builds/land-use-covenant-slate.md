@@ -21,6 +21,10 @@
 > CAPACITY** — how much algorithmic content may be written under this
 > extent, as a term of its provisioning rather than a per-run decision.
 > See § below and [content-generation-slate](./content-generation-slate.md).
+> · ⭐⭐⭐ **and an OPERATING-SCALE term (2026-10-29, owned by civics)** —
+> what size of operation may run on this ground (smallholding · estate ·
+> plantation, as a government's ROWS), measured by the engine, judged by
+> an officer. See § *The operating-scale term* below.
 
 > ⭐⭐ **2026-10-28 — magic is a SECOND covenant term, not the top of the
 > ladder** ([emergency-services-slate](./emergency-services-slate.md) § 5,
@@ -396,6 +400,112 @@ provisioning or subdivision.
    waste, roads and services are the natural in-fiction limiter on
    density. If servicing turns out to be cosmetic, density is an unpriced
    dial and the budget conflict returns.
+
+## ⭐⭐⭐ The operating-scale term — what size of operation the ground may carry (2026-10-29)
+
+Out of the cover build's review (arable + grazing, MR !480). With fields
+that hold area crops and herds that eat their field, a parcel now carries
+a farm that can be **small or large**, and the difference is not area:
+one hectare can be a family's ley or an estate's paddock. The owner:
+
+> *"when you're given a parcel what scale farm can you run on it. we have
+> land area but this isn't quite that. its more like an economy of scale
+> setting that determines what system you're running on your property. I
+> could see wanting all that regulated from the compact all the way
+> down."*
+
+Decided with the owner, the same day: **classes are ROWS · enforcement
+is OFFICER-JUDGED · it is civics' to build.**
+
+### What it is — a covenant term, because it is the same kind of thing
+
+> **Operating scale is a term on the title: what size of operation may
+> run on this ground. It runs with the land, binds successors, and is
+> argued at GRANT time.**
+
+It is the sibling of *by what means* and *how much may be generated*: a
+restriction on **what may be done on the ground**, agreed once, read
+forever. Changing it is **rezoning**, and should be a fight.
+
+### Three layers, kept apart (measurement.md)
+
+1. **The engine MEASURES, and gates nothing.** An operation's scale is
+   **derived**, never declared:
+   - the area under crop;
+   - head per hectare grazed;
+   - hands on the roster that works the ground;
+   - draft power and equipment;
+   - output per year.
+
+   It is already all in shipped records: the field's crop and grazing
+   ledger, the herdbook, the employment roster. It is readable as one
+   honest read of the holding. ⭐ Small and large are not modes; they
+   are what you are doing (lens 1, derivable).
+2. **The holder VALUES.** Whether to intensify is the player's call,
+   made through costs, never a setting. A plough team, a cart, bulk
+   storage and hired hands each lower the cost per unit and each needs
+   capital and labor. ⭐ **Economy of scale is CONTENT** — the gaps the
+   cover build named (grain as bulk, threshing, uncut losses, field
+   water, the field-to-market leg) are what make it real, and they are
+   separate items, not this one.
+3. **The polity IMPOSES — and every limit names its author.** The chain
+   runs Compact → locality government → title holder → tenant. Each link
+   may only **narrow** what it was granted (longest-prefix chain of
+   title, as for the other terms):
+
+   | tier | what it says | shape |
+   |---|---|---|
+   | **Compact** (entrenchment A/B) | the floor nobody below may waive: a player is never coercive; unfree labor exists only as an authored jurisdiction register ([unfree-labour-slate](./unfree-labour-slate.md)); title gates hold | the measurement.md tiers |
+   | **Locality government** (tier C) | its **operating classes** — *smallholding · estate · plantation* or whatever its law names — each a **row** with optional limits (stocking per ha, hired hands, a license to hold, runoff duties) | rows in the government's data, a second realm invents its own (lens 2) |
+   | **Title holder** | which class a parcel carries, set at the grant | the covenant row |
+   | **Tenant** | a lease narrows it further — *"no more than twelve head; no cane"* | the tenure terms already shipped |
+
+### Enforcement — officer-judged, as the rest of this slate is
+
+- **Soft.** Running above your class **works**, and it is visible: the
+  measured scale against the covenant, read by anyone entitled to read
+  the title. Exceeding your license is something you can do and be
+  caught for, never something the game will not let you type (lens 3b:
+  the polity can do something we did not plan).
+- ⛔ **No bare count as a hard gate.** A cap the engine enforces silently
+  is the harshest rule with no author. The engine refuses only at the
+  invariants it already refuses at (title, zoning's *may anything be
+  grown here*).
+- **The judgment is a SEAT's** — an inspector, a land agent, the
+  government's own officer — reading the measured holding against the
+  covenant. Lens 7: **the criterion** is the row, **the appeal** goes to
+  the government that wrote the row, and **the entrenchment** is the
+  tier the row sits at. A breach is the same accountability row the
+  rest of this slate writes; what it costs (a fine, a forfeiture, a lost
+  license, nothing at all) is the polity's.
+
+### Where it touches what exists
+
+- **Zoning** ([zoning-slate](./zoning-slate.md)): the closed-six land use
+  says *what the land is for*; the class says *at what scale*.
+  Nonconforming use (a farm that predates the class) is that slate's
+  doctrine and applies here unchanged.
+- **Plantation** is where the Compact's floor bites hardest, which is why
+  it is a class a government must *write*, never a default.
+- **The cover build's consumers:** the field (area, crop, grazing
+  ledger), the herdbook (head, condition), the estate's roster (Waponi's
+  cutters are already an estate-class operation in all but name).
+
+### Open questions
+
+1. **What unit does the measured scale speak in?** It is several things
+   at once (land, labor, stock, output), so a single number would be the
+   *lot count* mistake again. *Lean: the read reports the components, and
+   a class row states its limits per component.*
+2. **Is a license a document you hold** (transferable with the land, or
+   personal to the operator)? *Lean: the class runs with the land; a
+   license to operate a class is personal and lapses with you.*
+3. **Who may raise a parcel's class**, and is that a vote? It is
+   rezoning, so it wants the same answer the generative-capacity term
+   gets.
+4. **Does the measured scale feed the settlement type?** The zoning
+   slate derives a place's type from its uses; scale is the obvious
+   second input (*a valley of estates is not a valley of smallholdings*).
 
 ## ⭐⭐⭐ Goods at the border — customs (designed 2026-10-19)
 
