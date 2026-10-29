@@ -191,6 +191,23 @@ describe('the field feeds its grazers', () => {
     expect(kept.improvementWork.clearing).toBe(100);
   });
 
+  it('⭐ an authored field is kept ground: its clearing starts done; a plotted one starts rough', async () => {
+    const bill = { clearing: 40, stonePicking: 10, draining: 0, liming: 0 } as never;
+    const authored = makeStuff(() => {
+      const f = new Field();
+      f.setAreaM2(400); // sized by its row before registration
+      return f;
+    });
+    const plotted = makeStuff(() => new Field()); // no area until `plot`
+    for (const f of [authored, plotted]) {
+      vi.spyOn(f, 'improvementBill').mockResolvedValue(bill);
+      f.improvementWork = {};
+      await f.onCreate();
+    }
+    expect(authored.isComplete('clearing', bill)).toBe(true);
+    expect(plotted.isComplete('clearing', bill)).toBe(false);
+  });
+
   it('look names the herd grazing it', () => {
     const f = field(400);
     settle(f);
