@@ -214,10 +214,56 @@ new code that touches a detached input has to land somewhere on it.
 
 By behavior class: silently-skip / empty-result for the MQL stack and
 command scoping; `false` for `canSee`; `undefined` for boundary
-queries; warn-and-return for `messageContainer`. **Nothing throws.**
-Code that throws on null-env is a bug — file the regression as a
-matrix-invariant violation. Regression tests live in
-`lib/spatial/__tests__/Containable.nullEnv.test.ts`.
+queries; warn-and-return for `messageContainer`. **No READ throws** —
+every row above is a read, and a read that throws on null-env is a bug:
+file the regression as a matrix-invariant violation. Regression tests live
+in `lib/spatial/__tests__/Containable.nullEnv.test.ts`.
+
+### ⭐⭐ Writes on a detached subject — never a silent skip (2026-10-29)
+
+The matrix covers reads, and its "silently skip" kept being copied into
+WRITES: acts that put something into the world and need a place for it
+(the sherds of a pot that breaks, a spill, a cast, drainings). A write
+that skips when its subject stands nowhere loses the result, and tells
+nobody. (The owner, on the ceramics review: *"now that you've basically
+made 'silently do nothing when things don't have an environment' the
+guideline, everything in the codebase is going to do that … maybe we
+should actually have a policy about that instead of just giving up and
+telling no one about it."*)
+
+**The policy.** A write whose subject is detached:
+
+1. **Checks BEFORE it changes anything.** Precondition first, so a refused
+   write leaves the world exactly as it was (the pot is still whole).
+2. **Never invents a place.** No fallback room, no "the actor's inventory
+   instead". The result goes where the source was, and a source that is
+   nowhere has nowhere to put it.
+3. **Throws `DetachedError`** (`lib/errors.ts`): the act was asked of a
+   subject it cannot be done to, and that is a defect in whoever asked.
+   It is a contract violation (CLAUDE.md: *programmatic contract
+   violations throw*), not a player's refusal.
+4. **Is told, not buried.** The throw goes to the existing reporting path.
+   The command boundary absorbs it as a `controller-error` note to the
+   giver and records an author diagnostic (`errors` in the shell, the CMS
+   panel), and a scheduled root records it and swallows it.
+   ([diagnostics.md](./diagnostics.md).)
+
+**The general rule — which of the three.** The same question for every
+failure, not only a detached subject:
+
+| what failed | who is at fault | the answer |
+|---|---|---|
+| a player asked for something the world says no to (too cold to strike, nothing to turn) | nobody — the world | a **refusal**: an outcome the object returns and the controller words (controllers are input and output) |
+| a read found nothing (a detached thing has no peers) | nobody — it is a normal state | **empty / false / skip**, the matrix above |
+| code asked an object for something its contract cannot give (a write with no place, a mint of a row that does not exist, a negative quantity) | the CODE or the CONTENT | **throw** a typed error, checked before any change, and let the guarded roots report it |
+
+⛔ What it rules out: `catch { … = null }` around a mint, and `if (x ===
+null) return;` in front of a write. The first `Integrity.sufferImpact`
+did both (a pot standing nowhere broke into nothing; a sherds row that
+could not be minted was swallowed and the pot destroyed anyway); it now
+checks and throws (B97). **Left:** a census of the silent null-guards in
+front of writes across the tree, ratcheted and burned down —
+[silent-write-census-slate.md](../slates/tails/silent-write-census-slate.md).
 
 ### Where a thing is — runtime state, never authored
 

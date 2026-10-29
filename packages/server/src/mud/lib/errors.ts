@@ -49,3 +49,23 @@ export class DestructError extends Error {
     if (opts?.cause !== undefined) this.cause = opts.cause;
   }
 }
+
+/**
+ * ⭐ Programmatic-contract violation: an act that WRITES — puts something
+ * into the world — was asked of a subject that stands nowhere
+ * (`environment === null`). The pot that breaks needs the place it stood
+ * for its sherds; a spill needs a floor.
+ *
+ * Reads never throw this: detachment is a normal state for a read (the
+ * matrix in `docs/subsystems/spatial.md` § Detached Stuff). A write never
+ * skips silently and never invents a place: it checks its subject BEFORE
+ * it changes anything, and throws this. The command boundary absorbs it as
+ * a `controller-error` note and records an author diagnostic; a scheduled
+ * root records and swallows it — so the defect is told, not buried.
+ */
+export class DetachedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'DetachedError';
+  }
+}

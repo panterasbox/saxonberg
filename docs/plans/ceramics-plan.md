@@ -1925,6 +1925,29 @@ left a fork the lens that chose is named.
   - **Slated:** surface wetness (`Wet`) and held moisture are both raised
     by rain, independently. That is matter-model-overlaps § 6.
 
+- **B97 — no silent writes; `leaveBeside` retired (owner, 2026-10-29).**
+  - `Containable.leaveBeside` existed only to dodge an import from
+    Tangible's base chain. It is gone, and `Integrity.sufferImpact` does
+    one checked `ContainmentApi.move(pieces, where)`.
+  - **The policy** (spatial.md § Writes on a detached subject): a write
+    whose subject stands nowhere checks first, never invents a place,
+    throws `DetachedError` (new, `lib/errors.ts`), and is reported through
+    the guarded roots (a `controller-error` note plus an author
+    diagnostic). Reads keep the matrix's skip.
+  - ⚠ The owner pushed back on "never throws": exceptions have a place,
+    for a contract violation. So the general rule is three-way:
+    - the world says no → a **refusal**;
+    - a read finds nothing → **skip**;
+    - the code or content asked the impossible → **throw**, checked
+      before any change.
+  - **The break** also stopped swallowing a failed sherds mint
+    (`catch { pieces = null }` destroyed the pot into nothing).
+  - **Its test** had been built on both skips: a detached pot, and a
+    mocked mint failure. It now places the pot, and pins that a pot
+    breaking nowhere throws and is left whole.
+  - **Left:** the census of silent null-guards in front of writes,
+    silent-write-census-slate.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

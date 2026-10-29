@@ -15,6 +15,7 @@ import { ThermalMixin } from '../../thermal/Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
+import { DetachedError } from '../../errors';
 import { ContainmentApi } from '../../../api/containment';
 import { WorldClockApi } from '../../../api/worldclock';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -94,13 +95,28 @@ const drop = (p: Pot, floor: Material) =>
 
 describe('a blow against strength and floor', () => {
   it('⭐ a master’s thin stoneware bowl dropped on granite breaks; on strewn earth it does not', async () => {
-    vi.spyOn(StuffApi, 'clone').mockRejectedValue(new Error('no sherds row in a unit test'));
+    // A sherds stand-in: the mint is the row's, and a unit test has no rows.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new Good())) as never);
+    const room = makeStuff(() => new Room());
     const onStone = pot(stoneware, 0.25);
-    expect((await drop(onStone, granite)).broke).toBe(true);
+    ContainmentApi.move(onStone as never, room as never);
+    const out = await drop(onStone, granite);
+    expect(out.broke).toBe(true);
     expect(onStone.isDestroyed()).toBe(true);
+    // The pieces are where it stood.
+    expect(room.getContents()).toContain(out.pieces);
     const onEarth = pot(stoneware, 0.25);
+    ContainmentApi.move(onEarth as never, room as never);
     expect((await drop(onEarth, earth)).broke).toBe(false);
     expect(onEarth.isDestroyed()).toBe(false);
+  });
+
+  it('⚠ a pot that breaks standing NOWHERE is a defect, told — never a silent loss (spatial.md § Detached Stuff)', async () => {
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new Good())) as never);
+    const nowhere = pot(stoneware, 0.25);
+    await expect(drop(nowhere, granite)).rejects.toBeInstanceOf(DetachedError);
+    // Checked before anything changed: the pot is still whole.
+    expect(nowhere.isDestroyed()).toBe(false);
   });
 
   it('⭐ a novice’s thick terracotta mug survives both — the wall is the strength', async () => {

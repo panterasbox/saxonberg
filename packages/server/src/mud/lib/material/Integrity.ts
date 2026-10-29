@@ -40,6 +40,8 @@ import type { Tangible } from './Tangible';
 import type Material from './Material';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
+import { DetachedError } from '../errors';
 import { AppApi } from '../../api/app';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -363,23 +365,25 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       }
       // It breaks: into its material's broken form, where it was. (What a
       // vessel held is spilled by `BulkableMixin.sufferImpact` first.)
+      // ⭐ A write never skips (spatial.md § Detached Stuff): the sherds need
+      // the place the pot stood, so a pot standing nowhere is a defect in
+      // whoever broke it — checked BEFORE anything changes.
+      const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (where === null) {
+        throw new DetachedError(`${self.getPresentation()} broke while standing nowhere: its pieces have no place`);
+      }
       const mat = this.body().getMaterial()!;
       let pieces: Stuff | null = null;
       const row = mat.getBrokenTemplate();
       if (row) {
-        try {
-          pieces = await StuffApi.clone<Stuff>(row, undefined, { madeFrom: [self] });
-          if (MixinApi.isTangible(pieces)) {
-            pieces.setMaterial(mat);
-            pieces.setMass((this as unknown as Tangible).getMass());
-          }
-          // ⚠ Placed through `Containable.leaveBeside`, never `ContainmentApi`
-          // here: this file is in every Thing's base chain, and the Api's
-          // import graph reaches back into it.
-          if (MixinApi.isContainable(self)) self.leaveBeside(pieces);
-        } catch {
-          pieces = null;
+        // ⚠ Not swallowed: a broken form that cannot be minted is a defect
+        // in the row, and the pot is not destroyed into nothing.
+        pieces = await StuffApi.clone<Stuff>(row, undefined, { madeFrom: [self] });
+        if (MixinApi.isTangible(pieces)) {
+          pieces.setMaterial(mat);
+          pieces.setMass((this as unknown as Tangible).getMass());
         }
+        if (MixinApi.isContainable(pieces)) ContainmentApi.move(pieces, where);
       }
       await StuffApi.destruct(self);
       return { broke: true, flawed: false, pieces };
