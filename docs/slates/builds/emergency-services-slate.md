@@ -161,7 +161,7 @@ The owner: *"our lenses should help some here even though magic isn't necessaril
   in the wilds can send **to** a surveyed station, and nothing can answer, because the wilds are
   unsurveyed. And a probe is a signal: a call for help can also give you away.
 - **Wards follow density.** An alarm ward is held, so it is a **binding**, and *magic is poor at
-  what must be held* — it needs a supply, the piped aether line. Surveillance by magic — the
+  what must be held* — it needs a supply, the piped **mana** line (the aether carries information only — [arcane-science.md](../../arcane-science.md) § *The second postulate*). Surveillance by magic — the
   enforcement slate's *camera* mode — concentrates where the line runs.
 
 ## 7. ⭐⭐⭐ The party **[LEAN, except where marked]**
