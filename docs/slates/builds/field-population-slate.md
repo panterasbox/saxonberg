@@ -155,3 +155,16 @@ now a place you can find and fix.
    with none is one patch or gets seeded defaults.
 4. **Does a marked plant outlive the crop** (a seed plant kept for next
    year's seed)?
+5. ⭐ **A grieve's report** (agreed 2026-10-29, for later): a hand or
+   steward seat a player can ask what they saw across the farm, with the
+   report banded by the hand's competence. The cover-build hand only
+   *acts* on its read.
+
+## 9. Patches on the sward (later)
+
+The field-population build gives **crops** patches; grass stays
+field-wide. Later, the sward could vary by patch too: herds favor the
+sheltered corner and poach the wet one, and a field grazes unevenly.
+That reaches the grazing ledger, the trough draw and herd condition, so
+it is its own build.
+
