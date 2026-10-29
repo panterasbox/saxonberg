@@ -134,6 +134,10 @@ Everything that needs game-time goes through `getNow()`.
 
 ### Own-thing model (D1)
 
+> ⭐ **2026-10-29 — Coordinated Metaversal Time (the owner):** this clock is the one arrow across
+> every place, circle and realm; a locality's clock is derived from it through a registry, never
+> independent → [stage-and-simulation-slate](../slates/builds/stage-and-simulation-slate.md) § 1.
+
 Game time advances **only while the server is up**. It pauses at
 shutdown and resumes from the persisted `elapsedGameTime` on the next
 boot. There is no coupling to wall-clock time across downtime — a
