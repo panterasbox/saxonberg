@@ -94,6 +94,10 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
+import { ZoneApi } from '@saxonberg/server/mud/api/zone';
+import { WeatherApi } from '@saxonberg/server/mud/api/weather';
+import type { ClimateSite } from '@saxonberg/server/mud/lib/weather/WeatherType';
+import type { CelestialProfile } from '@saxonberg/server/mud/lib/time/CelestialProfile';
 import type { Stuff, PresentationView } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { NounPhrase } from '@saxonberg/server/mud/lib/description/NounPhrase';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
@@ -793,7 +797,7 @@ export default class Field extends FieldBase {
    * model that factor* and NOT *this factor is zero*. Ground with no
    * nitrogen reserve is not nitrogen-starved; it is unmodelled.
    */
-  public override swardGrowthFactor(): number {
+  public override swardGrowthFactor(atS?: number): number {
     const factors: number[] = [];
     const moisture = this.soilMoistureFraction();
     if (moisture !== null) {
@@ -809,22 +813,22 @@ export default class Field extends FieldBase {
     // (D10): it is cold, and the days are short. Both are resolved
     // asynchronously and cached, so both carry the same tri-state —
     // ⚠ unresolved reads as UNLIMITED, never as frozen.
-    if (this._ambientK > 0) {
+    const ambientK = this.ambientAt(atS);
+    if (ambientK > 0) {
       // GRASS_BASE_K is the base temperature every growing-degree-day sum
       // in agronomy is measured against, and it is why a sward stops in
       // December without anybody writing down that it is December.
       factors.push(
-        clampUnit((this._ambientK - GRASS_BASE_K) / (GRASS_HAPPY_K - GRASS_BASE_K)),
+        clampUnit((ambientK - GRASS_BASE_K) / (GRASS_HAPPY_K - GRASS_BASE_K)),
       );
     }
-    if (this._daylightFraction >= 0) {
+    const daylight = this.daylightAt(atS);
+    if (daylight >= 0) {
       // ⭐ Photoperiod, not irradiance. Short days limit a temperate
       // sward well before the light gets dim, which is why growth is
       // over in October and not in the first hard frost.
       factors.push(
-        clampUnit(
-          (this._daylightFraction - DAYLIGHT_STOP) / (DAYLIGHT_HAPPY - DAYLIGHT_STOP),
-        ),
+        clampUnit((daylight - DAYLIGHT_STOP) / (DAYLIGHT_HAPPY - DAYLIGHT_STOP)),
       );
     }
     return factors.length === 0 ? 1 : Math.min(...factors);
@@ -841,6 +845,44 @@ export default class Field extends FieldBase {
 
   /** The in-flight season resolve, or `null` — coalesces callers. */
   private _seasonPromise: Promise<void> | null = null;
+
+  /**
+   * ⭐ The field's climate site, its offset from that climate, and its
+   * sky (cover build): what lets the sward read warmth and daylength at
+   * ANY moment of a window rather than at the moment it was read.
+   * Runtime caches, resolved with the season; `null` = fall back to the
+   * cached now.
+   */
+  private _swardSite: ClimateSite | null = null;
+  private _swardOffsetK: number | null = null;
+  private _swardSky: CelestialProfile | null = null;
+
+  /** Kelvin at game-second `atS` (the cached now when unknown). */
+  private ambientAt(atS?: number): number {
+    if (atS === undefined || !this._swardSite || this._swardOffsetK === null || this._ambientK <= 0) {
+      return this._ambientK;
+    }
+    try {
+      const k = WeatherApi.climateAt(this._swardSite, Quantity.of(atS, 's')).rawValue();
+      return Number.isFinite(k) ? k + this._swardOffsetK : this._ambientK;
+    } catch {
+      return this._ambientK;
+    }
+  }
+
+  /** Daylength as a fraction of the day at `atS` (the cached now when unknown). */
+  private daylightAt(atS?: number): number {
+    const sky = this._swardSky;
+    const site = this._swardSite;
+    if (atS === undefined || !sky || !site || !(sky.dayLengthSeconds > 0)) {
+      return this._daylightFraction;
+    }
+    try {
+      return CelestialApi.daylightSecondsFor(sky, site.latitudeDeg, atS) / sky.dayLengthSeconds;
+    } catch {
+      return this._daylightFraction;
+    }
+  }
 
   /**
    * Resolve how cold it is and how long the day is, here, now.
@@ -875,6 +917,19 @@ export default class Field extends FieldBase {
       this._daylightFraction = await CelestialApi.daylightFractionAt(
         self as unknown as Stuff,
       );
+      // The site and the sky, for reading any moment of a window.
+      if (this._ambientK > 0) {
+        const site = await ZoneApi.climateSiteFor(self as unknown as Stuff);
+        const now = fieldNowSeconds();
+        if (now !== null) {
+          const climate = WeatherApi.climateAt(site, Quantity.of(now, 's')).rawValue();
+          if (Number.isFinite(climate)) {
+            this._swardSite = site;
+            this._swardOffsetK = this._ambientK - climate;
+          }
+        }
+        this._swardSky = await CelestialApi.profileFor(self as unknown as Stuff);
+      }
     } catch {
       // ⚠ A failed walk leaves BOTH unresolved rather than resolving
       // either to something. Unknown must never read as winter.

@@ -16,6 +16,11 @@ data:
   areaM2: 1000
   props:
     - /world/terminus/waponi-woo/thing/standing-cane-okafor
+    # ⭐ The Okafors' own tools, kept at the piece (cover build): a plough
+    # at the headland — used where it lies — and a spade for grubbing out
+    # tired stools before a piece is replanted from cut cane.
+    - /trade/farming/thing/plough
+    - /trade/farming/thing/spade
   exits:
     east:
       destination: /world/terminus/waponi-woo/location/smallholding-a

@@ -434,21 +434,19 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // The holder's work: grub, plough, replant from cut cane.
     const gov = await Session.open('founder', { startLocation: SMALLHOLDING, wizard: true });
     try {
-      for (const tool of ['/trade/farming/thing/spade', '/trade/farming/thing/plough', '/trade/sugar/thing/cane-knife']) {
-        expectOkish(await gov.cmd(`clone ${tool} --here`));
-      }
+      // The Okafors' spade and plough are at the piece. A bundle off the
+      // old stools first, by hand — what the new planting is laid from.
       await act(gov, 'get spade');
-      await act(gov, 'get cane knife');
-      // A bundle off the old stools first — what the new planting is laid from.
-      for (let i = 0; i < 3 && (await gov.query('me:i:cane')).length === 0; i++) {
-        await act(gov, 'harvest cane');
+      for (let i = 0; i < 6 && (await gov.query('me:i:bundle')).length === 0; i++) {
+        await work(gov, 'harvest cane');
       }
+      expect((await gov.query('me:i:bundle')).length, 'a bundle of cut cane in hand').toBeGreaterThan(0);
       const grubbed = await act(gov, 'grub');
       expect(refusedFor(grubbed.r)).toBeNull();
       expect(await read(gov, 'look')).not.toMatch(/stand of sugar cane grows/i);
       let ploughed = '';
       for (let i = 0; i < 4 && !/ploughed for the season/i.test(ploughed); i++) {
-        await act(gov, 'plough');
+        await work(gov, 'plough');
         ploughed = await read(gov, 'look');
       }
       expect(ploughed).toMatch(/ploughed for the season/i);

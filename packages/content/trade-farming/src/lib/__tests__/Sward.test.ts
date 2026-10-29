@@ -35,11 +35,13 @@ const AREA = 400;
 class TestPaddock extends SwardMixin(ReservedMixin(Idea)) {
   public grazers = 0;
   public factor = 1;
+  /** When set, the factor at game-second `atS` (a season inside a window). */
+  public seasonal: ((atS: number) => number) | null = null;
   public override swardAreaM2(): number {
     return AREA;
   }
-  public override swardGrowthFactor(): number {
-    return this.factor;
+  public override swardGrowthFactor(atS?: number): number {
+    return this.seasonal && atS !== undefined ? this.seasonal(atS) : this.factor;
   }
   public override swardGrazingDemandPerGameDay(): number {
     return this.grazers;
@@ -283,3 +285,23 @@ describe('the sward in winter', () => {
 function clamp(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v;
 }
+
+describe('⭐ a window integrates its season, step by step (cover build)', () => {
+  it('a summer nobody watched still grew, though it is read in a dead season', () => {
+    makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    const base = WorldClockApi.getNow().rawValue();
+    const clock = vi.spyOn(WorldClockApi, 'getNow');
+    clock.mockReturnValue(Quantity.of(base, 's'));
+    const p = makeStuff(() => new TestPaddock());
+    p.installSward(0.2);
+    p.standingDryMatterKg();
+    const before = p.standingDryMatterKg();
+    // Growth for the first sixty days, nothing after — and the read is
+    // at day ninety, in the dead season.
+    p.seasonal = (atS) => (atS - base < 60 * DAY ? 1 : 0);
+    p.factor = 0;
+    clock.mockReturnValue(Quantity.of(base + 90 * DAY, 's'));
+    expect(p.standingDryMatterKg()).toBeGreaterThan(before * 2);
+    clock.mockRestore();
+  });
+});

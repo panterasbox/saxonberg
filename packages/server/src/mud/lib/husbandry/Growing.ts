@@ -56,6 +56,9 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { PerceptionApi } from '../../api/perception';
 import { BiomeApi } from '../../api/biome';
+import { ZoneApi } from '../../api/zone';
+import { WeatherApi } from '../../api/weather';
+import type { ClimateSite } from '../weather/WeatherType';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { Quantity } from '../quantity';
@@ -623,6 +626,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     /** The in-flight warmth resolve, or `null` — coalesces callers. */
     private _warmthPromise: Promise<void> | null = null;
 
+    /**
+     * ⭐ The climate site of the place this plant stands in, and how far
+     * the place stood from that climate when the ambient was last
+     * resolved (cover build) — so a window integrates WARMTH STEP BY STEP
+     * as the season turns (`climate(site, t) + offset`): an open field
+     * follows the year, a heated room keeps its heat. Runtime caches;
+     * `null` until resolved, when the window falls back to one sample.
+     */
+    private _climateSite: ClimateSite | null = null;
+    private _ambientOffsetK: number | null = null;
+
     /** Latched at `mature` in thriving condition; cleared on falling back. */
     public _flowering = false;
     /** This flowering episode has already set its seed. */
@@ -1128,12 +1142,16 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         // right figure for a window this plant is integrating whole.
         const satWater = this.satWater(this.meanSoilMoisture());
         const satNutrient = this.satNutrient();
-        // ⭐ Sampled once for the window like light and water: the season
-        // does not turn inside one integration step, and the plant is
-        // integrating the window whole.
-        const satWarmth = this.satWarmth();
+        // ⭐ Warmth is read PER STEP (cover build): a window can span a
+        // season — a piece nobody visited all summer, read in the autumn —
+        // and integrating it whole at the reading's warmth froze a summer's
+        // growth into an autumn's. The step reads the climate at its own
+        // moment plus the place's offset; with no site known, the one
+        // sample stands.
+        const windowStart = this.growthClockStamp;
 
         for (let i = 0; i < steps; i++) {
+          const satWarmth = this.satWarmth(windowStart + (i + 0.5) * dt);
           const limiting = Math.min(
             satWater,
             satLight,
@@ -1203,6 +1221,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
             const value = k?.rawValue();
             if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
               this._lastAmbientK = value;
+              await this.resolveClimateOffset(env, value);
               return;
             }
           }
@@ -1217,6 +1236,48 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
+     * Cache the place's climate site and its offset from that climate now,
+     * so warmth can be read at any moment of a window. A failure leaves
+     * both null — the single-sample fallback.
+     */
+    private async resolveClimateOffset(place: Stuff, ambientK: number): Promise<void> {
+      try {
+        const nowS = this.growthNowSeconds();
+        if (nowS === null) return;
+        const site = await ZoneApi.climateSiteFor(place);
+        const climate = WeatherApi.climateAt(site, Quantity.of(nowS, 's')).rawValue();
+        if (!Number.isFinite(climate)) return;
+        this._climateSite = site;
+        this._ambientOffsetK = ambientK - climate;
+      } catch {
+        this._climateSite = null;
+        this._ambientOffsetK = null;
+      }
+    }
+
+    /**
+     * The ambient at game-second `atS`: the climate there and then plus
+     * the place's own offset, or the last resolved ambient when no site
+     * is known. `-1` while unresolved.
+     */
+    private ambientAt(atS: number | undefined): number {
+      if (
+        atS === undefined ||
+        this._climateSite === null ||
+        this._ambientOffsetK === null ||
+        this._lastAmbientK < 0
+      ) {
+        return this._lastAmbientK;
+      }
+      try {
+        const k = WeatherApi.climateAt(this._climateSite, Quantity.of(atS, 's')).rawValue();
+        return Number.isFinite(k) ? k + this._ambientOffsetK : this._lastAmbientK;
+      } catch {
+        return this._lastAmbientK;
+      }
+    }
+
+    /**
      * Warmth satisfaction — ⭐ **the whole of winter, on the plant side.**
      *
      * `1` when the profile declares no cold response, and `1` while the
@@ -1224,14 +1285,15 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * same rule the nutrient seam already keeps (a pot authors no
      * nitrogen and is therefore never nutrient-limited).
      */
-    protected satWarmth(): number {
+    protected satWarmth(atS?: number): number {
       const profile = this.profile;
       if (!profile) return 1;
       const stop = profile.coldStopK;
       const happy = profile.warmHappyK;
       if (stop === undefined && happy === undefined) return 1;
-      if (this._lastAmbientK < 0) return 1;
-      return ramp(this._lastAmbientK, stop ?? 278, happy ?? (stop ?? 278) + 10);
+      const k = this.ambientAt(atS);
+      if (k < 0) return 1;
+      return ramp(k, stop ?? 278, happy ?? (stop ?? 278) + 10);
     }
 
     // ---------- host seams ----------

@@ -172,7 +172,7 @@ export interface Sward {
    * MINIMUM of moisture, warmth, daylength and nutrient, resolved by the
    * host because only the host knows its own soil and sky.
    */
-  swardGrowthFactor(): number;
+  swardGrowthFactor(atS?: number): number;
   /**
    * @hook Kilograms of dry matter the mouths standing on this ground eat
    * per game day. ⭐ *Whether the mouth is here* is the whole of D7's
@@ -244,7 +244,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return 0;
     }
 
-    public swardGrowthFactor(): number {
+    public swardGrowthFactor(_atS?: number): number {
       return 1;
     }
 
@@ -366,7 +366,10 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         const r = host.getReserve(SWARD_RESERVE_KEY)!;
         let standing = r.current.rawValue();
         const area = this.swardAreaM2();
-        const factor = clamp01(this.swardGrowthFactor());
+        // ⭐ The factor is read PER STEP at the step's own moment (cover
+        // build): an unwatched summer read in the autumn grew at the
+        // autumn's rate, and a herd starved through grass that never came.
+        const windowStart = this.swardStamp;
         const demandPerDay = Math.max(0, this.swardGrazingDemandPerGameDay());
 
         // ⭐ Stepped rather than closed-form, because the recovery penalty
@@ -391,6 +394,9 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
           // shading itself, which is why grass that gets ahead of the
           // herd stops paying and starts going stemmy.
           const headroom = ceiling > 0 ? Math.max(0, 1 - fraction) : 0;
+          const factor = clamp01(
+            this.swardGrowthFactor(windowStart + (i + 0.5) * dt * SECONDS_PER_GAME_DAY),
+          );
           const growth =
             PEAK_GROWTH_KG_PER_M2_DAY * area * factor * recovery * headroom * dt;
           standing = Math.min(ceiling, standing + growth);
