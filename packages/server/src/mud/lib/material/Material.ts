@@ -177,17 +177,6 @@ export interface DrainSetting {
 }
 
 /**
- * ⭐ How this matter sets by a CHEMICAL change with no act (ceramics S17):
- * plaster slurry takes up its water and is hard in a quarter of an hour.
- * The third set process (freeze, drain, cure). `becomes` is the material
- * the set thing IS.
- */
-export interface CureSetting {
-  minutes: number;
-  becomes?: string;
-}
-
-/**
  * ⭐ A metal that sets differently against a cold, conducting mould
  * (ceramics S12 — chill casting): cast iron in an iron mould sets WHITE and
  * hard, in sand GREY and soft. The first arrow whose threshold the mould's
@@ -740,28 +729,6 @@ export default class Material extends SingletonMixin(
     };
   }
 
-  /**
-   * ⭐ How this matter sets by curing (ceramics S17), or `null`. Read only
-   * by a mould's `reconcileSetting`, like the drain set.
-   */
-  public cureSetting: CureSetting | null = null;
-  public getCureSetting(): CureSetting | null {
-    return this.cureSetting;
-  }
-  public setCureSetting(value: CureSetting | null): void {
-    if (value === null || value === undefined) {
-      this.cureSetting = null;
-      return;
-    }
-    if (!(Number.isFinite(value.minutes) && value.minutes > 0)) {
-      throw new RangeError('Material.setCureSetting: need minutes > 0');
-    }
-    this.cureSetting = {
-      minutes: value.minutes,
-      ...(typeof value.becomes === 'string' && value.becomes !== '' ? { becomes: value.becomes } : {}),
-    };
-  }
-
   /** ⭐ What this sets as against a conducting mould (ceramics S12). */
   public chillsTo: ChillArrow[] = [];
   public getChillsTo(): readonly ChillArrow[] {
@@ -1234,7 +1201,6 @@ export default class Material extends SingletonMixin(
     drainSetting: { persistent: true, authorable: true },
     // ⭐ (ceramics S12, S17) The cure set and the chill arrows — how the
     // matter sets, never the mould's business.
-    cureSetting: { persistent: true, authorable: true },
     chillsTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     ruinedByFreezing: { persistent: true, authorable: true },
     boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },

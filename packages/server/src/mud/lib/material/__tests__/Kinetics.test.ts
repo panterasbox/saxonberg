@@ -279,3 +279,29 @@ describe('the kinetic record — the change on the good', () => {
     expect(g.kineticPhrases()).toEqual([{ key: 'turning', phrase: 'It has started to turn.', senses: ['vision'] }]);
   });
 });
+
+describe('⭐ what sets a pool, and what the fire fuses (review R2-D3)', () => {
+  const plaster = new Kinetics([
+    { key: 'set', rate: [[273, 4], [373, 4]], order: 0, ladder: [{ atDegree: 1, becomes: '/x/cast-plaster' }] },
+  ]);
+  const glaze = new Kinetics([
+    {
+      key: 'fuse',
+      rate: { referenceK: 1250, zK: 30, fullDoseS: 3600 },
+      ladder: [{ atDegree: 1, becomes: '/x/glass' }],
+    },
+  ]);
+
+  it("a pool sets by its first point curve with a ladder — plaster's quarter-hour cure", () => {
+    const set = plaster.poolSet()!;
+    expect(set.getKey()).toBe('set');
+    expect(set.advance(0, set.rateAt(293) * 0.25)).toBeCloseTo(1, 9);
+    expect(set.rungIndexFor(set.advance(0, set.rateAt(293) * 0.2))).toBe(-1);
+    expect(plaster.setsByHeat()).toBe(false);
+  });
+
+  it('a dose law is heat-work — the kiln’s, never a mould’s', () => {
+    expect(glaze.poolSet()).toBeNull();
+    expect(glaze.setsByHeat()).toBe(true);
+  });
+});

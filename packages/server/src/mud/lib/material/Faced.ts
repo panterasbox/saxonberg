@@ -107,7 +107,7 @@ function materialAt(path: string): Material | null {
 const COAT_WORDS: Record<CoatState, (coat: Material | null, face: FaceName) => string> = {
   wet: (m, f) =>
     `It has a wet coat of ${nameOf(m)} on the ${f}, not yet ${
-      m?.getKinetics() ? 'fired' : 'set'
+      m?.getKinetics()?.setsByHeat() ? 'fired' : 'set'
     }.`,
   set: (m, f) => `It is ${m?.getCoatWord() ?? 'coated'} on the ${f} with ${nameOf(m)}.`,
   crazed: (m, f) => `The ${nameOf(m)} on its ${f} is crazed with fine cracks.`,

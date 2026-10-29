@@ -25,8 +25,9 @@
  *     a weight put ON the mould, or a screw press it stands in). A slip
  *     whose drain is `absorbedByMould` sets only in an ABSORBENT mould,
  *     whose own wetness takes the water and slows the next cast;
- *   - **curing** — `Material.cureSetting`: plaster slurry takes up its
- *     water and is hard in a quarter-hour, no act;
+ *   - **curing** — the material's own `kinetics:` set (`Kinetics.poolSet`,
+ *     a point curve with a ladder): plaster slurry takes up its water and
+ *     is hard in a quarter-hour, no act;
  *   - **release at once** — a plastic charge with green strength (tempered
  *     clay) pressed into a `pressKind: press` mould takes its shape and
  *     leaves it ({@link Mould.pressRelease}).
@@ -531,7 +532,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         MixinApi.isBulkable(self) && self.getBulkAmount('interior').rawValue() > 0;
       if (pooled) {
         const mat = self.getBulkMaterial('interior');
-        const sets = (mat?.getDrainSetting() ?? null) !== null || (mat?.getCureSetting() ?? null) !== null;
+        const sets = (mat?.getDrainSetting() ?? null) !== null || (mat?.getKinetics()?.poolSet() ?? null) !== null;
         return sets && this.setProgress > 0 ? 'setting' : 'filled';
       }
       return this.holdsCast() ? 'set' : null;
@@ -570,7 +571,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const amountL = self.getBulkAmount('interior').rawValue();
         const material = self.getBulkMaterial('interior');
         const drain = material?.getDrainSetting() ?? null;
-        const cure = material?.getCureSetting() ?? null;
+        const cure = material?.getKinetics()?.poolSet() ?? null;
         if (!(amountL > 0) || material === null || (drain === null && cure === null)) {
           this.setProgress = 0;
           this.setStamp = 0;
@@ -600,12 +601,14 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           ((amountL + this.drainedLitres(drain)) / 1000) * material.getDensity().rawValue();
 
         if (drain === null && cure !== null) {
-          // ⭐ The cure: a chemical set, no act and no load.
-          this.setProgress = Math.min(1, this.setProgress + elapsed / (cure.minutes * 60));
-          if (this.setProgress < 1 - 1e-9) return;
-          const becomes = cure.becomes
-            ? StuffApi.findByTemplatePath<Material>(cure.becomes) ?? material
-            : material;
+          // ⭐ The cure: a chemical set, no act and no load — the material's
+          // own kinetic (review R2-D3), at the mould's temperature.
+          const k = MixinApi.isThermal(self) ? self.getTemperature().rawValue() : 293;
+          this.setProgress = cure.advance(this.setProgress, (cure.rateAt(k) * elapsed) / 3_600);
+          const rung = cure.rungIndexFor(this.setProgress);
+          if (rung < 0) return;
+          const to = cure.getLadder()[rung]!.becomes;
+          const becomes = to ? StuffApi.findByTemplatePath<Material>(to) ?? material : material;
           const payload = self.getBulkPayload('interior');
           this.clearPool(self);
           void this.castInto({ material: becomes, massKg: poolKg, payload, stampMaterial: true });
@@ -714,7 +717,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // been setting for three hours).
       if (
         this.setStamp === 0 &&
-        (pour.material.getDrainSetting() !== null || pour.material.getCureSetting() !== null)
+        (pour.material.getDrainSetting() !== null || pour.material.getKinetics()?.poolSet() != null)
       ) {
         this.setStamp = mouldNowSeconds() ?? 0;
       }
@@ -725,7 +728,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         this.absorbent &&
         pour.material.hasTag('liquid') &&
         pour.material.getDrainSetting() === null &&
-        pour.material.getCureSetting() === null &&
+        (pour.material.getKinetics()?.poolSet() ?? null) === null &&
         MixinApi.isBulkable(self) &&
         MixinApi.isWet(self)
       ) {
@@ -799,7 +802,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         };
       }
       const pooled = MixinApi.isBulkable(self) && self.getBulkAmount('interior').rawValue() > 0;
-      const curing = pooled && MixinApi.isBulkable(self) && (self.getBulkMaterial('interior')?.getCureSetting() ?? null) !== null;
+      const curing = pooled && MixinApi.isBulkable(self) && (self.getBulkMaterial('interior')?.getKinetics()?.poolSet() ?? null) !== null;
       if ((pooled && !curing) || this.holdsCast()) {
         return {
           ok: false,

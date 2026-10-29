@@ -20,10 +20,17 @@ data:
   nutrients: []
   toxicity: []
   tags: ["liquid", "slurry", "plaster"]
-  # ⭐ The cure: a quarter of an hour, and it is cast plaster.
-  cureSetting:
-    minutes: 15
-    becomes: /trade/ceramics/idea/material/cast-plaster
+  # ⭐ The cure: a quarter of an hour, and it is cast plaster — a kinetic
+  # like any other heat-and-time change (review R2-D3): a point curve of
+  # 4 per hour at any temperature (it sets warm or cold), order 0, whose
+  # one rung is cast plaster. A mould's pool sets by it.
+  kinetics:
+    - key: set
+      rate: [[273, 4], [373, 4]]
+      order: 0
+      ladder:
+        - atDegree: 1
+          becomes: /trade/ceramics/idea/material/cast-plaster
   composition:
     - { materialPath: /stuff/idea/material/mineral/plaster, fraction: 0.6 }
     - { materialPath: /stuff/idea/material/bulk/water, fraction: 0.4 }

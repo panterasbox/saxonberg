@@ -733,7 +733,6 @@ Material.composition = 0
 Material.concentratesTo = 0
 Material.corrosiveTo = 1 (name 0)
 Material.crystallizesTo = 0
-Material.cureSetting = 0
 Material.density = 1 (name 0)
 Material.drainSetting = 0
 Material.edibility = 1 (name 0)

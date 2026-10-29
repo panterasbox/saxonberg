@@ -116,7 +116,7 @@ casts TRUE.
 |---|---|---|
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets (passing `temperatureK`, the set edge) |
 | **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture, loadRef, absorbedByMould? }` | `MouldMixin.reconcileSetting` |
-| **curing** | `Material.cureSetting { minutes, becomes? }` | `MouldMixin.reconcileSetting` — no act, no load, no heat |
+| **curing** | the material's `kinetics:` set (`Kinetics.poolSet()` — a point curve with a ladder) | `MouldMixin.reconcileSetting` — no act, no load; the rate at the mould's temperature |
 | **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor drains through `drainsInto()` |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
 
@@ -161,8 +161,11 @@ substrate is the signal to promote it to the kernel at the merge.
 
 ### The cure (S17)
 
-A pool whose material authors `cureSetting` sets in its `minutes` of game
-time, whatever presses it, into `becomes`. Plaster slurry (`stir` burnt
+A pool whose material authors a kinetic set — the first `kinetics:` entry
+that is a point curve with a ladder (`Kinetics.poolSet()`; a dose law is
+heat-work, the kiln's) — advances it at the mould's temperature, whatever
+presses it, and sets into its rung's material (review R2-D3: `cureSetting`
+was a second copy of the one heat-and-time evaluator). Plaster slurry (`stir` burnt
 gypsum and water in the plaster tub) cures in a quarter of an hour into
 **cast plaster** — and, poured into the **plaster case** with a model
 pressed in before it sets, comes out as a **plaster mould** carrying the

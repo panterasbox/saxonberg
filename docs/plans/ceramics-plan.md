@@ -1804,6 +1804,18 @@ left a fork the lens that chose is named.
   - The brickfield and relines tests lend the real `walkRoute` to their
     fake workers, so they exercise the shared walk, not a test copy.
 
+- **B92 — W-R2e (2026-10-28).**
+  - Plaster's cure is a point curve of 4 per hour at every temperature,
+    order 0, with one rung (cast plaster): a quarter of an hour, the same
+    number as before. It does not speed up when warm; I authored no new
+    physics.
+  - A pool sets by `Kinetics.poolSet()`: the first point curve with a
+    ladder. A dose law is the kiln's heat-work, never a mould's.
+  - ⚠ Giving plaster a kinetic exposed two readers that took "has
+    kinetics" to mean "fired": a wet coat's look word and a dip's "it will
+    set when it is fired". Both now ask `Kinetics.setsByHeat()` (any dose
+    law).
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.
@@ -2391,7 +2403,9 @@ change; e is independent and may land any time after a).
   Done 2026-10-28 (B91). `MobileMixin.walkRoute(directions)` and
   `lib/behavior/BrainRoutes`; the five brains (ceramics relines, sets,
   pots, moulds; shopkeeping stocks) lose 223 lines.
-- **W-R2e — D3** (plaster into Kinetics — after B87 is committed).
+- ✅ **W-R2e — D3** (plaster into Kinetics — after B87 is committed).
+  Done 2026-10-28 (B92). Plaster slurry authors a `kinetics:` set; the
+  mould reads `Kinetics.poolSet()`; `cureSetting` retired.
 - **W-R2f — D1** (integrity: plan it first — the readers list — then one record).
 
 Each wave: scoped checks only (no drives), commit, push, mark done here with

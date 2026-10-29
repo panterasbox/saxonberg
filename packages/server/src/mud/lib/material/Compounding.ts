@@ -206,7 +206,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       const litres = skinLitres(target, thicknessM) * onto.length;
       const where = onto.length === 2 ? 'inside and out' : onto[0] === 'inside' ? 'inside' : 'outside';
       const path = material.getTemplatePath() ?? '';
-      const sets = material.getKinetics() !== null ? 'It will set when it is fired.' : 'Let it set.';
+      const sets = material.getKinetics()?.setsByHeat() ? 'It will set when it is fired.' : 'Let it set.';
       const giver = req.actor;
       return {
         ok: true,

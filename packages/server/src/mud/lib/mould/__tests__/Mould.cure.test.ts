@@ -73,7 +73,9 @@ function mats(): void {
   material(SLURRY, (m) => {
     m.setTags(['liquid']);
     m.setDensity(Quantity.of(1600, 'kg/m³'));
-    m.setCureSetting({ minutes: 15, becomes: PLASTER });
+    m.setKinetics([
+      { key: 'set', rate: [[273, 4], [373, 4]], order: 0, ladder: [{ atDegree: 1, becomes: PLASTER }] },
+    ]);
   });
   material(CLAY, (m) => m.setDensity(Quantity.of(1800, 'kg/m³')));
   material(SLIP, (m) => {

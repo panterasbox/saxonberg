@@ -481,6 +481,22 @@ export class Kinetics {
     return this.list.find((c) => c.getKey() === key);
   }
 
+  /**
+   * ⭐ The change a POOL of this matter sets by in a mould (review R2-D3):
+   * the first point curve with a ladder — a chemical set that runs at a
+   * mould's temperature (plaster slurry curing in a quarter of an hour).
+   * A dose law is heat-work, the kiln's, never a mould's. `null` when this
+   * matter does not set that way.
+   */
+  public poolSet(): KineticChange | null {
+    return this.list.find((c) => !c.isDoseLaw() && c.getLadder().length > 0) ?? null;
+  }
+
+  /** ⭐ Does any change set this by HEAT-work (a dose law) — a glaze the fire fuses? */
+  public setsByHeat(): boolean {
+    return this.list.some((c) => c.isDoseLaw());
+  }
+
   /** The authored form, for the row's round trip. */
   public toSpec(): KineticSpec[] {
     return this.list.map((c) => c.toSpec());

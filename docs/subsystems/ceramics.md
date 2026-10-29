@@ -401,7 +401,7 @@ ceramics' here:
 
 - **Plaster** — `rock/gypsum` burns to `mineral/plaster` by the one heat
   rule (~420 K for an hour; the foundry's core oven); `stir` it with water in
-  the **plaster tub** and the slurry (`plaster-slurry`, `cureSetting` 15
+  the **plaster tub** and the slurry (`plaster-slurry`, a `kinetics:` set of 15
   minutes → `cast-plaster`) poured into the two-piece **plaster case**, a
   model pressed in before it sets, cures into a **plaster mould** with the
   model's cavity.
