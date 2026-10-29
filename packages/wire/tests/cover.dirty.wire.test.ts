@@ -352,6 +352,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       const looked = await read(p, 'look');
       const m = STAGES.exec(looked);
       if (m) seen.add(m[0].toLowerCase());
+      // The crop's own condition and cause, for the record.
+      await read(p, 'look wheat');
       // ⭐ Step 16's hay: the rest of the field is mown when it is ready,
       // and the bales lie where they fell until the winter.
       if (!mown && /about ready for them|well ahead of them/i.test(looked)) {

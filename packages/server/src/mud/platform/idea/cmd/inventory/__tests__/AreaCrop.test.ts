@@ -367,6 +367,23 @@ describe('the area crop', () => {
       expect(p.isTiredRatoon()).toBe(true);
     });
 
+    it('⭐ a field crop on thin ground ripens late, where a pot plant would stall', () => {
+      const { ground } = scene();
+      // Thin ground: nitrogen at 20% — nutrient satisfaction under "good".
+      ground.setReserve(new Reserve(SOIL_NITROGEN_RESERVE_KEY, Quantity.of(100, '%'), Quantity.of(20, '%'), 'cultivation', 'spent'));
+      const field = makeStuffAtPath(() => newPlant(), PLANT_PATH);
+      field.setSownAreaM2(100);
+      ContainmentApi.move(field, ground);
+      const single = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
+      ContainmentApi.move(single, ground);
+      field.getGrowthStage();
+      single.getGrowthStage();
+      now = BASE + 200 * 86_400;
+      ground.waterSoil(10);
+      expect(field.getGrowthStage()).not.toBe('seedling');
+      expect(single.getGrowthStage()).toBe('seedling');
+    });
+
     it('an individual plant is not an area crop', () => {
       const p = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
       expect(p.isAreaCrop()).toBe(false);

@@ -133,7 +133,11 @@ export class HeadSeed {
    */
   public static satiationFor(fedFraction: number): number {
     const f = Math.max(0, Math.min(1, fedFraction));
-    if (f >= 0.95) return 75;
+    // ⭐ A head on all it wants puts flesh ON: a summer on good grass is
+    // where a winter's loss comes back (drive 5: at a bare surplus a
+    // starved autumn took most of a year to recover).
+    if (f >= 0.95) return 90;
+    if (f >= 0.8) return 75;
     if (f >= 0.5) return 50;
     return (25 * f) / 0.5;
   }

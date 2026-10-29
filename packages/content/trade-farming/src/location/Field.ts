@@ -863,7 +863,7 @@ export default class Field extends FieldBase {
       return this._ambientK;
     }
     try {
-      const k = WeatherApi.climateAt(this._swardSite, Quantity.of(atS, 's')).rawValue();
+      const k = dailyMeanClimate(this._swardSite, atS);
       return Number.isFinite(k) ? k + this._swardOffsetK : this._ambientK;
     } catch {
       return this._ambientK;
@@ -918,11 +918,14 @@ export default class Field extends FieldBase {
         self as unknown as Stuff,
       );
       // The site and the sky, for reading any moment of a window.
-      if (this._ambientK > 0) {
+      // ⚠ Only under open sky: a field under glass keeps its one sample.
+      const exposure = BiomeApi.exposureOf(self as unknown as Stuff);
+      const open = exposure ? exposure.rainReaches() : BiomeApi.isSkyExposed(self as unknown as Stuff);
+      if (this._ambientK > 0 && open) {
         const site = await ZoneApi.climateSiteFor(self as unknown as Stuff);
         const now = fieldNowSeconds();
         if (now !== null) {
-          const climate = WeatherApi.climateAt(site, Quantity.of(now, 's')).rawValue();
+          const climate = dailyMeanClimate(site, now);
           if (Number.isFinite(climate)) {
             this._swardSite = site;
             this._swardOffsetK = this._ambientK - climate;
@@ -1352,4 +1355,13 @@ function capitalize(text: string): string {
 function fieldNowSeconds(): number | null {
   if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
   return WorldClockApi.getNow().rawValue();
+}
+
+/** The climate's mean over the day around `atS` — the season, never the hour. */
+function dailyMeanClimate(site: ClimateSite, atS: number): number {
+  let sum = 0;
+  for (const h of [-9, -3, 3, 9]) {
+    sum += WeatherApi.climateAt(site, Quantity.of(atS + h * 3_600, 's')).rawValue();
+  }
+  return sum / 4;
 }

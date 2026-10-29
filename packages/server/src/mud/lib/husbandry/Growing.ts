@@ -1149,6 +1149,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         // moment plus the place's offset; with no site known, the one
         // sample stands.
         const windowStart = this.growthClockStamp;
+        const areaCrop = this.isAreaCrop();
 
         for (let i = 0; i < steps; i++) {
           const satWarmth = this.satWarmth(windowStart + (i + 0.5) * dt);
@@ -1166,6 +1167,14 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
           this._vigor = clamp01(this._vigor + (limiting - this._vigor) * k);
           if (limiting >= goodAt) {
             this._maturity += dt;
+            if (this.advanceStage()) satRoot = this.satRoot();
+          } else if (areaCrop && limiting > deathAt) {
+            // ⭐ A FIELD crop develops on its season and is spoiled by its
+            // stress, rather than stopped by it (cover build): thin ground
+            // gives a late, poor crop — graded by its worst stretch — not
+            // one that stands in the ear until the winter kills it. A pot
+            // keeps the shipped rule: only a well-kept plant matures.
+            this._maturity += (dt * limiting) / goodAt;
             if (this.advanceStage()) satRoot = this.satRoot();
           }
           this.updateFlowering();
@@ -1244,8 +1253,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       try {
         const nowS = this.growthNowSeconds();
         if (nowS === null) return;
+        // ⚠ Only under OPEN SKY: a heated room or a glasshouse does not
+        // follow the year, so it keeps its one resolved ambient.
+        const exposure = BiomeApi.exposureOf(place as Stuff & Container);
+        const open = exposure ? exposure.rainReaches() : BiomeApi.isSkyExposed(place);
+        if (!open) {
+          this._climateSite = null;
+          this._ambientOffsetK = null;
+          return;
+        }
         const site = await ZoneApi.climateSiteFor(place);
-        const climate = WeatherApi.climateAt(site, Quantity.of(nowS, 's')).rawValue();
+        const climate = dailyMeanClimate(site, nowS);
         if (!Number.isFinite(climate)) return;
         this._climateSite = site;
         this._ambientOffsetK = ambientK - climate;
@@ -1270,7 +1288,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         return this._lastAmbientK;
       }
       try {
-        const k = WeatherApi.climateAt(this._climateSite, Quantity.of(atS, 's')).rawValue();
+        const k = dailyMeanClimate(this._climateSite, atS);
         return Number.isFinite(k) ? k + this._ambientOffsetK : this._lastAmbientK;
       } catch {
         return this._lastAmbientK;
@@ -1601,4 +1619,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return WorldClockApi.getNow().rawValue();
     }
   };
+}
+
+/**
+ * The climate's mean over the day around `atS` — four samples six hours
+ * apart — so a step reads the season, never the hour it happens to land
+ * on (a 12-hour step lands on the same hours every day).
+ */
+function dailyMeanClimate(site: ClimateSite, atS: number): number {
+  let sum = 0;
+  for (const h of [-9, -3, 3, 9]) {
+    sum += WeatherApi.climateAt(site, Quantity.of(atS + h * 3_600, 's')).rawValue();
+  }
+  return sum / 4;
 }
