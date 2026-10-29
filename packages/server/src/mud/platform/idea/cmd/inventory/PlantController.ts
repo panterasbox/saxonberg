@@ -168,7 +168,10 @@ export default class PlantController extends EngagedActController<PlantModel> {
         context.note({
           kind: 'controller-rejected',
           reason: 'land-use-forbids-cultivation',
-          detail: `${site ? groundPath(site) : 'nowhere'} admits no cultivation`,
+          // ⭐ The record names the USE, as the sentence does.
+          detail: site
+            ? `${groundPath(site)} is zoned ${ParcelApi.landUseOf(groundPath(site))} and admits no cultivation`
+            : 'nowhere admits no cultivation',
         });
         return;
       }

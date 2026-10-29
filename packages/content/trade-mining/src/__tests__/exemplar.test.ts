@@ -107,7 +107,11 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
           // `Herdbook`, and the goat pen's vessels are dairying's and
           // the platform's. Still no venue code: two more trades composed.
           cls.startsWith('/trade/ranching/') ||
-          cls.startsWith('/trade/dairying/'),
+          cls.startsWith('/trade/dairying/') ||
+          // The cover build made the goat pen a small FIELD the nannies
+          // graze, with a trough kept from a rick: farming's field class.
+          // Still no venue code; one more trade composed.
+          cls.startsWith('/trade/farming/'),
         // ⚠ Name the offender. This assertion failed on a class move and
         // said only `expected false to be true`, which is a sentence
         // nobody can act on.
