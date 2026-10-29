@@ -151,5 +151,6 @@ how fast, and what it can never do — before content leans on it.
    vacuum for a boot.
 2. ✅ **The aether's written rule** — arcane-science.md § *The second postulate*.
 3. **Orbit** — model free fall honestly now, or *weightless* as a state first.
-4. **Travel between bodies** — the network, orbital transfer, or both.
+4. **Travel between bodies** — the network, orbital transfer, or both. ⭐ Flight stays within one
+   body's air and rockets are not flight; the pad is the seam ([flight-slate](./flight-slate.md) § 10a).
 5. **Several suns** — `CelestialApi` assumes one.

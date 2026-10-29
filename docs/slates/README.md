@@ -99,7 +99,7 @@ respect.
 | [feedback](./builds/feedback-slate.md) | the one fixed axis (template + engagement) · the solicited experience prompt at engagement termination · a template as a |
 | [festival](./builds/festival-slate.md) | the show (measured and judged classes, the schedule, the judge, the ribbon as a deed) · the showground that buds for the event's window · the festival row and who may declare one · the kit … |
 | [field-medicine](./builds/field-medicine-slate.md) | what medicine is for in this medium · the feeling per settlement · public health against response · the fourteen scenarios … |
-| [flight](./builds/flight-slate.md) | the sky column · flight by exits that admit air · the craft size rule · falling, and staying up gated on lift and power … |
+| [flight](./builds/flight-slate.md) | flight within one body's air (2026-10-29) · landing zones as air nodes, hover-and-hoist · air freight by value density · medevac coverage as public works … |
 | [flooding](./builds/flooding-slate.md) | the whole conversation, opening with the founder's two questions · ⭐ dam failure, designed 2026-10-20 (below) |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table · the lawn as a land use (D69 — pasture whose yield is discarded, the cheapest entry point) · ornamental breeding on parentage-seeding … |
 | [gems-and-precious-metals](./builds/gems-and-precious-metals-slate.md) | gem optics derived from rows (trace-element color, refractive index, dispersion, hardness, cleavage) · the identification ladder and paste · the lapidary and the abrasive ladder · gold, silver, platinum; cupellation; the touchstone … |

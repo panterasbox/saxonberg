@@ -9,7 +9,7 @@
 > ([locomotion.md](../../subsystems/locomotion.md)); construction's `Exposure` (whether a
 > place has sky); weather's wind, clouds and storm lightning; insolation; pressure and
 > temperature by elevation; the expanse's spherical chart and *sight by curvature*.
-> **Left:** the sky column · flight by exits that admit air · the craft size rule ·
+> **Left:** flight within one body's air (2026-10-29) · landing zones as air nodes, hover-and-hoist · air freight by value density · medevac coverage as public works · the sky column · flight by exits that admit air · the craft size rule ·
 > falling, and staying up gated on lift and power · air as a medium row · seeing and being
 > seen · airspace · weather · magic's price · the flyers (balloons, airships, creatures and
 > pigeons, gliders and planes, magical flight)
@@ -171,6 +171,60 @@ everything else — it does not open the graph.
 
 Priced (§ 9); a carpet as a craft; bound by air exits.
 
+## 10a. ⭐⭐⭐ Worlds, freight, medevac, rockets (2026-10-29)
+
+The owner: *"I'm gonna wanna build this sooner than later I think, for reasons of freight. But also
+helicopters, for like medevac and such. … Now we have to decide where you can fly from and to,
+because we're dealing with multiple planets the answer can't be 'anywhere'. I dunno if we should
+include rockets in this, which serve a different need than other air travel."*
+
+### Flight stays inside one body's air **[DECIDED — derived]**
+
+With planets as biomes ([worlds-slate](./worlds-slate.md)), flight needs a medium to push
+against: **you fly within one body's air**, along that body's air exits and air expanses, and its
+edges are where the medium stops being air. **Lift scales with density** (§ 5's air row) — ⭐ Mars's
+air is ~1% of Earth's, so *Ingenuity* (2021) needed oversized, very fast rotors to fly at all; thin
+air is hard and vacuum impossible, derivably. Leaving a body is a pad (rocketry) or the network.
+
+### Rockets are not flight **[DECIDED — the owner]**
+
+Flight rides a medium; a rocket carries its own reaction mass and works best without one. Flight
+moves you *within* a body's air; a rocket's job is **leaving a gravity well** — the worlds slate's
+travel between bodies and the [orbit slate](./orbit-slate.md)'s launch. **The pad is the seam**: the
+one place where a body's air graph meets space. The flight ladder — kite, balloon, airship, glider,
+plane, helicopter — is one medium; the rocket ladder is its own.
+
+### Air freight **[LEAN]**
+
+Logistics over the air expanse — lanes, depots at airfields, pilots as carriers in the haulage
+market. **The speed premium follows value density** (§ 11): urgent, light, valuable goods fly; bulk
+goes by water and rail. Helicopters add the **sling load** — cargo hung beneath, which is a hoist.
+
+### ⭐⭐ Helicopters — landing zones, and hover-and-hoist **[DECIDED — the owner]**
+
+- **A rotorcraft needs no runway, only a landing zone** — open sky (`Exposure`) and a clear
+  footprint (the size slate's clearance). Under § 2, **a landing zone is a node on the air graph**
+  an author placed — the helicopter's landing field.
+- ⭐ **Where it cannot land, it hovers and hoists** — the shipped `Hoist` (a pulley tool, from
+  diving), the `pull` line verb, and the litter from
+  [carrying-a-person-slate](./carrying-a-person-slate.md). Rescue in rough country is those three
+  together.
+
+### Medevac coverage is public works **[DECIDED — the owner]**
+
+A helicopter reaches the wilds only where someone connected them by air and cleared landing zones,
+so *the wilds are on you* ([emergency-services-slate](./emergency-services-slate.md)) holds until a
+polity **builds** coverage — a public-works choice like streetlamps or wells. History for content:
+the Korean War's MASH helicopters; Vietnam's **Dustoff**, which made the golden hour a doctrine.
+
+### ⚠ The pace of travel **[DECIDED — it must be declared; the choice OPEN]**
+
+A voyage across an expanse runs on the calendar; a patient's bleed runs at encounter pace. A flight a
+real helicopter makes in an hour takes five real minutes here, so transport is twelve times faster
+*relative to bleeding* than in reality — generous to rescue, and the golden hour's lesson shrunk
+twelve-fold. The [pace slate](./pace-slate.md) must say which pace travel is on; medevac is the
+first case where it matters.
+
 ## 11. The lens pass
 
 1. **Pedagogy** — buoyancy; lift and the stall; wind shear and balloon navigation;
@@ -195,4 +249,5 @@ Priced (§ 9); a carpet as a craft; bound by air exits.
    and how the expanse is entered and left by air.
 3. **The sky Warren** — budding and reaping, keyed to the ground place.
 4. **Fall harm** — the shared rule with construction's scaffold.
-5. **Each flyer's own slate** — balloons first.
+5. **Each flyer's own slate** — balloons first; helicopters early, for medevac and freight.
+6. **The pace of travel** (§ 10a) — calendar, or nearer real time.
