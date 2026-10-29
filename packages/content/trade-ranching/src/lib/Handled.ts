@@ -41,6 +41,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
 export const HANDLED_MIXIN = 'HandledMixin';
 
@@ -183,8 +184,8 @@ export function HandledMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
         prelude,
         self:
           before < 0.25
-            ? Mml.compose`You get a hand on it, barely, and it is away again before you have finished. What you did feel: ${score}. ${host.handlingPhrase()}.`
-            : Mml.compose`You run a hand down the spine and over the ribs and hips. ${score}. ${host.handlingPhrase()}.`,
+            ? Mml.compose`You get a hand on it, barely, and it is away again before you have finished. What you did feel: ${score}. ${GrammarApi.cap(host.handlingPhrase())}.`
+            : Mml.compose`You run a hand down the spine and over the ribs and hips. ${GrammarApi.cap(score)}. ${GrammarApi.cap(host.handlingPhrase())}.`,
         peers: Mml.compose`${Mml.actor(actor)} works quietly around one of the animals, hands on it.`,
         // ⚠ Difficulty is the ANIMAL's, read at the moment of the act: a
         // wild one is a hard check and a quiet one is trivial, so the

@@ -54,6 +54,7 @@ import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/specie
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
 import Field from '@saxonberg/content-trade-farming/src/location/Field';
 import { HeadSeed } from '../lib/HeadSeed';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
 /**
  * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
@@ -283,9 +284,9 @@ export default class Livestock extends LivestockBase {
         return 'She stands for it, and it all goes on the floor — you had nothing to catch it in.';
       }
       if (kept < drawn - 0.05) {
-        return `You milk her out and the pail fills before she is done; ${round1(drawn - kept)} litres go on the straw. ${this.handlingPhrase()}.`;
+        return `You milk her out and the pail fills before she is done; ${round1(drawn - kept)} litres go on the straw. ${GrammarApi.cap(this.handlingPhrase())}.`;
       }
-      return `You milk her right out — ${round1(kept)} litres, and she stands for it. ${this.handlingPhrase()}.`;
+      return `You milk her right out — ${round1(kept)} litres, and she stands for it. ${GrammarApi.cap(this.handlingPhrase())}.`;
     }
     if (key === 'wool') {
       // ⚠ How long it has been growing is READ OFF the take, because a
