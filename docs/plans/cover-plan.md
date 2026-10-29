@@ -1319,6 +1319,35 @@ carries the cane-sett deletion that is W2's.
   this build's fix field-side and local (Waponi) and leave the realm
   calibration to the weather slate.
 
+- **B28 — `mow` captures its field**, as `harvest` and `sow` do. It never
+  had: the bales it leaves lying and the cut sward vanished when the idle
+  field was evicted (drive 6, step 16 found no bales by winter).
+- **B29 — Waponi is farmland.** Its parcel declared no land use and
+  inherited the city's `civic` zoning, so after a tired piece was grubbed
+  and ploughed nothing could be sown on it (drive 6, step 12).
+- **B30 — the drive asks what the requirements ask.** Step 18 is ONE
+  unwatched month, in the month the grass gives out, per R2. A staged
+  year at the Delight showed what a whole unwatched year does: the
+  pasture is fed off until about day 240, eaten out by 270, the rick
+  (3.2 t) is gone by 300, and the herd is wasted by spring. The pasture
+  can't recover while stocked (D9's trap). Nobody stacks hay while
+  nobody is there, so that is the sim being right. Also: a season away
+  vacates the labourer's seat (economic bootstrap D16), so step 17 takes
+  it again; step 7 rests at dusk; step 9 buys seed before testing the
+  title refusal.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
+
+Drives 1–5 are in the build record above (B8, B17–B25). Since then:
+
+- **Staged probes (no full drive), after B26–B27.** Fresh world, jumped to
+  midsummer (day 180), read by wizard `eval`. The Waponi cane piece has
+  moisture 0.29 (mature), the bench wheat 0.45 (mature), and the dairy
+  pasture 0.58 with the sward at 0.52. Before this, all three read 0.
+- **Drive 6 — 9 of 17.** It now passes step 6 (the crop ripens through
+  the season). The 8 failures were 3 build defects (B28 bales lost
+  uncaptured, B29 Waponi zoning, step 12) and drive defects (B30): a
+  dusk loop, seed not held, a seat vacated by absence, and step 18 asking
+  for an unwatched year. Steps 8, 15 and 16 failed downstream of 7 and 17.
