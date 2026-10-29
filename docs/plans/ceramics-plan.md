@@ -1995,6 +1995,28 @@ left a fork the lens that chose is named.
   - **`greenWork` → `workedFeatures`.** It is the piece's worked features
     (a turned foot), which is why it survives firing, not green state.
 
+- **B100 — Faced (owner, 2026-10-29).**
+  - **A glaze fuses by heat-work.** `fuseCoats(peak)` set a coat the
+    moment the window's peak touched its reference, while the body under
+    it fired by the Kinetics integral and the cones measure heat-work. Each
+    `CoatLayer` now carries `progress` (its material's first kinetic,
+    advanced by the same ∫ rate(T) dt). `heatCoats(integrate, peak)` is
+    called from Thermal's coat reconcile, and a coat fuses at the first
+    rung. The peak only decides run / craze / crawl. `fuseCoats` stays only
+    for a coat the heat itself lays (the salt-vapor glaze).
+  - **One weep.** Bulkable's face exchange recomputed "does it weep" inline,
+    twice. It now asks the face. Calling `weeps()` from inside the bulk
+    reconcile recursed (it reads the bulk), so the wall's half is
+    `isPermeable()`, and the exchange pairs it with the liquid it already
+    holds.
+  - **A riveted crack holds water.** Only an OPEN crack leaks (`!mended`),
+    the same rule the mould reads (B99).
+  - **Slated:** the face exchange (leach, memory, weep flow) lives in
+    Bulkable though it is the face's behavior. It moves when
+    matter-model-overlaps § 4 decides the one exchange.
+  - ⚠ For the owed drives: a ceramics drive that fires a glaze briefly
+    may now find it still wet. Glazes need their heat-work.
+
 ## Re-plan R1 — combining is one rule (review, 2026-10-28)
 
 ✅ **Complete (2026-10-28)** — W-R1a–e landed; notes under each wave.

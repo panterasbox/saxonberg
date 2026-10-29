@@ -42,19 +42,26 @@ compared by `===`, and a coat list is not one.
 | `getCoats(face)` | the coats on a face, outermost first |
 | `outermost(face)` | the material that meets the world: the top coat's (unless crawled), else the body's |
 | `layCoat(face, material, thicknessM, dirtyAtLay?)` | a WET coat, outermost (`dip` calls it) |
-| `fuseCoats(peakK)` | sets every wet coat this heat reaches (a coat that sets by heat — a glaze) |
-| `holdsWater(face)` | a sound coat of a tight material, or a tight body |
+| `heatCoats(integrate, peakK)` | advances every wet coat by HEAT-WORK over a window and fuses the ones that get there (B100) |
+| `fuseCoats(peakK)` | fuses every wet coat at once — only for a coat the heat itself lays (a vapor glaze) |
+| `holdsWater(face)` | a sound coat of a tight material, or a tight body — and no OPEN crack (a riveted one holds) |
+| `isPermeable()` | the wall's half of a weep: either face lets water through (the bulk exchange asks this from inside its own reconcile) |
 | `porosity()` | the body's open porosity, `0..1` |
 | `cleansAs()` | how hard it is to get clean, `≥ 1` |
 
 ## A coat is laid wet and set — a glaze, by heat
 
 `dip` lays a coat **wet** from a bath whose material `laysCoat`. The coat is
-**set** — a glaze by heat: the coat is not a Stuff and has no heat history of its own,
-so `fuseCoats(peakK)` reads the coat material's **first kinetics change**.
-Its `rate.referenceK` is the heat that fuses it, and `scorchAboveK` the heat
-past which it runs. The host's kinetic reconcile calls it with the hottest the body got
-in the window being integrated. At the fuse a coat becomes:
+**set** — a glaze by heat: the coat is not a Stuff, but it has a PROGRESS of its own
+(`CoatLayer.progress`), its material's **first kinetics change** advanced by
+HEAT-WORK — the same integral the body under it fires by (`heatCoats`, called
+from the host's thermal reconcile with ∫ rate(T) dt over the window). It fuses
+when that reaches the change's first rung. ⭐ So a glaze that only touches its
+heat for a moment does not fuse, and the glaze, the body and the cones in the
+spy-hole all read one heat-work (B100 — it used to fuse on the window's peak
+alone). The window's peak decides only HOW it came out: past `scorchAboveK`
+it runs. A coat whose material has no kinetic law fuses at its melting
+point. At the fuse a coat becomes:
 
 | state | when |
 |---|---|

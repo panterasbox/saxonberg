@@ -83,6 +83,13 @@ Line numbers are as of 2026-10-28.
   ex-bourbon is a cask that remembers.
 - **Rides into:** the next maturation/brewing build (the cask is the
   consumer that would use both halves).
+- ⚠ **Where the exchange lives** (ceramics review, 2026-10-29): the face's
+  exchange with its contents (the lead leach, the aroma memory, the weep's
+  flow into a receiver) is about 60 lines of `BulkableMixin`, though they
+  are the FACE's behavior and Bulkable owns only the payload. When this
+  item decides the one exchange, its face half moves onto `FacedMixin`
+  (Bulkable keeps the payload and asks the face). It is not moved
+  separately, so it is not moved twice.
 
 ## 5. Vaporizing a solid vs the vapor route (survey 12)
 

@@ -1080,7 +1080,9 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       const insideFace = self.outermost('inside');
       const leaches = material.getAcidity() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
       const porousInside = !self.holdsWater('inside');
-      const weeps = material.hasTag('liquid') && (porousInside || !self.holdsWater('outside'));
+      // A liquid against a wall that lets water through (the face's own read,
+      // B100 — this was a second copy of it, inline).
+      const weeps = material.hasTag('liquid') && self.isPermeable();
       const remembers =
         porousInside &&
         ((this.interiorPayload?.dissolvedAromatics?.length ?? 0) > 0 ||
@@ -1140,10 +1142,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // The weep.
         let left = litres;
         let seepL = 0;
-        if (
-          material.hasTag('liquid') &&
-          (!self.holdsWater('inside') || !self.holdsWater('outside'))
-        ) {
+        if (weeps) {
           // ⭐⭐ (ceramics S9, W8) **Through, when there is somewhere to go.**
           // A porous body set ON or IN a vessel that holds liquid does not
           // weep onto its own outside — the water runs through the wall and

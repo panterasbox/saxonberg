@@ -31,6 +31,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { EnclosureSpec } from '../spatial/Enclosed';
 import type Material from './Material';
+import type { KineticChange, KineticProgress } from './Kinetics';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
@@ -51,6 +52,12 @@ export interface CoatLayer extends EnclosureSpec {
   state: CoatState;
   /** The face's soiling when the coat was laid (crawling reads it at the fuse). */
   dirtyAtLay?: number;
+  /**
+   * ⭐ How far a wet coat has gone toward fusing — its material's kinetic
+   * progress (a dose law's banked dose and its degree), advanced by HEAT-WORK
+   * like the body under it (B100). Absent until heat reaches it.
+   */
+  progress?: { extent: number; dose?: number };
 }
 
 export interface Faced {
@@ -62,7 +69,20 @@ export interface Faced {
   outermost(face: FaceName): Material | null;
   /** Lay a WET coat of `materialPath` on a face (outermost). */
   layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay?: number): void;
-  /** Fuse every wet coat this heat reaches; returns how many changed. */
+  /**
+   * ⭐ Advance every wet coat by HEAT-WORK over a window (B100): `integrate`
+   * is ∫ rate(T) dt over the window for a kinetic change — the same integral
+   * the body under it fires by — and `peakK` the window's peak, which only
+   * decides HOW a fused coat came out (run past its scorch). A coat whose
+   * material has no kinetic law fuses at its melting point. Returns how
+   * many coats fused.
+   */
+  heatCoats(integrate: (change: KineticChange) => number, peakK: number): number;
+  /**
+   * Fuse every wet coat AT ONCE, at `peakK` — only for a coat laid by the
+   * heat itself (a vapor glaze: salt thrown into a kiln at peak deposits
+   * already fused). A coat laid by hand fuses by heat-work (`heatCoats`).
+   */
   fuseCoats(peakK: number): number;
   /** Does this face keep water in? A sound fused coat, or a tight body. */
   holdsWater(face: FaceName): boolean;
@@ -76,6 +96,13 @@ export interface Faced {
    * Does this vessel hold a liquid its porous body lets through? Its
    * outside is a wet film for as long as it does (the weeping jar).
    */
+  /**
+   * Does the WALL let water through — either face open (no tight coat over
+   * a porous body, or an open crack)? The face's half of a weep, without
+   * reading the contents (the bulk's own exchange asks it from inside its
+   * reconcile).
+   */
+  isPermeable(): boolean;
   weeps(): boolean;
   /** The aromas a porous face has kept from what it held (the crock that remembers). */
   absorbedAromas(face: FaceName): readonly AromaTag[];
@@ -186,6 +213,10 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const held = self.getBulkMaterial('interior');
       if (held === null || !held.hasTag('liquid')) return false;
       if (!(self.getBulkAmount('interior').rawValue() > 0)) return false;
+      return this.isPermeable();
+    }
+
+    public isPermeable(): boolean {
       return !this.holdsWater('outside') || !this.holdsWater('inside');
     }
 
@@ -215,35 +246,73 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       this.coats = { ...this.coats, [face]: [layer, ...(this.coats[face] ?? [])] };
     }
 
-    public fuseCoats(peakK: number): number {
-      if (!(peakK > 0)) return 0;
-      const self = this as unknown as Stuff;
-      const body = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      const bodyAlpha = body?.getThermalExpansion() ?? 0;
-      const crawlAt = dial(AppSettingKeys.facesCrawlDirt, 0.3);
-      const crazeAt = dial(AppSettingKeys.facesCrazeMismatch, 1.5e-6);
-      let changed = 0;
+    public heatCoats(integrate: (change: KineticChange) => number, peakK: number): number {
+      let fused = 0;
+      let touched = false;
       const next: Partial<Record<FaceName, CoatLayer[]>> = {};
       for (const [face, list] of Object.entries(this.coats) as [FaceName, CoatLayer[]][]) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
           const change = mat?.getKinetics()?.changes()[0];
+          if (change === undefined) {
+            // No heat-work law: the melt point alone decides.
+            const melts = mat?.getMeltingPoint().rawValue() ?? 0;
+            if (!(melts > 0) || peakK < melts) return coat;
+            fused += 1;
+            touched = true;
+            return this.fusedCoat(coat, mat ?? null, null, peakK);
+          }
+          const integral = integrate(change);
+          if (!(integral > 0)) return coat;
+          const prev: KineticProgress = { extent: coat.progress?.extent ?? 0, rung: -1 };
+          if (coat.progress?.dose !== undefined) prev.dose = coat.progress.dose;
+          const conv = change.accrue(prev, integral, 1);
+          touched = true;
+          const at = change.getLadder()[0]?.atDegree ?? 1;
+          const progress = { extent: conv.extent, ...(conv.dose !== undefined ? { dose: conv.dose } : {}) };
+          if (conv.extent + 1e-9 < at) return { ...coat, progress };
+          fused += 1;
+          return this.fusedCoat({ ...coat, progress }, mat ?? null, change, peakK);
+        });
+      }
+      if (touched) this.coats = next;
+      return fused;
+    }
+
+    public fuseCoats(peakK: number): number {
+      if (!(peakK > 0)) return 0;
+      let changed = 0;
+      const next: Partial<Record<FaceName, CoatLayer[]>> = {};
+      for (const [face, list] of Object.entries(this.coats) as [FaceName, CoatLayer[]][]) {
+        next[face] = (list ?? []).map((coat) => {
+          if (coat.state !== 'wet') return coat;
+          const mat = materialAt(coat.material);
+          const change = mat?.getKinetics()?.changes()[0] ?? null;
           const fuseK = change?.getReferenceK() ?? mat?.getMeltingPoint().rawValue() ?? 0;
           if (!(fuseK > 0) || peakK < fuseK) return coat;
           changed += 1;
-          const scorchK = change?.getScorchAboveK() ?? null;
-          if (scorchK !== null && peakK > scorchK) {
-            return { ...coat, state: 'run' as const };
-          }
-          if ((coat.dirtyAtLay ?? 0) > crawlAt) return { ...coat, state: 'crawled' as const };
-          const coatAlpha = mat?.getThermalExpansion() ?? 0;
-          if (coatAlpha - bodyAlpha > crazeAt) return { ...coat, state: 'crazed' as const };
-          return { ...coat, state: 'set' as const };
+          return this.fusedCoat(coat, mat ?? null, change, peakK);
         });
       }
       if (changed > 0) this.coats = next;
       return changed;
+    }
+
+    /**
+     * How a coat came out when it fused: run (fired past its scorch), crawled
+     * (laid over dirt), crazed (it shrinks more than its body), else set.
+     */
+    private fusedCoat(coat: CoatLayer, mat: Material | null, change: KineticChange | null, peakK: number): CoatLayer {
+      const self = this as unknown as Stuff;
+      const body = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      const bodyAlpha = body?.getThermalExpansion() ?? 0;
+      const scorchK = change?.getScorchAboveK() ?? null;
+      if (scorchK !== null && peakK > scorchK) return { ...coat, state: 'run' };
+      if ((coat.dirtyAtLay ?? 0) > dial(AppSettingKeys.facesCrawlDirt, 0.3)) return { ...coat, state: 'crawled' };
+      const coatAlpha = mat?.getThermalExpansion() ?? 0;
+      if (coatAlpha - bodyAlpha > dial(AppSettingKeys.facesCrazeMismatch, 1.5e-6)) return { ...coat, state: 'crazed' };
+      return { ...coat, state: 'set' };
     }
 
     public porosity(): number {
@@ -254,9 +323,11 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     public holdsWater(face: FaceName): boolean {
-      // ⭐ A crack through the wall leaks whatever is laid on it (M5).
+      // ⭐ An OPEN crack through the wall leaks whatever is laid on it (M5).
+      // A riveted one holds — what a tinker's rivets (and the putty under
+      // the staples) are for; the mould reads the same rule (B100).
       const self = this as unknown as Stuff;
-      if (MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack')) return false;
+      if (MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended)) return false;
       // ⭐ A sound coat holds water when its MATERIAL is tight — a glaze is,
       // a limewash would not be; a run coat still covers. Crazed and crawled
       // coats have opened, and the body answers.

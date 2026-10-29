@@ -14,6 +14,7 @@ import Good from '../../stuff/Good';
 import Place from '../../stuff/Place';
 import Material from '../Material';
 import { ThermalMixin } from '../../thermal/Thermal';
+import { DurableMixin } from '../Durable';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -22,6 +23,11 @@ import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../secu
 import { StackableMixin } from '../../stuff/Stackable';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
+
+/** A jar that can be mended — a rivet is a mend recorded on a durable good. */
+class MendableJar extends DurableMixin(ThermalMixin(BulkableMixin(Good))) {
+  static _mixinName = 'FacedTestMendableJar';
+}
 
 class Jar extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'FacedTestJar';
@@ -130,6 +136,20 @@ describe('coats', () => {
     expect(j.outermost('inside')).toBe(ash);
   });
 
+  it('⭐ a glaze fuses by HEAT-WORK, not a touch of its heat — the rule the body and the cones fire by (B100)', () => {
+    const j = jarOf(stoneware);
+    j.layCoat('inside', ash.getTemplatePath()!, 0);
+    // At its reference heat the rate is 1 dose-second a second; fullDose 3600.
+    const atReference = (seconds: number) => () => seconds;
+    // Ten minutes at the heat: on its way, still wet.
+    expect(j.heatCoats(atReference(600), 1260)).toBe(0);
+    expect(j.getCoats('inside')[0]?.state).toBe('wet');
+    expect(j.getCoats('inside')[0]?.progress?.extent).toBeCloseTo(600 / 3600, 6);
+    // The rest of the hour: fused, and how it came out read at the peak.
+    expect(j.heatCoats(atReference(3000), 1260)).toBe(1);
+    expect(j.getCoats('inside')[0]?.state).toBe('set');
+  });
+
   it('⭐ a look SAYS the coat — wet, then glazed (drive C, run 37: a glazed crock read as a bare one)', () => {
     const j = jarOf(stoneware);
     j.setLongDescription('A jar.');
@@ -192,6 +212,25 @@ describe('coats', () => {
     crazed.layCoat('inside', lead.getTemplatePath()!, 0);
     crazed.fuseCoats(1300);
     expect(crazed.cleansAs()).toBeGreaterThan(1);
+  });
+});
+
+describe('⭐ a crack and a rivet (B100)', () => {
+  it('an open crack lets the water through; a riveted one holds', () => {
+    const j = makeStuff(() => {
+      const m = new MendableJar();
+      m.setMass(Quantity.of(1.2, 'kg'));
+      m.setMaterial(stoneware);
+      m.interiorBulk = true;
+      m.setInteriorCapacity(Quantity.of(3, 'L'));
+      return m;
+    });
+    expect(j.holdsWater('inside')).toBe(true);
+    j.addFlaw('crack', true);
+    expect(j.holdsWater('inside')).toBe(false);
+    expect(j.isPermeable()).toBe(true);
+    j.recordMend({ at: WorldClockApi.getNow().rawValue() + 1, by: '', byName: 'a tinker', band: 'competent', discipline: 'pottery', kind: 'riveted', result: 'sound' });
+    expect(j.holdsWater('inside')).toBe(true);
   });
 });
 

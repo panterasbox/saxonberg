@@ -1338,9 +1338,14 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Fuse the wet coats on a `Faced` body by the peak since the last look.
-     * The window's peak, never the lifetime's: a bisque that was fired hot
-     * once does not fuse the glaze laid on it afterwards without a firing.
+     * ⭐ Fire the wet coats on a `Faced` body by HEAT-WORK since the last
+     * look (B100): each coat's material's kinetic integrated over this
+     * window — the same integral the body under it fires by, so a glaze
+     * that only touches its heat for a moment does not fuse, and the cones
+     * and the glaze agree. The window's, never the lifetime's: a bisque
+     * fired hot once does not fuse a glaze laid on it afterwards. The
+     * window's peak decides only how a fused coat came out (run past its
+     * scorch).
      */
     private reconcileCoats(): void {
       const self = this as unknown as Stuff;
@@ -1348,14 +1353,12 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       const nowS = this.thermalNowSeconds();
       if (nowS === null) return;
       const fromS = this.coatsCheckedS > 0 ? this.coatsCheckedS : nowS;
-      let peak = this.stampedTemperatureK;
-      if (nowS > fromS) {
-        for (const smp of this.thermalRing().window(fromS, nowS, this.stampedTemperatureK).samples(8)) {
-          if (smp.value > peak) peak = smp.value;
-        }
-      }
       this.coatsCheckedS = nowS;
-      self.fuseCoats(peak);
+      if (!(nowS > fromS)) return;
+      const window = this.thermalRing().window(fromS, nowS, this.stampedTemperatureK);
+      let peak = this.stampedTemperatureK;
+      for (const smp of window.samples(8)) if (smp.value > peak) peak = smp.value;
+      self.heatCoats((c) => window.integrate((k) => c.rateAt(k), 8), peak);
     }
 
     // ---------- kinetics: what heat and time do to its material ----------
