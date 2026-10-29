@@ -304,21 +304,9 @@ export default class PlantController extends EngagedActController<PlantModel> {
       return;
     }
 
-    // What already stands here decides what may be added to it.
-    const standing = (ground.getContents() as Stuff[]).find(
-      (c): c is Stuff & Growing => MixinApi.isGrowing(c) && c.isAreaCrop(),
-    );
-    if (standing && standing.getTemplatePath() !== growsInto) {
-      this.decline(
-        context,
-        Mml.compose`${Mml.thing(standing)} already stands here. Grub it out before you sow anything else.`,
-        'other-crop-stands',
-      );
-      return;
-    }
-
     // Whose ground it is outranks what state it is in: a stranger is told
-    // it is not theirs, never that it wants ploughing.
+    // it is not theirs, never that it wants ploughing or that another
+    // crop stands on it.
     const zoned = await landUseRefusal(ground);
     if (zoned) {
       this.decline(context, zoned, 'land-use-forbids-cultivation');
@@ -329,6 +317,20 @@ export default class PlantController extends EngagedActController<PlantModel> {
         context,
         Mml.compose`This is not your ground to sow.`,
         'not-held',
+      );
+      return;
+    }
+
+    // What already stands here decides what may be added to it — the
+    // holder's question, once it is theirs.
+    const standing = (ground.getContents() as Stuff[]).find(
+      (c): c is Stuff & Growing => MixinApi.isGrowing(c) && c.isAreaCrop(),
+    );
+    if (standing && standing.getTemplatePath() !== growsInto) {
+      this.decline(
+        context,
+        Mml.compose`${Mml.thing(standing)} already stands here. Grub it out before you sow anything else.`,
+        'other-crop-stands',
       );
       return;
     }

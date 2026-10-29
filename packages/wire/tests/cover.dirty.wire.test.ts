@@ -139,6 +139,13 @@ async function work(s: Session, text: string): Promise<{ r: CommandResult; said:
   return out;
 }
 
+/** Work, and require that it was understood and not refused. */
+async function working(s: Session, text: string): Promise<string> {
+  const { r, said } = await work(s, text);
+  expect(refusedFor(r), `'${text}' was refused: ${said} ${JSON.stringify(r.notes)}`).toBeNull();
+  return said;
+}
+
 /** Act, and require a refusal for `reason`. */
 async function refused(s: Session, text: string, reason: string): Promise<string> {
   const { r, said } = await act(s, text);
@@ -392,12 +399,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
 
   it('7. harvest with the sickle cuts a swath; bare hands cut less; down to the stubble', async () => {
     await goTo(HOME_FIELD);
-    const first = await doing(p, 'harvest wheat');
+    // Step 9's cutting at the bench has worn the body out: rest first.
+    await daylight();
+    const first = await working(p, 'harvest wheat');
     expect(first).toMatch(/cut a swath of/i);
     expect(await read(p, 'look')).toMatch(/part of it is cut/i);
     // Bare-handed: a smaller swath — not enough yet to make up a sack.
     await act(p, 'drop sickle');
-    const bare = await doing(p, 'harvest wheat');
+    const bare = await working(p, 'harvest wheat');
     expect(bare).toMatch(/pull it by hand|not yet enough to make up a load|cut a swath/i);
     await doing(p, 'get sickle');
     // The take is the university's, not the labourer's.
