@@ -14,8 +14,7 @@
 > ([stage-and-simulation-slate](./stage-and-simulation-slate.md)).
 > **Left:** bodies as biomes under a space root · re-parenting today's world under a home-planet
 > biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the
-> planet biome · the root-biome and 9.81 readers re-pointed at the body a place is on · the aether's
-> faster-than-light rule, written down · space and free fall as states of a place · travel between
+> planet biome · the root-biome and 9.81 readers re-pointed at the body a place is on · space and free fall as states of a place · travel between
 > bodies · venues as technology, infrastructure and clocks
 > **Size:** a build
 
@@ -112,7 +111,10 @@ Climbing out of Earth's well is ~63 MJ/kg — ~4.4 GJ for a 70 kg person — aga
 reserve. **No caster teleports between worlds; only infrastructure does**, at power-plant scale — the
 stargate and hyperspace network's shape, handed over by the physics.
 
-## 7. ⭐⭐ The aether is faster than light **[DECIDED — the owner; the rule OPEN]**
+## 7. ⭐⭐ The aether is faster than light **[DECIDED — the owner]**
+
+> ✅ **The rule is written** — [arcane-science.md](../../arcane-science.md) § *The second postulate*:
+> information only, at once in MTC, by the field where you stand.
 
 Chat works across worlds — subspace, the holonet, Le Guin's ansible — and *one line is every line*
 holds across a galaxy. ⚠ The aether is invented physics outside the one postulate (a field the five
@@ -147,7 +149,7 @@ how fast, and what it can never do — before content leans on it.
 
 1. **The re-parenting** — naming the home world, and the order of operations so no place breathes
    vacuum for a boot.
-2. **The aether's written rule.**
+2. ✅ **The aether's written rule** — arcane-science.md § *The second postulate*.
 3. **Orbit** — model free fall honestly now, or *weightless* as a state first.
 4. **Travel between bodies** — the network, orbital transfer, or both.
 5. **Several suns** — `CelestialApi` assumes one.

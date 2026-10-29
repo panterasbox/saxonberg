@@ -19,6 +19,10 @@ implant security) are flagged in **Deferred** below.
 
 ## Two transports — acoustic vs implant
 
+> ⭐ **The aether's rule — [arcane-science.md](../arcane-science.md) § *The second postulate***
+> (2026-10-29): information only, at once across any distance in Coordinated Metaversal Time, by the
+> field where you stand; every message carries its true sender.
+
 The load-bearing decision: communication travels one of two ways, and
 they are *not* the same medium.
 
