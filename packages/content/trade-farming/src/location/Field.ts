@@ -1372,6 +1372,22 @@ export default class Field extends FieldBase {
     // (cover build): its grass starts as a good even cover. A plotted
     // field starts at the residual — the sod it was cut out of.
     this.installFieldReserves(this.groundSample(model, seed), AUTHORED_SWARD_START);
+    // ⭐ And it is KEPT ground (cover build B37): a ley, a pasture, a cane
+    // piece — cleared long ago, so its clearing starts done. Draining and
+    // liming stay what the ground's character makes them. A plotted field
+    // has no area yet at registration and is untouched here: new ground
+    // is rough until somebody clears it (D54). Without this, a Waponi
+    // piece grubbed of tired cane took ploughing after ploughing for
+    // "scrub" that was never there (browser walk).
+    if (this.areaM2 > 0 && this.improvementWork['clearing'] === undefined) {
+      const bill = await this.improvementBill();
+      if (bill) {
+        this.improvementWork = {
+          ...this.improvementWork,
+          clearing: bill.clearing + bill.stonePicking,
+        };
+      }
+    }
     void this.restampSeason();
   }
 
