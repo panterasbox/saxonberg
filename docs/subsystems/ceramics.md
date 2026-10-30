@@ -460,8 +460,79 @@ The rows stand in Rejection's foundry (`plaster-tub`, `slip-tub`,
 `plaster-case`, `tile-mould`, `tile-press`); `pottery` is the discipline
 the plaster case, the plaster mould and the tile mould credit.
 
+## Deferred — where each piece lands
+
+Salvaged from the build plan at the pre-merge sweep (2026-10-29); the plan
+retires, and these are the attach points it recorded.
+
+| seam | destination |
+|---|---|
+| casks, pitch-lined amphorae, tin-lined copper onto faces | `maturation.md` § a recorded target (W7's sweep writes the note; no migration) |
+| coats on building faces, the painted image, binders | [paint-slate](../slates/builds/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
+| wet clothes and sweat reading `evaporativeDepressionK` | `exertion.md` / `textiles.md` deferred lists |
+| frost tilth, frost damage to brick (the count's next readers) | repair W7, `soil.md` |
+| lime mortar by cure, repointing, the spall, `maintain` | repair W7 |
+| the Scotch and Hoffmann kilns, the pugmill, the jigger, extrusion | brickmaking-slate § 5, pottery-slate § 4 |
+| kintsugi (lacquer from a tapped tree) | `taps.md` deferred list |
+| porcelain and kaolin | pottery-slate § 9 |
+| salt-glaze fumes as harm | the potash slate's smoke ordinance |
+| a fire code, zoning the brickfield, a public kiln | construction-slate, civics |
+| ringing the curfew on a schedule | civics (the curfew ordinance) |
+| coin striking authority; the die as a credential | `banking.md` coinage, attestation-slate |
+| bricks and wares by barge; breakage in transit; straw | river-slate, freight-slate |
+| the per-brick levy | brickmaking-slate § 3 |
+| drain tiles, brick sewers, flue liners, clay lamps | watershed's conduit ladder, cleanliness's flue, fire's lamp — rows on this build's bodies |
+| `interchangeable` as an authored joint flag | assembly tail (the derived skip ships here) |
+| a pit you climb into (the bell mould as a place) | moulding-slate (if the owner wants it) |
+| a working that FLOODS when it reaches the water table (the valley pit standing as a pond is authored, not dynamic) | mining-slate (*a pit that fills, and a pump*) |
+| the clamp's over-burnt CLINKER grade as the paving brick (Dutch *klinkers*) — roads-slate § 4's surface table has no brick today | [roads-slate](../slates/builds/roads-slate.md) (the coordinator edits the slate) |
+| drain tiles under a McAdam road (the brickfield's tile mould, laid for drainage) | [roads-slate](../slates/builds/roads-slate.md) |
+| `hammer` promoted behind a protocol | command-taxonomy-slate |
+| the oven's own warm-up (thermal mass on the furnace) | `fire.md` deferred (unchanged) |
+
+From the review's combining re-plan (R1):
+
+- `dissolve` → `dissolvedSolidsKgPerL`, never `makeup` (R1-D9).
+- A bar wire drive (`hospitality.dirty.wire.test.ts`): pour · stir · strain
+  a martini and a negroni by serving, read the glass's dose.
+- `nutrientAmounts` units are heterogeneous (per litre, per 100 g, per
+  serving) and display-only; a nutrition pass should re-base them on
+  `servingKg` — a slate item, not this MR.
+- The dough rows hydrate above 100 % by mass (flour 1 L = 0.565 kg against
+  0.6 kg water, `dough.yaml`); a batter, not a dough. Rows, baking's.
+- `Clay`'s stash fold → `absorbMakeup`.
+
+⭐ **Judged legitimately different — do not re-litigate** (the review's
+overlap survey, R2; the overlaps it did NOT judge different are
+[matter-model-overlaps-slate](../slates/builds/matter-model-overlaps-slate.md)):
+Thermal shock vs materials-response heat (wounds through coverings vs flaws
+in an object); furnace lining wear (already `Assembled.wearLine`); relines
+vs residence maintains (only the walking code shared — D8); the screw
+press's force (already the mould's `loadN`); `wetBulbK` (single-sourced);
+Ringable as a one-verb hook (only its sound shape, D4); Clay/Gather hand
+tables (per-material tuning behind the kernel `FormingHand`);
+`Material.formTemplates` (a fallback behind `Form.product`);
+`heatWork.firedBy` vs `Crafted.maker` (different people); `Impression`
+(no key-copy mechanism to overlap); freeze-thaw counting vs residence
+shell weathering (only if wall spalling is built).
+
 ## Cross-references
 
 [thermal.md](./thermal.md) · [faces.md](./faces.md) ·
 [materials-response.md](./materials-response.md) · [weather.md](./weather.md)
 (the freeze-thaw count) · [content-packs.md](./content-packs.md)
+
+## History
+
+- **Build** (2026-10-20 → 10-27, `reqs/ceramics`, MR !437): W0–W8 — one
+  rule fires everything, faces and the lead leach, brittle bodies and
+  `ring`, clay's year, the potter's hand, the clamp and the kiln, the works
+  and their people, moulding and founding, crystallizing and the filter.
+- **The owner's review** (2026-10-28 → 10-29, `d22c2a429..6e61def6a`): two
+  re-plans — R1 *combining is one rule* (the one fold, composition one
+  record) and R2 *the overlap sweep* (six bugs, nine duplicates, the design
+  overlaps slated) — then a mixin-by-mixin pass, B94–B109: `IntegrityMixin`,
+  castings Crafted, `MoistureMixin`, the failure policy (refuse · skip ·
+  throw), Seasoning, Greenware, Faced, Compounding, Forming, PatternStock,
+  Mould, Thermal, Marked, brains moving by `go`, `ClayVessel`/`ClayPart`,
+  and pH. Each change's reasoning is in its commit message.
