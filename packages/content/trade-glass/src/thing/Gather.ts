@@ -36,7 +36,7 @@ import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable"
  * the `Form` row it was blown into (`bottle`, `cylinder` — any row a pipe
  * lists, so a blown jar is a row and not a union member).
  */
-export type GatherForm = "gather" | "bubble" | (string & {});
+export type GatherForm = "gather" | "bubble" | (string & Record<never, never>);
 
 /** The engagement type + message topic the hot shop shares. */
 export const GLASSWORK_TYPE = "glasswork";
