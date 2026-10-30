@@ -536,3 +536,12 @@ shell weathering (only if wall spalling is built).
   throw), Seasoning, Greenware, Faced, Compounding, Forming, PatternStock,
   Mould, Thermal, Marked, brains moving by `go`, `ClayVessel`/`ClayPart`,
   and pH. Each change's reasoning is in its commit message.
+- **The finalize** (2026-10-30, from `a7176166b`): the drives ran once in
+  full (run 3), and each failure was fixed and re-checked in isolation on a
+  standing world. The fixes: a slip is stirred (B101 had made every clay a
+  knead); a pool freezes IN a vessel that holds things; grog treads in by its
+  form; the cast lands before its runner; the bell pit is loam; eleven
+  "glazed" rows had kept the retired `fused` state, and the dairy setting pan
+  is glazed earthenware again. The plan and requirements docs retired here,
+  and the split of these drives into blocking and soak went to build-4:
+  [ceramics-soak-split-slate](../slates/tails/ceramics-soak-split-slate.md).

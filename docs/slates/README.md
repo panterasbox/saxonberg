@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**398 slates.** 148 greenfield · 107 continuations · 67 waves · 76 tails.
+**399 slates.** 148 greenfield · 107 continuations · 67 waves · 77 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (148)
 
@@ -380,7 +380,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (76)
+## Tails — small and opportunistic (77)
 
 | slate | left |
 |---|---|
@@ -397,6 +397,7 @@ are the named remainders.
 | [belief-recall-forgets-the-absent](./tails/belief-recall-forgets-the-absent-slate.md) | decide what the liveness collection is FOR · scope it to that. |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
 | [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). ⭐ **And the SUBJECT body has the same shape** (`lookAtTarget` cards and `meta({ carded })` exactly as `lookAtLocation` does) — which puts the **drill-in** on this list; see below. The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. ⭐⭐ **And it is now a BLOCKER, 2026-10-02** — every new card body client-vocabulary-slate wants (image-first, list-of-images, a pack-shipped view) is built on the assumption that the card is a *superset* of the prose, and it is not. ⭐ Cheaper than this slate implies, too: `prose` already arrives at the client — `store/cardFeedSlice.ts:211` reads `c.prose` to decide *visibility* and never renders it. **The data is on the wire and in the store; this is a client render, not a protocol change.** |
+| [ceramics-soak-split](./tails/ceramics-soak-split-slate.md) | tag the 69 checkpoints · move the span steps to `ceramics-{a,b,c}.soak.dirty` · write a staged twin for each. |
 | [clinical-medicine](./tails/clinical-medicine-slate.md) | only this slate's retirement — every residual thread now has another home: the blood-bank economy → blood-slate (itself mostly shipped); cold storage → cold-chain-slate; surgery → surgery-specialty-slate; labs → sampling-and-labs-slate; pharma → pharma-slate; the calendar → personal-calendar-slate; **veterinary** → health-vertical-slate; the **NGN anchor** and the **SBAR / deteriorating patient** → medic-judgment-slate. Salvage § Open questions and § Adjacent verticals into their homes, repoint the three inbound links, then delete. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
 | [combat-tactics](./tails/combat-tactics-slate.md) | the `physical` conduit channel for cross-room shots (⚠ contradicted by ranged.md's cross-room ruling — see the compaction ledger) · the magic-interplay questions at `MagicLogic.deliverAt` (bolt vs cover · interpose · attenuation … |
