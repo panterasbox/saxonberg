@@ -392,6 +392,20 @@ reserved: using either as an option or arg name is a load-time error.
 with slots / cancel / abort uses `SchedulerApi` (see
 [activity.md](./activity.md)), for which `async` is a no-op.
 
+### ⛔ `testOnly:` — a verb that exists only in a test world
+
+`testOnly: true` marks scaffolding (today the one `testharness` view).
+The view installs everywhere like any other `command-view` document,
+but the command loader admits it only when
+`SecurityApi.isTestEnvironment()` (the wire runner's
+`SAXONBERG_TEST_WORLD=1`, or a unit test): in a world somebody plays in
+the dispatcher has no definition, so the verb is unknown and never in
+`help` or the affordances, and a CMS `reload` cannot sneak it in.
+`preloadAll` counts such a view as **withheld**, never failed, and the
+boot logs one line naming them. Pair it with the
+`requiresTestWorld` validator so the gate sits in the view's own data
+too.
+
 ## Help content — `description` / `help` / `examples`
 
 Three authored fields feed the in-game `help` browser

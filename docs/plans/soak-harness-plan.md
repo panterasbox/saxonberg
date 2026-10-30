@@ -933,6 +933,45 @@ subcommands:
    gate already denies the direct call; the guard just makes the
    refusal say where to go.
 
+### Decisions the build made (D26–D32)
+
+**D26 — The census rule, made operational** (D1 applied to loops). A step's span is the time it
+waits for an EFFECT (weather, a burn, a set, a restock, a season), counted at each loop's bound. A
+wait on state is capped at one game day in total and fails past it; more than that moves to soak. A
+jump to an hour of day (daylight, a shift) is lighting, not span: each is under 24 h, and a
+daylight loop is capped at 24 h. *Decided by:* the slate's "span is set by the span skipped" + the
+owner's budget (a blocking drive well under half an hour).
+
+**D27 — A split file's soak twin carries the blocking drive's whole flow as its setup**, with the
+spans in place (dairy, assembly, storage-and-ice, underwater, potash; whiskey's twin is the chain
+alone). The span steps depend on the chain before them (a HARD wheel is stamped only by the curd's
+set; the cask needs the still's run), so trimming the setup untested would make the lane's first
+run a debugging session. *Decided by:* the nearest pattern (sugar and river moved whole).
+
+**D28 — A restart test leaves its rebooted world up; the global teardown reaps the port.**
+Pre-existing on master: cleanliness's and repair's `afterAll(stopOwnedWorld)` left every later file
+in a full `pnpm wire` with no world. The requirement "master's wire suite green at merge" cannot
+hold with it.
+
+**D29 — glab comments and closes through the API.** glab 1.36.0's `issue note`/`issue close` fail
+every call; `glab api … /notes` and `-X PUT … state_event=close` work.
+
+**D30 — The eval budget, re-planned (replaces D18's mechanism).** ⛔ Not `afterEvaluate`: on Node
+22 a terminated microtask drain under async hooks aborts the process (`Assertion failed:
+(env_->execution_async_id()) == (0)`), reproduced in plain node with AsyncLocalStorage. Instead:
+V8's `timeout` on the synchronous segment; the awaited tail raced on the host and abandoned past
+the budget; every facade call refuses past the deadline. A pure CPU loop after an `await` cannot be
+stopped under `node:vm` — the `isolated-vm` deferral (or Node's AsyncContextFrame) is what would.
+The net does not wrap `self`/`target` (a wrapper breaks identity); their promises must be awaited.
+
+**D31 — An eval body that is one expression returns it** (`eval 1 + 1` → 2); otherwise it is a
+body of statements. *Decided by:* the plan's own W4 acceptance (`eval 1 + 1 → 2`) and lens 2 (an
+agent's first eval should not need a `return`).
+
+**D32 — A weather kind is real iff the model has a profile for it** (`WEATHER_PROFILES`), not a
+membership test on `WEATHER_TYPES`, which `lint:closed-vocabularies` counts as a new gate between
+an author and their rows (this refusal gates test input, not content). No lint exemption added.
+
 ## Host placement
 
 No mixin and no persisted field is introduced. One instanceable class
@@ -1040,6 +1079,9 @@ backticks); stage by name.
 
 ### W0 — the convention, the run command, the result, the canary
 
+> ✅ **Done — `e30f6749d`.** As planned. `vitest list` 71 ordinary files, no `.soak.`; the canary green under `wire:soak` on 2019 and `result.json` merged the declarations. Found on the way: build-4's `node_modules` was stale since sugar merged (`pnpm install`).
+
+
 Goal: a soak file exists, nothing ordinary runs it, `wire:soak` runs it,
 and every run leaves `result.json`. Implements D4, D5, D14 and the
 harness half of D3.
@@ -1066,6 +1108,9 @@ canary's 2-day jump passes regardless — W1 makes the mode matter.)
 Commit: `wire(soak): the .soak. convention, wire:soak, result.json and the canary`.
 
 ### W1 — the refusal, in the shared hook
+
+> ✅ **Done — `bc0ca61b4`.** `PersistApi.whenQuiet` added (lint:pm forbids `PersistenceManager.get()` in a logic tier); `TestHooks.advanceClock` stays `async` so a mode refusal still rejects for the route's `.catch`. ⚠ The six whole-file `git mv` renames, already staged, rode into this commit (content unchanged; W2's commit carries their edits) — commits from here on are by pathspec.
+
 
 Goal: a jump past a game day outside soak mode fails before jumping, in
 words that name the rule and the fix — enforced in `TestHarnessApi`, the
@@ -1113,6 +1158,9 @@ Commit: `clock(testing): TestHarnessApi — refuse a jump past a game day outsid
 
 ### W2 — the census moves
 
+> ✅ **Done — `af4140a25` + `521f2f46e`.** The census went wider than D10 (an audit of every looped jump, not only per-call sizes): see D26–D27 and the census section of the drive record. potash split too (the 80-hour clamp). The targeted run found a **pre-existing master hazard** — cleanliness's and repair's restart suites stopped the world in `afterAll`, so every later file in a full `pnpm wire` had none — fixed (D28). assembly passed whole (the cooper's staves restock without the 40-day sweep); rubber's 24 h set is proven in the drive record's rerun.
+
+
 Goal: no non-soak wire file carries a call the refusal would hit, and no
 step was chunked. Implements D1, D10.
 
@@ -1147,6 +1195,9 @@ Commit: `wire(census): the 25 clock-jumping files — span steps to .soak., the 
 
 ### W3 — `tools/lib/suite-lock.sh`, `tools/suite`, `tools/soak`
 
+> ✅ **Done — `3eadc69d5`.** Drive steps 4–7 run (stubbed run command; issue #102 filed, commented, closed). glab 1.36.0's `issue note` / `issue close` fail every call ("rate: Wait(n=1) exceeds limiter's burst 0") — comments go through the notes API (D29). `--dry-run` lists only; it does not print issue bodies.
+
+
 Goal: the runner. Implements D2, D6–D9, D11–D13.
 
 Files: `tools/lib/suite-lock.sh` (new), `tools/suite` (source it; delete
@@ -1164,6 +1215,9 @@ once on the re-run, and the build closes it with `glab issue close`.
 Commit: `tools(soak): the runner — lock and reserve shared with tools/suite, headroom-gated, files soak issues`.
 
 ### W4 — `eval`: the surface, the timeout, the cap, the net
+
+> ✅ **Done — `fb9be7497`.** ⚠ **D18 re-planned in place**: `microtaskMode: 'afterEvaluate'` ABORTS the process on Node 22 when it terminates a microtask drain under async hooks (ALS) — see D30. Also: the class name at runtime can differ from the source (`StuffApi` runs as `_StuffApi`), so facades bind under the name with leading underscores stripped; facades are built per invocation (the net writes to the run's record), not cached; an expression body returns itself (D31); `lint:eval-surface` census = 14. The cap's unit test was dropped (a public static on a controller raised `lint:lib-statics`); drive step 9 proves the cap.
+
 
 Goal: `eval` binds every self-decorating Api, cannot run past its
 budget, cannot flood the socket, and no eval — however wrong — ends
@@ -1225,6 +1279,9 @@ Commit: `eval(sandbox): bind every self-decorating Api; a real timeout, an outpu
 
 ### W5 — test login grants title
 
+> ✅ **Done — `968283873`.** The grant reads the character's held extents only if its avatar is resident (`StuffApi.findByIdentityPath`), else compares the owner to the identity; the route now relays the hook's message (`test-login failed: '/x' is not a parcel; …`). Unit tests pin the route; the grant itself is drive step 8 (it needs a Mongo-backed user).
+
+
 Goal: a drive's character can stage inside any parcel it names.
 Implements D21.
 
@@ -1254,6 +1311,9 @@ authority over <it>`.
 Commit: `test-login(parcels): a test runner is granted title to the parcels it names`.
 
 ### W6 — the `testharness` command and the weather pin
+
+> ✅ **Done — `db219eda5`.** `--at <place>` shipped (the owner's grammar has it; D24's "no --at in v1" is superseded). The Api takes paths only (a Stuff first parameter would raise `lint:object-verbs`); the controller resolves "where you stand" itself. The kind is validated against `WEATHER_PROFILES` (D32). The pin applies at once through `onBoundary()` — rain wets whoever is out in it — so rubber's rain search became a pinned rain.
+
 
 Goal: `testharness clock …` and `testharness weather …` exist in test worlds only,
 share `TestHarnessApi` with the harness, and `/auth/test-weather` is the
@@ -1325,6 +1385,9 @@ view was withheld. Tear it down by PID.
 Commit: `test(verb): the test command — clock and weather, test worlds only, one implementation with the harness routes`.
 
 ### W7 — docs
+
+> ✅ **Done** (the docs commit). testing.md § The soak lane + § Staging; shell-author, call-security, weather, command-spec, parcel; the `/soak` skill; the slate's § 3a → shipped. Index lines (CLAUDE.md's controller-category list, workflow.md) are left to `/finalize`.
+
 
 Goal: a fresh reader finds the convention, the command, the refusal, the
 result, the runner, the staging tools and the `testharness` verb where they

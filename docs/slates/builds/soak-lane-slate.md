@@ -1,15 +1,17 @@
 # Soak lane slate — no merge waits on the clock
 
-> **Status: UNBUILT** — decided 2026-10-30 with the owner. What ships: the wire tier and its drives
+> **Status: PARTIAL** — decided 2026-10-30 with the owner. What ships: the wire tier and its drives
 > ([testing.md](../../testing.md)); the test-only clock jump (`/auth/test-clock` →
-> `TestHooks.advanceClock`), which drains every schedule in the skipped interval and holds the clock
-> until persistence is quiet (up to 240 s); `advanceLiving` (≤ 4 game hours a step while a drive body
-> is logged in, everyone fed between steps); the drive as the build's exit criterion
-> ([workflow.md](../../workflow.md)).
-> **Left:** the pace tag on every drive step (instant · short · staged · span) · a staged twin for every span step · span never blocks · the
-> harness refusing an untagged long jump · a blocking drive and a soak drive in every requirements
-> doc · the soak harness (`*.soak.wire.test.ts`, `pnpm wire:soak`, the jump refusal) · `tools/soak`, the headroom-gated runner filing `soak` issues · logging drive bodies out across long jumps
-> **Size:** a build
+> `TestHarnessApi.advanceClock`), which drains every schedule in the skipped interval and holds the
+> clock until persistence is quiet (up to 240 s); the drive as the build's exit criterion
+> ([workflow.md](../../workflow.md)); ⭐ **the soak harness** (soak-harness build, 2026-10-30): the
+> `*.soak.wire.test.ts` convention and `pnpm wire:soak`, the refusal of a jump past a game day
+> outside soak mode, `.wire/result.json`, `tools/soak` (the headroom-gated runner filing `soak`
+> issues), the census of every clock-jumping wire file, and the staging tools (eval over every Api,
+> test-runner parcels, the weather pin, the `testharness` verb) — testing.md § The soak lane.
+> **Left:** logging drive bodies out across long jumps (§ 4) · the two root fixes (§ 5) · launching
+> `tools/soak --watch` from `saxo` · the short/span line as a wall-clock budget (§ 6.1)
+> **Size:** a tail
 
 ## 0. The ask **[DECIDED — the owner]**
 
@@ -146,15 +148,12 @@ think we'll probably wanna start using GitLab issues to track that."*
 - ✅ the `/soak` skill;
 - ✅ the GitLab label `soak`.
 
-### Owed — a small infra build in a build worktree
+### ✅ Shipped — the soak-harness build
 
-- the `*.soak.wire.test.ts` convention: excluded from the default wire run, `pnpm wire:soak`;
-- `advanceWorldClock` refusing a jump past a game day outside soak mode;
-- a machine-readable result the runner can read;
-- `tools/soak`, the runner, with the headroom gate and the issue filing.
-
-Until it lands the lane has nothing to run; its first consumers are build-1's cover and build-3's
-ceramics span checks, once split out.
+The convention, `pnpm wire:soak`, the refusal, the machine-readable result and `tools/soak` all
+shipped (2026-10-30) — testing.md § The soak lane is the reference. The lane's first consumers are
+the files the census moved: sugar and river-a…e whole; whiskey, dairy, assembly, storage-and-ice,
+underwater and potash split into `.soak.dirty` twins; and the canary.
 
 ## 4. The quick fix — log drive bodies out across long jumps **[LEAN]**
 
