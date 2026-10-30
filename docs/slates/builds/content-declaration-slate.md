@@ -262,6 +262,11 @@ candidate: **a bloomery and a blast furnace are not the same era.**
 
 ### 3.8 ⭐⭐⭐ The aether and the implant — and the OBJECT/PERSON line
 
+> ⭐ **2026-10-28 → [off-grid-slate](./off-grid-slate.md).** The owner made the **phone the
+> starting carrier** and the implant elective; the ladder below is corrected there (the cell
+> phone is `modern`, the implant `future`); and *"strange, not silent"* is partly reopened — some
+> places may put you off grid, behind a posted edge, with an easy return.
+
 Decided 2026-10-09. § 3.5 above scopes the aether out of the ordinal
 vocabulary (*"platform, not content"*), which answers the literal
 question and leaves the want unresolved. This is the want.

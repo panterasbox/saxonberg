@@ -42,7 +42,7 @@ what each organism actually does. It got **milk exactly backwards** and
 decisions, and the shape of the error is worth keeping: *five products
 that look alike in a table are not alike in a body.*
 
-Seeded by [tapping-slate](../slates/builds/tapping-slate.md), with the
+Seeded by [tapping-slate](../slates/tails/tapping-slate.md), with the
 tap audit and the unification frame agreed in conversation 2026-09-30.
 ⚠ The slate is a *tapping* slate; this is a *taps* build — the scope
 grew deliberately, because adding a fifth source to a family whose
@@ -880,7 +880,7 @@ Observable from outside the code. No criterion below names a test.
 
 ## Cross-references
 
-**Seeding slates:** [tapping-slate](../slates/builds/tapping-slate.md) ·
+**Seeding slates:** [tapping-slate](../slates/tails/tapping-slate.md) ·
 [dairy-slate](../slates/builds/dairy-slate.md) (the act's other half) ·
 [rgo-unification-slate](../slates/builds/rgo-unification-slate.md) (loses
 the sweetener vocabulary to this build; keeps the derived-field

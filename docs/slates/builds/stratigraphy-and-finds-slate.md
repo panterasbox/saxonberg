@@ -15,7 +15,7 @@
 > (survey, coprolite fertilizer, collectors, gems) · wood's afterlives by burial
 > condition (bog oak, jet, petrified wood, driftwood) · found property and treasure
 > trove
-> **Size:** a slate that owns two things (the stratigraphic reading, found-property
+> **Size:** a build — a slate that owns two things (the stratigraphic reading, found-property
 > law) and routes the rest to its homes
 
 ## 0. ⭐⭐⭐ Lore as evidence — the narrative function **[DECIDED — the owner]**

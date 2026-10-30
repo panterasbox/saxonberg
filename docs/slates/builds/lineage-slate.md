@@ -7,7 +7,7 @@
 > [race.md](../../subsystems/race.md) § *Age is a DATE*), which closed
 > the aging section's first two subsections. *(Compacted 2026-09-19;
 > ledger: `docs/plans/slate-compaction/unlinked-1.md`.)*
-> **Left:** person + household records · a `kind: 'gallery'` field + row
+> **Left:** the age band — adult only, declared, moving only by the player's choice · person + household records · a `kind: 'gallery'` field + row
 > payload · the gallery UI (grid / detail / pin / reroll) · the typed hook
 > vocabulary + the balance weights · the pin-cost curve + the reroll
 > priced against the allotment · the one budget's three sinks (body
@@ -66,6 +66,31 @@ Look at how much it explains that would otherwise need explaining:
 It is also the platform's own thesis in miniature — **you arrive with a
 past you did not choose and a future you do** — and it makes the first
 session's implicit goal legible: *become someone.*
+
+### ⭐⭐ The age band — players do not age **[DECIDED — the owner, 2026-10-29]**
+
+*"I don't want players to age, but I do think maybe being able to set your age in char-gen to one of
+several bands that don't move — or maybe would move once or twice tops in the life of extremely
+long-lived characters, and only because the player decides they've outgrown whatever value they
+previously configured. It's more about telling the world your maturity level (or claimed maturity
+level) instead of locking everyone into just starting the game at age 18."* **Adult bands only**
+(the owner).
+
+- **A declaration, not a computation** — like anonymity, it is declared; it feeds how the world
+  describes you (*"a woman in her forties"*) and **confers nothing** (race.md: a played body has no
+  life stage). **[LEAN]**
+- **Species-relative** — an elf's young adult is a century old, so the vocabulary is the species
+  curve's own adult stages, not numbers. **[LEAN]**
+- **The measures players care about are shown as facts, conferring nothing** — tenure in the
+  world's years (*"fourteen winters here"*), hours played, time since creation. **[LEAN]**
+- **"Everyone starts college-aged" is a realm's default, not the platform's** — the owner: *"a
+  different proposition … one with the university at its core might want something like that
+  (though it does feel a bit exclusionary to people going back to school in their later years)."*
+  **[LEAN]**
+- ⚠ **It collides with the majority day above.** That story has everyone coming of age today; an
+  older band arrives after a life elsewhere. The antecedents budget must **not** grow with the band —
+  a bigger budget for an older character would make age the rankable stat race.md forbids. What an
+  older band's story is (*"today you begin again"*?) is **[OPEN]**.
 
 ---
 

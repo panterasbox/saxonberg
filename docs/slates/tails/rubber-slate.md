@@ -99,7 +99,7 @@ Better than magic, which is inquiry's own showcase, for four reasons:
 
 | piece | state |
 |---|---|
-| **latex** | ⭐ resin's mechanism *exactly* — a **wound response**, `behaviour: accrue`, a `production:` block on a species row. → [tapping-slate](../builds/tapping-slate.md) builds the act; rubber adds one tree. |
+| **latex** | ⭐ resin's mechanism *exactly* — a **wound response**, `behaviour: accrue`, a `production:` block on a species row. → [tapping-slate](./tapping-slate.md) builds the act; rubber adds one tree. |
 | **sulfur** | ⚠ does not ship — only `alloy/sulfurous-iron`. The extraction census already priced this shape for gems and precious metals: **a deposit row + a material, not an RGO family.** Cheap, and volcanic/quarry sourcing is honest. |
 | **heat** | ships — the `Oven` family; `brine-hearth` is the exemplar (an `Oven` row whose `ContainerMixin` lets `ThermalMixin.heatSourceK()` read the fire with no new coupling) |
 | **`vulcanize`** | a **recipe**, gated on the crosslinking `Law`. Not a verb — crafting resolves it. |
@@ -359,7 +359,7 @@ instrument and your own measurements.
 The material was specified, the insulation model named it by name, and
 the garment model resolves it with zero new code — **and nothing is made
 of it.** That is the same shape as
-[tapping](../builds/tapping-slate.md), where the act protocol, the tap vocabulary
+[tapping](./tapping-slate.md), where the act protocol, the tap vocabulary
 and the evaporator were all built and did not know about each other.
 
 > **The substrate keeps running ahead of the content.** Both slates are
@@ -380,7 +380,7 @@ material they have never made.**
 ---
 
 See also: [inquiry-slate](../builds/inquiry-slate.md) (**the blocker**) ·
-[tapping-slate](../builds/tapping-slate.md) (the act) ·
+[tapping-slate](./tapping-slate.md) (the act) ·
 [electricity.md](../../subsystems/electricity.md) (the named consumer) ·
 [textiles.md](../../subsystems/textiles.md) (the free consumer) ·
 [advancement-slate](../builds/advancement-slate.md) (why conferral is not the gate)

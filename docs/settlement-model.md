@@ -667,6 +667,10 @@ it constantly.
 #### ⚠⚠ The constraint that keeps it from being griefing
 
 > **Exclusion may never touch the aether or movement.**
+> ⚠ **Reopened 2026-10-28** ([law-and-order-slate](./slates/builds/law-and-order-slate.md) § 7, the
+> owner): *"all forms of banishment on the table — these are dials to be tuned."* Presence
+> banishment is now a setting, bounded by the rights floor rather than forbidden here.
+
 
 Refusable: **service · shelter · trade · employment.** Never **presence or
 speech.** That preserves the doctrine — *the aether reaches everywhere,

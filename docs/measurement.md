@@ -763,6 +763,37 @@ to fork** — which is the founder's only constraint, stated as such in
 > the exit costs. Fork-ability is what converts B1–B6 from assurances
 > into something with a remedy.
 
+### ⭐⭐⭐ Guarantees of play — what no local rule may take **[DECIDED — the owner, 2026-10-28]**
+
+Civil rights against the polity — due process, expression, property, privacy — are the ratifying
+convention's to choose (draft constitution Art. IX). **Guarantees of play are the product's to
+promise**: the owner's *"we're selling the ability to play **your** character"* is a statement of
+what this thing *is*, so its protections are Tier B — promised by whoever ships the code, checked by
+the right to fork (B7), and liftable to constitutional rank by the convention. They are not rights
+the founder enumerates over the polity; they are what any polity here is built on.
+
+**The test:** *without it, a local rule could take away the ability to play your character.* Kept
+thin.
+
+| # | guarantee | a local rule may not |
+|---|---|---|
+| P1 | ⭐ **Passage** — you can always leave any place and reach your home | strand you: banishment may refuse entry, never trap (the sea's *right of innocent passage*) |
+| P2 | **The comms floor** — where you live and log in, you can reach your friends | put a *person* off grid — geography may, no authority may; a gaol included |
+| P3 | **Play is never spent without consent** | make a sentence consume online hours unless the convict chose it; hold past the custody limit |
+| P4 | **Rescue** — emergency aid reaches anyone, anywhere | refuse the dying: exclusion refuses service, never a dressing |
+| P5 | **Characters, not accounts** | act on an account — only the Compact's extreme process (disenfranchisement) does |
+| P6 | **Death takes the body and the purse, never the character** | — |
+| P7 | **A player answers for every NPC** — there is always a defendant | — |
+| P8 | **No real person is compelled to labor** | register, bind or seat a player coercively (moved here from the unfree-labour slate's proposed Tier A — it protects a person, not the record) |
+| P9 | **You can always leave the world** — logout is never refused | — |
+
+⭐⭐ **Enforced by code first** (Art. I § 7: *where the law is mechanically applicable it shall be
+enforced by code*). Each row is a **wall in the substrate**: a committee cannot write a banishment that
+strands, because the declaration cannot express it. The Compact court keeps the judgment cases — such
+as whether an indefinite presence banishment from a crossroads, passage intact, is still too much.
+
+The design and its build: [guarantees-of-play-slate](./slates/builds/guarantees-of-play-slate.md).
+
 ### ⭐⭐ The platform records; it rarely forbids
 
 Worth stating because it reshapes what "imposition" means here. B2 does
