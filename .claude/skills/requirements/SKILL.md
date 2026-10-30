@@ -141,8 +141,12 @@ It does three jobs:
    the verb, what data enables it, and what warms that data at boot.
 
 ⛔⛔ **Write it as two drives, and tag every step's pace** — `instant`
-(no clock), `short` (a jump of hours, up to about a game day) or `span`
-(weeks or seasons). The **blocking drive** holds instant and short steps
+(no clock), `short` (a jump of hours, up to about a game day), `staged`
+(a span's outcome, its state set directly with wizard tools) or `span`
+(weeks or seasons). ⭐ **Every span step gets a staged twin in the
+blocking drive** — the clock's part goes to soak, everything around it
+is checked before merge. Each step also says how its assertion is made:
+`player` (player verbs and tools only) or `staged` (wizard setup is fine). The **blocking drive** holds instant and short steps
 and is the build's exit criterion — well under half an hour of wall time.
 The **soak drive** holds every span step and runs in the soak lane after
 merge, never before. A season's outcome (a winter's weathering, a year of
@@ -226,8 +230,8 @@ should see, **each step tagged `instant` · `short` · `span`**.
 
 ### Blocking drive
 
-Instant and short steps — run at the end of the build phase; the
-exit criterion for the merge.
+Instant, short and staged steps — a staged twin for every span step —
+run at the end of the build phase; the exit criterion for the merge.
 
 ### Soak drive
 

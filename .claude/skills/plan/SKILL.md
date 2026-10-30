@@ -146,8 +146,9 @@ satisfy them. Anything unmapped is a scope gap — surface it now.
 ## Test & gate strategy
 
 What gets unit tests, what only the drive can prove, which lint
-gates apply. ⛔ **Every drive step's pace** — `instant` · `short` ·
-`span` — and which steps are the **blocking drive** (the exit
+gates apply. ⛔ **Every drive step's pace** — `instant` · `short` · `staged` ·
+`span` — the **staged twin** each span step needs and the wizard tool
+that stages it (a state nothing can stage is a tool this build owes), and which steps are the **blocking drive** (the exit
 criterion) and which the **soak drive** (the soak lane, after merge).
 A season's outcome is proved by arithmetic in a unit test here and
 end-to-end in soak — never in the blocking drive. ⚠ `pnpm test` runs at exactly two moments — before the

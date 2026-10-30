@@ -6,7 +6,7 @@
 > until persistence is quiet (up to 240 s); `advanceLiving` (≤ 4 game hours a step while a drive body
 > is logged in, everyone fed between steps); the drive as the build's exit criterion
 > ([workflow.md](../../workflow.md)).
-> **Left:** the pace tag on every drive step (instant · short · span) · span never blocks · the
+> **Left:** the pace tag on every drive step (instant · short · staged · span) · a staged twin for every span step · span never blocks · the
 > harness refusing an untagged long jump · a blocking drive and a soak drive in every requirements
 > doc · the soak lane — a standing session and its own worktree and world, dispatching each merged
 > build's soak drive · issues, never blocks · logging drive bodies out across long jumps
@@ -53,6 +53,7 @@ clock**; the cost is in how they must:
 |---|---|---|
 | **instant** | no clock involved | yes |
 | **short** | a jump of hours, up to about a game day | yes |
+| ⭐ **staged** | a span's *outcome*, reached by setting the state directly with wizard tools, then checked through player verbs | yes |
 | **span** | weeks or seasons — a winter's weathering, a year of farming, a lining worn through | ⛔ **never** — the soak lane |
 
 - **Span is set by the span skipped**, not by whether a jump is used: a jump's cost grows with the
@@ -62,6 +63,34 @@ clock**; the cost is in how they must:
   of wall time. The rules that asked agents to judge (*isolate, don't drive*; *never make the user
   wait on verification*; *review rounds stay tight*) did not hold, because a step does not say how
   long it is. The tag does.
+
+### ⭐⭐⭐ Every span step has a staged twin **[DECIDED — the owner]**
+
+*"The note I've been giving to my agents, at least for the build and review phases, is to make use
+of the whole palette of wizard tools to basically stage the state they need to verify what they're
+trying to verify. You don't get to test that the clock actually produces that state, but you can test
+everything around it. Most of the time that's probably good enough. For a finalize step, where you're
+trying to do a comprehensive sweep to make sure you didn't break anything anywhere, you may or may not
+want to use wizard tools that a player doesn't actually have, but it really depends on what's being
+tested."*
+
+A span step checks two things, and only one needs the clock:
+
+| what is checked | how | when |
+|---|---|---|
+| **given the state, everything around it works** — the weathered heap kneads leaner, the frozen brick reads burst, the starved herd thins and none dies | **staged**: set the state with wizard tools, verify with player verbs | **blocks** — build and review |
+| **the clock actually produces that state** — a winter really weathers the heap | the span itself | the soak lane, after merge |
+
+- **The blocking drive carries a staged twin for every span step**, so nothing around a seasonal
+  outcome goes unchecked before the merge; soak is left only the clock's part.
+- ⚠ **A state that cannot be staged is tooling the build owes** — the in-world `eval` admits a short
+  list of Apis, so some states may have no way to be set. The gap becomes visible work, never a
+  nine-hour wait.
+- **Finalize decides per step, and the step says which.** Setup may be staged freely. Where the thing
+  checked is **the player's experience** — can a player do this, with what a player has — the
+  assertion goes through player verbs and player-held tools, never wizard ones. Where it checks that
+  nothing else broke, staging is fine. Each step carries, beside its pace, **`player`** or
+  **`staged`** for how its assertion is made.
 
 ### Enforcement — structural, so it cannot be talked around **[LEAN]**
 

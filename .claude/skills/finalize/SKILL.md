@@ -112,8 +112,13 @@ metal-chain's drive surfaced `five pre-existing boot-breaking defects`
 that predated the build entirely.
 
 ⛔⛔⛔ **No merge waits on the clock — never run a `span` step here.**
-Only the **blocking drive** (instant and short steps) is checked at the
-sweep. Confirm the **soak drive** exists, its steps are tagged, and the
+Only the **blocking drive** (instant, short and staged steps) is checked
+at the sweep, and every span step must have its staged twin there. ⭐
+**Decide per step how the assertion is made:** where the step checks
+**the player's experience** — can a player do this with what a player
+has — assert through player verbs and player-held tools only; where it
+checks that nothing else broke, staged wizard setup is fine. The step's
+`player` / `staged` tag says which. Confirm the **soak drive** exists, its steps are tagged, and the
 MR description names it for the soak lane, which runs it after merge.
 If a span step is sitting in the blocking drive, move it to the soak
 drive — do not wait on it. See `docs/workflow.md § No merge waits on
