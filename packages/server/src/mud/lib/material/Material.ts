@@ -1965,6 +1965,19 @@ export default class Material extends SingletonMixin(
   public hasTag(tag: string): boolean { return this.tags.includes(tag); }
 
   public getComposition(): readonly CompositionEntry[] { return this.composition; }
+  /**
+   * The share of this material, by mass, that is water: all of it for
+   * water itself, else what its composition names as water (a slip is
+   * 0.45). What slakes a plastic mass (`Compounding.workVerb`).
+   */
+  public waterShare(): number {
+    if (this.hasTag('water')) return 1;
+    let share = 0;
+    for (const e of this.composition) {
+      if (StuffApi.findByTemplatePath<Material>(e.materialPath)?.hasTag('water')) share += e.fraction;
+    }
+    return Math.min(1, share);
+  }
   public setComposition(value: CompositionEntry[]): void {
     this.composition = value;
   }

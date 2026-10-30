@@ -245,13 +245,17 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       return this.freeWaterKg() >= plasticKg * SLAKE_RATIO ? 'stir' : 'knead';
     }
 
-    /** The water standing in the belly, kg — what slakes a plastic mass. */
+    /**
+     * The water in the belly, kg — what slakes a plastic mass: all of a
+     * pail of water, and the water IN a liquid (clay added to a slip is
+     * stirred into it, finalize run 4).
+     */
     private freeWaterKg(): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return 0;
       const slot = self.getBulk('interior');
       const held = slot.getMaterial();
-      return held !== null && held.hasTag('water') ? slot.getMassKg() : 0;
+      return held !== null && held.hasTag('liquid') ? slot.getMassKg() * held.waterShare() : 0;
     }
 
     public workRefusal(verb: string | undefined): ActRefusal | null {

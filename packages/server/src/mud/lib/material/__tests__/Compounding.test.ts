@@ -166,13 +166,30 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
 
   it('⭐ clay in a little water is kneaded; drowned past its liquid limit it is a slip, stirred', async () => {
     (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['plastic']);
-    (StuffApi.findByTemplatePath<Material>(WATER) as unknown as Material).setTags(['water']);
+    (StuffApi.findByTemplatePath<Material>(WATER) as unknown as Material).setTags(['liquid', 'water']);
     const v = tub(STOCK_ROW, COMPOUND);
     await ContainmentApi.move(lumpOf(RAW, 12), v);
     v.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(WATER)!);
     v.setBulkAmount('interior', Quantity.of(2, 'L'));
     expect(v.workVerb()).toBe('knead');
     v.setBulkAmount('interior', Quantity.of(10, 'L'));
+    expect(v.workVerb()).toBe('stir');
+  });
+
+  it('⭐ clay added to a SLIP is stirred into it — the water in the slip slakes it', async () => {
+    (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['plastic']);
+    (StuffApi.findByTemplatePath<Material>(WATER) as unknown as Material).setTags(['liquid', 'water']);
+    const slip = StuffApi.findByTemplatePath<Material>(SLIP) as unknown as Material;
+    slip.setTags(['liquid', 'slip']);
+    slip.setComposition([
+      { materialPath: RAW, fraction: 0.55 },
+      { materialPath: WATER, fraction: 0.45 },
+    ]);
+    expect(slip.waterShare()).toBeCloseTo(0.45, 6);
+    const v = tub(STOCK_ROW, COMPOUND);
+    await ContainmentApi.move(lumpOf(RAW, 12), v);
+    v.setBulkMaterial('interior', slip);
+    v.setBulkAmount('interior', Quantity.of(20, 'L'));
     expect(v.workVerb()).toBe('stir');
   });
 
