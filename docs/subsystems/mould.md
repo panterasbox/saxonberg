@@ -33,8 +33,9 @@ template    = blown       ? material.castTemplate          (a ruined lump)
 destination = mould ?? the vessel's own scope
 ```
 
-A plain vessel keeps the old behaviour exactly — the lump drops *beside*
-it. A mould keeps what set in it, in its own shape, **inside it** (a
+A plain vessel keeps its lump *in* it when it holds things (a temper pit's
+water freezes in the pit and thaws back into it — the ceramics finalize),
+and drops it *beside* it when it does not (a jug). A mould keeps what set in it, in its own shape, **inside it** (a
 reusable one) or breaks to release it (a consumed one).
 
 > ⭐ **A firing asks the mould too** (rubber build; the ceramics build made

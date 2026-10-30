@@ -1034,8 +1034,10 @@ for a Vessel outdoors — a thermal-slate item.
 The solidify edge of `reconcileBulkPhase` no longer always clones the
 material's `castTemplate` beside the vessel. It asks `MixinApi.isMould(v)`
 first: a **mould** keeps what set in it, in its own shape, inside it
-(`castInto`); any other vessel falls back to the material's fallback shape
-dropped beside it, exactly as before. Water's fallback is now
+(`castInto`); any other vessel falls back to the material's fallback shape,
+kept IN the vessel when it is a container (the temper pit's ice, which then
+thaws back into it — the ceramics finalize) and dropped beside it when it is
+not (a jug). Water's fallback is now
 `/stuff/thing/ice-lump` (*a lump of ice*); the ice pan is a mould and gives
 the squared `ice-block`. See [mould.md](./mould.md).
 
