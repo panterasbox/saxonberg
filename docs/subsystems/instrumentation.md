@@ -95,6 +95,14 @@ same answer — and the bracket widens with the reader's band:
 untrained ±8%   novice ±5%   competent ±2.5%   proficient ±1.2%   expert ±0.5%
 ```
 
+The table is `COMPETENCE_HALF_WIDTH` on `lib/advancement/CompetenceBand`
+(moved there by the field-population build so the eye can use it too:
+the crop read on `look` is banded by the same five rungs, and a farm
+hand's seeded read of a patch's moisture is bracketed by this table —
+[husbandry.md](husbandry.md) § *A plant's part*). The stand read is a
+band on `look`, not a `Reading` channel; an `analyze crop` channel waits
+for an instrument to read through.
+
 An instrument raises a **ceiling**; competence is what actually realizes
 it. The effective band is `min(bandOf(actor), ceilingOf(instrument))`,
 so a novice with a good dial reads better than a novice without one and

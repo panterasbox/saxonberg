@@ -286,6 +286,82 @@ field with no area: registration runs before `plot` has sized a minted
 one, and installing there would seed a zero-capacity moisture reserve
 that the real sizing call would then find present and skip.
 
+### ⭐⭐ A soil made of parts — the patch (field population, 2026-10-30)
+
+A field may author **patches**: named parts of its ground, each soil of
+its own. The bench is *the top end · the middle · the lane end*; the
+campus home field *the gate end · the middle · the far side*. A field
+that authors none is ONE piece and behaves exactly as it always did —
+every shipped field but those two.
+
+```yaml
+patches:
+  - key: top-end            # stable — crop rows root here by key
+    name: the top end       # a definite phrase; its "the" is the register
+    areaM2: 1000            # the last patch absorbs any difference
+    lean: { depthScale: 0.35, stoninessScale: 1.5, nitrogenPct: 12 }
+    description: The top of the strip, where the soil thins to a skin.
+```
+
+**The parts protocol is the KERNEL's, on `SoilMixin`** — so every verb
+reaches a patch without importing the farming pack:
+
+| hook / read | what it answers |
+|---|---|
+| `soilParts()` | the ground's parts (`[]` = one piece) — `Field` returns its patches |
+| `soilPartKey()` · `soilDepthM()` | a part's key, and its topsoil depth (the roots read) |
+| `soilPart(key)` · `soilPartRefusal()` | find a part; the *"Which part? Name one: …"* line |
+| `resolvePartFor(named)` | the GROUND decides: the named part, the only part, or a refusal (`patch-unnamed`, `not-a-part-here`) |
+| `rootedAreaCrop(part)` | the area crop rooted in that part (asked of a part, it asks its ground) |
+| `soilMoistureHeadroomL()` · `soilNutrientHeadroom()` | litres (the SUM of the parts), points (the area-weighted MEAN) |
+
+⚠ **A divided field's own reads AGGREGATE its parts, and its writes act
+on them.** Litres are extensive: `waterSoil` spreads by area share and
+returns the sum. Per-cent reserves are intensive: `feedSoil`,
+`drawNutrient`, `fixNitrogen`, `addOrganicMatter` and `poach` apply the
+SAME amount to every part and return the area-weighted mean — spreading
+ten points 60/40 would have halved a divided field's legume nitrogen.
+The sward, `turnUnder` and the grazing integral keep reading the field
+and get the aggregate. A divided field has NO soil of its own.
+
+**`Patch`** (`trade-farming/src/thing/Patch.ts`) is a fixture, minted
+get-or-create in slot `patch:<key>` (the `ensureFloor` shape) by
+`Field.ensurePatches`: `CharacteredSoilMixin(SoilMixin(ReservedMixin(
+AdornmentMixin(VisibleMixin(Thing)))))`. Its ground is the field's
+sample with the spec's **lean** applied LAST
+(`GroundCharacter.resolve(model, at, seed, nudge)`), and its moisture
+capacity scales by `clamp(patch.topsoilM / field.topsoilM, 0.2, 2)` — a
+thin top end holds a third of the water and dries first. Its watershed is
+its field's; its thirst is the crops rooted in it plus its area share of
+the sward; `ensureCropTitle` and `sowingRefusal` forward to the field.
+Its soil stamps are `runtimeState`, so a patch's state rides its field's
+fixtures slice across a restart (the R4 test advances the clock across
+the "restart", or it passes vacuously).
+
+⭐ **A fixture's jurisdiction is its host's** (`AdornmentMixin.
+jurisdictionHost`, 2026-10-30) — a patch is pathed by its kind row and
+held in `getFixtures()`, not contents, so a governed `eval --parcel
+<extent>` was refused on every patch (and every floor) inside its own
+extent until the hook said so.
+
+**The look.** The field's own look carries one line per SOWN patch, read
+at the VIEWER's band (*"At the top end it is in ear and is failing. It is
+short of something."*). `look at the top end` is the patch's own look —
+the ground's phrase, the crop rooted there read at your band, and any
+labeled plant (*"Trial stands here, labeled."*). The stand answers to its
+patch's words (`look top end wheat`) — derived on `Plant.getKeywords()`
+from the part it is rooted in, only for an area crop, so a renamed patch
+renames the words. A stand is not listed among loose contents (D17): the
+field's line is where it reads.
+
+⚠ **Content rule: keys are stable, names may change.** A crop row roots
+by `groundPart: <key>`; a key renamed in the field orphans nothing but
+silently re-roots the crop in the field's aggregate soil.
+
+The plant side — `groundPart`, the specimen, the labeled plant's root
+zone, the banded read, the campus hand — is
+[husbandry.md](husbandry.md) § *A plant's part*.
+
 ---
 
 ## The plot lifecycle (D54–D60)

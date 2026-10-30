@@ -1926,6 +1926,133 @@ Notes for W6:
 - `look hand` binds her (the handle); `look maud` does not until she is
   known (recognition).
 
+### W6 — the drive, the cover drive, the docs
+
+Landed: the new drive `packages/wire/tests/field-population.dirty.wire.test.ts`
+(the requirements' 13 steps as 15 checkpoints, ordered by the calendar —
+spring sow + label (6a, 6) at day 80, the bench (1–5) at day 95, the dry
+week (7), the pail (8), compost (9), the hand (11), the harvest (10),
+then the cane piece (12) and the pot (13)); the cover drive's steps 1, 4,
+6, 7, 9 for the divided bench and home field (D16); the docs —
+`soil.md` § *A soil made of parts — the patch*, `husbandry.md` § *A
+plant's part*, the half-width table's new home in `instrumentation.md`,
+the slate's status line (PARTIAL, with what is left).
+
+Fixed here (each with a unit test that fails without it):
+
+- ⭐ **A fixture's jurisdiction is its host's** — `AdornmentMixin.
+  jurisdictionHost()` returns `adornedTo` (else the default). The W2/W5
+  *"receiver scope field(none)"* refusal was not a zone or circle stamp
+  at all: both scopes were `null`, and the deny came from the governed
+  bound — a patch is pathed by its kind row (`/trade/farming/thing/patch`)
+  and held in `getFixtures()`, so the jurisdiction walk had nothing to
+  walk. The exit's case exactly; every FLOOR had the same defect. Founder
+  `eval --parcel /world/terminus/eternal/campus-field` now reads and sets
+  a patch's reserves. `sandbox.jurisdiction.test.ts` +2.
+- **A bystander sees which part was watered** — `water`'s peer line
+  names the part (*"Maud Hollis waters a stand of wheat at the gate
+  end."*), the way `feed`'s already did. This is how the drive (and a
+  player) sees the hand's choice: 2 L on 3,000 m² moves no reading.
+  `WaterVerb.test.ts` +1.
+- **Never "0 kg" / "0 L"** — a pinch into a nearly full patch replied
+  *"You work 0 kg of compost"* (staged); now *"less than 0.1 kg"*.
+  `FeedVerb.test.ts` +1.
+- **"Owned by something"** on the bench's stand — the Delight's farm
+  `Business` row had no `name`. Named *"Quist's farm"*; the stand now
+  reads *"── Owned by Quist's farm."* (staged). ⚠ Sixteen more `Business`
+  rows have no name (the bakery, the Rejection businesses, the dairy, the
+  mill, the creamery, the depot, the ice company, the TPA …) — anything
+  titled to one reads *"Owned by something"*. Not this build's to sweep.
+
+Staged (port 2014, `reset:db`, the drive's own `it`s run stage by stage
+through a staging config, plus throwaway probes; never end to end):
+
+- Stage A (6a, 6) passed against a fresh world after two drive fixes: the
+  store keeps FOUR sacks of seed wheat (par 4), and they are bought after
+  the spring jump; a carried sack of seed wheat answers to `wheat` first,
+  so all seed is sown before the label (the far side, then the rest into
+  the middle). Sowing the gate end took ten casts and three rests.
+- Stage B (1–5) passed after fixes: an ambient line (*"You're
+  shivering."*) can lead a read, so the same-spot comparison compares the
+  plant's own words; `water` is afforded by the CAN (husbandry § water is
+  tool-afforded), so step 5 fetches it first. Day 95: top end *in ear and
+  is failing*, middle and lane end *looks poor*; the novice's top-end
+  read is a prefix of the expert's (*"It is too cold there … Behind that,
+  the nitrogen is low."*); top-end stem *failing*, lane-end stem *ripe
+  and looks well*.
+- Step 11 (the hand) worked live: dried below her `waterAt`, she watered
+  *at the gate end* within seconds — seen by the founder's eval session,
+  not the drive's `listen`, so the step now counts what ANY session
+  standing there heard.
+- The grade read (`getGradeBand` on the dropped sack, by id) and the cane
+  piece (no patch named, `harvest cane` engages) were probed.
+- ⚠ Step 7 (the dry week) and steps 8/9 were NOT staged end to end: the
+  world's only drive-reachable can and the byre's three pails were spent
+  by earlier staging runs. Their parts were probed (the drain, `fill pail
+  from trough`, the one-word `feed … with compost`).
+
+Decisions the plan did not make:
+
+- **Step 2 uses `look top end wheat` from a FRESH session, not the quoted
+  form.** From a room focus, `look "wheat at the top end"` binds the ROOM
+  (staged) — the `$focus`-partial defect W2 recorded, in another shape.
+  Every single-thing read in the drive opens a fresh session.
+- **Step 2's expert is trained by `practice horticulture hard success`**
+  (the shipped wizard harness; eight → *expert*), not an eval'd claim.
+- **Step 10's neglect is ONE dry spell after a reset**, not a drain every
+  ten days: staged, a far side dried every step was still *in ear* at day
+  228 when the gate end was ripe (stress slows a field crop), and would
+  have met the frost unripe. The reset reconciles each stand first — an
+  un-reconciled reset let the window before it (the dry week) zero the
+  gate end's `_worstLimiting` (staged: gate end 0, middle 0.71).
+- **Step 9 stages a hungry far side** (nitrogen to 0.3) first: Maud feeds
+  the hungriest patch every beat, and staged she had filled the far side.
+- **Step 13 is a named, LIVE gap**: a drive handle cannot reach a starter
+  pot (the dorm room's `props:` are not stood up by a `startLocation` —
+  the avatar-family drive's finding), and making a pot plant from shop
+  goods hit two defects outside this build (below). The step asserts the
+  pot read and the water the moment the pot is there; today it records
+  the gap and returns. AC 10's pot half is the unit suite's.
+- The founder's staging parcel is `/world/terminus/eternal/campus-field`;
+  the founder holds no authority over `/world/terminus/eternal`.
+
+Findings for other owners (not fixed here):
+
+- **`look at the middle` PROMPTS** between the patch and the middle's
+  stand — a one-word name after the article, so W2's two-word name rule
+  does not apply. The drive never looks at the middle alone.
+- **A two-word object after a greedy arg falls through every shape**
+  (`feed … at the far side with compost sack`, `pour soil into clay pot`);
+  `plant` was an unknown verb with a carried pot outside the store; a
+  founder in the store poured the store's own soil into the store's own
+  pot, unbought (shopkeeping).
+- **The labeled stem's description says *"standing stiff in the ear"*
+  while its read says *"still a seedling"*** — the wheat row's prose is
+  the bench's ripe stand's.
+- **A crop harvested late in the season grades by its WORST step, and
+  the whole season counts** — the home field's gate end reads *ripe and
+  looks poor* at day 228 (*"only a little short of light"*). The grade
+  comparison holds only because the drive resets the window.
+
+What the final drive should watch for:
+
+- Steps 7 and 8 have never run in one piece. If 7 fails, read the
+  `dry week:` note — the comparison is condition rank ×2 plus one for
+  *not short of water*; a trial limited by water too ties its patch.
+- Step 10 cuts the far side after the gate end and may need several
+  ten-day jumps for it to ripen; the `the season's worst` note shows the
+  three stands' `_worstLimiting` before the cut.
+- Step 11 needs Maud LOADED and on shift (hours 06–18): it jumps to 09:00
+  next day and gives her up to six minutes of real time.
+- The cover drive's changed steps (1, 4, 6, 7, 9) were checked against
+  the staged bench and home field reads only, not run.
+
+Verified: tsc (server, trade-farming, wire) clean; `sandbox.jurisdiction`
+16/16, `WaterVerb` 20/20, `FeedVerb` 21/21; `pnpm test:near` — server
+320 files, 3,002 passed + 2 skipped, and seven pack runs green;
+`lint:family` — all 82 gates pass (`lint:drive-scripts` among them). The
+stage server on 2014 was stopped by PID.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

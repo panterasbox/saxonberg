@@ -1,12 +1,16 @@
 # Field population slate — the plant is the unit at every scale
 
-> **Status: UNBUILT** — designed 2026-10-29 with the owner, during the
-> cover build's review (MR !480), and built on that MR.
-> **Left:** the stand as a population over authored patches · a plant
-> picked out of the stand · a marked plant followed through the season ·
-> care verbs that reach by tool (water, feed, weed/thin) · competence-tied
-> reading of a stand · grading by patch
-> **Size:** a build
+> **Status: PARTIAL** — designed 2026-10-29 with the owner, during the
+> cover build's review (MR !480), and built on that MR (plan
+> `field-population-plan.md`, W0–W6): authored patches as soil parts, the
+> sampled stem and the labeled plant with its root zone, `water`/`feed`/
+> `sow`/`harvest` at a patch, the banded read, grading by patch, and the
+> campus hand who reads with her own eyes.
+> **Left:** weed/thin (a hoe; `Patch` is where a weed reserve would live)
+> · patches on the sward (§ 9) · the grieve's report (§ 8.5) · the hand
+> harvesting a field · seed saved from a labeled plant · a second arg on
+> `look` (the command-taxonomy slate)
+> **Size:** a small build
 
 **Sits on:** [husbandry.md](../../subsystems/husbandry.md) (the plant,
 the pot as a bed with one slot) · [soil.md](../../subsystems/soil.md)
