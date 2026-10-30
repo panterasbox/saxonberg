@@ -86,6 +86,9 @@ data:
     # ⭐ The plough lives at the headland (cover build): too heavy to carry,
     # it is used where it lies.
     - /trade/farming/thing/plough
+  # ⭐ The farm hand (field population D12) stands on the ground she keeps.
+  cast:
+    - /world/terminus/eternal/campus-farm/agent/farm-hand
   exits:
     yard:
       destination: /world/terminus/eternal/campus-farm/location/yard

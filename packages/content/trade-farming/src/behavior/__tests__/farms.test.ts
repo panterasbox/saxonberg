@@ -33,7 +33,9 @@ import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
+import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import {
   PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,
@@ -447,5 +449,206 @@ describe('the farms beat — tend, pick, sell, home', () => {
     expect(lines.filter((l) => l.startsWith('pick')).length).toBe(0);
     expect(lines.filter((l) => l.startsWith('consign')).length).toBe(0);
     expect(farmer.getContainer()).toBe(grove);
+  });
+});
+
+// ── ⭐ field population W5: the hand reads a FIELD with its own eyes ──
+
+/** A named part of a divided field — the `Patch` shape, in the kernel. */
+class TestPart extends SoilMixin(ReservedMixin(NamedMixin(Idea))) {
+  key = '';
+  public override soilPartKey(): string {
+    return this.key;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return 100;
+  }
+}
+
+/** Soil-bearing ground holding no slot: a field of parts. */
+class TestField extends SoilMixin(ReservedMixin(Place)) {
+  parts: TestPart[] = [];
+  public override soilParts(): readonly TestPart[] {
+    return this.parts;
+  }
+}
+
+/** A hand with eyes of its own — competence is what it reads with. */
+class FieldHand extends AdvancementMixin(
+  MobileMixin(
+    SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))),
+  ),
+) {
+  static _mixinName = 'TestFieldHand';
+}
+
+let FIELD = '';
+let YARD = '';
+let w5Scene = 0;
+
+describe('the farms beat on a FIELD — patches read at the hand\'s band', () => {
+  let field: TestField;
+  let yard: Place;
+  let fseq = 0;
+
+  function moistureReserve(current: number): Reserve {
+    return new Reserve(
+      SOIL_MOISTURE_RESERVE_KEY,
+      Quantity.of(100, 'L'),
+      Quantity.of(current, 'L'),
+      'cultivation',
+      'wilting',
+    );
+  }
+
+  function part(key: string, litres: number): TestPart {
+    return makeStuffAtPath(() => {
+      const p = new TestPart();
+      p.key = key;
+      p.setName(key.replace('-', ' '));
+      p.setReserve(moistureReserve(litres));
+      return p;
+    }, `/trade/farming/thing/_w5-part-${key}-${fseq++}`);
+  }
+
+  function wheatAt(p: TestPart): Plant {
+    const w = makeStuffAtPath(() => {
+      const c = new Plant();
+      c.setShortDescription('a stand of wheat');
+      c.setKeywords(['wheat', 'crop']);
+      c.setPrimaryKeyword('wheat');
+      c.setLifecycleState('alive');
+      c.setLastAmbientK(290);
+      c.setProfile({ ...polyProfile(), seedRateKgPerM2: 0.015 });
+      c.setSownAreaM2(100);
+      c.setGroundPart(p.key);
+      return c;
+    }, `/trade/farming/thing/plant/_w5-wheat-${fseq++}`);
+    ContainmentApi.move(w as never, field as never);
+    return w;
+  }
+
+  function hand(band: string, n = fseq++): { hand: FieldHand; lines: string[] } {
+    const h = makeStuffAtPath(() => new FieldHand(), `/trade/farming/agent/_w5-hand-${n}`);
+    h.setName(`Hand ${n}`);
+    ContainmentApi.move(h as never, field as never);
+    vi.spyOn(h, 'competenceBandFor').mockResolvedValue(band as never);
+    const lines: string[] = [];
+    vi.spyOn(
+      h as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (text: string) => {
+      if (text === 'sense') return; // the look a teleport takes
+      lines.push(text);
+      // Where the can is filled is where the hand stands to fill it.
+      if (text.startsWith('fill')) lines.push(`@${(h.getContainer() as Stuff).getTemplatePath()}`);
+    });
+    return { hand: h, lines };
+  }
+
+  function beat(h: FieldHand): BrainContext {
+    return {
+      host: h as unknown as Stuff,
+      config: { home: FIELD, shelf: '', water: { room: YARD, from: 'trough' }, drawEvery: 0 },
+      state: {},
+      trigger: { source: 'cadence', raw: 'cadence:90s' },
+      say: vi.fn(),
+      emote: vi.fn(async () => undefined),
+      emoteFree: vi.fn(),
+    } as unknown as BrainContext;
+  }
+
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._setNowProviderForTesting(() => 1_000_000);
+    vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
+      (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
+    );
+    w5Scene += 1;
+    FIELD = `/trade/farming/location/_w5-field-${w5Scene}`;
+    YARD = `/trade/farming/location/_w5-yard-${w5Scene}`;
+    field = makeStuffAtPath(() => new TestField(), FIELD);
+    yard = makeStuffAtPath(() => new Place(), YARD);
+  });
+
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  it('⭐ an expert fills at the yard trough and waters the THIRSTY patch, by name, and comes home', async () => {
+    const top = part('top-end', 20);
+    const lane = part('lane-end', 45);
+    field.parts = [top, lane];
+    wheatAt(top);
+    wheatAt(lane);
+    const { hand: h, lines } = hand('expert');
+
+    await farms.act(beat(h));
+
+    expect(lines).toEqual([
+      'fill can from trough',
+      `@${YARD}`,
+      `water wheat at ${top.presentationPhrase().definite()}`,
+    ]);
+    expect(lines[2]).toMatch(/at (the )?top end$/);
+    expect(h.getContainer()).toBe(field);
+  });
+
+  it('wet patches are left alone — nothing is filled or watered', async () => {
+    const top = part('top-end', 80);
+    field.parts = [top, part('lane-end', 90)];
+    wheatAt(top);
+    const { hand: h, lines } = hand('expert');
+    await farms.act(beat(h));
+    expect(lines).toEqual([]);
+  });
+
+  it('⭐ an expert never misranks two patches 0.02 apart; a novice can — and waters where ITS read points', async () => {
+    const top = part('top-end', 30);
+    const lane = part('lane-end', 32);
+    field.parts = [top, lane];
+    const topCrop = wheatAt(top);
+    const laneCrop = wheatAt(lane);
+    const topName = top.presentationPhrase().definite();
+    const laneName = lane.presentationPhrase().definite();
+
+    let noviceWrong = 0;
+    for (let i = 0; i < 40; i++) {
+      const expert = hand('expert', 1000 + i);
+      await farms.act(beat(expert.hand));
+      expect(expert.lines.at(-1)).toBe(`water wheat at ${topName}`);
+
+      const novice = hand('novice', 2000 + i);
+      await farms.act(beat(novice.hand));
+      // What THIS hand reads, with the same seed the brain used.
+      const seen = (c: Plant): number =>
+        c.readFor('novice', c.readSeedFor(novice.hand as unknown as Stuff)).moisture!;
+      const expected = seen(topCrop) <= seen(laneCrop) ? topName : laneName;
+      expect(novice.lines.at(-1)).toBe(`water wheat at ${expected}`);
+      if (expected === laneName) noviceWrong += 1;
+    }
+    expect(noviceWrong).toBeGreaterThan(0);
+  });
+
+  it('off shift, a hired hand does nothing', async () => {
+    const top = part('top-end', 10);
+    field.parts = [top];
+    wheatAt(top);
+    const { lines } = hand('expert');
+    vi.spyOn(Farmer.prototype, 'shiftState').mockReturnValue('off-shift');
+    vi.spyOn(Farmer.prototype, 'getActiveEmployment').mockReturnValue({} as never);
+    const off = makeStuffAtPath(() => new Farmer(), `/trade/farming/agent/_w5-off-${fseq++}`);
+    ContainmentApi.move(off as never, field as never);
+    const offLines: string[] = [];
+    vi.spyOn(
+      off as unknown as { forceCommand(text: string): Promise<void> },
+      'forceCommand',
+    ).mockImplementation(async (t: string) => {
+      if (t !== 'sense') offLines.push(t);
+    });
+    await farms.act(beat(off as unknown as FieldHand));
+    expect(offLines).toEqual([]);
+    expect(lines).toEqual([]);
   });
 });

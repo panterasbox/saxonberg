@@ -41,6 +41,22 @@ data:
       wageRate: 2
       purchases: false
       headcount: 2
+    # ⭐ The hired hand (field population D12): one seat, rostered to the
+    # Cast who keeps the home field watered and fed — by her own read.
+    - key: hand
+      noun: hand
+      label: keeping the home field
+      wageRate: 3
+      purchases: false
+      headcount: 1
+  rosterSlots:
+    - positionKey: hand
+      assignee: /world/terminus/eternal/campus-farm/agent/farm-hand
+      # Her station is the field she keeps, not the yard the house names
+      # first: on shift she is fetched to where somebody can see her work.
+      station: /world/terminus/eternal/campus-field/location/home-field
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/eternal/campus-farm/location/yard

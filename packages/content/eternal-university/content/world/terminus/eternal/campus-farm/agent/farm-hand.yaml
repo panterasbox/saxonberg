@@ -1,0 +1,42 @@
+# The farm hand (field population D12) — the university farm's one hired
+# hand, a modest one: NOVICE at horticulture, asserted, so the read the
+# hand waters by is a novice's. Two patches a little apart can fool her;
+# a student who reads the field better will see where she watered wrong.
+#
+# She works on shift only (the `hand` rota on the farm unit), fills the
+# can at the yard trough and waters the home field patch her own eyes
+# say is driest, by name (`water wheat at the far side`), and feeds the
+# hungriest the same way. She sells nothing (`shelf: ''`) and draws
+# nothing (`drawEvery: 0`): the farm is the University's.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Maud Hollis
+  keywords: [maud, hollis, hand, "farm hand"]
+  shortDescription: weathered farm hand
+  register: definite
+  longDescription: >-
+    A square, sun-browned woman in a field jacket gone pale at the
+    shoulders, with soil worked into the creases of her knuckles. She
+    looks at the ground the way people look at a clock they do not quite
+    trust.
+  archetype: farmer
+  competence:
+    - { discipline: horticulture, asserting: novice }
+  props:
+    - /stuff/thing/vessel/watering-can
+    - /stuff/thing/vessel/compost-sack
+  behaviors:
+    - brain: /trade/farming/behavior/farms
+      trigger: candidate
+      config:
+        home: /world/terminus/eternal/campus-field/location/home-field
+        water:
+          room: /world/terminus/eternal/campus-farm/location/yard
+          from: trough
+        shelf: ''
+        drawEvery: 0

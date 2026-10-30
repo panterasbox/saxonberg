@@ -578,6 +578,7 @@ export interface Growing {
   _pollination: number;
   profile: GrowthProfileData | null;
   _specimen: SpecimenRecord | null;
+  _fromStand: boolean;
 }
 
 /**
@@ -884,6 +885,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       groundPart: { persistent: true, authorable: true },
       specimenNoun: { persistent: true, authorable: true },
       _specimen: { persistent: true },
+      _fromStand: { persistent: true },
     };
 
     /** Derived condition + cause lines appended to the long description. */
@@ -1257,6 +1259,16 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     /** The read stamped at the pull; `null` for a living plant. */
     public _specimen: SpecimenRecord | null = null;
 
+    /**
+     * ⭐ Minted UNCUT from a stand (the `label` path): an individual that
+     * grows on its stand's FIELD rule — it develops on its season and is
+     * spoiled by stress rather than stopped by it, and holds when ripe
+     * (field population W5, lens 1: a labeled stem is a sample of the
+     * stand, so it must ripen with the stand it was tied in). Never set
+     * for a pot plant, a tree or any other individual.
+     */
+    public _fromStand = false;
+
     public isSpecimen(): boolean {
       return this._specimen !== null;
     }
@@ -1417,6 +1429,8 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       minted.setSownAreaM2(0);
       minted.setGroundPart(this.groundPart);
       minted._specimen = record;
+      // An uncut individual from a STAND keeps the stand's growth rule.
+      minted._fromStand = !cut && this.isAreaCrop();
       if (this.specimenNoun && MixinApi.isVisible(minted)) {
         minted.setShortDescription(this.specimenNoun);
       }
@@ -1745,7 +1759,10 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         // moment plus the place's offset; with no site known, the one
         // sample stands.
         const windowStart = this.growthClockStamp;
-        const areaCrop = this.isAreaCrop();
+        // ⭐ The FIELD rule: an area crop, and an individual minted uncut
+        // from one (a labeled stem — `_fromStand`). A pot plant, a tree
+        // and every other individual keep the pot rule.
+        const areaCrop = this.isAreaCrop() || this._fromStand;
 
         for (let i = 0; i < steps; i++) {
           // ⭐ A RIPE field crop is finished growing (cover build B36): it

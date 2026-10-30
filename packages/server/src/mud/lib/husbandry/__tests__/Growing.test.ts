@@ -635,6 +635,39 @@ describe('GrowingMixin — field population seams', () => {
     expect(living.getSownAreaM2()).toBe(0);
   });
 
+  it('⭐ a labeled stem ripens WITH its stand under moderate stress; a pot plant under the same stress stalls', async () => {
+    // Light at 0.4 of happy: under the good mark (0.6), well above death.
+    const stressed = { litresPerGameDay: 0, luxHappyAt: 1000, luxDarkAt: 0 };
+    const stand = makeStuffAtPathOf(
+      fixture({ ...stressed, seedRateKgPerM2: 0.015, yieldRatio: 20 }),
+    );
+    stand.setSownAreaM2(500);
+    stand.luxOverride = 400;
+    const mint = (): GrowFixture => {
+      const m = makeStuff(() => new GrowFixture());
+      installMoisture(m);
+      m.luxOverride = 400;
+      return m;
+    };
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async () => mint() as never);
+    const labeled = (await stand.takeSpecimen(0, { cut: false })) as GrowFixture;
+    expect(labeled.isAreaCrop()).toBe(false);
+    expect(labeled._fromStand).toBe(true);
+    // A cut specimen is not a field-rule individual — it does not grow.
+    expect(((await stand.takeSpecimen(0)) as GrowFixture)._fromStand).toBe(false);
+    const pot = fixture(stressed);
+    pot.luxOverride = 400;
+
+    for (const p of [stand, labeled, pot]) p.getVigor();
+    setNow(400 * DAY);
+    expect(stand.getLimitingFactor()).toBe('light');
+    expect(stand.getGrowthStage()).toBe('mature');
+    expect(labeled.getGrowthStage()).toBe('mature');
+    expect(labeled.getConditionBand()).not.toBe('dead');
+    // The pot rule: only a well-kept plant matures.
+    expect(pot.getGrowthStage()).toBe('seedling');
+  });
+
   it('the specimen variation is SEEDED — the same spot gives the same stem', () => {
     const f = fixture();
     f.setGroundPart('top-end');
