@@ -27,10 +27,20 @@ concern is expediting these builds so we make better use of our time."*
   database; wire port 2020), the `soak` tmux window, the `/soak` triage skill, the GitLab label `soak`.
 - **`glab`** on the workstation, authenticated, running locally (no GitLab compute).
 
+- **The wizard's `eval`** — runs code in a parcel the wizard holds; quarantined (writes discarded)
+  in their own `/home` by default, real inside a parcel they hold with `--parcel`. It sees **four**
+  Apis (`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi`) from a hand-kept list. It has **no
+  timeout** (the docs claim one), **no output cap**, and a refused clone inside it **takes the server
+  down** (an unhandled rejection — found by the taps and sugar builds).
+- **Test login** can make a character a wizard (every managed group); nothing in the test seams sets
+  the weather.
+
 **Therefore what is genuinely new here is:** a soak file convention and its run command, a refusal
 that keeps long jumps out of blocking drives, a result a script can read, and the runner — finding
 unsoaked merges, waiting for headroom, running, recording, filing issues — plus a canary so the lane
-always has something true to run.
+always has something true to run. ⭐ And — added by the owner 2026-10-30 — **the staging tools the
+staged twins depend on**: an `eval` that can reach what an author may call, that cannot crash the
+world, and a test-only command for the few operations that only make sense in a test world.
 
 ## Goals
 
@@ -42,6 +52,11 @@ always has something true to run.
   workstation, unattended, without starving the build worlds.
 - **A failure becomes a GitLab issue** labeled `soak`, carrying what the triage session needs.
 - **The lane proves itself** — a canary soak file it can always run.
+- **An agent can stage the state a check needs** — the staged twin of every span step is writable:
+  `eval` reaches every Api an author may call, in any parcel the test runner holds, and a refusal or
+  a runaway script comes back as an error, never a dead server.
+- **Moving time and the weather is a named test command**, not code: `test clock …`, `test weather
+  …`, in test worlds only.
 
 ## Non-goals
 
@@ -55,6 +70,13 @@ always has something true to run.
   a soak failure never blocks anyone.
 - **The triage session's diagnosis** → already the `/soak` skill; this build only makes it something
   to triage.
+
+- **Lifting `eval`'s parcel boundary** (test or live) → nowhere, deliberately: the access model
+  already answers it — a test runner is given title to what it tests.
+- **Test-privileged Api statics callable from `eval`** (an annotation that opens statics to test
+  runners) → nowhere, deliberately: the test-only operations are one named command instead.
+- **A sandbox stronger than Node `vm`** (`isolated-vm`) → the existing deferral in the code-trust
+  docs; unchanged.
 
 ## Placement
 
@@ -125,6 +147,35 @@ A soak failure never blocks anyone, so latency is fine; the tokens are spent onl
 answers. The lane soaks it on every merge that touches the soak tooling, and it is the lane's own
 self-test: a red canary means the lane is broken, not a build.
 
+### Staging — **[DECIDED — the owner, 2026-10-30]**
+
+*"eval shouldn't need anything special. you can always run eval in whatever parcel you have access
+to. if it's a matter of giving a test runner access to parcels it needs to test then just do that."*
+And of the test-only operations: a controller with its own command view, *"and it's the controller
+that's privileged and does its own access checks."*
+
+1. **`eval` sees what an author may call.** The hand-kept list of four is replaced by the rule the
+   codebase already states — *callable == visible*: every **consumer-tier** Api static (public, not
+   `@internal`) is in scope, each still carrying its own call-security gate. Internal framework Apis
+   (security, proxy, module, execution context) stay out. Nothing becomes callable that its gates do
+   not allow.
+2. **The jurisdiction is unchanged** — `eval` runs in a parcel the wizard holds. **Test login can
+   grant a test runner title to the parcels it needs** (beside the wizard grant it already has), so a
+   drive's character can stage inside, say, `/world/terminus` with `eval --parcel`.
+3. **`eval` cannot take the world down**: a **timeout** (the documented one, made real), an **output
+   cap**, and every refusal — a boundary denial, a refused clone's hydrate — **returned as an
+   error**, never an unhandled rejection.
+4. **A `test` command, in test worlds only** — its view is installed only where the clock route is
+   mounted. It is the privileged surface: its own access check (a test world, a wizard), one place to
+   audit. **`test clock advance <duration>`** (and the read), and **`test weather pin <kind>` /
+   `unpin`**, which hold the weather where a drive needs it. Further test-only operations are added
+   here as staging twins need them.
+5. **One implementation, two front doors** — the `test` command and the wire harness's clock route
+   call the same test hooks, so a browser agent and a wire drive do the identical thing, and **the
+   soak refusal (no jump past a game day outside soak mode) is enforced once**, in that shared hook.
+6. **`eval` points to the command** — code in `eval` that tries to move the clock or pin the weather
+   is refused with a message naming `test clock …` / `test weather …`.
+
 ## Lens pass
 
 1. **Pedagogy** — none; tooling.
@@ -156,7 +207,17 @@ minutes.
    `soak` carrying the file, merge, MR, failing step and output; run again, it **comments** on that
    issue rather than opening another. Close the issue.
 7. `instant` — after a pass, the state file has advanced; `--dry-run` lists nothing new.
-8. `instant` — the 25 clock-jumping wire files: the census result in the MR — each moved to soak or
+8. `staged` — as a test runner granted title to `/world/terminus`: `eval --parcel /world/terminus`
+   calls a consumer Api that was out of reach before (e.g. inflicts a condition on an NPC there) and
+   the effect is real; the same call in an unheld parcel is refused **with a message**; the server is
+   up.
+9. `short` — `eval` with an infinite loop returns a timeout error; a huge result is cut at the cap; a
+   clone refused by the boundary returns an error; the server is up after each.
+10. `short` — `test clock advance 2 hours` moves the clock; `test clock advance 3 days` is refused
+    with the soak rule's message; `test weather pin rain` holds rain until `test weather unpin`; in a
+    world that is not a test world, `test` is an unknown verb; `eval` touching the clock is refused,
+    naming `test clock`.
+11. `instant` — the 25 clock-jumping wire files: the census result in the MR — each moved to soak or
    shown within a day — and `pnpm wire:clean` green on the branch.
 
 ### Soak drive
@@ -174,6 +235,10 @@ minutes.
   re-running; a repeat failure comments rather than duplicating.
 - The canary is green on master after this build merges, soaked by the lane.
 - Master's wire suite is green when this merges.
+- A test runner can stage, with `eval` in a parcel it holds, anything a consumer Api can do; no
+  `eval` — however wrong — stops the server.
+- Time and weather move only through the `test` command (or the harness's route), only in test
+  worlds, and the soak rule is enforced in one place for both.
 
 ## Cross-references
 
