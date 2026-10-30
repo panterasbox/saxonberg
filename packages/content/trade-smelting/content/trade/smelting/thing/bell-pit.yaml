@@ -17,7 +17,11 @@ data:
     A square pit in the yard floor, shored with planks, and at the bottom
     the dull brown dome of a loam bell mould with a riser cup standing up
     out of its crown.
-  _materialPath: /stuff/idea/material/ceramic/refractory
+  # ⭐ LOAM, as the prose says: a rammed earth mould takes its pour. As a
+  # brittle refractory it cracked by thermal shock under the first bronze
+  # poured into it, and a cracked mould casts a lump, not a bell (the
+  # ceramics finalize drive).
+  _materialPath: /stuff/idea/material/earth/loam
   mass: 2000
   fixedInPlace: true
   interiorBulk: true
