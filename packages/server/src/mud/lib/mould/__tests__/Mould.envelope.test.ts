@@ -269,9 +269,13 @@ describe('the mould as an envelope (ceramics W7)', () => {
     // A consumed mould is broken to release: the cast is in the room.
     expect(flask.isDestroyed()).toBe(true);
     expect(r.getContents()).toContain(c);
-    // The overfill was broken off as a runner, never lost.
+    // The overfill was broken off as a runner, never lost — AFTER the cast
+    // landed: what the pour made is first on the floor (finalize run 3).
     await new Promise((res) => setTimeout(res, 0));
     expect(cloned).toContain(LUMP);
+    const floor = r.getContents();
+    const runnerAt = floor.findIndex((x) => x instanceof TestLump);
+    expect(runnerAt).toBeGreaterThan(floor.indexOf(c as never));
   });
 
   it('⭐⭐ a key\'s wards ride its impression — the cast key opens the same lock', async () => {

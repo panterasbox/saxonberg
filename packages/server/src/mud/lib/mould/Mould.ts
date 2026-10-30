@@ -1172,18 +1172,22 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!MixinApi.isContainable(cast)) return cast;
       const item = cast as Stuff & Containable;
       // ⭐ The runner and riser are cut off and go back in the pot — what
-      // overfilled the cavity is never lost.
-      if (runner && scope !== null) await this.mintRunner(material, runnerKg, scope);
+      // overfilled the cavity is never lost. Cut off AFTER the cast is
+      // out: the cast is what the pour made, and it lands first (B104 made
+      // the runner awaited, and it began to land ahead of the cast — `fit
+      // pewter to sword` bound the runner, the finalize drive's run 3).
       if (this.reusable) {
         ContainmentApi.move(item, self);
         const worn = self as Stuff;
         if (MixinApi.isDurable(worn)) worn.wear(this.wearPerCast);
+        if (runner && scope !== null) await this.mintRunner(material, runnerKg, scope);
         return cast;
       }
       // ⭐ A consumed mould is broken to release what set in it, and leaves
       // what it was made of (its sand to re-temper, its wax). Its place was
       // checked before the mint (`assertCanRelease`).
       ContainmentApi.move(item, scope!);
+      if (runner && scope !== null) await this.mintRunner(material, runnerKg, scope);
       if (this.breaksTo !== '') {
         const left = await StuffApi.clone<Stuff>(this.breaksTo);
         if (!MixinApi.isContainable(left)) {
