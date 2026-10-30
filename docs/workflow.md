@@ -214,14 +214,23 @@ may block a merge.**
 |---|---|---|
 | **instant** | no clock involved | yes |
 | **short** | a jump of hours, up to about a game day | yes |
+| ⭐ **staged** | a span's outcome, the state set directly with wizard tools and checked through player verbs | yes |
 | **span** | weeks or seasons of game time | ⛔ **never** — the soak lane |
 
-- **The blocking drive** (instant + short) is the build's exit criterion.
+- ⭐⭐ **Every span step has a staged twin in the blocking drive.** The owner:
+  *"make use of the whole palette of wizard tools to stage the state you
+  need … you don't get to test that the clock actually produces that state,
+  but you can test everything around it."* Soak keeps only the clock's part.
+  A state that cannot be staged is tooling the build owes, never a wait.
+- **The blocking drive** (instant + short + staged) is the build's exit criterion.
   It completes in well under half an hour of wall time.
 - **The soak drive** (span) is never run by `/build`, a review round or
   `/finalize`. **The MR names it**, and the **soak lane** — a standing
   session with its own worktree and world — runs it after merge and files
   an issue for each failure. It never blocks.
+- **At `/finalize`, the step says how its assertion is made** — `player`
+  (player verbs and player-held tools only: the experience is what is
+  tested) or `staged` (wizard setup is fine: it checks nothing else broke).
 - **Log drive bodies out across a long jump** — an offline body is frozen,
   so it needs no feeding and no step cap; a clock jump runs no brain, so
   nobody needs to be present.
