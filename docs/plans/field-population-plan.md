@@ -1468,6 +1468,119 @@ Notes for later waves:
   patch only as *"At the … end it is …"* (no repeat of the noun), and the
   loose list no longer carries crops (D17).
 
+### W2 — the banded read, live
+
+The wiring was in place from W0/W1 (`preloadForSenseGate` warms the
+digest; the crop augmenter, `Field.fieldLines(viewer)` and
+`Patch.patchLines(viewer)` read `competenceBandCached`, floor for a
+non-Advancing or cold viewer). This wave added the tests and the live
+proof, and the live proof found two targeting defects — one fixed here,
+one handed on.
+
+Tests: `Growing.test.ts` +4 (an expert reader with a real folded digest
+reads the expert lines and an untrained one the floor, the untrained read
+a prefix of the expert's; a COLD digest reads the floor — never a guess
+upward; a non-Advancing viewer reads the floor; a pot plant is not
+banded). `field-patches.test.ts` +1 (a novice/expert pair on the same
+divided field at the same moment: the novice's top-end line is the start
+of the expert's, *short of something* vs *The soil is dry there.*, no
+digit; the patch's own look reads at the same band).
+`scope-walk.score.test.ts` +3 (below).
+
+**Live (fresh world, port 2014, `reset:db`, clock to summer in 10-day
+steps, day 111, 11:00).** The untrained read of the bench, and the expert
+read at the same moment (the founder granted four `hard` horticulture
+successes by `eval … self.creditDeed(…)` — `"expert"` — beside a fresh
+handle with no transcript):
+
+> untrained (`look`): *A stand of wheat grows over about three-quarters
+> of it, in ear, the ears filling. At the top end it is in ear and is
+> failing. At the middle it is ripe and looks poor. At the lane end it is
+> ripe and looks poor. The grass on the rest of it is grown long — going
+> stemmy, and seed heads showing.*
+>
+> expert (`look here`): *… At the top end it is in ear and is failing. It
+> is short of something. The soil is spent there. The nitrogen is all but
+> gone. Nothing else is short. At the middle it is ripe and looks poor. It
+> is short of something. The soil is spent there. The nitrogen is only a
+> little low. Nothing else is short. At the lane end …* (as the middle)
+>
+> `look at the top end`, fresh/untrained: *the top end — The top of the
+> strip, where the hill starts to steepen and the soil thins to a skin
+> over the stone. Soft, silky ground that caps hard after rain, it lies
+> wet a long while after rain, more stone than soil in places. A stand of
+> wheat grows here. It is in ear and is failing.*
+>
+> the same, expert, same moment: *… A stand of wheat grows here. It is in
+> ear and is failing. It is short of something. The soil is spent there.
+> The nitrogen is all but gone. Nothing else is short.*
+>
+> `look stand top end wheat` / `look "wheat at the top end"`, expert: *a
+> stand of wheat — Wheat standing stiff in the ear, … It stands at the
+> top end. It is in ear and is failing. It is short of something. The
+> soil is spent there. The nitrogen is all but gone. Nothing else is
+> short.*
+
+The top end reads poorer than the middle and the lane end (failing vs
+poor; *all but gone* vs *only a little low*), and every band's words are
+the start of the next's. The expert read on a **fresh login** (a new
+session, first command `look at the top end`) was the expert read — the
+preload warm works.
+
+Decisions the plan did not make:
+
+- ⭐ **`look at the top end` asked *"the top end, or a stand of wheat?"*
+  (fixed).** W1 made the stand answer to its patch's words, and `look`'s
+  `onExcess: prompt` asks whenever more than one whole match survives —
+  scores only order. Fixed in the kernel scorer (`scoreCandidates`,
+  `api/mql/scope-walk.ts`), the same shape as the shipped whole-phrase
+  cut one tier down: **for a query of two or more words, a candidate
+  whose NAME carries every word (score ≥ 40) outranks one that reaches the
+  phrase only through keywords, absolutely.** A one-word query is
+  untouched (`look rod` among three rods is still the prompt). Lens 3a:
+  the player named the ground, and the fiction cannot answer by asking
+  whether they meant the crop standing on it. The 45 test files that
+  resolve MQL or carry `onExcess` all pass (392 tests).
+- ⚠ **Handed on, NOT fixed: a partial match in `$focus` beats a whole
+  match in `reachable`.** `look`'s scope list is `["$focus",
+  "reachable"]`, and `walkScopes` / the top-one path take the FIRST scope
+  with any match. After `look at the top end` the focus is the patch, so
+  `look top end wheat` scores the patch partially (two of three words) in
+  `$focus` and binds it — the patch's look, not the stand's — though
+  `reachable` holds the stand as a whole match (`query top end wheat`
+  answers the stand alone; `look stand top end wheat` and the quoted form
+  bind the stand). This is the drive's step-2 ORDER exactly. The fix is a
+  resolver change (the result says whether its matches were whole, and
+  the scope walk keeps a partial only as a fallback behind a later
+  scope's whole match) — cross-cutting, so it is recorded here for the
+  owner rather than made in a farming wave.
+- **`look wheat` prompts among the three stands** (*a stand of wheat (1)
+  / (2) / (3)*) rather than binding the first: `look` is `onExcess:
+  prompt`, so D13's *"the binder's first match"* does not hold for
+  `look`. The prompt is honest (three stands answer the word); the drive
+  should use the patch-named form.
+- The grant used `creditDeed` (lived deeds, `kind: 'deed'`), not an
+  authored claim: a player's band is its lived band, and the digest
+  refreshes on the append (W0), so the next look read at expert with no
+  re-login.
+- `eval` reads of a patch (`getPatchKey`, `soilPartKey`) are refused by
+  the sandbox boundary (*"context scope field(none) vs receiver scope
+  field(none)"*) even for the founder with `--parcel` — not this build's
+  seam; the moisture comparison was read off the words instead.
+
+Verified: tsc (server, trade-farming) clean; `Growing.test.ts` 31/31,
+`field-patches.test.ts` 18/18, `scope-walk.score.test.ts` 11/11, the MQL
+dir 52/52; `pnpm test:near` — 8 packages, 301 files, 2,784 passed + 2
+skipped, none failed; `lint:family` — all 82 gates pass.
+
+Notes for later waves:
+
+- **W6 (the drive):** step 2 must not run `look top end wheat` with the
+  patch in focus until the `$focus` partial defect above is fixed — or
+  the owner decides it is fixed first. `look "wheat at the top end"` binds
+  the stand regardless.
+- **W3:** nothing new; W1's notes stand.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

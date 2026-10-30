@@ -7,6 +7,8 @@
  *     patch's name;
  *   - a thin patch (`depthScale: 0.35`) holds a third of the water per m²;
  *   - `fieldLines` prints the stand once and a line per sown patch;
+ *   - ⭐ W2: the patch lines read at the VIEWER's band — a novice's line is
+ *     the start of an expert's, never a different truth;
  *   - grubbing ends every patch's crop;
  *   - a patch forwards the crop's title and sowing to its field;
  *   - a field with no `patches:` has no patch fixtures and keeps its own
@@ -46,6 +48,12 @@ import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter'
 import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Reserved } from '@saxonberg/server/mud/lib/reserve';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
+import { PersonaMixin } from '@saxonberg/server/mud/lib/character/Persona';
+import TranscriptEntry from '@saxonberg/server/mud/lib/advancement/TranscriptEntry';
+import { Competence } from '@saxonberg/server/mud/lib/advancement/Competence';
+import { DerivedStandingCache } from '@saxonberg/server/mud/lib/standing/DerivedStandingCache';
 
 /** Set a reserve's level, keeping its capacity. */
 function level(host: Reserved, key: string, value: number): void {
@@ -129,6 +137,11 @@ function patch(f: Field, key: string): Patch {
   const p = f.getPatches().find((x) => x.getPatchKey() === key);
   if (!p) throw new Error(`no patch ${key}`);
   return p;
+}
+
+/** A reader with a competence transcript (W2's novice/expert pair). */
+class Reader extends AdvancementMixin(PersonaMixin(Idea)) {
+  static _mixinName = 'FieldPatchesTestReader';
 }
 
 describe('a field divided into patches', () => {
@@ -282,6 +295,63 @@ describe('a field divided into patches', () => {
       const f = await dividedField();
       crop(f, 300, 'top-end');
       expect(f.fieldLines().some((l) => /lane end/.test(l))).toBe(false);
+    });
+
+    it('⭐ W2: a novice reads less than an expert, at the same moment — never a different truth', async () => {
+      const f = await dividedField();
+      const top = crop(f, 300, 'top-end');
+      crop(f, 300, 'lane-end');
+      // Dry the top end so something is short there and the bands differ.
+      level(patch(f, 'top-end'), SOIL_MOISTURE_RESERVE_KEY, 0);
+      top.getVigor();
+      clock.mockReturnValue(Quantity.of(base + 20 * DAY, 's'));
+
+      const rows: Array<Record<string, unknown>> = [];
+      DerivedStandingCache._clearAllForTesting();
+      vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
+      vi.spyOn(TranscriptEntry, 'find').mockImplementation(
+        async (query: Record<string, unknown>) =>
+          rows.filter((r) =>
+            Object.entries(query).every(([k, v]) => r[k] === v),
+          ) as never,
+      );
+      const reader = async (path: string, band: 'novice' | 'expert'): Promise<Reader> => {
+        const r = makeStuffAtPath(() => new Reader(), path);
+        const run = Competence.seedRunFor(band)!;
+        for (let i = 0; i < run.count; i++) {
+          rows.push({
+            owner: path,
+            discipline: 'horticulture',
+            difficulty: run.difficulty,
+            outcome: 'success',
+            when: null,
+            kind: 'claim',
+          });
+        }
+        await r.warmCompetenceDigest();
+        expect(r.competenceBandCached('horticulture')).toBe(band);
+        return r;
+      };
+      const novice = await reader('/test/agent/novice-farmer', 'novice');
+      const expert = await reader('/test/agent/expert-farmer', 'expert');
+
+      const at = (lines: string[]): string =>
+        lines.find((l) => l.startsWith('At the top end'))!;
+      const lo = at(f.fieldLines(novice));
+      const hi = at(f.fieldLines(expert));
+      expect(lo).toBeTruthy();
+      // The novice's line is the START of the expert's: more words, the
+      // same sentence first.
+      expect(hi.startsWith(lo)).toBe(true);
+      expect(hi.length).toBeGreaterThan(lo.length);
+      expect(lo).toMatch(/short of something/);
+      expect(lo).not.toMatch(/dry/);
+      expect(hi).toMatch(/The soil is dry there\./);
+      expect(`${lo} ${hi}`).not.toMatch(/\d/);
+      // And the patch's own look reads at the same band.
+      expect(top.getBed()).toBe(patch(f, 'top-end'));
+      expect(patch(f, 'top-end').patchLines(expert).join(' ')).toMatch(/The soil is dry there\./);
+      expect(patch(f, 'top-end').patchLines(novice).join(' ')).not.toMatch(/dry/);
     });
 
     it("`look at the top end`: the ground, then the crop rooted there", async () => {

@@ -459,9 +459,25 @@ export function scoreCandidates(
   // Without this a plural verb took every partial too — live, `get
   // "latex cup"` picked up the three cups AND the coagulating pan (whose
   // keywords say "latex pan"), because scores only order, they never cut.
-  if (whole.some(Boolean)) return out.filter((_, i) => whole[i]);
-  return out;
+  if (!whole.some(Boolean)) return out;
+  const kept = out.filter((_, i) => whole[i]);
+  // ⭐ And among the whole matches of a phrase of two or more words, one
+  // whose NAME carries every word outranks one that reaches the phrase
+  // only through its keywords, absolutely — the same rule one tier down.
+  // Found live (field population W2): a crop standing in a patch answers
+  // to the patch's words so `look top end wheat` finds it, which made
+  // `look at the top end` ask *"the top end, or a stand of wheat?"* —
+  // the ground the player named, against a thing that merely stands on
+  // it. A one-word query is untouched: `look rod` among three rods is
+  // still the prompt, and correct.
+  if (queryWords.length >= 2 && kept.some((m) => m.score >= NAME_TIER)) {
+    return kept.filter((m) => m.score >= NAME_TIER);
+  }
+  return kept;
 }
+
+/** The lowest score at which the candidate's NAME answers every word. */
+const NAME_TIER = 40;
 
 /** Does every query word appear in the candidate's name or a keyword? */
 function namesEveryWord(

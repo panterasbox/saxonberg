@@ -95,3 +95,28 @@ describe('scoreCandidates — a whole-phrase match CUTS the partials', () => {
     expect(scoreCandidates([cup, pan], ['latex']).length).toBe(2);
   });
 });
+
+describe('scoreCandidates — a NAME carrying the phrase outranks a keyword reach', () => {
+  /**
+   * Found staging field population W2 live: the stand at the top end
+   * answers to the patch's words (so `look top end wheat` binds it), and
+   * `look at the top end` then asked which of the two was meant.
+   */
+  const patch = cand('top end', ['patch', 'ground', 'top', 'end', 'top-end']);
+  const stand = cand('stand of wheat', ['wheat', 'stand', 'top end', 'top-end']);
+
+  it('⭐ "top end" keeps the patch and drops the stand that only stands there', () => {
+    const got = scoreCandidates([stand, patch], ['top', 'end']);
+    expect(got.map((m) => m.score)).toEqual([60]);
+  });
+
+  it('"top end wheat" still binds the stand (no name carries the phrase)', () => {
+    const got = scoreCandidates([stand, patch], ['top', 'end', 'wheat']);
+    expect(got.length).toBe(1);
+    expect(got[0]!.score).toBe(25);
+  });
+
+  it('a one-word query is unaffected — the keyword reach still stands beside the name', () => {
+    expect(scoreCandidates([stand, patch], ['end']).length).toBe(2);
+  });
+});

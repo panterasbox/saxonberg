@@ -23,8 +23,14 @@ import { ThermalMixin } from '../../thermal/Thermal';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity, type Unit } from '../../quantity';
-import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { AdvancementMixin } from '../../advancement/Advancement';
+import { PersonaMixin } from '../../character/Persona';
+import TranscriptEntry from '../../advancement/TranscriptEntry';
+import { Competence } from '../../advancement/Competence';
+import { PersistApi } from '../../../api/persist';
+import { DerivedStandingCache } from '../../standing/DerivedStandingCache';
 
 /**
  * The mixin under test, in isolation. Since phase 2 the WATER lives in the
@@ -635,6 +641,133 @@ describe('GrowingMixin — field population seams', () => {
     const a = f.specimenVariation();
     expect(f.specimenVariation()).toBe(a);
     expect(Math.abs(a)).toBeLessThanOrEqual(0.05);
+  });
+});
+
+/**
+ * ⭐ Field population W2 (D9/D10): the augmenter's BAND branch. A viewer
+ * whose competence digest has been warmed reads the stand at its band; a
+ * viewer that is not Advancing — or one whose digest is cold — reads the
+ * floor. The digest is real (the transcript is stubbed, the fold runs),
+ * so this proves the augmenter takes the band the look preload warmed.
+ */
+class Reader extends AdvancementMixin(PersonaMixin(Idea)) {
+  static _mixinName = 'GrowingTestReader';
+}
+
+describe('GrowingMixin — the stand reads at the viewer\'s band', () => {
+  interface Row {
+    owner: string;
+    discipline: string;
+    difficulty: string;
+    outcome: string;
+    when: number | null;
+    kind: string;
+  }
+  let rows: Row[] = [];
+
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    DerivedStandingCache._clearAllForTesting();
+    rows = [];
+    // ⚠ Every competence read is the FLOOR while the store is not
+    // connected, which would make the expert half vacuous.
+    vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
+    vi.spyOn(TranscriptEntry, 'find').mockImplementation(
+      async (query: Record<string, unknown>) =>
+        rows.filter((r) =>
+          Object.entries(query).every(
+            ([k, v]) => (r as unknown as Record<string, unknown>)[k] === v,
+          ),
+        ) as never,
+    );
+  });
+
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  function reader(path: string, band?: 'novice' | 'competent' | 'expert'): Reader {
+    const r = makeStuffAtPath(() => new Reader(), path);
+    if (band) {
+      const run = Competence.seedRunFor(band)!;
+      for (let i = 0; i < run.count; i++) {
+        rows.push({
+          owner: path,
+          discipline: 'horticulture',
+          difficulty: run.difficulty,
+          outcome: 'success',
+          when: null,
+          kind: 'claim',
+        });
+      }
+    }
+    return r;
+  }
+
+  function dryStand(): GrowFixture {
+    const f = fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 });
+    f.setSownAreaM2(500);
+    f.getVigor();
+    setNow(40 * DAY); // dry — something is short, and the cause is water
+    return f;
+  }
+
+  function augment(f: GrowFixture, viewer: unknown): string {
+    const aug = (
+      f as unknown as {
+        constructor: {
+          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
+        };
+      }
+    ).constructor.markupAugmenters[0]!;
+    return aug('', f, viewer);
+  }
+
+  it('⭐ an expert reads more than an untrained eye, and the untrained read is where it starts', async () => {
+    const f = dryStand();
+    const expert = reader('/test/agent/expert', 'expert');
+    await expert.warmCompetenceDigest();
+    expect(expert.competenceBandCached('horticulture')).toBe('expert');
+    const untrained = reader('/test/agent/untrained');
+    await untrained.warmCompetenceDigest();
+
+    const hi = augment(f, expert);
+    const lo = augment(f, untrained);
+    expect(hi).toBe(f.readLines('expert').join(' '));
+    expect(lo).toBe(f.readLines('untrained').join(' '));
+    // Less detail, never a different truth.
+    expect(hi.startsWith(lo)).toBe(true);
+    expect(hi.length).toBeGreaterThan(lo.length);
+    expect(hi).toContain('The soil is dry there.');
+    expect(lo).not.toContain('dry');
+    expect(hi).not.toMatch(/\d/);
+  });
+
+  it('a cold digest reads the floor — never a guess upward', () => {
+    const f = dryStand();
+    const expert = reader('/test/agent/cold-expert', 'expert');
+    // No warm: the preload has not run for this reader.
+    expect(augment(f, expert)).toBe(f.readLines('untrained').join(' '));
+  });
+
+  it('a viewer that is not Advancing reads the floor', () => {
+    const f = dryStand();
+    const stranger = makeStuff(() => new GrowFixture());
+    expect(augment(f, stranger)).toBe(f.readLines('untrained').join(' '));
+  });
+
+  it('a pot plant is not banded — every viewer reads it in full', async () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(40 * DAY);
+    const untrained = reader('/test/agent/potter');
+    await untrained.warmCompetenceDigest();
+    expect(augment(f, untrained)).toContain('The soil is dry.');
   });
 });
 
