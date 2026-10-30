@@ -536,15 +536,19 @@ Cast, days 0–6 hours 6–18; the yard trough row becomes a
 `/platform/thing/WaterFixture` with `interiorMaterial: …/bulk/water` (its
 prose already says it is piped). The campus farm stays all-YAML.
 
-**D13 — `look wheat at the top end` is `look at the top end`.** `look`'s
-one-arg view cannot bind a target and a place, and growing it a second
-arg for a farming notion is the wrong trade. The patch read is the patch
-object's own `look` (its augmenter: the ground's look phrase, then each
-crop rooted in it read at the viewer's band, then any labeled plant
-there); `look wheat` binds one stand and its augmenter says which patch it
-stands at (*"It stands at the top end."*); the field's `look` carries one
-banded line per patch. The drive uses `look at the top end`. **Owner's
-eye** (§ Risks R1).
+**D13 — No second arg on `look` (owner, 2026-10-29). A patch is read three
+ways, all on `look`'s one target:** (1) **`look at the top end`** — the
+patch object's own look (its augmenter: the ground's look phrase, then each
+crop rooted in it read at the viewer's band, then any labeled plant there);
+(2) ⭐ **the stand answers to its patch's name** — each per-patch crop
+plant carries its patch's words in its keywords (`top end`, `top-end`,
+`lane end`…), so `look top end wheat` / `look "wheat at the top end"` binds
+that patch's stand, and its augmenter says which patch it stands at
+(*"It stands at the top end."*); (3) the field's own `look` carries one
+banded line per patch. `look wheat` alone binds one stand (the binder's
+first match). The drive's step 2 is `look at the top end` and
+`look top end wheat`. An `analyze crop` channel is deferred (no
+instrument to read through yet).
 
 **D14 — Patch soil comes from the field's sample plus the patch's lean.**
 `GroundCharacter.resolve(model, at, seed, nudge?: GroundLean)` gains an
@@ -1145,14 +1149,16 @@ the comparison; it cannot assert "wrong" deterministically (R3).
 
 ## Risks & opens
 
-**R1 — `look wheat at the top end` is not a shape `look` binds (D13).**
+**R1 — SETTLED by the owner (2026-10-29): no second arg on `look`; D13's
+three reads stand (patch look, patch-named stand, field lines).** Kept for the record:
+`look wheat at the top end` is not a shape `look` binds (D13).
 The requirements' drive step 2 writes it. The plan's answer is `look at
 the top end` (the patch's own look) and the field's per-patch lines, and
 `look wheat` naming its patch. Accepting that wording is the owner's call;
 the alternative is a second arg on `look.yaml` for one subsystem, which
 the plan declines. The build proceeds on the plan's reading.
 
-**R2 — the sow exception.** The cover drive sows the home field with no
+**R2 — SETTLED by the owner (2026-10-29): `sow` names its patch too.** The cover drive sows the home field with no
 patch named; AC 7 says every act names one. The plan makes `sow` consistent
 (refused without `at` on a multi-patch field) and rewrites the cover
 drive's step 4. If the owner wants `sow` to stay field-wide (a cast
