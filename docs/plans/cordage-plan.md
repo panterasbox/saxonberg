@@ -382,9 +382,9 @@ push. The full suite only at code-complete and at `/finalize` (`tools/suite`).
 
 ### ⭐⭐ Ordering — wait for CERAMICS before W1 (the owner, 2026-10-28)
 
-The ceramics build (`reqs/ceramics`, build-3, MR !437) was still open at plan time and changes the
-ground W1 stands on. **Start `/build` after it merges to master.** If quota frees first, W0 (and W7,
-which touches neither) may run first; then `git merge origin/master` before W1 and re-ground.
+✅ **Ceramics merged 2026-10-30 and is merged into this branch** (`aa64c2181`). The four items
+below were re-grounded the same day; **the amendments that follow them supersede D7, D13 and D17
+where they disagree.** `/build` may start.
 
 What ceramics brings, and what each changes here:
 
@@ -404,6 +404,34 @@ What ceramics brings, and what each changes here:
    `JOINT_FAILURES` list.
 4. **Retail's `Stock` refactor** (`Stock.counterFor`, which stall sells a line). D17's
    `Good.worthFactor()` buy-back seam lands in the same code — build it against the merged `Stock`.
+
+#### Re-grounded after ceramics (2026-10-30) — amendments
+
+- **D13′ — tarring is a coat.** `dip <rope> in <tar tub>` through the kernel `dip`
+  (`platform/cmd/crafting/dip.yaml`, `DipController`, the bath plans: `lib/craft/DipBath.ts`). The
+  tar tub is a **`/platform/thing/GlazeTub`** row (the coat-laying bath — the brickfield's
+  `ash-glaze-tub.yaml` is the pattern) holding pitch; the chandlery's `DipPot` plans a CANDLE and is
+  the wrong bath. `base-library/.../bulk/pitch.yaml` (and `wood-tar.yaml`) gain `laysCoat: true` and a
+  tag named for what they DO — `waterproofing` — not `tar`. The coat lands on the rope's `outside`
+  face (`lib/material/Faced.ts`; Faced composes on every good, so `Rope` has faces already).
+  ⚠ Faced FUSES a coat by heat (the glaze's `kinetics` reference); pitch instead SETS as it cools
+  below its 320 K melting point — check Faced's set path for a coat with no fuse and extend it by
+  one rung if needed (record). Rot is stopped while the outside face's outermost coat is set and its
+  material has `waterproofing`. **Dropped:** the kernel `Dippable` protocol, the chandlery
+  `DipController` branch (that file is gone — the controller is the kernel's), the `DipPot` tar-pot
+  row, `tags: [tar]`, and `Rope.tarred` as stored state (it is read off the face). The rope reads
+  darker and heavier with the coat's mass.
+- **D7′ — failure words.** `JOINT_FAILURES` (`platform/idea/Joint.ts:42`) is still
+  `slack · sprung · parted · split`; ceramics' new `slip` joint is labeled *"slipped"*. The clove
+  hitch working loose under a jerk is the shipped **`slack`** — no new word; the reef knot adds
+  only **`spilled`**.
+- **D17′ — buy-back.** `Stock.bidFor(itemTemplatePath)` is still per row (`lib/retail/Stock.ts:340`,
+  read at l.592 and l.673 after ceramics' `counterFor` refactor), so the `Good.worthFactor()` seam
+  stands, applied where those two callers take the bid.
+- **Paths:** pitch, wood tar and coal tar are `packages/content/base-library/content/stuff/idea/material/bulk/`.
+- Also from ceramics: `dip` has `melt` as its alias; `ring` moved from diving to
+  `platform/cmd/perception/ring.yaml` (W0's diving retrofit leaves it alone). Diving's `lash.yaml` and
+  `tug.yaml` are still the pack's — W0 moves them as planned.
 
 ### W0 — rope is the kernel's line with two ends (D1, D2, D3, D8 part, D19 prep)
 Files: new `lib/spatial/Line.ts` (from `Lifeline.ts`), `lib/spatial/Tieable.ts`,
