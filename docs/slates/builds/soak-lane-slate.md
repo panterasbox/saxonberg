@@ -8,8 +8,7 @@
 > ([workflow.md](../../workflow.md)).
 > **Left:** the pace tag on every drive step (instant · short · staged · span) · a staged twin for every span step · span never blocks · the
 > harness refusing an untagged long jump · a blocking drive and a soak drive in every requirements
-> doc · the soak lane — a standing session and its own worktree and world, dispatching each merged
-> build's soak drive · issues, never blocks · logging drive bodies out across long jumps
+> doc · the soak harness (`*.soak.wire.test.ts`, `pnpm wire:soak`, the jump refusal) · `tools/soak`, the headroom-gated runner filing `soak` issues · logging drive bodies out across long jumps
 > **Size:** a build
 
 ## 0. The ask **[DECIDED — the owner]**
@@ -118,6 +117,45 @@ each failure. **It never blocks a merge.**
   is cheap** — no users, no data, drop-the-database doctrine. Revisit at launch, when a broken master
   costs real players.
 
+## 3a. ⭐⭐ The lane, as set up 2026-10-30 **[DECIDED — the owner]**
+
+*"I don't want to do it on GitLab servers because it costs compute, but I've basically always got
+these Claude agents running on this workstation, so we can do it here."* And: *"for test failures I
+think we'll probably wanna start using GitLab issues to track that."*
+
+- **A script runs the drives; an agent handles only the failures.** Running a test and reading its
+  result needs no judgment and should spend no tokens. `tools/soak` finds merges to master not yet
+  soaked (the last SHA in a state file), checks each out, drops the soak database, runs the
+  `*.soak.wire.test.ts` files that merge added or changed, and **files a GitLab issue labeled
+  `soak`** with the record on failure (`glab`, local — no GitLab compute).
+- **The triage session** — the `soak` tmux window's Claude, under the `/soak` skill — wakes on a
+  `soak` issue, dispatches subagents to diagnose, and writes the diagnosis on the issue. The fix goes
+  to a build worktree like any other work.
+- **Soak drives are separate files**, `<feature>.soak.wire.test.ts`: the default wire run excludes
+  `*.soak.*`, `pnpm wire:soak` runs only those, and *the MR names its soak drive* means it names the
+  file.
+- **Headroom-gated, overnight as the fallback.** The box has 15 GB shared with four build worlds and a
+  drive world is ~3 GB, so the runner boots only with enough free memory and few enough worlds up, and
+  otherwise waits for the night.
+
+### Done
+
+- ✅ the `soak` worktree, detached at master, never committing; database `saxonberg_soak`; wire port
+  2020; the commit hook path set;
+- ✅ `saxo` gains the `soak` window with `WIRE_PORT=2020` (and adds it to a live session from before);
+- ✅ the `/soak` skill;
+- ✅ the GitLab label `soak`.
+
+### Owed — a small infra build in a build worktree
+
+- the `*.soak.wire.test.ts` convention: excluded from the default wire run, `pnpm wire:soak`;
+- `advanceWorldClock` refusing a jump past a game day outside soak mode;
+- a machine-readable result the runner can read;
+- `tools/soak`, the runner, with the headroom gate and the issue filing.
+
+Until it lands the lane has nothing to run; its first consumers are build-1's cover and build-3's
+ceramics span checks, once split out.
+
 ## 4. The quick fix — log drive bodies out across long jumps **[LEAN]**
 
 A logged-out body is frozen (metabolism stops offline — shipped), so it needs no feeding and no
@@ -137,7 +175,7 @@ before trusting the saving.
 ## 6. Open
 
 1. **The short/span line** — a game day, or a wall-clock budget per step.
-2. **Who triages** the lane's issues.
+2. ✅ **Who triages** — the `soak` window's session, under `/soak`; fixes to a build worktree.
 3. ✅ **The skills and workflow.md** — `/requirements`, `/plan`, `/build`, `/finalize` and
    `workflow.md` § *No merge waits on the clock* carry the rule (2026-10-30, the owner's request).
 4. **The existing drives** — re-tagging build-1's and build-3's in flight, or from the next build on.
