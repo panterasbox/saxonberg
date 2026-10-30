@@ -972,13 +972,21 @@ function isOre(item: Stuff): boolean {
 }
 
 /**
- * Metal STOCK: a bar you are putting back in the fire to carburize.
- * ⚠ Alloyed and not ore — the mixin is exactly the "this is a piece of
- * metal that can say what is in it" test, which is what the second
- * charge regime needs and what an ore lump is not.
+ * Metal STOCK: a bar you are putting back in the fire to carburize — a
+ * piece of METAL that can say what is in it, and not ore.
+ * ⚠ It asked for `AlloyedMixin` (metal only) until the review folded the
+ * composition records into one (`CompositionMixin`, R1) — which a clay
+ * and a brick also carry, so a firebrick left in the furnace after a
+ * reline read as "metal" and refused every smelt as a mixed charge (the
+ * finalize drives, ceramics B step 13). The metal is asked for by name.
  */
 function isStock(item: Stuff): boolean {
-  return !isOre(item) && MixinApi.isComposition(item) && MixinApi.isTangible(item);
+  return (
+    !isOre(item) &&
+    MixinApi.isComposition(item) &&
+    MixinApi.isTangible(item) &&
+    item.hasMaterialTag('metal')
+  );
 }
 
 /**

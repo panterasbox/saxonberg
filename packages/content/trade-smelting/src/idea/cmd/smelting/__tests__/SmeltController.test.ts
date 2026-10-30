@@ -24,6 +24,7 @@ import Ore from '@saxonberg/content-trade-mining/src/thing/Ore';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Ingot from '@saxonberg/server/mud/platform/thing/Ingot';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition';
 import Receptacle from '@saxonberg/server/mud/platform/thing/Receptacle';
 import UnboundedReceptacle from '@saxonberg/server/mud/platform/thing/UnboundedReceptacle';
 import MetalCasting from '@saxonberg/server/mud/platform/thing/MetalCasting';
@@ -114,6 +115,11 @@ function lump(kgEach: number, count: number, grade: number, mineral = MALACHITE)
 }
 
 /** A bar of metal stock going back into the fire to carburize. */
+/** A non-metal piece that carries a makeup — a firebrick's shape. */
+class Brickish extends CompositionMixin(Good) {
+  static _mixinName = 'SmeltTestBrickish';
+}
+
 function bar(materialPath: string, kg = 0.5, carbon = 0): Ingot {
   const i = makeStuff(() => new Ingot());
   i.setMaterial(StuffApi.findByTemplatePath<Material>(materialPath) as Material);
@@ -694,6 +700,18 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
     chargeIron(3, 2);
     ContainmentApi.move(bar(IRON, 0.5), furnace);
     expect(declinedFor(await smelt())).toBe('mixed-charge');
+  });
+
+  it('⭐ a firebrick left in the shaft is not metal stock — the ore smelts (finalize drive, B step 13)', async () => {
+    // A brick carries a composition too (R1 folded the records into one), so
+    // "has a makeup" is not "is a bar": the stock test asks for METAL.
+    furnace.setBellowsActive(true);
+    chargeIron(3, 2);
+    const brick = makeStuff(() => new Brickish());
+    brick.setMass(Quantity.of(3, 'kg'));
+    brick.setMaterial(StuffApi.findByTemplatePath<Material>(GOETHITE) as unknown as Material);
+    ContainmentApi.move(brick, furnace);
+    expect(declinedFor(await smelt())).not.toBe('mixed-charge');
   });
 
   it('⭐ the product row is DISCOVERED by material, never listed by name', async () => {
