@@ -57,6 +57,7 @@ import { Boundary } from '../../lib/boundary/Boundary';
 import { SealableMixin } from '../../lib/spatial/Sealable';
 import { LockableMixin } from '../../lib/boundary/Lockable';
 import type Exit from '../../lib/boundary/Exit';
+import type { FieldMeta } from '../../lib/mixin';
 import type {
   Conduit,
   LightConduit,
@@ -70,6 +71,10 @@ import type { SoundConduit } from '../../lib/boundary/SoundConduit';
 const DoorBase = LockableMixin(SealableMixin(Boundary));
 
 export default class Door extends DoorBase {
+  static fieldMeta: FieldMeta = {
+    closesBehind: { persistent: true, authorable: true },
+  };
+
   /**
    * Runtime back-reference: every Exit whose `door` currently points
    * at this Door. Maintained by `Exit`'s `door` setter — adding the
@@ -88,6 +93,27 @@ export default class Door extends DoorBase {
    * the right names for the bidirectional wiring.
    */
   protected attachedTo: Set<Exit> = new Set();
+
+  /**
+   * ⭐ **A door that swings shut behind you** — a workshop's door on a
+   * weight. Shut, it still lets anybody through who may pass (a locked one
+   * still refuses), and it is shut again after them: the room keeps its
+   * heat, and nobody has to remember to close it. The potter's shop needed
+   * exactly this (the ceramics browser walk): two open doorways cost more
+   * heat than any stove gives, and green ware froze on the boards of a
+   * shop whose prose said it was warm. An authored flag, so a second
+   * workshop is a row, not code.
+   */
+  public closesBehind = false;
+
+  /** See {@link Door.closesBehind}. */
+  public swingsShut(): boolean {
+    return this.closesBehind;
+  }
+
+  public setClosesBehind(value: boolean): void {
+    this.closesBehind = value === true;
+  }
 
   /**
    * ⭐⭐⭐ **The one word a room's exit listing uses for this door's
@@ -183,7 +209,7 @@ export default class Door extends DoorBase {
     _to: BoundarySide,
     _mode: string
   ): boolean {
-    return this.isOpen();
+    return this.isOpen() || (this.closesBehind && !this.isLocked());
   }
 
   /**

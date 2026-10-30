@@ -47,7 +47,7 @@ function sheet(form: "cylinder" | "pane", ironFrac = 0.004): Sheet {
   const s = makeStuff(() => new Sheet());
   s.setForm(form);
   s.setMass(Quantity.of(0.4, "kg"));
-  s.setAlloying([{ materialPath: IRON, fraction: ironFrac }]);
+  s.setMakeup([{ materialPath: IRON, fraction: ironFrac }]);
   ContainmentApi.move(s as unknown as never, room as unknown as never);
   return s;
 }

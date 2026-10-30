@@ -1,0 +1,24 @@
+# Plaster — burnt gypsum (plaster of Paris): calcium sulphate that has given
+# up most of its water to a gentle heat (ceramics W7). Stirred back into
+# water it is a slurry that takes the water up again and sets hard in a
+# quarter of an hour, in whatever shape holds it: the mould-maker's stuff,
+# and the reason a slip-caster's moulds drink.
+class: /platform/idea/material/Material
+data:
+  name: plaster
+  keywords: [plaster, "plaster of paris", "burnt gypsum"]
+  appearance: soft white plaster powder
+  density: 1100
+  specificHeat: 1000
+  thermalConductivity: 0.3
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 30
+  hardness: 5
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["mineral", "sulphate", "gypsum", "plaster", "powder"]
+  composition:
+    - { materialPath: /stuff/idea/material/rock/gypsum, fraction: 1.0 }
+  biologicalSource: null

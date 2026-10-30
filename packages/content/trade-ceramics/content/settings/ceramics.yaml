@@ -1,0 +1,108 @@
+# ceramics — the ceramics pack's own dials (the `settings` kind: merge-missing
+# — a key the app_settings singleton lacks is merged in; a value the operator
+# changed via `config` is never touched).
+#
+# ⚠ The green-ware dials are NOT here: green ware is a KERNEL mixin
+# (`Greenware`, composed by dairying's setting pan too), so its dials are the
+# platform's `green.*` keys. These are the trade's own.
+settings:
+  # A clay heap stops getting better after about forty freeze-thaw days — a
+  # good winter out (ceramics S2).
+  - key: ceramics.weathering.ceilingDays
+    value: "40"
+
+  # Kneading a temper pit's clay: game-minutes of both hands in it, and the
+  # litres of the pit's water a kilogram of clay takes up to the window.
+  - key: ceramics.temper.minutes
+    value: "20"
+
+  - key: ceramics.temper.waterLPerKg
+    value: "0.05"
+
+  # ⭐ The potter's hand (ceramics D16) — deterministic by competence band.
+  # A beginner's wall is heavier than a proficient hand's by this factor;
+  # nothing fails, it just comes out heavier.
+  - key: ceramics.wall.factor.untrained
+    value: "1.8"
+  - key: ceramics.wall.factor.novice
+    value: "1.6"
+  - key: ceramics.wall.factor.competent
+    value: "1.25"
+  - key: ceramics.wall.factor.proficient
+    value: "1.0"
+  - key: ceramics.wall.factor.expert
+    value: "0.85"
+
+  # The largest vessel a band can raise, litres — asked for more, the
+  # refusal names the band.
+  - key: ceramics.wall.maxL.untrained
+    value: "0.5"
+  - key: ceramics.wall.maxL.novice
+    value: "1.5"
+  - key: ceramics.wall.maxL.competent
+    value: "4"
+  - key: ceramics.wall.maxL.proficient
+    value: "10"
+  - key: ceramics.wall.maxL.expert
+    value: "30"
+
+  # A day at the brick table: its hours, and the bricks an hour a band
+  # moulds (a master's gang makes thousands).
+  - key: ceramics.brickTable.hours
+    value: "8"
+  - key: ceramics.brickTable.rate.untrained
+    value: "30"
+  - key: ceramics.brickTable.rate.novice
+    value: "60"
+  - key: ceramics.brickTable.rate.competent
+    value: "150"
+  - key: ceramics.brickTable.rate.proficient
+    value: "300"
+  - key: ceramics.brickTable.rate.expert
+    value: "450"
+
+  # Coiling by hand, game-minutes a pot.
+  - key: ceramics.hand.minutes
+    value: "30"
+
+  # ⭐ The clamp (ceramics D15): one burn, three bodies by where each brick
+  # sat. At the clamp row's burn (1474 K, draught 0.6) the middle holds
+  # ≈ 1366 K — sound earthenware after three days; the fire channels run
+  # × 1.25 ≈ 1707 K, past the clay's 1560 K scorch — clinker; the casing
+  # × 0.9 ≈ 1229 K — terracotta, the soft place brick. A starved burn
+  # (`--draught half`) is reducing: the middle comes out blue.
+  - key: ceramics.clamp.channelFactor
+    value: "1.25"
+  - key: ceramics.clamp.skinFactor
+    value: "0.9"
+  # The skin's share of the charge — the casing courses, whoever sets it.
+  - key: ceramics.clamp.skinShare
+    value: "0.25"
+  # Kelvin off the skin for a soaked casing (a fully wet clamp fires its
+  # skin under terracotta: soft, under-burnt) and per m/s of wind when lit.
+  - key: ceramics.clamp.rainK
+    value: "100"
+  - key: ceramics.clamp.windKPerMs
+    value: "6"
+  # The share of the charge a setter's band leaves by the fire channels —
+  # a better setter makes fewer over-burnt bricks, deterministically.
+  - key: ceramics.clamp.channelShare.untrained
+    value: "0.35"
+  - key: ceramics.clamp.channelShare.novice
+    value: "0.3"
+  - key: ceramics.clamp.channelShare.competent
+    value: "0.22"
+  - key: ceramics.clamp.channelShare.proficient
+    value: "0.16"
+  - key: ceramics.clamp.channelShare.expert
+    value: "0.12"
+
+  # ⭐ The keeper relines a furnace whose lining's health has fallen below
+  # this (ceramics D20) — before `fire.lining.burntBelow` stops it lighting.
+  - key: ceramics.lining.relineBelow
+    value: "0.4"
+
+  # A crucible's wear per melt (ceramics D19): about eight melts, then it
+  # cracks and holds nothing.
+  - key: ceramics.crucible.wearPerMelt
+    value: "0.12"

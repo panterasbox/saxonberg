@@ -69,6 +69,20 @@ requires:
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/silk-house/idea/outfit }
       landUse: agricultural
+    # ⭐ The brickfield-and-pottery (ceramics W6) — the field titled to the
+    # brickmaster's business, and the potter's shop carved out of it to her
+    # own outfit (the longer extent wins the walk). An industry on the
+    # flats, off the gas: lamp-oil country.
+    - extent: /world/terminus/hearts-delight/brickfield
+      parentParcel: /world/terminus/hearts-delight
+      holder: { organization: /world/terminus/hearts-delight/brickfield/idea/brickmaster }
+      landUse: industrial
+      powerBand: off-grid
+    - extent: /world/terminus/hearts-delight/brickfield/location/potters-shop
+      parentParcel: /world/terminus/hearts-delight/brickfield
+      holder: { organization: /world/terminus/hearts-delight/brickfield/idea/pottery }
+      landUse: industrial
+      powerBand: off-grid
 
 # ⭐⭐ **Nothing here is booted** (the scan sweep, 2026-10-14). The three
 # herdbooks are props of the farmstead yard, so arriving there stands

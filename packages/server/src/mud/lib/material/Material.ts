@@ -50,8 +50,8 @@
  * string and re-resolve on each call (HMR-safe — no cached instance).
  */
 
-import { Crosslinking, type CrosslinkSpec } from './Crosslinking';
 import { Kinetics, type KineticSpec } from './Kinetics';
+import { DrainSetting, type DrainSettingSpec } from './DrainSetting';
 import { Idea } from '../stuff/Idea';
 import { SingletonMixin } from '../stuff/Singleton';
 import { PerceptibleMixin } from '../description/Perceptible';
@@ -83,6 +83,18 @@ import type { BoundaryRole } from '../security/BoundaryRole';
  * complete authoring, but the v1 model doesn't enforce). Mole-fraction
  * authoring is a follow-on.
  */
+/** What a face gives its contents (ceramics M7). */
+export interface LeachSpec {
+  /** The toxin type, as metabolism names it (`lead-poisoning`). */
+  toxin: string;
+  /**
+   * mg per litre per game-day against VINEGAR (pH 2.4, the acid a lead-
+   * release test uses); other contents scale by their acid attack
+   * (`Material.acidAttack`, from their pH).
+   */
+  mgPerLPerDay: number;
+}
+
 export interface CompositionEntry {
   materialPath: string;
   fraction: number;
@@ -130,37 +142,14 @@ export interface ElementChemistry {
 }
 
 /**
- * ⭐ The authored shape of a drain set (dairy D9b): over `days` unloaded
- * the matter gives up its free water and sets; a weight on the mould of
- * `poolKg × loadRef` doubles the rate and drives the moisture from
- * `unloaded` to `loaded`. `becomes` is the material the set thing IS
- * (curd → cheese); absent ⇒ the pool's own material.
+ * ⭐ A metal that sets differently against a cold, conducting mould
+ * (ceramics S12 — chill casting): cast iron in an iron mould sets WHITE and
+ * hard, in sand GREY and soft. The first arrow whose threshold the mould's
+ * thermal conductivity (W/(m·K)) exceeds decides.
  */
-export interface DrainSetting {
-  days: number;
-  becomes?: string;
-  /**
-   * ⭐ What the set thing is when it sets AS a given shape — keyed by the
-   * cast's template path, falling back to `becomes` (sugar: the strike
-   * set as a cone's loaf is loaf sugar; set as a hogshead's block, purged
-   * coarse and never clayed, it is raw sugar). The mould decides the
-   * shape; this lets the material say what that shape of it is.
-   */
-  becomesAs?: Record<string, string>;
-  moisture: { unloaded: number; loaded: number };
-  loadRef: number;
-  /**
-   * ⭐ What the drained-off matter IS (sugar D16) — molasses off a sugar
-   * loaf. When set, a mould standing ON a vessel credits that vessel with
-   * the drainings as they drain; absent, they go nowhere (the cheese
-   * hoop's whey runs off its board).
-   */
-  drains?: string;
-  /**
-   * Extra share of the pool that drains away per grade band below `fine`
-   * — a poor strike gives up more molasses and keeps less sugar.
-   */
-  drainPerBand?: number;
+export interface ChillArrow {
+  mouldConductivityAbove: number;
+  becomes: string;
 }
 
 /**
@@ -183,6 +172,10 @@ export interface ConcentrationArrow {
  * sucrose's, and near enough for any sugar or salt a pan boils down.
  */
 const SOLUTE_DENSITY_KG_PER_L = 1.6;
+/** Vinegar's pH — the acid a lead-release test uses; its acid attack is 1. */
+const VINEGAR_PH = 2.4;
+/** pH units per tenfold change in acid attack (lead release, roughly). */
+const PH_UNITS_PER_TENFOLD = 2;
 
 /**
  * Link from a biological Material to the Species it came from, plus
@@ -194,6 +187,17 @@ const SOLUTE_DENSITY_KG_PER_L = 1.6;
 export interface BiologicalSource {
   speciesPath: string;
   tissueType: string;
+}
+
+/**
+ * ⭐ What a solution of this material sets when it holds more than it can
+ * dissolve (ceramics S17): the crystals (`product`, a material path) and
+ * the mother liquor left behind (`residue` — brine's is bittern). Both
+ * paths; the residue may name the material itself.
+ */
+export interface CrystallizesTo {
+  product: string;
+  residue: string;
 }
 
 /** Numeric AppSetting read for the wet law, falling back to the seeded literal. */
@@ -555,16 +559,12 @@ export default class Material extends SingletonMixin(
     this._elasticity = value;
   }
 
-  // ⭐⭐ The cure as data (rubber build): how this feedstock crosslinks
-  // with an agent under heat and time. `null` — every material but a raw
-  // elastomer — is inert. Validated by constructing the value object, so
-  // a curve that cannot be evaluated fails at the row.
-  private _crosslinking: Crosslinking | null = null;
-
-  // ⭐⭐ What this substance does by itself over time, at a rate set by
-  // temperature (kinetics — sucrose inverting, starch staling). `null` is
-  // inert. Validated by constructing the value object, so a curve that
-  // cannot be evaluated fails at the row. `KineticMixin` on the good runs it.
+  // ⭐⭐ How this substance changes over time at a rate set by temperature
+  // (kinetics — a firing, a cure, sucrose inverting, starch staling; the
+  // ceramics build's heat transitions folded in). `null` — almost every
+  // material — is inert. Validated by constructing the value object, so a
+  // curve that cannot be evaluated fails at the row. `ThermalMixin` on the
+  // good runs it.
   private _kinetics: Kinetics | null = null;
 
   private _meltingPoint: Quantity<'K'> = Quantity.of(0, 'K');
@@ -628,7 +628,7 @@ export default class Material extends SingletonMixin(
    * `reconcileSetting`: the MATERIAL says how it sets, the MOULD says what
    * shape it takes.
    */
-  public drainSetting: DrainSetting | null = null;
+  private _drainSetting: DrainSetting | null = null;
 
   /**
    * The identity path a frozen pool of this becomes: the authored row,
@@ -644,56 +644,60 @@ export default class Material extends SingletonMixin(
 
   /** How this matter sets by draining, or `null` when it does not. */
   public getDrainSetting(): DrainSetting | null {
-    return this.drainSetting;
+    return this._drainSetting;
   }
-  public setDrainSetting(value: DrainSetting | null): void {
-    if (value === null || value === undefined) {
-      this.drainSetting = null;
-      return;
-    }
-    // ⚠ No local `const` here: `wiki-spoiler-fields.snapshot` labels each
-    // field by the nearest `class`/`const` above this class's `fieldMeta`,
-    // which sits after the methods — a `const ok` filed every Material
-    // field under `ok`.
-    if (
-      !(
-        Number.isFinite(value.days) &&
-        value.days > 0 &&
-        value.moisture !== null &&
-        typeof value.moisture === 'object' &&
-        value.moisture.unloaded > 0 &&
-        value.moisture.unloaded <= 1 &&
-        value.moisture.loaded > 0 &&
-        value.moisture.loaded <= value.moisture.unloaded &&
-        Number.isFinite(value.loadRef) &&
-        value.loadRef > 0 &&
-        (value.becomes === undefined || (typeof value.becomes === 'string' && value.becomes !== '')) &&
-        (value.drains === undefined || (typeof value.drains === 'string' && value.drains !== '')) &&
-        (value.becomesAs === undefined ||
-          (value.becomesAs !== null &&
-            typeof value.becomesAs === 'object' &&
-            Object.entries(value.becomesAs).every(
-              ([shape, path]) => shape !== '' && typeof path === 'string' && path !== '',
-            ))) &&
-        (value.drainPerBand === undefined ||
-          (Number.isFinite(value.drainPerBand) && value.drainPerBand >= 0 && value.drainPerBand < 1))
+  /** The authored spec as stored (the row's own shape), or `null`. */
+  protected get drainSetting(): DrainSettingSpec | null {
+    return this._drainSetting?.toSpec() ?? null;
+  }
+  protected set drainSetting(value: DrainSettingSpec | null) {
+    this._drainSetting = value === null || value === undefined ? null : new DrainSetting(value);
+  }
+  /** Set the drain set; throws a `RangeError` on one that cannot be evaluated. */
+  public setDrainSetting(value: DrainSettingSpec | null): void {
+    this.drainSetting = value;
+  }
+
+  /** ⭐ What this sets as against a conducting mould (ceramics S12). */
+  public chillsTo: ChillArrow[] = [];
+  public getChillsTo(): readonly ChillArrow[] {
+    return this.chillsTo;
+  }
+  public setChillsTo(value: ChillArrow[] | null): void {
+    this.chillsTo = (Array.isArray(value) ? value : [])
+      .filter(
+        (a) =>
+          a !== null &&
+          typeof a === 'object' &&
+          Number.isFinite(a.mouldConductivityAbove) &&
+          typeof a.becomes === 'string' &&
+          a.becomes !== '',
       )
-    ) {
-      throw new RangeError(
-        'Material.setDrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
-          'loadRef > 0, becomes and drains each a path or absent, becomesAs a shape → path map or absent, ' +
-          'and 0 <= drainPerBand < 1',
-      );
-    }
-    this.drainSetting = {
-      days: value.days,
-      moisture: { unloaded: value.moisture.unloaded, loaded: value.moisture.loaded },
-      loadRef: value.loadRef,
-      ...(value.becomes ? { becomes: value.becomes } : {}),
-      ...(value.becomesAs ? { becomesAs: { ...value.becomesAs } } : {}),
-      ...(value.drains ? { drains: value.drains } : {}),
-      ...(value.drainPerBand ? { drainPerBand: value.drainPerBand } : {}),
-    };
+      .map((a) => ({ mouldConductivityAbove: a.mouldConductivityAbove, becomes: a.becomes }))
+      .sort((a, b) => b.mouldConductivityAbove - a.mouldConductivityAbove);
+  }
+  /** The material this sets as in a mould of conductivity `k`, or `null` (itself). */
+  public chilledIn(mouldConductivity: number): string | null {
+    // ⚠ No `const` above `static fieldMeta`: the wiki spoiler snapshot
+    // names a field's owner by the nearest declaration, and a local here
+    // filed every Material field under `a.*`.
+    return this.chillsTo.find((arrow) => mouldConductivity > arrow.mouldConductivityAbove)?.becomes ?? null;
+  }
+
+  /**
+   * ⭐ The pattern-maker's shrink (ceramics D23): how much a casting of this
+   * shrinks, linearly, cooling from its melting point to a room —
+   * `thermalExpansion × (meltingPoint − 293)`. DERIVED: brass's 1.7 %
+   * against a pattern-maker's rule of 1.5 %. `0` for a material that
+   * authors neither.
+   */
+  public castShrinkage(): number {
+    return Material.shrinkageOf(this.getThermalExpansion(), this.getMeltingPoint().rawValue());
+  }
+
+  /** `α × (mp − 293)`, capped at 10 %; `0` without both (no locals here — see `chilledIn`). */
+  private static shrinkageOf(alpha: number, mp: number): number {
+    return !(mp > 293) || !(alpha > 0) ? 0 : Math.min(0.1, alpha * (mp - 293));
   }
   /** Whether freezing ruins this material (blood) rather than casting it. */
   public isRuinedByFreezing(): boolean {
@@ -828,7 +832,8 @@ export default class Material extends SingletonMixin(
   protected nutrients: string[] = [];
 
   /**
-   * Inspectable nutrient amounts (tag → mg per serving) — the
+   * Inspectable nutrient amounts (tag → mg per serving, see
+   * {@link servingKg}) — the
    * education-by-reference profile `examine <food>` surfaces. Parallel
    * to {@link nutrients}: the tags drive routing, these amounts are
    * data + display only (no body-side machinery). A flat
@@ -838,9 +843,27 @@ export default class Material extends SingletonMixin(
   protected nutrientAmounts: Record<string, number> = {};
 
   /**
+   * ⭐ **What one serving of this material is, in kg** — the unit every
+   * per-serving number on this row ({@link nutrientAmounts},
+   * {@link toxicity}) is per (ceramics re-plan R1-D1). `0` = unauthored,
+   * and the serving derives as the `nutrition.servingLitres` dial (a
+   * quarter litre) at this material's density — read it through
+   * `MaterialApi.servingKgOf`, never here, so the default lives in one
+   * place.
+   *
+   * ⭐ A blend stores what went into it as mass FRACTIONS (`makeup`), and
+   * a part's servings derive at the read: `fraction × hostKg / servingKg`.
+   * So this is what keeps a martini at gin 19 + vermouth 7: gin's serving
+   * is its bar measure (60 ml × 940 kg/m³), and a recipe that uses gin AT
+   * its measure gives exactly one serving of it.
+   */
+  protected servingKg = 0;
+
+  /**
    * Per-consumable toxin doses — `{type, amount}[]`. `type` is the toxin
    * (and its `Condition` key, e.g. `'alcohol'`); `amount` is the dose
-   * per serving (mg for solids / derived for liquids). The per-body rate
+   * per serving (see {@link servingKg}; mg for solids / derived for
+   * liquids). The per-body rate
    * params (absorption, clearance, potency, severity bands) live on the
    * toxin's `Condition` seed, NOT here — the same amount-vs-rate split as
    * nutrients. A list of flat objects → default-applier round-trip (the
@@ -1100,13 +1123,14 @@ export default class Material extends SingletonMixin(
     meltingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     lightAbsorption: { persistent: true, marshaller: QuantityMarshaller.pathFor('1/m') },
     elasticity: { persistent: true, marshaller: QuantityMarshaller.pathFor('%') },
-    crosslinking: { persistent: true, authorable: true },
-    kinetics: { persistent: true, authorable: true },
     latentHeatOfFusion: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
     // ⭐ What a frozen pool becomes / whether freezing ruins it — material
     // facts an author writes per row (water → ice-block; blood → ruined).
     castTemplate: { persistent: true, authorable: true },
     drainSetting: { persistent: true, authorable: true },
+    // ⭐ (ceramics S12, S17) The cure set and the chill arrows — how the
+    // matter sets, never the mould's business.
+    chillsTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     ruinedByFreezing: { persistent: true, authorable: true },
     boilingPoint: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('K') },
     latentHeatOfVaporization: { persistent: true, spoiler: 1, spoilerName: 0, marshaller: QuantityMarshaller.pathFor('J/kg') },
@@ -1118,6 +1142,9 @@ export default class Material extends SingletonMixin(
     edibility: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrients: { persistent: true, spoiler: 1, spoilerName: 0 },
     nutrientAmounts: { persistent: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ What one serving is, kg — the unit of the two rows around it.
+    // Collapsed like its siblings: knowing it is knowing the label.
+    servingKg: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
     combustionImparts: { persistent: true, spoiler: 1, spoilerName: 0 },
     // ⭐ (cleanliness D22, D24) What burning it gives off, what share of the
@@ -1144,9 +1171,46 @@ export default class Material extends SingletonMixin(
       spoiler: 1,
       spoilerName: 0,
     },
+    // ── How it changes at a temperature — a firing is one rule ──
+    // ⭐ Measured facts like the boiling point: what a kiln, a larder and
+    // a cane field teach you.
+    kinetics: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    vaporizesAboveK: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ── Faces and coats (ceramics M6–M8) ──
+    // ⭐ How much it grows per kelvin — a glaze that shrinks more than its
+    // body on cooling crazes; a body that grows too much cracks in a fire.
+    thermalExpansion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ Its pH — 7 neutral, below acidic, above alkaline (vinegar 2.4,
+    // seawater 8.1); unauthored reads 7. What draws lead out of a glaze,
+    // and the number litmus and a soil kit read. A measured fact.
+    ph: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐⭐ What a face of this gives the contents it holds, per litre per
+    // day against vinegar, scaled by their acid attack. `spoiler: 1` — the
+    // lead in a glaze is the thing nobody tells you.
+    leaches: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // A bath of this lays a coat (a glaze slip) — what `dip` reads.
+    laysCoat: { persistent: true, authorable: true },
+    // The word a look uses for a sound coat of this — "glazed", later
+    // "painted", "tarred", "varnished". Absent reads "coated".
+    coatWord: { persistent: true, authorable: true },
+    // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
+    // breaks to sherds; glass keeps its cullet (the cast template).
+    brokenTemplate: { persistent: true, authorable: true },
+    // ⭐ What a piece shaped of this becomes, by form class (ceramics D16):
+    // `{open: …/vessel, closed: …/jar, flat: …/dish, block: …/block, cone: …}`.
+    formTemplates: { persistent: true, authorable: true },
+    // ── Crystallizing and the filter (ceramics W8, S17 + S9) ──
     // ⭐ The boil-down (sugar D1). Public: a sugar boiler reads the
     // thermometer and the thread, and the stages are the trade's syllabus.
     solidsKgPerL: { persistent: true, authorable: true },
+    // ⭐ How much of its solute a liter of this holds at a temperature —
+    // a measured fact, like the boiling point.
+    solubility: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    crystallizesTo: { persistent: true, authorable: true },
+    // ⭐⭐ What a porous body strains this into — `spoiler: 1`: that fouled
+    // water comes through a filter clean is the lesson, and that tainted
+    // water does not is the harder one.
+    filteredTo: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     boilingPointElevation: { persistent: true, authorable: true },
     concentratesTo: { persistent: true, authorable: true },
   };
@@ -1188,6 +1252,17 @@ export default class Material extends SingletonMixin(
   public getSpecificHeat(): Quantity<'J/(kg·K)'> {
     return this._specificHeat;
   }
+  /**
+   * ⭐ Thermal effusivity √(kρc), J/(m²·K·s^½) — how fast this draws heat
+   * out of something hot laid against it: an iron mould chills a pour that
+   * sand lets run (Chvorinov). `0` when any of the three is unauthored.
+   */
+  public getEffusivity(): number {
+    const k = this._thermalConductivity.rawValue();
+    const rho = this.getDensity().rawValue();
+    const c = this._specificHeat.rawValue();
+    return k > 0 && rho > 0 && c > 0 ? Math.sqrt(k * rho * c) : 0;
+  }
   public setSpecificHeat(value: Quantity<'J/(kg·K)'>): void {
     this.specificHeat = value;
   }
@@ -1215,6 +1290,14 @@ export default class Material extends SingletonMixin(
       }
     }
     this.nutrientAmounts = { ...value };
+  }
+
+  /** The AUTHORED serving, kg; `0` = unauthored (see `MaterialApi.servingKgOf`). */
+  public getServingKg(): number {
+    return this.servingKg;
+  }
+  public setServingKg(value: number): void {
+    this.servingKg = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   public getToxicity(): readonly ToxinTag[] { return this.toxicity; }
@@ -1455,20 +1538,116 @@ export default class Material extends SingletonMixin(
     this.elasticity = value;
   }
 
-  /** ⭐ The cure this feedstock answers, or `null` (inert). */
-  public getCrosslinking(): Crosslinking | null {
-    return this._crosslinking;
+  /** ⭐ Linear thermal expansion, 1/K (`0` = not authored). */
+  protected thermalExpansion = 0;
+  public getThermalExpansion(): number {
+    return this.thermalExpansion;
   }
-  /** The authored spec as stored (the row's own shape), or `null`. */
-  protected get crosslinking(): CrosslinkSpec | null {
-    return this._crosslinking?.toSpec() ?? null;
+  public setThermalExpansion(value: number): void {
+    this.thermalExpansion = Number.isFinite(value) && value > 0 ? value : 0;
   }
-  protected set crosslinking(value: CrosslinkSpec | null) {
-    this._crosslinking = value === null || value === undefined ? null : new Crosslinking(value);
+
+  /**
+   * ⭐ pH — the negative log of the hydrogen-ion concentration, so each unit
+   * is tenfold: 7 neutral, below acidic (lemon 2.2, wine 3.3, milk 6.7),
+   * above alkaline (seawater 8.1, lye 13). Unauthored reads 7: water, and
+   * every solid, are neutral. Clamped to −1..15 (a concentrated acid goes a
+   * little negative, a strong lye a little past 14). It was `acidity`, a
+   * 0..1 dial nothing could be checked against (B109): seawater read acid.
+   */
+  protected ph = 7;
+  public getPh(): number {
+    return this.ph;
   }
-  /** Set the cure spec; throws on a curve that cannot be evaluated. */
-  public setCrosslinking(value: CrosslinkSpec | null): void {
-    this.crosslinking = value;
+  public setPh(value: number): void {
+    this.ph = Number.isFinite(value) ? Math.max(-1, Math.min(15, value)) : 7;
+  }
+
+  /**
+   * ⭐ How hard this attacks an acid-soluble face (a lead glaze, pewter),
+   * relative to vinegar (pH 2.4) = 1: tenfold per two pH units more acid,
+   * and nothing at all at or above neutral — lead is an ACID's to take (lye
+   * eats glass, not lead). Vitriol ≈ 16, lemon ≈ 1.3, wine ≈ 0.35, milk
+   * ≈ 0.007, seawater 0.
+   */
+  public acidAttack(): number {
+    if (!(this.ph < 7)) return 0;
+    return Math.pow(10, (VINEGAR_PH - this.ph) / PH_UNITS_PER_TENFOLD);
+  }
+
+  /**
+   * ⭐⭐ What a face of this material gives the contents it holds: a toxin,
+   * at `mgPerLPerDay` × the contents' `acidAttack()` × days (ceramics M7).
+   * Lead glaze leaches lead; ash glaze nothing.
+   */
+  protected leaches: LeachSpec[] = [];
+  public getLeaches(): readonly LeachSpec[] {
+    return this.leaches;
+  }
+  public setLeaches(value: LeachSpec[] | null): void {
+    this.leaches = (Array.isArray(value) ? value : []).filter(
+      (l) => l && typeof l.toxin === 'string' && l.toxin !== '' && l.mgPerLPerDay > 0,
+    );
+  }
+
+  /**
+   * ⭐ What a piece of this breaks into (ceramics M5): a row path, else the
+   * material's own cast template (glass breaks to its cullet lump).
+   */
+  protected brokenTemplate = '';
+  public getBrokenTemplate(): string {
+    return this.brokenTemplate || this.getCastTemplate();
+  }
+  public setBrokenTemplate(value: string): void {
+    this.brokenTemplate = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ The row a piece shaped of this is minted as, by form class (ceramics
+   * D16) — the `castTemplate` shape for `shape`. Empty = no default; a form
+   * word's own `product` or the instrument's map answers instead.
+   */
+  protected formTemplates: Partial<Record<string, string>> = {};
+  public getFormTemplates(): Readonly<Partial<Record<string, string>>> {
+    return this.formTemplates;
+  }
+  public setFormTemplates(value: Partial<Record<string, string>> | null): void {
+    const out: Partial<Record<string, string>> = {};
+    for (const [k, v] of Object.entries(value ?? {})) {
+      if (typeof v === 'string' && v !== '') out[k] = v;
+    }
+    this.formTemplates = out;
+  }
+
+  /** A bath of this lays a coat — a glaze slip (what `dip` reads). */
+  protected laysCoat = false;
+  public getLaysCoat(): boolean {
+    return this.laysCoat;
+  }
+  public setLaysCoat(value: boolean): void {
+    this.laysCoat = value === true;
+  }
+
+  /** What a look calls a thing with a sound coat of this: *It is glazed …*. */
+  protected coatWord = '';
+  public getCoatWord(): string {
+    return this.coatWord !== '' ? this.coatWord : 'coated';
+  }
+  public setCoatWord(value: string): void {
+    this.coatWord = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ Above this temperature a lump of this material in a lit chamber
+   * becomes VAPOR in the chamber's air (salt at ~1350 K) — what a salt
+   * glaze is made from. `0` = never.
+   */
+  protected vaporizesAboveK = 0;
+  public getVaporizesAboveK(): number {
+    return this.vaporizesAboveK;
+  }
+  public setVaporizesAboveK(value: number): void {
+    this.vaporizesAboveK = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   /** ⭐ The changes this substance undergoes over time, or `null` (inert). */
@@ -1786,6 +1965,19 @@ export default class Material extends SingletonMixin(
   public hasTag(tag: string): boolean { return this.tags.includes(tag); }
 
   public getComposition(): readonly CompositionEntry[] { return this.composition; }
+  /**
+   * The share of this material, by mass, that is water: all of it for
+   * water itself, else what its composition names as water (a slip is
+   * 0.45). What slakes a plastic mass (`Compounding.workVerb`).
+   */
+  public waterShare(): number {
+    if (this.hasTag('water')) return 1;
+    let share = 0;
+    for (const e of this.composition) {
+      if (StuffApi.findByTemplatePath<Material>(e.materialPath)?.hasTag('water')) share += e.fraction;
+    }
+    return Math.min(1, share);
+  }
   public setComposition(value: CompositionEntry[]): void {
     this.composition = value;
   }
@@ -1886,6 +2078,97 @@ export default class Material extends SingletonMixin(
    * recursive composition? */
   public containsElement(elementSymbol: string): boolean {
     return materialLogic().containsElement(this as unknown as never, elementSymbol);
+  }
+
+  /**
+   * ⭐ How much solute a liter of this holds at a temperature (ceramics
+   * S17): `[[K, kgPerL], …]`, K ascending, read piecewise linearly and
+   * held flat past either end. Salt barely cares (0.31 → 0.33 kg/L from
+   * freezing to boiling) — which is why salt is made by taking the water
+   * AWAY; alum and saltpetre care a great deal, which is why they are made
+   * by letting a hot liquor COOL. Empty: this is not a solution anything
+   * sets out of.
+   */
+  protected solubility: Array<[number, number]> = [];
+
+  public getSolubility(): ReadonlyArray<readonly [number, number]> {
+    return this.solubility;
+  }
+  public setSolubility(value: Array<[number, number]> | null): void {
+    if (value === null || value === undefined) {
+      this.solubility = [];
+      return;
+    }
+    if (!Array.isArray(value)) {
+      throw new TypeError('Material.solubility must be a list of [K, kgPerL] pairs');
+    }
+    const points = value.map((p, i) => {
+      const [k, kg] = Array.isArray(p) ? p : [NaN, NaN];
+      if (!(Number(k) > 0) || !(Number(kg) >= 0)) {
+        throw new TypeError(`Material.solubility[${i}]: [${String(k)}, ${String(kg)}] is not [K > 0, kgPerL >= 0]`);
+      }
+      return [Number(k), Number(kg)] as [number, number];
+    });
+    for (let i = 1; i < points.length; i++) {
+      if (points[i]![0] <= points[i - 1]![0]) {
+        throw new TypeError('Material.solubility must be ascending in K');
+      }
+    }
+    this.solubility = points;
+  }
+
+  /** kg of solute a liter holds at `tempK`, or `null` when unauthored. */
+  public solubilityAt(tempK: number): number | null {
+    const pts = this.solubility;
+    if (pts.length === 0) return null;
+    const first = pts[0]!;
+    const last = pts[pts.length - 1]!;
+    if (tempK <= first[0]) return first[1];
+    if (tempK >= last[0]) return last[1];
+    for (let i = 1; i < pts.length; i++) {
+      const [k1, s1] = pts[i]!;
+      if (tempK <= k1) {
+        const [k0, s0] = pts[i - 1]!;
+        return s0 + ((s1 - s0) * (tempK - k0)) / (k1 - k0);
+      }
+    }
+    return last[1];
+  }
+
+  /** What crystallizing this solution sets and leaves, or `null`. */
+  protected crystallizesTo: CrystallizesTo | null = null;
+
+  public getCrystallizesTo(): CrystallizesTo | null {
+    return this.crystallizesTo;
+  }
+  public setCrystallizesTo(value: CrystallizesTo | null): void {
+    if (value === null || value === undefined) {
+      this.crystallizesTo = null;
+      return;
+    }
+    const product = typeof value.product === 'string' ? value.product.trim() : '';
+    const residue = typeof value.residue === 'string' ? value.residue.trim() : '';
+    if (product === '' || residue === '') {
+      throw new TypeError('Material.crystallizesTo needs both a product and a residue path');
+    }
+    this.crystallizesTo = { product, residue };
+  }
+
+  /**
+   * ⭐⭐ The material this becomes when it seeps through a porous body
+   * (ceramics S9 — the water filter), or `''`. The pores are smaller than
+   * a bacterium and larger than an ion, so fouled water (organic and
+   * sediment — the dysentery is IN something) names plain water, and
+   * tainted water (lead, a nitrate — dissolved) names nothing: it comes
+   * through as it went in.
+   */
+  protected filteredTo = '';
+
+  public getFilteredTo(): string {
+    return this.filteredTo;
+  }
+  public setFilteredTo(value: string | null): void {
+    this.filteredTo = typeof value === 'string' ? value.trim() : '';
   }
 }
 

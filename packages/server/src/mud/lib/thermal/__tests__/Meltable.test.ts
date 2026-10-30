@@ -23,12 +23,23 @@ import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { ContainerMixin } from '../../spatial/Container';
+import { BulkableMixin } from '../../bulk/Bulkable';
+import { DetachedError } from '../../errors';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
 class Ingot extends MeltableMixin(ThermalMixin(Good)) {
   static _mixinName = 'IngotTest';
 }
 class TestRoom extends Place {}
+/** A sack: holds things, holds no liquid. */
+class Sack extends ContainerMixin(Good) {
+  static _mixinName = 'MeltSack';
+}
+/** A pail: holds things AND what they melt to. */
+class Pail extends BulkableMixin(ThermalMixin(ContainerMixin(Good))) {
+  static _mixinName = 'MeltPail';
+}
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
@@ -188,3 +199,56 @@ describe('phase change — boil + freeze (ice → water → steam)', () => {
     expect(flask.getBulkAmount('interior').rawValue()).toBe(1);
   });
 });
+
+describe('⭐ where a melt goes (B105) — found before the solid is gone', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  /** Ice at its melting point, heated until it melts (or throws). */
+  function iceIn(where: (Stuff & { getContents(): unknown }) | null): Ingot {
+    const ice = makeStuff(() => new Ingot());
+    ice.setMass(Quantity.of(0.1, 'kg'));
+    ice.setMaterial(waterMaterial());
+    if (where !== null) ContainmentApi.move(ice, where as never);
+    ice.setStampedTemperatureK(273);
+    ice.setLastAmbientK(273);
+    return ice;
+  }
+  function melt(ice: Ingot): void {
+    for (let i = 0; i < 20 && !ice.isDestroyed(); i++) {
+      ice.depositHeat(20_000);
+      ice.reconcilePhase();
+    }
+  }
+
+  it('⭐ ice in a PAIL melts into the pail (it used to look for a floor in it, and vanish)', () => {
+    const room = makeStuff(() => new TestRoom());
+    floorIn(room);
+    const pail = makeStuff(() => new Pail());
+    pail.interiorBulk = true;
+    pail.setInteriorCapacity(Quantity.of(5, 'L'));
+    ContainmentApi.move(pail, room);
+    const ice = iceIn(pail);
+    melt(ice);
+    expect(ice.isDestroyed()).toBe(true);
+    expect(pail.getBulkAmount('interior').rawValue()).toBeCloseTo(0.1, 3);
+  });
+
+  it('⭐ ice in a SACK runs out onto the floor the sack stands on', () => {
+    const room = makeStuff(() => new TestRoom());
+    const floor = floorIn(room);
+    const sack = makeStuff(() => new Sack());
+    ContainmentApi.move(sack, room);
+    const ice = iceIn(sack);
+    melt(ice);
+    expect(ice.isDestroyed()).toBe(true);
+    expect(floor.getBulkAmount('surface').rawValue()).toBeCloseTo(0.1, 3);
+  });
+
+  it('ice standing NOWHERE refuses to melt into nothing: DetachedError, still solid', () => {
+    const ice = iceIn(null);
+    expect(() => melt(ice)).toThrow(DetachedError);
+    expect(ice.isDestroyed()).toBe(false);
+  });
+});
+

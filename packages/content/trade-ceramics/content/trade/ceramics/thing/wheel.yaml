@@ -1,0 +1,32 @@
+# The potter's wheel (ceramics W4): it throws round forms — open, closed,
+# flat and cones — one pot to a `shape`. ⭐ Its words are Form rows by path (loaded when
+# a `shape` asks; nothing scans), so a second wheel that throws other forms
+# is a row.
+class: /trade/ceramics/thing/Wheel
+data:
+  shortDescription: potter's wheel
+  keywords: [wheel, "potter's wheel", kickwheel]
+  register: indefinite
+  longDescription: >-
+    A heavy wooden kick-wheel, its head crusted with dried slip.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 60
+  fixedInPlace: true
+  capabilities: [wheel]
+  forms:
+    - /trade/ceramics/idea/form/mug
+    - /trade/ceramics/idea/form/jug
+    - /trade/ceramics/idea/form/jar
+    - /trade/ceramics/idea/form/crock
+    - /trade/ceramics/idea/form/bowl
+    - /trade/ceramics/idea/form/flask
+    - /trade/ceramics/idea/form/crucible
+    - /trade/ceramics/idea/form/plant-pot
+    - /trade/ceramics/idea/form/large-plant-pot
+    - /trade/ceramics/idea/form/handle
+    - /trade/ceramics/idea/form/cone
+  formTemplates:
+    open: /trade/ceramics/thing/vessel
+    closed: /trade/ceramics/thing/jar
+    flat: /trade/ceramics/thing/dish
+    cone: /trade/ceramics/thing/cone

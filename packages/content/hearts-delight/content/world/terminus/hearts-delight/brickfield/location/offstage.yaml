@@ -1,0 +1,9 @@
+class: /platform/location/Offstage
+data:
+  shortDescription: The Brickfield — Lodging Hut
+  keywords: [hut, lodging, brickfield]
+  register: proper
+  # Plots like every location (`lint:locations`): beside the shop.
+  coords: { x: 4, y: 0, z: 0 }
+  longDescription: |
+    A lodging hut behind the potter's shop where the gang sleeps in the season, with a stove and a row of boots by the door caked to the ankle in red clay.

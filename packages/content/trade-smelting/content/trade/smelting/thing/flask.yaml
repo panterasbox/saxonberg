@@ -1,0 +1,31 @@
+# A moulding flask (ceramics W7, S15) — ⭐ a SAND MOULD: an iron-bound box
+# of green moulding sand that a pattern is rammed into (`impress sword in
+# flask`). What it holds afterwards is the pattern's impression — its kind,
+# its size, whose it was — and molten metal poured in sets as that kind of
+# thing in that metal. Broken to release the cast, it leaves its sand to
+# be rammed again.
+#
+# ⭐ The physics of the pour are the mould's, never a roll (S12, S14): sand
+# drinks water (pour water on it and it is damp, and a damp flask BLOWS
+# under hot metal), it draws heat slowly (cast iron sets grey in it), and
+# its cavity is shut — so a shape without a riser (`carve riser on flask`)
+# goes porous where it froze last, and a thin one poured too cool freezes
+# short.
+class: /platform/thing/Mould
+data:
+  shortDescription: moulding flask
+  keywords: [flask, "moulding flask", "molding flask", "sand mould", mould, mold]
+  register: indefinite
+  longDescription: >-
+    An open iron-bound box in two halves, packed with dark, damp moulding
+    sand that holds the print of a thumb.
+  _materialPath: /stuff/idea/material/earth/sand
+  mass: 12
+  interiorBulk: true
+  interiorCapacity: 3
+  closure: liquidTight
+  reusable: false
+  impressible: true
+  absorbent: true
+  breaksTo: /trade/smelting/thing/moulding-sand
+  discipline: founding

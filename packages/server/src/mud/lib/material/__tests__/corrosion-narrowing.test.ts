@@ -58,6 +58,9 @@ const ELASTOMERS = new Set([
   '/stuff/idea/material/organic/raw-rubber.yaml',
   '/stuff/idea/material/organic/ebonite.yaml',
   '/stuff/idea/material/organic/rubber-scorched.yaml',
+  // ⭐ (ceramics W0) raw rubber milled with sulfur, before its cure — an
+  // elastomer like its neighbours, which lime does not eat.
+  '/stuff/idea/material/organic/compounded-rubber.yaml',
 ]);
 
 /** The two lists as they shipped before the rubber build. */

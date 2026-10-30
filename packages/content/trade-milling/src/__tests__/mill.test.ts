@@ -629,6 +629,9 @@ describe('⭐⭐⭐ the extraction is continuous, and that is the whole design',
     }
     // ⚠ With a material row per band these two would be byte-identical
     // objects and the miller's decision would be a three-item menu.
+    // ⭐ Both settings sit below `1 − b`, so both flours are all inner
+    // stock: since ceramics re-plan R1 the makeup is a mass FRACTION and
+    // is the same for both, and what differs is how much flour there is.
     expect(stamps[0]).not.toBe(stamps[1]);
   });
 
@@ -654,9 +657,11 @@ describe('⭐⭐⭐ the extraction is continuous, and that is the whole design',
 });
 
 function payloadOf(s: Sack): string {
-  const p = BulkableApi.slotFor(s, undefined)!.getPayload();
+  const slot = BulkableApi.slotFor(s, undefined)!;
+  const p = slot.getPayload();
   return JSON.stringify({
-    composition: p?.composition,
+    makeup: p?.makeup,
     water: p?.water,
+    litres: slot.getAmount().rawValue(),
   });
 }

@@ -1,0 +1,30 @@
+verbs: [ring]
+controller: /platform/idea/cmd/perception/RingController
+description: "Tap something hard and listen to it"
+help: |
+  `ring <thing>` taps it and listens. ⭐ A sound fired pot, a well-burnt
+  brick and a bell RING — a clear note that hangs in the air. A soft-burnt
+  place brick sounds dead, wood thuds, and anything with a crack in it
+  gives a flat buzzing clack, even a crack you cannot see. Potters have
+  rung their ware for a thousand years to find the dunts the kiln left.
+
+  A bell rings loud enough to be heard in the next street.
+examples:
+  - cmd: ring jug
+    note: Is it sound?
+  - cmd: ring brick
+    note: Well-burnt, or a place brick?
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # Greedy, as the one trailing name: `ring earthenware brick` is a thing,
+  # and the non-greedy field answered "That doesn't match any known command
+  # shape: ring" to it (ceramics drive A, run 39) — `look` and `get` read a
+  # trailing name the same way. Quoting still works.
+  - name: target
+    type: object
+    required: true
+    greedy: true
+    scope: ["reachable"]
+    requires: [IntegrityMixin]

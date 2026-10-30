@@ -1,0 +1,16 @@
+# crock — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/ClayVessel
+data:
+  shortDescription: crock
+  keywords: [crock, pot]
+  register: indefinite
+  longDescription: >-
+    A heavy, wide-mouthed clay crock for keeping things in.
+  interiorBulk: true
+  interiorCapacity: 4
+  # ⭐ (ceramics W6, D28) The row is the FIRED good: a bare clone is an
+  # import nobody here made — finished, and no maker. `shape` restamps the
+  # clay, its water and its maker, so the potter's own piece is born green.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 1.9

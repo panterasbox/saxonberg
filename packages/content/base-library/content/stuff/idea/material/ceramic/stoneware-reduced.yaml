@@ -1,0 +1,26 @@
+# Reduced stoneware — fired starved of air, the iron in the body and glaze
+# turned to the grey-green the Chinese called celadon. ⭐ The reducing twin.
+class: /platform/idea/material/Material
+data:
+  name: celadon stoneware
+  keywords: [stoneware, celadon, grey, reduced, fired]
+  appearance: grey-green celadon stoneware, fired starved of air
+  density: 2300
+  specificHeat: 880
+  thermalConductivity: 1.5
+  electricalConductivity: 1.0e-7
+  waterAbsorptionCapacity: 1.2
+  hardness: 92
+  toughness: 7
+  # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
+  # than this on cooling crazes.
+  thermalExpansion: 6.0e-06
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "stoneware", "reduced"]
+  composition: []
+  biologicalSource: null
+  # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
+  # with this body at the break; ground at a millstone, sherds are grog.
+  brokenTemplate: /stuff/thing/sherds

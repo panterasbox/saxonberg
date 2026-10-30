@@ -155,7 +155,9 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
     // `commandContributions:` is dead silently. One entry carries BOTH
     // words, because `melt` is an alias on the view rather than a second
     // verb: conferring the VIEW is what makes both sayable.
-    const view = 'trade/chandlery/cmd/chandlery/dip.yaml';
+    // ⭐ (ceramics D14) the view is the PLATFORM's now; the pot is the bath
+    // that plans it.
+    const view = 'platform/cmd/crafting/dip.yaml';
     expect(DipPot.commandContributions.environment).toContain(view);
     expect(DipPot.commandContributions.peers).toContain(view);
 
@@ -176,23 +178,23 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
     // asymmetry between a liquid crock and a hard cake is real; the
     // second verb was not — it was the first STEP of the only act this
     // pack has, and the collision ladder's first rung is *unify*.
-    const views = readdirSync(
-      join(PACK, 'content', 'trade', 'chandlery', 'cmd', 'chandlery'),
-    );
-    expect(views).toEqual(['dip.yaml']);
+    // ⭐ (ceramics D14) the chandlery ships NO view at all now: `dip` is
+    // the platform's one act, and this pack's pot is a bath that plans it.
+    expect(statExists(join(PACK, 'content', 'trade', 'chandlery', 'cmd'))).toBe(false);
 
     const dip = YAML.parse(
       readFileSync(
-        join(PACK, 'content', 'trade', 'chandlery', 'cmd', 'chandlery', 'dip.yaml'),
+        join(PACKS, 'platform', 'content', 'platform', 'cmd', 'crafting', 'dip.yaml'),
         'utf8',
       ),
     ) as { verbs: string[]; args: { name: string }[] };
-    expect(dip.verbs).toEqual(['dip', 'melt']);
-    // ⚠ And the solid is declared FIRST. Positionals bind in declared
-    // order, so with the pot ahead of it `dip the cake` hands the cake to
-    // the pot — the defect the milling trade paid for with `mill wheat
-    // 0.72`.
-    expect(dip.args.map((a) => a.name)).toEqual(['solid', 'pot']);
+    // `gob` is glass's word for the same act (a gather out of a melt).
+    expect(dip.verbs).toEqual(['dip', 'melt', 'gob']);
+    // ⚠ And the thing dipped is declared FIRST. Positionals bind in
+    // declared order, so with the bath ahead of it `dip the cake` hands
+    // the cake to the bath — the defect the milling trade paid for with
+    // `mill wheat 0.72`.
+    expect(dip.args.map((a) => a.name)).toEqual(['target', 'face', 'bath', 'side']);
   });
 
   it('⭐ authors its material, because melting changes nothing', () => {
@@ -324,3 +326,12 @@ describe('the class', () => {
     expect(c.getOdorIdentity()).toBe('');
   });
 });
+
+function statExists(p: string): boolean {
+  try {
+    statSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}

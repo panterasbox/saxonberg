@@ -13,7 +13,8 @@
 # would point the ranching pack's content at apiculture, which is the
 # dependency arrow backwards. The path stays `/stuff/idea/species/…`
 # because a honeybee is a fact about the world and belongs in the commons;
-# quarrying ships `/stuff/thing/clay-pot` the same way.
+# (quarrying once shipped a clay pot the same way; since the ceramics
+# build a fired pot is the potter's, made by `shape`.)
 class: /platform/idea/species/Species
 data:
   binomial: Apis mellifera

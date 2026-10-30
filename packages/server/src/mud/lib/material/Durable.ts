@@ -25,10 +25,19 @@ import type { MarkupAugmenter } from '../../api/mml';
 import type { Stuff } from '../stuff/Stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import { MixinApi } from '../../api/mixin';
 
 export interface Durable {
-  /** Wear gauge, 0 (worn out) .. 1 (pristine). */
+  /**
+   * ⭐ Condition, 0 (worn out) .. 1 (pristine): the wear gauge times the
+   * body's integrity (`Integrity.getIntegrity` — its cracks, dunts and
+   * checks). ONE record (review R2-D1): a cracked jug reads worn, enough
+   * cracks break it, and its strength under a blow reads this same number.
+   */
   getCondition(): number;
+  /** The wear gauge alone (what use wears and repair restores), before damage. */
+  getWearCondition(): number;
+  /** Set the wear gauge (repair's rung). Damage is mended by its own act. */
   setCondition(value: number): void;
   /**
    * Decrement condition by `amount` (clamped at 0). The wear-on-use seam.
@@ -74,7 +83,7 @@ export interface MendRecord {
   discipline: string;
   /** The part mended, when the thing is made of parts. */
   part?: string;
-  kind: 'mended' | 'reforged' | 'tightened';
+  kind: 'mended' | 'reforged' | 'tightened' | 'riveted';
   /** Whether it came back sound or short of it. */
   result: 'sound' | 'short';
   /**
@@ -172,6 +181,12 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     getCondition(): number {
+      const self = this as unknown as Stuff;
+      const integrity = MixinApi.isIntegrity(self) ? self.getIntegrity() : 1;
+      return this._condition * integrity;
+    }
+
+    getWearCondition(): number {
       return this._condition;
     }
 
@@ -197,8 +212,10 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     isBroken(): boolean {
+      // Capability lost — by wear or by damage, read off the one condition.
+      // (Shattered, destroyed into sherds by a blow, is Tangible's act.)
       return (
-        this._condition <=
+        this.getCondition() <=
         dial(AppSettingKeys.craftingBrokenThreshold, BROKEN_THRESHOLD_FALLBACK)
       );
     }

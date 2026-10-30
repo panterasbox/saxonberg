@@ -384,7 +384,9 @@ tail:**
   already did.
 
 **From the fishing review round (2026-09-22):** `KeptAnimal` gained a
-second naming gate — `Bonded.hasChosen()` = bond + followed **or** an
+second naming gate (since ceramics W2 held by the animal itself:
+`Bonded.canBeNamedBy(hand, by)` asks `hasChosen(by)` while it is unnamed,
+and `NameController` only words the refusal) — `Bonded.hasChosen()` = bond + followed **or** an
 earned home (`homeEarnedDay`: three distinct fed days in one vessel move
 `home` there) and there now; `homeKeyOf(container)` keys a stamped chattel
 by its chattel id (every fish bowl was one home by template path);

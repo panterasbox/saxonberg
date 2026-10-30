@@ -1,0 +1,12 @@
+# The wax that ran out of a lost-wax mould (ceramics W7), caught in a dish
+# under the vent: a lump to warm and press into a fresh jacket.
+class: /platform/thing/Casting
+data:
+  shortDescription: lump of beeswax
+  keywords: [wax, beeswax, lump]
+  register: indefinite
+  longDescription: >-
+    A dull yellow lump of beeswax with a skin of grit where it ran out of
+    a mould.
+  _materialPath: /stuff/idea/material/organic/beeswax
+  mass: 0.3

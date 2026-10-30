@@ -1,0 +1,15 @@
+# A pulled handle — a strap of green clay drawn out between wet fingers and
+# curled to shape, left to firm up beside the pot it is for. ⭐ It is fitted
+# with slip (`fit handle to jug`) when BOTH are leather-hard; joined much
+# wetter than its body it shrinks more as they dry and the join cracks
+# (ceramics W4, the `slip` joint). Fired, it is part of the pot for good.
+class: /trade/ceramics/thing/ClayPart
+data:
+  shortDescription: pulled clay handle
+  keywords: [handle, "pulled handle", strap]
+  register: indefinite
+  longDescription: >-
+    A curled strap of clay, smooth where the fingers drew it out, waiting to
+    go on a pot.
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 0.15

@@ -825,6 +825,8 @@ function faultSentence(f: Fault): string {
       return f.mendable ? `${the} has gone slack.` : `${the} has gone slack, and wants ${cureFor(f)}.`;
     case 'spent':
       return f.mendable ? 'It has given all it had; it wants re-firing.' : `It has given all it had, and re-firing wants ${cureFor(f)}.`;
+    case 'cracked':
+      return f.mendable ? `${the} is cracked; it wants riveting.` : `${the} is cracked, and riveting it wants ${cureFor(f)}.`;
   }
 }
 
@@ -847,7 +849,7 @@ function cureFor(f: Fault): string {
 /** The priced line a mendable fault is quoted under (repair D12). */
 function quoteLine(f: Fault): QuoteRequestLine {
   const key =
-    f.action === 'reforged' ? 'reforge' : f.action === 'tightened' ? 'tighten' : f.action === 'refired' ? 'refire' : 'repair';
+    f.action === 'reforged' ? 'reforge' : f.action === 'tightened' ? 'tighten' : f.action === 'refired' ? 'refire' : f.action === 'riveted' ? 'rivet' : 'repair';
   return { key, label: f.named, qty: 1 };
 }
 

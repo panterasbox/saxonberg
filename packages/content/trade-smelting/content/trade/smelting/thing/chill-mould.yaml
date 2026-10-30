@@ -1,0 +1,20 @@
+# A chill mould (ceramics S12) — ⭐ an IRON ingot mould. Iron draws the heat
+# out of a pour fast, so cast iron run into it freezes before its carbon
+# can come out as graphite: it sets WHITE and glass-hard. The same pig in
+# a sand flask sets grey and soft (`cast-iron`'s `chillsTo`).
+class: /platform/thing/Mould
+data:
+  shortDescription: chill mould
+  keywords: [mould, mold, "chill mould", "iron mould", "chill mold"]
+  register: indefinite
+  longDescription: >-
+    A thick block of cast iron with an oblong trough in its top, blued and
+    scaled from the heat of old pours.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 25
+  interiorBulk: true
+  interiorCapacity: 0.6
+  closure: liquidTight
+  castTemplate: /trade/smelting/thing/ingot
+  reusable: true
+  discipline: founding

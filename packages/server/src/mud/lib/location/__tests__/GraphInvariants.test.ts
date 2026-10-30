@@ -204,6 +204,15 @@ describe('reachability — a place nothing leads to', () => {
     expect(rules(found)).not.toContain('unreachable-from-entrance');
   });
 
+  it('⭐ a room reached only through a `bidirectional` exit declared on ITS row is reachable (the potter\'s shop)', () => {
+    const gate = node('/test/graph/gate', [], { entrance: true });
+    const shop = node('/test/graph/shop', [
+      { dir: 'west', to: '/test/graph/gate', bidirectional: true },
+    ]);
+    const found = new GraphInvariants([gate, shop]).findings();
+    expect(rules(found)).not.toContain('unreachable-from-entrance');
+  });
+
   it('a zoneless node is not held to reachability', () => {
     const loose = node('/test/graph/offstage', [], { zone: null });
     const found = new GraphInvariants([loose]).findings();

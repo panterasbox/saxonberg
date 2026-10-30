@@ -142,7 +142,7 @@ data:
     #
     # ⛔ The history worth keeping: a `dry-turf` row was written to paper
     # over the gap and then DELETED, because the subsystem was right and
-    # the row was wrong — `WaterActivityMixin`'s `_moisture` is
+    # the row was wrong — `MoistureMixin`'s `_moisture` is
     # `persistent` and deliberately **not `authorable`**, and
     # `lint:instanceable` invariant 12 refused the key as one the applier
     # discards silently. Water state is RUNTIME state produced by drying

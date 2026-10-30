@@ -86,7 +86,7 @@ export default class FlattenController extends ManualBuildController<FlattenMode
 
   private static async flatten(cyl: Sheet, giver: Stuff): Promise<void> {
     const mass = cyl.getMass().rawValue();
-    const alloying = cyl.getAlloying().map((e) => ({ ...e }));
+    const alloying = cyl.getMakeup().map((e) => ({ ...e }));
     const where = MixinApi.isContainable(cyl)
       ? cyl.getContainer()
       : MixinApi.isContainer(giver)
@@ -97,7 +97,7 @@ export default class FlattenController extends ManualBuildController<FlattenMode
     });
     pane.setMass(Quantity.of(mass, "kg"));
     pane.setForm("pane");
-    if (MixinApi.isComposition(pane) && alloying.length > 0) pane.setAlloying(alloying);
+    if (MixinApi.isComposition(pane) && alloying.length > 0) pane.setMakeup(alloying);
     if (where && MixinApi.isContainer(where) && MixinApi.isContainable(pane)) {
       ContainmentApi.move(pane as unknown as Stuff & Containable, where as Stuff & Container);
     }

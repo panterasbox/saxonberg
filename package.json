@@ -46,6 +46,7 @@
     "@saxonberg/content-trade-fuel": "workspace:*",
     "@saxonberg/content-trade-glass": "workspace:*",
     "@saxonberg/content-trade-rubber": "workspace:*",
+    "@saxonberg/content-trade-ceramics": "workspace:*",
     "@saxonberg/content-trade-ice": "workspace:*",
     "@saxonberg/content-trade-haulage": "workspace:*",
     "@saxonberg/content-trade-hospitality": "workspace:*",

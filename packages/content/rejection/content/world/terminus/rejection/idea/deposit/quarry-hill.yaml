@@ -19,10 +19,15 @@
 #   0 … −1   drift      the overburden, and the whole lesson: waste first
 #  −1 … −2   clay       fires to a pot; closes `ceramic`
 #  −2 … −6   granite    building stone, the block you cannot lift
-#  −6 … −9   limestone  the smelt's missing flux, and the kiln's raw stone
+#  −6 … −6.5 chalk
+# −6.5 … −6.8 gypsum    soft white sulphate rock; burnt, it is plaster
+#                       (ceramics)
+# −6.8 … −9  limestone  the smelt's missing flux, and the kiln's raw stone
 #  −9 … −10  coal       a hearth and kiln fuel; ruins iron, which is why
 #                       coke had to be invented
-# −10 … −11  sulfur     the CAPROCK a salt dome wears: native sulfur, the
+# −10 … −10.4 fireclay  the coal's SEAT-EARTH: the clay its forest grew in,
+#                       leached pale; the firebrick and the crucible (ceramics)
+# −10.4 … −11 sulfur    the CAPROCK a salt dome wears: native sulfur, the
 #                       rubber cure's agent (rubber build)
 # −11 … −12  halite     rock salt, won as BULK into a vessel
 #      below  granite   country rock, and nothing worth the swing
@@ -47,11 +52,17 @@ data:
     - { toZ: -6, host: /stuff/idea/material/rock/granite, wins: /trade/quarrying/thing/block }
     # ⭐ (cleanliness D25) Chalk at the top of the limestone.
     - { toZ: -6.5, host: /stuff/idea/material/rock/chalk, wins: /trade/quarrying/thing/chalk }
+    # ⭐ (ceramics W3) A thin bed of gypsum between the chalk and the
+    # limestone — the plasterer's rock.
+    - { toZ: -6.8, host: /stuff/idea/material/rock/gypsum, wins: /trade/quarrying/thing/gypsum }
     - { toZ: -9, host: /stuff/idea/material/rock/limestone, wins: /trade/quarrying/thing/limestone }
     - { toZ: -10, host: /stuff/idea/material/mineral/coal, wins: /trade/quarrying/thing/coal }
+    # ⭐ (ceramics W3) Under the coal, its seat-earth: FIRECLAY, won as a
+    # clay lump the band stamps fireclay — the firebrick's raw stuff.
+    - { toZ: -10.4, host: /world/terminus/rejection/idea/material/fireclay, wins: /trade/quarrying/thing/clay }
     # ⭐ The caprock: a salt dome's crust of native sulfur, between the
-    # coal and the salt. A full metre, so a dig that reaches the coal floor
-    # reaches it before the salt (rubber build).
+    # fireclay and the salt, so a dig that reaches the coal floor reaches it
+    # before the salt (rubber build).
     - { toZ: -11, host: /stuff/idea/material/mineral/sulfur, wins: /trade/quarrying/thing/sulfur }
     # ⚠ Won as BULK — the `/idea/material/` infix is what says so, and it is
     # why `cure` runs on salt from a face exactly as on salt from a pan.

@@ -1,0 +1,37 @@
+# large plant pot — the pottery's plant pot (ceramics W4): a bed with one slot,
+# thrown green and fired; the general store buys them (W6).
+class: /trade/ceramics/thing/FlowerPot
+data:
+  shortDescription: large plant pot
+  keywords: [pot, "plant pot", "large plant pot", "flower pot", "large pot", large, planter, "clay pot"]
+  register: indefinite
+  longDescription: >-
+    A clay flower pot with a hole in the bottom.
+  # ⭐ (ceramics W6, D28) The row is the FIRED good: a bare clone is an
+  # import nobody here made — finished, and no maker. `shape` restamps the
+  # clay, its water and its maker, so the potter's own piece is born green.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  # ⭐ (ceramics W6) A working plant pot — the general store's pot line is
+  # this row now, so it holds what the farming pot it replaced held: soil
+  # in its interior, water in its moisture reserve, one plant in its slot.
+  # (Content copied from `/trade/farming/thing/pot/large`, not shared — the
+  # trades do not depend on each other.)
+  interiorBulk: true
+  interiorCapacity: 3
+  reserves:
+    moisture:
+      capacityValue: 1.2
+      currentValue: 1.2
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 1
+      userFacingDetail: planting
+  details:
+    planting:
+      keywords: [soil, planting, hole, rim]
+      description: "A wide drainage hole, and depth enough for a grown plant's roots."
+  mass: 1.4

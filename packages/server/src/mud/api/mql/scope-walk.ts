@@ -400,7 +400,16 @@ export function scoreCandidate(
   const nameLower = candidate.name.toLowerCase();
   if (!nameLower && candidate.keywords.length === 0) return 0;
 
-  if (queryWords.length === 1 && nameLower === queryWords[0]) return 100;
+  // The name IS the query — one word or a phrase (`top end`).
+  if (queryWords.length > 0 && nameLower === queryWords.join(' ')) return 100;
+
+  // ⭐ A query that IS one of the thing's keywords names that thing outright,
+  // above a word that merely appears in some other name: `look clay` at the
+  // pit looked at "the clay pit" — its NAME holds the word, the lumps' does
+  // too, and the tie went to the place (ceramics browser walk). The lump
+  // answers to `clay`; the pit only to "clay pit".
+  const phrase = queryWords.join(' ');
+  if (phrase && candidate.keywords.some((kw) => kw.toLowerCase() === phrase)) return 70;
 
   const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 0);
   if (
@@ -411,10 +420,16 @@ export function scoreCandidate(
     return 60;
   }
 
-  if (nameLower && queryWords.every((w) => nameLower.includes(w))) return 50;
+  if (nameLower && queryWords.every((w) => startsAWord(nameLower, w))) return 50;
 
+  // ⚠ A query word matches where a WORD of the name or a keyword BEGINS,
+  // never in the middle of one. Mid-word substrings scored as partials, and
+  // a partial is the fallback when nothing names the whole phrase — so
+  // `consign "plant pot"`, with no plant pot in hand, put the player's
+  // aether imPLANT up for sale (the ceramics drive C, run 28); `get 1 brick`
+  // took the "brick table" by its keyword's tail.
   const nameMatches = queryWords.filter((qw) =>
-    nameWords.some((nw) => nw.includes(qw))
+    nameWords.some((nw) => nw.startsWith(qw))
   );
   if (nameMatches.length === queryWords.length && queryWords.length > 0) {
     return 40;
@@ -422,7 +437,7 @@ export function scoreCandidate(
 
   if (candidate.keywords.length > 0) {
     const kwMatches = queryWords.filter((qw) =>
-      candidate.keywords.some((kw) => kw.includes(qw))
+      candidate.keywords.some((kw) => startsAWord(kw, qw))
     );
     if (kwMatches.length === queryWords.length) return 25;
     if (kwMatches.length > 0) return 10 * kwMatches.length;
@@ -431,6 +446,11 @@ export function scoreCandidate(
   if (nameMatches.length > 0) return 5 * nameMatches.length;
 
   return 0;
+}
+
+/** Whether `word` begins one of the whitespace-separated words of `text`. */
+function startsAWord(text: string, word: string): boolean {
+  return text.split(/\s+/).some((t) => t.startsWith(word));
 }
 
 /**
@@ -459,22 +479,21 @@ export function scoreCandidates(
   // Without this a plural verb took every partial too — live, `get
   // "latex cup"` picked up the three cups AND the coagulating pan (whose
   // keywords say "latex pan"), because scores only order, they never cut.
-  if (!whole.some(Boolean)) return out;
-  const kept = out.filter((_, i) => whole[i]);
-  // ⭐ And among the whole matches of a phrase of two or more words, one
-  // whose NAME carries every word outranks one that reaches the phrase
-  // only through its keywords, absolutely — the same rule one tier down.
-  // Found live (field population W2): a crop standing in a patch answers
-  // to the patch's words so `look top end wheat` finds it, which made
-  // `look at the top end` ask *"the top end, or a stand of wheat?"* —
-  // the ground the player named, against a thing that merely stands on
-  // it. ⭐ And a ONE-word query too (field population W6): `look at the
-  // middle` asked *"the middle, or a stand of wheat?"* — the patch NAMED
-  // middle against a crop that answers to "middle" only as a keyword.
-  // `look rod` among three rods is still the prompt, and correct: all
-  // three answer by name.
-  if (kept.some((m) => m.score >= NAME_TIER)) {
-    return kept.filter((m) => m.score >= NAME_TIER);
+  const kept = whole.some(Boolean) ? out.filter((_, i) => whole[i]) : out;
+  // ⭐ One ordered cascade (merged: the ceramics build and the cover build's
+  // field population each found half of it). The highest tier present cuts
+  // every tier below it:
+  //   100 — a thing whose NAME is the query outright, one word or a phrase:
+  //         `look at the middle` / `look at the top end` is the patch so
+  //         named, not the stand that answers to the patch's words;
+  //    70 — a thing one of whose KEYWORDS is the query: `look clay` at the
+  //         pit is the lump, not "the clay pit" whose name merely holds it;
+  //  40–60 — a thing whose NAME carries the words: outranks one that
+  //         reaches them only through keywords (`latex` is the cups, not
+  //         the pan whose keyword says "latex pan").
+  // Things NAMED alike still prompt (`look rod` among three rods).
+  for (const floor of [100, 70, NAME_TIER]) {
+    if (kept.some((m) => m.score >= floor)) return kept.filter((m) => m.score >= floor);
   }
   return kept;
 }

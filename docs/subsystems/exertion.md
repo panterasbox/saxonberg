@@ -109,7 +109,13 @@ Inside `exert`, in order:
    halves the shedding), stopped past the wet-bulb ceiling. A shift at
    the anvil in a coat is a wetter, thirstier shift with no wiring of
    its own — and cold air does not stop it (the load sheds through the
-   cold branch too; you sweat shovelling snow).
+   cold branch too; you sweat shovelling snow). ⭐ **It is shed WHILE the
+   work goes on** (ceramics, 2026-10-22): `absorbHeatLoad(joules,
+   durationS)` sweats off what `HEAT_SHED_W` (damped, ceilinged, paid in
+   water) would over the act's own duration and carries only the rest. A
+   durative act is ONE exertion, and before this a nine-hour moulding
+   day's ~6 MJ landed at once — over 20 K of core — and killed a drive's
+   brickmaker in spring fog.
 
 Then, if the `wind` band crossed a threshold either way,
 `refreshConferrals()` re-derives the verb set — so a band-gated verb on

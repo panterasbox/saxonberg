@@ -71,6 +71,26 @@ export default class SmellController extends SingleSenseControllerBase {
     // authored any; otherwise the inherited indistinct refusal fires.
     super.senseLocation(context);
   }
+  /**
+   * ⭐ A thing that gives off an odor is smelled AS that odor. The base
+   * reads the target's prose through the smell filter, and a target with
+   * no smell-tagged prose answered with its whole visual description —
+   * `smell` at a burning clamp described its courses of brick and said
+   * nothing of the coal smoke pouring off it (ceramics browser walk).
+   */
+  protected override senseTarget(target: Stuff, context: CommandContext): void {
+    if (MixinApi.isSmellSource(target)) {
+      const identity = target.getOdorIdentity();
+      if (identity && target.getEmittedConcentration().rawValue() > 0) {
+        MessageApi.scene(context.commandGiver)
+          .topic(this.sceneTopic)
+          .toSelf(Mml.compose`${Mml.thing(target)} smells of ${identity}.`)
+          .send();
+        return;
+      }
+    }
+    super.senseTarget(target, context);
+  }
 }
 
 /**

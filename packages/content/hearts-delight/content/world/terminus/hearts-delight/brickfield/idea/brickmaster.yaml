@@ -1,0 +1,69 @@
+# The brickmaster — ⭐ the brickfield as a business (ceramics S20): a gang
+# of moulders on piece-work and a setter who builds and burns the clamps,
+# on rostered seats, paid out of the house's account; the house's income is
+# the brick stack. It buys breeze (the stack's import line) and digs its own
+# clay and sand.
+#
+# ⭐ `headcount: 3` on the moulders' seat with two rostered advertises a
+# place a player can take — the gang is short a pair of hands.
+class: /platform/idea/Business
+data:
+  name: "the Delight brickfield"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/brickfield/agent/brickmaster
+  call: rota
+  positions:
+    - key: master
+      noun: brickmaster
+      label: on the field
+      wageRate: 6
+      purchases: true
+      fulfills: [brickmaking]
+    - key: moulder
+      noun: moulder
+      label: at the tables
+      wageRate: 4
+      purchases: true
+      fulfills: [brickmaking]
+      headcount: 3
+    - key: setter
+      noun: setter
+      label: at the clamp
+      wageRate: 5
+      purchases: true
+      fulfills: [brickmaking]
+  rosterSlots:
+    - positionKey: master
+      assignee: /world/terminus/hearts-delight/brickfield/agent/brickmaster
+      station: /world/terminus/hearts-delight/brickfield/location/weathering-ground
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
+    - positionKey: moulder
+      assignee: /world/terminus/hearts-delight/brickfield/agent/moulder-a
+      station: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [5, 19] }
+    - positionKey: moulder
+      assignee: /world/terminus/hearts-delight/brickfield/agent/moulder-b
+      station: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [5, 19] }
+    - positionKey: setter
+      assignee: /world/terminus/hearts-delight/brickfield/agent/setter
+      station: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  offstage: /world/terminus/hearts-delight/brickfield/location/offstage
+  operatingLocations:
+    # ⚠ Room FIRST, then the counter (the sawmill's lesson: a sale settles
+    # to the house found at the COUNTER's path, and a supplier is found by
+    # the room its counter stands in).
+    - /world/terminus/hearts-delight/brickfield/location/clamp-ground
+    - /world/terminus/hearts-delight/brickfield/thing/brick-stack
+    - /world/terminus/hearts-delight/brickfield/location/weathering-ground
+    - /world/terminus/hearts-delight/brickfield/location/clay-pit
+    - /world/terminus/hearts-delight/brickfield/location/temper-pit
+    - /world/terminus/hearts-delight/brickfield/location/moulding-shed
+    - /world/terminus/hearts-delight/brickfield/location/hacks

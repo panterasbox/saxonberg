@@ -1,0 +1,29 @@
+# Half-burnt wood — the collier's failure: brands. Charred on the outside,
+# still brown at the heart, heavy where charcoal is light. What a clamp
+# that was starved TOO far (too cool to char through) gives back.
+#
+# ⭐ The first rung of every wood's `char` transition (ceramics ruling A):
+# a material, not a row a burn picks — so a length that went in as hazel
+# comes out as THIS, and it is the same length.
+class: /platform/idea/material/Material
+data:
+  name: half-burnt wood
+  keywords: [brands, brand, "half-burnt wood", half-burnt]
+  appearance: charred on the outside and still brown at the heart
+  density: 520
+  specificHeat: 1600
+  thermalConductivity: 0.12
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 28
+  autoignitionTemperature: 580
+  # It burns, after a fashion — smoky, and nowhere near a metal's heat.
+  heatOfCombustion: 20
+  ashFraction: 0.015
+  hardness: 20
+  toughness: 20
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "fuel", "flammable", "once-living"]
+  composition: []
+  biologicalSource: null

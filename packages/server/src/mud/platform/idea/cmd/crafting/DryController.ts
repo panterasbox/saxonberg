@@ -11,14 +11,14 @@
  *
  * So `dry` does what hanging a ham actually is — it **puts the cut
  * somewhere the air can get at it** — and the drying is then the cut's own
- * clock (`WaterActivityMixin`, reconcile-on-read) against the air the weather
+ * clock (`MoistureMixin`, reconcile-on-read) against the air the weather
  * makes. The recipe row is deleted; the act narrates a **prospect** in
  * words, because the answer is a rate and the player is entitled to know
  * roughly what they are in for before they wait a week for it.
  *
  * ⚠ The drying hurdle still multiplies with salting (`a_w = a_w(material) ·
  * moisture · (1 − solute)`), so a cut that is both keeps better than one
- * that is either — that arithmetic is unchanged and lives in `WaterActivity`.
+ * that is either — that arithmetic is unchanged and lives in `Moisture`.
  *
  * ⭐ The rack is a **declared instrument arg**, and it earns its keep now:
  * a support carries an `airExposure` fraction, so a ham on a slatted rack
@@ -80,10 +80,10 @@ export default class DryController extends CommandController<DryModel> {
     // WET (cleanliness D11: a washed shirt, a cloak out of the rain). A
     // fish, a hide and a turf all qualify the day somebody ships one.
     const wetThing =
-      !MixinApi.isWaterActive(target) &&
+      !MixinApi.isMoist(target) &&
       MixinApi.isWet(target) &&
       target.getWetness() > 0.01;
-    if (!MixinApi.isWaterActive(target) && !wetThing) {
+    if (!MixinApi.isMoist(target) && !wetThing) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -215,7 +215,7 @@ export default class DryController extends CommandController<DryModel> {
    * rainy week makes it wrong and that is the lesson rather than a bug.
    */
   protected prospectFor(target: Stuff, scope: Stuff & Container): string | null {
-    if (!MixinApi.isWaterActive(target)) return null;
+    if (!MixinApi.isMoist(target)) return null;
     const driedAt = this.dial(AppSettingKeys.cureBandDriedAt, 0.5);
     const moisture = target.getMoisture();
     if (moisture <= driedAt) return 'It is dry already.';

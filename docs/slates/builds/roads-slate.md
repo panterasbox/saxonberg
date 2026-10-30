@@ -116,6 +116,7 @@ Improvement changes the floor's material, through the kernel's ground improvemen
 | corduroy | logs laid across mud (forestry) |
 | gravel | quarrying |
 | setts, cobbles | quarrying's shipped `split` |
+| ⭐ paving brick | the ceramics build's **clinker**: the clamp's over-burnt grade, hard and nearly impervious, and the Dutch *klinker* road. It is the buyer for the clamp's worst bricks. |
 | ⭐ macadam | broken stone in graded layers, compacted, **cambered and drained** |
 | tarmac | tar-bound macadam (tar ships) |
 | ⭐ asphalt | **crude's `asphalt` cut — its first consumer** |
@@ -123,7 +124,8 @@ Improvement changes the floor's material, through the kernel's ground improvemen
 
 ⭐ **McAdam's insight was drainage, not stone.** A road fails from water beneath it,
 not from traffic on it; the road is a drainage structure. Water is already a field
-on the ground, so an undrained road that ruins in a wet year is derivable.
+on the ground, so an undrained road that ruins in a wet year is derivable. The
+ceramics build's **drain tiles** are one way a road is drained.
 
 ## 5. Wear, and who pays **[DECIDED — lenses 6 and 7]**
 

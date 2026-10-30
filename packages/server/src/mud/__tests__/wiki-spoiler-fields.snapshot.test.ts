@@ -101,9 +101,10 @@
  *   - `DurableMixin.mends` — a thing's mend history. `look` says *It has
  *     been mended (by Berta)* and `analyze condition` reads the rest by
  *     the appraiser's band; the panel shows what a look already does.
- *   - `CraftedMixin.castDiscipline` — the trade of the mould a thing set
- *     in. It is which trade MENDS it, and the mend's own refusal names
- *     that trade; nothing to hide.
+ *   - `CraftedMixin.castFrom` (it absorbed `CraftedMixin.castDiscipline`,
+ *     review R2-D6) — what a thing was cast from and the trade of the mould
+ *     it set in. It is which trade MENDS it, and the mend's own refusal
+ *     names that trade; nothing to hide.
  *   - ⭐ The question this build was asked to settle — is an un-revealed
  *     heirloom's name a spoiler? — answered with NO new field: a thing's
  *     proper name is `NamedMixin.name` (already level 0, now composed on
@@ -125,6 +126,15 @@
  *   - The relabel: `AlloyedMixin` split into `CompositionMixin.alloying`
  *     and `TemperedMixin.temper`, each keeping its level-1 tag (the
  *     figure is earned by `analyze chemistry`; that it exists is public).
+ * **Ceramics re-plan R1 (one record, by mass).**
+ *   - The relabel: `CompositionMixin.alloying` is `CompositionMixin.makeup`
+ *     and absorbed `ComposedMixin.composition`. It keeps the level-1 tag
+ *     with its name at 0: the fractions of a loaf are as much chemistry
+ *     as the carbon in a bar, and the loaf's nutrition LABEL — the
+ *     reading the grain chain needs legible — derives from them and is
+ *     shown on `look` regardless of this panel.
+ *   - `Material.servingKg` — level 1 (name 0), collapsed like the
+ *     nutrient amounts and toxin doses it is the unit of.
  *   - `IceBlock.iceQuality` — level 0. The grade is what the eye sees:
  *     black ice is clear and white ice is white, and the trade sold by
  *     it in the open.
@@ -176,7 +186,10 @@
  *   - `ComposedMixin.composition` — what a food is made of. This **is**
  *     the nutrition label, which the game deliberately shows. Tagging
  *     it a spoiler would hide the one reading that makes the whole
- *     extraction chain legible.
+ *     extraction chain legible. ⚠ Retired by ceramics re-plan R1: a
+ *     food's parts are `CompositionMixin.makeup` now (below), and the
+ *     LABEL still shows them — it is derived (`NutritionLabel`), not this
+ *     panel's raw field.
  *   - `ThermalDoseMixin` ×4 — how cooked a thing is, plus the gauge's
  *     clock stamps. The dose is already read out as a **band** on
  *     `look`; a panel showing the same fact is not a leak.
@@ -325,6 +338,41 @@
  *   says it out loud: every exit into unpublished ground refuses with a
  *   reason naming the place. A flag whose state is announced at the
  *   door is not hidden knowledge.
+ *
+ * **Ceramics (+54 fields, −1).** ⭐ Eight are spoilers, every one a
+ * MEASURED property of matter, the boiling-point precedent:
+ *   - `Material.heatTransitions` (now `kinetics`) · `vaporizesAboveK`
+ *     · `thermalExpansion` · `ph` · `solubility` · `chillsTo`: what
+ *     a kiln, a crazed glaze, a chill mould or a saturated pan teaches
+ *     you;
+ *   - `Material.leaches` and `filteredTo`, the two whose spoiler IS the
+ *     lesson: the lead in a glaze nobody tells you about, and that a
+ *     filter cleans fouled water but not tainted.
+ *
+ *   Everything else is level 0, because it is printed or felt:
+ *   - the green ware's state (`GreenwareMixin.*`, `greenBurstBy` included,
+ *     which the look line names);
+ *   - a form's numbers (`Form.*`, shown in the throw);
+ *   - a mould's cavity and its pour (`MouldMixin.*`), the press's turns
+ *     (`ScrewPress.*`), coats and flaws (`FacedMixin.*`,
+ *     `TangibleMixin.*`);
+ *   - the bookkeeping clocks (`ThermalMixin.heatWork`, now
+ *     `kineticRecord`, etc.);
+ *   - `Door.closesBehind`, which you see the door do.
+ *
+ *   `Material.crosslinking` folded into `heatTransitions` (one rule fires
+ *   everything).
+ *
+ * **Kinetics (2026-10-28, −4).** `Material.heatTransitions` folded into
+ * `Material.kinetics`, which takes its spoiler level (1, name 0): the
+ * merged rows carry every fired material's temperatures, measured facts a
+ * kiln teaches. `KineticMixin.*` (3) retired into the thermal record,
+ * `ThermalMixin.kineticRecord` (level 0, bookkeeping).
+ *
+ *   ⚠ The scan files a field under the nearest `const` above
+ *   `fieldMeta`, and two ceramics methods declared locals there: every
+ *   Material field read `a.*` until `chilledIn` and `castShrinkage` lost
+ *   them.
 
  */
 

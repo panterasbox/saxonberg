@@ -151,7 +151,7 @@ entries, ~45 appear in work anyone will do.
 | **1 — place** | 10 | `Exitable` · `DoorBearing` · `Sealable`/`Lockable`/`Switchable` · `AmbientLit` · `LightSource` · `Addressable` · `SkyExposed` · `Atmospheric` · `Floor`/`GroundSource` · `Fixture` · `Adornable` |
 | **2 — people** | 12 | `Cast` · `Organism` · `Vitals` · `Slotted`/`Attired`/`Wearable`/`Wieldable` · `Postured`/`Posed` · `Behaved` · `Dispositioned` · `Advancement` · `Staged`/`Costumed` · `BeliefStore` |
 | **3 — commerce** | 12 | `Business` · `Employed` · `Attendant` · `PricedOffer` · `ConsignmentShelf`/`HeldGoodsShelf` · `Stackable` · `Bank` · `CredentialWallet` · `Organization` · `Chattel` · `Estate` |
-| **4 — the craft chain** | 20 | `Tool` · `Crafted` · `Durable` · `Graded` · `Keen` · `ManualBuild` · `Bulkable` · `VesselKind` · `Serviceable` · `Cutlery` · `Composed` · `Comminuting` · `Steepable` · `Thermal` · `Fresh` · `WaterActive` · `Contaminable` · `Palatable` · `NutritionLabel` · `Maturing` |
+| **4 — the craft chain** | 20 | `Tool` · `Crafted` · `Durable` · `Graded` · `Keen` · `ManualBuild` · `Bulkable` · `VesselKind` · `Serviceable` · `Cutlery` · `Composed` · `Comminuting` · `Steepable` · `Thermal` · `Fresh` · `Moist` · `Contaminable` · `Palatable` · `NutritionLabel` · `Maturing` |
 | **5 — the specialties** | ~115 | `Radioactive` · `Alloyed` · `Meltable` · `Feeder` · `Soil` · `Cultivable` · `Hazard` · `Hiding` · `Disguisable` · `Combatant` · `Respiration` · `Metabolic` · `Exerting` · `Mountable`/`Drivable` · `Haulable` · `Scryable` · `Forkable` · `Publisher` · `Registrar` · `Forums` · `Aether` … |
 
 - ⭐ **Tier 0 is where quality lives** — `Detailed` is the only measurable

@@ -5,12 +5,16 @@ data:
   keywords: [sparkling, wine, fizz]
   appearance: "a pale sparkling wine, beading in the glass"
   density: 995
+  # One serving, kg (the unit of its label and its dose): a 150 ml glass at 995 kg/m³.
+  servingKg: 0.14925
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
   nutrients: ["water"]
   toxicity:
     - { type: alcohol, amount: 12 }
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.2
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "sparkling", "carbonated"]
   composition: []
   biologicalSource: null

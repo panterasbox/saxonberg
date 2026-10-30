@@ -86,6 +86,21 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   is the heat-threshold path (spread + tests); `ignite()` is the
   deliberate `ignite`-verb path (a hand-flame; the wetness penalty must be
   below the manual-drying headroom, else "too wet to catch").
+  ⭐ The formula is the BODY's (`TangibleMixin.getWetIgnitionPenaltyK`, and
+  `getIgnitionPointK` = autoignition + it): `stoke`, `ignite` and a hot
+  pour (`canReceiveAtK`) read the one number, so a soaked board survives a
+  pour that would light a dry one (ceramics review R2-B1). ⚠ A firing
+  chamber catching its contents (`Burner.catchContents`) reads the DRY
+  point on purpose: a piece that has sat at that heat in a drawing chamber
+  has driven its water off, and the thermal model has no boiling plateau
+  to show it.
+- **Incandescence is one scale** (`FireApi.incandescenceOf(K)`): dull red
+  from Draper's point ~800 K, cherry ~950, orange ~1150, yellow ~1300,
+  white ~1500. A kiln's spy-hole (`analyze temperature`), a glass gather on
+  the pipe and a lit burner's glow seen in the dark (`look`, by the
+  burner's own held heat) all speak it; only a light with no hot body (a
+  lamp, a worked flame) is worded by its authored colour temperature
+  (ceramics review R2-B3).
 - **Consumption end-state (D4).** Fuel drains → the material transforms to its
   `charMaterialPath` (ash/char, embers cooling via passive `Thermal`); a
   **structural** object (a door, a bridge) burns through and destructs
@@ -366,35 +381,101 @@ prose** (*"the firebox swept and ready"*) and their own class docstring
 
 ---
 
-## ⭐ `fire` — a chamber you load, and the charge decides the product (extraction W4)
-
-> ⭐ **`fire … for <duration>` (rubber build, 2026-10).** A firing holds
-> for the stated game-time (the clock's grammar), else its recipe's
-> `holdS`, else a minute; a long hold is sealed down, so its effort is a
-> minute's. A charge loaded into a MOULD standing in the chamber comes out
-> in the mould's shape (`mould.castInto`); a feedstock whose material
-> carries a `crosslinking` spec cures by its agent fraction, heat and time
-> — see [rubber.md](./rubber.md).
+## ⭐⭐ `fire` — a chamber you hold at heat; the MATERIAL decides (ceramics M1)
 
 `platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded on
-**`BurnerMixin.commandContributions.peers`** beside the five already there.
-`FireController` is the **platform's**, and nothing in it names lime, clay or
-glass.
+**`BurnerMixin.commandContributions.peers`**. Since the ceramics build (W0)
+it is **`fire [<kiln>] [--draught <word>] [for <hold>]`** and it decides
+nothing about the charge:
 
-⭐⭐ **The recipes do the work.** The controller reads what is in the chamber,
-asks the catalogue which recipe's input slots that charge satisfies, and runs
-that one. So `FireController.test.ts` authors **its own material and its own
-firing row** and asserts a bare `Oven` fires it — which is the actual claim,
-and it is why a new firing is a row rather than a branch. The ratio is
-authored too (`burn-lime` 2:1, `fire-pot` 1:1), so a charge of five yields two
-and leaves one.
+1. `--draught wide|open|half|low|banked` (an OPTION, so it can never swallow
+   the kiln — `fire kiln`, `burn kiln` and `fire in retort` bind as before)
+   sets the air;
+2. it refuses `no-charge` and `not-lit` (⚠ *unlit is COLD, not cool*);
+3. it stamps `kineticRecord.firedBy` on every body in the chamber (and one level
+   into a mould standing in it), and holds the chamber at heat — a sealed-down, watched step on the
+   attention slot, a minute's effort however long the hold;
+4. at the end the chamber SETTLES (`Burner.settleFiring(by)`): each body
+   reads itself, the rungs its heat-work reached are applied by its own
+   material, casts handed to moulds are awaited, and the Disciplines those
+   rungs earned are credited to the firer; the hold is stamped as a dry heat
+   (`recordHeat`) on every Soilable from the ACTUAL peak and time above,
+   off each body's record.
 
-⚠⚠ **`fire` cannot go through `CraftingApi.craft`, and the reason generalizes:**
-a craft picks its inputs out of the actor's **reach**, and a firing consumes
-what is **in the chamber**. Routed otherwise, a player could fire a kiln off
-the limestone in their own arms. `SmeltController.runCharge` made the same
-decision for the same reason and is the precedent; what is new here is that
-*which* transform runs is a **row** rather than a branch.
+⭐⭐⭐ **Firing is ONE rule, and it is not in this verb.** Every body that has
+been hot carries a heat history (`ThermalMixin.kineticRecord`, see
+[thermal.md](./thermal.md) § Kinetics), and every material heat changes says
+how on its own row (`Material.kinetics`, evaluated by
+`lib/material/Kinetics.ts` — the same evaluator staling runs). Limestone becomes quicklime at 56 % of its
+mass; clay becomes terracotta, then earthenware, then stoneware, by three
+changes with their own reference heats; wood in a STARVED chamber chars
+and its tar goes to whatever takes volatiles; compounded rubber cures by its
+own sulfur fraction. A lime lump in a burning barn and one in a limekiln are
+the same event. There is no recipe path: the six firing rows (`burn-lime`,
+`fire-pot`, the two glass batches, the two retort charges, `vulcanize`) and
+`remelt-cullet`/`charcoal` are retired, and `FireController.test.ts` holds
+that census by name.
+
+⚠ The old controller's shape census (`requiresHeatK > 0`, item slots, no
+tools) also matched eight rows other verbs run (`smelt`'s charges, the
+smoker's cures, the chandler's wax) — a kiln could have "fired" a smoke-cure.
+The one rule removes that hazard with the path.
+
+### ⭐ A flame needs air — one gate, two arms
+
+`FireLogic.mediumBurns(stuff)` is the one answer to *can a flame burn here*,
+called from BOTH `igniteImpl` (a struck light, refused `no-air`) and
+`tryAutoigniteImpl` (the heat-threshold path). Its chamber arm (ceramics R3):
+a thing whose immediate container is a `Burner` burns only while that
+burner's `completeness()` ≥ `fire.air.flamingCompleteness` (0.6). Below it a
+combustible shut in the chamber cannot catch, and a material whose transition
+is pyrolysis (`requiresStarvedAir`) chars instead — the SAME dial, read by the
+heat-work reconcile. At or above it, `Burner.catchContents()` (from the fire
+tick and `settleFiring`) puts anything in the chamber hot enough to catch onto
+the bed, where the burner's own path burns it and leaves its ash in the grate.
+So the collier's lost burn is ordinary combustion. ⚠ The medium arm (nothing
+burns under water) is underwater's and lands inside the same function.
+
+### The clamp and the retort — charcoal is the wood's transition (ceramics ruling A)
+
+`trade-fuel`'s two chambers are rows on the one rule. Every wood row
+(`base-library/…/wood/*.yaml`) authors a `char` transition —
+`requiresStarvedAir`, 650 K reference, keeping a quarter of its mass, wood
+tar 0.08 L/kg as its volatile, a ladder of `half-burnt-wood` (degree 0.08,
+*half-burnt*) then `charcoal` (0.8, *charred*) — and coal a `coke` one with
+coal tar and coal gas. The lengths of cordwood BECOME charcoal; nothing is
+minted. Charcoal, coke, ash, the tars, pitch and coal gas live in
+`base-library` now (R4: commons name only commons).
+
+- **The clamp** (`CharcoalPit`, `Container(Firebox)`) is a heap at ~720 K
+  whose row draught (0.45 → completeness ≈ 0.53) keeps it STARVED; its row
+  lays 40 kg of hazel down the chimney, which `char` lights. At 0.45 hazel
+  chars through in about two and a half days; at 0.3 the heap runs ~30 K
+  cooler and three days only reach brands; opened past ≈ 0.51 a flame can
+  burn in it and the wood catches — ash in the grate. `char` sets the
+  draught, lights, stamps `firedBy`, holds a three-day watch and settles;
+  the threshold table (`outcomeFor`, `yieldFor`) and the three template
+  rows it minted from are gone.
+- **The retort** is SHUT: its row draught 0.3 (≈ 0.35) keeps the charge
+  starved while the firebox still holds ≈ 1260 K on charcoal, so `fire in
+  retort for 3 hours` chars wood and cokes coal, and the transition's
+  volatiles go to `Retort.receiveVolatiles` (the kernel's `Burner` hook,
+  B105) → the condenser on its head → the gasometer on the condenser; what
+  none of them took, the thermal transition puts into the air. `draught wide` on a retort is a
+  retort fired open: the charge catches.
+
+### The burner's hooks (ceramics D3, D19)
+
+- `heldTemperatureKFor(body)` — the heat this fire holds for one body
+  (default `getHeldTemperatureK()`); `Thermal.heatSourceK()` asks it, so a
+  clamp can be hotter in its fire channels than at its skin.
+- `chamberVapors` — what vaporized in the chamber (`Material.vaporizesAboveK`:
+  salt at ~1350 K), cleared when the fire goes out; a transition's `vapor:`
+  map reads it at a rung.
+- `settleFiring(by)` — the hold's end.
+
+⚠⚠ **A firing still cannot go through `CraftingApi.craft`:** a craft picks
+inputs from the actor's reach; a firing reads what is in the chamber.
 
 ### `platform/thing/Kiln.ts` is deleted
 
@@ -463,6 +544,61 @@ has a 1 kg bed, and nothing under a kilo in the realm was fuel until the
 sweep added a roll of sacking. Offered to
 [metal-chain-slate](../slates/builds/metal-chain-slate.md), which owns
 the fuel chain, as a **stocking** question rather than a mechanism one.
+
+## ⭐ Linings — a chamber furnace's part that wears (ceramics D19, W5)
+
+A chamber furnace is lined with firebrick, and the lining is an assembly
+**part line**, not a stat: `Oven`, `SmeltingFurnace` and `Retort` compose
+`AssembledMixin(DurableMixin(…))` (⛔ not `Firebox` — a lamp, a campfire and
+a clamp have no lining). A row authors the line in its `bill`:
+
+```yaml
+bill:
+  parts:
+    - { part: lining, template: /stuff/thing/firebrick, count: 8, role: wear }
+  joints:
+    - { key: lining, method: dry-laid, members: [lining] }
+```
+
+Shipped counts: the smelting furnace 8, the limekiln 24, the retort 12, the
+commons `Kiln` (the Rejection glasshouse's) 30. The member row is the
+COMMONS `/stuff/thing/firebrick` (generic-objects), so packs that do not
+depend on the ceramics trade can name it; the potter's made firebrick
+`extends:` it and fits the same line by row lineage.
+
+- **Health** — `BurnerMixin.liningHealth()` = `(count − failed − (1 −
+  condition)) ÷ count` over the `lining` line, or `null` with no lining.
+- **The ceiling** — `heatCeilingFactor()` = `0.6 + 0.4 × health` (`1` with
+  no lining) multiplies the vessel ceiling in `getHeldTemperatureK()`: a
+  thinning lining holds less heat, so a worn smelting furnace stops reaching
+  the bloom's heat before it stops lighting.
+- **Wear** — `wearLining(heldK, heldS)`: `fire.lining.wearPerHour` bricks'
+  worth an hour at the lining's own limit (its material's melting point),
+  scaling as `(held ÷ limit)³` — a bread oven barely touches its bricks, a
+  smelting furnace eats them. Worn brick by brick through the shipped
+  `wearLine`, so `failed` counts bricks. `fire` wears it at settle; `smelt`
+  wears it per run.
+- **Burnt through** — below `fire.lining.burntBelow` (0.15) `ignite` refuses
+  `lining-burnt-through`, naming the cure.
+- **Relining** — `fit lining to <furnace>` (or `fit firebrick to …`) with
+  firebrick in reach: the shipped replace arm. ⭐ A LINE word names the part
+  by the line (`FitRequest.line`): the logic takes whatever in reach is the
+  line's row or `extends:` it, and renews as many bricks as burnt through.
+  The `dry-laid` joint row names `masonry`, so relining credits masonry.
+- **The keeper** — `relines` (trade-ceramics brain): on shift, below
+  `ceramics.lining.relineBelow` (0.4) the keeper walks an authored way to
+  the counter, buys what burnt through on the house's card, walks back and
+  fits — every act a literal verb. The Rejection glassblower (glasshouse
+  kiln), smelterman (furnace), collier (retort) and storekeeper (limekiln)
+  carry it; their rooms are `PersistentLocale`s (the quarry pit is already
+  persistable), so a lining's wear survives a restart.
+- ⚠ **Wear runs only where firebrick is sold.** A furnace row with a bill
+  wears wherever it is propped; Terminus's oilworks props the same retort
+  row with no firebrick line and no keeper (a seam for the works build).
+
+**Crucibles** wear too: `SmeltController` wears a crucible
+`ceramics.crucible.wearPerMelt` (0.12, about eight melts) per melt and
+cracks it at broken (a `crack` flaw — it holds nothing).
 
 ## ⭐⭐ An oven on a pipe (the drilling build, 2026-10)
 

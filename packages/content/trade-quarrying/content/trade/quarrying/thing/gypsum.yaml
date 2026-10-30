@@ -1,0 +1,13 @@
+# A lump of gypsum — the soft white rock under the chalk. Burnt gently it is
+# plaster (ceramics W7); here it is what the hill gives up at −6.5 m.
+class: /trade/quarrying/thing/Lump
+data:
+  keywords: [gypsum, alabaster, lump, stone]
+  shortDescription: lump of gypsum
+  register: indefinite
+  longDescription: >-
+    A soft white stone that glitters faintly where it broke, and takes a
+    thumbnail's scratch.
+  _materialPath: /stuff/idea/material/rock/gypsum
+  mass: 8
+  quantity: 1

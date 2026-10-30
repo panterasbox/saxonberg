@@ -1,5 +1,5 @@
 /**
- * The hot-work window — the glow bands a cooling gather reads through, and
+ * The hot-work window — the work bands a cooling gather reads through, and
  * the loss when it goes cold: converted to cullet (full mass, its iron
  * kept — the glass comes back one step greener, a bad blow costs fuel not
  * material). The gob → shape → crack orchestration and the live window
@@ -18,6 +18,7 @@ import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
+import { FireApi } from "@saxonberg/server/mud/api/fire";
 import {
   makeStuff,
   makeStuffAtPath,
@@ -51,7 +52,7 @@ function gather(tempK: number): Gather {
   g.setMass(Quantity.of(0.4, "kg"));
   g.setStampedTemperatureK(tempK);
   g.setLastAmbientK(tempK);
-  g.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+  g.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
   return g;
 }
 
@@ -68,12 +69,19 @@ describe("the hot-work window", () => {
     StuffApi.clearAll();
   });
 
-  it("glowBand reads the gather down through the bands as it cools", () => {
+  it("workBand reads the gather down through the bands as it cools", () => {
     // floor = 0.75 × 1300 = 975 K.
-    expect(gather(1450).glowBand()).toBe("white"); // ≥ floor + 400
-    expect(gather(1200).glowBand()).toBe("yellow"); // ≥ floor + 200
-    expect(gather(1050).glowBand()).toBe("orange"); // ≥ floor + 50
-    expect(gather(980).glowBand()).toBe("going"); // just above the floor
+    expect(gather(1450).workBand()).toBe("runs"); // ≥ floor + 400
+    expect(gather(1200).workBand()).toBe("soft"); // ≥ floor + 200
+    expect(gather(1050).workBand()).toBe("stiffening"); // ≥ floor + 50
+    expect(gather(980).workBand()).toBe("setting"); // just above the floor
+  });
+
+  it("⭐ its colour is the one incandescence scale, not its band (R2-B3)", () => {
+    // A gather that runs at 1450 K glows YELLOW, as a kiln at 1450 K does;
+    // one stiffening at 1050 K is cherry red, not orange.
+    expect(FireApi.incandescenceOf(gather(1450).getTemperature().rawValue())).toBe("yellow");
+    expect(FireApi.incandescenceOf(gather(1050).getTemperature().rawValue())).toBe("cherry red");
   });
 
   it("loseGather converts a gather to cullet — full mass, its iron KEPT", async () => {

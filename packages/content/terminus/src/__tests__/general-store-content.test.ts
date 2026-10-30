@@ -67,6 +67,9 @@ const FISHING_DIR = fileURLToPath(
 const CARPENTRY_DIR = fileURLToPath(
   new URL("../../../trade-carpentry/content/trade/carpentry/", import.meta.url),
 );
+const CERAMICS_DIR = fileURLToPath(
+  new URL("../../../trade-ceramics/content/trade/ceramics/", import.meta.url),
+);
 const FORESTRY_DIR = fileURLToPath(
   new URL("../../../trade-forestry/content/trade/forestry/", import.meta.url),
 );
@@ -139,6 +142,8 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/trade/medicine/", dir: () => MEDICINE_DIR },
   { prefix: "/trade/carpentry/", dir: () => CARPENTRY_DIR },
+  // The pottery's plant pots and honey jar (ceramics W6).
+  { prefix: "/trade/ceramics/", dir: () => CERAMICS_DIR },
   // The billhook (repair W5) — the forestry pack's tool, sold here.
   { prefix: "/trade/forestry/", dir: () => FORESTRY_DIR },
   // ⭐ The beekeeper's kit. It is stocked HERE rather than in the valley
@@ -381,6 +386,9 @@ describe("general-store content integrity", () => {
     // with a bulk interior for soil, a seed a discrete Thing naming the
     // plant it grows into. Both stocked from ordinary `/obj/` templates.
     "/platform/thing/PlantPot",
+    // ⭐ The pottery's flower pots and clay vessels (ceramics W6).
+    "/trade/ceramics/thing/FlowerPot",
+    "/trade/ceramics/thing/ClayVessel",
     "/platform/thing/Seed",
     // The mana line (TPA reform W5): a cell is a Charged + Slottable
     // shell — a wand that fits a bay instead of a hand — and the lamp is
@@ -499,8 +507,10 @@ describe("general-store content integrity", () => {
     const supplied = lines.filter((l) => l.from?.supplier);
     expect(supplied.length).toBeGreaterThanOrEqual(2);
     const DISTRIBUTOR = "/world/terminus/counting-houses/distributor/idea/business";
+    // ⭐ The pottery supplies its own lines (ceramics W6, local first).
+    const POTTERY = "/world/terminus/hearts-delight/brickfield/idea/pottery";
     for (const line of supplied) {
-      expect(line.from?.supplier).toBe(DISTRIBUTOR);
+      expect([DISTRIBUTOR, POTTERY]).toContain(line.from?.supplier);
       expect(line.pricing).toBe("stocking");
       expect(prices[line.itemTemplatePath], `${line.itemTemplatePath} has no base`).toBeGreaterThan(0);
     }

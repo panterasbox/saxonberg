@@ -307,9 +307,16 @@ export function packBrainShapeOk(source: string): boolean {
 // inherited from another pack's class read as an orphan — 25 findings the
 // reader invented.
 // Both landed (silk merged rubber, 2026-10-19): 362 − 1.
+// ⭐ 361 → 360 (ceramics W3): `earth/clay`'s dead `chemistry: null` is gone —
+// and with it the copy two `extends:` children (alluvial clay, fireclay)
+// would have inherited.
 // 361 → 353 (the potash build, 2026-10-19): `chemistry: null` came off
 // the ten wood rows, five of which the brash rows `extends:`.
-const ORPHAN_DATA_KEY_CEILING = 353;
+// Both landed (ceramics merged potash, 2026-10-22): 353 − 1.
+// 352 → 350 (ceramics re-plan R1, W-R1a, 2026-10-28): measured at 350
+// when the composition record became `makeup`; the two were not isolated
+// between this wave and the forming refactor just before it.
+const ORPHAN_DATA_KEY_CEILING = 350;
 
 
 function main(): void {

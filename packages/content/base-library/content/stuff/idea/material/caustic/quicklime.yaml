@@ -17,6 +17,8 @@
 class: /platform/idea/material/Material
 data:
   name: quicklime
+  # What a burnt lump reads as (ceramics M1 — a rung restamps the prose).
+  appearance: chalk-white quicklime, startlingly light
   description: >-
     A white, thirsty powder that cakes where it touches damp. It takes the
     water out of whatever it lands on, and skin is mostly water.

@@ -72,6 +72,8 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // ⭐ The INGEST payload, not the stored one: whatever the matter
     // has spoiled into rides along with it (see `Freshness.withDose`).
     const payload = new Freshness(fromSlot).ingestPayload();
+    // The whole host BEFORE the draught — what a blend's makeup is read against.
+    const hostKg = fromSlot.getMassKg();
     // …and, for an IDENTIFIABLE substance, capture how it looked to this
     // drinker before they swallowed it. Taken here on purpose:
     // swallowing an unidentified draught may teach you what it was
@@ -122,7 +124,7 @@ export default class DrinkController extends CommandController<DrinkModel> {
       return;
     }
 
-    BulkableApi.ingest(giver, material, result.applied, payload);
+    BulkableApi.ingest(giver, material, result.applied, payload, hostKg);
 
     const drunk = seenAs
       ? Mml.compose`You drink ${seenAs}.`

@@ -1,0 +1,23 @@
+# A pit firing — pots buried in a scoop of earth with dung, sawdust and
+# wood, lit and smothered (ceramics D15). The oldest kiln there is: a clamp
+# for pots, smoky and reducing, uneven by where each pot lay.
+class: /trade/ceramics/thing/BrickClamp
+data:
+  shortDescription: firing pit
+  keywords: [pit, firing, smother]
+  register: indefinite
+  longDescription: >-
+    A shallow scoop in the ground ringed with blackened stones, ashy at the
+    bottom, for burying pots in fuel and firing them under turf.
+  mass: 500
+  fixedInPlace: true
+  burnTemperatureK: 1250
+  bellowsMultiplier: 1.0
+  draught: 0.45
+  lit: false
+  emittedIntensity: 80
+  emittedColorTemperature: 1500
+  maxBurnPowerW: 3000
+  fuelCapacityKg: 300
+  fuelBed:
+    /stuff/idea/material/wood/oak: 120

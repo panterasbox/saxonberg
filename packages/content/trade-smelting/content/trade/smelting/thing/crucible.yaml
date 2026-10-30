@@ -14,5 +14,5 @@ data:
   interiorBulk: true
   interiorCapacity: 1.5
   closure: liquidTight
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/refractory
   mass: 4

@@ -1,0 +1,34 @@
+# The brickmaster — ⭐ holds the field's judgment seat (ceramics S20): which
+# heaps are weathered enough to temper, when the hacks are dry enough to
+# set, whether the weather will hold for a burn. The gang does the motion.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Hal Brennick
+  keywords: [hal, brennick, brickmaster, master]
+  alternateNames: ["hal", "brennick"]
+  pronouns: he
+  shortDescription: brickmaster with red clay to the knee
+  register: definite
+  longDescription: >-
+    A thick-set man with forearms like hams, his boots and breeches red with
+    clay to the knee, who picks up a crumb of clay from every heap he passes
+    and rubs it between finger and thumb as though it were tobacco.
+  archetype: proprietor
+  prologue:
+    - "Has made the Delight's bricks for twenty years, and his father before him."
+    - "Will not temper a heap the winter has not been at."
+  competence:
+    - { discipline: brickmaking, asserting: expert }
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "rubs a crumb of clay between finger and thumb, and nods at the heap." }
+          - { kind: free, value: "kicks the edge of a heap to see how it breaks." }
+          - { kind: say, value: "Dig it in the autumn, let the frost at it all winter, and it'll mould like butter in the spring." }

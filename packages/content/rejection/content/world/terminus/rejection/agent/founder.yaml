@@ -1,0 +1,35 @@
+# The founder (ceramics W7, D29) — ⭐ the one who gives the smelter's metal a
+# shape. He rams the flasks, cuts the risers, burns the plaster and pours
+# the bells, and he reads a melt by its colour and a flask by its feel
+# before he pours — which is the whole of what the founding discipline
+# buys: knowing in advance what the physics will do.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  keywords: [founder, moulder, caster]
+  shortDescription: founder
+  register: definite
+  longDescription: >-
+    A broad, slow-moving man with black sand in every crease of his
+    knuckles and a leather apron burnt through in a spatter at the knee.
+    He weighs a flask in his hands before he will pour into it.
+  archetype: founder
+  prologue:
+    - "Has never poured into a damp flask twice."
+  competence:
+    - { discipline: founding, asserting: proficient }
+    - { discipline: smelting, asserting: competent }
+  dispositions:
+    - { disposition: patience, valence: 75 }
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "squeezes a handful of moulding sand, opens his fist, and watches whether it holds." }
+          - { kind: free, value: "says, \"Wet sand and hot metal. One of them is going to leave in a hurry.\"" }
+          - { kind: free, value: "says, \"Pour it too cool and a thin thing freezes before it fills. Heat in hand is time in the mould.\"" }
+          - { kind: free, value: "taps the pattern bell with a fingernail and listens until it stops." }

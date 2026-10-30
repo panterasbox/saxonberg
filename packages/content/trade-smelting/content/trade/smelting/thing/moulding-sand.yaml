@@ -1,0 +1,13 @@
+# Moulding sand (ceramics W7) — quarry sand with a little clay through it,
+# what a flask is rammed with and what it leaves when it is broken off a
+# cast: a heap to sieve, temper and ram again.
+class: /platform/thing/Thing
+data:
+  shortDescription: heap of moulding sand
+  keywords: [sand, "moulding sand", "molding sand", heap]
+  register: indefinite
+  longDescription: >-
+    A heap of dark, fine sand, burnt black where it lay against the metal,
+    that still holds a shape when you squeeze it.
+  _materialPath: /stuff/idea/material/earth/sand
+  mass: 20

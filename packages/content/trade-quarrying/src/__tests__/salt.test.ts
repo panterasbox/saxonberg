@@ -84,11 +84,17 @@ describe('the brine profile is wired to the water it evaporates', () => {
 });
 
 describe('⭐⭐ all three sources end in the SAME salt', () => {
-  it('the pan', () => {
+  it('the pan — ⭐ the brine CRYSTALLIZES to it (ceramics W8)', () => {
+    // The profile takes the water; what sets is the sea water's own
+    // `crystallizesTo` product, and the liquor left is bittern.
+    const seaWater = data(`${BASE}content/stuff/idea/material/bulk/salt-water.yaml`);
+    const into = seaWater.crystallizesTo as { product: string; residue: string };
+    expect(into.product).toBe(SALT_MATERIAL);
+    expect(into.residue).toBe('/stuff/idea/material/bulk/bittern');
     const profile = data(
       `${PACK}content/trade/quarrying/idea/maturation/brine.yaml`,
     );
-    expect(profile.productMaterial).toBe(SALT_MATERIAL);
+    expect(profile.productMaterial).toBe('/stuff/idea/material/bulk/salt-water');
   });
 
   it('the face — the halite band `wins:` the material, as BULK', () => {
@@ -120,23 +126,17 @@ describe('⭐⭐ all three sources end in the SAME salt', () => {
 });
 
 describe('the two apparatuses are ROWS, and neither is a class', () => {
-  it('⭐ the pan is a `Vat` standing open — a covered pan does not work', () => {
+  it('⭐ the pan is a `SaltPan` — maturing, and the mold its salt sets in', () => {
     const pan = row(`${PACK}content/trade/quarrying/thing/salt-pan.yaml`);
-    expect(pan.class).toBe('/platform/thing/Vat');
+    // ⭐ (ceramics W8) A `SaltPan`: the kernel `Mould` keeps the crop and
+    // drains the bittern below; `MaturingMixin` takes the water.
+    expect(pan.class).toBe('/trade/quarrying/thing/SaltPan');
     const d = (pan.data ?? {}) as Record<string, unknown>;
-    expect(d.open).toBe(true);
-    // ⛔ This asserted `'none'`, which is not a `ClosureLevel` — and the
-    // fire build is what caught it. `setClosure` compared an unknown
-    // rung against `CLOSURE_ORDER`, got `NaN`, and `NaN < 0` is false,
-    // so **the pan retained its brine as though lidded** — in a row
-    // whose entire mechanism is that a covered pan does not work. The
-    // rung that means "standing open" is `open`, and `setClosure` throws
-    // on anything outside the vocabulary now.
-    //
-    // ⭐ (sugar) And `open` turned out to be the wrong rung too: a closure
-    // says how well the WALLS hold, and `open` is a sieve — the brine ran
-    // out of the pan. The pan is `liquidTight`; standing open is the lid's
-    // business, which is `open: true` above.
+    expect(d.castTemplate).toBe('/stuff/thing/salt-crystals');
+    // ⛔ `closure` is LIQUID RETENTION, not the lid: it said `none` (not a
+    // rung; it retained by accident of a NaN), then `open` (a rung: a
+    // SIEVE — the brine ran through to the floor). A pan with no lid holds
+    // liquid: `liquidTight`.
     expect(d.closure).toBe('liquidTight');
     expect(d.interiorBulk).toBe(true);
   });

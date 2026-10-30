@@ -29,7 +29,7 @@ function glass(ironFrac: number, carbonFrac = 0): Glass {
   const g = makeStuff(() => new Glass());
   const entries = [{ materialPath: IRON, fraction: ironFrac }];
   if (carbonFrac > 0) entries.push({ materialPath: CARBON, fraction: carbonFrac });
-  g.setAlloying(entries);
+  g.setMakeup(entries);
   return g;
 }
 
@@ -73,9 +73,9 @@ describe("TintedMixin — iron is the colour", () => {
 
   it("a thin sheet reads PALER than a thick bottle of the same glass", () => {
     const bottle = makeStuff(() => new Glass());
-    bottle.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+    bottle.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
     const sheet = makeStuff(() => new ThinGlass());
-    sheet.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+    sheet.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
     // Same glass, half the optical path ⇒ more light through.
     expect(sheet.getColour().lightness()).toBeGreaterThan(
       bottle.getColour().lightness(),

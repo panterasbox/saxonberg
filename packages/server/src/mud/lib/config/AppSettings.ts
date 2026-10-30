@@ -1435,7 +1435,7 @@ export const AppSettingKeys = {
 
   /* ────────────────────────── cure (water state) ────────────────────────── */
   /**
-   * Curing — the per-instance water state (`WaterActivityMixin`): `moisture` and
+   * Curing — the per-instance water state (`MoistureMixin`): `moisture` and
    * `solute`, which multiply the Material's tabulated `a_w` into the
    * effective one the growth law reads. Drying reverses toward the ambient
    * equilibrium; curing never does. The bands below are PRESENTATION
@@ -1457,6 +1457,17 @@ export const AppSettingKeys = {
    * not heaped.
    */
   cureGroundExposure: "cure.groundExposure",
+  /**
+   * Curing — a solid that dries faster than it stands CHECKS: dryness
+   * gained per game-hour × the host's drying crack risk past this leaves a
+   * drying crack. One rule for green clay and for timber.
+   */
+  cureCrackRate: "cure.crackRate",
+  /**
+   * Curing — fresh water a thing in the open takes back per mm of rain, as
+   * a fraction of its moisture, before its exposure scales it.
+   */
+  cureRewetPerMm: "cure.rewetPerMm",
   /** Curing — the relative humidity (%) assumed where nothing authors one. */
   cureAmbientHumidity: "cure.ambientHumidity",
   /** Curing — moisture at/below which a thing reads thoroughly dried. */
@@ -1848,6 +1859,93 @@ export const AppSettingKeys = {
    * {@link atmosphereBreathableAirShare}, so a person in the room is warned
    * before the fire goes out. */
   fireAirSmotherAirShare: "fire.air.smotherAirShare",
+  /** Fire — ⭐ the burner completeness at or above which a FLAME can burn
+   * in a chamber (ceramics R3, "a flame needs air"). Below it a combustible
+   * shut in that chamber cannot catch, and a material whose transition is
+   * pyrolysis (`requiresStarvedAir`) chars instead. One dial, two readers:
+   * `FireLogic.mediumBurns` and the heat-work reconcile. */
+  fireAirFlamingCompleteness: "fire.air.flamingCompleteness",
+  /** Thermal — the dose-weighted completeness below which a firing was
+   * REDUCING (ceramics D3): a rung takes its `reducing` twin. */
+  thermalHeatWorkReducingBelow: "thermal.heatWork.reducingBelow",
+  /** Thermal — ⭐ how much of the wet-bulb gap a wet body's evaporation
+   * carries away (ceramics M8): the weeping jar, the wet shirt. */
+  thermalEvaporationEfficiency: "thermal.evaporation.efficiency",
+  /** Thermal — litres per hour per litre held that a porous unglazed
+   * vessel weeps through its body, per unit of porosity (ceramics D6). */
+  thermalEvaporationSeepLPerHourPerL: "thermal.evaporation.seepLPerHourPerL",
+  /** Faces — the thickness a dipped coat is laid at, m (ceramics D5). */
+  facesDipThicknessM: "faces.dipThicknessM",
+  /** Faces — a coat shrinking this much more than its body (1/K) crazes. */
+  facesCrazeMismatch: "faces.crazeMismatch",
+  /** Faces — a face this soiled when a coat is laid crawls at the fuse. */
+  facesCrawlDirt: "faces.crawlDirt",
+  /** Faces — a body at or under this open porosity holds water bare. */
+  facesHoldsWaterBelow: "faces.holdsWaterBelow",
+  /** Faces — the share of a fill's aromas a porous inside face keeps. */
+  facesAromaRetained: "faces.aromaRetained",
+  /** Faces — liters per hour per liter held, per unit of porosity, that
+   * run THROUGH a porous body into a vessel it stands on or in — the
+   * ceramic water filter (ceramics S9, W8). A free flow, not a weep. */
+  facesFilterLPerHourPerL: "faces.filterLPerHourPerL",
+  /** Impact — ⭐ the share of a brittle body's toughness × volume that a
+   * blow must exceed to break it, with volume weighted by itself again
+   * (a thicker wall is disproportionately stronger) (ceramics M5). */
+  impactFractureShare: "impact.fractureShare",
+  /** Impact — the reference volume (m³) the wall-thickness weighting is
+   * taken against. */
+  impactReferenceVolumeM3: "impact.referenceVolumeM3",
+  /** Impact — a drop's fall height, m (`drop` delivers m·g·h). */
+  impactDropHeightM: "impact.dropHeightM",
+  /** Impact — the hardness (MPa) at or above which a body RINGS when it is
+   * sound; softer reads dead (a place brick). */
+  impactRingsAboveHardness: "impact.ringsAboveHardness",
+  /** Thermal shock — the strain a body takes before it cracks, as the
+   * product α·ΔT (ceramics D9): ΔT_tolerated = this ÷ α. */
+  impactShockStrain: "impact.shockStrain",
+  /** Thermal shock — the wall's own response time, s: the rate a body
+   * tolerates is ΔT_tolerated ÷ this. */
+  impactShockWallS: "impact.shockWallS",
+  /** Green ware — the dryness (0 just thrown … 1 as dry as the air allows)
+   * at which a green piece is leather-hard: trim, join, stamp (ceramics M4). */
+  greenLeatherAt: "green.leatherAt",
+  /** Green ware — the dryness at which it is bone-dry: ready for the kiln. */
+  greenBoneDryAt: "green.boneDryAt",
+  /** Green ware — a rise in wetness this large between looks slumps it. */
+  greenSlumpWetting: "green.slumpWetting",
+  /** Fire — ⭐ a lining's wear per hour of firing at its own refractory
+   * limit, in bricks' worth (ceramics D19); it scales as (held ÷ limit)³. */
+  fireLiningWearPerHour: "fire.lining.wearPerHour",
+  /** Fire — a lining whose health has fallen to this is burnt through: the
+   * chamber refuses to light until it is relined. */
+  fireLiningBurntBelow: "fire.lining.burntBelow",
+  /** Green ware — two pieces joined with slip whose dryness differs by more
+   * than this crack where they meet as they dry (ceramics W4). */
+  greenJoinMismatch: "green.joinMismatch",
+  /** Mould — ⭐ Chvorinov's misrun (ceramics S14): the superheat (K) a
+   * pour needs per unit of the cast's area-to-volume, in K·cm, against a
+   * sand mould; a mould that draws heat faster (its effusivity ÷ sand's)
+   * needs proportionally more. */
+  mouldMisrunKcm: "mould.misrunKcm",
+  /** Mould — the thermal effusivity √(kρc) of moulding sand, the
+   * reference a mould's own chill is taken against. */
+  mouldSandEffusivity: "mould.sandEffusivity",
+  /** Mould — a mould wetter than this BLOWS under a hot pour: the steam
+   * ruins the cast and throws metal at the pourer (ceramics S12). */
+  mouldBlowWetness: "mould.blowWetness",
+  /** Mould — what a blown mould throws at the pourer's hands, on the heat
+   * channel's contact scale (`Touch.contactBurnEnergy`, 0.5 … 1; the key
+   * keeps its historical `J`). */
+  mouldBlowBurnJ: "mould.blowBurnJ",
+  /** Mould — wetness a freshly rammed sand mould holds (green sand). */
+  mouldRammedWetness: "mould.rammedWetness",
+  /** Mould — newtons per kg a dry plastic charge resists pressing with;
+   * scaled by (1 − moisture)², so wet clay gives easily (ceramics S16). */
+  mouldPressNPerKg: "mould.pressNPerKg",
+  /** Mould — beyond the drain set's reference load, moisture falls as
+   * load^(−this): a screw press makes a firmer cheese than a stone. */
+  mouldOverpressExponent: "mould.overpressExponent",
+
   /** Fire — air changes per hour a scope gets per open EXTERIOR opening (a
    * doorway onto the outside). */
   fireAirAchPerOpening: "fire.air.achPerOpening",
@@ -2084,6 +2182,19 @@ export const AppSettingKeys = {
   /** Crafting — kilograms of ice an iced drink takes from the reachable
    * ice bin at the fill (the bar's scoop). */
   craftingIceKg: "crafting.iceKg",
+  /** Crafting — the furthest any one bulk slot's mass fraction may sit
+   * from the recipe's and the build still BE that recipe (ceramics re-plan
+   * R1-D2); a third of it is free, two thirds cost a band, the rest two. */
+  craftingProportionTolerance: "crafting.proportion.tolerance",
+  /** Crafting — the smallest share of a recipe's measured mass a build may
+   * hold and still be that recipe: a half measure is a martini, a thimble
+   * is a taste (ceramics re-plan R1-D2). */
+  craftingProportionMinScale: "crafting.proportion.minScale",
+  /** Nutrition — litres of a material that make one serving when its row
+   * authors no `servingKg` (at the material's density). The unit every
+   * per-serving label amount and toxin dose is per (ceramics re-plan
+   * R1-D1); read through `MaterialApi.servingKgOf`. */
+  nutritionServingLitres: "nutrition.servingLitres",
 
   /*
    * Wiki — the render budget (docs/subsystems/wiki.md).

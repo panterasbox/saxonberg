@@ -1,0 +1,42 @@
+# Tainted water — ⭐⭐ river water below a PERSISTENT outfall: what is in it
+# is DISSOLVED (ceramics W8, S9; watershed's contamination by kind).
+#
+# Fouled water's twin and its opposite. A reach whose dirt is mostly
+# organic or sediment (a town's sewer) gives `fouled-water`: boil it, or
+# strain it through a stoneware filter, and you have water. A reach whose
+# dirt is mostly persistent or nutrient (a smelter's tailings, a works'
+# run-off, a field's nitrate) gives THIS — and it names neither arrow:
+#
+#  - no `purifiedByBoiling`: boiling a lead-fouled river gives you hot
+#    lead-fouled river (and a little more of it per liter left);
+#  - no `filteredTo`: the lead is an ion, smaller than any pore a potter
+#    can fire, and it goes through the filter as it went in.
+#
+# That silence is how a player learns the difference between the two kinds
+# of dirty water — and why a town below a smelter needs a different water
+# source rather than a filter.
+#
+# ⭐ Nothing announces it either: it looks like water, answers to `water`,
+# and only the gauge on the reach says what is upstream.
+class: /platform/idea/material/Material
+data:
+  name: tainted-water
+  keywords: [water]
+  appearance: clear water
+  density: 1000
+  thermalConductivity: 0.6
+  specificHeat: 4186
+  electricalConductivity: 0.05
+  meltingPoint: 273
+  latentHeatOfFusion: 334000
+  boilingPoint: 373
+  latentHeatOfVaporization: 2260000
+  edibility: true
+  nutrients: [water]
+  # The shipped toxin route: lead, the persistent contaminant the lead
+  # glaze's leach already doses with (`leaches` on a lead glaze).
+  toxicity:
+    - { type: lead-poisoning, amount: 6 }
+  tags: [liquid, water, beverage, drinkable]
+  composition: []
+  biologicalSource: null

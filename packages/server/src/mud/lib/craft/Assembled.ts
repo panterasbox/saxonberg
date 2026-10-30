@@ -153,6 +153,13 @@ export interface PartLine {
   /** It dried in place and moved: a member failed for that reason. */
   warped?: boolean;
   /**
+   * ⭐ A SEAT never filled — a thrown jug's handle before anybody fits one
+   * (ceramics drive). Its members count as failed (so `fit` takes them
+   * first), but it is not worn through or broken: the look says the piece
+   * WANTS it. Cleared the moment a member is fitted.
+   */
+  empty?: boolean;
+  /**
    * A flat-sawn member that has dried — its face is hollow across the
    * width. Harmless in a pegged frame; a joint that needs its members
    * flat (glue) seats short of it.
@@ -235,6 +242,8 @@ export interface GaugeRecord {
 export interface Assembled {
   /** True when this thing has a bill or a parts record — it IS made of parts. */
   getBill(): Bill | null;
+  /** Set (or clear — `null`, a thing of one piece) the bill. */
+  setBill(value: unknown): void;
   /** The parts record (materialized from the bill first, for a found thing). */
   getParts(): PartLine[];
   getJoints(): JointState[];
@@ -303,7 +312,7 @@ export interface Assembled {
    * and the latest mend that took a name (`MendRecord.nameLost`) was
    * this hand's — Narsil's rule, the reforger names the re-made blade.
    */
-  canBeNamedBy(handPath: string): boolean;
+  canBeNamedBy(handPath: string, by?: Stuff | null): boolean;
   /** Append a mend to one line's record. */
   recordLineMend(part: string, record: MendRecord): void;
   /**
@@ -458,19 +467,30 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
     return mat ? `${q} ${grain}${mat} ${noun}` : `${q} ${grain}${noun}`;
   };
   const sentences: string[] = [];
-  const made = GrammarApi.joinList(lines.map(describe));
-  const joints = host.getJoints();
+  const present = lines.filter((l) => !l.empty);
+  const wanted = lines.filter((l) => l.empty);
+  const made = GrammarApi.joinList(present.map(describe));
+  // A joint to a seat nobody has filled is not made yet.
+  const joints = host.getJoints().filter((j) => !j.members.some((m) => wanted.some((w) => w.part === m)));
   const methods = [
     ...new Set(
       joints.map((j) => jointRow(j.method)?.label ?? j.method).filter((m) => m),
     ),
   ];
-  sentences.push(
-    GrammarApi.cap(
-      `It is made of ${made}${methods.length > 0 ? `, ${GrammarApi.joinList(methods)}` : ''}.`,
-    ),
-  );
+  // Nothing seated yet (a jug whose one line is the handle it wants) has no
+  // "made of" to say — the line read "It is made of ." (ceramics, run 19).
+  if (present.length > 0) {
+    sentences.push(
+      GrammarApi.cap(
+        `It is made of ${made}${methods.length > 0 ? `, ${GrammarApi.joinList(methods)}` : ''}.`,
+      ),
+    );
+  }
+  for (const l of wanted) {
+    sentences.push(GrammarApi.cap(`It wants ${GrammarApi.articleFor(l.part)} ${l.part}.`));
+  }
   for (const l of host.failedLines()) {
+    if (l.empty) continue;
     const word = failureWordFor(host, l);
     sentences.push(
       l.count === 1
@@ -882,6 +902,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       // worn of the sound ones (the set's gauge is their average).
       const fromFailed = Math.min(take, line.failed);
       line.failed -= fromFailed;
+      // A filled seat is no longer empty.
+      if (take > 0) delete line.empty;
       line.condition = (line.condition * (n - take) + take * fittedCondition) / n;
       if (n === 1 || take === n) {
         // The whole line is the new member — it IS what was fitted now,
@@ -1034,7 +1056,13 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       MqlSubscriptionApi.fireFieldChange(this, 'name', before, value);
     }
 
-    canBeNamedBy(handPath: string): boolean {
+    canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
+      // ⭐ Whatever a rule inside this one says (the maker's, ceramics W2) —
+      // or the reforge rule: the hand whose mend took the name (repair D18).
+      const inner = (Base.prototype as {
+        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
+      }).canBeNamedBy;
+      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
       if (!handPath || this.getName()) return false;
       return this.latestNameLoss()?.by === handPath;
     }

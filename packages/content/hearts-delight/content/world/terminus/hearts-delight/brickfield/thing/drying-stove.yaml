@@ -1,0 +1,31 @@
+# The potter's drying stove — ⭐ "warm from the kiln at its back" was the
+# shop's prose and nothing ever made it true: the kiln is cold between
+# firings, the door stands open, and a 23 cm brick shell follows the night.
+# Green ware on the boards froze and burst on an early-spring night (the
+# ceramics browser walk; drive C, run 31). A real pottery kept a stove going
+# through the cold months for exactly this, and so does this one: a space
+# heater (`Hearth`), lit with a charge, and the potter keeps it fed with
+# cordwood off the stack by the door (`stokes`, told which fire and what
+# fuel — the kiln and its charcoal are hers to fire on her own schedule).
+class: /platform/thing/Hearth
+data:
+  shortDescription: drying stove
+  keywords: [stove, "drying stove", fire]
+  register: definite
+  longDescription: >
+    A squat iron stove against the kiln's brick flank, its pipe going up
+    into the kiln's own chimney. The boards nearest it hold the wettest
+    ware, and the floor round it is dry and dusty.
+  lit: true
+  # ⭐ Sized to the shop: a 6 m brick shop with its doors shut loses about
+  # 360 W/K, so 4 kW holds it ~11 K above the air outside — a spring or
+  # autumn frost does not reach the boards; a hard winter still does.
+  heatOutputW: 4000
+  emittedIntensity: 20
+  emittedColorTemperature: 1800
+  maxBurnPowerW: 7000
+  fuelCapacityKg: 30
+  fuelBed:
+    /stuff/idea/material/wood/hazel: 30
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 90

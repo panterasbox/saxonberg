@@ -535,22 +535,12 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
-  // ⭐ What a substance does by itself over time, at a rate set by
-  // temperature — sucrose inverting, starch staling (inert until its
-  // Material declares `kinetics`). Not spoilage: that is a population.
-  Kinetic: 'KineticMixin',
   // ⭐ Reduce matter, then separate it — the grinding primitive. A mill
   // takes grain and yields flour plus bran; a stamp mill takes ore and
   // yields concentrate plus tailings, on the same three fields. Isn't a
   // recipe (there is no residue COUNT — the split is continuous) and
   // isn't a tool capability (it is what the instrument DOES with one).
   Comminuting: 'ComminutingMixin',
-  // ⭐ What a discrete food is MADE OF — the same `BlendPart[]` a blend
-  // carries on its payload, so a chain that ends in something you hold
-  // does not lose what a chain ending in something you pour keeps. Isn't
-  // a recipe (that is `Crafted.recipe`) and isn't nutrition (that is read
-  // off these parts); it is the ingredient list itself.
-  Composed: 'ComposedMixin',
   // ⭐ The DONENESS gauge — how much cooking a food has had, integrated
   // over time and temperature. Not the spoilage gauge and not re-based on
   // it: the kill's Arrhenius and browning's decade interval are different
@@ -561,7 +551,7 @@ export const Mixins = {
   // move a thing's effective water activity off its Material's tabulated
   // base. NOT the spoilage gauge: this is the matter, that is the
   // population living in it.
-  WaterActive: 'WaterActivityMixin',
+  Moist: 'MoistureMixin',
   // ⭐ The per-instance MINOR CONSTITUENTS of a piece of metal — what is
   // dissolved in THIS bar, in the same {materialPath, fraction}
   // vocabulary Material.composition speaks. A Material is a singleton,
@@ -574,6 +564,10 @@ export const Mixins = {
   // dissolved in a piece (true of a glass or ice lump, which is why the
   // generic Casting composes it alone); TEMPER is what a heat treatment
   // left (true of metal only). Alloyed is the two together.
+  // ⭐ One record since ceramics re-plan R1: `makeup`, by mass fraction,
+  // is ALSO what a discrete food is made of (it absorbed `Composed`), so
+  // Provision composes it — a loaf's bran and a bar's carbon are the same
+  // record read the same way.
   Composition: 'CompositionMixin',
   Tempered: 'TemperedMixin',
   // ⭐ STORAGE (storage-and-ice D1): a holder whose contents are a LEDGER
@@ -641,6 +635,7 @@ export const Mixins = {
   // A physical thing that wears out with use (the condition/wear gauge).
   // Composed by tools, weapons, and armor alike — durability is not "tool".
   Durable: 'DurableMixin',
+  Integrity: 'IntegrityMixin',
   /** ⭐ Made of parts that keep their identity (assembly D3). */
   Assembled: 'AssembledMixin',
   /** ⭐ Converted wood that dries at its species' rate (assembly D2). */
@@ -715,6 +710,37 @@ export const Mixins = {
   // meltingPoint (a latent-heat plateau), flowing to a Bulkable liquid.
   // Driven by heat (the host reconcilePhase), not fire-specific.
   Meltable: 'MeltableMixin',
+  // ⭐ Combining is one rule (ceramics R1) — "what is put in me becomes one
+  // product, its makeup the inputs' by mass". The vessel names the product.
+  Compounding: 'CompoundingMixin',
+  // ⭐ A dip bath (ceramics review) — "I plan the dip of what is put in me":
+  // the dip pot, a glaze tub, a pot of molten glass.
+  DipBath: 'DipBathMixin',
+  // ⭐ The crafting act protocols (ceramics review, 2026-10-28) — each the
+  // thing an act is asked of, declared as what it IS:
+  // "I plan a knead of what is in me" — a trough, a tub, a temper pit.
+  KneadVessel: 'KneadVesselMixin',
+  // "A hand can shape me" — a lump of clay coiled into a pot.
+  Shapeable: 'ShapeableMixin',
+  // "I plan being carved" — green ware, a mould's riser, pattern stock.
+  Carvable: 'CarvableMixin',
+  // "A pattern pressed into me leaves something" — green ware, a sand flask.
+  Impressible: 'ImpressibleMixin',
+  // "I am worked by turning" — a screw press.
+  Turnable: 'TurnableMixin',
+  // "My charge is worked by hand, not built" — a butter churn.
+  HandWorked: 'HandWorkedMixin',
+  // "A blank struck on me takes my shape" — a striking die.
+  StrikingDie: 'StrikingDieMixin',
+  // ⭐ Forming (ceramics D14/D16, made general in review) — "I shape a plastic
+  // mass into a form a word names": the wheel, the brick table, the blowpipe.
+  Forming: 'FormingMixin',
+  // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
+  // inside; each carries coats, outermost first". On every Good.
+  Faced: 'FacedMixin',
+  // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
+  // whether I can be trimmed, fired, or ruined by the weather".
+  Greenware: 'GreenwareMixin',
   // Burner — a Combustible-fuelled sustained heat source (forge/kiln/oven/
   // campfire): pinned hot while lit + fuelled, bellows-boosted, heats the
   // Meltables in its scope. Generalizes the Campfire pin.
@@ -974,6 +1000,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SteepableMixin: "{} isn't something you can steep",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
+  IntegrityMixin: "{} isn't something that can crack or break",
   AssembledMixin: "{} isn't made of parts",
   SeasoningMixin: "{} doesn't season",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
@@ -996,6 +1023,18 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Stacks, charges, marks, labels.
   StackableMixin: "{} doesn't come in stacks",
+  CompoundingMixin: "{} isn't something you compound in",
+  DipBathMixin: "{} isn't something you can dip things in",
+  KneadVesselMixin: "{} isn't something you could knead in",
+  ShapeableMixin: "{} won't take a shape in your hands",
+  CarvableMixin: "{} isn't something you could carve",
+  ImpressibleMixin: "{} is not soft enough to take an impression",
+  TurnableMixin: "{} has nothing to turn",
+  HandWorkedMixin: "{} isn't something you work by hand",
+  StrikingDieMixin: "{} isn't a die you could strike a blank on",
+  FormingMixin: "{} isn't something you shape things on",
+  FacedMixin: "{} has no face you could lay a coat on",
+  GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the
   // floor is just a lump.

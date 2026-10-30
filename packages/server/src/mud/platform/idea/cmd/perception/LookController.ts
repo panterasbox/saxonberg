@@ -41,6 +41,7 @@ import { CardApi } from '../../../../api/card';
 import { BulkableApi } from '../../../../api/bulk';
 import { EmploymentApi } from '../../../../api/employment';
 import { PerceptionApi } from '../../../../api/perception';
+import { FireApi } from '../../../../api/fire';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
 import type Exit from '../../../../lib/boundary/Exit';
@@ -260,6 +261,12 @@ export default class LookController extends CommandController<LookModel> {
       const perceivedDark = MixinApi.isPerceiver(actor)
         ? actor.learnSurroundings(location)
         : [];
+      // ⭐ …and a fire is seen in the dark you cannot see BY: the light of a
+      // burning clamp next door reaches this place too faintly to light it,
+      // and is still a glow on the night (the ceramics drive A, run 31 —
+      // the requirement's "at night the clamp glows from the next place").
+      const glow = this.glowInTheDark(location);
+      if (glow) dark = Mml.compose`${dark}\n${glow}`;
       if (hasExits) {
         const exitsLine = this.formatExits(perceivedDark);
         if (exitsLine) dark = Mml.compose`${dark}\n${exitsLine}`;
@@ -491,6 +498,41 @@ export default class LookController extends CommandController<LookModel> {
    * to today's behaviour — describe the room — which is the right
    * failure: a perception gap must never take `look` down.
    */
+  /**
+   * ⭐ One sentence for a light seen in the dark, or `null`: a fire is seen
+   * in the dark you cannot see BY. The model finds it
+   * (`VisionModality.brightestFireNear`); this words it — its colour by its
+   * own temperature (a fire's incandescence), and the way it lies.
+   */
+  private glowInTheDark(location: Stuff): Mml | null {
+    if (!MixinApi.isContainer(location)) return null;
+    let fire: ReturnType<VisionModality['brightestFireNear']>;
+    try {
+      const vision = PerceptionApi.modalityByName('vision') as VisionModality;
+      fire = vision.brightestFireNear(location as unknown as Stuff & Container);
+    } catch {
+      return null;
+    }
+    if (fire === null) return null;
+    // ⭐ A hot body glows on the one incandescence scale (R2-B3); a light
+    // with no hot body to read (a lamp, a worked flame) by its authored
+    // colour.
+    const glow = fire.heatK === null ? null : FireApi.incandescenceOf(fire.heatK);
+    const k = fire.colorTemperatureK;
+    const hue =
+      glow !== null
+        ? `${glow === 'orange' ? 'an' : 'a'} ${glow} glow`
+        : k === null
+          ? 'a glow'
+          : k < 2000
+            ? 'a dull red glow'
+            : k < 3000
+              ? 'an orange glow'
+              : 'a pale glow';
+    const where = fire.direction ? ` to the ${fire.direction}` : '';
+    return Mml.compose`You can see ${hue}${where}.`;
+  }
+
   private perceivedBandAt(actor: Stuff, location: Stuff): LightBand | null {
     if (!MixinApi.isSensor(actor) || !MixinApi.isPerception(actor)) {
       return null;

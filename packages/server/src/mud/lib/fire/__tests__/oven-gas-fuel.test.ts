@@ -26,7 +26,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Oven from '../../../platform/thing/Oven';
 import Flask from '../../../platform/thing/Flask';
 import Firebox from '../Firebox';
@@ -164,6 +164,28 @@ describe('⚠ the three conditions, and each refuses something real', () => {
     ContainmentApi.move(pail as unknown as Stuff & Containable, o as unknown as Stuff & Placing, 'on');
     // Still the bed. ⚠ The dangerous failure would be `0`.
     expect(o.fuelRemaining()).toBeCloseTo(before, 6);
+  });
+
+  it('⚠⚠ an unsealed pot is refused on its CLOSURE, before its contents are read', () => {
+    // A pot's contents reconcile on read, and a pot on this fire reads the
+    // fire's heat — which reads this slot. A salt pan on the brine hearth
+    // ran that loop on every light read in the room, and `fire` never
+    // answered (ceramics drive D 32). The closure is a field.
+    const o = oven();
+    const pail = makeStuff(() => new Receptacle());
+    (pail as unknown as { interiorBulk: boolean }).interiorBulk = true;
+    (pail as unknown as { interiorCapacity: Quantity<'L'> | null }).interiorCapacity =
+      Quantity.of(10, 'L');
+    pail.getBulk('interior').setMaterial(water());
+    pail.getBulk('interior').setAmount(Quantity.of(8, 'L'));
+    ContainmentApi.move(pail as unknown as Stuff & Containable, o as unknown as Stuff & Placing, 'on');
+    const read = vi.spyOn(Receptacle.prototype, 'getBulkMaterialPath');
+    try {
+      o.fuelRemaining();
+      expect(read).not.toHaveBeenCalled();
+    } finally {
+      read.mockRestore();
+    }
   });
 
   it('an UNSEALED vessel of gas is not a tank — a gas wants a sealed vessel, shut', () => {

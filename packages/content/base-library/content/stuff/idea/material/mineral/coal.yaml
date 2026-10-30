@@ -39,3 +39,17 @@ data:
   composition: []
   chemistry: null
   biologicalSource: null
+  # ⭐⭐ Coke is coal's transition (ceramics ruling A): held hot in a
+  # starved chamber (a shut retort) the volatiles come off as tar and gas
+  # and the carbon stays. Given air, it simply burns.
+  kinetics:
+    - key: coke
+      rate: { referenceK: 1100, zK: 60, fullDoseS: 14400 }
+      massRetained: 0.7
+      requiresStarvedAir: true
+      volatiles:
+        - { material: /stuff/idea/material/bulk/coal-tar, litresPerKg: 0.04 }
+        - { material: /stuff/idea/material/gas/coal-gas, litresPerKg: 300 }
+      ladder:
+        - { atDegree: 0.8, becomes: /stuff/idea/material/organic/coke, describes: coked }
+      discipline: colliery

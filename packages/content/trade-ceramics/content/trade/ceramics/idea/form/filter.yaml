@@ -1,0 +1,11 @@
+# The `filter` form (ceramics S9, W8): an open cylinder of about two liters,
+# walled thin so water runs through it — the water filter's candle. Thrown
+# of a porous body and left unglazed, it strains; glazed, it is a jar.
+class: /platform/idea/Form
+data:
+  key: filter
+  formClass: open
+  capacityL: 2
+  product: /trade/ceramics/thing/water-filter
+  greenScale: 1.0
+  discipline: pottery

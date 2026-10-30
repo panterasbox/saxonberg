@@ -73,6 +73,9 @@ const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/tr
 // kit, washing soda and naphtha, fuller's earth and chalk.
 const CHANDLERY_DIR = fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url));
 const FUEL_DIR = fileURLToPath(new URL("../../../trade-fuel/content/trade/fuel/", import.meta.url));
+// ⭐ (ceramics W6) The pottery's goods — rows and the ClayVessel / FlowerPot classes.
+const CERAMICS_DIR = fileURLToPath(new URL("../../../trade-ceramics/content/trade/ceramics/", import.meta.url));
+const CERAMICS_SRC = fileURLToPath(new URL("../../../trade-ceramics/src", import.meta.url));
 const QUARRYING_DIR = fileURLToPath(new URL("../../../trade-quarrying/content/trade/quarrying/", import.meta.url));
 const RUBBER_DIR = fileURLToPath(new URL("../../../trade-rubber/content/trade/rubber/", import.meta.url));
 const APICULTURE_DIR = fileURLToPath(new URL("../../../trade-apiculture/content/trade/apiculture/", import.meta.url));
@@ -98,8 +101,11 @@ const TORCH = "/world/terminus/general-store/thing/torch";
  * pots (and two seeds growing the same plant) drifting apart.
  */
 const GARDEN_LINES = [
-  "/trade/farming/thing/pot/small",
-  "/trade/farming/thing/pot/large",
+  // ⭐ (ceramics W6) The Delight pottery's pots, supplied with an import
+  // backstop — with the pottery's shelf not loaded here, the standup
+  // imports them to par.
+  "/trade/ceramics/thing/plant-pot-small",
+  "/trade/ceramics/thing/plant-pot-large",
   "/stuff/thing/vessel/soil-sack",
   "/trade/farming/thing/seed/snake-plant",
   // The produce packets (farming A5) — the ten grown families' seeds.
@@ -161,7 +167,8 @@ const APIARY_LINES = [
   // what it eats.
   "/trade/apiculture/thing/sacking",
   "/trade/apiculture/thing/extractor",
-  "/trade/apiculture/thing/honey-jar",
+  // ⭐ (ceramics W6) The pottery's empty jar, where the jar of honey was.
+  "/trade/ceramics/thing/jar",
   "/stuff/thing/clothes/bee-veil",
   "/stuff/thing/clothes/work-gloves",
   "/trade/apiculture/thing/nuc",
@@ -291,6 +298,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/chandlery/", dir: () => CHANDLERY_DIR },
   { prefix: "/trade/fuel/", dir: () => FUEL_DIR },
   { prefix: "/trade/quarrying/", dir: () => QUARRYING_DIR },
+  { prefix: "/trade/ceramics/", dir: () => CERAMICS_DIR },
   // ⭐ The rubber works' boots, gloves and coat (rubber build).
   { prefix: "/trade/rubber/", dir: () => RUBBER_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
@@ -412,6 +420,7 @@ describe("general-store standup (real seeds)", () => {
     ModuleApi.registerPackSource(TEXTILES_SRC, "/trade/textiles");
     ModuleApi.registerPackSource(DYEING_SRC, "/trade/dyeing");
     ModuleApi.registerPackSource(GLASS_SRC, "/trade/glass");
+    ModuleApi.registerPackSource(CERAMICS_SRC, "/trade/ceramics");
     // ⚠⚠ The FABRIC forms — ⭐ **read from the ROWS now, not written out
     // here.** `woven` / `knit` / `felted` are registered at boot by
     // `FabricCatalogue` from `base-library`'s rows, and this harness
@@ -514,8 +523,8 @@ describe("general-store standup (real seeds)", () => {
     // The large pot is the first purchase a player has a REASON to make, so
     // it must stay affordable against the 20-credit arrival stipend while
     // costing more than the small pot it replaces.
-    const small = counter.priceFor("/trade/farming/thing/pot/small")!;
-    const large = counter.priceFor("/trade/farming/thing/pot/large")!;
+    const small = counter.priceFor("/trade/ceramics/thing/plant-pot-small")!;
+    const large = counter.priceFor("/trade/ceramics/thing/plant-pot-large")!;
     expect(large).toBeGreaterThan(small);
     expect(large).toBeLessThan(20);
   });

@@ -45,8 +45,14 @@ function dyestuffs(): DyestuffRow[] {
 
 function mordantKeys(): string[] {
   const dir = join(DYEING, "idea", "material");
+  // ⚠ The rows TAGGED `mordant`: the folder also holds the alum liquor
+  // the alum is crystallized out of (ceramics W8), which is not a mordant.
   return readdirSync(dir)
     .filter((f) => f.endsWith(".yaml"))
+    .filter((f) => {
+      const doc = YAML.parse(readFileSync(join(dir, f), "utf-8")) as { data?: { tags?: string[] } };
+      return (doc.data?.tags ?? []).includes("mordant");
+    })
     .map((f) => f.replace(/\.yaml$/, ""));
 }
 

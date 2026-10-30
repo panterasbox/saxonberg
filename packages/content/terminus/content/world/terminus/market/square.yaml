@@ -86,9 +86,15 @@ data:
     # ⭐ The fish stall — a second consignment counter (fishing D11),
     # kept by the fishmonger on the market's roster.
     - /world/terminus/market/thing/fish-stall
+    # ⭐ (ceramics W6, D28) The potter's stall — the Delight pottery's ware
+    # in town, supplied by the pottery and backstopped by imports.
+    - /world/terminus/market/thing/potters-stall
     # ⭐⭐ The standpipe on the city main (the pump build) — the tap that
     # goes off when the intake pump does, and says so.
     - /world/terminus/market/thing/standpipe
+    # ⭐ (ceramics S19) The curfew bell, hung at the corner — anyone rings it,
+    # and it is heard in the streets round about.
+    - /world/terminus/market/thing/curfew-bell
   cast:
     - /world/terminus/market/agent/fishmonger
   details:

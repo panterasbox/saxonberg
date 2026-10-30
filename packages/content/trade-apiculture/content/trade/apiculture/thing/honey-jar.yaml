@@ -12,7 +12,14 @@ data:
   longDescription: >-
     A squat glazed jar with a waxed cloth over the mouth, tied down at the
     neck.
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/earthenware
   interiorCapacity: 1
-  mass: 0.6
+  mass: 0.8
   open: false
+  # ⭐ (ceramics S1, M6) A fused lead glaze — glossy, and (M7) it gives
+  # lead to anything acid kept in it, which nothing about it says.
+  coats:
+    inside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }
+    outside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }

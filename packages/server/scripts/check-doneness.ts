@@ -13,9 +13,10 @@
  *
  * **(b) A bread row that cannot stale.** Staling is the bread MATERIAL's
  * kinetics (a `kinetics:` change keyed `staling`), run by the kernel's
- * `KineticMixin` (on `Provision`) since the sugar build retired baking's
- * `StalingMixin`. Either half missing fails silently: a class that does
- * not reach the mixin, or a bread material with no staling change, spoils
+ * `ThermalMixin` (on `Provision`) since the sugar build retired baking's
+ * `StalingMixin` and the ceramics build folded `KineticMixin` into it.
+ * Either half missing fails silently: a class that does not reach the
+ * mixin, or a bread material with no staling change, spoils
  * (the `FreshnessMixin` path) and never goes stale, with nothing anywhere
  * to say so. This is `lint:perishable`'s failure shape
  * one subsystem over, and `lint:perishable` cannot see it: the row DOES
@@ -69,7 +70,7 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 const UNCEILINGED_RECIPE_CEILING = 0;
 
 /** The mixin a bread row's class must reach (half b). */
-const STALING_MIXIN = 'KineticMixin';
+const STALING_MIXIN = 'ThermalMixin';
 /** The kinetics key a bread material must declare (half b). */
 const STALING_KEY = 'staling';
 

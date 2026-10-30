@@ -1,0 +1,10 @@
+# The `bowl` form (ceramics S4): a wide open vessel.
+class: /platform/idea/Form
+data:
+  key: bowl
+  formClass: open
+  capacityL: 0.8
+  proportion: wide
+  product: /trade/ceramics/thing/bowl
+  greenScale: 1.0
+  discipline: pottery

@@ -72,6 +72,32 @@ export type TransferAmount =
   | { kind: 'measure'; litres: number; mode: 'strict' | 'lenient' };
 
 /**
+ * ⭐ HOW the matter moves, when it is not simply poured.
+ *
+ *   - `{ through: 'pores' }` — through a porous wall (a ceramic water
+ *     filter): what is DISSOLVED passes (toxins, aromas, solids, salt), what
+ *     is SUSPENDED stays behind (the microbial load, pathogens, blood), and
+ *     the liquid may arrive as a different material (`arrivesAs` — the
+ *     wall's `Material.filteredTo`: fouled river water comes through as
+ *     water). Everything else is the ordinary pour.
+ *   - `{ through: 'set' }` — out of a setting solid (a mould's drainings:
+ *     whey off the curd in a hoop, molasses out of a sugar cone) — the
+ *     inverse of `'pores'`: what a filter holds back, a set lets through.
+ *     The SUSPENDED passes (the microbial load and pathogens, at the pool's
+ *     concentration — a population lives in the liquid phase too, which is
+ *     why a crock of whey is a living starter), the DISSOLVED passes
+ *     (toxins, aromas, hardness), and so does whose it is and who made it.
+ *     The pool's IDENTITY does not (its recipe, makeup, appearance, age,
+ *     grade and treatment are the solid's), nor its water state or its
+ *     dissolved-solids strength — the set is what took those out — so the
+ *     drainings arrive as `arrivesAs`, whole, at that material's own.
+ */
+export type TransferVia = {
+  through: 'pores' | 'set';
+  arrivesAs?: Material | null;
+};
+
+/**
  * Outcome of a `transfer`. `status`:
  *   - `'declined'` — nothing moved (empty source, material mismatch,
  *     strict shortfall).
@@ -85,7 +111,12 @@ export type TransferAmount =
  * into something that will not hold it is gone into the air of the room
  * — not retained, not a floor puddle, and not silently lost.
  */
-export type TransferStatus = 'partial' | 'declined' | 'drained' | 'escaped';
+/**
+ * `melted` / `burned` (ceramics S13): the receiver could not survive the
+ * pour — its melting or ignition point is below the pour's temperature —
+ * so the pour went to the floor and the receiver is gone.
+ */
+export type TransferStatus = 'partial' | 'declined' | 'drained' | 'escaped' | 'melted' | 'burned';
 
 export interface TransferResult {
   /** Litres actually moved into the final destination. */
@@ -187,15 +218,18 @@ export class BulkableApi {
    * method; v1 no-op). Used by `drink` / `sip`. Duck-typed so a
    * non-Creature giver can't crash the verb; `null` material is a
    * no-op. The bridge lives in the Api layer so both verbs route
-   * through one place.
+   * through one place. `hostKg` is the mass of what it was drawn from,
+   * read BEFORE the draw (`BulkSlot.getMassKg`) — what a blend's makeup
+   * is read against.
    */
   static ingest(
     actor: Stuff,
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): void {
-    logic().ingest(actor, material, litres, payload);
+    logic().ingest(actor, material, litres, payload, hostKg);
   }
 
   /**
@@ -212,8 +246,9 @@ export class BulkableApi {
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): number {
-    return logic().ingestSolid(actor, material, litres, payload);
+    return logic().ingestSolid(actor, material, litres, payload, hostKg);
   }
 
   /**
@@ -282,13 +317,18 @@ export class BulkableApi {
    *      source stamps the maker's mark too (the fermentation grade
    *      seam — a bottle filled from a `fine` batch is `fine`, and
    *      attributable).
+   *
+   * `via` — see {@link TransferVia}: a filter's seep is a transfer through
+   * pores and a mould's drainings a transfer through the set, never a
+   * second hand-rolled move.
    */
   static transfer(
     from: BulkSlot,
     to: BulkSlot | null,
     amount: TransferAmount,
+    via?: TransferVia,
   ): TransferResult {
-    return logic().transfer(from, to, amount);
+    return logic().transfer(from, to, amount, via);
   }
 
   /**

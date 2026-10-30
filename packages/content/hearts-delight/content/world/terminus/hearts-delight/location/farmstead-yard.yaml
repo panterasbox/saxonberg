@@ -44,6 +44,11 @@ data:
       edgeMinutes: 3
   props:
     - /world/terminus/hearts-delight/thing/farm-shelf
+    # ⭐ (ceramics W6) A few old clay pots by the door for the seedlings —
+    # bought in years ago, before the store's pot line came from the
+    # Delight pottery. Bounded; nothing restocks them.
+    - { template: /trade/farming/thing/pot/small, count: 2 }
+    - /trade/farming/thing/pot/large
     # ⭐ The flock book — on the shelf with the price slate, because that
     # is where a farmer keeps the paperwork he actually uses. `draft` and
     # `return` are afforded by it, so the flock is reachable from here.

@@ -1,0 +1,18 @@
+# The curfew bell (ceramics S19) — ⭐ the market's great bell, hung in a
+# timber frame at the corner of the square. Anyone may ring it, and the
+# note of a hundred and twenty kilos of bell bronze carries well past the
+# square into the streets round about. It was cast in the Rejection
+# foundry's pit, the founder says, and it shows: a crisp moulding round its
+# shoulder, and the town's arms a little soft where the loam slumped.
+class: /trade/smelting/thing/Bell
+data:
+  shortDescription: curfew bell
+  keywords: [bell, "curfew bell", "market bell"]
+  register: definite
+  longDescription: >-
+    A great bronze bell hung in a weathered oak frame at the corner of the
+    square, green at the lip, with a rope looped up out of reach of
+    children and down within reach of everybody else.
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 120
+  fixedInPlace: true

@@ -43,6 +43,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { BrainMoves } from '../BrainMoves';
 // The counter mechanism is kernel substrate; the instanceable twin is
 // the shopkeeping pack's, which the kernel may not import. A local
 // fixture over the base is the whole of what these tests need.
@@ -96,6 +97,7 @@ function ctxFor(
     trigger: { source: 'cadence', raw: 'cadence:90s' },
     say: () => {},
     emote: async () => {},
+    ...new BrainMoves(buyerHost as never, { counter: COUNTER, fromHour: 6, toHour: 10, spendFraction: 0.25 }).members(),
     emoteFree: (text: string) => {
       buyerHost.emoted.push(text);
     },

@@ -1,0 +1,34 @@
+# A moulder — ⭐ the brickfield's gang (ceramics S20): digs clay at the pit,
+# treads it in the temper pit with sand, moulds a day of bricks at the
+# table and bears them off to the hacks. A moulder's band sets how many a
+# day comes to — the gang's two hands are a novice and a proficient.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Bet Amory
+  keywords: [bet, amory, moulder]
+  alternateNames: ["bet", "amory"]
+  pronouns: she
+  shortDescription: moulder with sand in her hair
+  register: indefinite
+  longDescription: >-
+    A broad, slow, careful girl new to the tables this season, who still sands the mould twice for every brick and looks at each one before she lets it go.
+  archetype: labourer
+  competence:
+    - { discipline: brickmaking, asserting: novice }
+  dispositions:
+    - { disposition: diligence, valence: 55 }
+  behaviors:
+    - brain: /trade/ceramics/behavior/moulds
+      trigger: candidate
+      config:
+        shed: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+        temper: /world/terminus/hearts-delight/brickfield/thing/temper-pit
+        hacks: /world/terminus/hearts-delight/brickfield/location/hacks
+        pit: /world/terminus/hearts-delight/brickfield/location/clay-pit
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus/hearts-delight/brickfield

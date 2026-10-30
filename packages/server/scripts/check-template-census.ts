@@ -219,6 +219,23 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // crossing's `ferry` the boat that works it and its `service` the
     // timetable it runs to (W12).
     'destination', 'along', 'entrance', 'house', 'expanse', 'of',
+    // ⭐ The compounding citations (ceramics R1): what a vessel's product
+    // IS and the row a solid product is minted as. Resolved live at the end
+    // of a `stir` or a `knead`, and a rowless one is a compounding that
+    // consumes its inputs and mints nothing.
+    'productMaterial', 'productTemplate',
+    // ⭐ A form word's `product` (ceramics D16) — the row a shaped piece is
+    // minted as, resolved live at the end of a `shape`; a rowless one is a
+    // throw that consumes the clay and mints nothing.
+    'product',
+    // ⭐ `brokenTemplate` (ceramics W2) — what a brittle body breaks into
+    // (sherds). Resolved live at the break; a rowless one is a dropped
+    // bowl that vanishes.
+    'brokenTemplate',
+    // ⭐ (ceramics W7) What a consumed mould leaves when it is broken off
+    // its cast (its sand, its wax), and what a blank struck on a die
+    // becomes. Resolved live at the cast and the blow.
+    'breaksTo', 'strikes',
     'line', 'bunker', 'river', 'ferry', 'service',
   ] as const) {
     push(f, data[f]);
@@ -265,6 +282,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ An instrument's `forms:` (the Form rows it makes, by path) and a
+  // `formTemplates:` map by form class (ceramics D16) — loaded on use when a
+  // `shape` asks.
+  if (Array.isArray(data.forms)) {
+    for (const v of data.forms as unknown[]) push('forms', v);
+  }
+  if (data.formTemplates && typeof data.formTemplates === 'object') {
+    for (const v of Object.values(data.formTemplates as Record<string, unknown>)) push('formTemplates', v);
+  }
   // ⭐ `concentratesTo` (sugar D1) — the stages a boiled-down solution
   // becomes, resolved live on the boil plateau. A rowless arrow is a pan
   // that boils past the strike and becomes nothing in particular.
@@ -276,6 +302,50 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   }
   if (data.drainSetting && typeof data.drainSetting === 'object') {
     push('drainSetting', (data.drainSetting as Record<string, unknown>).becomes);
+  }
+  // ⭐ (ceramics W7) The cure set's `becomes` (plaster slurry → plaster) and
+  // the chill arrows' `becomes` (cast iron → white / grey) — materials,
+  // resolved live at the set; a rowless one is a cast of nothing.
+  if (data.cureSetting && typeof data.cureSetting === 'object') {
+    push('cureSetting', (data.cureSetting as Record<string, unknown>).becomes);
+  }
+  if (Array.isArray(data.chillsTo)) {
+    for (const a of data.chillsTo as Array<Record<string, unknown>>) {
+      if (a && typeof a === 'object') push('chillsTo', a.becomes);
+    }
+  }
+  // ⭐ (ceramics W4/W7) Whose mark a stamp or a die was cut with — a
+  // person's row, read live when a pot is marked or a token struck.
+  push('markDevice', data.markDevice);
+  // ⭐ `kinetics[]` (ceramics M1; heat transitions folded in) — what heat
+  // and time make of a material: each rung's `becomes` and `reducing`, the
+  // `over` and `scorched` materials, the agent, the volatiles and the vapor
+  // coats. Every one is resolved live in a reconcile nobody watches, and a
+  // rowless rung is a firing that banks heat-work and never changes the
+  // piece.
+  if (Array.isArray(data.kinetics)) {
+    for (const t of data.kinetics as Array<Record<string, unknown>>) {
+      if (!t || typeof t !== 'object') continue;
+      for (const r of (Array.isArray(t.ladder) ? t.ladder : []) as Array<Record<string, unknown>>) {
+        if (!r || typeof r !== 'object') continue;
+        push('kinetics', r.becomes);
+        push('kinetics', r.reducing);
+      }
+      push('kinetics', t.over);
+      push('kinetics', t.scorched);
+      if (t.agent && typeof t.agent === 'object') {
+        push('kinetics', (t.agent as Record<string, unknown>).material);
+      }
+      for (const v of (Array.isArray(t.volatiles) ? t.volatiles : []) as Array<Record<string, unknown>>) {
+        if (v && typeof v === 'object') push('kinetics', v.material);
+      }
+      if (t.vapor && typeof t.vapor === 'object') {
+        for (const [k, v] of Object.entries(t.vapor as Record<string, unknown>)) {
+          push('kinetics', k);
+          push('kinetics', v);
+        }
+      }
+    }
   }
 
   // ⭐ `costume:` — the garments an authored person has on, the third
@@ -489,20 +559,22 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
-   * ⭐ `alloying[].materialPath` — the PER-INSTANCE half of the same
-   * fact, and the same vocabulary. `AlloyedMixin` says what is dissolved
-   * in one particular bar; `composition` says what the kind is. An
-   * authored row that seeds a starting carbon (the smithy's props, a
-   * fixture) names the constituent by path exactly as a composition
-   * does, and an unresolvable one would make `getEffectiveComposition`
-   * and `analyze chemistry` quietly wrong about what the metal IS —
-   * which is precisely why the composition walk above exists.
+   * ⭐ `makeup[].materialPath` — the PER-INSTANCE half of the same
+   * fact, and the same vocabulary (it was `alloying` until ceramics
+   * re-plan R1). `CompositionMixin` says what one particular bar, cake
+   * or loaf is made of; `composition` says what the kind is. An authored
+   * row that seeds a starting carbon (the smithy's props, a fixture) or a
+   * counter loaf's flour and bran names the constituent by path exactly as
+   * a composition does, and an unresolvable one would make
+   * `effectiveMakeup`, the nutrition label and `analyze chemistry`
+   * quietly wrong about what the thing IS — which is precisely why the
+   * composition walk above exists.
    */
-  const alloying = data.alloying;
-  if (Array.isArray(alloying)) {
-    for (const part of alloying) {
+  const makeup = data.makeup;
+  if (Array.isArray(makeup)) {
+    for (const part of makeup) {
       if (part && typeof part === 'object') {
-        push('alloying.materialPath', (part as Record<string, unknown>).materialPath);
+        push('makeup.materialPath', (part as Record<string, unknown>).materialPath);
       }
     }
   }
@@ -769,6 +841,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ (ceramics W8) What a solution crystallizes to: the crystals and the
+  // mother liquor, both material rows.
+  const crystallizesTo = data.crystallizesTo as { product?: unknown; residue?: unknown } | undefined;
+  if (crystallizesTo && typeof crystallizesTo === 'object') {
+    for (const k of ['product', 'residue'] as const) {
+      const v = crystallizesTo[k];
+      if (typeof v === 'string' && v.startsWith('/')) out.push({ field: 'crystallizesTo', path: v });
+    }
+  }
   const prices = data.prices;
   if (prices && typeof prices === 'object') {
     for (const key of Object.keys(prices as Record<string, unknown>)) {
@@ -785,6 +866,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   for (const scalar of [
     'roomTemplate', 'holderPath', 'streetPath', 'corridorTemplate',
     'programmePath', 'purifiedByBoiling',
+    // ⭐ (ceramics W8) What a porous wall strains a liquid into — a real
+    // material row, the filter's sibling of `purifiedByBoiling`.
+    'filteredTo',
     'productMaterial', 'leesMaterial', 'turnedMaterial',
     // The mine: the ore row a face yields, the warren that carves, the
     // grid it carves into, and the parcel extent the claim ring covers.

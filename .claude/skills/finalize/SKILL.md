@@ -111,6 +111,19 @@ driven found defects the suite could not: cooking 6, textiles 3, and
 metal-chain's drive surfaced `five pre-existing boot-breaking defects`
 that predated the build entirely.
 
+⛔⛔⛔ **No merge waits on the clock — never run a `span` step here.**
+Only the **blocking drive** (instant, short and staged steps) is checked
+at the sweep, and every span step must have its staged twin there. ⭐
+**Decide per step how the assertion is made:** where the step checks
+**the player's experience** — can a player do this with what a player
+has — assert through player verbs and player-held tools only; where it
+checks that nothing else broke, staged wizard setup is fine. The step's
+`player` / `staged` tag says which. Confirm the **soak drive** exists, its steps are tagged, and the
+MR description names it for the soak lane, which runs it after merge.
+If a span step is sitting in the blocking drive, move it to the soak
+drive — do not wait on it. See `docs/workflow.md § No merge waits on
+the clock`.
+
 The drive script lives in the requirements doc; the drive **record**
 is appended to the plan (`farming-plan.md § Checkpoint A` is the
 precedent). By this phase it should already have been run — it is the
@@ -138,11 +151,19 @@ migrated **two of them had been failing on master with nobody able to
 know** (`drive-textiles` 5 of 16 checkpoints, `drive-identity` 6 of 18).
 A drive nobody runs decays silently.
 
+⭐ **The drives run HERE, once, after review** (workflow.md § MR review
+iteration — the review's ground rules): a review proves each fix in an
+isolated window and launches nothing clock-hungry, so the time-hungry
+drives — this build's and the sibling drives its changes touched — are
+owed at the sweep. Merge master in FIRST (a sibling's merge can change
+what the drive meets), drop the worktree's own database, boot ONE world
+on a worktree-unique `WIRE_PORT`, and run them against it.
+
 - **Record present.** Read it. Confirm every step of the script was
   actually run, and that anything it found was fixed rather than
   noted.
 - **Record absent.** The build skipped its exit criterion. **Run the
-  drive now**, before the sweep commit — and expect it to find things,
+  blocking drive now** (never the soak drive), before the sweep commit — and expect it to find things,
   because it always has.
 
 Then check the **reachability chain** for each capability the build

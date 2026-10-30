@@ -56,7 +56,12 @@ describe('⭐⭐⭐ the brine meets the pan by TAG', () => {
     const profile = data(`${QUARRYING}idea/maturation/brine.yaml`);
     expect(tags).toContain(profile.inputCategory);
     expect(profile.mechanism).toBe('evaporative');
-    expect(profile.productMaterial).toBe('/stuff/idea/material/food/salt');
+    // ⭐ (ceramics W8) The profile takes the WATER; the salt sets itself
+    // (sea water's `crystallizesTo`), so the product is the brine taken
+    // down and the salt is the water's own crystallizing.
+    expect(profile.productMaterial).toBe('/stuff/idea/material/bulk/salt-water');
+    const into = water.crystallizesTo as { product: string; residue: string };
+    expect(into.product).toBe('/stuff/idea/material/food/salt');
   });
 
   it('⭐ the saltern stands at the FLAT, where the brine comes out', () => {
@@ -64,16 +69,21 @@ describe('⭐⭐⭐ the brine meets the pan by TAG', () => {
     // where it comes out of the ground and carry the salt. A fact about
     // freight, and the reason a saltern is a place rather than a shop.
     const flat = data(`${REJECTION}location/salt-flat.yaml`);
-    const props = (flat.props ?? []) as string[];
+    const props = ((flat.props ?? []) as Array<string | { template: string; on?: string }>).map(
+      (p) => (typeof p === 'string' ? p : p.template),
+    );
     expect(props).toContain('/trade/quarrying/thing/brine-hearth');
     expect(props).toContain('/trade/quarrying/thing/salt-pan');
+    // ⭐ (ceramics W8) …standing on the tub its bittern runs into.
+    expect(props).toContain('/trade/quarrying/thing/bittern-tub');
   });
 
   it('the pan is a MaturingMixin vessel and the hearth is the heat', () => {
     // ⚠ The mechanism is on the VESSEL, not on the fire — which is why
     // the pan in a lit hearth reconciles on read and nothing drives it.
+    // ⭐ (ceramics W8) A `SaltPan`: maturing AND a mold, the crop kept.
     const pan = row(`${QUARRYING}thing/salt-pan.yaml`);
-    expect(pan.class).toBe('/platform/thing/Vat');
+    expect(pan.class).toBe('/trade/quarrying/thing/SaltPan');
     const hearth = row(`${QUARRYING}thing/brine-hearth.yaml`);
     expect(hearth.class).toBe('/platform/thing/Oven');
   });

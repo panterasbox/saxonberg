@@ -27,6 +27,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { SenseChannel } from '../lib/description/Perceiver';
 import type { CompetenceBandName } from '../lib/advancement/CompetenceBand';
 import type { ConcealmentLevel } from '../lib/concealment/ConcealmentLevel';
 import type { Container } from '../lib/spatial/Container';
@@ -376,9 +377,16 @@ export class PerceptionApi {
    * Callers gate on this **only for marks that need light** — embossed
    * lettering bypasses it, which is why a tactile book reads in the
    * dark. Ask the marks (`Marked.requiresLightToRead`), then ask this.
+   *
+   * `modalities` asks about marks other than the target's text — a
+   * DEVICE pressed or cut into it is relief, seen or felt (B106).
    */
-  public static canMakeOutMarks(viewer: Stuff, target: Stuff): boolean {
-    return logic().canMakeOutMarks(viewer, target);
+  public static canMakeOutMarks(
+    viewer: Stuff,
+    target: Stuff,
+    modalities?: readonly SenseChannel[],
+  ): boolean {
+    return logic().canMakeOutMarks(viewer, target, modalities);
   }
 
   public static effectivePerception(

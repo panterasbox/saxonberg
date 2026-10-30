@@ -342,7 +342,7 @@ export class BiomeApi {
    * covers: the **Zone** field-inheritance step (which is async) and the
    * **weather deviation** (which needs an address walk). Use it only where
    * awaiting is genuinely impossible — a reconcile-on-read gauge running
-   * off a getter, which is what it exists for (`WaterActivity.ambientHumidityOf`).
+   * off a getter, which is what it exists for (`Moisture.ambientHumidityOf`).
    * Everything that can await should call `resolveHumidityFor` instead.
    */
   public static localHumidityFor(scope: Stuff): number | null {
@@ -591,7 +591,7 @@ export class BiomeApi {
    *
    * **Sync, and that is the point.** Two reconcile-on-read consumers ask
    * this from a getter and cannot await: the per-instance water state
-   * (`WaterActivityMixin` — a ham on a rack) and the durative transform
+   * (`MoistureMixin` — a ham on a rack) and the durative transform
    * (`MaturingMixin`'s `evaporative` mechanism — a pan in the sun).
    * Neither computes a rate of its own; there is one arithmetic, here.
    *

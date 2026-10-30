@@ -1531,6 +1531,18 @@ configured**.
 - **`lint:does-nothing`** — materials-response legibility: no
   construction or implement that does nothing.
 - **`lint:inert-weapon`** — no seeded weapon derives an inert profile.
+- **`lint:act-effort`** — no engaged act that NO body can do (ceramics,
+  2026-10). An act is charged its whole effort up front (`canExert`: the
+  excess over the sustainable rate × the whole duration), so one whose
+  excess outruns a fresh body's spendable endurance is refused "too
+  tired" for everybody, however rested — and every controller test stays
+  green. The ceramics drive found two (the brick table, 576 % of a
+  reserve; the temper pit, 120 %). Reads every `{ effortW, durationMs }`
+  literal statically — literals, consts, arithmetic, a dial by its
+  default, a paced step by its base — and fails only what it can PROVE;
+  a figure computed at run time is listed as unchecked (`--list`), never
+  failed. The body's three figures are read from `Exerting.ts`, so a
+  re-tuned exertion model moves the gate with it.
 - **`lint:combat-dynamics`** — the combat engine branches on physics;
   dynamics come through hooks.
 - **`lint:blessed-bands`** — composing `Blessable` obliges you to author
@@ -1539,6 +1551,11 @@ configured**.
   name only — it reported its band, `remove curse` worked on it, and
   nothing said the axis was inert. ⭐ The only honest way to skip BUC is
   to not compose the mixin.
+- **`lint:acidity`** — a material tagged `acid` authors its `acidity`.
+  The tag is a word and the number is what the world reads: a glazed face
+  leaches by the contents' acidity, so vitriol (tagged `acid`, no number)
+  took no lead from a lead glaze, silently (ceramics review R2-B4). The
+  converse is not a rule — wine is acidic without being an acid.
 - **`lint:perishable`** — every row made of matter that can rot is a
   class that can rot. Perishability belongs to the **Material**, not the
   class, which argues for composing `FreshnessMixin` as widely as

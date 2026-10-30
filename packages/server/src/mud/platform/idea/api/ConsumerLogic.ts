@@ -283,6 +283,8 @@ export class ConsumerLogic extends ApiLogic {
 
   /** The recurring recompute handle — retained so re-install is a no-op. */
   private recomputeHandle: ScheduleHandle | null = null;
+  /** The scheduled pass in flight, if any — a fire while it runs is skipped. */
+  private recomputing: Promise<void> | null = null;
 
   /**
    * Install the command-dispatch → participation tap (idempotent). Locks the
@@ -328,9 +330,18 @@ export class ConsumerLogic extends ApiLogic {
   public installRecomputeSchedule(): void {
     if (this.recomputeHandle) return;
     this.recomputeHandle = ScheduleApi.recurring(CONSUMER_RECOMPUTE_MS, () => {
-      void recomputeImpl().catch((err) =>
-        console.error('ConsumerLogic: scheduled recompute failed', err)
-      );
+      // ⚠ One pass at a time. The scheduler does not wait on a promise, and
+      // a pass is a round-trip per subject: on a slow link one ran past the
+      // interval, the next started beside it, and the passes stacked until
+      // they held the whole Mongo pool — every login queued behind them for
+      // over five minutes (the ceramics drive, run 32). A fire that finds a
+      // pass still running is skipped; the next one picks up its work.
+      if (this.recomputing) return;
+      this.recomputing = recomputeImpl()
+        .catch((err) => console.error('ConsumerLogic: scheduled recompute failed', err))
+        .finally(() => {
+          this.recomputing = null;
+        });
     });
   }
 

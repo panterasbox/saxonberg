@@ -36,9 +36,8 @@
 import { Final, Unshadowable } from '../security/decorators';
 import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
+import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ConcentrationArrow } from '../material/Material';
-import { Grade } from '../craft/Grade';
-import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
 import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
@@ -57,6 +56,20 @@ import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 import { Decay } from "../Decay";
+import { AppApi } from "../../api/app";
+import { AppSettingKeys } from "../config/AppSettings";
+import type {
+  KineticChange,
+  KineticProgress,
+  KineticRecordData,
+} from "../material/Kinetics";
+import { KineticRecord } from "../material/KineticRecord";
+import type { MarkupAugmenter } from "../../api/mml";
+import type { Atmospheric as AtmosphericScope } from "../biome/Atmospheric";
+import type { Composition } from "../material/Composition";
+import { Grade } from "../craft/Grade";
+import { Evaporation } from "../material/Evaporation";
+import { DetachedError } from "../errors";
 import {
   Piecewise,
   TrajectoryLog,
@@ -317,6 +330,46 @@ export interface Thermal {
   reachableHeatSource(): (Stuff & Burner) | null;
   /** The lit furnace this body is in or on, or `null` (sugar D2). */
   heatSource(): (Stuff & Burner) | null;
+  /**
+   * ⭐ This body's kinetic record — how far each change its material
+   * undergoes has gone, and the heat history a firing reads — or `null`
+   * when it has none: a body whose material declares no `kinetics` never
+   * keeps one.
+   */
+  getKineticRecord(): Readonly<KineticRecordData> | null;
+  /** `fire` stamps who held the firing — an unwatched rung credits them. */
+  stampFiredBy(identity: string): void;
+  /** The Disciplines this body's rungs have earned, handed over once. */
+  drainKineticCredits(): string[];
+  /**
+   * How far change `key` has gone, `0..1` — reconciles on read; `0` when the
+   * material has no such change.
+   */
+  getKineticExtent(key: string): number;
+  /** Each change's words at its current extent, with the senses they are read through. */
+  kineticPhrases(): { key: string; phrase: string; senses?: readonly string[] }[];
+  /** Reconcile every change to now (and start a point curve's clock on its first read). */
+  reconcileKinetics(): void;
+  /** Set a change's extent outright — the mint, and the test seam. */
+  setKineticExtent(key: string, value: number): void;
+  /**
+   * ⭐ Part-converted: a change with a ladder has begun and reached no rung
+   * — *burnt to the skin and raw at the heart*.
+   */
+  isPartConverted(): boolean;
+  /**
+   * ⭐ How far evaporation pulls this body below its air, K (ceramics M8):
+   * `wetness × (T_air − T_wetbulb) × thermal.evaporation.efficiency`. Air
+   * only — `0` immersed, in a fire, in a cold box, or dry.
+   */
+  evaporativeDepressionK(airK: number): number;
+  /** A cast continues the kinetic record of the piece it was poured from. */
+  adoptKineticRecord(record: Readonly<KineticRecordData>): void;
+  /**
+   * Resolves when every cast a rung handed a mould has been minted — so a
+   * firing's end can say what came out of it.
+   */
+  settleKinetics(): Promise<void>;
   /** Stamped temperature T0 (raw K) — the decomposed scalar. */
   stampedTemperatureK: number;
   /** Game-time (seconds) of the last reconcile / re-stamp; 0 = unseeded. */
@@ -553,6 +606,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ThermalMixin extends Base implements Thermal {
     static _mixinName = "ThermalMixin";
 
+    /** ⭐ `look` reads each kinetic change in words (staling, inversion). */
+    static markupAugmenters: MarkupAugmenter[] = [kineticAugmenter];
+
     static fieldMeta: FieldMeta = {
       // ⭐ **Authorable since the placement build (D24), and the drive is
       // what asked for it.** A SPACE could always author its own
@@ -582,7 +638,29 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // thermal fields: a reboot loses the history (the plan's F2), which
       // is acceptable — the next read re-seeds a flat segment.
       thermalLog: { persistent: true, runtimeState: true },
+      // ⭐ The kinetic record: how far each change its material undergoes
+      // has gone — a firing's heat-work, a loaf's staling. `null` until its
+      // material declares a change — a plate on a shelf never keeps one.
+      kineticRecord: { persistent: true, runtimeState: true },
+      coatsCheckedS: { persistent: true, runtimeState: true },
+      shockCheckedS: { persistent: true, runtimeState: true },
     };
+
+    /** See {@link Thermal.getKineticRecord}. */
+    public kineticRecord: KineticRecordData | null = null;
+
+    /** Game-second the coats were last looked at for a fuse (runtime). */
+    public coatsCheckedS = 0;
+
+    /** Game-second the heating was last judged for a shock (runtime). */
+    public shockCheckedS = 0;
+
+    /**
+     * Reentry guard for the kinetic pass (the phase pass's precedent):
+     * applying a rung reads the body, which reconciles it. TypeScript
+     * `private` for the proxy reason above. Transient.
+     */
+    private _kineticsReconciling = false;
 
     public stampedTemperatureK: number = THERMAL_DEFAULTS.DEFAULT_TEMPERATURE_K;
     public thermalClockStamp = 0;
@@ -597,6 +675,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * makes `#` unreachable from proxy-dispatched methods). Transient.
      */
     private _thermalReconciling = false;
+    /** The drift the last reconcile integrated, until a phase pass consumes it (transient). */
+    private _lastDrift: { seconds: number; tauS: number } | null = null;
 
     /**
      * Reentry guard for the PHASE pass that ends a reconcile. ⚠ The phase
@@ -734,6 +814,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     public setContentsTemperature(k: number): void {
       assertFiniteNonNeg(k, "ThermalMixin.setContentsTemperature");
       if (!this._thermalReconciling) this.reconcileThermal();
+      // ⭐ A step is a shock (ceramics D9): boiling water poured into a
+      // cold glazed mug. The plateau's own clamps are a few kelvin.
+      const step = Math.abs(k - this.stampedTemperatureK);
+      const body = this as unknown as Stuff;
+      if (step > 5 && MixinApi.isIntegrity(body)) body.sufferThermalShock(step, 0);
       this.stampedTemperatureK = k;
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
@@ -789,10 +874,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this._phaseReconciling) return;
       this._phaseReconciling = true;
       try {
+        // The drift is CONSUMED by the phase pass that reads it — whichever
+        // path that pass came by — so it is never banked twice.
+        const drift = this._lastDrift;
+        this._lastDrift = null;
         const nowS = this.thermalNowSeconds();
         reconcilePhaseImpl(this as unknown as Stuff, {
           nowS,
           horizonS: this.thermalRing().horizonS(),
+          drift,
           lastS: this._phaseCheckedS,
         });
         if (nowS !== null) this._phaseCheckedS = nowS;
@@ -1008,7 +1098,37 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (scope === null || !scope.envelopeApplies()) {
         return flat(this.lastAmbientK);
       }
-      return scope.temperatureTrajectory(fromS, toS);
+      // ⭐ A wet body in AIR sits below the air by what evaporation carries
+      // off (ceramics M8) — the weeping jar, cooler than its room.
+      const pw = scope.temperatureTrajectory(fromS, toS);
+      const d = this.evaporativeDepressionK(pw.at(toS));
+      if (!(d > 0)) return pw;
+      return new Piecewise(
+        pw.stretches.map((st) => ({ ...st, startValue: st.startValue - d, target: st.target - d })),
+      );
+    }
+
+
+    public evaporativeDepressionK(airK: number): number {
+      const self = this.thermalHost;
+      const body = self as Stuff;
+      if (!MixinApi.isWet(body)) return 0;
+      // Air only: what holds you outranks the room, and water evaporates
+      // nothing off a thing that is in it.
+      if (this.heatSource() !== null || this.holderK() !== null) return 0;
+      const scope = airScopeOf(self);
+      if (scope === null) return 0;
+      let wetness = body.getWetness();
+      // ⭐ A vessel WEEPING through its body keeps its outside wet for as
+      // long as it weeps — the surface is the film, whatever the body's
+      // average saturation (the weeping jar).
+      if (wetness < 1 && MixinApi.isFaced(body) && body.weeps()) wetness = 1;
+      if (!(wetness > 0.01)) return 0;
+      const air = scope.getAir();
+      const wb = new Evaporation(air.humidityPct, air.windMs, airK).wetBulbK();
+      const gap = airK - wb;
+      if (!(gap > 0)) return 0;
+      return gap * wetness * thermalDial(AppSettingKeys.thermalEvaporationEfficiency, 0.8);
     }
 
     public temperatureTrajectory(fromS: number, toS: number): Piecewise {
@@ -1089,6 +1209,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.lastAmbientK = ambientPw.at(nowS);
         // The forward segment: from now, drift toward the current ambient.
         ring.record(nowS, T, this.lastAmbientK, tau);
+        this._lastDrift = { seconds: nowS - this.thermalClockStamp, tauS: tau };
         this.thermalClockStamp = nowS;
       } finally {
         this._thermalReconciling = false;
@@ -1127,6 +1248,565 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       ) {
         this.reconcilePhase();
       }
+
+      // ⭐⭐ **And a body carries what heat and time did to it** — its
+      // material's kinetics (ceramics M1; the sugar build's staling and
+      // inversion). After the phase pass, on the same lazy read, outside
+      // the reentry guard — so a brick in a clamp, a pot in a house fire,
+      // a crucible in a furnace and a loaf on a shelf are ONE rule. One
+      // lookup that answers no for every material that declares nothing.
+      this.reconcileKineticRecord();
+      // ⭐ …and a wet coat on it fuses when the body reaches its heat
+      // (ceramics M6) — a glaze laid on bisque, glost-fired.
+      this.reconcileCoats();
+      // ⭐ …and a brittle body heated or cooled too fast cracks (M5).
+      this.reconcileShock();
+    }
+
+    /**
+     * Report the heating since the last look, off this body's own curve, to
+     * the body — how a brittle body answers it is Integrity's (B105).
+     */
+    private reconcileShock(): void {
+      const body = this as unknown as Stuff;
+      if (!MixinApi.isIntegrity(body)) return; // an article cracks; a wall's heat damage is construction's
+      if (!Number.isFinite(body.thermalShockToleranceK())) return;
+      const nowS = this.thermalNowSeconds();
+      if (nowS === null) return;
+      const fromS = this.shockCheckedS > 0 ? this.shockCheckedS : nowS;
+      this.shockCheckedS = nowS;
+      if (!(nowS > fromS)) return;
+      let rate = 0;
+      for (const st of this.thermalRing().window(fromS, nowS, this.stampedTemperatureK).stretches) {
+        if (st.tau > 0 && st.toS > st.fromS) {
+          rate = Math.max(rate, Math.abs(st.target - st.startValue) / st.tau);
+        }
+      }
+      body.sufferThermalShock(0, rate);
+    }
+
+    /**
+     * ⭐ Fire the wet coats on a `Faced` body by HEAT-WORK since the last
+     * look (B100): each coat's material's kinetic integrated over this
+     * window — the same integral the body under it fires by, so a glaze
+     * that only touches its heat for a moment does not fuse, and the cones
+     * and the glaze agree. The window's, never the lifetime's: a bisque
+     * fired hot once does not fuse a glaze laid on it afterwards. The
+     * window's peak decides only how a fused coat came out (run past its
+     * scorch).
+     */
+    private reconcileCoats(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self) || !self.hasWetCoats()) return;
+      const nowS = this.thermalNowSeconds();
+      if (nowS === null) return;
+      const fromS = this.coatsCheckedS > 0 ? this.coatsCheckedS : nowS;
+      this.coatsCheckedS = nowS;
+      if (!(nowS > fromS)) return;
+      const window = this.thermalRing().window(fromS, nowS, this.stampedTemperatureK);
+      let peak = this.stampedTemperatureK;
+      for (const smp of window.samples(8)) if (smp.value > peak) peak = smp.value;
+      self.heatCoats((c) => window.integrate((k) => c.rateAt(k), 8), peak);
+    }
+
+    // ---------- kinetics: what heat and time do to its material ----------
+
+    public getKineticRecord(): Readonly<KineticRecordData> | null {
+      return this.kineticRecord;
+    }
+
+    public stampFiredBy(identity: string): void {
+      if (typeof identity !== "string" || identity === "") return;
+      const rec = new KineticRecord(this.kineticRecord);
+      rec.data.firedBy = identity;
+      this.kineticRecord = rec.toData();
+    }
+
+    public drainKineticCredits(): string[] {
+      if (this.kineticRecord === null || this.kineticRecord.uncredited.length === 0) return [];
+      const rec = new KineticRecord(this.kineticRecord);
+      const out = rec.drainCredits();
+      this.kineticRecord = rec.toData();
+      return out;
+    }
+
+    public adoptKineticRecord(record: Readonly<KineticRecordData>): void {
+      this.kineticRecord = new KineticRecord(record).toData();
+    }
+
+    public async settleKinetics(): Promise<void> {
+      while (PENDING_CASTS.size > 0) {
+        await Promise.allSettled([...PENDING_CASTS]);
+      }
+    }
+
+    public getKineticExtent(key: string): number {
+      this.reconcileKinetics();
+      return this.kineticRecord?.changes[key]?.extent ?? 0;
+    }
+
+    public kineticPhrases(): { key: string; phrase: string; senses?: readonly string[] }[] {
+      // ⭐ Inertness BEFORE the clock: a body whose material declares no
+      // change reads and writes nothing (a look at a chair costs a lookup).
+      const kinetics = this.kineticSource()?.getKinetics() ?? null;
+      if (kinetics === null) return [];
+      this.reconcileKinetics();
+      const rec = this.kineticRecord;
+      return kinetics.changes().map((change) => {
+        const senses = change.getSenses();
+        return {
+          key: change.getKey(),
+          phrase: change.phrase(rec?.changes[change.getKey()]?.extent ?? 0),
+          ...(senses ? { senses } : {}),
+        };
+      });
+    }
+
+    public reconcileKinetics(): void {
+      // The temperature reconcile ends in the kinetic pass whenever time
+      // has passed; a read that finds no elapsed temperature time (a first
+      // touch, a body read this instant) still integrates its own record
+      // to now — and starts a point curve's clock on its first read.
+      if (!this._thermalReconciling) this.reconcileThermal();
+      if (this._kineticsReconciling) return;
+      this._kineticsReconciling = true;
+      try {
+        this.integrateKineticsToNow();
+      } finally {
+        this._kineticsReconciling = false;
+      }
+    }
+
+    public setKineticExtent(key: string, value: number): void {
+      if (!Number.isFinite(value)) return;
+      const self = this.thermalHost;
+      const source = this.kineticSource();
+      const kinetics = source?.getKinetics() ?? null;
+      const change = kinetics?.change(key);
+      const rec = new KineticRecord(this.kineticRecord);
+      rec.beginOn(source?.getTemplatePath() ?? null);
+      const conv: KineticProgress = {
+        ...rec.progressOf(change, key),
+        extent: Math.max(0, Math.min(1, value)),
+      };
+      rec.data.changes[key] = conv;
+      const nowS = this.thermalNowSeconds();
+      if (nowS !== null) rec.data.checkedS = nowS;
+      const reached: { c: KineticChange; conv: KineticProgress }[] = [];
+      if (change !== undefined) {
+        const idx = change.rungIndexFor(conv.extent);
+        if (idx > conv.rung) {
+          conv.rung = idx;
+          reached.push({ c: change, conv });
+        }
+      }
+      this.kineticRecord = rec.toData();
+      if (kinetics === null || change === undefined) return;
+      if (MixinApi.isTangible(self)) {
+        this.applyKineticConsequences(kinetics.changes(), reached, nowS ?? 0);
+      }
+    }
+
+    public isPartConverted(): boolean {
+      const rec = this.kineticRecord;
+      if (rec === null) return false;
+      const kinetics = this.kineticSource()?.getKinetics() ?? null;
+      if (kinetics === null) return false;
+      const laddered = kinetics
+        .changes()
+        .filter((c) => c.getLadder().length > 0)
+        .map((c) => rec.changes[c.getKey()])
+        .filter((p): p is KineticProgress => p !== undefined);
+      if (laddered.length === 0) return false;
+      const d = Math.max(...laddered.map((p) => p.extent));
+      return d > 0 && d < 1 && laddered.every((p) => p.rung < 0);
+    }
+
+    /**
+     * The material whose changes run on this body: the one it WAS when its
+     * record began (the clay's, not the terracotta's it has already become),
+     * so a piece keeps climbing its ladder through every rung — else its
+     * own. `null` with no material.
+     */
+    private kineticSource(): Material | null {
+      const self = this.thermalHost;
+      if (!MixinApi.isTangible(self)) return null;
+      const current = self.getMaterial();
+      if (current === null) return null;
+      const rec = this.kineticRecord;
+      return rec !== null && rec.origin !== null && rec.origin !== current.getTemplatePath()
+        ? StuffApi.findByTemplatePath<Material>(rec.origin) ?? current
+        : current;
+    }
+
+    /**
+     * ⭐ A point curve's clock starts at the FIRST READ, not at the mint (the
+     * honest limit `Freshness` shares: nothing records a good's making time
+     * to integrate from). A dose law needs no start — it integrates from the
+     * body's own temperature history, which begins when the body does.
+     */
+    private beginKineticClock(source: Material, changes: readonly KineticChange[], nowS: number): void {
+      if (!changes.some((c) => !c.isDoseLaw())) return;
+      const prior = this.kineticRecord;
+      if (prior !== null && prior.checkedS !== null) return;
+      const rec = new KineticRecord(prior);
+      rec.beginOn(source.getTemplatePath());
+      rec.data.checkedS = nowS;
+      this.captureStartBand(rec, changes);
+      this.kineticRecord = rec.toData();
+    }
+
+    /** The grade a `grade` table lowers from — taken once, as the clock starts. */
+    private captureStartBand(rec: KineticRecord, changes: readonly KineticChange[]): void {
+      const self = this.thermalHost as unknown as Stuff;
+      if (MixinApi.isGraded(self)) rec.captureStartBand(changes, self.getGrade().getBand());
+    }
+
+    /**
+     * ⭐ Bank what heat and time did since the last read and apply any rung
+     * reached.
+     *
+     * Each change is integrated off this body's OWN temperature trajectory
+     * (`Piecewise.integrate(rateAt)`, the thermal-dose shape), so a brick
+     * nobody read for three days is credited for three days and a loaf
+     * cooling out of the oven passes THROUGH the band where starch moves
+     * fastest. The changes read are the ORIGIN material's
+     * ({@link kineticSource}).
+     */
+    private reconcileKineticRecord(): void {
+      if (this._kineticsReconciling) return;
+      const self = this.thermalHost;
+      if (!MixinApi.isTangible(self)) return;
+      const current = self.getMaterial();
+      if (current === null) return;
+      this._kineticsReconciling = true;
+      try {
+        // A material that becomes vapor in a lit chamber (salt at peak
+        // heat) leaves the piece and enters the chamber's air (ruling B).
+        if (this.vaporizeIfHot(current)) return;
+        // ⭐ Green ware reads its weather BEFORE the heat converts it (R2):
+        // a wet piece in a kiln bursts as steam, and a rung would end the
+        // green state before the burst was seen.
+        const piece = this as unknown as Stuff;
+        if (MixinApi.isGreenware(piece)) piece.reconcileGreen();
+        this.integrateKineticsToNow();
+      } finally {
+        this._kineticsReconciling = false;
+      }
+    }
+
+    /** Integrate the record to now — inert when the material declares nothing. */
+    private integrateKineticsToNow(): void {
+      const source = this.kineticSource();
+      const kinetics = source?.getKinetics() ?? null;
+      if (source === null || kinetics === null) return;
+      const nowS = this.thermalNowSeconds();
+      if (nowS === null) return;
+      this.integrateKinetics(source, kinetics.changes(), nowS);
+    }
+
+    /** Vaporize into the chamber holding this body, if hot enough there. */
+    private vaporizeIfHot(mat: Material): boolean {
+      const above = mat.getVaporizesAboveK();
+      if (!(above > 0) || !(this.stampedTemperatureK >= above)) return false;
+      const self = this.thermalHost;
+      const holder = self.getContainer() as unknown as Stuff | null;
+      if (holder === null || !MixinApi.isBurner(holder) || !holder.isLit()) return false;
+      holder.addChamberVapor(mat.getTemplatePath() ?? "", self.getMass().rawValue());
+      void StuffApi.destruct(self as unknown as Stuff);
+      return true;
+    }
+
+    private integrateKinetics(
+      source: Material,
+      changes: readonly KineticChange[],
+      nowS: number,
+    ): void {
+      const self = this.thermalHost;
+      const ring = this.thermalRing();
+      const prior = this.kineticRecord;
+      // ⭐ A point curve accrues only once its clock is running (see
+      // `beginKineticClock`); a dose law integrates from the body's history.
+      const running = prior !== null && prior.checkedS !== null;
+      const hasCurve = changes.some((c) => !c.isDoseLaw());
+      const fromS = prior?.checkedS ?? ring.horizonS() ?? nowS;
+      if (!(nowS > fromS)) {
+        if (hasCurve && !running) this.beginKineticClock(source, changes, nowS);
+        return;
+      }
+      const pw = ring.window(fromS, nowS, this.stampedTemperatureK);
+      let peak = 0;
+      for (const sample of pw.samples(8)) {
+        if (sample.value > peak) peak = sample.value;
+      }
+      peak = Math.max(peak, this.stampedTemperatureK);
+      const dosed = changes.filter((c) => c.isDoseLaw());
+      // The coldest temperature any dose law accrues at; a curve has none.
+      const floor = Math.min(...dosed.map((c) => c.floorK()));
+      const hot = peak >= floor;
+      if (!hot && !hasCurve) {
+        // Cold: nothing accrues. A body with no record keeps none.
+        if (prior !== null) this.kineticRecord = { ...prior, checkedS: nowS };
+        return;
+      }
+      const rec = new KineticRecord(prior);
+      rec.beginOn(source.getTemplatePath());
+      // ⭐ A change that takes mass away needs the mass it started from: every
+      // dose law (a firing), and a curve that names a retention or volatiles.
+      const convertsMass = changes.some(
+        (c) => !c.isDoseLaw() && (c.getMassRetained() < 1 || c.getVolatiles().length > 0),
+      );
+      if (rec.data.originMassKg === null && (hot || convertsMass)) {
+        rec.data.originMassKg = self.getMass().rawValue();
+      }
+      let steepest = 0;
+      for (const st of pw.stretches) {
+        if (st.tau > 0 && st.toS > st.fromS) {
+          steepest = Math.max(steepest, Math.abs(st.target - st.startValue) / st.tau);
+        }
+      }
+      rec.noteHeat(peak, steepest);
+
+      // ⭐ What holds the body decides whether a flame could burn here: a
+      // body shut in a burner below the flaming dial is in STARVED air.
+      const holder = self.getContainer() as unknown as Stuff | null;
+      const chamber = holder !== null && MixinApi.isBurner(holder) ? holder : null;
+      const completeness = chamber !== null ? chamber.completeness() : 1;
+      const starved =
+        chamber !== null &&
+        completeness < thermalDial(AppSettingKeys.fireAirFlamingCompleteness, 0.6);
+      const burning = MixinApi.isCombustible(self) && self.isBurning();
+
+      const reached: { c: KineticChange; conv: KineticProgress }[] = [];
+      for (const c of changes) {
+        const key = c.getKey();
+        const dose = c.isDoseLaw();
+        const prev = rec.progressOf(c, key);
+        // ⚠ A burning body is burning, not converting; pyrolysis happens
+        // only where a flame could not; a dose law accrues only when hot
+        // and a curve only once its clock runs.
+        if (burning) continue;
+        if (c.requiresStarvedAir() && !starved) continue;
+        if (dose ? !hot : !running) continue;
+        const integral = pw.integrate((k) => c.rateAt(k), 8);
+        if (dose && !(integral > 0)) continue;
+        const agentFraction = this.agentFractionFor(c);
+        const conv = c.accrue(prev, integral, agentFraction);
+        if (c.getAgent() !== null) conv.agentFraction = agentFraction;
+        if (dose) {
+          rec.weighAtmosphere(completeness, integral);
+          for (const sample of pw.samples(8)) {
+            if (sample.value >= c.floorK()) rec.data.aboveS += sample.durationS / dosed.length;
+          }
+        }
+        // The third product: what leaves the piece as it converts.
+        const dDegree = conv.extent - prev.extent;
+        if (dDegree > 0) {
+          for (const v of c.getVolatiles()) {
+            routeVolatile(self as unknown as Stuff, v.material,
+              v.litresPerKg * (rec.data.originMassKg ?? 0) * dDegree);
+          }
+        }
+        rec.data.changes[key] = conv;
+        const idx = c.rungIndexFor(conv.extent);
+        if (idx > conv.rung) {
+          conv.rung = idx;
+          reached.push({ c, conv });
+        }
+      }
+      rec.data.checkedS = nowS;
+      if (hasCurve && !running) this.captureStartBand(rec, changes);
+      this.kineticRecord = rec.toData();
+      this.applyKineticConsequences(changes, reached, nowS);
+    }
+
+    /** Mass, grade, and every rung reached — in that order. */
+    private applyKineticConsequences(
+      changes: readonly KineticChange[],
+      reached: readonly { c: KineticChange; conv: KineticProgress }[],
+      nowS: number,
+    ): void {
+      this.rescaleConvertedMass(changes);
+      this.applyGradeLoss(changes);
+      this.regradeCure(changes);
+      for (const { c, conv } of reached) {
+        if (this.applyRung(c, conv, nowS) === "cast") return;
+      }
+    }
+
+    /** The piece's own share of an agent (ruling B) — never its neighbours'. */
+    private agentFractionFor(c: KineticChange): number {
+      const agent = c.getAgent();
+      if (agent === null) return 0;
+      const self = this.thermalHost as unknown as Stuff;
+      if (MixinApi.isComposition(self)) {
+        return (self as Stuff & Composition).fractionOf(agent.material);
+      }
+      // ⭐ A cast carries no composition of its own; the record remembers
+      // what the piece it was poured from carried.
+      return this.kineticRecord?.changes[c.getKey()]?.agentFraction ?? 0;
+    }
+
+    /**
+     * ⭐ Part-conversion is mass: `raw × Π(1 − extent × (1 − retained))` —
+     * a half-burnt limestone has lost half its CO₂, and weighs it.
+     */
+    private rescaleConvertedMass(changes: readonly KineticChange[]): void {
+      const data = this.kineticRecord;
+      if (data === null || data.originMassKg === null) return;
+      const kg = data.originMassKg * new KineticRecord(data).massFactor(changes);
+      const self = this.thermalHost;
+      const was = self.getMass().rawValue();
+      if (Math.abs(was - kg) > 1e-9) {
+        self.setMass(Quantity.of(kg, "kg"));
+        // ⭐ (potash D12a) What STAYS concentrates: the water and the gas
+        // leave, the constituents do not — black salts calcined to pearl ash
+        // keep their potash in less cake. Capped at the whole.
+        const piece = self as unknown as Stuff;
+        if (kg > 0 && MixinApi.isComposition(piece)) {
+          const alloying = piece.getMakeup();
+          if (alloying.length > 0) {
+            piece.setMakeup(
+              alloying.map((e) => ({ ...e, fraction: Math.min(1, (e.fraction * was) / kg) })),
+            );
+          }
+        }
+      }
+    }
+
+    /**
+     * ⭐ A change with a `grade` table lowers the grade from where the clock
+     * started by every change's bands at its extent — cut cane loses a band
+     * as it inverts.
+     */
+    private applyGradeLoss(changes: readonly KineticChange[]): void {
+      const data = this.kineticRecord;
+      const self = this.thermalHost as unknown as Stuff;
+      if (data === null || !MixinApi.isGraded(self)) return;
+      const graded = new KineticRecord(data).gradeAfterLoss(changes);
+      if (graded !== null) self.setGrade(graded);
+    }
+
+    /**
+     * ⭐ A cure with an agent grades the piece by how far it went — the
+     * weaker of the piece's own grade before the cure and the cure's, re-read
+     * as the degree rises. A kiln fault (scorched) is always poor.
+     */
+    private regradeCure(changes: readonly KineticChange[]): void {
+      const self = this.thermalHost as unknown as Stuff;
+      if (this.kineticRecord === null || !MixinApi.isGraded(self)) return;
+      const rec = new KineticRecord(this.kineticRecord);
+      for (const c of changes) {
+        const p = rec.data.changes[c.getKey()];
+        if (!p || p.rung < 0 || c.getAgent() === null) continue;
+        if (p.rung < c.getLadder().length - 1) continue;
+        if (rec.data.gradeCap === null) rec.data.gradeCap = self.getGrade().getBand();
+        const out = c.outcomeAt(p.rung, {
+          peakK: rec.data.peakK,
+          agentFraction: this.agentFractionFor(c),
+          reducing: false,
+        });
+        const cure = c.gradeOf(p.extent, this.agentFractionFor(c), out?.kind ?? "rung");
+        self.setGrade(Grade.of(rec.data.gradeCap as never).min(cure));
+      }
+      this.kineticRecord = rec.toData();
+    }
+
+    /**
+     * ⭐ A rung: the piece BECOMES the rung's material — or, standing in a
+     * mould that is not its own cast, hands the mould a pool and the mould
+     * mints the shape (the rubber charge becomes boots). Identity is kept
+     * otherwise: the same jug comes out of the kiln it went in.
+     */
+    private applyRung(
+      c: KineticChange,
+      conv: KineticProgress,
+      nowS: number,
+    ): "swap" | "cast" | "none" {
+      if (this.kineticRecord === null) return "none";
+      const rec = new KineticRecord(this.kineticRecord);
+      const self = this.thermalHost;
+      const piece = self as Stuff;
+      const out = c.outcomeAt(conv.rung, {
+        peakK: rec.data.peakK,
+        agentFraction: this.agentFractionFor(c),
+        reducing: rec.isReducing(thermalDial(AppSettingKeys.thermalHeatWorkReducingBelow, 0.6)),
+      });
+      if (out === null) return "none";
+      const mat = StuffApi.findByTemplatePath<Material>(out.materialPath);
+      // ⚠ A rung naming a material that does not resolve is a CONTENT error,
+      // and it throws (B105): it was logged and skipped, which left the piece
+      // recorded as having reached the rung and never changed by it.
+      if (!mat) {
+        throw new TypeError(
+          `Thermal: kinetic change '${c.getKey()}' names '${out.materialPath}', which does not resolve`,
+        );
+      }
+      rec.data.lastTransitionAtS = nowS;
+      const discipline = c.getDiscipline();
+      if (discipline !== "") rec.data.uncredited.push(discipline);
+      this.kineticRecord = rec.toData();
+      if (out.kind === "scorched" && MixinApi.isGraded(piece)) piece.setGrade(Grade.of("poor"));
+
+      // ⭐⭐ The mould seam (moulding-slate § 5): the shape is the mould's.
+      const holder = self.getContainer() as unknown as Stuff | null;
+      if (holder !== null && MixinApi.isMould(holder) && holder.castTemplateFor(mat) !== piece.getTemplatePath()) {
+        const massKg = self.getMass().rawValue();
+        const record = rec.toData();
+        const maker = MixinApi.isCrafted(piece) ? piece.getMaker() : "";
+        const grade = MixinApi.isGraded(piece) ? piece.getGrade() : null;
+        // ⭐ An agent's cure grades the cast as it is minted — the weaker of
+        // what the mould gives it and how far the cure went — and the record
+        // keeps the cap, so the grade re-reads as the cure goes on.
+        const cure =
+          c.getAgent() !== null
+            ? c.gradeOf(conv.extent, this.agentFractionFor(c), out.kind)
+            : null;
+        // ⭐ The charge is spent only once the cast EXISTS (B105): a cast that
+        // cannot be made leaves the charge where it was, and is said.
+        const minting: Promise<unknown> = holder
+          .castInto({ material: mat, massKg, payload: null, stampMaterial: true })
+          .then(async (cast) => {
+            if (MixinApi.isCrafted(cast) && maker !== "" && cast.getMaker() === "") {
+              cast.setMaker(maker);
+            }
+            if (grade !== null && MixinApi.isGraded(cast)) {
+              cast.setGrade(cast.getGrade().min(grade));
+            }
+            if (cure !== null && MixinApi.isGraded(cast)) {
+              record.gradeCap = cast.getGrade().getBand();
+              cast.setGrade(cast.getGrade().min(cure));
+            }
+            if (MixinApi.isThermal(cast)) cast.adoptKineticRecord(record);
+            if (out.kind !== "rung") describeOffRung(cast, mat);
+            if (!piece.isDestroyed()) await StuffApi.destruct(piece);
+          })
+          .catch((err: unknown) => {
+            console.error(`Thermal: '${c.getKey()}' could not cast in its mould`, err);
+          })
+          .finally(() => PENDING_CASTS.delete(minting));
+        PENDING_CASTS.add(minting);
+        return "cast";
+      }
+      const was = self.getMaterial();
+      self.setMaterial(mat);
+      const rung = c.getLadder()[conv.rung];
+      restampProse(piece, rec.data, was, mat, rung?.describes ?? "");
+      // ⭐ A vapor in the chamber's air at the rung lays a fused coat on the
+      // outside (ruling B): salt thrown into a kiln at peak heat glazes the
+      // stoneware in it. The coat's material is the change's to name.
+      const chamber = holder !== null && MixinApi.isBurner(holder) ? holder : null;
+      if (chamber !== null && MixinApi.isFaced(piece)) {
+        const vapors = chamber.getChamberVapors();
+        for (const [vapor, coat] of Object.entries(c.getVapor())) {
+          if (!((vapors[vapor] ?? 0) > 0)) continue;
+          piece.layCoat("outside", coat, 0);
+          piece.fuseCoats(rec.data.peakK);
+          rec.data.atmosphere.vapors = [...new Set([...rec.data.atmosphere.vapors, vapor])];
+        }
+      }
+      this.kineticRecord = rec.toData();
+      return "swap";
     }
 
     /**
@@ -1139,7 +1819,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * is what is in it.
      */
     private heatSourceK(): number | null {
-      return this.heatSource()?.getHeldTemperatureK() ?? null;
+      // ⭐ The fire's heat FOR THIS BODY (ceramics D3): a clamp is hotter
+      // in its fire channels than at its skin.
+      return this.heatSource()?.heldTemperatureKFor(this as unknown as Stuff) ?? null;
     }
 
     /**
@@ -1157,9 +1839,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
         return candidate;
       };
+      const holder = self.getContainer() as unknown as Stuff | null;
       return (
-        lit(self.getContainer() as unknown as Stuff | null) ??
-        lit((self.getPlacement()?.host ?? null) as unknown as Stuff | null)
+        lit(holder) ??
+        lit((self.getPlacement()?.host ?? null) as unknown as Stuff | null) ??
+        // ⭐ One hop through a MOULD (the mould seam, ceramics W0): a charge
+        // standing in a boot mould in a lit oven is in the oven's heat. Only
+        // a mould — a bag in a fire is somebody else's problem.
+        (holder !== null && MixinApi.isMould(holder) && MixinApi.isContainable(holder)
+          ? lit(holder.getContainer() as unknown as Stuff | null)
+          : null)
       );
     }
 
@@ -1249,6 +1938,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
           } catch {
             // keep the cached ambient on any resolution failure
           }
+          // ⭐ The push side reads evaporation too (the Coolbox lesson:
+          // the day the two sides disagree, a wet jar is cool in one and
+          // not the other).
+          ambientK -= this.evaporativeDepressionK(ambientK);
         }
       }
       this.lastAmbientK = ambientK;
@@ -1304,6 +1997,146 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
   return ThermalMixin;
 }
 
+
+/* ────────────── the heat history (module-private) ────────────── */
+
+/**
+ * Casts a rung has handed a mould and not yet minted (`castInto` clones a
+ * row, which is async; the reconcile that reached the rung is sync). A
+ * firing's end awaits them so it can say what came out.
+ */
+const PENDING_CASTS = new Set<Promise<unknown>>();
+/** The crop each vessel is minting, by stuff id (see `setCrystals`). */
+const CROPS_MINTING = new Map<string, { kg: number }>();
+
+/** `look` reads each change in words, through the senses its row names. */
+function kineticAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+  opts?: { filter?: readonly string[] },
+): string {
+  if (!MixinApi.isThermal(host) || host.isDestroyed()) return text;
+  const lines = host
+    .kineticPhrases()
+    .filter((p) => !opts?.filter || !p.senses || p.senses.some((c) => opts.filter!.includes(c)))
+    .map((p) => p.phrase)
+    .filter((l) => l !== "");
+  if (lines.length === 0) return text;
+  const block = lines.join(" ");
+  return text && text.length > 0 ? `${text}\n\n${block}` : block;
+}
+
+/**
+ * ⭐ A piece that kept its identity through a rung says what it is NOW —
+ * without being re-classed (ruling C). Where its description names its old
+ * material (*lump of limestone*), the name is swapped; where it does not
+ * (*length of cordwood*), the rung's `describes` word is put in front. The
+ * long description gains one sentence of the new material's appearance,
+ * REPLACING the last rung's, so a clay climbing three rungs reads once.
+ */
+function restampProse(
+  piece: Stuff,
+  rec: KineticRecordData,
+  from: Material | null,
+  to: Material,
+  describes: string,
+): void {
+  // Narrowed, never probed (B105): a piece that cannot be described keeps
+  // no prose record.
+  if (!MixinApi.isVisible(piece) || !MixinApi.isPerceptible(piece)) {
+    rec.prose = { prefix: "", sentence: "" };
+    return;
+  }
+  const v = piece;
+  const toName = to.getName();
+  const fromName = from?.getName() ?? "";
+  let short = v.getShortDescription();
+  if (rec.prose.prefix !== "" && short.startsWith(`${rec.prose.prefix} `)) {
+    short = short.slice(rec.prose.prefix.length + 1);
+  }
+  let prefix = "";
+  const named = fromName !== "" && new RegExp(`\\b${escapeRe(fromName)}\\b`, "i").test(short);
+  if (named) {
+    short = short.replace(new RegExp(`\\b${escapeRe(fromName)}\\b`, "i"), toName);
+  } else if (describes !== "") {
+    prefix = describes;
+    short = `${describes} ${short}`;
+  }
+  if (short !== "") v.setShortDescription(short);
+  const kw = new Set(v.getKeywords());
+  for (const w of toName.split(/\s+/)) if (w) kw.add(w.toLowerCase());
+  if (prefix) kw.add(prefix.toLowerCase());
+  v.setKeywords([...kw]);
+  const looks = to.getAppearance();
+  let long = v.getLongDescription().trimEnd();
+  if (rec.prose.sentence !== "" && long.endsWith(rec.prose.sentence)) {
+    long = long.slice(0, long.length - rec.prose.sentence.length).trimEnd();
+  }
+  const sentence = looks ? `It is ${looks} now.` : "";
+  v.setLongDescription(sentence ? (long ? `${long}\n\n${sentence}` : sentence) : long);
+  rec.prose = { prefix, sentence };
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function thermalDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === "") return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
+ * ⭐⭐ **The volatiles — the third product of a firing.** What leaves a
+ * converting piece goes to whatever HOLDS it: a chamber takes what it can
+ * (`Burner.receiveVolatiles` — a retort hands its tar to the condenser on
+ * its head), and the rest goes into the air of the place it stands in,
+ * which is why a retort with no condenser makes the room smell of tar.
+ * Moved here from `FireController` (ceramics W0): the transition, not the
+ * verb, makes the tar.
+ */
+function routeVolatile(from: Stuff, materialPath: string, litres: number): void {
+  if (!(litres > 0)) return;
+  const holder = MixinApi.isContainable(from)
+    ? (from.getContainer() as unknown as Stuff | null)
+    : null;
+  let left = litres;
+  if (holder !== null && MixinApi.isBurner(holder)) {
+    left -= Math.max(0, Math.min(left, holder.receiveVolatiles(materialPath, left)));
+  }
+  if (!(left > 0)) return;
+  let at: Stuff | null = holder ?? from;
+  let depth = AIR_SCOPE_DEPTH_CAP;
+  while (at !== null && depth-- > 0) {
+    if (MixinApi.isAtmospheric(at) && MixinApi.isContainer(at)) {
+      const air = at as unknown as AtmosphericScope;
+      if (air.getVolume() !== null) {
+        air.addAtmosphereContent(materialPath, left);
+        return;
+      }
+    }
+    at = MixinApi.isContainable(at) ? (at.getContainer() as unknown as Stuff | null) : null;
+  }
+}
+
+/**
+ * A shape row is authored for the GOOD outcome (boots are rubber boots); a
+ * piece that came out as something else says so in its own material's
+ * words — found by the rubber drive: an under-cured boot read like a good one.
+ */
+function describeOffRung(cast: Stuff, mat: Material): void {
+  const looks = mat.getAppearance() || mat.getName();
+  if (!looks || !MixinApi.isVisible(cast)) return;
+  cast.setLongDescription(`${cast.getLongDescription().trimEnd()}\n\nIt is ${looks}.`);
+}
 
 /* ────────────── the phase-change engine (module-private) ──────────────
  * Moved in whole from the retired ThermalLogic (the Api OO sweep): heat
@@ -1387,15 +2220,27 @@ function massToLitres(massKg: number, mat: Material): number {
 interface PhaseClock {
   nowS: number | null;
   horizonS: number | null;
+  /**
+   * The drift the reconcile just integrated (its seconds and the body's
+   * τ), when the phase pass follows one — `null` from any other caller.
+   */
+  drift?: { seconds: number; tauS: number } | null;
   /** When the phase pass last looked, if known. */
   lastS?: number | null;
 }
 
 function reconcilePhaseImpl(stuff: Stuff, clock: PhaseClock): void {
   // A solid object melting: the latent-heat plateau, then the flow to bulk.
+  // ⚠ A meltable VESSEL (a glass bottle — ceramics W0) melts only at its
+  // own melting point; below it, it is a vessel, and its contents still
+  // freeze and boil by the arm below.
   if (MixinApi.isMeltable(stuff) && MixinApi.isThermal(stuff)) {
-    reconcileMelt(stuff as Stuff & Meltable & Thermal);
-    return;
+    const asVessel = MixinApi.isBulkable(stuff) && stuff.hasInteriorBulk();
+    const mp = (stuff as Stuff & Meltable).getMeltingPointK();
+    if (!asVessel || (mp > 0 && stuff.getTemperature().rawValue() >= mp)) {
+      reconcileMelt(stuff as Stuff & Meltable & Thermal);
+      return;
+    }
   }
   // A liquid-holding vessel: freeze below its material's melting point (a
   // casting) or boil above its boiling point (steam).
@@ -1430,25 +2275,81 @@ function reconcileMelt(m: Stuff & Meltable & Thermal): void {
   }
 }
 
-/** The melt completion: destruct the solid and flow its mass into the scope's
- * Floor as a molten liquid pool. */
+/**
+ * ⭐ Where a melt of `mat` goes (B105) — found BEFORE the solid is destroyed:
+ *
+ *  1. the vessel holding it, when it will take it (ice in a pail melts into
+ *     the pail — it used to look for a floor IN the pail, find none, and
+ *     vanish);
+ *  2. a pot standing beside it (a bottle in a kiln pools into the
+ *     glasshouse's pot — ceramics ruling C);
+ *  3. the nearest floor outward (ice in a sack runs out onto the floor the
+ *     sack stands on).
+ *
+ * `null` when the walk ends in a place with no floor (a water place, the
+ * open air): the melt joins the place's own medium — a skip, the world's
+ * answer. A solid standing NOWHERE has no answer at all: `DetachedError`.
+ */
+function meltDestination(
+  m: Stuff,
+  mat: Material,
+): { into: Stuff & Bulkable; aff: BulkAffordance } | null {
+  const holder = MixinApi.isContainable(m) ? (m.getContainer() as unknown as Stuff | null) : null;
+  if (holder === null) {
+    throw new DetachedError(`${m.getPresentation()} melted standing nowhere: its melt has no place`);
+  }
+  if (takesMelt(holder, mat)) return { into: holder as Stuff & Bulkable, aff: "interior" };
+  if (MixinApi.isContainer(holder)) {
+    const pot = poolVesselIn(holder as Stuff & Container, mat, m);
+    if (pot !== null) return { into: pot, aff: "interior" };
+  }
+  let at: Stuff | null = holder;
+  let depth = AIR_SCOPE_DEPTH_CAP;
+  while (at !== null && depth-- > 0) {
+    if (MixinApi.isContainer(at)) {
+      const floor = findScopeFloor(at as Stuff & Container);
+      if (floor !== null) return { into: floor, aff: "surface" };
+    }
+    at = MixinApi.isContainable(at) ? (at.getContainer() as unknown as Stuff | null) : null;
+  }
+  return null;
+}
+
+/** A vessel a melt of `mat` can pool into: not a mould, empty or holding it. */
+function takesMelt(v: Stuff, mat: Material): boolean {
+  if (!MixinApi.isBulkable(v) || !MixinApi.isThermal(v) || MixinApi.isMould(v)) return false;
+  if (!v.hasInteriorBulk()) return false;
+  const held = v.getBulkMaterial("interior");
+  const amount = v.getBulkAmount("interior").rawValue();
+  return !(amount > 0 && held !== null && held.getTemplatePath() !== mat.getTemplatePath());
+}
+
+/** The melt completion: destruct the solid and flow its mass where it goes. */
 function doMelt(m: Stuff & Meltable, mat: Material | null): void {
   if (!mat) return;
-  const massKg = (m as unknown as { getMass(): Quantity<'kg'> })
-    .getMass()
-    .rawValue();
+  const solid = m as unknown as Stuff;
+  const massKg = MixinApi.isTangible(solid) ? solid.getMass().rawValue() : 0;
   const litres = massToLitres(massKg, mat);
-  const scope = (m as unknown as { getContainer(): Stuff | null }).getContainer();
-  StuffApi.destruct(m as unknown as Stuff);
-  if (scope === null || !MixinApi.isContainer(scope)) return;
-  const floor = findScopeFloor(scope as Stuff & Container);
-  if (floor === null || litres <= 0) return;
-  // Merge into the pool (same material) or seed a fresh molten pool.
-  const cur = floor.getBulkAmount('surface').rawValue();
-  if (cur <= 0 || floor.getBulkMaterial('surface') === null) {
-    floor.setBulkMaterial('surface', mat);
+  // Checked first: a melt with no place throws before anything is destroyed.
+  const dest = meltDestination(solid, mat);
+  // ⭐ What was dissolved in the piece goes with it into the pool.
+  const dissolved = MixinApi.isComposition(solid) ? [...solid.getMakeup()] : [];
+  void StuffApi.destruct(solid);
+  if (dest === null || litres <= 0) return;
+  const { into, aff } = dest;
+  const cur = into.getBulkAmount(aff).rawValue();
+  const payload = into.getBulkPayload(aff);
+  if (cur <= 0 || into.getBulkMaterial(aff) === null) into.setBulkMaterial(aff, mat);
+  into.setBulkAmount(aff, Quantity.of(cur + litres, "L"));
+  if (aff === "interior") {
+    const folded = BulkableApi.blendPayloads(
+      dissolved.length > 0 ? { makeup: dissolved } : null,
+      litres,
+      payload,
+      cur,
+    );
+    into.setBulkPayload(aff, Object.keys(folded).length > 0 ? folded : null);
   }
-  floor.setBulkAmount('surface', Quantity.of(cur + litres, 'L'));
 }
 
 /**
@@ -1594,6 +2495,43 @@ function purifyIfHeld(
  * solid `Thing` drops into the vessel's scope). The reverse of the melt above,
  * driven by the same heat read — so ice → water → steam falls out for free.
  */
+/**
+ * ⭐ The heat a freezing pool gave up since it last sat at `mp` — by TIME,
+ * not by how often anybody looked. On the plateau a pool loses
+ * `C·(mp − amb)/τ` a second; the reconcile has meanwhile drifted it, as if
+ * nothing were freezing, to `T = amb + (mp − amb)·e^(−t/τ)`, so the time it
+ * spent there is `τ·ln((mp − amb)/(T − amb))` and the heat is
+ * `C·(mp − amb)·ln((mp − amb)/(T − amb))`. Short gaps reduce to the old
+ * `(mp − T)·C`; a pool that drifted from above `mp` is credited only the
+ * time after it reached it. ⚠ The old figure capped one read at
+ * `(mp − amb)·C`, so a damp-blown flask left three hours and read once
+ * never set (the ceramics drive, run 24). A pool that has reached ambient
+ * has given up everything it ever will: `Infinity`, which the caller caps.
+ */
+function plateauHeatJ(
+  mp: number,
+  temp: number,
+  ambientK: number,
+  capacityJ: number,
+  drift: { seconds: number; tauS: number } | null,
+): number {
+  const gap = mp - ambientK;
+  if (!(gap > 0)) return (mp - temp) * capacityJ;
+  if (temp >= mp) return 0;
+  const above = temp - ambientK;
+  if (above <= 1e-9) {
+    // ⚠ AT (or below) the air the drift cannot say how long the pool sat
+    // there: below it, the air warmed over the gap — a sunrise, or a damp
+    // mould's evaporative chill easing as it dried (run 29: a damp-blown
+    // flask read once after three hours stayed liquid on the old figure).
+    // So by the time the drift actually covered: on the plateau a pool loses
+    // C·(mp − amb)/τ a second. No drift on record: the old figure.
+    if (drift && drift.tauS > 0) return capacityJ * gap * (drift.seconds / drift.tauS);
+    return (mp - temp) * capacityJ;
+  }
+  return capacityJ * gap * Math.log(gap / above);
+}
+
 function reconcileBulkPhase(
   v: Stuff & Bulkable & Thermal,
   clock: PhaseClock,
@@ -1604,6 +2542,12 @@ function reconcileBulkPhase(
   const mat = v.getBulkMaterial(aff);
   if (!mat) return;
   const temp = v.getTemperature().rawValue();
+
+  // ⭐⭐ **Crystallizing** (ceramics S17), the third arm — and the one that
+  // fires at ANY temperature: a solution sets crystals when it holds more
+  // than its material dissolves at its heat, whether the water left
+  // (a salt pan in the sun) or the heat did (alum liquor cooling).
+  if (crystallizeIfOver(v, aff, mat, temp)) return;
 
   // ⭐ The boil climbs as the solution thickens (sugar D1): the boiling
   // point is the material's at the liquor's own concentration. Water and
@@ -1640,8 +2584,11 @@ function reconcileBulkPhase(
       const held = boilHeldSeconds(v, aff, bp, clock);
       const boiledL = boilJoules(v, temp, bp, held) / latent / kgPerL;
       const left = amount - boiledL;
-      // A solution cannot boil past its own solids: it thickens toward
-      // them instead (the arrows end it long before).
+      // ⭐⭐ The STEAM is water: what was dissolved stays behind, so a boil
+      // CONCENTRATES (the ceramics drive's salt pan held twelve-hour fires
+      // and set no salt while the solids left with the volume). A solution
+      // cannot boil past its own solids: it thickens toward them instead
+      // (the arrows end it long before).
       const floorL = solids > 0 ? (amount * solids) / SOLIDS_CEILING_KG_PER_L : 0;
       if (left > floorL || solids > 0) {
         // A solution at its ceiling holds there, all solids and no water
@@ -1679,15 +2626,17 @@ function reconcileBulkPhase(
     const massKg = (amount / 1000) * mat.getDensity().rawValue();
     const specificHeat = mat.getSpecificHeat().rawValue();
     const capacityJ = massKg * specificHeat;
-    const undershootJ = (mp - temp) * capacityJ;
+    const undershootJ = plateauHeatJ(mp, temp, v.lastAmbientK, capacityJ, clock.drift ?? null);
     const payload = v.getBulkPayload(aff);
+    const need = massKg * mat.getLatentHeatOfFusion().rawValue();
     let removed = payload?.latentRemovedJ ?? 0;
     if (undershootJ > 0) {
-      removed += undershootJ;
+      // Capped at what the freeze needs: nothing banks past the whole.
+      removed = need > 0 ? Math.min(need, removed + undershootJ) : removed + undershootJ;
+      if (!Number.isFinite(removed)) removed = 0;
       v.setBulkPayload(aff, { ...(payload ?? {}), latentRemovedJ: removed });
       v.setContentsTemperature(mp); // clamp — the plateau
     }
-    const need = massKg * mat.getLatentHeatOfFusion().rawValue();
     if (!(need > 0) || removed < need) return; // still on the plateau
 
     // ⭐ The ruin edge: a material freezing ruins (blood hemolyses) mints no
@@ -1704,12 +2653,26 @@ function reconcileBulkPhase(
       return;
     }
 
+    // ⭐ Where it sets, checked before the pool is touched (B105). A vessel
+    // that holds things keeps the lump IN it — the pit's water freezes in
+    // the pit and thaws back into it (the ceramics finalize drive: a temper
+    // pit's 200 L froze out onto the yard and never came back). One that
+    // holds no things drops it beside; standing nowhere, it has no beside.
+    const scope = MixinApi.isContainer(v)
+      ? (v as unknown as Stuff)
+      : MixinApi.isContainable(v)
+        ? (v.getContainer() as unknown as Stuff | null)
+        : null;
+    if (!MixinApi.isMould(v) && (scope === null || !MixinApi.isContainer(scope))) {
+      throw new DetachedError(`${v.getPresentation()} froze standing nowhere: what set in it has no place`);
+    }
+
     // Solidify — the liquid becomes a cast solid of the same material.
     // ⭐⭐ **The set site asks the CONTAINER first** (dairy D9): a mould
     // keeps what set in it, in its own shape (an ice pan → a block; an
     // ingot mould → an ingot); any other vessel falls back to the
     // material's `castTemplate` (water → a lump of ice; a metal → the
-    // generic `/stuff/thing/Casting`) dropped beside it, today's behaviour.
+    // generic `/stuff/thing/Casting`), in it or beside it (above).
     const setPayload = v.getBulkPayload(aff);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
@@ -1719,45 +2682,226 @@ function reconcileBulkPhase(
       // the mould's shape row (one ingot row for copper, tin and iron); a
       // `liquid`-tagged pool (water) has its own solid row (ice), which the
       // shape row authors and keeps.
-      void v.castInto({
-        material: mat,
-        massKg,
-        payload: setPayload,
-        stampMaterial: !mat.hasTag('liquid'),
-      });
+      void v
+        .castInto({
+          material: mat,
+          massKg,
+          payload: setPayload,
+          stampMaterial: !mat.hasTag('liquid'),
+          // ⭐ (ceramics D22) The pool sets at its melting point; what heat
+          // it was POURED with is the mould's record (`receivedPour`).
+          temperatureK: mp,
+        })
+        // A cast that cannot be made throws (B104); a freeze runs inside a
+        // read, so nothing waits on it — said here, not left unhandled.
+        .catch((err: unknown) => {
+          console.error('Thermal: what froze in the mould could not be cast', err);
+        });
       return;
     }
-    const scope = (v as unknown as { getContainer(): Stuff | null })
-      .getContainer();
-    void StuffApi.clone(mat.getCastTemplate()).then((cast) => {
-      const c = cast as unknown as Stuff & {
-        setShortDescription(s: string): void;
-        setKeywords(k: string[]): void;
-        setMaterial(m: Material): void;
-        setMass(q: Quantity<'kg'>): void;
-        getMaterial?(): Material | null;
-      };
-      // Stamp mass always; stamp material/prose/keywords only when the clone
-      // authored no material of its own (the generic cast) — ice-block rows
-      // ship their own material + prose.
-      const authored = typeof c.getMaterial === 'function' ? c.getMaterial() : null;
-      if (!authored) {
-        c.setShortDescription(`cast lump of ${mat.getName()}`);
-        c.setKeywords(['lump', 'cast', ...mat.getName().split(/\s+/)]);
-        c.setMaterial(mat);
-      }
-      c.setMass(Quantity.of(massKg, 'kg'));
-      if (scope && MixinApi.isContainer(scope)) {
-        void ContainmentApi.move(
-          cast as unknown as Stuff & Containable,
-          scope as Stuff & Container,
-        );
-      }
-    }).catch(() => {
-      // A missing/!resolvable cast template must not crash the reconcile —
-      // the pool has already emptied; the cast simply does not appear. In a
-      // booted world the template is present (water → ice-block).
+    void setLump(scope as Stuff & Container, mat, massKg, setPayload).catch((err: unknown) => {
+      console.error('Thermal: what froze could not be set', err);
     });
+  }
+}
+
+/**
+ * The lump a pool sets as in a vessel that is not a mould — the material's
+ * own cast row, in the vessel when it holds things, else beside it. ⚠ A row that will not mint, or is not a
+ * thing that can stand there, throws (B105 — it was swallowed and the pool,
+ * already emptied, was lost).
+ */
+async function setLump(
+  scope: Stuff & Container,
+  mat: Material,
+  massKg: number,
+  setPayload: BulkPayload | null,
+): Promise<void> {
+  const cast = await StuffApi.clone<Stuff>(mat.getCastTemplate());
+  if (!(MixinApi.isTangible(cast) && MixinApi.isVisible(cast) && MixinApi.isPerceptible(cast) && MixinApi.isContainable(cast))) {
+    await StuffApi.destruct(cast);
+    throw new TypeError(`Thermal: '${mat.getCastTemplate()}' is not a thing a pool could set as`);
+  }
+  // Stamp material/prose/keywords only when the row authored no material of
+  // its own (the generic cast) — ice-block rows ship their own.
+  if (cast.getMaterial() === null) {
+    cast.setShortDescription(`cast lump of ${mat.getName()}`);
+    cast.setKeywords(['lump', 'cast', ...mat.getName().split(/\s+/)]);
+    cast.setMaterial(mat);
+  }
+  cast.setMass(Quantity.of(massKg, 'kg'));
+  // ⭐ The pool's composition sets into the lump (ceramics ruling C).
+  const dissolved = setPayload?.makeup;
+  if (dissolved && dissolved.length > 0 && MixinApi.isComposition(cast)) cast.setMakeup(dissolved);
+  ContainmentApi.move(cast as Stuff & Containable, scope);
+}
+
+/**
+ * ⭐⭐ **The crystallize arm** (ceramics S17, D32). A bulk whose material
+ * authors `solubility` and `crystallizesTo`, holding more dissolved solids
+ * (`payload.dissolvedSolidsKgPerL`, else the material's own
+ * `solidsKgPerL`) than `solubilityAt(T)`, sets the EXCESS:
+ *
+ *  - in a mold, kept in the mold's shape (`castInto`) — and a crop
+ *    already setting there GROWS rather than a second one minting;
+ *  - in any other vessel, a lump of crystals beside it (the product's own
+ *    `castTemplate`), grown the same way.
+ *
+ * The liquor left is SATURATED, and what becomes of it is the one choice:
+ *
+ *  - ⭐ while the vessel is still concentrating it (a maturing host with an
+ *    active batch — the pan the sun is working) it STAYS, its own
+ *    material, so the crop keeps growing as the water keeps leaving and
+ *    the total set is the same however often anybody looks;
+ *  - otherwise the liquor is SPENT: its material swaps to
+ *    `crystallizesTo.residue` (brine's bittern) and, in a mold standing
+ *    on a vessel that takes drainings (`Mould.drainsInto()`), it runs
+ *    down into that vessel.
+ *
+ * Returns true when it changed the slot (the caller stops for this read).
+ */
+function crystallizeIfOver(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  tempK: number,
+): boolean {
+  const solubility = mat.solubilityAt(tempK);
+  const into = mat.getCrystallizesTo();
+  if (solubility === null || into === null) return false;
+  const litres = v.getBulkAmount(aff).rawValue();
+  if (!(litres > 0)) return false;
+  const payload: BulkPayload = v.getBulkPayload(aff) ?? {};
+  const held = payload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+  if (!(held > solubility + 1e-9)) return false;
+  const product = StuffApi.findByTemplatePath<Material>(into.product);
+  if (!product) return false;
+
+  // ⭐ Where the crystals go, checked before the liquor changes (B105): a
+  // mould keeps them; any other vessel sets them beside it, and one standing
+  // nowhere has no beside — the solids used to leave the liquor and vanish.
+  if (!MixinApi.isMould(v)) {
+    const at = MixinApi.isContainable(v) ? (v.getContainer() as unknown as Stuff | null) : null;
+    if (at === null || !MixinApi.isContainer(at)) {
+      throw new DetachedError(`${v.getPresentation()} set crystals standing nowhere: they have no place`);
+    }
+  }
+  const excessKg = (held - solubility) * litres;
+  // ⚠ The liquor keeps its volume: a solute's share of a solution's volume
+  // is small, and the volume is what the water does (the evaporative window
+  // moves it) — subtracting the crystals' volume made a pan whose window
+  // had run ahead of its reads lose its whole liquor to the crop.
+  const liquorL = litres;
+  const host = v as unknown as Stuff;
+  const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
+
+  const liquorPayload: BulkPayload = { ...payload, dissolvedSolidsKgPerL: solubility };
+  v.setBulkAmount(aff, Quantity.of(liquorL, 'L'));
+  v.setBulkPayload(aff, liquorPayload);
+  if (!concentrating) {
+    const residue = StuffApi.findByTemplatePath<Material>(into.residue);
+    if (residue && liquorL > 0) v.setBulkMaterial(aff, residue);
+    if (MixinApi.isMould(v) && liquorL > 0) {
+      const below = v.drainsInto();
+      if (below !== null && below !== (v as unknown as Stuff)) {
+        drainLiquorInto(v, aff, below, liquorL);
+      }
+    }
+    if (liquorL <= 0) {
+      v.setBulkMaterial(aff, null);
+      v.setBulkPayload(aff, null);
+    }
+  }
+  // A set runs inside a read: nothing waits on the crop, so a failure is said.
+  void setCrystals(v, product, excessKg).catch((err: unknown) => {
+    console.error('Thermal: the crystals could not be set', err);
+  });
+  return true;
+}
+
+/**
+ * The spent liquor runs down into the vessel the mold stands on — a
+ * TRANSFER, the one primitive, so it carries what the liquor carries and
+ * the receiver is asked whether it survives it. What the vessel below has
+ * no room for stays in the mould; a different liquor already below is not
+ * mixed into (the transfer declines the mismatch).
+ */
+function drainLiquorInto(
+  v: Stuff & Bulkable,
+  aff: BulkAffordance,
+  below: Stuff & Bulkable,
+  litres: number,
+): void {
+  BulkableApi.transfer(v.getBulk(aff), below.getBulk('interior'), {
+    kind: 'measure',
+    litres,
+    mode: 'lenient',
+  });
+}
+
+/**
+ * Lay `kg` of `product` crystals where the vessel keeps them: a crop
+ * already there (in the mold, or beside a plain vessel) of the same
+ * material grows; otherwise one is set — `castInto` in a mold, the
+ * product's own cast row beside anything else.
+ */
+async function setCrystals(
+  v: Stuff & Bulkable & Thermal,
+  product: Material,
+  kg: number,
+): Promise<void> {
+  if (!(kg > 0)) return;
+  const self = v as unknown as Stuff;
+  // ⭐ One crop in the making per vessel: while its cast is minting (async),
+  // a later read's crystals join it rather than starting another. A boil
+  // read a hundred times in one clock advance started a hundred casts, each
+  // a full containment move, and the world stopped answering (the ceramics
+  // drive D, run 30 — a live CPU profile, 87 % in `castInto`).
+  const minting = CROPS_MINTING.get(self.stuffId);
+  if (minting) {
+    minting.kg += kg;
+    return;
+  }
+  const mould = MixinApi.isMould(self) ? self : null;
+  const outer = MixinApi.isContainable(self) ? (self.getContainer() as unknown as Stuff | null) : null;
+  const scope = (mould ?? outer) as (Stuff & Container) | null;
+  if (scope === null || !MixinApi.isContainer(scope as Stuff)) {
+    throw new DetachedError(`${self.getPresentation()} has no place for its crystals`);
+  }
+  const shape = mould ? mould.castTemplateFor(product) : product.getCastTemplate();
+  for (const c of scope.getContents()) {
+    const s = c as unknown as Stuff;
+    if (s === self || s.isDestroyed() || !MixinApi.isTangible(s)) continue;
+    if (s.getTemplatePath() !== shape) continue;
+    if (s.getMaterial()?.getTemplatePath() !== product.getTemplatePath()) continue;
+    s.setMass(Quantity.of(s.getMass().rawValue() + kg, 'kg'));
+    return;
+  }
+  const crop = { kg };
+  CROPS_MINTING.set(self.stuffId, crop);
+  try {
+    let cast: Stuff;
+    if (mould) {
+      cast = await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+    } else {
+      // ⚠ A row that will not mint, or cannot stand beside the vessel,
+      // throws (B105 — it was swallowed, and the crop lost).
+      cast = await StuffApi.clone<Stuff>(shape);
+      if (!(MixinApi.isTangible(cast) && MixinApi.isVisible(cast) && MixinApi.isPerceptible(cast) && MixinApi.isContainable(cast))) {
+        await StuffApi.destruct(cast);
+        throw new TypeError(`Thermal: '${shape}' is not a thing crystals could set as`);
+      }
+      if (cast.getMaterial() === null) {
+        cast.setMaterial(product);
+        cast.setShortDescription(`${product.getName()} crystals`);
+        cast.setKeywords(['crystals', 'crystal', ...product.getName().split(/\s+/)]);
+      }
+      ContainmentApi.move(cast as Stuff & Containable, scope);
+    }
+    // Whatever joined the crop while it was minting is in it now.
+    if (MixinApi.isTangible(cast)) cast.setMass(Quantity.of(crop.kg, 'kg'));
+  } finally {
+    CROPS_MINTING.delete(self.stuffId);
   }
 }
 
@@ -1765,6 +2909,25 @@ function reconcileBulkPhase(
 function freezeNowSeconds(): number {
   if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return 0;
   return WorldClockApi.getNow().rawValue();
+}
+
+/**
+ * ⭐ A vessel in `scope` that a melt of `mat` can pool into: `Bulkable &
+ * Thermal`, not a mould, with an interior that is empty or already holds
+ * this material — the smelt's `crucibleIn` rule, here because a melt is
+ * the phase engine's.
+ */
+function poolVesselIn(
+  scope: Stuff & Container,
+  mat: Material,
+  melting: Stuff,
+): (Stuff & Bulkable & Thermal) | null {
+  for (const c of scope.getContents()) {
+    const v = c as unknown as Stuff;
+    if (v === melting || v.isDestroyed() || !takesMelt(v, mat)) continue;
+    return v as Stuff & Bulkable & Thermal;
+  }
+  return null;
 }
 
 /** The scope's puddle-bearing `Floor` — a surface-bulk fixture / content (the

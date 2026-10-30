@@ -1,14 +1,7 @@
-# ⛔ `unreachable: exemplar`, and ⭐ the reason is this row's own header:
-# it is the standing proof that the `Kiln` CLASS was unnecessary. The
-# dials are all there is now, on `Oven`, which is the right parent — and
-# that claim needs a row to be true OF. ⚠ It is NOT deleted (the plan
-# said to): deleting it would delete the evidence for a decision
-# already made, and the row is correct now in a way the clone it
-# replaced never was (the old one could not hold a charge, so it could
-# not be fired, which is why it stood nowhere for its whole life).
-# ⭐ What lifts this: a pottery or lime trade. Then a kiln is propped in
-# a yard and this key comes off.
-unreachable: exemplar
+# ⭐ (ceramics W5) Once `unreachable: exemplar` — the proof the `Kiln`
+# CLASS was unnecessary. What lifted it, as its header said it would: the
+# glasshouse props it, and a pottery trade gave its lining something to
+# wear.
 # Kiln — a ceramics / lime firing furnace. A steady pottery heat (1200 K),
 # with a modest bellows boost. Lit with `ignite`, run with `fire`.
 #
@@ -37,6 +30,8 @@ data:
     A domed brick kiln with a low stoking door, its inner walls glazed by
     countless firings.
   burnTemperatureK: 1200
+  # A brick kiln: its casing and its 30-brick lining.
+  mass: 3000
   bellowsMultiplier: 1.25
   lit: false
   # ⭐⭐ The darkness sweep (fire build). `emittedIntensity` is a CEILING
@@ -54,3 +49,11 @@ data:
   # is in it.
   maxBurnPowerW: 25000
   fuelCapacityKg: 60
+  # ⭐ A lining of firebrick (ceramics D19): a part line that wears with
+  # every firing and is relined with `fit lining to <this>`. Its health
+  # sets the heat the chamber can hold; burnt through, it will not light.
+  bill:
+    parts:
+      - { part: lining, template: /stuff/thing/firebrick, count: 30, role: wear }
+    joints:
+      - { key: lining, method: dry-laid, members: [lining] }

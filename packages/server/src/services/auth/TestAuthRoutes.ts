@@ -143,8 +143,54 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ A test character fed and watered (the meals between a drive's
+    // checkpoints) — a route for the clock's reason: a parcel-bound `eval`
+    // may not read the biome the body's reconcile reads.
+    app.post('/auth/test-nourish', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = (req.body as { handle?: unknown } | undefined)?.handle;
+      if (typeof handle !== 'string' || handle === '') {
+        res.status(400).json({ error: 'handle must be a string' });
+        return;
+      }
+      try {
+        res.json(TestHooks.nourishCharacter(handle));
+      } catch (err) {
+        console.error('TestAuthRoutes: test-nourish failed:', err);
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+      }
+    });
+
+    // ⭐ A test character handed a thing (a drive's setup: a winter coat to
+    // wear, an ore to smelt) — by name, not dropped from the founder's hands.
+    app.post('/auth/test-hand', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { handle?: unknown; template?: unknown; data?: unknown } | undefined;
+      if (typeof body?.handle !== 'string' || body.handle === '' || typeof body.template !== 'string') {
+        res.status(400).json({ error: 'handle and template must be strings' });
+        return;
+      }
+      const data = body.data;
+      if (data !== undefined && (typeof data !== 'object' || data === null || Array.isArray(data))) {
+        res.status(400).json({ error: 'data, when given, must be an object' });
+        return;
+      }
+      TestHooks.handCharacter(body.handle, body.template, data as Record<string, unknown> | undefined)
+        .then((id) => res.json({ id }))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-hand failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     console.warn(
-      'TestAuthRoutes: ⚠  /auth/test-login and /auth/test-clock are MOUNTED ' +
+      'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-nourish and /auth/test-hand are MOUNTED ' +
         '(test seams). Never in production.'
     );
   }

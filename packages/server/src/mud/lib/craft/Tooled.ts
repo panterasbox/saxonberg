@@ -56,6 +56,15 @@ export interface Tooled {
    */
   getSwathM2(): number;
   setSwathM2(value: number): void;
+  /**
+   * ⭐ The craft this tool's finer use draws on, or `''`: pyrometric cones
+   * are read by a POTTER's eye (a competent potter calls them by number),
+   * not by the general awareness a thermometer's dial wants. A reading
+   * that takes a hand tool reads its finer detail at the reader's band in
+   * this discipline (the ceramics drive C, run 35: the practised potter
+   * read the cones exactly as the novice did).
+   */
+  getDiscipline(): string;
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -66,6 +75,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       capabilities: { persistent: true, authorable: true },
       epoch: { persistent: true, authorable: true },
       swathM2: { persistent: true, authorable: true },
+      discipline: { persistent: true, authorable: true },
     };
 
     /**
@@ -90,6 +100,13 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     setSwathM2(value: number): void {
       const n = Number(value);
       this.swathM2 = Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    /** The craft this tool's finer use draws on; `''` = none. See {@link Tooled.getDiscipline}. */
+    public discipline = '';
+
+    getDiscipline(): string {
+      return this.discipline;
     }
 
     getEpoch(): Epoch | null {

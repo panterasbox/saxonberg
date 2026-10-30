@@ -1,0 +1,10 @@
+# The `flask` form (ceramics S4): a narrow-necked closed vessel.
+class: /platform/idea/Form
+data:
+  key: flask
+  formClass: closed
+  capacityL: 0.6
+  proportion: narrow
+  product: /trade/ceramics/thing/flask
+  greenScale: 1.0
+  discipline: pottery

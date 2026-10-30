@@ -310,7 +310,19 @@ export default class CraftVessel extends CraftVesselBase {
         const room = slot.remaining();
         const credit = Math.min(meltKg, Number.isFinite(room) ? room : meltKg);
         if (credit > 0) {
-          slot.setAmount(Quantity.of(slot.getAmount().rawValue() + credit, 'L'));
+          const before = slot.getAmount().rawValue();
+          slot.setAmount(Quantity.of(before + credit, 'L'));
+          // ⭐ The melt joins the drink and is no part of its makeup, so
+          // each recorded part keeps its mass: its fraction thins (ceramics
+          // re-plan R1-D1). Without this a melting glass grows its dose.
+          const held = slot.getPayload();
+          if (held?.makeup && held.makeup.length > 0) {
+            const keep = before / (before + credit);
+            slot.setPayload({
+              ...held,
+              makeup: held.makeup.map((e) => ({ ...e, fraction: e.fraction * keep })),
+            });
+          }
         }
       }
       if (this.iceKg > 0) {
@@ -346,12 +358,17 @@ export default class CraftVessel extends CraftVesselBase {
       if (tags.includes('carbonated')) parts.push('fizzing');
     }
     const contents = this.getContents();
-    if (contents.length > 0) {
-      parts.push(
-        `with ${contents.map((c) => c.getPresentation()).join(' and ')}`,
-      );
-    }
-    const working = parts.length > 0 ? ` It is ${parts.join(', ')}.` : '';
+    const things = contents.map((c) => c.getPresentation()).join(' and ');
+    // A garnish rides the drink ("shaken, with a twist"); a thing standing
+    // in a bare vessel is its own sentence — "It is with a water filter"
+    // read as nobody speaks (the ceramics probe).
+    if (contents.length > 0 && parts.length > 0) parts.push(`with ${things}`);
+    const working =
+      parts.length > 0
+        ? ` It is ${parts.join(', ')}.`
+        : contents.length > 0
+          ? ` There is ${things} in it.`
+          : '';
     const verdict = (this as unknown as Crafted).renderVerdict();
     return `${base}${working} ${verdict}`;
   }

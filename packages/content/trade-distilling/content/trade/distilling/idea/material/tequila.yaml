@@ -8,6 +8,8 @@ data:
   keywords: [tequila]
   appearance: a pale, peppery agave spirit
   density: 940
+  # One serving, kg (the unit of its label and its dose): one 60 ml measure at 940 kg/m³.
+  servingKg: 0.0564
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true

@@ -4,53 +4,38 @@
  * note further than air and from no direction you can place (the medium's
  * own sound), so every diver in the column hears it and none can tell
  * where it came from.
+ *
+ * ⭐ It is rung with the platform's `ring`, which anything with mass
+ * affords: the bell only answers how it sounds. One verb per act — tapping
+ * a jug to hear a crack and striking a bell to be heard are the same act.
  */
 
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { RingableMixin } from '@saxonberg/server/mud/lib/perception/Ringable';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
+import { AudibleMixin } from '@saxonberg/server/mud/lib/perception/Audible';
+import type { RingSound } from '@saxonberg/server/mud/lib/material/Integrity';
 
 /** A struck bell carries like a shout, and further in water. */
 const BELL_DB = 95;
 
-export default class SignalBell extends RingableMixin(Good) {
-  static commandContributions: CommandContributions = {
-    self: [],
-    environment: ['trade/diving/cmd/diving/ring.yaml'],
-    // ⭐ A bell hung on a post (a ferry landing's) is rung by whoever stands
-    // beside it — the helm's way (the river drive: `ring` was unknown at
-    // Nesbit's landing).
-    peers: ['trade/diving/cmd/diving/ring.yaml'],
-  };
-
-  /** When it was last struck, game seconds (runtime: who rang is heard, not kept). */
-  private rungAtS = Number.NEGATIVE_INFINITY;
-
+/**
+ * ⭐ Ringable (river W16): a ferryman across the water knows it rang — what
+ * a bell on a landing post is FOR — without importing this mod.
+ */
+export default class SignalBell extends RingableMixin(AudibleMixin(Good)) {
   /**
-   * ⭐ When this bell was last struck (river D31): a ferryman across the
-   * water knows it rang — what a bell on a landing post is FOR.
+   * @hook ⭐ Struck, it rings loud — and what everybody else hears is the
+   * bell, never the hand: under the water the medium carries it to the
+   * whole column from no direction anybody can place.
    */
-  public override getLastRungAtS(): number {
-    return this.rungAtS;
-  }
-
-  /** ⭐ Strike it: a hearing event from where the striker is. */
-  public ring(by: Stuff): void {
-    try {
-      this.rungAtS = WorldClockApi.getNow().rawValue();
-    } catch {
-      /* no clock (a unit world): the ring is heard and not remembered */
-    }
-    MessageApi.scene(by)
-      .topic('act.deed')
-      .modality('hearing')
-      .meta({ acousticDb: BELL_DB })
-      .toSelf(Mml.compose`You strike ${Mml.thing(this as unknown as Stuff)}; the note goes out through the water.`)
-      .toPeers(Mml.compose`A bell rings out, clear and close, from nowhere you can place.`)
-      .send();
+  public override ringSound(): RingSound {
+    const base = super.ringSound();
+    if (!base.rings) return base;
+    return {
+      description: 'a bell rings out, clear and close, from nowhere you can place',
+      character: 'bell',
+      db: BELL_DB,
+      rings: true,
+    };
   }
 }

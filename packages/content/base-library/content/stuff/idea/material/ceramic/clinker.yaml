@@ -1,0 +1,29 @@
+# Clinker — clay fired past what it can bear: glassy, warped, bloated in
+# places, and nearly impervious. The over-burnt brick from a clamp's fire
+# channels, which is the worst brick for a wall and (roads-slate § 4) the
+# best for a road: the Dutch *klinker*. ⭐ A common clay's `scorched`
+# outcome — a peak too hot for the body (ceramics M1).
+class: /platform/idea/material/Material
+data:
+  name: clinker
+  keywords: [clinker, klinker, brick, vitrified, burnt]
+  appearance: fused, blistered clinker, burnt nearly black at the edges
+  density: 2350
+  specificHeat: 880
+  thermalConductivity: 1.4
+  electricalConductivity: 1.0e-7
+  waterAbsorptionCapacity: 0.5
+  hardness: 100
+  toughness: 4
+  # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
+  # than this on cooling crazes.
+  thermalExpansion: 6.5e-06
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "vitrified", "clinker"]
+  composition: []
+  biologicalSource: null
+  # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
+  # with this body at the break; ground at a millstone, sherds are grog.
+  brokenTemplate: /stuff/thing/sherds
