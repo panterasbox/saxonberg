@@ -28,7 +28,7 @@ data:
       ladder:
         - { atDegree: 1, becomes: /stuff/idea/material/glaze/tin }
   leaches:
-    - { toxin: lead-poisoning, mgPerLPerDayPerAcidity: 2 }
+    - { toxin: lead-poisoning, mgPerLPerDay: 2 }
   edibility: false
   nutrients: []
   toxicity: []

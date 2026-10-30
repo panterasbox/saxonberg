@@ -106,13 +106,13 @@ beforeEach(() => {
           ladder: [{ atDegree: 1, becomes: `/stuff/idea/material/_faced/${name}` }],
         },
       ]);
-      if (leaches) m.setLeaches([{ toxin: 'lead-poisoning', mgPerLPerDayPerAcidity: 4 }]);
+      if (leaches) m.setLeaches([{ toxin: 'lead-poisoning', mgPerLPerDay: 4 }]);
     });
   lead = glaze('lead-glaze', 1250, 1400, 7.5e-6, true);
   ash = glaze('ash-glaze', 1250, 1500, 5e-6, false);
   vinegar = mat('vinegar', (m) => {
     m.setTags(['liquid']);
-    m.setAcidity(0.9);
+    m.setPh(2.4); // vinegar
   });
   water = mat('water', (m) => m.setTags(['liquid']));
 });
@@ -246,8 +246,23 @@ describe('the slot — the leach and the weep', () => {
     clean.getBulkPayload('interior');
     advance(7 * 86_400);
     const dose = leaded.getBulkPayload('interior')?.dissolvedToxins?.find((t) => t.type === 'lead-poisoning');
-    expect(dose?.amount ?? 0).toBeCloseTo(4 * 0.9 * 7, 0);
+    // Vinegar IS the reference (B109): the authored 4 mg/L/day, a week.
+    expect(dose?.amount ?? 0).toBeCloseTo(4 * 7, 0);
     expect(clean.getBulkPayload('interior')?.dissolvedToxins ?? []).toEqual([]);
+  });
+
+  it('⭐ the attack follows pH: tenfold per two units, nothing at or above neutral (B109)', () => {
+    const at = (ph: number): number => {
+      const m = makeStuff(() => new Material());
+      m.setPh(ph);
+      return m.acidAttack();
+    };
+    expect(at(2.4)).toBeCloseTo(1, 9); // vinegar, the reference
+    expect(at(0.4)).toBeCloseTo(10, 9);
+    expect(at(6.7)).toBeLessThan(0.01); // milk barely
+    expect(at(7)).toBe(0);
+    expect(at(8.1)).toBe(0); // seawater: alkaline, no lead
+    expect(makeStuff(() => new Material()).getPh()).toBe(7); // unauthored is neutral
   });
 
   it('water is not acid — it takes nothing from a lead glaze', () => {

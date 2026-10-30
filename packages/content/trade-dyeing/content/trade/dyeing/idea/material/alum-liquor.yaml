@@ -20,7 +20,7 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  acidity: 0.2
+  ph: 3.5
   tags: [liquid, liquor]
   solidsKgPerL: 0.6
   solubility: [[273, 0.055], [293, 0.12], [313, 0.22], [333, 0.45], [353, 0.75], [373, 0.95]]

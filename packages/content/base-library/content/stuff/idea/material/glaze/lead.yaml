@@ -32,7 +32,7 @@ data:
   # ⭐⭐ Lead leaches from the inside face into acid contents (ceramics M7),
   # and nothing you can see, smell or taste says so.
   leaches:
-    - { toxin: lead-poisoning, mgPerLPerDayPerAcidity: 4 }
+    - { toxin: lead-poisoning, mgPerLPerDay: 4 }
   edibility: false
   nutrients: []
   toxicity: []

@@ -2170,6 +2170,16 @@ left a fork the lens that chose is named.
   (`Brick`'s composition without the stack): filed as a vessel it claimed
   bulk slots and a vessel kind. Ten rows repointed; tests and docs follow.
   Narrower subclasses wait until behavior differs (the crucible first).
+- **B109 — `acidity` is pH (owner, 2026-10-29).** `Material.acidity` (0..1,
+  an invented dial) became `Material.ph` (real pH; unauthored reads 7) and
+  `acidAttack()` = `10^((2.4 − pH)/2)` below neutral, 0 at or above — vinegar
+  is the reference. `LeachSpec.mgPerLPerDayPerAcidity` → `mgPerLPerDay`
+  (against vinegar; the glaze numbers kept their calibration). 33 rows
+  re-authored with real pH — ⚠ the dial had let real errors in: sea water
+  read acid (it is pH 8.1, alkaline), lemon read milder than vinegar, bittern
+  read acid (now unauthored, neutral). `lint:acidity`: an `acid` row authors a
+  pH below 7. ⚠ Found: `wiki-spoiler-fields` had been stale since B104
+  (`CraftedMixin.madeFrom`); refreshed with this.
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding

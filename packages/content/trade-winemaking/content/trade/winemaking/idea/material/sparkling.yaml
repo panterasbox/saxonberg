@@ -13,8 +13,8 @@ data:
   nutrients: ["water"]
   toxicity:
     - { type: alcohol, amount: 12 }
-  # ⭐ How acid it is, 0..1 (ceramics M7) — what draws lead from a glaze.
-  acidity: 0.7
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.2
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "sparkling", "carbonated"]
   composition: []
   biologicalSource: null

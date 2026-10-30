@@ -1078,7 +1078,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
       // pot of water carries no payload because of this.
       const insideFace = self.outermost('inside');
-      const leaches = material.getAcidity() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
+      const leaches = material.acidAttack() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
       const porousInside = !self.holdsWater('inside');
       // A liquid against a wall that lets water through (the face's own read,
       // B100 — this was a second copy of it, inline).
@@ -1105,11 +1105,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const days = dt / 86_400;
         // The leach.
         const inside = self.outermost('inside');
-        const acidity = material.getAcidity();
-        if (inside !== null && acidity > 0) {
+        // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
+        // vitriol far more, milk next to nothing, seawater none.
+        const attack = material.acidAttack();
+        if (inside !== null && attack > 0) {
           const toxins = [...(payload.dissolvedToxins ?? [])];
           for (const leach of inside.getLeaches()) {
-            const mg = leach.mgPerLPerDayPerAcidity * acidity * days;
+            const mg = leach.mgPerLPerDay * attack * days;
             if (!(mg > 0)) continue;
             const at = toxins.findIndex((t) => t.type === leach.toxin);
             if (at >= 0) toxins[at] = { ...toxins[at]!, amount: toxins[at]!.amount + mg };

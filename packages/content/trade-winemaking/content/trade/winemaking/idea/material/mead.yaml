@@ -16,8 +16,8 @@ data:
   nutrientAmounts:
     alcohol: 11000
     sugar: 30
-  # ⭐ How acid it is, 0..1 (ceramics M7) — what draws lead from a glaze.
-  acidity: 0.5
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.7
   tags: ["liquid", "drink", "alcoholic", "mead"]
   composition: []
   biologicalSource: null

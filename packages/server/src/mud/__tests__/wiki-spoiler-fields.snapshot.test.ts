@@ -342,7 +342,7 @@
  * **Ceramics (+54 fields, −1).** ⭐ Eight are spoilers, every one a
  * MEASURED property of matter, the boiling-point precedent:
  *   - `Material.heatTransitions` (now `kinetics`) · `vaporizesAboveK`
- *     · `thermalExpansion` · `acidity` · `solubility` · `chillsTo`: what
+ *     · `thermalExpansion` · `ph` · `solubility` · `chillsTo`: what
  *     a kiln, a crazed glaze, a chill mould or a saturated pan teaches
  *     you;
  *   - `Material.leaches` and `filteredTo`, the two whose spoiler IS the

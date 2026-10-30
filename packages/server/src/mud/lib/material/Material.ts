@@ -87,8 +87,12 @@ import type { BoundaryRole } from '../security/BoundaryRole';
 export interface LeachSpec {
   /** The toxin type, as metabolism names it (`lead-poisoning`). */
   toxin: string;
-  /** mg per litre per game-day per unit of the contents' acidity. */
-  mgPerLPerDayPerAcidity: number;
+  /**
+   * mg per litre per game-day against VINEGAR (pH 2.4, the acid a lead-
+   * release test uses); other contents scale by their acid attack
+   * (`Material.acidAttack`, from their pH).
+   */
+  mgPerLPerDay: number;
 }
 
 export interface CompositionEntry {
@@ -168,6 +172,10 @@ export interface ConcentrationArrow {
  * sucrose's, and near enough for any sugar or salt a pan boils down.
  */
 const SOLUTE_DENSITY_KG_PER_L = 1.6;
+/** Vinegar's pH — the acid a lead-release test uses; its acid attack is 1. */
+const VINEGAR_PH = 2.4;
+/** pH units per tenfold change in acid attack (lead release, roughly). */
+const PH_UNITS_PER_TENFOLD = 2;
 
 /**
  * Link from a biological Material to the Species it came from, plus
@@ -1172,12 +1180,13 @@ export default class Material extends SingletonMixin(
     // ⭐ How much it grows per kelvin — a glaze that shrinks more than its
     // body on cooling crazes; a body that grows too much cracks in a fire.
     thermalExpansion: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-    // ⭐ How acid it is, 0..1 (vinegar 0.9, water 0) — what draws lead out
-    // of a glaze. A measured fact.
-    acidity: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ Its pH — 7 neutral, below acidic, above alkaline (vinegar 2.4,
+    // seawater 8.1); unauthored reads 7. What draws lead out of a glaze,
+    // and the number litmus and a soil kit read. A measured fact.
+    ph: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     // ⭐⭐ What a face of this gives the contents it holds, per litre per
-    // day per unit of their acidity. `spoiler: 1` — the lead in a glaze is
-    // the thing nobody tells you.
+    // day against vinegar, scaled by their acid attack. `spoiler: 1` — the
+    // lead in a glaze is the thing nobody tells you.
     leaches: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     // A bath of this lays a coat (a glaze slip) — what `dip` reads.
     laysCoat: { persistent: true, authorable: true },
@@ -1538,19 +1547,38 @@ export default class Material extends SingletonMixin(
     this.thermalExpansion = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
-  /** ⭐ Acidity, `0..1` — what draws a leach out of a face. */
-  protected acidity = 0;
-  public getAcidity(): number {
-    return this.acidity;
+  /**
+   * ⭐ pH — the negative log of the hydrogen-ion concentration, so each unit
+   * is tenfold: 7 neutral, below acidic (lemon 2.2, wine 3.3, milk 6.7),
+   * above alkaline (seawater 8.1, lye 13). Unauthored reads 7: water, and
+   * every solid, are neutral. Clamped to −1..15 (a concentrated acid goes a
+   * little negative, a strong lye a little past 14). It was `acidity`, a
+   * 0..1 dial nothing could be checked against (B109): seawater read acid.
+   */
+  protected ph = 7;
+  public getPh(): number {
+    return this.ph;
   }
-  public setAcidity(value: number): void {
-    this.acidity = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+  public setPh(value: number): void {
+    this.ph = Number.isFinite(value) ? Math.max(-1, Math.min(15, value)) : 7;
+  }
+
+  /**
+   * ⭐ How hard this attacks an acid-soluble face (a lead glaze, pewter),
+   * relative to vinegar (pH 2.4) = 1: tenfold per two pH units more acid,
+   * and nothing at all at or above neutral — lead is an ACID's to take (lye
+   * eats glass, not lead). Vitriol ≈ 16, lemon ≈ 1.3, wine ≈ 0.35, milk
+   * ≈ 0.007, seawater 0.
+   */
+  public acidAttack(): number {
+    if (!(this.ph < 7)) return 0;
+    return Math.pow(10, (VINEGAR_PH - this.ph) / PH_UNITS_PER_TENFOLD);
   }
 
   /**
    * ⭐⭐ What a face of this material gives the contents it holds: a toxin,
-   * at `mgPerLPerDayPerAcidity` × the contents' acidity × days (ceramics
-   * M7). Lead glaze leaches lead; ash glaze nothing.
+   * at `mgPerLPerDay` × the contents' `acidAttack()` × days (ceramics M7).
+   * Lead glaze leaches lead; ash glaze nothing.
    */
   protected leaches: LeachSpec[] = [];
   public getLeaches(): readonly LeachSpec[] {
@@ -1558,7 +1586,7 @@ export default class Material extends SingletonMixin(
   }
   public setLeaches(value: LeachSpec[] | null): void {
     this.leaches = (Array.isArray(value) ? value : []).filter(
-      (l) => l && typeof l.toxin === 'string' && l.toxin !== '' && l.mgPerLPerDayPerAcidity > 0,
+      (l) => l && typeof l.toxin === 'string' && l.toxin !== '' && l.mgPerLPerDay > 0,
     );
   }
 

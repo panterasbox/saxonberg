@@ -1,13 +1,14 @@
 /**
- * check-acidity — ⭐ **a material tagged `acid` must author its `acidity`.**
+ * check-acidity — ⭐ **a material tagged `acid` must author a pH below 7.**
  *
- * The tag is a word; `acidity` (`0..1`) is the number the world reads. A
- * glazed face leaches by the contents' acidity (ceramics M7), so an acid
- * whose row authors none reads 0, and a lead glaze leaches nothing into it.
- * Nothing says so anywhere. That is how vitriol shipped (review R2-B4).
+ * The tag is a word; `ph` is the number the world reads. A glazed face
+ * leaches by the contents' acid attack, from their pH (ceramics M7; B109),
+ * so an acid whose row authors none reads neutral (7), and a lead glaze
+ * leaches nothing into it. Nothing says so anywhere. That is how vitriol
+ * shipped (review R2-B4).
  *
  * The converse is NOT a rule: lemon juice and wine are acidic without being
- * "an acid", so `acidity` without the tag is legitimate.
+ * "an acid", so a pH below 7 without the tag is legitimate.
  */
 
 import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
@@ -46,12 +47,12 @@ function main(): void {
       const data = (parsed as { data?: Record<string, unknown> } | null)?.data;
       if (!data || !Array.isArray(data.tags) || !data.tags.includes('acid')) continue;
       acids += 1;
-      const acidity = data.acidity;
-      if (typeof acidity !== 'number' || !(acidity > 0) || acidity > 1) {
+      const ph = data.ph;
+      if (typeof ph !== 'number' || !(ph < 7)) {
         failures.push(
-          `${relative(REPO_ROOT, file)}: tagged 'acid' but 'acidity' is ` +
-            `${JSON.stringify(acidity)} — author a number in (0, 1]. Without ` +
-            `it a glazed face leaches nothing into it.`,
+          `${relative(REPO_ROOT, file)}: tagged 'acid' but 'ph' is ` +
+            `${JSON.stringify(ph)} — author its pH, below 7. Without it it ` +
+            `reads neutral and a glazed face leaches nothing into it.`,
         );
       }
     }
@@ -62,7 +63,7 @@ function main(): void {
     console.error('');
     process.exit(1);
   }
-  console.log(`check-acidity: ${acids} acid row(s), each authoring its acidity`);
+  console.log(`check-acidity: ${acids} acid row(s), each authoring a pH below 7`);
 }
 
 main();

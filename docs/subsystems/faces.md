@@ -111,17 +111,23 @@ weeps, and a glazed crock holds.
 ## ⭐⭐ The lead leach — the inside face gives to the contents (M7)
 
 A material may `leach` into what is held against it: `leaches:
-[{toxin, mgPerLPerDayPerAcidity}]`. `BulkableMixin`'s face exchange runs on
-an interior slot's read (`getBulkAmount`/`getBulkPayload`, at most once a
-game-minute) and is stamped `faceCheckedS` on the payload. It reads the
-holder's inside `outermost` material, multiplies by the contents' `acidity`
-(new on `Material`, `0..1`) and the days elapsed, and adds the result to
-`payload.dissolvedToxins`. That is metabolism's own per-litre field, so
-drinking it doses the drinker with no new code.
+[{toxin, mgPerLPerDay}]`, the rate against VINEGAR (pH 2.4, the acid a
+lead-release test uses). `BulkableMixin`'s face exchange runs on an interior
+slot's read (`getBulkAmount`/`getBulkPayload`, at most once a game-minute)
+and is stamped `faceCheckedS` on the payload. It reads the holder's inside
+`outermost` material, multiplies by the contents' **acid attack** and the
+days elapsed, and adds the result to `payload.dissolvedToxins`. That is
+metabolism's own per-litre field, so drinking it doses the drinker with no
+new code.
 
-Acidity rows: wine vinegar 0.9, the juices 0.6–0.85, wines 0.6–0.7, whey and
-buttermilk 0.5, ales and lager 0.4, milks 0.15–0.2, sea water 0.05. Water is
-0, which is why lead glaze was trusted for so long.
+⭐ **The attack is the contents' pH** (`Material.ph`, `acidAttack()`, B109 —
+it was `acidity`, a 0..1 dial nothing could be checked against, which had
+sea water faintly acid and lemon milder than vinegar). `10^((2.4 − pH)/2)`
+below neutral — tenfold per two pH units — and nothing at or above 7: lead
+is an acid's to take. Vitriol (pH 0) ≈ 16×, lemon (2.2) ≈ 1.3×, wine (3.3)
+≈ 0.35×, ale (4.2) ≈ 0.13×, milk (6.7) ≈ 0.007×, sea water (8.1) and plain
+water (7, unauthored) 0 — which is why lead glaze was trusted for so long.
+`ph` is the same unit the ground's `nativePh` and the soil kit read.
 
 ⚠⚠ **No sense reports it.** `look`, `smell` and `taste` say nothing. You learn
 it from knowledge, from an assay, or from the sickness. It is the honest shape

@@ -23,7 +23,6 @@ data:
   nutrients: []
   toxicity: []
   tastes: [bitter, salty]
-  acidity: 0.05
   tags: [liquid, bittern, conductive]
   composition: []
   biologicalSource: null

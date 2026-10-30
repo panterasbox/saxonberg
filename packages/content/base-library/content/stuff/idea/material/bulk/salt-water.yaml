@@ -20,8 +20,9 @@ data:
   # ~35 g of salt a liter: the toxin dose per liter drunk.
   toxicity:
     - { type: salt, amount: 35 }
-  # ⭐ How acid it is, 0..1 (ceramics M7) — what draws lead from a glaze.
-  acidity: 0.05
+  # ⭐ Its pH (B109): seawater is ALKALINE, so it draws no lead from a
+  # glaze (it was authored faintly acid on a 0..1 dial that nothing checked).
+  ph: 8.1
   tags: [liquid, brine, conductive]
   # ⭐⭐ Crystallizing (ceramics S17). Sea water carries about 35 g of salt
   # a liter; a liter of brine holds about 316 g of it at freezing and only
