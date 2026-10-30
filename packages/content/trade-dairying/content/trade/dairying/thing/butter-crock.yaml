@@ -15,6 +15,6 @@ data:
   # lead to anything acid kept in it, which nothing about it says.
   coats:
     inside:
-      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: fused }
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }
     outside:
-      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: fused }
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }

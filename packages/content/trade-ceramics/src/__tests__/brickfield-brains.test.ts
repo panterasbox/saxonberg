@@ -65,7 +65,7 @@ function good(f: Fake) {
     getTemperature: () => ({ rawValue: () => f.tempK ?? 290 }),
     getCoats: (face: string) =>
       face === 'inside'
-        ? Array.from({ length: f.insideCoats ?? (f.wetCoat ? 1 : 0) }, () => ({ state: f.wetCoat ? 'wet' : 'fused' }))
+        ? Array.from({ length: f.insideCoats ?? (f.wetCoat ? 1 : 0) }, () => ({ state: f.wetCoat ? 'wet' : 'set' }))
         : [],
     getCapabilities: () => f.tool ?? [],
     getMaterial: () => (f.material ? { hasTag: (t: string) => f.material!.includes(t) } : null),

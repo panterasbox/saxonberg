@@ -126,6 +126,15 @@ describe('coats', () => {
     expect(j.outermost('inside')).toBe(terracotta);
   });
 
+  it('⭐ an authored coat in a state that does not exist throws — `fused` was renamed `set`', () => {
+    const j = jarOf(terracotta);
+    expect(() =>
+      j.setCoats({ inside: [{ material: ash.getTemplatePath()!, thicknessM: 0.0003, state: 'fused' as never }] }),
+    ).toThrow(TypeError);
+    j.setCoats({ inside: [{ material: ash.getTemplatePath()!, thicknessM: 0.0003, state: 'set' }] });
+    expect(j.getCoats('inside')[0]?.state).toBe('set');
+  });
+
   it('a coat is laid wet and fused by heat — the glaze’s own heat, not before', () => {
     const j = jarOf(stoneware);
     j.layCoat('inside', ash.getTemplatePath()!, 0);

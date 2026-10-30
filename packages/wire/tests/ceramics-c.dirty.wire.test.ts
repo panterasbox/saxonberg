@@ -1026,7 +1026,7 @@ suite('⭐ 20 — flame and body', () => {
     // piece was wrong (runs 36–38). Setup: the fired mug row with a fused
     // ash glaze laid on it (the row's own `coats`, as a data overlay).
     const mug = await hand(potter, '/trade/ceramics/thing/mug', {
-      coats: { outside: [{ material: '/stuff/idea/material/glaze/ash', thicknessM: 0.0003, state: 'fused' }] },
+      coats: { outside: [{ material: '/stuff/idea/material/glaze/ash', thicknessM: 0.0003, state: 'set' }] },
     });
     const boiling = await hand(potter, PAIL, { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 1, stampedTemperatureK: 372 });
     const poured = await say(potter, `pour #${boiling} into #${mug} --amount 250ml`);
