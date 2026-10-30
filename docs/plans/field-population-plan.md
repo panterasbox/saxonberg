@@ -1819,6 +1819,113 @@ Notes for later waves:
   non-`Cultivable` ground*) but it changes every individual plant
   standing in a field.
 
+### W5 — the hand reads with their own eyes
+
+Landed as planned: `farms.ts` gates on shift (the `cuts` rule — an
+employed host with an active employment acts only `on-shift`); beds keep
+their shipped reads; when `home` is non-`Cultivable` `Soil` its
+`soilParts()` (or the whole ground) are read through
+`home.rootedAreaCrop(part)` at the hand's own band —
+`crop.readFor(await hand.competenceBandFor(crop.getDiscipline()),
+crop.readSeedFor(hand))`, `untrained` for a host that is not Advancing —
+and the beat gives **one** watering and **one** feeding, each to the
+lowest read below `waterAt`/`feedAt` (`water ${kw} at ${part}`,
+`feed ${kw} at ${part} with sack`, the part named by its definite phrase
+— *the gate end*, the form the ground's own refusal lists). The can is
+filled at `config.water: { room, from }` (teleport there, `fill can from
+${from}`, home re-taken in `finally`); with none, `fill can from
+standpipe` at home as before. `pick` stays bed-only. `shelf: ''` skips
+the market leg. Content, all YAML: `campus-farm/agent/farm-hand.yaml`
+(Maud Hollis, Cast, `horticulture: novice` asserted, a watering can and
+a compost sack, the brain with `water: { room: …/yard, from: trough }`,
+`shelf: ''`, `drawEvery: 0`), `farm-unit.yaml` `hand` seat (headcount 1)
++ its `rosterSlots` entry (days 0–6, hours 6–18), the yard trough as a
+`/platform/thing/WaterFixture` (prose and keywords kept;
+`interiorBulk`/`interiorMaterial` added), the home field's `cast:`.
+
+Tests: `farms.test.ts` +4 in a new field block (an expert fills at the
+yard trough and waters the thirsty patch by name and is home after;
+wet patches → nothing filled or watered; over 40 hands each, an expert
+never misranks two patches 0.02 apart and a novice waters where ITS
+seeded read points — asserted against `readFor('novice', seed)`, not the
+truth — and misranks at least once; off shift a hired hand does
+nothing). `farms.bounded.test.ts` literals moved (`fill can from
+${from}`, the `at ${part}` forms) +2 (the banded seeded read and the
+one-per-beat `lowest`; the shift gate). `Growing.test.ts` +1 (the fix
+below).
+
+⭐ **Decided (owner-delegated, lens 1 — pedagogy: a labeled stem is a
+sample of its stand, so what it shows must be what the stand does):** a
+plant minted UNCUT from a stand grows on the FIELD rule.
+`GrowingMixin._fromStand` (persistent) is set by `takeSpecimen(…,
+{ cut: false })` when the source is an area crop — the `label` path and
+nothing else — and `reconcileGrowth`'s `areaCrop` flag is now
+`isAreaCrop() || _fromStand`: it develops on its season, is spoiled by
+stress rather than stopped by it, and holds when ripe (cover B36). ⛔ NOT
+the W4 note's *"rooted in non-`Cultivable` ground"* predicate — that
+would have moved every individual plant standing in a field (forestry's
+planted trees among them). A cut specimen never grows, so its flag is
+false. Unit test: under light at 0.4 of happy (below the 0.6 good mark,
+well above death) for 400 days the stand and its labeled stem are both
+`mature` and the stem is not dead; a pot plant under the same stress is
+still a `seedling` (and with the flag disabled the test fails —
+*"Received: seedling"*).
+
+Decisions the plan did not make:
+
+- **One watering a beat across beds AND parts** — a can is one can, so
+  a pot farm with five dry beds now waters the driest one a beat (no row
+  names the brain on beds today).
+- **`drawEvery: 0` disables the draw** — `positiveInt` turned 0 into
+  the default 12, so the header's *"0 disables"* was false.
+- ⭐ **The hand's seat names a `station`: the home field** (found live).
+  The roster tick moves an on-shift assignee to the house's FIRST
+  operating location — the yard — and fetches an absent hand only to a
+  station that is live; with nobody in the yard after a restart, the
+  hand was never loaded and never beat. `station:
+  …/campus-field/location/home-field` puts her where somebody can see
+  her work.
+
+**Live (port 2014, `reset:db`, then restarts without reset):** day 80 a
+labourer clocked on, moved the herd, ploughed (*"Ploughed for the
+season."*); the founder cloned a seed sack and sowed the gate end and the
+far side. Day 95, 09:00: *"You also see: a human and the weathered farm
+hand and a hay trough and a wooden plough."*; the hand's beats (a
+temporary debug line, removed) read `gate end 0.671 · far side 0.733`
+against `waterAt 0.5` — nothing watered, correctly (spring rain). Day
+150 still wet (`0.945 · 0.936`), so for the stage only the hand's row
+took `waterAt: 0.97` (reverted): on her next beat she was at
+`/world/terminus/eternal/campus-farm/location/yard`, her can read **2 L**
+after `fill can from trough`, she sent **`water wheat at the far side`**
+— the lower of her two reads (`0.9378 · 0.9305`) — and the can read
+**0 L**; no `[dispatch]` decline for her anywhere in the log. ⚠ After a
+restart the FIRST 75 s watch saw no beat (the hand is fetched on the
+roster tick's next pass); the second did. The founder's own `look at the
+far side` still reads *"in ear and looks strong"* — 2 L on 3,000 m² does
+not show, which is the honest answer.
+
+Verified: tsc (server, trade-farming) clean; `pnpm test:near` — server
+295 files, 2,752 passed + 2 skipped, packs (eternal-university, ground,
+terminus, trade-farming, trade-mining, trade-ranching, trade-sugar)
+green; trade-farming 128/128 (14 files); eternal-university 47/47 (8
+files); `lint:family` — all 82 gates pass.
+
+Notes for W6:
+
+- **The drive's hand leg:** the soil must be below `waterAt` (0.5) for
+  the hand to act, and the campus field sits wet through spring and
+  early summer — stage a dry spell the drive can stand on (a longer
+  advance into high summer, or a founder lever on the reserve once the
+  sandbox lets `eval` reach a patch — W2's note) rather than raising
+  `waterAt` in content. ⚠ The hand only beats once she is LOADED: be in
+  the home field, on her hours (06–18), and allow a roster pass after
+  any restart.
+- `[dispatch]` lines in the server log are DECLINES only — a hand that
+  waters successfully leaves no line. Read the effect (the can, the
+  patch's reserve, or a watcher's prose), not the log.
+- `look hand` binds her (the handle); `look maud` does not until she is
+  known (recognition).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
