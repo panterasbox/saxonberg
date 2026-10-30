@@ -16,10 +16,11 @@
  * Nothing here mints, nothing teleports, and a player's bricks are never
  * his to set.
  *
- * Config: `{ home, clamp, hacks, ways, batch?, burn? }` — `home` the clamp
+ * Config: `{ home, clamp, hacks, knows, batch?, burn? }` — `home` the clamp
  * ground, `clamp` the clamp's ROW, `hacks` the drying room, `batch` the
  * bricks a clamp is charged with before it is fired (default 40), `burn`
- * the hold (`3 days`).
+ * the hold (`3 days`), `knows` the extent he walks in (`ctx.goTo`, B107 —
+ * it was an authored `ways:` list).
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -31,7 +32,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
-import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -79,12 +79,9 @@ export const brain = class {
     const { home, clamp: clampPath, hacks } = ctx.config;
     if (typeof home !== 'string' || typeof clampPath !== 'string' || typeof hacks !== 'string') return;
 
-    // The routes this worker knows, from its `ways:` config.
-    const ways = new BrainRoutes(ctx.config);
     const standing = s.getContainer()?.getTemplatePath() ?? '';
     if (standing !== home) {
-      const back = ways.to(standing);
-      if (back) await s.walkRoute(back.back);
+      await ctx.goTo(home);
       return;
     }
     const ground = s.getContainer() as (Stuff & Container) | null;
@@ -128,12 +125,11 @@ export const brain = class {
     }
     // …and green ones that are NOT dry go back to the hacks.
     if (count(s.getContents() as Stuff[], isGreenBrick) > 0) {
-      const way = ways.to(hacks);
-      if (way && (await s.walkRoute(way.go))) {
+      if (await ctx.goTo(hacks)) {
         try {
           await s.forceCommand('drop bricks');
         } finally {
-          await s.walkRoute(way.back);
+          await ctx.goTo(home);
         }
       }
       return;
@@ -158,9 +154,7 @@ export const brain = class {
     }
 
     // 5. Bone-dry bricks in the hacks are fetched.
-    const way = ways.to(hacks);
-    if (!way) return;
-    if (!(await s.walkRoute(way.go))) return;
+    if (!(await ctx.goTo(hacks))) return;
     try {
       const rows = s.getContainer() as (Stuff & Container) | null;
       const dry = rows && MixinApi.isContainer(rows)
@@ -177,7 +171,7 @@ export const brain = class {
         want -= n;
       }
     } finally {
-      await s.walkRoute(way.back);
+      await ctx.goTo(home);
     }
   }
 } satisfies BrainStatics;

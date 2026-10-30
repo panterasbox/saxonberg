@@ -78,14 +78,6 @@ export interface TraverseOptions {
 export interface Mobile {
   /** The one authoritative crossing; a refusal is returned, never thrown. */
   traverse(exit: Exit, mode: string, opts?: TraverseOptions): Promise<TraversalGuard>;
-  /**
-   * ⭐ Walk an authored list of exit directions from where it stands, each
-   * by its default mode (`LocomotionApi.traverseWithDefault`): `true` when
-   * every step was taken, `false` at the first it could not take (no exit
-   * that way, a crossing refused). A worker's errand route — the brain's
-   * `ways:` config (review R2-D8: five brains carried a copy of this).
-   */
-  walkRoute(directions: readonly string[]): Promise<boolean>;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
@@ -429,19 +421,6 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * skips the cascade and 2–4 (it is carried, not walking), keeping only the exit's own
      * `canTraverse` under the host's mode.
      */
-    async walkRoute(directions: readonly string[]): Promise<boolean> {
-      const self = this as unknown as Stuff & Mobile & Containable;
-      for (const direction of directions) {
-        const room = self.getContainer() as unknown as Stuff | null;
-        if (!room || !MixinApi.isExitable(room)) return false;
-        const exit = room.getExits().get(direction);
-        if (!exit) return false;
-        const stepped = await LocomotionApi.traverseWithDefault(self, exit);
-        if (!stepped.ok) return false;
-      }
-      return true;
-    }
-
     async traverse(
       this: Stuff & Containable & Mobile,
       exit: Exit,

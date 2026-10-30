@@ -48,8 +48,10 @@ data:
       config:
         furnace: /trade/quarrying/thing/limekiln
         counter: /world/terminus/rejection/thing/store-counter
-        ways:
-          - { to: /world/terminus/rejection/quarry/pit, go: [east, north, north, northeast, north], back: [south, southwest, southwest, south, west] }
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus/rejection
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

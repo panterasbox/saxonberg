@@ -16,15 +16,16 @@
  * same chain a player's are: the clay's composition, the moulder's band,
  * the weather in the hacks. Nothing here mints, nothing teleports.
  *
- * ⭐ The moulder knows the field: every walk is an AUTHORED way from the
- * shed (`ways`), the `stocks`/`relines` shape. Nothing searches a graph;
- * blocked means blocked, and the next beat walks home first.
+ * ⭐ The moulder knows the field (`knows:` on his row): every walk is
+ * planned within it and taken a `go` at a time (`ctx.goTo`, B107 — it was
+ * an authored `ways:` list). Blocked means blocked, and the next beat
+ * walks home first.
  *
  * ⚠ A moulder never touches a PLAYER's goods — a player's bricks on the
  * pallet or clay in the pit stops the step that would have moved them,
  * rather than carrying somebody's day off to the hacks.
  *
- * Config: `{ shed, temper, hacks, pit, ways, carry? }` — `shed` the
+ * Config: `{ shed, temper, hacks, pit, knows, carry? }` — `shed` the
  * moulding shed (home), `temper` the temper pit THING's row, `hacks` and
  * `pit` rooms, `carry` the bricks borne off at a time (default 10).
  */
@@ -38,7 +39,6 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
-import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -92,16 +92,13 @@ export const brain = class {
 
     // Away from the shed (an act ended elsewhere, a walk was refused):
     // come home the way he went, and only then work.
-    // The routes this worker knows, from its `ways:` config.
-    const ways = new BrainRoutes(ctx.config);
     const standing = roomOf(m);
     if (standing !== shed) {
       // ⭐ The spade is the PIT's: leave it there for the next hand (a
       // brain that carried the pit's spades home left the brickfield with
       // none — the ceramics drive).
       if (standing === pit && digsWith(m)) await m.forceCommand('drop spade');
-      const back = ways.to(standing);
-      if (back) await m.walkRoute(back.back);
+      await ctx.goTo(shed);
       return;
     }
     const shedRoom = m.getContainer() as (Stuff & Container) | null;
@@ -111,12 +108,11 @@ export const brain = class {
     // 1. Green bricks in hand go to the hacks — set ON the hack, where the
     //    air reaches every face (dropped on the yard they never dried).
     if (count(m, (s) => isGreenBrick(s)) > 0) {
-      const way = ways.to(hacks);
-      if (!way || !(await m.walkRoute(way.go))) return;
+      if (!(await ctx.goTo(hacks))) return;
       try {
         await m.forceCommand('put bricks on hack');
       } finally {
-        await m.walkRoute(way.back);
+        await ctx.goTo(shed);
       }
       return;
     }
@@ -146,7 +142,7 @@ export const brain = class {
     const pitThing = StuffApi.findByTemplatePath(temperPath);
     const temperRoom =
       pitThing && MixinApi.isContainable(pitThing) ? (pitThing.getContainer()?.getTemplatePath() ?? '') : '';
-    const toTemper = temperRoom === '' ? null : ways.to(temperRoom);
+    const toTemper = temperRoom !== '' && ctx.knows(temperRoom) ? temperRoom : null;
     const inPit =
       pitThing && MixinApi.isContainer(pitThing)
         ? ((pitThing.getContents() as Stuff[]).filter((s) => MixinApi.isTangible(s)) as Stuff[])
@@ -156,11 +152,11 @@ export const brain = class {
 
     // 4. A tempered clay waiting in the pit is fetched.
     if (toTemper && pitIsOurs && inPit.length === 1 && isClay(inPit[0]!) && isTempered(inPit[0]!)) {
-      if (!(await m.walkRoute(toTemper.go))) return;
+      if (!(await ctx.goTo(toTemper))) return;
       try {
         await m.forceCommand('get clay from pit');
       } finally {
-        await m.walkRoute(toTemper.back);
+        await ctx.goTo(shed);
       }
       return;
     }
@@ -169,7 +165,7 @@ export const brain = class {
     //    one in the yard, then tread it. He stays for the tread; the next
     //    beat walks him home.
     if (toTemper && pitIsOurs && inPit.some((s) => isClay(s) && !isTempered(s))) {
-      if (!(await m.walkRoute(toTemper.go))) return;
+      if (!(await ctx.goTo(toTemper))) return;
       const yard = m.getContainer() as (Stuff & Container) | null;
       const opened = inPit.some((s) => isOpener(s));
       if (!opened && yard && MixinApi.isContainer(yard)) {
@@ -184,19 +180,18 @@ export const brain = class {
 
     // 6. Raw clay in hand goes into the pit.
     if (toTemper && pitIsOurs && count(m, (s) => isClay(s) && !isTempered(s)) > 0) {
-      if (!(await m.walkRoute(toTemper.go))) return;
+      if (!(await ctx.goTo(toTemper))) return;
       try {
         await m.forceCommand('put clay in pit');
       } finally {
-        await m.walkRoute(toTemper.back);
+        await ctx.goTo(shed);
       }
       return;
     }
 
     // 7. No clay anywhere: dig some. The spade is the pit's own; he stays
     //    for the dig, and carries the lump home next beat.
-    const toPit = ways.to(pit);
-    if (!toPit || !(await m.walkRoute(toPit.go))) return;
+    if (!(await ctx.goTo(pit))) return;
     if (count(m, (s) => MixinApi.isTool(s) && s.getCapabilities().includes('digging')) === 0) {
       await m.forceCommand('get 1 spade');
     }

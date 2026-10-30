@@ -2144,6 +2144,25 @@ left a fork the lens that chose is named.
   sword"* into the cast's long description — viewer-blind prose, not a
   read. Making it viewer-relative means a look augmenter over `castFrom`;
   it rides the next pass over cast provenance.
+- **B107 — brains move by `go`, over planned routes (owner, 2026-10-29).**
+  `Mobile.walkRoute` and `BrainRoutes` (R2-D8's hoist of five brains'
+  authored-`ways:` walks) are gone: a brain's errand bypassed the `go`
+  controller and lived on the body. Now `lib/behavior/BrainMoves.ts`, bound
+  into every `BrainContext` by both builders (Behaved's, combat's):
+  `ctx.go(dir)` — the `go` VERB for a host that gives commands
+  (`executeCommand`, its own act), the traversal for a beast (no verbs);
+  `ctx.goTo(place)` — the kernel router (`routeBetween`, on foot) within the
+  row's `knows:` extent, a `go` per leg, stopping where a step does not
+  land; `ctx.knows(place)`. Converted: `moulds`, `sets`, `pots`, `relines`,
+  `stocks`, `consigns` (its own walk was the model) and the single-steppers
+  `wanders`, `patrols` (keeps its authored `route:` — a beat), `homes`
+  (beasts: still the traversal, through the one helper). Ten rows swap
+  `ways:` for `knows:` (brickfield, Rejection, `/world/terminus`).
+  ⚠ For the drives: the workers now depend on the world index being warm
+  and their places reachable on foot within `knows:` — a gap there shows as
+  a worker who does not set out. ⚠ Found: `brain-contract.test.ts` had been
+  RED since B91 (`BrainRoutes.ts` in `lib/behavior` read as a brain); fixed
+  by listing `BrainMoves` as not-a-brain.
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding

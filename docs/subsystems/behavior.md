@@ -572,6 +572,33 @@ the same mixin on a `Thing`/`Location` host later; live wiring (timers,
 the seen-set) is runtime-only and re-installed from the persisted
 `behaviors:` data on every clone/reboot.
 
+## ⭐ How a brain moves — `ctx.go` · `ctx.goTo` · `ctx.knows` (B107)
+
+A brain is its body's PLAYER, so it moves the way a player does: a host
+that gives commands steps by the `go` verb (`executeCommand` — walking is
+its own act, not a forced one); a beast, which has no verbs, crosses by the
+traversal. Either way the brain calls `ctx.go(direction)` and never
+chooses. `wanders`, `patrols` and `homes` step this way; `patrols` keeps
+its authored `route:` (a beat IS an authored loop).
+
+An errand is PLANNED, never authored: `ctx.goTo(place)` asks the kernel
+router for a route on foot within what the row says the brain knows —
+`knows:`, an identity-prefix extent (absent: the world) — and walks it a
+`go` at a time. ⚠ Blocked means blocked: a step that does not land stops
+the walk where it stands, and the next beat tries again. `ctx.knows(place)`
+answers whether a place is inside the extent (a supplier outside it is not
+an errand; a furnace outside it is not this keeper's).
+
+This retired the hand-written `ways:` lists (`{ to, go, back }` rows) the
+worker brains walked: moving a kiln or adding a door rewrote every list
+that crossed it, a room no list named was a room the worker silently never
+visited, and a second venue had to author its own. The pathfinding
+question they were written around (should one router serve every
+consumer?) was answered by the routing build (MR!350): yes, scoped by
+`knows:`. ⚠ It is NOT `NPC.walkTo` (tried once and removed in review: *an
+NPC routes itself* on the base class every Cast inherits). The moves live
+on the brain's context — the player's side of the body.
+
 ## The canned brains
 
 | Brain | Trigger | claims | requiresFree | Emits | config |
@@ -706,7 +733,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
-| `BrainRoutes` / `BrainRoute` | `lib/behavior/BrainRoutes.ts` | A worker brain's `ways:` config (`{ to, go, back }` rows), read once: `to(path)` (a plain lookup — standing away, ask for the route that ends where you stand and walk its `back`) and `all()`. The worker walks a leg with `MobileMixin.walkRoute(directions)`. ⭐ Five worker brains in two packs each carried their own copy of both (ceramics review R2-D8) |
+| `BrainMoves` | `lib/behavior/BrainMoves.ts` | ⭐ How a brain moves its body (B107), bound into every `BrainContext` by both builders (`Behaved`'s and combat's): `go(direction)` — one step, by the `go` VERB for a host that gives commands (`executeCommand`, its own act), by the traversal for a beast (no verbs); `goTo(place)` — a walk over a route the kernel router plans (`NavigationApi.routeBetween`, on foot) within the row's `knows:` extent, a `go` at a time, stopping where a step does not land; `knows(place)` — is it inside that extent. Replaced the authored `ways:` lists, `BrainRoutes` and `Mobile.walkRoute` (R2-D8's hoist of five brains' copies) |
 | The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,enforces,follows,feeds,homes,…}.ts` | Path-resolved strategy modules. ⚠ `shifts`/`covers` retired 2026-09-30 — presence and cover are the roster tick's; see [employment.md](./employment.md) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype — **substrate**; rows name a rung, not this |
 | `CastMixin` / `Cast` / `Extra` | `lib/npc/Cast.ts`, `platform/agent/` | The identity rungs ([identity.md](./identity.md)) |

@@ -32,5 +32,7 @@ data:
         hacks: /world/terminus/hearts-delight/brickfield/location/hacks
         batch: 40
         burn: 3 days
-        ways:
-          - { to: /world/terminus/hearts-delight/brickfield/location/hacks, go: [west], back: [east] }
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus/hearts-delight/brickfield

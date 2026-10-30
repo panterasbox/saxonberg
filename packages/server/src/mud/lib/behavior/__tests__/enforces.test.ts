@@ -15,6 +15,7 @@ import { DocumentApi } from "../../../api/document";
 import type { Stuff } from "../../stuff/Stuff";
 import type { BrainContext } from "../brain";
 import { CombatLogic } from '../../../platform/idea/api/CombatLogic';
+import { BrainMoves } from '../BrainMoves';
 
 interface FakeOcc {
   stuffId: string;
@@ -68,6 +69,7 @@ function ctx(
     trigger: { source: "cadence", raw: "cadence:20s" },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(HOST, config).members(),
     emoteFree: vi.fn(),
   } as BrainContext & { say: ReturnType<typeof vi.fn> };
 }

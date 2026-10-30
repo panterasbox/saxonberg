@@ -44,6 +44,7 @@ import Weapon from "../../thing/equipment/Weapon";
 import { TRAUMA_BEHAVIOR, BLEED_FAMILY } from "../Condition";
 import type { OutcomeBand } from "../../../api/material";
 import type { BrainContext, BrainStatics } from "../../../lib/behavior/brain";
+import { BrainMoves } from "../../../lib/behavior/BrainMoves";
 import {
   CombatSession,
   CombatParticipantHold,
@@ -4052,6 +4053,7 @@ function invokeBrain(state: CombatantState): void {
     },
     emote: async () => {},
     emoteFree: () => {},
+    ...new BrainMoves(host, state.brainConfig).members(),
   };
   try {
     // A brain may be sync or async; swallow either failure mode so a

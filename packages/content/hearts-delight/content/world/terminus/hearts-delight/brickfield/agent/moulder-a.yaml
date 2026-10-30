@@ -28,8 +28,7 @@ data:
         temper: /world/terminus/hearts-delight/brickfield/thing/temper-pit
         hacks: /world/terminus/hearts-delight/brickfield/location/hacks
         pit: /world/terminus/hearts-delight/brickfield/location/clay-pit
-        # ⭐ The field, from the shed — authored, never searched.
-        ways:
-          - { to: /world/terminus/hearts-delight/brickfield/location/hacks, go: [south], back: [north] }
-          - { to: /world/terminus/hearts-delight/brickfield/location/temper-pit, go: [west], back: [east] }
-          - { to: /world/terminus/hearts-delight/brickfield/location/clay-pit, go: [west, west, south], back: [north, east, east] }
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus/hearts-delight/brickfield

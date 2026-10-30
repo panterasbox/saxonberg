@@ -10,6 +10,7 @@ import { brain as introduces } from "../introduces";
 import { MixinApi } from "../../../api/mixin";
 import type { BrainContext } from "../brain";
 import type { Stuff } from "../../stuff/Stuff";
+import { BrainMoves } from '../BrainMoves';
 
 function ctx(host: unknown, subject: unknown): BrainContext {
   return {
@@ -22,6 +23,7 @@ function ctx(host: unknown, subject: unknown): BrainContext {
     trigger: { source: "witness", raw: "arrival" },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(host as Stuff, {}).members(),
     emoteFree: vi.fn(),
   };
 }

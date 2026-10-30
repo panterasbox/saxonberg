@@ -21,12 +21,14 @@
  * alluvial clay that dries too fast checks, and some of her ware does.
  * That is the clay's honest behaviour, not a defect here.
  *
- * Config: `{ shop, kiln, pit, ways, forms, glaze?: { tub, forms }, fire?,
+ * Config: `{ shop, kiln, pit, knows, forms, glaze?: { tub, forms }, fire?,
  * batch?, boards? }` — `shop` home, `kiln` the kiln's ROW, `pit` the clay
  * pit room, `forms` the words she throws in turn, `glaze.tub` the tub word
  * a glazed form is dipped in and `glaze.forms` which forms get it, `fire`
  * the hold (`10 hours`), `batch` pieces to a kiln-load (4), `boards` how
- * many pieces she lets stand drying before she stops throwing (6).
+ * many pieces she lets stand drying before she stops throwing (6), `knows`
+ * the extent she walks in (`ctx.goTo`, B107 — it was an authored `ways:`
+ * list).
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -37,7 +39,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
-import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorBeat';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -86,16 +87,13 @@ export const brain = class {
     const { shop, kiln: kilnPath, pit } = ctx.config;
     if (typeof shop !== 'string' || typeof kilnPath !== 'string' || typeof pit !== 'string') return;
 
-    // The routes this worker knows, from its `ways:` config.
-    const ways = new BrainRoutes(ctx.config);
     const standing = p.getContainer()?.getTemplatePath() ?? '';
     if (standing !== shop) {
       // ⭐ The spade is the PIT's: leave it there for the next hand (a
       // brain that carried the pit's spades home left the brickfield with
       // none — the ceramics drive).
       if (standing === pit && digsWith(p)) await p.forceCommand('drop spade');
-      const back = ways.to(standing);
-      if (back) await p.walkRoute(back.back);
+      await ctx.goTo(shop);
       return;
     }
     const room = p.getContainer() as (Stuff & Container) | null;
@@ -190,8 +188,7 @@ export const brain = class {
     // 7. No clay: dig some at the brickmaster's pit (she stays for the
     //    dig and carries it home next beat).
     if (boardWare.length >= boards) return;
-    const toPit = ways.to(pit);
-    if (!toPit || !(await p.walkRoute(toPit.go))) return;
+    if (!(await ctx.goTo(pit))) return;
     if (!held.some((s) => MixinApi.isTool(s) && s.getCapabilities().includes('digging'))) {
       await p.forceCommand('get 1 spade');
     }

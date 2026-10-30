@@ -15,19 +15,15 @@
  * it. A refusal there is the ladder working, not a defect; the beat
  * buys what it can afford and tries again next time.
  *
- * ⭐⭐ **The keeper knows her own street.** Every walk is an AUTHORED list
- * of directions on her row (`ways`) — the shipped `patrols` shape — and
- * nothing here searches a graph. It searched one until the pathfinding
- * review: a shop's whole errand is *out the door, one west to the
- * window, one south to the wholesaler*, and running a breadth-first
- * search over a compiled inter-city freight network to cross the road is
- * a category error rather than a route. A shopkeeper knows her
- * neighbourhood; she does not compute it. ⚠ A room no `ways` row names
- * is a room she does not go to — an authoring gap that shows up as a
- * shop that never restocks, and is fixed where it was made. The one
- * honest caller of the lane router is `consigns`, whose errand really is
- * cross-district; whether one pathfinder should serve every consumer is
- * open (docs/slates/builds/pathfinding-slate.md).
+ * ⭐⭐ **The keeper knows her own street** — and her row SAYS which
+ * (`knows:`, an extent). Every walk is planned within it by the kernel
+ * router and taken a `go` at a time (`ctx.goTo`, B107). It was an
+ * AUTHORED list of directions (`ways:`), chosen at the pathfinding review
+ * because the router of the day was the inter-city freight network; the
+ * kernel's router since is budgeted and scoped to what a character knows,
+ * which is the review's point kept and the hand-written lists retired —
+ * a door added or a shop moved no longer silently strands an errand. A
+ * place outside what she knows is a place she does not go.
  *
  * ⭐ Every step is the LITERAL verb through `forceCommand`, as `consigns`
  * and `restocks` do — an NPC following a rule is still a party posting a
@@ -36,9 +32,7 @@
  *
  * Config: `{ counter: <the host counter's path>, bank?: <the lender's
  * counter path — the branch of the house's bank when omitted>, batch?,
- * ways?: [{ to: <room path>, go: [<direction>…], back: [<direction>…] }] }`.
- * ⭐ `back` is authored, never derived by reversing `go`: a named exit
- * ("mayfield") and a one-way door do not reverse.
+ * knows?: <extent> }`.
  * The host is a `boot:`-pinned NPC — a brain on an unspawned NPC never
  * fires, and this one must run with nobody online.
  */
@@ -53,7 +47,6 @@ import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
-import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -121,20 +114,11 @@ export const brain = class {
     );
     if (!house) return;
 
-    // The ways she knows — authored, in order of nothing: looked up by
-    // the room a step of this beat needs to reach.
-
     // ⚠ Standing somewhere else means last beat's walk home was refused
     // (a shut door, a blocked step). Come back the way she went, and
     // only then trade — a keeper does not shop from a neighbour's floor.
-    // The routes this worker knows, from its `ways:` config.
-    const ways = new BrainRoutes(ctx.config);
     const standing = keeper.getContainer()?.getTemplatePath() ?? '';
-    if (standing !== homePath) {
-      const back = ways.to(standing);
-      if (!back || !(await keeper.walkRoute(back.back))) return;
-      if (keeper.getContainer()?.getTemplatePath() !== homePath) return;
-    }
+    if (standing !== homePath && !(await ctx.goTo(homePath))) return;
 
     // ⚠ Anything already in hand goes on the counter FIRST, before any
     // decision to shop: a beat that ended stranded comes home holding
@@ -157,11 +141,11 @@ export const brain = class {
       if (!supplierCounter) continue;
       const room = supplierCounter.getContainer();
       if (!room) continue;
-      // ⚠ Before the money is counted, not after: a supplier she has no
-      // authored way to is not an errand, and borrowing for goods she
+      // ⚠ Before the money is counted, not after: a supplier in a place
+      // she does not know is not an errand, and borrowing for goods she
       // cannot go and fetch would put real paper on the book for a trip
       // that never happens.
-      if (!ways.to(room.getTemplatePath() ?? '')) continue;
+      if (!ctx.knows(room.getTemplatePath() ?? '')) continue;
       const each = supplierCounter.priceFor(line.itemTemplatePath) ?? 0;
       const available = supplierCounter.onHand(line.itemTemplatePath);
       const count = Math.min(line.shortfall, left, available);
@@ -182,12 +166,12 @@ export const brain = class {
           : BankingApi.branchOf(house.getBanksAt())?.getTemplatePath() ?? '';
       const bankCounter = bankCounterPath ? StuffApi.findByTemplatePath(bankCounterPath) : undefined;
       const bankRoom = bankCounter && MixinApi.isContainable(bankCounter) ? bankCounter.getContainer() : null;
-      const way = bankRoom ? ways.to(bankRoom.getTemplatePath() ?? '') : null;
-      if (way && (await keeper.walkRoute(way.go)) && atRoom(keeper, way.to)) {
+      const bankPath = bankRoom?.getTemplatePath() ?? '';
+      if (bankPath !== '' && ctx.knows(bankPath) && (await ctx.goTo(bankPath))) {
         await keeper.forceCommand('wallet use house');
         await keeper.forceCommand(`bank borrow ${wanted - held} --for stock`);
         // Home before the shopping: out and back, one errand at a time.
-        await keeper.walkRoute(way.back);
+        await ctx.goTo(homePath);
       }
     }
 
@@ -197,9 +181,7 @@ export const brain = class {
       for (const e of errands) {
         // Each errand leaves from home and comes back to it.
         if (!atRoom(keeper, homePath)) break;
-        const way = ways.to(e.supplierRoom.getTemplatePath() ?? '');
-        if (!way) continue; // unreachable errands were dropped above
-        if (!(await keeper.walkRoute(way.go)) || !atRoom(keeper, way.to)) break;
+        if (!(await ctx.goTo(e.supplierRoom.getTemplatePath() ?? ''))) break;
         await keeper.forceCommand('wallet use house');
         const kw = keywordOfTemplate(e.supplierCounter, e.template);
         if (!kw) continue;
@@ -209,7 +191,7 @@ export const brain = class {
           await keeper.forceCommand(`buy ${kw}`);
           if (keeper.getContents().length <= before) break; // a refused buy — stop
         }
-        await keeper.walkRoute(way.back);
+        await ctx.goTo(homePath);
       }
     } finally {
       // The goods onto the counter — if she got home with them. If she

@@ -23,6 +23,7 @@ import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { fuelMaterial } from '../../fire/__tests__/burner-fuel';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+import { BrainMoves } from '../BrainMoves';
 
 class Room extends ContainerMixin(Idea) {
   static _mixinName = 'StokesTestRoom';
@@ -55,6 +56,7 @@ function ctx(config: Record<string, unknown> = {}): BrainContext {
     trigger: { source: 'candidate', raw: 'candidate' },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(hand as unknown as Stuff, config).members(),
     emoteFree: vi.fn(),
   };
 }

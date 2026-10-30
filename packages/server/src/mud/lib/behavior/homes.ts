@@ -41,7 +41,6 @@
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
 import { MixinApi } from '../../api/mixin';
-import { LocomotionApi } from '../../api/locomotion';
 import { PersistableApi } from '../../api/persistable';
 import { FOLLOW_BOND } from '../husbandry/Bonded';
 import type { TaskKind } from './Urgency';
@@ -117,14 +116,15 @@ export const brain = class {
     // ⭐ Where it would rather be, nearest-to-home first: home itself,
     // then the earliest place it still remembers.
     const wanted = [home, ...host.getTrail()];
-    for (const exit of room.getExits().values()) {
+    for (const [direction, exit] of room.getExits()) {
       const dest = exit.getDestination();
       if (!dest) continue;
       if (!wanted.includes(PersistableApi.placeIdOf(dest))) continue;
       if (!(await exit.canTraverse(host, 'walk')).ok) continue;
       // Shut between the check and the step: the crossing refuses, and
-      // it tries again next beat.
-      await LocomotionApi.traverseWithDefault(host, exit);
+      // it tries again next beat. ⭐ One step, the way its body steps
+      // (`ctx.go` — a beast crosses; a person would `go`; B107).
+      await ctx.go(direction);
       return;
     }
     // Nothing it knows is behind an open door. It stays. That is "lost".

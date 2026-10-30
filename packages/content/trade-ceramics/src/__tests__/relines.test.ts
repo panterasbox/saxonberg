@@ -9,15 +9,8 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { brain } from '../behavior/relines';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
-import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
-
-/** The real walk (`MobileMixin.walkRoute`), lent to a fake worker. */
-const walkRoute = (
-  MobileMixin(class {} as never) as unknown as {
-    prototype: { walkRoute(this: unknown, directions: readonly string[]): Promise<boolean> };
-  }
-).prototype.walkRoute;
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 
 function setup(health: number, heldBricks: number, failed = 3) {
@@ -38,9 +31,12 @@ function setup(health: number, heldBricks: number, failed = 3) {
   let room: unknown = smelter;
   const commands: string[] = [];
   const host = {
-    walkRoute(directions: readonly string[]): Promise<boolean> {
-      return walkRoute.call(this, directions);
-    },
+    // ⭐ He walks by the `go` verb (`ctx.goTo`, B107): west to the store.
+    executeCommand: vi.fn(async (c: string) => {
+      const d = /^go (\S+)$/.exec(c)?.[1] ?? '';
+      room = d === 'west' ? store : smelter;
+      commands.push(`(walks ${d})`);
+    }),
     getContainer: () => room,
     getContents: () => held,
     forceCommand: vi.fn(async (c: string) => {
@@ -51,11 +47,13 @@ function setup(health: number, heldBricks: number, failed = 3) {
     }),
     isFulfilling: () => true,
   };
-  vi.spyOn(LocomotionApi, 'traverseWithDefault').mockImplementation((async (_k: unknown, exit: { d: string }) => {
-    room = exit.d === 'west' ? store : smelter;
-    commands.push(`(walks ${exit.d})`);
-    return { ok: true };
-  }) as never);
+  // The router over these two rooms: the store is one west of the smelter.
+  vi.spyOn(NavigationApi, 'routeBetween').mockImplementation((async (_from: string, to: string) => ({
+    ok: true,
+    plans: [{ legs: [to === '/x/store' ? { dir: 'west', to } : { dir: 'east', to }] }],
+  })) as never);
+  vi.spyOn(StuffApi, 'findAllByTemplatePath').mockImplementation(((p: string) =>
+    p === '/x/furnace' ? [furnace] : []) as never);
   vi.spyOn(StuffApi, 'findByTemplatePath').mockImplementation(((p: string) =>
     ({ '/x/furnace': furnace, '/x/counter': counter, '/x/store': store, '/x/smelter': smelter })[p] ??
     null) as never);
@@ -73,13 +71,11 @@ function setup(health: number, heldBricks: number, failed = 3) {
     vi.spyOn(MixinApi, k as never).mockReturnValue(true as never);
   }
   vi.spyOn(MixinApi, 'isEmployed').mockReturnValue(true as never);
+  const config = { furnace: '/x/furnace', counter: '/x/counter', knows: '/x' };
   const ctx = {
     host,
-    config: {
-      furnace: '/x/furnace',
-      counter: '/x/counter',
-      ways: [{ to: '/x/store', go: ['west'], back: ['east'] }],
-    },
+    config,
+    ...new BrainMoves(host as never, config).members(),
   } as unknown as BrainContext;
   return { ctx, commands };
 }

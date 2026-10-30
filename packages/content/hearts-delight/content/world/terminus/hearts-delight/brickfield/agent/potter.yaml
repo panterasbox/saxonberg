@@ -39,8 +39,10 @@ data:
         fire: 10 hours
         batch: 4
         boards: 6
-        ways:
-          - { to: /world/terminus/hearts-delight/brickfield/location/clay-pit, go: [west, west, west, south], back: [north, east, east, east] }
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus/hearts-delight/brickfield
     # ⭐ The drying stove (the ceramics browser walk): on shift she keeps it
     # going with the cordwood by the door, so the ware on the boards does
     # not freeze. Told which fire and what fuel — the kiln and its charcoal
@@ -67,5 +69,7 @@ data:
       config:
         furnace: /trade/ceramics/thing/updraft-kiln
         counter: /world/terminus/hearts-delight/brickfield/thing/brick-stack
-        ways:
-          - { to: /world/terminus/hearts-delight/brickfield/location/clamp-ground, go: [south], back: [north] }
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus/hearts-delight/brickfield

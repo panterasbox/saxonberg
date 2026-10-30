@@ -1,7 +1,8 @@
 /**
  * The brickfield's three brains (ceramics W6) — `moulds`, `sets`, `pots`:
  * ONE act per beat, furthest along first, every act a literal verb, every
- * walk an authored way, and never a player's goods.
+ * walk a planned route taken a `go` at a time (`ctx.goTo`, B107), and never
+ * a player's goods.
  */
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
@@ -10,16 +11,14 @@ import { brain as sets } from '../behavior/sets';
 import { brain as pots } from '../behavior/pots';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { LocomotionApi } from '@saxonberg/server/mud/api/locomotion';
-import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
-
-/** The real walk (`MobileMixin.walkRoute`), lent to a fake worker. */
-const walkRoute = (
-  MobileMixin(class {} as never) as unknown as {
-    prototype: { walkRoute(this: unknown, directions: readonly string[]): Promise<boolean> };
-  }
-).prototype.walkRoute;
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+
+/** A brain's context with the REAL moves (`BrainMoves`) bound to the host. */
+function ctxOf(host: unknown, config: Record<string, unknown>): BrainContext {
+  return { host, config, ...new BrainMoves(host as never, config).members() } as unknown as BrainContext;
+}
 
 const CLAY = '/trade/quarrying/thing/clay';
 const BRICK = '/trade/ceramics/thing/brick';
@@ -89,9 +88,14 @@ function world(rooms: Room[], start: string, heldGoods: Fake[]) {
   const held = heldGoods.map(good);
   const commands: string[] = [];
   const host = {
-    walkRoute(directions: readonly string[]): Promise<boolean> {
-      return walkRoute.call(this, directions);
-    },
+    // ⭐ The worker walks by the `go` verb through the room's real exit.
+    executeCommand: vi.fn(async (c: string) => {
+      const d = /^go (\S+)$/.exec(c)?.[1];
+      const to = d === undefined ? undefined : here.exits[d];
+      if (to === undefined) return;
+      here = byPath.get(to)!;
+      commands.push(`(→ ${to})`);
+    }),
     getContainer: () => roomObj(here),
     getContents: () => held,
     getEngagements: () => [],
@@ -100,10 +104,26 @@ function world(rooms: Room[], start: string, heldGoods: Fake[]) {
       commands.push(c);
     }),
   };
-  vi.spyOn(LocomotionApi, 'traverseWithDefault').mockImplementation((async (_h: unknown, exit: { to: string }) => {
-    here = byPath.get(exit.to)!;
-    commands.push(`(→ ${exit.to})`);
-    return { ok: true };
+  // The router, over these rooms' own exits and scoped by the extent as the
+  // kernel's is (an identity prefix): the shortest way, legs with their dirs.
+  vi.spyOn(NavigationApi, 'routeBetween').mockImplementation((async (
+    from: string,
+    to: string,
+    _profile: unknown,
+    knowledge: { extent?: string },
+  ) => {
+    const seen = new Map<string, { dir: string; to: string }[]>([[from, []]]);
+    const queue = [from];
+    while (queue.length > 0) {
+      const at = queue.shift()!;
+      if (at === to) return { ok: true, plans: [{ legs: seen.get(at)! }] };
+      for (const [dir, next] of Object.entries(byPath.get(at)?.exits ?? {})) {
+        if (seen.has(next) || (knowledge.extent && !next.startsWith(knowledge.extent))) continue;
+        seen.set(next, [...seen.get(at)!, { dir, to: next }]);
+        queue.push(next);
+      }
+    }
+    return { ok: false, reason: 'no-way' };
   }) as never);
   for (const k of ['isMobile', 'isContainer', 'isContainable', 'isCommandGiver', 'isExitable', 'isEmployed', 'isEngaged', 'isTangible', 'isPerceptible']) {
     vi.spyOn(MixinApi, k as never).mockReturnValue(true as never);
@@ -140,28 +160,24 @@ describe('moulds', () => {
     temper: '/bf/temper-pit',
     hacks: '/bf/hacks',
     pit: '/bf/pit',
-    ways: [
-      { to: '/bf/hacks', go: ['south'], back: ['north'] },
-      { to: '/bf/temper', go: ['west'], back: ['east'] },
-      { to: '/bf/pit', go: ['west', 'south'], back: ['north', 'east'] },
-    ],
+    knows: '/bf',
   };
 
   it('⭐ green bricks in hand go to the hacks before anything else', async () => {
     const w = world(rooms([], []), '/bf/shed', [{ tpl: BRICK, kw: ['bricks'], qty: 10, green: true }]);
-    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    await moulds.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['(→ /bf/hacks)', 'put bricks on hack', '(→ /bf/shed)']);
   });
 
   it('tempered clay in hand is moulded — a day at the table', async () => {
     const w = world(rooms([], []), '/bf/shed', [{ tpl: CLAY, kw: ['clay'], qty: 3, alloy: 2 }]);
-    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    await moulds.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['shape clay into brick']);
   });
 
   it('raw clay in the pit is opened with sand and trodden; he stays for the tread', async () => {
     const w = world(rooms([], [{ tpl: CLAY, kw: ['clay'], qty: 3, alloy: 0 }]), '/bf/shed', []);
-    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    await moulds.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['(→ /bf/temper)', 'put sand in pit', 'knead pit']);
   });
 
@@ -169,13 +185,13 @@ describe('moulds', () => {
     const w = world(rooms([{ tpl: BRICK, kw: ['bricks'], qty: 9, green: true, player: true }], []), '/bf/shed', [
       { tpl: CLAY, kw: ['clay'], qty: 3, alloy: 2 },
     ]);
-    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    await moulds.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['shape clay into brick']);
   });
 
   it('with no clay anywhere he walks to the pit and digs', async () => {
     const w = world(rooms([], []), '/bf/shed', []);
-    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    await moulds.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['(→ /bf/temper)', '(→ /bf/pit)', 'get 1 spade', 'dig clay']);
   });
 
@@ -186,7 +202,7 @@ describe('moulds', () => {
       { tpl: '/spade', kw: ['spade'], tool: ['digging'] },
       { tpl: CLAY, kw: ['clay'], qty: 1, alloy: 0 },
     ]);
-    await moulds.act({ host: w.host, config } as unknown as BrainContext);
+    await moulds.act(ctxOf(w.host, config));
     expect(w.commands[0]).toBe('drop spade');
     expect(w.commands).toContain('(→ /bf/shed)');
   });
@@ -194,7 +210,7 @@ describe('moulds', () => {
 
 describe('sets', () => {
   const CLAMP = '/trade/ceramics/thing/clamp';
-  const config = { home: '/bf/ground', clamp: CLAMP, hacks: '/bf/hacks', batch: 20, ways: [{ to: '/bf/hacks', go: ['west'], back: ['east'] }] };
+  const config = { home: '/bf/ground', clamp: CLAMP, hacks: '/bf/hacks', batch: 20, knows: '/bf' };
 
   it('⭐ a charged clamp is stoked, lit and fired', async () => {
     const clamp = good({ tpl: CLAMP, kw: ['clamp'], lit: false, fuel: 0, contents: [{ tpl: BRICK, kw: ['bricks'], qty: 24, green: true, fireable: true }] });
@@ -206,7 +222,7 @@ describe('sets', () => {
       '/bf/ground',
       [],
     );
-    await sets.act({ host: w.host, config } as unknown as BrainContext);
+    await sets.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['stoke coal into clamp', 'ignite clamp']);
   });
 
@@ -215,7 +231,7 @@ describe('sets', () => {
       good({ tpl: CLAMP, kw: ['clamp'], lit: false, contents: [{ tpl: BRICK, kw: ['bricks'], qty: 24, green: false, tempK }] });
     for (const [tempK, expected] of [[300, ['get bricks from clamp']], [600, []]] as const) {
       const w = world([{ path: '/bf/ground', things: [mk(tempK)], exits: {} }], '/bf/ground', []);
-      await sets.act({ host: w.host, config } as unknown as BrainContext);
+      await sets.act(ctxOf(w.host, config));
       expect(w.commands).toEqual(expected);
       vi.restoreAllMocks();
     }
@@ -234,7 +250,7 @@ describe('sets', () => {
       '/bf/ground',
       [],
     );
-    await sets.act({ host: w.host, config } as unknown as BrainContext);
+    await sets.act(ctxOf(w.host, config));
     const gets = w.commands.filter((c) => c.startsWith('get '));
     expect(gets).toEqual(['get 20 #gangs-bricks']);
   });
@@ -256,7 +272,7 @@ describe('sets', () => {
       '/bf/ground',
       [],
     );
-    await sets.act({ host: w.host, config } as unknown as BrainContext);
+    await sets.act(ctxOf(w.host, config));
     expect(w.commands.filter((c) => c.startsWith('get '))).toEqual(['get 20 #gangs-bricks']);
   });
 
@@ -270,7 +286,7 @@ describe('sets', () => {
       '/bf/ground',
       [],
     );
-    await sets.act({ host: w.host, config } as unknown as BrainContext);
+    await sets.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['(→ /bf/hacks)', expect.stringMatching(/^get 20 #/), '(→ /bf/ground)']);
   });
 });
@@ -284,7 +300,7 @@ describe('pots', () => {
     forms: ['mug', 'jug'],
     glaze: { tub: 'lead tub', forms: ['jar'] },
     batch: 2,
-    ways: [{ to: '/bf/pit', go: ['west'], back: ['east'] }],
+    knows: '/bf',
   };
   const shop = (things: Fake[], kilnContents: Fake[] = []): Room[] => [
     { path: '/bf/shop', things: [good({ tpl: KILN, kw: ['kiln'], lit: false, fuel: 1, contents: kilnContents }), ...things.map(good)], exits: { west: '/bf/pit' } },
@@ -293,17 +309,17 @@ describe('pots', () => {
 
   it('⭐ clay in hand is thrown into the next form in turn', async () => {
     const w = world(shop([{ tpl: '/ware/mug', kw: ['mug'], green: true }]), '/bf/shop', [{ tpl: CLAY, kw: ['clay'], qty: 1 }]);
-    await pots.act({ host: w.host, config } as unknown as BrainContext);
+    await pots.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['shape clay into jug']);
   });
 
   it('⭐ fired ware that takes a glaze is dipped inside and put back; the rest is shelved', async () => {
     const jar = world(shop([]), '/bf/shop', [{ tpl: '/ware/jar', kw: ['jar'], green: false }]);
-    await pots.act({ host: jar.host, config } as unknown as BrainContext);
+    await pots.act(ctxOf(jar.host, config));
     expect(jar.commands).toEqual(['dip jar inside in lead tub', 'put jar in kiln']);
     vi.restoreAllMocks();
     const mug = world(shop([]), '/bf/shop', [{ tpl: '/ware/mug', kw: ['mug'], green: false }]);
-    await pots.act({ host: mug.host, config } as unknown as BrainContext);
+    await pots.act(ctxOf(mug.host, config));
     expect(mug.commands).toEqual(['put mug in shelf']);
   });
 
@@ -313,7 +329,7 @@ describe('pots', () => {
       { tpl: '/ware/jug', kw: ['jug'], green: true, fireable: true },
     ];
     const w = world(shop([], load), '/bf/shop', []);
-    await pots.act({ host: w.host, config } as unknown as BrainContext);
+    await pots.act(ctxOf(w.host, config));
     expect(w.commands).toEqual(['ignite kiln']);
   });
 });

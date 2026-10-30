@@ -9,16 +9,16 @@
  * would type (the `stocks` precedent). Firebrick already in hand is fitted
  * without the errand.
  *
- * ⭐ The keeper knows his own street: every walk is an AUTHORED way on his
- * row, from where he stands on shift — to the counter (a furnace man going
- * to the store) or to the furnace (a storekeeper who keeps a kiln up the
- * hill). Nothing here searches a graph; blocked means blocked, and he tries
+ * ⭐ The keeper knows his own street (`knows:` on his row): every walk —
+ * to the counter (a furnace man going to the store) or to the furnace (a
+ * storekeeper who keeps a kiln up the hill) — is planned within it and
+ * taken a `go` at a time from where he stands on shift (`ctx.goTo`, B107 —
+ * it was an authored `ways:` list). Blocked means blocked, and he tries
  * again next beat.
  *
- * Config: `{ furnace: <row path>, counter: <counter row path>,
- * ways?: [{ to: <room path>, go: [<direction>…], back: [<direction>…] }] }`.
- * The furnace is the one of that row in the room a way leads to (or the
- * keeper's own room), so a row propped in two realms is never confused.
+ * Config: `{ furnace: <row path>, counter: <counter row path>, knows?:
+ * <extent> }`. The furnace is the one of that row in the keeper's room or a
+ * room he knows, so a row propped in two realms is never confused.
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -31,7 +31,6 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import type { BrainContext, BrainStatics } from '@saxonberg/server/mud/lib/behavior/brain';
-import { BrainRoutes, type BrainRoute } from '@saxonberg/server/mud/lib/behavior/BrainRoutes';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
@@ -79,13 +78,8 @@ export const brain = class {
     const furnaceRoom = furnace.getContainer()?.getTemplatePath() ?? '';
     const start = keeper.getContainer()?.getTemplatePath() ?? '';
     if (furnaceRoom === '' || start === '') return;
-    const ways = new BrainRoutes(ctx.config);
-    // Already at the furnace is a route of no steps.
-    const wayTo = (path: string): BrainRoute | null =>
-      path === start ? { to: path, go: [], back: [] } : ways.to(path);
-    // A furnace he has no way to is not his to keep.
-    const toFurnace = wayTo(furnaceRoom);
-    if (toFurnace === null) return;
+    // A furnace in a place he does not know is not his to keep.
+    if (furnaceRoom !== start && !ctx.knows(furnaceRoom)) return;
 
     // ── the errand: firebrick from the counter, on the house's card.
     const needed = bricksNeeded(furnace);
@@ -94,9 +88,8 @@ export const brain = class {
       const counter = counterPath ? StuffApi.findByTemplatePath(counterPath) : null;
       const counterRoom =
         counter && MixinApi.isContainable(counter) ? (counter.getContainer()?.getTemplatePath() ?? '') : '';
-      const toCounter = counterRoom === '' ? null : wayTo(counterRoom);
-      if (toCounter === null) return;
-      if (!(await keeper.walkRoute(toCounter.go))) return;
+      if (counterRoom === '' || !ctx.knows(counterRoom)) return;
+      if (!(await ctx.goTo(counterRoom))) return;
       try {
         await keeper.forceCommand('wallet use house');
         for (let held = firebrickHeld(keeper); held < needed; ) {
@@ -106,18 +99,18 @@ export const brain = class {
           held = now;
         }
       } finally {
-        await keeper.walkRoute(toCounter.back);
+        await ctx.goTo(start);
       }
       if (keeper.getContainer()?.getTemplatePath() !== start) return;
     }
     if (firebrickHeld(keeper) === 0) return;
 
     // ── the reline: at the furnace, the literal verb.
-    if (!(await keeper.walkRoute(toFurnace.go))) return;
+    if (!(await ctx.goTo(furnaceRoom))) return;
     try {
       await keeper.forceCommand(`fit lining to ${keywordOf(furnace) ?? 'furnace'}`);
     } finally {
-      await keeper.walkRoute(toFurnace.back);
+      await ctx.goTo(start);
     }
   }
 } satisfies BrainStatics;
@@ -129,29 +122,23 @@ function wornThin(furnace: Furnace): boolean {
 }
 
 /**
- * The configured furnace, live: the one of that row in the keeper's room or
- * a room one of his ways leads to — else the first of the row anywhere.
+ * The configured furnace, live: the one of that row in the keeper's room,
+ * else in a room he knows — else the first of the row anywhere.
  */
 function furnaceOf(ctx: BrainContext): Furnace | null {
   const path = ctx.config.furnace;
   if (typeof path !== 'string' || path === '') return null;
-  const rooms: Stuff[] = [];
   const here = MixinApi.isContainable(ctx.host) ? ctx.host.getContainer() : null;
-  if (here) rooms.push(here as Stuff);
-  for (const w of new BrainRoutes(ctx.config).all()) {
-    const room = StuffApi.findByTemplatePath(w.to);
-    if (room) rooms.push(room);
-  }
-  for (const room of rooms) {
-    if (!MixinApi.isContainer(room)) continue;
-    for (const c of room.getContents() as Stuff[]) {
-      if (c.getTemplatePath() === path && MixinApi.isBurner(c) && MixinApi.isContainable(c)) {
-        return c as Furnace;
-      }
-    }
-  }
-  const live = StuffApi.findByTemplatePath(path);
-  return live && MixinApi.isBurner(live) && MixinApi.isContainable(live) ? (live as Furnace) : null;
+  const furnaces = StuffApi.findAllByTemplatePath<Stuff>(path).filter(
+    (c): c is Furnace => MixinApi.isBurner(c) && MixinApi.isContainable(c),
+  );
+  const roomOf = (f: Furnace): string => f.getContainer()?.getTemplatePath() ?? '';
+  return (
+    furnaces.find((f) => here !== null && f.getContainer() === here) ??
+    furnaces.find((f) => roomOf(f) !== '' && ctx.knows(roomOf(f))) ??
+    furnaces[0] ??
+    null
+  );
 }
 
 /** How many bricks the lining has lost (at least one — the worn one). */

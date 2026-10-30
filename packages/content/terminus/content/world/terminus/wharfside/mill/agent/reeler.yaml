@@ -31,10 +31,10 @@ data:
         # real-time beats and no bolt reached the store inside the drive's
         # window (drive 26).
         batch: 160
-        ways:
-          - to: /world/terminus/hearts-delight/silk-house/location/floor
-            go: [north, south, south, south, south, south, south, west, north]
-            back: [south, east, north, north, north, north, north, north, southeast]
+        # ⭐ What this worker knows of the world — an extent; every walk is
+        # planned within it and taken a `go` at a time (B107; it was a
+        # hand-written `ways:` list).
+        knows: /world/terminus
     - brain: /trade/sericulture/behavior/reels
       trigger: candidate
       config:
