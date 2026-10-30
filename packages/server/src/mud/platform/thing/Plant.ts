@@ -115,6 +115,24 @@ export default class Plant extends PlantBase {
   }
 
   /**
+   * ⭐ **A stand answers to the name of the part it stands in** (field
+   * population D13): a crop rooted in a field's top end also answers to
+   * *top end* and *top-end*, so `look top end wheat` binds that stand and
+   * no other. Derived from the part it is bound to (the part's own name
+   * and key — the kernel's parts protocol), never authored: a renamed
+   * part renames the words, and a plant bound to nothing keeps its own.
+   */
+  public override getKeywords(): string[] {
+    const own = super.getKeywords();
+    const key = this.getGroundPart();
+    if (!key) return own;
+    const part = this.getBed();
+    if (!part || part.soilPartKey() !== key) return own;
+    const stem = part.presentationPhrase().bare().toLowerCase();
+    return [...new Set([...own, stem, key])];
+  }
+
+  /**
    * How hard it is to bring this plant's water back right now — the
    * `horticulture` difficulty the `water` verb credits.
    *

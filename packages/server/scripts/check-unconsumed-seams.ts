@@ -90,18 +90,7 @@ const REPO = join(here, "..", "..", "..");
  * both shipped with their consumers in the same branch, which is the
  * whole point of the gate.
  */
-/*
- * ⚠ 18 → 20 (field population W0, 2026-10-29) — a rise for ONE wave, and
- * W1 takes it back to 18. Caller audit: `Soil.soilPartKey` is read by
- * `Soil.soilPart` and by `Growing`'s banded augmenter and specimen
- * record; `Soil.soilDepthM` by `Growing.rootsBand` — every caller is the
- * kernel's, and the defaults (`''`, `null`) are the right answer for every
- * one-piece ground. Their first implementer is trade-farming's `Patch`,
- * which lands in W1 of the same build on the same branch. Shipped one
- * wave ahead of its consumer (the sequencing the header calls good); the
- * branch merges at 18.
- */
-const SEAM_CEILING = 20;
+const SEAM_CEILING = 18;
 
 /**
  * Seams that are deliberately extension-only: shipped for an author or a

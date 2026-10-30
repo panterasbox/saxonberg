@@ -8,6 +8,8 @@ class: /platform/thing/Plant
 data:
   shortDescription: stand of barley
   keywords: [barley, crop, stand]
+  # What `sample` pulls out of the stand (field population D7).
+  specimenNoun: stem of barley
   register: indefinite
   longDescription: |
     Barley standing in the ear, the awns catching the light, and the whole field going over together when the wind crosses it.

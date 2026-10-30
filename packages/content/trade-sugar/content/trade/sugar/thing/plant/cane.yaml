@@ -8,6 +8,8 @@ class: /platform/thing/Plant
 data:
   shortDescription: stand of sugar cane
   keywords: [cane, "sugar cane", stand, crop]
+  # What `sample` pulls out of the stand (field population D7).
+  specimenNoun: stalk of cane
   register: indefinite
   longDescription: |
     Sugar cane taller than a man, jointed stems as thick as a wrist under a crown of long saw-edged leaves.

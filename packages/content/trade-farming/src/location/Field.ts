@@ -74,21 +74,20 @@
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import {
-  SoilMixin,
-  SOIL_MOISTURE_RESERVE_KEY,
-  SOIL_NITROGEN_RESERVE_KEY,
-  SOIL_ORGANIC_MATTER_RESERVE_KEY,
-  SOIL_STRUCTURE_RESERVE_KEY,
-  SOIL_RESERVE_THEME,
-} from '@saxonberg/server/mud/lib/husbandry/Soil';
-import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
+import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import {
   ImprovableMixin,
   type ImprovementCost,
   type ImprovementJob,
 } from '@saxonberg/server/mud/lib/ground/Improvable';
 import { SwardMixin, SWARD_RESIDUAL_FRACTION } from '../lib/Sward';
+import {
+  CharacteredSoilMixin,
+  CROP_TRANSPIRATION_L_PER_M2_DAY,
+} from '../lib/CharacteredSoil';
+import type Patch from '../thing/Patch';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -104,6 +103,7 @@ import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import GroundCharacter, {
+  type GroundLean,
   type GroundSample,
   type Spot,
 } from '@saxonberg/content-ground/src/idea/GroundCharacter';
@@ -115,6 +115,8 @@ import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 
 /** What a spadeful of a stony headland leaves standing at the edge. */
 const STONE_ROW = '/trade/farming/thing/field-stone';
@@ -124,18 +126,6 @@ const MARL_ROW = '/trade/farming/thing/marl';
 const STONE_THRESHOLD = 0.35;
 /** At or above this pH the subsoil is calcareous enough to be marl. */
 const MARL_PH = 7.2;
-
-/**
- * Litres of plant-available water one square metre of LOAM holds in its
- * root zone. Texture scales it (`GroundCharacter.waterHoldingFactor`).
- *
- * ⭐ Roughly right rather than invented: a loam holds about 150 mm of
- * available water per metre of depth, and a root zone is a few hundred
- * millimetres, so a square metre carries tens of litres. The number is
- * a real soil-physics figure and the derivation is one line, which is
- * what stops it being a balance dial pretending to be physics.
- */
-const LITRES_PER_M2_LOAM = 45;
 
 /**
  * Percentage points of organic matter a kilogram of eaten dry matter
@@ -228,15 +218,6 @@ const AUTHORED_SWARD_START = 0.8;
 const SECONDS_PER_GAME_DAY = 86_400;
 
 /**
- * Litres a square metre of standing crop transpires a game day — a full
- * sward's figure (0.3 kg/m² × 4 L/kg), because a field of wheat in leaf
- * drinks the ground about as hard as a full pasture does. A crop row's
- * `litresPerGameDay` is a single plant's and cannot be read per square
- * metre.
- */
-const CROP_TRANSPIRATION_L_PER_M2_DAY = 1.2;
-
-/**
  * Percentage points of organic matter one kilogram per square metre of
  * sward adds when it is ploughed under (cover build D4): a full sward
  * (0.3 kg/m²) turned in is about one point — the green manure that
@@ -250,10 +231,9 @@ const OM_PER_KG_PER_M2_TURNED = 3;
  * an augmenter only READS (⛔ it never settles a title — that is the
  * acts' job).
  */
-function fieldAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
-  const field = host as unknown as Field;
-  if (typeof field.fieldLines !== 'function') return text;
-  const lines = field.fieldLines();
+function fieldAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!(host instanceof Field)) return text;
+  const lines = host.fieldLines(viewer);
   if (lines.length === 0) return text;
   const block = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${block}` : block;
@@ -263,7 +243,9 @@ function fieldAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 // constraint is `Stuff & Reserved` alone. Naming the intermediate stack
 // is not cosmetic: inference through this many nested generic mixin
 // factories in one expression collapses to `never`.
-const FieldGround = SoilMixin(ReservedMixin(Location));
+// ⭐ `CharacteredSoilMixin` (field population D2): the area and the seeded
+// character that size the reserves — shared with the field's patches.
+const FieldGround = CharacteredSoilMixin(SoilMixin(ReservedMixin(Location)));
 
 // `ImprovableMixin` is the THIRD axis (D57) — what has been DONE to the
 // ground, independent of what the polity permits (`LandUse`) and of what
@@ -304,6 +286,10 @@ export default class Field extends FieldBase {
       // the platform view, named here the way `plough` is. A bed affords
       // it through `CultivableMixin`; ground with no slot had nothing.
       'platform/cmd/inventory/plant.yaml',
+      // ⭐ And FEEDING (field population): a field's ground — or one of
+      // its patches — takes muck from whoever stands in it. `feed` rode
+      // only `CultivableMixin` before, so a field afforded nothing.
+      'platform/cmd/bulk/feed.yaml',
     ],
   };
 
@@ -314,14 +300,25 @@ export default class Field extends FieldBase {
     fieldName: { persistent: true, authorable: true },
     groundSpotX: { persistent: true, authorable: true },
     groundSpotY: { persistent: true, authorable: true },
-    areaM2: { persistent: true, authorable: true },
     legumeFraction: { persistent: true, authorable: true },
     _ambientK: { persistent: true, runtimeState: true },
     _daylightFraction: { persistent: true, runtimeState: true },
     seedbedStamp: { persistent: true },
     stubbleStamp: { persistent: true },
     grazers: { persistent: true },
+    patches: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐ **The parts this field is divided into** (field population D2) —
+   * the top end, the middle, the lane end. Authored; `[]` = one piece,
+   * and a field with none takes today's path on every line. Each spec
+   * mints one {@link Patch} fixture at `onCreate` (get-or-create at slot
+   * `patch:<key>`); the parts tile the field, the LAST absorbing any
+   * difference in area. ⚠ Keys are stable — a crop row binds by key
+   * (`groundPart: top-end`); a name may change.
+   */
+  public patches: PatchSpec[] = [];
 
   /**
    * ⭐ **Who grazes this field** (cover build D8), by herd id. Ranching
@@ -363,9 +360,6 @@ export default class Field extends FieldBase {
    */
   public groundSpotX = 0;
   public groundSpotY = 0;
-
-  /** Square metres of ground. The land draw, and the rain catchment. */
-  public areaM2 = 0;
 
   /**
    * ⭐ **What fraction of the sward is clover** (D43) — the one plant
@@ -421,11 +415,6 @@ export default class Field extends FieldBase {
   public getFieldName(): string { return this.fieldName; }
   public setFieldName(value: string): void { this.fieldName = value; }
 
-  public getAreaM2(): number { return this.areaM2; }
-  public setAreaM2(value: number): void {
-    this.areaM2 = Math.max(0, value);
-  }
-
   /** The spot this ground samples on the soil field. */
   public getGroundSpot(): Spot {
     return [this.groundSpotX, this.groundSpotY];
@@ -439,18 +428,119 @@ export default class Field extends FieldBase {
 
   // ---------- ⭐ the crop (cover build) ----------
 
-  /** The area crop standing in this field, or `null`. */
+  /** The (first) area crop standing in this field, or `null`. */
   public getCrop(): (Stuff & Growing) | null {
-    for (const c of this.getContents()) {
-      if (MixinApi.isGrowing(c) && c.isAreaCrop()) return c;
-    }
-    return null;
+    return this.getCrops()[0] ?? null;
   }
 
-  /** Square metres the crop stands over (sown, cut or not). */
+  /**
+   * ⭐ Every area crop standing in this field (field population D1): one
+   * on a one-piece field, one per sown patch on a divided one.
+   */
+  public getCrops(): (Stuff & Growing)[] {
+    const out: (Stuff & Growing)[] = [];
+    for (const c of this.getContents()) {
+      if (MixinApi.isGrowing(c) && c.isAreaCrop()) out.push(c);
+    }
+    return out;
+  }
+
+  /** The area crop rooted in `part`, or `null`. */
+  public cropOn(part: Stuff & Soil): (Stuff & Growing) | null {
+    return this.getCrops().find((c) => c.getBed() === part) ?? null;
+  }
+
+  /** Square metres the crops stand over (sown, cut or not). */
   public cropAreaM2(): number {
-    const crop = this.getCrop();
-    return crop ? Math.min(this.areaM2, crop.getSownAreaM2()) : 0;
+    const sown = this.getCrops().reduce((n, c) => n + c.getSownAreaM2(), 0);
+    return Math.min(this.areaM2, sown);
+  }
+
+  // ---------- ⭐ the patches (field population D2) ----------
+
+  /**
+   * The patches minted from {@link patches}, in authored order. ⭐ Read
+   * off the fixture SLOTS this field minted them into (`patch:<key>`) —
+   * the field put them there, so the slot is the record of what they are.
+   */
+  public getPatches(): (Stuff & Patch)[] {
+    const out: (Stuff & Patch)[] = [];
+    for (const spec of this.patches) {
+      for (const f of this.getFixtures()) {
+        if (this.slotOfFixture(f) === patchSlot(spec.key)) {
+          out.push(f as unknown as Stuff & Patch);
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ The kernel's parts hook: a divided field's soil IS its patches, so
+   * every read and write the kernel's verbs make of the field aggregates
+   * over them, and a plant bound by `groundPart` roots in its own.
+   */
+  public override soilParts(): readonly (Stuff & Soil)[] {
+    return this.getPatches();
+  }
+
+  /**
+   * Mint (or find) one patch per authored spec, sized and characterized
+   * from this field's sample and the spec's lean.
+   *
+   * ⭐ Get-or-create at slot `patch:<key>` — the `ensureFloor` shape — so
+   * a re-run (a CMS go-live re-hydrating the field) re-sizes what is there
+   * rather than minting a second set, and a restored field's fixtures
+   * slice overlays its record onto the patches minted here.
+   *
+   * ⚠ A failure to mint is warned, never thrown: `onCreate` throwing
+   * unregisters the field, and a field that reads as one piece is a
+   * degradation where a field that will not boot is not.
+   */
+  public async ensurePatches(
+    model: GroundCharacter | null,
+    seed: number,
+    fieldSample: GroundSample,
+  ): Promise<void> {
+    const specs = this.patches.filter((p) => p && typeof p.key === 'string' && p.key);
+    if (specs.length === 0) return;
+    const areas = patchAreas(specs, this.areaM2);
+    for (const [i, spec] of specs.entries()) {
+      try {
+        let patch = this.patchInSlot(spec.key);
+        if (!patch) {
+          const minted = await StuffApi.clone<Stuff>(PATCH_ROW);
+          if (!MixinApi.isAdornment(minted) || !MixinApi.isSoil(minted)) {
+            await StuffApi.destruct(minted);
+            throw new Error(`'${PATCH_ROW}' is not a soil fixture`);
+          }
+          this.addFixture(minted, patchSlot(spec.key));
+          patch = minted as unknown as Stuff & Patch;
+        }
+        patch.configurePatch(spec, areas[i] ?? 0);
+        patch.installFromField(
+          GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean),
+          fieldSample,
+        );
+      } catch (err) {
+        console.warn(
+          `Field.ensurePatches: no patch '${spec.key}' for ` +
+            `${this.getTemplatePath() ?? this.stuffId} — ` +
+            `${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+  }
+
+  /** The patch in `patch:<key>`, or `null`. */
+  private patchInSlot(key: string): (Stuff & Patch) | null {
+    for (const f of this.getFixtures()) {
+      if (this.slotOfFixture(f) === patchSlot(key)) {
+        return f as unknown as Stuff & Patch;
+      }
+    }
+    return null;
   }
 
   /** Whether the ground was ploughed within the season. */
@@ -467,7 +557,7 @@ export default class Field extends FieldBase {
    * ploughed this season. The verb refuses a DIFFERENT crop itself.
    */
   public override sowingRefusal(): string | null {
-    if (this.getCrop()) return null;
+    if (this.getCrops().length > 0) return null;
     if (this.isSeedbedFresh()) return null;
     return this.seedbedStamp > 0
       ? 'The seedbed has gone back to grass. Plough it again before you sow.'
@@ -501,21 +591,26 @@ export default class Field extends FieldBase {
   }
 
   private async settleCropTitle(standUp: boolean): Promise<void> {
-    const crop = this.getCrop();
-    if (!crop || !MixinApi.isChattel(crop)) return;
+    // ⭐ Every crop standing here (field population): a divided field's
+    // stands are each the holder's.
+    const crops = this.getCrops().filter((c) => MixinApi.isChattel(c));
+    if (crops.length === 0) return;
     const path = this.getTemplatePath() ?? '';
     const live = EmploymentApi.operatorsAt(this as unknown as Stuff)[0] ?? null;
     const operator =
       live ?? (standUp && path ? await EmploymentApi.ensureOperatorAt(path) : null);
-    if (!operator || crop.isDestroyed()) return;
+    if (!operator) return;
     const owner = operator.getIdentityPath() ?? '';
-    const stamped = crop.stampedOwner();
-    if (stamped && stamped.kind === 'organization' && stamped.templatePath === owner) {
-      return;
+    for (const crop of crops) {
+      if (crop.isDestroyed() || !MixinApi.isChattel(crop)) continue;
+      const stamped = crop.stampedOwner();
+      if (stamped && stamped.kind === 'organization' && stamped.templatePath === owner) {
+        continue;
+      }
+      await (stamped
+        ? crop.transferChattel(operator)
+        : crop.stampChattel(operator));
     }
-    await (stamped
-      ? crop.transferChattel(operator)
-      : crop.stampChattel(operator));
   }
 
   /**
@@ -546,7 +641,7 @@ export default class Field extends FieldBase {
   public override progressOn(job: ImprovementJob, cost: ImprovementCost): number {
     const done = super.progressOn(job, cost);
     // Below the done mark, so `grub` (which refuses complete ground) takes it.
-    return job === 'clearing' && this.getCrop() ? Math.min(done, 0.9) : done;
+    return job === 'clearing' && this.getCrops().length > 0 ? Math.min(done, 0.9) : done;
   }
 
   /**
@@ -557,7 +652,10 @@ export default class Field extends FieldBase {
    * clearing ploughs before a seedbed (found walking it in the browser).
    */
   public override improvementReversion(job: ImprovementJob): number {
-    if (job === 'clearing' && (Object.keys(this.grazers).length > 0 || this.getCrop())) {
+    if (
+      job === 'clearing' &&
+      (Object.keys(this.grazers).length > 0 || this.getCrops().length > 0)
+    ) {
       return 0;
     }
     return super.improvementReversion(job);
@@ -574,31 +672,49 @@ export default class Field extends FieldBase {
     cost: ImprovementCost,
   ): number {
     if (job === 'clearing') {
-      const crop = this.getCrop();
-      if (crop) void StuffApi.destruct(crop);
+      // Every patch's crop goes (field population): grubbing is the field's.
+      for (const crop of this.getCrops()) void StuffApi.destruct(crop);
     }
     return super.bankWork(job, amount, cost);
   }
 
   /**
    * The field's own lines, in words: the crop and its stage, the
-   * stubble, a fresh seedbed, the grass. ⭐ A pure read.
+   * stubble, a fresh seedbed, the grass — and, on a divided field, one
+   * line per sown patch read at the VIEWER's band (field population D9,
+   * D13). ⭐ A pure read.
    */
-  public fieldLines(): string[] {
+  public fieldLines(viewer?: Stuff | null): string[] {
     const lines: string[] = [];
-    const crop = this.getCrop();
+    const crops = this.getCrops();
+    // The stand reads as ONE thing: the kind, how much of the field it
+    // covers in all, and the stage of the crop covering the most ground.
+    const crop = crops.reduce<(Stuff & Growing) | null>(
+      (big, c) => (big === null || c.standingAreaM2() > big.standingAreaM2() ? c : big),
+      null,
+    );
     if (crop) {
-      const area = crop.cropAreaPhrase(this.areaM2);
+      const standing = crops.reduce((n, c) => n + c.standingAreaM2(), 0);
+      // ⚠ `cropAreaPhrase` reads ITS crop's standing share of the area it
+      // is given; scaling the area by that crop's share of all the
+      // standing ground makes it read the whole stand's share instead.
+      // One crop: the field's own area, unchanged.
+      const over =
+        crops.length === 1 || !(standing > 0)
+          ? this.areaM2
+          : (this.areaM2 * crop.standingAreaM2()) / standing;
+      const area = crop.cropAreaPhrase(over);
       const name = crop.getPresentation();
       lines.push(
         `${capitalize(name)} grows ${area || 'here'}, ${crop.cropStagePhrase()}.`,
       );
-      if (crop.getSownAreaM2() > crop.standingAreaM2() + 1) {
+      if (crops.some((c) => c.getSownAreaM2() > c.standingAreaM2() + 1)) {
         lines.push('Part of it is cut, the stubble showing between the rows.');
       }
-      if (crop.isTiredRatoon()) {
+      if (crops.some((c) => c.isTiredRatoon())) {
         lines.push('The stools are tired, and the stand comes up thin.');
       }
+      lines.push(...this.patchLines(viewer ?? null));
     } else if (this.stubbleStamp > 0) {
       const band = this.swardBand();
       lines.push(
@@ -625,6 +741,26 @@ export default class Field extends FieldBase {
     return lines;
   }
 
+  /**
+   * ⭐ One line per sown patch (field population D13): *"At the top end it
+   * is in ear and looks poor. It is short of something."* — the crop
+   * rooted there, read at the viewer's band (a viewer with no transcript
+   * reads the floor). Never a digit; a patch with no crop says nothing.
+   */
+  private patchLines(viewer: Stuff | null): string[] {
+    const out: string[] = [];
+    for (const patch of this.getPatches()) {
+      for (const crop of this.getCrops()) {
+        if (crop.getBed() !== patch) continue;
+        const read = crop.readLines(bandOf(viewer, crop.getDiscipline()));
+        const [first, ...rest] = read;
+        if (!first) continue;
+        const at = `At ${patch.presentationPhrase().definite()}`;
+        out.push([`${at} ${lowerFirst(first)}`, ...rest].join(' '));
+      }
+    }
+    return out;
+  }
 
   // ---------- ⭐ the grazing ledger (cover build D8, D11) ----------
 
@@ -732,30 +868,9 @@ export default class Field extends FieldBase {
     return out;
   }
 
-  // ---------- the two hooks SoilMixin asks of its host ----------
-
-  /**
-   * ⭐ **Sand leaks and clay holds** — D2's multiplication, made
-   * concrete: the seeded character setting the curve a derived reserve
-   * moves along.
-   *
-   * ⚠ It resolves the sample on every call rather than caching one,
-   * because the sample is a pure function and a cache would be a second
-   * place for the ground's character to live.
-   */
-  public override soilLeachRate(): number {
-    const sample = this.lastSample;
-    if (!sample) return super.soilLeachRate();
-    return 0.0006 * GroundCharacter.leachFactor(sample.texture);
-  }
-
-  /**
-   * The most recently resolved ground sample, or `null`. ⚠ Not
-   * persisted and not authoritative — a read cache for the sync paths
-   * (`soilLeachRate`, poaching) that cannot resolve a locality
-   * themselves. Everything that can resolve, resolves.
-   */
-  private lastSample: GroundSample | null = null;
+  // ---------- the hooks SoilMixin asks of its host ----------
+  // (`soilLeachRate`, `soilCatchmentAreaM2` and the reserves' sizing are
+  // `CharacteredSoilMixin`'s — shared with the patches.)
 
   /**
    * ⭐ **A field IS a place, so it is its own watershed scope.** The
@@ -770,11 +885,6 @@ export default class Field extends FieldBase {
     return MixinApi.isContainer(self) ? (self as unknown as Stuff & Container) : null;
   }
 
-  /** Every square metre of it catches rain. That is what a field is. */
-  public override soilCatchmentAreaM2(): number {
-    return this.areaM2;
-  }
-
   /**
    * ⭐ **What drinks this soil is the grass standing in it.** The pot and
    * the bed answer with their occupants' summed demand; a field answers
@@ -783,11 +893,12 @@ export default class Field extends FieldBase {
    */
   public override soilWaterDemandPerGameDay(): number {
     // ⭐ And a crop standing in it drinks too (cover build) — per square
-    // metre still standing.
-    const crop = this.getCrop();
-    const cropDemand = crop
-      ? crop.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY
-      : 0;
+    // metre still standing. ⚠ Never read on a divided field (it holds no
+    // reserve of its own; each patch answers for what stands in it).
+    const cropDemand = this.getCrops().reduce(
+      (n, c) => n + c.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY,
+      0,
+    );
     return this.swardTranspirationPerGameDay() + cropDemand;
   }
 
@@ -1121,88 +1232,6 @@ export default class Field extends FieldBase {
   // ---------- minting ----------
 
   /**
-   * Install the soil reserves this ground's **character and area** call
-   * for — the multiplication D2 is about, made concrete.
-   *
-   * ⭐ **Capacity is derived, never authored.** A hectare of clay holds
-   * more water than a hectare of sand, and both hold more than a garden
-   * bed, and none of those three numbers is a balance dial: they are
-   * `area × texture × the water a soil holds`. An author who wants a
-   * thirstier field authors a drier place, not a smaller number.
-   *
-   * Idempotent — a restored field keeps the reserves its record carried,
-   * because a reserve is *state* and re-installing would erase the
-   * history the whole ledger exists to keep.
-   */
-  public installSoilReserves(sample: GroundSample): void {
-    const host = this as unknown as {
-      hasReserve(k: string): boolean;
-      setReserve(r: Reserve): void;
-    };
-    if (!host.hasReserve(SOIL_MOISTURE_RESERVE_KEY)) {
-      const litres =
-        this.areaM2 *
-        LITRES_PER_M2_LOAM *
-        GroundCharacter.waterHoldingFactor(sample.texture);
-      host.setReserve(
-        new Reserve(
-          SOIL_MOISTURE_RESERVE_KEY,
-          Quantity.of(litres, 'L'),
-          // ⭐ Half full at the moment it is plotted, and that is not a
-          // kindness: ground you have just cut the sod off is neither
-          // saturated nor a dust bowl, and the sky takes it from there.
-          Quantity.of(litres / 2, 'L'),
-          SOIL_RESERVE_THEME,
-          null,
-        ),
-      );
-    }
-    if (!host.hasReserve(SOIL_ORGANIC_MATTER_RESERVE_KEY)) {
-      host.setReserve(
-        new Reserve(
-          SOIL_ORGANIC_MATTER_RESERVE_KEY,
-          Quantity.of(100, '%'),
-          // ⭐ Rough ground that has never been worked carries a fair
-          // amount, because nobody has been taking anything off it. The
-          // first crops off newly-broken land really were the best ones,
-          // and the disappointment that follows is the lesson.
-          // (sugar D11) Volcanic ground says otherwise, on its sample.
-          Quantity.of(sample.nativeOrganicPct ?? 40, '%'),
-          SOIL_RESERVE_THEME,
-          null,
-        ),
-      );
-    }
-    if (!host.hasReserve(SOIL_STRUCTURE_RESERVE_KEY)) {
-      host.setReserve(
-        new Reserve(
-          SOIL_STRUCTURE_RESERVE_KEY,
-          Quantity.of(100, '%'),
-          // Undisturbed ground has good structure. What happens to it
-          // afterwards is the holder's business.
-          Quantity.of(85, '%'),
-          SOIL_RESERVE_THEME,
-          null,
-        ),
-      );
-    }
-    if (!host.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) {
-      host.setReserve(
-        new Reserve(
-          SOIL_NITROGEN_RESERVE_KEY,
-          Quantity.of(100, '%'),
-          // ⚠ Rough ground is not fertile ground. What is here is what
-          // scrub and grass put back over the years nobody worked it,
-          // and the whole nitrogen ledger is about what happens next.
-          Quantity.of(sample.nativeNitrogenPct ?? 25, '%'),
-          SOIL_RESERVE_THEME,
-          null,
-        ),
-      );
-    }
-  }
-
-  /**
    * What this ground IS — the resolved seeded sample, computed live and
    * stored nowhere.
    *
@@ -1337,7 +1366,10 @@ export default class Field extends FieldBase {
     // one ordering. Found by the plot suite, which is exactly the kind
     // of thing an authored-content path breaks silently.
     if (this.areaM2 <= 0) return;
-    this.installSoilReserves(sample);
+    // ⭐ A divided field holds no soil of its own (field population D3):
+    // its patches do, and every soil read of the field aggregates over
+    // them. The sward stays field-wide.
+    if (this.getPatches().length === 0) this.installSoilReserves(sample);
     this.installSward(swardStart);
     // Learn where — and when — it is, the moment it exists.
     void this.restampSeason();
@@ -1368,10 +1400,15 @@ export default class Field extends FieldBase {
     // sized off procedural sand while `look` and `analyze soil` reported
     // authored loam would be visibly two different fields to one player.
     const model = await GroundCharacter.forZone(this.getZone());
+    const sample = this.groundSample(model, seed);
+    // ⭐ The parts first (field population D2): with patches minted, the
+    // field installs no soil of its own — each patch is sized from this
+    // sample nudged by its lean.
+    await this.ensurePatches(model, seed, sample);
     // ⭐ An AUTHORED field is a kept pasture, not rough ground just broken
     // (cover build): its grass starts as a good even cover. A plotted
     // field starts at the residual — the sod it was cut out of.
-    this.installFieldReserves(this.groundSample(model, seed), AUTHORED_SWARD_START);
+    this.installFieldReserves(sample, AUTHORED_SWARD_START);
     // ⭐ And it is KEPT ground (cover build B37): a ley, a pasture, a cane
     // piece — cleared long ago, so its clearing starts done. Draining and
     // liming stay what the ground's character makes them. A plotted field
@@ -1402,6 +1439,54 @@ export default class Field extends FieldBase {
       void this.restampSeason();
     }
   }
+}
+
+/**
+ * ⭐ One authored part of a field (field population D2). `name` is how it
+ * reads (*the top end*, a definite phrase — a leading *the* is the
+ * register, not the stem); `keywords` are extra words it answers to;
+ * `lean` nudges the field's sample for this part (a thin top end is
+ * `depthScale: 0.35`); `description` is its long description.
+ */
+export interface PatchSpec {
+  key: string;
+  name: string;
+  keywords?: string[];
+  areaM2: number;
+  lean?: GroundLean;
+  description?: string;
+}
+
+/** The row every patch is minted from. */
+const PATCH_ROW = '/trade/farming/thing/patch';
+
+/** The fixture slot a patch keyed `key` sits in. */
+function patchSlot(key: string): string {
+  return `patch:${key}`;
+}
+
+/**
+ * Each patch's area: as authored, with the LAST absorbing whatever makes
+ * the parts tile the field exactly (never below nothing).
+ */
+function patchAreas(specs: readonly PatchSpec[], fieldAreaM2: number): number[] {
+  const areas = specs.map((p) => Math.max(0, Number(p.areaM2) || 0));
+  if (areas.length > 0 && fieldAreaM2 > 0) {
+    const others = areas.slice(0, -1).reduce((a, b) => a + b, 0);
+    areas[areas.length - 1] = Math.max(0, fieldAreaM2 - others);
+  }
+  return areas;
+}
+
+/** The viewer's band in a discipline — the floor for a non-Advancing one. */
+function bandOf(viewer: Stuff | null, discipline: string): CompetenceBandName {
+  return viewer && MixinApi.isAdvancing(viewer)
+    ? viewer.competenceBandCached(discipline)
+    : CompetenceBand.FLOOR;
+}
+
+function lowerFirst(text: string): string {
+  return text.length > 0 ? text[0]!.toLowerCase() + text.slice(1) : text;
 }
 
 function clampUnit(v: number): number {

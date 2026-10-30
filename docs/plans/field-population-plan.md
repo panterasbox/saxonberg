@@ -1350,6 +1350,124 @@ Notes for later waves:
   non-stackable branch). No drive step reaches it before W4.
 - `LabelledMixin` affords `label.yaml` on every plant from now on.
 
+### W1 — the patch and the patched field
+
+Landed as planned: `CharacteredSoilMixin` (`trade-farming/src/lib/CharacteredSoil.ts`
+— `areaM2`, `installSoilReserves(sample, depthFactor)`, `lastSample`,
+`soilLeachRate`, `soilCatchmentAreaM2`, and `CROP_TRANSPIRATION_L_PER_M2_DAY`
+moved out of `Field` with no behavior change); `Patch`
+(`src/thing/Patch.ts` + row `content/trade/farming/thing/patch.yaml`) —
+the parts-protocol overrides `soilPartKey`/`soilDepthM`, `watershedScope`
+→ its field, `soilWaterDemandPerGameDay` (crops rooted here + its area
+share of the sward), `soilDrawFactor` → the field's, `installFromField`,
+`cropsOn`, the patch augmenter; `Field` composing the mixin, `patches:
+PatchSpec[]`, `ensurePatches` (get-or-create at `patch:<key>`, the last
+spec absorbing the area), `getPatches`/`soilParts`/`getCrops`/`cropOn`,
+the title/progress/reversion/grub paths over every crop, `fieldLines(viewer)`
+with one banded line per sown patch, no field-own soil when patched, and
+`feed.yaml` afforded; `Soil.fieldMeta`'s four stamps are now
+`runtimeState` (R4). Rows: the bench's three patches + three
+`standing-wheat-*` `extends:` rows (the old `standing-wheat.yaml`
+deleted, the long description edited per R7), the home field's three
+patches, `specimenNoun` on wheat/barley/cane. `lint:unconsumed-seams`
+ceiling back to **18** and W0's temporary comment removed — the file is
+byte-identical to before W0. Tests: `trade-farming/src/__tests__/field-patches.test.ts`
+(17), including the R4 restart.
+
+The three W0 hand-offs:
+
+- **The ceiling** — 20 → 18 (the census reads 18; it cannot go lower).
+- **`ensureCropTitle`** — `Patch.ensureCropTitle()` and
+  `Patch.sowingRefusal()` forward to the field, so `landSwath`'s
+  `plant.getBed().ensureCropTitle()` still titles a stranger's cut on the
+  bench to the farm.
+- **The stand answers to its patch's name (amended D13)** — done in the
+  KERNEL, on `Plant.getKeywords()`, not by writing keywords onto the
+  crop: a plant whose `groundPart` resolves to a part adds that part's
+  name stem (`presentationPhrase().bare()`, *top end*) and its key
+  (*top-end*). Derived, so a renamed patch renames the words, a restart
+  needs nothing, and it reads only the kernel's parts protocol
+  (`soilPartKey`, the part's presentation) — no pack import, no new hook.
+  Plants are Organisms, so the recognition face unions `getKeywords()`
+  into the targeting pool (`RecognitionLogic.perceivedKeywordsImpl`).
+  `look top end wheat` then scores the top end's stand 25 on every word
+  and the whole-phrase filter drops the others.
+
+Decisions the plan did not make:
+
+- **`Field` finds its patches by SLOT, not by class.** `getPatches()`
+  reads the fixtures in `patch:<key>` for each authored spec, in spec
+  order; `Field` imports `Patch` as a type only. `Patch` imports `Field`
+  at runtime (`getField()` narrows `instanceof Field`) — one direction
+  only, so there is no runtime import cycle.
+- **`PatchSpec.name` is a definite phrase; its *the* is the register.**
+  `configurePatch` strips a leading *the*, sets the stem as the short
+  description and the register `definite`, so `definite()` reads *the top
+  end* everywhere (`soilPartRefusal`, the field's lines, the crop's *It
+  stands at …*). Keywords = the row's (`patch`, `ground`) + the stem + its
+  words + the key + `spec.keywords`. Re-run on every `onCreate`, so an
+  edited row reaches a booted world.
+- **A patch's material** is set from `TEXTURE_MATERIALS[sample.texture]`
+  through `setMaterial` when the material row resolves; the row's loam is
+  the fallback.
+- **A failed patch mint is warned, never thrown** (the `ensureFloor`
+  rule), and `installFieldReserves` gives the field its own soil whenever
+  it has no patch FIXTURES — so a field whose patch row is missing reads
+  as one piece rather than as a field with no soil.
+- **The stand line on a divided field** is the crop covering the most
+  standing ground, phrased for the WHOLE stand's share: `cropAreaPhrase`
+  is handed the field area scaled by that crop's share of the standing
+  total (one crop: the field's own area, byte-identical). "Part of it is
+  cut" / "the stools are tired" fire if ANY crop is.
+- **The patch line's form** is *"At the top end it is tillering and looks
+  well. It is short of something."* — the banded read's first line with
+  its *It* lowered behind *At <patch>*.
+- **`look at the top end`** prints the ground's `lookPhrase` (capitalized),
+  then *"A stand of wheat grows here."* + that crop's banded lines, then
+  *"<Label> stands here, labeled."* per labeled individual (W4 makes those).
+- **The plan's `Patch.test.ts` cases** (watershed scope, thirst = crops +
+  sward share) live in `field-patches.test.ts` beside the forwarding
+  test: they need the same divided-field fixture, and a second copy of it
+  would be the larger diff.
+- ⚠ **The R4 test is only non-vacuous because the clock moves across the
+  "restart".** A re-minted patch stamps its window at `installFromField`
+  (`settleSoilPlacement`); with the clock unmoved the fresh stamp EQUALS
+  the captured one and the test passed with the `runtimeState` marker
+  removed. The test now advances two days before re-minting, and was
+  checked to fail without the marker.
+
+Verified: tsc (server, trade-farming, trade-ranching, trade-apiculture,
+trade-sugar) clean; trade-farming vitest 121/121, eternal-university
+47/47, ground 116/116, trade-sugar 40/40 (hearts-delight has no suite);
+`pnpm test:near` — every package green except one `PackLogic` integration
+test that timed out at 120 s under the run's contention (collect 3,476 s)
+and passes alone (11/11, 38 s); `lint:family` — all 82 gates pass.
+
+Not done here: the plan's **live stage** (boot, `look` the bench, a 30-day
+jump) — this wave was run without booting a server; W2's staged probe and
+W6's drive cover it.
+
+Notes for later waves:
+
+- **W2:** `fieldLines(viewer)` and `Patch.patchLines(viewer)` already read
+  `viewer.competenceBandCached(...)` (floor for a non-Advancing viewer);
+  `fieldAugmenter`/`patchAugmenter` pass the viewer. W2 needs only the
+  live proof and the novice/expert pair.
+- **W3:** `Patch.sowingRefusal()` forwards the field's ploughed-this-season
+  answer; `patch-sown` (a full patch) is W3's. `Field.cropOn(part)` is the
+  per-patch lookup; `Growing.standIn(part)` matches on template path OR
+  harvest path (W0), which the bench's three `extends:` rows need.
+  `ripeSibling` is still template-path only — `harvest wheat` substitution
+  across the bench's three rows will not cross rows (W0's note stands).
+- **W3:** `feed.yaml` is now afforded by `Field`; its target gate is still
+  `[VisibleMixin, CultivableMixin]`, so `feed` in a field binds nothing
+  until W3 widens it to `GrowingMixin|SoilMixin`. `lint:reachability`
+  passes either way.
+- **The cover drive (W6):** the bench's crop is three rows now; step 1's
+  "a stand of wheat" appears once in the field's stand line plus once per
+  patch only as *"At the … end it is …"* (no repeat of the noun), and the
+  loose list no longer carries crops (D17).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

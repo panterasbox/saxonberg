@@ -369,19 +369,28 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      */
     static _mixinName: string = Mixins.Soil;
 
-    /** The soil's two checkpoints travel with the ground they belong to. */
+    /**
+     * The soil's two checkpoints travel with the ground they belong to.
+     *
+     * ⭐ Every one is `runtimeState` — engine-written, never authored —
+     * and that is load-bearing for ground that is a FIXTURE (a field's
+     * patch, field population R4): a fixture's state rides its host's
+     * record only for `persistent && runtimeState` fields, so a stamp
+     * marked `persistent` alone would come back zero on a restart and the
+     * window it closed would re-open from nothing.
+     */
     static fieldMeta: FieldMeta = {
-      soilClockStamp: { persistent: true },
-      _soilMeanMoisture: { persistent: true },
+      soilClockStamp: { persistent: true, runtimeState: true },
+      _soilMeanMoisture: { persistent: true, runtimeState: true },
       // The sky edge's own checkpoint + the identity it integrates
       // against. All four persist: an unresolved ref that came back
       // resolved must not forget it across a restart, and the stamp is
       // the thing that makes the back-fill exact.
-      rainClockStamp: { persistent: true },
+      rainClockStamp: { persistent: true, runtimeState: true },
       _rainLocalityPath: { persistent: true, runtimeState: true },
       _rainSkyExposed: { persistent: true, runtimeState: true },
       _rainResolved: { persistent: true, runtimeState: true },
-      _rainAbsorbedLitres: { persistent: true },
+      _rainAbsorbedLitres: { persistent: true, runtimeState: true },
     };
 
     /**

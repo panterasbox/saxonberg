@@ -1,0 +1,22 @@
+# A patch — ⭐ a named part of a field, with soil of its own (field
+# population D2). The top end of a bench that runs thin and dries first;
+# the lane end that holds its water.
+#
+# Nobody places this row. A field mints one per entry in its own
+# `patches:` (`Field.ensurePatches`, get-or-create at slot `patch:<key>`)
+# and sets its name, its words, its area and its lean from that entry —
+# so the short description and keywords below are what a patch is before
+# its field names it. It is a FIXTURE of the field: never loose, never
+# carried, read by name (`look at the top end`). Its soil is sized from
+# the field's sample nudged by its lean, and its runtime state rides the
+# field's record.
+#
+# The material is a placeholder: the patch takes the material its ground
+# sample says it is (loam, clay, sand) when its field configures it.
+class: /trade/farming/thing/Patch
+data:
+  shortDescription: patch of ground
+  keywords: [patch, ground]
+  register: definite
+  longDescription: A stretch of the field, no different to look at from the rest until you look at what grows on it.
+  _materialPath: /stuff/idea/material/earth/loam

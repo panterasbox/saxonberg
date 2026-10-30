@@ -27,7 +27,7 @@ data:
   register: definite
   _address: terminus/hearts-delight/upper-bench
   longDescription: |
-    Four acres of the thinnest ground in the valley, running back from the lane in one long strip to where the hill gets too steep to plough. Stones everywhere. The wheat in it is a good deal shorter than wheat ought to be and there are bare patches up at the top end where the soil runs out altogether.
+    Four acres of the thinnest ground in the valley, running back from the lane in one long strip to where the hill gets too steep to plough. Stones everywhere. The wheat in it is a good deal shorter than wheat ought to be, and up at the top end, where the soil all but runs out, it stands short and thin with the stones showing between the stems.
 
     From up here you can see the whole of the flats below, green and wet and worth ten times this. Just under the lip on the left there is a walled close with three cherry trees in it and clover up to your boots, which is where all the good ground on this side went.
   coords: { x: -20, y: 4, z: 8 }
@@ -41,6 +41,34 @@ data:
   areaM2: 4000
   # No ley. This ground has never had clover on it and it shows.
   legumeFraction: 0
+  # ⭐⭐ The bench in three parts (field population D15) — each its own
+  # soil, sized from this field's ground nudged by its lean. The top end
+  # is where the soil runs out: a third the depth, stonier, hungry, and
+  # it dries first in a dry month. The lane end is the deepest and the
+  # best of it. ⚠ Keys are stable (a crop row binds by key); names may
+  # change. The last patch absorbs any difference in area.
+  patches:
+    - key: top-end
+      name: the top end
+      areaM2: 1000
+      lean:
+        depthScale: 0.35
+        stoninessScale: 1.5
+        nitrogenPct: 12
+        organicPct: 25
+        note: the soil runs out up here
+      description: The top of the strip, where the hill starts to steepen and the soil thins to a skin over the stone.
+    - key: middle
+      name: the middle
+      areaM2: 1500
+      description: The long middle of the strip, thin ground but ground.
+    - key: lane-end
+      name: the lane end
+      areaM2: 1500
+      lean:
+        depthScale: 1.1
+        nitrogenPct: 30
+      description: The bottom of the strip by the lane, where the bench's soil has washed down and lies deepest.
   exits:
     down:
       destination: /world/terminus/hearts-delight/location/farmstead-yard
@@ -53,6 +81,11 @@ data:
       destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
       media: [ground]
       edgeMinutes: 2
-  # ⭐ One crop of wheat (cover build), not three loose plants.
+  # ⭐ One stand of wheat per patch (field population D15): three crops
+  # over three-quarters of the field — a thousand square metres in each
+  # part, the headland and the rest still grass. Each roots in its own
+  # patch's soil by `groundPart`, and the field reads them as ONE stand.
   props:
-    - /world/terminus/hearts-delight/bench-field/thing/standing-wheat
+    - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-top-end
+    - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-middle
+    - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-lane-end

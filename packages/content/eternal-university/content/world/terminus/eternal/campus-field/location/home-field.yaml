@@ -56,6 +56,28 @@ data:
   # garden.
   areaM2: 10000
   legumeFraction: 0.4
+  # ⭐ The home field in three parts (field population D15): the gate end
+  # by the yard, the middle, and the far side toward the back paddock —
+  # where the campus ground row already leans the outfield thin, and the
+  # far side is thinner and hungrier still. Each part is soil of its own;
+  # an act on the crop names the part it means. ⚠ Keys are stable; the
+  # last patch absorbs any difference in area.
+  patches:
+    - key: gate-end
+      name: the gate end
+      areaM2: 3000
+      description: The near end of the field, by the gate back to the yard and the hay trough.
+    - key: middle
+      name: the middle
+      areaM2: 4000
+      description: The broad middle of the field, level and even.
+    - key: far-side
+      name: the far side
+      areaM2: 3000
+      lean:
+        depthScale: 0.8
+        nitrogenPct: 18
+      description: The far side of the field, toward the back paddock gate, where the ground is a little thinner.
   # ⭐ The trough stands ON the field (cover build D11): the field's
   # grazing integral reads the feeders standing in it. No rick behind it
   # — on the teaching farm, the student forks the hay.
