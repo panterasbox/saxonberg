@@ -85,13 +85,6 @@ export interface Greenware extends Carvable, Impressible {
   getWorkedFeatures(): readonly string[];
 }
 
-/** A person's (or anything's) name for a mark, from an identity path. */
-function markName(identity: string): string | null {
-  if (!identity) return null;
-  const who = StuffApi.findByTemplatePath<Stuff>(identity);
-  return who ? who.getPresentation() : null;
-}
-
 function greenDial(key: string, fallback: number): number {
   try {
     const raw = AppApi.setting(key);
@@ -281,10 +274,9 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
           line: Mml.compose`${Mml.thing(pattern)} leaves a dent, and no mark anybody would know.`,
         };
       }
-      const who = markName(identity) ?? 'its maker';
       return {
         ok: true,
-        line: Mml.compose`You press ${Mml.thing(pattern)} into the base of ${Mml.thing(self)}. It takes ${who}'s mark, sharp and clean.`,
+        line: Mml.compose`You press ${Mml.thing(pattern)} into the base of ${Mml.thing(self)}. It takes ${self.deviceFor(actor) ?? 'the mark'}, sharp and clean.`,
       };
     }
 

@@ -42,7 +42,6 @@ import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import { StuffApi } from '../../api/stuff';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
 
@@ -156,11 +155,24 @@ export interface Marked {
    * stamp or the die itself (ceramics review, 2026-10-28). An identity
    * path; `''` = none. One mark, wherever it was pressed: impressing copies
    * the tool's device onto the soft thing (`takeDeviceFrom`).
+   *
+   * ⭐ A device is pressed or cut, so it is always RELIEF — seen or felt
+   * ({@link DEVICE_MODALITIES}), whatever form the thing's writing takes
+   * (B106: stamping used to turn an inked label embossed).
    */
   getMarkDevice(): string;
   setMarkDevice(identityPath: string): void;
-  /** Press `tool`'s device into this — an embossed mark, felt in the dark. */
+  /** Press `tool`'s device into this. The thing's own writing is untouched. */
   takeDeviceFrom(tool: Stuff & Marked): string;
+  /**
+   * ⭐ The device as `viewer` knows it (B106): *your own mark*, *Hester's
+   * mark* when the viewer knows Hester (their recognition of her), else *a
+   * maker's mark you do not know* — never a stranger's name for free.
+   * `null` when it bears none. Whether the viewer can make it out at all
+   * is the caller's question (`PerceptionApi.canMakeOutMarks` with
+   * {@link DEVICE_MODALITIES}).
+   */
+  deviceFor(viewer: Stuff): string | null;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
@@ -170,19 +182,20 @@ export interface Marked {
   markDevice: string;
 }
 
+/** ⭐ A device is relief — pressed or cut — so it is seen or felt. */
+export const DEVICE_MODALITIES: readonly SenseChannel[] = MARK_FORMS.both;
+
 /**
- * ⭐ The device a thing bears, in words a look gives it: whose mark. An
- * embossed device is felt as well as seen, so it reads in the dark; an inked
- * one needs light. A thing that bears none says nothing.
+ * ⭐ The device a thing bears, in words a look gives it: whose mark, as the
+ * viewer knows it. Relief, so it is felt as well as seen and reads in the
+ * dark. A thing that bears none says nothing.
  */
 const deviceAugmenter: MarkupAugmenter = (text, host, viewer, opts) => {
   if (opts?.filter) return text;
   if (!MixinApi.isMarked(host)) return text;
-  const device = host.getMarkDevice();
-  if (device === '') return text;
-  if (host.requiresLightToRead() && !PerceptionApi.canMakeOutMarks(viewer, host)) return text;
-  const who = StuffApi.findByTemplatePath<Stuff>(device)?.getPresentation() ?? 'someone';
-  const line = `It bears ${who}'s mark.`;
+  const mark = host.deviceFor(viewer);
+  if (mark === null || !PerceptionApi.canMakeOutMarks(viewer, host, DEVICE_MODALITIES)) return text;
+  const line = `It bears ${mark}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
 
@@ -247,8 +260,15 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const device = tool.getMarkDevice();
       if (device === '') return '';
       this.markDevice = device;
-      this.markForm = 'embossed';
       return device;
+    }
+
+    public deviceFor(viewer: Stuff): string | null {
+      const device = this.getMarkDevice();
+      if (device === '') return null;
+      if (viewer.getIdentityPath() === device) return 'your own mark';
+      const name = MixinApi.isBeliefStore(viewer) ? viewer.knownNameOf(device) : null;
+      return name ? `${name}'s mark` : "a maker's mark you do not know";
     }
 
     /**

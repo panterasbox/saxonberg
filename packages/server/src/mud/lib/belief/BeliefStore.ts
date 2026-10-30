@@ -285,6 +285,13 @@ export interface BeliefStore {
   regardsHeld(): ReadonlyMap<string, number>;
   learnIdentityOf(subject: Stuff, name: string | null): void;
   recognizes(subject: Stuff): boolean;
+  /**
+   * ⭐ The name this viewer knows the person at `identityPath` by, or
+   * `null` — read WITHOUT the liveness collection `recall` runs (B106): a
+   * name is remembered whether or not its bearer is in the world, so a
+   * potter's mark is known while the potter is away. Asking never forgets.
+   */
+  knownNameOf(identityPath: string): string | null;
   knowsTrueTypeOf(target: Stuff): boolean;
   /**
    * Install a hydrated record directly (the persistence hydrate path).
@@ -738,6 +745,14 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       const referent = subject.getIdentityPath();
       if (!referent) return;
       this.know(RECOGNITION, referent, { knownAs: name });
+    }
+
+    public knownNameOf(identityPath: string): string | null {
+      if (!identityPath) return null;
+      const record = this._beliefs.get(keyOf(RECOGNITION, identityPath)) as
+        | { knownAs?: string | null }
+        | undefined;
+      return record?.knownAs ?? null;
     }
 
     /** Does this viewer recognize `subject` (a named RECOGNITION record)? */

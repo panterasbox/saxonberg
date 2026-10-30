@@ -461,7 +461,11 @@ export class PerceptionLogic extends ApiLogic {
 
   /** See {@link PerceptionApi.canMakeOutMarks}. */
   @CallSecurity(PerceptionApiCallers)
-  public canMakeOutMarks(viewer: Stuff, target: Stuff): boolean {
+  public canMakeOutMarks(
+    viewer: Stuff,
+    target: Stuff,
+    asked?: readonly SenseChannel[],
+  ): boolean {
     // **The symmetric gate.** Perceiving marks succeeds iff the reader
     // has SOME sense that reaches them — reader's channels ∩ the marks'
     // modalities ≠ ∅ — and that channel is usable right now.
@@ -472,9 +476,8 @@ export class PerceptionLogic extends ApiLogic {
     // the celebrated "a sightless reader is not excluded" fell out of a
     // gate being SKIPPED rather than from any model. Both directions
     // now run through one intersection.
-    const modalities: readonly SenseChannel[] = MixinApi.isMarked(target)
-      ? target.getMarkModalities()
-      : ['vision'];
+    const modalities: readonly SenseChannel[] =
+      asked ?? (MixinApi.isMarked(target) ? target.getMarkModalities() : ['vision']);
     if (modalities.length === 0) return false;
     if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) {
       return true;

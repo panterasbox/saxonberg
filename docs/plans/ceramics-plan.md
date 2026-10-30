@@ -2123,10 +2123,31 @@ left a fork the lens that chose is named.
   Slated: `tails/numeric-dial-sweep-slate.md` (~100 copies of a numeric
   dial read → `AppApi.numberSetting` + a ratchet); silent-write census
   gained `restamp`'s catch.
+- **B106 — Marked (owner, 2026-10-29).** Items 1–3 done; 4 (the two-copy
+  maker fallback in `Stamp`/`Die`) left by decision.
+  1. **Whose mark is the viewer's knowledge**: `Marked.deviceFor(viewer)` →
+     *your own mark* · *Hester's mark* (the viewer's recognition) · *a
+     maker's mark you do not know*. Look, `read` and Greenware's stamping
+     line use it (Mould's baked cast prose still names the source's owner —
+     see below). ⭐ Found: belief's `recall` DELETES a recognition whose
+     person is not loaded, so naming through it would make you forget an
+     absent potter by looking at her pot. `BeliefStore.knownNameOf` reads
+     the name without collecting; the defect itself is slated
+     (`tails/belief-recall-forgets-the-absent-slate.md`).
+  2. **A device is relief**: `DEVICE_MODALITIES` (seen or felt);
+     `takeDeviceFrom` no longer turns an inked label embossed;
+     `PerceptionApi.canMakeOutMarks` takes optional modalities; `Stamp`'s
+     `markForm` override is gone.
+  3. **`read` says both** the writing and the device; in the dark a device
+     is still felt (and says there is writing it cannot make out).
+  ⚠ Left: Mould's `castInto` bakes *"cast from an impression of Hester's
+  sword"* into the cast's long description — viewer-blind prose, not a
+  read. Making it viewer-relative means a look augmenter over `castFrom`;
+  it rides the next pass over cast provenance.
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding
-  (B101) · Forming (B102) · PatternStock (B103) · Mould (B104) · Thermal (B105). Still to review from the MR's new
+  (B101) · Forming (B102) · PatternStock (B103) · Mould (B104) · Thermal (B105) · Marked (B106). Still to review from the MR's new
   mixins: the eight protocol mixins are parked by the verb-interfaces
   slate's decision (earned or verb-checks). Ask the owner which mixin or
   system is next.

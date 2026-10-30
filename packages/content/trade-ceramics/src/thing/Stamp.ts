@@ -22,9 +22,6 @@ export default class Stamp extends MarkedMixin(CraftedMixin(Good)) {
     peers: MARKING,
   };
 
-  /** The device is cut into the face — raised, felt as well as seen. */
-  public override markForm = 'embossed';
-
   /** ⭐ Whose mark the face is cut with — authored, else whoever cut it. */
   public override getMarkDevice(): string {
     return super.getMarkDevice() || this.getMaker();

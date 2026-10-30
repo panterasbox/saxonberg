@@ -190,7 +190,9 @@ afford `carve` and `impress`):
   mould) and never shadows it for life (B99).
 - **`impress stamp on jug`** — `takeImpression`: the base takes the DEVICE
   the stamp's face bears (`MarkedMixin.markDevice`, an identity path —
-  `takeDeviceFrom`, an embossed mark felt as well as seen). The potter's
+  `takeDeviceFrom`; a device is relief by definition, felt as well as seen,
+  and stamping leaves the piece's own writing in whatever form it was —
+  B106). The potter's
   `Stamp` (`/trade/ceramics/thing/Stamp`, a `Marked` + `Crafted` good: an
   authorable `markDevice`, else whoever cut it) affords `impress`; a tool
   that bears no device leaves only a dent. The same leather-hard refusals.
@@ -198,9 +200,15 @@ afford `carve` and `impress`):
   device on a struck token and the device cut in the stamp or the die are
   all `MarkedMixin`'s — ware, bricks, flower pots, ingots, castings, stamps
   and dies compose it, a stamped brick does not stack with a bare one, and
-  `read` names whose mark it is. A commercial BRAND (`BrandedMixin`) is a
+  `read` names whose mark it is alongside any writing. ⭐ **Whose mark is
+  the VIEWER's knowledge** (`Marked.deviceFor(viewer)`, B106): *your own
+  mark*, *Hester's mark* when you know Hester (your recognition of her,
+  read by `knownNameOf`, which works while she is away), else *a maker's
+  mark you do not know*. Learning whose mark is whose is connoisseurship,
+  not a free fact. A commercial BRAND (`BrandedMixin`) is a
   claim of whose product, kept separate: the two can disagree (a forgery).
-- **The base**: once fired, a piece's look reads *it bears X's mark* (the
+- **The base**: once fired, a piece's look reads *it bears X's mark* (as
+  the viewer knows X; the
   device's own line) and *it was fired <date>* — the date is its heat history's
   `lastTransitionAtS`. ⭐ A shelf of a player's own pots is their improvement,
   visible: the heavy first mug and the light later one, marked and dated.

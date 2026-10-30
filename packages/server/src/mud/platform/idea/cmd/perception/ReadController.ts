@@ -33,9 +33,8 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { StuffApi } from '../../../../api/stuff';
 import { MixinApi } from '../../../../api/mixin';
-import { COMMON_SCRIPT } from '../../../../lib/description/Marked';
+import { COMMON_SCRIPT, DEVICE_MODALITIES } from '../../../../lib/description/Marked';
 import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
 import { MagicApi } from '../../../../api/magic';
@@ -88,7 +87,24 @@ export default class ReadController extends CommandController<ReadModel> {
     // gating only the vision branch. The controller used to pre-filter
     // on `requiresLightToRead()`, which is what left the touch branch
     // unconditional.
+    // ⭐ A device is relief (B106): felt where the writing cannot be read,
+    // and said whatever the writing does.
+    const device = PerceptionApi.canMakeOutMarks(giver, target, DEVICE_MODALITIES)
+      ? target.deviceFor(giver)
+      : null;
     if (!PerceptionApi.canMakeOutMarks(giver, target)) {
+      if (device !== null) {
+        const hasText = target.getMarkText().length > 0;
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(
+            hasText
+              ? Mml.compose`${Mml.thing(target)} bears ${device}. There is writing on it too, but you cannot make it out.`
+              : Mml.compose`${Mml.thing(target)} bears ${device}.`,
+          )
+          .send();
+        return;
+      }
       // The refusal names the reason the reader can actually observe.
       const lightBound = target.requiresLightToRead();
       MessageApi.scene(giver)
@@ -136,15 +152,15 @@ export default class ReadController extends CommandController<ReadModel> {
     }
 
     const text = target.getMarkText();
-    // ⭐ A device is read as whose it is (a potter's mark, a die's device).
-    const device = target.getMarkDevice();
-    const whose = device !== '' ? StuffApi.findByTemplatePath<Stuff>(device)?.getPresentation() ?? 'someone' : '';
+    // ⭐ The writing, and whose mark it bears — both, as the reader knows it.
     const body =
-      text.length > 0
-        ? Mml.compose`${Mml.thing(target)} reads: ${text}`
-        : whose !== ''
-          ? Mml.compose`${Mml.thing(target)} bears ${whose}'s mark.`
-          : Mml.compose`${Mml.thing(target)} is blank.`;
+      text.length > 0 && device !== null
+        ? Mml.compose`${Mml.thing(target)} reads: ${text} It bears ${device}.`
+        : text.length > 0
+          ? Mml.compose`${Mml.thing(target)} reads: ${text}`
+          : device !== null
+            ? Mml.compose`${Mml.thing(target)} bears ${device}.`
+            : Mml.compose`${Mml.thing(target)} is blank.`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
 
     // ── …and whatever reading it sets off ──
