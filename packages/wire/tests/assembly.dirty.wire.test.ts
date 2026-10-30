@@ -234,7 +234,6 @@ async function toDaylight(): Promise<void> {
 let smith: Session;
 let sawyer: Session;
 let cooper: Session;
-let menderHandle = '';
 
 // ⭐ The world boots at midnight, and in the dark a thing is "something" —
 // names drop out of prose and descriptions. Work by daylight.

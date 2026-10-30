@@ -90,8 +90,6 @@ const T = {
 let k: Session;
 let handle = '';
 let startDoy = -1;
-/** The counter's price for a block just after the harvest. */
-let harvestPrice = Number.NaN;
 
 /* ───────────────────────────── helpers ───────────────────────────── */
 

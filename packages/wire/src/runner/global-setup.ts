@@ -20,7 +20,13 @@
 import { mkdirSync, readdirSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { readRunReport } from '../harness/registry';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_LOG, WIRE_PORT } from './boot';
+import {
+  bootOwnedWorld,
+  reapOwnedPort,
+  stopOwnedWorld,
+  WIRE_LOG,
+  WIRE_PORT,
+} from './boot';
 
 /**
  * The registry's per-file declarations, beside the server log in
@@ -112,6 +118,10 @@ export async function setup(): Promise<void> {
 
 export async function teardown(): Promise<void> {
   await stopOwnedWorld();
+  // ⭐ A restart test leaves its rebooted world standing for the files
+  // after it (stopping it starved every later file of a world); this is
+  // where that world goes down.
+  if (ownsTheWorld()) await reapOwnedPort();
   const files = readRunReport(REPORT);
   const skipped = process.env.WIRE_SOAK === '1' ? [] : soakFiles();
   if (files.length === 0 && skipped.length === 0) return;

@@ -38,7 +38,7 @@ import {
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
 import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
@@ -726,9 +726,10 @@ suite('⭐ drive 22 — a clean contract, posted, done and paid (AC 22)', () => 
  * LAST, because it restarts the world; only in a world this run OWNS.
  */
 suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart (AC 24)', () => {
-  afterAll(async () => {
-    await stopOwnedWorld();
-  });
+  // ⚠ No `afterAll(stopOwnedWorld)`: the rebooted world stays up for the
+  // files that run after this one (stopping it left every later file of a
+  // full `pnpm wire` with no world — the soak-harness census found it);
+  // the global teardown reaps the port.
 
   it.skipIf(!isOwnedTestWorld())('restart, and find the set stain on the shirt where it was left — on the cookhouse rack', async () => {
     cook?.close();

@@ -154,6 +154,24 @@ export async function bootOwnedWorld(): Promise<string> {
   }
 }
 
+/**
+ * Reap whatever Saxonberg server holds the wire port — the preflight
+ * `bootOwnedWorld` runs first. ⭐ The run's last act (global teardown):
+ * a restart test reboots the world from INSIDE the test worker, so the
+ * world standing at the end may be one this module's `child` never knew.
+ */
+export async function reapOwnedPort(): Promise<void> {
+  await new Promise<void>((done) => {
+    const pre = spawn(
+      'node',
+      [join(SERVER_DIR, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'],
+      { cwd: SERVER_DIR, stdio: 'ignore' }
+    );
+    pre.on('exit', () => done());
+    pre.on('error', () => done());
+  });
+}
+
 /** Stop the world this runner started. A no-op if it started none. */
 export async function stopOwnedWorld(): Promise<void> {
   if (!child || child.exitCode !== null) return;

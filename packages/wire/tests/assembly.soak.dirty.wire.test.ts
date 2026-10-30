@@ -50,7 +50,7 @@ import {
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
 import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
@@ -641,9 +641,10 @@ suite('⭐⭐ the cut — glue wants a flat board (plan D16)', () => {
  * boots a fresh one — attached to somebody else's server, it skips.
  */
 suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', () => {
-  afterAll(async () => {
-    await stopOwnedWorld();
-  });
+  // ⚠ No `afterAll(stopOwnedWorld)`: the rebooted world stays up for the
+  // files that run after this one (stopping it left every later file of a
+  // full `pnpm wire` with no world — the soak-harness census found it);
+  // the global teardown reaps the port.
 
   it.skipIf(!isOwnedTestWorld())('restart, and find the mended pick where it was left', async () => {
     // The pick the smith made and the mender re-hafted is in the mender's
