@@ -1,6 +1,11 @@
 # Quist's farm — the Business entity behind the shelf.
 class: /platform/idea/Business
 data:
+  # ⭐ A name, because the farm OWNS things a player looks at: the bench's
+  # stands are titled to it, and `look` says whose a titled good is. With
+  # no name it read *"Owned by something"* (found by the field-population
+  # build).
+  name: "Quist's farm"
   appointingAuthority:
     kind: entity
     path: /world/terminus/hearts-delight/agent/farmer

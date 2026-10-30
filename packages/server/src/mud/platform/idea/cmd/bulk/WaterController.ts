@@ -251,7 +251,11 @@ export default class WaterController extends CommandController<WaterModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`${tipped}${drinks}${barely}`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} waters ${Mml.thing(plant ?? ground)}.`)
+      // ⭐ A bystander sees WHERE the water went — which end of the field
+      // a hand is standing at is as plain as the can (field population:
+      // the drive watches the campus hand water the patch her read points
+      // to, and before this the line named only "a stand of wheat").
+      .toPeers(Mml.compose`${Mml.actor(giver)} waters ${Mml.thing(plant ?? ground)}${plant ? where : Mml.compose``}.`)
       .send();
   }
 
@@ -353,6 +357,8 @@ export default class WaterController extends CommandController<WaterModel> {
 /** Litres in words a reader takes in at a glance: `2 L`, `0.5 L`, `12 L`. */
 function litresPhrase(litres: number): string {
   const n = litres >= 10 ? Math.round(litres) : Math.round(litres * 10) / 10;
+  // Something was poured (the transfer moved it): never "0 L".
+  if (n === 0) return 'less than 0.1 L';
   return `${n.toLocaleString('en-US')} L`;
 }
 

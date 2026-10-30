@@ -312,8 +312,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     expect(looked).toMatch(/stand of wheat grows over about three-quarters of it/i);
     expect(looked).toMatch(STAGES);
     expect(looked, 'never a number').not.toMatch(/\d+\s*(m²|kg|%)/);
-    // One crop, not three plants in a field.
-    expect((looked.match(/a stand of wheat/gi) ?? []).length).toBeLessThanOrEqual(2);
+    // One crop, not three plants in a field — and (field population D17)
+    // the loose list no longer carries the stand at all: the field's own
+    // line is the one place it reads.
+    expect((looked.match(/a stand of wheat/gi) ?? []).length).toBeLessThanOrEqual(1);
+    // ⭐ The bench is three patches now (field population D15): a line each.
+    for (const part of ['top end', 'middle', 'lane end']) {
+      expect(looked, `a line for the ${part}`).toMatch(new RegExp(`At the ${part} it is`, 'i'));
+    }
   }, 600_000);
 
   it('2. the general store sells a sickle and seed wheat', async () => {
@@ -356,10 +362,18 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   }, 1_200_000);
 
   it('4. sowing takes an area per act and spends the seed in proportion: about a third sown', async () => {
-    const first = await doing(p, 'sow wheat');
+    // ⭐ The home field is three patches (field population D15) and every
+    // act on its crop names one (R2): the gate end until it is full, then
+    // the middle with what is left.
+    const first = await doing(p, 'sow wheat at the gate end');
     expect(first).toMatch(/walk the ground, casting|seed goes into the ground/i);
-    for (let i = 0; i < 12 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
-      const { r, said } = await work(p, 'sow wheat');
+    let part = 'the gate end';
+    for (let i = 0; i < 14 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
+      const { r, said } = await work(p, `sow wheat at ${part}`);
+      if (refusedFor(r) === 'patch-sown' && part === 'the gate end') {
+        part = 'the middle';
+        continue;
+      }
       expect(refusedFor(r), said).toBeNull();
     }
     expect(await read(p, 'inventory')).not.toMatch(/seed wheat/i);
@@ -389,8 +403,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       const looked = await read(p, 'look');
       const m = STAGES.exec(looked);
       if (m) seen.add(m[0].toLowerCase());
-      // The crop's own condition and cause, for the record.
-      await read(p, 'look wheat');
+      // The crop's own condition and cause, for the record. ⚠ Named by its
+      // patch: with two stands in the field a bare `look wheat` PROMPTS
+      // (field population W2), and the harness fails on a prompt. The
+      // quoted `"wheat at the gate end"` is no substitute — from a room
+      // focus it binds the room (field population W6).
+      await read(p, 'look gate end wheat');
       // ⭐ Step 16's hay: the rest of the field is mown when it is ready,
       // and the bales lie where they fell until the winter.
       if (!mown && /a good even cover|ready to graze|grown long/i.test(looked)) {
@@ -418,8 +436,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // Put the seed down: what is in hand next is the cut, and the cut is
     // the farm's — the sack of seed is the stranger's own.
     await act(p, 'drop seed');
+    // ⭐ The bench is three patches: the cut names one (field population R2).
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {
-      await work(p, 'harvest wheat');
+      await work(p, 'harvest wheat at the lane end');
     }
     const held = await p.query('me:i:wheat');
     expect(held.length, 'the stranger holds the sheaf').toBeGreaterThan(0);
@@ -434,12 +453,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await goTo(HOME_FIELD);
     // Step 9's cutting at the bench has worn the body out: rest first.
     await daylight();
-    const first = await working(p, 'harvest wheat');
+    // ⭐ Every cut names its patch (field population R2): the gate end to
+    // the stubble, then the middle.
+    const first = await working(p, 'harvest wheat at the gate end');
     expect(first).toMatch(/cut a swath of/i);
     expect(await read(p, 'look')).toMatch(/part of it is cut/i);
     // Bare-handed: a smaller swath — not enough yet to make up a sack.
     await act(p, 'drop sickle');
-    const bare = await working(p, 'harvest wheat');
+    const bare = await working(p, 'harvest wheat at the gate end');
     expect(bare).toMatch(/pull it by hand|not yet enough to make up a load|cut a swath/i);
     await doing(p, 'get sickle');
     // The take is the university's, not the labourer's.
@@ -447,11 +468,18 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     let looked = '';
     // A third of a hectare is days of work: rest when tired, and stop at
     // dusk — in the dark nothing in the field can be made out to cut.
-    for (let i = 0; i < 120; i++) {
+    const parts = ['the gate end', 'the middle'];
+    for (let i = 0; i < 120 && parts.length > 0; i++) {
       await daylight();
       await drink(); // ~1.8 game-hours of scything a cut (drive 12)
-      const { said } = await work(p, 'harvest wheat');
-      if (/cut down to the stubble|nothing left standing/i.test(said)) break;
+      const { r, said } = await work(p, `harvest wheat at ${parts[0]}`);
+      // A patch cut out is a patch done: on to the next.
+      if (
+        refusedFor(r) === 'nothing-sown-there' ||
+        /cut down to the stubble|nothing left standing/i.test(said)
+      ) {
+        parts.shift();
+      }
     }
     await daylight();
     looked = await read(p, 'look');

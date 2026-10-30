@@ -734,6 +734,29 @@ describe('water <crop> [at <patch>] — on a field', () => {
     expect(JSON.stringify(giver.received)).toMatch(/into the soil around .*lily.* at .*top end/);
   });
 
+  it('⭐ a bystander sees which part was watered', async () => {
+    const top = makePart('top-end', 100, 0);
+    const lane = makePart('lane-end', 100, 0);
+    const { giver, field } = fieldScene([top, lane]);
+    cropIn(field, top);
+    const laneCrop = cropIn(field, lane);
+    const watcher = makeStuff(() => {
+      const g = new TestGiver();
+      g.setName('Bob');
+      return g;
+    });
+    ContainmentApi.move(watcher, field);
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+
+    await makeStuff(() => new WaterController()).execute(
+      model(one(laneCrop, 'lily'), undefined, giver, one(top, 'the top end', 'at')),
+      makeContext(giver, field),
+    );
+
+    expect(JSON.stringify(watcher.received)).toMatch(/waters .*lily.* at .*top end/);
+  });
+
   it('⭐ a bucket on a thousand square meters barely shows — and says so', async () => {
     const big = makePart('middle', 1000, 0);
     const other = makePart('lane-end', 100, 0);

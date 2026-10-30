@@ -27,6 +27,7 @@ import { Idea } from '../../lib/stuff/Idea';
 import { NamedMixin } from '../../lib/description/Named';
 import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
+import { AdornmentMixin } from '../../lib/boundary/Adornment';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import {
@@ -71,6 +72,14 @@ class Hosted extends NamedMixin(Idea) {
   public override jurisdictionHost(): Stuff | null {
     return this.host as unknown as Stuff;
   }
+}
+
+/**
+ * A fixture — a floor, a field's patch: adorned to its host, never
+ * contained by it, and pathed by its KIND row.
+ */
+class Fixture extends AdornmentMixin(NamedMixin(Idea)) {
+  static _mixinName = 'Fixture';
 }
 
 /** A host hook that throws — the gate must deny, not propagate. */
@@ -224,6 +233,39 @@ describe('governed eval — the jurisdiction bound', () => {
       }),
     ).rejects.toThrow(/sandbox boundary denied/);
     expect(hosted.getName()).not.toBe('reached');
+  });
+
+  it('⭐ admits a FIXTURE of a place in the parcel — a floor, a patch', async () => {
+    // Found by the field-population build: the founder's `eval` of a
+    // patch's moisture was refused inside the founder's own extent,
+    // because a fixture is pathed by its kind row and is not contained.
+    const field = roomAt('/world/lounge/location/home-field');
+    const patch = makeStuff(() => new Fixture());
+    stampTemplatePathForTest(patch, '/trade/farming/thing/patch');
+    field.addFixture(patch as never, 'patch:top-end');
+    await SandboxApi.runGoverned(BOUND, async () => {
+      patch.setName('the top end');
+    });
+    expect(patch.getName()).toBe('the top end');
+  });
+
+  it('⚠ and DENIES a fixture of a place outside it, and a detached one', async () => {
+    const far = roomAt('/world/moor/location/heath');
+    const patch = makeStuff(() => new Fixture());
+    stampTemplatePathForTest(patch, '/trade/farming/thing/patch');
+    far.addFixture(patch as never, 'patch:far');
+    await expect(
+      SandboxApi.runGoverned(BOUND, async () => {
+        patch.setName('reached');
+      }),
+    ).rejects.toThrow(/sandbox boundary denied/);
+    const loose = makeStuff(() => new Fixture());
+    stampTemplatePathForTest(loose, '/stuff/thing/default-floor');
+    await expect(
+      SandboxApi.runGoverned(BOUND, async () => {
+        loose.setName('reached');
+      }),
+    ).rejects.toThrow(/sandbox boundary denied/);
   });
 
   it('⚠ a host that THROWS fails closed, it does not take the gate down', async () => {

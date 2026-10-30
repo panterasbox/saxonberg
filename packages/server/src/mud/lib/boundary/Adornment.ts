@@ -89,6 +89,25 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
+     * ⭐ **My jurisdiction is my host's** — see
+     * {@link Stuff.jurisdictionHost}.
+     *
+     * A fixture is the exit's case again: it answers to its KIND row
+     * (`/stuff/thing/default-floor`, `/trade/farming/thing/patch`) and its
+     * host holds it in `getFixtures()`, not `getContents()`, so the default
+     * containment walk had nothing to walk and a governed `eval --parcel
+     * <extent>` was refused on every floor and every field patch inside its
+     * own extent (found by the field-population build: a founder could not
+     * read a patch's moisture). A detached fixture falls back to the
+     * default — containment, or nothing.
+     */
+    public jurisdictionHost(): Stuff | null {
+      const host = this.adornedTo;
+      if (host && !host.isDestroyed()) return host as unknown as Stuff;
+      return super.jurisdictionHost();
+    }
+
+    /**
      * The fixture slot this adornment currently occupies on its host, or
      * null when it is unattached. The good's own answer to "where am I
      * hung" — asked by the persistence spine, which records it on an

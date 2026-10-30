@@ -792,6 +792,38 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
     expect(captured).toContain(top);
   });
 
+  it('a pinch into a nearly full part says so — never "0 kg"', async () => {
+    const top = makePart('top-end', 99.98);
+    const field = makeStuffAtPath(() => {
+      const f = new TestField();
+      f.setAmbientFlux(400);
+      f.parts = [top];
+      return f;
+    }, freshPath('/trade/farming/location/_feed-field'));
+    const giver = makeStuff(() => {
+      const g = new TestGiver();
+      g.setName('Alice');
+      return g;
+    });
+    vi.spyOn(
+      giver as unknown as { creditDeed(): Promise<void> },
+      'creditDeed',
+    ).mockImplementation(async () => {});
+    ContainmentApi.move(giver, field);
+    const crop = cropIn(field, top);
+    const sack = denseSack(20);
+    ContainmentApi.move(sack, giver);
+
+    await makeStuff(() => new FeedController()).execute(
+      model(one(crop, 'lily'), undefined, one(top, 'the top end', 'at')),
+      makeContext(giver, field),
+    );
+
+    const said = JSON.stringify(giver.received);
+    expect(said).toContain('You work less than 0.1 kg of crumbly black compost');
+    expect(said).not.toContain('You work 0 kg');
+  });
+
   it('a part named as the target is fed itself', async () => {
     const { giver, field, top, lane } = fieldScene();
     const sack = denseSack(20);

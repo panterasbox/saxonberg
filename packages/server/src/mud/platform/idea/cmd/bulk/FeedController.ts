@@ -390,11 +390,11 @@ export default class FeedController extends CommandController<FeedModel> {
  * by volume when it has none.
  */
 function amountPhrase(litres: number, densityKgPerM3: number): string {
-  if (densityKgPerM3 > 0) {
-    const kg = (litres * densityKgPerM3) / 1000;
-    const n = kg >= 10 ? Math.round(kg) : Math.round(kg * 10) / 10;
-    return `${n.toLocaleString('en-US')} kg`;
-  }
-  const n = litres >= 10 ? Math.round(litres) : Math.round(litres * 10) / 10;
-  return `${n.toLocaleString('en-US')} L`;
+  const unit = densityKgPerM3 > 0 ? 'kg' : 'L';
+  const v = densityKgPerM3 > 0 ? (litres * densityKgPerM3) / 1000 : litres;
+  const n = v >= 10 ? Math.round(v) : Math.round(v * 10) / 10;
+  // ⚠ Something WAS worked in (the transfer moved it), so never "0 kg" —
+  // a nearly full patch took a pinch (found staging the W6 drive).
+  if (n === 0) return `less than 0.1 ${unit}`;
+  return `${n.toLocaleString('en-US')} ${unit}`;
 }
