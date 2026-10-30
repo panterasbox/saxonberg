@@ -24,6 +24,13 @@ help: |
   barren and sample it there, and the record will truthfully say the
   barren place. The paper never lies; people do.
 
+  ⭐ In a field, `sample wheat at the top end` pulls ONE stem from the
+  stand there — roots and all — and the stand is none the worse. Look
+  at it: it shows what was holding the crop back where it stood, and
+  what its roots met. On a field of several parts you must say which;
+  the same spot gives the same stem, so pull from the other end to
+  compare.
+
   ⚠ You cannot sample a place, a person, or a made thing. The light
   where you stand cannot be carried anywhere; cutting a piece off a
   finished blade would ruin it.
@@ -32,6 +39,8 @@ examples:
     note: A chip off a face, to carry to a bench
   - cmd: sample the ore
     note: A piece off the pile you are carrying
+  - cmd: sample wheat at the top end
+    note: A stem from the stand at one end of a field, to read its roots
 controller: /platform/idea/cmd/inventory/SampleController
 args:
   # ⚠⚠ `greedy: true` — without it `sample the north face` binds three
@@ -47,3 +56,13 @@ args:
     greedy: true
     scope: ["$focus", "reachable"]
     requires: any
+  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D5,
+  # D7). Optional and greedy, bounded by its preposition — the shape
+  # harvest/water/feed/plant carry.
+  - name: patch
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    prepositions: [at]
+    requires: SoilMixin

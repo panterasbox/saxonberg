@@ -31,8 +31,14 @@
 import Good from "../../lib/stuff/Good";
 import { ThermalMixin } from "../../lib/thermal/Thermal";
 import { OrganismMixin } from "../../lib/species/Organism";
-import { ReservedMixin } from "../../lib/reserve";
-import { GrowingMixin } from "../../lib/husbandry/Growing";
+import { Reserve, ReservedMixin } from "../../lib/reserve";
+import {
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+  SOIL_RESERVE_THEME,
+} from "../../lib/husbandry/Soil";
+import { Quantity } from "../../lib/quantity";
+import { GrowingMixin, type GrowthStage } from "../../lib/husbandry/Growing";
 import { SlottableMixin } from "../../lib/slot/Slottable";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { LabelledMixin } from "../../lib/description/Labelled";
@@ -49,6 +55,38 @@ import type { Slotted } from "../../lib/slot/Slotted";
 import type { Difficulty } from "../../lib/advancement/ActSignature";
 import type { FieldMeta } from "../../lib/mixin";
 import type { CommandContributions } from "../../api/command";
+
+/** Game-seconds in a game day — the root zone walks its window a day at a time. */
+const SECONDS_PER_GAME_DAY = 86_400;
+
+/** The most day-steps one root-zone reconcile walks (a long absence lumps). */
+const ROOT_ZONE_MAX_STEPS = 180;
+
+/**
+ * ⭐ Litres of water a labeled plant's root zone holds per litre of root
+ * demand (field population D6) — roughly a loam's available water, so a
+ * mature wheat's zone (3 L of roots) holds about a litre: a can tips most
+ * of itself onto the ground around it, and a day's drink is a real share.
+ */
+const ROOT_ZONE_WATER_L_PER_L_SOIL = 0.35;
+
+/**
+ * ⭐ Game-days for a root zone's water to run halfway-and-more (one e-fold)
+ * toward the ground around it — water in a wet pocket runs into the dry
+ * soil beside it in a couple of days, which is why a can must come DAILY.
+ */
+const ROOT_ZONE_EQUILIBRATION_DAYS = 2;
+
+/** The same for its nitrogen — a fed pocket holds its feed far longer. */
+const ROOT_ZONE_NITROGEN_EQUILIBRATION_DAYS = 10;
+
+/**
+ * Room below this (a centilitre, or a hundredth of a point) is a FULL
+ * zone. A zone holds about a litre and drinks every second, so a second
+ * can a moment after the first found a sliver of room and tipped "0 L"
+ * into it (found staging W4 live): that is "already wet through".
+ */
+const ROOT_ZONE_FULL_WITHIN = 0.01;
 
 // PersistableMixin OUTERMOST — the documented host rule. ⭐ Labelled and
 // Sampled (field population D6/D7): every plant may carry a player's
@@ -81,6 +119,8 @@ export default class Plant extends PlantBase {
   static fieldMeta: FieldMeta = {
     seedTemplatePath: { persistent: true, authorable: true },
     standardMaterialPath: { persistent: true, authorable: true },
+    // ⭐ The root zone's own clock (field population D6). `0` = no zone.
+    _rootZoneStamp: { persistent: true, runtimeState: true },
   };
 
   /**
@@ -125,7 +165,11 @@ export default class Plant extends PlantBase {
   public override getKeywords(): string[] {
     const own = super.getKeywords();
     const key = this.getGroundPart();
-    if (!key) return own;
+    // ⭐ Only a STAND answers to its patch's name. A labeled individual
+    // standing in the same patch answers to its label (field population
+    // W4) — giving it the patch's words too would make `look top end
+    // wheat` ask which of two things the player meant.
+    if (!key || !this.isAreaCrop()) return own;
     const part = this.getBed();
     if (!part || part.soilPartKey() !== key) return own;
     const stem = part.presentationPhrase().bare().toLowerCase();
@@ -180,22 +224,228 @@ export default class Plant extends PlantBase {
     return bed && MixinApi.isCultivable(bed) ? bed.rootRoomPerPlant() : null;
   }
 
+  // ---------- ⭐ the root zone (field population D6) ----------
+
+  /**
+   * Game-seconds stamp of the root zone's last reconcile; `0` = this plant
+   * has no root zone of its own (every plant but a labeled one).
+   */
+  public _rootZoneStamp = 0;
+
+  /**
+   * The mean moisture fraction across the window the last zone reconcile
+   * closed; `-1` = no window yet. A runtime cache, as the soil's is.
+   */
+  private _rootZoneMeanMoisture = -1;
+
+  /** Reentry guard — the zone reconcile must never recurse. */
+  private _reconcilingRootZone = false;
+
+  /**
+   * Whether this plant keeps a root zone of its own — the pocket of ground
+   * a player waters and feeds by hand around ONE plant in a field.
+   */
+  public hasRootZone(): boolean {
+    return this._rootZoneStamp > 0 && this.hasReserve(SOIL_MOISTURE_RESERVE_KEY);
+  }
+
+  /**
+   * ⭐ Give this plant a root zone of its own (field population D6): a
+   * water reserve sized to its roots (`rootDemand[stage] ×`
+   * {@link ROOT_ZONE_WATER_L_PER_L_SOIL} L) and a nitrogen reserve, both
+   * seeded at the ground's fractions, on the plant's OWN `Reserved`.
+   * Idempotent. From here the plant drinks from its zone, and the zone
+   * runs toward the ground around it — so care aimed at THIS plant keeps
+   * it above its patch only while the care keeps coming.
+   */
+  public installRootZone(): void {
+    if (this.hasRootZone()) return;
+    const bed = this.getBed();
+    const water = bed?.soilMoistureFraction() ?? null;
+    const nitrogen = bed?.nutrientFraction() ?? null;
+    const capacity = this.rootZoneCapacityL();
+    this.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(capacity, "L"),
+        Quantity.of(capacity * (water ?? 0.5), "L"),
+        SOIL_RESERVE_THEME,
+        null,
+      ),
+    );
+    // A pot authors no nitrogen, and neither does a zone over ground that
+    // has none — `nutrientLevel` then reads the ground's `null`.
+    if (nitrogen !== null) {
+      this.setReserve(
+        new Reserve(
+          SOIL_NITROGEN_RESERVE_KEY,
+          Quantity.of(100, "%"),
+          Quantity.of(100 * nitrogen, "%"),
+          SOIL_RESERVE_THEME,
+          null,
+        ),
+      );
+    }
+    const nowS = this.growthNowSeconds();
+    this._rootZoneStamp = nowS !== null && nowS > 0 ? nowS : 1;
+    this._rootZoneMeanMoisture = -1;
+  }
+
+  /**
+   * Walk the root zone's window a game day at a time: the plant drinks
+   * (`litresPerGameDay × warmth` on that day), then the zone relaxes
+   * toward the ground around it — water with
+   * {@link ROOT_ZONE_EQUILIBRATION_DAYS}, nitrogen with
+   * {@link ROOT_ZONE_NITROGEN_EQUILIBRATION_DAYS}. **The plant never moves
+   * the ground's reserve**: the ground keeps its own checkpoint, and the
+   * zone only reads it (the two-checkpoint rule). A plant with no zone
+   * does nothing here.
+   */
+  public reconcileRootZone(): void {
+    if (this._reconcilingRootZone || !this.hasRootZone()) return;
+    const nowS = this.growthNowSeconds();
+    if (nowS === null) return;
+    const from = this._rootZoneStamp;
+    const elapsed = nowS - from;
+    if (elapsed <= 0) return;
+    this._reconcilingRootZone = true;
+    try {
+      this.resizeRootZone();
+      const bed = this.getBed();
+      // The ground's mean over the window — what a plant integrating the
+      // same window reads; the ground reconciles itself on its own stamp.
+      const groundWater = bed?.meanSoilMoistureFraction() ?? null;
+      const groundNitrogen = bed?.nutrientFraction() ?? null;
+      const demand = this.waterDemandPerGameDay();
+      const steps = Math.min(
+        ROOT_ZONE_MAX_STEPS,
+        Math.max(1, Math.ceil(elapsed / SECONDS_PER_GAME_DAY)),
+      );
+      let at = from;
+      let meanSum = 0;
+      for (let i = 1; i <= steps; i++) {
+        const to = i === steps ? nowS : from + (elapsed * i) / steps;
+        const days = (to - at) / SECONDS_PER_GAME_DAY;
+        const water = this.getReserve(SOIL_MOISTURE_RESERVE_KEY)!;
+        const capacity = water.capacity.rawValue();
+        const start = water.current.rawValue();
+        // The day's drink, at that day's warmth — a draw INSIDE the walk.
+        const draw = demand * days * this.transpirationWarmthAt((at + to) / 2);
+        let level = Math.max(0, start - draw);
+        if (groundWater !== null && capacity > 0) {
+          const k = 1 - Math.exp(-days / ROOT_ZONE_EQUILIBRATION_DAYS);
+          level += (groundWater * capacity - level) * k;
+        }
+        this.adjustReserve(
+          SOIL_MOISTURE_RESERVE_KEY,
+          Quantity.of(level - start, "L"),
+        );
+        meanSum += capacity > 0 ? (start + level) / 2 / capacity : 0;
+        const n = this.getReserve(SOIL_NITROGEN_RESERVE_KEY);
+        if (n && groundNitrogen !== null) {
+          const k = 1 - Math.exp(-days / ROOT_ZONE_NITROGEN_EQUILIBRATION_DAYS);
+          const cur = n.current.rawValue();
+          this.adjustReserve(
+            SOIL_NITROGEN_RESERVE_KEY,
+            Quantity.of((groundNitrogen * 100 - cur) * k, "%"),
+          );
+        }
+        at = to;
+      }
+      this._rootZoneMeanMoisture = Math.min(1, Math.max(0, meanSum / steps));
+      this._rootZoneStamp = nowS;
+    } finally {
+      this._reconcilingRootZone = false;
+    }
+  }
+
+  /** The zone's water capacity at this plant's CURRENT stage, litres. */
+  private rootZoneCapacityL(): number {
+    const demand =
+      this.getProfile()?.rootDemand[this.growthStage as GrowthStage] ?? 0;
+    return Math.max(0.05, (Number.isFinite(demand) ? demand : 0) * ROOT_ZONE_WATER_L_PER_L_SOIL);
+  }
+
+  /**
+   * Roots grow with the stage, and the pocket they drink from with them:
+   * a stage advance re-sizes the zone at the SAME fraction, so a young
+   * plant's wet pocket is not a mature one's half-empty one.
+   */
+  private resizeRootZone(): void {
+    const water = this.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+    if (!water) return;
+    const capacity = this.rootZoneCapacityL();
+    const was = water.capacity.rawValue();
+    if (Math.abs(capacity - was) < 1e-9) return;
+    const fraction = was > 0 ? water.current.rawValue() / was : 0;
+    this.setReserve(
+      new Reserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(capacity, "L"),
+        Quantity.of(capacity * fraction, "L"),
+        SOIL_RESERVE_THEME,
+        null,
+      ),
+    );
+  }
+
+  /** A zone reserve's fraction, reconciled; `null` when the zone has none. */
+  private rootZoneFraction(key: string): number | null {
+    this.reconcileRootZone();
+    const r = this.getReserve(key);
+    if (!r) return null;
+    const capacity = r.capacity.rawValue();
+    return capacity > 0 ? Math.min(1, Math.max(0, r.current.rawValue() / capacity)) : null;
+  }
+
+  /** Credit a zone reserve up to its headroom; returns what it took. */
+  private creditRootZone(key: string, amount: number, unit: "L" | "%"): number {
+    if (!Number.isFinite(amount) || amount <= 0) return 0;
+    this.reconcileRootZone();
+    const r = this.getReserve(key);
+    if (!r) return 0;
+    const applied = Math.min(
+      amount,
+      Math.max(0, r.capacity.rawValue() - r.current.rawValue()),
+    );
+    if (applied <= 0) return 0;
+    this.adjustReserve(key, Quantity.of(applied, unit));
+    return applied;
+  }
+
+  /** A zone reserve's room left, reconciled; `0` when the zone has none. */
+  private rootZoneHeadroom(key: string): number {
+    this.reconcileRootZone();
+    const r = this.getReserve(key);
+    if (!r) return 0;
+    const room = r.capacity.rawValue() - r.current.rawValue();
+    return room < ROOT_ZONE_FULL_WITHIN ? 0 : room;
+  }
+
   /**
    * The moisture of the soil this plant is rooted in — phase 2 moved the
    * water out of the plant and into the ground, so this is a pure read of
    * the bed's own reconciled state. **The plant never mutates the bed
    * during its own reconcile**; that is what keeps the two checkpoints
-   * self-contained.
+   * self-contained. ⭐ A plant with a root zone reads its zone (D6).
    *
    * `null` when unrooted, which makes `satWater` 0 — the literal form of
    * husbandry.md's "nothing can hold moisture for it".
    */
   protected override soilMoisture(): number | null {
+    if (this.hasRootZone()) {
+      return this.rootZoneFraction(SOIL_MOISTURE_RESERVE_KEY);
+    }
     return this.getBed()?.soilMoistureFraction() ?? null;
   }
 
   /** The window-mean the reconcile loop integrates against. */
   protected override meanSoilMoisture(): number | null {
+    if (this.hasRootZone()) {
+      const current = this.rootZoneFraction(SOIL_MOISTURE_RESERVE_KEY);
+      if (current === null) return null;
+      return this._rootZoneMeanMoisture < 0 ? current : this._rootZoneMeanMoisture;
+    }
     return this.getBed()?.meanSoilMoistureFraction() ?? null;
   }
 
@@ -203,14 +453,47 @@ export default class Plant extends PlantBase {
    * The nutrient level of the ground. A pot authors no nitrogen reserve,
    * so this reads `null` there and a houseplant is never nutrient-limited
    * — the pot's behaviour is unchanged by the fourth factor's arrival.
+   * A root zone with nitrogen reads its own.
    */
   protected override nutrientLevel(): number | null {
+    if (this.hasRootZone() && this.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) {
+      return this.rootZoneFraction(SOIL_NITROGEN_RESERVE_KEY);
+    }
     return this.getBed()?.nutrientFraction() ?? null;
   }
 
-  /** Watering a plant waters its ground; every occupant shares it. */
+  /**
+   * Watering a plant waters its ground; every occupant shares it. ⭐ A
+   * plant with a root zone takes the water into its zone ALONE — the can
+   * was aimed at this plant, and the patch's reserve does not move.
+   */
   protected override waterTheSoil(litres: number): number {
+    if (this.hasRootZone()) {
+      return this.creditRootZone(SOIL_MOISTURE_RESERVE_KEY, litres, "L");
+    }
     return this.getBed()?.waterSoil(litres) ?? 0;
+  }
+
+  /** Feed this plant — its root zone when it has one, else its ground. */
+  public override feedPlant(points: number): number {
+    if (this.hasRootZone() && this.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) {
+      return this.creditRootZone(SOIL_NITROGEN_RESERVE_KEY, points, "%");
+    }
+    return super.feedPlant(points);
+  }
+
+  /** Litres this plant's soil can still take — its zone's, when it has one. */
+  public override waterHeadroomL(): number {
+    if (this.hasRootZone()) return this.rootZoneHeadroom(SOIL_MOISTURE_RESERVE_KEY);
+    return super.waterHeadroomL();
+  }
+
+  /** Points of nitrogen this plant's soil can still take — likewise. */
+  public override nutrientHeadroom(): number {
+    if (this.hasRootZone() && this.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) {
+      return this.rootZoneHeadroom(SOIL_NITROGEN_RESERVE_KEY);
+    }
+    return super.nutrientHeadroom();
   }
 
   /**

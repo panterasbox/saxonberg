@@ -2220,8 +2220,24 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
 
+    /**
+     * The evaporative multiplier on this plant's own drink at game-second
+     * `atS` — the soil's warmth shape (`1 + (K − ref) × factor`, floored at
+     * 0.1) read off the ambient THEN, so a walked window follows the
+     * season. `1` while the ambient is unresolved: unmodelled is not cold.
+     * Read by a host that keeps water of its own (a labeled plant's root
+     * zone, field population D6).
+     */
+    protected transpirationWarmthAt(atS: number): number {
+      const k = this.ambientAt(atS);
+      if (k < 0) return 1;
+      const reference = dial(AppSettingKeys.husbandryWarmthReferenceK, 295);
+      const factor = dial(AppSettingKeys.husbandryWarmthFactor, 0.03);
+      return Math.max(0.1, 1 + (k - reference) * factor);
+    }
+
     /** Game-seconds now, or `null` when no world clock (pre-boot / tests). */
-    private growthNowSeconds(): number | null {
+    protected growthNowSeconds(): number | null {
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
         return null;
       }

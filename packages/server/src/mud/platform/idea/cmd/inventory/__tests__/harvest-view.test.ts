@@ -11,7 +11,9 @@
  * Field population W3 added `at <patch>` to `harvest` and `plant`/`sow`
  * (D5): an optional, greedy object bounded by every later arg's
  * preposition, gated on `SoilMixin`. The views must still LOAD — the
- * greedy-then-prepositional ordering is a load-time invariant.
+ * greedy-then-prepositional ordering is a load-time invariant. W4 gave
+ * `sample` and `label` the same arg (the label's greedy `text` is bounded
+ * by it).
  */
 
 import '../../../../../../test-bootstrap';
@@ -40,6 +42,8 @@ interface ArgSpec {
 }
 
 const PLANT_VIEW = join(VIEW, '..', 'plant.yaml');
+const SAMPLE_VIEW = join(VIEW, '..', 'sample.yaml');
+const LABEL_VIEW = join(VIEW, '..', 'label.yaml');
 
 function args(view = VIEW): ArgSpec[] {
   const doc = YAML.parse(readFileSync(view, 'utf8')) as { args?: ArgSpec[] };
@@ -82,6 +86,9 @@ describe('`at <patch>` — which part of a divided field (field population D5)',
   for (const [verb, view] of [
     ['harvest', VIEW],
     ['plant', PLANT_VIEW],
+    // Field population W4 (D6/D7): the stem and the labeled plant.
+    ['sample', SAMPLE_VIEW],
+    ['label', LABEL_VIEW],
   ] as const) {
     it(`${verb}.yaml declares an optional greedy \`patch\` object gated on SoilMixin`, () => {
       const all = args(view) as PatchSpec[];

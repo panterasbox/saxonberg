@@ -7,8 +7,15 @@
  * from, who took it and when. That is what lets the bench assay the
  * thing itself and the report say honestly what it is a report OF.
  *
- * Four cases, in order:
+ * Five cases, in order:
  *
+ *   0. ⭐ **a crop standing in a field** (field population D7) — pull ONE
+ *      stem from the stand at the part named (`sample wheat at the top
+ *      end`): a real plant of the crop's own kind, carrying the growth it
+ *      had there and the read it had — its cause, and what its roots
+ *      showed — stamped at the pull. The stand keeps its area. Checked
+ *      BEFORE the sample-bearing cases, because a plant is `Sampled` too
+ *      and would otherwise be stamped in place where it stands.
  *   1. **a stackable sample-bearing thing** — `split(1)` and stamp the
  *      piece with *here / you / now*. ⭐ The reading-relevant half was
  *      already shipped (`Ore.onSplit` carries the grade across), so this
@@ -36,15 +43,20 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Sampled } from '../../../../lib/instrument/Sampled';
+import type { Growing } from '../../../../lib/husbandry/Growing';
+import type { Soil } from '../../../../lib/husbandry/Soil';
 import { Mixins } from '../../../../lib/mixin';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { ContainmentApi } from '../../../../api/containment';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { Mml } from '../../../../api/mml';
+import { PersistableApi } from '../../../../api/persistable';
 
 interface SampleModel extends CommandModel {
   subject?: MqlOneResult;
+  /** `at <patch>` — which part of a divided field (field population D5). */
+  patch?: MqlOneResult;
 }
 
 const TOPIC = 'act.deed';
@@ -63,10 +75,93 @@ export default class SampleController extends CommandController<SampleModel> {
     // Found by driving; the player meant the rock in front of them.
     const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     if (named && named.stuffId !== room?.stuffId) {
+      // ⭐ A crop standing in a field FIRST — see case 0. When a part was
+      // NAMED, the stand of that kind rooted there wins over a plant the
+      // binder found first (a stem already in your hand — carried things
+      // bind first): the player named the ground. Found staging W4 live.
+      const crop = standingAt(named, model.patch?.stuff ?? null, room);
+      if (crop) {
+        await this.fromCrop(context, giver, crop, model.patch);
+        return;
+      }
       await this.fromThing(context, giver, named);
       return;
     }
     await this.fromGround(context, giver, raw);
+  }
+
+  /**
+   * Case 0 — a stem out of a standing crop. The GROUND says which part
+   * (or refuses in its own words, listing them); the variation is the
+   * stand's seeded one, so the same spot in the same season gives the
+   * same stem.
+   */
+  private async fromCrop(
+    context: CommandContext,
+    giver: Stuff,
+    named: Stuff & Growing,
+    patchArg: MqlOneResult | undefined,
+  ): Promise<void> {
+    const patchRaw = (patchArg?.raw ?? '').trim();
+    const patchBound = patchArg?.stuff ?? null;
+    if (!patchBound && patchRaw !== '') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You don't see any '${patchRaw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
+      return;
+    }
+    const patch: (Stuff & Soil) | null =
+      patchBound && MixinApi.isSoil(patchBound) ? patchBound : null;
+    const ground = MixinApi.isContainable(named) ? named.getContainer() : null;
+    let stand: (Stuff & Growing) | null = named;
+    let part: (Stuff & Soil) | null = null;
+    if (ground && MixinApi.isSoil(ground)) {
+      const r = ground.resolvePartFor(patch);
+      if (!r.ok) {
+        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.fromMarkup(r.line)).send();
+        context.note({ kind: 'controller-rejected', reason: r.reason, detail: r.line });
+        return;
+      }
+      part = r.part;
+      if (part) stand = named.standIn(part);
+    }
+    if (!stand) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`Nothing of that stands at ${Mml.thing(part as Stuff)}.`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'nothing-sown-there',
+        detail: `no ${named.getPresentation()} rooted in ${part?.getPresentation() ?? 'that part'}`,
+      });
+      return;
+    }
+    const piece = await stand.takeSpecimen(stand.specimenVariation());
+    if (MixinApi.isContainable(piece) && MixinApi.isContainer(giver)) {
+      ContainmentApi.move(piece, giver);
+    }
+    // ⭐ Stamped with the GROUND it came from — the field, as every sample
+    // is stamped with where its taker stood.
+    this.stamp(giver, piece, ground);
+    try {
+      await PersistableApi.captureHostOf(piece);
+    } catch (err) {
+      console.warn('SampleController: capture after sampling failed:', err);
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        part
+          ? Mml.compose`You pull ${Mml.thing(piece)} from ${Mml.thing(part)} and look at the roots.`
+          : Mml.compose`You pull ${Mml.thing(piece)} and look at the roots.`,
+      )
+      .toPeers(
+        Mml.compose`${Mml.actor(giver)} pulls ${Mml.thing(piece)} and looks at its roots.`,
+      )
+      .send();
   }
 
   /** Cases 1, 2 and 4 — something the player named. */
@@ -170,9 +265,10 @@ export default class SampleController extends CommandController<SampleModel> {
    * the barren face — truthfully, because that is where the sample was
    * taken. The record never lies; the person handing it over does.
    */
-  private stamp(giver: Stuff, piece: Stuff): void {
+  private stamp(giver: Stuff, piece: Stuff, at?: Stuff | null): void {
     if (!MixinApi.isActive(piece, Mixins.Sampled)) return;
-    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
+    const room =
+      at ?? (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     const where = identityOf(room);
     // ⚠ `getIdentityPath()`, never `getTemplatePath()`: every player
     // Avatar shares one lineage stamp, so keying the taker on lineage
@@ -196,6 +292,25 @@ export default class SampleController extends CommandController<SampleModel> {
       )
       .send();
   }
+}
+
+/**
+ * The area crop `named` stands for: itself when it is one; else, when a
+ * part was named, the crop of its kind rooted in that part of the ground
+ * `here`; else `null`.
+ */
+function standingAt(
+  named: Stuff,
+  patch: Stuff | null,
+  here: Stuff | null,
+): (Stuff & Growing) | null {
+  if (!MixinApi.isGrowing(named)) return null;
+  if (named.isAreaCrop()) return named;
+  if (!patch || !MixinApi.isSoil(patch)) return null;
+  // Ask the ground you stand on; a part asks the ground it is fixed to.
+  const ground = here && MixinApi.isSoil(here) ? here : patch;
+  const crop = ground.rootedAreaCrop(patch);
+  return crop && crop.isSameKindAs(named) ? crop : null;
 }
 
 /** The durable key for a person or a place — never the lineage stamp. */

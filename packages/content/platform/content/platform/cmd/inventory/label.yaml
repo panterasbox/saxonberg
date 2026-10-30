@@ -24,6 +24,15 @@ help: |
   folding it silently into a pile would throw the note away.
 
   `label <thing>` with no text clears it.
+
+  ⭐ In a field, `label wheat trial at the gate end` ties your label to
+  ONE plant in the stand there and leaves it standing — with no text,
+  your own name goes on it. From then on it is a plant of its own: it
+  answers to the label (`look trial`, `water trial`), and water or feed
+  aimed at it goes into the soil round its roots alone. That pocket of
+  ground runs back toward the field around it within a couple of days,
+  so a plant you tend daily outgrows its neighbors, and one you forget
+  falls back to them.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -41,3 +50,12 @@ args:
     type: string
     required: false
     greedy: true
+  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D6).
+  # Optional and greedy; it bounds the greedy `text` before it.
+  - name: patch
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    prepositions: [at]
+    requires: SoilMixin

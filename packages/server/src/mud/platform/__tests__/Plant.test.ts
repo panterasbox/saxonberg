@@ -18,7 +18,8 @@ import Plant from '../thing/Plant';
 import PlantPot, { PLANT_SLOT } from '../thing/PlantPot';
 import Seed from '../thing/Seed';
 import Material from '../../lib/material/Material';
-import { Reserve } from '../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../lib/reserve';
+import { SoilMixin, SOIL_NITROGEN_RESERVE_KEY } from '../../lib/husbandry/Soil';
 import { type GrowthProfileData } from '../../lib/husbandry/Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../lib/husbandry/Cultivable';
 import { Quantity } from '../../lib/quantity';
@@ -514,5 +515,152 @@ describe('PlantPot + Seed — the rest of the assembly', () => {
     }, '/trade/farming/thing/seed/peace-lily');
     expect(s.getGrowsIntoPath()).toBe('/trade/farming/thing/plant/peace-lily');
     expect(MixinApi.isStackable(s)).toBe(false);
+  });
+});
+
+/**
+ * ⭐ The root zone (field population D6) — a labeled plant's own pocket of
+ * ground on its own `Reserved`: it drinks from it, it runs toward the
+ * ground around it (water in two days, nitrogen in ten), and a plant
+ * with no zone is exactly what it was.
+ */
+describe('Plant — the root zone', () => {
+  class Ground extends SoilMixin(ReservedMixin(AmbientLitMixin(Place))) {}
+
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+  });
+
+  let groundSeq = 0;
+  function field(moisture: number, nitrogen = 50): Ground {
+    groundSeq += 1;
+    return makeStuffAtPath(() => {
+      const g = new Ground();
+      g.setAmbientFlux(400);
+      g.setReserve(
+        new Reserve(
+          SOIL_MOISTURE_RESERVE_KEY,
+          Quantity.of(1000, 'L'),
+          Quantity.of(1000 * moisture, 'L'),
+          'cultivation',
+          null,
+        ),
+      );
+      g.setReserve(
+        new Reserve(
+          SOIL_NITROGEN_RESERVE_KEY,
+          Quantity.of(100, '%'),
+          Quantity.of(nitrogen, '%'),
+          'cultivation',
+          null,
+        ),
+      );
+      return g;
+    }, `/trade/farming/location/_zone-${groundSeq}`);
+  }
+
+  /** A mature plant that drinks nothing — so only the exchange moves it. */
+  function standing(g: Ground, litresPerGameDay = 0): Plant {
+    const p = makePlant({ ...lilyProfile(), litresPerGameDay });
+    p.growthStage = 'mature';
+    ContainmentApi.move(p, g);
+    p.getVigor(); // first touch seeds the clocks
+    return p;
+  }
+
+  function zoneWater(p: Plant): number {
+    return p.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue();
+  }
+
+  it('a plant with no zone reads and waters its ground, byte for byte as before', () => {
+    const g = field(0.2);
+    const p = standing(g);
+    expect(p.hasRootZone()).toBe(false);
+    expect(p.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(false);
+    expect(p.getSoilMoisture()).toBeCloseTo(0.2, 6);
+    expect(p.waterHeadroomL()).toBeCloseTo(800, 6);
+    expect(p.waterPlant(10)).toBeCloseTo(10, 6);
+    expect(g.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(210, 6);
+    expect(p.feedPlant(5)).toBeCloseTo(5, 6);
+    expect(g.nutrientFraction()).toBeCloseTo(0.55, 6);
+  });
+
+  it('a zone is sized to the roots and seeded at the ground\'s fractions', () => {
+    const g = field(0.2, 40);
+    const p = standing(g);
+    p.installRootZone();
+    expect(p.hasRootZone()).toBe(true);
+    // mature lily: 3 L of roots × 0.35
+    const water = p.getReserve(SOIL_MOISTURE_RESERVE_KEY)!;
+    expect(water.capacity.rawValue()).toBeCloseTo(1.05, 6);
+    expect(water.current.rawValue()).toBeCloseTo(0.21, 6);
+    expect(p.getSoilMoisture()).toBeCloseTo(0.2, 6);
+    expect(p.getReserve(SOIL_NITROGEN_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(40, 6);
+  });
+
+  it('water aimed at it fills its zone alone, and never past capacity', () => {
+    const g = field(0.2);
+    const p = standing(g);
+    p.installRootZone();
+    const took = p.waterPlant(100);
+    expect(took).toBeCloseTo(1.05 * 0.8, 6);
+    expect(zoneWater(p)).toBeCloseTo(1.05, 6);
+    expect(p.getSoilMoisture()).toBeCloseTo(1, 6);
+    expect(p.waterHeadroomL()).toBe(0);
+    // A minute's drink later the zone is still full — no "0 L" can.
+    const q = standing(field(0.2), 0.3);
+    q.installRootZone();
+    q.waterPlant(100);
+    setNow(60);
+    expect(q.waterHeadroomL()).toBe(0);
+    // The ground did not move.
+    expect(g.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(200, 6);
+    expect(p.feedPlant(100)).toBeCloseTo(50, 6);
+    expect(p.nutrientHeadroom()).toBe(0);
+    expect(g.nutrientFraction()).toBeCloseTo(0.5, 6);
+  });
+
+  it('⭐ a wet zone runs toward the dry ground around it — e-folding in two days', () => {
+    const g = field(0.1);
+    const p = standing(g);
+    p.installRootZone();
+    p.waterPlant(100); // full
+    setNow(2 * DAY);
+    const expected = 0.1 + (1 - 0.1) * Math.exp(-1);
+    expect(p.getSoilMoisture()).toBeCloseTo(expected, 6);
+    // ⭐ and the nitrogen, fed full, on its own ten-day clock
+    p.feedPlant(100);
+    setNow(12 * DAY);
+    const room = p.nutrientHeadroom(); // a reconciling read
+    const n = p.getReserve(SOIL_NITROGEN_RESERVE_KEY)!.current.rawValue();
+    expect(n).toBeCloseTo(50 + (100 - 50) * Math.exp(-1), 4);
+    expect(room).toBeCloseTo(100 - n, 6);
+  });
+
+  it('⭐ watered daily it outreads its ground through a dry stretch; a skipped day lets it fall back', () => {
+    const g = field(0.1);
+    const p = standing(g, 0.3);
+    p.installRootZone();
+    for (let day = 1; day <= 10; day++) {
+      p.waterPlant(100);
+      setNow(day * DAY);
+      expect(p.getSoilMoisture()).toBeGreaterThan(0.3);
+    }
+    const kept = p.getSoilMoisture();
+    setNow(13 * DAY); // three days missed
+    const fell = p.getSoilMoisture();
+    expect(fell).toBeLessThan(kept);
+    expect(fell).toBeLessThan(0.15);
+    expect(g.soilMoistureFraction()).toBeCloseTo(0.1, 6);
   });
 });

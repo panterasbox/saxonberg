@@ -49,6 +49,7 @@ import {
 } from '../../../../lib/husbandry/Soil';
 import type { Reserved } from '../../../../lib/reserve';
 import { CraftingApi } from '../../../../api/crafting';
+import Plant from '../../../thing/Plant';
 
 const TOPIC = 'act.deed';
 
@@ -135,6 +136,12 @@ export default class FeedController extends CommandController<FeedModel> {
       return;
     }
     const { ground, part } = aim;
+    // ⭐ A plant with a root zone of its own (a labeled one, D6) takes the
+    // feed into that zone alone — the compost was aimed at it.
+    const zone =
+      named instanceof Plant && named.hasRootZone() && named.hasReserve(SOIL_NITROGEN_RESERVE_KEY)
+        ? named
+        : null;
 
     if (!ground.getReserve(SOIL_NITROGEN_RESERVE_KEY)) {
       // A pot. Say why rather than no-op'ing.
@@ -222,8 +229,10 @@ export default class FeedController extends CommandController<FeedModel> {
       return;
     }
 
-    const headroomPoints =
-      reserve.capacity.rawValue() - reserve.current.rawValue();
+    const zoneFeeds = zone !== null && !slowAmendment;
+    const headroomPoints = zoneFeeds
+      ? zone.nutrientHeadroom()
+      : reserve.capacity.rawValue() - reserve.current.rawValue();
     if (headroomPoints <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -267,9 +276,12 @@ export default class FeedController extends CommandController<FeedModel> {
     // still feeding you in three.
     const applied = slowAmendment
       ? ground.addOrganicMatter(result.applied * POINTS_PER_LITRE)
-      : ground.feedSoil(result.applied * POINTS_PER_LITRE);
+      : zoneFeeds
+        ? zone.feedPlant(result.applied * POINTS_PER_LITRE)
+        : ground.feedSoil(result.applied * POINTS_PER_LITRE);
 
     try {
+      if (zoneFeeds) await PersistableApi.captureHostOf(zone);
       await PersistableApi.captureHostOf(ground);
     } catch (err) {
       console.warn('FeedController: capture after feeding failed:', err);
@@ -294,9 +306,11 @@ export default class FeedController extends CommandController<FeedModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        part
-          ? Mml.compose`You work ${amount} of ${appearance} into the soil at ${Mml.thing(part)}.`
-          : Mml.compose`You work ${amount} of ${appearance} into the soil of ${Mml.thing(ground)}.`,
+        zoneFeeds
+          ? Mml.compose`You work ${amount} of ${appearance} into the soil around ${Mml.thing(zone)}.`
+          : part
+            ? Mml.compose`You work ${amount} of ${appearance} into the soil at ${Mml.thing(part)}.`
+            : Mml.compose`You work ${amount} of ${appearance} into the soil of ${Mml.thing(ground)}.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} feeds ${Mml.thing(part ?? ground)}.`)
       .send();

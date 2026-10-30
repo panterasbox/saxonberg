@@ -205,6 +205,11 @@ export default class WaterController extends CommandController<WaterModel> {
     // a potted plant the room the pot stands in, for a patch the field
     // whose record carries it.
     try {
+      // ⭐ A labeled plant's water lands in its OWN root zone (D6) — the
+      // plant's record carries it.
+      if (plant instanceof Plant && plant.hasRootZone()) {
+        await PersistableApi.captureHostOf(plant);
+      }
       await PersistableApi.captureHostOf(ground);
     } catch (err) {
       console.warn('WaterController: capture after watering failed:', err);
@@ -236,7 +241,9 @@ export default class WaterController extends CommandController<WaterModel> {
         ? Mml.compose`You tip ${litres} of ${appearance} into the soil at ${Mml.thing(part)}.`
         : Mml.compose`You tip ${litres} of ${appearance} into the soil of ${Mml.thing(ground)}.`;
     const drinks = plant && absorbed > 0 ? ' It drinks it in.' : '';
-    const areaM2 = ground.soilCatchmentAreaM2();
+    // A labeled plant's water went round its own roots, not over the ground.
+    const areaM2 =
+      plant instanceof Plant && plant.hasRootZone() ? 0 : ground.soilCatchmentAreaM2();
     const barely =
       areaM2 > 0 && result.applied / areaM2 < BARELY_SHOWS_L_PER_M2
         ? ` On ${areaPhrase(areaM2)} it barely shows.`
