@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**393 slates.** 146 greenfield · 107 continuations · 67 waves · 73 tails.
+**394 slates.** 147 greenfield · 107 continuations · 67 waves · 73 tails.
 
-## ⭐ Greenfield — nothing shipped yet (146)
+## ⭐ Greenfield — nothing shipped yet (147)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -169,6 +169,7 @@ respect.
 | [size](./builds/size-slate.md) | sizes as real measures, derived where they can be · a body's envelope (stature × posture, girth, plus what it carries, worn and mounted) · exits with a clearance and defaults by kind · refusals that say what would work, never auto-posture … |
 | [sleep](./builds/sleep-slate.md) | the wake reconcile (state at logout + time away) across every body clock · rest quality from bed, how kept, what you wore, the room's heat · what a night soils · pyjamas as a consequence, never a chore … |
 | [smoking](./builds/smoking-slate.md) | inhalation as a route · nicotine and THC as substance rows · dependence (tolerance, craving, withdrawal, free recovery) · lungs through `wind` and the silent exposure stock … |
+| [soak-lane](./builds/soak-lane-slate.md) | the pace tag on every drive step (instant · short · span) · span never blocks … |
 | [stage-and-simulation](./builds/stage-and-simulation-slate.md) | Coordinated Metaversal Time as the one arrow · derived locality clocks and their registry · every age a date with one owner · role age, aged by recasting … |
 | [standing-instructions](./builds/standing-instructions-slate.md) | the whole of it — first, *may a player automate labour at all?* |
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
