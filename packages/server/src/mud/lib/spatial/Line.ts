@@ -1,57 +1,54 @@
 /**
- * Lifeline — ⭐⭐ **the line between a diver and the air** (underwater C1).
+ * Line — ⭐⭐ **a length with two ends** (cordage D1; the diving build's
+ * `Lifeline` until cordage moved it here). The FIXED end is whoever holds
+ * the line — the tender on the quay, the line in their hands; the FREE end
+ * is the person or the load on it. Everything anybody does with a line is
+ * one of three acts on this object, whatever the line is made of:
  *
- * A length of rope with two ends. The FIXED end is whoever holds the line
- * — the tender on the quay, the line in their hands; the FREE end is the
- * person on it, made fast to a diver before they go down or heaved to
- * somebody in the water who needs it. Everything the trade does with a
- * line is one of three acts on this object:
- *
- *  - **`throw <line> to <person>`** (`heave`) — the holder throws the free end to
- *    somebody here or in the water beside here. A body in the water that
- *    has the line is held up by it while it is held (the throw that saves
- *    a drowning swimmer: *reach, throw, don't go*).
- *  - **`tug <line>`** — the person on the free end signals up it; the
+ *  - **`throw <line> to <person>`** (`heave`) — the holder throws the free
+ *    end to somebody here or in the water beside here. A body in the water
+ *    that has the line is held up by it while it is held (*reach, throw,
+ *    don't go*).
+ *  - **`tug <end>`** — the person on the free end signals up it; the
  *    holder feels it. One tug, all is well; two, haul me up; three, give
- *    me more line. The signals are physical: they reach whoever holds the
- *    other end, whatever the medium, and nobody else.
- *  - **`pull line`** — the holder brings whoever is on the end up one
- *    band of the water, then up the quay steps, conscious or not — hand
- *    over hand, so the meters take time. Weight is what a pull pays,
- *    never a skill check.
+ *    me more line.
+ *  - **`pull line`** — the holder brings whoever is on the end up one band
+ *    of the water, then up the quay steps, conscious or not — hand over
+ *    hand, so the meters take time. Weight is what a pull pays, never a
+ *    skill check.
  *
- * The hose of a hard-hat suit is the same object (`kind: hose`): its
- * free end feeds the helmet, and the same pull brings the diver up.
+ * ⭐ Substrate, never instanced: a ROPE (`platform/thing/Rope`) is one
+ * line, a diving pack's air HOSE another — the owner's rule, *a rope and a
+ * hose are different things; if they share a superclass that's fine*. The
+ * free end each mints is its own row (`static END_ROW`): a rope's end can be
+ * climbed, a hose's cannot.
  *
- * ⚠ Who is on the line is RUNTIME — a live ref, dropped on a restart.
- * A line is made fast for a dive; it does not outlive the dive.
+ * ⚠ Who is on the line is RUNTIME — a live ref, dropped on a restart. A
+ * line is made fast for a dive; it does not outlive the dive.
  */
 
-import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import { TossableMixin, type TossOutcome } from '@saxonberg/server/mud/lib/spatial/Tossable';
-import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { BiomeApi } from '@saxonberg/server/mud/api/biome';
-import type LineEnd from './LineEnd';
-import AirBag from './AirBag';
-
-/** The free end's row — minted when the line is made fast. */
-const LINE_END_ROW = '/trade/diving/thing/line-end';
+import GoodBase from '../stuff/Good';
+import { TossableMixin, type TossOutcome } from './Tossable';
+import { PullableMixin, type PullOutcome, type PullSense } from './Pullable';
+import type { Stuff } from '../stuff/Stuff';
+import type { Container } from './Container';
+import type { Containable } from './Containable';
+import type { CommandContributions } from '../../api/command';
+import type { FieldMeta } from '../mixin';
+import type { Buoy } from '../location/Buoy';
+import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
+import { ContainmentApi } from '../../api/containment';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { WorldClockApi } from '../../api/worldclock';
+import { StuffApi } from '../../api/stuff';
+import { BiomeApi } from '../../api/biome';
+import type LineEnd from '../../platform/thing/LineEnd';
 
 /**
  * ⭐ What a line will bring up off the bottom, kg as it weighs in the
- * water — a hand-over-hand haul. Heavier needs air under it (`AirBag`);
+ * water — a hand-over-hand haul. Heavier needs air under it (a `Buoy` lashed to it);
  * a person on the end is always hauled (their own body all but floats).
  */
 const HAUL_LIMIT_KG = 80;
@@ -88,7 +85,7 @@ export interface LineSignal {
 /** What a line act did — the line's own words, or why not. */
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
-export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
+export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds it (`environment` — item → holder) throws and pulls
@@ -100,12 +97,12 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
   };
 
   static fieldMeta: FieldMeta = {
-    kind: { persistent: true, authorable: true },
     lengthM: { persistent: true, authorable: true },
   };
 
-  /** A rope you hold, or the hose that feeds a helmet. */
-  public kind: 'line' | 'hose' = 'line';
+  /** ⭐ The free end's row — minted when the line is made fast. A rope's
+   *  end is its own (it can be climbed); a plain line's is this one. */
+  static END_ROW = '/platform/thing/line-end';
 
   /** How much line there is, m — how deep it reaches. */
   public lengthM = 20;
@@ -116,8 +113,24 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
   /** The tugs the holder has felt, newest last (runtime). */
   private _tugs: number[] = [];
 
-  public getKind(): 'line' | 'hose' {
-    return this.kind;
+  /**
+   * @hook What the free end is called, when it is not the row's own words
+   * — the end of a hose is a hose's end (the underwater browser walk: a
+   * suited diver typed `tug hose` and was told they had no line). Default:
+   * the row's.
+   */
+  public endWords(): { short: string; keywords: string[] } | null {
+    return null;
+  }
+
+  /** The free end, while somebody is on it (or it is fast to a load). */
+  public getEnd(): LineEnd | null {
+    const end = this._end;
+    if (end === null || end.isDestroyed()) {
+      this._end = null;
+      return null;
+    }
+    return end;
   }
 
   public getLengthM(): number {
@@ -144,7 +157,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
   public async makeFast(who: Stuff): Promise<void> {
     await this.castOff();
     if (!MixinApi.isContainer(who)) return;
-    const end = await StuffApi.clone<LineEnd>(LINE_END_ROW);
+    const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
     end.attachTo(this);
     ContainmentApi.move(end, who);
     this._end = end;
@@ -337,9 +350,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     if (isLoad) {
       const inWater = MixinApi.isWaterPlace(where);
       const depthM = inWater ? Math.max(0, BiomeApi.mediumFor(diver).depthM) : 0;
-      const lashed = inWater && MixinApi.isContainer(where)
-        ? where.getContents().filter((c): c is AirBag => c instanceof AirBag && c.getLashedTo() === diver)
-        : [];
+      const lashed = inWater ? this.buoysOf(diver, where) : [];
       const kg = MixinApi.isTangible(diver) ? diver.getMass().rawValue() : 0;
       const netKg = Math.max(0, kg - lashed.reduce((sum, bag) => sum + bag.liftKg(depthM), 0));
       loadKg = netKg;
@@ -384,9 +395,7 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     const here = MixinApi.isContainable(puller) ? puller.getContainer() : null;
     const isLoad = !diver.isAgent?.();
     if (MixinApi.isRespiration(diver)) diver.releaseHold();
-    const bags = isLoad && MixinApi.isContainer(where)
-      ? where.getContents().filter((c): c is AirBag => c instanceof AirBag && c.getLashedTo() === diver)
-      : [];
+    const bags = isLoad ? this.buoysOf(diver, where) : [];
     const out = next === here;
     // ⭐ Out of the water, the water gives them up (river D22, review): its
     // hold on them — a strainer, a jammed foot — lets go, as it does for a
@@ -419,6 +428,18 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
         : Mml.compose`The weight on the end of ${Mml.thing(this as unknown as Stuff)} comes up a length — there is more line still in the water.`,
       peers: Mml.compose`${Mml.actor(puller)} brings a line in.`,
     };
+  }
+
+  /**
+   * ⭐ What holds the load up beside it (cordage D20): an air bag lashed to
+   * an anchor, asked through the kernel's `Buoy` protocol so a line need
+   * not know the pack that makes the bag.
+   */
+  private buoysOf(load: Stuff, where: Stuff): (Stuff & Buoy)[] {
+    if (!MixinApi.isContainer(where)) return [];
+    const out: (Stuff & Buoy)[] = [];
+    for (const c of where.getContents()) if (MixinApi.isBuoy(c) && c.buoys(load)) out.push(c);
+    return out;
   }
 
   /** Real seconds now — game time over the world's rate (as the breath reads). */

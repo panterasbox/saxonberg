@@ -1,7 +1,7 @@
 # The heaving line on the quay (underwater C1) — a lifeline coiled on a
 # bollard at the head of the steps, for the next person who goes in and
-# cannot get out. `throw line to <them>`, then `pull line`.
-class: /trade/diving/thing/Lifeline
+# cannot get out. `throw line to <them>`, then `pull line`. A ROPE (cordage D3).
+class: /platform/thing/Rope
 data:
   shortDescription: heaving line
   keywords: [line, "heaving line", rope, lifeline]
@@ -10,7 +10,7 @@ data:
     A coil of line on a bollard at the head of the quay steps, a monkey's
     fist knotted into the end of it for throwing. A painted board above it
     says IN CASE OF NEED.
-  _materialPath: /stuff/idea/material/textile/jute
+  _materialPath: /stuff/idea/material/textile/hemp
   mass: 3
-  kind: line
   lengthM: 15
+  diameterMm: 10

@@ -1,0 +1,40 @@
+# ⭐ ONE `tie` (cordage D8; `lash` is one of its words): make something
+# fast — a rope round a post or round a person, the end of a line to a load
+# on the bed, an air bag to an anchor. The THING decides what tying it
+# means (`TieableMixin`) and says why not in its own words. What a rope is
+# FOR is where its ends are tied.
+verbs: [tie, lash]
+controller: /platform/idea/cmd/inventory/TieController
+description: "Tie something fast — a rope to a post or a person, a line's end to a load"
+help: |
+  `tie rope to post` ties the rope round the post here, and it stays
+  there. `tie rope to <someone>` ties the end round them: they are on the
+  rope, and you hold the other end — a diver going down, a climber going
+  up. `tie end to anchor` makes the end of a line you are holding fast to
+  something beside you, so whoever holds the line can `pull` it up, and
+  `tie bag to anchor` (`lash`) lashes an air bag to it so the air lifts it.
+
+  `with <knot>` names the knot — a bowline, a clove hitch, a sheet bend, a
+  reef knot. A bowline is what you get if you do not say.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: gear
+    type: object
+    required: true
+    scope: "inventory"
+    requires: [TieableMixin]
+  - name: load
+    type: object
+    required: true
+    scope: "reachable"
+    requires: any
+    prepositions: [to, round, around]
+    greedy: true
+  - name: knot
+    type: string
+    required: false
+    prepositions: [with]
+    greedy: true

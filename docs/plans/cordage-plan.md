@@ -453,7 +453,14 @@ What ceramics brings, and what each changes here:
   the shape wheat now has** (the field-crop rows and patches), not flax's older one; if not, copy
   flax and let whichever lands second reconcile. Re-ground D14 against whichever is on master.
 
-### W0 — rope is the kernel's line with two ends (D1, D2, D3, D8 part, D19 prep)
+### W0 — rope is the kernel's line with two ends (D1, D2, D3, D8 part, D19 prep) ✅
+> **Done.** `Line` (lib/spatial) moved from `Lifeline`; `Rope`/`LineEnd`/`RopeEnd` kernel; `Tieable`
+> protocol; kernel `tie`(`lash`)/`untie`/`tug`; diving `Hose`; rows re-classed in place. **Decided:**
+> **D20** — the haul's air-bag lift asks the kernel `Buoy` protocol (new `@hook liftKg(depthM)`, AirBag
+> overrides) so the kernel line never names diving's `AirBag`. **D21** — the tender's `tends` brain finds
+> any `Line`, not only a `Rope`, so a hard-hat diver's tender still hauls the hose. `tie` takes the knot
+> as a `with` preposition arg, not an option. The wire re-runs of `underwater`/`river-b` are folded
+> into the W6 drive boot (one world, not three).
 Files: new `lib/spatial/Line.ts` (from `Lifeline.ts`), `lib/spatial/Tieable.ts`,
 `platform/thing/{Rope,LineEnd,RopeEnd}.ts` (Rope minimal: fiber/diameter/length, strength read,
 `tieTo` to a person = `makeFast`, `tieTo` to a fixture = anchor record, `untieBy`), rows
