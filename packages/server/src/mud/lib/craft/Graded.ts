@@ -18,6 +18,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Grade } from './Grade';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 
 export interface Graded {
   /** The persisted band word (e.g. `'fine'`). Host/persist surface. */
@@ -55,7 +57,11 @@ export function GradedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     getGrade(): Grade {
-      return Grade.of(this.gradeBand);
+      // ⭐ A fault in the MAKING (a misrun, shrinkage) lowers what the band
+      // says (review R2-D1/D7): derived from the flaw, never stamped.
+      const made = Grade.of(this.gradeBand);
+      const self = this as unknown as Stuff;
+      return MixinApi.isIntegrity(self) ? self.gradeAfterFaults(made) : made;
     }
 
     setGrade(value: Grade): void {

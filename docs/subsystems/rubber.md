@@ -1,8 +1,10 @@
 # Rubber — the material that keeps water and current out
 
 > Shipped by the rubber build (2026-10). Pack: `trade-rubber` at
-> `/trade/rubber`. Kernel: `lib/material/Crosslinking.ts`, `fire … for`,
-> the mould seam in `FireController`, `Mould.holdsCast`. Places: the rubber
+> `/trade/rubber`. Kernel: the kinetic record of `ThermalMixin` +
+> `lib/material/Kinetics.ts` (ceramics M1 — the cure was the first
+> fired change), `CompoundingMixin` (ceramics R1), `fire … for`, the mould
+> seam in `Thermal.applyRung`, `Mould.holdsCast`. Places: the rubber
 > works off the Terminus goods yards. Model of what is over a place:
 > [construction.md](./construction.md).
 
@@ -35,36 +37,56 @@
 - **Sulfur** — the Hill Quarry's caprock band (−10 … −11 m), won by `dig`
   as a 50 g nodule (a `Firewood`; `stoke` takes it).
 
-## The cure — data on the feedstock
+## Compounding — mixing, not a recipe
 
-Raw rubber's row carries a `crosslinking` spec; `Crosslinking.outcome()`
-evaluates it. `dose = holdS · 10^((T − 418)/12)`, `degree = min(1,
-dose/1800) · min(1, sulfur/0.03)`:
+⭐ Raw rubber does not cure by itself: it is milled with sulfur first, at
+the works' **mixing tub** (`thing/mixing-tub`, a kernel `CompoundingVessel`
+row). `put raw-rubber in tub`, `put sulfur in tub`, `knead tub` — and the
+tub folds what went in into ONE piece of **compounded stock**
+(`thing/compounded-stock`, a `Casting`, material
+`organic/compounded-rubber`) whose sulfur fraction is the sulfur's share
+of what went in, **by mass** (ceramics R1: mixing is one rule — no recipe,
+no ratio). Three lumps of raw rubber (1.5 kg) and one nodule (50 g) is
+about 3 %; one lump and three nodules is about a quarter.
+
+## The cure — a kinetic change on the compound
+
+Compounded rubber's row carries a `kinetics` entry (`key: cure`, the dose
+law `rate: { referenceK: 418, zK: 12, fullDoseS: 1800 }`)
+— the rubber build's `crosslinking` spec, generalised by the ceramics
+build into the one rule every fired material rides. The stock banks
+heat-work off its OWN temperature trajectory wherever it is hot (`dose =
+∫ 10^((T − 418)/12) dt`), and `degree = min(1, dose/1800) · min(1,
+sulfur/0.03)`, the sulfur read off the piece (`fractionOf`) — never summed
+over whatever else is in the oven:
 
 | outcome | when | material |
 |---|---|---|
-| under-cured | degree < 0.6 | raw rubber (tacky, weeping) |
-| ebonite | sulfur ≥ 20 % | ebonite (hard, black, rings) |
-| burnt | held above 455 K | burnt rubber (blistered, brittle) |
-| cured | otherwise | rubber, graded by its miss (the cure reaches *fine*) |
+| under-cured | degree < 0.6 — no rung reached | still compounded rubber (tacky, weeping) |
+| ebonite | at the rung, sulfur ≥ 20 % | ebonite (hard, black, rings) |
+| burnt | at the rung, peak above 455 K | burnt rubber (blistered, brittle) |
+| cured | at the rung otherwise | rubber, graded by its miss (the cure reaches *fine*) |
 
 ⭐ **There is no knowledge gate**: nothing reads who fires or what they
-know. The sulfur fraction is the whole matched charge's (what you weighed —
-nodules counted against rubber); the hold is `fire … for <duration>` (the
-world clock's grammar), else the recipe's `holdS`, else a minute. The works
-oven holds ≈ 430 K, ≈ 482 K with the bellows — past the scorch line, which
-is how you scorch. A second polymer is a spec on a second feedstock.
+know. `fire … for <duration>` (the world clock's grammar; else a minute)
+holds the oven and settles it; the HEAT cures, the verb decides nothing.
+The works oven holds ≈ 430 K, ≈ 482 K with the bellows — past the scorch
+line, which is how you scorch. A second polymer is a transition on a
+second compound.
 
 ## The mould decides the shape
 
-One `vulcanize` recipe; the shape is the MOULD's. A charge loaded into a
-mould standing in the chamber comes out through `mould.castInto(...)` — the
-dairy's one cast path (shape, material, mass, wear) — and the cast takes
-the weaker of the mould's grade and the cure's. Loose, a cure is its
-material's own lump; a cracked mould casts a lump. `holdsCast()` is true
-only for a CAST (a thing of the mould's shape, or a lump), so a charged
-mould is not "set". ⭐ The seam is moulding-slate § 5's: pressing, failed
-pours and consumed moulds extend it without moving it.
+The shape is the MOULD's. Stock standing in a mould in the chamber (the
+oven's heat reaches one hop through a mould) reaches its rung and hands
+the mould a pool through `mould.castInto(...)` — the dairy's one cast path
+(shape, material, mass, wear); the stock is destructed and the cast
+carries its heat history on. The cast's grade is the weaker of the mould's
+and the cure's. Loose in the oven, the stock is cured IN PLACE — the same
+piece, its material swapped; a cracked mould casts a lump. Stock that never
+reaches its rung is no cast at all: it is still stock in the mould.
+`holdsCast()` is true only for a CAST, so a charged mould is not "set".
+⭐ The seam is moulding-slate § 5's: pressing, failed pours and consumed
+moulds extend it without moving it.
 
 ## The goods, and the four corrections
 

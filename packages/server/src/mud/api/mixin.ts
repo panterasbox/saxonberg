@@ -115,11 +115,9 @@ import type { Launcher } from '../lib/combat/Launcher';
 import type { ThermalRegulation } from '../lib/thermal/ThermalRegulation';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
-import type { Kinetic } from '../lib/material/Kinetic';
 import type { Dosed } from '../lib/thermal/ThermalDose';
-import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
-import type { WaterActive } from '../lib/material/WaterActivity';
+import type { Moist } from '../lib/material/Moisture';
 import type { Alloyed } from '../lib/material/Alloyed';
 import type { Composition } from '../lib/material/Composition';
 import type { Tempered } from '../lib/material/Tempered';
@@ -143,6 +141,18 @@ import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
+import type { Compounding } from '../lib/material/Compounding';
+import type { DipBath } from '../lib/craft/DipBath';
+import type { KneadVessel } from '../lib/craft/KneadVessel';
+import type { Shapeable } from '../lib/craft/Shapeable';
+import type { Forming } from '../lib/craft/Forming';
+import type { Carvable } from '../lib/craft/Carvable';
+import type { Impressible } from '../lib/craft/Impressible';
+import type { Turnable } from '../lib/craft/Turnable';
+import type { HandWorked } from '../lib/craft/HandWorked';
+import type { StrikingDie } from '../lib/craft/StrikingDie';
+import type { Faced } from '../lib/material/Faced';
+import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
@@ -215,8 +225,9 @@ import type { Graded } from '../lib/craft/Graded';
 import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tooled';
 import type { Durable } from '../lib/material/Durable';
+import type { Integrity } from '../lib/material/Integrity';
 import type { Assembled } from '../lib/craft/Assembled';
-import type { Seasoning } from '../lib/maturation/Seasoning';
+import type { Seasoning } from '../lib/material/Seasoning';
 import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
@@ -1517,16 +1528,6 @@ export class MixinApi {
   }
 
   /**
-   * Narrow to a good that runs its material's kinetics (staling, inversion).
-   * ⚠ Distinct from {@link isFresh}: that is a microbial population and
-   * decides safety; this is a reaction running to completion and decides
-   * quality.
-   */
-  public static isKinetic(obj: Stuff): obj is Stuff & Kinetic {
-    return this.hasMixin(obj, Mixins.Kinetic);
-  }
-
-  /**
    * A host that **reduces and separates matter** — a mill, a stamp
    * battery, anything that turns a quantity of one thing into a finer
    * product plus a coarser residue.
@@ -1538,16 +1539,6 @@ export class MixinApi {
    */
   public static isComminuting(obj: Stuff): obj is Stuff & Comminuting {
     return this.hasMixin(obj, Mixins.Comminuting);
-  }
-
-  /**
-   * A host that can be **made of parts** — a discrete food carrying the
-   * ingredient list a blend carries on its payload. Composed on
-   * `Provision`; an empty list is the sparse default, and readers fall
-   * back to the host's own Material exactly as they do for a blend.
-   */
-  public static isComposed(obj: Stuff): obj is Stuff & Composed {
-    return this.hasMixin(obj, Mixins.Composed);
   }
 
   /**
@@ -1570,8 +1561,8 @@ export class MixinApi {
    * curing axis. Distinct from {@link isFresh}: that is the population
    * living in the matter, this is the matter's own available water.
    */
-  public static isWaterActive(obj: Stuff): obj is Stuff & WaterActive {
-    return this.hasMixin(obj, Mixins.WaterActive);
+  public static isMoist(obj: Stuff): obj is Stuff & Moist {
+    return this.hasMixin(obj, Mixins.Moist);
   }
 
   /**
@@ -1584,9 +1575,10 @@ export class MixinApi {
   }
 
   /**
-   * A piece that can say what is dissolved in it — metal stock, AND a
-   * re-meltable lump of glass, wax or ice (the generic `Casting`). Ask
-   * this, not {@link isAlloyed}, when only the fractions matter.
+   * A piece that can say what it is made of, by mass fraction — metal
+   * stock, a re-meltable lump of glass, wax or ice (the generic
+   * `Casting`), AND every food (`Provision`: a loaf's flour and bran).
+   * Ask this, not {@link isAlloyed}, when only the fractions matter.
    */
   public static isComposition(obj: Stuff): obj is Stuff & Composition {
     return this.hasMixin(obj, Mixins.Composition);
@@ -1753,6 +1745,54 @@ export class MixinApi {
 
   public static isMeltable(obj: Stuff): obj is Stuff & Meltable {
     return this.hasMixin(obj, Mixins.Meltable);
+  }
+
+  public static isCompounding(obj: Stuff): obj is Stuff & Compounding {
+    return this.hasMixin(obj, Mixins.Compounding);
+  }
+
+  public static isDipBath(obj: Stuff): obj is Stuff & DipBath {
+    return this.hasMixin(obj, Mixins.DipBath);
+  }
+
+  public static isKneadVessel(obj: Stuff): obj is Stuff & KneadVessel {
+    return this.hasMixin(obj, Mixins.KneadVessel);
+  }
+
+  public static isShapeable(obj: Stuff): obj is Stuff & Shapeable {
+    return this.hasMixin(obj, Mixins.Shapeable);
+  }
+
+  public static isForming(obj: Stuff): obj is Stuff & Forming {
+    return this.hasMixin(obj, Mixins.Forming);
+  }
+
+  public static isCarvable(obj: Stuff): obj is Stuff & Carvable {
+    return this.hasMixin(obj, Mixins.Carvable);
+  }
+
+  public static isImpressible(obj: Stuff): obj is Stuff & Impressible {
+    return this.hasMixin(obj, Mixins.Impressible);
+  }
+
+  public static isTurnable(obj: Stuff): obj is Stuff & Turnable {
+    return this.hasMixin(obj, Mixins.Turnable);
+  }
+
+  public static isHandWorked(obj: Stuff): obj is Stuff & HandWorked {
+    return this.hasMixin(obj, Mixins.HandWorked);
+  }
+
+  public static isStrikingDie(obj: Stuff): obj is Stuff & StrikingDie {
+    return this.hasMixin(obj, Mixins.StrikingDie);
+  }
+
+  public static isFaced(obj: Stuff): obj is Stuff & Faced {
+    return this.hasMixin(obj, Mixins.Faced);
+  }
+
+  public static isGreenware(obj: Stuff): obj is Stuff & Greenware {
+    return this.hasMixin(obj, Mixins.Greenware);
   }
 
   public static isBurner(obj: Stuff): obj is Stuff & Burner {
@@ -2054,6 +2094,11 @@ export class MixinApi {
 
   /** A durable good with a wear-on-use condition gauge (tool / weapon /
    * armor). A `Tool` is also `Durable`; the reverse does not hold. */
+  /** An article that carries the one damage record — flaws, integrity, impact, ring. */
+  public static isIntegrity(obj: Stuff): obj is Stuff & Integrity & Tangible {
+    return this.hasMixin(obj, Mixins.Integrity);
+  }
+
   public static isDurable(obj: Stuff): obj is Stuff & Durable {
     return this.hasMixin(obj, Mixins.Durable);
   }

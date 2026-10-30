@@ -1,0 +1,19 @@
+# brickmaking — ⭐ the moulder's and the setter's craft: tempering a clay to
+# the window, throwing a brick into a sanded mould a thousand times a day,
+# drying it on the hacks without losing it to rain or frost, and setting a
+# clamp so the fire channels burn the fewest bricks to clinker.
+#
+# ISCED-F 2013 **0722 — Materials (glass, paper, plastic and wood)**, the
+# field ceramics sits in.
+class: /platform/idea/Discipline
+data:
+  key: brickmaking
+  channel: skill
+  label: Brickmaking
+  iscedf: "0722"
+  description: >-
+    Clay into building: tempering it to the window, moulding a day's bricks,
+    drying them under a hack cover, and setting and burning a clamp so the
+    most bricks come out hard and the fewest come out clinker or place.
+  specializes: []
+  requires: []

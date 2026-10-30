@@ -26,5 +26,13 @@ export {
   installedPacks,
   isOwnedTestWorld,
   advanceWorldClock,
+  advanceLiving,
+  toWarmSeason,
+  toSeasonDay,
+  nourish,
+  dress,
+  dressFounder,
+  hand,
+  WINTER_COAT,
   worldClockNow,
 } from './world';

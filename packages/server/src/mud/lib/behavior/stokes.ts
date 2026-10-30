@@ -32,7 +32,12 @@
  * Presence-gated (the default): a fire tended for nobody burns its
  * charcoal for nobody. It is lit when somebody is there to want it.
  *
- * config: none.
+ * config (both optional): `fire` — the ROW of the burner to tend, when the
+ * room holds more than one (the potter's shop has a kiln she fires on her
+ * own schedule and a drying stove she keeps going; without it the first
+ * burner in the room is the house fire); `fuel` — a word the fuel must
+ * answer to, for a fire fed something not tagged `fuel` (the stove burns
+ * cordwood, and must not burn the kiln's charcoal).
  */
 
 import type { EngagementSlot } from '../activity/Engaged';
@@ -58,7 +63,7 @@ export const brain = class {
   static claims: readonly EngagementSlot[] = ['hands'];
 
   static urgency(ctx: BrainContext): Urgency {
-    const job = fireJob(ctx.host);
+    const job = fireJob(ctx.host, configOf(ctx));
     if (!job) return new Urgency('idle');
     return new Urgency(
       'wanted',
@@ -68,7 +73,7 @@ export const brain = class {
 
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
-    const job = fireJob(host);
+    const job = fireJob(host, configOf(ctx));
     if (!job) return;
     const { fire, fuel } = job;
     const fireStuff = fire as unknown as Stuff;
@@ -105,7 +110,20 @@ export const brain = class {
  * (with fuel in its bed or in reach) or lit and nearly out (with fuel in
  * reach).
  */
-function fireJob(host: Stuff): { fire: Burner; fuel: Stuff | null } | null {
+interface StokesConfig {
+  fire?: string;
+  fuel?: string;
+}
+
+function configOf(ctx: BrainContext): StokesConfig {
+  const c = (ctx.config ?? {}) as Record<string, unknown>;
+  return {
+    ...(typeof c.fire === 'string' ? { fire: c.fire } : {}),
+    ...(typeof c.fuel === 'string' ? { fuel: c.fuel } : {}),
+  };
+}
+
+function fireJob(host: Stuff, config: StokesConfig = {}): { fire: Burner; fuel: Stuff | null } | null {
   if (!MixinApi.isEmployed(host) || !host.isFulfilling()) return null;
   if (!MixinApi.isContainable(host)) return null;
   const room = host.getContainer();
@@ -113,13 +131,13 @@ function fireJob(host: Stuff): { fire: Burner; fuel: Stuff | null } | null {
   const here: Stuff[] = [...room.getContents()];
   let fire: (Stuff & Burner) | null = null;
   for (const t of here) {
-    if (MixinApi.isBurner(t)) {
+    if (MixinApi.isBurner(t) && (!config.fire || t.getTemplatePath() === config.fire)) {
       fire = t;
       break;
     }
   }
   if (!fire) return null;
-  const fuel = fuelIn(here, host);
+  const fuel = fuelIn(here, host, config.fuel);
   const low = fire.fuelRemaining() < LOW_FUEL_KG;
   if (fire.isLit()) return low && fuel ? { fire, fuel } : null;
   // Cold: worth the beat if it can be lit — fuel in the bed, or to hand.
@@ -127,11 +145,15 @@ function fireJob(host: Stuff): { fire: Burner; fuel: Stuff | null } | null {
 }
 
 /** The first thing made to burn, loose in the room or carried by the hand. */
-function fuelIn(here: readonly Stuff[], host: Stuff): Stuff | null {
+function fuelIn(here: readonly Stuff[], host: Stuff, word?: string): Stuff | null {
   const carried = MixinApi.isContainer(host) ? [...host.getContents()] : [];
   for (const thing of [...carried, ...here]) {
     if (thing === host) continue;
     if (!MixinApi.isTangible(thing)) continue;
+    if (word !== undefined) {
+      if (MixinApi.isPerceptible(thing) && thing.hasKeyword(word)) return thing;
+      continue;
+    }
     if (thing.getMaterial()?.hasTag('fuel')) return thing;
   }
   return null;

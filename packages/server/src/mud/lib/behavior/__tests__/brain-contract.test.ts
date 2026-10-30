@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 import { TASK_KINDS, URGENCY_BANDS, Urgency } from '../Urgency';
 import { ENGAGEMENT_SLOTS } from '../../activity/Engaged';
 import type { BrainStatics } from '../brain';
+import { BrainMoves } from '../BrainMoves';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BRAIN_DIR = join(HERE, '..');
@@ -26,10 +27,11 @@ const BRAIN_DIR = join(HERE, '..');
  */
 const LEAVING = new Set(['shifts', 'covers']);
 
-/** Not brains: the mixin, the contract, the beat, the value object. */
+/** Not brains: the mixin, the contract, the beat, the value objects. */
 const NOT_A_BRAIN = new Set([
   'Behaved',
   'BehaviorBeat',
+  'BrainMoves',
   'brain',
   'Urgency',
 ]);
@@ -132,6 +134,7 @@ describe('the deliberative brains', () => {
         trigger: { source: 'candidate', raw: 'candidate' },
         say: () => {},
         emote: async () => {},
+        ...new BrainMoves(bare, {}).members(),
         emoteFree: () => {},
       });
       expect(u, `${name}.urgency`).toBeInstanceOf(Urgency);

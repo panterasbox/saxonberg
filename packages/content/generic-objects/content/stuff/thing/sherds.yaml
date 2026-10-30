@@ -1,0 +1,18 @@
+# Sherds — ⭐ what a fired body breaks into (ceramics W2, M5). A commons
+# row every fired material names as its `brokenTemplate`, so a dropped
+# bowl, a cracked crock and a burst brick all come down to the same
+# handful — stamped at the break with the body they were, and weighed as
+# it weighed. A potter grinds them back into grog.
+#
+# A `Scrap` stack (the salvage precedent): fungible, by mass.
+class: /platform/thing/Scrap
+data:
+  shortDescription: handful of sherds
+  keywords: [sherds, sherd, potsherd, potsherds, broken, pieces, shards]
+  register: indefinite
+  longDescription: >-
+    Sharp-edged pieces of fired clay, the glaze still bright on some of
+    them and the break showing the body beneath.
+  _materialPath: /stuff/idea/material/ceramic/terracotta
+  mass: 0.5
+  quantity: 1

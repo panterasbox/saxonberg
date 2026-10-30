@@ -1,0 +1,46 @@
+# The old pit — ⭐ a worked-out clay pit, flooded to the water table and
+# standing as a pond (ceramics S20). The valley's first brickmakers cut it,
+# took it down to the gravel, and moved over; the river came up through the
+# floor and it filled. Nobody planned a pond; a worked-out pit on a river
+# flat IS one.
+#
+# ⚠ Authored flooded: the dynamic flood of a working that reaches the water
+# is mining-slate's (recorded in the plan's deferred seams). The pond is a
+# `WaterFixture` — standing water a pail can be filled from for the temper
+# pit — not a cited Watercourse, which is why this is a Locale and not a
+# Shore.
+#
+# ⭐ And the old mould: the first brickmakers' table still stands on the
+# bank, its mould cut before the realm had a statute brick and a good
+# inch long. A brick off it measures OFF STANDARD (S11, drive step 9).
+class: /platform/location/Locale
+data:
+  shortDescription: old clay pit
+  keywords: [pit, "old pit", pond, bank]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  floor:
+    material: /world/terminus/hearts-delight/idea/material/alluvial-clay
+    worked: false
+    onGrade: true
+  longDescription: |
+    An old pit gone back to water: a long oblong pond with steep red banks, reeds along the shallow end and a moorhen working the edge. You can still see where the face was, a straight bank under the water's skin.
+
+    On the bank stands a grey, weathered moulding table nobody has used in years. East, over the spoil, is the working pit.
+  coords: { x: -1, y: -1, z: 0 }
+  props:
+    - /world/terminus/hearts-delight/brickfield/thing/pond
+    - /world/terminus/hearts-delight/brickfield/thing/old-table
+  exits:
+    east:
+      destination: /world/terminus/hearts-delight/brickfield/location/clay-pit
+      media: [ground]
+      edgeMinutes: 1
+  details:
+    reeds:
+      keywords: [reeds, moorhen, banks]
+      description: |
+        Reeds have taken the shallow end where the barrow-run used to go down. The banks are steep and slick: whatever was cut here was cut to the last spadeful above the water.

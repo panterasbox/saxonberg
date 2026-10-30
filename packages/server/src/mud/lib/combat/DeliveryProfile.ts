@@ -75,8 +75,13 @@ export interface DeliveryInputs {
   band: RangeState;
   /** The carrier's effective band. */
   envelope: RangeState;
-  /** Projectile material toughness (MJ/m³) — low shatters. */
-  toughness?: number;
+  /**
+   * ⭐ Is the projectile's material brittle — can it shatter at all? The
+   * SAME predicate the body's breakage rule uses (`IntegrityMixin.
+   * impactVerdict`, the `brittle` tag); whether THIS arrival breaks it is
+   * that verdict's, against the joules and what it struck (review R2-D2).
+   */
+  brittle?: boolean;
   /** Projectile material hardness (MPa) — low deforms. */
   hardness?: number;
   /**
@@ -97,8 +102,6 @@ export interface DeliveryInputs {
 }
 
 export interface DeliveryProfileConfig {
-  /** Toughness (MJ/m³) below which a projectile shatters on arrival. */
-  shatterToughness: number;
   /** Hardness (MPa) below which a surviving projectile deforms. */
   deformHardness: number;
   /** Energy (J) below which arrival is too weak to wound at all. */
@@ -112,7 +115,6 @@ export interface DeliveryProfileConfig {
 }
 
 export const DEFAULT_DELIVERY_PROFILE_CONFIG: DeliveryProfileConfig = {
-  shatterToughness: 1.0,
   deformHardness: 80,
   inertEnergyJ: 1.0,
   referenceJPerM2: 2e6,
@@ -214,8 +216,7 @@ export class DeliveryProfile {
     inputs: DeliveryInputs,
     config: DeliveryProfileConfig,
   ): Integrity {
-    const toughness = inputs.toughness ?? Number.POSITIVE_INFINITY;
-    if (toughness < config.shatterToughness) return "shatter";
+    if (inputs.brittle === true) return "shatter";
     const hardness = inputs.hardness ?? Number.POSITIVE_INFINITY;
     if (hardness < config.deformHardness) return "deform";
     return "recover";
@@ -226,8 +227,13 @@ export class DeliveryProfile {
     return this.payload !== null && this.payload !== undefined;
   }
 
-  /** Did the vessel break — i.e. should its contents go onto the room? */
-  breaksOnArrival(): boolean {
+  /**
+   * Can this projectile shatter — is it brittle? Whether THIS arrival
+   * breaks it is the body's own verdict (`IntegrityMixin.impactVerdict`,
+   * the joules against its strength and what it struck), asked by the
+   * throw (review R2-D2); the profile is pure and holds no body.
+   */
+  canShatter(): boolean {
     return this.integrity === "shatter";
   }
 

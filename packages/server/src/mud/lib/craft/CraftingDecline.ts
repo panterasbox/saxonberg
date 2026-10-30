@@ -65,6 +65,10 @@ export class CraftingDecline {
         if (detail === 'build-in-use') {
           return "There's a build still working in it — finish or empty it first.";
         }
+        if (detail && detail.startsWith('line:')) {
+          // (ceramics W5) `fit lining to furnace` with no firebrick in reach.
+          return `You have no ${detail.slice(5) || 'part'} in reach to fit.`;
+        }
         if (detail === 'nothing-to-fit') {
           return 'Fit what, to what? Name the part and the thing it goes on.';
         }
@@ -80,6 +84,19 @@ export class CraftingDecline {
         return detail && detail.startsWith('something about')
           ? `There is ${detail} that will not answer to repair — something in it has failed, and wants replacing. Fit a new one.`
           : `The ${detail || 'part'} has failed, and no repair will mend that. Fit a new ${detail || 'one'}.`;
+      case 'not-leather-hard':
+        // ⭐ (ceramics W4) The window is leather-hard, and the refusal
+        // says which side of it the clay is on.
+        if (detail === 'too-soft') {
+          return "It's still too soft to join — it would sag off. Let it firm up to leather-hard.";
+        }
+        if (detail === 'too-dry') {
+          return "It's gone too dry to join — slip will not take on bone-dry clay. It should have been done at leather-hard.";
+        }
+        if (detail === 'fired') {
+          return "That has been fired — slip joins green clay, not pottery.";
+        }
+        return 'That clay is past joining.';
       case 'not-skilled':
         return `You don't have the hand for that yet — ${detail || 'it wants more skill than you have'}.`;
       case 'no-line':

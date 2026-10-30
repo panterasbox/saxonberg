@@ -62,7 +62,7 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import type { BlendPart } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
 import { SWARD_MIXIN } from '@saxonberg/content-trade-farming/src/lib/Sward';
 import type Field from '@saxonberg/content-trade-farming/src/location/Field';
 import { ColonyMixin, APICULTURE } from '../lib/Colony';
@@ -364,9 +364,8 @@ export default class Hive extends HiveBase implements Splittable {
    * and a recipe counts inputs.
    *
    * ⭐⭐ **And what the bees foraged rides the comb.** `Comb` is a
-   * `Provision`, so it composes `ComposedMixin`; the crafting core
-   * already sums an item input's composition into a bulk output's
-   * payload, and `taste`, the label and the tags all derive from that on
+   * `Provision`, so it composes `CompositionMixin`; the crafting core
+   * already folds an item input's makeup into a bulk output's payload, and `taste`, the label and the tags all derive from that on
    * read. So clover honey and cherry-blossom honey are different honey
    * with **no row written for either**, and nothing in the recipes knows
    * there is more than one kind.
@@ -383,7 +382,7 @@ export default class Hive extends HiveBase implements Splittable {
     by: Stuff,
     _shape: 'mass' | 'count',
   ): Promise<Stuff[]> {
-    const composition = await this.combComposition();
+    const makeup = await this.combMakeup();
     const perFrame = 1;
     const frames = Math.max(1, Math.ceil(take.units / perFrame));
     const made: Stuff[] = [];
@@ -404,8 +403,8 @@ export default class Hive extends HiveBase implements Splittable {
       if (MixinApi.isTangible(comb)) {
         comb.setMass(Quantity.of(Math.round(mass * 100) / 100, 'kg'));
       }
-      if (composition.length > 0 && MixinApi.isComposed(comb)) {
-        comb.setComposition(composition);
+      if (makeup.length > 0 && MixinApi.isComposition(comb)) {
+        comb.setMakeup(makeup);
       }
       if (MixinApi.isContainer(by) && MixinApi.isContainable(comb)) {
         ContainmentApi.move(comb, by);
@@ -423,17 +422,17 @@ export default class Hive extends HiveBase implements Splittable {
    * made of. One await, where awaiting is allowed — the census itself is
    * sync because it runs inside a reconcile.
    */
-  private async combComposition(): Promise<BlendPart[]> {
-    const out: BlendPart[] = [];
+  private async combMakeup(): Promise<CompositionEntry[]> {
+    const out: CompositionEntry[] = [];
     for (const { path, share } of this.forageComposition()) {
-      const servings = Math.round(share * 100) / 100;
-      if (servings <= 0) continue;
+      const fraction = Math.round(share * 100) / 100;
+      if (fraction <= 0) continue;
       let materialPath = path;
       if (!path.includes('/idea/material/')) {
         materialPath = (await this.materialOf(path)) ?? '';
         if (materialPath === '') continue;
       }
-      out.push({ materialPath, servings });
+      out.push({ materialPath, fraction });
     }
     return out;
   }
@@ -725,7 +724,7 @@ export default class Hive extends HiveBase implements Splittable {
       beginSelf:
         'You start going through the frames, looking for brood and eggs to ' +
         'take across.',
-      beginPeers: 'Somebody is working slowly through an open hive.',
+      beginPeers: Mml.compose`${Mml.actor(by)} is working slowly through an open hive.`.toString(),
       token: 'split',
     };
   }

@@ -133,7 +133,7 @@ describe('Freshness — the outage integral (B)', () => {
     // whole 3 days at 277 K.
     const coldSample = Freshness.advance(0, 3 * DAY, mat, 277, null);
     // The true fold over the published curve (the mixin passes null water
-    // for a non-WaterActive Provision — match it).
+    // for a non-Moist Provision — match it).
     let fold = 0;
     for (const s of unit.temperatureTrajectory(t0, end).samples(8)) {
       fold = Freshness.advance(fold, s.durationS, mat, s.value, null);

@@ -1,0 +1,20 @@
+# The moulder's bench (ceramics W4): a sanded mould, a strike, a pallet. At
+# the table `shape` is a game-day's work and the moulder's band sets how many.
+class: /trade/ceramics/thing/BrickTable
+data:
+  shortDescription: moulding table
+  keywords: [table, "brick table", "moulding table", bench]
+  register: indefinite
+  longDescription: >-
+    A stout bench with a wooden brick mould on it, a heap of sand to dust the
+    mould and a strike to cut the clay off level.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 80
+  fixedInPlace: true
+  capabilities: [brick-table]
+  forms:
+    - /trade/ceramics/idea/form/brick
+    - /trade/ceramics/idea/form/tile
+    - /trade/ceramics/idea/form/firebrick
+  formTemplates:
+    block: /trade/ceramics/thing/block

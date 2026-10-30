@@ -203,6 +203,85 @@ Ruled 2026-07-31, so the content build inherits it rather than re-deriving it:
   routine paid service, death is a toll booth. The stakes live in what is on
   the corpse and what you owe when you walk out.
 
+## ⛔⛔ The vessel is not clean — death must not heal **[DECIDED — the owner, 2026-10-28; the mechanism OPEN]**
+
+Today `reembody` returns a clean body — vitals and wounds reset — so death is the cheapest cure in the
+game. The owner:
+
+*"If death heals you, that is absolutely not how it's supposed to work, and we should update our
+docs as such. It's supposed to be completely variable, with a whole economy around how effective
+re-embodying is. … Maybe the body is fucked up in some way, or maybe it's just reflective of the
+state you died in, but the point is death is not cheap. One way to actually do it diegetically is to
+have players grow clones of themselves through some kind of future/magic epoch capability, and those
+clones themselves are imperfect or may require upkeep. Plus they're only physical, so anything about
+your identity and not your body remains after the clone is minted and applied. … I don't really know
+how to price death in our system. It's not like we can just take away your exp and call it a day,
+but death should absolutely feel like 'losing'. … Even if we did the whole afterlife-based content,
+you'd probably as a content author also want to create a way to 'cross over' without getting
+fatally injured."*
+
+- **Decided:** death does not heal; how good the returned body is varies, and an economy prices it;
+  identity survives untouched; death feels like losing.
+- **Open:** the floor vessel, the vendors' vessels, the price of each — discussed in the
+  [emergency-services](./emergency-services-slate.md) conversation of 2026-10-28.
+
+### ⭐⭐⭐ Death takes from the body and the purse, never from the character **[LEAN]**
+
+The owner's own reason sets the line: *"we're selling the ability to play **your** character"* —
+so the price of death lives on the vessel layer of the three-layer self, never the identity.
+
+| death may cost | how |
+|---|---|
+| the body | a returned vessel worse than the one lost |
+| time | the walk back; convalescing in the new body |
+| gear | left on the corpse |
+| money | the vendors' prices; the coverage you did not buy |
+| expression, briefly | the recuperation suppression (ships) |
+| ⛔ never | the chronicle, the transcript, traits, renown, relationships |
+
+### The floor vessel — the body you died in, one step back from lethal **[LEAN — lens 1 chose]**
+
+`passage` applies the shipped stabilization rule to death: *rescued, not healed.* You come back with
+the wounds you died of, the bleed stopped and the dying record cleared — as broken as a body can be
+and live. Death heals nothing; the first stop after dying is the clinic; rescuing someone before
+death is still worth it; and a player can predict the state they return in from how they died.
+
+### The clinic's clone — a snapshot **[LEAN]**
+
+The owner's direction, made concrete: the clone is grown from a **sample** of your body, so it is
+your body *as of the sample* — physical only, identity carried over.
+
+- ⭐ Exertion's slow stocks (lean, protein, wind) are the body's, so **a clone grown months ago has
+  the fitness of months ago**.
+- **Upkeep is re-sampling** — keeping the clone current is the insurance premium; a clone stored
+  badly is graded worse.
+- **Imperfection is a grade**, like anything made — *a wound that heals over time* is the named
+  candidate.
+- The **temple's** vessel carries the patron's mark or debt — a cost in standing, not body — so the
+  two vendors compete in different currencies. Clones are future tech, the patron's body magic,
+  the floor works anywhere.
+
+### ⭐⭐ Three doors into one state **[LEAN]**
+
+Thesis 5 names the state — *a participant whose vessel is unavailable, in a liminal space, with a
+designed path back*. Three ways in:
+
+| door | entered by | the body |
+|---|---|---|
+| death | dying | a corpse; you return in a new vessel |
+| sentence | a court (prison = Hades) | held |
+| ⭐ the rite | a golden bough — content grants passage to the living (Orpheus, Odysseus, Aeneas, Dante) | **left asleep, alive and vulnerable**, like a logged-out body — the journey's price |
+
+The rite is the owner's *"a way to cross over without getting fatally injured"*, and the sleeping
+body left behind is its story.
+
+### Open
+
+1. The floor vessel as decided above, or another.
+2. Clone snapshots and re-sampling as the upkeep.
+3. The three doors.
+4. How each vendor's price is set — the economy the owner asked for.
+
 ## Absorbed from mortality-slate — The recuperation model — resolved
 
 **Resolved, not left open.** What diminishment *should be* was undesigned

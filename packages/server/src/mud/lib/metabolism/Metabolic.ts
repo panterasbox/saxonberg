@@ -488,12 +488,16 @@ export interface Metabolic {
   /** Make intake real — route consumed material into the buffer. A
    * blend's {@link BulkPayload} overrides the material's identity +
    * macro face (derived mixtures — the material row is the generic
-   * substance, the payload the actual meal). */
+   * substance, the payload the actual meal). `hostKg` is the mass of
+   * the whole host the intake is taken from — a glass's contents, a loaf
+   * — which a blend's makeup fractions are read against (absent = the
+   * swallow is its own host). */
   ingest(
     material: Material,
     amount: Quantity<"L">,
     phase?: IngestPhase,
     payload?: BulkPayload | null,
+    hostKg?: number,
   ): number;
   /** Lazy reconcile — integrate elapsed in-session game-time. */
   reconcileMetabolism(): void;
@@ -584,7 +588,13 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         const payload = new Freshness(slot).ingestPayload();
         const what = CraftingApi.blendAppearance(payload, material) || 'it';
         const portion = Math.min(portionL, slot.getAmount().rawValue());
-        const accepted = BulkableApi.ingestSolid(self, material, portion, payload);
+        const accepted = BulkableApi.ingestSolid(
+          self,
+          material,
+          portion,
+          payload,
+          slot.getMassKg(),
+        );
         if (accepted < portion - 1e-9) return { ok: false, reason: 'too-full' };
         const utensil = this.claimUtensil(utensils);
         BulkableApi.transfer(slot, null, { kind: 'measure', litres: accepted, mode: 'lenient' });
@@ -598,7 +608,8 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // The food synthesizes its own payload (`Fresh.ingestPayload`) — the
       // same answer for every mouth.
       const payload = MixinApi.isFresh(food) ? food.ingestPayload() : null;
-      const accepted = BulkableApi.ingestSolid(self, material, portionL, payload);
+      const hostKg = MixinApi.isTangible(food) ? food.getMass().rawValue() : undefined;
+      const accepted = BulkableApi.ingestSolid(self, material, portionL, payload, hostKg);
       // A discrete item is all-or-nothing: only a full portion consumes it.
       if (accepted < portionL - 1e-9) return { ok: false, reason: 'too-full' };
       const what = material.getAppearance() || material.getName() || 'it';
@@ -1588,6 +1599,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       amount: Quantity<"L">,
       phase: IngestPhase = "liquid",
       payload: BulkPayload | null = null,
+      hostKg?: number,
     ): number {
       // Reconcile first so the cap reflects current drained volume.
       this.reconcileMetabolism();
@@ -1604,7 +1616,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (phase === "solid") this.solidVolume = current + accepted;
       else this.liquidVolume = current + accepted;
 
-      this.routeIntake(material, accepted, payload);
+      this.routeIntake(material, accepted, payload, hostKg);
       this.lastMealLabel = CraftingApi.blendName(payload, material);
       return accepted;
     }
@@ -1620,6 +1632,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       material: Material,
       litres: number,
       payload: BulkPayload | null = null,
+      hostKg?: number,
     ): void {
       const pools = this.digestionPools;
       // Nutrient tags scale by accepted volume. A blend payload speaks
@@ -1632,7 +1645,12 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Toxin tags add their per-serving dose to the pool (each ingest
       // is one serving). The dose absorbs into the burden over time — so
       // the un-absorbed dose is what `vomit` can still dump.
-      for (const tox of MaterialApi.blendToxicity(payload, material)) {
+      // ⭐ A blend's dose is its parts' servings in the HOST it is drunk
+      // from (ceramics re-plan R1-D1): a full martini glass gives 26 a
+      // sip, a half-drunk one 13. No host named, the swallow is its own.
+      const kg =
+        hostKg ?? (litres * material.getDensity().rawValue()) / 1000;
+      for (const tox of MaterialApi.blendToxicity(payload, material, kg)) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }

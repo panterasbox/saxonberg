@@ -490,6 +490,50 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
     the next renter the previous keeper's counter, rent apparently
     already paid. A given-up pitch remembers nothing.
 
+## ⭐ Buy local first — the import backstop (ceramics D28, 2026-10)
+
+A SUPPLIED line may name a dearer fallback:
+
+```yaml
+- { itemTemplatePath: /trade/ceramics/thing/plant-pot-small, par: 3,
+    from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery,
+            importBackstop: 1.5 } }
+```
+
+- **The sweep imports only when local is out.** `reset()` still never
+  clones a supplied line — the keeper's `stocks` beat buys it — UNLESS the
+  line names an `importBackstop` **and** the supplier's counter holds none
+  of the good (`Stock.supplierHolds`: the supplier business is loaded on
+  use, its `operatingLocations` walked for a live `Stock`, the line's
+  `onHand` asked). Then it clones to par, as an import line does.
+- ⭐ **An import is derivably a good nobody here made** — a bare clone
+  carries no maker — so `priceFor` asks the base × `importBackstop` while
+  every good of the line on the shelf is maker-less, and the base as soon
+  as one local piece is up beside them (`backstopFactor`). No flag on the
+  good, no second line.
+- **The row a supplied line names is the FIRED, finished good.** A bare
+  clone of `/trade/ceramics/thing/jar` is an earthenware jar (the row's
+  material); the potter's `shape` restamps the clay, its water and its
+  maker onto the same row, so her piece is born green and the import is
+  born finished. The firebrick row inherits the commons firebrick's
+  refractory body for the same reason.
+- `importBackstop` is a supplier line's and a multiple ≥ 1; a store line
+  or a smaller figure is refused at the setter. Pinned in
+  `lib/retail/__tests__/Stock.backstop.test.ts`.
+- ⚠ **"Holds none" is asked of a LOADED counter.** A supplier in a realm
+  nobody has visited answers *none* (its counter is not live), so the
+  backstop imports — the honest answer to *can I buy one local today*.
+  When the supplier's shelf IS live and holds the good, the line waits on
+  the keeper's beat, and a keeper with no authored way to the supplier
+  never fetches it (the `stocks` caveat): the line stays bare until
+  somebody carries (the potter consigns at the Terminus stall).
+
+Shipped lines: the Terminus **potter's stall** (eight pottery lines, the
+market's counter), the general store's plant pots and jar, the
+chandlery's jar and flask (beside the soft soap and lye, not instead), and
+the Rejection store's firebrick (supplier: the Delight brickfield). See
+[ceramics.md § The works and their people](./ceramics.md).
+
 ## ⭐ The house buys — `sell <thing>` (storage-and-ice review)
 
 The counter's act, `Stock.buyFrom(seller, item)`, returning its refusal in

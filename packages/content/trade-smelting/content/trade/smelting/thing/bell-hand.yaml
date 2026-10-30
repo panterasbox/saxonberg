@@ -1,0 +1,14 @@
+# A hand bell (ceramics S19) — bell bronze cast in a flask, a kilogram of
+# it on a turned handle. ⭐ Its note follows from its size and its metal:
+# `ring bell` sounds a high, bright note across a room. The same shape
+# cast in pewter rings low and dull.
+class: /trade/smelting/thing/Bell
+data:
+  shortDescription: hand bell
+  keywords: [bell, "hand bell", handbell]
+  register: indefinite
+  longDescription: >-
+    A small cast bell with a flared lip and a turned handle, its waist
+    still showing the file marks where the casting fins came off.
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 1

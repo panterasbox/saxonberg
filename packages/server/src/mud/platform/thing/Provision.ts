@@ -15,13 +15,12 @@
 import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
-import { KineticMixin } from '../../lib/material/Kinetic';
 import { FreshnessMixin } from '../../lib/material/Freshness';
-import { WaterActivityMixin } from '../../lib/material/WaterActivity';
+import { MoistureMixin } from '../../lib/material/Moisture';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { SampledMixin } from '../../lib/instrument/Sampled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
-import { ComposedMixin } from '../../lib/metabolism/Composed';
+import { CompositionMixin } from '../../lib/material/Composition';
 import type { Crafted } from '../../lib/craft/Crafted';
 
 // Thermal AND Freshness, because a Provision IS food by construction —
@@ -29,11 +28,11 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // reads its host's temperature, which is why the two travel together.
 // Neither is on `Thing`: see `lib/stuff/Thing.ts` for why, and
 // `lint:perishable` for what makes the narrowing safe.
-// ⭐ Contaminable and WaterActivity beside Freshness, NOT folded into it. Three
+// ⭐ Contaminable and Moisture beside Freshness, NOT folded into it. Three
 // different facts about one cut of meat: what is growing in it on its own
-// (Freshness), how much water it has to grow in (WaterActivity), and what somebody
+// (Freshness), how much water it has to grow in (Moisture), and what somebody
 // PUT in it (Contaminable — an event, never a clock).
-// ⭐ WaterActivity beside Freshness, NOT folded into it. The spoilage gauge
+// ⭐ Moisture beside Freshness, NOT folded into it. The spoilage gauge
 // carries a population living in the matter; the water gauge carries the
 // matter's own water state, and only one of them is true of a hide or a
 // plank. They coincide on `Provision` today and the split is what lets a
@@ -44,11 +43,13 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // would even mean (so Crafted must be above it). **Every food can be
 // cooked** — true of this class by name, which is the whole reason the
 // gauge is here and not on `Thing`.
-// ⭐ And Composed: **every food can be made of parts** — a loaf, a
+// ⭐ And Composition: **every food can be made of parts** — a loaf, a
 // sausage, a cutlet in batter. A chain that ends in something you HOLD
 // used to lose everything a chain ending in something you POUR keeps,
-// because only a bulk payload carried a composition. An empty list is
-// the default and costs nothing.
+// because only a bulk payload carried a composition. One record by mass
+// fraction (`makeup`) since ceramics re-plan R1, the same one a bar of
+// steel carries its carbon in. An empty list is the default and costs
+// nothing.
 // ⭐ `SampledMixin` outermost: three inert fields saying where this
 // portion was taken from, so a piece of food can be carried to a bench
 // and read. It is the ONE widening this build makes to a shipped host,
@@ -63,10 +64,10 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // second clock anywhere.
 const ProvisionBase = SampledMixin(
   CraftedMixin(
-    ComposedMixin(
+    CompositionMixin(
       ContaminableMixin(
-        WaterActivityMixin(
-          ThermalDoseMixin(KineticMixin(FreshnessMixin(ThermalMixin(Good)))),
+        MoistureMixin(
+          ThermalDoseMixin(FreshnessMixin(ThermalMixin(Good))),
         ),
       ),
     ),

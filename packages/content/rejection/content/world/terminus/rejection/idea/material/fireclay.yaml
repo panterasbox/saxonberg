@@ -1,0 +1,35 @@
+# Fireclay — ⭐ the seat-earth under a coal seam: the clay the coal's forest
+# grew in, leached of its iron and lime by the roots, so almost nothing in it
+# melts low. Pale, gritty, alumina-rich — and it stands a furnace's heat. The
+# firebrick a lining is laid of and the crucible a melt is held in are this,
+# fired (ceramics R4: the fired body is base-library's `ceramic/refractory`).
+#
+# Its own transitions: it fires to a pale terracotta-like body low, and only
+# at a furnace's heat to the REFRACTORY body — and it does not bloat to
+# clinker below 1800 K, which is the whole point of it.
+extends: /stuff/idea/material/earth/clay
+data:
+  name: fireclay
+  keywords: [fireclay, clay, "seat earth", underclay]
+  appearance: pale grey, gritty fireclay
+  composition:
+    - { materialPath: /stuff/idea/material/mineral/clay-mineral, fraction: 0.78 }
+    - { materialPath: /stuff/idea/material/earth/sand, fraction: 0.18 }
+    - { materialPath: /stuff/idea/material/mineral/goethite, fraction: 0.01 }
+    - { materialPath: /stuff/idea/material/organic/peat, fraction: 0.03 }
+  kinetics:
+    - key: terracotta
+      rate: { referenceK: 1250, zK: 30, fullDoseS: 7200 }
+      massRetained: 0.93
+      discipline: brickmaking
+      ladder:
+        - atDegree: 1
+          becomes: /stuff/idea/material/ceramic/terracotta
+    - key: refractory
+      rate: { referenceK: 1550, zK: 30, fullDoseS: 7200 }
+      scorchAboveK: 1800
+      scorched: /stuff/idea/material/ceramic/clinker
+      discipline: brickmaking
+      ladder:
+        - atDegree: 1
+          becomes: /stuff/idea/material/ceramic/refractory

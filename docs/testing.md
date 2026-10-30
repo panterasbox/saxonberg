@@ -49,6 +49,14 @@ None of this replaces driving. It narrows what driving has to catch.
 test proves rendering, never wiring; a client-side test proves neither
 the wire nor the parser.**
 
+## ⭐⭐⭐ No merge waits on the clock (2026-10-30)
+
+**Every drive step declares its pace — instant · short · span — and only instant and short steps
+may block a merge.** A span step (weeks or seasons of game time) runs in the **soak lane** after
+merge, never in review, finalize or a build's exit drive. Each requirements doc writes a blocking
+drive and a soak drive. The finding behind it, the enforcement and the lane →
+[soak-lane-slate](./slates/builds/soak-lane-slate.md).
+
 ## How often to run it
 
 A build cycle was running the full suite three or four times — about an
@@ -919,6 +927,16 @@ stale wire server. It gets no database of its own (one database per
 worktree stands), so locally it REPLACES a dev server rather than
 joining one.
 
+⭐ **Keep the world between runs** (ceramics, 2026-10-21). The drive loop
+is boot-bound — about six minutes a world — and most iterations change
+only a drive file. `WIRE_BOOT=1 WIRE_KEEP_WORLD=1 pnpm wire <file>` boots
+the world detached and leaves it standing (`.wire/kept-world.json` holds
+its pid and port); `WIRE_REUSE=1 pnpm wire <file>` attaches to it as a
+test world, so clock jumps still work, with no boot. Reboot only when
+SOURCE or content changed — a running world holds the code it booted
+with — and drop the worktree DB first when the drive is dirty. Stop it
+with `kill -- -<pid>` (the process group: the pid is the `pnpm` wrapper, and the server is its grandchild).
+
 ⚠⚠ **Each worktree owns a `WIRE_PORT`** (fishing, 2026-09-18): two
 owned boots on 2012 from sibling worktrees attach to EACH OTHER's world
 (the first probe answers from the sibling's server — no fishing pack in
@@ -1008,6 +1026,34 @@ durative arc is drivable end to end. Nothing has it today, and until
 something does, *every* durative subsystem's finish is unit-tested only.
 Recorded as the ceiling, not as a plan — the group itself is tracked in
 `docs/slates/tails/wire-suite-growth-slate.md`.
+
+### ⭐⭐ A clock jump is LIVED time — feed the people in it
+
+`advanceWorldClock` jumps the world; every body in it integrates the
+whole gap on its next read, and integrates it honestly: hydration runs
+out in about two game days (then dehydration kills in eight hours),
+satiation in about three and a half. The ceramics drives jump weeks
+while bricks dry, and run 16 lost two characters to it — the potter
+died of **starvation**, the brickmaker of **hyperthermia** (no water,
+so no sweat, so the work's heat stayed in). Both read as broken
+mechanisms first: a mug "too heavy to lift" (a starving body is weak),
+then "your hand passes through it" (a shade).
+
+A drive that jumps more than a day uses **`advanceLiving(duration,
+sessions)`**: jumps of at most **four game hours**, each open session fed,
+watered and brought current before each (`nourish(session)` → `POST /auth/test-nourish`,
+topping `satiation`, `hydration` and `vitamin-c` up — a balanced diet:
+fed bread and water through a game year, run 20's brickmaker and the
+founder both bled to death of **scurvy**). The founder is fed too: every
+drive's settle probe opens it where the drive works. ⚠ Why four hours:
+a body's heat regulation treats a gap past `MAX_REASONABLE_GAP_SEC` (4 h)
+as ABSENCE and sheds nothing over it, while a hyperthermia it already
+carried keeps counting — run 22's liner rested eight hours after a day
+at the pick and died of the work's own heat. ⛔ Not an `eval`, for the clock's
+reason: a reserve top-up reconciles the body, the reconcile reads the
+biome, and a parcel-bound eval may not. That stands for the
+meals a person eats between checkpoints. It is setup, so it throws
+when refused rather than letting the body die quietly three steps later.
 
 ## Adding a test
 

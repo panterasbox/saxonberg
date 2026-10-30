@@ -11,9 +11,9 @@
 > `ThermalDose` does) · the **step problem** — `Coolbox` and any
 > supply-driven host store *when supply last changed and to what*, so the
 > trajectory is closed-form · `Growing`'s start-rectangle reviewed · the
-> **chain declaration** (`Freshness` reads `WaterActivity` reads ambient) ·
+> **chain declaration** (`Freshness` reads `Moisture` reads ambient) ·
 > a **census lint** over *gauges whose rate reads another
-> reconcile-on-read quantity* · the `WaterActivity` relaxation checked
+> reconcile-on-read quantity* · the `Moisture` relaxation checked
 > **Size:** a build
 
 **Captured 2026-09-30**, from a question about what happens to food in a
@@ -74,10 +74,10 @@ the energy/grid work rather than standing alone.
    growth is a `min`-of-four limiting factor and the start value may be the
    conservative choice on purpose. **Read the intent before changing it.**
 2. ⭐⭐ **Should a gauge DECLARE its drivers?** Today the dependency
-   `Freshness → WaterActivity → ambient humidity` exists only as a call. A
+   `Freshness → Moisture → ambient humidity` exists only as a call. A
    declared driver list is what a census lint would read, and it is the
    difference between a gate and a grep.
-3. ⚠ **Does `WaterActivity` relax correctly over a long gap**, and does it
+3. ⚠ **Does `Moisture` relax correctly over a long gap**, and does it
    need restamping too? It is a driver of two ⛔ gauges, so its error
    propagates into both.
 4. **Is the τ-ratio justification checkable, or only assertable?**

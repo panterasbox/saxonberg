@@ -66,7 +66,8 @@ a student something they would have to unlearn in a real classroom,
 that part is a defect.
 
 So the invented content is deliberately confined to **one postulate,
-one quantity, and one taxonomy.** Everything a student would actually
+one quantity, and one taxonomy** — and, since 2026-10-29, **a second
+postulate bounded to information: the aether** (§ *The second postulate*). Everything a student would actually
 be graded on is real.
 
 | Invented | Real |
@@ -74,6 +75,7 @@ be graded on is real.
 | The postulate (below) | Conservation of energy and momentum |
 | **Mana as a second conserved quantity** | **Conserved quantities and their coupling constants** (charge; the mechanical equivalent of heat) |
 | The verb × noun taxonomy | Thermodynamics, all of it |
+| **The second postulate — the aether** | **Simultaneity and preferred frames; why faster-than-light information needs one** |
 | The names of the laws and their discoverers | Specific heat, latent heat, phase change |
 | Which quantities happen to be measurable | Efficiency, exergy, Carnot limits |
 | The historical narrative of the field | Dimensional analysis, unit conversion |
@@ -263,6 +265,60 @@ embarrassingly long time to notice (see *Halloway Equivalence*):
 backwards produces a mage who can drain a vault from the street.
 
 ---
+
+## ⭐⭐⭐ The second postulate — the aether **[DECIDED — the owner, 2026-10-29]**
+
+> **Information may pass through the aether between any two carriers at once, measured in
+> Coordinated Metaversal Time. Nothing else may.**
+
+The first postulate is magic's, and its discipline stands: *every time magic seems to need a second
+exemption, that is a modelling error.* The aether is not magic, and it **is** a second break in
+locality — an instantaneous field. So it is written down here as what it is, **declared once and
+bounded**, rather than passed off as no exception. (Decided with the owner when other worlds made
+the question unavoidable → [worlds-slate](./slates/builds/worlds-slate.md).)
+
+### The rule
+
+1. **What it is.** A physical field present throughout the metaverse, which none of the five senses
+   meets. It is reached only through a **carrier** — a place, an object, a device, an organ — or by
+   a kind of creature born attuned. Any carrier reaches any other.
+2. **What it carries: information, and nothing else.** Never energy, never matter, never a self.
+3. **How fast: at once.** A message arrives the instant it is sent, measured in Coordinated
+   Metaversal Time, across any distance — a room, a continent, a galaxy.
+4. **How well: by the field where you stand.** A message needs enough field at both ends. Strength
+   varies by place; nodes and relays raise it; it can fall silent. Distance never weakens it — only
+   place does.
+5. **What it does with what it carries.** It routes by address — a person, a group, a channel — and
+   every message carries its true sender. It speaks for people; it does not vouch for things: it
+   opens no door and proves no possession.
+6. **What may govern it.** No authority may refuse the field. An authority may regulate the
+   instruments that reach it, and never so as to leave a person with none
+   ([measurement.md](./measurement.md) § *Guarantees of play*, P2).
+
+### Why each clause is shaped that way
+
+- **Information only (2) keeps the rest honest.** An aether that carried energy faster than light
+  would break conservation, hand every bound on this page a back door, and collapse the cost of
+  moving between worlds — the gravitational potential that makes interplanetary teleport a matter of
+  gigajoules ([worlds-slate](./slates/builds/worlds-slate.md) § 6). Nothing piped through the aether
+  powers anything: a standing enchantment draws **mana**, which conducts by contact like charge.
+- **At once, in one frame (3) avoids the paradox.** Under relativity a faster-than-light signal can
+  arrive before it was sent in some observer's frame; a **single preferred frame** removes that, and
+  Coordinated Metaversal Time is one — cosmology's *cosmic time*. ⭐ It is what the *luminiferous*
+  aether was supposed to be: the absolute frame light moved through, which Michelson and Morley
+  failed to find. Ours exists; light does not use it; **its frame is MTC.**
+- **Place, not distance (4)** is how faster-than-light and off grid coexist: Mars is reachable at
+  once; the den in the wilds is not, because the field where you stand is too weak.
+- **Attribution without authentication (5)** — a `tell` cannot be forged (impersonation is a
+  face-to-face craft), and a door still takes a key.
+- **The lore agrees.** The story bible's aether is *"the medium"* the Wright tends, which went
+  silent in the Fallow and was relit from a surviving loop — clause 4's *it can fall silent*.
+
+### What it teaches
+
+Simultaneity is relative in our universe because no preferred frame has ever been found; a student
+who can say why an instantaneous signal *requires* one has understood special relativity better than
+one who only learned that nothing goes faster than light.
 
 ## Units and quantities
 

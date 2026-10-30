@@ -1,0 +1,29 @@
+# White cast iron — ⭐ cast iron that froze too fast to let its carbon out
+# as graphite (ceramics S12, chill casting): run into a cold iron mould, the
+# carbon stays locked up as iron carbide, and the iron sets WHITE where it
+# breaks, glass-hard and far more brittle than grey. A chilled roll face, a
+# plough share's wearing edge: hard is what it is for. The same pig, poured
+# into sand, sets grey (`cast-iron`'s `chillsTo`).
+class: /platform/idea/material/Material
+data:
+  name: white cast iron
+  keywords: [white-iron, "white iron", "white cast iron", chilled]
+  appearance: hard silvery-white chilled iron
+  density: 7700
+  specificHeat: 460
+  thermalConductivity: 30
+  electricalConductivity: 1.0e6
+  waterAbsorptionCapacity: 0.2
+  hardness: 1100
+  toughness: 8
+  meltingPoint: 1420
+  latentHeatOfFusion: 240000
+  thermalExpansion: 1.2e-05
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: [{ type: iron-poisoning, amount: 0 }]
+  tags: ["alloy", "metal", "ferrous", "magnetic", "brittle"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.96 }
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.04 }
+  biologicalSource: null

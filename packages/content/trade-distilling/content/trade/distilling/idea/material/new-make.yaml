@@ -21,6 +21,8 @@ data:
   keywords: [new-make, "new make", spirit, newmake]
   appearance: "a raw, water-clear spirit, hot and grain-sweet"
   density: 935
+  # One serving, kg (the unit of its label and its dose): one 60 ml measure at 935 kg/m³.
+  servingKg: 0.0561
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true

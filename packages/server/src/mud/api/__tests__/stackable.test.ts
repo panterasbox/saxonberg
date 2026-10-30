@@ -444,6 +444,26 @@ describe('StackableApi.applyQuantity', () => {
     expect(result.payloads).toEqual(['acted']);
   });
 
+  it('⚠ a declined split the stack will NOT take back stays a stack of its own — never a throw (ceramics run 27)', async () => {
+    stubCoinClone();
+    const a = makeCoinAt(COIN_PATH, 5);
+    const env = makeStuff(() => new TestContainer());
+    ContainmentApi.move(a, env);
+    // The stack refuses its own split-off (a clay lump's state read can
+    // diverge from the heap it came off).
+    vi.spyOn(a, 'canMergeWith').mockReturnValue(false);
+    const result = await asApiCallerAsync(() =>
+      StackableApi.applyQuantity(
+        [a],
+        { value: { kind: 'count', n: 1 }, mode: 'lenient' },
+        async () => ({ ok: false, reason: 'too-heavy-to-lift' }),
+        { field: 'test' }
+      )
+    );
+    expect(result.ok).toBe(false);
+    expect(a.getQuantity()).toBe(4);
+  });
+
   it('lenient overflow → partial + quantity-clamped note', async () => {
     stubCoinClone();
     const a = makeCoinAt(COIN_PATH, 4);

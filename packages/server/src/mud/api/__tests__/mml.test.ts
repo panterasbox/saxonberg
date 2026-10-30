@@ -4,6 +4,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
+import { StuffApi } from '../stuff';
 import { Mml } from '../mml';
 import { isKnownTag } from '../mml/tags';
 import { NamedMixin } from '../../lib/description/Named';
@@ -127,6 +128,14 @@ describe('Mml vocabulary helpers', () => {
     expect(Mml.location(obj).toString()).toBe(
       `<location stuff-id="${obj.stuffId}">rusty sword</location>`
     );
+  });
+
+  it('⭐ a thing destroyed before the line renders reads "something", never a crash (the ceramics drive)', async () => {
+    const obj = makeStuff(() => new NamedThing());
+    obj.setName('wax block');
+    const line = Mml.compose`You pour into ${Mml.thing(obj)}.`;
+    await StuffApi.destruct(obj);
+    expect(line.toString()).toContain('>something</thing>');
   });
 
   it('Mml.speech wraps text in quoted speech tags and escapes', () => {

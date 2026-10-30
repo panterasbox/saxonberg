@@ -64,6 +64,7 @@ import type {
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
+import { WeatherApi } from '../../api/weather';
 import { TemplatePaths } from '../paths';
 import { Decay } from '../Decay';
 import { Piecewise, TrajectoryLog, type Breakpoint } from '../Trajectory';
@@ -75,6 +76,8 @@ import type Exit from '../boundary/Exit';
 import type Structure from '../../platform/idea/Structure';
 
 export interface Atmospheric {
+  /** Days since `atS` this place's air crossed freezing; 0 indoors. */
+  freezeThawDaysSince(atS: number): number;
   // ---------- biome reference ----------
 
   /** Resolve the host's authored biome, or `null` when no override. */
@@ -2251,6 +2254,27 @@ export function AtmosphericMixin<
     private _climateSite: ClimateSite | null = null;
     private _climateSitePromise: Promise<void> | null = null;
     private _climateSiteGeneration = 0;
+
+    /**
+     * ⭐ How many days since `atS` this place's air crossed freezing
+     * (ceramics S2) — `0` for a place that holds its own air (a heap kept
+     * indoors stops counting). What weathers a clay heap. ⚠ Not what bursts
+     * green ware: a piece reads its OWN temperature trajectory crossing
+     * freezing while it is wet (`GreenwareMixin.reconcileGreen`), because a
+     * dry piece in the same frost is fine (review R2-B5).
+     */
+    public freezeThawDaysSince(atS: number): number {
+      if (this.exposure().holdsAir()) return 0;
+      if (!WeatherApi.isActive()) return 0;
+      const now = WorldClockApi.getNow().rawValue();
+      if (!(now > atS)) return 0;
+      return WeatherApi.freezeThawDaysAt(
+        this.climateSite(),
+        this.weatherLocality(),
+        Quantity.of(atS, 's'),
+        Quantity.of(now, 's'),
+      );
+    }
 
     public climateSite(): ClimateSite {
       if (this._climateSite === null) {

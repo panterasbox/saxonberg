@@ -73,7 +73,16 @@ export abstract class WorkedActController<
     }
 
     const tool = this.boundTool(model);
-    const what = model.target?.stuff ? null : (model.target?.raw ?? null);
+    // ⭐ The player's word is the BAND's name unless it bound the very thing
+    // being worked (`dig the bank`). Found twice by the ceramics drives: in
+    // the Delight's "clay pit" `dig clay` bound the PIT, and with a lump of
+    // coal in hand `dig coal` bound the LUMP — either way the word was lost,
+    // the working dug its floor, and the floor was at the water.
+    const bound = model.target?.stuff ?? null;
+    const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    const boundIsWorked =
+      bound !== null && (subject as unknown) === bound && (bound as unknown) !== here;
+    const what = boundIsWorked ? null : (model.target?.raw ?? null);
 
     const prognosis = await subject.planWork(giver, tool, what);
     if (prognosis.kind === 'refusal') {

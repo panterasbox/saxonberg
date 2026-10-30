@@ -17,5 +17,5 @@ data:
   interiorMaterial: /trade/dairying/idea/material/whey
   interiorAmount: 1
   open: true
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/stoneware
   mass: 2

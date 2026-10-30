@@ -127,4 +127,4 @@ discharges it today.
 - `docs/subsystems/behavior.md` — brains, cadence, `BehavedMixin`
 - `docs/subsystems/employment.md` — ⭐ the *pay somebody* limb, already built
 - `docs/slates/tails/absent-body-slate.md` — the doctrine this must clear
-- `docs/slates/builds/tapping-slate.md` — names the relief as specified-and-unshipped
+- `docs/slates/tails/tapping-slate.md` — names the relief as specified-and-unshipped

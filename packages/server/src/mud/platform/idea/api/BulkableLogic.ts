@@ -18,8 +18,10 @@ import type {
 } from '../../../lib/bulk/Bulkable';
 import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
 import type Material from '../../../lib/material/Material';
+import type { CompositionEntry } from '../../../lib/material/Material';
+import '../../../lib/material/Composition';
 import { Freshness } from '../../../lib/material/Freshness';
-import { WaterActivity } from '../../../lib/material/WaterActivity';
+import { Moisture } from '../../../lib/material/Moisture';
 import { Contamination } from '../../../lib/material/Contaminable';
 import { Blood } from '../../../lib/vitals/Blood';
 import { DissolvedToxins } from '../../../lib/metabolism/DissolvedToxins';
@@ -29,12 +31,17 @@ import type { MqlQuantity, MqlMatchVia } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
+import type { Containable } from '../../../lib/spatial/Containable';
+import type { Container } from '../../../lib/spatial/Container';
 import { QuantityApi } from '../../../api/quantity';
 import type {
   BulkNote,
   TransferAmount,
   TransferResult,
   TransferStatus,
+  TransferVia,
 } from '../../../api/bulk';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge.
 import type {} from '../../../lib/cleanliness/WaterHardness';
@@ -141,6 +148,12 @@ export class BulkableLogic extends ApiLogic {
     // ⚠ A side with no age at all (new spirit, water) does not pull the
     // answer to zero; it simply has nothing to say. Only two aged
     // parcels can make a blend younger than its oldest half.
+    // ⭐ A pool's composition (ceramics ruling C) folds by volume — the
+    // dissolved-toxin shape over `materialPath`.
+    const makeup = blendComposition(from?.makeup, fromL, to?.makeup, toL);
+    if (makeup.length === 0) delete base.makeup;
+    else base.makeup = makeup;
+
     const ages = [from?.maturedDays, to?.maturedDays].filter(
       (d): d is number => typeof d === 'number' && d > 0,
     );
@@ -186,6 +199,7 @@ export class BulkableLogic extends ApiLogic {
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): void {
     if (material === null) return;
     const eater = actor as unknown as {
@@ -194,10 +208,11 @@ export class BulkableLogic extends ApiLogic {
         q: Quantity<'L'>,
         phase?: 'solid' | 'liquid',
         payload?: BulkPayload | null,
+        hostKg?: number,
       ) => void;
     };
     if (typeof eater.ingest === 'function') {
-      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid', payload);
+      eater.ingest(material, Quantity.of(litres, 'L'), 'liquid', payload, hostKg);
     }
     // The substance's own leg, duck-typed exactly as the drinker's is
     // two lines above. A potion is a liquid that carries a working
@@ -223,6 +238,7 @@ export class BulkableLogic extends ApiLogic {
     material: Material | null,
     litres: number,
     payload: BulkPayload | null = null,
+    hostKg?: number,
   ): number {
     if (material === null) return 0;
     const eater = actor as unknown as {
@@ -231,6 +247,7 @@ export class BulkableLogic extends ApiLogic {
         q: Quantity<'L'>,
         phase?: 'solid' | 'liquid',
         payload?: BulkPayload | null,
+        hostKg?: number,
       ) => number | void;
     };
     if (typeof eater.ingest !== 'function') return 0;
@@ -239,6 +256,7 @@ export class BulkableLogic extends ApiLogic {
       Quantity.of(litres, 'L'),
       'solid',
       payload,
+      hostKg,
     );
     return typeof accepted === 'number' ? accepted : litres;
   }
@@ -306,6 +324,7 @@ export class BulkableLogic extends ApiLogic {
     from: BulkSlot,
     to: BulkSlot | null,
     amount: TransferAmount,
+    via?: TransferVia,
   ): TransferResult {
     const notes: BulkNote[] = [];
 
@@ -316,11 +335,20 @@ export class BulkableLogic extends ApiLogic {
     const source = from.getHolder();
     if (MixinApi.isMaturing(source)) source.reconcileFerment();
 
-    const material = from.getMaterial();
-    if (from.isEmpty() || material === null) {
+    const drawnMaterial = from.getMaterial();
+    if (from.isEmpty() || drawnMaterial === null) {
       notes.push({ kind: 'empty-result', field: BULK_FIELD, query: '' });
       return { applied: 0, status: 'declined', notes };
     }
+    // ⭐ Through pores (a filter) or out of a set (a mould's drainings): what
+    // ARRIVES may be a different material — the wall's `filteredTo`, the
+    // curd's whey — and only part of the source's payload comes with it.
+    // Everything below reads the arriving material; the source's own is
+    // `drawnMaterial` (its dissolved-solids default).
+    const pores = via?.through === 'pores';
+    const set = via?.through === 'set';
+    const material: Material = via?.arrivesAs ?? drawnMaterial;
+    const arrivingPath = material.getTemplatePath() ?? from.getMaterialPath();
 
     // 2. Material compatibility on the destination. Before declining a
     // mismatch, offer it to a Maturing destination as an INOCULATION
@@ -330,8 +358,11 @@ export class BulkableLogic extends ApiLogic {
     // declines exactly as before.
     if (to !== null && !to.isEmpty()) {
       const toPath = to.getMaterialPath();
-      if (toPath !== null && toPath !== from.getMaterialPath()) {
-        const inoculated = tryInoculate(from, to, amount, notes);
+      if (toPath !== null && toPath !== arrivingPath) {
+        // A seep or a drain arrives as something else (`via`) and is never a
+        // pitch: inoculation classifies the SOURCE's material, which is not
+        // what lands.
+        const inoculated = via === undefined ? tryInoculate(from, to, amount, notes) : null;
         if (inoculated !== null) return inoculated;
         notes.push({
           kind: 'target-declined',
@@ -339,6 +370,39 @@ export class BulkableLogic extends ApiLogic {
           reason: 'material-mismatch',
         });
         return { applied: 0, status: 'declined', notes };
+      }
+    }
+
+    // ⭐⭐ 2b. The receiver must SURVIVE the pour (ceramics S13) — asked
+    // BEFORE anything moves, of every vessel: a wooden mould under bronze
+    // burns, a tin cup under molten lead melts. The pour goes to the floor
+    // (the shipped puddle path) and the receiver is gone — melted into its
+    // broken form, or burning.
+    if (to !== null && to.affordance === 'interior') {
+      const receiver = to.getHolder() as unknown as Stuff;
+      const pourK = from.getTemperatureK();
+      const reception =
+        MixinApi.isBulkable(receiver) && pourK !== null && pourK > 0
+          ? receiver.canReceiveAtK(pourK)
+          : 'holds';
+      if (reception !== 'holds') {
+        const floor = this.floorSurfaceNear(receiver);
+        const spilt =
+          floor !== null
+            ? this.transfer(from, floor, amount, via)
+            : { applied: 0, notes: [] as BulkNote[] };
+        notes.push(...spilt.notes);
+        notes.push({
+          kind: 'target-declined',
+          target: MessageApi.refOf(receiver),
+          reason: reception === 'melts' ? 'receiver-melted' : 'receiver-burned',
+        });
+        loseReceiver(receiver, reception);
+        return {
+          applied: spilt.applied,
+          status: reception === 'melts' ? 'melted' : 'burned',
+          notes,
+        };
       }
     }
 
@@ -393,7 +457,7 @@ export class BulkableLogic extends ApiLogic {
           notes,
         };
       }
-      const inner = this.transfer(from, floor, amount);
+      const inner = this.transfer(from, floor, amount, via);
       return {
         applied: inner.applied,
         status: 'drained',
@@ -429,18 +493,22 @@ export class BulkableLogic extends ApiLogic {
     // (identity, riding into an EMPTY destination only), blends by mass on
     // EVERY pour. Otherwise decanting a spoiled pot into a fresh one would
     // launder it: the pour-to-reset exploit.
-    const fromLoad = new Freshness(from).load();
+    // Through pores the suspended matter stays behind: no microbial load,
+    // no pathogens — a ceramic filter is how unboiled water was made safe.
+    const fromLoad = pores ? 0 : new Freshness(from).load();
     const toLoadBefore = to !== null ? new Freshness(to).load() : 0;
     // ⭐ The water state rides the matter exactly as the load does, and
     // for the same reason: tipping brine into fresh stock partly cures
     // the stock, and tipping fresh stock into brine dilutes it. Reading
     // both BEFORE the debit matters — a full drain clears the payload.
-    const fromCure = new WaterActivity(from).state();
-    const toCureBefore = to !== null ? new WaterActivity(to).state() : null;
+    // Out of a set the drainings' water state is their own material's: the
+    // set is what changed the solid's.
+    const fromCure = set ? null : new Moisture(from).state();
+    const toCureBefore = to !== null ? new Moisture(to).state() : null;
     // ⚠⚠ And the silent population, by the same mass-weighted rule. A
     // pathogen that did not blend on the pour would make decanting a
     // laundry: tip the bad stew into a clean pot and it comes out safe.
-    const fromPathogens = new Contamination(from).loads();
+    const fromPathogens = pores ? {} : new Contamination(from).loads();
     const toPathogensBefore =
       to !== null ? new Contamination(to).loads() : {};
     // ⚠⚠ And the DISSOLVED dose, by the same mass-weighted rule as the
@@ -466,7 +534,12 @@ export class BulkableLogic extends ApiLogic {
     // slot's whole payload. Identical to `getPayload()` for every holder
     // whose interior is homogeneous; a fractionating host answers with the
     // span it is actually about to give up.
-    const fromPayload = from.payloadForDraw(applied);
+    const drawnPayload = from.payloadForDraw(applied);
+    const fromPayload = pores
+      ? throughPores(drawnPayload)
+      : set
+        ? throughSet(drawnPayload)
+        : drawnPayload;
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -481,10 +554,35 @@ export class BulkableLogic extends ApiLogic {
         // maker's mark when both sides can hold one. Same rule as the
         // payload: identity rides into an EMPTY destination only; a
         // top-up keeps the destination's own identity (blend identity
-        // is out of scope, like blend merging above).
-        carryBatchIdentity(fromHolder, toHolder);
+        // is out of scope, like blend merging above). ⚠ Not out of a set:
+        // the batch is the solid, and the drainings are not it (the mould
+        // grades them itself).
+        if (!set) carryBatchIdentity(fromHolder, toHolder);
+      }
+      // ⭐⭐ Bring the destination CURRENT before the matter lands. Setting
+      // a vessel's temperature first reconciles it up to now at the heat it
+      // had, so a reconcile run AFTER the pour landed held molten brass at a
+      // cold mould's own temperature and froze it on the spot, with no
+      // superheat on record — the ceramics drive's 19 g key misran at any
+      // heat (run 21's DIAG: "superheat=0.0"). Then the matter lands, the
+      // mould hears the pour, and only then is the heat set.
+      if (toHolder !== null && MixinApi.isThermal(toHolder)) toHolder.getTemperature();
+      // ⭐ …and the HEAT before the matter: set first, the vessel's clock
+      // restarts at the pour, so no read can find the landed pool at the
+      // mould's own cold temperature (run 28: a pour "set" mid-transfer —
+      // `setContentsTemperature` reconciles first, and it was reconciling a
+      // pool already landed and still cold).
+      if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
+        toHolder.setContentsTemperature(
+          toAmountBefore <= 0 || blendToK === null
+            ? blendFromK
+            : (applied * blendFromK + toAmountBefore * blendToK) / (applied + toAmountBefore),
+        );
       }
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
+      if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
+        toHolder.receivedPour({ temperatureK: blendFromK, litres: applied, material });
+      }
       // Mass(volume)-weighted blend of the two loads. A pour into an empty
       // slot just carries the source's load across (the arithmetic degrades
       // to that on its own when `toAmountBefore` is 0).
@@ -494,8 +592,8 @@ export class BulkableLogic extends ApiLogic {
         );
       }
       if (fromCure !== null || toCureBefore !== null) {
-        new WaterActivity(
-          to).stampState(WaterActivity.blend(fromCure, applied, toCureBefore, toAmountBefore),
+        new Moisture(
+          to).stampState(Moisture.blend(fromCure, applied, toCureBefore, toAmountBefore),
         );
       }
       // ⭐⭐ **A dirty vessel contaminates what you fill it with**, and its
@@ -575,7 +673,7 @@ export class BulkableLogic extends ApiLogic {
       // good cask would LAUNDER it: the grade is the destination's and the
       // matter is the mixture. The maker's mark is untouched either way —
       // a top-up never re-signs somebody else's work.
-      if (!toWasEmpty) carryTopUpGrade(fromHolder, toHolder);
+      if (!toWasEmpty && !set) carryTopUpGrade(fromHolder, toHolder);
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -585,6 +683,16 @@ export class BulkableLogic extends ApiLogic {
       // destination just carried the source's payload across above.
       // ⭐ Water hardness blends by VOLUME (cleanliness D12): a pail of the
       // Kestrel tipped into a copper of rainwater makes it a little hard.
+      // ⭐ A molten pool's composition blends by VOLUME (ceramics ruling
+      // C): a green cullet tipped into a clear melt tints it.
+      if (!toWasEmpty && (fromPayload?.makeup || to.getPayload()?.makeup)) {
+        const held = to.getPayload();
+        const makeup = blendComposition(fromPayload?.makeup, applied, held?.makeup, toAmountBefore);
+        const next: BulkPayload = { ...(held ?? {}) };
+        if (makeup.length > 0) next.makeup = makeup;
+        else delete next.makeup;
+        to.setPayload(next);
+      }
       const fromDgh = fromPayload?.hardnessDgh;
       if (!toWasEmpty && typeof fromDgh === 'number') {
         const held = to.getPayload();
@@ -604,8 +712,12 @@ export class BulkableLogic extends ApiLogic {
       // ⭐ A lye's strength is this same fold (potash-on-sugar): lye
       // authors its `solidsKgPerL`, and a pail of weak lye tipped into a
       // pot of strong thins it exactly as thin juice thins a thick pan.
+      // Out of a set the strength is the drainings' own: the set took the
+      // solids (a sugar loaf IS the sugar), so the strike's figure would
+      // be a lie on the molasses.
       const fromSolids =
-        fromPayload?.dissolvedSolidsKgPerL ?? material.getSolidsKgPerL();
+        fromPayload?.dissolvedSolidsKgPerL ??
+        (set ? material : drawnMaterial).getSolidsKgPerL();
       if (!toWasEmpty && (fromSolids > 0 || to.getPayload()?.dissolvedSolidsKgPerL)) {
         const held = to.getPayload();
         const heldMat = to.getMaterial() ?? material;
@@ -672,14 +784,7 @@ export class BulkableLogic extends ApiLogic {
     // temperature; a partial pour leaves the source hotter-per-unit but
     // re-anchors so its now-smaller heat capacity cools the remainder
     // faster.
-    if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
-      const newK =
-        toAmountBefore <= 0 || blendToK === null
-          ? blendFromK
-          : (applied * blendFromK + toAmountBefore * blendToK) /
-            (applied + toAmountBefore);
-      toHolder.setContentsTemperature(newK);
-    }
+    // (The destination's coupling ran when the matter landed — above.)
     if (MixinApi.isThermal(fromHolder)) {
       // Freeze-and-re-anchor at the reduced capacity (pour cools faster).
       fromHolder.setContentsTemperature(fromHolder.getTemperature().rawValue());
@@ -743,6 +848,37 @@ export class BulkableLogic extends ApiLogic {
 // ---------------------------------------------------------------------------
 
 /**
+ * ⭐ A receiver that could not survive a pour (ceramics S13). A melting one
+ * slumps into its material's broken form where it stood; a burning one
+ * catches — through its own `ignite` when it is fuel, else it chars away.
+ * Fire-and-forget: the transfer is synchronous and the clone is not.
+ */
+function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {
+  if (how === 'burns' && MixinApi.isCombustible(receiver)) {
+    const lit = receiver.ignite();
+    if (lit.lit) return;
+  }
+  const mat = MixinApi.isTangible(receiver) ? receiver.getMaterial() : null;
+  const massKg = MixinApi.isTangible(receiver) ? receiver.getMass().rawValue() : 0;
+  const row = how === 'melts' && mat !== null ? mat.getBrokenTemplate() : '';
+  const where = MixinApi.isContainable(receiver) ? receiver.getContainer() : null;
+  // Gone NOW — the pour is on the floor in the same breath.
+  StuffApi.destruct(receiver);
+  if (row === '' || mat === null || where === null || !MixinApi.isContainer(where)) return;
+  void StuffApi.clone<Stuff>(row)
+    .then((pieces) => {
+      if (MixinApi.isTangible(pieces)) {
+        pieces.setMaterial(mat);
+        pieces.setMass(Quantity.of(massKg, 'kg'));
+      }
+      if (MixinApi.isContainable(pieces) && !where.isDestroyed()) {
+        ContainmentApi.move(pieces as Stuff & Containable, where as Stuff & Container);
+      }
+    })
+    .catch((err: unknown) => console.warn('BulkableLogic: a melted receiver left nothing:', err));
+}
+
+/**
  * Compute the clamped litres to move and push any clamp note.
  * Returns 0 (with a `quantity-clamped-rejected` note) on a strict
  * shortfall. `to === null` is the discard sink (no remaining cap).
@@ -770,6 +906,43 @@ export class BulkableLogic extends ApiLogic {
  * applied by the vessel itself. Returns `null` when the pour is a
  * plain mismatch (the caller declines as before).
  */
+/**
+ * ⭐ What passes a porous wall: the payload with its SUSPENDED matter left
+ * behind — the microbial load, the pathogens, the blood cells — and the
+ * face clock of the vessel it left. Dissolved toxins, aromas, solids, the
+ * water's hardness and whose it is all come through.
+ */
+function throughPores(payload: BulkPayload | null): BulkPayload | null {
+  if (payload === null) return null;
+  const { freshness: _f, pathogens: _p, blood: _b, faceCheckedS: _c, ...passed } = payload;
+  return Object.keys(passed).length > 0 ? passed : null;
+}
+
+/**
+ * ⭐ What leaves a setting solid with its drainings (a mould's set): the
+ * suspended population and the dissolved, and whose it is and who made it
+ * — never the solid's identity (recipe, makeup, appearance, keywords,
+ * age), its treatment or its thermal and water bookkeeping. A whitelist, so
+ * a field a later subsystem declares is the solid's until it says it is
+ * the liquid's.
+ */
+function throughSet(payload: BulkPayload | null): BulkPayload | null {
+  if (payload === null) return null;
+  const passed: BulkPayload = {};
+  if (payload.freshness) passed.freshness = { ...payload.freshness };
+  if (payload.pathogens) passed.pathogens = { ...payload.pathogens };
+  if (payload.pathogenStamp !== undefined) passed.pathogenStamp = payload.pathogenStamp;
+  if (payload.dissolvedToxins) passed.dissolvedToxins = payload.dissolvedToxins.map((t) => ({ ...t }));
+  if (payload.formedToxins) passed.formedToxins = payload.formedToxins.map((t) => ({ ...t }));
+  if (payload.dissolvedAromatics) {
+    passed.dissolvedAromatics = payload.dissolvedAromatics.map((t) => ({ ...t }));
+  }
+  if (payload.hardnessDgh !== undefined) passed.hardnessDgh = payload.hardnessDgh;
+  if (payload.maker) passed.maker = payload.maker;
+  if ('contentsOwner' in payload) passed.contentsOwner = payload.contentsOwner;
+  return Object.keys(passed).length > 0 ? passed : null;
+}
+
 function tryInoculate(
   from: BulkSlot,
   to: BulkSlot,
@@ -927,4 +1100,29 @@ function draughtL(): number {
   } catch {
     return 0.25;
   }
+}
+
+/**
+ * Two pools' compositions, folded by volume. ⚠ `Concentration.blend` is
+ * typed `{type, amount}`; a composition is `{materialPath, fraction}`, so
+ * the fold is its own — the same arithmetic over the other key.
+ */
+function blendComposition(
+  a: readonly CompositionEntry[] | undefined,
+  aL: number,
+  b: readonly CompositionEntry[] | undefined,
+  bL: number,
+): CompositionEntry[] {
+  const total = Math.max(0, aL) + Math.max(0, bL);
+  if (!(total > 0)) return [];
+  const acc = new Map<string, number>();
+  for (const [list, l] of [[a, aL], [b, bL]] as const) {
+    for (const e of list ?? []) {
+      if (!e || !(e.fraction > 0)) continue;
+      acc.set(e.materialPath, (acc.get(e.materialPath) ?? 0) + e.fraction * (Math.max(0, l) / total));
+    }
+  }
+  return [...acc]
+    .filter(([, f]) => f > 1e-6)
+    .map(([materialPath, fraction]) => ({ materialPath, fraction }));
 }

@@ -49,7 +49,8 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { CutPlan, CutRefusal, CutRequest, Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { CutRequest, Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
 
 /** What a patch of the sheet has been through. */
@@ -350,8 +351,8 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
    * or a hole for a line (`cut hole`). Needs an ice saw, a body ON the
    * ice, and ice there to cut.
    */
-  public async cutPlan(req: CutRequest): Promise<CutPlan | CutRefusal> {
-    const refuse = (reason: string, words: string): CutRefusal => ({
+  public async cutPlan(req: CutRequest): Promise<ActPlan | ActRefusal> {
+    const refuse = (reason: string, words: string): ActRefusal => ({
       ok: false,
       reason,
       line: Mml.compose`${words}`,

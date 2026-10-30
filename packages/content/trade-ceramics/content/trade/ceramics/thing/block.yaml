@@ -1,0 +1,11 @@
+# clay block (ceramics W4).
+class: /trade/ceramics/thing/Brick
+data:
+  shortDescription: clay block
+  keywords: [block, brick]
+  register: indefinite
+  longDescription: >-
+    A squared block of clay.
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 3.6
+  quantity: 1

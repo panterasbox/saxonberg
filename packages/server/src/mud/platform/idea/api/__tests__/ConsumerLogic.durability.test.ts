@@ -163,3 +163,41 @@ describe('ConsumerLogic durable identity re-key (stuffId → templatePath)', () 
     expect(await ConsumerApi.eventsFor('/platform/agent/Avatar/p1')).toHaveLength(2);
   });
 });
+
+describe('the scheduled recompute runs one pass at a time (ceramics drive, run 32)', () => {
+  it('⚠ a fire while a pass is still running is skipped — passes never stack on the pool', async () => {
+    let fire: (() => void) | null = null;
+    vi.spyOn(ScheduleApi, 'recurring').mockImplementation(((_ms: number, fn: () => void) => {
+      fire = fn;
+      return { id: 'test-handle' } as unknown as ScheduleHandle;
+    }) as never);
+    await bootConsumer();
+    expect(fire).not.toBeNull();
+
+    // Hold the pass at its first read: the event log.
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((r) => (release = r));
+    const pm = PersistenceManager.get();
+    const logReads: string[] = [];
+    const realFind = pm.find.bind(pm);
+    vi.spyOn(pm, 'find').mockImplementation((async (c: string, q: Record<string, unknown>) => {
+      if (c === 'participation_events') {
+        logReads.push(c);
+        await held;
+      }
+      return realFind(c, q);
+    }) as never);
+
+    fire!();
+    fire!();
+    fire!();
+    await flush();
+    expect(logReads).toHaveLength(1);
+
+    release();
+    await flush();
+    fire!();
+    await flush();
+    expect(logReads).toHaveLength(2);
+  });
+});

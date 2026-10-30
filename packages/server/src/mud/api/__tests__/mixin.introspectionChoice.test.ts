@@ -53,8 +53,8 @@ const contributors = (ctor: unknown): string[] =>
 
 describe('⭐⭐⭐ queryMixins is identity; getPersistenceContributors is serialization', () => {
   it('⭐ Ingot and Casting differ by ManualBuildMixin, and queryMixins sees it', () => {
-    // `Ingot  = Alloyed(ManualBuild(Meltable(Thermal(Thing))))`
-    // `Casting = Alloyed(          Meltable(Thermal(Thing)))`
+    // `Ingot  = Marked(Alloyed(ManualBuild(Meltable(Thermal(Thing)))))`
+    // `Casting = Marked(Alloyed(          Meltable(Thermal(Thing))))`
     expect(names(Ingot)).toContain('ManualBuildMixin');
     expect(names(Casting)).not.toContain('ManualBuildMixin');
   });

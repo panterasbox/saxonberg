@@ -165,8 +165,14 @@ describe('CraftingLogic.salvage', () => {
     expect(cast.getMaterial()?.getName()).toBe('iron');
     expect(cast.getMass().rawValue()).toBeCloseTo(0.25, 9);
     // Provenance, grade, and the form die with the item (the casting
-    // carries no mark — the value-add is gone).
-    expect(MixinApi.isCrafted(cast)).toBe(false);
+    // carries no mark — the value-add is gone). A casting is a made thing
+    // (B95), so the pin is on what salvage stamps: nothing of the knife.
+    expect(MixinApi.isCrafted(cast)).toBe(true);
+    if (!MixinApi.isCrafted(cast)) return;
+    expect(cast.getMaker()).toBe('');
+    expect(cast.getRecipe()).toBe('');
+    expect(cast.getCastFrom()).toBeNull();
+    expect(cast.getGrade().getBand()).toBe('fair');
     expect(knife.isDestroyed()).toBe(true);
   });
 
@@ -205,7 +211,7 @@ describe('CraftingLogic.salvage', () => {
     const piece = makeStuff(() => new GlassPiece());
     piece.setMaterial(mat(GLASS));
     piece.setMass(Quantity.of(0.6, 'kg'));
-    piece.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+    piece.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
     ContainmentApi.move(piece, room);
 
     const outcome = await salvageAs(piece);

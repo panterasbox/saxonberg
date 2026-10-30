@@ -45,6 +45,7 @@ const SCALE = 12;
 const GRANITE = '/stuff/idea/material/_env/granite';
 const OAK = '/stuff/idea/material/_env/oak';
 const TIN = '/stuff/idea/material/_env/tin';
+const BRICK = '/stuff/idea/material/_env/brick';
 const INDOOR = '/stuff/idea/biome/_env/indoor';
 const OUTDOOR = '/stuff/idea/biome/_env/outdoor';
 
@@ -123,6 +124,7 @@ beforeEach(() => {
   material(GRANITE, 2.9, 2750, 790);
   material(OAK, 0.17, 750, 2000);
   material(TIN, 80, 7300, 450);
+  material(BRICK, 0.7, 1800, 840);
 });
 afterEach(() => {
   WorldClockApi._resetForTesting();
@@ -153,6 +155,23 @@ describe('when an envelope applies at all', () => {
     const yard = room({ material: GRANITE, thicknessM: 0.3 });
     (yard as unknown as Record<string, unknown>)._biomePath = OUTDOOR;
     expect(env(yard).envelopeApplies()).toBe(false);
+  });
+});
+
+describe('⭐ the potter\'s shop (ceramics browser walk)', () => {
+  it('a 6 m brick shop with its doors shut is held clear of a spring frost by a 4 kW drying stove', () => {
+    const shop = room({ material: BRICK, thicknessM: 0.23 }, 268);
+    (shop as unknown as { setExtent(v: number): void }).setExtent(6);
+    const u = env(shop).envelopeCoefficients()!.uWperK;
+    // ~360 W/K: five 36 m² faces through 0.23 m of brick and the films.
+    expect(u).toBeGreaterThan(300);
+    expect(u).toBeLessThan(420);
+    // Steady state, outside 268 K (−5 °C): above freezing with the stove.
+    expect(268 + 4000 / u).toBeGreaterThan(273.15);
+    // …and the 20 m cell it used to be could never have been warmed.
+    const barn = room({ material: BRICK, thicknessM: 0.23 }, 268);
+    (barn as unknown as { setExtent(v: number): void }).setExtent(20);
+    expect(268 + 4000 / env(barn).envelopeCoefficients()!.uWperK).toBeLessThan(273.15);
   });
 });
 

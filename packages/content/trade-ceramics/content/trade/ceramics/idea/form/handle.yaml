@@ -1,0 +1,9 @@
+# The `handle` form (ceramics S4): a strap pulled for a pot's handle seat.
+class: /platform/idea/Form
+data:
+  key: handle
+  formClass: flat
+  capacityL: 0
+  product: /trade/ceramics/thing/handle
+  greenScale: 1.0
+  discipline: pottery

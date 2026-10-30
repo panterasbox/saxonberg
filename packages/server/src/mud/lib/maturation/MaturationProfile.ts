@@ -729,10 +729,29 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
       .sort((a, b) => a.getKey().localeCompare(b.getKey()));
   }
 
+  /**
+   * Where each key's profile was last found. ⚠ Not a cache to invalidate:
+   * every hit is re-resolved by its path and re-checked, and a miss walks
+   * the roster as before. The walk is a glob over the WHOLE population, and
+   * a maturing vessel asks on every read — a salt pan over a lit hearth
+   * asked thousands of times in one clock advance and wedged the server
+   * for minutes (the ceramics drive, run 25).
+   */
+  private static readonly foundAt = new Map<string, string>();
+
   /** The live profile with `key`, or `null`. */
   static byKey(key: string): MaturationProfile | null {
     if (!key) return null;
-    return MaturationProfile.all().find((p) => p.getKey() === key) ?? null;
+    const path = MaturationProfile.foundAt.get(key);
+    if (path !== undefined) {
+      const hit = StuffApi.findByTemplatePath<MaturationProfile>(path);
+      if (hit instanceof MaturationProfile && !hit.isDestroyed() && hit.getKey() === key) return hit;
+      MaturationProfile.foundAt.delete(key);
+    }
+    const found = MaturationProfile.all().find((p) => p.getKey() === key) ?? null;
+    const at = found?.getTemplatePath();
+    if (at) MaturationProfile.foundAt.set(key, at);
+    return found;
   }
 
   /**

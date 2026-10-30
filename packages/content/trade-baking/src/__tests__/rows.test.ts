@@ -182,17 +182,17 @@ describe('the rows', () => {
     }
   });
 
-  it('⭐⭐ ONLY the counter loaves author a composition, and it is a BAKER’S LINE', () => {
+  it('⭐⭐ ONLY the counter loaves author a makeup, and it is a BAKER’S LINE', () => {
     // An NPC counter must be able to stock two loaves priced apart on
     // day one, before any player has milled anything. That is what these
     // rows are for — the white and (nutrition-and-fitness W4) the
     // wholemeal, the same two materials in different shares.
     const white = row(join(BAKING, 'thing', 'white-loaf.yaml'));
-    const parts = white.composition as Array<Record<string, unknown>>;
+    const parts = white.makeup as Array<Record<string, unknown>>;
     expect(Array.isArray(parts)).toBe(true);
     expect(parts.length).toBe(2);
     const wholemeal = row(join(BAKING, 'thing', 'wholemeal-loaf.yaml'));
-    const wparts = wholemeal.composition as Array<Record<string, unknown>>;
+    const wparts = wholemeal.makeup as Array<Record<string, unknown>>;
     expect(wparts.map((p) => p.materialPath)).toEqual(parts.map((p) => p.materialPath));
     expect(wparts).not.toEqual(parts);
 
@@ -200,7 +200,7 @@ describe('the rows', () => {
     // chain carrying whatever the miller decided; this row does not
     // presume to say, and "not knowing what you are made of" is not the
     // same as "being pale".
-    expect(row(join(BAKING, 'thing', 'lean-loaf.yaml')).composition).toBeUndefined();
+    expect(row(join(BAKING, 'thing', 'lean-loaf.yaml')).makeup).toBeUndefined();
   });
 
   it('⚠ nothing anywhere reads a `white` band', () => {
@@ -215,22 +215,28 @@ describe('the rows', () => {
   });
 
   it('⭐ two loaves from one wheat show DIFFERENT amounts, and neither row authored one', () => {
-    // The label derives from the parts: mg per kg × servings over the
-    // composition (`BlendLabel.amountsOf`). Same arithmetic here, over
-    // the milling pack's two material rows, so the claim is checked
-    // against the shipped numbers and not a stub.
+    // The label derives from the parts: mg per serving × each part's
+    // servings, which is its share of the loaf's mass over the row's
+    // `servingKg` (`BlendLabel.amountsOf`, ceramics re-plan R1-D1). Same
+    // arithmetic here, over the milling pack's two material rows, so the
+    // claim is checked against the shipped numbers and not a stub.
     const MILL = join(PACK, '..', 'trade-milling', 'content', 'stuff', 'idea', 'material', 'food');
-    const mats: Record<string, Record<string, number>> = {
-      '/stuff/idea/material/food/wheat-flour': row(join(MILL, 'wheat-flour.yaml')).nutrientAmounts as Record<string, number>,
-      '/stuff/idea/material/food/bran': row(join(MILL, 'bran.yaml')).nutrientAmounts as Record<string, number>,
+    const mats: Record<string, Record<string, unknown>> = {
+      '/stuff/idea/material/food/wheat-flour': row(join(MILL, 'wheat-flour.yaml')),
+      '/stuff/idea/material/food/bran': row(join(MILL, 'bran.yaml')),
     };
     const label = (name: string): Record<string, number> => {
       const r = row(join(BAKING, 'thing', `${name}.yaml`));
       expect(r.nutrientAmounts).toBeUndefined();
       const out: Record<string, number> = {};
-      for (const part of r.composition as Array<{ materialPath: string; servings: number }>) {
-        for (const [tag, mg] of Object.entries(mats[part.materialPath] ?? {})) {
-          out[tag] = (out[tag] ?? 0) + mg * part.servings;
+      for (const part of r.makeup as Array<{ materialPath: string; fraction: number }>) {
+        const m = mats[part.materialPath] ?? {};
+        // ⭐ Both rows author the mill's 100 g serving, so the loaf's
+        // 0.8 kg is the eight servings these rows always meant.
+        expect(m.servingKg).toBe(0.1);
+        const servings = (part.fraction * (r.mass as number)) / (m.servingKg as number);
+        for (const [tag, mg] of Object.entries((m.nutrientAmounts ?? {}) as Record<string, number>)) {
+          out[tag] = (out[tag] ?? 0) + mg * servings;
         }
       }
       return out;
@@ -240,6 +246,21 @@ describe('the rows', () => {
     expect(wholemeal.fibre).toBeGreaterThan(white.fibre ?? 0);
     expect(wholemeal.protein).toBeGreaterThan(white.protein ?? 0);
     expect(white.carb).toBeGreaterThan(wholemeal.carb ?? 0);
+
+    // ⭐ And the label is the one the rows showed when they authored
+    // SERVINGS (7.8 : 0.2 and 6.5 : 1.5) — re-authoring them as mass
+    // fractions of the 0.8 kg loaf changed nothing a player reads.
+    const flour = mats['/stuff/idea/material/food/wheat-flour']!.nutrientAmounts as Record<string, number>;
+    const bran = mats['/stuff/idea/material/food/bran']!.nutrientAmounts as Record<string, number>;
+    for (const [name, got, f, b] of [
+      ['white', white, 7.8, 0.2],
+      ['wholemeal', wholemeal, 6.5, 1.5],
+    ] as const) {
+      for (const tag of new Set([...Object.keys(flour), ...Object.keys(bran)])) {
+        const was = (flour[tag] ?? 0) * f + (bran[tag] ?? 0) * b;
+        expect(got[tag] ?? 0, `${name} ${tag}`).toBeCloseTo(was, 6);
+      }
+    }
   });
 
   it('the trough is a build vessel AND a ferment vessel', () => {

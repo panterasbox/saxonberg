@@ -3,7 +3,7 @@
  * as one number, computed in one place.
  *
  * Two subsystems want the same answer and must not each invent it: the
- * per-instance water state ({@link WaterActivityMixin} — a ham on a rack, a turf
+ * per-instance water state ({@link MoistureMixin} — a ham on a rack, a turf
  * in a stack) and the durative transform ({@link MaturingMixin}'s
  * `evaporative` mechanism — a salt pan in the sun). Both ask *how dry is
  * this air, and how hard is it working*, and both get it from here.
@@ -102,6 +102,23 @@ export class Evaporation {
     const heatTerm = Math.pow(2, (t - AIR_TEMP_REF_K) / AIR_TEMP_DOUBLING_K);
 
     return deficit * windTerm * heatTerm;
+  }
+
+  /**
+   * ⭐ The wet-bulb temperature of this air, K — how cold evaporation can
+   * make a wet surface in it (ceramics M8). The simplified Stull
+   * approximation; the ONE formula (ThermalRegulation's sweat reads it too).
+   */
+  public wetBulbK(): number {
+    const tC = (Number.isFinite(this.tempK) ? this.tempK : AIR_TEMP_REF_K) - 273.15;
+    const rh = Math.max(1, Math.min(100, Number.isFinite(this.humidityPct) ? this.humidityPct : 50));
+    const tw =
+      tC * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) +
+      Math.atan(tC + rh) -
+      Math.atan(rh - 1.676331) +
+      0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) -
+      4.686035;
+    return tw + 273.15;
   }
 
   /**

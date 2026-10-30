@@ -1,0 +1,34 @@
+# Salt glaze — never dipped. Salt thrown into a kiln at its peak becomes
+# vapor in the chamber's air, and a stoneware body reaching its rung under it
+# takes this coat (ceramics ruling B): the pitted orange-peel skin of a
+# stoneware jug.
+#
+# ⭐ A coat is not a piece: its fuse reads this row's first kinetics change —
+# `rate.referenceK` fuses a wet coat. The rung
+# names the glaze itself, so the spec stays valid and changes nothing.
+class: /platform/idea/material/Material
+data:
+  name: salt glaze
+  keywords: [glaze, salt]
+  appearance: an orange-peel salt glaze
+  density: 2500
+  specificHeat: 840
+  thermalConductivity: 1.0
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 0
+  hardness: 55
+  toughness: 3
+  thermalExpansion: 5.5e-6
+  laysCoat: false
+  coatWord: glazed
+  kinetics:
+    - key: fuse
+      rate: { referenceK: 1350, zK: 30, fullDoseS: 1800 }
+      ladder:
+        - { atDegree: 1, becomes: /stuff/idea/material/glaze/salt }
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["glaze", "mineral", "vitreous"]
+  composition: []
+  biologicalSource: null

@@ -253,7 +253,7 @@ it; `BiomeApi.mediumProps(tag)` is the record.
 |---|---|
 | **voice** | `Vocal.canVocalize()` reads the body plan's `voice.media` (default `['air']`) against `mediumFor`: `say`/`whisper`/`shout` come out as *"a gout of bubbles, and nobody hears them"*. The controllers render the returned `VocalResult`. `cast` asks it too (*"You cannot speak the words here."*). The implant (`dm`, emotes) is the aether and works as anywhere. |
 | **fire** | `FireLogic` ignition refuses where the medium does not burn (`no-air`); `Burner.completeness()` is 0 under water; the water place **douses** whatever arrives in it and everything it carries. |
-| **sound** | a band's hop is the medium's `soundHopTau` (0.3, further than air) and arrives from no direction — `ring` a signal bell and every diver in the column hears it, placing it nowhere. |
+| **sound** | a band's hop is the medium's `soundHopTau` (0.3, further than air) and arrives from no direction — `ring` a signal bell (the platform verb; the bell answers with what it `carries`) and every diver in the column hears it, placing it nowhere. |
 | **light** | `Band.getAmbientFlux()` is the surface's light now × `0.01^(depth / clarity)`; a night dive is black without your own light. Red goes first: carried as the band's color temperature (`6500 + 1500 × depth` K, capped). ⚠ A per-channel fold through the vision walk was not built. |
 | **wet** | everything arriving immersed is `wet(1)` (an `Attired` body `immerse()`s), recursively through what it carries — except inside an air pocket. |
 | **vessels** | an open, empty vessel arriving fills from the place's water. |

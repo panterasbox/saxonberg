@@ -242,6 +242,22 @@ export class WeatherApi {
   }
 
   /**
+   * ⭐ **How many game-days between `fromS` and `toS` the air crossed
+   * freezing** — the day's coldest below 273.15 K and its warmest above
+   * (ceramics S2). Stateless over {@link dailyRangeAt}, like the snow: a
+   * clay heap's winter weathering, frost on green ware, a wall's spalling
+   * (repair W7) all read it. Walks at most the last 400 days.
+   */
+  public static freezeThawDaysAt(
+    site: ClimateSite,
+    locality: Locality | null,
+    fromS: Quantity<'s'>,
+    toS: Quantity<'s'>,
+  ): number {
+    return logic().freezeThawDaysAt(site, locality, fromS, toS);
+  }
+
+  /**
    * ⭐⭐ **The snow lying at a site, from the weather it has had** — the
    * ONE snow function: a floor reads its depth from it and a river reads
    * its snowpack and melt from it, so the snow on the ground and the snow

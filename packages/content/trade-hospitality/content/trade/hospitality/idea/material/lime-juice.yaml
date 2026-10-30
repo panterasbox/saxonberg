@@ -24,6 +24,8 @@ data:
   waterActivity: 0.99
   nutrients: [water, sugar, vitamin-c]
   toxicity: []
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 2.1
   tags: [liquid, beverage, drinkable, juice, citrus, fresh, lime-juice]
   composition: []
   biologicalSource: null

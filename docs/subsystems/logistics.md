@@ -589,17 +589,15 @@ EDGE SET — not a second caller** (economic bootstrap, 2026-09-23). That
 build gave an NPC shop keeper errands to her bank and her wholesaler and
 hoisted this walk onto `NPC.walkTo` so both brains could take it, which
 put *an NPC routes itself* on the kernel base class in reach of every
-Cast. It came back out in review, and the reason is worth keeping: the
-keeper's whole errand is **two rooms** — her shop is on the
-counting-house block, the window one west and the wholesaler one south —
-so she walks **authored directions** (`ways` on her row, the `patrols`
-shape) and searches nothing. Running a breadth-first search over a
-compiled inter-city freight network to cross the road is a category
-error, not a route. `consigns` remains the **one non-vehicle caller** of
-`planRoute`, because its errand really is cross-district. Whether one
-pathfinder should serve every consumer is
-[the pathfinding slate](../slates/builds/pathfinding-slate.md); a second
-consumer of the SAME edge set does not answer it.
+Cast. It came back out in review, and the reason is worth keeping: an NPC
+routing ITSELF does not belong on the body every Cast inherits. The
+keeper then walked **authored directions** (`ways` on her row) because the
+router of the day was the inter-city freight network. ⭐ Both are
+superseded: the routing build (MR!350) made one kernel router, scoped by
+what a character knows (`knows:`), and since B107 every walking brain —
+the keeper, the hands, the brickfield and the furnace keepers — plans with
+it and walks a `go` at a time through its CONTEXT (`ctx.goTo`), not its
+body. See [behavior.md](./behavior.md) § How a brain moves.
 
 ⚠ **The surfaced seam: there is no wholesale purchase.** A distributor
 cannot buy a producer's goods outright, and a carrier cannot list goods

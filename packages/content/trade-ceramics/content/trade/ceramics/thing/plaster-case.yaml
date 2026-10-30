@@ -1,0 +1,33 @@
+# The plaster case (ceramics W7, D23) — ⭐ a TWO-PIECE mould: two boxed
+# halves of board, keyed to close true, that plaster slurry is poured into
+# and a model pressed down into before the slurry cures. Fifteen minutes
+# later the case holds a plaster mould with the model's shape in it (`get
+# mould from case`).
+#
+# ⭐ Two pieces is what lets it take a shape with something standing out of
+# it — the halves part along the line, where a one-piece mould could not
+# draw it (`undercut`). It is an assembly: worn and mended at its joint.
+class: /platform/thing/Mould
+data:
+  shortDescription: plaster case
+  keywords: [case, "plaster case", "mould case", cottle]
+  register: indefinite
+  longDescription: >-
+    Two shallow boxes of planed board that close face to face on wooden
+    keys, white to the brim with old plaster splashes.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 4
+  interiorBulk: true
+  interiorCapacity: 2
+  closure: liquidTight
+  reusable: true
+  impressible: true
+  # What a cured fill in the case IS: a plaster mould, which takes the
+  # case's impression as its own cavity.
+  castTemplate: /trade/ceramics/thing/plaster-mould
+  discipline: pottery
+  bill:
+    parts:
+      - { part: half, plural: halves, template: /trade/ceramics/thing/case-half, count: 2, role: structural, material: /stuff/idea/material/wood/pine }
+    joints:
+      - { key: keying, method: seated, members: [half] }

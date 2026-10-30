@@ -1061,9 +1061,20 @@ carries none. The build adds one field and no mechanism.
 ### ⭐ Drawing at a shore (maritime revision 3, 2026-10-11)
 
 A pail filled at a shore (`fill pail from river`) holds what the reach
-is: **`fouled-water`** when `contaminationAt(reach).level` is above
-`water.fouledAt` — the Conduit's rule with no treatment factor, because a
-river treats nothing — else `water`; nothing through ice. Unlike a tap,
+is: dirty when `contaminationAt(reach).level` is above `water.fouledAt` —
+the Conduit's rule with no treatment factor, because a river treats
+nothing — else `water`; nothing through ice. ⭐⭐ **Which dirty is the
+contamination's KIND** (ceramics W8): the level says THAT the draw is
+dirty, and the dominant kind says which — organic + sediment (carried: a
+sewer, a washing) give **`fouled-water`**, which a held boil
+(`purifiedByBoiling`) or a stoneware filter (`filteredTo`) makes water
+again; persistent + nutrient (dissolved: a smelter's tailings, a field's
+nitrate) give **`tainted-water`** (lead-poisoning dose), which names
+neither arrow — boiling it gives hot tainted water and it goes straight
+through a filter's pores. A tie goes to fouled. One branch in
+`WatercourseCatalogue.readWater` (`drawnWaterPath`), pinned by
+`WatercourseCatalogue.draw.test.ts`; ⚠ no persistent outfall ships yet, so
+the tainted draw waits on a works that discharges one. Unlike a tap,
 which refuses to deliver a fouled supply, the river delivers it: the
 counterplay ladder is the player's (draw upstream, boil, pay for a
 treated supply), and nothing about the pail announces it except the

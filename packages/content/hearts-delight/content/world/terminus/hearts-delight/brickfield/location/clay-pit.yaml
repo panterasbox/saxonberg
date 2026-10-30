@@ -1,0 +1,45 @@
+# The clay pit — ⭐ the brickfield's working, an `OpenWorking` on the
+# valley's alluvium (`idea/deposit/valley-alluvium`): turf and topsoil long
+# since lifted, the fat red clay standing in the wall, a lens of clean sand
+# under it, and the floor down on the gravel and standing in water.
+#
+# ⭐ `floorDepthM: 1.2` — the pit was taken down to the water table years
+# ago, so the floor is the wet gravel and the clay and the sand are WALL
+# faces, worked from the side (`dig clay`, `dig sand`), not floor. Below the
+# water is mining-slate's: a pit that fills, and a pump.
+#
+# `faceRunM: 200` — a brickfield pit is wide and shallow, and a long face
+# is what keeps a gang in clay for years: about 800 lumps in the clay
+# wall, four hundred loads of sand.
+class: /trade/quarrying/location/OpenWorking
+data:
+  shortDescription: clay pit
+  keywords: [pit, "clay pit", face, working, wall]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A long shallow scoop in the flats, its far wall a cut face of dark red clay as smooth as butter where the spades have been at it, with a band of pale sand along the foot. The floor is wet gravel, and in the low corner the water stands in puddles that never quite dry.
+
+    Up the slope to the north is the weathering ground. West, behind a bank of old spoil, the valley's first pit lies flooded.
+  coords: { x: 0, y: -1, z: 0 }
+  faceRunM: 200
+  floorDepthM: 1.2
+  props:
+    # The pit's own spades — the quarrying trade's rows (the drive's lesson
+    # at the Hill Quarry: a pit with nothing to dig with is nobody's pit).
+    # Five: the gang digs with three, and the spares are what a stranger
+    # (or a player) finds leaning on the bank — with three, the gang held
+    # every one and nobody else could dig (the ceramics drive).
+    - { template: /trade/quarrying/thing/spade, count: 5 }
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/brickfield/location/weathering-ground
+      media: [ground]
+      edgeMinutes: 1
+    west:
+      destination: /world/terminus/hearts-delight/brickfield/location/old-pit
+      media: [ground]
+      edgeMinutes: 1

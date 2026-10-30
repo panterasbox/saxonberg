@@ -1,0 +1,14 @@
+# A likeness (ceramics M9) — ⭐ what a mould casts when the impression was
+# taken of a living face: a mask of how somebody looked. It is a LIKENESS
+# and never a disguise — it confers nothing to anybody's belief about who
+# is wearing or holding it, and the world does not mistake it for them.
+class: /platform/thing/Thing
+data:
+  shortDescription: likeness
+  keywords: [likeness, mask, "death mask", "life mask", face]
+  register: indefinite
+  longDescription: >-
+    The shape of a face, eyes shut, every line of it caught where the mould
+    took it.
+  _materialPath: /stuff/idea/material/rock/gypsum
+  mass: 0.5

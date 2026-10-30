@@ -1,0 +1,16 @@
+# flask — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/ClayVessel
+data:
+  shortDescription: flask
+  keywords: [flask, bottle]
+  register: indefinite
+  longDescription: >-
+    A small clay flask with a narrow neck.
+  interiorBulk: true
+  interiorCapacity: 0.6
+  # ⭐ (ceramics W6, D28) The row is the FIRED good: a bare clone is an
+  # import nobody here made — finished, and no maker. `shape` restamps the
+  # clay, its water and its maker, so the potter's own piece is born green.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 0.5

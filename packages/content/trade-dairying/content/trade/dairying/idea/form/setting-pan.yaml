@@ -1,0 +1,13 @@
+# The `setting-pan` form (ceramics S4): a wide, shallow open vessel the
+# dairy sets milk in for the cream to rise. Under dairying's own root — a
+# pottery's wheel row lists it to make one (ceramics R4: no trade depends on
+# ceramics for it).
+class: /platform/idea/Form
+data:
+  key: setting-pan
+  formClass: open
+  capacityL: 10
+  proportion: wide
+  product: /trade/dairying/thing/setting-pan
+  greenScale: 1
+  discipline: pottery

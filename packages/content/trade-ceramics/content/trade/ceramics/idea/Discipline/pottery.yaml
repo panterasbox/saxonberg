@@ -1,0 +1,19 @@
+# pottery — ⭐ the potter's hand: wedging and throwing, a wall as thin as the
+# hand can hold, trimming and joining at leather-hard, glazing, and reading
+# a kiln's heat by its colour and its cones. Competence decides the wall,
+# the largest pot and the grade — deterministically (ceramics D16).
+#
+# ISCED-F 2013 **0722 — Materials (glass, paper, plastic and wood)**. A
+# clay piece's own heat transitions credit this when they fire.
+class: /platform/idea/Discipline
+data:
+  key: pottery
+  channel: skill
+  label: Pottery
+  iscedf: "0722"
+  description: >-
+    Clay into vessels: throwing to a form at a capacity, trimming and
+    joining at leather-hard, marking the ware, glazing it, and firing it
+    to the body it was meant to be.
+  specializes: []
+  requires: []

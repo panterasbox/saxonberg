@@ -1,7 +1,7 @@
 /**
  * The two widened arms of the kitchen's work verbs (dairy D5, D6): `heat`
  * SETS a plain vessel on the lit fire in reach so its contents really
- * warm, and `churn` works a vessel that answers `HandWorked` — while the
+ * warm, and `churn` works a vessel that is `HandWorkedMixin` — while the
  * build arms of both are exactly as they were.
  */
 
@@ -34,6 +34,9 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ManualBuildMixin } from '../../../../../lib/craft/ManualBuild';
 import { ToolMixin } from '../../../../../lib/craft/Tooled';
 import { BulkableMixin } from '../../../../../lib/bulk/Bulkable';
+import { HandWorkedMixin } from '../../../../../lib/craft/HandWorked';
+import type { ActOutcome } from '../../../../../lib/craft/ActPlan';
+import { Mml } from '../../../../../api/mml';
 import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
@@ -219,13 +222,13 @@ describe('⭐ heat — the placing arm (dairy D6)', () => {
 });
 
 describe('⭐ churn — the hand-worked arm (dairy D5)', () => {
-  it('a vessel answering workByHand is worked, and says what came of it', async () => {
+  it('a hand-worked vessel is worked, and says what came of it', async () => {
     await stand('hearth');
     const calls: string[] = [];
-    class TestChurn extends BulkableMixin(Good) {
-      workByHand(method: string): string | null {
+    class TestChurn extends HandWorkedMixin(BulkableMixin(Good)) {
+      override workByHand(method: string): ActOutcome | null {
         calls.push(method);
-        return 'It breaks.';
+        return { ok: true, line: Mml.compose`It breaks.` };
       }
     }
     const churn = makeStuff(() => new TestChurn());

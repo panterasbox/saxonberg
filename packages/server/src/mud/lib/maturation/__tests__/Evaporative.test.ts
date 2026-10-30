@@ -153,6 +153,20 @@ describe('the evaporative mechanism', () => {
     expect(vat.getFractionConverted()).toBe(0);
   });
 
+  it('⭐ (ceramics W8) the salt STAYS as the water leaves: the dissolved figure rescales by volume', () => {
+    const { vat } = pan({ humidityPct: 30, windMs: 5, litres: 40 });
+    vat.setBulkPayload('interior', { dissolvedSolidsKgPerL: 0.035 });
+    void vat.getFractionConverted();
+    setNow(2 * DAY);
+    void vat.getFractionConverted();
+    const litres = vat.getBulkAmount('interior').rawValue();
+    expect(litres).toBeLessThan(40);
+    const perL = vat.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0;
+    expect(perL).toBeGreaterThan(0.035);
+    // The solute is conserved: 1.4 kg of salt in whatever water is left.
+    expect(perL * litres).toBeCloseTo(0.035 * 40, 6);
+  });
+
   it('finishes to the product at productFraction of the starting volume', () => {
     const { vat } = pan({ humidityPct: 10, windMs: 8, tempK: 303, litres: 40 });
     void vat.getFractionConverted();

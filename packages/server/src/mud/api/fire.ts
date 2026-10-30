@@ -34,11 +34,20 @@ export interface IgniteOutcome {
    * will not burn), `'no-fuel'` (⭐ a burner with an empty bed — the
    * refusal that `stoke` lifts, and the reason a fire can be run twice),
    * `'already-burning'`, `'too-wet'` (a hand-flame can't dry it), or
-   * `'no-air'` (under the water: nothing burns there).
+   * `'no-air'` (⭐ a flame needs air — shut in a starved chamber, or under
+   * the water), or
+   * `'lining-burnt-through'` (a furnace whose lining needs relining).
    * Absent on success.
    */
-  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet' | 'no-air';
+  reason?: 'not-flammable' | 'no-fuel' | 'already-burning' | 'too-wet' | 'no-air' | 'lining-burnt-through';
 }
+
+/**
+ * ⭐ The colour a hot surface glows, seen close (a kiln's spy-hole, a gather
+ * on the pipe, a bar in the forge): the words a potter, a glassblower and a
+ * smith share. `null` below Draper's point (~800 K), where nothing glows.
+ */
+export type Incandescence = 'dull red' | 'cherry red' | 'orange' | 'yellow' | 'white';
 
 const LOGIC_PATH = '/platform/idea/api/fire';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -79,6 +88,11 @@ export class FireApi {
     } catch {
       return 30;
     }
+  }
+
+  /** ⭐ The ONE incandescence scale — see {@link Incandescence}. */
+  public static incandescenceOf(kelvin: number): Incandescence | null {
+    return logic().incandescenceOf(kelvin);
   }
 }
 

@@ -504,6 +504,19 @@ field is the runtime back-reference, populated by:
 …and unwired by `removeExit`, `Exit.onDestruct`,
 `vessel.setDoor` cache invalidation, and `Door.detach()`.
 
+### ⭐ A door that swings shut behind you — `closesBehind`
+
+An authored flag on `Door` (persistent, default `false`): a workshop door on
+a weight. Shut, it still lets through anyone who may pass (`Exit.canTraverse`
+and the door's `MovementConduit` admit it), and it is shut again after
+them, so nothing anybody does leaves it open. A **locked** one still
+refuses. Everything else that reads `isOpen()` sees it shut — light, sight,
+smell, sound, and the envelope's open-doorway count — which is the point: a
+warm room keeps its heat without any NPC routine to close it up. The
+potter's shop is the first (the ceramics browser walk: two open doorways
+cost more heat than a stove gives, and its ware froze). A second workshop
+is a row.
+
 ### Conduit registry
 
 A Door advertises three conduits — `LightConduit`,

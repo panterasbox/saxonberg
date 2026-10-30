@@ -25,7 +25,7 @@
  */
 
 import { spawn, type ChildProcess } from 'child_process';
-import { createWriteStream, mkdirSync } from 'fs';
+import { createWriteStream, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -116,14 +116,32 @@ export async function bootOwnedWorld(): Promise<string> {
     pre.on('error', () => done());
   });
 
-  const log = createWriteStream(WIRE_LOG, { flags: 'w' });
-  child = spawn('pnpm', ['exec', 'tsx', 'src/preload.js'], {
-    cwd: SERVER_DIR,
-    env: serverEnv(),
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  child.stdout?.pipe(log);
-  child.stderr?.pipe(log);
+  if (keepWorld()) {
+    // ⭐ A KEPT world outlives this run: detached, logging straight to the
+    // file (a pipe would die with us), and recorded so `WIRE_REUSE=1` can
+    // attach to it — the iteration loop then costs no boot at all.
+    const fd = openSync(WIRE_LOG, 'w');
+    child = spawn('pnpm', ['exec', 'tsx', 'src/preload.js'], {
+      cwd: SERVER_DIR,
+      env: serverEnv(),
+      stdio: ['ignore', fd, fd],
+      detached: true,
+    });
+    child.unref();
+    writeFileSync(
+      KEPT_WORLD,
+      JSON.stringify({ pid: child.pid, port: WIRE_PORT, url }, null, 2),
+    );
+  } else {
+    const log = createWriteStream(WIRE_LOG, { flags: 'w' });
+    child = spawn('pnpm', ['exec', 'tsx', 'src/preload.js'], {
+      cwd: SERVER_DIR,
+      env: serverEnv(),
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    child.stdout?.pipe(log);
+    child.stderr?.pipe(log);
+  }
   child.on('exit', (code) => {
     if (code !== 0 && code !== null) {
       console.error(`wire: the owned server exited with code ${code}`);
@@ -154,8 +172,46 @@ export async function bootOwnedWorld(): Promise<string> {
   }
 }
 
-/** Stop the world this runner started. A no-op if it started none. */
+/**
+ * ⭐ `WIRE_KEEP_WORLD=1`: leave the booted world standing when the run
+ * ends, for `WIRE_REUSE=1` runs to attach to (stop it with
+ * `kill -- -<pid>` — the process GROUP — from `.wire/kept-world.json`). The drive loop is boot-bound
+ * — six minutes a world — and most iterations change only a drive file.
+ */
+export function keepWorld(): boolean {
+  return process.env.WIRE_KEEP_WORLD === '1';
+}
+
+/** Where a kept world is recorded. */
+export const KEPT_WORLD = join(REPO_ROOT, 'packages', 'wire', '.wire', 'kept-world.json');
+
+/** The kept world, if one is recorded: `{ pid, port, url }`. */
+export function keptWorld(): { pid: number; port: number; url: string } | null {
+  try {
+    return JSON.parse(readFileSync(KEPT_WORLD, 'utf8')) as { pid: number; port: number; url: string };
+  } catch {
+    return null;
+  }
+}
+
+/** Forget a kept world that no longer answers. */
+export function forgetKeptWorld(): void {
+  rmSync(KEPT_WORLD, { force: true });
+}
+
+/** Stop the world this runner started. A no-op if it started none, or kept it. */
 export async function stopOwnedWorld(): Promise<void> {
+  if (keepWorld()) {
+    const kept = keptWorld();
+    if (kept) {
+      console.log(
+        `\nwire: KEPT the world at ${kept.url} (pid ${kept.pid}). ` +
+          `Attach with WIRE_REUSE=1; stop it (its whole process group) with: kill -- -${kept.pid}\n`,
+      );
+    }
+    child = null;
+    return;
+  }
   if (!child || child.exitCode !== null) return;
   const dying = child;
   child = null;

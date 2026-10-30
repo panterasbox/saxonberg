@@ -76,6 +76,7 @@ import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { brain as consigns } from '@saxonberg/content-trade-shopkeeping/src/behavior/consigns';
 import Extra from '@saxonberg/server/mud/platform/agent/Extra';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
 
@@ -543,10 +544,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     const lines: string[] = [];
     // Dispatch is `hand.forceCommand(text)` since the OO sweep, so the
     // hand is the interception seam.
-    vi.spyOn(
-      hand as unknown as { forceCommand(text: string): Promise<void> },
-      'forceCommand',
-    ).mockImplementation(async (text: string) => {
+    // ⭐ A brain's own steps (`go`) are `executeCommand` since B107 — the
+    // same seam, so both are intercepted alike.
+    const viaHand = (impl: (text: string) => Promise<void>): void => {
+      for (const m of ['forceCommand', 'executeCommand'] as const) {
+        vi.spyOn(hand as unknown as Record<typeof m, (text: string) => Promise<void>>, m).mockImplementation(impl);
+      }
+    };
+    viaHand(async (text: string) => {
       const giver = hand;
       // A teleport auto-senses on arrival (Mobile's own forced `sense`) —
       // not the brain's line; dropped from the record.
@@ -643,10 +648,14 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     ContainmentApi.move(vodka as never, floorStock as never);
     const lines: string[] = [];
     // `get gin` declines (too-heavy-to-lift): the bottle stays on the floor.
-    vi.spyOn(
-      hand as unknown as { forceCommand(text: string): Promise<void> },
-      'forceCommand',
-    ).mockImplementation(async (text: string) => {
+    // ⭐ A brain's own steps (`go`) are `executeCommand` since B107 — the
+    // same seam, so both are intercepted alike.
+    const viaHand = (impl: (text: string) => Promise<void>): void => {
+      for (const m of ['forceCommand', 'executeCommand'] as const) {
+        vi.spyOn(hand as unknown as Record<typeof m, (text: string) => Promise<void>>, m).mockImplementation(impl);
+      }
+    };
+    viaHand(async (text: string) => {
       if (text === 'sense') return;
       lines.push(text);
       if (text === 'get vodka') ContainmentApi.move(vodka as never, hand as never);
@@ -658,6 +667,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       trigger: { source: 'cadence', raw: 'cadence:90s' },
       say: () => undefined,
       emote: async () => undefined,
+      ...new BrainMoves(hand as never, { stock: FLOOR_STOCK, shelf: COUNTER }).members(),
       emoteFree: () => undefined,
     } as unknown as BrainContext;
     await consigns.act(brainCtx);
@@ -684,6 +694,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       trigger: { source: 'cadence', raw: 'cadence:90s' },
       say: () => undefined,
       emote: async () => undefined,
+      ...new BrainMoves(hand as never, { stock: FLOOR_STOCK, shelf: COUNTER }).members(),
       emoteFree: () => undefined,
     } as unknown as BrainContext;
     await consigns.act(brainCtx);
@@ -721,6 +732,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       trigger: { source: 'cadence', raw: 'cadence:90s' },
       say: () => undefined,
       emote: async () => undefined,
+      ...new BrainMoves(hand as never, { stock: FLOOR_STOCK, shelf: COUNTER }).members(),
       emoteFree: () => undefined,
     } as unknown as BrainContext;
     await consigns.act(brainCtx);

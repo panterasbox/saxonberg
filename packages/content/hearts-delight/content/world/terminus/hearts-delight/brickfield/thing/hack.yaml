@@ -1,0 +1,25 @@
+# A hack — ⭐ the drying wall itself (ceramics drive, 2026-10-21): green
+# bricks set on edge a brick's width apart, so the wind goes through every
+# gap and reaches all six faces. That is what a hack is FOR, and why bricks
+# are not simply dropped on the yard: a brick lying on the ground shows one
+# face to the air (`cure.groundExposure`, 0.35) and in the Delight's damp
+# spring air never got past leather-hard in ten weeks. Set on the hack it
+# is bone-dry in about three.
+#
+# A `DryingRack` by another name — hanging a shirt, hanging a ham and
+# setting a brick on edge are the same act: put it where the air reaches it.
+class: /platform/thing/DryingRack
+data:
+  shortDescription: hack
+  keywords: [hack, wall, "drying wall", row]
+  register: indefinite
+  longDescription: >-
+    A long low wall of green bricks set on edge with a brick's width
+    between each, under a strip of tarred canvas. There is room along it
+    for more.
+  airExposure: 0.85
+  placements: [on]
+  fixedInPlace: true
+  # The cover and its poles: the bricks on it are the goods, not the hack.
+  _materialPath: /stuff/idea/material/textile/canvas
+  mass: 20

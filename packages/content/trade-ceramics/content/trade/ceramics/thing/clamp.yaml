@@ -1,0 +1,34 @@
+# A brick clamp — green bricks stacked over fire channels of coal and
+# breeze, cased in old brick and earth, lit and left for days (ceramics D15).
+# ⭐ It grades its bricks by where they sat: over-burnt clinker by the
+# channels, hard earthenware in the middle, soft place brick in the casing.
+# Fired `--draught half` it is a reducing burn and the middle comes out blue.
+class: /trade/ceramics/thing/BrickClamp
+data:
+  shortDescription: brick clamp
+  # ⚠ Never `brick`/`bricks` (`put bricks in clamp` would bind the clamp)
+  # nor `stack` (the brick stack beside it is the counter).
+  keywords: [clamp, "brick clamp"]
+  register: indefinite
+  longDescription: >-
+    A long low stack of green bricks set in open courses over fire channels
+    packed with coal and breeze, the whole cased in old bricks and clay.
+  mass: 2000
+  fixedInPlace: true
+  # 1474 K at draught 0.6: the middle holds ≈ 1366 K (sound earthenware),
+  # the channels × 1.25 (`ceramics.clamp.channelFactor`) ≈ 1707 K pass the
+  # stoneware rung's 1560 K scorch (clinker), the casing × 0.9
+  # (`skinFactor`) ≈ 1229 K (terracotta — place brick). At `--draught half`
+  # the burn is starved (completeness ≈ 0.59 < 0.6): reducing, ≈ 1322 K in
+  # the middle — the blue brick.
+  burnTemperatureK: 1474
+  bellowsMultiplier: 1.0
+  draught: 0.6
+  lit: false
+  emittedIntensity: 120
+  emittedColorTemperature: 1700
+  # A slow burn over days — a big bed at low power.
+  maxBurnPowerW: 4000
+  fuelCapacityKg: 2000
+  fuelBed:
+    /stuff/idea/material/mineral/coal: 600

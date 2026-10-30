@@ -681,7 +681,7 @@ authored does nothing, silently.** Mead needs its culture named;
 
 ⭐⭐ **Mead is the water-activity hurdle run backwards.** Honey keeps
 because `a_w ≈ 0.6` — the solute term in `a_w = base · moisture · (1 −
-solute)`, the model renamed `WaterActivityMixin` in !291. Dilute it and
+solute)`, the model renamed `MoistureMixin` in !291. Dilute it and
 `a_w` crosses what yeast needs. **Making mead is deliberately breaking the
 hurdle that makes honey keep**, and one model explains both facts: a player
 who understands the first derives the second.

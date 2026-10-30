@@ -22,6 +22,7 @@
  * without a restart.
  */
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import { Idea } from '../../lib/stuff/Idea';
 import Placement from './Placement';
 import { StuffApi } from '../../api/stuff';
@@ -35,6 +36,15 @@ export const PLACEMENT_CATALOGUE_PATH = '/platform/idea/PlacementCatalogue';
 const PlacementCatalogueBase = Idea;
 
 export default class PlacementCatalogue extends PlacementCatalogueBase {
+  /**
+   * ⭐ Shared vocabulary — the closed list of placement words (`on`, `in`,
+   * `from`) every placed body's reconcile consults to find its air
+   * (`Containable.getEnclosingScope`). A per-parcel copy would be absurd.
+   * Without it a governed eval inside a parcel was refused the moment it
+   * touched a pan standing ON a hearth (ceramics drive D, runs 38–40).
+   */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** member name → the live Placement. Rebuilt by {@link warm}. */
   private byName = new Map<string, Placement>();
 

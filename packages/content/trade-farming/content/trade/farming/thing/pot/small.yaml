@@ -16,7 +16,7 @@ data:
   # a small pot is a pot; the two-armed planter is the planter.
   longDescription: |
     A squat unglazed pot the size of two cupped hands, with a chipped rim and a drainage hole worn smooth.
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/terracotta
   interiorBulk: true
   interiorCapacity: 0.5
   # `liquidTight` (the default), NOT `open`: an `open` interior does not
@@ -44,3 +44,4 @@ data:
     planting:
       keywords: [soil, planting, hole, rim]
       description: A drainage hole in the base, and room at the top for one plant.
+  mass: 1.2

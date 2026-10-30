@@ -150,6 +150,25 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
     ).toBe(true);
   });
 
+  it("⚠⚠ a SHADE drifts with the air and takes no thermal harm (ceramics run 31)", () => {
+    // An undead body runs no living processes: its core drifts, and the
+    // cascade must not put it in the dying window — the death it reached
+    // divided the identity again, twelve times over a winter.
+    const c = body({ ambientK: 250 });
+    c.setLifecycleState("undead");
+    core(c);
+    advance(c, 6 * 3600, 1200);
+    expect(core(c)).toBeLessThan(301);
+    expect(
+      c.hasCondition(
+        (x) =>
+          x.kind === "affliction" &&
+          x.templatePath === TemplatePaths.thermalHypothermia,
+      ),
+    ).toBe(false);
+    expect(c.hasCondition((x) => x.kind === "dying")).toBe(false);
+  });
+
   it("an ectotherm's core floats to the effective ambient (no setpoint)", () => {
     const c = body({ ambientK: 300, ecto: true });
     core(c);

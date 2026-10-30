@@ -1,0 +1,18 @@
+# The foundry's yard door (ceramics W7) — a heavy plank door on strap
+# hinges between the moulding floor and the casting yard, keyed to the
+# founder's key. ⭐ Its keyway is a SHAPE: a key's wards pressed into wax and
+# cast in brass turn it as surely as the key does (M9).
+class: /platform/thing/Door
+data:
+  shortDescription: yard door
+  keywords: [door, "yard door"]
+  register: definite
+  longDescription: >
+    A heavy door of tarred planks on iron strap hinges, with a big iron lock
+    plate and a keyhole worn bright.
+  open: true
+  locked: false
+  keyway: rejection-foundry-yard
+  lockTechnology: pin-tumbler
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40

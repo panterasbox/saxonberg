@@ -14,9 +14,10 @@ Welding either field back on would collapse the pack to the state it
 replaced: a candle that is always wax, whatever you dipped it in.
 
 - `src/thing/Candle.ts` — a `Lamp` that smells of what it is made of.
-- `src/idea/cmd/chandlery/DipController.ts` — `dip [the cake] [in
-  <pot>]`: the candle, and the melt that fills the pot when what you
-  have is a cake.
+- `src/thing/DipPot.ts` — the chandler's bath. Since the ceramics build
+  (D14) `dip` is the PLATFORM's verb (`platform/cmd/crafting/dip.yaml`):
+  one act, and the BATH plans it. This pot's `dipPlanFor` is the candle,
+  and the melt that fills the pot when what you have is a cake.
 
 ⚠ **One verb, and the plan said none.** `make <recipe>` runs a recipe
 *script* (a session `def` or a learned home recipe), not an authored

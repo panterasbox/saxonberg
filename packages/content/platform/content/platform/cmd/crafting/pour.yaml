@@ -1,16 +1,29 @@
 verbs: [pour, add]
 controller: /platform/idea/cmd/crafting/PourController
-description: "Pour a measure of a spirit into a shaker (a manual build step)"
+description: "Pour a serving of a spirit into a shaker (a manual build step)"
 help: |
   Build a drink by hand, one ingredient at a time — `pour gin into
   shaker`, or just `add vermouth` to add to the shaker you're working in.
-  Each pour drains the bottle by a measure and banks a graded ingredient
-  into the build. Finish with `stir`/`shake` and `strain into <glass>`.
-  Pouring takes a moment and keeps your hands busy.
+  A pour is one serving of whatever you pour: a measure of gin, a splash
+  of dry vermouth, a dash of bitters. Pour twice for two. To measure it
+  yourself, give `--amount` — `pour vermouth into shaker --amount 30ml`.
+  Each pour banks a graded ingredient into the build, and a drink comes
+  out right when its parts are in the recipe's proportion. Finish with
+  `stir`/`shake` and `strain into <glass>`. Pouring takes a moment and
+  keeps your hands busy.
+examples:
+  - cmd: pour gin into shaker
+    note: One serving of gin
+  - cmd: pour vermouth into shaker --amount 30ml
+    note: A measured pour
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
+options:
+  amount:
+    type: string
+    description: "How much to pour — `30ml`, `0.05L` (default: one serving)"
 args:
   - name: spirit
     type: object

@@ -1,0 +1,11 @@
+# The `jug` form (ceramics S4): a tall closed vessel of three pints, with a handle seat.
+class: /platform/idea/Form
+data:
+  key: jug
+  formClass: closed
+  capacityL: 1.7
+  proportion: tall
+  product: /trade/ceramics/thing/jug
+  seats: [handle]
+  greenScale: 1.0
+  discipline: pottery

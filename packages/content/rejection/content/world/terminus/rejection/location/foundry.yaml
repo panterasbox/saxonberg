@@ -1,0 +1,74 @@
+# The foundry (ceramics W7) — ⭐ where metal takes a SHAPE, next door to
+# where it comes out of the rock. A moulding floor of black sand, flasks
+# stacked against the wall, a core oven, the plaster bench, and the
+# founder's tile press; the smelter's crucibles come through the door
+# bright and go back dull.
+#
+# ⭐ Everything here is a row over a trade's class or the kernel's: the
+# flask, the wax block, the chill mould and the die are smelting's; the
+# plaster case, the tubs and the tile press are ceramics'. A second foundry
+# is rows.
+#
+# Persistent: a rammed flask holds an impression, a plaster mould cures, a
+# press stands screwed down — state that must survive a restart.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: foundry
+  keywords: [foundry, "moulding floor", casting]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  extent: 8
+  # A timber shed: plank walls, a slate roof.
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.02 }
+  ambientSource: sky
+  ambientOpening: windows
+  ambientIntensity: 10000
+  ambientColorTemperature: 5000
+  longDescription: |
+    A long shed with a floor of black, burnt moulding sand, lit by a row of high windows gone grey with dust. Flasks are stacked against the back wall in two-handled pairs, and a low brick core oven stands beside the door to the smelter, its iron door scorched brown.
+
+    Under the windows is the plaster bench, white with splashes, and at the far end an oak screw press with a tile mould on its bed. A door at the north end lets out into the casting yard.
+  details:
+    windows:
+      keywords: [windows, window]
+      description: |
+        A row of high windows down the long wall, grey with the dust of the moulding floor. Enough light comes through them to read the colour of a melt by — which is what they are for.
+  coords: { x: 3, y: 1, z: 0 }
+  exits:
+    west:
+      destination: /world/terminus/rejection/location/smelter
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/rejection/location/foundry-yard
+      edgeMinutes: 1
+      # ⭐ The yard door is keyed (the founder keeps the yard locked
+      # overnight): a cast of its key turns it as well as the key does.
+      door: /world/terminus/rejection/thing/yard-door
+  props:
+    # ⭐ One flask and one wax block stand ready: a flask is spent by the
+    # cast it releases, and the founder rams the next as it is wanted.
+    - /trade/smelting/thing/flask
+    - /trade/smelting/thing/wax-block
+    - /trade/smelting/thing/chill-mould
+    - /trade/smelting/thing/die
+    - { template: /trade/smelting/thing/token-blank, count: 6 }
+    - /trade/smelting/thing/moulders-trowel
+    # The die wants a hammer to strike on it.
+    - /stuff/thing/gear/smiths-hammer
+    - /trade/smelting/thing/core-oven
+    # The founder's pattern bell — anything can be a pattern, and a founder
+    # keeps one of each bell he casts (`impress bell in flask`).
+    - /trade/smelting/thing/bell-hand
+    - /trade/smelting/thing/crucible
+    - /trade/ceramics/thing/plaster-tub
+    - /trade/ceramics/thing/slip-tub
+    - /trade/ceramics/thing/plaster-case
+    - /trade/ceramics/thing/tile-mould
+    - /trade/ceramics/thing/tile-press
+    - /stuff/thing/fixture/water-butt
+    # Fuel for the core oven, in reach of it (the fire build's rule: every
+    # room with a fire somebody is expected to light needs fuel).
+    - { template: /trade/fuel/thing/charcoal, count: 2 }
+  cast:
+    - /world/terminus/rejection/agent/founder

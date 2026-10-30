@@ -1,0 +1,10 @@
+# The `crucible` form (ceramics S4): a squat thick-walled open vessel for a furnace.
+class: /platform/idea/Form
+data:
+  key: crucible
+  formClass: open
+  capacityL: 1
+  proportion: squat
+  product: /trade/ceramics/thing/crucible
+  greenScale: 1.0
+  discipline: pottery

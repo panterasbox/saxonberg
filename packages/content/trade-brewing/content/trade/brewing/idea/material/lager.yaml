@@ -5,6 +5,8 @@ data:
   keywords: [lager, beer, brew]
   appearance: "a pale, bright lager"
   density: 1008
+  # One serving, kg (the unit of its label and its dose): a pint, near enough — 500 ml at 1008 kg/m³.
+  servingKg: 0.504
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
@@ -13,6 +15,8 @@ data:
     - { type: alcohol, amount: 13 }
   # `light-sensitive`: lager goes light-struck under blue light (glass
   # build D8). No `spoilActivationEnergy` added — microbial clock untouched.
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 4.3
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "lager", "light-sensitive"]
   nutrientAmounts:
     carb: 11000

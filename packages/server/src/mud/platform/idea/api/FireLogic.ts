@@ -22,7 +22,7 @@ import type Material from '../../../lib/material/Material';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Combustible } from '../../../lib/fire/Combustible';
-import type { IgniteOutcome } from '../../../api/fire';
+import type { IgniteOutcome, Incandescence } from '../../../api/fire';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
 /** The F1 object face: a Combustible host forwards its own combustion. */
@@ -138,6 +138,22 @@ export class FireLogic extends ApiLogic {
     return wetPenaltyKOf(item);
   }
 
+  /**
+   * ⭐ The incandescence of a surface at `kelvin` (see `FireApi`): Draper's
+   * point ~800 K is the first dull red; cherry from ~950 K, orange from
+   * ~1150 K, yellow from ~1300 K, white from ~1500 K. Physics, not tuning,
+   * so the scale is a table and not a dial.
+   */
+  @CallSecurity(FireApiCallers)
+  public incandescenceOf(kelvin: number): Incandescence | null {
+    if (!(kelvin >= 800)) return null;
+    if (kelvin < 950) return 'dull red';
+    if (kelvin < 1150) return 'cherry red';
+    if (kelvin < 1300) return 'orange';
+    if (kelvin < 1500) return 'yellow';
+    return 'white';
+  }
+
   /** See {@link Combustible.tryAutoignite}. */
   @CallSecurity(FireCallers)
   public tryAutoignite(stuff: Stuff): boolean {
@@ -189,41 +205,11 @@ function dial(key: string, fallback: number): number {
 }
 
 /**
- * The extra temperature (K) an object's held water raises its ignition
- * threshold by — mass-independent, because the fuel mass cancels between
- * the water-boil energy and the thermal capacity. A soaked log resists
- * ignition regardless of its size.
- *
- * ⭐ The single home for the formula. `CombustibleMixin.wetPenaltyK`
- * forwards here, and `stoke` asks the same question of an object that
- * may not be a Combustible at all.
+ * The held-water ignition penalty (K) — the formula is the body's own
+ * (`TangibleMixin.getWetIgnitionPenaltyK`); a non-body has none.
  */
 function wetPenaltyKOf(item: Stuff): number {
-  const mat = MixinApi.isTangible(item) ? item.getMaterial() : null;
-  if (!mat) return 0;
-  const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
-  if (capacityFraction <= 0) return 0;
-  const c = mat.getSpecificHeat().rawValue();
-  if (c <= 0) return 0;
-
-  let held = 0;
-  if (MixinApi.isWet(item)) {
-    const saturation = item.getWetness();
-    if (saturation > 0) held += saturation;
-  }
-  if (MixinApi.isWaterActive(item)) {
-    // Above the `dried` band the fuel still carries its own water; at or
-    // below it, it is dry fuel and contributes nothing.
-    const driedAt = dial(AppSettingKeys.cureBandDriedAt, 0.5);
-    const span = 1 - driedAt;
-    if (span > 0) {
-      const own = (item.getMoisture() - driedAt) / span;
-      if (own > 0) held += own > 1 ? 1 : own;
-    }
-  }
-  if (held <= 0) return 0;
-  const lVap = dial(AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg, 2260000);
-  return (held * capacityFraction * lVap) / c;
+  return MixinApi.isTangible(item) ? item.getWetIgnitionPenaltyK() : 0;
 }
 
 /** One string dial read, falling back to the literal when unseeded. */
@@ -252,9 +238,9 @@ function fireNowSeconds(): number {
  * addition; a Phase-3 fire assumes air.
  */
 function igniteImpl(stuff: Stuff): IgniteOutcome {
-  // ⭐ No flame where there is no air (underwater D29 seam 1): a thing
-  // under the water, or in any medium that will not burn, is refused
-  // BEFORE anything is struck — in the medium's own words.
+  // ⭐ No flame where there is no air (ceramics R3 + underwater D29 seam
+  // 1, two arms of one gate): a log shut in a starved chamber, or a thing
+  // under the water, is refused BEFORE anything is struck.
   if (!mediumBurns(stuff)) return { lit: false, reason: 'no-air' };
   // ⭐⭐⭐ **Striking a light is how you find out.** The tick's flash check
   // runs where a fire already burns; this is the other half, and it is
@@ -279,6 +265,12 @@ function igniteImpl(stuff: Stuff): IgniteOutcome {
     // ⭐⭐ THE REFUSAL IS THE PROGRESSION UI: if something lifts it, the
     // player has to be able to be told what.
     if (stuff.fuelRemaining() <= 0) return { lit: false, reason: 'no-fuel' };
+    // ⭐ A lining burnt through holds no fire (ceramics D19) — the refusal
+    // relining lifts.
+    const lining = stuff.liningHealth();
+    if (lining !== null && lining <= dial(AppSettingKeys.fireLiningBurntBelow, 0.15)) {
+      return { lit: false, reason: 'lining-burnt-through' };
+    }
     stuff._setLit(true);
     return { lit: true };
   }
@@ -308,12 +300,41 @@ function igniteImpl(stuff: Stuff): IgniteOutcome {
 function tryAutoigniteImpl(stuff: Stuff): boolean {
   if (!MixinApi.isCombustible(stuff)) return false;
   if (stuff.isBurning()) return false;
+  // ⭐ The heat-threshold path is how a log in a clamp would catch, so the
+  // gate stands here too (R3): hot enough is not enough without air.
+  if (!mediumBurns(stuff)) return false;
   if (stuff.getFuelRemaining() <= 0) return false;
   const eff = stuff.getEffectiveAutoignitionK();
   if (eff <= 0) return false; // non-flammable material
   if (stuff.getTemperature().rawValue() < eff) return false;
   igniteNow(stuff);
   return true;
+}
+
+/**
+ * ⭐⭐ **Can a flame burn where `stuff` is?** — *a flame needs air*, ONE
+ * gate (ceramics R3). The chamber-air arm: a thing whose immediate
+ * container is a `Burner` chamber burns only while that burner's
+ * `completeness()` is at or above `fire.air.flamingCompleteness` — so
+ * cordwood sealed in a clamp at draught 0.45 (≈ 0.53) or in a shut retort
+ * chars by its material's transition and never catches, and at `draught
+ * wide` it burns. The medium arm (underwater D29 seam 1): a thing under
+ * the water, or in any medium that will not burn, never catches. Two arms,
+ * ONE gate — never a second gate beside it.
+ */
+function mediumBurns(stuff: Stuff): boolean {
+  const medium = BiomeApi.mediumFor(stuff);
+  if (medium.immersed && !medium.atSurface) {
+    try {
+      if (!BiomeApi.mediumProps(medium.tag).supportsCombustion) return false;
+    } catch {
+      return false;
+    }
+  }
+  if (!MixinApi.isContainable(stuff)) return true;
+  const holder = stuff.getContainer() as unknown as Stuff | null;
+  if (holder === null || holder === stuff || !MixinApi.isBurner(holder)) return true;
+  return holder.completeness() >= dial(AppSettingKeys.fireAirFlamingCompleteness, 0.6);
 }
 
 /** Set the Burning state (born complete — Phase 5 flips it by air supply). */
@@ -327,17 +348,6 @@ function igniteNow(stuff: Stuff & Combustible): void {
  * real reason a doused log won't relight until dried). No-op on a non-burning
  * or non-combustible target.
  */
-/** Can a flame burn where `stuff` is? The one medium read's answer. */
-function mediumBurns(stuff: Stuff): boolean {
-  const medium = BiomeApi.mediumFor(stuff);
-  if (!medium.immersed || medium.atSurface) return true;
-  try {
-    return BiomeApi.mediumProps(medium.tag).supportsCombustion;
-  } catch {
-    return false;
-  }
-}
-
 function douseImpl(stuff: Stuff): boolean {
   // A lit furnace — put it out.
   if (MixinApi.isBurner(stuff)) {
@@ -414,6 +424,9 @@ function advanceFireInRoom(room: Stuff & Container): void {
     if (s.isDestroyed() || !MixinApi.isBurner(s)) continue;
     if (!s.isLit()) continue;
     s.heatContents();
+    // ⭐ A flame needs air (R3): a well-drawing chamber burns what in it is
+    // hot enough to catch; a starved one leaves it to char.
+    s.catchContents();
     s.exhaustTick(tickS);
   }
 

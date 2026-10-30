@@ -1,0 +1,26 @@
+# mug — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/ClayVessel
+data:
+  shortDescription: mug
+  keywords: [mug, cup]
+  register: indefinite
+  longDescription: >-
+    A clay mug, straight-sided, with a seat for a handle.
+  interiorBulk: true
+  interiorCapacity: 0.3
+  # ⭐ (ceramics W6, D28) The row is the FIRED good: a bare clone is an
+  # import nobody here made — finished, and no maker. `shape` restamps the
+  # clay, its water and its maker, so the potter's own piece is born green.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 0.35
+  # ⭐ A mug has a handle, as a jug does: pulled, and fitted with slip at
+  # leather-hard (`fit handle to mug`). Thrown, the handle line is EMPTY.
+  # Its prose has always promised "a seat for a handle", and no line stood
+  # behind it — `fit handle to mug` answered "nothing in it to fit anything
+  # to" (the ceramics drive C, run 35).
+  bill:
+    parts:
+      - { part: handle, template: /trade/ceramics/thing/handle, count: 1, role: wear }
+    joints:
+      - { key: handling, method: slip, members: [handle] }

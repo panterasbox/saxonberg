@@ -134,6 +134,19 @@ binding re-validates against the new chain).
 > a bearer token) inherits the same obligation. See
 > [banking.md](./banking.md).
 
+### Facts a pile compares beyond its identity fields
+
+`canMergeWith` also compares what is not a stored scalar: the material, the
+firing record, the coats (Faced), the **flaws an eye can find** and a green
+piece's water state and ruin. ⭐ A **hidden** flaw (one only `ring` finds)
+never splits a pile — refusing to merge would tell what the senses may not,
+the same reason a curse is not stack identity (Blessable). Instead it rides
+the merge (`takeFlawsFrom(absorbed, false)`), so stacking never launders a
+crack, and a split-off of a visibly cracked pile is cracked
+(`takeFlawsFrom(source, true)`). `Crafted.maker` is a stack-identity field:
+a stack bears no title, so the maker is what says whose a pile is (ceramics
+review R2-B6).
+
 ---
 
 ## `stack.split(n)`

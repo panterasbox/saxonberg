@@ -424,6 +424,13 @@ which is the arc a mining town is named for. ⭐ A sample split off a
 pooled lot **assays as the lot** (`Ore.onSplit` carries the grade), so
 you can take a sample to the scale and the answer means something.
 
+⭐ **And the metal gets a shape next door** (ceramics W7): Rejection's
+**foundry**, east of the smelter, is where a crucible of the smelter's metal
+is poured into a rammed sand flask, a wax block, the iron chill mould or —
+from the casting yard — the bell pit; the `founding` Discipline
+(`/trade/smelting`, specializing `smelting`) is credited by the pour. See
+[mould.md](./mould.md).
+
 ## Fuel — pyrolysis, and the clamp
 
 `trade-fuel` is **one craft, not a product list**: burn matter in starved

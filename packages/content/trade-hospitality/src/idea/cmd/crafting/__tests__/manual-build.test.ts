@@ -51,6 +51,7 @@ const GIN = "/stuff/idea/material/spirit/gin";
 const VERMOUTH = "/stuff/idea/material/spirit/vermouth";
 const MARTINI_MAT = "/stuff/idea/material/cocktail/martini";
 const MIXED_MAT = "/platform/idea/material/blend";
+const BITTERS = "/stuff/idea/material/bitters";
 
 class TestActor extends CommandGiverMixin(
   SensorMixin(EngagedMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -61,12 +62,21 @@ class TestActor extends CommandGiverMixin(
 
 let store: Record<string, Record<string, unknown>[]>;
 
-function registerMaterial(path: string, name: string, tags: string[]): void {
+function registerMaterial(
+  path: string,
+  name: string,
+  tags: string[],
+  servingKg = 0,
+): void {
   makeStuffAtPath(() => {
     const m = new Material();
     m.setName(name);
     m.setTags(tags);
     m.setKeywords(tags.slice(-1)); // primary keyword = the category tag
+    // ⭐ A pour is one serving (re-plan R1-D4): the row's bar measure at
+    // its density — 60 ml of gin, 10 ml of dry vermouth, 2 ml of bitters.
+    m.setDensity(Quantity.of(1000, "kg/m³"));
+    if (servingKg > 0) m.setServingKg(servingKg);
     return m;
   }, path);
 }
@@ -132,8 +142,9 @@ beforeEach(async () => {
   EventApi._setRegistryForTesting(reg);
   mockPersistenceStore(store);
 
-  registerMaterial(GIN, "house gin", ["spirit", "gin"]);
-  registerMaterial(VERMOUTH, "dry vermouth", ["spirit", "vermouth"]);
+  registerMaterial(GIN, "house gin", ["spirit", "gin"], 0.06);
+  registerMaterial(VERMOUTH, "dry vermouth", ["spirit", "vermouth"], 0.01);
+  registerMaterial(BITTERS, "bitters", ["bitters"], 0.002);
   registerMaterial(MARTINI_MAT, "martini", ["cocktail"]);
   registerMaterial(MIXED_MAT, "mixed drink", ["cocktail"]);
 
@@ -191,7 +202,8 @@ describe("pour as an engaged activity", () => {
     expect(shaker.isBuildEmpty()).toBe(true);
     expect(BulkableApi.slotFor(bottle, undefined)!.getAmount().rawValue()).toBeCloseTo(0.7, 6);
 
-    // Complete on the game clock: debit 0.06, bank a gin contribution.
+    // Complete on the game clock: debit one serving of gin (0.06), bank a
+    // gin contribution.
     WorldClockApi._advanceForTesting(3000);
     await flush();
 
@@ -248,6 +260,36 @@ describe("pour as an engaged activity", () => {
   });
 });
 
+describe("a pour is one serving (re-plan R1-D4)", () => {
+  async function pourOnce(materialPath: string, amount?: string): Promise<number> {
+    const bottle = makeBottle(materialPath, "fine", 0.7);
+    const shaker = makeStuff(() => new CocktailShaker());
+    ContainmentApi.move(bottle, room);
+    ContainmentApi.move(shaker, room);
+    await makeStuff(() => new PourController()).execute(
+      {
+        spirit: ref(bottle, "x"),
+        vessel: ref(shaker, "shaker"),
+        ...(amount ? { amount } : {}),
+      } as never,
+      makeContext(actor, room, "pour"),
+    );
+    WorldClockApi._advanceForTesting(3000);
+    await flush();
+    return shaker.getBuildVolumeL();
+  }
+
+  it("gin pours 60 ml, dry vermouth 10 ml, bitters 2 ml", async () => {
+    expect(await pourOnce(GIN)).toBeCloseTo(0.06, 6);
+    expect(await pourOnce(VERMOUTH)).toBeCloseTo(0.01, 6);
+    expect(await pourOnce(BITTERS)).toBeCloseTo(0.002, 6);
+  });
+
+  it("`--amount 30ml` measures instead", async () => {
+    expect(await pourOnce(VERMOUTH, "30ml")).toBeCloseTo(0.03, 6);
+  });
+});
+
 describe("strain as the terminal mint", () => {
   it("conserves a full build into a graded, stamped drink", async () => {
     const gin = makeBottle(GIN, "fine", 0.7);
@@ -265,10 +307,11 @@ describe("strain as the terminal mint", () => {
       WorldClockApi._advanceForTesting(3000);
       await flush();
     }
-    // Conservation: each bottle drained 0.06; buffer holds 0.12.
+    // Conservation: each bottle drained one serving — gin 0.06, vermouth
+    // 0.01 — and the buffer holds 0.07, the martini's own proportion.
     expect(BulkableApi.slotFor(gin, undefined)!.getAmount().rawValue()).toBeCloseTo(0.64, 6);
-    expect(BulkableApi.slotFor(vermouth, undefined)!.getAmount().rawValue()).toBeCloseTo(0.64, 6);
-    expect(shaker.getBuildVolumeL()).toBeCloseTo(0.12, 6);
+    expect(BulkableApi.slotFor(vermouth, undefined)!.getAmount().rawValue()).toBeCloseTo(0.69, 6);
+    expect(shaker.getBuildVolumeL()).toBeCloseTo(0.07, 6);
 
     // Strain into the glass.
     await makeStuff(() => new StrainController()).execute(
@@ -282,7 +325,7 @@ describe("strain as the terminal mint", () => {
     expect(MixinApi.isCrafted(glass)).toBe(true);
     const slot = BulkableApi.slotFor(glass, undefined)!;
     expect(slot.getMaterialPath()).toBe(MARTINI_MAT);
-    expect(slot.getAmount().rawValue()).toBeCloseTo(0.12, 6); // mass conserved
+    expect(slot.getAmount().rawValue()).toBeCloseTo(0.07, 6); // mass conserved
     expect((glass as unknown as { getGradeBand(): string }).getGradeBand()).toBe("fair");
     expect((glass as unknown as { getRecipe(): string }).getRecipe()).toBe("martini");
     expect(shaker.isBuildEmpty()).toBe(true);

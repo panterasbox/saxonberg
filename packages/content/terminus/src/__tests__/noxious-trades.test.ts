@@ -247,6 +247,10 @@ describe('the premises have what the trades need', () => {
       '/trade/chandlery/thing/soap-bar',
       '/trade/chandlery/thing/soft-soap-jar',
       '/trade/chandlery/thing/lye-flask',
+      // ⭐ (ceramics W6) the empty pots to carry them home in — the Delight
+      // pottery's, local first.
+      '/trade/ceramics/thing/jar',
+      '/trade/ceramics/thing/flask',
       '/trade/chandlery/thing/glycerin-jar',
       '/trade/quarrying/thing/sulfur',
       '/trade/fuel/thing/wood-ash',

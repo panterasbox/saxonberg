@@ -126,7 +126,7 @@ export default class IronPot extends IronPotBase {
     const grade: Grade | null = MixinApi.isGraded(self) ? self.getGrade() : null;
     const cake = await this.castInto({ material, massKg: alkaliKg / PURITY, payload: null, stampMaterial: true, madeBy: owner });
     if (cake === null) return;
-    if (MixinApi.isComposition(cake)) cake.setAlloying([{ materialPath: POTASH, fraction: PURITY }]);
+    if (MixinApi.isComposition(cake)) cake.setMakeup([{ materialPath: POTASH, fraction: PURITY }]);
     // ⭐ The cake is graded as the lye was (AC 3): the pour carried the
     // lye's band onto the pot.
     if (grade !== null && MixinApi.isGraded(cake)) cake.setGrade(grade);

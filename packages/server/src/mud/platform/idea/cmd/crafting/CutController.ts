@@ -13,13 +13,8 @@ import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type {
-  CutPlan,
-  CutPlanner,
-  CutRefusal,
-  CutRequest,
-  Cuttable,
-} from '../../../../lib/craft/Cuttable';
+import type { CutPlanner, CutRequest, Cuttable } from '../../../../lib/craft/Cuttable';
+import type { ActPlan, ActRefusal } from '../../../../lib/craft/ActPlan';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 
@@ -56,7 +51,7 @@ export default class CutController extends ManualBuildController<CutModel> {
       },
     };
 
-    let plan: CutPlan | CutRefusal | null = null;
+    let plan: ActPlan | ActRefusal | null = null;
     if (target !== null && isCuttable(target)) {
       plan = await target.cutPlan(req);
     } else if (target !== null) {
@@ -86,13 +81,6 @@ export default class CutController extends ManualBuildController<CutModel> {
       this.declineStep(context, plan.line, plan.reason);
       return;
     }
-    this.engageStep(context, {
-      durationMs: plan.durationMs,
-      effortW: plan.effortW,
-      beginSelf: plan.beginSelf,
-      ...(plan.beginPeers ? { beginPeers: plan.beginPeers } : {}),
-      onComplete: plan.onComplete,
-      ...(plan.onAbort ? { onAbort: plan.onAbort } : {}),
-    });
+    await this.engagePlan(context, plan);
   }
 }

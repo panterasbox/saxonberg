@@ -14,6 +14,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
+import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
@@ -34,6 +35,7 @@ import type Interactive from '../../Interactive';
 import '../../../../api/material';
 
 class TangibleThing extends TangibleMixin(NamedMixin(Good)) {}
+class Crock extends BulkableMixin(NamedMixin(Good)) {}
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))
@@ -120,6 +122,41 @@ describe('ChemistryReading', () => {
     // molarMass quantity markup (g/mol).
     expect(frame.body).toContain('unit="g/mol"');
     expect(frame.body).toContain('value="55.845"');
+  });
+
+  it('⭐ a VESSEL reads what it holds, and what is dissolved in it — the lead no sense reports (ceramics)', async () => {
+    const zone = makeStuff(() => new CartesianZone());
+    const room = makeStuff(() => new Location());
+    zone.addLocation(room, 0, 0, 0);
+    const clay = makeStuff(() => new Material());
+    clay.setName('earthenware');
+    clay.setDensity(Quantity.of(2000, 'kg/m³'));
+    stampTemplatePathForTest(clay, '/stuff/idea/material/_chem/earthenware');
+    const vinegar = makeStuff(() => new Material());
+    vinegar.setName('wine vinegar');
+    vinegar.setDensity(Quantity.of(1010, 'kg/m³'));
+    stampTemplatePathForTest(vinegar, '/stuff/idea/material/_chem/vinegar');
+    const crock = makeStuff(() => {
+      const c = new Crock();
+      c.setName('leadpot');
+      c.setMaterial(clay);
+      c.interiorBulk = true;
+      c.setInteriorCapacity(Quantity.of(2, 'L'));
+      return c;
+    });
+    crock.setBulkMaterial('interior', vinegar);
+    crock.setBulkAmount('interior', Quantity.of(1, 'L'));
+    crock.setBulkPayload('interior', { dissolvedToxins: [{ type: 'lead', amount: 12 }] } as never);
+    ContainmentApi.move(crock, room);
+    const avatar = makeStuff(() => new FakeAvatar());
+    avatar.setName('Alice');
+    ContainmentApi.move(avatar, room);
+    const reading = withRow(await StuffApi.create(() => new ChemistryReading()), 'chemistry');
+    await driveAnalyze(reading, makeContext(avatar, room), { subject: { stuff: crock, raw: 'leadpot' } });
+    const frame = avatar.received[0] as { body: string };
+    expect(frame.body).toContain('material: earthenware');
+    expect(frame.body).toContain('contents: wine vinegar');
+    expect(frame.body).toMatch(/dissolved lead: 12\.0 mg per liter/);
   });
 
   it('rejects a non-Tangible target', async () => {

@@ -60,9 +60,18 @@
 import Thing from './Thing';
 import { ChattelMixin } from '../chattel/Chattel';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { FacedMixin } from '../material/Faced';
+import { IntegrityMixin } from '../material/Integrity';
 import type { FieldMeta } from '../mixin';
 
-const GoodBase = ChattelMixin(ConcealableMixin(Thing));
+// ⭐ Faced (ceramics D5): every good has an outside something can be laid
+// on — a glaze on a jug, a coat on a cart. Not on `Thing`: a wall and a
+// floor take paint through construction's layers.
+// ⭐ Integrity (ceramics review, 2026-10-29): an article carries the one
+// damage record — a crack, a dunt, a misrun; how whole it is; how it takes
+// a blow; how it rings. Not on `Thing`: a wall's damage is construction's,
+// a body's is harm's.
+const GoodBase = FacedMixin(IntegrityMixin(ChattelMixin(ConcealableMixin(Thing))));
 
 export default class Good extends GoodBase {
   static fieldMeta: FieldMeta = {};

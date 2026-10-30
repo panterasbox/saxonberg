@@ -62,7 +62,12 @@ NPC carries it). Pure CRUD; all per-realm intelligence lives in consumers.
   stores a `typeKnown` *flag* — the type name is read live, never
   snapshotted.
 - **Lazy liveness-GC**: `recall` drops a record whose referent no longer
-  resolves to any live Stuff (`StuffApi.findAllByTemplatePath`).
+  resolves to any live Stuff (`StuffApi.findAllByTemplatePath`). ⚠ Under
+  load-on-use that includes a person who is merely NOT LOADED (offline, an
+  unvisited zone), so a recall forgets them — slated
+  ([belief-recall-forgets-the-absent-slate](../slates/tails/belief-recall-forgets-the-absent-slate.md)).
+  `knownNameOf(identityPath)` reads the recognition name without collecting
+  (B106 — a maker's mark is known while the maker is away).
 - `_beliefs` is **not** a persistent field of the host — records are their
   own Documents (see Persistence).
 
@@ -439,6 +444,16 @@ holds; sequential single-viewer commands keep the race benign).
   on an account `aroundDelete`, plus a liveness-GC backstop — GDPR/erasure)
   can purge it. The cascade itself is the persistence layer's job; no
   account-deletion hook exists to wire today.
+
+## ⛔ A cast of a face is a likeness, never a disguise (ceramics W7, M9)
+
+A living body pressed into a mould (`impress <person> in plaster`) leaves a
+**likeness** — `TangibleMixin.leaveImpression` answers the commons
+`likeness` row and nothing else — and the cast is a mask of how they looked.
+⚠⚠ It confers NOTHING to belief: no realm is written by the impression, the
+cast, or anybody holding or wearing it, and a viewer's recognition of the
+holder is untouched (`Mould.envelope.test.ts` asserts it). Disguise stays
+`Disguisable`'s, and a likeness is not one. See [mould.md](./mould.md).
 
 ## Deferred tails
 

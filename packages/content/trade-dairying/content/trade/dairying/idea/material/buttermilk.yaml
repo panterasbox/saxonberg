@@ -19,6 +19,8 @@ data:
   spoilActivationEnergy: 60000
   waterActivity: 0.99
   toxicity: []
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 4.5
   tags: ["food", "dairy", "liquid", "perishable", "buttermilk"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.

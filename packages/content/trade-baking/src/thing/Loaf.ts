@@ -13,8 +13,9 @@
  *  3. it **stales** — ⭐ the one thing on this list that is not spoilage
  *     and must never be confused with it. Staling is the bread MATERIAL's
  *     kinetics (retrogradation, authored on its row) run by the kernel's
- *     `KineticMixin` on `Provision`; baking's own `StalingMixin` retired
- *     into it (sugar build, 2026-10-24).
+ *     `ThermalMixin` on `Provision`; baking's own `StalingMixin` retired
+ *     into it (sugar build, 2026-10-24; `KineticMixin` folded into the
+ *     thermal record, 2026-10-28).
  *
  * ## ⭐⭐ The appearance is WORDS for a continuous number
  *
@@ -33,25 +34,18 @@ import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
-/** The bran materials a loaf's composition may name. */
+/** The bran materials a loaf's makeup may name. */
 const BRAN_PATHS = ['/stuff/idea/material/food/bran'];
 
 /**
- * The share of this loaf's composition that is bran, `[0, 1]`. `0` for a
+ * The share of this loaf's makeup that is bran, by mass, `[0, 1]`. `0` for a
  * loaf that knows nothing about what it is made of — which reads as
  * plain bread rather than as white bread, and that distinction is
  * deliberate: not knowing is not the same as being pale.
  */
 export function branShareOf(host: Stuff): number {
-  if (!MixinApi.isComposed(host)) return 0;
-  const parts = host.getComposition();
-  let bran = 0;
-  let total = 0;
-  for (const p of parts) {
-    total += p.servings;
-    if (BRAN_PATHS.includes(p.materialPath)) bran += p.servings;
-  }
-  return total > 0 ? bran / total : 0;
+  if (!MixinApi.isComposition(host)) return 0;
+  return BRAN_PATHS.reduce((sum, path) => sum + host.fractionOf(path), 0);
 }
 
 /**

@@ -17,7 +17,7 @@ const POTASH = '/stuff/idea/material/mineral/potash';
 function heap(fraction: number, graded = true): Ash {
   const a = makeStuff(() => new Ash());
   a.setGradedByStrength(graded);
-  a.setAlloying([{ materialPath: POTASH, fraction }]);
+  a.setMakeup([{ materialPath: POTASH, fraction }]);
   return a;
 }
 
@@ -43,7 +43,7 @@ describe('a heap of ash', () => {
   it('a refined product keeps the grade it was given', () => {
     const cake = makeStuff(() => new Ash());
     cake.setGradeBand('poor');
-    cake.setAlloying([{ materialPath: POTASH, fraction: 0.65 }]);
+    cake.setMakeup([{ materialPath: POTASH, fraction: 0.65 }]);
     expect(cake.getGrade().getBand()).toBe('poor');
     expect(cake.strengthLine()).toBe('');
     expect(heap(0.65, false).strength()).toBeCloseTo(0.65, 6);

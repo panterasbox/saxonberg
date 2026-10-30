@@ -241,6 +241,56 @@ export interface Burner extends Pumpable {
    * furnace's new lit state. */
   restampHeated(): void;
 
+  /**
+   * ⭐ The heat this fire holds for ONE body in it (ceramics D3). Default:
+   * the same for everything, `getHeldTemperatureK()`. A clamp answers by
+   * where the brick stands in it.
+   */
+  heldTemperatureKFor(body: Stuff): number;
+  /**
+   * ⭐ What the vessel lets the fire reach, `(0, 1]` (ceramics D19): `1`
+   * with no lining; `0.6 + 0.4 × health` with one — a thinning lining
+   * holds less heat.
+   */
+  heatCeilingFactor(): number;
+  /**
+   * The lining's health, `0..1` — `(count − failed − (1 − condition)) ÷
+   * count` over the bill's `lining` line — or `null` with no lining.
+   */
+  liningHealth(): number | null;
+  /** Wear the lining by a hold at `heldK` for `heldS` (a firing, a smelt run). */
+  wearLining(heldK: number, heldS: number): void;
+  /**
+   * @hook Called by `fire` as a hold begins — a clamp sets its charge into
+   * its fire channels here. Default: nothing.
+   */
+  onFireStart(by: Stuff | null): Promise<void>;
+  /** What has vaporized into this chamber's air, kg by material path. */
+  getChamberVapors(): Readonly<Record<string, number>>;
+  /** A lump of `materialPath` became vapor in this chamber. */
+  addChamberVapor(materialPath: string, kg: number): void;
+  /**
+   * @hook ⭐ What leaves a converting body in this chamber — a firing's tar,
+   * its gas, its wood spirit: the litres this chamber TAKES, `0` by default.
+   * What it does not take goes into the air of the place it stands in (the
+   * thermal transition routes it). A retort hands it to the receivers on its
+   * head (B105 — it was a duck-probe the kernel made of the trade's class).
+   */
+  receiveVolatiles(materialPath: string, litres: number): number;
+  /**
+   * ⭐ Settle a firing: bring every body in the chamber current (each
+   * reconciles its own heat-work, transitions and volatiles), let what can
+   * burn here burn, and hand back the Disciplines the rungs completed —
+   * the one completion `fire` and `char` share.
+   */
+  settleFiring(by: Stuff | null): Promise<SettledFiring>;
+  /**
+   * ⭐ A flame needs air (R3), from the chamber's side: while this burner
+   * draws at or above `fire.air.flamingCompleteness`, anything in it hot
+   * enough to catch goes onto the bed and burns. Below it, nothing catches.
+   */
+  catchContents(): void;
+
   // Authorable configuration.
   setBurnTemperatureK(value: number): void;
   setBellowsMultiplier(value: number): void;
@@ -250,6 +300,16 @@ export interface Burner extends Pumpable {
   setFlameEnclosed(value: boolean): void;
   // Gated (Api) lit-state writer.
   _setLit(value: boolean): void;
+}
+
+/** What `settleFiring` hands back. */
+export interface SettledFiring {
+  /** The bodies still in the chamber, after it settled. */
+  contents: Stuff[];
+  /** Disciplines the rungs reached in this firing credit, in order. */
+  disciplines: string[];
+  /** Bodies that caught and went onto the bed. */
+  burnt: number;
 }
 
 /**
@@ -415,8 +475,174 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       flameEnclosed: { persistent: true, authorable: true },
       burnerFuelClockStamp: { persistent: true, runtimeState: true },
       ashKg: { persistent: true, runtimeState: true },
+      chamberVapors: { persistent: true, runtimeState: true },
       ashAlkaliKg: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ What vaporized in this chamber (ceramics ruling B): salt thrown in
+     * at peak heat is salt vapor in the kiln's air, and a stoneware body
+     * reaching its rung under it takes a salt-glaze coat. Cleared when the
+     * fire goes out — the vapor goes up the flue.
+     */
+    public chamberVapors: Record<string, number> = {};
+
+    public getChamberVapors(): Readonly<Record<string, number>> {
+      return this.chamberVapors;
+    }
+
+    public receiveVolatiles(_materialPath: string, _litres: number): number {
+      return 0;
+    }
+
+    public addChamberVapor(materialPath: string, kg: number): void {
+      if (typeof materialPath !== 'string' || materialPath === '' || !(kg > 0)) return;
+      this.chamberVapors = {
+        ...this.chamberVapors,
+        [materialPath]: (this.chamberVapors[materialPath] ?? 0) + kg,
+      };
+    }
+
+    /**
+     * @hook The heat this fire holds for `body`. Override where a fire is
+     * hotter in one place than another (a clamp's fire channels).
+     */
+    public heldTemperatureKFor(_body: Stuff): number {
+      return this.getHeldTemperatureK();
+    }
+
+
+    public heatCeilingFactor(): number {
+      const h = this.liningHealth();
+      return h === null ? 1 : 0.6 + 0.4 * h;
+    }
+
+    public liningHealth(): number | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAssembled(self)) return null;
+      const line = self.getLine('lining');
+      if (line === null || !(line.count > 0)) return null;
+      const left = line.count - line.failed - (1 - line.condition);
+      return Math.max(0, Math.min(1, left / line.count));
+    }
+
+    /**
+     * ⭐ A hold wears the lining (ceramics D19): `fire.lining.wearPerHour`
+     * bricks' worth an hour at the lining's own limit (its material's
+     * melting point), scaling as (held ÷ limit)³ — a gentle bread oven
+     * barely touches its bricks, a smelting furnace eats them. Worn brick
+     * by brick through the shipped `wearLine`, so a relining replaces the
+     * bricks that failed.
+     */
+    public wearLining(heldK: number, heldS: number): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isAssembled(self) || !(heldK > 0) || !(heldS > 0)) return;
+      const line = self.getLine('lining');
+      if (line === null) return;
+      const brick = StuffApi.findByTemplatePath<Material>(line.material);
+      const limitK = brick?.getMeltingPoint().rawValue() || 1950;
+      let units =
+        burnerDial(AppSettingKeys.fireLiningWearPerHour, 0.5) *
+        (heldS / 3600) *
+        Math.pow(Math.min(1.5, heldK / limitK), 3);
+      for (let guard = 0; units > 1e-9 && guard < 200; guard++) {
+        const now = self.getLine('lining');
+        if (now === null || now.failed >= now.count) break;
+        const step = Math.min(units, Math.max(1e-6, now.condition));
+        self.wearLine('lining', step);
+        units -= step;
+      }
+    }
+
+    /** @hook Called by `fire` as a hold begins. Default: nothing. */
+    public async onFireStart(_by: Stuff | null): Promise<void> {
+      return;
+    }
+
+    public async settleFiring(_by: Stuff | null): Promise<SettledFiring> {
+      const self = this as unknown as Stuff;
+      this.catchContents();
+      const disciplines: string[] = [];
+      const contents: Stuff[] = [];
+      const beforeIds = new Set<string>();
+      if (MixinApi.isContainer(self)) {
+        for (const c of self.getContents()) beforeIds.add((c as unknown as Stuff).stuffId);
+        // ⭐ Each body reconciles its OWN heat history — the firing decides
+        // nothing about the charge. A read is the whole act.
+        for (const c of [...self.getContents()]) {
+          const body = c as unknown as Stuff;
+          if (body.isDestroyed()) continue;
+          if (MixinApi.isThermal(body)) {
+            body.getTemperature();
+            // A piece that vaporized (salt) left the chamber on that read.
+            if (body.isDestroyed()) continue;
+            for (const d of body.drainKineticCredits()) disciplines.push(d);
+          }
+        }
+        for (const c of [...self.getContents()]) {
+          const body = c as unknown as Stuff;
+          if (body.isDestroyed()) continue;
+          // ⭐ One level into a mould: the charge standing in it reads too.
+          if (MixinApi.isMould(body) && MixinApi.isContainer(body)) {
+            for (const inner of [...body.getContents()]) {
+              const piece = inner as unknown as Stuff;
+              if (piece.isDestroyed() || !MixinApi.isThermal(piece)) continue;
+              piece.getTemperature();
+              // ⚠ A piece that reached its rung in a mould was poured into
+              // the cast and destructed by the read above: its credits
+              // went with its record to the cast, which is drained below.
+              if (piece.isDestroyed()) continue;
+              for (const d of piece.drainKineticCredits()) disciplines.push(d);
+            }
+          }
+          if (MixinApi.isThermal(body)) await body.settleKinetics();
+          // The casts a rung just minted in a mould carry the credit now.
+          if (MixinApi.isMould(body) && MixinApi.isContainer(body)) {
+            for (const inner of body.getContents()) {
+              const cast = inner as unknown as Stuff;
+              if (!cast.isDestroyed() && MixinApi.isThermal(cast)) {
+                for (const d of cast.drainKineticCredits()) disciplines.push(d);
+              }
+            }
+          }
+        }
+        for (const c of self.getContents()) {
+          const body = c as unknown as Stuff;
+          if (!body.isDestroyed()) contents.push(body);
+        }
+      }
+      return { contents, disciplines, burnt: Math.max(0, beforeIds.size - contents.length) };
+    }
+
+    public catchContents(): void {
+      const self = this as unknown as Stuff;
+      if (!this.lit || !MixinApi.isContainer(self)) return;
+      if (this.completeness() < burnerDial(AppSettingKeys.fireAirFlamingCompleteness, 0.6)) return;
+      for (const c of [...self.getContents()]) {
+        const body = c as unknown as Stuff;
+        if (body.isDestroyed() || !MixinApi.isTangible(body) || !MixinApi.isThermal(body)) continue;
+        // A Combustible catches by its own heat-threshold path (FireLogic).
+        if (MixinApi.isCombustible(body)) continue;
+        const mat = body.getMaterial();
+        if (mat === null) continue;
+        // ⚠ The DRY ignition point, deliberately (review R2-B1, corrected):
+        // a piece that has sat at this heat inside a drawing chamber has
+        // driven its water off — the thermal model has no boiling plateau,
+        // so its temperature overstates a wet body's and the wet penalty
+        // would hold green cordwood back forever (the fuel pack's burn
+        // test). The wet penalty is a POUR's: sudden heat on a cold, wet
+        // receiver (`canReceiveAtK`).
+        const ignK = mat.getAutoignitionTemperature().rawValue();
+        if (!(ignK > 0) || !(mat.getHeatOfCombustion().rawValue() > 0)) continue;
+        if (body.getTemperature().rawValue() < ignK) continue;
+        // ⭐ It is fuel now: onto the bed, where the burner's own path burns
+        // it and leaves its ash in the grate. No second combustion model.
+        // ⚠ Not through `stoke`'s too-wet refusal: that gate is about a
+        // HAND-flame drying a sodden log, and a piece already at its
+        // ignition point inside a drawing chamber has driven its water off.
+        this.bedItem(body);
+      }
+    }
 
     /**
      * ⭐ The ash in the grate, kg (cleanliness D24): every kilogram of a
@@ -489,7 +715,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
         );
         if (!heap) break;
         if (MixinApi.isTangible(heap)) heap.setMass(Quantity.of(mass, 'kg'));
-        if (MixinApi.isComposition(heap)) heap.setAlloying([{ materialPath: alkaliPath, fraction: strength }]);
+        if (MixinApi.isComposition(heap)) heap.setMakeup([{ materialPath: alkaliPath, fraction: strength }]);
         if (opts.into && MixinApi.isContainer(opts.into) && MixinApi.isContainable(heap)) {
           ContainmentApi.move(heap, opts.into);
         }
@@ -864,7 +1090,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getHeldTemperatureK(): number {
       const mult = this.bellowsActive ? this.bellowsMultiplier : 1;
-      const vesselCeiling = this.burnTemperatureK * mult;
+      const vesselCeiling = this.burnTemperatureK * mult * this.heatCeilingFactor();
       const flame =
         this.fuelSource().kind === 'worked' ? Infinity : this.fuelFlameK();
       const reachable = flame > 0 ? Math.min(vesselCeiling, flame) : vesselCeiling;
@@ -1086,6 +1312,14 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       if (burnerFireLogic().tooWetToCatch(item)) {
         return { ok: false, reason: 'too-wet' };
       }
+      return this.bedItem(item);
+    }
+
+    /** Lay a piece of fuel matter on the bed — `stoke` past its wet gate. */
+    private bedItem(item: Stuff): StokeOutcome {
+      if (!MixinApi.isTangible(item)) return { ok: false, reason: 'not-matter' };
+      const material = item.getMaterial();
+      if (!material) return { ok: false, reason: 'not-fuel' };
       const kg = item.getMass().rawValue();
       if (!(kg > 0)) return { ok: false, reason: 'not-matter' };
       if (this.fuelRemaining() + kg > this.effectiveCapacityKg()) {
@@ -1301,6 +1535,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     private _goOut(): void {
       this.settleRoomAir();
       this.lit = false;
+      this.chamberVapors = {};
       this.restampHeated();
     }
 
@@ -1310,6 +1545,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     public _setLit(value: boolean): void {
       this.settleRoomAir();
       this.lit = value === true;
+      if (!this.lit) this.chamberVapors = {};
       // ⭐ The eighth re-stamp trigger class (the `Atmospheric
       // .setTemperature` fan-out shape): lighting or dousing changes
       // the ambient of everything the furnace heats, and the cached

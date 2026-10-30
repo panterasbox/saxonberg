@@ -511,6 +511,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const frozen = ice !== null && ice.thicknessM > OPEN_WATER_BELOW_M;
     const tide = this.tideOf(reach, nowS);
     const fouled = (contamination?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
+    const drawn = drawnWaterPath(fouled, contamination);
     const opaque: ReachReadState = {
       reach,
       standing,
@@ -532,7 +533,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       draw: frozen
         ? null
         : {
-            materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
+            materialPath: drawn,
             temperatureK: water?.temperatureK ?? UNDER_ICE_K,
             // ⭐ The water carries its source's hardness (cleanliness D12).
             ...(water ? { hardnessDgh: water.hardnessDgh } : {}),
@@ -542,7 +543,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       ...(frozen
         ? {
             underIce: {
-              materialPath: fouled ? FOULED_WATER_PATH : FRESH_WATER_PATH,
+              materialPath: drawn,
               temperatureK: UNDER_ICE_K,
               ...(water ? { hardnessDgh: water.hardnessDgh } : {}),
             },
@@ -2513,6 +2514,29 @@ const FOULED_CLARITY_M = 1;
 const FRESH_WATER_PATH = '/stuff/idea/material/bulk/water';
 /** What a pail drawn below an outfall holds — no sense announces it. */
 const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
+/**
+ * ⭐ What a pail drawn below a PERSISTENT outfall holds (ceramics W8): the
+ * dirt is dissolved — no boil and no filter takes it out.
+ */
+const TAINTED_WATER_PATH = '/stuff/idea/material/bulk/tainted-water';
+
+/**
+ * ⭐⭐ **What a dirty reach's water IS, by the kind of its dirt** (ceramics
+ * W8, S9). The level decides THAT a draw is dirty; the dominant kind decides
+ * which dirty: organic and sediment (a sewer, a washing) are carried —
+ * fouled water, which a boil or a stoneware filter makes water again;
+ * persistent and nutrient (a smelter, a field's run-off) are dissolved —
+ * tainted water, which neither does. A tie goes to `fouled`: the cheaper
+ * remedy is the one a reach mostly needs, and the reading says which.
+ */
+function drawnWaterPath(fouled: boolean, reading: ContaminationReading | null): string {
+  if (!fouled) return FRESH_WATER_PATH;
+  const k = reading?.byKind;
+  if (!k) return FOULED_WATER_PATH;
+  const carried = k.organic + k.sediment;
+  const dissolved = k.persistent + k.nutrient;
+  return dissolved > carried ? TAINTED_WATER_PATH : FOULED_WATER_PATH;
+}
 
 /** The source's own half of a reach's read. */
 interface ReachReadState {

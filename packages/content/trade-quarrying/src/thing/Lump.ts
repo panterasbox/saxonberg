@@ -9,6 +9,11 @@
  * consumer downstream actually reads: the smelt looks for the `flux` tag,
  * the field looks for `liming`, the kiln looks for what its recipe names.
  *
+ * ⭐ **And it has a temperature** (ceramics M1): a lump of limestone in a
+ * kiln banks heat-work and becomes quicklime by its material's own heat
+ * transition — the same lump, lighter, and it says so. Without `Thermal`
+ * a lump in a fire had no heat at all to bank.
+ *
  * ⚠ No grade, deliberately. An ore lump carries one because a smelt's yield
  * is grade × metal fraction; a limestone lump does not, because a flux
  * either is limestone or is not. Adding a grade here would invent a number
@@ -17,5 +22,6 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
+import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 
-export default class Lump extends StackableMixin(Good) {}
+export default class Lump extends ThermalMixin(StackableMixin(Good)) {}

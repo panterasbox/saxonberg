@@ -21,7 +21,7 @@ const flask: DeliveryInputs = {
   channel: "blunt",
   band: "near",
   envelope: "near",
-  toughness: 0.05, // glass
+  brittle: true, // glass
   hardness: 500,
   payload: { kind: "test-envelope" },
 };
@@ -34,7 +34,7 @@ const arrow: DeliveryInputs = {
   channel: "point",
   band: "far",
   envelope: "far",
-  toughness: 5,
+  brittle: false,
   hardness: 200,
   balancedForFlight: true,
 };
@@ -73,7 +73,7 @@ describe("DeliveryProfile — AC 14: the wound path cannot tell carriers apart",
       speedMs: 40,
       channel: "point",
       balancedForFlight: true,
-      toughness: 5,
+      brittle: false,
       hardness: 200,
       payload: undefined,
     });
@@ -95,16 +95,24 @@ describe("DeliveryProfile — AC 14: the wound path cannot tell carriers apart",
 });
 
 describe("DeliveryProfile — integrity decides what the room gets", () => {
-  it("a brittle vessel shatters — which is what makes it a carrier", () => {
+  it("a brittle vessel can shatter — which is what makes it a carrier (the body judges each arrival)", () => {
     const p = DeliveryProfile.derive(flask);
     expect(p.integrity).toBe("shatter");
-    expect(p.breaksOnArrival()).toBe(true);
+    expect(p.canShatter()).toBe(true);
+  });
+
+  it("⭐ a stoneware jug can shatter: brittleness is the class, not a toughness line (R2-D2)", () => {
+    // Stoneware's toughness is 7 MJ/m³, and the retired `toughness < 1`
+    // line called a hurled jug recoverable, so the body's own verdict was
+    // never asked. Brittle is the one predicate the breakage rule uses.
+    const jug = DeliveryProfile.derive({ ...flask, brittle: true, payload: undefined });
+    expect(jug.canShatter()).toBe(true);
   });
 
   it("a tough projectile is recoverable — spent arrows persist", () => {
     const p = DeliveryProfile.derive(arrow);
     expect(p.integrity).toBe("recover");
-    expect(p.breaksOnArrival()).toBe(false);
+    expect(p.canShatter()).toBe(false);
   });
 
   it("a soft projectile deforms rather than surviving", () => {
@@ -114,10 +122,10 @@ describe("DeliveryProfile — integrity decides what the room gets", () => {
 
   it("thresholds are config-injected, not literals", () => {
     const p = DeliveryProfile.derive(
-      { ...arrow, toughness: 3 },
-      { ...DEFAULT_DELIVERY_PROFILE_CONFIG, shatterToughness: 10 },
+      { ...arrow, hardness: 200 },
+      { ...DEFAULT_DELIVERY_PROFILE_CONFIG, deformHardness: 300 },
     );
-    expect(p.integrity).toBe("shatter");
+    expect(p.integrity).toBe("deform");
   });
 });
 
@@ -191,7 +199,7 @@ describe("DeliveryProfile.toInflictSpec — the kinetic half", () => {
     channel: "blunt" as const,
     band: "near" as const,
     envelope: "near" as const,
-    toughness: 200,
+    brittle: false,
     hardness: 600,
   };
 

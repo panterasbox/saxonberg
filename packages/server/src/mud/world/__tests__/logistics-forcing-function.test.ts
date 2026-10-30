@@ -51,6 +51,8 @@ const RESTOCKS = fileURLToPath(
 const CONTENT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 
 /** A brain's source with its comments stripped — the CODE, not the prose. */
+const BRAIN_MOVES = fileURLToPath(new URL('../../lib/behavior/BrainMoves.ts', import.meta.url));
+
 function codeOf(path: string): string {
   return readFileSync(path, 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -84,10 +86,15 @@ describe('⭐ AC15 — the brains stop teleporting', () => {
     // guard asks is unchanged: does the hand WALK, step by step,
     // through the ordinary `go` dispatch — or did somebody make it
     // teleport. The identifier moved; the property did not.
+    //
+    // ⭐ B107: the walk is every brain's now — `ctx.goTo` plans with
+    // `NavigationApi.routeBetween` and moves by an ordinary `go` at a
+    // time (`BrainMoves`). The brain asks for it; the moves make it.
     const code = codeOf(CONSIGNS);
-    expect(code).toMatch(/async function walkTo\(/);
-    expect(code).toMatch(/forceCommand\(`go \$\{/);
-    expect(code).toMatch(/NavigationApi\.routeBetween/);
+    expect(code).toMatch(/ctx\.goTo\(/);
+    const moves = codeOf(BRAIN_MOVES);
+    expect(moves).toMatch(/executeCommand\(`go \$\{/);
+    expect(moves).toMatch(/NavigationApi\.routeBetween/);
   });
 
   it('⭐⭐ NEITHER brain calls `teleport`, anywhere, at all', () => {

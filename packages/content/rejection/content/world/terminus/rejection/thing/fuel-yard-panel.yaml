@@ -11,16 +11,17 @@
 # plant slots, exactly once, through the persistence gate.
 #
 # ⚠⚠ **The charcoal arithmetic, stated here because this row IS the
-# rate.** Six stools × eight lengths a cut = 48 lengths a game year. A
-# burn takes eight lengths at `yieldRatio: 0.35` and a draught of 0.45
-# → two baskets; a smelt takes two baskets. So: **six burns, twelve
-# baskets, SIX SMELTS per panel per game year** (thirty real days), and
-# three panels in the realm make eighteen. One working smelter wants
-# more than that, and *this is not a number to raise when somebody runs
-# out*: the rate-limiting step of pre-industrial ironmaking was FUEL,
-# not ore — charcoal iron was bounded by woodland, ironworks ate forests
-# across Europe, and that constraint is precisely why coke happened in
-# 1709. A coppice that comfortably supplies everybody would teach the
+# rate.** Six stools × eight lengths a cut = 48 lengths a game year, 3.2 kg
+# each. A clamp chars a length by its own wood's heat transition (ceramics
+# W0 — one rule fires everything) and keeps a quarter of its mass: 48 ×
+# 3.2 × 0.25 ≈ **38 kg of charcoal a year**, and a smelt is reckoned by mass
+# and wants at least 16 kg. So: **about TWO SMELTS per panel per game year**
+# (thirty real days), and three panels in the realm make seven. One working
+# smelter wants far more than that, and *this is not a number to raise when
+# somebody runs out*: the rate-limiting step of pre-industrial ironmaking
+# was FUEL, not ore — charcoal iron was bounded by woodland, ironworks ate
+# forests across Europe, and that constraint is precisely why coke happened
+# in # 1709. A coppice that comfortably supplies everybody would teach the
 # opposite of the true thing.
 #
 # ⭐ Eight slots, six stools: coppice-with-standards is one panel doing

@@ -140,6 +140,19 @@ It does three jobs:
    *"the player types `taste`"* without having decided what affords
    the verb, what data enables it, and what warms that data at boot.
 
+⛔⛔ **Write it as two drives, and tag every step's pace** — `instant`
+(no clock), `short` (a jump of hours, up to about a game day), `staged`
+(a span's outcome, its state set directly with wizard tools) or `span`
+(weeks or seasons). ⭐ **Every span step gets a staged twin in the
+blocking drive** — the clock's part goes to soak, everything around it
+is checked before merge. Each step also says how its assertion is made:
+`player` (player verbs and tools only) or `staged` (wizard setup is fine). The **blocking drive** holds instant and short steps
+and is the build's exit criterion — well under half an hour of wall time.
+The **soak drive** holds every span step and runs in the soak lane after
+merge, never before. A season's outcome (a winter's weathering, a year of
+farming) is a span step; prove its arithmetic in a unit test and its
+end-to-end in soak. See `docs/workflow.md § No merge waits on the clock`.
+
 A **kernel-led** build with no player-facing surface still writes one:
 it drives the nearest existing content that touches the new substrate.
 If nothing touches it, see step 0.
@@ -213,8 +226,16 @@ as gaps.
 ## The drive
 
 The numbered script: what a person does, in order, and what they
-should see. This is run at the end of the build phase, before the
-MR opens.
+should see, **each step tagged `instant` · `short` · `span`**.
+
+### Blocking drive
+
+Instant, short and staged steps — a staged twin for every span step —
+run at the end of the build phase; the exit criterion for the merge.
+
+### Soak drive
+
+Span steps — run by the soak lane after merge; never blocks.
 
 ## Acceptance criteria
 

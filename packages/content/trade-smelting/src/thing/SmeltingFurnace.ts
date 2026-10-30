@@ -23,9 +23,12 @@
 
 import Forge from '@saxonberg/server/mud/platform/thing/Forge';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
-const SmeltingFurnaceBase = ContainerMixin(Forge);
+// ⭐ Made of parts (ceramics D19): its lining wears with every run.
+const SmeltingFurnaceBase = AssembledMixin(DurableMixin(ContainerMixin(Forge)));
 
 const SMELTING = ['trade/smelting/cmd/smelting/smelt.yaml'];
 

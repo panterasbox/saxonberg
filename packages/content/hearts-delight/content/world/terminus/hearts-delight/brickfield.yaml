@@ -1,0 +1,20 @@
+# The Delight brickfield-and-pottery — ⭐ ONE works with two trades
+# (ceramics S20): the brickmaster's field, where the river clay is dug,
+# weathered, tempered, moulded, dried in the hacks and burnt in a clamp;
+# and the potter's shop at the top of it, with the wheel and the kiln.
+#
+# A `CartesianZone` of its own under the valley (the Hanging Wood's shape):
+# its own grid, so its places plot at their own coordinates and its exits
+# stay cardinal in-zone, and ⭐ its OWN `deposit:` — the outward walk finds
+# the river's alluvium here and nowhere else in the valley, so the bench's
+# farms are not suddenly standing on brick clay.
+#
+# ⭐⭐ A second brickfield or pottery is rows and no pack code: every class
+# named under this tree is the ceramics trade's mechanism, the quarrying
+# trade's, or the kernel's.
+class: /platform/idea/location/CartesianZone
+data:
+  name: the Delight brickfield
+  cellSize: 20.0
+  address: terminus/hearts-delight/brickfield
+  deposit: /world/terminus/hearts-delight/idea/deposit/valley-alluvium

@@ -5,6 +5,8 @@ data:
   keywords: [white, wine]
   appearance: "a pale, cold white wine"
   density: 992
+  # One serving, kg (the unit of its label and its dose): a 150 ml glass at 992 kg/m³.
+  servingKg: 0.1488
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
@@ -15,6 +17,8 @@ data:
     sugar: 20
   toxicity:
     - { type: alcohol, amount: 13 }
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.3
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "white"]
   composition: []
   biologicalSource: null

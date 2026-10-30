@@ -1,4 +1,4 @@
-# A white loaf — ⭐ and the authored composition is the WHOLE POINT of
+# A white loaf — ⭐ and the authored makeup is the WHOLE POINT of
 # this row existing.
 #
 # An NPC counter has to be able to stock two loaves priced apart on day
@@ -20,6 +20,8 @@ data:
   longDescription: A high pale loaf, the crust thin and even, cut square across the top. It is the sort of bread people who can afford it buy.
   _materialPath: /stuff/idea/material/food/bread
   mass: 0.8
-  composition:
-    - { materialPath: /stuff/idea/material/food/wheat-flour, servings: 7.8 }
-    - { materialPath: /stuff/idea/material/food/bran, servings: 0.2 }
+  # By mass fraction of the loaf: 7.8 servings of flour and 0.2 of bran at
+  # their 100 g serving (`servingKg: 0.1`) is the 0.8 kg the loaf weighs.
+  makeup:
+    - { materialPath: /stuff/idea/material/food/wheat-flour, fraction: 0.975 }
+    - { materialPath: /stuff/idea/material/food/bran, fraction: 0.025 }
