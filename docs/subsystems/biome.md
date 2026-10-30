@@ -146,6 +146,9 @@ planet" biome can sit at any admin path and explicitly extend
 `/stuff/idea/biome/universe` (or any other biome); the path doesn't
 constrain its inheritance.
 
+> ⭐ **2026-10-29 → [worlds-slate](../slates/builds/worlds-slate.md)** — decided: a planet is a
+> biome, the root becomes interplanetary space, and every root reader asks for the body a place is on.
+
 ## Organizing the inheritance tree — the spine
 
 The `extends:` tree is the *mechanism*; this is the *principle* for

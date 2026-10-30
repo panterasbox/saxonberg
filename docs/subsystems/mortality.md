@@ -113,6 +113,10 @@ that knows the mechanism knows the number:
 
 Slow deaths leave the longest chance that someone reaches you.
 
+> ⚠⚠ **These are GAME seconds** (the record ticks on the world clock), so at 12× the real windows
+> run 2.5 s to 50 s — a bleed-out leaves time for about one typed command. Found 2026-10-29; the
+> proposed fix is encounter pace → [pace-slate](../slates/builds/pace-slate.md).
+
 ### The clock runs while you are disconnected
 
 > ⭐ **Why this divergence is the interesting one:**
@@ -569,6 +573,10 @@ refuses it, and a second refusal would just be a worse error message.
 `embodied-tagging.test.ts` pins the inventory, so a new verb in a material
 category fails until someone decides which half it belongs to.
 
+> ⭐ **2026-10-28 → [site-conditions-slate](../slates/builds/site-conditions-slate.md) § 1** — a
+> shade perceives faintly (its senses fixed at *impaired*, capped near *dim*), and nothing heals
+> until re-embodiment (the owner).
+
 ### What confines a shade
 
 Nothing bespoke. A shade is a baseline vessel with **no keys, no credential
@@ -678,7 +686,7 @@ for coming back, because nobody can beat free-and-perfect.
 
 So the cost lives in the **floor route**, not in the transition:
 
-- `reembody` hands back a clean body and takes no position on what dying
+- ⛔ *(a defect against intent — see § What healing happens, and when)* `reembody` hands back a clean body and takes no position on what dying
   should cost — that is the caller's business, which is exactly what lets
   a temple or a clinic offer a better return;
 - the `passage` verb, being the cheap way, sets the biological reserves
@@ -803,6 +811,14 @@ key on `getIdentityPath()`, not the object: `ChronicleLogic`, `TraitLogic`,
 `BeliefStoreLogic`, `AdvancementLogic`, `RenownLogic`, `AccessRegistry`. So
 chronicle, transcript/competence, traits, beliefs, renown, authority, bank
 accounts, chattel and parcel titles all come back with you.
+
+> ⛔⛔ **DEFECT AGAINST THE DESIGN INTENT (owner, 2026-10-28).** Resetting *vitals and wounds*
+> makes death the cheapest healer in the game: a player with a broken leg or a torn organ is cured
+> faster by dying than by any doctor. The owner: *"if death heals you that is absolutely not how
+> it's supposed to work … it's supposed to be completely variable, with a whole economy around how
+> effective re-embodying is. … Death is not cheap."* The paragraph below describes what ships, not
+> what is intended; the vessel's quality is the open design →
+> [mortal-vessel-slate](../slates/builds/mortal-vessel-slate.md) § *The vessel is not clean*.
 
 Lost by design — this is the stake, not a leak: **gear** (to the corpse),
 **vitals and wounds** (reset — that *is* rebirth), **location,

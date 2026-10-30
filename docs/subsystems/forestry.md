@@ -482,7 +482,7 @@ when they write a farm where the wood used to be, not a verb.
   different liquor (`salt-pan` is a `Vat` row, `brine-hearth` an `Oven`
   row), which makes sugaring the **fifth** claimant on the wood contest
   and the only one that burns wood from the stand it taps. →
-  [tapping-slate](../slates/builds/tapping-slate.md).
+  [tapping-slate](../slates/tails/tapping-slate.md).
 - **The Cover seam** — `SwardMixin` + `StandMixin` → a kernel
   `lib/husbandry/Cover` on the third instance (an orchard, a hedgerow, a
   reed bed); the stand's moisture factor integrated stepwise lands there.

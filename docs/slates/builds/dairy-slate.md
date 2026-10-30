@@ -1,5 +1,10 @@
 # Dairy slate — the source with no sink, and the first business you cannot run alone
 
+> **Status: PARTIAL** — built in the dairy build, 2026-10.
+> **Left:** staffing the twice-a-day tap · NPC buyers · whey to pigs · calving as the lactation's
+> cause · fluid milk and the separator (cold chain) · salt in the hoop, rind care, `BulkPayload.peakK`
+> **Size:** a build
+
 > **✅ Built (the dairy build, 2026-10)** — the trade, the Delight's dairy
 > farm and co-op creamery, Rejection's goats: see
 > [dairying.md](../../subsystems/dairying.md) and
@@ -16,12 +21,12 @@
 > ⭐ **A sink arrived 2026-10-06 that needs no cheese:** malted milk, in
 > [malting-and-extract-slate](./malting-and-extract-slate.md) — extract +
 > milk, so this slate's premise can be answered before its own build runs.
-> **Left:** the dairy as a business (the hourly tap and the hired hand) ·
+> *Left (before the build):* the dairy as a business (the hourly tap and the hired hand) ·
 > pasteurization on the shipped kill curve · cheese as a maturation profile
 > with whey as the lees · butter and cream as mechanical process · the
 > per-species varietal · hygiene as the criterion (silent contamination
 > harming a stranger) · the goat gap · fluid milk once the cold chain exists
-> **Size:** a build
+> *Size (before the build):* a build
 
 > **Captured 2026-09-25**, in the design conversation after the extraction
 > build merged. Opened by the user: *"I wanna pivot to ranching but
