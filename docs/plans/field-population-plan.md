@@ -1693,6 +1693,132 @@ Notes for later waves:
   shipped here. `fill watering can from …` fails as an unknown shape
   (a two-word non-greedy target); `fill can from standpipe` works.
 
+### W4 — the specimen and the labeled plant
+
+Landed as planned: `sample <crop> at <patch>` (the area-crop case before
+the `Sampled` check, the ground resolves the part, `takeSpecimen(
+stand.specimenVariation())`, moved to the sampler, stamped with the
+FIELD's identity, the host captured; narration *"You pull a stem of wheat
+from the top end and look at the roots."*); `label <crop> [text] at
+<patch>` (an individual minted uncut at the part, `groundPart` set, moved
+into the field, label = text else the labeler's `getPresentation()`,
+keywords = the label's words + the label + `labeled`, short description
+`stem of wheat labeled "trial"`, `installRootZone()`, plant and field
+captured; reply *"You tie your label to a stem of wheat at the top end:
+trial."*); both views carry W3's `patch` arg (optional, greedy, `[at]`,
+`SoilMixin`; the label's greedy `text` is bounded by it) and a field
+paragraph in their help; the root zone on `Plant` (D6). `ROOTS_PHRASE`,
+the provenance line, `specimenNoun` and the non-growing specimen were
+already W0's. `sampleFace` untouched.
+
+The root zone, as built: `_rootZoneStamp` (persistent, runtimeState),
+`hasRootZone()`, `installRootZone()` (moisture `rootDemand[stage] × 0.35`
+L, nitrogen 100 %, both seeded at the bed's fractions; no nitrogen
+reserve when the bed has none), `reconcileRootZone()` (own guard; day
+steps capped at 180; per step the drink `litresPerGameDay × days ×
+transpirationWarmthAt(mid-step)` then `level += (ground − level)(1 −
+e^(−days/2))`, nitrogen the same with 10 days; the ground's MEAN moisture
+over the window is the target; **the plant never moves the ground's
+reserve**), the zone re-sized at the same fraction on a stage change, and
+the seams (`soilMoisture`, `meanSoilMoisture`, `nutrientLevel`,
+`waterTheSoil`) plus `feedPlant`/`waterHeadroomL`/`nutrientHeadroom` reading
+the zone when present. Kernel addition on `GrowingMixin`:
+`protected transpirationWarmthAt(atS)` (the soil's warmth shape off the
+stepped ambient), and `growthNowSeconds` is `protected` now.
+
+Tests: new `inventory/__tests__/FieldSpecimen.test.ts` (11 — a stem comes
+off the stand, stamped with the field, stand keeps its area, `shallow`
+roots off the top end; same spot twice → equal vigor and equal record;
+unnamed part refused; a stem in hand does not grow and reads its roots
+and *"Taken from … top end of … upper bench"*; with a stem already in
+hand, `at <patch>` still pulls from/labels the stand there; the labeled
+individual stands in the field, not an area crop, keyworded, root zone,
+reads in full; no text → your name; any other target is the shipped
+label with `at …` folded back; `water trial` moves only its zone, no
+*barely shows*; daily watering for a week holds it 0.2 above its patch
+and a skipped week lets it fall back to within 0.02; `feed trial` feeds
+the zone alone, 4 L from the sack); `Plant.test.ts` +5 (no zone =
+byte-identical; zone sizing/seeding; water fills the zone alone and never
+past capacity, a minute later still full; e-folding toward the ground in
+2 days / nitrogen in 10; daily watering vs a three-day gap);
+`harvest-view.test.ts` +4 (the `patch` arg on `sample` and `label`, both
+views load).
+
+Decisions the plan did not make:
+
+- ⭐ **A named part beats a carried plant (found live).** `reachable`
+  binds what you carry first, so after one `sample`, `sample wheat at the
+  lane end` bound the stem in hand and stamped it in place, and `label
+  wheat … at …` labeled it. Both controllers now take, when a part is
+  named and the bound plant is not an area crop, the crop of the same
+  kind (`isSameKindAs`) rooted in that part of the ground the giver
+  stands on (`Soil.rootedAreaCrop(part)`). Lens 3a: the player named the
+  ground.
+- **Only a STAND answers to its patch's words** (`Plant.getKeywords`
+  now requires `isAreaCrop()`): a labeled individual at the top end
+  would otherwise have made `look top end wheat` ask which of two.
+- **`label` on any other target folds `at …` back into the text** — the
+  view's new `patch` arg bounds the greedy `text`, so `label vial meet at
+  noon` would have lost *at noon*.
+- **`feed`** reaches the zone only for compost (`feedPlant`); a slow
+  amendment (organic matter) still goes into the ground — the zone has no
+  organic-matter reserve, and the long game is the ground's.
+- **`water`** suppresses *"barely shows"* for a zone plant (the water
+  went round its roots, not over 1,000 m²) and captures the plant as
+  well as the ground.
+- **A full zone is full within 0.01** (`ROOT_ZONE_FULL_WITHIN`): a zone
+  holds about a litre and drinks every second, so a second can moments
+  after the first found a sliver and replied *"You tip 0 L … It drinks
+  it in."* (found live). Now *"already wet through"*.
+- **The labeled individual develops on the POT rule** (`reconcileGrowth`'s
+  `areaCrop` flag is false for it): it advances a stage only while its
+  limiting factor is good, where its stand advances on the season under
+  stress. Not changed here — see hand-offs.
+
+**Live (port 2014, `reset:db`, 11:00, founder):** `sample wheat` →
+*"Which part? Name one: the top end, the middle or the lane end."*;
+`sample wheat at the top end` → *"You pull a stem of wheat from the top
+end and look at the roots."*; `look stem` → *"a stem of wheat — Wheat
+standing stiff in the ear, … It is in ear and looks poor. Its roots are
+short and spread flat — they met something hard not far down. Taken from
+the top end of the upper bench."*; a second top-end pull and a lane-end
+pull each came off the stand (after the fix above). `label wheat at the
+lane end` → *"You tie your label to a stem of wheat at the lane end:
+founder."*; `label wheat trial at the top end` → *"… at the top end:
+trial."*; `look here` lists *"You also see: founder and trial."* (D17);
+`look trial` → *"trial — Wheat standing stiff in the ear, … It is well
+established. It looks stressed. It is too cold here for it to be doing
+anything."* (the full read); `look at the top end` ends *"Trial stands
+here, labeled."*; `water trial` → *"You tip 0.2 L of clear water into the
+soil around trial. It drinks it in."* After a restart with no reset, both
+labeled plants were still listed; `water trial` → 0.1 L, then *"The soil
+around trial is already wet through."* The zone's reserve vs the patch's
+is proven by the unit tests (founder `eval` of a patch is still refused,
+W2's note).
+
+Verified: tsc (server) clean; `pnpm test:near` (server 295 files, 2,751
+passed + 2 skipped; packs green); trade-farming 122/122 (the platform
+pack has no suite); `lint:family` — all 82 gates pass.
+
+Notes for later waves:
+
+- **W5:** nothing new for the brain; a labeled plant is not an area crop,
+  so `cropsOn` (the patch's thirst and the hand's read) ignores it.
+- **W6 (the drive):** `look` with no argument PROMPTS when the focus is
+  one of several carried stems (*"a stem of wheat (1)/(2)/(3)"*) — use
+  `look here`, or drop the stems. A no-text `label` names the plant after
+  the labeler, so the room then lists *"founder"* beside the founder —
+  the drive should label with text. The live presentation of a labeled
+  plant is its LABEL (`RecognitionLogic`: a label wins), so its listed
+  name is *trial*, not the authored short description.
+- **For the owner (not this build's to decide alone):** should a labeled
+  field individual develop on the FIELD rule (season-driven, spoiled by
+  stress) rather than the pot rule? Today a stressed labeled stem stalls
+  while its stand ripens around it. The flag is `areaCrop` in
+  `reconcileGrowth`; a fix is a one-line predicate (*rooted in
+  non-`Cultivable` ground*) but it changes every individual plant
+  standing in a field.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
