@@ -1,18 +1,26 @@
 # Soak harness — implementation plan
 
 Executes [soak-harness-requirements.md](../requirements/soak-harness-requirements.md)
-(closed scope, 2026-10-30). **Kind:** infra. **Leads from:** the kernel —
-the wire package, the test clock's test-only route, `tools/`. No pack, no
-content, no namespace root, no new Stuff class, no mixin.
+(closed scope, 2026-10-30; § *Staging* added by the owner the same day).
+**Kind:** infra. **Leads from:** the kernel — the wire package, the test
+clock's test-only route, `tools/`, and (the staging scope) the `eval`
+sandbox, the test-login seam and one platform verb. No pack, no namespace
+root, no new Stuff class, no mixin. One new Api + logic singleton
+(`TestingApi`), one new controller + view (`test`), one new validator.
 
 What lands: the `*.soak.wire.test.ts` convention and `pnpm wire:soak`; a
 server-side refusal of any test clock jump past one game day outside soak
 mode; a machine-readable result beside the run log; `tools/soak`, the
 headroom-gated runner that soaks merges and files `soak` issues; the
-canary; and the census of the 25 clock-jumping wire files, each moved to
-soak or shown within a day. The build follows its own rule: its blocking
-drive has no `span` step, and its soak drive is `canary.soak.wire.test.ts`,
-which the MR names.
+canary; the census of the 25 clock-jumping wire files, each moved to
+soak or shown within a day; **and the staging tools** — an `eval` that
+binds every self-decorating Api instead of a list of four, with a real
+timeout, an output cap and every refusal returned as an error; test
+login granting a test runner title to named parcels; and the `test`
+command (`test clock …`, `test weather …`), installed only in test
+worlds, sharing one implementation with the harness routes. The build
+follows its own rule: its blocking drive has no `span` step, and its
+soak drive is `canary.soak.wire.test.ts`, which the MR names.
 
 ## Grounding
 
@@ -142,6 +150,216 @@ already rotten"; the river season walk was added by `8e2a9c117` because
 "the third pass swam in iced pools and steamed in low water"). The
 per-file table is D10.
 
+### The `eval` sandbox — `packages/server/src/mud/platform/idea/EvalScript.ts`
+
+- `SANDBOX_NAMES` (l.83–89): `StuffApi`, `MqlApi`, `ContainmentApi`,
+  `MixinApi`, `console`; `buildSandbox(receiver)` (l.98) binds the four
+  **class objects** whole (every static on them, `_`-prefixed and
+  `@internal` ones included — `StuffApi.singletonSync` is reachable
+  today) plus `self`/`target`. `run()` (l.165) wraps the body as a
+  **sync** function — `(function(){ ${code} }).call(self)` — compiles
+  once via `ScriptApi.compileSandboxed`, and returns
+  `ScriptApi.runSandboxed(compiled, sandbox)`. Both statics are gated
+  `FromModule('/platform/idea/EvalScript')` (`api/script.ts` l.190, l.203).
+- `platform/idea/api/ScriptLogic.ts` l.553–572: `new VmScript(code)` and
+  `compiled.runInContext(createContext(sandbox))` — **no `timeout`, no
+  `microtaskMode`**. `node:vm` is imported at l.4 and nowhere else in
+  the mudlib.
+- `EvalController.ts` (`platform/idea/cmd/author/`): the jurisdiction
+  (`--parcel`, default `/home/<key>`), `holdsAuthority` (l.234–278: self-
+  home, then `ParcelApi.ownerOf` → player identity match / organization
+  `canAtPath` / group `isMember`, then `AccessApi.can(giver,'eval',…)`),
+  wire → `SandboxApi.runScoped`, field → `runGoverned`; `evalStuff.run`
+  is awaited inside `try/catch` and a rejection becomes `error: …` in
+  the result (l.171–177); `_formatResult` (l.297) `JSON.stringify`s with
+  **no cap**. The view `content/platform/cmd/author/eval.yaml` carries
+  `validators: [/lib/command/validators/requiresWizard]`.
+- `lib/shell/Author.ts` l.42–61 declares the session settings
+  `eval.timeoutMs` (default 1000) and `eval.maxDepth` (32) as schema,
+  *"consumed when the sandbox honors them"*. Nothing reads either.
+- Tests: `platform/__tests__/EvalScript.test.ts` (accessors + `run()`);
+  no controller test. Drives use `eval --parcel` through a founder
+  session (`dairy.dirty` l.293–300) and note at l.264 that *"a clone
+  inside the eval sandbox dies at the boundary (`fromStored` denied) and
+  the dispatch never answers."*
+- ⭐⭐ **Why a refused clone takes the server down.**
+  `services/Server.ts` l.326 installs `process.on('unhandledRejection',
+  …) → process.exit(1)`. The denial itself is honest — `fromStored` is a
+  marshaller method (`TemplateApplier.ts` l.185, `Document.ts` l.237) on
+  a field-resident singleton, refused from circle scope by the proxy
+  gate (`security.ts` l.1376, receipted through an async IIFE that
+  catches its own errors) — and it propagates out of `#registerAndInit`'s
+  `try` (`stuff.ts` l.1105–1128) so `StuffApi.clone` **rejects**. A
+  rejection nobody holds then ends the process. The eval body is sync,
+  so `StuffApi.clone(...)` written as a statement (not `return`ed) is a
+  promise nobody holds; `ensureConstituent` (l.881) additionally returns
+  *without awaiting* a pending singleton, though that pending promise is
+  held by whoever started it. The build reproduces before fixing (D20).
+
+### Test-only seams at runtime — `api/security.ts`
+
+- `SecurityApi.isTestEnvironment()` (l.702): `VITEST` or `NODE_ENV=test`
+  or **`SAXONBERG_TEST_WORLD=1`** — the last set only by the wire runner
+  (`boot.ts` l.78, beside `AUTH_MODE=test`). ⭐ This is the mudlib's
+  "test world" predicate; `AUTH_MODE` is read only in `backend/` and
+  `services/` (`TestHooks` l.62, `Server.ts` l.141, `index.ts` l.57).
+- `@TestOnly(guidance)` (`lib/security/decorators.ts` l.275) records
+  `(class, member, guidance)` via `SecurityApi._markTestOnly` (l.715);
+  `#withholdTestOnlyMembers` runs from `decorateApiClass` (l.614–620)
+  and, outside a test environment, replaces the static with a throwing
+  stub (l.794) naming the seam, the three signals and the guidance.
+  **In a test world the member is live.** `getTestOnlyMembers(cls)`
+  (l.735) is the runtime read of the marked names. Marked today: only
+  `WorldClockApi.advance` (`api/worldclock.ts` l.194–205, also
+  `@internal`). `lint:test-seams` (`scripts/check-test-seams.ts`) gates:
+  every `@TestOnly` sits on a static in a file with a
+  `decorateApiClass(` tail.
+- `decorateApiClass(cls)` (l.529) sets a class-default policy and wraps
+  every own static (`#wrapStaticDescriptor` l.579 — `original.apply(this,
+  args)`, so a **bound** copy keeps `this === cls` and `#`-statics work).
+  Only Api module tails call it (`decorators.ts`'s mention is prose);
+  the class-form `@CallSecurity` uses `_wrapStaticMethods` instead. The
+  four bootstrap-special Apis (`ExecutionContextApi`, `ModuleApi`,
+  `SecurityApi`, `ProxyApi`) never call it (call-security.md § *Why Some
+  Api Files Don't Self-Decorate*). There is **no runtime registry of the
+  decorated classes** today — `#classDefaultPolicies` is keyed by class
+  but also holds class-form policies, so it is not that registry.
+- 94 files under `api/`; 90 export a `*Api` class and 90 self-decorate.
+  **No Api facade carries a class-level `@internal`.** Member-level
+  `@internal` statics on decorated Apis: `_`-prefixed (`persist.ts`
+  `_resetEncryptionKeyForTest`, `compact.ts` `_resetOfficeRegistryRefForReload`,
+  `stuff.ts` `_reindexTemplatePath`/`_validateClassPath`, `containment.ts`
+  `_registerMergeOnArrivalHook`) and un-prefixed (`stuff.ts`
+  `singletonSync`, `schedule.ts`/`worldclock.ts` `cancelAllForScope`,
+  `sandbox.ts` `discardScope`/`openSession`/`closeSession`/
+  `handleWireLinkdead`/`handleWireQuit`/`entryRoomForScope`). TSDoc is
+  not available at runtime; `project-author-surface.ts` reads it only
+  from TypeDoc's `api-model.json` (minutes to build, gitignored).
+- Frames: `ExecutionContextApi.getCallStack()` returns `CallFrame[]`
+  (`{caller, target, method, kind?}`, `execution-context.ts` l.92);
+  every proxied Stuff method call pushes a frame whose `target` is the
+  receiver, and the ALS store survives `await`. `_boundaryContext()`
+  (l.685) reads `{circleScope, jurisdictionBound}`; `SandboxApi.runScoped`
+  / `runGoverned` plant a **fresh root** carrying one of them, and
+  `EvalController` calls `evalStuff.run(target)` *inside* that root. So
+  inside an eval body the stack is `[root, EvalScript.run, ScriptApi.
+  runSandboxed, ScriptLogic.runSandboxed, …]` — an `EvalScript` target
+  is on the stack, in every mode, before and after any `await`.
+  `SecurityPolicies` (`lib/security/SecurityPolicies.ts`): `Public`,
+  `SystemRoot`, `SelfOnly`, `ApiOnly`, `FromModule`, `FromTemplate`,
+  `FromTemplateMethod`, `FromClass`, `FromMixin`, `AnyOf`, and a
+  predicate form (l.584). `SecurityApi.assertFieldMutation(holder,
+  method)` (l.1432) is the shipped one-line guard shape.
+- The Api-static → logic gate, verified: `WorldClockApi.advance` →
+  `logic().advance` → `WorldClockRegistry.advance`
+  (`@CallSecurity(WorldClockApiCallers)` = `FromModule('/api/worldclock#
+  WorldClockApi')`); the registry's caller frame is the Api static's own
+  frame, so the forward passes **from any caller the static admits** —
+  the Api statics themselves default to `PUBLIC_FALLBACK`. From inside an
+  eval body the caller of an Api static is the eval frame; the static
+  admits it; the logic admits the static. ⭐ So binding an Api in the
+  sandbox exposes exactly what its own per-static gates allow, which is
+  the requirement's rule. A **direct** call on a logic singleton from
+  eval (`StuffApi.findByTemplatePath('/platform/idea/api/worldclock').
+  advance(…)`) is denied by that singleton's `FromModule` gate — the
+  back door is closed by the shipped gate, with the generic denial.
+
+### Title and the test runner — `backend/TestHooks.ts`, `api/parcel.ts`, `api/access.ts`
+
+- `TestHooks.provisionCharacter(userId, name, startLocation, wizard)`
+  (l.151–187): with `wizard`, adds `Avatar.getTemplatePath(playerId)`
+  (= the identity path) to **every** managed group. `TestAuthRoutes`
+  l.57–77 reads `handle`/`withCharacter`/`startLocation`/`wizard` from
+  the body. The wire `Session.open(handle, {startLocation, wizard})`
+  (`harness/session.ts` l.259) is the client of that body.
+- `/world/terminus` and every district under it are titled to **group
+  `terminus`** (`packages/content/terminus/pack.yaml` l.42–60);
+  `mayfield-row/seznick-house` to group `mayfield-holdings`. A wizard
+  test character is in every managed group, so **a group-held parcel is
+  already held**: `holdsAuthority`'s group branch and `AccessApi.
+  heldExtents` (`AccessRegistry.ts` l.233) both admit it. What a wizard
+  does *not* hold: a `player`-titled parcel (a bought lot, somebody's
+  `/home/<key>`) or an `organization`-titled one where it holds no
+  position. The drive's "unheld parcel" (step 8) is one of those.
+- `ParcelApi.transfer(extent, newOwner)` (`parcel.ts` l.317 →
+  `ParcelRegistry.transfer` l.349): `assertFieldMutation`, appends a
+  `transfer` event, re-points the owner, **re-indexes the owner index**
+  (so `heldExtents` sees it), saves; `null` when no parcel claims the
+  **exact** extent. `ParcelOwner` for a player is `{kind: 'player',
+  templatePath}` (`lib/parcel/ParcelRecord.ts` l.60–63); `AccessRegistry.
+  subjectOwnsAsPlayer` (l.543) and `EvalController.holdsAuthority`
+  (l.255–259) both match it against `getIdentityPath()` or `/home/<key>`.
+  `ParcelApi.grant(claim)` is the installer's seam: an existing row
+  under a different holder is `conflict` — untouched, and the pack's
+  rows under it reconcile `skip-sold` (parcel.md § grant). `grantUse`
+  (a lease) is read by `heldUnitsOf`, **not** by `can`/`heldExtents`.
+- `ParcelApi.coveringParcelOfSync(path)` (l.100) is longest-prefix;
+  `heldExtents(subject)` (l.150) returns sorted extents incl. the
+  self-home.
+
+### The weather pin — `lib/biome/Atmospheric.ts`, `platform/idea/Locality.ts`, `api/weather.ts`
+
+- `WeatherPin = {type: WeatherType, mode: 'frozen' | 'alive'}`
+  (`lib/weather/WeatherType.ts` l.512–525). Two hosts carry
+  `_weatherPin` (`persistent: true`): `AtmosphericMixin` (l.299, l.479
+  `authorable: true`, accessors l.1117–1121) — the scope tier — and
+  `Locality` (l.158, l.259, accessors l.532–536) — the locality tier.
+  `WeatherLogic.resolveWeatherPin(scope, locality)` (l.405) walks the
+  scope's containment for an Atmospheric pin, then the Locality's.
+  ⚠ `precipitationBetween` and the snow walk are keyed by Locality and
+  see only the **Locality-tier** pin (weather.md l.368–373, l.208–210).
+- `WeatherApi` has **no pin write**; its statics are reads plus
+  `onBoundary()` (l.417 — the presence-gated thermal restamp fan-out),
+  `forgetScope(stuffId)` (l.360), and three `_*ForTesting` seams
+  (`_forceTypeForTesting` l.460 is process-global and `assertTestOnly`-
+  gated to in-process test frames — useless across a socket).
+  weather.md l.692 and testing.md § *Open: test seams a drive would want*
+  both name `/auth/test-weather` as the missing seam.
+- `AddressApi.resolveLocalityFor(scope: Stuff): Promise<Locality | null>`
+  (`api/address.ts` l.86) — the shipped scope → Locality read.
+  `MixinApi.isAtmospheric` exists (`api/mixin.ts` l.1991).
+
+### The command-view store — `platform/idea/api/CommandLogic.ts`, `lib/command/CommandDefinition.ts`
+
+- `preloadAll()` (l.631–684): with a store, every `command-view`
+  document (`DocumentApi.listOfKind('command-view')`) is parsed by
+  `CommandDefinition.fromView`, validators resolved, and set in the
+  `commands` map by key; a parse failure is a `failed` entry, never a
+  throw. Offline (no store) the packs' files are read the same way.
+  `reload(docPath)` (l.620) re-reads one. The dispatcher knows a verb
+  only through `commands` — a view never set there is an **unknown
+  verb**, and `allDefinitions()` (what `help`/`affordances` read) never
+  lists it.
+- `CommandDefinition`'s constructor (l.155–180) copies the view's keys
+  (`fallthrough`, `async`, `opens_card`, `validators`, …); `fromYaml`
+  validates against `lib/command/command.schema.json`, whose top level
+  is **`additionalProperties: false`** (l.11) — a new view key needs a
+  schema entry. `category` (l.140–153) derives from the path segment
+  after `cmd`. A `fallthrough: true` view needs both `args` and
+  `subcommands` (l.253–264); `GitController` reads `model.subcommand`
+  (l.35, l.44) and defaults it.
+- Validators are files at `lib/command/validators/<name>.ts` exporting a
+  default `CommandValidator` (`requiresWizard.ts`: `preload` →
+  `AccessApi.isWizard`, body returns the refusal string); resolved by
+  `resolveCommandValidators` (CommandLogic l.3186). 36 exist.
+- Controller rows: `content/platform/idea/cmd/system/<Name>Controller.yaml`
+  (16 in `system/`); `lint:controller-rows` refuses a `controller:` with
+  no row.
+- The `system` category holds the operator/meta verbs (`ping`, `trace`,
+  `config`, `errors`, `committee`, `git`); `author` holds the code doors
+  (`eval`, `reload`, `clone`, `typecheck`, `wizard`).
+
+### Import tiers and the backend — `scripts/check-mud-imports.ts`
+
+Mudlib code may import only inside `src/mud`; the **api** tier
+(`mud/api/**`) and the **objapi** tier (`mud/platform/idea/api/**`) may
+additionally reach `backend/` — `SandboxLogic.ts` l.12 imports
+`PersistenceManager` (`whenQuiet(quietMs, timeoutMs)` is at
+`backend/PersistenceManager.ts` l.510). A **controller** is mudlib and
+cannot import `backend/TestHooks`; a **route** (`services/`) can. So
+anything the `test` command and the harness route must share lives in
+the Api tier.
+
 ## Plan-level decisions
 
 **D1 — Chunking is not a conversion** (the coordinator, from the slate §2:
@@ -165,17 +383,22 @@ before sourcing. `tools/suite` loses its inline copies and behaves
 identically. `tools/` is shell; the mudlib module-category rule does not
 apply, and this is the first `tools/lib/` — sanctioned by the coordinator.
 
-**D3 — Soak mode is a body field, honored by `TestHooks`, parsed by the
-clock's own grammar.** The harness sends `{advance, soak: true}` when
-`process.env.WIRE_SOAK === '1'`. The route passes `body.soak === true`
-through as `{soak}`. `TestHooks.advanceClock(duration, opts?: {soak?:
-boolean})` computes `WorldClockApi.durationSeconds(duration)` and, if it
-exceeds `TestHooks.BLOCKING_JUMP_CAP_S = 86_400` and `!opts?.soak`,
-throws **before** `runRoot`/the jump:
+**D3 — Soak mode is a body field, enforced ONCE in the shared test hook,
+parsed by the clock's own grammar.** *(Amended 2026-10-30 for the
+staging scope: the cap lives in `TestingLogic`, not `TestHooks`, so the
+`test clock advance` door meets it too — D22.)* The harness sends
+`{advance, soak: true}` when `process.env.WIRE_SOAK === '1'`. The route
+passes `body.soak === true` through as `{soak}` to
+`TestHooks.advanceClock(duration, {soak})`, which is now a thin
+test-mode-gated `runRoot` around **`TestingApi.advanceClock(duration,
+{soak})`**. `TestingLogic.advanceClock` computes
+`WorldClockApi.durationSeconds(duration)` and, if it exceeds
+`TestingLogic.BLOCKING_JUMP_CAP_S = 86_400` and `!opts?.soak`, throws
+**before** the jump:
 
 ```
-TestHooks.advanceClock: a jump of '30 days' (30.0 game days) is a SPAN
-step and cannot run in a blocking drive — the line is one game day
+test clock: a jump of '30 days' (30.0 game days) is a SPAN step and
+cannot run in a blocking drive — the line is one game day
 (docs/workflow.md § No merge waits on the clock). Move the step to a
 .soak. file (<feature>.soak.wire.test.ts, run by `pnpm wire:soak`), or
 shorten it to a day or less.
@@ -187,9 +410,10 @@ WorldClockApiCallers)`), `WorldClockLogic.durationSeconds` forwards,
 `WorldClockApi.durationSeconds(d: Quantity<'s'> | string): number` is the
 facade static — a pure parse, **not** `@TestOnly` (nothing about it is a
 test seam; the parse error message is unchanged). Exactly `1 day` /
-`24 hours` / `1440 minutes` pass (the cap is `>`). The harness does no
-pre-check: one place refuses, the harness relays the message as it
-already does.
+`24 hours` / `1440 minutes` pass (the cap is `>`). Neither door
+pre-checks: one place refuses, and each door relays the message as it
+already does (the route as `500 {error}`, the command as the refusal
+line + a `controller-rejected` note).
 
 **D4 — The result is one JSON beside the log, written by a vitest
 reporter.** Two files under `packages/wire/.wire/` (already gitignored,
@@ -386,46 +610,428 @@ days')`, asserts `after − before ≥ 2·86,400 − 60`, then `look` is
 `expectOk`. Clean (a jump consumes nothing the world does not regenerate).
 It is the lane's self-test and the first real soak.
 
+### The staging scope (D15–D25)
+
+**D15 — `eval` binds every Api that self-decorates; the roster is the
+runtime's, not a list.** `SecurityApi.decorateApiClass` gains one line —
+it appends `cls` to a new `#apiClasses: ClassKey[]` — and a new read
+`SecurityApi.decoratedApiClasses(): readonly object[]` (load order).
+`EvalScript.buildSandbox` binds, under each class's own `name`
+(`StuffApi`, `WeatherApi`, …), a **facade** for every class in that
+list (D17), plus `console`, `self`, `target`. `SANDBOX_NAMES` is
+deleted, and its ⛔⛔⛔ paragraph about `WorldClockApi` is rewritten to
+say what is now true: the seam IS bound, as a stub that names the
+`test` command (D25), and the containment is the `@TestOnly` mark plus
+the test-world predicate, not the absence of a name. The four
+bootstrap-special Apis are out **by construction** — they never call
+`decorateApiClass` — which is the same line call-security.md already
+draws for "internal framework"; nothing enumerates them in
+`EvalScript`. A fifth that one day needed the same treatment would
+declare it the same way: by not self-decorating. ⭐ **The drift gate is a
+test, not a list**: `EvalScript.test.ts` gains *"the sandbox surface is
+every `api/*.ts` `*Api` class but the four"* — it `import.meta.glob`s
+`../../api/*.ts`, collects every exported `*Api` class, subtracts
+`{ExecutionContextApi, ModuleApi, SecurityApi, ProxyApi}` (named in the
+test, with the call-security.md § reference beside them), and asserts
+set-equality with the facade names. A new Api that forgets its tail, or
+a new bootstrap-special Api nobody wrote down, fails it. No author-
+surface build, no second hand-kept list, no `@internal` parsing at
+runtime.
+
+**D16 — Per-static: `@TestOnly` members are bound as pointer stubs;
+`@internal` statics are left to their gates, and a lint keeps that
+honest.** TSDoc is not a runtime fact. What IS a runtime fact is
+`SecurityApi.getTestOnlyMembers(cls)`. So the facade (D17) binds every
+own static of the class **except** that it replaces each `@TestOnly`
+member with a function that throws
+
+```
+WorldClockApi.advance is a test seam (@TestOnly) and eval does not bind
+it. In a test world, reach it through the `test` command: test clock
+advance <duration>. <the member's own @TestOnly guidance>
+```
+
+— the pointer is the first sentence of the member's `@TestOnly`
+guidance string, so each seam names its own door (D25 rewrites
+`WorldClockApi.advance`'s guidance to lead with `test clock advance
+<duration>`; `TestingApi`'s members lead with theirs). `@internal`
+statics stay bound exactly as `StuffApi.singletonSync` is bound today;
+every one of them keeps its call-security gate, which is the
+requirement's rule ("nothing becomes callable that its gates do not
+allow"). What must not drift is an `@internal` static with **no gate
+at all** on a bound Api: `lint:eval-surface`
+(`scripts/check-eval-surface.ts`, `--lint`) parses `api/*.ts` the way
+`check-object-verbs.ts` does, lists every public static whose TSDoc
+carries `@internal` and whose declaration carries neither
+`@CallSecurity(` nor `@TestOnly(` nor a `_` prefix (the `assertTestOnly`
+convention), and **ratchets today's count as the ceiling** (census,
+then ratchet — the build prints the list into the MR). `lint:family`
+picks it up by derivation.
+
+**D17 — The facade: bound, observed, frozen.** Per Api, built once on
+first use (Api classes are non-HMR; `@TestOnly` withholding has already
+run at the module tail) and cached in a module-level `WeakMap<cls,
+facade>` initialized lazily (no module-scope statement):
+`Object.freeze(Object.fromEntries(ownStaticFunctions(cls).map(([name,
+fn]) => [name, observed(fn.bind(cls))])))`. `bind(cls)` keeps `this ===
+cls` through the security wrapper (`original.apply(this, args)`), so
+`#`-static fields on Apis keep working. `observed(fn)` is the promise
+net of D20: it calls `fn`, and if the result is thenable attaches a
+rejection handler that records `{api, name, message}` on the **current
+`EvalRun`** and returns the *original* promise (so a caller who awaits
+still sees the rejection; a caller who drops it no longer leaves it
+unhandled). `self`/`target` are bound through the same net: a `Proxy`
+over the receiver whose `get` trap returns, for function-valued
+members, `observed(value.bind(receiver))`, and the raw value otherwise
+(`has`/`ownKeys` pass through; `set` writes through). The receiver is
+already the call-security proxy, so every gate still runs on the real
+object. The facade is the whole sandbox surface; `process`, `require`,
+`globalThis` stay unreachable as before.
+
+**D18 — The timeout is real: one budget, two phases.** `eval.timeoutMs`
+(the shipped session setting, read through `resolveSetting(giver,
+'eval.timeoutMs')` in `EvalController`, default **5000** — raised from
+the never-enforced 1000 because a staging eval awaits a clone and its
+record reads; ⚠ the owner's eye) is the wall-clock budget for one
+invocation. `EvalScript.run(receiver, {timeoutMs})` →
+`ScriptApi.runSandboxed(compiled, sandbox, {timeoutMs})` →
+`ScriptLogic.runSandboxed`: `createContext(sandbox, {microtaskMode:
+'afterEvaluate'})` and `runInContext(ctx, {timeout: timeoutMs})`. The
+body is now wrapped as an **async** function — `(async function(){
+${code} }).call(self)` — so `await` is legal in an eval and the body's
+returned promise is what `run` awaits; V8's `timeout` terminates a
+synchronous loop and (with `afterEvaluate`) a microtask loop, surfacing
+as `ERR_SCRIPT_EXECUTION_TIMEOUT`, which `run` rewraps as
+`eval: timed out after <n> ms (eval.timeoutMs)`. The awaited tail gets
+the **remaining** budget: `run` races the body's promise against a
+timer and rejects with `eval: timed out after <n> ms (eval.timeoutMs) —
+the work in flight was not cancelled; its result, if any, is reported
+late` when it wins. Node `vm` cannot cancel a host-side `await` (a DB
+read in a clone); that is the `isolated-vm` deferral, named honestly in
+the message and in shell-author.md. `eval.maxDepth` is **retired** from
+`Author.ts`'s settings schema: V8 enforces its own stack limit, the
+`RangeError` comes back as an ordinary error through D20, and a number
+nothing can honor is the "declared-now, consumed-never" shape the owner
+has refused elsewhere (⚠ the owner's eye — it is a key deletion).
+
+**D19 — The output cap.** `EvalController.OUTPUT_CAP_CHARS = 16_384`.
+`_formatResult` renders as today, then if the string exceeds the cap it
+keeps the first `OUTPUT_CAP_CHARS` and appends ` … [cut at 16,384 of
+1,203,112 chars — eval output cap]`. One cap, one place, applied to
+every per-target result line including `error:` lines (a huge error is
+still huge). The sandbox's `console` is unchanged (it writes to the
+server's stdout, not the socket) — noted under Deferred seams.
+
+**D20 — Every refusal is an error in the result; nothing an eval births
+is left unhandled; the process policy stays.** Three parts, in order:
+
+1. **Reproduce first.** A unit test in `EvalScript.test.ts` registers a
+   `process.on('unhandledRejection')` spy, runs — inside
+   `ExecutionContextApi.runRootGuarded(null, 'sandbox.runScoped', …,
+   'rethrow', {circleScope: '/home/t'})`, the shape
+   `TestHooks.clock.test.ts` l.77 uses — an eval body that calls
+   `StuffApi.clone(<a field row with a Quantity field>)` as a **statement**
+   and one that `return`s it, and asserts the pre-fix behavior (the
+   statement form fires the spy). If the `return` form ALSO fires it,
+   there is an internal tail (the suspect is a `.then` without a
+   partner inside the clone pipeline; `ensureConstituent`'s no-await
+   branch is the first place to look) and that tail is fixed at source
+   in the same wave — the test then pins both.
+2. **The net (D17's `observed`)** turns every eval-born promise into a
+   held one. `EvalRun` is a per-invocation record `{lateErrors:
+   Array<{api, name, message}>, settled: boolean}` held by
+   `EvalScript.run` for the span of the body and the awaited tail.
+   `EvalController` reports late errors that landed before the result
+   (`late: StuffApi.clone — sandbox boundary denied fromStored() …`) on
+   the result line; one that lands after the report goes to
+   `MudlogApi.warn('sandbox.eval.late', …, {to: giver})` and the server
+   log, so it is never silent and never fatal.
+3. **`Server.ts` l.326 is not changed.** An unhandled rejection
+   anywhere else still ends the process, loudly — that is the repo's
+   break-loudly rule, and softening it to protect `eval` would hide
+   the next defect class. The regression test is the one in (1), now
+   asserting the spy never fires and the error reaches the result.
+
+**D21 — Test login grants title by TRANSFER, to the parcels named, when
+the runner does not already hold them.** `POST /auth/test-login` body
+gains `parcels?: string[]` (strings, `/`-rooted; anything else → 400).
+`TestHooks.authenticate(…, parcels)` → `provisionCharacter(userId, name,
+startLocation, wizard, parcels)`. For each path, inside the existing
+`runRoot`:
+
+- the path must be an **exact** parcel extent —
+  `ParcelApi.coveringParcelOfSync(p)?.extent === p` — else throw
+  `TestHooks: '/world/terminus/dock' is not a parcel; the covering parcel
+  is '/world/terminus' — name that` (a wrong path fails the login, not
+  the first `eval` an hour later);
+- if a held extent (`AccessApi.heldExtents(avatar)`) is a prefix of it →
+  `kept` (a wizard already holds every group-titled parcel; a second
+  login is idempotent);
+- else `ParcelApi.transfer(p, {kind: 'player', templatePath:
+  Avatar.getTemplatePath(playerId)})` → `granted`, one `console.info`
+  line per parcel naming the prior holder.
+
+Transfer is the shipped move that makes a player the holder a
+`player`-kind title admits (`subjectOwnsAsPlayer`, `holdsAuthority`'s
+player branch); a lease (`grantUse`) is not read by `can`. ⚠ The known
+consequence: the pack that claimed the parcel finds `conflict` at the
+next reconcile (a restart inside a drive, the nightly reprovision) and
+its rows under that extent reconcile `skip-sold` — correct behavior for
+a sold parcel, and a test world is reset per run. Documented in
+testing.md with the grant. `Session.open(handle, {parcels: [...]})`
+passes it through. Nothing in `AccessApi` learns about test mode
+(`TestHooks`' standing rule).
+
+**D22 — `TestingApi` is the one implementation behind both doors.** New
+`api/testing.ts` (`TestingApi`, `decorateApiClass` tail) and
+`platform/idea/api/TestingLogic.ts` (`@internal`, `extends ApiLogic`,
+template `/platform/idea/api/testing`, methods gated
+`FromModule('/api/testing#TestingApi')`). Every static is `@TestOnly`
+with a guidance string that **leads with its `test` subcommand**:
+
+| static | does |
+|---|---|
+| `advanceClock(duration: string, opts?: {soak?: boolean}): Promise<{before, after, settledMs, quiet}>` | the D3 cap; `WorldClockApi.advance`; pause → `PersistenceManager.get().whenQuiet(500, 240_000)` → resume (moved verbatim from `TestHooks`, with its comments); the `console.info` lines |
+| `clockNow(): number` | `WorldClockApi.getNow().rawValue()` |
+| `pinWeather(localityPath: string, type: WeatherType, mode: WeatherPinMode = 'frozen'): Promise<{locality, type, mode}>` | D23 |
+| `unpinWeather(localityPath: string): Promise<{locality}>` | D23 |
+| `BLOCKING_JUMP_CAP_S` | `86_400`, `static readonly` |
+
+`TestHooks.advanceClock(duration, opts)` becomes `#assertTestMode` +
+`ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () =>
+TestingApi.advanceClock(duration, opts))` — the route door keeps its
+root frame (no scope, no jurisdiction) and its `AUTH_MODE` gate; the
+quiet-wait and the cap move down. `TestHooks.clockNow`,
+`pinWeather(scopePath, type, mode)`, `unpinWeather(scopePath)` are the
+same shape (the weather ones resolve `scopePath` → Stuff → Locality
+through `AddressApi.resolveLocalityFor`, then call `TestingApi` with
+the Locality's template path). The `test` command's controller calls
+`TestingApi` **directly from its command frame** — a wizard's field
+command frame carries no circle scope and no jurisdiction, which is
+all the clock needs (the drain re-roots under `OMNI_SCOPE` itself —
+`TestHooks.ts` l.13–23's history); a `test clock advance` issued from
+inside a sandbox circle meets `assertNotQuarantined` and is refused in
+the clock's own words, which is right. `TestingLogic` imports
+`PersistenceManager` from `backend/` under the objapi tier's allowance
+(the `SandboxLogic` precedent). ⭐ One body, two frames, zero copies.
+
+**D23 — The weather pin is a Locality-tier pin, set at runtime, and the
+thermal cache is told.** `TestingLogic.pinWeather(localityPath, type,
+mode)`: `StuffApi.findByTemplatePath<Locality>(localityPath)` (must be a
+`Locality` — else `test weather: '/world/terminus/market' is not a
+Locality; the covering Locality is …`), `locality.setWeatherPin({type,
+mode})`, then `WeatherApi.onBoundary()` so every connected viewer's room
+restamps its `lastAmbientK` now rather than at the next segment
+boundary, and `console.info`. `unpinWeather` sets `null` and restamps.
+Locality-tier only, deliberately: the precipitation integral and the
+snow walk read only that tier (weather.md l.368), so a drive that pins
+`snow` gets snow on the ground and ice on the mere, not just a word in
+`analyze weather`. The pin is `persistent: true` on `Locality`, so in a
+test world it survives a restart until unpinned — a drive that pins
+unpins (the harness helper pair). `WeatherType` validation is the
+shipped `WEATHER_TYPES` array (a bad kind is refused naming the six).
+Route: `POST /auth/test-weather` `{scope: string, type?: string, mode?:
+'frozen' | 'alive'}` — `type` present → pin; `type` absent or `null` →
+unpin; `scope` is a template path (`/world/terminus`) resolved to its
+Locality in `TestHooks`; errors → `500 {error}` as the clock route
+does. Harness: `pinWeather(type, scope, mode?)` / `unpinWeather(scope)`
+in `src/harness/world.ts`, re-exported from `index.ts`.
+
+**D24 — The `test` verb: a platform view flagged `testOnly`, admitted
+by the store loader only in a test world, and double-gated by a
+validator.** View `content/platform/cmd/system/test.yaml`:
+
+```yaml
+verbs: [test]
+controller: /platform/idea/cmd/system/TestController
+testOnly: true
+description: "Test-world staging: move the clock, pin the weather"
+validators:
+  - /lib/command/validators/requiresWizard
+  - /lib/command/validators/requiresTestWorld
+subcommands:
+  clock:
+    description: "Read the clock, or `clock advance <duration>`"
+    args:
+      - { name: op, type: string, required: false }        # advance
+      - { name: duration, type: string, required: false, greedy: true }
+  weather:
+    description: "`weather pin <kind>` holds the weather here; `weather unpin` releases it"
+    args:
+      - { name: op, type: string, required: true }         # pin | unpin
+      - { name: kind, type: string, required: false }
+    options:
+      alive: { type: boolean, description: "pin alive (the grammar still varies the deviation) rather than frozen" }
+```
+
+- `testOnly: true` is a new boolean key: added to
+  `lib/command/command.schema.json`, to `CommandView`, and copied onto
+  `CommandDefinition.testOnly`. **One helper in `CommandLogic`,
+  `admitsView(cmd)`** — `!cmd.testOnly || SecurityApi.isTestEnvironment()`
+  — is consulted at the three places a definition enters the `commands`
+  map (`preloadAll`'s store loop, its offline loop, `reload`); a view it
+  refuses is counted as `withheld` in `preloadAll`'s return (logged once
+  at boot: `CommandApi: 1 test-only view withheld (not a test world)`),
+  never as `failed`. In a non-test world the dispatcher has no
+  definition for `test` → **unknown verb**, `help` and `affordances`
+  never list it, and a CMS `reload` of the view cannot sneak it in.
+- `lib/command/validators/requiresTestWorld.ts` (the `requiresWizard`
+  shape; `preload` → `SecurityApi.isTestEnvironment()`; refusal: `` `test`
+  is a test-world verb and this world is not one (SAXONBERG_TEST_WORLD) ``)
+  is the belt to the braces — the gate the view carries in its own data,
+  so a world where the store filter were ever bypassed still refuses.
+  `requiresWizard` is the owner's "a wizard".
+- Why `system` and not `author`: `author` is the code doors (`eval`,
+  `reload`, `clone`); `system` is the operator/meta verbs (`ping`,
+  `trace`, `config`, `committee`); `test` is scaffolding an operator
+  uses in a test world. No new category.
+- Why a flag and not a pack: a view is a document in whichever database
+  the boot installed it into, so a `test-seams` pack would need the
+  installer to **uninstall** it on a non-test boot of the same database
+  to make the verb unknown — a reconcile rule for one view. A flag the
+  loader reads is one line and keeps the platform pack the sole owner
+  of platform verbs; the document exists everywhere, the *verb* exists
+  only in a test world, which is what the requirement asks of the verb.
+- `TestController` (`platform/idea/cmd/system/TestController.ts`, row
+  `content/platform/idea/cmd/system/TestController.yaml`) dispatches on
+  `model.subcommand`: `clock` with no `op` prints game-seconds and the
+  calendar line (`WorldClockApi.getNow()` through the same formatter
+  `analyze sky`/time.md uses, else seconds); `clock advance <duration>`
+  → `TestingApi.advanceClock(duration)` and prints `before → after
+  (settled in N ms)`; a refusal (the cap, a parse error, a paused clock)
+  is `this.fail(context, message, 'test-refused')` — the message
+  verbatim; `weather pin <kind>` resolves `AddressApi.resolveLocalityFor
+  (giver)` (null → fail: *no Locality covers here*) and calls
+  `TestingApi.pinWeather(locality.getTemplatePath(), kind, alive ?
+  'alive' : 'frozen')`; `weather unpin` likewise. No `--at` in v1: the
+  route pins any scope by path; the command pins where you stand.
+- Reachability for a verb (verb · affordance · data · boot · arg gate)
+  is in the wiring table below; the data link is the controller row,
+  the boot link is the store loader's admit.
+
+**D25 — `eval` points at the command.** Two layers, one message:
+
+1. The facade stubs of D16 — `WorldClockApi.advance` and every
+   `TestingApi` static are `@TestOnly`, so from eval they throw the
+   pointer message; `advance`'s guidance string is rewritten to lead
+   with `` `test clock advance <duration>` `` (the rest of its text
+   stays). This is where the requirement's message comes from.
+2. **The back doors close with the same words.** An eval can reach a
+   mechanism without its Api — a Locality's `setWeatherPin` through
+   `self`/MQL, the clock registry through `findByTemplatePath`. One new
+   guard, `SecurityApi.assertNotFromEval(op: string, pointer: string)`,
+   walks `ExecutionContextApi.getCallStack()` for a frame whose
+   `target`'s class resolves (`ModuleApi.lookup`) to
+   `/platform/idea/EvalScript` and throws `` `setWeatherPin` is not
+   callable from eval (jurisdiction /world/terminus): use `test weather
+   pin <kind>` `` when it finds one. Call sites: `Locality.setWeatherPin`,
+   `AtmosphericMixin.setWeatherPin`, and `WorldClockRegistry.advance`
+   (beside `assertNotQuarantined`). The `TemplateApplier` calling the
+   setter during an ordinary clone is **not** under an eval frame and
+   passes; a Locality cloned *from an eval* with an authored pin is
+   refused, which is the rule stated once. The registry's `FromModule`
+   gate already denies the direct call; the guard just makes the
+   refusal say where to go.
+
 ## Host placement
 
-No Stuff class, mixin or persisted field is introduced. The three
+No mixin and no persisted field is introduced. One instanceable class
+(`TestController`, an `Idea` at `/platform/idea/cmd/system/
+TestController`) and one logic singleton (`TestingLogic`). The
 additions, and what each claims:
 
 | addition | host | claims |
 |---|---|---|
 | `durationSeconds(d)` | `WorldClockRegistry` (public, gated `WorldClockApiCallers`) → `WorldClockLogic` → `WorldClockApi` static | the grammar `after()`/`advance()` take is a readable surface; nothing about the clock changes. Not `@TestOnly`. |
-| `advanceClock(duration, {soak})` + `BLOCKING_JUMP_CAP_S` | `TestHooks` (backend) | the cap is a TEST-process rule; it lives beside the three existing gates and never in the clock, so no game code can meet it. |
-| `soak` field on the test-clock request | the route body | an opt-in only the harness sets; a world someone plays in never sees the route at all. |
+| `advanceClock(duration, {soak})`, `clockNow`, `pinWeather`, `unpinWeather`, `BLOCKING_JUMP_CAP_S` | **`TestingApi` / `TestingLogic`** (new; every static `@TestOnly`) | scaffolding has one Api, withheld outside a test environment by construction; the cap is a TEST-process rule that never enters the clock, so no game code can meet it; the weather-pin WRITE lives here and not on `WeatherApi`, because nothing in the game pins the weather at runtime (weather.md l.697: the write Api was never shipped) — composing it onto `WeatherApi` would claim the fiction can. |
+| `TestHooks.advanceClock` / `clockNow` / `pinWeather` / `unpinWeather` | `TestHooks` (backend) — thin: `#assertTestMode` + `runRoot` + forward | the route door keeps the root frame and the `AUTH_MODE` gate; it holds no logic of its own any more. |
+| `soak` field on the test-clock request; `parcels` on test-login; the `test-weather` route | the route bodies | opt-ins only the harness sets; a world someone plays in never sees the routes. |
+| `#apiClasses` + `decoratedApiClasses()` | `SecurityApi` | the registry of self-decorating Apis is a fact `decorateApiClass` already owns; recording it there claims nothing new. |
+| `assertNotFromEval(op, pointer)` | `SecurityApi` (beside `assertFieldMutation`) | a one-line guard shape the sandbox already uses; its call sites are the two weather setters and the clock's `advance` — three, named, not a base class. |
+| the facade + `observed` net + `EvalRun` | `EvalScript` (module-private functions beside `buildSandbox`, as `buildSandbox` is today) | the sandbox surface stays the one file's; no new module. |
+| `OUTPUT_CAP_CHARS`, the `eval.timeoutMs` read | `EvalController` | rendering and settings are the controller's. |
+| `runSandboxed(compiled, sandbox, {timeoutMs})` | `ScriptApi` → `ScriptLogic` (the one `node:vm` holder) | the capability keeps its one home. |
+| `testOnly` view key + `admitsView` | `CommandView` / `CommandDefinition` / `CommandLogic` | a view property and the loader that reads it — the store, not the controller, decides whether a verb exists. |
+| `requiresTestWorld` | `lib/command/validators/` (the 37th) | a verb-level precondition in the shape of the other 36. |
+| `parcels` grant | `TestHooks.provisionCharacter` | title is written through `ParcelApi.transfer`, the shipped primitive; `AccessApi` learns nothing. |
+| `pinWeather(type, scope)` / `unpinWeather(scope)` | `packages/wire/src/harness/world.ts` | the `advanceWorldClock` sibling testing.md asked for. |
 
 The wire package's `ResultReporter` is a runner-side class in
-`src/runner/`; nothing in the harness barrel changes shape (soak mode is
-read from the env inside `advanceWorldClock`).
+`src/runner/`. ⭐ The narrowing test: no guard in this plan re-narrows a
+host set — `assertNotFromEval` narrows a CALLER, which is what a guard
+is for.
 
 ## Convention conformance
 
-- **Module categories.** New mudlib surface is one static on an existing
-  Api, one method on an existing logic singleton, one made-public method
-  on the registry — no new file under `src/mud`. `src/runner/result-
-  reporter.ts` is a wire-package runner module beside `boot.ts` and
-  `global-setup.ts`. `tools/lib/suite-lock.sh` is shell (D2).
-- **Module scope.** `worldclock.ts` keeps its trailing
-  `SecurityApi.decorateApiClass`; nothing executable at module scope is
-  added. `vitest.config.ts` reads `process.env.WIRE_SOAK` at config
-  load — it is not under `src/mud`.
-- **Import boundary.** `TestHooks.ts` is `backend/`, already importing
-  `WorldClockApi`; the route stays in `services/`. No mudlib file imports
-  outside `src/mud`.
-- **Privacy.** Backend defaults to `#`: `#assertTestMode` stays; the cap
-  is `static readonly` (read by the message and the tests).
+- **Module categories.** Every new file is an existing category: an
+  Api (`api/testing.ts`, lowercase, `decorateApiClass` tail), its logic
+  singleton (`platform/idea/api/TestingLogic.ts`, `@internal`, `extends
+  ApiLogic`, `FromModule('/api/testing#TestingApi')` gates — the
+  mandatory `XApi`↔`XLogic` split), a controller
+  (`platform/idea/cmd/system/TestController.ts`) with its view
+  (`content/platform/cmd/system/test.yaml`) and row
+  (`content/platform/idea/cmd/system/TestController.yaml`), a validator
+  (`lib/command/validators/requiresTestWorld.ts`, default-export const,
+  the shipped shape), and a lint script (`scripts/check-eval-surface.ts`).
+  No free helper, no `lib/mixins/`, no new category. `EvalScript`'s
+  facade and net are module-private functions in the file that already
+  holds `buildSandbox`. `src/runner/result-reporter.ts` is a wire-package
+  runner module beside `boot.ts`; `tools/lib/suite-lock.sh` is shell (D2).
+- **Module scope.** Every Api keeps/gets its trailing
+  `SecurityApi.decorateApiClass`; the facade cache is a lazily
+  initialized `WeakMap` inside a function, not a module-scope statement;
+  `vitest.config.ts` reads `process.env.WIRE_SOAK` at config load — not
+  under `src/mud`.
+- **Import boundary (`lint:imports`).** `TestHooks.ts` (backend) imports
+  `TestingApi`, `AddressApi`, `ParcelApi`, `AccessApi` — backend may.
+  `TestingLogic` imports `PersistenceManager` from `backend/` — the
+  objapi tier may (SandboxLogic precedent). `TestController` imports
+  only `api/*` and `lib/*`. `node:vm` stays in `ScriptLogic` alone.
+  `EvalScript.test.ts` reads `api/*.ts` with `import.meta.glob` — tests
+  are unrestricted.
+- **Verbs on objects (`lint:object-verbs`).** No new Api static takes a
+  world object first: `advanceClock(duration: string, …)`,
+  `pinWeather(localityPath: string, …)`, `durationSeconds(d)`,
+  `assertNotFromEval(op: string, pointer: string)`. The census stays 0.
+- **`lint:lib-statics`.** No static on a `lib/` class is added; the
+  ceiling does not move.
+- **`lint:gates`.** New gate strings resolve: `FromModule('/api/testing#
+  TestingApi')`, `FromModule('/platform/idea/EvalScript')` (existing).
+- **`lint:test-seams`.** Every `@TestOnly` added (`TestingApi`'s four)
+  sits on a static in a file with a `decorateApiClass(` tail. ⭐ The
+  gate's "unmarked seams" worklist does not grow: nothing new is named
+  `*ForTesting` without the mark.
+- **`lint:thin-forwarder`.** `TestingApi` statics forward to `logic()`
+  (a call, not a parameter) — not flagged. `TestHooks` is backend, out
+  of scope.
+- **`lint:controller-rows` / `lint:instanceable`.** The `TestController`
+  row exists; `/lib/command/validators/requiresTestWorld` is a validator
+  ref, the same string shape as `requiresWizard`, not a template path.
+- **`lint:binder-models`.** The `TestController` test hand-builds its
+  model with `subcommand` and the string args the view declares — no
+  object-typed arg exists on the view, so nothing is skipped.
+- **`lint:schema`.** No collection is added or renamed; the parcel
+  transfer writes the existing `parcels` + `parcel_events`.
+- **`lint:test-bootstrap`.** Every new server test imports
+  `test-bootstrap`.
+- **`lint:eval-surface`** (new, D16) joins the derived roster; its
+  ceiling is today's count and may only fall.
+- **Privacy.** Backend defaults to `#`: `#assertTestMode` stays. The
+  cap is `static readonly` on `TestingLogic` (read by the message and
+  the tests). `SecurityApi.#apiClasses` is `#` (Api-static slot, no
+  proxy receiver).
+- **Call security of what eval reaches.** Nothing is widened: no gate
+  is loosened, no `ApiOnly` setter is opened, no test-mode branch enters
+  `AccessApi`. The surface grows only by binding Apis whose statics
+  already carried their gates.
 - **No `.js` in imports; American English** in every new name and
-  message.
+  message (`unpin`, `behavior`, `canceled`).
 - **Lints this build must pass:** `pnpm -C packages/server lint:family`
-  in full, and in particular `lint:imports`, `lint:module-scope`,
-  `lint:object-verbs` / `lint:lib-statics` (the new static takes a string,
-  not a world object), `lint:test-bootstrap` (new server tests import
-  `test-bootstrap`), `lint:drive-scripts` (no `scripts/drive-*`), plus
-  `pnpm -C packages/wire exec tsc --noEmit` and ESLint over the wire
-  package.
+  in full (the derived roster — including `lint:eval-surface` once it
+  exists), plus `pnpm -C packages/wire exec tsc --noEmit` and ESLint
+  over the wire package, and `pnpm -C packages/server lint:test-seams`
+  specifically after W1 and W6 (it is in the family; named here
+  because the staging scope adds four marks).
 
 ## Waves
 
@@ -459,20 +1065,36 @@ canary's 2-day jump passes regardless — W1 makes the mode matter.)
 
 Commit: `wire(soak): the .soak. convention, wire:soak, result.json and the canary`.
 
-### W1 — the refusal
+### W1 — the refusal, in the shared hook
 
 Goal: a jump past a game day outside soak mode fails before jumping, in
-words that name the rule and the fix. Implements D3.
+words that name the rule and the fix — enforced in `TestingApi`, the
+one implementation both doors will call (the `test` command arrives in
+W6 and finds the hook already there). Implements D3, and the clock
+half of D22.
 
 Files: `packages/server/src/mud/platform/idea/WorldClockRegistry.ts`
 (`durationSeconds` public), `…/api/WorldClockLogic.ts` (forward),
-`packages/server/src/mud/api/worldclock.ts` (static),
-`packages/server/src/backend/TestHooks.ts` (opts, cap, message),
+`packages/server/src/mud/api/worldclock.ts` (static);
+**new** `packages/server/src/mud/api/testing.ts` (`TestingApi`:
+`advanceClock`, `clockNow`, `BLOCKING_JUMP_CAP_S`; the weather pair
+comes in W6) and `packages/server/src/mud/platform/idea/api/
+TestingLogic.ts` (the cap check, the jump, the pause/`whenQuiet`/resume
+moved from `TestHooks` with their comments);
+`packages/server/src/backend/TestHooks.ts` (`advanceClock(duration,
+opts)` → thin forward under `runRoot`; `clockNow` → forward; the
+module header's clock paragraph now points at `TestingApi`);
 `packages/server/src/services/auth/TestAuthRoutes.ts` (`soak` through).
 Tests: `src/backend/__tests__/TestHooks.clock.test.ts` (+ `'2 days'`
 rejects matching `/span step/i` and `/\.soak\./`; `'2 days', {soak:
 true}` moves; `'20 hours'` and `'1 day'` move; the refusal leaves the
-clock where it was — assert `clockNow()` unchanged);
+clock where it was — assert `clockNow()` unchanged; the two "sheds
+scope" cases still pass through the forward);
+**new** `src/mud/api/__tests__/testing.test.ts` (the cap at the Api,
+both sides of the line, soak on/off; `clockNow`; and ⭐ *"every static
+on `TestingApi` is `@TestOnly`"* — `SecurityApi.getTestOnlyMembers
+(TestingApi)` covers every own static function, so a future seam added
+here cannot forget the mark);
 `src/services/auth/__tests__/TestAuthRoutes.test.ts` (+ `{advance: '2
 days'}` → 500 with the message; `{advance: '2 days', soak: true}` → 200;
 `{advance: '1 day'}` → 200); a registry/Api parse test (`'90 minutes'`
@@ -480,13 +1102,14 @@ days'}` → 500 with the message; `{advance: '2 days', soak: true}` → 200;
 message) beside the registry's existing `__tests__`.
 
 Acceptance: `pnpm -C packages/server test:near` green on the touched
-files; `lint:family` green; `WIRE_BOOT=1 WIRE_PORT=2019 pnpm -C
-packages/wire wire:soak canary` still passes (soak mode on); the same
-canary body run through `pnpm wire` is impossible by W0, so the
-blocking-side proof is drive step 2 (a scratch non-soak file, not
-committed).
+files; `lint:family` green (`lint:test-seams` now counts three marks,
+`lint:gates` resolves `/api/testing#TestingApi`); `WIRE_BOOT=1
+WIRE_PORT=2019 pnpm -C packages/wire wire:soak canary` still passes
+(soak mode on); the same canary body run through `pnpm wire` is
+impossible by W0, so the blocking-side proof is drive step 2 (a scratch
+non-soak file, not committed).
 
-Commit: `clock(test-hooks): refuse a jump past a game day outside soak mode`.
+Commit: `clock(testing): TestingApi — refuse a jump past a game day outside soak mode, in the one hook both doors call`.
 
 ### W2 — the census moves
 
@@ -507,7 +1130,7 @@ Verification the build owes (not a full dirty run — hours): (a) a static
 census — `grep -n "advanceWorldClock\|advance(" packages/wire/tests/*.wire.test.ts`
 over non-soak files, every literal ≤ 1 day, every helper's loop bounded
 to ≤ 1 day in total; (b) `pnpm wire:clean` green on the branch (drive
-step 8); (c) three targeted single-file runs against the build world,
+step 11); (c) three targeted single-file runs against the build world,
 each `WIRE_BOOT=1 WIRE_PORT=2019 pnpm -C packages/wire wire <file>`:
 `rubber.dirty` (the `'24 hours'` set — D10's flagged check),
 `assembly.dirty` (the cooper's stave restock without the 40-day sweep),
@@ -540,24 +1163,191 @@ once on the re-run, and the build closes it with `glab issue close`.
 
 Commit: `tools(soak): the runner — lock and reserve shared with tools/suite, headroom-gated, files soak issues`.
 
-### W4 — docs
+### W4 — `eval`: the surface, the timeout, the cap, the net
+
+Goal: `eval` binds every self-decorating Api, cannot run past its
+budget, cannot flood the socket, and no eval — however wrong — ends
+the process. Implements D15–D20 and the stub half of D25.
+
+Files: `packages/server/src/mud/api/security.ts` (`#apiClasses`,
+`decoratedApiClasses()`, `assertNotFromEval(op, pointer)`);
+`packages/server/src/mud/platform/idea/EvalScript.ts` (delete
+`SANDBOX_NAMES`; the facade builder + `observed` + `EvalRun`; the async
+wrapper; `run(receiver, {timeoutMs})` with the race; the header's
+`WorldClockApi` paragraph rewritten per D15);
+`packages/server/src/mud/api/script.ts` + `platform/idea/api/
+ScriptLogic.ts` (`runSandboxed(compiled, sandbox, {timeoutMs})`:
+`microtaskMode: 'afterEvaluate'`, `timeout`);
+`packages/server/src/mud/platform/idea/cmd/author/EvalController.ts`
+(`eval.timeoutMs` read, `OUTPUT_CAP_CHARS`, late-error rendering,
+`MudlogApi.warn('sandbox.eval.late')`);
+`packages/server/src/mud/lib/shell/Author.ts` (`eval.timeoutMs`
+description made true, default 5000; `eval.maxDepth` removed);
+`packages/server/src/mud/api/worldclock.ts` (`advance`'s guidance leads
+with `test clock advance <duration>`);
+`packages/server/src/mud/platform/idea/WorldClockRegistry.ts`
+(`assertNotFromEval('advance', 'test clock advance <duration>')` beside
+`assertNotQuarantined`);
+**new** `packages/server/scripts/check-eval-surface.ts` + the
+`lint:eval-surface` script line in `packages/server/package.json`.
+Tests: `platform/__tests__/EvalScript.test.ts` (+ the D15 set-equality
+test over `import.meta.glob('../../api/*.ts')`; `@TestOnly` members
+bind as stubs whose message matches `/test clock advance/`; the facade
+is frozen and `StuffApi` binds `singletonSync` as today; `this` survives
+binding — a call through the facade that touches a `#`-static works;
+the D20 reproduce-then-pin test with the `unhandledRejection` spy, both
+body shapes; a sync infinite loop rejects with `/timed out/` within
+`timeoutMs + 500` ms; `while (true) await null` likewise; an awaited
+tail that outlives the budget rejects with the "not cancelled" message
+and the late result lands in `EvalRun.lateErrors` or is logged); a new
+`cmd/author/__tests__/EvalController.test.ts` (a 1 MB result is cut at
+the cap with the tail; a late error renders on the result line);
+`api/__tests__/security.assertNotFromEval.test.ts` (fires under an
+`EvalScript.run` frame, before and after an `await`; silent outside
+one, including under a bare `runScoped` root with no eval);
+`scripts/__tests__/check-eval-surface.test.ts` if the sibling lints have
+one (match the `check-object-verbs` test shape; else the script's own
+`--lint` run is the proof).
+
+Acceptance: `test:near` green; `lint:family` green with
+`lint:eval-surface` listed by `--list` and its ceiling printed; a wire
+attach session against the build world: `eval 1 + 1` → `2`;
+`eval Object.keys(this).length` works through the receiver proxy;
+`eval while(true){}` → `error: eval: timed out after 5000 ms
+(eval.timeoutMs)` and the next command answers; `eval
+WorldClockApi.advance('1 day')` → the stub message naming `test clock
+advance`; `eval --parcel /world/terminus StuffApi.clone('/trade/sugar/
+thing/pan')` (the dairy drive's crash shape, as a statement) → the
+result line carries `late: StuffApi.clone — …` or the value, and the
+server is up.
+
+Commit: `eval(sandbox): bind every self-decorating Api; a real timeout, an output cap, and no eval-born rejection left unhandled`.
+
+### W5 — test login grants title
+
+Goal: a drive's character can stage inside any parcel it names.
+Implements D21.
+
+Files: `packages/server/src/services/auth/TestAuthRoutes.ts` (`parcels`
+in the body, 400 on a non-string-array), `packages/server/src/backend/
+TestHooks.ts` (`authenticate(…, parcels)`, `provisionCharacter(…,
+parcels)`, `#grantParcels(avatar, playerId, parcels)`),
+`packages/wire/src/harness/session.ts` (`Session.open(handle, {parcels})`
+passes it; the `SessionOptions` type).
+Tests: `src/backend/__tests__/TestHooks.parcels.test.ts` (a parcel the
+wizard's groups already hold → `kept`, no event; a `player`-held parcel
+→ `granted`, `ParcelApi.ownerOf` now the identity path,
+`AccessApi.heldExtents` includes it, a `transfer` event appended; a
+non-parcel path → the login throws naming the covering parcel; second
+login → `kept`); `TestAuthRoutes.test.ts` (+ `parcels: 'x'` → 400;
+`parcels: ['/home/other']` → 200 and the character holds it).
+
+Acceptance: `test:near` green; `lint:family` green; against the build
+world, `Session.open('runner', {wizard: true, parcels: ['/world/
+terminus/mayfield-row/seznick-house']})` (a `mayfield-holdings` parcel
+— held already through the group, so `kept`) and a scratch
+player-titled parcel (subdivide one in the drive, or transfer one to a
+second test character first) → `eval --parcel <it> 1` runs; the same
+`eval --parcel` from a character without the grant → `you hold no
+authority over <it>`.
+
+Commit: `test-login(parcels): a test runner is granted title to the parcels it names`.
+
+### W6 — the `test` command and the weather pin
+
+Goal: `test clock …` and `test weather …` exist in test worlds only,
+share `TestingApi` with the harness, and `/auth/test-weather` is the
+harness's door to the pin. Implements D22 (weather half), D23, D24,
+and the guard half of D25.
+
+Files: `packages/server/src/mud/api/testing.ts` + `TestingLogic.ts`
+(`pinWeather`, `unpinWeather`); `packages/server/src/mud/platform/idea/
+Locality.ts` + `lib/biome/Atmospheric.ts` (`assertNotFromEval
+('setWeatherPin', 'test weather pin <kind>')` in the setters);
+`lib/command/command.schema.json` + `lib/command/CommandDefinition.ts`
+(`testOnly`); `platform/idea/api/CommandLogic.ts` (`admitsView`, the
+`withheld` count + boot line); **new** `lib/command/validators/
+requiresTestWorld.ts`; **new** `platform/idea/cmd/system/
+TestController.ts`; **new** `packages/content/platform/content/platform/
+cmd/system/test.yaml` + `…/idea/cmd/system/TestController.yaml`;
+`backend/TestHooks.ts` (`pinWeather`/`unpinWeather` forwards with the
+scope → Locality resolve); `services/auth/TestAuthRoutes.ts`
+(`/auth/test-weather`; the mount banner names three routes);
+`packages/wire/src/harness/world.ts` + `index.ts` (`pinWeather`,
+`unpinWeather`).
+Tests: `api/__tests__/testing.test.ts` (+ pin on a Locality fixture sets
+the pin and `WeatherApi.resolveWeatherFor` of a scope under it reads
+the type; unpin clears; a non-Locality path refuses naming the
+covering Locality; a bad kind refuses naming the six; the `@TestOnly`
+coverage test now sees four); `platform/idea/api/__tests__/
+CommandLogic.store.test.ts` (+ a `testOnly: true` view is withheld
+when `isTestEnvironment()` is false — stub the env — and admitted when
+true; `reload` honors the same gate); `lib/command/validators/
+__tests__/requiresTestWorld.test.ts`; `platform/idea/cmd/system/
+__tests__/TestController.test.ts` (`clock` prints; `clock advance '2
+hours'` moves; `clock advance '3 days'` → `controller-rejected` with
+the soak message; `weather pin rain` pins the giver's Locality;
+`weather pin sideways` refuses; `weather unpin`); `TestAuthRoutes.
+test.ts` (+ `test-weather` pin/unpin/400); `security.assertNotFromEval.
+test.ts` (+ `setWeatherPin` from an eval frame throws the pointer; the
+`TemplateApplier` path outside an eval still sets it — clone a Locality
+fixture with `weatherPin:` in its data).
+
+Acceptance: `test:near` green; `lint:family` green (`lint:test-seams` at
+four marks, `lint:controller-rows` sees the row, `lint:gates` green);
+against the build world (a test world): `test clock` prints; `test
+clock advance 2 hours` moves; `test clock advance 3 days` is refused
+with the soak message; `test weather pin rain` → `analyze weather`
+reports rain, `test weather unpin` releases it; `eval WorldClockApi.
+advance('1 hour')` → the stub naming `test clock`; `eval (await
+MqlApi.resolveOne('…locality…')).setWeatherPin({type:'snow',mode:
+'frozen'})` → the guard naming `test weather pin`. Then **a dev-mode
+boot of the same database** (`pnpm dev:server`, no `SAXONBERG_TEST_
+WORLD`) on a scratch port: `test clock` → the dispatcher's unknown-verb
+answer, `help test` finds nothing, and the boot line says one test-only
+view was withheld. Tear it down by PID.
+
+Commit: `test(verb): the test command — clock and weather, test worlds only, one implementation with the harness routes`.
+
+### W7 — docs
 
 Goal: a fresh reader finds the convention, the command, the refusal, the
-result and the runner where they would look.
+result, the runner, the staging tools and the `test` verb where they
+would look.
 
 Files: `docs/testing.md` (a `## The soak lane` section: the file
 convention, `wire:soak`, the refusal's message, `result.json`'s schema,
 `tools/soak`'s flags and env, the quiet-hours rule, the state file;
-update the "25 wire files use it today" sentence in the wire section);
-`.claude/skills/soak/SKILL.md` (drop the "until the harness build lands"
-paragraph; name `.soak/state`, `.soak/results/`, `tools/soak --watch` in
-the window's second pane, and what an issue carries);
-`docs/slates/builds/soak-lane-slate.md` (§ 3a *Owed* → shipped, pointing
-at testing.md; the stale `advanceLiving` claim in the header struck);
-this plan's drive record. ⚠ `workflow.md`, `CLAUDE.md`, `roadmap.md` are
-swept, not raced — leave their index lines to `/finalize`.
+update the "25 wire files use it today" sentence in the wire section;
+⭐ rewrite § *three mint shapes* — the `eval --parcel` row no longer
+takes the server down — and close § *Open: test seams a drive would
+want*'s weather item with `pinWeather`; a `### Staging` subsection:
+`Session.open({parcels})`, `pinWeather`, the `test` verb, and the
+`skip-sold` consequence of a transferred title);
+`docs/subsystems/shell-author.md` (the sandbox paragraph: every
+self-decorating Api, the facade, `@TestOnly` stubs; `eval.timeoutMs`
+real at 5000, `eval.maxDepth` retired; the output cap; the late-error
+line; the `isolated-vm` deferral restated as "the awaited tail cannot
+be cancelled"); `docs/subsystems/call-security.md` (§ Test Seams:
+`decoratedApiClasses`, `assertNotFromEval`, and that the eval sandbox
+now binds by the registry — the sentence *"the eval sandbox binds Api
+classes and nothing else"* at `security.ts` l.676 stays true);
+`docs/subsystems/weather.md` (the runtime pin seam: `TestingApi.
+pinWeather`, Locality-tier, `/auth/test-weather`; strike the l.692
+"deferred" item); `docs/subsystems/command-spec.md` (`testOnly: true`
+and the `withheld` count); `docs/subsystems/access.md` or `parcel.md`
+(one paragraph: a test runner's title is a transfer, and what the pack
+sees afterward); `.claude/skills/soak/SKILL.md` (drop the "until the
+harness build lands" paragraph; name `.soak/state`, `.soak/results/`,
+`tools/soak --watch` in the window's second pane, and what an issue
+carries); `docs/slates/builds/soak-lane-slate.md` (§ 3a *Owed* →
+shipped, pointing at testing.md; the stale `advanceLiving` claim in the
+header struck); this plan's drive record. ⚠ `workflow.md`, `CLAUDE.md`,
+`roadmap.md` are swept, not raced — leave their index lines to
+`/finalize` (CLAUDE.md's controller-category list gains `test` under
+`system` at the sweep).
 
-Commit: `docs(soak): the lane's harness, runner and result, documented`.
+Commit: `docs(soak): the lane's harness, runner, result and staging tools, documented`.
 
 Then: the blocking drive (below), the drive record appended here, the
 MR opened READY naming `canary.soak.wire.test.ts` as the soak drive and
@@ -577,7 +1367,25 @@ fails closed and silent.
 | the result exists for the runner | the reporter is registered in `reporters: [...]`, writes to the path `tools/soak` reads (`packages/wire/.wire/result.json`) (W0, W3) | the runner files "no result" issues for every merge — D13's lane-broken case |
 | the canary runs when only tooling changed | D9's tooling-path list (W3) | the lane never re-proves itself |
 | an issue reaches GitLab | `glab` authenticated on the workstation; `SOAK_GLAB` override (W3) | a failure is logged in `.soak/log` and nobody wakes — the runner's stdout says `glab failed` and the state file still advances |
-| the runner runs at all | the `soak` window's second pane runs `tools/soak --watch` (W4 documents; the owner starts it) | nothing soaks — the triage skill says "check the lane's state" |
+| the runner runs at all | the `soak` window's second pane runs `tools/soak --watch` (W7 documents; the owner starts it) | nothing soaks — the triage skill says "check the lane's state" |
+
+The staging tools' links — the `test` verb's five, the eval surface, the
+grant and the pin:
+
+| link | wired by | fails as |
+|---|---|---|
+| **verb** — `test` parses | `content/platform/cmd/system/test.yaml` installed as a `command-view` document by the platform pack (W6) | unknown verb everywhere, including test worlds — step 10's first assertion |
+| **affordance** — the verb reaches the giver | a platform view in the `system` category is afforded like `ping`/`trace` (no `commandContributions` needed; the view is global) | n/a — but a view with a typo'd `verbs:` is a silent unknown verb |
+| **data** — the controller resolves | the row `content/platform/idea/cmd/system/TestController.yaml` (W6); `lint:controller-rows` | `controller-error` on every dispatch, forever, invisible to every unit test |
+| **boot** — the view is admitted | `CommandLogic.admitsView` reads `SecurityApi.isTestEnvironment()`, which reads `SAXONBERG_TEST_WORLD=1`, which `boot.ts` l.78 sets (W6) | in a test world the verb is unknown (the env var not set — a dev server with only `AUTH_MODE=test` is NOT a test world, by design); in a dev world the verb exists — step 10's dev-boot assertion |
+| **arg gate** — a bad subcommand/arg fails in words | `subcommands:` with typed string args; `op`/`kind` validated in the controller against `advance` / `pin|unpin` / `WEATHER_TYPES` (W6) | a greedy duration with no `op` silently reads as the op (`test clock 3 days` → "unknown op '3'") — the controller's message names the forms |
+| the harness reaches the pin | `/auth/test-weather` mounted beside `/auth/test-clock` (W6) → `TestHooks.pinWeather` → `TestingApi.pinWeather` | `pinWeather()` in a drive throws the route's 404 text — loud |
+| both doors meet the cap | the cap is inside `TestingLogic.advanceClock`, below both `TestHooks` and `TestController` (W1) — nothing above it can jump | a door that bypassed `TestingApi` (calling `WorldClockApi.advance` itself) would skip it; `testing.test.ts` asserts the cap at the Api and `TestController.test.ts` at the verb |
+| `eval` sees an Api | the class's module tail `decorateApiClass` (every Api has one) → `#apiClasses` → the facade (W4) | an Api without a tail is invisible to eval AND to `@TestOnly` withholding — `lint:test-seams` catches the second, the D15 set-equality test the first |
+| `eval` refuses a seam by name | `@TestOnly` recorded at the tail → `getTestOnlyMembers` → the stub (W4) | a seam without the mark is live in eval in a test world — `testing.test.ts`'s coverage assertion |
+| a refusal returns | `observed` on every facade function and receiver member (W4) | a dropped promise ends the process (`Server.ts` l.326) — the D20 regression test |
+| the title grant takes | `ParcelApi.transfer` re-indexes the owner index (`ParcelRegistry.ts` l.370) → `heldExtents` → `holdsAuthority` (W5) | `heldExtents` would still answer the old holder — `TestHooks.parcels.test.ts` asserts through `heldExtents`, not the record |
+| the pin is felt, not just reported | `WeatherApi.onBoundary()` after the set (W6) restamps every connected viewer's room | thermal keeps the pre-pin ambient until the next segment boundary (hours) — `testing.test.ts` asserts `resolveWeatherFor` AND the drive reads `analyze weather` + a thermometer |
 
 ## Acceptance-criteria coverage
 
@@ -588,15 +1396,28 @@ fails closed and silent.
 | After a merge that adds or changes a soak file, the lane soaks it unattended — never while memory is short or the lock is held, and no later than the next night | W3 (D7, D9, D12) | drive 4, 5, 7; the night rule is by construction — see Risks |
 | A soak failure is a `soak` issue with enough to triage; a repeat comments | W3 (D13) | drive 6 |
 | The canary is green on master after this merges, soaked by the lane | W0, W3 | the soak drive (after merge) |
-| Master's wire suite is green when this merges | W2 | drive 8 (`wire:clean`) + the static census; CI's `wire` job on the MR |
+| Master's wire suite is green when this merges | W2 | drive 11 (`wire:clean`) + the static census; CI's `wire` job on the MR |
+| A test runner can stage, with `eval` in a parcel it holds, anything a consumer Api can do; no `eval` — however wrong — stops the server | W4 (D15–D20), W5 (D21) | drive 8, 9; the D15 set-equality test; the D20 regression test; the timeout and cap tests |
+| Time and weather move only through the `test` command (or the harness's route), only in test worlds, and the soak rule is enforced in one place for both | W1 (D3, D22), W4 (D25 stubs), W6 (D23, D24, D25 guard) | drive 10 (both doors, the dev-boot unknown-verb check, the eval pointers); `testing.test.ts` + `TestController.test.ts` both hitting the one cap |
 
-Nothing in the requirements is unmapped.
+Nothing in the requirements is unmapped. ⚠ One reading the plan does
+NOT make: "only through the `test` command" is read as *the only
+in-world door* — `WorldClockApi.advance` stays `@TestOnly` and live in
+a test world for the harness route and for unit tests, which is the
+requirement's own "or the harness's route".
 
 ## Test & gate strategy
 
 - **Unit (server):** the refusal (both sides of the line, soak on/off,
-  clock unmoved on refusal), the route's `soak` pass-through, the parse
-  surface. `pnpm test:near` after W1; `lint:family` after every wave.
+  clock unmoved on refusal, **at the Api and at the verb** — one cap,
+  two doors), the route's `soak` pass-through, the parse surface; the
+  eval surface's set-equality test, the `@TestOnly` stub, the timeout
+  (sync, microtask, awaited tail), the cap, the D20 reproduce-then-pin
+  test with the `unhandledRejection` spy; the parcel grant through
+  `heldExtents`; the pin through `resolveWeatherFor`; the `testOnly`
+  view withheld/admitted; `assertNotFromEval` before and after an
+  `await`. `pnpm test:near` after W1, W4, W5, W6; `lint:family` after
+  every wave.
 - **Unit (wire package):** none today and none added — the reporter is
   proved by the drive's `result.json` assertions. (`packages/wire` has no
   unit runner; adding one is out of scope.)
@@ -613,11 +1434,23 @@ Nothing in the requirements is unmapped.
 | 5 | staged | with the threshold above free memory, `--once` does not boot and says it waits for memory; with a fake lock holder, it says it waits for the lock | `SOAK_WORLD_MB=999999 SOAK_POLL_S=1 timeout 5 tools/soak --once` → "waiting for memory"; plant the fake lock per D8 → "waiting for the lock (fake, pid N)"; remove it |
 | 6 | staged | with a soak file forced to fail, `--once` files ONE `soak` issue carrying file, merge, MR, failing step and output; run again → it comments; close it | `SOAK_RUN_CMD` = a stub writing a canned failing `result.json` for the canary; `SOAK_WORKTREE=$ROOT/soak` (the only touch of the soak worktree and port 2020; the stub boots nothing); verify with `glab issue view`; re-run with the state reset → `glab issue view` shows one note; `glab issue close` |
 | 7 | instant | after a pass, the state file has advanced; `--dry-run` lists nothing new | stub exits 0 with a passing result; `cat $SOAK_STATE` = HEAD; `--dry-run` prints "nothing to soak" |
-| 8 | instant | the census result is in the MR — each of the 25 moved to soak or shown within a day — and `pnpm wire:clean` is green on the branch | D10's table + the static census; `WIRE_BOOT=1 WIRE_PORT=2019 pnpm -C packages/wire wire:clean` |
+| 8 | staged | as a test runner granted title to `/world/terminus`: `eval --parcel /world/terminus` calls a consumer Api that was out of reach before and the effect is real; the same call in an unheld parcel is refused with a message; the server is up | `Session.open('runner', {wizard: true, parcels: ['/world/terminus']})` (→ `kept`: the group holds it — so the drive ALSO stages one unheld parcel: `subdivide` a scratch lot under `/world/terminus` as the founder and `transfer` it to a second test character, then grant it to the runner with `parcels:` on a re-login → `granted`); in each: `eval --parcel <p> ConditionApi.inflict(await MqlApi.resolveOne('<an NPC there>'), {...})` → the NPC's `look` shows the condition (ConditionApi was unbindable before W4); a third character with no grant → `you hold no authority over <p>`; `ping` answers after each |
+| 9 | short | `eval` with an infinite loop returns a timeout error; a huge result is cut at the cap; a clone refused by the boundary returns an error; the server is up after each | `eval while(true){}` → `/timed out after/`; `eval 'x'.repeat(1_000_000)` → the line ends `… [cut at 16,384 of … chars — eval output cap]`; in the runner's own `/home` circle: `eval StuffApi.clone('/trade/sugar/thing/pan')` (the dairy crash shape — a statement, no `return`) → `late: StuffApi.clone — sandbox boundary denied …` on the result line or in the mudlog; `ping` answers after each; the server log has no `Unhandled rejection` line |
+| 10 | short | `test clock advance 2 hours` moves the clock; `test clock advance 3 days` is refused with the soak rule's message; `test weather pin rain` holds rain until `test weather unpin`; in a world that is not a test world, `test` is an unknown verb; `eval` touching the clock is refused, naming `test clock` | wizard session on the build world: `test clock` → read; `test clock advance 2 hours` → `before → after`, `worldClockNow()` agrees; `test clock advance 3 days` → `/span step/` and `/\.soak\./`; `test weather pin rain` → `analyze weather` says rain and a thermometer in the room moved; `test weather unpin` → the procgen type returns; `eval WorldClockApi.advance('1 day')` → `/test clock advance/`; `eval (await MqlApi.resolveOne('…'))` on the Locality `.setWeatherPin(...)` → `/test weather pin/`; then the dev-mode boot of W6's acceptance on a scratch port (`PORT=2018 AUTH_MODE=test npx tsx src/preload.js` — ⚠ deliberately without `SAXONBERG_TEST_WORLD`, and never the npm script, which reaps siblings) → `test clock` is the unknown-verb answer; kill it by PID |
+| 11 | instant | the census result is in the MR — each of the 25 moved to soak or shown within a day — and `pnpm wire:clean` is green on the branch | D10's table + the static census; `WIRE_BOOT=1 WIRE_PORT=2019 pnpm -C packages/wire wire:clean` |
+
+Steps 8–10 are run through the wire harness as a scratch
+`tests/zz-staging.wire.test.ts` (not committed; the `zz-refusal` of
+step 2 can be the same file) so the assertions are code, not eyes —
+and then **once more in a browser** for step 10's `test` command
+(`probe-world-fast-loop`: a standing world, `.wire/server.log` grepped
+for `[dispatch]`), because a verb that answers over the wire and
+renders nothing on the card has happened before.
 
 Afterwards: the soak worktree is left `git checkout --detach
 origin/master`, clean; the build's own worlds only ever on 2019 /
-`saxonberg_build4`.
+`saxonberg_build4` (the step-10 dev boot on 2018 is the one exception,
+and it is killed by PID before the drive record is written).
 
 - **The soak drive** — one step, `span`: `canary.soak.wire.test.ts`, run
   by the lane after this merges. Its staged twin is drive step 3 (the
@@ -656,8 +1489,43 @@ origin/master`, clean; the build's own worlds only ever on 2019 /
    `--prefer-offline`; a merge adding a dependency pulls from the
    network, which the workstation has.
 9. **Nothing starts `tools/soak --watch`.** The owner runs it in the
-   `soak` window's second pane (W4 documents it). A later `saxo` edit
+   `soak` window's second pane (W7 documents it). A later `saxo` edit
    could launch it; not this build.
+10. **`eval.timeoutMs` default 5000, not the documented 1000** (D18).
+    The 1000 was never enforced; a staging eval that awaits a clone
+    with record reads needs more than a second on a loaded box. ⚠ The
+    owner's eye — if 1000 is the number, the drive's clone step will
+    show whether it fits.
+11. **`eval.maxDepth` is deleted** (D18) — a declared key nothing can
+    honor under `node:vm`. ⚠ The owner's eye: it is a settings-schema
+    key deletion, visible to `settings get`.
+12. **A transferred title is a sold parcel to its pack** (D21): the
+    next reconcile records `conflict` and skips the pack's rows under
+    it. In a per-run test world that is invisible; in a drive that
+    restarts mid-run after granting a pack-held parcel it is not — the
+    rows already installed stay, new ones from a merge would not land
+    under it. The grant is per login and the drive names only what it
+    needs. ⚠ The owner's eye, because "give the runner title" has this
+    one shadow and the alternative (a test-mode branch in `AccessApi`)
+    is the thing `TestHooks` refuses on principle.
+13. **The awaited tail cannot be cancelled** (D18). `vm` kills a
+    synchronous or microtask loop; a body awaiting a host promise that
+    never settles returns a timeout error while the work continues.
+    Honest in the message; the real fix is `isolated-vm`, the standing
+    deferral.
+14. **The facade freezes a snapshot of each Api's statics.** A static
+    added by hot-reload to an Api would not appear — Apis are non-HMR
+    by rule, so this is theoretical; noted so nobody "fixes" the cache.
+15. **`help`/`affordances` in a dev world never show `test`**, by
+    design — but a wizard in a dev world who types `test clock` gets
+    the plain unknown-verb line, not "this is a test-world verb". The
+    `withheld` boot line is the only tell. Accepted: a dev world is a
+    world somebody plays in.
+16. **Drive step 10's dev boot shares the build's database** for one
+    boot on a scratch port, without `reset:db` — it reads the same
+    `command-view` store (that is the point) and must not be booted
+    while the build world is up on 2019 with a drive in flight (two
+    servers on one DB). Sequence it after step 9.
 
 ## Deferred seams
 
@@ -671,6 +1539,26 @@ origin/master`, clean; the build's own worlds only ever on 2019 /
   window setup when the owner wants it.
 - **A wire-package unit runner** (for the reporter) — if a second runner
   module needs one.
+- **`isolated-vm`** — the standing sandbox deferral; what would make
+  the awaited tail cancellable (D18) and the moat a real boundary.
+- **The sandbox's `console`** — still the server's stdout; routing it
+  to the giver as `shell.result` lines (capped like the result) is a
+  one-file change in `buildSandbox` when a drive wants it.
+- **`test weather pin --at <place>`** — the command pins where you
+  stand; the route pins any scope. If a browser drive needs a distant
+  pin, add the option (type `object`, scope `[reachable, locations]`)
+  to the view and resolve its Locality the same way.
+- **Further `test` subcommands** — the requirement's "added here as
+  staging twins need them". Each is one `TestingApi` static
+  (`@TestOnly`, guidance leading with its subcommand), one stanza in
+  the view, one branch in the controller; the coverage test in
+  `testing.test.ts` refuses an unmarked one.
+- **`EvalController.holdsAuthority` → `AccessApi.heldExtents`** — the
+  controller carries its own owner-kind walk; `heldExtents` is the
+  shipped predicate and now the one `TestHooks` uses. Folding the walk
+  into one call is a cleanup, not this build.
+- **The `lint:eval-surface` ceiling → 0** — the ratchet's second step:
+  gate or mark the un-prefixed `@internal` statics it lists.
 
 ## Critical files
 
@@ -693,8 +1581,33 @@ Read first, in this order:
 - `/home/bobalu/play/saxonberg/build-4/packages/wire/tests/platform-smoke.wire.test.ts` (the canary's shape)
 - the census files named in D10
 
+For the staging scope (W4–W6), in this order:
+
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/EvalScript.ts`
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/cmd/author/EvalController.ts`
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/api/script.ts` (l.170–225) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/api/ScriptLogic.ts` (l.550–575)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/api/security.ts` (l.520–620 the wrapping; l.614–875 `@TestOnly` + `assertTestOnly`; l.1425–1445 `assertFieldMutation`)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/lib/security/decorators.ts` (l.215–312 `@TestOnly`)
+- `/home/bobalu/play/saxonberg/build-4/docs/subsystems/call-security.md` (§ Test Seams, § Why Some Api Files Don't Self-Decorate, § ExecutionContextApi)
+- `/home/bobalu/play/saxonberg/build-4/docs/subsystems/sandbox.md` (§ the jurisdiction host, § Decision K)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/services/Server.ts` (l.300–331)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/__tests__/EvalScript.test.ts`
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/api/parcel.ts` (l.296–330) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/ParcelRegistry.ts` (l.349–374)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/AccessRegistry.ts` (l.136–150, l.233–249, l.440–470)
+- `/home/bobalu/play/saxonberg/build-4/docs/subsystems/parcel.md` (§ grant) + `/home/bobalu/play/saxonberg/build-4/docs/subsystems/access.md` (§ Ownership: the parcel layer)
+- `/home/bobalu/play/saxonberg/build-4/packages/content/terminus/pack.yaml` (l.26–62)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/lib/biome/Atmospheric.ts` (l.1110–1125) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/Locality.ts` (l.150–160, l.530–537)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/api/WeatherLogic.ts` (l.400–420 `resolveWeatherPin`) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/api/weather.ts` (l.410–440 `onBoundary`)
+- `/home/bobalu/play/saxonberg/build-4/docs/subsystems/weather.md` (§ The coexistence resolve, l.360–375, l.690–700)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/api/CommandLogic.ts` (l.600–700) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/lib/command/CommandDefinition.ts` (l.140–270) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/lib/command/command.schema.json`
+- `/home/bobalu/play/saxonberg/build-4/packages/content/platform/content/platform/cmd/system/git.yaml` (the subcommand view shape) + `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/platform/idea/cmd/system/GitController.ts`
+- `/home/bobalu/play/saxonberg/build-4/packages/server/src/mud/lib/command/validators/requiresWizard.ts`
+- `/home/bobalu/play/saxonberg/build-4/docs/subsystems/command-spec.md`
+- `/home/bobalu/play/saxonberg/build-4/packages/wire/src/harness/session.ts` (l.218–330) + `/home/bobalu/play/saxonberg/build-4/packages/wire/tests/dairy.dirty.wire.test.ts` (l.260–300, the eval-in-a-drive shape)
+- `/home/bobalu/play/saxonberg/build-4/packages/server/scripts/check-object-verbs.ts` (the Api-static parsing to copy for `check-eval-surface`)
+
 ## Drive record
 
-*(appended at build time)* — the blocking drive's eight steps and what
+*(appended at build time)* — the blocking drive's eleven steps and what
 they found; the soak drive's name for the lane:
 `packages/wire/tests/canary.soak.wire.test.ts`.
