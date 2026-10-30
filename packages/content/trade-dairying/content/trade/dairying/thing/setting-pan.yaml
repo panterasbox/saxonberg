@@ -14,5 +14,12 @@ data:
   interiorBulk: true
   interiorCapacity: 10
   closure: liquidTight
-  _materialPath: /stuff/idea/material/ceramic/terracotta
+  # ⭐ Brown-GLAZED earthenware, as the prose says. The ceramics build
+  # pointed it at bare terracotta, and a porous pan wept the milk set in it
+  # (the ceramics finalize). The brown glaze of a milk pan was a lead one —
+  # and it gives lead to milk gone sour, which nothing about it says.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
   mass: 3
+  coats:
+    inside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }
