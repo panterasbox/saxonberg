@@ -1501,7 +1501,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     }[] {
       const terms: { factor: Exclude<LimitingFactor, null>; sat: number }[] = [
         { factor: 'water', sat: this.satWater(this.soilMoisture()) },
-        { factor: 'light', sat: this.satLight(this.sampleLux()) },
+        { factor: 'light', sat: this.satLight(this.daylitLux(this.sampleLux())) },
         { factor: 'root', sat: this.satRoot() },
         { factor: 'cold', sat: this.satWarmth() },
         { factor: 'nutrient', sat: this.satNutrient() },
@@ -1644,7 +1644,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       // move a plant into the dark and it says so immediately, before the
       // dark hours have accrued.
       const satWater = this.satWater(this.soilMoisture());
-      const satLight = this.satLight(this.sampleLux());
+      const satLight = this.satLight(this.daylitLux(this.sampleLux()));
       const satRoot = this.satRoot();
       const satNutrient = this.satNutrient();
       const satWarmth = this.satWarmth();
@@ -1708,7 +1708,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       // clock and its ground's clock start together or neither is honest.
       if (this.growthClockStamp === 0) {
         this.growthClockStamp = nowS;
-        this._lastLux = this.sampleLux();
+        this._lastLux = this.daylitLux(this.sampleLux());
         this.soilMoisture();
         void this.restampWarmth();
         return;
@@ -1745,7 +1745,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         // mid-window — and re-sampled on a stage advance (root demand is
         // per-stage).
         let satRoot = this.satRoot();
-        const satLight = this.satLight(this._lastLux);
+        const satLight = this.satLight(this.daylitLux(this._lastLux));
         // WATER is now a per-window sample too, exactly like light. The
         // soil owns the drain and reconciles on its own stamp; asking it
         // here is what triggers that, and the MEAN it reports is the
@@ -1781,7 +1781,16 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
             satNutrient,
             satWarmth,
           );
-          if (limiting < this._worstLimiting) this._worstLimiting = limiting;
+          // ⭐ What GRADES a field crop is what spoiled it, not what paced
+          // it (cover build B39): cold sets the pace — a field crop
+          // develops on its season and sits out the winter dormant — while
+          // drought and hunger set the quality. Counting the winter as the
+          // crop's worst stretch graded every overwintered stand "poor"
+          // however well it was kept. A pot keeps the shipped rule.
+          const graded = areaCrop
+            ? Math.min(satWater, satLight, satRoot, satNutrient)
+            : limiting;
+          if (graded < this._worstLimiting) this._worstLimiting = graded;
           // Exponential relaxation toward the limiting satisfaction; the
           // factor is clamped so an oversized dt cannot overshoot.
           const k = Math.min(dt / tau, 1);
@@ -1811,12 +1820,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       }
 
       // Close the integrated window: the next one opens at today's light.
-      this._lastLux = this.sampleLux();
+      this._lastLux = this.daylitLux(this.sampleLux());
     }
 
     public noteEnvironmentChanged(): void {
       this.reconcileGrowth();
-      this._lastLux = this.sampleLux();
+      this._lastLux = this.daylitLux(this.sampleLux());
       // Carrying a pot from a cold yard into a warm kitchen changes the
       // temperature as surely as it changes the light.
       void this.restampWarmth();
@@ -2095,6 +2104,27 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         dial(AppSettingKeys.husbandryNutrientSpentAt, 0.05),
         dial(AppSettingKeys.husbandryNutrientHappyAt, 0.5),
       );
+    }
+
+    /**
+     * ⭐ **A field under open sky is lit by the DAY, not by the instant**
+     * (cover build B38). Light is sampled at a moment and stands for a
+     * window — right for a pot under a lamp, wrong for a crop in a field,
+     * where a sample taken at night (a world boots at midnight) carried
+     * DARKNESS across a whole unwatched season: every stand on the bench,
+     * first read at day 95, had starved to death in the dark. So for a
+     * field crop under open sky, a night reading never replaces the last
+     * daytime one, and a crop that has never been sampled in daylight
+     * reads light as unknown — and unknown is not limiting (the
+     * "unknown never reads as winter" rule). Covered or indoor plants keep
+     * the instant.
+     */
+    private daylitLux(sample: number): number {
+      const skyField =
+        (this.isAreaCrop() || this._fromStand) && this._climateSite !== null;
+      if (!skyField || sample > 0) return sample;
+      if (this._lastLux > 0) return this._lastLux;
+      return this.profile?.luxHappyAt ?? sample;
     }
 
     private satLight(lux: number): number {

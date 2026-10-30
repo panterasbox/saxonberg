@@ -2053,6 +2053,27 @@ Verified: tsc (server, trade-farming, wire) clean; `sandbox.jurisdiction`
 `lint:family` — all 82 gates pass (`lint:drive-scripts` among them). The
 stage server on 2014 was stopped by PID.
 
+- **Final pass 1 (field-population drive) — 9 of 14, and two kernel
+  defects it found, each reproduced and verified in isolation:**
+  - **B38 — a field under open sky is lit by the day, not the instant.**
+    A crop's light window is sampled at one moment; a world boots at
+    midnight, so the bench's stands, first read at day 95, had integrated
+    95 days of DARKNESS and every one was dead (eval: vigor 0.00 across
+    all three, with the middle's and lane end's soil fine). For a sky-lit
+    field crop a night reading never replaces the last daytime one, and a
+    never-daylit crop reads light as unknown (not limiting). Re-staged:
+    top end failing (water: 14 cm of topsoil bone dry), middle stressed,
+    lane end mature. AreaCrop test fails without it.
+  - **B39 — cold sets a field crop's pace, not its grade.** Winter
+    dormancy was the "worst stretch" of every overwintered stand, so
+    every one graded poor however well kept (the drive's step 10 saw
+    worst = 0 on all three home-field patches). A field crop's grade now
+    takes water, light, root and nitrogen; a pot keeps warmth in. AreaCrop
+    test fails without it.
+  - Steps 1, 2 and 4 failed on B38 (no line for a dead top end), step 10
+    on B39 plus a drought-killed gate end, step 7 on a prompt cascading
+    from step 4 (stems left in hand; step 7 now empties its hands first).
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

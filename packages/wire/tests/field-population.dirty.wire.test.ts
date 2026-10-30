@@ -597,6 +597,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     let sample = '';
     try {
       await x.drainProse();
+      // Empty hands first: a stem left over from an earlier step would make
+      // `look me:i:stem` ask which (drive 1 cascaded from step 4 this way).
+      await act(x, 'drop all stem');
       await doing(x, 'sample wheat at the gate end');
       sample = await read(x, 'look me:i:stem');
       await act(x, 'drop all stem');

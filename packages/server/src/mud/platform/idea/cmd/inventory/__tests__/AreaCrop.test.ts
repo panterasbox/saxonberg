@@ -431,6 +431,51 @@ describe('the area crop', () => {
       expect(field.takeSwath(10).kg).toBeGreaterThan(0);
     });
 
+    it('⭐ a field crop under open sky first seen in the dark does not starve the window (B38)', () => {
+      // A world boots at midnight: the first look at a field is often in
+      // the dark. That instant must not stand for the whole season.
+      const { ground } = scene();
+      ground.setAmbientFlux(0);
+      const site = { latitudeDeg: 42, elevationM: 35, continentality: 0.5, offsetK: 0 };
+      const dark = (sky: boolean): Plant => {
+        const p = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
+        if (sky) p.setSownAreaM2(100);
+        ContainmentApi.move(p, ground);
+        // Open sky, resolved (what restampWarmth leaves on a field crop).
+        if (sky) (p as unknown as { _climateSite: unknown })._climateSite = site;
+        p.getGrowthStage(); // first touch, in the dark
+        return p;
+      };
+      const field = dark(true);
+      const pot = dark(false);
+      now = BASE + 200 * 86_400;
+      ground.waterSoil(10);
+      expect(['dead', 'failing']).not.toContain(field.getConditionBand());
+      // A plant that is not a sky-lit field crop keeps the instant: dark.
+      expect(['dead', 'failing']).toContain(pot.getConditionBand());
+    });
+
+    it('⭐ a winter does not grade a field crop: cold sets the pace, not the quality (B39)', () => {
+      const { ground } = scene();
+      const make = (field: boolean): Plant => {
+        const p = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
+        if (field) p.setSownAreaM2(100);
+        ContainmentApi.move(p, ground);
+        // A hard winter: warmth satisfaction at nothing; light and water good.
+        vi.spyOn(p as unknown as { satWarmth(): number }, 'satWarmth').mockReturnValue(0);
+        p.getGrowthStage();
+        return p;
+      };
+      const field = make(true);
+      const pot = make(false);
+      now = BASE + 30 * 86_400;
+      ground.waterSoil(10);
+      field.getGrowthStage();
+      pot.getGrowthStage();
+      expect(field.getWorstLimiting()).toBeGreaterThan(0.5);
+      expect(pot.getWorstLimiting()).toBeLessThan(0.1);
+    });
+
     it('an individual plant is not an area crop', () => {
       const p = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
       expect(p.isAreaCrop()).toBe(false);
