@@ -44,8 +44,23 @@ export type FaceName = 'outside' | 'inside';
 
 /** What a coat has come to. */
 export type CoatState = 'wet' | 'set' | 'crazed' | 'run' | 'crawled';
-/** The coat states, for validating an authored coat. */
-export const COAT_STATES: readonly CoatState[] = ['wet', 'set', 'crazed', 'run', 'crawled'];
+
+/** Is `s` a {@link CoatState}? Exhaustive over the type, so it moves with it. */
+function isCoatState(s: unknown): s is CoatState {
+  const state = s as CoatState;
+  switch (state) {
+    case 'wet':
+    case 'set':
+    case 'crazed':
+    case 'run':
+    case 'crawled':
+      return true;
+    default: {
+      const never: never = state;
+      return never !== never;
+    }
+  }
+}
 
 /** One coat — construction's layer, with the state a firing gave it. */
 export interface CoatLayer extends EnclosureSpec {
@@ -203,16 +218,16 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public coats: Partial<Record<FaceName, CoatLayer[]>> = {};
 
     /**
-     * Author the coats (the applier's setter). ⚠ A state outside
-     * {@link COAT_STATES} throws: eleven rows kept `fused` after it was
+     * Author the coats (the applier's setter). ⚠ A state that is not a
+     * {@link CoatState} throws: eleven rows kept `fused` after it was
      * renamed `set`, and every one of those glazed goods read as a bare
      * porous body (the ceramics finalize).
      */
     public setCoats(value: Partial<Record<FaceName, CoatLayer[]>>): void {
       for (const [face, list] of Object.entries(value ?? {})) {
         for (const c of list ?? []) {
-          if (!COAT_STATES.includes(c.state)) {
-            throw new TypeError(`Faced: a coat on the ${face} is '${String(c.state)}', not one of ${COAT_STATES.join(', ')}`);
+          if (!isCoatState(c.state)) {
+            throw new TypeError(`Faced: a coat on the ${face} is '${String(c.state)}', which is no coat state`);
           }
         }
       }
