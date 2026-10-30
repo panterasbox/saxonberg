@@ -17,6 +17,7 @@ import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/Competence
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 
 /** The clay a reading can read — `Clay`'s surface, probed. */
 interface ReadableClay {
@@ -28,9 +29,9 @@ interface ReadableClay {
   getWeatheredDays(): number;
 }
 
+/** A lump of clay — the quarrying pack's class this one depends on (no probe). */
 function isReadableClay(s: Stuff | null): s is Stuff & ReadableClay {
-  const c = s as unknown as Partial<ReadableClay> | null;
-  return c !== null && typeof c.plasticity === 'function' && typeof c.shares === 'function';
+  return s instanceof Clay;
 }
 
 export default class ClayReading extends Reading {

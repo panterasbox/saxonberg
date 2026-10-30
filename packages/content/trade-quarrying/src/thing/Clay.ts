@@ -163,18 +163,15 @@ function weatheringPhrase(days: number, ceiling: number): string {
 const clayAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (opts?.filter) return text;
   if (host.isDestroyed()) return text;
-  const clay = host as unknown as Partial<Clay>;
-  if (typeof clay.getWeatheredDays !== 'function') return text;
+  if (!(host instanceof Clay)) return text;
   const weathered = weatheringPhrase(
-    clay.getWeatheredDays(),
+    host.getWeatheredDays(),
     ceramicsDial('ceramics.weathering.ceilingDays', 40),
   );
   // ⭐ The colour is the CLAY's, not the row's: one lump row serves every
   // band that wins it, so the Delight's red river clay must not read as the
   // quarry's grey (the ceramics drive).
-  const looks = (host as unknown as { getMaterial?(): { getAppearance(): string } | null })
-    .getMaterial?.()
-    ?.getAppearance();
+  const looks = host.getMaterial()?.getAppearance();
   const line = looks ? `It is ${looks}. ${weathered}` : weathered;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
@@ -399,8 +396,7 @@ export default class Clay extends ClayBase implements Formable {
       product.hasInteriorBulk() &&
       (order.form.formClass === 'open' || order.form.formClass === 'closed')
     ) {
-      (product as unknown as { setInteriorCapacity(v: Quantity<'L'> | null): void })
-        .setInteriorCapacity(Quantity.of(order.form.capacityL, 'L'));
+      product.setInteriorCapacity(Quantity.of(order.form.capacityL, 'L'));
     }
     if (MixinApi.isComposition(product)) {
       product.setMakeup(this.effectiveMakeup());
@@ -441,19 +437,14 @@ export default class Clay extends ClayBase implements Formable {
         );
       }
     }
-    const labelled = product as unknown as {
-      setShortDescription?(s: string): void;
-      getKeywords?(): readonly string[];
-      setKeywords?(k: string[]): void;
-    };
     const phrase = order.form.describe();
-    if (order.form.word === null || order.form.describe() !== order.form.word.key) {
-      labelled.setShortDescription?.(phrase);
+    if (MixinApi.isVisible(product) && (order.form.word === null || phrase !== order.form.word.key)) {
+      product.setShortDescription(phrase);
     }
-    if (typeof labelled.setKeywords === 'function') {
-      const kw = new Set(labelled.getKeywords?.() ?? []);
+    if (MixinApi.isPerceptible(product)) {
+      const kw = new Set(product.getKeywords());
       for (const w of phrase.split(/\s+/)) if (w && !/^\d/.test(w)) kw.add(w);
-      labelled.setKeywords([...kw]);
+      product.setKeywords([...kw]);
     }
     const into = order.into ?? order.actor;
     if (MixinApi.isContainable(product) && MixinApi.isContainer(into)) {
@@ -588,9 +579,10 @@ export default class Clay extends ClayBase implements Formable {
 
   /** A lump cut off a heap is the heap's clay. */
   public override onSplit(splitoff: Stuff): void {
-    const cut = splitoff as unknown as Partial<Clay>;
-    if (typeof cut.setWeatheredDays === 'function') cut.setWeatheredDays(this.weatheredDays);
-    if (typeof cut.setMakeup === 'function') cut.setMakeup(this.getMakeup());
+    if (splitoff instanceof Clay) {
+      splitoff.setWeatheredDays(this.weatheredDays);
+      splitoff.setMakeup(this.getMakeup());
+    }
     // …and the heap's lump size: the split-off is a fresh clone of the ROW,
     // so without this a 0.9 kg remnant split off came back a 12 kg lump.
     if (MixinApi.isTangible(splitoff)) splitoff.setMass(this.getMass());

@@ -37,7 +37,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import type { ClampPosition } from './Brick';
+import Brick, { type ClampPosition } from './Brick';
 
 /** Where a piece sat in the clamp. */
 type Position = Exclude<ClampPosition, ''>;
@@ -68,11 +68,9 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/** A brick that can be set in a clamp — this pack's own class (no probe). */
 function positioned(body: Stuff): (Stuff & Positioned) | null {
-  const p = body as unknown as Partial<Positioned>;
-  return typeof p.getClampPosition === 'function' && typeof p.setClampPosition === 'function'
-    ? (body as Stuff & Positioned)
-    : null;
+  return body instanceof Brick ? (body as unknown as Stuff & Positioned) : null;
 }
 
 /** A burning clamp's smoke, ppm at the clamp — it carries to the next places. */

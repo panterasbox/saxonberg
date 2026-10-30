@@ -509,6 +509,8 @@ export interface Bulkable {
   getBulkAmount(affordance: BulkAffordance): Quantity<'L'>;
   setBulkAmount(affordance: BulkAffordance, amount: Quantity<'L'>): void;
   getBulkCapacity(affordance: BulkAffordance): Quantity<'L'> | null;
+  /** Size the interior slot (a thrown pot holds what its form says). */
+  setInteriorCapacity(value: Quantity<'L'> | null): void;
 
   // Generic slot-policy seams (the BulkSlot handle delegates here).
   // Overridable by capability mixins — `UnboundedSourceMixin` makes a
