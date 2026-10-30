@@ -111,6 +111,14 @@ driven found defects the suite could not: cooking 6, textiles 3, and
 metal-chain's drive surfaced `five pre-existing boot-breaking defects`
 that predated the build entirely.
 
+⛔⛔⛔ **No merge waits on the clock — never run a `span` step here.**
+Only the **blocking drive** (instant and short steps) is checked at the
+sweep. Confirm the **soak drive** exists, its steps are tagged, and the
+MR description names it for the soak lane, which runs it after merge.
+If a span step is sitting in the blocking drive, move it to the soak
+drive — do not wait on it. See `docs/workflow.md § No merge waits on
+the clock`.
+
 The drive script lives in the requirements doc; the drive **record**
 is appended to the plan (`farming-plan.md § Checkpoint A` is the
 precedent). By this phase it should already have been run — it is the
@@ -142,7 +150,7 @@ A drive nobody runs decays silently.
   actually run, and that anything it found was fixed rather than
   noted.
 - **Record absent.** The build skipped its exit criterion. **Run the
-  drive now**, before the sweep commit — and expect it to find things,
+  blocking drive now** (never the soak drive), before the sweep commit — and expect it to find things,
   because it always has.
 
 Then check the **reachability chain** for each capability the build

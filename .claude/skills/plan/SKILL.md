@@ -146,7 +146,11 @@ satisfy them. Anything unmapped is a scope gap — surface it now.
 ## Test & gate strategy
 
 What gets unit tests, what only the drive can prove, which lint
-gates apply. ⚠ `pnpm test` runs at exactly two moments — before the
+gates apply. ⛔ **Every drive step's pace** — `instant` · `short` ·
+`span` — and which steps are the **blocking drive** (the exit
+criterion) and which the **soak drive** (the soak lane, after merge).
+A season's outcome is proved by arithmetic in a unit test here and
+end-to-end in soak — never in the blocking drive. ⚠ `pnpm test` runs at exactly two moments — before the
 MR and at /finalize; everything between is `test:near` + the lints.
 
 ## Risks & opens
@@ -167,7 +171,8 @@ The paths a fresh-context build agent should read first.
 ## Drive record
 
 *(appended at build time, not at plan time)* — the output of running
-the requirements doc's drive script, and what it found. Precedent:
+the requirements doc's **blocking** drive, and what it found; the soak
+drive's name for the lane. Precedent:
 `farming-plan.md § Checkpoint A — the drive record`.
 ```
 

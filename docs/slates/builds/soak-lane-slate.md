@@ -9,8 +9,7 @@
 > **Left:** the pace tag on every drive step (instant · short · span) · span never blocks · the
 > harness refusing an untagged long jump · a blocking drive and a soak drive in every requirements
 > doc · the soak lane — a standing session and its own worktree and world, dispatching each merged
-> build's soak drive · issues, never blocks · logging drive bodies out across long jumps · the
-> skills and workflow.md at the next sweep
+> build's soak drive · issues, never blocks · logging drive bodies out across long jumps
 > **Size:** a build
 
 ## 0. The ask **[DECIDED — the owner]**
@@ -110,6 +109,6 @@ before trusting the saving.
 
 1. **The short/span line** — a game day, or a wall-clock budget per step.
 2. **Who triages** the lane's issues.
-3. **The sweep** — `/requirements`, `/build`, `/finalize`, `/plan` and `workflow.md` gain the rule
-   (`workflow.md` is a swept index file, so it waits for the sweep).
+3. ✅ **The skills and workflow.md** — `/requirements`, `/plan`, `/build`, `/finalize` and
+   `workflow.md` § *No merge waits on the clock* carry the rule (2026-10-30, the owner's request).
 4. **The existing drives** — re-tagging build-1's and build-3's in flight, or from the next build on.
