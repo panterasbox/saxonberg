@@ -192,7 +192,9 @@ export class WorldClockApi {
    *   must not be visible in the generated docs either.
    */
   @TestOnly(
-    'Nothing in the game moves the realm\u2019s clock: there is one ' +
+    'In a test world, move the clock with `testharness clock advance ' +
+      '<dur>` (a day at most; a span step belongs in a .soak. file). ' +
+      'Nothing in the game moves the realm\u2019s clock: there is one ' +
       'clock, it is global, and a jump ages every reconcile-on-read ' +
       'system in the world at once. A slow system reaches its own state ' +
       'by being read, so it needs nothing from here \u2014 pin the ' +

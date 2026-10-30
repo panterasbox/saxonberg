@@ -133,6 +133,9 @@ export interface ShadowSecuritySpec {
  * `SecurityPolicies.Public` but defined here to avoid importing
  * `SecurityPolicies` and forming a load-time cycle.
  */
+/** The module-id of the `eval` sandbox's container ({@link SecurityApi.assertNotFromEval}). */
+const EVAL_SCRIPT_MODULE = '/platform/idea/EvalScript';
+
 const PUBLIC_FALLBACK: SecurityPolicy = {
   name: 'Public',
   allows: () => true,
@@ -271,6 +274,9 @@ export class SecurityApi {
    * guidance (what the caller should reach for instead), awaiting the
    * withhold pass.
    */
+  /** {@link decoratedApiClasses} — every self-decorated Api, load order. */
+  static #apiClasses: ClassKey[] = [];
+
   static #testOnlyMembers: WeakMap<ClassKey, Map<string, string>> =
     new WeakMap();
 
@@ -528,11 +534,54 @@ export class SecurityApi {
    */
   public static decorateApiClass(cls: object): void {
     const k = cls as ClassKey;
+    if (!SecurityApi.#apiClasses.includes(k)) SecurityApi.#apiClasses.push(k);
     if (!SecurityApi.#classDefaultPolicies.has(k)) {
       SecurityApi.#classDefaultPolicies.set(k, PUBLIC_FALLBACK);
       SecurityApi.#policyGeneration++;
     }
     SecurityApi.#wrapAllStaticMethods(k);
+  }
+
+  /**
+   * Every Api class that self-decorated, in load order — the runtime's
+   * own roster of the consumer-facing Api surface. ⭐ What the `eval`
+   * sandbox binds (EvalScript), so the sandbox surface is a fact the
+   * Apis declare by their module tail, never a hand-kept list. The four
+   * bootstrap-special Apis (`ExecutionContextApi`, `ModuleApi`,
+   * `SecurityApi`, `ProxyApi`) never call `decorateApiClass`, so they
+   * are absent by construction (call-security.md § Why Some Api Files
+   * Don't Self-Decorate).
+   */
+  public static decoratedApiClasses(): readonly object[] {
+    return [...SecurityApi.#apiClasses];
+  }
+
+  /**
+   * Refuse `op` when it is reached from inside an `eval` — any frame on
+   * the stack whose target is an `EvalScript` — naming `pointer`, the
+   * door that IS meant for it (a `testharness` subcommand). One line at
+   * the top of a mutator that eval could reach without its Api (a
+   * Locality's weather pin, the clock's jump), so the refusal says where
+   * to go instead of a generic denial. Silent everywhere else.
+   */
+  public static assertNotFromEval(op: string, pointer: string): void {
+    const stack = ExecutionContextApi.getCallStack();
+    for (const frame of stack) {
+      const t = frame.target;
+      if (t === null || typeof t !== 'object') continue;
+      const ctor = (Object.getPrototypeOf(t) as { constructor?: object } | null)
+        ?.constructor;
+      if (ModuleApi.lookup(ctor ?? null) !== EVAL_SCRIPT_MODULE) continue;
+      const where =
+        ExecutionContextApi.getJurisdictionBound() ??
+        ExecutionContextApi.getCircleScope();
+      throw new SecurityError(
+        `\`${op}\` is not callable from eval` +
+          (where ? ` (jurisdiction ${where})` : '') +
+          `: use \`${pointer}\``,
+        { methodName: op, policyName: 'NotFromEval' }
+      );
+    }
   }
 
   /**

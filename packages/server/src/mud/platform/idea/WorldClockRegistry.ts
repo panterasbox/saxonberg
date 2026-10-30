@@ -458,6 +458,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
    */
   @CallSecurity(WorldClockApiCallers)
   public advance(by: Quantity<'s'> | string): void {
+    SecurityApi.assertNotFromEval('advance', 'testharness clock advance <dur>');
     this.assertNotQuarantined('advance');
     const gameS = this.durationSeconds(by);
     if (gameS < 0) {

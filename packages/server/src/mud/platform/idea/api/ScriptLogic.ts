@@ -194,6 +194,25 @@ function sessionDefsFor(actor: Stuff): Map<string, ScriptDef> {
   return map;
 }
 
+/** `eval.timeoutMs`'s default when the caller names none. */
+const DEFAULT_EVAL_TIMEOUT_MS = 5_000;
+
+/** V8's own execution-timeout error, rewritten in the setting's words. */
+function timedOut(err: unknown, budget: number): Error | null {
+  if ((err as { code?: string } | null)?.code !== 'ERR_SCRIPT_EXECUTION_TIMEOUT') {
+    return null;
+  }
+  return new Error(`eval: timed out after ${budget} ms (eval.timeoutMs)`);
+}
+
+function isThenable(v: unknown): v is PromiseLike<unknown> {
+  return (
+    v !== null &&
+    (typeof v === 'object' || typeof v === 'function') &&
+    typeof (v as { then?: unknown }).then === 'function'
+  );
+}
+
 /** The preemption-slice reschedule — one macrotask via ScheduleApi. */
 function makeReschedule(): () => Promise<void> {
   return () =>
@@ -561,14 +580,53 @@ export class ScriptLogic extends ApiLogic {
 
   /** See {@link ScriptApi.runSandboxed}. */
   @CallSecurity(ScriptApiCallers)
-  public runSandboxed(
+  public async runSandboxed(
     compiled: CompiledSandbox,
     sandbox: Record<string, unknown>,
-  ): unknown {
-    // Unbox — see `compileSandboxed`; nothing else mints a CompiledSandbox.
-    return (compiled as unknown as VmScript).runInContext(
-      createContext(sandbox),
-    );
+    opts?: { timeoutMs?: number },
+  ): Promise<unknown> {
+    const budget = opts?.timeoutMs ?? DEFAULT_EVAL_TIMEOUT_MS;
+    const started = Date.now();
+    // ⛔ NOT `microtaskMode: 'afterEvaluate'`, though it would let V8
+    // stop a microtask loop: on Node 22, terminating execution inside
+    // that queue's drain while async hooks are on (and AsyncLocalStorage
+    // — every call frame here — turns them on) ABORTS THE PROCESS
+    // (`Assertion failed: (env_->execution_async_id()) == (0)`, found by
+    // this build's tests, 2026-10-30). A runaway eval must never cost the
+    // world more than the eval.
+    let result: unknown;
+    try {
+      // Unbox — see `compileSandboxed`; nothing else mints a CompiledSandbox.
+      result = (compiled as unknown as VmScript).runInContext(
+        createContext(sandbox),
+        { timeout: budget },
+      );
+    } catch (err) {
+      throw timedOut(err, budget) ?? err;
+    }
+    if (!isThenable(result)) return result;
+    // The awaited tail runs on the host's own queue, past V8's `timeout`:
+    // it is raced against what is left of the budget. (The sandbox also
+    // refuses every Api call past the deadline — EvalScript's facade —
+    // so a runaway that keeps calling into the world stops there.)
+    const left = Math.max(0, budget - (Date.now() - started));
+    let handle: ReturnType<typeof ScheduleApi.schedule> | null = null;
+    const deadline = new Promise<never>((_, reject) => {
+      handle = ScheduleApi.schedule(left, () =>
+        reject(
+          new Error(
+            `eval: timed out after ${budget} ms (eval.timeoutMs) — the ` +
+              'body was abandoned; host work it had already started (a ' +
+              'clone, a save) may still finish',
+          ),
+        ),
+      );
+    });
+    try {
+      return await Promise.race([Promise.resolve(result), deadline]);
+    } finally {
+      if (handle !== null) ScheduleApi.cancel(handle);
+    }
   }
 
   /** See {@link ScriptApi.mintEvalScratch}. */

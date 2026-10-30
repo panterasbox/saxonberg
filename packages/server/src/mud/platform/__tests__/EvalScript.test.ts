@@ -19,6 +19,11 @@ import EvalScript from '../idea/EvalScript';
 import { StuffApi } from '../../api/stuff';
 import { Idea } from '../../lib/stuff/Idea';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { SecurityApi } from '../../api/security';
+import { ExecutionContextApi } from '../../api/execution-context';
+import { readdirSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 class StubReceiver extends Idea {
   public marker = 'receiver';
@@ -152,6 +157,184 @@ describe('EvalScript', () => {
         'return typeof (globalThis && globalThis.process);',
       );
       expect(await script.run(receiver)).toBe('undefined');
+    });
+  });
+
+  describe('⭐ the surface is every self-decorating Api (soak-harness D15)', () => {
+    /**
+     * The drift gate. The four bootstrap-special Apis never call
+     * `decorateApiClass` (call-security.md § Why Some Api Files Don't
+     * Self-Decorate), so they are out by construction; every other
+     * exported `*Api` class must be bound. An Api that forgets its tail
+     * — or a fifth bootstrap-special one nobody wrote down — fails here.
+     */
+    const BOOTSTRAP_SPECIAL = new Set([
+      'ExecutionContextApi',
+      'ModuleApi',
+      'SecurityApi',
+      'ProxyApi',
+    ]);
+
+    it('binds exactly the exported *Api classes but the four', async () => {
+      const dir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'api');
+      const modules = await Promise.all(
+        readdirSync(dir)
+          .filter((f) => f.endsWith('.ts'))
+          .map((f) => import(join(dir, f)) as Promise<unknown>),
+      );
+      const exported = new Set<string>();
+      for (const mod of modules) {
+        for (const [name, value] of Object.entries(mod as Record<string, unknown>)) {
+          if (/Api$/.test(name) && typeof value === 'function') exported.add(name);
+        }
+      }
+      for (const name of BOOTSTRAP_SPECIAL) exported.delete(name);
+      script.setCode(
+        `return ${JSON.stringify([...exported])}.filter((n) => typeof globalThis[n] !== 'object');`,
+      );
+      expect(await script.run(receiver), 'exported Apis eval does not bind').toEqual([]);
+      const bound = SecurityApi.decoratedApiClasses()
+        .map((c) => ((c as { name?: string }).name ?? '').replace(/^_+/, ''))
+        .filter((n) => /Api$/.test(n));
+      expect(new Set(bound)).toEqual(exported);
+    });
+
+    it('a facade is frozen and carries @internal statics behind their own gates', async () => {
+      script.setCode('return [Object.isFrozen(StuffApi), typeof StuffApi.singletonSync, typeof WeatherApi.resolveWeatherFor];');
+      expect(await script.run(receiver)).toEqual([true, 'function', 'function']);
+    });
+
+    it('`this` survives the binding — an Api with #-statics still works', async () => {
+      script.setCode("return PathPatternApi.matches('/a/b', '/a/*');");
+      expect(await script.run(receiver)).toBe(true);
+    });
+
+    it('⛔ a @TestOnly static is a stub that names its door', async () => {
+      script.setCode("return WorldClockApi.advance('1 hour');");
+      await expect(script.run(receiver)).rejects.toThrow(
+        /WorldClockApi\.advance is a test seam.*testharness clock advance/s,
+      );
+      script.setCode("return TestHarnessApi.advanceClock('1 hour');");
+      await expect(script.run(receiver)).rejects.toThrow(/testharness clock advance/);
+    });
+  });
+
+  describe('⭐ an expression returns itself; await is legal', () => {
+    it('`1 + 1` is 2, with or without the semicolon', async () => {
+      script.setCode('1 + 1');
+      expect(await script.run(receiver)).toBe(2);
+      script.setCode('1 + 1;');
+      expect(await script.run(receiver)).toBe(2);
+    });
+
+    it('a body awaits', async () => {
+      script.setCode('const x = await Promise.resolve(20); return x + 1;');
+      expect(await script.run(receiver)).toBe(21);
+    });
+  });
+
+  describe('⭐ the budget (eval.timeoutMs) holds every shape of runaway', () => {
+    it('a synchronous loop', async () => {
+      script.setCode('while (true) {}');
+      const t0 = Date.now();
+      await expect(script.run(receiver, { timeoutMs: 200 })).rejects.toThrow(
+        /timed out after 200 ms \(eval\.timeoutMs\)/,
+      );
+      expect(Date.now() - t0).toBeLessThan(700);
+    });
+
+    it('an awaited tail that outlives it — abandoned, answered in time', async () => {
+      script.setCode('await new Promise((r) => ScheduleApi.schedule(3000, r)); return 1;');
+      const t0 = Date.now();
+      await expect(script.run(receiver, { timeoutMs: 200 })).rejects.toThrow(
+        /timed out after 200 ms .*abandoned/,
+      );
+      expect(Date.now() - t0).toBeLessThan(700);
+    });
+
+    it('a runaway that keeps calling into the world is refused past the deadline', async () => {
+      // ⛔ A PURE CPU loop after an await cannot be stopped under node:vm
+      // on Node 22: the only mechanism (`microtaskMode: 'afterEvaluate'`)
+      // aborts the process when it fires under async hooks. A loop that
+      // touches any Api is stopped by the facade.
+      script.setCode(
+        'await null; for (;;) { await PathPatternApi.matches("/a", "/a"); }',
+      );
+      await expect(script.run(receiver, { timeoutMs: 200 })).rejects.toThrow(
+        /timed out after 200 ms/,
+      );
+    });
+  });
+
+  describe('⭐⭐ no eval-born rejection is left unhandled (D20)', () => {
+    let unhandled: unknown[];
+    const onUnhandled = (reason: unknown): void => {
+      unhandled.push(reason);
+    };
+    beforeEach(() => {
+      unhandled = [];
+      process.on('unhandledRejection', onUnhandled);
+    });
+    afterEach(() => {
+      process.off('unhandledRejection', onUnhandled);
+    });
+
+    it('a rejection the code DROPPED is caught by the net and reported', async () => {
+      // The dairy drive's crash shape: a clone written as a statement.
+      script.setCode(
+        "StuffApi.clone('/no/such/template');" +
+          ' await new Promise((r) => ScheduleApi.schedule(200, r));' +
+          " return 'went on';",
+      );
+      const out = await script.runReporting(receiver);
+      expect(out.value).toBe('went on');
+      expect(out.late.map((l) => `${l.api}.${l.name}`)).toEqual(['StuffApi.clone']);
+      expect(unhandled).toEqual([]);
+    });
+
+    it('one that lands AFTER the result is still held (the mudlog has it)', async () => {
+      script.setCode("StuffApi.clone('/no/such/template'); return 'went on';");
+      expect(await script.run(receiver)).toBe('went on');
+      await new Promise((r) => setTimeout(r, 300));
+      expect(unhandled).toEqual([]);
+    });
+
+    it('a rejection the code RETURNS is the eval\'s error', async () => {
+      script.setCode("return StuffApi.clone('/no/such/template');");
+      await expect(script.run(receiver)).rejects.toThrow();
+      await new Promise((r) => setTimeout(r, 50));
+      expect(unhandled).toEqual([]);
+    });
+  });
+
+  describe('⭐ SecurityApi.assertNotFromEval names the door, from eval only', () => {
+    class EvalGuardProbe {
+      static probe(): string {
+        SecurityApi.assertNotFromEval('probe', 'testharness probe <x>');
+        return 'ran';
+      }
+    }
+    SecurityApi.decorateApiClass(EvalGuardProbe);
+
+    it('throws the pointer under an eval frame, before and after an await', async () => {
+      script.setCode('return EvalGuardProbe.probe();');
+      await expect(script.run(receiver)).rejects.toThrow(
+        /`probe` is not callable from eval.*use `testharness probe <x>`/,
+      );
+      script.setCode('await null; return EvalGuardProbe.probe();');
+      await expect(script.run(receiver)).rejects.toThrow(/not callable from eval/);
+    });
+
+    it('is silent outside one — including a sandbox root with no eval', async () => {
+      expect(EvalGuardProbe.probe()).toBe('ran');
+      const r = await ExecutionContextApi.runRootGuarded(
+        null,
+        'sandbox.runScoped',
+        async () => EvalGuardProbe.probe(),
+        'rethrow',
+        { circleScope: '/home/t' },
+      );
+      expect(r).toBe('ran');
     });
   });
 });
