@@ -520,6 +520,12 @@ export interface Growing {
    * ground — this plant included — or `null` when that part has none.
    */
   standIn(part: Stuff & Soil): (Stuff & Growing) | null;
+  /**
+   * Whether `other` is a crop of this one's kind — the same row, or a row
+   * that cuts to the same crop (the bench's three stands are three
+   * `extends:` rows over one wheat).
+   */
+  isSameKindAs(other: Stuff & Growing): boolean;
   /** What this plant's roots would show if it were pulled now. */
   rootsBand(): RootsBand;
   /** Feed the ground this plant is rooted in; returns the points taken. */
@@ -1506,12 +1512,8 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return clamp01(truth + u * COMPETENCE_HALF_WIDTH[band]);
     }
 
-    /**
-     * Whether `other` is a crop of this one's kind — the same row, or a
-     * row that cuts to the same crop (the bench's three stands are three
-     * rows over one wheat).
-     */
-    private isSameKindAs(other: Stuff & Growing): boolean {
+    /** See {@link Growing.isSameKindAs}. */
+    public isSameKindAs(other: Stuff & Growing): boolean {
       const self = this as unknown as Stuff;
       if (other.getTemplatePath() === self.getTemplatePath()) return true;
       const mine = this.harvestTemplatePath;
@@ -1522,16 +1524,27 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * A harvestable plant of this one's kind standing beside it, or null —
      * so `harvest cane` in a field of ratoons takes the ripe one rather
      * than refusing on whichever stool the name bound first.
+     *
+     * ⭐ Of this one's KIND (field population W3): the same row or a row
+     * that cuts to the same crop, so the bench's `extends:` stands
+     * substitute for one another. ⚠ And rooted in the SAME bed — on a
+     * divided field the patch is what the player named (`harvest wheat at
+     * the middle`), and a ripe stand at the top end is not a substitute
+     * for the middle's.
      */
     public ripeSibling(): (Stuff & Growing) | null {
       const self = this as unknown as Stuff;
       const here = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (!here || !MixinApi.isContainer(here)) return null;
-      const kind = self.getTemplatePath();
+      const bed = this.getBed();
       return (
         (here.getContents() as Stuff[]).find(
           (c): c is Stuff & Growing =>
-            c !== self && c.getTemplatePath() === kind && MixinApi.isGrowing(c) && c.isHarvestable(),
+            c !== self &&
+            MixinApi.isGrowing(c) &&
+            this.isSameKindAs(c) &&
+            c.getBed() === bed &&
+            c.isHarvestable(),
         ) ?? null
       );
     }

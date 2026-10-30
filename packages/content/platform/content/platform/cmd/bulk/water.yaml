@@ -1,6 +1,6 @@
 verbs: [water]
 controller: /platform/idea/cmd/bulk/WaterController
-description: "Water a growing plant"
+description: "Water a growing plant, or the ground it grows in"
 help: |
   Tip water into a plant's soil. You need something holding water — a
   watering can is what this verb comes with, but name any holder with
@@ -13,11 +13,17 @@ help: |
 
   `pour` is the manual path and still works; `water` is the one that
   knows what a plant is.
+
+  On a field you can water the crop or the ground itself, and you are told
+  how many litres went in — a can on a field barely shows. On a field
+  divided into patches, say which: `water wheat at the top end`.
 examples:
   - cmd: water the lily
     note: Water a plant from whatever water you're carrying
   - cmd: water the pot with the can
     note: Name the source explicitly
+  - cmd: water wheat at the top end
+    note: On a field divided into patches, name the patch
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
@@ -26,7 +32,20 @@ args:
     type: object
     required: true
     scope: "reachable"
-    requires: [VisibleMixin, CultivableMixin]
+    # A plant, a bed or pot, a patch or a field (field population D18).
+    requires: [VisibleMixin, GrowingMixin|SoilMixin]
+  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D5).
+  # Optional: on one-piece ground there is nothing to name, and on a
+  # divided field the GROUND refuses the act without it, listing its parts.
+  # Greedy so `at the top end` binds whole (an article would otherwise eat
+  # a positional); every arg after it is prepositional, so it stops there.
+  - name: patch
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    prepositions: [at]
+    requires: SoilMixin
   # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:instrument-args`).
   # Bare, the binder hands over every vessel you are CARRYING and the
   # controller takes the first with water in it — a question about the

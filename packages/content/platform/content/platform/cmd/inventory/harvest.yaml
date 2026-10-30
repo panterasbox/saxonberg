@@ -30,6 +30,9 @@ help: |
   knife cuts far more ground than bare hands, and a scythe more again.
   Keep cutting until it is down to the stubble. What you cannot carry
   you leave lying in the row.
+
+  On a field divided into patches, say which: `harvest wheat at the gate
+  end`. Each patch's stand is graded by its own worst stretch.
 examples:
   - cmd: harvest the carrots
     note: Take the crop; an annual plant is spent
@@ -39,6 +42,8 @@ examples:
     note: Naming the ground picks its ripest plant
   - cmd: harvest wheat with sickle
     note: Cut a swath of a field crop
+  - cmd: harvest wheat at the gate end with sickle
+    note: On a field divided into patches, name the patch
 validators:
   - /lib/command/validators/requiresAnimate
   # Pulling a carrot and turning compost into a bed are both acts on
@@ -53,6 +58,18 @@ args:
     # The plant OR the ground it grows in — naming a bed resolves to its
     # ripest growing occupant (the put.yaml OR-within-an-entry shape).
     requires: [VisibleMixin, GrowingMixin|CultivableMixin]
+  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D5).
+  # Optional: on one-piece ground there is nothing to name, and on a
+  # divided field the GROUND refuses the act without it, listing its parts.
+  # Greedy so `at the top end` binds whole (an article would otherwise eat
+  # a positional); every arg after it is prepositional, so it stops there.
+  - name: patch
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    prepositions: [at]
+    requires: SoilMixin
   # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:instrument-args`).
   # Only a plant that names a `harvestTool` reads it (a coppice stool
   # is cut with a billhook; a carrot is pulled by hand and ignores

@@ -1,6 +1,6 @@
 verbs: [feed]
 controller: /platform/idea/cmd/bulk/FeedController
-description: "Work compost into a bed's soil"
+description: "Work compost into a bed's or a field's soil"
 help: |
   Work compost into the soil of a garden bed, putting back the nitrogen
   a crop took out of it. You need something holding compost — a sack is
@@ -12,6 +12,9 @@ help: |
   A pot holds no nitrogen at all, so there is nothing to feed on a
   windowsill — a houseplant is never short of it. Beds are different:
   every harvest exports some, and an unfed bed yields worse each time.
+
+  A field is fed the same way, and you are told how much went in. On a
+  field divided into patches, say which: `feed wheat at the top end`.
 examples:
   - cmd: feed the bed
     note: Work compost in from whatever you're carrying
@@ -19,6 +22,8 @@ examples:
     note: Name the source explicitly
   - cmd: feed the carrots
     note: Naming a plant feeds the ground it stands in
+  - cmd: feed wheat at the top end
+    note: On a field divided into patches, name the patch
 validators:
   - /lib/command/validators/requiresAnimate
   # Pulling a carrot and turning compost into a bed are both acts on
@@ -30,7 +35,20 @@ args:
     type: object
     required: true
     scope: "reachable"
-    requires: [VisibleMixin, CultivableMixin]
+    # A plant, a bed or pot, a patch or a field (field population D18).
+    requires: [VisibleMixin, GrowingMixin|SoilMixin]
+  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D5).
+  # Optional: on one-piece ground there is nothing to name, and on a
+  # divided field the GROUND refuses the act without it, listing its parts.
+  # Greedy so `at the top end` binds whole (an article would otherwise eat
+  # a positional); every arg after it is prepositional, so it stops there.
+  - name: patch
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    prepositions: [at]
+    requires: SoilMixin
   - name: source
     type: object
     required: false

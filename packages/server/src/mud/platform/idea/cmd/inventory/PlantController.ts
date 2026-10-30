@@ -52,6 +52,8 @@ interface PlantModel extends CommandModel {
   seed: MqlOneResult;
   /** Absent when sowing the ground you stand on. */
   pot?: MqlOneResult;
+  /** `at <patch>` — which part of a divided field to sow (D5). */
+  patch?: MqlOneResult;
 }
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
@@ -119,7 +121,22 @@ export default class PlantController extends EngagedActController<PlantModel> {
       MixinApi.isContainer(ground) &&
       !MixinApi.isCultivable(ground)
     ) {
-      await this.sowGround(context, seed, ground);
+      const patchRaw = model.patch?.raw ?? '';
+      const patch = model.patch?.stuff ?? null;
+      if (!patch && patchRaw.trim() !== '') {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You don't see any '${patchRaw}' here.`)
+          .send();
+        context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
+        return;
+      }
+      await this.sowGround(
+        context,
+        seed,
+        ground,
+        patch && MixinApi.isSoil(patch) ? patch : null,
+      );
       return;
     }
     if (!target) {
@@ -290,11 +307,17 @@ export default class PlantController extends EngagedActController<PlantModel> {
    * field's seed sows a third of it. The first act creates the crop; a
    * later act of the same kind widens it. Engaged, so it lands at
    * completion.
+   *
+   * ⭐ On a divided field the cast goes into the PART named (field
+   * population D5) — the ground refuses in its own words when none is —
+   * and fills that part up to its own area: a full part is `patch-sown`.
+   * Choosing where is the player's job; the game never picks for them.
    */
   private async sowGround(
     context: CommandContext,
     seed: Stuff & Plantable,
     ground: Stuff & Soil & Container,
+    patch: (Stuff & Soil) | null,
   ): Promise<void> {
     const giver = context.commandGiver;
     const growsInto = seed.getGrowsIntoPath();
@@ -324,18 +347,32 @@ export default class PlantController extends EngagedActController<PlantModel> {
       return;
     }
 
+    // Which part of the ground — the GROUND decides whether one must be
+    // named, and says so in its own words.
+    const resolved = ground.resolvePartFor(patch);
+    if (!resolved.ok) {
+      this.decline(context, Mml.fromMarkup(resolved.line), resolved.reason);
+      return;
+    }
+    const part = resolved.part;
+
     // What already stands here decides what may be added to it — the
     // holder's question, once it is theirs.
-    const standing = (ground.getContents() as Stuff[]).find(
-      (c): c is Stuff & Growing => MixinApi.isGrowing(c) && c.isAreaCrop(),
-    );
+    const standing = ground.rootedAreaCrop(part);
     if (standing && standing.getTemplatePath() !== growsInto) {
-      this.decline(
-        context,
-        Mml.compose`${Mml.thing(standing)} already stands here. Grub it out before you sow anything else.`,
-        'other-crop-stands',
-      );
-      return;
+      // ⭐ Another row may still be this crop: the bench's stands are
+      // `extends:` rows over one wheat. Ask the crop the seed makes.
+      const made = await StuffApi.clone<Stuff>(growsInto);
+      const same = MixinApi.isGrowing(made) && standing.isSameKindAs(made);
+      await StuffApi.destruct(made);
+      if (!same) {
+        this.decline(
+          context,
+          Mml.compose`${Mml.thing(standing)} already stands here. Grub it out before you sow anything else.`,
+          'other-crop-stands',
+        );
+        return;
+      }
     }
 
     const refusal = ground.sowingRefusal();
@@ -373,7 +410,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
     }
 
     const seedKg = MixinApi.isTangible(seed) ? seed.getMass().rawValue() : 0;
-    const groundM2 = groundAreaM2(ground);
+    const groundM2 = groundAreaM2(part ?? ground);
     const free = Math.max(
       0,
       groundM2 - (standing ? standing.getSownAreaM2() : 0),
@@ -387,10 +424,12 @@ export default class PlantController extends EngagedActController<PlantModel> {
       if (fresh) await StuffApi.destruct(fresh);
       this.decline(
         context,
-        free < 1
-          ? Mml.compose`It is sown already, edge to edge.`
-          : Mml.compose`There is not enough in ${Mml.thing(seed)} to sow anything.`,
-        free < 1 ? 'ground-full' : 'too-little-seed',
+        free >= 1
+          ? Mml.compose`There is not enough in ${Mml.thing(seed)} to sow anything.`
+          : part
+            ? Mml.compose`${Mml.thing(part)} is sown already, edge to edge.`
+            : Mml.compose`It is sown already, edge to edge.`,
+        free >= 1 ? 'too-little-seed' : part ? 'patch-sown' : 'ground-full',
       );
       return;
     }
@@ -398,12 +437,14 @@ export default class PlantController extends EngagedActController<PlantModel> {
     this.engageAct(context, {
       durationMs: Math.round(3000 + area * 10),
       cost: 5,
-      beginSelf: Mml.compose`You walk the ground, casting ${Mml.thing(seed)} in wide arcs.`,
+      beginSelf: part
+        ? Mml.compose`You walk ${Mml.thing(part)}, casting ${Mml.thing(seed)} in wide arcs.`
+        : Mml.compose`You walk the ground, casting ${Mml.thing(seed)} in wide arcs.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} walks the ground, broadcasting seed.`,
       onComplete: () => {
         // ⚠⚠ A MODULE function: this controller is destructed the
         // moment `execute` returns.
-        void landSowing(context, seed, ground, crop, fresh !== null, area, rate);
+        void landSowing(context, seed, ground, part, crop, fresh !== null, area, rate);
       },
       onAbort: () => {
         if (fresh && !fresh.isDestroyed()) void StuffApi.destruct(fresh);
@@ -481,6 +522,7 @@ async function landSowing(
   context: CommandContext,
   seed: Stuff & Plantable,
   ground: Stuff & Soil & Container,
+  part: (Stuff & Soil) | null,
   crop: Stuff & Growing,
   fresh: boolean,
   area: number,
@@ -517,6 +559,9 @@ async function landSowing(
   ground.reconcileSoil();
   if (fresh) {
     crop.setSownAreaM2(area);
+    // ⭐ Rooted in the part it was sown into, by key, BEFORE the move —
+    // so it never reads the whole field's soil, even for a moment.
+    if (part) crop.setGroundPart(part.soilPartKey());
     if (MixinApi.isContainable(crop)) ContainmentApi.move(crop, ground);
   } else {
     crop.addSownAreaM2(area);
@@ -545,13 +590,14 @@ async function landSowing(
     console.warn('PlantController: recording the deed failed:', err);
   }
 
-  const phrase = crop.cropAreaPhrase(groundAreaM2(ground));
+  const phrase = crop.cropAreaPhrase(groundAreaM2(part ?? ground));
+  const at = part ? Mml.compose` at ${Mml.thing(part)}` : Mml.compose``;
   MessageApi.scene(giver)
     .topic(TOPIC)
     .toSelf(
       phrase
-        ? Mml.compose`The seed goes into the ground, and ${Mml.thing(crop)} is sown ${phrase}.`
-        : Mml.compose`The seed goes into the ground.`,
+        ? Mml.compose`The seed goes into the ground${at}, and ${Mml.thing(crop)} is sown ${phrase}.`
+        : Mml.compose`The seed goes into the ground${at}.`,
     )
     .toPeers(Mml.compose`${Mml.actor(giver)} finishes a cast of seed.`)
     .send();

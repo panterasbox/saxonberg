@@ -62,6 +62,7 @@ import { TemplatePaths } from "../paths";
 import { Quantity } from "../quantity";
 import type { Reserved } from "../reserve";
 import type { Stuff } from "../stuff/Stuff";
+import type { Growing } from "./Growing";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
@@ -339,6 +340,15 @@ export interface Soil {
    * `feed` sizes its measure against.
    */
   soilNutrientHeadroom(): number;
+  /**
+   * The area crop rooted in `part` of this ground — the whole ground when
+   * `part` is `null` — or `null` when nothing is sown there. ⭐ Asked of a
+   * PART itself (`water the top end`), it answers the crop rooted in that
+   * part: a part holds nothing, so it asks the ground it is fixed to.
+   * What `water`/`feed` aimed at ground reach before the soil (field
+   * population D18).
+   */
+  rootedAreaCrop(part: (Stuff & Soil) | null): (Stuff & Growing) | null;
 }
 
 /**
@@ -490,6 +500,28 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         reason: "not-a-part-here",
         line: `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${self.presentationPhrase().definite()}.`,
       };
+    }
+
+    /** See {@link Soil.rootedAreaCrop}. */
+    public rootedAreaCrop(
+      part: (Stuff & Soil) | null,
+    ): (Stuff & Growing) | null {
+      const self = this as unknown as Stuff & Soil;
+      const bed = part ?? self;
+      // A part is a fixture, not a container: its crops stand in the
+      // ground it is fixed to and root in it by key.
+      const holder: Stuff | null = MixinApi.isContainer(self)
+        ? self
+        : MixinApi.isAdornment(self)
+          ? self.getAdornedTo()
+          : null;
+      if (!holder || !MixinApi.isContainer(holder)) return null;
+      return (
+        (holder.getContents() as Stuff[]).find(
+          (c): c is Stuff & Growing =>
+            MixinApi.isGrowing(c) && c.isAreaCrop() && c.getBed() === bed,
+        ) ?? null
+      );
     }
 
     /** See {@link Soil.soilMoistureHeadroomL}. */

@@ -16,7 +16,12 @@ import WateringCan from '../../../../thing/WateringCan';
 import Plant from '../../../../thing/Plant';
 import PlantPot, { PLANT_SLOT } from '../../../../thing/PlantPot';
 import Material from '../../../../../lib/material/Material';
-import { Reserve } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { SoilMixin } from '../../../../../lib/husbandry/Soil';
+import { Mixins } from '../../../../../lib/mixin';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import YAML from 'yaml';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../../lib/husbandry/Cultivable';
 import { Quantity } from '../../../../../lib/quantity';
@@ -67,6 +72,32 @@ class TestItem extends ContainableMixin(NamedMixin(Idea)) {
   static _mixinName = 'TestItem';
 }
 class LitRoom extends AmbientLitMixin(Place) {}
+
+/** A named part of a divided field — the `Patch` shape, in the kernel. */
+class TestPart extends SoilMixin(ReservedMixin(NamedMixin(Idea))) {
+  key = '';
+  area = 0;
+  public override soilPartKey(): string {
+    return this.key;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return this.area;
+  }
+}
+
+/** Soil-bearing ground holding no slot: a field. Parts optional. */
+class TestField extends SoilMixin(ReservedMixin(AmbientLitMixin(Place))) {
+  parts: TestPart[] = [];
+  area = 1000;
+  public override soilParts(): readonly TestPart[] {
+    return this.parts;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return this.parts.length > 0
+      ? this.parts.reduce((n, p) => n + p.area, 0)
+      : this.area;
+  }
+}
 
 const BASE = 10_000_000;
 let now = BASE;
@@ -147,12 +178,12 @@ function makePot(soil = 3): PlantPot {
   }, freshPath('/trade/farming/thing/pot/_water'));
 }
 
-function makeCan(litres: number): WateringCan {
+function makeCan(litres: number, capacity = 2): WateringCan {
   return makeStuffAtPath(() => {
     const can = new WateringCan();
     can.setShortDescription('a tin watering can');
     can.interiorBulk = true;
-    can.setInteriorCapacity(Quantity.of(2, 'L'));
+    can.setInteriorCapacity(Quantity.of(capacity, 'L'));
     if (litres > 0) {
       can.setBulkMaterial('interior', water());
       can.setBulkAmount('interior', Quantity.of(litres, 'L'));
@@ -199,6 +230,7 @@ function model(
   target: MqlOneResult,
   source?: MqlOneResult,
   holder?: Stuff,
+  patch?: MqlOneResult,
 ): WaterExecModel {
   let bound: MqlManyResult | undefined;
   if (source) {
@@ -213,7 +245,7 @@ function model(
       raw: '',
     } as unknown as MqlManyResult;
   }
-  return { target, source: bound } as ModelData as unknown as WaterExecModel;
+  return { target, source: bound, patch } as ModelData as unknown as WaterExecModel;
 }
 
 function noteReasons(ctx: CommandContext): string[] {
@@ -516,3 +548,226 @@ describe('water <plant>', () => {
     expect(plant.getVigor()).toBe(0);
   });
 });
+
+/**
+ * ⭐ Field population D18 / R5: `water` reaches a plant, a bed, a patch
+ * and a field. The view's target gate was `CultivableMixin`, so a bare
+ * plant never bound — `water the lily` worked only as `water the pot`.
+ */
+describe('water.yaml — a plant, a bed, a patch or a field', () => {
+  const VIEW = join(
+    __dirname,
+    '..', '..', '..', '..', '..', '..', '..', '..',
+    'content', 'platform', 'content', 'platform', 'cmd', 'bulk', 'water.yaml',
+  );
+  interface ArgSpec {
+    name: string;
+    requires?: string | string[];
+    prepositions?: string[];
+    greedy?: boolean;
+    required?: boolean;
+  }
+  const args = (): ArgSpec[] =>
+    (YAML.parse(readFileSync(VIEW, 'utf8')) as { args: ArgSpec[] }).args;
+
+  it('⭐ a bare plant binds: the target is Growing OR Soil', () => {
+    const target = args().find((a) => a.name === 'target')!;
+    expect([target.requires].flat()).toEqual([
+      'VisibleMixin',
+      'GrowingMixin|SoilMixin',
+    ]);
+    expect(MixinApi.hasMixin(Plant, Mixins.Growing)).toBe(true);
+    expect(MixinApi.hasMixin(Plant, Mixins.Visible)).toBe(true);
+  });
+
+  it('declares `at <patch>` — optional, greedy, gated on SoilMixin', () => {
+    const patch = args().find((a) => a.name === 'patch')!;
+    expect(patch.required).toBe(false);
+    expect(patch.greedy).toBe(true);
+    expect(patch.prepositions).toEqual(['at']);
+    expect([patch.requires].flat()).toEqual(['SoilMixin']);
+    expect(() => CommandDefinition.fromYaml(readFileSync(VIEW, 'utf8'), VIEW)).not.toThrow();
+  });
+});
+
+describe('water <crop> [at <patch>] — on a field', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    now = BASE;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    captured = [];
+    vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
+      (async (s: Stuff) => {
+        captured.push(s);
+      }) as unknown as typeof PersistableApi.captureHostOf,
+    );
+    deeds = [];
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+  });
+
+  function moisture(host: Stuff & { getReserve(k: string): Reserve | undefined }): number {
+    return host.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue();
+  }
+
+  function soil(capacity: number, current: number): Reserve {
+    return new Reserve(
+      SOIL_MOISTURE_RESERVE_KEY,
+      Quantity.of(capacity, 'L'),
+      Quantity.of(current, 'L'),
+      'cultivation',
+      'wilting',
+    );
+  }
+
+  function makePart(key: string, area: number, current: number): TestPart {
+    return makeStuffAtPath(() => {
+      const p = new TestPart();
+      p.key = key;
+      p.area = area;
+      p.setName(key.replace('-', ' '));
+      p.setReserve(soil(300, current));
+      return p;
+    }, freshPath(`/trade/farming/thing/_water-part-${key}`));
+  }
+
+  function fieldScene(parts: TestPart[]): { giver: TestGiver; field: TestField } {
+    const field = makeStuffAtPath(() => {
+      const f = new TestField();
+      f.setAmbientFlux(400);
+      if (parts.length === 0) f.setReserve(soil(300, 0));
+      f.parts = parts;
+      return f;
+    }, freshPath('/trade/farming/location/_water-field'));
+    const giver = makeStuff(() => {
+      const g = new TestGiver();
+      g.setName('Alice');
+      return g;
+    });
+    vi.spyOn(
+      giver as unknown as { creditDeed(): Promise<void> },
+      'creditDeed',
+    ).mockImplementation(async () => {});
+    ContainmentApi.move(giver, field);
+    return { giver, field };
+  }
+
+  function cropIn(field: TestField, part?: TestPart): Plant {
+    const p = makePlant();
+    // Broadcast, so an AREA crop — a stand, not one plant.
+    p.setProfile({ ...lilyProfile(), seedRateKgPerM2: 0.1 });
+    // One crop over separate rows — the bench's `extends:` stands.
+    p.setHarvestTemplatePath('/trade/farming/thing/crop/_water-grain');
+    p.setSownAreaM2(100);
+    if (part) p.setGroundPart(part.key);
+    ContainmentApi.move(p, field);
+    return p;
+  }
+
+  it('⭐ a bare field crop binds and is watered — and the reply says how much', async () => {
+    const { giver, field } = fieldScene([]);
+    const crop = cropIn(field);
+    expect(crop.getBed()).toBe(field);
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+
+    await makeStuff(() => new WaterController()).execute(
+      model(one(crop, 'lily'), undefined, giver),
+      makeContext(giver, field),
+    );
+
+    expect(moisture(field)).toBeCloseTo(2, 3);
+    expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(0, 3);
+    expect(JSON.stringify(giver.received)).toContain('You tip 2 L of clear water');
+    expect(captured).toContain(field);
+  });
+
+  it('⭐ on a field of two parts, naming neither is refused — by the ground, listing both', async () => {
+    const top = makePart('top-end', 100, 0);
+    const lane = makePart('lane-end', 100, 0);
+    const { giver, field } = fieldScene([top, lane]);
+    const crop = cropIn(field, top);
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+
+    const ctx = makeContext(giver, field);
+    await makeStuff(() => new WaterController()).execute(
+      model(one(crop, 'lily'), undefined, giver),
+      ctx,
+    );
+
+    expect(noteReasons(ctx)).toContain('patch-unnamed');
+    const said = JSON.stringify(giver.received);
+    expect(said).toContain('Which part?');
+    expect(said).toContain('top end');
+    expect(said).toContain('lane end');
+    expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(2, 6);
+    expect(moisture(top) + moisture(lane)).toBe(0);
+  });
+
+  it('⭐ at the dry part, only THAT part takes the water', async () => {
+    const top = makePart('top-end', 100, 0);
+    const lane = makePart('lane-end', 100, 0);
+    const { giver, field } = fieldScene([top, lane]);
+    // Named by the lane end's stand, watered at the top end's.
+    const topCrop = cropIn(field, top);
+    const laneCrop = cropIn(field, lane);
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+
+    await makeStuff(() => new WaterController()).execute(
+      model(one(laneCrop, 'lily'), undefined, giver, one(top, 'the top end', 'at')),
+      makeContext(giver, field),
+    );
+
+    expect(moisture(top)).toBeCloseTo(2, 3);
+    expect(moisture(lane)).toBe(0);
+    expect(topCrop.getSoilMoisture()).toBeGreaterThan(laneCrop.getSoilMoisture());
+    expect(JSON.stringify(giver.received)).toMatch(/into the soil around .*lily.* at .*top end/);
+  });
+
+  it('⭐ a bucket on a thousand square meters barely shows — and says so', async () => {
+    const big = makePart('middle', 1000, 0);
+    const other = makePart('lane-end', 100, 0);
+    const { giver, field } = fieldScene([big, other]);
+    const crop = cropIn(field, big);
+    const bucket = makeCan(10, 10);
+    ContainmentApi.move(bucket, giver);
+
+    await makeStuff(() => new WaterController()).execute(
+      model(one(crop, 'lily'), undefined, giver, one(big, 'the middle', 'at')),
+      makeContext(giver, field),
+    );
+
+    expect(moisture(big)).toBeCloseTo(10, 3);
+    const said = JSON.stringify(giver.received);
+    expect(said).toContain('You tip 10 L of clear water');
+    expect(said).toContain('On 1,000 square meters it barely shows.');
+  });
+
+  it('a part with nothing sown on it is watered itself', async () => {
+    const top = makePart('top-end', 100, 0);
+    const lane = makePart('lane-end', 100, 0);
+    const { giver, field } = fieldScene([top, lane]);
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+
+    await makeStuff(() => new WaterController()).execute(
+      model(one(top, 'top end'), undefined, giver),
+      makeContext(giver, field),
+    );
+
+    expect(moisture(top)).toBeCloseTo(2, 3);
+    expect(moisture(lane)).toBe(0);
+    expect(JSON.stringify(giver.received)).toContain('into the soil of');
+  });
+});
+

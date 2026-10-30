@@ -32,6 +32,12 @@
  * **Ground-targeting**: naming a bed or pot resolves to its first
  * harvestable growing occupant, else its first growing occupant (so the
  * refusal names the stage), else refuses with "nothing is growing".
+ *
+ * ⭐ **By the patch** (field population D8): a field crop on a divided
+ * field is cut at the part named (`harvest wheat at the gate end`) — the
+ * stand of its kind rooted there — or the GROUND refuses, listing its
+ * parts. The grade is that stand's own worst stretch, so the starved top
+ * end grades as the top end, with no grading code of its own.
  */
 
 import { EngagedActController } from '../../../../lib/command/EngagedActController';
@@ -72,6 +78,8 @@ function dial(key: string, fallback: number): number {
 
 interface HarvestModel extends CommandModel {
   target: MqlOneResult;
+  /** `at <patch>` — which part of a divided field (D5). */
+  patch?: MqlOneResult;
   /**
    * The instrument, when the plant asks for one (`harvestTool`). The
    * view's `default:` binds the first reachable thing with the
@@ -103,15 +111,68 @@ export default class HarvestController extends EngagedActController<HarvestModel
     // the GROUND resolves to what grows in it: the first harvestable
     // occupant, else the first growing one (so the refusal names the
     // stage rather than saying "no").
+    const patchRaw = model.patch?.raw ?? '';
+    const patchBound = model.patch?.stuff ?? null;
+    if (!patchBound && patchRaw.trim() !== '') {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`You don't see any '${patchRaw}' here.`)
+        .send();
+      context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
+      return;
+    }
+    const patch = patchBound && MixinApi.isSoil(patchBound) ? patchBound : null;
+    const refuse = (line: Mml, reason: string, detail: string): void => {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+      context.note({ kind: 'controller-rejected', reason, detail });
+    };
+
     let plant: (Stuff & Growing) | null = null;
     if (MixinApi.isGrowing(named)) {
+      let stand: Stuff & Growing = named;
+      const holder = MixinApi.isContainable(named) ? named.getContainer() : null;
+      if (named.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
+        // ⭐ The GROUND says which part, or refuses in its own words.
+        const r = holder.resolvePartFor(patch);
+        if (!r.ok) {
+          refuse(Mml.fromMarkup(r.line), r.reason, r.line);
+          return;
+        }
+        if (r.part) {
+          const there = named.standIn(r.part);
+          if (!there) {
+            refuse(
+              Mml.compose`Nothing of that stands at ${Mml.thing(r.part)}.`,
+              'nothing-sown-there',
+              `no ${named.getPresentation()} rooted in ${r.part.getPresentation()}`,
+            );
+            return;
+          }
+          stand = there;
+        }
+      } else if (patch && patch !== named.getBed()) {
+        refuse(
+          Mml.compose`${Mml.thing(named)} does not stand at ${Mml.thing(patch)}.`,
+          'not-a-part-here',
+          `${named.getPresentation()} is not rooted in ${patch.getPresentation()}`,
+        );
+        return;
+      }
       // ⭐ The ground's rule, for a named plant: `harvest cane` in a field of
       // stands means a RIPE stand when one stands there. The binder takes
       // the first match, and it refused "has not filled its set" while
       // ripe cane stood beside it (the sugar drive: an estate's cutters,
-      // seventy-eight times). Only the same KIND is a substitute.
-      plant = named.isHarvestable() ? named : (named.ripeSibling() ?? named);
+      // seventy-eight times). Only the same KIND, rooted in the same bed,
+      // is a substitute.
+      plant = stand.isHarvestable() ? stand : (stand.ripeSibling() ?? stand);
     } else if (MixinApi.isCultivable(named)) {
+      if (patch) {
+        const r = named.resolvePartFor(patch);
+        if (!r.ok) {
+          refuse(Mml.fromMarkup(r.line), r.reason, r.line);
+          return;
+        }
+      }
       const growing = (named.getPlants() as Stuff[]).filter(
         (p): p is Stuff & Growing => MixinApi.isGrowing(p),
       );
@@ -441,6 +502,12 @@ async function landSwath(
   const band = bandFor(plant.getWorstLimiting());
   const discipline = plant.getDiscipline();
   const presentation = plant.getPresentation();
+  // ⭐ Which part of the field it was cut at, when the crop is rooted in
+  // one (its bed is a part, not the place it stands in).
+  const at =
+    bed && (bed as Stuff) !== (standsIn as Stuff | null)
+      ? ` at ${bed.presentationPhrase().definite()}`
+      : '';
   const sownM2 = plant.getSownAreaM2();
   const cut = plant.takeSwath(swathM2);
   if (cut.areaCut <= 0) return;
@@ -538,10 +605,10 @@ async function landSwath(
     : standingPhrase(sownM2 > 0 ? plant.standingAreaM2() / sownM2 : 0);
   const took =
     crops.length === 0
-      ? Mml.compose`You cut a swath of ${presentation} and bind it — not yet enough to make up a load.`
+      ? Mml.compose`You cut a swath of ${presentation}${at} and bind it — not yet enough to make up a load.`
       : crops.length === 1
-        ? Mml.compose`You cut a swath of ${presentation} and make up ${Mml.thing(crops[0]!)}.`
-        : Mml.compose`You cut a swath of ${presentation} and make up ${Mml.thing(crops[0]!)} — ${String(crops.length)} in all.`;
+        ? Mml.compose`You cut a swath of ${presentation}${at} and make up ${Mml.thing(crops[0]!)}.`
+        : Mml.compose`You cut a swath of ${presentation}${at} and make up ${Mml.thing(crops[0]!)} — ${String(crops.length)} in all.`;
   const lying =
     dropped > 0
       ? dropped === crops.length
@@ -551,7 +618,7 @@ async function landSwath(
   MessageApi.scene(giver)
     .topic(TOPIC)
     .toSelf(Mml.compose`${took}${lying} ${left}`)
-    .toPeers(Mml.compose`${Mml.actor(giver)} cuts a swath of ${presentation}.`)
+    .toPeers(Mml.compose`${Mml.actor(giver)} cuts a swath of ${presentation}${at}.`)
     .send();
 }
 

@@ -18,6 +18,11 @@
  *   3. **The act captures the ground**, because the nitrogen is the
  *      ground's state — the same reason `water` captures it.
  *
+ * ⭐ **A plant, a bed, a patch and a field** (field population D18) — the
+ * same resolution as `water`: on a divided field the act names a part
+ * (`feed wheat at the top end`) or the ground refuses, listing them, and
+ * the compost goes into THAT part's soil. The reply says how much went in.
+ *
  * And one thing it does NOT share: `feed` is not tool-afforded. You feed by
  * hand out of a sack, exactly as you pour soil by hand, so no entry joins
  * the `TOOL_CAPABILITIES` table.
@@ -37,10 +42,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { PersistableApi } from '../../../../api/persistable';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import {
-  SOIL_NITROGEN_RESERVE_KEY,
-  type Cultivable,
-} from '../../../../lib/husbandry/Cultivable';
+import { SOIL_NITROGEN_RESERVE_KEY } from '../../../../lib/husbandry/Cultivable';
 import {
   SOIL_ORGANIC_MATTER_RESERVE_KEY,
   type Soil,
@@ -83,6 +85,8 @@ const POINTS_PER_LITRE = 10;
 
 interface FeedModel extends CommandModel {
   target: MqlOneResult;
+  /** `at <patch>` — which part of a divided field (D5). */
+  patch?: MqlOneResult;
   source?: MqlOneResult;
 }
 
@@ -104,21 +108,33 @@ export default class FeedController extends CommandController<FeedModel> {
       return;
     }
 
-    // Naming either half of the assembly works — `feed the carrots` feeds
-    // the bed they stand in.
-    const ground = this.resolveGround(named);
-    if (!ground) {
+    const patchRaw = model.patch?.raw ?? '';
+    const patch = model.patch?.stuff ?? null;
+    if (!patch && patchRaw.trim() !== '') {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${Mml.thing(named)} isn't ground you can feed.`)
+        .toSelf(Mml.compose`You don't see any '${patchRaw}' here.`)
         .send();
+      context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
+      return;
+    }
+
+    // Naming either half of the assembly works — `feed the carrots` feeds
+    // the bed they stand in; on a divided field, the part named.
+    const aim = this.resolveGround(
+      named,
+      patch && MixinApi.isSoil(patch) ? patch : null,
+    );
+    if (!aim.ok) {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(aim.line).send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'not-cultivable',
-        detail: `${named.getPresentation()} is not cultivable ground`,
+        reason: aim.reason,
+        detail: aim.detail,
       });
       return;
     }
+    const { ground, part } = aim;
 
     if (!ground.getReserve(SOIL_NITROGEN_RESERVE_KEY)) {
       // A pot. Say why rather than no-op'ing.
@@ -274,30 +290,70 @@ export default class FeedController extends CommandController<FeedModel> {
 
     const appearance =
       CraftingApi.blendAppearance(payload, material) || 'compost';
+    const amount = amountPhrase(result.applied, material?.getDensity().rawValue() ?? 0);
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You work the ${appearance} into the soil of ${Mml.thing(ground)}.`,
+        part
+          ? Mml.compose`You work ${amount} of ${appearance} into the soil at ${Mml.thing(part)}.`
+          : Mml.compose`You work ${amount} of ${appearance} into the soil of ${Mml.thing(ground)}.`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} feeds ${Mml.thing(ground)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} feeds ${Mml.thing(part ?? ground)}.`)
       .send();
   }
 
   /**
-   * The cultivable ground `named` refers to: itself when it is ground, or
-   * the ground it is rooted in when it is a plant.
+   * The soil `named` refers to (D18): itself when it is a bed, a pot or a
+   * one-piece field; the PART named on a divided field (the ground refuses
+   * in its own words when none is); the ground a plant is rooted in — on a
+   * divided field, the ground of its kind's stand in the part named.
    */
   private resolveGround(
     named: Stuff,
-  ): (Stuff & Cultivable & Soil & Reserved) | null {
-    if (MixinApi.isCultivable(named) && MixinApi.isReserved(named)) {
-      return named;
+    patch: (Stuff & Soil) | null,
+  ):
+    | { ok: true; ground: Stuff & Soil & Reserved; part: (Stuff & Soil) | null }
+    | { ok: false; reason: string; line: Mml; detail: string } {
+    let ground: (Stuff & Soil) | null = null;
+    let part: (Stuff & Soil) | null = null;
+    if (MixinApi.isGrowing(named)) {
+      const holder = MixinApi.isContainable(named) ? named.getContainer() : null;
+      if (named.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
+        const r = holder.resolvePartFor(patch);
+        if (!r.ok) {
+          return { ok: false, reason: r.reason, line: Mml.fromMarkup(r.line), detail: r.line };
+        }
+        part = r.part;
+        const stand = part ? named.standIn(part) : named;
+        ground = stand?.getBed() ?? part ?? holder;
+      } else {
+        ground = named.getBed();
+        if (patch && patch !== ground) {
+          return {
+            ok: false,
+            reason: 'not-a-part-here',
+            line: Mml.compose`${Mml.thing(named)} does not stand at ${Mml.thing(patch)}.`,
+            detail: `${named.getPresentation()} is not rooted in ${patch.getPresentation()}`,
+          };
+        }
+      }
+    } else if (MixinApi.isSoil(named)) {
+      const r = named.resolvePartFor(patch);
+      if (!r.ok) {
+        return { ok: false, reason: r.reason, line: Mml.fromMarkup(r.line), detail: r.line };
+      }
+      part = r.part;
+      ground = part ?? named;
     }
-    if (!MixinApi.isSlottable(named)) return null;
-    const host = named.getOccupiedHost();
-    if (!host || !MixinApi.isCultivable(host)) return null;
-    if (!MixinApi.isReserved(host)) return null;
-    return host;
+    if (!ground || !MixinApi.isReserved(ground)) {
+      return {
+        ok: false,
+        reason: 'not-cultivable',
+        line: Mml.compose`${Mml.thing(named)} isn't ground you can feed.`,
+        detail: `${named.getPresentation()} is not cultivable ground`,
+      };
+    }
+    return { ok: true, ground, part };
   }
 
   /** The first carried holder with compost in it, or null. */
@@ -313,4 +369,18 @@ export default class FeedController extends CommandController<FeedModel> {
     }
     return null;
   }
+}
+
+/**
+ * How much went in, by weight when the matter has a density (*7 kg*) and
+ * by volume when it has none.
+ */
+function amountPhrase(litres: number, densityKgPerM3: number): string {
+  if (densityKgPerM3 > 0) {
+    const kg = (litres * densityKgPerM3) / 1000;
+    const n = kg >= 10 ? Math.round(kg) : Math.round(kg * 10) / 10;
+    return `${n.toLocaleString('en-US')} kg`;
+  }
+  const n = litres >= 10 ? Math.round(litres) : Math.round(litres * 10) / 10;
+  return `${n.toLocaleString('en-US')} L`;
 }

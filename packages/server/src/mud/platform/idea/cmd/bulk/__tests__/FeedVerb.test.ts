@@ -20,14 +20,17 @@ import Plant from '../../../../thing/Plant';
 import GardenBed from '../../../../thing/GardenBed';
 import PlantPot from '../../../../thing/PlantPot';
 import Material from '../../../../../lib/material/Material';
-import { Reserve } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import {
   PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,
 } from '../../../../../lib/husbandry/Cultivable';
-import { SOIL_ORGANIC_MATTER_RESERVE_KEY } from '../../../../../lib/husbandry/Soil';
+import {
+  SOIL_ORGANIC_MATTER_RESERVE_KEY,
+  SoilMixin,
+} from '../../../../../lib/husbandry/Soil';
 import { execSync } from 'node:child_process';
 import { Quantity } from '../../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
@@ -73,6 +76,26 @@ class TestGiver extends AdvancementMixin(
   }
 }
 class LitRoom extends AmbientLitMixin(Place) {}
+
+/** A named part of a divided field — the `Patch` shape, in the kernel. */
+class TestPart extends SoilMixin(ReservedMixin(NamedMixin(Idea))) {
+  key = '';
+  area = 0;
+  public override soilPartKey(): string {
+    return this.key;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return this.area;
+  }
+}
+
+/** A field divided into parts; it keeps no soil of its own. */
+class TestField extends SoilMixin(ReservedMixin(AmbientLitMixin(Place))) {
+  parts: TestPart[] = [];
+  public override soilParts(): readonly TestPart[] {
+    return this.parts;
+  }
+}
 
 const BASE = 30_000_000;
 let now = BASE;
@@ -276,8 +299,12 @@ function one(stuff: Stuff | null, raw: string, prep?: string): MqlOneResult {
 }
 
 type FeedExecModel = Parameters<FeedController['execute']>[0];
-function model(target: MqlOneResult, source?: MqlOneResult): FeedExecModel {
-  return { target, source } as ModelData as unknown as FeedExecModel;
+function model(
+  target: MqlOneResult,
+  source?: MqlOneResult,
+  patch?: MqlOneResult,
+): FeedExecModel {
+  return { target, source, patch } as ModelData as unknown as FeedExecModel;
 }
 
 function noteReasons(ctx: CommandContext): string[] {
@@ -645,3 +672,138 @@ describe('feed <ground> with a slow amendment', () => {
     expect(noteReasons(ctx)).toContain('no-amendment-reserve');
   });
 });
+
+/**
+ * ⭐ Field population D18: `feed` reaches a plant, a bed, a patch and a
+ * field — and on a divided field, the part named, only.
+ */
+describe('feed <crop|ground> [at <patch>] — on a field', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    installV1QuantityMarshallers();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    now = BASE;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    captured = [];
+    vi.spyOn(PersistableApi, 'captureHostOf').mockImplementation(
+      (async (s: Stuff) => {
+        captured.push(s);
+      }) as unknown as typeof PersistableApi.captureHostOf,
+    );
+    deeds = [];
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    WorldClockApi._resetForTesting();
+  });
+
+  function makePart(key: string, nitrogen: number): TestPart {
+    return makeStuffAtPath(() => {
+      const p = new TestPart();
+      p.key = key;
+      p.area = 1000;
+      p.setName(key.replace('-', ' '));
+      p.setReserve(new Reserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(300, 'L'), Quantity.of(300, 'L'), 'cultivation', 'wilting'));
+      p.setReserve(new Reserve(SOIL_NITROGEN_RESERVE_KEY, Quantity.of(100, '%'), Quantity.of(nitrogen, '%'), 'cultivation', 'spent'));
+      return p;
+    }, freshPath(`/trade/farming/thing/_feed-part-${key}`));
+  }
+
+  function fieldScene(): { giver: TestGiver; field: TestField; top: TestPart; lane: TestPart } {
+    const top = makePart('top-end', 10);
+    const lane = makePart('lane-end', 10);
+    const field = makeStuffAtPath(() => {
+      const f = new TestField();
+      f.setAmbientFlux(400);
+      f.parts = [top, lane];
+      return f;
+    }, freshPath('/trade/farming/location/_feed-field'));
+    const giver = makeStuff(() => {
+      const g = new TestGiver();
+      g.setName('Alice');
+      return g;
+    });
+    vi.spyOn(
+      giver as unknown as { creditDeed(): Promise<void> },
+      'creditDeed',
+    ).mockImplementation(async () => {});
+    ContainmentApi.move(giver, field);
+    return { giver, field, top, lane };
+  }
+
+  function cropIn(field: TestField, part: TestPart): Plant {
+    const p = makePlant();
+    p.setProfile({ ...lilyProfile(), seedRateKgPerM2: 0.1 });
+    p.setHarvestTemplatePath('/trade/farming/thing/crop/_feed-grain');
+    p.setSownAreaM2(100);
+    p.setGroundPart(part.key);
+    ContainmentApi.move(p, field);
+    return p;
+  }
+
+  /** A sack of compost that weighs what compost weighs (700 kg/m³). */
+  function denseSack(litres: number): Receptacle {
+    const sack = makeSack(litres);
+    const m = compost();
+    m.setDensity(Quantity.of(700, 'kg/m³'));
+    sack.setBulkMaterial('interior', m);
+    return sack;
+  }
+
+  it('⭐ naming no part is refused by the ground, listing them; nothing is spent', async () => {
+    const { giver, field, top, lane } = fieldScene();
+    const crop = cropIn(field, top);
+    const sack = denseSack(20);
+    ContainmentApi.move(sack, giver);
+
+    const ctx = makeContext(giver, field);
+    await makeStuff(() => new FeedController()).execute(model(one(crop, 'lily')), ctx);
+
+    expect(noteReasons(ctx)).toContain('patch-unnamed');
+    expect(JSON.stringify(giver.received)).toContain('Which part?');
+    expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
+    expect(top.nutrientFraction()).toBeCloseTo(0.1, 6);
+    expect(lane.nutrientFraction()).toBeCloseTo(0.1, 6);
+  });
+
+  it('⭐ at a part, only THAT part is fed — and the reply says how much, by weight', async () => {
+    const { giver, field, top, lane } = fieldScene();
+    const laneCrop = cropIn(field, lane);
+    cropIn(field, top);
+    const sack = denseSack(20);
+    ContainmentApi.move(sack, giver);
+
+    // Named by the lane end's stand, fed at the top end.
+    await makeStuff(() => new FeedController()).execute(
+      model(one(laneCrop, 'lily'), undefined, one(top, 'the top end', 'at')),
+      makeContext(giver, field),
+    );
+
+    expect(top.nutrientFraction()).toBeCloseTo(1, 6);
+    expect(lane.nutrientFraction()).toBeCloseTo(0.1, 6);
+    // 90 points at 10 points/L = 9 L of compost at 700 kg/m³ = 6.3 kg.
+    expect(sack.getBulkAmount('interior').rawValue()).toBeCloseTo(11, 3);
+    const said = JSON.stringify(giver.received);
+    expect(said).toContain('You work 6.3 kg of crumbly black compost into the soil at');
+    expect(captured).toContain(top);
+  });
+
+  it('a part named as the target is fed itself', async () => {
+    const { giver, field, top, lane } = fieldScene();
+    const sack = denseSack(20);
+    ContainmentApi.move(sack, giver);
+
+    await makeStuff(() => new FeedController()).execute(
+      model(one(lane, 'lane end')),
+      makeContext(giver, field),
+    );
+
+    expect(lane.nutrientFraction()).toBeCloseTo(1, 6);
+    expect(top.nutrientFraction()).toBeCloseTo(0.1, 6);
+  });
+});
+

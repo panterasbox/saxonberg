@@ -94,6 +94,36 @@ class TestGround extends SoilMixin(ReservedMixin(AmbientLitMixin(Place))) {
   }
 }
 
+/** A named part of a divided ground — the `Patch` shape, in the kernel. */
+class TestPart extends SoilMixin(ReservedMixin(NamedMixin(Idea))) {
+  key = '';
+  area = 0;
+  public override soilPartKey(): string {
+    return this.key;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return this.area;
+  }
+}
+
+/** A field divided into parts; it keeps no soil of its own. */
+class DividedGround extends SoilMixin(ReservedMixin(AmbientLitMixin(Place))) {
+  parts: TestPart[] = [];
+  titled = 0;
+  public override soilParts(): readonly TestPart[] {
+    return this.parts;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return this.parts.reduce((n, p) => n + p.area, 0);
+  }
+  public override sowingRefusal(): string | null {
+    return null;
+  }
+  public override async ensureCropTitle(): Promise<void> {
+    this.titled += 1;
+  }
+}
+
 const BASE = 40_000_000;
 let now = BASE;
 let seq = 0;
@@ -210,8 +240,10 @@ function makeContext(giver: TestGiver, location: Place, verb: string): CommandCo
   });
 }
 
-function one(stuff: Stuff | null, raw: string): MqlOneResult {
-  return { stuff, raw };
+function one(stuff: Stuff | null, raw: string, prep?: string): MqlOneResult {
+  const out: MqlOneResult = { stuff, raw };
+  if (prep) out.prep = prep;
+  return out;
 }
 function noteReasons(ctx: CommandContext): string[] {
   return ctx.getNotes().map((n) => (n as { reason?: string }).reason ?? '');
@@ -532,7 +564,11 @@ describe('the area crop', () => {
 
     it('a different crop standing is refused', async () => {
       const { giver, ground } = scene();
-      standingCrop(ground, 100, OTHER_PATH);
+      // A different crop: another row AND another harvest (a row that
+      // cuts to the same crop is the same crop — the bench's stands).
+      standingCrop(ground, 100, OTHER_PATH).setHarvestTemplatePath(
+        '/trade/farming/thing/crop/_test-other',
+      );
       const seed = makeSeed(3);
       ContainmentApi.move(seed, giver);
       const ctx = makeContext(giver, ground, 'sow');
@@ -541,6 +577,23 @@ describe('the area crop', () => {
         ctx,
       );
       expect(noteReasons(ctx)).toContain('other-crop-stands');
+    });
+
+    it('⭐ another ROW of the same crop standing is widened, not refused', async () => {
+      const { giver, ground } = scene();
+      // The bench's shape: an `extends:` row over the seed's plant, same
+      // harvest — it is the same wheat.
+      const stand = standingCrop(ground, 100, OTHER_PATH);
+      const seed = makeSeed(3);
+      ContainmentApi.move(seed, giver);
+      const ctx = makeContext(giver, ground, 'sow');
+      await makeStuff(() => new PlantController()).execute(
+        { seed: one(seed, 'seed') } as ModelData as never,
+        ctx,
+      );
+      await settle();
+      expect(noteReasons(ctx)).not.toContain('other-crop-stands');
+      expect(stand.getSownAreaM2()).toBeCloseTo(130);
     });
 
     it('a seed planted one at a time is not broadcast', async () => {
@@ -558,6 +611,180 @@ describe('the area crop', () => {
         ctx,
       );
       expect(noteReasons(ctx)).toContain('not-broadcast');
+    });
+  });
+  describe('⭐ by the patch (field population W3)', () => {
+    function makePart(key: string, area: number, nitrogen = 100): TestPart {
+      return makeStuffAtPath(() => {
+        const p = new TestPart();
+        p.key = key;
+        p.area = area;
+        p.setName(key.replace('-', ' '));
+        p.setReserve(new Reserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(10, 'L'), Quantity.of(10, 'L'), 'cultivation', 'wilting'));
+        p.setReserve(new Reserve(SOIL_NITROGEN_RESERVE_KEY, Quantity.of(100, '%'), Quantity.of(nitrogen, '%'), 'cultivation', 'spent'));
+        return p;
+      }, freshPath(`/trade/farming/thing/_test-part-${key}`));
+    }
+
+    function dividedScene(keys: Array<[string, number]>): {
+      giver: TestGiver;
+      field: DividedGround;
+      parts: TestPart[];
+    } {
+      const field = makeStuffAtPath(() => {
+        const g = new DividedGround();
+        g.setAmbientFlux(400);
+        return g;
+      }, freshPath('/trade/farming/location/_test-divided'));
+      field.parts = keys.map(([k, a]) => makePart(k, a));
+      const giver = makeStuffAtPath(() => {
+        const g = new TestGiver();
+        g.setName('Alice');
+        return g;
+      }, freshPath('/platform/agent/Avatar/_patch-alice'));
+      vi.spyOn(
+        giver as unknown as { creditDeed(): Promise<void> },
+        'creditDeed',
+      ).mockImplementation(async () => {});
+      ContainmentApi.move(giver, field);
+      return { giver, field, parts: field.parts };
+    }
+
+    function standAt(field: DividedGround, part: TestPart, worst: number, areaM2 = 100): Plant {
+      const p = makeStuffAtPath(() => newPlant(), PLANT_PATH);
+      p.setSownAreaM2(areaM2);
+      p.setGroundPart(part.key);
+      ContainmentApi.move(p, field);
+      (p as unknown as { growthStage: string }).growthStage = 'mature';
+      (p as unknown as { _worstLimiting: number })._worstLimiting = worst;
+      return p;
+    }
+
+    function gradeOf(s: Stuff): string {
+      return (s as unknown as { getGrade(): { getBand(): string } }).getGrade().getBand();
+    }
+
+    it('⭐ harvest at a part cuts THAT part’s stand and grades it by its own worst stretch', async () => {
+      const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+      const [top, lane] = parts as [TestPart, TestPart];
+      const starved = standAt(field, top, 0.2);
+      const thriving = standAt(field, lane, 0.9);
+      expect(starved.getBed()).toBe(top);
+      const laneN = lane.nutrientFraction();
+
+      // Named by the lane end's stand, cut at the top end.
+      await makeStuff(() => new HarvestController()).execute(
+        {
+          target: one(thriving, 'grain'),
+          patch: one(top, 'the top end', 'at'),
+          tool: one(makeSickle(10), 'sickle'),
+        } as ModelData as never,
+        makeContext(giver, field, 'harvest'),
+      );
+      await settle();
+      expect(starved.standingAreaM2()).toBe(90);
+      expect(thriving.standingAreaM2()).toBe(100);
+      const first = crops(giver);
+      expect(first.length).toBeGreaterThan(0);
+      expect(first.every((c) => gradeOf(c) === 'poor')).toBe(true);
+      // The nitrogen goes out of the part cut, and only that part.
+      expect(top.nutrientFraction()!).toBeLessThan(1);
+      expect(lane.nutrientFraction()).toBe(laneN);
+
+      await makeStuff(() => new HarvestController()).execute(
+        {
+          target: one(starved, 'grain'),
+          patch: one(lane, 'the lane end', 'at'),
+          tool: one(makeSickle(10), 'sickle'),
+        } as ModelData as never,
+        makeContext(giver, field, 'harvest'),
+      );
+      await settle();
+      expect(thriving.standingAreaM2()).toBe(90);
+      const second = crops(giver).filter((c) => !first.includes(c));
+      expect(second.length).toBeGreaterThan(0);
+      expect(second.every((c) => gradeOf(c) === 'exceptional')).toBe(true);
+    });
+
+    it('⭐ naming no part on a divided field is refused by the GROUND, listing them', async () => {
+      const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+      const stand = standAt(field, parts[0]!, 0.9);
+      const ctx = makeContext(giver, field, 'harvest');
+      await makeStuff(() => new HarvestController()).execute(
+        { target: one(stand, 'grain') } as ModelData as never,
+        ctx,
+      );
+      await settle();
+      expect(noteReasons(ctx)).toContain('patch-unnamed');
+      expect(JSON.stringify(giver.received)).toContain('Which part?');
+      expect(stand.standingAreaM2()).toBe(100);
+    });
+
+    it('a part with nothing of that sown is refused, naming the part', async () => {
+      const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+      const stand = standAt(field, parts[0]!, 0.9);
+      const ctx = makeContext(giver, field, 'harvest');
+      await makeStuff(() => new HarvestController()).execute(
+        { target: one(stand, 'grain'), patch: one(parts[1]!, 'the lane end', 'at') } as ModelData as never,
+        ctx,
+      );
+      expect(noteReasons(ctx)).toContain('nothing-sown-there');
+    });
+
+    it('⭐ sow at a part fills it, rooted there, then refuses `patch-sown`', async () => {
+      const { giver, field, parts } = dividedScene([['gate-end', 100], ['middle', 300]]);
+      const [gate, middle] = parts as [TestPart, TestPart];
+      const seed = makeSeed(100); // enough for 1,000 m²
+      ContainmentApi.move(seed, giver);
+      const ctrl = () => makeStuff(() => new PlantController());
+
+      const unnamed = makeContext(giver, field, 'sow');
+      await ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, unnamed);
+      expect(noteReasons(unnamed)).toContain('patch-unnamed');
+
+      await ctrl().execute(
+        { seed: one(seed, 'seed'), patch: one(gate, 'the gate end', 'at') } as ModelData as never,
+        makeContext(giver, field, 'sow'),
+      );
+      await settle();
+      const sown = field.getContents().filter((s): s is Plant => s instanceof Plant);
+      expect(sown).toHaveLength(1);
+      expect(sown[0]!.getGroundPart()).toBe('gate-end');
+      expect(sown[0]!.getBed()).toBe(gate);
+      // Filled to the PART's area, not the field's.
+      expect(sown[0]!.getSownAreaM2()).toBeCloseTo(100);
+
+      const full = makeContext(giver, field, 'sow');
+      await ctrl().execute(
+        { seed: one(seed, 'seed'), patch: one(gate, 'the gate end', 'at') } as ModelData as never,
+        full,
+      );
+      expect(noteReasons(full)).toContain('patch-sown');
+
+      // The middle is its own ground: a second stand, rooted there.
+      await ctrl().execute(
+        { seed: one(seed, 'seed'), patch: one(middle, 'the middle', 'at') } as ModelData as never,
+        makeContext(giver, field, 'sow'),
+      );
+      await settle();
+      const both = field.getContents().filter((s): s is Plant => s instanceof Plant);
+      expect(both).toHaveLength(2);
+      expect(both.find((p) => p.getBed() === middle)!.getSownAreaM2()).toBeCloseTo(300);
+    });
+
+    it('a ground of ONE part needs no part named', async () => {
+      const { giver, field, parts } = dividedScene([['whole', 100]]);
+      const seed = makeSeed(100);
+      ContainmentApi.move(seed, giver);
+      const ctx = makeContext(giver, field, 'sow');
+      await makeStuff(() => new PlantController()).execute(
+        { seed: one(seed, 'seed') } as ModelData as never,
+        ctx,
+      );
+      await settle();
+      expect(noteReasons(ctx)).not.toContain('patch-unnamed');
+      const sown = field.getContents().find((s): s is Plant => s instanceof Plant);
+      expect(sown!.getBed()).toBe(parts[0]);
     });
   });
 });
