@@ -136,6 +136,7 @@ The description carries:
   decided it;
 - what verification is still running (drive, suite) and that it does
   not block review;
+- ⛔ **the soak drive's name**, for the soak lane to run after merge;
 - anything the user should look at first.
 
 ⚠⚠ **Anything the user waits on must justify itself in the message that
@@ -151,8 +152,21 @@ in the background.
 
 ### 5. Drive it — the exit criterion for the MERGE
 
-Run the **drive script** from the requirements doc against the running
+Run the **blocking drive** from the requirements doc against the running
 game, and append the result to the plan as the **drive record**.
+
+⛔⛔⛔ **No merge waits on the clock.** Run only `instant`, `short` and
+`staged` steps — never a `span` step (weeks or seasons of game time),
+here or in any review round. ⭐ **Use the whole palette of wizard tools
+to stage the state you need** (the owner: *"you don't get to test that
+the clock actually produces that state, but you can test everything
+around it"*) — every span step has a staged twin that blocks. A state
+you cannot stage is a tool this build owes; build it, don't wait. Span steps live in the **soak drive**: tag them, name
+the soak drive in the MR description, and leave them to the soak lane,
+which runs them after merge. If the requirements doc did not split its
+drive, split it now and say so in the MR. **Log drive bodies out across a
+long jump** — an offline body is frozen, so it needs no feeding and no
+4-hour step cap. See `docs/workflow.md § No merge waits on the clock`.
 
 ⭐⭐ **The drive IS a wire file.** Write it at
 `packages/wire/tests/<feature>.wire.test.ts` (or `.dirty.wire.test.ts`

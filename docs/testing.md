@@ -49,6 +49,14 @@ None of this replaces driving. It narrows what driving has to catch.
 test proves rendering, never wiring; a client-side test proves neither
 the wire nor the parser.**
 
+## ⭐⭐⭐ No merge waits on the clock (2026-10-30)
+
+**Every drive step declares its pace — instant · short · span — and only instant and short steps
+may block a merge.** A span step (weeks or seasons of game time) runs in the **soak lane** after
+merge, never in review, finalize or a build's exit drive. Each requirements doc writes a blocking
+drive and a soak drive. The finding behind it, the enforcement and the lane →
+[soak-lane-slate](./slates/builds/soak-lane-slate.md).
+
 ## How often to run it
 
 A build cycle was running the full suite three or four times — about an
