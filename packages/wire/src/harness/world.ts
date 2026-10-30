@@ -160,7 +160,13 @@ export async function advanceWorldClock(
   const res = await fetch(`${SERVER_URL()}/auth/test-clock`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ advance: duration }),
+    // ⛔ Soak mode is the one thing that lets a jump past a game day
+    // through: the server refuses a longer one as a SPAN step in a
+    // blocking drive. Only `pnpm wire:soak` sets it.
+    body: JSON.stringify({
+      advance: duration,
+      ...(process.env.WIRE_SOAK === '1' ? { soak: true } : {}),
+    }),
   });
   const body = (await res.json()) as {
     before?: number;

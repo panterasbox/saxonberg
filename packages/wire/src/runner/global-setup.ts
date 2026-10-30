@@ -17,13 +17,25 @@
  * `boot.ts`, which carries that argument in full.
  */
 
-import { rmSync } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
+import { mkdirSync, readdirSync, rmSync } from 'fs';
+import { dirname, join } from 'path';
 import { readRunReport } from '../harness/registry';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from './boot';
+import { bootOwnedWorld, stopOwnedWorld, WIRE_LOG, WIRE_PORT } from './boot';
 
-const REPORT = join(tmpdir(), `saxonberg-wire-run-${process.pid}.json`);
+/**
+ * The registry's per-file declarations, beside the server log in
+ * `.wire/` (gitignored, CI's failure artifact). ⭐ Kept after the run:
+ * `result-reporter.ts` merges it into `.wire/result.json`, which is
+ * what the soak runner reads. It used to live in the tmpdir and be
+ * deleted at teardown — a record nothing after the run could read.
+ */
+const REPORT = join(dirname(WIRE_LOG), 'declarations.json');
+
+/** The soak files an ordinary run skipped, for the report's last line. */
+const soakFiles = (): string[] =>
+  readdirSync(join(dirname(dirname(WIRE_LOG)), 'tests'))
+    .filter((f) => f.includes('.soak.'))
+    .sort();
 
 /** Is a world answering the test-auth seam at this URL? */
 async function probe(url: string): Promise<boolean> {
@@ -59,6 +71,8 @@ const TEST_WORLD_FLAG = 'WIRE_TEST_WORLD';
 
 export async function setup(): Promise<void> {
   process.env.WIRE_RUN_REPORT = REPORT;
+  process.env.WIRE_STARTED_AT = new Date().toISOString();
+  mkdirSync(dirname(REPORT), { recursive: true });
   rmSync(REPORT, { force: true });
 
   if (ownsTheWorld()) {
@@ -99,8 +113,8 @@ export async function setup(): Promise<void> {
 export async function teardown(): Promise<void> {
   await stopOwnedWorld();
   const files = readRunReport(REPORT);
-  rmSync(REPORT, { force: true });
-  if (files.length === 0) return;
+  const skipped = process.env.WIRE_SOAK === '1' ? [] : soakFiles();
+  if (files.length === 0 && skipped.length === 0) return;
 
   const prose = files.filter((f) => f.proseReads > 0);
   const dirty = files.filter((f) => f.dirtyReason);
@@ -139,6 +153,16 @@ export async function teardown(): Promise<void> {
       `\n  A reset is owed before the next full run:\n` +
         `    pnpm --filter @saxonberg/server reset:db && pnpm dev:server\n` +
         `  ('pnpm wire:clean' skips these and needs no reset.)`
+    );
+  }
+  /*
+   * ⛔ The soak files this run did not execute, by rule: they carry
+   * span steps, and no merge waits on the clock. The lane runs them
+   * after merge (tools/soak).
+   */
+  if (skipped.length > 0) {
+    console.log(
+      `\nsoak files (run by pnpm wire:soak): ${skipped.join(', ')}`
     );
   }
   console.log('───────────────────────────────────────────────────────\n');
