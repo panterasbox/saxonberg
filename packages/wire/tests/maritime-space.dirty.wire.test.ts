@@ -106,7 +106,9 @@ async function sail(s: Session, hours: string): Promise<string> {
  * looks (fog and rain shorten sight). The craft must be at anchor or
  * ashore — waiting moves nothing else.
  */
-async function horizonUntil(s: Session, want: RegExp, tries = 10): Promise<string> {
+// ⛔ Eight hours of weather at most per call (soak-harness census): three
+// calls in one step stay inside a game day.
+async function horizonUntil(s: Session, want: RegExp, tries = 9): Promise<string> {
   let said = '';
   for (let i = 0; i < tries; i++) {
     said = await look(s, 'scan horizon');
@@ -140,7 +142,8 @@ async function daylight(s: Session): Promise<void> {
  */
 async function readInDaylight(s: Session, what: string): Promise<CommandResult> {
   let r = await s.cmd(`read ${what}`);
-  for (let i = 0; i < 36 && r.status !== 'ok'; i++) {
+  // ⛔ A game day at most (soak-harness census).
+  for (let i = 0; i < 24 && r.status !== 'ok'; i++) {
     const why = r.notes.find((n) => (n as { reason?: string }).reason === 'too-dark-to-read');
     if (!why) break;
     await advanceWorldClock('1 hour');
@@ -439,7 +442,10 @@ suite('6 · 7 · 8 · finding out where you are', () => {
     await me.cmd('get sextant');
     let got = '';
     let denied = '';
-    for (let i = 0; i < 16 && (!got || !denied); i++) {
+    // ⛔ Four segments — a game day — at most (soak-harness census):
+    // searching the sky for a clear one AND an overcast one is a search,
+    // and past a day it is a span.
+    for (let i = 0; i < 4 && (!got || !denied); i++) {
       const r = await me.cmd('measure latitude');
       const said = squash(await r.said());
       if (r.status === 'ok' && /Latitude \d/.test(said)) got = said;
@@ -488,7 +494,8 @@ suite('19 · 20 · 25 · sight at sea', () => {
     // At anchor, wait out weather that would hide the light from anybody
     // (fog, rain, snow and storm all shorten sight): the sextant's sky
     // refusal names it in the sky's own words.
-    for (let i = 0; i < 8; i++) {
+    // ⛔ Bounded so the step stays inside a game day (soak-harness census).
+    for (let i = 0; i < 5; i++) {
       const sky = squash(await (await me.cmd('measure latitude')).said());
       if (!/The sky is (fog|rain|storm|snow)/.test(sky)) break;
       await advanceWorldClock('3 hours');

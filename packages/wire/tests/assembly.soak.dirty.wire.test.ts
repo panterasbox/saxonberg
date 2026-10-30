@@ -1,0 +1,688 @@
+/**
+ * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
+ * after merge, never in a blocking run). The span twin of
+ * `assembly.dirty.wire.test.ts`, split by the soak-harness census
+ * (2026-10-30): forty days for a green haft to warp in place (oak warps at
+ * ~36.5 days, a constant), ten for an empty cask to slacken
+ * (`cask.dryOutDays: 7`, a content dial not changed for a test), and the
+ * restart that reads back the pick the forty days made a mender re-haft.
+ * Each needs the chain before it, so this file carries the blocking
+ * drive's flow as its setup and keeps the spans in place.
+ *
+ * ⭐⭐ **Assembly, driven end to end** — the assembly build's exit
+ * criterion, run against the real socket (the requirements doc's drive
+ * script, retired at the sweep; the model is docs/subsystems/assembly.md).
+ *
+ * The drive in one sentence: *buy a haft, make a pick from it and a head
+ * and read what it is made of; carve a haft from a green billet, fit it,
+ * and watch it warp; be told which part failed and replace just that one,
+ * in a second pair of hands; rive a bole and saw one at the mill; season
+ * billets in the loft; buy staves from the yard; be refused a tight cask
+ * until you are good enough, make a barrel instead, then a cask; let it
+ * dry out and drive its hoops back down for nothing; spend it and have it
+ * re-fired; have the gauger measure it; take it apart; raise a chair round
+ * a frame and a cushion; re-shoe a plough twice; re-string a bow; pull a
+ * spindle apart; and restart the world and find what you made.*
+ *
+ * ⚠ Every checkpoint asserts a STATE CHANGE read back off the world (a
+ * `look`, a closure, a reading) — never only that the verb was not
+ * refused (the taps lesson).
+ *
+ * Setup: parts the world SELLS are bought (the haft at the general store,
+ * billets and staves at the timber yard — drive 16), and `clone` only
+ * stands up what no shop sells. ⚠ `clone` asks for title over the
+ * template — and, when a live instance exists, over where THAT stands — so
+ * a stocked row cannot be cloned even by the founder, and room setup goes
+ * through the founder for the rest. `practice` gives the cooper a band
+ * without simulating years of barrels. Time moves in jumps of at most
+ * forty days: a two-hundred-day jump wedged the world.
+ */
+
+import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import {
+  Session,
+  declareFile,
+  uniqueHandle,
+  expectOk,
+  advanceWorldClock,
+  isOwnedTestWorld,
+} from '../src/harness';
+import { spawnSync } from 'child_process';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { copyFileSync } from 'fs';
+
+export const DIRTY_REASON =
+  'buys out the general store’s hafts and the timber yard’s staves and ' +
+  'billets, clones parts and a bole into the Hearthworks smithy and the ' +
+  'Heart’s Delight sawmill (nothing collects them), appoints the founder ' +
+  'to the city’s gauger seat, and moves the world clock by months';
+
+declareFile({
+  file: 'assembly.soak.dirty.wire.test.ts',
+  packs: [
+    'trade-carpentry',
+    'trade-coopering',
+    'trade-forestry',
+    'trade-smithing',
+    'trade-mining',
+    'trade-brewing',
+    'trade-farming',
+    'trade-textiles',
+    'trade-tailoring',
+    'trade-shopkeeping',
+    'generic-objects',
+    'base-library',
+    'hearthworks',
+    'hearts-delight',
+    'rejection',
+    'terminus',
+  ],
+  dirtyReason: DIRTY_REASON,
+});
+
+const SMITHY = '/world/terminus/hearthworks/location/smithy';
+// ⭐ The cookhouse next door has the water butt (`clone` will not stand a
+// second one up: a live butt exists where the founder holds no title).
+const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
+const STORE = '/world/terminus/general-store/shop-floor';
+const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+const REGISTRY = '/world/terminus/registry/business';
+const REGISTRY_OFFICE = '/world/terminus/registry/office';
+const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
+const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
+
+const T = {
+  pickHead: '/trade/smithing/thing/pick-head',
+  bole: '/trade/forestry/thing/bole',
+  froe: '/trade/carpentry/thing/froe',
+  billhook: '/trade/forestry/thing/billhook',
+  head: '/trade/coopering/thing/cask-head',
+  hoop: '/trade/smithing/thing/hoop',
+  driver: '/trade/coopering/thing/driver',
+  croze: '/trade/coopering/thing/croze',
+  inshave: '/trade/coopering/thing/inshave',
+  rod: '/trade/coopering/thing/gauging-rod',
+  peg: '/trade/carpentry/thing/peg',
+  brewCask: '/trade/brewing/thing/cask',
+  frame: '/trade/carpentry/thing/frame',
+  plough: '/trade/farming/thing/plough',
+  hideFace: '/trade/tanning/thing/hide-face',
+  boss: '/trade/smithing/thing/shield-boss',
+  rivet: '/trade/smithing/thing/rivet',
+};
+
+/** The verb was understood — not the parser's "I don't understand". */
+function understood(said: string): boolean {
+  return !/don'?t understand|unknown command|not a command/i.test(said);
+}
+
+async function say(s: Session, line: string): Promise<string> {
+  const r = await s.cmd(line);
+  // Trimmed: control frames carry empty bodies, which read as blank lines.
+  const said = (await r.said()).trim();
+  expect(understood(said), `'${line}' was not understood: ${said}`).toBe(true);
+  await s.drainProse();
+  return said;
+}
+
+/**
+ * What a player reads off a thing in reach — its description, every
+ * augmenter's line included (what it is made of, what has failed, whose
+ * work it is). ⚠ Through the projection, not `look at`: `look` at a thing
+ * renders to the CARD, not to prose.
+ */
+async function examine(s: Session, keyword: string): Promise<string> {
+  const rows = await s.query(keyword, { fields: 'detail' });
+  return rows
+    .map((r) => {
+      const row = r as { displayName?: unknown; longDescription?: unknown; bulkMaterial?: { name?: unknown } | null };
+      const holds = row.bulkMaterial?.name ? ` [holds ${String(row.bulkMaterial.name)}]` : '';
+      return `${String(row.displayName ?? '')}${holds}: ${String(row.longDescription ?? '')}`;
+    })
+    .join('\n');
+}
+
+/** Everything in reach, by name — the room and what you carry. */
+async function inReach(s: Session): Promise<string> {
+  const rows = await s.query('reachable', { fields: 'detail' });
+  return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(', ');
+}
+
+/** Into the ROOM, by the founder, who holds the title. */
+async function cloneHere(where: string, path: string, count = 1): Promise<void> {
+  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  try {
+    expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
+  } finally {
+    f.close();
+  }
+}
+
+/** A funded player, standing at `where` with a light (the world boots at midnight). */
+async function newPlayer(tag: string, where: string): Promise<Session> {
+  const handle = uniqueHandle(tag);
+  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  expectOk(await bank.cmd('bank open'));
+  const gov = await Session.open('founder', { startLocation: BANK_HALL });
+  try {
+    expectOk(await gov.cmd(`reserve override 400 to ${handle} "wire: assembly drive"`));
+  } finally {
+    gov.close();
+  }
+  bank.close();
+  return goTo(handle, where);
+}
+
+const LIT = new Set<string>();
+
+/**
+ * The same person, standing somewhere else (inventory travels). The first
+ * time, they are handed a glowcap jar to CARRY — `clone` refuses a row with
+ * a live instance on ground the founder holds no title to, so each row is
+ * cloned once and carried after.
+ */
+async function goTo(handle: string, where: string): Promise<Session> {
+  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  if (!LIT.has(handle)) {
+    LIT.add(handle);
+    await cloneHere(where, GLOWCAP);
+    await s.cmd('get glowcap');
+  }
+  await s.drainProse();
+  return s;
+}
+
+async function buy(s: Session, item: string, n = 1): Promise<void> {
+  for (let i = 0; i < n; i++) {
+    const said = await say(s, `buy ${item}`);
+    // ⚠ Asserted as the SALE, not as the absence of three refusals: the
+    // counter has six ways to say no and the old check knew three.
+    expect(said, `buy ${item} (#${i + 1}): ${said}`).toMatch(/you buy/i);
+  }
+}
+
+/**
+ * Wait for a shop shelf to stand back at par. ⚠ The restock is the
+ * residency reset sweep, which a clock jump FIRES but which runs
+ * asynchronously — the shelf refills seconds after the jump, not inside
+ * it (a player arriving in those seconds sees it honestly bare). Buying
+ * the instant after `advanceWorldClock` raced the sweep; this asks the
+ * world rather than assuming it. Bounded: a shelf that never refills
+ * still fails the buy that follows.
+ */
+async function untilRestocked(s: Session, keyword: string, atLeast: number, ms = 120_000): Promise<void> {
+  const until = Date.now() + ms;
+  while (Date.now() < until) {
+    const rows = await s.query(`here:i:i:[keyword.${keyword}]`, { fields: 'detail' }).catch(() => []);
+    const held = (rows as Array<{ displayName?: unknown; quantity?: unknown }>).reduce((n, r) => {
+      const q = Number(r.quantity ?? NaN);
+      if (Number.isFinite(q)) return n + q;
+      const m = /^(\d+)\s/.exec(String(r.displayName ?? ''));
+      return n + (m ? Number(m[1]) : 1);
+    }, 0);
+    if (held >= atLeast) return;
+    await new Promise((r) => setTimeout(r, 3_000));
+  }
+}
+
+async function practise(s: Session, discipline: string, n: number): Promise<void> {
+  for (let i = 0; i < n; i++) await s.cmd(`practice ${discipline} hard success`);
+}
+
+/**
+ * ⭐ Work by daylight. A long drive runs into the night (a game day is
+ * about two real hours), and in an unlit interior every object reads
+ * "something" — the cooper's casks and the joiner's chair did. World-time
+ * zero is midnight; this jumps to noon unless it is already mid-day.
+ */
+async function toDaylight(): Promise<void> {
+  const { after } = await advanceWorldClock('0 seconds');
+  const tod = ((after % 86_400) + 86_400) % 86_400;
+  if (tod >= 9 * 3600 && tod <= 15 * 3600) return;
+  const toNoon = (12 * 3600 - tod + 86_400) % 86_400;
+  await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
+}
+
+let smith: Session;
+let sawyer: Session;
+let cooper: Session;
+let menderHandle = '';
+
+// ⭐ The world boots at midnight, and in the dark a thing is "something" —
+// names drop out of prose and descriptions. Work by daylight.
+beforeAll(async () => {
+  await advanceWorldClock('12 hours');
+}, 120_000);
+
+afterAll(() => {
+  smith?.close();
+  sawyer?.close();
+  cooper?.close();
+});
+
+suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', () => {
+  it('⭐ drive 16 + 2 — buy a haft from the store; the SHIPPED pick recipe makes a pick that knows it has one', async () => {
+    const s = await newPlayer('wright', STORE);
+    await buy(s, 'pick haft');
+    const handle = s.handle;
+    s.close();
+    smith = await goTo(handle, SMITHY);
+    await cloneHere(SMITHY, T.pickHead);
+    const made = await say(smith, 'fit pick');
+    expect(made, `fit pick: ${made}`).toMatch(/fit the parts together/i);
+    const looked = await examine(smith, 'miners-pick');
+    expect(looked, `look pick: ${looked}`).toMatch(/made of/i);
+    expect(looked).toMatch(/head/i);
+    expect(looked).toMatch(/haft/i);
+    expect(looked).toMatch(/wedged/i);
+  }, 300_000);
+
+  it('⭐ drive 10 — a part cannot be inspected in place', async () => {
+    const looked = await examine(smith, 'haft');
+    expect(looked, `look haft: ${looked}`).not.toMatch(/made of/i);
+  }, 60_000);
+
+  it('⭐ drive 5 (setup) — at the yard, carve a haft from a GREEN billet and fit it', async () => {
+    const handle = smith.handle;
+    smith.close();
+    // The billhook is the fuel yard's; nobody sells one. Pick it up.
+    smith = await goTo(handle, FUEL_YARD);
+    await say(smith, 'get billhook');
+    smith.close();
+    smith = await goTo(handle, SAWMILL);
+    await buy(smith, 'billet');
+    await cloneHere(SAWMILL, T.froe); // stays at the mill; the sawyer uses it too
+    const rove = await say(smith, 'rive billet into riven-blank');
+    expect(rove, `rive: ${rove}`).not.toMatch(/can'?t|cannot|no (froe|tool)/i);
+    await new Promise((r) => setTimeout(r, 10_000)); // riving takes a moment
+    await smith.drainProse();
+    const carved = await say(smith, 'carve pick-haft');
+    expect(carved, `carve: ${carved}`).toMatch(/haft/i);
+    const fitted = await say(smith, 'fit haft to miners-pick');
+    expect(fitted, `fit green haft: ${fitted}`).toMatch(/fit a new haft/i);
+  }, 300_000);
+
+  // ⭐⭐ The grain rides the carve (plan D16). Here because this is where an
+  // edge legitimately is: the fuel yard's one billhook, in the smith's
+  // hands, at the yard that sells sawn boards. (Nobody in the realm SELLS
+  // a cutting tool — a carpentry-slate finding.)
+  //
+  // ⚠ A DOWEL, not a peg: a live peg here would make the founder's later
+  // `clone …/peg` (drive 9) resolve its title through THIS zone and be
+  // refused — the clone gate reads the first live instance's zone.
+  it('⭐ D16 — a dowel carved from a SAWN board is sawn, and its end grain says so', async () => {
+    await buy(smith, 'sawn board');
+    const carved = await say(smith, 'carve dowel from sawn board with billhook');
+    expect(carved, `carve dowel: ${carved}`).toMatch(/dowel/i);
+    const dowel = await examine(smith, 'dowel');
+    expect(dowel, `dowel: ${dowel}`).toMatch(/It was sawn/i);
+    expect(dowel).not.toMatch(/split along the grain/i);
+    // ⭐ A dowel has no face to cup across, and it is its own size — the
+    // rest of the board is shavings (both found by the browser walk).
+    expect(dowel).not.toMatch(/cupped/i);
+    const rows = await smith.query('dowel', { fields: 'detail' });
+    const m = (rows[0] as { mass?: unknown } | undefined)?.mass;
+    const kg = typeof m === 'number' ? m : Number((m as { value?: number } | undefined)?.value ?? NaN);
+    expect(kg, `dowel mass: ${JSON.stringify(rows[0])}`).toBeLessThan(1);
+    // ⭐⭐ A HELD assembly is repairable where no instrument affords it
+    // (the browser walk: AssembledMixin offered its verbs in `self`, which
+    // grants nothing to a holder; the drive's other repairs had an anvil
+    // or a floor). The smith holds the pick, at the sawmill.
+    const mended = await say(smith, 'repair miners-pick');
+    expect(mended, `held repair: ${mended}`).not.toMatch(/don'?t understand/i);
+  }, 300_000);
+});
+
+suite('⭐ the wood column (drive 4, 16, 23 setup; AC 12, 20)', () => {
+  it('⭐ drive 4 — rive a bole into billets; set the mill sawing another', async () => {
+    sawyer = await newPlayer('sawyer', SAWMILL);
+    await cloneHere(SAWMILL, T.bole);
+    await say(sawyer, 'rive bole'); // with the froe the smith left at the mill
+    await new Promise((r) => setTimeout(r, 15_000)); // the riving's own engagement
+    await sawyer.drainProse();
+    const seen = await inReach(sawyer);
+    expect(seen, `after rive: ${seen}`).toMatch(/billet/i);
+    const sawing = await say(sawyer, 'saw bole');
+    expect(sawing, `saw: ${sawing}`).not.toMatch(/race is dry|no saw|can'?t/i);
+  }, 300_000);
+
+  it('drive 23 (setup) — green billets go up into the drying loft', async () => {
+    await say(sawyer, 'get billet');
+    const put = await say(sawyer, 'put billet in loft');
+    expect(put, `put in loft: ${put}`).not.toMatch(/can'?t|cannot|don'?t see/i);
+  }, 120_000);
+
+  it('⭐ drive 16 — buy thirty staves from a yard that makes nothing else of them', async () => {
+    cooper = await newPlayer('cooper', SAWMILL);
+    await buy(cooper, 'stave', 30);
+    const inv = await cooper.query('me:i', { fields: 'detail' });
+    expect(JSON.stringify(inv), 'staves bought').toMatch(/stave/i);
+  }, 600_000);
+});
+
+suite('⭐⭐ the novice cooper (drive 9; AC 22)', () => {
+  it('⭐⭐ drive 9 — refused a tight cask NAMING the band; a novice makes a BARREL', async () => {
+    const handle = cooper.handle;
+    cooper.close();
+    cooper = await goTo(handle, SMITHY);
+    await cloneHere(SMITHY, T.driver);
+    await cloneHere(SMITHY, T.croze);
+    // Enough heads and hoops for the barrel AND the cask — each row is
+    // cloned once (see goTo).
+    await cloneHere(SMITHY, T.head, 4);
+    await cloneHere(SMITHY, T.hoop, 12);
+    const refused = await say(cooper, 'fit cask');
+    expect(refused, `untrained fit cask: ${refused}`).toMatch(/proficient/i);
+    await practise(cooper, 'coopering', 4);
+    const barrel = await say(cooper, 'fit slack-barrel');
+    expect(barrel, `slack barrel: ${barrel}`).toMatch(/barrel/i);
+    await cloneHere(SMITHY, T.peg, 3);
+    await say(cooper, 'get peg');
+    const put = await say(cooper, 'put peg in barrel');
+    expect(put, `put in barrel: ${put}`).not.toMatch(/can'?t|cannot/i);
+    // To the butt, carrying it: a barrel holds things, not water.
+    cooper.close();
+    cooper = await goTo(handle, COOKHOUSE);
+    const poured = (await (await cooper.cmd('fill barrel from butt')).said()).toLowerCase();
+    expect(poured, `fill a barrel: ${poured}`).not.toMatch(/you fill/);
+    expectOk(await cooper.cmd('drop barrel'));
+  }, 300_000);
+});
+
+suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
+  let mender: Session;
+  beforeAll(async () => {
+    await advanceWorldClock('40 days');
+    await toDaylight();
+  }, 300_000);
+  afterAll(() => mender?.close());
+
+  it('⭐⭐ drive 5 + 3 — the green haft has WARPED in place, and repair names it', async () => {
+    const looked = await examine(smith, 'miners-pick');
+    expect(looked, `look warped pick: ${looked}`).toMatch(/warped/i);
+    const refused = await say(smith, 'repair miners-pick');
+    expect(refused.toLowerCase(), `repair refusal: ${refused}`).toMatch(/haft/);
+  }, 300_000);
+
+  it('⭐ drive 3 + 18 — a second pair of hands fits a new haft; the pick names both', async () => {
+    expectOk(await smith.cmd('drop miners-pick'));
+    const m = await newPlayer('mender', STORE);
+    await buy(m, 'pick haft');
+    const handle = m.handle;
+    m.close();
+    mender = await goTo(handle, SAWMILL);
+    const fitted = await say(mender, 'fit haft to miners-pick');
+    expect(fitted, `mender fit: ${fitted}`).toMatch(/fit a new haft/i);
+    const looked = await examine(mender, 'miners-pick');
+    expect(looked, `look mended pick: ${looked}`).not.toMatch(/warped|broken/i);
+    expect(looked, `two makers: ${looked}`).toMatch(/work of .+ and /i);
+    // Carried through the restart: a body is persisted with what it holds.
+    await say(mender, 'get miners-pick');
+    menderHandle = mender.handle;
+  }, 300_000);
+
+  it('⭐ drive 4 — the mill has sawn the bole into boards while nobody stood over it', async () => {
+    const seen = await inReach(sawyer);
+    expect(seen, `boards: ${seen}`).toMatch(/board/i);
+  }, 120_000);
+
+  it('⭐⭐ drive 23 — the billets in the LOFT have begun to dry', async () => {
+    const lofted = await examine(sawyer, 'billet');
+    expect(lofted, `billet in the loft: ${lofted}`).toMatch(/begun to dry|still drying|seasoned/i);
+  }, 120_000);
+});
+
+suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24)', () => {
+  beforeAll(toDaylight, 120_000);
+  it('⭐⭐ drive 6 — a proficient cooper raises a cask, and it holds liquid', async () => {
+    const handle = cooper.handle;
+    cooper.close();
+    cooper = await goTo(handle, SAWMILL);
+    await untilRestocked(cooper, 'stave', 30);
+    await buy(cooper, 'stave', 30);
+    cooper.close();
+    cooper = await goTo(handle, SMITHY);
+    await practise(cooper, 'coopering', 16);
+    const made = await say(cooper, 'fit cask');
+    expect(made, `fit cask: ${made}`).toMatch(/cask/i);
+    const looked = await examine(cooper, 'cask');
+    expect(looked, `look cask: ${looked}`).toMatch(/staves/i);
+    expect(looked).toMatch(/hoop/i);
+    // The driver goes too — the hoops are driven down at the butt.
+    await say(cooper, 'get driver');
+    cooper.close();
+    cooper = await goTo(handle, COOKHOUSE);
+    expectOk(await cooper.cmd('drop cask'));
+    await say(cooper, 'fill cask from butt');
+    const full = await examine(cooper, 'cask');
+    expect(full, `filled cask: ${full}`).toMatch(/water/i);
+  }, 900_000);
+
+  it('⭐⭐ drive 8 + 7 — left empty it dries; its hoops ride loose with every stave sound; repair consumes nothing', async () => {
+    await say(cooper, 'spill cask');
+    await examine(cooper, 'cask'); // the first empty read starts the drying
+    await advanceWorldClock('10 days');
+    await toDaylight();
+    const dry = await examine(cooper, 'cask');
+    expect(dry, `dried-out cask: ${dry}`).toMatch(/slack/i);
+    expect(dry).not.toMatch(/sprung|split|broken/i);
+    await say(cooper, 'repair cask');
+    await new Promise((r) => setTimeout(r, 10_000)); // the repair's engagement
+    const after = await examine(cooper, 'cask');
+    expect(after, `tightened: ${after}`).not.toMatch(/has gone slack/i);
+  }, 300_000);
+
+  it('⭐⭐ drive 17 — fill it until it gives nothing; re-fire it and it gives again', async () => {
+    for (let i = 0; i < 4; i++) {
+      await say(cooper, 'fill cask from butt');
+      await examine(cooper, 'cask');
+      await say(cooper, 'spill cask');
+    }
+    const spent = await examine(cooper, 'cask');
+    expect(spent, `spent cask: ${spent}`).toMatch(/given its contents everything/i);
+    // ⭐ Re-firing wants a FIRE: the cask goes to the smithy, where the
+    // forge is stoked and lit, and the inshave shaves it back first.
+    await say(cooper, 'get cask');
+    const handle = cooper.handle;
+    cooper.close();
+    cooper = await goTo(handle, SMITHY);
+    await cloneHere(SMITHY, T.inshave);
+    await say(cooper, 'stoke charcoal into forge');
+    await say(cooper, 'light forge');
+    const r = await cooper.cmd('repair cask');
+    await new Promise((res) => setTimeout(res, 15_000)); // the repair's engagement
+    const told = (await r.said()).trim();
+    await cooper.drainProse();
+    const refired = await examine(cooper, 'cask');
+    expect(refired, `re-fired cask (repair said: ${told}): ${refired}`).toMatch(/charred/i);
+    expect(refired).not.toMatch(/given its contents everything/i);
+  }, 300_000);
+
+  it('⭐⭐ drive 22 — anybody measures; the gauger’s figure is of record', async () => {
+    // ⭐ To the CITY: the gauger's seat is the city's, and the Hearthworks
+    // stands outside it (the realm keeps no gauger). You bring a cask to
+    // the gauger; the registry is where the city keeps its records.
+    const handle = cooper.handle;
+    cooper.close();
+    cooper = await goTo(handle, REGISTRY_OFFICE);
+    await cloneHere(REGISTRY_OFFICE, T.rod);
+    expectOk(await cooper.cmd('drop cask'));
+    const mine = await say(cooper, 'measure capacity cask');
+    expect(mine, `cooper gauges: ${mine}`).toMatch(/not of record/i);
+    await cloneHere(REGISTRY_OFFICE, GLOWCAP);
+    const gauger = await Session.open('founder', { startLocation: REGISTRY_OFFICE, wizard: true });
+    try {
+      await gauger.cmd('get glowcap');
+      expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));
+      const record = await say(gauger, 'measure capacity cask');
+      expect(record, `gauger gauges: ${record}`).toMatch(/of record/i);
+      expect(record).not.toMatch(/not of record/i);
+    } finally {
+      gauger.close();
+    }
+  }, 300_000);
+
+  it('⭐ drive 11 — taken apart by its joints, fewer staves come back than went in', async () => {
+    const taken = await say(cooper, 'salvage cask');
+    expect(taken, `cooper salvage: ${taken}`).toMatch(/of the thirty staves/i);
+  }, 300_000);
+
+  it('⭐ drive 22 — an off-standard cask says so, to anyone', async () => {
+    await cloneHere(REGISTRY_OFFICE, T.brewCask);
+    const off = await say(cooper, 'measure capacity cask');
+    expect(off, `off-standard: ${off}`).toMatch(/off standard/i);
+  }, 300_000);
+});
+
+suite('⭐ the exemplar span (drive 13, 20, 21; AC 5, 13)', () => {
+  let joiner: Session;
+  beforeAll(async () => {
+    await toDaylight();
+    const j = await newPlayer('joiner', STORE);
+    await buy(j, 'cushion', 2);
+    await buy(j, 'plough share', 2);
+    await buy(j, 'bowstring');
+    await buy(j, 'spindle shaft');
+    await buy(j, 'whorl');
+    await buy(j, 'bow');
+    const handle = j.handle;
+    j.close();
+    joiner = await goTo(handle, SMITHY);
+  }, 600_000);
+  afterAll(() => joiner?.close());
+
+  it('⭐ drive 13 — a NESTED thing: a pegged frame and a stitched cushion make a chair; the cushion is replaced alone', async () => {
+    await cloneHere(SMITHY, T.frame);
+    const made = await say(joiner, 'fit armchair');
+    expect(made, `fit armchair: ${made}`).toMatch(/armchair|chair/i);
+    const looked = await examine(joiner, 'armchair');
+    expect(looked, `armchair: ${looked}`).toMatch(/frame/i);
+    expect(looked).toMatch(/cushion/i);
+    const swapped = await say(joiner, 'fit cushion to armchair');
+    expect(swapped, `fit cushion: ${swapped}`).toMatch(/fit a new cushion/i);
+    expect(swapped).toMatch(/take the old one back/i);
+  }, 300_000);
+
+  it('⭐⭐⭐ drive 20 — the plough’s share is replaced alone, twice; a bow is re-strung', async () => {
+    await cloneHere(SMITHY, T.plough);
+    for (let season = 0; season < 2; season++) {
+      const fitted = await say(joiner, 'fit share to plough');
+      expect(fitted, `season ${season} share: ${fitted}`).toMatch(/fit a new share/i);
+    }
+    const plough = await examine(joiner, 'plough');
+    expect(plough, `plough: ${plough}`).toMatch(/beam/i);
+    const strung = await say(joiner, 'fit bowstring to bow');
+    expect(strung, `restring: ${strung}`).toMatch(/fit a new bowstring/i);
+  }, 300_000);
+
+  it('⭐ drive 21 — the drop spindle: a shaft through a whorl, no fastener, no tool; pulled apart whole', async () => {
+    const made = await say(joiner, 'fit drop-spindle');
+    expect(made, `fit spindle: ${made}`).toMatch(/spindle/i);
+    const apart = await say(joiner, 'salvage spindle');
+    expect(apart, `pull apart: ${apart}`).toMatch(/come away whole/i);
+  }, 300_000);
+});
+
+/**
+ * ⭐⭐ **The cut — what the grain is FOR** (the review's lens pass on
+ * carpentry). Two lessons the help had promised and the world had not
+ * kept: a part carved from a sawn board is sawn (the saw cut the fibres),
+ * and a through-sawn board cups as it dries — which a glue line cannot
+ * forgive, so a shield-maker pays for quartered boards.
+ */
+suite('⭐⭐ the cut — glue wants a flat board (plan D16)', () => {
+  let wright: Session;
+  beforeAll(async () => {
+    await toDaylight();
+    // ⭐ A board the way a player gets one: off the timber yard's stack.
+    const w = await newPlayer('shieldwright', SAWMILL);
+    await buy(w, 'sawn board');
+    const handle = w.handle;
+    w.close();
+    wright = await goTo(handle, SMITHY);
+    await practise(wright, 'smithing', 4);
+  }, 600_000);
+  afterAll(() => wright?.close());
+
+  it('⭐⭐ a hide glued over a through-sawn board never holds; a quartered board mends it', async () => {
+    await cloneHere(SMITHY, T.hideFace);
+    await cloneHere(SMITHY, T.boss);
+    await cloneHere(SMITHY, T.rivet, 4);
+    const made = await say(wright, 'fit shield');
+    expect(made, `fit shield: ${made}`).toMatch(/shield/i);
+    const cupped = await examine(wright, 'shield');
+    expect(cupped, `shield on a sawn board: ${cupped}`).toMatch(/never held/i);
+    expect(cupped).toMatch(/cupped/i);
+    const tightened = await say(wright, 'repair shield');
+    expect(tightened, `repair: ${tightened}`).not.toMatch(/take up the slack/i);
+    // The lesson learned, back to the yard for a quartered board.
+    const handle = wright.handle;
+    wright.close();
+    wright = await goTo(handle, SAWMILL);
+    await buy(wright, 'quartered board');
+    wright.close();
+    wright = await goTo(handle, SMITHY);
+    const refit = await say(wright, 'fit quartered board to shield');
+    expect(refit, `fit quartered board: ${refit}`).toMatch(/fit a new/i);
+    const flat = await examine(wright, 'shield');
+    expect(flat, `shield on a quartered board: ${flat}`).not.toMatch(/never held|slack/i);
+  }, 300_000);
+});
+
+/**
+ * ⭐⭐⭐ **Drive 1 — W0: what was made survives a restart.** Run LAST,
+ * because it restarts the world.
+ *
+ * ⚠ Only in a world this run OWNS (`WIRE_BOOT=1`): the fork kills the
+ * server on its own port through the same preflight the runner uses and
+ * boots a fresh one — attached to somebody else's server, it skips.
+ */
+suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', () => {
+  afterAll(async () => {
+    await stopOwnedWorld();
+  });
+
+  it.skipIf(!isOwnedTestWorld())('restart, and find the mended pick where it was left', async () => {
+    // The pick the smith made and the mender re-hafted is in the mender's
+    // hands — made by the mint, landed, stamped, and captured with the body
+    // that carries it. Restart the world and read it back.
+    const handle = menderHandle;
+    expect(handle, 'the mender never mended the pick').not.toBe('');
+    smith?.close();
+    sawyer?.close();
+    cooper?.close();
+    // ⚠ Let the logouts' saves land before the world goes down. The pick is
+    // the SMITH's (they made it) and persists in the smith's estate, placed
+    // in the mender's hands — so it is the smith's logout save that keeps
+    // it. The restart below SIGTERMs the server and SIGKILLs it after two
+    // seconds, far less than a shutdown sweep of a world this size takes,
+    // so a save still in flight is lost: a crash losing unsaved state is
+    // legitimate; the checkpoint is about what was SAVED surviving.
+    await new Promise((r) => setTimeout(r, 8_000));
+
+    // Keep the first world's log — the reboot overwrites it.
+    try {
+      copyFileSync(WIRE_LOG, `${WIRE_LOG}.before-restart`);
+    } catch {
+      /* no log to keep */
+    }
+    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
+    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
+      cwd: serverDir,
+      stdio: 'ignore',
+    });
+    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+
+    const back = await Session.open(handle, { startLocation: SAWMILL, wizard: true });
+    try {
+      const pick = await examine(back, 'miners-pick');
+      expect(pick, `the mended pick, after a restart: ${pick}`).toMatch(/haft/i);
+      expect(pick, `both makers, after a restart: ${pick}`).toMatch(/work of .+ and /i);
+    } finally {
+      back.close();
+    }
+  }, 900_000);
+});

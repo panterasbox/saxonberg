@@ -169,10 +169,13 @@ async function funded(tag: string, where: string): Promise<Session> {
  * the residency sweep a clock jump fires — wait for it rather than assume.
  */
 async function buyOne(s: Session, item: string): Promise<void> {
-  for (let attempt = 0; attempt < 3; attempt++) {
+  // ⛔ One restock day at most (soak-harness census): a shelf that needs
+  // longer is a span, and the step fails here rather than walking days.
+  for (let attempt = 0; attempt < 2; attempt++) {
     const said = await say(s, `buy ${item}`);
     if (/you buy/i.test(said)) return;
     expect(said, `buy ${item}: ${said}`).toMatch(/bare|none of it/i);
+    if (attempt > 0) break;
     await advanceWorldClock('1 day');
     await new Promise((r) => setTimeout(r, 20_000));
   }
@@ -335,7 +338,11 @@ suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the s
     const t = await at(h, STOVE_HOUSE);
     const poured = await say(t, `pour me:i:pail:[${milk + 1}] into pan`);
     expect(poured, `pour: ${poured}`).toMatch(/pour/i);
-    await advanceWorldClock('26 hours');
+    // ⛔ One game day, the blocking line (soak-harness census): latex's
+    // drainSetting is one day and the set rate is (1+ratio)/days, so the
+    // pan reaches `set` a day from the pour; the real seconds since the
+    // pour add the margin.
+    await advanceWorldClock('24 hours');
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(t, 'pan');
     expect(pan, 'the pan has set').toMatch(/set/i);
@@ -513,7 +520,11 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     const cup = await examine(s, 'cup');
     expect(cup).toMatch(/latex|milk/i);
     await say(s, 'pour cup into pan');
-    await advanceWorldClock('26 hours');
+    // ⛔ One game day, the blocking line (soak-harness census): latex's
+    // drainSetting is one day and the set rate is (1+ratio)/days, so the
+    // pan reaches `set` a day from the pour; the real seconds since the
+    // pour add the margin.
+    await advanceWorldClock('24 hours');
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(s, 'pan');
     expect(pan).toMatch(/set/i);
@@ -684,14 +695,16 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
       /type:\s*(rain|drizzle|showers?|storm|downpour)/i.test(w) &&
       /rain precipitation/i.test(w);
     let raining = false;
-    for (let i = 0; i < 40 && !raining; i++) {
+    // ⛔ Four segments — one game day — at most (soak-harness census):
+    // searching the weather for rain over days is a span.
+    for (let i = 0; i < 4 && !raining; i++) {
       const { after } = await advanceWorldClock('0 seconds');
       const toNext = Math.ceil((after + 1) / SEGMENT_S) * SEGMENT_S - after;
       await advanceWorldClock(`${Math.ceil(toNext) + 60} seconds`);
       await new Promise((r) => setTimeout(r, 4_000)); // the fan-out is async
       raining = wet(await say(places.street!, 'analyze weather'));
     }
-    expect(raining, 'no liquid rain at a boundary in ten game days').toBe(true);
+    expect(raining, 'no liquid rain at a boundary in a game day').toBe(true);
   }, 3_600_000);
 
   it('5 — the street and the roof terrace are wet', async () => {

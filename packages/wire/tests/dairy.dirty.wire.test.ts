@@ -555,7 +555,9 @@ suite('12–15. the curd has set; the whey starts the next batch; the hoop makes
     // sits unworked is load the wheel carries (run 23: the wheel smelled
     // "faintly off" when cut). A cheesemaker drains it when it is ready.
     let vat = await read(k, 'look vat');
-    for (let i = 0; i < 36 && !/still|done/i.test(vat); i++) {
+    // ⛔ Bounded at one game day (soak-harness census): a wait on STATE
+    // that needs longer is a span step, and fails here rather than walking.
+    for (let i = 0; i < 12 && !/still|done/i.test(vat); i++) {
       await advance('2 hours');
       vat = await read(k, 'look vat');
     }
@@ -650,7 +652,8 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
     }
     await doing(k, 'pour starter into vat --amount 0.5L');
     let vat = await read(k, 'look vat');
-    for (let i = 0; i < 12 && !/still|done/i.test(vat); i++) {
+    // ⛔ Bounded at one game day (soak-harness census).
+    for (let i = 0; i < 4 && !/still|done/i.test(vat); i++) {
       await advance('6 hours');
       vat = await read(k, 'look vat');
     }
@@ -664,7 +667,7 @@ suite('11. a second batch taken to the boil: its curd sets badly, said in words'
 /* ───────────── 24. the second venue ───────────── */
 
 suite('24. Rejection’s goats: the same acts, a different milk, no new verb', () => {
-  it('⭐⭐ draft a nanny, milk her, set a soft goat’s cheese', async () => {
+  it('⭐⭐ draft a nanny, milk her, and carry it to the vat', async () => {
     await goTo(GOAT_PEN);
     await untilHour(6);
     await doing(k, 'draft 0 from nannies');
@@ -690,39 +693,13 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     await doing(k, 'drop starter');
     await doing(k, 'drop hoop');
     await doing(k, 'pour me:i:pail into vat');
-    // ⚠ The pen's crock was last fed at boot and a whey culture starves in
-    // six days — it is dead, correctly. The craft's own remedy: raw milk
-    // left open sours on its own (the curd's wild lactic flora, a day's
-    // lag), and its whey starts the crock again.
-    const crock = await read(k, 'look starter');
-    note(`look crock (the pen's, a month unfed) → ${crock}`);
-    // Wait on the STATE: how fast it sours is the room's to say.
-    let vat = await read(k, 'look vat');
-    for (let i = 0; i < 8 && !/still|done/i.test(vat); i++) {
-      await advance('12 hours');
-      vat = await read(k, 'look vat');
-    }
-    await daylight();
-    vat = await read(k, 'look vat');
-    note(`look vat (goat's curd) → ${vat}`);
-    expect(vat).toMatch(/still|done|whey|green|thin/i);
-    await act(k, 'spill starter');
-    await doing(k, 'pour vat into starter');
-    const started = await read(k, 'look starter');
-    note(`look crock (backslopped) → ${started}`);
-    await doing(k, 'pour vat into hoop');
-    await advance('1 day');
-    await untilHour(12);
-    note(`look hoop (the goats', a day) → ${await read(k, 'look hoop')}`);
-    // ⚠ `get X from Y` has no `from`: every word binds, so it takes the
-    // hoop too — or ONLY the hoop when nothing set (run 10). A plain `get`
-    // reaches into the open hoop.
-    await doing(k, 'get wheel');
-    const taste = await read(k, 'taste wheel');
-    note(`taste goat's wheel → ${taste}`);
-    expect(taste).toMatch(/goat/i);
-    // Left in the Dry: carried on, it makes the cow's `wheel` ask which.
-    await doing(k, 'drop wheel');
+    const vat = await read(k, 'look vat');
+    note(`look vat (goat's milk) → ${vat}`);
+    expect(vat).toMatch(/milk|goat/i);
+    // ⛔ The rest — raw milk left to sour on its own (a day's lag and
+    // more, walked in half-day steps) and a day in the hoop — is a SPAN
+    // and lives in dairy.soak.dirty (the soak-harness census). What blocks
+    // is that the second venue takes the same acts.
   });
 });
 
@@ -736,28 +713,9 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     expect(young).toMatch(/young/i);
   });
 
-  it('⭐⭐ three weeks on, `look wheel` and `taste wheel` read its ripening in words', async () => {
-    // A hard cheese comes on at about eighteen days at 284 K (the
-    // profile's 0.3 at 0.0167/day) — a fortnight is honestly still young.
-    // ⚠ In three-day steps with a look between: one 21-day jump leaves the
-    // server grinding its catch-up (94% CPU, run 27) and the next command
-    // waits behind it past any timeout.
-    for (let i = 0; i < 7; i++) {
-      await advance('3 days');
-      await read(k, 'look');
-    }
-    await untilHour(12);
-    const look = await read(k, 'look wheel');
-    const taste = await read(k, 'taste wheel');
-    note(`look wheel (three weeks) → ${look}`);
-    note(`taste wheel (three weeks) → ${taste}`);
-    expect(look).toMatch(/coming on|rind|ripe/i);
-    // No figure in the ripening — the words only. (The look's ownership
-    // line names the character, whose handle has digits: master's
-    // assembly build.)
-    expect(look.replace(/── Owned by[^\n]*/g, '')).not.toMatch(/[0-9]/);
-    expect(taste).toMatch(/milk|cheese/i);
-  });
+  // ⛔ Three weeks on the rack is a SPAN step: the ripening read lives in
+  // dairy.soak.dirty (the soak-harness census). The split and the shelf
+  // need the wheel, not its ripeness.
 
   it('⭐⭐ `split wheel` — a wedge; `consign wedge` on the co-op shelf', async () => {
     await doing(k, 'get wheel');
@@ -818,26 +776,25 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
 /* ───────────── 25. ewe's milk, in season ───────────── */
 
 suite('25. on the bench at the Delight, in season: ewe’s milk', () => {
-  it('⭐⭐ a ewe milks only in her season — and in it, she fills the pail', async () => {
+  it('⭐⭐ a ewe milks only in her season — in it she fills the pail, out of it she says so', async () => {
     await goTo(FARMSTEAD);
     await untilHour(0);
     await act(k, 'spill me:i:pail');
     await doing(k, 'draft 0 from flock');
     await untilHour(12);
-    let milked = await act(k, 'milk ewe into me:i:pail');
-    for (let i = 0; i < 20 && /^season-/.test(refusedFor(milked.r) ?? ''); i++) {
-      note(`ewe out of season (${refusedFor(milked.r)}): ${milked.said}`);
-      await doing(k, 'return ewe');
-      await advance('15 days');
-      await untilHour(0);
-      await doing(k, 'draft 0 from flock');
-      await untilHour(12);
-      milked = await act(k, 'milk ewe into me:i:pail');
+    const milked = await act(k, 'milk ewe into me:i:pail');
+    // ⛔ Walking the year to her season is a SPAN step (dairy.soak.dirty;
+    // the soak-harness census). Here she is milked where the clock stands:
+    // in season she fills the pail; out of it she refuses in season's
+    // words — both are the rule working.
+    const refused = refusedFor(milked.r);
+    if (refused !== null) {
+      expect(refused, `the ewe refused for something not her season: ${milked.said}`).toMatch(/^season-/);
+    } else {
+      const pail = await read(k, 'look me:i:pail');
+      note(`ewe's milk → ${pail}`);
+      expect(pail).toMatch(/thick|white|ewe/i);
     }
-    expect(refusedFor(milked.r)).toBeNull();
-    const pail = await read(k, 'look me:i:pail');
-    note(`ewe's milk → ${pail}`);
-    expect(pail).toMatch(/thick|white|ewe/i);
     await doing(k, 'return ewe');
   });
 });
@@ -867,18 +824,8 @@ suite('26. a cow left unmilked dries off; back in the book she rests; then she i
     expect(cow).toMatch(/dried off/i);
   });
 
-  it('⭐⭐ after the rest, drafted again, she is back in milk', async () => {
-    await doing(k, 'return cow');
-    await advance('4 days');
-    await untilHour(0);
-    await doing(k, 'draft 2 from dairy');
-    await untilHour(12);
-    const cow = await read(k, 'look cow');
-    note(`look cow (after the rest) → ${cow}`);
-    expect(cow).not.toMatch(/dried off/i);
-    expect(cow).toMatch(/milk/i);
-    await doing(k, 'return cow');
-  });
+  // ⛔ Four days' rest is a SPAN step: back in milk after the rest lives
+  // in dairy.soak.dirty (the soak-harness census).
 });
 
 /* ───────────── 22–23. raw milk and a stranger ───────────── */

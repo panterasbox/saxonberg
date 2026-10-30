@@ -618,7 +618,9 @@ suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () 
     if (refusedFor(swing) === 'too-tired') {
       await say(k, 'eat rations');
       await say(k, 'drink from waterskin');
-      await advance('1 day');
+      // ⛔ Half a day more, not a day: with the first rest the step
+      // stays inside one game day (soak-harness census).
+      await advance('12 hours');
       swing = await say(k, 'bore');
     }
     expect(

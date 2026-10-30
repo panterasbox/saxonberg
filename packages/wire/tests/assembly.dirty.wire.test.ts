@@ -37,11 +37,6 @@ import {
   advanceWorldClock,
   isOwnedTestWorld,
 } from '../src/harness';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
-import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
   'buys out the general store’s hafts and the timber yard’s staves and ' +
@@ -382,48 +377,9 @@ suite('⭐⭐ the novice cooper (drive 9; AC 22)', () => {
   }, 300_000);
 });
 
-suite('⭐⭐ forty days later (drive 3, 4, 5, 18, 23; AC 10, 19, 25)', () => {
-  let mender: Session;
-  beforeAll(async () => {
-    await advanceWorldClock('40 days');
-    await toDaylight();
-  }, 300_000);
-  afterAll(() => mender?.close());
-
-  it('⭐⭐ drive 5 + 3 — the green haft has WARPED in place, and repair names it', async () => {
-    const looked = await examine(smith, 'miners-pick');
-    expect(looked, `look warped pick: ${looked}`).toMatch(/warped/i);
-    const refused = await say(smith, 'repair miners-pick');
-    expect(refused.toLowerCase(), `repair refusal: ${refused}`).toMatch(/haft/);
-  }, 300_000);
-
-  it('⭐ drive 3 + 18 — a second pair of hands fits a new haft; the pick names both', async () => {
-    expectOk(await smith.cmd('drop miners-pick'));
-    const m = await newPlayer('mender', STORE);
-    await buy(m, 'pick haft');
-    const handle = m.handle;
-    m.close();
-    mender = await goTo(handle, SAWMILL);
-    const fitted = await say(mender, 'fit haft to miners-pick');
-    expect(fitted, `mender fit: ${fitted}`).toMatch(/fit a new haft/i);
-    const looked = await examine(mender, 'miners-pick');
-    expect(looked, `look mended pick: ${looked}`).not.toMatch(/warped|broken/i);
-    expect(looked, `two makers: ${looked}`).toMatch(/work of .+ and /i);
-    // Carried through the restart: a body is persisted with what it holds.
-    await say(mender, 'get miners-pick');
-    menderHandle = mender.handle;
-  }, 300_000);
-
-  it('⭐ drive 4 — the mill has sawn the bole into boards while nobody stood over it', async () => {
-    const seen = await inReach(sawyer);
-    expect(seen, `boards: ${seen}`).toMatch(/board/i);
-  }, 120_000);
-
-  it('⭐⭐ drive 23 — the billets in the LOFT have begun to dry', async () => {
-    const lofted = await examine(sawyer, 'billet');
-    expect(lofted, `billet in the loft: ${lofted}`).toMatch(/begun to dry|still drying|seasoned/i);
-  }, 120_000);
-});
+/* ⛔ Forty days later (drive 3, 4, 5, 18, 23) — the warped haft, the
+ * mender, the sawn bole, the drying loft — is a SPAN and lives in
+ * assembly.soak.dirty (the soak-harness census). */
 
 suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24)', () => {
   beforeAll(toDaylight, 120_000);
@@ -451,19 +407,8 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     expect(full, `filled cask: ${full}`).toMatch(/water/i);
   }, 900_000);
 
-  it('⭐⭐ drive 8 + 7 — left empty it dries; its hoops ride loose with every stave sound; repair consumes nothing', async () => {
-    await say(cooper, 'spill cask');
-    await examine(cooper, 'cask'); // the first empty read starts the drying
-    await advanceWorldClock('10 days');
-    await toDaylight();
-    const dry = await examine(cooper, 'cask');
-    expect(dry, `dried-out cask: ${dry}`).toMatch(/slack/i);
-    expect(dry).not.toMatch(/sprung|split|broken/i);
-    await say(cooper, 'repair cask');
-    await new Promise((r) => setTimeout(r, 10_000)); // the repair's engagement
-    const after = await examine(cooper, 'cask');
-    expect(after, `tightened: ${after}`).not.toMatch(/has gone slack/i);
-  }, 300_000);
+  // ⛔ Drive 8 + 7 — ten days empty until the hoops ride slack — is a
+  // SPAN and lives in assembly.soak.dirty (the soak-harness census).
 
   it('⭐⭐ drive 17 — fill it until it gives nothing; re-fire it and it gives again', async () => {
     for (let i = 0; i < 4; i++) {
@@ -622,57 +567,6 @@ suite('⭐⭐ the cut — glue wants a flat board (plan D16)', () => {
   }, 300_000);
 });
 
-/**
- * ⭐⭐⭐ **Drive 1 — W0: what was made survives a restart.** Run LAST,
- * because it restarts the world.
- *
- * ⚠ Only in a world this run OWNS (`WIRE_BOOT=1`): the fork kills the
- * server on its own port through the same preflight the runner uses and
- * boots a fresh one — attached to somebody else's server, it skips.
- */
-suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', () => {
-  afterAll(async () => {
-    await stopOwnedWorld();
-  });
-
-  it.skipIf(!isOwnedTestWorld())('restart, and find the mended pick where it was left', async () => {
-    // The pick the smith made and the mender re-hafted is in the mender's
-    // hands — made by the mint, landed, stamped, and captured with the body
-    // that carries it. Restart the world and read it back.
-    const handle = menderHandle;
-    expect(handle, 'the mender never mended the pick').not.toBe('');
-    smith?.close();
-    sawyer?.close();
-    cooper?.close();
-    // ⚠ Let the logouts' saves land before the world goes down. The pick is
-    // the SMITH's (they made it) and persists in the smith's estate, placed
-    // in the mender's hands — so it is the smith's logout save that keeps
-    // it. The restart below SIGTERMs the server and SIGKILLs it after two
-    // seconds, far less than a shutdown sweep of a world this size takes,
-    // so a save still in flight is lost: a crash losing unsaved state is
-    // legitimate; the checkpoint is about what was SAVED surviving.
-    await new Promise((r) => setTimeout(r, 8_000));
-
-    // Keep the first world's log — the reboot overwrites it.
-    try {
-      copyFileSync(WIRE_LOG, `${WIRE_LOG}.before-restart`);
-    } catch {
-      /* no log to keep */
-    }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-
-    const back = await Session.open(handle, { startLocation: SAWMILL, wizard: true });
-    try {
-      const pick = await examine(back, 'miners-pick');
-      expect(pick, `the mended pick, after a restart: ${pick}`).toMatch(/haft/i);
-      expect(pick, `both makers, after a restart: ${pick}`).toMatch(/work of .+ and /i);
-    } finally {
-      back.close();
-    }
-  }, 900_000);
-});
+/* ⛔ Drive 1 — the mended pick survives a restart — reads back the pick
+ * the forty days made a mender re-haft, so it moved with them to
+ * assembly.soak.dirty (the soak-harness census). */
