@@ -28,6 +28,10 @@ import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../location/Location';
+import { BiomeApi } from '../../../api/biome';
+import type { Container } from '../../spatial/Container';
 
 class Lump extends ThermalMixin(Good) {
   static _mixinName = 'HeatworkTestLump';
@@ -37,8 +41,9 @@ class TestRoom extends Place {}
 /** A retort's shape: a chamber that takes what leaves its charge. */
 class TestRetort extends Oven {
   public caught: Record<string, number> = {};
-  public receiveVolatiles(materialPath: string, litres: number): void {
+  public override receiveVolatiles(materialPath: string, litres: number): number {
     this.caught[materialPath] = (this.caught[materialPath] ?? 0) + litres;
+    return litres;
   }
 }
 
@@ -208,6 +213,28 @@ describe('pyrolysis — a flame needs air', () => {
     expect(length.getMass().rawValue()).toBeCloseTo(1, 1);
     expect((length as unknown as { getShortDescription(): string }).getShortDescription()).toBe('charred length of cordwood');
     expect(retort.caught['/stuff/idea/material/bulk/wood-tar'] ?? 0).toBeGreaterThan(0.25);
+  });
+
+  it('⭐ a starved chamber that takes NOTHING lets the tar into the air of its place (B105)', async () => {
+    // `Burner.receiveVolatiles` answers 0 for an ordinary oven: what left the
+    // charge is the room's (it was a duck-probe for a retort's method).
+    const zone = makeStuff(() => new CartesianZone());
+    const yard = makeStuff(() => new Location());
+    zone.addLocation(yard, 0, 0, 0);
+    const oven = makeStuff(() => new Oven());
+    chargeHot(oven as unknown as Stuff & Burner, 400);
+    oven.setBurnTemperatureK(720);
+    oven.setDraught(0.45);
+    await ContainmentApi.move(oven, yard as never);
+    if (!oven.isLit()) oven.ignite();
+    const length = lumpOf(wood, 4);
+    await load(oven, length);
+    advance(3 * 24 * 3600);
+    length.getTemperature();
+    expect(length.getMaterial()?.getTemplatePath()).toBe(charcoal.getTemplatePath());
+    const tar = BiomeApi.resolveAtmosphereContentsFor(yard as unknown as Stuff & Container)
+      .find((c) => c.type === '/stuff/idea/material/bulk/wood-tar');
+    expect(tar?.amount ?? 0).toBeGreaterThan(0);
   });
 
   it('in an open chamber the same wood banks nothing — it is a fire’s, not a kiln’s', async () => {

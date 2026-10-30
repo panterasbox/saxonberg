@@ -459,8 +459,9 @@ minted. Charcoal, coke, ash, the tars, pitch and coal gas live in
 - **The retort** is SHUT: its row draught 0.3 (≈ 0.35) keeps the charge
   starved while the firebox still holds ≈ 1260 K on charcoal, so `fire in
   retort for 3 hours` chars wood and cokes coal, and the transition's
-  volatiles go to `Retort.receiveVolatiles` → the condenser on its head →
-  the gasometer on the condenser → the air. `draught wide` on a retort is a
+  volatiles go to `Retort.receiveVolatiles` (the kernel's `Burner` hook,
+  B105) → the condenser on its head → the gasometer on the condenser; what
+  none of them took, the thermal transition puts into the air. `draught wide` on a retort is a
   retort fired open: the charge catches.
 
 ### The burner's hooks (ceramics D3, D19)

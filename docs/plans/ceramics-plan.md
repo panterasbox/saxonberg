@@ -2095,10 +2095,38 @@ left a fork the lens that chose is named.
   6. `Material.getEffusivity()`; `hasRiser` on the `Mould` interface; the
      `wear` cast and `getImpression`'s catch removed. Silent-write census
      gained Thermal's non-mould lump path (Mould's twin).
+- **B105 — Thermal (owner, 2026-10-29).** Items 1–4 done; the dial sweep
+  and `restamp`'s catch slated.
+  1. **Nothing melts, freezes or crystallizes into nowhere.** `doMelt`
+     finds its place BEFORE destroying the solid: the holding vessel (ice in
+     a pail → the pail), a pot beside it, else the nearest floor walking
+     outward (ice in a sack → the room's floor). A floorless place takes it
+     into its medium (a skip); standing nowhere throws `DetachedError`. ⭐
+     Found: ice in a pail, a sack or a cooler used to VANISH. The freeze's
+     lump and the crystal crop check their place before the pool changes;
+     their mints throw instead of being swallowed, and the fire-and-forget
+     callers log. An unresolvable rung material throws (it left the piece
+     recorded as fired and never changed). A rung cast into a mould spends
+     the charge only once the cast exists.
+  2. **Thermal shock is Integrity's**: `thermalShockToleranceK()` +
+     `sufferThermalShock(stepK, rate)`; Thermal reports the step and rate.
+  3. **`KineticRecord` value class** (`lib/material/KineticRecord.ts`): the
+     record's arithmetic (progress, atmosphere weighting, mass factor,
+     grade after loss, start band, credits). The persisted shape is plain
+     `KineticRecordData` (renamed); Thermal keeps driver + consequences.
+  4. **No duck typing**: `Burner.receiveVolatiles(path, litres): number`
+     (`@hook`, default 0; the rest goes to the room's air) replaces the
+     `receiveVolatiles?` probe; `Retort` overrides it and lost its duplicate
+     room walk. `restampProse`/`describeOffRung`/the lump narrow through
+     `MixinApi`. ⚠ Left: trade-fuel's own Retort → Condenser → Gasometer
+     `receive?` chain is pack-internal duck typing (not the kernel's).
+  Slated: `tails/numeric-dial-sweep-slate.md` (~100 copies of a numeric
+  dial read → `AppApi.numberSetting` + a ratchet); silent-write census
+  gained `restamp`'s catch.
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding
-  (B101) · Forming (B102) · PatternStock (B103) · Mould (B104). Still to review from the MR's new
+  (B101) · Forming (B102) · PatternStock (B103) · Mould (B104) · Thermal (B105). Still to review from the MR's new
   mixins: the eight protocol mixins are parked by the verb-interfaces
   slate's decision (earned or verb-checks). Ask the owner which mixin or
   system is next.

@@ -180,13 +180,13 @@ describe('thermal shock — heat too fast', () => {
     // The heating rate a fire gives each: (fire − room) / τ.
     for (const p of [crock, cooking]) {
       const tau = p.getTau().rawValue();
-      (p as unknown as { shockBody(step: number, rate: number): void }).shockBody(0, (900 - 295) / tau);
+      p.sufferThermalShock(0, (900 - 295) / tau);
     }
     expect(crock.getFlaws().length).toBeGreaterThan(0);
     // Earthenware with no grog is marginal; the potter's cooking body is
     // grogged — W3's composition carries it. Here: no flaw at a gentler fire.
     const gentle = pot(earthenware, 1.5);
-    (gentle as unknown as { shockBody(step: number, rate: number): void }).shockBody(0, (700 - 295) / gentle.getTau().rawValue());
+    gentle.sufferThermalShock(0, (700 - 295) / gentle.getTau().rawValue());
     expect(gentle.getFlaws()).toEqual([]);
   });
 
@@ -198,7 +198,7 @@ describe('thermal shock — heat too fast', () => {
     const plain = pot(mat('fireclay-body', fill(['ceramic', 'fired', 'brittle'])), 4);
     const refractory = pot(mat('refractory-body', fill(['ceramic', 'fired', 'brittle', 'refractory'])), 4);
     for (const p of [plain, refractory]) {
-      (p as unknown as { shockBody(step: number, rate: number): void }).shockBody(250, 0);
+      p.sufferThermalShock(250, 0);
     }
     expect(plain.getFlaws().length).toBeGreaterThan(0);
     expect(refractory.getFlaws()).toEqual([]);

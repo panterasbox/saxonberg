@@ -183,10 +183,11 @@ export interface KineticProgress {
 }
 
 /**
- * ⭐ A good's kinetic record — persisted on `ThermalMixin`. Inert (`null`)
- * until the good's material declares a change.
+ * ⭐ A good's kinetic record AS PERSISTED on `ThermalMixin` — plain data.
+ * Inert (`null`) until the good's material declares a change. The
+ * arithmetic over it is `KineticRecord`'s (B105).
  */
-export interface KineticRecord {
+export interface KineticRecordData {
   /** Game-second the record was last integrated to (`null`: never). */
   checkedS: number | null;
   /** Each change's progress, by key. */

@@ -183,10 +183,13 @@ describe('the retort', () => {
   });
 
   describe('⭐⭐ the chamber routes what leaves the charge', () => {
-    it('with NO condenser the tar is in the AIR — which is the lesson', () => {
+    it('with NO condenser the retort takes nothing — and the kernel puts the tar in the AIR, which is the lesson', () => {
+      // ⭐ B105: the retort answers the kernel's `Burner.receiveVolatiles`
+      // with what its receivers took; what nothing took, the thermal
+      // transition routes into the room (proved in Thermal.heatwork).
       const r = retort();
-      r.receiveVolatiles(TAR, 10);
-      expect(airOf(TAR)).toBeGreaterThan(0);
+      expect(r.receiveVolatiles(TAR, 10)).toBe(0);
+      expect(airOf(TAR)).toBe(0);
     });
 
     it('with a condenser on it, the tar is a LIQUID in the receiver', () => {

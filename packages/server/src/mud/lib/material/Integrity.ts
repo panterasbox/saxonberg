@@ -175,6 +175,20 @@ export interface Integrity {
    */
   impactStrengthJ(): number;
   /**
+   * ⭐ The temperature step this body stands, K (ceramics D9) — its
+   * material's `impact.shockStrain ÷ α`, raised by porosity and grog (the
+   * cooking pot), lowered by a glaze. `Infinity` for anything not brittle or
+   * with no authored expansion. The heat is Thermal's; how a brittle body
+   * answers it is this mixin's, as an impact's is (B105).
+   */
+  thermalShockToleranceK(): number;
+  /**
+   * ⭐ Heat a brittle body too fast: a step of `stepK`, or a change at
+   * `rateKPerS` across its wall. Past its tolerance a DUNT (hidden unless a
+   * glaze shows the craze line); twice past, a CRACK anyone can see.
+   */
+  sufferThermalShock(stepK: number, rateKPerS: number): void;
+  /**
    * ⭐⭐ The ONE breakage act: a blow of `energyJ` against `surface`. A soft
    * floor absorbs by its own hardness; a flagstone does not. Below half its
    * strength nothing; below its strength a crack; past it the body breaks
@@ -338,6 +352,51 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const self = this as unknown as Stuff;
       const sound = MixinApi.isDurable(self) ? self.getCondition() : this.getIntegrity();
       return toughness * 1e6 * v * (v / vRef) * share * Math.max(0.1, sound);
+    }
+
+    public thermalShockToleranceK(): number {
+      const self = this as unknown as Stuff;
+      const mat = this.body().getMaterial();
+      if (mat === null || !mat.hasTag('brittle')) return Number.POSITIVE_INFINITY;
+      const alpha = mat.getThermalExpansion();
+      if (!(alpha > 0)) return Number.POSITIVE_INFINITY;
+      const porosity = MixinApi.isFaced(self) ? self.porosity() : 0;
+      // ⭐ A REFRACTORY body is grog-opened by definition — that is what
+      // makes it a crucible or a firebrick rather than a pot (the ceramics
+      // drive: a refractory crucible cracked under its first bronze melt
+      // because the row records no composition to credit).
+      let grog = mat.hasTag('refractory') ? 0.4 : 0;
+      if (MixinApi.isComposition(self)) {
+        for (const e of self.getMakeup()) {
+          const m = StuffApi.findByTemplatePath<Material>(e.materialPath);
+          if (m?.hasTag('grog')) grog += e.fraction;
+        }
+      }
+      const glazed =
+        MixinApi.isFaced(self) &&
+        [...self.getCoats('outside'), ...self.getCoats('inside')].some((c) => c.state === 'set');
+      const strain = integrityDial(AppSettingKeys.impactShockStrain, 0.0003);
+      return (
+        ((strain / alpha) * (1 + 10 * porosity)) /
+        Math.max(0.2, 1 - 2 * Math.min(0.4, grog)) *
+        (glazed ? 0.7 : 1)
+      );
+    }
+
+    public sufferThermalShock(stepK: number, rateKPerS: number): void {
+      const tol = this.thermalShockToleranceK();
+      if (!Number.isFinite(tol)) return;
+      const wallS = integrityDial(AppSettingKeys.impactShockWallS, 60);
+      const severity = Math.max(stepK / tol, (rateKPerS * wallS) / tol);
+      if (!(severity > 1)) return;
+      if (severity > 2) {
+        this.addFlaw('crack', true);
+        return;
+      }
+      const self = this as unknown as Stuff;
+      const glazedOutside =
+        MixinApi.isFaced(self) && self.getCoats('outside').some((c) => c.state === 'set');
+      this.addFlaw('dunt', glazedOutside);
     }
 
     public impactVerdict(spec: ImpactSpec): 'none' | 'crack' | 'break' {

@@ -270,6 +270,14 @@ export interface Burner extends Pumpable {
   /** A lump of `materialPath` became vapor in this chamber. */
   addChamberVapor(materialPath: string, kg: number): void;
   /**
+   * @hook ⭐ What leaves a converting body in this chamber — a firing's tar,
+   * its gas, its wood spirit: the litres this chamber TAKES, `0` by default.
+   * What it does not take goes into the air of the place it stands in (the
+   * thermal transition routes it). A retort hands it to the receivers on its
+   * head (B105 — it was a duck-probe the kernel made of the trade's class).
+   */
+  receiveVolatiles(materialPath: string, litres: number): number;
+  /**
    * ⭐ Settle a firing: bring every body in the chamber current (each
    * reconciles its own heat-work, transitions and volatiles), let what can
    * burn here burn, and hand back the Disciplines the rungs completed —
@@ -481,6 +489,10 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getChamberVapors(): Readonly<Record<string, number>> {
       return this.chamberVapors;
+    }
+
+    public receiveVolatiles(_materialPath: string, _litres: number): number {
+      return 0;
     }
 
     public addChamberVapor(materialPath: string, kg: number): void {

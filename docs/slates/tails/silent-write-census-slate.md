@@ -40,11 +40,9 @@ to be a read and annotated as one.
   vessel, but the floor-less (yet attached) case is still a silent skip.
 - `Mould.creditDrainings`: what the vessel below has no room for "runs
   away". This one is a deliberate model, not a skip; annotate it as such.
-- `Thermal.reconcileBulkPhase`, a pool freezing in a vessel that is NOT a
-  mould: the lump is cloned and its `.catch(() => …)` swallows a failed
-  mint, the clone is duck-typed (`getMaterial?`), and a vessel standing
-  nowhere drops the lump in no place. Mould's own set path was fixed in
-  B104; this is its twin.
+- ~~`Thermal.reconcileBulkPhase`, a pool freezing in a vessel that is NOT
+  a mould~~ — fixed in B105 (checked first, narrowed, a failed mint
+  throws).
 
 - **An async completion has no root to reach** (ceramics review, B103).
   The scheduler's `onComplete` is synchronous (`SchedulerRegistry
@@ -54,6 +52,16 @@ to be a read and annotated as one.
   logs, so nothing is an unhandled rejection; still missing are the author
   diagnostic and the `thrown` envelope a sync throw gets. The fix is the
   scheduler awaiting a returned promise under `runRootGuarded('swallow')`.
+
+- `ThermalMixin.restamp`: a failure to resolve the room's temperature
+  (`BiomeApi.resolveTemperatureFor`) is caught and the old ambient kept
+  (`catch {}`). Arguably a skip — a read that found nothing — but it hides
+  a real error (a biome chain that cannot resolve), and a body then drifts
+  toward a stale ambient forever. Decide: say it, or show it is only ever
+  a legitimate miss. (Thermal review, B105.)
+- ✅ Done in B105: Thermal's non-mould lump path (above), the melt
+  (`doMelt` destroyed first and found no floor in a pail or a sack), and
+  the crystallize arm's crop.
 
 ## Rides into
 

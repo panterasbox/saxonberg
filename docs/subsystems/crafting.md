@@ -1781,9 +1781,10 @@ see moisture; that was the seam this closes.
 
 **`Recipe.volatiles: [{material, litresPerKg}]`** is the sibling for what
 leaves as a GAS rather than staying in the output: wood → charcoal **+
-tar**, coal → coke **+ coal tar + coal gas**. Routed by the controller
-through a structural `receiveVolatiles` probe (a condenser, a gasometer),
-else emitted into the scope — so a retort with nothing attached puts its
+tar**, coal → coke **+ coal tar + coal gas**. Routed by the thermal
+transition through the holding chamber's `Burner.receiveVolatiles` hook (a
+retort's condenser, a gasometer; B105 — it was a structural probe), the
+rest emitted into the scope — so a retort with nothing attached puts its
 volatiles in the room, which is what the clamp does and why the collier
 discards them.
 

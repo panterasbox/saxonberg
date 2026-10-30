@@ -171,7 +171,11 @@ same rule as staling and inversion: the ceramics build's heat transitions
 and the sugar build's kinetics folded into ONE evaluator,
 `lib/material/Kinetics.ts` (`KineticChange`), read off the material row's
 `kinetics:` list. `ThermalMixin` keeps one persistent runtime record,
-`kineticRecord: KineticRecord | null`, and one private
+`kineticRecord: KineticRecordData | null` (plain data; the arithmetic over
+it — progress, the dose-weighted atmosphere, the mass factor, the grade a
+table lowers to, the credits — is the `KineticRecord` value class in
+`lib/material/KineticRecord.ts`, B105; Thermal keeps the driver and the
+consequences on the host), and one private
 `reconcileKineticRecord()` called at the end of `reconcileThermal()` — after
 the phase pass, outside the reentry guard, under its own guard. It is
 **inert** (one material lookup that answers no) unless the body's material
@@ -215,12 +219,15 @@ For each dose-law change:
   material past `scorchAboveK`), its mass follows `raw · Π(1 − degree ·
   (1 − massRetained))`, and its prose is restamped (the old material's name
   swapped, or the rung's `describes` word put in front — never stacked);
-- **volatiles** leave as the degree rises, to the holder's
-  `receiveVolatiles` probe or else the air of the place;
+- **volatiles** leave as the degree rises: the holding `Burner` takes what
+  it can (`receiveVolatiles`, a `@hook` returning the litres taken, `0` by
+  default — a retort hands them to its receivers; B105, it was a duck
+  probe), and the rest goes into the air of the place;
 - standing in a `Mould` that is not its own cast, the piece instead hands
-  the mould a pool at the rung (`castInto`) and is destructed — the cast
-  `adoptKineticRecord`s the record, so a cure keeps grading as its degree
-  rises;
+  the mould a pool at the rung (`castInto`) and is destructed once the cast
+  exists (B105 — a cast that cannot be made leaves the charge, and is
+  logged) — the cast `adoptKineticRecord`s the record, so a cure keeps
+  grading as its degree rises;
 - `requiresStarvedAir` (pyrolysis) accrues only in a burner chamber below
   `fire.air.flamingCompleteness` — the dial `FireLogic.mediumBurns` reads; a
   `Burning` combustible accrues nothing.
@@ -961,11 +968,20 @@ the powered cold source drives a `Bulkable` freeze (the ClimateControl
 content pass); a jug of water in a cold weather room does not freeze this
 build (`thermal-slate`).
 
-⚠ **Two meltwater edges are accepted limitations** (both → `thermal-slate`):
-(1) a solid melting inside a **floorless container** (a cooler, a freezer
-box) loses its litres — `doMelt`'s `findScopeFloor` returns null, so the
-solid destructs and the meltwater has nowhere to pool (the drama is
-spoilage, not puddles); (2) a cold **ROOM**'s own floor puddle does not
+⭐ **Where a melt goes is found BEFORE the solid is destroyed** (B105):
+the vessel holding it when it will take it (ice in a pail melts into the
+pail), else a pot standing beside it (a bottle in a kiln, ruling C), else
+the nearest floor walking outward (ice in a sack runs onto the floor the
+sack stands on). A walk that ends in a place with no floor (a water place,
+the open air) lets the melt join that place's medium. A solid standing
+nowhere throws `DetachedError` and stays solid. (It used to destruct first
+and look only for a floor in its immediate container, so ice in a pail, a
+sack or a cooler vanished.) The freeze's lump and the crystallize arm's
+crop check their place before the pool is touched, the same way, and a
+lump or crop row that will not mint throws (it was swallowed).
+
+⚠ **One meltwater edge is an accepted limitation** (→ `thermal-slate`): a
+cold **ROOM**'s own floor puddle does not
 re-freeze — the content phase pass drives a scope's loose contents, and a
 `Floor` is a fixture, not a loose content.
 
@@ -1160,3 +1176,15 @@ loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
 keeps a pack-local count of the alkali across the boil-off and casts black
 salts when dry; it converges on the sugar build's solids-keeping plateau and
 is deleted then (`potash-on-sugar`, [potash.md](potash.md)).
+
+## Thermal shock is Integrity's judgment (B105)
+
+Thermal reports the heat: a step (`setContentsTemperature` past 5 K) and
+the steepest rate since the last look, off the body's own curve. How a
+brittle body answers is `IntegrityMixin`'s, as an impact is:
+`thermalShockToleranceK()` (`impact.shockStrain ÷ α`, raised by porosity
+and grog — a refractory body counts as grog-opened — lowered by a glaze)
+and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
+twice past a crack). It was two private Thermal methods until the
+ceramics review.
+

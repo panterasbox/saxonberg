@@ -21,11 +21,18 @@ import { Idea } from '../../stuff/Idea';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { ContainerMixin } from '../../spatial/Container';
+import Good from '../../stuff/Good';
+import { ContainmentApi } from '../../../api/containment';
 
 class Pan extends BulkableMixin(
   ThermalMixin(ContainableMixin(NamedMixin(Idea))),
 ) {
   static _mixinName = 'FreezePan';
+}
+/** Where a pan stands — a pool that sets needs a place for what it sets (B105). */
+class Shed extends ContainerMixin(Good) {
+  static _mixinName = 'FreezeShed';
 }
 
 let seq = 0;
@@ -52,17 +59,21 @@ function liquid(opts: {
 }
 
 function pan(mat: Material, litres: number, tempK: number): Pan {
-  return makeStuff(() => {
+  // Placed first, THEN chilled: a pan minted below its pool's melting point
+  // would freeze on the move, before it stood anywhere.
+  const p = makeStuff(() => {
     const p = new Pan();
     p.setName('pan');
     p.interiorBulk = true;
     p.setInteriorCapacity(Quantity.of(10, 'L'));
     p.setBulkMaterial('interior', mat);
     p.setBulkAmount('interior', Quantity.of(litres, 'L'));
-    p.setStampedTemperatureK(tempK);
-    p.setLastAmbientK(tempK);
     return p;
   });
+  ContainmentApi.move(p, makeStuff(() => new Shed()));
+  p.setStampedTemperatureK(tempK);
+  p.setLastAmbientK(tempK);
+  return p;
 }
 
 describe('the honest freeze', () => {
