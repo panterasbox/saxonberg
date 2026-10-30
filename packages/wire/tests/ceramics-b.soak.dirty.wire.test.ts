@@ -1,8 +1,9 @@
 /**
  * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
- * after merge, never in a blocking run). Moved whole from
- * `ceramics-b.dirty.wire.test.ts` by the soak-harness census, at the merge of the
- * ceramics build (2026-10-30): firebrick dries for weeks (7-day steps) before it burns, the reline needs those firebricks, and the keeper relines a kiln left two days.
+ * after merge, never in a blocking run). The span twin of
+ * `ceramics-b.dirty.wire.test.ts`, split by the soak-harness census per
+ * docs/slates/tails/ceramics-soak-split-slate.md (2026-10-30). It carries the
+ * blocking drive's flow and keeps the spans in place — firebrick dries for weeks (7-day steps) before it burns, the reline needs those firebricks, and the keeper relines a kiln left two days.
  *
  * ⭐⭐ **Ceramics, part B — firebrick, linings and crucibles**, driven end
  * to end against the real socket (the ceramics requirements' drive, steps

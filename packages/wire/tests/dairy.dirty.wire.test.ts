@@ -422,8 +422,11 @@ suite('10–12. scald it on the fire, cool it, pitch it, rennet it', () => {
   it('⭐⭐ the thermometer climbs to about 63 °C — then it comes off the heat', async () => {
     let k0 = await kelvinOf(k, 'vat');
     note(`vat on the fire: ${k0} K`);
-    for (let i = 0; i < 24 && k0 < 336; i++) {
-      await advance('5 minutes');
+    // ⚠ Half-minute steps: a 3 L vat on a 4 kW hearth gains ~19 K a
+    // minute, so a five-minute step crossed the whole 333–355 K band in
+    // one (the ceramics finalize found it).
+    for (let i = 0; i < 40 && k0 < 336; i++) {
+      await advance('30 seconds');
       k0 = await kelvinOf(k, 'vat');
     }
     note(`vat reached ${k0} K`);

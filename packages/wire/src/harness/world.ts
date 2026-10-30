@@ -354,6 +354,19 @@ export async function advanceLiving(
     await feed();
     return advanceWorldClock(duration);
   }
+  // ⛔ The span rule is per STEP, not per call (soak-harness D1): this
+  // helper walks a long move in jumps of a day or less, which the server's
+  // per-call refusal can never see — so it refuses here, in the same
+  // words, outside soak mode. A season walked in day-steps is a span.
+  if (total > 86_400 && process.env.WIRE_SOAK !== '1') {
+    throw new Error(
+      `advanceLiving('${duration}'): ${(total / 86_400).toFixed(1)} game days is a SPAN step ` +
+        'and cannot run in a blocking drive, even walked a day at a time — the line ' +
+        'is one game day (docs/workflow.md § No merge waits on the clock). Move the ' +
+        'step to a .soak. file (<feature>.soak.wire.test.ts, run by `pnpm wire:soak`), ' +
+        'or stage its outcome.',
+    );
+  }
   let before: number | null = null;
   let after = 0;
   for (let left = total; left > 0; ) {

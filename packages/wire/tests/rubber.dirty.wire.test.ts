@@ -377,6 +377,7 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await cloneInto(WORKS, s, ROW.sulfur, 'sulfur', 6);
   }, 600_000);
 
+  let kneadedOnce = false;
   async function cure(
     raw: number,
     sulfur: number,
@@ -390,6 +391,11 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     // mixing tub and `knead` mills them into ONE piece of stock whose
     // sulfur fraction is what went in by mass — 3 raw (1.5 kg) and one
     // nodule (0.05 kg) is ~3 %; 1 raw and 3 nodules is ~23 %. No recipe.
+    // ⚠ A rest between kneads: kneading is 380 W for a quarter hour
+    // (B101), and two back to back with no rest wore the body out (the
+    // ceramics finalize found it). An hour off, as anyone would take.
+    if (kneadedOnce) await advanceWorldClock('1 hour');
+    kneadedOnce = true;
     for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in tub');
     for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in tub');
     await say(s, 'knead tub');
