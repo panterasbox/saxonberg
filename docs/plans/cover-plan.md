@@ -1312,12 +1312,12 @@ carries the cane-sett deletion that is W2's.
   storm 3 · clear 0.5`), measured at ≈6.5 mm a day over a year against
   cane's ~5 mm draw. Lens 1 chose it: cane country is wet, and a
   derivable world can't grow cane on an island that never rains.
-- ⚠ **Finding for the weather owner (not fixed here): the realm is near
-  rainless.** An unleaned locality rains ~2% of segments, ≈0.1–0.4 mm a
-  day, against ~1–5 mm of field evapotranspiration. Every unirrigated
-  field in the realm dries out over a season. The owner chose to keep
-  this build's fix field-side and local (Waponi) and leave the realm
-  calibration to the weather slate.
+  (The lean was re-tuned in B42 when the realm's rates changed.)
+- ~~Finding for the weather owner: the realm is near rainless~~ —
+  **resolved in this MR by B42** (the realm's rainfall calibrated). The
+  finding's figures were also off: re-measured, an unleaned locality
+  rained in ~13% of segments, not ~2%, but at 0.3 mm/h it came to only
+  ≈1.2 mm a day of liquid — the drought was intensity, not frequency.
 
 - **B28 — `mow` captures its field**, as `harvest` and `sow` do. It never
   had: the bales it leaves lying and the cut sward vanished when the idle
@@ -1374,6 +1374,32 @@ carries the cane-sett deletion that is W2's.
   What a crop loses standing uncut is a later slate's.
 - **B37 — an authored field starts cleared** (kept ground); a plotted
   one stays rough (D54). Same `areaM2 > 0` test as the reserves.
+- **B42 — the realm rains (rainfall calibrated).** The owner chose to
+  calibrate the realm's rainfall in this MR; farming is its first
+  consumer. Lens 1 decided both dials, and no new mechanism: honest
+  **intensities** (`rain` 0.3 → 1.5 mm/h, `storm` 1.2 → 4, `snow` 0.25 →
+  0.8 of water) and an honest **frequency** to match (`overcast → rain`
+  3 → 1.2; `rain → rain 2 · overcast 4 · storm 2 · clear 2`; season rain
+  leans spring 1.1 · summer 1.2, winter snow 4 → 1.5). Measured over
+  three game years at Heart's Delight (42° · 35 m), before → after:
+  spring 2.2 → 3.2 mm/day, summer 1.6 → 2.4, fall 1.3 → 3.0, winter 1.9
+  → 2.7 (mostly snow both times); the year ≈630 → ≈1,030 mm, 1.2 → 2.0
+  mm/day of it liquid. Wet segments ~13% → ~5%, so clear, overcast and
+  fog are ~90% of what a player sees. Waponi's lean re-tuned `rain 8 ·
+  storm 3 · clear 0.5` → `rain 1.6 · storm 1.3 · clear 0.7`: ≈5.9 → ≈6.8
+  mm/day at its own site. A staged probe (fresh world, ten-day jumps,
+  founder eval) read the bench patches top-end/middle/lane-end at
+  0.00/0.44/0.49 (day 100), 0.13/0.78/0.80 (150), 0.83/0.95/0.95 (175),
+  0.93/0.98/0.98 (200), and the campus home field 0.85 → 1.00 from day
+  150 — no patch is pinned dry through summer. Rivers carry ~1.7× more
+  (runoff coefficient kept at 0.35). Tests: the annual band tightened
+  400–2,500 → 700–1,600 mm plus a wet-share pin; the river tests that
+  forced `rain` for an ordinary river force a drizzle (the
+  `water.rate.rain` dial at 0.3); the snow-walk reference clamps at the
+  perennial cap as the model does; one bed's reserve deepened so three
+  days of rain back-fill without saturating; the river's "annual low is
+  in summer" became "summer HAS a low, with the pack gone". See
+  weather.md § the rainfall calibration.
 - **Prose (browser walk):** five ground-work sentences, sow, draft,
   milk and handle opened with a lowercase clause; the sward's
   "ready for them / ahead of them" assumed a herd on meadows and cane

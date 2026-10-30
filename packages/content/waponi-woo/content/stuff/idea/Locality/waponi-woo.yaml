@@ -1,15 +1,19 @@
 # The island as a locality — off the watershed (it is a sea island; its
 # streams run straight to the sea and nothing upstream of anyone).
 #
-# A wet tropical island: it leans hard to rain and squall, which is what
-# keeps cane standing. ~6.5 mm a day over a year (≈2,300 mm), against
-# cane's ~5 mm draw. (It was pinned clear and never rained, so every
-# piece on it dried out and died.)
+# A wet tropical island: it leans to rain and squall, which is what keeps
+# cane standing. ~6.8 mm a day over a year (≈2,450 mm) at its own site
+# (30°, sea-coast), against cane's ~5 mm draw — rain or storm in ~13% of
+# its segments, nearly twice the valley's. (It was pinned clear and never
+# rained, so every piece on it dried out and died.) The lean is gentler
+# than it was (rain 8 · storm 3 · clear 0.5) because the realm's rain got
+# honest intensities in the rainfall calibration (cover B42): the same
+# lean on the new rates would have drowned it at ~14 mm a day.
 class: /platform/idea/Locality
 data:
   name: Waponi Woo
   _address: terminus/waponi-woo
   _climateLean:
-    rain: 8
-    storm: 3
-    clear: 0.5
+    rain: 1.6
+    storm: 1.3
+    clear: 0.7

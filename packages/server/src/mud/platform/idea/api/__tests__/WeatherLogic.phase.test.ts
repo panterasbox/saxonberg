@@ -135,8 +135,9 @@ describe('the default site keeps the realm\'s annual climate', () => {
       liquid += f.liquid.rawValue();
       frozen += f.frozen.rawValue();
     }
-    expect(liquid + frozen).toBeGreaterThan(400);
-    expect(liquid + frozen).toBeLessThan(2500);
+    // ≈1,000 mm since the rainfall calibration (cover B42).
+    expect(liquid + frozen).toBeGreaterThan(700);
+    expect(liquid + frozen).toBeLessThan(1600);
     // The winter is real now: some of the year falls as snow at sea level
     // at 42°, and most of it does not.
     expect(frozen).toBeGreaterThan(0);

@@ -158,7 +158,10 @@ describe('the rain edge — ⚠⚠ unresolved reads UNKNOWN, never zero', () => 
 
   it('holds its checkpoint while unresolved, then back-fills the WHOLE absence', async () => {
     WeatherApi._forceTypeForTesting('rain');
-    const bed = makeBed(4);
+    // A reserve deep enough that three days of steady rain (≈108 mm since
+    // the rainfall calibration) does not saturate it — the test is about
+    // the back-fill, not the cap.
+    const bed = makeBed(4, 1000);
     const room = makeRoom(true);
     await ContainmentApi.move(bed, room);
     await bed.restampWatershed();

@@ -43,6 +43,9 @@ afterEach(() => {
  * (phase included) and the climate. Started before a melt-out, it is the
  * truth, and `snowCoverAt` must agree with it.
  */
+/** The default `climate.snow.perennialMaxMm` — the model's clamp on a pack. */
+const PACK_CAP_MM = 1500;
+
 function referencePackMm(where: ClimateSite, now: number, days: number): number {
   const segs = WeatherApi.segmentsBetween(
     s(now - days * DAY),
@@ -61,7 +64,13 @@ function referencePackMm(where: ClimateSite, now: number, days: number): number 
       WeatherApi.climateAt(where, s(mid)).rawValue() +
       WEATHER_PROFILES[seg.type as WeatherType].deviation.temperature.rawValue();
     if (seg.phase === 'snow') {
-      pack += PRECIPITATION_RATES_MM_PER_HOUR[seg.type] * intensity * (seg.overlapS / 3600);
+      // Clamped at the perennial cap (`climate.snow.perennialMaxMm`), as
+      // the model clamps it: a forced-snow polar autumn at the calibrated
+      // 0.8 mm/h reaches it.
+      pack = Math.min(
+        PACK_CAP_MM,
+        pack + PRECIPITATION_RATES_MM_PER_HOUR[seg.type] * intensity * (seg.overlapS / 3600),
+      );
     }
     if (airK > 273.15 && pack > 0) {
       pack -= Math.min(pack, 4 * (airK - 273.15) * (seg.overlapS / DAY));

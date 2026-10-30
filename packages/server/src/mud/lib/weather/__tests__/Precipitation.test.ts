@@ -185,10 +185,27 @@ describe('precipitationBetween — the authored rates produce a plausible climat
     for (let t = 0; t < yearS; t += step) {
       mm += totalMm(t, Math.min(t + step, yearS));
     }
-    // Not a dial assertion — a CLIMATE assertion. Anything outside this
-    // band means the realm has quietly become a desert or a rainforest.
-    expect(mm).toBeGreaterThan(400);
-    expect(mm).toBeLessThan(2500);
+    // Not a dial assertion — a CLIMATE assertion: a wet temperate valley,
+    // ≈1,000 mm. Below the band the realm's fields die of drought (the old
+    // ≈630 mm did exactly that — cover B42); above it, a rainforest.
+    expect(mm).toBeGreaterThan(700);
+    expect(mm).toBeLessThan(1600);
+  });
+
+  it('and yet it is dry most of the time — the wet share of segments stays a minority', () => {
+    // Honest intensities (B42) mean rain is RARE and real, not constant
+    // and faint: what a player sees is mostly clear, overcast and fog.
+    const yearS = 360 * 86_400;
+    let wet = 0;
+    let all = 0;
+    for (let t = 0; t < yearS; t += 30 * 86_400) {
+      for (const seg of WeatherApi.segmentsBetween(s(t), s(t + 30 * 86_400), null, 200)) {
+        all++;
+        if (WEATHER_PROFILES[seg.type].precipitation !== 'none') wet++;
+      }
+    }
+    expect(wet / all).toBeGreaterThan(0.03);
+    expect(wet / all).toBeLessThan(0.15);
   });
 
   it('some of that year fell as snow — the pack the spring rise comes from', () => {

@@ -274,15 +274,27 @@ export interface SnowStep {
  * {@link WeatherType} rather than on the descriptor — a storm and a
  * shower share the descriptor `rain` and differ by a factor of four.
  *
- * **Scale.** These are *segment-average* intensities, not instantaneous
- * ones: our weather is piecewise-constant over six-hour segments, so a
- * `rain` segment rains for the whole six hours. Real moderate rain falls
- * at ~2.5 mm/h but not for six hours together, so the authored figures
- * are the six-hour averages that reproduce a plausible ANNUAL total
- * under the shipped transition grammar — a wet temperate valley.
- * `WeatherType.test.ts` pins that total, so a dial change that would
- * make the realm a desert or a rainforest fails rather than passing
- * quietly.
+ * **Scale.** These are honest *rainfall intensities*, and a segment of
+ * a wet type rains at that intensity for its whole six hours: `rain` is
+ * steady light-to-moderate rain (1.5 mm/h — the AMS calls under 2.5
+ * light), `storm` a heavy convective downpour (4 mm/h), `snow` a steady
+ * snowfall (0.8 mm/h of water, about 8 mm of fresh snow an hour). The
+ * annual total is the product of these and how OFTEN the grammar rains,
+ * and the frequency is the half that carries the climate: under the
+ * shipped {@link TRANSITIONS} and {@link SEASON_BIAS} an unleaned
+ * temperate locality rains or storms in ~5% of its segments and totals
+ * ≈2.8 mm a day (≈1,000 mm a year — a wet temperate valley: 3.2 in
+ * spring, 2.4 in summer, 3.0 in fall, 2.7 in winter, most of winter's as
+ * snow). Clear, overcast and fog are still what a player sees ~90% of
+ * the time.
+ *
+ * ⚠ Calibrated 2026-10-30 (cover build B42). Before it the table was
+ * 0.3 / 1.2 / 0.25 — "six-hour averages" — under a grammar that rained
+ * ~15% of segments: ≈1.2 mm a day of liquid, against a field's 1–5 mm
+ * of draw, so every unirrigated field in the realm dried out by summer.
+ * `Precipitation.test.ts` and `WeatherLogic.phase.test.ts` pin the
+ * annual total, so a dial change that would make the realm a desert or a
+ * rainforest fails rather than passing quietly.
  *
  * Snow's figure is its **water equivalent** — what melts out of it, not
  * how deep the drift is. Where it goes (run-off now, or a pack that
@@ -292,9 +304,9 @@ export const PRECIPITATION_RATES_MM_PER_HOUR: Record<WeatherType, number> = {
   clear: 0,
   overcast: 0,
   fog: 0,
-  rain: 0.3,
-  storm: 1.2,
-  snow: 0.25,
+  rain: 1.5,
+  storm: 4,
+  snow: 0.8,
 };
 
 /**
@@ -372,6 +384,12 @@ export interface WeatherTransition {
  * jumps straight to `storm`; it must pass through `overcast`/`rain`
  * (the coherence acceptance criterion). `snow` is reachable only from
  * `overcast`/`snow`, so a snow spell only forms after clouding over.
+ *
+ * ⭐ The weights into and out of `rain` are the realm's rain FREQUENCY,
+ * and they are calibrated against {@link PRECIPITATION_RATES_MM_PER_HOUR}
+ * (B42, 2026-10-30): an overcast sky turns to rain one time in ~9, and a
+ * rain spell breaks more often than it persists — honest intensities,
+ * honest frequency, an honest annual total.
  */
 export const TRANSITIONS: Record<WeatherType, WeatherTransition[]> = {
   clear: [
@@ -382,15 +400,15 @@ export const TRANSITIONS: Record<WeatherType, WeatherTransition[]> = {
   overcast: [
     { type: 'overcast', weight: 3 },
     { type: 'clear', weight: 3 },
-    { type: 'rain', weight: 3 },
+    { type: 'rain', weight: 1.2 },
     { type: 'fog', weight: 1 },
     { type: 'snow', weight: 1 },
   ],
   rain: [
-    { type: 'rain', weight: 3 },
-    { type: 'overcast', weight: 3 },
+    { type: 'rain', weight: 2 },
+    { type: 'overcast', weight: 4 },
     { type: 'storm', weight: 2 },
-    { type: 'clear', weight: 1 },
+    { type: 'clear', weight: 2 },
   ],
   storm: [
     { type: 'storm', weight: 2 },
@@ -425,14 +443,18 @@ export const ANCHOR_CANDIDATES: WeatherTransition[] = [
  * Per-season multiplicative weight bias over the transition / anchor
  * candidates. Snow leans heavy in winter and is **zeroed in summer**
  * (the season-bias acceptance criterion); storms lean summer; fog leans
- * the shoulder seasons. A `1` (or absent) entry is neutral.
+ * the shoulder seasons. A `1` (or absent) entry is neutral. Since the
+ * rainfall calibration (B42) the rain leans are gentle — spring 1.1,
+ * summer 1.2, fall 1.2, winter 0.6 — and winter's snow is 1.5: at 0.8 mm/h
+ * of water a snowfall is a real one, and the old 4× buried a sea-level
+ * valley at 42° under metres of snow a winter.
  */
 export const SEASON_BIAS: Record<Season, Partial<Record<WeatherType, number>>> =
   {
-    spring: { rain: 1.5, clear: 1.1, snow: 0.3 },
-    summer: { snow: 0, storm: 1.6, clear: 1.3, fog: 0.7 },
+    spring: { rain: 1.1, clear: 1.1, snow: 0.3 },
+    summer: { snow: 0, storm: 1.6, clear: 1.3, fog: 0.7, rain: 1.2 },
     fall: { overcast: 1.3, fog: 1.5, rain: 1.2, snow: 0.5 },
-    winter: { snow: 4, fog: 1.4, storm: 1.2, clear: 0.8, rain: 0.6 },
+    winter: { snow: 1.5, fog: 1.4, storm: 1.2, clear: 0.8, rain: 0.6 },
   };
 
 /* ─────────────────────────── dials ─────────────────────────── */
