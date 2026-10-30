@@ -12,7 +12,7 @@
 #
 # ⭐ A `Ware` row like every pot: the row is the fired good, a bare clone an
 # import nobody here made. Unglazed — a glaze would close the pores.
-class: /trade/ceramics/thing/Ware
+class: /trade/ceramics/thing/ClayVessel
 data:
   shortDescription: water filter
   keywords: [filter, "water filter", candle, "filter candle"]

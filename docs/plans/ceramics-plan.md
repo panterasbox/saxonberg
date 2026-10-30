@@ -2163,6 +2163,13 @@ left a fork the lens that chose is named.
   a worker who does not set out. ⚠ Found: `brain-contract.test.ts` had been
   RED since B91 (`BrainRoutes.ts` in `lib/behavior` read as a brain); fixed
   by listing `BrainMoves` as not-a-brain.
+- **B108 — `Ware` → `ClayVessel`; the handle is a `ClayPart` (owner,
+  2026-10-29).** `Ware` read as merchandise (a second `Good`) and named
+  nothing about its composition; renamed for it, as `GlassBottle` and
+  `FlowerPot` are. The pulled handle row moved to a new `ClayPart`
+  (`Brick`'s composition without the stack): filed as a vessel it claimed
+  bulk slots and a vessel kind. Ten rows repointed; tests and docs follow.
+  Narrower subclasses wait until behavior differs (the crucible first).
 - **The owner's mixin-by-mixin review (2026-10-29), in order:** Integrity
   (new, B94) · castings Crafted (B95) · Moisture (B96) · no silent writes
   (B97) · Seasoning (B98) · Greenware (B99) · Faced (B100) · Compounding

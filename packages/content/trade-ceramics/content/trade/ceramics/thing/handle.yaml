@@ -3,7 +3,7 @@
 # with slip (`fit handle to jug`) when BOTH are leather-hard; joined much
 # wetter than its body it shrinks more as they dry and the join cracks
 # (ceramics W4, the `slip` joint). Fired, it is part of the pot for good.
-class: /trade/ceramics/thing/Ware
+class: /trade/ceramics/thing/ClayPart
 data:
   shortDescription: pulled clay handle
   keywords: [handle, "pulled handle", strap]

@@ -22,7 +22,7 @@ import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPla
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 import Wheel from '../thing/Wheel';
 import BrickTable from '../thing/BrickTable';
-import Ware from '../thing/Ware';
+import ClayVessel from '../thing/ClayVessel';
 import Brick from '../thing/Brick';
 
 class Shed extends Place {}
@@ -62,7 +62,7 @@ beforeEach(() => {
       b.setMass(Quantity.of(3.6, 'kg'));
       return b;
     }
-    const w = makeStuff(() => new Ware());
+    const w = makeStuff(() => new ClayVessel());
     w.interiorBulk = true;
     return w;
   }) as never);
@@ -102,7 +102,7 @@ describe('the wheel and the hand', () => {
       const { shed, actor, clay } = await standUp(band, 12);
       const wheel = await wheelIn(shed);
       await run(await wheel.shapePlanFor({ actor, material: clay, formText: 'mug', commandText: 'shape clay into mug' }));
-      const mug = actor.getContents().find((c) => c instanceof Ware) as Ware | undefined;
+      const mug = actor.getContents().find((c) => c instanceof ClayVessel) as ClayVessel | undefined;
       expect(mug, `${band} made no mug`).toBeDefined();
       expect(mug!.getMaterial()).toBe(clayMat);
       expect(mug!.getMaker()).toBe(actor.getIdentityPath() ?? '');

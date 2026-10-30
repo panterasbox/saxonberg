@@ -384,9 +384,9 @@ describe("general-store content integrity", () => {
     // with a bulk interior for soil, a seed a discrete Thing naming the
     // plant it grows into. Both stocked from ordinary `/obj/` templates.
     "/platform/thing/PlantPot",
-    // ⭐ The pottery's flower pots and wares (ceramics W6).
+    // ⭐ The pottery's flower pots and clay vessels (ceramics W6).
     "/trade/ceramics/thing/FlowerPot",
-    "/trade/ceramics/thing/Ware",
+    "/trade/ceramics/thing/ClayVessel",
     "/platform/thing/Seed",
     // The mana line (TPA reform W5): a cell is a Charged + Slottable
     // shell — a wand that fits a bay instead of a hand — and the lamp is

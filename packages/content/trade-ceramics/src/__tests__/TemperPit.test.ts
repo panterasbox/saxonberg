@@ -16,7 +16,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 import TemperPit from '../thing/TemperPit';
-import Ware from '../thing/Ware';
+import ClayVessel from '../thing/ClayVessel';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 
 class Yard extends Place {}
@@ -103,7 +103,7 @@ describe('the temper pit', () => {
     const p = pit(true);
     await ContainmentApi.move(p, yard);
     // A jug of the pit's own clay — its own kind (row), not a lump of it.
-    const jug = makeStuffAtPath(() => new Ware(), '/trade/ceramics/thing/jug') as unknown as Ware;
+    const jug = makeStuffAtPath(() => new ClayVessel(), '/trade/ceramics/thing/jug') as unknown as ClayVessel;
     jug.setMass(Quantity.of(2, 'kg'));
     jug.setMaterial(clayMat);
     jug.greenRuin = 'slumped'; // rain got at it on the open yard

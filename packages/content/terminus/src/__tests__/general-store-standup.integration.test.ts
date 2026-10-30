@@ -73,7 +73,7 @@ const TAILORING_DIR = fileURLToPath(new URL("../../../trade-tailoring/content/tr
 // kit, washing soda and naphtha, fuller's earth and chalk.
 const CHANDLERY_DIR = fileURLToPath(new URL("../../../trade-chandlery/content/trade/chandlery/", import.meta.url));
 const FUEL_DIR = fileURLToPath(new URL("../../../trade-fuel/content/trade/fuel/", import.meta.url));
-// ⭐ (ceramics W6) The pottery's goods — rows and the Ware / FlowerPot classes.
+// ⭐ (ceramics W6) The pottery's goods — rows and the ClayVessel / FlowerPot classes.
 const CERAMICS_DIR = fileURLToPath(new URL("../../../trade-ceramics/content/trade/ceramics/", import.meta.url));
 const CERAMICS_SRC = fileURLToPath(new URL("../../../trade-ceramics/src", import.meta.url));
 const QUARRYING_DIR = fileURLToPath(new URL("../../../trade-quarrying/content/trade/quarrying/", import.meta.url));

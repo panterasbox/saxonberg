@@ -1,6 +1,6 @@
 # jug — a potter's piece (ceramics W4): thrown green at the wheel, the
 # shape's own mint stamps its clay, its mass, its maker and its grade.
-class: /trade/ceramics/thing/Ware
+class: /trade/ceramics/thing/ClayVessel
 data:
   shortDescription: jug
   keywords: [jug, pitcher]

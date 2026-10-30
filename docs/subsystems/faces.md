@@ -179,12 +179,12 @@ bacterium and far larger than an ion, so:
 
 A receiver already holding a different liquid takes none of it (the filter
 holds). The choice — **set IN as well as stood ON** — is because a filter
-candle sits in the mouth of a crock, and `Ware` offers no placement; the ON
+candle sits in the mouth of a crock, and `ClayVessel` offers no placement; the ON
 rule is the one sugar's cone and the salt pan use, so one predicate serves
 both. ⚠ A weeping jar set in a basin now drips into the basin rather than
 wetting its own outside, which is the physics.
 
-The row: `/trade/ceramics/thing/water-filter` (a `Ware`, 2 L, unglazed —
+The row: `/trade/ceramics/thing/water-filter` (a `ClayVessel`, 2 L, unglazed —
 a glaze would close the pores) and the `filter` form, sold at the Terminus
 potter's stall. Doulton's filter of the cholera years — an instrument
 against [watershed.md](./watershed.md)'s contamination by kind, and its

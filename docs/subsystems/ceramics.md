@@ -166,12 +166,17 @@ YIELDS the piece (`Clay.yieldPieces`).
   hour, ONE stack, as far as the clay goes; the moulder ends up muddy.
   **Hands** coil any class, slowly (`ceramics.hand.minutes`), into the clay
   material's `formTemplates`.
-- The goods: `Ware` (`Greenware(Moisture(Assembled(Named(Durable(
-  Composition(CraftVessel))))))` — mugs, jugs, jars, crocks, bowls, flasks,
-  crucibles, handles), `Brick` (a green stack), `FlowerPot` (the kernel
+- The goods: `ClayVessel` (`Greenware(Marked(Moisture(Assembled(Named(
+  Durable(Composition(CraftVessel)))))))` — mugs, jugs, jars, crocks, bowls,
+  dishes, flasks, crucibles, the water filter), `ClayPart` (a pulled handle:
+  green, marked, composed and worn, but no vessel — it is FITTED, `fit handle
+  to jug`), `Brick` (a green stack), `FlowerPot` (the kernel
   `PlantPot`, potter-made), `Cone` (a kernel `Mould` thrown green — the
   sugar cone). Dairying's `SettingPan` composes green ware too, and ships its
-  own `setting-pan` form under its own root.
+  own `setting-pan` form under its own root. ⭐ Named for their composition
+  (review, 2026-10-29): the vessel class was `Ware`, which to everyone but a
+  potter means merchandise and read as a second `Good`; and a handle filed
+  as a vessel claimed bulk slots a strap of clay does not have.
 
 ## ⭐ Trimming and the maker's mark (S5, W4)
 
