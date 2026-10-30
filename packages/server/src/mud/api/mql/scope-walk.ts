@@ -468,9 +468,12 @@ export function scoreCandidates(
   // to the patch's words so `look top end wheat` finds it, which made
   // `look at the top end` ask *"the top end, or a stand of wheat?"* —
   // the ground the player named, against a thing that merely stands on
-  // it. A one-word query is untouched: `look rod` among three rods is
-  // still the prompt, and correct.
-  if (queryWords.length >= 2 && kept.some((m) => m.score >= NAME_TIER)) {
+  // it. ⭐ And a ONE-word query too (field population W6): `look at the
+  // middle` asked *"the middle, or a stand of wheat?"* — the patch NAMED
+  // middle against a crop that answers to "middle" only as a keyword.
+  // `look rod` among three rods is still the prompt, and correct: all
+  // three answer by name.
+  if (kept.some((m) => m.score >= NAME_TIER)) {
     return kept.filter((m) => m.score >= NAME_TIER);
   }
   return kept;

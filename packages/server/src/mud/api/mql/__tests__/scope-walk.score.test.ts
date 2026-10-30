@@ -91,8 +91,13 @@ describe('scoreCandidates — a whole-phrase match CUTS the partials', () => {
     expect(scoreCandidates([pan], ['latex', 'cup']).length).toBe(1);
   });
 
-  it('a one-word query is unaffected', () => {
-    expect(scoreCandidates([cup, pan], ['latex']).length).toBe(2);
+  it('a one-word query keeps the name and drops the keyword-only reach', () => {
+    // The cups carry "latex" in their name; the pan only in a keyword.
+    expect(scoreCandidates([cup, pan], ['latex']).map((m) => m.stuff)).toEqual([cup.stuff]);
+  });
+
+  it('a one-word query with no name match keeps every keyword reach', () => {
+    expect(scoreCandidates([pan], ['latex']).length).toBe(1);
   });
 });
 
@@ -116,7 +121,14 @@ describe('scoreCandidates — a NAME carrying the phrase outranks a keyword reac
     expect(got[0]!.score).toBe(25);
   });
 
-  it('a one-word query is unaffected — the keyword reach still stands beside the name', () => {
-    expect(scoreCandidates([stand, patch], ['end']).length).toBe(2);
+  it('⭐ a one-word query too: "middle" binds the patch named middle, not the stand standing in it', () => {
+    const middle = cand('middle', ['patch', 'ground', 'middle']);
+    const midStand = cand('stand of wheat', ['wheat', 'stand', 'middle']);
+    expect(scoreCandidates([midStand, middle], ['middle']).map((m) => m.stuff)).toEqual([middle.stuff]);
+  });
+
+  it('several things NAMED by one word still prompt (three rods)', () => {
+    const rods = [cand('fishing rod'), cand('iron rod'), cand('curtain rod')];
+    expect(scoreCandidates(rods, ['rod']).length).toBe(3);
   });
 });
