@@ -87,38 +87,38 @@ describe('TestHarnessController', () => {
 
   describe('weather', () => {
     beforeEach(() => {
-      // The giver stands in a room at /world/here; the verb hands that PATH
+      // The giver stands in a room at /test/here; the verb hands that PATH
       // to TestHarnessApi, which resolves the Locality (the route's walk).
       vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
       (ctx as unknown as { commandGiver: unknown }).commandGiver = {
         getTemplatePath: () => '/platform/agent/Avatar/t',
-        getContainer: () => ({ getTemplatePath: () => '/world/here' }),
+        getContainer: () => ({ getTemplatePath: () => '/test/here' }),
       };
     });
 
     it('`weather pin rain` pins the Locality the giver stands in, frozen', async () => {
       const pin = vi
         .spyOn(TestHarnessApi, 'pinWeather')
-        .mockResolvedValue({ locality: '/world/here', pin: { type: 'rain', mode: 'frozen' } });
+        .mockResolvedValue({ locality: '/test/here', pin: { type: 'rain', mode: 'frozen' } });
       await run({ subcommand: 'weather', op: 'pin', value: 'rain' });
-      expect(pin).toHaveBeenCalledWith('/world/here', 'rain', 'frozen');
+      expect(pin).toHaveBeenCalledWith('/test/here', 'rain', 'frozen');
       expect(said.join('\n')).toMatch(/held at rain/);
     });
 
     it('`--at` names another place; `--alive` pins alive', async () => {
       const pin = vi
         .spyOn(TestHarnessApi, 'pinWeather')
-        .mockResolvedValue({ locality: '/world/there', pin: { type: 'fog', mode: 'alive' } });
-      await run({ subcommand: 'weather', op: 'pin', value: 'fog', at: '/world/there', alive: true });
-      expect(pin).toHaveBeenCalledWith('/world/there', 'fog', 'alive');
+        .mockResolvedValue({ locality: '/test/there', pin: { type: 'fog', mode: 'alive' } });
+      await run({ subcommand: 'weather', op: 'pin', value: 'fog', at: '/test/there', alive: true });
+      expect(pin).toHaveBeenCalledWith('/test/there', 'fog', 'alive');
     });
 
     it('`weather unpin` releases it', async () => {
       const unpin = vi
         .spyOn(TestHarnessApi, 'unpinWeather')
-        .mockResolvedValue({ locality: '/world/here', pin: null });
+        .mockResolvedValue({ locality: '/test/here', pin: null });
       await run({ subcommand: 'weather', op: 'unpin' });
-      expect(unpin).toHaveBeenCalledWith('/world/here');
+      expect(unpin).toHaveBeenCalledWith('/test/here');
       expect(said.join('\n')).toMatch(/runs free again/);
     });
 

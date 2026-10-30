@@ -60,8 +60,8 @@ vi.mock('../../../backend/TestHooks', () => ({
     ) => {
       // The grant itself is TestHooks' (drive step 8); here the route's
       // job: the list reaches the hook, and its refusal comes back.
-      if (parcels.includes('/world/terminus/dock')) {
-        done(new Error("TestHooks: '/world/terminus/dock' is not a parcel"));
+      if (parcels.includes('/test/realm/dock')) {
+        done(new Error("TestHooks: '/test/realm/dock' is not a parcel"));
         return;
       }
       done(null, { id: `uid-${handle}${parcels.length ? `+${parcels.length}` : ''}` });
@@ -165,7 +165,7 @@ describe('TestAuthRoutes', () => {
     it('passes the list to the hook', async () => {
       const res = await request(makeApp())
         .post('/auth/test-login')
-        .send({ handle: 'p', parcels: ['/home/other', '/world/terminus'] });
+        .send({ handle: 'p', parcels: ['/home/other', '/test/realm'] });
       expect(res.status).toBe(200);
       expect(res.body.user.id).toBe('uid-p+2');
     });
@@ -173,7 +173,7 @@ describe('TestAuthRoutes', () => {
     it('relays the hook\'s refusal in its own words', async () => {
       const res = await request(makeApp())
         .post('/auth/test-login')
-        .send({ handle: 'p', parcels: ['/world/terminus/dock'] });
+        .send({ handle: 'p', parcels: ['/test/realm/dock'] });
       expect(res.status).toBe(500);
       expect(res.body.error).toMatch(/is not a parcel/);
     });
@@ -183,12 +183,12 @@ describe('TestAuthRoutes', () => {
     it('pins, and unpins with type null', async () => {
       const pin = await request(makeApp())
         .post('/auth/test-weather')
-        .send({ scope: '/world/terminus', type: 'rain' });
+        .send({ scope: '/test/realm', type: 'rain' });
       expect(pin.status).toBe(200);
       expect(pin.body.pin).toEqual({ type: 'rain', mode: 'frozen' });
       const unpin = await request(makeApp())
         .post('/auth/test-weather')
-        .send({ scope: '/world/terminus', type: null });
+        .send({ scope: '/test/realm', type: null });
       expect(unpin.body.pin).toBeNull();
     });
 
@@ -197,7 +197,7 @@ describe('TestAuthRoutes', () => {
       expect(bad.status).toBe(400);
       const refused = await request(makeApp())
         .post('/auth/test-weather')
-        .send({ scope: '/world/terminus', type: 'sideways' });
+        .send({ scope: '/test/realm', type: 'sideways' });
       expect(refused.status).toBe(500);
       expect(refused.body.error).toMatch(/not a weather kind/);
     });
