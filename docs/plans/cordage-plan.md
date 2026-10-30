@@ -433,6 +433,26 @@ What ceramics brings, and what each changes here:
   `platform/cmd/perception/ring.yaml` (W0's diving retrofit leaves it alone). Diving's `lash.yaml` and
   `tug.yaml` are still the pack's — W0 moves them as planned.
 
+#### Sibling builds in flight at 2026-10-30 — check before the waves they touch
+
+- **The soak harness (build-4, `build/soak-harness`).** When it lands: ⛔ a blocking wire drive may
+  not jump the clock more than ONE game day (`TestHarnessApi.advanceClock` refuses before moving
+  anything); a span belongs in a `<feature>.soak[.dirty].wire.test.ts` run by `pnpm wire:soak`.
+  ⇒ **W6 splits the drive**: steps 1–13, 15–17, 19 (+7a) stay in the blocking
+  `cordage.dirty.wire.test.ts`; **step 14 (rot over days) and step 18 (hemp's season)** go to
+  `cordage.soak.dirty.wire.test.ts`. Wet the ropes with **`pinWeather('rain', …)`** (the harness's
+  staging route; in-world `testharness weather pin rain`) instead of walking them to the Delight ford —
+  the ford fallback stands only if the harness has not landed. ⇒ **W7's timing step** in the potash
+  drive must also stay under a day per jump, or go to a potash soak file; check how the soak build
+  left the potash drive's own jumps (`advanceWorldClock(duration)`, `potash.dirty.wire.test.ts`
+  l.290). If the harness has NOT landed when W6 runs, write the drive as planned and note the split
+  as owed.
+- **Field population (build-1, `reqs/cover`, MR !480).** A field crop becomes a population over
+  authored patches; it rewrites the wheat and barley `plant/` and `seed/` rows, adds `patch.yaml`,
+  and moves `plant` to a platform view. Flax is untouched. ⇒ **W4: if !480 has merged, author hemp in
+  the shape wheat now has** (the field-crop rows and patches), not flax's older one; if not, copy
+  flax and let whichever lands second reconcile. Re-ground D14 against whichever is on master.
+
 ### W0 — rope is the kernel's line with two ends (D1, D2, D3, D8 part, D19 prep)
 Files: new `lib/spatial/Line.ts` (from `Lifeline.ts`), `lib/spatial/Tieable.ts`,
 `platform/thing/{Rope,LineEnd,RopeEnd}.ts` (Rope minimal: fiber/diameter/length, strength read,
