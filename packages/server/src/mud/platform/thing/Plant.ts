@@ -433,33 +433,52 @@ export default class Plant extends PlantBase {
    * husbandry.md's "nothing can hold moisture for it".
    */
   protected override soilMoisture(): number | null {
+    const ground = this.getBed()?.soilMoistureFraction() ?? null;
     if (this.hasRootZone()) {
-      return this.rootZoneFraction(SOIL_MOISTURE_RESERVE_KEY);
+      return Plant.betterOf(this.rootZoneFraction(SOIL_MOISTURE_RESERVE_KEY), ground);
     }
-    return this.getBed()?.soilMoistureFraction() ?? null;
+    return ground;
+  }
+
+  /**
+   * ⭐ **Care can only help** (field population, the final drive): a
+   * labeled plant's roots still draw on the patch around them, so its
+   * water and nitrogen are the BETTER of its root zone and its patch. The
+   * zone alone — a seedling's holds 0.07 L against a 0.16 L day — ran dry
+   * between cans and left the plant you were tending worse off than its
+   * untended neighbours.
+   */
+  private static betterOf(zone: number | null, ground: number | null): number | null {
+    if (zone === null) return ground;
+    if (ground === null) return zone;
+    return Math.max(zone, ground);
   }
 
   /** The window-mean the reconcile loop integrates against. */
   protected override meanSoilMoisture(): number | null {
+    const ground = this.getBed()?.meanSoilMoistureFraction() ?? null;
     if (this.hasRootZone()) {
       const current = this.rootZoneFraction(SOIL_MOISTURE_RESERVE_KEY);
-      if (current === null) return null;
-      return this._rootZoneMeanMoisture < 0 ? current : this._rootZoneMeanMoisture;
+      if (current === null) return ground;
+      const zone = this._rootZoneMeanMoisture < 0 ? current : this._rootZoneMeanMoisture;
+      return Plant.betterOf(zone, ground);
     }
-    return this.getBed()?.meanSoilMoistureFraction() ?? null;
+    return ground;
   }
 
   /**
    * The nutrient level of the ground. A pot authors no nitrogen reserve,
    * so this reads `null` there and a houseplant is never nutrient-limited
    * — the pot's behaviour is unchanged by the fourth factor's arrival.
-   * A root zone with nitrogen reads its own.
+   * A root zone with nitrogen reads the better of its own and the
+   * ground's (care can only help — see {@link Plant.betterOf}).
    */
   protected override nutrientLevel(): number | null {
+    const ground = this.getBed()?.nutrientFraction() ?? null;
     if (this.hasRootZone() && this.hasReserve(SOIL_NITROGEN_RESERVE_KEY)) {
-      return this.rootZoneFraction(SOIL_NITROGEN_RESERVE_KEY);
+      return Plant.betterOf(this.rootZoneFraction(SOIL_NITROGEN_RESERVE_KEY), ground);
     }
-    return this.getBed()?.nutrientFraction() ?? null;
+    return ground;
   }
 
   /**

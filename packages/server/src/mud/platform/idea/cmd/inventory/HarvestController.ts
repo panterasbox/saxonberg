@@ -130,8 +130,23 @@ export default class HarvestController extends EngagedActController<HarvestModel
     let plant: (Stuff & Growing) | null = null;
     if (MixinApi.isGrowing(named)) {
       let stand: Stuff & Growing = named;
-      const holder = MixinApi.isContainable(named) ? named.getContainer() : null;
-      if (named.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
+      // ⭐ `harvest wheat at the gate end` means the STAND rooted there
+      // (field population, the final drive): the binder handed us the
+      // labeled plant standing in that patch, which "wheat" names as well
+      // as it names the stand, and the trial plant was cut instead of the
+      // crop. A labeled plant is cut when it is named by its label
+      // (`harvest trial`) — the rule `sample` and `label` already keep.
+      if (!named.isAreaCrop() && patch && MixinApi.isLabelled(named)) {
+        const label = named.getLabel().toLowerCase();
+        const typed = model.target.raw.toLowerCase();
+        const byLabel = label !== '' && label.split(/\s+/).some((w) => typed.includes(w));
+        const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+        const ground = here && MixinApi.isSoil(here) ? here : patch;
+        const there = byLabel ? null : ground.rootedAreaCrop(patch);
+        if (there && there.isSameKindAs(named)) stand = there;
+      }
+      const holder = MixinApi.isContainable(stand) ? stand.getContainer() : null;
+      if (stand.isAreaCrop() && holder && MixinApi.isSoil(holder)) {
         // ⭐ The GROUND says which part, or refuses in its own words.
         const r = holder.resolvePartFor(patch);
         if (!r.ok) {
@@ -139,7 +154,7 @@ export default class HarvestController extends EngagedActController<HarvestModel
           return;
         }
         if (r.part) {
-          const there = named.standIn(r.part);
+          const there = stand.standIn(r.part);
           if (!there) {
             refuse(
               Mml.compose`Nothing of that stands at ${Mml.thing(r.part)}.`,
@@ -150,7 +165,7 @@ export default class HarvestController extends EngagedActController<HarvestModel
           }
           stand = there;
         }
-      } else if (patch && patch !== named.getBed()) {
+      } else if (patch && patch !== stand.getBed()) {
         refuse(
           Mml.compose`${Mml.thing(named)} does not stand at ${Mml.thing(patch)}.`,
           'not-a-part-here',

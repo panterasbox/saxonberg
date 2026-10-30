@@ -751,6 +751,40 @@ describe('the area crop', () => {
       expect(second.every((c) => gradeOf(c) === 'exceptional')).toBe(true);
     });
 
+    it('⭐ `harvest wheat at the top end` cuts the stand there, not the labeled plant standing in it', async () => {
+      const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
+      const top = parts[0] as TestPart;
+      const stand = standAt(field, top, 0.9);
+      const trial = makeStuffAtPath(() => newPlant(), freshPath(PLANT_PATH));
+      trial.setGroundPart('top-end');
+      trial.setLabel('trial');
+      ContainmentApi.move(trial, field);
+      (trial as unknown as { growthStage: string }).growthStage = 'mature';
+      // The binder handed us the labeled plant (the word names both).
+      await makeStuff(() => new HarvestController()).execute(
+        {
+          target: one(trial, 'grain'),
+          patch: one(top, 'the top end', 'at'),
+          tool: one(makeSickle(10), 'sickle'),
+        } as ModelData as never,
+        makeContext(giver, field, 'harvest'),
+      );
+      await settle();
+      expect(stand.standingAreaM2()).toBe(90);
+      expect(trial.isDestroyed()).toBe(false);
+      // Named by its label, the labeled plant is what is cut.
+      await makeStuff(() => new HarvestController()).execute(
+        {
+          target: one(trial, 'trial'),
+          patch: one(top, 'the top end', 'at'),
+          tool: one(makeSickle(10), 'sickle'),
+        } as ModelData as never,
+        makeContext(giver, field, 'harvest'),
+      );
+      await settle();
+      expect(stand.standingAreaM2()).toBe(90);
+    });
+
     it('⭐ naming no part on a divided field is refused by the GROUND, listing them', async () => {
       const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
       const stand = standAt(field, parts[0]!, 0.9);

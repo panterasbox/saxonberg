@@ -492,11 +492,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
     expect(plain, 'the floor band names no cause').not.toMatch(CAUSE);
     expect(trained, 'the expert names the cause').toMatch(CAUSE);
     // ⭐ Only by addition: every sentence the novice read is in the expert's.
+    // A body line ("You're shivering.") is the reader's own state arriving
+    // beside the read, not part of it (drive 2).
     const sentences = plain
       .replace(/\s+/g, ' ')
       .split(/(?<=\.)\s+/)
       .map((x) => x.trim())
-      .filter((x) => x.length > 3);
+      .filter((x) => x.length > 3 && !/^You('re|'ve| are| feel)\b/.test(x));
     const flatTrained = trained.replace(/\s+/g, ' ');
     for (const sentence of sentences) {
       expect(flatTrained, `the expert's read lacks: ${sentence}`).toContain(sentence);
@@ -701,16 +703,21 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     await founderEval(
       HOME_FIELD,
       CAMPUS,
-      'return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => { c.getVigor() ; c._worstLimiting = 1 ; return c.getGroundPart() }).join(",")',
+      // ⚠ No `;` in eval text: the command line splits on it (drive 2 found
+      // the reset never ran). The comma operator does the same work.
+      'return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => (c.getVigor(), c._worstLimiting = 1, c.getGroundPart())).join(",")',
     );
     await daylight();
-    await dryTo({ 'far-side': 0.09 });
+    // ⚠ Stressed, not killed: the campus barely rains (the realm finding),
+    // so a patch dried to the wilting point never comes back and dies
+    // before it ripens (drive 2). Neglect grades worse; it need not kill.
+    await dryTo({ 'far-side': 0.25 });
     for (let q = 0; q < 4; q++) {
       await advance(6 * 3_600);
-      await dryTo({ 'far-side': 0.09 });
+      await dryTo({ 'far-side': 0.25 });
     }
     await daylight();
-    await dryTo({ 'far-side': 0.09 });
+    await dryTo({ 'far-side': 0.25 });
     await freshRead(expert, HOME_FIELD, 'look at the far side', true);
     note(`after the dry spell: ${await founderEval(HOME_FIELD, CAMPUS, WORST)}`);
     const GRADES_EVAL =

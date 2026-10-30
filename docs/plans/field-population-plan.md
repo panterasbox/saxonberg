@@ -2073,6 +2073,25 @@ stage server on 2014 was stopped by PID.
   - Steps 1, 2 and 4 failed on B38 (no line for a dead top end), step 10
     on B39 plus a drought-killed gate end, step 7 on a prompt cascading
     from step 4 (stems left in hand; step 7 now empties its hands first).
+- **Final pass 2 — 11 of 14.** B38 holds (steps 1, 3, 4 pass; the top
+  end reads poorest). It found two more product defects, each pinned by a
+  test that fails without its fix:
+  - **B40 — `harvest wheat at the gate end` cuts the STAND there**, not
+    the labeled plant standing in it (the word names both, and the binder
+    handed over the labeled one, so "trial" was cut instead of the crop). A
+    labeled plant is cut when named by its label — the rule `sample` and
+    `label` keep.
+  - **B41 — care can only help.** A labeled seedling's zone holds 0.07 L
+    against a 0.16 L day, so it ran dry between cans and the plant being
+    tended read WORSE than its untended neighbours ("stressed, the soil is
+    dry" before any drought was staged). Its water and nitrogen are the
+    better of its zone and its patch now: its roots still draw on the
+    ground around them.
+  - Drive defects: step 2 compared the reader's body line ("You're
+    shivering.") as if it were the read; step 10's reset eval had `;` in it
+    (the command line splits on it — the reset never ran) and its neglected
+    patch was dried to the wilting point, which in a near-rainless realm
+    kills it before it ripens (dried to stressed now).
 
 ## Drive record
 

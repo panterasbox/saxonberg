@@ -582,6 +582,15 @@ describe('Plant — the root zone', () => {
     return p.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue();
   }
 
+  it('⭐ care can only help: a zone run dry still reads its ground\'s water and nitrogen', () => {
+    const g = field(0.6, 50);
+    const p = standing(g, 5); // drinks far more than its zone holds
+    p.installRootZone();
+    now = BASE + 3 * 86_400;
+    p.getVigor(); // reconcile the window: the zone drains
+    expect(p.getSoilMoisture()!).toBeGreaterThanOrEqual(g.soilMoistureFraction()! - 1e-9);
+  });
+
   it('a plant with no zone reads and waters its ground, byte for byte as before', () => {
     const g = field(0.2);
     const p = standing(g);
