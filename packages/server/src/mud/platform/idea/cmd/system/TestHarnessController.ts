@@ -25,7 +25,6 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { TestHarnessApi } from '../../../../api/test-harness';
 import { WeatherApi } from '../../../../api/weather';
-import { AddressApi } from '../../../../api/address';
 import { CelestialApi } from '../../../../api/celestial';
 import { MixinApi } from '../../../../api/mixin';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -169,17 +168,17 @@ export default class TestHarnessController extends CommandController<TestHarness
   }
 
   /**
-   * `--at <place>` (a template path) or the Locality the giver stands in.
-   * ⚠ Resolved from the giver's ROOM: a body has no address of its own,
-   * so the avatar resolves to no Locality (the drive found it).
+   * `--at <place>` (a template path) or the place the giver stands in,
+   * as a PATH — resolved to its Locality by the same walk the harness
+   * route uses (`TestHarnessApi`), never a second one here. ⚠ A body has
+   * no address of its own; its room does (the drive found both).
    */
   private async scopeOf(model: TestHarnessModel, giver: Stuff): Promise<string | null> {
     if (model.at) return model.at;
     const room = MixinApi.isContainable(giver)
       ? (giver as Stuff & Containable).getContainer()
       : null;
-    const locality = await AddressApi.resolveLocalityFor(room ?? giver);
-    return locality?.getTemplatePath() ?? null;
+    return room?.getTemplatePath() ?? null;
   }
 
   private async clockLine(giver: Stuff): Promise<string> {

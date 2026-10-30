@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TestHarnessController from '../TestHarnessController';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 import { WorldClockApi } from '../../../../../api/worldclock';
-import { AddressApi } from '../../../../../api/address';
+import { MixinApi } from '../../../../../api/mixin';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -87,9 +87,13 @@ describe('TestHarnessController', () => {
 
   describe('weather', () => {
     beforeEach(() => {
-      vi.spyOn(AddressApi, 'resolveLocalityFor').mockResolvedValue({
-        getTemplatePath: () => '/world/here',
-      } as never);
+      // The giver stands in a room at /world/here; the verb hands that PATH
+      // to TestHarnessApi, which resolves the Locality (the route's walk).
+      vi.spyOn(MixinApi, 'isContainable').mockReturnValue(true);
+      (ctx as unknown as { commandGiver: unknown }).commandGiver = {
+        getTemplatePath: () => '/platform/agent/Avatar/t',
+        getContainer: () => ({ getTemplatePath: () => '/world/here' }),
+      };
     });
 
     it('`weather pin rain` pins the Locality the giver stands in, frozen', async () => {
@@ -119,7 +123,6 @@ describe('TestHarnessController', () => {
     });
 
     it('a kind that is not a weather is refused naming the six', async () => {
-      vi.spyOn(AddressApi, 'resolveLocalityFor').mockResolvedValue(null);
       await run({ subcommand: 'weather', op: 'pin', value: 'sideways', at: '/x' });
       expect(rejected()?.reason).toBe('test-refused');
     });

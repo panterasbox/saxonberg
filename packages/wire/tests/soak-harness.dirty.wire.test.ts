@@ -113,11 +113,17 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
     // out across the next clock jumps, it died mid-command, and the reply
     // went to the destroyed body (the drive's first runs).
     const patientHandle = uniqueHandle('patient');
-    const patient = await Session.open(patientHandle, { startLocation: SQUARE });
+    // A wizard holding Terminus, so it stages on itself — its own eval's
+    // `self` (a handle is not the character's name, so `--on` cannot find it).
+    const patient = await Session.open(patientHandle, {
+      startLocation: SQUARE,
+      wizard: true,
+      parcels: [TERMINUS],
+    });
     try {
       const said = await say(
-        runner,
-        `eval --parcel ${TERMINUS} --on ${patientHandle} ConditionApi.inflict(self, { mechanism: 'heat', site: 'body.hand', energy: 1500 }) && 'scalded'`,
+        patient,
+        `eval --parcel ${TERMINUS} ConditionApi.inflict(self, { mechanism: 'heat', site: 'body.hand', energy: 1500 }) && 'scalded'`,
       );
       console.log(`  [drive] eval ConditionApi.inflict → ${said}`);
       expect(said, `eval ConditionApi: ${said}`).toMatch(/scalded/);
