@@ -54,6 +54,9 @@ import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
 import { TestHarnessApi, type ClockJump } from '../mud/api/test-harness';
+import { ParcelApi } from '../mud/api/parcel';
+import { AccessApi } from '../mud/api/access';
+import { StuffApi } from '../mud/api/stuff';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -101,7 +104,8 @@ export class TestHooks {
     done: (error: unknown, user?: { id: string }) => void,
     withCharacter = false,
     startLocation?: string,
-    wizard = false
+    wizard = false,
+    parcels: readonly string[] = []
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('TestHooks: test authentication is disabled'));
@@ -119,7 +123,13 @@ export class TestHooks {
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter) {
-            await TestHooks.provisionCharacter(id, handle, startLocation, wizard);
+            await TestHooks.provisionCharacter(
+              id,
+              handle,
+              startLocation,
+              wizard,
+              parcels
+            );
           }
           return id;
         }
@@ -151,7 +161,8 @@ export class TestHooks {
     userId: string,
     name = 'Tester',
     startLocation?: string,
-    wizard = false
+    wizard = false,
+    parcels: readonly string[] = []
   ): Promise<void> {
     TestHooks.#assertTestMode('provisionCharacter');
     const user = await User.findById(userId);
@@ -182,6 +193,60 @@ export class TestHooks {
           provider.fireChange(group._id);
         }
       }
+    }
+    if (parcels.length > 0 && user.playerIds.length > 0) {
+      await TestHooks.#grantParcels(user.playerIds[0]!, parcels);
+    }
+  }
+
+  /**
+   * TEST-ONLY: make the test character the TITLE HOLDER of each parcel
+   * named, so it can stage inside it — `eval --parcel <it>` — exactly as
+   * the parcel's real holder could.
+   *
+   * ⭐ A GRANT, NOT A BYPASS, like the wizard groups above: the title
+   * moves through `ParcelApi.transfer` (an appended `transfer` event, the
+   * owner index re-pointed), so every authority check downstream runs the
+   * same walk a player's does. Nothing in `AccessApi` learns about test
+   * mode.
+   *
+   * - The path must be an EXACT parcel extent; anything else fails the
+   *   login, naming the covering parcel (a wrong path should fail here,
+   *   not at the first `eval` an hour later).
+   * - A parcel the character already holds (a group it is in — a wizard
+   *   is in every managed group — or a title it already has) is `kept`.
+   * - ⚠ A transferred title is a SOLD parcel to the pack that claimed it:
+   *   its next reconcile records a `conflict` and skips its rows under
+   *   that extent (parcel.md § grant). A test world is reset per run.
+   */
+  static async #grantParcels(
+    playerId: string,
+    parcels: readonly string[]
+  ): Promise<void> {
+    const identity = Avatar.getTemplatePath(playerId);
+    const [avatar] = StuffApi.findByIdentityPath(identity);
+    const held = avatar ? await AccessApi.heldExtents(avatar) : [];
+    for (const path of parcels) {
+      const cover = ParcelApi.coveringParcelOfSync(path);
+      if (!cover || cover.getExtent() !== path) {
+        throw new Error(
+          `TestHooks: '${path}' is not a parcel` +
+            (cover
+              ? `; the covering parcel is '${cover.getExtent()}' — name that`
+              : ' and nothing covers it')
+        );
+      }
+      const owner = cover.getOwner();
+      const mine = owner?.kind === 'player' && owner.templatePath === identity;
+      if (mine || held.some((h) => path === h || path.startsWith(`${h}/`))) {
+        console.info(`TestHooks: ${identity} already holds ${path} (kept)`);
+        continue;
+      }
+      await ParcelApi.transfer(path, { kind: 'player', templatePath: identity });
+      console.info(
+        `TestHooks: granted ${path} to ${identity} ` +
+          `(was ${owner ? JSON.stringify(owner) : 'untitled'})`
+      );
     }
   }
 

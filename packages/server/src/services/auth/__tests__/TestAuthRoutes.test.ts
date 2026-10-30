@@ -52,8 +52,20 @@ vi.mock('../../../backend/TestHooks', () => ({
     authenticate: async (
       _app: unknown,
       handle: string,
-      done: (err: unknown, user?: { id: string }) => void
-    ) => done(null, { id: `uid-${handle}` }),
+      done: (err: unknown, user?: { id: string }) => void,
+      _withCharacter?: boolean,
+      _startLocation?: string,
+      _wizard?: boolean,
+      parcels: readonly string[] = []
+    ) => {
+      // The grant itself is TestHooks' (drive step 8); here the route's
+      // job: the list reaches the hook, and its refusal comes back.
+      if (parcels.includes('/world/terminus/dock')) {
+        done(new Error("TestHooks: '/world/terminus/dock' is not a parcel"));
+        return;
+      }
+      done(null, { id: `uid-${handle}${parcels.length ? `+${parcels.length}` : ''}` });
+    },
     // The real cap lives in TestHarnessApi (TestHooks.clock.test.ts and
     // test-harness.test.ts); here only the ROUTE's job is pinned —
     // `soak` passed through, the refusal's words relayed.
@@ -133,6 +145,33 @@ describe('TestAuthRoutes', () => {
         .post('/auth/test-clock')
         .send({ advance: '1 day' });
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('/auth/test-login — parcels', () => {
+    it('refuses a parcels value that is not a list of /-rooted paths', async () => {
+      for (const parcels of ['x', [1], ['world/terminus']]) {
+        const res = await request(makeApp())
+          .post('/auth/test-login')
+          .send({ handle: 'p', parcels });
+        expect(res.status, JSON.stringify(parcels)).toBe(400);
+      }
+    });
+
+    it('passes the list to the hook', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-login')
+        .send({ handle: 'p', parcels: ['/home/other', '/world/terminus'] });
+      expect(res.status).toBe(200);
+      expect(res.body.user.id).toBe('uid-p+2');
+    });
+
+    it('relays the hook\'s refusal in its own words', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-login')
+        .send({ handle: 'p', parcels: ['/world/terminus/dock'] });
+      expect(res.status).toBe(500);
+      expect(res.body.error).toMatch(/is not a parcel/);
     });
   });
 });

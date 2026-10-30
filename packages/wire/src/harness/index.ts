@@ -9,7 +9,12 @@
  */
 
 export { Session, uniqueHandle, plain, SERVER_URL } from './session';
-export type { CommandResult, QueryRecord, SubscribeOutcome } from './session';
+export type {
+  CommandResult,
+  QueryRecord,
+  SubscribeOutcome,
+  SessionOptions,
+} from './session';
 export {
   expectOk,
   expectRefused,

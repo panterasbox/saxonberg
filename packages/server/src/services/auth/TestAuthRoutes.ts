@@ -60,6 +60,7 @@ export class TestAuthRoutes {
             withCharacter?: unknown;
             startLocation?: unknown;
             wizard?: unknown;
+            parcels?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -75,6 +76,21 @@ export class TestAuthRoutes {
           : undefined;
       // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
       const wizard = body?.wizard === true;
+      // ⭐ Title to stage in: `eval --parcel <it>` as its holder could
+      // (TestHooks.#grantParcels — a transfer, not a bypass).
+      const parcels = body?.parcels;
+      if (
+        parcels !== undefined &&
+        !(
+          Array.isArray(parcels) &&
+          parcels.every((p) => typeof p === 'string' && p.startsWith('/'))
+        )
+      ) {
+        res
+          .status(400)
+          .json({ error: 'parcels must be an array of /-rooted paths' });
+        return;
+      }
 
       void TestHooks.authenticate(
         application,
@@ -82,7 +98,13 @@ export class TestAuthRoutes {
         (err, user) => {
           if (err || !user) {
             console.error('TestAuthRoutes: test-login failed:', err);
-            res.status(500).json({ error: 'test-login failed' });
+            // The message, not a bare 500 — a wrong parcel names the right one.
+            res.status(500).json({
+              error:
+                err instanceof Error
+                  ? `test-login failed: ${err.message}`
+                  : 'test-login failed',
+            });
             return;
           }
           // Establish the real Passport session (sets
@@ -98,7 +120,8 @@ export class TestAuthRoutes {
         },
         withCharacter,
         startLocation,
-        wizard
+        wizard,
+        (parcels as string[] | undefined) ?? []
       );
     });
 
