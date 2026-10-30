@@ -40,7 +40,7 @@ import type { CommandResult } from '../src/harness';
  */
 export const DIRTY_REASON =
   'transfers the title of /trade/distribution to a test runner and scalds ' +
-  'the runner — the world puts neither back';
+  'a patient — the world puts neither back';
 
 declareFile({
   file: 'soak-harness.dirty.wire.test.ts',
@@ -109,13 +109,24 @@ suite.skipIf(!isOwnedTestWorld())('2 · the refusal, in a blocking file', () => 
 
 suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it holds', () => {
   it('a consumer Api eval could not reach before, with a real effect', async () => {
-    const said = await say(
-      runner,
-      `eval --parcel ${TERMINUS} ConditionApi.inflict(self, { mechanism: 'heat', site: 'body.hand', energy: 4000 }) && 'scalded'`,
-    );
-    expect(said, `eval ConditionApi: ${said}`).not.toMatch(/error:|not defined/i);
-    const me = await say(runner, 'look me');
-    expect(me, `the scald, on the runner: ${me}`).toMatch(/burn|scald|blister|hand/i);
+    // ⚠ A PATIENT, not the runner: a scalded runner's dying window ran
+    // out across the next clock jumps, it died mid-command, and the reply
+    // went to the destroyed body (the drive's first runs).
+    const patientHandle = uniqueHandle('patient');
+    const patient = await Session.open(patientHandle, { startLocation: SQUARE });
+    try {
+      const said = await say(
+        runner,
+        `eval --parcel ${TERMINUS} --on ${patientHandle} ConditionApi.inflict(self, { mechanism: 'heat', site: 'body.hand', energy: 1500 }) && 'scalded'`,
+      );
+      console.log(`  [drive] eval ConditionApi.inflict → ${said}`);
+      expect(said, `eval ConditionApi: ${said}`).toMatch(/scalded/);
+      // The condition reads where a body's conditions read: `assess`.
+      const assessed = await say(patient, 'assess');
+      expect(assessed, `the scald, on the patient: ${assessed}`).toMatch(/burn|scald|blister/i);
+    } finally {
+      patient.close();
+    }
     await alive(runner);
   }, 120_000);
 
@@ -150,7 +161,11 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
 
 suite('9 · eval cannot hang, flood or kill the world', () => {
   it('a runaway loop answers `timed out` and the next command answers', async () => {
-    const said = await say(runner, 'eval for (;;);');
+    // ⚠ No `;` and no braces: the command line splits on `;` and binds
+    // `{…}` as structure, so the loop is the one form that is neither.
+    const r = await runner.cmd('eval while (true) 0');
+    const said = (await r.said()).replace(/\s+/g, ' ').trim();
+    console.log(`  [drive] eval while(true) 0 → status ${r.status} said '${said}' notes ${JSON.stringify(r.notes)}`);
     expect(said).toMatch(/timed out after \d+ ms \(eval\.timeoutMs\)/);
     await alive(runner);
   }, 120_000);

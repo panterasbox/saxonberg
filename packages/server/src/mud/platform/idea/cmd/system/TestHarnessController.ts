@@ -168,10 +168,17 @@ export default class TestHarnessController extends CommandController<TestHarness
     return `${m[1]} ${UNIT_WORDS[m[2] as string]}`;
   }
 
-  /** `--at <place>` (a template path) or the Locality the giver stands in. */
+  /**
+   * `--at <place>` (a template path) or the Locality the giver stands in.
+   * ⚠ Resolved from the giver's ROOM: a body has no address of its own,
+   * so the avatar resolves to no Locality (the drive found it).
+   */
   private async scopeOf(model: TestHarnessModel, giver: Stuff): Promise<string | null> {
     if (model.at) return model.at;
-    const locality = await AddressApi.resolveLocalityFor(giver);
+    const room = MixinApi.isContainable(giver)
+      ? (giver as Stuff & Containable).getContainer()
+      : null;
+    const locality = await AddressApi.resolveLocalityFor(room ?? giver);
     return locality?.getTemplatePath() ?? null;
   }
 
