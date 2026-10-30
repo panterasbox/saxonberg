@@ -520,7 +520,7 @@ suite('⭐ 18 — glaze', () => {
     // ⚠ Two-word names are quoted on a command line (run 27: `put ash in
     // ash tub` matched no shape of `put`).
     await say(potter, 'put ash in "ash tub"');
-    await say(potter, 'put clay in "ash tub"');
+    await say(potter, 'put 1 clay in "ash tub"');
     await say(potter, 'pour pail into "ash tub"');
     const ash = await act(potter, 'stir "ash tub"', '20 minutes');
     expect(ash.said, `the ash glaze: ${ash.said}`).toMatch(/glaze|stir|blend/i);
@@ -531,7 +531,7 @@ suite('⭐ 18 — glaze', () => {
     // NPC's own lead glaze, and `get lead` found only the tub (run 35).
     const pig = await hand(potter, '/stuff/thing/lead-pig');
     await say(potter, `put #${pig} in "lead tub"`);
-    await say(potter, 'put clay in "lead tub"');
+    await say(potter, 'put 1 clay in "lead tub"');
     await say(potter, 'pour pail into "lead tub"');
     await act(potter, 'stir "lead tub"', '20 minutes');
     expect(await examine(potter, 'lead tub')).toMatch(/lead glaze|glaze/i);

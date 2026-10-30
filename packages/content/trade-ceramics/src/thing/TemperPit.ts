@@ -58,6 +58,15 @@ export default class TemperPit extends TemperPitBase {
 
   public discipline = 'brickmaking';
 
+  /**
+   * Clay in a pit is trodden, however much water stands in it: the pit's
+   * water is a reservoir the tread draws from (see {@link temper}), never
+   * a slip.
+   */
+  public override workVerb(): 'knead' | 'stir' {
+    return 'knead';
+  }
+
   /** Does the pit hold water to temper with? */
   private waterLitres(): number {
     const held = this.getBulkMaterial('interior');

@@ -164,6 +164,18 @@ describe('⭐ the work is the matter\'s, never the word (B101)', () => {
     expect((await v.kneadPlanFor({ actor: v as unknown as Stuff, commandText: 'knead tub', verb: 'knead' })).ok).toBe(true);
   });
 
+  it('⭐ clay in a little water is kneaded; drowned past its liquid limit it is a slip, stirred', async () => {
+    (StuffApi.findByTemplatePath<Material>(RAW) as unknown as Material).setTags(['plastic']);
+    (StuffApi.findByTemplatePath<Material>(WATER) as unknown as Material).setTags(['water']);
+    const v = tub(STOCK_ROW, COMPOUND);
+    await ContainmentApi.move(lumpOf(RAW, 12), v);
+    v.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(WATER)!);
+    v.setBulkAmount('interior', Quantity.of(2, 'L'));
+    expect(v.workVerb()).toBe('knead');
+    v.setBulkAmount('interior', Quantity.of(10, 'L'));
+    expect(v.workVerb()).toBe('stir');
+  });
+
   it('a loose powder is stirred — kneading it is refused', async () => {
     const v = tub(STOCK_ROW, COMPOUND);
     await ContainmentApi.move(lumpOf(SULFUR, 1), v);

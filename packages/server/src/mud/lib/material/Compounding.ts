@@ -58,6 +58,12 @@ const KNEAD_MS = 15 * 60 * 1000;
  * of the matter is the verb the player chose (`stir` vs `knead`).
  */
 const STIR_MS = 2 * 60 * 1000;
+/**
+ * Free water per kg of plastic mass past which the mass is a slurry. A
+ * worked clay already holds a fifth of its weight; another two-fifths
+ * carries it past the liquid limit (~50 % on the dry clay) into a slip.
+ */
+const SLAKE_RATIO = 0.4;
 
 /** What compounding came to. */
 export type CompoundOutcome =
@@ -221,11 +227,31 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
 
     public workVerb(): 'knead' | 'stir' {
       const self = this as unknown as Stuff & Container;
-      const kneaded = self.getContents().some((c) => {
-        const mat = MixinApi.isTangible(c) ? c.getMaterial() : null;
-        return mat !== null && (mat.hasTag('plastic') || mat.hasTag('elastomer'));
-      });
-      return kneaded ? 'knead' : 'stir';
+      let plasticKg = 0;
+      for (const c of self.getContents()) {
+        if (!MixinApi.isTangible(c)) continue;
+        const mat = c.getMaterial();
+        if (mat === null) continue;
+        // Rubber never slakes: however wet, it is milled.
+        if (mat.hasTag('elastomer')) return 'knead';
+        if (mat.hasTag('plastic')) {
+          const n = MixinApi.isStackable(c) ? c.getQuantity() : 1;
+          plasticKg += c.getMass().rawValue() * n;
+        }
+      }
+      if (plasticKg === 0) return 'stir';
+      // ⭐ Clay drowned in water is a SLIP: past its liquid limit it is
+      // stirred, not kneaded (the glaze tubs, the slip tub).
+      return this.freeWaterKg() >= plasticKg * SLAKE_RATIO ? 'stir' : 'knead';
+    }
+
+    /** The water standing in the belly, kg — what slakes a plastic mass. */
+    private freeWaterKg(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return 0;
+      const slot = self.getBulk('interior');
+      const held = slot.getMaterial();
+      return held !== null && held.hasTag('water') ? slot.getMassKg() : 0;
     }
 
     public workRefusal(verb: string | undefined): ActRefusal | null {

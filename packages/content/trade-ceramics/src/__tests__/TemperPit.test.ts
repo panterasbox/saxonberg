@@ -132,6 +132,14 @@ describe('the temper pit', () => {
     }
   });
 
+  it('⭐ clay in a pit full of water is still TRODDEN — the water is the pit\'s reservoir, never a slip', async () => {
+    const p = pit(true);
+    await put(p, clayMat, 9, true);
+    expect(p.workVerb()).toBe('knead');
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead', verb: 'knead' });
+    expect(plan.ok).toBe(true);
+  });
+
   it('a dry pit refuses — it wants water', async () => {
     const p = pit(false);
     await put(p, clayMat, 9, true);
