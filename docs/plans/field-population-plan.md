@@ -1581,6 +1581,118 @@ Notes for later waves:
   the stand regardless.
 - **W3:** nothing new; W1's notes stand.
 
+### W3 — water, feed, harvest and sow at a patch
+
+Landed as planned: `water.yaml`/`feed.yaml` targets are `[VisibleMixin,
+GrowingMixin|SoilMixin]` (D18 — a bare plant binds now); all four views
+(`water`, `feed`, `harvest`, `plant`) carry `at <patch>` (optional,
+greedy, `scope: ["reachable"]`, `requires: SoilMixin`, before the
+prepositional args) and a field paragraph + example in their help. The
+controllers ask the GROUND (`resolvePartFor`) and send its line
+(`patch-unnamed`, `not-a-part-here`); a field crop acts through
+`standIn(part)`. Water/feed state the amount (*"You tip 2 L of clear
+water…"*, *"You work 6.3 kg of crumbly black compost…"* — kg by the
+material's density, litres when it has none) and add *"On 1,000 square
+meters it barely shows."* under 0.1 L/m² of the ground watered. Harvest at
+a patch cuts that patch's stand (`nothing-sown-there` when none of that
+kind stands there), the swath line names the patch, and the grade is the
+stand's own `_worstLimiting`. Sow at a patch fills the part up to its own
+area, `setGroundPart` before the move, `patch-sown` when full; the
+narration names the patch.
+
+Tests: `AreaCrop.test.ts` +6 (harvest at a part cuts that part and grades
+by ITS worst — two parts, *poor* vs *exceptional*, nitrogen drawn from the
+cut part only; no part named → `patch-unnamed` listing them;
+`nothing-sown-there`; sow at a part fills it, roots it by key, refuses
+`patch-sown`, a second part takes its own stand; one-part ground needs no
+name; another ROW of the same crop is widened, not refused) and the
+`other-crop-stands` fixture now differs by harvest path too.
+`WaterVerb.test.ts` +7 (the view: a bare plant binds, the `patch` arg;
+a bare field crop is watered and the reply says *2 L*; two parts refuse
+without `at` and list both; `at` the dry part moves only that part; a
+10 L bucket on 1,000 m² *barely shows*; a part with nothing sown is
+watered itself). `FeedVerb.test.ts` +3 (refused unnamed, nothing spent;
+`at` one part feeds only it, *6.3 kg*; a part named as the target).
+`harvest-view.test.ts` +4 (the `patch` arg shape on harvest and plant,
+and both views still load).
+
+The hand-offs:
+
+- **`ripeSibling`** matches by KIND (template path OR harvest path, the
+  W0 `standIn` rule — `isSameKindAs` is public now) **and only within
+  the same bed.** ⚠ Deliberately NOT across patches: on a divided field
+  the patch is what the player named, so a ripe stand at the lane end is
+  no substitute for the middle's; with no `at` the act is refused before
+  substitution anyway. On an undivided field every stand's bed is the
+  field, so the sugar drive's cane substitution is unchanged.
+- **`feed`/`water` targets** widened per D18.
+- **`patch-sown`**, **`patch-unnamed`** (returned by the ground, the
+  controller only sends it), the amounts, the per-patch cut — done.
+
+Decisions the plan did not make:
+
+- **`Soil.rootedAreaCrop(part)`** (kernel, on `SoilMixin`) — the plan's
+  "`ground.cropOn`-equivalent through the kernel". Asked of a PART itself
+  (`water the top end`) it asks the ground the part is fixed to
+  (`Adornment.getAdornedTo`), since a patch holds nothing. `water`,
+  `feed` and `sow` use it; `Field.cropOn` (pack) is untouched.
+- **Part resolution applies to AREA crops only.** An individual plant
+  (W4's labeled one, a pot plant) is acted on where it stands with no
+  name needed; naming a patch it is not rooted in refuses
+  `not-a-part-here` (*"X does not stand at Y."*).
+- **Sow, another row of the same crop:** when the standing crop's
+  template differs from the seed's `growsInto`, the controller clones
+  the seed's plant and asks `standing.isSameKindAs(made)` before refusing
+  `other-crop-stands` — so re-sowing the bench's top end widens
+  `standing-wheat-top-end` rather than telling the player to grub out
+  their own wheat.
+- **Water on bare ground** (no plant) credits horticulture at `easy`;
+  watering a crop keeps `careDifficulty()`.
+- **`not-rooted`** — a named non-area plant with no ground under it is
+  refused (it used to be the `groundUnder` → headroom 0 → *already wet*
+  path, which was false).
+- Units in prose are American (*square meters*), per CLAUDE.md.
+
+**Live (fresh world, port 2014, `reset:db`, bench in spring then summer,
+founder):** `harvest wheat` → *"Which part? Name one: the top end, the
+middle or the lane end."*; `harvest wheat at the top end` (spring) →
+*"a stand of wheat isn't ready — it is still established."* — the TOP
+END's stand, though `wheat` binds the first; summer: `harvest wheat at
+the lane end` → *"You bend to a stand of wheat and pull it by hand."* …
+*"You cut a swath of a stand of wheat at the lane end and bind it — not
+yet enough to make up a load. Nearly all of it is still standing."*;
+`harvest wheat at the middle` → still established (the middle is behind
+the lane end, as its read says). A can from the rubber-works stove house,
+`fill can from standpipe` in the market square, then on the bench:
+`water wheat` → the same three names; `water wheat at the top end` →
+*"You tip 2 L of clear water into the soil around a stand of wheat at the
+top end. It drinks it in. On 1,000 square meters it barely shows."*. The
+founder's `eval` of a patch's reserve is still refused by the sandbox
+boundary (W2's note), so the moved reserve is proven by the unit test,
+not live. The home-field sow leg (plough + hired labourer) was not
+staged — the kernel sow path is the same, and W6's drive covers it.
+
+Verified: tsc (server, trade-farming) clean; `pnpm test:near` — server
+293 files, 2,718 passed + 2 skipped, packs (eternal-university, ground,
+terminus, trade-farming, trade-mining, trade-ranching, trade-sugar)
+green; touched packs' vitest — trade-farming 122/122, trade-sugar 40/40,
+trade-forestry 139/139, hinkley-hills 19/19, eternal-university 47/47;
+`lint:family` — all 82 gates pass.
+
+Notes for later waves:
+
+- **W4:** `sample`/`label` gain the same `patch` arg shape (copy the
+  harvest-view test's block). A labeled individual is NOT an area crop,
+  so `water trial` binds it with no `at` (the individual path above).
+- **W5:** the farms brain still sends `water <kw>` / `feed <kw> with
+  sack`; on the campus home field (three patches) those are now refused
+  `patch-unnamed` — W5's `water ${kw} at ${part}` is required, not
+  optional.
+- **W6:** the cover drive's step 4/7/9 forms (`sow wheat at the gate
+  end` until `patch-sown`, then `at the middle`) match the reasons
+  shipped here. `fill watering can from …` fails as an unknown shape
+  (a two-word non-greedy target); `fill can from standpipe` works.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*
