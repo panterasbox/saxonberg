@@ -320,7 +320,9 @@ function lowest(
 
 /**
  * `fill can from <from>` — at the configured water room when there is one
- * (`config.water: { room, from }`), home ALWAYS re-taken in `finally`;
+ * (`config.water: { room, from, way?, back? }` — she walks `go <way>` and
+ * `go <back>` when the row names them, else the `shifts` teleport), home
+ * ALWAYS re-taken in `finally`;
  * else at home from a standpipe. The `shifts`/`consigns` movement shape.
  */
 async function fillCan(
@@ -328,14 +330,30 @@ async function fillCan(
   config: unknown,
   home: Stuff & Container,
 ): Promise<void> {
-  const w = (config ?? {}) as { room?: unknown; from?: unknown };
+  const w = (config ?? {}) as { room?: unknown; from?: unknown; way?: unknown; back?: unknown };
   const from = typeof w.from === 'string' && w.from ? w.from : 'standpipe';
+  // ⭐ She WALKS when the row names the way (field population, the final
+  // drive): a hand blinking out of the field — "Maud Hollis vanishes …
+  // appears out of nowhere" — betrayed the fiction for a trip of one exit.
+  const way = typeof w.way === 'string' && w.way ? w.way : '';
+  const back = typeof w.back === 'string' && w.back ? w.back : '';
   const room =
     typeof w.room === 'string' && w.room
       ? StuffApi.findByTemplatePath(w.room)
       : null;
   if (!room || !MixinApi.isContainer(room) || room === home) {
     await hand.forceCommand(`fill can from ${from}`);
+    return;
+  }
+  if (way && back) {
+    await hand.forceCommand(`go ${way}`);
+    try {
+      if (hand.getContainer() === room) await hand.forceCommand(`fill can from ${from}`);
+    } finally {
+      if (hand.getContainer() !== home) await hand.forceCommand(`go ${back}`);
+      // A way that did not lead home still ends the beat at home.
+      if (hand.getContainer() !== home) hand.teleport(home);
+    }
     return;
   }
   hand.teleport(room as Stuff & Container);

@@ -38,5 +38,8 @@ data:
         water:
           room: /world/terminus/eternal/campus-farm/location/yard
           from: trough
+          # She walks the one exit to the trough and back.
+          way: yard
+          back: field
         shelf: ''
         drawEvery: 0

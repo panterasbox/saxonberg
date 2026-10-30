@@ -595,6 +595,29 @@ describe('the farms beat on a FIELD — patches read at the hand\'s band', () =>
     expect(h.getContainer()).toBe(field);
   });
 
+  it('⭐ with the way named she WALKS to the trough and back — no vanishing', async () => {
+    const top = part('top-end', 20);
+    field.parts = [top, part('lane-end', 45)];
+    wheatAt(top);
+    const { hand: h, lines } = hand('expert');
+    const fs = h as unknown as { forceCommand(text: string): Promise<void> };
+    const inner = vi.mocked(fs.forceCommand).getMockImplementation()!;
+    vi.mocked(fs.forceCommand).mockImplementation(async (text: string) => {
+      if (text === 'go yard') ContainmentApi.move(h as never, yard as never);
+      if (text === 'go field') ContainmentApi.move(h as never, field as never);
+      await inner(text);
+    });
+    const teleport = vi.spyOn(h as unknown as { teleport(to: unknown): void }, 'teleport');
+    const ctx = beat(h);
+    (ctx.config as { water: Record<string, string> }).water = { room: YARD, from: 'trough', way: 'yard', back: 'field' };
+
+    await farms.act(ctx);
+
+    expect(lines.slice(0, 4)).toEqual(['go yard', 'fill can from trough', `@${YARD}`, 'go field']);
+    expect(teleport).not.toHaveBeenCalled();
+    expect(h.getContainer()).toBe(field);
+  });
+
   it('wet patches are left alone — nothing is filled or watered', async () => {
     const top = part('top-end', 80);
     field.parts = [top, part('lane-end', 90)];

@@ -623,7 +623,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // so the count is the acts, not a query.)
     let forked = 0;
     for (let i = 0; i < 6; i++) {
-      const got = await act(p, 'get hay');
+      const got = await act(p, 'get 1 hay');
       if (refusedFor(got.r) !== null) break;
       await doing(p, 'put hay in trough');
       forked++;
