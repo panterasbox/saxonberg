@@ -35,6 +35,8 @@ import { ReservedMixin } from "../../lib/reserve";
 import { GrowingMixin } from "../../lib/husbandry/Growing";
 import { SlottableMixin } from "../../lib/slot/Slottable";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
+import { LabelledMixin } from "../../lib/description/Labelled";
+import { SampledMixin } from "../../lib/instrument/Sampled";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
@@ -48,9 +50,16 @@ import type { Difficulty } from "../../lib/advancement/ActSignature";
 import type { FieldMeta } from "../../lib/mixin";
 import type { CommandContributions } from "../../api/command";
 
-// PersistableMixin OUTERMOST — the documented host rule.
+// PersistableMixin OUTERMOST — the documented host rule. ⭐ Labelled and
+// Sampled (field population D6/D7): every plant may carry a player's
+// name and a provenance stamp — a pot lily as much as a stem pulled from
+// a field. Both are inert fields.
 const PlantBase = PersistableMixin(
-  SlottableMixin( GrowingMixin( ReservedMixin(OrganismMixin(ThermalMixin(Good))), ), ),
+  SampledMixin(
+    LabelledMixin(
+      SlottableMixin( GrowingMixin( ReservedMixin(OrganismMixin(ThermalMixin(Good))), ), ),
+    ),
+  ),
 );
 
 export default class Plant extends PlantBase {

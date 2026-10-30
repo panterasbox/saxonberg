@@ -158,6 +158,20 @@ function clamp01(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
 
+/**
+ * What a ground answers when a verb names (or does not name) a part of it
+ * — *at the top end* (field population D5). `part` is `null` on one-piece
+ * ground. A refusal carries its own line: the ground decides and says
+ * why, the controller only sends it.
+ */
+export type PartResolution =
+  | { ok: true; part: (Stuff & Soil) | null }
+  | {
+      ok: false;
+      reason: "patch-unnamed" | "not-a-part-here";
+      line: string;
+    };
+
 /** The public surface soil offers — the ground's own state. */
 export interface Soil {
   // ---------- the soil window ----------
@@ -278,6 +292,53 @@ export interface Soil {
    * ⛔ Called by the ACTS that need it (sow, harvest), never by a read.
    */
   ensureCropTitle(): Promise<void>;
+
+  // ---------- ⭐ a soil made of parts (field population D3) ----------
+
+  /**
+   * @hook The named parts this ground is divided into; `[]` = one piece
+   * (the default, and every pot, bed and unpatched field). When a ground
+   * HAS parts, its own reads and writes aggregate over them — so a
+   * caller that asks the whole field gets the whole field's answer, and
+   * the parts keep the soil.
+   */
+  soilParts(): readonly (Stuff & Soil)[];
+  /**
+   * @hook This ground's key as a PART of a larger ground (`top-end`);
+   * `''` for whole ground. A plant standing in the larger ground binds to
+   * its part by this key.
+   */
+  soilPartKey(): string;
+  /**
+   * @hook Topsoil depth in metres, or `null` when unmodelled (a pot has
+   * a volume, not a depth). The roots read it.
+   */
+  soilDepthM(): number | null;
+  /** The part whose key is `key`, or `null` (an empty key is whole ground). */
+  soilPart(key: string): (Stuff & Soil) | null;
+  /**
+   * Why an act on this ground must name a part, in words, or `null` when
+   * it need not (one piece, or a single part).
+   */
+  soilPartRefusal(): string | null;
+  /**
+   * Resolve the part an act names — or, naming none, whether that is
+   * enough here. See {@link PartResolution}.
+   */
+  resolvePartFor(named: (Stuff & Soil) | null): PartResolution;
+  /**
+   * Litres this ground can still take before it is full, reconciled —
+   * summed over its parts when it has them. What `water` sizes its
+   * measure against.
+   */
+  soilMoistureHeadroomL(): number;
+  /**
+   * Points of nitrogen this ground can still take, reconciled — the
+   * area-weighted mean over its parts when it has them (the reserve is a
+   * per-cent: feeding a divided field raises every part alike). What
+   * `feed` sizes its measure against.
+   */
+  soilNutrientHeadroom(): number;
 }
 
 /**
@@ -369,6 +430,151 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       /* host hook */
     }
 
+    // ---------- ⭐ a soil made of parts (field population D3) ----------
+
+    /** See {@link Soil.soilParts}. Default: one piece. */
+    public soilParts(): readonly (Stuff & Soil)[] {
+      return [];
+    }
+
+    /** See {@link Soil.soilPartKey}. Default: whole ground. */
+    public soilPartKey(): string {
+      return "";
+    }
+
+    /** See {@link Soil.soilDepthM}. Default: unmodelled. */
+    public soilDepthM(): number | null {
+      return null;
+    }
+
+    /** See {@link Soil.soilPart}. */
+    public soilPart(key: string): (Stuff & Soil) | null {
+      if (!key) return null;
+      return this.soilParts().find((p) => p.soilPartKey() === key) ?? null;
+    }
+
+    /** See {@link Soil.soilPartRefusal}. */
+    public soilPartRefusal(): string | null {
+      const parts = this.soilParts();
+      if (parts.length <= 1) return null;
+      const names = parts.map((p) => p.presentationPhrase().definite());
+      const last = names.pop() ?? "";
+      const list = names.length > 0 ? `${names.join(", ")} or ${last}` : last;
+      return `Which part? Name one: ${list}.`;
+    }
+
+    /** See {@link Soil.resolvePartFor}. */
+    public resolvePartFor(named: (Stuff & Soil) | null): PartResolution {
+      const parts = this.soilParts();
+      if (named === null) {
+        const refusal = this.soilPartRefusal();
+        if (refusal !== null) {
+          return { ok: false, reason: "patch-unnamed", line: refusal };
+        }
+        return { ok: true, part: parts[0] ?? null };
+      }
+      if (parts.includes(named)) return { ok: true, part: named };
+      const self = this as unknown as Stuff;
+      const what = named.presentationPhrase().definite();
+      return {
+        ok: false,
+        reason: "not-a-part-here",
+        line: `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${self.presentationPhrase().definite()}.`,
+      };
+    }
+
+    /** See {@link Soil.soilMoistureHeadroomL}. */
+    public soilMoistureHeadroomL(): number {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return parts.reduce((sum, p) => sum + p.soilMoistureHeadroomL(), 0);
+      }
+      return this.reserveHeadroom(SOIL_MOISTURE_RESERVE_KEY);
+    }
+
+    /** See {@link Soil.soilNutrientHeadroom}. */
+    public soilNutrientHeadroom(): number {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.soilNutrientHeadroom()) ?? 0;
+      }
+      return this.reserveHeadroom(SOIL_NITROGEN_RESERVE_KEY);
+    }
+
+    /** A reserve's room left, after a reconcile; `0` when unauthored. */
+    private reserveHeadroom(key: string): number {
+      this.reconcileSoil();
+      const reserve = this.soilHost.getReserve(key);
+      if (!reserve) return 0;
+      return Math.max(
+        0,
+        reserve.capacity.rawValue() - reserve.current.rawValue(),
+      );
+    }
+
+    /**
+     * Each part's share of the whole, by the sky it catches (its area);
+     * equal shares when no part declares an area.
+     */
+    private partWeights(parts: readonly (Stuff & Soil)[]): number[] {
+      const areas = parts.map((p) => Math.max(0, p.soilCatchmentAreaM2()));
+      const total = areas.reduce((a, b) => a + b, 0);
+      if (!(total > 0)) return parts.map(() => 1 / parts.length);
+      return areas.map((a) => a / total);
+    }
+
+    /**
+     * The area-weighted mean of a per-part read, over the parts that
+     * answer it (`null` from a part that models nothing drops out and
+     * the rest re-weight); `null` when none answers.
+     */
+    private meanOverParts(
+      parts: readonly (Stuff & Soil)[],
+      read: (part: Stuff & Soil) => number | null,
+    ): number | null {
+      const weights = this.partWeights(parts);
+      let sum = 0;
+      let weight = 0;
+      parts.forEach((p, i) => {
+        const v = read(p);
+        if (v === null) return;
+        const w = weights[i] ?? 0;
+        sum += v * w;
+        weight += w;
+      });
+      return weight > 0 ? sum / weight : null;
+    }
+
+    /**
+     * Spread an EXTENSIVE amount (litres) over the parts by area share;
+     * returns the sum each part actually took.
+     */
+    private spreadOverParts(
+      parts: readonly (Stuff & Soil)[],
+      amount: number,
+      apply: (part: Stuff & Soil, share: number) => number,
+    ): number {
+      const weights = this.partWeights(parts);
+      return parts.reduce(
+        (sum, p, i) => sum + apply(p, amount * (weights[i] ?? 0)),
+        0,
+      );
+    }
+
+    /**
+     * Apply an INTENSIVE amount (points of a per-cent reserve) to every
+     * part alike — feeding a divided field raises each part as much as it
+     * would raise the field whole; returns the area-weighted mean each
+     * part took, which is what the whole ground's own reserve would have
+     * moved by.
+     */
+    private applyToParts(
+      parts: readonly (Stuff & Soil)[],
+      apply: (part: Stuff & Soil) => number,
+    ): number {
+      return this.meanOverParts(parts, apply) ?? 0;
+    }
+
     // ---------- soil state: its OWN checkpoint ----------
 
     /**
@@ -402,6 +608,19 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       if (this._reconcilingSoil) return;
       const nowS = this.soilNowSeconds();
       if (nowS === null) return;
+
+      // ⭐ A ground made of parts reconciles each part on its own stamp
+      // (field population D3); a divided field holds no reserve of its
+      // own, so the shipped body below then stamps and returns.
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        this._reconcilingSoil = true;
+        try {
+          for (const part of parts) part.reconcileSoil();
+        } finally {
+          this._reconcilingSoil = false;
+        }
+      }
 
       const reserved = this.soilHost;
       if (!reserved.hasReserve(SOIL_MOISTURE_RESERVE_KEY)) {
@@ -733,12 +952,20 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
 
     /** Root-zone moisture `[0, 1]`, reconciled; null when unauthored. */
     public soilMoistureFraction(): number | null {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.soilMoistureFraction());
+      }
       if (!this._reconcilingSoil) this.reconcileSoil();
       return this.reserveFraction(SOIL_MOISTURE_RESERVE_KEY);
     }
 
     /** The window-mean a plant integrating the same window should read. */
     public meanSoilMoistureFraction(): number | null {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.meanSoilMoistureFraction());
+      }
       const current = this.soilMoistureFraction();
       if (current === null) return null;
       return this._soilMeanMoisture < 0 ? current : this._soilMeanMoisture;
@@ -756,6 +983,10 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      * muck is an investment.
      */
     public nutrientFraction(): number | null {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.nutrientFraction());
+      }
       if (!this._reconcilingSoil) this.reconcileSoil();
       return this.reserveFraction(SOIL_NITROGEN_RESERVE_KEY);
     }
@@ -767,18 +998,30 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      */
     public waterSoil(litres: number): number {
       if (!Number.isFinite(litres) || litres <= 0) return 0;
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.spreadOverParts(parts, litres, (p, l) => p.waterSoil(l));
+      }
       this.reconcileSoil();
       return this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, "L");
     }
 
     /** See {@link Soil.organicMatterFraction}. */
     public organicMatterFraction(): number | null {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.organicMatterFraction());
+      }
       this.reconcileSoil();
       return this.reserveFraction(SOIL_ORGANIC_MATTER_RESERVE_KEY);
     }
 
     /** See {@link Soil.structureFraction}. */
     public structureFraction(): number | null {
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.structureFraction());
+      }
       this.reconcileSoil();
       return this.reserveFraction(SOIL_STRUCTURE_RESERVE_KEY);
     }
@@ -786,6 +1029,10 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.addOrganicMatter}. */
     public addOrganicMatter(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.applyToParts(parts, (p) => p.addOrganicMatter(fraction));
+      }
       this.reconcileSoil();
       const applied = this.creditReserve(
         SOIL_ORGANIC_MATTER_RESERVE_KEY,
@@ -807,6 +1054,12 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.poach}. */
     public poach(intensity: number, poachingFactor: number): number {
       if (!Number.isFinite(intensity) || intensity <= 0) return 0;
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.applyToParts(parts, (p) =>
+          p.poach(intensity, poachingFactor),
+        );
+      }
       const reserved = this.soilHost;
       const structure = reserved.getReserve(SOIL_STRUCTURE_RESERVE_KEY);
       if (!structure) return 0;
@@ -829,6 +1082,10 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.fixNitrogen}. */
     public fixNitrogen(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.applyToParts(parts, (p) => p.fixNitrogen(fraction));
+      }
       return this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, fraction, "%");
     }
 
@@ -876,12 +1133,20 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** Feed the soil; returns the fraction actually absorbed. */
     public feedSoil(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.applyToParts(parts, (p) => p.feedSoil(fraction));
+      }
       return this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, fraction, "%");
     }
 
     /** Draw nutrient out — what a harvested crop exports. */
     public drawNutrient(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        return this.applyToParts(parts, (p) => p.drawNutrient(fraction));
+      }
       const reserved = this.soilHost;
       const reserve = reserved.getReserve(SOIL_NITROGEN_RESERVE_KEY);
       if (!reserve) return 0;

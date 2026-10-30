@@ -65,6 +65,12 @@ import { Quantity } from '../quantity';
 import type { Light } from '../perception/Light';
 import Place from '../stuff/Place';
 import type { MarkupAugmenter } from '../../api/mml';
+import { Seeded } from '../Seeded';
+import {
+  CompetenceBand,
+  COMPETENCE_HALF_WIDTH,
+  type CompetenceBandName,
+} from '../advancement/CompetenceBand';
 
 /** The four growth stages, in order. */
 export const GROWTH_STAGES = [
@@ -213,6 +219,65 @@ export type CropStage =
   | 'ripe'
   | 'dead';
 
+/**
+ * What a pulled stem's roots tell the hand that pulled it (field
+ * population D7) — the ground's story, read off the plant: thin soil,
+ * no room, dry, waterlogged, or nothing wrong.
+ */
+export type RootsBand = 'shallow' | 'cramped' | 'well-down' | 'dry' | 'sodden';
+
+/**
+ * ⭐ The read a SPECIMEN carries — what it had where it stood, stamped at
+ * the pull (field population D7). A pulled stem does not grow, so its
+ * cause is the one it was pulled with, never what a hand or a pocket
+ * would make of it now.
+ */
+export interface SpecimenRecord {
+  /** The ground it was pulled from, as a reader names it (*the upper bench*). */
+  from: string;
+  /** The part's key (`top-end`), or `''` for one-piece ground. */
+  part: string;
+  /** The part as a reader names it (*the top end*), or `''`. */
+  partName: string;
+  /** The factor limiting it when it was pulled. */
+  limiting: LimitingFactor;
+  /** What its roots showed. */
+  roots: RootsBand;
+  /** Whether that factor was holding it back BADLY (the proficient read). */
+  severe: boolean;
+  /** The factor behind the first (the expert read), or `null`. */
+  next: LimitingFactor;
+}
+
+/**
+ * ⭐ A crop read at a competence band (field population D9/D11). Every
+ * field is what THAT band can tell — a finer field is `null` below the
+ * band that reads it, so a caller acting on the read (a farm hand)
+ * cannot know more than its eyes do. `lines` is the same read in words.
+ */
+export interface CropRead {
+  band: CompetenceBandName;
+  stage: CropStage;
+  condition: ConditionBand;
+  /** Novice and up: whether something is short. `null` below. */
+  short: boolean | null;
+  /** Competent and up: what is short. `null` below, or when nothing is. */
+  cause: LimitingFactor;
+  /** Proficient and up: how badly. `null` below, or when nothing is short. */
+  severity: 'badly' | 'a little' | null;
+  /** Expert: what runs short next. `null` below, or when nothing will. */
+  next: LimitingFactor;
+  /**
+   * With a seed only: the moisture fraction as THIS reader takes it —
+   * the truth plus a seeded error inside the band's bracket.
+   */
+  moisture?: number | null;
+  /** With a seed only: the nutrient fraction, observed the same way. */
+  nutrient?: number | null;
+  /** The read in words — never a digit. */
+  lines: string[];
+}
+
 const SECONDS_PER_GAME_DAY = 86_400;
 /** Containment hops the light sample climbs before giving up. */
 const MAX_LIGHT_HOPS = 8;
@@ -333,7 +398,7 @@ export interface Growing {
    * cover build D1). A plant has no business knowing which; a caller
    * that needs the slot surface narrows with `MixinApi.isCultivable`.
    */
-  getBed(): (Stuff & Soil & Container) | null;
+  getBed(): (Stuff & Soil) | null;
   /**
    * How hard it is to move this to another pot — the `horticulture`
    * difficulty the `repot` verb credits. Root disturbance scales with
@@ -431,6 +496,67 @@ export interface Growing {
   /** True when a ratoon has been cut so often its yield is failing. */
   isTiredRatoon(): boolean;
 
+  // ---------- ⭐ the patch, the specimen, the banded read (field population) ----------
+
+  /**
+   * The key of the PART of its ground this plant stands in (`top-end`),
+   * or `''` for the whole ground. {@link Growing.getBed} resolves it; a
+   * key naming no part falls back to the whole ground.
+   */
+  getGroundPart(): string;
+  setGroundPart(value: string): void;
+  /**
+   * What a specimen pulled from this crop is called (*stem of wheat*);
+   * `''` keeps the row's own description.
+   */
+  getSpecimenNoun(): string;
+  setSpecimenNoun(value: string): void;
+  /** Whether this is a pulled specimen — a record, which does not grow. */
+  isSpecimen(): boolean;
+  /** The specimen's stamped read, or `null` for a living plant. */
+  getSpecimen(): SpecimenRecord | null;
+  /**
+   * The area crop of this one's kind standing in `part` of the same
+   * ground — this plant included — or `null` when that part has none.
+   */
+  standIn(part: Stuff & Soil): (Stuff & Growing) | null;
+  /** What this plant's roots would show if it were pulled now. */
+  rootsBand(): RootsBand;
+  /** Feed the ground this plant is rooted in; returns the points taken. */
+  feedPlant(points: number): number;
+  /** Litres the ground under this plant can still take. */
+  waterHeadroomL(): number;
+  /** Points of nitrogen the ground under this plant can still take. */
+  nutrientHeadroom(): number;
+  /**
+   * ⭐ The read at `band` — see {@link CropRead}. With a `seed` it also
+   * carries the moisture and nutrient as that reader takes them.
+   */
+  readFor(band: CompetenceBandName, seed?: number): CropRead;
+  /** {@link Growing.readFor}'s words alone. */
+  readLines(band: CompetenceBandName): string[];
+  /**
+   * The seeded variation a specimen pulled here now carries on its vigor
+   * — the same spot in the same cycle gives the same stem.
+   */
+  specimenVariation(): number;
+  /**
+   * A reader's seed for {@link Growing.readFor} today — per reader, per
+   * part, per game day: the same hand misjudges the same patch the same
+   * way all day, and differently tomorrow.
+   */
+  readSeedFor(reader: Stuff): number;
+  /**
+   * Mint an individual of this plant's own kind carrying its growth —
+   * cut (`opts.cut`, the default) as a specimen with the read stamped on
+   * it, or left living (the labeled plant). Unplaced: the caller puts it
+   * where it goes.
+   */
+  takeSpecimen(
+    variation: number,
+    opts?: { cut?: boolean },
+  ): Promise<Stuff & Growing>;
+
   // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
   growthClockStamp: number;
@@ -445,6 +571,7 @@ export interface Growing {
   _fruitSetCount: number;
   _pollination: number;
   profile: GrowthProfileData | null;
+  _specimen: SpecimenRecord | null;
 }
 
 /**
@@ -516,6 +643,126 @@ const CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
   cold: 'It is too cold here for it to be doing anything.',
 };
 
+/*
+ * ⭐ The BANDED crop read (field population D9). One exhaustive record per
+ * rung, so adjacent bands always read differently and every band's
+ * sentence is implied by the next one's: the beginner sees the stage and
+ * how it looks; the novice, that something is short; the competent,
+ * what; the proficient, how badly; the expert, what runs short behind
+ * it. Never a digit, and never a different truth.
+ */
+
+/** A crop's stage as the short read names it. */
+const CROP_STAGE_WORD: Record<CropStage, string> = {
+  emerging: 'just up',
+  tillering: 'tillering',
+  'in-ear': 'in ear',
+  ripening: 'ripening',
+  ripe: 'ripe',
+  dead: 'dead',
+};
+
+/** How a living crop looks, as the untrained eye takes it. */
+const CROP_CONDITION_WORD: Record<Exclude<ConditionBand, 'dead'>, string> = {
+  thriving: 'looks strong',
+  healthy: 'looks well',
+  stressed: 'looks poor',
+  failing: 'is failing',
+};
+
+/** The cause, read off ground (the competent rung). */
+const CROP_CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
+  water: 'The soil is dry there.',
+  light: 'It is not getting enough light.',
+  root: 'Its roots have run out of room.',
+  nutrient: 'The soil is spent there.',
+  cold: 'It is too cold there for it to be doing anything.',
+};
+
+/** How badly (the proficient rung). */
+const CROP_SEVERITY_PHRASE: Record<
+  Exclude<LimitingFactor, null>,
+  { badly: string; little: string }
+> = {
+  water: {
+    badly: 'The ground is down near the wilting point.',
+    little: 'It is only a little dry.',
+  },
+  light: {
+    badly: 'It is all but in the dark.',
+    little: 'It is only a little short of light.',
+  },
+  root: {
+    badly: 'Its roots have nowhere left to go.',
+    little: 'Its roots are only a little cramped.',
+  },
+  nutrient: {
+    badly: 'The nitrogen is all but gone.',
+    little: 'The nitrogen is only a little low.',
+  },
+  cold: {
+    badly: 'It is far too cold for it.',
+    little: 'It is only a little too cold for it.',
+  },
+};
+
+/** What is short BEHIND the first factor (the expert rung). */
+const CROP_NEXT_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
+  water: 'Behind that, the soil is drying.',
+  light: 'Behind that, the light is poor.',
+  root: 'Behind that, the roots are cramped.',
+  nutrient: 'Behind that, the nitrogen is low.',
+  cold: 'Behind that, it is cold.',
+};
+
+/** The factor that would run short first, as a noun (the expert rung, all well). */
+const CROP_FACTOR_NOUN: Record<Exclude<LimitingFactor, null>, string> = {
+  water: 'the water',
+  light: 'the light',
+  root: 'the room for its roots',
+  nutrient: 'the nitrogen',
+  cold: 'the warmth',
+};
+
+/** What a pulled stem's roots show. */
+const ROOTS_PHRASE: Record<RootsBand, string> = {
+  shallow:
+    'Its roots are short and spread flat — they met something hard not far down.',
+  cramped: 'Its roots are a tight knot; they have run out of room.',
+  'well-down': 'Its roots go well down into dark, crumbly soil.',
+  dry: 'The soil on its roots is dry and falls away as dust.',
+  sodden: 'Its roots come up sodden and pale, smelling sour.',
+};
+
+/**
+ * Topsoil shallower than this stops a cereal's roots (metres) — a crop
+ * on it reads `shallow` when pulled. About a hand's span: the top end of
+ * a bench where *the soil runs out up here*.
+ */
+const SHALLOW_TOPSOIL_M = 0.2;
+
+/** A moisture fraction at/above this is waterlogged ground. */
+const SODDEN_AT = 0.95;
+
+/** A limiting satisfaction at/below this is holding a crop back BADLY. */
+const SEVERE_AT = 0.3;
+
+/**
+ * The vigor a specimen's seeded variation can move by, either way — a
+ * stem is that stand, give or take one plant's luck.
+ */
+const SPECIMEN_VARIATION = 0.1;
+
+/** FNV-1a 32-bit string hash — deterministic and process-independent. */
+function hashString(text: string): number {
+  let v = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    v ^= text.charCodeAt(i);
+    v = Math.imul(v, 0x01000193);
+  }
+  return v >>> 0;
+}
+
 /**
  * Append the plant's **size, condition and cause** to its long description,
  * in that order — how big it is, how it is doing, and why. All three are
@@ -534,8 +781,38 @@ const CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
  * Reads through the reconcile-on-read getters, so an absent owner's plant
  * reads truthfully.
  */
-function conditionAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+function conditionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!MixinApi.isGrowing(host)) return text;
+  // ⭐ An area crop and a pulled specimen read at the VIEWER's band
+  // (field population D9): the stand is read the way a farmer reads a
+  // field, and a beginner sees less of it. A pot, a bed and a labeled
+  // plant keep the shipped full read below. The band is the sync digest
+  // the look preload warmed (D10); a viewer with no transcript reads
+  // the floor.
+  if (host.isAreaCrop() || host.isSpecimen()) {
+    const reading =
+      viewer && MixinApi.isAdvancing(viewer)
+        ? viewer.competenceBandCached(host.getDiscipline())
+        : CompetenceBand.FLOOR;
+    const banded: string[] = [];
+    const specimen = host.getSpecimen();
+    const bed = specimen === null ? host.getBed() : null;
+    const part = host.getGroundPart();
+    if (part && bed && bed.soilPartKey() === part) {
+      banded.push(`It stands at ${bed.presentationPhrase().definite()}.`);
+    }
+    banded.push(...host.readLines(reading));
+    if (specimen !== null) {
+      banded.push(ROOTS_PHRASE[specimen.roots]);
+      if (specimen.partName && specimen.from) {
+        banded.push(`Taken from ${specimen.partName} of ${specimen.from}.`);
+      } else if (specimen.from) {
+        banded.push(`Taken from ${specimen.from}.`);
+      }
+    }
+    const read = banded.join(' ');
+    return text && text.length > 0 ? `${text}\n\n${read}` : read;
+  }
   const band = host.getConditionBand();
   const lines: string[] = [];
   if (band === 'dead') {
@@ -596,6 +873,11 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       nutrientDraw: { persistent: true, authorable: true },
       harvestTool: { persistent: true, authorable: true },
       discipline: { persistent: true, authorable: true },
+      // ⭐ Field population: the part of its ground a plant stands in,
+      // what a specimen of it is called, and a specimen's stamped read.
+      groundPart: { persistent: true, authorable: true },
+      specimenNoun: { persistent: true, authorable: true },
+      _specimen: { persistent: true },
     };
 
     /** Derived condition + cause lines appended to the long description. */
@@ -942,6 +1224,300 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       this.discipline = value || 'horticulture';
     }
 
+    // ---------- ⭐ the patch, the specimen, the banded read (field population) ----------
+
+    /** The key of the part of its ground this stands in; `''` = whole ground. */
+    public groundPart: string = '';
+
+    public getGroundPart(): string {
+      return this.groundPart;
+    }
+
+    public setGroundPart(value: string): void {
+      this.groundPart = typeof value === 'string' ? value : '';
+    }
+
+    /** What a specimen of this is called; `''` = the row's own words. */
+    public specimenNoun: string = '';
+
+    public getSpecimenNoun(): string {
+      return this.specimenNoun;
+    }
+
+    public setSpecimenNoun(value: string): void {
+      this.specimenNoun = typeof value === 'string' ? value : '';
+    }
+
+    /** The read stamped at the pull; `null` for a living plant. */
+    public _specimen: SpecimenRecord | null = null;
+
+    public isSpecimen(): boolean {
+      return this._specimen !== null;
+    }
+
+    public getSpecimen(): SpecimenRecord | null {
+      return this._specimen;
+    }
+
+    public standIn(part: Stuff & Soil): (Stuff & Growing) | null {
+      const self = this as unknown as Stuff & Growing;
+      const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (!here || !MixinApi.isContainer(here)) return null;
+      const candidates = [self, ...(here.getContents() as Stuff[])];
+      return (
+        candidates.find(
+          (c): c is Stuff & Growing =>
+            MixinApi.isGrowing(c) &&
+            this.isSameKindAs(c) &&
+            c.isAreaCrop() &&
+            c.getBed() === part,
+        ) ?? null
+      );
+    }
+
+    public rootsBand(): RootsBand {
+      const depth = this.getBed()?.soilDepthM() ?? null;
+      if (depth !== null && depth < SHALLOW_TOPSOIL_M) return 'shallow';
+      if (this.satRoot() < 1) return 'cramped';
+      const profile = this.profile;
+      const moisture = this.soilMoisture();
+      if (profile && moisture !== null) {
+        if (moisture <= profile.moistureWiltAt) return 'dry';
+        if (moisture >= SODDEN_AT) return 'sodden';
+      }
+      return 'well-down';
+    }
+
+    public feedPlant(points: number): number {
+      return this.getBed()?.feedSoil(points) ?? 0;
+    }
+
+    public waterHeadroomL(): number {
+      return this.getBed()?.soilMoistureHeadroomL() ?? 0;
+    }
+
+    public nutrientHeadroom(): number {
+      return this.getBed()?.soilNutrientHeadroom() ?? 0;
+    }
+
+    public readFor(band: CompetenceBandName, seed?: number): CropRead {
+      const rank = CompetenceBand.rank(band);
+      const condition = this.getConditionBand();
+      const stage = this.getCropStage();
+      const read: CropRead = {
+        band,
+        stage,
+        condition,
+        short: null,
+        cause: null,
+        severity: null,
+        next: null,
+        lines: [],
+      };
+      if (seed !== undefined) {
+        read.moisture = this.observe(this.soilMoisture(), band, seed, 1);
+        read.nutrient = this.observe(this.nutrientLevel(), band, seed, 2);
+      }
+      if (condition === 'dead') {
+        read.lines.push('It is dead where it stands.');
+        return read;
+      }
+      const { limiting, severe, next } = this.diagnosis();
+      read.lines.push(
+        `It is ${CROP_STAGE_WORD[stage]} and ${CROP_CONDITION_WORD[condition]}.`,
+      );
+      if (rank >= 1) {
+        read.short = limiting !== null;
+        read.lines.push(
+          limiting ? 'It is short of something.' : 'Nothing seems short now.',
+        );
+      }
+      if (rank >= 2) {
+        read.cause = limiting;
+        read.lines.push(
+          limiting ? CROP_CAUSE_PHRASE[limiting] : 'Nothing is holding it back.',
+        );
+      }
+      if (rank >= 3) {
+        read.severity = limiting ? (severe ? 'badly' : 'a little') : null;
+        read.lines.push(
+          limiting
+            ? CROP_SEVERITY_PHRASE[limiting][severe ? 'badly' : 'little']
+            : 'It has margin to spare.',
+        );
+      }
+      if (rank >= 4) {
+        read.next = next;
+        read.lines.push(
+          limiting
+            ? next
+              ? CROP_NEXT_PHRASE[next]
+              : 'Nothing else is short.'
+            : next
+              ? `If anything runs short first, it will be ${CROP_FACTOR_NOUN[next]}.`
+              : 'Nothing will run short soon.',
+        );
+      }
+      return read;
+    }
+
+    public readLines(band: CompetenceBandName): string[] {
+      return this.readFor(band).lines;
+    }
+
+    public specimenVariation(): number {
+      const self = this as unknown as Stuff;
+      const ground = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const at = ground?.getIdentityPath() ?? '';
+      const h = hashString(`${at}#${this.groundPart}#${this._cycleCount}`);
+      return (Seeded.unit(h, 1) - 0.5) * SPECIMEN_VARIATION;
+    }
+
+    public readSeedFor(reader: Stuff): number {
+      const who = reader.getIdentityPath() ?? reader.stuffId;
+      const day = Math.floor((this.growthNowSeconds() ?? 0) / SECONDS_PER_GAME_DAY);
+      return hashString(`${who}#${this.groundPart}#${day}`);
+    }
+
+    public async takeSpecimen(
+      variation: number,
+      opts: { cut?: boolean } = {},
+    ): Promise<Stuff & Growing> {
+      const self = this as unknown as Stuff;
+      const path = self.getTemplatePath();
+      if (!path) {
+        throw new Error('takeSpecimen: a plant with no template path has no kind to copy');
+      }
+      const cut = opts.cut ?? true;
+      // Read everything BEFORE the mint — the read is of the plant where
+      // it stands, and minting must not be what changes it.
+      const vigor = this.getVigor();
+      const record = cut ? this.specimenRecord() : null;
+      const minted = await StuffApi.clone<Stuff>(path);
+      if (!MixinApi.isGrowing(minted)) {
+        await StuffApi.destruct(minted);
+        throw new Error(`takeSpecimen: '${path}' did not mint a growing thing`);
+      }
+      // ⚠ Field writes on a plant this call just minted — the applier's
+      // carve-out in spirit: nothing else holds it yet.
+      minted.growthStage = this.growthStage;
+      minted._maturity = this._maturity;
+      minted._worstLimiting = this._worstLimiting;
+      minted._flowering = this._flowering;
+      minted._seedSet = this._seedSet;
+      minted._fruitFill = this._fruitFill;
+      minted.profile = this.profile;
+      minted._vigor = clamp01(vigor + (Number.isFinite(variation) ? variation : 0));
+      minted.setSownAreaM2(0);
+      minted.setGroundPart(this.groundPart);
+      minted._specimen = record;
+      if (this.specimenNoun && MixinApi.isVisible(minted)) {
+        minted.setShortDescription(this.specimenNoun);
+      }
+      return minted;
+    }
+
+    /**
+     * The read a specimen pulled here NOW would carry — its ground, its
+     * part, its cause and its roots.
+     */
+    private specimenRecord(): SpecimenRecord {
+      const self = this as unknown as Stuff;
+      const ground = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const bed = this.getBed();
+      const inPart = bed !== null && (bed as Stuff) !== (ground as Stuff | null);
+      const { limiting, severe, next } = this.diagnosis();
+      return {
+        from: ground ? ground.presentationPhrase().definite() : '',
+        part: inPart ? bed.soilPartKey() : '',
+        partName: inPart ? bed.presentationPhrase().definite() : '',
+        limiting,
+        roots: this.rootsBand(),
+        severe,
+        next,
+      };
+    }
+
+    /**
+     * What is short, how badly, and what is short behind it — stamped for
+     * a specimen, sampled live for a growing plant (the same five terms
+     * {@link Growing.getLimitingFactor} reads).
+     */
+    private diagnosis(): {
+      limiting: LimitingFactor;
+      severe: boolean;
+      next: LimitingFactor;
+    } {
+      const stamped = this._specimen;
+      if (stamped !== null) {
+        return {
+          limiting: stamped.limiting,
+          severe: stamped.severe,
+          next: stamped.next,
+        };
+      }
+      const limiting = this.getLimitingFactor();
+      const terms = this.growthTerms();
+      const goodAt = dial(AppSettingKeys.husbandryGoodAt, 0.6);
+      if (limiting === null) {
+        return { limiting, severe: false, next: terms[0]?.factor ?? null };
+      }
+      const first = terms.find((t) => t.factor === limiting);
+      const behind = terms.find((t) => t.factor !== limiting);
+      return {
+        limiting,
+        severe: (first?.sat ?? 1) <= SEVERE_AT,
+        next: behind && behind.sat < goodAt ? behind.factor : null,
+      };
+    }
+
+    /**
+     * The five growth terms sampled LIVE, worst first; ties keep the
+     * order {@link Growing.getLimitingFactor} names them in.
+     */
+    private growthTerms(): {
+      factor: Exclude<LimitingFactor, null>;
+      sat: number;
+    }[] {
+      const terms: { factor: Exclude<LimitingFactor, null>; sat: number }[] = [
+        { factor: 'water', sat: this.satWater(this.soilMoisture()) },
+        { factor: 'light', sat: this.satLight(this.sampleLux()) },
+        { factor: 'root', sat: this.satRoot() },
+        { factor: 'cold', sat: this.satWarmth() },
+        { factor: 'nutrient', sat: this.satNutrient() },
+      ];
+      return terms.sort((a, b) => a.sat - b.sat);
+    }
+
+    /**
+     * A fraction as a reader at `band` takes it: the truth plus a seeded
+     * error inside the band's bracket (`COMPETENCE_HALF_WIDTH`, the
+     * instrument's own table) — so the truth is always inside what they
+     * read, and a beginner's guess is wider than an expert's.
+     */
+    private observe(
+      truth: number | null,
+      band: CompetenceBandName,
+      seed: number,
+      salt: number,
+    ): number | null {
+      if (truth === null) return null;
+      const u = Seeded.unit(seed, salt) * 2 - 1;
+      return clamp01(truth + u * COMPETENCE_HALF_WIDTH[band]);
+    }
+
+    /**
+     * Whether `other` is a crop of this one's kind — the same row, or a
+     * row that cuts to the same crop (the bench's three stands are three
+     * rows over one wheat).
+     */
+    private isSameKindAs(other: Stuff & Growing): boolean {
+      const self = this as unknown as Stuff;
+      if (other.getTemplatePath() === self.getTemplatePath()) return true;
+      const mine = this.harvestTemplatePath;
+      return mine !== null && other.getHarvestTemplatePath() === mine;
+    }
+
     /**
      * A harvestable plant of this one's kind standing beside it, or null —
      * so `harvest cane` in a field of ratoons takes the ripe one rather
@@ -986,7 +1562,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * standing in a field read `null`, `satWater(null)` is 0, and every
      * crop authored into a field quietly died of thirst.
      */
-    public getBed(): (Stuff & Soil & Container) | null {
+    public getBed(): (Stuff & Soil) | null {
       const self = this as unknown as Stuff;
       if (MixinApi.isSlottable(self)) {
         const host = self.getOccupiedHost();
@@ -1003,7 +1579,10 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         MixinApi.isContainer(ground) &&
         !MixinApi.isCultivable(ground)
       ) {
-        return ground;
+        // ⭐ The plant binds to its PART of the ground by key (field
+        // population D4); a key naming no part — a patch deleted from a
+        // row — falls back to the whole ground, never orphans the crop.
+        return ground.soilPart(this.groundPart) ?? ground;
       }
       return null;
     }
@@ -1030,6 +1609,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public getLimitingFactor(): LimitingFactor {
+      if (this._specimen !== null) return this._specimen.limiting;
       if (!this._reconcilingGrowth) this.reconcileGrowth();
       if (this.isGrowthDead() || !this.profile) return null;
       // The cause line answers "why is it unhappy *now*", so every term
@@ -1083,6 +1663,9 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public reconcileGrowth(): void {
       if (this._reconcilingGrowth) return;
+      // ⭐ A pulled stem is a RECORD (field population D7): it does not
+      // grow, and its cause is the one stamped at the pull.
+      if (this._specimen !== null) return;
 
       const nowS = this.growthNowSeconds();
       if (nowS === null) return;

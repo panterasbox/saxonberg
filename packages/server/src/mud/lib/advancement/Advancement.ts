@@ -99,6 +99,10 @@ async function buildAndSave(
   // here). The cache refresh notifies once it has folded, so the poke
   // here is for the sync figures only.
   void practisingCache.refresh(entry.owner);
+  // ⭐ The digest too (field population D10): a crop's banded read takes
+  // the viewer's band off it synchronously, so a deed that moves a band
+  // must reach it. One fold per deed; bands move slowly.
+  void digestCache.refresh(entry.owner);
 }
 
 /**
@@ -294,6 +298,18 @@ export interface Advancing {
   conferredVerbs(): Promise<string[]>;
   practisingCompetenceCached(): DisciplineBand | null | undefined;
   competenceDigestCached(): DisciplineBand[] | undefined;
+  /**
+   * ⭐ The band in one Discipline as a **sync** read, off the competence
+   * digest — the floor when the digest has not folded, or holds no
+   * evidence in that Discipline. Warm it first with
+   * {@link Advancing.warmCompetenceDigest} (the look preload does).
+   */
+  competenceBandCached(discipline: string): CompetenceBandName;
+  /**
+   * Fold the competence digest now if it has not folded yet, so a sync
+   * {@link Advancing.competenceBandCached} read after it is honest.
+   */
+  warmCompetenceDigest(): Promise<void>;
 }
 
 /**
@@ -699,6 +715,31 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
       return rows
         ? this.suppressAll(withConditioning(this as unknown as Stuff, rows))
         : rows;
+    }
+
+    /**
+     * ⭐ One Discipline's band, sync, off the digest (field population
+     * D10) — the read a sync augmenter takes after the per-command
+     * preload warmed it. A miss is the FLOOR, never a guess upward: a
+     * reader the server has not folded yet reads like a beginner for one
+     * look, which is the honest direction to be wrong in.
+     */
+    public competenceBandCached(discipline: string): CompetenceBandName {
+      const rows = this.competenceDigestCached();
+      const row = rows?.find((r) => r.discipline === discipline);
+      return row?.band ?? CompetenceBand.FLOOR;
+    }
+
+    /**
+     * Await the digest's fold when it has none for this subject yet — the
+     * preload's half of {@link competenceBandCached}. A digest that has
+     * folded once is kept fresh by the ledger's own refresh, so this
+     * costs nothing after the first look.
+     */
+    public async warmCompetenceDigest(): Promise<void> {
+      const key = ownerKeyOf(this as unknown as Stuff);
+      if (key === null || digestCache.has(key)) return;
+      await digestCache.refresh(key);
     }
   }
   return AdvancementMixin;

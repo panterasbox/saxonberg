@@ -7,9 +7,15 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import { GrowingMixin, type GrowthProfileData } from '../Growing';
+import { SoilMixin } from '../Soil';
+import { COMPETENCE_BANDS, COMPETENCE_HALF_WIDTH } from '../../advancement/CompetenceBand';
+import { ContainerMixin } from '../../spatial/Container';
+import { Idea } from '../../stuff/Idea';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../Cultivable';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
@@ -17,7 +23,7 @@ import { ThermalMixin } from '../../thermal/Thermal';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity, type Unit } from '../../quantity';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
 
 /**
@@ -451,3 +457,189 @@ describe('GrowingMixin — the growth model', () => {
   });
 
 });
+
+/**
+ * ⭐ Field population (W0): the plant that stands in a PART of its ground,
+ * the read by band, and the specimen that does not grow.
+ */
+class PartSoil extends SoilMixin(ReservedMixin(Idea)) {
+  public key = '';
+  public override soilPartKey(): string {
+    return this.key;
+  }
+}
+
+/** Ground a plant stands in by containment — divided into two parts. */
+class PartedGround extends SoilMixin(ReservedMixin(ContainerMixin(Idea))) {
+  public parts: PartSoil[] = [];
+  public override soilParts(): readonly PartSoil[] {
+    return this.parts;
+  }
+}
+
+function partSoil(key: string): PartSoil {
+  return makeStuff(() => {
+    const p = new PartSoil();
+    p.key = key;
+    installMoisture(p, 100, 50);
+    return p;
+  });
+}
+
+describe('GrowingMixin — field population seams', () => {
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  it('⭐ getBed resolves the part by key, and falls back to the whole ground on a missing key', () => {
+    const top = partSoil('top-end');
+    const lane = partSoil('lane-end');
+    const ground = makeStuff(() => new PartedGround());
+    ground.parts = [top, lane];
+    const plant = fixture();
+    ContainmentApi.move(plant, ground);
+    expect(plant.getBed()).toBe(ground);
+    plant.setGroundPart('lane-end');
+    expect(plant.getBed()).toBe(lane);
+    plant.setGroundPart('top-end');
+    expect(plant.getBed()).toBe(top);
+    // A patch deleted from the row never orphans the crop.
+    plant.setGroundPart('far-side');
+    expect(plant.getBed()).toBe(ground);
+  });
+
+  it('standIn finds the crop of this kind rooted in the named part', () => {
+    const top = partSoil('top-end');
+    const lane = partSoil('lane-end');
+    const ground = makeStuff(() => new PartedGround());
+    ground.parts = [top, lane];
+    const sown = (part: string): GrowFixture => {
+      const f = fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 });
+      f.setSownAreaM2(500);
+      f.setGroundPart(part);
+      f.setHarvestTemplatePath('/test/crop/grain');
+      ContainmentApi.move(f, ground);
+      return f;
+    };
+    const atTop = sown('top-end');
+    const atLane = sown('lane-end');
+    expect(atTop.standIn(lane)).toBe(atLane);
+    expect(atTop.standIn(top)).toBe(atTop);
+    expect(atLane.standIn(top)).toBe(atTop);
+  });
+
+  it('⭐ readLines says strictly more at each band, and never contradicts the next', () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(40 * DAY); // dry — something is short
+    const reads = COMPETENCE_BANDS.map((band) => f.readLines(band));
+    for (let i = 1; i < reads.length; i++) {
+      const lower = reads[i - 1]!;
+      const higher = reads[i]!;
+      expect(higher.length).toBe(lower.length + 1);
+      // Every lower band's sentence is the start of the higher one's.
+      expect(higher.slice(0, lower.length)).toEqual(lower);
+    }
+    const expert = reads[reads.length - 1]!.join(' ');
+    expect(expert).toContain('The soil is dry there.');
+    expect(expert).not.toMatch(/\d/); // never a digit
+    // The beginner sees only the stage and the look.
+    expect(reads[0]!).toHaveLength(1);
+    expect(reads[0]![0]).not.toContain('dry');
+  });
+
+  it('the read is masked by band — a caller cannot know more than its eyes do', () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(40 * DAY);
+    const novice = f.readFor('novice');
+    expect(novice.short).toBe(true);
+    expect(novice.cause).toBeNull();
+    const competent = f.readFor('competent');
+    expect(competent.cause).toBe('water');
+    expect(competent.severity).toBeNull();
+    expect(f.readFor('proficient').severity).not.toBeNull();
+  });
+
+  it('⭐ readFor with a seed keeps the truth inside the band\'s bracket, stable per seed', () => {
+    const f = fixture();
+    f.getVigor();
+    const truth = f.getSoilMoisture();
+    for (const band of COMPETENCE_BANDS) {
+      for (const seed of [1, 77, 4242, 0xdeadbeef]) {
+        const a = f.readFor(band, seed).moisture!;
+        const b = f.readFor(band, seed).moisture!;
+        expect(a).toBe(b);
+        expect(Math.abs(a - truth)).toBeLessThanOrEqual(
+          COMPETENCE_HALF_WIDTH[band] + 1e-12,
+        );
+      }
+    }
+    // Without a seed there is no figure at all.
+    expect(f.readFor('expert').moisture).toBeUndefined();
+  });
+
+  it('⭐ a specimen does not grow and keeps its stamped cause', () => {
+    const f = fixture();
+    f.getVigor();
+    f._specimen = {
+      from: 'the upper bench',
+      part: 'top-end',
+      partName: 'the top end',
+      limiting: 'nutrient',
+      roots: 'shallow',
+      severe: true,
+      next: 'water',
+    };
+    const vigor = f.getVigor();
+    const stage = f.getGrowthStage();
+    setNow(200 * DAY);
+    expect(f.getVigor()).toBe(vigor);
+    expect(f.getGrowthStage()).toBe(stage);
+    // Not what a pocket would make of it now — what it was pulled with.
+    expect(f.getLimitingFactor()).toBe('nutrient');
+    expect(f.readFor('expert').next).toBe('water');
+    expect(f.isSpecimen()).toBe(true);
+  });
+
+  it('takeSpecimen copies the growth and stamps the read; uncut, it stays a living plant', async () => {
+    const f = makeStuffAtPathOf(fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 }));
+    f.setSownAreaM2(500);
+    f.setSpecimenNoun('stem of grain');
+    f.getVigor();
+    setNow(40 * DAY);
+    const mint = (): GrowFixture => makeStuff(() => new GrowFixture());
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async () => mint() as never);
+    const cut = await f.takeSpecimen(0.05);
+    expect(cut.isSpecimen()).toBe(true);
+    expect(cut.getSownAreaM2()).toBe(0);
+    expect(cut.getGrowthStage()).toBe(f.getGrowthStage());
+    expect(cut.getSpecimen()!.limiting).toBe(f.getLimitingFactor());
+    expect(cut.getVigor()).toBeCloseTo(Math.min(1, f.getVigor() + 0.05), 6);
+    const living = await f.takeSpecimen(0, { cut: false });
+    expect(living.isSpecimen()).toBe(false);
+    expect(living.getSownAreaM2()).toBe(0);
+  });
+
+  it('the specimen variation is SEEDED — the same spot gives the same stem', () => {
+    const f = fixture();
+    f.setGroundPart('top-end');
+    const a = f.specimenVariation();
+    expect(f.specimenVariation()).toBe(a);
+    expect(Math.abs(a)).toBeLessThanOrEqual(0.05);
+  });
+});
+
+/** Give a fixture a template path, so it has a kind to copy. */
+function makeStuffAtPathOf(f: GrowFixture): GrowFixture {
+  stampTemplatePathForTest(f, '/test/thing/plant/grain');
+  return f;
+}

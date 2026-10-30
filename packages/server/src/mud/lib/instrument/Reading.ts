@@ -86,7 +86,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { WorldClockApi } from '../../api/worldclock';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { CallSecurity } from '../security/decorators';
-import { CompetenceBand } from '../advancement/CompetenceBand';
+import { CompetenceBand, COMPETENCE_HALF_WIDTH } from '../advancement/CompetenceBand';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import { DISCOVERY } from '../belief/BeliefStore';
 import type { CommandContext } from '../../api/command';
@@ -156,38 +156,6 @@ export interface ReadingRoute {
   /** The words — *by eye: within you (competent)* / *no bench in reach*. */
   line: string;
 }
-
-/**
- * ⭐ Half-width of the honest bracket, as a fraction of the magnitude
- * read, by band. An untrained reader is not WRONG — they are vague, and
- * the truth is always inside what they say.
- *
- * ⚠⚠ **These are the INSTRUMENTED rung's, and the first cut of them was
- * half an order of magnitude too wide.** The drive printed
- *
- *     Temperature: 153.01 K ± 147.5 K (warm)
- *
- * for a room at 295 K. Every word of that is defensible on its own —
- * the truth IS inside the bracket, the band IS untrained — and the
- * sentence is still nonsense: nobody misreads a thermometer by fifty
- * per cent. What a dial buys is PRECISION; what the band decides is how
- * well the reader takes it off the dial, which is a small correction,
- * not a wild one. ⭐ The eye rung is unaffected, because an eye rung
- * answers in WORDS and has no bracket to be wrong about.
- *
- * ⚠ A channel whose quantity is not on a RATIO scale overrides
- * {@link halfWidthOf} with its own absolute error — Kelvin is the
- * example (295 K and 5 K are not "the same reading at different
- * magnitudes"), and mining's bearings are another (`ERROR_DEG`, because
- * a bearing's error does not scale with the bearing).
- */
-const HALF_WIDTH: Readonly<Record<CompetenceBandName, number>> = {
-  untrained: 0.08,
-  novice: 0.05,
-  competent: 0.025,
-  proficient: 0.012,
-  expert: 0.005,
-};
 
 /** Fallback wear-per-reading when the AppSettings dial is not seeded. */
 const WEAR_PER_READING_FALLBACK = 0.002;
@@ -774,7 +742,8 @@ export default abstract class Reading extends ReadingBase {
    * badly looks like.
    */
   protected halfWidthOf(truth: number, band: CompetenceBandName): number {
-    return Math.abs(truth) * HALF_WIDTH[band];
+    // The band vocabulary owns its own precision (field population D11).
+    return Math.abs(truth) * COMPETENCE_HALF_WIDTH[band];
   }
 
   /**

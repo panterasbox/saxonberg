@@ -1271,6 +1271,85 @@ Read first, in this order:
 
 ---
 
+## Build record — field population
+
+### W0 — the kernel seams
+
+Landed as planned: the parts protocol + aggregation on `SoilMixin`, the
+headroom reads, `groundPart`/`specimenNoun`/`_specimen` and the Growing
+surface (`standIn`, `rootsBand`, `feedPlant`, `waterHeadroomL`,
+`nutrientHeadroom`, `readFor`/`readLines`, `takeSpecimen`), `getBed`
+through `soilPart` (widened to `(Stuff & Soil) | null`), the banded
+augmenter branch, `Plant` composing `LabelledMixin` + `SampledMixin`,
+`landSwath` comparing the crop's container, `GroundCharacter.resolve(…,
+nudge?)`, `COMPETENCE_HALF_WIDTH` on `CompetenceBand`,
+`competenceBandCached`/`warmCompetenceDigest` + `DerivedStandingCache.has`
++ the digest refresh on append + the preload warm, and the D17 loose-list
+rule. Tests: `Soil.test.ts` (+11), `Growing.test.ts` (+8),
+`GroundCharacter.test.ts` (+1), new `competenceBandCached.test.ts` (4).
+
+Decisions the plan did not make:
+
+- ⚠ **Per-cent reserves are applied ALIKE to every part, not spread by
+  area share** (D3 said "spread by area share" for all six writes). Only
+  `waterSoil` (litres — extensive) is spread by area share and returns the
+  sum. `feedSoil`, `addOrganicMatter`, `drawNutrient`, `fixNitrogen` and
+  `poach` act on per-cent reserves (intensive): spreading 10 points 60/40
+  would raise each part by 6 and 4 and the field's mean by only 5, so a
+  divided field would gain half the legume nitrogen, lose half the
+  harvest draw and take half the muck a one-piece field does. Each part
+  takes the same amount; the return is the area-weighted mean taken —
+  what the whole field's reserve would have moved by. Likewise
+  `soilNutrientHeadroom` is the area-weighted MEAN of the parts (points),
+  `soilMoistureHeadroomL` the SUM (litres). Intent of D3 ("the sward,
+  turnUnder, cycleGrazedNitrogen keep reading the field and get the
+  aggregate") is what decided it.
+- `resolvePartFor(null)` on ground with exactly ONE part answers that part
+  (not `null`): a crop bound to it is rooted there.
+- `SpecimenRecord` gained `severe: boolean` and `next: LimitingFactor`
+  beside the plan's five fields — a pulled stem cannot be re-sampled
+  live, so the proficient and expert rungs of its banded read need the
+  severity and the second factor stamped at the pull too.
+- `standIn` (and the kind test it uses) matches **the same template path
+  OR the same `harvestTemplatePath`**: D15's bench stands are three
+  `extends:` rows with three different template paths over one wheat, so
+  a template-path-only match would never find the middle's stand from the
+  top end's. `ripeSibling` is unchanged (template path only) — W3 should
+  check whether `harvest wheat` substitution across the bench's three rows
+  needs the same widening.
+- Two small public methods on `Growing` that the plan implied but did not
+  name: `specimenVariation()` (D7's seeded vigor variation — the module's
+  FNV-1a `hashString` lives behind it) and `readSeedFor(reader)` (D11's
+  per-reader, per-part, per-game-day seed) — so `SampleController` (W4)
+  and the farms brain (W5) call the object, not a hash.
+- The banded read's rungs (`readFor`) are masked BY BAND in the returned
+  `CropRead` (a novice's read has `cause: null`), not only in its words —
+  a hand acting on the read cannot know more than its eyes do.
+- "It stands at <part>." is printed first, before the banded lines; for a
+  specimen the roots line and "Taken from <part> of <field>." follow.
+- `SHALLOW_TOPSOIL_M = 0.2`, `SODDEN_AT = 0.95`, `SEVERE_AT = 0.3` —
+  constants in `Growing.ts`; the top end (0.34 × 0.35 ≈ 0.12 m) reads
+  `shallow`.
+
+- ⚠ **`lint:unconsumed-seams` ceiling 18 → 20 for this one wave.** The
+  two new terminal-default `@hook`s (`soilPartKey`, `soilDepthM`) have
+  kernel callers but no override until W1's `Patch`; the gate counts
+  un-overridden hooks. The rise carries a caller audit in the script's
+  comment. **W1 must lower `SEAM_CEILING` back to 18** when `Patch`
+  overrides both (the plan already says every new @hook has its override
+  in W1).
+
+Notes for later waves:
+
+- `landSwath` still calls `bed.ensureCropTitle()` on `plant.getBed()` —
+  on a patched field that is the PATCH, whose default is a no-op. W1's
+  `Patch` must forward `ensureCropTitle` to its field (or W3 call it on
+  the container) or a stranger's cut on the bench stops being the farm's.
+- `Plant` is now `Sampled`, so until W4 changes `SampleController.fromThing`,
+  `sample wheat` on a stand would stamp the stand in place (the shipped
+  non-stackable branch). No drive step reaches it before W4.
+- `LabelledMixin` affords `label.yaml` on every plant from now on.
+
 ## Drive record
 
 *(appended at build time, not at plan time)*

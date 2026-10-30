@@ -409,7 +409,11 @@ async function landSwath(
   if (giver.isDestroyed() || plant.isDestroyed()) return;
   const where = MixinApi.isContainable(giver) ? giver.getContainer() : null;
   const bed = plant.getBed();
-  if (!where || (bed as Stuff | null) !== where) {
+  // ⭐ Compare where the crop STANDS, not its bed: a crop in a patched
+  // field is rooted in its patch (field population D4), which nobody
+  // stands inside — the field holds both the harvester and the crop.
+  const standsIn = MixinApi.isContainable(plant) ? plant.getContainer() : null;
+  if (!where || (standsIn as Stuff | null) !== where) {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`Nothing came of it — you are not standing in it any more.`)
