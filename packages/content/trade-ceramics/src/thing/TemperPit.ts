@@ -36,6 +36,7 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
+import Grog from './Grog';
 
 function dial(key: string, fallback: number): number {
   try {
@@ -103,7 +104,11 @@ export default class TemperPit extends TemperPitBase {
     // (B99) — and loose granular openers (sand, grog, breeze). A fired pot,
     // a stone or a tool cannot be trodden into clay; a fired piece broken to
     // sherds goes to the millstone and comes back as grog.
+    // ⚠ Grog by its FORM: ground from sherds, it carries their fired body
+    // as its material (a transform keeps its input's), and read by tags it
+    // was refused as a pot (the finalize drive, run 3).
     const hard = pieces.find((p) => {
+      if (p instanceof Grog) return false;
       const mat = MixinApi.isTangible(p) ? p.getMaterial() : null;
       return mat === null || !(mat.hasTag('plastic') || mat.hasTag('granular'));
     });

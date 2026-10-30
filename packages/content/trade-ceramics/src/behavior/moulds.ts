@@ -43,6 +43,7 @@ import { BEHAVIOR_BEAT_TYPE } from '@saxonberg/server/mud/lib/behavior/BehaviorB
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import Grog from '../thing/Grog';
 
 type Moulder = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -215,6 +216,7 @@ function isTempered(s: Stuff): boolean {
 
 /** Sand, grog or breeze — the materials a temper reads as openers. */
 function isOpener(s: Stuff): boolean {
+  if (s instanceof Grog) return true; // its material is the sherds' (TemperPit)
   if (!MixinApi.isTangible(s)) return false;
   const mat = s.getMaterial();
   return mat !== null && (mat.hasTag('silica') || mat.hasTag('grog') || mat.hasTag('breeze'));

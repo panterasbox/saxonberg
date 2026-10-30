@@ -17,6 +17,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 import TemperPit from '../thing/TemperPit';
 import ClayVessel from '../thing/ClayVessel';
+import Grog from '../thing/Grog';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 
 class Yard extends Place {}
@@ -147,6 +148,17 @@ describe('the temper pit', () => {
     const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
     expect(plan.ok).toBe(false);
     if (!plan.ok) expect(plan.reason).toBe('frozen');
+  });
+
+  it('⭐ grog ground from sherds treads in — it is grit by its form, though its material is the fired body', async () => {
+    const p = pit(true);
+    await put(p, clayMat, 9, true);
+    const grog = makeStuff(() => new Grog());
+    grog.setMass(Quantity.of(1, 'kg'));
+    grog.setMaterial(material('terracotta', ['ceramic', 'fired']));
+    await ContainmentApi.move(grog, p);
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    expect(plan.ok).toBe(true);
   });
 
   it('a dry pit refuses — it wants water', async () => {
