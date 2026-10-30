@@ -2092,6 +2092,22 @@ stage server on 2014 was stopped by PID.
     (the command line splits on it — the reset never ran) and its neglected
     patch was dried to the wilting point, which in a near-rainless realm
     kills it before it ripens (dried to stressed now).
+- **⚠ Merging behind ceramics (!437, build-3), probed 2026-10-30 in a
+  scratch worktree: 22 shared files, 3 conflicts.**
+  - `check-mass.ts`: both lowered the same ratchet; take the lower ceiling
+    and let `lint:mass` confirm it.
+  - `Tooled.ts`: both added a field (`swathM2` here, `discipline` there);
+    keep both.
+  - ⭐ `mql/scope-walk.ts` is SEMANTIC. Ceramics scores an exact KEYWORD at
+    70 (above a name that merely holds the word: `look clay` is the lump,
+    not the pit); this branch lets a NAME beat a keyword-only reach
+    (`look at the middle` is the patch, not the stand). Merged naively,
+    `look at the middle` prompts again, and `look at the top end` binds the
+    STAND, since ceramics' exact-name 100 is one-word only and the stand's
+    keyword "top end" scores 70. Resolve as ONE ordered cascade: exact name
+    including a multi-word phrase (100) → exact keyword (70) → name word
+    matches (40–60) → keyword partials (≤25), each tier cutting the ones
+    below it when present. Run both branches' scorer tests after.
 
 ## Drive record
 
