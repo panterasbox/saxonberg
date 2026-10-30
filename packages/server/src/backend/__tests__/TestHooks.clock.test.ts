@@ -37,9 +37,35 @@ describe('TestHooks.advanceClock', () => {
   });
 
   it('moves world-time and reports both sides of the jump', async () => {
-    const moved = await TestHooks.advanceClock('3 days');
-    expect(moved.after - moved.before).toBeCloseTo(3 * DAY_S, 3);
+    const moved = await TestHooks.advanceClock('20 hours');
+    expect(moved.after - moved.before).toBeCloseTo(20 * 3600, 3);
     expect(TestHooks.clockNow()).toBeCloseTo(moved.after, 3);
+  });
+
+  describe('⛔ a jump past one game day is a SPAN step', () => {
+    it('is refused outside soak mode, naming the rule and the fix', async () => {
+      const err = TestHooks.advanceClock('2 days');
+      await expect(err).rejects.toThrow(/span step/i);
+      await expect(TestHooks.advanceClock('2 days')).rejects.toThrow(
+        /\.soak\./,
+      );
+    });
+
+    it('⭐ and the refusal leaves the clock where it was', async () => {
+      const before = TestHooks.clockNow();
+      await expect(TestHooks.advanceClock('30 days')).rejects.toThrow();
+      expect(TestHooks.clockNow()).toBeCloseTo(before, 0);
+    });
+
+    it('exactly one day is inside the line', async () => {
+      const moved = await TestHooks.advanceClock('1 day');
+      expect(moved.after - moved.before).toBeCloseTo(DAY_S, 3);
+    });
+
+    it('a soak run is let through', async () => {
+      const moved = await TestHooks.advanceClock('3 days', { soak: true });
+      expect(moved.after - moved.before).toBeCloseTo(3 * DAY_S, 3);
+    });
   });
 
   it('⭐ a ZERO jump is a legal no-op', async () => {
@@ -84,7 +110,7 @@ describe('TestHooks.advanceClock', () => {
         null,
         'sandbox.runScoped',
         async () => {
-          await TestHooks.advanceClock('2 days');
+          await TestHooks.advanceClock('2 days', { soak: true });
         },
         'rethrow',
         { circleScope: '/home/somebody' },

@@ -54,6 +54,17 @@ vi.mock('../../../backend/TestHooks', () => ({
       handle: string,
       done: (err: unknown, user?: { id: string }) => void
     ) => done(null, { id: `uid-${handle}` }),
+    // The real cap lives in TestHarnessApi (TestHooks.clock.test.ts and
+    // test-harness.test.ts); here only the ROUTE's job is pinned —
+    // `soak` passed through, the refusal's words relayed.
+    advanceClock: async (duration: string, opts?: { soak?: boolean }) => {
+      if (duration === '2 days' && !opts?.soak) {
+        throw new Error(
+          "test clock: a jump of '2 days' (2.0 game days) is a SPAN step"
+        );
+      }
+      return { before: 0, after: 1, settledMs: 0, quiet: true };
+    },
   },
 }));
 
@@ -99,5 +110,29 @@ describe('TestAuthRoutes', () => {
     expect(allowed.status).toBe(200);
 
     vi.unstubAllEnvs();
+  });
+
+  describe('/auth/test-clock — the span rule', () => {
+    it('relays the refusal of a jump past a day, in its own words', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-clock')
+        .send({ advance: '2 days' });
+      expect(res.status).toBe(500);
+      expect(res.body.error).toMatch(/SPAN step/);
+    });
+
+    it('passes soak: true through to the hook', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-clock')
+        .send({ advance: '2 days', soak: true });
+      expect(res.status).toBe(200);
+    });
+
+    it('a day is no span', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-clock')
+        .send({ advance: '1 day' });
+      expect(res.status).toBe(200);
+    });
   });
 });

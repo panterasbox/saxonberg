@@ -176,6 +176,16 @@ export class PersistApi {
     return PersistenceManager.get().isConnected();
   }
 
+  /**
+   * Resolve when the database has had nothing in flight for `quietMs`, or
+   * `false` after `timeoutMs` — what a test-world clock jump waits on
+   * (`TestHarnessApi.advanceClock`) so the next jump does not stack on
+   * this one's backlog.
+   */
+  static whenQuiet(quietMs = 500, timeoutMs = 300_000): Promise<boolean> {
+    return PersistenceManager.get().whenQuiet(quietMs, timeoutMs);
+  }
+
   /** Documents in `collection` matching `query`, optionally sorted/limited. */
   static async find(
     collection: string,

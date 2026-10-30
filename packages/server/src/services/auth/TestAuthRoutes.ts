@@ -111,7 +111,9 @@ export class TestAuthRoutes {
         res.status(403).json({ error: 'forbidden' });
         return;
       }
-      const body = req.body as { advance?: unknown } | undefined;
+      const body = req.body as
+        | { advance?: unknown; soak?: unknown }
+        | undefined;
       const advance = body?.advance;
       // No `advance` is a pure READ, which is what a drive uses to
       // assert the jump landed.
@@ -128,12 +130,15 @@ export class TestAuthRoutes {
         res.status(400).json({ error: 'advance must be a duration string' });
         return;
       }
-      void TestHooks.advanceClock(advance)
+      // ⛔ `soak: true` is sent only by the wire harness under `pnpm
+      // wire:soak`; without it a jump past one game day is refused as a
+      // span step (TestHarnessApi.advanceClock, the one place).
+      void TestHooks.advanceClock(advance, { soak: body?.soak === true })
         .then((moved) => res.json(moved))
         .catch((err: unknown) => {
           // ⚠ The MESSAGE goes back, not a bare 500. A refusal here is
-          // `@TestOnly`'s or the clock's own (a paused clock, a
-          // duration it cannot parse), and each says exactly what is
+          // `@TestOnly`'s, the span rule's, or the clock's own (a paused
+          // clock, a duration it cannot parse), and each says exactly what is
           // wrong — losing that is how the eval route stayed
           // undiagnosed for three review rounds.
           console.error('TestAuthRoutes: test-clock failed:', err);

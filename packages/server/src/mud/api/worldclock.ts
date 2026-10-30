@@ -205,6 +205,17 @@ export class WorldClockApi {
     logic().advance(by);
   }
 
+  /**
+   * A duration, as game-seconds, in exactly the grammar `after()`,
+   * `every()` and `advance()` take (`'90 minutes'`, `'1.5 days'`). A
+   * pure parse: the clock does not move and nothing is scheduled.
+   *
+   * @throws the clock's own message for a duration it cannot parse.
+   */
+  public static durationSeconds(d: Quantity<'s'> | string): number {
+    return logic().durationSeconds(d);
+  }
+
   /* ──────────────────── persistence (own-thing model) ──────────────────── */
 
   public static snapshot(): WorldClockSnapshot {

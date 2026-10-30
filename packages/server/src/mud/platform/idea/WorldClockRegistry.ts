@@ -270,7 +270,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     cb: ClockCallback,
     opts?: ScheduleOpts,
   ): ClockHandle {
-    const delayS = this.parseDelayToSeconds(delay);
+    const delayS = this.durationSeconds(delay);
     return this.makeSchedule({
       nextFireAtS: this.currentGameSeconds() + delayS,
       intervalS: null,
@@ -301,7 +301,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     cb: ClockCallback,
     opts?: ScheduleOpts & { startAt?: Quantity<'s'>; runs?: number },
   ): ClockHandle {
-    const intervalS = this.parseDelayToSeconds(interval);
+    const intervalS = this.durationSeconds(interval);
     if (intervalS <= 0) {
       throw new RangeError(
         `WorldClockApi.every: interval must be a positive game-time, got ${intervalS}s`,
@@ -459,7 +459,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
   @CallSecurity(WorldClockApiCallers)
   public advance(by: Quantity<'s'> | string): void {
     this.assertNotQuarantined('advance');
-    const gameS = this.parseDelayToSeconds(by);
+    const gameS = this.durationSeconds(by);
     if (gameS < 0) {
       throw new Error(
         `WorldClockApi.advance: time only runs forward (got ${gameS}s)`,
@@ -727,7 +727,12 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
     }
   }
 
-  private parseDelayToSeconds(d: Quantity<'s'> | string): number {
+  /**
+   * The duration grammar `after()`, `every()` and `advance()` take,
+   * as game-seconds — the ONE parser (see {@link WorldClockApi.durationSeconds}).
+   */
+  @CallSecurity(WorldClockApiCallers)
+  public durationSeconds(d: Quantity<'s'> | string): number {
     if (typeof d !== 'string') return d.rawValue();
     const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day)s?\s*$/.exec(d);
     if (!m) {

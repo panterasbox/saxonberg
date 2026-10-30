@@ -53,8 +53,7 @@ import Avatar from '../mud/lib/character/Avatar';
 import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
-import { WorldClockApi } from '../mud/api/worldclock';
-import { PersistenceManager } from './PersistenceManager';
+import { TestHarnessApi, type ClockJump } from '../mud/api/test-harness';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -244,9 +243,13 @@ export class TestHooks {
    *      that is ever true while `NODE_ENV === 'production'`.
    *   2. the ROUTE is mounted only in the same branch, so in an
    *      ordinary server the endpoint does not exist.
-   *   3. `WorldClockApi.advance` itself carries `@TestOnly`, so outside
-   *      a test environment the method refuses with its own message
-   *      whatever calls it.
+   *   3. `TestHarnessApi.advanceClock` (and `WorldClockApi.advance` under
+   *      it) carries `@TestOnly`, so outside a test environment the
+   *      method refuses with its own message whatever calls it.
+   *
+   * ⛔ And a fourth rule, not a gate: a jump past ONE GAME DAY is a span
+   * step and is refused before it moves anything unless `opts.soak`
+   * (sent by the wire harness under `pnpm wire:soak`).
    *
    * ⭐ `runRoot` for the same reason `authenticate` uses it —
    * `backend/**` may push call frames and `services/` may not — and it
@@ -256,58 +259,29 @@ export class TestHooks {
    *
    * @param duration game-time to skip (`'3 days'`, `'20 days'`) — the
    *   grammar `WorldClockApi.after()` takes.
+   * @param opts.soak the soak lane's run — lets a jump past a day through.
    * @returns game-seconds before and after, so the caller can assert the
    *   jump landed rather than trusting a 200.
    */
   public static async advanceClock(
-    duration: string
-  ): Promise<{ before: number; after: number }> {
+    duration: string,
+    opts?: { soak?: boolean }
+  ): Promise<ClockJump> {
     TestHooks.#assertTestMode('advanceClock');
-    const out = ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
-      const before = WorldClockApi.getNow().rawValue();
-      WorldClockApi.advance(duration);
-      const after = WorldClockApi.getNow().rawValue();
-      console.info(
-        `TestHooks: advanced world-time '${duration}' ` +
-          `(${Math.round(before)}s → ${Math.round(after)}s)`
-      );
-      return { before, after };
-    });
-    // ⭐ The jump returns when the world has caught up with it (river D46,
-    // pass 17): everything the skipped interval fired queues its reads and
-    // writes behind the pool, and a drive that jumps again before they land
-    // stacks one jump's backlog on the next — ~21,000 queries at 12 s each,
-    // and the process grew until the box went down.
-    const t0 = Date.now();
-    // ⭐ The clock is HELD while it settles: the world runs at its scale
-    // in real time, so a minute's wait would land the jump many game
-    // minutes past where the drive asked (pass 18: a quarter of an hour's
-    // jump landed past the boat it was for). Held, nothing new fires and
-    // the jump lands exactly. Never left held: resumed whatever happens.
-    const held = ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
-      if (WorldClockApi.isPaused()) return false;
-      WorldClockApi.pause();
-      return true;
-    });
-    let quiet = false;
-    try {
-      // Under the wire client's 300 s header timeout, so a slow drain reports rather than drops.
-      quiet = await PersistenceManager.get().whenQuiet(500, 240_000);
-    } finally {
-      if (held) ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => WorldClockApi.resume());
-    }
-    console.info(
-      `TestHooks: the jump settled in ${Date.now() - t0} ms` +
-        (quiet ? '' : ' — NOT quiet at the timeout; the backlog is still draining')
+    // ⭐ The cap (a jump past one game day is a SPAN step, refused
+    // unless `soak`), the jump and the settle all live in
+    // `TestHarnessApi` — the one implementation the in-world `testharness`
+    // command calls too, so both doors meet the same rule once.
+    return ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () =>
+      TestHarnessApi.advanceClock(duration, opts)
     );
-    return out;
   }
 
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');
     return ExecutionContextApi.runRoot(TestHooks, 'clockNow', () =>
-      WorldClockApi.getNow().rawValue()
+      TestHarnessApi.clockNow()
     );
   }
 
