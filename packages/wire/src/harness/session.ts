@@ -198,7 +198,11 @@ async function login(
   opts: SessionOptions & { withCharacter?: boolean } = {}
 ): Promise<string> {
   const server = SERVER_URL();
-  const res = await fetch(`${server}/auth/test-login`, {
+  // ⚠ After a long clock advance the world can be busy past undici's
+  // five-minute header timeout bringing the place current; the request is
+  // still served, so asking again is answered (ceramics drive B, run 32 —
+  // the login after a season's advance). Twice, then the error stands.
+  const send = (): Promise<Response> => fetch(`${server}/auth/test-login`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -214,6 +218,15 @@ async function login(
       ...(opts.parcels?.length ? { parcels: opts.parcels } : {}),
     }),
   });
+  let res: Response | null = null;
+  for (let attempt = 0; res === null; attempt++) {
+    try {
+      res = await send();
+    } catch (err) {
+      const code = (err as { cause?: { code?: string } }).cause?.code;
+      if (attempt >= 2 || code !== 'UND_ERR_HEADERS_TIMEOUT') throw err;
+    }
+  }
   if (!res.ok) {
     const why = await res
       .json()
@@ -888,6 +901,11 @@ export class Session {
     const heard = plain(this.proseFrames.join('\n'));
     this.proseFrames.length = 0;
     return heard;
+  }
+
+  /** Still connected — `close()` has not been called and the socket is open. */
+  isOpen(): boolean {
+    return !this.closed && this.ws.readyState === WebSocket.OPEN;
   }
 
   close(): void {

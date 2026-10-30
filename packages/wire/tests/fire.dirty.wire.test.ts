@@ -46,6 +46,7 @@ import {
   uniqueHandle,
   expectOk,
   engagementIdOf,
+  advanceWorldClock,
 } from '../src/harness';
 
 /**
@@ -290,45 +291,39 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   }, 180_000);
   afterAll(() => f?.close());
 
-  it('⭐ drive 10 — the clamp still chars, exactly as before', async () => {
-    // ⚠ The regression that matters most in this wave: `draught` rose
-    // onto `BurnerMixin`, so the clamp's one dial is now the kernel's
-    // and `char <n>` is one of three ways to set the same number.
-    const charred = await say(f, 'char 0.45');
-    understood(charred, 'char 0.45');
-  }, 180_000);
+  // ⛔ Drive 10 — the clamp chars over three game days — is a SPAN and
+  // lives in fire.soak.dirty (the soak-harness census).
 
-  it('⭐⭐ drive 11 — the retort is HERE, and it fires', async () => {
+  it('⭐⭐ drive 11 — the retort is HERE, it fires shut, and the condenser fills', async () => {
     const stoked = await say(f, 'stoke charcoal into retort');
     understood(stoked, 'stoke charcoal into retort');
     const lit = await say(f, 'ignite retort');
     understood(lit, 'ignite retort');
 
-    // ⭐ Load it with the yard's own cordwood — the SAME charge the
-    // clamp takes, which is the point.
-    const put = await say(f, 'put cordwood in retort');
-    understood(put, 'put cordwood in retort');
-    // ⚠ `fire IN retort`, with the preposition. The `kiln` arg is
-    // prepositional (`[in, at]`), so a bare noun cannot bind to it and
-    // the DEFAULT `reachable:[mixin.BurnerMixin]` runs instead — which in
-    // this yard matches the clamp AND the retort. ⭐ Found by the drive:
-    // bare `fire retort` answered `mql-error[kiln]`, which is the arg
-    // gate doing its job and a line a player would have typed.
-    const fired = await say(f, 'fire in retort');
-    understood(fired, 'fire in retort');
-    await settle(f, fired);
-  }, 300_000);
-
-  it('⭐⭐ drive 12 — the condenser is placeable on it, and the chain is REAL', async () => {
     // ⚠ The reachability link the plan flagged as most likely to die
     // silently: a Placement member naming no row makes `place` refuse in
-    // the vocabulary's own phrase. `on` is a shipped row; `outlet` was
-    // not, and is not used.
+    // the vocabulary's own phrase. `on` is a shipped row.
     const placed = await say(f, 'put condenser on retort');
     understood(placed, 'put condenser on retort');
     expect(refusedFor(placed), 'the condenser will not stand on the retort')
       .toBeNull();
-  }, 180_000);
+
+    // ⭐ Load it with the yard's own cordwood — the SAME charge the
+    // clamp takes, which is the point.
+    const put = await say(f, 'put cordwood in retort');
+    understood(put, 'put cordwood in retort');
+    // ⚠ `fire IN retort`, with the preposition — the `kiln` arg is
+    // prepositional, and bare `fire retort` answered `mql-error[kiln]`.
+    // ⭐ Held three hours: the length has to come up to heat (its own
+    // tau) before the wood's transition gives off its tar.
+    const fired = await say(f, 'fire in retort for 3 hours');
+    understood(fired, 'fire in retort for 3 hours');
+    expect(refusedFor(fired), 'the retort would not fire').toBeNull();
+    await advanceWorldClock('3 hours');
+    await settle(f, fired);
+    const condenser = (await f.prose('look condenser')).replace(/<[^>]*>/g, '');
+    expect(condenser, 'no tar ran into the condenser').toMatch(/tar/i);
+  }, 300_000);
 
   it('⭐⭐ drive 17 — the gasometer reads in WORDS, from across the yard', async () => {
     // ⚠⚠ **This checkpoint needs the world the drive OWNS.** On a world

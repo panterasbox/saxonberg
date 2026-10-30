@@ -1,0 +1,11 @@
+# `bottle` — a blown closed vessel of about a bottle's three-quarter liter: a
+# gather blown out on the pipe and necked with the jacks. A form word like the
+# potter's (`/platform/idea/Form`), so a second blown vessel is a row.
+class: /platform/idea/Form
+data:
+  key: bottle
+  formClass: closed
+  capacityL: 0.75
+  proportion: tall
+  product: /trade/glass/thing/bottle
+  discipline: glasswork

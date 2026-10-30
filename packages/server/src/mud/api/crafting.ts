@@ -162,8 +162,9 @@ export interface RecipeView {
  * buffer is reverse-matched to a recipe (for the output material + grade
  * floor + recipe id) and the destination vessel is filled + stamped. The
  * maker is derived from execution context, never the wire (as with
- * {@link CraftRequest}); the inputs were already debited off the bottles
- * at pour-time, so the mint does not re-consume.
+ * {@link CraftRequest}); a buffer's inputs were already debited off the
+ * bottles at pour-time, so the mint does not re-consume them — a
+ * compounding vessel's `charge` is the one build the mint consumes.
  */
 export interface BuildMintRequest {
   /**
@@ -177,8 +178,21 @@ export interface BuildMintRequest {
    * onto the recipe's cloned output (or the generic worked lump).
    */
   workpiece?: Stuff;
-  /** The accumulated build buffer (banked contributions). */
-  contributions: BuildContribution[];
+  /**
+   * ⭐ A compounding vessel whose physical CONTENTS are the build
+   * (ceramics re-plan R1-D7) — the tub, the batch pot, the temper pit.
+   * The charge is read as the record a shaker banks (the vessel's own
+   * `chargeContributions()`), runs the one path, and is consumed by the
+   * mint: its pieces destructed, its belly emptied. The vessel's
+   * `productMaterial` names the product when it names one; otherwise the
+   * matched recipe does, else the generic pot-luck — into the vessel.
+   */
+  charge?: Stuff;
+  /**
+   * The accumulated build buffer (banked contributions). Ignored when
+   * `charge` is given — the charge IS the build.
+   */
+  contributions?: BuildContribution[];
   /** The highest heat (K) the build was worked at (the vessel's latch);
    * a recipe with `requiresHeatK` above it never reverse-matches. */
   heatedToK?: number;
@@ -231,7 +245,7 @@ export interface RepairRequest {
  */
 export interface MendOutcome {
   part?: string;
-  kind: 'mended' | 'reforged' | 'tightened' | 'refired';
+  kind: 'mended' | 'reforged' | 'tightened' | 'refired' | 'riveted';
   /** The trade it was mended under (`''` when none could be known). */
   discipline: string;
   /** The hand's band in that trade. */
@@ -273,7 +287,7 @@ export const NOBODY_TO_WORK = "There's nobody here to do the work.";
 export interface Fault {
   /** The part (`''` for a thing of one piece), or the joint for `slack`. */
   part: string;
-  kind: 'worn' | 'failed' | 'slack' | 'spent';
+  kind: 'worn' | 'failed' | 'slack' | 'spent' | 'cracked';
   /** What the hand can call it — below a joint's band, *something about the staves*. */
   named: string;
   /** What mending it would be. */
@@ -356,7 +370,7 @@ export interface RepairSuccess {
    * slack joint (consumes nothing), `refired` a spent cask, or `restored`
    * wear with material. Absent on a thing that is not made of parts.
    */
-  rung?: 'tightened' | 'refired' | 'restored' | 'reforged';
+  rung?: 'tightened' | 'refired' | 'restored' | 'reforged' | 'riveted';
   /** What the rung acted on — the joints tightened, in words. */
   named?: string;
   /**
@@ -390,6 +404,12 @@ export interface FitRequest {
   part?: Stuff;
   /** The assembly to fit it to (replace arm). */
   whole?: Stuff;
+  /**
+   * The LINE to renew, by its part name, when no part is named (`fit
+   * lining to furnace`): the part is whatever in reach is that line's kind
+   * of thing — its row, or a row that `extends:` it (ceramics W5).
+   */
+  line?: string;
   /** The recipe to raise (raise arm). */
   recipeRef?: string;
 }
@@ -404,6 +424,12 @@ export type FitDeclineReason =
   | 'missing-tool'
   /** The joint wants a band the fitter has not reached. */
   | 'not-skilled'
+  /**
+   * ⭐ (ceramics W4) A slip joint joins GREEN clay at leather-hard only.
+   * `detail`: `too-soft` (plastic), `too-dry` (bone-dry), `ruined` (the
+   * weather got it), `fired` (it is not clay any more).
+   */
+  | 'not-leather-hard'
   | 'insufficient-input';
 
 export interface FitReplaced {
@@ -416,6 +442,11 @@ export interface FitReplaced {
   replaced: number;
   /** A SOUND member swapped out comes back to hand; a failed one does not. */
   returned: Stuff | null;
+  /**
+   * ⭐ (ceramics D27) The part was cast from an impression of the line's
+   * own kind: it dropped into the old joint, with no joint re-made.
+   */
+  interchangeable?: boolean;
 }
 
 export interface FitRaised {
@@ -498,13 +529,16 @@ export class CraftingApi {
   }
 
   /**
-   * Mint a drink from a completed manual build — the terminal-step
-   * sibling of {@link craft}. Reverse-matches the accumulated buffer to a
-   * recipe (generic `mixed drink` if none), derives the weakest-link
-   * grade, fills the destination vessel, and stamps it with the maker's
-   * mark — reusing the **one** quality model (`Grade` +
-   * `CraftedMixin.stamp`). The inputs were debited at pour-time, so this
-   * does not re-consume. See {@link CraftingLogic.mintFromBuild}.
+   * ⭐ The ONE mint for a thing made of several (ceramics re-plan R1-D7) —
+   * the terminal-step sibling of {@link craft}. The build is a banked
+   * buffer (a shaker, a pot, a trough, a workpiece — debited at pour-time,
+   * so not re-consumed) or a compounding vessel's `charge` (consumed
+   * here). Reverse-matches it to a recipe, derives the weakest-link grade,
+   * carries the inputs' spoilage, and names the product: the charge
+   * vessel's `productMaterial` when it names one, else the recipe's
+   * output, else the generic pot-luck / worked lump — reusing the **one**
+   * quality model (`Grade` + `CraftedMixin.stamp`). See
+   * {@link CraftingLogic.mintFromBuild}.
    */
   public static async mintFromBuild(
     request: BuildMintRequest,

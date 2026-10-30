@@ -402,6 +402,14 @@ export function scoreCandidate(
 
   if (queryWords.length === 1 && nameLower === queryWords[0]) return 100;
 
+  // ⭐ A query that IS one of the thing's keywords names that thing outright,
+  // above a word that merely appears in some other name: `look clay` at the
+  // pit looked at "the clay pit" — its NAME holds the word, the lumps' does
+  // too, and the tie went to the place (ceramics browser walk). The lump
+  // answers to `clay`; the pit only to "clay pit".
+  const phrase = queryWords.join(' ');
+  if (phrase && candidate.keywords.some((kw) => kw.toLowerCase() === phrase)) return 70;
+
   const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 0);
   if (
     nameWords.length > 0 &&
@@ -411,10 +419,16 @@ export function scoreCandidate(
     return 60;
   }
 
-  if (nameLower && queryWords.every((w) => nameLower.includes(w))) return 50;
+  if (nameLower && queryWords.every((w) => startsAWord(nameLower, w))) return 50;
 
+  // ⚠ A query word matches where a WORD of the name or a keyword BEGINS,
+  // never in the middle of one. Mid-word substrings scored as partials, and
+  // a partial is the fallback when nothing names the whole phrase — so
+  // `consign "plant pot"`, with no plant pot in hand, put the player's
+  // aether imPLANT up for sale (the ceramics drive C, run 28); `get 1 brick`
+  // took the "brick table" by its keyword's tail.
   const nameMatches = queryWords.filter((qw) =>
-    nameWords.some((nw) => nw.includes(qw))
+    nameWords.some((nw) => nw.startsWith(qw))
   );
   if (nameMatches.length === queryWords.length && queryWords.length > 0) {
     return 40;
@@ -422,7 +436,7 @@ export function scoreCandidate(
 
   if (candidate.keywords.length > 0) {
     const kwMatches = queryWords.filter((qw) =>
-      candidate.keywords.some((kw) => kw.includes(qw))
+      candidate.keywords.some((kw) => startsAWord(kw, qw))
     );
     if (kwMatches.length === queryWords.length) return 25;
     if (kwMatches.length > 0) return 10 * kwMatches.length;
@@ -431,6 +445,11 @@ export function scoreCandidate(
   if (nameMatches.length > 0) return 5 * nameMatches.length;
 
   return 0;
+}
+
+/** Whether `word` begins one of the whitespace-separated words of `text`. */
+function startsAWord(text: string, word: string): boolean {
+  return text.split(/\s+/).some((t) => t.startsWith(word));
 }
 
 /**
@@ -459,8 +478,13 @@ export function scoreCandidates(
   // Without this a plural verb took every partial too — live, `get
   // "latex cup"` picked up the three cups AND the coagulating pan (whose
   // keywords say "latex pan"), because scores only order, they never cut.
-  if (whole.some(Boolean)) return out.filter((_, i) => whole[i]);
-  return out;
+  const kept = whole.some(Boolean) ? out.filter((_, i) => whole[i]) : out;
+  // ⭐ And a thing the query NAMES outright — its exact name or one of its
+  // keywords (70+) — cuts the things whose name merely holds the word:
+  // `look clay` among the lumps at the clay pit is the clay, not a choice
+  // between the clay and the pit.
+  if (kept.some((m) => m.score >= 70)) return kept.filter((m) => m.score >= 70);
+  return kept;
 }
 
 /** Does every query word appear in the candidate's name or a keyword? */

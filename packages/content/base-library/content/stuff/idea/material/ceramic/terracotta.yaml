@@ -1,0 +1,32 @@
+# Terracotta — clay fired just past the point of no return: porous,
+# orange-red, soft enough to scratch with a nail. ⭐ What a clay lump BECOMES
+# in a kiln (ceramics M1) — the first rung of `earth/clay`'s heat history,
+# not a recipe's output. A flower pot, a plant pot, a common brick.
+#
+# It weeps: the pores that make it light let water through, so an unglazed
+# jar sweats and keeps its water cool. Read by the porosity the heat-work
+# gave it (W1).
+class: /platform/idea/material/Material
+data:
+  name: terracotta
+  keywords: [terracotta, clay, earthenware, fired]
+  appearance: porous orange-red terracotta
+  density: 1900
+  specificHeat: 850
+  thermalConductivity: 0.8
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 15
+  hardness: 50
+  toughness: 5
+  # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
+  # than this on cooling crazes.
+  thermalExpansion: 5.5e-06
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "porous", "terracotta"]
+  composition: []
+  biologicalSource: null
+  # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
+  # with this body at the break; ground at a millstone, sherds are grog.
+  brokenTemplate: /stuff/thing/sherds

@@ -27,7 +27,7 @@
  */
 
 import type { CommandContributions } from "../../api/command";
-import type { BlendPart } from '../bulk/Bulkable';
+import type { CompositionEntry } from '../material/Material';
 import type { PathogenLoads } from '../material/Contaminable';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
@@ -37,24 +37,6 @@ import type { Technique } from "./Technique";
 
 /** How the build was worked — recorded by `stir` / `shake` / `muddle`. */
 export type BuildMethod = Technique;
-
-/**
- * ⭐ **A vessel whose CONTENTS are worked by hand, not a build** (dairy
- * D5): a butter churn is not assembling a recipe from banked ingredients —
- * it holds a charge of cream as bulk, and working it changes what that
- * cream IS. `stir`/`shake`/`churn` reach a build vessel through its
- * build buffer, and anything else through this declared shape, which the
- * controller duck-probes (the `SpoilageHolding` precedent). The answer is
- * the sentence the working ends on, in the vessel's own words, or `null`
- * when there was nothing in it to work.
- *
- * ⚠ Why not a build vessel: a `pour` into a build vessel BANKS the matter
- * as a recipe contribution and drains the source — cream poured into a
- * build-vessel churn would vanish into the buffer instead of filling it.
- */
-export interface HandWorked {
-  workByHand(method: BuildMethod): string | null;
-}
 
 /** One banked ingredient: its recipe category, measure, and input grade. */
 export interface BuildContribution {
@@ -80,6 +62,12 @@ export interface BuildContribution {
   kind?: 'bulk' | 'item';
   /** Units banked — item contributions only (default 1). */
   count?: number;
+  /**
+   * ⭐ The kilograms banked — item contributions only: every unit's mass,
+   * read when it went in (ceramics re-plan R1-D7). A bulk contribution's
+   * mass is derived, `measureL × ρ`, and is never banked.
+   */
+  massKg?: number;
   /**
    * ⭐ The contribution's **microbial load** at the moment it was banked.
    *
@@ -107,10 +95,16 @@ export interface BuildContribution {
    * derived blend payload (macros in = macros out). */
   materialPath?: string;
   /**
-   * ⭐ **What the source was itself made of**, when it was already a
-   * blend — banked with the matter for exactly the reason the loads are
-   * (above): the bottle it was poured from may be drained and gone by the
-   * time the mint runs.
+   * The source PIECE's kind (its row), for an item — so "one piece that
+   * already is the product" can tell a lump of the clay from a jug made of
+   * it (the reclaim, B99).
+   */
+  templatePath?: string;
+  /**
+   * ⭐ **What the source was itself made of**, by mass fraction, when it
+   * was already a blend — banked with the matter for exactly the reason
+   * the loads are (above): the bottle it was poured from may be drained
+   * and gone by the time the mint runs.
    *
    * Without it the by-hand route launders the composition the way it
    * would otherwise launder spoilage: flour that knows it is 28 % bran
@@ -118,7 +112,7 @@ export interface BuildContribution {
    * however dark the flour was. Absent ⇒ the source was not a blend, and
    * the mint reads its material identity exactly as before.
    */
-  composition?: readonly BlendPart[];
+  makeup?: readonly CompositionEntry[];
 }
 
 /** Public method surface contributed by {@link ManualBuildMixin}. */
@@ -221,6 +215,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
         gradeBand: MixinApi.isGraded(host) ? host.getGradeBand() : "fair",
         kind: "item",
         count: 1,
+        massKg: host.getMass().rawValue(),
         tags: [...material.getTags()],
         materialPath: material.getTemplatePath() ?? undefined,
         freshnessLoad: MixinApi.isFresh(host) ? host.getMicrobialLoad() : 0,

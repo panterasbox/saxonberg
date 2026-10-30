@@ -43,15 +43,25 @@ function renderNutritionLines(
   if (nutrientKeys.length > 0) {
     lines.push(
       "Nutrition: " +
-        nutrientKeys.map((k) => `${k} ${amounts[k]}mg`).join(", "),
+        nutrientKeys.map((k) => `${k} ${mg(amounts[k] ?? 0)}mg`).join(", "),
     );
   }
   if (toxicity.length > 0) {
     lines.push(
-      "Contains: " + toxicity.map((t) => `${t.type} ${t.amount}mg`).join(", "),
+      "Contains: " + toxicity.map((t) => `${t.type} ${mg(t.amount)}mg`).join(", "),
     );
   }
   return lines.length > 0 ? lines.join("\n") : null;
+}
+
+/**
+ * A label figure without float noise. Since ceramics re-plan R1 a part's
+ * servings derive from a mass fraction (`0.025 × 0.8 kg / 0.1 kg`), and
+ * the arithmetic leaves `86000.00000000001` where the authored figure was
+ * `86000` — twelve significant figures is every digit a row can mean.
+ */
+function mg(amount: number): number {
+  return Number(amount.toPrecision(12));
 }
 
 /**
@@ -90,17 +100,22 @@ interface LabelFace {
 function labelFaceOf(host: Stuff): LabelFace | null {
   if (MixinApi.isBulkable(host)) {
     const aff = host.hasInteriorBulk() ? 'interior' : 'surface';
-    // ⭐ One derivation, both cases. `BlendLabel` reads the composition
-    // when there is one and falls back to the held Material when there
-    // is not, so the two arms this used to have — "the blend's own
-    // figures" and "the bare material's" — are the same call.
+    // ⭐ One derivation, both cases. `BlendLabel` reads the makeup when
+    // there is one and falls back to the held Material when there is not,
+    // so the two arms this used to have — "the blend's own figures" and
+    // "the bare material's" — are the same call.
     const payload = host.getBulkPayload(aff);
     const held = host.getBulkMaterial(aff);
     if (MaterialApi.blendEdibility(payload, held)) {
+      // ⭐ The label is for what the vessel HOLDS: its parts' servings are
+      // their fractions of this mass (ceramics re-plan R1-D1).
+      const hostKg = held
+        ? (host.getBulkAmount(aff).rawValue() * held.getDensity().rawValue()) / 1000
+        : 0;
       return {
         edible: true,
-        nutrientAmounts: BlendLabel.amountsOf(payload, held),
-        toxicity: MaterialApi.blendToxicity(payload, held),
+        nutrientAmounts: BlendLabel.amountsOf(payload, held, hostKg),
+        toxicity: MaterialApi.blendToxicity(payload, held, hostKg),
       };
     }
   }
@@ -108,15 +123,20 @@ function labelFaceOf(host: Stuff): LabelFace | null {
   if (!own) return null;
   // ⭐ A discrete food that knows what it is MADE OF reads its label off
   // those parts, exactly as a blend does — the tangible half of
-  // `BlendLabel.amountsOf`. Without this a wholemeal loaf and a white one
-  // are both "bread" and feed you identically. An empty composition falls
-  // straight through to the material's own figures.
-  if (MixinApi.isComposed(host)) {
-    const composition = host.getComposition();
-    if (composition.length > 0) {
+  // `BlendLabel.amountsOf`, over the piece's own mass. Without this a
+  // wholemeal loaf and a white one are both "bread" and feed you
+  // identically. An empty makeup falls straight through to the material's
+  // own figures.
+  if (MixinApi.isComposition(host) && MixinApi.isTangible(host)) {
+    const makeup = host.getMakeup();
+    if (makeup.length > 0) {
       return {
         edible: own.getEdibility() === true,
-        nutrientAmounts: BlendLabel.amountsOf({ composition: [...composition] }, own),
+        nutrientAmounts: BlendLabel.amountsOf(
+          { makeup: [...makeup] },
+          own,
+          host.getMass().rawValue(),
+        ),
         toxicity: own.getToxicity(),
       };
     }

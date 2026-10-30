@@ -39,4 +39,5 @@ data:
   operatingLocations:
     - /world/terminus/market/stalls
     - /world/terminus/market/thing/fish-stall
+    - /world/terminus/market/thing/potters-stall
   offstage: /world/terminus/market/offstage

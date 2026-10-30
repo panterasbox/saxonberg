@@ -86,12 +86,25 @@ export interface Crafted extends Graded {
   setMaker(value: string): void;
   /** The recipe id this was made from. */
   getRecipe(): string;
+  /**
+   * ⭐ What this was cast from — the impression's kind, whose thing it was,
+   * and the trade of the mould it set in (ceramics M9, repair D1) — or
+   * `null` when it was not cast. A cast part whose kind is a line's part
+   * kind fits without a new joint (D27).
+   */
+  getCastFrom(): CastProvenance | null;
+  /** Record a cast's provenance (the mould's cast path writes it). */
+  setCastFrom(value: CastProvenance | null): void;
+  /**
+   * ⭐ The material it was made FROM (a material path), or `''` — a wheel
+   * of cheese says *a ewe's milk cheese* (dairy). Provenance beside the
+   * maker and the cast; it rides a set and a transform that keeps the thing.
+   */
+  getMadeFrom(): string;
+  setMadeFrom(materialPath: string): void;
   setRecipe(value: string): void;
   /** Game-clock seconds at which it was crafted. */
   getCraftedAt(): number;
-  /** The trade of the mould it set in, when it was cast (`''` otherwise). */
-  getCastDiscipline(): string;
-  setCastDiscipline(value: string): void;
   setCraftedAt(value: number): void;
   /** Stamp all four marks at once (the one mutator CraftingLogic calls). */
   stamp(spec: CraftedStamp): void;
@@ -101,6 +114,32 @@ export interface Crafted extends Graded {
    * uniform prose at a fixed control level.
    */
   renderVerdict(): string;
+}
+
+/**
+ * ⭐ Where a CAST's shape came from (ceramics M9): the kind of thing an
+ * impression was taken of, whose it was, and when — provenance, recorded
+ * and never judged. A cast is a fresh thing of that kind; this is all it
+ * keeps of the original. `null` on anything not cast. It lives on `Crafted` — how a thing was
+ * MADE, beside its maker and recipe (B95; it was on `Tangible`, where every
+ * wall and person carried it).
+ */
+export interface CastProvenance {
+  /**
+   * The template path of the kind the impression was taken from — `''`
+   * when it set in the mould's OWN shape (an ingot, a bell from its pit).
+   */
+  kindPath: string;
+  /** Whose thing it was — an identity path, or `''`. */
+  takenFromIdentity: string;
+  /** Game-second the impression was taken. */
+  takenAtS: number;
+  /**
+   * ⭐ The trade of the MOULD it set in (repair D1's third read) — who
+   * mends it. A value, not a ref: a consumed mould is gone after the cast.
+   * The ONE cast record (review R2-D6; `Crafted.castDiscipline` retired).
+   */
+  discipline?: string;
 }
 
 export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -114,10 +153,16 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'CraftedMixin';
 
     static fieldMeta: FieldMeta = {
-      maker: { persistent: true, runtimeState: true },
+      // ⭐ Whose a pile is (R2-B6): a stack bears no title, so the maker is
+      // what says whose — a player's nine bricks folded into the gang's
+      // fourteen would be the gang's (ceramics drive A, run 32).
+      maker: { persistent: true, runtimeState: true, stackIdentity: true },
       recipe: { persistent: true, runtimeState: true },
       craftedAt: { persistent: true, runtimeState: true },
-      castDiscipline: { persistent: true, runtimeState: true },
+      // ⭐ What a cast was cast FROM (ceramics M9) and in which trade's
+      // mould. Runtime state: only a pour (or a strike) writes it.
+      castFrom: { persistent: true, runtimeState: true },
+      madeFrom: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -132,14 +177,22 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Game-clock seconds of the craft; 0 until stamped.
      */
     public craftedAt: number = 0;
+
     /**
-     * ⭐ The trade of the MOULD this thing set in, when it was cast rather
-     * than made by a recipe (repair D1's third read). A value, not a mark
-     * pointing at the mould: a consumed mould is gone after the cast. `''`
-     * for everything a recipe made, or nothing made. Written only at the
-     * cast; read by a mend to know which trade mends it.
+     * ⭐ The maker may give what they made its name — ONCE, while it has
+     * none (ceramics W2: *"name jug Mother's jug"*). A thing nobody stamped
+     * a maker on cannot be named by this rule. Composes with whatever rule
+     * a mixin inside this one answers (the mixin-super idiom).
      */
-    public castDiscipline: string = '';
+    canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
+      const inner = (Base.prototype as {
+        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
+      }).canBeNamedBy;
+      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (!handPath || this.maker === '' || this.maker !== handPath) return false;
+      const named = this as unknown as { getName?(): string };
+      return typeof named.getName === 'function' && named.getName() === '';
+    }
 
     getMaker(): string {
       return this.maker;
@@ -155,11 +208,35 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.recipe = value;
     }
 
-    getCastDiscipline(): string {
-      return this.castDiscipline;
+    /** See {@link Crafted.getCastFrom}. */
+    public castFrom: CastProvenance | null = null;
+
+    /** The material it was made from (a path), or `''`. */
+    public madeFrom: string = '';
+
+    public getMadeFrom(): string {
+      return this.madeFrom;
     }
-    setCastDiscipline(value: string): void {
-      this.castDiscipline = value;
+    public setMadeFrom(materialPath: string): void {
+      this.madeFrom = typeof materialPath === 'string' ? materialPath : '';
+    }
+
+    public getCastFrom(): CastProvenance | null {
+      return this.castFrom;
+    }
+
+    public setCastFrom(value: CastProvenance | null): void {
+      const kindPath = typeof value?.kindPath === 'string' ? value.kindPath : '';
+      const discipline = typeof value?.discipline === 'string' ? value.discipline : '';
+      this.castFrom =
+        value && (kindPath !== '' || discipline !== '')
+          ? {
+              kindPath,
+              takenFromIdentity: value.takenFromIdentity ?? '',
+              takenAtS: Number.isFinite(value.takenAtS) ? value.takenAtS : 0,
+              ...(discipline !== '' ? { discipline } : {}),
+            }
+          : null;
     }
 
     getCraftedAt(): number {

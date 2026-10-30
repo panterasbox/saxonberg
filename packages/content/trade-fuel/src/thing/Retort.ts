@@ -23,12 +23,10 @@
  *    and this class hands it what leaves.
  *
  * ⚠ **The chamber routes the volatiles; the recipe only says what they
- * ARE.** `FireController` probes the chamber for `receiveVolatiles` (a
- * structural probe, the `analyze water` shape-not-mixin rule) because
- * the platform must not name a trade's receiver. A chamber with no
- * receiver emits into the room, which is why firing a retort with no
- * condenser makes the air go bad — and is the lesson rather than a
- * defect.
+ * ARE.** It answers the kernel's `Burner.receiveVolatiles` hook with what
+ * its receivers took; what they did not take the thermal transition puts
+ * into the room, which is why firing a retort with no condenser makes the
+ * air go bad — and is the lesson rather than a defect.
  *
  * ⭐ It affords nothing new. `fire`, `stoke`, `draught`, `cover`,
  * `ignite` and `douse` all reach it through `BurnerMixin`.
@@ -37,11 +35,11 @@
 import Firebox from '@saxonberg/server/mud/lib/fire/Firebox';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
+import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 
-const RetortBase = ContainerMixin(PlacingMixin(Firebox));
+// ⭐ Made of parts (ceramics D19): its lining wears with every charge.
+const RetortBase = AssembledMixin(DurableMixin(ContainerMixin(PlacingMixin(Firebox))));
 
 /** What a receiver placed on the head answers to. */
 interface VolatileReceiver {
@@ -60,38 +58,17 @@ export default class Retort extends RetortBase {
    * off should find that out by measuring the air rather than by being
    * told they cannot fire the thing.
    */
-  public receiveVolatiles(materialPath: string, litres: number): void {
-    if (!(litres > 0)) return;
+  public override receiveVolatiles(materialPath: string, litres: number): number {
+    if (!(litres > 0)) return 0;
     let left = litres;
     for (const placed of this.getPlaced()) {
       const receiver = placed as unknown as Partial<VolatileReceiver>;
       if (typeof receiver.receive !== 'function') continue;
       const taken = receiver.receive(materialPath, left);
       left -= taken > 0 ? taken : 0;
-      if (!(left > 0)) return;
+      if (!(left > 0)) break;
     }
-    emitIntoScope(this as unknown as Stuff, materialPath, left);
-  }
-}
-
-/**
- * Put `litres` into the air of the place this stands in — the outward
- * walk to the first `Atmospheric` ancestor with a volume, the same one a
- * fire's exhaust takes.
- */
-function emitIntoScope(from: Stuff, materialPath: string, litres: number): void {
-  if (!(litres > 0)) return;
-  let at: Stuff | null = from;
-  let depth = 32;
-  while (at !== null && depth-- > 0) {
-    if (
-      MixinApi.isAtmospheric(at) &&
-      MixinApi.isContainer(at) &&
-      (at as unknown as Atmospheric).getVolume() !== null
-    ) {
-      (at as unknown as Atmospheric).addAtmosphereContent(materialPath, litres);
-      return;
-    }
-    at = MixinApi.isContainable(at) ? at.getContainer() : null;
+    // What nothing on the head took is the room's — the kernel routes it.
+    return litres - Math.max(0, left);
   }
 }

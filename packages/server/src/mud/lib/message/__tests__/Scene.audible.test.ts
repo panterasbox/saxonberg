@@ -102,6 +102,23 @@ describe('Scene.toAudible — cross-room push', () => {
     expect(faint.toLowerCase()).toContain('faint');
   });
 
+  it('⭐ the actor does not hear its own audible line — it has its own (ceramics browser walk)', () => {
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    const a = room(zone, 0, 0);
+    const ringer = earIn(a);
+    const other = earIn(a);
+    MessageApi.scene(ringer)
+      .topic('act.deed')
+      .modality('hearing')
+      .meta({ acousticDb: 70 })
+      .toSelf('You tap a mug.')
+      .toAudible('Someone taps a mug.', { descriptor: 'a knock' })
+      .send();
+    expect(ringer.received.map((f) => f.body)).toEqual(['You tap a mug.']);
+    expect(other.received.map((f) => f.body)).toEqual(['Someone taps a mug.']);
+  });
+
   it('drops recipients below the hearing threshold', async () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);

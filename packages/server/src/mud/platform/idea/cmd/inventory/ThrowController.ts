@@ -164,7 +164,7 @@ export default class ThrowController extends CommandController<ThrowModel> {
     const plan = ((giver) as unknown as Stuff & Combatant).resolveThrown(target, {
         litres,
         massKg: this.massOf(item),
-        toughness: itemMaterial?.getToughness().rawValue(),
+        brittle: itemMaterial?.hasTag('brittle') ?? false,
         hardness: itemMaterial?.getHardness().rawValue(),
       }, splash);
 
@@ -210,7 +210,28 @@ export default class ThrowController extends CommandController<ThrowModel> {
     // The vessel breaks by ITS OWN material — glass, not the draught it
     // carries. Two different materials, and confusing them would make
     // every potion as fragile as its flask.
-    if (plan.profile.breaksOnArrival() && plan.placement !== "miss") {
+    //
+    // ⭐ (ceramics M5) And whether it breaks is the ONE breakage act: the
+    // throw's joules against its own strength and what it struck — a
+    // stoneware jug hurled at a wall breaks; one landing in hay does not.
+    if (plan.profile.canShatter() && plan.placement !== "miss" && MixinApi.isIntegrity(item)) {
+      const struck = MixinApi.isTangible(target) ? target.getMaterial() : null;
+      const flawedBefore = item.getFlaws().length;
+      const impact = { energyJ: plan.profile.energyJ, surface: struck, cause: "throw" as const };
+      if (item.impactVerdict(impact) !== "break") {
+        // It survives the arrival (perhaps cracked); it lands by the target.
+        const landing = MixinApi.isContainable(target) ? target.getContainer() : null;
+        if (landing !== null && MixinApi.isContainer(landing)) {
+          ContainmentApi.move(item as never, landing as never);
+        }
+        await item.sufferImpact(impact);
+        if (item.getFlaws().length > flawedBefore) {
+          MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`It does not break — but it struck hard.`).send();
+        }
+        return;
+      }
+    }
+    if (plan.profile.canShatter() && plan.placement !== "miss") {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${Mml.thing(item)} shatters against ${Mml.actor(target)}.`)
@@ -304,8 +325,8 @@ export default class ThrowController extends CommandController<ThrowModel> {
 
   /**
    * The **vessel's** own Material — what the flask is made of, not what
-   * it holds. `toughness`/`hardness` read off this, which is what makes
-   * a glass flask shatter and a steel one deform.
+   * it holds. Its brittleness and hardness read off this, which is what
+   * makes a glass flask shatter and a steel one deform.
    */
   private materialOf(item: Stuff): Material | null {
     return MixinApi.isTangible(item) ? item.getMaterial() : null;

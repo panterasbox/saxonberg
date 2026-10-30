@@ -13,6 +13,8 @@ data:
   edibility: true
   nutrients: ["water"]
   toxicity: []
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 2.5
   tags: ["liquid", "vinegar", "condiment"]
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.

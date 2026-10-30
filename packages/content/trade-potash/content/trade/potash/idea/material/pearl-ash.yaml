@@ -1,0 +1,27 @@
+# Pearl ash — calcined potash (potash D12): black salts brought to a red heat
+# until the char burns out and the cake goes white. The glassmaker's flux,
+# the soapmaker's best alkali, and the one an ashery carts to town.
+#
+# ⭐ A MATERIAL, because firing keeps a piece's identity (ceramics M1): a
+# calcined cake is the same cake, made of this now. Its `castTemplate` is the
+# lump a counter lists, so a house that buys pearl ash buys the cake as
+# pearl ash. Its purity is the firing's — the cake's potash, concentrated.
+class: /platform/idea/material/Material
+data:
+  name: pearl ash
+  keywords: ["pearl ash", pearlash, potash]
+  appearance: a white, faintly bluish porous salt
+  density: 2300
+  specificHeat: 830
+  thermalConductivity: 0.5
+  meltingPoint: 1164
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: ["potassium"]
+  toxicity: []
+  tags: [solid, mineral, alkali, potash, flux]
+  cleanser: /trade/potash/idea/Cleanser/potash
+  castTemplate: /trade/potash/thing/pearl-ash
+  composition: []
+  biologicalSource: null

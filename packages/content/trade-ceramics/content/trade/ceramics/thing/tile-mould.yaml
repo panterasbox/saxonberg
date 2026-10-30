@@ -1,0 +1,22 @@
+# A tile mould (ceramics S16) — an iron frame with a figured bottom plate
+# that a pat of tempered clay is pressed into under a screw press. ⭐ Tile
+# clay has GREEN STRENGTH: once the screw beats its stiffness it takes the
+# shape and comes straight out to dry (`pressKind: press` — shape and
+# release). Wetter clay gives sooner; stiff clay wants more turns.
+class: /platform/thing/Mould
+data:
+  shortDescription: tile mould
+  keywords: [mould, mold, "tile mould", "tile mold"]
+  register: indefinite
+  longDescription: >-
+    A heavy iron frame the size of a roof tile, its bottom plate cut with a
+    shallow pattern of ridges.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 5
+  interiorBulk: true
+  interiorCapacity: 0.8
+  closure: liquidTight
+  reusable: true
+  pressKind: press
+  castTemplate: /trade/ceramics/thing/tile
+  discipline: pottery

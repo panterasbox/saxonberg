@@ -60,6 +60,7 @@ import { Time } from '../../time/Time';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import type { Stuff } from '../../stuff/Stuff';
+import { BrainMoves } from '../BrainMoves';
 
 const RITUAL = '/lib/behavior/crossing-ritual';
 const GREETS = '/lib/behavior/greets';
@@ -132,6 +133,7 @@ function ritualCtx(
     trigger: { source: 'witness', raw: 'arrival' },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(host, config).members(),
     emoteFree: vi.fn(),
   };
 }

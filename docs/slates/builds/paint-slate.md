@@ -14,7 +14,38 @@
 > and the subtractive stack · one `paint` verb for a wall and a picture ·
 > `maintain` with paint in hand · the oily-rag fire, lead, fumes · the colorman,
 > the house painter, the signwriter, the artist · the epoch ladder
-> **Size:** a build (content-led, on construction's layers and W7)
+> **Size:** a build (content-led, on construction's layers, W7 and the shipped
+> `Faced` coat — § 0)
+
+## 0. ⭐⭐ What already ships — `Faced` is the coat on goods (ceramics, 2026-10)
+
+The ceramics build shipped the coat substrate this slate needs, on goods:
+`FacedMixin` ([faces.md](../../subsystems/faces.md)) on every `Good` — per
+face (`outside`, and `inside` for a vessel), an ordered list of coats outermost
+first, each construction's own layer shape (`{material, thicknessM}`) plus a
+`state` (`wet · set · crazed · run · crawled`). The outermost coat decides what
+meets the world (the lead leach, whether the face holds water, how it cleans);
+a sound coat's look word is its material's `coatWord`. Walls and floors stay
+construction's layers, as § 1 says. ⭐ **This build EXTENDS `Faced`; it must not
+build a coat model beside it.** What it adds:
+
+1. **Setting by the binder.** `Faced` sets a coat only by heat
+   (`fuseCoats`, the glaze's case). Paint sets by its binder (§ 2) — make
+   setting the coat MATERIAL's rule, heat one case of it.
+2. **Wear.** A coat never weathers today. The sacrificial layer (§ 1) — a
+   coat that thins on the exposure clock until the next layer down meets the
+   world — is new.
+3. **Color.** `Dyed` owns the color model (`Colour`, the subtractive stack)
+   and a coat shows none. One read: an opaque outermost coat (by hiding
+   power), else the dyed fiber, else the body. ⭐ The dye/pigment line of § 2
+   is the line between the two mixins: a dye goes INTO the fiber (`Dyed`), a
+   pigment in a binder sits ON it (`Faced`).
+4. **One stack for two hosts.** Construction's wall layers and `Faced`
+   share the layer shape, not the logic. Setting, wear and color written
+   twice would be two coat models — extract the stack the two hold.
+
+Open § 7.2 is answered for goods: a coat is per face. `dip` stays the bath's
+verb (the vessel affords it), as § 3 says.
 
 ## 1. ⭐⭐⭐ A coat is a sacrificial layer **[DECIDED — lens 1]**
 
@@ -126,6 +157,7 @@ has gotten into the sills"*; you buy ochre and linseed from the colorman,
 1. **The coat's thickness and wear rate** — authored on the paint, or derived
    from binder and pigment.
 2. **Per face or per structure** — whether a coat is applied face by face.
+   *(Goods: per face — § 0. Places: still open.)*
 3. **The artwork's form** — a canvas good carrying an image (the
    [media](../../subsystems/media.md) pipeline) and how `look` shows it.
 4. **Galvanizing and tarring** — whether they ride the same coat model in this

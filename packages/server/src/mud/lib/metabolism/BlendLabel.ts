@@ -5,8 +5,17 @@
  * `nutrients`, `nutrientAmounts`, `edible` and `toxicity` used to be four
  * arrays on `BulkPayload`, computed once by the craft's blend step and
  * read back forever. They are functions of the ingredients, and the
- * payload now carries the ingredients ({@link BlendPart}) — so they are
- * computed here, on read, in the subsystem whose vocabulary they are.
+ * payload now carries the ingredients (`makeup`, mass fractions by
+ * Material path) — so they are computed here, on read, in the subsystem
+ * whose vocabulary they are.
+ *
+ * ⭐⭐ **Servings derive here, from mass (ceramics re-plan R1-D1).** A
+ * part's mass is `fraction × hostKg` and its servings are
+ * `MaterialApi.servingsOf(part, mass)` — so every reader that scales by
+ * servings takes the HOST's mass: the whole glass, the whole loaf. A full
+ * martini is gin 19 + vermouth 7; a half-drunk one is half that, and a
+ * half poured off is half that in each glass, where an absolute servings
+ * record copied the whole dose into both.
  *
  * ⭐ **The precedent is spoilage, which already worked this way.**
  * `Freshness.withDose` folds the ptomaine dose *at the read and never
@@ -32,10 +41,12 @@
  *   growth, it does not un-poison what the growth already produced.
  */
 
-import type { BlendPart, BulkPayload } from '../bulk/Bulkable';
+import type { BulkPayload } from '../bulk/Bulkable';
 import type { ToxinTag } from './Metabolic';
 import type Material from '../material/Material';
+import type { CompositionEntry } from '../material/Material';
 import { StuffApi } from '../../api/stuff';
+import { MaterialApi } from '../../api/material';
 
 /**
  * ⭐ **Metabolism's own field on the blend payload, declared here.** A
@@ -60,14 +71,14 @@ declare module '../bulk/Bulkable' {
 export class BlendLabel {
   /**
    * The ingredient Materials of a payload, in the order they went in.
-   * Empty for a payload with no composition — a hand-filled vessel, a
+   * Empty for a payload with no makeup — a hand-filled vessel, a
    * puddle, a material shadow — which is what makes the `blend` fallback
    * on every reader below the honest answer rather than a guard.
    */
   private static ingredientsOf(payload: BulkPayload | null): Material[] {
-    const composition: readonly BlendPart[] = payload?.composition ?? [];
+    const makeup: readonly CompositionEntry[] = payload?.makeup ?? [];
     const out: Material[] = [];
-    for (const part of composition) {
+    for (const part of makeup) {
       const material = StuffApi.findByTemplatePath<Material>(part.materialPath);
       if (material) out.push(material);
     }
@@ -92,27 +103,30 @@ export class BlendLabel {
   }
 
   /**
-   * Label amounts (tag → mg per serving), each ingredient's contribution
-   * scaled by its **servings** — which is why the composition carries
-   * shares and not just an ordered list. A blend that is nine parts water
-   * and one part stock is not a bowl of stock.
+   * Label amounts (tag → mg) for `hostKg` of this blend, each
+   * ingredient's per-serving amounts scaled by its **servings** in that
+   * mass — which is why the makeup carries shares and not just an ordered
+   * list. A blend that is nine parts water and one part stock is not a
+   * bowl of stock.
    * @internal one production caller plus the tests that white-box it — not author surface.
    *
    */
   public static amountsOf(
     payload: BulkPayload | null,
     blend: Material | null,
+    hostKg: number,
   ): Record<string, number> {
-    const composition: readonly BlendPart[] = payload?.composition ?? [];
-    if (composition.length === 0) {
+    const makeup: readonly CompositionEntry[] = payload?.makeup ?? [];
+    if (makeup.length === 0) {
       return { ...(blend?.getNutrientAmounts() ?? {}) };
     }
     const out: Record<string, number> = {};
-    for (const part of composition) {
+    for (const part of makeup) {
       const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
       if (!m) continue;
+      const servings = MaterialApi.servingsOf(m, part.fraction * hostKg);
       for (const [tag, mg] of Object.entries(m.getNutrientAmounts())) {
-        out[tag] = (out[tag] ?? 0) + mg * part.servings;
+        out[tag] = (out[tag] ?? 0) + mg * servings;
       }
     }
     return out;
@@ -160,9 +174,10 @@ export class BlendLabel {
   }
 
   /**
-   * The per-serving toxin doses: the ingredients' own, scaled by their
-   * servings and filtered by the heat the working reached, PLUS whatever
-   * the making or the keeping formed.
+   * The per-ingest toxin doses for `hostKg` of this blend: the
+   * ingredients' own, scaled by their servings in that mass and filtered
+   * by the heat the working reached, PLUS whatever the making or the
+   * keeping formed (those are per ingest, unscaled).
    *
    * ⭐ The **selective** kill, preserved verbatim from the blend step: a
    * dose the author marked heat-labile is destroyed once the working
@@ -176,8 +191,9 @@ export class BlendLabel {
   public static toxicityOf(
     payload: BulkPayload | null,
     blend: Material | null,
+    hostKg: number,
   ): readonly ToxinTag[] {
-    const composition: readonly BlendPart[] = payload?.composition ?? [];
+    const makeup: readonly CompositionEntry[] = payload?.makeup ?? [];
     const heatK = payload?.cookedAtK ?? 0;
     const out = new Map<string, ToxinTag>();
     const add = (tox: ToxinTag, servings: number): void => {
@@ -186,15 +202,16 @@ export class BlendLabel {
       if (existing) existing.amount += tox.amount * servings;
       else out.set(tox.type, { ...tox, amount: tox.amount * servings });
     };
-    if (composition.length === 0) {
+    if (makeup.length === 0) {
       for (const tox of blend?.getToxicity() ?? []) add(tox, 1);
     } else {
-      for (const part of composition) {
+      for (const part of makeup) {
         const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
         if (!m) continue;
+        const servings = MaterialApi.servingsOf(m, part.fraction * hostKg);
         for (const tox of m.getToxicity()) {
           if (tox.labileAtK !== undefined && tox.labileAtK <= heatK) continue;
-          add(tox, part.servings);
+          add(tox, servings);
         }
       }
     }

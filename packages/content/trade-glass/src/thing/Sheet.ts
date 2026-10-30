@@ -10,6 +10,8 @@
 
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { AlloyedMixin } from "@saxonberg/server/mud/lib/material/Alloyed";
+import { MeltableMixin } from "@saxonberg/server/mud/lib/thermal/Meltable";
+import { ThermalMixin } from "@saxonberg/server/mud/lib/thermal/Thermal";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import { TintedMixin } from "../lib/Tinted";
@@ -17,7 +19,10 @@ import { TintedMixin } from "../lib/Tinted";
 /** Which flat form the sheet is in. */
 export type SheetForm = "cylinder" | "pane";
 
-const SheetBase = TintedMixin(AlloyedMixin(Good));
+// ⭐ A pane remelts because it is WARM (ceramics W0, ruling C): put in a
+// hot kiln it melts by phase change, pooling into the pot beside it with
+// its iron — there is no remelt recipe. So it needs a temperature.
+const SheetBase = TintedMixin(AlloyedMixin(MeltableMixin(ThermalMixin(Good))));
 
 export default class Sheet extends SheetBase {
   // ⭐ A pane affords `glaze` to whoever holds it (environment = carrier).

@@ -19,7 +19,7 @@ import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGive
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const VIEW = join(
-  HERE, '..', '..', 'content', 'trade', 'carpentry', 'cmd', 'carpentry', 'carve.yaml',
+  HERE, '..', '..', '..', 'platform', 'content', 'platform', 'cmd', 'crafting', 'carve.yaml',
 );
 
 const ctx = {

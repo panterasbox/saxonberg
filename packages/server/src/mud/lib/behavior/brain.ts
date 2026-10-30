@@ -112,6 +112,29 @@ export interface BrainContext {
   emote(verb: string, target?: Stuff): Promise<void>;
   /** Perform a free-form emote (no-op if the host isn't Soul). */
   emoteFree(text: string, target?: Stuff): void;
+
+  // ⭐ Moving (B107). A brain is its body's player: a host that gives
+  // commands walks by the `go` verb, exactly as a player does (its own
+  // act — `executeCommand`); a host with no verbs at all (a beast) crosses
+  // by the traversal, because an animal has nothing to type. Either way it
+  // is one call, and the brain never chooses.
+  /**
+   * One visible step through the exit `direction` of the room it stands
+   * in. `true` when it moved; a refused step (a shut door, a gate) holds
+   * position.
+   */
+  go(direction: string): Promise<boolean>;
+  /**
+   * Walk to the place at `place`, one `go` at a time, over a route PLANNED
+   * by the kernel router (`NavigationApi.routeBetween`, on foot) within
+   * what the brain's row says it knows (`knows:` — an extent prefix; absent,
+   * the world). `true` once it stands there; `false` when it does not know
+   * the place, no way is found, or a step does not land — ⚠ blocked means
+   * blocked: it stops where it is, and the next beat tries again.
+   */
+  goTo(place: string): Promise<boolean>;
+  /** Does the brain's row say it knows the place at `place` (its `knows:` extent)? */
+  knows(place: string): boolean;
 }
 
 /**

@@ -1,0 +1,23 @@
+# The bittern tub — ⭐ what a salt pan stands on (ceramics S17, W8).
+#
+# A sunk wooden tub under the pan's lip: when the salt has set and the pan
+# is done, the bitter liquor left runs off into it (`Mould.drainsInto()` —
+# the vessel a mould stands ON takes its drainings). Bittern is a by-product
+# with a buyer (it curdles soy milk; Epsom salt is boiled out of it), not a
+# waste, which is why it is caught rather than let go to the ground.
+class: /trade/quarrying/thing/Tub
+data:
+  shortDescription: bittern tub
+  keywords: [tub, "bittern tub", sump]
+  register: indefinite
+  longDescription: >-
+    A squat oak tub sunk to its rim in the ground under the pan's lip, its
+    staves crusted white and its bottom dark with something thicker than
+    water.
+  category: tub
+  _materialPath: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 40
+  closure: liquidTight
+  fixedInPlace: true
+  mass: 30

@@ -43,6 +43,10 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from './Stuff';
 import type { AnyConstructor } from '../../api/mixin';
 import { Mixins } from '../mixin';
+import type { Thermal } from '../thermal/Thermal';
+import type { Faced } from '../material/Faced';
+import type { Integrity } from '../material/Integrity';
+import type { Greenware } from '../material/Greenware';
 import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
 import { StuffApi } from '../../api/stuff';
@@ -100,6 +104,17 @@ export interface Stackable {
    * `super.onMerged(absorbed)`.
    */
   onMerged(absorbed: Stuff): void;
+
+  /**
+   * @hook ⭐ Take what this stack keeps from `absorbed`, read off it BEFORE
+   * it is destructed (`onMerged` fires after, when its accessors read
+   * nothing). Called by `StackableApi.merge` once the quantities are summed.
+   * Default: an article carries the absorbed pile's HIDDEN flaws (stacking
+   * never launders a crack, B88). A host that weights a lot (ore's grade)
+   * or takes the weakest (timber's seasoning) overrides it and calls super.
+   * (One seam for what used to be a `canMergeWith` side-effect stash, B98.)
+   */
+  takeFromAbsorbed(absorbed: Stuff): void;
 }
 
 export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
@@ -234,6 +249,36 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
        */
       if (titled(self) || titled(other)) return false;
 
+      // ⭐ Two piles of different MATTER are not one pile (ceramics M1). A
+      // piece keeps its row through a firing and its material changes, so a
+      // lump of quicklime and a lump of limestone share a template path —
+      // and a half-burnt lump is neither. Same material, and fired alike.
+      if (MixinApi.isTangible(self) && MixinApi.isTangible(other)) {
+        if (self.getMaterial()?.getTemplatePath() !== other.getMaterial()?.getTemplatePath()) {
+          return false;
+        }
+      }
+      if (MixinApi.isThermal(self) && MixinApi.isThermal(other)) {
+        if (firedSignature(self) !== firedSignature(other)) return false;
+      }
+      // A glazed tile and a bare one are different goods: coats are a
+      // per-piece record, compared by value (identity fields are scalars).
+      if (MixinApi.isFaced(self) && MixinApi.isFaced(other)) {
+        if (coatSignature(self) !== coatSignature(other)) return false;
+      }
+      // ⭐ A cracked brick and a sound one are different goods (R2-B6) — by
+      // the flaws an EYE can find. A hidden one does not split the pile
+      // (refusing would tell what only `ring` may); it rides the merge.
+      if (MixinApi.isIntegrity(self) && MixinApi.isIntegrity(other)) {
+        if (flawSignature(self) !== flawSignature(other)) return false;
+      }
+      // ⭐ A pile of green ware has ONE water state and one ruin: a fresh wet
+      // brick folded into a bone-dry stack lost its water, and the frost had
+      // nothing to burst (ceramics drive A, run 21).
+      if (MixinApi.isGreenware(self) && MixinApi.isGreenware(other)) {
+        if (greenSignature(self) !== greenSignature(other)) return false;
+      }
+
       // Union of both classes' stackIdentityFields. Equal values required
       // for every field. Reads through the public getter pattern (per
       // the inter-stuff contract); falls through to property access for
@@ -301,6 +346,11 @@ export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
       // No-op terminal so subclasses can super.onMerged().
     }
 
+    public takeFromAbsorbed(absorbed: Stuff): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isIntegrity(self)) self.takeFlawsFrom(absorbed, false);
+    }
+
     // ------- the stack face (F1) — forwards into StackableLogic -------
 
     /**
@@ -348,6 +398,40 @@ function titled(stuff: Stuff): boolean {
   return typeof asChattel.getChattelId === 'function'
     ? (asChattel.getChattelId() ?? '').length > 0
     : false;
+}
+
+/** How far a piece's firing went, coarsely — two piles fired alike merge. */
+function firedSignature(s: Stuff & Thermal): string {
+  const rec = s.getKineticRecord();
+  if (rec === null) return '';
+  return Object.entries(rec.changes)
+    .map(([k, c]) => `${k}:${Math.round(c.extent * 20)}`)
+    .sort()
+    .join(',');
+}
+
+/** The flaws an eye can find, as one comparable string (hidden ones excluded). */
+function flawSignature(s: Stuff & Integrity): string {
+  return s
+    .getFlaws()
+    .filter((f) => f.visible)
+    .map((f) => `${f.kind}/${f.mended ?? ''}`)
+    .sort()
+    .join(',');
+}
+
+/** A green piece's water state and ruin; '' once fired (no longer green). */
+function greenSignature(s: Stuff & Greenware): string {
+  const state = s.greenState();
+  return state === null ? '' : `${state}/${s.getRuin() ?? ''}`;
+}
+
+/** A face's coats as one comparable string — material and state, by face. */
+function coatSignature(s: Stuff & Faced): string {
+  return s
+    .faces()
+    .map((f) => `${f}:${s.getCoats(f).map((c) => `${c.material}/${c.state}`).join('>')}`)
+    .join('|');
 }
 
 /**

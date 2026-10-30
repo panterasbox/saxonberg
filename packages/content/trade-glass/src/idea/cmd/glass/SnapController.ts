@@ -50,7 +50,7 @@ export default class SnapController extends ManualBuildController<SnapModel> {
 
   private async snap(sheet: Sheet, giver: Stuff): Promise<void> {
     const half = sheet.getMass().rawValue() / 2;
-    const alloying = sheet.getAlloying().map((e) => ({ ...e }));
+    const alloying = sheet.getMakeup().map((e) => ({ ...e }));
     const where = MixinApi.isContainable(sheet)
       ? sheet.getContainer()
       : MixinApi.isContainer(giver)
@@ -62,7 +62,7 @@ export default class SnapController extends ManualBuildController<SnapModel> {
       });
       p.setMass(Quantity.of(half, "kg"));
       p.setForm("pane");
-      if (MixinApi.isComposition(p) && alloying.length > 0) p.setAlloying(alloying);
+      if (MixinApi.isComposition(p) && alloying.length > 0) p.setMakeup(alloying);
       if (where && MixinApi.isContainer(where) && MixinApi.isContainable(p)) {
         ContainmentApi.move(p as unknown as Stuff & Containable, where as Stuff & Container);
       }

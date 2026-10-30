@@ -1,0 +1,37 @@
+# Plaster slurry — burnt gypsum stirred into water (ceramics S17). It pours
+# like cream for a few minutes and then SETS by cure: the plaster takes the
+# water back up and is hard in a quarter of an hour, no act and no heat —
+# the third way a thing sets in a mould (freeze, drain, cure). What it sets
+# as is plaster, in the shape of whatever held it.
+class: /platform/idea/material/Material
+data:
+  name: plaster slurry
+  keywords: [plaster, slurry, "plaster slurry", "wet plaster"]
+  appearance: thick white plaster slurry
+  density: 1600
+  specificHeat: 2500
+  thermalConductivity: 0.5
+  electricalConductivity: 1.0e-3
+  meltingPoint: 273
+  waterAbsorptionCapacity: 0
+  hardness: 0
+  toughness: 0
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["liquid", "slurry", "plaster"]
+  # ⭐ The cure: a quarter of an hour, and it is cast plaster — a kinetic
+  # like any other heat-and-time change (review R2-D3): a point curve of
+  # 4 per hour at any temperature (it sets warm or cold), order 0, whose
+  # one rung is cast plaster. A mould's pool sets by it.
+  kinetics:
+    - key: set
+      rate: [[273, 4], [373, 4]]
+      order: 0
+      ladder:
+        - atDegree: 1
+          becomes: /trade/ceramics/idea/material/cast-plaster
+  composition:
+    - { materialPath: /stuff/idea/material/mineral/plaster, fraction: 0.6 }
+    - { materialPath: /stuff/idea/material/bulk/water, fraction: 0.4 }
+  biologicalSource: null

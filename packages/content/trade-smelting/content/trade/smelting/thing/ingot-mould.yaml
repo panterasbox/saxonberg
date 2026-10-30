@@ -17,5 +17,5 @@ data:
   castTemplate: /trade/smelting/thing/ingot
   reusable: true
   discipline: smelting
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/refractory
   mass: 6

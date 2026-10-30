@@ -1,0 +1,26 @@
+# The pottery's updraft kiln — a brick bottle with a firebox under a
+# perforated floor (ceramics D15, D19). Ware is set in it, the door is
+# bricked up, and it is fired for a day; cones in the spy-hole say when.
+# ⭐ Its lining is a part line of firebrick that wears with every firing.
+class: /platform/thing/Oven
+data:
+  shortDescription: updraft kiln
+  keywords: [kiln, updraft, bottle, oven]
+  register: indefinite
+  longDescription: >-
+    A round brick kiln shaped like a bottle, its firemouth low on one side
+    and a bricked-up wicket door, a spy-hole stopped with a brick.
+  mass: 6000
+  fixedInPlace: true
+  burnTemperatureK: 1560
+  bellowsMultiplier: 1.1
+  lit: false
+  emittedIntensity: 120
+  emittedColorTemperature: 1900
+  maxBurnPowerW: 30000
+  fuelCapacityKg: 300
+  bill:
+    parts:
+      - { part: lining, template: /stuff/thing/firebrick, count: 30, role: wear }
+    joints:
+      - { key: lining, method: dry-laid, members: [lining] }

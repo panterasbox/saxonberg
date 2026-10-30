@@ -433,7 +433,7 @@ a duck and a turkey with no further code.
 
 A carcass **reduces** as you take cuts off it and it hangs there while
 you do. `hanging-carcass` and a `meat-hook` with `airExposure: 1` are the
-shape, and `WaterActivityMixin` already dries a surface over time.
+shape, and `MoistureMixin` already dries a surface over time.
 
 ⚠ **Nothing rewards the wait**, which is why it is not built: the grade
 is set at the cut, so a carcass hung a week and one hung an hour give the

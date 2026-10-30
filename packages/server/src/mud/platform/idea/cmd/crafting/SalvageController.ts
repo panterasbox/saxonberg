@@ -75,10 +75,16 @@ export default class SalvageController extends CraftController<SalvageModel> {
         .send();
       return;
     }
+    // ⭐ Say what came back: a fired pot goes to SHERDS, whole by mass, and
+    // "for its matter" told the potter nothing (the ceramics drive).
+    const came = outcome.outputs.filter((o) => !o.isDestroyed());
+    const what = came.length > 0 ? came : null;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You break ${itemName} down for its matter — what the work put in, the wrecking mostly loses.`,
+        what
+          ? Mml.compose`You break ${itemName} down for its matter — what the work put in, the wrecking mostly loses. You are left with ${Mml.thing(what[0]!)}.`
+          : Mml.compose`You break ${itemName} down for its matter — what the work put in, the wrecking mostly loses.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} breaks ${itemName} down for salvage.`)
       .send();

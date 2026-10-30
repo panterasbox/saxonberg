@@ -177,7 +177,7 @@ describe('the spoilage gauge on a bulk slot', () => {
     // not off a field. A formed dose is CARRIED (nothing in the
     // composition implies it); the ingredients' own doses are DERIVED.
     const toxins = (p: BulkPayload | null): readonly { type: string; amount: number }[] =>
-      BlendLabel.toxicityOf(p, broth);
+      BlendLabel.toxicityOf(p, broth, slot.getMassKg());
 
     const stored = slot.getPayload()!;
     expect(toxins(stored).some((t) => t.type === 'ptomaine')).toBe(false);
@@ -204,7 +204,7 @@ describe('the spoilage gauge on a bulk slot', () => {
     const broth = StuffApi.findByTemplatePath<Material>(BROTH) ?? null;
     const ingest = new Freshness(slot).ingestPayload();
     expect(
-      BlendLabel.toxicityOf(ingest, broth).some((t) => t.type === 'ptomaine'),
+      BlendLabel.toxicityOf(ingest, broth, slot.getMassKg()).some((t) => t.type === 'ptomaine'),
     ).toBe(false);
   });
 

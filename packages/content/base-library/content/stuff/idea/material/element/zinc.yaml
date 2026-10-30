@@ -1,0 +1,31 @@
+# Zinc — Zn, atomic number 30. A bluish-white metal that is brittle cold
+# and malleable warm, and boils at a temperature a copper smelter passes on
+# the way up — which is why brass was made by cementation for centuries:
+# zinc ore and copper heated together under charcoal, the zinc vapor
+# soaking into the copper before it could get away. Here for what it does
+# in BRASS (ceramics W7): a third part of it turns copper gold-coloured and
+# harder, and lowers the melt by a hundred and fifty degrees.
+class: /platform/idea/material/Material
+data:
+  name: zinc
+  keywords: [zinc, spelter]
+  density: 7140
+  specificHeat: 388
+  thermalConductivity: 116
+  electricalConductivity: 1.69e7
+  hardness: 90
+  toughness: 30
+  meltingPoint: 693
+  latentHeatOfFusion: 112000
+  boilingPoint: 1180
+  latentHeatOfVaporization: 1760000
+  thermalExpansion: 3.0e-05
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
+  composition: []
+  symbol: Zn
+  atomicNumber: 30
+  molarMass: 65.38
+  biologicalSource: null

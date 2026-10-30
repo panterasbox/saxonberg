@@ -17,6 +17,9 @@ import { BulkableApi } from '../../../../api/bulk';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 const TOPIC = 'act.deed';
 
@@ -84,10 +87,33 @@ export default class PourController extends CommandController<PourModel> {
       { kind: 'all' },
       model.exact === true,
     );
+    // What the mould is made of, read BEFORE the pour: a mould the pour
+    // consumes is gone by the time the line is written.
+    const waxMould =
+      MixinApi.isMould(target) && MixinApi.isTangible(target) && target.getMaterial()?.hasTag('wax') === true;
     const result = BulkableApi.transfer(fromSlot, toSlot, amount);
     for (const note of result.notes) context.note(note);
     if (result.applied > 0 && MixinApi.isBulkable(source)) {
       source.afterPouredOutBy(giver, result.applied);
+    }
+
+    // ⭐⭐ (ceramics S13) The receiver did not survive the pour: its melting
+    // or ignition point is below the metal's heat. The pour is on the
+    // floor now, and the sentence says what happened to the vessel.
+    if (result.status === 'melted' || result.status === 'burned') {
+      const line =
+        result.status === 'melted'
+          ? Mml.compose`${Mml.thing(target)} slumps and runs as the pour hits it — it has melted — and everything goes across the floor.`
+          : Mml.compose`${Mml.thing(target)} smokes, chars and catches as the pour hits it — it is burning — and the metal runs out across the floor.`;
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(line)
+        .toPeers(Mml.compose`${Mml.actor(giver)} pours into ${Mml.thing(target)}, and it gives way under the heat.`)
+        .send();
+      return;
+    }
+    if (result.applied > 0 && MixinApi.isBulkable(target) && !target.isDestroyed()) {
+      target.afterPouredInBy(giver, result.applied);
     }
 
     // The rack credit (fermentation W7/D9): drawing off a FINISHED
@@ -134,7 +160,13 @@ export default class PourController extends CommandController<PourModel> {
     // is no recipe and no deed to gate — so a mould row that names a
     // Discipline credits it here, at the fill (a hoop → dairying, an ingot
     // mould → smelting; an ice pan names none).
-    if (result.applied > 0 && MixinApi.isMould(target)) {
+    // ⭐ (ceramics D26) A mould whose pour is a DAY — the bell pit: the
+    // metal goes in at once (it would freeze in the crucible otherwise),
+    // and the founder's day is the watch over the cooling pit. The credit
+    // lands when the watch is kept, not at the fill.
+    if (result.applied > 0 && MixinApi.isMould(target) && target.getPourDurationS() > 0) {
+      watchThePour(context, target, target.getPourDurationS());
+    } else if (result.applied > 0 && MixinApi.isMould(target)) {
       const discipline = target.getMouldDiscipline();
       if (discipline) {
         try {
@@ -203,6 +235,26 @@ export default class PourController extends CommandController<PourModel> {
       return;
     }
 
+    // ⭐ The pour consumed its mould — lost wax (the metal melts the wax out
+    // and takes its place), or a sand mould broken away from what set in
+    // it. Say so rather than naming a thing that is no longer there.
+    if (target.isDestroyed()) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          waxMould
+            ? Mml.compose`You pour from ${Mml.thing(source)}. The wax runs out as the metal takes its place.`
+            : Mml.compose`You pour from ${Mml.thing(source)}. It sets, and the mould is broken away from it.`,
+        )
+        .toPeers(
+          waxMould
+            ? Mml.compose`${Mml.actor(giver)} pours, and wax runs smoking out of the mould.`
+            : Mml.compose`${Mml.actor(giver)} pours, and breaks the mould away from the casting.`,
+        )
+        .send();
+      return;
+    }
+
     // Success (possibly a lenient partial — the clamp note is already
     // forwarded; the prose stays the same).
     MessageApi.scene(giver)
@@ -213,4 +265,46 @@ export default class PourController extends CommandController<PourModel> {
       )
       .send();
   }
+}
+
+/** The founder's watch over a slow pour's cooling — sealed down, on the attention. */
+const WATCH_EFFORT_W = 60;
+
+/**
+ * ⚠ A MODULE function, not a method: the watch completes after the
+ * controller has been destructed in its dispatch `finally`.
+ */
+function watchThePour(context: CommandContext, mould: Stuff, durationS: number): void {
+  const giver = context.commandGiver;
+  const credit = (): void => {
+    if (giver.isDestroyed() || mould.isDestroyed()) return;
+    const discipline = MixinApi.isMould(mould) ? mould.getMouldDiscipline() : '';
+    if (discipline && MixinApi.isAdvancing(giver)) {
+      void giver
+        .creditDeed({ discipline, difficulty: 'hard', outcome: 'success' })
+        .catch((err: unknown) => console.warn('PourController: recording the deed failed:', err));
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`The day is out. ${Mml.thing(mould)} has gone quiet and cool enough to dig the cast out of.`)
+      .send();
+  };
+  if (!MixinApi.isEngaged(giver)) {
+    credit();
+    return;
+  }
+  const step = new ManualBuildStep({
+    actor: giver,
+    slots: ['attention'],
+    durationMs: durationS * 1000,
+    effortW: WATCH_EFFORT_W,
+    onComplete: credit,
+  });
+  const started = SchedulerApi.start(step);
+  if (started.ok && started.status !== 'completed-sync') context.note(started.note);
+  MessageApi.scene(giver)
+    .topic(TOPIC)
+    .toSelf(Mml.compose`The metal goes down into ${Mml.thing(mould)} in a long bright rope. Now it has to cool, and you settle in to watch it the day through.`)
+    .toPeers(Mml.compose`${Mml.actor(giver)} settles in to watch over ${Mml.thing(mould)}.`)
+    .send();
 }

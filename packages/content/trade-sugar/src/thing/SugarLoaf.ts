@@ -16,12 +16,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type {
-  Cuttable,
-  CutPlan,
-  CutRefusal,
-  CutRequest,
-} from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { Cuttable, CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { Grade, type GradeBand } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -153,7 +149,7 @@ export default class SugarLoaf extends PercolatingMixin(Provision) implements Cu
     into.setBulkAmount('interior', Quantity.of(into.getBulkAmount('interior').rawValue() + litres, 'L'));
   }
 
-  public async cutPlan(req: CutRequest): Promise<CutPlan | CutRefusal> {
+  public async cutPlan(req: CutRequest): Promise<ActPlan | ActRefusal> {
     const nips = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('nipping'));
     if (!nips) {
       return {

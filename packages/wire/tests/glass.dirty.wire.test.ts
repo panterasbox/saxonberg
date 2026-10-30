@@ -24,10 +24,15 @@
  *     rather than `command-rejected` — the affordance + arg-gate links;
  *   - the glasswork Discipline advances with practice.
  *
+ * ⭐ Since ceramics W0 it also MIXES a batch live (sand, ash and lime in
+ * the batch pot, `stir pot`) and puts it in the kiln — the batch is a
+ * blend by mass and a firing by the one rule, neither a recipe.
+ *
  * What it does NOT do is run the full batch→melt→blow→crack→cold→glaze
  * loop live: that is time- and fuel-dependent at the game clock's scale,
- * and it is pinned where the arithmetic lives — `FireController.test`
- * (the firing carries its charge), `Tinted.test` (iron → colour),
+ * and it is pinned where the arithmetic lives — `batch.test` (the pot
+ * folds the sand's iron; the batch fires to glass keeping it),
+ * `Thermal.pool-composition` (a remelt keeps its colour), `Tinted.test` (iron → colour),
  * `hotwork.test` (the gather cools to cullet), `coldwork.test` (a green
  * pane glazes a window green), `Freshness.test` (light-strike). ⚠ A wire
  * world boots at `t = 0`, which is MIDNIGHT, so the drive advances the
@@ -135,16 +140,90 @@ suite('⭐ glass — the glasshouse in the woods', () => {
   }, 60_000);
 
   it('4. ⭐ `gob` is AFFORDED by the blowpipe and reaches its controller', async () => {
-    // ⚠ The hot-shop gather is `gob`, not `dip`: the chandlery trade (on
-    // master) owns `dip` for dip-coating a wick, the generative definition;
-    // glass's act is a gather, so it takes the glassblower's word `gob`.
+    // ⭐ `gob` is an alias of the platform's `dip` (ceramics review): the
+    // melt is a dip bath that plans the gather, and the blowpipe affords
+    // the word so a bare `gob` is heard.
     expectOk(await g.cmd('get blowpipe'));
     const out = await g.cmd('gob');
     expect(verbUnderstood(out)).toBe(true);
-    // No fluid melt in a cold glasshouse → the controller refuses in words
-    // (`no-melt` / `melt-cold`), proving the hot-shop verb is wired.
+    // No fluid melt in a cold glasshouse → refused in words (`melt-cold`
+    // from a stiff melt, or no bath at all), proving the verb is wired.
     expect(refusedFor(out)).toMatch(/melt|pipe|gather/i);
   }, 60_000);
+});
+
+suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', () => {
+  // ⭐⭐ No recipe in either step (ceramics R1 + M1): the batch pot folds
+  // what is put in it by mass — the batch's iron is its sand's — and the
+  // batch material's own heat transition melts it to glass in the kiln.
+  // Before this, the drive only proved `fire kiln` was wired.
+  //
+  // ⚠ The kiln holds 1200 K without the bellows and the batch wants the
+  // liquidus (1400 K), so a live firing at the clock's scale may leave the
+  // charge still batch — the conversion arithmetic is pinned in
+  // `trade-glass/src/__tests__/batch.test.ts`. What this proves is the
+  // five links: the pot is propped and afforded, `stir` reaches the
+  // mixing arm and a charge of batch EXISTS after it, and it goes into the
+  // kiln and `fire` holds it.
+  let b: Session;
+  beforeAll(async () => {
+    await toMidday();
+    b = await Session.open(uniqueHandle('batcher'), { startLocation: CLEAN });
+  }, 180_000);
+  afterAll(() => b?.close());
+
+  it('⭐ win two loads of sand, then put sand, ash and lime in the batch pot', async () => {
+    expectOk(await b.cmd('get spade'));
+    for (let i = 0; i < 2; i++) {
+      const dug = await b.cmd('dig');
+      expectOk(dug);
+      await settle(b, dug);
+    }
+    expectOk(await b.cmd('drop spade'));
+    expectOk(await b.cmd('south'));
+    const looked = await b.prose('look');
+    expect(looked).toMatch(/batch pot/i);
+    for (const line of ['put sand in pot', 'put sand in pot']) {
+      const put = await b.cmd(line);
+      expect(verbUnderstood(put)).toBe(true);
+      expect(refusedFor(put)).toBeNull();
+    }
+    for (const thing of ['ash', 'lime']) {
+      expectOk(await b.cmd(`get ${thing}`));
+      const put = await b.cmd(`put ${thing} in pot`);
+      expect(verbUnderstood(put)).toBe(true);
+      expect(refusedFor(put)).toBeNull();
+    }
+  }, 300_000);
+
+  it('⭐⭐ `stir pot` makes ONE charge of batch out of them — by mass, no recipe', async () => {
+    const stirred = await b.cmd('stir pot');
+    expect(verbUnderstood(stirred)).toBe(true);
+    expect(refusedFor(stirred)).toBeNull();
+    await settle(b, stirred);
+    const inside = await b.prose('look in pot');
+    expect(inside).toMatch(/charge of glass batch/i);
+    expect(inside).not.toMatch(/load of glass sand/i);
+  }, 180_000);
+
+  it('⭐ the charge goes into the kiln and `fire` holds it', async () => {
+    expectOk(await b.cmd('get batch from pot'));
+    const put = await b.cmd('put batch in kiln');
+    expect(refusedFor(put)).toBeNull();
+    expectOk(await b.cmd('get charcoal'));
+    const stoked = await b.cmd('stoke charcoal into kiln');
+    expect(verbUnderstood(stoked)).toBe(true);
+    const lit = await b.cmd('ignite kiln');
+    expect(verbUnderstood(lit)).toBe(true);
+    const fired = await b.cmd('fire kiln for 30 minutes');
+    expect(verbUnderstood(fired)).toBe(true);
+    expect(refusedFor(fired)).toBeNull();
+    await settle(b, fired);
+    // ⭐ The same piece: still batch if the kiln never reached the
+    // liquidus, glass if it did — never gone, never a new row.
+    const inside = await b.prose('look in kiln');
+    expect(inside).toMatch(/charge of glass( batch)?/i);
+  }, 300_000);
 });
 
 suite('⭐⭐ glass — the sand, and the colour it decides (LIVE)', () => {

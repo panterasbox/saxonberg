@@ -62,6 +62,17 @@ data:
     # a sealed vessel, shut* — which is the whole Stage B lesson and is
     # only teachable if the right vessel is buyable nearby.
     - { itemTemplatePath: /trade/fuel/thing/gas-bladder, par: 3 }
+    # ⭐ (ceramics W5) What keeps a furnace: firebrick to reline it, a
+    # refractory crucible, and the two glaze fluxes no ore here wins.
+    # ⭐⭐ (ceramics W6, D28) The firebrick is the Delight BRICKFIELD's:
+    # bought there first, and imported — at half as much again, and with no
+    # maker on it — only when the brick stack holds none. The row is the
+    # pack's firebrick, which `extends:` the commons one every lining bill
+    # names (so it fits the same line), and whose bare clone arrives FIRED.
+    - { itemTemplatePath: /trade/ceramics/thing/firebrick, par: 40, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/brickmaster, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/smelting/thing/crucible, par: 2 }
+    - { itemTemplatePath: /stuff/thing/lead-pig, par: 2 }
+    - { itemTemplatePath: /stuff/thing/tin-bar, par: 2 }
     # ⭐ Lime, for the sugar house (sugar D7): a refiner tempers every
     # copper with a lump of it, and the quarry's shelf is where the
     # realm's lime already is. Nobody burns lime yet — the limeburner seat
@@ -103,4 +114,10 @@ data:
     /trade/quarrying/thing/salt-pan: 16
     /trade/fuel/thing/oil-cask: 7
     /trade/fuel/thing/gas-bladder: 11
+    # A firebrick is cheap and a lining is forty of them; a crucible is
+    # dear and wears with every melt; lead and tin are imports.
+    /trade/ceramics/thing/firebrick: 2
+    /trade/smelting/thing/crucible: 15
+    /stuff/thing/lead-pig: 20
+    /stuff/thing/tin-bar: 25
     /trade/quarrying/thing/quicklime: 3

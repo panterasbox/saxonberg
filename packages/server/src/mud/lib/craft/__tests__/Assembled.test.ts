@@ -273,4 +273,29 @@ describe('⭐ a glue line needs FLAT faces — a cupped board under it never hol
   it('the look names the grain of each wooden part', () => {
     expect(shield({}).getMarkupLong(makeStuff(() => new Tool()))).toMatch(/sawn /);
   });
+
+  it('a thing whose only line is an empty seat says what it wants, and no empty "made of"', () => {
+    // Run 19: a thrown jug wanting its handle read "It is made of ."
+    const s = shield({});
+    s.recordAssembly([line('hide-face', IRON, { role: 'facing', failed: 1, empty: true })], []);
+    const look = s.getMarkupLong(s);
+    expect(look).toMatch(/It wants a hide-face\./);
+    expect(look).not.toMatch(/made of\s*\./);
+  });
+
+  it('⭐ an EMPTY seat is wanted, not broken — and fitting it fills it (the ceramics drive)', () => {
+    const s = shield({});
+    s.recordAssembly(
+      [
+        line('shield-board', ASH, { form: 'sawn' }),
+        line('hide-face', IRON, { role: 'facing', failed: 1, empty: true }),
+      ],
+      [{ key: 'facing', method: 'glued', members: ['hide-face', 'shield-board'], tension: 1, maker: '' }],
+    );
+    const look = s.getMarkupLong(s);
+    expect(look).toMatch(/It wants a hide-face\./);
+    expect(look).not.toMatch(/worn through|broken|hide-face is/);
+    s.replaceMembers('hide-face', 1, { material: IRON, grade: 'fair', maker: '' });
+    expect(s.getMarkupLong(s)).not.toMatch(/wants/);
+  });
 });

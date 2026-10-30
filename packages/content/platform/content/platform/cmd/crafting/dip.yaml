@@ -1,0 +1,111 @@
+# ⭐⭐ `dip` — ONE act, and the BATH plans it (ceramics D14, the
+# collision ladder's rung 2). Promoted from `trade-chandlery`: a wick into
+# hot fat until a candle builds up, and a bisque crock into a glaze slip
+# until it carries a coat, are one act — put a thing in a bath and draw it
+# out with the bath on it. The controller is dumb: it asks the bound bath
+# (`DipBathMixin.dipPlanFor`), and a bath whose material lays a coat
+# (`laysCoat`) is the kernel's default. The paint slate's reservation is
+# honored: `dip` is the coat-from-bath primitive.
+#
+# ⭐⭐⭐ **`melt` is an ALIAS, not a second verb** — the same call the
+# milling trade's `grind` lost, for the same reason.
+#
+# The chandlery shipped two verbs on the argument that the pot has to be
+# filled before anything can be dipped out of it, and that beeswax
+# arrives as a *cake* where tallow arrives liquid in a crock. The
+# asymmetry is real. It is not a second verb: it is the FIRST step of the
+# only act this pack has, and the verb-collision ladder's first rung is
+# *unify behind an interface*. A trade does not get a second verb because
+# one of its two feedstocks needs warming up.
+#
+# ⚠ `dip` is the survivor rather than `melt` for three reasons, in order:
+# the trade is a dip (a dipped candle is what a chandler sells, and the
+# word names the finished thing); the dip carries the derived output —
+# the empty `outputMaterial` that is the entire pack — where the melt
+# merely moves wax from a cake into a pot; and a player holding a cake of
+# wax still reaches for *melt* and still gets it. Precedent for the
+# alias: `mill`→`grind`, `pick`→`harvest`, `examine`→`look`.
+#
+# ⭐ And the melt is NARRATED, not skipped. `melt the cake` reads *it
+# softens, slumps and goes clear* and then *a candle builds up on the
+# wick* — two sentences for one act, so the alias never silently
+# overshoots the word the player typed.
+verbs: [dip, melt, gob]
+controller: /platform/idea/cmd/crafting/DipController
+description: "Dip a thing in a bath and draw it out with the bath on it — a candle, a glaze"
+help: |
+  `dip` — run a wick down into a pot of melted fat and up again, over and
+  over, until a candle has built up on it.
+
+  ⭐ **What the candle is made of is whatever was in the pot.** A pot of
+  beeswax gives a pale taper that smells of honey; a pot of tallow gives
+  a greasy one that smells of mutton and burns just as well. One act,
+  and the decision is which fat you bought — which is the whole of the
+  chandler's trade and the reason it is a trade at all.
+
+  You need fat in the pot. Rendered tallow is sold liquid in a crock, so
+  you `pour` it straight in. Beeswax sets hard and is sold as a cake, so
+  it has to be melted down first — and `dip the cake` does that for you,
+  in the same act: the wax goes clear, and then the candle builds up.
+  `melt` is the same verb if that is the word that fits what is in your
+  hands.
+
+  ⭐ **A glaze is the same act.** `dip crock in tub` lays a wet coat of
+  whatever glaze or slip is in the tub on the crock; `dip crock inside in
+  tub` coats only the inside (`outside` likewise), and a glaze sets when the
+  crock is fired. A bath that does not lay a coat — water — says so.
+  ⭐ **A gather of glass is the same act.** `dip pipe in melt` — or `gob`,
+  the glassblower's word — lowers the blowpipe into a pot of molten glass
+  and turns up a glowing gather on its end; with nothing named, it is the
+  empty pipe in your hands and the melt in reach. From the moment you lift
+  it the glass is COOLING: `shape` it and `crack` it off before it sets, or
+  `reheat` it. A gather comes from the pot — a cullet lump or an old bottle
+  goes back in to remelt.
+
+  ⚠ A dip leaves a LAYER: dyeing (`dye`) goes into the cloth and a quench
+  (`quench`) only cools, so neither is a dip.
+
+  ⚠ Anybody can do this. There is no skill in dipping a wick, and the
+  game does not pretend otherwise. The skill in this chain is upstream:
+  somebody butchered the animal, somebody rendered the suet, somebody
+  kept the bees.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⚠⚠ DECLARED FIRST, and that is load-bearing: positionals bind in
+  # declared order, so with the bath declared ahead of it `dip the cake`
+  # handed the cake to the bath. A later field's PREPOSITION still wins
+  # the lookahead, so `dip in the pot` skips this one.
+  - name: target
+    type: object
+    required: false
+    scope: "reachable"
+    # ⭐ `any`, deliberately: a chandler dips out of a pot with a CAKE of
+    # wax named (a plain Thing, not a good), and a potter dips a crock
+    # (a Faced good). The BATH decides what it will take.
+    requires: any
+    validators:
+      - /lib/command/validators/canReach
+  # ⭐ The face — `inside` or `outside` — a bare word after the target.
+  # Optional and non-greedy: the binder's lookahead skips it when the next
+  # word is the bath's preposition, so `dip crock in bucket` binds no face.
+  - name: face
+    type: string
+    required: false
+  # ⭐ Declared so the binder resolves it. Every reachable DIP BATH
+  # (`DipBathMixin` — a dip pot, a glaze tub, a pot of molten glass) is a
+  # candidate; the controller asks each, in order, what dip it plans. A thing
+  # that is no bath (a bucket of water) is refused at the binder, in words.
+  - name: bath
+    type: objects
+    required: false
+    prepositions: [in, into, from]
+    default: "reachable:[mixin.DipBathMixin]"
+    scope: ["reachable"]
+    requires: [DipBathMixin]
+  # …and the face said after the bath (`dip crock in bucket inside`).
+  - name: side
+    type: string
+    required: false

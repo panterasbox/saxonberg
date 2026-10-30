@@ -78,6 +78,15 @@ inside `Hygiene.bathe`.
    behaviour belongs to no one instance, an Api STATIC (taking a
    `…Request`). Never a `lib/` static, never a module function.
 
+## ⭐ The ceramics review's contribution (2026-10-28)
+
+The ceramics MR's act protocols are now input/output controllers over
+object plans (`ActPlan` / `ActRefusal` / `ActOutcome`, registered marker
+mixins — see [verb-interfaces § The cuts sweep](./verb-interfaces-slate.md)),
+and `stir`'s compounding arm asks the tub's plan instead of choosing its
+own duration. The seven cut verbs that still decide in their controllers
+are listed there; they are this slate's largest single cluster.
+
 ## Open for the build
 
 - **Outcome types** — one convention (a discriminated `ok` union, reasons

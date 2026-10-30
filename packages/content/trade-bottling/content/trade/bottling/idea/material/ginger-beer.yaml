@@ -11,6 +11,8 @@ data:
   nutrients: ["water", "sugar"]
   toxicity:
     []
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.2
   tags: ["liquid", "beverage", "drinkable", "ginger-beer", "mixer", "carbonated"]
   composition: []
   biologicalSource: null

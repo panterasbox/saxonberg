@@ -1,0 +1,21 @@
+# The old moulding table (ceramics S11, W6) — the first brickmakers' bench
+# on the bank of the flooded pit, its mould cut before the statute brick and
+# oversize by a good inch and more. It still works: `shape clay at old
+# table into brick` makes a day of bricks no wall built to the statute will
+# course.
+class: /trade/ceramics/thing/BrickTable
+data:
+  shortDescription: old moulding table
+  keywords: [table, "old table", "moulding table", bench, old]
+  register: definite
+  longDescription: >-
+    A grey, split old bench on the bank, its wooden mould worn smooth inside
+    and noticeably bigger than the ones in the shed.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 80
+  fixedInPlace: true
+  capabilities: [brick-table]
+  forms:
+    - /world/terminus/hearts-delight/brickfield/idea/form/old-brick
+  formTemplates:
+    block: /trade/ceramics/thing/block

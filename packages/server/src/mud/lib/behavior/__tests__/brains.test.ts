@@ -25,6 +25,7 @@ import { brain as reacts } from '../reacts';
 import { brain as wanders } from '../wanders';
 import { brain as patrols } from '../patrols';
 import type { Stuff } from '../../stuff/Stuff';
+import { BrainMoves } from '../BrainMoves';
 
 function fakeCtx(
   config: Record<string, unknown>,
@@ -43,6 +44,7 @@ function fakeCtx(
     trigger: { source: 'cadence', raw: 'cadence:1s' },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(host, config).members(),
     emoteFree: vi.fn(),
   };
 }

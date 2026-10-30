@@ -14,6 +14,7 @@ import { MqlApi } from '../../../api/mql';
 import { MixinApi } from '../../../api/mixin';
 import type { BrainContext } from '../brain';
 import type { Stuff } from '../../stuff/Stuff';
+import { BrainMoves } from '../BrainMoves';
 
 function stub(id: string): Stuff {
   return { stuffId: id } as unknown as Stuff;
@@ -26,13 +27,15 @@ function ctx(
   config: Record<string, unknown>,
   state: Record<string, unknown> = {},
 ): BrainContext & { say: ReturnType<typeof vi.fn> } {
+  const host = stub('sentry');
   return {
-    host: stub('sentry'),
+    host,
     config,
     state,
     trigger: { source: 'cadence', raw: 'cadence:6s' },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(host, config).members(),
     emoteFree: vi.fn(),
   } as BrainContext & { say: ReturnType<typeof vi.fn> };
 }

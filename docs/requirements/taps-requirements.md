@@ -189,7 +189,7 @@ sugar-work ladder, so syrup grading stays out of here.
 1. **Wool does not reach textiles.** `fleece.yaml`'s header says it is
    *"⭐⭐ what closes textiles' sourceless wool."* It does not: `spin`'s
    `stock` arg is `requires: StackableMixin`, and a `Provision` composes
-   `Sampled ⊕ Crafted ⊕ Composed ⊕ Contaminable ⊕ WaterActivity ⊕
+   `Sampled ⊕ Crafted ⊕ Composed ⊕ Contaminable ⊕ Moisture ⊕
    ThermalDose ⊕ Freshness ⊕ Thermal ⊕ Good` — no `StackableMixin`. So
    **`spin fleece` dies at the binder** before any controller runs. Two
    shipped trades each believe the other wired it. This is the fifth

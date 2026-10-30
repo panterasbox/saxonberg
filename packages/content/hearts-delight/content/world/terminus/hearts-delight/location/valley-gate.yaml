@@ -28,7 +28,7 @@ data:
 
     None of it is yours and none of it is grain. This is fruit country, and it is rich, and it says so.
 
-    A lane climbs away to the west, up onto the dry bench above the flats, where the ground is thinner and the farms are smaller. South, a track runs down to a dairy on the water meadows; southwest, just off the road, a whitewashed creamery stands with its shutters half closed.
+    A lane climbs away to the west, up onto the dry bench above the flats, where the ground is thinner and the farms are smaller. South, a track runs down to a dairy on the water meadows; southwest, just off the road, a whitewashed creamery stands with its shutters half closed. Southeast, down by the river, a smudge of smoke hangs over a brickfield.
   coords: { x: 0, y: 0, z: 0 }
   exits:
     north:
@@ -53,6 +53,12 @@ data:
       destination: /world/terminus/hearts-delight/creamery/location/floor
       media: [ground]
       edgeMinutes: 4
+    # ⭐ (ceramics W6) The brickfield-and-pottery, down on the river flats
+    # where the alluvium is.
+    southeast:
+      destination: /world/terminus/hearts-delight/brickfield/location/weathering-ground
+      media: [ground]
+      edgeMinutes: 5
   props:
     # ⭐ The tinker's stop at ten (repair D15).
     - /world/terminus/hearts-delight/thing/tinkers-slate

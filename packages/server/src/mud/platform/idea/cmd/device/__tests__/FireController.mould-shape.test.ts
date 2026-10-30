@@ -1,18 +1,20 @@
 /**
- * ⭐⭐ `fire` asks the MOULD for its shape, and the FEEDSTOCK for its cure
- * (rubber build). The contract this file pins, for the moulding
- * build that owns the seam afterwards (moulding-slate § 5):
+ * ⭐⭐ The mould decides the SHAPE, the piece's own heat history the CURE
+ * (rubber build; ceramics M1 made the cure a heat transition). The
+ * contract this file pins, for the moulding build that owns the seam
+ * (moulding-slate § 5):
  *
- *  1. a charge loaded in a mould standing in the chamber comes out in the
- *     mould's shape, in the mould, and the mould wears by one cast;
- *  2. the same charge loose in the chamber comes out as its material's
- *     own lump;
+ *  1. compounded stock standing in a mould in a lit chamber reaches its
+ *     rung and the mould mints the cast, in the mould, worn by one cast;
+ *  2. the same stock loose in the chamber is cured IN PLACE — the same
+ *     piece, its material swapped (identity is kept);
  *  3. a broken mould casts a lump;
  *  4. a cast's grade is the weaker of the mould's and the cure's.
  *
- * And the cure itself: the charge's sulfur fraction, the heat and the time
- * decide the material — none of it a word in the controller, all of it a
- * spec this file invents on its own feedstock.
+ * And the cure itself: the stock's OWN agent fraction (milled in at the
+ * tub — `fractionOf`, never a sum over the chamber), the heat and the time
+ * decide the material. `fire` decides nothing: it holds the chamber and
+ * settles it.
  */
 
 import '../../../../../../test-bootstrap';
@@ -21,13 +23,14 @@ import type { Burner } from '../../../../../lib/fire/Burner';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import FireController from '../FireController';
+import WorldClockRegistry from '../../../WorldClockRegistry';
 import Oven from '../../../../thing/Oven';
 import Casting from '../../../../thing/Casting';
 import Garment from '../../../../thing/equipment/Garment';
 import Mould from '../../../../thing/Mould';
-import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
 import { Grade } from '../../../../../lib/craft/Grade';
+import { MixinApi } from '../../../../../api/mixin';
 import { Quantity } from '../../../../../lib/quantity';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -38,9 +41,7 @@ import {
   standUpBranchHarness,
   makeContext,
   completeStep,
-  branchRecipeRows,
 } from '../../crafting/__tests__/branch-fixtures';
-import RecipeCatalogue from '../../../RecipeCatalogue';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -54,6 +55,7 @@ const OVER = '/stuff/idea/material/_mould/over';
 const SCORCHED = '/stuff/idea/material/_mould/scorched';
 const CAST_ROW = '/stuff/thing/_mould/boot';
 const LUMP_ROW = '/stuff/thing/_mould/lump';
+const STOCK_ROW = '/stuff/thing/_mould/stock';
 
 let room: TestActor;
 let actor: TestActor;
@@ -83,10 +85,20 @@ function makeKiln(holdK: number): Oven {
   });
 }
 
-function lumpOf(path: string, kg: number): Good {
-  const t = makeStuff(() => new Good());
+/** A piece of compounded stock: the feedstock with `agent` of the agent milled in. */
+function stockOf(agent: number, kg = 0.2): Casting {
+  const t = makeStuff(() => new Casting());
+  stampTemplatePathForTest(t, STOCK_ROW);
   t.setMass(Quantity.of(kg, 'kg'));
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
+  t.setMaterial(StuffApi.findByTemplatePath<Material>(FEED) as unknown as Material);
+  t.setMakeup([
+    { materialPath: FEED, fraction: 1 - agent },
+    { materialPath: AGENT, fraction: agent },
+  ]);
+  // ⭐ A casting is made (B95), so the stock has a grade, and the weaker of
+  // it and the cure is what the cast comes out at (weakest link). Live
+  // stock comes out of a `fine` pan or mould; this is that stock.
+  if (MixinApi.isGraded(t)) t.setGrade(Grade.of('fine'));
   return t;
 }
 
@@ -97,10 +109,11 @@ function mould(grade = 'fine'): Mould {
   return m;
 }
 
-/** A charge: `feedKg` of feedstock and `agentKg` of agent, into `into`. */
-function charge(into: Stuff, feedKg: number, agentKg: number): void {
-  ContainmentApi.move(lumpOf(FEED, feedKg) as never, into as never);
-  if (agentKg > 0) ContainmentApi.move(lumpOf(AGENT, agentKg) as never, into as never);
+/** A charge: one piece of stock carrying `agent` sulfur, into `into`. */
+function charge(into: Stuff, agent: number): Casting {
+  const piece = stockOf(agent);
+  ContainmentApi.move(piece as never, into as never);
+  return piece;
 }
 
 async function fire(hold?: string): Promise<CommandContext> {
@@ -129,47 +142,33 @@ const materialPathOf = (s: Stuff): string | null =>
   (s as unknown as { getMaterial(): Material | null }).getMaterial()?.getTemplatePath() ?? null;
 
 beforeEach(async () => {
-  const harness = await standUpBranchHarness();
+  await standUpBranchHarness();
+  // ⭐ The heat history needs a world clock a body can FIND: the harness
+  // clears the registry's index entry after minting its clock, and a body
+  // that finds no clock is idle (thermal's own guard).
+  makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
   material(AGENT, ['_agent']);
   material(CURED, ['_cured']);
   material(OVER, ['_over']);
   material(SCORCHED, ['_scorched']);
-  material(FEED, ['_feed'], (m) =>
-    m.setCrosslinking({
-      agent: '_agent',
-      referenceK: 418,
-      zK: 12,
-      fullDoseS: 1800,
-      agentOptimum: 0.03,
-      agentOver: 0.2,
-      scorchAboveK: 455,
-      products: { under: FEED, cured: CURED, over: OVER, scorched: SCORCHED },
-    }),
-  );
-  harness.store['recipes'] = [
-    ...branchRecipeRows(),
-    {
-      recipeId: 'test-cure',
-      name: 'Test cure',
-      keywords: ['testcure'],
-      inputSlots: [
-        { slot: 'feed', category: '_feed', minGrade: 'poor', kind: 'item', count: 1 },
-        { slot: 'agent', category: '_agent', minGrade: 'poor', kind: 'item', count: 1 },
-      ],
-      toolCapabilities: [],
-      outputTemplate: LUMP_ROW,
-      outputMaterial: '',
-      outputApplication: 'tangible',
-      requiresHeatK: 400,
-      holdS: 1800,
-      maxHeatK: 455,
-      difficulty: 'standard',
-      discipline: 'chemistry',
-    },
-  ];
-  const catalogue = StuffApi.findByTemplatePath<RecipeCatalogue>('/platform/idea/RecipeCatalogue')!;
-  catalogue.invalidateCache();
-  await catalogue.warm();
+  material(FEED, ['_feed'], (m) => {
+    // ⭐ A light charge (a fifth of a kilo, low heat capacity) so it is at
+    // the chamber's heat within a minute — the hold is the cure, not the
+    // warm-up.
+    m.setSpecificHeat(Quantity.of(400, 'J/(kg·K)'));
+    m.setKinetics([
+      {
+        key: 'cure',
+        rate: { referenceK: 418, zK: 12, fullDoseS: 1800 },
+        agent: { material: AGENT, optimum: 0.03, over: 0.2 },
+        scorchAboveK: 455,
+        ladder: [{ atDegree: 0.6, becomes: CURED }],
+        over: OVER,
+        scorched: SCORCHED,
+        discipline: 'chemistry',
+      },
+    ]);
+  });
 
   const realClone = StuffApi.clone;
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
@@ -194,13 +193,13 @@ beforeEach(async () => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('⭐⭐ the mould decides the shape', () => {
-  it('a charge in a mould comes out in the mould, in its shape, of the cure\'s material', async () => {
+  it('stock in a mould comes out in the mould, in its shape, of the cure\'s material', async () => {
     const m = mould();
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.97, 0.03);
+    charge(m, 0.03);
     expect(m.holdsCast()).toBe(false); // ⚠ a charge is not a cast
     const before = m.getCondition();
-    const context = await fire();
+    const context = await fire('30 minutes');
     expect(declinedFor(context)).toBeUndefined();
     await draw();
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW);
@@ -208,25 +207,24 @@ describe('⭐⭐ the mould decides the shape', () => {
     expect(materialPathOf(cast!)).toBe(CURED);
     expect(m.holdsCast()).toBe(true);
     expect(m.getCondition()).toBeLessThan(before);
-    // the charge is gone
-    expect(m.getContents().filter((c) => materialPathOf(c) === FEED)).toHaveLength(0);
+    // the stock is gone — it BECAME the cast
+    expect(m.getContents().filter((c) => c.getTemplatePath() === STOCK_ROW)).toHaveLength(0);
   });
 
-  it('the same charge loose in the chamber comes out as its material\'s own lump', async () => {
-    charge(kiln, 0.97, 0.03);
-    await fire();
+  it('the same stock loose in the chamber is cured in place — the same piece', async () => {
+    const piece = charge(kiln, 0.03);
+    await fire('30 minutes');
     await draw();
-    const out = kiln.getContents().find((c) => c.getTemplatePath() === LUMP_ROW);
-    expect(out).toBeDefined();
-    expect(materialPathOf(out!)).toBe(CURED);
+    expect(StuffApi.findById(piece.stuffId)).toBe(piece);
+    expect(materialPathOf(piece)).toBe(CURED);
   });
 
   it('a broken mould casts a lump', async () => {
     const m = mould();
     m.setCondition(0);
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.97, 0.03);
-    await fire();
+    charge(m, 0.03);
+    await fire('30 minutes');
     await draw();
     expect(m.getContents().some((c) => c.getTemplatePath() === LUMP_ROW)).toBe(true);
     expect(m.getContents().some((c) => c.getTemplatePath() === CAST_ROW)).toBe(false);
@@ -235,71 +233,78 @@ describe('⭐⭐ the mould decides the shape', () => {
   it('weakest link: a poor mould spoils a fine cure', async () => {
     const m = mould('poor');
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.97, 0.03);
-    await fire();
+    charge(m, 0.03);
+    await fire('30 minutes');
     await draw();
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
     expect((cast as unknown as { getGrade(): Grade }).getGrade().getBand()).toBe('poor');
   });
 });
 
-describe('⭐⭐ the cure is the charge, the heat and the time', () => {
-  it('a weighed 3 % charge held its recipe\'s half hour at 418 K is cured, and fine', async () => {
+describe('⭐⭐ the cure is the stock, the heat and the time', () => {
+  it('3 % sulfur held half an hour at 418 K is cured, and fine', async () => {
     const m = mould('masterful');
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.97, 0.03);
-    await fire();
+    charge(m, 0.03);
+    await fire('30 minutes');
     await draw();
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
     expect(materialPathOf(cast)).toBe(CURED);
     expect((cast as unknown as { getGrade(): Grade }).getGrade().getBand()).toBe('fine');
   });
 
-  it('a short low-sulfur cure stays the feedstock — under-cured', async () => {
-    const m = mould();
+  it('⭐ the stock caps the cure: a fair stock cured well comes out fair (B95, weakest link)', async () => {
+    const m = mould('masterful');
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.99, 0.01);
-    await fire('10 minutes');
-    await draw(600);
+    const piece = charge(m, 0.03);
+    if (MixinApi.isGraded(piece)) piece.setGrade(Grade.of('fair'));
+    await fire('30 minutes');
+    await draw();
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
-    expect(materialPathOf(cast)).toBe(FEED);
+    expect(materialPathOf(cast)).toBe(CURED);
+    expect((cast as unknown as { getGrade(): Grade }).getGrade().getBand()).toBe('fair');
   });
 
-  it('a heavy charge held long is the over-range material', async () => {
+  it('a short low-sulfur hold never reaches the rung — it stays compounded stock', async () => {
     const m = mould();
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.75, 0.25);
+    const piece = charge(m, 0.01);
+    await fire('10 minutes');
+    await draw(600);
+    expect(m.getContents().some((c) => c.getTemplatePath() === CAST_ROW)).toBe(false);
+    expect(StuffApi.findById(piece.stuffId)).toBe(piece);
+    expect(materialPathOf(piece)).toBe(FEED);
+    const degree = piece.getKineticRecord()?.changes['cure']?.extent ?? 0;
+    expect(degree).toBeGreaterThan(0);
+    expect(degree).toBeLessThan(0.6);
+  });
+
+  it('a fifth of sulfur held long is the over-range material', async () => {
+    const m = mould();
+    ContainmentApi.move(m as never, kiln as never);
+    charge(m, 0.25);
     await fire('1 hour');
     await draw(3600);
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
     expect(materialPathOf(cast)).toBe(OVER);
   });
 
-  it('the good charge held too hot is scorched', async () => {
+  it('the good stock held too hot is scorched', async () => {
     kiln.setBurnTemperatureK(470);
     const m = mould();
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.97, 0.03);
-    await fire();
+    charge(m, 0.03);
+    await fire('30 minutes');
     await draw();
     const cast = m.getContents().find((c) => c.getTemplatePath() === CAST_ROW)!;
     expect(materialPathOf(cast)).toBe(SCORCHED);
   });
 
-  it('`for <how long>` that is not a duration is refused, and the charge stays', async () => {
+  it('`for <how long>` that is not a duration is refused, and the stock stays', async () => {
     const m = mould();
     ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.97, 0.03);
+    charge(m, 0.03);
     expect(declinedFor(await fire('a while'))).toBe('bad-duration');
-    expect(m.getContents()).toHaveLength(2);
-  });
-
-  it('two charged moulds are one firing too many', async () => {
-    for (let i = 0; i < 2; i++) {
-      const m = mould();
-      ContainmentApi.move(m as never, kiln as never);
-      charge(m, 0.97, 0.03);
-    }
-    expect(declinedFor(await fire())).toBe('mixed-charge');
+    expect(m.getContents()).toHaveLength(1);
   });
 });

@@ -22,6 +22,9 @@ import { dirname, join } from 'path';
 import { readRunReport } from '../harness/registry';
 import {
   bootOwnedWorld,
+  forgetKeptWorld,
+  keepWorld,
+  keptWorld,
   reapOwnedPort,
   stopOwnedWorld,
   WIRE_LOG,
@@ -81,6 +84,48 @@ export async function setup(): Promise<void> {
   mkdirSync(dirname(REPORT), { recursive: true });
   rmSync(REPORT, { force: true });
 
+  // ⭐ `WIRE_REUSE=1`: attach to the world a `WIRE_KEEP_WORLD=1` run left
+  // standing. It was booted as a test world by this harness, so the
+  // test-world capabilities (the clock jump) stand.
+  if (process.env.WIRE_REUSE === '1') {
+    const kept = keptWorld();
+    // ⚠ A kept world mid-clock-jump answers slowly: one failed probe is not
+    // a dead world, and forgetting a live one strands it (a probe run did).
+    // ⭐ And a kept world whose PROCESS is alive is still booting (a drive
+    // that restarts its world — ceramics D's 35 — hands the next run a
+    // server minutes from answering): wait the boot budget for it, never
+    // forget it on a thirty-second probe (run 19 stranded A, B and C so).
+    const running = (pid: number): boolean => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const budget = Number(process.env.WIRE_BOOT_TIMEOUT ?? 420_000);
+    const deadline = Date.now() + budget;
+    let alive = false;
+    for (let i = 0; kept && !alive; i++) {
+      alive = await probe(kept.url);
+      if (alive) break;
+      if (i >= 10 && (!running(kept.pid) || Date.now() > deadline)) break;
+      await new Promise((r) => setTimeout(r, 3_000));
+    }
+    if (kept && alive) {
+      process.env[TEST_WORLD_FLAG] = '1';
+      process.env.WIRE_SERVER_URL = kept.url;
+      process.env.WIRE_SERVER_LOG = WIRE_LOG;
+      console.log(`\nwire: REUSING the kept world at ${kept.url} (pid ${kept.pid})\n`);
+      return;
+    }
+    forgetKeptWorld();
+    throw new Error(
+      '\nwire: WIRE_REUSE=1 but no kept world answers. Boot one with ' +
+        'WIRE_BOOT=1 WIRE_KEEP_WORLD=1 first.\n',
+    );
+  }
+
   if (ownsTheWorld()) {
     process.env[TEST_WORLD_FLAG] = '1';
     console.log(
@@ -121,7 +166,11 @@ export async function teardown(): Promise<void> {
   // ⭐ A restart test leaves its rebooted world standing for the files
   // after it (stopping it starved every later file of a world); this is
   // where that world goes down.
-  if (ownsTheWorld()) await reapOwnedPort();
+  // ⚠ Never a world the run was asked to KEEP (WIRE_KEEP_WORLD) or
+  // merely REUSED (WIRE_REUSE): those outlive the run by design.
+  if (ownsTheWorld() && !keepWorld() && process.env.WIRE_REUSE !== '1') {
+    await reapOwnedPort();
+  }
   const files = readRunReport(REPORT);
   const skipped = process.env.WIRE_SOAK === '1' ? [] : soakFiles();
   if (files.length === 0 && skipped.length === 0) return;

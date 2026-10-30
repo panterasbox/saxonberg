@@ -1,0 +1,26 @@
+# Cast plaster — plaster slurry that has cured (ceramics S17): white, soft
+# enough to carve with a knife, and full of fine pores that DRINK. That
+# thirst is the whole of slip casting: poured full of slip, a plaster mould
+# draws the water out of the clay against its walls until a skin of firm
+# clay stands there, and it does it more slowly each time until it has been
+# let dry out.
+class: /platform/idea/material/Material
+data:
+  name: plaster
+  keywords: [plaster, "cast plaster"]
+  appearance: chalky white plaster
+  density: 1200
+  specificHeat: 1090
+  thermalConductivity: 0.4
+  electricalConductivity: 1.0e-6
+  # ⭐ The thirst: a plaster mould holds over a third of its own weight in water.
+  waterAbsorptionCapacity: 40
+  hardness: 8
+  toughness: 1
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["mineral", "sulphate", "plaster"]
+  composition:
+    - { materialPath: /stuff/idea/material/rock/gypsum, fraction: 1.0 }
+  biologicalSource: null

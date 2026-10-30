@@ -6,8 +6,9 @@
  * (`Gather` cools by Newton drift), and this reads it at the one moment
  * the activity framework already gives — a tick.
  *
- * Each tick narrates a GLOW-BAND crossing only (white-hot → yellow →
- * orange → "the glow is going"), so the player feels the window closing.
+ * Each tick narrates a WORK-BAND crossing only (runs → soft → stiffening
+ * → setting), each line coloured by the gather's own heat on the one
+ * incandescence scale, so the player feels the window closing.
  * When the gather falls below working heat it is LOST — `gather.loseToCullet`
  * converts it, the loss is narrated, a failure deed credited — and the
  * watch completes. `cancel glasswork` stops the watching, not the cooling:
@@ -23,13 +24,14 @@ import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { AppApi } from "@saxonberg/server/mud/api/app";
+import { FireApi } from "@saxonberg/server/mud/api/fire";
 import type { EngagementSlot, Engaged } from "@saxonberg/server/mud/lib/activity/Engaged";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import Gather, {
   GLASSWORK_TYPE,
   GLASSWORK_TOPIC,
-  type GlowBand,
+  type WorkBand,
 } from "../thing/Gather";
 
 const SLOTS: readonly EngagementSlot[] = ["attention"];
@@ -46,12 +48,22 @@ function dial(key: string, fallback: number): number {
   }
 }
 
-const BAND_LINE: Record<GlowBand, string> = {
-  white: "The gather is white-hot and runs like water.",
-  yellow: "The gather has gone yellow — still soft, still yours.",
-  orange: "The gather is orange now, stiffening; work quickly.",
-  going: "The glow is going out of it; it is nearly set.",
-};
+/** One line per work band, coloured by the gather's own glow. */
+function bandLine(band: WorkBand, kelvin: number): string {
+  const glow = FireApi.incandescenceOf(kelvin);
+  switch (band) {
+    case "runs":
+      return `The gather glows ${glow ?? "hot"} and runs like water.`;
+    case "soft":
+      return `The gather glows ${glow ?? "hot"} — still soft, still yours.`;
+    case "stiffening":
+      return `The gather is ${glow ?? "dull"} now, stiffening; work quickly.`;
+    case "setting":
+      return glow === null
+        ? "The glow is going out of it; it is nearly set."
+        : `It has dulled to ${glow}; it is nearly set.`;
+  }
+}
 
 export interface HotWorkSpec {
   actor: Stuff & Engaged;
@@ -71,7 +83,7 @@ export class HotWorkWatch implements SustainedEngagement {
 
   private readonly pipe: Stuff;
   private readonly gather: Gather;
-  private lastBand: GlowBand | null = null;
+  private lastBand: WorkBand | null = null;
 
   constructor(spec: HotWorkSpec) {
     this.actor = spec.actor;
@@ -111,13 +123,13 @@ export class HotWorkWatch implements SustainedEngagement {
       SchedulerApi.complete(this);
       return;
     }
-    const band = this.gather.glowBand();
+    const band = this.gather.workBand();
     if (band !== this.lastBand) {
       this.lastBand = band;
       if (MixinApi.isSensor(this.actor)) {
         MessageApi.scene(this.actor)
           .topic(GLASSWORK_TOPIC)
-          .toSelf(Mml.compose`${Mml.fromMarkup(BAND_LINE[band])}`)
+          .toSelf(Mml.compose`${bandLine(band, this.gather.getTemperature().rawValue())}`)
           .send();
       }
     }

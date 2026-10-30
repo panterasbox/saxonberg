@@ -88,7 +88,7 @@ describe('the cheese hoop', () => {
     at(0);
     const { hoop: h, room } = hoop(MAT.firmCurd, 2);
     weigh(h, room, 12);
-    expect(h.loadKg()).toBeCloseTo(12, 6);
+    expect(h.loadN()).toBeCloseTo(12 * 9.81, 6);
     at(0.2 * DAY);
     h.getContents();
     await settle();
@@ -101,11 +101,17 @@ describe('the cheese hoop', () => {
     const w = wheelIn(h)!;
     expect(w).not.toBeNull();
     expect(w.getMaterial()?.getTemplatePath()).toBe(MAT.hardCheese);
-    expect(moisture(w)).toBeCloseTo(0.55, 2);
+    // ⭐ (ceramics W7) A load past the reference keeps firming the cheese,
+    // as load^(−0.15): a 12 kg stone on a 2 L hoop is ~2.9× its reference,
+    // so it presses a little drier than `moisture.loaded` (and a screw
+    // press drier still).
+    const r = 12 / (2.06 * 2);
+    const m = 0.55 * Math.pow(r, -0.15);
+    expect(moisture(w)).toBeCloseTo(m, 2);
     expect(w.getMadeFrom()).toBe(MAT.eweMilk);
     expect(w.getMaker()).toBe('/platform/agent/Avatar/cheesemaker');
     // 2 L of curd at 1030 kg/m³, less the water the press drove out.
-    expect(w.getMass().rawValue()).toBeCloseTo(2.06 * (1 - 0.45 * 0.7), 2);
+    expect(w.getMass().rawValue()).toBeCloseTo(2.06 * (1 - (1 - m) * 0.7), 2);
     expect(h.setState()).toBe('set');
     expect(h.getCondition()).toBeCloseTo(0.99, 6);
   });

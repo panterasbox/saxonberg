@@ -82,13 +82,13 @@ const STEW: BulkPayload = {
   // copied strings became one id; `RecipeCatalogue.getRecipe` is sync, so
   // the augmenter can ask.
   recipeId: COOK_RECIPE,
-  // ⭐ The COMPOSITION — Material paths and servings, not display names.
+  // ⭐ The MAKEUP — Material paths and mass fractions, not display names.
   // Asserting "root vegetable" below now requires a root-vegetable
   // Material to actually exist, which is the point: the reading is
   // derived from what went in, not from a string handed to the payload.
-  composition: [
-    { materialPath: ROOT_VEG, servings: 1 },
-    { materialPath: STEW_MEAT, servings: 1 },
+  makeup: [
+    { materialPath: ROOT_VEG, fraction: 0.5 },
+    { materialPath: STEW_MEAT, fraction: 0.5 },
   ],
 };
 
@@ -283,9 +283,9 @@ describe('the palate reads the dish (AC11)', () => {
     // Change what went in; the reading changes, with nothing else edited.
     const other: BulkPayload = {
       ...STEW,
-      composition: [
-        { materialPath: LIME, servings: 1 },
-        { materialPath: SUGAR, servings: 1 },
+      makeup: [
+        { materialPath: LIME, fraction: 0.5 },
+        { materialPath: SUGAR, fraction: 0.5 },
       ],
     };
     const text = tasteOf(dish(other), taster('competent'));

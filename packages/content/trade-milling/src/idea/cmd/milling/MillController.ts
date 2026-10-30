@@ -553,12 +553,13 @@ async function fill(
       if (Object.keys(next).length > 0) slot.setPayload(next);
     }
     if (plan !== null) {
-      // ⭐ The extraction, stamped continuously: the composition says
-      // what this flour is made of and `water.moisture` says how well it
-      // will keep. Two settings a hundredth apart are different matter.
+      // ⭐ The extraction, stamped continuously: the makeup says what
+      // this flour is made of, by mass fraction, and `water.moisture` says
+      // how well it will keep. Two settings a hundredth apart are
+      // different matter.
       slot.setPayload({
         ...(slot.getPayload() ?? {}),
-        composition: plan.composition,
+        makeup: plan.makeup,
         water: plan.water,
       });
     }

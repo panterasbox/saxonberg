@@ -6,11 +6,11 @@
  * `stoke charcoal into forge` was refused *"It is too sodden to catch."*
  *
  * Charcoal comes out of a three-day fire bone dry. The reason it read as
- * sodden is that `WaterActivityMixin`'s sparse default is `_moisture =
+ * sodden is that `MoistureMixin`'s sparse default is `_moisture =
  * 1` — *as harvested* — which is right for food and catastrophically
  * wrong for a product of drying. ⚠ Nothing in the game read a fuel's
  * water before this build: `Combustible` reads it for `ignite`, and no
- * shipped Combustible composes `WaterActivityMixin`. So the defect was
+ * shipped Combustible composes `MoistureMixin`. So the defect was
  * **invisible until something asked the question**.
  *
  * ## Why a SEED and not a property

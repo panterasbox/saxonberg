@@ -25,6 +25,9 @@ data:
   drainSetting:
     days: 0.5
     becomes: /trade/dairying/idea/material/hard-cheese
+    # ⭐ The whey it gives up runs into whatever the hoop stands on — a
+    # pail under it catches next time's starter, culture and all (R1-D8).
+    drains: /trade/dairying/idea/material/whey
     moisture: { unloaded: 0.8, loaded: 0.55 }
     loadRef: 2
   composition: []

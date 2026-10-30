@@ -61,7 +61,7 @@ const core = (c: Creature): number =>
 type RegBody = Creature & {
   setEffectiveAmbientK(k: number): void;
   setCachedHumidity(v: number): void;
-  absorbHeatLoad(j: number): void;
+  absorbHeatLoad(j: number, overS?: number): void;
   heatLoadJ: number;
 };
 
@@ -204,6 +204,31 @@ describe("the internal heat load", () => {
     advance(c, 1800);
     expect(core(c)).toBeCloseTo(THERMAL_DEFAULTS.SETPOINT_K, 1);
     expect(c.heatLoadJ).toBe(0);
+  });
+
+  it("⭐⭐ heat made OVER a long act is shed while working — only the excess is carried", () => {
+    // A nine-hour moulding day at ~260 W, a quarter of it work: ~6.3 MJ. It
+    // used to land at once — over 20 K of core — and kill (drive A, run 23).
+    const c = person();
+    core(c);
+    const water = c.getReserve('hydration')!.current.rawValue();
+    c.absorbHeatLoad(6_300_000, 9 * 3600);
+    expect(c.heatLoadJ).toBe(0);
+    // …paid for in sweat.
+    expect(c.getReserve('hydration')!.current.rawValue()).toBeLessThan(water);
+    // The same heat in an instant is still a load.
+    const d = person();
+    core(d);
+    d.absorbHeatLoad(6_300_000);
+    expect(d.heatLoadJ).toBe(6_300_000);
+  });
+
+  it("⚠ …but not past the wet-bulb ceiling: in a sauna the work's heat stays", () => {
+    const c = person(318);
+    c.setCachedHumidity(100);
+    core(c);
+    c.absorbHeatLoad(2_000_000, 3600);
+    expect(c.heatLoadJ).toBe(2_000_000);
   });
 
   it("absorbHeatLoad ignores zero and negative — it is a LOAD, not a thermostat", () => {

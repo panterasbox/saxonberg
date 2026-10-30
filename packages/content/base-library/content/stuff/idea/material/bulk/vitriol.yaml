@@ -24,6 +24,11 @@ data:
   thermalConductivity: 0.4
   specificHeat: 1380
   tags: [liquid, caustic, acid]
+  # ⭐ The strongest acid in the world (review R2-B4): oil of vitriol is
+  # about pH 0, so a lead glaze gives lead into it some sixteen times
+  # faster than into vinegar (pH 2.4) — `lint:acidity` holds every `acid`
+  # row to a pH below 7 (B109).
+  ph: 0
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/vitriol

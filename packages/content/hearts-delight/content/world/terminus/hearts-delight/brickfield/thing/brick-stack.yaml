@@ -1,0 +1,31 @@
+# The brick stack — ⭐ what the brickfield SELLS (ceramics S20): burnt
+# bricks off the clamp, set up on the stack by the setter, priced by the
+# thousand as a brickfield prices them and sold here by the brick. Its
+# firebricks are what the Rejection store's lining line buys first, before
+# it imports dearer ones (D28).
+#
+# ⭐ Its one import line is BREEZE — the cinders a brickfield buys in from
+# the town's fires to temper its clay (S20: "buys breeze and sand"; the
+# sand it digs itself).
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: brick stack
+  keywords: [stack, "brick stack", counter, slate]
+  register: definite
+  longDescription: >-
+    A long stack of burnt bricks by the track, set crossways in hundreds so
+    they can be counted at a glance, with a slate of prices nailed to a post.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  mass: 40
+  fixedInPlace: true
+  businessPath: /world/terminus/hearts-delight/brickfield/idea/brickmaster
+  stockLines:
+    - { itemTemplatePath: /trade/ceramics/thing/breeze, par: 6 }
+  prices:
+    /trade/ceramics/thing/brick: 1
+    /trade/ceramics/thing/firebrick: 2
+    /trade/ceramics/thing/tile: 1
+    /trade/ceramics/thing/breeze: 1

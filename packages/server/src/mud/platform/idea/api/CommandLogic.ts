@@ -466,6 +466,26 @@ function viasAligned(r: MqlMany, kept: readonly Stuff[]): (MqlMatchVia | undefin
   });
 }
 
+/**
+ * A field's scope fallback chain, expanded (`$focus` and stored vars).
+ *
+ * ⚠ A `here` try is DROPPED when a later try is `reachable`: `reachable`
+ * is the giver's person + `here` + peers, so it already holds everything
+ * `here` would find, and `here` alone is the room and its features
+ * without the things lying in it. With the focus at its default (`here`),
+ * `scope: ['$focus', 'reachable']` stopped at that subset, and any word
+ * in the room's own name won outright: `look clay` in the clay pit looked
+ * at the PIT, never the lumps of clay on its floor (ceramics browser
+ * walk). A drilled focus (`#id`, a fragment) is kept — it is a real
+ * narrowing, and what drill-first means.
+ */
+function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
+  const tries = yamlScopes.map((s) => ShellApi.expandVariables(s, giver));
+  return tries.filter(
+    (t, i) => !(t.trim().toLowerCase() === 'here' && tries.slice(i + 1).some((u) => u.trim().toLowerCase() === 'reachable')),
+  );
+}
+
 async function walkScopes(
   raw: string,
   giver: Stuff & CommandGiver,
@@ -1389,9 +1409,7 @@ export class CommandLogic extends ApiLogic {
       // `def.scope` is normalised to `string[] | undefined` by
       // CommandDefinition.normaliseShape, so no Array.isArray here.
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
-      const tries: string[] = yamlScopes.map((s) =>
-        ShellApi.expandVariables(s, giver)
-      );
+      const tries: string[] = scopeTries(yamlScopes, giver);
 
       const focusMode: 'extend' | 'replace' | 'none' =
         def.updates_focus ?? 'none';
@@ -1591,9 +1609,7 @@ export class CommandLogic extends ApiLogic {
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
-      const tries: string[] = yamlScopes.map((s) =>
-        ShellApi.expandVariables(s, giver)
-      );
+      const tries: string[] = scopeTries(yamlScopes, giver);
       // Same `requires:`-aware scan as the positional loop.
       const terms =
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
@@ -2689,6 +2705,14 @@ function bindPositionals(
         }
       } else if (loneQuoted !== null) {
         bound[name] = expand(loneQuoted);
+      } else if (namesAThing && greedySpan.some((t) => t.raw !== t.value)) {
+        // ⭐ An object field's value goes to MQL, which has no use for a
+        // quote mark — so a quoted NAME inside a longer object span binds
+        // unquoted too: `get "plant pot" from kiln` answered *"unexpected
+        // character '\"' at position 0"* (the ceramics drive C, run 35; the
+        // two-word-name finding). The tokens' values, already unquoted by
+        // the tokenizer, joined by a space: a name is matched word by word.
+        bound[name] = expand(greedySpan.map((t) => t.value).join(' '));
       } else if (stopAt < positionals.length) {
         // Build the substring from the original source to preserve
         // whitespace, but cut it just before the boundary token.

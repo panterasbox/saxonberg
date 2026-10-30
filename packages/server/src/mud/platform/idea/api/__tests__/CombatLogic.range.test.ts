@@ -626,7 +626,7 @@ describe("CombatApi.initiate — the one initiation handshake (P6)", () => {
 describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
   const person = (room: unknown) => makeFighter(room as TestRoom, 0.9, true);
   /** Glass: hard and almost tough-less — the brittle signature. */
-  const glassFlask = { litres: 0.25, toughness: 0.5, hardness: 550 };
+  const glassFlask = { litres: 0.25, brittle: true, hardness: 550 };
 
   it("a glass vessel shatters and divides its REAL volume", () => {
     const room = makeArena(12);
@@ -635,7 +635,7 @@ describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
     open(thrower, target);
 
     const plan = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, glassFlask, [target as never]);
-    expect(plan.profile.breaksOnArrival()).toBe(true);
+    expect(plan.profile.canShatter()).toBe(true);
     expect(plan.shares.length).toBe(1);
     expect(plan.shares[0]!.victim).toBe(target);
     expect(plan.shares[0]!.primary).toBe(true);
@@ -682,8 +682,8 @@ describe("CombatApi.resolveThrown — the arrival plan (AC 23)", () => {
 
     // Steel's 200 MJ/m³ against glass's 0.5: the same throw, a different
     // material, and the flask simply bounces.
-    const plan = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, { litres: 0.25, toughness: 200, hardness: 600 }, [target as never]);
-    expect(plan.profile.breaksOnArrival()).toBe(false);
+    const plan = (thrower as unknown as Stuff & Combatant).resolveThrown(target as never, { litres: 0.25, brittle: false, hardness: 600 }, [target as never]);
+    expect(plan.profile.canShatter()).toBe(false);
     expect(plan.shares).toEqual([]);
     expect(plan.spilled).toBeCloseTo(0.25, 6);
   });

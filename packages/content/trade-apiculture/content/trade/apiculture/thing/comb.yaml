@@ -6,7 +6,7 @@
 # honey is a recipe's output rather than the take's.
 #
 # ⚠ A `Provision`, which is what makes it work: `lint:perishable` requires
-# a Freshness host for a material that spoils, and `ComposedMixin` — also
+# a Freshness host for a material that spoils, and `CompositionMixin` — also
 # Provision's — is what carries WHAT THE BEES FORAGED into the jar. That
 # is why clover honey and cherry-blossom honey taste different with no row
 # authored for either.

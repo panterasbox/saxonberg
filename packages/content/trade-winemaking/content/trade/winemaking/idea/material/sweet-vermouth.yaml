@@ -5,11 +5,15 @@ data:
   keywords: [sweet, vermouth]
   appearance: "ruby-red, bittersweet vermouth"
   density: 1010
+  # One serving, kg (the unit of its label and its dose): one 30 ml measure at 1010 kg/m³.
+  servingKg: 0.0303
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
   toxicity:
     - { type: alcohol, amount: 7 }
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.5
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "vermouth", "sweet-vermouth"]
   composition: []
   biologicalSource: null

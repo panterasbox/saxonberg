@@ -172,7 +172,7 @@ export abstract class SingleSenseControllerBase extends CommandController<Single
       .send();
   }
 
-  private senseTarget(target: Stuff, context: CommandContext): void {
+  protected senseTarget(target: Stuff, context: CommandContext): void {
     const actor = context.commandGiver;
     if (!MixinApi.isDetailed(target) && !MixinApi.isVisible(target)) {
       const name = target.getPresentation();

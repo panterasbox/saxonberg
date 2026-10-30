@@ -13,10 +13,12 @@
  * would type.
  *
  * ⭐ The WALK is not stubbed away: the fixture is a real three-room
- * neighbourhood with real doors, and the keeper finds her way by the
- * authored directions on her row. Only `traverseWithDefault` is mocked
- * (it writes through the persistence layer), so a wrong direction fails
- * here exactly as it would fail the shop.
+ * neighbourhood with real doors, and the keeper walks it a `go` at a time
+ * (`ctx.goTo`, B107). The `go` verb is a stub that takes the room's real
+ * exit, `traverseWithDefault` is mocked (it writes through the
+ * persistence layer), and the ROUTER is a planner over these three rooms'
+ * own doors — the world index is not built in a unit test, and the
+ * kernel's router has its own suite.
  *
  * ⚠ SYNTHETIC fixtures under `/test/**`, never the general store's rows.
  */
@@ -45,13 +47,17 @@ import { Money } from '@saxonberg/server/mud/lib/banking/Money';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 // The counter mechanism is kernel substrate; the instanceable twin is
 // the shopkeeping pack's, which the kernel may not import. A local
 // fixture over the base is the whole of what these tests need.
 class Stock extends StockBase {}
 
 const SHOP = '/test/stocks/location/shop';
-const MARKET = '/test/stocks/location/market';
+// ⭐ Another district, so a row that knows only `/test/stocks/location`
+// does not know the wholesaler.
+const MARKET = '/test/stocks/elsewhere/market';
 const HALL = '/test/stocks/location/hall';
 const COUNTER = '/test/stocks/thing/counter';
 const SUPPLIER_COUNTER = '/test/stocks/thing/cash-and-carry';
@@ -88,20 +94,19 @@ let house: BusinessEntity;
 let balance = 0;
 let typed: string[] = [];
 
-/** The ways the keeper's row authors: to the window, and to the wholesaler. */
-const WAYS = [
-  { to: HALL, go: ['west'], back: ['east'] },
-  { to: MARKET, go: ['south'], back: ['north'] },
-];
+/** What the keeper's row says she knows: her street (the window's side). */
+const STREET = '/test/stocks/location';
 
 function ctxFor(config: Record<string, unknown> = {}): BrainContext {
+  const full = { counter: COUNTER, ...config };
   return {
     host: keeper as never,
-    config: { counter: COUNTER, ways: WAYS, ...config },
+    config: full,
     state: {},
     trigger: { source: 'cadence', raw: 'cadence:90s' },
     say: () => {},
     emote: async () => {},
+    ...new BrainMoves(keeper as never, full).members(),
     emoteFree: () => {},
   };
 }
@@ -222,11 +227,44 @@ beforeEach(async () => {
   keeper = makeStuff(() => new Extra());
   ContainmentApi.move(keeper as never, shop as never);
   vi.spyOn(keeper, 'forceCommand').mockImplementation(dispatch as never);
+  // ⭐ `go <dir>` — her own act — takes the room's REAL exit that way.
+  vi.spyOn(keeper, 'executeCommand').mockImplementation((async (text: string) => {
+    const dir = /^go (\S+)$/.exec(text)?.[1];
+    if (dir === undefined) return dispatch(text);
+    const here = keeper.getContainer() as unknown as Location | null;
+    const exit = here?.getExits().get(dir);
+    if (exit) await LocomotionApi.traverseWithDefault(keeper as never, exit as never);
+  }) as never);
   // ⚠ The traverse writes through the persistence layer, so it is mocked
-  // HERE and not one layer up: the brain still has to find the authored
-  // direction, and the exit it hands over is the real one.
+  // HERE and not one layer up: the exit it hands over is the real one.
   walked = [];
   vi.spyOn(LocomotionApi, 'traverseWithDefault').mockImplementation(step as never);
+  // The router, over these rooms' own doors, scoped by the extent as the
+  // kernel's is (an identity prefix).
+  vi.spyOn(NavigationApi, 'routeBetween').mockImplementation((async (
+    from: string,
+    to: string,
+    _profile: unknown,
+    knowledge: { extent?: string },
+  ) => {
+    const inExtent = (p: string): boolean => !knowledge.extent || p.startsWith(knowledge.extent);
+    const rooms = [shop, hall, market];
+    const seen = new Map<string, { dir: string; to: string }[]>([[from, []]]);
+    const queue = [from];
+    while (queue.length > 0) {
+      const at = queue.shift()!;
+      if (at === to) return { ok: true, plans: [{ legs: seen.get(at)! }] };
+      const room = rooms.find((r) => r.getTemplatePath() === at);
+      for (const [dir, exit] of room?.getExits() ?? []) {
+        const next = exit.getDestinationTemplatePath();
+        if (next === null) continue;
+        if (seen.has(next) || !inExtent(next)) continue;
+        seen.set(next, [...seen.get(at)!, { dir, to: next }]);
+        queue.push(next);
+      }
+    }
+    return { ok: false, reason: 'no-way' };
+  }) as never);
   // ⚠ A pack may not import `platform/idea/api/**` (the server's exports
   // map blocks it — a logic singleton is not pack surface), so the class
   // comes off the class table by path, the SeznickHouse shape.
@@ -296,22 +334,22 @@ describe('⭐ the keeper stocks the counter — buys the shortfall as the house,
     expect(keeper.getContainer()).toBe(shop);
   });
 
-  it('⭐⭐ she walks the AUTHORED way and comes back — out one door, in the next, no search', async () => {
+  it('⭐⭐ she walks a PLANNED way a `go` at a time and comes back — out one door, in the next', async () => {
     for (let i = 0; i < 3; i += 1) good(LIMES, 'limes', supplierCounter);
     balance = 4; // short: the window first, then the wholesaler
     await stocks.act(ctxFor());
     // Home → the window → home → the wholesaler → home. Each leg is one
-    // authored direction through a real door; nothing planned a route.
+    // `go` through a real door, on a route planned within what she knows.
     expect(walked).toEqual([HALL, SHOP, MARKET, SHOP]);
     expect(keeper.getContainer()).toBe(shop);
   });
 
-  it('⚠ a room no `ways` row names is a room she does not go to — the shop simply never restocks', async () => {
+  it('⚠ a place outside what she knows is a place she does not go — the shop simply never restocks', async () => {
     for (let i = 0; i < 3; i += 1) good(LIMES, 'limes', supplierCounter);
     balance = 100;
-    // The wholesaler's way unauthored (an author added a supplier and
-    // not the way there): she stays in, and the till is untouched.
-    await stocks.act(ctxFor({ ways: [{ to: HALL, go: ['west'], back: ['east'] }] }));
+    // Her row knows her street, and the wholesaler is in another district:
+    // she stays in, and the till is untouched.
+    await stocks.act(ctxFor({ knows: STREET }));
     expect(walked).toEqual([]);
     expect(typed).toEqual([]);
     expect(counter.onHand(LIMES)).toBe(0);
@@ -323,7 +361,7 @@ describe('⭐ the keeper stocks the counter — buys the shortfall as the house,
     balance = 0; // she would have to borrow to buy
     // The window is reachable; the wholesaler is not. Nothing is owed
     // for goods she was never going to be able to fetch.
-    await stocks.act(ctxFor({ ways: [{ to: HALL, go: ['west'], back: ['east'] }] }));
+    await stocks.act(ctxFor({ knows: STREET }));
     expect(typed.filter((t) => t.startsWith('bank borrow'))).toEqual([]);
     expect(walked).toEqual([]);
   });

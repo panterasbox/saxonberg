@@ -37,6 +37,7 @@ import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__te
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
+import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
 
 const FLOOR = '/world/test/silk-house/location/floor';
 const WALK = '/world/test/silk-house/location/walk';
@@ -93,6 +94,7 @@ function ctx(config: Record<string, unknown>): BrainContext {
     trigger: { source: 'candidate', raw: 'candidate' },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(hand as unknown as Stuff, config).members(),
     emoteFree: vi.fn(),
   };
 }

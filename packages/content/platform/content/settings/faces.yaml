@@ -1,0 +1,35 @@
+# faces — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing). ⭐ A good has faces and a face carries coats
+# (ceramics M6): these are the dials of what a coat does.
+settings:
+  # A glaze dipped on is a skin about a third of a millimetre thick.
+  - key: faces.dipThicknessM
+    value: "0.0003"
+
+  # A coat that shrinks more than its body on cooling is in tension and
+  # cracks — crazes. 1.5 × 10⁻⁶ /K of mismatch is where a potter sees it.
+  - key: faces.crazeMismatch
+    value: "0.0000015"
+
+  # A face this soiled (grease, dust) when a glaze is laid on it, and the
+  # glaze crawls back off bare patches at the fuse.
+  - key: faces.crawlDirt
+    value: "0.3"
+
+  # A fired body at or under this open porosity holds water with no glaze —
+  # stoneware does; terracotta weeps.
+  - key: faces.holdsWaterBelow
+    value: "0.03"
+
+  # A porous inside face keeps a tenth of a fill's aromas and gives them to
+  # the next — the crock that remembers the pickles.
+  - key: faces.aromaRetained
+    value: "0.1"
+
+  # ⭐ A porous body set on or in a vessel runs its water THROUGH into it —
+  # the ceramic filter — at this many liters an hour per liter held, per
+  # unit of porosity: a filter candle of porous stoneware (≈ 0.12) passes
+  # about half its fill in the first hour. A flow, so it is far faster
+  # than the weep onto a jar's own outside.
+  - key: faces.filterLPerHourPerL
+    value: "5"

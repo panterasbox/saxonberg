@@ -13,6 +13,10 @@
 
 import Bottle from "@saxonberg/server/mud/platform/thing/Bottle";
 import { AlloyedMixin } from "@saxonberg/server/mud/lib/material/Alloyed";
+import { MeltableMixin } from "@saxonberg/server/mud/lib/thermal/Meltable";
 import { TintedMixin } from "../lib/Tinted";
 
-export default class GlassBottle extends TintedMixin(AlloyedMixin(Bottle)) {}
+// ⭐ A bottle remelts because it is warm (ceramics W0, ruling C): in a
+// hot kiln it melts by phase change into the pot beside it, its iron with
+// it — a green bottle comes back green. No class changes at any rung.
+export default class GlassBottle extends TintedMixin(AlloyedMixin(MeltableMixin(Bottle))) {}

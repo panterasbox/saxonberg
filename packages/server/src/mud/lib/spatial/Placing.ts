@@ -109,6 +109,14 @@ export interface Placing {
   canPlace(item: Stuff & Containable, name: string): VetoResult;
 
   /**
+   * @hook ⭐ The force this host bears down on `item`, placed on or in it,
+   * N — beyond the item's own weight (B104). A shelf, a bench, a floor:
+   * `0`. A screw press: its platen. Read by whatever a load matters to (a
+   * mould's drain set and its press).
+   */
+  bearingLoadN(item: Stuff & Containable): number;
+
+  /**
    * ⭐ **How much of a thing placed here the air can reach**, `[0, 1]`.
    *
    * Drying is **surface-limited** — the air has to get to the water. A ham
@@ -125,7 +133,7 @@ export interface Placing {
    * shed all come out of rows.
    *
    * ⚠ This is the *host's* claim about its own airiness, not a claim
-   * about the room. Read by `WaterActivityMixin`'s two-way arm off
+   * about the room. Read by `MoistureMixin`'s two-way arm off
    * `Containable.getPlacement()`; a thing merely dropped on the floor is
    * placed on nothing and reads the `cure.groundExposure` dial instead.
    */
@@ -297,6 +305,10 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     setAirExposure(v: number): void {
       if (!Number.isFinite(v)) return;
       this.airExposure = v < 0 ? 0 : v > 1 ? 1 : v;
+    }
+
+    public bearingLoadN(_item: Stuff & Containable): number {
+      return 0;
     }
 
     canPlace(_item: Stuff & Containable, name: string): VetoResult {

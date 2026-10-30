@@ -1,0 +1,20 @@
+# The core oven (ceramics W7) — a founder's low brick oven for baking sand
+# cores dry and burning gypsum to plaster: it holds a gentle heat, where a
+# limekiln's would ruin it. `fire oven for an hour` with a lump of gypsum in
+# it, and what comes out is plaster.
+class: /platform/thing/Oven
+data:
+  shortDescription: core oven
+  keywords: [oven, "core oven", stove]
+  register: indefinite
+  longDescription: >-
+    A low brick oven with an iron door and shelves of perforated plate, the
+    brick around the door scorched brown.
+  burnTemperatureK: 450
+  bellowsMultiplier: 1
+  lit: false
+  mass: 600
+  emittedIntensity: 10
+  emittedColorTemperature: 1500
+  maxBurnPowerW: 3000
+  fuelCapacityKg: 20

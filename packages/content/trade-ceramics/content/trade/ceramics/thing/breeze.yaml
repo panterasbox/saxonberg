@@ -1,0 +1,16 @@
+# A sack of breeze (ceramics S3, S20) — the cinders and fine ash raked out
+# of coal fires, bought by the sack from the town's fires and kneaded into
+# fat clay to open it: it dries without cracking, and the unburnt coal in
+# it burns inside the brick in the clamp. A London stock brick's black
+# specks are breeze.
+class: /trade/quarrying/thing/Lump
+data:
+  keywords: [breeze, cinders, "sack of breeze"]
+  shortDescription: sack of breeze
+  register: indefinite
+  longDescription: >-
+    A sack of gritty black-grey cinders and coal ash, still smelling of the
+    fire it came out of.
+  _materialPath: /trade/ceramics/idea/material/breeze
+  mass: 10
+  quantity: 1

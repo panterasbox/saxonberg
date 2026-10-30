@@ -151,6 +151,14 @@ migrated **two of them had been failing on master with nobody able to
 know** (`drive-textiles` 5 of 16 checkpoints, `drive-identity` 6 of 18).
 A drive nobody runs decays silently.
 
+⭐ **The drives run HERE, once, after review** (workflow.md § MR review
+iteration — the review's ground rules): a review proves each fix in an
+isolated window and launches nothing clock-hungry, so the time-hungry
+drives — this build's and the sibling drives its changes touched — are
+owed at the sweep. Merge master in FIRST (a sibling's merge can change
+what the drive meets), drop the worktree's own database, boot ONE world
+on a worktree-unique `WIRE_PORT`, and run them against it.
+
 - **Record present.** Read it. Confirm every step of the script was
   actually run, and that anything it found was fixed rather than
   noted.

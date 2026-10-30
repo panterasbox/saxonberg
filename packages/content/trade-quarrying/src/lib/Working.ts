@@ -62,7 +62,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
-import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
   Diggable,
   WorkPrognosis,
@@ -157,6 +157,8 @@ export interface ExposedFace extends Band {
 interface DigToken {
   hostPath: string;
   floor: boolean;
+  /** The player named the band (`dig clay`): what they asked for stays at hand. */
+  named?: boolean;
 }
 
 /** The public surface an open working adds. */
@@ -384,6 +386,14 @@ export function OpenWorkingMixin<
       for (const face of faces) {
         if (matchesBand(face, want)) return face;
       }
+      // ⭐ A word that names the WORKING itself (`dig pit`, `dig the
+      // working`) means its floor — what `dig floor` means. A band always
+      // wins first: in the Delight's clay pit `clay` is the wall, never
+      // the pit.
+      const self = this as unknown as { hasKeyword?(k: string): boolean };
+      if (self.hasKeyword?.(want)) {
+        return faces.find((f) => f.floor) ?? faces[faces.length - 1] ?? null;
+      }
       return null;
     }
 
@@ -410,7 +420,7 @@ export function OpenWorkingMixin<
     public readonly diggable = true as const;
 
     public async planWork(
-      _by: Stuff,
+      by: Stuff,
       tool: (Stuff & Tooled) | null,
       what: string | null,
     ): Promise<WorkPrognosis> {
@@ -523,10 +533,13 @@ export function OpenWorkingMixin<
         beginSelf: face.earth
           ? `You set into the ${nameOfFace(face)}, cutting and casting back.`
           : `You set the point of it into the ${nameOfFace(face)} and start working a block free.`,
-        beginPeers: face.earth
-          ? 'Somebody starts stripping the face.'
-          : 'Somebody starts working stone out of the face.',
-        token: { hostPath: face.hostPath, floor: face.floor } satisfies DigToken,
+        // ⭐ Named, as the room sees them: a bare "Somebody" read in full
+        // daylight to everyone at the pit (ceramics browser walk).
+        beginPeers: (face.earth
+          ? Mml.compose`${Mml.actor(by)} starts stripping the face.`
+          : Mml.compose`${Mml.actor(by)} starts working stone out of the face.`
+        ).toString(),
+        token: { hostPath: face.hostPath, floor: face.floor, named: asked !== '' } satisfies DigToken,
       };
     }
 
@@ -545,7 +558,7 @@ export function OpenWorkingMixin<
       this.recordWon(face.hostPath);
       if (tok.floor) this.deepen();
 
-      const won = await this.mintWinnings(face, by);
+      const won = await this.mintWinnings(face, by, tok.named === true);
       const tail = this.remainingIn(face) <= 0 ? ' That is the last of this face.' : '';
       return {
         self: won === null
@@ -599,6 +612,7 @@ export function OpenWorkingMixin<
     private async mintWinnings(
       face: ExposedFace,
       by: Stuff,
+      named = false,
     ): Promise<string | null> {
       const wins = face.wins ?? (face.earth ? DEFAULT_EARTH_ROW : DEFAULT_ROCK_ROW);
       if (wins.includes('/idea/material/')) {
@@ -627,15 +641,19 @@ export function OpenWorkingMixin<
       if (MixinApi.isComposition(thing)) {
         await this.stampAssay(thing, face);
       }
-      const where = await this.destinationFor(face);
+      // ⚠ Named BEFORE the move: a stackable unit (spoil, clay) merges into
+      // the heap already at the tip on arrival and is destroyed by it, so
+      // read after the move it says "undefined" (the ceramics drive).
+      const called = thing.getPresentation();
+      const where = await this.destinationFor(face, named);
       if (MixinApi.isContainable(thing) && MixinApi.isContainer(where)) {
-        ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
+        await ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
       }
       const heaped =
         where !== (this as unknown as Stuff)
           ? 'and it goes to the tip'
           : 'and it lies where it fell';
-      return `You work ${thing.getPresentation()} free, ${heaped}.`;
+      return `You work ${called} free, ${heaped}.`;
     }
 
     /**
@@ -675,7 +693,7 @@ export function OpenWorkingMixin<
         seed,
       );
       if (sample.grade > 0 && sample.mineralPath && MixinApi.isComposition(thing)) {
-        thing.setAlloying([
+        thing.setMakeup([
           { materialPath: sample.mineralPath, fraction: sample.grade },
         ]);
       }
@@ -707,10 +725,15 @@ export function OpenWorkingMixin<
       return `You break ${nameOfFace(face)} loose and shovel it into ${vessel.getPresentation()}.`;
     }
 
-    /** Where a won good lands: the tip when one is authored, else here. */
-    private async destinationFor(face: ExposedFace): Promise<Stuff> {
+    /**
+     * Where a won good lands: the tip when one is authored, else here.
+     * ⭐ What you NAMED stays at hand — `dig fireclay` at the Hill Quarry
+     * sent the fireclay to the spoil tip (the ceramics drive). The tip
+     * takes what a bare `dig` strips to get down.
+     */
+    private async destinationFor(face: ExposedFace, named = false): Promise<Stuff> {
       const self = this as unknown as Stuff;
-      if (!face.earth || this.spoilTo === null) return self;
+      if (named || !face.earth || this.spoilTo === null) return self;
       try {
         const tip = await StuffApi.singleton<Stuff>(this.spoilTo);
         return tip ?? self;

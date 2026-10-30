@@ -66,7 +66,7 @@ import type Material from './Material';
 import type Condition from '../../platform/idea/Condition';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
-import type { WaterState } from './WaterActivity';
+import type { WaterState } from './Moisture';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { TemplatePathPrefixes } from '../paths';
@@ -197,7 +197,7 @@ function clamp01(x: number): number {
 
 /**
  * ⭐ **The contamination half of the blend payload, declared here.** Same
- * move `Freshness` and `WaterActivity` make: the payload has to carry the state,
+ * move `Freshness` and `Moisture` make: the payload has to carry the state,
  * and the payload's own module has no business knowing what a pathogen is.
  */
 declare module '../bulk/Bulkable' {
@@ -528,7 +528,7 @@ export class Contamination {
       ? host.getMaterial()
       : null;
     if (!material) return 1;
-    const water: WaterState | null = MixinApi.isWaterActive(host)
+    const water: WaterState | null = MixinApi.isMoist(host)
       ? host.getWaterState()
       : null;
     return Freshness.waterActivityOf(material, water);

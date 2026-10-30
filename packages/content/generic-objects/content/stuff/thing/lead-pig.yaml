@@ -1,0 +1,14 @@
+# A pig of lead — the glaze-maker's flux (ceramics S8): ground into a glaze
+# bucket it makes the glossy honey-amber lead glaze that fires low and
+# leaches into anything acid held against it. No ore in the realm wins it:
+# it comes in as an import.
+class: /platform/thing/Ingot
+data:
+  shortDescription: pig of lead
+  keywords: [lead, pig, ingot, bar, "pig of lead", "lead pig"]
+  register: indefinite
+  longDescription: >-
+    A dull grey bar of lead, soft enough to mark with a thumbnail and far
+    heavier than it looks.
+  _materialPath: /stuff/idea/material/element/lead
+  mass: 2

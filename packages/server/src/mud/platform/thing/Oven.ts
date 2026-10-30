@@ -9,6 +9,8 @@ import Firebox from '../../lib/fire/Firebox';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { PlacingMixin } from '../../lib/spatial/Placing';
 import { FluedMixin } from '../../lib/fire/Flued';
+import { AssembledMixin } from '../../lib/craft/Assembled';
+import { DurableMixin } from '../../lib/material/Durable';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
 import type { BulkSlot } from '../../lib/bulk/Bulkable';
@@ -28,7 +30,11 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 // ⭐ A firebox that ENCLOSES what it heats — that is the whole
 // difference between an oven and a forge, and it is two mixins.
 // ⭐ A flue (cleanliness D18): an oven's smoke goes up a chimney that soots.
-const OvenBase = FluedMixin(ContainerMixin(PlacingMixin(Firebox)));
+// ⭐⭐ And made of PARTS (ceramics D19): a chamber furnace has a lining, a
+// part line of firebrick that wears with every firing and is relined with
+// `fit lining to <oven>`. A row with no `bill` is one piece and wears
+// nothing — a lamp and a campfire are fireboxes, not ovens.
+const OvenBase = AssembledMixin(DurableMixin(FluedMixin(ContainerMixin(PlacingMixin(Firebox)))));
 
 export default class Oven extends OvenBase {
   /**
@@ -70,6 +76,12 @@ export default class Oven extends OvenBase {
     if (!MixinApi.isPlacing(self)) return null;
     for (const item of self.getPlaced('on')) {
       if (!MixinApi.isBulkable(item)) continue;
+      // ⚠ The closure FIRST: a fuel bottle is sealed, and the closure is a
+      // field. Reading a pan's contents reconciles the pan, and a pan on
+      // this fire reads this fire's heat, which reads this slot — a salt
+      // pan on the brine hearth ran that loop on every light read, and
+      // `fire` never answered (ceramics drive D 32).
+      if (BulkableApi.compareClosure(item.getClosure(), 'sealed') < 0) continue;
       if (!item.isGasRetained('interior')) continue;
       const material = item.getBulkMaterial('interior');
       if (!material) continue;

@@ -140,7 +140,7 @@ export default class ShootController extends CommandController<ShootModel> {
       // be, and the launcher has no business deciding what its load does.
       channel: 'point',
       calibreM: this.calibreOf(ammo),
-      toughness: material?.getToughness().rawValue(),
+      brittle: material?.hasTag('brittle') ?? false,
       hardness: material?.getHardness().rawValue(),
     });
 

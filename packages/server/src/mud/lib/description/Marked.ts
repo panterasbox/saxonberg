@@ -42,6 +42,8 @@ import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
+import type { MarkupAugmenter } from '../../api/mml';
 
 /** How wet inked paper must be before the ink runs (0..1). */
 const INK_RUNS_AT = 0.5;
@@ -147,13 +149,55 @@ export interface Marked {
    * your own.
    */
   writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string };
+  /**
+   * ⭐ WHOSE mark this bears — a DEVICE, not words: a potter's stamp on a
+   * pot's base, a die's device on a struck token, the device cut in the
+   * stamp or the die itself (ceramics review, 2026-10-28). An identity
+   * path; `''` = none. One mark, wherever it was pressed: impressing copies
+   * the tool's device onto the soft thing (`takeDeviceFrom`).
+   *
+   * ⭐ A device is pressed or cut, so it is always RELIEF — seen or felt
+   * ({@link DEVICE_MODALITIES}), whatever form the thing's writing takes
+   * (B106: stamping used to turn an inked label embossed).
+   */
+  getMarkDevice(): string;
+  setMarkDevice(identityPath: string): void;
+  /** Press `tool`'s device into this. The thing's own writing is untouched. */
+  takeDeviceFrom(tool: Stuff & Marked): string;
+  /**
+   * ⭐ The device as `viewer` knows it (B106): *your own mark*, *Hester's
+   * mark* when the viewer knows Hester (their recognition of her), else *a
+   * maker's mark you do not know* — never a stranger's name for free.
+   * `null` when it bears none. Whether the viewer can make it out at all
+   * is the caller's question (`PerceptionApi.canMakeOutMarks` with
+   * {@link DEVICE_MODALITIES}).
+   */
+  deviceFor(viewer: Stuff): string | null;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
   markForm: string;
   markScript: string;
   writingRoom: number;
+  markDevice: string;
 }
+
+/** ⭐ A device is relief — pressed or cut — so it is seen or felt. */
+export const DEVICE_MODALITIES: readonly SenseChannel[] = MARK_FORMS.both;
+
+/**
+ * ⭐ The device a thing bears, in words a look gives it: whose mark, as the
+ * viewer knows it. Relief, so it is felt as well as seen and reads in the
+ * dark. A thing that bears none says nothing.
+ */
+const deviceAugmenter: MarkupAugmenter = (text, host, viewer, opts) => {
+  if (opts?.filter) return text;
+  if (!MixinApi.isMarked(host)) return text;
+  const mark = host.deviceFor(viewer);
+  if (mark === null || !PerceptionApi.canMakeOutMarks(viewer, host, DEVICE_MODALITIES)) return text;
+  const line = `It bears ${mark}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+};
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MarkedMixin extends Base implements Marked {
@@ -179,7 +223,11 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       environment: ['platform/cmd/perception/read.yaml', 'platform/cmd/inventory/write.yaml'],
     };
 
+    static markupAugmenters: MarkupAugmenter[] = [deviceAugmenter];
+
     static fieldMeta: FieldMeta = {
+      // A stamped brick and a bare one, or tokens off two dies, do not stack.
+      markDevice: { persistent: true, authorable: true, stackIdentity: true },
       markText: { persistent: true, authorable: true },
       markForm: { persistent: true, authorable: true },
       markScript: { persistent: true, authorable: true },
@@ -197,6 +245,31 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Characters this surface still takes; 0 takes no writing (the default). */
     public writingRoom: number = 0;
+    /** Whose device this bears — an identity path; `''` = none. */
+    public markDevice: string = '';
+
+    public getMarkDevice(): string {
+      return this.markDevice;
+    }
+
+    public setMarkDevice(identityPath: string): void {
+      this.markDevice = typeof identityPath === 'string' ? identityPath.trim() : '';
+    }
+
+    public takeDeviceFrom(tool: Stuff & Marked): string {
+      const device = tool.getMarkDevice();
+      if (device === '') return '';
+      this.markDevice = device;
+      return device;
+    }
+
+    public deviceFor(viewer: Stuff): string | null {
+      const device = this.getMarkDevice();
+      if (device === '') return null;
+      if (viewer.getIdentityPath() === device) return 'your own mark';
+      const name = MixinApi.isBeliefStore(viewer) ? viewer.knownNameOf(device) : null;
+      return name ? `${name}'s mark` : "a maker's mark you do not know";
+    }
 
     /**
      * ⭐ What the marks say — unless they were inked on something you can

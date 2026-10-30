@@ -9,9 +9,9 @@
 > skill widens) · cold storage/icebox + the cold-set desserts · compost
 > (the spoiled-food sink) · preservation + the victualler · **slices —
 > a tangible food that yields N portions** (a loaf is one portion today,
-> all-or-nothing) · **staling promoted to the kernel** on the third-pack
-> signal (cooked rice, potatoes — the same retrogradation; it is the
-> baking pack's `lib/` until a pack with no common ancestor wants it) ·
+> all-or-nothing) · ~~staling promoted to the kernel~~ (done — the sugar
+> review's `Kinetics`, a material-row change; cooked rice and potatoes are
+> rows now) · **doneness onto the one kinetics evaluator** (below) ·
 > the antitoxin + the ptomaine band calibration · hot drinks (brewing,
 > caffeine routing, tea) · the kitchen hazards (the grease fire and
 > `flashPoint`, smoke/CO) · food & medicine (healing spends protein;
@@ -52,6 +52,36 @@ ferment — the baker's future substrate) ·
 below).
 
 ---
+
+## ⭐⭐ Doneness onto the one kinetics evaluator (the ceramics review, 2026-10-28)
+
+The ceramics review merged firing (`HeatTransition`, a material row's
+`10^((T−ref)/z)` dose → rungs that swap the material) into the sugar
+review's `Kinetics` (a material row's rate-by-temperature change →
+extent, grade lost, look words, a new material at the end): ONE evaluator
+of *a change whose rate is set by temperature, integrated over the good's
+own temperature history*, authored on the MATERIAL (lens 1: clay firing
+and bread staling are taught as one law).
+
+Doneness is the same law and is not on it yet. `ThermalDoseMixin`
+(`lib/thermal/ThermalDose.ts`) integrates the identical `10^((T−ref)/z)`
+browning dose plus a scorch timer, but takes its parameters from the
+RECIPE being cooked, not from what the food is made of. Baking dough into
+bread *is* a material changing with heat — dough → bread → burnt — so:
+
+- **The build:** browning and scorch become `kinetics:` entries on the
+  food materials (dough, batter, a cut's muscle, a pot's stew blend), with
+  rungs for done and burnt and words for each extent; a recipe stops
+  carrying dose parameters and says only what it MAKES and the medium's
+  ceiling. `ThermalDoseMixin` retires; the tending wave's "is it done yet"
+  reads the kinetics extent.
+- **Open:** a blend's material is generic (`BlendIdentity`), so a stew's
+  doneness needs the blend's makeup to carry its parts' kinetics (the
+  combining re-plan's `makeup` record), or the recipe's output material
+  to author it — decide with the tending wave.
+- ⚠ **Not the kill.** `Freshness`'s Arrhenius curve and `Contaminable`'s
+  kill are a POPULATION dying, not the material changing, and their own
+  doc forbids putting them on this integrator. They stay.
 
 ## Part 1 — The taxonomy (settled)
 

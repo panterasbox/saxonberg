@@ -1,0 +1,35 @@
+# The Delight pottery — ⭐ the potter's own outfit (ceramics S20): a shop at
+# the top of the brickfield and one seat, the potter's, with a hand's place
+# open for a player. Its income is the ware shelf and what the potter
+# consigns at the Terminus stall; its clay is dug at the brickmaster's pit.
+class: /platform/idea/Business
+data:
+  name: "the Delight pottery"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/brickfield/agent/potter
+  call: rota
+  positions:
+    - key: potter
+      noun: potter
+      label: at the wheel
+      wageRate: 5
+      purchases: true
+      fulfills: [pottery]
+    - key: hand
+      noun: hand
+      label: in the shop
+      wageRate: 3
+      purchases: true
+      fulfills: [pottery]
+  rosterSlots:
+    - positionKey: potter
+      assignee: /world/terminus/hearts-delight/brickfield/agent/potter
+      station: /world/terminus/hearts-delight/brickfield/location/potters-shop
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
+  banksAt: goodkin
+  offstage: /world/terminus/hearts-delight/brickfield/location/offstage
+  operatingLocations:
+    - /world/terminus/hearts-delight/brickfield/location/potters-shop
+    - /world/terminus/hearts-delight/brickfield/thing/ware-shelf

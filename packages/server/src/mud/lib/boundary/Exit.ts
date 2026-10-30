@@ -1139,7 +1139,9 @@ export default class Exit extends ConcealableMixin(Idea) {
         reason: `${GrammarApi.cap(doorName)} is locked.`,
       };
     }
-    if (this.door && !this.door.isOpen()) {
+    // ⭐ A door that swings shut behind you (`Door.closesBehind`) is passed
+    // shut — it was never left open; the lock gate above still holds.
+    if (this.door && !this.door.isOpen() && !this.door.swingsShut()) {
       const doorName = this.door.getPresentation();
       return {
         ok: false,

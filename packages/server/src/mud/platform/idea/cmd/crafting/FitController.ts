@@ -25,7 +25,8 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import { CraftingApi } from '../../../../api/crafting';
+import { CraftingApi, type FitReplaced } from '../../../../api/crafting';
+import type { Assembled } from '../../../../lib/craft/Assembled';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -65,6 +66,26 @@ export default class FitController extends CraftController<FitModel> {
     if (part && !whole && raw && (!ownWord || !this.wholeFor(part, giver))) {
       const recipe = await CraftingApi.lookupRecipe(raw);
       if (recipe) return this.raise(raw, giver, context);
+    }
+
+    // ── the line arm (ceramics W5): a word naming no thing in reach but a
+    // LINE of the named whole — `fit lining to furnace` with firebrick in
+    // reach. The logic finds the part by the line's row.
+    if (
+      !part &&
+      raw &&
+      whole &&
+      MixinApi.isAssembled(whole) &&
+      !whole.isOnePiece() &&
+      this.namesLine(whole, raw)
+    ) {
+      const outcome = await CraftingApi.fit({ whole, line: raw });
+      if (!outcome.ok) {
+        this.declineToScene(giver, outcome, context);
+        return;
+      }
+      if (outcome.arm === 'replace') this.tellReplaced(giver, whole, outcome);
+      return;
     }
 
     // ── the raise arm: a word naming no thing in reach.
@@ -110,13 +131,36 @@ export default class FitController extends CraftController<FitModel> {
       return;
     }
     if (outcome.arm !== 'replace') return;
+    this.tellReplaced(giver, whole, outcome);
+  }
+
+  /** Does `word` name one of `whole`'s lines (`lining`, `staves`)? */
+  private namesLine(whole: Stuff & Assembled, word: string): boolean {
+    const w = word.trim().toLowerCase();
+    whole.ensureParts();
+    return whole
+      .getParts()
+      .some((l) => l.part.toLowerCase() === w || `${l.part.toLowerCase()}s` === w);
+  }
+
+  /** Say the replace arm's outcome to the room. */
+  private tellReplaced(
+    giver: Stuff,
+    whole: Stuff,
+    outcome: FitReplaced,
+  ): void {
     const what = outcome.replaced === 1 ? `a new ${outcome.part}` : `${outcome.replaced} new ${outcome.part}s`;
+    // ⭐ (ceramics D27) Cast to the old one's pattern, it drops into the
+    // joint as it stands — nothing to cut, fit or wedge.
+    const drops = outcome.interchangeable
+      ? ' Cast to the same pattern as the one it replaces, it drops straight into the old joint — no new joint to make.'
+      : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
         outcome.returned
-          ? Mml.compose`You fit ${what} to ${Mml.thing(whole)}, and take the old one back.`
-          : Mml.compose`You fit ${what} to ${Mml.thing(whole)}.`,
+          ? Mml.compose`You fit ${what} to ${Mml.thing(whole)}, and take the old one back.${drops}`
+          : Mml.compose`You fit ${what} to ${Mml.thing(whole)}.${drops}`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} fits ${what} to ${Mml.thing(whole)}.`)
       .send();

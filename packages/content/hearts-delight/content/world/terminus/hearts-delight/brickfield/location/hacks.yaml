@@ -1,0 +1,39 @@
+# The hacks — ⭐ the drying rows (ceramics M4, R2): green bricks set on
+# edge in long low walls, a brick's width apart so the wind goes through,
+# under a canvas cover on poles. A roof and no walls: the rain is kept off
+# (a soaked green brick SLUMPS) and the air is the field's, so they dry by
+# the weather — weeks to leather-hard, more to bone-dry.
+#
+# The under-the-awning shape (rubber build): a lone place, `enclosure:
+# none` and a canvas `roof:`. A frost still reaches a wet brick here, which
+# is true: the brickmaker's season ends before the frosts for that reason.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: hacks
+  keywords: [hacks, hack, rows, "drying rows", cover]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: { material: /stuff/idea/material/textile/canvas, thicknessM: 0.002 }
+  floor:
+    material: /world/terminus/hearts-delight/idea/material/alluvial-clay
+    worked: false
+    onGrade: true
+  longDescription: |
+    Long low walls of green bricks set on edge with gaps between, row after row, each row roofed with a strip of tarred canvas on short poles. The wind comes through the gaps and the canvas flaps and the bricks go slowly from dark to pale.
+
+    The moulding shed is north. East is the clamp ground.
+  coords: { x: 2, y: -1, z: 0 }
+  props:
+    # ⭐ The drying wall: bricks are set ON it (the air reaches every face).
+    - /world/terminus/hearts-delight/brickfield/thing/hack
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      media: [ground]
+      edgeMinutes: 1
+    east:
+      destination: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+      media: [ground]
+      edgeMinutes: 1

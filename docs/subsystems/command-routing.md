@@ -783,6 +783,15 @@ response-envelope landing.
 - `shape` error → "this YAML's grammar didn't fit" (pattern
   mismatch, missing required positional, leftover positionals) —
   the dispatcher falls through to the next match.
+- ⭐ a **field-validator refusal** (`validator-failed`, `validator:
+  'field'` — an argument's own gate, `requires:` included) → "this view
+  fits the line but not these objects": when another view of the verb
+  remains, the dispatcher tries it, and reports the FIRST such refusal
+  only if no later view takes the line (ceramics, 2026-10-22). Two views
+  can share a shape and differ only in what their arguments must be —
+  crafting's `pour <spirit> into <vessel>` (a vessel you build in) and
+  bulk's `pour <source> into <target>` — and an ingot in hand affords the
+  first, so `pour ladle into pit` stopped at its gate.
 - `bind` error → "user typed something that fits the shape but
   not the spec" (unknown option at scope, malformed option value,
   repeated non-multi option, boolean given a value) — the chain
