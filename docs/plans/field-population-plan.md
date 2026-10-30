@@ -1,0 +1,1270 @@
+# Field population — implementation plan
+
+Executes [field-population-requirements.md](../requirements/field-population-requirements.md)
+(agreed 2026-10-29, closed scope). **Kind:** feature. **Lead end:** kernel —
+the plant, the stand, `look`, `water`, `feed`, `sample`, `label` and
+`harvest` are the platform's; the first consumers are the Hearts Delight
+bench and the campus home field, on the cover build's MR (!480, branch
+`reqs/cover`). The build extends that MR: every wave lands on top of the
+cover build's W0–W7 and keeps its drive green.
+
+The shape in one sentence: **a patched field holds one crop plant per
+patch**, each standing in the field and rooted in its patch's own soil,
+so every pot verb reaches a patch's crop with no new read code; the field
+is the whole stand, and a field with no patches authored is today's code
+path byte for byte.
+
+---
+
+## Grounding
+
+Facts verified 2026-10-29 by opening the files. Paths repo-relative; line
+numbers current at plan time.
+
+### The plant and its ground (kernel)
+
+- `packages/server/src/mud/lib/husbandry/Growing.ts` (1,648 lines).
+  `fieldMeta` l.568–599: the growth state (`growthClockStamp`, `_vigor`,
+  `_maturity`, `growthStage`, `_flowering`, `_seedSet`, `_lastLux`,
+  `_lastAmbientK` (runtimeState), `_worstLimiting`, `_fruitFill`,
+  `_fruitSetCount`, `_pollination`, `profile`), the area crop
+  (`sownAreaM2`, `_cycleCount` authorable; `_harvestedAreaM2`,
+  `_harvestCarryKg`) and the four authorable surface fields
+  (`harvestTemplatePath`, `nutrientDraw`, `harvestTool`, `discipline` —
+  default `'horticulture'`, l.935). `static markupAugmenters =
+  [conditionAugmenter]` (l.602): a **sync, viewer-aware** augmenter
+  (`(text, host, _viewer)`) that prints size, condition band and the cause
+  line; `CAUSE_PHRASE` (l.511–517) has `root: 'It has outgrown its pot.'`.
+  `getLimitingFactor()` (l.1032) samples every term **live**.
+  `reconcileGrowth()` (l.1084–1202): `satRoot`, `satLight(_lastLux)`,
+  `satWater(meanSoilMoisture())` and `satNutrient()` are read ONCE before
+  the step loop, `satWarmth` per step; `_worstLimiting` is a monotone
+  minimum; an area crop breaks out of the loop at `mature` (B36).
+  `getBed()` (l.989–1009): the slot host when `isCultivable`, else the
+  **container** when it is `Soil & Container & !Cultivable`; return type
+  `(Stuff & Soil & Container) | null`. `takeSwath` (l.836), `settleRatoon`,
+  `cropStagePhrase`/`cropAreaPhrase` (l.876/880), `ripeSibling()` (l.960)
+  walks the container's contents for a harvestable plant of the same
+  template path. Host seams are `protected`: `rootRoom`, `soilMoisture`,
+  `meanSoilMoisture`, `nutrientLevel`, `waterTheSoil`, `onFloweringLatched`,
+  `sampleLux` (climbs containment to the first `Place`, B21).
+  `GrowthProfileData.rootDemand` is "litres of soil each stage's roots
+  demand" (wheat: `{0.2, 1.0, 2.0, 3.0}`).
+- `packages/server/src/mud/platform/thing/Plant.ts` (301 lines).
+  `Plant = PersistableMixin(SlottableMixin(GrowingMixin(ReservedMixin(
+  OrganismMixin(ThermalMixin(Good))))))` (l.52–54) — **it composes
+  `ReservedMixin` already** (phase 1 kept the moisture reserve on the plant;
+  phase 2 moved it to the soil and the mixin stayed), and it composes
+  neither `LabelledMixin` nor `SampledMixin`. `rootRoom()` narrows
+  `isCultivable(bed)` (l.148–154); `soilMoisture`/`meanSoilMoisture`/
+  `nutrientLevel`/`waterTheSoil` forward to `getBed()` (l.166–187);
+  `commandContributions.peers = [harvest.yaml]` (l.66–70);
+  `getPersistenceKey()` mints a per-instance key lazily (l.252–262).
+- `packages/server/src/mud/lib/husbandry/Soil.ts` (967 lines). The
+  reserves are keyed by name on `ReservedMixin` — **one pool per host**
+  (`moisture` L, `nitrogen` %, `organicMatter` %, `structure` %, theme
+  `cultivation`). `Soil` interface l.155–250 (reads, writes, the sky edge,
+  the hooks `soilWaterDemandPerGameDay`, `soilCatchmentAreaM2`,
+  `soilLeachRate`, `sowingRefusal`, `soilDrawFactor`, `ensureCropTitle`).
+  `fieldMeta` l.277–289: `soilClockStamp`, `_soilMeanMoisture`,
+  `rainClockStamp`, `_rainAbsorbedLitres` are `persistent` only;
+  `_rainLocalityPath`/`_rainSkyExposed`/`_rainResolved` are
+  `persistent + runtimeState`. `reconcileSoil()` (l.401–470) walks a long
+  window a day at a time (B31) and no-ops (stamps only) when the host has
+  no `moisture` reserve. `watershedScope()` is protected and defaults to
+  the host's **container** (`null` when unplaced — "unplaced ground has no
+  sky"). `waterSoil(litres)` (l.768), `feedSoil(fraction)` (l.877),
+  `addOrganicMatter` (l.787), `drawNutrient` (l.883), `creditReserve` is
+  protected (l.900). Host constraint `Stuff & Reserved`.
+- `packages/server/src/mud/lib/reserve.ts`: `Reserved` surface
+  `getReserve/setReserve/adjustReserve/hasReserve/removeReserve`;
+  `fieldMeta = { reserves: { persistent: true, runtimeState: true } }`
+  (l.233–235) — a fixture's reserves ARE captured by the host's fixtures
+  slice (below).
+
+### The field (trade-farming) and the ground character (the ground system)
+
+- `packages/content/trade-farming/src/location/Field.ts` (1,428 lines).
+  `FieldGround = SoilMixin(ReservedMixin(Location))`; `FieldBase =
+  PersistableMixin(WarrenMemberMixin(ImprovableMixin(SwardMixin(FieldGround))))`
+  (l.264–273). `commandContributions.inventory = [plough.yaml, plant.yaml]`
+  (l.293–305) — ⚠ `feed.yaml` is NOT afforded in a field today (it rides
+  `CultivableMixin.peers`), and `water` is tool-afforded by the can.
+  `static markupAugmenters = [fieldAugmenter]` (l.253–262) calling
+  `fieldLines()` (l.587–629), viewer-blind. `fieldMeta` l.310–320:
+  `fieldName`, `groundSpotX/Y`, `areaM2`, `legumeFraction` authorable;
+  `seedbedStamp`, `stubbleStamp`, `grazers` persistent. `getCrop()` (l.443)
+  returns the FIRST area crop in `getContents()`; callers: `cropAreaM2`
+  (l.449), `sowingRefusal` (l.469), `settleCropTitle` (l.503), `progressOn`
+  (l.546), `improvementReversion` (l.559), `bankWork` (l.571, grub destructs
+  it), `fieldLines` (l.587), `soilWaterDemandPerGameDay` (l.784: sward
+  transpiration + `standingAreaM2 × 1.2 L/m²/day`). `soilDrawFactor`
+  (l.801) reads the private `_swardSite`/`ambientAt`. `installSoilReserves(
+  sample)` (l.1137–1210): moisture capacity `areaM2 × 45 × waterHoldingFactor(
+  texture)` — ⚠ **topsoil depth is not in it**; OM/structure/N initial
+  values from the sample. `groundSample(model, seed)` (l.1212) resolves at
+  the field's ONE ground spot and caches `lastSample`. `onCreate` (l.1361)
+  resolves locality → seed, `GroundCharacter.forZone(zone)` → model,
+  `installFieldReserves(sample, 0.8)`, starts clearing done.
+  `watershedScope()` override returns the field itself (l.767). ⚠
+  `soilLeachRate` reads `lastSample` (l.746).
+- `packages/content/trade-farming/src/lib/Sward.ts`:
+  `swardTranspirationPerGameDay()` (l.439) public; `installSward`,
+  `swardBand/swardPhrase`, `reconcileSward`. The sward is field-wide and
+  stays so (non-goal).
+- `packages/content/ground/src/idea/GroundCharacter.ts` (616 lines).
+  `GroundSample { texture, stoniness, drainage, slopeDeg, aspectDeg,
+  topsoilM, nativePh, nativeNitrogenPct?, nativeOrganicPct? }` (l.98–125);
+  `GroundBand { from, to, drainageScale?, stoninessScale?, phOffset?,
+  depthScale?, nitrogenPct?, organicPct?, note? }` (l.147–166) — ⭐ an
+  authored LEAN already exists, applied by the module-private `lean(base,
+  bands, at)` (l.365–394: multiply/offset, never replace). `resolve(model,
+  at, seed)` (l.288–298) = procedural → lean → pin. `procedural` (l.312)
+  gives `topsoilM` in `[0.08, 0.5]`. Statics: `seedFor`, `forZone`,
+  `resolve`, `procedural`, `improvementCost`, `waterHoldingFactor`,
+  `leachFactor`, `poachingFactor`, `lookPhrase`, `ribbonPhrase`;
+  `TEXTURE_MATERIALS` maps texture → material path. The campus ground row
+  `packages/content/eternal-university/content/world/terminus/eternal/campus-field/idea/ground.yaml`
+  pins the home field's spot `4,7` (loam, `topsoilM: 0.34`) and leans the
+  outfield `[7,0]–[14,5]` thin; Hearts Delight authors **no**
+  `groundCharacter` (procedural ground).
+
+### Fixtures, placement and the look pipeline
+
+- `packages/server/src/mud/lib/boundary/Adornable.ts`: `addFixture(f,
+  slotName?)` (l.272) sets `fixtureSlots` + `f.setAdornedTo(host)` — ⚠ a
+  fixture is **NOT in the host's contents** (`ContainmentApi.move` vetoes
+  it; `Container.ts` l.8 "surfaced separately via `getFixtures()`"). The
+  fixtures capture pass (l.151–190) keeps, per slot, the fixture's
+  `persistent && runtimeState` fields (`runtimeFields`, l.508–527) in the
+  host's record; `hydrateSlice` (l.193–206) overlays them onto the fixture
+  re-minted at the host's `onCreate`. `Place.ensureFloor()`
+  (`lib/stuff/Place.ts` l.407–450) is the mint-at-onCreate, get-or-create,
+  `addFixture(minted, 'floor')` precedent; `FloorMixin` resolves its place
+  through `getAdornedTo()` (`lib/ground/Floor.ts` l.570).
+- `packages/server/src/mud/api/mql/scope-walk.ts`: `candidatesForPeers`
+  (l.133–160) walks `env.getContents()` AND `env.getFixtures()` (l.156–158)
+  — a fixture is reachable by keyword (`look floor` is driven by
+  `ground.wire.test.ts`). `candidatesForHere` offers the location, its
+  details, doors and exits only.
+- `packages/server/src/mud/platform/idea/cmd/perception/LookController.ts`:
+  `lookAtLocation` awaits `PerceptionApi.preloadForSenseGate(actor)`
+  (l.201) before rendering; the loose list filters out adornments and
+  non-Visible items (l.210–220) and lists `location.getLooseContents(
+  visibleContents)` (l.343) — ⚠ today the bench's ONE crop plant is listed
+  as an item AND read by the field augmenter (the cover drive step 1 allows
+  `≤ 2` occurrences of "a stand of wheat").
+- `packages/server/src/mud/api/mml.ts` l.95–135: `MarkupAugmenter =
+  (text, host, viewer, opts?) => string`, **sync by contract**.
+- `packages/server/src/mud/lib/spatial/Placing.ts` + `Containable.getPlacement()`
+  — the auxiliary on/in/from pair. **Not used by this plan** (the binding
+  is a string key, below); recorded so nobody reaches for it: a placement
+  host must be a sibling in the same contents list, and a fixture is not.
+
+### Competence, the bracket and the sync read
+
+- `packages/server/src/mud/lib/advancement/Advancement.ts`:
+  `competenceBandFor(discipline): Promise<CompetenceBandName>` (l.536) is
+  async (a transcript query; a non-Advancing actor reads
+  `CompetenceBand.FLOOR = 'untrained'`). ⭐ A **sync** face exists:
+  `competenceDigestCached(): DisciplineBand[] | undefined` (l.693–703) over
+  a module-scope `digestCache: DerivedStandingCache<DisciplineBand[]>`
+  (l.267–274) — `undefined` on a miss (which schedules a background fold),
+  the array once folded. `DerivedStandingCache.refresh(subject)` (l.84–92
+  of `lib/standing/DerivedStandingCache.ts`) is public and awaitable;
+  `get()` schedules on miss. On a transcript append only
+  `practisingCache.refresh(entry.owner)` runs (l.101) — the digest is not
+  refreshed by the ledger today.
+- `packages/server/src/mud/platform/idea/api/PerceptionLogic.ts`
+  l.118–135: the shipped **per-command band snapshot** pattern —
+  `awarenessBandCache`, warmed by `preloadForSenseGate(actor)` (l.252–268,
+  awaits `bandFor` in a `Promise.all`), read by the sync gate. `look`
+  calls the preload (`lookAtLocation` l.201 and `lookAtTarget`).
+- `packages/server/src/mud/lib/instrument/Reading.ts`: `HALF_WIDTH`
+  (l.184, module-private: untrained .08 · novice .05 · competent .025 ·
+  proficient .012 · expert .005), `observe(truth, band, seed)` (l.686–697:
+  centre = truth + `((sin(seed)+1)/2·2−1) × hw`), `halfWidthOf` (l.776),
+  `bandOf(actor)` (l.641). `CompetenceBand` (`lib/advancement/CompetenceBand.ts`)
+  is a static value class (`FLOOR`, `rank`, `atOrAbove`, …) with the
+  band type `CompetenceBandName`.
+- `packages/content/trade-ranching/src/lib/HeadSeed.ts`: FNV-1a
+  `hashString` (module-private, l.202–210) + `Seeded.unit(h, salt)`
+  (`lib/Seeded.ts` l.65) — the seeded-tail shape; `tailFactor(frame) =
+  0.8 + 0.2·(1+f)/2`. The ruling stands: the hash is re-implemented per
+  module, never shared.
+
+### The verbs and their views
+
+Views under `packages/content/platform/content/platform/cmd/`; controllers
+under `packages/server/src/mud/platform/idea/cmd/`.
+
+- `bulk/water.yaml`: `target` `requires: [VisibleMixin, CultivableMixin]`
+  — ⚠ `requires` entries are AND-ed (`CommandLogic.parseRequirement`
+  l.3027–3085; `|` inside one entry is OR), so a bare `Plant` fails the
+  gate and the requires-aware scope walk skips it: **`water the lily` does
+  not bind a plant today** (the controller's plant branch is reachable
+  only through a `PlantPot` target). `WaterController` (267 lines):
+  `moistureHeadroom(plant)` reads the ground through `groundUnder()` which
+  narrows `isCultivable` (l.236–244) — 0 on a field. Captures
+  `groundUnder(plant) ?? plant`.
+- `bulk/feed.yaml`: `target` `requires: [VisibleMixin, CultivableMixin]`;
+  `FeedController.resolveGround` (l.290–300) accepts Cultivable ground or a
+  slotted plant's host — refuses a field and a field plant. Compost: 20 L
+  sack (`generic-objects/.../vessel/compost-sack.yaml`, tag `compost`),
+  `POINTS_PER_LITRE = 10`.
+- `inventory/sample.yaml`: `subject` optional, greedy, `requires: any`;
+  `SampleController`: a named non-room thing → `fromThing` (refuses unless
+  `MixinApi.isActive(subject, Mixins.Sampled)`; stackable → `split(1)`,
+  else stamp in place); the room → duck-typed `room.sampleFace(actor,
+  raw)` (`ground`'s `StrataMixin` l.199, mining's `Working`). ⛔ Not
+  extended; the crop path goes through the bound plant (D7).
+- `inventory/label.yaml`: `target` `requires: LabelledMixin`, `text`
+  greedy string optional; `LabelController` only `setLabel` (empty text
+  clears). `LabelledMixin` (`lib/description/Labelled.ts`) is three
+  methods + the `label` field; it affords `label.yaml` on `peers` +
+  `environment`; **nothing reads a label** outside the controller (no
+  keyword, no presentation effect). Only `Garment` composes it.
+- `inventory/harvest.yaml`: `target` `[VisibleMixin,
+  GrowingMixin|CultivableMixin]`, `tool` `[with, using]` with a default;
+  `HarvestController` (561 lines): target resolution l.100–140 (a named
+  Growing → `ripeSibling()` substitution), area branch `engageSwath`
+  (l.338–365) → module function `landSwath` (l.402–470): ⚠ the place check
+  is `plant.getBed() !== where` (l.411–413) — with a patch as the bed this
+  would always fail; `bandFor(getWorstLimiting())` (l.373); nutrient to
+  `bed.drawNutrient`.
+- `inventory/plant.yaml`: `seed` required `[VisibleMixin,
+  PlantableMixin]`; `pot` optional `[in, into, on, over]`
+  `[VisibleMixin, CultivableMixin|SoilMixin]`. `PlantController.sowGround`
+  (l.294–420): title gate → `standing` crop (first area crop in contents)
+  → `sowingRefusal` → area = `min(sowHandM2, seed/rate, free)`;
+  `landSowing` (l.470+) places the fresh crop by `ContainmentApi.move(crop,
+  ground)`.
+- `perception/look.yaml`: ONE object arg with `prepositions: [at, in,
+  inside]`, greedy. ⚠ `look wheat at the top end` is not a shape this view
+  can bind (two positionals); see D13.
+- The binder (`lib/command/CommandDefinition.ts` l.660–725): a greedy arg
+  may be followed only by **prepositional** args, which bound it; a
+  prepositional string arg that should take several words (`the top end`)
+  needs `greedy: true` itself. `onExcess` for `type: object` defaults to
+  `top` (`CommandLogic` l.1248).
+
+### The brain, the hand and the campus
+
+- `packages/content/trade-farming/src/behavior/farms.ts` (281 lines):
+  config `{ home, shelf, ask, defaultAsk?, batch?, waterAt?, feedAt?,
+  drawEvery?, drawAmount? }`; teleports home; grounds = `home.getContents()`
+  filtered `isCultivable` (a Field is never found); reads TRUE
+  `soilMoistureFraction()` / `nutrientFraction()`; literal verbs
+  `'fill can from standpipe'`, `` `water ${kw}` ``, `` `feed ${kw} with sack` ``,
+  `` `pick ${kw}` ``. `farms.bounded.test.ts` asserts those literals in the
+  SOURCE. No row names the brain. Brains receive `BrainContext { host,
+  config, state, trigger }` and may `await host.competenceBandFor(…)`.
+- `packages/content/trade-sugar/src/behavior/cuts.ts` l.60–130: the
+  read-then-`next()`-then-act shape, on shift only (`shiftState() !==
+  'on-shift'` → idle), acts through `executeCommand` (attributed).
+- The dairy lad `hearts-delight/.../dairy/agent/dairy-lad.yaml`: `class:
+  /platform/agent/Cast`, `competence: [{ discipline, asserting }]`,
+  `props:` (a scythe), `behaviors: [{ brain, trigger: candidate, config }]`;
+  placed by the byre's `cast:`. `Cast.ts` seeds the asserted band as a
+  `claim` transcript row (l.153–241), so `competenceBandFor` answers it.
+- The campus farm `eternal-university/.../campus-farm/`: `idea/farm-unit.yaml`
+  (Business, `labourer` headcount 2, no roster, operates yard + home-field +
+  back-paddock); `location/yard.yaml` props byre, herdbook, wall, **trough**
+  (`thing/trough.yaml` is a plain `/platform/thing/Thing` — "fed by a lead
+  pipe from somewhere uphill", not fillable), hay-barn, midden, handcart,
+  tool rack + spade/soil-kit/scythe; no `agent/` directory.
+  `campus-farm.test.ts` asserts every file under `campus-farm/` and
+  `campus-field/` is YAML and every `class:` starts `/platform/`, `/trade/`
+  or `/system/`. The roster shape to copy is `dairy-business.yaml`'s
+  `rosterSlots: [{ positionKey, assignee, schedule: [{days, hours}] }]`.
+  `duncan-hall/thing/tap.yaml` is `/platform/thing/WaterFixture`
+  (`UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)))`,
+  `interiorMaterial: …/bulk/water`) — the fillable shape.
+- Content: `hearts-delight/.../bench-field/location/upper-bench.yaml`
+  (`SingletonField`, 4,000 m², ground spot `9,3`, `props: [standing-wheat]`;
+  `bench-field/thing/standing-wheat.yaml` `extends: /trade/farming/thing/plant/wheat`,
+  `sownAreaM2: 3000`, `growthStage: established`, `_maturity`, `_vigor`).
+  `eternal-university/.../campus-field/location/home-field.yaml`
+  (10,000 m², spot `4,7`, props field-trough + plough, exits yard/east).
+  Wheat row `trade-farming/.../thing/plant/wheat.yaml` (keywords `[wheat,
+  corn, crop, stand]`, `shortDescription: stand of wheat`). Seed sack 25 kg
+  at `seedRateKgPerM2: 0.015` → 1,667 m² per sack.
+- Drive: `packages/wire/tests/cover.dirty.wire.test.ts`. Steps that touch
+  the two patched fields: 1 (l.308, bench `look` ≤ 2 "stand of wheat"), 4
+  (l.358, `sow wheat` ×N on the home field → "about a third"), 6 (l.383,
+  the season's stages + `look wheat`; mows the sward), 9 (l.409, bench
+  `harvest wheat` as a stranger), 7 (l.433, home-field `harvest wheat` to
+  stubble). Helpers: `act/doing/work/working/refused/read`, `advance`
+  (parks the hand indoors ≥ 6 h and drinks), `toDay`, `daylight`,
+  `founderEval(where, parcel, code)` (`Session.open('founder', {wizard})`
+  + `eval --parcel`), `collegeHead`. Session: `cmd`, `query(mql)`,
+  `awaitActivity`, `listen`, `drainProse`.
+- Lint roster (`pnpm -C packages/server lint:family --list`): the gates
+  named in § Convention conformance exist under those names.
+
+---
+
+## Plan-level decisions
+
+Each names the requirement, the lens or the convention that decided it.
+Requirements decisions are not reopened.
+
+**D1 — One crop plant per patch; the stand is the set.** A field with
+authored patches holds one area-crop `Plant` per sown patch, each standing
+in the field's contents with `sownAreaM2 = its share`, each rooted in its
+patch's soil (D4). `look wheat at …`, `water`, `feed`, `harvest`, `sample`
+and `label` then all resolve to a plant — the pot's object — and the
+pot's code answers: `conditionAugmenter` prints the patch's read,
+`takeSwath` + `bandFor(getWorstLimiting())` grade the patch, `waterPlant`
+waters the patch's soil. The field's `look` prints the stand (total area,
+the stage covering the most ground) and one line per patch. A field with
+no patches authored has no patch objects and one crop plant — today's
+path, untouched. *Lens 5* (the new object answers the same commands) and
+the cost: the alternative — per-patch state inside one plant — rewrites
+the reconcile loop and every read for no new behaviour.
+
+**D2 — A patch is a `Patch` fixture: soil in its own right, trade-farming's.**
+`packages/content/trade-farming/src/thing/Patch.ts`,
+`CharacteredSoilMixin(SoilMixin(ReservedMixin(AdornmentMixin(VisibleMixin(Thing)))))`
+over `lib/stuff/Thing`, row `/trade/farming/thing/patch`. It composes the
+kernel `SoilMixin` whole — reserves sized from its area and its leaned
+sample, its own reconcile, its own rain edge (catchment = its area), its
+own draw — so nothing in the soil model is re-implemented. It is a
+**fixture of the field** (the `Floor` shape): minted by `Field.onCreate`
+get-or-create at slot `patch:<key>`, never listed as loose contents,
+targetable by keyword (`look at the top end`, `feed the top end`), cannot
+be picked up, its runtime state (reserves, clock stamps) captured by the
+field's fixtures slice. `watershedScope()` overrides to `getAdornedTo()`
+(a fixture is not in anybody's contents — grounding). Patches tile the
+field: Σ `areaM2` = the field's; the LAST authored patch absorbs any
+difference. *Convention:* mixin-on-the-right-host — the field stays the
+place; a patch is the ground the place is divided into.
+
+**D3 — The kernel protocol is "a soil made of parts", on `Soil`.** Three
+hooks + two methods on `SoilMixin`:
+`soilParts(): readonly (Stuff & Soil)[]` (@hook, default `[]`),
+`soilPartKey(): string` (@hook, default `''` — a part answers its key),
+`soilDepthM(): number | null` (@hook, default `null` — a pot has no
+depth; a patch answers its topsoil), `soilPart(key): (Stuff & Soil) |
+null` (default: the part among `soilParts()` whose key matches) and
+`soilPartRefusal(): string | null` (default: `null` with ≤ 1 part, else
+*"Which part? Name one: the top end, the middle or the lane end."*).
+⭐ **When `soilParts()` is non-empty the host's own reads and writes
+aggregate over the parts** inside `SoilMixin` — area-weighted means for
+`soilMoistureFraction`, `meanSoilMoistureFraction`, `nutrientFraction`,
+`organicMatterFraction`, `structureFraction`; spread by area share for
+`waterSoil`, `feedSoil`, `addOrganicMatter`, `drawNutrient`,
+`fixNitrogen`, `poach` (each returns the sum applied); `reconcileSoil`
+reconciles each part. A patched field installs NO reserves of its own, so
+its own window is the shipped no-op (no `moisture` reserve → stamp and
+return), and the sward, `analyze soil`, `turnUnder`, `cycleGrazedNitrogen`
+keep reading the field and get the aggregate. ⭐ The aggregation lives in
+the kernel, once, because the CALLERS are the kernel's verbs and a pack
+cannot make `water` reach a thing it has never heard of without duck
+typing (`no-duck-typing`: a kernel protocol or an imported dep — this is
+the protocol). A field with no parts takes the direct path on every line.
+Also `soilMoistureHeadroomL()` and `soilNutrientHeadroom()` (sum over
+parts) so `water`/`feed` size their measure off the ground, not off a
+Cultivable narrowing.
+
+**D4 — The plant binds to its patch by key: `Growing.groundPart`.** A
+persistent, authorable string (`''` = the whole ground). `getBed()` gains
+one line after the containment branch: `ground.soilPart(this.groundPart)
+?? ground`. Return type widens to `(Stuff & Soil) | null` (a patch is not
+a Container); the four callers are repaired in W0 (`landSwath` compares
+the plant's **container** to where the harvester stands; `RepotController`
+and the pot branch narrow as before). ⛔ Not a `Placing` placement: a
+placement host must be a sibling in the same contents list and a fixture
+is not; the key is also what an authored crop row writes
+(`groundPart: top-end`), which a placement cannot express. An authored
+key naming no part falls back to the whole ground (a patch deleted from a
+row never orphans a crop).
+
+**D5 — "at <patch>" is an OBJECT arg the binder resolves.** On
+`water`, `feed`, `harvest`, `plant`, `sample`, `label`:
+`{ name: patch, type: object, required: false, prepositions: [at],
+greedy: true, scope: ["reachable"], requires: SoilMixin }`. The binder
+matches the typed words against the patch fixture's keywords (fixtures are
+peers — grounding) and refuses a non-soil thing with `Mixins`' own
+phrase (*"{} has no soil in it"*). The controller is dumb: it asks the
+ground `resolvePartFor(named)` and the plant `standIn(part)`:
+- `Soil.resolvePartFor(named: (Stuff & Soil) | null): PartResolution`
+  — `{ ok: true, part }` (`part` is `null` on one-piece ground), or
+  `{ ok: false, reason: 'patch-unnamed' | 'not-a-part-here', line }`.
+  `patch-unnamed` when `named` is null and `soilPartRefusal()` is
+  non-null; `not-a-part-here` when `named` is not among this ground's
+  parts (or is the ground itself).
+- `Growing.standIn(part: Stuff & Soil): (Stuff & Growing) | null` — the
+  area crop of this plant's kind (same template path) in the same
+  container whose `getBed() === part`, this plant included.
+`sow` on a multi-patch field also takes `at` (AC 7 says *every* act; the
+cover drive's step 4 is updated — D16), filling the named patch up to its
+area; a cast into a full patch is refused `patch-sown`. *Lens 1:* choosing
+where is the player's job; the game never picks the neediest patch.
+
+**D6 — A labeled plant is an individual `Plant` minted from the patch,
+left standing, with a private root zone.** `Plant` composes
+`LabelledMixin` (every plant may carry a player's name — a pot plant too;
+plants never stack, so the no-merge consequence is moot). `label <crop>
+[text] at <patch>` on an AREA crop mints an individual
+(`takeSpecimen(0, { cut: false })`, D7 — `cut: false` leaves `_specimen`
+null so it keeps growing; `groundPart` set, moved into the field), sets
+its label (text, else the giver's `getPresentation()`
+— the verb's own meaning, *your name on it*), gives it the label's words
+and `labeled` as keywords, and a `shortDescription` of
+`<specimenNoun> labeled "<text>"` so `look` lists it and `water trial`
+binds it. On any other target the controller is the shipped one (empty
+text clears). ⭐ **The root zone** (kernel, `Plant`): the plant's OWN
+`Reserved` gets `moisture` (capacity = `profile.rootDemand[stage] ×
+ROOT_ZONE_WATER_L_PER_L_SOIL (0.35)`, so a mature wheat's zone is ~1 L)
+and `nitrogen` (100 %) reserves, seeded at the patch's fractions, with its
+own stamp `_rootZoneStamp`; `reconcileRootZone()` walks the window a day
+at a time: drain by `litresPerGameDay × warmth`, and **relax toward the
+patch's fraction** with `ROOT_ZONE_EQUILIBRATION_DAYS = 2` (moisture) /
+`10` (nitrogen) — water in a wet pocket runs into the dry ground around
+it. `soilMoisture`/`meanSoilMoisture`/`nutrientLevel` read the zone when
+it exists; `waterTheSoil`/`feedPlant` credit it. So a can a day holds a
+labeled plant above its patch through a dry stretch, and a skipped day
+lets it fall back — the lesson. A plant with no zone (every plant today)
+is byte-identical.
+
+**D7 — The specimen: `sample <crop> at <patch>` pulls a real plant.**
+`Plant` composes `SampledMixin` (three inert provenance fields; the
+`sample` verb's own stamp). `Growing.takeSpecimen(variation: number, opts?:
+{ cut?: boolean }): Promise<Stuff & Growing>` (`cut` defaults `true`)
+clones **its own template path**, copies the growth state (`growthStage`,
+`_maturity`, `_worstLimiting`, `_flowering`, `_seedSet`, `_fruitFill`,
+`profile`), sets `sownAreaM2 = 0`, `_vigor = clamp01(this._vigor +
+variation)`, `shortDescription = specimenNoun` and — when cut —
+`_specimen = { from, part, partName, limiting, roots }` — the read it had
+where it stood: `limiting = getLimitingFactor()`, `roots = rootsBand()`.
+With `cut: false` (the label path, D6) `_specimen` stays null and the
+individual goes on growing where it is put.
+A specimen **does not grow** (`reconcileGrowth` returns at once when
+`_specimen` is set — a pulled stem is a record, and sacrificial), its
+`getLimitingFactor()` is the stamped one, and its augmenter adds the roots
+line and *"Taken from the top end of the upper bench."*. The variation is
+seeded, never drawn: `hash(`${groundIdentity}#${partKey}#${cycleCount}`)`
+→ `(Seeded.unit(h, 1) − 0.5) × 0.1` on vigor — the same spot gives the
+same stem (AC 3). `SampleController.fromThing` checks the area-crop case
+**before** the `Sampled` check (otherwise the stand itself would be
+stamped in place), mints through `takeSpecimen`, moves it to the giver,
+stamps it (`sampledAt` = the field's identity path, as every sample), and
+narrates. The specimen's `specimenNoun` is an authorable kernel field on
+`GrowingMixin` (`''` → the row's own short description); wheat/barley
+author `stem of wheat` / `stem of barley`, cane `stalk of cane`.
+⛔ `sampleFace` is untouched.
+
+**D8 — Harvest grades by patch with no new grading code.** The per-patch
+plant's own `_worstLimiting` is the patch's worst stretch; `landSwath`
+mints from it; nitrogen is drawn from `plant.getBed()` (the patch).
+`harvest <crop>` on a multi-patch field without `at` is refused
+`patch-unnamed` (D5); with `at` the sibling in that patch is cut.
+
+**D9 — The banded read is `Growing.readFor(band)`, words by band, and
+only the FIELD reads are banded.** Kernel, on `GrowingMixin`:
+`readFor(band: CompetenceBandName, seed?: number): CropRead` and
+`readLines(band): string[]`. The ladder (an exhaustive `Record` per
+band, the soil.md rule — adjacent bands must read differently):
+
+| band | what the words carry |
+|---|---|
+| untrained | the stage and the condition band (*"At the top end it is in ear and looks poor."*) |
+| novice | + whether it is short of something, not what (*"It is short of something."*) |
+| competent | + the cause (*"The soil is dry there."*) |
+| proficient | + how badly (*"— down near the wilting point"* / *"a little"*) |
+| expert | + the next-worst factor (*"and the nitrogen is low behind it."*) |
+
+Never a digit, never a different truth: every band's sentence is implied
+by the next's. Banding applies to **an area crop's read and a specimen's
+read** (`host.isAreaCrop() || host.isSpecimen()`) — the stand, the patch
+lines, the sampled stem; a pot plant, a bed plant and a **labeled**
+individual read in full as today (AC 10, AC 13; the labeled plant "reads
+like a pot plant", AC 4). The viewer's band is
+`viewer.competenceBandCached(host.getDiscipline())` (D10); a non-Advancing
+viewer reads the floor. *Requirements § Reading is horticulture.*
+
+**D10 — The sync band is the competence digest, warmed by the look
+preload.** `Advancing` gains `competenceBandCached(discipline):
+CompetenceBandName` (the digest's entry, else `FLOOR`) and
+`warmCompetenceDigest(): Promise<void>` (awaits `digestCache.refresh(key)`
+only when the digest has no entry for the subject —
+`DerivedStandingCache.has(subject)` is added for the peek).
+`PerceptionLogic.preloadForSenseGate` adds the warm to its `Promise.all`
+(every `look` already awaits the preload — grounding), so the first look
+after login reads at the right band; the transcript append refreshes the
+digest beside the practising cache (one fold per deed; bands move
+slowly). ⛔ No async augmenter: the `MarkupAugmenter` contract is sync and
+the shipped awareness snapshot is the precedent.
+
+**D11 — The hand reads with a seeded bracket, and the bracket's table
+moves to the band.** `HALF_WIDTH` leaves `Reading.ts` for
+`lib/advancement/CompetenceBand.ts` as `export const
+COMPETENCE_HALF_WIDTH` (the band vocabulary owns its own precision;
+`Reading.halfWidthOf` imports it — one copy). `readFor(band, seed)` with a
+seed also returns `moisture` and `nutrient` as **observed** fractions:
+`truth + unit(seed) × COMPETENCE_HALF_WIDTH[band]` (the `observe`
+arithmetic, re-stated in Growing on a fraction; the truth is always inside
+the bracket). The farm hand ranks patches by its OBSERVED moisture, so a
+novice hand with two patches 0.02 apart can water the wrong one and an
+expert cannot; the seed is `hash(`${handIdentity}#${partKey}#${gameDay}`)`
+— per reader, per day, deterministic. A player's `look` never shows the
+figure (D9); the bracket exists so a hand's act can be wrong the way a
+hand's is.
+
+**D12 — The farms brain learns fields and patches; the campus gets a hand.**
+`farms.ts`: grounds = Cultivables in `home` (shipped) **plus**, when
+`home` is `Soil`, its `soilParts()` (or `home` itself when it has none);
+for each soil part the crops rooted in it (`isGrowing && isAreaCrop &&
+getBed() === part`); the read is `crop.readFor(await
+host.competenceBandFor(crop.getDiscipline()), seed)`; water the part
+whose observed moisture is lowest and below `waterAt` (`water <cropKw> at
+<partKw>`; one part per beat — a can is one can), feed likewise
+(`feed <cropKw> at <partKw> with sack`). Water comes from a configured
+room and vessel (`config.water: { room, from }`): teleport there, `fill
+can from <from>`, teleport home — the `shifts`/`consigns` movement shape.
+On shift only (the `cuts` rule). The literal-verb assertions in
+`farms.bounded.test.ts` move with the strings. Content: the campus hand
+`campus-farm/agent/farm-hand.yaml` (Cast, `competence: [{ discipline:
+horticulture, asserting: novice }]`, props a watering can and a compost
+sack, `behaviors: [{ brain: /trade/farming/behavior/farms, trigger:
+candidate, config: { home: …/home-field, water: { room: …/campus-farm/
+location/yard, from: trough }, shelf: '' } }]` — `shelf` empty disables
+the market leg), placed by the home field's `cast:`; `farm-unit.yaml`
+gains a `hand` position (headcount 1) with a `rosterSlots` entry for the
+Cast, days 0–6 hours 6–18; the yard trough row becomes a
+`/platform/thing/WaterFixture` with `interiorMaterial: …/bulk/water` (its
+prose already says it is piped). The campus farm stays all-YAML.
+
+**D13 — `look wheat at the top end` is `look at the top end`.** `look`'s
+one-arg view cannot bind a target and a place, and growing it a second
+arg for a farming notion is the wrong trade. The patch read is the patch
+object's own `look` (its augmenter: the ground's look phrase, then each
+crop rooted in it read at the viewer's band, then any labeled plant
+there); `look wheat` binds one stand and its augmenter says which patch it
+stands at (*"It stands at the top end."*); the field's `look` carries one
+banded line per patch. The drive uses `look at the top end`. **Owner's
+eye** (§ Risks R1).
+
+**D14 — Patch soil comes from the field's sample plus the patch's lean.**
+`GroundCharacter.resolve(model, at, seed, nudge?: GroundLean)` gains an
+optional fourth parameter, `GroundLean = Omit<GroundBand, 'from' | 'to'>`,
+applied LAST (after the pin: a patch nudges whatever the ground is, authored
+or not). No new static, no copied `lean()`. Reserves: `installSoilReserves(
+sample, depthFactor)` where `depthFactor = clamp(patch.topsoilM /
+field.topsoilM, 0.2, 2)` scales the moisture capacity — a thin top end
+holds a third of the water per square metre and dries first (Goal 2). A
+field with no patches passes `1`, so every shipped field's capacity is
+unchanged (AC 10). Nitrogen and organic matter start at the lean's
+`nitrogenPct`/`organicPct` when authored (shipped `lean()` semantics).
+
+**D15 — Content.** The bench authors three patches on
+`upper-bench.yaml` — `top-end` ("the top end", 1,000 m², lean
+`{ depthScale: 0.35, stoninessScale: 1.5, nitrogenPct: 12, organicPct: 25,
+note: "the soil runs out up here" }`), `middle` (1,500), `lane-end` ("the
+lane end", 1,500, `{ depthScale: 1.1, nitrogenPct: 30 }`) — and its one
+`standing-wheat` prop becomes three `extends:` rows (B10: props carry no
+overrides): `standing-wheat-top-end.yaml` (1,000 m², `groundPart:
+top-end`, `_vigor: 0.45`), `-middle` (1,000, 0.75), `-lane-end` (1,000,
+0.8) — 3,000 m² in all, so the cover drive's *"about three-quarters"*
+holds and the top end carries wheat for the drive's steps 1–4. The home
+field authors `gate-end` ("the gate end", 3,000), `middle` (4,000) and
+`far-side` ("the far side", 3,000, `{ depthScale: 0.8, nitrogenPct: 18 }`
+— the campus ground row already leans the outfield). Every other field
+authors nothing and is one piece.
+
+**D16 — The drive is `packages/wire/tests/field-population.dirty.wire.test.ts`**
+(13 steps, run ONCE at the end, staged by `founderEval` + clock jumps,
+`get 1 hay`-style cardinality, the hand parked indoors and drinking across
+jumps — the cover drive's helpers copied), and the cover drive's steps
+change where the fields changed: step 1 asserts ≤ 1 "a stand of wheat"
+(the loose list no longer carries the crop — D17) and a line per patch;
+step 4 sows `at the gate end` until `patch-sown`, then `at the middle`;
+step 7 cuts `at the gate end` then `at the middle`; step 9 cuts `at the
+lane end`; step 6's `look wheat` stays (it binds one stand).
+
+**D17 — An area crop is part of the ground, not loose contents.**
+`LookController`'s loose-list filter skips `isGrowing(item) &&
+item.isAreaCrop()` beside the adornment skip: the field's augmenter is
+where the stand reads, and three listed "a stand of wheat" would be
+noise. A labeled individual (`sownAreaM2 = 0`) IS listed (AC 4).
+
+**D18 — `water` and `feed` reach a plant, a bed, a patch and a field.**
+Both views' `target` becomes `requires: [VisibleMixin,
+GrowingMixin|SoilMixin]`. `WaterController`: a Growing target is the
+plant (its `standIn(part)` when `at` names one); a Soil target is ground
+(a bed → its plant as today; a patch or a one-piece field → the crop
+rooted there, else the ground itself is watered — a field with no crop
+still takes water); headroom is `plant.waterHeadroomL()` (root zone, else
+`getBed()?.soilMoistureHeadroomL()`). `FeedController` mirrors it with
+`feedPlant(points)` / `ground.feedSoil`. ⚠ This also makes `water the
+lily` bind a bare plant (grounding: it does not today); the WaterVerb
+test gains that case.
+
+---
+
+## Host placement
+
+| new thing | host | what composing it claims — and what it does NOT |
+|---|---|---|
+| `soilParts`, `soilPartKey`, `soilDepthM` (@hooks), `soilPart`, `soilPartRefusal`, `resolvePartFor`, the headroom reads, the aggregation | `SoilMixin` (kernel) | any soil-bearing ground MAY be divided into named parts; defaults mean *one piece* and every pot, bed, field and wood is byte-identical. ⛔ Not on `Field` (the kernel verbs must reach a part without importing a trade), not a new mixin (a part is a fact about soil, not a capability a class opts into). |
+| `groundPart`, `specimenNoun`, `_specimen`, `takeSpecimen`, `standIn`, `readFor`/`readLines`, `rootsBand`, `feedPlant`, `waterHeadroomL`/`nutrientHeadroom` | `GrowingMixin` (kernel) | every grower may stand in a part of its ground, be pulled as a specimen, be read at a band, be fed. `''`/`null` defaults keep every shipped plant as it was. The banded augmenter branches on `isAreaCrop() || isSpecimen()` — a **presentation** choice the requirements make (the stand read is banded; the pot read is not), not a host narrowing. |
+| `LabelledMixin`, `SampledMixin` on `Plant` | `platform/thing/Plant` (kernel) | every plant can carry a player's name and a provenance stamp. Both are inert fields; `label` is afforded on every plant (a pot lily can be labeled — a good thing). ⛔ Not a `FieldPlant` subclass: the labeled plant and the specimen are the same `Plant` a pot holds, which is the whole requirement. |
+| the root zone (`_rootZoneStamp`, the two reserves, `reconcileRootZone`) | `Plant` (kernel) | a plant standing in open ground may keep a pocket of its own water and nitrogen. Installed only by `label` (W4); absent on every other plant (`hasRootZone()` false → the shipped seams). ⭐ It rides the `ReservedMixin` `Plant` already composes — the phase-1 shape, re-used for exactly the case phase 2 left open. |
+| `GroundLean`, `resolve(…, nudge?)` | `GroundCharacter` (`/system/ground`) | a caller may nudge a resolved sample the way an authored band does. No new static. |
+| `COMPETENCE_HALF_WIDTH` | `lib/advancement/CompetenceBand.ts` (kernel) | the band vocabulary states its own precision; `Reading` reads it. One copy. |
+| `competenceBandCached`, `warmCompetenceDigest` | `AdvancementMixin` (kernel) | an advancing character's bands are readable synchronously after the per-command preload. |
+| the loose-list rule | `LookController` (kernel) | an area crop is read through its ground. |
+| `CharacteredSoilMixin` (`areaM2`, `installSoilReserves(sample, depthFactor)`, `lastSample`, `soilLeachRate`, `soilCatchmentAreaM2`) | `trade-farming/src/lib/CharacteredSoil.ts`, composed on `Field` and `Patch` | ground whose reserves are sized by its area and its seeded character. Extracted from `Field` (no behaviour change); two composers in one pack → the pack's `lib/`. |
+| `Patch` | `trade-farming/src/thing/Patch.ts` + row `content/trade/farming/thing/patch.yaml` | a named part of a field with soil of its own. A fixture, never loose, never carried. ⛔ Not a `Location` (you do not walk to the top end), not a `Container` (nothing is inside it; its crops stand in the field). |
+| `patches: PatchSpec[]`, `ensurePatches`, `getPatches`, `getCrops`, `cropOn`, `fieldLines(viewer)`, `soilParts()` override | `Field` | a field may author parts; with none it is one piece. |
+| `feed.yaml` in `Field.commandContributions.inventory` | `Field` | a field affords feeding to whoever stands in it (the `plant.yaml` precedent). |
+| `patch` arg on six views | the platform views | the kernel verbs take *at <part>*; `requires: SoilMixin` is the arg gate. |
+| the hand's row, the `hand` seat, the trough as a `WaterFixture` | `eternal-university` content | rows only; the brain is `trade-farming`'s. |
+
+The test, applied: no step above needs a guard that re-narrows a host set.
+The one visible branch — `conditionAugmenter` banding an area crop and a
+specimen but not a pot — is a requirement about what each read says, and
+it reads the host's own state (`isAreaCrop`, `isSpecimen`), not its class.
+
+---
+
+## Convention conformance (checked at plan time)
+
+- `props:` / `cast:` — the hand is placed by the home field's `cast:`;
+  patches are minted by their field (its creator places it — the
+  `ensureFloor` rule), never `container:`.
+- Locations, not rooms — no new place; a patch is a fixture of a
+  `Location`.
+- Namespace axes — `/trade/farming/thing/Patch` (class) and
+  `/trade/farming/thing/patch` (row); the kernel's changes stay under
+  `lib/` and `platform/`; the ground change under `/system/ground`.
+- Module scope declares; lifecycles initialize — patch minting in
+  `Field.onCreate` (limb 1, structural completion; the method already
+  exists, `lint:on-create` ceiling unchanged).
+- Import boundary — `trade-farming` imports the kernel by package
+  specifier and `@saxonberg/content-ground` (a declared dependency) for
+  `GroundCharacter`; no Api in a pack; no free helper (the part resolution
+  is `Soil.resolvePartFor`, the sibling lookup `Growing.standIn`).
+- Verbs on objects — `ground.resolvePartFor(named)`, `plant.standIn(part)`,
+  `plant.takeSpecimen(v)`, `plant.readFor(band)`, `viewer.competenceBandCached(d)`;
+  no `XApi.verb(host, …)`.
+- No new Mongo collection; no migration (new fields default on read; a
+  fresh world is the only world). No `isWizard`. Mixin authoritative,
+  controller dumb — every refusal line is returned by the ground or the
+  plant.
+- American English in every new identifier and sentence (`labeled`,
+  `color`); `plough` stays.
+- Name a class for its composition — `CharacteredSoilMixin`, `Patch`.
+- Lint gates this shape touches (the family is derived; run it whole):
+  `lint:field-meta` (new entries), `lint:mixin-names` (one new pack mixin
+  name, unique), `lint:instanceable` (Patch class ↔ row mirror; no
+  `container:`), `lint:reachability` (`feed.yaml` now also named by
+  `Field`), `lint:verb-collisions` (no new verb), `lint:instrument-args`
+  (the `patch` arg carries no `default:`), `lint:unconsumed-seams` (every
+  new @hook has an override in W1), `lint:lib-statics` (no new static on a
+  lib class — `resolve` gains a parameter), `lint:mass` (the patch row
+  authors `_materialPath`), `lint:perishable`, `lint:completion-this`
+  (the harvest completion stays a module function), `lint:on-create`
+  (ceilings unchanged), `lint:idle-cadence` (the brain's statics),
+  `lint:topics` (`act.deed`, `sense.survey`), `lint:authored-prose`,
+  `lint:test-bootstrap`, `lint:drive-scripts`, `lint:module-scope`,
+  `lint:imports`, `lint:object-verbs`, `lint:census`, `lint:untitled`.
+
+---
+
+## Waves
+
+Every wave lands green on `pnpm test:near` + the touched packs' vitest
+(`pnpm -C packages/content/trade-farming test`, `…/eternal-university`,
+`…/hearts-delight`, `…/ground`) + `pnpm -C packages/server lint:family`,
+and ends at one commit. Stage on a live world between waves
+(`probe-world-fast-loop`): boot once, walk the wave's steps as the
+founder with `eval` and clock jumps, grep `.wire/server.log`; the long
+drives run once, in W6. The branch is `reqs/cover`; **stage by name,
+never `add -A`**.
+
+### W0 — the kernel seams
+
+*Implements D3, D4, D7 (fields only), D9–D11 (the substrate), D17, D18
+(the headroom reads).* Files:
+
+- `packages/server/src/mud/lib/husbandry/Soil.ts` — the parts protocol
+  and the aggregation (D3). Add to the `Soil` interface and the mixin:
+  ```ts
+  /** @hook The named parts this ground is divided into; `[]` = one piece. */
+  soilParts(): readonly (Stuff & Soil)[];
+  /** @hook This ground's key as a PART of a larger ground; `''` for whole ground. */
+  soilPartKey(): string;
+  /** @hook Topsoil depth in metres, or `null` when unmodelled (a pot). */
+  soilDepthM(): number | null;
+  soilPart(key: string): (Stuff & Soil) | null;
+  soilPartRefusal(): string | null;
+  resolvePartFor(named: (Stuff & Soil) | null): PartResolution;
+  soilMoistureHeadroomL(): number;
+  soilNutrientHeadroom(): number;
+  ```
+  with `export type PartResolution = { ok: true; part: (Stuff & Soil) |
+  null } | { ok: false; reason: 'patch-unnamed' | 'not-a-part-here'; line:
+  string }`. A private `parts()` + `partWeights()` (by
+  `soilCatchmentAreaM2()`, equal weights when all are 0) back the
+  aggregation in the eleven reads/writes named in D3; `reconcileSoil()`
+  with parts calls each part's and then runs the shipped body (a no-op
+  with no reserve). Unit: a `TestGround` with two part hosts — the mean
+  is area-weighted, `waterSoil(10)` lands 6/4 on a 600/400 split and
+  returns the sum, a one-piece host is unchanged on every line
+  (`Soil.test.ts` beside the existing suite).
+- `packages/server/src/mud/lib/husbandry/Growing.ts` — `groundPart`
+  (`{ persistent: true, authorable: true }`, `getGroundPart/setGroundPart`),
+  `specimenNoun` (authorable), `_specimen: SpecimenRecord | null`
+  (persistent) with `export interface SpecimenRecord { from: string; part:
+  string; partName: string; limiting: LimitingFactor; roots: RootsBand }`
+  and `export type RootsBand = 'shallow' | 'cramped' | 'well-down' |
+  'dry' | 'sodden'`; `isSpecimen()`; `getBed()` through `soilPart`
+  (return type `(Stuff & Soil) | null`); `reconcileGrowth()` returns at
+  once for a specimen; `getLimitingFactor()` returns the stamped factor
+  for a specimen; `standIn(part)`; `rootsBand()` (from `satRoot()` and
+  `getBed()?.soilDepthM()`/moisture — exhaustive phrases in a
+  `ROOTS_PHRASE` record); `feedPlant(points)` (default
+  `getBed()?.feedSoil(points) ?? 0`); `waterHeadroomL()` /
+  `nutrientHeadroom()` (the bed's); `readFor(band, seed?)` + `readLines(
+  band)` per D9/D11 (`CropRead` exported; the second-worst factor comes
+  from the same five live terms `getLimitingFactor` samples); the
+  `conditionAugmenter` branch: `isAreaCrop() || isSpecimen()` → the
+  banded lines at `viewer.competenceBandCached(discipline)` (floor for a
+  non-Advancing viewer), plus *"It stands at <part>."* when `groundPart`
+  resolves and *"Taken from <partName> of <from>."* + the roots line for a
+  specimen; else the shipped three lines. `takeSpecimen(variation)` per
+  D7 (async; `StuffApi.clone(this.getTemplatePath())`; the caller places
+  it). A module-private FNV-1a `hashString` (the standing ruling).
+  Tests in `lib/husbandry/__tests__/Growing.test.ts`: `getBed` resolves a
+  part by key and falls back on a missing key; `readLines` is strictly
+  more at each band and never contradicts the next; `readFor(band, seed)`
+  keeps the truth inside the bracket and is stable per seed; a specimen
+  does not grow and keeps its stamped cause.
+- `packages/server/src/mud/platform/thing/Plant.ts` — compose
+  `SampledMixin(LabelledMixin(…))` inside `PersistableMixin` (outermost
+  stays). No behaviour yet (the root zone is W4).
+- `packages/server/src/mud/platform/idea/cmd/inventory/HarvestController.ts`
+  — `landSwath`: the place check becomes `MixinApi.isContainable(plant) ?
+  plant.getContainer() : null` vs `where` (l.411–413); `const bed =
+  plant.getBed()` keeps working as `Stuff & Soil`. `RepotController` l.104
+  unchanged (`===` on a Soil). `PlantController` imports unchanged.
+- `packages/content/ground/src/idea/GroundCharacter.ts` — `export type
+  GroundLean = Omit<GroundBand, 'from' | 'to'>`; `resolve(model, at,
+  seed, nudge?: GroundLean)` applies `lean(pinned, [{ from: at, to: at,
+  ...nudge }], at)` last. Test: a nudge scales depth and overrides N after
+  a pin.
+- `packages/server/src/mud/lib/advancement/CompetenceBand.ts` — `export
+  const COMPETENCE_HALF_WIDTH`; `Reading.ts` l.184 deleted, `halfWidthOf`
+  imports it.
+- `packages/server/src/mud/lib/advancement/Advancement.ts` —
+  `competenceBandCached(discipline)`, `warmCompetenceDigest()`;
+  `void digestCache.refresh(entry.owner)` beside the practising refresh
+  (l.101). `lib/standing/DerivedStandingCache.ts` — `has(subject)`.
+  `platform/idea/api/PerceptionLogic.ts` `preloadForSenseGate` — the warm
+  joins the `Promise.all`. Test: after `warmCompetenceDigest`, the cached
+  band equals `competenceBandFor`'s.
+- `packages/server/src/mud/platform/idea/cmd/perception/LookController.ts`
+  — the loose-list rule (D17), one line + comment.
+
+**Acceptance:** `Soil.test.ts`, `Growing.test.ts`, `GroundCharacter.test.ts`
+(ground pack) green; `AreaCrop.test.ts`, `HarvestVerb.test.ts`,
+`PlantVerbs.test.ts`, `WaterVerb.test.ts`, `FeedVerb.test.ts` unchanged
+and green; `lint:family` green. **Commit:** `build(field-population W0):
+a soil made of parts, a plant that stands in one, the read by band`.
+
+### W1 — the patch and the patched field
+
+*Implements D2, D14, D15 (rows), D3 (the overrides).* Files:
+
+- `packages/content/trade-farming/src/lib/CharacteredSoil.ts` —
+  `CharacteredSoilMixin<TBase extends MixinConstructor<Stuff & Reserved &
+  Soil>>` carrying `areaM2` (fieldMeta authorable; moved out of
+  `Field.fieldMeta`), `getAreaM2/setAreaM2`, `installSoilReserves(sample,
+  depthFactor = 1)` (the body of `Field.installSoilReserves` with `litres
+  *= depthFactor`), `lastSample`, `soilLeachRate()`, `soilCatchmentAreaM2()`
+  (`areaM2`). `static _mixinName = 'CharacteredSoilMixin'`.
+- `packages/content/trade-farming/src/thing/Patch.ts` — `const PatchBase
+  = CharacteredSoilMixin(SoilMixin(ReservedMixin(AdornmentMixin(
+  VisibleMixin(Thing)))))` (`Thing` from
+  `@saxonberg/server/mud/lib/stuff/Thing`, the `Floor` precedent).
+  `fieldMeta`: `patchKey` (authorable), `lean` (authorable, a
+  `GroundLean | null`). Methods: `getPatchKey()`, `getLean()`,
+  `soilPartKey()` → `patchKey`, `getField(): Field | null`
+  (`getAdornedTo()` narrowed `instanceof Field`), `watershedScope()` →
+  `getField()`, `soilWaterDemandPerGameDay()` = Σ crops rooted here
+  `standingAreaM2() × CROP_TRANSPIRATION_L_PER_M2_DAY` (the constant moves
+  from `Field.ts` into `CharacteredSoil.ts` as an exported const; `Field`
+  imports it) + `field.
+  swardTranspirationPerGameDay() × areaM2 / field.getAreaM2()`,
+  `soilDrawFactor(from, to)` → `field.soilDrawFactor(from, to)`,
+  `soilDepthM()` → `lastSample?.topsoilM ?? null`, `installFromField(
+  sample: GroundSample, fieldSample: GroundSample)` (`depthFactor =
+  clamp(sample.topsoilM / fieldSample.topsoilM, 0.2, 2)`; sets
+  `_materialPath` to `TEXTURE_MATERIALS[sample.texture]`; `settleSoilPlacement()`),
+  `cropsOn(): (Stuff & Growing)[]` (the field's contents rooted here).
+  `static markupAugmenters = [patchAugmenter]`: `GroundCharacter.lookPhrase(
+  lastSample)`, then each crop's `readLines(viewer band)`, then each
+  labeled individual rooted here (*"<label> stands here, labeled."*).
+  Row `content/trade/farming/thing/patch.yaml`: `class:
+  /trade/farming/thing/Patch`, `shortDescription: patch of ground`,
+  `keywords: [patch, ground]`, `register: definite`, `_materialPath:
+  /stuff/idea/material/earth/loam`.
+- `packages/content/trade-farming/src/location/Field.ts` — compose
+  `CharacteredSoilMixin` (`FieldGround = CharacteredSoilMixin(SoilMixin(
+  ReservedMixin(Location)))`), delete the moved members; `patches:
+  PatchSpec[]` (`{ persistent: true, authorable: true }`) with `export
+  interface PatchSpec { key: string; name: string; keywords?: string[];
+  areaM2: number; lean?: GroundLean; description?: string }`;
+  `ensurePatches(model, seed, fieldSample)` (get-or-create by slot
+  `patch:<key>`; the last spec absorbs `areaM2 − Σ`; clone the row, set
+  key/name (`setShortDescription(name)`, register definite,
+  `setKeywords([...name words, ...keywords])`), area, lean, description;
+  `addFixture(p, 'patch:'+key)`; `p.installFromField(GroundCharacter.
+  resolve(model, spot, seed, lean), fieldSample)`); `getPatches()`;
+  `soilParts()` → `getPatches()`; `getCrops()` (every area crop in
+  contents), `cropOn(part)`, `getCrop()` kept (first); `cropAreaM2` Σ;
+  `settleCropTitle` over `getCrops()`; `bankWork` grub destructs all;
+  `progressOn`/`improvementReversion` test `getCrops().length > 0`;
+  `installFieldReserves`: with patches, skip `installSoilReserves` on the
+  field (sward only); `onCreate`: `ensurePatches` BEFORE
+  `installFieldReserves`; `fieldLines(viewer)` — the stand line (the kind,
+  `cropAreaPhrase(Σ standing / areaM2)`, the stage phrase of the crop
+  covering the most standing area), then per patch *"At <name>: <readLines
+  at the viewer's band, joined>"* (only patches with a crop), stubble and
+  seedbed lines as today; `fieldAugmenter` passes `viewer`;
+  `commandContributions.inventory` adds `'platform/cmd/bulk/feed.yaml'`.
+  ⚠ `soilWaterDemandPerGameDay()` on a patched field is never read (no
+  reserve) — leave it.
+- Rows (D15): `upper-bench.yaml` `patches:` + three `standing-wheat-*`
+  props (delete `standing-wheat.yaml`); `home-field.yaml` `patches:`.
+  Wheat/barley/cane rows: `specimenNoun`.
+- Tests: `trade-farming/src/__tests__/field-patches.test.ts` — a field
+  with two patches installs reserves on the patches and none on itself;
+  the field's `soilMoistureFraction()` is the area-weighted mean; a plant
+  with `groundPart` roots in its patch; the thin patch (depthScale 0.35)
+  holds a third of the water per m²; `fieldLines` prints a line per patch;
+  grub ends every patch's crop; a field with no `patches:` has no
+  fixtures and installs its own reserves (byte-identical to the existing
+  `field-crop.test.ts` fixture). `Patch.test.ts` — `watershedScope` is the
+  field; `soilWaterDemandPerGameDay` sums its crops and its sward share.
+  Restart: a patch's reserves survive a capture → `materialize` of the
+  field (the fixtures slice; `Reserved.reserves` is `runtimeState`) — ⚠
+  **`Soil`'s stamps are `persistent` only and would NOT ride the fixtures
+  slice**: mark `soilClockStamp`, `_soilMeanMoisture`, `rainClockStamp`,
+  `_rainAbsorbedLitres` `runtimeState: true` in `Soil.fieldMeta` (they
+  are engine-written; `lint:field-meta` accepts the subset), and assert
+  the stamp survives too.
+- **Live stage:** boot; `look` at the bench: the stand line + three patch
+  lines, no "a stand of wheat" in the loose list; `look at the top end`;
+  founder `eval` reads the three patches' `soilMoistureFraction()` after
+  a 30-day summer jump — the top end lowest.
+
+**Commit:** `build(field-population W1): the patch — a field divided into
+soils of its own, the bench and the home field authored in three`.
+
+### W2 — the banded read, live
+
+*Implements D9, D10, D13 end to end.* Mostly landed in W0/W1; this wave
+proves it on a live world and closes the gaps:
+
+- `preloadForSenseGate` warm verified on a fresh login: the first `look`
+  of an expert reads at expert (a wire assertion in W6; here a staged
+  probe with two characters — `founder` with an authored claim via `eval`
+  on a Cast, and a fresh handle).
+- `Patch` augmenter and `fieldLines(viewer)` read at the viewer's band;
+  the floor band for a session with no transcript.
+- `look wheat` on a patched field binds the first stand and says where it
+  stands.
+- Tests: `Growing.test.ts` adds the augmenter's band branch with a stub
+  Advancing viewer whose digest is pre-set (`DerivedStandingCache` test
+  seam `_clearAllForTesting` + a direct `refresh`); `field-patches.test.ts`
+  adds a novice-vs-expert `fieldLines` pair asserting the novice's text
+  is a prefix-subset of the expert's.
+
+**Commit:** `build(field-population W2): the stand reads at your band —
+less detail for a novice, never a different truth`.
+
+### W3 — water, feed, harvest and sow at a patch
+
+*Implements D5, D8, D18.* Files:
+
+- Views: `bulk/water.yaml`, `bulk/feed.yaml`, `inventory/harvest.yaml`,
+  `inventory/plant.yaml` gain the `patch` arg (D5) **after** the target
+  and before/among the existing prepositional args (all bounded);
+  `water`/`feed` targets → `[VisibleMixin, GrowingMixin|SoilMixin]`; help
+  text gains the field paragraph (*"On a field divided into patches, say
+  which: `water wheat at the top end`"*).
+- `WaterController` — resolve per D18: `ground` = a Growing target's
+  container when Soil else its bed; `const r = ground.resolvePartFor(
+  model.patch?.stuff ?? null)`; refuse `r.reason` with `Mml.fromMarkup(
+  r.line)`; the plant = `target.standIn(r.part)` (Growing) or
+  `ground.cropOn`-equivalent through the kernel (contents filter `isGrowing
+  && getBed() === (r.part ?? ground)`); with no plant on a Soil target,
+  water the ground itself (`ground.waterSoil`); measure =
+  `min(plant.waterHeadroomL(), available)`; the reply states the litres:
+  *"You tip 2 L into the soil around the wheat at the top end. On a
+  thousand square metres it barely shows."* — the second sentence when the
+  litres are under `0.1 L/m²` of the part's area (`soilCatchmentAreaM2`).
+  Capture `PersistableApi.captureHostOf(ground)` (the field's record
+  carries the patch).
+- `FeedController` — the same resolution; `plant.feedPlant(points)` for a
+  plant, `ground.feedSoil`/`addOrganicMatter` for ground; the reply states
+  the kilograms (`litres` of compost → *"a sack's worth, 20 kg"*) and
+  the patch.
+- `HarvestController` — after target resolution: `ground`/`resolvePartFor`;
+  `plant = plant.standIn(r.part) ?? refuse 'nothing-sown-there'`
+  (*"Nothing of that stands at the lane end."*); `landSwath` narrates the
+  patch (*"You cut a swath of the wheat at the gate end"*).
+- `PlantController.sowGround` — `resolvePartFor`; `standing` searched by
+  `getBed() === target part`; `free` from the part's `soilCatchmentAreaM2()`;
+  `patch-sown` refusal when `free < 1` on a part; `landSowing` sets
+  `crop.setGroundPart(part.soilPartKey())` on a fresh crop before the
+  move; the narration names the patch.
+- Tests: `WaterVerb.test.ts` (a bare plant binds and is watered; a field
+  with two parts refuses without `at` and lists both; `at` the dry part
+  moves only that part's reserve; a bucket on a 1,000 m² part reports
+  "barely shows"), `FeedVerb.test.ts` (likewise; nutrient of one part
+  only), `AreaCrop.test.ts` (harvest at a part cuts that part's plant and
+  grades by ITS worst limiting — two parts, one starved; sow at a part
+  fills it and refuses `patch-sown`; a one-part ground needs no `at`),
+  `harvest-view.test.ts`/`PlantVerbs.test.ts` arg-shape checks.
+- **Live stage:** campus home field after `plough`: `sow wheat` refused
+  with the three names; `sow wheat at the gate end` ×2; `water wheat`
+  refused; `water wheat at the middle` from a pail — the litres and
+  "barely shows"; founder `eval` the middle patch's reserve moved by that
+  much.
+
+**Commit:** `build(field-population W3): water, feed, sow and cut by the
+patch — the vessel's volume into that soil, the grade off that stretch`.
+
+### W4 — the specimen and the labeled plant
+
+*Implements D6, D7.* Files:
+
+- `SampleController.fromThing` — before the `Sampled` check: if
+  `isGrowing(subject) && subject.isAreaCrop()`: `ground.resolvePartFor(
+  model.patch?.stuff ?? null)` (refuse as the others), `stand =
+  subject.standIn(part)`, `variation` from the seeded hash (field identity
+  + part key + cycle), `piece = await stand.takeSpecimen(variation)`,
+  `ContainmentApi.move(piece, giver)`, `stamp`, narrate *"You pull a stem
+  of wheat from the top end and look at the roots."*. `sample.yaml` gains
+  the `patch` arg; help gains the crop paragraph.
+- `LabelController` — the crop branch: `isGrowing(target) &&
+  target.isAreaCrop()`: resolve the part, `stand.standIn(part)`, `individual
+  = await stand.takeSpecimen(0, { cut: false })` (D7), `setGroundPart`, `ContainmentApi.move(individual, field)`, label =
+  text || giver's presentation, `setLabel`, keywords (`label` words +
+  `labeled`), `shortDescription`, `installRootZone()` (below), capture the
+  field; reply *"You tie your label to a stem of wheat at the gate end:
+  <label>."*. `label.yaml` gains the `patch` arg (bounded after the
+  greedy `text`).
+- `Plant.ts` — the root zone (D6): `_rootZoneStamp` (persistent),
+  `hasRootZone()`, `installRootZone()` (reserves `moisture` at
+  `rootDemand[stage] × 0.35` L seeded at the bed's fraction, `nitrogen`
+  100 % at the bed's fraction), `reconcileRootZone()` (own guard; a day
+  at a time; drain `litresPerGameDay × warmth(ambient)`; relax toward the
+  bed's current fraction with the two constants; nitrogen likewise), the
+  five seam overrides reading the zone when present, `feedPlant` override,
+  `waterHeadroomL`/`nutrientHeadroom` overrides. Dials: none new (two
+  module constants, documented).
+- `Growing.ts` — the roots line and the provenance line in the augmenter
+  (W0 wrote the branch; this wave fills `ROOTS_PHRASE`), `specimenNoun`
+  read by `takeSpecimen`.
+- Tests: `SampleVerb` cases in `inventory/__tests__/` (a stem comes off a
+  stand; the stand keeps its area; same part twice → equal vigor and the
+  same cause; a stem in hand does not grow; `look stem` carries the roots
+  and the provenance; the shipped soil/ore cases unchanged); `LabelVerb`
+  (a labeled individual stands in the field, is listed, reads in full;
+  `water <label>` reaches only it — the patch's reserve unmoved; a dry
+  stretch with daily watering keeps it above its patch; a skipped week
+  lets it fall back); `Plant.test.ts` root-zone arithmetic (equilibration
+  toward the bed; the zone never exceeds capacity).
+- **Live stage:** bench: `sample wheat at the top end`, `look stem`,
+  `sample wheat at the lane end` reads better; home field: `label wheat
+  at the gate end trial`, `look`, `look trial`, `water trial`.
+
+**Commit:** `build(field-population W4): a plant you can hold and a plant
+you can follow — the sampled stem and the labeled individual`.
+
+### W5 — the hand reads with their own eyes
+
+*Implements D11 (the consumer), D12.* Files:
+
+- `packages/content/trade-farming/src/behavior/farms.ts` — per D12:
+  shift gate; the water source config; soil parts; the banded, seeded
+  read; one watering and one feeding per beat at most, to the lowest
+  observed part below the threshold; `pick` stays Cultivable-only;
+  `shelf: ''` disables the market leg. `farms.bounded.test.ts` literals
+  updated (`'fill can from '`, `` `water ${kw} at ${part}` ``, …).
+  `farms.test.ts` gains: two parts, the thirsty one is watered when the
+  hand is expert; with a seeded novice band and two parts 0.02 apart, the
+  hand waters the one ITS read says (assert against `readFor` with the
+  same seed, not against the truth).
+- Content: `campus-farm/agent/farm-hand.yaml` (D12; name and dossier
+  authored — a modest hand, *"asserting: novice"*), `campus-farm/idea/
+  farm-unit.yaml` `hand` position + `rosterSlots`, `campus-farm/thing/
+  trough.yaml` → `WaterFixture` (keep its prose and keywords),
+  `campus-field/location/home-field.yaml` `cast: [farm-hand]`.
+  `campus-farm.test.ts` keeps passing (YAML only; `/platform/thing/
+  WaterFixture`, `/platform/agent/Cast` qualify).
+- **Live stage:** campus, on the hand's hours, a staged dry fortnight
+  (founder `eval` draining two patches unevenly): watch one beat in real
+  time (20 s watched cadence) — the hand fills at the yard trough and
+  waters a patch; `look` at the field shows which; compare with the
+  founder's expert read of the same moment.
+
+**Commit:** `build(field-population W5): a hired hand reads the field at
+their own band and waters where their read points`.
+
+### W6 — the drive, the cover drive, the docs
+
+*Implements D16.* Files:
+
+- `packages/wire/tests/field-population.dirty.wire.test.ts` — the
+  requirements' 13 steps as checkpoints that can fail, in this order
+  (season by clock jump; the bench is pre-sown and established, so the
+  summer read is a jump to ~day 160; the home field is sown in spring by
+  the drive):
+  1. bench, summer: `look` → a line per patch; the top end's line reads a
+     worse band word than the middle's and the lane end's (parse the
+     condition phrases; assert rank).
+  2. `look at the top end` as the handle (fresh, floor band) → no cause
+     sentence; as a founder-staged expert character (a `claim` seeded by
+     `eval` on a second handle's Avatar — the `competence` verb reports it)
+     → the cause sentence present; the two texts differ only by addition.
+  3. `sample wheat at the top end` → `me:i:stem`; `look stem` → stage,
+     band, cause, roots, *"Taken from the top end"*; sample again → the
+     two stems' `look` texts equal.
+  4. `sample wheat at the lane end` → its band word ranks above the top
+     end's.
+  5. `water wheat` → refused `patch-unnamed`, the prose names all three.
+  6. campus, spring: `apply for labourer` at the yard and `clock on`
+     (the sow title gate — the cover drive's step 13a shape), `plough`,
+     `sow wheat at the gate end` ×n, `at the middle`, `at the far side`;
+     `label wheat at the gate end trial` → `look` lists it; `look trial`
+     reads stage/condition/cause.
+  7. a dry stretch: founder `eval` pins the field's rain locality to a dry
+     lean or drains the patches; six staged days: `water trial` each day
+     (the can refilled at the yard trough, `fill can from trough`); then
+     `look trial` ranks above `look at the gate end`'s line and above a
+     fresh `sample wheat at the gate end`.
+  8. `water wheat at the middle` from a pail → the reply states litres and
+     *"barely shows"*; `eval` the middle patch's moisture before/after
+     differs by ≤ 10 L / capacity.
+  9. `feed wheat at the far side` with a compost sack → the reply states
+     the kilograms; `eval` nitrogen rose on the far side only.
+  10. summer's end: `harvest wheat at the gate end` and `at the far side`
+      (the far side neglected: drained by `eval` through the season) →
+      `me:i:wheat` sacks; the gate end's grade word ranks above the far
+      side's (`look sack` reads the grade band).
+  11. the hand: a staged dry week; watch the hand's beat in real time
+      (`listen`), then `look` → which patch was watered (the field's patch
+      lines move); the founder's expert read names the driest; record both,
+      assert the hand watered SOME patch and the log names it.
+  12. a Waponi cane piece: `look` and `harvest cane` with no `at` → not
+      refused `patch-unnamed`.
+  13. the dorm's starter pot: `look lily` carries the cause sentence for a
+      floor-band handle; `water lily` lands.
+  `declareFile` packs: platform, trade-farming, trade-ranching,
+  eternal-university, hearts-delight, waponi-woo, terminus, generic-objects;
+  `dirtyReason` — takes a campus labourer seat, ploughs, sows and cuts
+  the home field, pulls stems off the bench, labels a plant, spends the
+  farm's compost and water.
+- `cover.dirty.wire.test.ts` — steps 1, 4, 7, 9 per D16; step 6's
+  `look wheat` unchanged.
+- Docs (the sweep owns the index lines): `docs/subsystems/soil.md`
+  (§ a soil made of parts; the patch), `husbandry.md` (the plant's part,
+  the specimen, the labeled plant's root zone, the read by band),
+  `instrumentation.md` (the half-width table's new home; a note that the
+  stand read is a band on `look`), `behavior.md`/`employment.md` (the
+  campus hand), `advancement.md` (the sync digest read).
+
+**Commit:** `drive(field-population): <what driving found>` then
+`docs(field-population): …`.
+
+---
+
+## Reachability wiring
+
+| capability | verb | affordance | data | boot | arg gate |
+|---|---|---|---|---|---|
+| the patch as a target | `look`, `water`, `feed`, `sample` … | a fixture is a **peer** candidate (`candidatesForPeers` walks `getFixtures()`) — verified | the field row's `patches:` (keywords from the name) | none — minted at `Field.onCreate` | `requires: SoilMixin` on the `patch` arg; `Mixins`' refusal for a non-soil thing |
+| water a patch / a field plant | `water` (tool-afforded by the can, shipped) | the can in hand | — | none | target `[VisibleMixin, GrowingMixin\|SoilMixin]` — ⚠ the shipped `CultivableMixin` gate is why a bare plant never bound; W3 widens it and the WaterVerb test pins it |
+| feed a patch | `feed` | ⚠ **a field affords nothing today** — `Field.commandContributions.inventory += feed.yaml` (W1) | compost sack (shipped) | none | as above |
+| harvest at a patch | `harvest`/`pick` | `Plant.peers` (every per-patch crop is a peer) | `swathM2` (shipped) | none | `patch` arg; `nothing-sown-there` when the part holds no crop of that kind |
+| sow at a patch | `sow`/`plant` | `Field.inventory` (shipped) | seed rows (shipped) | none | `patch` arg; `patch-sown` |
+| the specimen | `sample` | the verb is general (shipped); the case is the bound plant | `specimenNoun` on the plant rows | none | `subject` `requires: any` (shipped); `patch` arg |
+| the labeled plant | `label` | `LabelledMixin.peers`/`environment` — composed on `Plant` (W0) | — | none | `target` `requires: LabelledMixin` — satisfied the moment `Plant` composes it; `text` greedy then `patch` `[at]` greedy (binder rule verified) |
+| the banded read | `look` | — | the viewer's transcript (a claim row for a Cast) | ⚠ the digest warm rides `preloadForSenseGate`, which `look` already awaits; nothing boot-listed | — |
+| the hand | `fill`, `water`, `feed` (by word) | the brain on the Cast row; the seat on `farm-unit.yaml` | the yard trough as a `WaterFixture`; a can and a sack in the hand's props | ⚠ the university is not boot-listed; the hand beats while the home field is loaded (a player present) — honest for the drive, which watches in real time | — |
+| a one-piece field | every verb | unchanged | no `patches:` | none | `resolvePartFor(null)` → `{ ok, part: null }` |
+
+---
+
+## Acceptance-criteria coverage
+
+| AC | wave |
+|---|---|
+| 1 — a line per patch; the poorer patch reads poorer through a season | W1 (patches + lines), W2 (words), drive 1 |
+| 2 — novice vs expert, same moment: less detail, same truth | W0 (`readLines`), W2 (the live band), drive 2 |
+| 3 — `sample` gives a plant naming field + patch, stage/condition/cause/roots; same spot same reading | W4, drive 3–4 |
+| 4 — `label` leaves a listed, readable plant | W4 (+ D17 keeps it listed), drive 6 |
+| 5 — care aimed at a labeled plant reaches only it; it outreads its patch through a dry stretch | W4 (root zone), drive 7 |
+| 6 — `water`/`feed` deliver the vessel's volume into the patch and say how much | W3, drive 8–9 |
+| 7 — refused without a name, with the names; a one-patch field needs none | W0 (`resolvePartFor`), W3, drive 5 + 12 |
+| 8 — the well-kept patch's sack grades better | W3 (D8), drive 10 |
+| 9 — the hand waters where its own banded read points | W5, drive 11 |
+| 10 — no-patch fields, beds and pots unchanged | W0/W1 one-piece paths + the existing suites; drive 12–13; the cover drive |
+
+Nothing unmapped. The drive's step 11 asserts the hand's act and records
+the comparison; it cannot assert "wrong" deterministically (R3).
+
+---
+
+## Test & gate strategy
+
+- **Unit (near):** every W0–W5 file has a `__tests__` sibling named above;
+  kernel tests import `test-bootstrap`. The soil aggregation and the root
+  zone are stepped integrals — pin them with two-step fixtures (`lint:
+  reconcile-chains` wants the draw inside the loop).
+- **Only the drive can prove:** the binder's `at` shapes across six views
+  (an arg-shape test cannot see the live keyword match on a fixture), the
+  fixtures slice carrying a patch's reserves across a restart on a real
+  record, the digest warm on a first look, the hand's beat, the clock-jumped
+  season on three patches.
+- **Gates:** `pnpm -C packages/server lint:family` after every wave.
+- **`pnpm test` runs exactly twice:** at code-complete (the MR is already
+  open — this build lands on !480; say in the message what is still
+  running) and at `/finalize`. Between: `pnpm test:near` + the four packs'
+  vitest.
+- ⚠ `WIRE_PORT` per worktree (build-1 = 2014); hold the server only while
+  staging or driving; tear it down by PID; a drive world is ~3 GB.
+
+---
+
+## Risks & opens
+
+**R1 — `look wheat at the top end` is not a shape `look` binds (D13).**
+The requirements' drive step 2 writes it. The plan's answer is `look at
+the top end` (the patch's own look) and the field's per-patch lines, and
+`look wheat` naming its patch. Accepting that wording is the owner's call;
+the alternative is a second arg on `look.yaml` for one subsystem, which
+the plan declines. The build proceeds on the plan's reading.
+
+**R2 — the sow exception.** The cover drive sows the home field with no
+patch named; AC 7 says every act names one. The plan makes `sow` consistent
+(refused without `at` on a multi-patch field) and rewrites the cover
+drive's step 4. If the owner wants `sow` to stay field-wide (a cast
+falling where you walk), it is one branch in `PlantController` and the
+drive step stands as it was — say so in review.
+
+**R3 — the hand being "wrong" is probabilistic by design.** With the
+bracket at ±8 % of the fraction, a novice hand misranks only patches
+within that band of each other. The drive stages the two near together
+and records the outcome; it asserts the act, the log and the comparison,
+not the error. If the owner wants a visible wrong choice every run, the
+dial is the half-width table, which is instrumentation's.
+
+**R4 — the fixtures slice and `Soil`'s stamps.** A fixture's state rides
+the host record only for `runtimeState` fields; W1 marks the soil stamps
+so. If a stamp must stay authorable-visible for some reason the build does
+not see, the fallback is a self-persisting patch — which nothing would
+restore, so it is not a fallback. The restart test in W1 is the proof.
+
+**R5 — `water the lily` never bound a bare plant** (grounding). Widening
+the gate is a behaviour change on a shipped verb that nobody drove; the
+WaterVerb test pins the new case. Record it in the MR.
+
+**R6 — the digest refresh per deed** is one indexed transcript fold per
+`creditDeed` (the practising cache already folds once). If a profile shows
+it, coalesce in `DerivedStandingCache.refresh` (an in-flight guard the
+scheduled warm already has) — not this build's unless measured.
+
+**R7 — the bench's prose** (*"bare patches up at the top end where the
+soil runs out"*) now meets a top end that carries thin wheat. The row's
+`longDescription` is edited in W1 to say the wheat up there is short and
+patchy; the ground phrase on `look at the top end` says the rest.
+
+**R8 — authored crop rows carry `groundPart` by key** and a patch renamed
+in a row orphans nothing (fallback to the whole ground) but silently
+re-roots the crop in the field's aggregate soil. The W1 test covers the
+fallback; the content rule (keys are stable; names may change) goes in
+the soil.md sweep.
+
+**Must the build stop for any of these?** No. R1 and R2 are wording
+decisions the plan resolves one way and names in the MR description; the
+owner can reverse either in review at the cost of one drive step each.
+
+---
+
+## Deferred seams
+
+- **Patches on the sward** (uneven grazing, the trough corner) → the
+  field-population slate § 9. The attach point is `Patch.soilWaterDemand
+  PerGameDay`'s sward share and `Field.swardShortfallFed`.
+- **Weeds, thinning, a hoe** → farming-slate. `Patch` is where a weed
+  reserve would live.
+- **Irrigation** (channels, a cart barrel) → irrigation-slate. The
+  bucket's *"barely shows"* reply is the demand.
+- **A grieve's report verb** → field-population slate § 8.5. `readFor` is
+  what it would print.
+- **The hand harvesting a field** (a tool, an engaged act, a cart) → the
+  farms brain's slate entry; `pick` stays Cultivable-only.
+- **Seed saving from a labeled plant** → farming-slate (genetics).
+- **A second arg on `look`** (R1) → command-taxonomy slate.
+- **Hiring a hand for your own ground** → the labor-market slates.
+
+Leave as slate entries at the sweep; nothing above is a plan section.
+
+---
+
+## Critical files
+
+Read first, in this order:
+
+1. `docs/requirements/field-population-requirements.md`
+2. `docs/slates/builds/field-population-slate.md`
+3. `docs/plans/cover-plan.md` §§ Grounding, D1–D6, B10, B17, B21–B37 and
+   the drive record (the lessons the drive must not relearn)
+4. `packages/server/src/mud/lib/husbandry/Growing.ts` (`getBed`,
+   `getLimitingFactor`, `reconcileGrowth`, the augmenter, the area crop)
+5. `packages/server/src/mud/lib/husbandry/Soil.ts` (the interface, the
+   hooks, `reconcileSoil`, `creditReserve`, `watershedScope`)
+6. `packages/server/src/mud/platform/thing/Plant.ts` and
+   `packages/server/src/mud/lib/reserve.ts`
+7. `packages/content/trade-farming/src/location/Field.ts`,
+   `src/lib/Sward.ts`; `packages/content/ground/src/idea/GroundCharacter.ts`
+8. `packages/server/src/mud/lib/stuff/Place.ts` (`ensureFloor`),
+   `lib/boundary/Adornable.ts` (`addFixture`, the fixtures slice),
+   `platform/thing/Floor.ts` (the fixture composition precedent)
+9. `packages/server/src/mud/platform/idea/cmd/{bulk/Water,bulk/Feed,
+   inventory/Harvest,inventory/Plant,inventory/Sample,inventory/Label}Controller.ts`
+   and their views under `packages/content/platform/content/platform/cmd/`
+10. `packages/server/src/mud/lib/command/CommandDefinition.ts` l.660–725
+    (greedy + prepositional), `platform/idea/api/CommandLogic.ts`
+    `parseRequirement` (l.3027)
+11. `packages/server/src/mud/lib/advancement/{Advancement,CompetenceBand}.ts`,
+    `lib/standing/DerivedStandingCache.ts`,
+    `platform/idea/api/PerceptionLogic.ts` (`preloadForSenseGate`),
+    `lib/instrument/Reading.ts` (`HALF_WIDTH`, `observe`)
+12. `packages/server/src/mud/platform/idea/cmd/perception/LookController.ts`
+    l.200–230, 336–360
+13. `packages/content/trade-farming/src/behavior/farms.ts` + its two
+    tests; `packages/content/trade-sugar/src/behavior/cuts.ts`
+14. The content: `hearts-delight/.../bench-field/{location/upper-bench,
+    thing/standing-wheat}.yaml`, `eternal-university/.../campus-field/
+    {location/home-field,idea/ground}.yaml`, `campus-farm/{idea/farm-unit,
+    location/yard,thing/trough}.yaml`, `hearts-delight/.../dairy/
+    {agent/dairy-lad,idea/dairy-business}.yaml`, `duncan-hall/thing/tap.yaml`,
+    `trade-farming/.../thing/plant/wheat.yaml`
+15. `packages/wire/tests/cover.dirty.wire.test.ts` and
+    `packages/wire/src/harness/{world,session}.ts`
+16. `docs/subsystems/{husbandry,soil,instrumentation,behavior,employment}.md`,
+    `docs/design-lenses.md`
+
+---
+
+## Drive record
+
+*(appended at build time, not at plan time)*
