@@ -843,7 +843,10 @@ suite('⭐⭐ 31 — pressing: one load, from a stone, a screw and a blow', () =
     // before the drive is listening (run 15 caught only the raise).
     expect(struck, `the blow: ${struck}`).toMatch(/hammer|die/i);
     const token = await examine(caster, 'token');
-    expect(token, `the token: ${token}`).toMatch(/struck from .*founder.* die/i);
+    // ⭐ Whose die it was, as the striker knows it (B106): the caster has
+    // never met the founder, so the device is a mark they do not know —
+    // never a stranger's name for free.
+    expect(token, `the token: ${token}`).toMatch(/bears a maker's mark you do not know/i);
   }, 1_800_000);
 });
 
@@ -1071,6 +1074,10 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     const poured = await doing(caster, 'pour ladle into pit');
     expect(poured, `the pour: ${poured}`).toMatch(/watch|rope|pour/i);
     await advance('7 hours');
+    // A mould sets on read, like every cast above (run 3 of the finalize
+    // drives rang before anything had looked into the pit).
+    await examine(caster, 'pit');
+    await new Promise((r) => setTimeout(r, 1_500)); // …and the cast lands a beat later
     const rung = await doing(caster, 'ring "great bell"');
     expect(rung, `the great bell: ${rung}`).toMatch(/deep/i);
     caster = await goTo(caster, FOUNDRY);

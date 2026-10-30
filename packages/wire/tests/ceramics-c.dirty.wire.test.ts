@@ -698,10 +698,19 @@ suite('⭐ 21 — the weeping jar', () => {
       ...((await potter.query('here:i:jar', { fields: 'detail' }).catch(() => [])) as JarRow[]),
       ...((await potter.query('me:i:jar', { fields: 'detail' }).catch(() => [])) as JarRow[]),
     ];
-    const bisque = jarRows.find((j) => {
+    // ⚠ A query's detail is the row's prose; a flaw is the LOOK's (the
+    // Integrity augmenter) — so a jar 18's hot opening dunted reads sound
+    // here. Each candidate is looked at before it is taken (run 3 of the
+    // finalize drives filled a cracked one).
+    let bisque: JarRow | undefined;
+    for (const j of jarRows) {
       const d = String(j.longDescription ?? '');
-      return /terracotta/i.test(d) && !/glazed|coat|crack|burst/i.test(d);
-    });
+      if (!/terracotta/i.test(d) || /glazed|coat|crack|burst/i.test(d)) continue;
+      const seen = await examine(potter, `#${j.stuffId}`);
+      if (/crack|broken|burst/i.test(seen)) continue;
+      bisque = j;
+      break;
+    }
     // eslint-disable-next-line no-console -- the drive's own record
     if (!bisque) console.log(`  [drive] no bisque jar of the potter's: ${JSON.stringify(jarRows.map((j) => String(j.longDescription ?? '').slice(-120)))} — handing one`);
     // None at hand (18b's short hot firing leaves its jar unturned, run 39):
@@ -710,6 +719,7 @@ suite('⭐ 21 — the weeping jar', () => {
       bisque?.stuffId ??
       (await hand(potter, '/trade/ceramics/thing/jar', { _materialPath: '/stuff/idea/material/ceramic/terracotta' }));
     await say(potter, `get #${full}`);
+    await examine(potter, `#${full}`); // the record: what it was before the fill
     await say(potter, `fill #${full} from butt`);
     await examine(potter, `#${full}`); // the record: sound, or cracked by the fill
     await say(potter, 'fill leadpot from butt');
