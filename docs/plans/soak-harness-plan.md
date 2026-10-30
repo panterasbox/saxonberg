@@ -6,7 +6,7 @@ Executes [soak-harness-requirements.md](../requirements/soak-harness-requirement
 clock's test-only route, `tools/`, and (the staging scope) the `eval`
 sandbox, the test-login seam and one platform verb. No pack, no namespace
 root, no new Stuff class, no mixin. One new Api + logic singleton
-(`TestingApi`), one new controller + view (`test`), one new validator.
+(`TestHarnessApi`), one new controller + view (`testharness`), one new validator.
 
 What lands: the `*.soak.wire.test.ts` convention and `pnpm wire:soak`; a
 server-side refusal of any test clock jump past one game day outside soak
@@ -16,8 +16,8 @@ canary; the census of the 25 clock-jumping wire files, each moved to
 soak or shown within a day; **and the staging tools** — an `eval` that
 binds every self-decorating Api instead of a list of four, with a real
 timeout, an output cap and every refusal returned as an error; test
-login granting a test runner title to named parcels; and the `test`
-command (`test clock …`, `test weather …`), installed only in test
+login granting a test runner title to named parcels; and the `testharness`
+command (`testharness clock …`, `testharness weather …`), installed only in test
 worlds, sharing one implementation with the harness routes. The build
 follows its own rule: its blocking drive has no `span` step, and its
 soak drive is `canary.soak.wire.test.ts`, which the MR names.
@@ -357,7 +357,7 @@ additionally reach `backend/` — `SandboxLogic.ts` l.12 imports
 `PersistenceManager` (`whenQuiet(quietMs, timeoutMs)` is at
 `backend/PersistenceManager.ts` l.510). A **controller** is mudlib and
 cannot import `backend/TestHooks`; a **route** (`services/`) can. So
-anything the `test` command and the harness route must share lives in
+anything the `testharness` command and the harness route must share lives in
 the Api tier.
 
 ## Plan-level decisions
@@ -385,15 +385,15 @@ apply, and this is the first `tools/lib/` — sanctioned by the coordinator.
 
 **D3 — Soak mode is a body field, enforced ONCE in the shared test hook,
 parsed by the clock's own grammar.** *(Amended 2026-10-30 for the
-staging scope: the cap lives in `TestingLogic`, not `TestHooks`, so the
-`test clock advance` door meets it too — D22.)* The harness sends
+staging scope: the cap lives in `TestHarnessLogic`, not `TestHooks`, so the
+`testharness clock advance` door meets it too — D22.)* The harness sends
 `{advance, soak: true}` when `process.env.WIRE_SOAK === '1'`. The route
 passes `body.soak === true` through as `{soak}` to
 `TestHooks.advanceClock(duration, {soak})`, which is now a thin
-test-mode-gated `runRoot` around **`TestingApi.advanceClock(duration,
-{soak})`**. `TestingLogic.advanceClock` computes
+test-mode-gated `runRoot` around **`TestHarnessApi.advanceClock(duration,
+{soak})`**. `TestHarnessLogic.advanceClock` computes
 `WorldClockApi.durationSeconds(duration)` and, if it exceeds
-`TestingLogic.BLOCKING_JUMP_CAP_S = 86_400` and `!opts?.soak`, throws
+`TestHarnessLogic.BLOCKING_JUMP_CAP_S = 86_400` and `!opts?.soak`, throws
 **before** the jump:
 
 ```
@@ -621,7 +621,7 @@ it appends `cls` to a new `#apiClasses: ClassKey[]` — and a new read
 list (D17), plus `console`, `self`, `target`. `SANDBOX_NAMES` is
 deleted, and its ⛔⛔⛔ paragraph about `WorldClockApi` is rewritten to
 say what is now true: the seam IS bound, as a stub that names the
-`test` command (D25), and the containment is the `@TestOnly` mark plus
+`testharness` command (D25), and the containment is the `@TestOnly` mark plus
 the test-world predicate, not the absence of a name. The four
 bootstrap-special Apis are out **by construction** — they never call
 `decorateApiClass` — which is the same line call-security.md already
@@ -647,14 +647,14 @@ member with a function that throws
 
 ```
 WorldClockApi.advance is a test seam (@TestOnly) and eval does not bind
-it. In a test world, reach it through the `test` command: test clock
+it. In a test world, reach it through the `testharness` command: testharness clock
 advance <duration>. <the member's own @TestOnly guidance>
 ```
 
 — the pointer is the first sentence of the member's `@TestOnly`
 guidance string, so each seam names its own door (D25 rewrites
-`WorldClockApi.advance`'s guidance to lead with `test clock advance
-<duration>`; `TestingApi`'s members lead with theirs). `@internal`
+`WorldClockApi.advance`'s guidance to lead with `testharness clock advance
+<duration>`; `TestHarnessApi`'s members lead with theirs). `@internal`
 statics stay bound exactly as `StuffApi.singletonSync` is bound today;
 every one of them keeps its call-security gate, which is the
 requirement's rule ("nothing becomes callable that its gates do not
@@ -782,12 +782,12 @@ testing.md with the grant. `Session.open(handle, {parcels: [...]})`
 passes it through. Nothing in `AccessApi` learns about test mode
 (`TestHooks`' standing rule).
 
-**D22 — `TestingApi` is the one implementation behind both doors.** New
-`api/testing.ts` (`TestingApi`, `decorateApiClass` tail) and
-`platform/idea/api/TestingLogic.ts` (`@internal`, `extends ApiLogic`,
+**D22 — `TestHarnessApi` is the one implementation behind both doors.** New
+`api/test-harness.ts` (`TestHarnessApi`, `decorateApiClass` tail) and
+`platform/idea/api/TestHarnessLogic.ts` (`@internal`, `extends ApiLogic`,
 template `/platform/idea/api/testing`, methods gated
-`FromModule('/api/testing#TestingApi')`). Every static is `@TestOnly`
-with a guidance string that **leads with its `test` subcommand**:
+`FromModule('/api/test-harness#TestHarnessApi')`). Every static is `@TestOnly`
+with a guidance string that **leads with its `testharness` subcommand**:
 
 | static | does |
 |---|---|
@@ -799,26 +799,26 @@ with a guidance string that **leads with its `test` subcommand**:
 
 `TestHooks.advanceClock(duration, opts)` becomes `#assertTestMode` +
 `ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () =>
-TestingApi.advanceClock(duration, opts))` — the route door keeps its
+TestHarnessApi.advanceClock(duration, opts))` — the route door keeps its
 root frame (no scope, no jurisdiction) and its `AUTH_MODE` gate; the
 quiet-wait and the cap move down. `TestHooks.clockNow`,
 `pinWeather(scopePath, type, mode)`, `unpinWeather(scopePath)` are the
 same shape (the weather ones resolve `scopePath` → Stuff → Locality
-through `AddressApi.resolveLocalityFor`, then call `TestingApi` with
-the Locality's template path). The `test` command's controller calls
-`TestingApi` **directly from its command frame** — a wizard's field
+through `AddressApi.resolveLocalityFor`, then call `TestHarnessApi` with
+the Locality's template path). The `testharness` command's controller calls
+`TestHarnessApi` **directly from its command frame** — a wizard's field
 command frame carries no circle scope and no jurisdiction, which is
 all the clock needs (the drain re-roots under `OMNI_SCOPE` itself —
-`TestHooks.ts` l.13–23's history); a `test clock advance` issued from
+`TestHooks.ts` l.13–23's history); a `testharness clock advance` issued from
 inside a sandbox circle meets `assertNotQuarantined` and is refused in
-the clock's own words, which is right. `TestingLogic` imports
+the clock's own words, which is right. `TestHarnessLogic` imports
 `PersistenceManager` from `backend/` under the objapi tier's allowance
 (the `SandboxLogic` precedent). ⭐ One body, two frames, zero copies.
 
 **D23 — The weather pin is a Locality-tier pin, set at runtime, and the
-thermal cache is told.** `TestingLogic.pinWeather(localityPath, type,
+thermal cache is told.** `TestHarnessLogic.pinWeather(localityPath, type,
 mode)`: `StuffApi.findByTemplatePath<Locality>(localityPath)` (must be a
-`Locality` — else `test weather: '/world/terminus/market' is not a
+`Locality` — else `testharness weather: '/world/terminus/market' is not a
 Locality; the covering Locality is …`), `locality.setWeatherPin({type,
 mode})`, then `WeatherApi.onBoundary()` so every connected viewer's room
 restamps its `lastAmbientK` now rather than at the next segment
@@ -837,13 +837,13 @@ Locality in `TestHooks`; errors → `500 {error}` as the clock route
 does. Harness: `pinWeather(type, scope, mode?)` / `unpinWeather(scope)`
 in `src/harness/world.ts`, re-exported from `index.ts`.
 
-**D24 — The `test` verb: a platform view flagged `testOnly`, admitted
+**D24 — The `testharness` verb: a platform view flagged `testOnly`, admitted
 by the store loader only in a test world, and double-gated by a
-validator.** View `content/platform/cmd/system/test.yaml`:
+validator.** View `content/platform/cmd/system/testharness.yaml`:
 
 ```yaml
 verbs: [test]
-controller: /platform/idea/cmd/system/TestController
+controller: /platform/idea/cmd/system/TestHarnessController
 testOnly: true
 description: "Test-world staging: move the clock, pin the weather"
 validators:
@@ -873,17 +873,17 @@ subcommands:
   refuses is counted as `withheld` in `preloadAll`'s return (logged once
   at boot: `CommandApi: 1 test-only view withheld (not a test world)`),
   never as `failed`. In a non-test world the dispatcher has no
-  definition for `test` → **unknown verb**, `help` and `affordances`
+  definition for `testharness` → **unknown verb**, `help` and `affordances`
   never list it, and a CMS `reload` of the view cannot sneak it in.
 - `lib/command/validators/requiresTestWorld.ts` (the `requiresWizard`
-  shape; `preload` → `SecurityApi.isTestEnvironment()`; refusal: `` `test`
+  shape; `preload` → `SecurityApi.isTestEnvironment()`; refusal: `` `testharness`
   is a test-world verb and this world is not one (SAXONBERG_TEST_WORLD) ``)
   is the belt to the braces — the gate the view carries in its own data,
   so a world where the store filter were ever bypassed still refuses.
   `requiresWizard` is the owner's "a wizard".
 - Why `system` and not `author`: `author` is the code doors (`eval`,
   `reload`, `clone`); `system` is the operator/meta verbs (`ping`,
-  `trace`, `config`, `committee`); `test` is scaffolding an operator
+  `trace`, `config`, `committee`); `testharness` is scaffolding an operator
   uses in a test world. No new category.
 - Why a flag and not a pack: a view is a document in whichever database
   the boot installed it into, so a `test-seams` pack would need the
@@ -892,17 +892,17 @@ subcommands:
   loader reads is one line and keeps the platform pack the sole owner
   of platform verbs; the document exists everywhere, the *verb* exists
   only in a test world, which is what the requirement asks of the verb.
-- `TestController` (`platform/idea/cmd/system/TestController.ts`, row
-  `content/platform/idea/cmd/system/TestController.yaml`) dispatches on
+- `TestHarnessController` (`platform/idea/cmd/system/TestHarnessController.ts`, row
+  `content/platform/idea/cmd/system/TestHarnessController.yaml`) dispatches on
   `model.subcommand`: `clock` with no `op` prints game-seconds and the
   calendar line (`WorldClockApi.getNow()` through the same formatter
   `analyze sky`/time.md uses, else seconds); `clock advance <duration>`
-  → `TestingApi.advanceClock(duration)` and prints `before → after
+  → `TestHarnessApi.advanceClock(duration)` and prints `before → after
   (settled in N ms)`; a refusal (the cap, a parse error, a paused clock)
   is `this.fail(context, message, 'test-refused')` — the message
   verbatim; `weather pin <kind>` resolves `AddressApi.resolveLocalityFor
   (giver)` (null → fail: *no Locality covers here*) and calls
-  `TestingApi.pinWeather(locality.getTemplatePath(), kind, alive ?
+  `TestHarnessApi.pinWeather(locality.getTemplatePath(), kind, alive ?
   'alive' : 'frozen')`; `weather unpin` likewise. No `--at` in v1: the
   route pins any scope by path; the command pins where you stand.
 - Reachability for a verb (verb · affordance · data · boot · arg gate)
@@ -912,9 +912,9 @@ subcommands:
 **D25 — `eval` points at the command.** Two layers, one message:
 
 1. The facade stubs of D16 — `WorldClockApi.advance` and every
-   `TestingApi` static are `@TestOnly`, so from eval they throw the
+   `TestHarnessApi` static are `@TestOnly`, so from eval they throw the
    pointer message; `advance`'s guidance string is rewritten to lead
-   with `` `test clock advance <duration>` `` (the rest of its text
+   with `` `testharness clock advance <dur>` `` (the rest of its text
    stays). This is where the requirement's message comes from.
 2. **The back doors close with the same words.** An eval can reach a
    mechanism without its Api — a Locality's `setWeatherPin` through
@@ -923,7 +923,7 @@ subcommands:
    walks `ExecutionContextApi.getCallStack()` for a frame whose
    `target`'s class resolves (`ModuleApi.lookup`) to
    `/platform/idea/EvalScript` and throws `` `setWeatherPin` is not
-   callable from eval (jurisdiction /world/terminus): use `test weather
+   callable from eval (jurisdiction /world/terminus): use `testharness weather
    pin <kind>` `` when it finds one. Call sites: `Locality.setWeatherPin`,
    `AtmosphericMixin.setWeatherPin`, and `WorldClockRegistry.advance`
    (beside `assertNotQuarantined`). The `TemplateApplier` calling the
@@ -936,14 +936,14 @@ subcommands:
 ## Host placement
 
 No mixin and no persisted field is introduced. One instanceable class
-(`TestController`, an `Idea` at `/platform/idea/cmd/system/
-TestController`) and one logic singleton (`TestingLogic`). The
+(`TestHarnessController`, an `Idea` at `/platform/idea/cmd/system/
+TestHarnessController`) and one logic singleton (`TestHarnessLogic`). The
 additions, and what each claims:
 
 | addition | host | claims |
 |---|---|---|
 | `durationSeconds(d)` | `WorldClockRegistry` (public, gated `WorldClockApiCallers`) → `WorldClockLogic` → `WorldClockApi` static | the grammar `after()`/`advance()` take is a readable surface; nothing about the clock changes. Not `@TestOnly`. |
-| `advanceClock(duration, {soak})`, `clockNow`, `pinWeather`, `unpinWeather`, `BLOCKING_JUMP_CAP_S` | **`TestingApi` / `TestingLogic`** (new; every static `@TestOnly`) | scaffolding has one Api, withheld outside a test environment by construction; the cap is a TEST-process rule that never enters the clock, so no game code can meet it; the weather-pin WRITE lives here and not on `WeatherApi`, because nothing in the game pins the weather at runtime (weather.md l.697: the write Api was never shipped) — composing it onto `WeatherApi` would claim the fiction can. |
+| `advanceClock(duration, {soak})`, `clockNow`, `pinWeather`, `unpinWeather`, `BLOCKING_JUMP_CAP_S` | **`TestHarnessApi` / `TestHarnessLogic`** (new; every static `@TestOnly`) | scaffolding has one Api, withheld outside a test environment by construction; the cap is a TEST-process rule that never enters the clock, so no game code can meet it; the weather-pin WRITE lives here and not on `WeatherApi`, because nothing in the game pins the weather at runtime (weather.md l.697: the write Api was never shipped) — composing it onto `WeatherApi` would claim the fiction can. |
 | `TestHooks.advanceClock` / `clockNow` / `pinWeather` / `unpinWeather` | `TestHooks` (backend) — thin: `#assertTestMode` + `runRoot` + forward | the route door keeps the root frame and the `AUTH_MODE` gate; it holds no logic of its own any more. |
 | `soak` field on the test-clock request; `parcels` on test-login; the `test-weather` route | the route bodies | opt-ins only the harness sets; a world someone plays in never sees the routes. |
 | `#apiClasses` + `decoratedApiClasses()` | `SecurityApi` | the registry of self-decorating Apis is a fact `decorateApiClass` already owns; recording it there claims nothing new. |
@@ -964,13 +964,13 @@ is for.
 ## Convention conformance
 
 - **Module categories.** Every new file is an existing category: an
-  Api (`api/testing.ts`, lowercase, `decorateApiClass` tail), its logic
-  singleton (`platform/idea/api/TestingLogic.ts`, `@internal`, `extends
-  ApiLogic`, `FromModule('/api/testing#TestingApi')` gates — the
+  Api (`api/test-harness.ts`, lowercase, `decorateApiClass` tail), its logic
+  singleton (`platform/idea/api/TestHarnessLogic.ts`, `@internal`, `extends
+  ApiLogic`, `FromModule('/api/test-harness#TestHarnessApi')` gates — the
   mandatory `XApi`↔`XLogic` split), a controller
-  (`platform/idea/cmd/system/TestController.ts`) with its view
-  (`content/platform/cmd/system/test.yaml`) and row
-  (`content/platform/idea/cmd/system/TestController.yaml`), a validator
+  (`platform/idea/cmd/system/TestHarnessController.ts`) with its view
+  (`content/platform/cmd/system/testharness.yaml`) and row
+  (`content/platform/idea/cmd/system/TestHarnessController.yaml`), a validator
   (`lib/command/validators/requiresTestWorld.ts`, default-export const,
   the shipped shape), and a lint script (`scripts/check-eval-surface.ts`).
   No free helper, no `lib/mixins/`, no new category. `EvalScript`'s
@@ -983,9 +983,9 @@ is for.
   `vitest.config.ts` reads `process.env.WIRE_SOAK` at config load — not
   under `src/mud`.
 - **Import boundary (`lint:imports`).** `TestHooks.ts` (backend) imports
-  `TestingApi`, `AddressApi`, `ParcelApi`, `AccessApi` — backend may.
-  `TestingLogic` imports `PersistenceManager` from `backend/` — the
-  objapi tier may (SandboxLogic precedent). `TestController` imports
+  `TestHarnessApi`, `AddressApi`, `ParcelApi`, `AccessApi` — backend may.
+  `TestHarnessLogic` imports `PersistenceManager` from `backend/` — the
+  objapi tier may (SandboxLogic precedent). `TestHarnessController` imports
   only `api/*` and `lib/*`. `node:vm` stays in `ScriptLogic` alone.
   `EvalScript.test.ts` reads `api/*.ts` with `import.meta.glob` — tests
   are unrestricted.
@@ -995,19 +995,19 @@ is for.
   `assertNotFromEval(op: string, pointer: string)`. The census stays 0.
 - **`lint:lib-statics`.** No static on a `lib/` class is added; the
   ceiling does not move.
-- **`lint:gates`.** New gate strings resolve: `FromModule('/api/testing#
-  TestingApi')`, `FromModule('/platform/idea/EvalScript')` (existing).
-- **`lint:test-seams`.** Every `@TestOnly` added (`TestingApi`'s four)
+- **`lint:gates`.** New gate strings resolve: `FromModule('/api/test-harness#
+  TestHarnessApi')`, `FromModule('/platform/idea/EvalScript')` (existing).
+- **`lint:test-seams`.** Every `@TestOnly` added (`TestHarnessApi`'s four)
   sits on a static in a file with a `decorateApiClass(` tail. ⭐ The
   gate's "unmarked seams" worklist does not grow: nothing new is named
   `*ForTesting` without the mark.
-- **`lint:thin-forwarder`.** `TestingApi` statics forward to `logic()`
+- **`lint:thin-forwarder`.** `TestHarnessApi` statics forward to `logic()`
   (a call, not a parameter) — not flagged. `TestHooks` is backend, out
   of scope.
-- **`lint:controller-rows` / `lint:instanceable`.** The `TestController`
+- **`lint:controller-rows` / `lint:instanceable`.** The `TestHarnessController`
   row exists; `/lib/command/validators/requiresTestWorld` is a validator
   ref, the same string shape as `requiresWizard`, not a template path.
-- **`lint:binder-models`.** The `TestController` test hand-builds its
+- **`lint:binder-models`.** The `TestHarnessController` test hand-builds its
   model with `subcommand` and the string args the view declares — no
   object-typed arg exists on the view, so nothing is skipped.
 - **`lint:schema`.** No collection is added or renamed; the parcel
@@ -1017,7 +1017,7 @@ is for.
 - **`lint:eval-surface`** (new, D16) joins the derived roster; its
   ceiling is today's count and may only fall.
 - **Privacy.** Backend defaults to `#`: `#assertTestMode` stays. The
-  cap is `static readonly` on `TestingLogic` (read by the message and
+  cap is `static readonly` on `TestHarnessLogic` (read by the message and
   the tests). `SecurityApi.#apiClasses` is `#` (Api-static slot, no
   proxy receiver).
 - **Call security of what eval reaches.** Nothing is widened: no gate
@@ -1068,32 +1068,32 @@ Commit: `wire(soak): the .soak. convention, wire:soak, result.json and the canar
 ### W1 — the refusal, in the shared hook
 
 Goal: a jump past a game day outside soak mode fails before jumping, in
-words that name the rule and the fix — enforced in `TestingApi`, the
-one implementation both doors will call (the `test` command arrives in
+words that name the rule and the fix — enforced in `TestHarnessApi`, the
+one implementation both doors will call (the `testharness` command arrives in
 W6 and finds the hook already there). Implements D3, and the clock
 half of D22.
 
 Files: `packages/server/src/mud/platform/idea/WorldClockRegistry.ts`
 (`durationSeconds` public), `…/api/WorldClockLogic.ts` (forward),
 `packages/server/src/mud/api/worldclock.ts` (static);
-**new** `packages/server/src/mud/api/testing.ts` (`TestingApi`:
+**new** `packages/server/src/mud/api/test-harness.ts` (`TestHarnessApi`:
 `advanceClock`, `clockNow`, `BLOCKING_JUMP_CAP_S`; the weather pair
 comes in W6) and `packages/server/src/mud/platform/idea/api/
-TestingLogic.ts` (the cap check, the jump, the pause/`whenQuiet`/resume
+TestHarnessLogic.ts` (the cap check, the jump, the pause/`whenQuiet`/resume
 moved from `TestHooks` with their comments);
 `packages/server/src/backend/TestHooks.ts` (`advanceClock(duration,
 opts)` → thin forward under `runRoot`; `clockNow` → forward; the
-module header's clock paragraph now points at `TestingApi`);
+module header's clock paragraph now points at `TestHarnessApi`);
 `packages/server/src/services/auth/TestAuthRoutes.ts` (`soak` through).
 Tests: `src/backend/__tests__/TestHooks.clock.test.ts` (+ `'2 days'`
 rejects matching `/span step/i` and `/\.soak\./`; `'2 days', {soak:
 true}` moves; `'20 hours'` and `'1 day'` move; the refusal leaves the
 clock where it was — assert `clockNow()` unchanged; the two "sheds
 scope" cases still pass through the forward);
-**new** `src/mud/api/__tests__/testing.test.ts` (the cap at the Api,
+**new** `src/mud/api/__tests__/test-harness.test.ts` (the cap at the Api,
 both sides of the line, soak on/off; `clockNow`; and ⭐ *"every static
-on `TestingApi` is `@TestOnly`"* — `SecurityApi.getTestOnlyMembers
-(TestingApi)` covers every own static function, so a future seam added
+on `TestHarnessApi` is `@TestOnly`"* — `SecurityApi.getTestOnlyMembers
+(TestHarnessApi)` covers every own static function, so a future seam added
 here cannot forget the mark);
 `src/services/auth/__tests__/TestAuthRoutes.test.ts` (+ `{advance: '2
 days'}` → 500 with the message; `{advance: '2 days', soak: true}` → 200;
@@ -1103,13 +1103,13 @@ message) beside the registry's existing `__tests__`.
 
 Acceptance: `pnpm -C packages/server test:near` green on the touched
 files; `lint:family` green (`lint:test-seams` now counts three marks,
-`lint:gates` resolves `/api/testing#TestingApi`); `WIRE_BOOT=1
+`lint:gates` resolves `/api/test-harness#TestHarnessApi`); `WIRE_BOOT=1
 WIRE_PORT=2019 pnpm -C packages/wire wire:soak canary` still passes
 (soak mode on); the same canary body run through `pnpm wire` is
 impossible by W0, so the blocking-side proof is drive step 2 (a scratch
 non-soak file, not committed).
 
-Commit: `clock(testing): TestingApi — refuse a jump past a game day outside soak mode, in the one hook both doors call`.
+Commit: `clock(testing): TestHarnessApi — refuse a jump past a game day outside soak mode, in the one hook both doors call`.
 
 ### W2 — the census moves
 
@@ -1184,15 +1184,15 @@ ScriptLogic.ts` (`runSandboxed(compiled, sandbox, {timeoutMs})`:
 `packages/server/src/mud/lib/shell/Author.ts` (`eval.timeoutMs`
 description made true, default 5000; `eval.maxDepth` removed);
 `packages/server/src/mud/api/worldclock.ts` (`advance`'s guidance leads
-with `test clock advance <duration>`);
+with `testharness clock advance <dur>`);
 `packages/server/src/mud/platform/idea/WorldClockRegistry.ts`
-(`assertNotFromEval('advance', 'test clock advance <duration>')` beside
+(`assertNotFromEval('advance', 'testharness clock advance <dur>')` beside
 `assertNotQuarantined`);
 **new** `packages/server/scripts/check-eval-surface.ts` + the
 `lint:eval-surface` script line in `packages/server/package.json`.
 Tests: `platform/__tests__/EvalScript.test.ts` (+ the D15 set-equality
 test over `import.meta.glob('../../api/*.ts')`; `@TestOnly` members
-bind as stubs whose message matches `/test clock advance/`; the facade
+bind as stubs whose message matches `/testharness clock advance/`; the facade
 is frozen and `StuffApi` binds `singletonSync` as today; `this` survives
 binding — a call through the facade that touches a `#`-static works;
 the D20 reproduce-then-pin test with the `unhandledRejection` spy, both
@@ -1215,7 +1215,7 @@ attach session against the build world: `eval 1 + 1` → `2`;
 `eval Object.keys(this).length` works through the receiver proxy;
 `eval while(true){}` → `error: eval: timed out after 5000 ms
 (eval.timeoutMs)` and the next command answers; `eval
-WorldClockApi.advance('1 day')` → the stub message naming `test clock
+WorldClockApi.advance('1 day')` → the stub message naming `testharness clock
 advance`; `eval --parcel /world/terminus StuffApi.clone('/trade/sugar/
 thing/pan')` (the dairy drive's crash shape, as a statement) → the
 result line carries `late: StuffApi.clone — …` or the value, and the
@@ -1253,29 +1253,45 @@ authority over <it>`.
 
 Commit: `test-login(parcels): a test runner is granted title to the parcels it names`.
 
-### W6 — the `test` command and the weather pin
+### W6 — the `testharness` command and the weather pin
 
-Goal: `test clock …` and `test weather …` exist in test worlds only,
-share `TestingApi` with the harness, and `/auth/test-weather` is the
+Goal: `testharness clock …` and `testharness weather …` exist in test worlds only,
+share `TestHarnessApi` with the harness, and `/auth/test-weather` is the
 harness's door to the pin. Implements D22 (weather half), D23, D24,
 and the guard half of D25.
 
-Files: `packages/server/src/mud/api/testing.ts` + `TestingLogic.ts`
+⭐ **The grammar (owner, 2026-10-30): subcommands and options, never phrases; not NL.**
+The name is `testharness` / `TestHarnessApi` — *test*, *testing* and *assessment* belong to the
+educational institutions.
+
+```
+testharness clock                         read: game time now, day, hour, season
+testharness clock advance <dur>           dur = 30m | 2h | 1d — one token, ≤ 1d (over → the soak refusal)
+testharness weather                       read: the pin (if any) and the weather here
+testharness weather pin <kind> [--at <locality>]    kind = the six weather types; default: the locality you stand in
+testharness weather unpin [--at <locality>]
+```
+
+Single-token durations map onto the clock's own parser (D3) so both doors agree on a day; no
+`--soak` option on the command (soak-mode jumps are the wire harness's alone); a bare subcommand
+reads, so state can be checked before and after.
+
+Files: `packages/server/src/mud/api/test-harness.ts` + `TestHarnessLogic.ts`
 (`pinWeather`, `unpinWeather`); `packages/server/src/mud/platform/idea/
 Locality.ts` + `lib/biome/Atmospheric.ts` (`assertNotFromEval
-('setWeatherPin', 'test weather pin <kind>')` in the setters);
+('setWeatherPin', 'testharness weather pin <kind>')` in the setters);
 `lib/command/command.schema.json` + `lib/command/CommandDefinition.ts`
 (`testOnly`); `platform/idea/api/CommandLogic.ts` (`admitsView`, the
 `withheld` count + boot line); **new** `lib/command/validators/
 requiresTestWorld.ts`; **new** `platform/idea/cmd/system/
-TestController.ts`; **new** `packages/content/platform/content/platform/
-cmd/system/test.yaml` + `…/idea/cmd/system/TestController.yaml`;
+TestHarnessController.ts`; **new** `packages/content/platform/content/platform/
+cmd/system/testharness.yaml` + `…/idea/cmd/system/TestHarnessController.yaml`;
 `backend/TestHooks.ts` (`pinWeather`/`unpinWeather` forwards with the
 scope → Locality resolve); `services/auth/TestAuthRoutes.ts`
 (`/auth/test-weather`; the mount banner names three routes);
 `packages/wire/src/harness/world.ts` + `index.ts` (`pinWeather`,
 `unpinWeather`).
-Tests: `api/__tests__/testing.test.ts` (+ pin on a Locality fixture sets
+Tests: `api/__tests__/test-harness.test.ts` (+ pin on a Locality fixture sets
 the pin and `WeatherApi.resolveWeatherFor` of a scope under it reads
 the type; unpin clears; a non-Locality path refuses naming the
 covering Locality; a bad kind refuses naming the six; the `@TestOnly`
@@ -1284,8 +1300,7 @@ CommandLogic.store.test.ts` (+ a `testOnly: true` view is withheld
 when `isTestEnvironment()` is false — stub the env — and admitted when
 true; `reload` honors the same gate); `lib/command/validators/
 __tests__/requiresTestWorld.test.ts`; `platform/idea/cmd/system/
-__tests__/TestController.test.ts` (`clock` prints; `clock advance '2
-hours'` moves; `clock advance '3 days'` → `controller-rejected` with
+__tests__/TestHarnessController.test.ts` (`clock` prints; `clock advance 2h` moves; `clock advance '3 days'` → `controller-rejected` with
 the soak message; `weather pin rain` pins the giver's Locality;
 `weather pin sideways` refuses; `weather unpin`); `TestAuthRoutes.
 test.ts` (+ `test-weather` pin/unpin/400); `security.assertNotFromEval.
@@ -1295,15 +1310,15 @@ fixture with `weatherPin:` in its data).
 
 Acceptance: `test:near` green; `lint:family` green (`lint:test-seams` at
 four marks, `lint:controller-rows` sees the row, `lint:gates` green);
-against the build world (a test world): `test clock` prints; `test
-clock advance 2 hours` moves; `test clock advance 3 days` is refused
-with the soak message; `test weather pin rain` → `analyze weather`
-reports rain, `test weather unpin` releases it; `eval WorldClockApi.
-advance('1 hour')` → the stub naming `test clock`; `eval (await
+against the build world (a test world): `testharness clock` prints; `test
+clock advance 2 hours` moves; `testharness clock advance 3d` is refused
+with the soak message; `testharness weather pin rain` → `analyze weather`
+reports rain, `testharness weather unpin` releases it; `eval WorldClockApi.
+advance('1 hour')` → the stub naming `testharness clock`; `eval (await
 MqlApi.resolveOne('…locality…')).setWeatherPin({type:'snow',mode:
-'frozen'})` → the guard naming `test weather pin`. Then **a dev-mode
+'frozen'})` → the guard naming `testharness weather pin`. Then **a dev-mode
 boot of the same database** (`pnpm dev:server`, no `SAXONBERG_TEST_
-WORLD`) on a scratch port: `test clock` → the dispatcher's unknown-verb
+WORLD`) on a scratch port: `testharness clock` → the dispatcher's unknown-verb
 answer, `help test` finds nothing, and the boot line says one test-only
 view was withheld. Tear it down by PID.
 
@@ -1312,7 +1327,7 @@ Commit: `test(verb): the test command — clock and weather, test worlds only, o
 ### W7 — docs
 
 Goal: a fresh reader finds the convention, the command, the refusal, the
-result, the runner, the staging tools and the `test` verb where they
+result, the runner, the staging tools and the `testharness` verb where they
 would look.
 
 Files: `docs/testing.md` (a `## The soak lane` section: the file
@@ -1322,7 +1337,7 @@ update the "25 wire files use it today" sentence in the wire section;
 ⭐ rewrite § *three mint shapes* — the `eval --parcel` row no longer
 takes the server down — and close § *Open: test seams a drive would
 want*'s weather item with `pinWeather`; a `### Staging` subsection:
-`Session.open({parcels})`, `pinWeather`, the `test` verb, and the
+`Session.open({parcels})`, `pinWeather`, the `testharness` verb, and the
 `skip-sold` consequence of a transferred title);
 `docs/subsystems/shell-author.md` (the sandbox paragraph: every
 self-decorating Api, the facade, `@TestOnly` stubs; `eval.timeoutMs`
@@ -1332,7 +1347,7 @@ be cancelled"); `docs/subsystems/call-security.md` (§ Test Seams:
 `decoratedApiClasses`, `assertNotFromEval`, and that the eval sandbox
 now binds by the registry — the sentence *"the eval sandbox binds Api
 classes and nothing else"* at `security.ts` l.676 stays true);
-`docs/subsystems/weather.md` (the runtime pin seam: `TestingApi.
+`docs/subsystems/weather.md` (the runtime pin seam: `TestHarnessApi.
 pinWeather`, Locality-tier, `/auth/test-weather`; strike the l.692
 "deferred" item); `docs/subsystems/command-spec.md` (`testOnly: true`
 and the `withheld` count); `docs/subsystems/access.md` or `parcel.md`
@@ -1344,7 +1359,7 @@ carries); `docs/slates/builds/soak-lane-slate.md` (§ 3a *Owed* →
 shipped, pointing at testing.md; the stale `advanceLiving` claim in the
 header struck); this plan's drive record. ⚠ `workflow.md`, `CLAUDE.md`,
 `roadmap.md` are swept, not raced — leave their index lines to
-`/finalize` (CLAUDE.md's controller-category list gains `test` under
+`/finalize` (CLAUDE.md's controller-category list gains `testharness` under
 `system` at the sweep).
 
 Commit: `docs(soak): the lane's harness, runner, result and staging tools, documented`.
@@ -1369,23 +1384,23 @@ fails closed and silent.
 | an issue reaches GitLab | `glab` authenticated on the workstation; `SOAK_GLAB` override (W3) | a failure is logged in `.soak/log` and nobody wakes — the runner's stdout says `glab failed` and the state file still advances |
 | the runner runs at all | the `soak` window's second pane runs `tools/soak --watch` (W7 documents; the owner starts it) | nothing soaks — the triage skill says "check the lane's state" |
 
-The staging tools' links — the `test` verb's five, the eval surface, the
+The staging tools' links — the `testharness` verb's five, the eval surface, the
 grant and the pin:
 
 | link | wired by | fails as |
 |---|---|---|
-| **verb** — `test` parses | `content/platform/cmd/system/test.yaml` installed as a `command-view` document by the platform pack (W6) | unknown verb everywhere, including test worlds — step 10's first assertion |
+| **verb** — `testharness` parses | `content/platform/cmd/system/testharness.yaml` installed as a `command-view` document by the platform pack (W6) | unknown verb everywhere, including test worlds — step 10's first assertion |
 | **affordance** — the verb reaches the giver | a platform view in the `system` category is afforded like `ping`/`trace` (no `commandContributions` needed; the view is global) | n/a — but a view with a typo'd `verbs:` is a silent unknown verb |
-| **data** — the controller resolves | the row `content/platform/idea/cmd/system/TestController.yaml` (W6); `lint:controller-rows` | `controller-error` on every dispatch, forever, invisible to every unit test |
+| **data** — the controller resolves | the row `content/platform/idea/cmd/system/TestHarnessController.yaml` (W6); `lint:controller-rows` | `controller-error` on every dispatch, forever, invisible to every unit test |
 | **boot** — the view is admitted | `CommandLogic.admitsView` reads `SecurityApi.isTestEnvironment()`, which reads `SAXONBERG_TEST_WORLD=1`, which `boot.ts` l.78 sets (W6) | in a test world the verb is unknown (the env var not set — a dev server with only `AUTH_MODE=test` is NOT a test world, by design); in a dev world the verb exists — step 10's dev-boot assertion |
-| **arg gate** — a bad subcommand/arg fails in words | `subcommands:` with typed string args; `op`/`kind` validated in the controller against `advance` / `pin|unpin` / `WEATHER_TYPES` (W6) | a greedy duration with no `op` silently reads as the op (`test clock 3 days` → "unknown op '3'") — the controller's message names the forms |
-| the harness reaches the pin | `/auth/test-weather` mounted beside `/auth/test-clock` (W6) → `TestHooks.pinWeather` → `TestingApi.pinWeather` | `pinWeather()` in a drive throws the route's 404 text — loud |
-| both doors meet the cap | the cap is inside `TestingLogic.advanceClock`, below both `TestHooks` and `TestController` (W1) — nothing above it can jump | a door that bypassed `TestingApi` (calling `WorldClockApi.advance` itself) would skip it; `testing.test.ts` asserts the cap at the Api and `TestController.test.ts` at the verb |
+| **arg gate** — a bad subcommand/arg fails in words | `subcommands:` with typed string args; `op`/`kind` validated in the controller against `advance` / `pin|unpin` / `WEATHER_TYPES` (W6) | a greedy duration with no `op` silently reads as the op (`testharness clock 3 days` → "unknown op '3'") — the controller's message names the forms |
+| the harness reaches the pin | `/auth/test-weather` mounted beside `/auth/test-clock` (W6) → `TestHooks.pinWeather` → `TestHarnessApi.pinWeather` | `pinWeather()` in a drive throws the route's 404 text — loud |
+| both doors meet the cap | the cap is inside `TestHarnessLogic.advanceClock`, below both `TestHooks` and `TestHarnessController` (W1) — nothing above it can jump | a door that bypassed `TestHarnessApi` (calling `WorldClockApi.advance` itself) would skip it; `test-harness.test.ts` asserts the cap at the Api and `TestHarnessController.test.ts` at the verb |
 | `eval` sees an Api | the class's module tail `decorateApiClass` (every Api has one) → `#apiClasses` → the facade (W4) | an Api without a tail is invisible to eval AND to `@TestOnly` withholding — `lint:test-seams` catches the second, the D15 set-equality test the first |
-| `eval` refuses a seam by name | `@TestOnly` recorded at the tail → `getTestOnlyMembers` → the stub (W4) | a seam without the mark is live in eval in a test world — `testing.test.ts`'s coverage assertion |
+| `eval` refuses a seam by name | `@TestOnly` recorded at the tail → `getTestOnlyMembers` → the stub (W4) | a seam without the mark is live in eval in a test world — `test-harness.test.ts`'s coverage assertion |
 | a refusal returns | `observed` on every facade function and receiver member (W4) | a dropped promise ends the process (`Server.ts` l.326) — the D20 regression test |
 | the title grant takes | `ParcelApi.transfer` re-indexes the owner index (`ParcelRegistry.ts` l.370) → `heldExtents` → `holdsAuthority` (W5) | `heldExtents` would still answer the old holder — `TestHooks.parcels.test.ts` asserts through `heldExtents`, not the record |
-| the pin is felt, not just reported | `WeatherApi.onBoundary()` after the set (W6) restamps every connected viewer's room | thermal keeps the pre-pin ambient until the next segment boundary (hours) — `testing.test.ts` asserts `resolveWeatherFor` AND the drive reads `analyze weather` + a thermometer |
+| the pin is felt, not just reported | `WeatherApi.onBoundary()` after the set (W6) restamps every connected viewer's room | thermal keeps the pre-pin ambient until the next segment boundary (hours) — `test-harness.test.ts` asserts `resolveWeatherFor` AND the drive reads `analyze weather` + a thermometer |
 
 ## Acceptance-criteria coverage
 
@@ -1398,10 +1413,10 @@ grant and the pin:
 | The canary is green on master after this merges, soaked by the lane | W0, W3 | the soak drive (after merge) |
 | Master's wire suite is green when this merges | W2 | drive 11 (`wire:clean`) + the static census; CI's `wire` job on the MR |
 | A test runner can stage, with `eval` in a parcel it holds, anything a consumer Api can do; no `eval` — however wrong — stops the server | W4 (D15–D20), W5 (D21) | drive 8, 9; the D15 set-equality test; the D20 regression test; the timeout and cap tests |
-| Time and weather move only through the `test` command (or the harness's route), only in test worlds, and the soak rule is enforced in one place for both | W1 (D3, D22), W4 (D25 stubs), W6 (D23, D24, D25 guard) | drive 10 (both doors, the dev-boot unknown-verb check, the eval pointers); `testing.test.ts` + `TestController.test.ts` both hitting the one cap |
+| Time and weather move only through the `testharness` command (or the harness's route), only in test worlds, and the soak rule is enforced in one place for both | W1 (D3, D22), W4 (D25 stubs), W6 (D23, D24, D25 guard) | drive 10 (both doors, the dev-boot unknown-verb check, the eval pointers); `test-harness.test.ts` + `TestHarnessController.test.ts` both hitting the one cap |
 
 Nothing in the requirements is unmapped. ⚠ One reading the plan does
-NOT make: "only through the `test` command" is read as *the only
+NOT make: "only through the `testharness` command" is read as *the only
 in-world door* — `WorldClockApi.advance` stays `@TestOnly` and live in
 a test world for the harness route and for unit tests, which is the
 requirement's own "or the harness's route".
@@ -1436,13 +1451,13 @@ requirement's own "or the harness's route".
 | 7 | instant | after a pass, the state file has advanced; `--dry-run` lists nothing new | stub exits 0 with a passing result; `cat $SOAK_STATE` = HEAD; `--dry-run` prints "nothing to soak" |
 | 8 | staged | as a test runner granted title to `/world/terminus`: `eval --parcel /world/terminus` calls a consumer Api that was out of reach before and the effect is real; the same call in an unheld parcel is refused with a message; the server is up | `Session.open('runner', {wizard: true, parcels: ['/world/terminus']})` (→ `kept`: the group holds it — so the drive ALSO stages one unheld parcel: `subdivide` a scratch lot under `/world/terminus` as the founder and `transfer` it to a second test character, then grant it to the runner with `parcels:` on a re-login → `granted`); in each: `eval --parcel <p> ConditionApi.inflict(await MqlApi.resolveOne('<an NPC there>'), {...})` → the NPC's `look` shows the condition (ConditionApi was unbindable before W4); a third character with no grant → `you hold no authority over <p>`; `ping` answers after each |
 | 9 | short | `eval` with an infinite loop returns a timeout error; a huge result is cut at the cap; a clone refused by the boundary returns an error; the server is up after each | `eval while(true){}` → `/timed out after/`; `eval 'x'.repeat(1_000_000)` → the line ends `… [cut at 16,384 of … chars — eval output cap]`; in the runner's own `/home` circle: `eval StuffApi.clone('/trade/sugar/thing/pan')` (the dairy crash shape — a statement, no `return`) → `late: StuffApi.clone — sandbox boundary denied …` on the result line or in the mudlog; `ping` answers after each; the server log has no `Unhandled rejection` line |
-| 10 | short | `test clock advance 2 hours` moves the clock; `test clock advance 3 days` is refused with the soak rule's message; `test weather pin rain` holds rain until `test weather unpin`; in a world that is not a test world, `test` is an unknown verb; `eval` touching the clock is refused, naming `test clock` | wizard session on the build world: `test clock` → read; `test clock advance 2 hours` → `before → after`, `worldClockNow()` agrees; `test clock advance 3 days` → `/span step/` and `/\.soak\./`; `test weather pin rain` → `analyze weather` says rain and a thermometer in the room moved; `test weather unpin` → the procgen type returns; `eval WorldClockApi.advance('1 day')` → `/test clock advance/`; `eval (await MqlApi.resolveOne('…'))` on the Locality `.setWeatherPin(...)` → `/test weather pin/`; then the dev-mode boot of W6's acceptance on a scratch port (`PORT=2018 AUTH_MODE=test npx tsx src/preload.js` — ⚠ deliberately without `SAXONBERG_TEST_WORLD`, and never the npm script, which reaps siblings) → `test clock` is the unknown-verb answer; kill it by PID |
+| 10 | short | `testharness clock advance 2h` moves the clock; `testharness clock advance 3d` is refused with the soak rule's message; `testharness weather pin rain` holds rain until `testharness weather unpin`; in a world that is not a test world, `testharness` is an unknown verb; `eval` touching the clock is refused, naming `testharness clock` | wizard session on the build world: `testharness clock` → read; `testharness clock advance 2h` → `before → after`, `worldClockNow()` agrees; `testharness clock advance 3d` → `/span step/` and `/\.soak\./`; `testharness weather pin rain` → `analyze weather` says rain and a thermometer in the room moved; `testharness weather unpin` → the procgen type returns; `eval WorldClockApi.advance('1 day')` → `/test clock advance/`; `eval (await MqlApi.resolveOne('…'))` on the Locality `.setWeatherPin(...)` → `/test weather pin/`; then the dev-mode boot of W6's acceptance on a scratch port (`PORT=2018 AUTH_MODE=test npx tsx src/preload.js` — ⚠ deliberately without `SAXONBERG_TEST_WORLD`, and never the npm script, which reaps siblings) → `testharness clock` is the unknown-verb answer; kill it by PID |
 | 11 | instant | the census result is in the MR — each of the 25 moved to soak or shown within a day — and `pnpm wire:clean` is green on the branch | D10's table + the static census; `WIRE_BOOT=1 WIRE_PORT=2019 pnpm -C packages/wire wire:clean` |
 
 Steps 8–10 are run through the wire harness as a scratch
 `tests/zz-staging.wire.test.ts` (not committed; the `zz-refusal` of
 step 2 can be the same file) so the assertions are code, not eyes —
-and then **once more in a browser** for step 10's `test` command
+and then **once more in a browser** for step 10's `testharness` command
 (`probe-world-fast-loop`: a standing world, `.wire/server.log` grepped
 for `[dispatch]`), because a verb that answers over the wire and
 renders nothing on the card has happened before.
@@ -1516,8 +1531,8 @@ and it is killed by PID before the drive record is written).
 14. **The facade freezes a snapshot of each Api's statics.** A static
     added by hot-reload to an Api would not appear — Apis are non-HMR
     by rule, so this is theoretical; noted so nobody "fixes" the cache.
-15. **`help`/`affordances` in a dev world never show `test`**, by
-    design — but a wizard in a dev world who types `test clock` gets
+15. **`help`/`affordances` in a dev world never show `testharness`**, by
+    design — but a wizard in a dev world who types `testharness clock` gets
     the plain unknown-verb line, not "this is a test-world verb". The
     `withheld` boot line is the only tell. Accepted: a dev world is a
     world somebody plays in.
@@ -1544,15 +1559,15 @@ and it is killed by PID before the drive record is written).
 - **The sandbox's `console`** — still the server's stdout; routing it
   to the giver as `shell.result` lines (capped like the result) is a
   one-file change in `buildSandbox` when a drive wants it.
-- **`test weather pin --at <place>`** — the command pins where you
+- **`testharness weather pin --at <place>`** — the command pins where you
   stand; the route pins any scope. If a browser drive needs a distant
   pin, add the option (type `object`, scope `[reachable, locations]`)
   to the view and resolve its Locality the same way.
-- **Further `test` subcommands** — the requirement's "added here as
-  staging twins need them". Each is one `TestingApi` static
+- **Further `testharness` subcommands** — the requirement's "added here as
+  staging twins need them". Each is one `TestHarnessApi` static
   (`@TestOnly`, guidance leading with its subcommand), one stanza in
   the view, one branch in the controller; the coverage test in
-  `testing.test.ts` refuses an unmarked one.
+  `test-harness.test.ts` refuses an unmarked one.
 - **`EvalController.holdsAuthority` → `AccessApi.heldExtents`** — the
   controller carries its own owner-kind walk; `heldExtents` is the
   shipped predicate and now the one `TestHooks` uses. Folding the walk

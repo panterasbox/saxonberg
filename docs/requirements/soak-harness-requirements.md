@@ -55,7 +55,7 @@ world, and a test-only command for the few operations that only make sense in a 
 - **An agent can stage the state a check needs** — the staged twin of every span step is writable:
   `eval` reaches every Api an author may call, in any parcel the test runner holds, and a refusal or
   a runaway script comes back as an error, never a dead server.
-- **Moving time and the weather is a named test command**, not code: `test clock …`, `test weather
+- **Moving time and the weather is a named test command**, not code: `testharness clock …`, `testharness weather
   …`, in test worlds only.
 
 ## Non-goals
@@ -165,16 +165,19 @@ that's privileged and does its own access checks."*
 3. **`eval` cannot take the world down**: a **timeout** (the documented one, made real), an **output
    cap**, and every refusal — a boundary denial, a refused clone's hydrate — **returned as an
    error**, never an unhandled rejection.
-4. **A `test` command, in test worlds only** — its view is installed only where the clock route is
+4. **A `testharness` command, in test worlds only** — its view is installed only where the clock route is
    mounted. It is the privileged surface: its own access check (a test world, a wizard), one place to
-   audit. **`test clock advance <duration>`** (and the read), and **`test weather pin <kind>` /
+   audit. **`testharness clock advance <dur>`** (and the read), and **`testharness weather pin <kind>` /
    `unpin`**, which hold the weather where a drive needs it. Further test-only operations are added
-   here as staging twins need them.
-5. **One implementation, two front doors** — the `test` command and the wire harness's clock route
+   here as staging twins need them. ⭐ **Named `testharness` / `TestHarnessApi`** (the owner:
+   *test*, *testing* and *assessment* belong to the educational institutions), and **not NL** —
+   subcommands and options, never phrases: `testharness clock [advance <dur>]`, `testharness weather
+   [pin <kind> | unpin] [--at <locality>]`, durations as one token (`30m`, `2h`, `1d`, at most `1d`).
+5. **One implementation, two front doors** — the `testharness` command and the wire harness's clock route
    call the same test hooks, so a browser agent and a wire drive do the identical thing, and **the
    soak refusal (no jump past a game day outside soak mode) is enforced once**, in that shared hook.
 6. **`eval` points to the command** — code in `eval` that tries to move the clock or pin the weather
-   is refused with a message naming `test clock …` / `test weather …`.
+   is refused with a message naming `testharness clock …` / `testharness weather …`.
 
 ## Lens pass
 
@@ -213,10 +216,10 @@ minutes.
    up.
 9. `short` — `eval` with an infinite loop returns a timeout error; a huge result is cut at the cap; a
    clone refused by the boundary returns an error; the server is up after each.
-10. `short` — `test clock advance 2 hours` moves the clock; `test clock advance 3 days` is refused
-    with the soak rule's message; `test weather pin rain` holds rain until `test weather unpin`; in a
-    world that is not a test world, `test` is an unknown verb; `eval` touching the clock is refused,
-    naming `test clock`.
+10. `short` — `testharness clock advance 2h` moves the clock; `testharness clock advance 3d` is refused
+    with the soak rule's message; `testharness weather pin rain` holds rain until `testharness weather unpin`; in a
+    world that is not a test world, `testharness` is an unknown verb; `eval` touching the clock is refused,
+    naming `testharness clock`.
 11. `instant` — the 25 clock-jumping wire files: the census result in the MR — each moved to soak or
    shown within a day — and `pnpm wire:clean` green on the branch.
 
@@ -237,7 +240,7 @@ minutes.
 - Master's wire suite is green when this merges.
 - A test runner can stage, with `eval` in a parcel it holds, anything a consumer Api can do; no
   `eval` — however wrong — stops the server.
-- Time and weather move only through the `test` command (or the harness's route), only in test
+- Time and weather move only through the `testharness` command (or the harness's route), only in test
   worlds, and the soak rule is enforced in one place for both.
 
 ## Cross-references
