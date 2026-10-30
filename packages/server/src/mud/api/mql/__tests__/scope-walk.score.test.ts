@@ -15,9 +15,23 @@ const cand = (name: string, keywords: string[] = []): ScopeCandidate =>
   ({ stuff: {} as never, name, keywords }) as ScopeCandidate;
 
 describe('scoreCandidate — whole words beat substrings', () => {
-  it('⭐ `net`: "a net" (a whole word, 60) over "a keepnet" (a substring, 50)', () => {
+  it('⭐ `net`: "a net" (a whole word, 60); "a keepnet" does not answer to it at all', () => {
     expect(scoreCandidate(cand('a net'), ['net'])).toBe(60);
-    expect(scoreCandidate(cand('a keepnet'), ['net'])).toBe(50);
+    // A word matches where a word BEGINS, never mid-word (ceramics run 28).
+    expect(scoreCandidate(cand('a keepnet'), ['net'])).toBe(0);
+    expect(scoreCandidate(cand('a keepnet'), ['keep'])).toBeGreaterThan(0);
+  });
+
+  it('⛔ `plant pot` never binds an aether imPLANT — a mid-word substring is no match (ceramics run 28)', () => {
+    // With no plant pot in hand, the partial fallback took the implant, and
+    // `consign "plant pot"` put the player's implant up for sale.
+    expect(scoreCandidate(cand('an aether implant', ['aether implant', 'implant']), ['plant', 'pot'])).toBe(0);
+    expect(scoreCandidate(cand('a small plant pot', ['plant pot', 'pot']), ['plant', 'pot'])).toBeGreaterThan(0);
+  });
+
+  it('⛔ `brick` does not bind a table by the tail of "brick table"… but a prefix still answers', () => {
+    expect(scoreCandidate(cand('a moulding table', ['table', 'brick table']), ['brick'])).toBeGreaterThan(0);
+    expect(scoreCandidate(cand('a moulding table', ['table', 'moulding table']), ['ble'])).toBe(0);
   });
 
   it('⭐ `edge`: "the river\'s edge" over "a ledger rod"', () => {
@@ -95,3 +109,36 @@ describe('scoreCandidates — a whole-phrase match CUTS the partials', () => {
     expect(scoreCandidates([cup, pan], ['latex']).length).toBe(2);
   });
 });
+
+describe('scoreCandidate — a query that IS a keyword names that thing (ceramics browser walk)', () => {
+  /**
+   * `look clay` at the clay pit looked at the PLACE: "the clay pit" holds
+   * the word in its name, the lumps' "lump of clay" does too, and the tie
+   * went to the place, which comes first.
+   */
+  const pit = cand('the clay pit', ['pit', 'clay pit', 'face']);
+  const lumps = cand('4 lumps of clay', ['clay', 'lump']);
+
+  it('⭐ `clay` names the lumps above the pit', () => {
+    expect(scoreCandidate(lumps, ['clay'])).toBeGreaterThan(scoreCandidate(pit, ['clay']));
+  });
+
+  it('…and `clay pit` still names the pit', () => {
+    expect(scoreCandidate(pit, ['clay', 'pit'])).toBeGreaterThan(scoreCandidate(lumps, ['clay', 'pit']));
+  });
+
+  it('an exact name still beats a keyword', () => {
+    expect(scoreCandidate(cand('clay', []), ['clay'])).toBeGreaterThan(scoreCandidate(lumps, ['clay']));
+  });
+
+  it('⭐ …and the lumps CUT the pit: `look clay` is the clay, not a choice', () => {
+    const got = scoreCandidates([pit, lumps, lumps], ['clay']);
+    expect(got).toHaveLength(2);
+    expect(got.every((m) => m.score >= 70)).toBe(true);
+  });
+
+  it('with no exact match, a name word still stands (the fallback)', () => {
+    expect(scoreCandidates([pit], ['clay'])).toHaveLength(1);
+  });
+});
+

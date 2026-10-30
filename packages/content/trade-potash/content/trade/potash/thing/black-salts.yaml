@@ -4,7 +4,7 @@
 # over the cake's purity — so a strong lye gives a heavy cake and a weak
 # one a thin crust; its grade is the lye's, carried by the pot.
 #
-# The `alloying` entry is a PURITY (the potash share of the cake), not a
+# The `makeup` entry is a PURITY (the potash share of the cake), not a
 # strength: `gradedByStrength` is off, so the cake keeps the grade the
 # chain gave it.
 class: /trade/fuel/thing/Ash
@@ -18,7 +18,7 @@ data:
   _materialPath: /trade/potash/idea/material/black-salts
   gradeBand: fair
   gradedByStrength: false
-  alloying:
+  makeup:
     - materialPath: /stuff/idea/material/mineral/potash
       fraction: 0.65
   mass: 2.5

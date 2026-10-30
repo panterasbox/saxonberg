@@ -297,7 +297,14 @@ export class ConditionLogic extends ApiLogic {
   /** See {@link ConditionApi.die}. */
   @CallSecurity(ConditionApiCallers)
   public die(host: Stuff, cause: string, spec?: DeathSpec): Promise<void> {
-    return dieImpl(host, cause, spec);
+    // ⚠ Every caller fires and forgets (a dying window expiring inside a
+    // read, a killing blow, old age), and the server exits on an unhandled
+    // rejection — so one failed death took the WORLD down (the ceramics
+    // sweep's drives, 2026-10-30: a second login raced a death). A death
+    // that fails is said here, and the world stands.
+    return dieImpl(host, cause, spec).catch((err: unknown) => {
+      console.error(`ConditionLogic: the death of ${host.stuffId} (${cause}) failed`, err);
+    });
   }
 
   /** See {@link ConditionApi.embodyForSession}. */
@@ -602,6 +609,12 @@ async function divideBody(
   } catch {
     // A snapshot failure must not strand a player mid-transition.
   }
+  // ⚠ Across that await another hand may have taken the body — a login
+  // re-homing the character replaces it — and every question asked of a
+  // destroyed Stuff answers `undefined` (the corpse's keyword spread threw
+  // on it and took the world down). The rest of this death belongs to
+  // whoever took it.
+  if (body.isDestroyed()) return;
 
   // (f)
   await mintCorpseFrom(body, material, cause, nowS);
@@ -804,8 +817,12 @@ async function mintCorpseFrom(
    * forensic body reports. The slices carry no reserves, so nothing
    * re-adds a body-composition delta on top of the stamp.
    */
+  // ⚠ A body that answers no mass (a player's, read across the awaits of
+  // a death — the ceramics drive's frozen brickmaker, run 20) mints a
+  // corpse that derives its own, rather than a TypeError that took the
+  // whole world down from a detached `die`.
   const stampedMass = MixinApi.isTangible(body)
-    ? body.getMass().rawValue()
+    ? body.getMass()?.rawValue()
     : undefined;
   const bornAt = MixinApi.isOrganism(body) ? body.getBornAt() : undefined;
 

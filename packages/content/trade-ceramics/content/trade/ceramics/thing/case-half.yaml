@@ -1,0 +1,12 @@
+# Half of a plaster case (ceramics W7): one boxed half of planed board, with
+# its wooden keys. A case is two of them, seated face to face.
+class: /platform/thing/Thing
+data:
+  shortDescription: half of a plaster case
+  keywords: [half, "case half"]
+  register: indefinite
+  longDescription: >-
+    A shallow box of planed board with two wooden keys standing proud of
+    its rim.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 2

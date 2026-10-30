@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**394 slates.** 147 greenfield · 107 continuations · 67 waves · 73 tails.
+**399 slates.** 148 greenfield · 107 continuations · 67 waves · 77 tails.
 
-## ⭐ Greenfield — nothing shipped yet (147)
+## ⭐ Greenfield — nothing shipped yet (148)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -128,6 +128,7 @@ respect.
 | [map](./builds/map-slate.md) | the SVG grid + up/down corner glyphs + the pinned card · the |
 | [markets](./builds/markets-slate.md) | **dealing** — a BID on any counter's stock line, bid and ask from the business's own book, a `sell` verb · **public spending** as the primary faucet, through escrowed public-works gigs · **imports** — the engine's backstop supply named honestly, a per-commodity per-town ceiling and a possible sink · the **levers** as rows and settings … |
 | [masonry-and-concrete](./builds/masonry-and-concrete-slate.md) | ⭐ the two set chemistries (carbonation, hydration) · the binder ladder (air lime → hydraulic → Roman pozzolanic → Portland → reinforced) · concrete as moulding into formwork, and curing · compression and tension as material properties … |
+| [matter-model-overlaps](./builds/matter-model-overlaps-slate.md) | all seven overlaps below — each is a design decision, not a mechanical merge. |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
 | [moulding](./builds/moulding-slate.md) | ✅ five rulings (§ 0) and ✅ the mechanism examined (§ 0a, 2026-10-18) · the mould as an ENVELOPE (conductivity, permeability, absorbency, survival) · a shape that is an authored cast row or an |
@@ -180,7 +181,7 @@ respect.
 | [surgery-specialty](./builds/surgery-specialty-slate.md) | the operations-demand audit (which ops, and is there demand) · the harm-profile / violent-engagement gap check · the theatre (a room that matters) · the surgical team (anaesthetist + assistant) … |
 | [unfree-labour](./builds/unfree-labour-slate.md) | the register as a jurisdiction's filed record · what an enslaving claim gives an NPC owner · the enslaved NPC's derived pressure and its four resistances · flight to free soil … |
 | [unobserved-economy](./builds/unobserved-economy-slate.md) | whether the realm's NPC trade runs while unobserved at all · if it does, how it is computed without loading the places it moves between (⭐ against the location graph's record, not live content) · what a player arriving after a gap sees at a counter, a job board, the cash-and-carry and the Gazette · the faucet question the guild slate already raised. |
-| [verb-interfaces](./builds/verb-interfaces-slate.md) | `boil` folded into heating (immersion takes the liquid's heat) · `scrub` as a manner of `wash` · `strew`'s wider uses · an audit of every verb for single-target narrowness. |
+| [verb-interfaces](./builds/verb-interfaces-slate.md) | `boil` folded into heating (immersion takes the liquid's heat) · `scrub` as a manner of `wash` · `strew`'s wider uses · an audit of every verb for single-target narrowness … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [waste](./builds/waste-slate.md) | whether waste must be COLLECTED and moved before it is destroyed · transformation on the way (composting, rotting, salvage) · who does the collecting · abandoned things' ownership … |
 | [wellbeing](./builds/wellbeing-slate.md) | the TASTE PROFILE (born, learned, aversive, aging) · PLEASURE from taste × internal state × recent eating × expectation, separate from satisfaction · DISCOMFORT as the baseline from shipped physiology · afterglow and hedonic adaptation … |
@@ -379,7 +380,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (73)
+## Tails — small and opportunistic (77)
 
 | slate | left |
 |---|---|
@@ -393,8 +394,10 @@ are the named remainders.
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription … |
 | [automata](./tails/automata-slate.md) | the consult verb + context assembly · the mode model (`{trigger, recipe, voice}`) · the trigger set and its rate caps · the overnight digest + the decaying pyramid … |
 | [autopsy](./tails/autopsy-slate.md) | the post-mortem `Operation` row + **evidence as its stake** · the **interior-injury** reading channel · **per-channel readability** · who may open a corpse … |
+| [belief-recall-forgets-the-absent](./tails/belief-recall-forgets-the-absent-slate.md) | decide what the liveness collection is FOR · scope it to that. |
 | [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` · `pushDirect`'s second `describeCore` entry … |
 | [carded-prose](./tails/carded-prose-slate.md) | ⚠ any room-level line `LookController` composes into the room body is **invisible to a browser player** — the floor-puddle summary since the bulk build, and the help-wanted notice until it was split out of the body (trades-and-labor). ⭐ **And the SUBJECT body has the same shape** (`lookAtTarget` cards and `meta({ carded })` exactly as `lookAtLocation` does) — which puts the **drill-in** on this list; see below. The general answer is a card that renders the prose it was handed; the alternative is a rule that room body = fields only, and nothing may be appended to it. ⭐⭐ **And it is now a BLOCKER, 2026-10-02** — every new card body client-vocabulary-slate wants (image-first, list-of-images, a pack-shipped view) is built on the assumption that the card is a *superset* of the prose, and it is not. ⭐ Cheaper than this slate implies, too: `prose` already arrives at the client — `store/cardFeedSlice.ts:211` reads `c.prose` to decide *visibility* and never renders it. **The data is on the wire and in the store; this is a client render, not a protocol change.** |
+| [ceramics-soak-split](./tails/ceramics-soak-split-slate.md) | tag the 69 checkpoints · move the span steps to `ceramics-{a,b,c}.soak.dirty` · write a staged twin for each. |
 | [clinical-medicine](./tails/clinical-medicine-slate.md) | only this slate's retirement — every residual thread now has another home: the blood-bank economy → blood-slate (itself mostly shipped); cold storage → cold-chain-slate; surgery → surgery-specialty-slate; labs → sampling-and-labs-slate; pharma → pharma-slate; the calendar → personal-calendar-slate; **veterinary** → health-vertical-slate; the **NGN anchor** and the **SBAR / deteriorating patient** → medic-judgment-slate. Salvage § Open questions and § Adjacent verticals into their homes, repoint the three inbound links, then delete. |
 | [collision](./tails/collision-slate.md) | room capacity as a `capacities` field + validator, re-checked at activity completion · the `guards` brain's decision half (block targets · reason · unblock predicate over NPC memory … |
 | [combat-tactics](./tails/combat-tactics-slate.md) | the `physical` conduit channel for cross-room shots (⚠ contradicted by ranged.md's cross-room ruling — see the compaction ledger) · the magic-interplay questions at `MagicLogic.deliverAt` (bolt vs cover · interpose · attenuation … |
@@ -427,6 +430,7 @@ are the named remainders.
 | [metabolism](./tails/metabolism-slate.md) | the wider deficiency roster (iron, the B group, calcium — scurvy SHIPPED with nutrition-and-fitness as the pattern: a reserve key + a route + a condition row) · `alcohol-tolerance` as a CONSUMER (the `bac` bands widened by the stock; the stock ships) · nutrient-ledger storage shape · real-nutrition-data pipeline … |
 | [mixin](./tails/mixin-slate.md) | `Invisible` (perception override) · `Sleeping`/`Resting` (sensory cutoff, command-gating, species circadian variance) · `Writable` · `Pushable`/`Pullable`/`Liftable` … |
 | [multi-currency](./tails/multi-currency-slate.md) | whether a second currency needs its own cash/coinage · a combined cross-currency account statement · the changer's spread/fee home |
+| [numeric-dial-sweep](./tails/numeric-dial-sweep-slate.md) | the kernel read · the census gate · the sweep to zero. |
 | [nutrition-and-fitness](./tails/nutrition-and-fitness-slate.md) | the `pace` device (the sustained-work exemplar; the gym's second slot) · the real-world bridge (Part 5 — a seam only) · the menu as a choice (Part 7) · a `{{ body }}` prompt word … |
 | [object-taxonomy](./tails/object-taxonomy-slate.md) | the signature's verb-awareness · the collapse census · blueprint-as-`gen:`-output · the non-wizard composition mint + its namespace lint … |
 | [pack-boundary](./tails/pack-boundary-slate.md) | the two populations written down (`content-packs.md`) · ⭐ the |
@@ -438,6 +442,7 @@ are the named remainders.
 | [routing](./tails/routing-slate.md) | seven attach points, each with a named destination; two content gaps the build surfaced and did not close (75 of 128 places declare no address; a `walked` claim does not record what you were driving); and one vacancy — `knows:` makes a **guide** an economically coherent role for the first time. |
 | [sandbox](./tails/sandbox-slate.md) | chronicle presentation of wire deeds · what counts as "power" at the release gate + combination exploits + instancing · draft-overlay compose · circle transfer (move / sell an owned circle) … |
 | [scripting](./tails/scripting-slate.md) | the piping model over the built `Pipeline` AST node + the value→field binder + the two-channel/ByValue compatibility design · the block-value fork (`it`-only vs explicit params on the generic `Block` value — `def`'s named params are a separate mechanism and already shipped) · the `improv` seam · LLM-director authoring … |
+| [silent-write-census](./tails/silent-write-census-slate.md) | the census gate · sorting each guard as a read (legitimate skip) or a write (a defect) · the burn-down. |
 | [silk](./tails/silk-slate.md) | the conditioning house · the leaf market · status demand and the finite labour pool (markets-slate) · a booted silk house (unobserved-economy-slate) … |
 | [social-graph](./tails/social-graph-slate.md) | message-restyle live wiring (needs a sync contacts fast-path) · recognition-gated bucketing (deferred to the recognition-family build) · account-level bucket federation across characters · comms trust-tiered message policy (foes drop / friends bypass filters — comms-slate territory, untouched) … |
 | [social-inspection](./tails/social-inspection-slate.md) | the `who --group <g>` filter · the `privacy.showSpecies` threshold (Q2) · the `profile` card rendered into the inspection card with a per-viewer subscribable projection (Q6 — no `opens_card` today) · `who` at scale (Q7) … |

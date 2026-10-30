@@ -111,6 +111,12 @@ export const UNMADE_PARTS: ReadonlyMap<string, string> = new Map([
   ["/stuff/thing/arms/nock", "the bow's nock — no fletcher's recipe yet"],
   ["/trade/apiculture/thing/bellows", "the smoker's bellows — no maker"],
   ["/trade/carpentry/thing/board", "a board is SAWN by the saw verb, not a recipe"],
+  // ⭐ (ceramics W5) A fired-clay part is SHAPED (`shape` at the brick table,
+  // the wheel, the hand) and FIRED by its material's heat transitions —
+  // there is no recipe, by design (firing is one rule, M1). The trade that
+  // mends it is the form row's discipline.
+  ["/stuff/thing/firebrick", "a firebrick is moulded by `shape` at the brick table and fired — no recipe, by design"],
+  ["/trade/ceramics/thing/handle", "a handle is pulled by `shape` and joined green with slip — no recipe, by design"],
   ["/trade/chandlery/thing/wick", "the lantern's wick — no maker"],
   ["/trade/glass/thing/pane", "a pane is made at the glass bench, not by a recipe"],
   ["/trade/mining/thing/compass-housing", "the compass's housing — no maker"],

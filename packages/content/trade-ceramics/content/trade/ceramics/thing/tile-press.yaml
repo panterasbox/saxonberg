@@ -1,0 +1,17 @@
+# A tile press (ceramics S16) — a screw press: an oak frame and an iron
+# spindle with a bar through it. Set a charged tile mould on the bed and
+# `turn press`: each turn bears down harder, and the tile comes out pressed.
+class: /platform/thing/ScrewPress
+data:
+  shortDescription: tile press
+  keywords: [press, "tile press", "screw press"]
+  register: indefinite
+  longDescription: >-
+    A squat oak frame with an iron screw through its crosshead and a bar
+    through the screw, the platen worn bright where it bears.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 120
+  fixedInPlace: true
+  placements: [on]
+  newtonsPerTurn: 1500
+  maxTurns: 8

@@ -1,0 +1,22 @@
+# A plaster mould (ceramics W7, D24) — ⭐ what cures in the case: cast
+# plaster with a cavity in the shape of whatever was pressed into the
+# slurry. It DRINKS: poured full of slip, it draws the water out of the clay
+# against its walls into its own wetness, and in a couple of hours the clay
+# in it is firm enough to take out — the cavity's shape, leather-hard.
+# A wet mould drinks slower; let it dry between casts.
+class: /platform/thing/Mould
+data:
+  shortDescription: plaster mould
+  keywords: [mould, mold, "plaster mould", "plaster mold"]
+  register: indefinite
+  longDescription: >-
+    A heavy block of chalky white plaster, smooth inside where a shape was
+    pressed into it before it set.
+  _materialPath: /trade/ceramics/idea/material/cast-plaster
+  mass: 3
+  interiorBulk: true
+  interiorCapacity: 1
+  closure: liquidTight
+  reusable: true
+  absorbent: true
+  discipline: pottery

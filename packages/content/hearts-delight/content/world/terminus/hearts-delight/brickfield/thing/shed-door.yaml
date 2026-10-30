@@ -1,0 +1,15 @@
+# The potter's shop door into the moulding shed — the same weighted door as
+# the one onto the clamp ground (`closesBehind`): the shed is open along its
+# south side, so for the shop's warmth it is the outside.
+class: /platform/thing/Door
+data:
+  shortDescription: shed door
+  keywords: [door, "shed door", "back door"]
+  register: definite
+  longDescription: >
+    A low plank door on a weight, sanded pale where shoulders push it, that
+    swings shut on its own behind you.
+  open: false
+  closesBehind: true
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 35

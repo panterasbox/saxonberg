@@ -1,10 +1,10 @@
 # A charcoal clamp — a heap of cordwood stacked around a chimney, turfed
 # over and fired.
 #
-# ⭐ Its ONE dial is `draught`, and the three template paths below are the
-# three things a burn can come out as. The rows are named here because a
-# fuel yard is the same everywhere; a locality that wants its own charcoal
-# row overrides them.
+# ⭐ Its ONE dial is `draught`. What a burn comes out as is not on this
+# row any more (ceramics ruling A): the cordwood's own material chars below
+# the flaming dial, catches above it, and gets only to brands if the heap
+# runs too cool.
 class: /trade/fuel/thing/CharcoalPit
 data:
   shortDescription: turfed charcoal clamp
@@ -17,14 +17,16 @@ data:
     them and nothing else does.
   mass: 1800
   interiorBulk: false
+  # ⭐ 0.45 → completeness ≈ 0.53, below `fire.air.flamingCompleteness`
+  # (0.6): the heap is STARVED, so the wood chars and never catches. Open
+  # it past ≈ 0.51 and a flame can burn in it — the lost burn.
   draught: 0.45
-  yieldRatio: 0.35
-  charcoalTemplate: /trade/fuel/thing/charcoal
-  brandsTemplate: /trade/fuel/thing/brands
-  ashTemplate: /trade/fuel/thing/ash
-  # Charcoal's own burn heat, once it IS charcoal — the number a smelter
-  # needs and wood cannot reach.
-  burnTemperatureK: 1420
+  # ⭐ A charring heap, not a forge: ~720 K at the vents' ceiling, which the
+  # starved fire holds at ≈ 635 K (held = ceiling × (0.75 + 0.25 ×
+  # completeness)). Hazel chars through in about two and a half days there;
+  # at draught 0.3 the heap runs ~30 K cooler and three days only reach
+  # brands.
+  burnTemperatureK: 720
   bellowsMultiplier: 1.0
   lit: false
   # ⭐ The fire build: fuel is a BED (kilograms, by material) that
@@ -37,3 +39,9 @@ data:
   # charge distinct in practice, which is what the charring band assumes.
   maxBurnPowerW: 2000
   fuelCapacityKg: 4000
+  # ⭐ The heap's own firing wood, laid down the chimney when it was built:
+  # what `char` lights (ceramics ruling A — the clamp is lit now, where it
+  # used to be a timer). Enough for two burns; after that the collier
+  # stokes dry wood down the chimney before the next.
+  fuelBed:
+    /stuff/idea/material/wood/hazel: 40

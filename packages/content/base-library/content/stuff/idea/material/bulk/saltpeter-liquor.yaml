@@ -1,0 +1,33 @@
+# Saltpeter liquor — ⭐ a strong hot liquor of saltpeter, the row that sets
+# by COOLING (ceramics S17).
+#
+# Boiled down from a niter bed's leachings, it holds about 0.9 kg of
+# saltpeter a liter — clear at the boil, where a liter holds over a
+# kilogram, and far past what it can keep at room heat (under 0.3 kg). Let
+# it cool in a tub and the excess sets as needles; what is left is still a
+# saturated liquor of the same stuff, which goes back to the next boil
+# (`residue` names the liquor itself).
+#
+# ⚠ The curve is approximate — kg per liter of SOLUTION, from the textbook
+# grams-per-100-g-of-water table. Its SHAPE is the lesson: steep where
+# salt's is flat.
+class: /platform/idea/material/Material
+data:
+  name: saltpeter liquor
+  keywords: [liquor, "saltpeter liquor", "nitre liquor"]
+  appearance: clear, faintly yellow liquor
+  density: 1400
+  thermalConductivity: 0.55
+  specificHeat: 3000
+  electricalConductivity: 8
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, liquor, nitrate]
+  solidsKgPerL: 0.9
+  solubility: [[273, 0.127], [293, 0.28], [313, 0.49], [333, 0.70], [353, 0.89], [373, 1.04]]
+  crystallizesTo:
+    product: /stuff/idea/material/mineral/saltpeter
+    residue: /stuff/idea/material/bulk/saltpeter-liquor
+  composition: []
+  biologicalSource: null

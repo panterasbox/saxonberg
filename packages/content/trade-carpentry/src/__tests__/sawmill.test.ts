@@ -222,16 +222,16 @@ describe('the rows the verbs lean on', () => {
     const peers = Blank.commandContributions.peers ?? [];
     // ⭐ To whoever HOLDS it (`environment`), not `self` — a carried blank
     // afforded nothing until the review pass.
-    expect(Blank.commandContributions.environment).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
-    expect(peers).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
+    expect(Blank.commandContributions.environment).toContain('platform/cmd/crafting/carve.yaml');
+    expect(peers).toContain('platform/cmd/crafting/carve.yaml');
     // ⚠ Base-class statics SHADOW: Timber's own peers must be carried.
     for (const v of Timber.commandContributions.peers ?? []) expect(peers).toContain(v);
   });
 
   it('⭐ a sawn board affords `carve` too — the part keeps the board\'s grain', () => {
     const peers = Board.commandContributions.peers ?? [];
-    expect(Board.commandContributions.environment).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
-    expect(peers).toContain('trade/carpentry/cmd/carpentry/carve.yaml');
+    expect(Board.commandContributions.environment).toContain('platform/cmd/crafting/carve.yaml');
+    expect(peers).toContain('platform/cmd/crafting/carve.yaml');
     for (const v of Timber.commandContributions.peers ?? []) expect(peers).toContain(v);
   });
 

@@ -2,10 +2,10 @@
 # different label, and no row authored a number.
 #
 # The white loaf is almost entirely endosperm; this one keeps most of the
-# bran the miller sifted out. Both are `composition:` over the same two
+# bran the miller sifted out. Both are `makeup:` over the same two
 # materials (`wheat-flour`, `bran`) in different proportions, and the
 # nutrition label DERIVES from the parts (`BlendLabel.amountsOf` — mg ×
-# servings over the composition): this loaf shows more fibre and more
+# servings, each part's share of the loaf's mass over its serving): this loaf shows more fibre and more
 # protein than the white one and neither row says so anywhere. That is
 # the whole of what "wholemeal" means in this game, and it is the
 # metabolism slate's *healthy diet is variety over kinds* stated in two
@@ -21,6 +21,7 @@ data:
   longDescription: A dense brown loaf, the crust dark and the crumb flecked all through with bran. It is the bread most people eat.
   _materialPath: /stuff/idea/material/food/bread
   mass: 0.8
-  composition:
-    - { materialPath: /stuff/idea/material/food/wheat-flour, servings: 6.5 }
-    - { materialPath: /stuff/idea/material/food/bran, servings: 1.5 }
+  # By mass fraction of the loaf — 6.5 : 1.5 servings of 100 g.
+  makeup:
+    - { materialPath: /stuff/idea/material/food/wheat-flour, fraction: 0.8125 }
+    - { materialPath: /stuff/idea/material/food/bran, fraction: 0.1875 }

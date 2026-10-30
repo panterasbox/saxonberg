@@ -1,0 +1,17 @@
+# size — a reading channel (ceramics D30, S11): a brick against the
+# polity's statute brick. Off standard is a reading of the brick, said to
+# anyone with a rule.
+class: /trade/ceramics/idea/reading/SizeReading
+data:
+  channel: size
+  kind: fact
+  scope: [subject]
+  subjectRequires: [TangibleMixin]
+  discipline: brickmaking
+  instrument: gauging
+  instrumentNoun: a rule or a gauging rod
+  eyeCeiling: untrained
+  improves: >-
+    whether a brick is the statute's, and so whether a builder will take it
+  stakes: >-
+    a cartload of off-standard bricks no wall will course

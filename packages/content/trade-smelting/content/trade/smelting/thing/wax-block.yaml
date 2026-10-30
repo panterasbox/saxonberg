@@ -1,0 +1,26 @@
+# A wax block (ceramics W7, S15) — ⭐ LOST WAX: a block of beeswax in a clay
+# jacket, soft enough to take the impression of a key or a seal pressed
+# into it (`impress key in wax`). Poured, the wax runs out of the jacket's
+# vent and the metal takes its place; the jacket is broken off the cast,
+# and the wax that ran out is caught for the next one.
+#
+# ⚠ Its MATERIAL is the jacket's (refractory clay), because what receives
+# the pour is the jacket — a bare block of wax would melt under the metal
+# and spill it on the floor (S13, the receiver's own rule).
+class: /platform/thing/Mould
+data:
+  shortDescription: wax block
+  keywords: [wax, block, "wax block", jacket]
+  register: indefinite
+  longDescription: >-
+    A brick of yellow beeswax set in a rough jacket of fired clay, with a
+    vent pinched open at one corner.
+  _materialPath: /stuff/idea/material/ceramic/refractory
+  mass: 2
+  interiorBulk: true
+  interiorCapacity: 0.5
+  closure: liquidTight
+  reusable: false
+  impressible: true
+  breaksTo: /trade/smelting/thing/wax-lump
+  discipline: founding

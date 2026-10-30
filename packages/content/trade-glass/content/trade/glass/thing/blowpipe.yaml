@@ -11,3 +11,8 @@ data:
     blackened and glassy from the gathers it has carried.
   mass: 2.4
   capabilities: ["blowpipe"]
+  # ⭐ The forms this pipe blows — `Form` rows, loaded when a `shape` asks
+  # (`FormingMixin`). A blown jar or flask is one more row here.
+  forms:
+    - /trade/glass/idea/form/bottle
+    - /trade/glass/idea/form/cylinder

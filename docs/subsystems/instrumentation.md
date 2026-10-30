@@ -96,9 +96,20 @@ untrained ±8%   novice ±5%   competent ±2.5%   proficient ±1.2%   expert ±0
 ```
 
 An instrument raises a **ceiling**; competence is what actually realizes
-it. The effective band is `min(bandOf(actor), ceilingOf(instrument))`,
+it. The effective band is `min(bandOf(actor, tool), ceilingOf(instrument))`,
 so a novice with a good dial reads better than a novice without one and
-worse than an expert with the same dial.
+worse than an expert with the same dial. ⭐ A tool that names its OWN craft
+(`Tooled.getDiscipline` — pyrometric cones are read by a potter's eye) is
+read at the better of that craft and the channel's discipline, in the base
+and nowhere else, so the ceiling still caps it (review R2-D5).
+
+⭐ **A statute reading** (`lib/instrument/StatuteReading`, review R2-D9) is
+a reading against a POLITY's declared measure — `measure capacity` against
+the tun, `measure size` against the statute brick. One copy of the three
+facts: the standard is the innermost polity that declares it (else the
+row's realm default), *off standard* is one 5 % line, and a reading is *of
+record* when the reader holds the `gauger` seat of the innermost polity
+that seats one. The seat adds standing, never the figure.
 
 ⚠ **The tag comes off the OBSERVATION, not the truth.** A drive printed
 `153.01 K ± 147.5 K (warm)` — the number was what the reader saw and the

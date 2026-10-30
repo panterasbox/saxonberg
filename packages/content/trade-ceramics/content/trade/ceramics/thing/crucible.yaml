@@ -1,0 +1,13 @@
+# crucible — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/ClayVessel
+data:
+  shortDescription: crucible
+  keywords: [crucible, pot]
+  register: indefinite
+  longDescription: >-
+    A thick-walled clay crucible, squat and heavy, made to stand in a furnace.
+  interiorBulk: true
+  interiorCapacity: 1
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 1.6

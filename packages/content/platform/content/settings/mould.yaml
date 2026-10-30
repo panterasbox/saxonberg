@@ -1,0 +1,44 @@
+# mould — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing). ⭐ The mould as an envelope (ceramics S12–S16): what
+# a pour into a cavity does by the physics of the pour, never by a roll.
+settings:
+  # ⭐ Chvorinov (S14): a cast freezes in a time that grows with (V/A)², so a
+  # thin shape wants HEAT in hand to fill. The superheat a pour needs is this
+  # many K·cm over the cast's modulus V/A (cm) against sand — an arming
+  # sword (modulus ≈ 0.3 cm) wants ~50 K over its metal's melting point, an
+  # ingot ~15 K.
+  - key: mould.misrunKcm
+    value: "15"
+
+  # √(kρc) of rammed moulding sand — the reference a mould's chill is read
+  # against. An iron mould draws heat some fourteen times faster.
+  - key: mould.sandEffusivity
+    value: "850"
+
+  # A sand mould wetter than this blows under a hot pour: the water flashes to
+  # steam, the cast is ruined and the metal spits at whoever is pouring.
+  - key: mould.blowWetness
+    value: "0.3"
+
+  # What a blow throws at the pourer's hands, on the heat channel's CONTACT
+  # scale (`Touch.contactBurnEnergy`: 0.5 a scald … 1 the hottest thing you
+  # can touch) — molten metal is twice the worst of it. It was "40 J" and
+  # 40 on that scale killed the drive's caster outright; a glove still
+  # takes the edge off.
+  - key: mould.blowBurnJ
+    value: "2"
+
+  # Green sand, freshly rammed: damp enough to hold a shape, dry enough to
+  # take a pour.
+  - key: mould.rammedWetness
+    value: "0.15"
+
+  # A dry plastic charge resists the press with this many newtons per kg,
+  # scaled by (1 − moisture)²: wet clay gives, stiff clay wants a screw.
+  - key: mould.pressNPerKg
+    value: "2000"
+
+  # Past the drain set's reference load, the moisture keeps falling as
+  # load^(−this) — a screw press makes a firmer cheese than a stone.
+  - key: mould.overpressExponent
+    value: "0.15"

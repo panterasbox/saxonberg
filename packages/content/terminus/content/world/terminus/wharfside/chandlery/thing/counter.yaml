@@ -38,6 +38,13 @@ data:
     - { itemTemplatePath: /trade/chandlery/thing/soap-bar, par: 6 }
     - { itemTemplatePath: /trade/chandlery/thing/soft-soap-jar, par: 4 }
     - { itemTemplatePath: /trade/chandlery/thing/lye-flask, par: 4 }
+    # ⭐ (ceramics W6, D28) The empty pots a soap-maker's customers bring
+    # back or buy to carry soft soap and lye home in — the Delight pottery's
+    # jar and flask, local first, imported dearer when her shelf is bare.
+    # ⚠ Beside the filled lines, not instead of them: the soft soap and the
+    # lye are the chandler's product, and the jar is only the pot it goes in.
+    - { itemTemplatePath: /trade/ceramics/thing/jar, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
+    - { itemTemplatePath: /trade/ceramics/thing/flask, par: 2, from: { supplier: /world/terminus/hearts-delight/brickfield/idea/pottery, importBackstop: 1.5 } }
     - { itemTemplatePath: /trade/chandlery/thing/glycerin-jar, par: 2 }
     - { itemTemplatePath: /trade/quarrying/thing/sulfur, par: 4 }
     # ⭐ (potash D17) The counter BUYS the town's ash and the ashery's
@@ -58,6 +65,8 @@ data:
     /trade/chandlery/thing/soap-bar: 3
     /trade/chandlery/thing/soft-soap-jar: 2
     /trade/chandlery/thing/lye-flask: 2
+    /trade/ceramics/thing/jar: 3
+    /trade/ceramics/thing/flask: 2
     /trade/chandlery/thing/glycerin-jar: 4
     /trade/quarrying/thing/sulfur: 2
     /trade/fuel/thing/wood-ash: 3

@@ -1,0 +1,12 @@
+# A token blank (ceramics S16) — a little flat disc of soft metal, ready to
+# be struck on a die (`hammer blank on die`).
+class: /platform/thing/Ingot
+data:
+  shortDescription: token blank
+  keywords: [blank, "token blank", flan, disc]
+  register: indefinite
+  longDescription: >-
+    A small flat disc of dull metal with a rolled edge and nothing on it
+    yet.
+  _materialPath: /stuff/idea/material/alloy/pewter
+  mass: 0.02

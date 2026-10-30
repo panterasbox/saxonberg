@@ -49,6 +49,7 @@ import type { DeliveryForm } from '../../../lib/material/Construction';
 import type { MarkupAugmenter } from '../../../api/mml';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../../lib/mixin';
+import type { ImpressionData } from '../../../lib/mould/Impression';
 
 // CraftedMixin (which composes GradedMixin) replaces the bare GradedMixin:
 // a weapon can be a recipe output — its persisted `gradeBand` + grade
@@ -176,6 +177,16 @@ export default class Weapon extends WeaponBase {
 
   getBalanceFactor(): number {
     return this.balanceFactor;
+  }
+
+  /**
+   * ⭐ A weapon's shape is LONG: its impression carries its length, so a
+   * cast of it is judged as a blade, not a cube (Chvorinov, B104).
+   */
+  public override leaveImpression(nowS: number): ImpressionData | null {
+    const shape = super.leaveImpression(nowS);
+    const lengthM = this._length.rawValue();
+    return shape !== null && lengthM > 0 ? { ...shape, lengthM } : shape;
   }
 
   /** The weapon's length as a `Quantity<'m'>` (0 when unauthored). */

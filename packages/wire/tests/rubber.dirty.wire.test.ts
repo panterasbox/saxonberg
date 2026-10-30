@@ -3,8 +3,8 @@
  * run against the real socket (the requirements' drive, retired at the
  * sweep; the model is docs/subsystems/construction.md + rubber.md).
  *
- * The drive in one sentence: *buy rubber boots and gloves; cure raw rubber
- * with sulfur in the works' oven four ways — weeping, rubber, ebonite and
+ * The drive in one sentence: *buy rubber boots and gloves; mill raw rubber
+ * with sulfur in the works' tub and cure the stock in the oven four ways — weeping, rubber, ebonite and
  * burnt — and read which you got; tap a Hevea in the stove house once the
  * stove has it warm, pour the latex into the coagulating pan and come back
  * to a sheet of raw rubber; light the works stove and feel the loft above
@@ -374,12 +374,24 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     hold: string,
     holdS: number,
     bellows = false,
+    expectCast = true,
   ): Promise<string> {
     await say(s, 'inventory');
+    // ⭐⭐ Compound first (ceramics R1): raw rubber and sulfur go into the
+    // mixing tub and `knead` mills them into ONE piece of stock whose
+    // sulfur fraction is what went in by mass — 3 raw (1.5 kg) and one
+    // nodule (0.05 kg) is ~3 %; 1 raw and 3 nodules is ~23 %. No recipe.
+    for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in tub');
+    for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in tub');
+    await say(s, 'knead tub');
+    await advanceWorldClock('17 minutes');
+    await new Promise((r) => setTimeout(r, 4_000));
+    await s.drainProse();
+    const milled = await say(s, 'get here:i:tub:i:stock');
+    expect(milled, `get stock: ${milled}`).toMatch(/stock|compound|rubber/i);
     // ⚠ `put` takes from your hands into something standing in the room:
     // charge the mould on the floor, THEN carry it into the oven.
-    for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in boot-mould');
-    for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in boot-mould');
+    await say(s, 'put stock in boot-mould');
     await say(s, 'get boot-mould');
     await say(s, 'put boot-mould in oven');
     if (bellows) await say(s, 'pump oven');
@@ -394,16 +406,24 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     // `here:x` would be a detail of the room).
     await say(s, 'get here:i:oven:i:boot-mould');
     await say(s, 'drop boot-mould');
+    // ⭐ A cure that never reached its rung leaves the STOCK in the mould —
+    // nothing was cast, because the piece never became rubber.
+    if (!expectCast) {
+      await s.drainProse();
+      const stock = await examine(s, 'here:i:boot-mould:i:stock');
+      await say(s, 'get here:i:boot-mould:i:stock');
+      await say(s, 'drop stock');
+      return stock;
+    }
     const got = await say(s, 'get here:i:boot-mould:i:boots');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
     await s.drainProse();
     return examine(s, 'me:i:boots');
   }
 
-  it('14 — a short low-sulfur cure: still raw rubber, tacky and weeping', async () => {
-    const read = await cure(3, 1, '1 minute', 60);
-    expect(read).toMatch(/raw rubber|weeping|tacky/i);
-    await say(s, 'drop boots');
+  it('14 — a short cure never reaches its rung: still compounded stock, tacky and weeping', async () => {
+    const read = await cure(3, 1, '1 minute', 60, false, false);
+    expect(read).toMatch(/compounded|weeping|tacky/i);
   }, 600_000);
 
   it('15 — a weighed 3 % charge, half an hour at 430 K: rubber, in the boot mould\'s shape', async () => {

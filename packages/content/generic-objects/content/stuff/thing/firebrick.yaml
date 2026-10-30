@@ -1,0 +1,13 @@
+# A firebrick — the COMMONS row every furnace lining's bill names (ceramics
+# R4): a brick of fireclay fired hard, the unit a kiln, a smelting furnace
+# and a retort are lined with. Packs that do not depend on the ceramics
+# trade name this; the pottery's own made firebrick extends it.
+class: /platform/thing/Scrap
+data:
+  shortDescription: firebrick
+  keywords: [firebrick, brick, firebricks]
+  register: indefinite
+  longDescription: >-
+    A pale, gritty brick of fired fireclay, heavier than it looks.
+  _materialPath: /stuff/idea/material/ceramic/refractory
+  mass: 3.2

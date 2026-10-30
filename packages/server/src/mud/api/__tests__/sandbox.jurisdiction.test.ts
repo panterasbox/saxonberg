@@ -29,6 +29,8 @@ import { ContainableMixin } from '../../lib/spatial/Containable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
+import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
+import Biome from '../../platform/idea/Biome';
 import {
 
 
@@ -260,6 +262,32 @@ describe('governed eval — the jurisdiction bound', () => {
         plain.setName('read');
       }),
     ).rejects.toThrow(/sandbox boundary denied/);
+  });
+
+  it('⭐ a MARSHALLER is plumbing — a governed clone can hydrate a mass', async () => {
+    // Every clone with a `Quantity` field calls the applier's marshaller;
+    // held to the compare, a jurisdiction eval could clone nothing with a
+    // mass (the ceramics drive's ore setup).
+    const kg = makeStuff(() => new QuantityMarshaller());
+    stampTemplatePathForTest(kg, '/platform/idea/persistence/QuantityMarshaller/kg');
+    let mass = 0;
+    await SandboxApi.runGoverned(BOUND, async () => {
+      mass = kg.fromStored(1.4).rawValue();
+    });
+    expect(mass).toBe(1.4);
+  });
+
+  it('⭐ a BIOME is commons — a governed act can read the air a body stands in', async () => {
+    // Every body's reconcile reads its biome; held to the compare, a
+    // parcel-bound eval could not top up a reserve or move a lump.
+    const air = makeStuff(() => new Biome());
+    stampTemplatePathForTest(air, '/stuff/idea/biome/outdoor/somewhere-else');
+    let read = false;
+    await SandboxApi.runGoverned(BOUND, async () => {
+      air.getDefaultHumidity();
+      read = true;
+    });
+    expect(read).toBe(true);
   });
 
   it('leaves the unbounded world alone (no bound ⇒ no check)', async () => {

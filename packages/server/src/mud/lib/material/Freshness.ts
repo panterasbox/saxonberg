@@ -69,7 +69,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type Material from './Material';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
-import { WaterActivity, type WaterState } from './WaterActivity';
+import { Moisture, type WaterState } from './Moisture';
 import { Contamination } from './Contaminable';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -699,9 +699,9 @@ export class Freshness {
     }
     // ⚠ The water state FIRST, and reconciled: a blend that has been
     // rehydrating in a damp cellar spoils at the a_w it has NOW, and
-    // `WaterActivity.stateFor` may rewrite the payload — so read it before the
+    // `Moisture.stateFor` may rewrite the payload — so read it before the
     // freshness write, or the write below stamps over it.
-    const water = new WaterActivity(this.slot).state();
+    const water = new Moisture(this.slot).state();
     const load = advanceFreshnessOverHost(
       this.slot.getHolder(),
       gauge.load,
@@ -997,12 +997,14 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
      * eater is fine. FOUR are carried today — the spoilage dose the
      * microbial load has earned, the pathogen loads (with any formed
      * toxin they have already made), the maker (without which harm from
-     * a meal can name nobody), and ⭐ the **composition**: what the food
-     * was actually made of.
+     * a meal can name nobody), and ⭐ the **makeup**: what the food
+     * was actually made of, by mass fraction. (The food's MASS, which the
+     * makeup's servings are read against, is the caller's to pass with
+     * the ingest — it is the host's, not the payload's.)
      *
      * ⚠ The fourth arrived with the grain chain, and its absence was
      * exactly the failure this comment warns about. `BlendLabel.amountsOf`
-     * falls back to the host's own Material when the composition is
+     * falls back to the host's own Material when the makeup is
      * empty — so a wholemeal loaf and a white one, both made of `bread`,
      * fed you identically. A chain that carries an extraction all the way
      * from a millstone would have evaporated at the last inch, silently.
@@ -1019,11 +1021,9 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
       let payload = Freshness.withDose(null, material, this.getMicrobialLoad());
       const maker = MixinApi.isCrafted(self) ? self.getMaker() : '';
       if (maker) payload = { ...(payload ?? {}), maker };
-      const composition = MixinApi.isComposed(self)
-        ? self.getComposition()
-        : [];
-      if (composition.length > 0) {
-        payload = { ...(payload ?? {}), composition: [...composition] };
+      const makeup = MixinApi.isComposition(self) ? self.getMakeup() : [];
+      if (makeup.length > 0) {
+        payload = { ...(payload ?? {}), makeup: [...makeup] };
       }
       const pathogens = MixinApi.isContaminable(self)
         ? self.getPathogenLoads()
@@ -1100,7 +1100,7 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
           this.freshnessClockStamp,
           nowS,
           material,
-          MixinApi.isWaterActive(self) ? self.getWaterState() : null,
+          MixinApi.isMoist(self) ? self.getWaterState() : null,
         );
         this.freshnessClockStamp = nowS;
         this.rotAwayIfLong(nowS);

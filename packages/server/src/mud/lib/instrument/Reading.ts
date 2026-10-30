@@ -409,7 +409,7 @@ export default abstract class Reading extends ReadingBase {
     }
     const held = this.narrow(tools, this.handTool);
     const ceiling = held ? this.ceilingOf(held) : this.eyeCeiling;
-    const band = this.lower(await this.bandOf(actor), ceiling);
+    const band = this.lower(await this.bandOf(actor, held), ceiling);
     await this.analyze(context, resolved.target, band, held, resolved.param);
   }
 
@@ -455,7 +455,7 @@ export default abstract class Reading extends ReadingBase {
       this.decline(context, this.noInstrumentLine(), 'no-instrument');
       return;
     }
-    const band = this.lower(await this.bandOf(actor), this.ceilingOf(tool));
+    const band = this.lower(await this.bandOf(actor, tool), this.ceilingOf(tool));
     await this.measure(context, resolved.target, tool, band, resolved.param);
     this.wearOnce(tool);
   }
@@ -571,8 +571,8 @@ export default abstract class Reading extends ReadingBase {
     tools: readonly Stuff[],
   ): Promise<ReadingRoute[]> {
     const out: ReadingRoute[] = [];
-    const band = await this.bandOf(actor);
     const lens = this.narrow(tools, this.handTool);
+    const band = await this.bandOf(actor, lens);
     const eyeBand = this.lower(band, lens ? this.ceilingOf(lens) : this.eyeCeiling);
     out.push({
       rung: 'eye',
@@ -638,11 +638,18 @@ export default abstract class Reading extends ReadingBase {
    * full resolution: a preview is exact for everybody, which is the Tier
    * A invariant satisfied by exactness rather than by a bracket.
    */
-  protected async bandOf(actor: Stuff): Promise<CompetenceBandName> {
+  protected async bandOf(actor: Stuff, tool: Stuff | null = null): Promise<CompetenceBandName> {
     if (this.discipline === '') return 'expert';
-    return MixinApi.isAdvancing(actor)
-      ? await actor.competenceBandFor(this.discipline)
-      : CompetenceBand.FLOOR;
+    if (!MixinApi.isAdvancing(actor)) return CompetenceBand.FLOOR;
+    const own = await actor.competenceBandFor(this.discipline);
+    // ⭐ A tool that names its OWN craft is read by that craft's eye too
+    // (`Tooled.getDiscipline`) — cones in a spy-hole are read by a potter,
+    // not by the general awareness a thermometer wants: the better of the
+    // two. The ONE copy (review R2-D5); the ceiling still caps it.
+    const craft = tool !== null && MixinApi.isTool(tool) ? tool.getDiscipline() : '';
+    if (craft === '' || craft === this.discipline) return own;
+    const theirs = await actor.competenceBandFor(craft);
+    return CompetenceBand.atOrAbove(theirs, own) ? theirs : own;
   }
 
   /**

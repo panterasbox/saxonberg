@@ -1,0 +1,10 @@
+# clay cone (ceramics W4).
+class: /trade/ceramics/thing/Cone
+data:
+  shortDescription: clay cone
+  keywords: [cone, mould]
+  register: indefinite
+  longDescription: >-
+    A tall clay cone open at its tip — a sugar mould.
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 2.0

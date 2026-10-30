@@ -18,7 +18,7 @@ data:
   # written by the burner that made it, and re-grades it. This default is
   # an oak hearth's — a share of 0.15 of the ash is alkali.
   gradedByStrength: true
-  alloying:
+  makeup:
     - materialPath: /stuff/idea/material/mineral/potash
       fraction: 0.15
   mass: 0.6

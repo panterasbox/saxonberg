@@ -215,10 +215,11 @@ nothing in the code branches on the tool: two recipes over one input.
 the comb is made of) and `kind: item` vs `kind: bulk` is what keeps a jar
 of honey out of a comb slot.
 
-⭐ **Honey's character rides the comb's `composition`.** `Comb` is a
-`Provision`, so it composes `ComposedMixin`; `RobController` stamps the
-forage census onto every frame it mints, and the crafting core already
-sums an item input's composition into a bulk output's payload. `taste`,
+⭐ **Honey's character rides the comb's `makeup`.** `Comb` is a
+`Provision`, so it composes `CompositionMixin` (by mass fraction);
+`RobController` stamps the forage census onto every frame it mints, and
+the crafting core already folds an item input's makeup into a bulk
+output's payload. `taste`,
 the label and the tags derive from it on read — so clover honey and
 cherry-blossom honey are different honey with **no row written for
 either**.

@@ -1,0 +1,9 @@
+# The `brick` form (ceramics S4): the statute block, cut oversize for the shrink.
+class: /platform/idea/Form
+data:
+  key: brick
+  formClass: block
+  capacityL: 0
+  product: /trade/ceramics/thing/brick
+  greenScale: 1.08
+  discipline: brickmaking

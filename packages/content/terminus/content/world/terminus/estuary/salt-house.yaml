@@ -41,7 +41,10 @@ data:
     z: 0
   props:
     - /trade/quarrying/thing/brine-hearth
-    - /trade/quarrying/thing/salt-pan
+    # ⭐ (ceramics W8) The pan stands ON its bittern tub, so the liquor a
+    # finished pan leaves runs off into it.
+    - /trade/quarrying/thing/bittern-tub
+    - { template: /trade/quarrying/thing/salt-pan, on: /trade/quarrying/thing/bittern-tub }
   exits:
     north:
       destination: /world/terminus/estuary/lower-towpath

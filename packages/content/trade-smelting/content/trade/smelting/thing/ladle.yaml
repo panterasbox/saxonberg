@@ -1,0 +1,17 @@
+# A bull ladle (ceramics W7) — a big refractory-lined iron ladle on a
+# two-man shank, slung from the yard's windlass: what a great bell's metal
+# is carried to the pit in, twenty litres at a pour.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: bull ladle
+  keywords: [ladle, "bull ladle"]
+  register: indefinite
+  longDescription: >-
+    A deep iron ladle lined with refractory clay, on a long double shank
+    hooked to the windlass chain.
+  interiorBulk: true
+  interiorCapacity: 20
+  closure: liquidTight
+  _materialPath: /stuff/idea/material/ceramic/refractory
+  mass: 60
+  fixedInPlace: true

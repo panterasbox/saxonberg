@@ -141,7 +141,7 @@ export default class Bloom extends BloomBase {
     // ⭐ The carbon survives the beating, because it is dissolved in the
     // iron and the slag is not. A carburized bloom is a steel bar.
     if (MixinApi.isAlloyed(bar)) {
-      bar.setAlloying(this.getAlloying());
+      bar.setMakeup(this.getMakeup());
       bar.setTemper(this.getTemper());
     }
     await place(bar, where);

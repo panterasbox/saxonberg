@@ -12,3 +12,22 @@ settings:
   # than near-freezing air, and a summer swim chills nobody (storage-and-ice).
   - key: thermal.waterNeutralK
     value: "297"
+
+  # ⭐ A firing whose dose-weighted burner completeness sat below this was
+  # REDUCING (ceramics D3): a clay rung takes its reducing twin — the blue
+  # brick, celadon. ⭐ The same number as `fire.air.flamingCompleteness`:
+  # a chamber too starved for a flame is a reducing one — one meaning of
+  # "starved". A clamp fired `--draught half` (≈ 0.59) is reducing.
+  - key: thermal.heatWork.reducingBelow
+    value: "0.6"
+
+  # ⭐ Evaporation carries heat away (ceramics M8): a wet body's ambient is
+  # pulled toward the air's wet-bulb by this share of the gap times its
+  # wetness. Air only — water evaporates nothing off a thing that is in it.
+  - key: thermal.evaporation.efficiency
+    value: "0.8"
+
+  # A porous unglazed vessel weeps this many litres an hour per litre held,
+  # per unit of porosity, into its own outside — which is why it is wet.
+  - key: thermal.evaporation.seepLPerHourPerL
+    value: "0.02"

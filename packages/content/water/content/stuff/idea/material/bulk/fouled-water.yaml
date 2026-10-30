@@ -55,6 +55,12 @@ data:
   # Personal, per-use, costing fuel and time every single time — which is precisely why a town eventually
   # buys treatment instead.
   purifiedByBoiling: /stuff/idea/material/bulk/water
+  # ⭐⭐ (ceramics S9, W8) And a porous stoneware filter strains it to water:
+  # what fouls it is IN something — the bacteria, the silt they ride on —
+  # and those are bigger than the filter's pores. Doulton's filter of the
+  # cholera years. Its twin, `tainted-water`, names no counterpart here
+  # either, because what taints it is dissolved and goes through any pore.
+  filteredTo: /stuff/idea/material/bulk/water
   # ⚠ It keeps the `water` IDENTITY tag, unlike `salt-water`, because it
   # genuinely IS water. Nothing about fouled water announces itself,
   # which is the entire reason the intake's POSITION is the thing that

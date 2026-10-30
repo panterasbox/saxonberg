@@ -12,7 +12,7 @@
 # on top and goes off underneath; that is the same number turned down.
 #
 # ⚠ It affords NOTHING, deliberately. The drying rack beside it affords
-# `dry`, and a hung ham dries with no verb at all — `WaterActivity`
+# `dry`, and a hung ham dries with no verb at all — `Moisture`
 # reads this hook's exposure straight off the placement. A hook that
 # conferred a verb would be the `wash`-on-the-urn mistake.
 #

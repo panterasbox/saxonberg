@@ -21,15 +21,16 @@
 
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import { PatternStockMixin } from '../lib/PatternStock';
 
-export default class Blank extends Timber {
+export default class Blank extends PatternStockMixin(Timber) {
   static commandContributions: CommandContributions = {
     // ⚠ `environment` is how a HELD thing grants a verb to its holder
     // (`self` is the thing's own verbs) — until the review pass a blank in
     // your hands afforded nothing, and only one at your feet did.
-    environment: ['trade/carpentry/cmd/carpentry/carve.yaml'],
+    environment: ['platform/cmd/crafting/carve.yaml'],
     peers: [
-      'trade/carpentry/cmd/carpentry/carve.yaml',
+      'platform/cmd/crafting/carve.yaml',
       ...(Timber.commandContributions.peers ?? []),
     ],
   };

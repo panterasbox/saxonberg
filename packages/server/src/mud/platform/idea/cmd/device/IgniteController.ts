@@ -22,7 +22,7 @@ interface IgniteModel extends CommandModel {
 }
 
 export default class IgniteController extends CommandController<IgniteModel> {
-  execute(model: IgniteModel, context: CommandContext): void {
+  async execute(model: IgniteModel, context: CommandContext): Promise<void> {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
@@ -77,8 +77,10 @@ export default class IgniteController extends CommandController<IgniteModel> {
             : outcome.reason === 'no-fuel'
               ? 'There is no fuel in it. Stoke it first.'
               : outcome.reason === 'no-air'
-                ? 'There is no air here for a flame.'
-              : "That won't burn.";
+                ? 'The flame dies as you strike it. There is no air here for a flame.'
+                : outcome.reason === 'lining-burnt-through'
+                  ? 'Its lining has burnt through — the heat would go straight into the casing. Reline it with firebrick first.'
+                  : "That won't burn.";
       MessageApi.scene(commandGiver)
         .topic('act.deed')
         .toSelf(Mml.compose`${detail}`)
@@ -90,6 +92,12 @@ export default class IgniteController extends CommandController<IgniteModel> {
       });
       return;
     }
+
+    // ⭐ Lighting a burner STARTS its firing: what it sets up at the start
+    // (a clamp's channel, middle and skin) is fixed now, not when somebody
+    // later says `fire`. A clamp lit at noon and fired at dusk had burnt
+    // every brick to one middle body by then (ceramics drive A, run 38).
+    if (MixinApi.isBurner(ignitable)) await ignitable.onFireStart(commandGiver);
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')

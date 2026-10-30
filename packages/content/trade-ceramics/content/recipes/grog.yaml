@@ -1,0 +1,23 @@
+# ⭐ Grog (ceramics S7): sherds — any fired body — ground at the millstone
+# (`mill`/`grind`), the bone-meal shape. The wasters of one firing temper
+# the clay of the next.
+#
+# ⚠ The slot matches the material tag `fired`, which every fired body
+# carries, so a grinder grinds what of it they name; a whole pot is as
+# grindable as its sherds.
+recipeId: grog
+name: Grog
+keywords: [grog, chamotte, "grind sherds"]
+inputSlots:
+- slot: sherds
+  kind: item
+  category: fired
+  minGrade: poor
+  count: 1
+toolCapabilities:
+- millstone
+outputApplication: tangible
+outputTemplate: /trade/ceramics/thing/grog
+outputMaterial: ''
+difficulty: standard
+discipline: pottery

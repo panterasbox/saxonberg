@@ -1,0 +1,19 @@
+# The ash-glaze tub (ceramics S8, R1) — a COMPOUNDING vessel, not a recipe: put
+# wood ash in it with a little clay and water and `stir tub`, and the slurry
+# that comes out is an ash glaze by the vessel's name and its make-up by
+# what you weighed. `dip crock inside in ash tub` lays a coat; the kiln
+# fuses it. An ash glaze gives nothing to what a pot holds (M7).
+class: /platform/thing/GlazeTub
+data:
+  shortDescription: ash-glaze tub
+  # ⚠ Never bare `ash`: `put ash in ash tub` must bind the ASH to the ash.
+  keywords: [tub, "ash tub", "ash-glaze tub", "glaze tub"]
+  register: indefinite
+  longDescription: >-
+    A lidded oak tub crusted grey-green round the rim, a paddle across it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 15
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 40
+  productMaterial: /stuff/idea/material/glaze/ash

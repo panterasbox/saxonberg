@@ -104,13 +104,20 @@ export interface StockLine {
   buys?: boolean;
 }
 
-/** A line's authored source (`from:`); absent means an import. */
-export type StockFrom = { supplier: string } | { store: string };
+/**
+ * A line's authored source (`from:`); absent means an import.
+ *
+ * ⭐ `importBackstop` (ceramics D28): a supplied line may name a DEARER
+ * fallback — buy local first, and when the supplier's counter holds none,
+ * the reset sweep imports to par, priced at the base × this. An import is
+ * derivably *a good nobody here made*: it carries no maker.
+ */
+export type StockFrom = { supplier: string; importBackstop?: number } | { store: string };
 
 /** A line's source, decoded — the one switch every reader takes. */
 export type StockSource =
   | { kind: "import" }
-  | { kind: "supplier"; business: string }
+  | { kind: "supplier"; business: string; importBackstop: number | null }
   | { kind: "store"; store: string };
 
 /** What a counter answers when somebody sells it a good (`sell`). */
@@ -192,12 +199,14 @@ export default class Stock extends StockBase {
       }
       const from = raw?.from as Record<string, unknown> | undefined;
       if (from === undefined || from === null) continue;
-      const keys = Object.keys(from);
+      const keys = Object.keys(from).filter((k) => k !== "importBackstop");
       const ok =
         keys.length === 1 &&
         (keys[0] === "supplier" || keys[0] === "store") &&
         typeof from[keys[0]!] === "string" &&
-        (from[keys[0]!] as string).length > 0;
+        (from[keys[0]!] as string).length > 0 &&
+        (from.importBackstop === undefined ||
+          (keys[0] === "supplier" && typeof from.importBackstop === "number" && from.importBackstop >= 1));
       if (!ok) {
         throw new Error(`Stock.stockLines '${at}': from: names exactly one of supplier or store (got ${JSON.stringify(from)})`);
       }
@@ -208,7 +217,13 @@ export default class Stock extends StockBase {
   /** ⭐ The one decoding of a line's `from:`. */
   public sourceOf(line: StockLine): StockSource {
     const from = line.from;
-    if (from && "supplier" in from) return { kind: "supplier", business: from.supplier };
+    if (from && "supplier" in from) {
+      return {
+        kind: "supplier",
+        business: from.supplier,
+        importBackstop: typeof from.importBackstop === "number" ? from.importBackstop : null,
+      };
+    }
     if (from && "store" in from) return { kind: "store", store: from.store };
     return { kind: "import" };
   }
@@ -216,6 +231,20 @@ export default class Stock extends StockBase {
   /** The stock line for a template, or null. */
   public lineFor(itemTemplatePath: string): StockLine | null {
     return this.stockLines.find((l) => l.itemTemplatePath === itemTemplatePath) ?? null;
+  }
+
+  /**
+   * ⭐ The line a good is bought on: what it is MADE OF before the shape it
+   * came in, when its material names its own lump and the house lists that
+   * lump. Firing keeps a piece's identity (ceramics M1), so a cake of black
+   * salts calcined in the kiln is the same cake — and it is pearl ash now,
+   * and sells as pearl ash. Otherwise the good's own row.
+   */
+  public lineKeyFor(item: Stuff): string {
+    const material = MixinApi.isTangible(item) ? item.getMaterial() : null;
+    const lump = material?.getCastTemplate() ?? "";
+    if (lump !== "" && this.lineFor(lump) !== null) return lump;
+    return item.getTemplatePath() ?? "";
   }
 
   /** The supplied lines currently short of par — what the keeper's `stocks` beat buys. */
@@ -246,9 +275,38 @@ export default class Stock extends StockBase {
       const owed = this.termsPriceFor(key);
       return owed === null ? null : Math.round(owed * (1 + Stock.dial(AppSettingKeys.retailTermsMargin, 0.25)));
     }
-    if (line?.pricing !== "stocking" || line.par <= 0) return base;
+    const dearer = line !== null ? this.backstopFactor(line) : 1;
+    if (line?.pricing !== "stocking" || line.par <= 0) return Math.round(base * dearer);
     const e = Stock.dial(AppSettingKeys.retailStockingElasticity, 0.5);
-    return Math.max(1, Math.round(base * (1 + e * this.scarcityOf(line))));
+    return Math.max(1, Math.round(base * dearer * (1 + e * this.scarcityOf(line))));
+  }
+
+  /**
+   * ⭐ An import is dearer (ceramics D28): when every good of this line on
+   * the shelf is one nobody here made (no maker — the reset imported it),
+   * the line asks the backstop's multiple of its base. A local piece on
+   * the shelf sells at the base.
+   */
+  private backstopFactor(line: StockLine): number {
+    const src = this.sourceOf(line);
+    if (src.kind !== "supplier" || src.importBackstop === null) return 1;
+    const goods = this.offeredItems().filter((i) => i.getTemplatePath() === line.itemTemplatePath);
+    if (goods.length === 0) return 1;
+    const anyLocal = goods.some((g) => MixinApi.isCrafted(g) && g.getMaker() !== "");
+    return anyLocal ? 1 : src.importBackstop;
+  }
+
+  /** Does a supplier business's counter hold any of this good? Loaded on use. */
+  private async supplierHolds(business: string, itemTemplatePath: string): Promise<boolean> {
+    const supplier = await StuffApi.singleton(business).catch(() => null);
+    if (!supplier || !MixinApi.isBusiness(supplier)) return false;
+    for (const path of supplier.getOperatingLocations()) {
+      const live = StuffApi.findByTemplatePath(path);
+      if (live instanceof Stock && live !== (this as unknown as Stock)) {
+        if (live.onHand(itemTemplatePath) > 0) return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -381,6 +439,25 @@ export default class Stock extends StockBase {
     return this.lineForWord(keyword) !== null;
   }
 
+  /**
+   * ⭐ The counter in this place that sells `keyword`: this one when its
+   * lines carry it, else another `Stock` standing in the same place that
+   * does, else this one (whose refusal then names the good). A market
+   * square holds several stalls, and `buy water filter` went to whichever
+   * the binder found first and was told it "isn't for sale here" (the
+   * ceramics drive). The counter answers, not the controller.
+   */
+  counterFor(keyword: string): Stock {
+    if (this.carriesLine(keyword)) return this;
+    const self = this as unknown as Stuff;
+    const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+    if (here === null || !MixinApi.isContainer(here)) return this;
+    for (const other of here.getContents() as Stuff[]) {
+      if (other instanceof Stock && other !== this && other.carriesLine(keyword)) return other;
+    }
+    return this;
+  }
+
   /** The authored par depth for a line (by item template path). */
   parFor(itemTemplatePath: string): number {
     return (
@@ -419,7 +496,12 @@ export default class Stock extends StockBase {
       // D14): the keeper walks to the supplier and buys the shortfall on
       // terms. Only the import lines — goods nobody produces — come from
       // nothing.
-      if (src.kind === "supplier") continue;
+      if (src.kind === "supplier") {
+        // ⭐ …unless it names a backstop and the supplier has none to sell
+        // (ceramics D28): then the shelf is imported to par, dearer.
+        if (src.importBackstop === null) continue;
+        if (await this.supplierHolds(src.business, line.itemTemplatePath)) continue;
+      }
       // ⭐ A STORE-FED line is brought up from the store, never cloned.
       if (src.kind === "store") {
         await this.bringUp(line.itemTemplatePath);
@@ -485,7 +567,7 @@ export default class Stock extends StockBase {
    */
   public async buyFrom(seller: Stuff, item: Stuff & Containable): Promise<BuyFromOutcome> {
     const no = (reason: string, line: string): BuyFromOutcome => ({ ok: false, reason, line });
-    const path = item.getTemplatePath() ?? "";
+    const path = this.lineKeyFor(item);
     const line = this.lineFor(path);
     if (!line || line.buys !== true) return no("not-bought", "The house does not buy that.");
     const venue = (this as unknown as Stuff).getIdentityPath() ?? "";

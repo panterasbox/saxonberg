@@ -24,7 +24,7 @@ data:
     firebox beneath it, and a pipe off the crown of it bent over into
     whatever will take what comes out. The brick above the door is burnt
     to the colour of a new pot.
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/refractory
   mass: 2200
   fixedInPlace: true
   placements: [on]
@@ -33,7 +33,23 @@ data:
   # charcoal or coke in the firebox, because oak's flame tops out near
   # 1340 K and the starvation factor eats into that.
   burnTemperatureK: 1500
+  # ⭐⭐ A retort is SHUT (ceramics ruling A): its charge sits in a sealed
+  # iron or brick chamber with no air to burn in, so its completeness
+  # must stay below `fire.air.flamingCompleteness` (0.6) — at 0.3 it is
+  # ≈ 0.35, the wood and coal in it char and coke by their own
+  # transitions and nothing catches. Held ≈ 1500 × 0.84 ≈ 1260 K with
+  # charcoal in the firebox — still past coal's 1100 K reference. Open the
+  # draught wide and the charge catches and burns: a retort fired open.
+  draught: 0.3
   bellowsMultiplier: 1
   lit: false
   maxBurnPowerW: 14000
   fuelCapacityKg: 60
+  # ⭐ A lining of firebrick (ceramics D19): a part line that wears with
+  # every firing and is relined with `fit lining to <this>`. Its health
+  # sets the heat the chamber can hold; burnt through, it will not light.
+  bill:
+    parts:
+      - { part: lining, template: /stuff/thing/firebrick, count: 12, role: wear }
+    joints:
+      - { key: lining, method: dry-laid, members: [lining] }

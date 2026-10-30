@@ -23,5 +23,7 @@ data:
   spoilActivationEnergy: 60000
   waterActivity: 0.99
   toxicity: []
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 6.2
   tags: ["food", "dairy", "liquid", "perishable", "whey"]
   composition: []

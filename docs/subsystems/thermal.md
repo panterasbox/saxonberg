@@ -164,6 +164,120 @@ The census-ratchet `lint:reconcile-chains` holds the line: a new
 (a logout), but dead matter integrates its absence, which is what makes a
 fridge losing power for a week spoil its contents.
 
+### ⭐⭐⭐ Kinetics — a body carries what heat and time did to it (ceramics M1)
+
+Firing is ONE rule, and it lives here — and since 2026-10-28 it is the
+same rule as staling and inversion: the ceramics build's heat transitions
+and the sugar build's kinetics folded into ONE evaluator,
+`lib/material/Kinetics.ts` (`KineticChange`), read off the material row's
+`kinetics:` list. `ThermalMixin` keeps one persistent runtime record,
+`kineticRecord: KineticRecordData | null` (plain data; the arithmetic over
+it — progress, the dose-weighted atmosphere, the mass factor, the grade a
+table lowers to, the credits — is the `KineticRecord` value class in
+`lib/material/KineticRecord.ts`, B105; Thermal keeps the driver and the
+consequences on the host), and one private
+`reconcileKineticRecord()` called at the end of `reconcileThermal()` — after
+the phase pass, outside the reentry guard, under its own guard. It is
+**inert** (one material lookup that answers no) unless the body's material
+declares `kinetics`; a plate on a shelf never keeps a record, and a cold
+lump of limestone keeps none until it has been hot. `KineticMixin` retired
+into it: the change needs the good's own temperature trajectory, which is
+this mixin's, so the record is too.
+
+A change's **rate law** is one of two (`rate:` on the row):
+
+- **a dose to completion** — `rate: { referenceK, zK, fullDoseS }`, the
+  firing law below; it accrues only while the body is near its reference
+  heat (`referenceK − 3·zK`), and integrates from the body's own history;
+- **a point curve** — `rate: [[K, perHour]…]` with an `order` (0
+  accumulates, 1 turns what is left), negative for a reversal held at
+  `floor`; it runs at every temperature, and its clock starts at the good's
+  first read (staling and inversion — see
+  [spoilage.md](./spoilage.md#kinetics--what-a-substance-does-by-itself-over-time)).
+
+Everything else is either law's to use: a `ladder`, `grade` bands lost by
+extent (from the grade the clock started at), `words`/`senses` that `look`
+reads (the `ThermalMixin` markup augmenter), `massRetained`, `volatiles`,
+`scorchAboveK`/`scorched`, `agent`/`over` (a dose law's), `vapor`,
+`discipline`. A rung's material is a rung on a `ladder` — there is no
+top-level `becomes`, and the row says so loudly.
+
+For each dose-law change:
+
+- **dose** `+= ∫ 10^((T − referenceK)/zK) dt` off the body's OWN
+  `temperatureTrajectory` since `kineticRecord.checkedS` — so a brick nobody read
+  for three days is credited for three days (the trajectory contract above,
+  and the same integrand as `ThermalDose`);
+- **degree** `= min(1, dose/fullDoseS) · min(1, agent/optimum)`, the agent
+  read off the piece's OWN composition (`fractionOf(agent.material)`) — never
+  summed from neighbours (ruling B);
+- a **rung** is reached when the degree passes its `atDegree`: the piece's
+  MATERIAL swaps (its reducing twin when the dose-weighted burner
+  completeness sat below `thermal.heatWork.reducingBelow` — the dial keeps
+  its name: heat-work is the potter's word for the dose; the `over`
+  material when its agent is at or past `agent.over`; the `scorched`
+  material past `scorchAboveK`), its mass follows `raw · Π(1 − degree ·
+  (1 − massRetained))`, and its prose is restamped (the old material's name
+  swapped, or the rung's `describes` word put in front — never stacked);
+- **volatiles** leave as the degree rises: the holding `Burner` takes what
+  it can (`receiveVolatiles`, a `@hook` returning the litres taken, `0` by
+  default — a retort hands them to its receivers; B105, it was a duck
+  probe), and the rest goes into the air of the place;
+- standing in a `Mould` that is not its own cast, the piece instead hands
+  the mould a pool at the rung (`castInto`) and is destructed once the cast
+  exists (B105 — a cast that cannot be made leaves the charge, and is
+  logged) — the cast `adoptKineticRecord`s the record, so a cure keeps
+  grading as its degree rises;
+- `requiresStarvedAir` (pyrolysis) accrues only in a burner chamber below
+  `fire.air.flamingCompleteness` — the dial `FireLogic.mediumBurns` reads; a
+  `Burning` combustible accrues nothing.
+
+The changes read are the ORIGIN material's (`kineticRecord.origin`), so a clay
+keeps climbing through terracotta to stoneware. ⭐ The piece keeps its
+identity throughout: the same jug comes out of the kiln it went in. `fire`
+stamps `kineticRecord.firedBy`; a rung records its `discipline` in
+`kineticRecord.uncredited`, which `Burner.settleFiring` drains to the firer
+(`drainKineticCredits`, after `settleKinetics` awaits the casts) — an
+unwatched rung waits for whoever held the firing. Two stacks of different
+material, or fired differently, no longer merge (`Stackable.canMergeWith`).
+
+⚠ The ring is 24 breakpoints: a long burn re-stoked many times unread could
+lose its oldest stretch. The settle reads every body at the end of a hold.
+
+⚠ Ceramic heat-work is STEEP in temperature (an Orton cone drops ~20 K for a
+ten-times-longer soak), so `earth/clay` authors THREE transitions —
+terracotta, earthenware, stoneware — each with its own reference heat: time
+finishes the band you are in and cannot carry a terracotta firing to
+stoneware.
+
+**A molten pool keeps its composition** (ruling C): `BulkPayload.makeup`
+(one record with a drink blend's since ceramics re-plan R1) is seeded by
+`doMelt` from the melting piece's `getMakeup()`, folded by volume on every
+pour, and set
+back into a `Composition` cast at the freeze edge — so a green bottle remelted
+comes back green. `doMelt` pools into a vessel standing in the same chamber
+(empty, or holding the same material; never a mould) before it falls to the
+floor.
+
+### ⭐ Evaporation carries heat away (ceramics M8)
+
+A wet body in AIR sits below the air by what evaporation carries off:
+`evaporativeDepressionK(airK)` = wetness × (T_air − T_wetbulb) ×
+`thermal.evaporation.efficiency` (0.8), the wet-bulb from the one formula,
+`Evaporation.wetBulbK()` (ThermalRegulation's sweat reads it too). It is taken
+off the air on BOTH sides — the trajectory the pull side reads (each stretch
+shifted) and the ambient `restamp` resolves — because the day they disagree a
+wet jar is cool in one and not the other. `0` immersed in a bath, in a lit
+fire, in a shut cold box, or dry: air only. A vessel WEEPING a liquid through
+a porous body (see [faces.md](./faces.md)) counts its surface fully wet, which
+is the weeping jar: its water reads ≈ 6 K under a 300 K room at half humidity.
+⭐ Wet clothes and sweat are the next readers (recorded for exertion and
+textiles).
+
+A `Faced` body also fuses its wet coats on the same lazy read
+(`reconcileCoats`): the peak since the last look, never the lifetime's, so a
+glaze laid on a bisque is fused by a glost firing and not by the bisque's past.
+
 ### ⭐⭐ The cold twin — `holderK()` and a Coolbox
 
 The rule under `heatSourceK` was never about heat: **what HOLDS this
@@ -751,11 +865,17 @@ did (it calls `absorbIntoIce`), so a jug of water in a winter street
 never froze. It now runs for `Bulkable & Thermal` hosts too: the jug
 plateaus at the melting point, banks its latent heat, and empties into
 its material's cast. Safe twice over — a second pass at `T == mp` banks
-nothing, and the slot empties before the cast mints. ⚠ The engine banks
-the undershoot it FINDS at a read, not the heat extracted over the gap,
-so one long unread gap banks one cooling's worth (≈ 96 of the 334 kJ a
-litre needs); a watched jug freezes over a few reads. Pre-existing, and
-the melt shares it → thermal-slate. ⭐ The same driver sets molten metal
+nothing, and the slot empties before the cast mints. ⭐ **The freeze
+banks by TIME** (ceramics, 2026-10-22): it used to bank the undershoot it
+FOUND at a read, so one long unread gap banked one cooling's worth and a
+pool set only after several looks — a damp-blown flask of pewter sat
+liquid three game hours under one read (drive run 24). On the plateau a
+pool loses `C·(mp − amb)/τ` a second, and the reconcile drifted it as if
+nothing froze to `T = amb + (mp − amb)·e^(−t/τ)`; inverting that gives the
+heat from `T` alone, `C·(mp − amb)·ln((mp − amb)/(T − amb))` — the old
+`(mp − T)·C` for a short gap, everything once the pool has reached the air,
+and only the time after it reached `mp` for a pool that started above it.
+⚠ The MELT still banks per read → thermal-slate. ⭐ The same driver sets molten metal
 in a crucible or an ingot mould (the dairy build's moulds, which had
 narrowed an earlier freeze driver to non-`liquid` pools to spare tallow
 crocks — superseded by this one at the merge; see `mould.md`).
@@ -848,11 +968,20 @@ the powered cold source drives a `Bulkable` freeze (the ClimateControl
 content pass); a jug of water in a cold weather room does not freeze this
 build (`thermal-slate`).
 
-⚠ **Two meltwater edges are accepted limitations** (both → `thermal-slate`):
-(1) a solid melting inside a **floorless container** (a cooler, a freezer
-box) loses its litres — `doMelt`'s `findScopeFloor` returns null, so the
-solid destructs and the meltwater has nowhere to pool (the drama is
-spoilage, not puddles); (2) a cold **ROOM**'s own floor puddle does not
+⭐ **Where a melt goes is found BEFORE the solid is destroyed** (B105):
+the vessel holding it when it will take it (ice in a pail melts into the
+pail), else a pot standing beside it (a bottle in a kiln, ruling C), else
+the nearest floor walking outward (ice in a sack runs onto the floor the
+sack stands on). A walk that ends in a place with no floor (a water place,
+the open air) lets the melt join that place's medium. A solid standing
+nowhere throws `DetachedError` and stays solid. (It used to destruct first
+and look only for a floor in its immediate container, so ice in a pail, a
+sack or a cooler vanished.) The freeze's lump and the crystallize arm's
+crop check their place before the pool is touched, the same way, and a
+lump or crop row that will not mint throws (it was swallowed).
+
+⚠ **One meltwater edge is an accepted limitation** (→ `thermal-slate`): a
+cold **ROOM**'s own floor puddle does not
 re-freeze — the content phase pass drives a scope's loose contents, and a
 `Floor` is a fixture, not a loose content.
 
@@ -905,8 +1034,10 @@ for a Vessel outdoors — a thermal-slate item.
 The solidify edge of `reconcileBulkPhase` no longer always clones the
 material's `castTemplate` beside the vessel. It asks `MixinApi.isMould(v)`
 first: a **mould** keeps what set in it, in its own shape, inside it
-(`castInto`); any other vessel falls back to the material's fallback shape
-dropped beside it, exactly as before. Water's fallback is now
+(`castInto`); any other vessel falls back to the material's fallback shape,
+kept IN the vessel when it is a container (the temper pit's ice, which then
+thaws back into it — the ceramics finalize) and dropped beside it when it is
+not (a jug). Water's fallback is now
 `/stuff/thing/ice-lump` (*a lump of ice*); the ice pan is a mould and gives
 the squared `ice-block`. See [mould.md](./mould.md).
 
@@ -949,6 +1080,13 @@ passes under it.
   heat above the boil now turns liquid to steam at that latent heat and
   the liquid HOLDS at the boil while it lasts (the boil twin of
   `reconcileMelt`); a material with no latent heat still flashes.
+- ⭐⭐ **A boil concentrates** (ceramics, 2026-10-22). The steam is water,
+  so what is dissolved stays behind: each boiled-off step scales the
+  bulk's `dissolvedSolidsKgPerL` (or the material's own `solidsKgPerL`)
+  by `before ÷ after`. Before, the solids left with the volume, and brine
+  on the brine hearth never reached saturation — the crystallize arm
+  never fired. Boiling down is now the hearth's road to salt, as the sun's
+  evaporative window is the pan's.
 - ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, the
   `boil` verb retired to an alias of `heat`). While a vessel's contents
   sit on the boil plateau and their material names a `purifiedByBoiling`
@@ -987,6 +1125,51 @@ passes under it.
   - Rough scale: 4 kW delivered boils off ~5 L an hour. Silk's 12 L copper
     on a range now boils dry in about three hours unattended.
 
+## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8)
+
+`reconcileBulkPhase` has three arms, and the third fires at ANY temperature,
+so it runs first: **a solution sets crystals when it holds more than its
+material dissolves at its heat**, whether the water left (a salt pan in the
+sun) or the heat did (alum liquor cooling).
+
+- **The facts are the solution's.** `Material.solubility: [[K, kgPerL]…]`
+  (K ascending, piecewise linear, flat past the ends — `solubilityAt(T)`),
+  `crystallizesTo { product, residue }`, and `solidsKgPerL`, a fresh liter's
+  dissolved solids (sugar's accessor pair, copied). The bulk payload's
+  `dissolvedSolidsKgPerL` (sugar's declaration, verbatim, from this file) is
+  the running figure; absent, the material's own. A pour folds it by volume
+  (sugar's `BulkableLogic` hunk); the evaporative maturation window rescales
+  it as the volume falls (`Maturing.rescaleDissolvedSolids`) — the salt is
+  conserved, so a pan of sea water at 35 g/L saturates near a ninth of its
+  volume.
+- **The excess sets.** `(held − solubilityAt(T)) × L` kg of `product`: in a
+  mold, kept in its shape (`castInto`), and a crop already there of that
+  material GROWS rather than a second one minting; in any other vessel, the
+  product's own `castTemplate` beside it, grown the same way. The liquor
+  keeps its volume (a solute's share is small, and the volume is the
+  water's — the evaporative window moves it).
+- **The liquor left is saturated, and its fate is the one choice.** ⭐ While
+  the vessel is still CONCENTRATING it (a maturing host whose batch is
+  `active` — the pan the sun is working) it stays, its own material, so the
+  total crop is the same however often anybody reads the pan. Otherwise it
+  is SPENT: its material swaps to `crystallizesTo.residue` (brine →
+  bittern; alum and saltpeter liquors name themselves, the mother liquor
+  that goes back to the boil) and, in a mold standing on a vessel
+  (`Mould.drainsInto()`), it drains into that vessel ([mould.md](./mould.md)).
+- **The rows.** Sea water (`bulk/salt-water`: 0.035 kg/L; 0.316 → 0.329
+  kg/L freezing to boiling — salt barely cares about heat, which is why it is
+  made by taking the water away); `bulk/bittern`; the saltpeter liquor (0.9
+  kg/L; 0.127 → 1.04 — made by cooling) and `mineral/saltpeter`; trade-dyeing's
+  `alum-liquor` (0.6; 0.055 → 0.95) setting its `alum`. The `brine` profile's
+  product is the brine itself taken to 3 % of its volume, and the salt is
+  what that water could not keep; `food/salt`'s `castTemplate` is
+  `/stuff/thing/salt-crystals`.
+- ⚠ A cooling crystallization in a plain vessel (no maturing batch) sets and
+  spends at the first read past saturation; a liquor that names itself as
+  the residue keeps setting as it cools further, so the crop is still whole.
+  Sugar's staged boil (`concentrateIfReached`) is the boil arm's sibling and
+  lands after this arm at the merge.
+
 ## Note — the potash build (2026-10-19)
 
 The second consumer of the latent-heat boil plateau: lye authors
@@ -995,3 +1178,15 @@ loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
 keeps a pack-local count of the alkali across the boil-off and casts black
 salts when dry; it converges on the sugar build's solids-keeping plateau and
 is deleted then (`potash-on-sugar`, [potash.md](potash.md)).
+
+## Thermal shock is Integrity's judgment (B105)
+
+Thermal reports the heat: a step (`setContentsTemperature` past 5 K) and
+the steepest rate since the last look, off the body's own curve. How a
+brittle body answers is `IntegrityMixin`'s, as an impact is:
+`thermalShockToleranceK()` (`impact.shockStrain ÷ α`, raised by porosity
+and grog — a refractory body counts as grog-opened — lowered by a glaze)
+and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
+twice past a crack). It was two private Thermal methods until the
+ceramics review.
+

@@ -8,7 +8,6 @@
  */
 
 import { MixinApi } from '../../api/mixin';
-import { LocomotionApi } from '../../api/locomotion';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mobile } from '../spatial/Mobile';
 import type { Containable } from '../spatial/Containable';
@@ -44,7 +43,7 @@ export const brain = class {
     const exit = pool[Math.floor(Math.random() * pool.length)];
     if (!exit) return;
     // A refused step (blocked, mode-gated) holds position; next tick
-    // tries again.
-    await LocomotionApi.traverseWithDefault(mob, exit);
+    // tries again. ⭐ The way its body steps (`ctx.go`, B107).
+    await ctx.go(exit.getDirection());
   }
 } satisfies BrainStatics;

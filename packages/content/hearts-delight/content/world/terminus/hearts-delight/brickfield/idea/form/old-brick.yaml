@@ -1,0 +1,13 @@
+# The old mould's `brick` (ceramics S11, W6) — the valley's first
+# brickmakers cut their mould before the realm had a statute, and a good
+# deal bigger: the same word, the same row, a bigger brick. A brick off it
+# reads OFF STANDARD at `measure size` — which is the whole reason a
+# statute exists.
+class: /platform/idea/Form
+data:
+  key: brick
+  formClass: block
+  capacityL: 0
+  product: /trade/ceramics/thing/brick
+  greenScale: 1.6
+  discipline: brickmaking

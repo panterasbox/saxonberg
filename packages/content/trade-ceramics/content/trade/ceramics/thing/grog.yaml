@@ -1,0 +1,12 @@
+# A sack-lump of grog — sherds ground at the millstone (ceramics S7).
+class: /trade/ceramics/thing/Grog
+data:
+  shortDescription: lump of grog
+  keywords: [grog, grit, lump, chamotte]
+  register: indefinite
+  longDescription: >-
+    A heap of coarse reddish grit — fired clay ground down, ready to be
+    kneaded into a fresh clay to open it.
+  _materialPath: /trade/ceramics/idea/material/grog
+  mass: 0.5
+  quantity: 1

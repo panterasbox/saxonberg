@@ -13,7 +13,7 @@ import Good from '../../stuff/Good';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
-import { WaterActivityMixin } from '../../material/WaterActivity';
+import { MoistureMixin } from '../../material/Moisture';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { CombustibleMixin } from '../Combustible';
 import { FireApi } from '../../../api/fire';
@@ -37,11 +37,11 @@ class Firewood extends CombustibleMixin(
 }
 
 /**
- * A fuel that also carries its own water — the turf shape. `WaterActivityMixin` over
+ * A fuel that also carries its own water — the turf shape. `MoistureMixin` over
  * `Combustible`, no `Wet`: a turf cut out of a bog is not *wet on the
  * outside*, it is nearly all water all the way through.
  */
-class Turf extends WaterActivityMixin(
+class Turf extends MoistureMixin(
   CombustibleMixin(ThermalMixin(ReservedMixin(Good))),
 ) {
   static _mixinName = 'TestTurf';

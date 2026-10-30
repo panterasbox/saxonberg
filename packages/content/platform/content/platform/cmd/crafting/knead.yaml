@@ -1,0 +1,39 @@
+verbs: [knead]
+controller: /platform/idea/cmd/crafting/KneadController
+description: "Work a plastic mass by hand until it comes together"
+help: |
+  `knead` works what is in a trough, a tub or a pit with both hands until
+  it comes together. ⭐ The VESSEL decides what that means:
+
+  - **a baker's trough** develops a dough's gluten — wheat flour's two
+    proteins, worked with water, link into the elastic sheet that traps a
+    leaven's gas. Barley flour kneads into something edible and flat.
+  - **a mixing vessel** (a rubber works' tub, a temper pit) folds what is
+    in it into one blend, its make-up the inputs' by mass. Nothing is a
+    recipe: a little more sulfur in the tub is a harder rubber, a little
+    more sand in the clay a leaner one.
+
+  `stir` is the same act for a slurry, a powder or a liquid.
+
+  ⚠ Both hands are in it. Kneading is work.
+examples:
+  - cmd: knead
+    note: Work whatever you are standing at
+  - cmd: knead tub
+    note: Mill what is in the mixing tub into one compound
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: vessel
+    type: object
+    required: false
+    scope: ["reachable"]
+    # ⭐ Bare `knead` works the trough or tub you are at — DECLARED, so the
+    # binder resolves it (`lint:instrument-args`). A union of the two
+    # shipped kinds of knead vessel (a build vessel, a compounding one).
+    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
+    # ⚠ `any`, narrowed by the controller: a knead vessel
+    # (`KneadVesselMixin`) is asked for its plan, and anything else the
+    # default bound (a shaker) is refused in the controller's own words.
+    requires: any

@@ -1,0 +1,21 @@
+# clay — a reading channel: what a clay IS, read off it by hand and eye.
+#
+# ⭐ A clay is a composition (ceramics M3) and a brickmaker reads it the way
+# they always have: roll a worm of it and see whether it cracks (fat or
+# lean), look at its colour (iron), rub it (sand), spit on it and watch for
+# fizz (lime). No instrument — competence resolves the DETAIL.
+class: /trade/ceramics/idea/reading/ClayReading
+data:
+  channel: clay
+  kind: fact
+  scope: [subject]
+  subjectRequires: [CompositionMixin]
+  discipline: brickmaking
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    whether a clay will throw, how it will dry, what colour it will fire
+    and how much heat it will stand
+  stakes: >-
+    a day's bricks cracked on the hacks, a kiln of the wrong colour, a
+    lining that slumps

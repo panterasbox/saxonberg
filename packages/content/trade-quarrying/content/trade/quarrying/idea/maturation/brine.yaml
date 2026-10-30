@@ -10,10 +10,10 @@
 #     ⭐ Which is the whole lesson: 85 % air will still dry a ham and will not
 #     concentrate a brine, so solar salt is a dry-climate industry and a wet
 #     week is a setback. Nobody had to write that down as a rule.
-#  2. **The batch gets smaller**, because the water leaves. `productFraction`
-#     0.1 — sea water is about 3.5 % salt by mass and rather more by the
-#     volume a wet crust occupies, so a tenth is the right order and the
-#     number is a ROW, which means a brine spring can be stronger and say so.
+#  2. **The batch gets smaller**, because the water leaves, and the salt in
+#     it is CONSERVED (the dissolved figure rescales by volume): sea water at
+#     3.5 % saturates near a ninth of its volume, and the pan works on down
+#     to `productFraction` 0.03, setting salt all the way.
 #  3. ⭐ **Rain puts it back**, through the pan's own mouth, and `f` goes
 #     *down*. A setback, never a death.
 #
@@ -36,8 +36,14 @@ data:
   happyK: 283
   damageAboveK: 400
   ratePerDay: 0.25
-  productMaterial: /stuff/idea/material/food/salt
-  productFraction: 0.1
+  # ⭐⭐ (ceramics S17, W8) The profile no longer TURNS the brine into salt:
+  # it takes the water, and the salt sets itself when the brine holds more
+  # than it can (sea water's `solubility` — the phase engine's crystallize
+  # arm). So the product is the brine itself, taken down to its last few
+  # per cent — about the bittern a real pan leaves — and the crop is
+  # whatever salt that much water could not keep.
+  productMaterial: /stuff/idea/material/bulk/salt-water
+  productFraction: 0.03
   turnedMaterial: null
   sealedOnly: false
   leesFraction: 0

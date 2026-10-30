@@ -14,6 +14,7 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { HorizonNews } from '@saxonberg/server/mud/lib/perception/HorizonWatch';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { brain } from '../keeps-watch';
+import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
 
 const HOUSE = '/t/ship/outfit';
 let job: { positionKey: string; status: string } | null;
@@ -32,6 +33,7 @@ function ctx(): BrainContext {
     trigger: { source: 'cadence', raw: 'cadence:30s' },
     say: (t: string) => { said.push(t); },
     emote: async () => {},
+    ...new BrainMoves(host, {}).members(),
     emoteFree: () => {},
   };
 }

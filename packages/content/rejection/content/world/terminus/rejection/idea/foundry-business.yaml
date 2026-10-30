@@ -1,0 +1,22 @@
+# The foundry (ceramics W7, D29) — the house that casts what the smelter
+# makes: bells, tokens, pots, the brass a locksmith needs. One seat, the
+# founder's, at real hours.
+class: /platform/idea/Business
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/rejection/agent/founder
+  positions:
+    - key: founder
+      noun: founder
+      label: ramming flasks and pouring at the foundry
+      wageRate: 6
+  rosterSlots:
+    - positionKey: founder
+      assignee: /world/terminus/rejection/agent/founder
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/rejection/location/foundry
+    - /world/terminus/rejection/location/foundry-yard

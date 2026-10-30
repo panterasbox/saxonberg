@@ -13,3 +13,6 @@ data:
   interiorCapacity: 2
   interiorMaterial: /stuff/idea/material/food/levain
   interiorAmount: 1
+  # ⭐ (ceramics S1) What it is fired from — a body, not a description.
+  _materialPath: /stuff/idea/material/ceramic/stoneware
+  mass: 2.0

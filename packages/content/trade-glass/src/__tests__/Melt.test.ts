@@ -37,7 +37,7 @@ function melt(tempK: number, kg = 2): Melt {
   m.setMass(Quantity.of(kg, "kg"));
   m.setStampedTemperatureK(tempK);
   m.setLastAmbientK(tempK); // equal ambient → holds its temperature
-  m.setAlloying([{ materialPath: IRON, fraction: 0.004 }]);
+  m.setMakeup([{ materialPath: IRON, fraction: 0.004 }]);
   return m;
 }
 

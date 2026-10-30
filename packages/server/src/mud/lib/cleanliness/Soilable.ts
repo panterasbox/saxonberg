@@ -639,6 +639,11 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       // Effort: a scrub (3) does more than a dip (1); never a full clean
       // on time alone.
       const fEffort = Math.min(1.6, 0.7 + 0.3 * Math.max(0, spec.effort));
+      // ⭐ (ceramics M6) A crazed coat or a bare porous body holds what it
+      // was soiled with — and a fat (`absorbedBy`) soaks INTO a porous
+      // face, so a wash lifts less of it. A sound glaze wipes clean.
+      const host = this as unknown as Stuff;
+      const resist = MixinApi.isFaced(host) ? Math.max(1, host.cleansAs()) : 1;
       for (const kind of this.soilKinds(site)) {
         const row = this.dirtKind(kind);
         const setsAt = row?.setsAboveK ?? null;
@@ -657,7 +662,10 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         const water = set ? 0.02 : (row?.waterLifts ?? 0.3);
         const helped = actions.some((a) => answers.includes(a));
         const base = helped ? Math.max(water, 0.9) : water;
-        const fraction = clamp01(base * fT * fEffort * (helped ? fHard : 1));
+        const soaked = row?.absorbedBy === true && resist > 1 ? 2 : 1;
+        const fraction = clamp01(
+          (base * fT * fEffort * (helped ? fHard : 1)) / (resist * soaked),
+        );
         const got = this.removeSoil(kind, fraction, site);
         if (got > 0) removed[kind] = got;
       }

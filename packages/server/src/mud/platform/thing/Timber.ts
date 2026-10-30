@@ -23,7 +23,8 @@
 
 import Good from './Good';
 import { StackableMixin } from '../../lib/stuff/Stackable';
-import { SeasoningMixin } from '../../lib/maturation/Seasoning';
+import { SeasoningMixin } from '../../lib/material/Seasoning';
+import { MoistureMixin } from '../../lib/material/Moisture';
 import { ConstructedMixin } from '../../lib/material/Constructed';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { DurableMixin } from '../../lib/material/Durable';
@@ -40,7 +41,7 @@ import type { CommandContributions } from '../../api/command';
 // sound one (the `constructionForm` precedent). Not Assembled: a stack of
 // staves is stock, not a whole — it goes INTO a thing of parts.
 const TimberBase = SeasoningMixin(
-  StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good)))),
+  MoistureMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))),
 );
 
 export default class Timber extends TimberBase {
@@ -96,7 +97,39 @@ export default class Timber extends TimberBase {
     constructionForm: { persistent: true, authorable: true, stackIdentity: true },
     // A worn haft and a sound one are not the same stock.
     condition: { persistent: true, runtimeState: true, stackIdentity: true },
+    // A quarter-sawn board and a through-sawn one do not merge. ⭐ How wood
+    // was CUT is wood's, not seasoning's (B98: a bar of soap seasons too).
+    quarterSawn: { persistent: true, runtimeState: true, authorable: true, stackIdentity: true },
+    // ⭐ A face wide enough to cup across — a board. Authored on the row; a
+    // part carved FROM a board does not carry it (a dowel cannot cup),
+    // which is why it is a field and not derived from the form.
+    wideFace: { persistent: true, authorable: true },
   };
+
+  public quarterSawn = false;
+  public wideFace = false;
+
+  /** Was it quarter-sawn (cut radially — stabler, fewer boards)? */
+  public isQuarterSawn(): boolean {
+    return this.quarterSawn;
+  }
+
+  /** Is its face wide enough to cup across — a board? Authored. */
+  public isWideFace(): boolean {
+    return this.wideFace === true;
+  }
+
+  /**
+   * Has it CUPPED — a flat-sawn (through-sawn) piece that has dried, its
+   * face gone hollow across the width because the rings run across it and
+   * wood shrinks more along a ring than through one. Derived, never
+   * stored: a WIDE face (a board; a dowel or a haft has no width to cup
+   * across), sawn, not quarter-sawn, and seasoned.
+   */
+  public override isCupped(): boolean {
+    if (!this.wideFace || this.quarterSawn || !this.isSeasoned()) return false;
+    return this.getConstructionForm() === 'sawn';
+  }
 
   /**
    * ⭐ A part in reach makes `fit` sayable beside it (the raise arm — `fit

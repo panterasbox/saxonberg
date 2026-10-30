@@ -1,0 +1,11 @@
+# A bar of tin — bronze's other half, and the potter's white: a little in a
+# lead glaze makes it opaque (ceramics S8). An import.
+class: /platform/thing/Ingot
+data:
+  shortDescription: bar of tin
+  keywords: [tin, bar, ingot, "bar of tin", "tin bar"]
+  register: indefinite
+  longDescription: >-
+    A bright silvery bar that creaks faintly when you bend it — the tin cry.
+  _materialPath: /stuff/idea/material/element/tin
+  mass: 1

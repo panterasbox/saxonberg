@@ -23,7 +23,7 @@ hopper's, the pot's and the kiln's.
 | leach | `put ash in hopper`, `pour pail into hopper` | strength derived at the fill; heaps leave **spent ash**; a lye poured back through fresh ash is a second pass | `Hopper.matchProfile` / `leach` |
 | read | `analyze density hopper` (an egg in reach) | the **egg** is the density reading's eye rung; the glass words a lye too | `DensityReading`, `LyeStrength` |
 | boil | `pour pail into pot`, a fire under it | the kernel's latent-heat **plateau**; the pot keeps count of the alkali and casts the cake when dry | `IronPot` |
-| calcine | `put cake in kiln`, `fire kiln` | the `calcine` recipe; the firing concentrates what it keeps and grades by its worst input | `FireController` |
+| calcine | `put cake in kiln`, `fire kiln` | the black salts' own `calcine` heat transition (ceramics M1 — no recipe); the same cake comes out, made of pearl ash, its potash concentrated | `ThermalMixin` heat-work |
 | sell | `sell "pearl ash"` | buying lines at the glasshouse board and the chandlery counter | `Stock.buyFrom` |
 
 ## The numbers (grain — an author's)
@@ -49,8 +49,12 @@ hopper's, the pot's and the kiln's.
 - **The boil.** Lye authors `latentHeatOfVaporization 2260000`, so it holds
   at the boil and loses water instead of flashing empty. Cake = alkali ÷
   0.65 purity, in the pot's shape, graded as the lye was.
-- **Pearl ash.** `calcine`: 900 K, `massYield 0.8` — the purity
-  concentrates 0.65 → ~0.81, the cake's grade rides on.
+- **Pearl ash.** `calcine` on the black-salts row: 900 K, `massRetained
+  0.8` — the purity concentrates 0.65 → ~0.81 (a heat transition keeps its
+  constituents in less mass), and the cake keeps its grade and its owner
+  because it is the same cake. `pearl-ash` is a MATERIAL whose `castTemplate`
+  is the pearl-ash row, so a counter listing that row buys the calcined cake
+  as pearl ash (`Stock.lineKeyFor`, the ceramics × potash merge).
 
 ## Tags
 

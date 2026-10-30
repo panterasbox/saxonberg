@@ -802,6 +802,14 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       } finally {
         this._reconcilingFerment = false;
       }
+      // ⭐ The liquor may have got stronger, so ask — AFTER the volume and the
+      // dissolved figure have both settled — whether it is past what it can
+      // hold: crystals set as the water leaves, not when somebody happens to
+      // read the pan's heat. Without this a salt pan drew down for sixty
+      // days and never cropped (the ceramics drive): the crystallize arm
+      // rides the thermal phase pass, and nothing read the pan's temperature.
+      const host = this as unknown as Stuff;
+      if (MixinApi.isThermal(host) && MixinApi.isBulkable(host)) host.reconcilePhase();
     }
 
     // ---------- reads (each drives the reconcile) ----------
@@ -1416,6 +1424,13 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       this.applyBatchGrade();
       this.fractionConverted = f;
+      // ⭐ (ceramics W8) The solids stay as the water leaves (or rain comes
+      // in): the dissolved figure rescales by volume, so a pan of sea water
+      // reaches its salt's saturation and the phase engine sets the crystals.
+      this.rescaleDissolvedSolids(
+        amountL,
+        f >= 1 ? startL * profile.getProductFraction() : startL * (1 - f * shrink),
+      );
 
       if (f >= 1) {
         this.maturationPhase = 'finished';
@@ -1432,6 +1447,23 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (want >= 0 && Math.abs(want - amountL) > 1e-9) {
         self.setBulkAmount('interior', Quantity.of(want, 'L'));
       }
+    }
+
+    /**
+     * The batch's dissolved solids, rescaled from `fromL` liters to `toL`
+     * (the solute conserved). Inert for a liquid with no solids figure.
+     */
+    private rescaleDissolvedSolids(fromL: number, toL: number): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !(fromL > 0) || !(toL > 0)) return;
+      const payload = self.getBulkPayload('interior');
+      const held =
+        payload?.dissolvedSolidsKgPerL ?? self.getBulkMaterial('interior')?.getSolidsKgPerL() ?? 0;
+      if (!(held > 0) || Math.abs(toL - fromL) < 1e-12) return;
+      self.setBulkPayload('interior', {
+        ...(payload ?? {}),
+        dissolvedSolidsKgPerL: (held * fromL) / toL,
+      });
     }
 
     private reconcileCultureWindow(

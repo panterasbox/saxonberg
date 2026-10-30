@@ -20,3 +20,16 @@ data:
   cleanser: /trade/potash/idea/Cleanser/potash
   composition: []
   biologicalSource: null
+  # ⭐⭐ Calcining is the ONE firing rule (ceramics M1), not a recipe: a cake
+  # held at a red heat burns its char and water out and whitens to pearl
+  # ash, keeping 80 % of its mass — and its potash, which concentrates in
+  # what is left (0.65 → ~0.81). The same cake comes out of the kiln it went
+  # in, whose it was and graded as it was (potash D12).
+  kinetics:
+    - key: calcine
+      rate: { referenceK: 900, zK: 60, fullDoseS: 3600 }
+      massRetained: 0.8
+      discipline: ashery
+      ladder:
+        - atDegree: 1
+          becomes: /trade/potash/idea/material/pearl-ash

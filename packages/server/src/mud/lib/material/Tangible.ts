@@ -54,6 +54,46 @@ import { FieldChangedEvent } from '../events/FieldChangedEvent';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import type { MaterialSummary } from '@saxonberg/types';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import { TemplatePaths } from '../paths';
+import type { ImpressionData } from '../mould/Impression';
+import type { MarkupAugmenter } from '../../api/mml';
+
+/** One numeric dial read, falling back to the literal when unseeded. */
+function tangibleDial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw == null || raw === '') return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+
+
+/**
+ * ⭐ Whose a thing is, for an impression's provenance: whose name is on it
+ * (the chattel stamp), else who made it, else — a living body — itself.
+ */
+function provenanceOf(pattern: Stuff): string {
+  if (pattern.isAgent()) return pattern.getIdentityPath() ?? '';
+  if (MixinApi.isChattel(pattern)) {
+    const owner = pattern.stampedOwner();
+    if (owner && owner.kind !== 'group') return owner.templatePath;
+  }
+  if (MixinApi.isCrafted(pattern)) return pattern.getMaker();
+  return '';
+}
+
+/** The name an identity goes by in the world now, or `''`. */
+function presentNameOf(identity: string): string {
+  if (!identity) return '';
+  const who = StuffApi.findByTemplatePath<Stuff>(identity);
+  return who ? who.getPresentation() : '';
+}
 
 /**
  * Build the minimal Material wire summary — identity + display
@@ -114,6 +154,32 @@ export interface Tangible {
    * runtime API.
    */
   setMass(value: Quantity<'kg'>): void;
+
+  /**
+   * ⭐ The temperature (K) at which THIS piece catches, or 0 when its
+   * material never burns: the material's autoignition point raised by
+   * {@link getWetIgnitionPenaltyK}. A soaked board survives a pour that
+   * would ignite a dry one.
+   */
+  getIgnitionPointK(): number;
+  /**
+   * ⭐ The ONE held-water ignition formula: the extra temperature (K) the
+   * water this piece holds raises its ignition threshold by. Surface
+   * wetness (a log left in the rain) and the matter's own water (a turf
+   * cut from a bog) add. Mass-independent: the fuel mass cancels between
+   * the water-boil energy and the thermal capacity. `stoke`, `ignite`, a
+   * pour and a firing chamber all read this.
+   */
+  getWetIgnitionPenaltyK(): number;
+  /**
+   * @hook ⭐ The shape this leaves pressed into something soft (ceramics
+   * M9, D21): its kind, its volume, how it reads, whose it is — and what
+   * the shape carries because the shape IS the function (a key's wards).
+   * Never its identity. A living body leaves a LIKENESS. `null` when there
+   * is no shape a mould could hold. A carved pattern overrides it with the
+   * impression it was cut to.
+   */
+  leaveImpression(nowS: number): ImpressionData | null;
 }
 
 export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -447,6 +513,92 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           }),
         );
       }
+    }
+
+    public leaveImpression(nowS: number): ImpressionData | null {
+      const self = this as unknown as Stuff;
+      const takenFromIdentity = provenanceOf(self);
+      const name = self.getPresentation();
+      if (self.isAgent()) {
+        // ⚠⚠ A face is a LIKENESS (ceramics M9): a mask of how it looked,
+        // and nothing in the world will take it for the person. No belief
+        // is written here or anywhere a cast of it goes.
+        return {
+          kindPath: TemplatePaths.likeness,
+          volumeL: 0.4,
+          formDescription: `the face of ${name}`,
+          partsDescription: 'a brow, the set of the mouth, the shut eyes',
+          takenFromIdentity,
+          takenFromName: name,
+          takenAtS: nowS,
+          carried: {},
+        };
+      }
+      const density = this.getMaterial()?.getDensity().rawValue() ?? 0;
+      const massKg = this._mass.rawValue();
+      const kindPath = self.getTemplatePath();
+      if (!kindPath || !(density > 0) || !(massKg > 0)) return null;
+      const carried: ImpressionData['carried'] = {};
+      // ⭐ A key's wards ARE its shape: a cast of it turns the same lock. A
+      // keycard's function is a chip, not a shape, so it carries nothing.
+      if (MixinApi.isCredentialWallet(self)) {
+        const keys = self
+          .getCredential('key')
+          ?.getKeys()
+          .filter((k) => k.technology !== 'keycard');
+        if (keys && keys.length > 0) carried.keys = keys.map((k) => ({ ...k }));
+      }
+      // Something standing out of the body — a guard, a handle — will not
+      // draw out of a one-piece rigid mould.
+      const parts =
+        MixinApi.isAssembled(self) ? (self.getBill()?.parts ?? []).map((l) => l.part) : [];
+      return {
+        kindPath,
+        volumeL: (massKg / density) * 1000,
+        // `getPresentation` already carries its article (`an arming sword`).
+        formDescription: name,
+        partsDescription: parts.join(', '),
+        takenFromIdentity,
+        takenFromName: presentNameOf(takenFromIdentity),
+        takenAtS: nowS,
+        carried,
+        undercut: parts.length > 1,
+      };
+    }
+
+    public getIgnitionPointK(): number {
+      const mat = this.getMaterial();
+      const base = mat === null ? 0 : mat.getAutoignitionTemperature().rawValue();
+      if (!(base > 0)) return 0;
+      return base + this.getWetIgnitionPenaltyK();
+    }
+
+    public getWetIgnitionPenaltyK(): number {
+      const mat = this.getMaterial();
+      if (mat === null) return 0;
+      const capacityFraction = mat.getWaterAbsorptionCapacity().rawValue() / 100;
+      if (capacityFraction <= 0) return 0;
+      const c = mat.getSpecificHeat().rawValue();
+      if (c <= 0) return 0;
+      const self = this as unknown as Stuff;
+      let held = 0;
+      if (MixinApi.isWet(self)) {
+        const saturation = self.getWetness();
+        if (saturation > 0) held += saturation;
+      }
+      if (MixinApi.isMoist(self)) {
+        // Above the `dried` band the fuel still carries its own water; at or
+        // below it, it is dry fuel and contributes nothing.
+        const driedAt = tangibleDial(AppSettingKeys.cureBandDriedAt, 0.5);
+        const span = 1 - driedAt;
+        if (span > 0) {
+          const own = (self.getMoisture() - driedAt) / span;
+          if (own > 0) held += own > 1 ? 1 : own;
+        }
+      }
+      if (held <= 0) return 0;
+      const lVap = tangibleDial(AppSettingKeys.fireIgnitionWaterLatentHeatJPerKg, 2260000);
+      return (held * capacityFraction * lVap) / c;
     }
   };
 }

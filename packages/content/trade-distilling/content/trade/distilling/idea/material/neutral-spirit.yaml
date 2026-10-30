@@ -10,6 +10,8 @@ data:
   keywords: [spirit, "neutral spirit", neutral]
   appearance: "a water-clear spirit with a hot, empty nose"
   density: 940
+  # One serving, kg (the unit of its label and its dose): a 120 ml measure — the vermouth and compound-gin charge at 940 kg/m³.
+  servingKg: 0.1128
   thermalConductivity: 0.17
   specificHeat: 2400
   edibility: true

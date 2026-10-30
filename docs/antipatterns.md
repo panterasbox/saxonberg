@@ -6230,3 +6230,28 @@ command id.
 The per-reload type-check (2026-10-21) shipped this way first. Its
 background verdict never arrived, a controller test could not see it,
 and the live drive did. See `ReloadController`'s `verdictOf`/`tellGiver`.
+
+## ⛔⛔ A silent skip in front of a write, or a swallowed mint
+
+**Don't:** `if (scope === null) return;` before a write, or
+`.catch(() => {})` / `catch { return null; }` around a clone, so a thing
+standing nowhere, or a row that will not mint, quietly loses what it was
+about to make.
+
+**Do:** sort the failure first. The world says no → a **refusal** the
+object returns and the controller words. A read finds nothing → **skip**
+(empty, false). Code or content asked the impossible (a write with no
+place, a row that does not exist) → **throw** a typed error
+(`DetachedError`, `TypeError`), CHECKED BEFORE ANY CHANGE, and let the
+guarded roots report it. Never invent a fallback place. Where a write runs
+inside a read and nothing can await it, catch and SAY it rather than leave
+an unhandled rejection.
+
+**Why.** A silent skip, once it is in the tree, becomes the pattern
+everything copies. The ceramics review found ice in a pail or a sack that
+VANISHED when it melted (the melt was destroyed first, then looked for a
+floor), a cast whose failed mint was a console warning after its pool was
+already emptied, and crystals that left their liquor for no place. The
+policy is [spatial.md § Writes on a detached subject](./subsystems/spatial.md);
+the remaining guards are counted by the
+[silent-write-census slate](./slates/tails/silent-write-census-slate.md).

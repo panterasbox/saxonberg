@@ -41,3 +41,11 @@ data:
   # and wants charcoal or coal to reach its 1500 K ceiling at all.
   maxBurnPowerW: 30000
   fuelCapacityKg: 200
+  # ⭐ A lining of firebrick (ceramics D19): a part line that wears with
+  # every firing and is relined with `fit lining to <this>`. Its health
+  # sets the heat the chamber can hold; burnt through, it will not light.
+  bill:
+    parts:
+      - { part: lining, template: /stuff/thing/firebrick, count: 24, role: wear }
+    joints:
+      - { key: lining, method: dry-laid, members: [lining] }

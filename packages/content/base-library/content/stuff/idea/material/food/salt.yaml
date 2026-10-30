@@ -37,5 +37,13 @@ data:
   toxicity:
     []
   tags: ["solid", "food", "salt", "seasoning"]
+  # ⭐ Thrown into a kiln at its peak, salt becomes VAPOR in the chamber's
+  # air (ceramics ruling B) — and a stoneware body reaching its rung under
+  # it takes a salt-glaze coat. Sodium chloride's vapor pressure is real
+  # well below its 1738 K boil; a salt-glaze kiln runs ~1350 K.
+  vaporizesAboveK: 1350
+  # ⭐ What salt setting out of a brine looks like when no mold keeps it
+  # (ceramics S17): a crust of crystals beside the vessel it set in.
+  castTemplate: /stuff/thing/salt-crystals
   composition: []
   biologicalSource: null

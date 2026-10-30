@@ -19,7 +19,7 @@ whole subject.**
 
 And a third fact, which is about the matter rather than about anything
 living in it: how much water is actually available to grow in. That is
-`WaterActivityMixin`, and it is what drying and salting change.
+`MoistureMixin`, and it is what drying and salting change.
 
 Every `Provision` carries all three, and they are three different
 questions about one cut of meat: *what is growing in it on its own*,
@@ -38,7 +38,7 @@ senses, knowable by procedure.**
 
 Source: `lib/material/Freshness.ts` (the spoilage mixin + the shared
 arithmetic), `lib/material/Contaminable.ts` (the silent population),
-`lib/material/WaterActivity.ts` (the water state), `lib/material/Material.ts`
+`lib/material/Moisture.ts` (the water state), `lib/material/Material.ts`
 (the two tabulated constants), the `freshness.*` / `cure.*` dials in
 `lib/config/AppSettings.ts` and their seeds in the platform pack's
 `content/settings/`. The pathogen roster is authored as `Condition` rows
@@ -297,7 +297,7 @@ unaffected by its arrival.
 
 Each gauge declares its **own** payload field from its own module —
 `freshness` from `Freshness.ts`, `pathogens` + `pathogenStamp` from
-`Contaminable.ts`, `moisture`/`solute` from `WaterActivity.ts` — rather than
+`Contaminable.ts`, `moisture`/`solute` from `Moisture.ts` — rather than
 sharing one `{ load, stamp }`. A shared shape could not hold the
 pathogens' per-organism map, and per-module declaration is what lets the
 pour blend and the material shadow keep working as each subsystem adds a
@@ -502,8 +502,8 @@ the way (`refreshFloor`), and only so many times before it is a rusk.
 **Where it lives — kinetics (since the sugar build, 2026-10-24).**
 Staling is the bread MATERIAL's **kinetics**: a `kinetics:` change keyed
 `staling` on `bread.yaml` (and `dog-bread.yaml`), run by the kernel's
-`KineticMixin` (`lib/material/Kinetic.ts`), which `Provision` composes
-beside `FreshnessMixin`. So a loaf spoils AND stales, on two gauges that
+`ThermalMixin` (its kinetic record — `KineticMixin` folded into it,
+2026-10-28), which `Provision` composes beneath `FreshnessMixin`. So a loaf spoils AND stales, on two gauges that
 share no band word. Baking's `StalingMixin` retired into it, along with
 sugar's `InvertingMixin` (cut cane's sucrose inverting), because the two
 were one mechanism with one curve each.
@@ -511,8 +511,11 @@ were one mechanism with one curve each.
 ### Kinetics — what a substance does by itself over time
 
 `Kinetics` (`lib/material/Kinetics.ts`, a value object on the material row,
-the `Crosslinking` shape) lists the changes a substance undergoes. Each
-has:
+the `Crosslinking` shape) lists the changes a substance undergoes — the
+same evaluator a firing runs (see
+[thermal.md § Kinetics](./thermal.md)), whose dose law
+(`rate: { referenceK, zK, fullDoseS }`) is the other rate law. A
+point-curve change has:
 
 - **`order`:** 0 accumulates at the rate (staling); 1 turns what is left
   (inversion, first order);
@@ -523,14 +526,17 @@ has:
 - **`floor`:** how far a reversal brings it back (never all the way, and
   it never raises an extent already under it);
 - **`grade`:** `[extent, bands lost]` from the grade the good started at;
-- **`becomes`:** the material it is at extent 1;
+- **`ladder`:** the material it becomes at an extent (`- { atDegree: 1,
+  becomes: … }` — a top-level `becomes` is refused);
 - **`words`** and **`senses`:** what `look` says, by extent, through which
   channels.
 
-`KineticMixin` holds an extent per change, one clock stamp and the
-starting grade. It is inert until the material declares kinetics (the
-sparse rule: inert matter reads and writes nothing). The clock starts when
-the thing is made (`onCreate`). It **integrates over the good's
+`ThermalMixin`'s kinetic record holds an extent per change, one clock
+stamp and the starting grade. It is inert until the material declares
+kinetics (the sparse rule: inert matter reads and writes nothing). ⚠ A
+curve's clock starts at the good's FIRST READ (of its temperature or its
+kinetics), not when it is made — nothing records a good's making time to
+integrate from. It **integrates over the good's
 temperature trajectory** rather than sampling, so a loaf cooling through
 the fast band and a bundle of cane carried from sun to shade are both
 honest. Like `Freshness`, there is no far-past guard.
@@ -555,7 +561,7 @@ bread row on a class that cannot stale.
 
 ## The water state — what drying and curing actually change
 
-`WaterActivityMixin` (`lib/material/WaterActivity.ts`) carries two scalars that describe
+`MoistureMixin` (`lib/material/Moisture.ts`) carries two scalars that describe
 the **matter**, not anything living in it:
 
 - **`moisture`** `[0, 1]` — how much of the material's own water is still
@@ -639,6 +645,33 @@ looked at during a wet one loses that spell; anything already below `1` has
 a stamp and integrates the whole window exactly, segment by segment
 (`BiomeApi.airSegmentsFor`). The trade is deliberate: the alternative is
 stamping every fresh `Provision` in every open room on every `look`.
+
+⭐⭐ **It is the ONE model of a solid drying in air (ceramics review,
+2026-10-28).** Wood used to season on a clock of its own (`SeasoningMixin`'s
+fraction on the maturation curve) and the two disagreed where a player could
+see it — a ham in a damp shed took water back and a board beside it only
+stalled; a pot checked for drying too *fast* and a board for drying too
+*hot*. Now `Timber` and `SoapBar` compose this mixin too, and green clay's
+leather-hard and a board's seasoned are both READINGS of its moisture. What
+the shared walk does for every exposed host, segment by segment:
+
+- **the air is the ENCLOSING scope's** — a stack placed `in` a drying
+  chamber reads the chamber's air, not the room's;
+- **rain puts water back** — `cure.rewetPerMm` of moisture per mm, scaled
+  by exposure (a segment's rain is `0` under a roof);
+- **drying too fast CHECKS it** — dryness gained per hour (per segment, so a
+  hot afternoon is not averaged away by the night) × the host's
+  `dryingCrackRisk()` hook past `cure.crackRate` lays one `check` flaw. The
+  default risk is `0` (food does not check); green clay's is its
+  composition's (fat high, sand and grog low); a board's is scaled to its
+  own species' rate, so it checks when the air dries it four times harder
+  than good drying air (a careless kiln) and never in weather;
+- **the base rate is the host's** — `dryingRatePerHour()`, `undefined` for
+  the `cure.dryingPerHour` dial; a seasoning host derives its species' from
+  `Material.seasoningDays`.
+
+`dryness()` is moisture read against the air's equilibrium — *as dry as
+this air will let it get* — and is what green clay's states are bands of.
 
 ⭐ **The rate itself is `lib/material/Evaporation.ts`** — one value object,
 no statics, `evaporationFactor(equilibriumRhPct = 100)` = the vapour
@@ -987,7 +1020,7 @@ test, not a driven act.
   blend base is excluded from the craft gather's intermediate test, and
   there is a negative test that says so.
 
-## History — `CuredMixin` became `WaterActivityMixin` (2026-09-24)
+## History — `CuredMixin` became `MoistureMixin` (2026-09-24)
 
 The water-state mixin was called **`CuredMixin`** from the food-safety
 build until the extraction build, and its own opening line always said
@@ -1003,15 +1036,15 @@ So the substrate now names the quantity it derives:
 
 | was | is |
 |---|---|
-| `Cure` (the arithmetic) | `WaterActivity` |
+| `Cure` (the arithmetic) | `Moisture` |
 | `CureState` (the two scalars) | `WaterState` |
-| `Cured` (the host interface) | `WaterActive` |
-| `CuredMixin` | `WaterActivityMixin` |
-| `Mixins.Cured` · `MixinApi.isCured` | `Mixins.WaterActive` · `MixinApi.isWaterActive` |
+| `Cured` (the host interface) | `Moist` |
+| `CuredMixin` | `MoistureMixin` |
+| `Mixins.Cured` · `MixinApi.isCured` | `Mixins.Moist` · `MixinApi.isMoist` |
 | `getCureState` · `setCureState` · `reconcileCure` | `getWaterState` · `setWaterState` · `reconcileWater` |
 | `cureClockStamp` (persistent) | `waterClockStamp` |
 | `BulkPayload.cure` · `.cureStamp` | `BulkPayload.water` · `.waterStamp` |
-| `lib/material/Cured.ts` | `lib/material/WaterActivity.ts` |
+| `lib/material/Cured.ts` | `lib/material/Moisture.ts` |
 
 ⭐ **The act keeps its word, and that is the line.** `cure` is still a
 verb, `CureController` still packs meat in salt, `salt-cure` is still a

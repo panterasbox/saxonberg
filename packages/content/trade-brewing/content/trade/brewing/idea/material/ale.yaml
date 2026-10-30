@@ -5,6 +5,8 @@ data:
   keywords: [ale, beer, brew]
   appearance: "a foamy amber ale"
   density: 1010
+  # One serving, kg (the unit of its label and its dose): a pint, near enough — 500 ml at 1010 kg/m³.
+  servingKg: 0.505
   thermalConductivity: 0.5
   specificHeat: 3800
   edibility: true
@@ -14,6 +16,8 @@ data:
   # `light-sensitive`: beer goes light-struck under blue light (glass
   # build D8) — a photochemical spoilage term the bottle's colour gates.
   # No `spoilActivationEnergy` is added: the microbial clock is untouched.
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 4.2
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "beer", "ale", "light-sensitive"]
   nutrientAmounts:
     carb: 13000

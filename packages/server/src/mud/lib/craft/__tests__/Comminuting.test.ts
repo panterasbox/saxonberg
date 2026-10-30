@@ -150,8 +150,7 @@ describe("⭐⭐ extraction is CONTINUOUS — the whole reason there is no band 
     const m = mill(); // b = 0.25, so the threshold is 0.75
     const p = m.planComminution({ kg: 20, materialPath: "/x", gradeBand: "" }, 0.7);
     expect(p.outerShare).toBe(0);
-    expect(p.composition).toHaveLength(1);
-    expect(p.composition[0]!.materialPath).toBe(FLOUR);
+    expect(p.makeup).toEqual([{ materialPath: FLOUR, fraction: 1 }]);
   });
 
   it("above it the outer share rises with extraction, smoothly", () => {
@@ -177,13 +176,15 @@ describe("⭐⭐ extraction is CONTINUOUS — the whole reason there is no band 
     // player who mills at 0.61 has made something nobody else has.
     //
     // Both are below `1 - b` here, so the OUTER share is zero for both
-    // and what differs is the servings: the same proportions of more or
-    // less flour. That still reads differently on a label, because a
-    // label sums servings.
+    // and what differs is the AMOUNT: the same makeup (all inner stock)
+    // in more or less flour. ⭐ Since ceramics re-plan R1 the makeup is a
+    // mass FRACTION, so it is identical here by construction and the
+    // difference is the sack's mass — which still reads differently on a
+    // label, because a label reads each part's share of that mass.
     const m = mill();
     const a = m.planComminution({ kg: 25, materialPath: "/x", gradeBand: "" }, 0.61);
     const b = m.planComminution({ kg: 25, materialPath: "/x", gradeBand: "" }, 0.62);
-    expect(a.composition).not.toEqual(b.composition);
+    expect(a.makeup).toEqual(b.makeup);
     expect(a.productKg).not.toBe(b.productKg);
 
     // And in the band where the outer share moves, the COMPOSITION
@@ -204,15 +205,19 @@ describe("⭐⭐ extraction is CONTINUOUS — the whole reason there is no band 
     expect(white.water.solute).toBe(0);
   });
 
-  it("the composition's servings always add up to the product", () => {
+  it("the makeup's fractions always add up to the whole product", () => {
     const m = mill();
     for (const e of [0.6, 0.75, 0.88, 1]) {
       const p = m.planComminution(
         { kg: 25, materialPath: "/x", gradeBand: "" },
         e,
       );
-      const total = p.composition.reduce((a, c) => a + c.servings, 0);
-      expect(total).toBeCloseTo(p.productKg / 0.1, 6);
+      const total = p.makeup.reduce((a, c) => a + c.fraction, 0);
+      expect(total).toBeCloseTo(1, 9);
+      expect(p.makeup.find((c) => c.materialPath !== FLOUR)?.fraction ?? 0).toBeCloseTo(
+        p.outerShare,
+        9,
+      );
     }
   });
 });

@@ -11,6 +11,8 @@ data:
   nutrients: ["water", "sugar"]
   toxicity:
     []
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 2.5
   tags: ["liquid", "beverage", "drinkable", "cranberry", "cranberry-juice", "juice", "mixer"]
   composition: []
   biologicalSource: null

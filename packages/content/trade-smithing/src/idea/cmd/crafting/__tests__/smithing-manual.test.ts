@@ -233,7 +233,12 @@ describe('the by-hand smithing path', () => {
     if (!lump || !MixinApi.isTangible(lump)) return;
     expect(lump.getMaterial()?.getName()).toBe('iron'); // matter conserved
     expect(lump.getMass().rawValue()).toBeCloseTo(0.5, 9);
-    expect(MixinApi.isCrafted(lump)).toBe(false); // no mark on a lump
+    // No mark on a lump: a casting is a made thing (B95), and an off-spec
+    // build stamps no maker or recipe on it.
+    if (MixinApi.isCrafted(lump)) {
+      expect(lump.getMaker()).toBe('');
+      expect(lump.getRecipe()).toBe('');
+    }
     expect(ingot.isDestroyed()).toBe(true);
   });
 

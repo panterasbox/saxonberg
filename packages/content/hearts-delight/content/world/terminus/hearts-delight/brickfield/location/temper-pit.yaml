@@ -1,0 +1,42 @@
+# The temper pit — ⭐ where clay is brought to the WINDOW (ceramics S3): a
+# brick-lined pit of water beside the moulding shed. A heap of weathered
+# clay goes in with a few shovels of sand or breeze, and somebody gets in
+# and treads it (`knead pit`) until it is one even mass — leaner by exactly
+# the sand that went in, wet enough to throw, stiff enough to stand.
+#
+# Water comes from the old pit in a pail. Breeze — the cinders the town's
+# fires throw out — is bought in; sand is dug with the clay.
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: temper yard
+  keywords: [yard, "temper yard", tempering]
+  register: definite
+  _address: terminus/hearts-delight/brickfield
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  floor:
+    material: /world/terminus/hearts-delight/idea/material/alluvial-clay
+    worked: false
+    onGrade: true
+  longDescription: |
+    A patch of yard trodden to slurry around a square brick-lined pit, its edges slick with clay to the knee. A heap of grey-black cinders and a heap of sand stand by it, and a couple of pails.
+
+    West is the weathering ground; east, the open door of the moulding shed.
+  coords: { x: 1, y: 0, z: 0 }
+  props:
+    - /world/terminus/hearts-delight/brickfield/thing/temper-pit
+    - { template: /stuff/thing/vessel/pail, count: 2 }
+    # A starting heap of each, bounded — the brickmaster's counter sells
+    # breeze, and the pit wall gives sand.
+    - { template: /trade/ceramics/thing/breeze, count: 4 }
+    - { template: /world/terminus/hearts-delight/brickfield/thing/sand, count: 4 }
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/brickfield/location/weathering-ground
+      media: [ground]
+      edgeMinutes: 1
+    east:
+      destination: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      media: [ground]
+      edgeMinutes: 1

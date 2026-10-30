@@ -13,6 +13,9 @@
  * ⭐ And the pin that matters as much as either: **a blend built from
  * parts-less inputs still yields one part per material.** Every cocktail
  * shipped before this build must read exactly as it did.
+ *
+ * ⭐ Since ceramics re-plan R1-D1 the record is `makeup`, by mass
+ * FRACTION: each part's share is its kilograms over the product's.
  */
 
 import "../../../../../test-bootstrap";
@@ -113,7 +116,7 @@ async function craftAs(principal: Stuff, req: CraftRequest): Promise<Stuff> {
 function holder(
   materialPath: string,
   litres: number,
-  composition?: { materialPath: string; servings: number }[],
+  makeup?: { materialPath: string; fraction: number }[],
 ): Receptacle {
   const r = makeStuff(() => new Receptacle());
   (r as unknown as { interiorBulk: boolean }).interiorBulk = true;
@@ -123,7 +126,7 @@ function holder(
     StuffApi.findByTemplatePath<Material>(materialPath)! as unknown as Material,
   );
   slot.setAmount(Quantity.of(litres, 'L'));
-  if (composition) slot.setPayload({ ...(slot.getPayload() ?? {}), composition });
+  if (makeup) slot.setPayload({ ...(slot.getPayload() ?? {}), makeup });
   ContainmentApi.move(r, room);
   return r;
 }
@@ -231,9 +234,9 @@ afterEach(() => {
 
 function compositionOf(out: Stuff): Record<string, number> {
   const slot = BulkableApi.slotFor(out, undefined);
-  const parts = slot?.getPayload()?.composition ?? [];
+  const parts = slot?.getPayload()?.makeup ?? [];
   const m: Record<string, number> = {};
-  for (const p of parts) m[p.materialPath] = (m[p.materialPath] ?? 0) + p.servings;
+  for (const p of parts) m[p.materialPath] = (m[p.materialPath] ?? 0) + p.fraction;
   return m;
 }
 
@@ -243,8 +246,8 @@ describe('⭐⭐ a consumed input contributes its PARTS, not its identity', () =
     // bran vanishes at the trough, silently.
     return (async () => {
       holder(FLOUR, 3, [
-        { materialPath: FLOUR, servings: 7.2 },
-        { materialPath: BRAN, servings: 2.8 },
+        { materialPath: FLOUR, fraction: 0.72 },
+        { materialPath: BRAN, fraction: 0.28 },
       ]);
       holder(WATER, 3);
       const dough = await craftAs(cook, {
@@ -262,8 +265,8 @@ describe('⭐⭐ a consumed input contributes its PARTS, not its identity', () =
 
   it('a DARKER flour makes a darker dough — the proportion travels', async () => {
     holder(FLOUR, 3, [
-      { materialPath: FLOUR, servings: 5 },
-      { materialPath: BRAN, servings: 5 },
+      { materialPath: FLOUR, fraction: 0.5 },
+      { materialPath: BRAN, fraction: 0.5 },
     ]);
     holder(WATER, 3);
     const dough = await craftAs(cook, {
@@ -286,8 +289,11 @@ describe('⭐⭐ a consumed input contributes its PARTS, not its identity', () =
     });
     const comp = compositionOf(dough);
     expect(Object.keys(comp).sort()).toEqual([FLOUR, WATER].sort());
-    expect(comp[FLOUR]).toBe(1);
-    expect(comp[WATER]).toBe(1);
+    // ⭐ By MASS (R1-D1): 2 L of flour and 1 L of water at one density are
+    // two thirds and one third. (A serving per slot — 1 and 1 — was the
+    // servings record this replaced.)
+    expect(comp[FLOUR]).toBeCloseTo(2 / 3, 9);
+    expect(comp[WATER]).toBeCloseTo(1 / 3, 9);
   });
 });
 
@@ -304,15 +310,15 @@ describe('⭐ a tangible can be made entirely of bulk (D11) and carries its part
 
   it('⭐⭐ and the loaf knows what it was made of — the fifth link', async () => {
     holder(DOUGH, 3, [
-      { materialPath: FLOUR, servings: 7.2 },
-      { materialPath: BRAN, servings: 2.8 },
+      { materialPath: FLOUR, fraction: 0.72 },
+      { materialPath: BRAN, fraction: 0.28 },
     ]);
     cook.setReachableHeat(500);
     const loaf = await craftAs(cook, { recipeRef: 'bake-loaf', makerMode: 'self' });
-    if (!MixinApi.isComposed(loaf)) throw new Error('loaf is not Composed');
-    const parts = loaf.getComposition();
+    if (!MixinApi.isComposition(loaf)) throw new Error('loaf is not Composition');
+    const parts = loaf.getMakeup();
     const byPath: Record<string, number> = {};
-    for (const p of parts) byPath[p.materialPath] = p.servings;
+    for (const p of parts) byPath[p.materialPath] = p.fraction;
     expect(byPath[BRAN]).toBeGreaterThan(0);
     expect(byPath[FLOUR]).toBeGreaterThan(0);
     expect(byPath[BRAN]! / (byPath[FLOUR]! + byPath[BRAN]!)).toBeCloseTo(0.28, 6);
@@ -322,9 +328,8 @@ describe('⭐ a tangible can be made entirely of bulk (D11) and carries its part
     holder(DOUGH, 3);
     cook.setReachableHeat(500);
     const loaf = await craftAs(cook, { recipeRef: 'bake-loaf', makerMode: 'self' });
-    if (!MixinApi.isComposed(loaf)) throw new Error('loaf is not Composed');
-    const parts = loaf.getComposition();
-    expect(parts).toHaveLength(1);
-    expect(parts[0]!.materialPath).toBe(DOUGH);
+    if (!MixinApi.isComposition(loaf)) throw new Error('loaf is not Composition');
+    const parts = loaf.getMakeup();
+    expect(parts).toEqual([{ materialPath: DOUGH, fraction: 1 }]);
   });
 });

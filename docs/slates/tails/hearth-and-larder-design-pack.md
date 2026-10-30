@@ -104,7 +104,7 @@ machinery — and `restQuality` gains a second input beside bedding cleanliness.
 ## Part 2 — The larder: what this pack adds, and what it must NOT re-design
 
 *(The preserving mechanism shipped — `cure`/`dry`/`smoke` over
-`WaterActivityMixin`'s `moisture`/`solute`, NOT the `WetMixin` gauge the
+`MoistureMixin`'s `moisture`/`solute`, NOT the `WetMixin` gauge the
 reconciliation note once pointed at → [spoilage.md](../../subsystems/spoilage.md)
 § The water state. This pack adds only the room and the economic story.)*
 

@@ -1,0 +1,20 @@
+# The co-op's cheese press (ceramics W7, D25) — ⭐ a screw press beside the
+# stone: an oak frame and a wooden screw with a bar through it. A hoop set
+# on its bed and the bar turned down presses the curd far harder than the
+# squared stone can (`turn press`), so the wheel comes out firmer and
+# drier — the hard cheeses that keep a winter. `turn back press` lets it off.
+class: /platform/thing/ScrewPress
+data:
+  shortDescription: cheese press
+  keywords: [press, "cheese press", "screw press"]
+  register: indefinite
+  longDescription: >-
+    A tall oak frame with a wooden screw as thick as a wrist through its
+    crosshead and a bar through the screw, the follower board under it
+    stained pale with whey.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 60
+  fixedInPlace: true
+  placements: [on]
+  newtonsPerTurn: 400
+  maxTurns: 6

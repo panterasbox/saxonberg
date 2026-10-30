@@ -19,6 +19,7 @@ import { StackableMixin } from '../../../../../lib/stuff/Stackable';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import Place from '../../../../../lib/stuff/Place';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
+import { MixinApi } from '../../../../../api/mixin';
 import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -337,5 +338,39 @@ describe('DropController — quantity-bearing path', () => {
     // Two operands: the 2-stack of gold (full), and a 1-split from silver.
     expect(gold.getContainer()).toBe(loc);
     expect(silver.getQuantity()).toBe(1); // 2 - 1 split-off
+  });
+});
+
+describe('DropController — the fall', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('⭐ a piece gone before it lands (merged into a floor stack) lands nothing, and throws nothing out', async () => {
+    // Run 16 of the ceramics drive: `drop 1 brick` onto the hacks merged
+    // the brick into the stack there; the detached fall then read the mass
+    // of a destroyed piece, and the unhandled rejection took the world down.
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const brick = makeStuff(() => {
+      const s = new Sword();
+      s.setName('brick');
+      return s;
+    });
+    ContainmentApi.move(brick, giver);
+    const tangible = MixinApi.isTangible;
+    vi.spyOn(MixinApi, 'isTangible').mockImplementation(
+      ((o: Stuff) => o === (brick as unknown as Stuff) || tangible(o)) as typeof MixinApi.isTangible,
+    );
+    // A destroyed piece has no mass to read.
+    vi.spyOn(brick as unknown as Stuff, 'isDestroyed').mockReturnValue(true);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const controller = makeStuff(() => new DropController());
+    await controller.execute(makeModel(makeResult([brick], 'brick')), makeContext(giver, loc));
+    await new Promise((res) => setTimeout(res, 10));
+    expect(warn).not.toHaveBeenCalledWith('DropController: the fall failed:', expect.anything());
   });
 });

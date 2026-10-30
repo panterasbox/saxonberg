@@ -345,6 +345,59 @@ describe('the credit, and what it is FOR', () => {
   });
 });
 
+describe('⭐ the line that says what you won', () => {
+  it('names the load even when it merges into the heap at the tip on arrival (the ceramics drive: "undefined")', async () => {
+    // A stackable unit is destroyed by the heap it joins; stand that in
+    // with a move that destroys the arriving thing.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
+      const g = makeStuff(() => new Good());
+      g.setShortDescription('load of spoil');
+      return g;
+    }) as never);
+    const { ContainmentApi } = await import('@saxonberg/server/mud/api/containment');
+    vi.spyOn(ContainmentApi, 'move').mockImplementation((async (t: Stuff) => {
+      await StuffApi.destruct(t);
+    }) as never);
+    const pit = working();
+    const plan = (await pit.planWork(actor, spade(), null)) as WorkPlan;
+    const result = await pit.completeWork(actor, spade(), plan.token);
+    expect(result.self).toMatch(/You work a load of spoil free/);
+    expect(result.self).not.toMatch(/undefined/);
+  });
+});
+
+describe('⭐ the tip takes what you strip, not what you asked for', () => {
+  async function digInto(named: string | null): Promise<{ pit: Stuff & OpenWorking; tip: Stuff; result: string }> {
+    const pit = working();
+    pit.spoilTo = '/test/quarry/tip';
+    // The tip is a place (a container) — a second working stands in for it.
+    const tip = makeStuff(() => new OpenWorkingLocation()) as unknown as Stuff;
+    const real = StuffApi.singleton.bind(StuffApi);
+    vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string, ...rest: unknown[]) =>
+      path === '/test/quarry/tip' ? tip : (real as (...a: unknown[]) => unknown)(path, ...rest)) as never);
+    const { ContainmentApi } = await import('@saxonberg/server/mud/api/containment');
+    const moved: Stuff[] = [];
+    vi.spyOn(ContainmentApi, 'move').mockImplementation((async (_t: Stuff, to: Stuff) => {
+      moved.push(to);
+    }) as never);
+    const plan = (await pit.planWork(actor, spade(), named)) as WorkPlan;
+    const out = await pit.completeWork(actor, spade(), plan.token);
+    return { pit, tip: moved[0] ?? (null as never), result: out.self };
+  }
+
+  it('a bare `dig` sends what it strips to the tip', async () => {
+    const { tip, result } = await digInto(null);
+    expect(result).toMatch(/goes to the tip/);
+    expect(tip).not.toBeNull();
+  });
+
+  it('⭐ a band you NAME stays at your feet (the ceramics drive: fireclay went to the spoil tip)', async () => {
+    const { pit, tip, result } = await digInto('drift');
+    expect(result).toMatch(/lies where it fell/);
+    expect(tip).toBe(pit);
+  });
+});
+
 describe('the shape the kernel talks to', () => {
   it('a working answers `Diggable`, and composes the mixin under its own name', () => {
     const pit = working();
@@ -439,7 +492,7 @@ describe('a won load remembers its assay (glass W3)', () => {
     const plan = (await pit.planWork(actor, spade(), 'sand')) as WorkPlan;
     await pit.completeWork(actor, spade(), plan.token);
     expect(lastWon).not.toBeNull();
-    const won = lastWon as unknown as { getAlloying(): readonly unknown[] };
-    expect(won.getAlloying()).toHaveLength(0);
+    const won = lastWon as unknown as { getMakeup(): readonly unknown[] };
+    expect(won.getMakeup()).toHaveLength(0);
   });
 });

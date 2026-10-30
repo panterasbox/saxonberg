@@ -158,6 +158,67 @@ describe('⭐⭐ a dark room withholds its description', () => {
     expect(text).not.toContain('the cellar');
   });
 
+  /** The room's one way out, east, onto a place holding `things`. */
+  async function eastTo(things: unknown[], band = 'pitch-black'): Promise<void> {
+    const { MixinApi } = await import('../../../../../api/mixin');
+    const { PerceptionApi } = await import('../../../../../api/perception');
+    // The band is pinned: the fake way out also carries the fire's light
+    // into the walk, and what is under test is the line, not the walk.
+    const real = PerceptionApi.modalityByName('vision');
+    vi.spyOn(PerceptionApi, 'modalityByName').mockImplementation(((name: string) =>
+      name === 'vision' ? Object.assign(Object.create(real), { perceivedBand: () => band }) : real) as never);
+    const beyond = { getContents: () => things };
+    const exit = { getDoor: () => null, getDestination: () => beyond, getDirection: () => 'east' };
+    vi.spyOn(MixinApi, 'isExitable').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isLightSource').mockImplementation(
+      ((o: { getEmittedFlux?: unknown }) => typeof o?.getEmittedFlux === 'function') as never,
+    );
+    (room as unknown as { getObviousExits: () => unknown[] }).getObviousExits = () => [exit];
+  }
+
+  function fire(lumens: number, kelvin: number) {
+    return {
+      stuffId: 'clamp-1',
+      getEmittedFlux: () => ({ rawValue: () => lumens }),
+      getEmittedColorTemperature: () => ({ rawValue: () => kelvin }),
+    };
+  }
+
+  it('⭐ a fire seen in the dark you cannot see BY — its glow, by its colour, and its way (ceramics runs 31–32)', async () => {
+    // A burning clamp next door lights this place too faintly to see by;
+    // by moonlight the walk's three strongest sources were all sky, so the
+    // glow is read off the emitter itself.
+    await eastTo([fire(120, 1700)]);
+    const text = await lookText();
+    expect(text).toMatch(/It is pitch dark/);
+    expect(text).toMatch(/You can see a dull red glow to the east/);
+  });
+
+  it('⭐ a burning clamp glows by its OWN heat, on the one incandescence scale (R2-B3)', async () => {
+    // Authored light 1700 K, but the clamp's chamber is at 1250 K: orange,
+    // the colour a kiln at that heat reads through its spy-hole.
+    const { MixinApi } = await import('../../../../../api/mixin');
+    const clamp = Object.assign(fire(120, 1700), { isLit: () => true, getHeldTemperatureK: () => 1250 });
+    await eastTo([clamp]);
+    vi.spyOn(MixinApi, 'isBurner').mockImplementation(((o: unknown) => o === clamp) as never);
+    const text = await lookText();
+    expect(text).toMatch(/You can see an orange glow to the east/);
+  });
+
+  it('…but a cold clamp, or no fire at all, is no glow', async () => {
+    await eastTo([fire(0, 1700), { stuffId: 'brick' }]);
+    const text = await lookText();
+    expect(text).toMatch(/It is pitch dark/);
+    expect(text).not.toMatch(/glow/);
+  });
+
+  it('…and by moonlight the fire still shows', async () => {
+    await eastTo([fire(120, 2500)], 'very-dim');
+    const text = await lookText();
+    expect(text).toMatch(/Shapes and edges/);
+    expect(text).toMatch(/You can see an orange glow to the east/);
+  });
+
   it('very dim: shapes and edges, and still not the prose', async () => {
     room.setAmbientFlux(2 * 9); // 2 lux — a full moon outdoors
     const text = await lookText();

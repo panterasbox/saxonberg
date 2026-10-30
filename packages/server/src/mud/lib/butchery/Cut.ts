@@ -19,7 +19,7 @@
  * and every reader would guard on "is this meat" — the wrong-host tell.
  *
  * ⚠ The twin is `platform/thing/Cut`, composing on `Provision`, so a cut
- * inherits Freshness, WaterActivity, Contaminable, ThermalDose, Crafted,
+ * inherits Freshness, Moisture, Contaminable, ThermalDose, Crafted,
  * Composed and Sampled — everything meat already needed, and nothing new
  * on any other host.
  */

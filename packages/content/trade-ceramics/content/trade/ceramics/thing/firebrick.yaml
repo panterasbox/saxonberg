@@ -1,0 +1,18 @@
+# A firebrick — fireclay moulded to the statute brick and fired hard, the
+# unit a furnace lining is laid of (ceramics W4/W5). ⭐ It EXTENDS the commons
+# firebrick row every lining bill names (R4): the pack's made brick
+# satisfies a bill written by packs that do not depend on ceramics.
+extends: /stuff/thing/firebrick
+class: /trade/ceramics/thing/Brick
+data:
+  shortDescription: firebrick
+  keywords: [firebrick, brick, firebricks]
+  register: indefinite
+  longDescription: >-
+    A pale, gritty brick of fireclay, heavier than it looks.
+  # ⭐ (ceramics W6, D28) No `_materialPath`: the row inherits the commons
+  # firebrick's REFRACTORY body, so a bare clone — the import a store's
+  # backstop brings in when the brickfield has none — arrives fired, with
+  # no maker. `shape` restamps the fireclay onto a moulded one, green.
+  mass: 3.6
+  quantity: 1

@@ -1,0 +1,10 @@
+# The `mug` form (ceramics S4): an open vessel of about a pint, with a handle seat.
+class: /platform/idea/Form
+data:
+  key: mug
+  formClass: open
+  capacityL: 0.3
+  product: /trade/ceramics/thing/mug
+  seats: [handle]
+  greenScale: 1.0
+  discipline: pottery

@@ -396,11 +396,11 @@ export const brain = class {
         (s) =>
           named(s, word) &&
           burns(s) &&
-          !(MixinApi.isWaterActive(s) && s.getWaterState().moisture > TOO_WET),
+          !(MixinApi.isMoist(s) && s.getWaterState().moisture > TOO_WET),
       );
     const fuelWord = w.fuels.find(dryFuel) ?? '';
     const fuelPieces = fuelWord
-      ? here.filter((s) => named(s, fuelWord) && burns(s) && !(MixinApi.isWaterActive(s) && s.getWaterState().moisture > TOO_WET))
+      ? here.filter((s) => named(s, fuelWord) && burns(s) && !(MixinApi.isMoist(s) && s.getWaterState().moisture > TOO_WET))
       : [];
     const pieceKg = fuelPieces.length > 0 && MixinApi.isTangible(fuelPieces[0]!) ? fuelPieces[0]!.getMass().rawValue() : 0;
     const shortKg =

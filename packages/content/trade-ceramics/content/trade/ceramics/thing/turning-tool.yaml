@@ -1,0 +1,16 @@
+# A turning tool — ⭐ the potter's edge (ceramics drive, 2026-10-21): a
+# loop of iron wire on a wooden handle for paring a leather-hard pot,
+# turning its foot and cutting a pattern. A green piece affords `carve`
+# and asks for an edge ("any knife will do"), and the potter's shop had
+# none, so no pot in the game could be trimmed.
+class: /platform/thing/Tool
+data:
+  shortDescription: turning tool
+  keywords: [tool, "turning tool", loop, knife, trimmer]
+  register: indefinite
+  longDescription: >-
+    A loop of springy iron wire bound into a short wooden handle, the
+    wire bright where it has pared a thousand feet.
+  capabilities: [cutting]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.1

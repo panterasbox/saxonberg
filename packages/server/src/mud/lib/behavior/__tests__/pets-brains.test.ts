@@ -53,13 +53,14 @@ function asStuff(r: FakeRoom): Stuff {
   return {
     stuffId: r.id,
     getContents: () => r.contents,
-    getExits: () => ({
-      values: () =>
-        r.exits.map((e) => ({
-          getDestination: () => R(e.dest),
-          canTraverse: () => ({ ok: e.passable }),
-        })),
-    }),
+    // Keyed by direction, as a real room's exits are.
+    getExits: () =>
+      new Map(
+        r.exits.map((e) => [
+          `to-${e.dest.id}`,
+          { getDestination: () => R(e.dest), canTraverse: () => ({ ok: e.passable }) },
+        ]),
+      ),
     __room: r,
   } as unknown as Stuff;
 }
@@ -166,6 +167,18 @@ function ctx(host: Stuff, subject?: Stuff, config = {}): BrainContext {
   return {
     host,
     config,
+    // ⭐ A beast's step (`BrainMoves.go` for a host with no verbs): the
+    // room's exit that way, through the traversal — the fakes here are not
+    // real mixin hosts, so the double does what the real one would.
+    go: async (direction: string) => {
+      const room = (host as unknown as { getContainer(): Stuff | null }).getContainer();
+      const exit = (room as unknown as { getExits(): Map<string, unknown> } | null)?.getExits().get(direction);
+      if (!exit) return false;
+      await LocomotionApi.traverseWithDefault(host as never, exit as never);
+      return true;
+    },
+    goTo: async () => false,
+    knows: () => true,
     state: {},
     ...(subject ? { perceived: { frame: {} as never, subject } } : {}),
     trigger: { source: 'cadence', raw: 'cadence:60s' },
@@ -351,7 +364,7 @@ describe('feeds', () => {
       contents: [] as Stuff[],
       exits: [],
       getContents: () => [food],
-      getExits: () => ({ values: () => [] }),
+      getExits: () => new Map(),
       getFeederKind: () => 'bowl',
       offerings: () => [food],
       isEdible: () => false,

@@ -1,0 +1,11 @@
+# green tile (ceramics W4).
+class: /trade/ceramics/thing/Brick
+data:
+  shortDescription: green tile
+  keywords: [tile, tiles]
+  register: indefinite
+  longDescription: >-
+    A thin slab of clay cut to a tile, still soft.
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 1.4
+  quantity: 1

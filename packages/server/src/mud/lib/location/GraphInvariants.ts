@@ -358,6 +358,22 @@ export class GraphInvariants {
       list.push(node);
       byZone.set(node.zone, list);
     }
+    // ⭐ A `bidirectional: true` exit INSTALLS its far side's way back
+    // (`bidirectional-both-sides` above refuses declaring both), so the far
+    // node has an edge no row of its own states. Walk those too: a room
+    // reached only through a reciprocal exit declared on its own row — the
+    // potter's shop behind its weighted doors — is not unreachable.
+    const backFrom = new Map<string, GraphNode[]>();
+    for (const node of this.#nodes) {
+      for (const edge of node.edges) {
+        if (edge.bidirectional !== true) continue;
+        const far = this.#far(edge);
+        if (!far) continue;
+        const list = backFrom.get(far.identity) ?? [];
+        list.push(node);
+        backFrom.set(far.identity, list);
+      }
+    }
     for (const [zone, nodes] of byZone) {
       const entrances = nodes.filter((n) => n.entrance);
       if (entrances.length === 0) {
@@ -390,6 +406,9 @@ export class GraphInvariants {
             const far = this.#far(edge);
             if (!far || far.zone !== zone) continue;
             out.push({ node: far, dir: edge.dir });
+          }
+          for (const back of backFrom.get(node.identity) ?? []) {
+            if (back.zone === zone) out.push({ node: back, dir: 'back' });
           }
           return out;
         },

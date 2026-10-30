@@ -1,0 +1,13 @@
+# open vessel — a potter's piece (ceramics W4): thrown green at the wheel, the
+# shape's own mint stamps its clay, its mass, its maker and its grade.
+class: /trade/ceramics/thing/ClayVessel
+data:
+  shortDescription: open vessel
+  keywords: [vessel, pot]
+  register: indefinite
+  longDescription: >-
+    An open clay vessel, its wall drawn up from a lump on the wheel.
+  interiorBulk: true
+  interiorCapacity: 1
+  _materialPath: /stuff/idea/material/earth/clay
+  mass: 0.6

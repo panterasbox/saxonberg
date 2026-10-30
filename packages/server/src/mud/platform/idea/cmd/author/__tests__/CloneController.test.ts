@@ -115,6 +115,7 @@ describe('CloneController.execute — hydrate-first', () => {
      * dependency is now declared where a reader can see it.
      */
     vi.spyOn(AccessApi, "can").mockResolvedValue(true);
+    vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -329,6 +330,33 @@ describe('CloneController.execute — hydrate-first', () => {
    * stand up a coach. Found by the base-class narrowing drive, which
    * needed one.
    */
+  describe('⭐⭐ the KIND decides, not wherever a copy stands (the ceramics drive)', () => {
+    it('a live copy on somebody else\'s ground does not refuse the clone', async () => {
+      const loc = makeStuff(() => new Place());
+      const giver = makeStuff(() => new TestGiver());
+      ContainmentApi.move(giver, loc);
+      // A copy of the kind already stands somewhere — under a town's title
+      // the giver does not hold. The old gate walked THAT copy's zone.
+      makeStuffAtPath(() => new TestContainable(), '/test/flask');
+      const can = vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+      const canAtPath = vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+      const child = makeStuff(() => new TestContainable());
+      stubClone(() => {
+        ContainmentApi.move(child, loc);
+        return child;
+      });
+
+      await makeStuff(() => new CloneController()).execute(
+        makeModel({ template: '/test/flask', here: true }),
+        makeContext(giver, loc),
+      );
+
+      expect(canAtPath).toHaveBeenCalledWith(giver, 'clone', '/test/flask');
+      expect(can, 'no representative copy is consulted').not.toHaveBeenCalled();
+      expect(child.getContainer()).toBe(loc);
+    });
+  });
+
   describe('⭐⭐ a template with no live instance', () => {
     it('asks the PATH question instead, and a titled path answers', async () => {
       const loc = makeStuff(() => new Place());

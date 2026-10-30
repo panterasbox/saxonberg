@@ -73,12 +73,12 @@ class Ash extends AshBase {
   /** The heap's alkali share, `0..1` — the strength the burn left it. */
   public strength(): number {
     // The alkali entry is the heap's ONE composition entry by construction.
-    return this.getAlloying()[0]?.fraction ?? 0;
+    return this.getMakeup()[0]?.fraction ?? 0;
   }
 
   /** ⭐ Setting the composition re-grades a raked heap by its strength. */
-  public setAlloying(entries: readonly CompositionEntry[]): void {
-    super.setAlloying(entries);
+  public setMakeup(entries: readonly CompositionEntry[]): void {
+    super.setMakeup(entries);
     if (this.gradedByStrength) this.setGrade(Grade.of(Ash.bandFor(this.strength())));
   }
 
@@ -88,7 +88,7 @@ class Ash extends AshBase {
    * and gritty with unburnt char.
    */
   public strengthLine(): string {
-    if (!this.gradedByStrength || this.getAlloying().length === 0) return '';
+    if (!this.gradedByStrength || this.getMakeup().length === 0) return '';
     const band = this.getGrade().getBand();
     if (band === 'poor') return 'It is grey and gritty, more cinder than salt.';
     if (band === 'fair') return 'It is an even grey, soft between the fingers.';
