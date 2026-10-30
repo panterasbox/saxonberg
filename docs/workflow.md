@@ -278,6 +278,25 @@ were all on the wrong hosts. That work was correct; improvising it
 inside a review round is what made it expensive. Re-planning is
 cheaper than discovering the plan by refactoring.
 
+⭐⭐ **The review's ground rules (ceramics !437, 2026-10-28).** Set by the
+owner at the start of that review, after the sugar build lost DAYS to
+re-running tests that waited hours on the game clock:
+
+1. **Isolate each bug.** Build the exact state that reproduces it — by
+   unit test, or by wizard tools (`eval`, `clone`, the test-clock
+   endpoints) against a standing world — and fix and verify it in that
+   small window. A review fix is never proved by re-driving the build.
+2. **Nothing clock-hungry until the whole MR is reviewed.** No drive, no
+   lived-time advance, no hour-long hold runs during review. The drives
+   run ONCE, after the last review change, at the sweep (Phase 5).
+3. **The full suite runs only at the sweep** (and at code-complete, as
+   above) — never between review rounds, however large a change.
+4. **Checks are scoped to what the change could break.** tsc, a gate, a
+   test file, one pack's suite — chosen per change by whoever made it. A
+   guaranteed pass is minutes the owner sits waiting; a skipped check
+   that COULD fail is a corner cut. The test is *could this change fail
+   this check?*, and the answer decides, not the habit.
+
 **Output.** Descriptive commits naming the change — `refactor(cooking):
 the palate off Bulkable — PalatableMixin on CraftVessel`. ⚠ Not
 `address MR comments`: that convention was documented for a year and
