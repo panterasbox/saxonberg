@@ -76,7 +76,21 @@ export default class TemperPit extends TemperPitBase {
 
   public override async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
     const self = this as unknown as Stuff;
+    // ⭐ Load on use: the pit's water froze IN the pit, and a thaw since is
+    // brought current by the read that needs it — the ice goes back to
+    // water before anything is weighed.
+    for (const c of this.getContents()) {
+      if (MixinApi.isThermal(c)) c.reconcilePhase();
+    }
     const pieces = this.getContents().filter((c) => MixinApi.isTangible(c)) as Stuff[];
+    const ice = pieces.find((p) => MixinApi.isTangible(p) && p.getMaterial()?.hasTag('frozen') === true);
+    if (ice !== undefined) {
+      return {
+        ok: false,
+        reason: 'frozen',
+        line: Mml.compose`${Mml.thing(self)} is frozen: ${Mml.thing(ice)} is set in it. Nothing treads until it thaws.`,
+      };
+    }
     if (pieces.length === 0) {
       return {
         ok: false,

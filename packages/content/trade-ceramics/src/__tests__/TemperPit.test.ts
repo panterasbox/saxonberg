@@ -140,6 +140,15 @@ describe('the temper pit', () => {
     expect(plan.ok).toBe(true);
   });
 
+  it('a pit with ice set in it refuses — it is frozen, not unworkable', async () => {
+    const p = pit(true);
+    await put(p, clayMat, 9, true);
+    await put(p, material('ice', ['solid', 'ice', 'frozen']), 50, false);
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    expect(plan.ok).toBe(false);
+    if (!plan.ok) expect(plan.reason).toBe('frozen');
+  });
+
   it('a dry pit refuses — it wants water', async () => {
     const p = pit(false);
     await put(p, clayMat, 9, true);

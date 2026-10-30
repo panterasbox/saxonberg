@@ -2653,9 +2653,16 @@ function reconcileBulkPhase(
       return;
     }
 
-    // ⭐ Where it sets, checked before the pool is touched (B105): a plain
-    // vessel standing nowhere has nowhere to drop its lump.
-    const scope = MixinApi.isContainable(v) ? (v.getContainer() as unknown as Stuff | null) : null;
+    // ⭐ Where it sets, checked before the pool is touched (B105). A vessel
+    // that holds things keeps the lump IN it — the pit's water freezes in
+    // the pit and thaws back into it (the ceramics finalize drive: a temper
+    // pit's 200 L froze out onto the yard and never came back). One that
+    // holds no things drops it beside; standing nowhere, it has no beside.
+    const scope = MixinApi.isContainer(v)
+      ? (v as unknown as Stuff)
+      : MixinApi.isContainable(v)
+        ? (v.getContainer() as unknown as Stuff | null)
+        : null;
     if (!MixinApi.isMould(v) && (scope === null || !MixinApi.isContainer(scope))) {
       throw new DetachedError(`${v.getPresentation()} froze standing nowhere: what set in it has no place`);
     }
@@ -2665,7 +2672,7 @@ function reconcileBulkPhase(
     // keeps what set in it, in its own shape (an ice pan → a block; an
     // ingot mould → an ingot); any other vessel falls back to the
     // material's `castTemplate` (water → a lump of ice; a metal → the
-    // generic `/stuff/thing/Casting`) dropped beside it, today's behaviour.
+    // generic `/stuff/thing/Casting`), in it or beside it (above).
     const setPayload = v.getBulkPayload(aff);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
@@ -2692,7 +2699,7 @@ function reconcileBulkPhase(
         });
       return;
     }
-    void setLumpBeside(scope as Stuff & Container, mat, massKg, setPayload).catch((err: unknown) => {
+    void setLump(scope as Stuff & Container, mat, massKg, setPayload).catch((err: unknown) => {
       console.error('Thermal: what froze could not be set', err);
     });
   }
@@ -2700,11 +2707,11 @@ function reconcileBulkPhase(
 
 /**
  * The lump a pool sets as in a vessel that is not a mould — the material's
- * own cast row, beside the vessel. ⚠ A row that will not mint, or is not a
+ * own cast row, in the vessel when it holds things, else beside it. ⚠ A row that will not mint, or is not a
  * thing that can stand there, throws (B105 — it was swallowed and the pool,
  * already emptied, was lost).
  */
-async function setLumpBeside(
+async function setLump(
   scope: Stuff & Container,
   mat: Material,
   massKg: number,

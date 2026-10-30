@@ -11,7 +11,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
@@ -24,11 +24,18 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import { ContainerMixin } from '../../spatial/Container';
 import Good from '../../stuff/Good';
 import { ContainmentApi } from '../../../api/containment';
+import Casting from '../../../platform/thing/Casting';
 
 class Pan extends BulkableMixin(
   ThermalMixin(ContainableMixin(NamedMixin(Idea))),
 ) {
   static _mixinName = 'FreezePan';
+}
+/** A vessel that holds things as well as a pool — a temper pit. */
+class Pit extends ContainerMixin(
+  BulkableMixin(ThermalMixin(ContainableMixin(NamedMixin(Idea)))),
+) {
+  static _mixinName = 'FreezePit';
 }
 /** Where a pan stands — a pool that sets needs a place for what it sets (B105). */
 class Shed extends ContainerMixin(Good) {
@@ -115,6 +122,34 @@ describe('the honest freeze', () => {
     p.reconcilePhase();
     const banked = p.getBulkPayload('interior')?.latentRemovedJ ?? 0;
     expect(banked).toBeCloseTo(0.1 * 4 * 4186, -1);
+  });
+
+  it('⭐ a vessel that holds things keeps its ice IN it — a pit freezes in the pit, not out onto the yard', async () => {
+    const water = liquid({ mp: 273, latent: 334_000 });
+    water.castTemplate = '/stuff/thing/_freeze/ice';
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new Casting())) as never);
+    try {
+      const pit = makeStuff(() => {
+        const p = new Pit();
+        p.setName('pit');
+        p.interiorBulk = true;
+        p.setInteriorCapacity(Quantity.of(10, 'L'));
+        p.setBulkMaterial('interior', water);
+        p.setBulkAmount('interior', Quantity.of(4, 'L'));
+        return p;
+      });
+      const shed = makeStuff(() => new Shed());
+      ContainmentApi.move(pit, shed);
+      pit.setStampedTemperatureK(180);
+      pit.setLastAmbientK(180);
+      pit.reconcilePhase();
+      for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));
+      expect(pit.getBulkAmount('interior').rawValue()).toBe(0);
+      expect(pit.getContents()).toHaveLength(1);
+      expect(shed.getContents()).toEqual([pit]);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   it('a material ruined by freezing mints no cast and stamps it ruined', () => {
