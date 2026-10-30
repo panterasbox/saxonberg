@@ -12,6 +12,7 @@
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SecurityApi } from './security';
+import { ExecutionContextApi } from './execution-context';
 import { TestOnly } from '../lib/security/decorators';
 import {
   TestHarnessLogic,
@@ -68,7 +69,16 @@ export class TestHarnessApi {
     duration: string,
     opts?: { soak?: boolean },
   ): Promise<ClockJump> {
-    return logic().advanceClock(duration, opts);
+    // ⭐ On a fresh ROOT, whichever door called: the jump fires every
+    // schedule in the skipped interval, and inside a command's frame those
+    // callbacks inherit the giver's context — anything that then waits on
+    // the giver's own input chain waits behind the very command running
+    // the jump (the `testharness clock advance` drive hung exactly so). A
+    // root carries no scope and no jurisdiction, which is what a GLOBAL
+    // jump needs; the async body keeps it across every await.
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'advanceClock', () =>
+      logic().advanceClock(duration, opts),
+    );
   }
 
   /** Game-seconds now — the read half of {@link advanceClock}. */

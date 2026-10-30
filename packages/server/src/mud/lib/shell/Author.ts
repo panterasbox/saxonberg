@@ -161,6 +161,11 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // can't run it. The per-affected-path `can('write')` refinement
         // stays in `GitLogic`.
         'platform/cmd/system/git.yaml',
+        // Test-world staging — `testharness clock|weather`. Afforded on the
+        // operator surface beside `git`; the view is `testOnly`, so outside
+        // a test world the loader withholds it and this key resolves to
+        // nothing (the verb is unknown there, by design).
+        'platform/cmd/system/testharness.yaml',
         // The authoring CARDS. Afforded on the operator command surface
         // like the rest of this suite; each carries `requiresWizard`
         // (they edit engine content), so a non-wizard sees the verb but

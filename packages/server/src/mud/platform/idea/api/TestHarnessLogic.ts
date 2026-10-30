@@ -76,6 +76,7 @@ export class TestHarnessLogic extends ApiLogic {
           '`pnpm wire:soak`), or shorten it to a day or less.',
       );
     }
+    // (On a fresh ROOT — TestHarnessApi.advanceClock opens it.)
     const before = WorldClockApi.getNow().rawValue();
     WorldClockApi.advance(duration);
     const after = WorldClockApi.getNow().rawValue();
@@ -135,19 +136,19 @@ export class TestHarnessLogic extends ApiLogic {
           `knows ${Object.keys(WEATHER_PROFILES).join(', ')}`,
       );
     }
-    return this.#setPin(scope, { type: type as WeatherType, mode });
+    return this.setPin(scope, { type: type as WeatherType, mode });
   }
 
   /** See {@link TestHarnessApi.unpinWeather}. */
   @CallSecurity(TestHarnessApiCallers)
   public async unpinWeather(scope: string): Promise<WeatherPinReport> {
-    return this.#setPin(scope, null);
+    return this.setPin(scope, null);
   }
 
   /** See {@link TestHarnessApi.weatherPinAt}. */
   @CallSecurity(TestHarnessApiCallers)
   public async weatherPinAt(scope: string): Promise<WeatherPinReport> {
-    const locality = await TestHarnessLogic.#localityOf(scope);
+    const locality = await this.localityOf(scope);
     const pin = locality.getWeatherPin();
     return {
       locality: locality.getTemplatePath() ?? '?',
@@ -158,11 +159,11 @@ export class TestHarnessLogic extends ApiLogic {
   // The Locality-tier pin: the only tier the precipitation integral and
   // the snow walk read (weather.md § The coexistence resolve), so a pinned
   // `snow` lies on the ground and freezes the mere, not just a word.
-  async #setPin(
+  private async setPin(
     scope: string,
     pin: { type: WeatherType; mode: WeatherPinMode } | null,
   ): Promise<WeatherPinReport> {
-    const locality = await TestHarnessLogic.#localityOf(scope);
+    const locality = await this.localityOf(scope);
     locality.setWeatherPin(pin);
     const where = locality.getTemplatePath() ?? '?';
     console.info(
@@ -175,7 +176,7 @@ export class TestHarnessLogic extends ApiLogic {
     return { locality: where, pin };
   }
 
-  static async #localityOf(scope: string) {
+  private async localityOf(scope: string) {
     const stuff = StuffApi.findByTemplatePath(scope);
     if (!stuff) {
       throw new Error(`testharness weather: nothing is loaded at '${scope}'`);
