@@ -198,3 +198,49 @@ export async function worldClockNow(): Promise<number> {
   }
   return body.now;
 }
+
+/** What the weather pin route reports. */
+export interface WeatherPinResult {
+  /** The Locality the pin landed on — the one covering the scope. */
+  locality: string;
+  pin: { type: string; mode: 'frozen' | 'alive' } | null;
+}
+
+async function postWeather(
+  what: string,
+  body: Record<string, unknown>
+): Promise<WeatherPinResult> {
+  const res = await fetch(`${SERVER_URL()}/auth/test-weather`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const out = (await res.json()) as Partial<WeatherPinResult> & { error?: string };
+  if (!res.ok || typeof out.locality !== 'string') {
+    throw new Error(`${what} failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out as WeatherPinResult;
+}
+
+/**
+ * ⭐ Hold the weather — the staged twin of searching the sky for it.
+ *
+ * Pins `type` on the Locality covering `scope` (a place's or a
+ * Locality's template path) and applies it AT ONCE, as a segment
+ * boundary would: rooms restamp, puddles accrue, rain wets whoever is
+ * out in it. Only in a world this run owns (the route is test-only).
+ *
+ * ⚠ The pin persists on the Locality: a drive that pins, unpins.
+ */
+export async function pinWeather(
+  type: string,
+  scope: string,
+  mode: 'frozen' | 'alive' = 'frozen'
+): Promise<WeatherPinResult> {
+  return postWeather(`pinWeather('${type}', '${scope}')`, { scope, type, mode });
+}
+
+/** Release a pin {@link pinWeather} set; the procedural weather returns. */
+export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
+  return postWeather(`unpinWeather('${scope}')`, { scope, type: null });
+}

@@ -77,6 +77,10 @@ vi.mock('../../../backend/TestHooks', () => ({
       }
       return { before: 0, after: 1, settledMs: 0, quiet: true };
     },
+    pinWeather: async (scope: string, type: string | null, mode: string) => {
+      if (type === 'sideways') throw new Error("testharness weather: 'sideways' is not a weather kind");
+      return { locality: scope, pin: type === null ? null : { type, mode } };
+    },
   },
 }));
 
@@ -172,6 +176,30 @@ describe('TestAuthRoutes', () => {
         .send({ handle: 'p', parcels: ['/world/terminus/dock'] });
       expect(res.status).toBe(500);
       expect(res.body.error).toMatch(/is not a parcel/);
+    });
+  });
+
+  describe('/auth/test-weather', () => {
+    it('pins, and unpins with type null', async () => {
+      const pin = await request(makeApp())
+        .post('/auth/test-weather')
+        .send({ scope: '/world/terminus', type: 'rain' });
+      expect(pin.status).toBe(200);
+      expect(pin.body.pin).toEqual({ type: 'rain', mode: 'frozen' });
+      const unpin = await request(makeApp())
+        .post('/auth/test-weather')
+        .send({ scope: '/world/terminus', type: null });
+      expect(unpin.body.pin).toBeNull();
+    });
+
+    it('400 on a malformed body; the refusal in its own words', async () => {
+      const bad = await request(makeApp()).post('/auth/test-weather').send({ type: 'rain' });
+      expect(bad.status).toBe(400);
+      const refused = await request(makeApp())
+        .post('/auth/test-weather')
+        .send({ scope: '/world/terminus', type: 'sideways' });
+      expect(refused.status).toBe(500);
+      expect(refused.body.error).toMatch(/not a weather kind/);
     });
   });
 });

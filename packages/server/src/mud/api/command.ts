@@ -1247,6 +1247,12 @@ export interface CommandView {
    */
   fallthrough?: boolean;
   /**
+   * ⛔ A test-world verb: admitted by the command loader only in a test
+   * environment (`SecurityApi.isTestEnvironment()`); everywhere else the
+   * verb does not exist. See the `testharness` view.
+   */
+  testOnly?: boolean;
+  /**
    * Default async-dispatch mode for this verb (default `false`). When
    * `true`, the controller body detaches from the giver's own input
    * chain at accept-time — see {@link AssembleSuccess.reservedAsync} for
@@ -1425,10 +1431,15 @@ export class CommandApi {
    * After preload, every cached `CommandDefinition` has its
    * `FieldDefinition._resolvedValidators` populated.
    *
-   * Returns the count of YAMLs that loaded successfully and the list
-   * of files that failed (parse error, validator-resolve error, etc).
+   * Returns the count of YAMLs that loaded successfully, the list of
+   * files that failed (parse error, validator-resolve error, etc), and
+   * the `testOnly` views WITHHELD because this is not a test world.
    */
-  static preloadAll(): Promise<{ loaded: number; failed: string[] }> {
+  static preloadAll(): Promise<{
+    loaded: number;
+    failed: string[];
+    withheld: string[];
+  }> {
     return logic().preloadAll();
   }
 

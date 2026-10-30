@@ -1,5 +1,5 @@
-// TestHarnessApi — test-world staging: move the clock, (W6) pin the
-// weather. The thin, gated forwarding shell over TestHarnessLogic.
+// TestHarnessApi — test-world staging: move the clock, pin the weather.
+// The thin, gated forwarding shell over TestHarnessLogic.
 //
 // ⛔ Scaffolding, not fiction. Nothing in the game moves the realm's
 // clock or holds its weather; a test harness does, from outside the
@@ -16,10 +16,12 @@ import { TestOnly } from '../lib/security/decorators';
 import {
   TestHarnessLogic,
   type ClockJump,
+  type WeatherPinReport,
 } from '../platform/idea/api/TestHarnessLogic';
+import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
 
-export type { ClockJump };
+export type { ClockJump, WeatherPinReport };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -76,6 +78,42 @@ export class TestHarnessApi {
   )
   public static clockNow(): number {
     return logic().clockNow();
+  }
+
+  /**
+   * Hold the weather of the Locality covering `scope` (a place's or a
+   * Locality's template path) at `type` until {@link unpinWeather} —
+   * `frozen` (the default) holds it exactly, `alive` lets the grammar
+   * still vary the deviation. Applied at once, as a segment boundary
+   * applies the weather: rooms restamp, puddles accrue, rain wets.
+   *
+   * ⚠ The pin is persistent on the Locality: a drive that pins, unpins.
+   */
+  @TestOnly(
+    'In a test world, pin the weather with `testharness weather pin <kind> ' +
+      '[--at <place>]` (or the wire harness\u2019s pinWeather).',
+  )
+  public static pinWeather(
+    scope: string,
+    type: string,
+    mode: WeatherPinMode = 'frozen',
+  ): Promise<WeatherPinReport> {
+    return logic().pinWeather(scope, type, mode);
+  }
+
+  /** Release the pin {@link pinWeather} set; the procedural weather returns. */
+  @TestOnly(
+    'In a test world, release a pin with `testharness weather unpin ' +
+      '[--at <place>]` (or the wire harness\u2019s unpinWeather).',
+  )
+  public static unpinWeather(scope: string): Promise<WeatherPinReport> {
+    return logic().unpinWeather(scope);
+  }
+
+  /** The pin on the Locality covering `scope`, if any. */
+  @TestOnly('In a test world, read the pin with `testharness weather`.')
+  public static weatherPinAt(scope: string): Promise<WeatherPinReport> {
+    return logic().weatherPinAt(scope);
   }
 }
 

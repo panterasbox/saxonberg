@@ -24,6 +24,8 @@ import {
   uniqueHandle,
   expectOk,
   advanceWorldClock,
+  pinWeather,
+  unpinWeather,
   plain,
 } from '../src/harness';
 
@@ -637,6 +639,10 @@ suite('⭐ 21 — vitriol eats the linen apron and not the rubber one (AC 11)', 
 // ───────────────────────── the rain (1–3, 5, 19) ─────────────────────────
 
 suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () => {
+  // A drive that pins, unpins: the pin is persistent on the Locality.
+  afterAll(async () => {
+    await unpinWeather(SQUARE).catch(() => undefined);
+  });
   const places: Record<string, Session> = {};
   let streetWool: Session;
   let streetRubber: Session;
@@ -684,28 +690,20 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     return m ? m[1]!.toLowerCase() : 'dry';
   }
 
-  it('it rains (the clock moves in weather segments until it does)', async () => {
-    // ⚠ Rain wets a body at a weather SEGMENT BOUNDARY (every 6 game
-    // hours: the boundary fan-out wets each occupied rain scope "one
-    // segment's worth"), using the phase AT that instant — and within a
-    // segment the phase flips between snow and rain with the temperature.
-    // So step to just past each boundary and accept only LIQUID rain there.
-    const SEGMENT_S = 6 * 3600;
+  it('it rains (the weather is PINNED — the staged twin of waiting for it)', async () => {
+    // ⭐ Searching the sky for rain was a SPAN (up to ten game days in
+    // six-hour steps); what this suite checks is who is WET, given rain.
+    // So rain is staged: pinned over the square's Locality and applied at
+    // once, as a segment boundary applies it (rooms restamp, rain wets
+    // whoever is out in it). The suite's afterAll unpins it.
     const wet = (w: string): boolean =>
       /type:\s*(rain|drizzle|showers?|storm|downpour)/i.test(w) &&
       /rain precipitation/i.test(w);
-    let raining = false;
-    // ⛔ Four segments — one game day — at most (soak-harness census):
-    // searching the weather for rain over days is a span.
-    for (let i = 0; i < 4 && !raining; i++) {
-      const { after } = await advanceWorldClock('0 seconds');
-      const toNext = Math.ceil((after + 1) / SEGMENT_S) * SEGMENT_S - after;
-      await advanceWorldClock(`${Math.ceil(toNext) + 60} seconds`);
-      await new Promise((r) => setTimeout(r, 4_000)); // the fan-out is async
-      raining = wet(await say(places.street!, 'analyze weather'));
-    }
-    expect(raining, 'no liquid rain at a boundary in a game day').toBe(true);
-  }, 3_600_000);
+    const pinned = await pinWeather('rain', SQUARE);
+    expect(pinned.pin?.type).toBe('rain');
+    await new Promise((r) => setTimeout(r, 4_000)); // the fan-out is async
+    expect(wet(await say(places.street!, 'analyze weather')), 'rain, pinned').toBe(true);
+  }, 600_000);
 
   it('5 — the street and the roof terrace are wet', async () => {
     expect(await wetness(places.street!)).not.toBe('dry');

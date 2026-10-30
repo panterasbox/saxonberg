@@ -30,6 +30,7 @@
  * such hook because `BiomeApi` re-resolves on every read with no index.
  */
 
+import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
 import { AddressApi } from '../../api/address';
 import type {
@@ -533,6 +534,10 @@ export default class Locality extends Idea {
     return this._weatherPin;
   }
   public setWeatherPin(value: WeatherPin | null): void {
+    SecurityApi.assertNotFromEval(
+      'setWeatherPin',
+      'testharness weather pin <kind>',
+    );
     this._weatherPin = value;
   }
 

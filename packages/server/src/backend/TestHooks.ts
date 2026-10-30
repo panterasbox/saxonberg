@@ -53,7 +53,12 @@ import Avatar from '../mud/lib/character/Avatar';
 import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
-import { TestHarnessApi, type ClockJump } from '../mud/api/test-harness';
+import {
+  TestHarnessApi,
+  type ClockJump,
+  type WeatherPinReport,
+} from '../mud/api/test-harness';
+import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
 import { AccessApi } from '../mud/api/access';
 import { StuffApi } from '../mud/api/stuff';
@@ -339,6 +344,26 @@ export class TestHooks {
     // command calls too, so both doors meet the same rule once.
     return ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () =>
       TestHarnessApi.advanceClock(duration, opts)
+    );
+  }
+
+  /**
+   * TEST-ONLY: hold (or, with `type` null, release) the weather of the
+   * Locality covering `scope` — a place's or a Locality's template path.
+   * Same three gates as the clock; the pin itself is
+   * `TestHarnessApi.pinWeather`'s, the one implementation the
+   * `testharness weather` command calls too.
+   */
+  public static async pinWeather(
+    scope: string,
+    type: string | null,
+    mode: WeatherPinMode = 'frozen'
+  ): Promise<WeatherPinReport> {
+    TestHooks.#assertTestMode('pinWeather');
+    return ExecutionContextApi.runRoot(TestHooks, 'pinWeather', () =>
+      type === null
+        ? TestHarnessApi.unpinWeather(scope)
+        : TestHarnessApi.pinWeather(scope, type, mode)
     );
   }
 

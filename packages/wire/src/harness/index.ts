@@ -32,4 +32,6 @@ export {
   isOwnedTestWorld,
   advanceWorldClock,
   worldClockNow,
+  pinWeather,
+  unpinWeather,
 } from './world';

@@ -171,9 +171,44 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ The weather pin. `type` present → pin; absent or null → unpin.
+    // `scope` is a place's or a Locality's template path; the pin lands
+    // on the covering Locality (TestHarnessApi.pinWeather).
+    app.post('/auth/test-weather', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as
+        | { scope?: unknown; type?: unknown; mode?: unknown }
+        | undefined;
+      const scope = body?.scope;
+      const type = body?.type ?? null;
+      const mode = body?.mode ?? 'frozen';
+      if (
+        typeof scope !== 'string' ||
+        (type !== null && typeof type !== 'string') ||
+        (mode !== 'frozen' && mode !== 'alive')
+      ) {
+        res.status(400).json({
+          error:
+            "test-weather wants {scope: '/path', type?: kind | null, mode?: 'frozen' | 'alive'}",
+        });
+        return;
+      }
+      void TestHooks.pinWeather(scope, type, mode)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-weather failed:', err);
+          res
+            .status(500)
+            .json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     console.warn(
-      'TestAuthRoutes: ⚠  /auth/test-login and /auth/test-clock are MOUNTED ' +
-        '(test seams). Never in production.'
+      'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock and ' +
+        '/auth/test-weather are MOUNTED (test seams). Never in production.'
     );
   }
 }

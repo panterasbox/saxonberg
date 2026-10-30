@@ -91,6 +91,11 @@ export class CommandDefinition {
    */
   public readonly async: boolean;
   /**
+   * ⛔ A test-world verb (`testOnly:` on the view) — the command loader
+   * admits it only in a test environment ({@link CommandView.testOnly}).
+   */
+  public readonly testOnly: boolean;
+  /**
    * ⭐ The cards this verb declares it opens (`opens_card:` in the
    * YAML), normalized to a list. `CardApi.open` refuses any card a
    * running command did not declare — see {@link CommandView.opens_card}.
@@ -162,6 +167,7 @@ export class CommandDefinition {
     this.subcommands = view.subcommands || {};
     this.fallthrough = view.fallthrough === true;
     this.async = view.async === true;
+    this.testOnly = view.testOnly === true;
     this.opensCards =
       view.opens_card === undefined
         ? []

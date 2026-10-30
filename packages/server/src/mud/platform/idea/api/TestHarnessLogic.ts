@@ -11,6 +11,14 @@ import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistApi } from '../../../api/persist';
+import { StuffApi } from '../../../api/stuff';
+import { AddressApi } from '../../../api/address';
+import { WeatherApi } from '../../../api/weather';
+import {
+  WEATHER_PROFILES,
+  type WeatherPinMode,
+  type WeatherType,
+} from '../../../lib/weather/WeatherType';
 
 const TestHarnessApiCallers = SecurityPolicies.FromModule(
   '/api/test-harness#TestHarnessApi',
@@ -26,6 +34,14 @@ export interface ClockJump {
   readonly settledMs: number;
   /** False when the backlog was still draining at the timeout. */
   readonly quiet: boolean;
+}
+
+/** What a weather pin (or its release) reports. */
+export interface WeatherPinReport {
+  /** The Locality pinned — the one covering the scope asked for. */
+  readonly locality: string;
+  /** The pin now on it, or null once released. */
+  readonly pin: { type: WeatherType; mode: WeatherPinMode } | null;
 }
 
 /**
@@ -102,5 +118,75 @@ export class TestHarnessLogic extends ApiLogic {
   @CallSecurity(TestHarnessApiCallers)
   public clockNow(): number {
     return WorldClockApi.getNow().rawValue();
+  }
+
+  /** See {@link TestHarnessApi.pinWeather}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async pinWeather(
+    scope: string,
+    type: string,
+    mode: WeatherPinMode = 'frozen',
+  ): Promise<WeatherPinReport> {
+    // A kind is real iff the weather model has a profile for it — the
+    // table the grammar itself runs on, not a second list kept here.
+    if (!Object.prototype.hasOwnProperty.call(WEATHER_PROFILES, type)) {
+      throw new Error(
+        `testharness weather: '${type}' is not a weather kind — the model ` +
+          `knows ${Object.keys(WEATHER_PROFILES).join(', ')}`,
+      );
+    }
+    return this.#setPin(scope, { type: type as WeatherType, mode });
+  }
+
+  /** See {@link TestHarnessApi.unpinWeather}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async unpinWeather(scope: string): Promise<WeatherPinReport> {
+    return this.#setPin(scope, null);
+  }
+
+  /** See {@link TestHarnessApi.weatherPinAt}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async weatherPinAt(scope: string): Promise<WeatherPinReport> {
+    const locality = await TestHarnessLogic.#localityOf(scope);
+    const pin = locality.getWeatherPin();
+    return {
+      locality: locality.getTemplatePath() ?? '?',
+      pin: pin ? { type: pin.type, mode: pin.mode } : null,
+    };
+  }
+
+  // The Locality-tier pin: the only tier the precipitation integral and
+  // the snow walk read (weather.md § The coexistence resolve), so a pinned
+  // `snow` lies on the ground and freezes the mere, not just a word.
+  async #setPin(
+    scope: string,
+    pin: { type: WeatherType; mode: WeatherPinMode } | null,
+  ): Promise<WeatherPinReport> {
+    const locality = await TestHarnessLogic.#localityOf(scope);
+    locality.setWeatherPin(pin);
+    const where = locality.getTemplatePath() ?? '?';
+    console.info(
+      `TestHarness: weather ${pin ? `pinned ${pin.type} (${pin.mode})` : 'unpinned'} at ${where}`,
+    );
+    // ⭐ Applied NOW, as a segment boundary applies the weather: every
+    // occupied room restamps its ambient, puddles accrue, and rain wets
+    // whoever is out in it — not at the next boundary, hours away.
+    await WeatherApi.onBoundary();
+    return { locality: where, pin };
+  }
+
+  static async #localityOf(scope: string) {
+    const stuff = StuffApi.findByTemplatePath(scope);
+    if (!stuff) {
+      throw new Error(`testharness weather: nothing is loaded at '${scope}'`);
+    }
+    const locality = await AddressApi.resolveLocalityFor(stuff);
+    if (!locality) {
+      throw new Error(
+        `testharness weather: no Locality covers '${scope}' — the weather ` +
+          'there is the global field',
+      );
+    }
+    return locality;
   }
 }
