@@ -25,4 +25,16 @@ const ClayPartBase = GreenwareMixin(
   MarkedMixin(MoistureMixin(DurableMixin(CraftedMixin(CompositionMixin(ThermalMixin(Good)))))),
 );
 
-export default class ClayPart extends ClayPartBase {}
+export default class ClayPart extends ClayPartBase {
+  /**
+   * The look, then how well it was made and by whom — the verdict its
+   * vessel twin (`CraftVessel.getLong`) gives a pot. ⚠ It was lost when the
+   * handle left the vessel class (B108), and the finalize drive found it:
+   * a pulled handle read nameless, so its maker could not tell it from the
+   * NPC potter's. Three classes now render this verdict; it is `Crafted`'s
+   * by rights (recorded for the next pass over crafted goods).
+   */
+  override getLong(): string {
+    return `${super.getLong()} ${this.renderVerdict()}`;
+  }
+}
