@@ -52,6 +52,7 @@ describe('TestHooks.nourishCharacter', () => {
     b.getConditions = () => [burn, cut];
     b.applyTreatment = vi.fn();
     Object.assign(b, {
+      hasVitalSign: (sign: string) => sign !== 'bloodVolume',
       getVitalBand: () => ({ baseline: 310, survivableMin: 301, survivableMax: 315 }),
       getVitalSign: () => Quantity.of(310, 'K'),
       setVitalSign: vi.fn(),
@@ -88,6 +89,7 @@ describe('TestHooks.nourishCharacter', () => {
     const relieve = vi.fn();
     const b = Object.assign(body(50), {
       getConditions: () => [chill],
+      hasVitalSign: (sign: string) => sign !== 'bloodVolume',
       getVitalBand: () => ({ baseline: 310, survivableMin: 301, survivableMax: 315 }),
       getVitalSign: () => Quantity.of(299, 'K'),
       setVitalSign,
@@ -107,6 +109,7 @@ describe('TestHooks.nourishCharacter', () => {
     const setVitalSign = vi.fn();
     const b = Object.assign(body(50), {
       getConditions: () => [],
+      hasVitalSign: (sign: string) => sign !== 'bloodVolume',
       getVitalBand: () => ({ baseline: 310, survivableMin: 301, survivableMax: 315 }),
       getVitalSign: () => Quantity.of(312, 'K'),
       setVitalSign,

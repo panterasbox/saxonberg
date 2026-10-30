@@ -392,8 +392,30 @@ export class TestHooks {
         for (const c of body.getConditions()) {
           if (c.kind !== 'trauma' || c.dressed === true) continue;
           const by = TRAUMA_BEHAVIOR[c.type]?.resolution;
-          if (by === undefined || by === 'surgery' || by === 'extraction') continue;
+          if (by === undefined || by === 'surgery' || by === 'extraction') {
+            // ⚠ SAID, never treated: a wound no meal mends is the drive's
+            // finding, not scaffolding's to hide (the finalize drives,
+            // 2026-10-30: two drive bodies bled out with no harm event).
+            console.warn(
+              `TestHooks: ${handle} carries an untreatable ${c.type} of ${c.site}` +
+                ` (severity ${c.severity}${c.bleeding ? ', bleeding' : ''}${c.foreignBody ? `, ${c.foreignBody} in it` : ''})`,
+            );
+            continue;
+          }
           body.applyTreatment(c, { by, efficacy: 1 });
+        }
+        if (body.hasVitalSign('bloodVolume')) {
+          const band = body.getVitalBand('bloodVolume');
+          const bv = body.getVitalSign('bloodVolume').rawValue();
+          if (bv < band.baseline * 0.8) {
+            const named = body
+              .getConditions()
+              .map((c) => (c.kind === 'trauma' ? `${c.type}@${c.site}` : c.kind === 'affliction' ? c.templatePath : c.kind))
+              .join(', ');
+            console.warn(
+              `TestHooks: ${handle}'s blood is low — ${bv.toFixed(2)} L of ${band.baseline} (conditions: ${named || 'none'})`,
+            );
+          }
         }
       }
       return out;
