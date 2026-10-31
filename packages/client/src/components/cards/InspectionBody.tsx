@@ -143,6 +143,15 @@ const ASPECT: Record<IllustrationShape, string> = {
   square: "1 / 1",
 };
 
+/**
+ * ⭐ The card's own width decides the layout, not the window's: a card
+ * query container, so the same card reads the same in the feed, the
+ * workspace and the stage.
+ */
+const Root = styled.div`
+  container-type: inline-size;
+`;
+
 const Plate = styled.img<{ $shape: IllustrationShape; $beside: boolean }>`
   display: block;
   aspect-ratio: ${(p) => ASPECT[p.$shape]};
@@ -153,6 +162,14 @@ const Plate = styled.img<{ $shape: IllustrationShape; $beside: boolean }>`
     p.$beside
       ? `float: right; width: 40%; margin: 0 0 ${tokens.space.sm} ${tokens.space.sm};`
       : `width: 100%; margin-bottom: ${tokens.space.sm};`}
+  /* ⭐ A WIDE card puts any picture beside its text — a wide picture
+     spanning a wide card is half the card's height spent on one image,
+     and the prose beside it reads at a comfortable measure. */
+  @container (min-width: 26rem) {
+    float: right;
+    width: 40%;
+    margin: 0 0 ${tokens.space.sm} ${tokens.space.sm};
+  }
 `;
 
 const ActionLabel = styled.div`
@@ -382,7 +399,7 @@ export function InspectionBody({
   );
 
   return (
-    <div data-testid="inspection-body">
+    <Root data-testid="inspection-body">
       {illustration && cut && !imageOpen ? (
         <Toggle type="button" data-testid="image-collapsed" onClick={() => setImageOpen(true)}>
           picture ▸
@@ -483,6 +500,6 @@ export function InspectionBody({
           ) : null}
         </Quiet>
       ) : null}
-    </div>
+    </Root>
   );
 }
