@@ -300,7 +300,7 @@ L6 economy · C = CLAUDE.md convention · P = nearest shipped pattern.
   lay, diameter, the strength bracket by band, the marks) [P: instrumentation; no `look --close`].
 - **D16 — `ropework` Discipline ships with the platform**
   (`/platform/idea/Discipline/ropework.yaml`, `channel: skill`, `requires: [recipe-knowledge]`,
-  `synergizes: [textiles, diving]`, `conferrals: []`) because the kernel verbs credit it
+  `synergizes: [diving]` (textiles is a pack Discipline — the suite), `conferrals: []`) because the kernel verbs credit it
   (`creditSignature({discipline:['ropework']})` on tie/splice/twist; the `ActSignature` shape per
   `lib/advancement/ActSignature.ts`) and `lint:openings` demands a shipped row for a `fulfills`.
 - **D17 — The ropewalk** at `/world/terminus/wharfside/ropewalk/` reached from
@@ -781,6 +781,12 @@ hazard,assembly,textiles,instrumentation,retail,employment,content-packs,testing
 | 3 | 10/17 | ⛔ a pitch coat read "wet … not yet set" right after the dip (only `isTarred` cooled it) → `Rope.getCoats` brings the cooling current; the rope-maker's arms full of rope made `rope` a question → single-rope hands per delve/splice/tar step |
 | 4 | 15/17 | ⛔ `tie first strand to post` → "nothing with an end to tie": `tie`'s gear arg was not greedy (a multi-word name broke it) → greedy; the tar dip met a body still putting on its coat (drive retries) |
 | 5 | 16/17 (+13 on a re-run) | the splice step's `look rope` was ambiguous in the walk and the prompt answer raced → an ordinal. **All 17 green.** |
+
+**Full suite** (`tools/suite`, at code-complete, 37 min): 52/53 packages green; `server` red on 13
+tests in 3 files, all this build's — the `ropework` Discipline synergized with `textiles` (a PACK
+Discipline; a kernel row may name only kernel ones → `[diving]`), the delve integration test's seed
+loader did not read the new `delve/thing/` (the lip post), and the wiki composition snapshot had not
+seen the rope's fields. Fixed and re-run file by file; the suite re-runs at `/finalize`.
 
 Reachability: verb · affordance · data · boot · arg gate walked for `tie`/`untie`/`tug`/`cut`/`coil`/`splice`/`belay`/`twist`/`climb`/`dip`/`analyze lay` — the arg-gate class fired twice (`tie`'s gear; the declared `jack`/`rope` args made greedy at W5). Step 14 (rot over days) and 18 (hemp's season) are the soak drive's.
 

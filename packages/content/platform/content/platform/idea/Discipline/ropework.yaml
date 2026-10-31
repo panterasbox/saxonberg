@@ -9,5 +9,7 @@ data:
   label: Ropework
   iscedf: "0723"
   requires: [recipe-knowledge]
-  synergizes: [textiles, diving]
+  # ⚠ Not `textiles`: that Discipline is the textiles pack's, and a kernel
+  # row may name only kernel Disciplines (the seed roster's no-dangling rule).
+  synergizes: [diving]
   description: Knots, splices and rope — which knot for which job, and how to dress it so it holds. A practised hand's knots keep more of the rope, and they keep it every time.
