@@ -11,6 +11,7 @@ import { brain as converses } from "../converses";
 import type { BrainContext } from "../brain";
 import type { Stuff } from "../../stuff/Stuff";
 import type { AxisEstimate } from "../../trait/TraitPosition";
+import { BrainMoves } from '../BrainMoves';
 
 let stubbedPosition = 0;
 
@@ -35,6 +36,7 @@ function fakeCtx(config: Record<string, unknown>): BrainContext & {
     trigger: { source: "cadence", raw: "cadence:1s" },
     say: vi.fn(),
     emote: vi.fn(async () => undefined),
+    ...new BrainMoves(host, config).members(),
     emoteFree: vi.fn(),
   };
 }

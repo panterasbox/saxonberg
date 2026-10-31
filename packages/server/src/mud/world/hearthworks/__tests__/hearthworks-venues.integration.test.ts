@@ -505,7 +505,7 @@ describe('the cookhouse, served', () => {
     expect(slot.getMaterialPath()).toBe('/platform/idea/material/cooked');
     const payload = slot.getPayload()!;
     expect(BlendIdentity.nameOf(payload, null)).toBe('Hearty Stew');
-    expect(BlendLabel.amountsOf(payload, null)).toMatchObject({
+    expect(BlendLabel.amountsOf(payload, null, slot.getMassKg())).toMatchObject({
       carb: expect.any(Number),
       protein: expect.any(Number),
     });

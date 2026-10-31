@@ -3,7 +3,7 @@
  *
  * ## What it composes, and the one thing it refuses to
  *
- * `Tanning(Crafted(WaterActivity(Freshness(Thermal(Good)))))`, and every
+ * `Tanning(Crafted(Moisture(Freshness(Thermal(Good)))))`, and every
  * layer is load-bearing:
  *
  *   - **Thermal** beneath, because `FreshnessMixin` reads its host's
@@ -16,7 +16,7 @@
  *     nothing in the world able to tan it. `lint:perishable` refuses a
  *     row whose material rots on a class that cannot, so this is not
  *     optional — it is the gate.
- *   - **WaterActivity**, because salting a hide is how a hide travels.
+ *   - **Moisture**, because salting a hide is how a hide travels.
  *     ⭐ *Salted along the edges* — also already in the row's prose.
  *     Curing does not reverse, so a salted skin keeps on the road and a
  *     green one does not: that is the difference between a tannery that
@@ -48,13 +48,13 @@
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { FreshnessMixin } from '@saxonberg/server/mud/lib/material/Freshness';
-import { WaterActivityMixin } from '@saxonberg/server/mud/lib/material/WaterActivity';
+import { MoistureMixin } from '@saxonberg/server/mud/lib/material/Moisture';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { TanningMixin } from '../lib/Tanning';
 
 export default class Hide extends TanningMixin(
-  CraftedMixin(WaterActivityMixin(FreshnessMixin(ThermalMixin(Good)))),
+  CraftedMixin(MoistureMixin(FreshnessMixin(ThermalMixin(Good)))),
 ) {
   static fieldMeta: FieldMeta = {};
 }

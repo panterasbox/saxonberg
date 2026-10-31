@@ -353,9 +353,10 @@ describe('Freshness — the shared arithmetic', () => {
     const payload = Freshness.withDose(null, mat, 0.9)!;
 
     expect(BlendLabel.nutrientsOf(payload, mat)).toEqual(['protein']);
-    expect(BlendLabel.amountsOf(payload, mat).protein).toBe(26000);
+    // No makeup, so the host's mass is never read: the Material speaks.
+    expect(BlendLabel.amountsOf(payload, mat, 0.25).protein).toBe(26000);
     expect(
-      BlendLabel.toxicityOf(payload, mat).find((t) => t.type === 'ptomaine'),
+      BlendLabel.toxicityOf(payload, mat, 0.25).find((t) => t.type === 'ptomaine'),
     ).toBeTruthy();
 
     // ⚠ And the formed dose is the ONE thing the shadow carries — it is

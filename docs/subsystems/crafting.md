@@ -519,9 +519,10 @@ deleted. The controller is dumb and asks two sides in order:
    `CuttingTool` plans any cloth, because the bolt is the weaver's and
    the pattern the tailor's.
 
-A plan is an engaged step (`durationMs`, `effortW`, `beginSelf`/
-`beginPeers`, `onComplete`), so **the planner owns its completion
-message and its mint**; a `CutRefusal` is declined in the planner's
+A plan is an engaged step — an `ActPlan` (`lib/craft/ActPlan.ts`, the one
+vocabulary every crafting act protocol answers in): `durationMs`,
+`effortW`, `beginSelf`/`beginPeers`, `onComplete` — so **the planner owns its completion
+message and its mint**; an `ActRefusal` is declined in the planner's
 words. Tailoring's three options (`--for`, `--tight`, `--generous`) ride
 the request as an option bag. A second cuttable good (a saddler's hide)
 answers either side with no kernel edit, and the instrument affords the
@@ -930,10 +931,15 @@ activity substrate's first durative-verb consumer — see
 [activity.md](./activity.md)): the effect lands **at completion**, so a
 barge-in `cancel` mid-step leaves partial matter standing.
 
-- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit a standard
-  measure off the chosen reachable graded bottle (to the discard sink —
-  conservation) and bank a graded `BuildContribution` into the vessel's
-  buffer. `add` (no vessel) finds the build vessel you're working in.
+- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit **one
+  serving** of what is poured off the chosen reachable graded bottle (the
+  material's `servingKg` at its density, `MaterialApi.servingKgOf` — gin
+  60 ml, dry vermouth 10 ml, bitters 2 ml; `--amount 30ml` measures
+  instead) to the discard sink — conservation — and bank a graded
+  `BuildContribution` into the vessel's buffer. One row field is both the
+  nutrition serving and the jigger, so a new spirit needs no code; three
+  pours of sweet vermouth is a negroni's measure. `add` (no vessel) finds
+  the build vessel you're working in.
 - **`stir`** / **`shake <vessel>`** — record the mix method on the build.
 - **`strain [<vessel>] into <glass>`** — the **terminal mint**.
 - **`garnish <glass> with <garnish>`** — the finishing flourish.
@@ -941,12 +947,41 @@ barge-in `cancel` mid-step leaves partial matter standing.
 The vessel is a `ManualBuildMixin` build vessel (`CocktailShaker` backs
 both the shaker and the mixing glass — `capabilities` decide which recipe
 tool it satisfies). At `strain`, **`CraftingApi.mintFromBuild`**
-reverse-matches the accumulated contributions to a recipe (`matchBuild`:
-heat gate ≤ the build's latched heat, bulk slots each covered by a
-distinct contribution, item slots' counts covered by the tag rule, **no
-leftovers** — a faithful build is exactly the recipe) and mints the
+reverse-matches the accumulated contributions to a recipe and mints the
 graded, maker's-marked drink into the glass, **reusing the one quality
-model** (weakest-link `Grade`, the `applyBulkOutput` fill). An off-spec
+model** (weakest-link `Grade`, the `applyBulkOutput` fill).
+
+⭐⭐ **A recipe is a proportion, not a list of minimums** (ceramics re-plan
+R1-D2/D3; `matchBuild` → `buildFit`). A build is a recipe when:
+
+- the heat gate holds (≤ the build's latched heat, clamped by the
+  recipe's medium) — unchanged;
+- **every bulk category is present and in proportion.** Each bulk
+  contribution joins the first bulk slot whose category it carries and
+  whose grade floor it meets, so two pours of gin are one gin. Over the
+  measured categories the target fraction is `t_i = measureL_i × ρ_i / Σ`
+  and the build's `a_i = kg_i / Σ`, both at the BANKED material's
+  density, and `d = max_i |a_i − t_i|` must sit within
+  `crafting.proportion.tolerance` (0.12). A bulk slot with no
+  `measureL` is presence-only and outside the sum;
+- **the batch is big enough:** the build's measured mass reaches
+  `crafting.proportion.minScale` (0.5) of the recipe's — a half measure
+  is still a martini, a thimble is a taste;
+- **item slots are COUNTED, never weighed** — a row carries no mass for
+  an item and the authored proportion for one IS its count (a stack sums
+  into its slot), so a workpiece build matches as it always did;
+- **no leftovers** — a contribution that joins no slot makes the build
+  something else.
+
+Off the proportion costs grade, taken before the recipe's base floor:
+`d ≤ tol/3` is free, `≤ 2·tol/3` one band, `≤ tol` two — a lean batch is
+a poorer batch. When several recipes match, the most heat-demanding wins
+(the smithing ladder), then the closer proportion (a wet martini's
+60 : 20 is the wet martini, not a lean dry one), then catalogue order.
+The one-shot `craft` is untouched: it draws exactly each slot's measure,
+so its proportion is exact by construction.
+
+An off-spec
 build still yields *a* thing — the generic blend base named by its own
 row (`mixed drink` / `cooked fare`), its payload still honestly summed
 from what went in — but matches no recipe (`recipeId === ''`), the
@@ -985,6 +1020,19 @@ against it at the mint; reset by `clearBuild`).
   <dish>` (the terminal mint — a matched edible recipe fills the dish
   with the authored food Material at the portion; off-spec mints the
   generic **pot-luck** fill).
+- **Compounding** — ⭐ the same mint over a vessel's **charge** rather
+  than a buffer (ceramics re-plan R1-D7): `knead`/`stir` at a
+  `CompoundingMixin` vessel (a glaze tub, the batch pot, a temper pit)
+  calls `mintFromBuild({ charge })`; the vessel's
+  `chargeContributions()` reads its pieces and belly as contributions
+  (each piece's `massKg` banked), and the one path runs — grade, the
+  inputs' spoilage + kit, the maker — then the **namer**: the vessel's
+  `productMaterial` (a piece cloned from `productTemplate`, else the
+  belly), else the matched recipe, else the pot-luck. The charge is
+  consumed by the mint. A charge's pot-luck conserves mass — everything
+  that was in the vessel, at the generic's density — where a PLATED
+  pot-luck is a portion of the pot (`outputPortionL`'s rule, the generic
+  0.3 L), never its whole mass.
 
 `quench`/`plate` replicate `strain`'s capture tail
 (`ScriptApi.captureManualBuild`) — the first faithful hand build mints
@@ -1207,8 +1255,25 @@ the named antipattern):
   Sharpen never touches condition; repair never touches keenness —
   independently observable via `analyze`.
 
+⭐ **A casting is MADE (B95).** `Casting`, `Ingot` and `MetalCasting`
+compose `CraftedMixin`: a cast carries its maker (the pool's, else the
+mould's), a grade (the mould's, capped by its making faults) and its cast
+record (`castFrom`: the impression it was taken from and the trade of the
+mould it set in). Crafting still takes them as STOCK, because what melts
+back exists to be worked (`isItemCandidate`: crafted but `Meltable`, like
+converted wood's `Seasoning`). A cured or fired product is capped by its
+stock's grade: weakest link.
+
+`Crafted` also carries `madeFrom` (B104): the MATERIAL a thing was made
+from (a wheel of cheese, *made from ewe's milk*). It rides a set (the
+mould's cast) and a transform that keeps the thing (a wheel salted). It
+was a duck-probed interface on dairying's wheel.
+
 **Broken is capability loss, not a state machine**:
-`DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`; a
+`DurableMixin.isBroken()` = condition ≤ `crafting.brokenThreshold`, where
+⭐ condition is the wear gauge × the body's integrity (its cracks and dunts —
+the one damage record, review R2-D1; repair restores the gauge,
+`getWearCondition`, and a rivet the damage); a
 broken tool's `hasCapability` goes dark (it fails recipe tool-matching
 until repaired); a broken weapon's delivery is clamped to
 `crafting.brokenDeliveryFloor` (combat's bounded
@@ -1238,7 +1303,8 @@ The condition comes up to the ceiling, never down; the grade loss
 COMPOUNDS (a second untrained mend loses another band). The trade is
 `disciplineOf(line)` — the recipe that made the member, else the recipe
 that makes its row (`RecipeCatalogue.recipeFor`, `tangible` recipes
-only), else the trade of the mould it was cast in (`Crafted.castDiscipline`);
+only), else the trade of the mould it was cast in (`Crafted.getCastFrom().discipline` —
+the one cast record, review R2-D6);
 a part with no knowable trade is mended as if competent (`lint:bills`
 arm 8 names every such part). The instrument is the PART's material's:
 metal at reachable heat ≥ `crafting.repair.metalHeatK` (the anvil, when
@@ -1715,9 +1781,10 @@ see moisture; that was the seam this closes.
 
 **`Recipe.volatiles: [{material, litresPerKg}]`** is the sibling for what
 leaves as a GAS rather than staying in the output: wood → charcoal **+
-tar**, coal → coke **+ coal tar + coal gas**. Routed by the controller
-through a structural `receiveVolatiles` probe (a condenser, a gasometer),
-else emitted into the scope — so a retort with nothing attached puts its
+tar**, coal → coke **+ coal tar + coal gas**. Routed by the thermal
+transition through the holding chamber's `Burner.receiveVolatiles` hook (a
+retort's condenser, a gasometer; B105 — it was a structural probe), the
+rest emitted into the scope — so a retort with nothing attached puts its
 volatiles in the room, which is what the clamp does and why the collier
 discards them.
 
@@ -1757,12 +1824,13 @@ the feed was dropped. It folds the source payload through
 
 - **`churn`** joins `stir`/`shake` on `stir.yaml` (method `churned`).
   ⭐ The view is `requires: any` now and the controller narrows to two arms:
-  a build vessel records the method; a vessel answering the kernel's
-  **`HandWorked { workByHand(method) }`** shape (`lib/craft/ManualBuild.ts`)
-  works its own charge and says what came of it. ⚠ Why not a build
+  a build vessel records the method; a hand-worked vessel (the kernel's
+  **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
+  `lib/craft/HandWorked.ts` since the ceramics review) works its own charge
+  and says what came of it. ⚠ Why not a build
   vessel: a `pour` into a build vessel BANKS the matter as a contribution
   and drains the source, so cream poured into a build-vessel churn would
-  vanish. The churn confers the view itself (a static on its class).
+  vanish. `HandWorkedMixin` confers the view (a static on its class).
 - **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a
   cheese vat) is SET ON the lit `Placing` fire in reach
   (`reachableHeatSource()`), so its contents really warm; `requires: any`

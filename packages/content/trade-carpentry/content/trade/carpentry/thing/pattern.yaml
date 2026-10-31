@@ -1,0 +1,14 @@
+# A founder's pattern (ceramics D23) — a wooden copy of a thing, carved a
+# shade oversize for the metal it will be cast in (`carve pattern of sword
+# from board for bronze`). Pressed into sand it leaves the thing's shape,
+# not its own: the impression it was cut to carry. The carving fills the
+# impression in; a row cloned bare holds none and presses as a lump of wood.
+class: /trade/carpentry/thing/Pattern
+data:
+  shortDescription: wooden pattern
+  keywords: [pattern, "wooden pattern"]
+  register: indefinite
+  longDescription: |
+    A carefully carved wooden copy of something, smoothed and shellacked so sand will part from it cleanly, every face given a little draft.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.5

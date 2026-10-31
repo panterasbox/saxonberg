@@ -11,7 +11,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Material from '../../material/Material';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
@@ -21,11 +21,25 @@ import { Idea } from '../../stuff/Idea';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { ContainerMixin } from '../../spatial/Container';
+import Good from '../../stuff/Good';
+import { ContainmentApi } from '../../../api/containment';
+import Casting from '../../../platform/thing/Casting';
 
 class Pan extends BulkableMixin(
   ThermalMixin(ContainableMixin(NamedMixin(Idea))),
 ) {
   static _mixinName = 'FreezePan';
+}
+/** A vessel that holds things as well as a pool — a temper pit. */
+class Pit extends ContainerMixin(
+  BulkableMixin(ThermalMixin(ContainableMixin(NamedMixin(Idea)))),
+) {
+  static _mixinName = 'FreezePit';
+}
+/** Where a pan stands — a pool that sets needs a place for what it sets (B105). */
+class Shed extends ContainerMixin(Good) {
+  static _mixinName = 'FreezeShed';
 }
 
 let seq = 0;
@@ -52,17 +66,21 @@ function liquid(opts: {
 }
 
 function pan(mat: Material, litres: number, tempK: number): Pan {
-  return makeStuff(() => {
+  // Placed first, THEN chilled: a pan minted below its pool's melting point
+  // would freeze on the move, before it stood anywhere.
+  const p = makeStuff(() => {
     const p = new Pan();
     p.setName('pan');
     p.interiorBulk = true;
     p.setInteriorCapacity(Quantity.of(10, 'L'));
     p.setBulkMaterial('interior', mat);
     p.setBulkAmount('interior', Quantity.of(litres, 'L'));
-    p.setStampedTemperatureK(tempK);
-    p.setLastAmbientK(tempK);
     return p;
   });
+  ContainmentApi.move(p, makeStuff(() => new Shed()));
+  p.setStampedTemperatureK(tempK);
+  p.setLastAmbientK(tempK);
+  return p;
 }
 
 describe('the honest freeze', () => {
@@ -73,6 +91,9 @@ describe('the honest freeze', () => {
   it('plateaus at the melting point while the latent heat is banked', () => {
     const water = liquid({ mp: 273, latent: 334_000 });
     const p = pan(water, 4, 272); // 1 K below mp — a small undershoot
+    // …a moment into its drift toward air at 260 K (a pool AT the air has
+    // been sitting there for ever — see the time test below).
+    p.setLastAmbientK(260);
     p.reconcilePhase();
     // Still liquid (not nearly enough latent removed), clamped to mp, and the
     // accumulator banked the undershoot.
@@ -94,6 +115,43 @@ describe('the honest freeze', () => {
     expect(p.getBulkAmount('interior').rawValue()).toBe(0);
   });
 
+  it('…and a pool only a moment into its drift banks about (mp − T)·C, as before', () => {
+    const water = liquid({ mp: 273, latent: 334_000 });
+    const p = pan(water, 4, 272.9);
+    p.setLastAmbientK(250);
+    p.reconcilePhase();
+    const banked = p.getBulkPayload('interior')?.latentRemovedJ ?? 0;
+    expect(banked).toBeCloseTo(0.1 * 4 * 4186, -1);
+  });
+
+  it('⭐ a vessel that holds things keeps its ice IN it — a pit freezes in the pit, not out onto the yard', async () => {
+    const water = liquid({ mp: 273, latent: 334_000 });
+    water.castTemplate = '/stuff/thing/_freeze/ice';
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new Casting())) as never);
+    try {
+      const pit = makeStuff(() => {
+        const p = new Pit();
+        p.setName('pit');
+        p.interiorBulk = true;
+        p.setInteriorCapacity(Quantity.of(10, 'L'));
+        p.setBulkMaterial('interior', water);
+        p.setBulkAmount('interior', Quantity.of(4, 'L'));
+        return p;
+      });
+      const shed = makeStuff(() => new Shed());
+      ContainmentApi.move(pit, shed);
+      pit.setStampedTemperatureK(180);
+      pit.setLastAmbientK(180);
+      pit.reconcilePhase();
+      for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));
+      expect(pit.getBulkAmount('interior').rawValue()).toBe(0);
+      expect(pit.getContents()).toHaveLength(1);
+      expect(shed.getContents()).toEqual([pit]);
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
   it('a material ruined by freezing mints no cast and stamps it ruined', () => {
     const blood = liquid({ mp: 273, latent: 334_000, ruined: true });
     const p = pan(blood, 1, 180); // deep undershoot, 1 L → clears the need
@@ -106,6 +164,21 @@ describe('the honest freeze', () => {
     expect(payload?.latentRemovedJ ?? 0).toBe(0);
   });
 });
+
+/**
+ * A world clock that thermal reads — ⚠ `beforeEach` clears the registry,
+ * and with none thermal is IDLE (a test then passes vacuously).
+ */
+async function runningClock() {
+  const { WorldClockApi } = await import('../../../api/worldclock');
+  const { default: WorldClockRegistry } = await import('../../../platform/idea/WorldClockRegistry');
+  if (!StuffApi.findByTemplatePath('/platform/idea/WorldClockRegistry')) {
+    makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+  }
+  WorldClockApi._resetForTesting();
+  WorldClockApi.setScale(1000);
+  return WorldClockApi;
+}
 
 describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the climate build, D7)', () => {
   beforeEach(() => {
@@ -139,10 +212,7 @@ describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the c
       jug.getTemperature();
       expect(jug.getBulkPayload('interior')?.latentRemovedJ ?? 0).toBeCloseTo(banked, 6);
 
-      // Read through the day (a watched world reads; ⚠ the phase engine
-      // banks the undershoot it FINDS at a read, so one long unread gap
-      // banks one cooling's worth — a thermal-tail limit, see thermal-slate), and
-      // the bank reaches m·L: the pool is gone. The cast
+      // Read through the day, and the bank reaches m·L: the pool is gone. The cast
       // (/stuff/thing/ice-block) mints into the jug's container, which the
       // drive proves; here the slot emptying is the claim.
       for (let h = 2; h <= 24 && jug.getBulkAmount('interior').rawValue() > 0; h++) {
@@ -150,6 +220,46 @@ describe('⭐⭐ the ambient freeze — a pool freezes because it is COLD (the c
         jug.getTemperature();
       }
       expect(jug.getBulkAmount('interior').rawValue()).toBe(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+
+  it('⭐ the plateau banks by TIME: ONE read after a long cold sit freezes the pool (ceramics run 24)', async () => {
+    // 1.2 kg of pewter in 290 K air: C ≈ 240 J/K, the need 72 kJ. Read once,
+    // three hours on. The old per-read figure banked (500 − 290)·240 ≈ 50 kJ
+    // and a damp-blown flask of pewter stayed liquid.
+    const WorldClockApi = await runningClock();
+    let now = 100;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    try {
+      const pewter = liquid({ mp: 500, latent: 60_000, density: 7300, specificHeat: 200 });
+      const p = pan(pewter, 1.2 / 7.3, 600);
+      p.setLastAmbientK(290);
+      p.getTemperature();
+      now = 100 + 3 * 3600;
+      p.getTemperature();
+      expect(p.getBulkAmount('interior').rawValue()).toBe(0);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
+
+  it('⚠ …but a pool read the INSTANT it lands in a cold mould is not frozen by it (run 26)', async () => {
+    // The pour lands at the mould's own (ambient) temperature and only then
+    // is its heat set; a read in between sees a pool AT the air, which the
+    // drift alone cannot tell from one that has sat there for ever.
+    const WorldClockApi = await runningClock();
+    let now = 100;
+    WorldClockApi._setNowProviderForTesting(() => now);
+    try {
+      const pewter = liquid({ mp: 500, latent: 60_000, density: 7300, specificHeat: 200 });
+      const p = pan(pewter, 1.2 / 7.3, 290);
+      p.setLastAmbientK(290);
+      p.getTemperature();
+      now = 100.5;
+      p.getTemperature();
+      expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
     } finally {
       WorldClockApi._resetForTesting();
     }

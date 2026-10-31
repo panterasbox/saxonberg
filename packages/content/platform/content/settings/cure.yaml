@@ -2,7 +2,7 @@
 # kind: merge-missing — a key the app_settings singleton lacks is merged
 # in; a value the operator changed via `config` is never touched).
 settings:
-  # Curing — the per-instance water state (`WaterActivityMixin`). Two scalars,
+  # Curing — the per-instance water state (`MoistureMixin`). Two scalars,
   # `moisture` and `solute`, multiply the Material's tabulated water
   # activity into the effective one the growth law reads:
   #   a_w = a_w(material) · moisture · (1 − solute)
@@ -35,6 +35,19 @@ settings:
   # shelves and turf is built into a lattice.
   - key: cure.groundExposure
     value: "0.35"
+
+  # Dried faster than it stands, a solid CHECKS: dryness gained per hour ×
+  # its drying crack risk (a fat clay high, sand and grog low; timber
+  # middling) past this leaves a drying crack. Green clay and a board in a
+  # hot kiln are one rule.
+  - key: cure.crackRate
+    value: "0.05"
+
+  # Water a thing in the open takes back per mm of rain, as a fraction of
+  # its moisture, before its exposure scales it. A stack of boards left out
+  # in a wet week loses the seasoning that week gave it.
+  - key: cure.rewetPerMm
+    value: "0.002"
 
   # The relative humidity (%) assumed where nothing in the containment
   # chain and no biome authors one.

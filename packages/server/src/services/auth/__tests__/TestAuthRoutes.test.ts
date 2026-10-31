@@ -52,8 +52,35 @@ vi.mock('../../../backend/TestHooks', () => ({
     authenticate: async (
       _app: unknown,
       handle: string,
-      done: (err: unknown, user?: { id: string }) => void
-    ) => done(null, { id: `uid-${handle}` }),
+      done: (err: unknown, user?: { id: string }) => void,
+      _withCharacter?: boolean,
+      _startLocation?: string,
+      _wizard?: boolean,
+      parcels: readonly string[] = []
+    ) => {
+      // The grant itself is TestHooks' (drive step 8); here the route's
+      // job: the list reaches the hook, and its refusal comes back.
+      if (parcels.includes('/test/realm/dock')) {
+        done(new Error("TestHooks: '/test/realm/dock' is not a parcel"));
+        return;
+      }
+      done(null, { id: `uid-${handle}${parcels.length ? `+${parcels.length}` : ''}` });
+    },
+    // The real cap lives in TestHarnessApi (TestHooks.clock.test.ts and
+    // test-harness.test.ts); here only the ROUTE's job is pinned —
+    // `soak` passed through, the refusal's words relayed.
+    advanceClock: async (duration: string, opts?: { soak?: boolean }) => {
+      if (duration === '2 days' && !opts?.soak) {
+        throw new Error(
+          "test clock: a jump of '2 days' (2.0 game days) is a SPAN step"
+        );
+      }
+      return { before: 0, after: 1, settledMs: 0, quiet: true };
+    },
+    pinWeather: async (scope: string, type: string | null, mode: string) => {
+      if (type === 'sideways') throw new Error("testharness weather: 'sideways' is not a weather kind");
+      return { locality: scope, pin: type === null ? null : { type, mode } };
+    },
   },
 }));
 
@@ -99,5 +126,80 @@ describe('TestAuthRoutes', () => {
     expect(allowed.status).toBe(200);
 
     vi.unstubAllEnvs();
+  });
+
+  describe('/auth/test-clock — the span rule', () => {
+    it('relays the refusal of a jump past a day, in its own words', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-clock')
+        .send({ advance: '2 days' });
+      expect(res.status).toBe(500);
+      expect(res.body.error).toMatch(/SPAN step/);
+    });
+
+    it('passes soak: true through to the hook', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-clock')
+        .send({ advance: '2 days', soak: true });
+      expect(res.status).toBe(200);
+    });
+
+    it('a day is no span', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-clock')
+        .send({ advance: '1 day' });
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('/auth/test-login — parcels', () => {
+    it('refuses a parcels value that is not a list of /-rooted paths', async () => {
+      for (const parcels of ['x', [1], ['world/terminus']]) {
+        const res = await request(makeApp())
+          .post('/auth/test-login')
+          .send({ handle: 'p', parcels });
+        expect(res.status, JSON.stringify(parcels)).toBe(400);
+      }
+    });
+
+    it('passes the list to the hook', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-login')
+        .send({ handle: 'p', parcels: ['/home/other', '/test/realm'] });
+      expect(res.status).toBe(200);
+      expect(res.body.user.id).toBe('uid-p+2');
+    });
+
+    it('relays the hook\'s refusal in its own words', async () => {
+      const res = await request(makeApp())
+        .post('/auth/test-login')
+        .send({ handle: 'p', parcels: ['/test/realm/dock'] });
+      expect(res.status).toBe(500);
+      expect(res.body.error).toMatch(/is not a parcel/);
+    });
+  });
+
+  describe('/auth/test-weather', () => {
+    it('pins, and unpins with type null', async () => {
+      const pin = await request(makeApp())
+        .post('/auth/test-weather')
+        .send({ scope: '/test/realm', type: 'rain' });
+      expect(pin.status).toBe(200);
+      expect(pin.body.pin).toEqual({ type: 'rain', mode: 'frozen' });
+      const unpin = await request(makeApp())
+        .post('/auth/test-weather')
+        .send({ scope: '/test/realm', type: null });
+      expect(unpin.body.pin).toBeNull();
+    });
+
+    it('400 on a malformed body; the refusal in its own words', async () => {
+      const bad = await request(makeApp()).post('/auth/test-weather').send({ type: 'rain' });
+      expect(bad.status).toBe(400);
+      const refused = await request(makeApp())
+        .post('/auth/test-weather')
+        .send({ scope: '/test/realm', type: 'sideways' });
+      expect(refused.status).toBe(500);
+      expect(refused.body.error).toMatch(/not a weather kind/);
+    });
   });
 });

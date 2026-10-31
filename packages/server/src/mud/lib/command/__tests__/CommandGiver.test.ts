@@ -21,6 +21,7 @@ import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainmentApi } from '../../../api/containment';
 import { CommandApi } from '../../../api/command';
+import { CommandDefinition } from '../CommandDefinition';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type {
@@ -259,4 +260,45 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     const forced = giver.envelopes.at(-1) as DispatchResponseEnvelope;
     expect(forced.forced).toBe(true);
   });
+
+  it('⭐ two views of one verb: a view whose argument gate refuses yields to the next that takes the line', async () => {
+    // The ceramics drive: an ingot in hand affords crafting's `pour`
+    // (a vessel you build in), and `pour ladle into pit` stopped at its
+    // gate instead of reaching bulk's `pour`.
+    const strict = CommandDefinition.fromYaml(
+      'verbs: [tap]\ncontroller: /platform/idea/cmd/system/PingController\ndescription: strict\n' +
+        'args:\n  - name: n\n    type: string\n    required: true\n    validators: [/lib/command/validators/mustBeNumber]\n',
+      '<strict>',
+    );
+    const loose = CommandDefinition.fromYaml(
+      'verbs: [tap]\ncontroller: /platform/idea/cmd/system/PingController\ndescription: loose\n' +
+        'args:\n  - name: n\n    type: string\n    required: true\n',
+      '<loose>',
+    );
+    await CommandApi.resolveValidators(strict);
+    vi.spyOn(giver, 'getAffordances').mockReturnValue([
+      { command: strict, source: giver as never, bucket: 'self' as never },
+      { command: loose, source: giver as never, bucket: 'self' as never },
+    ]);
+    await giver.executeCommand('tap hello');
+    const env = giver.envelopes.at(-1) as Omit<DispatchResponseEnvelope, 'frameId'>;
+    expect(env.outcome.status, JSON.stringify(env.outcome.notes)).toBe('ok');
+  });
+
+  it('and when no view takes it, the FIRST refusal is the answer', async () => {
+    const strict = CommandDefinition.fromYaml(
+      'verbs: [tap]\ncontroller: /platform/idea/cmd/system/PingController\ndescription: strict\n' +
+        'args:\n  - name: n\n    type: string\n    required: true\n    validators: [/lib/command/validators/mustBeNumber]\n',
+      '<strict>',
+    );
+    await CommandApi.resolveValidators(strict);
+    vi.spyOn(giver, 'getAffordances').mockReturnValue([
+      { command: strict, source: giver as never, bucket: 'self' as never },
+      { command: strict, source: giver as never, bucket: 'self' as never },
+    ]);
+    await giver.executeCommand('tap hello');
+    const env = giver.envelopes.at(-1) as Omit<DispatchResponseEnvelope, 'frameId'>;
+    expect(env.outcome.notes.some((n) => n.kind === 'validator-failed')).toBe(true);
+  });
 });
+

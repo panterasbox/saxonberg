@@ -30,6 +30,13 @@
 > gang's charter petition
 > **Size:** a build
 
+> ⭐ **2026-10-28 → [law-and-order-slate](./law-and-order-slate.md)** — the eleven scenarios, the
+> four-part module, the book, the medium test, banishment and penal geography, the kit of standing.
+> ⭐ **2026-10-28 → [emergency-services-slate](./emergency-services-slate.md)**
+> — police and emergency care on one spine (the call for help), response time
+> from density, epoch or magic, and budget, and the licensed-equipment lean
+> (a modern weapon is the seat's, on duty, from the armory).
+
 **Captured 2026-07-31**, from a Terminus design conversation. The
 brief: we want law enforcement *and* a criminal element in the
 fiction — for **immersion**, and to understand how enforcement plays

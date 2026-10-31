@@ -1,0 +1,19 @@
+# Salt crystals — ⭐ what a brine sets as it crystallizes (ceramics S17).
+#
+# The crop a salt pan keeps in its own shape (the pan is a mould whose
+# `castTemplate` is this row) and what a pot of strong brine drops beside
+# it when nothing keeps it. Mass is stamped by the set and GROWS while the
+# crop is still setting: one crop, however often anybody looks.
+#
+# ⭐ A `Provision`, not a bare `Casting`: salt is FOOD (its water activity is
+# what keeps it, and the freshness clock says so), and the crop goes to the
+# kitchen and the curing tub.
+class: /platform/thing/Provision
+data:
+  shortDescription: crust of salt crystals
+  keywords: [salt, crystals, "salt crystals", crust, crop]
+  register: indefinite
+  longDescription: |
+    A crust of white salt crystals, coarse and square-edged, still damp where they grew against each other.
+  _materialPath: /stuff/idea/material/food/salt
+  mass: 1

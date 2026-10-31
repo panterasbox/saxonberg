@@ -20,6 +20,7 @@ import { brain as combatant } from "../combatant";
 import type { BrainContext } from "../brain";
 import { CombatLogic } from '../../../platform/idea/api/CombatLogic';
 import { MixinApi } from '../../../api/mixin';
+import { BrainMoves } from '../BrainMoves';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -77,6 +78,7 @@ function ctxFor(host: object): BrainContext {
     trigger: { source: "cadence", raw: "combat" },
     say: () => {},
     emote: async () => {},
+    ...new BrainMoves(host as never, {}).members(),
     emoteFree: () => {},
   };
 }

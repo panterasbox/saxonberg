@@ -47,6 +47,15 @@ export interface Tooled {
    */
   getEpoch(): Epoch | null;
   setEpoch(value: Epoch | null): void;
+  /**
+   * ⭐ The craft this tool's finer use draws on, or `''`: pyrometric cones
+   * are read by a POTTER's eye (a competent potter calls them by number),
+   * not by the general awareness a thermometer's dial wants. A reading
+   * that takes a hand tool reads its finer detail at the reader's band in
+   * this discipline (the ceramics drive C, run 35: the practised potter
+   * read the cones exactly as the novice did).
+   */
+  getDiscipline(): string;
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -56,6 +65,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       capabilities: { persistent: true, authorable: true },
       epoch: { persistent: true, authorable: true },
+      discipline: { persistent: true, authorable: true },
     };
 
     /**
@@ -69,6 +79,13 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The epoch stamp; `null` = unstated. */
     public epoch: Epoch | null = null;
+
+    /** The craft this tool's finer use draws on; `''` = none. See {@link Tooled.getDiscipline}. */
+    public discipline = '';
+
+    getDiscipline(): string {
+      return this.discipline;
+    }
 
     getEpoch(): Epoch | null {
       return this.epoch;

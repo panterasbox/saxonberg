@@ -39,6 +39,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { TemplatePaths } from '../../../../lib/paths';
+import { installDryingAir } from '../../../../lib/material/__tests__/drying-air';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -118,6 +119,7 @@ async function makePick(): Promise<Tool> {
 beforeEach(async () => {
   store = { recipes: [] };
   StuffApi.clearAll();
+  installDryingAir();
   const pm = PersistenceManager.get();
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockImplementation(async (col: string, query: Record<string, unknown>) => {
@@ -384,5 +386,56 @@ describe('⭐ fit matches a part to a line by ROW LINEAGE — a quartered board 
     ContainmentApi.move(stray, smith);
     const out = await as<FitOutcome>(() => CraftingApi.fit({ part: stray, whole: pick }));
     expect(out.ok).toBe(false);
+  });
+});
+
+/**
+ * ⭐⭐ INTERCHANGEABLE (ceramics D27, S18): a part CAST from an impression of
+ * the line's own kind is the same shape as the one it replaces, so it drops
+ * into the old joint — no instrument, no band, no joint re-made. Derived
+ * from the cast's provenance; nothing is authored.
+ */
+describe('⭐⭐ interchangeable — a part cast to the line\'s own pattern needs no new joint', () => {
+  /** A wedge joint that wants an instrument nobody here has. */
+  function hardJoint(): void {
+    vi.spyOn(Template, 'findByClass').mockImplementation(async (cls: string) =>
+      cls === '/platform/idea/Joint'
+        ? ([
+            {
+              path: '/platform/idea/Joint/wedged',
+              class: cls,
+              data: {
+                key: 'wedged',
+                label: 'wedged',
+                portability: 'hand',
+                instrument: 'drift',
+                competence: null,
+                reversible: 'effort',
+                strength: 0.6,
+                structuralRecovery: 1,
+                fastenerRecovery: 0,
+                tightenable: true,
+                failure: 'parted',
+              },
+            },
+          ] as never)
+        : ([] as never),
+    );
+  }
+
+  it('a hand-made haft is refused the joint; a haft CAST from a haft\'s impression drops in', async () => {
+    hardJoint();
+    const pick = await makePick();
+    for (let i = 0; i < 12; i++) pick.wear(0.1, 'shock');
+    const carved = part(ASH, ['pick-haft', 'haft'], 0.8);
+    ContainmentApi.move(carved, smith);
+    const refused = await as<FitOutcome>(() => CraftingApi.fit({ part: carved, whole: pick }));
+    expect(refused).toMatchObject({ ok: false, reason: 'missing-tool' });
+
+    const cast = part(ASH, ['pick-haft', 'haft'], 0.8);
+    cast.setCastFrom({ kindPath: HAFT, takenFromIdentity: '', takenAtS: 0 });
+    ContainmentApi.move(cast, smith);
+    const fitted = await as<FitOutcome>(() => CraftingApi.fit({ part: cast, whole: pick }));
+    expect(fitted).toMatchObject({ ok: true, arm: 'replace', part: 'haft', interchangeable: true });
   });
 });

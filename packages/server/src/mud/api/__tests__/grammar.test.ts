@@ -246,3 +246,15 @@ describe('GrammarApi.inWords — a count a player reads, never a gauge', () => {
     expect(GrammarApi.inWords(1_000_000)).toBe('1000000');
   });
 });
+
+describe('GrammarApi.pluralize', () => {
+  it('adds an s to a plain noun', () => {
+    expect(GrammarApi.pluralize(makeStuff(() => new Plain()), 'brick')).toBe('bricks');
+  });
+
+  it('⭐ counts the MEASURE of a partitive — two lumps of clay, never two lump of clays', () => {
+    const p = makeStuff(() => new Plain());
+    expect(GrammarApi.pluralize(p, 'lump of clay')).toBe('lumps of clay');
+    expect(GrammarApi.pluralize(p, 'load of river sand')).toBe('loads of river sand');
+  });
+});

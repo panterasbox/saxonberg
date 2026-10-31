@@ -24,7 +24,12 @@ import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { ManualBuildMixin } from '../../lib/craft/ManualBuild';
 import { AlloyedMixin } from '../../lib/material/Alloyed';
+import { MarkedMixin } from '../../lib/description/Marked';
+// ⭐ A casting is MADE (B95): a maker, a grade, and what it was cast from.
+import { CraftedMixin } from '../../lib/craft/Crafted';
 
-const IngotBase = AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))));
+// ⭐ An ingot or a struck token may bear a stamped device — a smelter's mark,
+// a die's (`MarkedMixin`); a plain one bears none and reads as before.
+const IngotBase = MarkedMixin(CraftedMixin(AlloyedMixin(ManualBuildMixin(MeltableMixin(ThermalMixin(Good))))));
 
 export default class Ingot extends IngotBase {}

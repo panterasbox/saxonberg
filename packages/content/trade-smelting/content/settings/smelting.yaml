@@ -1,0 +1,11 @@
+# smelting — the smelting pack's own dials (the `settings` kind:
+# merge-missing — a key the app_settings singleton lacks is merged in; a
+# value the operator changed via `config` is never touched).
+settings:
+  # ⭐ A bell's note (ceramics S19): a kilogram of bell bronze rings at
+  # about this many hertz, and the note falls as the cube root of the mass
+  # rises (a bell eight times as heavy sounds an octave lower). The alloy
+  # moves it by the square root of its stiffness over its weight — a soft
+  # pewter bell is low and dull.
+  - key: smelting.bell.pitchRefHz
+    value: "900"

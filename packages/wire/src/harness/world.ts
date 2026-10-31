@@ -32,7 +32,7 @@ import { readFileSync, existsSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { allFiles, currentFile } from './registry';
-import { SERVER_URL } from './session';
+import { SERVER_URL, type Session } from './session';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '..', '..', '..', '..');
@@ -131,6 +131,27 @@ export function isOwnedTestWorld(): boolean {
 /* ──────────────────────── the clock ──────────────────────── */
 
 /**
+ * POST to a test-only route, retried ONCE on a connection reset: a kept-alive
+ * socket the server had already closed is reset before the request is read
+ * (run 31: `fetch failed` / ECONNRESET on a clock read, the server healthy).
+ */
+async function postTestRoute(path: string, body: unknown): Promise<Response> {
+  const send = (): Promise<Response> =>
+    fetch(`${SERVER_URL()}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  try {
+    return await send();
+  } catch (err) {
+    const code = (err as { cause?: { code?: string } }).cause?.code;
+    if (code !== 'ECONNRESET' && code !== 'UND_ERR_SOCKET') throw err;
+    return send();
+  }
+}
+
+/**
  * ⭐⭐ **Move world-time, from OUTSIDE the fiction.**
  *
  * A game day is about two real hours, so nothing a seasonal system does
@@ -157,16 +178,27 @@ export function isOwnedTestWorld(): boolean {
 export async function advanceWorldClock(
   duration: string
 ): Promise<{ before: number; after: number }> {
-  const res = await fetch(`${SERVER_URL()}/auth/test-clock`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ advance: duration }),
-  });
-  const body = (await res.json()) as {
+  // ⛔ Soak mode is the one thing that lets a jump past a game day
+  // through: the server refuses a longer one as a SPAN step in a blocking
+  // drive. Only `pnpm wire:soak` sets it.
+  const payload = {
+    advance: duration,
+    ...(process.env.WIRE_SOAK === '1' ? { soak: true } : {}),
+  };
+  // ⚠ The world holds its clock while a jump settles (river D46): a jump
+  // asked for while another is still settling — a drive stopped mid-jump,
+  // the next file starting at once (run 35) — finds it paused. Wait it out.
+  let res = await postTestRoute('/auth/test-clock', payload);
+  let body = (await res.json()) as {
     before?: number;
     after?: number;
     error?: string;
   };
+  for (let wait = 0; wait < 60 && !res.ok && /clock is paused/i.test(body.error ?? ''); wait++) {
+    await new Promise((r) => setTimeout(r, 5_000));
+    res = await postTestRoute('/auth/test-clock', payload);
+    body = (await res.json()) as typeof body;
+  }
   if (!res.ok || typeof body.after !== 'number') {
     throw new Error(
       `advanceWorldClock('${duration}') failed (${res.status}): ` +
@@ -178,11 +210,7 @@ export async function advanceWorldClock(
 
 /** Game-seconds now, read through the same test-only route. */
 export async function worldClockNow(): Promise<number> {
-  const res = await fetch(`${SERVER_URL()}/auth/test-clock`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({}),
-  });
+  const res = await postTestRoute('/auth/test-clock', {});
   const body = (await res.json()) as { now?: number; error?: string };
   if (!res.ok || typeof body.now !== 'number') {
     throw new Error(
@@ -191,4 +219,245 @@ export async function worldClockNow(): Promise<number> {
     );
   }
   return body.now;
+}
+
+/**
+ * ⭐ **Meals between a drive's checkpoints.** A clock jump integrates a
+ * body's whole gap at once, and a body integrates honestly: hydration
+ * runs out in about two game days (dehydration kills in eight hours
+ * more), satiation in about three and a half. A drive that jumps a week
+ * while a brick dries is a person who ate and drank through that week,
+ * and the ceramics drives found what happens when nobody says so — the
+ * potter died of starvation and the brickmaker of hyperthermia (no water,
+ * no sweat). Setup, not the act under test: `POST /auth/test-nourish`
+ * tops `satiation`, `hydration` and `vitamin-c` up to capacity (fed bread
+ * and water through a game year, run 20's people died of scurvy).
+ *
+ * ⛔ Not an `eval`, for the clock's reason: topping a reserve up
+ * reconciles the body, the reconcile reads the biome, and a parcel-bound
+ * eval may not (`getDefaultHumidity()` denied, run 18).
+ *
+ * @throws if the world refuses — a silent miss is a body that dies later.
+ */
+export async function nourish(s: Session): Promise<void> {
+  await nourishHandle(s.handle);
+}
+
+/** {@link nourish} by handle — for a character the drive holds no session for. */
+async function nourishHandle(handle: string): Promise<void> {
+  const res = await postTestRoute('/auth/test-nourish', { handle });
+  const body = (await res.json()) as { satiation?: number; error?: string };
+  if (!res.ok || typeof body.satiation !== 'number') {
+    throw new Error(`nourish(${handle}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
+  }
+}
+
+/** The commons' warmest honest garment — the coat the dorm footlocker offers. */
+export const WINTER_COAT = '/stuff/thing/clothes/greatcoat';
+
+/**
+ * ⭐ Dress a drive character for the season: the garment is handed over
+ * ({@link hand}) and the character WEARS it (its own act, so the
+ * slot rules decide). A drive that stands its people outdoors through a
+ * year must: the realm's winter dawn is 268 K, a body in its default
+ * loadout is on the hypothermia line at 8 °C, and run 26 lost the
+ * brickmaker and the founder to one night at the brickfield. Setup, like
+ * {@link nourish}: a new player finds this coat in the dorm footlocker,
+ * which a test-login character never visits. Handed by {@link hand}.
+ *
+ * @throws if the world refuses or the garment will not go on.
+ */
+export async function dress(s: Session, template: string = WINTER_COAT): Promise<void> {
+  const id = await hand(s, template);
+  const worn = await s.cmd(`wear #${id}`);
+  await worn.said();
+  if (worn.status !== 'ok') throw new Error(`dress(${s.handle}): 'wear #${id}' was ${worn.status}`);
+}
+
+/** {@link dress} for the founder, wherever it is resident — every drive's setup opens it. */
+export async function dressFounder(template: string = WINTER_COAT): Promise<void> {
+  const { Session: SessionClass } = await import('./session');
+  const gov = await SessionClass.open('founder', { wizard: true });
+  try {
+    // Once: every drive's setup asks, and a founder with four coats is
+    // carrying fourteen kilograms of them.
+    const keyword = template.split('/').pop() ?? template;
+    const has = await gov.query(`me:i:${keyword}`, { fields: ['displayName'] }).catch(() => []);
+    // ⚠ Best effort: a founder an earlier file left dead (a shade wears
+    // nothing) must not take the next file's setup down with it (run 27's
+    // drive B skipped all six checkpoints on it).
+    if (has.length === 0) {
+      await dress(gov, template).catch((err: unknown) => {
+        // eslint-disable-next-line no-console -- a setup warning, not a failure
+        console.warn(`wire: the founder could not be dressed — ${err instanceof Error ? err.message : String(err)}`);
+      });
+    }
+  } finally {
+    gov.close();
+  }
+}
+
+/**
+ * ⭐ Hand a drive character a thing of `template`'s kind (setup, by name):
+ * `POST /auth/test-hand` clones it into the character's hands and returns
+ * its id; `data` is a per-instance overlay on the clone (a lump of ore
+ * handed with the grade its face would stamp at `hew`). ⚠ Not the founder's clone-and-drop: a founder resident elsewhere
+ * is not moved by a session's start location, so what it dropped landed
+ * wherever it was (drive B's ore, run 26).
+ *
+ * @throws if the world refuses.
+ */
+export async function hand(
+  s: Session,
+  template: string,
+  data?: Record<string, unknown>
+): Promise<string> {
+  return handHandle(s.handle, template, data);
+}
+
+async function handHandle(
+  handle: string,
+  template: string,
+  data?: Record<string, unknown>
+): Promise<string> {
+  const res = await postTestRoute('/auth/test-hand', data ? { handle, template, data } : { handle, template });
+  const body = (await res.json()) as { id?: string; error?: string };
+  if (!res.ok || typeof body.id !== 'string') {
+    throw new Error(`hand(${handle}, ${template}) failed (${res.status}): ${body.error ?? JSON.stringify(body)}`);
+  }
+  return body.id;
+}
+
+/**
+ * ⭐ Advance the world clock by `duration` as LIVED time: in jumps of at
+ * most four game hours (the heat regulation's gap window), the `living`
+ * sessions fed and watered — and brought current — before each
+ * ({@link nourish}). A duration the parser does not recognize is one jump.
+ * Returns the game-seconds either side of the whole advance.
+ */
+export async function advanceLiving(
+  duration: string,
+  living: readonly (Session | undefined)[],
+): Promise<{ before: number; after: number }> {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day|week)s?\s*$/i.exec(duration);
+  const per: Record<string, number> = { second: 1, minute: 60, hour: 3600, day: 86_400, week: 604_800 };
+  const total = m ? Number(m[1]) * per[m[2]!.toLowerCase()]! : null;
+  const feed = async (): Promise<void> => {
+    // A drive may advance before its first session opens (B's `[k]`).
+    for (const s of living) if (s?.isOpen()) await nourish(s);
+    // ⭐ And the founder: every drive's settle probe and setup opens it
+    // where the drive works, and through a game year it bled to death of
+    // scurvy at the weathering ground (run 20). Not resident is fine.
+    await nourishHandle('founder').catch(() => undefined);
+  };
+  if (total === null) {
+    await feed();
+    return advanceWorldClock(duration);
+  }
+  // ⛔ The span rule is per STEP, not per call (soak-harness D1): this
+  // helper walks a long move in jumps of a day or less, which the server's
+  // per-call refusal can never see — so it refuses here, in the same
+  // words, outside soak mode. A season walked in day-steps is a span.
+  if (total > 86_400 && process.env.WIRE_SOAK !== '1') {
+    throw new Error(
+      `advanceLiving('${duration}'): ${(total / 86_400).toFixed(1)} game days is a SPAN step ` +
+        'and cannot run in a blocking drive, even walked a day at a time — the line ' +
+        'is one game day (docs/workflow.md § No merge waits on the clock). Move the ' +
+        'step to a .soak. file (<feature>.soak.wire.test.ts, run by `pnpm wire:soak`), ' +
+        'or stage its outcome.',
+    );
+  }
+  let before: number | null = null;
+  let after = 0;
+  for (let left = total; left > 0; ) {
+    // ≤ 4 h: a body's heat regulation treats a longer gap as absence and
+    // sheds nothing over it, while a condition it carried runs on. With no
+    // drive body open (a season reached in setup, before anyone is made),
+    // a day a jump: only the founder is fed, and the world settles a day
+    // as cheaply as four hours (ceramics run 34 — 4 h steps crossed two
+    // game days a minute, and 5b's move to winter outran its timeout).
+    const anyoneLiving = living.some((s) => s?.isOpen());
+    const step = Math.min(left, (anyoneLiving ? 4 : 24) * 3600);
+    await feed();
+    const jump = await advanceWorldClock(`${step} seconds`);
+    before ??= jump.before;
+    after = jump.after;
+    left -= step;
+  }
+  return { before: before ?? after, after };
+}
+
+/**
+ * ⭐ Bring the world to its working season — late spring through summer
+ * (day 60–170 of the 360-day year; day 0 is the northern vernal equinox)
+ * — as LIVED time ({@link advanceLiving}), or do nothing if it is there.
+ * A drive that makes wet ware must: an unheated shop holds the winter's
+ * air, and green ware left wet across a frost bursts (the ceramics
+ * drives' B and C began wherever in the year A left the clock, and run 31
+ * froze their firebricks and jugs on the shop floor). A potter's year has
+ * a season for making for the same reason.
+ */
+export async function toWarmSeason(living: readonly (Session | undefined)[] = []): Promise<void> {
+  await toSeasonDay(60, 170, living);
+}
+
+/**
+ * Bring the world (as LIVED time, {@link advanceLiving}) to the next day
+ * of the 360-day year in `[from, to)` — day 0 is the northern vernal
+ * equinox, so winter is 270–360 — or do nothing if it is already there.
+ */
+export async function toSeasonDay(
+  from: number,
+  to: number,
+  living: readonly (Session | undefined)[] = []
+): Promise<void> {
+  const DAY = 86_400;
+  const YEAR = 360;
+  const now = await worldClockNow();
+  const dayOfYear = ((Math.floor(now / DAY) % YEAR) + YEAR) % YEAR;
+  if (dayOfYear >= from && dayOfYear < to) return;
+  const toDay = (from - dayOfYear + YEAR) % YEAR;
+  await advanceLiving(`${toDay} days`, living);
+}
+
+/** What the weather pin route reports. */
+export interface WeatherPinResult {
+  /** The Locality the pin landed on — the one covering the scope. */
+  locality: string;
+  pin: { type: string; mode: 'frozen' | 'alive' } | null;
+}
+
+async function postWeather(
+  what: string,
+  body: Record<string, unknown>
+): Promise<WeatherPinResult> {
+  const res = await postTestRoute('/auth/test-weather', body);
+  const out = (await res.json()) as Partial<WeatherPinResult> & { error?: string };
+  if (!res.ok || typeof out.locality !== 'string') {
+    throw new Error(`${what} failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out as WeatherPinResult;
+}
+
+/**
+ * ⭐ Hold the weather — the staged twin of searching the sky for it.
+ *
+ * Pins `type` on the Locality covering `scope` (a place's or a
+ * Locality's template path) and applies it AT ONCE, as a segment
+ * boundary would: rooms restamp, puddles accrue, rain wets whoever is
+ * out in it. Only in a world this run owns (the route is test-only).
+ *
+ * ⚠ The pin persists on the Locality: a drive that pins, unpins.
+ */
+export async function pinWeather(
+  type: string,
+  scope: string,
+  mode: 'frozen' | 'alive' = 'frozen'
+): Promise<WeatherPinResult> {
+  return postWeather(`pinWeather('${type}', '${scope}')`, { scope, type, mode });
+}
+
+/** Release a pin {@link pinWeather} set; the procedural weather returns. */
+export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
+  return postWeather(`unpinWeather('${scope}')`, { scope, type: null });
 }

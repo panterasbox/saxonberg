@@ -53,8 +53,21 @@ import Avatar from '../mud/lib/character/Avatar';
 import PrimaryAvatar from '../mud/platform/agent/PrimaryAvatar';
 import { Template } from '../mud/lib/stuff/Template';
 import { SecurityApi } from '../mud/api/security';
-import { WorldClockApi } from '../mud/api/worldclock';
-import { PersistenceManager } from './PersistenceManager';
+import {
+  TestHarnessApi,
+  type ClockJump,
+  type WeatherPinReport,
+} from '../mud/api/test-harness';
+import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
+import { ParcelApi } from '../mud/api/parcel';
+import { AccessApi } from '../mud/api/access';
+import { StuffApi } from '../mud/api/stuff';
+import { MixinApi } from '../mud/api/mixin';
+import type { Stuff } from '../mud/lib/stuff/Stuff';
+import { ContainmentApi } from '../mud/api/containment';
+import { TRAUMA_BEHAVIOR } from '../mud/platform/idea/Condition';
+import { Quantity } from '../mud/lib/quantity';
+import { TemplatePaths } from '../mud/lib/paths';
 
 export class TestHooks {
   /** The one gate every hook runs first. */
@@ -102,7 +115,8 @@ export class TestHooks {
     done: (error: unknown, user?: { id: string }) => void,
     withCharacter = false,
     startLocation?: string,
-    wizard = false
+    wizard = false,
+    parcels: readonly string[] = []
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('TestHooks: test authentication is disabled'));
@@ -120,7 +134,13 @@ export class TestHooks {
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter) {
-            await TestHooks.provisionCharacter(id, handle, startLocation, wizard);
+            await TestHooks.provisionCharacter(
+              id,
+              handle,
+              startLocation,
+              wizard,
+              parcels
+            );
           }
           return id;
         }
@@ -152,7 +172,8 @@ export class TestHooks {
     userId: string,
     name = 'Tester',
     startLocation?: string,
-    wizard = false
+    wizard = false,
+    parcels: readonly string[] = []
   ): Promise<void> {
     TestHooks.#assertTestMode('provisionCharacter');
     const user = await User.findById(userId);
@@ -183,6 +204,60 @@ export class TestHooks {
           provider.fireChange(group._id);
         }
       }
+    }
+    if (parcels.length > 0 && user.playerIds.length > 0) {
+      await TestHooks.#grantParcels(user.playerIds[0]!, parcels);
+    }
+  }
+
+  /**
+   * TEST-ONLY: make the test character the TITLE HOLDER of each parcel
+   * named, so it can stage inside it — `eval --parcel <it>` — exactly as
+   * the parcel's real holder could.
+   *
+   * ⭐ A GRANT, NOT A BYPASS, like the wizard groups above: the title
+   * moves through `ParcelApi.transfer` (an appended `transfer` event, the
+   * owner index re-pointed), so every authority check downstream runs the
+   * same walk a player's does. Nothing in `AccessApi` learns about test
+   * mode.
+   *
+   * - The path must be an EXACT parcel extent; anything else fails the
+   *   login, naming the covering parcel (a wrong path should fail here,
+   *   not at the first `eval` an hour later).
+   * - A parcel the character already holds (a group it is in — a wizard
+   *   is in every managed group — or a title it already has) is `kept`.
+   * - ⚠ A transferred title is a SOLD parcel to the pack that claimed it:
+   *   its next reconcile records a `conflict` and skips its rows under
+   *   that extent (parcel.md § grant). A test world is reset per run.
+   */
+  static async #grantParcels(
+    playerId: string,
+    parcels: readonly string[]
+  ): Promise<void> {
+    const identity = Avatar.getTemplatePath(playerId);
+    const [avatar] = StuffApi.findByIdentityPath(identity);
+    const held = avatar ? await AccessApi.heldExtents(avatar) : [];
+    for (const path of parcels) {
+      const cover = ParcelApi.coveringParcelOfSync(path);
+      if (!cover || cover.getExtent() !== path) {
+        throw new Error(
+          `TestHooks: '${path}' is not a parcel` +
+            (cover
+              ? `; the covering parcel is '${cover.getExtent()}' — name that`
+              : ' and nothing covers it')
+        );
+      }
+      const owner = cover.getOwner();
+      const mine = owner?.kind === 'player' && owner.templatePath === identity;
+      if (mine || held.some((h) => path === h || path.startsWith(`${h}/`))) {
+        console.info(`TestHooks: ${identity} already holds ${path} (kept)`);
+        continue;
+      }
+      await ParcelApi.transfer(path, { kind: 'player', templatePath: identity });
+      console.info(
+        `TestHooks: granted ${path} to ${identity} ` +
+          `(was ${owner ? JSON.stringify(owner) : 'untitled'})`
+      );
     }
   }
 
@@ -244,9 +319,13 @@ export class TestHooks {
    *      that is ever true while `NODE_ENV === 'production'`.
    *   2. the ROUTE is mounted only in the same branch, so in an
    *      ordinary server the endpoint does not exist.
-   *   3. `WorldClockApi.advance` itself carries `@TestOnly`, so outside
-   *      a test environment the method refuses with its own message
-   *      whatever calls it.
+   *   3. `TestHarnessApi.advanceClock` (and `WorldClockApi.advance` under
+   *      it) carries `@TestOnly`, so outside a test environment the
+   *      method refuses with its own message whatever calls it.
+   *
+   * ⛔ And a fourth rule, not a gate: a jump past ONE GAME DAY is a span
+   * step and is refused before it moves anything unless `opts.soak`
+   * (sent by the wire harness under `pnpm wire:soak`).
    *
    * ⭐ `runRoot` for the same reason `authenticate` uses it —
    * `backend/**` may push call frames and `services/` may not — and it
@@ -256,59 +335,196 @@ export class TestHooks {
    *
    * @param duration game-time to skip (`'3 days'`, `'20 days'`) — the
    *   grammar `WorldClockApi.after()` takes.
+   * @param opts.soak the soak lane's run — lets a jump past a day through.
    * @returns game-seconds before and after, so the caller can assert the
    *   jump landed rather than trusting a 200.
    */
   public static async advanceClock(
-    duration: string
-  ): Promise<{ before: number; after: number }> {
+    duration: string,
+    opts?: { soak?: boolean }
+  ): Promise<ClockJump> {
     TestHooks.#assertTestMode('advanceClock');
-    const out = ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
-      const before = WorldClockApi.getNow().rawValue();
-      WorldClockApi.advance(duration);
-      const after = WorldClockApi.getNow().rawValue();
-      console.info(
-        `TestHooks: advanced world-time '${duration}' ` +
-          `(${Math.round(before)}s → ${Math.round(after)}s)`
-      );
-      return { before, after };
-    });
-    // ⭐ The jump returns when the world has caught up with it (river D46,
-    // pass 17): everything the skipped interval fired queues its reads and
-    // writes behind the pool, and a drive that jumps again before they land
-    // stacks one jump's backlog on the next — ~21,000 queries at 12 s each,
-    // and the process grew until the box went down.
-    const t0 = Date.now();
-    // ⭐ The clock is HELD while it settles: the world runs at its scale
-    // in real time, so a minute's wait would land the jump many game
-    // minutes past where the drive asked (pass 18: a quarter of an hour's
-    // jump landed past the boat it was for). Held, nothing new fires and
-    // the jump lands exactly. Never left held: resumed whatever happens.
-    const held = ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => {
-      if (WorldClockApi.isPaused()) return false;
-      WorldClockApi.pause();
-      return true;
-    });
-    let quiet = false;
-    try {
-      // Under the wire client's 300 s header timeout, so a slow drain reports rather than drops.
-      quiet = await PersistenceManager.get().whenQuiet(500, 240_000);
-    } finally {
-      if (held) ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () => WorldClockApi.resume());
-    }
-    console.info(
-      `TestHooks: the jump settled in ${Date.now() - t0} ms` +
-        (quiet ? '' : ' — NOT quiet at the timeout; the backlog is still draining')
+    // ⭐ The cap (a jump past one game day is a SPAN step, refused
+    // unless `soak`), the jump and the settle all live in
+    // `TestHarnessApi` — the one implementation the in-world `testharness`
+    // command calls too, so both doors meet the same rule once.
+    return ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () =>
+      TestHarnessApi.advanceClock(duration, opts)
     );
-    return out;
+  }
+
+  /**
+   * TEST-ONLY: hold (or, with `type` null, release) the weather of the
+   * Locality covering `scope` — a place's or a Locality's template path.
+   * Same three gates as the clock; the pin itself is
+   * `TestHarnessApi.pinWeather`'s, the one implementation the
+   * `testharness weather` command calls too.
+   */
+  public static async pinWeather(
+    scope: string,
+    type: string | null,
+    mode: WeatherPinMode = 'frozen'
+  ): Promise<WeatherPinReport> {
+    TestHooks.#assertTestMode('pinWeather');
+    return ExecutionContextApi.runRoot(TestHooks, 'pinWeather', () =>
+      type === null
+        ? TestHarnessApi.unpinWeather(scope)
+        : TestHarnessApi.pinWeather(scope, type, mode)
+    );
   }
 
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');
     return ExecutionContextApi.runRoot(TestHooks, 'clockNow', () =>
-      WorldClockApi.getNow().rawValue()
+      TestHarnessApi.clockNow()
     );
+  }
+
+  /**
+   * TEST-ONLY: top a test character's `satiation`, `hydration` and
+   * `vitamin-c` up to capacity — the meals a person eats between a drive's
+   * checkpoints.
+   *
+   * ⭐ A ROUTE for the clock's reason. A clock jump integrates a body's
+   * whole gap, and a drive that jumps weeks starved and dehydrated its
+   * people (the ceramics drives, run 16). The first answer was the
+   * character's own `eval`, and it could not work: topping a reserve up
+   * reconciles the body first, the reconcile reads the place's biome, and
+   * a parcel-bound `eval` may not (run 18: `getDefaultHumidity()` denied).
+   * A root frame carries no sandbox scope, which is what scaffolding needs
+   * and what an in-world act never gets.
+   *
+   * @throws when no resident character answers to `handle`.
+   */
+  public static nourishCharacter(handle: string): { satiation: number; hydration: number; 'vitamin-c': number } {
+    TestHooks.#assertTestMode('nourishCharacter');
+    return ExecutionContextApi.runRoot(TestHooks, 'nourishCharacter', () => {
+      const avatar = PlayerApi.findAvatarByName(handle);
+      if (!avatar) throw new Error(`no resident character named '${handle}'`);
+      const body = avatar as unknown as Stuff;
+      if (!MixinApi.isReserved(body)) throw new Error(`'${handle}' keeps no reserves`);
+      // ⭐ Bring the body's heat CURRENT first, on the water it had: the
+      // regulation skips a gap past `MAX_REASONABLE_GAP_SEC` as absence
+      // while a hyperthermia it already carried kept counting, so a drive
+      // character who rested eight hours after digging died of the work's
+      // unshed heat (the ceramics drive B, runs 16 and 22).
+      if (MixinApi.isThermalRegulation(body)) body.reconcileThermalRegulation();
+      // ⭐ A balanced diet, not bread and water: a drive fed only those two
+      // through a game year bled its brickmaker AND the founder to death —
+      // scurvy (`vitamin-c`'s floor), the ceramics drives, run 20.
+      const out = { satiation: 0, hydration: 0, 'vitamin-c': 0 };
+      for (const key of ['satiation', 'hydration', 'vitamin-c'] as const) {
+        const r = body.getReserve(key);
+        if (!r) continue;
+        body.adjustReserve(key, r.capacity);
+        out[key] = body.getReserve(key)?.current.rawValue() ?? 0;
+      }
+      // ⭐ …and a wound tended, as anyone living through those days would:
+      // an untreated burn weeps plasma and mends only where the body is
+      // SAFE, so a drive's people, standing out in the yards through weeks
+      // of jumped clock, bled out of a scalded hand (the ceramics drives,
+      // run 27: the founder, the brickmaker). Each open wound gets its own
+      // resolution, cleanly — the same primitive `treat` calls.
+      // ⭐ …and dry, body and what it wears, as anyone would change into dry
+      // things between days: drive A stands the brickmaker in the rain to
+      // watch test bricks get rained on, and in a damp spring fog nothing
+      // dries — sodden clothes multiplied the cold until the knead killed
+      // them of hypothermia (runs 26 and 28, coat or no coat). What they
+      // CARRY keeps its water: a clay lump's wetness is the drive's subject.
+      if (MixinApi.isWet(body)) body.wet(-1);
+      if (MixinApi.isAttired(body)) {
+        for (const g of body.wornStack()) if (MixinApi.isWet(g)) g.wet(-1);
+      }
+      // ⭐ …and WARM, as anyone would have been, indoors by a fire between
+      // the checkpoints. Drive A stands the brickmaker out on the weathering
+      // ground in early winter, waiting for rain onto a green brick, and a
+      // greatcoat on an open yard through days of jumped clock killed them of
+      // hypothermia (run 35). The cold of the hours under test still bites;
+      // only the hours off camera are spent by a fire. A body ABOVE its normal
+      // core is left alone — the heat it carries is the work's.
+      if (MixinApi.isVitals(body)) {
+        const band = body.getVitalBand('coreTemperature');
+        const core = body.getVitalSign('coreTemperature').rawValue();
+        if (core < band.baseline) body.setVitalSign('coreTemperature', Quantity.of(band.baseline, 'K'));
+        for (const c of body.getConditions()) {
+          if (c.kind === 'affliction' && c.templatePath === TemplatePaths.thermalHypothermia) body.relieve(c);
+        }
+      }
+      if (MixinApi.isVitals(body)) {
+        for (const c of body.getConditions()) {
+          if (c.kind !== 'trauma' || c.dressed === true) continue;
+          const by = TRAUMA_BEHAVIOR[c.type]?.resolution;
+          if (by === undefined || by === 'surgery' || by === 'extraction') {
+            // ⚠ SAID, never treated: a wound no meal mends is the drive's
+            // finding, not scaffolding's to hide (the finalize drives,
+            // 2026-10-30: two drive bodies bled out with no harm event).
+            console.warn(
+              `TestHooks: ${handle} carries an untreatable ${c.type} of ${c.site}` +
+                ` (severity ${c.severity}${c.bleeding ? ', bleeding' : ''}${c.foreignBody ? `, ${c.foreignBody} in it` : ''})`,
+            );
+            continue;
+          }
+          body.applyTreatment(c, { by, efficacy: 1 });
+        }
+        if (body.hasVitalSign('bloodVolume')) {
+          const band = body.getVitalBand('bloodVolume');
+          const bv = body.getVitalSign('bloodVolume').rawValue();
+          if (bv < band.baseline * 0.8) {
+            const named = body
+              .getConditions()
+              .map((c) => (c.kind === 'trauma' ? `${c.type}@${c.site}` : c.kind === 'affliction' ? c.templatePath : c.kind))
+              .join(', ');
+            console.warn(
+              `TestHooks: ${handle}'s blood is low — ${bv.toFixed(2)} L of ${band.baseline} (conditions: ${named || 'none'})`,
+            );
+          }
+        }
+      }
+      return out;
+    });
+  }
+
+  /**
+   * ⭐ A test character handed a thing — a drive's SETUP, by the character's
+   * name rather than the founder's hands. The founder is not moved by a
+   * session's start location when it is resident elsewhere, so a thing it
+   * cloned and dropped landed wherever it was (the ceramics drive B's ore,
+   * run 26); and a drive's people need a winter coat a test-login character
+   * never finds in the dorm footlocker (run 26 lost the brickmaker and the
+   * founder to one night at the brickfield). The thing lands in the
+   * character's hands; what they do with it — `wear`, `put`, `stoke` — is
+   * their own act, so every rule still decides.
+   *
+   * `data` rides the clone as a per-instance overlay (the embody path's
+   * `dataOverlay`): a lump of ore whose grade the face stamps at `hew`
+   * is handed with one, or the smelt finds no metal in it (run 31).
+   *
+   * @returns the thing's stuff id
+   */
+  public static async handCharacter(
+    handle: string,
+    templatePath: string,
+    data?: Record<string, unknown>
+  ): Promise<string> {
+    TestHooks.#assertTestMode('handCharacter');
+    return ExecutionContextApi.runRoot(TestHooks, 'handCharacter', async () => {
+      const avatar = PlayerApi.findAvatarByName(handle);
+      if (!avatar) throw new Error(`no resident character named '${handle}'`);
+      const body = avatar as unknown as Stuff;
+      if (!MixinApi.isContainer(body)) throw new Error(`'${handle}' cannot hold anything`);
+      const thing = await StuffApi.clone<Stuff>(
+        templatePath,
+        undefined,
+        data ? { dataOverlay: data } : undefined
+      );
+      if (!MixinApi.isContainable(thing)) {
+        await StuffApi.destruct(thing);
+        throw new Error(`'${templatePath}' is not a thing that can be held`);
+      }
+      ContainmentApi.move(thing, body);
+      return thing.stuffId;
+    });
   }
 
   /**

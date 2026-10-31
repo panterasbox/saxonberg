@@ -1,0 +1,23 @@
+# Founding — ⭐ the discipline of the CAST (ceramics D29): ramming a mould
+# round a pattern, cutting a riser, reading the melt's colour and the sand's
+# dryness before the pour, and pouring hot enough that a thin shape fills.
+# Smelting gets the metal out of the rock; founding gives it a shape.
+#
+# Credited by the pour into a mould that names it (the shipped mould
+# credit): a flask, the bell pit. Nothing is rolled — a misrun, a porous
+# casting and a blown mould are the physics of a pour made too cool, without
+# a riser, or into wet sand, and the competence is knowing that in advance.
+#
+# ISCED-F 2013 **0715 — mechanics and metal trades**, the smelter's own.
+class: /platform/idea/Discipline
+data:
+  key: founding
+  channel: skill
+  label: Founding
+  iscedf: "0715"
+  description: >-
+    Casting metal in a mould: ramming sand round a pattern, cutting a
+    riser, reading the melt's heat and the mould's dryness before the pour,
+    and pouring a bell. What it changes is what you can tell in advance.
+  specializes: [smelting]
+  requires: []

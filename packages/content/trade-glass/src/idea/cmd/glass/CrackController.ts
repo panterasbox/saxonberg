@@ -28,10 +28,6 @@ import Gather, { GLASSWORK_TOPIC } from "../../../thing/Gather";
 const CRACK_MS = 3_000;
 const CRACK_W = 120;
 const CULLET_ROW = "/stuff/thing/Casting";
-const PRODUCT: Record<string, string> = {
-  bottle: "/trade/glass/thing/bottle",
-  cylinder: "/trade/glass/thing/cylinder",
-};
 
 /** The Detailed/Visible label surface, for naming the minted moil. */
 interface Labelled {
@@ -82,8 +78,9 @@ export default class CrackController extends ManualBuildController<CrackModel> {
       beginSelf: Mml.compose`You wet a line at the neck and crack the piece off the pipe.`,
       onComplete: () => {
         if (gather.isDestroyed()) return;
-        const form = gather.getForm();
-        const productRow = PRODUCT[form];
+        // ⭐ The piece is what the blow made it — the `Form` row's product,
+        // recorded on the gather when it took the form.
+        const productRow = gather.getFormProduct();
         // An unformed or cooled gather is not a piece — it comes off as cullet.
         if (!productRow || !gather.isWorkable()) {
           void gather.loseToCullet(giver, "There was no formed piece to crack off.");
@@ -101,7 +98,7 @@ export default class CrackController extends ManualBuildController<CrackModel> {
   ): Promise<void> {
     const moilFrac = dial("glass.hotwork.moilFraction", 0.05);
     const massKg = gather.getMass().rawValue();
-    const alloying = MixinApi.isComposition(gather) ? gather.getAlloying().map((e) => ({ ...e })) : [];
+    const alloying = MixinApi.isComposition(gather) ? gather.getMakeup().map((e) => ({ ...e })) : [];
     const where =
       MixinApi.isContainer(giver)
         ? (giver as unknown as Stuff & Container)
@@ -111,13 +108,14 @@ export default class CrackController extends ManualBuildController<CrackModel> {
       madeFrom: gather as unknown as Stuff,
     });
     if (MixinApi.isTangible(product)) product.setMass(Quantity.of(massKg * (1 - moilFrac), "kg"));
-    if (MixinApi.isComposition(product) && alloying.length > 0) product.setAlloying(alloying);
+    if (MixinApi.isComposition(product) && alloying.length > 0) product.setMakeup(alloying);
     // ⭐ Stamp the maker — a bottle is Crafted; without this it credits
     // nobody (risk 8).
     if (MixinApi.isCrafted(product)) {
       product.stamp({
         maker: giver.getIdentityPath() ?? "",
-        grade: Grade.of("fair"),
+        // The blower's hand graded the blow (a glassblower's competence).
+        grade: gather.getFormGrade() ?? Grade.of("fair"),
         recipe: "glass-blow",
         craftedAt: WorldClockApi.getNow().rawValue(),
       });
@@ -138,7 +136,7 @@ export default class CrackController extends ManualBuildController<CrackModel> {
       }
       (moil as unknown as Labelled).setShortDescription("scrap of cullet");
       (moil as unknown as Labelled).setKeywords(["cullet", "moil", "glass"]);
-      if (MixinApi.isComposition(moil) && alloying.length > 0) moil.setAlloying(alloying);
+      if (MixinApi.isComposition(moil) && alloying.length > 0) moil.setMakeup(alloying);
       if (where && MixinApi.isContainable(moil)) ContainmentApi.move(moil as Stuff & Containable, where);
     } catch {
       /* missing cullet row: the moil is simply lost */

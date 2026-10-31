@@ -19,25 +19,19 @@
  * it.
  */
 
-import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
+import StatuteReading from '@saxonberg/server/mud/lib/instrument/StatuteReading';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { GovernmentApi } from '@saxonberg/server/mud/api/government';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
-/** The seat key a polity names its gauger by. */
-const GAUGER_SEAT = 'gauger';
-/** How far from the standard a vessel may be before it is off it. */
-const OFF_STANDARD_FRACTION = 0.05;
-
-export default class CapacityReading extends Reading {
+export default class CapacityReading extends StatuteReading {
   /** The realm-default standard measure (L), when no polity declares one. */
   public standardL = 25;
 
@@ -70,39 +64,35 @@ export default class CapacityReading extends Reading {
     const shown = this.observed(cap, band, seed);
     const figure = this.bracketed(cap, band, seed);
 
-    // The jurisdiction: the innermost polity over this place that seats a
-    // gauger — the one whose measure counts here.
-    // ⚠ The full resolve walk (containment outward, then the zone), not
-    // the room's own address: a cookhouse carries none, and the gauger
-    // seated over the whole city read as "the realm" there (the drive).
-    const place = this.placeOf(actor);
-    const chain = place && MixinApi.isContainer(place) ? await GovernmentApi.subjectTo(place) : [];
-    const gov = chain.find((g) => g.seats.some((s) => s.key === GAUGER_SEAT)) ?? null;
+    // The jurisdiction, the declared standard and the gauger's standing
+    // are the shared StatuteReading's (review R2-D9). ⚠ The full resolve
+    // walk (containment outward, then the zone), not the room's own
+    // address: a cookhouse carries none, and the gauger seated over the
+    // whole city read as "the realm" there (the drive).
+    const { chain, gauging, ofRecord } = await this.jurisdictionOf(actor);
     const category = MixinApi.isVesselKind(subject) ? subject.getCategory() : '';
     const declared =
-      gov?.standards.find((s) => s.key === category && s.unit === 'L') ??
-      gov?.standards.find((s) => s.key === 'cask' && s.unit === 'L') ??
-      null;
-    const standardL = declared?.value ?? this.standardL;
-    const where = gov ? gov.name : 'the realm';
+      (category !== '' ? this.declaredStandard(chain, [category], ['L']) : null) ??
+      this.declaredStandard(chain, ['cask'], ['L']);
+    const standardL = declared ? Object.values(declared.values)[0]! : this.standardL;
+    const where = declared?.where ?? (gauging ? gauging.name : 'the realm');
 
     // Off standard is a reading of the vessel, said to anyone.
-    const off = (shown.rawValue() - standardL) / standardL;
+    const standing = this.standing(shown.rawValue(), standardL);
     const standardLine =
-      Math.abs(off) <= OFF_STANDARD_FRACTION
+      standing === 'true'
         ? Mml.compose`That is a true ${GrammarApi.inWords(standardL)}-litre measure by ${where}'s standard.`
-        : off < 0
+        : standing === 'short'
           ? Mml.compose`⚠ That is SHORT of ${where}'s ${GrammarApi.inWords(standardL)}-litre standard — off standard.`
           : Mml.compose`⚠ That is OVER ${where}'s ${GrammarApi.inWords(standardL)}-litre standard — off standard.`;
 
-    const ofRecord = gov !== null && (await GovernmentApi.holdsSeat(actor, gov.key, GAUGER_SEAT));
-    if (ofRecord && MixinApi.isAssembled(subject)) {
+    if (ofRecord && gauging !== null && MixinApi.isAssembled(subject)) {
       subject.setGauge({
         litres: shown.rawValue(),
         by: actor.getIdentityPath() ?? '',
         at: WorldClockApi.getNow().rawValue(),
         standardL,
-        government: gov!.key,
+        government: gauging.key,
       });
       try {
         await PersistableApi.captureHostOf(subject);

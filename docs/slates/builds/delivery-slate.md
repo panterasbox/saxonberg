@@ -587,6 +587,12 @@ it's where the NPC substrate was already aimed. A carrier is a
 
 ### The aether line — unifying utilities with comms
 
+> ⛔ **Retired 2026-10-29 → [arcane-science.md](../../arcane-science.md) § *The second postulate***
+> (the owner): the aether carries **information only — never energy**. What this section wanted —
+> standing enchantments with no caster present, on a feed piped to a building — is a **mana line**:
+> mana conducts by contact like charge, which is the `ManaPowered` wall socket's shape. The comms
+> half (an ambient field, strengthened where it is built up) stands.
+
 The strongest unification. The comms baseline implant is universal and
 always-on because there's an **ambient aether field** (broadcast / Layer-1
 *field*, weak, everywhere) — your implant is its receiver. The **aether

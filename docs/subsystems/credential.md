@@ -182,6 +182,19 @@ new collection — the records live in the holder's `data.credentials`.
 Cross-restart durability rides future persistence work (aug-state
 colocation; inventory persist-back).
 
+## ⭐ A cast key turns the lock (ceramics W7, M9)
+
+A physical `Key`'s keyway is part of its SHAPE, so an impression carries it:
+`impress key in wax` records every non-`keycard` entry of the key's
+`KeyCredential` in the impression's `carried.keys`, and a cast from that
+impression — the key's own row, in brass — gets `addKey` for each. The cast
+key is a bearer key like any other: possession is access, and the lock's
+`opensFor` scan finds it in the carrier's hands. A keycard's function is a
+chip, not a shape: its impression carries nothing. Re-keying a lock is still
+the revocation (the copied wards stop matching). The cast records whose key
+it was taken from (`Tangible.castFrom`) and judges nothing. See
+[mould.md](./mould.md) § Impressions.
+
 ## Deferred
 
 The credential-wallet slate that designed this substrate is retired

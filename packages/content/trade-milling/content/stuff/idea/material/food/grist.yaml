@@ -21,6 +21,8 @@ data:
   keywords: [grist, grits, malt]
   appearance: husk and meal together, pale from the kiln
   density: 580
+  # One serving, kg (the unit of its label and its dose): 100 g — the mill's serving.
+  servingKg: 0.1
   specificHeat: 1850
   thermalConductivity: 0.15
   electricalConductivity: 1.0e-9

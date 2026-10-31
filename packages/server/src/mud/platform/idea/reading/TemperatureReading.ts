@@ -16,6 +16,8 @@ import type { CommandContext } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { Mml } from '../../../api/mml';
 import { BiomeApi } from '../../../api/biome';
+import { FireApi } from '../../../api/fire';
+import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import { Quantity, type Unit } from '../../../lib/quantity';
@@ -61,9 +63,30 @@ export default class TemperatureReading extends BiomeReading {
     context: CommandContext,
     target: Stuff | null,
     band: CompetenceBandName,
-    _handTool: (Stuff & Tooled) | null,
+    handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
+    // ⭐⭐ A kiln reads by its GLOW (ceramics D31): incandescence is a
+    // colour anybody can see, and potters fired by it for millennia —
+    // dull red, cherry, orange, yellow, white. The eye reads the fire,
+    // not a figure; a pyrometric cone in the spy-hole reads finer.
+    if (target && MixinApi.isBurner(target) && target.isLit()) {
+      const held = target.getHeldTemperatureK();
+      if (held >= 800) {
+        // ⭐ (ceramics W6) The cones: a set stood in the spy-hole bends
+        // one by one as the kiln comes to its heat — the potter reads which
+        // have gone over, and what that means for the ware is the trained
+        // part. The set is SPENT by the firing it reads (a bent cone does
+        // not stand up again).
+        const cones = handTool !== null && handTool.getCapabilities().includes('pyrometry');
+        const line = cones ? `${glowOf(held)} ${conesOf(held, band)}` : glowOf(held);
+        this.report(context, Mml.compose`${line}\n`);
+        if (cones && handTool !== null && !handTool.isDestroyed()) {
+          await StuffApi.destruct(handTool);
+        }
+        return;
+      }
+    }
     const value = await this.subjectValue(target, param);
     if (!value) {
       this.decline(
@@ -142,6 +165,65 @@ export default class TemperatureReading extends BiomeReading {
       Quantity<Unit>
     >;
   }
+}
+
+/**
+ * ⭐ The colour of a fire's heat — the one incandescence scale
+ * (`FireApi.incandescenceOf`), worded for a kiln's interior.
+ */
+function glowOf(kelvin: number): string {
+  switch (FireApi.incandescenceOf(kelvin)) {
+    case null:
+    case 'dull red':
+      return 'Inside, it glows a dull red you can barely see by day.';
+    case 'cherry red':
+      return 'It glows cherry red.';
+    case 'orange':
+      return 'It glows a bright orange.';
+    case 'yellow':
+      return 'It glows yellow, too bright to look into for long.';
+    case 'white':
+      return 'It is white-hot inside — you cannot look into it at all.';
+  }
+}
+
+/**
+ * ⭐ The three cones of a set, and the heat each goes over at (an Orton
+ * self-supporting cone at a steady rise): 08 at terracotta heat, 04 at
+ * earthenware, 6 at stoneware — the three bodies clay's own transitions
+ * name. A cone within {@link CONE_SOFT_K} of its point is bending.
+ */
+const CONES: ReadonlyArray<{ name: string; atK: number; body: string }> = [
+  { name: '08', atK: 1218, body: 'terracotta' },
+  { name: '04', atK: 1333, body: 'earthenware' },
+  { name: '6', atK: 1495, body: 'stoneware' },
+];
+const CONE_SOFT_K = 15;
+
+/**
+ * The cones in the spy-hole, in the reader's words. Anybody sees how many
+ * have gone over; a competent potter reads them by number; a proficient
+ * one says what the ware is coming to.
+ */
+function conesOf(kelvin: number, band: CompetenceBandName): string {
+  const state = (atK: number): 'standing' | 'bending' | 'down' =>
+    kelvin >= atK + CONE_SOFT_K ? 'down' : kelvin >= atK - CONE_SOFT_K ? 'bending' : 'standing';
+  const down = CONES.filter((c) => state(c.atK) === 'down').length;
+  const bending = CONES.some((c) => state(c.atK) === 'bending');
+  if (!CompetenceBand.atOrAbove(band, 'competent')) {
+    const n = ['none of the cones has', 'one cone has', 'two cones have', 'all three cones have'][down]!;
+    return `Through the spy-hole, ${n} gone over${bending ? ', and another is leaning' : ''}.`;
+  }
+  const parts = CONES.map((c) => `cone ${c.name} ${state(c.atK)}`);
+  const said = `Through the spy-hole: ${parts.join(', ')}.`;
+  if (!CompetenceBand.atOrAbove(band, 'proficient')) return said;
+  const reached = [...CONES].reverse().find((c) => state(c.atK) !== 'standing');
+  const coming = reached
+    ? state(reached.atK) === 'down'
+      ? `The ware has had ${reached.body} heat.`
+      : `The ware is coming to ${reached.body} heat.`
+    : 'The ware has not had the heat of a terracotta firing yet.';
+  return `${said} ${coming}`;
 }
 
 /** What an untrained body can say about the air, and no more. */

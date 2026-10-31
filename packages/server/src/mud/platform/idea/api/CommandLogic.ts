@@ -127,6 +127,17 @@ const __dirname = dirname(__filename);
 const MUD_ROOT = resolvePath(__dirname, '../../..');
 
 /** `/platform/cmd/perception/look` → `platform/cmd/perception/look.yaml`: the key is the path. */
+
+/**
+ * ⛔ Does this world admit `cmd`? A `testOnly` view (the `testharness`
+ * scaffolding) exists only in a test environment — everywhere else the
+ * loader withholds it, so the verb is unknown, unhelped and unafforded.
+ * Consulted wherever a definition enters the `commands` map.
+ */
+function admitsView(cmd: CommandDefinition): boolean {
+  return !cmd.testOnly || SecurityApi.isTestEnvironment();
+}
+
 function viewKeyOf(docPath: string): string {
   return `${docPath.replace(/^\//, '')}.yaml`;
 }
@@ -455,6 +466,26 @@ function viasAligned(r: MqlMany, kept: readonly Stuff[]): (MqlMatchVia | undefin
   });
 }
 
+/**
+ * A field's scope fallback chain, expanded (`$focus` and stored vars).
+ *
+ * ⚠ A `here` try is DROPPED when a later try is `reachable`: `reachable`
+ * is the giver's person + `here` + peers, so it already holds everything
+ * `here` would find, and `here` alone is the room and its features
+ * without the things lying in it. With the focus at its default (`here`),
+ * `scope: ['$focus', 'reachable']` stopped at that subset, and any word
+ * in the room's own name won outright: `look clay` in the clay pit looked
+ * at the PIT, never the lumps of clay on its floor (ceramics browser
+ * walk). A drilled focus (`#id`, a fragment) is kept — it is a real
+ * narrowing, and what drill-first means.
+ */
+function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
+  const tries = yamlScopes.map((s) => ShellApi.expandVariables(s, giver));
+  return tries.filter(
+    (t, i) => !(t.trim().toLowerCase() === 'here' && tries.slice(i + 1).some((u) => u.trim().toLowerCase() === 'reachable')),
+  );
+}
+
 async function walkScopes(
   raw: string,
   giver: Stuff & CommandGiver,
@@ -622,6 +653,8 @@ export class CommandLogic extends ApiLogic {
     const doc = await DocumentApi.read(docPath);
     if (!doc || doc.getKind() !== 'command-view') return false;
     const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+    // ⛔ A CMS reload cannot sneak a test-world verb into a played world.
+    if (!admitsView(cmd)) return false;
     await resolveCommandValidators(cmd);
     validateCommandEffects(cmd);
     commands.set(key, cmd);
@@ -630,8 +663,13 @@ export class CommandLogic extends ApiLogic {
 
   /** See {@link CommandApi.preloadAll}. */
   @CallSecurity(CommandApiCallers)
-  public async preloadAll(): Promise<{ loaded: number; failed: string[] }> {
+  public async preloadAll(): Promise<{
+    loaded: number;
+    failed: string[];
+    withheld: string[];
+  }> {
     const failed: string[] = [];
+    const withheld: string[] = [];
     let loaded = 0;
 
     // ── The STORE: every installed `command-view` document. A malformed
@@ -651,6 +689,10 @@ export class CommandLogic extends ApiLogic {
         const key = viewKeyOf(doc.getPath());
         try {
           const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+          if (!admitsView(cmd)) {
+            withheld.push(key);
+            continue;
+          }
           await resolveCommandValidators(cmd);
           validateCommandEffects(cmd);
           commands.set(key, cmd);
@@ -660,7 +702,7 @@ export class CommandLogic extends ApiLogic {
           failed.push(key);
         }
       }
-      return { loaded, failed };
+      return { loaded, failed, withheld };
     }
 
     // ── OFFLINE (no store — a unit test, a stripped boot): the packs'
@@ -676,6 +718,11 @@ export class CommandLogic extends ApiLogic {
         failed.push(file);
         continue;
       }
+      if (!admitsView(cmd)) {
+        commands.delete(file);
+        withheld.push(file);
+        continue;
+      }
       try {
         await resolveCommandValidators(cmd);
         validateCommandEffects(cmd);
@@ -685,7 +732,7 @@ export class CommandLogic extends ApiLogic {
         failed.push(file);
       }
     }
-    return { loaded, failed };
+    return { loaded, failed, withheld };
   }
 
   /** See {@link CommandApi.collectContributions}. */
@@ -1362,9 +1409,7 @@ export class CommandLogic extends ApiLogic {
       // `def.scope` is normalised to `string[] | undefined` by
       // CommandDefinition.normaliseShape, so no Array.isArray here.
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
-      const tries: string[] = yamlScopes.map((s) =>
-        ShellApi.expandVariables(s, giver)
-      );
+      const tries: string[] = scopeTries(yamlScopes, giver);
 
       const focusMode: 'extend' | 'replace' | 'none' =
         def.updates_focus ?? 'none';
@@ -1564,9 +1609,7 @@ export class CommandLogic extends ApiLogic {
       if (typeof raw !== 'string' || raw.length === 0) continue;
 
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
-      const tries: string[] = yamlScopes.map((s) =>
-        ShellApi.expandVariables(s, giver)
-      );
+      const tries: string[] = scopeTries(yamlScopes, giver);
       // Same `requires:`-aware scan as the positional loop.
       const terms =
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
@@ -2662,6 +2705,14 @@ function bindPositionals(
         }
       } else if (loneQuoted !== null) {
         bound[name] = expand(loneQuoted);
+      } else if (namesAThing && greedySpan.some((t) => t.raw !== t.value)) {
+        // ⭐ An object field's value goes to MQL, which has no use for a
+        // quote mark — so a quoted NAME inside a longer object span binds
+        // unquoted too: `get "plant pot" from kiln` answered *"unexpected
+        // character '\"' at position 0"* (the ceramics drive C, run 35; the
+        // two-word-name finding). The tokens' values, already unquoted by
+        // the tokenizer, joined by a space: a name is matched word by word.
+        bound[name] = expand(greedySpan.map((t) => t.value).join(' '));
       } else if (stopAt < positionals.length) {
         // Build the substring from the original source to preserve
         // whitespace, but cut it just before the boundary token.

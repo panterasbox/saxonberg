@@ -144,43 +144,23 @@ export default class CloneController extends CommandController<CloneModel> {
     }
     if (!path) return this.fail(context, 'no template path');
 
-    // Access check — slice walk on the SOURCE template. The clone
-    // instantiates an existing class; the slice for the source path
-    // decides authority. We look up the live Stuff (if any) at the
-    // source path; the AccessApi walk handles a null resource by
-    // fails closed on untitled ground. (See open question
-    // #6 in the plan: class-allowlist for non-core authors is a
-    // follow-up build.)
-    // `findAllByTemplatePath`, not the singleton lookup: a live
-    // instance here is only a REPRESENTATIVE for the slice walk, and
-    // any of them answers the same. The singular form throws once two
-    // instances share the path — which is the normal state after
-    // cloning the same template twice, so the third `clone` of
-    // anything died on its own access check (found live in the
-    // circle, cloning a wardrobe).
-    const sourceResource: Stuff | null =
-      StuffApi.findAllByTemplatePath(path)[0] ?? null;
-    // ⚠⚠ **No live instance is not the same as untitled ground.** The
-    // check above resolves title through the REPRESENTATIVE's zone, so
-    // a template that nothing has instanced yet resolved through
-    // `zoneOf(null)` — the empty path — and was refused to everybody,
-    // permanently. A row is not clonable until somebody has already
-    // cloned it, which is a bootstrap nobody can perform.
+    // Access check — ⭐⭐ the KIND's own title: *may you clone from this
+    // path*, the document store's gate (`ParcelApi.ownerOf` by longest
+    // prefix). Untitled fails closed.
     //
-    // It is not hypothetical: `/system/transport/thing/coach` is a
-    // shipped row that **no locality places**, so the coach could not be
-    // stood up by any player in the game. Found by the base-class
-    // narrowing drive, which needed one.
-    //
-    // With no representative, ask the path-targeted question instead —
-    // *may you clone from this path* — which is the document store's
-    // gate (`ParcelApi.ownerOf` by longest prefix) and the honest form
-    // of the question. Untitled still fails closed; what changes is
-    // that a titled path with nothing standing on it now answers.
-    const permitted =
-      sourceResource !== null
-        ? await AccessApi.can(giver, 'clone', sourceResource)
-        : await AccessApi.canAtPath(giver, 'clone', path);
+    // ⚠⚠ It used to resolve title through a live REPRESENTATIVE — whichever
+    // copy of the kind `findAllByTemplatePath` returned first — and walk
+    // that copy's zone. So whether you could clone a flask depended on
+    // where some flask happened to be standing: the first copy a town's
+    // props minted put every later `clone` of the kind under that TOWN's
+    // title, for everybody, by load order. The ceramics drives were
+    // refused coal, gypsum, flasks and moulds that way, and the assembly
+    // drive had to carve a dowel rather than a peg to dodge it. The
+    // representative branch also had a hole the other way (a template
+    // nothing had instanced resolved `zoneOf(null)` and was refused to
+    // everyone); the path question answered that case already, and now
+    // answers every case the same way.
+    const permitted = await AccessApi.canAtPath(giver, 'clone', path);
     if (!permitted) {
       return this.fail(
         context,

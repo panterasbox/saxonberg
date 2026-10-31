@@ -1,0 +1,17 @@
+# The potter's shop door onto the clamp ground — ⭐ a door on a weight that
+# swings shut behind whoever goes through (`closesBehind`). Shut, it keeps
+# the drying stove's warmth in the shop: two doorways standing open cost
+# more heat than any stove gives, and green ware froze on the boards of a
+# shop whose prose said it was warm (the ceramics browser walk).
+class: /platform/thing/Door
+data:
+  shortDescription: shop door
+  keywords: [door, "shop door", "front door"]
+  register: definite
+  longDescription: >
+    A plank door hung on a weight and a length of rope, so that it swings
+    shut on its own behind you. The sill is worn hollow by boots.
+  open: false
+  closesBehind: true
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 40

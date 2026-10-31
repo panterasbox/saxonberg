@@ -19,6 +19,7 @@ import { AppApi } from '../../../api/app';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { BrainMoves } from '../BrainMoves';
 
 class TestEditor extends CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))) {
   static _mixinName = 'TestEditorPrints';
@@ -51,6 +52,7 @@ function ctxFor(state: Record<string, unknown>): BrainContext {
     trigger: { source: 'cadence', raw: 'cadence:2m' },
     say: () => {},
     emote: async () => {},
+    ...new BrainMoves(editor as never, { publisher: '/test/gazette' }).members(),
     emoteFree: () => {},
   };
 }

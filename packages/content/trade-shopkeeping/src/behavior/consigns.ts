@@ -71,7 +71,6 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -89,16 +88,6 @@ import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 
-/**
- * ⚠ An UNATTENDED search's budget, and it is the brain's own number
- * rather than the operator dial `route` and `journey` read. Nobody is
- * waiting on a hand, and a hand that spent an attended budget every
- * beat would be the cheapest way in the game to make the server think
- * for free. The errand is genuinely cross-district (a producer's yard
- * to a city counter), so it is not small — but it is bounded, stated,
- * and the refusal is a hand that does not travel this beat.
- */
-const WALK_SEARCH_BUDGET = 150;
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
@@ -284,7 +273,9 @@ export const brain = class {
     const homePath = home.getTemplatePath() ?? '';
     if (counterPath === '' || homePath === '') return;
 
-    await walkTo(hand, counterPath);
+    // ⭐ On foot, a `go` at a time over a planned route (`ctx.goTo`, B107 —
+    // the walk this brain wrote first and every walking brain now shares).
+    await ctx.goTo(counterPath);
     if (hand.getContainer() !== counterRoom) {
       // ⚠ Blocked means blocked. The goods stay in hand and the next
       // beat tries again; nothing teleports around the problem, which is
@@ -306,7 +297,7 @@ export const brain = class {
       // Home again, on its own feet. ⚠ In a `finally` for the reason the
       // teleport was: a beat that dies at the counter must not leave the
       // hand standing in somebody else's shop forever.
-      await walkTo(hand, homePath);
+      await ctx.goTo(homePath);
     }
   }
 } satisfies BrainStatics;
@@ -378,63 +369,4 @@ function listingCap(): number {
 
 function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
-}
-
-/**
- * Walk to a room, one `go <direction>` at a time.
- *
- * ⚠ **`go`, not `journey`.** `journey` is afforded by a VEHICLE — content
- * affords content — and a floor hand pushing goods by hand has none. So
- * the hand walks the way a person without a cart walks, which is also
- * the way a player would.
- *
- * ⭐⭐ The route comes from `NavigationApi.routeBetween` — the KERNEL's
- * router, over the world index. It used to come from the transport
- * pack's `LaneCatalogue`, reached **by shape** through a duck-typed
- * `planRoute`, and that was the right call while routing lived in a
- * pack: the mudlib does not import packs. Routing is the kernel's now,
- * so the shape test goes with it, and with it goes the hazard the
- * distilling suite had written down — a stub catalogue matched BY
- * SHAPE, whose comment said a drift in the signature would make this
- * walk stop silently. A typed Api drifts loudly.
- *
- * ⚠ A hand walks on foot and is told so: `mode: 'walk'`. It used to
- * plan over the `'city'` lane whatever district it was in, which was
- * only ever right because every hand happened to work in one.
- *
- * ⚠ Bounded, and it stops on the first refused step. **Blocked means
- * blocked**: the goods stay in hand and the next beat tries again.
- * Nothing here routes around anything, because auto-routing would hide
- * the geography the road was built to make real.
- *
- * ⚠⚠ **The directions come from the PLAN.** This used to re-derive
- * each one by scanning `room.getExits()` for an exit whose destination
- * matched the next node — a second, hand-written answer to a question
- * the search had already answered, and one that silently gave up
- * (`direction === ''` → return) whenever two exits led to the same
- * place or the room's exit map disagreed with the lane's edge set. A
- * `RouteLeg` carries its own `dir`, which is the whole reason the plan
- * value object has legs rather than only nodes.
- */
-async function walkTo(hand: Hand, targetPath: string): Promise<void> {
-  const here = hand.getContainer()?.getTemplatePath() ?? '';
-  if (here === '' || here === targetPath) return;
-
-  const outcome = await NavigationApi.routeBetween(
-    here,
-    targetPath,
-    { mode: 'walk', medium: 'ground' },
-    {},
-    WALK_SEARCH_BUDGET,
-  );
-  if (!outcome.ok) return;
-  const plan = outcome.plans[0];
-  if (!plan) return;
-
-  for (const leg of plan.legs) {
-    await hand.forceCommand(`go ${leg.dir}`);
-    // ⚠ Stops on the first step that did not land. The plan is a
-    // hypothesis; the ground has the last word.
-    if (hand.getContainer()?.getTemplatePath() !== leg.to) return;
-  }
 }

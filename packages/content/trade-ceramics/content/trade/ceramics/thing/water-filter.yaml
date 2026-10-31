@@ -1,0 +1,27 @@
+# The water filter — ⭐⭐ a porous stoneware candle that strains water by
+# the size of its pores (ceramics S9, W8; Doulton's filter of the cholera
+# years).
+#
+# Set it IN the mouth of a crock (or stand it on any vessel) and pour the
+# water into it: the water runs through the wall and drips into the vessel
+# below (`BulkableMixin`'s seep, through when there is somewhere to go),
+# and what comes through is what the pores let through — `filteredTo` on
+# the water's own row. Fouled river water (the dysentery is IN something)
+# comes through as water; tainted water (lead, dissolved) comes through
+# tainted. A filter in mid-air simply weeps, like any unglazed jar.
+#
+# ⭐ A `Ware` row like every pot: the row is the fired good, a bare clone an
+# import nobody here made. Unglazed — a glaze would close the pores.
+class: /trade/ceramics/thing/ClayVessel
+data:
+  shortDescription: water filter
+  keywords: [filter, "water filter", candle, "filter candle"]
+  register: indefinite
+  longDescription: >-
+    A tall open cylinder of pale, chalky stoneware, unglazed inside and out,
+    with a flared lip to sit in the mouth of a crock. It is dry and faintly
+    rough to the touch, and a drop of water on it soaks straight in.
+  interiorBulk: true
+  interiorCapacity: 2
+  _materialPath: /trade/ceramics/idea/material/filter-stoneware
+  mass: 1.4

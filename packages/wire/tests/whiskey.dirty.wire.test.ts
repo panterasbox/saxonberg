@@ -222,7 +222,7 @@ async function advance(duration: string): Promise<void> {
  * be, and a distiller works in the day.
  */
 async function waitForDaylight(s: Session): Promise<void> {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     const here = await read(s, 'look');
     if (!/pitch dark|too dark/i.test(here)) return;
     await advance('4 hours');
@@ -316,9 +316,11 @@ suite.skipIf(!isOwnedTestWorld())(
       // clock. The unawaited-promise flake class, in a drive.
       const before = await worldClockNow();
       expect(Number.isFinite(before)).toBe(true);
-      await advance('2 days');
+      // ⛔ One game day — the blocking line (soak-harness census). This
+      // step proves only that the route MOVES the clock.
+      await advance('1 day');
       const after = await worldClockNow();
-      expect(after - before).toBeGreaterThan(2 * 86_400 - 60);
+      expect(after - before).toBeGreaterThan(86_400 - 60);
     }, 300_000);
   },
 );
@@ -432,12 +434,13 @@ suite.skipIf(!isOwnedTestWorld())(
 /* ───────────────── 4. the run — charge, heat, smell, cut ───────────────── */
 
 suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
-  it('⭐ the wash ferments and the still takes the charge', async () => {
-    // Mash first, then let it work. The vat is the still-house's own.
+  it('⭐ the wash is mashed and the vat reads', async () => {
+    // Mash first. The vat is the still-house's own. ⛔ The six-day
+    // ferment is a SPAN step and lives in whiskey.soak.dirty (the
+    // soak-harness census); what blocks is that the mash runs and the
+    // vat reads.
     const mashed = await say(k, 'order wash-mash');
     await settle(k, mashed);
-    // A ferment is days; the harness owns the clock.
-    await advance('6 days');
     const vat = await read(k, 'look vat');
     expect(vat.length).toBeGreaterThan(20);
   }, 600_000);
@@ -492,20 +495,6 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
   }, 300_000);
 });
 
-/* ───────────────────────── 5. the cask, and time ───────────────────────── */
-
-suite.skipIf(!isOwnedTestWorld())('⭐⭐ 5. new-make becomes whiskey', () => {
-  it('⭐ the cask takes the spirit, is bunged, and after time holds whiskey', async () => {
-    const poured = await say(k, 'pour still into cask');
-    void poured;
-    await say(k, 'close cask');
-    // Forty-five game-days is the authored profile; take sixty.
-    await advance('60 days');
-    const cask = await read(k, 'look cask');
-    expect(
-      cask.toLowerCase(),
-      'the cask does not report whiskey after its profile\'s time — ' +
-        'either the aging profile never matched or the roster is cold',
-    ).toContain('whiskey');
-  }, 900_000);
-});
+/* ───────────────────────── 5. the cask, and time ─────────────────────────
+ * ⛔ Sixty game days in a cask is a SPAN step: it moved to
+ * whiskey.soak.dirty.wire.test.ts (the soak-harness census). */

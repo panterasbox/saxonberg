@@ -1,0 +1,29 @@
+# Refractory — fired FIRECLAY: a body that stands a furnace's heat without
+# slumping. The firebrick a lining is laid of, the crucible a melt is held
+# in (ceramics R4: a commons row, named by every lining bill). Pale and
+# gritty, and it wears — a lining is a part that burns away.
+class: /platform/idea/material/Material
+data:
+  name: refractory fireclay
+  keywords: [refractory, fireclay, firebrick, fired]
+  appearance: pale, gritty refractory fireclay
+  density: 2200
+  specificHeat: 900
+  thermalConductivity: 1.1
+  electricalConductivity: 1.0e-7
+  waterAbsorptionCapacity: 6
+  hardness: 70
+  toughness: 6
+  meltingPoint: 1950
+  # ⭐ Linear expansion, 1/K (ceramics M6): a glaze that shrinks more
+  # than this on cooling crazes.
+  thermalExpansion: 5.0e-06
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["ceramic", "mineral", "solid", "brittle", "fired", "refractory"]
+  composition: []
+  biologicalSource: null
+  # ⭐ (ceramics W2) What it breaks into — the commons sherds row, stamped
+  # with this body at the break; ground at a millstone, sherds are grog.
+  brokenTemplate: /stuff/thing/sherds

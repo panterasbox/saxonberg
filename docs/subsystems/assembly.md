@@ -228,6 +228,18 @@ bears no name now, and the latest mend that took one was this hand's. The
 name a reforger gives goes on the part that lost the old one. Once it
 bears a name the right is spent — there is no field to clear.
 
+⭐ **The rule lives on the thing, under `Named` (ceramics W2).**
+`Named.canBeNamedBy(hand, by?)` is a `@hook` that answers *nobody* by
+default; each rule's holder overrides it and chains the rule of any mixin
+composed inside it (the mixin-super idiom through `Base.prototype`):
+`Crafted` — its MAKER, once, while it bears no name (*name jug Mother's
+jug*); `Assembled` — the reforger, above; `Bonded` — the person an animal
+has chosen ([pets.md](./pets.md)). On a `Tool`, `Crafted` sits INSIDE
+`Named` and `Assembled` outside it, so the chain is what lets the maker's
+rule and the reforge rule both be heard. `NameController` narrows on no
+class to pick a rule: it asks the thing, words the refusal, and runs the
+act (an animal's naming is also its promotion).
+
 ## Wear — routed to the part that answers it
 
 `AssembledMixin.wear(amount?, channel?)` overrides Durable's
@@ -385,7 +397,8 @@ Trade verbs for rung-1/2 transformations, not assembly's budget:
   stack, one heap per wetness band) and the boards lightened by exactly
   what was minted — mass conserved. It is the icehouse's packing (see
   [storage.md](./storage.md)).
-- **`carve`** (`trade-carpentry`, `CarveController`) — runs any installed
+- **`carve`** (the platform's since ceramics W4 — `CarveController`; a
+  target that plans its own carving, a green pot, answers first) — runs any installed
   one-slot wood recipe that asks for `cutting` and no heat (haft, handle,
   peg, dowel, leg, rail, mallet…); no list in the controller. It sets
   `CraftRequest.subtractive`: the output keeps its row's size and the rest
@@ -409,33 +422,47 @@ raises integrity, so no list of acts is needed. The output's seasoned
 fraction is the greenest input's. `look` names a part's form (*a sawn oak
 shield-board*) and a stock piece reads its end grain in words.
 
-**Seasoning** — `lib/maturation/Seasoning.ts` (`SeasoningMixin`), the
-second host of the maturation clock. `MaturingMixin` could not host it
-(its composition guard demands an interior bulk slot — the batch IS the
-slot), so the host-agnostic curves were lifted, byte-identical, into
-`lib/maturation/MaturationClock.ts` (a pure value object; the gap loop
-stayed in `Maturing`). Seasoning owns one fraction (0 green → 1 seasoned),
-reconciled on read over `BiomeApi.airSegmentsFor`:
+**Seasoning** — `lib/material/Seasoning.ts` (`SeasoningMixin`), a
+READING over the host's `MoistureMixin` — the one model of a solid
+giving its water to the air ([spoilage.md](./spoilage.md) § the water
+state). ⚠ It ran a clock of its own until the ceramics review
+(2026-10-28): a fraction on the maturation curve, a flat rain penalty and a
+damage band for heat, which disagreed with the water model food, hides,
+turf and green clay already used. What it reads now:
 
-- rate = the species' `Material.seasoningDays` × how hard this air dries
-  (`Evaporation`, wood's equilibrium 85 % RH — a damp shed seasons
-  nothing) × the clock curve (stall below 273 K, happy at 290 K, damage
-  above 330 K);
-- rain on an exposed stack sets it back; dried too hot, the grade caps at
-  the worst stretch (the clock's band rule);
-- `isSeasoned()` ≥ `wood.seasonedThreshold` (0.8); vacuous on a material
-  with `seasoningDays 0`;
-- ⭐ **a merge takes the greener** — and so `Timber` is
-  `SeasoningMixin(StackableMixin(…))`, Seasoning OUTSIDE, because the
-  outer class's `onMerged` is the one that runs.
+- **seasoned** is an absolute moisture — `wood.seasonedThreshold` (0.8) of
+  the way from green to what air at wood's saturation (85 % RH) holds. So
+  wetter air than that never seasons it (a damp shed seasons nothing), and a
+  seasoned board left in it takes the water back. `seasonedFraction` on a
+  row is a SEED written into the moisture once;
+- **the rate** is the species' `Material.seasoningDays` — the days to that
+  mark in good drying air (55 % RH, a breeze, 290 K, on stickers), derived
+  into the water model's exponential approach (`dryingRatePerHour`). ⚠ On
+  bare ground the water model's ground exposure (0.35) applies, so an
+  unstickered stack takes about three times as long;
+- **rain sets it back** and **drying too fast checks it** — the water
+  model's rules for every drying solid; a board stands four times harder
+  drying than good air, and a checked board grades no better than fair
+  (Integrity's making-fault ceiling for `check`, the one table — B98);
+- vacuous on a material with `seasoningDays 0`;
+- ⭐ **a merge takes the greener** — through Stackable's
+  `takeFromAbsorbed`, which the merge calls BEFORE it destructs the
+  absorbed stack (B98; it was a stash in `canMergeWith` read back in
+  `onMerged`, as `Ore` did). Seasoning is OUTSIDE Stackable in `Timber`, so
+  its override runs and chains to super;
+- ⭐ **not wood's form.** Quarter-sawn, the wide face and the CUT that
+  decides cupping are `Timber`'s fields (a bar of soap seasons too);
+  Seasoning keeps only the hook `isCupped()` (default false), which Timber
+  answers — a board MOVES as it dries.
 
 **`Timber`** (`platform/thing/Timber.ts`, kernel — its composers are
 three packs with no common ancestor) =
-`SeasoningMixin(StackableMixin(ConstructedMixin(CraftedMixin(Good))))`:
+`SeasoningMixin(MoistureMixin(StackableMixin(DurableMixin(ConstructedMixin(CraftedMixin(Good))))))`:
 billets, boards, staves, blanks and the carved wooden parts (hafts,
 handles, legs, rails — `Timber` so a green haft keeps its greenness and
 warps). `constructionForm` and `quarterSawn` are stack identity: riven
-and sawn never merge. ⚠ The shipped `/trade/forestry/thing/timber` row is
+and sawn never merge. `quarterSawn` and `wideFace` are Timber's own
+fields (the cut), and `isCupped()` reads them with the seasoning. ⚠ The shipped `/trade/forestry/thing/timber` row is
 a plain `Good` and keeps its class; the name collision is recorded. Pack
 subclasses exist only to afford a pack's verb: `Billet` (forestry,
 `rive`), `Blank` and `Board` (carpentry, `carve`) — each spreads
@@ -587,6 +614,21 @@ is cast there. A second sawmill is rows.
   never gathers from a shop counter now), and a stocked heap restocked
   without bound.
 
+## ⭐⭐ Interchangeable — a cast to the line's own pattern (ceramics W7, D27)
+
+A part cast from an impression carries `Tangible.castFrom.kindPath`. When a
+part offered to a line in the replace arm of `fit` was cast from an
+impression of **that line's own kind** (`castFrom.kindPath === line.template`),
+it is the same shape as the one it replaces, so it **drops into the old
+joint**: `fitImpl` skips the joint gate (no instrument, no band), the slip
+check and the joint's discipline credit, and `FitReplaced.interchangeable`
+lets the verb say so — *"cast to the same pattern as the one it replaces, it
+drops straight into the old joint."* Derived from the provenance; there is
+no authored flag (an authored `interchangeable` joint flag stays this doc's
+tail). A two-piece mould is itself an assembly — the platform `Mould`
+composes `Assembled`, so a mould with a `bill` of two halves is worn and
+mended at its joint, and every bill-less mould reads *It is one piece*.
+
 ## Deferred seams
 
 - The table and wardrobe (`Fitting`, `Chest` as hosts), casks that are not
@@ -628,3 +670,23 @@ families and a monolith is one piece; the nine twins (`AssembledTool`,
 `AssembledSurveyInstrument`, textiles' `AssembledSpinningTool`) retired
 and their 23 rows re-point to the family. What made the reversal safe is
 that every method had become total on an empty record.
+
+## ⭐ The slip joint — green clay joined at leather-hard (ceramics W4, 2026-10)
+
+`/platform/idea/Joint/slip` (`slipped`; `reversible: never`, no instrument,
+no band — anybody can score and slip a handle on) joins two pieces of GREEN
+clay: a pulled handle to a thrown jug, a spout to a pot. A ware row carries a
+bill whose line names the joint (`bill: {parts: [{part: handle, template:
+/trade/ceramics/thing/handle, count: 1, role: wear}], joints: [{key:
+handling, method: slip, members: [handle]}]}`), and a freshly thrown piece
+records that line EMPTY (`failed: 1`) so `fit handle to jug` fills it rather
+than swapping a phantom handle out.
+
+`fit`'s replace arm asks, for a line held by a `slip` joint, that BOTH the
+whole and the part be green clay at leather-hard (`Greenware.canJoin`), and
+refuses `not-leather-hard` in words otherwise — `too-soft` (plastic: it
+would sag off), `too-dry` (bone-dry: slip will not take), `fired` (it is
+pottery now), `ruined`. ⭐ Two pieces whose dryness differs by more than
+`green.joinMismatch` (0.25) still join — and the whole takes a `check` (a
+drying crack, seen) where they meet: the wetter one shrinks more as they dry.
+That is the lesson in the timing, and the only thing the joint grades on.

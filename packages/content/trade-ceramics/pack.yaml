@@ -1,0 +1,20 @@
+id: trade-ceramics
+version: 0.1.0
+root: /trade/ceramics
+description: >-
+  The ceramics trades — ⭐ **brick, tile, firebrick and pottery, and the one
+  rule that fires them all.** Clay is a composition (clay mineral, iron,
+  lime, sand) that the brickmaker and the potter temper by kneading; green
+  ware dries through plastic, leather-hard and bone-dry and is ruined by
+  rain and frost on the way; and firing is a heat HISTORY on the piece —
+  the same jug comes out of the kiln as itself, its body terracotta,
+  earthenware or stoneware by the heat-work it actually received. The
+  clamp grades bricks by where they sat; a lining is a part that wears;
+  a glaze is a coat laid by `dip` and fused by firing. ⭐⭐ A second
+  brickfield or pottery is rows and no pack code.
+requires:
+  # The trade is placeless (the glass and rubber precedent): its mechanism
+  # is held by the Ministry of Trade. The works sit in the world under their
+  # locality's committee.
+  title:
+    - { extent: /trade/ceramics, holder: { organization: /compact/trade } }

@@ -257,7 +257,8 @@ as a side effect. See [time.md § Why 12×](./time.md).
 ### Inspectable nutrition data + the label
 
 `Material` carries the real, inspectable profile: `nutrientAmounts`
-(tag → mg/serving) and `toxicity` reshaped to **`ToxinTag[]`**
+(tag → mg/serving, a serving being the row's `servingKg` — else a quarter
+litre at its density, `MaterialApi.servingKgOf`) and `toxicity` reshaped to **`ToxinTag[]`**
 (`{type, amount}` — a list of flat objects, default-Hydrator round-trip
 like `composition`). The tags drive routing; the amounts are
 education-by-reference data. The **render** is `NutritionLabelMixin`
@@ -278,6 +279,12 @@ flow:
 
 - **Ingest** — a `ToxinTag` adds its dose to `digestionPools[type]` like
   any tag (un-absorbed dose is what `vomit` can still dump).
+  ⭐ For a BLEND the dose is its parts' servings in the host it was
+  drunk or eaten from (ceramics re-plan R1-D1): the payload's `makeup` is
+  mass fractions, a part's servings are `fraction × hostKg / servingKg`
+  (`MaterialApi.servingsOf`), and `ingest(…, hostKg)` is handed the mass
+  of the whole glass or loaf before the draw — so a full martini gives 26
+  a sip and a half-drunk one 13. No host named, the swallow is its own.
 - **Absorption** — the reconcile drains the pool into the burden at the
   toxin's `absorptionRate`: `burden += absorbed × potency / bodyMass`
   (the store-raw alcohol exception below).
@@ -468,6 +475,14 @@ multiplication is the whole distinction, and it is why a badly-cut bottle
 hurts the person who finishes it and not the person who tastes it.
 `DissolvedToxins` holds the arithmetic (the `Freshness`/`Contamination`
 value-class shape); `toxicityOf` is untouched.
+
+⭐ **A second producer of it: the vessel's own inside face** (ceramics W1,
+M7). A lead-glazed crock leaches lead into what it holds, at the glaze's
+`mgPerLPerDay` (against vinegar) × the contents' acid attack (from their
+pH, `Material.acidAttack`) × the days, into this same
+per-litre field (`BulkableMixin.reconcileLeach`; see [faces.md](./faces.md)).
+Vinegar takes it up and water does not, and the ingest doses it with no new
+code. ⚠ Silently: no `look`, `smell` or `taste` reports it.
 
 **`toxinMakers`** — persistent runtime state: who made the doses this
 body is still carrying, per toxin type. Recorded at ingest for the two

@@ -1,0 +1,18 @@
+# The plaster tub (ceramics W7) — burnt gypsum and water stirred to a slurry
+# (`stir tub`) that has a quarter of an hour in it before it sets. Pour it
+# into a case while it still pours.
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: plaster tub
+  keywords: [tub, "plaster tub"]
+  register: indefinite
+  longDescription: >-
+    A battered zinc tub, white inside with a skin of set plaster nobody
+    has knocked out.
+  _materialPath: /stuff/idea/material/element/zinc
+  mass: 6
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 10
+  closure: liquidTight
+  productMaterial: /trade/ceramics/idea/material/plaster-slurry

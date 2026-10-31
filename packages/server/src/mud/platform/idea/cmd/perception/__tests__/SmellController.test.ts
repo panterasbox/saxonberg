@@ -41,6 +41,7 @@ import { OrganismMixin } from '../../../../../lib/species/Organism';
 import Species from '../../../species/Species';
 import BodyPlan from '../../../species/BodyPlan';
 import { Idea } from '../../../../../lib/stuff/Idea';
+import { SmellSourceMixin } from '../../../../../lib/perception/SmellSource';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import type { CommandGiver } from '../../../../../lib/command/CommandGiver';
@@ -163,6 +164,22 @@ describe('SmellController', () => {
     const lastFrame = fix.giver.received.at(-1);
     expect(lastFrame?.topic).toBe('sense.survey');
     expect(lastFrame?.body).toContain('mystery-thing');
+  });
+
+  it('⭐ a thing giving off an odor is smelled AS that odor, not its look (ceramics browser walk)', () => {
+    class Smoky extends SmellSourceMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))) {
+      static _mixinName = 'SmokyTestThing';
+    }
+    const clamp = makeStuff(() => new Smoky());
+    clamp.setName('clamp');
+    clamp.setLongDescription('Courses of brick over fire channels.');
+    clamp.setOdorIdentity('coal smoke');
+    clamp.setEmittedConcentration(400);
+    const controller = makeStuff(() => new SmellController());
+    controller.execute(makeModel({ stuff: clamp, raw: 'clamp' }), makeContext(fix, 'smell clamp'));
+    const body = fix.giver.received.at(-1)?.body ?? '';
+    expect(body).toMatch(/smells of coal smoke/);
+    expect(body).not.toMatch(/Courses of brick/);
   });
 
   it('non-Detailed direct target → polite refusal', () => {

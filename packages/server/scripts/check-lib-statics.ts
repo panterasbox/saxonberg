@@ -140,7 +140,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  *
  *   - `DissolvedToxins.blend` / `.isClean` / `.surviving` — the fourth
  *     member of a family of four. `Freshness.blendLoads`,
- *     `WaterActivity.blend` and `Contamination.blend`/`.isClean` are
+ *     `Moisture.blend` and `Contamination.blend`/`.isClean` are
  *     already here, and a toxin concentration that blended by a different
  *     rule from the microbial load riding the same matter would be a bug
  *     waiting to be found. ⭐ The generalisation this family actually

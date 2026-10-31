@@ -145,6 +145,9 @@ export class StackableLogic extends ApiLogic {
     for (const f of fields) {
       StuffApi.copyField(source, splitoff, f);
     }
+    // A split-off of a cracked pile is cracked: visible flaws are part of
+    // what makes it this pile (Stackable.canMergeWith's flaw signature).
+    if (MixinApi.isIntegrity(splitoff)) splitoff.takeFlawsFrom(source, true);
 
     splitoff.setQuantity(n);
     source.setQuantity(source.getQuantity() - n);
@@ -185,6 +188,7 @@ export class StackableLogic extends ApiLogic {
       );
     }
     survivor.setQuantity(survivor.getQuantity() + absorbed.getQuantity());
+    survivor.takeFromAbsorbed(absorbed);
     StuffApi.destruct(absorbed);
     survivor.onMerged(absorbed);
   }
@@ -280,9 +284,12 @@ export class StackableLogic extends ApiLogic {
         });
         if (splitInto !== null && MixinApi.isStackable(c)) {
           // Restack the splitoff back into the candidate (un-subdivision,
-          // symmetric to split). canMergeWith should hold since both
-          // sides share the same templatePath + stack-identity state.
-          this.merge(c, splitInto);
+          // symmetric to split). ⚠ Only when the stack will take it back:
+          // a split lump need not stay mergeable with what it came off (a
+          // clay lump's own state read diverges), and a refused `get 1
+          // clay` threw "canMergeWith returned false" out of the command
+          // (the ceramics drive C, run 27). Then it is simply a lump of its own.
+          if (c.canMergeWith(splitInto)) this.merge(c, splitInto);
         }
         // remaining unchanged — the requested count still has its
         // budget; continue the walk to next candidate.

@@ -1,0 +1,24 @@
+# Breeze — the fine cinders and coal ash a London brickmaker shovelled into
+# the clay: it opens a fat clay so it dries without cracking, and it burns
+# INSIDE the brick in the clamp, firing it from within (ceramics S3). A
+# residue of the fuel, kneaded in at the temper pit.
+class: /platform/idea/material/Material
+data:
+  name: breeze
+  keywords: [breeze, cinders, "coal ash"]
+  appearance: gritty black-grey cinders and ash
+  density: 900
+  specificHeat: 840
+  thermalConductivity: 0.2
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 25
+  hardness: 5
+  toughness: 1
+  autoignitionTemperature: 700
+  heatOfCombustion: 8
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["residue", "granular", "breeze", "fuel"]
+  composition: []
+  biologicalSource: null

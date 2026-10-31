@@ -19,7 +19,7 @@
  * that should not be writable.
  *
  * So the shipped mechanism with a different feedstock is
- * `WaterActivityMixin`'s: **an item's own state advancing against the
+ * `MoistureMixin`'s: **an item's own state advancing against the
  * thing it is sitting in, reconciled on read.** `Provision`'s own comment
  * already predicted this one — *"the split is what lets a tannery dry a
  * skin without claiming it ferments."*

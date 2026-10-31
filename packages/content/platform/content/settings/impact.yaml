@@ -1,0 +1,32 @@
+# impact — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing). ⭐ A brittle body breaks by a CAUSE (ceramics M5):
+# the energy of a blow against its strength, and the floor it lands on.
+settings:
+  # A brittle body's impact strength = toughness × V × (V / Vref) × this —
+  # a thicker wall is disproportionately stronger, so a novice's heavy mug
+  # survives the drop that breaks a master's thin bowl on a flagstone.
+  - key: impact.fractureShare
+    value: "0.0018"
+
+  - key: impact.referenceVolumeM3
+    value: "0.0001"
+
+  # `drop` is a fall from about a hand's height off the floor — a metre.
+  - key: impact.dropHeightM
+    value: "1"
+
+  # Sound fired clay at or above this hardness RINGS when tapped; softer —
+  # a soft-burnt place brick — sounds dead.
+  - key: impact.ringsAboveHardness
+    value: "55"
+
+  # Thermal shock: a body cracks when its expansion × the temperature step
+  # passes this strain (dense stoneware α 6e-6 → ~55 K). Porosity and grog
+  # raise what it takes several-fold — a grogged cooking pot stands a fire a
+  # stoneware crock does not — and a glaze lowers it. A wall answers in about
+  # a minute, so a steady heating rate over ΔT/60 s cracks it too.
+  - key: impact.shockStrain
+    value: "0.0003"
+
+  - key: impact.shockWallS
+    value: "60"

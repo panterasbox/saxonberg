@@ -9,7 +9,6 @@
  */
 
 import { MixinApi } from '../../api/mixin';
-import { LocomotionApi } from '../../api/locomotion';
 import type { Stuff } from '../stuff/Stuff';
 import type { Mobile } from '../spatial/Mobile';
 import type { Containable } from '../spatial/Containable';
@@ -46,9 +45,9 @@ export const brain = class {
     ctx.state.index = (idx + 1) % route.length;
     if (typeof dir !== 'string') return;
 
-    const exit = (room as Stuff & Exitable).getExits().get(dir);
-    if (!exit) return;
-    // A refused step holds; the index advances next tick.
-    await LocomotionApi.traverseWithDefault(mob, exit);
+    if (!(room as Stuff & Exitable).getExits().get(dir)) return;
+    // A refused step holds; the index advances next tick. ⭐ The way its
+    // body steps (`ctx.go`, B107).
+    await ctx.go(dir);
   }
 } satisfies BrainStatics;

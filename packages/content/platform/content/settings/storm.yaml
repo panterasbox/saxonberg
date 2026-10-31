@@ -13,8 +13,15 @@ settings:
   - key: storm.puddle.freshWaterMaterialPath
     value: "/stuff/idea/material/bulk/water"
 
+  # ⭐ DERIVED, per place per strike tick (ceramics drive, 2026-10-21): an
+  # active storm cell puts down ~0.5 ground flashes per km² per hour, and a
+  # place is ~a 100 m square (0.01 km²), so a 30-minute tick strikes it with
+  # p = 1 − e^(−0.5 × 0.01 × 0.5) ≈ 0.0025. It was 0.15 — a strike every
+  # ~3 storm-hours on any occupied open place — and across a drive's clock
+  # jumps a waterlogged clay pit took dozens, burning through wet feet until
+  # the Delight's potter and three drive characters died in it.
   - key: storm.strikeRate
-    value: "0.15"
+    value: "0.0025"
 
   - key: storm.strikeIntervalS
     value: "1800"

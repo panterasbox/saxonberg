@@ -29,6 +29,8 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Tangible } from '../../../lib/material/Tangible';
 import type { Composition } from '../../../lib/material/Composition';
 import type { Tempered } from '../../../lib/material/Tempered';
+// The `dissolvedToxins` payload field is declared by DissolvedToxins's merge.
+import type {} from '../../../lib/metabolism/DissolvedToxins';
 import { MixinApi } from '../../../api/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
@@ -124,7 +126,7 @@ export default class ChemistryReading extends Reading {
       ? (target.stuff as Stuff & Tempered)
       : null;
     const composition = alloyed
-      ? alloyed.getEffectiveComposition()
+      ? alloyed.effectiveMakeup()
       : material.getComposition();
     if (composition.length > 0) {
       lines.push(Mml.compose`  composition:`);
@@ -143,6 +145,22 @@ export default class ChemistryReading extends Reading {
       lines.push(
         Mml.compose`  biological source: ${bio.tissueType} from ${bio.speciesPath}`
       );
+    }
+
+    // ⭐ And what a VESSEL holds: the contents' matter and what is dissolved
+    // in it — the lead a lead glaze gave the vinegar, which no sense reports
+    // (ceramics: "it carries lead"). Before this the reading read only the
+    // vessel's own body, and the drive's /lead/ matched the crock's NAME,
+    // "leadpot" (run 39).
+    const vessel = target.stuff as Stuff;
+    if (MixinApi.isBulkable(vessel) && vessel.hasInteriorBulk()) {
+      const held = vessel.getBulkMaterial('interior');
+      if (held !== null && vessel.getBulkAmount('interior').rawValue() > 0) {
+        lines.push(Mml.compose`  contents: ${held.getName()}`);
+        for (const t of vessel.getBulkPayload('interior')?.dissolvedToxins ?? []) {
+          lines.push(Mml.compose`    - dissolved ${t.type}: ${t.amount.toFixed(1)} mg per liter`);
+        }
+      }
     }
 
     let body = Mml.compose`\n`;

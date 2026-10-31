@@ -1,0 +1,22 @@
+# green — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing). ⭐ Green ware (ceramics M4): an unfired clay body's
+# state is its DRYNESS — 0 just thrown, 1 as dry as the air allows — so
+# "bone-dry" means as dry as this air will make it, damp shed or dry loft.
+settings:
+  # Firm enough to trim, join and stamp.
+  - key: green.leatherAt
+    value: "0.3"
+
+  # Ready for the kiln — a wetter piece bursts as steam when it is fired.
+  - key: green.boneDryAt
+    value: "0.85"
+
+  # A soft piece whose wetness rises this much between looks (rain on an
+  # open yard) slumps out of its shape. The hack cover is what stops it.
+  - key: green.slumpWetting
+    value: "0.15"
+
+  # Two pieces joined with slip whose dryness differs by more than this —
+  # a handle much wetter than its body — crack where they meet as they dry.
+  - key: green.joinMismatch
+    value: "0.25"

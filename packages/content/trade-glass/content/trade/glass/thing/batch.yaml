@@ -1,0 +1,15 @@
+# A charge of glass batch — what the batch pot makes of the sand, the ash
+# and the lime put in it (ceramics W0). Its make-up is COMPUTED by the pot
+# from what went in, by mass: nothing here authors any iron. Fired, it
+# becomes glass by its material's own transition — the same piece, now a
+# charge of glass, gatherable while it is hot.
+class: /trade/glass/thing/Melt
+data:
+  keywords: [batch, "glass batch", charge, frit]
+  shortDescription: charge of glass batch
+  register: indefinite
+  longDescription: >-
+    A gritty, even charge of sand worked through with ash and lime, ready
+    for the fire.
+  _materialPath: /trade/glass/idea/material/batch
+  mass: 1

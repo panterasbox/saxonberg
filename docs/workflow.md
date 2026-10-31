@@ -88,7 +88,9 @@ measured rework class:
    does this touch, and who already lives there? (`the DORM was
    missed`, `the wardrobe belongs where a new player wakes up`.)
 4. **Write the drive script** — what a person does, in order, and what
-   they should see. It becomes Phase 3's exit criterion.
+   they should see. It becomes Phase 3's exit criterion. ⛔ **Write it as
+   two drives** — a **blocking drive** (instant and short steps only) and a
+   **soak drive** (every span step) — § *No merge waits on the clock*.
 
 ⭐ **Run the seven lenses** ([design-lenses.md](./design-lenses.md))
 over the scope before converging, and carry a short lens pass into the
@@ -197,10 +199,55 @@ So, without being asked:
    down (by PID) between drive runs; a 3 GB world idling through review
    starves the sibling builds the user is also running.
 
+#### ⛔⛔⛔ No merge waits on the clock
+
+The owner (2026-10-30): *"we've just been sitting here all week waiting
+for tests, doing nothing."* A build's finalize had nine hours left, and
+review rounds sat the same way, on drives that jump the clock through
+seasons — each jump replays its interval, and the drive's own bodies must
+be fed through it in 4-hour steps.
+
+**Every drive step declares its pace, and only instant and short steps
+may block a merge.**
+
+| tag | means | blocks a merge? |
+|---|---|---|
+| **instant** | no clock involved | yes |
+| **short** | a jump of hours, up to about a game day | yes |
+| ⭐ **staged** | a span's outcome, the state set directly with wizard tools and checked through player verbs | yes |
+| **span** | weeks or seasons of game time | ⛔ **never** — the soak lane |
+
+- ⭐⭐ **Every span step has a staged twin in the blocking drive.** The owner:
+  *"make use of the whole palette of wizard tools to stage the state you
+  need … you don't get to test that the clock actually produces that state,
+  but you can test everything around it."* Soak keeps only the clock's part.
+  A state that cannot be staged is tooling the build owes, never a wait.
+- **The blocking drive** (instant + short + staged) is the build's exit criterion.
+  It completes in well under half an hour of wall time.
+- **The soak drive** (span) is never run by `/build`, a review round or
+  `/finalize`. **The MR names it**, and the **soak lane** — a standing
+  session with its own worktree and world — runs it after merge and files
+  an issue for each failure. It never blocks.
+- **At `/finalize`, the step says how its assertion is made** — `player`
+  (player verbs and player-held tools only: the experience is what is
+  tested) or `staged` (wizard setup is fine: it checks nothing else broke).
+- **Log drive bodies out across a long jump** — an offline body is frozen,
+  so it needs no feeding and no step cap; a clock jump runs no brain, so
+  nobody needs to be present.
+- ⚠ This rule replaces judgment, which did not hold: *isolate, don't
+  drive* and *never make the user wait* were both on the books while the
+  week was lost, because a step does not say how long it is. **The tag
+  does.**
+
+→ The mechanics (the `.soak.` convention, `pnpm wire:soak`, the refusal,
+`result.json`, `tools/soak`, the staging tools):
+[testing.md § The soak lane](./testing.md). The finding and the root
+fixes still to build: [soak-lane-slate](./slates/tails/soak-lane-slate.md).
+
 #### ⭐⭐ The exit criterion: drive it before the MERGE
 
-**Tests build state; they never use it.** Run the drive script from
-the requirements doc against the running game, and append the result
+**Tests build state; they never use it.** Run the **blocking** drive
+script from the requirements doc against the running game, and append the result
 to the plan as the drive record (`farming-plan.md § Checkpoint A` is
 the precedent).
 
@@ -256,6 +303,10 @@ table, and for why this is not "checking less".
 **Inputs.** The GitLab merge request (`panterasbox/saxonberg!<n>`)
 opened at the end of the build, with inline comments from the user.
 
+⛔ **A review round never runs a span step** (§ *No merge waits on the
+clock*): a fix is verified by `test:near`, the lints and the blocking
+drive's affected steps.
+
 **Activity.** ⭐ **Review is a conversation.** In practice the user
 reads the MR and raises what they don't like in the session, rather
 than marking up inline threads — so this phase is ordinary back-and-
@@ -278,6 +329,25 @@ were all on the wrong hosts. That work was correct; improvising it
 inside a review round is what made it expensive. Re-planning is
 cheaper than discovering the plan by refactoring.
 
+⭐⭐ **The review's ground rules (ceramics !437, 2026-10-28).** Set by the
+owner at the start of that review, after the sugar build lost DAYS to
+re-running tests that waited hours on the game clock:
+
+1. **Isolate each bug.** Build the exact state that reproduces it — by
+   unit test, or by wizard tools (`eval`, `clone`, the test-clock
+   endpoints) against a standing world — and fix and verify it in that
+   small window. A review fix is never proved by re-driving the build.
+2. **Nothing clock-hungry until the whole MR is reviewed.** No drive, no
+   lived-time advance, no hour-long hold runs during review. The drives
+   run ONCE, after the last review change, at the sweep (Phase 5).
+3. **The full suite runs only at the sweep** (and at code-complete, as
+   above) — never between review rounds, however large a change.
+4. **Checks are scoped to what the change could break.** tsc, a gate, a
+   test file, one pack's suite — chosen per change by whoever made it. A
+   guaranteed pass is minutes the owner sits waiting; a skipped check
+   that COULD fail is a corner cut. The test is *could this change fail
+   this check?*, and the answer decides, not the habit.
+
 **Output.** Descriptive commits naming the change — `refactor(cooking):
 the palate off Bulkable — PalatableMixin on CraftVessel`. ⚠ Not
 `address MR comments`: that convention was documented for a year and
@@ -292,7 +362,8 @@ comment-thread loop that this project does not use.
 **Activity.** Three-part pre-merge audit:
 
 0. **The drive check.** Confirm the drive record is in the plan and
-   every step was run. If the build skipped its exit criterion, run
+   every **blocking** step was run, and that the MR names its **soak
+   drive** for the lane. ⛔ Never run a span step here. If the build skipped its exit criterion, run
    the drive now — and check the five reachability links (verb ·
    affordance · data · boot · **arg gate**), each of which fails closed
    and silent. ⚠ The fifth is the binder: a view's `args[].requires`

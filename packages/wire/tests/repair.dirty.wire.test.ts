@@ -623,9 +623,10 @@ suite('⭐ drive 10 — a stranger reads what was done to a botched pick (AC 4)'
  * Only in a world this run OWNS (`WIRE_BOOT=1`).
  */
 suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
-  afterAll(async () => {
-    await stopOwnedWorld();
-  });
+  // ⚠ No `afterAll(stopOwnedWorld)`: the rebooted world stays up for the
+  // files that run after this one (stopping it left every later file of a
+  // full `pnpm wire` with no world — the soak-harness census found it);
+  // the global teardown reaps the port.
 
   it.skipIf(!isOwnedTestWorld())('the botched pick\'s mends, the keen billhook and the renamed blade, as left', async () => {
     mender?.close();

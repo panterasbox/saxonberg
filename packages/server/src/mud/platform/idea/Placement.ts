@@ -50,6 +50,7 @@
  * reaches a host that only offers `from`.
  */
 
+import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import type { FieldMeta } from '../../lib/mixin';
@@ -57,6 +58,9 @@ import type { FieldMeta } from '../../lib/mixin';
 const PlacementBase = SingletonMixin(Idea);
 
 export default class Placement extends PlacementBase {
+  /** ⭐ Shared vocabulary, like its catalogue (see `PlacementCatalogue`). */
+  static boundaryRole: BoundaryRole = 'commons';
+
   /** The subtree every placement row lives under, at any root. */
   static readonly PATH_INFIX = '/idea/Placement/';
 

@@ -1,0 +1,17 @@
+# A moulder's trowel (ceramics W7) — a thin steel lifter with a heart-shaped
+# blade, what a founder cuts a riser and a runner into rammed sand with
+# (`carve riser on flask`) and slicks the parting face smooth. Any edge
+# would do; this is the one a moulder keeps.
+class: /platform/thing/Tool
+data:
+  keywords: [trowel, "moulder's trowel", lifter]
+  shortDescription: moulder's trowel
+  register: indefinite
+  longDescription: >-
+    A thin heart-shaped steel blade on a short turned handle, bright from
+    sand at the tip and nowhere else.
+  mass: 0.2
+  capabilities: ["cutting"]
+  constructionForm: bladed
+  epoch: medieval
+  _materialPath: /stuff/idea/material/alloy/steel

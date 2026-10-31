@@ -65,6 +65,9 @@ function scrap(): Stuff {
   return {
     stuffId: 'scrap',
     getMaterial: () => ({ getEdibility: () => true }),
+    // The tests mock `isTangible` true, so the scrap answers what a
+    // Tangible does — its mass is what a meal's makeup is read against.
+    getMass: () => ({ rawValue: () => 0.1 }),
   } as unknown as Stuff;
 }
 

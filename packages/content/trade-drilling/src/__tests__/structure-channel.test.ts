@@ -258,8 +258,12 @@ describe('`stake` reaches both sites with no second mechanism', () => {
     // ⚠ And the FLAT has no SHOWING at all — that is the point of it.
     // (It does have props now: the saltern stands there, because brine
     // is mostly water and salt is light. None of them shows anything.)
-    const flatProps = (data(`${REJECTION}location/salt-flat.yaml`).props ??
-      []) as string[];
+    // ⭐ (ceramics W8) An entry may be `{ template, on }` — the pan stands
+    // on its bittern tub.
+    const flatProps = ((data(`${REJECTION}location/salt-flat.yaml`).props ??
+      []) as Array<string | { template: string }>).map((p) =>
+      typeof p === 'string' ? p : p.template,
+    );
     expect(flatProps).not.toContain(
       '/world/terminus/rejection/thing/salt-spring',
     );

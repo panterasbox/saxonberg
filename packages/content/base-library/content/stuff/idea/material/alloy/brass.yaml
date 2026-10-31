@@ -1,0 +1,32 @@
+# Brass — ⭐ copper with a third part zinc (ceramics W7): yellow, harder
+# than copper, and a hundred and fifty degrees easier to melt, which is why
+# keys, buckles, candlesticks and bells' cheaper cousins are cast in it.
+# A wax impression of a key, cast in brass, turns the lock (the shape IS
+# the function — ceramics M9).
+#
+# Its shrink derives from its expansion over its fall from the melt:
+# about one and three-quarter percent, against the pattern-maker's rule of
+# a sixty-fourth.
+class: /platform/idea/material/Material
+data:
+  name: brass
+  keywords: [brass]
+  appearance: bright yellow brass
+  density: 8500
+  specificHeat: 380
+  thermalConductivity: 110
+  electricalConductivity: 1.5e7
+  hardness: 140
+  toughness: 70
+  meltingPoint: 1200
+  latentHeatOfFusion: 168000
+  thermalExpansion: 1.9e-05
+  waterAbsorptionCapacity: 0.2
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["alloy", "metal", "non-ferrous", "copper", "zinc"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/copper, fraction: 0.67 }
+    - { materialPath: /stuff/idea/material/element/zinc, fraction: 0.33 }
+  biologicalSource: null

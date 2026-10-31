@@ -67,6 +67,7 @@ import {
   BRAIN_EXPORT,
 } from './brain';
 import { BehaviorBeat, BEHAVIOR_BEAT_TYPE } from './BehaviorBeat';
+import { BrainMoves } from './BrainMoves';
 import { Urgency, URGENCY_BANDS, type TaskKind } from './Urgency';
 
 /** Code defaults for the beat dials — identity when app-settings is unwarmed. */
@@ -818,9 +819,11 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
       source: 'cadence' | 'witness' | 'candidate'
     ): BrainContext {
       const host = this as unknown as Stuff;
+      const config = wiring.spec.config ?? {};
       return {
+        ...new BrainMoves(host, config).members(),
         host,
-        config: wiring.spec.config ?? {},
+        config,
         state: wiring.state,
         perceived,
         trigger: { source, raw: wiring.spec.trigger },

@@ -1,0 +1,15 @@
+# Half of a plaster case (ceramics W7) — a shallow box of board with two
+# wooden keys, carved from a piece of wood with an edge. Run by `carve`;
+# a plaster case is two of them, seated face to face — and a worn half is
+# replaced at its joint like any part.
+recipeId: case-half
+name: Case Half
+keywords: [case-half]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: fair, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/ceramics/thing/case-half
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: pottery

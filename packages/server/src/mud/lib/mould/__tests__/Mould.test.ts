@@ -213,8 +213,18 @@ describe('moulds — the container decides the shape', () => {
     m.setDiscipline('smelting');
     m.reconcilePhase();
     await settle();
-    const cast = contentsOf(m)[0] as unknown as { getCastDiscipline(): string };
-    expect(cast.getCastDiscipline()).toBe('smelting');
+    const cast = contentsOf(m)[0] as unknown as { getCastFrom(): { discipline?: string } | null };
+    // The one cast record (review R2-D6): the mould's trade, no impression.
+    expect(cast.getCastFrom()?.discipline).toBe('smelting');
+  });
+
+  it('⭐ an actual CRACK spoils the cavity too: a cracked mould casts a lump (review R2-D1)', async () => {
+    const cracked = fillVessel(mould(BLOCK), water(), 1, 150);
+    cracked.addFlaw('crack', true);
+    expect(cracked.isBroken()).toBe(false); // worn by the crack, not worn out
+    cracked.reconcilePhase();
+    await settle();
+    expect(cloned).toEqual([LUMP]);
   });
 
   it('a cracked mould casts a lump; a whole one wears by wearPerCast', async () => {
@@ -274,7 +284,7 @@ describe('moulds — the container decides the shape', () => {
     (stone as unknown as { setMass(q: Quantity<'kg'>): void }).setMass(Quantity.of(4, 'kg'));
     ContainmentApi.move(stone, r);
     ContainmentApi.move(stone, hoop, 'on');
-    expect(hoop.loadKg()).toBeCloseTo(4, 9);
+    expect(hoop.loadN()).toBeCloseTo(4 * 9.81, 9);
     hoop.reconcileSetting(); // seed
     setNow(0.25 * DAY + 60);
     hoop.reconcileSetting();
@@ -338,7 +348,7 @@ describe('moulds — the container decides the shape', () => {
       const RAW = '/stuff/idea/material/_mould/raw-sugar';
       const raw = material(RAW, () => {});
       const s = strike();
-      s.setDrainSetting({ ...s.getDrainSetting()!, becomesAs: { [BLOCK]: RAW } });
+      s.setDrainSetting({ ...s.getDrainSetting()!.toSpec(), becomesAs: { [BLOCK]: RAW } });
       const hogshead = mould(BLOCK);
       fillVessel(hogshead, s, 5, 293);
       ContainmentApi.move(hogshead, room());

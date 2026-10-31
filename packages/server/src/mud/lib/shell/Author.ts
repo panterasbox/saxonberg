@@ -33,31 +33,23 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {};
 
     /**
-     * Eval-side knobs declared as session-lifetime settings so they
-     * round-trip through `settings get / set` even though the runtime
-     * defaults are baked into `EvalScript.run`. Per the slate, these
-     * register here as schema; consumption lands when the eval
-     * sandbox honors them.
+     * Eval-side knobs, session-lifetime so they round-trip through
+     * `settings get / set`. ⭐ `eval.timeoutMs` is ENFORCED: the
+     * wall-clock budget of one invocation, sync loop, microtask loop and
+     * awaited tail alike (ScriptApi.runSandboxed). There is no depth
+     * knob: V8 enforces its own stack limit, and its RangeError comes
+     * back as an ordinary eval error.
      */
     static settings: SettingsSchemaEntry[] = [
       {
         key: 'eval.timeoutMs',
         type: SettingTypes.Number,
-        default: 1000,
+        default: 5000,
         lifetime: 'session',
         description:
-          'Wall-clock budget (ms) for one `eval` invocation. v1 ' +
-          'declares the schema; the sandbox honors it when the ' +
-          'isolated-vm migration lands.',
-      },
-      {
-        key: 'eval.maxDepth',
-        type: SettingTypes.Number,
-        default: 32,
-        lifetime: 'session',
-        description:
-          'Maximum recursion depth inside an `eval` body. Same ' +
-          'declared-now, consumed-later story as eval.timeoutMs.',
+          'Wall-clock budget (ms) for one `eval` invocation, the awaited ' +
+          'tail included. Past it the eval stops at its next await and ' +
+          'answers `timed out`; host work it already started may finish.',
       },
       {
         key: 'compile.subscribe',
@@ -169,6 +161,11 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // can't run it. The per-affected-path `can('write')` refinement
         // stays in `GitLogic`.
         'platform/cmd/system/git.yaml',
+        // Test-world staging — `testharness clock|weather`. Afforded on the
+        // operator surface beside `git`; the view is `testOnly`, so outside
+        // a test world the loader withholds it and this key resolves to
+        // nothing (the verb is unknown there, by design).
+        'platform/cmd/system/testharness.yaml',
         // The authoring CARDS. Afforded on the operator command surface
         // like the rest of this suite; each carries `requiresWizard`
         // (they edit engine content), so a non-wizard sees the verb but

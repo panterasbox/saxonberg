@@ -42,22 +42,29 @@ describe('the ashery rows', () => {
 });
 
 describe('the calcining (potash D12)', () => {
-  const recipe = YAML.parse(readFileSync(join(ROOT, 'recipes', 'calcine.yaml'), 'utf8')) as {
-    inputSlots: { category: string }[];
-    outputTemplate: string;
-    massYield: number;
-    discipline: string;
-  };
+  // ⭐ Calcining is the one firing rule (ceramics M1): a kinetic change on
+  // the black salts' own row, never a recipe — the cake keeps its identity.
+  const salts = row('trade/potash/idea/material/black-salts.yaml');
+  const calcine = (salts.data.kinetics as {
+    key: string; rate: { referenceK: number }; massRetained: number; discipline: string;
+    ladder: { becomes: string }[];
+  }[]).find((t) => t.key === 'calcine')!;
 
-  it('⭐ black salts in, pearl ash out, at a red heat, credited to the ashery', () => {
-    expect(recipe.inputSlots.map((s) => s.category)).toEqual(['black-salts']);
-    expect(recipe.outputTemplate).toBe('/trade/potash/thing/pearl-ash');
-    expect(recipe.discipline).toBe('ashery');
+  it('⭐ black salts become pearl ash at a red heat, credited to the ashery', () => {
+    expect(calcine.rate.referenceK).toBe(900);
+    expect(calcine.ladder.at(-1)!.becomes).toBe('/trade/potash/idea/material/pearl-ash');
+    expect(calcine.discipline).toBe('ashery');
   });
 
   it('⭐ pearl ash authors no purity of its own — the firing writes it', () => {
-    expect(row('trade/potash/thing/pearl-ash.yaml').data.alloying).toBeUndefined();
-    expect(recipe.massYield).toBeCloseTo(0.8, 6);
+    expect(row('trade/potash/thing/pearl-ash.yaml').data.makeup).toBeUndefined();
+    expect(calcine.massRetained).toBeCloseTo(0.8, 6);
+  });
+
+  it('⭐ a counter that lists pearl ash buys the calcined cake as pearl ash', () => {
+    const pearl = row('trade/potash/idea/material/pearl-ash.yaml');
+    expect(pearl.data.castTemplate).toBe('/trade/potash/thing/pearl-ash');
+    expect(pearl.data.name).toBe('pearl ash');
   });
 
   it('⭐ the potash family carries the glassmaker’s `flux`', () => {

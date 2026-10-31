@@ -1,6 +1,11 @@
 # Budget — the game keeps its own books
 
-**Status:** design surface, 2026-09-04. Not scoped to a build yet.
+> **Status: UNBUILT** — design surface, 2026-09-04; not yet scoped to a build. The record today is a
+> credit card statement.
+> **Left:** the authored journal → generated export → runtime reads architecture · the chart of
+> accounts by office · the runtime as a producer of cost data (inference) · where the books live
+> and who may read them · the runtime surface · cash or accrual · surviving incorporation
+> **Size:** a build — not yet scoped
 
 The game should keep its own books. Today it doesn't: the record is a
 credit card statement. There is no legal entity yet and no bank account

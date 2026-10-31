@@ -458,35 +458,8 @@ suite('⭐ drive 1–4 — brash, the pit, and ash of a strength (AC 2, 3, 10)',
   }, 1_800_000);
 });
 
-suite('⭐ drive 5 — the clamp burned through leaves ash sized to the charge (AC 2)', () => {
-  it('⭐ a wide-open clamp opens on heaps of wood ash, not one fixed drift', async () => {
-    const s = await newPlayer('collier', FUEL_YARD);
-    for (let i = 0; i < 4; i++) {
-      await say(s, 'get cordwood');
-      await say(s, 'put cordwood in clamp');
-    }
-    // ⭐ The Burner's own draught, wide open — the collier's mistake.
-    // (⚠ `char 0.9` binds the number as the CLAMP — a pre-existing view
-    // defect the drive found; the help promised `char 0.45`.)
-    await say(s, 'draught wide');
-    const started = await say(s, 'char');
-    expect(started, `char: ${started}`).toMatch(/fire the clamp/i);
-    const handle = s.handle;
-    s.close();
-    await waitAway(handle, 80, undefined, 8);
-    await toDaylight();
-    const v = await goTo(handle, FUEL_YARD);
-    const heaps = await named(v, 'clamp:i', /ash/i);
-    const kg = heaps.reduce((a, h) => a + (h.mass?.value ?? 0), 0);
-    // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] ⭐ the clamp opened on ${heaps.length} heap(s) of ash, ${kg.toFixed(3)} kg (four lengths of cordwood)`);
-    expect(heaps.length, 'the clamp ash, in heaps').toBeGreaterThanOrEqual(1);
-    // ⭐ Sized to the charge — never the old fixed 0.6 kg drift.
-    expect(kg).toBeGreaterThan(0);
-    expect(kg).toBeLessThan(0.6);
-    v.close();
-  }, 1_800_000);
-});
+/* ⛔ Drive 5 — a clamp burned through, eighty game hours — is a SPAN and
+ * lives in potash.soak.dirty (the soak-harness census). */
 
 /** The egg's band, as a rank: water 0 · weak 1 · soap strength 2 · strong 3. */
 function eggRank(said: string): number {
@@ -636,7 +609,9 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
     let hours = 0;
     const setAt: Record<number, number> = {};
     let last: { name: string; holds: string[]; liquor: string }[] = [];
-    while (hours < 30 && Object.keys(setAt).length < 2) {
+    // ⛔ A game day at most (soak-harness census); the full thirty-hour
+    // boil is in potash.soak.dirty.
+    while (hours < 24 && Object.keys(setAt).length < 2) {
       await waitAway(ashMaker, 1, {
         where: LEAN_TO,
         read: async (v) => {

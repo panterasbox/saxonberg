@@ -3,7 +3,7 @@
 > **Status: CLASSES RENAMED (cleanliness MR !380, 2026-10-18).**
 > **Left:** the `/…/location/` path segment (branch folder + content trees)
 > · ✅ `VoidLocation` → `Void` (B53).
-> **Size:** a sweep.
+> **Size:** a build — a sweep.
 
 ## The decision (user, 2026-10-18)
 

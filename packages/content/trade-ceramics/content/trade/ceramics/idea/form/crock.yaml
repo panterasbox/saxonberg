@@ -1,0 +1,10 @@
+# The `crock` form (ceramics S4): a squat open vessel of four litres.
+class: /platform/idea/Form
+data:
+  key: crock
+  formClass: open
+  capacityL: 4
+  proportion: squat
+  product: /trade/ceramics/thing/crock
+  greenScale: 1.0
+  discipline: pottery

@@ -51,7 +51,7 @@
  * ⚠ **Not a per-instance `composition` override**, either: that collides
  * with what `Material.composition` means and with every reader that
  * walks it. The minor constituents are a separate list, and
- * {@link Alloyed.getEffectiveComposition} is where the two meet.
+ * {@link Alloyed.effectiveMakeup} is where the two meet.
  *
  * See [docs/subsystems/materials-response.md].
  */

@@ -131,7 +131,9 @@ afterEach(() => {
 
 const martiniBuild: BuildContribution[] = [
   { category: "gin", measureL: 0.06, gradeBand: "fine" },
-  { category: "vermouth", measureL: 0.06, gradeBand: "fair" },
+  // One serving each — gin's 60 ml, dry vermouth's 10 ml: the recipe's
+  // proportion (re-plan R1-D2). An equal pour is a different drink.
+  { category: "vermouth", measureL: 0.01, gradeBand: "fair" },
 ];
 
 describe("CraftingApi.mintFromBuild", () => {
@@ -149,7 +151,7 @@ describe("CraftingApi.mintFromBuild", () => {
     expect(MixinApi.isCrafted(outcome.output)).toBe(true);
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(slot.getMaterialPath()).toBe(MARTINI_MAT);
-    expect(slot.getAmount().rawValue()).toBeCloseTo(0.12, 6); // Σ measures
+    expect(slot.getAmount().rawValue()).toBeCloseTo(0.07, 6); // Σ measures
     expect((outcome.output as unknown as { getRecipe(): string }).getRecipe()).toBe(
       "martini",
     );
@@ -164,10 +166,25 @@ describe("CraftingApi.mintFromBuild", () => {
       vessel: glass,
       contributions: [
         { category: "gin", measureL: 0.06, gradeBand: "fine" },
-        { category: "vermouth", measureL: 0.06, gradeBand: "poor" },
+        { category: "vermouth", measureL: 0.01, gradeBand: "poor" },
       ],
     });
     expect(outcome.ok && outcome.grade.getBand()).toBe("poor");
+  });
+
+  it("⭐ an equal pour is not a martini: off the proportion, it is pot-luck", async () => {
+    const outcome = await mintAs(makeStuffAtPath(() => new TestMaker(), DAVE), {
+      vessel: makeGlass(),
+      contributions: [
+        { category: "gin", measureL: 0.06, gradeBand: "fine" },
+        { category: "vermouth", measureL: 0.06, gradeBand: "fair" },
+      ],
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const slot = BulkableApi.slotFor(outcome.output, undefined)!;
+    expect(slot.getMaterialPath()).toBe(MIXED_MAT);
+    expect(outcome.recipeId).toBe("");
   });
 
   it("mints a generic 'mixed drink' for an off-spec build (no recipe match)", async () => {

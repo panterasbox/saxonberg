@@ -108,7 +108,12 @@ import {
  * campus midden was a bare `Thing` row with no mass; it is a `Receptacle`
  * of compost now (the generic midden), which states its own.
  */
-export const MASS_CEILING = 237;
+// ⭐ Lowered 237 → 235 by the ceramics build (W2): the medicine steeping pot
+// and the bakery's starter crock were prose with no material; they are
+// earthenware and stoneware rows with a mass now.
+// ⭐ Lowered 235 → 234 by ceramics W5: the commons `Kiln` states its mass
+// (a brick kiln and its 30-brick lining) now that a yard props it.
+export const MASS_CEILING = 234;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

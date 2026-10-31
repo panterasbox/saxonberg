@@ -671,6 +671,10 @@ executive veto.
 
 ## The founding corpus — what ships on the books
 
+> ⭐ **2026-10-28 → [law-and-order-slate](./law-and-order-slate.md) § 5** — the policing book worked
+> through this test: the Watch Act, a thin criminal code (adding impersonating an officer),
+> obstruction, the custody limit, the duty to raise the cry; the standing orders as a seat's.
+
 **The test, because shipping a law is shipping policy:**
 
 > **Ship what the world cannot function without. Never ship what the

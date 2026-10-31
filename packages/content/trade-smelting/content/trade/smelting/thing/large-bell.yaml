@@ -1,0 +1,13 @@
+# A great bell (ceramics S19) — the foundry pit's cast: a hundred and fifty
+# kilos of bell bronze. ⭐ Eight times a bell's mass is an octave lower, so
+# it booms where the hand bell rings; rung, it is heard streets away.
+class: /trade/smelting/thing/Bell
+data:
+  shortDescription: great bell
+  keywords: [bell, "great bell", "large bell"]
+  register: indefinite
+  longDescription: >-
+    A bell as tall as a child, its bronze still rough with loam from the
+    pit, its shoulder ringed with a cast moulding.
+  _materialPath: /stuff/idea/material/alloy/bronze
+  mass: 150

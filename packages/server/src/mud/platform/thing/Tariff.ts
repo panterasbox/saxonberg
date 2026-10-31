@@ -112,6 +112,9 @@ const REPAIR_KEY_SHARE: Record<string, number> = {
   tighten: 0.25,
   reforge: 2,
   refire: 1,
+  // A row of staples across a crack: about a repair's work (ceramics — the
+  // tinker's rivet). Unpriced, it quoted "0 zorkmids" (drive C, run 38).
+  rivet: 1,
 };
 
 /** One line a quote is asked for: a priced key, said as `label`, `qty` times. */

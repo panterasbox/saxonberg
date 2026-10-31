@@ -17,7 +17,7 @@ no controller, no Api**.
 |---|---|---|
 | `milk cow into pail` | litres of the animal's own milk; the milker's identity stamped on it; unwashed hands put `e-coli` in it and on the pail | `ProducingMixin` (`taps.md`) |
 | `pour pail into pan`, wait, `pour pan into pail` | the charge **stands** (`restDays`), then the skim draws off and **stops at the cream** — a share derived from the milk's fat | `SettingPan` = `FractionatingMixin` (`fractionation.md`), schedule `milk-setting` |
-| `pour pan into churn`, `churn churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` answers the kernel's `HandWorked` shape; the `stir` view's `churn` verb |
+| `pour pan into churn`, `churn churn` | between ~283 and 291 K the cream **breaks** (churned cream); too cold it will not come; too warm it comes greasy (`fair`) | `Churn` is the kernel's `HandWorkedMixin`; the `stir` view's `churn` verb |
 | `pour churn into jug` | buttermilk draws off; **butter** is the residue — a `fat`, so every fried recipe takes it | schedule `churning` |
 | `heat vat` | the vat is SET ON the lit fire and warms; the thermometer reads it | `heat`'s placing arm (`crafting.md`) |
 | `pour crock into vat` | a crock of whey IS a living lactic culture: the pour pitches the batch; milk poured into the crock feeds it | profile `whey-starter` (`kind: culture`) |

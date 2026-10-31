@@ -60,6 +60,7 @@ export class TestAuthRoutes {
             withCharacter?: unknown;
             startLocation?: unknown;
             wizard?: unknown;
+            parcels?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -75,6 +76,21 @@ export class TestAuthRoutes {
           : undefined;
       // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
       const wizard = body?.wizard === true;
+      // ⭐ Title to stage in: `eval --parcel <it>` as its holder could
+      // (TestHooks.#grantParcels — a transfer, not a bypass).
+      const parcels = body?.parcels;
+      if (
+        parcels !== undefined &&
+        !(
+          Array.isArray(parcels) &&
+          parcels.every((p) => typeof p === 'string' && p.startsWith('/'))
+        )
+      ) {
+        res
+          .status(400)
+          .json({ error: 'parcels must be an array of /-rooted paths' });
+        return;
+      }
 
       void TestHooks.authenticate(
         application,
@@ -82,7 +98,13 @@ export class TestAuthRoutes {
         (err, user) => {
           if (err || !user) {
             console.error('TestAuthRoutes: test-login failed:', err);
-            res.status(500).json({ error: 'test-login failed' });
+            // The message, not a bare 500 — a wrong parcel names the right one.
+            res.status(500).json({
+              error:
+                err instanceof Error
+                  ? `test-login failed: ${err.message}`
+                  : 'test-login failed',
+            });
             return;
           }
           // Establish the real Passport session (sets
@@ -98,7 +120,8 @@ export class TestAuthRoutes {
         },
         withCharacter,
         startLocation,
-        wizard
+        wizard,
+        (parcels as string[] | undefined) ?? []
       );
     });
 
@@ -111,7 +134,9 @@ export class TestAuthRoutes {
         res.status(403).json({ error: 'forbidden' });
         return;
       }
-      const body = req.body as { advance?: unknown } | undefined;
+      const body = req.body as
+        | { advance?: unknown; soak?: unknown }
+        | undefined;
       const advance = body?.advance;
       // No `advance` is a pure READ, which is what a drive uses to
       // assert the jump landed.
@@ -128,12 +153,15 @@ export class TestAuthRoutes {
         res.status(400).json({ error: 'advance must be a duration string' });
         return;
       }
-      void TestHooks.advanceClock(advance)
+      // ⛔ `soak: true` is sent only by the wire harness under `pnpm
+      // wire:soak`; without it a jump past one game day is refused as a
+      // span step (TestHarnessApi.advanceClock, the one place).
+      void TestHooks.advanceClock(advance, { soak: body?.soak === true })
         .then((moved) => res.json(moved))
         .catch((err: unknown) => {
           // ⚠ The MESSAGE goes back, not a bare 500. A refusal here is
-          // `@TestOnly`'s or the clock's own (a paused clock, a
-          // duration it cannot parse), and each says exactly what is
+          // `@TestOnly`'s, the span rule's, or the clock's own (a paused
+          // clock, a duration it cannot parse), and each says exactly what is
           // wrong — losing that is how the eval route stayed
           // undiagnosed for three review rounds.
           console.error('TestAuthRoutes: test-clock failed:', err);
@@ -143,9 +171,90 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ The weather pin. `type` present → pin; absent or null → unpin.
+    // `scope` is a place's or a Locality's template path; the pin lands
+    // on the covering Locality (TestHarnessApi.pinWeather).
+    app.post('/auth/test-weather', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as
+        | { scope?: unknown; type?: unknown; mode?: unknown }
+        | undefined;
+      const scope = body?.scope;
+      const type = body?.type ?? null;
+      const mode = body?.mode ?? 'frozen';
+      if (
+        typeof scope !== 'string' ||
+        (type !== null && typeof type !== 'string') ||
+        (mode !== 'frozen' && mode !== 'alive')
+      ) {
+        res.status(400).json({
+          error:
+            "test-weather wants {scope: '/path', type?: kind | null, mode?: 'frozen' | 'alive'}",
+        });
+        return;
+      }
+      void TestHooks.pinWeather(scope, type, mode)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-weather failed:', err);
+          res
+            .status(500)
+            .json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
+    // ⭐ A test character fed and watered (the meals between a drive's
+    // checkpoints) — a route for the clock's reason: a parcel-bound `eval`
+    // may not read the biome the body's reconcile reads.
+    app.post('/auth/test-nourish', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = (req.body as { handle?: unknown } | undefined)?.handle;
+      if (typeof handle !== 'string' || handle === '') {
+        res.status(400).json({ error: 'handle must be a string' });
+        return;
+      }
+      try {
+        res.json(TestHooks.nourishCharacter(handle));
+      } catch (err) {
+        console.error('TestAuthRoutes: test-nourish failed:', err);
+        res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+      }
+    });
+
+    // ⭐ A test character handed a thing (a drive's setup: a winter coat to
+    // wear, an ore to smelt) — by name, not dropped from the founder's hands.
+    app.post('/auth/test-hand', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { handle?: unknown; template?: unknown; data?: unknown } | undefined;
+      if (typeof body?.handle !== 'string' || body.handle === '' || typeof body.template !== 'string') {
+        res.status(400).json({ error: 'handle and template must be strings' });
+        return;
+      }
+      const data = body.data;
+      if (data !== undefined && (typeof data !== 'object' || data === null || Array.isArray(data))) {
+        res.status(400).json({ error: 'data, when given, must be an object' });
+        return;
+      }
+      TestHooks.handCharacter(body.handle, body.template, data as Record<string, unknown> | undefined)
+        .then((id) => res.json({ id }))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-hand failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     console.warn(
-      'TestAuthRoutes: ⚠  /auth/test-login and /auth/test-clock are MOUNTED ' +
-        '(test seams). Never in production.'
+      'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-weather, ' +
+        '/auth/test-nourish and /auth/test-hand are MOUNTED (test seams). Never in production.'
     );
   }
 }

@@ -1,0 +1,16 @@
+# The old pit's pond (ceramics S20) — the water that came up through a
+# worked-out pit's floor. Standing water, soft and a little peaty; a pail
+# dipped in it fills, and the temper pit is topped up from it.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: pond
+  keywords: [pond, water, "old pit"]
+  register: definite
+  longDescription: >-
+    Still brown water over a clay bottom, cold a hand's depth down, with
+    reeds at one end.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  hardnessDgh: 4
+  fixedInPlace: true
+  mass: 50000

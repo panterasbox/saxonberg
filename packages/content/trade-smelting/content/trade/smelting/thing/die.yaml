@@ -1,0 +1,20 @@
+# A token die (ceramics S16) — ⭐ a block of hard steel with a device cut in
+# its face. Lay a blank on it and strike it (`hammer blank on die`): if the
+# blow beats the blank's stiffness, the blank comes up bearing the device,
+# and the token says whose die struck it. It is the hammer's ANVIL for that
+# blow — a `Tool` that offers `anvil` — and its function is its shape, so a
+# die cast from an impression of this one strikes too.
+class: /trade/smelting/thing/Die
+data:
+  shortDescription: token die
+  keywords: [die, "token die", stamp]
+  register: indefinite
+  longDescription: >-
+    A squat block of dark steel with a small round device cut into its
+    face — a bell, and a ring of letters too worn to read.
+  _materialPath: /stuff/idea/material/alloy/steel
+  mass: 3
+  capabilities: [anvil]
+  strikes: /trade/smelting/thing/token
+  # Whose device it is — the Rejection founder's (a struck token says so).
+  markDevice: /world/terminus/rejection/agent/founder

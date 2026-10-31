@@ -18,7 +18,9 @@ import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { MeltableMixin } from '../../lib/thermal/Meltable';
 import { CompositionMixin } from '../../lib/material/Composition';
+// ⭐ A casting is MADE (B95): a maker, a grade, and what it was cast from.
+import { CraftedMixin } from '../../lib/craft/Crafted';
 
-const CastingBase = CompositionMixin(MeltableMixin(ThermalMixin(Good)));
+const CastingBase = CraftedMixin(CompositionMixin(MeltableMixin(ThermalMixin(Good))));
 
 export default class Casting extends CastingBase {}

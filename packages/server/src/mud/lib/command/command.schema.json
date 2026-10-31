@@ -79,6 +79,10 @@
       },
       "description": "Verb-level validators that fire BEFORE field validators with `context.commandGiver` populated. Used for command-shape preconditions (animacy, mobility, vocal capacity) that don't tie to a specific arg."
     },
+    "testOnly": {
+      "type": "boolean",
+      "description": "\u26d4 A TEST-WORLD verb (the `testharness` scaffolding). The view installs everywhere, but the command loader admits it only when `SecurityApi.isTestEnvironment()` \u2014 a world somebody plays in has no such verb: unknown to the dispatcher, never in `help` or the affordances. Pair it with the `requiresTestWorld` validator so the gate is in the view's own data too."
+    },
     "fallthrough": {
       "type": "boolean",
       "description": "Opt-in flag permitting top-level `args:` AND `subcommands:` to coexist. When set, the matcher tries subcommands first; on an unknown first token it falls through to bind against the top-level `args:` (Phase 3a). Required together with both `args:` and `subcommands:` \u2014 schema rejects any other combination."

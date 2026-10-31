@@ -1,0 +1,51 @@
+# Charcoal — wood with the volatiles cooked out of it, and ⭐ **the reason
+# a metal age is possible at all.**
+#
+# Wood burns at around 1200 K, which will not melt copper (1358 K) let
+# alone reduce an ore. Charcoal is nearly pure carbon: it burns hotter,
+# it burns cleaner, and — the part that matters chemically — the carbon
+# is what STRIPS THE OXYGEN off a copper carbonate. It is fuel and
+# reagent at once, which is why the smelt takes a charge of it rather
+# than merely a fire under it.
+#
+# ⭐ In the COMMONS since the ceramics build (R4, commons name only
+# commons): every wood's `char` transition names this row, and base-library
+# may only name base-library. A trade MAKES charcoal; what it IS belongs to
+# everyone.
+class: /platform/idea/material/Material
+data:
+  name: charcoal
+  keywords: [charcoal]
+  # Light: the volatiles and most of the mass left as smoke.
+  density: 350
+  specificHeat: 1000
+  thermalConductivity: 0.08
+  electricalConductivity: 1.0e2
+  # Porous, and it drinks — which is exactly why a burn that gets rained
+  # on is a burn you have lost.
+  waterAbsorptionCapacity: 30
+  # Autoignition well below wood's: charcoal catches from an ember where
+  # a log wants a flame.
+  #
+  # ⚠ This key was `autoignitionPoint` until the fire build, and there is
+  # no such field — the real one is `autoignitionTemperature`, so charcoal
+  # has had an autoignition of ZERO for the life of the pack and
+  # `tryAutoignite` would never have caught it from a neighbouring fire.
+  autoignitionTemperature: 620
+  # ⭐⭐ 30 MJ/kg, and this row did not author it at all. `heatOfCombustion`
+  # is what the fire build derives a flame's temperature from — nearly pure
+  # carbon burns at ~2250 K, which is how charcoal reaches a smelting
+  # furnace's ceiling and oak (16 MJ/kg → ~1340 K) does not. Without the
+  # number charcoal would have burnt COLDER than wood, which is the exact
+  # opposite of the reason the material exists.
+  heatOfCombustion: 30
+  edibility: false
+  nutrients: []
+  toxicity: []
+  # `charcoal`: the amber-glass batch's colourant (glass build W4) — a
+  # specific match, so coal and other carbons do not stand in for it.
+  tags: ["organic", "carbon", "fuel", "flammable", "porous", "charcoal", "once-living"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.9 }
+  chemistry: null
+  biologicalSource: null

@@ -1,0 +1,28 @@
+# The Delight's clay — ⭐ an ALLUVIAL clay, laid down by the valley's river
+# over ten thousand years: fine, fat and plastic, richer in clay mineral than
+# Rejection's quarry clay and with less sand in it. It throws well and dries
+# badly — a fat clay cracks unless it is tempered with sand — and it fires the
+# red of the iron in it (ceramics M3).
+#
+# A child of the common clay row: it fires by the same three transitions
+# (`kinetics` inherited) and differs only in what is in it.
+extends: /stuff/idea/material/earth/clay
+data:
+  name: alluvial clay
+  keywords: [clay, "alluvial clay", "river clay"]
+  appearance: fat, slick red-brown river clay
+  composition:
+    - { materialPath: /stuff/idea/material/mineral/clay-mineral, fraction: 0.72 }
+    - { materialPath: /stuff/idea/material/earth/sand, fraction: 0.12 }
+    - { materialPath: /stuff/idea/material/mineral/goethite, fraction: 0.07 }
+    - { materialPath: /stuff/idea/material/rock/limestone, fraction: 0.02 }
+    - { materialPath: /stuff/idea/material/organic/peat, fraction: 0.07 }
+  # ⭐ (ceramics W6) What a piece shaped of this clay by HAND is minted as,
+  # by form class — the wheel and the brick table name their own; the clay
+  # names the fallback for coiling and pinching.
+  formTemplates:
+    open: /trade/ceramics/thing/vessel
+    closed: /trade/ceramics/thing/jar
+    flat: /trade/ceramics/thing/dish
+    block: /trade/ceramics/thing/block
+    cone: /trade/ceramics/thing/cone

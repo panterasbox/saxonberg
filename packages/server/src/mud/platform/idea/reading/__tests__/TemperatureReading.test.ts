@@ -16,6 +16,7 @@ import { MobileMixin } from '../../../../lib/spatial/Mobile';
 import { CommandDefinition } from '../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
+import { MixinApi } from '../../../../api/mixin';
 import { ContainmentApi } from '../../../../api/containment';
 import {
   makeStuff,
@@ -181,4 +182,64 @@ describe('TemperatureReading', () => {
     expect(await reading.truth(vat as unknown as never)).toBeCloseTo(340, 0);
     expect(await reading.truth(room as unknown as never)).toBe(295);
   });
+
+  it('⭐ (ceramics W6) cones in the spy-hole: everybody counts them, a proficient potter reads the body — and the set is spent', async () => {
+    const room = makeStuff(() => new TestLocation());
+    const avatar = makeStuff(() => new FakeAvatar());
+    avatar.setName('Alice');
+    ContainmentApi.move(avatar, room);
+    const reading = withRow(await StuffApi.create(() => new TemperatureReading()), 'temperature');
+    const kiln = { isLit: () => true, getHeldTemperatureK: () => 1340 };
+    vi.spyOn(MixinApi, 'isBurner').mockImplementation(((o: unknown) => o === kiln) as never);
+    const analyze = (reading as unknown as {
+      analyze(c: CommandContext, t: unknown, b: string, tool: unknown, p: string): Promise<void>;
+    }).analyze.bind(reading);
+
+    const cones1 = await instrumentWith('pyrometry');
+    await analyze(makeContext(avatar, room), kiln, 'novice', cones1, '');
+    const plainRead = (avatar.received.at(-1) as { body: string }).body;
+    expect(plainRead).toMatch(/glows/i);
+    expect(plainRead).toMatch(/one cone has gone over, and another is leaning/i);
+    expect(cones1.isDestroyed()).toBe(true);
+
+    const cones2 = await instrumentWith('pyrometry');
+    await analyze(makeContext(avatar, room), kiln, 'proficient', cones2, '');
+    const fine = (avatar.received.at(-1) as { body: string }).body;
+    expect(fine).toMatch(/cone 08 down, cone 04 bending, cone 6 standing/);
+    expect(fine).toMatch(/coming to earthenware heat/i);
+
+    // Without cones the eye reads the glow alone.
+    await analyze(makeContext(avatar, room), kiln, 'proficient', null, '');
+    expect((avatar.received.at(-1) as { body: string }).body).not.toMatch(/cone/i);
+  });
+
+  it('⭐ cones that name their craft are read at the reader\'s band IN it — a practised potter, untrained in awareness (ceramics run 35)', async () => {
+    const room = makeStuff(() => new TestLocation());
+    const avatar = makeStuff(() => new FakeAvatar());
+    avatar.setName('Potter');
+    ContainmentApi.move(avatar, room);
+    const reading = withRow(await StuffApi.create(() => new TemperatureReading()), 'temperature');
+    const kiln = { isLit: () => true, getHeldTemperatureK: () => 1340 };
+    vi.spyOn(MixinApi, 'isBurner').mockImplementation(((o: unknown) => o === kiln) as never);
+    vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(true);
+    (avatar as unknown as { competenceBandFor(d: string): Promise<string> }).competenceBandFor = async (d: string) =>
+      d === 'pottery' ? 'proficient' : 'untrained';
+    const analyze = (reading as unknown as {
+      analyze(c: CommandContext, t: unknown, b: string, tool: unknown, p: string): Promise<void>;
+    }).analyze.bind(reading);
+    const cones = await instrumentWith('pyrometry');
+    (cones as unknown as { discipline: string }).discipline = 'pottery';
+    // The reading's own band (awareness) is the floor; the cones' craft lifts
+    // it — in the BASE (`Reading.bandOf`, review R2-D5), so the instrument
+    // ceiling still caps it like every other reading.
+    const bandOf = (reading as unknown as {
+      bandOf(a: unknown, t: unknown): Promise<string>;
+    }).bandOf.bind(reading);
+    const band = await bandOf(avatar, cones);
+    expect(band).toBe('proficient');
+    await analyze(makeContext(avatar, room), kiln, band, cones, '');
+    const read = (avatar.received.at(-1) as { body: string }).body;
+    expect(read).toMatch(/cone 08 down, cone 04 bending, cone 6 standing/);
+  });
 });
+

@@ -1,23 +1,19 @@
 /**
- * `fire` / `burn` — ⭐⭐ **the charge decides, and the recipes do the work.**
+ * `fire` / `burn` — ⭐⭐ **the verb holds the heat; the MATERIAL decides**
+ * (ceramics M1, D4).
  *
- * The claim this file exists to hold is *not* that lime burns. It is that
- * **nothing in the controller names lime**: the set of firings is the set of
- * recipe rows whose input slots the chamber's contents satisfy. So the test
- * authors **its own firing**, out of its own material, and asserts that a
- * chamber it has never heard of fires it. If somebody ever adds a branch on
- * a product to `FireController`, this file goes green and the claim quietly
- * stops being true — so it also asserts the inverse: a charge matching *no*
- * row is refused, and a chamber holding two different firings is refused
- * rather than averaged.
+ * Until the ceramics build this controller scanned the recipe catalogue for
+ * a firing. Now firing is one rule: every body in a lit chamber banks
+ * heat-work, and its material's `kinetics` say what that makes of
+ * it. So this file authors **its own material with its own transition** and
+ * asserts that a bare `Oven` turns it — by the hold, with the verb naming
+ * nothing. And it holds the census: no installed recipe row still has the
+ * shape the old firing path matched, so nobody quietly brings it back.
  *
- * Plus the two gates that cost the smelt a browser session to find:
- *
- *  - ⚠⚠ **unlit is COLD, not cool** — `getHeldTemperatureK()` never consults
- *    `lit`, so a stone-cold chamber reports its full figure. Answering that
- *    with *"work the bellows"* sends a player in a circle.
- *  - **too cold with the bellows already going** is the FUEL's fault, and the
- *    refusal says so instead of asking for the draught twice.
+ * Plus the gates that cost the smelt a browser session:
+ *  - ⚠⚠ **unlit is COLD, not cool**;
+ *  - an empty chamber is told to load;
+ *  - the draught is an OPTION and a word from the ladder.
  */
 
 import '../../../../../../test-bootstrap';
@@ -25,19 +21,16 @@ import { chargeHot } from '../../../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../../../lib/fire/Burner';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { parse } from 'yaml';
 import FireController from '../FireController';
 import Oven from '../../../../thing/Oven';
-import Casting from '../../../../thing/Casting';
-import Good from '../../../../../lib/stuff/Good';
 import Material from '../../../../../lib/material/Material';
-import { CompositionMixin } from '../../../../../lib/material/Composition';
-import { CraftedMixin } from '../../../../../lib/craft/Crafted';
-import { Grade } from '../../../../../lib/craft/Grade';
-import { Reserve } from '../../../../../lib/reserve';
+import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
+import Good from '../../../../../lib/stuff/Good';
 import { Quantity } from '../../../../../lib/quantity';
-import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
-import { MixinApi } from '../../../../../api/mixin';
 import { CommandApi } from '../../../../../api/command';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import type { CommandContext } from '../../../../../api/command';
@@ -46,200 +39,90 @@ import {
   standUpBranchHarness,
   makeContext,
   completeStep,
-  registerMaterial,
-  branchRecipeRows,
 } from '../../crafting/__tests__/branch-fixtures';
-import RecipeCatalogue from '../../../RecipeCatalogue';
-import {
-  makeStuff,
-  makeStuffAtPath,
-  stampTemplatePathForTest,
-} from '../../../../../lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
+import WorldClockRegistry from '../../../../idea/WorldClockRegistry';
 
-/** The test's own stone, its own firing, and its own product row. */
+/** The test's own stone and what heat makes of it. */
 const STONE_M = '/stuff/idea/material/_test/fire-stone';
-const CLAYISH_M = '/stuff/idea/material/_test/fire-clayish';
-const PRODUCT_ROW = '/stuff/thing/_test/fire-product';
-const OTHER_ROW = '/stuff/thing/_test/fire-other';
-/** A material + row for the mass/alloying CARRY (D6): its own tag so the
- * melt firing never collides with `test-burn`. */
-const MELTABLE_M = '/stuff/idea/material/_test/fire-meltable';
-const MELT_ROW = '/stuff/thing/_test/fire-melt';
+const BURNT_M = '/stuff/idea/material/_test/fire-burnt';
+
+class Lump extends ThermalMixin(Good) {
+  static _mixinName = 'FireControllerTestLump';
+}
 
 let room: TestActor;
 let actor: TestActor;
 let kiln: Oven;
 
-/**
- * A chamber. ⭐ A bare `Oven`, with nothing quarrying-shaped about it —
- * because the claim is that the verb lives on the APPLIANCE and the trade
- * ships none of this.
- */
-function makeKiln(opts: { holdK: number; lit: boolean; bellows?: boolean }): Oven {
+function makeKiln(opts: { holdK: number; lit: boolean }): Oven {
   return makeStuff(() => {
     const o = new Oven();
     o.setBurnTemperatureK(opts.holdK);
     o.setBellowsMultiplier(1);
-    // ⭐ A charge in the bed, not a percentage of nothing.
-    chargeHot(o as unknown as Stuff & Burner, 40);
-    o.setBellowsActive(opts.bellows ?? false);
-    // ⚠ `lit` defaults to TRUE on `BurnerMixin` (a campfire seed starts
-    // lit), so the unlit case has to be set explicitly — which is exactly
-    // why the smelt's unlit branch had no coverage for three builds: every
-    // fixture in the tree happened to be lit by accident.
+    chargeHot(o as unknown as Stuff & Burner, 400);
+    o.setBellowsActive(false);
+    // ⚠ `lit` defaults TRUE on `BurnerMixin` — the unlit case is explicit.
     o._setLit(opts.lit);
     return o;
   });
 }
 
-/** A lump of something, by material path. */
-function lumpOf(path: string, kg = 5): Good {
-  const t = makeStuff(() => new Good());
-  t.setMass(Quantity.of(kg, 'kg'));
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
-  return t;
+function stone(kg = 5): Lump {
+  return makeStuff(() => {
+    const l = new Lump();
+    l.setMass(Quantity.of(kg, 'kg'));
+    return l;
+  });
 }
 
-const IRON_M = '/stuff/idea/material/element/iron';
-
-/** An Alloyed, Tangible lump carrying a minor iron constituent (D6 carry). */
-function alloyedLumpOf(path: string, kg: number, ironFrac: number): Casting {
-  const t = makeStuff(() => new Casting());
-  t.setMass(Quantity.of(kg, 'kg'));
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(path) as unknown as Material);
-  t.setAlloying([{ materialPath: IRON_M, fraction: ironFrac }]);
-  return t;
-}
-
-async function fire(): Promise<CommandContext> {
+async function fire(model: Record<string, unknown> = {}): Promise<CommandContext> {
   const context = makeContext(actor, room, 'fire');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    // `fire.yaml` binds the chamber; a controller test skips the binder.
     await makeStuff(() => new FireController()).execute(
-      { kiln: { stuff: kiln, raw: 'kiln' } } as never,
+      { kiln: { stuff: kiln, raw: 'kiln' }, ...model } as never,
       context,
     );
   });
   return context;
 }
 
-/** Advance past the firing AND drain the async completion chain. */
-async function draw(): Promise<void> {
-  await completeStep(200_000);
-  for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));
-}
-
 function declinedFor(context: CommandContext): string | undefined {
-  return context.getNotes().find((n) => n.kind === 'controller-rejected')
-    ?.reason;
+  return context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason;
 }
 
-/** What the chamber holds, by template path. */
-function drawnFrom(k: Oven): string[] {
-  return k
-    .getContents()
-    .map((c) => c.getTemplatePath() ?? '')
-    .filter((p) => p !== '');
-}
+let materials: { stone: Material; burnt: Material };
 
 beforeEach(async () => {
-  const harness = await standUpBranchHarness();
-
-  // ⭐⭐ THE TEST'S OWN FIRING. Nothing in the controller knows either of
-  // these words, and that is the whole assertion: a pack ships a row and the
-  // verb finds it.
-  registerMaterial(STONE_M, 'test stone', ['rock', '_test-flux'], {
-    keywords: ['stone'],
-  });
-  registerMaterial(CLAYISH_M, 'test clayish', ['earth', '_test-clayish'], {
-    keywords: ['clayish'],
-  });
-  registerMaterial(MELTABLE_M, 'test meltable', ['_test-meltable'], {
-    keywords: ['meltable'],
-  });
-  harness.store['recipes'] = [
-    ...branchRecipeRows(),
-    {
-      recipeId: 'test-burn',
-      name: 'Test burn',
-      keywords: ['testburn'],
-      inputSlots: [
-        { slot: 'charge', category: '_test-flux', minGrade: 'poor', kind: 'item', count: 2 },
-      ],
-      toolCapabilities: [],
-      outputTemplate: PRODUCT_ROW,
-      outputMaterial: '',
-      outputApplication: 'tangible',
-      requiresHeatK: 1170,
-      maxHeatK: 1900,
-      difficulty: 'standard',
-      discipline: 'quarrying',
-    },
-    {
-      recipeId: 'test-other',
-      name: 'Test other',
-      keywords: ['testother'],
-      inputSlots: [
-        { slot: 'charge', category: '_test-clayish', minGrade: 'poor', kind: 'item', count: 1 },
-      ],
-      toolCapabilities: [],
-      outputTemplate: OTHER_ROW,
-      outputMaterial: '',
-      outputApplication: 'tangible',
-      requiresHeatK: 1100,
-      maxHeatK: 1900,
-      difficulty: 'standard',
-      discipline: 'quarrying',
-    },
-    {
-      // ⭐ The CARRY firing (D6): one melt out of two meltable lumps, at
-      // a massYield < 1 and an Alloyed output that should inherit the
-      // charge's minor constituents mass-weighted.
-      recipeId: 'test-melt',
-      name: 'Test melt',
-      keywords: ['testmelt'],
-      inputSlots: [
-        { slot: 'charge', category: '_test-meltable', minGrade: 'poor', kind: 'item', count: 2 },
-      ],
-      toolCapabilities: [],
-      outputTemplate: MELT_ROW,
-      outputMaterial: '',
-      outputApplication: 'tangible',
-      requiresHeatK: 1100,
-      maxHeatK: 1900,
-      massYield: 0.5,
-      difficulty: 'standard',
-      discipline: 'quarrying',
-    },
-  ];
-  const catalogue = StuffApi.findByTemplatePath<RecipeCatalogue>(
-    '/platform/idea/RecipeCatalogue',
-  )!;
-  catalogue.invalidateCache();
-  await catalogue.warm();
-
-  const realClone = StuffApi.clone;
-  vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
-    if (path === PRODUCT_ROW || path === OTHER_ROW) {
-      const p = makeStuff(() => new Good());
-      stampTemplatePathForTest(p, path);
-      p.setMass(Quantity.of(2, 'kg'));
-      p.setShortDescription(path === PRODUCT_ROW ? 'burnt thing' : 'other thing');
-      return p;
-    }
-    if (path === MELT_ROW) {
-      // An Alloyed + Tangible output whose template mass (99) must be
-      // OVERRIDDEN by the carry, with no authored alloying so the merge
-      // is purely the charge's.
-      const p = makeStuff(() => new Casting());
-      stampTemplatePathForTest(p, path);
-      p.setMass(Quantity.of(99, 'kg'));
-      p.setShortDescription('a pot of melt');
-      return p;
-    }
-    return realClone.call(StuffApi, path);
-  }) as never);
+  await standUpBranchHarness();
+  // ⚠ The harness clears every Stuff; a body reads time only while the
+  // clock's registry stands (`ThermalMixin.thermalNowSeconds`).
+  makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+  const burnt = makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('test burnt');
+    m.setSpecificHeat(Quantity.of(800, 'J/(kg·K)'));
+    return m;
+  }, BURNT_M) as unknown as Material;
+  const s = makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('test stone');
+    m.setSpecificHeat(Quantity.of(800, 'J/(kg·K)'));
+    m.setThermalConductivity(Quantity.of(1, 'W/(m·K)'));
+    // ⭐⭐ THE TEST'S OWN TRANSITION. Nothing in the controller knows it.
+    m.setKinetics([
+      {
+        key: 'burn',
+        rate: { referenceK: 1100, zK: 60, fullDoseS: 1800 },
+        massRetained: 0.5,
+        discipline: 'quarrying',
+        ladder: [{ atDegree: 1, becomes: BURNT_M }],
+      },
+    ]);
+    return m;
+  }, STONE_M) as unknown as Material;
+  materials = { stone: s, burnt };
 
   room = makeStuff(() => new TestActor());
   actor = makeStuffAtPath(() => new TestActor(), '/platform/agent/Avatar/burner-1');
@@ -250,200 +133,96 @@ beforeEach(async () => {
 
 afterEach(() => vi.restoreAllMocks());
 
-describe('the chamber, the charge and the heat', () => {
+function loadStone(kg = 5): Lump {
+  const l = stone(kg);
+  l.setMaterial(materials.stone);
+  ContainmentApi.move(l, kiln);
+  return l;
+}
+
+describe('the chamber and the charge', () => {
   it('an empty chamber is refused, and told to load it', async () => {
     expect(declinedFor(await fire())).toBe('no-charge');
   });
 
-  it('⭐⭐ a charge the test INVENTED fires — the recipes do the work', async () => {
-    // Two lumps of a material this file made up, against a recipe this file
-    // made up, in a bare `Oven`. Nothing in `FireController` names any of it.
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    const context = await fire();
-    expect(declinedFor(context)).toBeUndefined();
-    await draw();
-    expect(drawnFrom(kiln)).toContain(PRODUCT_ROW);
-  });
-
-  it('⭐ the RATIO is the row’s: two in, one out, and the odd one stays', async () => {
-    // A charge of five against `count: 2` yields two and leaves one, which is
-    // what a lime-burner's odd stone actually does. Authored in the row, not
-    // in the controller.
-    for (let i = 0; i < 5; i++) ContainmentApi.move(lumpOf(STONE_M), kiln);
-    await fire();
-    await draw();
-    const left = drawnFrom(kiln).filter((p) => p === PRODUCT_ROW);
-    expect(left).toHaveLength(2);
-    // One unfired stone is still in there.
-    const stones = kiln
-      .getContents()
-      .filter(
-        (c) => MixinApi.isTangible(c) && c.hasMaterialTag('_test-flux'),
-      );
-    expect(stones).toHaveLength(1);
-  });
-
-  it('a charge matching NO row is refused — heat is not what it wants', async () => {
-    registerMaterial('/stuff/idea/material/_test/inert', 'inert', ['rock'], {
-      keywords: ['inert'],
-    });
-    ContainmentApi.move(lumpOf('/stuff/idea/material/_test/inert'), kiln);
-    expect(declinedFor(await fire())).toBe('no-firing');
-  });
-
-  it('⚠ TWO firings in one chamber is refused rather than averaged', async () => {
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    ContainmentApi.move(lumpOf(CLAYISH_M), kiln);
-    expect(declinedFor(await fire())).toBe('mixed-charge');
-  });
-
-  it('⚠⚠ an UNLIT chamber is refused for being COLD, not for the draught', async () => {
-    // `getHeldTemperatureK()` is `burnTemperatureK × bellows` and never
-    // consults `lit`, so a stone-cold chamber reports its full figure. The
-    // smelt shipped this refusal the wrong way round and it took a browser
-    // session to find: a player told to work the bellows was told by the
-    // bellows that air without fire moves nothing.
+  it('⚠⚠ an UNLIT chamber is refused for being COLD', async () => {
     kiln = makeKiln({ holdK: 1500, lit: false });
     ContainmentApi.move(kiln, room);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
+    loadStone();
     expect(declinedFor(await fire())).toBe('not-lit');
   });
 
-  it('a lit chamber too cool for the firing says how short it is', async () => {
-    // A bread oven cannot burn lime, and the difference between baking and
-    // calcining stops being a class name and becomes a temperature.
-    kiln = makeKiln({ holdK: 500, lit: true });
-    ContainmentApi.move(kiln, room);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    expect(declinedFor(await fire())).toBe('insufficient-heat');
+  it('a draught that is not a word on the ladder is refused, and the ladder named', async () => {
+    loadStone();
+    expect(declinedFor(await fire({ draught: 'medium' }))).toBe('bad-draught');
   });
 
-  it('the charge is CONSUMED, and only as much of it as the firing took', async () => {
-    const a = lumpOf(STONE_M);
-    const b = lumpOf(STONE_M);
-    const spare = lumpOf(STONE_M);
-    for (const l of [a, b, spare]) ContainmentApi.move(l, kiln);
-    await fire();
-    await draw();
-    // Two went; the third is still standing.
-    const gone = [a, b, spare].filter((l) => l.isDestroyed());
-    expect(gone).toHaveLength(2);
+  it('⭐ `--draught low` sets the air before the hold', async () => {
+    loadStone();
+    expect(kiln.getDraught()).toBe(1);
+    const ctx = await fire({ draught: 'low' });
+    expect(declinedFor(ctx)).toBeUndefined();
+    expect(kiln.getDraught()).toBeCloseTo(0.2, 6);
+  });
+
+  it('a hold that is not a duration is refused', async () => {
+    loadStone();
+    expect(declinedFor(await fire({ hold: 'a while' }))).toBe('bad-duration');
+  });
+});
+
+describe('⭐⭐ the material decides — the verb only holds the heat', () => {
+  it('a charge the test INVENTED turns, in a bare Oven, by its own transition', async () => {
+    const piece = loadStone(5);
+    const ctx = await fire({ hold: '3 hours' });
+    expect(declinedFor(ctx)).toBeUndefined();
+    await completeStep(3 * 3600 * 1000);
+    for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));
+    // ⭐ The same piece — identity kept — its material and mass changed.
+    expect(piece.isDestroyed()).toBe(false);
+    expect(piece.getMaterial()?.getTemplatePath()).toBe(BURNT_M);
+    expect(piece.getMass().rawValue()).toBeCloseTo(2.5, 1);
+    // …and whoever held the firing is stamped on it.
+    expect(piece.getKineticRecord()?.firedBy).toBe('/platform/agent/Avatar/burner-1');
   });
 
   it('⭐⭐ the affordance: the APPLIANCE carries `fire`, beside its own five', () => {
-    // ⭐ The doctrine this verb rides, and it was already written on
-    // `BurnerMixin`: *"the fire-appliance verbs are afforded by the
-    // appliance."* Five verbs hung off it; firing a loaded chamber is the
-    // sixth. ⚠ The plan had it afforded by an open WORKING instead, which
-    // would have meant a potter's shed needed its own class to fire a pot.
     const verbs = CommandApi.collectContributions(Oven, 'peers')
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain('fire');
     expect(verbs).toContain('burn');
-    // …beside the ones that were already there (`boil` rides `heat`'s view
-    // as an alias since 2026-10-19).
     for (const v of ['ignite', 'douse', 'pump', 'heat', 'boil']) {
       expect(verbs, v).toContain(v);
     }
   });
 });
 
-describe('the firing carries its charge (D6)', () => {
-  it('massYield sets the output mass from the consumed charge, overriding the template', async () => {
-    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.01), kiln);
-    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.03), kiln);
-    await fire();
-    await draw();
-    const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW);
-    expect(melt).toBeDefined();
-    // 10 kg consumed × 0.5 yield ÷ 1 batch = 5 kg — NOT the template's 99.
-    expect((melt as unknown as { getMass(): { rawValue(): number } }).getMass().rawValue()).toBeCloseTo(5, 6);
-  });
-
-  it('an Alloyed output inherits the charge’s minor constituents, mass-weighted', async () => {
-    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.01), kiln);
-    ContainmentApi.move(alloyedLumpOf(MELTABLE_M, 5, 0.03), kiln);
-    await fire();
-    await draw();
-    const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW);
-    expect(melt).toBeDefined();
-    // Mass-weighted iron: (5·0.01 + 5·0.03) / 10 = 0.02 — and ALL of it
-    // stays in half the mass, so the melt holds twice that (potash D12a).
-    expect((melt as unknown as { fractionOf(p: string): number }).fractionOf(IRON_M)).toBeCloseTo(0.04, 6);
-  });
-
-  it('a recipe with NO massYield keeps the output’s template mass (burn-lime unaffected)', async () => {
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    ContainmentApi.move(lumpOf(STONE_M), kiln);
-    await fire();
-    await draw();
-    const prod = kiln.getContents().find((c) => c.getTemplatePath() === PRODUCT_ROW);
-    expect(prod).toBeDefined();
-    // test-burn authors no massYield → the clone keeps its mock mass (2).
-    expect((prod as unknown as { getMass(): { rawValue(): number } }).getMass().rawValue()).toBeCloseTo(2, 6);
-  });
-});
-
-/** A graded, composed lump — black salts in shape (potash D12). */
-class GradedLump extends CompositionMixin(CraftedMixin(Good)) {
-  static _mixinName = 'GradedLump';
-}
-function gradedLumpOf(kg: number, band: string, ironFrac = 0): GradedLump {
-  const t = makeStuff(() => new GradedLump());
-  t.setMass(Quantity.of(kg, 'kg'));
-  t.setMaterial(StuffApi.findByTemplatePath<Material>(MELTABLE_M) as unknown as Material);
-  (t as unknown as { setGrade(g: Grade): void }).setGrade(Grade.of(band));
-  if (ironFrac > 0) t.setAlloying([{ materialPath: IRON_M, fraction: ironFrac }]);
-  return t;
-}
-const gradeOf = (s: Stuff): string => (s as unknown as { getGrade(): Grade }).getGrade().getBand();
-
-describe('⭐ the firing concentrates what it keeps and grades by its worst input (potash D12)', () => {
-  function gradedOutput(): void {
-    const real = StuffApi.clone;
-    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
-      if (path === MELT_ROW) {
-        const p = makeStuff(() => new GradedLump());
-        stampTemplatePathForTest(p, path);
-        p.setMass(Quantity.of(99, 'kg'));
-        return p;
+describe('⭐ the census — the firing rows are gone', () => {
+  /**
+   * The old `firingsFor` matched any row with `requiresHeatK > 0`, item
+   * slots and no tools — which, it turns out, also matched eight rows other
+   * verbs run (`smelt`'s charges, the smoker's cures, the chandler's wax),
+   * so a shape census cannot tell a retired firing from a live one. The
+   * honest census is the ROWS: every firing the one rule replaced is gone,
+   * and no other verb read them.
+   */
+  const RETIRED = [
+    'burn-lime', 'fire-pot', 'glass-batch', 'glass-batch-amber', 'remelt-cullet',
+    'retort-wood', 'retort-coal', 'vulcanize', 'charcoal', 'calcine',
+  ];
+  it('no installed recipe row is one of the retired firings', () => {
+    const contentRoot = join(__dirname, '../../../../../../../../content');
+    const found: string[] = [];
+    for (const pack of readdirSync(contentRoot)) {
+      const dir = join(contentRoot, pack, 'content', 'recipes');
+      if (!existsSync(dir)) continue;
+      for (const f of readdirSync(dir)) {
+        if (!f.endsWith('.yaml')) continue;
+        const row = parse(readFileSync(join(dir, f), 'utf8')) as { recipeId?: string } | null;
+        if (row?.recipeId && RETIRED.includes(row.recipeId)) found.push(`${pack}/${f}`);
       }
-      return real.call(StuffApi, path);
-    }) as never);
-  }
-
-  it('⭐ a graded output takes the WEAKEST graded input’s grade', async () => {
-    gradedOutput();
-    ContainmentApi.move(gradedLumpOf(5, 'fine'), kiln);
-    ContainmentApi.move(gradedLumpOf(5, 'fair'), kiln);
-    await fire();
-    await draw();
-    const out = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW)!;
-    expect(gradeOf(out)).toBe('fair');
-  });
-
-  it('a constituent concentrates by 1 / massYield, and never past the whole', async () => {
-    gradedOutput();
-    ContainmentApi.move(gradedLumpOf(5, 'fine', 0.65), kiln);
-    ContainmentApi.move(gradedLumpOf(5, 'fine', 0.65), kiln);
-    await fire();
-    await draw();
-    const out = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW)! as unknown as GradedLump;
-    // 0.65 / 0.5 would be 1.3 — capped at the whole.
-    expect(out.fractionOf(IRON_M)).toBeCloseTo(1, 6);
-  });
-
-  it('an ungraded output is untouched, and an ungraded charge grades nothing', async () => {
-    ContainmentApi.move(gradedLumpOf(5, 'poor'), kiln);
-    ContainmentApi.move(gradedLumpOf(5, 'poor'), kiln);
-    await fire();
-    await draw();
-    const melt = kiln.getContents().find((c) => c.getTemplatePath() === MELT_ROW)!;
-    expect(MixinApi.isGraded(melt)).toBe(false);
+    }
+    expect(found).toEqual([]);
   });
 });

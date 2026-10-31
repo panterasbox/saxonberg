@@ -13,6 +13,8 @@ data:
   nutrients: ["water", "sugar"]
   nutrientAmounts:
     sugar: 85
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 5.2
   tags: ["liquid", "lager-wort"]
   composition: []
   biologicalSource: null

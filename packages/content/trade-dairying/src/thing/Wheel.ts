@@ -23,13 +23,12 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
-import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
   Splittable,
   WorkPrognosis,
   WorkResult,
 } from '@saxonberg/server/mud/lib/ground/Workable';
-import type { MadeFromHolding } from '@saxonberg/server/mud/lib/mould/Mould';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -53,7 +52,7 @@ function madeFromAugmenter(
   opts?: { filter?: readonly string[] },
 ): string {
   if (!opts?.filter?.includes('taste')) return text;
-  const from = (host as unknown as Wheel).getMadeFrom();
+  const from = MixinApi.isCrafted(host) ? host.getMadeFrom() : '';
   if (!from) return text;
   const milk = StuffApi.findByTemplatePath<Material>(from);
   if (!milk) return text;
@@ -65,7 +64,7 @@ function madeFromAugmenter(
 
 const WheelBase = RipeningMixin(Provision);
 
-export default class Wheel extends WheelBase implements Splittable, MadeFromHolding {
+export default class Wheel extends WheelBase implements Splittable {
   /**
    * `split` — a wheel in the hand (`environment`: what you hold confers on
    * you) or on the shelf beside you (`peers`). ⚠ Not `self`, which is a
@@ -82,15 +81,12 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
   static fieldMeta: FieldMeta = {
     wedgesPerWheel: { persistent: true, authorable: true },
     wedgesLeft: { persistent: true, runtimeState: true },
-    madeFrom: { persistent: true, runtimeState: true },
   };
 
   /** How many wedges this wheel cuts into. */
   public wedgesPerWheel = DEFAULT_WEDGES;
   /** Wedges still in it; `-1` = uncut (the whole of `wedgesPerWheel`). */
   public wedgesLeft = -1;
-  /** The milk it was made from (a material path), or `''`. */
-  public madeFrom = '';
 
   /** The declared shape's marker. */
   public readonly splittable = true as const;
@@ -105,17 +101,11 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
   public getWedgesLeft(): number {
     return this.wedgesLeft < 0 ? this.wedgesPerWheel : this.wedgesLeft;
   }
-  public getMadeFrom(): string {
-    return this.madeFrom;
-  }
-  public setMadeFrom(materialPath: string): void {
-    this.madeFrom = typeof materialPath === 'string' ? materialPath : '';
-  }
 
   // ───────────────────────── the Splittable shape ─────────────────────────
 
   public async planWork(
-    _by: Stuff,
+    by: Stuff,
     tool: (Stuff & Tooled) | null,
     _what: string | null,
   ): Promise<WorkPrognosis> {
@@ -144,7 +134,7 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
       durationMs: SPLIT_MS,
       cost: 1,
       beginSelf: 'You set the blade at the centre and lean on it.',
-      beginPeers: 'Somebody starts cutting into a wheel of cheese.',
+      beginPeers: Mml.compose`${Mml.actor(by)} starts cutting into a wheel of cheese.`.toString(),
       token: null,
     };
   }
@@ -200,6 +190,6 @@ export default class Wheel extends WheelBase implements Splittable, MadeFromHold
     if (MixinApi.isCrafted(wedge) && this.getMaker()) wedge.setMaker(this.getMaker());
     if (MixinApi.isFresh(wedge)) wedge.setMicrobialLoad(this.getMicrobialLoad());
     if (MixinApi.isContaminable(wedge)) wedge.setPathogenLoads(this.getPathogenLoads());
-    if (MixinApi.isWaterActive(wedge)) wedge.setWaterState(this.getWaterState());
+    if (MixinApi.isMoist(wedge)) wedge.setWaterState(this.getWaterState());
   }
 }

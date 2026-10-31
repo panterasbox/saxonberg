@@ -1,0 +1,39 @@
+verbs: [impress, mold]
+controller: /platform/idea/cmd/crafting/ImpressController
+description: "Press a hard shape into something soft"
+help: |
+  `impress <pattern> on <thing>` presses one into the other, and the SOFT
+  thing decides what that makes:
+
+  - a **leather-hard pot** takes a potter's mark: `impress stamp on jug`
+    marks its base with whose stamp it is, and once it is fired the base
+    reads its maker and the date. Too soft and the stamp smears; bone-dry
+    and it will not take it.
+  - a mould's soft medium — a sand flask, a wax block — takes the shape of
+    the whole thing pressed into it (the founder's work).
+
+  `mold` is the same act.
+examples:
+  - cmd: impress stamp on jug
+    note: Mark a leather-hard pot as yours
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # The hard thing pressed in.
+  - name: pattern
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: [TangibleMixin]
+  # ⭐ The soft thing it is pressed into. `requires: any` — the controller
+  # narrows to an impressible medium (`ImpressibleMixin`) and refuses
+  # anything else in its own words, and the medium answers what it takes.
+  - name: medium
+    type: object
+    required: true
+    greedy: true
+    prepositions: [on, in, into]
+    scope: ["reachable"]
+    requires: any

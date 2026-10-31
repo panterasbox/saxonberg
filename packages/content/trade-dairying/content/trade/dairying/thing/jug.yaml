@@ -9,5 +9,12 @@ data:
   category: jug
   interiorBulk: true
   interiorCapacity: 2
-  _materialPath: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/earthenware
   mass: 0.8
+  # ⭐ (ceramics S1, M6) A fused lead glaze — glossy, and (M7) it gives
+  # lead to anything acid kept in it, which nothing about it says.
+  coats:
+    inside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }
+    outside:
+      - { material: /stuff/idea/material/glaze/lead, thicknessM: 0.0003, state: set }

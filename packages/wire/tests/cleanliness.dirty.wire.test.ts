@@ -38,7 +38,7 @@ import {
 import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
 import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
@@ -593,12 +593,15 @@ suite('⭐ drive 14 — mill dust hangs in the mill house; swept, it settles (AC
 });
 
 suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)', () => {
-  it('two days of cows on the floor; `muck` takes it up into a heap', async () => {
+  it('a day of cows on the floor; `muck` takes it up into a heap', async () => {
     // The byre loads when somebody comes; its stalls foul from then.
     const first = await goTo(cookHandle, BYRE);
     await examine(first, 'floor');
     first.close();
-    await advance('48 hours');
+    // ⛔ One game day, the blocking line (soak-harness census): six head
+    // at MANURE_PER_HEAD_DAY 0.15 lay 0.9 a day, past `soiled` (0.4)
+    // in about eleven hours — a day is plenty, two was never needed.
+    await advance('24 hours');
     await toDaylight();
     const s = await goTo(cookHandle, BYRE);
     const floor = await examine(s, 'floor');
@@ -723,9 +726,10 @@ suite('⭐ drive 22 — a clean contract, posted, done and paid (AC 22)', () => 
  * LAST, because it restarts the world; only in a world this run OWNS.
  */
 suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart (AC 24)', () => {
-  afterAll(async () => {
-    await stopOwnedWorld();
-  });
+  // ⚠ No `afterAll(stopOwnedWorld)`: the rebooted world stays up for the
+  // files that run after this one (stopping it left every later file of a
+  // full `pnpm wire` with no world — the soak-harness census found it);
+  // the global teardown reaps the port.
 
   it.skipIf(!isOwnedTestWorld())('restart, and find the set stain on the shirt where it was left — on the cookhouse rack', async () => {
     cook?.close();

@@ -3,8 +3,8 @@
  * run against the real socket (the requirements' drive, retired at the
  * sweep; the model is docs/subsystems/construction.md + rubber.md).
  *
- * The drive in one sentence: *buy rubber boots and gloves; cure raw rubber
- * with sulfur in the works' oven four ways — weeping, rubber, ebonite and
+ * The drive in one sentence: *buy rubber boots and gloves; mill raw rubber
+ * with sulfur in the works' tub and cure the stock in the oven four ways — weeping, rubber, ebonite and
  * burnt — and read which you got; tap a Hevea in the stove house once the
  * stove has it warm, pour the latex into the coagulating pan and come back
  * to a sheet of raw rubber; light the works stove and feel the loft above
@@ -24,6 +24,8 @@ import {
   uniqueHandle,
   expectOk,
   advanceWorldClock,
+  pinWeather,
+  unpinWeather,
   plain,
 } from '../src/harness';
 
@@ -169,10 +171,13 @@ async function funded(tag: string, where: string): Promise<Session> {
  * the residency sweep a clock jump fires — wait for it rather than assume.
  */
 async function buyOne(s: Session, item: string): Promise<void> {
-  for (let attempt = 0; attempt < 3; attempt++) {
+  // ⛔ One restock day at most (soak-harness census): a shelf that needs
+  // longer is a span, and the step fails here rather than walking days.
+  for (let attempt = 0; attempt < 2; attempt++) {
     const said = await say(s, `buy ${item}`);
     if (/you buy/i.test(said)) return;
     expect(said, `buy ${item}: ${said}`).toMatch(/bare|none of it/i);
+    if (attempt > 0) break;
     await advanceWorldClock('1 day');
     await new Promise((r) => setTimeout(r, 20_000));
   }
@@ -335,7 +340,11 @@ suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the s
     const t = await at(h, STOVE_HOUSE);
     const poured = await say(t, `pour me:i:pail:[${milk + 1}] into pan`);
     expect(poured, `pour: ${poured}`).toMatch(/pour/i);
-    await advanceWorldClock('26 hours');
+    // ⛔ One game day, the blocking line (soak-harness census): latex's
+    // drainSetting is one day and the set rate is (1+ratio)/days, so the
+    // pan reaches `set` a day from the pour; the real seconds since the
+    // pour add the margin.
+    await advanceWorldClock('24 hours');
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(t, 'pan');
     expect(pan, 'the pan has set').toMatch(/set/i);
@@ -368,18 +377,36 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await cloneInto(WORKS, s, ROW.sulfur, 'sulfur', 6);
   }, 600_000);
 
+  let kneadedOnce = false;
   async function cure(
     raw: number,
     sulfur: number,
     hold: string,
     holdS: number,
     bellows = false,
+    expectCast = true,
   ): Promise<string> {
     await say(s, 'inventory');
+    // ⭐⭐ Compound first (ceramics R1): raw rubber and sulfur go into the
+    // mixing tub and `knead` mills them into ONE piece of stock whose
+    // sulfur fraction is what went in by mass — 3 raw (1.5 kg) and one
+    // nodule (0.05 kg) is ~3 %; 1 raw and 3 nodules is ~23 %. No recipe.
+    // ⚠ A rest between kneads: kneading is 380 W for a quarter hour
+    // (B101), and two back to back with no rest wore the body out (the
+    // ceramics finalize found it). An hour off, as anyone would take.
+    if (kneadedOnce) await advanceWorldClock('1 hour');
+    kneadedOnce = true;
+    for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in tub');
+    for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in tub');
+    await say(s, 'knead tub');
+    await advanceWorldClock('17 minutes');
+    await new Promise((r) => setTimeout(r, 4_000));
+    await s.drainProse();
+    const milled = await say(s, 'get here:i:tub:i:stock');
+    expect(milled, `get stock: ${milled}`).toMatch(/stock|compound|rubber/i);
     // ⚠ `put` takes from your hands into something standing in the room:
     // charge the mould on the floor, THEN carry it into the oven.
-    for (let i = 0; i < raw; i++) await say(s, 'put raw-rubber in boot-mould');
-    for (let i = 0; i < sulfur; i++) await say(s, 'put sulfur in boot-mould');
+    await say(s, 'put stock in boot-mould');
     await say(s, 'get boot-mould');
     await say(s, 'put boot-mould in oven');
     if (bellows) await say(s, 'pump oven');
@@ -394,16 +421,24 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     // `here:x` would be a detail of the room).
     await say(s, 'get here:i:oven:i:boot-mould');
     await say(s, 'drop boot-mould');
+    // ⭐ A cure that never reached its rung leaves the STOCK in the mould —
+    // nothing was cast, because the piece never became rubber.
+    if (!expectCast) {
+      await s.drainProse();
+      const stock = await examine(s, 'here:i:boot-mould:i:stock');
+      await say(s, 'get here:i:boot-mould:i:stock');
+      await say(s, 'drop stock');
+      return stock;
+    }
     const got = await say(s, 'get here:i:boot-mould:i:boots');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
     await s.drainProse();
     return examine(s, 'me:i:boots');
   }
 
-  it('14 — a short low-sulfur cure: still raw rubber, tacky and weeping', async () => {
-    const read = await cure(3, 1, '1 minute', 60);
-    expect(read).toMatch(/raw rubber|weeping|tacky/i);
-    await say(s, 'drop boots');
+  it('14 — a short cure never reaches its rung: still compounded stock, tacky and weeping', async () => {
+    const read = await cure(3, 1, '1 minute', 60, false, false);
+    expect(read).toMatch(/compounded|weeping|tacky/i);
   }, 600_000);
 
   it('15 — a weighed 3 % charge, half an hour at 430 K: rubber, in the boot mould\'s shape', async () => {
@@ -513,7 +548,11 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     const cup = await examine(s, 'cup');
     expect(cup).toMatch(/latex|milk/i);
     await say(s, 'pour cup into pan');
-    await advanceWorldClock('26 hours');
+    // ⛔ One game day, the blocking line (soak-harness census): latex's
+    // drainSetting is one day and the set rate is (1+ratio)/days, so the
+    // pan reaches `set` a day from the pour; the real seconds since the
+    // pour add the margin.
+    await advanceWorldClock('24 hours');
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(s, 'pan');
     expect(pan).toMatch(/set/i);
@@ -626,6 +665,10 @@ suite('⭐ 21 — vitriol eats the linen apron and not the rubber one (AC 11)', 
 // ───────────────────────── the rain (1–3, 5, 19) ─────────────────────────
 
 suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () => {
+  // A drive that pins, unpins: the pin is persistent on the Locality.
+  afterAll(async () => {
+    await unpinWeather(SQUARE).catch(() => undefined);
+  });
   const places: Record<string, Session> = {};
   let streetWool: Session;
   let streetRubber: Session;
@@ -673,26 +716,20 @@ suite('⭐⭐⭐ 1–3, 5, 19 — in the rain, who is wet (AC 5, 6, 9, 13)', () 
     return m ? m[1]!.toLowerCase() : 'dry';
   }
 
-  it('it rains (the clock moves in weather segments until it does)', async () => {
-    // ⚠ Rain wets a body at a weather SEGMENT BOUNDARY (every 6 game
-    // hours: the boundary fan-out wets each occupied rain scope "one
-    // segment's worth"), using the phase AT that instant — and within a
-    // segment the phase flips between snow and rain with the temperature.
-    // So step to just past each boundary and accept only LIQUID rain there.
-    const SEGMENT_S = 6 * 3600;
+  it('it rains (the weather is PINNED — the staged twin of waiting for it)', async () => {
+    // ⭐ Searching the sky for rain was a SPAN (up to ten game days in
+    // six-hour steps); what this suite checks is who is WET, given rain.
+    // So rain is staged: pinned over the square's Locality and applied at
+    // once, as a segment boundary applies it (rooms restamp, rain wets
+    // whoever is out in it). The suite's afterAll unpins it.
     const wet = (w: string): boolean =>
       /type:\s*(rain|drizzle|showers?|storm|downpour)/i.test(w) &&
       /rain precipitation/i.test(w);
-    let raining = false;
-    for (let i = 0; i < 40 && !raining; i++) {
-      const { after } = await advanceWorldClock('0 seconds');
-      const toNext = Math.ceil((after + 1) / SEGMENT_S) * SEGMENT_S - after;
-      await advanceWorldClock(`${Math.ceil(toNext) + 60} seconds`);
-      await new Promise((r) => setTimeout(r, 4_000)); // the fan-out is async
-      raining = wet(await say(places.street!, 'analyze weather'));
-    }
-    expect(raining, 'no liquid rain at a boundary in ten game days').toBe(true);
-  }, 3_600_000);
+    const pinned = await pinWeather('rain', SQUARE);
+    expect(pinned.pin?.type).toBe('rain');
+    await new Promise((r) => setTimeout(r, 4_000)); // the fan-out is async
+    expect(wet(await say(places.street!, 'analyze weather')), 'rain, pinned').toBe(true);
+  }, 600_000);
 
   it('5 — the street and the roof terrace are wet', async () => {
     expect(await wetness(places.street!)).not.toBe('dry');

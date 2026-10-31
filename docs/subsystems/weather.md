@@ -392,6 +392,20 @@ The three-tier shape mirrors biome/address: `WeatherApi` (thin) →
 registry tier — weather is stateless, so the singleton itself is the
 whole backend.
 
+## ⭐ The freeze-thaw count (the ceramics build, 2026-10)
+
+`WeatherApi.freezeThawDaysAt(site, locality, fromS, toS)` counts the
+game-days in a window whose coldest hour was below 273.15 K and whose
+warmest above it — the days the air CROSSED freezing. Stateless over
+`dailyRangeAt` per day (the `snowCoverAt` shape), walking at most the last
+400 days, so it is right after any absence. A place answers it for itself:
+`AtmosphericMixin.freezeThawDaysSince(atS)`, and ⭐ **`0` for a place that
+holds its own air** — a clay heap kept in a shed stops weathering. Readers:
+a clay heap's winter weathering (`trade-quarrying`'s `Clay.weatheredDays`,
+day-aligned so a read never counts a day twice), frost on green ware, and
+next a wall's spalling (repair W7). The count, not a frost FLAG: a heap
+weathers by how many times the water in it froze and thawed.
+
 ## Why procedural, not simulated
 
 Weather is **chaotic** — a real atmospheric sim (a) is enormously
@@ -613,7 +627,9 @@ for any new consumer: prefer the pull side, as wetness does.
   it outside this fan-out.
 - **Storm lightning.** A `weather:strike` WorldClock system schedule
   fires a presence-gated fan-out: an occupied SkyExposed `storm` scope
-  rolls `storm.strikeRate` and, on a hit, mints a transient
+  rolls `storm.strikeRate` (≈0.0025 a 30-minute tick, DERIVED: ~0.5 ground
+  flashes/km²/h in a storm cell × a ~0.01 km² place; it was 0.15, which
+  killed people standing in a wet pit across a clock jump) and, on a hit, mints a transient
   `LightningStrike` (`EnergizedMixin`+`AudibleMixin`, engine-event
   content) routed through the shipped `conduct` (never a
   bespoke shock path), biases a direct hit onto the most-conductive
@@ -675,6 +691,24 @@ the **same** wetness accrual and the **same** puddle. Fixtures via
 `adornments:`; no imperative construction; reachable by teleport (no
 inbound exit — the treeline / substation content-standup precedent).
 
+## The test pin — staging the weather (soak-harness build, 2026-10-30)
+
+`TestHarnessApi.pinWeather(scope, type, mode)` / `unpinWeather(scope)`
+set the **Locality-tier** pin of the Locality covering `scope` (a
+place's or a Locality's template path) — the tier the precipitation
+integral and the snow walk read, so a pinned `snow` lies on the ground
+and freezes the mere, not just a word in `analyze weather`. The pin is
+applied AT ONCE through `WeatherApi.onBoundary()`, as a segment
+boundary applies the weather: every occupied room restamps its
+ambient, puddles accrue, rain wets whoever is out in it. Two doors, one
+implementation: the wire harness's `pinWeather` / `unpinWeather`
+(`/auth/test-weather`) and the in-world `testharness weather` verb. All
+`@TestOnly` — in a played world nothing pins the weather at runtime
+(the cast-time write below is still deferred), and an `eval` that
+reaches a `setWeatherPin` directly is refused naming the verb
+(`SecurityApi.assertNotFromEval`). ⚠ The pin is persistent on the
+Locality: whoever pins, unpins.
+
 ## Still-deferred seams
 
 - **fog → visibility** (senses), and other hazards (flood / blizzard /
@@ -689,8 +723,8 @@ inbound exit — the treeline / substation content-standup precedent).
 - **from the climate build:** rain-on-snow melt (the walk has both terms
   — `climate-slate`); the ice-albedo term (polar summers run warm);
   firn and glaciers (the `perennial` cap is their attach point); a
-  runtime weather-pin seam for drives (`/auth/test-weather`); a Locality
-  that knows its zone (retires `Watercourse.site`).
+  Locality that knows its zone (retires `Watercourse.site`). (The
+  runtime weather-pin seam for drives shipped — § The test pin, below.)
 - **magic `Create·Lightning`** — the frontier noun; this build ships the
   mundane strike on the reserved seam
   ([capability-magic](../slates/builds/capability-magic-slate.md)).

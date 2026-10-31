@@ -13,6 +13,8 @@ data:
   nutrients: ["water", "sugar"]
   nutrientAmounts:
     sugar: 220
+  # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
+  ph: 3.5
   tags: ["liquid", "must", "red-must"]
   composition: []
   biologicalSource: null

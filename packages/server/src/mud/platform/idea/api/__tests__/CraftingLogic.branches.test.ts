@@ -177,11 +177,21 @@ beforeEach(async () => {
   registerMaterial(VEG, 'root vegetable', ['vegetable'], true);
   registerMaterial(MEAT, 'stew meat', ['meat'], true);
   registerMaterial(STEW, 'hearty stew', ['food'], true);
+  // ⭐ Densities and servings as the shipped rows author them (ceramics
+  // re-plan R1-D1): a blend records its parts by MASS, and one serving of
+  // a spirit is its bar measure — so a martini built at its measures is
+  // one serving of each.
   const gin = registerMaterial(GIN, 'house gin', ['gin'], true);
   gin.setToxicity([{ type: 'alcohol', amount: 19 }]);
+  gin.setDensity(Quantity.of(940, 'kg/m³'));
+  gin.setServingKg(0.0564);
   const vermouth = registerMaterial(VERMOUTH, 'dry vermouth', ['vermouth'], true);
   vermouth.setToxicity([{ type: 'alcohol', amount: 7 }]);
-  registerMaterial(MIXED, 'mixed drink', ['cocktail'], true);
+  vermouth.setDensity(Quantity.of(990, 'kg/m³'));
+  vermouth.setServingKg(0.0099);
+  registerMaterial(MIXED, 'mixed drink', ['cocktail'], true).setDensity(
+    Quantity.of(950, 'kg/m³'),
+  );
 
   store.recipes!.push(
     {
@@ -459,6 +469,13 @@ describe('the gather walk rungs', () => {
     const payload = slot.getPayload()!;
     expect(BlendIdentity.nameOf(payload, null)).toBe('Gin Martini');
     expect(BlendIdentity.appearanceOf(payload, null)).toMatch(/crystal-clear martini/);
-    expect(BlendLabel.toxicityOf(payload, null)).toEqual([{ type: 'alcohol', amount: 26 }]);
+    // ⭐ By mass (R1-D1): one serving of each, read against the glass's
+    // mass. The generic blend sits at 950 kg/m³ against the 947 its parts
+    // average, so the glass reads 0.3 % over the 26 its parts brought.
+    const parts = 0.06 * 0.94 + 0.01 * 0.99;
+    const [alcohol] = BlendLabel.toxicityOf(payload, null, slot.getMassKg());
+    expect(alcohol?.type).toBe('alcohol');
+    expect(alcohol?.amount).toBeCloseTo((26 * slot.getMassKg()) / parts, 6);
+    expect(alcohol?.amount).toBeCloseTo(26, 0);
   });
 });
