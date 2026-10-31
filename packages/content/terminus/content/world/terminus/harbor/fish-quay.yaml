@@ -1,0 +1,34 @@
+# The Fish Quay (harbors A1) — the short berth upstream of the Town Quay,
+# twenty-five meters of timber staging where the smacks lie. A HarborQuay of
+# the same book.
+class: /system/transport/location/HarborQuay
+data:
+  shortDescription: Fish Quay
+  keywords: [quay, "fish quay", staging, berth]
+  register: definite
+  _address: terminus/city/harbor/fish-quay
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    Timber staging on piles, black with tar and silver with old scales, running twenty-five paces along the river above the stone of the Town Quay. Two bollards are bolted through the planking. Gulls stand on the pile heads facing the wind and wait.
+
+    The stone quay is east, down two steps.
+  coords: { x: -1, y: 0, z: 0 }
+  harbor: /world/terminus/harbor/idea/harbor
+  props:
+    - { template: /platform/thing/bollard, count: 2 }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.6,left", span: 0.025, name: fish-quay }
+  waters:
+    river: "kestrel:estuary-0.6"
+  details:
+    river:
+      keywords: [river, water, estuary, kestrel, tide]
+      description: |
+        The tide runs past the piles in little eddies that carry scales and gull feathers in and out together.
+    gulls:
+      keywords: [gulls, gull, birds]
+      description: |
+        Herring gulls, a dozen of them, each on its own pile head, each convinced that the next box off a smack is going to be its own.
+  exits:
+    east:
+      destination: /world/terminus/harbor/town-quay
+      media: [ground]

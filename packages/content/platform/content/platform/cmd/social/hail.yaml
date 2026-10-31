@@ -1,14 +1,19 @@
-# `hail` — signal a sail in sight: flags, a lamp, a gun.
+# `hail` — signal a sail in sight, or a harbor office: flags, a lamp, a gun.
 #
 # ⛔ Not `shout`: a hail carries at signal range (twelve miles by
 # default) however high you stand. Afforded by a `Helm`.
 verbs: [hail]
 controller: /platform/idea/cmd/social/HailController
-description: "Signal a sail in sight"
+description: "Signal a sail in sight, or the harbor office"
 help: |
   `hail <sail>` signals a craft you can see — by name (`hail kittiwake`)
   or by what it is (`hail collier`). A real craft's people hear it;
   a passer-by answers in kind.
+
+  `hail office` raises the harbor office of a port within signal range:
+  the harbormaster answers with a berth at a named quay, or sends you to
+  the roads and says why — the office closed, too little water over the
+  bar for her draft until the flood, no quay with room for her length.
 validators:
   - /lib/command/validators/requiresConscious
 args:

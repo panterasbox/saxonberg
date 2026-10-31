@@ -1,0 +1,50 @@
+# The Town Quay (harbors A1) — the harbor's long berth: seventy meters of
+# stone wall, room for a coaster and a ketch end to end, or the Hesper and
+# change. ⭐ A HarborQuay: a ship comes alongside only at the berth the
+# harbormaster gave her (`hail office`), and is in the harbor's book while
+# she lies here. Her way aboard is named for her (`go hesper`).
+class: /system/transport/location/HarborQuay
+data:
+  shortDescription: Town Quay
+  keywords: [quay, "town quay", wall, berth]
+  register: definite
+  _address: terminus/city/harbor/town-quay
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A wall of dressed stone runs along the river for seventy paces, its top worn smooth and its face hung with weed and old fenders. Iron bollards stand along the edge at intervals, each with a bright waist where lines have been dropped over it. The water lies close under the wall at the flood and well down it at the ebb, over soft gray mud.
+
+    Northward the quay opens onto the estuary mouth and the made path back to the city. West, past a cart and a stack of fish boxes, the wall steps down to the Fish Quay; east, a flight of stairs goes into the water. The harbor office stands at the back of the quay with its door open and a flagstaff over it.
+  coords: { x: 0, y: 0, z: 0 }
+  harbor: /world/terminus/harbor/idea/harbor
+  # ⭐ What a ship's lines are made fast round (harbors P6) — four along the
+  # wall, so two ships lie end to end with a line each way.
+  props:
+    - { template: /platform/thing/bollard, count: 4 }
+  # ⭐ On the Kestrel's left bank between the mouth (estuary-0.3) and the
+  # reach (estuary-1.2): the word a way to it is called from the water.
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.5,left", span: 0.07, name: town-quay }
+  waters:
+    river: "kestrel:estuary-0.5"
+  details:
+    river:
+      keywords: [river, water, estuary, kestrel, tide]
+      description: |
+        Brown water with the gray of the sea in it, moving in or out with the tide. At the flood it lies a man's height under the top of the wall; at the ebb the wall shows its weed and the mud shows under the boats.
+    wall:
+      keywords: [wall, stone, fenders, weed]
+      description: |
+        Dressed granite blocks, each the weight of a cart, set without mortar and held by their own weight. The fenders hung down its face are old tires of rope, frayed to beards.
+  exits:
+    north:
+      destination: /world/terminus/estuary/estuary-mouth
+      media: [ground]
+      edgeMinutes: 3
+    west:
+      destination: /world/terminus/harbor/fish-quay
+      media: [ground]
+    east:
+      destination: /world/terminus/harbor/harbor-stairs
+      media: [ground]
+    south:
+      destination: /world/terminus/harbor/office
+      media: [ground]

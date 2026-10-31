@@ -46,6 +46,8 @@ import BerthExit from './BerthExit';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import type { MooringLine } from '../../lib/spatial/MooringLine';
 import type { Exitable } from '../../lib/boundary/Exitable';
+import type { BerthKeeper } from '../../lib/expanse/BerthKeeper';
+import type { LineFrame } from '../../lib/expanse/LineFrame';
 import { PersistableApi } from '../../api/persistable';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -72,6 +74,24 @@ const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
  * this, m.
  */
 const MIN_LINE_M = 2;
+
+/**
+ * ⭐ The water a master keeps under her keel crossing a bar (harbors P10,
+ * grain): her draft and this much again, m, or she waits for the flood.
+ */
+const UNDER_KEEL_M = 0.5;
+
+/** What the bar says to her draft now (harbors P10). */
+export interface BarClearance {
+  /** Water over the bar less her draft and the margin under her keel, m — negative: she cannot cross. */
+  clearanceM: number;
+  /** The water over the bar now, m. */
+  depthM: number;
+  /** What she wants over it: her draft and the margin, m. */
+  wantsM: number;
+  /** Game-seconds of the next high water, or `null` for an untidal bar. */
+  nextHighS: number | null;
+}
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
@@ -257,6 +277,68 @@ export default class Ship extends PersistableMixin(
     return (await this.linesAboard()).length === 0 ? 'She has no lines to make fast.' : null;
   }
 
+  /**
+   * ⭐ Why she may not take a course for the landing `landing` now (harbors
+   * P5, P7), asked before it is laid so the refusal is instant: no line to
+   * make fast with; the berth she lies at has not cleared her; the berth
+   * she is coming to has not admitted her (a harbor quay is given by the
+   * harbormaster). `null` when she may go.
+   */
+  public async courseRefusal(landing: string | null): Promise<string | null> {
+    const nowS = WorldClockApi.getNow().rawValue();
+    const leaving = this.isMoored() ? await this.keeperAt(this.berth) : null;
+    if (leaving !== null) {
+      const held = await leaving.clearance(this as unknown as Stuff, nowS);
+      if (held !== null) return held;
+    }
+    if (landing === null || landing === '') return null;
+    if ((await this.linesAboard()).length === 0) return 'She has no lines to make fast.';
+    const coming = await this.keeperAt(landing);
+    return coming === null ? null : coming.admit(this as unknown as Stuff, nowS);
+  }
+
+  /** The landing at `path` when somebody keeps a book for it (a harbor quay), else `null`. */
+  private async keeperAt(path: string | null): Promise<(Stuff & BerthKeeper) | null> {
+    if (path === null || path === '') return null;
+    const s = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    return s !== null && MixinApi.isBerthKeeper(s) ? s : null;
+  }
+
+  /**
+   * ⭐ What the bar of `river` says to her draft now (harbors P10): the
+   * water over it (the tide's level in it) against her draft as she floats
+   * and the margin a master keeps under her keel. Nothing rolled — only the
+   * clock and her lading change the answer. `null` when the river has no
+   * bar to read.
+   */
+  public async barClearance(river: Stuff & LineFrame, nowS: number): Promise<BarClearance | null> {
+    const water = await river.barWater(nowS);
+    if (water === null) return null;
+    this.weighedKg = await this.cargoKg();
+    const wantsM = this.hullNow().draftM + UNDER_KEEL_M;
+    return {
+      clearanceM: water.depthM - wantsM,
+      depthM: water.depthM,
+      wantsM,
+      nextHighS: water.tide?.nextHighS ?? null,
+    };
+  }
+
+  /**
+   * ⭐ The bar's refusal in a pilot's words (harbors P10) — what is over it,
+   * what she wants, and when the flood is — or `null` when she can cross now.
+   */
+  public async barRefusal(river: Stuff & LineFrame, nowS: number): Promise<string | null> {
+    const bar = await this.barClearance(river, nowS);
+    if (bar === null || bar.clearanceM >= 0) return null;
+    const over = `There is ${bar.depthM.toFixed(1)} m over the bar and she wants ${bar.wantsM.toFixed(1)}.`;
+    if (bar.nextHighS === null) return `${over} She cannot cross it.`;
+    const h = Math.max(0, (bar.nextHighS - nowS) / 3600);
+    const n = Math.round(h);
+    const when = h < 0.75 ? 'within the hour' : `in about ${n} hour${n === 1 ? '' : 's'}`;
+    return `${over} Not until the flood — high water ${when}.`;
+  }
+
   /** Does a course `toward` end at a landing? A river's landing does; a sea node does when it has one behind it. */
   private async landingFor(toward: string): Promise<string | null> {
     if (this.getLine() !== null) return toward;
@@ -282,6 +364,8 @@ export default class Ship extends PersistableMixin(
     this.moored = true;
     await this.installBerth(landing);
     this.persistMooring();
+    // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7).
+    if (MixinApi.isBerthKeeper(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
     return fast === 1
       ? 'A line goes ashore and is made fast round the bollard.'
       : 'Her lines go ashore and are made fast round the bollards.';
@@ -295,11 +379,14 @@ export default class Ship extends PersistableMixin(
   public async castOff(): Promise<void> {
     const lines = this.fastLines;
     this.fastLines = [];
+    const keeper = this.moored ? await this.keeperAt(this.berth) : null;
     for (const line of lines) if (!line.isDestroyed()) await line.castOffMooring();
     this.removeBerth();
     this.moored = false;
     this.berth = null;
     this.persistMooring();
+    // ⭐ The berth is free in its keeper's book (P7).
+    if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
 
   /**
@@ -310,10 +397,15 @@ export default class Ship extends PersistableMixin(
   public lineCastOff(line: Stuff & MooringLine): void {
     this.fastLines = this.fastLines.filter((l) => l !== line && !l.isDestroyed() && l.isMadeFast());
     if (this.fastLines.length > 0 || !this.moored) return;
+    const was = this.berth;
     this.removeBerth();
     this.moored = false;
     this.berth = null;
     this.persistMooring();
+    // Adrift, she no longer holds the berth she was given (P7).
+    void this.keeperAt(was)
+      .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
+      .catch((err) => console.warn('Ship: the berth was not released:', err));
     void this.aboard()
       .then((people) => {
         for (const who of people) {
@@ -405,6 +497,8 @@ export default class Ship extends PersistableMixin(
       }
     }
     await this.installBerth(landing);
+    // ⭐ A kept berth knows she lies there (P7) — the book's entry stands as it was.
+    if (MixinApi.isBerthKeeper(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
 
   /** ⭐ A landing is being used: if she lies made fast there, her way goes back on it. */
@@ -526,9 +620,11 @@ export default class Ship extends PersistableMixin(
     }
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
     // ⭐ A course that ends alongside needs a line to make fast with (P5),
-    // asked before the course is laid: the refusal is instant.
-    const noLine = await this.mooringRefusal(req.toward ?? null);
-    if (noLine !== null) return { refused: noLine };
+    // a kept berth she leaves must clear her and one she comes to admit her
+    // (P7) — all asked before the course is laid: the refusal is instant.
+    const toward = req.toward ?? null;
+    const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null);
+    if (refused !== null) return { refused };
     this.weighedKg = await this.cargoKg();
     const started = await super.steer(req);
     // ⭐ Under way from a berth: her lines come in and the way aboard goes (P5).

@@ -3,8 +3,13 @@
 # Two objects stand here and the whole watershed argument is in the
 # distance between them: the city's INTAKE, upstream, and its OUTFALL,
 # downstream. Which is which is not a label — it is where they are.
-class: /platform/location/Quay
+# ⭐ A HarborQuay (harbors A1, P7): the harbor works keeps the bank, so it is
+# a quay of the Port of Terminus's book — a ship left here owes dues like one
+# left at the Town Quay. The Ostrander, the city's own river service, is
+# exempt.
+class: /system/transport/location/HarborQuay
 data:
+  harbor: /world/terminus/harbor/idea/harbor
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street
   # lamp, and one identical fuelled object per street would be forty-one

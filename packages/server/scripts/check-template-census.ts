@@ -246,8 +246,15 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // rows too.)
   // ⭐ (W12) A timetabled service's `landings` — a rowless one is a boat
   // that leaves from nowhere.
-  for (const f of ['endpoints', 'featured', 'horizon', 'landings'] as const) {
+  // ⭐ (harbors A1) A harbor's `exempt` ships — an authored ship's row; a
+  // rowless one exempts nobody and every city craft pays dues.
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
+  }
+  // ⭐ (harbors A1) A harbor's `quays[].place` — a rowless one is a berth
+  // the harbormaster gives that no ship can ever reach.
+  if (Array.isArray(data.quays)) {
+    for (const q of data.quays as Array<Record<string, unknown>>) push('quays', q?.place);
   }
   if (Array.isArray(data.entries)) {
     for (const e of data.entries as Array<Record<string, unknown>>) {

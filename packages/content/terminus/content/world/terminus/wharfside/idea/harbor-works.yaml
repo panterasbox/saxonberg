@@ -1,7 +1,13 @@
 # The harbor works (underwater C4/C5) — the city's department for what
 # lies under the water at Wharfside: the intake's screen, the lost anchor,
-# the drowned. ONE seat, held by the pilot (who knows the water better
-# than anybody), who posts the work on the harbor board.
+# the drowned. The pilot (who knows the water better than anybody) posts
+# the work on the harbor board.
+#
+# ⭐ And the port's (harbors A1, P11): the HARBORMASTER is a second seat
+# here, held by default by the NPC rostered at the harbor office on the
+# office's hours — the roster IS the cover. A player appointed by the
+# committee holds it beside her; the office is open whenever anybody
+# holding the seat is on shift.
 class: /platform/idea/Business
 data:
   name: "the harbor works"
@@ -14,13 +20,25 @@ data:
       label: keeping the harbor works
       wageRate: 4
       purchases: true
+    - key: harbormaster
+      noun: harbormaster
+      label: keeping the harbor's book
+      wageRate: 4
+      headcount: 1
+      purchases: true
   rosterSlots:
     - positionKey: harbor
       assignee: /world/terminus/wharfside/agent/pilot
       station: /world/terminus/wharfside/bank
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+    - positionKey: harbormaster
+      assignee: /world/terminus/harbor/agent/harbormaster
+      station: /world/terminus/harbor/office
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/wharfside/bank
     - /world/terminus/wharfside/thing/harbor-board
+    - /world/terminus/harbor/office

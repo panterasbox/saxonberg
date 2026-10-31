@@ -1,0 +1,22 @@
+# The Port of Terminus (harbors A1) — the port is INSIDE the bar.
+#
+# ⭐ Lens 1: a harbor sits inside a bar because the bar shelters it from the
+# sea, and the price of the shelter is the tide — a ship whose draft is more
+# than the water over the bar waits for the flood. So the quays are on the
+# Kestrel's left bank between the estuary mouth and the reach, sited on the
+# river's line (the Kestrel's `places:` names them), and a ship comes to one
+# the way a river ship comes alongside a landing: `course town-quay`.
+#
+# One way in from the city: the estuary mouth's `south`. The harbor's book
+# is the harbor's own row (`harbor/idea/harbor`), its office the room a hail
+# reaches, its harbormaster a seat on the harbor works.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Harbor
+  cellSize: 30.0
+  # At sea level, like the estuary it opens off (the Kestrel's `estuary` node).
+  elevation: 0
+  # The sea from the quays, and the terminal's clock tower over the roofs.
+  horizon:
+    - /world/terminus/terminal
+    - /stuff/idea/WaterExpanse/greywater

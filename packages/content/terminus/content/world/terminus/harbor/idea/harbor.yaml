@@ -1,0 +1,37 @@
+# The Port of Terminus — the harbor's book and its posted criteria (harbors
+# A1, P7). ⭐ The criteria are THIS ROW's data: the harbor works' committee
+# posts them by editing it under its title; whoever holds the harbormaster's
+# seat applies them and has no write path to them.
+#
+# Applied in order to a hail: the office open (somebody holds the seat on
+# shift) → the water over the bar at the tide against her draft → a quay
+# with room by her length, in the order listed → dues owed → else the roads.
+class: /system/transport/idea/Harbor
+data:
+  office: /world/terminus/harbor/office
+  seat:
+    business: /world/terminus/wharfside/idea/harbor-works
+    positionKey: harbormaster
+  roads: /stuff/idea/WaterExpanse/greywater/the-roads
+  # ⭐ Sized against the harbor works' wage (P28, grain): 4 an hour, ~56 a
+  # shift; a 9 m smack's weekend away (~24 world days) ≈ 54, about a shift.
+  # The Hesper (30 m) ≈ 7.5 a day. Billed in whole minor units, ceiled.
+  rates:
+    duesPerMeterPerDay: 0.25
+  # ⭐ Every quay a ship can be left at owes dues to some book (P7, lens 6).
+  # `berthDepthM` is the water at the berth at low water over soft mud (a mud
+  # berth, Risk 1): a ship left there settles onto it rather than sinking.
+  # Read against the Kestrel's derived depth at the cites (estuary-0.4…0.6,
+  # left bank, read 2026-10-31: 3.9 m at mean tide, 2.0 m at a spring low,
+  # 5.9 m at a spring high — the channel's water, deeper than a smack's 1.8 m
+  # hull at every tide, so she would SINK there): the berth along the wall is
+  # silted, and the harbor authors it at or under the smack's hull.
+  quays:
+    - { place: /world/terminus/harbor/town-quay, lengthM: 70, berthDepthM: 1.5 }
+    - { place: /world/terminus/harbor/fish-quay, lengthM: 25, berthDepthM: 1.2 }
+    # ⭐ The Wharfside bank — the harbor works already keeps it. Up a river
+    # reach half a meter deep: only river craft are put alongside it.
+    - { place: /world/terminus/wharfside/bank, lengthM: 60, berthDepthM: 0.8, maxDraftM: 0.6 }
+  # The city's public river service: no dues, no hail.
+  exempt:
+    - /world/terminus/ostrander/structure

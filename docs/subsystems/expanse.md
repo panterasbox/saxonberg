@@ -306,6 +306,47 @@ rope's throw on a river or the node's landing at sea; it refuses in
 words between nodes. Both faces read her gangway's lock (`keyway`,
 `gangwayLocked`), and only the way aboard is gated by it.
 
+### Harbors: a kept berth, a hail, the bar (harbors A1)
+
+⭐ **The ship reaches a harbor only through two kernel protocols** — the
+kernel imports no pack:
+
+- **`BerthKeeper`** (`lib/expanse/BerthKeeper.ts`) on a landing somebody
+  keeps a book for (the transport pack's `HarborQuay`): `Ship.steer` asks
+  it through `Ship.courseRefusal(landing)` — the landing she lies at must
+  `clearance` her before she leaves, the landing she is coming to must
+  `admit` her before the course is laid (so a refusal is instant and
+  nothing moves); `comeAlongside` tells it `madeFast` (and so does a
+  restore that re-makes her mooring), `castOff` — and her last line lifted
+  off — tells it `release`. A river's public landing composes nothing and
+  keeps first-come.
+- **`Hailable`** (`lib/expanse/Hailable.ts`) on a place that keeps a watch
+  on the water (the transport pack's `HarborOffice`). `Frame.hailables(pos)`
+  names what answers near a craft: a river the places its line names within
+  `expanse.signalRangeNm` whose class composes it (read off the row's
+  class, `StuffApi.classForRef` — only an answering place is loaded); the
+  sea, through every node in range that is a river's mouth (hand the hail up
+  the river) and every node landing that answers itself. `hail <word>` tries
+  these first (`hail office`, `hail harbor`), then the sails in sight.
+
+A place sited on a river that is no landing authors `frameSite.landing:
+false` — the harbor office above its quays: on the line (a hail finds it,
+a drifting swimmer passes it) and never a course.
+
+⭐ **The tide's window at the bar** (P10): `LineFrame.barWater(nowS)` is
+the water over the river's bar now — the channel's depth at the mouth with
+the tide's level in it, and the tide. `Ship.barClearance(river, nowS)` sets
+her draft as she floats plus the margin a master keeps under her keel (0.5
+m, grain) against it, and `barRefusal` says it in a pilot's words with the
+hours to the next high water. `CourseController.intoRiver` asks it before
+she goes in over the bar (`course kestrel`, or ⭐ `course <quay>` from the
+mouth's node — in over the bar and up to a landing inside it, which is how
+the port is reached); the harbor's hail cites the same number. Nothing is
+rolled. The depth itself is the water pack's: below the tide's reach a
+river node that authors `meanDepthM` is a drowned valley — the authored bed
+with the tide's level on top, not the river's normal depth over its own
+gradient (see [river.md](./river.md)).
+
 ## Perception at range (revision 1)
 
 ⭐⭐ **Pull, never push.** Nothing on the horizon is ever announced to

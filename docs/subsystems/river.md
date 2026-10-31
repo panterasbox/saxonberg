@@ -43,6 +43,21 @@ channel, the tide's stream near the mouth, temperature by source kind
 line is a **frame**: the kernel's `LineFrame` mixin is the protocol a moving
 place and a ship read it through, without importing the water pack.
 
+⭐ **Below the tide's reach the river is the sea's** (harbors P10). Manning's
+normal depth over a 160 m estuary is half a meter — no ship could ever have
+reached a quay inside the bar. A node at the sea's level (`elevation: 0`)
+that authors `meanDepthM` is a drowned valley: its stretches read the
+authored bed (or the normal depth, whichever is deeper) with **the tide's
+level on top**, so the water at the mouth and at the quays rises and falls
+twice a day (the Kestrel's estuary: 2.8 m on the mean, 3.9 m in the channel,
+about 2.0 m at a spring low and 5.9 m at a spring high). `barWaterAt(course,
+nowS)` reads it in the channel at the mouth for `LineFrame.barWater` — the
+bar's window a ship's draft is read against. A river that authors no
+estuary depth is unchanged. A place on `places:` whose `frameSite` authors
+`landing: false` compiles as a `site` — on the line, never a landing
+(`landingNamed`/`landingNear`/a passage skip it) — and `landingNamed` reads
+`town quay` as `town-quay`.
+
 ## How anything moves — the trajectory (W9–W12)
 
 A moving thing — a ship, a river patch, a timetabled ferry, one day a

@@ -80,6 +80,8 @@ import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
 import type { MooringLine } from '../lib/spatial/MooringLine';
+import type { BerthKeeper } from '../lib/expanse/BerthKeeper';
+import type { Hailable } from '../lib/expanse/Hailable';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -1349,6 +1351,16 @@ export class MixinApi {
   /** ⭐ A line that can hold a ship to a bollard ashore (harbors P6). */
   public static isMooringLine(obj: Stuff): obj is Stuff & MooringLine {
     return this.hasMixin(obj, Mixins.MooringLine);
+  }
+
+  /** ⭐ A landing somebody keeps a book for — a harbor quay (harbors P7). */
+  public static isBerthKeeper(obj: Stuff): obj is Stuff & BerthKeeper {
+    return this.hasMixin(obj, Mixins.BerthKeeper);
+  }
+
+  /** ⭐ A place that answers a hail — a harbor office (harbors P8). */
+  public static isHailable(obj: Stuff): obj is Stuff & Hailable {
+    return this.hasMixin(obj, Mixins.Hailable);
   }
 
   /** ⭐ A bell or signal you strike (river W16), which remembers when. */

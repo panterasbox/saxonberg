@@ -1,0 +1,42 @@
+# The harbor office (harbors A1) — the room a hail reaches. ⭐ A HarborOffice:
+# a ship at the bar hails it (`hail office`) and the harbormaster answers by
+# the harbor's posted criteria — a berth at a named quay, or the roads and
+# why. Its frameSite places it by the river so the hail can find it, and
+# `landing: false` says no ship comes alongside an office.
+class: /system/transport/location/HarborOffice
+data:
+  shortDescription: harbor office
+  keywords: [office, "harbor office", harbormaster]
+  register: definite
+  _address: terminus/city/harbor/office
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    One room at the back of the Town Quay with a window onto the river and a signal lamp on the sill. A tall desk faces the window with the berth book open on it, and behind the desk a board of hooks holds tide tables, a telescope in a leather case, and a printed notice of the harbor's dues.
+
+    The quay is north, through the open door.
+  coords: { x: 0, y: -1, z: 0 }
+  # Stone walls like the quay's, a slate roof (construction.md: the place says what it is made of).
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.03 }
+  harbor: /world/terminus/harbor/idea/harbor
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.55,left", landing: false }
+  props:
+    - /world/terminus/harbor/thing/berth-book
+  cast:
+    - /world/terminus/harbor/agent/harbormaster
+  details:
+    notice:
+      keywords: [notice, dues, rates, "printed notice"]
+      description: |
+        THE PORT OF TERMINUS. Berths are given by the harbormaster, by a ship's length, in the order of the quays. A ship that draws more than the water over the bar waits in the roads for the flood. Dues are charged by a ship's length, for every day or part of a day she lies alongside, at the rate the harbor works posts. No ship clears with dues owing. The office keeps the hours of the harbormaster's watch, six in the morning until eight at night.
+    lamp:
+      keywords: [lamp, "signal lamp", window, telescope]
+      description: |
+        A shuttered signal lamp that answers a ship's hail at night, and a telescope to read her flags by day.
+  exits:
+    north:
+      destination: /world/terminus/harbor/town-quay
+      media: [ground]
+    east:
+      destination: /world/terminus/harbor/line-desk
+      media: [ground]

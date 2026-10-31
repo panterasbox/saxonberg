@@ -75,6 +75,13 @@ data:
     - /world/terminus/estuary/lower-towpath
     - /world/terminus/nesbit-ferry/landing
     - /world/terminus/estuary/reach
+    # ⭐ The Port of Terminus (harbors A1): the quays inside the bar, between
+    # the reach (estuary-1.2) and the mouth (estuary-0.3); the office is sited
+    # by the river (no landing) so a hail from the bar reaches it.
+    - /world/terminus/harbor/fish-quay
+    - /world/terminus/harbor/office
+    - /world/terminus/harbor/town-quay
+    - /world/terminus/harbor/harbor-stairs
     - /world/terminus/estuary/estuary-mouth
     - /world/terminus/estuary/channel
   nodes:
@@ -113,4 +120,9 @@ data:
     # kilometres, the lower river spread into riffles a hand deep in every
     # season, and no steamer could reach the bar.
     - { name: tideway, km: 2, elevation: 1, channelWidthM: 45 }
-    - { name: estuary, km: 0, elevation: 0, channelWidthM: 160, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }
+    # ⭐ `meanDepthM` (harbors P10): below the tide's reach the river is the
+    # sea's — a drowned valley 2.8 m deep on the mean (3.9 m in the channel),
+    # with the tide's level on top. So the water over the bar rises and falls
+    # twice a day (about 2 m at a spring low, 5.9 m at a spring high), and a
+    # coaster drawing 3.6 m waits for the flood while the Hesper never does.
+    - { name: estuary, km: 0, elevation: 0, channelWidthM: 160, meanDepthM: 2.8, stocks: [{ species: /stuff/idea/species/eel }, { species: /stuff/idea/species/carp }, { species: /stuff/idea/species/grey-mullet }, { species: /stuff/idea/species/shore-crab }, { species: /stuff/idea/species/sturgeon }] }

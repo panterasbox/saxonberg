@@ -57,6 +57,12 @@ data:
       media: [water]
       # A swim out over the bar, short; every corridor edge carries a budget.
       edgeMinutes: 2
+    # ⭐ The Port of Terminus (harbors A1): the harbor's quays lie inside the
+    # bar on this bank, and the made path runs on round to them.
+    south:
+      destination: /world/terminus/harbor/town-quay
+      media: [ground]
+      edgeMinutes: 3
   # ⭐ The channel is the Greywater's tide coming up the river (underwater
   # D25): `look channel` reads which way it runs; `fill pan from tide` draws
   # brine from it.

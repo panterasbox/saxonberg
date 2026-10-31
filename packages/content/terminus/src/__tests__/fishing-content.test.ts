@@ -50,9 +50,10 @@ const data = (path: string) => rowAt(path).data as Record<string, unknown>;
 describe('the bank', () => {
   it("⭐ is a quay whose own river feature cites the confluence — no edge object — and casts the fisher", () => {
     const bankRow = rowAt('/world/terminus/wharfside/bank');
-    expect(bankRow.class).toBe('/platform/location/Quay');
+    // ⭐ A quay of the harbor's book since harbors A1 (P7): the harbor works keeps it.
+    expect(bankRow.class).toBe('/system/transport/location/HarborQuay');
     const bank = data('/world/terminus/wharfside/bank') as {
-      props: string[];
+      props: Array<string | { template: string }>;
       cast: string[];
       waters: Record<string, string>;
       details: Record<string, { keywords: string[] }>;
@@ -62,7 +63,7 @@ describe('the bank', () => {
     expect(bank.details.river!.keywords).toContain('kestrel');
     // ⚠ The Delight is a second water at the confluence; this feature is not it.
     expect(bank.details.river!.keywords).not.toContain('delight');
-    expect(bank.props.some((p) => p.endsWith('/river-edge'))).toBe(false);
+    expect(bank.props.some((p) => (typeof p === 'string' ? p : p.template).endsWith('/river-edge'))).toBe(false);
     expect(bank.cast).toContain('/world/terminus/wharfside/agent/fisher');
     // The outfall discharges into the same reach: one reach, the city's whole problem.
     expect((data('/world/terminus/wharfside/thing/city-outfall') as { dischargeReach?: string; reachRef?: string }).reachRef ?? 'kestrel:confluence').toBe('kestrel:confluence');

@@ -71,6 +71,10 @@ requires:
     # The estuary towpath is the city's own working waterfront and is
     # kept by the municipality like any other street.
     - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
+    # ⭐ The Port of Terminus (harbors A1): the quays, the stairs, the
+    # office and the line's desk inside the bar — civic ground the city
+    # keeps, like the estuary path it opens off.
+    - { extent: /world/terminus/harbor, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
     # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
     # Delight road, which crosses ground nobody's municipality maintains.
     # The civic/wild split IS the toll-versus-obstruction distinction

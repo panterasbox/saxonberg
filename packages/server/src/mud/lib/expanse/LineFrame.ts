@@ -28,6 +28,8 @@ import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './F
 import type { CourseRecord, HullNow } from './Voyaging';
 import { TrajectoryBuilder, type Trajectory } from './Trajectory';
 import type { Craft } from './Voyage';
+import type { Hailable } from './Hailable';
+import type { WaterTide } from '../location/WaterSource';
 import { AppApi } from '../../api/app';
 
 /** Where on a river: km from the mouth, m from river left. */
@@ -92,6 +94,14 @@ export interface PassagePlan {
   stop: { km: number; atS: number; reason: PassageStopReason; words: string; landing?: string } | null;
 }
 
+/** The water over a river's bar at an instant (harbors P10). */
+export interface BarWater {
+  /** The channel's depth at the mouth now, the tide's level in it, m. */
+  depthM: number;
+  /** The sea's tide at the mouth, or `null` for an untidal sea. */
+  tide: WaterTide | null;
+}
+
 export interface LineFrame extends Frame {
   /** The river's key — the `course` of every position on it. */
   courseKey(): string;
@@ -131,6 +141,13 @@ export interface LineFrame extends Frame {
    * wave is swamped. Pull, never push: the ship's beat asks.
    */
   wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void>;
+  /**
+   * ⭐ The water over the bar now (harbors P10): how deep the channel is at
+   * the river's mouth, the tide's level in it, and the tide — what a ship's
+   * draft is read against before she comes in. `null` for a river with no
+   * mouth on the sea, or before the line is compiled.
+   */
+  barWater(nowS: number): Promise<BarWater | null>;
   /** The sea and the node a ship comes out onto at this river's mouth, or `null`. */
   mouthOnSea(): { expanse: string; node: string } | null;
   /**
@@ -314,6 +331,12 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
       return null;
     }
 
+    /** @hook Override on the river: the places on its line that answer a hail. Default: none. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async hailables(_pos: FramePos): Promise<(Stuff & Hailable)[]> {
+      return [];
+    }
+
     /** @hook Override on the river: a bank's way into the water. Default: nothing. */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onSiteStood(_place: Stuff): Promise<void> {
@@ -401,6 +424,12 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
     /** @hook Override on the river. Default: nothing to haul on. */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     kedgeNear(_pos: LinePositionRecord): number | null {
+      return null;
+    }
+
+    /** @hook Override on the river. Default: no bar to read. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async barWater(_nowS: number): Promise<BarWater | null> {
       return null;
     }
 

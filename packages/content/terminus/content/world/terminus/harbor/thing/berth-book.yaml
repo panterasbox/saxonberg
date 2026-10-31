@@ -1,0 +1,17 @@
+# The berth book (harbors A1) — open on the harbor office's desk: who has
+# been given which quay, and since when, read off the harbor's own book.
+# `look book` reads today's page. The harbormaster's acts and the dues are
+# afforded here in the build's later waves.
+class: /system/transport/thing/HarborBook
+data:
+  shortDescription: berth book
+  keywords: [book, "berth book", ledger]
+  register: definite
+  longDescription: >-
+    A tall ledger bound in green cloth, open on the desk under a brass
+    weight, its columns ruled for a ship's name, her length, the quay and
+    the day she came in.
+  _materialPath: /stuff/idea/material/organic/leather
+  fixedInPlace: true
+  mass: 3
+  harbor: /world/terminus/harbor/idea/harbor

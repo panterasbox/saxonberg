@@ -405,7 +405,12 @@ interface CompiledIndex {
  */
 export interface LinePlace {
   path: string;
-  kind: 'water' | 'bank';
+  /**
+   * `water` (the river itself), `bank` (a landing on it), or `site` — a
+   * place sited by the river that no craft comes alongside (a frameSite
+   * authored `landing: false`: the harbor office above its quays).
+   */
+  kind: 'water' | 'bank' | 'site';
   /** The upstream end, km from the mouth. */
   upKm: number;
   /** The downstream end, km from the mouth. */
@@ -1410,14 +1415,35 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   /** A landing on a river by the word its way is called, or its path's leaf. */
   public landingNamed(course: string, word: string): { path: string; km: number; name: string } | null {
     const w = word.trim().toLowerCase();
+    // `town quay` and `town-quay` are one word to a pilot.
+    const hyphened = w.replace(/\s+/g, '-');
     for (const p of this.placesOfSync(course)) {
       if (p.kind !== 'bank') continue;
       const leaf = p.path.split('/').filter(Boolean);
-      if (p.name.toLowerCase() === w || leaf.includes(w) || leaf.join(' ').includes(w)) {
+      if (p.name.toLowerCase() === w || p.name.toLowerCase() === hyphened || leaf.includes(w) || leaf.includes(hyphened) || leaf.join(' ').includes(w)) {
         return { path: p.path, km: (p.upKm + p.downKm) / 2, name: p.name };
       }
     }
     return null;
+  }
+
+  /**
+   * ⭐ The water over a river's bar now (harbors P10): the channel's depth
+   * at its mouth, the tide's level included, and the sea's tide there.
+   * `null` for a course with no line or no mouth on the sea.
+   */
+  public async barWaterAt(course: string, nowS: number): Promise<{ depthM: number; tide: WaterTide | null } | null> {
+    const index = await this.index();
+    const line = index.lines.get(course);
+    if (!line || index.descriptors.get(course)?.mouth?.into !== 'sea') return null;
+    const km = line.mouthKm;
+    const probe = await this.riverStateAt({ course, km, across: 0 }, nowS);
+    if (probe === null) return null;
+    const across = probe.widthM * (line.stretchAt(km)?.channelAcross ?? 0.5);
+    const state = (await this.riverStateAt({ course, km, across }, nowS)) ?? probe;
+    const reach = index.reaches.get(`${course}:${line.nearestNode(km).name}`);
+    const tide = reach ? this.tideOf(reach, nowS) : null;
+    return { depthM: state.depthHereM, tide: tide?.tide ?? null };
   }
 
   /**
@@ -1577,15 +1603,31 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const S = Math.max(1e-5, stretch.gradient);
     const q = Math.max(flowM3S, 0.001);
     const normal = Math.pow((q * n) / (widthM * Math.sqrt(S)), 0.6);
-    const meanDepthM = Math.max(0.05, normal * (stretch.flow === 'pool' ? 1.3 : 1));
-    let currentMps = flowM3S > 0 ? Math.min(MAX_CURRENT_MPS, flowM3S / (widthM * meanDepthM)) : 0;
-    const depthM = meanDepthM * 1.4;
-
-    // The tide's stream against the river's, where the river meets the sea.
+    let meanDepthM = Math.max(0.05, normal * (stretch.flow === 'pool' ? 1.3 : 1));
     const elevation = line.elevationAtKm(pos.km);
     const reachRef = `${pos.course}:${line.nearestNode(pos.km).name}`;
     const reach = index.reaches.get(reachRef);
     let tidal = false;
+    // ⭐ Below the tide's reach the river is the SEA'S (harbors P10): a
+    // drowned valley whose depth is not the river's normal depth over its
+    // own gradient (that is half a meter spread over an estuary's width)
+    // but the bed below sea level the node authors (`meanDepthM`), with the
+    // tide's level on top of it — so the water over the bar and at the
+    // quays inside it rises and falls twice a day, and a deep ship waits
+    // for the flood.
+    let tideLevelM = 0;
+    if (reach && reach.elevation <= 0 && reach.meanDepthM !== null) {
+      const tide = this.tideOf(reach, nowS);
+      meanDepthM = Math.max(meanDepthM, reach.meanDepthM);
+      if (tide !== null) {
+        tideLevelM = tide.levelM;
+        tidal = true;
+      }
+    }
+    let currentMps = flowM3S > 0 ? Math.min(MAX_CURRENT_MPS, flowM3S / (widthM * meanDepthM)) : 0;
+    const depthM = Math.max(0.05, meanDepthM * 1.4 + tideLevelM);
+
+    // The tide's stream against the river's, where the river meets the sea.
     if (elevation <= 0 && reach) {
       const tide = this.tideOf({ elevation }, nowS);
       if (tide !== null) {
@@ -1990,7 +2032,7 @@ async function compilePlaces(
       // citation is the river's own grammar, `node±km,side`.
       const site = data.frameSite as Record<string, unknown> | undefined;
       const [siteAt, siteSide] = typeof site?.cite === 'string' ? site.cite.split(',').map((x) => x.trim()) : [];
-      const bank = site ? { at: siteAt, side: siteSide, span: site.span, name: site.name } : undefined;
+      const bank = site ? { at: siteAt, side: siteSide, span: site.span, name: site.name, landing: site.landing !== false } : undefined;
       const spec = river ?? bank;
       if (!spec || typeof spec.at !== 'string') {
         problems.push(`watercourse '${course.key}' names '${path}', which stands nowhere on it (no river: or frameSite:)`);
@@ -2010,7 +2052,7 @@ async function compilePlaces(
       };
       list.push({
         path,
-        kind: river ? 'water' : 'bank',
+        kind: river ? 'water' : bank?.landing === false ? 'site' : 'bank',
         upKm,
         downKm: Math.max(line.mouthKm, upKm - span),
         side: spec.side === 'left' || spec.side === 'right' ? spec.side : null,

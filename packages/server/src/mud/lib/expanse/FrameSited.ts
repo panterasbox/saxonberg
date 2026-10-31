@@ -52,6 +52,12 @@ export interface FrameSiteRecord {
   span?: number;
   /** The word a way to it is called from the frame's moving places (`quay`). */
   name?: string;
+  /**
+   * `false` for a place sited by the water that no craft comes alongside —
+   * the harbor office above its quays (harbors P8): the frame knows where
+   * it stands (a hail reaches it) and offers no landing there. Default: a landing.
+   */
+  landing?: boolean;
 }
 
 export interface FrameSited {

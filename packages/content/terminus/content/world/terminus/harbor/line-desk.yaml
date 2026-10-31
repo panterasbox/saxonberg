@@ -1,0 +1,27 @@
+# The line's desk (harbors A1) — the shipping line's counter on the Town
+# Quay, under an awning against the wall. ⭐ Where the Hesper and the line's
+# regulars are chartered: its CharterBook comes with the charter (A3).
+class: /platform/location/Locale
+data:
+  shortDescription: line's desk
+  keywords: [desk, "line's desk", awning, counter]
+  register: definite
+  _address: terminus/city/harbor/line-desk
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A plank counter under a canvas awning against the back wall of the quay, with a slate of sailings chalked up beside it and a stool nobody sits on. The line's colors hang limp from a short pole at the corner.
+
+    The stairs into the river are north; the harbor office is west.
+  coords: { x: 1, y: -1, z: 0 }
+  details:
+    slate:
+      keywords: [slate, sailings, chalk]
+      description: |
+        A slate with the line's ships chalked down one side and a column for where each lies, half of it wiped and written over.
+  exits:
+    north:
+      destination: /world/terminus/harbor/harbor-stairs
+      media: [ground]
+    west:
+      destination: /world/terminus/harbor/office
+      media: [ground]

@@ -498,7 +498,9 @@ describe('⭐ the valley road — a walkable chain, no wizard anywhere (D23)', (
       // that actually has lamps (review, 2026-09-24). The claim this
       // test makes is *ordinary platform content, no gate* — so it
       // checks that, and any platform location class satisfies it.
-      expect(String(doc.class)).toMatch(/^\/platform\/location\//);
+      // ⭐ …or the transport pack's harbor quay (harbors A1, P7): the bank is a
+      // quay of the port's book, still ordinary content with no gate.
+      expect(String(doc.class)).toMatch(/^\/(platform|system\/transport)\/location\//);
       expect(JSON.stringify(doc)).not.toContain('wizard');
     }
   });

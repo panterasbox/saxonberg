@@ -25,6 +25,7 @@ import type { LinePositionRecord } from './LineFrame';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
 import type { Trajectory } from './Trajectory';
+import type { Hailable } from './Hailable';
 
 /** Where a craft is, in the frame it is in. */
 export type FramePos =
@@ -125,6 +126,12 @@ export interface Frame {
   onSiteStood(place: Stuff): Promise<void>;
   /** ⭐ The geography at a position on this frame (D44): elevation, address, climate. */
   siteAt(pos: FramePos): FrameSite | null;
+  /**
+   * ⭐ What answers a hail from `pos` (harbors P8): the places this frame
+   * knows of within the signal channel's range that keep a watch on the
+   * water — a harbor office. Loaded by the asking (the hail is the use).
+   */
+  hailables(pos: FramePos): Promise<(Stuff & Hailable)[]>;
   /** ⭐ One watch, `fromS` to `toS`: what changed, how far she came, and the stop if it has come. */
   watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport>;
 }

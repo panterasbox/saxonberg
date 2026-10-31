@@ -209,3 +209,60 @@ describe('⭐ a ship’s passage on the line (river D18, D28)', () => {
     expect(r.stop?.km).toBe(1);
   });
 });
+
+describe('⭐ below the tide’s reach the river is the sea’s (harbors P10)', () => {
+  /** The Kestrel with its estuary drowned to `meanDepthM` and the quays' rows. */
+  function drowned(meanDepthM: number | null): Row[] {
+    const row = kestrel({
+      places: ['/test/harbor/quay', '/test/harbor/office'],
+    });
+    const nodes = (row.data as { nodes: Array<Record<string, unknown>> }).nodes;
+    if (meanDepthM !== null) nodes[3]!.meanDepthM = meanDepthM;
+    return [
+      row,
+      { path: '/test/harbor/quay', class: '/test/Quay', data: { frameSite: { frame: '/stuff/idea/Watercourse/kestrel', cite: 'estuary-0.5,left', span: 0.07, name: 'town-quay' } } },
+      { path: '/test/harbor/office', class: '/test/Office', data: { frameSite: { frame: '/stuff/idea/Watercourse/kestrel', cite: 'estuary-0.55,left', landing: false } } },
+    ];
+  }
+
+  it('⭐ an estuary authoring its depth carries the tide: the water over the bar rises and falls, and only the clock moves it', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    installRows(drowned(2.8));
+    const c = catalogue();
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (let h = 0; h < 30 * 24; h++) {
+      const bar = (await c.barWaterAt('kestrel', YEAR + h * 3600))!;
+      expect(bar.tide).not.toBeNull();
+      lo = Math.min(lo, bar.depthM);
+      hi = Math.max(hi, bar.depthM);
+    }
+    // 2.8 × 1.4 = 3.92 in the channel, ± up to 1.95 at springs.
+    expect(lo).toBeGreaterThan(1.9);
+    expect(lo).toBeLessThan(2.9);
+    expect(hi).toBeGreaterThan(4.9);
+    expect(hi).toBeLessThan(6);
+    // The same instant reads the same water.
+    expect((await c.barWaterAt('kestrel', YEAR + 7 * 3600))!.depthM).toBe((await c.barWaterAt('kestrel', YEAR + 7 * 3600))!.depthM);
+  });
+
+  it('a river that authors no estuary depth keeps its own normal depth', async () => {
+    WeatherApi._forceTypeForTesting('clear');
+    installRows(drowned(null));
+    const c = catalogue();
+    const bar = (await c.barWaterAt('kestrel', YEAR + 7 * 3600))!;
+    expect(bar.depthM).toBeLessThan(1.5);
+  });
+
+  it('⭐ a place sited by the river with `landing: false` is on the line and is no landing', async () => {
+    installRows(drowned(2.8));
+    const c = catalogue();
+    const places = await c.placesOf('kestrel');
+    expect(places.find((p) => p.path === '/test/harbor/office')?.kind).toBe('site');
+    expect(places.find((p) => p.path === '/test/harbor/quay')?.kind).toBe('bank');
+    expect(c.landingNamed('kestrel', 'office')).toBeNull();
+    // `town quay` and `town-quay` are one word to a pilot.
+    expect(c.landingNamed('kestrel', 'town quay')?.path).toBe('/test/harbor/quay');
+    expect(c.landingNear({ course: 'kestrel', km: 0.55, across: 10 }, 60)).toBe('/test/harbor/quay');
+  });
+});

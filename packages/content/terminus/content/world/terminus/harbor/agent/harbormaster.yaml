@@ -1,0 +1,35 @@
+# Captain Ruth Harrow, harbormaster (harbors A1) — the NPC who holds the
+# harbor works' `harbormaster` seat by default, stationed at the office on
+# the roster's watch (six till eight). Her routine IS the posted criteria:
+# she answers a hail with the first quay in order that has room for the
+# ship's length, or sends her to the roads and says which criterion did it.
+# A player appointed to the seat holds it beside her and is told of every
+# hail on their own shift; a player's authority is never more than hers.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Ruth Harrow
+  keywords: [ruth, harrow, harbormaster, captain]
+  pronouns: she
+  shortDescription: harbormaster
+  register: definite
+  longDescription: >-
+    A spare gray woman in a pilot jacket with a pencil behind one ear, who
+    looks at the river before she looks at you and writes something in the
+    book before she answers.
+  archetype: proprietor
+  prologue:
+    - "Went to sea at fourteen and came ashore with a master's ticket and a bad knee."
+    - "Gives a berth by the ship's length and the quay's, and has never been argued out of a measurement."
+  competence:
+    - { discipline: navigation, asserting: expert }
+  dispositions:
+    - { disposition: sociability, valence: 0 }
+    - { disposition: composure, valence: 85 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

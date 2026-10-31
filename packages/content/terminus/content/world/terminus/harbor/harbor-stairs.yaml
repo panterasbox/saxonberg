@@ -1,0 +1,35 @@
+# The Harbor Stairs (harbors A1) — a flight of stone steps going down the
+# wall into the river below the Town Quay: where a boat puts somebody ashore
+# and where a swimmer comes out. A Shore on the Kestrel's line, so the river
+# gives it its way into the water the first time it is used.
+class: /platform/location/Shore
+data:
+  shortDescription: harbor stairs
+  keywords: [stairs, steps, "harbor stairs"]
+  register: definite
+  _address: terminus/city/harbor/stairs
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    Stone steps go down the face of the wall into the river, green and slick below the line of the last tide and dry above it. An iron ring is set in the wall at the turn of the flight, and a boat hook leans in the angle where nobody has taken it.
+
+    The Town Quay is west, at the top of the steps; the line's desk is a few paces south along the wall.
+  coords: { x: 1, y: 0, z: 0 }
+  frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.4,left", span: 0.02, name: stairs }
+  waters:
+    river: "kestrel:estuary-0.4"
+  details:
+    river:
+      keywords: [river, water, estuary, kestrel, tide]
+      description: |
+        The water stands on the steps — how many depends on the tide. At the flood it is three steps from the top; at the ebb you go down a dozen slippery ones to reach it.
+    ring:
+      keywords: [ring, iron, "iron ring"]
+      description: |
+        A ring of iron as thick as a thumb, set in a lead-filled socket in the wall for a boat's painter.
+  exits:
+    west:
+      destination: /world/terminus/harbor/town-quay
+      media: [ground]
+    south:
+      destination: /world/terminus/harbor/line-desk
+      media: [ground]

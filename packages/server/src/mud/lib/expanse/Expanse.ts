@@ -51,7 +51,7 @@ import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';
 import { Template } from '../stuff/Template';
 import type { Stuff } from '../stuff/Stuff';
-import type { FieldMeta } from '../mixin';
+import { Mixins, type FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -65,6 +65,7 @@ import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './F
 import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
+import type { Hailable } from './Hailable';
 
 /** What composes at one position. */
 export interface ExpanseField {
@@ -444,6 +445,41 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   /** Standing on the chart's shore means nothing more yet (W13). */
   public async onSiteStood(_place: Stuff): Promise<void> {
     return;
+  }
+
+  /**
+   * ⭐ What answers a hail from a chart position (harbors P8): every node in
+   * signal range that is a river's mouth hands the hail up the river (its
+   * line names the harbor office inside the bar), and a node's landing that
+   * keeps a watch answers itself. Loaded by the hail.
+   */
+  public async hailables(pos: FramePos): Promise<(Stuff & Hailable)[]> {
+    if (pos.frame !== 'chart') return [];
+    const rangeNm = numSetting('expanse.signalRangeNm', 12);
+    const out: (Stuff & Hailable)[] = [];
+    const seen = new Set<Stuff>();
+    const add = (xs: (Stuff & Hailable)[]): void => {
+      for (const x of xs) if (!seen.has(x)) { seen.add(x); out.push(x); }
+    };
+    for (const node of await this.nodes()) {
+      const at = node.getExpansePosition();
+      if (at === null || pos.at.distanceNm(at) > rangeNm) continue;
+      const river = node.getRiver();
+      if (river) {
+        const frame = await StuffApi.singleton<Stuff>(river).catch(() => null);
+        if (frame !== null && MixinApi.isLineFrame(frame)) {
+          add(await frame.hailables({ frame: 'line', at: { course: frame.courseKey(), km: 0, across: 0 } }));
+        }
+      }
+      const dest = node.getDestination();
+      // Its class decides, read off the row — only a landing that answers is loaded.
+      const cls = dest ? await StuffApi.classForRef(dest).catch(() => null) : null;
+      if (dest && cls !== null && MixinApi.hasMixin(cls, Mixins.Hailable)) {
+        const place = await StuffApi.singleton<Stuff>(dest).catch(() => null);
+        if (place !== null && MixinApi.isHailable(place)) add([place]);
+      }
+    }
+    return out;
   }
 
   /**
