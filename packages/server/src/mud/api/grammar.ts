@@ -248,8 +248,20 @@ export class GrammarApi {
     // spoil` — and it is the measure that counts: two lumps of clay, never
     // two lump of clays (the ceramics drive read "10 lump of clays").
     const partitive = /^(\S+)( of .+)$/.exec(singular);
-    if (partitive) return `${partitive[1]}s${partitive[2]}`;
-    return `${singular}s`;
+    if (partitive) return `${GrammarApi.#pluralWord(partitive[1]!)}${partitive[2]}`;
+    return GrammarApi.#pluralWord(singular);
+  }
+
+  /**
+   * The regular English plural of a noun's last word: a sibilant takes
+   * `-es` (two pint glasses, never "glasss" — the client-surface drive's
+   * grouped room list), a consonant + y takes `-ies`, the rest `-s`. An
+   * irregular plural is the thing's own `getPluralForm`.
+   */
+  static #pluralWord(noun: string): string {
+    if (/(s|x|z|ch|sh)$/i.test(noun)) return `${noun}es`;
+    if (/[^aeiou]y$/i.test(noun)) return `${noun.slice(0, -1)}ies`;
+    return `${noun}s`;
   }
 
   /**

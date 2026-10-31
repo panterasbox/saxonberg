@@ -257,4 +257,14 @@ describe('GrammarApi.pluralize', () => {
     expect(GrammarApi.pluralize(p, 'lump of clay')).toBe('lumps of clay');
     expect(GrammarApi.pluralize(p, 'load of river sand')).toBe('loads of river sand');
   });
+
+  it('a sibilant takes -es and a consonant + y takes -ies — two pint glasses, never glasss', () => {
+    const p = makeStuff(() => new Plain());
+    expect(GrammarApi.pluralize(p, 'pint glass')).toBe('pint glasses');
+    expect(GrammarApi.pluralize(p, 'box')).toBe('boxes');
+    expect(GrammarApi.pluralize(p, 'bench')).toBe('benches');
+    expect(GrammarApi.pluralize(p, 'berry')).toBe('berries');
+    expect(GrammarApi.pluralize(p, 'key')).toBe('keys');
+    expect(GrammarApi.pluralize(p, 'glass of water')).toBe('glasses of water');
+  });
 });

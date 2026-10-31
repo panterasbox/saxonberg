@@ -796,6 +796,13 @@ unit terminal card).
   instrument like the survey ledger, and under per-card liveness a pinned
   card is live, so a pour moves the sheet without asking. Found by the
   full suite (trade-shopkeeping's live-sheet test).
+- **B41 — a display at rest still has a Screen line**: "The screen is
+  dark." A screen that is off is a fact you would see, and the step-4
+  tablet (nothing shown on it in a fresh world) otherwise dropped the
+  line the requirements say must appear. Lens 3a chose. Found by the drive.
+- **B3, corrected by the drive** — "used" had read `hasInteriorBulk()`,
+  which says the vessel HAS an interior slot (every glass does), so the
+  gate never closed. It now reads a non-empty interior.
 
 ---
 

@@ -21,7 +21,7 @@ import {
 } from '../src/harness';
 
 export const DIRTY_REASON =
-  'kills a named lounge NPC (Sloane) to stage a corpse (step 7); she does ' +
+  'kills a named lounge NPC (Sloane) to make a corpse (step 7); she does ' +
   'not return until the world reboots';
 
 declareFile({
@@ -77,7 +77,11 @@ async function stage(target: string, code: string): Promise<string> {
   const f = await Session.open('founder', { startLocation: BAR, wizard: true });
   try {
     const r = await f.cmd(`eval --parcel /world/lounge --on ${target} return ${code}`);
-    return (await r.said()).trim();
+    const said = (await r.said()).trim();
+    // A stage that matched nothing must say so, not pass on to a step
+    // that then waits for a card that cannot come.
+    expect(r.status, `stage --on ${target}: ${JSON.stringify(r.notes)} ${said}`).toBe('ok');
+    return said;
   } finally {
     f.close();
   }
@@ -194,8 +198,19 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
   });
 
   it('7 · a named NPC\'s corpse reads as a stranger to A and does not answer to the name', async () => {
-    // Sloane never introduces herself, so A has never met her.
-    await stage('sloane', `ConditionApi.die(this, 'hypothermia')`);
+    // Sloane never introduces herself, so A has never met her — and nor
+    // has the founder, so the stage names her by what she looks like.
+    // ⚠ `beginDying` with a one-second window, not `ConditionApi.die`: the
+    // scheduler performs the death OUTSIDE the eval, so the corpse is minted
+    // where the world mints corpses (a death run inside a field-parcel eval
+    // is refused at the corpse's applier and leaves no body at all).
+    await stage('bartender', `(this.beginDying('exsanguination', 1), 'dying')`);
+    let found = false;
+    for (let i = 0; i < 30 && !found; i++) {
+      await new Promise((r) => setTimeout(r, 1_000));
+      found = (await a.query('body', { fields: ['displayName'] })).length > 0;
+    }
+    expect(found, 'a body in the bar within 30s').toBe(true);
     a.clearCaptures();
     await a.cmd('look body');
     const card = await subjectCard(a);
