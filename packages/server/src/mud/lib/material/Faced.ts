@@ -39,6 +39,10 @@ import { AppSettingKeys } from '../config/AppSettings';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Paint } from './Paint';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import { Mml } from '../../api/mml';
+import { MessageApi } from '../../api/message';
+import { Quantity } from '../quantity';
 import type { PaintMakeup } from './Paint';
 
 /** The two faces a good can have. */
@@ -101,6 +105,15 @@ export interface CoatAir {
   airChange: number;
 }
 
+/** What `paint` asks of the thing painted (paint D9). */
+export interface CoatRequest {
+  actor: Stuff;
+  /** The vessel whose liquid is brushed on. */
+  source: Stuff;
+  /** The brush in hand. */
+  brush: Stuff;
+}
+
 /** What an air window did to the coats. */
 export interface AirCoatResult {
   /** How many coats set (or set badly). */
@@ -129,6 +142,14 @@ export interface Faced {
   coatAreaM2(): number;
   /** Are this thing's coats kept in its record? A good's always; a staged building's not (paint D7). */
   persistsCoats(): boolean;
+  /**
+   * ⭐ Plan one brushed coat from `req.source` (paint D9) — the thing
+   * painted decides: how much surface it has, how much paint that takes,
+   * whether the painter can reach it. Refuses in words.
+   */
+  coatPlanFor(req: CoatRequest): Promise<ActPlan | ActRefusal>;
+  /** Why `actor` cannot reach this thing's outside to paint it, or `null`. */
+  coatReachRefusal(actor: Stuff): ActRefusal | null;
   /**
    * ⭐ Advance every wet coat by HEAT-WORK over a window (B100): `integrate`
    * is ∫ rate(T) dt over the window for a kinetic change — the same integral
@@ -277,6 +298,88 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = host as unknown as Faced & { coats: unknown; absorbed: unknown };
       if (!self.persistsCoats()) return { fields: {} };
       return { fields: { coats: structuredClone(self.coats), absorbed: structuredClone(self.absorbed) } };
+    }
+
+    /** @hook Why `actor` cannot reach this to paint it — `null` (a good in reach can be). */
+    public coatReachRefusal(_actor: Stuff): ActRefusal | null {
+      return null;
+    }
+
+    /**
+     * @hook One brushed coat (paint D9). A brush lays a wet film
+     * `structure.paint.coatThicknessM` thick over {@link coatAreaM2}; what
+     * stays when it sets is that film × the paint's solids. The pot gives
+     * up exactly that many litres; a pot with less coats nothing.
+     */
+    public async coatPlanFor(req: CoatRequest): Promise<ActPlan | ActRefusal> {
+      const self = this as unknown as Stuff & Faced;
+      const reach = this.coatReachRefusal(req.actor);
+      if (reach !== null) return reach;
+      const src = req.source;
+      if (!MixinApi.isBulkable(src) || !src.hasInteriorBulk()) {
+        return { ok: false, reason: 'not-paint', line: Mml.compose`There is nothing in ${Mml.thing(src)} to paint with.` };
+      }
+      const material = src.getBulkMaterial('interior');
+      if (material === null || !material.getLaysCoat()) {
+        return {
+          ok: false,
+          reason: 'not-paint',
+          line: Mml.compose`What is in ${Mml.thing(src)} will not lay a coat — it runs off and leaves nothing behind.`,
+        };
+      }
+      const area = this.coatAreaM2();
+      if (!(area > 0)) {
+        return { ok: false, reason: 'nothing-to-cover', line: Mml.compose`There is nothing of ${Mml.thing(self)} a brush could cover.` };
+      }
+      const film = dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
+      const litres = area * film * 1000;
+      const held = src.getBulkAmount('interior').rawValue();
+      if (held + 1e-9 < litres) {
+        const want = litres >= 1 ? `about ${Math.round(litres)} litres` : 'more than that';
+        return {
+          ok: false,
+          reason: 'source-too-low',
+          line: Mml.compose`There is not enough in ${Mml.thing(src)} to give ${Mml.thing(self)} a coat — it would take ${want}.`,
+        };
+      }
+      const makeup = src.getBulk('interior').getPayload()?.paint;
+      const solids = makeup?.solidsFraction ?? Math.min(0.9, Math.max(0.1, material.getSolidsKgPerL() || 0.4));
+      const setM = film * solids;
+      // ⭐ A paint's coat is its BINDER's: the binder sets and weathers it;
+      // the makeup keeps the pigments for its color (paint D8).
+      const path = makeup?.binder || (material.getTemplatePath() ?? '');
+      const what = makeup ? new Paint(makeup).words() : material.getName() || 'paint';
+      const giver = req.actor;
+      // A minute to brush a board; an hour and more for a house front.
+      const durationMs = Math.round(Math.min(2 * 3_600_000, Math.max(30_000, area * 45_000)));
+      return {
+        ok: true,
+        durationMs,
+        effortW: 120,
+        beginSelf: Mml.compose`You load the brush from ${Mml.thing(src)} and start laying the coat on ${Mml.thing(self)}.`,
+        beginPeers: Mml.compose`${Mml.actor(giver)} starts painting ${Mml.thing(self)}.`,
+        onComplete: () => {
+          if (self.isDestroyed() || src.isDestroyed() || !MixinApi.isBulkable(src)) return undefined;
+          const have = src.getBulkAmount('interior').rawValue();
+          if (have + 1e-9 < litres) {
+            return { ok: false, reason: 'source-too-low', line: Mml.compose`The pot runs dry before the coat is on.` };
+          }
+          // ⭐ Walk the weather UP TO NOW first, so the rain of last week
+          // does not fall on a coat laid today.
+          if (MixinApi.isWeathering(self)) self.reconcileWeather();
+          src.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
+          const soil = MixinApi.isSoilable(self) ? Math.max(self.soilAt('outside'), self.soilAt('')) : 0;
+          self.layCoat('outside', path, setM, soil, makeup);
+          if (!giver.isDestroyed()) {
+            MessageApi.scene(giver)
+              .topic('act.deed')
+              .toSelf(Mml.compose`${Mml.thing(self)} stands under a wet coat of ${what}. Let it set; keep the rain off it.`)
+              .toPeers(Mml.compose`${Mml.actor(giver)} finishes a coat on ${Mml.thing(self)}.`)
+              .send();
+          }
+          return undefined;
+        },
+      };
     }
 
     /** @hook Are the coats kept in this thing's record? Default yes. */

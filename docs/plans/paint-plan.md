@@ -958,6 +958,40 @@ fork, the lens that chose is named.
   spared. `maintain`/`maintains` find the house through the holding
   (`HoldingWarren.house()`) first, then the graph.
 
+- **B13 (W3)** — `paint`'s pot is `objects` (every reachable bulk vessel;
+  the controller takes the first whose liquid lays a coat), and the brush
+  binds `me:i:[capability.painting]`. The `Brush` class contributes the
+  view on `environment` (the householder's kit precedent), not `self`.
+- **B14 (W3)** — a paint coat's MATERIAL is its binder (the makeup's
+  `binder`), so the binder's kinetics set it and its weathering wears it;
+  the makeup rides `CoatLayer.paint` for the color. A pigment-less liquid
+  (milk of lime) lays itself.
+- **B15 (W3)** — `write … with paint` letters the words as a thin coat
+  (`CoatLayer.marks`); `getMarkText()` appends painted marks from the
+  coats, so the words go when the weather drops the coat. The medium arg
+  is declared AFTER the greedy surface (its preposition stops the
+  lookahead).
+- **B16 (W3, lint:reachability arm G)** — `paint`'s `pot`/`brush` and
+  `write`'s `medium` are `greedy: true`.
+- **B17 (W4)** — PIGMENTS ARE ITEMS (a paper of pigment, the quarrying
+  `Lump` class so it is stackable and thermal — burnt ochre fires), never
+  bulk: a pot's liquid is ONE slot, so a bulk pigment could not share it
+  with the binder. The mill's tangible-output recipes mint them.
+- **B18 (W4)** — the ready-mixed pot's makeup is a `seed: true` field
+  (`seedMakeup`), not `onCreate` (`lint:on-create` ceiling); a bulk
+  payload is not authorable.
+- **B19 (W4)** — an EGG in the paint pot binds as egg tempera (a mapping
+  in `PaintPot.payloadFor`); a `solvent`-tagged liquid is the thinner.
+- **B20 (W4, lint:descriptors)** — `ochre` left the arcana potion bank
+  (now `tawny`): ochre is a real material.
+- **B21 (W4, lint:reachability arm R)** — the colorman's shop, yard, shed,
+  counter, outfit and Ira Pell moved forward from W8: a pack row nothing
+  stocks fails the gate, so the counter lands with the rows it reaches.
+- **B22 (W4)** — the CORROSION JAR and the madder-lake strike are NOT
+  built this wave: the counter stocks lead-white cake, verdigris and madder
+  lake. Recorded as a gap to close before the MR if time allows (the
+  maturation-profile route: vinegar + a metal solid → a cake).
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1166,7 +1200,14 @@ kernel structure; Hinkley lots and Seznick House have buildings.
 - Commit: `build(paint W2): the shell is a kernel capability; a holding's
   house is a building`.
 
-### W3 — `paint`, the brush, and `write … with paint` (kernel)
+### W3 — `paint`, the brush, and `write … with paint` (kernel) ✅
+
+> **Done, landed with W4** (the `painting` capability is offered only by
+> the brush ROW, which is the pack's). `paint.yaml`, `PaintController`,
+> `Faced.coatPlanFor` + `coatReachRefusal` (a building refuses off its
+> landing), `platform/thing/Brush`, `write … with <pot>`. The Discipline
+> credit is NOT wired (no `AdvancementApi` call in `dip` to copy) —
+> recorded. Notes B13–B16.
 
 - D9: `platform/cmd/crafting/paint.yaml`, `PaintController`, `Faced.
   coatPlanFor` + the structure override, `platform/thing/Brush`,
@@ -1185,7 +1226,14 @@ kernel structure; Hinkley lots and Seznick House have buildings.
 - Commit: `build(paint W3): one verb paint, afforded by a brush; write
   takes paint as a medium`.
 
-### W4 — `trade-painting`: binders, pigments, paint, varnish; the mill and the jars
+### W4 — `trade-painting`: binders, pigments, paint, varnish; the mill and the jars ✅ (jars open)
+
+> **Done** except the corrosion jar (B22). The pack, linseed oil / egg
+> tempera / generic paint / gesso / seven pigments + lead-white flake,
+> `PaintPot.payloadFor`, `GessoPanel`, `SignBoard`, the mill recipes
+> (linseed, yellow ochre, lead white), burnt ochre's ladder, milk of lime
+> as limewash, chalk's pigment, flax seed's material, ochre clay, the
+> Discipline, and the colorman's shop pulled forward (B21). Notes B17–B22.
 
 - The pack (`pack.yaml` root `/trade/painting`, title under
   `/compact/trade`; `package.json` deps: platform, base-library,

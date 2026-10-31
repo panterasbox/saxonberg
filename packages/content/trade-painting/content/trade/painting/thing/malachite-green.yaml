@@ -1,0 +1,10 @@
+# A paper of malachite green — ground pigment, folded in paper the way a colorman sells
+# it. Put it in a paint pot with a binder and stir.
+class: /trade/quarrying/thing/Lump
+data:
+  shortDescription: paper of malachite green
+  keywords: [paper, pigment, "malachite green", malachite, green, "paper of malachite green"]
+  register: indefinite
+  longDescription: A twist of paper holding a gritty deep-green powder.
+  _materialPath: /trade/painting/idea/material/malachite-green
+  mass: 0.25

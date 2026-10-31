@@ -78,6 +78,8 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import type Exit from '../boundary/Exit';
+import type { ActRefusal } from '../craft/ActPlan';
+import { Mml } from '../../api/mml';
 
 export default class Structure extends DetailedMixin(
   VisibleMixin(PerceptibleMixin(NamedMixin(Idea))),
@@ -310,6 +312,21 @@ export default class Structure extends DetailedMixin(
    */
   public outsideScope(): Stuff | null {
     return this.landingsNow()[0] ?? null;
+  }
+
+  /**
+   * Why `actor` cannot reach this building's OUTSIDE from where they stand
+   * — `null` on a landing (paint D9): *"You cannot reach the outside of
+   * the cottage from here."*
+   */
+  public landingRefusal(actor: Stuff): ActRefusal | null {
+    const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (room !== null && this.isLandedAt(room)) return null;
+    return {
+      ok: false,
+      reason: 'no-landing',
+      line: Mml.compose`You cannot reach the outside of ${Mml.thing(this as unknown as Stuff)} from here.`,
+    };
   }
 
   /**

@@ -1,0 +1,20 @@
+# The colorman's yard (paint D20) — open to the sky: the quern where oil is
+# pressed and earths ground, and a lean-to shed against the back wall.
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: 1, z: 0 }
+  shortDescription: "colorman's yard"
+  keywords: [yard, "colorman's yard"]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  enclosure: none
+  roof: none
+  longDescription: |
+    A cobbled yard behind the shop, stained every color underfoot, where a hand quern stands on a block and a lean-to shed leans against the north wall; the shop is back south.
+  exits:
+    south:
+      destination: /world/terminus/wharfside/colorman/location/shop
+    north:
+      destination: /world/terminus/wharfside/colorman/location/shed
+  props:
+    - /trade/milling/thing/quern

@@ -1,0 +1,7 @@
+# The colorman's (paint build D20) — Ira Pell's shop off the towpath, where
+# a painter buys oil, earths, lime and brushes, and grinds what is not
+# ground yet on the quern in the yard. Its own small zone, as the ropewalk is.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Colorman's
+  cellSize: 4.0

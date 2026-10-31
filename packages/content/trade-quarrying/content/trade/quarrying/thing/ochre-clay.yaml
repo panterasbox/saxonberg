@@ -1,0 +1,12 @@
+# Ochre clay — a lump of the yellow iron earth (paint D19). Ground on the
+# stones it is yellow ochre (`mill ochre clay`).
+class: /trade/quarrying/thing/Lump
+data:
+  keywords: [ochre, clay, lump, "ochre clay", "lump of ochre"]
+  shortDescription: lump of ochre clay
+  register: indefinite
+  longDescription: >-
+    A crumbly lump of mustard-yellow earth that leaves its color on your hands.
+  _materialPath: /stuff/idea/material/mineral/ochre-clay
+  mass: 1
+  quantity: 1

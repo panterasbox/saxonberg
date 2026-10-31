@@ -30,6 +30,7 @@ import { WeatheringMixin } from '../../lib/material/Weathering';
 import { ShellMixin } from '../../lib/structure/Shell';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { ActRefusal } from '../../lib/craft/ActPlan';
 
 export const STRUCTURE_CLASS_PATH = '/platform/idea/Structure';
 
@@ -56,6 +57,11 @@ export default class Structure extends PersistableMixin(
   /** The walls and roof the weather meets — what a coat is spread over. */
   public override coatAreaM2(): number {
     return this.exteriorAreaM2();
+  }
+
+  /** ⭐ A building is painted from where it meets the weather (paint D9). */
+  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+    return this.landingRefusal(actor);
   }
 
   /** ⭐ The coats and fabric are kept only once it is sold (D7). */

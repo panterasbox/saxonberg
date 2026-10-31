@@ -1,0 +1,15 @@
+# The colorman's shed (paint D20) — a shut lean-to where the rags go: an
+# enclosed place that holds its own air, which is the point of it.
+class: /platform/location/Locale
+data:
+  coords: { x: 0, y: 2, z: 0 }
+  shortDescription: "colorman's shed"
+  keywords: [shed, "lean-to"]
+  register: definite
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  longDescription: |
+    A close, dark lean-to of tarred boards, smelling of oil, with a heap of sacking in one corner and a door that sticks.
+  exits:
+    south:
+      destination: /world/terminus/wharfside/colorman/location/yard

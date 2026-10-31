@@ -1,0 +1,25 @@
+# The colorman's (paint D20) — one seat, the colorman's own.
+class: /platform/idea/Business
+data:
+  name: "Pell's, colorman"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/wharfside/colorman/agent/colorman
+  call: rota
+  positions:
+    - key: colorman
+      noun: colorman
+      label: keeping the color shop
+      wageRate: 4
+      fulfills: [painting]
+  rosterSlots:
+    - positionKey: colorman
+      assignee: /world/terminus/wharfside/colorman/agent/colorman
+      station: /world/terminus/wharfside/colorman/location/shop
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
+  banksAt: goodkin
+  offstage: /world/terminus/wharfside/colorman/location/offstage
+  operatingLocations:
+    - /world/terminus/wharfside/colorman/location/shop
+    - /world/terminus/wharfside/colorman/thing/counter

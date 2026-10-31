@@ -18,3 +18,18 @@ data:
   tags: [liquid, caustic, alkali, slaked-lime]
   composition: []
   biologicalSource: null
+  # ⭐ LIMEWASH (paint build, requirements gap 1): brushed on a wall it
+  # lays a white coat that hardens by drinking the air — carbonation, over
+  # days, and slowly where the air does not move. Rows only: the kettle that
+  # slakes it is unchanged.
+  laysCoat: true
+  coatWord: limewashed
+  solidsKgPerL: 0.3
+  # A limewash wants renewing every season or two.
+  weatheringMPerGameYear: 0.00003
+  pigment: { transmitR: 0.97, transmitG: 0.97, transmitB: 0.95, hidingPower: 0.55, lightfastness: 1 }
+  kinetics:
+    - key: set
+      sets: carbonation
+      order: 0
+      rate: [[273, 0], [283, 0.012], [293, 0.02], [303, 0.03]]

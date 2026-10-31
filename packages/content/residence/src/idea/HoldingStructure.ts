@@ -32,6 +32,7 @@ import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persista
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
+import type { ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 
 /** What the house reads of its holding — its rooms. */
 interface HoldingRooms {
@@ -76,6 +77,11 @@ export default class HoldingStructure extends PersistableMixin(
 
   public override coatAreaM2(): number {
     return this.exteriorAreaM2();
+  }
+
+  /** ⭐ A building is painted from where it meets the weather (paint D9). */
+  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+    return this.landingRefusal(actor);
   }
 
   /** It goes when its holding does — the holding tears it down. */

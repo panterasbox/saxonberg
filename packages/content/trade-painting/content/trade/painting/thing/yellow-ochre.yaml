@@ -1,0 +1,10 @@
+# A paper of yellow ochre — ground pigment, folded in paper the way a colorman sells
+# it. Put it in a paint pot with a binder and stir.
+class: /trade/quarrying/thing/Lump
+data:
+  shortDescription: paper of yellow ochre
+  keywords: [paper, pigment, "yellow ochre", ochre, yellow, "paper of yellow ochre"]
+  register: indefinite
+  longDescription: A twist of brown paper stained through with soft yellow dust.
+  _materialPath: /trade/painting/idea/material/yellow-ochre
+  mass: 0.25

@@ -1,0 +1,49 @@
+# The colorman's counter (paint D20) — everything a painter needs and
+# nothing ready-ground that a painter cannot grind: oil, earths, lime,
+# brushes, papers of pigment, and one ready-mixed paint.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: color counter
+  keywords: [counter, till]
+  register: definite
+  longDescription: |
+    A scarred counter crowded with jars, papers of pigment and bundles of brushes, a chalked board of prices behind it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 70
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [colorman]
+  businessPath: /world/terminus/wharfside/colorman/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /trade/painting/thing/brush, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/paint-pot, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/ochre-oil-paint, par: 3 }
+    - { itemTemplatePath: /trade/farming/thing/seed/flax, par: 10 }
+    - { itemTemplatePath: /trade/quarrying/thing/ochre-clay, par: 10 }
+    - { itemTemplatePath: /trade/quarrying/thing/chalk, par: 6 }
+    - { itemTemplatePath: /trade/painting/thing/yellow-ochre, par: 6 }
+    - { itemTemplatePath: /trade/painting/thing/red-ochre, par: 6 }
+    - { itemTemplatePath: /trade/painting/thing/lampblack, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/lead-white-cake, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/verdigris, par: 3 }
+    - { itemTemplatePath: /trade/painting/thing/madder-lake, par: 3 }
+    - { itemTemplatePath: /trade/painting/thing/malachite-green, par: 3 }
+    - { itemTemplatePath: /trade/painting/thing/gessoed-panel, par: 2 }
+    - { itemTemplatePath: /trade/painting/thing/signboard, par: 2 }
+  prices:
+    /trade/painting/thing/brush: 3
+    /trade/painting/thing/paint-pot: 2
+    /trade/painting/thing/ochre-oil-paint: 12
+    /trade/farming/thing/seed/flax: 1
+    /trade/quarrying/thing/ochre-clay: 1
+    /trade/quarrying/thing/chalk: 1
+    /trade/painting/thing/yellow-ochre: 2
+    /trade/painting/thing/red-ochre: 2
+    /trade/painting/thing/lampblack: 2
+    /trade/painting/thing/lead-white-cake: 4
+    /trade/painting/thing/verdigris: 4
+    /trade/painting/thing/madder-lake: 6
+    /trade/painting/thing/malachite-green: 5
+    /trade/painting/thing/gessoed-panel: 6
+    /trade/painting/thing/signboard: 3

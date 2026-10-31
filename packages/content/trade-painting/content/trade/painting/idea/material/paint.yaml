@@ -1,0 +1,23 @@
+# Paint — ⭐⭐ ONE row for every paint (paint D8). A pot of paint is this
+# material with a MAKEUP on its payload: the binder it was stirred from and
+# the pigments in it, by mass. Its color, its covering, its setting and its
+# weathering are the makeup's, so there is no paint table: a second paint is
+# a pigment row, and nothing here names a color.
+class: /platform/idea/material/Material
+data:
+  name: paint
+  keywords: [paint]
+  appearance: a thick, even paint
+  density: 1400
+  specificHeat: 1600
+  thermalConductivity: 0.2
+  meltingPoint: 260
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, paint]
+  laysCoat: true
+  coatWord: painted
+  solidsKgPerL: 0.6
+  composition: []
+  biologicalSource: null
