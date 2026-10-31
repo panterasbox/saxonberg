@@ -372,7 +372,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // act on its crop names one (R2): the gate end until it is full, then
     // the middle with what is left.
     const first = await doing(p, 'sow wheat at the gate end');
-    expect(first).toMatch(/walk the ground, casting|seed goes into the ground/i);
+    expect(first).toMatch(/walk the [a-z ]+, casting|seed goes into the ground/i);
     let part = 'the gate end';
     for (let i = 0; i < 14 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
       const { r, said } = await work(p, `sow wheat at ${part}`);

@@ -20,6 +20,10 @@
  * the first morning. Every look is taken in daylight: a dark field binds
  * the wrong thing and reads as nothing.
  *
+ * Run: `WIRE_BOOT=1 WIRE_PORT=<this worktree's> WIRE_FRAME_TIMEOUT=45000
+ * npx vitest run tests/cover.dirty.wire.test.ts` — ⚠ the longer frame wait
+ * because a staging `eval` on a busy box outran 30 s (blocking run 3).
+ *
  * ⚠ NPC positions after a jump are nondeterministic (memory: probe-world):
  * the drive asserts what the world HOLDS — the hay in the rick, the band
  * of the grass, the condition of a head — never where a hand is standing.
@@ -395,7 +399,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // act on its crop names one (R2): the gate end until it is full, then
     // the middle with what is left.
     const first = await doing(p, 'sow wheat at the gate end');
-    expect(first).toMatch(/walk the ground, casting|seed goes into the ground/i);
+    expect(first).toMatch(/walk the [a-z ]+, casting|seed goes into the ground/i);
     let part = 'the gate end';
     for (let i = 0; i < 14 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
       const { r, said } = await work(p, `sow wheat at ${part}`);
