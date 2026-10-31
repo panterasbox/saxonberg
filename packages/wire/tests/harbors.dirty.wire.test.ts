@@ -230,7 +230,7 @@ suite('A1 — the port', () => {
     expect(quay, quay).toMatch(/Alongside: the Hesper/);
     expect(quay, quay).toMatch(/line from the Hesper/i);
     // Her lines are made fast round the quay's bollards: the line ashore says so.
-    const line = await say(sailor, 'look line');
+    const line = await say(sailor, 'look first line');
     expect(line, line).toMatch(/mooring line comes ashore from the Hesper, made fast round .*bollard/i);
     expectOk(await sailor.cmd('go hesper'));
     expect(await look(sailor)).toMatch(/Hesper's deck/i);
