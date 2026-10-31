@@ -16,6 +16,7 @@ import { ContainerMixin } from '../../spatial/Container';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
+import { BiomeApi } from '../../../api/biome';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../Cultivable';
 import { ReservedMixin, Reserve } from '../../reserve';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
@@ -520,6 +521,36 @@ describe('GrowingMixin — field population seams', () => {
     // A patch deleted from the row never orphans the crop.
     plant.setGroundPart('far-side');
     expect(plant.getBed()).toBe(ground);
+  });
+
+  it('⚠ a plant moved while its warmth resolves takes the warmth of where it ENDS UP', async () => {
+    // A labeled stem is minted somewhere warm and moved straight into the
+    // field; the walk begun at the mint must not answer for the field
+    // (the drive's trial read a kitchen's 297 K all winter).
+    const warm = makeStuff(() => new PartedGround());
+    const cold = makeStuff(() => new PartedGround());
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+    vi.spyOn(BiomeApi, 'resolveTemperatureFor').mockImplementation(
+      async (env: unknown) => {
+        if (env === warm) {
+          await gate;
+          return { rawValue: () => 297 } as never;
+        }
+        return { rawValue: () => 270 } as never;
+      },
+    );
+    const p = fixture();
+    ContainmentApi.move(p, warm);
+    const first = p.restampWarmth();
+    ContainmentApi.move(p, cold);
+    const second = p.restampWarmth();
+    release();
+    await first;
+    await second;
+    expect(p._lastAmbientK).toBe(270);
   });
 
   it('standIn finds the crop of this kind rooted in the named part', () => {

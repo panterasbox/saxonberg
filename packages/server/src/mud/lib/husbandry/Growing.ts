@@ -916,6 +916,9 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     /** The in-flight warmth resolve, or `null` — coalesces callers. */
     private _warmthPromise: Promise<void> | null = null;
 
+    /** Where the in-flight warmth walk started — a move re-asks. */
+    private _warmthFrom: Stuff | null = null;
+
     /**
      * ⭐ The climate site of the place this plant stands in, and how far
      * the place stood from that climate when the ambient was last
@@ -1842,8 +1845,17 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      * the first.
      */
     public restampWarmth(): Promise<void> {
+      const self = this as unknown as Stuff;
+      const here = MixinApi.isContainable(self) ? self.getContainer() : null;
       const inFlight = this._warmthPromise;
-      if (inFlight !== null) return inFlight;
+      if (inFlight !== null) {
+        if (this._warmthFrom === here) return inFlight;
+        // ⚠ Moved while a walk was out: that walk answers for where the
+        // plant WAS (a labeled stem minted in a warm hand and set straight
+        // into a winter field read the hand all season). Ask again after.
+        return inFlight.then(() => this.restampWarmth());
+      }
+      this._warmthFrom = here;
       const started = this.resolveWarmth();
       this._warmthPromise = started;
       return started;
