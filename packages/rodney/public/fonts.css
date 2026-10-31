@@ -1,22 +1,20 @@
-/* Self-hosted three-voice faces, copied from saxonberg's public/fonts.
-   Same-origin /fonts/*.woff2, no CDN — safe for an OBS browser source. */
+/* Self-hosted civic faces, copied from saxonberg's packages/client/public/fonts
+   (docs/design/handoff/DESIGN-SYSTEM.md § Type). Same-origin /fonts/*.woff2,
+   no CDN — safe for an OBS browser source. Rodney uses two voices only:
+   Spectral (display — engraved capitals, the timer) and Public Sans (chrome —
+   chat, captions). */
 @font-face {
-  font-family: 'Source Serif 4';
-  src: url('/fonts/source-serif-4-latin.woff2') format('woff2');
+  font-family: 'Spectral';
+  src: url('/fonts/spectral-latin.woff2') format('woff2');
   font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
-  font-family: 'Source Serif 4';
-  src: url('/fonts/source-serif-4-latin-italic.woff2') format('woff2');
-  font-weight: 400; font-style: italic; font-display: swap;
+  font-family: 'Spectral';
+  src: url('/fonts/spectral-500-latin.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
 }
 @font-face {
-  font-family: 'Source Sans 3';
-  src: url('/fonts/source-sans-3-latin.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Source Code Pro';
-  src: url('/fonts/source-code-pro-latin.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
+  font-family: 'Public Sans';
+  src: url('/fonts/public-sans-latin.woff2') format('woff2');
+  font-weight: 100 900; font-style: normal; font-display: swap;
 }

@@ -1,25 +1,34 @@
 /**
- * Pantera's Box brand palette — the single source of truth for color across
- * every stream overlay. Mirrors the intent of saxonberg's faces.ts but for
- * the PB *parent* brand (the livestream chrome), NOT saxonberg's content style.
+ * The brand palette — docs/design/handoff/DESIGN-SYSTEM.md § Colour, the
+ * Ink (dark) theme. The three official colours are exact:
+ * Old Glory Blue #002868 · Old Glory Red #BF0A30 · White.
  *
- * Old Glory Blue #002147 · white · Old Glory Red #BB133E (sparingly).
- * Red is reserved for attention/state/urgency only — never decorative fill.
+ * ⚠ Red never touches blue: every red element carries white between it and
+ * the field. Red is for the seal, the flag rule and live/alert states only.
  */
 export const palette = {
+  brand: {
+    blue: '#002868', // Old Glory Blue — a canton, not the whole cloth
+    red: '#BF0A30', // Old Glory Red
+    white: '#FFFFFF',
+  },
   bg: {
-    deep: '#00152C',   // deepest layer
-    base: '#002147',   // Old Glory Blue — the brand field
-    raised: '#0A2F5C', // panels, cards
+    ground: '#071224',
+    surface: '#0d1c38',
+    raised: '#15274a',
+    sunken: '#040b17',
   },
-  border: 'rgba(255, 255, 255, 0.12)',
+  line: '#22355e',
+  lineSoft: '#132441',
   text: {
-    primary: '#FFFFFF',
-    secondary: 'rgba(255, 255, 255, 0.72)',
-    muted: 'rgba(255, 255, 255, 0.45)',
+    fg: '#f2f5fa',
+    dim: '#9fb0cc',
+    mute: '#8494b3',
   },
-  accent: {
-    red: '#BB133E',    // sparingly: live dot, urgency, errors, @mentions
-    blue: '#4D9FFF',   // emphasis/interactive on the dark navy ground
+  accent: '#c9a227', // brass
+  platform: {
+    twitch: '#9146FF',
+    youtube: '#FF0033',
+    kick: '#53FC18',
   },
 } as const;

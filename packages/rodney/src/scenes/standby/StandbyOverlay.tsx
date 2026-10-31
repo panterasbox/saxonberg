@@ -1,40 +1,105 @@
-import { Suspense, useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import Banner from './Banner';
-import ErrorBoundary from './ErrorBoundary';
-import useAwayTimer from '../../hooks/useAwayTimer';
-import useStreamState from '../../hooks/useStreamState';
-import { palette } from '../../tokens/palette';
-import { FACE_STACKS } from '../../tokens/faces';
+import { useEffect, useState, type ReactNode } from "react";
+import { Canvas } from "@react-three/fiber";
+import Banner from "./Banner";
+import ChatPanel from "./ChatPanel";
+import ErrorBoundary from "./ErrorBoundary";
+import useAwayTimer from "../../hooks/useAwayTimer";
+import useStreamState from "../../hooks/useStreamState";
+import { palette } from "../../tokens/palette";
+import { FACE_STACKS } from "../../tokens/faces";
 
-// Serif "world voice" — quiet, scholarly (Mrs. Frankweiler's archive).
+// Quiet, scholarly — inscriptions under the timer.
 const APHORISMS = [
-  'The light is left on in the library.',
-  'Knowing a secret is real is worth more than the secret.',
-  'Every master leaves a mark.',
-  'Patience is the scholar’s instrument.',
-  'The work waits, and is worth the waiting.',
+  "The light is left on in the library.",
+  "Knowing a secret is real is worth more than the secret.",
+  "Every master leaves a mark.",
+  "Patience is the scholar’s instrument.",
+  "The work waits, and is worth the waiting.",
 ];
+
+/*
+ * The layout, on the 1920 × 1080 stage. The r3f camera sits at z = 3.6,
+ * y = 0.2 with a 36° vertical field. Measured from a render (the cloth
+ * stretches about a fifth under its own weight, so the numbers are
+ * empirical, not projected): the crossbars sit ≈ 95 px down, the cloth
+ * hangs to ≈ 760 px, and the banners' inner edges leave the screen columns
+ * ≈ 540–1380 between them — the chat sits inside that — with the caption
+ * below the chat.
+ */
+const BANNER_TOP = 0.95;
+const BANNER_X = 1.42;
+const COLUMN = { left: 580, width: 760, top: 115, bottom: 1080 - 785 } as const;
 
 /**
  * Layered for resilience (OBS's CEF and some GPUs have flaky WebGL):
  *   1. monastery as a CSS background — always visible, zero WebGL.
- *   2. the banner in a TRANSPARENT <Canvas> on top, wrapped in an ErrorBoundary
- *      so a WebGL failure degrades to "monastery + timer", never a blank screen.
- *   3. the timer/copy as plain DOM, independent of the canvas entirely.
+ *   2. the banners in a TRANSPARENT <Canvas>, wrapped in an ErrorBoundary so
+ *      a WebGL failure degrades to "monastery + chat + timer", never blank.
+ *   3. the chat and the caption as plain DOM, independent of the canvas.
  * No post-processing — the EffectComposer DoF pass was throwing per-frame GL
  * errors that blanked the output on real drivers.
+ *
+ * Two voices only (DESIGN-SYSTEM § Type): Spectral for the wordmarks, the
+ * label, the timer and the inscription; Public Sans for the chat.
  */
 function BannerScene() {
   return (
     <>
-      <ambientLight intensity={0.55} color={'#9fb8d6'} />
-      <directionalLight position={[-4, 5, 3]} intensity={2.8} color={'#dce8ff'} />
-      <pointLight position={[2, -1, 2]} intensity={5} color={'#3a6aa0'} distance={14} />
-      <Suspense fallback={null}>
-        <Banner position={[1.0, 0.9, 0]} />
-      </Suspense>
+      <ambientLight intensity={0.6} color={"#9fb0cc"} />
+      <directionalLight
+        position={[0, 5, 3]}
+        intensity={2.6}
+        color={"#f2f5fa"}
+      />
+      <pointLight
+        position={[0, -1, 2]}
+        intensity={4}
+        color={"#5b8fd6"}
+        distance={14}
+      />
+      <Banner
+        markUrl="/brand/panterasbox-hex-white.svg"
+        wordmark="Pantera's Box"
+        position={[-BANNER_X, BANNER_TOP, 0]}
+      />
+      <Banner
+        markUrl="/brand/saxonberg-rings-white.svg"
+        wordmark="Saxonberg"
+        position={[BANNER_X, BANNER_TOP, 0]}
+        phase={0.37}
+      />
     </>
+  );
+}
+
+/**
+ * A fixed 1920 × 1080 stage, scaled to fit the viewport. Every position in
+ * this scene is in canvas pixels, so the layout holds in an OBS browser
+ * source (1920 × 1080 at 1×), a preview window, or a scaled display.
+ */
+function Stage({ children }: { children: ReactNode }) {
+  const fit = () =>
+    Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  const [scale, setScale] = useState(fit);
+  useEffect(() => {
+    const onResize = () => setScale(fit());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        width: 1920,
+        height: 1080,
+        transform: `translate(-50%, -50%) scale(${scale})`,
+        overflow: "hidden",
+      }}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -43,7 +108,7 @@ export default function StandbyOverlay() {
   // saxonberg's StreamState.awayUntil; otherwise fall back to ?until=
   // / demo (undefined override).
   const feed = useStreamState();
-  const override = feed.connected ? feed.state?.awayUntil ?? null : undefined;
+  const override = feed.connected ? (feed.state?.awayUntil ?? null) : undefined;
   const timer = useAwayTimer(override);
   const [quote, setQuote] = useState(APHORISMS[0]);
 
@@ -57,116 +122,132 @@ export default function StandbyOverlay() {
   }, []);
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundColor: palette.bg.base,
-        backgroundImage: 'url(/monastery.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        fontFamily: FACE_STACKS.sans,
-      }}
-    >
-      {/* Banner layer — transparent, isolated from the rest of the tree.
+    <Stage>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: palette.bg.ground,
+          backgroundImage: "url(/monastery.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          fontFamily: FACE_STACKS.chrome,
+        }}
+      >
+        {/* Deepen the backdrop toward the ink ground so the panels read. */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background:
+              "radial-gradient(ellipse at center, rgba(7,18,36,0.35) 30%, rgba(4,11,23,0.85) 100%)",
+          }}
+        />
+
+        {/* Banner layer — transparent, isolated from the rest of the tree.
           The fallback is a visible diagnostic: if you see it, WebGL failed
           to initialize in this viewer (not a banner bug). */}
-      <ErrorBoundary
-        fallback={
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 12,
-              right: 14,
-              fontFamily: FACE_STACKS.mono,
-              fontSize: '0.72rem',
-              color: palette.accent.red,
-              opacity: 0.85,
-              pointerEvents: 'none',
+        <ErrorBoundary
+          fallback={
+            <div
+              style={{
+                position: "absolute",
+                bottom: 12,
+                right: 14,
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: "0.72rem",
+                color: palette.text.mute,
+                pointerEvents: "none",
+              }}
+            >
+              banners: WebGL unavailable in this viewer
+            </div>
+          }
+        >
+          <Canvas
+            style={{ position: "absolute", inset: 0 }}
+            camera={{ position: [0, 0.2, 3.6], fov: 36 }}
+            gl={{ antialias: true, alpha: true }}
+            dpr={[1, 2]}
+            onCreated={({ gl }) => {
+              // eslint-disable-next-line no-console
+              console.log(
+                "[rodney] WebGL context OK:",
+                gl.getContext().getParameter(0x1f01),
+              );
             }}
           >
-            banner: WebGL unavailable in this viewer
+            <BannerScene />
+          </Canvas>
+        </ErrorBoundary>
+
+        {/* The chat, between the banners. */}
+        <div
+          style={{
+            position: "absolute",
+            left: COLUMN.left,
+            width: COLUMN.width,
+            top: COLUMN.top,
+            bottom: COLUMN.bottom,
+          }}
+        >
+          <ChatPanel lines={feed.chat} />
+        </div>
+
+        {/* The caption, below them. */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 1080 - COLUMN.bottom + 28,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            pointerEvents: "none",
+            textShadow: "0 2px 18px rgba(4,11,23,0.8)",
+            fontFamily: FACE_STACKS.display,
+          }}
+        >
+          <div
+            style={{
+              color: palette.text.dim,
+              fontWeight: 500,
+              letterSpacing: "0.19em",
+              fontSize: 20,
+              textTransform: "uppercase",
+              marginBottom: 6,
+            }}
+          >
+            {timer.expired ? "Resuming" : "Stream resumes in"}
           </div>
-        }
-      >
-        <Canvas
-          style={{ position: 'absolute', inset: 0 }}
-          camera={{ position: [0, 0.2, 3.6], fov: 36 }}
-          gl={{ antialias: true, alpha: true }}
-          dpr={[1, 2]}
-          onCreated={({ gl }) => {
-            // eslint-disable-next-line no-console
-            console.log('[rodney] WebGL context OK:', gl.getContext().getParameter(0x1f01));
-          }}
-        >
-          <BannerScene />
-        </Canvas>
-      </ErrorBoundary>
 
-      {/* CSS vignette (replaces the WebGL post pass). */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0) 42%, rgba(0,8,20,0.72) 100%)',
-        }}
-      />
+          <div
+            style={{
+              color: timer.urgent ? palette.accent : palette.text.fg,
+              fontWeight: 500,
+              fontSize: 88,
+              fontVariantNumeric: "tabular-nums lining-nums",
+              lineHeight: 1,
+            }}
+          >
+            {timer.expired ? "any moment" : timer.label}
+          </div>
 
-      {/* DOM overlay — always renders, independent of WebGL. */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          paddingBottom: '7vh',
-          pointerEvents: 'none',
-          textShadow: '0 2px 18px rgba(0,8,20,0.7)',
-        }}
-      >
-        <div
-          style={{
-            fontFamily: FACE_STACKS.sans,
-            color: palette.text.muted,
-            letterSpacing: '0.42em',
-            fontSize: '0.95rem',
-            textTransform: 'uppercase',
-            marginBottom: '0.6rem',
-          }}
-        >
-          {timer.expired ? 'Resuming' : 'Stream Resumes In'}
-        </div>
-
-        <div
-          style={{
-            fontFamily: FACE_STACKS.mono,
-            color: timer.urgent ? palette.accent.red : palette.text.primary,
-            fontSize: '5.2rem',
-            fontVariantNumeric: 'tabular-nums',
-            lineHeight: 1,
-          }}
-        >
-          {timer.expired ? 'any moment' : timer.label}
-        </div>
-
-        <div
-          style={{
-            fontFamily: FACE_STACKS.serif,
-            color: palette.text.secondary,
-            fontStyle: 'italic',
-            fontSize: '1.5rem',
-            marginTop: '1.4rem',
-            maxWidth: '40ch',
-            textAlign: 'center',
-          }}
-        >
-          {quote}
+          <div
+            style={{
+              color: palette.text.dim,
+              fontSize: 28,
+              marginTop: 14,
+              maxWidth: "48ch",
+              textAlign: "center",
+            }}
+          >
+            {quote}
+          </div>
         </div>
       </div>
-    </div>
+    </Stage>
   );
 }

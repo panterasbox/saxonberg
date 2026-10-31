@@ -1,40 +1,72 @@
-import { useMemo, useRef } from 'react';
-import { useFrame, useLoader } from '@react-three/fiber';
-import { SRGBColorSpace, TextureLoader } from 'three';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
+import type { Texture } from 'three';
 import Flag from '../../engine/Flag';
 import Wind from '../../engine/Wind';
 import { windModifiers } from '../../engine/windModifiers';
 import applyWindForceToCloth from '../../engine/applyWindForceToCloth';
 import applyGravityToCloth from '../../engine/applyGravityToCloth';
 import { Side, TIME_STEP } from '../../engine/constants';
+import { BANNER_SIZE, paintBanner, type BannerFace } from './bannerTexture';
+
+interface BannerProps extends BannerFace {
+  position?: [number, number, number];
+  /** Offsets this banner's gusts so two banners never move in lockstep. */
+  phase?: number;
+}
 
 /**
- * The Pantera's Box banner — a hanging cloth (ported flagwaver engine) on a
- * brass crossbar with finials. Tuned calm: low wind, heavy cloth, slow gusts.
+ * A brand banner — a hanging cloth (ported flagwaver engine) on a brass
+ * crossbar with finials, its face painted from a brand mark. Renders nothing
+ * until the face is painted (fonts and the SVG load first).
  */
-export default function Banner({ position = [0, 0, 0] }: { position?: [number, number, number] }) {
-  const albedo = useLoader(TextureLoader, '/banner-albedo.png');
+export default function Banner({ markUrl, wordmark, position = [0, 0, 0], phase = 0 }: BannerProps) {
+  const [texture, setTexture] = useState<Texture | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    let painted: Texture | null = null;
+    paintBanner({ markUrl, wordmark }).then((t) => {
+      if (cancelled) t.dispose();
+      else setTexture((painted = t));
+    });
+    return () => {
+      cancelled = true;
+      painted?.dispose();
+    };
+  }, [markUrl, wordmark]);
+
+  if (!texture) return null;
+  return <HangingCloth texture={texture} position={position} phase={phase} />;
+}
+
+function HangingCloth({
+  texture,
+  position,
+  phase,
+}: {
+  texture: Texture;
+  position: [number, number, number];
+  phase: number;
+}) {
   const { flag, wind } = useMemo(() => {
-    albedo.colorSpace = SRGBColorSpace;
-    albedo.anisotropy = 16;
     const flag = new Flag({
-      width: 1.0,
-      height: 1.78,
+      width: BANNER_SIZE.width,
+      height: BANNER_SIZE.height,
       granularity: 15,
       mass: 0.4, // heavy felt — resists wind, same gravity drape
-      texture: albedo,
+      texture,
       pinEdge: Side.TOP,
     });
     const wind = new Wind({
-      speed: 4.0, // calmer than the original 6.5, with a little more life
+      speed: 4.0,
       directionFn: windModifiers.hangingBannerDirection,
       speedFn: windModifiers.gustySpeed,
     });
     return { flag, wind };
-  }, [albedo]);
+  }, [texture]);
 
-  const acc = useRef(0);
+  const acc = useRef(-phase);
   useFrame((_, delta) => {
     acc.current += Math.min(delta, 0.1);
     let steps = 0;
@@ -49,24 +81,24 @@ export default function Banner({ position = [0, 0, 0] }: { position?: [number, n
     flag.render();
   });
 
-  const rodLength = flag.cloth.width + 0.3;
+  const rodLength = flag.cloth.width + 0.26;
 
   return (
     <group position={position}>
       <primitive object={flag.object} />
 
-      {/* Crossbar the banner hangs from — aged brass, echoing the monastery's
-          armillary sphere. Cylinder's native axis is Y; rotate to horizontal. */}
+      {/* Crossbar — brass, the design system's accent. Cylinder's native axis
+          is Y; rotate to horizontal. */}
       <mesh position={[0, 0.0, -0.03]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.03, 0.03, rodLength, 20]} />
-        <meshStandardMaterial color={'#6b5524'} metalness={0.85} roughness={0.35} />
+        <cylinderGeometry args={[0.028, 0.028, rodLength, 20]} />
+        <meshStandardMaterial color={'#8a6d1f'} metalness={0.85} roughness={0.35} />
       </mesh>
 
       {/* Finials at each end. */}
       {[-1, 1].map((s) => (
         <mesh key={s} position={[s * (rodLength / 2), 0.0, -0.03]}>
-          <sphereGeometry args={[0.055, 20, 20]} />
-          <meshStandardMaterial color={'#7a6230'} metalness={0.9} roughness={0.3} />
+          <sphereGeometry args={[0.05, 20, 20]} />
+          <meshStandardMaterial color={'#c9a227'} metalness={0.9} roughness={0.3} />
         </mesh>
       ))}
     </group>

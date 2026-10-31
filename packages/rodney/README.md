@@ -9,9 +9,10 @@ Line — FTP, fail2ban and the rest — named for NetHack's Wizard of Yendor. A
 borrowed name passed on: this Rodney is the thing that runs beside Saxonberg
 when somebody goes live.
 
-The default skin is the **Pantera's Box parent brand** (navy/white/crimson,
-Borromean-rings seal, scholarly-society tone), distinct from saxonberg's
-watercolor in-world style. The engine (feed client, scenes, the rules that
+The skin follows the brand guide in `docs/design/` — Old Glory Blue, white
+and Old Glory Red (red never touches blue), the Pantera's Box hex and the
+Saxonberg rings from `docs/design/brand/`, and two of the civic voices
+(Spectral for engraved capitals, Public Sans for chrome). The engine (feed client, scenes, the rules that
 pick them) is platform; the skin is one streamer's, and becomes a theme the
 day a second streamer runs Rodney. See
 [broadcast-ready-slate](../../docs/slates/builds/broadcast-ready-slate.md).
@@ -20,7 +21,7 @@ day a second streamer runs Rodney. See
 
 | Page | Purpose |
 | --- | --- |
-| `/standby.html` | Standby / AFK: the monastery archive, a waving PB banner, a countdown. |
+| `/standby.html` | Standby / AFK: the monastery archive, two hanging banners (the Pantera's Box hex, the Saxonberg rings), the unified chat between them, the countdown and an inscription below. |
 
 ## Run
 
@@ -30,8 +31,13 @@ pnpm --filter @saxonberg/rodney dev   # http://localhost:5200/standby.html
 ```
 
 Point an OBS **Browser Source** at `http://localhost:5200/standby.html` (1920×1080).
-Set the countdown target with `?until=<epoch_ms>` (later: pushed from saxonberg's
-`awayUntil` over WebSocket).
+Set the countdown target with `?until=<epoch_ms>` when no feed is configured.
+Add `?mock` to feed the chat canned lines, so the page can be looked at with no
+server. Every scene lays out on a fixed 1920×1080 stage scaled to the window.
+
+The banners' faces are painted at runtime from the brand SVGs
+(`src/scenes/standby/bannerTexture.ts`), so a change to a mark in
+`docs/design/brand/` is copying the SVG into `public/brand/`.
 
 ## Art generation
 
@@ -51,6 +57,6 @@ were removed from three.js in r125. Material upgraded to `MeshStandardMaterial` 
 
 ## Brand tokens
 
-`src/tokens/faces.ts` and `src/tokens/palette.ts` mirror saxonberg's `faces.ts` so the
-chrome and the game share one typographic + color system. Fonts are self-hosted under
-`public/fonts/` (copied from saxonberg, no CDN — safe for OBS).
+`src/tokens/palette.ts` is `docs/design/handoff/DESIGN-SYSTEM.md` § Colour (the Ink
+theme); `src/tokens/faces.ts` is its § Type, two voices. Fonts are self-hosted under
+`public/fonts/` (copied from saxonberg's client, no CDN — safe for OBS).
