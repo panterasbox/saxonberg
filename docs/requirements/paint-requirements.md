@@ -31,7 +31,7 @@ designed with the owner on 2026-10-31.
 - **Color** is a model for cloth only: dyes, alum and the subtractive stack
   ([textiles.md](../subsystems/textiles.md)).
 - **Upstream that ships:** the limekiln, quicklime and milk of lime (the chandlery already calls it
-  *limewash*); flax seed and the `press` verb; milk, curd and eggs; rawhide and the knackers;
+  *limewash*); flax seed; `mill` grinding any material a recipe names; milk, curd and eggs; rawhide and the knackers;
   clay carrying goethite; chalk; soot in flues; malachite; copper; lead; wine vinegar; madder and
   alum; Scots pine, standing in Hanging Wood; the tappable tree and the `tap` verb (maple, birch);
   the still and its cut schedules; `mill`, `pour`, `stir`; `write` on a surface that bears marks.
@@ -228,7 +228,7 @@ per act.)
 
 1. At Wharfside, `look` shows the colorman's shop beside the chandlery. The colorman sells
    linseed oil, ochre, chalk, lampblack, lead white, brushes and ready paint.
-2. In the colorman's yard, flax seed `press`ed gives linseed oil.
+2. In the colorman's yard, flax seed `mill`ed at the oil mill gives linseed oil.
 3. Ochre clay `mill`ed gives yellow ochre. Some of it, burnt, comes out red.
 4. Linseed `pour`ed into a pot, ochre added, `stir` — a pot of yellow-ochre oil paint. `look`
    names its binder, its pigment and its color.
@@ -240,7 +240,7 @@ per act.)
 8. From the lane, `paint cottage with paint` — the brush lays a coat; the pot empties by the area
    painted. The survey shows a wet coat, then (in dry air) a set one, then a sound building.
 9. Paint in the rain: the coat sets badly and the survey says so.
-10. Limewash: the chandlery's milk of lime on a brick building's outside sets over days by taking
+10. Limewash: milk of lime (slaked at the chandlery's kettle, or bought from the colorman) on a brick building's outside sets over days by taking
     CO₂ back from the air.
 11. `maintain` from inside mends the fabric and leaves the coat to `paint`.
 12. Restage (reboot): a staged building painted blue comes back as its row describes it; a building
