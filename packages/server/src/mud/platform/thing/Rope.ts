@@ -30,11 +30,18 @@
  * ⭐ A hose is not a rope (the owner: *a rope and a hose are different
  * things; if they share a superclass that's fine*): the diving pack's
  * `Hose` is the other `Line`.
+ *
+ * ⭐ And a rope is what holds a ship to the shore (harbors P6,
+ * `MooringLineMixin`): made fast round a bollard, the rope stays at her
+ * bitts and its end lies on the quay round the bollard — the free end tied
+ * to a fixture in another room, as at a drop. `untie` that end on the quay
+ * and the line is off: the ship is held by one line fewer.
  */
 
 import Line from '../../lib/spatial/Line';
 import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
+import { MooringLineMixin, type Moorer } from '../../lib/spatial/MooringLine';
 import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceable';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { GradedMixin } from '../../lib/craft/Graded';
@@ -193,7 +200,7 @@ const ropeAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line)))) {
+export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line))))) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: HELD,
@@ -540,10 +547,59 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Gr
     return { ok: false, reason: 'not-tied', line: `${GrammarApi.cap(this.getPresentation())} is not tied to anything.` };
   }
 
-  /** Cast off the free end: its knot goes with it. */
+  /**
+   * Cast off the free end: its knot goes with it. Its end round a bollard
+   * ashore too — and the ship it held is told (harbors P6).
+   */
   public override async castOff(): Promise<void> {
+    if (this.isMadeFast()) await this.endLifted();
     await super.castOff();
     this.knots = this.knots.filter((k) => k.end !== 'free');
+  }
+
+  /* ─────────────────────────── a mooring line (harbors P6) ─────────────────────────── */
+
+  /** ⭐ How far it reaches from her rail to a bollard. */
+  public override lineLengthM(): number {
+    return this.lengthM;
+  }
+
+  /**
+   * ⭐ The end goes ashore round `bollard`: minted beside it and tied to it,
+   * the rope itself staying where it is — aboard her. A rope tied off here
+   * (round a post, down a drop) has no end to spare.
+   */
+  protected override async mintMooringEnd(bollard: Stuff, ship: Moorer): Promise<Stuff | null> {
+    if (this.getAnchor() !== null) return null;
+    const shore = MixinApi.isContainable(bollard) ? bollard.getContainer() : null;
+    if (shore === null || !MixinApi.isContainer(shore)) return null;
+    // A rope in somebody's hands on its end is not also round a bollard.
+    await super.castOff();
+    const end = await this.mintEnd(shore as Stuff & Container);
+    end.lashTo(bollard);
+    const name = ship.getName();
+    if (name) {
+      end.setShortDescription(`line from ${name}`);
+      end.setKeywords([...end.getKeywords(), 'mooring', ...name.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
+      end.setLongDescription(
+        `A mooring line comes ashore from ${name}, made fast round ${bollard.getPresentation()} with a round turn and two half hitches.`,
+      );
+    }
+    return end;
+  }
+
+  /**
+   * ⭐ `untie line` on the quay: the end off the bollard it is round, and let
+   * go — it falls slack along her side, and the ship is told.
+   */
+  public override async untieEnd(by: Stuff, load: Stuff): Promise<TieOutcome | null> {
+    if (!this.isMadeFast() || this.madeFastTo() !== load) return null;
+    await this.endLifted();
+    return {
+      ok: true,
+      line: `You cast the line off ${load.getPresentation()} and let it go; it falls slack into the water along her side.`,
+      peers: `casts a mooring line off ${load.getPresentation()}.`,
+    };
   }
 
   /**

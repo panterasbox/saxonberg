@@ -123,7 +123,7 @@ describe('the line’s regulars (harbors A2)', () => {
       expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/CartesianZone');
       const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number }>; exits: Record<string, { kind?: string }> };
       expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
-      expect(deck.props).toContainEqual({ template: '/stuff/thing/mooring-line', count: 2 });
+      expect(deck.props).toContainEqual({ template: '/platform/thing/mooring-line', count: 2 });
       expect(deck.exits.ashore?.kind).toBe('/platform/idea/exits/ashore');
       const company = data(d.house) as {
         positions: Array<{ key: string }>;

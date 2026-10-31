@@ -20,7 +20,7 @@ data:
     - /system/transport/thing/tiller
     - /system/transport/thing/dinghy
     # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
-    - { template: /stuff/thing/mooring-line, count: 2 }
+    - { template: /platform/thing/mooring-line, count: 2 }
   exits:
     # ⭐ Ashore is wherever she is made fast (P4), worked out when taken;
     # the destination is only her home port. The way back aboard is hers.

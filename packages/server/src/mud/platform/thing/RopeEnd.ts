@@ -36,9 +36,13 @@ export default class RopeEnd extends ClimbableMixin(LineEnd) {
     return this.getAxes().includes(direction);
   }
 
-  /** A hanging end stays where it hangs: it is the rope, not a thing to pick up. */
+  /**
+   * A hanging end stays where it hangs: it is the rope, not a thing to pick
+   * up. So does a mooring line's end round a bollard — you `untie` it.
+   */
   public override isFixedInPlace(): boolean {
-    return super.isFixedInPlace() || (this.rope()?.isHung() ?? false);
+    const rope = this.rope();
+    return super.isFixedInPlace() || (rope?.isHung() ?? false) || (rope?.isMadeFast() ?? false);
   }
 
   /** @hook A climb up the rope from its end takes the same wear (D11). */

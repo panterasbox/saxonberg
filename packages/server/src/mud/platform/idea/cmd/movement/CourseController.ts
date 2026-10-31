@@ -114,7 +114,9 @@ export default class CourseController extends CommandController<CourseModel> {
       const lying = craft.getExpansePosition();
       // ⭐ At a river's mouth, the river's name takes her in over the bar
       // and onto its line (river D29): the next course is the river's.
-      const river = target instanceof ExpanseNode ? target.getRiver() : null;
+      // ⚠ Only the RIVER's name: `course bar` lying at the bar is where she
+      // already is, never in over it.
+      const river = target instanceof ExpanseNode && target.namesRiver(heading) ? target.getRiver() : null;
       if (lying !== null && target.isAt(lying) && river !== null) {
         return this.intoRiver(context, craft, river);
       }

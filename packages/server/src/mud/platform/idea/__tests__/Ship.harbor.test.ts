@@ -114,7 +114,7 @@ function bollardOn(room: Stuff & Container): Bollard {
 }
 
 function lineOn(room: Stuff & Container, length = 30): TestLine {
-  const l = makeStuffAtPath(() => new TestLine(), '/stuff/thing/mooring-line');
+  const l = makeStuffAtPath(() => new TestLine(), '/platform/thing/mooring-line');
   l.length = length;
   ContainmentApi.move(l, room);
   return l;

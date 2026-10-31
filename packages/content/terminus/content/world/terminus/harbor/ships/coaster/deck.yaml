@@ -15,7 +15,7 @@ data:
     - /system/water/thing/lead-line
     - /stuff/thing/instrument/hand-compass
     # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
-    - { template: /stuff/thing/mooring-line, count: 2 }
+    - { template: /platform/thing/mooring-line, count: 2 }
   cast:
     - /world/terminus/harbor/ships/coaster/agent/master
   exits:

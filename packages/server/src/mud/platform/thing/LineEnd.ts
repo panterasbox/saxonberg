@@ -110,10 +110,23 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
     }
     const load = this.getLashedTo();
     if (load === null) return { ok: false, reason: 'not-tied', line: 'The end is not tied to anything.' };
+    const said = line !== null ? await line.untieEnd(by, load) : null;
+    if (said !== null) return said;
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', line: 'You have no hands to take it in.' };
     this._lashedTo = null;
     ContainmentApi.move(this, by as Stuff & Container);
     return { ok: true, line: `You cast the end of the line off ${load.getPresentation()} and take it up.` };
+  }
+
+  /**
+   * Tie a freshly minted end to `load`, beside it — its line put it there
+   * (a mooring line's end round a bollard ashore, harbors P6).
+   */
+  public lashTo(load: Stuff): void {
+    if (!MixinApi.isContainable(load) || load.getContainer() !== this.getContainer()) {
+      throw new Error(`LineEnd.lashTo: ${load.getPresentation()} is not beside the end`);
+    }
+    this._lashedTo = load;
   }
 
   /** Keep the end with the load it is tied to (the haul moves both). */

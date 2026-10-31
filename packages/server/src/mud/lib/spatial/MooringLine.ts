@@ -2,26 +2,24 @@
  * MooringLineMixin — ⭐ **a line that holds a ship to the shore** (harbors
  * P6): one end at her bitts, aboard; the other ashore, round a bollard.
  *
- * The shape is the rope's own — a line has two ends, each in a room — and
- * the diving trade's on master (`Lifeline.makeFast` mints its free end into
- * another container). What this protocol adds is the second use of that
- * end: made fast round a FIXTURE rather than put in a person's hands.
+ * The shape is the rope's own (cordage): a line has two ends, each in a
+ * room, and a rope tied off above a drop mints its end into the room below.
+ * What this protocol adds is the end made fast round a FIXTURE in another
+ * room — the quay's bollard — while the rope stays aboard. `Rope` composes
+ * it (cordage's one rope: its use is where its ends are tied).
  *
  * - **`makeFastRound(bollard, ship)`** keeps the line where it is (on her
  *   deck) and has the composer mint its end beside the bollard — a real
  *   thing on the quay (`mintMooringEnd`), so `look` on the quay sees it.
- * - **The end leaving the bollard casts the line off** (`endLifted`):
- *   somebody lifts it off and the ship is told (`Moorer.lineCastOff`); her
- *   last line off and she is no longer moored.
+ * - **The end untied from the bollard casts the line off** (`endLifted`):
+ *   somebody on the quay `untie`s it and the ship is told
+ *   (`Moorer.lineCastOff`); her last line off and she is no longer moored.
  * - **`castOffMooring()`** brings the end in from aboard — the ship's own
  *   act when she sails — and tells her nothing (she asked).
  *
- * ⚠ Which line is fast to what is RUNTIME (a live ref), like the diving
- * line's end: the ship keeps the fact that she is moored and re-makes her
- * lines fast when she loads (`Ship.onRestored`).
- *
- * The cordage seam: when `Rope` lands it composes this protocol in place of
- * `Lifeline` (harbors-plan § Deferred seams).
+ * ⚠ Which line is fast to what is RUNTIME (a live ref), like a rope's end:
+ * the ship keeps the fact that she is moored and re-makes her lines fast
+ * when she loads (`Ship.onRestored`).
  */
 
 import type { MixinConstructor } from '../mixin';

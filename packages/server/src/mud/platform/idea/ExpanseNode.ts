@@ -78,6 +78,20 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
   public getRiver(): string | null { return this.river; }
   public setRiver(v: string | null): void { this.river = v ?? null; }
 
+  /**
+   * ⭐ Does `heading` name the river that comes out here (by its key —
+   * `kestrel`), rather than this node itself? Lying at the bar, `course
+   * kestrel` takes her in over it; `course bar` is where she already is.
+   */
+  public namesRiver(heading: string): boolean {
+    const river = this.river;
+    if (river === null) return false;
+    const key = (river.split('/').pop() ?? '').toLowerCase();
+    if (key === '') return false;
+    const words = heading.trim().toLowerCase().replace(/^the\s+/, '').split(/\s+/);
+    return words.includes(key) && !words.some((w) => w === 'bar' || w === 'mouth' || w === 'sea');
+  }
+
   protected kind: NodeKind = 'passage';
   protected passage: PassageKind | null = 'areal';
   protected destination: string | null = null;

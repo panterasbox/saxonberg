@@ -36,6 +36,7 @@ import type { Containable } from './Containable';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../mixin';
 import type { Buoy } from '../location/Buoy';
+import type { TieOutcome } from './Tieable';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import { ContainmentApi } from '../../api/containment';
@@ -171,6 +172,18 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     this._end = end;
     this._tugs = [];
     return end;
+  }
+
+  /**
+   * @hook `untie end` on an end tied to `load` (a fixture, a thing on the
+   * bed): what the LINE says untying it means, or `null` for the end's own
+   * (into the untier's hands). A rope moored round a bollard answers: the
+   * line is off and the ship is told (harbors P6).
+   */
+  public async untieEnd(by: Stuff, load: Stuff): Promise<TieOutcome | null> {
+    void by;
+    void load;
+    return null;
   }
 
   /** Let go of the free end: whoever had it is off the line. */
