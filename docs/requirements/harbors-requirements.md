@@ -138,7 +138,8 @@ herself on the bottom.
 
 ## Non-goals
 
-- **A boat crossing the open sea** (Bligh's launch, rowing for land) — a boat
+- **A boat crossing the open sea** (Bligh's launch, rowing for land, going
+  ashore from the roads) — a boat
   under way at sea needs a sea place the boat drives →
   [ships-and-harbors-slate](../slates/builds/ships-and-harbors-slate.md) § 17
   (contradicted by the river build's *boats are never positioned*; reconcile
@@ -188,8 +189,9 @@ herself on the bottom.
   joined to the estuary. Its layout: the **Town Quay** (room for about three
   ships, the harbor office on it), the **Fish Quay** (one), the **Harbor
   Stairs** (a public landing for boats, where a rescuer can carry someone up
-  out of the water), and **the roads** outside the bar as the anchorage,
-  reached by boat. Every quay has **bollards** — real fixtures a line is made
+  out of the water), and **the roads** outside the bar as the anchorage —
+  a ship goes there by `course` and her people stay aboard (going ashore from
+  the roads by boat is a boat crossing open water, a non-goal). Every quay has **bollards** — real fixtures a line is made
   fast to. Wharfside stays the river quay; the *Ostrander* berths there (every
   compass point off its bank is taken, so ways to and from it are named).
 - **The ship chandler** is a seller on the Town Quay.
@@ -289,7 +291,8 @@ the same bands, the same upkeep act and the same terms of who owes it. What
 the band MEANS differs by kind: a worn house reads worn; a worn hull leaks. A
 sleeping ship's leak catches up when she is next looked at (lens 1): a
 neglected ship at her berth has **settled onto the shallow harbor bottom** and
-can be pumped out; one left untended at anchor in deep water for that long
+can be pumped out — a harbor's berths are mud berths, each quay's depth
+authored by the harbor (grain, until a dredger makes it derived); one left untended at anchor in deep water for that long
 has sunk — real neglect, longer than a weekend away. Told as states ("after a long
 absence"), never as a number of days.
 
