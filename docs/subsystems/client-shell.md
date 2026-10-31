@@ -18,42 +18,44 @@ the conventions already in the tree. Nothing content-specific is baked in
 emote palette are all server-sent), and the client shadows no state
 machine the server owns.
 
-## ⭐⭐ The desktop frame — rail, stage, status bar
+## ⭐⭐ The desktop frame — top bar, rail, stage, status bar
 
-*Since the client-surface build (2026-10-31) there is no top bar.* The
-desktop frame is three pieces:
+The desktop frame is four pieces:
 
 ```
-┌──────┬──────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────┐
+│ top bar: seal · connection · account · [shelf] · Views · Settings │
+├──────┬──────────────────────────────────────────────────────┤
 │ rail │  ModeStage: [panel] [terminal column] [card area]    │
 │      │                                                      │
 ├──────┴──────────────────────────────────────────────────────┤
-│ status bar:  [shelf figures] [preview ─────────] [tray]     │
+│ status bar:  [preview ──────────────────────────] [tray]    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-- **The rail** (`components/frame/Rail.tsx`, `data-testid="nav-rail"`,
-  3.5rem) runs down the left edge: the seal and connection chip at the
-  top, the **modes as words** (a rail of initials is a quiz, B24) — each a
-  real `cockpit mode <m>`, previewed in the status bar — the icons of a
-  collapsed panel's cards under them, and the **you-corner** at the foot:
-  `AccountMenu` and a settings icon that sends the `settings` verb
-  (settings are a card now, not a docked panel). `Frame.tsx` is retired,
-  and `ViewsMenu` with it on the desktop.
+- **The top bar** (`components/frame/Frame.tsx`, `data-testid="top-bar"`)
+  is master's, unchanged: seal, connection chip, `AccountMenu`, the
+  **widget shelf**, the **Views** menu and **Settings** (which toggles
+  the settings panel). See § *The top bar — the pieces, and why*.
+- **The rail** (`components/frame/Rail.tsx`, `data-testid="nav-rail"`)
+  runs down the left edge under it and holds only the **modes as words**
+  (a rail of initials is a quiz, B24) — each a real `cockpit mode <m>`,
+  previewed in the status bar — and the icons of a collapsed panel's
+  cards. It never repeats what the top bar carries.
 - **The stage** (`layouts/ModeStage.tsx`) composes four regions for
   every desktop mode — see § *Width tiers* below and
   [cockpit.md § The client stage](./cockpit.md).
-- **The status bar** carries the **shelf** at its left (plain words, B18),
-  the one command preview in the middle, and the **tray** at its right
-  — see § *The status bar*.
+- **The status bar** carries the one command preview and the **tray**
+  of minimized cards at its right — see § *The status bar*.
 
 A mode with no stage renders its fallback VISIBLY: *govern isn't laid
 out yet — showing explore*.
 
-⭐ What follows in this section is the top bar's reasoning about its
-pieces, which moved into the rail and the status bar unchanged.
+⛔ **B42 (2026-10-31): the build first retired the top bar** and moved
+its pieces into the rail and the status bar. That was never agreed and
+was reversed: the top bar is master's again, the rail is modes only.
 
-## The top bar (retired) — the pieces, and why
+## The top bar — the pieces, and why
 
 `components/frame/Frame.tsx` was one row, rendered once above the layout
 registry, so it was present in every mode:
@@ -731,15 +733,10 @@ only a real browser with `isMobile: true` can see it.
 
 ## The widget shelf
 
-`components/frame/Shelf.tsx`. The player-pinned row of figures — at the
-left of the **status bar** since the client-surface build (it rode the
-top bar before) — and **the first consumer of the honest-state
-primitives**.
-
-⭐ **Labels are plain words** (#77, B18): Standing · Known · Skills ·
-Body · Making · Money · Status · Time · Who's on · Docket, in title case;
-the figure keeps its engraved display style. The row ids below (`PLAY`,
-`RENOWN`, …) are the `cockpit shelf` vocabulary and did not change.
+`components/frame/Shelf.tsx`. The player-pinned row of figures in the
+**top bar** — and **the first consumer of the honest-state primitives**.
+Its labels are the row ids (`PLAY`, `RENOWN`, `SKILL`, …); the build's
+plain-word relabel (#77) went back with the top bar (B42).
 
 ⭐⭐ **Three of the nine rows have a live server read and six do not.**
 A shelf showing nine confident numbers would be lying about six of them,
@@ -1570,9 +1567,9 @@ that a primitive with no consumer can drift. Build B closed it.)
   `Login`, the hardcoded guest-surname fallback list was deleted (real
   `common` NameBank only), and `PRONOUN_LABELS` was colocated with the
   `Pronouns` enum in `@saxonberg/types`.
-- **The client-surface build (2026-10-31)** replaced the top bar with
-  the nav **rail** and moved the **shelf** (plain-word labels) and a
-  **tray** of minimized cards into the status bar; made every width a
+- **The client-surface build (2026-10-31)** added the mode **rail**
+  under master's top bar (it first replaced the top bar; B42 reversed
+  that) and a **tray** of minimized cards in the status bar; made every width a
   **rem** token read by one hook (`useWidthTier`, so zoom is a
   breakpoint); composed every desktop mode from one `ModeStage` (panel ·
   terminal column with the medium slot · card area); turned the tab

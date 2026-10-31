@@ -803,6 +803,19 @@ unit terminal card).
 - **B3, corrected by the drive** — "used" had read `hasInteriorBulk()`,
   which says the vessel HAS an interior slot (every glass does), so the
   gate never closed. It now reads a non-empty interior.
+- ⛔⛔ **B42 — the navigation and chrome are master's (2026-10-31, the
+  owner's call).** *"This build wasn't supposed to touch that stuff."*
+  The requirements' "the top bar retires" was built without the owner
+  agreeing to replace the navigation. Corrected to the owner's choice:
+  master's **top bar** (`Frame`: seal, connection, account, the shelf
+  with its PLAY · RENOWN · SKILL words, Views, Settings toggling the
+  settings panel) is back across the top; the **rail** stays under it
+  for **modes only**; the build's **stage** (panel, terminal column, card
+  workspace, terminals as cards) is unchanged; the **status bar** holds
+  the preview and the **tray**; the **phone shell** is unchanged. **#77
+  does not close.** ⚠ A first attempt (`5006c247b`) over-reverted to
+  master's layouts as well and took the build out; it was undone in
+  `61134f201`.
 
 ---
 

@@ -23,7 +23,7 @@ cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
 cockpit layout <name>         the card arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
-cockpit shelf list|pin|unpin|first  which figures ride the status bar
+cockpit shelf list|pin|unpin|first  which figures ride the top bar
 cockpit style <sub> …         appearance
 cockpit card <action> <card>  keep, size, place, tray or close a card
 cockpit terminal <view|#ch>   what a terminal card shows
@@ -49,9 +49,7 @@ cockpit shelf first <row>     move it to the front
 ```
 
 Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
-`docket` — ids; the status bar labels them in plain words (Standing ·
-Known · Skills · Body · Making · Money · Status · Time · Who's on ·
-Docket). Persists to **`cockpit.shelf`**; the surface it drives is
+`docket` — ids, which the top bar's shelf shows as its labels. Persists to **`cockpit.shelf`**; the surface it drives is
 documented in [client-shell.md § The widget shelf](./client-shell.md).
 
 ### ⭐ `first`, and the glance-line
@@ -489,8 +487,8 @@ phone renders `PhoneShell` instead. Geometry, chrome and the phone are
   view is kept in step with the console's active view, so the view editor
   edits what the terminal shows (B33). Before the server has minted a
   primary, the shipped tab strip drives the column.
-- An **always-on minimum** (the rail, the status bar, a command bar)
-  renders in every mode.
+- An **always-on minimum** (the top bar, the mode rail, the status bar,
+  a command bar) renders in every mode.
 
 ### The streamer control deck
 
@@ -765,9 +763,9 @@ grew `close` · `grow` · `shrink` · `minimize` · `restore` · `move` ·
 `place` · `unplace` · `unpin` through one `arrange` door and the
 `card-arranged` envelope; `cockpit terminal` arrived with terminal cards,
 a primary per mode (`MODE_PRIMARY_FILTER`) and prompts per bar.
-Arrangements record each card's shape and place in units. The top
-`Frame` bar, `ViewsMenu` on the desktop and the per-mode layout
-components retired into the rail, the status bar and one `ModeStage`;
-watch ships a stream-chat terminal card. See
+Arrangements record each card's shape and place in units. The per-mode
+layout components retired into one `ModeStage` with a mode rail beside
+it; the top `Frame` bar with `ViewsMenu` and the shelf stays above
+(retired by the build, restored by B42); watch ships a stream-chat terminal card. See
 `docs/plans/client-surface-plan.md` (D5, D6, D8, D10, B14–B16, B29–B33,
 B39) until it is retired at the sweep.
