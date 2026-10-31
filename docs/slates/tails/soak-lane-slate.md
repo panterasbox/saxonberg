@@ -10,7 +10,8 @@
 > issues), the census of every clock-jumping wire file, and the staging tools (eval over every Api,
 > test-runner parcels, the weather pin, the `testharness` verb) — testing.md § The soak lane.
 > **Left:** logging drive bodies out across long jumps (§ 4) · the two root fixes (§ 5) · launching
-> `tools/soak --watch` from `saxo` · the short/span line as a wall-clock budget (§ 6.1)
+> `tools/soak --watch` from `saxo` · the short/span line as a wall-clock budget (§ 6.1) · the
+> `lint:eval-surface` ceiling to 0 (§ 7) · the sandbox `console` to the giver (§ 7)
 > **Size:** a tail
 
 ## 0. The ask **[DECIDED — the owner]**
@@ -164,7 +165,7 @@ before trusting the saving.
 
 ## 5. The two builds that remove the cost at the root **[LEAN]**
 
-1. **Session-pace body needs** ([pace-slate](./pace-slate.md)) — hunger and thirst in played time,
+1. **Session-pace body needs** ([pace-slate](../builds/pace-slate.md)) — hunger and thirst in played time,
    so a calendar jump cannot starve a logged-in body. The hands die because body needs are still on
    the calendar.
 2. **Reconcile, don't replay** — a jump derives what the interval did rather than firing every
@@ -178,3 +179,13 @@ before trusting the saving.
 3. ✅ **The skills and workflow.md** — `/requirements`, `/plan`, `/build`, `/finalize` and
    `workflow.md` § *No merge waits on the clock* carry the rule (2026-10-30, the owner's request).
 4. **The existing drives** — re-tagging build-1's and build-3's in flight, or from the next build on.
+
+## 7. Tails of the soak-harness build **[LEAN]**
+
+- **`lint:eval-surface` → 0.** The census-then-ratchet's second step: the 14 `@internal` statics an
+  `eval` can reach with no call-security gate (most are `SandboxApi`'s session statics) each get a
+  gate, a `@TestOnly` mark, or lose `@internal` if they are author surface.
+- **The sandbox's `console`** still writes to the server's stdout; routing it to the giver as
+  `shell.result` lines, capped like the result, is a one-file change in `EvalScript.buildSandbox`
+  when a drive wants it.
+
