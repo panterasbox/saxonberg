@@ -293,6 +293,8 @@ export interface Frame {
    * terminal.
    */
   tags?: string[];
+  /** Who spoke the line (`payload.speaker`), when it is speech. */
+  speaker?: { stuffId: string; displayName?: string };
   /**
    * Relay-chat provenance (`speech.relay`
    * frames), extracted from `payload` at ingest. Structured so the relay

@@ -20,6 +20,7 @@ import { registerForumHandlers } from "./store/forumActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Rail } from "./components/frame/Rail";
+import { PhoneShell } from "./components/phone/PhoneShell";
 import { MobileFrame } from "./components/frame/MobileFrame";
 import { CommandSheet } from "./components/frame/CommandSheet";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
@@ -496,6 +497,13 @@ function App() {
         ...(Array.isArray(frame.tags) && frame.tags.length > 0
           ? { tags: frame.tags }
           : {}),
+        ...(typeof (frame.payload as { speaker?: { stuffId?: unknown } } | undefined)
+          ?.speaker?.stuffId === "string"
+          ? {
+              speaker: (frame.payload as { speaker: { stuffId: string; displayName?: string } })
+                .speaker,
+            }
+          : {}),
       });
     };
     websocketClient.onAnyTopic(handle);
@@ -787,8 +795,14 @@ function App() {
                 }
               />
               <ReconnectBanner />
+              {/* ⭐ The phone is its own shape (client-surface W6): chat
+                  first, explore with a button bar, watch with the video
+                  over the terminal. */}
               <ContentRow $compact>
-                <ActiveLayout {...layoutProps} />
+                <PhoneShell
+                  {...layoutProps}
+                  storedMode={(clientState["cockpit.mode"] as CockpitMode | null | undefined) ?? null}
+                />
                 {summonedPanel === "settings" ? (
                   <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
                 ) : null}

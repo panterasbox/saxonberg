@@ -771,6 +771,27 @@ unit terminal card).
 - **B33 — the primary's view is the console's active view** (kept in step
   client-side), so the view editor edits what the terminal shows; the
   view chooser above the terminal sends `cockpit terminal <view>`.
+- **B34 — the phone's header is the shipped `MobileFrame`, inside
+  `PhoneShell`** (its glance line, pull-down and account menu are tested
+  and stay); `ViewsMenu` lives on in that account menu.
+- **B35 — chat-first on the phone is a client rule**: with no stored
+  mode the shell shows the `Chat` view client-side and sends nothing; a
+  stored mode (even `explore`) is honored.
+- **B36 — the phone's suggestion strip**: `@` names from the roster's
+  handles, `#` channels the player has heard on (from the frames — no
+  subscription), `:` emotes from the catalogue; a tap replaces the word
+  being typed and never sends.
+- **B37 — the line menu**: react opens the emote sheet; reply seeds
+  `chat <channel> ` (or `say `), tell seeds `tell <first name> `, look
+  sends `look #<speaker id>` — each shows its command.
+- **B38 — the target chip sets the bar's server-side prefix** (`cockpit
+  cli <bar> --prefix "say"` / `--clear`), so what the chip says is what
+  the server prepends, and `/look` still escapes it.
+- **B39 — retired in W6**: `WorldLayout`, `ForumLayout`, `BuilderLayout`,
+  the two livestream layouts, `LivestreamPanels`, `primitives.ts`,
+  `ChatSurface` and `SubjectShell` (`defaultSurface` moved to
+  `surfaces.ts`). `CardFeed` survives only as the host of its
+  card-behavior test suite — a finalize item.
 
 ---
 
@@ -1277,6 +1298,13 @@ out. Browser steps 19–20 and the rest of 22 pass.
 a card; chat has a terminal; watch is laid out`.
 
 ### W6 — The phone
+
+> ✅ **Done** (build). `components/phone/`: `PhoneShell` (chat first,
+> drawers by swipe or button, inline cards → `CardSheet` with a terminal
+> strip, `ModeTabs` hidden while typing, the tray in the left drawer),
+> `ButtonBar` (exits first), `LinePressMenu`, `TargetChip`, `PhoneDrawer`;
+> `CommandBar` gained `seed` / `suggest` / `onFocusChange` / `leading` /
+> `autoFocus`; frames keep their `speaker`. Decisions B34–B39.
 
 **Goal.** Chat first; explore with a button bar; watch; every card
 reachable. Browser step 23 passes.

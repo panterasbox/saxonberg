@@ -12,8 +12,7 @@
  * collapses first, because it costs two-thirds of a unit. Where each
  * card sits is the server's (`card-arranged`): the stage renders it.
  *
- * ⚠ The phone is its own design (W6); below the phone tier this renders
- * the shipped phone surface unchanged.
+ * ⚠ The phone is its own design: `PhoneShell` (W6).
  */
 
 import React from "react";
@@ -43,18 +42,13 @@ import { ALL_VIEW } from "@saxonberg/types";
 import { setActiveTab } from "../store/consoleActions";
 import { SubjectRail } from "../components/social/SubjectRail";
 import { SubjectHeader } from "../components/social/SubjectHeader";
-import { defaultSurface } from "../components/social/SubjectShell";
+import { defaultSurface } from "../components/social/surfaces";
 import { isForumSurface } from "../components/social/surfaces";
 import { ForumView } from "../components/ForumView";
 import { openForumBoard } from "../store/forumActions";
 import { TunedRail } from "../components/social/TunedRail";
 import { StreamEmbed } from "../components/embed/StreamEmbed";
 import { StreamerDeck } from "../components/StreamerDeck";
-import { WorldLayout } from "./WorldLayout";
-import { ForumLayout } from "./ForumLayout";
-import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
-import { StreamerLayout } from "./StreamerLayout";
-import { BuilderLayout } from "./BuilderLayout";
 
 const Stage = styled.div`
   display: flex;
@@ -241,24 +235,19 @@ export function usePanelOpen(): { open: boolean; units: number } {
 export interface StageConfig {
   panel: "here" | "subjects" | "tuned" | null;
   focal: "video" | "deck" | "subject" | null;
-  phone: React.FC<LayoutProps>;
 }
 
 const CONFIG = {
-  explore: { panel: "here", focal: null, phone: WorldLayout },
-  chat: { panel: "subjects", focal: "subject", phone: ForumLayout },
-  watchViewer: { panel: "tuned", focal: "video", phone: LivestreamViewerLayout },
-  watchStreamer: { panel: "tuned", focal: "deck", phone: StreamerLayout },
-  build: { panel: null, focal: null, phone: BuilderLayout },
+  explore: { panel: "here", focal: null },
+  chat: { panel: "subjects", focal: "subject" },
+  watchViewer: { panel: "tuned", focal: "video" },
+  watchStreamer: { panel: "tuned", focal: "deck" },
+  build: { panel: null, focal: null },
 } satisfies Record<string, StageConfig>;
 
+/** The phone renders `PhoneShell` (App); every stage here is a desktop's. */
 function stageFor(config: StageConfig): React.FC<LayoutProps> {
-  const Staged: React.FC<LayoutProps> = (props) => {
-    const { tier } = useWidthTier();
-    const Phone = config.phone;
-    if (tier === "phone") return <Phone {...props} />;
-    return <DesktopStage {...props} config={config} />;
-  };
+  const Staged: React.FC<LayoutProps> = (props) => <DesktopStage {...props} config={config} />;
   return Staged;
 }
 

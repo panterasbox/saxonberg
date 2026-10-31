@@ -146,6 +146,12 @@ interface TerminalProps {
    * only, at the terminal column's x.
    */
   strip?: boolean;
+  /**
+   * ⭐ The phone's line menu (client-surface W6): a long press on a line
+   * offers react · reply · tell · look, each naming its command. When
+   * absent, a long press opens the react sheet as before.
+   */
+  onLineMenu?: (frame: Frame) => void;
 }
 
 export function Terminal({
@@ -155,6 +161,7 @@ export function Terminal({
   viewerStuffId,
   onCommandSend,
   strip = false,
+  onLineMenu,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Default the viewer's stuffId to the store's `selfAvatarId` so the
@@ -219,6 +226,7 @@ export function Terminal({
               onCommandClick={onCommandClick}
               onCommandPreview={onCommandPreview}
               onLongPress={setSheetFor}
+              {...(onLineMenu ? { onLineMenu } : {})}
             />
           ))}
         </Measure>
@@ -264,6 +272,7 @@ interface TranscriptRowProps {
   onCommandClick: (command: string) => void;
   onCommandPreview: (command: string | null) => void;
   onLongPress: (target: SheetTarget) => void;
+  onLineMenu?: (frame: Frame) => void;
 }
 
 /**
@@ -280,6 +289,7 @@ function TranscriptRow({
   onCommandClick,
   onCommandPreview,
   onLongPress,
+  onLineMenu,
 }: TranscriptRowProps) {
   const reactable = useStore((s) => s.reactableTopics);
   const mine = useStore((s) =>
@@ -293,8 +303,8 @@ function TranscriptRow({
     reactable.has(frame.topic);
 
   const press = useLongPress(
-    () => onLongPress({ frameId: frame.frameId!, mine }),
-    canReact,
+    () => (onLineMenu ? onLineMenu(frame) : onLongPress({ frameId: frame.frameId!, mine })),
+    onLineMenu ? true : canReact,
   );
 
   return (
