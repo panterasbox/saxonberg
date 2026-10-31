@@ -227,10 +227,8 @@ shape; there is no migration (the keyspace is reset nightly).
 ⚠ An arrangement never records the subject or `here` card (B14): a
 card about a thing is a moment, not a workspace.
 
-⚠ **Recorded, not closed:** `save` writes one entry per card kind and no
-`terminal` block yet, so a saved terminal returns as an unfiltered one
-beside the primary. See [card-surface.md § Arrangements, in
-units](./card-surface.md).
+⭐ `save` records every terminal as its own card, with its filter, input
+mode and primary flag, so recall rebuilds the same terminals.
 
 ⚠ The earlier note here — *nothing opens or closes a card in response
 to a recall* — described the storage-only first cut, and is no longer

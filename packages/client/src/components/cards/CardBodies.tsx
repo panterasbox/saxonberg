@@ -119,7 +119,7 @@ const CardIllustration = styled.img`
   display: block;
   width: 100%;
   max-height: 6.5rem;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   border-radius: ${tokens.radius.sm};
   margin-bottom: ${tokens.space.xs};

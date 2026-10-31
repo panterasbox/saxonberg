@@ -169,17 +169,35 @@ export default class LayoutController extends CommandController<LayoutModel> {
     // ⭐ With each card's shape and place, in units (client-surface D5) —
     // the arrangement is the workspace, not just its membership. A subject
     // card is a moment, not a workspace, and is not recorded.
+    // ⭐ Every TERMINAL is its own card — its filter, its input mode, and
+    // whether it is the primary (D5) — so recall rebuilds the same set of
+    // terminals rather than one extra unfiltered one.
+    const inputModes =
+      (host.getClientState<Record<string, string>>('cockpit.inputModes') ?? {}) as Record<string, string>;
     const seen = new Set<CardId>();
     const cards: ArrangementCard[] = [];
     for (const c of open) {
-      if (seen.has(c.cardId) || c.role === 'here' || c.cardId === 'subject') continue;
-      seen.add(c.cardId);
+      if (c.role === 'here' || c.cardId === 'subject') continue;
+      if (c.cardId !== 'terminal') {
+        if (seen.has(c.cardId)) continue;
+        seen.add(c.cardId);
+      }
+      const mode = c.terminal ? inputModes[c.terminal.barId] : undefined;
       cards.push({
         cardId: c.cardId,
         size: c.size,
         pinned: c.pinned,
         ...(c.minimized ? { minimized: true } : {}),
         ...(c.placed ? { placed: c.placed } : {}),
+        ...(c.terminal
+          ? {
+              terminal: {
+                filter: c.terminal.filter,
+                ...(mode ? { inputMode: mode } : {}),
+                ...(c.terminal.primary ? { primary: true as const } : {}),
+              },
+            }
+          : {}),
       });
     }
     forMode[name] = { cards };

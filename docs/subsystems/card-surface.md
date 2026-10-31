@@ -656,11 +656,10 @@ subscribe to (not perceived) is resolved once as a snapshot.
 The client's "back to the room" is the `here` card itself; on a desktop
 the explore panel's first card is the `here` card at panel width.
 
-⚠ **The sweep does not know about roles.** It exempts pinned cards
-only, and the `here` card's kind is unpinned, so a player who stands
-still past `cards.window` (or past `cards.keep`) sees the room card age
-out; the next arrival or `look` mints it again. The client never
-displaces a role card, but the server clock can close one.
+⭐ **The sweep never closes a role card.** The window and the keep-count
+skip pinned cards AND role cards, so a player standing still keeps the
+room card (and the primary terminal, which is pinned besides); a role
+card goes when its subject does (D8).
 
 ⚠ A subject that is not where you stand is keyed on its subject instead
 (§ *One identity*) — touched, not stacked — and a role card is never the
@@ -715,12 +714,10 @@ rest with their recorded placement, and opens the arrangement's terminals
 about a thing is a moment. `SHIPPED_ARRANGEMENT_CARDS` entries may be an
 `ArrangementCard` (watch ships its stream-chat terminal that way).
 
-⚠ **Recorded, not closed: `save` does not yet write the terminal
-block.** `LayoutController` records one entry per card KIND and no
-`terminal: { filter, inputMode, primary }`, so a saved workspace's
-terminals come back on recall as one unfiltered terminal opened beside
-the primary rather than as the views they were. The apply side already
-reads the block; the save side is the gap.
+⭐ **Every terminal is saved as its own card** — its filter, its input
+mode (from `cockpit.inputModes[barId]`) and whether it is the primary —
+so recall rebuilds the same terminals (the listing carries each
+terminal's `{ filter, barId, primary }` for this).
 
 ### The Recent trail
 

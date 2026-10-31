@@ -103,7 +103,6 @@ describe('the pane → card rename', () => {
     const names = [
       'SettingsPanel',
       'SocialNotificationsPanel',
-      'LivestreamPanels',
       'CmsDiagnosticsPanel',
       'summonedPanel',
     ];

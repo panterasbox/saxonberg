@@ -180,6 +180,8 @@ describe('LayoutController', () => {
           { instanceId: 'c1', cardId: 'who', key: 'who', pinned: true, live: false, size: 'medium', minimized: false, placed: { col: 1, row: 0 } },
           { instanceId: 'c2', cardId: 'news', key: 'news', pinned: false, live: false, size: 'unit', minimized: true },
           { instanceId: 'c3', cardId: 'subject', key: 'look', pinned: false, live: true, size: 'unit', minimized: false, role: 'here' },
+          { instanceId: 'c4', cardId: 'terminal', key: 'cockpit terminal All', pinned: true, live: false, size: 'medium', minimized: false, role: 'primary', terminal: { filter: { view: 'All' }, barId: 'bar-1', primary: true } },
+          { instanceId: 'c5', cardId: 'terminal', key: 'cockpit terminal #gossip', pinned: true, live: false, size: 'unit', minimized: false, terminal: { filter: { channel: 'gossip' }, barId: 'bar-2', primary: false } },
         ],
       } as never,
     });
@@ -188,6 +190,9 @@ describe('LayoutController', () => {
       cards: [
         { cardId: 'who', size: 'medium', pinned: true, placed: { col: 1, row: 0 } },
         { cardId: 'news', size: 'unit', pinned: false, minimized: true },
+        // ⭐ Every terminal, with its filter and whether it is the primary.
+        { cardId: 'terminal', size: 'medium', pinned: true, terminal: { filter: { view: 'All' }, primary: true } },
+        { cardId: 'terminal', size: 'unit', pinned: true, terminal: { filter: { channel: 'gossip' } } },
       ],
     });
   });

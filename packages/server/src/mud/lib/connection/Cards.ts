@@ -371,9 +371,9 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    */
   /**
    * ⭐ **A terminal is a card** (client-surface D6): a filtered view of the
-   * one frame store with its own command bar. Its `barId` IS its
-   * instance id, so the shipped per-bar input mode is per terminal by
-   * construction. The PRIMARY is a role — minted whenever none is up,
+   * one frame store with its own command bar. Its `barId` is minted with
+   * the card (`bar-<uuid>`, B16) and never changes, so the shipped per-bar
+   * input mode is per terminal by construction. The PRIMARY is a role — minted whenever none is up,
    * never closed. Pinned: a terminal is a workspace, not a reading.
    */
   terminal: {

@@ -40,6 +40,13 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Client surface (2026-10-31).**
+ *   - ⚠ `Corpse.ofIdentityPath` — **`spoiler: 2`**. Whose body it is: the
+ *     fact a corpse now tells only to whoever knew the dead (#105). A panel
+ *     that printed it would name every stranger's body for free.
+ *   - `VisibleMixin.illustrationShape` — level 0: the picture's declared
+ *     shape (wide / tall / square) says nothing a look does not.
+ *
  * **Cleanliness (the soiling model, the cleansers, the kept places).**
  * Every field level 0 but two, and why:
  *   - ⚠ `SoilableMixin.stains` — **`spoiler: 2`**. A blood stain carries the

@@ -158,3 +158,19 @@ describe('arrangements in units (D5)', () => {
     expect(card(h, id).placed).toEqual({ col: 0, row: 3 });
   });
 });
+
+describe('the sweep spares role cards (client-surface D8)', () => {
+  it('⭐ an idle room card (the `here` role) never ages out; a flowing card does', async () => {
+    const h = await makeHarness();
+    const here = CardApi.open(
+      makeContext(h, { commandText: 'look', verbs: ['look'], opensCard: 'subject' }),
+      'subject',
+      { subjectId: h.room.stuffId },
+    )!;
+    const who = openWho(h);
+    CardApi._sweepNowForTesting(1, Date.now() + 10_000_000);
+    const ids = h.interactive.listCards().map((c) => c.instanceId);
+    expect(ids).toContain(here);
+    expect(ids).not.toContain(who);
+  });
+});

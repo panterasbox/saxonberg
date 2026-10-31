@@ -170,6 +170,8 @@ export interface CardListing {
   minimized: boolean;
   placed?: CardPlacement;
   role?: CardRole;
+  /** A terminal card's filter and bar — what an arrangement records. */
+  terminal?: { filter: TerminalFilter; barId: string; primary: boolean };
 }
 
 /** The `cockpit card` actions that change a card's shape or place (D8). */
@@ -603,6 +605,15 @@ export default class CardRegistry extends CardRegistryBase {
       minimized: s.minimized,
       ...(s.placed ? { placed: s.placed } : {}),
       ...(s.role ? { role: s.role } : {}),
+      ...(s.payload?.kind === 'terminal'
+        ? {
+            terminal: {
+              filter: s.payload.filter,
+              barId: s.payload.barId,
+              primary: s.payload.primary,
+            },
+          }
+        : {}),
     }));
   }
 
@@ -889,7 +900,9 @@ export default class CardRegistry extends CardRegistryBase {
       const effective =
         typeof seconds === 'number' && seconds > 0 ? seconds * 1000 : fallbackMs;
       for (const [instanceId, state] of [...bucket.entries()]) {
-        if (state.pinned) continue;
+        // ⭐ A role card (the `here` room card, the primary terminal) is
+        // never aged out: it goes when its subject does (client-surface D8).
+        if (state.pinned || state.role) continue;
         /*
          * ⭐ The window is per KIND when the player has said so:
          * `cards.window.subject 3600` keeps what you have looked at
@@ -934,7 +947,7 @@ export default class CardRegistry extends CardRegistryBase {
         : undefined;
       if (typeof keep === 'number' && keep > 0) {
         const droppable = [...bucket.entries()]
-          .filter(([, st]) => !st.pinned)
+          .filter(([, st]) => !st.pinned && !st.role)
           .sort((a, b) => a[1].openedAt - b[1].openedAt);
         const excess = bucket.size - keep;
         for (let i = 0; i < excess && i < droppable.length; i++) {

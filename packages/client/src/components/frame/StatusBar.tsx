@@ -48,6 +48,12 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { Shelf } from "./Shelf";
 
+/** A card key as a command argument: quoted when it has a space or a quote. */
+function quoteKey(key: string): string {
+  if (!/\s|"/.test(key)) return key;
+  return `"${key.replace(/(["\\])/g, "\\$1")}"`;
+}
+
 const Bar = styled.div`
   display: flex;
   align-items: center;
@@ -199,7 +205,7 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
       {onCommandClick ? (
         <Tray data-testid="tray" aria-label="minimized cards">
           {tray.map((c) => {
-            const cmd = `cockpit card restore ${c.key}`;
+            const cmd = `cockpit card restore ${quoteKey(c.key)}`;
             return (
               <TrayIcon
                 key={c.instanceId}

@@ -135,7 +135,9 @@ export default class Corpse extends CorpseBase {
     conditionAtDeath: { persistent: true, authorable: true },
     takenTissues: { persistent: true },
     takenLines: { persistent: true },
-    ofIdentityPath: { persistent: true },
+    // ⛔ spoiler 2: whose body it is — the very fact #105 hides from a
+    // stranger (the blood-stain precedent, Soilable.stains).
+    ofIdentityPath: { persistent: true, spoiler: 2 },
   };
 
   /**
