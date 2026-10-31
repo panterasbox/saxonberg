@@ -91,9 +91,14 @@ registry, emitting three graded kinds:
    appear in a signature — so the capability model has no holes. Each
    value `'<Concept>Mixin'` → `mixin.<Concept>`, enriched from the
    author-surface consumer members whose `face === concept` (its
-   conferred methods, rendered with signature + summary). No authored
-   match → **degrade to a bare topic** (`(no authored documentation)`).
-   This is the centerpiece tier.
+   conferred methods, rendered with signature + summary). ⭐ The topic's
+   **summary is the mixin's own** — the first paragraph of the TSDoc on
+   its exported `<Concept>Mixin` factory function, from the
+   author-surface `mixins` section (client-surface #89); only a mixin
+   whose factory has no TSDoc falls back to its first conferred member's
+   summary, which used to describe one method rather than the interface.
+   No authored match → **degrade to a bare topic** (`(no authored
+   documentation)`). This is the centerpiece tier.
 2. **Api faces** — `kind === 'api-static'` members grouped by face: a
    grouped landing `api.<Face>` **and** one member topic per static
    `api.<Face>.<member>` carrying the rendered signature + TSDoc body.
@@ -167,6 +172,14 @@ string + the TSDoc summary, plus `@param`/`@returns`/`@example` when
 authored. This is driven by extending the existing author-surface
 projection (`scripts/project-author-surface.ts`) rather than a new
 artifact — one pipeline, one file, right-sized at runtime.
+
+⭐ The surface also carries **`mixins: { name, summary }[]`** — one entry
+per exported function whose name ends `Mixin`, keyed by the name minus
+the suffix, its summary the first paragraph of the function's TSDoc
+(entries with no summary are skipped; sorted by name). It exists because
+a mixin factory's *returned class* does not reflect into the author
+surface, so without it a mixin had no summary of its own.
+`HelpCatalogue` prefers it when it projects `mixin.<Concept>` topics.
 
 `projectAuthorSurface` stays **pure** (no IO). Each consumer member now
 carries `signature`, `summary`, optional `params`/`returns`/`examples`,
@@ -290,6 +303,15 @@ what an inspection card already knows (the mixin name), and the relation
 graph is the navigation substrate. Wiring that bridge is Wave 2 and is not
 built here.
 
+⭐ **The first half of the bridge shipped with the client-surface build.**
+The inspection card names the interface that said each line of `look`
+(a gutter stripe per source — see [message-rendering.md § Look
+segments](./message-rendering.md)); a stripe's popover fetches
+`mixin.<Name>` from the REST API (`GET /api/help/topic?id=mixin.<Name>`),
+caches the summary per session, and offers `help mixin.<Name>` as a
+command. The `mixins` summaries above are what make that popover say
+what the interface IS.
+
 ## The line — help vs wiki vs inspection
 
 Everything is an instanced Stuff with state, so the discriminator between
@@ -310,7 +332,9 @@ the thing it documents, where the wiki is the community's.
 
 - **The client React help card** — designed in a layout-system session;
   this build ships the server data contract it consumes.
-- **The inspection↔help bridge wiring** (Wave 2).
+- **The rest of the inspection↔help bridge** (Wave 2) — the card's
+  source popover reads `mixin.<Name>` summaries already (above); a
+  quiet interface's "how you'd find out" line does not exist yet.
 - **Wave 2 subdivisions** — taxonomies / immutable defs / units, mechanics
   (formulas + constants), a standalone `help` **Document** collection, and
   **co-located `help:` prose**. Each is *adding a projector*; the
@@ -359,3 +383,12 @@ the search results open none, so filtering them would leave `help`
 doing nothing.
 
 See [card-surface.md](./card-surface.md).
+
+## History
+
+- **Client surface (2026-10-31)** — `project-author-surface.ts` emits a
+  `mixins` section from the `*Mixin` factory functions' TSDoc, and
+  `HelpCatalogue` uses it as each `mixin.<Concept>` topic's summary
+  (#89); the inspection card's source popover reads those summaries over
+  the REST API. See `docs/plans/client-surface-plan.md` (D10) until it is
+  retired at the sweep.

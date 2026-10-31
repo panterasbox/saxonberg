@@ -189,6 +189,94 @@ was duplication; literals + the YAML catalogue is one source of truth.
 `MessageApi.Tags` stays as constants — audience tags are framework
 metadata, not authored content.
 
+## ⭐⭐ Look segments — what `look` said, by shape and source
+
+*The card says exactly what the terminal said, line for line, and names
+the interface that said each line* (client-surface D1/D2). The terminal
+renders `look`'s body string as it always has; the inspection card
+renders the SAME lines as **segments**, so the two cannot diverge.
+
+### One fold, diffed
+
+`Mml.augmentSegmented(text, host, viewer, opts) → { text, segments }`
+(`api/mml.ts`) is the markup-augmenter fold with its steps recorded, and
+`Mml.augment` is now `augmentSegmented(…).text` — **one fold**, so the
+text is byte-identical to the pre-segment pipeline. The 46 augmenters
+keep their `(text, host, viewer, opts) => string` contract; nothing about
+them changed. `MixinApi.getMarkupAugmenterLevels(ctor)` is the same
+prototype walk as `getAllMarkupAugmenters` (which is reimplemented over
+it), root → leaf, keeping which level contributed which augmenters: a
+level whose class owns `_mixinName` is `{ kind: 'mixin', name }` (the
+name minus `Mixin`), any other is `{ kind: 'class', name }` (`Weapon`,
+`CraftVessel`, `GradedReceptacle`).
+
+Each augmenter's step `before → after` is read by one rule:
+
+- **unchanged** — quiet; nothing recorded;
+- **an append** (`after` starts with `before`) — the trimmed suffix is a
+  `state` segment sourced by that level (42 of the 46 behave this way);
+- **a transform** (Detailed's wrap, Visible's strip) — if every state
+  line recorded so far is still found in `after`, the level joins the
+  prose's sources; if not, everything collapses into one prose segment
+  carrying every source so far.
+
+At the end the state lines must sit at the tail in order with only
+whitespace between them, else the same collapse. The prose segment is
+what stands before the first state line, sourced `mixin:Visible` (the
+authored description) plus any transform that kept the state lines
+intact (B8). Deterministic, and never lossy: the joined segments are
+always the final text.
+
+`Visible.getSegmentedLong(viewer, opts) → { text, segments }` is the
+description's own fold (B7), and `getMarkupLong` is its `.text`, so
+`LookController` folds once and takes the terminal's text and the card's
+segments from the same call.
+
+### Shapes and sources
+
+`LookSegment` (`@saxonberg/types`) is `{ shape, sources, text, heading?,
+items? }`, where `shape` is one of:
+
+| shape | what | example sources |
+|---|---|---|
+| `prose` | the authored description, after any transforms | `mixin:Visible`, `mixin:Detailed` |
+| `state` | a line an interface appended | `mixin:Bulkable`, `class:CraftVessel`, `look:Presence`, `look:Floor` |
+| `list` | a `── Heading: …` section; `text` is the whole printed line (B9) and `items` its chips | `look:Obvious exits`, `look:You also see`, `look:Owned by`, `look:On it` |
+| `notice` | a line the terminal prints as its own scene, or a hint | `look:Light`, `look:Notices`, `look:Hints` |
+
+A `look` source names the controller's own printed heading. A
+`SegmentItem` is `{ stuffId, label, keyword, count, members? }`:
+**identical things group server-side** (by template path, plus the
+interior bulk material for a vessel), a group of two or more reads in
+the count form (`3 bottles of gin`) and carries its members to expand in
+place; a person never groups. `LookController` builds `segments` in step
+with every `body = Mml.compose…` site, and the room's light band, tint
+and help-wanted notices — still printed as their own uncarded scenes —
+are `notice` segments on the card. The presence line on an agent reads
+`Now: <status>, <posture>, <activity>, away.` (B10). Segments ride
+`card-opened` / `card-touched` only, never the frame — see
+[card-surface.md § The wire](./card-surface.md).
+
+### The inspection card renders them, with a gutter
+
+`components/cards/InspectionBody.tsx` renders the segments **in order**
+— nothing on the card derives a line of its own. Each row has a **gutter
+stripe** per source: 3px, colored by `colorForTopic(<source name>)`,
+**solid for a mixin**, dotted for a class's own augmenter or a `look`
+section. A stripe's click opens a popover with the interface's summary
+(the help catalogue's `mixin.<Name>` topic, fetched over the REST help
+API and cached per session — see [help.md](./help.md)), `help
+mixin.<Name>`, and *look again*. `prose` renders serif, `notice` muted
+and italic, `list` as chips that send `look #<id>` (a group is a toggle
+that expands in place). Around the segments: the header (the branch
+letter and the Perceptible / Containable / Addressable stripes), the
+illustration plate by its declared shape (never cropped — see
+[media.md](./media.md)), the **quiet row** — the composition minus the
+mixins that spoke minus the header's three, *N quiet interfaces ▸* — and
+the subject's own affordances, each sending `<verb> #<id>`. Cut to fit,
+the picture collapses to *picture ▸* first (B27). A detail word still
+drills in the card, rendered from the record's detail prose (B26).
+
 ## Capability mixins for outgoing comms
 
 ### VocalMixin — acoustic transport
@@ -925,3 +1013,11 @@ sweep distilled them to:
     *face* and the 22px *size* step the same key. DESIGN-SYSTEM's own
     phrase is "Engraved capitals, display"; the two halves take the two
     keys.
+- **Client surface** (`build/client-surface`, 2026-10-31). `look`
+  arrives as segments: `Mml.augmentSegmented` diffs the one augmenter
+  fold (`Mml.augment` is its text), `MixinApi.getMarkupAugmenterLevels`
+  names each level's source, `Visible.getSegmentedLong` folds a
+  description once, and the inspection card renders the segments with a
+  source gutter. No augmenter changed. See
+  `docs/plans/client-surface-plan.md` (D1, D2, B7–B10, B25–B28) until it
+  is retired at the sweep.

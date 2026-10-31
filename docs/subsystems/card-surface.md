@@ -76,22 +76,43 @@ button on a live card is a bandage over a wake that does not fire —
 through eleven passing tests because every one of them called
 `refreshForInteractive` by hand.
 
-⭐⭐ **Only the NEWEST card of a live kind actually holds a
-subscription.** Opening one calls `CardRegistry.demoteLive`, which
-tears the predecessor's handle down, stamps its `takenAt`, marks it
-`demoted` and tells the client (`card-touched { live: false }`). From
-that moment it is an ordinary snapshot with a refresh, like every other
-static card.
+⭐⭐ **Liveness is per card: a card you PLACED, PINNED, or that fills a
+ROLE holds a subscription; a card that just flows through the feed is a
+snapshot.** `CardState.live` is a per-instance fact —
+`CardRegistry.wantsLive` is `def.live && def.source.kind === 'mql' &&
+(placed || role || pinned)`. A subject card opened by `look` arrives as
+a snapshot with a `takenAt`; `cockpit card place` / `move` / `pin`
+subscribes it (silently, with its `subjectId`) and sends a
+`card-touched { live: true }` carrying the fresh `result`; `unplace` /
+`unpin` / `auto` cancels the subscription, stamps `takenAt` and sends
+`card-touched { live: false }`. The `here` room card is live because it
+fills a role. One door does it — `syncLive` — after every action that
+could change the answer.
 
 > *"Liveness is expensive so we don't want it on anything more than
 > where you're currently focused."*
 
-That sentence is the design, and newest-card-is-live is a crude but
-honest proxy for it. It is also why liveness **cannot** be what tells
-two catalogue rows apart: it is not a property of a card KIND at all,
-it is a property of where the player is looking. Behind you there is
-nothing to track, and a subscription still running would be a wake with
-no reader.
+That sentence is the design. **Attention is what the player SAID it
+is** — placing, pinning, or the room they stand in — rather than a guess
+from recency. It is also why liveness **cannot** be what tells two
+catalogue rows apart: it is not a property of a card KIND at all, it is
+a property of where the player is looking. A card that flows past is
+behind you; there is nothing to track, and a subscription still running
+would be a wake with no reader.
+
+⚠ **Pinning is attention, not position** (client-surface B11). The plan
+listed `pin` among the acts that subscribe; reading that as *pin makes
+it placed* would have given a pin a slot it does not have. A pinned card
+of a live kind is live and still flows.
+
+⚠ **No cap on placed cards** (B1). The plan proposed twelve and a
+`too-many-placed` refusal; a bare count with no author is the harshest
+rule there is, and the window's unit slots are the natural limit.
+
+⚠ The predecessor was **newest-card-is-live**: opening a card of a live
+kind called `CardRegistry.demoteLive`, which tore the previous card's
+subscription down. It was a crude proxy for attention and it is deleted —
+see § *Build history*.
 
 ⚠⚠ **What "live" costs, and the four ways it was quietly dead.** The
 one live row shipped not-updating, and each of these alone was enough —
@@ -165,17 +186,26 @@ A card is identified by the command that produced it —
 3. `CommandLineApi.format()` — the canonical round-trip.
 
 ⭐⭐ **The key is the card's IDENTITY and its REFRESH — it is not a
-uniqueness constraint.** The feed is a **log**. Asking twice mints two
-cards, because you asked twice and the feed records what you asked; a
-transcript does not dedupe and neither does this. Only a
-{@link CardDefinition.singleton} row reuses.
+uniqueness constraint.** For a reading that is not about one thing, the
+feed is a **log**: asking twice mints two cards, because you asked twice
+and the feed records what you asked; a transcript does not dedupe and
+neither does this. A {@link CardDefinition.singleton} row reuses.
+
+⭐ **A card about a SUBJECT is keyed on the subject while it is open**
+(client-surface #50, B13). A second look at the stool TOUCHES the stool's
+open card — brings it forward and replaces its prose, segments and
+result — rather than stacking a husk of the first answer above a second
+copy. A look at the place you stand in rebinds the `here` role card
+instead (§ *Placement, size, the tray and roles*). Once the card has
+closed, the next look mints a fresh one.
 
 | Sequence | Result |
 |---|---|
 | `who`, `who` | **two** cards, the second below the first |
 | `who`, `who --wizards` | **two** cards, with different keys |
-| `look a`, `look b`, `look a` | **three**; two of them keyed `look a` |
-| `examine a`, `look a` | **two** cards, **one** key — the synonym rung |
+| `look a`, `look b`, `look a` | **two** — the second `look a` touches the first card |
+| `examine a`, `look a` | **one** card — same subject (and one key, by the synonym rung) |
+| `look lamp`, `look brass lamp` | **one** card — one subject |
 | `cms`, `cms` | **one** — a singleton row |
 
 ⚠⚠ **Dedup-on-command was the model until it was driven, and it failed
@@ -187,14 +217,17 @@ exceptions are the surfaces that ARE one thing — an editor, a git
 panel, a composer — because a second Monaco with its own unsaved buffer
 is not a second reading, it is a second application.
 
-⚠ **A knowing cost:** `look lamp` and `look brass lamp` are two cards
-about one thing. That is identity-is-what-you-typed read literally, and
-it is the right trade — but it is a cost, not a defect.
+⚠ The cost the log model knowingly paid — `look lamp` and `look brass
+lamp` as two cards about one thing — is gone with subject keying; the
+shipped tests that pinned "three cards" and "two cards" were rewritten
+to the new identity (B13).
 
-**Ordering.** The feed runs oldest → newest, like the transcript beside
-it, and cards do not reorder. **Pinned cards hold their position** too;
-pinning changes only whether the sweep may take a card, not where it
-sits.
+**Ordering.** Flowing cards run oldest → newest by **touch**, like the
+transcript beside them: a card RE-RUN (a `card-touched` that carries a
+body) moves to the bottom; a liveness flip is not a touch (B23). Pinning
+changes only whether the sweep may take a card, not where it sits.
+**Placed** cards hold their slots — see § *Placement, size, the tray and
+roles*.
 
 ⚠⚠ **The refresh key derives from the command, and forcing it was a
 bug.** The room card used to be given `place`'s catalogue command —
@@ -253,7 +286,8 @@ shipped rows at all, so `CardSource` is a discriminated union:
   half of the question — *is every declared kind reachable* — beside the
   list of mint sites it already had.
 
-The nine shipped rows:
+The thirteen shipped rows (`live` is the KIND's capability — whether a
+given card holds a subscription is per instance, above):
 
 | id | source | live | pinned | key | prose |
 |---|---|---|---|---|---|
@@ -263,9 +297,19 @@ The nine shipped rows:
 | `wiki` | payload `wikiPage` | ✗ | ✗ | `wiki <slug>` | the page read |
 | `help` | payload `helpTopic` | ✗ | ✗ | `help <topic>` | the topic read |
 | `prompt` | prompt | ✗ | ✓ | `prompt <promptId>` | `noProse` |
-| `cms` | client | ✗ | ✓ | `cms` | `noProse` |
-| `git` | client | ✗ | ✓ | `git` | `noProse` |
-| `studio` | client | ✗ | ✓ | `studio` | `noProse` |
+| `cms` | client | ✗ | ✓ | `cms` (singleton) | `noProse` |
+| `git` | client | ✗ | ✓ | `git` (singleton) | `noProse` |
+| `studio` | client | ✗ | ✓ | `studio` (singleton) | `noProse` |
+| `stock` | mql `reachable:[mixin.BulkableMixin]`, many | **✓** | ✗ | `house stock` | the par sheet |
+| `survey` | payload `survey` | ✗ | ✓ | `analyze ground` (singleton) | the survey read |
+| `terminal` | payload `terminal` | ✗ | ✓ | `cockpit terminal <view\|#channel>` | `noProse` |
+| `settings` | client | ✗ | ✓ | `settings` (singleton) | the verb's report |
+
+⭐ **`terminal` and `settings` are the client-surface build's.** A
+terminal is a filtered view of the one frame store with its own command
+bar — § *Terminal cards*. `settings` is the editor that used to be a
+docked panel, opened by the shipped `settings` verb (`opens_card:
+settings`); one of it.
 
 ### ⭐⭐⭐ Inspection is ONE row, not two and not four
 
@@ -303,9 +347,9 @@ DECLARATIONS, not the definitions.
 after cutting it, **every production file compiled clean** and only
 tests failed.
 
-⚠ `subject` is therefore the one live row, and it is the one that earns
-it: it is the card the player is looking at, which is the whole basis on
-which liveness is granted. **`who` ships static** for a reason that has
+⚠ `subject` is therefore a live row (the stock sheet is the other), and
+it is the one that earns it: it is the card the player is looking at,
+which is the whole basis on which liveness is granted. **`who` ships static** for a reason that has
 not changed — the dependency vocabulary is `focusDependent` /
 `locationDependent` / the `durableKey` poke channel, and **nothing wakes
 on connect or disconnect**. A live `who` would resolve once and then be
@@ -487,24 +531,39 @@ zero orphans after closing, sweeping, rearranging and disconnecting.
 | `mud/api/card.ts` | `CardApi` — the gated face; owns the sweep handle and the `runRoot` principal |
 | `mud/platform/idea/api/CardLogic.ts` | The hot-reloadable logic singleton at `/platform/idea/api/card`; `normalizeKey` lives here |
 | `mud/platform/idea/CardRegistry.ts` | The state: per-Interactive open cards, the sweep, `resolveSubject` behind the perception gate |
-| `packages/client/src/store/cardFeedSlice.ts` | The client's card set + the husk model |
-| `packages/client/src/components/cards/` | `CardFeed`, `Card`, `CardBodies`, `CardViewStrip`, `useCardFeed` |
+| `packages/client/src/store/cardFeedSlice.ts` | The client's card set (mirroring `size`/`placed`/`minimized`/`role`/`live` off `card-arranged`) + the husk model |
+| `packages/client/src/store/cardLayout.ts` | `arrangeCards` — the pure feed/workspace layout, displacement and the Recent trail |
+| `packages/client/src/store/frameFilter.ts` | `framesFor` — the one frame filter every terminal card reads |
+| `packages/client/src/components/cards/` | `CardArea`, `Card`, `CardBodies`, `InspectionBody`, `TerminalCardBody`, `CardViewStrip`, `useCardFeed`; `CardFeed` survives only as its test suite's host |
 
 ⭐ `dest /platform/idea/api/card` reloads the logic **without closing anybody's
 cards**: the state is on the registry, the resolution is on the logic.
 
 ## The wire
 
-Four card envelopes plus the delta a live card rides:
+Five card envelopes plus the delta a live card rides:
 
 - **`card-opened`** — `instanceId`, `cardId`, `key`, `live`, `pinned`,
-  `takenAt?` (static only), `title?`, `subjectId?`, `promptId?`,
-  `prose?`, `result?` / `payload?`. **Every** card arrives this way;
+  `size`, `minimized`, `placed?`, `role?`, `takenAt?` (snapshots only),
+  `title?`, `subjectId?`, `subjectKind?`, `promptId?`, `prose?`,
+  `segments?`, `result?` / `payload?`. **Every** card arrives this way;
   there is no `pushed` flag, because the distinction it drew is gone —
   the client never opens a card, so every open is a push.
-- **`card-touched`** — the same command re-issued.
+- **`card-touched`** — the same command re-issued, a liveness flip, a
+  terminal retargeted, or the `here` card rebound. It may carry
+  `subjectId`, `subjectKind`, `role`, `prose`, `segments`, `result`,
+  `payload` and `live` — a rebind or a re-look replaces them.
+- **`card-arranged`** — `instanceId`, `size`, `minimized`, `pinned`,
+  `live`, `placed?`: a card's shape or place changed (every `cockpit
+  card` arrange action, an arrangement applied, a primary handed over).
 - **`card-closed`** — `instanceId` + `reason`.
 - **`card-pinned`** — the override took.
+
+⭐ **Segments ride the card, never the frame.** `segments` is what
+`look` said, split by shape and source — see
+[message-rendering.md § Look segments](./message-rendering.md). A frame
+is a line of transcript and the record layer stores no payload, so the
+terminal keeps rendering the body string exactly as before.
 
 ```ts
 export type CardCloseReason =
@@ -526,6 +585,153 @@ contents as if they were current is the failure the fade exists to
 avoid — but the title is *which card this is*, and a husk that cannot
 say what it was about is less honest rather than more. Found by driving:
 teleporting out of the lounge left a card naming nothing at all.
+
+## ⭐⭐ Placement, size, the tray and roles
+
+*Only a command changes which cards are up, and where* (client-surface
+D5/D8). The shape and place of every card are **server state on
+`CardRegistry`**; the client is a renderer of them.
+
+`CardState` carries, beside its lifetime and liveness:
+
+| field | what it is |
+|---|---|
+| `size` | a `WidthClass`: `unit` (a card-area column, the default), `medium` (the slot across the top of the terminal column), `full` (the stage); a terminal may also be `line` (a ticker) |
+| `sizeBefore` | the size it had before it grew into the one-card medium/full slot |
+| `placed?` | `{ col, row }` **in units, never pixels** — set only when the player placed it |
+| `minimized` | in the tray |
+| `role?` | `here` (the room card) or `primary` (the one terminal that cannot close) |
+
+⭐ **Flowing cards have no server position.** A card nobody placed is
+ordered by its open/touch time, which the client already has; a placed
+card keeps `(col, row)`. The client's width tier decides how many unit
+columns fit, and a placed card whose column does not fit folds into the
+last column in `(col, row)` order — deterministic and stateless, so
+narrowing the window and widening it again returns every placed card to
+its slot. The layout is `arrangeCards` (`store/cardLayout.ts`), a pure
+function of the cards, the unit count and the column's capacity (read
+from the window's height).
+
+⭐ **Medium and full hold ONE card each.** Growing B into the slot A holds
+returns A to the size it had before (`sizeBefore`), and both get a
+`card-arranged`.
+
+### `cockpit card` — the actions
+
+`pin` · `unpin` · `dismiss` · `auto` · `close` · `grow` · `shrink` ·
+`minimize` · `restore` · `move <card> <col> <row>` · `place` · `unplace`,
+plus `list`. The shape-and-place actions all go through one door —
+`CardRegistry.arrange`, behind `Interactive.arrangeCard` — which reports
+a `card-arranged` for every card it changed and re-syncs liveness.
+
+- `unpin` is `dismiss` by its other name (stop pinning; it ages out).
+  `close` closes it now, reason `dismissed`.
+- `grow` / `shrink` step the ladder — `unit ↔ medium ↔ full`, with
+  `line` below `unit` for a terminal.
+- `move` is **insertion**: cards at or below that row in that column
+  shift down one, so nothing is covered. `place` with no position goes
+  to the bottom of column 0 (B12); `unplace` returns it to the flow.
+- `minimize` / `restore` toggle the tray — the status bar's right end on
+  a desktop, the left drawer on a phone. A tray chip restores by sending
+  `cockpit card restore <card>`.
+- **Refusals**, each by name: `unknown-card`; `role-card` (a role card
+  cannot be closed, and the `here` card cannot be unplaced);
+  `primary-terminal` (the primary cannot be closed or minimized).
+
+Every card control on the client sends one of these, and dragging a card
+sends `cockpit card move <card> <col> <row>` — the card moves when the
+server's `card-arranged` arrives, never before.
+
+### ⭐⭐ The `here` role — the room card follows you
+
+`CardRegistry.open` for a subject card whose `subjectId` is the viewer's
+current container stamps `role: 'here'`. When a `here` card is already up
+it **rebinds** — a new `subjectId`, a fresh subscription, and one
+`card-touched` carrying `subjectId`, `subjectKind`, `title`, `prose`,
+`segments`, `result`, `role` and `live` — so moving never adds a second
+room card (#53/#92). Arrival forces `look` (`Mobile.autoLookOnArrival`),
+which is what drives the rebind as you walk. A new place you cannot
+subscribe to (not perceived) is resolved once as a snapshot.
+
+The client's "back to the room" is the `here` card itself; on a desktop
+the explore panel's first card is the `here` card at panel width.
+
+⚠ **The sweep does not know about roles.** It exempts pinned cards
+only, and the `here` card's kind is unpinned, so a player who stands
+still past `cards.window` (or past `cards.keep`) sees the room card age
+out; the next arrival or `look` mints it again. The client never
+displaces a role card, but the server clock can close one.
+
+⚠ A subject that is not where you stand is keyed on its subject instead
+(§ *One identity*) — touched, not stacked — and a role card is never the
+match for that search.
+
+### Terminal cards
+
+A **terminal is a card** (`cardId: 'terminal'`, D6): a `payload` card
+whose payload is `{ kind: 'terminal', filter, barId, primary }`.
+
+- `filter` is a `TerminalFilter` — `view?` (a `console.tabs` view name,
+  or `All`), `channel?` (a chat channel: the `channel:<name>` frame tag),
+  `muted?`, `facets?`, and `label?` for a terminal neither names. The
+  view vocabulary is the shipped one, so the old tab strip's views are
+  terminal filters with no new vocabulary.
+- `barId` is minted `bar-<uuid>` when the terminal opens and never
+  changes (B16), so the shipped per-bar `cockpit.inputModes` machinery is
+  per terminal card, and a retarget keeps its input mode. A prompt
+  carries the asking bar (`PromptEnvelope.barId`), so each terminal card
+  renders its own prompt strip.
+- **The primary is a role.** Every mode has one; it is minted whenever
+  none is up on a MODE entry (`openArrangement`, `cockpit mode`,
+  `cockpit layout`) and filtered by the mode's `MODE_PRIMARY_FILTER`
+  (chat → the `Chat` view, everything else → all) — a bare re-arrange of
+  cards touches no terminal (B15). It opens at `medium` and is never
+  closed by a rearrange.
+- `cockpit terminal <view|#channel>` retargets the primary;
+  `--beside` opens another terminal card; `cockpit terminal primary
+  <card>` hands the role over. See [cockpit.md](./cockpit.md).
+- The key is the command that reproduces it (`cockpit terminal #general`,
+  `cockpit terminal Chat`), and the title is the view, `#channel` or
+  label.
+
+On the client, `framesFor` (`store/frameFilter.ts`) is the one frame
+filter, read by every terminal card: the view's facets and mutes, the
+channel by **tag first** and the live payload's `channelName` second (so
+a backfilled frame, which has no payload, still filters into its
+channel's terminal — see [record-layer.md](./record-layer.md)), then the
+two display rules every view shares (a frame whose card is on screen is
+not printed twice; reaction lines can fold into their chips).
+
+### Arrangements, in units
+
+`ArrangementSpec` is `{ cards: ArrangementCard[] }`, and an
+`ArrangementCard` is `{ cardId, size?, placed?, minimized?, pinned?,
+terminal?: { filter, inputMode?, primary? } }`. `cockpit layout save`
+records each open card's shape and place; `applyArrangement` keeps a card
+that is already up (re-shaping it rather than reopening it), opens the
+rest with their recorded placement, and opens the arrangement's terminals
+— each its own card. ⚠ **An arrangement never records the subject or
+`here` card** (B14): it is a statement about a workspace, and a card
+about a thing is a moment. `SHIPPED_ARRANGEMENT_CARDS` entries may be an
+`ArrangementCard` (watch ships its stream-chat terminal that way).
+
+⚠ **Recorded, not closed: `save` does not yet write the terminal
+block.** `LayoutController` records one entry per card KIND and no
+`terminal: { filter, inputMode, primary }`, so a saved workspace's
+terminals come back on recall as one unfiltered terminal opened beside
+the primary rather than as the views they were. The apply side already
+reads the block; the save side is the gap.
+
+### The Recent trail
+
+When the card area has no room, the **stalest** flowing card — unpinned,
+unplaced, filling no role, owing no answer — is displaced to the
+**Recent trail**, which says which command displaced it ("stalest" is
+pure touch time, decided for predictability, B22). Closed husks land on
+the same trail with their reason. A trail chip **re-runs the card's
+command** (its key), which is a touch, so the card comes back at the
+bottom. When everything left is protected the area overflows and
+scrolls as one surface. The client keeps the last three husks.
 
 ## Named views over the feed
 
@@ -1343,8 +1549,8 @@ build was written from exactly that kind of stale table.
   authored or pack-shipped card would be a third tier and wants a
   resolution order across all three — a design conversation, not a
   map edit.
-- **A second LIVE row.** `subject` is the only one, and adding another
-  means either an existing wake or building one. `who` is the worked
+- **A third LIVE row.** `subject` and `stock` are the two, and adding
+  another means either an existing wake or building one. `who` is the worked
   example of why: a presence wake means every login poking every open
   `who`, which is real cost for a list one click refreshes.
 - **A card the player can create.** The catalogue is code; a player's
@@ -1352,11 +1558,14 @@ build was written from exactly that kind of stale table.
   no `cockpit card open <query>` and there must not be — the client
   supplies an identity, never a query.
 - **Multi-card / split view inside one card.** One card, one body.
-- **Persistent pins across reconnects.** A pin is a statement about a
-  MOMENT (*keep the card about Bob open even though Bob walked out*);
-  an ARRANGEMENT is a statement about a workspace and is durable. The
-  asymmetry is deliberate and is worth restating because saved
-  arrangements sit right beside it.
+- **Persistent pins across reconnects** — for a card about a thing. A
+  pin on a subject card is a statement about a MOMENT (*keep the card
+  about Bob open even though Bob walked out*); an ARRANGEMENT is a
+  statement about a workspace and is durable, and since the
+  client-surface build it records each workspace card's `pinned`, size
+  and place. Cards stay per-Interactive in memory; a new Interactive
+  gets the active arrangement and nothing else, so `cockpit layout save`
+  is the player's answer for keeping a workspace.
 - **Animated card transitions.**
 - **Per-fact revelation gating beyond visible.** Each property is
   either in the detail field-set or not surfaced; per-fact provenance
@@ -1626,7 +1835,8 @@ a green suite:
    changed nothing visible, and the suppressed prose made it look like
    the command had done nothing at all. Only `singleton` rows reuse now.
 2. **Liveness moved onto attention.** `demoteLive` — newest card holds
-   the subscription, everything behind it is a snapshot.
+   the subscription, everything behind it is a snapshot. (Superseded by
+   per-card liveness in the client-surface build, below.)
 3. **Inspection collapsed to ONE row.** `place` folded into `subject`;
    the four things you can look at are `StuffKind`s of the subject.
 4. **`meta.carded` became a fact.** It carries the card's `instanceId`,
@@ -1641,3 +1851,32 @@ ships, and additive on top of this substrate. Fixed tabs rather than
 tags. And on the self card, actor-afforded verbs render as the entire
 verb list, which wants the `+N more` cap the composition row already
 has.
+
+### The client-surface build (`build/client-surface`, 2026-10-31)
+
+The card set became a placed workspace rather than a pure log. What
+moved, all recorded above where it now lives:
+
+- **Liveness is per card** — placed, pinned or role cards subscribe;
+  flowing cards are snapshots. `demoteLive` and newest-holds are deleted.
+  No placed-card cap (B1).
+- **Shape and place are server state** — `size` / `sizeBefore` /
+  `placed` (units) / `minimized` / `role` on `CardState`, the
+  `card-arranged` envelope, and `cockpit card` growing `close`, `grow`,
+  `shrink`, `minimize`, `restore`, `move`, `place`, `unplace` and
+  `unpin` through one `arrange` door.
+- **Subject cards are keyed on the subject while open** (#50) and the
+  room card is the `here` role, rebinding as you move (#53/#92).
+- **Two new kinds**: `terminal` (a filtered view of the frame store
+  with its own bar; the primary is a role) and `settings`.
+- **Arrangements are `ArrangementCard[]`** in units, and never record
+  the subject or `here` card.
+- **`look`'s segments ride `card-opened` / `card-touched`**, and the
+  inspection card renders them (`InspectionBody`).
+- **The `#<stuffId>` seed is perception-gated** for a player, so card
+  links send `<verb> #<id>` and name exactly one thing.
+- **The Recent trail** holds displaced cards and husks; a chip re-runs
+  the card's command.
+
+See `docs/plans/client-surface-plan.md` (D4–D8, D10, B1, B11–B16,
+B22–B23) until it is retired at the sweep.

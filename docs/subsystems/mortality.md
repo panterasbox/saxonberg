@@ -414,7 +414,9 @@ Stamped by the shared mint (`mintCorpseFrom`), through the clone's
 | `mass` | ⚠⚠ `Creature.getMass()` falls back to `species.massAt(getAgeDays())`, and a fresh clone's `bornAt` is 0 — an unstamped corpse of a full-grown ewe would dress out as a **newborn lamb** |
 | `bornAt` | so the body's age is the age it **died at** |
 | `conditionAtDeath` | the `flesh` reserve at the kill — a **stamped number, never a reserve**, because a dead animal's condition cannot change. The butcher is reading what the stockman achieved. |
-| `keywords` | the row's `[body, corpse, carcass]` ∪ the dead thing's own, so `butcher ewe` and `look clerk` both find the body |
+| `keywords` | the row's `[body, corpse, carcass]` ∪ the dead thing's own **minus a person's name words**, so `butcher ewe` and `look clerk` both find the body and `look mara` does not (client-surface) |
+| `shortDescription` | `body of <stem>` — for a person the **stranger's** stem (`body of a woman`, `body of a sentry`), never their name; an animal keeps its public presentation |
+| `ofIdentityPath` | a person's identity path (`''` for an animal) — whose body it was, carried as an identity rather than a name; persistent |
 
 Plus, outside the overlay: `adoptMaterialState` (the gated pour), the
 loadout, the place it fell, and `transferContaminationTo` — which is what
@@ -969,6 +971,30 @@ the circle path**, so an in-circle death wrote no accountability row at
 all. The append is hoisted above the circle branch — see
 [accountability.md](./accountability.md).
 
+## ⭐ The corpse names its dead per viewer (client-surface, 2026-10-31)
+
+A person's name is **per viewer** — it lives in the belief store, not on
+the body — so a corpse minted with the name in its short description and
+its keywords told every passer-by who had died, and `look mara` found
+the body of a woman they had never met (#105).
+
+`mintCorpseFrom` now stamps three things instead:
+
+- `shortDescription: body of <ofStem>`, where `ofStem` is the dead as a
+  **stranger** names them — `presentationPhrase('stranger')` for a
+  persona, the plain presentation for an animal (an animal's name, if it
+  had one, is public — `Mouse` to the whole street);
+- `ofIdentityPath`: the person's `getIdentityPath()`, persistent;
+- keywords without the dead's name words (the tokens of `getName()` and
+  `getFullName()`).
+
+`Corpse.describeFor(viewer, form)` tells the name to whoever knew them:
+when the viewer is a `BeliefStore` with `knownNameOf(ofIdentityPath)`,
+the body reads *the body of Mara*. ⚠ Only where the base answer is the
+plain stranger presentation — every gate the base applies (sight, a
+label someone wrote) still wins, so a body you cannot see is still
+*something* and a labeled one still reads its label.
+
 ## History
 
 Built 2026-07-31 in eight waves. Two decisions reversed during the build,
@@ -986,3 +1012,11 @@ A corpse sinks fresh and **floats again** once decomposed
 (`Postmortem.buoyantNow()` — true only at the `decomposed` stage); a water
 place's `sinks` reads it, and a river's drift fetches the floating body up on
 the next bar. See [river.md](./river.md).
+
+## Client surface (2026-10-31)
+
+A corpse carries `ofIdentityPath` and a stranger's stem, drops the dead's
+name words from its keywords, and names its dead per viewer through
+`Corpse.describeFor` — see § *The corpse names its dead per viewer*.
+`docs/plans/client-surface-plan.md` (W0, B5) until it is retired at the
+sweep.

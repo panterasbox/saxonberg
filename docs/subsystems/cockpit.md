@@ -23,9 +23,10 @@ cockpit                       report everything in effect
 cockpit mode <name>           what you are here to do
 cockpit layout <name>         the card arrangement inside that mode
 cockpit cli [id] --prefix …   prefix one command line's bare input
-cockpit shelf list|pin|unpin|first  which figures ride the top bar
+cockpit shelf list|pin|unpin|first  which figures ride the status bar
 cockpit style <sub> …         appearance
-cockpit card pin|dismiss …    override what holds a card open
+cockpit card <action> <card>  keep, size, place, tray or close a card
+cockpit terminal <view|#ch>   what a terminal card shows
 ```
 
 `layout` and `style` are **removed** as standalone verbs, not kept as
@@ -48,7 +49,9 @@ cockpit shelf first <row>     move it to the front
 ```
 
 Rows: `play` `renown` `skill` `make` `coin` `status` `time` `online`
-`docket`. Persists to **`cockpit.shelf`**; the surface it drives is
+`docket` — ids; the status bar labels them in plain words (Standing ·
+Known · Skills · Body · Making · Money · Status · Time · Who's on ·
+Docket). Persists to **`cockpit.shelf`**; the surface it drives is
 documented in [client-shell.md § The widget shelf](./client-shell.md).
 
 ### ⭐ `first`, and the glance-line
@@ -176,10 +179,18 @@ They answer different questions, and conflating them is what the old
 
 ### The mode axis — the front doors
 
-`CockpitMode` / `COCKPIT_MODES` in `@saxonberg/types`: `chat` · `play` ·
+`CockpitMode` / `COCKPIT_MODES` in `@saxonberg/types`: `chat` · `explore` ·
 `watch` · `build` · `govern`.
 
-⚠ **A mode is a view, never a gate.** Everything runnable in `play` is
+⚠ **`play` is `explore` now** (client-surface D10). The rename ran
+through `CockpitMode`, `COCKPIT_MODES`, `DEFAULT_COCKPIT_MODE`,
+`COCKPIT_ARRANGEMENTS`, `SHIPPED_ARRANGEMENT_CARDS` and
+`LEGACY_LAYOUT_MIGRATION`; `cockpit mode play` refuses with a line that
+names the new word (*the play mode is called explore now — cockpit mode
+explore*). The shelf row `play` and the `play <playerId>` verb are
+different things and kept their names.
+
+⚠ **A mode is a view, never a gate.** Everything runnable in `explore` is
 runnable in `build`. A mode that forbade a verb would be a permission
 system wearing a UI costume, with its checks in the wrong layer, no
 audit trail and no way for a player to discover why a verb vanished.
@@ -202,26 +213,28 @@ front door. If `govern` turns out to belong *within* `build`, that is a
 one-line edit to `COCKPIT_MODES`, not a redesign — flagged deliberately
 rather than silently resolved.
 
-### ⚠ What the arrangement axis ships, and what it does not
+### What an arrangement records
 
-**Storage and vocabulary — not behaviour.** `cockpit layout save`
-captures the cards that are open, by catalogue name; `recall` sets the
-active arrangement in `cockpit.arrangements`. **Nothing opens or closes
-a card in response**, on either side of the wire: no client code reads
-`cockpit.arrangements` today.
+`ArrangementSpec` is `{ cards: ArrangementCard[] }` (client-surface D5):
+each card's `cardId` and the shape and place the player gave it —
+`size`, `placed` (**units, never pixels**), `minimized`, `pinned` — and,
+for a terminal card, `terminal: { filter, inputMode?, primary? }`.
+`cockpit layout save` captures it from the open card set; recall opens it
+**server-side** (§ *A mode switch opens its arrangement*). The
+`cockpit.savedArrangements` validator in `SaxonbergClient` accepts this
+shape; there is no migration (the keyspace is reset nightly).
 
-That is deliberate scoping rather than a gap to be patched. The consumer
-is the client rebuild, and inventing a restore path before that client
-exists is how the same feature gets built twice. But it is stated here
-because the surface *looks* complete: `save` reports a card count,
-`list` shows names, `recall` succeeds, and none of it moves a card.
+⚠ An arrangement never records the subject or `here` card (B14): a
+card about a thing is a moment, not a workspace.
 
-⭐ **The unstated half is who acts on a recall.** The server has no way
-to tell a client to open a subscription — the client always initiates —
-so either that mechanism gets invented, or the client reads the
-arrangement and opens the named cards itself. The second works with what
-exists and keeps the split the card catalogue already established: the
-**client initiates, the server owns the vocabulary**.
+⚠ **Recorded, not closed:** `save` writes one entry per card kind and no
+`terminal` block yet, so a saved terminal returns as an unfiltered one
+beside the primary. See [card-surface.md § Arrangements, in
+units](./card-surface.md).
+
+⚠ The earlier note here — *nothing opens or closes a card in response
+to a recall* — described the storage-only first cut, and is no longer
+true.
 
 ⚠ Saved arrangements are capped per mode
 (`MAX_SAVED_ARRANGEMENTS_PER_MODE`). A save writes a player-chosen key
@@ -258,7 +271,7 @@ list is that mode's default. `watch` ships two (`viewer`, `streamer`).
   whichever list happened to be checked first.
 - **Bounded.** Names are player input that become persisted map keys and
   get rendered back: 32 characters, no spaces.
-- **Remembered per mode.** `cockpit mode chat` → `cockpit mode play`
+- **Remembered per mode.** `cockpit mode chat` → `cockpit mode explore`
   returns you where you were.
 
 `cockpit mode <name> [arrangement]` sets both at once — which is what a
@@ -273,7 +286,7 @@ ran `layout builder` has one persisted.
 
 | legacy | → mode | → arrangement |
 |---|---|---|
-| `world` | `play` | default |
+| `world` | `explore` | default |
 | `forum` | `chat` | default |
 | `livestream-viewer` | `watch` | **viewer** |
 | `streamer` | `watch` | **streamer** |
@@ -287,12 +300,12 @@ Resolved **on read** (`getCockpitMode` / `getCockpitArrangement`), so
 nothing has to sweep stored Avatars and a player who never returns costs
 nothing. Two details that are easy to get wrong:
 
-- `cockpit.mode` defaults to **`null`, not `'play'`**. A `'play'`
+- `cockpit.mode` defaults to **`null`, not `'explore'`**. An `'explore'`
   default would answer for a legacy player before the migration could,
   and the migration would silently never run.
 - The legacy arrangement is **scoped to the mode it migrated to**.
   `livestream-viewer` may answer for `watch`; it must not answer for
-  `play`, or one mode's vocabulary leaks into another.
+  `explore`, or one mode's vocabulary leaks into another.
 
 `snapshotClientState` emits both axes **resolved**. A raw snapshot would
 hand a legacy client `cockpit.mode: null` and make the *client* decide
@@ -318,7 +331,20 @@ render them and renders the nearest thing it has.
 ## Cards: pinned, or aged out
 
 See [card-surface.md](./card-surface.md) for the card set itself.
-The cockpit's half is the override verb: `cockpit card pin|dismiss|auto|list`.
+The cockpit's half is the verb: `cockpit card <action> <card>`, where the
+action is one of `list` · `pin` · `unpin` · `dismiss` · `auto` · `close` ·
+`grow` · `shrink` · `minimize` · `restore` · `move <col> <row>` · `place` ·
+`unplace` (client-surface D8). The pin actions are `CockpitCardController`'s
+own; every shape-and-place action goes through `Interactive.arrangeCard`
+→ `CardRegistry.arrange`, echoes on `shell.control` tagged
+`control:card`, and pushes a `card-arranged` for each card it moved.
+Refusals are named: `unknown-card`, `role-card` (the room card and the
+primary terminal cannot be closed; the room card cannot be unplaced),
+`primary-terminal` (the primary cannot be closed or minimized). `unpin`
+is `dismiss` by its other name.
+
+⭐ **The card's ref is its KEY first**, then its catalogue name, then its
+instance id — so a control on one of two `who` cards acts on that card.
 
 ⭐ **Pinned or unpinned is the WHOLE lifetime.** The five hold
 conditions this verb used to override are gone: four were spatial and
@@ -333,10 +359,46 @@ server's `pinned` value off the `card-pinned` envelope rather than
 toggling locally — a local toggle shows a pin that is not there, and it
 does not survive the tab.
 
-⭐ `cockpit card list` says which cards are LIVE. Liveness is the axis a
-player cannot otherwise observe: a static card shows a timestamp and a
-refresh, a live one shows neither, and without the word here the only
-way to tell them apart is to watch one fail to update.
+⭐ `cockpit card list` says which cards are LIVE, and their size and
+place. Liveness is the axis a player cannot otherwise observe: a static
+card shows a timestamp and a refresh, a live one shows neither, and
+without the word here the only way to tell them apart is to watch one
+fail to update. Since the client-surface build liveness is per card — a
+placed, pinned or role card of a live kind is live, everything else is a
+snapshot — so `place` and `pin` are how a player turns tracking on.
+
+## `cockpit terminal` — what a terminal card shows
+
+```
+cockpit terminal <view>            show a view in the primary terminal
+cockpit terminal #<channel>        show a channel in the primary
+cockpit terminal <view> --beside   open it in a new terminal card
+cockpit terminal primary <card>    make another terminal the primary
+```
+
+A **terminal is a card** with its own command bar
+([card-surface.md § Terminal cards](./card-surface.md)), and
+`CockpitTerminalController` only checks the target and words the result:
+a view must be one of the player's `console.tabs` views or `All`, a
+`#channel` is a chat channel by name, and anything else refuses
+`unknown-view` — a typo never opens an empty terminal. `primary` refuses
+`unknown-card` or `not-a-terminal`.
+
+⭐ **Every mode has a primary terminal**, and its default filter is the
+mode's `MODE_PRIMARY_FILTER` entry in `@saxonberg/types`: `chat` → the
+`Chat` view, every other mode → everything. It is minted on a MODE entry
+— `openArrangement` at login, `cockpit mode`, `cockpit layout` — when
+none is up, and retargeted when one is; a bare re-arrange of cards
+touches no terminal (B15). It cannot be closed or minimized.
+
+⭐ The terminal's bar is minted with the card (`bar-<uuid>`) and survives
+every retarget, so `cockpit cli <bar> --prefix …` is per terminal card,
+and an arrangement can carry a terminal's input mode.
+
+⭐ **Watch ships a stream-chat terminal** (B31): both watch arrangements
+name a terminal card filtered to the relay topics (`speech.relay`),
+labeled "Stream chat", beside the primary. Build ships the primary only
+(B32) — a diagnostics lens is a view a player opens beside.
 
 ⚠ **Dismiss is not on the pin control.** It is a different intent —
 *drop this even though it still holds* — and putting it in the same
@@ -365,12 +427,18 @@ The rules `applyArrangement` follows:
   workspace; a card about a particular person is a statement about a
   moment, and restoring one next week would restore an answer to a
   question nobody is asking.
-- **An already-open card is left alone**, rather than closed and
-  reopened — the reopen would lose its pin and its hold.
-- **A shape-opened card is never closed.** The player opened it; a mode
-  switch is not a licence to throw it away.
+- **An already-open card is kept and re-shaped**, rather than closed and
+  reopened — the reopen would blank it and lose its pin; it takes the
+  arrangement's size, place, tray state and pin (B14).
+- **The primary terminal is never closed by a rearrange**; it is
+  retargeted to the arrangement's primary filter, or the mode's.
+- Every other card the arrangement does not name — extra terminals
+  included — closes with reason `rearranged`, and the arrangement's own
+  terminals open, each its own card.
 
-⭐ **It also runs on LOGIN** (`Avatar.enter`), not only on a mode or
+⭐ **It also runs on LOGIN** (`Avatar.enter` →
+`SaxonbergClient.openArrangement`, which passes the mode's
+`MODE_PRIMARY_FILTER`), not only on a mode or
 layout switch. It was called from those two controllers alone, so a
 player who logged straight into `build` saw an empty feed until they
 switched modes and switched back — an arrangement that only applies when
@@ -392,65 +460,43 @@ load — looks unknown as well. Both showed up live as spurious cards, and
 no unit test could see either, because the adoption path only fires for
 an envelope a test would have to mint by hand.
 
-## The old layout axis (still the client's shape)
+## The client stage (client-surface build)
 
-Layout is per-player UI state, identical in kind to `console.tabs` — so
-it is a `clientState` key, not a client-local field. The client registry
-below is keyed by the legacy `LayoutName` and is what the compatibility
-projection feeds.
+Every desktop mode composes **one stage** — `layouts/ModeStage.tsx`,
+four regions measured in rem: the nav **rail**, a **panel** of cards, the
+**terminal column** (the primary terminal at a 42rem text measure, with
+the one-card *medium* slot across its top) and the **card area** (a feed
+at one unit, a workspace at more). `MODE_REGISTRY` (`layouts/modes.ts`)
+is still keyed `(mode, arrangement)`, but each entry is a per-mode config
+of that stage — `ExploreStage`, `ChatStage`, `WatchViewerStage`,
+`WatchStreamerStage`, `BuildStage` — not a layout component of its own.
+`WorldLayout`, `ForumLayout`, `BuilderLayout`, the two livestream
+layouts, `LivestreamPanels` and `ChatSurface` are retired (B39). The
+phone renders `PhoneShell` instead. Geometry, chrome and the phone are
+[client-shell.md](./client-shell.md)'s.
 
 - **No auto-switch.** `cockpit layout` / `cockpit mode` are the *only*
-  ways to change what is on screen — typed, or sent by the "Views" menu.
-  The `forum` verb stays pure CRUD (you reach the board view via
-  `cockpit mode chat`); the standalone `?surface=cms` takeover is
-  retired. No domain verb, URL, NPC, or item flips it.
-
-### Client registry
-
-`packages/client/src/layouts/` holds a `layout → component` registry
-(`LAYOUT_REGISTRY`, a `Partial<Record<LayoutName, LayoutDef>>`). `App`
-reads `clientState['cockpit.layout']` and renders
-`LAYOUT_REGISTRY[layout] ?? LAYOUT_REGISTRY.world`. The transient
-client-local `mainView` flip and the `recognizeForumNavigation` watcher
-are **deleted** — all view-switching lives in the one server axis.
-
-- `LayoutProps` is the bundle `App` threads to the active layout (frame
-  buffer, command-send/preview/click handlers, prompt handlers). Each
-  command bar owns its own local input draft and submits its `barId`;
-  preview/flash live in the status bar, not in a bar.
-- The **"Views" menu** (`components/ViewsMenu.tsx`) previews/sends
-  `cockpit mode <mode> <arrangement>` per the click model and marks the current layout. It +
-  the Settings affordance live in the **single top `Frame` bar**
-  (`components/frame/Frame.tsx`) alongside the connection chip, identity
-  and the widget shelf — one
-  fixed chrome row, not two (the separate `ChromeBar` row was folded into
-  `Frame` so the content area reclaims the vertical space).
-- An **always-on minimum** (the Frame bar, a command bar) renders in
-  every layout, so the player can always type `cockpit mode play` to leave.
-
-### The five layouts
-
-| Layout | Shape (canonical split) | Notes |
-|---|---|---|
-| `world` | terminal + a right rail with an **Inspect \| Who's Online** card switch (Single + rail) | the classic cockpit; the rail card is chosen by the `rightCard` store slice (inspection detail vs the social-inspection roster) |
-| `forum` | board view + chat sidecar | the old `mainView === 'forum'`; live-scene peek keeps it never-blind |
-| `livestream-viewer` | video embed (focal) + game terminal + chat rail | see below |
-| `streamer` | a **control deck** (focal) + game terminal + a widened chat rail | `StreamerDeck`; see below |
-| `builder` | CMS editor (dominant) + glance terminal rail (Monitor) | the CMS re-homed in-session |
-
-`LivestreamViewerLayout` and `StreamerLayout` share `LivestreamPanels`
-(the game terminal + chat rail + bar); only the focal card differs (the
-viewer's video embed vs the streamer's control deck), and the streamer
-passes `railWide` so its chat — the broadcaster's lifeline — gets more
-room. The shared side rail is the tokenized `SideColumn` primitive
-(`tokens.rail`, with a `$wide` variant for the builder/streamer); the
-focal split is a real `tokens.ratio.focal` (~62/38) so fixed-ratio
-content (the 16:9 embed) is deliberately large and letterboxed within
-its share rather than incidentally sized.
+  ways to change the mode on screen — typed, or sent by the rail's mode
+  buttons (words, not glyphs: B24). No domain verb, URL, NPC or item
+  flips it.
+- **The mode configs:** `explore` — the panel holds the `here` card;
+  `chat` — the panel holds the subjects list, and picking a chat subject
+  sends `cockpit terminal #<handle>` (a forum subject opens its board over
+  the terminal column, B29); `watch` — the panel holds the tuned rail, the
+  video (viewer) or the streamer deck (streamer) is the focal region over
+  the terminal column, and the stream chat is a terminal card (B31);
+  `build` — no panel; the authoring cards and the primary terminal.
+- **The view chooser** above the primary terminal lists `All` and the
+  player's views; a chip sends `cockpit terminal <view>`, and the primary's
+  view is kept in step with the console's active view, so the view editor
+  edits what the terminal shows (B33). Before the server has minted a
+  primary, the shipped tab strip drives the column.
+- An **always-on minimum** (the rail, the status bar, a command bar)
+  renders in every mode.
 
 ### The streamer control deck
 
-`StreamerLayout`'s focal is `components/StreamerDeck.tsx`, **not** a stats
+The streamer arrangement's focal region is `components/StreamerDeck.tsx`, **not** a stats
 readout: while live a broadcaster mostly needs quick-action shortcuts to
 the commands they fire at the community (moderation, rewards/penalties,
 community prompts, broadcast state) plus a small live readout (viewers,
@@ -484,20 +530,21 @@ surface; this section is just the embed's cockpit half.
   `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`).
 - **Client** — `components/embed/StreamEmbed.tsx` takes a single
   `WatchTarget | null` and renders **one** sandboxed iframe (no picker) or
-  an empty placeholder. `LivestreamViewerLayout` reads
-  `clientState['cockpit.watch']`. The Twitch iframe's `parent` is
+  an empty placeholder. The watch stage's focal region reads
+  `clientState['cockpit.watch']` (on a phone, the video sits above the
+  game terminal). The Twitch iframe's `parent` is
   `window.location.hostname` (correct-by-construction, never hard-coded);
   the YouTube iframe is `youtube.com/embed/<videoId>` (videoId arm) or
   `youtube.com/embed/live_stream?channel=<channelId>` (channelId arm). The
-  chat terminal allowlists the relay topics (`speech.relay`); the game terminal is the complement —
-  client-side filters over the one shared frame buffer, no ingest-time
-  routing.
+  stream-chat terminal card allowlists the relay topics (`speech.relay`);
+  the primary terminal shows everything — client-side filters over the
+  one shared frame buffer, no ingest-time routing.
 
 ## Builder = the CMS re-homed
 
-`BuilderLayout` mounts the existing `CmsSurface` (its `Screen` restyled
-from `100vh/100vw` to `flex:1; min-height:0`) beside a glance terminal
-rail. The WebSocket session is **live** the whole time — the standalone
+`build` opens the `cms`, `git` and `studio` cards (client bodies over
+the CMS components) beside the primary terminal; `BuilderLayout` and its
+glance rail are retired (client-surface B39). The WebSocket session is **live** the whole time — the standalone
 `?surface=cms` full-screen takeover + its WS guard are deleted, so the WS
 always connects. The `CmsApi`/`CmsLogic` REST surface +
 `CmsSession.runAsSessionPlayer` attribution bridge are reused **unchanged**
@@ -551,16 +598,25 @@ primacy made absolute.
 
 The client no longer wraps input. The `inputMode` store slice is gone.
 
-- Each `CommandBar` is bound to a **`barId`** (distinct per layout bar:
-  `world` / `forum` / `stream-game` / `stream-chat` / `builder` /
-  `chargen`), owns its base draft **locally** (so multiple bars coexist),
+- Each `CommandBar` is bound to a **`barId`** — a terminal card's
+  minted `bar-<uuid>` (the primary's included), or a fixed id where no
+  terminal card exists yet (`world` before the primary is minted,
+  `chargen`) — owns its base draft **locally** (so multiple bars coexist),
   and submits `(tail, barId)` verbatim. A moded bar renders its prefix as
   an **inline, uneditable `<span>`** styled identically to typed text
   (read from `cockpit.inputModes[barId]`); it **hides when the input is
   exempt** (`/` or `mode`), so the bar always shows what dispatches.
   Closing the mode is a small `✕` at the bar's edge (+ Esc), both sending
-  `cockpit cli --clear` from that line. The chat sidecar's "talk here" sends
-  `cockpit cli --prefix "chat <handle>"` from the forum line.
+  `cockpit cli --clear` from that line. On the phone the target chip
+  (`say ▾`) sets the same prefix (`cockpit cli <bar> --prefix "<target>"`
+  / `--clear`), so what the chip says is what the server prepends (B38).
+- ⭐ **Prompts are per bar** (client-surface D6, B20). A `prompt`
+  envelope carries the asking bar (`PromptEnvelope.barId`, from
+  `context.barId`); the store keeps `activeSlotByBar`, and a prompt from
+  an un-barred command (an affordance click) attaches to the primary's
+  bar. Each terminal card renders its own `PromptStrip` and `CommandBar`.
+  Text typed at a `choice` or mql prompt that is not an answer is sent as
+  a command — a typed command is never swallowed.
 
 ### The preview surface + click model
 
@@ -606,6 +662,12 @@ client-only settings state. Its notification section consumes the
 branch). Opening the card is client UI state (like the inspection card),
 not a `layout` switch — it coexists with the current layout.
 
+⭐ **On a desktop, settings are a CARD now** (client-surface D10): the
+rail's settings icon sends the shipped `settings` verb, which opens the
+`settings` card (`opens_card: settings`, singleton, pinned) with
+`SettingsPanel` as its body. The phone still summons it as a panel from
+the account menu.
+
 ## The client frame renders from both axes (Wave 6)
 
 `cockpit.layout` shipped as a **compatibility projection painted from
@@ -626,16 +688,17 @@ registry can express that; `modeResolution.test.ts` asserts it directly.
 ⚠ **The legacy key is read exactly where the SERVER reads it.**
 `cockpit.mode` defaults to `null` deliberately, so `getCockpitMode()` can
 treat that null as its cue to migrate a stored `cockpit.layout` instead
-of silently answering `play`. A client skipping the same step would land
+of silently answering `explore`. A client skipping the same step would land
 every returning player in the world layout regardless of what they had
 saved. Once a mode *is* set, the legacy key is not consulted — it is a
 migration cue, never a live source of truth.
 
-⚠ **`govern` falls back to `play` VISIBLY** (`ResolvedMode.fallbackFrom`).
-A silent substitution makes an unbuilt mode indistinguishable from a
-finished one.
+⚠ **`govern` falls back to `explore` VISIBLY** (`ResolvedMode.fallbackFrom`):
+the stage shows *govern isn't laid out yet — showing explore*. A silent
+substitution makes an unbuilt mode indistinguishable from a finished one.
 
-**`ViewsMenu`** now enumerates `COCKPIT_MODES × COCKPIT_ARRANGEMENTS`
+**`ViewsMenu`** (retired from the desktop into the rail's mode buttons;
+it survives in the phone's account menu) enumerates `COCKPIT_MODES × COCKPIT_ARRANGEMENTS`
 rather than the five legacy layout names. It was already *sending*
 `cockpit mode` commands — it was building them from the wrong list, so a
 mode with two arrangements could only ever be offered once. An entry the
@@ -696,3 +759,17 @@ keyed `(mode, arrangement)`; the legacy key survives on the wire and is
 read in exactly one place, as the migration cue for a player with no
 `cockpit.mode` — which is what the server's own `getCockpitMode()` does
 with it. See § The client frame renders from both axes.
+
+### Client surface — 2026-10-31
+
+`play` became `explore` (with a refusal that names it). `cockpit card`
+grew `close` · `grow` · `shrink` · `minimize` · `restore` · `move` ·
+`place` · `unplace` · `unpin` through one `arrange` door and the
+`card-arranged` envelope; `cockpit terminal` arrived with terminal cards,
+a primary per mode (`MODE_PRIMARY_FILTER`) and prompts per bar.
+Arrangements record each card's shape and place in units. The top
+`Frame` bar, `ViewsMenu` on the desktop and the per-mode layout
+components retired into the rail, the status bar and one `ModeStage`;
+watch ships a stream-chat terminal card. See
+`docs/plans/client-surface-plan.md` (D5, D6, D8, D10, B14–B16, B29–B33,
+B39) until it is retired at the sweep.

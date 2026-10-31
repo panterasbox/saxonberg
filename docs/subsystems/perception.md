@@ -314,6 +314,49 @@ make it combat physics. Combat asks; perception answers. The band an
 ambush buys (`close`, regardless of the arena's maximum) is combat's
 call and stays in `CombatLogic` — see [ranged.md](./ranged.md).
 
+## ⭐⭐ Another person — what a look may not tell you
+
+*Their pockets and their weight are not in view* (client-surface W0,
+#103/#104). One predicate decides it, named once:
+
+```
+PerceptionApi.isAnotherPerson(viewer, target)
+  = viewer !== target && target.isAgent() && MixinApi.isSlotted(target)
+```
+
+A PERSON is an agent with slots; a rack is slotted and wears nothing, so
+it lists like any container. `PerceptionApi.visibleContentsOf(viewer,
+target)` — the one rule `look`, `inventory` and MQL's `:i` read (see
+[perceiver.md](./perceiver.md)) — reads it: for another person the
+answer is what they **wear** and **hold**, never what they **carry**; for
+yourself it is all three; for a container it is everything inside, once
+open.
+
+The card surface follows the same rule, so the wire cannot leak what the
+prose withholds:
+
+- **`contents`** on a card (`Container`'s subscribable read): for
+  another person, only the children `visibleContentsOf` says they
+  **hold** survive the filter (worn stays the `worn` projection's), so a
+  stranger's pocket never reaches a client.
+- **`mass`** (`Tangible`'s read) returns nothing for another person:
+  *another person's weight is read by a scale, never by a look.* ⚠ The
+  read states `isAnotherPerson`'s three clauses inline rather than
+  importing the Api, because that import closes a cycle through `Thing`
+  (B6); `mql-subscription.privacy.test.ts` pins that the two agree, and a
+  change to the predicate must change both.
+
+### A person's things are seen in their room's light
+
+`VisionModality`'s detail gate lifts the light environment for a
+person: when the thing being looked at sits inside an agent with slots,
+the light it is seen in is the light **its wearer stands in**
+(`env = env.getContainer() ?? env`), beside the existing lift for a
+thing inside a containable. The light inside a body is no light at all,
+so before this every worn hat on a stranger read *something* (#90).
+Which of their things are in view at all stays `visibleContentsOf`'s
+rule, not this one.
+
 ## Where the pattern is currently used
 
 - (existing) `PerceptionApi.perceives(viewer, target)` — the concealment /
@@ -411,3 +454,12 @@ room made them reachable: it skips exits answering false to
 room, and resolving it lands on a non-Container), and it skips a
 destination that is destroyed — a reaped neighbour's proxy answers
 every call with `undefined`, and `look` must not die because of it.
+
+## History
+
+- **Client surface (2026-10-31)** — `PerceptionApi.isAnotherPerson`
+  named the person rule that `visibleContentsOf` reads; a card's
+  `contents` and `mass` follow it; `VisionModality` lifts a person's worn
+  and held things to their room's light. See
+  `docs/plans/client-surface-plan.md` (W0, B6) until it is retired at the
+  sweep.

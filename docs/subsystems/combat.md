@@ -925,6 +925,28 @@ The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
 and whether a defender bites a feint, so "the fog says open" and "I bit the
 feint" can never contradict. **The fog is the only dice; skill shrinks it.**
 
+⭐ **A third surface: `look` at a fighter** (client-surface D3, B2).
+`Combatant.combatStateLineFor(viewer)` → `CombatLogic.combatStateLineFor`
+(gated `CombatantCallers`) is what `combatStateAugmenter` prints on a
+combatant's description — `In combat — <band>, <flags>, down.` — and it
+reads **by viewer**:
+
+- a **participant** in the same session reads the target at their own
+  `sharpnessFor(viewerState)` — exactly the fog the `fight` status line
+  and the narration give them;
+- a **bystander** (no state in that session) reads at the **untrained
+  floor**, `Sharpness.resolve({ competenceBand: 'untrained' })` — honest
+  in the one direction that matters: it under-reads toward `steady` and
+  never over-reads;
+- a combatant looking at **themself** reads their own poise **unfogged**.
+
+Flags and `down` pass unfogged — they are visible acts. The read lives
+on the combatant rather than as a `CombatApi.readingOf(viewer, target)`
+static because the augmenter already holds the host and
+`lint:object-verbs` holds world-object-first Api statics at zero. ⚠ The
+augmenter is synchronous and a viewer's lived combat band is async, so a
+bystander's *trained* eye is a deferred seam, not a silent omission.
+
 **Sharpness** (`lib/combat/Sharpness.ts`, pure). One scalar,
 `f(competence) · g(composure)`, modulating **both** poise recovery (a
 sharper fighter recovers more per defensive beat) and the read-fog.
@@ -1216,3 +1238,9 @@ Named at their sites; nothing inherited:
   body-derived natural profile replacing the five unarmed fallback
   literals); and the gym's hooked determinism cell. Four new dials
   (`combat.influence.*` ×3, `combat.natural.largeBodyMassKg`).
+- **Client surface** (`build/client-surface`, 2026-10-31) — the combat
+  line on `look` reads by viewer (`Combatant.combatStateLineFor`): a
+  bystander at the untrained floor, a participant at their own
+  sharpness, your own poise unfogged. See
+  `docs/plans/client-surface-plan.md` (D3, B2) until it is retired at the
+  sweep.
