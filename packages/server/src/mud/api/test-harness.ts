@@ -18,11 +18,14 @@ import {
   TestHarnessLogic,
   type ClockJump,
   type WeatherPinReport,
+  type ShipStageSpec,
+  type ShipStagePlace,
+  type ShipStageReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
 
-export type { ClockJump, WeatherPinReport };
+export type { ClockJump, WeatherPinReport, ShipStageSpec, ShipStagePlace, ShipStageReport };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -118,6 +121,24 @@ export class TestHarnessApi {
   )
   public static unpinWeather(scope: string): Promise<WeatherPinReport> {
     return logic().unpinWeather(scope);
+  }
+
+  /**
+   * ⭐ Stage a ship (harbors P25) — the staged twin of sailing her there:
+   * `at` puts her lying at a sea's node (`{node}`) or at a citation on a
+   * frame (`{frame, cite}`), cast off from any berth and with no course.
+   * Her rooms and everyone in them go with her (they are hers). Named by
+   * her row path.
+   */
+  @TestOnly(
+    'In a test world, stage a ship with `testharness ship <ship> at ' +
+      'node:<path>` (or the wire harness\u2019s stageShip). Nothing in the ' +
+      'game puts a ship somewhere she did not sail.',
+  )
+  public static stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'stageShip', () =>
+      logic().stageShip(handle, spec),
+    );
   }
 
   /** The pin on the Locality covering `scope`, if any. */

@@ -77,6 +77,10 @@ vi.mock('../../../backend/TestHooks', () => ({
       }
       return { before: 0, after: 1, settledMs: 0, quiet: true };
     },
+    stageShip: async (ship: string, spec: { at: unknown }) => {
+      if (ship === '/test/not-a-ship') throw new Error("testharness ship: '/test/not-a-ship' is not a ship");
+      return { ship, frame: '/test/sea', at: spec.at };
+    },
     pinWeather: async (scope: string, type: string | null, mode: string) => {
       if (type === 'sideways') throw new Error("testharness weather: 'sideways' is not a weather kind");
       return { locality: scope, pin: type === null ? null : { type, mode } };
@@ -200,6 +204,30 @@ describe('TestAuthRoutes', () => {
         .send({ scope: '/test/realm', type: 'sideways' });
       expect(refused.status).toBe(500);
       expect(refused.body.error).toMatch(/not a weather kind/);
+    });
+  });
+
+  describe('/auth/test-ship (harbors P25)', () => {
+    it('stages a ship at a node, or at a citation on a frame', async () => {
+      const node = await request(makeApp())
+        .post('/auth/test-ship')
+        .send({ ship: '/test/hesper/structure', at: { node: '/test/sea/bar' } });
+      expect(node.status).toBe(200);
+      expect(node.body).toMatchObject({ ship: '/test/hesper/structure', at: { node: '/test/sea/bar' } });
+      const cite = await request(makeApp())
+        .post('/auth/test-ship')
+        .send({ ship: '/s', at: { frame: '/test/river', cite: 'estuary-1.2' } });
+      expect(cite.body.at).toEqual({ frame: '/test/river', cite: 'estuary-1.2' });
+    });
+
+    it('400 on a malformed body; a refusal relayed in its own words', async () => {
+      const bad = await request(makeApp()).post('/auth/test-ship').send({ ship: '/s' });
+      expect(bad.status).toBe(400);
+      const refused = await request(makeApp())
+        .post('/auth/test-ship')
+        .send({ ship: '/test/not-a-ship', at: { node: '/n' } });
+      expect(refused.status).toBe(500);
+      expect(refused.body.error).toMatch(/is not a ship/);
     });
   });
 });

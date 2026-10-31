@@ -20,6 +20,8 @@ data:
   props:
     - /world/terminus/hesper/thing/chart
     - /world/terminus/hesper/thing/old-chart
+    # ⭐ Her charter book (harbors P23): `charter` here makes you her master.
+    - /world/terminus/hesper/thing/charter-book
   exits:
     up:
       destination: /world/terminus/hesper/deck

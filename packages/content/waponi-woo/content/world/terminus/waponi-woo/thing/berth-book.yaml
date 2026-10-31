@@ -1,0 +1,16 @@
+# The island's berth book (harbors A3) — on the estate store's counter:
+# who lies at the jetty and since when, read off the estate's harbor. Dues
+# are paid at it (`pay book`, or `pay office`), and whoever keeps the jetty
+# on shift makes the harbormaster's call here (`berth <ship> at landing`).
+class: /system/transport/thing/HarborBook
+data:
+  shortDescription: berth book
+  keywords: [book, "berth book", "jetty book"]
+  register: definite
+  longDescription: >-
+    A thin book kept under the estate ledger, its pages headed with a
+    ship's name and the day she came alongside the jetty.
+  _materialPath: /stuff/idea/material/organic/leather
+  fixedInPlace: true
+  mass: 1
+  harbor: /world/terminus/waponi-woo/idea/harbor

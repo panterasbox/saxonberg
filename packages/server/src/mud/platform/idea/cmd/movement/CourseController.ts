@@ -83,6 +83,7 @@ export default class CourseController extends CommandController<CourseModel> {
     }
     const heading = (model.heading ?? '').trim();
     if (heading === '') return this.readout(context, craft, giver);
+    if (!this.mayHelm(context, craft, giver)) return;
     if (!(await this.mayLeave(model, context, craft, giver))) return;
 
     let bearingDeg: number;
@@ -116,6 +117,12 @@ export default class CourseController extends CommandController<CourseModel> {
       const river = target instanceof ExpanseNode ? target.getRiver() : null;
       if (lying !== null && target.isAt(lying) && river !== null) {
         return this.intoRiver(context, craft, river);
+      }
+      // ⭐ Lying off a node with a landing she is not made fast at (A3 — the
+      // island's quay): its name brings her in alongside, asked of its keeper.
+      const landing = target instanceof ExpanseNode ? target.getDestination() : null;
+      if (lying !== null && target.isAt(lying) && landing && craft instanceof Ship && craft.getBerth() !== landing) {
+        return this.comeIn(context, craft, landing);
       }
       if (lying !== null && target.isAt(lying)) {
         return this.decline(context, `You are at ${target.getName()} already.`, 'already-there');
@@ -209,6 +216,7 @@ export default class CourseController extends CommandController<CourseModel> {
       direction = named.km > here.km ? 'upstream' : 'downstream';
       landing = named.path;
     }
+    if (!this.mayHelm(context, craft, context.commandGiver)) return;
     if (!(await this.mayLeave(model, context, craft, context.commandGiver))) return;
     const started = await craft.steer({ speedKn: craft.getSpeedKn(), direction, toward: landing, slow });
     if ('refused' in started) return this.decline(context, started.refused, 'river-refused');
@@ -220,6 +228,28 @@ export default class CourseController extends CommandController<CourseModel> {
         ? `You ring for ${slow ? 'slow ahead' : 'steam'} and she gets under way ${direction}, for ${name}.`
         : `You ring for ${slow ? 'slow ahead' : 'steam'} and she gets under way ${direction}.`,
     );
+  }
+
+  /**
+   * ⭐ Only her master takes the helm (harbors P12): her charterer, or
+   * whoever holds her company's `master` seat. `true` when `giver` may.
+   */
+  private mayHelm(context: CommandContext, craft: Craft, giver: Stuff): boolean {
+    if (craft.mayBeSteeredBy(giver)) return true;
+    this.decline(context, 'Only her master takes the helm — charter her, or be appointed to command her.', 'not-her-master');
+    return false;
+  }
+
+  /**
+   * ⭐ In alongside the landing of the node she lies at (A3): the keeper's
+   * criteria first, then her lines go ashore.
+   */
+  private async comeIn(context: CommandContext, craft: Ship, landing: string): Promise<void> {
+    const refused = await craft.courseRefusal(landing);
+    if (refused !== null) return this.decline(context, refused, 'course-refused');
+    const name = (await StuffApi.singleton<Stuff>(landing).catch(() => null))?.getPresentation() ?? 'the landing';
+    const words = await craft.comeAlongside(landing);
+    this.tell(context, `You bring her in to ${name}. ${words}`);
   }
 
   /**

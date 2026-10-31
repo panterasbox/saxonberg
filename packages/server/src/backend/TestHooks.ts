@@ -57,6 +57,8 @@ import {
   TestHarnessApi,
   type ClockJump,
   type WeatherPinReport,
+  type ShipStageSpec,
+  type ShipStageReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
@@ -370,6 +372,19 @@ export class TestHooks {
       type === null
         ? TestHarnessApi.unpinWeather(scope)
         : TestHarnessApi.pinWeather(scope, type, mode)
+    );
+  }
+
+  /**
+   * TEST-ONLY: stage a ship (harbors P25) — put her lying somewhere the
+   * drive needs her, never sailed there. Same three gates as the clock;
+   * the staging itself is `TestHarnessApi.stageShip`'s, the one
+   * implementation the `testharness ship` command calls too.
+   */
+  public static async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
+    TestHooks.#assertTestMode('stageShip');
+    return ExecutionContextApi.runRoot(TestHooks, 'stageShip', () =>
+      TestHarnessApi.stageShip(handle, spec)
     );
   }
 

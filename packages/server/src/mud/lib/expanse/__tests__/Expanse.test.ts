@@ -118,6 +118,22 @@ describe('nodes', () => {
     expect(await sea.nodeAt(new GeoPosition(51, -4.2))).toBeNull();
   });
 
+  it('⭐ a quay sited on the chart by a node’s path stands where the node does — once the sea has stood (harbors A3)', async () => {
+    const n = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/island`);
+    n.setName('Island');
+    n.setFocus(focusAt(48, -4));
+    live.set(`${SEA}/island`, n);
+    sea.invalidate();
+    // Standing on the quay is what compiles the chart for it.
+    await sea.onSiteStood(n as unknown as Stuff);
+    const at = sea.siteOf(`${SEA}/island`);
+    expect(at?.frame).toBe('chart');
+    expect((at as { at: GeoPosition }).at.distanceNm(new GeoPosition(48, -4))).toBeLessThan(0.01);
+    expect(sea.siteOf(`${SEA}/nowhere`)).toBeNull();
+    // A `lat,lon` citation reads as ever.
+    expect(sea.siteOf('47.5,-3')?.frame).toBe('chart');
+  });
+
   it('a place node carries no passage; a bad kind is refused', () => {
     const n = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/pool`);
     n.setKind('place');

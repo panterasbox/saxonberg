@@ -1,0 +1,22 @@
+# The island's harbor — the estate's book for its jetty (harbors A3, P26).
+# ⭐ The second-instance test: the same `Harbor` the Port of Terminus is,
+# rows only. The office is the estate store; the seat is the estate's
+# `harbormaster`, kept by the owner 6–20; a ship sent away lies off the
+# island (the node) until the store opens or the jetty is free.
+#
+# No bar: the jetty stands on the open chart, so the criteria are the
+# office open → room along the jetty by her length → dues owed.
+class: /system/transport/idea/Harbor
+data:
+  office: /world/terminus/waponi-woo/location/store
+  seat:
+    business: /world/terminus/waponi-woo/idea/estate
+    positionKey: harbormaster
+  roads: /stuff/idea/WaterExpanse/greywater/waponi-woo
+  # ⭐ GRAIN (P28): a private jetty charges a fifth of the port's rate —
+  # the Hesper (30 m) lies here for 1.5 a day, so a week loading sugar
+  # costs about one block's margin.
+  rates:
+    duesPerMeterPerDay: 0.05
+  quays:
+    - { place: /world/terminus/waponi-woo/location/landing, lengthM: 40 }

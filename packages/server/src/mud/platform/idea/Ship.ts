@@ -80,7 +80,30 @@ export interface ShipBill {
   amountMinor: number;
   /** What it is for, in words. */
   reason: string;
+  /**
+   * Who it is owed by, by identity path (a charter's days are the
+   * charterer's) — they answer for her at the office until it is paid.
+   */
+  by?: string;
 }
+
+/**
+ * ⭐ A voyage charter (harbors P23): the charterer is her master until she
+ * next berths at a kept quay, and pays the line for the world's days it
+ * lasted, at the book's rate.
+ */
+export interface ShipCharter {
+  /** The charterer, by identity path. */
+  charterer: string;
+  /** When it began, game-seconds. */
+  sinceS: number;
+  /** Minor units per world's day, the book's posted rate. */
+  ratePerDay: number;
+  /** The venue the days are paid to (the line's desk) — whose house's books they are. */
+  payTo: string;
+}
+
+const DAY_S = 86_400;
 
 /** The kind row of the way aboard a ship, named for her (harbors P4). */
 const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
@@ -128,6 +151,7 @@ export default class Ship extends PersistableMixin(
     gangwayKeyway: { persistent: true, authorable: true },
     gangwayLocked: { persistent: true, authorable: true },
     owed: { persistent: true },
+    charter: { persistent: true },
   };
 
   /**
@@ -244,7 +268,9 @@ export default class Ship extends PersistableMixin(
     if (!Number.isFinite(amountMinor) || amountMinor <= 0 || typeof bill.to !== 'string' || bill.to === '') {
       throw new Error(`Ship.owe: a bill wants a venue and a positive amount (got ${JSON.stringify(bill)})`);
     }
-    this.owed.push({ to: bill.to, amountMinor, reason: String(bill.reason ?? '') });
+    const line: ShipBill = { to: bill.to, amountMinor, reason: String(bill.reason ?? '') };
+    if (typeof bill.by === 'string' && bill.by !== '') line.by = bill.by;
+    this.owed.push(line);
     this.persistMooring();
   }
 
@@ -263,14 +289,123 @@ export default class Ship extends PersistableMixin(
   }
 
   /**
-   * ⭐ Does `who` answer for her (P12, P13) — the one whose business her
-   * dues and bills are? Whoever holds her company's `master` seat. (The
-   * charterer and the managing owner join this in later waves.)
+   * ⭐ Does `who` answer for her (P12, P13, P23) — the one whose business
+   * her dues and bills are? Whoever holds her company's `master` seat, her
+   * charterer while the charter runs, and a charterer whose days she still
+   * carries unpaid (the charter ended as she berthed; clearing her is still
+   * theirs). (The managing owner joins this with the register, B2.)
    */
   public answersFor(who: Stuff): boolean {
+    if (this.holdsMasterSeat(who) || this.isChartererOf(who)) return true;
+    const id = idOf(who);
+    return id !== '' && this.owed.some((b) => b.by === id);
+  }
+
+  /**
+   * ⭐ May `who` take her helm (P12)? Her charterer while the charter runs,
+   * or whoever holds her company's `master` seat — nobody else. (Crews and
+   * mates at the helm are a later seam: more seats read here.)
+   */
+  public override mayBeSteeredBy(who: Stuff): boolean {
+    return this.isChartererOf(who) || this.holdsMasterSeat(who);
+  }
+
+  /** Does `who` hold her company's `master` seat? */
+  private holdsMasterSeat(who: Stuff): boolean {
     const house = this.house;
     if (house === null || !MixinApi.isEmployed(who)) return false;
     return who.getEmployment(house)?.positionKey === MASTER_POSITION;
+  }
+
+  /* ───────────── the charter (harbors P23) ───────────── */
+
+  /** ⭐ The charter running now, or `null` (P23). */
+  protected charter: ShipCharter | null = null;
+
+  /** The charter running now, a copy — `null` when she is not chartered. */
+  public getCharter(): ShipCharter | null {
+    return this.charter ? { ...this.charter } : null;
+  }
+
+  /** Is `who` her charterer now? */
+  public isChartererOf(who: Stuff): boolean {
+    const id = idOf(who);
+    return this.charter !== null && id !== '' && this.charter.charterer === id;
+  }
+
+  /**
+   * ⭐ Charter her to `who` at `ratePerDay`, the days paid to `payTo` (P23)
+   * — or why not, in words: she has a charterer already, or a master of
+   * her own is aboard on shift (she is not the line's to let while she is
+   * commanded). Written on her and kept.
+   *
+   * @throws when the book posts a rate with nowhere to pay it (an
+   *   authoring error, never a refusal).
+   */
+  public async charterTo(who: Stuff, ratePerDay: number, payTo: string | null): Promise<string | null> {
+    const id = idOf(who);
+    if (id === '') return 'Nobody can charter her by that name.';
+    if (this.charter !== null) {
+      return this.charter.charterer === id
+        ? `${this.getPresentation()} is yours already, until she next berths.`
+        : `${this.getPresentation()} is under charter to somebody else until she next berths.`;
+    }
+    // (A sunken ship is refused here too once she can sink — harbors B5.)
+    if (await this.masterAboardOnShift()) {
+      return `Her master is aboard and on watch; she is not to be chartered while her own master has her.`;
+    }
+    const rate = Math.max(0, Number(ratePerDay) || 0);
+    if (rate > 0 && (typeof payTo !== 'string' || payTo === '')) {
+      throw new Error(`Ship.charterTo: a charter at ${rate} a day names nowhere to pay it (the book's payTo)`);
+    }
+    this.charter = { charterer: id, sinceS: WorldClockApi.getNow().rawValue(), ratePerDay: rate, payTo: payTo ?? '' };
+    this.persistMooring();
+    return null;
+  }
+
+  /** Is anybody who holds her `master` seat aboard her, on shift? */
+  private async masterAboardOnShift(): Promise<boolean> {
+    const house = this.house;
+    if (house === null) return false;
+    for (const who of await this.aboard()) {
+      if (!MixinApi.isEmployed(who)) continue;
+      if (who.getEmployment(house)?.positionKey !== MASTER_POSITION) continue;
+      if (who.isOnShiftFor(house)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * ⭐ The charter ends as she makes fast at a kept quay (P23): the world's
+   * days it lasted — a day begun is a day owed — at its rate are billed to
+   * her, owed by the charterer, paid at the harbor office. Returns what the
+   * charterer is told, or `''` when she was not chartered.
+   */
+  private endCharter(): string {
+    const c = this.charter;
+    if (c === null) return '';
+    this.charter = null;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const days = Math.max(1, Math.ceil((nowS - c.sinceS) / DAY_S - 1e-9));
+    const amount = days * c.ratePerDay;
+    const name = this.getPresentation();
+    let words: string;
+    if (amount > 0) {
+      this.owe({ to: c.payTo, amountMinor: amount, reason: `for ${days} day${days === 1 ? '' : 's'}' charter of ${name}`, by: c.charterer });
+      words = `The charter of ${name} ends as she makes fast: ${days} day${days === 1 ? '' : 's'} at ${c.ratePerDay} — ${Math.ceil(amount)} owed to the line, paid at the harbor office.`;
+    } else {
+      this.persistMooring();
+      words = `The charter of ${name} ends as she makes fast.`;
+    }
+    const charterer = StuffApi.findByIdentityPath<Stuff>(c.charterer)[0] ?? null;
+    if (charterer !== null && !charterer.isDestroyed() && MixinApi.isSensor(charterer)) {
+      try {
+        MessageApi.scene(charterer).topic('sense.surroundings').toSelf(Mml.compose`${words}`).send();
+      } catch {
+        // decoration
+      }
+    }
+    return words;
   }
 
   /* ───────────── made fast: the berth and her lines (harbors P4–P6) ───────────── */
@@ -347,7 +482,7 @@ export default class Ship extends PersistableMixin(
    * she is coming to has not admitted her (a harbor quay is given by the
    * harbormaster). `null` when she may go.
    */
-  public async courseRefusal(landing: string | null): Promise<string | null> {
+  public async courseRefusal(landing: string | null, opts: { admit?: boolean } = {}): Promise<string | null> {
     const nowS = WorldClockApi.getNow().rawValue();
     const leaving = this.isMoored() ? await this.keeperAt(this.berth) : null;
     if (leaving !== null) {
@@ -356,8 +491,24 @@ export default class Ship extends PersistableMixin(
     }
     if (landing === null || landing === '') return null;
     if ((await this.linesAboard()).length === 0) return 'She has no lines to make fast.';
+    if (opts.admit === false) return null;
     const coming = await this.keeperAt(landing);
     return coming === null ? null : coming.admit(this as unknown as Stuff, nowS);
+  }
+
+  /**
+   * ⭐ She has come up to a node whose landing she may make fast at (A3):
+   * a kept quay asks its keeper first — not given the berth, she lies off
+   * and is told why (hail, then `course` it again); otherwise she makes
+   * fast. The words for whoever is aboard.
+   */
+  public async arriveAlongside(landing: string): Promise<string> {
+    const keeper = await this.keeperAt(landing);
+    if (keeper !== null) {
+      const no = await keeper.admit(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+      if (no !== null) return `She lies off. ${no}`;
+    }
+    return this.comeAlongside(landing);
   }
 
   /** The landing at `path` when somebody keeps a book for it (a harbor quay), else `null`. */
@@ -427,11 +578,17 @@ export default class Ship extends PersistableMixin(
     this.moored = true;
     await this.installBerth(landing);
     this.persistMooring();
-    // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7).
-    if (MixinApi.isBerthKeeper(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
-    return fast === 1
+    // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7),
+    // and a charter ends there (P23) — its days billed to her.
+    let ended = '';
+    if (MixinApi.isBerthKeeper(landing)) {
+      await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+      ended = this.endCharter();
+    }
+    const made = fast === 1
       ? 'A line goes ashore and is made fast round the bollard.'
       : 'Her lines go ashore and are made fast round the bollards.';
+    return ended ? `${made} ${ended}` : made;
   }
 
   /**
@@ -685,8 +842,11 @@ export default class Ship extends PersistableMixin(
     // ⭐ A course that ends alongside needs a line to make fast with (P5),
     // a kept berth she leaves must clear her and one she comes to admit her
     // (P7) — all asked before the course is laid: the refusal is instant.
+    // ⭐ A course across the chart for a node is laid from beyond hail of its
+    // harbor: the keeper is asked at the arrival (`arriveAlongside`), not now
+    // (A3 — the island's quay); a river's landing is asked before she moves.
     const toward = req.toward ?? null;
-    const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null);
+    const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null, { admit: this.getLine() !== null });
     if (refused !== null) return { refused };
     this.weighedKg = await this.cargoKg();
     const started = await super.steer(req);
@@ -703,8 +863,11 @@ export default class Ship extends PersistableMixin(
     if (stop.reason === 'aground') this.aground = true;
     if (stop.reason === 'holed') this.holed = true;
     // ⭐ At a landing she makes fast (P5): her lines go ashore round its bollards.
-    if ((stop.reason === 'landing' || stop.reason === 'arrived') && stop.landing) {
+    if (stop.reason === 'landing' && stop.landing) {
       return `${stop.words} ${await this.comeAlongside(stop.landing)}`.trim();
+    }
+    if (stop.reason === 'arrived' && stop.landing) {
+      return `${stop.words} ${await this.arriveAlongside(stop.landing)}`.trim();
     }
     if (stop.reason === 'mouth') {
       const frame = await this.liveFrame();
@@ -755,4 +918,9 @@ export default class Ship extends PersistableMixin(
     const deck = await this.watchRoom();
     return deck ? deck.getContents().filter((x) => MixinApi.isDurable(x)) : [];
   }
+}
+
+/** A person's durable key (D17: never the lineage stamp alone). */
+function idOf(who: Stuff): string {
+  return who.getIdentityPath() ?? who.getTemplatePath() ?? '';
 }

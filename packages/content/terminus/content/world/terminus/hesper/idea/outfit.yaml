@@ -12,6 +12,15 @@ data:
     kind: office
     office: prime-minister
   positions:
+    # ⭐ Her master (harbors P12): whoever holds this seat takes her helm
+    # and answers for her at the harbor office. Nobody is rostered — the
+    # line lets her by charter (her hold's book), and a charterer is her
+    # master until she next berths; the line may appoint one.
+    - key: master
+      noun: master
+      label: in command of her
+      wageRate: 5
+      headcount: 1
     - key: lookout
       noun: lookout
       label: at the masthead

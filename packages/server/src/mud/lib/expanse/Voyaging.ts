@@ -123,6 +123,8 @@ export interface Voyaging {
   isMoored(): boolean;
   /** ⭐ A landing is being used: if she lies made fast there, her way aboard is put back on it (harbors P4). */
   wireBerthAt(place: Stuff): Promise<void>;
+  /** ⭐ May `who` take her helm — lay or end her course (harbors P12)? A boat answers anyone. */
+  mayBeSteeredBy(who: Stuff): boolean;
   /** The navigator's reckoning, as a value (the chart's). */
   getPlot(): Plot | null;
   /** The reckoned position now (the chart's). */
@@ -451,6 +453,17 @@ export function VoyagingMixin<
      */
     async wireBerthAt(place: Stuff): Promise<void> {
       void place;
+    }
+
+    /**
+     * ⭐ May `who` take her helm — lay her course, or let go her anchor
+     * (harbors P12)? Asked by `course` and `anchor` before anything moves.
+     * @hook A ship answers her master and her charterer only. Default:
+     *   anyone — whoever sits in a boat sails her.
+     */
+    mayBeSteeredBy(who: Stuff): boolean {
+      void who;
+      return true;
     }
 
     /**

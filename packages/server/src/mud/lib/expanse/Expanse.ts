@@ -442,9 +442,13 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     return m ? { frame: 'chart', at: new GeoPosition(Number(m[1]), Number(m[2])) } : null;
   }
 
-  /** Standing on the chart's shore means nothing more yet (W13). */
+  /**
+   * Standing on the chart's shore (W13): the nodes are compiled, so a place
+   * cited by a node's path (`siteOf`) is placed — the ships lying there are
+   * re-wired by the place itself.
+   */
   public async onSiteStood(_place: Stuff): Promise<void> {
-    return;
+    await this.nodes();
   }
 
   /**
@@ -476,6 +480,14 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
       const cls = dest ? await StuffApi.classForRef(dest).catch(() => null) : null;
       if (dest && cls !== null && MixinApi.hasMixin(cls, Mixins.Hailable)) {
         const place = await StuffApi.singleton<Stuff>(dest).catch(() => null);
+        if (place !== null && MixinApi.isHailable(place)) add([place]);
+      }
+      // ⭐ A kept quay behind the node (A3 — the island's) is hailed at the
+      // office that keeps its book.
+      if (dest && cls !== null && MixinApi.hasMixin(cls, Mixins.BerthKeeper)) {
+        const quay = await StuffApi.singleton<Stuff>(dest).catch(() => null);
+        const office = quay !== null && MixinApi.isBerthKeeper(quay) ? await quay.hailedAt() : null;
+        const place = office ? await StuffApi.singleton<Stuff>(office).catch(() => null) : null;
         if (place !== null && MixinApi.isHailable(place)) add([place]);
       }
     }

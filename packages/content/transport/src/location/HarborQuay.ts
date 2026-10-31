@@ -59,6 +59,11 @@ export default class HarborQuay extends BerthKeeperMixin(Quay) {
     (await this.liveHarbor())?.release(ship, nowS);
   }
 
+  /** ⭐ A hail for this quay is answered at its harbor's office (A3). */
+  public override async hailedAt(): Promise<string | null> {
+    return (await this.liveHarbor())?.getOffice() ?? null;
+  }
+
   /** ⭐ The berth's depth is the harbor's posted fact (P20) — read while the book is loaded. */
   public override berthDepthM(): number | null {
     if (this.harbor === null) return null;

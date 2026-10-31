@@ -6,7 +6,7 @@ controller: /platform/idea/cmd/system/TestHarnessController
 # verb — not in help, not in the affordances — and `requiresTestWorld`
 # keeps the gate in the view's own data too.
 testOnly: true
-description: "Test-world staging: read and move the clock, pin the weather"
+description: "Test-world staging: read and move the clock, pin the weather, stage a ship"
 help: |
   Scaffolding for drives and staging, in a test world only. Subcommands
   and options, never phrases; a bare subcommand reads.
@@ -22,6 +22,11 @@ help: |
   snow, applied at once; `--alive` lets it still vary. `testharness
   weather unpin` releases it. A pin persists: whoever pins, unpins.
 
+  `testharness ship <ship path> at node:<path>` puts a ship lying at a
+  sea's node (or `at <frame path> <cite>`, a citation on a frame), cast
+  off and with no course — the staged twin of sailing her there. Her
+  rooms, and everyone in them, go with her.
+
   The same rules as the wire harness's routes — one implementation
   (TestHarnessApi) behind both.
 examples:
@@ -31,6 +36,8 @@ examples:
     note: Hold rain over the Locality you stand in
   - cmd: testharness weather unpin --at /world/terminus
     note: Release a pin somewhere else
+  - cmd: testharness ship /world/terminus/hesper/structure at node:/stuff/idea/WaterExpanse/greywater/bar
+    note: Stage the Hesper lying off the bar
 validators:
   - /lib/command/validators/requiresWizard
   - /lib/command/validators/requiresTestWorld
@@ -62,3 +69,16 @@ subcommands:
       - name: value
         type: string
         required: false
+  ship:
+    description: "Stage a ship: `ship <ship path> at node:<path>` or `at <frame> <cite>`"
+    args:
+      - name: op
+        type: string
+        required: false
+      - name: value
+        type: string
+        required: false
+      - name: cite
+        type: string
+        required: false
+        greedy: true

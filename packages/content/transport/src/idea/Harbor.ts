@@ -47,6 +47,7 @@ import { DefaultCalendar } from '@saxonberg/server/mud/lib/time/DefaultCalendar'
 import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 import BerthExit from '@saxonberg/server/mud/platform/idea/BerthExit';
 import type { LineFrame } from '@saxonberg/server/mud/lib/expanse/LineFrame';
+import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import type { Bill } from '@saxonberg/server/mud/lib/banking/Payable';
 
 /** One quay the harbor keeps, in the order it gives them. */
@@ -756,8 +757,23 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
 
   /** What the office says when it gives a quay: the quay and the course to it. */
   private async berthWords(place: string): Promise<string> {
-    const word = place.slice(place.lastIndexOf('/') + 1);
-    return `Berth at ${await nameOf(place)}. Come in on a course for it — \`course ${word}\`.`;
+    return `Berth at ${await nameOf(place)}. Come in on a course for it — \`course ${await this.courseWord(place)}\`.`;
+  }
+
+  /**
+   * The word a master lays a course for the quay by: on the chart, the
+   * node it lies behind (A3 — the island's quay is `course waponi woo`);
+   * on a river, the quay's own last word.
+   */
+  private async courseWord(place: string): Promise<string> {
+    const quay = await StuffApi.singleton<Stuff>(place).catch(() => null);
+    const site = quay !== null && MixinApi.isFrameSited(quay) ? quay.getFrameSite() : null;
+    const frame = site !== null && quay !== null && MixinApi.isFrameSited(quay) ? await quay.liveSiteFrame() : null;
+    if (site !== null && frame instanceof Expanse) {
+      const node = await frame.node(site.cite);
+      if (node !== null) return node.getName().toLowerCase();
+    }
+    return place.slice(place.lastIndexOf('/') + 1);
   }
 
   /** Lapsed assignments out of the book. */

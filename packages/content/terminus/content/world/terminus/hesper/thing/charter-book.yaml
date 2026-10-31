@@ -1,0 +1,24 @@
+# The Hesper's charter book (harbors A3, P23) — kept in her hold by her
+# company's hand: aboard her, wherever she lies, `charter` makes you her
+# master until she next berths at a kept quay. Its days are paid into the
+# Greywater Line's books at its desk on the Town Quay.
+#
+# ⭐ The day rate is GRAIN, sized against sugar's loop (P28): the Sugar
+# House's island-sugar bounty pays 14 a block for three or four blocks
+# (42–56), the estate sells a block for 9, so a full run clears 15–20; a
+# voyage out or home is about a day and a half, so a 3-day round trip at 2
+# a day costs 6 — well under the bounty, and the player stays the carrier.
+class: /platform/thing/CharterBook
+data:
+  shortDescription: charter book
+  keywords: [book, "charter book", ledger]
+  register: definite
+  longDescription: >-
+    A narrow ledger in an oilskin wrapper, hung from a hook by the chart
+    locker: the Hesper's charter book, its pages ruled for a charterer's
+    name, the day she was taken and the day she came in.
+  _materialPath: /stuff/idea/material/organic/leather
+  fixedInPlace: true
+  mass: 1
+  ratePerDay: 2
+  payTo: /world/terminus/harbor/line-desk

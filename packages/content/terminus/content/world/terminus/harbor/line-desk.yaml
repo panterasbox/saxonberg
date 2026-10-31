@@ -13,6 +13,8 @@ data:
 
     The stairs into the river are north; the harbor office is west.
   coords: { x: 1, y: -1, z: 0 }
+  props:
+    - /world/terminus/harbor/thing/charter-book
   details:
     slate:
       keywords: [slate, sailings, chalk]

@@ -1,6 +1,9 @@
 # The estate store — where the estate sells its sugar and molasses and
-# buys cane off the smallholders (sugar D18).
-class: /platform/location/Locale
+# buys cane off the smallholders (sugar D18). ⭐ And the island's harbor
+# office (harbors A3, P26): a ship lying off hails it (`hail office`), the
+# estate's harbormaster answers by the island's posted criteria, and her
+# dues and bills are paid here (`pay office`, or at the berth book).
+class: /system/transport/location/HarborOffice
 data:
   shortDescription: "estate store"
   keywords: [store, "estate store", office]
@@ -11,8 +14,10 @@ data:
   longDescription: |
     A cool stone store with a counter and a ledger on it, hogsheads of raw sugar stacked behind and casks of molasses in a row, and a scale for weighing cane at the door. The track is back south.
   coords: { x: 0, y: 2, z: 0 }
+  harbor: /world/terminus/waponi-woo/idea/harbor
   props:
     - /world/terminus/waponi-woo/thing/stock
+    - /world/terminus/waponi-woo/thing/berth-book
   cast:
     - /world/terminus/waponi-woo/agent/owner
     - /world/terminus/waponi-woo/agent/hand

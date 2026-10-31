@@ -32,6 +32,12 @@ export interface BerthKeeper {
   release(ship: Stuff, nowS: number): Promise<void>;
   /** How deep the water lies at the berth, m (a mud berth), or `null` when nobody says. */
   berthDepthM(): number | null;
+  /**
+   * ⭐ Where a hail for this berth is answered, by path — the harbor office
+   * that keeps its book (A3: a sea harbor behind a node is hailed through
+   * its quay), or `null` when nobody answers for it.
+   */
+  hailedAt(): Promise<string | null>;
 }
 
 export function BerthKeeperMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -64,6 +70,11 @@ export function BerthKeeperMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
 
     /** @hook Override: the berth's depth. Default: nobody says. */
     public berthDepthM(): number | null {
+      return null;
+    }
+
+    /** @hook Override: the office that answers for the berth. Default: none. */
+    public async hailedAt(): Promise<string | null> {
       return null;
     }
   };

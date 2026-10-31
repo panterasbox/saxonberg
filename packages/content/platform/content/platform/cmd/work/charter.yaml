@@ -1,0 +1,50 @@
+# `charter` — hire a whole ship for a voyage (harbors P23). Afforded by a
+# charter book (`CharterBook`, peers): the one her company keeps aboard
+# her, or the line's at its desk on the Town Quay. ⭐ The charterer is her
+# master for the charter — the helm is theirs, and so is clearing her dues
+# — until she next berths at a kept quay, when the world's days it lasted
+# are billed to her, paid at the harbor office.
+verbs: [charter]
+controller: /platform/idea/cmd/work/CharterController
+description: "Charter a ship for a voyage — her helm is yours until she next berths"
+help: |
+  A voyage charter: hire the whole ship. Aboard her, at the book her
+  company keeps in her hold, say `charter`; at a shipping line's desk,
+  `charter <ship>` names one of the ships it lets.
+
+  For the charter you are her master: `course` and `anchor` are yours,
+  and so is clearing her at the harbor office. It runs until she next
+  berths at a kept quay — then it ends, and its days (a day begun is a
+  day owed) at the book's rate are billed to her, to be paid at the
+  harbor office with `pay office` before she sails again. She lies where
+  she berthed, and the next charterer finds her there.
+
+  A ship already under charter, or with her own master aboard and on
+  shift, is not to be chartered.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: charter
+    note: Aboard, at the book in her hold — charter the ship you are in
+  - cmd: charter hesper
+    note: At the line's desk — charter the Hesper
+args:
+  - name: ship
+    type: string
+    required: false
+  # ⭐ The book the charter is written in — declared, not hunted for: the
+  # one in front of you (`lint:instrument-args`). Required WITH a default,
+  # so absent means that book; greedy, so `at the book` binds.
+  # ⚠ `requires:` is a knowingly-accepted SUPERSET (menu.yaml's shape): a
+  # book is a visible thing, and the controller narrows `instanceof
+  # CharterBook` because what it needs — the ships it lets, its rate — is
+  # the class's data; a `class:` requirement is closed to `Agent`.
+  - name: book
+    type: object
+    required: true
+    greedy: true
+    prepositions: [at, from, in]
+    default: "reachable:[class.CharterBook]"
+    scope: ["reachable"]
+    requires: [VisibleMixin]

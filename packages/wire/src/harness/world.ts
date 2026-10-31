@@ -461,3 +461,42 @@ export async function pinWeather(
 export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
   return postWeather(`unpinWeather('${scope}')`, { scope, type: null });
 }
+
+/* ──────────────────────── a ship ──────────────────────── */
+
+/** Where a staged ship is put: a sea's node by path, or a citation on a frame. */
+export type ShipStagePlace = { node: string } | { frame: string; cite: string };
+
+/** How a ship is staged (harbors P25; Stage B adds the hull, the bilge, the sleep). */
+export interface ShipStageSpec {
+  at?: ShipStagePlace;
+}
+
+/** What the ship route reports. */
+export interface ShipStageResult {
+  ship: string;
+  frame: string;
+  at: unknown;
+}
+
+/**
+ * ⭐ Stage a ship — the staged twin of sailing her there (harbors P25).
+ *
+ * Posts to `/auth/test-ship`: the ship named by her row path is put lying
+ * at `spec.at` (a sea's node, or a citation on a frame), cast off from any
+ * berth and with no course. Her rooms and everyone in them go with her.
+ * Only in a world this run owns (the route is test-only).
+ *
+ * ⛔ A blocking drive stages what a soak drive sails (the voyage is a span
+ * step): never use it to skip the act under test.
+ *
+ * @throws if the world refuses — the server's own message.
+ */
+export async function stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageResult> {
+  const res = await postTestRoute('/auth/test-ship', { ship: handle, ...spec });
+  const out = (await res.json()) as Partial<ShipStageResult> & { error?: string };
+  if (!res.ok || typeof out.ship !== 'string') {
+    throw new Error(`stageShip('${handle}') failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out as ShipStageResult;
+}

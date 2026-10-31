@@ -141,6 +141,16 @@ afterAll(() => {
 suite('stage D — a ship on the river', () => {
   it('25. aboard the Ostrander at the city quay; under way upstream, she makes ground against the current', async () => {
     master = await session(MASTER, QUAY);
+    // ⭐ Only her master takes the helm (harbors P12): the founder, who holds
+    // the office that appoints her company, puts this player in command.
+    const me = await master.query('me', { fields: ['displayName'] });
+    const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    const gov = await Session.open('founder', { startLocation: BANK_HALL });
+    try {
+      expectOk(await gov.cmd(`appoint "${name}" to master at /world/terminus/ostrander/idea/outfit`));
+    } finally {
+      gov.close();
+    }
     await morning();
     const aboard = await master.cmd('go ostrander');
     expect(aboard.status, squash(await aboard.said())).toBe('ok');

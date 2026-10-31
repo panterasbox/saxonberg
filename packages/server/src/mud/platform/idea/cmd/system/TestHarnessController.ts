@@ -8,6 +8,8 @@
  *   testharness weather [--at <place>]         read: the pin, and the weather here
  *   testharness weather pin <kind> [--at <place>] [--alive]
  *   testharness weather unpin [--at <place>]
+ *   testharness ship <ship> at node:<path>      stage a ship lying at a sea's node
+ *   testharness ship <ship> at <frame> <cite>   …or at a citation on a frame
  *
  * ⭐ Subcommands and options, never phrases: it is scaffolding, and the
  * owner's grammar is not natural language. A bare subcommand READS, so
@@ -47,6 +49,8 @@ interface TestHarnessModel extends CommandModel {
   value?: string;
   at?: string;
   alive?: boolean;
+  /** `ship`'s fourth word: a frame citation after `at <frame>`. */
+  cite?: string;
 }
 
 export default class TestHarnessController extends CommandController<TestHarnessModel> {
@@ -57,11 +61,13 @@ export default class TestHarnessController extends CommandController<TestHarness
           return await this.clock(model, context);
         case 'weather':
           return await this.weather(model, context);
+        case 'ship':
+          return await this.ship(model, context);
         default:
           return this.refuse(
             context,
             TOPIC,
-            'testharness: `clock` or `weather` (see `help testharness`).',
+            'testharness: `clock`, `weather` or `ship` (see `help testharness`).',
             'test-usage',
           );
       }
@@ -158,6 +164,31 @@ export default class TestHarnessController extends CommandController<TestHarness
         'or `pin <kind>` / `unpin`.',
       'test-usage',
     );
+  }
+
+  /**
+   * `testharness ship <ship> at node:<path>` / `… at <frame> <cite>`
+   * (harbors P25): the ship by her row path (the subcommand's first word,
+   * `op`), staged where the drive needs her.
+   */
+  private async ship(model: TestHarnessModel, context: CommandContext): Promise<void> {
+    const usage =
+      'testharness ship <ship path> at node:<path> — or at <frame path> <cite>.';
+    const handle = model.op;
+    const verb = model.value;
+    const where = model.cite ?? '';
+    if (!handle || verb !== 'at' || where === '') {
+      return this.refuse(context, TOPIC, usage, 'test-usage');
+    }
+    const [first, ...rest] = where.trim().split(/\s+/);
+    const at = first!.startsWith('node:')
+      ? { node: first!.slice('node:'.length) }
+      : rest.length > 0
+        ? { frame: first!, cite: rest.join(' ') }
+        : null;
+    if (at === null) return this.refuse(context, TOPIC, usage, 'test-usage');
+    const r = await TestHarnessApi.stageShip(handle, { at });
+    this.say(context, `${r.ship} lies staged on ${r.frame}.`);
   }
 
   /** A one-token duration (`30m`, `2h`, `1d`, `90s`) in the clock's grammar. */

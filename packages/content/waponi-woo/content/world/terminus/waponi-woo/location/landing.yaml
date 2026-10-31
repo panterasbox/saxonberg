@@ -1,8 +1,11 @@
 # The landing — ⭐ the node's destination (the Greywater's waponi-woo
-# node): a craft that raises the island makes her line fast to the ring on
-# the jetty (harbors P6), and puts a way aboard her here named for her —
-# `go hesper`.
-class: /platform/location/Locale
+# node), and a QUAY with a berth now (harbors A3, P26): a ship lying off
+# the island hails the estate store (`hail office`), is given the jetty,
+# and comes in on `course waponi woo` — her lines made fast to the ring,
+# a way aboard named for her (`go hesper`). No hard-wired exit: the way
+# is hers and goes with her. The book is the estate's
+# (`idea/harbor.yaml`) — the second harbor, rows only.
+class: /system/transport/location/HarborQuay
 data:
   shortDescription: "landing at Waponi Woo"
   keywords: [landing, beach, jetty, waponi, woo]
@@ -13,6 +16,10 @@ data:
   longDescription: |
     A short jetty of black stone runs out from a beach of black sand into clear green water, and boats are drawn up on the sand either side of it. Behind the beach the ground rises in green terraces of cane toward a mountain that smokes. A track goes up from the jetty's foot.
   coords: { x: 0, y: 0, z: 0 }
+  harbor: /world/terminus/waponi-woo/idea/harbor
+  # ⭐ On the chart, the quay stands where the node does (`Expanse.siteOf`
+  # reads a node path): standing on it stands up the ships lying here.
+  frameSite: { frame: /stuff/idea/WaterExpanse/greywater, cite: /stuff/idea/WaterExpanse/greywater/waponi-woo }
   props:
     - /platform/thing/mooring-ring
   exits:

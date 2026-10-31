@@ -14,6 +14,13 @@ import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
 import { AddressApi } from '../../../api/address';
 import { WeatherApi } from '../../../api/weather';
+import { MixinApi } from '../../../api/mixin';
+import { PersistableApi } from '../../../api/persistable';
+import Ship from '../Ship';
+import ExpanseNode from '../ExpanseNode';
+import { Expanse } from '../../../lib/expanse/Expanse';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { FramePos } from '../../../lib/expanse/Frame';
 import {
   WEATHER_PROFILES,
   type WeatherPinMode,
@@ -42,6 +49,27 @@ export interface WeatherPinReport {
   readonly locality: string;
   /** The pin now on it, or null once released. */
   readonly pin: { type: WeatherType; mode: WeatherPinMode } | null;
+}
+
+/**
+ * Where a staged ship is put (harbors P25): a node of a sea by its path —
+ * she lies at it — or a citation on a frame (`{frame, cite}`: the river's
+ * `estuary-1.2`, the chart's `lat,lon` or a node path).
+ */
+export type ShipStagePlace = { node: string } | { frame: string; cite: string };
+
+/** How a ship is staged (harbors P25; B4/B5 add `hull`, `bilgeL`, `sleptDays`, `settling`). */
+export interface ShipStageSpec {
+  at?: ShipStagePlace;
+}
+
+/** What staging a ship reports. */
+export interface ShipStageReport {
+  /** The ship staged, by row path. */
+  readonly ship: string;
+  /** The frame she is on now, by path, and where on it. */
+  readonly frame: string;
+  readonly at: FramePos;
 }
 
 /**
@@ -154,6 +182,50 @@ export class TestHarnessLogic extends ApiLogic {
       locality: locality.getTemplatePath() ?? '?',
       pin: pin ? { type: pin.type, mode: pin.mode } : null,
     };
+  }
+
+  /** See {@link TestHarnessApi.stageShip}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
+    const found = await StuffApi.singleton<Stuff>(handle).catch(() => null);
+    if (!(found instanceof Ship)) {
+      throw new Error(`testharness ship: '${handle}' is not a ship (name her by her row path)`);
+    }
+    const ship = found;
+    if (!spec.at) throw new Error('testharness ship: say where — `at node:<path>` or `at <frame> <cite>`');
+    const { framePath, pos } = await this.placeFor(spec.at);
+    // Staged, she leaves her berth and any course she held: she is put down
+    // where the drive says, lying there, with nothing about her else changed.
+    if (ship.isMoored()) await ship.castOff();
+    if (ship.getCourse() !== null) await ship.anchorHere();
+    const nowS = WorldClockApi.getNow().rawValue();
+    ship.placeAt(pos, nowS, framePath);
+    const frame = await ship.liveFrame();
+    frame?.adopt(ship as never);
+    await PersistableApi.capture(ship as unknown as Stuff);
+    console.info(`TestHarness: staged ${ship.getTemplatePath()} on ${framePath}`);
+    return { ship: ship.getTemplatePath() ?? handle, frame: framePath, at: pos };
+  }
+
+  /** The frame and position a stage place names — or a throw in words. */
+  private async placeFor(at: ShipStagePlace): Promise<{ framePath: string; pos: FramePos }> {
+    if ('node' in at) {
+      const node = await StuffApi.singleton<Stuff>(at.node).catch(() => null);
+      if (!(node instanceof ExpanseNode)) throw new Error(`testharness ship: '${at.node}' is not a node of any sea`);
+      const sea = node.getFrame();
+      const where = node.getExpansePosition();
+      if (sea === null || where === null) throw new Error(`testharness ship: the node '${at.node}' is on no chart`);
+      return { framePath: sea.getTemplatePath() ?? '', pos: { frame: 'chart', at: where } };
+    }
+    const frame = await StuffApi.singleton<Stuff>(at.frame).catch(() => null);
+    if (frame instanceof Expanse) await frame.nodes();
+    const pos = frame instanceof Expanse
+      ? frame.siteOf(at.cite)
+      : frame !== null && MixinApi.isLineFrame(frame)
+        ? await frame.locate(at.cite).then((p) => (p === null ? null : ({ frame: 'line', at: p }) as FramePos))
+        : null;
+    if (pos === null) throw new Error(`testharness ship: '${at.cite}' is no place on '${at.frame}'`);
+    return { framePath: at.frame, pos };
   }
 
   // The Locality-tier pin: the only tier the precipitation integral and

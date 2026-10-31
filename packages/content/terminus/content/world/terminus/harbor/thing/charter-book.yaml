@@ -1,0 +1,28 @@
+# The Greywater Line's charter book (harbors A3, P23) — on the line's desk
+# on the Town Quay: `charter <ship>` names one of the ships it lets. The
+# charter is the ship's record; the book posts what a day costs and where
+# it is paid (the desk — the line's books).
+#
+# ⭐ Day rates are GRAIN (P28): the Hesper and the Kittiwake at 2 (see the
+# Hesper's own book for the sugar sizing), the deeper Corrigan at 3. A
+# regular with her own master aboard on shift is not to be chartered.
+class: /platform/thing/CharterBook
+data:
+  shortDescription: charter book
+  keywords: [book, "charter book", ledger, sailings]
+  register: definite
+  longDescription: >-
+    A fat ledger chained to the desk, open at the line's ships: the Hesper,
+    the Kittiwake, the Corrigan, each with a column for who has her and
+    since when.
+  _materialPath: /stuff/idea/material/organic/leather
+  fixedInPlace: true
+  mass: 3
+  ships:
+    - /world/terminus/hesper/structure
+    - /world/terminus/harbor/ships/ketch/structure
+    - /world/terminus/harbor/ships/coaster/structure
+  ratePerDay: 2
+  rates:
+    /world/terminus/harbor/ships/coaster/structure: 3
+  payTo: /world/terminus/harbor/line-desk

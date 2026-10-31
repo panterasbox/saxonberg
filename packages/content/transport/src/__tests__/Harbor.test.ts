@@ -326,6 +326,29 @@ describe('dues, clearance and the bills paid at the office (A2, P13)', () => {
   });
 });
 
+describe('⭐ the charterer answers for her at the office (A3, P23)', () => {
+  it('a charter that ended as she berthed is the charterer’s to clear: the dues and the days, both billed to them', async () => {
+    harbor.setOffice('/test/port/office');
+    const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
+    hesper.setHouse('/test/ships/hesper/company');
+    harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));
+    // The charter's days, written as she made fast: owed BY the charterer.
+    hesper.owe({ to: '/test/line/desk', amountMinor: 6, reason: "for 3 days' charter of the Hesper", by: '/test/charterer' });
+    const charterer = makeStuffAtPath(() => new Ship(), '/test/charterer') as unknown as Stuff;
+    const stranger = makeStuffAtPath(() => new Ship(), '/test/stranger') as unknown as Stuff;
+    expect(await harbor.billsFor(stranger, at(9) + HOUR)).toEqual([]);
+    const bills = await harbor.billsFor(charterer, at(9) + HOUR);
+    expect(bills.map((b) => [b.to, b.amountMinor])).toEqual([
+      ['/test/port/office', 8],
+      ['/test/line/desk', 6],
+    ]);
+    for (const b of bills) await harbor.onPaid(b, at(9) + HOUR);
+    expect(await harbor.clearance(hesper as unknown as Stuff, at(9) + HOUR)).toBeNull();
+    // Paid up, they answer for her no longer.
+    expect(await harbor.billsFor(charterer, at(9) + 2 * HOUR)).toEqual([]);
+  });
+});
+
 describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)', () => {
   function keeper(onShift: boolean, positionKey = 'harbormaster'): Stuff {
     const who = makeStuffAtPath(() => new Ship(), '/test/keeper') as unknown as Stuff;
