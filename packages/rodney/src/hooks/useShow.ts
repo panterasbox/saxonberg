@@ -52,6 +52,31 @@ export interface Money {
   daysLeft: number;
 }
 
+/** One person arriving, as the community card tells it. */
+export interface Arrival {
+  /** The character for a new player; the platform handle otherwise. */
+  who: string;
+  kind: 'player' | 'follow' | 'sub' | 'gift' | 'member' | 'patron';
+  /** Where it happened; absent for a new Saxonberg player. */
+  via?: Platform;
+  /** For a gift: how many subs. */
+  count?: number;
+}
+
+/**
+ * People joining, this stream. ⚠ The feed carries none of it yet: new
+ * players need character creation's commit on the feed; follows, subs, gifts,
+ * members and patrons need the giving build's event intake.
+ */
+export interface Community {
+  /** Tonight's tallies. */
+  newPlayers: number;
+  newFollowers: number;
+  subsAndGifts: number;
+  /** The latest arrivals, newest first. */
+  recent: Arrival[];
+}
+
 export interface Show {
   /** The current segment — the topic line. */
   topic: string | null;
@@ -69,6 +94,7 @@ export interface Show {
    */
   build: Build | null;
   money: Money | null;
+  community: Community | null;
 }
 
 const EMPTY: Show = {
@@ -80,6 +106,7 @@ const EMPTY: Show = {
   crawl: [],
   build: null,
   money: null,
+  community: null,
 };
 
 /** The money is the channel's, so every profile's mock carries it. */
@@ -97,6 +124,18 @@ const MOCK_MONEY: Money = {
     ],
     daysLeft: 11,
   };
+
+/** Community is the channel's too. */
+const MOCK_COMMUNITY: Community = {
+  newPlayers: 4,
+  newFollowers: 9,
+  subsAndGifts: 7,
+  recent: [
+    { who: 'Iffy', kind: 'player' },
+    { who: 'ironmonger', kind: 'gift', via: 'twitch', count: 5 },
+    { who: 'Mara K.', kind: 'patron', via: 'patreon' },
+  ],
+};
 
 const MOCK_SAXONBERG: Show = {
   topic: 'Building the river',
@@ -123,6 +162,7 @@ const MOCK_SAXONBERG: Show = {
   ],
   build: { at: Date.now() - 1.3 * 86_400_000 },
   money: MOCK_MONEY,
+  community: MOCK_COMMUNITY,
 };
 
 /** Every other profile's mock: an agenda of its own, no world, no crawl. */
@@ -130,6 +170,7 @@ const MOCK_OTHER: Record<string, Show> = {
   music: {
     ...EMPTY,
     money: MOCK_MONEY,
+    community: MOCK_COMMUNITY,
     topic: 'Hard Rain',
     agenda: [
       { title: 'Warm-up', done: true },
@@ -142,6 +183,7 @@ const MOCK_OTHER: Record<string, Show> = {
   gaming: {
     ...EMPTY,
     money: MOCK_MONEY,
+    community: MOCK_COMMUNITY,
     topic: 'NetHack — a Valkyrie, Gnomish Mines',
     agenda: [
       { title: 'Get to Minetown', done: true },

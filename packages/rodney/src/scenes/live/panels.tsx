@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import QRCode from 'qrcode';
-import type { Money, Show } from '../../hooks/useShow';
-import ServiceGlyph from '../shared/ServiceGlyph';
+import type { Arrival, Community, Money, Show } from '../../hooks/useShow';
+import ServiceGlyph, { type Platform } from '../shared/ServiceGlyph';
 import { CHANNEL } from '../../show/channel';
 import AtAvatar from '../shared/AtAvatar';
 import repoStats from 'virtual:repo-stats';
@@ -79,6 +79,13 @@ export const PANELS: PanelRow[] = [
     seconds: 18,
     when: (show) => show.money !== null,
     render: (show) => show.money && <MoneyPanel money={show.money} />,
+  },
+  {
+    key: 'community',
+    weight: 2,
+    seconds: 18,
+    when: (show) => show.community !== null,
+    render: (show) => show.community && <CommunityPanel community={show.community} />,
   },
   {
     key: 'follow',
@@ -557,6 +564,122 @@ function MoneyPanel({ money }: { money: Money }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/** How an arrival reads, in a few words. */
+function arrivalText(a: Arrival): string {
+  switch (a.kind) {
+    case 'player':
+      return 'joined Saxonberg';
+    case 'follow':
+      return 'followed';
+    case 'sub':
+      return 'subscribed';
+    case 'gift':
+      return `gifted ${a.count ?? 1} ${a.count === 1 ? 'sub' : 'subs'}`;
+    case 'member':
+      return 'became a member';
+    case 'patron':
+      return 'became a patron';
+  }
+}
+
+/** The social platforms — GitLab is the code's card, not this one. */
+const SOCIAL = CHANNEL.platforms.filter((p) => p.service !== 'gitlab') as unknown as {
+  service: Platform;
+  handle: string;
+}[];
+
+/**
+ * The community — people joining, never money: tonight's tallies, the
+ * latest arrivals (⭐ new Saxonberg players among them, by character name),
+ * and where to find the channel.
+ */
+function CommunityPanel({ community }: { community: Community }) {
+  const label = {
+    fontFamily: FACE_STACKS.display,
+    fontWeight: 500,
+    fontSize: 16,
+    letterSpacing: '0.19em',
+    textTransform: 'uppercase',
+    color: palette.text.dim,
+  } as const;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 48 }}>
+      <div style={{ flex: '0 0 auto' }}>
+        <div style={label}>Tonight</div>
+        <div style={{ display: 'flex', gap: 28, marginTop: 10 }}>
+          <Figure value={`+${community.newPlayers}`} label="New players" />
+          <Figure value={`+${community.newFollowers}`} label="Followers" />
+          <Figure value={`+${community.subsAndGifts}`} label="Subs & gifts" />
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={label}>Latest</div>
+        {community.recent.slice(0, 3).map((a, i) => (
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginTop: 8,
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 22,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+            }}
+          >
+            {a.via ? (
+              <ServiceGlyph service={a.via} size={22} />
+            ) : (
+              <img src="/brand/saxonberg-seal.svg" alt="" style={{ width: 24, height: 24 }} />
+            )}
+            <span
+              style={{
+                color: a.kind === 'player' ? palette.accent : palette.text.fg,
+                fontWeight: 600,
+              }}
+            >
+              {a.who}
+            </span>
+            <span style={{ color: palette.text.dim }}>{arrivalText(a)}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ flex: '0 0 auto' }}>
+        <div style={label}>Find us</div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto auto',
+            columnGap: 24,
+            rowGap: 8,
+            marginTop: 8,
+          }}
+        >
+          {SOCIAL.map((p) => (
+            <div
+              key={p.service}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: 20,
+                color: palette.text.fg,
+              }}
+            >
+              <ServiceGlyph service={p.service} size={22} />
+              {p.handle}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
