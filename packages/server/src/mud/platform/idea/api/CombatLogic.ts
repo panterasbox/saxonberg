@@ -438,6 +438,12 @@ export class CombatLogic extends ApiLogic {
     return perceiveImpl(actor);
   }
 
+  /** See {@link Combatant.combatStateLineFor}. */
+  @CallSecurity(CombatantCallers)
+  public combatStateLineFor(target: Stuff, viewer: Stuff): string | null {
+    return combatStateLineForImpl(target, viewer);
+  }
+
   @CallSecurity(CombatantCallers)
   public rangeStanding(actor: Stuff): RangeStanding | null {
     return rangeStandingImpl(actor);
@@ -5560,6 +5566,37 @@ function perceiveImpl(actor: Stuff): CombatAssessResult {
       ? opp.getConditionBand()
       : undefined,
   };
+}
+
+/**
+ * ⭐ A fighter's state line as `viewer` reads it (client-surface D3). A
+ * participant in the SAME session reads with their own sharpness — the
+ * `fight` status line's fog; anybody else reads at the untrained floor,
+ * which under-reads toward steady and never over-reads. Flags and `down`
+ * are visible acts and pass unfogged.
+ */
+function combatStateLineForImpl(target: Stuff, viewer: Stuff): string | null {
+  const session = sessionForImpl(target);
+  if (!session) return null;
+  const state = session.getState(target);
+  if (!state) return null;
+  const own = viewer.stuffId === target.stuffId;
+  const viewerState = own ? undefined : session.getState(viewer);
+  const sharpness = viewerState
+    ? sharpnessFor(viewerState)
+    : Sharpness.resolve({ competenceBand: "untrained" }, sharpnessConfig());
+  const band = own
+    ? state.poise.band()
+    : CombatFog.perceive(
+        state.poise.band(),
+        sharpness,
+        state.queuedGambit === "feint",
+        fogConfig(),
+      ).band;
+  const parts: string[] = [band];
+  for (const flag of state.flags.list()) parts.push(flag);
+  if (state.down) parts.push("down");
+  return `In combat — ${parts.join(", ")}.`;
 }
 
 function assessImpl(actor: Stuff, _target: Stuff): CombatAssessResult {

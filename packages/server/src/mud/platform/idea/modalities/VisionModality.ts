@@ -341,6 +341,17 @@ export class VisionModality extends Modality {
       MixinApi.isContainable(env)
     ) {
       env = env.getContainer() ?? env;
+    } else if (
+      (env as Stuff).isAgent() &&
+      MixinApi.isSlotted(env as Stuff) &&
+      MixinApi.isContainable(env)
+    ) {
+      // ⭐ What another PERSON wears or holds is seen in the light THEY
+      // stand in — the light inside a body is no light at all, so every
+      // worn hat on a stranger read "something" (#90, client-surface W0).
+      // Which of their things are in view at all is
+      // `PerceptionApi.visibleContentsOf`'s rule, not this one.
+      env = env.getContainer() ?? env;
     }
     const band = this.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];

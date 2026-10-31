@@ -16,7 +16,7 @@
  */
 
 import "../../../test-bootstrap";
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { CommandApi } from '../command';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
@@ -255,6 +255,26 @@ describe('the target\'s own verbs vs the viewer\'s', () => {
 
     const out = (await CommandApi.resolveAffordances(lever, viewerOf(viewer)))!;
     expect(out.verbs.map((v) => v.verb)).toContain('drop');
+  });
+
+  it('⭐ a verb BOTH offer is the subject\'s, whichever came first (client-surface D7, slate bug 5)', async () => {
+    const room = makeStuff(() => new Room());
+    const viewer = makeAnimateViewer();
+    const lever = makeStuff(() => new Lever());
+    lever.setName('a lever');
+    ContainmentApi.move(viewer, room);
+    ContainmentApi.move(lever, room);
+    const giver = viewerOf(viewer);
+    const real = giver.getAffordances();
+    const own = real.find((a) => a.source?.stuffId === lever.stuffId);
+    expect(own).toBeDefined();
+    // The same verb offered by the ACTOR, ahead of the subject's in the list.
+    const actorCopy = { ...own!, source: viewer as unknown as Stuff };
+    vi.spyOn(giver, 'getAffordances').mockReturnValue([actorCopy, ...real]);
+
+    const out = (await CommandApi.resolveAffordances(lever, giver))!;
+    const drop = out.verbs.find((v) => v.verb === own!.command.verbs[0]);
+    expect(drop?.source).toBe('subject');
   });
 });
 

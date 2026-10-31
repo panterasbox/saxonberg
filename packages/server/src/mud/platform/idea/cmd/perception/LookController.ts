@@ -623,7 +623,11 @@ export default class LookController extends CommandController<LookModel> {
     // bare `look` ship the same affordance-annotated text. (A
     // consumable's nutrition label rides this augmenter seam via
     // `NutritionLabelMixin`, not a special-case here.)
-    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}\n`;
+    // ⭐ Every section below opens on its own line (`\n── …`): the body
+    // carries no trailing newline, so the first section and the tenth are
+    // joined the same way (slate bug 9 — every `──` after the first ran
+    // onto the previous line).
+    let body = Mml.compose`\n${Mml.actor(target)}\n\n${Mml.fromMarkup(target.getMarkupLong(actor))}`;
 
     // Drill-in: examining a placement host reveals what is placed on it
     // (the back-bar's bottles + tools) — the discovery path that keeps them
@@ -641,7 +645,7 @@ export default class LookController extends CommandController<LookModel> {
         // live row falls back rather than printing nothing.
         const heading =
           ContainmentApi.placement(member)?.getHeading() || 'With it';
-        body = Mml.compose`${body}── ${heading}: ${list}.`;
+        body = Mml.compose`${body}\n── ${heading}: ${list}.`;
       }
     }
     // A stamped good says whose it is — the bottle bought for the bar
@@ -654,7 +658,7 @@ export default class LookController extends CommandController<LookModel> {
           ? StuffApi.findByTemplatePath(owner.templatePath)
           : null;
       if (holder) {
-        body = Mml.compose`${body}── Owned by ${holder.getPresentation()}.`;
+        body = Mml.compose`${body}\n── Owned by ${holder.describeFor(actor)}.`;
       }
     }
     // A display reads what it shows — the booth's television, the house
@@ -664,7 +668,7 @@ export default class LookController extends CommandController<LookModel> {
     // own credential resolves here rather than being pushed at the room.
     if (MixinApi.isDisplay(target)) {
       const screen = await target.readScreen(actor);
-      if (screen) body = Mml.compose`${body}── ${screen}`;
+      if (screen) body = Mml.compose`${body}\n── ${screen}`;
     }
     // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
     // visibility rule `inventory` reads too: on a person what they wear
@@ -683,8 +687,8 @@ export default class LookController extends CommandController<LookModel> {
         const more = xs.length - shown.length;
         const list = Mml.fromMarkup(Mml.list(shown, { style: 'inline' }).toString());
         body = more > 0
-          ? Mml.compose`${body}── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
-          : Mml.compose`${body}── ${heading}: ${list}.`;
+          ? Mml.compose`${body}\n── ${heading}: ${list}, and ${more} more ${more === 1 ? 'thing' : 'things'} — \`inventory ${keyword}\`.`
+          : Mml.compose`${body}\n── ${heading}: ${list}.`;
       };
       group('Wearing', v.worn);
       group('Holding', v.held);

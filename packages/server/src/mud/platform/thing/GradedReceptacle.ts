@@ -39,10 +39,16 @@ import { MixinApi } from '../../api/mixin';
  * look. An unmarked store bottle contributes nothing; provenance
  * carries worth, and the mark is how a `fine` gin stays somebody's.
  */
-function verdictAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+function verdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!MixinApi.isCrafted(host)) return text;
   if (host.getMaker() === '') return text;
-  const verdict = host.renderVerdict();
+  // ⭐ Quiet on an unused vessel (client-surface D10): an empty, unsoiled
+  // bottle has nothing to be judged on yet.
+  const used =
+    (MixinApi.isBulkable(host) && host.hasInteriorBulk()) ||
+    (MixinApi.isServiceable(host) && host.isSoiled());
+  if (!used) return text;
+  const verdict = host.renderVerdict(viewer);
   return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 

@@ -2112,7 +2112,15 @@ async function resolveAffordancesImpl(
   const seen = new Set<string>();
   const entries: AffordanceEntry[] = [];
 
-  for (const affordance of viewer.getAffordances()) {
+  // ⭐ The target's OWN affordances first (client-surface D7, slate bug
+  // 5): the dedupe is by verb, so a verb both the subject and the actor
+  // offer was attributed to whichever came first in the viewer's list —
+  // usually the actor's, and the card's action row dropped it. A stable
+  // sort keeps each half in its authored order.
+  const ordered = [...viewer.getAffordances()].sort(
+    (a, b) => Number(b.source === target) - Number(a.source === target),
+  );
+  for (const affordance of ordered) {
     const cmd = affordance.command;
     const verb = cmd.verbs[0];
     if (!verb || seen.has(verb)) continue;

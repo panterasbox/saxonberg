@@ -372,9 +372,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           // that currently occupy a slot ON THIS HOST is what makes
           // "worn vs carried" mean anything.
           const wornHere = wornOccupantIds(host);
+          // ⛔ Another PERSON's pockets are not in view: the one rule
+          // `look` and `inventory` read (`visibleContentsOf`) decides
+          // which children a viewer may see at all — what they hold and
+          // carry-in-view; worn stays `worn`'s projection.
+          const inView = PerceptionApi.isAnotherPerson(viewer, host)
+            ? new Set(PerceptionApi.visibleContentsOf(viewer, host).held.map((c) => c.stuffId))
+            : null;
           const visible = host.getContents().filter(
             (child) =>
               child.stuffId !== viewer.stuffId &&
+              (inView === null || inView.has(child.stuffId)) &&
               !wornHere.has(child.stuffId) &&
               !MixinApi.isAdornment(child) &&
               MixinApi.isVisible(child) &&

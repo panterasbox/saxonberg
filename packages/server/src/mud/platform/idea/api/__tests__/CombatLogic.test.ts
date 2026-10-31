@@ -726,6 +726,27 @@ describe("CombatLogic — the fog (competence-graded read)", () => {
     expect(read.read).toBe("feint"); // and the tell
   });
 
+  it("⛔ a look at a fighter reads through the fog: a bystander at the untrained floor, a participant at their own (client-surface D3)", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const onlooker = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    session.getState(a)!.sharpness = 0.95;
+    (b as unknown as Stuff & Combatant).queueGambit("feint");
+    const line = (viewer: Stuff): string | null =>
+      (b as unknown as Stuff & Combatant).combatStateLineFor(viewer);
+
+    // The sharp participant sees the true band through the bait…
+    expect(line(a)).toMatch(/^In combat — steady/);
+    // …the untrained onlooker takes the bait for an opening, never the truth.
+    expect(line(onlooker)).toMatch(/^In combat — open/);
+    // You know your own poise.
+    expect(line(b)).toMatch(/^In combat — steady/);
+    // Out of a fight, nothing.
+    expect((onlooker as unknown as Stuff & Combatant).combatStateLineFor(a)).toBeNull();
+  });
+
   it("perceive is free (no beat cost) — the fight status read", () => {
     const room = makeStuff(() => new TestRoom());
     const a = makeFighter(room, { weaponForm: "bladed" });

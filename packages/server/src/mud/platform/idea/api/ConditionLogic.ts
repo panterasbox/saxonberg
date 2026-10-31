@@ -844,12 +844,32 @@ async function mintCorpseFrom(
    * the clerk. Deliberate on the player path too: a name-keyword now
    * binds to the body its owner left.
    */
+  //
+  // ⛔ MINUS its name words (client-surface W0, #105): a person's name is
+  // per viewer, so `look mara` must not find the body of a woman you never
+  // met. The name is carried as the identity path instead and rendered by
+  // `Corpse.describeFor` to whoever knew her.
+  const nameWords = new Set(
+    MixinApi.isNamed(body) && MixinApi.isPersona(body)
+      ? [body.getName(), body.getFullName()]
+          .filter((n): n is string => typeof n === 'string' && n.length > 0)
+          .flatMap((n) => n.toLowerCase().split(/\s+/))
+      : [],
+  );
   const keywords = [
     'body',
     'corpse',
     'carcass',
-    ...(MixinApi.isPerceptible(body) ? body.getKeywords() : []),
+    ...(MixinApi.isPerceptible(body) ? body.getKeywords() : []).filter(
+      (k) => !nameWords.has(k.toLowerCase()),
+    ),
   ];
+  // The dead as a STRANGER names them — "a woman", "a sentry". A person's
+  // name is told per viewer; an animal's name is public (`Mouse` to the
+  // whole street), so a non-person keeps its presentation.
+  const ofStem = MixinApi.isPersona(body)
+    ? body.presentationPhrase('stranger').render()
+    : body.getPresentation();
 
   const corpse = await StuffApi.clone(TemplatePaths.mortalityCorpse, undefined, {
     dataOverlay: {
@@ -859,8 +879,9 @@ async function mintCorpseFrom(
       // for somebody and "the body of a sentry" for a role — the one
       // place in the tree where a description is built out of another
       // thing's identity, and the reason it has to be a phrase.
-      shortDescription: `body of ${body.getPresentation()}`,
+      shortDescription: `body of ${ofStem}`,
       register: 'definite',
+      ofIdentityPath: MixinApi.isPersona(body) ? body.getIdentityPath() : '',
       _speciesPath: speciesPath,
       causeOfDeath: cause,
       diedAtGameSec: nowS,

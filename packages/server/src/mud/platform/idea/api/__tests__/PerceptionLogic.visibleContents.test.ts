@@ -84,3 +84,11 @@ describe('PerceptionApi.visibleContentsOf', () => {
     expect(shut.carried).toEqual([]);
   });
 });
+
+describe('PerceptionApi.isAnotherPerson (client-surface W0)', () => {
+  it('a person other than the viewer is; yourself and a chest are not', () => {
+    expect(PerceptionApi.isAnotherPerson(stranger, person)).toBe(true);
+    expect(PerceptionApi.isAnotherPerson(person, person)).toBe(false);
+    expect(PerceptionApi.isAnotherPerson(stranger, chest)).toBe(false);
+  });
+});

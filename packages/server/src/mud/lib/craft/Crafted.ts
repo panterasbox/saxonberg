@@ -39,14 +39,14 @@ const VERDICT_PROSE: Record<string, string> = {
  * Module-private (not a `#` method): mixin methods dispatch through the
  * call-security proxy, where `this.#x` would throw.
  */
-function resolveMakerName(maker: string): string | null {
+function resolveMakerName(maker: string, viewer?: Stuff): string | null {
   if (!maker) return null;
   const stuff = StuffApi.findByTemplatePath<Stuff>(maker);
   if (!stuff) return null;
-  // getPresentation() is on the Stuff base — the resolve-on-read display
-  // name (fullName ?? name ?? short ?? "something"), so it never returns
-  // empty.
-  return stuff.getPresentation();
+  // ⛔ A maker's name is a NAME, and a name is per viewer: a stranger's
+  // gin says "made by a woman", never her true name (client-surface W0).
+  // With no viewer (a system read) the presentation stands.
+  return viewer ? stuff.describeFor(viewer) : stuff.getPresentation();
 }
 
 /**
@@ -111,9 +111,10 @@ export interface Crafted extends Graded {
   /**
    * The DF-style quality verdict: a band-word headline + the descriptive
    * *why* + maker attribution. Plain prose, **never a number**. v1 renders
-   * uniform prose at a fixed control level.
+   * uniform prose at a fixed control level. The maker is named as
+   * `viewer` knows them.
    */
-  renderVerdict(): string;
+  renderVerdict(viewer?: Stuff): string;
 }
 
 /**
@@ -253,11 +254,11 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.craftedAt = spec.craftedAt;
     }
 
-    renderVerdict(): string {
+    renderVerdict(viewer?: Stuff): string {
       const band = (this as unknown as Graded).getGrade().renderBandWord();
       const why = VERDICT_PROSE[band] ?? VERDICT_PROSE.fair!;
       let line = `It looks ${band}: ${why}.`;
-      const makerName = resolveMakerName(this.maker);
+      const makerName = resolveMakerName(this.maker, viewer);
       if (makerName) line += ` Made by ${makerName}.`;
       return line;
     }

@@ -38,7 +38,7 @@ import Good from '../../lib/stuff/Good';
 import { BulkableMixin, type BulkAffordance } from '../../lib/bulk/Bulkable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { CraftedMixin, type Crafted } from '../../lib/craft/Crafted';
+import { CraftedMixin } from '../../lib/craft/Crafted';
 import type { FieldMeta } from '../../lib/mixin';
 import { Quantity } from '../../lib/quantity';
 import { BulkableApi } from '../../api/bulk';
@@ -147,8 +147,28 @@ function contentsFreshnessAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/**
+ * The verdict — band word, why, and the maker as `viewer` knows them — is
+ * a STATE line, not part of the authored prose (client-surface D10), so it
+ * reads per viewer and the card can say which interface said it.
+ * ⭐ Quiet on an unused vessel: an empty, unsoiled glass has nothing to be
+ * judged on yet, and a shelf of them each saying "honestly made" is noise.
+ */
+function vesselVerdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!MixinApi.isCrafted(host)) return text;
+  const used =
+    (MixinApi.isBulkable(host) && host.hasInteriorBulk()) ||
+    (MixinApi.isServiceable(host) && host.isSoiled());
+  if (!used) return text;
+  const verdict = host.renderVerdict(viewer);
+  return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
+}
+
 export default class CraftVessel extends CraftVesselBase {
-  static markupAugmenters: MarkupAugmenter[] = [contentsFreshnessAugmenter];
+  static markupAugmenters: MarkupAugmenter[] = [
+    contentsFreshnessAugmenter,
+    vesselVerdictAugmenter,
+  ];
 
   static fieldMeta: FieldMeta = {
     iceKg: { persistent: true, runtimeState: true },
@@ -340,7 +360,7 @@ export default class CraftVessel extends CraftVesselBase {
 
   // ---- presentation ----
 
-  /** The working, the ice, the fizz, the garnish — then the verdict. */
+  /** The working, the ice, the fizz, the garnish (the verdict is an augmenter). */
   override getLong(): string {
     const base = super.getLong();
     const parts: string[] = [];
@@ -369,7 +389,6 @@ export default class CraftVessel extends CraftVesselBase {
         : contents.length > 0
           ? ` There is ${things} in it.`
           : '';
-    const verdict = (this as unknown as Crafted).renderVerdict();
-    return `${base}${working} ${verdict}`;
+    return `${base}${working}`;
   }
 }

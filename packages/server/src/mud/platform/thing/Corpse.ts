@@ -99,6 +99,9 @@ import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { ConcealableMixin } from '../../lib/concealment/Concealable';
 import { PostmortemMixin } from '../../lib/mortality/Postmortem';
 import type { FieldMeta } from '../../lib/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { PresentationForm } from '../../lib/description/NounPhrase';
+import { MixinApi } from '../../api/mixin';
 
 // The order follows `Creature`'s own reasoning for the overlapping
 // layers, so the two bodies agree about layering even though they
@@ -132,7 +135,34 @@ export default class Corpse extends CorpseBase {
     conditionAtDeath: { persistent: true, authorable: true },
     takenTissues: { persistent: true },
     takenLines: { persistent: true },
+    ofIdentityPath: { persistent: true },
   };
+
+  /**
+   * ⭐ Whose body this was, as an identity path — never as a name. A
+   * person's name is per viewer, so the corpse is minted with the
+   * stranger's stem ("the body of a woman") and {@link describeFor} tells
+   * the name to whoever knew her (client-surface W0, #105). `''` for an
+   * animal, whose name — if it had one — is public and already in the stem.
+   */
+  public ofIdentityPath: string = '';
+
+  public getOfIdentityPath(): string {
+    return this.ofIdentityPath;
+  }
+
+  /**
+   * The body of somebody you knew reads by their name; to anybody else it
+   * reads as its stem. Every gate the base applies (sight, a label) still
+   * applies — the name only replaces the stranger's stem.
+   */
+  override describeFor(viewer: Stuff | undefined, form: PresentationForm = 'concise'): string {
+    const base = super.describeFor(viewer, form);
+    if (!this.ofIdentityPath || !viewer || !MixinApi.isBeliefStore(viewer)) return base;
+    const known = viewer.knownNameOf(this.ofIdentityPath);
+    if (!known || base !== this.getPresentation()) return base;
+    return `the body of ${known}`;
+  }
 
   /**
    * ⭐⭐⭐ **A carcass REDUCES.** Tissue material paths a cut has already

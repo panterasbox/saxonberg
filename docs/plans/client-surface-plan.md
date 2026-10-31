@@ -645,6 +645,35 @@ unit terminal card).
   "back to the room" is the `here` role card itself; the explore panel's
   first card is the `here` card at panel width.
 
+### Build decisions (B1…) — made during the build, not by the plan
+
+- **B1 — no placed-card cap.** `MAX_PLACED_CARDS = 12` (D4) is dropped: a
+  bare count with no author is the harshest rule there is (values /
+  governance lens), and the screen's unit slots are the natural limit. No
+  `too-many-placed` refusal.
+- **B2 — the combat read lives on the combatant, not the Api.**
+  `Combatant.combatStateLineFor(viewer)` → `CombatLogic.combatStateLineFor`
+  (gated `CombatantCallers`) instead of `CombatApi.readingOf(viewer,
+  target)` — the plan's own fallback, taken up front because the
+  augmenter already holds the host and `lint:object-verbs` holds Api
+  statics with a world-object first parameter at zero. You read your OWN
+  poise unfogged.
+- **B3 — the quiet verdict gate landed in W0** with the verdict's move
+  into `vesselVerdictAugmenter` (it is two lines beside the move). "Used"
+  = interior bulk present OR `Serviceable.isSoiled()`.
+- **B4 — `look <thing>`'s body no longer ends in a newline**; every
+  section opens with `\n── `, so the first and the tenth join the same
+  way (slate bug 9).
+- **B5 — a corpse's name is carried as `ofIdentityPath`** (persistent
+  field) and told by `Corpse.describeFor` only where the base answer is the
+  plain stranger presentation (sight, a label still win). An animal's
+  corpse keeps its public name in the stem.
+- **B6 — `Tangible`'s `mass` read states the person rule inline.**
+  Importing `PerceptionApi` from `lib/material/Tangible.ts` closed an
+  import cycle through `Thing` (three suites failed to load); the read
+  states `isAnotherPerson`'s three-clause rule with a comment, and
+  `mql-subscription.privacy.test.ts` pins that the two agree.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -741,6 +770,13 @@ W0–W2 are server-led (the client keeps compiling); W3–W6 are client-led;
 W7 is the drive and the docs.
 
 ### W0 — Privacy on the wire, and the harness that can see it
+
+> ✅ **Done** (build). Pockets, mass, maker and corpse names, combat fog
+> (B2), the person light lift, target-first affordances, the `#id` gate,
+> the harness rings (`envelopesOf`, `lastCard`, `awaitEnvelope`,
+> `framesOf`). The `── ` newline rides B4. Surprise: the `Tangible`
+> import cycle (B6). test:near 495/498 → 498/498 after B6; lint:family
+> 85/85.
 
 **Goal.** #103, #104, #105, #90; the `──` newline; the affordance order;
 the `#id` gate; a wire harness that captures envelopes. Drive steps 5–8

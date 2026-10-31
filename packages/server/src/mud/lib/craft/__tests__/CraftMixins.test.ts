@@ -1,5 +1,5 @@
 import "../../../../test-bootstrap";
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { GradedMixin } from '../Graded';
 import { ToolMixin } from '../Tooled';
@@ -8,7 +8,7 @@ import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { Grade } from '../Grade';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 
 class GradedHost extends GradedMixin(Idea) {
   static _mixinName = 'GradedHost';
@@ -163,6 +163,19 @@ describe('CraftedMixin', () => {
     const verdict = c.renderVerdict();
     expect(verdict.toLowerCase()).toContain('fine');
     expect(verdict).not.toMatch(/[0-9]/);
+  });
+
+  it('⛔ names the maker as the VIEWER knows them (client-surface W0)', () => {
+    const maker = makeStuff(() => new CraftedHost());
+    stampTemplatePathForTest(maker, '/stuff/agent/test-maker/hester');
+    vi.spyOn(maker, 'getPresentation').mockReturnValue('Hester');
+    vi.spyOn(maker, 'describeFor').mockReturnValue('a woman');
+    const c = makeStuff(() => new CraftedHost());
+    c.stamp({ maker: '/stuff/agent/test-maker/hester', grade: Grade.of('fine'), recipe: 'gin', craftedAt: 0 });
+    const viewer = makeStuff(() => new CraftedHost());
+    expect(c.renderVerdict(viewer)).toContain('Made by a woman.');
+    expect(c.renderVerdict()).toContain('Made by Hester.');
+    vi.restoreAllMocks();
   });
 });
 

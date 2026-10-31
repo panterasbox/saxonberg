@@ -31,7 +31,6 @@ import type { TraversalGuard } from "../boundary/Exit";
 import type { Channel } from "../material/Channel";
 import type { CombatHookContext } from "./CombatHookContext";
 import { CHANNELS } from "../material/Channel";
-import { CombatApi } from "../../api/combat";
 import {
   SettingTypes,
   type SettingsSchemaEntry,
@@ -119,6 +118,13 @@ export interface Combatant {
   getStandingStopCondition(): string;
   /** This fighter's live morale band, or null out of combat. */
   moraleBand(): MoraleBand | null;
+  /**
+   * The live combat-state line as `viewer` reads it, or null out of
+   * combat: poise through the fog of the VIEWER's sharpness — a
+   * participant's own, a bystander's at the untrained floor
+   * (client-surface D3). Flags and `down` are visible acts and pass as is.
+   */
+  combatStateLineFor(viewer: Stuff): string | null;
 
   // The participant hook terminals (the combat hook grammar — every
   // combatant, player or NPC, hears the same lifecycle moments). The
@@ -481,6 +487,10 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       return combatLogic().moraleBand(this as unknown as Stuff);
     }
 
+    public combatStateLineFor(viewer: Stuff): string | null {
+      return combatLogic().combatStateLineFor(this as unknown as Stuff, viewer);
+    }
+
     /** Yield — resolves the fight in the opponent's favour. */
     public yieldFight(): boolean {
       return combatLogic().yieldFight(this as unknown as Stuff);
@@ -648,16 +658,13 @@ function combatLogic(): CombatLogic {
 function combatStateAugmenter(
   text: string,
   host: Stuff,
-  _viewer: Stuff,
+  viewer: Stuff,
 ): string {
-  const session = CombatApi.sessionFor(host);
-  if (!session) return text;
-  const state = session.getState(host);
-  if (!state) return text;
-  const parts: string[] = [state.poise.band()];
-  for (const flag of state.flags.list()) parts.push(flag);
-  if (state.down) parts.push("down");
-  const line = `In combat — ${parts.join(", ")}.`;
+  // ⛔ Never the TRUE band (client-surface W0): a look at a fighter reads
+  // through the same fog as the fight's narration.
+  if (!MixinApi.isCombatant(host)) return text;
+  const line = host.combatStateLineFor(viewer);
+  if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 

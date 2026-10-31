@@ -248,7 +248,19 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
       {
         name: 'mass',
-        read: (stuff) => {
+        read: (stuff, viewer) => {
+          // ⛔ Another person's weight is read by a scale, never by a look.
+          // ⚠ `PerceptionApi.isAnotherPerson`'s rule, stated here because
+          // importing the perception Api from this substrate closes an
+          // import cycle through `Thing` (client-surface B6) — keep the two
+          // in step; `mql-subscription.privacy.test.ts` pins both.
+          if (
+            viewer.stuffId !== stuff.stuffId &&
+            stuff.isAgent() &&
+            MixinApi.isSlotted(stuff)
+          ) {
+            return undefined;
+          }
           const q = (stuff as unknown as Tangible).getMass();
           return { value: q.rawValue(), unit: 'kg' as const };
         },

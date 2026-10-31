@@ -217,11 +217,12 @@ shipped rows at all, so `CardSource` is a discriminated union:
 
 - **`mql`** — a server-owned query resolved to Stuff and projected. The
   client sends no MQL. A `needsSubject` row resolves by direct lookup
-  **behind the perception gate**; ⚠⚠ never an `#<stuffId>` MQL seed,
-  which is authoring-tier and ungated, so a card built on it would
-  answer for anything whose id the viewer had ever seen on a frame — a
-  peep-hole into every room in the game, looking exactly like the
-  feature working.
+  **behind the perception gate**, re-checked on every re-resolve. The
+  `#<stuffId>` MQL seed is perception-gated for a player too since the
+  client-surface build (system mode stays ungated), so it is what a
+  card's links send — `look #<id>` names exactly one thing — but a
+  subscription still re-checks on each wake rather than trusting an id
+  it was handed once.
 - **`payload`** — a `CardPayload` **the producing controller already
   computed**. ⭐ `WhoController` builds `RosterRow[]` to render its
   prose; the card carries that same array. A producer on the card side
@@ -390,9 +391,10 @@ SubscribeRequest { subjectId }          →  MqlSubscriptionRegistry
 subscribe.** A `stuffId` is not a capability. A card that gated at
 birth and then trusted the id would keep answering for a subject that
 had since been concealed, moved behind a door, or disguised — a
-peep-hole that looks exactly like the feature working. This is the same
-reason the row may not use an `#<stuffId>` MQL seed: that seed is
-authoring-tier and ungated.
+peep-hole that looks exactly like the feature working. The `#<stuffId>`
+seed applies the same gate to a player's query at resolve time (since
+the client-surface build); it was authoring-tier and ungated before, and
+the card links that address by id depend on that gate.
 
 ⚠ **Why it exists at all** is the fourth liveness failure above: a
 relative query (`here`, `$focus`, `person`) re-answers against the

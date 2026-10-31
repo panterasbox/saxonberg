@@ -389,7 +389,14 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     }
     case 'stuffId': {
       const found = StuffApi.findById(node.id);
-      return found ? matchesFromStuff([found]) : [];
+      if (!found) return [];
+      // ⛔ A player names by id only what they perceive (client-surface
+      // D7): the card's links send `look #<id>`, and an id must not be a
+      // way to reach a concealed thing. A system query stays ungated.
+      if (ctx.commandGiver !== null && !PerceptionApi.perceives(ctx.commandGiver, found)) {
+        return [];
+      }
+      return matchesFromStuff([found]);
     }
     case 'lastResult':
       return matchesFromStash(ctx, 'last');

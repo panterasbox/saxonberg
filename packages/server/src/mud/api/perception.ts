@@ -537,6 +537,16 @@ export class PerceptionApi {
   }
 
   /**
+   * Whether `target` is a PERSON other than `viewer` — an agent with
+   * slots that is not the viewer. The predicate {@link visibleContentsOf}
+   * reads, named once: what a look may not tell you about somebody else
+   * (their pockets, their weight) is decided here and nowhere else.
+   */
+  public static isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
+    return logic().isAnotherPerson(viewer, target);
+  }
+
+  /**
    * Where something on the horizon lies, as a GLANCE gives it — one of
    * eight compass points and a rough range (*to the north-east, some 3
    * miles off*). `look horizon` and a kept watch both say it this way; a

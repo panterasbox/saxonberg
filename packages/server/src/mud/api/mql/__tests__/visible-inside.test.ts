@@ -72,3 +72,23 @@ describe('`:i` names only what the viewer may see', () => {
     expect(rule).not.toHaveBeenCalledWith(bob, bob);
   });
 });
+
+describe('`#<id>` names only what the viewer perceives (client-surface D7)', () => {
+  it('⭐ a perceived thing resolves by id — the card\'s links address by it', () => {
+    vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(true);
+    const r = MqlApi.resolveMany(`#${coin.stuffId}`, { commandGiver: viewer as never, scope: '' });
+    expect(ids(r.stuff)).toEqual([coin.stuffId]);
+  });
+
+  it('⛔ an unperceived one resolves to nothing for a player', () => {
+    vi.spyOn(PerceptionApi, 'perceives').mockImplementation((_v, t) => t !== coin);
+    const r = MqlApi.resolveMany(`#${coin.stuffId}`, { commandGiver: viewer as never, scope: '' });
+    expect(r.stuff).toEqual([]);
+  });
+
+  it('a system query is ungated', () => {
+    vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(false);
+    const r = MqlApi.resolveMany(`#${coin.stuffId}`, { commandGiver: null, scope: '' });
+    expect(ids(r.stuff)).toEqual([coin.stuffId]);
+  });
+});
