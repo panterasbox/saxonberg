@@ -21,9 +21,12 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐ Greedy: a thing's name is a phrase (`tie first strand to post`,
+  # `tie end of a rope to anchor`); it stops at `to`.
   - name: gear
     type: object
     required: true
+    greedy: true
     scope: "inventory"
     requires: [TieableMixin]
   - name: load

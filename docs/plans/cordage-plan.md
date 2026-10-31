@@ -772,4 +772,15 @@ hazard,assembly,textiles,instrumentation,retail,employment,content-packs,testing
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/cordage.dirty.wire.test.ts`, fresh world per run on `WIRE_PORT=2013`.
+
+| run | passed | what it found |
+|---|---|---|
+| 1 | 3/17 | ⛔ `cut` UNKNOWN on a rope (nothing afforded it); the ropewalk pitch dark; `twist strands` bound nothing (no `strands` keyword); `rope` bound a strand ("rope strand"); the delve dark and its way down hidden (drive staging) |
+| 2 | 4/17 | ⛔ the walk still dark: a room's light is spread over its extent SQUARED, so 300 m of walk is 90,000 m² and no lamp lights it → **D28** the walk is open to the sky, worked by day; hemp yarn answered to "rope yarn"; drive ordinals (`first rope`, not `1.rope`), prompts, a filled lantern, the hidden band lowered (staged) |
+| 3 | 10/17 | ⛔ a pitch coat read "wet … not yet set" right after the dip (only `isTarred` cooled it) → `Rope.getCoats` brings the cooling current; the rope-maker's arms full of rope made `rope` a question → single-rope hands per delve/splice/tar step |
+| 4 | 15/17 | ⛔ `tie first strand to post` → "nothing with an end to tie": `tie`'s gear arg was not greedy (a multi-word name broke it) → greedy; the tar dip met a body still putting on its coat (drive retries) |
+| 5 | 16/17 (+13 on a re-run) | the splice step's `look rope` was ambiguous in the walk and the prompt answer raced → an ordinal. **All 17 green.** |
+
+Reachability: verb · affordance · data · boot · arg gate walked for `tie`/`untie`/`tug`/`cut`/`coil`/`splice`/`belay`/`twist`/`climb`/`dip`/`analyze lay` — the arg-gate class fired twice (`tie`'s gear; the declared `jack`/`rope` args made greedy at W5). Step 14 (rot over days) and 18 (hemp's season) are the soak drive's.
+

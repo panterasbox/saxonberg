@@ -302,7 +302,12 @@ suite('cordage — the blocking drive', () => {
     const tarrer = await funded('cdt', 60);
     const s = await session(tarrer, WALK);
     await say(s, 'buy rope');
-    await act(s, 'dip rope in tub');
+    // A fresh body may still be shrugging its coat on (hands busy).
+    const dipped = await act(s, 'dip rope in tub');
+    if (/hands are busy/i.test(dipped)) {
+      await new Promise((r) => setTimeout(r, 5_000));
+      await act(s, 'dip rope in tub');
+    }
     const r = await look(s, 'rope');
     expect(r, r).toMatch(/tarred/i);
   }, 300_000);
@@ -371,7 +376,7 @@ suite('cordage — the blocking drive', () => {
     await act(s, 'cut rope at 4 m');
     const sp = await say(s, 'splice first rope to second rope');
     expect(sp, sp).toMatch(/one rope now, 10 meters long/);
-    const r = await look(s, 'rope');
+    const r = await look(s, 'first rope');
     expect(r, r).toMatch(/splice/);
   }, 600_000);
 
