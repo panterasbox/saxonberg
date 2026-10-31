@@ -10,6 +10,9 @@ data:
   shortDescription: "ropewalk"
   keywords: [ropewalk, walk, shed, "rope walk"]
   register: definite
+  # In the town: its weather, its address (the soak drive found it under the
+  # global field).
+  _address: terminus/city/wharfside/ropewalk
   _biomePath: /stuff/idea/biome/outdoor/baseline
   extent: 300
   longDescription: |
