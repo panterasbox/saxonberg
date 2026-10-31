@@ -856,18 +856,20 @@ const CONSTITUTION_URL =
   'https://gitlab.com/panterasbox/saxonberg/-/blob/master/docs/compact/governance/draft-constitution.md';
 
 /**
- * The three houses (draft constitution, Art. III–IV): each kind of influence
- * is earned by one kind of contribution and sits in its own house.
+ * The three chambers, in the manifesto's words — labor · capital · consumer,
+ * make · fund · play, standing (the draft constitution's own terms are
+ * Producer House and influence). Labor and consumer standing is given by
+ * others; capital's is funded.
  */
-const HOUSES = [
-  { name: 'Producer House', act: 'Build it', how: 'by what your work earns' },
-  { name: 'Capital House', act: 'Fund it', how: 'by what you give' },
-  { name: 'Consumer House', act: 'Play it', how: 'by how you take part' },
+const CHAMBERS = [
+  { name: 'Labor', act: 'Make it', how: 'valued for what you make' },
+  { name: 'Capital', act: 'Fund it', how: 'for what you give' },
+  { name: 'Consumer', act: 'Play it', how: 'valued for how you play' },
 ];
 
 /**
  * The Compact — who governs Saxonberg, evergreen. Nothing is governed yet
- * (influence begins at launch), so the card describes the design, never a
+ * (standing begins at launch), so the card describes the design, never a
  * live vote; live civics replace it once the government sits.
  */
 function CompactPanel() {
@@ -897,7 +899,7 @@ function CompactPanel() {
             marginTop: 6,
           }}
         >
-          Governed by the people who build it, fund it and play it
+          Governed by the people who make it, fund it and play it
         </div>
         <div
           style={{
@@ -907,11 +909,11 @@ function CompactPanel() {
             marginTop: 8,
           }}
         >
-          A draft constitution · influence begins at launch
+          A draft constitution · standing begins at launch
         </div>
       </div>
 
-      {HOUSES.map((h) => (
+      {CHAMBERS.map((h) => (
         <div
           key={h.name}
           style={{
