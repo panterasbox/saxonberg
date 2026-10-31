@@ -8,7 +8,7 @@ description: Run the soak lane's triage session in the `soak` tmux window. Use w
 The soak lane runs every merged build's **span** checks — weeks or
 seasons of game time — after the merge, so that **no merge waits on the
 clock** (`docs/workflow.md § No merge waits on the clock`,
-`docs/slates/builds/soak-lane-slate.md`).
+`docs/slates/tails/soak-lane-slate.md`).
 
 Two parts, and only one of them is you:
 

@@ -2,7 +2,7 @@
  * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
  * after merge, never in a blocking run). The span twin of
  * `ceramics-c.dirty.wire.test.ts`, split by the soak-harness census per
- * docs/slates/tails/ceramics-soak-split-slate.md (2026-10-30). It carries the
+ * the ceramics soak-split census (testing.md § The soak lane) (2026-10-30). It carries the
  * blocking drive's flow and keeps the spans in place — the ware dries a day at a time for up to ten days before the bisque, the firings hang off that drying, and the lead leaches over a week.
  *
  * ⭐⭐ **Ceramics, part C — the potter**, driven end to end against the

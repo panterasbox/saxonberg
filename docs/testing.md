@@ -55,7 +55,7 @@ the wire nor the parser.**
 may block a merge.** A span step (weeks or seasons of game time) runs in the **soak lane** after
 merge, never in review, finalize or a build's exit drive. Each requirements doc writes a blocking
 drive and a soak drive. The finding behind it, the enforcement and the lane →
-[soak-lane-slate](./slates/builds/soak-lane-slate.md).
+[soak-lane-slate](./slates/tails/soak-lane-slate.md).
 
 ### The soak lane — the convention, the refusal, the result, the runner
 

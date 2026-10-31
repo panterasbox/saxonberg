@@ -24,7 +24,7 @@
  * ⛔ **The BLOCKING drive** (no step moves the clock more than a game day):
  * the span steps — the winter's weathering, the warm-season walk, the weeks
  * in the hacks, the three-day burns, the frost — are STAGED here per
- * docs/slates/tails/ceramics-soak-split-slate.md § ceramics-a: the state the
+ * the ceramics soak-split census (testing.md § The soak lane) § ceramics-a: the state the
  * span would produce is set directly and read with the same player verbs.
  * Its span twin is `ceramics-a.soak.dirty.wire.test.ts`.
  *

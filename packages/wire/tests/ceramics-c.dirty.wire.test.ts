@@ -22,7 +22,7 @@
  * 23 in this file: its grogged pot is made from 23's sherds.
  *
  * ⛔ **The BLOCKING drive** (soak-harness census, per
- * docs/slates/tails/ceramics-soak-split-slate.md § ceramics-c): no step
+ * the ceramics soak-split census (testing.md § The soak lane) § ceramics-c): no step
  * moves the clock more than a game day. Each span step is its staged or
  * bounded twin here, marked `⛔ STAGED` / `⛔ BOUNDED`; the original spans
  * (the ten-day drying, the week of vinegar, the walk to the warm season)

@@ -17,7 +17,7 @@
  * read back off the world — never only that the verb was not refused.
  *
  * ⛔ **The BLOCKING drive** — its span steps are STAGED per
- * docs/slates/tails/ceramics-soak-split-slate.md § ceramics-b (the
+ * the ceramics soak-split census (testing.md § The soak lane) § ceramics-b (the
  * firebricks' weeks of drying, the keeper's two days): the state is set
  * directly and the same player reads it. No step moves the clock more than
  * a game day. The spans themselves run in the soak twin,

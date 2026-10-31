@@ -2,7 +2,7 @@
  * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
  * after merge, never in a blocking run). The span twin of
  * `ceramics-a.dirty.wire.test.ts`, split by the soak-harness census per
- * docs/slates/tails/ceramics-soak-split-slate.md (2026-10-30). It carries the
+ * the ceramics soak-split census (testing.md § The soak lane) (2026-10-30). It carries the
  * blocking drive's flow and keeps the spans in place — the drive is a brickmaking YEAR — clay weathered through a winter (30-day steps), bricks dried in the hacks for weeks, clamps burnt for days; the knead and the moulding hang off the weathered heap.
  *
  * ⭐⭐ **Ceramics, part A — the brickmaker's year**, driven end to end
