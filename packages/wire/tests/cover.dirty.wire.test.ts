@@ -247,6 +247,10 @@ async function founderEval(where: string, parcel: string, code: string): Promise
     const said = await r.said();
     note(`(founder eval → ${said.slice(0, 200)})`);
     expect(refusedFor(r)).toBeNull();
+    // ⚠ An eval that threw still answers ok: read its words (blocking run,
+    // after the seed build — a boundary refusal passed silently, and the
+    // step it staged passed on somebody else's hay).
+    expect(said, 'the eval threw').not.toMatch(/sandbox boundary denied|\berror:/i);
     return said;
   } finally {
     gov.close();
@@ -695,12 +699,26 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     const tried = await act(p, 'get 1 hay');
     note(`a player lifting a cut of hay: ${refusedFor(tried.r) ?? 'ok'}`);
     if (/You pick up a cut of hay/i.test(tried.said)) await doing(p, 'put hay in trough');
-    const placed = await founderEval(
-      HOME_FIELD,
-      CAMPUS,
-      'return (tr => self.getContainer().getContents().filter(t => t.getTemplatePath() === "/trade/farming/thing/hay").map(t => (ContainmentApi.move(t, tr), t.getMass().rawValue())).join(","))(self.getContainer().getContents().find(t => (t.getTemplatePath() ?? "").includes("field-trough")))',
-    );
-    note(`cuts of hay into the trough: ${placed}`);
+    // The founder's fresh body forks them, by the player's verbs (an eval
+    // cannot reach the trough: it is the farm's fixture, outside the
+    // field's parcel). What was in it before is logged: the farm's own
+    // hay hand forks too.
+    const gov = await Session.open('founder', { startLocation: HOME_FIELD });
+    let forked = 0;
+    try {
+      await gov.drainProse();
+      await read(gov, 'look trough');
+      for (let i = 0; i < 3; i++) {
+        const got = await act(gov, 'get 1 hay');
+        if (!/You pick up a cut of hay/i.test(got.said)) break;
+        await doing(gov, 'put hay in trough');
+        forked++;
+      }
+    } finally {
+      gov.close();
+    }
+    note(`cuts of hay forked into the trough: ${forked}`);
+    expect(forked, 'there was hay lying in the home field').toBeGreaterThan(0);
     expect(await read(p, 'look trough')).not.toMatch(/It is empty/);
     await advance(DAY);
     await daylight();
