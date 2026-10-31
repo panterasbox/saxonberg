@@ -30,9 +30,14 @@ examples:
   - cmd: charter hesper
     note: At the line's desk — charter the Hesper
 args:
+  # ⭐ Greedy — a ship's name is a PHRASE (`charter the hesper`), and a
+  # non-greedy positional takes one token and throws the trailing book's
+  # default away (`lint:reachability` arm G; `buy.yaml` carries the long
+  # form). Safe because the book declares prepositions to stop at.
   - name: ship
     type: string
     required: false
+    greedy: true
   # ⭐ The book the charter is written in — declared, not hunted for: the
   # one in front of you (`lint:instrument-args`), defaulted so absent
   # means that book (optional only because it follows the optional ship —
