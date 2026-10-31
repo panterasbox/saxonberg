@@ -95,6 +95,10 @@ game class opts into.
 
 ### The typed subject
 
+> ⭐ **2026-10-30 → [real-world-anchors-slate](../slates/builds/real-world-anchors-slate.md)** — a
+> subject's row may carry a Wikidata anchor (is · models · contrasts, with a note on how we differ),
+> rendered as an *in the real world* line here and in `help`, never in-world.
+
 ```yaml
 subject: { kind: template, ref: /stuff/idea/material/oak }
 subject: { kind: mixin,    ref: CombustibleMixin }
