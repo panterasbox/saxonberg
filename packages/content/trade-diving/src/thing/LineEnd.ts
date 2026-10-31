@@ -60,12 +60,7 @@ export default class LineEnd extends TetherEndMixin(Good) {
     this._roundBollard = bollard;
     if (shipName) {
       this.setShortDescription(`line from ${shipName}`);
-      // ⚠ Never her bare name (harbors drive run 5): the way aboard is named
-      // for her, and a line end answering to `hesper` took `go hesper` the
-      // moment the player had just looked at it (attention breaks the tie).
-      // Her name only as the phrase a player says of the line.
-      const name = shipName.replace(/^the\s+/i, '').toLowerCase();
-      this.setKeywords([...this.getKeywords(), `${name} line`, `${name}'s line`]);
+      this.setKeywords([...this.getKeywords(), ...shipName.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
       this.setLongDescription(
         `A mooring line comes ashore from ${shipName}, made fast round ${bollard.getPresentation()} with a round turn and two half hitches.`,
       );
