@@ -1,4 +1,4 @@
-# Material decomposition slate — a material composes the capabilities it has
+# Material decomposition slate — a material composes the capabilities it has (and the Idea-tree audit)
 
 > **Status: UNBUILT** — designed at high level 2026-10-30 with the owner; census run the same day.
 > What ships: one `Material` class (`lib/material/Material.ts`, 2,209 lines) carrying ~72 authored
@@ -10,8 +10,9 @@
 > **Left:** the base keeps only what every material has · chemical identity as the class axis
 > (element · compound · mixture) · capability mixins by the process that reads them · family backing
 > classes · sentinel rows removed · `nutrients` split in two · electrical conductivity made universal ·
-> material-side mixin names that cannot collide with the thing-side ones · wiki pages per mixin · the
-> same audit for the other Idea trees
+> material-side mixin names that cannot collide with the thing-side ones · wiki pages per mixin ·
+> species split into person, kept and aquatic · maturation split by mechanism · the dead fields
+> removed (condition `contagion`, discipline `conferrals`, sentinel `lifespanMin`)
 > **Size:** a build
 
 ## 0. The ask **[DECIDED — the owner]**
@@ -146,10 +147,56 @@ game, its Wikipedia anchor), **the three chemical kinds** and **the families**, 
 interesting in their own right (rubber, lye, glass). The rest are listed on their mixins' pages
 ([wiki-content-slate](./wiki-content-slate.md), [real-world-anchors-slate](./real-world-anchors-slate.md)).
 
-## 7. The other Idea trees **[LEAN]**
+## 7. ⭐⭐ The rest of the audit — the other Idea trees **[EVIDENCE — 2026-10-30]**
 
-The same audit applies to biomes, species and conditions: a census of authored properties, the
-universal test for the base, capabilities grouped by the process that reads them. Materials first.
+The same census over every Idea tree large enough to matter (`extends:` resolved, sentinels not
+counted as authored). The question for each: **do sparse properties pile up on one class the way they
+did on `Material`?**
+
+| tree | rows | classes | distinct field-sets | verdict |
+|---|---|---|---|---|
+| **material** | 347 | 6 | 77 capability combinations | ⚠⚠ decompose — §§ 2–4 |
+| **species** | 96 | 3 (`Species` 84, `BodyPlan` 8, `Clade` 4) | 9 capability combinations | ⚠ decompose — below |
+| **maturation** | 33 | 1 | 21 | ⚠ split by mechanism — below |
+| **locality** | 24 | 1 | 12 | ○ sparse, small — each sparse field is a different system attaching (water's catchment and reach, weather's pin, civics' government, energy's lighting); revisit when it grows |
+| **condition** | 39 | 1 | 9 | ✅ already uses the facet shape — `toxinBehavior` / `pathogenBehavior` records on the rows that need them |
+| **discipline** | 92 | 1 | 9 | ✅ healthy |
+| **reading** | 50 | 50 (one class per reading) | 9 | ✅ healthy — each reading's logic is its own code; the fields are uniform |
+| **biome** | 13 | 3 | 5 | ✅ healthy — its planet facts move per the [worlds slate](./worlds-slate.md) |
+
+### Species — four capabilities, nine combinations **[LEAN]**
+
+Universal on a species: binomial, common names, parent clade, body plan, default material, diet,
+lifespan, reproductive mode, sex determination, lifecycle states, circadian band. Then:
+
+| capability | rows | properties |
+|---|---|---|
+| **person** (playable) | 17 | sentient, name banks, blood groups, faculty profile, innate mixins |
+| **kept** (husbandry) | 21 | butchery yield, taps (production), breeding, handling range, biddability, age curve |
+| **aquatic** | 12 | breathing, respiration, habitat and its stages, feeding style |
+
+**Only nine combinations** — 50 base only · person 17 · kept 11 · aquatic + kept 9 · and a handful
+more — so a backing class per combination works here as the doctrine wrote it: *Person species*,
+*kept species*, *fish*, the plain species. ⚠ Natural attacks first looked like a beast capability; the
+census shows the playable species carry them too (fists), so they belong to the base for animals.
+Perception and vital profiles are physically universal with defaults, so they stay on the base.
+
+### Maturation — split by mechanism **[LEAN]**
+
+33 profiles, 21 field-sets, one class. The universal fields (key, mechanism, input, the temperature
+band) hold; the rest follow the `mechanism`: lees and strain for fermentation, the turn for souring,
+the scald for dairy. **`mechanism` is already the discriminator**, so a class per mechanism (the
+exclusive axis, like chemical identity) is the natural split.
+
+### Dead and sentinel fields the audit found
+
+| tree | field | finding |
+|---|---|---|
+| condition | `contagion` | authored as empty on all 39 rows, real on none — the disease slate's unbuilt field |
+| discipline | `conferrals` | empty on 12, real on none — verb conferral is **retired** (MR !285); the field should go |
+| species | `lifespanMin` | zero on 81 rows — and lifespans do not bite for persons (race.md) |
+| species | `nameBankKeys` | empty on 24 |
+| material | the sentinel rows | § 3 |
 
 ## 8. Open
 
