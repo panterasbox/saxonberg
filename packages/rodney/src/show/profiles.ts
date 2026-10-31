@@ -44,7 +44,7 @@ export const PROFILES: Record<string, ShowProfile> = {
     topicLabel: 'Now',
     defaultTopic: 'Working on Saxonberg',
     pitch: 'Saxonberg is a text world in your browser that its players build, fund and govern.',
-    panels: ['join', 'world', 'money', 'community', 'compact', 'about', 'gitlab', 'wiki'],
+    panels: ['what', 'join', 'world', 'money', 'community', 'compact', 'about', 'gitlab', 'wiki'],
     crawl: true,
   },
 };
