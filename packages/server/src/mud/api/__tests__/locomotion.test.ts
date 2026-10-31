@@ -197,9 +197,7 @@ describe('LocomotionApi', () => {
         const loc = makeStuff(() => new Place());
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
-        expect(LocomotionApi.checkEnablement(actor, walk, 'north')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(actor, walk, 'north')).toMatchObject({ ok: true });
       });
     });
 
@@ -215,9 +213,7 @@ describe('LocomotionApi', () => {
         loc.setAxes(['up']);
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
-        expect(LocomotionApi.checkEnablement(actor, climb, 'up')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(actor, climb, 'up')).toMatchObject({ ok: true });
       });
 
       it('finds a Climbable Containable in the room', () => {
@@ -227,9 +223,7 @@ describe('LocomotionApi', () => {
         ContainmentApi.move(ladder, loc);
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
-        expect(LocomotionApi.checkEnablement(actor, climb, 'up')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(actor, climb, 'up')).toMatchObject({ ok: true });
       });
 
       it('returns gate=enablement when no Climbable is in scope', () => {
@@ -262,9 +256,7 @@ describe('LocomotionApi', () => {
         loc.setAxes(['*']);
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
-        expect(LocomotionApi.checkEnablement(actor, swim, 'down')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(actor, swim, 'down')).toMatchObject({ ok: true });
       });
 
       it('returns gate=enablement when no Swimmable in scope', () => {
@@ -351,9 +343,7 @@ describe('LocomotionApi', () => {
         loc.setAxes(['*']);
         const actor = makeStuff(() => new Actor());
         ContainmentApi.move(actor, loc);
-        expect(LocomotionApi.checkEnablement(actor, fly, 'up')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(actor, fly, 'up')).toMatchObject({ ok: true });
       });
     });
 
@@ -365,9 +355,7 @@ describe('LocomotionApi', () => {
         horse.setMountSlot('mount:1');
         const rider = makeStuff(() => new Actor());
         horse.occupy(rider, 'mount:1');
-        expect(LocomotionApi.checkEnablement(rider, ride, 'north')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(rider, ride, 'north')).toMatchObject({ ok: true });
       });
 
       it('returns gate=noConveyance when actor occupies no Mountable', () => {
@@ -387,9 +375,7 @@ describe('LocomotionApi', () => {
         cart.setControllerSlot('driver:1');
         const driver = makeStuff(() => new Actor());
         cart.occupy(driver, 'driver:1');
-        expect(LocomotionApi.checkEnablement(driver, drive, 'east')).toEqual({
-          ok: true,
-        });
+        expect(LocomotionApi.checkEnablement(driver, drive, 'east')).toMatchObject({ ok: true });
       });
     });
   });

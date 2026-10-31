@@ -19,7 +19,7 @@ import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import Lifeline from '../thing/Lifeline';
+import Line from '@saxonberg/server/mud/lib/spatial/Line';
 
 export const brain = class {
   static label = 'tends';
@@ -35,7 +35,8 @@ export const brain = class {
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host as Stuff;
     if (host.isDestroyed() || !MixinApi.isCommandGiver(host) || !MixinApi.isContainer(host)) return;
-    const line = host.getContents().find((c) => c instanceof Lifeline) as Lifeline | undefined;
+    // ⭐ Any line (cordage D2): a lifeline is a rope, a hard-hat diver's is a hose.
+    const line = host.getContents().find((c) => c instanceof Line) as Line | undefined;
     if (!line) return;
     const diver = line.getOnEnd();
     if (diver === null || diver === host) return;

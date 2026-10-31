@@ -33,6 +33,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: [bulk, organic, flammable, tar, once-living]
+  tags: [bulk, organic, flammable, tar, once-living, waterproofing]
+  # ⭐ A coat (cordage D13′): dipped hot, it sets on the face as it cools, and
+  # keeps the water out of what it coats — a tarred rope does not rot.
+  laysCoat: true
+  coatWord: tarred
   composition: []
   biologicalSource: null

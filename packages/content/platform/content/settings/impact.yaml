@@ -30,3 +30,11 @@ settings:
 
   - key: impact.shockWallS
     value: "60"
+
+  # ⭐ A wall that CONDUCTS evens itself out before the strain builds
+  # (cordage D29 — the iron pot cracked on every lye poured into it): the
+  # tolerance scales by the material's thermal conductivity over this
+  # reference, W/(m·K) — a fired clay's. Clay and glass sit at or under it
+  # and are unchanged; cast iron (≈55) stands a boil, as an iron pot does.
+  - key: impact.shockConductivityRef
+    value: "1.5"

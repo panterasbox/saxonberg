@@ -1,0 +1,15 @@
+# Splice (cordage D7) — a knot is a JOINT: the share of the
+# rope's strength it keeps is `strength`. The strands of two ends worked back into each other — the join that holds nearly all of the rope, and is never untied, only cut out.
+class: /platform/idea/Joint
+data:
+  key: splice
+  label: spliced
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: never
+  strength: 0.9
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: false
+  failure: parted

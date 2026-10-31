@@ -21,6 +21,7 @@ import { MixinApi } from '../../../../api/mixin';
 interface CutModel extends CommandModel {
   target?: MqlOneResult;
   tools?: MqlManyResult;
+  length?: string;
   for?: MqlOneResult;
   tight?: boolean;
   generous?: boolean;
@@ -44,6 +45,7 @@ export default class CutController extends ManualBuildController<CutModel> {
       actor,
       tools,
       raw: target === null ? raw : null,
+      length: (model.length ?? '').trim() || null,
       options: {
         for: (model.for?.stuff ?? null) as Stuff | null,
         tight: model.tight === true,

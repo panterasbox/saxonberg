@@ -95,7 +95,7 @@ lit pipe — [fire.md](../../subsystems/fire.md)).
 | chain | steps | connects to |
 |---|---|---|
 | **tobacco** | grow → harvest leaves → cure (air, fire or flue) → ferment → age → cut or roll → the tobacconist | [farming](./farming-slate.md) (tobacco is a missing plantation crop); [maturation](../../subsystems/maturation.md) (the curing barn) |
-| **cannabis** | grow → flower → dry → cure → hashish (resin) | ⭐ **the same plant as hemp fiber** ([cordage](./cordage-slate.md)) — one field, two varieties |
+| **cannabis** | grow → flower → dry → cure → hashish (resin) | ⭐ **the same plant as hemp fiber** ([cordage](../tails/cordage-slate.md)) — one field, two varieties |
 | **the kit** | clay pipes ([pottery](./pottery-slate.md)) · briar · papers ([paper](./paper-and-printing-slate.md)) · ⭐ matches ([chemical works](./chemical-works-slate.md) — white phosphorus, *phossy jaw*, the 1888 London match-girls' strike) · ashtrays · lighters | |
 | **money** | ⭐ colonial Virginia ran on **tobacco as currency**, with tobacco notes as warehouse receipts | [banking](../../subsystems/banking.md) — cash against the ledger |
 

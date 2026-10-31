@@ -1025,8 +1025,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
             }
         }
         for (const c of near) {
+          if (c === self) continue;
+          // ⭐ A porous solid a liquid works down through into this vessel —
+          // ash in a hopper, a loaf on its pot — is brought current too
+          // (cordage W7: the hopper's lye is what its heaps have given up).
+          if (MixinApi.isPercolating(c)) c.reconcilePercolation();
           // Only a FACED vessel seeps (its faces are what let a liquid through).
-          if (c === self || !MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
+          if (!MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
           try {
             if (c.hasInteriorBulk()) c.getBulkAmount('interior');
           } catch (err) {

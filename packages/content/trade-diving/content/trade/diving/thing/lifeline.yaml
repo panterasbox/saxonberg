@@ -1,8 +1,9 @@
 # A lifeline (underwater C1) — twenty meters of tarred rope, the line a
 # tender holds while their diver works below. Heave the end to your diver
 # before they go down; they signal up it (one tug, two, three); you haul
-# them up on it, conscious or not.
-class: /trade/diving/thing/Lifeline
+# them up on it, conscious or not. ⭐ A ROPE (cordage D3): what makes it a
+# lifeline is where its ends are tied, not its class.
+class: /platform/thing/Rope
 data:
   shortDescription: lifeline
   keywords: [lifeline, line, rope]
@@ -10,7 +11,10 @@ data:
   longDescription: >-
     Twenty meters of tarred rope coiled down neat, a bowline already in
     the end of it. It smells of tar and the river.
-  _materialPath: /stuff/idea/material/textile/jute
-  mass: 3
-  kind: line
+  _materialPath: /stuff/idea/material/textile/hemp
   lengthM: 20
+  diameterMm: 14
+  # ⭐ Tarred (cordage D13′): a set coat of pitch on its outside — it does not rot.
+  coats:
+    outside:
+      - { material: /stuff/idea/material/bulk/pitch, thicknessM: 0.0005, state: set }

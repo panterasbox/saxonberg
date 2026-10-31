@@ -131,6 +131,11 @@ function trapsStore(): Doc[] {
       join(WILDS, 'world', 'newbie-wilds', 'delve'),
       '/world/newbie-wilds/delve',
     ),
+    // The delve's own fixtures (cordage: the timber post at the pit's lip).
+    ...loadSeedDir(
+      join(WILDS, 'world', 'newbie-wilds', 'delve', 'thing'),
+      '/world/newbie-wilds/delve/thing',
+    ),
     // The generic trap objects, cloned into the corridors via `props`.
     ...loadSeedDir(join(SEEDS, 'stuff', 'thing', 'traps'), '/stuff/thing/traps'),
     // The treeline the vestibule's back-out exit cascades — stubbed as a bare

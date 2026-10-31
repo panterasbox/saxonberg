@@ -1,0 +1,12 @@
+# The free end of a line (underwater C1; kernel since cordage D1) — minted
+# by its line when the line is made fast to somebody, and gone when it is
+# cast off. Holding it is being on the line; it is what you `tug`. A
+# hose's end is this row, renamed by its hose.
+class: /platform/thing/LineEnd
+data:
+  shortDescription: end of a line
+  keywords: [end, line, "line end"]
+  register: indefinite
+  longDescription: The free end of a line, the rest of it going away to whoever holds the other end.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 0.3

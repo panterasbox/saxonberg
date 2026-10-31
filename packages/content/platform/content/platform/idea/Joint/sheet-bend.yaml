@@ -1,0 +1,15 @@
+# Sheet bend (cordage D7) — a knot is a JOINT: the share of the
+# rope's strength it keeps is `strength`. The bend that joins two ropes end to end, even ropes of two thicknesses.
+class: /platform/idea/Joint
+data:
+  key: sheet-bend
+  label: joined with a sheet bend
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: freely
+  strength: 0.5
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: true
+  failure: slack

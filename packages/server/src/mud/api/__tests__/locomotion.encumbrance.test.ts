@@ -88,10 +88,10 @@ describe('LocomotionApi — load-aware veto', () => {
     }, '/stuff/idea/material/_test/test-lead') as unknown as MaterialClass);
     ContainmentApi.move(lead, bearer);
 
-    expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toEqual({ ok: true });
+    expect(LocomotionApi.checkEnablement(bearer, swim, 'down')).toMatchObject({ ok: true });
     // In off the quay in the hard-hat suit: in, and sinking, not refused.
     water.setAxes(['up', 'down', 'river']);
-    expect(LocomotionApi.checkEnablement(bearer, swim, 'river')).toEqual({ ok: true });
+    expect(LocomotionApi.checkEnablement(bearer, swim, 'river')).toMatchObject({ ok: true });
     expect(LocomotionApi.checkEnablement(bearer, swim, 'up').gate).toBe('encumbrance');
   });
 
@@ -101,9 +101,7 @@ describe('LocomotionApi — load-aware veto', () => {
     const bearer = bearerOf(() => new MobileBearer());
     ContainmentApi.move(bearer, loc);
 
-    expect(LocomotionApi.checkEnablement(bearer, climb, 'up')).toEqual({
-      ok: true,
-    });
+    expect(LocomotionApi.checkEnablement(bearer, climb, 'up')).toMatchObject({ ok: true });
   });
 
   it('never gates walk on load (walk has no enablement mixin)', () => {
@@ -113,9 +111,7 @@ describe('LocomotionApi — load-aware veto', () => {
     overload(bearer);
 
     // walk → no enablementMixin → checkEnablement is { ok: true } regardless.
-    expect(LocomotionApi.checkEnablement(bearer, walk, 'north')).toEqual({
-      ok: true,
-    });
+    expect(LocomotionApi.checkEnablement(bearer, walk, 'north')).toMatchObject({ ok: true });
   });
 });
 

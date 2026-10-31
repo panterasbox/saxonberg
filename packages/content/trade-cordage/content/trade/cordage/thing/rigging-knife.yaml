@@ -1,0 +1,13 @@
+# A rigging knife (cordage D4) — a short blunt-nosed blade for cutting rope;
+# what `cut rope at 10 m` asks for (a `cutting` tool).
+class: /platform/thing/Tool
+data:
+  shortDescription: rigging knife
+  keywords: [knife, "rigging knife", blade]
+  register: indefinite
+  longDescription: |
+    A short, thick blade with a blunt nose so it will not stab whoever is in the rigging with you, and an edge kept for rope.
+  _materialPath: /stuff/idea/material/alloy/steel
+  capabilities: ["cutting"]
+  epoch: medieval
+  mass: 0.2

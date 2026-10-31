@@ -1,0 +1,11 @@
+# The far end of a rope (cordage D1) — minted by its rope when the rope is
+# made fast to somebody, or tied off above a drop. Holding it is being on
+# the rope; hanging down a drop it is a way up.
+class: /platform/thing/RopeEnd
+data:
+  shortDescription: end of a rope
+  keywords: [end, rope, line, "rope end", "line end"]
+  register: indefinite
+  longDescription: The end of a rope with a bowline in it, the rest of it going away to whoever, or whatever, has the other end.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 0.3

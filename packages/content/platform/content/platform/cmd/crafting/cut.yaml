@@ -40,6 +40,14 @@ args:
     # command-taxonomy slate's question, not this view's.
     scope: ["$focus", "reachable"]
     requires: any
+  # ⭐ How much to cut off (cordage D4): `cut rope at 10 m`. A preposition,
+  # because a greedy target may be followed only by prepositional args
+  # (`CommandDefinition.validateArgOrder`); the target parses the words.
+  - name: length
+    type: string
+    required: false
+    greedy: true
+    prepositions: [at]
   # ⭐ The tools — DECLARED, not hunted for (`lint:instrument-args`). The
   # target (or the tool that plans the cut) narrows them by the capability
   # it needs.
@@ -47,7 +55,7 @@ args:
     type: objects
     required: false
     greedy: true
-    prepositions: [with, using, at, on]
+    prepositions: [with, using, on]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
     requires: [ToolMixin]

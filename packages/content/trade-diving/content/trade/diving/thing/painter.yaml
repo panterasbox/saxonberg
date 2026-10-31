@@ -1,16 +1,16 @@
 # A painter (the river build, D24) — the line on a small boat's bow. Throw
 # its end to somebody on the bank and they can walk her up past water too
 # quick to paddle: the boat comes along beside them as they go (lining).
-# It is a lifeline in all but length.
-class: /trade/diving/thing/Lifeline
+# ⭐ A ROPE (cordage D3, re-classed in place — the owner): a lifeline in all
+# but length, because a rope's use is where its ends are tied.
+class: /platform/thing/Rope
 data:
   shortDescription: painter
   keywords: [painter, line, rope, "bow line"]
   register: indefinite
   longDescription: >-
-    Fifteen meters of manila with an eye spliced in one end, made to go on
+    Fifteen meters of hemp with an eye spliced in one end, made to go on
     a boat's bow ring and be thrown ashore with the other.
-  _materialPath: /stuff/idea/material/textile/jute
-  mass: 1.5
-  kind: line
+  _materialPath: /stuff/idea/material/textile/hemp
   lengthM: 15
+  diameterMm: 12

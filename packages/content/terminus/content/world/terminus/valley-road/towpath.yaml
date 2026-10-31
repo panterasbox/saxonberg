@@ -25,6 +25,13 @@ data:
       destination: /world/terminus/wharfside/bank
     west:
       destination: /world/terminus/valley-road/the-narrows
+    # ⭐ The ropewalk (cordage D17) — a long shed off the towpath. A NAMED
+    # exit: every compass point off the bank is taken, and the walk is
+    # somewhere you go in to.
+    ropewalk:
+      destination: /world/terminus/wharfside/ropewalk/location/walk
+      media: [ground]
+      edgeMinutes: 1
   details:
     channels:
       keywords: [channels, ruts, gravel, carts]

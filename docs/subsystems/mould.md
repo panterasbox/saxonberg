@@ -363,8 +363,11 @@ comes out goes: the vessel below the mould the solid sits in (a loaf in
 its cone on a pot), else the vessel it is placed on. A clayed sugar loaf
 is the first consumer: its head washes white past a third of the reach,
 its middle past two-thirds, its foot when the water is through, and
-the molasses it carries out runs into the pot. The lye hopper's ash is
-the planned second consumer (the potash build).
+the molasses it carries out runs into the pot. ⭐ The lye hopper's ash is
+the second consumer (cordage W7): a heap overrides `percolatesInto()` to
+answer the hopper it lies IN, gives up its alkali by reach, and is spent
+ash at the bottom. A vessel's seeper reconcile brings any percolating thing
+in it current, so reading the hopper (or the pot under a loaf) is enough.
 
 ## Deferred
 
