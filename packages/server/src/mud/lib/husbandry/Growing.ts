@@ -489,6 +489,18 @@ export interface Growing {
   /** *"a young crop, tillering"* — the stage in words. */
   cropStagePhrase(): string;
   /**
+   * ⭐ Whether this plant lives by the FIELD rule — an area crop, or one
+   * plant labeled out of a stand (field population D6): it develops on
+   * its season, is lit by the day, and is cut by hand or with a tool.
+   * Every other plant keeps the pot rule.
+   */
+  growsByFieldRule(): boolean;
+  /**
+   * Its stage in the words it is read in: a field crop's (*"in ear"*),
+   * else the plant ladder's own (*"established"*).
+   */
+  stageWord(): string;
+  /**
    * How much of `ofAreaM2` the standing crop covers, in words — *"over
    * about a third of it"*. Never a number.
    */
@@ -1170,6 +1182,16 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       return CROP_STAGE_PHRASE[this.getCropStage()];
     }
 
+    public growsByFieldRule(): boolean {
+      return this.isAreaCrop() || this._fromStand;
+    }
+
+    public stageWord(): string {
+      return this.growsByFieldRule()
+        ? CROP_STAGE_WORD[this.getCropStage()]
+        : this.getGrowthStage();
+    }
+
     public cropAreaPhrase(ofAreaM2: number): string {
       if (!(ofAreaM2 > 0)) return '';
       return areaFractionPhrase(this.standingAreaM2() / ofAreaM2);
@@ -1765,7 +1787,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         // ⭐ The FIELD rule: an area crop, and an individual minted uncut
         // from one (a labeled stem — `_fromStand`). A pot plant, a tree
         // and every other individual keep the pot rule.
-        const areaCrop = this.isAreaCrop() || this._fromStand;
+        const areaCrop = this.growsByFieldRule();
 
         for (let i = 0; i < steps; i++) {
           // ⭐ A RIPE field crop is finished growing (cover build B36): it
@@ -2133,7 +2155,7 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private daylitLux(sample: number): number {
       const skyField =
-        (this.isAreaCrop() || this._fromStand) && this._climateSite !== null;
+        this.growsByFieldRule() && this._climateSite !== null;
       if (!skyField || sample > 0) return sample;
       if (this._lastLux > 0) return this._lastLux;
       return this.profile?.luxHappyAt ?? sample;

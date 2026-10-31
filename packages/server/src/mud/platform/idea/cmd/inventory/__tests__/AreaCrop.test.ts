@@ -35,6 +35,7 @@ import {
 import { Quantity } from '../../../../../lib/quantity';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
+import { MessageApi } from '../../../../../api/message';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
@@ -554,6 +555,47 @@ describe('the area crop', () => {
         ctx,
       );
       expect(noteReasons(ctx)).toContain('not-mature');
+    });
+
+    it('⭐ the refusal speaks the field\'s words, and a plant labeled out of a stand is cut by hand', async () => {
+      // The browser walk: the field read "in ear" and the refusal said
+      // "still established"; a labeled wheat plant asked for "a billhook,
+      // or an axe".
+      const said: string[] = [];
+      vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+        const b: Record<string, unknown> = {};
+        b.topic = () => b;
+        b.meta = () => b;
+        b.toSelf = (m: unknown) => { said.push(String(m)); return b; };
+        b.toPeers = () => b;
+        b.send = () => {};
+        return b as never;
+      });
+      const { giver, ground } = scene();
+      const stand = standingCrop(ground, 100);
+      (stand as unknown as { growthStage: string }).growthStage = 'established';
+      const ctx = makeContext(giver, ground, 'harvest');
+      await makeStuff(() => new HarvestController()).execute(
+        { target: one(stand, 'grain') } as ModelData as never,
+        ctx,
+      );
+      expect(said.join(' ')).toMatch(/still in ear/);
+      expect(said.join(' ')).not.toMatch(/established/);
+
+      // One plant labeled out of the stand: no sown area, the field rule.
+      const labeled = makeStuffAtPath(() => newPlant(), PLANT_PATH);
+      labeled.setHarvestTool('reaping');
+      (labeled as unknown as { _fromStand: boolean })._fromStand = true;
+      ContainmentApi.move(labeled, ground);
+      (labeled as unknown as { growthStage: string }).growthStage = 'established';
+      said.length = 0;
+      const ctx2 = makeContext(giver, ground, 'harvest');
+      await makeStuff(() => new HarvestController()).execute(
+        { target: one(labeled, 'trial') } as ModelData as never,
+        ctx2,
+      );
+      expect(noteReasons(ctx2)).not.toContain('needs-tool');
+      expect(said.join(' ')).toMatch(/still in ear/);
     });
   });
 

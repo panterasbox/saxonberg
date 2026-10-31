@@ -235,10 +235,11 @@ export default class HarvestController extends EngagedActController<HarvestModel
     // off with a billhook, not by hand. The plant says WHICH capability;
     // the view's default found the candidate; this only checks it.
     const need = plant.getHarvestTool();
-    // ⭐ An AREA crop is cut by hand or with a tool, never refused for
-    // want of one: the tool sets the swath, bare hands cut a little
-    // (cover build D3).
-    if (need && !plant.isAreaCrop()) {
+    // ⭐ A FIELD crop — a stand, or one plant labeled out of it — is cut
+    // by hand or with a tool, never refused for want of one: the tool sets
+    // the swath, bare hands cut a little (cover build D3). The browser walk
+    // found a labeled wheat plant asking for "a billhook, or an axe".
+    if (need && !plant.growsByFieldRule()) {
       const tool = model.tool?.stuff ?? null;
       if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability(need)) {
         MessageApi.scene(giver)
@@ -261,6 +262,9 @@ export default class HarvestController extends EngagedActController<HarvestModel
     // cycles, and the plain fact for a dead one.
     if (!plant.isHarvestable()) {
       const stage = plant.getGrowthStage();
+      // In the words the plant is read in: the field said "in ear", and
+      // the refusal said "still established" (the browser walk).
+      const stageWord = plant.stageWord();
       const dead = plant.getConditionBand() === 'dead';
       const unripe = !dead && plant.isPolycarp() && stage === 'mature';
       MessageApi.scene(giver)
@@ -270,7 +274,7 @@ export default class HarvestController extends EngagedActController<HarvestModel
             ? Mml.compose`${Mml.thing(plant)} is dead. There is nothing to take.`
             : unripe
               ? Mml.compose`${Mml.thing(plant)} has nothing ripe on it yet.`
-              : Mml.compose`${Mml.thing(plant)} isn't ready — it is still ${stage}.`,
+              : Mml.compose`${Mml.thing(plant)} isn't ready — it is still ${stageWord}.`,
         )
         .send();
       context.note({
