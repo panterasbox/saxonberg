@@ -156,6 +156,11 @@ export function useCardFeed(): void {
         ...(env.subjectId ? { subjectId: env.subjectId } : {}),
         ...(env.subjectKind ? { subjectKind: env.subjectKind } : {}),
         ...(env.role ? { role: env.role } : {}),
+        // ⭐ A terminal's role IS its payload's `primary` flag: a demoted
+        // terminal's touch carries no role, and must still lose it.
+        ...(env.payload?.kind === "terminal"
+          ? { role: env.payload.primary ? ("primary" as const) : undefined }
+          : {}),
       });
     };
 

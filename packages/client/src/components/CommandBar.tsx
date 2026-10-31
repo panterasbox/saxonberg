@@ -524,7 +524,26 @@ export function CommandBar({
   });
   // The base-slot draft is local to this bar — multiple bars each own
   // their own draft. Preview/flash live in the ghost command line.
-  const [baseDraft, setBaseDraft] = useState("");
+  // ⭐ A primary bar takes the draft a replaced primary bar left behind:
+  // before the server mints the primary terminal the stage shows a
+  // fallback bar, and the terminal's own bar replaces it — a different
+  // element, so local state alone would drop what the player had begun
+  // typing (the drive's browser half lost a `who` typed in the first
+  // second).
+  const [baseDraft, setBaseDraft] = useState(() => {
+    if (!primary) return "";
+    const carried = useStore.getState().primaryDraftCarry;
+    if (carried) useStore.getState().setPrimaryDraftCarry("");
+    return carried;
+  });
+  const baseDraftRef = useRef(baseDraft);
+  baseDraftRef.current = baseDraft;
+  useEffect(() => {
+    if (!primary) return undefined;
+    return () => {
+      useStore.getState().setPrimaryDraftCarry(baseDraftRef.current);
+    };
+  }, [primary]);
   useEffect(() => {
     if (seed) setBaseDraft(seed.text);
   }, [seed]);

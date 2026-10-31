@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { openWorldAs } from './helpers';
+import { openWorldAs, sendUntil } from './helpers';
 
 /**
  * The summoned/right-column cockpit panes that live entirely in the
- * client: the Settings pane (toggled from the fixed chrome) and the
- * Who's Online tab of the inspection column. Single-avatar, no server
+ * client: the Settings card (opened from the rail) and the `who` card. Single-avatar, no server
  * round-trip beyond the welcome snapshot, so immune to lounge churn.
  */
 
@@ -42,18 +41,19 @@ test('watch lays out the video over the terminal and stream chat as a terminal c
   }
 });
 
-test('the Who\'s Online pane lists the current player', async ({ browser }) => {
-  const { page, close } = await openWorldAs(browser, 'pane-who');
+test('who is online is a card: `who` opens it, and it lists the viewer', async ({ browser }) => {
+  const { page, close } = await openWorldAs(browser, 'pane-who', {
+    contextOptions: { viewport: { width: 1440, height: 790 } },
+  });
   try {
-    // The inspection column defaults to the Inspect tab; switch to the
-    // Who's Online tab.
-    await page.getByRole('button', { name: "Who's Online", exact: true }).click();
-    const whoPane = page.getByLabel("Who's Online");
-    await expect(whoPane).toBeVisible();
-    // At least one player is online — the viewer themselves. The pane
-    // renders an online count of 1+ (a fresh persistent DB may have other
-    // lingering avatars, so assert ">= the viewer", not an exact count).
-    await expect(whoPane.getByText(/^\d+$/).first()).toBeVisible();
+    // ⭐ The inspection column's tab is gone (client-surface): who is
+    // online is the `who` card, opened the way a player opens anything.
+    const card = page.locator('[data-card-kind="who"]');
+    // The first command after world entry can be dropped (see `sendUntil`).
+    await sendUntil(page, 'who', card);
+    // At least one player is online — the viewer themselves (a persistent
+    // DB may hold lingering avatars, so not an exact count).
+    await expect(card.getByText(/\d/).first()).toBeVisible();
   } finally {
     await close();
   }

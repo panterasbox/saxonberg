@@ -349,7 +349,7 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
   /** The view chooser — the tab strip's views are the primary's filters. */
   const viewChooser = primary ? (
     <ViewBar data-testid="view-chooser">
-      {[ALL_VIEW, ...tabs.map((t) => t.name)].map((name) => {
+      {[ALL_VIEW, ...tabs.map((t) => t.name).filter((n) => n !== ALL_VIEW)].map((name) => {
         const shown = primary.payload?.kind === "terminal" ? primary.payload.filter : {};
         const on = !shown.channel && (shown.view ?? ALL_VIEW) === name;
         const cmd = `cockpit terminal ${quoteRef(name)}`;

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { openWorldAs, runCommand } from './helpers';
+import { openWorldAs, runCommand, sendUntil } from './helpers';
 
 /**
  * ⭐ The client-surface layout, at the widths players actually have
@@ -28,6 +28,19 @@ async function columns(page: Page): Promise<number> {
   return page.locator('[data-testid="card-column"]').count();
 }
 
+/**
+ * Shut the side panel. ⚠ It opens when the room card ARRIVES (after the
+ * login `look`), so a one-shot `count()` raced it: the panel opened a
+ * beat later and took a column back. Wait for it, then collapse.
+ */
+async function collapsePanel(page: Page): Promise<void> {
+  const collapse = page.getByTestId('panel-collapse');
+  const shown = await collapse
+    .waitFor({ state: 'visible', timeout: 10_000 })
+    .then(() => true, () => false);
+  if (shown) await collapse.click();
+}
+
 async function horizontalScroll(page: Page): Promise<number> {
   return page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -43,10 +56,10 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
       await expect(page.getByTestId('nav-rail')).toBeVisible();
       await expect(page.getByTestId('top-bar')).toHaveCount(0);
       // Collapse the panel so the shut-panel row of the table applies.
-      const collapse = page.getByTestId('panel-collapse');
-      if (await collapse.count()) await collapse.click();
+      await collapsePanel(page);
       // At least one flowing card, so the card area renders columns.
-      await runCommand(page, 'who');
+      // The first command after world entry can be dropped (see `sendUntil`).
+      await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
       for (const { w, h, panelShut } of WIDTHS) {
         await page.setViewportSize({ width: w, height: h });
         await expect
@@ -68,12 +81,13 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
       contextOptions: { viewport: { width: 1920, height: 970 } },
     });
     try {
-      const collapse = page.getByTestId('panel-collapse');
-      if (await collapse.count()) await collapse.click();
-      await runCommand(page, 'who');
+      await collapsePanel(page);
+      // The first command after world entry can be dropped (see `sendUntil`).
+      await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
       await runCommand(page, 'cockpit card move who 2 0');
       const third = page.locator('[data-testid="card-column"]').nth(2);
-      await expect(third.locator('[data-card-kind="who"]')).toBeVisible();
+      // (A server round trip: the move lands when `card-arranged` does.)
+      await expect(third.locator('[data-card-kind="who"]')).toBeVisible({ timeout: 15_000 });
       await page.setViewportSize({ width: 1440, height: 790 });
       await expect.poll(() => columns(page)).toBe(1);
       await page.setViewportSize({ width: 1920, height: 970 });
@@ -90,9 +104,12 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
       contextOptions: { viewport: { width: 1440, height: 790 } },
     });
     try {
-      await runCommand(page, 'who');
+      // The first command after world entry can be dropped (see `sendUntil`).
+      await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
       await runCommand(page, 'cockpit card grow who');
-      await expect(page.getByTestId('medium-slot').locator('[data-card-kind="who"]')).toBeVisible();
+      await expect(page.getByTestId('medium-slot').locator('[data-card-kind="who"]')).toBeVisible({
+        timeout: 15_000,
+      });
       await runCommand(page, 'cockpit card grow who');
       await expect(page.getByTestId('full-stage')).toBeVisible();
       await expect(page.getByTestId('terminal-strip')).toBeVisible();
@@ -109,7 +126,8 @@ test.describe('client-surface layout (rem tiers, rail, feed/workspace)', () => {
       contextOptions: { viewport: { width: 1440, height: 790 } },
     });
     try {
-      await runCommand(page, 'who');
+      // The first command after world entry can be dropped (see `sendUntil`).
+      await sendUntil(page, 'who', page.locator('[data-card-kind="who"]'));
       await runCommand(page, 'cockpit card minimize who');
       const icon = page.getByTestId('tray-card');
       await expect(icon).toBeVisible();

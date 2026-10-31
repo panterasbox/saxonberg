@@ -212,6 +212,13 @@ export interface CardOpenOptions {
   segments?: LookSegment[];
   /** Overrides the catalogue default (an arrangement never does). */
   pinned?: boolean;
+  /**
+   * A role the card fills from birth — the primary terminal. Carried on
+   * `card-opened` itself: set after the open, the role reached no client
+   * (`card-arranged` reports shape, not role) and the stage never found
+   * its primary (the drive's browser half).
+   */
+  role?: CardRole;
   /** An arrangement's recorded shape and place (client-surface D5). */
   size?: WidthClass;
   placed?: CardPlacement;
@@ -402,7 +409,7 @@ export default class CardRegistry extends CardRegistryBase {
       if (here) opts = { ...opts, subjectId: here.stuffId };
     }
 
-    let role: CardRole | undefined;
+    let role: CardRole | undefined = opts.role;
     if (subjectBound && opts.subjectId) {
       /*
        * ⭐⭐ **The `here` role** (client-surface D10, #53/#92): a look at
@@ -719,13 +726,9 @@ export default class CardRegistry extends CardRegistryBase {
       ...(spec?.size ? { size: spec.size } : opts.primary ? { size: 'medium' as const } : {}),
       ...(spec?.placed ? { placed: spec.placed } : {}),
       ...(spec?.minimized !== undefined ? { minimized: spec.minimized } : {}),
+      ...(opts.primary ? { role: 'primary' as const } : {}),
     });
     if (id === null) return null;
-    const state = this.cards.get(interactive)?.get(id);
-    if (state && opts.primary) {
-      state.role = 'primary';
-      this.pushArranged(state);
-    }
     const mode = spec?.terminal?.inputMode;
     if (mode) this.setInputMode(interactive, barId, mode);
     return id;

@@ -59,6 +59,10 @@ describe('the primary terminal', () => {
     expect(ts[0]!.role).toBe('primary');
     expect(payloadOf(h, ts[0]!.instanceId).filter).toEqual({ view: 'Chat' });
     expect(payloadOf(h, ts[0]!.instanceId).primary).toBe(true);
+    // ⭐ The role rides the OPEN: the client learns it from nothing else
+    // (`card-arranged` reports shape), and the stage looks for it.
+    const opened = h.ofType('card-opened').find((e) => e.instanceId === ts[0]!.instanceId);
+    expect((opened as { role?: string } | undefined)?.role).toBe('primary');
   });
 
   it('a bare re-arrange of cards touches no terminal (B15)', async () => {
