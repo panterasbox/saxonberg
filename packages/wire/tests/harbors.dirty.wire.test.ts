@@ -147,13 +147,15 @@ async function comeIn(s: Session, tries = 12): Promise<string> {
  * fourteen hours at most).
  */
 async function hailUntil(s: Session, want: RegExp, tries = 14): Promise<string> {
-  let said = '';
+  const heard: string[] = [];
   for (let i = 0; i < tries; i++) {
     if (i > 0) await advanceWorldClock('1 hour');
-    said = await say(s, 'hail office');
+    const said = await say(s, 'hail office');
     if (want.test(said)) return said;
+    heard.push(said);
   }
-  return said;
+  // Not answered as wanted: every answer, so the failure shows the trail.
+  return heard.join(' | ');
 }
 
 /** A venue's running balance, as the house's own P&L reads it (the founder holds every house). */
@@ -161,6 +163,8 @@ async function balanceAt(where: string): Promise<number> {
   const f = await founderAt(where);
   try {
     const said = await say(f, 'house pnl');
+    // A house nothing has been paid to yet has no account: nothing in its books.
+    if (/no house account here/.test(said)) return 0;
     const m = /running balance:\s*([^\s]+)/.exec(said);
     return m ? Number(m[1]!.replace(/[^\d.-]/g, '')) : NaN;
   } finally {
@@ -224,7 +228,10 @@ suite('A1 — the port', () => {
     const quay = await look(sailor);
     expect(quay, quay).toMatch(/Town Quay/);
     expect(quay, quay).toMatch(/Alongside: the Hesper/);
-    expect(quay, quay).toMatch(/line from the Hesper made fast round the bollard|line .* round the bollard/i);
+    expect(quay, quay).toMatch(/line from the Hesper/i);
+    // Her lines are made fast round the quay's bollards: the line ashore says so.
+    const line = await say(sailor, 'look line');
+    expect(line, line).toMatch(/mooring line comes ashore from the Hesper, made fast round .*bollard/i);
     expectOk(await sailor.cmd('go hesper'));
     expect(await look(sailor)).toMatch(/Hesper's deck/i);
     expectOk(await sailor.cmd('go ashore'));
@@ -319,7 +326,7 @@ suite('A1 — the port', () => {
   it('6. (short · player) a hail at night: lie in the roads until the office opens', async () => {
     await toHour(23);
     const said = await say(sailor, 'hail office');
-    expect(said, said).toMatch(/The harbor office is closed\. Lie in the roads until the office opens/);
+    expect(said, `${said} — from: ${await look(sailor)}`).toMatch(/The harbor office is closed\. Lie in the roads until the office opens/);
   }, 300_000);
 
   it('7. (instant · player) a ship with no line aboard is refused at the quay: she has no lines to make fast', async () => {
@@ -328,12 +335,16 @@ suite('A1 — the port', () => {
     const f = await founderAt(HESPER_DECK);
     expectOk(await f.cmd('get 1 mooring line'));
     expectOk(await f.cmd('get 1 mooring line'));
-    const refused = await sailor.cmd('course town-quay');
-    expectNote(refused, 'controller-rejected', { reason: 'course-refused' });
-    expect(squash(await refused.said())).toMatch(/She has no lines to make fast/);
-    expectOk(await f.cmd('drop 1 mooring line'));
-    expectOk(await f.cmd('drop 1 mooring line'));
-    f.close();
+    try {
+      const refused = await sailor.cmd('course town-quay');
+      expectNote(refused, 'controller-rejected', { reason: 'course-refused' });
+      expect(squash(await refused.said())).toMatch(/She has no lines to make fast/);
+    } finally {
+      // Her lines back on her deck whatever happened: step 10 makes fast with them.
+      await f.cmd('drop 1 mooring line');
+      await f.cmd('drop 1 mooring line');
+      f.close();
+    }
   }, 300_000);
 });
 
