@@ -156,7 +156,7 @@ cash out" ·
   producer quality = *engagement with your output* (data — measurable, hard to
   fake); consumer quality = *renown / regard for a person* (the genuinely hard,
   unsolved-measurement one). So the fragile part is **only** the consumer's renown —
-  producer standing rests on tractable engagement. Beat 4 states this as a
+  labor standing rests on tractable engagement. Beat 4 states this as a
   **principle** ("how much the community values you"); the **metric stays out of
   frame** (claiming a precise reputation number is the debate crowd's softest
   target). ⚠ Note: Beat 4 therefore re-includes the renown *principle* the old

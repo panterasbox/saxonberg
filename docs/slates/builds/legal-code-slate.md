@@ -945,7 +945,7 @@ process:
 
 process:
   kind: chambers
-  chambers: [producer, capital, consumer]
+  chambers: [labor, capital, consumer]
   passRule: 2-of-3
 ```
 

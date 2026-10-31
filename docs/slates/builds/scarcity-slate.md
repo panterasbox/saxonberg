@@ -208,16 +208,16 @@ polity.
 
 ### What each chamber natively wants
 
-| | producer | capital | consumer |
+| | labor | capital | consumer |
 |---|---|---|---|
-| **CPU** | **depth** — simulation richness *is* expression (lens 2). Producers want the box pushed to its limit | **the bill** — the only chamber that can grow the pie at all | ⭐ **speed** — the only chamber natively *opposed* to simulation depth |
+| **CPU** | **depth** — simulation richness *is* expression (lens 2). Makers want the box pushed to its limit | **the bill** — the only chamber that can grow the pie at all | ⭐ **speed** — the only chamber natively *opposed* to simulation depth |
 | **RAM** | — | — | — |
-| **storage** | ⭐ **memory** — the producer chamber runs on **attribution**, so erasing history is *disenfranchisement*. Structural retention hawks, not sentimental ones | **indifferent** — storage is ~free at our scale | ⭐ **forgetting** — it is their own past in the record |
+| **storage** | ⭐ **memory** — the labor chamber runs on **attribution**, so erasing history is *disenfranchisement*. Structural retention hawks, not sentimental ones | **indifferent** — storage is ~free at our scale | ⭐ **forgetting** — it is their own past in the record |
 | **tokens + egress** | ⚠ **split internally** — an LLM performing your NPC either amplifies your authorship or rewrites your character's voice | **the natural home** — *adopt Rhonda*; capital's cleanest legitimate act anywhere in the design | **texture**, with zero cost exposure |
 
 ### The four divergences, worst first
 
-1. ⭐⭐⭐ **CPU sets producer against consumer with capital as the
+1. ⭐⭐⭐ **CPU sets labor against consumer with capital as the
    permanent swing.** Depth vs speed; neither carries alone under
    two-of-three; therefore **every CPU question is decided by the chamber
    that pays for the box.** The firewall says capital grows the *pie* and
@@ -233,7 +233,7 @@ polity.
    > because the party sizing the pie always has the strongest opinion
    > about the slices.
 
-2. ⭐⭐ **Storage sets producer against consumer with capital
+2. ⭐⭐ **Storage sets labor against consumer with capital
    INDIFFERENT.** The two interested parties cannot reach two-of-three
    between them, so a chamber with no stake becomes decisive on a memory
    question. That is the textbook precondition for log-rolling: capital
@@ -243,7 +243,7 @@ polity.
    obliged to do the reading, because the indifferent chamber will vote on
    the report.
 
-3. ⚠⚠ **Tokens have no natural brake.** Producers split internally, which
+3. ⚠⚠ **Tokens have no natural brake.** Makers split internally, which
    delivers a weak tally; and the two chambers that *agree* — capital and
    consumer — are **both the ones not paying.** The legislature's natural
    majority on the only channel with a real dollar price is **"spend."**

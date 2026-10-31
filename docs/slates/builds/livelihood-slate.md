@@ -625,7 +625,7 @@ now.
 - **[DECIDED] Pay time, never piece-rate.** A per-room bounty is an
   incentive to spam dead rooms. The floor wage rides the shipped
   anti-AFK machinery; the upside for *good* authors is not the wage
-  (see 8.3 and the shipped producer stock — provenance-attributed
+  (see 8.3 and the shipped labor stock — provenance-attributed
   standing on real engagement).
 - Rides the authoring stack as built/planned: protowizard
   content-write (never code-trust), scoped parcels, provenance
@@ -672,7 +672,7 @@ now.
   the match leg is new money). Match against **deduped,
   distinct-visitor, per-period-capped revenue** — per-`{payer,
   content, bucket}` dedup + self-credit exclusion + caps, the exact
-  shape the shipped producer stock already uses against
+  shape the shipped labor stock already uses against
   engagement-farming.
 - **[LEAN] Fund the match from a fixed appropriated pool per period,
   distributed pro-rata to matched-revenue shares** (the

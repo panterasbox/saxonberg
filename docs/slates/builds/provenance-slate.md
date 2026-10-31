@@ -16,10 +16,10 @@
 > **Size:** a build — likely several requirements cycles; Layer A is the
 > next, highest-leverage slice
 
-This slate is **driven by** producer influence but is **broader** than
+This slate is **driven by** labor influence but is **broader** than
 it: the same substrate serves content management, the released-content
 gate, versioned legislation (Art. X amendment = branch/edit/merge), and
-the argument-map's version-controlled proposals. Producer influence is
+the argument-map's version-controlled proposals. Labor influence is
 the first and most demanding consumer, not the only one.
 
 ## See also
@@ -40,7 +40,7 @@ the first and most demanding consumer, not the only one.
 - [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) —
   the LSP / semantic model; orthogonal (validation, not provenance).
 - [cooperative-slate.md](./cooperative-slate.md) §§ *Three kinds of
-  contribution*, *Two merit channels* — producer = "creation, measured by
+  contribution*, *Two merit channels* — labor = "creation, measured by
   the engagement your content earns"; the **infrastructure** work the
   engagement-measure "can't *see*" is exactly what the dependency-DAG
   makes partly visible.
@@ -49,7 +49,7 @@ the first and most demanding consumer, not the only one.
   VCS** this slate stands up.
 - [influence.md](../../subsystems/influence.md) *(was
   `influence-allocation-requirements.md`, retired at sweep)*
-  — the producer faucet's **routing-resolver seam** (Layer-1 authorship /
+  — the labor faucet's **routing-resolver seam** (Layer-1 authorship /
   Layer-2 engagement faucet) is the consumer this slate feeds; v1 routes
   to a single owner, this slate is how that becomes the full owner graph.
 - [access.md](../../subsystems/access.md), [zone.md](../../subsystems/zone.md)
@@ -101,7 +101,7 @@ opportunity and the size of the build.
    *made* a thing (authorship → credit), who *controls* it (ownership →
    rights), what it is *built on* (dependency lineage → upstream credit),
    and how it *changed* (history → audit & rollback) are facets of one
-   layer — because **producer influence** and **versioned law** both read
+   layer — because **labor influence** and **versioned law** both read
    it, and both are load-bearing.
 
 2. **One ownership model over two namespaces.** Content (template paths)
@@ -141,7 +141,7 @@ opportunity and the size of the build.
    credit splits to individuals by a **declared** weighted split (not a
    governed divvy → no federalism), **static between fixed global
    adjustment windows** (the split is a *franchise-shaping instrument*; an
-   on-demand re-cut is a gerrymander that could swing a live producer-
+   on-demand re-cut is a gerrymander that could swing a live labor-
    house vote, so re-cuts are decoupled from the bill calendar), with
    **redirect-the-faucet-not-reslice-the-pool** semantics (a re-cut
    changes only future flow, never claws back earned standing). *(These
@@ -159,7 +159,7 @@ co-ownership are the open questions (below).
 **Layer B — Authorship (credit routing).** Per-artifact attribution of
 *who created/changed it*, attributed to **people** (not just the owning
 group), sourced from the VCS diff stream (Layer D). This is the
-**routing resolver** the producer faucet already expects: "given engaged
+**routing resolver** the labor faucet already expects: "given engaged
 content, who earns and in what shares" — Layer A's split × Layer B's
 diff-attribution, resolved to individuals.
 
@@ -172,7 +172,7 @@ design crux (open questions).
 
 **Layer D — The in-runtime VCS (the spine).** The git workflow as a
 runtime system: branches/sandboxes, commits (diff-attributed to people →
-Layer B), review, merge-to-release (→ the producer faucet's released
+Layer B), review, merge-to-release (→ the labor faucet's released
 gate), history/rollback, and the same machine versioning **law**. Subsumes
 and extends `cms-slate`'s `GitApi`. The central architecture question
 (below) is whether code (already git) and content (Mongo `domain` +
@@ -184,7 +184,7 @@ overlay.
 - **Solo sword.** Author A writes a `katana` template in their homedir
   (sandbox — earns nothing). On **release** (merge to `/world/...`), the
   template's owner = A, authorship = A. Players wielding katanas in a
-  released zone draw engagement → producer credit to A (proximate), a
+  released zone draw engagement → labor credit to A (proximate), a
   decayed slice to the `Weapon`-class author, less to the engine author.
 - **Team zone (Narnia).** `/narnia/**` is owned by the Narnia group with
   a **declared split** `{A:40, B:30, C:30}`, frozen until the next global
@@ -194,7 +194,7 @@ overlay.
   they earned (redirect-the-faucet).
 - **Infrastructure author.** D wrote the `Weapon` class everyone's
   weapons extend. D authored no *content* with measured engagement, yet
-  earns a steady long-tail of producer influence from the dependency DAG
+  earns a steady long-tail of labor influence from the dependency DAG
   — the slate's "infrastructure the measure can't see," made partly
   visible. The *quality* of D's work (was it good infra?) still routes to
   human merit-pay.
@@ -241,7 +241,7 @@ overlay.
 1. **Ownership as first-class over both namespaces** (Layer A) —
    generalize `Zone.ownerGroup` into a path-ownership resolver; add
    leaf-template and module ownership; nearest-match. *Smallest, highest-
-   leverage, reuses the house pattern; directly upgrades the producer
+   leverage, reuses the house pattern; directly upgrades the labor
    routing resolver past single-owner.*
 2. Shipped: **authorship attribution** (Layer B) — `AuthoringEvent` +
    `ProvenanceApi.authorOf`, context-derived, feeding `CreditRouting` —
@@ -258,14 +258,14 @@ overlay.
    content stays in Mongo pending the Mongo→file export bridge
    (`git-workflow.md § Deferrals`). The full architecture question is
    still open (see *Open questions*).
-5. **Dependency-DAG credit flow** (Layer C) — the producer-attribution
+5. **Dependency-DAG credit flow** (Layer C) — the labor-attribution
    enrichment; needs the runtime dep graph + anti-gaming.
 6. **Versioned-law convergence** — Art. X amendment + argument-map
    proposals on the same machine.
 
 ## What this slate does NOT cover
 
-- The **producer faucet / standing / band** themselves — that's the
+- The **labor faucet / standing / band** themselves — that's the
   influence build (this slate feeds its routing resolver).
 - The **authoring LSP / diagnostics** (authoring-intelligence-slate) and
   the **web CMS UI** (cms-slate).
@@ -281,7 +281,7 @@ This is a large surface — likely **several** requirements cycles, not
 one. The natural first slice (and the one the influence build most wants)
 was **Layer A + B**: first-class hierarchical ownership over both
 namespaces plus people-level authorship attribution — enough to take the
-producer routing resolver from single-owner to the real owner graph,
+labor routing resolver from single-owner to the real owner graph,
 *without* yet building the full in-runtime VCS or the dependency DAG. As
 forecast, the VCS spine (Layer D) shipped as its own, separate build
 ([git-workflow.md](../../subsystems/git-workflow.md)) and Layer B shipped
