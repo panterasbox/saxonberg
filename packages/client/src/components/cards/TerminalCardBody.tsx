@@ -57,6 +57,8 @@ export interface TerminalCardBodyProps {
   onCommandPreview: (command: string | null) => void;
   onCommandSend?: (command: string) => void;
   resultDisplay?: "card" | "terminal" | "both";
+  /** The strip under a full card. */
+  strip?: boolean;
 }
 
 /** The frames a terminal card's filter selects — the same rule everywhere. */
@@ -100,6 +102,7 @@ export function TerminalCardBody({
   onCommandPreview,
   onCommandSend,
   resultDisplay = "card",
+  strip = false,
 }: TerminalCardBodyProps): React.ReactElement | null {
   const payload = card.payload?.kind === "terminal" ? card.payload : undefined;
   const frames = useTerminalFrames(payload, resultDisplay);
@@ -124,6 +127,7 @@ export function TerminalCardBody({
     <Column data-testid="terminal-card" data-bar-id={payload.barId}>
       <Terminal
         frames={frames}
+        strip={strip}
         onCommandClick={onCommandClick}
         onCommandPreview={onCommandPreview}
         {...(onCommandSend ? { onCommandSend } : {})}

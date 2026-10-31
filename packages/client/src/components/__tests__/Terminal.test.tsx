@@ -71,7 +71,7 @@ function renderTerminal(frames: Frame[]) {
   );
 }
 
-/** The transcript container is the root; each FrameRow is a child div;
+/** The transcript container is the root; the measure wraps the rows; each FrameRow is a child div;
  *  within it the gutter is a <span> and the Body is the <div> sibling. */
 function bodyOfRow(row: Element): Element {
   const body = Array.from(row.children).find((c) => c.tagName === 'DIV');
@@ -122,7 +122,7 @@ describe('Terminal — removed global mono + rhythm anchor', () => {
   it('line-height is the container rhythm anchor, never on Body [8g]', () => {
     const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const root = container.firstElementChild!;
-    const row = root.querySelector('[data-testid="terminal-measure"]')!.firstElementChild!;
+    const row = root.querySelector("[data-testid=\"terminal-measure\"]")!.firstElementChild!;
     // Container owns line-height (shared cross-register rhythm)...
     expect(rulesFor(root)).toContain('line-height');
     // ...and the per-frame Body owns font-family but NOT line-height,
@@ -133,7 +133,7 @@ describe('Terminal — removed global mono + rhythm anchor', () => {
   });
 });
 
-describe('Terminal — the measure and the scroll rule (#55, #54)', () => {
+describe('Terminal — the measure and the scroll rule (client-surface D9, #54)', () => {
   it('⭐ the text sits in a 42rem measure', () => {
     const { container } = renderTerminal([frame({ topic: 'speech.vocal' })]);
     const measure = container.querySelector('[data-testid="terminal-measure"]')!;

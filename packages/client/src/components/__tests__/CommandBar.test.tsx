@@ -20,6 +20,7 @@ function resetStore(): void {
   useStore.setState({
     prompts: [],
     promptDrafts: { [BASE_SLOT]: '' },
+    primaryDraftCarry: '',
     activeSlot: BASE_SLOT,
     activeSlotByBar: {},
     primaryBarId: null,
@@ -646,3 +647,38 @@ describe('⭐ a prompt belongs to the bar that asked (client-surface D6, #97)', 
   });
 });
 
+describe('CommandBar — the primary draft survives the fallback → terminal swap', () => {
+  beforeEach(() => resetStore());
+
+  it('⭐ what you began typing in the fallback bar is in the primary terminal bar that replaces it', () => {
+    const spies = makeSpies();
+    const first = renderBar(spies, 'who');
+    first.unmount();
+    render(
+      <CommandBar
+        barId="bar-primary"
+        onSendCommand={spies.onSendCommand}
+        onSendPromptResponse={spies.onSendPromptResponse}
+        onCancelPrompt={spies.onCancelPrompt}
+      />,
+    );
+    expect((screen.getByPlaceholderText('Enter command...') as HTMLInputElement).value).toBe('who');
+  });
+
+  it('a non-primary bar neither takes nor leaves the carry', () => {
+    const spies = makeSpies();
+    const first = render(
+      <CommandBar
+        barId="bar-side"
+        primary={false}
+        onSendCommand={spies.onSendCommand}
+        onSendPromptResponse={spies.onSendPromptResponse}
+        onCancelPrompt={spies.onCancelPrompt}
+      />,
+    );
+    fireEvent.change(screen.getByPlaceholderText('Enter command...'), { target: { value: 'say hi' } });
+    first.unmount();
+    renderBar(spies);
+    expect((screen.getByPlaceholderText('Enter command...') as HTMLInputElement).value).toBe('');
+  });
+});

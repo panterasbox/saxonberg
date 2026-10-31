@@ -68,7 +68,7 @@ describe('useIsCompact', () => {
   it('reads the named breakpoint, not a loose literal', () => {
     const mm = installMatchMedia(false);
     render(<Probe />);
-    expect(COMPACT_QUERY).toBe(`(max-width: ${tokens.breakpoint.compact})`);
+    expect(COMPACT_QUERY).toBe(`(max-width: ${tokens.tier.phone}rem)`);
     expect(mm.seen).toContain(COMPACT_QUERY);
   });
 

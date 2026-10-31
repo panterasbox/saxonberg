@@ -30,10 +30,11 @@ import { tokens } from './ui';
 import { EmoteSheet } from './social/EmoteSheet';
 import { useLongPress } from './social/useLongPress';
 
-const TerminalContainer = styled.div`
-  flex: 1;
+const TerminalContainer = styled.div<{ $strip?: boolean }>`
+  flex: ${(p) => (p.$strip ? "none" : "1")};
+  ${(p) => (p.$strip ? `height: ${tokens.width.strip - 2.5}rem;` : "")}
   overflow-y: auto;
-  padding: 1rem;
+  padding: ${(p) => (p.$strip ? "0.4rem 1rem" : "1rem")};
   background: ${tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
   font-size: 14px;
@@ -48,11 +49,12 @@ const TerminalContainer = styled.div`
 `;
 
 /**
- * ⭐ The text MEASURE (#55): a line never runs past 42rem — about 90
- * characters of Newsreader — however wide the column is.
+ * ⭐ The text MEASURE (client-surface D9): a line never runs past 42rem —
+ * about 90 characters of Newsreader — however wide the column is. The
+ * column never takes the leftover as a gutter; the measure is the text's.
  */
 const Measure = styled.div`
-  max-width: 42rem;
+  max-width: ${tokens.width.textMeasure}rem;
 `;
 
 /** "New lines ↓" — shown when output arrived while you were scrolled up. */
@@ -139,6 +141,17 @@ interface TerminalProps {
    * surface whose whole job is naming it.
    */
   onCommandSend?: (command: string) => void;
+  /**
+   * The strip under a full card (client-surface D9): the last few lines
+   * only, at the terminal column's x.
+   */
+  strip?: boolean;
+  /**
+   * ⭐ The phone's line menu (client-surface W6): a long press on a line
+   * offers react · reply · tell · look, each naming its command. When
+   * absent, a long press opens the react sheet as before.
+   */
+  onLineMenu?: (frame: Frame) => void;
 }
 
 export function Terminal({
@@ -147,6 +160,8 @@ export function Terminal({
   onCommandPreview,
   viewerStuffId,
   onCommandSend,
+  strip = false,
+  onLineMenu,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Default the viewer's stuffId to the store's `selfAvatarId` so the
@@ -175,12 +190,12 @@ export function Terminal({
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    if (atBottom.current) {
+    if (atBottom.current || strip) {
       el.scrollTop = el.scrollHeight;
     } else {
       setUnseen(true);
     }
-  }, [frames]);
+  }, [frames, strip]);
   const jumpToBottom = (): void => {
     const el = containerRef.current;
     if (!el) return;
@@ -197,11 +212,12 @@ export function Terminal({
     <>
       <TerminalContainer
         ref={containerRef}
-        data-testid="terminal"
+        data-testid={strip ? "terminal-strip" : "terminal"}
+        $strip={strip}
         onScroll={onScroll}
       >
         <Measure data-testid="terminal-measure">
-          {frames.map((frame) => (
+          {(strip ? frames.slice(-4) : frames).map((frame) => (
             <TranscriptRow
               key={frame.id}
               frame={frame}
@@ -210,10 +226,11 @@ export function Terminal({
               onCommandClick={onCommandClick}
               onCommandPreview={onCommandPreview}
               onLongPress={setSheetFor}
+              {...(onLineMenu ? { onLineMenu } : {})}
             />
           ))}
         </Measure>
-        {unseen ? (
+        {unseen && !strip ? (
           <NewLines type="button" data-testid="terminal-new-lines" onClick={jumpToBottom}>
             new lines ↓
           </NewLines>
@@ -255,6 +272,7 @@ interface TranscriptRowProps {
   onCommandClick: (command: string) => void;
   onCommandPreview: (command: string | null) => void;
   onLongPress: (target: SheetTarget) => void;
+  onLineMenu?: (frame: Frame) => void;
 }
 
 /**
@@ -271,6 +289,7 @@ function TranscriptRow({
   onCommandClick,
   onCommandPreview,
   onLongPress,
+  onLineMenu,
 }: TranscriptRowProps) {
   const reactable = useStore((s) => s.reactableTopics);
   const mine = useStore((s) =>
@@ -284,8 +303,8 @@ function TranscriptRow({
     reactable.has(frame.topic);
 
   const press = useLongPress(
-    () => onLongPress({ frameId: frame.frameId!, mine }),
-    canReact,
+    () => (onLineMenu ? onLineMenu(frame) : onLongPress({ frameId: frame.frameId!, mine })),
+    onLineMenu ? true : canReact,
   );
 
   return (

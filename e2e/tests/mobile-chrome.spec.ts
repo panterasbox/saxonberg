@@ -130,7 +130,7 @@ test('the bar is two rows, and the glance-line holds three', async ({
     await expect(page.getByTestId('mobile-glance-row')).toBeVisible();
 
     // The default shelf is the three wired rows.
-    expect(await glanceLabels(page)).toEqual(['PLAY', 'RENOWN', 'SKILL']);
+    expect(await glanceLabels(page)).toEqual(['Standing', 'Known', 'Skills']);
 
     // ⚠ No status bar: it has no hover to report and would cost the
     // feed a row.
@@ -176,7 +176,7 @@ test('the pull-down overlays the feed, and nothing scrolls sideways', async ({
     await expect(terminal).toBeVisible({ timeout: 20_000 });
     // ⚠ Measure once the login `look` has landed: its room card joins the
     // phone's feed and resizes the transcript, which is arrival, not the
-    // pull-down.
+    // pull-down (this flaked as 591 → 200).
     await expect(page.locator('[data-card-kind="subject"]').first()).toBeVisible({ timeout: 20_000 });
     const before = await terminal.boundingBox();
 
@@ -195,7 +195,8 @@ test('the pull-down overlays the feed, and nothing scrolls sideways', async ({
     const cards = page.locator(
       '[data-testid="pulldown-grid"] [data-figure-state]',
     );
-    await expect(cards).toHaveCount(4); // the default shelf: play, renown, skill, body
+    // The default shelf — four rows since the body joined it.
+    await expect(cards).toHaveCount(4); // DEFAULT_SHELF: play, renown, skill, body
     await runCommand(page, 'cockpit shelf pin coin');
     await expect(cards).toHaveCount(5, { timeout: 15_000 });
 
@@ -275,13 +276,13 @@ test('cockpit shelf first puts a row on the bar, and it survives a reload', asyn
     await expect(page.getByTestId('mobile-bar')).toBeVisible({
       timeout: 20_000,
     });
-    expect(await glanceLabels(page)).toEqual(['PLAY', 'RENOWN', 'SKILL']);
+    expect(await glanceLabels(page)).toEqual(['Standing', 'Known', 'Skills']);
 
     // `coin` is not on the shelf at all — one command, one intention.
     await runCommand(page, 'cockpit shelf first coin');
     await expect
       .poll(() => glanceLabels(page), { timeout: 15_000 })
-      .toEqual(['COIN', 'PLAY', 'RENOWN']);
+      .toEqual(['Money', 'Standing', 'Known']);
 
     await page.reload();
     await reenterWorld(page);
@@ -290,7 +291,7 @@ test('cockpit shelf first puts a row on the bar, and it survives a reload', asyn
     });
     await expect
       .poll(() => glanceLabels(page), { timeout: 20_000 })
-      .toEqual(['COIN', 'PLAY', 'RENOWN']);
+      .toEqual(['Money', 'Standing', 'Known']);
   } finally {
     await close();
   }
@@ -341,7 +342,7 @@ test('a tap names its command, and the server echoes exactly that', async ({
     });
     await expect
       .poll(() => glanceLabels(page), { timeout: 15_000 })
-      .toEqual(['STATUS', 'PLAY', 'RENOWN']);
+      .toEqual(['Status', 'Standing', 'Known']);
   } finally {
     await close();
   }
@@ -529,4 +530,55 @@ test('the bar consumes the safe-area inset, and the viewport enables it', async 
   } finally {
     await close();
   }
+});
+
+/**
+ * ⭐ The phone's own shape (client-surface W6, drive step 23): chat first;
+ * swipe right for the channels, left for who's here; a long press on a
+ * line names react · reply · tell · look; explore's button bar puts the
+ * exits first; a card opens inline and as a sheet with a terminal strip.
+ */
+test.describe('the phone, chat first (client-surface)', () => {
+  test('chat by default, the drawers, the line menu, explore and the sheet', async ({ browser }) => {
+    const { page, close } = await openWorldAs(browser, 'phone', { contextOptions: PHONE_CONTEXT });
+    try {
+      const shell = page.getByTestId('phone-shell');
+      await expect(shell).toBeVisible({ timeout: 30_000 });
+      await expect(shell).toHaveAttribute('data-phone-mode', /chat|explore/);
+      await expect(page.getByTestId('mode-tabs')).toBeVisible();
+      // ⚠ The drawer covers most of the scrim (min(85vw, 20rem)): tap the
+      // strip still showing beside it, the way a thumb does.
+      const tapScrim = async (side: 'left' | 'right'): Promise<void> => {
+        const scrim = page.getByTestId('drawer-scrim');
+        const box = (await scrim.boundingBox())!;
+        await scrim.click({
+          position: { x: side === 'left' ? box.width - 8 : 8, y: box.height / 2 },
+        });
+      };
+      await page.getByTestId('open-channels').click();
+      await expect(page.getByTestId('drawer-left')).toBeVisible();
+      await tapScrim('left');
+      await expect(page.getByTestId('drawer-left')).toHaveCount(0);
+      await page.getByTestId('open-here').click();
+      await expect(page.getByTestId('drawer-right')).toBeVisible();
+      await tapScrim('right');
+
+      // A tap names its command and waits for Send (the touch rule).
+      await page.getByTestId('mode-tab-explore').click();
+      await expect(page.getByTestId('command-sheet-command')).toHaveText('cockpit mode explore');
+      await page.getByTestId('command-sheet-send').click();
+      await expect(shell).toHaveAttribute('data-phone-mode', 'explore');
+      await runCommand(page, 'look');
+      await expect(page.getByTestId('button-bar')).toBeVisible();
+      await runCommand(page, 'who');
+      const inline = page.locator('[data-testid^="inline-card-"] article').last();
+      await expect(inline).toBeVisible();
+      await inline.click({ position: { x: 20, y: 40 } });
+      await expect(page.getByTestId('card-sheet')).toBeVisible();
+      await expect(page.getByTestId('terminal-strip')).toBeVisible();
+      expect(await horizontalScroll(page)).toBeLessThanOrEqual(0);
+    } finally {
+      await close();
+    }
+  });
 });

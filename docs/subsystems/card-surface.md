@@ -107,8 +107,7 @@ of a live kind is live and still flows.
 
 ⚠ **No cap on placed cards** (B1). The plan proposed twelve and a
 `too-many-placed` refusal; a bare count with no author is the harshest
-rule there is, and the window's unit slots were to be the natural limit
-(that layout was reverted, B42; placing still subscribes).
+rule there is, and the window's unit slots are the natural limit.
 
 ⚠ The predecessor was **newest-card-is-live**: opening a card of a live
 kind called `CardRegistry.demoteLive`, which tore the previous card's
@@ -194,10 +193,10 @@ neither does this. A {@link CardDefinition.singleton} row reuses.
 
 ⭐ **A card about a SUBJECT is keyed on the subject while it is open**
 (client-surface #50, B13). A second look at the stool TOUCHES the stool's
-open card — replaces its prose, segments and result in place — rather
-than stacking a husk of the first answer above a second
+open card — brings it forward and replaces its prose, segments and
+result — rather than stacking a husk of the first answer above a second
 copy. A look at the place you stand in rebinds the `here` role card
-instead (§ *Placement, size, minimize and roles*). Once the card has
+instead (§ *Placement, size, the tray and roles*). Once the card has
 closed, the next look mints a fresh one.
 
 | Sequence | Result |
@@ -223,12 +222,12 @@ lamp` as two cards about one thing — is gone with subject keying; the
 shipped tests that pinned "three cards" and "two cards" were rewritten
 to the new identity (B13).
 
-**Ordering.** The feed runs oldest → newest by arrival, like the
-transcript beside it, and cards do not reorder (`orderCards`) — a touched
-card is re-bodied where it sits. **Pinned cards hold their position**
-too; pinning changes only whether the sweep may take a card, not where
-it sits. (Placement is server state the feed does not lay out — see
-§ *Placement, size, minimize and roles*.)
+**Ordering.** Flowing cards run oldest → newest by **touch**, like the
+transcript beside them: a card RE-RUN (a `card-touched` that carries a
+body) moves to the bottom; a liveness flip is not a touch (B23). Pinning
+changes only whether the sweep may take a card, not where it sits.
+**Placed** cards hold their slots — see § *Placement, size, the tray and
+roles*.
 
 ⚠⚠ **The refresh key derives from the command, and forcing it was a
 bug.** The room card used to be given `place`'s catalogue command —
@@ -533,8 +532,9 @@ zero orphans after closing, sweeping, rearranging and disconnecting.
 | `mud/platform/idea/api/CardLogic.ts` | The hot-reloadable logic singleton at `/platform/idea/api/card`; `normalizeKey` lives here |
 | `mud/platform/idea/CardRegistry.ts` | The state: per-Interactive open cards, the sweep, `resolveSubject` behind the perception gate |
 | `packages/client/src/store/cardFeedSlice.ts` | The client's card set (mirroring `size`/`placed`/`minimized`/`role`/`live` off `card-arranged`) + the husk model |
+| `packages/client/src/store/cardLayout.ts` | `arrangeCards` — the pure feed/workspace layout, displacement and the Recent trail |
 | `packages/client/src/store/frameFilter.ts` | `framesFor` — the one frame filter every terminal card reads |
-| `packages/client/src/components/cards/` | `CardFeed`, `Card`, `CardBodies`, `InspectionBody`, `TerminalCardBody`, `CardViewStrip`, `MobilePlaySurface`, `useCardFeed` |
+| `packages/client/src/components/cards/` | `CardArea`, `Card`, `CardBodies`, `InspectionBody`, `TerminalCardBody`, `CardViewStrip`, `useCardFeed`; `CardFeed` survives only as its test suite's host |
 
 ⭐ `dest /platform/idea/api/card` reloads the logic **without closing anybody's
 cards**: the state is on the registry, the resolution is on the logic.
@@ -586,34 +586,31 @@ avoid — but the title is *which card this is*, and a husk that cannot
 say what it was about is less honest rather than more. Found by driving:
 teleporting out of the lounge left a card naming nothing at all.
 
-## ⭐⭐ Placement, size, minimize and roles
+## ⭐⭐ Placement, size, the tray and roles
 
 *Only a command changes which cards are up, and where* (client-surface
 D5/D8). The shape and place of every card are **server state on
 `CardRegistry`**; the client is a renderer of them.
 
-⚠ **Known gap: size and place are recorded but not laid out.** The
-client chrome that rendered them (a multi-column workspace, a medium
-slot over the terminal, a full-stage card) was reverted (B42). Today's
-right-column `CardFeed` is one column ordered by arrival: `grow`,
-`shrink`, `move`, `place` and `unplace` still change server state, still
-show in `cockpit card list` and still restore with an arrangement, but
-nothing visible in the feed reflects them. `minimized` is the one shape
-field the feed shows.
-
 `CardState` carries, beside its lifetime and liveness:
 
 | field | what it is |
 |---|---|
-| `size` | a `WidthClass`: `unit` (the default), `medium`, `full`; a terminal may also be `line` (a ticker) |
+| `size` | a `WidthClass`: `unit` (a card-area column, the default), `medium` (the slot across the top of the terminal column), `full` (the stage); a terminal may also be `line` (a ticker) |
 | `sizeBefore` | the size it had before it grew into the one-card medium/full slot |
 | `placed?` | `{ col, row }` **in units, never pixels** — set only when the player placed it |
-| `minimized` | folded to its header |
+| `minimized` | in the tray |
 | `role?` | `here` (the room card) or `primary` (the one terminal that cannot close) |
 
 ⭐ **Flowing cards have no server position.** A card nobody placed is
-ordered by its open time, which the client already has; a placed card
-keeps `(col, row)`.
+ordered by its open/touch time, which the client already has; a placed
+card keeps `(col, row)`. The client's width tier decides how many unit
+columns fit, and a placed card whose column does not fit folds into the
+last column in `(col, row)` order — deterministic and stateless, so
+narrowing the window and widening it again returns every placed card to
+its slot. The layout is `arrangeCards` (`store/cardLayout.ts`), a pure
+function of the cards, the unit count and the column's capacity (read
+from the window's height).
 
 ⭐ **Medium and full hold ONE card each.** Growing B into the slot A holds
 returns A to the size it had before (`sizeBefore`), and both get a
@@ -634,15 +631,15 @@ a `card-arranged` for every card it changed and re-syncs liveness.
 - `move` is **insertion**: cards at or below that row in that column
   shift down one, so nothing is covered. `place` with no position goes
   to the bottom of column 0 (B12); `unplace` returns it to the flow.
-- `minimize` / `restore` toggle `minimized`. In the feed a minimized
-  card folds to its header, and the same header button restores it
-  (`cockpit card restore <card>`). There is no tray.
+- `minimize` / `restore` toggle the tray — the status bar's right end on
+  a desktop, the left drawer on a phone. A tray chip restores by sending
+  `cockpit card restore <card>`.
 - **Refusals**, each by name: `unknown-card`; `role-card` (a role card
   cannot be closed, and the `here` card cannot be unplaced);
   `primary-terminal` (the primary cannot be closed or minimized).
 
-Every card control on the client sends one of these — in the feed: pin,
-refresh, close and minimize/restore — and the card changes when the
+Every card control on the client sends one of these, and dragging a card
+sends `cockpit card move <card> <col> <row>` — the card moves when the
 server's `card-arranged` arrives, never before.
 
 ### ⭐⭐ The `here` role — the room card follows you
@@ -656,7 +653,8 @@ room card (#53/#92). Arrival forces `look` (`Mobile.autoLookOnArrival`),
 which is what drives the rebind as you walk. A new place you cannot
 subscribe to (not perceived) is resolved once as a snapshot.
 
-The client's "back to the room" is the `here` card itself.
+The client's "back to the room" is the `here` card itself; on a desktop
+the explore panel's first card is the `here` card at panel width.
 
 ⭐ **The sweep never closes a role card.** The window and the keep-count
 skip pinned cards AND role cards, so a player standing still keeps the
@@ -682,16 +680,12 @@ whose payload is `{ kind: 'terminal', filter, barId, primary }`.
   per terminal card, and a retarget keeps its input mode. A prompt
   carries the asking bar (`PromptEnvelope.barId`), so each terminal card
   renders its own prompt strip.
-- **On the client** a non-primary terminal card renders in the
-  `CardFeed` as a real terminal (`TerminalCardBody`) with its own command
-  bar. The primary never appears in the feed: the layout's own terminal
-  is the primary's surface.
 - **The primary is a role.** Every mode has one; it is minted whenever
   none is up on a MODE entry (`openArrangement`, `cockpit mode`,
   `cockpit layout`) and filtered by the mode's `MODE_PRIMARY_FILTER`
   (chat → the `Chat` view, everything else → all) — a bare re-arrange of
-  cards touches no terminal (B15). It opens at `medium` (server state;
-  see the gap above) and is never closed by a rearrange.
+  cards touches no terminal (B15). It opens at `medium` and is never
+  closed by a rearrange.
 - `cockpit terminal <view|#channel>` retargets the primary;
   `--beside` opens another terminal card; `cockpit terminal primary
   <card>` hands the role over. See [cockpit.md](./cockpit.md).
@@ -724,6 +718,17 @@ about a thing is a moment. `SHIPPED_ARRANGEMENT_CARDS` entries may be an
 mode (from `cockpit.inputModes[barId]`) and whether it is the primary —
 so recall rebuilds the same terminals (the listing carries each
 terminal's `{ filter, barId, primary }` for this).
+
+### The Recent trail
+
+When the card area has no room, the **stalest** flowing card — unpinned,
+unplaced, filling no role, owing no answer — is displaced to the
+**Recent trail**, which says which command displaced it ("stalest" is
+pure touch time, decided for predictability, B22). Closed husks land on
+the same trail with their reason. A trail chip **re-runs the card's
+command** (its key), which is a touch, so the card comes back at the
+bottom. When everything left is protected the area overflows and
+scrolls as one surface. The client keeps the last three husks.
 
 ## Named views over the feed
 
@@ -1846,8 +1851,8 @@ has.
 
 ### The client-surface build (`build/client-surface`, 2026-10-31)
 
-What moved on the server and in the card internals, all recorded above
-where it now lives:
+The card set became a placed workspace rather than a pure log. What
+moved, all recorded above where it now lives:
 
 - **Liveness is per card** — placed, pinned or role cards subscribe;
   flowing cards are snapshots. `demoteLive` and newest-holds are deleted.
@@ -1867,13 +1872,8 @@ where it now lives:
   inspection card renders them (`InspectionBody`).
 - **The `#<stuffId>` seed is perception-gated** for a player, so card
   links send `<verb> #<id>` and name exactly one thing.
-- **Terminal cards render in the feed** as real terminals with their own
-  bar; **minimize** folds a card to its header.
+- **The Recent trail** holds displaced cards and husks; a chip re-runs
+  the card's command.
 
 See `docs/plans/client-surface-plan.md` (D4–D8, D10, B1, B11–B16,
 B22–B23) until it is retired at the sweep.
-
-- 2026-10-31 — the client-surface build's rail/stage/phone-shell chrome
-  was built and then reverted at the owner's word (B42, commit
-  5006c247b); the card internals and server behavior described above
-  stayed.

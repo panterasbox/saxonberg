@@ -63,11 +63,45 @@ interface CommandBarProps {
    * click). Default true — a layout with one bar has one primary.
    */
   primary?: boolean;
+  /**
+   * The phone (client-surface W6): text to put in the base draft — a
+   * reply chip seeds `tell Ada `. A new `nonce` re-seeds the same text.
+   */
+  seed?: { text: string; nonce: number };
+  /** Suggestions for the current draft (the phone's strip while typing). */
+  suggest?: (draft: string) => readonly string[];
+  /** Told when the input gains or loses focus (the phone hides its tabs). */
+  onFocusChange?: (focused: boolean) => void;
+  /** Rendered before the input — the phone's target chip. */
+  leading?: React.ReactNode;
+  /**
+   * Focus the input on mount. Default true; the phone passes false — a
+   * keyboard that opens by itself covers the stage and the mode tabs.
+   */
+  autoFocus?: boolean;
   /** Send a command, tagged with this bar's `barId` (server prepends mode). */
   onSendCommand: (text: string, barId?: string) => void;
   onSendPromptResponse: (promptId: string, response: string) => void;
   onCancelPrompt: (promptId: string) => void;
 }
+
+const SuggestRow = styled.div`
+  display: flex;
+  gap: ${tokens.space.xs};
+  overflow-x: auto;
+  padding: ${tokens.space.xs} ${tokens.space.md} 0;
+`;
+
+const SuggestChip = styled.button`
+  flex: none;
+  font: inherit;
+  font-size: ${tokens.font.small};
+  padding: 0.1rem ${tokens.space.sm};
+  border: 1px solid ${tokens.color.borderMuted};
+  border-radius: ${tokens.radius.sm};
+  background: ${tokens.color.surface};
+  color: ${tokens.color.fgEmphasis};
+`;
 
 const HISTORY_KEY = 'saxonberg-command-history';
 const MAX_HISTORY = 100;
@@ -202,7 +236,7 @@ const ModeCloseX = styled.button`
 const Input = styled.input<{ $promptMode?: boolean }>`
   flex: 1;
   /* ⚠ An input's intrinsic width is ~20 characters; without this the row
-   * cannot shrink and the picker pushes Send off a narrow screen. */
+   * cannot shrink and a leading chip pushes Send off a phone's edge. */
   min-width: 0;
   padding: ${tokens.space.md};
   background: ${(p) =>
@@ -456,6 +490,11 @@ function submitButtonLabel(entry: PromptEntry | undefined): string {
 export function CommandBar({
   barId,
   primary = true,
+  seed,
+  suggest,
+  onFocusChange,
+  leading,
+  autoFocus = true,
   onSendCommand,
   onSendPromptResponse,
   onCancelPrompt,
@@ -488,7 +527,32 @@ export function CommandBar({
   });
   // The base-slot draft is local to this bar — multiple bars each own
   // their own draft. Preview/flash live in the ghost command line.
-  const [baseDraft, setBaseDraft] = useState("");
+  // ⭐ A primary bar takes the draft a replaced primary bar left behind:
+  // before the server mints the primary terminal the stage shows a
+  // fallback bar, and the terminal's own bar replaces it — a different
+  // element, so local state alone would drop what the player had begun
+  // typing (the drive's browser half lost a `who` typed in the first
+  // second).
+  const [baseDraft, setBaseDraft] = useState(() => {
+    if (!primary) return "";
+    const carried = useStore.getState().primaryDraftCarry;
+    if (carried) useStore.getState().setPrimaryDraftCarry("");
+    return carried;
+  });
+  const baseDraftRef = useRef(baseDraft);
+  baseDraftRef.current = baseDraft;
+  useEffect(() => {
+    if (!primary) return undefined;
+    return () => {
+      useStore.getState().setPrimaryDraftCarry(baseDraftRef.current);
+    };
+  }, [primary]);
+  useEffect(() => {
+    if (seed) setBaseDraft(seed.text);
+  }, [seed]);
+  // ⭐ The phone's suggestion strip: only while typing, and a tap replaces
+  // the word being typed (the command is still yours to send).
+  const suggestions = suggest && baseDraft.trim() ? suggest(baseDraft) : [];
   const inputRef = useRef<HTMLInputElement | null>(null);
   const barSlot = useStore((s) => s.activeSlotByBar[barId]);
   const legacySlot = useStore((s) => s.activeSlot);
@@ -876,7 +940,27 @@ export function CommandBar({
         </ChipsRow>
       ) : null}
 
+      {suggestions.length > 0 ? (
+        <SuggestRow data-testid="suggestion-strip">
+          {suggestions.map((sug) => (
+            <SuggestChip
+              key={sug}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                const words = baseDraft.split(/(\s+)/);
+                words[words.length - 1] = sug;
+                setBaseDraft(`${words.join('')} `);
+                inputRef.current?.focus();
+              }}
+            >
+              {sug}
+            </SuggestChip>
+          ))}
+        </SuggestRow>
+      ) : null}
       <InputRow $hasChips={hasChips || hasValidationError}>
+        {leading}
         <PickerAnchor>
           <SlotPicker
             $expanded={dropdownOpen}
@@ -994,6 +1078,8 @@ export function CommandBar({
               }
             }}
             onKeyDown={handleKeyDown}
+            onFocus={() => onFocusChange?.(true)}
+            onBlur={() => onFocusChange?.(false)}
             disabled={offline}
             placeholder={
               offline
@@ -1010,7 +1096,7 @@ export function CommandBar({
                 ? '… (/ for a raw command, Esc to clear the mode)'
                 : 'Enter command...'
             }
-            autoFocus
+            autoFocus={autoFocus}
             $promptMode={promptMode}
           />
         )}

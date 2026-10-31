@@ -24,7 +24,6 @@ import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 import { Card } from "./Card";
 import { CardBody } from "./CardBodies";
-import { TerminalCardBody } from "./TerminalCardBody";
 import { CardViewStrip } from "./CardViewStrip";
 import { orderCards, visibleCards } from "../../store/cardFeedSlice";
 import { activeCardKinds } from "../../store/cardViewActions";
@@ -120,17 +119,6 @@ export interface CardFeedProps {
    * arriving on the wire.
    */
   resultDisplay?: "card" | "terminal" | "both";
-  /**
-   * ⭐ What a terminal card's own bar needs (client-surface D6): a
-   * `cockpit terminal … --beside` card is a filtered terminal with its own
-   * command bar, so it sends with its `barId` and answers its own
-   * prompts. Absent → a terminal card shows only what it is tuned to.
-   */
-  terminal?: {
-    onSendCommand: (text: string, barId?: string) => void;
-    onSendPromptResponse: (promptId: string, response: string) => void;
-    onCancelPrompt: (promptId: string) => void;
-  };
 }
 
 /*
@@ -151,7 +139,6 @@ export function CardFeed({
   onCommandPreview,
   compact = false,
   resultDisplay = "card",
-  terminal,
 }: CardFeedProps): React.ReactElement {
   /*
    * ⚠⚠ Unconditional, and that is the whole point — see the hook's own
@@ -223,23 +210,11 @@ export function CardFeed({
             onSendCommand={onSendCommand}
             onCommandPreview={onCommandPreview}
           >
-            {card.cardId === "terminal" && terminal ? (
-              <TerminalCardBody
-                card={card}
-                onSendCommand={terminal.onSendCommand}
-                onSendPromptResponse={terminal.onSendPromptResponse}
-                onCancelPrompt={terminal.onCancelPrompt}
-                onCommandClick={onSendCommand}
-                onCommandPreview={onCommandPreview ?? (() => undefined)}
-                resultDisplay={resultDisplay}
-              />
-            ) : (
-              <CardBody
-                card={card}
-                onSendCommand={onSendCommand}
-                onCommandPreview={onCommandPreview}
-              />
-            )}
+            <CardBody
+              card={card}
+              onSendCommand={onSendCommand}
+              onCommandPreview={onCommandPreview}
+            />
           </Card>
         ))}
       </List>

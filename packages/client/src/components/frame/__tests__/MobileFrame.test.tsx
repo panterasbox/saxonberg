@@ -159,13 +159,13 @@ describe('MobileFrame', () => {
     it('renders the FIRST THREE shelf rows, in shelf order', () => {
       setShelf(['coin', 'renown', 'skill', 'play', 'make']);
       render(<MobileFrame />);
-      expect(chipLabels()).toEqual(['COIN', 'RENOWN', 'SKILL']);
+      expect(chipLabels()).toEqual(['Money', 'Known', 'Skills']);
     });
 
     it('renders fewer when the shelf is shorter', () => {
       setShelf(['renown']);
       render(<MobileFrame />);
-      expect(chipLabels()).toEqual(['RENOWN']);
+      expect(chipLabels()).toEqual(['Known']);
     });
 
     /*
@@ -176,12 +176,12 @@ describe('MobileFrame', () => {
     it('⭐ follows a reorder, with no second list anywhere', () => {
       setShelf(['play', 'renown', 'skill']);
       const { rerender } = render(<MobileFrame />);
-      expect(chipLabels()[0]).toBe('PLAY');
+      expect(chipLabels()[0]).toBe('Standing');
 
       // What the server pushes back after `cockpit shelf first coin`.
       act(() => setShelf(['coin', 'play', 'renown', 'skill']));
       rerender(<MobileFrame />);
-      expect(chipLabels()).toEqual(['COIN', 'PLAY', 'RENOWN']);
+      expect(chipLabels()).toEqual(['Money', 'Standing', 'Known']);
 
       // ⚠ And nothing client-side is keeping its own copy: the ONLY
       // shelf state in the store is the server's key.
@@ -195,7 +195,7 @@ describe('MobileFrame', () => {
     it('drops a row the client no longer knows', () => {
       setShelf(['renown', 'retired-row', 'skill']);
       render(<MobileFrame />);
-      expect(chipLabels()).toEqual(['RENOWN', 'SKILL']);
+      expect(chipLabels()).toEqual(['Known', 'Skills']);
     });
   });
 
@@ -212,16 +212,16 @@ describe('MobileFrame', () => {
         grid.querySelectorAll('[data-figure-state]'),
       ).map((g) => (g.getAttribute('aria-label') ?? '').split(':')[0]!.trim());
       expect(labels).toEqual([
-        'PLAY',
-        'RENOWN',
-        'SKILL',
-        'BODY',
-        'MAKE',
-        'COIN',
-        'STATUS',
-        'TIME',
-        'ONLINE',
-        'DOCKET',
+        'Standing',
+        'Known',
+        'Skills',
+        'Body',
+        'Making',
+        'Money',
+        'Status',
+        'Time',
+        "Who's on",
+        'Docket',
       ]);
     });
 
