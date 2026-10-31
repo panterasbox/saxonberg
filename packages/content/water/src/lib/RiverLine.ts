@@ -464,8 +464,17 @@ function widthAt(nodes: readonly LineNodeInput[], km: number): number | null {
 }
 
 /**
- * ⭐ A seeded hash in [0, 1) — FNV-1a over the seed and the parts. The
- * river is the same river for everyone, every time it compiles.
+ * ⭐ A seeded hash in [0, 1) — FNV-1a over the seed and the parts, then a
+ * finalizing mix. The river is the same river for everyone, every time it
+ * compiles.
+ *
+ * ⚠ The mix is not decoration (harbors drive, 2026-10-31). Bare FNV-1a has
+ * no avalanche on its LAST character, and the varying part here is always
+ * last (`bendIndex`): `'snag|0'` … `'snag|9'` differ by one multiply of a
+ * small delta, which moves the top byte by under 4 %. Every bend on a
+ * course drew the same snag (the Kestrel's lower river 0.53–0.59 on every
+ * bend, all over the 0.5 strike, so no ship could reach a quay inside the
+ * bar), the same undercut and the same strainer chance.
  */
 function seeded(seed: number, ...parts: Array<string | number>): number {
   let h = (2166136261 ^ seed) >>> 0;
@@ -474,6 +483,12 @@ function seeded(seed: number, ...parts: Array<string | number>): number {
     h ^= text.charCodeAt(i);
     h = Math.imul(h, 16777619) >>> 0;
   }
+  // murmur3's fmix32: every input bit reaches every output bit.
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
   return (h >>> 8) / 0x1000000;
 }
 

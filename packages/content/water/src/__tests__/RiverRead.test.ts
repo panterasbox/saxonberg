@@ -164,7 +164,9 @@ describe('⭐ a ship’s passage on the line (river D18, D28)', () => {
     const t = YEAR + 120 * DAY;
     const from = { course: 'kestrel', km: 2, across: 60 };
     const up = await c.planPassage(from, { direction: 'upstream', landing: null, throughWaterMps: 1, ...hull }, t);
-    const down = await c.planPassage({ ...from, km: 8 }, { direction: 'downstream', landing: null, throughWaterMps: 1, ...hull }, t);
+    // `slow`: a choked bend on the way down holes a ship at night (D29) —
+    // the seeded snags are the course's, not this test's subject.
+    const down = await c.planPassage({ ...from, km: 8 }, { direction: 'downstream', landing: null, throughWaterMps: 1, slow: true, ...hull }, t);
     if ('refused' in up || 'refused' in down) throw new Error('refused');
     // The legs run in order of travel, time rising.
     for (let i = 1; i < up.legs.length; i++) expect(up.legs[i]![1]).toBeGreaterThan(up.legs[i - 1]![1]);
