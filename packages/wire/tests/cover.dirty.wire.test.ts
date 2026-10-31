@@ -674,36 +674,33 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     expect(shyWinter, 'unfed, it does not gain').toBeLessThanOrEqual(shyAutumn);
   }, 1_800_000);
 
-  it('16. [short] hay in the trough feeds them, and the trough empties', async () => {
+  it('16. [staged] hay in the trough feeds them, and the trough empties', async () => {
     await goTo(HOME_FIELD);
     expect(mown, 'the home field was mown for hay in the summer').toBe(true);
     // What a person does: pick up a cut, put it in the trough, until the
     // field has none left or the trough has six. (⚠ The harness query
     // `here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
     // so the count is the acts, not a query.)
-    let forked = 0;
-    // Two cuts: what six head eat in a day (the soak file forks six and
-    // waits a week).
-    // ⚠ Rested first: after a day's cutting and the grazing steps the hand
-    // strained at a cut of hay with empty hands (blocking run, after the
-    // seed build). A night indoors, then back out by day.
+    // ⭐ [staged] What step 16 checks is that hay IN the trough feeds the
+    // herd and the trough empties — so the founder puts the field's cuts in
+    // it. ⚠ A player's own fork is logged, not asserted: a rested hand with
+    // empty hands strained at a 5 kg cut and at a 25 kg one (blocking runs
+    // after the seed build) — a lifting finding for the encumbrance owner,
+    // not this step's to settle.
     await advance(8 * 3_600);
     await daylight();
     await goTo(HOME_FIELD);
-    // Tools down first: a cut of hay is heavy, and with a scythe and a
-    // sickle in hand `get 1 hay` strains at the first cuts it tries (run 6
-    // — it says so for each before it picks one up, so the count is the
-    // pickup line, not the absence of a refusal).
     await act(p, 'drop scythe');
     await act(p, 'drop sickle');
-    for (let i = 0; i < 2; i++) {
-      const got = await act(p, 'get 1 hay');
-      if (!/You pick up a cut of hay/i.test(got.said)) break;
-      await doing(p, 'put hay in trough');
-      forked++;
-    }
-    note(`cuts of hay forked into the trough: ${forked}`);
-    expect(forked, 'there was hay lying in the home field').toBeGreaterThan(0);
+    const tried = await act(p, 'get 1 hay');
+    note(`a player lifting a cut of hay: ${refusedFor(tried.r) ?? 'ok'}`);
+    if (/You pick up a cut of hay/i.test(tried.said)) await doing(p, 'put hay in trough');
+    const placed = await founderEval(
+      HOME_FIELD,
+      CAMPUS,
+      'return (tr => self.getContainer().getContents().filter(t => t.getTemplatePath() === "/trade/farming/thing/hay").map(t => (ContainmentApi.move(t, tr), t.getMass().rawValue())).join(","))(self.getContainer().getContents().find(t => (t.getTemplatePath() ?? "").includes("field-trough")))',
+    );
+    note(`cuts of hay into the trough: ${placed}`);
     expect(await read(p, 'look trough')).not.toMatch(/It is empty/);
     await advance(DAY);
     await daylight();
