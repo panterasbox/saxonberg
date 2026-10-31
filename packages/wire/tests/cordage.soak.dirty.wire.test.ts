@@ -8,12 +8,12 @@
  *  18. Hemp sown, the season jumped, harvested, retted and scutched: hemp
  *      line, which spins and twists like the bought line.
  *
- * ⚠ Written before the soak harness landed (build-4): it moves the clock
- * with `advanceWorldClock` in jumps of a day. When the harness lands, wet
- * the ropes with its weather pin (rain) instead of the ford.
+ * The ropes are wet by the harness's weather pin — rain on the open
+ * ropewalk, frozen for the span — and the clock moves in soak mode
+ * (`WIRE_SOAK=1`, the jump past a day allowed).
  *
- * ⚠⚠ `.dirty.`: buys rope and seed, leaves ropes in the water, sows a bed and
- * moves the clock — none of it produced again.
+ * ⚠⚠ `.dirty.`: buys rope, leaves it out in the rain and moves the clock —
+ * none of it produced again.
  */
 
 import { describe as suite, it, expect, afterAll } from 'vitest';
@@ -24,10 +24,12 @@ import {
   plain,
   expectOk,
   advanceWorldClock,
+  pinWeather,
+  unpinWeather,
 } from '../src/harness';
 
 export const DIRTY_REASON =
-  'buys rope and hemp seed, leaves ropes soaking in the ford, sows a bed and ' +
+  'buys rope at the ropewalk, leaves two lying out in pinned rain and ' +
   'moves the clock for days — none of it produced again';
 
 declareFile({
@@ -38,13 +40,13 @@ declareFile({
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const WALK = '/world/terminus/wharfside/ropewalk/location/walk';
-const FORD = '/world/terminus/delight-road/ford';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
 
-afterAll(() => {
+afterAll(async () => {
   for (const s of open) s.close();
+  await unpinWeather(WALK).catch(() => undefined);
 });
 
 suite('cordage — the soak drive', () => {
@@ -60,19 +62,22 @@ suite('cordage — the soak drive', () => {
     open.push(s);
     expectOk(await s.cmd('buy rope'));
     expectOk(await s.cmd('buy rope'));
-    expectOk(await s.cmd('dip 2.rope in tub'));
-    const before = squash(await s.prose('look 1.rope'));
-    s.close();
-    const f = await Session.open(handle, { startLocation: FORD });
-    open.push(f);
-    expectOk(await f.cmd('drop 1.rope'));
-    expectOk(await f.cmd('drop 1.rope'));
-    for (let d = 0; d < 6; d++) await advanceWorldClock('1 day');
-    const bare = squash(await f.prose('look 1.rope'));
-    const tarred = squash(await f.prose('look 2.rope'));
-    expect(bare + ' | ' + tarred, before).toMatch(/musty|rot/);
-    expect(tarred, tarred).toMatch(/tarred/);
-    expect(tarred, tarred).not.toMatch(/musty|rot/);
+    const dip = await s.cmd('dip rope in tub');
+    expectOk(dip);
+    const dipping = (dip.notes.find((n) => n.kind === 'engagement-started') as { engagementId?: string } | undefined)?.engagementId;
+    if (dipping) await s.awaitActivity(dipping, 120_000);
+    const before = squash(await s.prose('look first rope'));
+    // Both laid out on the open walk, in rain that does not let up.
+    expectOk(await s.cmd('drop first rope'));
+    expectOk(await s.cmd('drop first rope'));
+    await pinWeather('rain', WALK);
+    await advanceWorldClock('6 days');
+    const bare = squash(await s.prose('look first rope'));
+    const tarred = squash(await s.prose('look second rope'));
+    const [untarredLook, tarredLook] = /tarred/.test(bare) ? [tarred, bare] : [bare, tarred];
+    expect(untarredLook + ' | ' + tarredLook, before).toMatch(/musty|rot/);
+    expect(tarredLook, tarredLook).toMatch(/tarred/);
+    expect(tarredLook, tarredLook).not.toMatch(/musty|rot/);
   }, 1_800_000);
 
   it.todo('18. hemp sown, the season jumped, harvested, retted and scutched into hemp line — wants the field-population shape (!480) and a pit near a bed');

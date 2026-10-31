@@ -376,8 +376,12 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         MixinApi.isFaced(self) &&
         [...self.getCoats('outside'), ...self.getCoats('inside')].some((c) => c.state === 'set');
       const strain = integrityDial(AppSettingKeys.impactShockStrain, 0.0003);
+      // ⭐ A wall that conducts evens itself out before the strain builds
+      // (cordage D29): cast iron stands a boil that would crack a crock.
+      const kRef = integrityDial(AppSettingKeys.impactShockConductivityRef, 1.5);
+      const conducts = Math.max(1, mat.getThermalConductivity().rawValue() / kRef);
       return (
-        ((strain / alpha) * (1 + 10 * porosity)) /
+        ((strain / alpha) * conducts * (1 + 10 * porosity)) /
         Math.max(0.2, 1 - 2 * Math.min(0.4, grog)) *
         (glazed ? 0.7 : 1)
       );

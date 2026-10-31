@@ -92,6 +92,27 @@ export default class Hopper extends ContainerMixin(Vat) {
     }
   }
 
+  /** Reentry guard for {@link getContents} (a heap spent mid-read moves into this hopper). */
+  private _reconcilingHeaps = false;
+
+  /**
+   * ⭐ Load on use: whoever looks into the hopper sees the heaps as far as
+   * the water has got through them — spent ash only once it is through
+   * (cordage W7). The liquor's reads do the same through the vessel's
+   * seepers; a listing of what is IN the hopper must not lag behind them.
+   */
+  public override getContents(): (Stuff & Containable)[] {
+    const all = super.getContents();
+    if (this._reconcilingHeaps) return all;
+    this._reconcilingHeaps = true;
+    try {
+      for (const c of all) if (MixinApi.isPercolating(c)) c.reconcilePercolation();
+    } finally {
+      this._reconcilingHeaps = false;
+    }
+    return super.getContents();
+  }
+
   /**
    * ⭐ Ash put into liquor ALREADY in the hopper leaches too (found by the
    * potash drive: a hopper drained not quite dry took the lye back as a

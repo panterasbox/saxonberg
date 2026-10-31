@@ -1909,6 +1909,8 @@ export const AppSettingKeys = {
   /** Thermal shock — the strain a body takes before it cracks, as the
    * product α·ΔT (ceramics D9): ΔT_tolerated = this ÷ α. */
   impactShockStrain: "impact.shockStrain",
+  /** Impact — the thermal conductivity, W/(m·K), at which a brittle wall stands the bare shock strain; a better conductor stands proportionally more (cordage D29). */
+  impactShockConductivityRef: "impact.shockConductivityRef",
   /** Thermal shock — the wall's own response time, s: the rate a body
    * tolerates is ΔT_tolerated ÷ this. */
   impactShockWallS: "impact.shockWallS",
