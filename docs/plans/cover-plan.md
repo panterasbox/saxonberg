@@ -1486,3 +1486,29 @@ Drives 1–5 are in the build record above (B8, B17–B25). Since then:
     ends, so a player waiting by jump finds "nothing in her yet". That is
     correct, and worth knowing for any drive.
 
+
+- **The soak split (2026-10-31, master's soak-harness build).** The
+  year-long drive is `cover.soak.dirty.wire.test.ts`, run by the soak
+  lane after merge. `cover.dirty.wire.test.ts` is the BLOCKING twin: the
+  home field is ploughed and sown on boot day, no jump exceeds a game day
+  (`advance()` refuses one), and each span step has a staged twin tagged
+  in its title — the stages set and named by `look` (6), the bench set
+  ripe (9), a strip left standing to cut to stubble (7), the grass set
+  back for fallow (8), the pasture's and the stubble's grass set to
+  nothing so the trough and the rick are asked (18, 15), two cuts of hay
+  eaten in a day (16). Every assertion is a player verb; `eval` only
+  sets state. Runs with `WIRE_FRAME_TIMEOUT=45000`.
+- **Blocking runs 1–6** found only staging and timing defects: a scythe
+  takes `3 s + 0.4 s/kg` of REAL time, so long grass was a quarter-hour
+  mow (stage just over the residual); a "bare" sward still feeds a herd
+  for days (stage to zero); the sward must be scaled to its CEILING, which
+  ploughing shrinks, not the reserve's capacity; on a busy box an act's
+  completion line lands up to 3 s after its engagement settles; two steps
+  needed daylight; and `get 1 hay` reports a strain for every heavy
+  candidate it tried before the one it picked up (the platform's `get`
+  cardinality — a finding for its owner).
+- **Blocking run 7, on master with cordage merged — 17 of 17** (10.7 min
+  of steps, 20 with boot). Stages seen: just emerging, tillering, in ear,
+  ripe. The dairy rick over a day with no grass: 3,200 → 3,121 kg. Two
+  cuts of hay forked and eaten within a day. The world's server peaked at
+  818 MB (one node process; the process tree was logged every 30 s).
