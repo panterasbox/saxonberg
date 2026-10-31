@@ -165,6 +165,33 @@ describe('LayoutController', () => {
    * rather than resolved silently at recall time in favour of whichever
    * happened to be checked first.
    */
+  it('⭐ save records each card\'s shape and place, in units — never a subject card (client-surface D5)', async () => {
+    const controller = makeStuff(() => new LayoutController());
+    const ctx = CommandApi.createCommandContext({
+      commandGiver: actor as never,
+      location: location as never,
+      commandText: 'cockpit layout save wide',
+      executionId: 'test',
+      commandId: 'test',
+      verb: 'cockpit',
+      command: stubCommand(),
+      interactive: {
+        listCards: () => [
+          { instanceId: 'c1', cardId: 'who', key: 'who', pinned: true, live: false, size: 'medium', minimized: false, placed: { col: 1, row: 0 } },
+          { instanceId: 'c2', cardId: 'news', key: 'news', pinned: false, live: false, size: 'unit', minimized: true },
+          { instanceId: 'c3', cardId: 'subject', key: 'look', pinned: false, live: true, size: 'unit', minimized: false, role: 'here' },
+        ],
+      } as never,
+    });
+    await controller.execute({ name: 'save', target: 'wide' } as never, ctx as never);
+    expect(saved().play?.wide).toEqual({
+      cards: [
+        { cardId: 'who', size: 'medium', pinned: true, placed: { col: 1, row: 0 } },
+        { cardId: 'news', size: 'unit', pinned: false, minimized: true },
+      ],
+    });
+  });
+
   it('never lets a saved name shadow a shipped default', async () => {
     actor.setClientState('cockpit.mode', 'watch');
     const ctx = await run({ name: 'save', target: 'viewer' });

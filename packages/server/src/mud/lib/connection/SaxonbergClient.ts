@@ -55,10 +55,34 @@ import {
   CARD_IDS,
   SHIPPED_ARRANGEMENT_CARDS,
   type ArrangementSpec,
+  type ArrangementCard,
+  WIDTH_CLASSES,
   type CockpitMode,
   type LayoutName,
   type CardId,
 } from '@saxonberg/types';
+
+/**
+ * What is wrong with one saved arrangement card, or null — a catalogue
+ * id, a known width class, a placement of non-negative whole units.
+ * Module-private: the validator below is its only reader.
+ */
+function arrangementCardProblem(c: unknown): string | null {
+  if (typeof c !== 'object' || c === null) return 'every card must be an object';
+  const card = c as Partial<ArrangementCard>;
+  if (typeof card.cardId !== 'string') return 'every card must name a cardId';
+  if (card.size !== undefined && !WIDTH_CLASSES.includes(card.size)) {
+    return `card '${card.cardId}' has an unknown size '${String(card.size)}'`;
+  }
+  if (card.placed !== undefined) {
+    const { col, row } = card.placed as { col?: unknown; row?: unknown };
+    const unit = (n: unknown): boolean => Number.isInteger(n) && (n as number) >= 0;
+    if (!unit(col) || !unit(row)) {
+      return `card '${card.cardId}' must be placed at whole, non-negative units`;
+    }
+  }
+  return null;
+}
 
 /**
  * The tower as this mixin sees it: our own surface, the mechanism
@@ -144,7 +168,7 @@ export interface SaxonbergClient extends ClientState {
    * particular person is a statement about a MOMENT and belongs to the
    * pin, which is session-scoped for exactly that reason.
    */
-  arrangementCards(mode: CockpitMode, name: string): readonly CardId[];
+  arrangementCards(mode: CockpitMode, name: string): readonly ArrangementCard[];
 
   /** Error string for a player-supplied arrangement name, or null if fine. */
   validateArrangementName(mode: CockpitMode, raw: string): string | null;
@@ -431,6 +455,13 @@ export function SaxonbergClientMixin<
                 !Array.isArray((spec as { cards?: unknown }).cards)
               ) {
                 return `arrangement '${name}' must carry a cards array`;
+              }
+              // ⭐ Each card records its shape and place in UNITS
+              // (client-surface D5) — validated, because it is player
+              // input that becomes a workspace.
+              for (const c of (spec as { cards: unknown[] }).cards) {
+                const problem = arrangementCardProblem(c);
+                if (problem) return `arrangement '${name}': ${problem}`;
               }
             }
           }
@@ -723,15 +754,15 @@ export function SaxonbergClientMixin<
     public arrangementCards(
       mode: CockpitMode,
       name: string,
-    ): readonly CardId[] {
+    ): readonly ArrangementCard[] {
       const self = this as unknown as ClientHost;
       const saved = self.savedArrangementsFor(mode)[name];
       if (saved) {
         // ⚠ Filter to the catalogue. A saved list is player data that
         // has outlived a rename before, and an unknown name would make
         // the whole arrangement fail to open rather than one card.
-        return saved.cards.filter((p): p is CardId =>
-          (CARD_IDS as readonly string[]).includes(p),
+        return saved.cards.filter((p) =>
+          (CARD_IDS as readonly string[]).includes(p.cardId),
         );
       }
       /*
@@ -740,7 +771,7 @@ export function SaxonbergClientMixin<
        * entry need not be total over the shipped arrangements — an
        * arrangement with no row simply opens nothing.
        */
-      return SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? [];
+      return (SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? []).map((cardId) => ({ cardId }));
     }
 
     public savedArrangementsFor(

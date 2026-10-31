@@ -38,7 +38,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../../lib/character/Avatar';
 import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
-import type { ArrangementSpec, CockpitMode, CardId } from '@saxonberg/types';
+import type { ArrangementSpec, ArrangementCard, CockpitMode, CardId } from '@saxonberg/types';
 
 const LAYOUT_KEY = 'cockpit.layout';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
@@ -165,11 +165,22 @@ export default class LayoutController extends CommandController<LayoutModel> {
     const open = context.interactive
       ? context.interactive.listCards()
       : [];
-    const cards = [
-      ...new Set(
-        open.map((p) => p.cardId).filter((id): id is CardId => id !== undefined),
-      ),
-    ];
+    // ⭐ With each card's shape and place, in units (client-surface D5) —
+    // the arrangement is the workspace, not just its membership. A subject
+    // card is a moment, not a workspace, and is not recorded.
+    const seen = new Set<CardId>();
+    const cards: ArrangementCard[] = [];
+    for (const c of open) {
+      if (seen.has(c.cardId) || c.role === 'here' || c.cardId === 'subject') continue;
+      seen.add(c.cardId);
+      cards.push({
+        cardId: c.cardId,
+        size: c.size,
+        pinned: c.pinned,
+        ...(c.minimized ? { minimized: true } : {}),
+        ...(c.placed ? { placed: c.placed } : {}),
+      });
+    }
     forMode[name] = { cards };
     saved[mode] = forMode;
     host.setClientState(SAVED_KEY, saved);

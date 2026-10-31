@@ -27,6 +27,7 @@ import type {
   CardClosedEnvelope,
   CardOpenedEnvelope,
   CardPinnedEnvelope,
+  CardArrangedEnvelope,
   CardTouchedEnvelope,
   Envelope,
   MqlSubscriptionDeltaEnvelope,
@@ -125,6 +126,11 @@ export function useCardFeed(): void {
         ...(env.payload ? { payload: env.payload } : {}),
         records: (env.result ?? []) as CardRecord[],
         openedAt: Date.now(),
+        ...(env.segments ? { segments: env.segments } : {}),
+        ...(env.size ? { size: env.size } : {}),
+        ...(env.placed ? { placed: env.placed } : {}),
+        ...(env.minimized ? { minimized: true } : {}),
+        ...(env.role ? { role: env.role } : {}),
       });
     };
 
@@ -139,6 +145,22 @@ export function useCardFeed(): void {
         ...(env.prose ? { prose: env.prose } : {}),
         ...(env.payload ? { payload: env.payload } : {}),
         ...(env.result ? { records: env.result as CardRecord[] } : {}),
+        ...(env.segments ? { segments: env.segments } : {}),
+        // ⭐ The `here` card rebound: same card, new subject (#53/#92).
+        ...(env.subjectId ? { subjectId: env.subjectId } : {}),
+        ...(env.subjectKind ? { subjectKind: env.subjectKind } : {}),
+        ...(env.role ? { role: env.role } : {}),
+      });
+    };
+
+    const handleArranged = (envelope: Envelope): void => {
+      const env = envelope as CardArrangedEnvelope;
+      useStore.getState().arrangeCardState(env.instanceId, {
+        size: env.size,
+        placed: env.placed,
+        minimized: env.minimized,
+        pinned: env.pinned,
+        live: env.live,
       });
     };
 
@@ -172,6 +194,7 @@ export function useCardFeed(): void {
     websocketClient.onEnvelope("card-touched", handleTouched);
     websocketClient.onEnvelope("card-closed", handleClosed);
     websocketClient.onEnvelope("card-pinned", handlePinned);
+    websocketClient.onEnvelope("card-arranged", handleArranged);
     websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
 
     return () => {
@@ -179,6 +202,7 @@ export function useCardFeed(): void {
       websocketClient.offEnvelope("card-touched", handleTouched);
       websocketClient.offEnvelope("card-closed", handleClosed);
       websocketClient.offEnvelope("card-pinned", handlePinned);
+      websocketClient.offEnvelope("card-arranged", handleArranged);
       websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
     };
   }, []);

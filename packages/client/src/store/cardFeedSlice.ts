@@ -53,6 +53,10 @@ import type {
   StuffDetailRecord,
   StuffKind,
   StuffRefRecord,
+  LookSegment,
+  WidthClass,
+  CardPlacement,
+  CardRole,
 } from "@saxonberg/types";
 
 /** A card's records, whichever projection they came back as. */
@@ -123,6 +127,19 @@ export interface CardState {
    * names nothing at all.
    */
   lastTitle?: string;
+  /**
+   * ⭐ What `look` said, by shape and source (client-surface D1) — the
+   * inspection card's body. The same lines the terminal printed.
+   */
+  segments?: LookSegment[];
+  /** Width class; absent reads as `unit` (client-surface D5). */
+  size?: WidthClass;
+  /** Set when the player placed it — units, never pixels. */
+  placed?: CardPlacement;
+  /** In the tray. */
+  minimized?: boolean;
+  /** A role it fills — the `here` room card, the primary terminal. */
+  role?: CardRole;
 }
 
 /**
@@ -293,7 +310,17 @@ export interface CardFeedSlice {
     patch: Partial<
       Pick<
         CardState,
-        "takenAt" | "title" | "prose" | "records" | "payload" | "key" | "live"
+        | "takenAt"
+        | "title"
+        | "prose"
+        | "records"
+        | "payload"
+        | "key"
+        | "live"
+        | "segments"
+        | "subjectId"
+        | "subjectKind"
+        | "role"
       >
     >,
   ) => void;
@@ -301,6 +328,15 @@ export interface CardFeedSlice {
   setCardRecords: (instanceId: string, records: CardRecord[]) => void;
   /** The server's answer to a pin/dismiss/auto. */
   setCardPinnedState: (instanceId: string, pinned: boolean) => void;
+  /**
+   * ⭐ A `card-arranged` landed (client-surface D8): the server's answer
+   * to a `cockpit card` action. Never set optimistically — the client is
+   * a renderer of where the server says a card is.
+   */
+  arrangeCardState: (
+    instanceId: string,
+    arranged: Pick<CardState, "size" | "placed" | "minimized" | "pinned" | "live">,
+  ) => void;
   /** The card closed: fade it and say why. */
   closeCard: (instanceId: string, reason: CardCloseReason) => void;
   /** Drop a husk entirely (the player dismissed it). */
@@ -411,6 +447,16 @@ export const createCardFeedSlice = (
       const card = s.cards[instanceId];
       if (!card) return {};
       return { cards: { ...s.cards, [instanceId]: { ...card, pinned } } };
+    }),
+
+  arrangeCardState: (instanceId, arranged) =>
+    set((s) => {
+      const card = s.cards[instanceId];
+      if (!card) return {};
+      const next: CardState = { ...card, ...arranged };
+      // An absent placement means it flows again.
+      if (arranged.placed === undefined) delete next.placed;
+      return { cards: { ...s.cards, [instanceId]: next } };
     }),
 
   closeCard: (instanceId, reason) =>

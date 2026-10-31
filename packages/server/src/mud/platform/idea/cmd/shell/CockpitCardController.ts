@@ -4,8 +4,14 @@
  *
  *   cockpit card list            what is open, its state, and its key
  *   cockpit card pin <id>        keep it out of the relevance window
- *   cockpit card dismiss <id>    let it age out again
+ *   cockpit card dismiss <id>    let it age out again (`unpin`)
  *   cockpit card auto <id>       hand the decision back to the catalogue
+ *   cockpit card close|grow|shrink|minimize|restore|place|unplace <id>
+ *   cockpit card move <id> <col> <row>
+ *
+ * ⭐ The shape-and-place actions (client-surface D8) all go through
+ * `Interactive.arrangeCard`, which reports a `card-arranged`; this
+ * controller only names the act and words the outcome.
  *
  * ⭐ **Pinned or unpinned is the WHOLE lifetime.** The five hold
  * conditions this verb used to override are gone: four were spatial and
@@ -23,15 +29,50 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import type { CardArrangeAction } from '../../CardRegistry';
 
 interface CardModel extends CommandModel {
-  /** `list` | `pin` | `dismiss` | `auto`. */
+  /** One of {@link CARD_ACTIONS}. */
   action?: string;
-  /** The subscription id of the card to act on. */
+  /** The card to act on — its key, its catalogue name, or its id. */
   cardId?: string;
+  /** `move`'s column, in units. */
+  col?: number;
+  /** `move`'s row. */
+  row?: number;
 }
 
-const CARD_ACTIONS = ['list', 'pin', 'dismiss', 'auto'];
+const PIN_ACTIONS = ['pin', 'unpin', 'dismiss', 'auto'];
+const ARRANGE_ACTIONS: readonly CardArrangeAction[] = [
+  'close',
+  'grow',
+  'shrink',
+  'minimize',
+  'restore',
+  'move',
+  'place',
+  'unplace',
+];
+const CARD_ACTIONS = ['list', ...PIN_ACTIONS, ...ARRANGE_ACTIONS];
+
+/** What each shape-and-place action says when it lands. */
+const ARRANGED: Record<CardArrangeAction, string> = {
+  close: 'closed',
+  grow: 'grown',
+  shrink: 'shrunk',
+  minimize: 'in the tray',
+  restore: 'restored from the tray',
+  move: 'moved',
+  place: 'placed — it stays where it is',
+  unplace: 'flowing again',
+};
+
+/** How each refusal reads. */
+const REFUSED: Record<string, string> = {
+  'unknown-card': 'no open card',
+  'role-card': 'fills a role and cannot be closed or unplaced:',
+  'primary-terminal': 'is the primary terminal and cannot be put away:',
+};
 
 export default class CockpitCardController extends CommandController<CardModel> {
   execute(model: CardModel, context: CommandContext): void {
@@ -64,8 +105,14 @@ export default class CockpitCardController extends CommandController<CardModel> 
       );
     }
 
-    // `auto` hands the decision back to the catalogue's own default.
-    const pinned = action === 'pin' ? true : action === 'dismiss' ? false : null;
+    if ((ARRANGE_ACTIONS as readonly string[]).includes(action)) {
+      return this.executeArrange(context, action as CardArrangeAction, cardId, model);
+    }
+
+    // `auto` hands the decision back to the catalogue's own default;
+    // `unpin` is `dismiss` by its other name.
+    const pinned =
+      action === 'pin' ? true : action === 'dismiss' || action === 'unpin' ? false : null;
     const ok = interactive.setCardPinned(cardId, pinned);
     if (!ok) {
       return this.fail(
@@ -78,13 +125,39 @@ export default class CockpitCardController extends CommandController<CardModel> 
     const said =
       action === 'pin'
         ? 'pinned — it will stay until you dismiss it'
-        : action === 'dismiss'
+        : action === 'dismiss' || action === 'unpin'
           ? 'dismissed — it will age out of the relevance window'
           : 'returned to its default';
     this.send(
       context,
       Mml.fromMarkup(Mml.escape(`\ncard ${cardId} ${said}\n`)),
     );
+  }
+
+  private executeArrange(
+    context: CommandContext,
+    action: CardArrangeAction,
+    cardId: string,
+    model: CardModel,
+  ): void {
+    let at: { col: number; row: number } | undefined;
+    if (action === 'move') {
+      const col = Number(model.col);
+      const row = Number(model.row);
+      const unit = (n: number): boolean => Number.isInteger(n) && n >= 0;
+      if (model.col === undefined || model.row === undefined) {
+        return this.fail(context, 'usage: cockpit card move <card> <col> <row>', 'missing-arg');
+      }
+      if (!unit(col) || !unit(row)) {
+        return this.fail(context, 'a column and row are whole numbers from 0', 'bad-position');
+      }
+      at = { col, row };
+    }
+    const { refused } = context.interactive!.arrangeCard(cardId, action, at);
+    if (refused) {
+      return this.fail(context, `${REFUSED[refused] ?? refused} '${cardId}'`, refused);
+    }
+    this.send(context, Mml.fromMarkup(Mml.escape(`\ncard ${cardId} ${ARRANGED[action]}\n`)));
   }
 
   private executeList(context: CommandContext): void {
@@ -108,7 +181,12 @@ export default class CockpitCardController extends CommandController<CardModel> 
        * only way to tell them apart is to watch one fail to update.
        */
       const liveness = c.live ? 'live' : 'static';
-      lines.push(`  ${c.cardId} (${state}, ${liveness}) — ${c.key}`);
+      const where = c.placed ? `, at ${c.placed.col},${c.placed.row}` : '';
+      const tray = c.minimized ? ', in the tray' : '';
+      const role = c.role ? `, ${c.role}` : '';
+      lines.push(
+        `  ${c.cardId} (${state}, ${liveness}, ${c.size}${where}${tray}${role}) — ${c.key}`,
+      );
     }
     lines.push('');
     this.send(context, Mml.fromMarkup(Mml.escape(lines.join('\n'))));

@@ -144,9 +144,9 @@ describe('the shipped arrangements', () => {
 
   it("applying `build`'s arrangement opens the three authoring cards", async () => {
     const h = await makeHarness();
-    const { opened } = h.interactive.applyCardArrangement([
-      ...SHIPPED_ARRANGEMENT_CARDS.build.default!,
-    ]);
+    const { opened } = h.interactive.applyCardArrangement(
+      SHIPPED_ARRANGEMENT_CARDS.build.default!.map((cardId) => ({ cardId })),
+    );
     expect(opened).toBe(3);
     expect(h.interactive.listCards().map((c) => c.cardId).sort()).toEqual([
       'cms',

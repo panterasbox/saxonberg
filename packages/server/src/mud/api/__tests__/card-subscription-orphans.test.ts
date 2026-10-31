@@ -54,6 +54,8 @@ describe('a card owns its subscription handle', () => {
       }),
       'who',
     );
+    const lamp = await StuffApi.create(() => new Locale());
+    lamp.setShortDescription('a lamp');
     CardApi.open(
       makeContext(h, {
         commandText: 'look lamp',
@@ -61,6 +63,7 @@ describe('a card owns its subscription handle', () => {
         opensCard: 'subject',
       }),
       'subject',
+      { subjectId: lamp.stuffId },
     );
     expect(CardApi._getSizeForTesting()).toBe(4);
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
@@ -129,7 +132,7 @@ describe('a card owns its subscription handle', () => {
     );
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
-    h.interactive.applyCardArrangement(['who']);
+    h.interactive.applyCardArrangement([{ cardId: 'who' }]);
 
     // The arrangement-managed card went; the inspection card stayed.
     expect(h.interactive.listCards().map((c) => c.cardId).sort()).toEqual([

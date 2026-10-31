@@ -127,9 +127,17 @@ describe('the normalized command is what a card re-issues', () => {
     expect(new Set(open.map((c) => c.key)).size).toBe(2);
   });
 
-  it('⭐ `look a` / `look b` / `look a` is THREE cards — the feed is a LOG', async () => {
+  /** A look at a particular thing — a subject that is not the room. */
+  async function thing(name: string): Promise<string> {
+    const t = await StuffApi.create(() => new Locale());
+    t.setShortDescription(name);
+    return t.stuffId;
+  }
+
+  it('⭐ `look a` / `look b` / `look a` is TWO cards — a card is ABOUT its subject (#50)', async () => {
     const h = await makeHarness();
-    const look = (text: string): string | null =>
+    const [a, b] = [await thing('a'), await thing('b')];
+    const look = (text: string, subjectId: string): string | null =>
       CardApi.open(
         makeContext(h, {
           commandText: text,
@@ -137,55 +145,47 @@ describe('the normalized command is what a card re-issues', () => {
           opensCard: 'subject',
         }),
         'subject',
+        { subjectId },
       );
-    const a1 = look('look a');
-    const b = look('look b');
-    const a2 = look('look a');
+    const a1 = look('look a', a);
+    const b1 = look('look b', b);
+    const a2 = look('look a', a);
 
-    expect(new Set([a1, b, a2]).size).toBe(3);
-    expect(h.interactive.listCards().length).toBe(3);
-    /*
-     * ⚠ Nothing is touched as a DEDUP — stacking cards never merge.
-     * The touches that do arrive are the two DEMOTIONS: each new
-     * inspection card takes liveness off the one before it, which is
-     * `live: false` and no body. Asserting a bare count of zero here
-     * would have made the demotion look like a dedup regression.
-     */
+    // ⭐ The second look at `a` TOUCHES its card — the new answer, brought
+    // forward — rather than stacking a husk of the first below it.
+    expect(a2).toBe(a1);
+    expect(b1).not.toBe(a1);
+    expect(h.interactive.listCards().length).toBe(2);
     const touches = h.ofType('card-touched');
-    expect(touches.length).toBe(2);
-    expect(touches.every((t) => t.live === false)).toBe(true);
-    expect(touches.every((t) => t.result === undefined)).toBe(true);
-    // …and the re-looked card carries the same refresh command.
-    const keys = h.interactive.listCards().map((c) => c.key);
-    expect(keys.filter((k) => k === 'look a').length).toBe(2);
+    expect(touches.length).toBe(1);
+    expect(touches[0]!.instanceId).toBe(a1);
+    // A flowing card is a snapshot: the touch carries the fresh body.
+    expect(touches[0]!.result).toBeDefined();
   });
 
   it('⭐ `examine a` and `look a` compose the SAME key — the synonym rung', async () => {
     const h = await makeHarness();
-    const first = CardApi.open(
-      makeContext(h, {
-        commandText: 'examine a',
-        verbs: ['look', 'l', 'examine', 'exa'],
-        opensCard: 'subject',
-      }),
-      'subject',
-    );
-    const second = CardApi.open(
-      makeContext(h, {
-        commandText: 'look a',
-        verbs: ['look', 'l', 'examine', 'exa'],
-        opensCard: 'subject',
-      }),
-      'subject',
-    );
-    // Two cards (the log), one refresh command (the canonicalisation).
-    expect(second).not.toBe(first);
-    const keys = h.interactive.listCards().map((c) => c.key);
-    expect(keys).toEqual(['look a', 'look a']);
+    const a = await thing('a');
+    const open = (text: string): string | null =>
+      CardApi.open(
+        makeContext(h, {
+          commandText: text,
+          verbs: ['look', 'l', 'examine', 'exa'],
+          opensCard: 'subject',
+        }),
+        'subject',
+        { subjectId: a },
+      );
+    const first = open('examine a');
+    const second = open('look a');
+    // One subject, one card; one refresh command (the canonicalisation).
+    expect(second).toBe(first);
+    expect(h.interactive.listCards().map((c) => c.key)).toEqual(['look a']);
   });
 
-  it('⚠ `look lamp` and `look brass lamp` are TWO cards — the knowing cost', async () => {
+  it('`look lamp` and `look brass lamp` at one lamp are ONE card — the subject is the identity now', async () => {
     const h = await makeHarness();
+    const lamp = await thing('brass lamp');
     const look = (text: string): string | null =>
       CardApi.open(
         makeContext(h, {
@@ -194,10 +194,11 @@ describe('the normalized command is what a card re-issues', () => {
           opensCard: 'subject',
         }),
         'subject',
+        { subjectId: lamp },
       );
     look('look lamp');
     look('look brass lamp');
-    expect(h.interactive.listCards().length).toBe(2);
+    expect(h.interactive.listCards().length).toBe(1);
   });
 
   /**
@@ -242,7 +243,7 @@ describe('the normalized command is what a card re-issues', () => {
  * become a bar card.
  */
 describe('the room card', () => {
-  it('⭐ stacks like everything else, and its key names what it is about', async () => {
+  it('⭐ is ONE card with the `here` role — a second look at the room is the same card (#53/#92)', async () => {
     const h = await makeHarness();
     const room = await StuffApi.create(() => new Locale());
     room.setShortDescription("Dave's Bar");
@@ -260,12 +261,34 @@ describe('the room card', () => {
     const first = lookRoom('look');
     const second = lookRoom("look dave's bar");
 
-    expect(second).not.toBe(first);
-    const cards = h.interactive.listCards().filter(
-      (c) => c.cardId === 'subject',
-    );
-    expect(cards.length).toBe(2);
-    expect(cards.map((c) => c.key)).toEqual(['look', "look dave's bar"]);
+    expect(second).toBe(first);
+    const cards = h.interactive.listCards().filter((c) => c.cardId === 'subject');
+    expect(cards.length).toBe(1);
+    expect(cards[0]!.role).toBe('here');
+    // The room card is live — it fills a role.
+    expect(cards[0]!.live).toBe(true);
+  });
+
+  it('⭐ walking REBINDS the room card — never a second one (AC 4)', async () => {
+    const h = await makeHarness();
+    const bar = await StuffApi.create(() => new Locale());
+    bar.setShortDescription("Dave's Bar");
+    const street = await StuffApi.create(() => new Locale());
+    street.setShortDescription('the street');
+    const lookHere = (subjectId: string): string | null =>
+      CardApi.open(
+        makeContext(h, { commandText: 'look', verbs: ['look'], opensCard: 'subject' }),
+        'subject',
+        { subjectId },
+      );
+    ContainmentApi.move(h.avatar, bar);
+    const first = lookHere(bar.stuffId);
+    ContainmentApi.move(h.avatar, street);
+    const second = lookHere(street.stuffId);
+    expect(second).toBe(first);
+    const rebound = h.ofType('card-touched').find((t) => t.subjectId === street.stuffId);
+    expect(rebound?.role).toBe('here');
+    expect(h.interactive.listCards().filter((c) => c.cardId === 'subject')).toHaveLength(1);
   });
 
   /**

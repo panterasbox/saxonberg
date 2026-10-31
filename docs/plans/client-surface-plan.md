@@ -688,6 +688,21 @@ unit terminal card).
   A person never groups.
 - **B10 — the presence line reads `Now: <status>, <posture>, <activity>,
   away.`**; an activity is the engagement's `type` written as words.
+- **B11 — pinning is attention: a pinned card of a live kind is live.**
+  `wantsLive = def.live && (placed || role || pinned)`. D4 listed `pin`
+  among the acts that subscribe; reading it as "pin makes it placed"
+  would have given pin a position, which it does not have.
+- **B12 — `place` with no position goes to the bottom of column 0**;
+  `move` takes an explicit `<col> <row>`. `close` on a role card and
+  `minimize` on the primary refuse by name.
+- **B13 — subject cards are keyed on `subjectId` while open (#50)**, so
+  the shipped "a/b/a is THREE cards" and "look lamp / look brass lamp
+  are TWO cards" tests were rewritten to the new identity: one card per
+  subject. The room card is the `here` role and REBINDS on a look at
+  the new place (AC 4).
+- **B14 — an arrangement never records the subject/here card** (a moment,
+  not a workspace), and `applyArrangement` re-shapes a card already up
+  rather than reopening it.
 
 ---
 
@@ -903,6 +918,15 @@ same `CardApi.open` calls). Commit `build(client-surface W1): look
 arrives as segments; quiet lines, presence, grouping, shape, arrival`.
 
 ### W2 — The card registry: roles, placement, actions, liveness, arrangements
+
+> ✅ **Done** (build). `CardState` grows `live` (per instance), `size`,
+> `sizeBefore`, `placed`, `minimized`, `role`; `demoteLive` is deleted;
+> `arrange()` behind `Interactive.arrangeCard` and `cockpit card
+> close|grow|shrink|minimize|restore|move|place|unplace|unpin`; the
+> `card-arranged` envelope; arrangements are `ArrangementCard[]`
+> (validated in `SaxonbergClient`); `cockpit layout save` records shape
+> and place. No cap (B1). Client store mirrors the new fields and
+> `card-arranged`. Decisions B11–B14.
 
 **Goal.** Only a command changes which cards are up, and where. Drive
 steps 10–11 pass.

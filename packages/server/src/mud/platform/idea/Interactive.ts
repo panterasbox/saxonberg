@@ -34,8 +34,10 @@ import type {
   EnvelopeTemplate,
   MessageFrame,
   PromptChoice,
+  CardPlacement,
+  ArrangementCard,
 } from '@saxonberg/types';
-import type { CardOpenOptions } from './CardRegistry';
+import type { CardOpenOptions, CardListing, CardArrangeAction } from './CardRegistry';
 import type {
   ChoicePromptOpts,
   ComposePromptOpts,
@@ -320,21 +322,27 @@ export default class Interactive extends Idea {
   }
 
   /** The open cards — `cockpit card list`'s report. */
-  public listCards(): {
-    instanceId: string;
-    cardId: CardId;
-    key: string;
-    pinned: boolean;
-    live: boolean;
-  }[] {
+  public listCards(): CardListing[] {
     return cardLogic().list(this);
+  }
+
+  /**
+   * ⭐ Change one card's shape or place — the `cockpit card` actions
+   * (client-surface D8). Returns the refusal reason, or `refused: null`.
+   */
+  public arrangeCard(
+    cardRef: string,
+    action: CardArrangeAction,
+    at?: CardPlacement,
+  ): { refused: string | null; instanceId?: string } {
+    return cardLogic().arrange(this, cardRef, action, at);
   }
 
   /**
    * ⭐⭐ Open exactly the cards an arrangement names — the SERVER
    * resolving a workspace, not the client replaying it.
    */
-  public applyCardArrangement(cards: readonly CardId[]): {
+  public applyCardArrangement(cards: readonly ArrangementCard[]): {
     opened: number;
     closed: number;
   } {

@@ -162,35 +162,51 @@ subcommands:
 
   card:
     controller: /platform/idea/cmd/shell/CockpitCardController
-    description: "Keep or drop a card, overriding what holds it open."
+    description: "Keep, size, place, tray or close a card."
     help: |
-      Cards stay open while something about the world keeps them
-      relevant — a question you have not answered, a person still in
-      the room, a thing still in reach. When that lapses the card is
-      released and tells you why.
+      Every change to which cards are up, and where, is one of these —
+      a real command, so it can be scripted, aliased, saved in an
+      arrangement and seen by a stream overlay.
 
-      This is the override, and it works both ways:
+        cockpit card list              what is open: size, place, live
+        cockpit card pin <card>        keep it (a pinned card stays live)
+        cockpit card unpin <card>      let it age out again (= dismiss)
+        cockpit card auto <card>       hand the decision back
+        cockpit card close <card>      close it now
+        cockpit card grow <card>       unit → medium → full
+        cockpit card shrink <card>     full → medium → unit
+        cockpit card minimize <card>   put it in the tray
+        cockpit card restore <card>    take it out of the tray
+        cockpit card move <card> <col> <row>
+                                       place it there; the column's
+                                       cards below shift down
+        cockpit card place <card>      place it where it is
+        cockpit card unplace <card>    let it flow again
 
-        cockpit card list           what is open, and what holds it
-        cockpit card pin <card>     keep it after its hold lapses
-        cockpit card dismiss <card> drop it while its hold still holds
-        cockpit card auto <card>    hand the decision back
-
-      Pinning is not another kind of hold — it is you overruling the
-      one that is there.
+      A placed card stays where you put it and keeps answering; a card
+      that just flows through the feed is a snapshot of when you looked.
+      Medium and full hold one card each — growing another into the
+      slot returns the first to its own size. The room card and the
+      primary terminal fill roles and cannot be closed.
     examples:
       - cmd: cockpit card list
-        note: List open cards and what is keeping each one
-      - cmd: cockpit card pin focus
-        note: Keep a card after whatever held it lapses
-      - cmd: cockpit card dismiss focus
-        note: Drop a card that is still being held open
+        note: List open cards, their size and place
+      - cmd: cockpit card grow who
+        note: Grow the who card into the medium slot
+      - cmd: cockpit card move who 1 0
+        note: Place the who card at the top of the second column
     args:
       - name: action
         type: string
         required: false
       - name: cardId
         type: string
+        required: false
+      - name: col
+        type: number
+        required: false
+      - name: row
+        type: number
         required: false
 
   shelf:

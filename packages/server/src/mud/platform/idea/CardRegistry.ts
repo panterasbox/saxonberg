@@ -45,6 +45,11 @@ import type {
   StuffRefRecord,
   StuffKind,
   LookSegment,
+  WidthClass,
+  CardPlacement,
+  CardRole,
+  CardArrangedEnvelope,
+  ArrangementCard,
 } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
@@ -133,16 +138,49 @@ export interface CardState {
   /** ⭐ What `look` said, by shape and source (client-surface D1). */
   segments?: LookSegment[];
   /**
-   * ⚠ This live card has been superseded and already gave its
-   * subscription up (`demoteLive`). Its own marker rather than reusing
-   * `takenAt`: a demoted card gains a stamp, but so does every ordinary
-   * static card, and guarding teardown on the stamp made teardown skip
-   * cards that had never subscribed OR been demoted.
+   * ⭐⭐ Whether THIS card holds a subscription (client-surface D4): a
+   * per-instance fact, `def.live && (placed || role || pinned)`. A card
+   * that just flows through the feed is a snapshot with a `takenAt`; the
+   * one you placed, pinned, or that fills a role keeps answering.
    */
-  demoted?: true;
+  live: boolean;
+  /** Its width class (client-surface D5). */
+  size: WidthClass;
+  /** The size it had before it grew into the one-card medium/full slot. */
+  sizeBefore?: WidthClass;
+  /** Set when the player placed it — units, never pixels. */
+  placed?: CardPlacement;
+  /** In the tray. */
+  minimized: boolean;
+  /** A role it fills — the `here` room card, the primary terminal. */
+  role?: CardRole;
   records?: CardRecord[];
   payload?: CardPayload;
 }
+
+/** One open card as `cockpit card list` and `cockpit layout save` see it. */
+export interface CardListing {
+  instanceId: string;
+  cardId: CardId;
+  key: string;
+  pinned: boolean;
+  live: boolean;
+  size: WidthClass;
+  minimized: boolean;
+  placed?: CardPlacement;
+  role?: CardRole;
+}
+
+/** The `cockpit card` actions that change a card's shape or place (D8). */
+export type CardArrangeAction =
+  | 'close'
+  | 'minimize'
+  | 'restore'
+  | 'grow'
+  | 'shrink'
+  | 'move'
+  | 'place'
+  | 'unplace';
 
 /** What a caller supplies when opening or touching a card. */
 export interface CardOpenOptions {
@@ -171,6 +209,10 @@ export interface CardOpenOptions {
   segments?: LookSegment[];
   /** Overrides the catalogue default (an arrangement never does). */
   pinned?: boolean;
+  /** An arrangement's recorded shape and place (client-surface D5). */
+  size?: WidthClass;
+  placed?: CardPlacement;
+  minimized?: boolean;
   /**
    * ⭐ What this card is CALLED, when the producer knows better than the
    * catalogue does. A `payload` card has no projected record to take a
@@ -345,19 +387,46 @@ export default class CardRegistry extends CardRegistryBase {
      * resolve to nothing. The viewer's container is the one subject
      * that can be inferred without guessing — it is where they are, not
      * a pick among things they might have meant.
-     *
-     * ⚠ It is a fallback, not a path anything routes through: `look`
-     * and `sense` both supply the subject, and `applyArrangement` skips
-     * subject cards rather than leaning on this.
      */
+    const subjectBound =
+      def.source.kind === 'mql' && def.source.needsSubject === true;
     if (
-      def.source.kind === 'mql' &&
-      def.source.needsSubject === true &&
+      subjectBound &&
       opts.subjectId === undefined &&
       MixinApi.isContainable(holder)
     ) {
       const here = holder.getContainer();
       if (here) opts = { ...opts, subjectId: here.stuffId };
+    }
+
+    let role: CardRole | undefined;
+    if (subjectBound && opts.subjectId) {
+      /*
+       * ⭐⭐ **The `here` role** (client-surface D10, #53/#92): a look at
+       * the place you stand in is THE room card. When one is already up
+       * it REBINDS to the new place — you walked, and the room card
+       * walked with you — so moving never adds a second room card.
+       */
+      const here = MixinApi.isContainable(holder) ? holder.getContainer() : null;
+      if (here && here.stuffId === opts.subjectId) {
+        const current = this.findRole(interactive, 'here');
+        if (current) {
+          this.rebind(current, opts);
+          return current.instanceId;
+        }
+        role = 'here';
+      } else {
+        /*
+         * ⭐ **A subject already up is TOUCHED, not stacked** (#50): the
+         * second look at the stool brings its card forward with the new
+         * answer rather than a husk of the first one below it.
+         */
+        const same = this.findSubjectCard(interactive, cardId, opts.subjectId);
+        if (same) {
+          this.touchState(same, opts);
+          return same.instanceId;
+        }
+      }
     }
 
     const now = Date.now();
@@ -376,73 +445,19 @@ export default class CardRegistry extends CardRegistryBase {
         ? { prose: opts.prose.toString(holder) }
         : {}),
       ...(opts.segments ? { segments: opts.segments } : {}),
+      live: false,
+      size: opts.size ?? 'unit',
+      minimized: opts.minimized ?? false,
+      ...(opts.placed ? { placed: { ...opts.placed } } : {}),
+      ...(role ? { role } : {}),
     };
 
-    /*
-     * ⚠ A LIVE card's instance id IS its subscription id, and the
-     * subscription is registered `silent` so the initial resolve lands
-     * on `card-opened` rather than as a second envelope the client
-     * would have to reconcile against it. Two envelopes for one open is
-     * how a card ends up briefly showing nothing.
-     */
-    if (def.live && def.source.kind === 'mql') {
-      /*
-       * ⭐⭐ A `needsSubject` card subscribes to THAT SUBJECT, not to a
-       * query. Every query form is relative and re-answers against the
-       * asker on every wake, so a room card on `here` follows you out of
-       * the room and silently becomes a different room's card.
-       */
-      const initial = MqlSubscriptionApi.handleSubscribe({
-        interactive,
-        subscriptionId: state.instanceId,
-        query: def.source.query,
-        cardinality: def.source.cardinality,
-        fields: def.source.fields,
-        /*
-         * ⚠ No `locationDependent`. The catalogue used to be able to
-         * declare it and the one row that did was the room card — which
-         * is precisely the card the flag broke, because "re-resolve
-         * when the viewer moves" is a wake for a RELATIVE query and an
-         * inspection card is bound to its subject. The wake still
-         * exists for the subscriptions that want it; the catalogue no
-         * longer offers it, because a field no row sets is a field
-         * nothing can be caught getting wrong.
-         */
-        ...(def.source.needsSubject === true && state.subjectId
-          ? { subjectId: state.subjectId }
-          : {}),
-        silent: true,
-      });
-      if (initial === null) return null;
-      state.records = initial as CardRecord[];
-      if (!state.titleExplicit) {
-        state.title = initial[0]?.displayName as string | undefined;
-      }
-      // A live card is by construction an inspection card: the only
-      // live row is the one you get by looking at something.
-      const liveSubject = StuffApi.findById(
-        (initial[0] as { stuffId?: string } | undefined)?.stuffId ?? '',
-      );
-      if (liveSubject) state.subjectKind = subjectKindOf(liveSubject);
+    if (this.wantsLive(state)) {
+      if (!this.subscribe(state)) return null;
     } else {
       this.resolveInto(def, state, holder, opts);
       state.takenAt = now;
     }
-
-    /*
-     * ⭐⭐ **Only the NEWEST card of a live kind stays live.**
-     *
-     * Liveness is about being the current answer. Once you have walked
-     * on, the card for the room you left is a record of a place you
-     * were — there is nothing for it to track, and a subscription still
-     * running against it would be a wake with no reader plus a handle
-     * that never closes. So opening a live card DEMOTES its
-     * predecessors: the subscription goes, `takenAt` is stamped (it is
-     * a snapshot now, and says when it was taken), and the client is
-     * told so it stops hiding the refresh control on a card that is no
-     * longer tracking anything.
-     */
-    if (def.live) this.demoteLive(interactive, cardId);
 
     let bucket = this.cards.get(interactive);
     if (!bucket) {
@@ -456,8 +471,12 @@ export default class CardRegistry extends CardRegistryBase {
       instanceId: state.instanceId,
       cardId,
       key,
-      live: def.live,
+      live: state.live,
       pinned: state.pinned,
+      size: state.size,
+      minimized: state.minimized,
+      ...(state.placed ? { placed: state.placed } : {}),
+      ...(state.role ? { role: state.role } : {}),
       ...(state.takenAt !== undefined ? { takenAt: state.takenAt } : {}),
       ...(state.title !== undefined ? { title: state.title } : {}),
       ...(state.subjectId ? { subjectId: state.subjectId } : {}),
@@ -517,24 +536,7 @@ export default class CardRegistry extends CardRegistryBase {
     cardRef: string,
     pinned: boolean | null,
   ): boolean {
-    const bucket = this.cards.get(interactive);
-    if (!bucket) return false;
-    let state: CardState | undefined;
-    for (const candidate of bucket.values()) {
-      if (candidate.key === cardRef) {
-        state = candidate;
-        break;
-      }
-    }
-    if (!state) {
-      for (const candidate of bucket.values()) {
-        if (candidate.cardId === cardRef) {
-          state = candidate;
-          break;
-        }
-      }
-    }
-    state ??= bucket.get(cardRef);
+    const state = this.findRef(interactive, cardRef);
     if (!state) return false;
 
     // `null` = hand the decision back to the catalogue's own default.
@@ -554,6 +556,8 @@ export default class CardRegistry extends CardRegistryBase {
       };
       holder.onEnvelope(template);
     }
+    // Pinning is attention: a pinned card of a live kind keeps answering.
+    this.syncLive(state);
     return true;
   }
 
@@ -585,13 +589,7 @@ export default class CardRegistry extends CardRegistryBase {
 
   /** The open cards for one interactive — the `cockpit card list` report. */
   @CallSecurity(CardApiCallers)
-  public list(interactive: Interactive): {
-    instanceId: string;
-    cardId: CardId;
-    key: string;
-    pinned: boolean;
-    live: boolean;
-  }[] {
+  public list(interactive: Interactive): CardListing[] {
     const bucket = this.cards.get(interactive);
     if (!bucket) return [];
     return [...bucket.values()].map((s) => ({
@@ -599,7 +597,11 @@ export default class CardRegistry extends CardRegistryBase {
       cardId: s.cardId,
       key: s.key,
       pinned: s.pinned,
-      live: CARDS[s.cardId].live,
+      live: s.live,
+      size: s.size,
+      minimized: s.minimized,
+      ...(s.placed ? { placed: s.placed } : {}),
+      ...(s.role ? { role: s.role } : {}),
     }));
   }
 
@@ -615,22 +617,26 @@ export default class CardRegistry extends CardRegistryBase {
   @CallSecurity(CardApiCallers)
   public applyArrangement(
     interactive: Interactive,
-    wanted: readonly CardId[],
+    wanted: readonly ArrangementCard[],
   ): { opened: number; closed: number } {
-    const want = new Set<CardId>(
-      wanted.filter((c) => !this.isSubjectCard(c)),
-    );
+    const want = new Map<CardId, ArrangementCard>();
+    for (const c of wanted) {
+      const id = c.cardId as CardId;
+      if (!CARDS_BY_NAME[id] || this.isSubjectCard(id)) continue;
+      if (!want.has(id)) want.set(id, c);
+    }
     const bucket = this.cards.get(interactive);
     let closed = 0;
 
     if (bucket) {
       for (const [instanceId, state] of [...bucket.entries()]) {
         if (this.isSubjectCard(state.cardId)) continue;
-        if (want.has(state.cardId)) {
-          // Already open and still wanted — leave it alone rather than
-          // closing and reopening, which would blank the card and lose
-          // its pin for no reason the player asked for.
+        const spec = want.get(state.cardId);
+        if (spec) {
+          // Already open and still wanted — keep it (closing and reopening
+          // would blank it), and give it the arrangement's shape and place.
           want.delete(state.cardId);
+          this.applySpec(state, spec);
           continue;
         }
         this.close(interactive, instanceId, 'rearranged');
@@ -638,28 +644,28 @@ export default class CardRegistry extends CardRegistryBase {
       }
     }
 
-    /*
-     * ⚠ An arrangement names a card KIND, not a thing — so a
-     * subject-bound row needs one supplied. "Where you are" is the
-     * viewer's container, which the resolver knows and the arrangement
-     * cannot.
-     */
-    const viewer = this.viewerOf(interactive);
-    const here =
-      viewer && MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
-
     let opened = 0;
-    for (const cardId of want) {
-      const def = CARDS_BY_NAME[cardId];
-      const needsSubject =
-        def !== undefined &&
-        def.source.kind === 'mql' &&
-        def.source.needsSubject === true;
-      const opts: CardOpenOptions =
-        needsSubject && here ? { subjectId: here.stuffId } : {};
+    for (const [cardId, spec] of want) {
+      const opts: CardOpenOptions = {
+        ...(spec.pinned !== undefined ? { pinned: spec.pinned } : {}),
+        ...(spec.size ? { size: spec.size } : {}),
+        ...(spec.placed ? { placed: spec.placed } : {}),
+        ...(spec.minimized !== undefined ? { minimized: spec.minimized } : {}),
+      };
       if (this.open(interactive, cardId, opts) !== null) opened++;
     }
     return { opened, closed };
+  }
+
+  /** Give an open card an arrangement's recorded shape and place. */
+  private applySpec(state: CardState, spec: ArrangementCard): void {
+    if (spec.size) state.size = spec.size;
+    if (spec.minimized !== undefined) state.minimized = spec.minimized;
+    if (spec.pinned !== undefined) state.pinned = spec.pinned;
+    if (spec.placed) state.placed = { ...spec.placed };
+    else delete state.placed;
+    this.syncLive(state);
+    this.pushArranged(state);
   }
 
   /**
@@ -783,32 +789,282 @@ export default class CardRegistry extends CardRegistryBase {
   }
 
   /**
-   * Turn every still-live card of `cardId` into a static snapshot.
+   * ⭐⭐ Change one card's shape or place (client-surface D8) — the one
+   * door every `cockpit card` action other than pin/list goes through.
+   * Returns the refusal reason, or `null` when it changed. Every change
+   * reports a `card-arranged`.
    *
-   * ⚠ The subscription teardown goes through the same path everything
-   * else does, so the orphan-count guarantee still holds: a demoted
-   * card owns no handle.
+   * - `grow` / `shrink` step the width class (unit ↔ medium ↔ full; a
+   *   terminal also has `line`). Medium and full hold ONE card: growing B
+   *   into the slot A holds returns A to the size it had before.
+   * - `move <col> <row>` places it there — insertion: cards at or below
+   *   that row in that column shift down one.
+   * - `place` / `unplace` set and clear the placement without moving.
+   * - `minimize` / `restore` toggle the tray.
+   * - `close` closes it now (`dismissed`).
+   *
+   * A role card cannot be closed or unplaced (`role-card`): the `here`
+   * card goes when its place does, the primary terminal never.
    */
-  private demoteLive(interactive: Interactive, cardId: CardId): void {
-    const bucket = this.cards.get(interactive);
-    if (!bucket) return;
-    const holder = this.viewerOf(interactive);
-    for (const state of bucket.values()) {
-      if (state.cardId !== cardId) continue;
-      if (state.demoted === true) continue; // already demoted
-      interactive.cancelMqlSubscription(state.instanceId);
-      state.demoted = true;
-      state.takenAt = Date.now();
-      if (!holder) continue;
+  @CallSecurity(CardApiCallers)
+  public arrange(
+    interactive: Interactive,
+    cardRef: string,
+    action: CardArrangeAction,
+    at?: CardPlacement,
+  ): { refused: string | null; instanceId?: string } {
+    const state = this.findRef(interactive, cardRef);
+    if (!state) return { refused: 'unknown-card' };
+    const bucket = this.cards.get(interactive)!;
+    switch (action) {
+      case 'close': {
+        if (state.role) return { refused: 'role-card' };
+        this.close(interactive, state.instanceId, 'dismissed');
+        return { refused: null, instanceId: state.instanceId };
+      }
+      case 'minimize':
+        if (state.role === 'primary') return { refused: 'primary-terminal' };
+        state.minimized = true;
+        break;
+      case 'restore':
+        state.minimized = false;
+        break;
+      case 'grow':
+      case 'shrink': {
+        const ladder: WidthClass[] =
+          (state.cardId as string) === 'terminal'
+            ? ['line', 'unit', 'medium', 'full']
+            : ['unit', 'medium', 'full'];
+        const i = Math.max(0, ladder.indexOf(state.size));
+        const next = ladder[action === 'grow' ? Math.min(i + 1, ladder.length - 1) : Math.max(i - 1, 0)]!;
+        if (next === state.size) break;
+        if (next === 'medium' || next === 'full') {
+          // One card per slot: the incumbent returns to its own size.
+          for (const other of bucket.values()) {
+            if (other === state || other.size !== next) continue;
+            other.size = other.sizeBefore ?? 'unit';
+            delete other.sizeBefore;
+            this.pushArranged(other);
+          }
+          if (state.size !== 'medium' && state.size !== 'full') state.sizeBefore = state.size;
+        } else {
+          delete state.sizeBefore;
+        }
+        state.size = next;
+        break;
+      }
+      case 'move':
+      case 'place': {
+        const target =
+          at ?? state.placed ?? { col: 0, row: this.nextRow(bucket, 0) };
+        if (action === 'move') {
+          // Insertion: everything at or below the row in that column
+          // moves down one, so nothing is covered.
+          for (const other of bucket.values()) {
+            if (other === state || !other.placed) continue;
+            if (other.placed.col === target.col && other.placed.row >= target.row) {
+              other.placed = { col: other.placed.col, row: other.placed.row + 1 };
+              this.pushArranged(other);
+            }
+          }
+        }
+        state.placed = { col: target.col, row: target.row };
+        break;
+      }
+      case 'unplace':
+        if (state.role) return { refused: 'role-card' };
+        delete state.placed;
+        break;
+    }
+    state.lastTouchedAt = Date.now();
+    this.syncLive(state);
+    this.pushArranged(state);
+    return { refused: null, instanceId: state.instanceId };
+  }
+
+  /** The bottom of a column: the first free row. */
+  private nextRow(bucket: Map<string, CardState>, col: number): number {
+    let max = -1;
+    for (const st of bucket.values()) {
+      if (st.placed && st.placed.col === col) max = Math.max(max, st.placed.row);
+    }
+    return max + 1;
+  }
+
+  /** Report a card's shape and place. */
+  private pushArranged(state: CardState): void {
+    const holder = this.viewerOf(state.interactive);
+    if (!holder) return;
+    const template: Omit<CardArrangedEnvelope, 'frameId'> = {
+      type: 'card-arranged',
+      instanceId: state.instanceId,
+      size: state.size,
+      minimized: state.minimized,
+      pinned: state.pinned,
+      live: state.live,
+      ...(state.placed ? { placed: state.placed } : {}),
+    };
+    holder.onEnvelope(template);
+  }
+
+  /**
+   * ⭐ Liveness follows attention (client-surface D4, B1): a card holds a
+   * subscription when its kind is live AND the player placed it, pinned
+   * it, or it fills a role. Everything else is a snapshot.
+   */
+  private wantsLive(state: CardState): boolean {
+    const def = CARDS[state.cardId];
+    if (!def.live || def.source.kind !== 'mql') return false;
+    return state.placed !== undefined || state.role !== undefined || state.pinned;
+  }
+
+  /**
+   * Subscribe a card (silently — the first answer rides the envelope that
+   * follows). Returns false when the subscription could not be made.
+   */
+  private subscribe(state: CardState): boolean {
+    const def = CARDS[state.cardId];
+    if (def.source.kind !== 'mql') return false;
+    /*
+     * ⭐⭐ A `needsSubject` card subscribes to THAT SUBJECT, not to a
+     * query. Every query form is relative and re-answers against the
+     * asker on every wake, so a room card on `here` follows you out of
+     * the room and silently becomes a different room's card.
+     */
+    const initial = MqlSubscriptionApi.handleSubscribe({
+      interactive: state.interactive,
+      subscriptionId: state.instanceId,
+      query: def.source.query,
+      cardinality: def.source.cardinality,
+      fields: def.source.fields,
+      ...(def.source.needsSubject === true && state.subjectId
+        ? { subjectId: state.subjectId }
+        : {}),
+      silent: true,
+    });
+    if (initial === null) return false;
+    state.live = true;
+    delete state.takenAt;
+    state.records = initial as CardRecord[];
+    if (!state.titleExplicit) {
+      state.title = initial[0]?.displayName as string | undefined;
+    }
+    const subject = StuffApi.findById(
+      (initial[0] as { stuffId?: string } | undefined)?.stuffId ?? '',
+    );
+    if (subject) state.subjectKind = subjectKindOf(subject);
+    return true;
+  }
+
+  /**
+   * Bring a card's subscription in line with {@link wantsLive}: subscribe
+   * a card that became placed/pinned (and send its fresh answer), cancel
+   * one that stopped being (it becomes a snapshot, stamped now).
+   */
+  private syncLive(state: CardState): void {
+    const want = this.wantsLive(state);
+    if (want === state.live) return;
+    const holder = this.viewerOf(state.interactive);
+    if (want) {
+      if (!this.subscribe(state) || !holder) return;
       const template: Omit<CardTouchedEnvelope, 'frameId'> = {
         type: 'card-touched',
         instanceId: state.instanceId,
         key: state.key,
-        takenAt: state.takenAt,
-        live: false,
+        live: true,
+        ...(state.title !== undefined ? { title: state.title } : {}),
+        ...(state.records ? { result: state.records } : {}),
       };
       holder.onEnvelope(template);
+      return;
     }
+    state.interactive.cancelMqlSubscription(state.instanceId);
+    state.live = false;
+    state.takenAt = Date.now();
+    if (!holder) return;
+    const template: Omit<CardTouchedEnvelope, 'frameId'> = {
+      type: 'card-touched',
+      instanceId: state.instanceId,
+      key: state.key,
+      takenAt: state.takenAt,
+      live: false,
+    };
+    holder.onEnvelope(template);
+  }
+
+  /**
+   * ⭐ The `here` card REBINDS (client-surface D10, #53/#92): a new
+   * subject, a new subscription, the new prose and segments — and the
+   * client told in one `card-touched`, so the room card follows you and
+   * is never a second card.
+   */
+  private rebind(state: CardState, opts: CardOpenOptions): void {
+    const holder = this.viewerOf(state.interactive);
+    if (state.live) state.interactive.cancelMqlSubscription(state.instanceId);
+    state.live = false;
+    if (opts.subjectId) state.subjectId = opts.subjectId;
+    if (opts.prose && holder) state.prose = opts.prose.toString(holder);
+    state.segments = opts.segments;
+    state.lastTouchedAt = Date.now();
+    if (!state.titleExplicit) delete state.title;
+    if (!this.subscribe(state) && holder) {
+      // The new place cannot be subscribed (not perceived): a snapshot.
+      this.resolveInto(CARDS[state.cardId], state, holder, opts);
+      state.takenAt = state.lastTouchedAt;
+    }
+    if (!holder) return;
+    const template: Omit<CardTouchedEnvelope, 'frameId'> = {
+      type: 'card-touched',
+      instanceId: state.instanceId,
+      key: state.key,
+      live: state.live,
+      role: 'here',
+      ...(state.subjectId ? { subjectId: state.subjectId } : {}),
+      ...(state.subjectKind ? { subjectKind: state.subjectKind } : {}),
+      ...(state.takenAt !== undefined ? { takenAt: state.takenAt } : {}),
+      ...(state.title !== undefined ? { title: state.title } : {}),
+      ...(state.prose ? { prose: state.prose } : {}),
+      ...(state.segments ? { segments: state.segments } : {}),
+      ...(state.records ? { result: state.records } : {}),
+    };
+    holder.onEnvelope(template);
+  }
+
+  private findRole(interactive: Interactive, role: CardRole): CardState | undefined {
+    const bucket = this.cards.get(interactive);
+    if (!bucket) return undefined;
+    for (const st of bucket.values()) if (st.role === role) return st;
+    return undefined;
+  }
+
+  private findSubjectCard(
+    interactive: Interactive,
+    cardId: CardId,
+    subjectId: string,
+  ): CardState | undefined {
+    const bucket = this.cards.get(interactive);
+    if (!bucket) return undefined;
+    for (const st of bucket.values()) {
+      if (st.cardId === cardId && st.subjectId === subjectId && !st.role) return st;
+    }
+    return undefined;
+  }
+
+  /**
+   * ⚠⚠ **A card ref resolves by KEY first**, then catalogue name, then
+   * instance id — see {@link setPinned} for why the order is a defect
+   * found by driving.
+   */
+  private findRef(interactive: Interactive, cardRef: string): CardState | undefined {
+    const bucket = this.cards.get(interactive);
+    if (!bucket) return undefined;
+    for (const candidate of bucket.values()) {
+      if (candidate.key === cardRef) return candidate;
+    }
+    for (const candidate of bucket.values()) {
+      if (candidate.cardId === cardRef) return candidate;
+    }
+    return bucket.get(cardRef);
   }
 
   /* ─── test seams ─── */
@@ -872,7 +1128,7 @@ export default class CardRegistry extends CardRegistryBase {
     }
     if (opts.segments) state.segments = opts.segments;
 
-    if (!def.live && holder) {
+    if (!state.live && holder) {
       this.resolveInto(def, state, holder, opts);
       state.takenAt = state.lastTouchedAt;
     }
@@ -891,7 +1147,7 @@ export default class CardRegistry extends CardRegistryBase {
      * touch; a live card's body belongs to its subscription, and touch
      * is only about the card's PLACE in the feed.
      */
-    const carriesBody = !def.live;
+    const carriesBody = !state.live;
     const template: Omit<CardTouchedEnvelope, 'frameId'> = {
       type: 'card-touched',
       instanceId: state.instanceId,
@@ -974,9 +1230,8 @@ export default class CardRegistry extends CardRegistryBase {
    * guarantee rather than an assertion about the happy path.
    */
   private teardown(state: CardState): void {
-    if (!CARDS[state.cardId].live) return;
-    // ⚠ A demoted card already gave its handle up.
-    if (state.demoted === true) return;
+    // ⚠ Only a card that holds a subscription has one to give up.
+    if (!state.live) return;
     state.interactive.cancelMqlSubscription(state.instanceId);
   }
 

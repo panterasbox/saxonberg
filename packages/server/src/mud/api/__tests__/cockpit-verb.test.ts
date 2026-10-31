@@ -176,6 +176,15 @@ describe('the cockpit verb', () => {
       expect(bind('cockpit card').action).toBeUndefined();
     });
 
+    it('binds `cockpit card move <card> <col> <row>` (client-surface D8)', () => {
+      const move = bind('cockpit card move who 1 2');
+      expect(move.action).toBe('move');
+      expect(move.cardId).toBe('who');
+      expect(Number(move.col)).toBe(1);
+      expect(Number(move.row)).toBe(2);
+      expect(bind('cockpit card grow who').action).toBe('grow');
+    });
+
     /*
      * ⚠ `cockpit pane` is REFUSED, not aliased. The old name was a
      * typed subcommand with its own help and examples; leaving it

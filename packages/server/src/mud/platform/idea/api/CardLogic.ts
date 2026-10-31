@@ -10,8 +10,8 @@ import { StuffApi } from '../../../api/stuff';
 import { ShellApi } from '../../../api/shell';
 import { CommandLineApi } from '../../../api/command-line';
 import type CardRegistry from '../CardRegistry';
-import type { CardOpenOptions } from '../CardRegistry';
-import type { CardCloseReason, CardId } from '@saxonberg/types';
+import type { CardOpenOptions, CardListing, CardArrangeAction } from '../CardRegistry';
+import type { CardCloseReason, CardId, CardPlacement, ArrangementCard } from '@saxonberg/types';
 import type { CommandContext } from '../../../api/command';
 import { CARDS } from '../../../lib/connection/Cards';
 
@@ -171,21 +171,26 @@ export class CardLogic extends ApiLogic {
 
   /** See {@link Interactive.listCards}. */
   @CallSecurity(CardCallers)
-  public list(interactive: Interactive): {
-    instanceId: string;
-    cardId: CardId;
-    key: string;
-    pinned: boolean;
-    live: boolean;
-  }[] {
+  public list(interactive: Interactive): CardListing[] {
     return resolveRegistry().list(interactive);
+  }
+
+  /** See {@link Interactive.arrangeCard}. */
+  @CallSecurity(CardCallers)
+  public arrange(
+    interactive: Interactive,
+    cardRef: string,
+    action: CardArrangeAction,
+    at?: CardPlacement,
+  ): { refused: string | null; instanceId?: string } {
+    return resolveRegistry().arrange(interactive, cardRef, action, at);
   }
 
   /** See {@link Interactive.applyCardArrangement}. */
   @CallSecurity(CardCallers)
   public applyArrangement(
     interactive: Interactive,
-    cards: readonly CardId[],
+    cards: readonly ArrangementCard[],
   ): { opened: number; closed: number } {
     return resolveRegistry().applyArrangement(interactive, cards);
   }

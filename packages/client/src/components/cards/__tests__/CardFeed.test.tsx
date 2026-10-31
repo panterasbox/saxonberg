@@ -291,7 +291,7 @@ describe("⭐ the feed's order", () => {
 });
 
 describe("⚠⚠ the client cannot open a card", () => {
-  it("the hook registers the four card envelopes and opens nothing", () => {
+  it("the hook registers the five card envelopes and opens nothing", () => {
     const on = vi.spyOn(websocketClient, "onEnvelope");
     const subscribe = vi.spyOn(websocketClient, "subscribeMql");
     renderHook(() => useCardFeed());
@@ -301,6 +301,7 @@ describe("⚠⚠ the client cannot open a card", () => {
       "card-touched",
       "card-closed",
       "card-pinned",
+      "card-arranged",
       "mql-subscription-delta",
     ]);
     /*

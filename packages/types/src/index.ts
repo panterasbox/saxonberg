@@ -1386,6 +1386,28 @@ export type ProseSegment = LookSegment & { shape: 'prose' | 'state' };
 export type IllustrationShape = 'wide' | 'tall' | 'square';
 export const ILLUSTRATION_SHAPES: readonly IllustrationShape[] = ['wide', 'tall', 'square'];
 
+/**
+ * ⭐ A card's width class (client-surface D5/D9): `unit` is the card
+ * column, `medium` the slot above the terminal, `full` the stage. A
+ * terminal card may also be a `line` (a ticker). Medium and full hold one
+ * card each.
+ */
+export type WidthClass = 'line' | 'unit' | 'medium' | 'full';
+export const WIDTH_CLASSES: readonly WidthClass[] = ['line', 'unit', 'medium', 'full'];
+
+/** Where a PLACED card sits, in unit columns and rows — never pixels. */
+export interface CardPlacement {
+  col: number;
+  row: number;
+}
+
+/**
+ * A role a card fills (client-surface D10/D6): `here` is the room card,
+ * rebinding as you move; `primary` is the one terminal that cannot close.
+ */
+export type CardRole = 'here' | 'primary';
+export const CARD_ROLES: readonly CardRole[] = ['here', 'primary'];
+
 export interface CardOpenedEnvelope {
   type: 'card-opened';
   /**
@@ -1432,6 +1454,13 @@ export interface CardOpenedEnvelope {
   payload?: CardPayload;
   /** ⭐ What `look` said, by shape and source (client-surface D1). */
   segments?: LookSegment[];
+  /** The card's width class (client-surface D5). */
+  size: WidthClass;
+  /** Set when the player PLACED it; flowing cards carry none. */
+  placed?: CardPlacement;
+  /** In the tray. */
+  minimized: boolean;
+  role?: CardRole;
 }
 
 /**
@@ -1460,6 +1489,28 @@ export interface CardTouchedEnvelope {
   payload?: CardPayload;
   /** A re-look replaces the segments. */
   segments?: LookSegment[];
+  /**
+   * ⭐ The `here` card REBOUND to a new subject (client-surface D10,
+   * #53/#92) — the room card follows you; it is never a second card.
+   */
+  subjectId?: string;
+  subjectKind?: StuffKind;
+  role?: CardRole;
+}
+
+/**
+ * ⭐ A card's shape or place changed — every `cockpit card` action reports
+ * here (client-surface D8). The client renders; the server decides.
+ */
+export interface CardArrangedEnvelope {
+  type: 'card-arranged';
+  frameId: number;
+  instanceId: string;
+  size: WidthClass;
+  placed?: CardPlacement;
+  minimized: boolean;
+  pinned: boolean;
+  live: boolean;
 }
 
 /** The card went away, and why. */
@@ -2413,7 +2464,8 @@ export type Envelope =
   | CardOpenedEnvelope
   | CardTouchedEnvelope
   | CardClosedEnvelope
-  | CardPinnedEnvelope;
+  | CardPinnedEnvelope
+  | CardArrangedEnvelope;
 
 /**
  * Envelope shape pre-`frameId`-stamp. Producers build this; the
@@ -2440,7 +2492,8 @@ export type EnvelopeTemplate =
   | Omit<CardOpenedEnvelope, 'frameId'>
   | Omit<CardTouchedEnvelope, 'frameId'>
   | Omit<CardClosedEnvelope, 'frameId'>
-  | Omit<CardPinnedEnvelope, 'frameId'>;
+  | Omit<CardPinnedEnvelope, 'frameId'>
+  | Omit<CardArrangedEnvelope, 'frameId'>;
 
 // ============================================================================
 // Identity Types (Persistent Objects)
@@ -3269,7 +3322,20 @@ export const LEGACY_LAYOUT_FOR: Readonly<
  * it are separate acts.
  */
 export interface ArrangementSpec {
-  cards: string[];
+  cards: ArrangementCard[];
+}
+
+/**
+ * ⭐ One card of a saved arrangement (client-surface D5): which card, and
+ * the shape and place the player gave it. A terminal card also records
+ * its filter and input mode. Positions are units, never pixels.
+ */
+export interface ArrangementCard {
+  cardId: string;
+  size?: WidthClass;
+  placed?: CardPlacement;
+  minimized?: boolean;
+  pinned?: boolean;
 }
 
 /**

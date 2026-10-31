@@ -222,15 +222,10 @@ export default class SenseController extends CommandController<SenseModel> {
     }
 
     /*
-     * ⭐⭐ **Walking into a room mints THAT room's card.** Arrival forces
-     * a bare `sense` (`Mobile.autoLookOnArrival`), so this is where it
-     * happens. The card for the room you LEFT stays where it is — the
-     * column is a history of where you have been, not one room card
-     * being rewritten under you every time you move.
-     *
-     * Opening a live card demotes its predecessors (`demoteLive`): the
-     * one behind you drops its subscription and becomes an ordinary
-     * snapshot with a `takenAt` and a refresh.
+     * ⭐ A `sense` of the room you stand in is a look at THE room card
+     * (the `here` role, client-surface D10): it rebinds rather than
+     * stacking. Arrival forces `look` now (`Mobile.autoLookOnArrival`),
+     * not `sense`.
      */
     const opened = CardApi.open(context, 'subject', {
       prose: body,

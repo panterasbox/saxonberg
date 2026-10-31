@@ -199,16 +199,15 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * things and ages out of the relevance window, and looking again
    * mints a new one.
    *
-   * ⭐⭐ **Live while it is the newest, silent once it is history.**
-   * While this is the current inspection card it tracks its subject —
-   * someone walks into the room, something is set down, the person you
-   * are watching draws a blade — and it shows without asking. The
-   * moment a newer inspection card arrives, `CardRegistry.demoteLive`
-   * tears its subscription down and it becomes an ordinary snapshot
-   * with a `takenAt` and a refresh. Behind you there is nothing to
-   * track, and a subscription still running would be a wake with no
-   * reader. **Liveness is a property of attention, not of a card kind**
-   * — which is exactly why it cannot be what tells two rows apart.
+   * ⭐⭐ **Live while you are attending to it, a snapshot otherwise**
+   * (client-surface D4). `live: true` here says the KIND can track its
+   * subject; whether a given card does is per instance — the one you
+   * PLACED or PINNED, and the room card (the `here` role), hold a
+   * subscription; one that just flows through the feed is a snapshot with
+   * a `takenAt`. A second look at the same subject touches its card (#50);
+   * a look at the room you stand in rebinds the `here` card (#53/#92).
+   * **Liveness is a property of attention, not of a card kind** — which
+   * is exactly why it cannot be what tells two rows apart.
    *
    * ⚠ This works only because the subscription is bound to the
    * SUBJECT. On the relative `here` it followed the viewer instead of
@@ -336,8 +335,8 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * printed — because par is policy on the Business, not a Stuff MQL can
    * enumerate.
    *
-   * Unpinned and live: it is a reading of the rail at the moment you
-   * asked, tracked while it is the newest thing you asked for.
+   * Unpinned and of a live kind: a reading of the rail at the moment you
+   * asked; pin or place it and it keeps tracking the rail (D4).
    */
   stock: {
     label: 'the stock sheet',
