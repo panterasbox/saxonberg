@@ -1885,7 +1885,15 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         return inFlight.then(() => this.restampWarmth());
       }
       this._warmthFrom = here;
-      const started = this.resolveWarmth();
+      // ⚠⚠ Cleared when THIS walk settles, and only if it is still the one
+      // recorded. A walk that finishes without awaiting (an unplaced plant)
+      // used to clear the slot in its own `finally` BEFORE it was assigned,
+      // so a settled promise stood "in flight" forever — warmth never
+      // re-resolved, and with the move rule above every later caller
+      // chained onto it without end (PlantVerbs ran out of heap).
+      const started: Promise<void> = this.resolveWarmth().finally(() => {
+        if (this._warmthPromise === started) this._warmthPromise = null;
+      });
       this._warmthPromise = started;
       return started;
     }
@@ -1910,8 +1918,6 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       } catch {
         // ⚠ A failed walk leaves the ambient UNRESOLVED rather than
         // resolving it to something: unknown must never read as cold.
-      } finally {
-        this._warmthPromise = null;
       }
     }
 

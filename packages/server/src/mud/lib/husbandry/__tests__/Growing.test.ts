@@ -538,6 +538,20 @@ describe('GrowingMixin — field population seams', () => {
     expect(loose).not.toContain(stand);
   });
 
+  it('⚠ a walk that finishes at once frees the slot — moved later, the plant asks again and settles', async () => {
+    // Unplaced, the walk returns without awaiting. It used to clear the
+    // slot before it was recorded, leaving a settled promise "in flight"
+    // forever; with the move rule every later ask chained onto it without
+    // end (PlantVerbs ran out of heap).
+    const p = fixture();
+    await p.restampWarmth();
+    const ground = makeStuff(() => new PartedGround());
+    vi.spyOn(BiomeApi, 'resolveTemperatureFor').mockResolvedValue({ rawValue: () => 280 } as never);
+    ContainmentApi.move(p, ground);
+    await p.restampWarmth();
+    expect(p._lastAmbientK).toBe(280);
+  });
+
   it('⚠ a plant moved while its warmth resolves takes the warmth of where it ENDS UP', async () => {
     // A labeled stem is minted somewhere warm and moved straight into the
     // field; the walk begun at the mint must not answer for the field
