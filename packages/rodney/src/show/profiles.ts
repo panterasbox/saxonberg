@@ -39,7 +39,7 @@ export const PROFILES: Record<string, ShowProfile> = {
     mark: '/brand/saxonberg-rings-white.svg',
     topicLabel: 'Now',
     defaultTopic: 'Working on Saxonberg',
-    panels: ['join', 'world', 'about', 'links', 'follow'],
+    panels: ['join', 'world', 'about', 'gitlab', 'follow'],
     crawl: true,
   },
   // ⚠ Stubs — wordmarks only until they have marks of their own.

@@ -17,3 +17,16 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** Counted from the checkout when Vite starts — see vite.config.ts. */
+declare module 'virtual:repo-stats' {
+  const stats: {
+    packs: number;
+    subsystems: number;
+    slates: number;
+    linesOfTypeScript: number;
+    testFiles: number;
+    countedAt: number;
+  };
+  export default stats;
+}

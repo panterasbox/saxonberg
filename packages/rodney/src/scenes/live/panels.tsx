@@ -3,12 +3,13 @@ import QRCode from 'qrcode';
 import type { Show } from '../../hooks/useShow';
 import { CHANNEL } from '../../show/channel';
 import AtAvatar from '../shared/AtAvatar';
+import repoStats from 'virtual:repo-stats';
+import useGitLab, { GITLAB_PROJECT } from '../../hooks/useGitLab';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
 /** Where people join — the live public host (docs/deployment.md). */
 export const JOIN_URL = 'https://mud.panterasbox.com';
-const SOURCE_URL = 'https://gitlab.com/panterasbox/saxonberg';
 
 /**
  * The lower third's rotation, as rows. Each row says what it shows, how long
@@ -65,17 +66,11 @@ export const PANELS: PanelRow[] = [
     render: () => <AboutPanel />,
   },
   {
-    key: 'links',
+    key: 'gitlab',
     weight: 1,
-    seconds: 16,
+    seconds: 18,
     when: () => true,
-    render: () => (
-      <Panel
-        kicker="The source is open"
-        title="Every line of Saxonberg is public, under the AGPL"
-        body={`${strip(SOURCE_URL)} · play at ${strip(JOIN_URL)}`}
-      />
-    ),
+    render: () => <GitLabPanel />,
   },
   {
     key: 'follow',
@@ -314,6 +309,103 @@ function AboutPanel() {
           &ldquo;{CHANNEL.quote}&rdquo;
         </div>
       </div>
+    </div>
+  );
+}
+
+/** "545k" — a big count, short. */
+function compact(n: number): string {
+  return n >= 10_000 ? `${Math.round(n / 1000)}k` : n.toLocaleString('en-US');
+}
+
+/** One figure: a big number over its label in engraved capitals. */
+function Figure({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{ textAlign: 'center', minWidth: 130 }}>
+      <div
+        style={{
+          fontFamily: FACE_STACKS.display,
+          fontWeight: 500,
+          fontSize: 52,
+          lineHeight: 1,
+          color: palette.text.fg,
+          fontVariantNumeric: 'lining-nums',
+        }}
+      >
+        {value}
+      </div>
+      <div
+        style={{
+          fontFamily: FACE_STACKS.display,
+          fontWeight: 500,
+          fontSize: 15,
+          letterSpacing: '0.19em',
+          textTransform: 'uppercase',
+          color: palette.text.dim,
+          marginTop: 10,
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The code — evergreen, never this week's news (the agenda carries that):
+ * where it is, that it is open, how long it has been, and how big it is.
+ * Merges and the start date come live from GitLab; packs, subsystems and
+ * lines are counted from the checkout when Rodney starts.
+ */
+function GitLabPanel() {
+  const gitlab = useGitLab();
+  const since = gitlab.since
+    ? new Date(gitlab.since).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : null;
+  const me = CHANNEL.platforms.find((p) => p.service === 'gitlab');
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 40 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.display,
+            fontWeight: 500,
+            fontSize: 40,
+            lineHeight: 1.1,
+            color: palette.text.fg,
+          }}
+        >
+          Saxonberg is open source
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 28,
+            fontWeight: 600,
+            color: palette.accent,
+            marginTop: 8,
+          }}
+        >
+          gitlab.com/{GITLAB_PROJECT}
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 22,
+            color: palette.text.dim,
+            marginTop: 6,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {['AGPL-3.0', since && `since ${since}`, me && strip(me.url)]
+            .filter(Boolean)
+            .join(' · ')}
+        </div>
+      </div>
+      {gitlab.merged !== null && <Figure value={compact(gitlab.merged)} label="Merges" />}
+      <Figure value={String(repoStats.packs)} label="Content packs" />
+      <Figure value={String(repoStats.subsystems)} label="Subsystems" />
+      <Figure value={compact(repoStats.linesOfTypeScript)} label="Lines of TS" />
     </div>
   );
 }
