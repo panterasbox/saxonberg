@@ -937,7 +937,7 @@ export default abstract class Avatar extends AvatarBase {
     // Force a sense so the player perceives where they are across every
     // channel they possess — MobileMixin's auto-sense-on-arrival path,
     // reused rather than re-rendering the description here.
-    await this.autoLookOnArrival();
+    await this.autoLookOnArrival(interactive);
     this.openArrangementGuarded(interactive);
     this.markSessionStarted(interactive);
   }

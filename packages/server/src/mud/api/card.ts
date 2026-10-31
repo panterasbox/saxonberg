@@ -113,7 +113,9 @@ export class CardApi {
      * other push does.
      */
     const interactive =
-      context.interactive ?? CardApi.#interactiveFor(context.commandGiver);
+      context.interactive ??
+      CardApi.#interactiveOfRunningCommand() ??
+      CardApi.#interactiveFor(context.commandGiver);
     if (!interactive) return null;
     const declared = context.command?.opensCards ?? [];
     if (!declared.includes(cardId)) {
@@ -127,6 +129,22 @@ export class CardApi {
     }
     const key = opts.key ?? CardApi.keyFor(context, cardId);
     return logic().open(interactive, cardId, { ...opts, key });
+  }
+
+  /**
+   * ⭐ The connection behind the command that is RUNNING this one — the
+   * walk whose arrival forces a `look`. Without it the forced look fell
+   * to the player's first connection, so a player with two (two tabs,
+   * or two people sharing a dev login) had the room card land on the
+   * other one and their panel went empty.
+   */
+  static #interactiveOfRunningCommand(): Interactive | null {
+    const stack = ExecutionContextApi.getCommandStack();
+    for (let i = stack.length - 1; i >= 0; i--) {
+      const ia = (stack[i]?.context as { interactive?: Interactive } | undefined)?.interactive;
+      if (ia) return ia;
+    }
+    return null;
   }
 
   /**

@@ -39,6 +39,14 @@ const Area = styled.section<{ $overflow: boolean }>`
 `;
 
 /**
+ * The narrowest a card in the grid gets. ⭐ 20rem, not the stage's unit:
+ * at 2560px and 150% zoom with the room panel open the area is ~707px,
+ * and the unit's minimum left ONE 694px-wide column of short cards;
+ * 20rem gives two of ~345px, still wide enough for a card's header.
+ */
+const CARD_MIN_REM = 20;
+
+/**
  * ⚠ `min(100%, …)` so a single column never overflows a narrow area;
  * `1fr` so the columns share the leftover instead of leaving it empty.
  */
@@ -46,7 +54,7 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(
     auto-fill,
-    minmax(min(100%, ${tokens.width.unit.min}rem), 1fr)
+    minmax(min(100%, ${CARD_MIN_REM}rem), 1fr)
   );
   gap: ${tokens.width.gap}rem;
   align-items: start;

@@ -1473,6 +1473,16 @@ export const useStore = create<StoreState>((set, get) => ({
       // login that already had a character).
       connectionPhase: "in-world",
       charGenState: null,
+      /*
+       * ⚠ Cards belong to the server's SESSION (its Interactive). A
+       * reconnect that resumes it keeps them; a NEW one — a fresh login,
+       * a server restart — starts with an empty registry, so the cards
+       * the client still held were orphans: a second room card, a second
+       * `who`, controls that act on nothing.
+       */
+      ...(state.selfInteractiveId !== payload.interactiveStuffId
+        ? { cards: {}, cardOrder: [] }
+        : {}),
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,

@@ -51,6 +51,7 @@ import { CommandApi, type CommandContributions } from '../../api/command';
 import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
+import type Interactive from '../../platform/idea/Interactive';
 import {
   SettingTypes,
   type SettingsSchemaEntry,
@@ -97,7 +98,7 @@ export interface Mobile {
    * augmenter's filter ∩ sensorium = vision for any room with no
    * `<sense>` regions authored.
    */
-  autoLookOnArrival(): Promise<void>;
+  autoLookOnArrival(interactive?: Interactive): Promise<void>;
   autoIntroduceOnArrival(): void;
 
   /**
@@ -607,7 +608,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * the player walks into a room with no widget, the auto-sense
      * comes up empty).
      */
-    async autoLookOnArrival(): Promise<void> {
+    async autoLookOnArrival(interactive?: Interactive): Promise<void> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       if (MixinApi.isFocused(self)) self.clearFocus();
@@ -615,7 +616,9 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // ⭐ `look`, not `sense` (client-surface D10, #52): arriving shows
         // the room exactly as `look` does — band, notices, presence, the
         // card — so the first view of a place and every later one agree.
-        await self.forceCommand('look');
+        // The connection that is entering, when there is one: the card
+        // belongs on THAT session, not the player's first.
+        await self.forceCommand('look', interactive ? { interactive } : {});
       } catch {
         // Swallow — see jsdoc.
       }
