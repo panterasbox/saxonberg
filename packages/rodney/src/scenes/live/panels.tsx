@@ -65,7 +65,6 @@ export const PANELS: PanelRow[] = [
       <Panel
         quote
         title="“See now, this is why mad scientists are generally less desirable than your common or garden variety scientist.”"
-        body="— Mystery Men"
       />
     ),
   },

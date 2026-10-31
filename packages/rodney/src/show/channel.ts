@@ -13,5 +13,6 @@ export const CHANNEL = {
     { service: 'youtube', name: 'YouTube', handle: '@BobaluSmallberries', url: 'https://www.youtube.com/@BobaluSmallberries' },
     { service: 'kick', name: 'Kick', handle: 'bobalu', url: 'https://kick.com/bobalu' },
     { service: 'patreon', name: 'Patreon', handle: 'bobalu', url: 'https://www.patreon.com/c/bobalu' },
+    { service: 'gitlab', name: 'GitLab', handle: 'bobalu', url: 'https://gitlab.com/bobalu' },
   ],
 } as const;
