@@ -313,6 +313,13 @@ function AboutPanel() {
   );
 }
 
+/**
+ * The stack — what a contributor or someone running the platform asks first.
+ * One small server (AWS Lightsail behind Caddy) and a MongoDB is the whole of
+ * a deployment (docs/deployment.md).
+ */
+const STACK = ['TypeScript', 'Node', 'React', 'MongoDB', 'AWS', 'pnpm monorepo'];
+
 /** "545k" — a big count, short. */
 function compact(n: number): string {
   return n >= 10_000 ? `${Math.round(n / 1000)}k` : n.toLocaleString('en-US');
@@ -400,6 +407,24 @@ function GitLabPanel() {
           {['AGPL-3.0', since && `since ${since}`, me && strip(me.url)]
             .filter(Boolean)
             .join(' · ')}
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          {STACK.map((name) => (
+            <span
+              key={name}
+              style={{
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: 18,
+                fontWeight: 500,
+                color: palette.text.fg,
+                padding: '3px 10px',
+                border: `1px solid ${palette.line}`,
+                background: palette.bg.raised,
+              }}
+            >
+              {name}
+            </span>
+          ))}
         </div>
       </div>
       {gitlab.merged !== null && <Figure value={compact(gitlab.merged)} label="Merges" />}
