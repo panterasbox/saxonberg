@@ -539,6 +539,13 @@ Acceptance: tests + `lint:family`; `pnpm wire` `reachability`/`platform-smoke` s
 Commit: `build(cordage W2): the rope at a drop climbs both ways, chafes, parts; the belay`.
 
 ### W3 — `trade-cordage`: twist, the lay reading, the Discipline moves (D5, D15, D16, D18) ✅
+> ⭐ **2026-10-31, the owner's lens pass on twist** (*real ropemaking takes time and focus*) — all four:
+> **D30** the craft: `ropework` band → lay evenness (.8 … 1), a rope as even as its worst strand and its
+> layer, hockles in the look (lens 1). **D31** the yarn: weakest yarn → strand grade → rope grade; grade
+> scales strength .85 … 1.1 (lens 1/2). **D32** the time: a strand is length × (20 s + 0.5 s/yarn), a rope
+> 30 s/m (lens 3a). **D33** the crew: `RopeJack` is `Turnable` — `turn jack` takes the wheel
+> (`WheelEngagement`, pack `src/lib/`), full pace with a hand, half alone; the hand is credited; the keeper's
+> `turns` brain takes the wheel for whoever lays; a `wheel-hand` seat (headcount 1) for a player (lens 3b).
 > **Done.** Pack scaffold (root package.json + pnpm-lock; discover count 71). `RopeJack`
 > (Tool, `ropelaying`, affords `twist`) plans the twist: yarn (a `TextileStock` with a count) → a
 > strand (`n·tex·1.1`), ≥ 3 strands → a rope (Σ × 1.15), `d = 2√(λ/πρφ)`, never longer than the walk
@@ -781,6 +788,7 @@ hazard,assembly,textiles,instrumentation,retail,employment,content-packs,testing
 | 2 | 4/17 | ⛔ the walk still dark: a room's light is spread over its extent SQUARED, so 300 m of walk is 90,000 m² and no lamp lights it → **D28** the walk is open to the sky, worked by day; hemp yarn answered to "rope yarn"; drive ordinals (`first rope`, not `1.rope`), prompts, a filled lantern, the hidden band lowered (staged) |
 | 3 | 10/17 | ⛔ a pitch coat read "wet … not yet set" right after the dip (only `isTarred` cooled it) → `Rope.getCoats` brings the cooling current; the rope-maker's arms full of rope made `rope` a question → single-rope hands per delve/splice/tar step |
 | 4 | 15/17 | ⛔ `tie first strand to post` → "nothing with an end to tie": `tie`'s gear arg was not greedy (a multi-word name broke it) → greedy; the tar dip met a body still putting on its coat (drive retries) |
+| 6 (after review: craft, time, crew; no buy-back) | 16/18, then 2–5 + 3a on a re-run → **18/18** | the twist rework reads in the world: *"unevenly laid — hockles"*, *"would hold an ox"*, *"laid from fair yarn"*, the keeper or a second hand at the wheel; the two reds were the drive's own (3a dropped step 3's strand) → 3a after 4. Boot took > 420 s under memory pressure (4 GB free) |
 | 5 | 16/17 (+13 on a re-run) | the splice step's `look rope` was ambiguous in the walk and the prompt answer raced → an ordinal. **All 17 green.** |
 
 **Full suite** (`tools/suite`, at code-complete, 37 min): 52/53 packages green; `server` red on 13

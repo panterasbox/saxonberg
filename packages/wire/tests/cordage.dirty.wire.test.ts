@@ -247,6 +247,16 @@ suite('cordage — the blocking drive', () => {
     expect(st, st).toMatch(/hockles|wanders/);
   }, 1_800_000);
 
+  it('4. twist the strands: they become rope — fiber, length, thickness, strength in words', async () => {
+    const s = await session(maker, WALK);
+    await act(s, 'twist strands', 900_000);
+    expect(await carried(s, 'strand')).toBe(0);
+    const r = await look(s, 'rope');
+    expect(r, r).toMatch(/10 meters of hemp rope, about \d+ mm thick; it would hold/);
+    const read = await say(s, 'analyze lay rope');
+    expect(read, read).toMatch(/laid from \w+ yarn/);
+  }, 1_800_000);
+
   it('3a. a crew: a second hand takes the wheel (or the keeper has it) and the layer walks at full pace', async () => {
     const hand = await session(climber, WALK);
     const took = await say(hand, 'turn jack');
@@ -256,17 +266,7 @@ suite('cordage — the blocking drive', () => {
     expect(lay, lay).toMatch(/turning the wheel/);
     expect(lay, lay).not.toMatch(/turning the wheel yourself/);
     if (/crank/.test(took)) await say(hand, 'turn back jack');
-    await say(s, 'drop first strand').catch(() => '');
-  }, 1_800_000);
-
-  it('4. twist the strands: they become rope — fiber, length, thickness, strength in words', async () => {
-    const s = await session(maker, WALK);
-    await act(s, 'twist strands', 900_000);
-    expect(await carried(s, 'strand')).toBe(0);
-    const r = await look(s, 'rope');
-    expect(r, r).toMatch(/10 meters of hemp rope, about \d+ mm thick; it would hold/);
-    const read = await say(s, 'analyze lay rope');
-    expect(read, read).toMatch(/laid from \w+ yarn/);
+    // Its strand is laid up with step 5's.
   }, 1_800_000);
 
   it('5. more yarns make a thicker, stronger rope', async () => {
