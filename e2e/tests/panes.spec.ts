@@ -8,23 +8,35 @@ import { openWorldAs } from './helpers';
  * round-trip beyond the welcome snapshot, so immune to lounge churn.
  */
 
-test('the Settings pane toggles open and closed from the chrome', async ({
+test('settings are a card: the rail opens it with `settings`, close is a command', async ({
   browser,
 }) => {
-  const { page, close } = await openWorldAs(browser, 'pane-settings');
+  const { page, close } = await openWorldAs(browser, 'pane-settings', {
+    contextOptions: { viewport: { width: 1440, height: 790 } },
+  });
   try {
-    const pane = page.getByLabel('Settings', { exact: true });
-    await expect(pane).toHaveCount(0);
+    const card = page.locator('[data-card-kind="settings"]');
+    await expect(card).toHaveCount(0);
+    await page.getByTestId('rail-settings').click();
+    await expect(card).toBeVisible();
+    await expect(card.getByText('Preferences')).toBeVisible();
+    await card.getByLabel('cockpit card close settings').click();
+    await expect(card).toHaveCount(0);
+  } finally {
+    await close();
+  }
+});
 
-    // The chrome's Settings button summons the pane.
-    await page.getByLabel('Toggle settings pane').click();
-    await expect(pane).toBeVisible();
-    // It carries its standing sections.
-    await expect(pane.getByText('Preferences')).toBeVisible();
-
-    // Its close affordance dismisses it.
-    await page.getByLabel('Close settings').click();
-    await expect(pane).toHaveCount(0);
+test('watch lays out the video over the terminal and stream chat as a terminal card', async ({
+  browser,
+}) => {
+  const { page, close } = await openWorldAs(browser, 'pane-watch', {
+    contextOptions: { viewport: { width: 1440, height: 790 } },
+  });
+  try {
+    await page.getByTestId('rail-mode-watch').click();
+    await expect(page.getByTestId('focal-slot')).toBeVisible();
+    await expect(page.locator('[data-card-kind="terminal"]')).toBeVisible();
   } finally {
     await close();
   }

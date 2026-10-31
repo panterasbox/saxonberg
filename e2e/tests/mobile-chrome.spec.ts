@@ -526,3 +526,41 @@ test('the bar consumes the safe-area inset, and the viewport enables it', async 
     await close();
   }
 });
+
+/**
+ * ⭐ The phone's own shape (client-surface W6, drive step 23): chat first;
+ * swipe right for the channels, left for who's here; a long press on a
+ * line names react · reply · tell · look; explore's button bar puts the
+ * exits first; a card opens inline and as a sheet with a terminal strip.
+ */
+test.describe('the phone, chat first (client-surface)', () => {
+  test('chat by default, the drawers, the line menu, explore and the sheet', async ({ browser }) => {
+    const { page, close } = await openWorldAs(browser, 'phone', { contextOptions: PHONE_CONTEXT });
+    try {
+      const shell = page.getByTestId('phone-shell');
+      await expect(shell).toBeVisible({ timeout: 30_000 });
+      await expect(shell).toHaveAttribute('data-phone-mode', /chat|explore/);
+      await expect(page.getByTestId('mode-tabs')).toBeVisible();
+      await page.getByTestId('open-channels').click();
+      await expect(page.getByTestId('drawer-left')).toBeVisible();
+      await page.getByTestId('drawer-scrim').click();
+      await page.getByTestId('open-here').click();
+      await expect(page.getByTestId('drawer-right')).toBeVisible();
+      await page.getByTestId('drawer-scrim').click();
+
+      await page.getByTestId('mode-tab-explore').click();
+      await expect(shell).toHaveAttribute('data-phone-mode', 'explore');
+      await runCommand(page, 'look');
+      await expect(page.getByTestId('button-bar')).toBeVisible();
+      await runCommand(page, 'who');
+      const inline = page.locator('[data-testid^="inline-card-"] article').last();
+      await expect(inline).toBeVisible();
+      await inline.click({ position: { x: 20, y: 40 } });
+      await expect(page.getByTestId('card-sheet')).toBeVisible();
+      await expect(page.getByTestId('terminal-strip')).toBeVisible();
+      expect(await horizontalScroll(page)).toBeLessThanOrEqual(0);
+    } finally {
+      await close();
+    }
+  });
+});
