@@ -34,15 +34,16 @@ args:
     type: string
     required: false
   # ⭐ The book the charter is written in — declared, not hunted for: the
-  # one in front of you (`lint:instrument-args`). Required WITH a default,
-  # so absent means that book; greedy, so `at the book` binds.
+  # one in front of you (`lint:instrument-args`), defaulted so absent
+  # means that book (optional only because it follows the optional ship —
+  # the dry rack's shape); greedy, so `at the book` binds.
   # ⚠ `requires:` is a knowingly-accepted SUPERSET (menu.yaml's shape): a
   # book is a visible thing, and the controller narrows `instanceof
   # CharterBook` because what it needs — the ships it lets, its rate — is
   # the class's data; a `class:` requirement is closed to `Agent`.
   - name: book
     type: object
-    required: true
+    required: false
     greedy: true
     prepositions: [at, from, in]
     default: "reachable:[class.CharterBook]"

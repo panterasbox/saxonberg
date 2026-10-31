@@ -237,6 +237,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // becomes. Resolved live at the cast and the blow.
     'breaksTo', 'strikes',
     'line', 'bunker', 'river', 'ferry', 'service',
+    // ⭐ (harbors A3) A charter book's `payTo` — the venue its days are
+    // paid into; a rowless one is a charter whose bill settles nowhere.
+    'payTo',
   ] as const) {
     push(f, data[f]);
   }
@@ -248,7 +251,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // that leaves from nowhere.
   // ⭐ (harbors A1) A harbor's `exempt` ships — an authored ship's row; a
   // rowless one exempts nobody and every city craft pays dues.
-  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt'] as const) {
+  // ⭐ (harbors A3) A charter book's `ships` — the ships a line's desk lets;
+  // a rowless one is a charter for a ship that is not there.
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   // ⭐ (harbors A1) A harbor's `quays[].place` — a rowless one is a berth

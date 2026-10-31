@@ -25,6 +25,9 @@ import { Template } from '../../lib/stuff/Template';
 
 const DAY_S = 86_400;
 
+/** A concrete sea (Expanse is abstract). */
+class TestSea extends Expanse {}
+
 describe('TestHarnessApi', () => {
   beforeEach(() => WorldClockApi._resetForTesting());
   afterEach(() => WorldClockApi._resetForTesting());
@@ -70,7 +73,7 @@ describe('TestHarnessApi', () => {
     afterEach(() => vi.restoreAllMocks());
 
     it('⭐ at a node: cast off from her berth, no course, lying at the node on its chart', async () => {
-      const sea = makeStuffAtPath(() => new Expanse(), '/test/sea');
+      const sea = makeStuffAtPath(() => new TestSea(), '/test/sea');
       sea.setOrigin(new GeoPosition(42, -8.5));
       const node = makeStuffAtPath(() => new ExpanseNode(), '/test/sea/island');
       node.setFocus({ rho: 0, theta: 0 });
