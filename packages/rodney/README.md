@@ -22,6 +22,7 @@ day a second streamer runs Rodney. See
 | Page | Purpose |
 | --- | --- |
 | `/standby.html` | Standby / AFK: the monastery archive, two hanging banners (the Pantera's Box hex, the Saxonberg rings), the unified chat between them, the countdown and an inscription below. |
+| `/live.html` | Live: the frame around the desktop — the sidebar (brand, topic and agenda, chat) and the lower third (a weighted rotation over a crawl). Transparent where OBS's display capture and camera show through. The rotation's panels are rows in `src/scenes/live/panels.tsx`. |
 
 ## Run
 

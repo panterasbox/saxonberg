@@ -13,7 +13,7 @@ const SERVICE_LETTER: Record<ChatService, string> = {
  * white rim because some platform colours are red, and red never touches blue
  * (DESIGN-SYSTEM § Colour).
  */
-function ServiceGlyph({ service }: { service: ChatService }) {
+function ServiceGlyph({ service, size = 22 }: { service: ChatService; size?: number }) {
   return (
     <span
       aria-label={service}
@@ -22,16 +22,16 @@ function ServiceGlyph({ service }: { service: ChatService }) {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 22,
-        height: 22,
-        marginTop: 3,
+        width: size,
+        height: size,
+        marginTop: Math.round(size * 0.14),
         borderRadius: 5,
         border: `2px solid ${palette.brand.white}`,
         background: palette.platform[service],
         color: service === 'kick' ? '#04150a' : palette.brand.white,
         fontFamily: FACE_STACKS.chrome,
         fontWeight: 700,
-        fontSize: 12,
+        fontSize: Math.round(size * 0.55),
         lineHeight: 1,
       }}
     >
@@ -40,12 +40,29 @@ function ServiceGlyph({ service }: { service: ChatService }) {
   );
 }
 
+/** Type sizes for the two places the chat appears. */
+const DENSITY = {
+  /** Standby's centre column — read from across the room. */
+  roomy: { label: 18, text: 22, glyph: 22, pad: 24, gap: 12, chrome: true },
+  /** The Live sidebar, 400 wide — the 720p legibility floor is ~26 → 17 px. */
+  compact: { label: 15, text: 19, glyph: 18, pad: 16, gap: 9, chrome: false },
+} as const;
+
 /**
  * The unified chat — Twitch, YouTube and Kick merged by the server's relay,
  * newest at the bottom, older lines fading upward. A civic panel: surface
  * ground, hairline rule, the section label in engraved capitals.
  */
-export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?: number }) {
+export default function ChatPanel({
+  lines,
+  max = 12,
+  density = 'roomy',
+}: {
+  lines: ChatLine[];
+  max?: number;
+  density?: keyof typeof DENSITY;
+}) {
+  const d = DENSITY[density];
   const shown = lines.slice(-max);
   return (
     <div
@@ -53,9 +70,11 @@ export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'rgba(13, 28, 56, 0.82)',
-        border: `1px solid ${palette.line}`,
-        boxShadow: '0 18px 60px rgba(4, 11, 23, 0.55)',
+        ...(d.chrome && {
+          background: 'rgba(13, 28, 56, 0.82)',
+          border: `1px solid ${palette.line}`,
+          boxShadow: '0 18px 60px rgba(4, 11, 23, 0.55)',
+        }),
       }}
     >
       <div
@@ -63,11 +82,11 @@ export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?
           display: 'flex',
           alignItems: 'center',
           gap: 14,
-          padding: '16px 24px 14px',
+          padding: `${d.pad * 0.66}px ${d.pad}px ${d.pad * 0.58}px`,
           borderBottom: `1px solid ${palette.line}`,
           fontFamily: FACE_STACKS.display,
           fontWeight: 500,
-          fontSize: 18,
+          fontSize: d.label,
           letterSpacing: '0.19em',
           textTransform: 'uppercase',
           color: palette.text.dim,
@@ -76,8 +95,8 @@ export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?
         Chat
         <span style={{ flex: 1, height: 1, background: palette.lineSoft }} />
         <span style={{ display: 'flex', gap: 6 }}>
-          <ServiceGlyph service="twitch" />
-          <ServiceGlyph service="youtube" />
+          <ServiceGlyph service="twitch" size={d.glyph} />
+          <ServiceGlyph service="youtube" size={d.glyph} />
         </span>
       </div>
 
@@ -88,8 +107,8 @@ export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
-          gap: 12,
-          padding: '16px 24px 20px',
+          gap: d.gap,
+          padding: `${d.pad * 0.66}px ${d.pad}px ${d.pad * 0.8}px`,
           overflow: 'hidden',
           maskImage: 'linear-gradient(to bottom, transparent 0, black 22%)',
           WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, black 22%)',
@@ -99,7 +118,7 @@ export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?
           <div
             style={{
               fontFamily: FACE_STACKS.chrome,
-              fontSize: 20,
+              fontSize: d.text - 2,
               color: palette.text.mute,
               textAlign: 'center',
               paddingBottom: 8,
@@ -109,12 +128,12 @@ export default function ChatPanel({ lines, max = 12 }: { lines: ChatLine[]; max?
           </div>
         ) : (
           shown.map((line) => (
-            <div key={line.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <ServiceGlyph service={line.service} />
+            <div key={line.id} style={{ display: 'flex', gap: d.gap, alignItems: 'flex-start' }}>
+              <ServiceGlyph service={line.service} size={d.glyph} />
               <div
                 style={{
                   fontFamily: FACE_STACKS.chrome,
-                  fontSize: 22,
+                  fontSize: d.text,
                   lineHeight: 1.35,
                   color: palette.text.fg,
                   overflowWrap: 'anywhere',

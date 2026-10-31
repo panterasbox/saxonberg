@@ -12,6 +12,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         standby: resolve(__dirname, 'standby.html'),
+        live: resolve(__dirname, 'live.html'),
       },
     },
   },

@@ -46,7 +46,13 @@ scene shares the same source and its settings).
 | `Desktop` | Display Capture | the shared monitor; capture cursor on |
 | `Camera` | Video Capture Device | your camera; 1280×720 or 1920×1080 |
 | `Mic` | Audio Input Capture | your microphone |
-| `Rodney` | Browser | `http://localhost:5200/standby.html`, 1920 × 1080; **Shutdown source when not visible: off**; **Refresh browser when scene becomes active: off**; **Page permissions: Advanced access to OBS** (lets the overlay switch scenes later) |
+| `Rodney Standby` | Browser | `http://localhost:5200/standby.html`, 1920 × 1080 |
+| `Rodney Live` | Browser | `http://localhost:5200/live.html`, 1920 × 1080 — transparent where the display and camera show through |
+
+Both browser sources: **Shutdown source when not visible: off**; **Refresh
+browser when scene becomes active: off**; **Page permissions: Advanced access
+to OBS** (lets the overlay switch scenes later). Add `?mock` to either URL to
+see it filled with canned chat and show data and no server.
 
 Settings → Audio: set **Mic/Auxiliary Audio** to *Disabled* (the `Mic`
 source replaces it). Keep Desktop Audio only if you want system sound on
@@ -56,16 +62,13 @@ stream — it carries every notification chime.
 
 | scene | contains, bottom to top | position |
 |---|---|---|
-| **Starting** | `Rodney` | full canvas |
-| **Live** | `Desktop` · `Camera` · `Mic` · `Rodney` | Desktop at 0,0 sized 1520×855 · Camera at 1520,855 sized 400×225 · Rodney full canvas on top |
-| **Away** | `Rodney` | full canvas — ⛔ no Desktop, no Camera, no Mic |
-| **Ending** | `Camera` · `Mic` · `Rodney` | Camera as in Live |
+| **Starting** | `Rodney Standby` | full canvas |
+| **Live** | `Desktop` · `Camera` · `Mic` · `Rodney Live` | Desktop at 0,0 sized 1520×855 · Camera at 1520,855 sized 400×225 · Rodney Live full canvas on top |
+| **Away** | `Rodney Standby` | full canvas — ⛔ no Desktop, no Camera, no Mic |
+| **Ending** | `Camera` · `Mic` · `Rodney Standby` | Camera as in Live |
 
 To place exactly: right-click a source → **Transform → Edit Transform**, type
 the position and size, bounding box *Scale to inner bounds*.
-
-Until the Live overlay page exists, the `Rodney` layer on Live will show the
-standby page over everything — hide it on Live (the eye icon) for now.
 
 ## 3. Output — one encode, two platforms
 

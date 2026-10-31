@@ -1,20 +1,21 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Canvas } from "@react-three/fiber";
-import Banner from "./Banner";
-import ChatPanel from "./ChatPanel";
-import ErrorBoundary from "./ErrorBoundary";
-import useAwayTimer from "../../hooks/useAwayTimer";
-import useStreamState from "../../hooks/useStreamState";
-import { palette } from "../../tokens/palette";
-import { FACE_STACKS } from "../../tokens/faces";
+import { useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import Banner from './Banner';
+import ChatPanel from '../shared/ChatPanel';
+import Stage from '../shared/Stage';
+import ErrorBoundary from './ErrorBoundary';
+import useAwayTimer from '../../hooks/useAwayTimer';
+import useStreamState from '../../hooks/useStreamState';
+import { palette } from '../../tokens/palette';
+import { FACE_STACKS } from '../../tokens/faces';
 
 // Quiet, scholarly — inscriptions under the timer.
 const APHORISMS = [
-  "The light is left on in the library.",
-  "Knowing a secret is real is worth more than the secret.",
-  "Every master leaves a mark.",
-  "Patience is the scholar’s instrument.",
-  "The work waits, and is worth the waiting.",
+  'The light is left on in the library.',
+  'Knowing a secret is real is worth more than the secret.',
+  'Every master leaves a mark.',
+  'Patience is the scholar’s instrument.',
+  'The work waits, and is worth the waiting.',
 ];
 
 /*
@@ -45,18 +46,9 @@ const COLUMN = { left: 580, width: 760, top: 115, bottom: 1080 - 785 } as const;
 function BannerScene() {
   return (
     <>
-      <ambientLight intensity={0.6} color={"#9fb0cc"} />
-      <directionalLight
-        position={[0, 5, 3]}
-        intensity={2.6}
-        color={"#f2f5fa"}
-      />
-      <pointLight
-        position={[0, -1, 2]}
-        intensity={4}
-        color={"#5b8fd6"}
-        distance={14}
-      />
+      <ambientLight intensity={0.6} color={'#9fb0cc'} />
+      <directionalLight position={[0, 5, 3]} intensity={2.6} color={'#f2f5fa'} />
+      <pointLight position={[0, -1, 2]} intensity={4} color={'#5b8fd6'} distance={14} />
       <Banner
         markUrl="/brand/panterasbox-hex-white.svg"
         wordmark="Pantera's Box"
@@ -69,37 +61,6 @@ function BannerScene() {
         phase={0.37}
       />
     </>
-  );
-}
-
-/**
- * A fixed 1920 × 1080 stage, scaled to fit the viewport. Every position in
- * this scene is in canvas pixels, so the layout holds in an OBS browser
- * source (1920 × 1080 at 1×), a preview window, or a scaled display.
- */
-function Stage({ children }: { children: ReactNode }) {
-  const fit = () =>
-    Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-  const [scale, setScale] = useState(fit);
-  useEffect(() => {
-    const onResize = () => setScale(fit());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        width: 1920,
-        height: 1080,
-        transform: `translate(-50%, -50%) scale(${scale})`,
-        overflow: "hidden",
-      }}
-    >
-      {children}
-    </div>
   );
 }
 
@@ -125,23 +86,23 @@ export default function StandbyOverlay() {
     <Stage>
       <div
         style={{
-          position: "absolute",
+          position: 'absolute',
           inset: 0,
           backgroundColor: palette.bg.ground,
-          backgroundImage: "url(/monastery.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundImage: 'url(/monastery.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           fontFamily: FACE_STACKS.chrome,
         }}
       >
         {/* Deepen the backdrop toward the ink ground so the panels read. */}
         <div
           style={{
-            position: "absolute",
+            position: 'absolute',
             inset: 0,
-            pointerEvents: "none",
+            pointerEvents: 'none',
             background:
-              "radial-gradient(ellipse at center, rgba(7,18,36,0.35) 30%, rgba(4,11,23,0.85) 100%)",
+              'radial-gradient(ellipse at center, rgba(7,18,36,0.35) 30%, rgba(4,11,23,0.85) 100%)',
           }}
         />
 
@@ -152,13 +113,13 @@ export default function StandbyOverlay() {
           fallback={
             <div
               style={{
-                position: "absolute",
+                position: 'absolute',
                 bottom: 12,
                 right: 14,
                 fontFamily: FACE_STACKS.chrome,
-                fontSize: "0.72rem",
+                fontSize: '0.72rem',
                 color: palette.text.mute,
-                pointerEvents: "none",
+                pointerEvents: 'none',
               }}
             >
               banners: WebGL unavailable in this viewer
@@ -166,16 +127,13 @@ export default function StandbyOverlay() {
           }
         >
           <Canvas
-            style={{ position: "absolute", inset: 0 }}
+            style={{ position: 'absolute', inset: 0 }}
             camera={{ position: [0, 0.2, 3.6], fov: 36 }}
             gl={{ antialias: true, alpha: true }}
             dpr={[1, 2]}
             onCreated={({ gl }) => {
               // eslint-disable-next-line no-console
-              console.log(
-                "[rodney] WebGL context OK:",
-                gl.getContext().getParameter(0x1f01),
-              );
+              console.log('[rodney] WebGL context OK:', gl.getContext().getParameter(0x1f01));
             }}
           >
             <BannerScene />
@@ -185,7 +143,7 @@ export default function StandbyOverlay() {
         {/* The chat, between the banners. */}
         <div
           style={{
-            position: "absolute",
+            position: 'absolute',
             left: COLUMN.left,
             width: COLUMN.width,
             top: COLUMN.top,
@@ -198,15 +156,15 @@ export default function StandbyOverlay() {
         {/* The caption, below them. */}
         <div
           style={{
-            position: "absolute",
+            position: 'absolute',
             left: 0,
             right: 0,
             top: 1080 - COLUMN.bottom + 28,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            pointerEvents: "none",
-            textShadow: "0 2px 18px rgba(4,11,23,0.8)",
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            pointerEvents: 'none',
+            textShadow: '0 2px 18px rgba(4,11,23,0.8)',
             fontFamily: FACE_STACKS.display,
           }}
         >
@@ -214,13 +172,13 @@ export default function StandbyOverlay() {
             style={{
               color: palette.text.dim,
               fontWeight: 500,
-              letterSpacing: "0.19em",
+              letterSpacing: '0.19em',
               fontSize: 20,
-              textTransform: "uppercase",
+              textTransform: 'uppercase',
               marginBottom: 6,
             }}
           >
-            {timer.expired ? "Resuming" : "Stream resumes in"}
+            {timer.expired ? 'Resuming' : 'Stream resumes in'}
           </div>
 
           <div
@@ -228,11 +186,11 @@ export default function StandbyOverlay() {
               color: timer.urgent ? palette.accent : palette.text.fg,
               fontWeight: 500,
               fontSize: 88,
-              fontVariantNumeric: "tabular-nums lining-nums",
+              fontVariantNumeric: 'tabular-nums lining-nums',
               lineHeight: 1,
             }}
           >
-            {timer.expired ? "any moment" : timer.label}
+            {timer.expired ? 'any moment' : timer.label}
           </div>
 
           <div
@@ -240,8 +198,8 @@ export default function StandbyOverlay() {
               color: palette.text.dim,
               fontSize: 28,
               marginTop: 14,
-              maxWidth: "48ch",
-              textAlign: "center",
+              maxWidth: '48ch',
+              textAlign: 'center',
             }}
           >
             {quote}
