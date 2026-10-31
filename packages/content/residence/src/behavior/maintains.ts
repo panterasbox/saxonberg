@@ -52,8 +52,8 @@ const DEFAULT_BATCH = 3;
 /** The shape a holding programme presents — read, never imported. */
 interface HoldingShape {
   holdingKey(): string | null;
-  conditionBand(): string;
   entryRoom(): Stuff | null;
+  house(): Stuff | null;
 }
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
@@ -94,9 +94,11 @@ export const brain = class {
     let done = 0;
     for (const holding of await holdingsUnder(extent)) {
       if (done >= batch) break;
-      // Sound shells cost nothing to skip and the verb would refuse
-      // anyway; skipping here keeps the beat's teleports honest.
-      if (holding.conditionBand() === 'sound') continue;
+      // Sound fabric costs nothing to skip and the verb would refuse
+      // anyway; skipping here keeps the beat's teleports honest. ⭐ The
+      // fabric is the holding's BUILDING's now (paint D13).
+      const house = holding.house();
+      if (house === null || !MixinApi.isShell(house) || house.conditionBand() === 'sound') continue;
       const room = holding.entryRoom();
       if (!room || !MixinApi.isContainer(room)) continue;
       keeper.teleport(room as Stuff & Container);
@@ -145,7 +147,7 @@ async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
       const h = s as unknown as Partial<HoldingShape>;
       if (
         typeof h.holdingKey !== 'function' ||
-        typeof h.conditionBand !== 'function' ||
+        typeof h.house !== 'function' ||
         typeof h.entryRoom !== 'function'
       ) {
         continue;

@@ -1,0 +1,14 @@
+# ⭐ A holding's house (paint build D6) — minted one per holding, keyed by
+# the holding's extent, its extent and entrance set at the holding's wake.
+# ⭐ It starts BARE, as the shell always did: its fabric wears from the day
+# it is held until somebody paints it (lens 6 — the demand for the house
+# painter is there first). `paint` lays a coat; `maintain` mends the fabric.
+class: /system/residence/idea/HoldingStructure
+data:
+  shortDescription: house
+  register: definite
+  keywords: [house, home, building]
+  longDescription: >-
+    A plain house, its boards and sills set in the weather like any other
+    house's.
+  heightM: 6

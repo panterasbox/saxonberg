@@ -29,12 +29,16 @@ describe('Structure', () => {
     const tower = makeStuff(() => new Structure());
     expect(MixinApi.isPositioned(tower)).toBe(false);
     expect(MixinApi.isVoyaging(tower)).toBe(false);
-    expect(MixinApi.isPersistable(tower)).toBe(false);
+    // ⭐ A building composes Persistable (paint D7) but keeps a record only
+    // once it is SOLD — a staged one restages; a ship persists always.
+    expect(MixinApi.isPersistable(tower)).toBe(true);
+    expect(tower.shouldPersist()).toBe(false);
     const ship = makeStuff(() => new Ship());
     expect(ship).toBeInstanceOf(Structure);
     expect(MixinApi.isPositioned(ship)).toBe(true);
     expect(MixinApi.isVoyaging(ship)).toBe(true);
     expect(MixinApi.isPersistable(ship)).toBe(true);
+    expect(ship.shouldPersist()).toBe(true);
     expect(ship.getExpansePosition()).toBeNull();
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(ship.getExpansePosition()!.latDeg).toBe(50);

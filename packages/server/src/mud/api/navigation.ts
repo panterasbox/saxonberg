@@ -18,7 +18,6 @@
  */
 
 import type Structure from '../lib/structure/Structure';
-import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
@@ -233,32 +232,17 @@ export class NavigationApi {
 
   /**
    * ⭐ Attach a MINTED structure (no row of its own — a holding's house)
-   * at its extent, so {@link structureAt} answers it for its rooms and
-   * their exposure sees its walls (paint build, 2026-10-31). The owner
-   * detaches it when the building goes.
+   * at `extent`, so {@link structureAt} answers it for its rooms and their
+   * exposure sees its walls (paint build, 2026-10-31). The owner detaches
+   * it when the building goes.
    */
-  public static attachStructure(structure: Structure): void {
-    logic().attachStructure(structure);
+  public static attachStructure(extent: string, structure: Structure): void {
+    logic().attachStructure(extent, structure);
   }
 
   /** Undo {@link attachStructure}. */
-  public static detachStructure(structure: Structure): void {
-    logic().detachStructure(structure);
-  }
-
-  /**
-   * ⭐⭐ The structures whose LANDING `room` is — the buildings whose
-   * outside is at hand from here (paint build, 2026-10-31): the far side
-   * of each exit's structure (or the ship lying alongside), kept when
-   * `room` passes its {@link Structure.isLandedAt}. Over what is standing.
-   */
-  public static structuresLandedAtNow(room: Stuff): Structure[] {
-    return logic().structuresLandedAtNow(room);
-  }
-
-  /** {@link structuresLandedAtNow}, standing up each exit's structure and far side first. */
-  public static structuresLandedAt(room: Stuff): Promise<Structure[]> {
-    return logic().structuresLandedAt(room);
+  public static detachStructure(extent: string, structure: Structure): void {
+    logic().detachStructure(extent, structure);
   }
 
   /** Every node in one zone. */

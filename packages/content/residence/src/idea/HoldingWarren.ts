@@ -36,16 +36,17 @@ import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persista
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { Shell } from '@saxonberg/server/mud/lib/structure/Shell';
+import HoldingStructure, { HOLDING_STRUCTURE_ROW } from './HoldingStructure';
+import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
 
 type MemberStuff = Stuff & Container;
 
@@ -80,17 +81,6 @@ export const UPKEEP_TERMS = [
   'owner-all',
 ] as const;
 
-/** The five condition bands — banded prose, no gauge (P10). */
-const CONDITION_BANDS: Array<[number, string]> = [
-  [0.9, 'sound'],
-  [0.7, 'weathered'],
-  [0.5, 'worn'],
-  [0.25, 'shabby'],
-  [0, 'dilapidated'],
-];
-
-const GAME_DAY_SECONDS = 86_400;
-
 const ProgrammeBase = PersistableMixin(
   WarrenMemberMixin(
     ContainerMixin(RoomWarren),
@@ -102,8 +92,6 @@ export default class HoldingWarren extends ProgrammeBase {
     floorplan: { persistent: true, authorable: true },
     upkeepTerm: { persistent: true, authorable: true },
     addressBase: { persistent: true, authorable: true },
-    shellCondition: { persistent: true },
-    shellStamp: { persistent: true },
   };
 
   /** The authored floorplan — the INITIAL mint (D16). */
@@ -118,11 +106,8 @@ export default class HoldingWarren extends ProgrammeBase {
    *  derives from the holding key's tail. */
   public addressBase: string = '';
 
-  /** Shell condition, 0..1 (D4) — persistent, reconciled on read. */
-  public shellCondition: number = 1;
-
-  /** Game-time stamp (seconds) of the last shell reconcile. */
-  public shellStamp: number = 0;
+  /** The holding's minted house, when it has one of its own (paint D6). */
+  private _house: HoldingStructure | null = null;
 
   /** Live rooms by full key (`<extent>` or `<extent>/<leaf>`). */
   private _roomsByKey: Map<string, MemberStuff> = new Map();
@@ -342,6 +327,7 @@ export default class HoldingWarren extends ProgrammeBase {
       await this.wireEdge(edge);
     }
     this.layOut();
+    await this.wakeHouse();
   }
 
   /** ⭐ A holding is a frame of its own — see {@link layOut}. */
@@ -550,6 +536,10 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     const extent = this.holdingKey();
     if (extent) await PersistableApi.capture(this as unknown as Stuff, extent);
+    const house = this._house;
+    if (extent && house !== null && !house.isDestroyed()) {
+      await PersistableApi.capture(house as unknown as Stuff, extent);
+    }
   }
 
   /**
@@ -583,6 +573,14 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     super.teardown(); // destructs every member room
     this._roomsByKey.clear();
+    const house = this._house;
+    this._house = null;
+    if (house !== null && !house.isDestroyed()) {
+      NavigationApi.detachStructure(house.getExtent(), house);
+      if (revert) (house as unknown as Persistable).markForRevert();
+      house.setHolding(null);
+      StuffApi.destruct(house as unknown as Stuff);
+    }
   }
 
   /**
@@ -615,68 +613,41 @@ export default class HoldingWarren extends ProgrammeBase {
     this.teardown();
   }
 
-  // ── shell condition + the weathering clock (D4/P10) ─────────────
+  // ── the house: the shell is the building's now (paint D6/D13) ──
 
   /**
-   * Reconcile the shell's weathering: a linear slope on GAME time,
-   * rate from the `residence.weather.daysToWorn` setting (game-days
-   * from sound to worn — HALF the condition scale, so full decay takes
-   * twice that). Stamp-forward; no scheduler; honest across restarts
-   * because the stamp is persistent state.
+   * ⭐⭐ This holding's HOUSE — the building its shell belongs to. The
+   * shell's condition moved off the holding onto the kernel's `ShellMixin`
+   * (paint D13), so a holding stands a building up at its wake: the
+   * Structure ROW that already covers its extent (Seznick House, Duncan
+   * Hall — one building, many units), else a {@link HoldingStructure} of
+   * its own, keyed by its extent and registered with the location graph.
+   * Who OWES the upkeep stays here (`upkeepTerm`).
    */
-  public reconcileShell(): number {
-    const now = WorldClockApi.getNow().rawValue();
-    if (this.shellStamp <= 0) {
-      this.shellStamp = now;
-      return this.shellCondition;
-    }
-    const elapsed = now - this.shellStamp;
-    if (elapsed <= 0) return this.shellCondition;
-    const daysToWorn = this.settingNumber('residence.weather.daysToWorn', 45);
-    const perSecond = 0.5 / (daysToWorn * GAME_DAY_SECONDS);
-    this.shellCondition = Math.max(
-      0,
-      this.shellCondition - elapsed * perSecond,
-    );
-    this.shellStamp = now;
-    return this.shellCondition;
+  public house(): (StructureBase & Shell) | null {
+    const own = this._house;
+    if (own !== null && !own.isDestroyed()) return own;
+    const extent = this.holdingKey();
+    if (!extent) return null;
+    const s = NavigationApi.structureAtNow(extent);
+    return s !== null && MixinApi.isShell(s) ? (s as StructureBase & Shell) : null;
   }
 
-  /** The banded, no-gauge read (P10): sound / weathered / worn /
-   *  shabby / dilapidated. Reconciles first. */
-  public conditionBand(): string {
-    const c = this.reconcileShell();
-    for (const [floor, band] of CONDITION_BANDS) {
-      if (c >= floor) return band;
-    }
-    return 'dilapidated';
-  }
-
-  /** The legible cause line for a declined shell. */
-  public conditionCause(): string | null {
-    const c = this.shellCondition;
-    if (c >= 0.9) return null;
-    if (c >= 0.5) {
-      return 'The paint is going; weather is starting to find the seams.';
-    }
-    return 'The paint has gone; rain has gotten into the sills.';
-  }
-
-  /** The maintenance act's restore (P10): back to sound, stamped now. */
-  public restoreShell(): void {
-    this.shellCondition = 1;
-    this.shellStamp = WorldClockApi.getNow().rawValue();
-  }
-
-  private settingNumber(key: string, fallback: number): number {
-    try {
-      const raw = AppApi.setting(key);
-      const n = Number.parseFloat(raw);
-      if (Number.isFinite(n) && n > 0) return n;
-    } catch {
-      /* cold cache — fallback */
-    }
-    return fallback;
+  /** Stand this holding's house up — the covering row's, or a minted one. */
+  private async wakeHouse(): Promise<void> {
+    const extent = this.holdingKey();
+    if (!extent) return;
+    if (this._house !== null && !this._house.isDestroyed()) return;
+    const covering = await NavigationApi.structureAt(extent);
+    if (covering !== null && !(covering instanceof HoldingStructure)) return;
+    const house = await StuffApi.clone<HoldingStructure>(HOLDING_STRUCTURE_ROW);
+    house.setExtent(extent);
+    const entry = this.getFloorplan().find((r) => r.entry) ?? this.getFloorplan()[0];
+    house.setEntrance(entry ? this.roomKeyOf(entry.leaf) : extent);
+    house.setHolding(this);
+    await PersistableApi.restoreOrSeed(house as unknown as Stuff, extent);
+    NavigationApi.attachStructure(extent, house);
+    this._house = house;
   }
 
   // ── Warren policy hooks ─────────────────────────────────────────

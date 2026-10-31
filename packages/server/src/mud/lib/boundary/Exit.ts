@@ -48,6 +48,7 @@ import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Door from '../../platform/thing/Door';
+import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -989,12 +990,12 @@ export default class Exit extends ConcealableMixin(Idea) {
    * whatever is moored there (`AboardExit`) answers. What a landing reads
    * of a structure that moves.
    */
-  public alongsideNow(): Stuff | null {
+  public alongsideNow(): Structure | null {
     return null;
   }
 
   /** {@link alongsideNow}, after whatever lookup the exit needs first. */
-  public async lyingAlongside(): Promise<Stuff | null> {
+  public async lyingAlongside(): Promise<Structure | null> {
     return this.alongsideNow();
   }
 

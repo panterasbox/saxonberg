@@ -910,6 +910,54 @@ fork, the lens that chose is named.
   paint`; the colorman's seat `fulfills [painting]`. `chemistry` (shipped)
   for the still cut and the corrosion jars.
 
+### Build decisions (recorded during the build)
+
+- **B1 (W0)** — the ship clause of the landing is a protocol on the EXIT
+  (`Exit.alongsideNow()` / `lyingAlongside()`, null by default; the
+  `AboardExit` answers), not a duck-typed read of `AboardExit`. *CLAUDE.md
+  § no duck typing.*
+- **B2 (W0)** — no `postRegister` stand-up of the entrance: the entrance
+  clause is a PATH test and needs nothing standing.
+- **B3 (W1, lint:object-verbs)** — the room-side landing reads are methods
+  on `Place` (`landedStructuresNow()`, `landedStructures()`), not
+  `NavigationApi` statics taking a room; `attachStructure(extent, s)` takes
+  the extent first. *Verbs on objects.*
+- **B4 (W1)** — `Place.getPlacePath()`: a keyed room of a shared row (a
+  lot's hall) answers its KEY, else its identity. Membership, the landing,
+  `exposure()` and the survey read it — without it no holding room is a
+  member of its own house.
+- **B5 (W1, D7 simplified)** — "sold" = the covering parcel's current
+  owner is a PLAYER (`ParcelApi.coveringParcelOfSync`, sync, no
+  `refreshTitle`). An organization or group holding the ground is not a
+  sale. *Lens 7: a person answers for it.*
+- **B6 (W1)** — `PersistableMixin` moved from `Ship` onto the platform twin
+  (contributors are read off the whole chain, so position is moot);
+  `Ship.persistsWhenStaged() → true`. Coat/weathering/shell slices are
+  gated by a `Faced.persistsCoats()` hook (`FacedMixin.captureSlice`), so
+  a staged ship's hull resets while her voyage persists.
+- **B7 (W1)** — the weather walk is `BiomeApi.airSegmentsFor(scope, …)`
+  (shipped; per-segment air + rain), with the scope a standing LANDING
+  (`StructureBase.outsideScope()`; `standUpLandings()` from inside). No
+  new site walk.
+- **B8 (W1)** — an oil's heat on a STRUCTURE is said by the survey only;
+  the `onCoatHeat` hook was cut (no consumer — `lint:unconsumed-seams`).
+  On a thermal good, `Thermal.reconcileCoats` air-sets a wet coat over the
+  room's air and `depositHeat`s the oxidation.
+- **B9 (W1)** — paint color is the pigments' fold by share × hiding power,
+  NOT blended over the binder (a chalk + lampblack mix read near-white);
+  the binder's own body colors a pigment-less coat only.
+- **B10 (W2)** — a holding's house starts BARE (no coat): its fabric wears
+  from the day it is held, exactly as the old shell did, until somebody
+  paints it. *Lens 6 — the house painter's demand is there first.*
+- **B11 (W2)** — Duncan Hall gets NO structure row: its steps and cistern
+  share the hall's extent, so a hall-wide row would change their exposure.
+  Its units mint a house each (D6's own fallback). Seznick House has a row
+  (bare until W8 lays its oil coat).
+- **B12 (W2)** — `maintain` with a sound fabric under a wanting coat
+  refuses `coat-not-fabric` (*"that is a brush's work"*); the kit is
+  spared. `maintain`/`maintains` find the house through the holding
+  (`HoldingWarren.house()`) first, then the graph.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1005,7 +1053,12 @@ Every wave lands at a commit `build(paint W<n>): …`, with `pnpm test:near`,
 every touched pack's own vitest and `lint:family` green. The plan is kept
 current as each lands.
 
-### W0 — the landing, and a structure you can address (kernel)
+### W0 — the landing, and a structure you can address (kernel) ✅
+
+> **Done** (757210c0e). Base/twin split, the landing rule, the exit's
+> alongside protocol, live structure attachments, the `here` push,
+> `survey`'s optional target. Notes B1, B2. construction.md's correction
+> rides W9's docs.
 
 Goal: from a landing, `look <building>` and `survey <building>` bind and
 answer; a closet, a neighbor's parlor and a sailed ship's berth do not.
@@ -1037,7 +1090,15 @@ answer; a closet, a neighbor's parlor and a sailed ship's berth do not.
 - Commit: `build(paint W0): the landing — a structure is reached where it
   meets the weather`.
 
-### W1 — the coat sets by the air and weathers; the shell is a capability (kernel)
+### W1 — the coat sets by the air and weathers; the shell is a capability (kernel) ✅
+
+> **Done, landed WITH W2** (one commit — the cohesion note: W1 alone would
+> have dropped a home's fabric line). `KineticSpec.sets`/`exothermicJPerKg`
+> (validated), `Faced.airCoats`, `Weathering`, `Shell`, `Paint`,
+> `Material.pigment/adhesive/weatheringMPerGameYear`, the twin's
+> composition + persistence, the survey's building read and the look
+> augmenter. `Compounding.payloadFor` moved to W4 (its consumer).
+> Notes B3–B9.
 
 Goal: one coat model for a pot, a sign and a building; a building left
 alone loses its coat and then its fabric.
@@ -1074,7 +1135,13 @@ alone loses its coat and then its fabric.
 - Commit: `build(paint W1): a coat sets by its binder's chemistry and
   weathers; the shell is every building's`.
 
-### W2 — the shell leaves residence; a holding gets its building
+### W2 — the shell leaves residence; a holding gets its building ✅
+
+> **Done** (with W1). `HoldingWarren` lost the shell; `HoldingStructure` +
+> its row; `wakeHouse` mints/registers/persists it; `maintain [<x>]`, the
+> `maintains` brain and `CirculationWarren.conditionOf` read the building;
+> the residence dial moved to `structure.weather.daysToWorn`; Seznick
+> House's structure row. Notes B10–B12.
 
 Goal: `survey`, `maintain`, Walter's round and the ascent gate all read a
 kernel structure; Hinkley lots and Seznick House have buildings.

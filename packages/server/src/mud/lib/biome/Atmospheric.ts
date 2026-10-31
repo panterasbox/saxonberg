@@ -1382,7 +1382,7 @@ export function AtmosphericMixin<
      */
     public exposure(): Exposure {
       const self = this as unknown as Stuff;
-      const path = self.getTemplatePath();
+      const path = self.getPlacePath();
       let structure: Structure | null = null;
       if (path) {
         try {
@@ -1466,7 +1466,7 @@ export function AtmosphericMixin<
       let wallsShared = 0;
       for (const { exit, dest } of neighbours) {
         const vertical = AtmosphericMixin.isVertical(exit.getDirection());
-        const destPath = dest.getTemplatePath();
+        const destPath = dest.getPlacePath();
         const sameStructure =
           structure !== null && destPath !== null && structure.hasMember(destPath);
         if (sameStructure && enclosed(dest)) {

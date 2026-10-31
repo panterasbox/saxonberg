@@ -49,6 +49,8 @@ import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
+import type Structure from '../structure/Structure';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 
@@ -203,6 +205,47 @@ export default class Place extends PlaceBase {
     horizon: { persistent: true, authorable: true },
     featured: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐⭐ The structures whose LANDING this place is — the buildings whose
+   * outside is at hand from here (paint D2): the structure beyond each
+   * exit (or the ship lying alongside it), kept when this place passes its
+   * `isLandedAt`. Over what is standing.
+   */
+  public landedStructuresNow(): Structure[] {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isExitable(self)) return [];
+    const out = new Map<string, Structure>();
+    for (const exit of self.getExits().values()) {
+      const s = Place.structureBeyond(exit.alongsideNow(), exit.peekDestination(), exit.getDestinationTemplatePath());
+      if (s !== null && !out.has(s.stuffId) && s.isLandedAt(self)) out.set(s.stuffId, s);
+    }
+    return [...out.values()];
+  }
+
+  /**
+   * {@link landedStructuresNow}, standing each exit's structure and far
+   * side up first (load on use: each exit's authored destination is the
+   * ref followed; a ship's quay asks who is alongside).
+   */
+  public async landedStructures(): Promise<Structure[]> {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isExitable(self)) return [];
+    for (const exit of self.getExits().values()) {
+      if ((await exit.lyingAlongside()) !== null) continue;
+      const dest = exit.getDestinationTemplatePath();
+      if (!dest) continue;
+      const s = await NavigationApi.structureAt(dest);
+      if (s !== null && exit.peekDestination() === null) await StuffApi.singleton(dest).catch(() => null);
+    }
+    return this.landedStructuresNow();
+  }
+
+  private static structureBeyond(alongside: Structure | null, far: Stuff | null, authored: string | null): Structure | null {
+    if (alongside !== null) return alongside;
+    const path = far?.getPlacePath() || authored;
+    return path ? NavigationApi.structureAtNow(path) : null;
+  }
 
   /**
    * The ZONES scanned from this room, overriding its zone's `horizon`

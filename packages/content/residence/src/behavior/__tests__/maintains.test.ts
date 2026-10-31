@@ -39,6 +39,10 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { FacedMixin } from '@saxonberg/server/mud/lib/material/Faced';
+import { WeatheringMixin } from '@saxonberg/server/mud/lib/material/Weathering';
+import { ShellMixin } from '@saxonberg/server/mud/lib/structure/Shell';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
@@ -47,16 +51,25 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 const DORMS = '/test/duncan/dorms';
 const OTHER = '/test/elsewhere/units';
 
+/** A stand-in house: its band is set by the test (paint D13 — the fabric is the building's). */
+class TestHouse extends ShellMixin(WeatheringMixin(FacedMixin(Idea))) {
+  static _mixinName = 'MaintainsTestHouse';
+  public band = 'sound';
+  public override conditionBand(): string {
+    return this.band;
+  }
+}
+
 /** A stand-in programme — the three methods are the contract. */
 class HoldingWarren extends RoomWarren {
   public key = '';
-  public band = 'sound';
+  public housed: TestHouse | null = null;
   public entry: Stuff | null = null;
   holdingKey(): string | null {
     return this.key;
   }
-  conditionBand(): string {
-    return this.band;
+  house(): Stuff | null {
+    return this.housed;
   }
   entryRoom(): Stuff | null {
     return this.entry;
@@ -113,7 +126,8 @@ let institution: TestInstitution;
 function programme(key: string, band: string): HoldingWarren {
   const p = makeStuff(() => new HoldingWarren());
   p.key = key;
-  p.band = band;
+  p.housed = makeStuff(() => new TestHouse());
+  p.housed.band = band;
   p.entry = makeStuff(() => new Locale()) as unknown as Stuff;
   institution.standing.push(p as unknown as Stuff & Container);
   return p;

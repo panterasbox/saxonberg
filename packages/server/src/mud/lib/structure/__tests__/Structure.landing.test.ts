@@ -16,7 +16,6 @@ import type { Stuff } from '../../stuff/Stuff';
 import Location from '../../location/Location';
 import Structure from '../../../platform/idea/Structure';
 import { StuffApi } from '../../../api/stuff';
-import { NavigationApi } from '../../../api/navigation';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { attachGraph } from '../../location/__tests__/attachments-fixture';
 
@@ -98,10 +97,10 @@ describe('a street before a house', () => {
   });
 
   it('the navigation read names the house from the street and not from the hall', () => {
-    expect(NavigationApi.structuresLandedAtNow(street).map((s) => s.getTemplatePath())).toEqual([
+    expect(street.landedStructuresNow().map((s) => s.getTemplatePath())).toEqual([
       `${TOWN}/house/structure`,
     ]);
-    expect(NavigationApi.structuresLandedAtNow(hall)).toEqual([]);
+    expect(hall.landedStructuresNow()).toEqual([]);
   });
 });
 
@@ -160,7 +159,7 @@ describe('a ship alongside', () => {
     const quay = room(`${TOWN}/quay`, false);
     exits(quay, [to(`${TOWN}/hesper/deck`, ship)]);
     expect(ship.isLandedAt(quay)).toBe(true);
-    expect(NavigationApi.structuresLandedAtNow(quay).map((s) => s.stuffId)).toEqual([ship.stuffId]);
+    expect(quay.landedStructuresNow().map((s) => s.stuffId)).toEqual([ship.stuffId]);
 
     // She sails: the exit's authored berth still names her deck, but
     // nothing lies alongside — and a moving ship lands nowhere.

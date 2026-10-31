@@ -38,6 +38,8 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { MarkupAugmenter } from '../../api/mml';
+import { Paint } from './Paint';
+import type { PaintMakeup } from './Paint';
 
 /** The two faces a good can have. */
 export type FaceName = 'outside' | 'inside';
@@ -75,6 +77,36 @@ export interface CoatLayer extends EnclosureSpec {
    * like the body under it (B100). Absent until heat reaches it.
    */
   progress?: { extent: number; dose?: number };
+  /** ⭐ What a paint coat was made of — the pot's makeup, kept (paint D8). */
+  paint?: PaintMakeup;
+  /** Words lettered in the coat (`write … with paint`) — they go when it does. */
+  marks?: string;
+  /** The sun this coat has had, `0..1` — a fugitive pigment fades by it (paint D5). */
+  faded?: number;
+}
+
+/**
+ * ⭐ One stretch of the AIR a coat sits in (paint build D4): how long, how
+ * warm, how humid, whether rain is falling on it, and how freely the air
+ * changes (`1` in the open; an indoor room's air changes per hour over
+ * four, capped at `1`). A coat that sets by the air reads these; a coat
+ * that sets by heat never does.
+ */
+export interface CoatAir {
+  seconds: number;
+  kelvin: number;
+  /** Relative humidity, `0..1`. */
+  rh: number;
+  rain: boolean;
+  airChange: number;
+}
+
+/** What an air window did to the coats. */
+export interface AirCoatResult {
+  /** How many coats set (or set badly). */
+  set: number;
+  /** Heat an oxidizing coat gave off, J per m² of face. */
+  heatJPerM2: number;
 }
 
 export interface Faced {
@@ -85,7 +117,18 @@ export interface Faced {
   /** The material that meets the world at a face: its top coat's, else the body's. */
   outermost(face: FaceName): Material | null;
   /** Lay a WET coat of `materialPath` on a face (outermost). */
-  layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay?: number): void;
+  layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay?: number, paint?: PaintMakeup): void;
+  /**
+   * ⭐ Advance every wet coat that sets by the AIR over `segments` (paint
+   * D4): carbonation and oxidation want air and time, drying and solvent
+   * want dry air; rain on a wet coat runs it and frost crazes it. A coat
+   * that sets by heat is untouched (`heatCoats`'s).
+   */
+  airCoats(segments: readonly CoatAir[]): AirCoatResult;
+  /** The area of a face, m² — a good's skin (`6·V^⅔`); a building's walls and roof. */
+  coatAreaM2(): number;
+  /** Are this thing's coats kept in its record? A good's always; a staged building's not (paint D7). */
+  persistsCoats(): boolean;
   /**
    * ⭐ Advance every wet coat by HEAT-WORK over a window (B100): `integrate`
    * is ∫ rate(T) dt over the window for a kinetic change — the same integral
@@ -165,6 +208,27 @@ const COAT_WORDS: Record<CoatState, (coat: Material | null, face: FaceName) => s
   crawled: (m, f) => `The ${nameOf(m)} on its ${f} has crawled back off bare patches.`,
 };
 
+/**
+ * ⭐ The look line for one coat. A PAINT coat says its color and what it
+ * is (paint D8): *"It is painted yellow on the outside: yellow ochre in
+ * linseed oil."* Anything else is the state's line.
+ */
+function coatLine(top: CoatLayer, face: FaceName): string {
+  const m = materialAt(top.material);
+  if (top.paint === undefined) return COAT_WORDS[top.state](m, face);
+  const paint = new Paint(top.paint);
+  const what = paint.words(top.faded ?? 0);
+  const faded = (top.faded ?? 0) * (1 - paint.lightfastness()) > 0.25 ? ', faded by the sun' : '';
+  switch (top.state) {
+    case 'set':
+      return `It is ${paint.coatWord()} ${paint.colorTag(top.faded ?? 0)} on the ${face}${faded} — ${what}.`;
+    case 'wet':
+      return `It has a wet coat of ${what} on the ${face}, not yet set.`;
+    default:
+      return COAT_WORDS[top.state](m, face);
+  }
+}
+
 function nameOf(m: Material | null): string {
   return m?.getName() || 'coating';
 }
@@ -182,7 +246,7 @@ const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   for (const face of host.faces()) {
     const top = host.getCoats(face)[0];
     if (!top) continue;
-    lines.push(COAT_WORDS[top.state](materialAt(top.material), face));
+    lines.push(coatLine(top, face));
   }
   // ⭐ A weeping vessel's outside is wet for as long as it weeps — the one
   // rule the evaporative cooling reads too (drive C, run 37: the jar of
@@ -204,6 +268,21 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       coats: { persistent: true, authorable: true, runtimeState: true },
       absorbed: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * The coats' slice — the declared fields, unless the host says its coats
+     * are not kept (a staged ship's hull, paint D7). Plain JSON either way.
+     */
+    static captureSlice(host: Stuff): { fields: Record<string, unknown> } {
+      const self = host as unknown as Faced & { coats: unknown; absorbed: unknown };
+      if (!self.persistsCoats()) return { fields: {} };
+      return { fields: { coats: structuredClone(self.coats), absorbed: structuredClone(self.absorbed) } };
+    }
+
+    /** @hook Are the coats kept in this thing's record? Default yes. */
+    public persistsCoats(): boolean {
+      return true;
+    }
 
     /** What porous faces have soaked up and keep giving back, by face. */
     public absorbed: Partial<Record<FaceName, AromaTag[]>> = {};
@@ -275,7 +354,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return MixinApi.isTangible(self) ? self.getMaterial() : null;
     }
 
-    public layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay = 0): void {
+    public layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay = 0, paint?: PaintMakeup): void {
       if (typeof materialPath !== 'string' || materialPath === '') return;
       const layer: CoatLayer = {
         material: materialPath,
@@ -283,6 +362,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         state: 'wet',
       };
       if (dirtyAtLay > 0) layer.dirtyAtLay = dirtyAtLay;
+      if (paint !== undefined) layer.paint = { ...paint, pigments: paint.pigments.map((p) => ({ ...p })) };
       this.coats = { ...this.coats, [face]: [layer, ...(this.coats[face] ?? [])] };
     }
 
@@ -295,6 +375,8 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
           const change = mat?.getKinetics()?.changes()[0];
+          // A coat the AIR sets is `airCoats`'s, never the fire's.
+          if (change?.setsByAir()) return coat;
           if (change === undefined) {
             // No heat-work law: the melt point alone decides.
             const melts = mat?.getMeltingPoint().rawValue() ?? 0;
@@ -329,6 +411,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
           const change = mat?.getKinetics()?.changes()[0] ?? null;
+          if (change?.setsByAir()) return coat;
           const fuseK = change?.getReferenceK() ?? mat?.getMeltingPoint().rawValue() ?? 0;
           if (!(fuseK > 0) || peakK < fuseK) return coat;
           changed += 1;
@@ -346,7 +429,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          if (mat === null || mat.getKinetics()?.setsByHeat()) return coat;
+          if (mat === null || mat.getKinetics()?.setsByHeat() || mat.getKinetics()?.airSet()) return coat;
           const melts = mat.getMeltingPoint().rawValue();
           if (!(melts > atK)) return coat;
           changed += 1;
@@ -355,6 +438,70 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       if (changed > 0) this.coats = next;
       return changed;
+    }
+
+    public airCoats(segments: readonly CoatAir[]): AirCoatResult {
+      let set = 0;
+      let heatJPerM2 = 0;
+      let touched = false;
+      const next: Partial<Record<FaceName, CoatLayer[]>> = {};
+      for (const [face, list] of Object.entries(this.coats) as [FaceName, CoatLayer[]][]) {
+        next[face] = (list ?? []).map((coat) => {
+          if (coat.state !== 'wet') return coat;
+          const mat = materialAt(coat.material);
+          const change = mat?.getKinetics()?.airSet() ?? null;
+          if (mat === null || change === null) return coat;
+          const sets = change.getSets();
+          let extent = coat.progress?.extent ?? 0;
+          let out: CoatLayer = coat;
+          for (const seg of segments) {
+            if (!(seg.seconds > 0)) continue;
+            // ⭐ Rain on a wet coat washes it down; frost on one cracks it
+            // as the water in it freezes — the shipped fault states.
+            if (seg.rain) {
+              out = { ...out, state: 'run' };
+              break;
+            }
+            if (seg.kelvin < 273.15) {
+              out = { ...out, state: 'crazed' };
+              break;
+            }
+            const f =
+              sets === 'carbonation'
+                ? Math.min(1, Math.max(0, seg.airChange))
+                : sets === 'oxidation'
+                  ? Math.min(1, Math.max(0.1, seg.airChange))
+                  : Math.max(0, 1 - seg.rh);
+            if (!(f > 0)) continue;
+            const before = extent;
+            extent = change.advance(extent, (change.rateAt(seg.kelvin) * f * seg.seconds) / 3_600);
+            const density = mat.getDensity().rawValue() || 900;
+            heatJPerM2 += (extent - before) * coat.thicknessM * density * change.getExothermicJPerKg();
+            if (extent + 1e-9 >= 1) break;
+          }
+          touched = true;
+          if (out.state !== 'wet') {
+            set += 1;
+            return out;
+          }
+          const progress = { extent };
+          if (extent + 1e-9 < 1) return { ...out, progress };
+          set += 1;
+          const dirty = (coat.dirtyAtLay ?? 0) > dial(AppSettingKeys.facesCrawlDirt, 0.3);
+          return { ...out, progress, state: dirty ? 'crawled' : 'set' };
+        });
+      }
+      if (touched) this.coats = next;
+      return { set, heatJPerM2 };
+    }
+
+    /** @hook A face's area — a good's skin, `6·V^⅔` off its mass and material; a building overrides it. */
+    public coatAreaM2(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return 0;
+      const kg = self.getMass().rawValue();
+      const density = self.getMaterial()?.getDensity().rawValue() || 2000;
+      return 6 * Math.pow(Math.max(0, kg / density), 2 / 3);
     }
 
     /**

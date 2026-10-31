@@ -27,7 +27,6 @@
 import Structure from './Structure';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
-import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { Template } from '../../lib/stuff/Template';
@@ -58,8 +57,8 @@ const LOOKOUT_POSITION = 'lookout';
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends PersistableMixin(
-  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(Structure)))),
+export default class Ship extends VoyagingMixin(
+  MovingMixin(EngagedMixin(PositionedMixin(Structure))),
 ) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
@@ -70,6 +69,11 @@ export default class Ship extends PersistableMixin(
     holed: { persistent: true },
     overboard: { persistent: true },
   };
+
+  /** ⭐ A ship persists whoever holds her — her voyage is hers (paint D7). */
+  protected override persistsWhenStaged(): boolean {
+    return true;
+  }
 
   /**
    * ⭐ Who went over her side and has not come back aboard (river D30):

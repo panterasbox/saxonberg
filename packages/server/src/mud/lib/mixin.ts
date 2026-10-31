@@ -744,6 +744,12 @@ export const Mixins = {
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
   // inside; each carries coats, outermost first". On every Good.
   Faced: 'FacedMixin',
+  // ⭐⭐ Weathering (paint D5) — "my coats thin where the weather reaches
+  // them, and my pigment fades in the sun". Requires Faced.
+  Weathering: 'WeatheringMixin',
+  // ⭐⭐ Shell (paint D5/D13) — "I have a fabric that holds while my coat
+  // does and wears once it is gone, and can be mended". Requires Weathering.
+  Shell: 'ShellMixin',
   // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
   // whether I can be trimmed, fired, or ruined by the weather".
   Greenware: 'GreenwareMixin',
@@ -1040,6 +1046,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   StrikingDieMixin: "{} isn't a die you could strike a blank on",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
+  WeatheringMixin: "{} does not stand out in the weather",
+  ShellMixin: "{} has no fabric to mend",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the

@@ -1880,6 +1880,12 @@ export const AppSettingKeys = {
   cordageMinHangM: "cordage.minHangM",
   /** Cordage — a caught fall's shock, as a multiple of the climber's weight (D12). */
   cordageFallFactor: "cordage.fallFactor",
+  /** Structure — game-days a bare building's fabric takes from sound to worn (paint D5; was residence's). */
+  structureWeatherDaysToWorn: "structure.weather.daysToWorn",
+  /** Structure — the wet film one brushed coat of paint lays, m (paint D9). */
+  structurePaintCoatThicknessM: "structure.paint.coatThicknessM",
+  /** Structure — an outside coat thinner than this reads as going, m (paint D5). */
+  structureCoatThinM: "structure.coat.thinM",
   /** Faces — the thickness a dipped coat is laid at, m (ceramics D5). */
   facesDipThicknessM: "faces.dipThicknessM",
   /** Faces — a coat shrinking this much more than its body (1/K) crazes. */

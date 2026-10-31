@@ -76,6 +76,7 @@ import type { StoreySpec } from '../spatial/Enclosed';
 import type { Stuff } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { ParcelApi } from '../../api/parcel';
 import type Exit from '../boundary/Exit';
 
 export default class Structure extends DetailedMixin(
@@ -209,7 +210,7 @@ export default class Structure extends DetailedMixin(
     const alongside = exit.alongsideNow();
     if (alongside !== null) return alongside.stuffId === this.stuffId;
     const far = exit.peekDestination();
-    const path = (far?.getIdentityPath() ?? far?.getTemplatePath()) || exit.getDestinationTemplatePath();
+    const path = far?.getPlacePath() || exit.getDestinationTemplatePath();
     if (!path || !this.hasMember(path)) return false;
     if (this.entrance !== null && path === this.entrance) return true;
     return far !== null && MixinApi.isAtmospheric(far) && far.exposure().holdsAir();
@@ -236,6 +237,79 @@ export default class Structure extends DetailedMixin(
       }
     }
     return out;
+  }
+
+  /**
+   * ⭐⭐ Has this building been SOLD — does a PERSON hold the ground under
+   * it (paint build D7)? An owned building keeps its paint and its fabric
+   * across a reboot; one nobody has bought is STAGED, and comes back as its
+   * row authored it every time the world restages (today: every boot).
+   * A pack's or an institution's building stays staged — an organization
+   * or a group holding the ground is not a sale.
+   */
+  public isTitleSold(): boolean {
+    const ext = this.extent;
+    if (ext === '') return false;
+    try {
+      return ParcelApi.coveringParcelOfSync(ext)?.getOwner()?.kind === 'player';
+    } catch {
+      return false;
+    }
+  }
+
+  /** The resident members — rooms under the extent standing now. */
+  public residentMembers(): Stuff[] {
+    const ext = this.extent;
+    if (ext === '') return [];
+    const seen = new Set<string>();
+    const out: Stuff[] = [];
+    for (const m of [...StuffApi.findAllByTemplatePath(ext), ...StuffApi.findByPathGlob(`${ext}/**`)]) {
+      if (m.isDestroyed() || seen.has(m.stuffId) || !MixinApi.isAtmospheric(m)) continue;
+      const path = m.getPlacePath();
+      if (!path || !this.hasMember(path)) continue;
+      seen.add(m.stuffId);
+      out.push(m);
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ How much outside there is, m² — the exterior walls and roof of every
+   * resident member (each place's own face rule). What a coat of paint is
+   * spread over, and what the survey says the job is.
+   */
+  public exteriorAreaM2(): number {
+    let a = 0;
+    for (const m of this.residentMembers()) {
+      if (MixinApi.isAtmospheric(m)) a += m.exposure().exteriorAreaM2();
+    }
+    return a;
+  }
+
+  /**
+   * Stand up the places one exit from each resident member — the landings
+   * this building's outside is read from (load on use: each exit's
+   * authored destination is the ref followed, never a search).
+   */
+  public async standUpLandings(): Promise<Stuff[]> {
+    for (const m of this.residentMembers()) {
+      if (!MixinApi.isExitable(m)) continue;
+      for (const exit of m.getExits().values()) {
+        if (exit.peekDestination() !== null) continue;
+        const dest = exit.getDestinationTemplatePath();
+        if (!dest || this.hasMember(dest)) continue;
+        await StuffApi.singleton(dest).catch(() => null);
+      }
+    }
+    return this.landingsNow();
+  }
+
+  /**
+   * The place whose air the outside meets — a standing landing, else
+   * `null` (nothing reconciles until somebody stands where it is seen).
+   */
+  public outsideScope(): Stuff | null {
+    return this.landingsNow()[0] ?? null;
   }
 
   /**
