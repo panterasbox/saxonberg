@@ -94,6 +94,13 @@ export const PANELS: PanelRow[] = [
     when: (show) => show.wikiOfDay !== null,
     render: (show) => show.wikiOfDay && <WikiPanel article={show.wikiOfDay} />,
   },
+  {
+    key: 'compact',
+    weight: 1,
+    seconds: 20,
+    when: () => true,
+    render: () => <CompactPanel />,
+  },
 ];
 
 function capitalize(s: string): string {
@@ -827,6 +834,142 @@ function WikiPanel({ article }: { article: WikiArticle }) {
             src={qr}
             alt=""
             style={{ width: 120, height: 120, border: `3px solid ${palette.brand.white}` }}
+          />
+          <div
+            style={{
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 14,
+              color: palette.text.mute,
+              marginTop: 4,
+            }}
+          >
+            read it
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The draft constitution, readable on GitLab. */
+const CONSTITUTION_URL =
+  'https://gitlab.com/panterasbox/saxonberg/-/blob/master/docs/compact/governance/draft-constitution.md';
+
+/**
+ * The three houses (draft constitution, Art. III–IV): each kind of influence
+ * is earned by one kind of contribution and sits in its own house.
+ */
+const HOUSES = [
+  { name: 'Producer House', act: 'Build it', how: 'by what your work earns' },
+  { name: 'Capital House', act: 'Fund it', how: 'by what you give' },
+  { name: 'Consumer House', act: 'Play it', how: 'by how you take part' },
+];
+
+/**
+ * The Compact — who governs Saxonberg, evergreen. Nothing is governed yet
+ * (influence begins at launch), so the card describes the design, never a
+ * live vote; live civics replace it once the government sits.
+ */
+function CompactPanel() {
+  const qr = useQr(CONSTITUTION_URL);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 40 }}>
+      <div style={{ flex: '0 0 470px' }}>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.display,
+            fontWeight: 500,
+            fontSize: 16,
+            letterSpacing: '0.19em',
+            textTransform: 'uppercase',
+            color: palette.accent,
+          }}
+        >
+          The Compact
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.display,
+            fontWeight: 500,
+            fontSize: 30,
+            lineHeight: 1.15,
+            color: palette.text.fg,
+            marginTop: 6,
+          }}
+        >
+          Governed by the people who build it, fund it and play it
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 18,
+            color: palette.text.mute,
+            marginTop: 8,
+          }}
+        >
+          A draft constitution · influence begins at launch
+        </div>
+      </div>
+
+      {HOUSES.map((h) => (
+        <div
+          key={h.name}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            alignSelf: 'stretch',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            borderLeft: `1px solid ${palette.line}`,
+            paddingLeft: 24,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: FACE_STACKS.display,
+              fontWeight: 500,
+              fontSize: 15,
+              letterSpacing: '0.19em',
+              textTransform: 'uppercase',
+              color: palette.text.dim,
+            }}
+          >
+            {h.name}
+          </div>
+          <div
+            style={{
+              fontFamily: FACE_STACKS.display,
+              fontWeight: 500,
+              fontSize: 34,
+              lineHeight: 1.1,
+              color: palette.text.fg,
+              marginTop: 6,
+            }}
+          >
+            {h.act}
+          </div>
+          <div
+            style={{
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 19,
+              lineHeight: 1.3,
+              color: palette.text.dim,
+              marginTop: 6,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {h.how}
+          </div>
+        </div>
+      ))}
+
+      {qr && (
+        <div style={{ textAlign: 'center', flex: '0 0 auto' }}>
+          <img
+            src={qr}
+            alt=""
+            style={{ width: 110, height: 110, border: `3px solid ${palette.brand.white}` }}
           />
           <div
             style={{

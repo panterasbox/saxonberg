@@ -27,6 +27,8 @@ export interface ShowProfile {
   topicLabel: string;
   /** The topic line when the feed sets none. */
   defaultTopic: string;
+  /** The show's subject in one sentence — the owner's, verbatim. */
+  pitch: string;
   /** Lower-third panel keys this show rotates (rows in scenes/live/panels). */
   panels: string[];
   /** Does the crawl run? Its items are Saxonberg's in-world news. */
@@ -41,7 +43,8 @@ export const PROFILES: Record<string, ShowProfile> = {
     mark: '/brand/saxonberg-rings-white.svg',
     topicLabel: 'Now',
     defaultTopic: 'Working on Saxonberg',
-    panels: ['join', 'world', 'money', 'community', 'about', 'gitlab', 'wiki'],
+    pitch: 'Saxonberg is a text world in your browser that its players build, fund and govern.',
+    panels: ['join', 'world', 'money', 'community', 'compact', 'about', 'gitlab', 'wiki'],
     crawl: true,
   },
 };
