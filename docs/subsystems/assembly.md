@@ -144,6 +144,14 @@ Discipline, which must exist when the row ships** (`lint:bills` arm 5):
 practise them is the proof that a new way of joining is a row with no
 engine change.
 
+⭐ **Knots are joints too** (cordage D7): `bowline`, `clove-hitch`,
+`sheet-bend`, `reef-knot` and `splice` ship with the platform, because the
+kernel verbs `tie` and `splice` name them. A knot's `strength` is the share
+of the rope it keeps, and the rope captures it on its knot record at
+tie-time with the tier's dressing ([cordage.md](cordage.md)).
+`JOINT_FAILURES` gained **`spilled`** (a reef knot under an uneven load); a
+clove hitch works loose as `slack`.
+
 **`JointCatalogue`** (`platform/idea/JointCatalogue.ts`) warms by CLASS
 (`Template.findByClass`), so any root's rows are found. ⭐ It loads on
 first use — no `onCreate`, **no boot line** (the scan sweep's rule:
