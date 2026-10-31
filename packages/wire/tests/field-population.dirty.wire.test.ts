@@ -446,6 +446,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
       expect(refusedFor(r), s).toBeNull();
     }
     expect(await read(p, 'inventory')).not.toMatch(/seed wheat/i);
+    // ⚠ A hectare ploughed and sown runs past dark (final pass 4: every
+    // look after it read "pitch dark", and the hand, cold and winded, could
+    // not lift a watering can in Stage B). A night's rest indoors, then
+    // back out in daylight.
+    await advance(8 * 3_600);
+    await daylight();
     const looked = await read(p, 'look');
     for (const part of ['the gate end', 'the middle', 'the far side']) {
       expect(looked, `a line for ${part}`).toMatch(new RegExp(`At ${part} it is`, 'i'));

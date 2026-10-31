@@ -23,6 +23,7 @@ import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
 import { BlendIdentity } from '../../lib/craft/BlendIdentity';
+import { GrammarApi } from '../grammar';
 
 /**
  * One search target inside a scope. Each candidate represents a
@@ -400,8 +401,13 @@ export function scoreCandidate(
   const nameLower = candidate.name.toLowerCase();
   if (!nameLower && candidate.keywords.length === 0) return 0;
 
-  // The name IS the query — one word or a phrase (`top end`).
-  if (queryWords.length > 0 && nameLower === queryWords.join(' ')) return 100;
+  // The name IS the query — one word or a phrase (`top end`). ⚠ Its
+  // article is the register, not the stem: a definite-register patch
+  // presents as "the top end", and the query's own article is already
+  // stripped (field population final pass 4 — without this it tied the
+  // stand standing in it at the exact-keyword tier, and `look at the top
+  // end` asked which).
+  if (queryWords.length > 0 && bareName(nameLower) === queryWords.join(' ')) return 100;
 
   // ⭐ A query that IS one of the thing's keywords names that thing outright,
   // above a word that merely appears in some other name: `look clay` at the
@@ -446,6 +452,14 @@ export function scoreCandidate(
   if (nameMatches.length > 0) return 5 * nameMatches.length;
 
   return 0;
+}
+
+/** A lowercased name with one leading article dropped. */
+function bareName(nameLower: string): string {
+  const space = nameLower.indexOf(' ');
+  return space > 0 && GrammarApi.ARTICLES.has(nameLower.slice(0, space))
+    ? nameLower.slice(space + 1)
+    : nameLower;
 }
 
 /** Whether `word` begins one of the whitespace-separated words of `text`. */
