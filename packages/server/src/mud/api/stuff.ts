@@ -196,11 +196,15 @@ export class StuffApi {
    * Avatar trees). ALS gives each top-level clone its own store; nested
    * clones inherit the parent's via `getStore()`.
    *
-   * Invariant: every `clone()` adds its `templatePath` to the active
-   * store on entry and removes it in a finally block, regardless of
-   * success / failure.
+   * ⭐ And the store is the CHAIN, not the tree (harbors × cordage, 2026-10-31):
+   * each nested `clone()` runs under its parent's chain plus its own path,
+   * a fresh immutable array, so two SIBLING clones of one shared row inside
+   * one tree — two `passage` exits on a deck, or a ship standing up in the
+   * background while a room's exits are cloned — never see each other. A
+   * single mutable set per tree conflated them exactly as the module-global
+   * did, and boot died on `passage → … → passage` with no real cycle.
    */
-  static #cloneStackALS = new AsyncLocalStorage<Set<string>>();
+  static #cloneStackALS = new AsyncLocalStorage<readonly string[]>();
 
   /**
    * In-flight `singleton()` resolutions, keyed by path. Coalesces
@@ -498,31 +502,23 @@ export class StuffApi {
     // applier resolution and a hook that clones can hit this.
     // The in-flight set is scoped to this async clone tree, so concurrent
     // independent clones of the same path don't false-trip it.
-    const existing = this.#cloneStackALS.getStore();
-    const stack = existing ?? new Set<string>();
+    const chain = this.#cloneStackALS.getStore() ?? [];
 
-    if (stack.has(templatePath)) {
+    if (chain.includes(templatePath)) {
       throw new Error(
         `StuffApi.clone('${templatePath}'): circular template ` +
           `dependency — already in flight (path chain: ${[
-            ...stack,
+            ...chain,
             templatePath,
           ].join(' → ')})`
       );
     }
 
-    const run = async (): Promise<T> => {
-      stack.add(templatePath);
-      try {
-        return await this.#cloneInner<T>(templatePath, context, opts);
-      } finally {
-        stack.delete(templatePath);
-      }
-    };
-
-    // A top-level clone establishes the tree's store; nested clones
-    // (triggered during hydrate / onCreate) inherit it via getStore().
-    const made = await (existing ? run() : this.#cloneStackALS.run(stack, run));
+    // Each clone runs under its own chain — its ancestors and itself;
+    // nested clones (triggered during hydrate / onCreate) extend it.
+    const made = await this.#cloneStackALS.run([...chain, templatePath], () =>
+      this.#cloneInner<T>(templatePath, context, opts)
+    );
     if (opts?.madeFrom !== undefined && MixinApi.isChattel(made)) {
       const inputs = Array.isArray(opts.madeFrom)
         ? (opts.madeFrom as readonly Stuff[])

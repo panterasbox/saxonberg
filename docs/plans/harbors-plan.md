@@ -487,3 +487,10 @@ Steps that were wrong (each commit says so):
 
 Cascades only (no defect of their own): run 1 steps 3, 5, 6; runs 2–4 steps
 5–7 and 10 (the sailor never came alongside, or a prompt stayed open).
+
+### Post-cordage re-drive — 2026-10-31: NOT COMPLETED (boot defect fixed; run 2 reaped for memory)
+
+After the cordage merge (`28c2976b9`) and the reconciliation (`e9db6b344`), on a fresh DB, port 2019:
+- **Run 1 — the world died at boot, 0 tests run.** `StuffApi.clone('/platform/idea/exits/passage'): circular template dependency` (chains `… hesper/idea/outfit → passage → open-sea → passage` and `… ostrander/deck → passage → passage`), then `E11000` on `holder_snapshots` for `/world/terminus/hesper/structure` (two stand-ups racing) and `Hesper cannot make fast at estuary-mouth` downstream of the broken deck clone. **Root cause: the clone cycle guard was one MUTABLE set per async clone TREE**, so two SIBLING clones of one shared row inside a tree (two `passage` exits; a ship standing up beside a room's exits) saw each other — the module-global bug's twin. Nothing in the merge touched cloning; the merge (cordage's ropewalk producers) only changed boot timing enough to make the siblings overlap. **Fix (kernel, `api/stuff.ts`): the ALS store is the CHAIN** — each `clone()` runs under `[...parentChain, path]`, a fresh immutable array; a real cycle (the path in its own ancestry) still throws. Test: `stuff.test.ts` › *two SIBLING clones of one row inside one tree do not false-trip the guard* (35/35).
+- **Run 2 — reaped by Claude Code for low system memory** during pack install (before the world was up); not restarted, per the reaper's instruction. ⚠ **OWED: the Stage A blocking drive and one `cordage.dirty` run on the merged tree.** Port 2019 left free.
+
