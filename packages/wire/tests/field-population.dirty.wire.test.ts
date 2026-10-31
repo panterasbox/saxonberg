@@ -643,7 +643,11 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     // ⭐ Staging: a hungry far side. The campus hand feeds the hungriest
     // patch every beat (W5), so by now she may have filled it — and a
     // full patch has nothing to take.
-    await setReserve('nitrogen', 'nutrientFraction', { 'far-side': 0.3 });
+    // ⚠ And the other two FULL: the hand feeds whichever patch is
+    // hungriest every beat, and arriving mid-step she fed the gate end
+    // (blocking run, after the seed build) — "untouched" must mean the
+    // PLAYER touched only the far side.
+    await setReserve('nitrogen', 'nutrientFraction', { 'gate-end': 1, middle: 1, 'far-side': 0.3 });
     const NITROGEN =
       'return self.getContainer().soilParts().map(p => p.soilPartKey() + "=" + p.nutrientFraction()).join(",")';
     const before = byPart(await founderEval(HOME_FIELD, CAMPUS, NITROGEN));
