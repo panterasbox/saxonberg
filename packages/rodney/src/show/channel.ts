@@ -12,8 +12,7 @@ export const CHANNEL = {
   /** When the show is on. ⚠ Tentative (2026-10-31): "we'll see". */
   schedule: 'Live Saturdays, 10 am Pacific',
   /** The persona's thesis — closes the About card, unattributed. */
-  quote:
-    'See now, this is why mad scientists are generally less desirable than your common or garden variety scientist.',
+  quote: 'See, that is why, in general, a mad scientist is less desirable than a garden-variety scientist.',
   /** Where to find the channel, in the order the overlay lists them. */
   platforms: [
     { service: 'twitch', name: 'Twitch', handle: 'bobalu_smallberries', url: 'https://www.twitch.tv/bobalu_smallberries' },
