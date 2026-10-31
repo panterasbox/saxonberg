@@ -17,7 +17,13 @@ swamping, and a ship that sinks slowly to the bottom and lies there as her own
 wreck). It is the first build out of
 [ships-and-harbors-slate](../slates/builds/ships-and-harbors-slate.md)
 (§1 alongside, §2 one model, §3 registers and flags, §6 and §18 harbors, §7
-leaks and sinking), compacted against the river build on 2026-10-24.
+leaks and sinking), compacted against the river build on 2026-10-24, and
+reviewed on 2026-10-31 against what merged since (pace, seats, law and order,
+guarantees of play, the soak lane) and the cordage build (MR !502).
+
+⚠ **Cordage merges first.** This build ties ships up with cordage's rope and
+crosses the same movement code; if harbors branches before !502 lands, it
+merges master after.
 
 ## Staging — one build, two review rounds
 
@@ -59,11 +65,18 @@ A player can already (survey 2026-10-24):
 - **Go under**: water is a state of any place; the column below deep water;
   things that sink go to the bed; breath, buoyancy, swimming up.
 - **Disciplines**: navigation (explicitly not seamanship, not pilotage),
-  carpentry, swimming, diving.
+  carpentry, swimming, diving — and, from cordage, **ropework** (knots).
+- **Rope** (cordage, MR !502): one rope whose use is where its ends are tied
+  (`tie` / `untie`, `coil`, a line heaved only once coiled); the painter is a
+  rope; worn and rotted rope sells back for less. The Wharfside heaving line
+  is a rope; its bollard is only in the description.
+- **Coats on a good** (ceramics): tar and pitch as a coat that sets as it
+  cools — a boat's hull among the goods that carry one.
 
 Therefore what is genuinely new here is: **a port** (berths counted by quay
-length, a harbormaster you hail, mooring by `course`, a way aboard named for
-each ship that comes and goes with her, dues, the tide's window at the bar);
+length, a harbormaster you hail, mooring by `course` with her own lines made
+fast to the quay's bollards, a way aboard named for each ship that comes and
+goes with her, dues, the tide's window at the bar, a ship chandler);
 **many ships from one kind** (each her own rooms, cargo,
 name and condition, asleep when nobody is aboard); **owned boats** that ride
 lower as they are loaded; **a register** of title in shares under one flag;
@@ -74,16 +87,20 @@ herself on the bottom.
 ## Goals
 
 - A seagoing ship comes in over the bar, is given a berth or sent to the
-  roads by the harbormaster, and lies **alongside a quay** with a way aboard
-  named for her; leaving, the way goes with her. Two ships at one quay are two
+  roads by the harbormaster, and lies **alongside a quay**, held by her own
+  lines made fast to its bollards, with a way aboard named for her; leaving,
+  her lines come in and the way goes with her. Two ships at one quay are two
   ways, by name.
 - **A quay holds as many ships as its length allows**; a full quay sends the
   next to the anchorage. A deep ship crosses the bar only in the high-water
   window, so the queue moves with the tide.
-- **The harbormaster is a seat**: an NPC keeps the routine; a player who holds
-  it decides on posted criteria, and the refusal says which.
+- **The harbormaster is a seat**: an NPC keeps the routine and covers any
+  shift no player holds; a player who holds it decides within the posted
+  criteria — never beyond them — and every refusal cites its criterion.
 - **Dues are derived and paid**: berth dues by the ship's size, at posted
   rates, to the harbor's own account.
+- **A ship chandler on the Town Quay** sells what a ship consumes: the
+  caulker's kit (pitch and oakum) and mooring line.
 - **The harbor keeps its own record** of who lies alongside which quay, since
   when, and what she owes — what berths, dues and the harbormaster read.
 - **A ship kind is built many times**: each ship of a kind has her own rooms,
@@ -94,21 +111,23 @@ herself on the bottom.
   has the helm. Her gangway is a door the master locks and unlocks; her keys
   are the master's to hand out.
 - **A ship's hull weathers like a house's shell** — one clock for every
-  structure, read in the same bands, restored by the same upkeep; on a ship a
-  worn hull leaks.
+  structure, at the same rate, read in the same bands, restored by the same
+  upkeep; on a ship a worn hull leaks.
 - **A player can own a ship**: buy a smack from the yard and name her as she
   is entered in Terminus City's register; **title is held in shares**
   (sixty-fourths) that can be sold; she flies **one flag at a time**, and **the
   flag state's jurisdiction applies aboard at sea**.
-- **A player can own a boat**: bought, owned, sold like any good; she rides
-  lower as she is loaded and an overloaded boat swamps. **Or hire one** from
-  the put-in's outfitter by the day.
+- **A player can own a boat**: bought, owned, sold like any good, with her
+  painter; she rides lower as she is loaded and an overloaded boat swamps.
+  **Or hire one** from the put-in's outfitter by the day.
 - **Handling a craft is seamanship**: mooring, pumping and handling a ship or
-  boat exercise a new **seamanship** Discipline (the seafaring build deepens
-  it with crews and the watch).
-- **A hull wears**: neglected caulking leaks into the bilge; the crew pumps a
-  ship and bails a boat; left alone the water rises, rooms flood from the
-  lowest up, and she sinks — slowly enough for the people aboard to act.
+  boat exercise a new **seamanship** Discipline that builds on ropework and
+  leaves knots to it (the seafaring build deepens it with crews and the
+  watch).
+- **A hull wears**: a ship's neglected caulking leaks into the bilge; a boat's
+  leaks from use and damage; the crew pumps a ship and bails a boat; left
+  alone the water rises, rooms flood from the lowest up, and she sinks —
+  slowly enough for the people aboard to act.
 - **A sunk ship is her own wreck**: on the bottom where she went down, her
   rooms under water, her cargo in her hold, her title intact; divers can go
   down to her; nobody knows where she lies until someone charts her.
@@ -150,6 +169,15 @@ herself on the bottom.
 - **Rafting** (deck to deck) and **the careening hard, slipway and boathouse**
   → the slate § 6, *what else a harbor holds*.
 - **Dragging anchors, fire and explosion in a crowded harbor** → the slate § 18.
+- **Running rigging replaced on a schedule, and the chandler's bulk trade** —
+  cordage handed both to the ships build; this build's chandler sells the
+  kit and mooring line only, and rigging stays authored → `trade-seafaring`
+  (the slate § 15).
+- **Picking oakum** (the act, historically forced labor) → the prison slate;
+  oakum here is a good the chandler sells.
+- **Coir and sisal** (rope that resists seawater) → the cordage slate.
+- **Pricing by the real hour instead of the world's day** → the pace build
+  (its open question 4); this build's rates are grain.
 
 ## Placement
 
@@ -157,9 +185,12 @@ herself on the bottom.
   ⭐ **inside the bar** on the Kestrel's estuary (`/world/terminus/harbor`),
   joined to the estuary. Its layout: the **Town Quay** (room for about three
   ships, the harbor office on it), the **Fish Quay** (one), the **Harbor
-  Stairs** (a public landing for boats), and **the roads** outside the bar as
-  the anchorage, reached by boat. Wharfside stays the river quay; the
-  *Ostrander* berths there.
+  Stairs** (a public landing for boats, where a rescuer can carry someone up
+  out of the water), and **the roads** outside the bar as the anchorage,
+  reached by boat. Every quay has **bollards** — real fixtures a line is made
+  fast to. Wharfside stays the river quay; the *Ostrander* berths there (every
+  compass point off its bank is taken, so ways to and from it are named).
+- **The ship chandler** is a seller on the Town Quay.
 - **The harbor authority** is the city's existing **harbor works** (a
   committee-appointed business): the harbormaster is a **second seat** there,
   beside the pilot's; dues are paid to the harbor works' account.
@@ -196,7 +227,13 @@ herself on the bottom.
   over the bar, delivers it) depends on a player taking her helm. Under this
   build's rule (only her master steers) the loop survives by **charter**
   (below); **sugar's drive step 20 changes to charter her first** — this
-  build owns that edit.
+  build owns that edit, which lands in sugar's soak drive (the voyage is a
+  span step; sugar's whole drive moved to the soak lane).
+- **Cordage** (MR !502): its ropewalk is off Wharfside's towpath, up the
+  river — no collision with the harbor district. Its heaving line on the
+  Wharfside quay steps is a rope with a bollard only in prose; the harbor's
+  bollards are real. Its `belay` is the climbing sense; the nautical sense
+  (making fast to a pin) is a future seamanship collision, not this build's.
 - **The harbor works** (Nell Abery, the pilot; the harbor board) gains the
   harbormaster's seat.
 - **Today's ships get owners**: the *Hesper* and **two new regulars** (authored
@@ -213,7 +250,8 @@ herself on the bottom.
   haulage's carriage verb (no ship verb is added); `transfer` (land title) is
   how shares change hands, if it is the honest verb — the plan decides.
 - **The canoes at the put-in** (three free kind boats) — become **Ada Fenn's
-  hire boats**, by the day; her boat shed also sells owned boats.
+  hire boats**, by the day; her boat shed also sells owned boats. Every boat,
+  owned or hired, comes with a painter, and the shed stocks them.
 
 ## Surface decisions
 
@@ -231,38 +269,58 @@ and helmsmen wait for crews. A sole owner holds all three. Nobody else can set
 her course.
 
 ### The gangway is the master's — a lockable door with keys
-Lens 4 (a ship is property; walking aboard uninvited is trespass), lens 2
-(enable, never impose; no new verb) and lens 5 (the new object answers the
+Lens 4 (a ship is property; the lock is the wall — the criminal code has no
+trespass, because a system that already prevents the act needs no law), lens
+2 (enable, never impose; no new verb) and lens 5 (the new object answers the
 same commands): her gangway is a door — `unlock` it and anyone may board,
 `lock` it and only those holding her key may; the master hands out keys as a
 householder does. A newly bought ship is locked, her key with her owner.
+⛔ **A lock refuses boarding, never leaving** — anyone aboard can always go
+ashore (the guarantee that you can always leave any place and reach home).
 
 ### One weathering clock for houses and ships
 The owner's rule: **whatever the rule, it works the same way as residences.**
-A ship's hull is her shell — the same clock (it runs while she sleeps), the
-same bands, the same upkeep act and the same terms of who owes it. What the
-band MEANS differs by kind: a worn house reads worn; a worn hull leaks. A
+A ship's hull is her shell — the same clock (it runs while she sleeps), **the
+same rate** (a game year from sound to the worst band, about a real month),
+the same bands, the same upkeep act and the same terms of who owes it. What
+the band MEANS differs by kind: a worn house reads worn; a worn hull leaks. A
 sleeping ship's leak catches up when she is next looked at (lens 1): a
 neglected ship at her berth has **settled onto the shallow harbor bottom** and
-can be pumped out; at anchor in deep water she would have sunk.
+can be pumped out; one left untended at anchor in deep water for that long
+has sunk — real neglect, never a weekend away. Told as states ("after a long
+absence"), never as a number of days.
+
+### A boat leaks from use, not the calendar
+A boat is a good, not a structure (lens 1, and the economy's rule that a good
+decays by what happens to it): she leaks from wear in use and from damage —
+a holed hull, a grounding — never from the calendar. Her caulking is a coat
+on her hull, like any tarred good's. Only a ship's hull is on the shell
+clock.
 
 ### The *Hesper* is chartered
 Lens 1 (a charter — hiring the whole ship — is how a merchant historically
 moved a cargo; the slate § 17), lens 3b (the player stays the carrier, the
 hole sugar's economy was built around) and lens 6 (the charterer pays the
-line). Closed by rules already set: chartered **by the day**, like the canoe
-hire; arranged **aboard her wherever she lies** (her company's hand keeps the
-book) or at the line's desk on the Town Quay; **the charterer is her master
-for the charter** — the helm is theirs, and so is clearing her dues; when the
-charter ends she lies where she was left, and the next charterer finds her
-there. Chartering the line's regulars is the same rows, if the line offers
-them.
+line). A **voyage charter** (lens 1: voyage and time charters are both
+historical, and a voyage outlasts any fixed few days): it runs **until she
+next berths**, and is **billed by the world's days it lasted**; arranged
+**aboard her wherever she lies** (her company's hand keeps the book) or at
+the line's desk on the Town Quay; **the charterer is her master for the
+charter** — the helm is theirs, and so is clearing her dues; when the charter
+ends she lies where she berthed, and the next charterer finds her there.
+Chartering the line's regulars is the same rows, if the line offers them.
 
-### Mooring has no new verb
-`course <quay>` moors her alongside it; any other course unmoors; the way
-aboard on the quay is **named for her** (`go hesper`) and her deck gains the
-way ashore. Decided in the slate (§ 6); a ship alongside is mentioned by the
-quay's `look` as a derived line, never as a thing in the room.
+### Mooring has no new verb — and her lines are real rope
+`course <quay>` brings her alongside it and **makes her own lines fast to
+the quay's bollards**; any other course casts them off and takes them in.
+Lens 1 (lines hold a ship alongside, and making fast is seamanship) chose
+real lines over a prose abstraction; lens 2 kept the ordinary case at one
+command. The lines are rope from her own gear, under cordage's rule — their
+use is where their ends are tied: a ship with **no line aboard is refused**
+("she has no lines to make fast"), and a line cast off a bollard by hand
+leaves her unmoored. The way aboard on the quay is **named for her** (`go
+hesper`) and her deck gains the way ashore. A ship alongside is mentioned by
+the quay's `look` as a derived line, never as a thing in the room.
 
 ### Berths are a quay's length
 A quay's **authored length** against each ship's length says how many fit;
@@ -272,10 +330,13 @@ address) are not — they wait for life aboard (§ 8).
 
 ### The harbormaster decides on posted criteria
 An arrival `hail`s the harbor office: a berth by length and kind, or the
-roads; **refusals name the criterion** (no berth long enough, draught over the
-bar until the flood, unpaid dues). An NPC holds the seat by default; a player
-appointed to it makes the calls, and the appeal is to the harbor works'
-appointing committee.
+roads; **refusals cite the criterion** (no berth long enough, draught over
+the bar until the flood, unpaid dues, the office closed). An NPC holds the
+seat by default and covers every shift no player holds; a player appointed to
+it makes the calls **within the posted criteria** — *a player's authority is
+never more than the NPC's*, so a new criterion is one the harbor works'
+committee posts, never one a seat-holder invents at the quay. The appeal is
+to that committee, which answers for the NPC as for the player.
 
 ### The tide's window at the bar
 A ship whose draught exceeds the water over the bar at the time waits for the
@@ -308,17 +369,34 @@ her (a government's brand) and can differ from the register — false colors
 are possible and readable as such by anyone who checks the register.
 
 ### A boat is owned like any good — or hired
-Bought at the boat shed, carried in your title, sold or given; her draught
-deepens and her freeboard falls with what is in her; overloaded, she swamps.
-The put-in's canoes are **the outfitter's hire boats** (lens 6: someone
-pays): hired **by the day**, kept as many days as you pay for (the clock runs
-at 12×), returned to her.
+Bought at the boat shed with her painter, carried in your title, sold or
+given; her draught deepens and her freeboard falls with what is in her;
+overloaded, she swamps. The put-in's canoes are **the outfitter's hire
+boats** (lens 6: someone pays): hired **by the world's day**, kept as many
+days as you pay for, returned to her. A painter longer than a few meters is
+coiled before it is thrown, as any rope is.
 
 ### The harbor clears a ship to sail once her dues are paid
 Lens 1 (real ports cleared a ship only once her dues were paid) and lens 7
 (the posted criterion is *dues owed*; the appeal is the harbor works'
-committee): dues accrue per day alongside at posted rates by her length;
-`course` out of the harbor is refused until her managing owner has paid.
+committee): dues accrue per world's day alongside at posted rates by her
+length — including while she sleeps; `course` out of the harbor is refused
+until her managing owner has paid. ⛔ **The harbor detains the ship, never
+the people**: anyone aboard can always go ashore.
+
+### Rates are grain
+Berth dues, the canoe hire and the charter are priced per world's day at
+rates their owners post (the harbor works, Ada Fenn, the line) — **grain**,
+an author's default to change, not law. The pace design calls pricing per
+game day a monetary shock for an owner away a weekend and leaves the
+per-real-hour alternative open; that decision is the pace build's, and these
+rates follow it.
+
+### The chandler
+Lens 6 (caulking and mooring create the demand; cordage handed the chandler
+to this build): a seller on the Town Quay with the **caulker's kit** (pitch,
+and oakum — a good whose honest source is old rope) and **mooring line**.
+Picking oakum is not this build's.
 
 ### The harbor keeps hours
 Lens 1 and lens 3a (the port has a day): a ship hailing while the
@@ -336,8 +414,12 @@ out at the worker's effort. Nothing is rolled: neglect is visible, measurable
 
 ### Sinking takes time, and the wreck is the ship
 The bilge rises; rooms flood from the lowest up; when she can no longer float
-she goes down. People still aboard are in rooms now under water and can swim
-up the column. The wreck **is the ship** — the same rooms, at depth, cargo in
+she goes down. The last stage — told she is settling — is **encounter pace**,
+sized in acts, not seconds: long enough for a person aboard to do several
+things (grab what matters, get a boat away, go over the side), because *no
+window shall be shorter than the act that answers it*. People still aboard
+are in rooms now under water and can swim up the column. Rope in a flooded
+hold rots as any wet rope does. The wreck **is the ship** — the same rooms, at depth, cargo in
 the hold, title intact — at the bottom where she sank; in a river she becomes
 an obstruction. Nobody knows where she lies until someone charts her.
 
@@ -347,9 +429,10 @@ an obstruction. Nobody knows where she lies until someone charts her.
    line); leak rate against pump rate (a tank-filling problem with a bad
    ending); the tide's window (draught against the water over the bar);
    capacity as geometry (berths from length). Disciplines: navigation
-   (shipped) and ⭐ **seamanship**, new here — mooring, pumping and handling a
-   craft exercise it (decided by this lens: otherwise the build exercises
-   none); the seafaring build deepens it.
+   (shipped), ropework (cordage's — her lines made fast) and ⭐
+   **seamanship**, new here, building on ropework — mooring, pumping and
+   handling a craft exercise it (decided by this lens: otherwise the build
+   exercises none); the seafaring build deepens it.
 2. **Creative expression** — ordinary case with no code: a new port, quay,
    ship kind or register is rows. Bespoke without breaking: an authored ship
    (the *Hesper*) is one kind built once; the yard's catalogue is a stocked
@@ -358,89 +441,135 @@ an obstruction. Nobody knows where she lies until someone charts her.
    goes down slowly while people decide what to save. **Participation** — the
    harbormaster's seat is a job a player can hold; shipowning in shares lets a
    town own a ship together; *can the polity do something we didn't want?* —
-   flags of convenience (a polity competing for registrations), a
-   harbormaster who refuses on a posted criterion nobody expected.
+   flags of convenience (a polity competing for registrations), a harbor
+   works committee that posts a criterion nobody expected (the seat-holder
+   applies it; they never invent one).
 4. **Values** — stranding someone remains a deliberate, recorded act; the
    register is public, so false colors can be found out; nobody is pressed or
-   crimped (crews are the next build, coercion never a mechanic).
+   crimped (crews are the next build, coercion never a mechanic); a lock or a
+   detention holds a ship, never a person — anyone can always go ashore.
 5. **Continuity** — oar, sail and steam answer the same `course`, `pump`,
    `maintain`; the same berth takes a sailing ship and a steamer.
 6. **Economy** — produces: berth dues for the harbor works, a yard's sales,
-   pumping and caulking work, wreck diving. Consumes: ships, pitch and oakum
-   (caulking). Who pays: shipowners, in dues and upkeep. Was the demand there
+   pumping and caulking work, wreck diving, the chandler's trade. Consumes:
+   ships, pitch and oakum (caulking), mooring line (cordage's ropewalk). Who
+   pays: shipowners, in dues and upkeep. Was the demand there
    first: yes — sugar's voyage is held for berths, and freight has nowhere to
    land. ⚠ Ships are minted stock until construction ships.
 7. **Governance** — the harbormaster judges PEOPLE: criterion posted (length,
-   draught at the tide, dues owed), appeal to the harbor works' committee,
+   draught at the tide, dues owed, office hours), cited in every refusal; the
+   seat confers authority, never verbs, and a player's never exceeds the
+   NPC's; appeal to the harbor works' committee, which answers for the NPC;
    entrenchment: tier C (the polity's). The register's law aboard is the flag
    state's: who can register a ship is each government's own rule.
 
 ## The drive
 
-### Stage A — the harbor
+⛔ **No merge waits on the clock** (workflow.md § No merge waits on the
+clock). Every step carries its pace — `instant` · `short` (within a game
+day) · `staged` (its state set up with test tools, never waited for) ·
+`span` — and whether it asserts the **player**'s experience (player verbs
+and player-held tools only) or that nothing broke (**staged** setup is
+fine). The **blocking drive** is the merge's exit criterion and holds no
+span step; every span step has a staged twin there, and lives in the **soak
+drive**, which the soak lane runs after merge. A clock jump runs no brain, so
+the regulars' own movements are driven by wizard commands, never waited for.
+
+### Blocking drive
+
+#### Stage A — the harbor
 
 **A1 — the port**
-1. On the *Hesper* lying at the bar, the master `hail`s the harbor office: the
-   harbormaster answers with a berth at a named quay (or the roads, and why).
-2. `course <quay>`: she comes in and lies alongside. On the quay, `look` names
-   her alongside; the quay's ways include `hesper`. On her deck, `ashore`
-   leads to the quay.
-3. A second ship (one of the line's two regulars) comes alongside the same quay: two ways, each named for its
-   ship. A third, too long for what is left, is sent to the roads by the
+1. *(instant · player)* On the *Hesper* lying at the bar, the master `hail`s
+   the harbor office: the harbormaster answers with a berth at a named quay
+   (or the roads, and why).
+2. *(short · player)* `course <quay>`: she comes in and lies alongside, her
+   lines made fast to the quay's bollards. On the quay, `look` names her
+   alongside; the quay's ways include `hesper`. On her deck, `ashore` leads
+   to the quay.
+3. *(short · staged)* A second ship (one of the line's two regulars, moved by
+   a wizard `course`) comes alongside the same quay: two ways, each named for
+   its ship. A third, too long for what is left, is sent to the roads by the
    harbormaster, and says so.
-4. The deep regular (the coaster) at low water is told to wait for the flood; at high water she
-   comes in.
-5. Leaving before the dues are paid: `course` is refused, naming the dues.
-   Pay them; `course <somewhere>` — the way named for her is gone from the
-   quay; the dues are in the harbor works' books.
-6. Hail at night: lie in the roads until the office opens.
+4. *(short · player)* The deep regular (the coaster) at low water is told to
+   wait for the flood; at high water she comes in.
+5. *(short · player)* Leaving before the dues are paid: `course` is refused,
+   citing the dues — and everyone aboard can still go ashore. Pay them;
+   `course <somewhere>` — her lines come in, the way named for her is gone
+   from the quay; the dues are in the harbor works' books.
+6. *(short · player)* Hail at night: lie in the roads until the office
+   opens.
+7. *(instant · player)* A ship with no line aboard is refused at the quay:
+   she has no lines to make fast.
 
 **A2 — the charter, and sugar's island**
-7. Aboard the *Hesper* at Waponi Woo, charter her for two days: you are her
-   master; `course bar` is yours to give. Without the charter, it is refused.
-8. Sail home, hail, berth at the Town Quay; clear her dues; go ashore by the
-   way named for her; the charter's two days are in the line's books.
-9. Charter her again and sail to Waponi Woo: she hails and berths alongside
-   its quay; ashore by the way named for her — no hard-wired exit remains.
+8. *(instant · player)* Aboard the *Hesper* at Waponi Woo, charter her: you
+   are her master; `course bar` is yours to give. Without the charter, it is
+   refused.
+9. *(staged · player — twin of soak S3)* With the chartered *Hesper* staged
+   lying off the bar, hail, berth at the Town Quay, clear her dues, go ashore
+   by the way named for her: the charter has ended, and its days are in the
+   line's books.
+10. *(staged · player — twin of soak S3)* Charter her again, staged lying off
+    Waponi Woo: she hails and berths alongside its quay; ashore by the way
+    named for her — no hard-wired exit remains.
 
-### Stage B — the boats
+#### Stage B — the boats
 
 **B1 — owning a ship**
-10. At the yard, `buy` a smack and name her as she is registered (a name
-   already in the register is refused): she lies at the yard's quay; the
-   register lists her in your name, 64 shares, under Terminus' flag.
-11. A second player buys another of the same kind: her rooms are hers; what you
-   leave in your hold is not in hers. The second player cannot go aboard
-   yours while her gangway is locked, and cannot set your course; hand them
-   her key and they can come aboard (still not take the helm).
-12. Sell 16 shares to the second player at a price both accept; the money and
-   the shares move together; the register shows both owners.
-13. At sea, `government`: Terminus City, her flag state.
-14. Leave her; she sleeps; restart the server; come back: she is where you
-    left her, with what you left in her. Come back after weeks of game time:
-    her hull reads worn and she has settled at her berth; pump her out.
+11. *(instant · player)* At the yard, `buy` a smack and name her as she is
+    registered (a name already in the register is refused): she lies at the
+    yard's quay; the register lists her in your name, 64 shares, under
+    Terminus' flag.
+12. *(instant · player)* A second player buys another of the same kind: her
+    rooms are hers; what you leave in your hold is not in hers. The second
+    player cannot go aboard yours while her gangway is locked, and cannot set
+    your course; hand them her key and they can come aboard (still not take
+    the helm). Lock her with them aboard: they can still go ashore.
+13. *(instant · player)* Sell 16 shares to the second player at a price both
+    accept; the money and the shares move together; the register shows both
+    owners.
+14. *(short · player)* At sea, `government`: Terminus City, her flag state.
+15. *(instant · player)* Leave her; she sleeps; restart the server; come
+    back: she is where you left her, with what you left in her.
+16. *(staged · player — twin of soak S1)* With her hull staged worn and her
+    sleep staged long: she has settled at her berth; her hull reads worn;
+    pump her out.
 
 **B2 — owning a boat**
-15. Buy a rowboat at the boat shed; she is yours. Load her: she rides lower
-    (`look` says so); overload her in a chop and she swamps.
-16. Hire a canoe from Ada Fenn for two days; paddle off; return it; the hire
-    is two days' money.
+17. *(instant · staged — a chop pinned)* Buy a rowboat at the boat shed,
+    painter included; she is yours. Load her: she rides lower (`look` says
+    so); overload her in a chop and she swamps.
+18. *(instant · player)* Hire a canoe from Ada Fenn for two days: the charge
+    is two days' money, taken at hire; paddle off; return it.
 
 **B3 — the hull's decline**
-17. Aboard an old ship whose caulking is worn, sound the well: there is water
-    in the bilge, rising.
-18. `pump` the bilge pump: the level falls while you work; stop, and it rises.
-19. Let it go: the lowest rooms flood, then the next; you are told she is
-    settling; she goes down.
-20. Still aboard, you are in her rooms under water; swim up the column to the
-    surface.
-21. A diver goes down to her: the wreck is the ship — her rooms, her cargo in
-    the hold — and she is still in your name in the register.
-22. A leaking boat: `bail` keeps her up; stop, and she sinks to the bottom
-    with what is in her.
-23. `maintain` her hull with a caulker's kit: the leak stops, and the hull
-    reads sound. Mooring, pumping and handling her have counted toward
-    seamanship.
+19. *(staged · player — twin of soak S1)* Aboard an old ship whose caulking
+    is staged worn, sound the well: there is water in the bilge, rising.
+20. *(short · player)* `pump` the bilge pump: the level falls while you work;
+    stop, and it rises.
+21. *(short · staged — twin of soak S2; the bilge staged near the line)* Let
+    it go: the lowest rooms flood, then the next; you are told she is
+    settling, with time to act; she goes down.
+22. *(instant · player)* Still aboard, you are in her rooms under water; swim
+    up the column to the surface.
+23. *(instant · player)* A diver goes down to her: the wreck is the ship —
+    her rooms, her cargo in the hold — and she is still in your name in the
+    register.
+24. *(short · player)* A boat holed on a grounding leaks: `bail` keeps her
+    up; stop, and she sinks to the bottom with what is in her.
+25. *(instant · player)* `maintain` the ship's hull with a caulker's kit
+    bought at the chandler: the leak stops, and the hull reads sound.
+    Mooring, pumping and handling her have counted toward seamanship.
+
+### Soak drive (the soak lane, after merge)
+
+- **S1** *(span)* A ship left asleep at her berth weathers from sound to worn
+  at the house's rate, and is found settled, not vanished.
+- **S2** *(span)* A worn ship left at anchor in deep water sinks over that
+  absence; pumped, a leaking ship does not sink.
+- **S3** *(span)* The two voyages, sailed in full: chartered from Waponi Woo
+  home over the bar, and back — and sugar's step 20 with its charter.
 
 ## Acceptance criteria
 
@@ -448,19 +577,24 @@ an obstruction. Nobody knows where she lies until someone charts her.
 
 - A ship moored at a quay is reached by a way named for her and by nothing
   else; when she leaves, that way is gone from the quay and from the deck.
+- A moored ship is held by her own lines made fast to the quay's bollards; a
+  ship with no line aboard is refused, and the refusal says so.
 - Two ships at one quay are two ways; a quay never takes more ships than its
   length allows, and the ship turned away is told why.
 - A ship too deep for the bar is refused until the flood and admitted after
   it, without anyone changing anything but the time.
-- The harbormaster's refusals name the posted criterion; a player holding the
-  seat can make the call the NPC would otherwise make.
+- The harbormaster's refusals cite the posted criterion; a player holding the
+  seat can make the call the NPC would otherwise make, and no call the posted
+  criteria do not allow; an NPC covers every shift no player holds.
 - Berth dues for a stay appear in the owner's account and the harbor works';
-  a ship cannot clear the harbor with dues owing.
+  a ship cannot clear the harbor with dues owing, and nobody aboard her is
+  ever kept from going ashore.
 - A ship hailing out of office hours is sent to the roads until it opens.
 - Waponi Woo is reached by berthing, not by a hard-wired exit.
 - The *Hesper*'s helm is refused to anyone without a charter (or the line's
-  appointment); a charterer holds it for the days paid, and sugar's island
-  loop is carried home that way.
+  appointment); a charterer holds it until she next berths and pays for the
+  days it lasted, and sugar's island loop is carried home that way.
+- The chandler on the Town Quay sells a caulker's kit and mooring line.
 
 ### Stage B — the boats
 
@@ -470,17 +604,21 @@ an obstruction. Nobody knows where she lies until someone charts her.
   owners by shares and her flag state; a sale of shares moves the money and
   the shares together or not at all; nobody but a shareholder can sell shares.
 - Only her master can set an owned ship's course; with her gangway locked,
-  only someone holding her key can go aboard.
+  only someone holding her key can go aboard, and anyone aboard can always
+  leave.
 - Aboard at sea, the jurisdiction in force is the flag state's.
 - An owned boat changes hands like any good, and her freeboard reading falls
-  as she is loaded until she swamps. A hired canoe costs one day's hire per day
-  kept.
-- A ship's hull and a house's shell weather on the same clock and read in the
-  same bands; a neglected ship is found settled at her berth, not vanished.
+  as she is loaded until she swamps; she comes with her painter. A hired
+  canoe costs one day's hire per day kept. A boat leaks from use and damage,
+  never from the calendar.
+- A ship's hull and a house's shell weather on the same clock, at the same
+  rate, and read in the same bands; a neglected ship is found settled at her
+  berth, not vanished; nothing fails over a weekend away.
 - A leaking ship left alone sinks; pumped, she does not; nothing in the outcome
   is random.
-- The people aboard a sinking ship have time to act; anyone still aboard ends
-  up under water in her rooms and can reach the surface.
+- The people aboard a sinking ship have time to act — several acts, once
+  told she is settling; anyone still aboard ends up under water in her rooms
+  and can reach the surface.
 - A sunk ship's rooms, cargo and title are intact on the bottom, reachable by
   diving, and not on anyone's map until charted.
 - Mooring, pumping and handling a craft record seamanship.
@@ -499,4 +637,15 @@ an obstruction. Nobody knows where she lies until someone charts her.
   [employment.md](../subsystems/employment.md) · [retail.md](../subsystems/retail.md) ·
   [corpo.md](../subsystems/corpo.md) · [location-graph.md](../subsystems/location-graph.md)
 - Sugar (merged 2026-10-27, MR !439): its island-sugar loop meets this build
-  at Waponi Woo, and its drive step 20 gains the charter.
+  at Waponi Woo, and its drive step 20 (now in its soak drive) gains the
+  charter.
+- Cordage (MR !502, merges first): one rope, `tie`, the painter, ropework —
+  [cordage.md](../subsystems/cordage.md) once merged.
+- Doctrine this review applied: [workflow.md](../workflow.md) § No merge
+  waits on the clock · [the pace slate](../slates/builds/pace-slate.md) (encounter and absence paces, *"'Day'
+  means the world's day"*, its open question 4) · [the emergency-services
+  slate](../slates/builds/emergency-services-slate.md) § seats (*a player's authority is never more than the NPC's*) · the
+  [law-and-order slate](../slates/builds/law-and-order-slate.md) (no trespass; the lock is the wall) ·
+  [measurement.md](../measurement.md) guarantees of play (you can always
+  leave and reach home) · [faces.md](../subsystems/faces.md) (a coat on a
+  boat's hull).
