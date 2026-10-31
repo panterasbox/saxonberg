@@ -12,7 +12,7 @@
 > that the generator honors and the card never crops · the
 > `props:`/`cast:` stable read (a defect fix) · a **`thing`** prompt
 > builder (the missing job with the best economics) · per-detail plates
-> (⚠ contested, § 11) · the **monochrome-SVG tint channel** · thumbnails
+> (later pass, § 1) · **generator directives** on the row (§ 2) · the **monochrome-SVG tint channel** · thumbnails
 > as crops · species pictures as the KIND, for players · media **ingest**
 > (the named M3 gap) · the prompt-craft loop and its fixed evaluation set
 > · an npm script + an MQL batch mode · regenerating the 19 under the new
@@ -69,11 +69,13 @@ which projects one detail's slice for focus.
 > plate, plus plates of the parts. A per-detail illustration is a *field
 > addition*, not new machinery.
 
-⚠ **Contested 2026-10-30.** The client-surface session listed "a detail,
-which is prose" among the things that cannot have an image, and its
-`Inspect-detail` comp shows a detail behind the breadcrumb with no plate.
-The two positions are recorded side by side in § 11 q2; neither has been
-decided.
+✅ **Decided 2026-10-30 (user): details CAN carry an image — but not in
+the first pass.** *"Just getting one image per obj is a lot, details can
+wait for a later pass."* The mechanism allows a plate per detail; the
+first pass authors one image per object and no detail plates. (The
+client-surface session had listed "a detail, which is prose" as
+unillustrable; that is withdrawn. Its `Inspect-detail` comp, with no
+plate, is simply the first-pass state.)
 
 ### ⭐⭐ Multiplier two — the KIND (which divides instead)
 
@@ -136,7 +138,7 @@ and what they show**, not for what a model happens to output:
 - **No image is a valid answer**, and some things can't have one: a
   corpse, whose look depends on whose body it is (runtime); a Material,
   which isn't Visible (the `materials/oak.png` key in § 1 would need a
-  Visible to hang on); and, by the 2026-10-30 reading, a detail (§ 11 q2).
+  Visible to hang on). A detail can have one, later (§ 1).
 
 ## 2. ⭐⭐⭐ The stable-read rule — and `props:` is the fix
 
@@ -189,11 +191,40 @@ crossing's own prose:
 per-instance portraits are deferred to recognition
 ([media.md § Deferred](../../subsystems/media.md)).
 
-⚠ **Contested 2026-10-30.** The client-surface session wrote *"no people,
-including staged cast (they come and go on shifts)"*. The two readings
-differ on what makes a person transient: being unauthored (this section)
-or not always being there (a shift roster). Gus is the case that splits
-them. Recorded in § 11 q6, undecided.
+### ✅ Decided 2026-10-30 (user): the AUTHOR answers it, with directives for the generator
+
+The client-surface session wrote *"no people, including staged cast (they
+come and go on shifts)"*, against this section's *"Gus is as permanent
+as the lamppost"*. Neither rule is right for every row, and the engine
+cannot tell which applies: a staged prop that never moves belongs in the
+picture; a cast member on a shift roster does not; and an NPC who never
+moves can still be murdered.
+
+> **User: "I think we might need to start putting some directives on the
+> objects that are purely for the image generator… content authors would
+> be able to answer the question for themselves."**
+
+So:
+
+- ⭐⭐ **A row may carry directives read by the generator and nothing
+  else.** They change the picture and never the world. Their first job
+  is **inclusion**: which of the row's staged props and cast the picture
+  shows.
+- **The default**, when the row says nothing, is this section's rule
+  minus the people: staged props fixed in place are in; cast, loose
+  things and things placed on a host are out.
+- **An author opts a staged entry in or out.** Gus goes in because his
+  author says he is part of the crossing; Dave's shift staff stay out.
+- ⚠ **Opting a person in accepts the risk** that the picture outlives
+  them — the guard can be murdered at his post. The picture is "what this
+  looks like in general" as the author wrote it, and `sourceContentHash`
+  tracks the content, not the world (§ 2), so a death does not mark it
+  stale. That is the author's call to make, and theirs to regenerate.
+- Lens 2 (creative expression) chose: the author is the only one who
+  knows whether a staged thing is part of the place.
+- **Open** (§ 11 q6): the shape of the directive block, and what else
+  lives in it (a composition note? an explicit omission of something the
+  prose names?).
 
 ### The rest of the rule, by kind (2026-10-30)
 
@@ -586,11 +617,8 @@ should be the loop's inner step, costing nothing per iteration.
 1. ⭐⭐⭐ **Which style ships as the default row?** § 8 argues the
    hand-tinted plate; it is a taste call and the gallery makes it
    reversible.
-2. ⭐ **Does a detail get a plate at all — and are per-detail plates in
-   the demo?** § 1 says yes: seven close-ups of one crossing demonstrates
-   the field-guide idea far better than seven rooms at one plate each,
-   and costs about the same. The 2026-10-30 session said no: a detail is
-   prose. Undecided.
+2. ✅ ~~Does a detail get a plate?~~ Yes, later: the mechanism allows
+   it; the first pass is one image per object (§ 1, decided 2026-10-30).
 3. **Does a style row carry per-job composition, or one block?** Per-job
    is what makes a style survive its weakest job; one block is what keeps
    a custom style authorable by somebody who is not a prompt engineer.
@@ -599,9 +627,9 @@ should be the loop's inner step, costing nothing per iteration.
 5. **How much metadata is too much** — § 10's dilution risk is measured
    for text and *assumed* for images. The contact sheet is how it gets
    measured.
-6. ⚠ **Staged cast in a place's picture** — § 2 lets authored cast in
-   (Gus at his post); the 2026-10-30 session kept all people out because
-   cast work shifts. Is transience "unauthored" or "not always there"?
+6. **The generator-directive block** — decided that the author answers
+   inclusion (§ 2); open: where the block sits on the row, how it names a
+   staged entry, and what else belongs in it.
 7. **Disguise** — the picture should follow the disguise, the way the
    name does. An unidentified thing is fine if its picture is drawn from
    its appearance row, like its prose.
