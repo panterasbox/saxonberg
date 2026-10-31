@@ -1,19 +1,14 @@
 # Cordage slate — rope: twist, strength, knots, and the rope at an exit
 
-> **Status: UNBUILT** — designed at high level 2026-10-20 with the owner, out of the
-> gap walk. Rope is nearly absent: it appears only in passing — underwater's lifeline
-> ([underwater-slate](./underwater-slate.md)), the ship's log line
-> ([ships-and-harbors-slate](./ships-and-harbors-slate.md)), drilling's bailer *"on a
-> rope"* ([drilling.md](../../subsystems/drilling.md)), logistics' *"you cannot
-> teleport while holding a rope"*. What ships underneath: `spin` (yarn from fiber,
-> [textiles.md](../../subsystems/textiles.md)), flax, jute (stocked only), rawhide,
-> tar, [assembly](../../subsystems/assembly.md)'s **joint rows**, haulage's hitch
-> ([conveyance.md](../../subsystems/conveyance.md)).
-> **Left:** `trade-cordage` and the ropewalk at Wharfside · twist three times,
-> alternating · strength derived (diameter², the knot's cost, the splice, chafe, rot,
-> shock load) · rope as a measured length · knots as joint rows · ⭐ the rope at an exit
-> and the belay · the consumers · the material ladder · oakum · the rogue's yarn
-> **Size:** a build
+> **Status: PARTIAL** — the core shipped with the cordage build (MR !502, 2026-10-30) →
+> [cordage.md](../../subsystems/cordage.md): one rope whose use is where its ends are tied,
+> knots as joint rows, the rope at a drop and the belay, tar as a coat, `trade-cordage`'s
+> `twist` (a craft, real time, a crew) and the Wharfside ropewalk, hemp.
+> **Left:** anchor strength (a ring in rotten mortar) · shock elasticity and the material
+> ladder (manila, nylon, wire) · oakum · who answers for a parted rope · block and tackle,
+> capstan, windlass · the rope bought back by length and soundness (retail's per-instance
+> worth) · a hung rope's end across a restart · hemp's field-crop shape after field population
+> **Size:** a tail
 
 ## 1. ⭐⭐⭐ Twist three times, alternating **[DECIDED — lens 1]**
 
@@ -25,7 +20,7 @@
   be longer than its walk**. Ropewalks were buildings a quarter-mile long (Chatham's
   Royal Navy ropery is about 346 m); the spinner walked backward down it, paying fiber
   out from around the waist. A place whose **length** is its capability — the
-  [size slate](./size-slate.md)'s real measures at their most literal.
+  [size slate](../builds/size-slate.md)'s real measures at their most literal.
 
 ## 2. ⭐⭐ Strength, derived **[DECIDED — lens 1]**
 
@@ -33,10 +28,10 @@
   so it grows with **the square of the diameter**.
 - **What weakens it** — ⭐ **a knot** costs roughly **half**; **chafe** wears it at edges
   and over rock; **rot** attacks wet natural fiber
-  ([decomposition](./decomposition-slate.md)), which is why ships' rope was **tarred**
+  ([decomposition](../builds/decomposition-slate.md)), which is why ships' rope was **tarred**
   (tar ships).
 - ⭐ **A splice keeps about 90 %** — why sailors splice instead of knotting.
-- **It breaks when load exceeds strength** — the [machines slate](./machines-slate.md)'s
+- **It breaks when load exceeds strength** — the [machines slate](../builds/machines-slate.md)'s
   overload. ⭐ **A shock load** — a fall caught on the rope — far exceeds the hanging
   weight; derived from the fall's energy and the rope's stretch, which is why climbing
   rope stretches (nylon's later advantage).
@@ -89,7 +84,7 @@ shaft, a handline across a ford, a rope ladder.
 | **exits** | § 4 — the shaft, the ford, the cliff; underwater's lifeline |
 | **haulage** | lashing a load, towing (the hitch ships) |
 | **animals** | the tether, the halter and lead, the lasso ([ranching](../../subsystems/ranching.md)) |
-| **restraint** | binding a person — consent, policing, the [prison](./prison-slate.md) |
+| **restraint** | binding a person — consent, policing, the [prison](../builds/prison-slate.md) |
 | **and** | nets (fishing's twine), bowstrings (already a worn part), bell ropes, the snare |
 
 ⭐ **Rope wears out on a schedule** — a ship replaces its running rigging constantly:
@@ -99,8 +94,8 @@ recurring demand, upkeep as somebody's income.
 
 Plant fiber (flax ✅, hemp, jute, manila and sisal — tropical gaps, coir) → animal
 (horsehair, rawhide ✅) → **wire rope** (the
-[cannery](./cannery-and-bottling-slate.md)'s metal-forming; invented in the Harz mines in
-the 1830s for winding shafts) → **nylon** (the [plastics slate](./plastics-slate.md)'s oil
+[cannery](../builds/cannery-and-bottling-slate.md)'s metal-forming; invented in the Harz mines in
+the 1830s for winding shafts) → **nylon** (the [plastics slate](../builds/plastics-slate.md)'s oil
 rung). `tie`, `splice`, `coil` and `cut` at every rung. ⭐ The limits move: wire rope
 makes deep shafts and suspension bridges possible; nylon's stretch tames the shock load.
 

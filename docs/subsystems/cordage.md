@@ -44,6 +44,7 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
 | `climb down` / `climb up` | `platform/cmd/movement/climb.yaml` | the enablement walk finds the rope / its end |
 | `belay <person> [with <rope>]`, `belay off` | `platform/cmd/movement/belay.yaml` | `Rope.belayFor` → `BelayEngagement` |
 | `twist <yarn | strands> [--yarns n] [--length m] [--mark c]` | `trade/cordage/cmd/cordage/twist.yaml` | `RopeJack.twistPlan` |
+| `turn jack` / `turn back jack` | the kernel `turn` (`TurnableMixin`) | `RopeJack.turnBy` → `WheelEngagement` |
 | `dip <rope> in <tar tub>` | the kernel `dip` | `GlazeTub` lays a pitch coat |
 | `analyze lay <rope>` | the kernel `analyze` | `LayReading` |
 
@@ -63,6 +64,19 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
 - **Twist**: tex `1653.5 / count`; a strand of `n` yarns `n·tex·1.1` g/km,
   a rope Σ strands × 1.15; `d = 2√(λ/πρφ)`; a skein is `count × 274 m/lb`.
   Never longer than the walk (the jack's room's `getLinearExtent`).
+- ⭐ **Laying is a craft, real time, and a crew** (the review's lens pass):
+  - *the craft* — the layer's `ropework` band sets the lay's evenness
+    (untrained .8 · novice .85 · competent .92 · proficient .97 · expert 1),
+    multiplying strength; a rope is as even as its worst strand and its
+    layer; read as *hockles where the twist bunched up* … *hard and true*;
+  - *the yarn* — the weakest yarn sets the strand's grade, the weakest
+    strand the rope's; grade scales strength (poor .85 · fair 1 · fine 1.05
+    · exceptional 1.08 · masterful 1.1); cut and splice carry both;
+  - *the time* — a strand is length × (20 s + 0.5 s per yarn), a rope 30 s a
+    meter; a full walk is hours;
+  - *the crew* — a hand at the wheel (`turn jack`, a `WheelEngagement` on
+    their hands) and the layer walks at full pace; alone, half. The hand is
+    credited `ropework`.
 - **Rot**: `cordage.rotPerWetDay (0.03) × wetness` per game day, untarred.
   Tarred = a SET coat of a `waterproofing` material outermost on the
   outside face (`Faced.coolCoats`: pitch sets as it cools below 320 K).
@@ -102,6 +116,10 @@ but its end is re-minted only by untying and tying again.
   towpath by a `ropewalk` exit: a 300 m walk, the jack, a tar tub of pitch
   (`GlazeTub`), the ropekeeper Agnes Tarrow and her counter (50 m coils,
   hemp line, hemp yarn, rigging knives, painters; she buys no rope back).
+  ⭐ She takes the jack's wheel for whoever lays (the `turns` brain), and
+  the ropewalk has an open **wheel-hand** seat (headcount 1) a player can
+  `apply` for. The walk is open to the sky (a room's light is spread over
+  its extent squared) and addressed in Terminus.
 - **The Sunken Delve**: a timber post at corridor-2's lip; the pit is climbed.
 - **Hemp** (`trade-farming`): *Cannabis sativa*, one species; the fiber
   variety is the plant row (`plant/hemp`); its seed is on the general store.
@@ -129,4 +147,8 @@ end).
   became the kernel `Line`/`Rope`, diving kept `Hose`; `tie`/`untie`/`tug`/
   `splice`/`coil`/`belay` kernel verbs; knots as joints; the rope at a drop
   and the belay; tar as a coat; `trade-cordage` and the ropewalk; hemp;
-  potash-on-sugar's remainder (ash percolates). See the plan's drive record.
+  potash-on-sugar's remainder (ash percolates). Review: the buy-back
+  (`Good.worthFactor`) taken out as retail's; laying made a craft, real time
+  and a crew; D29 (thermal shock scales by conductivity — the potash iron
+  pots had cracked since ceramics). Drive 18/18 (`cordage.dirty`); soak
+  `cordage.soak.dirty`.

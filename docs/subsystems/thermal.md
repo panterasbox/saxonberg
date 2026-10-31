@@ -1186,7 +1186,10 @@ Thermal reports the heat: a step (`setContentsTemperature` past 5 K) and
 the steepest rate since the last look, off the body's own curve. How a
 brittle body answers is `IntegrityMixin`'s, as an impact is:
 `thermalShockToleranceK()` (`impact.shockStrain ÷ α`, raised by porosity
-and grog — a refractory body counts as grog-opened — lowered by a glaze)
+and grog — a refractory body counts as grog-opened — lowered by a glaze,
+and ⭐ scaled by the material's thermal conductivity over a fired clay's,
+`impact.shockConductivityRef` (cordage D29: a cast-iron pot, brittle by
+tag, cracked at its first lye until a conducting wall counted))
 and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
 twice past a crack). It was two private Thermal methods until the
 ceramics review.
