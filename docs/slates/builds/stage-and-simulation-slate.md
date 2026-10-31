@@ -129,7 +129,7 @@ What the model needs:
   open design question.
 
 **Staging in place** — the same zone, NPCs swapped — is the same machinery without the exit; both
-are author choices once staging is expressible.
+are author choices once staging is expressible — that machinery is [staging-slate](./staging-slate.md).
 
 ## 6. The lens pass
 
