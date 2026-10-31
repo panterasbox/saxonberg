@@ -603,7 +603,14 @@ Acceptance: `lint:family`; a boot of the world with `SAXONBERG_PACKS` incl. `tra
 the walk up (`pnpm dev:server` once, `look` from the towpath, PID-killed after).
 Commit: `build(cordage W5): the Wharfside ropewalk — the walk, its keeper, its counter`.
 
-### W6 — the drive, the docs
+### W6 — the drive, the docs ✅ (MR !502 opened READY at code-complete)
+> **Done.** `cordage.dirty.wire.test.ts` (steps 1–13, 15–17, 19, 7a) and
+> `cordage.soak.dirty.wire.test.ts` (14; 18 a todo — wants !480's crop shape and a pit by a bed).
+> The soak harness had NOT landed, so the soak file uses `advanceWorldClock` a day at a time, as the
+> plan's fallback allowed. `docs/subsystems/cordage.md` new; underwater, river, energy, potash,
+> assembly, locomotion, mould updated. Narrowed in the drive (said in its header): step 2 buys yarn
+> (no wheel at the walk); step 11 raises `cordage.chafePerUse` (the staged twin); step 19 reads that
+> ropework is on the transcript.
 Files: `packages/wire/tests/cordage.dirty.wire.test.ts`; `docs/subsystems/cordage.md` (new: rope,
 knots, the rope at a drop, the belay, rot/tar, the ropewalk, the numbers and dials); updates to
 `underwater.md` (the lifeline is a rope; `tug`/`lash` moved), `river.md` (the painter is a rope),
