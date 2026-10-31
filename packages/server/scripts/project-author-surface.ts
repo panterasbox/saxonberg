@@ -188,6 +188,19 @@ export interface AuthorSurface {
   consumer: ConsumerMember[];
   extension: ExtensionHook[];
   types: TypeEntry[];
+  /**
+   * ⭐ One line per mixin, from its FACTORY function's own TSDoc (#89):
+   * what the interface is, in its author's words — the summary a mixin
+   * help topic and the inspection card's gutter hover show. The member
+   * summaries said what one method did, which is not what a mixin is.
+   */
+  mixins: MixinSummary[];
+}
+
+/** A mixin's name (no `Mixin` suffix) and its factory's first paragraph. */
+export interface MixinSummary {
+  name: string;
+  summary: string;
 }
 
 /**
@@ -919,12 +932,28 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
     }
   }
 
+  // Mixin summaries: every exported `*Mixin` factory function's TSDoc.
+  const mixins: MixinSummary[] = [];
+  const seenMixin = new Set<string>();
+  for (const mod of modules) {
+    for (const child of mod.children ?? []) {
+      if (child.kind !== Kind.Function || !/Mixin$/.test(child.name)) continue;
+      const name = child.name.replace(/Mixin$/, "");
+      if (seenMixin.has(name)) continue;
+      const summary = extractTsdoc(child).summary.split(/\n\s*\n/)[0]!.trim();
+      if (!summary) continue;
+      seenMixin.add(name);
+      mixins.push({ name, summary });
+    }
+  }
+  mixins.sort((a, b) => a.name.localeCompare(b.name));
+
   consumer.sort((a, b) => a.qualified.localeCompare(b.qualified));
   reexportReport.sort((a, b) => a.face.localeCompare(b.face));
   unclassifiedReport.sort((a, b) => a.qualified.localeCompare(b.qualified));
 
   return {
-    surface: { consumer, extension, types },
+    surface: { consumer, extension, types, mixins },
     reexportReport,
     unclassifiedReport,
   };

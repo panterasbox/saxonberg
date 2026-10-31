@@ -741,6 +741,20 @@ unit terminal card).
 - **B24 — the rail's mode buttons are words, not glyphs** (a rail of
   initials is a quiz); `ViewsMenu` survives only in the phone's account
   menu until W6.
+- **B25 — the inspection card's tests use hand-built envelope fixtures**
+  shaped like the server's (`__tests__/fixtures/inspection.ts`, after the
+  specimen sheet); the W7 drive asserts the real `card-opened` segments,
+  so AC 6 is checked on the wire's bytes there.
+- **B26 — a detail word still drills IN the card** (no command), as the
+  shipped body did; the drilled view uses the record's detail prose,
+  since segments carry the subject's own lines only.
+- **B27 — cut to fit, the picture collapses to "picture ▸" first**; at
+  unit width a tall or square picture floats beside the prose, a wide one
+  spans the card; every plate is `object-fit: contain`.
+- **B28 — the quiet row is composition − the mixins that spoke − the
+  header's (Perceptible, Containable, Addressable)**; the gutter's click
+  opens a popover with the interface's own summary (help, cached per
+  session) and `help mixin.<X>`.
 
 ---
 
@@ -1145,6 +1159,14 @@ card`.
 window fits — rem tiers, rail and status bar, feed and workspace`.
 
 ### W4 — The inspection card renders the segments
+
+> ✅ **Done** (build). `InspectionBody` (header stripes + branch letter,
+> the shape-true plate, segments with the gutter, grouped chips that
+> expand, the quiet row, actions as `<verb> #<id>`); the shipped body's
+> links go by id too; labels in sentence case (#69); char-gen's plate is
+> 4:5 and contained; mixin summaries from the factory TSDoc (#89 —
+> `project-author-surface` `mixins`, `HelpCatalogue` prefers them).
+> Decisions B25–B28.
 
 **Goal.** The card says exactly what `look` said. Browser steps 16–18
 pass; #51, #69, #71, #76, #89, #91 close.

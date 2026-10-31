@@ -69,6 +69,12 @@ export interface AuthorSurface {
   consumer: AuthorSurfaceMember[];
   extension: { name: string; contract: string; faces: string[] }[];
   types: AuthorSurfaceType[];
+  /**
+   * Each mixin's own one-line summary, from its factory's TSDoc (#89).
+   * Absent in a surface built before it existed — the member fallback
+   * stands then.
+   */
+  mixins?: { name: string; summary: string }[];
 }
 
 /** Fixed display order for kinds (categories + search groups). */
@@ -458,10 +464,14 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     }
 
     // 1. Mixins — the complete registry roster (the centerpiece).
+    // ⭐ The mixin's OWN summary first (its factory's TSDoc, #89); the
+    // first conferred member's summary only when it has none.
+    const ownSummary = new Map((surface.mixins ?? []).map((m) => [m.name, m.summary]));
     for (const concept of mixinConcepts) {
       const conferred = byFace.get(concept) ?? [];
       const summary =
-        conferred.find((m) => m.summary.length > 0)?.summary ?? "";
+        ownSummary.get(concept) ||
+        (conferred.find((m) => m.summary.length > 0)?.summary ?? "");
       out.push({
         id: `mixin.${concept}`,
         kind: "mixin",

@@ -56,6 +56,7 @@ import { Figure, EntityName, tokens } from "../ui";
 import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
 import { MmlRenderer } from "../MmlRenderer";
+import { InspectionBody } from "./InspectionBody";
 import { CmsExplorer } from "../cms/CmsExplorer";
 import { CmsEditor } from "../cms/CmsEditor";
 import { CmsGitPanel } from "../cms/CmsGitPanel";
@@ -131,10 +132,9 @@ const CardIllustration = styled.img`
  * that you can see more than one thing in it.
  */
 const Label = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  /* Sentence case, plain (#69): a label in capitals shouts. */
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
   color: ${tokens.color.sectionLabel};
   margin: ${tokens.space.sm} 0 2px;
 `;
@@ -553,7 +553,9 @@ function ActionRow({
            * the refresh control follows. A verb with no operand slot
            * sends bare.
            */
-          const send = keyword ? `${v.verb} ${keyword}` : v.verb;
+          // ⭐ By id (client-surface D7): `<verb> #<id>` names exactly
+          // this subject, never the first thing that answers to a word.
+          const send = stuffId ? `${v.verb} #${stuffId}` : keyword ? `${v.verb} ${keyword}` : v.verb;
           return (
             <InlineLink
               key={v.verb}
@@ -825,8 +827,8 @@ function HereList({
       <Label>Here</Label>
       <Rows>
         {shown.map((row) => {
-          const target = row.primaryKeyword ?? row.displayName;
-          const command = `look ${target}`;
+          // ⭐ By id (client-surface D7): the link names exactly this thing.
+          const command = `look #${row.stuffId}`;
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -884,8 +886,8 @@ function PlacedList({
             <Label>{group.heading || PLACED_FALLBACK_HEADING}</Label>
             <Rows>
               {shown.map((row) => {
-                const target = row.primaryKeyword ?? row.displayName;
-                const command = `look ${target}`;
+                // ⭐ By id (client-surface D7).
+                const command = `look #${row.stuffId}`;
                 return (
                   <div key={row.stuffId}>
                     <EntityName
@@ -944,8 +946,8 @@ function WornList({
       <Label>Worn</Label>
       <Rows>
         {shown.map((row) => {
-          const target = row.primaryKeyword ?? row.displayName;
-          const command = `look ${target}`;
+          // ⭐ By id (client-surface D7): the link names exactly this thing.
+          const command = `look #${row.stuffId}`;
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -971,6 +973,8 @@ export interface CardBodyProps {
   card: CardState;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
+  /** The card is cut to fit — the inspection card collapses its image first. */
+  cut?: boolean;
 }
 
 /**
@@ -1410,6 +1414,24 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
   );
 
   if (card.closed) return <ReleasedBody />;
+
+  /*
+   * ⭐⭐ **A card born of `look` renders what `look` SAID** (client-surface
+   * D1, AC 6): the segments, by source. The field-projection body below
+   * stays for a subject card with no segments (none ships today) and for
+   * a drilled detail, whose prose the segments do not carry.
+   */
+  if (card.segments && card.segments.length > 0 && detailPath.length === 0) {
+    return (
+      <InspectionBody
+        card={card}
+        cut={props.cut}
+        onSendCommand={onSendCommand}
+        onCommandPreview={onCommandPreview}
+        onProseClick={handleProseClick}
+      />
+    );
+  }
 
   const tail = detailPath[detailPath.length - 1];
   const drilled = tail

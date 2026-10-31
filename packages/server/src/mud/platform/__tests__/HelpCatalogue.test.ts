@@ -81,6 +81,7 @@ const SURFACE: AuthorSurface = {
   ],
   extension: [],
   types: [{ id: 900, name: "Grade", module: "lib/craft/Grade", kind: 128 }],
+  mixins: [{ name: "Container", summary: "Holds things; what is inside it is its contents." }],
 };
 
 async function warmed(): Promise<HelpCatalogue> {
@@ -123,6 +124,13 @@ describe("HelpCatalogue", () => {
         `missing mixin topic for ${concept}`
       ).not.toBeNull();
     }
+  });
+
+  it("⭐ a mixin topic's summary is the mixin's OWN, not its first member's (#89)", async () => {
+    const cat = await warmed();
+    expect(cat.getTopic("mixin.Container")!.summary).toBe(
+      "Holds things; what is inside it is its contents.",
+    );
   });
 
   it("degrades an undocumented mixin to a bare topic", async () => {

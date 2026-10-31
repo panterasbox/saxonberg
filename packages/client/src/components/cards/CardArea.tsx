@@ -250,6 +250,7 @@ export function CardArea({
                   >
                     <CardBody
                       card={card}
+                      cut={column.length > 1}
                       onSendCommand={onSendCommand}
                       onCommandPreview={onCommandPreview}
                     />
