@@ -18,45 +18,10 @@ the conventions already in the tree. Nothing content-specific is baked in
 emote palette are all server-sent), and the client shadows no state
 machine the server owns.
 
-## ⭐⭐ The desktop frame — rail, stage, status bar
+## The top bar
 
-*Since the client-surface build (2026-10-31) there is no top bar.* The
-desktop frame is three pieces:
-
-```
-┌──────┬──────────────────────────────────────────────────────┐
-│ rail │  ModeStage: [panel] [terminal column] [card area]    │
-│      │                                                      │
-├──────┴──────────────────────────────────────────────────────┤
-│ status bar:  [shelf figures] [preview ─────────] [tray]     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-- **The rail** (`components/frame/Rail.tsx`, `data-testid="nav-rail"`,
-  3.5rem) runs down the left edge: the seal and connection chip at the
-  top, the **modes as words** (a rail of initials is a quiz, B24) — each a
-  real `cockpit mode <m>`, previewed in the status bar — the icons of a
-  collapsed panel's cards under them, and the **you-corner** at the foot:
-  `AccountMenu` and a settings icon that sends the `settings` verb
-  (settings are a card now, not a docked panel). `Frame.tsx` is retired,
-  and `ViewsMenu` with it on the desktop.
-- **The stage** (`layouts/ModeStage.tsx`) composes four regions for
-  every desktop mode — see § *Width tiers* below and
-  [cockpit.md § The client stage](./cockpit.md).
-- **The status bar** carries the **shelf** at its left (plain words, B18),
-  the one command preview in the middle, and the **tray** at its right
-  — see § *The status bar*.
-
-A mode with no stage renders its fallback VISIBLY: *govern isn't laid
-out yet — showing explore*.
-
-⭐ What follows in this section is the top bar's reasoning about its
-pieces, which moved into the rail and the status bar unchanged.
-
-## The top bar (retired) — the pieces, and why
-
-`components/frame/Frame.tsx` was one row, rendered once above the layout
-registry, so it was present in every mode:
+`components/frame/Frame.tsx`. One row, rendered once above the layout
+registry, so it is present in every mode:
 
 ```
 [seal] [ConnectionChip] │ [AccountMenu] │ [──── Shelf (flex:1, wraps) ────] [Views] [Settings]
@@ -178,44 +143,8 @@ every affordance still sends a server command and the client still owns
 zero command semantics.
 
 Detection is `lib/style/useIsCompact.ts` over `matchMedia`, against the
-phone tier `tokens.tier.phone` (**47.5rem** — 760px at a 16px root,
-above phone landscape, below tablet portrait) so it cannot drift between
-components. ⭐ It is in **rem** since the client-surface build, so browser
-zoom is a breakpoint: a 125% Windows laptop is narrower in CSS pixels and
-the layout answers exactly as it would for a smaller window.
-`useIsCompact()` is now `useWidthTier().tier === 'phone'` in effect, kept
-so the hundred call sites did not churn.
-
-### ⭐⭐ Width tiers — `useWidthTier`
-
-`lib/style/useWidthTier.ts` is **the one reader of the window's width**
-(client-surface D9). It returns `{ tier, remWidth, units }`:
-
-- `tier` — `phone` (< 47.5rem) · `narrow` (< 68.75) · `feed`
-  (< 103.125) · `workspace` (< 143.75) · `wide`, from `tokens.tier`.
-- `units` — how many card-area columns fit beside the terminal column,
-  with the panel open and with it shut: what is left after the rail
-  (3.5rem), the panel (15rem) and the terminal column (44rem, its text
-  at a 42rem measure), over a unit (22–28rem) plus its gap.
-
-It subscribes to `resize` (a one-shot read would go stale when a window
-is dragged narrow) and reads `innerWidth / rootFontSize`, so every
-threshold is rem. The tokens live in `components/ui/tokens.ts` as
-`tokens.width` and `tokens.tier`.
-
-`ModeStage` composes the four regions from that reading: the **panel**
-(a region of cards, accordion — the explore panel holds the `here` card)
-collapses FIRST, because it costs two-thirds of a unit, and stays only
-while a unit still fits beside it; the **terminal column** holds the
-primary terminal with the one-card **medium** slot across its top (about
-16:9); the **card area** is a feed at one unit and a workspace at more,
-laid out by `arrangeCards` (placed cards in their server-given slots,
-flowing cards by touch, displacement to the Recent trail — see
-[card-surface.md](./card-surface.md)). A **full** card takes the stage;
-the terminal drops to a strip at the column's x and the other cards sit
-as chips beside it. Below one unit the card area is a glance strip of
-chips. The terminal auto-scrolls only when it was already at the bottom;
-otherwise a "new lines" chip scrolls on click (#54).
+single named token `tokens.breakpoint.compact` (**760px** — above phone
+landscape, below tablet portrait) so it cannot drift between components.
 
 ⭐ **A JS switch, not a CSS-only reflow.** The mobile bar is not the
 desktop bar rearranged; it is a different composition — two rows, a
@@ -288,9 +217,8 @@ and its own box must fit the viewport.
 
 ## The mobile bar
 
-`components/frame/MobileFrame.tsx`, rendered by `App` above `PhoneShell`
-below the phone tier (it survives the client-surface build: its glance
-line, pull-down and account menu are tested and stay, B34).
+`components/frame/MobileFrame.tsx`, rendered by `App` in place of
+`Frame` below the breakpoint.
 
 ```
 row 1   [seal] [connection] [identity ▾]        ← never removable
@@ -498,19 +426,17 @@ still pass unmodified.
 
 ## ⭐⭐ One strip, and every tab is a VIEW over the whole buffer
 
-> ⭐ **Since the client-surface build, a view is a TERMINAL FILTER.** A
-> terminal is a card (`TerminalFilter.view` names a `console.tabs` view),
-> so the strip's views became the filters terminal cards show, with no
-> new vocabulary. On a desktop the **view chooser** above the primary
-> terminal lists `All` and the player's views, and a chip sends
-> `cockpit terminal <view>` — the primary's view is kept in step with
-> the active view, so the editor (`⋯`) edits what the terminal shows
-> (B33). The tab strip itself renders only before the server has minted a
-> primary terminal. `DEFAULT_VIEWS`' `Aether` is called **`Chat`** now
-> (#75). Everything below about predicates, counts, `All` and seeding
-> holds unchanged.
-
 `All 252 · Aether 0 · Diag 87 · Forge watch 109 ⋯ × · +`
+
+> ⭐ **`Aether` is called `Chat` now** (#75, the client-surface build):
+> `DEFAULT_VIEWS`' one shipped preset was renamed; its predicate did not
+> change, and the sections below that say `Aether` describe that same
+> view. ⭐ The same build made a **terminal a card** on the server
+> (`cockpit terminal <view|#channel> [--beside]`), so a view also names
+> what a non-primary terminal card shows — see
+> [cockpit.md § Terminals are cards](./cockpit.md). The strip itself is
+> unchanged: it filters the layout's own terminal, which is the
+> primary's surface.
 
 A tab is a **named predicate**, evaluated at render over every frame in
 the buffer. Shipped views (`FILTER_PRESETS`) and the player's own sit in
@@ -640,50 +566,19 @@ different things being facet-identical is arguably a gap in the S2
 taxonomy rather than in the filter. Fixing it there would let `Aether`
 go back to being one rule.
 
-## ⭐⭐ The phone — `PhoneShell`
+## The terminal — where it scrolls, and how wide a line runs
 
-`components/phone/PhoneShell.tsx` (client-surface W6), selected by `App`
-below the phone tier under `MobileFrame`. Phones are one unit wide, so
-the width classes collapse to three: **line** (chips), **unit** (a card
-inline, cut to fit) and **stage** (a card as a sheet, `CardSheet`, the
-terminal keeping a strip at the bottom so the last lines and the command
-bar stay where the hands are).
+`components/Terminal.tsx`, shared by every layout's terminal and every
+terminal card. Two rules from the client-surface build (2026-10-31):
 
-- ⭐ **Chat first, by a CLIENT rule** (B35). With no stored
-  `cockpit.mode`, the phone shows the `Chat` view and sends nothing; a
-  stored mode — even `explore` — is honored. The server's default stays
-  `explore`: *it is on a phone* is a viewport fact, and the server cannot
-  know a viewport (the same rule that refuses a `cockpit.formFactor`).
-- **Drawers**, by a swipe (≥ 60px) or a button (`PhoneDrawer`): right for
-  the channels **and the tray**, left for who is here. There is no status
-  bar on a phone, so the tray lives in the drawer.
-- **Mode tabs** along the bottom (`ModeTabs`), each a real `cockpit mode
-  <m>`, hidden while the keyboard is up; `govern` is not a tab yet.
-- **Chat has no button bar.** The command bar carries a **target chip**
-  (`TargetChip`, "say ▾") that sets the bar's server-side prefix —
-  `cockpit cli <bar> --prefix "<target>"` / `--clear` — so what the chip
-  says is what the server prepends and `/look` still escapes it (B38); a
-  **suggestion strip** while typing (`@` handles from the roster, `#`
-  channels heard in the frames, `:` emotes from the catalogue — a tap
-  replaces the word and never sends, B36); and a **reply chip**.
-- **The line menu** (`LinePressMenu`): a long press on a line offers
-  react · reply · tell · look, **each showing its command** because a
-  phone has no hover — react opens the emote sheet, reply seeds `chat
-  <channel> ` (or `say `), tell seeds `tell <first name> `, look sends
-  `look #<speaker id>` (B37).
-- **Explore gets a button bar** (`ButtonBar`): the exits first, then the
-  top things the place affords, then "⋯" for the rest — every button a
-  real command — with the placed-card chips above it.
-- **Watch**: the video above the game terminal; stream chat a swipe
-  away.
-- Cards appear **inline** under the terminal; a tap opens one as a
-  sheet.
+- **#54 — it follows the bottom only if you were there.** A new line
+  scrolls the terminal down only when it was already at the bottom;
+  scrolled up reading, it stays put and a **"new lines ↓"** chip appears,
+  which scrolls down when clicked.
+- **#55 — a line never runs past 42rem** (about 90 characters), the text
+  measure, however wide the column.
 
-`CommandBar` grew `seed` / `suggest` / `onFocusChange` / `leading` /
-`autoFocus` for these, and frames keep their `speaker` so the line menu
-can address one.
-
-### The phone's play surface — the rule underneath
+## The phone's play surface
 
 The rule is **interleave what is causally related, switch what is
 independent**:
@@ -731,15 +626,8 @@ only a real browser with `isMobile: true` can see it.
 
 ## The widget shelf
 
-`components/frame/Shelf.tsx`. The player-pinned row of figures — at the
-left of the **status bar** since the client-surface build (it rode the
-top bar before) — and **the first consumer of the honest-state
-primitives**.
-
-⭐ **Labels are plain words** (#77, B18): Standing · Known · Skills ·
-Body · Making · Money · Status · Time · Who's on · Docket, in title case;
-the figure keeps its engraved display style. The row ids below (`PLAY`,
-`RENOWN`, …) are the `cockpit shelf` vocabulary and did not change.
+`components/frame/Shelf.tsx`. The player-pinned row of figures across
+the top bar, and **the first consumer of the honest-state primitives**.
 
 ⭐⭐ **Three of the nine rows have a live server read and six do not.**
 A shelf showing nine confident numbers would be lying about six of them,
@@ -919,14 +807,6 @@ intake.
 ⚠ **The in-world bar is absent below the breakpoint**, not hidden. It
 has no hover to report on a phone and would cost the feed a row. What
 replaces it is the command sheet.
-
-⭐ **It carries the shelf and the tray** (client-surface D10). In-world,
-the bar is three regions: the **shelf** figures at the left
-(`data-testid="status-shelf"`), the preview in the middle, and the
-**tray** at the right (`data-testid="tray"`) — the cards the player
-minimized, each a chip whose click sends `cockpit card restore <card>`
-and whose hover previews it. Char-gen's bar is the preview alone. The
-preview region still never shows a frame count or a `here:` readout.
 
 ## ⭐ The command sheet — a tap names its command before it sends
 
@@ -1545,9 +1425,7 @@ that a primitive with no consumer can drift. Build B closed it.)
   toggles on tap; there is no swipe navigation, pull-to-refresh or edge
   gesture. A full gesture system (velocity, rubber-banding, partial
   states) is its own build, and the art's *arrives when you drag* is
-  satisfied by an animated disclosure. (The client-surface build later
-  added the phone's two drawer swipes and the long-press line menu —
-  thresholds, not a gesture system.)
+  satisfied by an animated disclosure.
 - **The mobile Arrival path** (front door, intake, lounge, character
   select) — Wave 2, with its own `- Mobile` art. `CharGenStage` is
   untouched here.
@@ -1570,17 +1448,6 @@ that a primitive with no consumer can drift. Build B closed it.)
   `Login`, the hardcoded guest-surname fallback list was deleted (real
   `common` NameBank only), and `PRONOUN_LABELS` was colocated with the
   `Pronouns` enum in `@saxonberg/types`.
-- **The client-surface build (2026-10-31)** replaced the top bar with
-  the nav **rail** and moved the **shelf** (plain-word labels) and a
-  **tray** of minimized cards into the status bar; made every width a
-  **rem** token read by one hook (`useWidthTier`, so zoom is a
-  breakpoint); composed every desktop mode from one `ModeStage` (panel ·
-  terminal column with the medium slot · card area); turned the tab
-  strip's views into terminal filters behind a view chooser; and gave
-  the phone its own shell (`PhoneShell`: chat first by a client rule,
-  drawers, mode tabs, the button bar, the line menu, the target chip).
-  See `docs/plans/client-surface-plan.md` (D9, D10, B18–B24, B33–B39)
-  until it is retired at the sweep.
 
 ## ⭐ The card surface, and where the honest-state convention lands on it
 
@@ -1618,8 +1485,16 @@ test proves rendering, never wiring**; the guard is over the source.
 `CmsDiagnosticsPanel` dock beside the layout and close when you close
 them; they have no identity, no lifetime and no pin. Renaming them
 `*Card` during the `pane`→`card` sweep would have been a lie about what
-they are. (Settings has since become a real card on the desktop — the
-`settings` catalogue row, with `SettingsPanel` as its body — because it
-now has an identity and a command that opens it; the phone still
-summons the panel.)
+they are. (The `settings` VERB opens a real card since the client-surface
+build — the `settings` catalogue row, `SettingsPanel` as its body, closed
+by `cockpit card close settings` — because it has an identity and a
+command that opens it. The top bar's Settings button still docks the
+panel.)
+
+## History — the client-surface chrome
+
+- 2026-10-31 — the client-surface build's rail/stage/phone-shell chrome
+  was built and then reverted at the owner's word (B42, commit
+  5006c247b); the card internals and server behavior described above
+  stayed.
 

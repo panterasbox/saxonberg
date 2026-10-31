@@ -803,6 +803,26 @@ unit terminal card).
 - **B3, corrected by the drive** — "used" had read `hasInteriorBulk()`,
   which says the vessel HAS an interior slot (every glass does), so the
   gate never closed. It now reads a non-empty interior.
+- ⛔⛔ **B42 — the chrome is master's: W3, W5 and W6's navigation was
+  reverted (2026-10-31, at the owner's word).** *"This build wasn't
+  supposed to touch that stuff."* The requirements' "the top bar
+  retires; the frame's only chrome is the nav rail and the status bar"
+  was built without the owner ever having agreed to replace the
+  navigation, and it should have been raised before a line was written.
+  Restored from the branch's merge point: the top bar (seal, connection,
+  account, the PLAY · RENOWN · SKILL shelf, Views, Settings), the status
+  bar, the tab strip, the compact breakpoint, the per-mode layouts
+  (World, Forum, Builder, the livestream pair), `ChatSurface`,
+  `SubjectShell`, the mobile bar, `App`. Removed: the rail, `ModeStage`,
+  the phone shell, the card-area workspace, `useWidthTier`. **Kept,
+  inside master's chrome:** the inspection card and its segments, the
+  feed's card controls that mean something there (pin, refresh, close;
+  minimize folds a card to its header), terminal cards rendered as real
+  terminals in the feed, per-bar prompts, #54 and #55 in the terminal,
+  and every server wave. `play` → `explore` is adapted in the mode
+  registry. **#77 no longer closes** (the shelf's words went back with
+  the shelf). The W3/W5/W6 notes below describe what was built and then
+  reverted; the subsystem docs need the same correction at the sweep.
 
 ---
 
