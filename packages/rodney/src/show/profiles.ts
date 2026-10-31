@@ -39,7 +39,7 @@ export const PROFILES: Record<string, ShowProfile> = {
     mark: '/brand/saxonberg-rings-white.svg',
     topicLabel: 'Now',
     defaultTopic: 'Working on Saxonberg',
-    panels: ['join', 'world', 'quote', 'links', 'follow'],
+    panels: ['join', 'world', 'about', 'links', 'follow'],
     crawl: true,
   },
   // ⚠ Stubs — wordmarks only until they have marks of their own.
@@ -50,7 +50,7 @@ export const PROFILES: Record<string, ShowProfile> = {
     mark: null,
     topicLabel: 'Playing',
     defaultTopic: 'A game',
-    panels: ['follow', 'quote'],
+    panels: ['follow', 'about'],
     crawl: false,
   },
   music: {
@@ -60,7 +60,7 @@ export const PROFILES: Record<string, ShowProfile> = {
     mark: null,
     topicLabel: 'Setlist',
     defaultTopic: 'Live music',
-    panels: ['follow', 'quote'],
+    panels: ['follow', 'about'],
     crawl: false,
   },
 };

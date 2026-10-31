@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import QRCode from 'qrcode';
 import type { Show } from '../../hooks/useShow';
 import { CHANNEL } from '../../show/channel';
+import AtAvatar from '../shared/AtAvatar';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
@@ -57,16 +58,11 @@ export const PANELS: PanelRow[] = [
       ),
   },
   {
-    key: 'quote',
+    key: 'about',
     weight: 1,
-    seconds: 16,
+    seconds: 18,
     when: () => true,
-    render: () => (
-      <Panel
-        quote
-        title="“See now, this is why mad scientists are generally less desirable than your common or garden variety scientist.”"
-      />
-    ),
+    render: () => <AboutPanel />,
   },
   {
     key: 'links',
@@ -267,6 +263,57 @@ function JoinPanel({ show }: { show: Show }) {
           style={{ width: 140, height: 140, border: `3px solid ${palette.brand.white}` }}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * About the streamer — who Bobalu Smallberries is, without repeating the bio:
+ * the avatar beside the name so viewers know who is meant, the bona fides as
+ * "since" lines, when the show is on, and the quote last, unattributed.
+ */
+function AboutPanel() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 32 }}>
+      <AtAvatar size={136} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 24 }}>
+          <span
+            style={{
+              fontFamily: FACE_STACKS.chrome,
+              fontWeight: 600,
+              fontSize: 34,
+              color: palette.text.fg,
+            }}
+          >
+            {CHANNEL.person}
+          </span>
+          <span style={{ fontFamily: FACE_STACKS.chrome, fontSize: 24, color: palette.accent }}>
+            {CHANNEL.schedule}
+          </span>
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 24,
+            color: palette.text.dim,
+            marginTop: 6,
+          }}
+        >
+          {CHANNEL.since.join(' · ')}
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.display,
+            fontSize: 24,
+            lineHeight: 1.25,
+            color: palette.text.fg,
+            marginTop: 10,
+          }}
+        >
+          &ldquo;{CHANNEL.quote}&rdquo;
+        </div>
+      </div>
     </div>
   );
 }
