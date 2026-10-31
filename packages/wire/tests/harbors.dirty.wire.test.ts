@@ -288,8 +288,21 @@ suite('A1 — the port', () => {
   }, 900_000);
 
   it('4. (short · player) the deep coaster at low water is told to wait for the flood; at high water she comes in', async () => {
+    // (staged) The clock to the office's opening, then on an hour at a time
+    // until the bar will not float her. ⚠ The search must not be a HAIL: a
+    // hail at high water is answered with a berth, written in the book, and
+    // a berth given stands — she would never be told to wait. `course
+    // town-quay` with no berth given is a pure probe: the bar refuses her
+    // first ("not until the flood"), else the quay does ("hail first").
+    // From 06:15 a rising tide always follows within the office's day: the
+    // admitted window is under six hours and the refused one under seven.
+    await toHour(6.25);
     const f = await founderAt(COASTER_DECK);
-    const low = await hailUntil(f, /Not until the flood/);
+    for (let i = 0; i < 8; i++) {
+      if (i > 0) await advanceWorldClock('1 hour');
+      if (/Not until the flood/.test(await say(f, 'course town-quay'))) break;
+    }
+    const low = await hailUntil(f, /Not until the flood/, 1);
     expect(low, low).toMatch(/over the bar and she wants [\d.]+\. Not until the flood/);
     const high = await hailUntil(f, /Berth at/);
     expect(high, high).toMatch(/Berth at the Town Quay/);
