@@ -126,8 +126,11 @@ async function toHour(hour: number): Promise<void> {
 async function comeIn(s: Session, tries = 12): Promise<string> {
   let heard = '';
   for (let i = 0; i < tries; i++) {
+    // ⚠ Listening starts BEFORE the jump: her stop is told while the jump
+    // drains its schedules, and `listen` drops whatever came before it.
+    const hearing = s.listen(8_000);
     await advanceWorldClock('10 minutes');
-    heard += ' ' + squash(await s.listen(6_000));
+    heard += ' ' + squash(await hearing);
     if (/made fast|lies off/.test(heard)) break;
     const readout = await say(s, 'course');
     if (/not under way/.test(readout)) {
