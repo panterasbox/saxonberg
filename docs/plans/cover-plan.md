@@ -1400,6 +1400,11 @@ carries the cane-sett deletion that is W2's.
   days of rain back-fill without saturating; the river's "annual low is
   in summer" became "summer HAS a low, with the pack gone". See
   weather.md § the rainfall calibration.
+- **B43 — a plant moved mid-walk re-asks how warm it is.**
+  `restampWarmth` coalesced every caller onto the walk in flight, so a
+  plant moved while one was out kept the warmth and climate site of where
+  it had been. Found staging the labeled plant (field population); the
+  pot rule shares it. Growing test fails without it.
 - **Prose (browser walk):** five ground-work sentences, sow, draft,
   milk and handle opened with a lowercase clause; the sward's
   "ready for them / ahead of them" assumed a herd on meadows and cane

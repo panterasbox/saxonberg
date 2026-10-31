@@ -2108,6 +2108,23 @@ stage server on 2014 was stopped by PID.
     including a multi-word phrase (100) → exact keyword (70) → name word
     matches (40–60) → keyword partials (≤25), each tier cutting the ones
     below it when present. Run both branches' scorer tests after.
+- **Merged** (4df10ab3d) as probed: the cascade landed in `scoreCandidates`,
+  scorer tests 61/61; `lint:mass` ceiling 234 → 231 (f6e0e02bb).
+  `lint:family` 84/84, `test:near` green.
+- **Full suite on the merged tree — 51 of 52 packages green, 48 min.** The
+  one failure: the composition-panel field snapshot lacked this build's
+  five new fields (`groundPart`, `specimenNoun`, `_specimen`, `_fromStand`,
+  `_rootZoneStamp`, all reveal 0). Updated (fc3a655e2). Server 14,496
+  passed.
+- **Step 7 staged in isolation** (the labeled plant read "stressed, still
+  a seedling" beside a stand "well, in ear" in pass 3). On the probe world
+  a stand reset to a fresh seedling and labeled at 2 a.m. tracks its stand
+  to three decimals through six days of 6 h jumps (stage, vigor, maturity,
+  cause, condition band). Pass 3 predates B41, which is the likeliest cause.
+  The staging did turn up one real race: **B43 — a plant moved while its
+  warmth walk is in flight re-asks** (`restampWarmth` coalesced onto the
+  walk begun where the plant WAS, and a labeled stem is minted and set into
+  the field in one breath). Growing test fails without it (345c96d58).
 
 ## Drive record
 
