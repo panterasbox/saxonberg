@@ -170,6 +170,8 @@ export interface CardListing {
   minimized: boolean;
   placed?: CardPlacement;
   role?: CardRole;
+  /** What the card's header calls it — what an echo names it by. */
+  title?: string;
   /** A terminal card's filter and bar — what an arrangement records. */
   terminal?: { filter: TerminalFilter; barId: string; primary: boolean };
 }
@@ -612,6 +614,7 @@ export default class CardRegistry extends CardRegistryBase {
       minimized: s.minimized,
       ...(s.placed ? { placed: s.placed } : {}),
       ...(s.role ? { role: s.role } : {}),
+      ...(s.title !== undefined ? { title: s.title } : {}),
       ...(s.payload?.kind === 'terminal'
         ? {
             terminal: {

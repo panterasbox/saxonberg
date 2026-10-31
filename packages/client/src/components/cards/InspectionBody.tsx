@@ -446,7 +446,9 @@ export function InspectionBody({
                 </>
               ) : (
                 <MmlRenderer
-                  text={seg.text}
+                  // The terminal's `── ` section divider is the TERMINAL's
+                  // layout; in a card the row and its gutter already part it.
+                  text={seg.text.replace(/^\s*──\s*/, "")}
                   onCommandClick={seg.shape === "prose" && onProseClick ? onProseClick : onSendCommand}
                   onCommandPreview={onCommandPreview ?? (() => undefined)}
                 />

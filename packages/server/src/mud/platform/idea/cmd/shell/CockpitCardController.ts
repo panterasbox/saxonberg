@@ -113,6 +113,7 @@ export default class CockpitCardController extends CommandController<CardModel> 
     // `unpin` is `dismiss` by its other name.
     const pinned =
       action === 'pin' ? true : action === 'dismiss' || action === 'unpin' ? false : null;
+    const name = this.cardName(context, cardId);
     const ok = interactive.setCardPinned(cardId, pinned);
     if (!ok) {
       return this.fail(
@@ -130,7 +131,7 @@ export default class CockpitCardController extends CommandController<CardModel> 
           : 'returned to its default';
     this.send(
       context,
-      Mml.fromMarkup(Mml.escape(`\ncard ${cardId} ${said}\n`)),
+      Mml.fromMarkup(Mml.escape(`\ncard ${name} ${said}\n`)),
     );
   }
 
@@ -153,11 +154,25 @@ export default class CockpitCardController extends CommandController<CardModel> 
       }
       at = { col, row };
     }
+    // ⭐ Named by what its header says, not the ref it was addressed by:
+    // a card opened by a click is keyed `look #4Uans…`, and the echo
+    // "card look #4Uans… in the tray" read the transport at the player.
+    const name = this.cardName(context, cardId);
     const { refused } = context.interactive!.arrangeCard(cardId, action, at);
     if (refused) {
       return this.fail(context, `${REFUSED[refused] ?? refused} '${cardId}'`, refused);
     }
-    this.send(context, Mml.fromMarkup(Mml.escape(`\ncard ${cardId} ${ARRANGED[action]}\n`)));
+    this.send(context, Mml.fromMarkup(Mml.escape(`\ncard ${name} ${ARRANGED[action]}\n`)));
+  }
+
+  /** A card's header title when it has one, else the ref as typed. */
+  private cardName(context: CommandContext, cardRef: string): string {
+    const cards = context.interactive!.listCards();
+    const hit =
+      cards.find((c) => c.key === cardRef) ??
+      cards.find((c) => c.cardId === cardRef) ??
+      cards.find((c) => c.instanceId === cardRef);
+    return hit?.title ? `“${hit.title}”` : cardRef;
   }
 
   private executeList(context: CommandContext): void {

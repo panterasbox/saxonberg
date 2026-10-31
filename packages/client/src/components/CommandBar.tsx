@@ -235,6 +235,9 @@ const ModeCloseX = styled.button`
 
 const Input = styled.input<{ $promptMode?: boolean }>`
   flex: 1;
+  /* ⚠ An input's intrinsic width is ~20 characters; without this the row
+   * cannot shrink and a leading chip pushes Send off a phone's edge. */
+  min-width: 0;
   padding: ${tokens.space.md};
   background: ${(p) =>
     p.$promptMode ? tokens.color.surfaceMuted : tokens.color.surfaceSunken};

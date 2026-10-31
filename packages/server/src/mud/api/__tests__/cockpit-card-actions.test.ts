@@ -17,6 +17,7 @@ import { makeHarness, makeContext, type Harness } from './card-harness';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 let tags: string[][] = [];
+let said: string[] = [];
 
 beforeEach(() => {
   StuffApi.clearAll();
@@ -25,6 +26,7 @@ beforeEach(() => {
   MqlSubscriptionApi._clearAllForTesting();
   CardApi._clearAllForTesting();
   tags = [];
+  said = [];
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
@@ -32,7 +34,10 @@ beforeEach(() => {
       tags.push(t);
       return b;
     };
-    b.toSelf = () => b;
+    b.toSelf = (body: unknown) => {
+      said.push(String(body));
+      return b;
+    };
     b.send = () => {};
     return b as never;
   });
@@ -62,6 +67,18 @@ describe('cockpit card — shape and place', () => {
     const who = h.interactive.listCards()[0]!;
     expect(who).toMatchObject({ size: 'medium', placed: { col: 1, row: 0 }, minimized: true });
     expect(tags.every((t) => t.includes('control:card'))).toBe(true);
+  });
+
+  it('⭐ the echo names a card by its header title, not the ref it was addressed by', async () => {
+    const h = await makeHarness();
+    CardApi.open(
+      makeContext(h, { commandText: 'look #abc', verbs: ['look'], opensCard: 'who' }),
+      'who',
+      { key: 'look #abc', title: 'the house tablet' },
+    );
+    run(h, { action: 'minimize', cardId: 'look #abc' });
+    expect(said.join('\n')).toContain('card “the house tablet” in the tray');
+    expect(said.join('\n')).not.toContain('#abc');
   });
 
   it('`unpin` is `dismiss` by its other name', async () => {

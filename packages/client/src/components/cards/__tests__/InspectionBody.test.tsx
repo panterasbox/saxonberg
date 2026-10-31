@@ -29,6 +29,19 @@ describe("InspectionBody", () => {
     });
   });
 
+  it("a state line drops the terminal's `──` divider — the card's row parts it already", () => {
+    const tablet = {
+      ...PINT,
+      segments: [
+        { shape: "state" as const, sources: [{ kind: "look" as const, name: "Screen" }], text: "── The screen is dark." },
+      ],
+    };
+    render(<InspectionBody card={tablet} onSendCommand={noop} />);
+    const row = screen.getByTestId("segment");
+    expect(row.textContent).toContain("The screen is dark.");
+    expect(row.textContent).not.toContain("──");
+  });
+
   it("⭐ the gutter says who said it: solid for a mixin, dotted for a class", () => {
     render(<InspectionBody card={PINT} onSendCommand={noop} />);
     const stripes = screen.getAllByTestId("segment-stripe");
