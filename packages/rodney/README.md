@@ -32,7 +32,7 @@ pnpm --filter @saxonberg/rodney dev   # http://localhost:5200/standby.html
 ```
 
 Point an OBS **Browser Source** at `http://localhost:5200/standby.html` (1920×1080).
-**Three brands, three jobs.** The *show* (Saxonberg, a game, music) is a
+**Three brands, three jobs.** The *show* (Saxonberg, so far) is a
 profile — `src/show/profiles.ts`, chosen with `?show=<key>`, default
 `saxonberg` — and owns the sidebar's brand block, the topic label, the
 rotation's panels and the standby's right banner. The *studio* (Pantera's Box)

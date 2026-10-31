@@ -2,7 +2,7 @@
  * Show profiles — what tonight's stream is ABOUT. Three brands share the
  * frame and each has one job:
  *
- *   the show    (a profile: Saxonberg, a game, music) — the sidebar's brand
+ *   the show    (a profile — Saxonberg, the only one so far) — the sidebar's brand
  *               block and the standby's right banner; changes per show
  *   the studio  (Pantera's Box) — the frame itself, and the standby's left
  *               banner; never changes
@@ -10,8 +10,10 @@
  *               changes
  *
  * A profile is chosen per OBS browser source with `?show=<key>` (default
- * saxonberg); later the broadcast feed can carry it (`stream start music`).
- * A new show is a row here.
+ * saxonberg); later the broadcast feed can carry it (`stream start <show>`).
+ * A new show is a row here. ⚠ Saxonberg is the only show designed so far —
+ * music (a Keysight capture, the camera on the player, chat) is a different
+ * scene, not a profile on the Live frame, and is designed separately.
  */
 export interface ShowProfile {
   key: string;
@@ -21,7 +23,7 @@ export interface ShowProfile {
   seal: string | null;
   /** The show's mark STANDALONE (white on blue) for the banner, or none. */
   mark: string | null;
-  /** The label over the topic: "Now", "Playing", "Setlist". */
+  /** The label over the topic, e.g. "Now". */
   topicLabel: string;
   /** The topic line when the feed sets none. */
   defaultTopic: string;
@@ -41,27 +43,6 @@ export const PROFILES: Record<string, ShowProfile> = {
     defaultTopic: 'Working on Saxonberg',
     panels: ['join', 'world', 'money', 'community', 'about', 'gitlab'],
     crawl: true,
-  },
-  // ⚠ Stubs — wordmarks only until they have marks of their own.
-  gaming: {
-    key: 'gaming',
-    wordmark: 'Playing',
-    seal: null,
-    mark: null,
-    topicLabel: 'Playing',
-    defaultTopic: 'A game',
-    panels: ['about', 'money', 'community'],
-    crawl: false,
-  },
-  music: {
-    key: 'music',
-    wordmark: 'Music',
-    seal: null,
-    mark: null,
-    topicLabel: 'Setlist',
-    defaultTopic: 'Live music',
-    panels: ['about', 'money', 'community'],
-    crawl: false,
   },
 };
 

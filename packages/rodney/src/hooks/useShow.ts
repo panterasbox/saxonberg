@@ -183,38 +183,10 @@ const MOCK_SAXONBERG: Show = {
   community: MOCK_COMMUNITY,
 };
 
-/** Every other profile's mock: an agenda of its own, no world, no crawl. */
-const MOCK_OTHER: Record<string, Show> = {
-  music: {
-    ...EMPTY,
-    money: MOCK_MONEY,
-    community: MOCK_COMMUNITY,
-    topic: 'Hard Rain',
-    agenda: [
-      { title: 'Warm-up', done: true },
-      { title: 'Hard Rain', done: false },
-      { title: 'The Long Field', done: false },
-      { title: 'Requests', done: false },
-    ],
-    current: 1,
-  },
-  gaming: {
-    ...EMPTY,
-    money: MOCK_MONEY,
-    community: MOCK_COMMUNITY,
-    topic: 'NetHack — a Valkyrie, Gnomish Mines',
-    agenda: [
-      { title: 'Get to Minetown', done: true },
-      { title: 'Sokoban', done: false },
-    ],
-    current: 1,
-  },
-};
-
 export default function useShow(profile: ShowProfile): Show {
   const [show] = useState<Show>(() => {
     if (!new URLSearchParams(window.location.search).has('mock')) return EMPTY;
-    return profile.key === 'saxonberg' ? MOCK_SAXONBERG : MOCK_OTHER[profile.key] ?? EMPTY;
+    return profile.key === 'saxonberg' ? MOCK_SAXONBERG : EMPTY;
   });
   // The mock's player count drifts so the join panel visibly updates.
   const [players, setPlayers] = useState(show.playersOnline);
