@@ -4,7 +4,11 @@
 > `stream back` countdown shipped (Phase 1), plus relay chat on the
 > feed →
 > [livestream.md](../../subsystems/livestream.md),
-> [streaming.md](../../subsystems/streaming.md)
+> [streaming.md](../../subsystems/streaming.md). Rodney's half is built
+> against mock data on `build/rodney` (2026-10-31): the standby on the
+> brand guide, the Live scene's sidebar and lower third, show profiles,
+> the nameplate, the OBS setup doc; requirements at
+> [broadcast-ready-requirements](../../requirements/broadcast-ready-requirements.md)
 > **Left:** the stream's phases (offline · starting · live · standby ·
 > ending) and standby *reasons* as rows · stream state that survives a
 > restart and fails closed, held by each streamer rather than the
@@ -12,8 +16,10 @@
 > can see · ⭐ the canvas (revised 2026-10-22: display capture in a 16:9
 > content area, the sidebar — brand, topic and agenda, chat, the camera
 > in the corner — and the lower third's rotation and crawl) · the agenda ·
-> the lower third v1 (join, goals to claim, the world, the quote, building, links; names by
-> opt-in; alerts later) · the streamer controls as a pop-out card on the unshared monitor ·
+> the lower third's cards (revised 2026-10-31: the Saxonberg card, money, community, wiki
+> article of the day, term of the moment; welcomes in the ticker; names shown freely) · three
+> brands, three jobs (show profiles, the nameplate) · the build's date on the feed · new
+> players on the feed · the streamer controls as a pop-out card on the unshared monitor ·
 > redaction while on air · the client's foreground reported · the
 > streamer's client facts on the feed ·
 > the overlay's scenes, layers and scene rules · OBS scene switching ·
@@ -166,7 +172,8 @@ rule, made structural.
 
 ### The sidebar
 
-- **Brand — always on screen.** The Pantera's Box seal and the Saxonberg wordmark.
+- **Brand — always on screen.** The **show's** brand — tonight's profile (§ Three brands,
+  three jobs): the Saxonberg seal and wordmark on a Saxonberg stream.
 - **Topic and agenda — always on screen.** The current topic is the current segment
   (`stream segment …`); the agenda is the ordered list set at `stream start` or by
   `stream agenda …`, the current item highlighted, finished ones ticked; one command or one
@@ -198,50 +205,27 @@ Laid out for a viewer at 720p, where everything renders at two-thirds size:
   only when** condition, so an empty item never takes a turn and adding one is content, not
   code.
 
-### ⭐⭐ What the lower third is for — passive, and the pitch **[DECIDED — the owner]**
+### ⭐⭐ What the lower third is for — passive **[DECIDED — the owner]**
 
 The owner: *"some of this stuff we can just put in the game, and if I wanna show it I'll be
-showing the whole client … The overlays is stuff I want shown passively."* And: *"logging
-into the game actually puts you in the stream now, since I'm just showing the saxonberg
-client. That's a value proposition most other streams don't offer."* Anything worth
-navigating to stays in the game; the overlay carries what should be true while the streamer
-is doing something else — and its spine is **log in and you're on the show**.
+showing the whole client … The overlays is stuff I want shown passively."* Anything worth
+navigating to stays in the game; the overlay carries what should be true while the streamer is
+doing something else. What it carries is **§ The cards** below (revised 2026-10-31 — the v1
+rotation of join · goals · the world · the quote · building · links was rendered, and the owner:
+*"these are all terrible"*).
 
-**The v1 rotation** — a starter, built to be changed (the owner: *"I might tell you one
-thing and then totally hate it once I see it"*):
+### ⭐ Names are shown freely **[DECIDED — the owner, 2026-10-31; reverses the opt-in]**
 
-| panel | says | source | when |
-|---|---|---|---|
-| ⭐ **join** — weighted heaviest | *"Log in and you're on the stream"* · the URL · a QR code · how many are in the world now | static + the game | always |
-| ⭐ **goals** | *"Subs this stream: 12 / 20 · every sub becomes a stake in the cooperative · log in with Twitch to claim yours"* | Twitch events | once intake exists |
-| **the world now** | Terminus's time, season and weather; the latest in-world headline | time, weather, press | always |
-| **the quote** | *"See now, this is why mad scientists are generally less desirable than your common or garden variety scientist."* (*Mystery Men*) — the persona's thesis | static | always |
-| **building** | the current milestone and its progress; open merge requests and their pipelines | GitLab ([gitlab-and-packs](./gitlab-and-packs-slate.md) § 7) | when the integration is on |
-| **brand and links** | socials; ⭐ *"the source is open"* — the GitLab link and the AGPL | static | always |
-
-⭐ **Goals are a reason to log in.** Patronage becomes standing in the cooperative when it can
-be attributed to a real player — the [giving slate](./giving-slate.md)'s *attribution by
-claim*: a held gift attaches when its giver signs in with, or links, that account. So the
-goals panel and the join panel make one pitch from two directions.
-
-**The v1 crawl** — only when it has something: in-world news; notable deeds and ⭐ **world
-firsts** (chronicle's one-time deeds — *"the first ingot smelted in Rejection"*); just merged;
-issues closed; ⭐ *"your bug report got fixed"*.
-
-### ⚠⚠ Names only for players who opted in **[DECIDED]**
-
-Logging in puts you on the show, and a *"welcome, Iffy"* panel broadcasts an arrival to the
-internet — reaching people who never came near the streamer, which the on-air marker does
-not cover. So **names appear on the overlay only for players who opted in to being shown on
-stream** (one setting); everyone else is a count. The opt-in doubles as the list of people
-who *want* to be on the show.
+The overlay names players by their **character** — in welcomes, in the ticker, wherever. The
+owner: *"it's not their real name, who cares."* The opt-in this slate recorded on 2026-10-22 (a
+welcome broadcasts an arrival to the internet) is retired: a character name is not an identity.
 
 ### Alerts — later, in the lower third **[DECIDED]**
 
 Alerts interrupt the rotation for a few seconds, in the lower third, so the content area is
 never covered. ⭐ **The alert that matters is the conversion: someone walked into Saxonberg
-from the stream** — the moment the pitch worked (names by opt-in). Follows, subs and raids
-follow Twitch event intake.
+from the stream** — the moment the pitch worked. Follows, subs and raids follow Twitch event
+intake.
 
 ### For the streamer only — the controls card **[DECIDED — the owner]**
 
@@ -261,17 +245,94 @@ and next, with skip and pin**; the alert queue once alerts exist.
   queue once) and **weight by segment** (build items heavier in a coding segment, world
   items in a play segment).
 
----|---|---|---|
-| ⭐ **stream goals** — follows, subs | rotation | Twitch events | needs Twitch event intake (the broadcast track's Phase 4) |
-| ⭐ **the quote** — *"See now, this is why mad scientists are generally less desirable than your common or garden variety scientist."* (*Mystery Men*) — the thesis of the on-stream persona | rotation | static | yes |
-| **now building** — open MRs and their pipelines | rotation | GitLab | needs the GitLab API |
-| world stats — players online, today's notable deeds | rotation | the game | mostly |
-| how to join — URL or QR code | rotation | static | yes |
-| next stream — the schedule | rotation | static or a stream verb | small |
-| **in the world** — the in-world news | crawl | the press subsystem's ticker | ✅ |
-| **just merged** — the live changelog | crawl | GitLab / git | the [distribution](./distribution-and-hosting-slate.md) idea |
-| chat highlights | crawl | relay chat | yes |
-| recent supporters | crawl | Twitch events | needs event intake |
+## ⭐⭐ The cards — revised 2026-10-31 **[DECIDED — the owner]**
+
+A **card** is one thing the lower third shows on its turn. Each card is about **one thing**,
+and a card whose source is empty never takes a turn.
+
+| card | about | source | waits on |
+|---|---|---|---|
+| **Saxonberg** | the game | static + the game | the build date; the domain |
+| **Money** | dollars in vs the month's budget | giving's ledger + the books | [giving](./giving-slate.md), [budget](./budget-slate.md) |
+| **Community** | people joining | giving's events + new players | giving; the new-player event |
+| **Wiki article of the day** | the architecture, a page at a time | the wiki | the wiki's public route |
+| **Term of the moment** | one word, defined | the wiki | the wiki's public route |
+| **What is this?** | the basics, for someone arriving mid-stream | static | ⏸ parked until the others settle |
+| **You're watching** | the channel | static | — |
+| **The ticker** (the crawl) | in-world news, world firsts, ⭐ welcomes | press, chronicle, new players | the new-player event |
+
+### The Saxonberg card **[DECIDED — the owner; copy LEAN]**
+
+⭐ **The hook is that the viewer can use it too**, not *"log in and you're on the stream"* —
+the owner: *"not everyone wants that … the truth is they're looking at me using the app, so it's
+more like, hey, you can use this thing too, it's not just for streamers."* The shared world is
+implied, not sold; the ticker carries it. The card:
+
+- **restates the brand** — the rings on Old Glory Blue and the wordmark: *"there's a lot going on
+  on this screen, and mud.panterasbox.com isn't an obvious locator for a game called Saxonberg"*;
+- the hook, the URL, how many players are in the world now, and a QR;
+- ⭐ **the build's date and age** — *"like how old is the thing they're looking at"*. ⚠ **No
+  build identity exists anywhere today**: the deploy stamps its commit and date, and the feed
+  carries them (it pairs with the deployed-commit diff of
+  [gitlab-and-discord](./gitlab-and-discord-slate.md)).
+- ⚠ **The domain** — the owner will register **`saxonberg.gg`** (unregistered as of
+  2026-10-31; Route 53 registers `.gg`, without WHOIS privacy). A host change moves
+  `CLIENT_URL` and every OAuth callback with it ([deployment.md](../../deployment.md)).
+
+### The money card — dollars only **[DECIDED — the owner]**
+
+**This month's income against this month's budget, back to zero every month** — the owner: *"that's
+how I have to pay for things right now"*. Income is **at net**, what reached the project
+([giving](./giving-slate.md)); the budget is **read from the books**
+([budget](./budget-slate.md)), split by what drives it — **running the world** (grows with
+players) and **building it** (inference today) — so *costs rise as more people log in* is visible
+as it happens. Recent gifts may scroll here. ⚠ **Recurrence is not a dimension** — the owner:
+*"the recurringness actually isn't really important to me"*: one flat number for the month.
+
+⚠ Before it airs: [budget](./budget-slate.md) guardrail 4 (*contributions confer nothing*) and
+[giving](./giving-slate.md) (patronage becomes capital standing) must be read together — this card
+is where dollars and standing would sit side by side.
+
+### The community card — people **[DECIDED — the owner]**
+
+New subs, gift subs, new members and patrons, **as people joining, not as money**; ⭐ new
+Saxonberg players in real time (character creation's commit is one server event — it goes on the
+feed); and **where to find us** — Twitch, YouTube, Kick, Patreon with their glyphs and handles.
+The owner prefers gift subs to flat gifts (*"subs build community, donos just support me"*); the
+community card is where that shows, and alerts weigh a gift sub heaviest.
+
+### The ticker welcomes **[DECIDED — the owner]**
+
+*"Welcome, Iffy!"* in the ticker when a player arrives for the first time — by character name
+(§ Names are shown freely). ⭐ **From the stream**: the Saxonberg card's QR and links carry a
+stream tag ([deep-links](./deep-links-slate.md)), so a player who came from the stream is welcomed
+as one — the conversion alert, in the ticker.
+
+### Wiki article of the day, and the term **[LEAN]**
+
+The owner: *"a great way to get people into the architecture."* **Seeded by the date**, so the
+stream, the in-game wiki and Discord agree on the day's page; a **second slot follows the topic**
+(tonight's agenda item picks a related page), so the same page does not repeat all night. The
+summary is **the page's own lead** — the public route's link-preview summary, never an LLM's —
+and only **level-0** pages, the public route's rule. The **term of the moment** is the same reader
+on demand: the streamer flags a word (`stream define mixin`, or a deck button) and the card shows
+its one-line definition and the public link. Both read [wiki-content](./wiki-content-slate.md)'s
+public route.
+
+### ⭐⭐ Three brands, three jobs **[DECIDED — the owner]**
+
+The owner: *"the livestream really has three competing brands."* Each gets one job:
+
+| brand | job | where |
+|---|---|---|
+| **the show** — Saxonberg, a game, music | what tonight is about | the sidebar's brand block, the topic label, the rotation's cards, the standby's right banner |
+| **the studio** — Pantera's Box | who makes the show | the frame itself, the standby's left banner |
+| **the person** — Bobalu Smallberries | whose channel this is | the **nameplate**: *Bobalu Smallberries @ Pantera's Box*, flush right with the studio's hex against the word BOX, on the camera |
+
+A show is a **profile** — a row naming its mark, wordmark, topic label, cards and whether the
+crawl runs; chosen per OBS browser source today (`?show=music`), carried by `stream start <show>`
+later. ⭐ The owner's NetHack `@` (the IBM VGA 8×16 glyph) is the **person's avatar on the
+platforms**, deliberately **not** on the overlay.
 
 ---
 
@@ -525,8 +586,8 @@ The exit criterion, run against the real stack with OBS open:
 
 1. ~~**The segment list**~~ — **an agenda**, decided 2026-10-22: set before the show,
    shown always in the sidebar, stepped by a command or a Stream Deck button.
-5. **The lower third's sources** — which ship in this build (GitLab, Twitch goals) and which
-   follow.
+5. ~~**The lower third's sources**~~ — **cards**, decided 2026-10-31 (§ The cards): each
+   appears when its source exists.
 6. **Pop-out windows without chrome** — an installed app (a PWA in a standalone window) is
    the lean; Document Picture-in-Picture is chromeless but one always-on-top window per tab;
    a plain popup keeps a minimal address bar. Verified when built.

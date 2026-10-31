@@ -40,7 +40,9 @@ track's Phase 3 ([broadcast-patronage-track](../tracks/broadcast-patronage-track
 **Therefore what is genuinely new here is:** five phases with reasons as rows, held per streamer and
 durable; a token per streamer; redaction and the on-air marker; the overlay's four scenes, its
 sidebar and lower third, and the rules that pick them; the controls card and pop-out windows; the
-agenda; YouTube live detection under the streamer's own login; and pblive's game buttons.
+agenda; the build's date and new players on the feed; YouTube live detection under the
+streamer's own login; and pblive's game buttons. ⭐ **Rodney's half is already built against mock
+data** on `build/rodney` (2026-10-31): the standby, the Live scene, show profiles, the nameplate.
 
 ## Goals
 
@@ -62,9 +64,16 @@ agenda; YouTube live detection under the streamer's own login; and pblive's game
 - **The streamer registry** — the persisted record, claim-by-proof, the public directory →
   [streamer-registry-slate](../slates/builds/streamer-registry-slate.md). This build makes state
   and tokens per streamer; it does not make streamers a public, claimable thing.
-- **Reading patronage** (subs, bits, memberships, Super Chats) and the **goals** panel that shows
-  it → [giving-slate](../slates/builds/giving-slate.md); the panel is a row that appears when its
-  source exists.
+- **Reading patronage** (subs, bits, memberships, Super Chats, Patreon) →
+  [giving-slate](../slates/builds/giving-slate.md), which the owner ships before the first show;
+  the **money** and **community** cards read its ledger and appear when it exists.
+- **The books** the money card's budget reads → [budget-slate](../slates/builds/budget-slate.md).
+- **The wiki's public route** the article-of-the-day and term cards read →
+  [wiki-content-slate](../slates/builds/wiki-content-slate.md) (requirements: MR !507).
+- **The `saxonberg.gg` domain** → the owner; a host change moves `CLIENT_URL` and the OAuth
+  callbacks ([deployment.md](../deployment.md)).
+- **A show profile chosen by `stream start <show>`** → later; this build chooses it per OBS
+  browser source.
 - **Twitch event intake** (follows, subs, raids) and **alerts**, including the conversion alert →
   the broadcast track's Phase 4.
 - **The GitLab sources** — the *building* panel and the *just merged* crawl →
@@ -173,14 +182,32 @@ sidebar (brand, topic and agenda, chat, the camera in the corner), a 225-tall lo
 scenes — **Starting · Live · Away · Ending** — and ⚠⚠ **a privacy cover is the absence of a
 source**: Away contains no desktop, no camera and no microphone.
 
-### The lower third v1 **[LEAN — the slate's list, filtered by what has a source]**
+### The lower third's cards **[DECIDED — the owner, 2026-10-31]**
 
-**Ships:** *join* (weighted heaviest — the URL, a QR code, how many are in the world now), *the
-world now* (Terminus's time, season, weather, the latest headline), *the quote*, *brand and links*
-(⭐ *the source is open* — GitLab and the AGPL); the crawl carries in-world news and world firsts.
-**Rows, not code** — text, duration, weight, source, a *show only when*. **Waits for its source:**
-goals, building, just merged, alerts. Names appear only for players who opted in to being shown on
-stream; everyone else is a count.
+A card is about one thing and takes a turn only when its source has something
+([slate § The cards](../slates/builds/broadcast-ready-slate.md)):
+
+- **Saxonberg** — the brand restated, *"what you're watching, you can play"*, the URL, players in
+  the world now, a QR, ⭐ **the build's date and age**. **This build** puts the deployed commit's
+  date on the feed — no build identity exists today.
+- **Money** — this month's income at net against this month's budget, back to zero monthly; the
+  budget split into running the world and building it. Reads giving's ledger and the books.
+- **Community** — new subs, gift subs, members and patrons as people; ⭐ **new Saxonberg players
+  in real time** (**this build** puts character creation's commit on the feed); where to find us
+  on Twitch, YouTube, Kick and Patreon.
+- **Wiki article of the day** and **term of the moment** — read the wiki's public route.
+- **You're watching** — the channel.
+- **The ticker** — in-world news, world firsts, and ⭐ *"Welcome, Iffy!"* for a first arrival,
+  *"straight from the stream"* when the Saxonberg card's tagged link brought them.
+
+⭐ **Names are shown freely** — character names, no opt-in (the owner: *"it's not their real
+name"*). Cards are **rows, not code**.
+
+### Three brands, three jobs **[DECIDED — the owner]**
+
+The **show** (a profile: Saxonberg, a game, music) owns the sidebar's brand block, the topic label,
+the cards and the standby's right banner; the **studio** (Pantera's Box) is the frame and the left
+banner; the **person** is the nameplate — *Bobalu Smallberries @ Pantera's Box* on the camera.
 
 ### The rules are data **[DECIDED — the slate]**
 
@@ -224,8 +251,9 @@ streamer — it can run `stream …` as that player and nothing else.
 3. **Immersion / participation** — interface tier, outside the fiction; it may never gate on
    anything in-world. ⭐ Participation is the pitch: logging in puts you on the show.
 4. **Values** ⭐ — decides redaction (*the people in your tells did not consent to an audience*),
-   the on-air marker (*nor did the people in your room*), names by opt-in, the timerless privacy
-   standby, absence as the cover, fail closed, and the ending timer.
+   the on-air marker (*nor did the people in your room*), the timerless privacy standby, absence
+   as the cover, fail closed, the ending timer, and the money card's flat monthly honesty
+   (income against costs, at net).
 5. **Continuity** — `stream away 15m` still means what it meant.
 6. **Economy** — none in game; one encode on the founder's machine, no restreaming service.
 7. **Governance** — the streamer axis, the per-streamer token, the scoped control token; no person
@@ -262,6 +290,11 @@ against the real stack with OBS open.
     glyphs; the founder's YouTube broadcast is found without a search call.
 13. `instant` · staged — Rodney's preview page with mock data cycles the lower third with no
     stream and no server.
+14. `instant` · player — a new player finishes character creation during the stream → *"Welcome,
+    <name>!"* runs in the ticker within seconds; arriving by the Saxonberg card's link, *"straight
+    from the stream"*.
+15. `instant` · player — the Saxonberg card shows the running build's date and age, matching the
+    deployed commit.
 
 ### Soak drive
 
