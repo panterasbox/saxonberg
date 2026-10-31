@@ -183,10 +183,15 @@ export function PhoneShell(props: PhoneShellProps): React.ReactElement {
   const barId = primaryPayload?.barId ?? "phone";
   const channel = primaryPayload?.filter.channel;
 
+  // ⭐ In chat the feed is the conversation: the room card lives in the
+  // who's-here drawer and does not sit under the talk (it does in
+  // explore, where the room IS the subject).
   const inline = React.useMemo(
     () =>
-      visibleCards(cards, { resultDisplay, kinds }).sort((a, b) => a.openedAt - b.openedAt),
-    [cards, resultDisplay, kinds],
+      visibleCards(cards, { resultDisplay, kinds })
+        .filter((c) => !(mode === "chat" && c.role === "here"))
+        .sort((a, b) => a.openedAt - b.openedAt),
+    [cards, resultDisplay, kinds, mode],
   );
   const sheetCard = sheet ? cards[sheet] : undefined;
   const here = live.find((c) => c.role === "here");

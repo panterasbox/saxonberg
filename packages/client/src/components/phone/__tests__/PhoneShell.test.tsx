@@ -116,6 +116,27 @@ describe("PhoneShell", () => {
     expect(screen.getByTestId("terminal-strip")).toBeTruthy();
   });
 
+  it("⭐ chat's feed is the conversation: the room card is not inline there, but is in explore", () => {
+    const here = {
+      instanceId: "here",
+      cardId: "subject",
+      key: "look",
+      live: true,
+      pinned: false,
+      role: "here",
+      openedAt: 1,
+      records: [{ stuffId: "room-1", displayName: "Dave's Bar" } as never],
+    };
+    const who = { instanceId: "c1", cardId: "who", key: "who", live: false, pinned: false, openedAt: 2, records: [] };
+    useStore.setState({ cards: { here: here as never, c1: who as never } });
+    const chat = render(<PhoneShell {...base} storedMode="chat" />);
+    expect(screen.queryByTestId("inline-card-here")).toBeNull();
+    expect(screen.getByTestId("inline-card-c1")).toBeTruthy();
+    chat.unmount();
+    render(<PhoneShell {...base} storedMode="explore" />);
+    expect(screen.getByTestId("inline-card-here")).toBeTruthy();
+  });
+
   it("the mode tabs hide while typing", () => {
     render(<PhoneShell {...base} storedMode="chat" />);
     expect(screen.getByTestId("mode-tabs")).toBeTruthy();
