@@ -1361,7 +1361,7 @@ title/end cards. Nothing else.
   attribution + transfer, persistence & help-seeking, peer effects, the
   honest ZPD.
 - **The retention claim is ranked, and the ranking is honest.** The
-  strongest leg is **the people**; the second is **the producer flip**
+  strongest leg is **the people**; the second is **the maker flip**
   (the graduate becomes the teacher, with a price signal behind it); "it's
   just fun" is the weakest and the business is never leaned on it
   ([student experience §3](./study-com/student-experience.md)). Beat 12

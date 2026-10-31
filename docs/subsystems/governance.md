@@ -51,7 +51,7 @@ Three population-shaped concepts, deliberately distinct:
   prescribed by nothing, so it is never minted as an Office. Same
   substrate throughout; the pointer is the law.
 - **Chamber** ([influence.md](./influence.md)) — a population that
-  *falls out of* influence (the Producer / Capital / Consumer Houses),
+  *falls out of* influence (the Labor / Capital / Consumer Houses),
   never "filled". This build models only the Speaker **seats** of those
   houses, not the chamber populations.
 

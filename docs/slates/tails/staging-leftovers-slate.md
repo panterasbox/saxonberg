@@ -484,7 +484,7 @@ parcels.
    one call at the right moment; command measures the leadership. **The
    captain whose line holds.**
 7. **The compiler of Duncan Hall** (CS). A shop brain three storefronts run,
-   a composable item-effect bundle; producer standing pays like royalties.
+   a composable item-effect bundle; labor standing pays like royalties.
    *Needs the three extensibility bridges.* **Code that runs somewhere real.**
 8. **The cartographers of the Third Node** (science). Controlled trials on
    an unmapped magic node, argued on the forum until the map converges,
@@ -585,7 +585,7 @@ is not the skill. If rank could be bought it would mean nothing.
 title plus a warren (the hall) · the guild's own positions, not the Office
 substrate (rank and seats) · the credential substrate (**guilds are
 issuers**) · recipes, scripts, the demonstration ladder (knowledge) · the
-command discipline and producer standing (teaching) · employment and the
+command discipline and labor standing (teaching) · employment and the
 contract board (the guild as labor broker) · the maker's mark plus a
 **hallmark** countersign · a durable-goods lending library (tools) · banking
 (dues) · a guild board and the argument organizer (standards debates) ·

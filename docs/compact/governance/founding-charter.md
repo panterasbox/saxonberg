@@ -40,12 +40,12 @@ construction* thesis.
 During the founding (fiat) phase, the founder accrues influence by exactly
 these terms, and no other:
 
-1. **Producer house — earned, sole-producer, naturally diluting.** The
-   founder's producer influence is **earned, not granted**: the game's influence
+1. **Labor house — earned, sole-maker, naturally diluting.** The
+   founder's labor influence is **earned, not granted**: the game's influence
    system awards it for actual creation (Art. I §3, Art. III) — the same as for
-   any producer — the moment that system is online, pre- and post-ratification.
-   He sits at ~**100% of the producer house** only because he is *currently the
-   only producer*; as CMS authors contribute his share **dilutes by ordinary
+   any maker — the moment that system is online, pre- and post-ratification.
+   He sits at ~**100% of the labor house** only because he is *currently the
+   only maker*; as CMS authors contribute his share **dilutes by ordinary
    arithmetic**, and he claims no permanent guarantee. Because it is earned, this
    influence is **not a fiat lever** and does **not** sunset (term 4) — the
    founder carries it through ratification as any member carries earned
@@ -64,7 +64,7 @@ these terms, and no other:
    ratification the founder holds **no privileged stake and no guaranteed
    majority**, and accrues only (a) **ordinary influence** for ongoing
    contribution, like any member, and (b) what **legislation grants as wage**
-   (Art. XI). His **earned** producer influence (term 1) is ordinary influence
+   (Art. XI). His **earned** labor influence (term 1) is ordinary influence
    and carries over — the founder is **not reset to zero**; only the unearned
    control ends.
 
@@ -72,11 +72,11 @@ these terms, and no other:
 
 The founder's grip is **two chambers, eroding to fewer**:
 
-- Producer (~100%, diluting) **+** capital (50% + 1) = **two of three chambers**
+- Labor (~100%, diluting) **+** capital (50% + 1) = **two of three chambers**
   → a majority of chambers → effective control *at the start*, when he bears
   all the risk and does all the work.
 - The consumer house is **0%** — entirely the players'.
-- As producers join, the producer share dilutes; the founder's control falls
+- As makers join, the labor share dilutes; the founder's control falls
   from two chambers toward one (capital alone, which is not a majority). His
   grip is **strongest now and fades on its own** as the community contributes
   more — the very curve that signals readiness for the **ratifying
@@ -85,7 +85,7 @@ The founder's grip is **two chambers, eroding to fewer**:
 So the formula is self-limiting by construction: it grants real control when
 the community is just the founder, *withdraws* it as the community grows, and
 ends at ratification. But what ends is the **granted control**, not the
-founder's **earned place** — the producer influence his work has earned persists
+founder's **earned place** — the labor influence his work has earned persists
 (diluting, legitimate, like any member's), so the founder steps down from
 *controller* to *large contributor*, never to zero. The structure — not the
 founder's control — is what the polity ultimately entrenches.

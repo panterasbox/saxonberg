@@ -154,7 +154,7 @@ with what authors themselves want authored."*
 |---|---|
 | consumers — players | everything works everywhere |
 | capital — us | to compete with Discord: voice, video, the client as where people live |
-| producers — labor, authors | to build the areas they want, by their own rules |
+| labor — makers, authors | to build the areas they want, by their own rules |
 
 The Compact's legislature passes on two of three, so **the comms floor is a constitutional
 question, not a design default** — and the structure is what settles it.

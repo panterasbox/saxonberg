@@ -4,7 +4,7 @@ Who authored a content path — **derived from an append-only ledger, never
 read from a mutable stamp**. This is the **first concrete brick of the
 provenance substrate** (see
 [provenance-slate.md](../slates/builds/provenance-slate.md)); its immediate
-consumer is the producer influence stock (see [influence.md](./influence.md)),
+consumer is the labor influence stock (see [influence.md](./influence.md)),
 which routes attributed-engagement credit to a content path's author.
 
 Authorship as a ledger (not a `createdByPlayerId` field) is deliberate. A
@@ -85,9 +85,9 @@ wizard-authority **code-field gate** reads to identify the CMS author (see
 [access.md § The code-trust lockdown](./access.md)); a context with no
 derivable actor still yields `null` → no row, never *misattribution*.
 
-## CreditRouting — the producer faucet's routing input
+## CreditRouting — the labor faucet's routing input
 
-`lib/standing/CreditRouting.ts` resolves **who gets producer credit** for an
+`lib/standing/CreditRouting.ts` resolves **who gets labor credit** for an
 engagement at a location, Layer-1 (authorship) → Layer-2 (faucet):
 
 - **`CreditShare`** `{ author, weight }` — one author's share; `author` is a
@@ -105,7 +105,7 @@ engagement at a location, Layer-1 (authorship) → Layer-2 (faucet):
 
 `resolve` is pure routing over the gated `ZoneApi` + `ProvenanceApi`; v1
 returns a single owner, the deferred team split returns a weighted vector
-behind the same `CreditShare[]` seam, so the producer faucet is built once
+behind the same `CreditShare[]` seam, so the labor faucet is built once
 and untouched.
 
 ## Deferred (the rest of the provenance substrate)

@@ -146,7 +146,7 @@ every household generated in it, stamped in the authoring ledger like any
 other content.
 
 That has teeth in the right direction: if Hinkley's families are
-garbage, **that is visibly the committee's work**, and producer standing
+garbage, **that is visibly the committee's work**, and labor standing
 flows accordingly. It is the only mechanism that would ever make a
 holder curate what is generated under them.
 
