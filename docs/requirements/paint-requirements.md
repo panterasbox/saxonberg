@@ -36,7 +36,7 @@ designed with the owner on 2026-10-31.
   alum; Scots pine, standing in Hanging Wood; the tappable tree and the `tap` verb (maple, birch);
   the still and its cut schedules; `mill`, `pour`, `stir`; `write` on a surface that bears marks.
 - **Glue** exists only as a kind of joint (`glued`): *"anybody can smear it on"* — it uses up
-  nothing, no glue material exists, and no content uses it. The rendering slate holds glue and
+  nothing and no glue material exists. One content row uses it: the shield's hide face glued to its board. The rendering slate holds glue and
   gelatin with *"nothing demands them"*. A cask's joints already slacken as it dries out, read
   on look ([assembly.md](../subsystems/assembly.md)).
 - **Hazards that ship:** the hay fire (a heap that warms itself until it catches); an acute lead
@@ -126,7 +126,7 @@ trade at Wharfside.**
   tannery, mill.
 - **Hanging Wood** gains tappable pines among its standards.
 - **The glued joint** changes meaning: it costs glue, its strength and reversibility come from the
-  glue, and it can fail. No content uses it today (one test does).
+  glue, and it can fail. The shield (hide face glued to its board) is the one shipped row it reaches; it starts costing glue and can now let go in the damp.
 - **The knackers and tannery** gain a customer for bone and hide scraps.
 
 ## Surface decisions
