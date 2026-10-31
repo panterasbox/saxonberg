@@ -1,7 +1,8 @@
 # An air hose (underwater C3, D27) — the reinforced rubber pipe that runs
-# from the air pump to a diver's helmet. It is a lifeline too: the tender
-# hauls on it, and the diver tugs on it.
-class: /trade/diving/thing/Lifeline
+# from the air pump to a diver's helmet. It is a LINE, as a lifeline is:
+# the tender hauls on it, and the diver tugs on it. It is not a rope
+# (cordage D2).
+class: /trade/diving/thing/Hose
 data:
   shortDescription: air hose
   keywords: [hose, "air hose", pipe, line]
@@ -11,5 +12,4 @@ data:
     one for the pump and one for the helmet.
   _materialPath: /stuff/idea/material/organic/rubber
   mass: 8
-  kind: hose
   lengthM: 25

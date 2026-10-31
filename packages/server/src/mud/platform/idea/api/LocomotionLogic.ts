@@ -251,7 +251,9 @@ export class LocomotionLogic extends ApiLogic {
       if (far !== null) enablement = far;
     }
     if (!enablement.ok) return enablement;
-    return this.checkHaulage(actor, exit, mode);
+    const haul = this.checkHaulage(actor, exit, mode);
+    // ⭐ The host rides the ok guard to the crossing (cordage D11).
+    return haul.ok && enablement.host ? { ...haul, host: enablement.host } : haul;
   }
 
   /**
@@ -585,7 +587,7 @@ function engageHost(
   // "carrying too much to swim" going down, and a diver in the hard-hat
   // suit could not get into the water at all). Weight sinks you; what it
   // takes from you is rising — the column's own gate and this one.
-  if (inWater !== undefined && direction !== 'up') return { ok: true };
+  if (inWater !== undefined && direction !== 'up') return { ok: true, host };
   const loadRatio = MixinApi.isLoadBearing(actor) ? actor.getLoadRatio(inWater) : 0;
   if (loadRatio >= LOAD_BEARING_DEFAULTS.HEAVY_LOAD_THRESHOLD) {
     return {
@@ -596,7 +598,7 @@ function engageHost(
       context: { loadRatio },
     };
   }
-  return { ok: true };
+  return { ok: true, host };
 }
 
 /**

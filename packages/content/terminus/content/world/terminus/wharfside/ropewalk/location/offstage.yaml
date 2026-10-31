@@ -1,0 +1,8 @@
+class: /platform/location/Offstage
+data:
+  coords: { x: 0, y: 1, z: 0 }
+  shortDescription: The Ropewalk — Hemp Loft
+  keywords: [loft, hemp]
+  register: proper
+  longDescription: |
+    A loft over the head of the walk, stacked to the rafters with bales of hemp that fill it with a green, dusty smell.

@@ -1874,6 +1874,18 @@ export const AppSettingKeys = {
   /** Thermal — litres per hour per litre held that a porous unglazed
    * vessel weeps through its body, per unit of porosity (ceramics D6). */
   thermalEvaporationSeepLPerHourPerL: "thermal.evaporation.seepLPerHourPerL",
+  /** Cordage — a rope fiber's tenacity, MPa per MJ·m⁻³ of its material's toughness (D6). */
+  cordageTenacityMPaPerToughness: "cordage.tenacityMPaPerToughness",
+  /** Cordage — a climber's borne burden at which a reef knot spills, kg (D7). */
+  cordageUnevenLoadKg: "cordage.unevenLoadKg",
+  /** Cordage — chafe a rope takes at the lip per climb at full load (D11). */
+  cordageChafePerUse: "cordage.chafePerUse",
+  /** Cordage — rot an untarred rope takes per game day fully wet (D13). */
+  cordageRotPerWetDay: "cordage.rotPerWetDay",
+  /** Cordage — the shortest rope that hangs down a drop, m (D11). */
+  cordageMinHangM: "cordage.minHangM",
+  /** Cordage — a caught fall's shock, as a multiple of the climber's weight (D12). */
+  cordageFallFactor: "cordage.fallFactor",
   /** Faces — the thickness a dipped coat is laid at, m (ceramics D5). */
   facesDipThicknessM: "faces.dipThicknessM",
   /** Faces — a coat shrinking this much more than its body (1/K) crazes. */
@@ -1903,6 +1915,8 @@ export const AppSettingKeys = {
   /** Thermal shock — the strain a body takes before it cracks, as the
    * product α·ΔT (ceramics D9): ΔT_tolerated = this ÷ α. */
   impactShockStrain: "impact.shockStrain",
+  /** Impact — the thermal conductivity, W/(m·K), at which a brittle wall stands the bare shock strain; a better conductor stands proportionally more (cordage D29). */
+  impactShockConductivityRef: "impact.shockConductivityRef",
   /** Thermal shock — the wall's own response time, s: the rate a body
    * tolerates is ΔT_tolerated ÷ this. */
   impactShockWallS: "impact.shockWallS",

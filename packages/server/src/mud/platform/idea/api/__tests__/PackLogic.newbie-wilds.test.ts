@@ -1,6 +1,6 @@
 /**
  * The newbie-wilds pack (pack-installer W1.10) — the installer proven on
- * REAL content: the fourth shipped pack, 23 `/world/newbie-wilds/…`
+ * REAL content: the fourth shipped pack, 24 `/world/newbie-wilds/…`
  * rows under the widened `content/world/` template root.
  *
  * ⚠ Scaffolding, not precedent (slate A32.2): by ring discipline the
@@ -82,17 +82,17 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
   const ownRows = (): ReturnType<typeof contentRows> =>
     contentRows().filter((row) => String(row.path).startsWith('/world/newbie-wilds'));
 
-  it('empty store → 23 inserted, 23 domain baselines', async () => {
+  it('empty store → 24 inserted, 24 domain baselines', async () => {
     const r = await withParent();
     expect(r.failure).toBeNull();
     expect(r.packId).toBe('newbie-wilds');
-    expect(r.inserted).toHaveLength(23);
+    expect(r.inserted).toHaveLength(24);
     expect(r.inserted).toContain('/world/newbie-wilds/crossroads/hub');
     expect(r.inserted).toContain('/world/newbie-wilds/agent/wolf');
     expect(r.inserted.every((p) => p.startsWith('/world/newbie-wilds'))).toBe(true);
     expect(ownRows().every((row) => row.sourcePack === 'newbie-wilds')).toBe(true);
     const rec = recordOf('newbie-wilds')!;
-    expect(Object.keys(rec.rows)).toHaveLength(23);
+    expect(Object.keys(rec.rows)).toHaveLength(24);
     expect(Object.values(rec.rows).every((b) => b.kind === 'domain')).toBe(true);
   });
 
@@ -117,13 +117,13 @@ describe('the newbie-wilds pack (real root, real class resolution)', () => {
       }
     };
     walk(join(CONTENT, 'world'));
-    expect(n).toBe(23);
+    expect(n).toBe(24);
 
     const r = await withParent();
     expect(r.failure?.step).toBe('reconcile');
     expect(r.failure?.error).toMatch(/no sourcePack stamp/);
-    // Untouched: the same 23 rows, none stamped, nothing inserted beside them.
-    expect(ownRows()).toHaveLength(23);
+    // Untouched: the same 24 rows, none stamped, nothing inserted beside them.
+    expect(ownRows()).toHaveLength(24);
     expect(ownRows().every((row) => String(row._id).startsWith('seed-') && !row.sourcePack)).toBe(true);
   });
 

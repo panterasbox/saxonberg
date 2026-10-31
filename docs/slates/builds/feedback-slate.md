@@ -2,7 +2,7 @@
 
 > **Status: UNBUILT, and it is a LOOP, not a feature.** One arm already
 > ships: `CreditRouting` routes attributed engagement at a location to
-> that content's author and into the producer influence stock
+> that content's author and into the labor influence stock
 > ([provenance.md](../../subsystems/provenance.md)).
 > **Left:** the one fixed axis (template + engagement) · the solicited
 > experience prompt at engagement termination · a template as a
@@ -71,7 +71,7 @@ can be forbidden outright.
 |---|---|
 | **`AuthoringEvent`** / `authoring_events` — one append-only row per authoring act, `path` = the **authored template path**, *indexed on `path`* | ✅ ships, and is **path-grained** |
 | **`ProvenanceApi.authorOf(path)`** — the earliest row's author; a later save never changes it | ✅ ships |
-| **`CreditRouting.resolve(locationTemplatePath): CreditShare[]`** — the producer faucet's routing input | ✅ ships, ⚠ **zone-grained** |
+| **`CreditRouting.resolve(locationTemplatePath): CreditShare[]`** — the labor faucet's routing input | ✅ ships, ⚠ **zone-grained** |
 | **`CreditRouting.isReleased`** — only `/home/…` is unreleased; `/platform/… + /stuff/…` and `/world/…` **earn** | ✅ ships |
 | **`CreditShare.weight`** — the fraction; **v1 always `1`**, the team-split seam | ⚠ seam only |
 | `participation_events`, real-time decay, the engagement×renown projection | ✅ ships |
@@ -404,7 +404,7 @@ into) gets feedback on the verb itself.
 
 ⭐ **And rating the KERNEL's verbs is already in the grain, not an edge
 case:** `CreditRouting.isReleased` holds that only `/home/…` is
-unreleased — **`/platform/…` and `/stuff/…` already earn producer
+unreleased — **`/platform/…` and `/stuff/…` already earn labor
 credit.** The commons is already a creator with a body of work. In a
 polity that legislates its own platform, rating `look` is coherent.
 

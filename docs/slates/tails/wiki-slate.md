@@ -188,7 +188,9 @@ model + the `tags` index (§ Collections).*
 
 **Still open.**
 
-5. **Anonymous read** — public (no-login) read of level-0 pages for
+5. ✅ **Anonymous read — decided 2026-10-30** → [wiki-content-slate](../builds/wiki-content-slate.md) § 4:
+   a live public route rendered by the same pipeline at level 0, link previews, editing still needs a
+   character. *(The original question:)* public (no-login) read of level-0 pages for
    newcomer/SEO. In-world guests read today; a pre-auth *web* view is
    not built, and it shares a home with the docs mirror and the
    TypeDoc HTML site rather than with the wiki verb.

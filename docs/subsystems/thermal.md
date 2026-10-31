@@ -1175,9 +1175,10 @@ sun) or the heat did (alum liquor cooling).
 The second consumer of the latent-heat boil plateau: lye authors
 `latentHeatOfVaporization`, so an iron pot of it holds at the boil and
 loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
-keeps a pack-local count of the alkali across the boil-off and casts black
-salts when dry; it converges on the sugar build's solids-keeping plateau and
-is deleted then (`potash-on-sugar`, [potash.md](potash.md)).
+reads the strength the sugar build's solids-keeping plateau writes and casts
+black salts at saturation; its own pack-local count of the alkali was deleted
+when the two converged (`potash-on-sugar`, landed with sugar, MR !439 —
+[potash.md](potash.md)).
 
 ## Thermal shock is Integrity's judgment (B105)
 
@@ -1185,7 +1186,10 @@ Thermal reports the heat: a step (`setContentsTemperature` past 5 K) and
 the steepest rate since the last look, off the body's own curve. How a
 brittle body answers is `IntegrityMixin`'s, as an impact is:
 `thermalShockToleranceK()` (`impact.shockStrain ÷ α`, raised by porosity
-and grog — a refractory body counts as grog-opened — lowered by a glaze)
+and grog — a refractory body counts as grog-opened — lowered by a glaze,
+and ⭐ scaled by the material's thermal conductivity over a fired clay's,
+`impact.shockConductivityRef` (cordage D29: a cast-iron pot, brittle by
+tag, cracked at its first lye until a conducting wall counted))
 and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
 twice past a crack). It was two private Thermal methods until the
 ceramics review.

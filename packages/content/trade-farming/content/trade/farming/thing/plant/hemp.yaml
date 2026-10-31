@@ -1,0 +1,24 @@
+# A stand of fiber hemp (cordage D14) — the variety grown for the stalk:
+# sown close so it races up tall and does not branch. Hungrier than flax
+# and slower; it is the rope crop.
+class: /platform/thing/Plant
+data:
+  shortDescription: stand of hemp
+  keywords: [hemp, stalks, crop, stand]
+  register: indefinite
+  longDescription: |
+    Tall straight stalks standing shoulder to shoulder and well over head height, the narrow leaves fanned at the top and the lower stems bare. Crowded on purpose: a branch is a break in the fiber.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/hemp
+  harvestTemplatePath: /trade/farming/thing/crop/hemp-sheaf
+  nutrientDraw: 12
+  profile:
+    moistureHappyAt: 0.35
+    moistureWiltAt: 0.08
+    litresPerGameDay: 0.2
+    luxHappyAt: 140
+    luxDarkAt: 15
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 14, established: 45, mature: 110 }

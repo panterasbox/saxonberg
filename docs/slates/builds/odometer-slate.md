@@ -131,7 +131,7 @@ milestone dopamine, zero power creep.
 ## Nearly free — a readout over ledgers we already keep
 
 We already keep append-only ledgers of every act (the chronicle,
-`participation_events`, `renown_events`, producer events, the contract log).
+`participation_events`, `renown_events`, labor events, the contract log).
 **The odometer is the *lifetime count* over those, surfaced as a growing
 number** — "your deeds, counted." It's the **monotonic sibling of
 participation**: participation reads a *decayed* window over the same events;

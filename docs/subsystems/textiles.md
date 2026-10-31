@@ -764,3 +764,15 @@ contradicting Kell, not extending it.
   is a penalty for both chemistries ([sericulture.md](./sericulture.md)).
 - Silk is no longer a non-goal here: it is its own trade
   ([sericulture.md](./sericulture.md)); cotton remains one.
+
+## Hemp (cordage, 2026-10-30)
+
+Hemp rides the chain as flax does: a hemp sheaf (`trade-farming`) rets on
+its own profile (`retting-hemp`, product hemp, turned rotted hemp — its
+own input category so the flax profile never also matches), scutches into
+**hemp line** and tow, and spins. ⭐ `TextileStock.adoptFibre(material)`
+(spin's `carryFibre`, folded into the class) carries the retted fiber onto
+what scutch and spin mint: its material, its name among the keywords, and
+— when it is not the row's own fiber — its name in the words (*hank of hemp
+line*, `fibreWord`). The straw refusal reads `fibre-stock`, so either straw
+is told to go to the pit. Rope yarn is the cordage pack's.

@@ -197,6 +197,14 @@ For each subsystem the build touched:
 - **Surface naming changes.** If the build renamed public surface,
   search the whole `docs/` tree for the old name and update.
 
+- ⭐ **The player-facing version — the pack's wiki pages.** Each pack ships
+  the wiki pages for what it adds (`content/wiki/<namespace>/<slug>.md`);
+  write or update them for what this build added. Explain processes
+  openly (the anti-wiki rule: knowing never substitutes for doing); put
+  discovery content behind spoiler levels; **transclude live values,
+  never restate a number**; cross-link `help` rather than duplicate it.
+  See `docs/slates/builds/wiki-content-slate.md`.
+
 Then walk the meta-docs:
 
 - **`CLAUDE.md`** — the Documentation Map at the top references

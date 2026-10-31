@@ -1,0 +1,19 @@
+id: trade-cordage
+version: 0.1.0
+root: /trade/cordage
+description: >-
+  Cordage — ⭐⭐ **rope laid at a walk.** The rope itself is the kernel's
+  (`/platform/thing/Rope`): one rope, whose use is where its ends are tied,
+  because a diver's lifeline, a boat's painter and a climber's line have no
+  common trade. What this pack owns is MAKING it — the ropewalk's jack and
+  the one verb, `twist`: yarn laid into strands down the length of the walk,
+  strands laid into rope, the stage decided by what you twist. A rope cannot
+  be laid longer than the walk it is laid on, and a strand can carry a
+  colored yarn in its heart — the rogue's yarn — that says whose rope it is
+  wherever it is cut.
+
+  The fiber is the textile chain's: hemp line spun to yarn at a wheel, or
+  bought by the skein. A second ropewalk is rows — a jack and a long room.
+requires:
+  title:
+    - { extent: /trade/cordage, holder: { organization: /compact/trade } }

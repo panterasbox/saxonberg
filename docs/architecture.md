@@ -610,7 +610,7 @@ to a `ForumsLogic` / `SubjectLogic` logic singleton; see
 [forums.md](./subsystems/forums.md)), `ConsumerApi` (forwarding to
 `ConsumerLogic`; the consumer influence stock — see
 [participation.md](./subsystems/participation.md)), `ProducerApi` (→
-`ProducerLogic`; the producer/make stock), `ConvictionApi` (→
+`ProducerLogic`; the labor/make stock), `ConvictionApi` (→
 `ConvictionLogic`; the conviction spend half), `ProvenanceApi` (→
 `ProvenanceLogic`; the authorship ledger) — see
 [influence.md](./subsystems/influence.md) and
@@ -1298,7 +1298,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/location/` | `WaterColumnMixin` | the column a deep water has under it — buds a water's bands on first traversal (the water pack's `ColumnWarren`). A protocol mixin. See [underwater.md](./subsystems/underwater.md). |
 | `lib/location/` | `BuoyMixin` | something that floats what it is fastened to — `buoys(thing)` (the diving pack's air bag lashed to a load). A protocol mixin; a place's `sinks()` asks it. |
 | `lib/spatial/` | `PullableMixin` | ⭐ the `pull` verb's target — a protocol mixin with a refusing default; a pot, a lifeline and a bell's hoist each answer `pullBy` in their own way (a timed pull returns `takes { realS, finish }`). See [mixins.md § protocol mixins](./subsystems/mixins.md). |
-| `lib/spatial/` | `TossableMixin` | `throw <thing> to <someone>` — `tossTo(thrower, word)`, refusing by default; the lifeline heaves its end to a person here or one obvious way off (the water below the quay). |
+| `lib/spatial/` | `TossableMixin` | `throw <thing> to <someone>` — `tossTo(thrower, word)`, refusing by default; a `Line` heaves its end to a person here or one obvious way off (the water below the quay); an uncoiled rope will not go far. |
+| `lib/spatial/` | `TieableMixin` | ⭐ `tie`/`lash`/`untie` — `tieTo(by, load, knot)` / `untieBy(by)`, refusing by default; a rope (to a person, round a fixture, hung at a drop), a line's end, an air bag. See [cordage.md](./subsystems/cordage.md). |
+| `lib/spatial/` | `SpliceableMixin` | ⭐ one `splice` — `spliceBy(by, other \| null)`; two ropes into one, a cut feeder line made whole at its pole. |
 | `lib/location/` | `WaterSourceMixin` | the water seam: an Idea that reads a cited water — `currentWaterRef`, `readWater` → `WaterRead` (name, frozen, the draw), `waterLinesFor`. The water pack's `WatercourseCatalogue` (reaches) and `WaterExpanse` (seas) implement it; the kernel never parses a citation. |
 | `lib/zone/` | `LocationZoneMixin` | the half of a spatial zone that HOLDS ROOMS (`addLocation`/`removeLocation`/`getLocations`) — split out of `SpatialZone` so a frame that holds none (`Expanse`) inherits nothing to guard. On `CartesianZone` and `SphericalZone`. See [zone.md](./subsystems/zone.md). |
 | `lib/expanse/` | `PositionedMixin` | where a moving PLACE or craft is, in whichever frame — a chart position (lat/lon) + its expanse, or a river line's (km from the mouth, m from river left); one at a time, the later write winning. `framePos()`/`liveFrame()` and the two height hooks the horizon reads. On `Ship`, the reach and sea patches, the timetabled ferry; ⛔ never on a small boat (a THING in a water place) and ⛔ not on `ExpanseNode` (a point of the spherical graph). See [expanse.md](./subsystems/expanse.md), [river.md](./subsystems/river.md). |

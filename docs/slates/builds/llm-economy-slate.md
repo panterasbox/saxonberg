@@ -294,15 +294,15 @@ structure**, and there it fails:
 > door does not.
 >
 > A dollar buys inference → inference buys engagement → engagement mints
-> **producer** standing. **So the dollar minted producer standing**, which
+> **labor** standing. **So the dollar minted labor standing**, which
 > is the cross-chamber conversion the polity register forbids
 > (*influence is non-fungible across chambers; no cross-chamber
 > conversion*). It does not matter whose ledger it lands on — **money got
-> into the producer chamber.**
+> into the labor chamber.**
 
 ⛔ **And "self-sponsorship earns no capital standing" does not fix it** —
 *why else would you do it?* To make your content perform better, which is
-what producer standing measures. That removes the honest, visible half of
+what labor standing measures. That removes the honest, visible half of
 the reward and leaves the actual one, which **hides** the conversion
 rather than closing it.
 

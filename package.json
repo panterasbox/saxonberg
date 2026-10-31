@@ -35,6 +35,7 @@
     "@saxonberg/content-trade-carpentry": "workspace:*",
     "@saxonberg/content-trade-coopering": "workspace:*",
     "@saxonberg/content-trade-chandlery": "workspace:*",
+    "@saxonberg/content-trade-cordage": "workspace:*",
     "@saxonberg/content-trade-cooking": "workspace:*",
     "@saxonberg/content-trade-dairying": "workspace:*",
     "@saxonberg/content-trade-distilling": "workspace:*",

@@ -1,0 +1,31 @@
+# Hemp — plant-bast textile: the rope fibre (cordage). Retted from the
+# stalks of Cannabis sativa grown tall and close for fiber, scutched, and
+# spun hard. Long, coarse and the strongest of the bast fibers in tension,
+# which is why a rope is hemp before it is anything else: a hemp rope of a
+# given thickness holds more than a flax one, and a flax one more than
+# jute. It rots wet, as every plant fiber does, which is what the tar is
+# for.
+class: /platform/idea/material/Material
+data:
+  name: hemp
+  keywords: [hemp]
+  appearance: coarse grey-gold hemp
+  density: 1480
+  thermalConductivity: 0.06
+  # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.
+  # ⭐ Toughness orders the rope fibers (cordage D6): hemp 4 > flax 3 > jute 2.
+  hardness: 6
+  toughness: 4
+  specificHeat: 1360
+  electricalConductivity: 1.0e-11
+  waterAbsorptionCapacity: 20
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["textile", "fibre", "organic", "plant", "cellulose", "once-living"]
+  heatOfCombustion: 16
+  combustionImparts:
+    - type: smoke
+      amount: 40
+  composition: []
+  biologicalSource: null

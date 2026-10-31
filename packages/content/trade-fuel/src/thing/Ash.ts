@@ -20,6 +20,18 @@
  */
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition';
+import { PercolatingMixin } from '@saxonberg/server/mud/lib/material/Percolating';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
+import { LyeStrength } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
 import type { Crafted } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
@@ -28,7 +40,24 @@ import type { GradeBand } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 
-const AshBase = CompositionMixin(CraftedMixin(Good));
+const AshBase = PercolatingMixin(CompositionMixin(CraftedMixin(Good)));
+
+/** What a leached heap leaves behind (potash D6). */
+const SPENT_ASH = '/trade/fuel/thing/spent-ash';
+/** A leached heap keeps this share of its mass as spent ash. */
+const SPENT_SHARE = 0.9;
+/** Water takes half a game day to work down through a hopper of ash. */
+const LEACH_DAYS = 0.5;
+
+/** A numeric dial, falling back to the literal when unseeded. */
+function dial(key: string, fallback: number): number {
+  try {
+    const v = Number(AppApi.setting(key));
+    return Number.isFinite(v) && v > 0 ? v : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /**
  * The strength → band ladder for a raked heap: the share of the ash that
@@ -93,6 +122,73 @@ class Ash extends AshBase {
     if (band === 'poor') return 'It is grey and gritty, more cinder than salt.';
     if (band === 'fair') return 'It is an even grey, soft between the fingers.';
     return 'It is pale and fine, and it bites the tongue — strong ash.';
+  }
+
+  /* ─────────────── ⭐ the leach: water percolates down through the heap ─────────────── */
+
+  /** Half a game day for the water to work down through a hopper of ash. */
+  public override percolationDays(): number {
+    return LEACH_DAYS;
+  }
+
+  /**
+   * ⭐ What comes out of the bottom goes into the vessel the heap is IN —
+   * the hopper's liquor (potash-on-sugar, cordage W7). The kernel's rule
+   * answers a mould's drain or the vessel a solid is set ON; a heap of ash
+   * lies in its hopper.
+   */
+  public override percolatesInto(): (Stuff & Bulkable) | null {
+    const holder = MixinApi.isContainable(this) ? (this.getContainer() as Stuff | null) : null;
+    if (holder !== null && MixinApi.isBulkable(holder) && holder.hasInteriorBulk()) return holder;
+    return super.percolatesInto();
+  }
+
+  /**
+   * ⭐⭐ The water took `to − from` of the way down: it carries that share
+   * of the heap's alkali into the liquor below, less what a HARD water
+   * spends on its own lime (river water makes a weaker lye than rain). At
+   * the bottom the heap is spent ash where it lies — the owner's still.
+   */
+  public override onPercolated(fromReach: number, toReach: number): void {
+    const into = this.percolatesInto();
+    if (into === null) return;
+    const litres = into.getBulkAmount('interior').rawValue();
+    if (litres > 0) {
+      const alkaliPath = (() => {
+        try {
+          return AppApi.setting(AppSettingKeys.fireAshAlkaliMaterial) || '/stuff/idea/material/mineral/potash';
+        } catch {
+          return '/stuff/idea/material/mineral/potash';
+        }
+      })();
+      const alkaliKg = this.getMass().rawValue() * this.fractionOf(alkaliPath) * (toReach - fromReach);
+      const payload = into.getBulkPayload('interior');
+      const kept = Math.max(0, 1 - dial(AppSettingKeys.potashLyeHardnessWastePerDgh, 0.04) * (payload?.hardnessDgh ?? 0));
+      const carried = payload?.dissolvedSolidsKgPerL ?? (into.getBulkMaterial('interior')?.getSolidsKgPerL() ?? 0);
+      const kgPerL = carried + (alkaliKg / litres) * kept;
+      into.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: kgPerL });
+      if (MixinApi.isGraded(into)) into.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
+    }
+    if (toReach >= 1 && !this._spent) {
+      this._spent = true;
+      void this.spend(into);
+    }
+  }
+
+  /** Spending already under way (runtime; never twice). */
+  private _spent = false;
+
+  /** The leached heap becomes spent ash where it lies, made from it. */
+  private async spend(into: Stuff): Promise<void> {
+    const mass = this.getMass().rawValue();
+    try {
+      const spent = await StuffApi.clone<Stuff & Containable>(SPENT_ASH, undefined, { madeFrom: [this as unknown as Stuff] });
+      if (MixinApi.isTangible(spent) && mass > 0) spent.setMass(Quantity.of(mass * SPENT_SHARE, 'kg'));
+      if (MixinApi.isContainer(into)) ContainmentApi.move(spent, into as Stuff & Container);
+    } catch (err) {
+      console.warn(`Ash: no spent ash at '${SPENT_ASH}':`, err);
+    }
+    await StuffApi.destruct(this as unknown as Stuff);
   }
 
   private static bandFor(strength: number): GradeBand {

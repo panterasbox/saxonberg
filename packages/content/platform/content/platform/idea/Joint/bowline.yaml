@@ -1,0 +1,15 @@
+# Bowline (cordage D7) — a knot is a JOINT: the share of the
+# rope's strength it keeps is `strength`. The fixed loop that does not slip or jam — the knot a rope is tied to a person or a post with, and untied after however hard it was loaded.
+class: /platform/idea/Joint
+data:
+  key: bowline
+  label: tied in a bowline
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: freely
+  strength: 0.6
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: true
+  failure: slack

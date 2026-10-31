@@ -83,7 +83,7 @@ Three levels:
   > seized without a court). Compute *entitlement* is a **derived, live value** — how
   > much a parcel gets to run *right now* — computed on-read (the competence / renown /
   > trait precedent, nothing stored, nothing seized):
-  > **entitlement = f( producer-standing [track record of quality], demand [engagement],
+  > **entitlement = f( labor-standing [track record of quality], demand [engagement],
   > activity [live vs. dormant] )**, with **tunable coefficients** (the dial; set rarely,
   > by the polity — no per-parcel polling, ever).
   - **You never *downsize a parcel*** (that's the dictating to avoid). A low-earning or
@@ -322,7 +322,7 @@ The interrogation that reframed the kernel/module split:
   a necessity.*
 - **The true necessity-kernel is tiny:** the **decision machine** (three chambers +
   branches + amendment process) + **attribution/provenance** (so contributions are
-  measurable — the producer chamber runs on *attribution*, not *property*: you keep
+  measurable — the labor chamber runs on *attribution*, not *property*: you keep
   standing earned from past engagement even if the work is later seized) + the **engine
   physics** that keep the shared box from crashing (compute-metering, the security gate,
   an honest record) — which sit *below* the constitution, more laws-of-nature than

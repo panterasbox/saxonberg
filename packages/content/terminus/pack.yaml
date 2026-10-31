@@ -103,6 +103,8 @@ requires:
     - { extent: /world/terminus/wharfside/chandlery, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
     # ⭐ The lavoir (cleanliness D27) — the town's washing place on the bank.
     - { extent: /world/terminus/wharfside/lavoir, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: commercial, powerBand: off-grid }
+    # ⭐ The ropewalk (cordage D17) — a long shed off the towpath, lit by day.
+    - { extent: /world/terminus/wharfside/ropewalk, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
     - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
     - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
 boot:

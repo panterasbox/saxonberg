@@ -1,0 +1,32 @@
+# The ropekeeper (cordage D17) — the master of the walk, who lays rope and
+# sells it, and buys back what is sound.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Agnes Tarrow
+  keywords: [agnes, tarrow, ropekeeper, "rope keeper", ropemaker]
+  shortDescription: ropekeeper
+  register: definite
+  longDescription: >-
+    A tall, rawboned woman with forearms like hawsers and hands black to the
+    wrist with tar, who walks backwards down the shed all day paying out yarn
+    and never once looks behind her.
+  archetype: proprietor
+  prologue:
+    - "Walked the ropewalk backwards for thirty years and can tell a rope's maker by its heart."
+  competence:
+    - { discipline: ropework, asserting: proficient }
+    - { discipline: textiles, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 30 }
+    - { disposition: composure, valence: 80 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    # ⭐ She takes the jack's wheel for whoever lays (a ropewalk is a crew).
+    - brain: /trade/cordage/behavior/turns
+      trigger: candidate

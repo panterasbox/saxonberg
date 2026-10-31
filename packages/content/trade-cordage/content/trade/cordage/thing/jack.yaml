@@ -1,0 +1,16 @@
+# The rope jack (cordage D18) — the frame at the head of a ropewalk: a
+# wheel turning a row of hooked whirls. Hook yarns to it and walk them out
+# and they twist into a strand; hook strands to it and they lay up into a
+# rope. It affords `twist`; the walk it stands in is how long a rope can be.
+class: /trade/cordage/thing/RopeJack
+data:
+  shortDescription: rope jack
+  keywords: [jack, "rope jack", wheel, whirls]
+  register: indefinite
+  longDescription: |
+    A heavy oak frame bolted to the floor at the head of the walk, a great wheel at its back driving a row of iron whirls, each with its hook polished bright by yarn.
+  _materialPath: /stuff/idea/material/wood/oak
+  capabilities: [ropelaying]
+  epoch: medieval
+  mass: 120
+  fixedInPlace: true

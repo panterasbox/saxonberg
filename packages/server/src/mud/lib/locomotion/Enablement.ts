@@ -15,6 +15,7 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
+import type Exit from '../boundary/Exit';
 
 export interface Enablement {
   /** Direction tokens this host enables. `'*'` means any direction. */
@@ -27,4 +28,10 @@ export interface Enablement {
   setDifficulty(value: number | null): void;
   /** True if the actor has enough capability for this scope's difficulty. */
   canBeEngagedBy(actor: Stuff): boolean;
+  /**
+   * ⭐ The actor has just crossed `exit` on this host (cordage D11) — after
+   * the move and its witnesses. A rope at a drop takes the climb's wear here
+   * and may part; a ladder or a cliff does nothing.
+   */
+  afterEnabledTraverse(actor: Stuff, direction: string, exit: Exit): Promise<void>;
 }

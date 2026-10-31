@@ -37,5 +37,9 @@ data:
       destination: /world/newbie-wilds/delve/pit-below
       concealment: hidden
       hint: the boards give a hollow drum-note — something opens below
+      # ⭐ Climbed (cordage D11): a rope tied round the post at the lip
+      # hangs down it and is the way down that is not a fall.
+      media: [vertical]
   props:
     - /stuff/thing/traps/spike-pit
+    - /world/newbie-wilds/delve/thing/lip-post
