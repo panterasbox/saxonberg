@@ -3,7 +3,7 @@
 class: /trade/textiles/thing/TextileStock
 data:
   shortDescription: skein of hemp yarn
-  keywords: [yarn, skein, "rope yarn", "hemp yarn"]
+  keywords: [yarn, skein, "hemp yarn", "skein of hemp yarn"]
   register: indefinite
   longDescription: |
     A skein of coarse, hard-spun yarn, hairy and strong, the kind nobody would weave and every ropewalk uses.

@@ -1,0 +1,9 @@
+# The ropewalk's lantern (cordage D17) — hung over the jack at the head of
+# the walk, enough to see a yarn by.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: storm lantern
+  keywords: [lantern, lamp, light]
+  on: true
+  emittedIntensity: 400

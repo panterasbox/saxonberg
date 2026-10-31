@@ -1,7 +1,9 @@
 # The walk (cordage D17) — ⭐ three hundred meters of shed, because a rope
 # cannot be laid longer than the walk it is laid on. The jack stands at the
 # head; the keeper sells coils at the counter and buys rope back by its
-# length and its soundness.
+# length and its soundness. ⭐ Open to the sky (cordage D28): a room's light
+# is spread over its extent squared, so no lamp lights three hundred meters
+# of walk — a ropewalk was worked by daylight, and this one is too.
 class: /platform/location/Locale
 data:
   coords: { x: 0, y: 0, z: 0 }
@@ -10,15 +12,15 @@ data:
   register: definite
   _biomePath: /stuff/idea/biome/outdoor/baseline
   extent: 300
-  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
-  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
   longDescription: |
-    A low shed so long its far end is lost in the gloom, open-sided where the boards have gone, with a worn earth floor between rows of T-posts that hold the strands up off the ground. At the head of it a great wheeled jack is bolted down; beside it a tub of pitch stinks on a brazier and a counter is piled with coils.
+    A walk of beaten earth so long its far end is lost in the haze, open to the sky between two rows of T-posts that hold the strands up off the ground. At the head of it, under a lean-to, a great wheeled jack is bolted down; beside it a tub of pitch stinks on a brazier and a counter is piled with coils.
   exits:
     towpath:
       destination: /world/terminus/valley-road/towpath
       media: [ground]
       edgeMinutes: 1
+  adornments:
+    - { template: /world/terminus/wharfside/ropewalk/thing/walk-lamp, slot: lamp:walk }
   props:
     - /trade/cordage/thing/jack
     - /world/terminus/wharfside/ropewalk/thing/counter

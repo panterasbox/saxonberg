@@ -4,7 +4,7 @@
 class: /platform/thing/Rope
 data:
   shortDescription: strand
-  keywords: [strand, "rope strand"]
+  keywords: [strand, strands]
   register: indefinite
   longDescription: A long strand of yarns twisted hard together, springy in the hand and wanting to kink.
   _materialPath: /stuff/idea/material/textile/hemp

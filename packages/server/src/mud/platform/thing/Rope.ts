@@ -51,6 +51,7 @@ import type { CutRequest } from '../../lib/craft/Cuttable';
 import type { ActPlan, ActRefusal } from '../../lib/craft/ActPlan';
 import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
 import type { MarkupAugmenter } from '../../api/mml';
+import type { FaceName, CoatLayer } from '../../lib/material/Faced';
 import type { CommandContributions } from '../../api/command';
 import type JointCatalogue from '../idea/JointCatalogue';
 import { Quantity, type Quantity as Q } from '../../lib/quantity';
@@ -72,6 +73,7 @@ const HELD = [
   'platform/cmd/inventory/untie.yaml',
   'platform/cmd/inventory/coil.yaml',
   'platform/cmd/crafting/splice.yaml',
+  'platform/cmd/crafting/cut.yaml',
   'platform/cmd/movement/climb.yaml',
   'platform/cmd/movement/belay.yaml',
 ];
@@ -370,10 +372,19 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
    * of a hot tub sets as it cools.
    */
   public isTarred(): boolean {
-    this.coolCoats(SETS_BELOW_K);
     const top = this.getCoats('outside')[0];
     if (top === undefined || top.state !== 'set') return false;
     return this.outermost('outside')?.hasTag('waterproofing') ?? false;
+  }
+
+  /**
+   * A coat of pitch drawn out of the tub is SET by the time anybody looks
+   * (D23): every read of the faces brings the cooling current — the look's
+   * coat words read these, before the rope's own words.
+   */
+  public override getCoats(face: FaceName): readonly CoatLayer[] {
+    this.coolCoats(SETS_BELOW_K);
+    return super.getCoats(face);
   }
 
   /** How rotten it is, `0..1`, reconciled to now. */

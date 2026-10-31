@@ -236,9 +236,9 @@ describe('rot and tar (D13′)', () => {
   it('⭐ a wet coat of pitch sets as it cools', () => {
     const r = rope(fiber('hemp', 4));
     r.layCoat('outside', PITCH, 0.0005);
-    expect(r.getCoats('outside')[0]!.state).toBe('wet');
-    expect(r.isTarred()).toBe(true);
+    // Laid wet, read set: any read of the faces brings the cooling current.
     expect(r.getCoats('outside')[0]!.state).toBe('set');
+    expect(r.isTarred()).toBe(true);
   });
 });
 

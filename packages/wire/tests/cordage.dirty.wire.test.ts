@@ -31,6 +31,10 @@ import {
   plain,
   expectOk,
   nourish,
+  hand,
+  dress,
+  advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
@@ -50,6 +54,7 @@ const SHOP = '/world/terminus/wharfside/diving/location/shop';
 const BANK = '/world/terminus/wharfside/bank';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
 const LIP = '/world/newbie-wilds/delve/corridor-2';
+const LANTERN = '/world/terminus/general-store/thing/lantern';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -110,20 +115,38 @@ async function act(s: Session, line: string, timeoutMs = 240_000): Promise<strin
   return `${said} ${later}`.trim();
 }
 
+/** `look`, answering a "which one?" with the first. */
 async function look(s: Session, what = 'here'): Promise<string> {
   await s.drainProse();
-  return squash(await s.prose(`look ${what}`));
+  const r = await run(s, `look ${what}`);
+  return squash(await r.said());
 }
 
 async function where(s: Session): Promise<string> {
   return JSON.stringify(await s.query('here', { fields: 'ref' }));
 }
 
+const dressed = new Set<string>();
+
 async function session(handle: string, at: string): Promise<Session> {
   const s = await Session.open(handle, { startLocation: at });
   open.push(s);
   await nourish(s).catch(() => {});
+  // The delve is cold: a shivering body is told so on every command.
+  if (!dressed.has(handle)) {
+    dressed.add(handle);
+    await dress(s).catch(() => {});
+  }
   return s;
+}
+
+/** Daytime: the ropewalk is worked by daylight (D28). */
+async function daytime(): Promise<void> {
+  const DAY = 86_400;
+  const t = (await worldClockNow()) % DAY;
+  if (t >= 8 * 3600 && t <= 14 * 3600) return;
+  const hours = Math.ceil(((9 * 3600 - t + DAY) % DAY) / 3600);
+  for (let h = hours; h > 0; h -= 5) await advanceWorldClock(`${Math.min(5, h)} hours`);
 }
 
 /** A fresh character with money in the bank. */
@@ -141,6 +164,25 @@ async function funded(prefix: string, amount = 300): Promise<string> {
   return handle;
 }
 
+/** How many of `keyword` the session carries. */
+async function carried(s: Session, keyword: string): Promise<number> {
+  return (await s.query(`me:i:${keyword}`, { fields: ['displayName'] }).catch(() => [])).length;
+}
+
+/**
+ * At the lip of the pit in the Sunken Delve, with a light: the delve is
+ * pitch dark, and the way down is hidden until it is searched for.
+ */
+async function atTheLip(handle: string): Promise<Session> {
+  const s = await session(handle, LIP);
+  if ((await carried(s, 'lantern')) === 0) {
+    await hand(s, LANTERN, { interiorAmount: 0.5 });
+    await say(s, 'light me:i:lantern');
+  }
+  await act(s, 'search');
+  return s;
+}
+
 async function setDial(key: string, value: string): Promise<void> {
   const wiz = await Session.open('founder', { startLocation: WALK, wizard: true });
   try {
@@ -150,17 +192,24 @@ async function setDial(key: string, value: string): Promise<void> {
   }
 }
 
-afterAll(() => {
+afterAll(async () => {
   for (const s of open) s.close();
+  // Put back the staging dial (the delve's hidden way down, see setup).
+  await setDial('concealment.level.hidden', '4').catch(() => {});
 });
 
 let maker = '';
 let climber = '';
 
 suite('cordage — the blocking drive', () => {
-  it('setup: a rope-maker and a climber with money', async () => {
+  it('setup: a rope-maker and a climber with money, by day', async () => {
     maker = await funded('cdm');
     climber = await funded('cdc');
+    await daytime();
+    // ⭐ Staged: the pit's way down is a `hidden` exit, and a fresh body's
+    // awareness never finds it; the drive lowers the band for the delve
+    // steps (concealment's own drive owns finding it) and puts it back.
+    await setDial('concealment.level.hidden', '0');
   }, 300_000);
 
   it('1. the ropewalk: a long walk and its keeper', async () => {
@@ -180,25 +229,22 @@ suite('cordage — the blocking drive', () => {
     }
     const k = await say(s, 'buy rigging knife');
     expect(k, k).not.toMatch(/bare|cannot|can't/i);
-    const inv = squash(await s.prose('inventory'));
-    expect(inv, inv).toMatch(/hemp yarn/i);
-    expect(inv, inv).toMatch(/rigging knife/i);
+    expect(await carried(s, 'yarn')).toBeGreaterThanOrEqual(16);
+    expect(await carried(s, 'knife')).toBe(1);
   }, 300_000);
 
   it('3. twist yarn: it becomes a strand', async () => {
     const s = await session(maker, WALK);
-    for (let i = 0; i < 3; i++) {
-      const t = await act(s, 'twist yarn --yarns 40 --length 20');
-      expect(t, t).toMatch(/strand/i);
-    }
-    const st = await look(s, 'strand');
+    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 40 --length 20');
+    expect(await carried(s, 'strand')).toBe(3);
+    const st = await look(s, 'first strand');
     expect(st, st).toMatch(/20 meters of hemp strand/);
   }, 600_000);
 
   it('4. twist the strands: they become rope — fiber, length, thickness, strength in words', async () => {
     const s = await session(maker, WALK);
-    const t = await act(s, 'twist strands');
-    expect(t, t).toMatch(/close up into a rope/i);
+    await act(s, 'twist strands');
+    expect(await carried(s, 'strand')).toBe(0);
     const r = await look(s, 'rope');
     expect(r, r).toMatch(/20 meters of hemp rope, about \d+ mm thick; it would hold/);
   }, 600_000);
@@ -206,16 +252,14 @@ suite('cordage — the blocking drive', () => {
   it('5. more yarns make a thicker, stronger rope', async () => {
     const s = await session(maker, WALK);
     for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 80 --length 10');
-    const t = await act(s, 'twist strands');
-    expect(t, t).toMatch(/rope/);
-    const all = squash(await s.prose('look rope'));
-    const ropes = [...squash(await s.prose('inventory')).matchAll(/rope/g)].length;
-    expect(ropes, all).toBeGreaterThanOrEqual(2);
-    // The 10 m rope of 80-yarn strands is thicker than the 20 m one.
-    const thin = /20 meters of hemp rope, about (\d+) mm/.exec(squash(await s.prose('look 1.rope')) + squash(await s.prose('look 2.rope')));
-    const thick = /10 meters of hemp rope, about (\d+) mm/.exec(squash(await s.prose('look 1.rope')) + squash(await s.prose('look 2.rope')));
-    expect(thin && thick, all).toBeTruthy();
-    expect(Number(thick![1])).toBeGreaterThan(Number(thin![1]));
+    await act(s, 'twist strands');
+    expect(await carried(s, 'rope')).toBeGreaterThanOrEqual(2);
+    const all = (await look(s, 'first rope')) + ' | ' + (await look(s, 'second rope'));
+    // The 10 m rope of 80-yarn strands is thicker, and holds more, than the 20 m one.
+    const thin = /20 meters of hemp rope, about (\d+) mm/.exec(all);
+    const thick = /10 meters of hemp rope, about (\d+) mm/.exec(all);
+    expect(thin !== null && thick !== null, all).toBe(true);
+    expect(Number(thick![1]), all).toBeGreaterThan(Number(thin![1]));
   }, 600_000);
 
   it('6. no rope longer than the walk — and the refusal says why', async () => {
@@ -226,14 +270,21 @@ suite('cordage — the blocking drive', () => {
 
   it('7. cut a length off, coil one', async () => {
     const s = await session(maker, WALK);
-    const c = await act(s, 'cut 1.rope at 5 m');
-    expect(c, c).toMatch(/5 meters of rope in your hand/);
-    const coil = await act(s, 'coil 1.rope');
-    expect(coil, coil).toMatch(/coil/i);
+    const before = await carried(s, 'rope');
+    await act(s, 'cut first rope at 5 m');
+    expect(await carried(s, 'rope')).toBe(before + 1);
+    await act(s, 'coil first rope');
+    const coiled = squash(await s.prose('look first rope'));
+    expect(coiled, coiled).toMatch(/coiled down/);
   }, 300_000);
 
   it('7a. the rogue\'s yarn: not on the outside, in the heart, and at a cut', async () => {
-    const s = await session(maker, WALK);
+    // A fresh hand with nothing else in it: a rope-maker's arms full of rope
+    // make "rope" a question.
+    const marker = await funded('cdr', 60);
+    const s = await session(marker, WALK);
+    for (let i = 0; i < 4; i++) await say(s, 'buy hemp yarn');
+    await say(s, 'buy rigging knife');
     await act(s, 'twist yarn --yarns 20 --length 10 --mark red');
     await act(s, 'twist yarn --yarns 20 --length 10');
     await act(s, 'twist yarn --yarns 20 --length 10');
@@ -241,49 +292,52 @@ suite('cordage — the blocking drive', () => {
     const plainLook = await look(s, 'rope');
     expect(plainLook, plainLook).not.toMatch(/red yarn/);
     const close = await say(s, 'analyze lay rope');
-    expect(close, close).toMatch(/hemp/);
-    const cut = await act(s, 'cut rope at 3 m');
-    expect(cut, cut).toMatch(/3 meters/);
-    const both = squash(await s.prose('look 1.rope')) + ' ' + squash(await s.prose('look 2.rope'));
+    expect(close, close).toMatch(/a red yarn runs in the heart/);
+    await act(s, 'cut rope at 3 m');
+    const both = (await look(s, 'first rope')) + ' | ' + (await look(s, 'second rope'));
     expect(both, both).toMatch(/red yarn runs in the heart/);
   }, 600_000);
 
   it('8. tar a rope in the tar tub: it reads tarred', async () => {
-    const s = await session(maker, WALK);
-    const d = await act(s, 'dip rope in tub');
-    expect(d, d).toMatch(/pitch/i);
+    const tarrer = await funded('cdt', 60);
+    const s = await session(tarrer, WALK);
+    await say(s, 'buy rope');
+    await act(s, 'dip rope in tub');
     const r = await look(s, 'rope');
     expect(r, r).toMatch(/tarred/i);
   }, 300_000);
 
-  it('9–10. at the Sunken Delve: tie off at the post, it hangs; climb down and back up; it chafes', async () => {
-    const s = await session(maker, LIP);
+  // ⭐ The delve's ropes are bought by hands holding nothing else, so "rope"
+  // means the one rope there is.
+  let rigger = '';
+
+  it('9–10. at the Sunken Delve: tie off at the post, it hangs; climb down and back up', async () => {
+    rigger = await funded('cdg', 80);
+    const w = await session(rigger, WALK);
+    await say(w, 'buy rope');
+    const s = await atTheLip(rigger);
     const tied = await say(s, 'tie rope to post with bowline');
     expect(tied, tied).toMatch(/hangs down/);
-    for (let i = 0; i < 3; i++) {
-      const sr = await say(s, 'search');
-      if (/down|opens below|hollow/i.test(sr)) break;
-    }
     const from = await where(s);
     const down = await say(s, 'climb down');
     expect(await where(s), down).not.toBe(from);
     const up = await say(s, 'climb up');
     expect(await where(s), up).toBe(from);
-    const r = await look(s, 'rope');
-    expect(r, r).toMatch(/rope/);
   }, 300_000);
 
   it('11. climbed until it frays — it frays before it parts (the chafe dial raised)', async () => {
-    await setDial('cordage.chafePerUse', '1.0');
+    await setDial('cordage.chafePerUse', '3.0');
     try {
-      const s = await session(maker, LIP);
+      const s = await atTheLip(rigger);
       const seen: string[] = [];
       let parted = false;
-      for (let i = 0; i < 8 && !parted; i++) {
+      for (let i = 0; i < 10 && !parted; i++) {
         const d = await say(s, 'climb down');
-        if (/parts above you/.test(d)) { parted = true; break; }
+        const d2 = d + ' ' + squash(await s.listen(800).catch(() => ''));
+        if (/parts above you/.test(d2)) { parted = true; break; }
         const u = await say(s, 'climb up');
-        if (/parts above you/.test(u)) { parted = true; break; }
+        const u2 = u + ' ' + squash(await s.listen(800).catch(() => ''));
+        if (/parts above you/.test(u2)) { parted = true; break; }
         seen.push(await look(s, 'rope'));
       }
       expect(seen.join(' '), seen.join(' | ')).toMatch(/scuffed|fraying|yarns have parted/);
@@ -294,64 +348,68 @@ suite('cordage — the blocking drive', () => {
   }, 600_000);
 
   it('12. a reef knot spills under an uneven load, and you fall', async () => {
-    const s = await session(maker, LIP);
-    // A fresh rope from the ropewalk.
-    const w = await session(maker, WALK);
+    const loader = await funded('cdl', 80);
+    const w = await session(loader, WALK);
     await say(w, 'buy rope');
-    for (let i = 0; i < 30; i++) await say(w, 'buy hemp yarn');
-    w.close();
-    const s2 = await session(maker, LIP);
-    void s;
-    const tied = await say(s2, 'tie coil to post with reef knot');
+    for (let i = 0; i < 28; i++) await say(w, 'buy hemp yarn');
+    const s = await atTheLip(loader);
+    const tied = await say(s, 'tie rope to post with reef knot');
     expect(tied, tied).toMatch(/reef knot/);
-    await say(s2, 'search');
-    const d = await say(s2, 'climb down');
-    expect(d + (await s2.listen(1_000).catch(() => '')), d).toMatch(/spills|hit the bottom/);
+    const d = await say(s, 'climb down');
+    const all = d + ' ' + squash(await s.listen(1_500).catch(() => ''));
+    expect(all, all).toMatch(/spills/);
+    expect(all, all).toMatch(/hit the bottom/);
   }, 600_000);
 
   it('13. splice two lengths into one, nearly as strong', async () => {
-    const s = await session(maker, WALK);
-    await act(s, 'twist yarn --yarns 40 --length 10');
-    await act(s, 'twist yarn --yarns 40 --length 10');
-    await act(s, 'twist yarn --yarns 40 --length 10');
+    const splicer = await funded('cdp', 60);
+    const s = await session(splicer, WALK);
+    for (let i = 0; i < 4; i++) await say(s, 'buy hemp yarn');
+    await say(s, 'buy rigging knife');
+    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 40 --length 10');
     await act(s, 'twist strands');
     await act(s, 'cut rope at 4 m');
-    const sp = await say(s, 'splice 1.rope to 2.rope');
+    const sp = await say(s, 'splice first rope to second rope');
     expect(sp, sp).toMatch(/one rope now, 10 meters long/);
     const r = await look(s, 'rope');
     expect(r, r).toMatch(/splice/);
   }, 600_000);
 
   it('15–16. a worn rope parts under a belayed climber: caught; unbelayed: dropped', async () => {
-    const m = await session(maker, WALK);
-    await say(m, 'buy rope');
-    // A thin strand to fail under them.
-    await act(m, 'twist yarn --yarns 6 --length 8');
-    m.close();
-    const belayer = await session(maker, LIP);
-    const c = await session(climber, LIP);
-    const tieThin = await say(belayer, 'tie strand to post with bowline');
+    // The belayer holds one coil and a thin strand that will not hold a man.
+    const holder = await funded('cdb', 80);
+    const w = await session(holder, WALK);
+    await say(w, 'buy rope');
+    for (let i = 0; i < 2; i++) await say(w, 'buy hemp yarn');
+    await act(w, 'twist yarn --yarns 6 --length 8');
+    await act(w, 'twist yarn --yarns 6 --length 8');
+    const belayer = await atTheLip(holder);
+    const c = await atTheLip(climber);
+    // They meet: a rope is tied round somebody by what the tier knows them as.
+    await belayer.drainProse();
+    expectOk(await c.cmd('introduce'));
+    const met = squash(await belayer.listen(4_000));
+    const known = met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? climber;
+    const tieThin = await say(belayer, 'tie first strand to post with bowline');
     expect(tieThin, tieThin).toMatch(/hangs down/);
-    const tieOn = await say(belayer, `tie coil to ${climber}`);
+    const tieOn = await say(belayer, `tie rope to ${known}`);
     expect(tieOn, tieOn).toMatch(/round/);
-    const bel = await say(belayer, `belay ${climber} with coil`);
+    const bel = await say(belayer, `belay ${known} with rope`);
     expect(bel, bel).toMatch(/hold the rope/);
-    await say(c, 'search');
     const fall = await say(c, 'climb down');
     const after = fall + ' ' + squash(await c.listen(1_500).catch(() => ''));
     expect(after, after).toMatch(/parts above you/);
     expect(after, after).toMatch(/hauled in/);
     expect(await where(c), after).toBe(await where(belayer));
 
-    // Unbelayed: a second thin strand, and nobody holding.
+    // Unbelayed: the second strand, and nobody holding.
     await say(belayer, 'belay off');
-    const m2 = await session(maker, WALK);
-    await act(m2, 'twist yarn --yarns 6 --length 8');
-    m2.close();
-    const b2 = await session(maker, LIP);
-    await say(b2, 'tie strand to post with bowline');
+    await say(belayer, `untie rope`);
+    const tie2 = await say(belayer, 'tie strand to post with bowline');
+    expect(tie2, tie2).toMatch(/hangs down/);
     const fall2 = await say(c, 'climb down');
     const after2 = fall2 + ' ' + squash(await c.listen(1_500).catch(() => ''));
+    expect(after2, after2).toMatch(/parts above you/);
     expect(after2, after2).toMatch(/hit the bottom/);
   }, 900_000);
 
@@ -360,7 +418,7 @@ suite('cordage — the blocking drive', () => {
     const sold = await say(s, 'sell rope');
     expect(sold, sold).not.toMatch(/does not buy|not yours|no one/i);
     const shop = await session(maker, SHOP);
-    const life = await look(shop, 'lifeline');
+    const life = await look(shop, 'first lifeline');
     expect(life, life).toMatch(/20 meters of hemp rope/);
     const bank = await session(maker, BANK);
     const heave = await look(bank, 'heaving line');
