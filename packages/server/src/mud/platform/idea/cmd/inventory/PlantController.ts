@@ -446,11 +446,11 @@ export default class PlantController extends EngagedActController<PlantModel> {
       cost: 5,
       beginSelf: drill
         ? part
-          ? Mml.compose`You take ${Mml.thing(drill)} down ${Mml.thing(part)}, the coulters laying ${Mml.thing(seed)} in rows.`
-          : Mml.compose`You take ${Mml.thing(drill)} down the ground, the coulters laying ${Mml.thing(seed)} in rows.`
+          ? Mml.compose`You take ${Mml.thing(drill)} down ${Mml.thing(part)}, the coulters laying the seed from ${Mml.thing(seed)} in rows.`
+          : Mml.compose`You take ${Mml.thing(drill)} down the ground, the coulters laying the seed from ${Mml.thing(seed)} in rows.`
         : part
-          ? Mml.compose`You walk ${Mml.thing(part)}, casting ${Mml.thing(seed)} in wide arcs.`
-          : Mml.compose`You walk the ground, casting ${Mml.thing(seed)} in wide arcs.`,
+          ? Mml.compose`You walk ${Mml.thing(part)}, casting seed from ${Mml.thing(seed)} in wide arcs.`
+          : Mml.compose`You walk the ground, casting seed from ${Mml.thing(seed)} in wide arcs.`,
       beginPeers: drill
         ? Mml.compose`${Mml.actor(giver)} works a seed drill down the ground.`
         : Mml.compose`${Mml.actor(giver)} walks the ground, broadcasting seed.`,

@@ -100,6 +100,8 @@ export type ApplicationVerdict =
     };
 
 export interface Organization {
+  /** How the organization is called in prose; `''` when unnamed. */
+  getName(): string;
   // The org face (F4) — forwards into EmploymentLogic.
   /** Hire `actor` into `positionKey` (the `appoint` verb's act). */
   appoint(actor: Stuff, positionKey: string): Promise<Employment | null>;

@@ -384,6 +384,15 @@ function namesItself(text: string, needle: string): boolean {
 
 /** What a body of people calls itself. */
 function organizationLabelImpl(body: Stuff): string {
+  // ⭐ An organization that has a NAME reads by it. A business is a
+  // publisher too, and a publisher's label falls back to its template
+  // PATH: every business without a press label told a new hand "taken on
+  // as labourer at /world/terminus/eternal/campus-farm/idea/farm-unit"
+  // (field population's browser walk) — the university farm, Quist's farm
+  // and the sawmill all have names.
+  if (MixinApi.isOrganization(body) && body.getName().length > 0) {
+    return body.getPresentation();
+  }
   return MixinApi.isPublisher(body) ? body.getLabel() : body.getPresentation();
 }
 

@@ -160,6 +160,7 @@ beforeEach(() => {
     return r;
   }, YARD);
   biz = makeStuffAtPath(() => new BusinessEntity(), BIZ);
+  biz.setName("Tolley's yard");
   biz.positions = [seat()] as never;
   biz.operatingLocations = [SHOP];
   alice = makeStuffAtPath(() => {
@@ -178,6 +179,11 @@ describe('⭐ apply — the player moves first', () => {
     expect(reasons(c)).toEqual([]);
     expect(said).toMatch(/taken on as hand/);
     expect(said).toMatch(/clock on/);
+    // ⭐ By its NAME, never its path (the browser walk: the campus farm's
+    // hand was "taken on as labourer at" its template path — a business is
+    // a publisher too, and a publisher's label falls back to its path).
+    expect(said).not.toMatch(new RegExp(BIZ));
+    expect(said).toMatch(/taken on as hand at Tolley's yard/);
     expect(biz.holdersOf('hand')).toContain(ALICE);
     expect(biz.openingsFor('hand')).toBe(0);
   });

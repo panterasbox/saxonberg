@@ -403,8 +403,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     await daylight();
     await goTo(STORE);
     await doing(p, 'buy sickle');
-    // The store keeps four sacks (par 4) — about two-thirds of a hectare.
-    for (let i = 0; i < 4; i++) await doing(p, 'buy seed wheat');
+    // Two sacks: the home field's seed drill (field population D22) lays
+    // the crop on half the seed, so 50 kg sows about two-thirds of the
+    // hectare — the gate end, the far side, and a strip of the middle.
+    for (let i = 0; i < 2; i++) await doing(p, 'buy seed wheat');
     // ⚠ Two words: the potting-soil sack answers to `compost` too, and a
     // one-word query is not name-ranked (W2's scorer rule).
     await doing(p, 'buy compost sack');

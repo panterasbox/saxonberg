@@ -65,6 +65,8 @@ args:
   - name: drill
     type: object
     required: false
+    # Greedy so `with the seed drill` binds whole (lint:reachability arm G).
+    greedy: true
     prepositions: [with, using]
     default: "reachable:[capability.drilling]"
     scope: ["reachable"]

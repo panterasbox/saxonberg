@@ -396,14 +396,16 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await refused(p, 'plough', 'already-ploughed');
   }, 1_200_000);
 
-  it('4. sowing takes an area per act and spends the seed in proportion: about a third sown', async () => {
+  it('4. sowing takes an area per act and spends the seed in proportion — drilled, on half of it: about two-thirds sown', async () => {
     // ⭐ The home field is three patches (field population D15) and every
     // act on its crop names one (R2): the gate end until it is full, then
     // the middle with what is left.
     const first = await doing(p, 'sow wheat at the gate end');
-    expect(first).toMatch(/walk the [a-z ]+, casting|seed goes into the ground/i);
+    // ⭐ The seed drill stands in the home field (field population D22):
+    // `sow` takes it down the patch, the coulters laying the seed in rows.
+    expect(first).toMatch(/coulters laying the seed|seed goes into the ground/i);
     let part = 'the gate end';
-    for (let i = 0; i < 14 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
+    for (let i = 0; i < 20 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
       const { r, said } = await work(p, `sow wheat at ${part}`);
       if (refusedFor(r) === 'patch-sown' && part === 'the gate end') {
         part = 'the middle';
@@ -412,7 +414,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
       expect(refusedFor(r), said).toBeNull();
     }
     expect(await read(p, 'inventory')).not.toMatch(/seed wheat/i);
-    expect(await read(p, 'look')).toMatch(/stand of wheat grows over about a third of it/i);
+    // Two sacks broadcast by hand sowed about a third; drilled, two-thirds.
+    expect(await read(p, 'look')).toMatch(/stand of wheat grows over about two-thirds of it/i);
   }, 1_800_000);
 
   it('14. [short] grazing: a day on the paddock takes the grass down; a drafted head holds condition', async () => {
