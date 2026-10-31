@@ -655,20 +655,24 @@ function CommunityPanel({ community }: { community: Community }) {
               }}
             />
           </div>
-          <div
-            style={{
-              fontFamily: FACE_STACKS.chrome,
-              fontSize: 21,
-              color: reached ? palette.accent : palette.text.dim,
-              fontWeight: reached ? 600 : 400,
-              marginTop: 8,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {reached
-              ? `Goal reached — we end with ${goal.reward}!`
-              : `Hit it and we end with ${goal.reward}`}
-          </div>
+          {(reached || goal.reward) && (
+            <div
+              style={{
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: 21,
+                color: reached ? palette.accent : palette.text.dim,
+                fontWeight: reached ? 600 : 400,
+                marginTop: 8,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {reached
+                ? goal.reward
+                  ? `Goal reached — we end with ${goal.reward}!`
+                  : 'Goal reached — thank you!'
+                : `Hit it and we end with ${goal.reward}`}
+            </div>
+          )}
         </div>
       )}
 

@@ -77,8 +77,11 @@ export interface Arrival {
 export interface StreamGoal {
   metric: 'subs' | 'followers';
   target: number;
-  /** The segment the show ends with when the goal is hit, e.g. "a lore reading". */
-  reward: string;
+  /**
+   * The segment the show ends with when the goal is hit, e.g. "a lore
+   * reading" — or null, and then no reward is mentioned at all.
+   */
+  reward: string | null;
 }
 
 export interface Community {
@@ -144,7 +147,7 @@ const MOCK_COMMUNITY: Community = {
   newPlayers: 4,
   newFollowers: 9,
   subsAndGifts: 3,
-  goal: { metric: 'subs', target: 5, reward: 'a bonus segment' },
+  goal: { metric: 'subs', target: 5, reward: null },
   recent: [
     { who: 'Iffy', kind: 'player' },
     { who: 'ironmonger', kind: 'gift', via: 'twitch', count: 2 },
