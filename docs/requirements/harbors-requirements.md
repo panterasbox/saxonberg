@@ -283,13 +283,14 @@ ashore (the guarantee that you can always leave any place and reach home).
 ### One weathering clock for houses and ships
 The owner's rule: **whatever the rule, it works the same way as residences.**
 A ship's hull is her shell — the same clock (it runs while she sleeps), **the
-same rate** (a game year from sound to the worst band, about a real month),
+same rate** (the residence setting — today about a game season, some days of
+real time, from sound to the worst band),
 the same bands, the same upkeep act and the same terms of who owes it. What
 the band MEANS differs by kind: a worn house reads worn; a worn hull leaks. A
 sleeping ship's leak catches up when she is next looked at (lens 1): a
 neglected ship at her berth has **settled onto the shallow harbor bottom** and
 can be pumped out; one left untended at anchor in deep water for that long
-has sunk — real neglect, never a weekend away. Told as states ("after a long
+has sunk — real neglect, longer than a weekend away. Told as states ("after a long
 absence"), never as a number of days.
 
 ### A boat leaks from use, not the calendar
