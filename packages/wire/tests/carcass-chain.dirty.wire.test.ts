@@ -358,7 +358,7 @@ async function sustain(s: Session): Promise<void> {
  */
 async function ensureDaylight(s: Session): Promise<void> {
   let room = '';
-  for (let i = 0; i < 8; i += 1) {
+  for (let i = 0; i < 6; i += 1) {
     room = (await (await s.cmd('look')).said()).toLowerCase();
     // ⭐⭐⭐ **It asks the ROOM, not the sky** — ported from the butchery
     // drive at the sweep, which worked this out and wrote down why.

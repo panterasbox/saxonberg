@@ -178,10 +178,17 @@ async function postTestRoute(path: string, body: unknown): Promise<Response> {
 export async function advanceWorldClock(
   duration: string
 ): Promise<{ before: number; after: number }> {
+  // ⛔ Soak mode is the one thing that lets a jump past a game day
+  // through: the server refuses a longer one as a SPAN step in a blocking
+  // drive. Only `pnpm wire:soak` sets it.
+  const payload = {
+    advance: duration,
+    ...(process.env.WIRE_SOAK === '1' ? { soak: true } : {}),
+  };
   // ⚠ The world holds its clock while a jump settles (river D46): a jump
   // asked for while another is still settling — a drive stopped mid-jump,
   // the next file starting at once (run 35) — finds it paused. Wait it out.
-  let res = await postTestRoute('/auth/test-clock', { advance: duration });
+  let res = await postTestRoute('/auth/test-clock', payload);
   let body = (await res.json()) as {
     before?: number;
     after?: number;
@@ -189,7 +196,7 @@ export async function advanceWorldClock(
   };
   for (let wait = 0; wait < 60 && !res.ok && /clock is paused/i.test(body.error ?? ''); wait++) {
     await new Promise((r) => setTimeout(r, 5_000));
-    res = await postTestRoute('/auth/test-clock', { advance: duration });
+    res = await postTestRoute('/auth/test-clock', payload);
     body = (await res.json()) as typeof body;
   }
   if (!res.ok || typeof body.after !== 'number') {
@@ -347,6 +354,19 @@ export async function advanceLiving(
     await feed();
     return advanceWorldClock(duration);
   }
+  // ⛔ The span rule is per STEP, not per call (soak-harness D1): this
+  // helper walks a long move in jumps of a day or less, which the server's
+  // per-call refusal can never see — so it refuses here, in the same
+  // words, outside soak mode. A season walked in day-steps is a span.
+  if (total > 86_400 && process.env.WIRE_SOAK !== '1') {
+    throw new Error(
+      `advanceLiving('${duration}'): ${(total / 86_400).toFixed(1)} game days is a SPAN step ` +
+        'and cannot run in a blocking drive, even walked a day at a time — the line ' +
+        'is one game day (docs/workflow.md § No merge waits on the clock). Move the ' +
+        'step to a .soak. file (<feature>.soak.wire.test.ts, run by `pnpm wire:soak`), ' +
+        'or stage its outcome.',
+    );
+  }
   let before: number | null = null;
   let after = 0;
   for (let left = total; left > 0; ) {
@@ -398,4 +418,46 @@ export async function toSeasonDay(
   if (dayOfYear >= from && dayOfYear < to) return;
   const toDay = (from - dayOfYear + YEAR) % YEAR;
   await advanceLiving(`${toDay} days`, living);
+}
+
+/** What the weather pin route reports. */
+export interface WeatherPinResult {
+  /** The Locality the pin landed on — the one covering the scope. */
+  locality: string;
+  pin: { type: string; mode: 'frozen' | 'alive' } | null;
+}
+
+async function postWeather(
+  what: string,
+  body: Record<string, unknown>
+): Promise<WeatherPinResult> {
+  const res = await postTestRoute('/auth/test-weather', body);
+  const out = (await res.json()) as Partial<WeatherPinResult> & { error?: string };
+  if (!res.ok || typeof out.locality !== 'string') {
+    throw new Error(`${what} failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out as WeatherPinResult;
+}
+
+/**
+ * ⭐ Hold the weather — the staged twin of searching the sky for it.
+ *
+ * Pins `type` on the Locality covering `scope` (a place's or a
+ * Locality's template path) and applies it AT ONCE, as a segment
+ * boundary would: rooms restamp, puddles accrue, rain wets whoever is
+ * out in it. Only in a world this run owns (the route is test-only).
+ *
+ * ⚠ The pin persists on the Locality: a drive that pins, unpins.
+ */
+export async function pinWeather(
+  type: string,
+  scope: string,
+  mode: 'frozen' | 'alive' = 'frozen'
+): Promise<WeatherPinResult> {
+  return postWeather(`pinWeather('${type}', '${scope}')`, { scope, type, mode });
+}
+
+/** Release a pin {@link pinWeather} set; the procedural weather returns. */
+export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
+  return postWeather(`unpinWeather('${scope}')`, { scope, type: null });
 }

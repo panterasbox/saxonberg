@@ -1,4 +1,9 @@
 /**
+ * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
+ * after merge, never in a blocking run). Moved whole from
+ * `river-e.dirty.wire.test.ts` by the soak-harness census (2026-10-30):
+ * the crossings at Nesbit and the ferryman's shift need the season walked to open water.
+ *
  * River, stage E — ⭐⭐ **the ferry, and the sea brought into line**,
  * driven over the wire.
  *
@@ -45,7 +50,7 @@ export const DIRTY_REASON =
   'Hesper’s boat in the sea and moves the clock — none of it produced again';
 
 declareFile({
-  file: 'river-e.dirty.wire.test.ts',
+  file: 'river-e.soak.dirty.wire.test.ts',
   packs: ['terminus', 'water', 'transport', 'trade-haulage', 'trade-diving', 'world-seed', 'generic-objects'],
   dirtyReason: DIRTY_REASON,
 });

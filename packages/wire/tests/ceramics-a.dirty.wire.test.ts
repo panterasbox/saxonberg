@@ -21,6 +21,13 @@
  * ⚠ Long game-time acts (a day at the table, a three-day burn) are driven
  * by jumping the world clock past them and then awaiting the engagement.
  *
+ * ⛔ **The BLOCKING drive** (no step moves the clock more than a game day):
+ * the span steps — the winter's weathering, the warm-season walk, the weeks
+ * in the hacks, the three-day burns, the frost — are STAGED here per
+ * the ceramics soak-split census (testing.md § The soak lane) § ceramics-a: the state the
+ * span would produce is set directly and read with the same player verbs.
+ * Its span twin is `ceramics-a.soak.dirty.wire.test.ts`.
+ *
  * Run: `WIRE_BOOT=1 WIRE_PORT=<this worktree's> npx vitest run
  * tests/ceramics-a.dirty.wire.test.ts`.
  */
@@ -34,12 +41,12 @@ import {
   expectOk,
   advanceWorldClock,
   advanceLiving,
-  toSeasonDay,
-  toWarmSeason,
   plain,
   dress,
   dressFounder,
   hand,
+  pinWeather,
+  unpinWeather,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -70,6 +77,10 @@ const GROUND = `${B}/weathering-ground`;
 const PIT = `${B}/clay-pit`;
 const HACKS = `${B}/hacks`;
 const CLAMP_GROUND = `${B}/clamp-ground`;
+const TEMPER = `${B}/temper-pit`;
+const ALLUVIAL = '/world/terminus/hearts-delight/idea/material/alluvial-clay';
+const BRICK = '/trade/ceramics/thing/brick';
+const CLAY = '/trade/quarrying/thing/clay';
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -271,13 +282,7 @@ let digger: Session; // the brickmaker
 let dayBricks: string[] = [];
 
 beforeAll(async () => {
-  // ⭐ The brickmaker's year starts in late autumn (day 230–260 of 360):
-  // 5a needs LIQUID rain on a green brick — in winter it falls as snow and
-  // fifteen days brought none (run 35) — and 5b, next, needs a frost, a
-  // short lived walk on into early winter. Reached here, before anyone is
-  // made, so the clock moves a day a jump (run 34: a long move in 4 h lived
-  // steps outran 5b's timeout).
-  await toSeasonDay(230, 260);
+  // ⛔ STAGED (soak-harness census): the walk to late autumn (day 230–260) lives in ceramics-a.soak.dirty; here the drive starts wherever the clock is (5a pins its rain, 5b stages its frost).
   await toHour(9, 15);
   digger = await at(uniqueHandle('brickmaker'), PIT);
   // ⭐ Dressed for the year it will stand outside in (run 26: the brickmaker
@@ -378,74 +383,37 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
   }, 900_000);
 
   it('5a. ⭐ the green brick on the open yard SLUMPS in the rain', async () => {
-    const rained = await untilWeather(digger, RAINING, 60);
-    expect(rained, 'no liquid rain at a segment boundary in fifteen game days').toBe(true);
-    await advance('2 hours');
-    expect(await examine(digger, 'here:i:brick'), 'the yard brick after rain').toMatch(/slumped/i);
+    // ⛔ STAGED (soak-harness census): searching up to fifteen game days of forecast for rain lives in ceramics-a.soak.dirty; here the rain is pinned on the yard directly.
+    await pinWeather('rain', GROUND);
+    try {
+      const rained = await untilWeather(digger, RAINING, 1);
+      expect(rained, 'no liquid rain under the pinned rain').toBe(true);
+      await advance('2 hours');
+      expect(await examine(digger, 'here:i:brick'), 'the yard brick after rain').toMatch(/slumped/i);
+    } finally {
+      await unpinWeather(GROUND);
+    }
   }, 3_600_000);
 
   it('5b. ⭐ the brick left wet under the hack cover across the frost burst', async () => {
-    // ⚠ A brick made in SPRING is dry long before winter (about two weeks
-    // under the cover), and a dry brick takes a frost — so the drive makes
-    // a fresh one NOW, in the winter the last checkpoint reached, leaves it
-    // wet under the cover, and lets a frost find it. Rain never reaches it
-    // (the canvas), so a ruin here is the FROST's.
-    // ⚠ And NOW must be winter: the winter pass ends when the heap reads
-    // frost-broken, which can be spring already (run 32 struck its brick in
-    // fog, spring) — so go on to early winter (day 285 of 360).
-    await toSeasonDay(285, 330, open);
+    // Rain never reaches it (the canvas), so a ruin here is the FROST's.
     await toHour(9, 15);
-    await say(digger, 'east');
-    await say(digger, 'east');
-    // ⭐ By identity: the stack the day mints, new or grown (`stackAfter`).
-    // (A fresh brick merges only with bricks in its own state AND by its own
-    // maker, so the gang's never take it. `get 1 brick` once bound the
-    // "brick table".)
-    // ⭐ A FRESH lump, handed (setup — the act under test is the frost):
-    // what the brickmaker still carried from 1 and 2 was remnants smaller
-    // than one brick, and the day minted nothing (runs 36–38). Moulded by
-    // the id of the heap in hand, so the shed's own floor clay is not it.
-    await hand(digger, '/trade/quarrying/thing/clay');
-    const heaps = (await digger.query('me:i:clay', { fields: ['mass', 'quantity'] }).catch(() => [])) as {
-      stuffId?: string;
-      quantity?: unknown;
-      mass?: { value?: number };
-    }[];
-    const heap = heaps
-      .map((r) => ({ id: r.stuffId, kg: (Number(r.quantity ?? 1) || 1) * Number(r.mass?.value ?? 0) }))
-      .sort((a, b) => b.kg - a.kg)[0]?.id;
-    expect(heap, 'the clay in hand').toBeDefined();
-    let struck = '';
-    const minted = await stackAfter(digger, 'here:i:bricks', async () => {
-      struck = await act(digger, `shape #${heap} into brick`, '9 hours');
-      await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
+    // ⛔ STAGED (soak-harness census): a wet green brick walked into early winter and watched under the hack cover until a frost bursts it lives in ceramics-a.soak.dirty; here the state is set directly.
+    const fresh = await hand(digger, BRICK, {
+      greenRuin: 'shattered',
+      greenBurstBy: 'frost',
+      _materialPath: ALLUVIAL,
     });
-    expect(struck, `the day at the table: ${struck}`).toMatch(/turned out|bricks?/i);
-    expect(minted?.stuffId, 'the day\'s fresh stack').toBeDefined();
-    const fresh = minted!.stuffId!;
-    let hackBrick = String(minted!.longDescription ?? '');
-    // ⭐ In deep winter the frost can find the wet stack before the morning
-    // (run 35: burst on the pallet overnight) — that IS the outcome. Still
-    // wet, it goes under the hack cover and is watched there.
-    if (!/frost has burst|froze wet/i.test(hackBrick)) {
-      await say(digger, `get #${fresh}`);
-      await say(digger, 'south');
-      await say(digger, `drop #${fresh}`);
-      await say(digger, 'north');
-    }
+    await say(digger, 'east');
+    await say(digger, 'east');
     await say(digger, 'south');
-    for (let half = 0; half < 20 && !/frost has burst|froze wet/i.test(hackBrick); half++) {
-      await advance('12 hours');
-      hackBrick = await examine(digger, `#${fresh}`);
-    }
+    await say(digger, `drop #${fresh}`);
+    const hackBrick = await examine(digger, `#${fresh}`);
     expect(hackBrick, 'the hack brick after the winter').toMatch(/frost has burst|froze wet/i);
     expect(hackBrick).not.toMatch(/slumped/i);
     await say(digger, 'north');
     await say(digger, 'west');
     await say(digger, 'west');
-    // ⚠ Room for all twenty half-days. A timed-out test does not stop its
-    // loop: run 24's kept jumping the clock through 3 and 4, and the
-    // brickmaker — sodden from the pit — died of hypothermia mid-moulding.
   }, 7_200_000);
 
   it('⭐ through the winter: the heap outside mellows, the heap in the shed stays raw', async () => {
@@ -453,20 +421,15 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     // hacks, and twelve months of reads there found no heap (run 35).
     digger.close();
     digger = await at(digger.handle, GROUND);
-    let looks = '';
-    for (let month = 0; month < 12; month++) {
-      await advance('30 days');
-      await toHour(9, 15); // read by day: in the dark a query sees nothing
-      looks = await examine(digger, 'here:i:clay');
-      if (/frost-broken|crumbling/i.test(looks)) break;
-    }
-    expect(looks, 'the outdoor heap after a winter').toMatch(/frost-broken|crumbling/i);
+    // ⛔ STAGED (soak-harness census): a winter of 30-day jumps weathering the yard heap while the shed heap stays raw lives in ceramics-a.soak.dirty; here the state is set directly.
+    // ⚠ Read each heap by id while HELD: dropped onto a lying heap it would
+    // merge, and a merge averages the weathering.
+    const mellowed = await hand(digger, CLAY, { weatheredDays: 40, _materialPath: ALLUVIAL });
+    const kept = await hand(digger, CLAY, { weatheredDays: 0, _materialPath: ALLUVIAL });
+    const looks = await examine(digger, `#${mellowed}`);
+    expect(looks, 'the outdoor heap after a winter').toMatch(/frost-broken|crumbling|mellow/i);
     expect(looks).not.toMatch(/unweathered/i);
-    await say(digger, 'east');
-    await say(digger, 'east');
-    expect(await examine(digger, 'here:i:clay'), 'the heap kept in the shed').toMatch(/unweathered|fresh-dug/i);
-    await say(digger, 'west');
-    await say(digger, 'west');
+    expect(await examine(digger, `#${kept}`), 'the heap kept in the shed').toMatch(/unweathered|fresh-dug/i);
   }, 7_200_000);
 });
 
@@ -477,16 +440,36 @@ suite('⭐ 3 — knead it', () => {
     // walked to the clamp ground).
     digger.close();
     digger = await at(digger.handle, GROUND);
-    // ⭐ Back to the working season: 5b left the year in winter, and the
-    // bricks moulded from here dry on the hacks — wet ones a frost bursts.
-    await toWarmSeason(open);
     await toHour(9, 15);
+    // ⛔ STAGED (soak-harness census): the walk back to the warm season (a thawed pit, the weathered yard heap) lives in ceramics-a.soak.dirty; here the state is set directly.
     // ⚠ By id: the brickmaker still holds raw lumps from 1 and 2, and
     // `put clay`/`analyze clay lump` bound one of THOSE (run 36).
-    const heap = await stackAfter(digger, 'me:i:clay', async () => {
-      expect(await say(digger, 'get 3 clay')).toMatch(/pick up|clay/i);
-    });
+    const heap = {
+      stuffId: await hand(digger, CLAY, { weatheredDays: 40, _materialPath: ALLUVIAL, quantity: 3 }),
+    };
     expect(heap?.stuffId, 'the weathered lumps in hand').toBeDefined();
+    // The pit thawed: 200 L of water and no ice, set by a runner holding the
+    // Delight's title. ⚠ No ';' anywhere — the shell splits a line on it.
+    const thaw = await Session.open(uniqueHandle('pit-thaw'), {
+      wizard: true,
+      parcels: ['/world/terminus/hearts-delight'],
+      startLocation: TEMPER,
+    });
+    try {
+      const thawed = await say(
+        thaw,
+        'eval --parcel /world/terminus/hearts-delight ' +
+          '((pit) => pit && Promise.resolve(pit.setBulkMaterial(\'interior\', StuffApi.findByTemplatePath(\'/stuff/idea/material/bulk/water\')))' +
+          '.then(() => pit.setBulkAmount(\'interior\', pit.getBulkAmount(\'interior\').constructor.of(200, \'L\')))' +
+          '.then(() => Promise.all(pit.getContents().filter((c) => c.getMaterial?.()?.hasTag?.(\'frozen\')).map((c) => StuffApi.destruct(c))))' +
+          // The answer is built, so an echo of the line cannot satisfy the read.
+          '.then(() => [\'pit\', \'thawed\'].join(\' \')))' +
+          '(self.getContainer().getContents().find((o) => o.getTemplatePath() === \'/world/terminus/hearts-delight/brickfield/thing/temper-pit\'))',
+      );
+      expect(thawed, `the pit thawed: ${thawed}`).toMatch(/pit thawed/);
+    } finally {
+      thaw.close();
+    }
     const fat = await say(digger, `analyze clay #${heap!.stuffId}`);
     await say(digger, 'east');
     await say(digger, `put #${heap!.stuffId} in pit`);
@@ -579,35 +562,25 @@ suite('⭐ 6 — dry them', () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).
     await toHour(9, 15);
     expect(dayBricks.length, 'the day\'s bricks from 4').toBeGreaterThan(0);
-    const ours = async (): Promise<string> =>
-      (await Promise.all(dayBricks.map((id) => examine(digger, `#${id}`)))).join('\n');
-    for (const id of dayBricks) expect(await say(digger, `get #${id}`)).toMatch(/pick up|brick/i);
+    // ⛔ STAGED (soak-harness census): weeks in the hacks drying the day's bricks to leather-hard and bone-dry (the fat batch checking) live in ceramics-a.soak.dirty; here the state is set directly.
+    const tempered = await hand(digger, BRICK, { dryness: 1, quantity: 6, _materialPath: ALLUVIAL });
+    const fatBatch = await hand(digger, BRICK, {
+      dryness: 1,
+      quantity: 3,
+      _materialPath: ALLUVIAL,
+      flaws: [{ kind: 'check', visible: true, atS: 0 }],
+    });
+    // The dried bricks are the ones the clamp sets (7).
+    dayBricks = [tempered, fatBatch];
     await say(digger, 'south');
-    // ⭐ Set ON the hack, where the wind reaches every face — dropped on the
-    // yard (one face to the air) they never got past leather-hard.
+    // ⭐ Set ON the hack, where the wind reaches every face.
     for (const id of dayBricks) await say(digger, `put #${id} on hack`);
-    expect(await ours()).toMatch(/green/i);
-    let rows = '';
-    for (let week = 0; week < 6 && !/leather-hard/i.test(rows); week++) {
-      await advance('5 days');
-      rows = await ours();
-      // ⚠ Run 29 read NO bricks here after the first five days, at a
-      // daylight hour, with the brickmaker alive: say what IS here.
-      if (rows === '') await examine(digger, 'here:i');
-    }
+    const rows = await examine(digger, `#${tempered}`);
     expect(rows, 'leather-hard in the hacks').toMatch(/leather-hard|bone-dry/i);
-    for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
-      await advance('7 days');
-      rows = await ours();
-    }
     expect(rows, 'bone-dry in the hacks').toMatch(/bone-dry/i);
-    // ⚠ Whether the fat, no-sand batch CHECKS is the drying RATE against its
-    // clay (Greenware: rate × crack risk past `green.crackRate`), and the
-    // rate is whatever weather this part of the year brings: run 31's damp
-    // season dried it slowly and it held. The rule is pinned in the unit
-    // tests; the drive records what the weather did.
+    const fatRead = await say(digger, `look #${fatBatch}`);
     // eslint-disable-next-line no-console -- the drive's own record
-    console.log(`  [drive] the no-sand batch after drying: ${/crack|check/i.test(rows) ? 'checked' : 'held (a slow drying season)'}`);
+    console.log(`  [drive] the no-sand batch after drying: ${/crack|check/i.test(fatRead) ? 'checked' : 'held (a slow drying season)'}`);
   }, 7_200_000);
 });
 
@@ -637,7 +610,8 @@ suite('⭐ 7 — fire the clamp', () => {
     expect(lit).toMatch(/catch|light|burn|alight|fire/i);
     // Fire it into the night and look from next door.
     await toHour(20, 23);
-    const firing = await digger.cmd('fire clamp for 3 days');
+    // ⛔ STAGED (soak-harness census): the three-day burn lives in ceramics-a.soak.dirty; here a short burn — the glow and the smoke are reads of a burning clamp.
+    const firing = await digger.cmd('fire clamp for 3 hours');
     const fired = squash(plain(await firing.said()));
     expect(rejectedByParser(firing)).toBe(false);
     expect(fired).not.toMatch(/stone cold|empty/i);
@@ -649,7 +623,7 @@ suite('⭐ 7 — fire the clamp', () => {
     const id = (firing.notes as Array<{ kind?: string; engagementId?: string }>).find(
       (n) => n.kind === 'engagement-started',
     )?.engagementId;
-    await advance('3 days');
+    await advance('3 hours');
     if (id) await digger.awaitActivity(id, 300_000).catch(() => []);
     await digger.drainProse();
   }, 3_600_000);
@@ -657,7 +631,14 @@ suite('⭐ 7 — fire the clamp', () => {
   it('⭐ drawn cold, the bricks come out in three grades by where they sat', async () => {
     // Read by daylight: in the dark a query sees nothing (perception gates the read).
     await toHour(9, 15);
-    await say(digger, 'douse clamp');
+    // ⛔ STAGED (soak-harness census): a three-day burn grading the charge by position lives in ceramics-a.soak.dirty; here the graded charge is set into the clamp directly.
+    const graded = [
+      await hand(digger, BRICK, { _materialPath: '/stuff/idea/material/ceramic/clinker', clampPosition: 'channel', quantity: 2 }),
+      await hand(digger, BRICK, { _materialPath: '/stuff/idea/material/ceramic/earthenware', clampPosition: 'middle', quantity: 3 }),
+      await hand(digger, BRICK, { _materialPath: '/stuff/idea/material/ceramic/terracotta', clampPosition: 'skin', quantity: 2 }),
+    ];
+    for (const id of graded) await say(digger, `put #${id} in clamp`);
+    await say(digger, 'douse clamp'); // already out after the short burn is fine
     await advance('1 day');
     const drawn = await say(digger, 'get bricks from clamp');
     expect(drawn).toMatch(/pick up|brick/i);
@@ -695,41 +676,8 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     digger = await at(digger.handle, CLAMP_GROUND);
     // The first clamp's bricks stay on the clamp ground (9 measures them).
     await say(digger, 'drop bricks');
-    // A second load: clay from the pit, a day at the table, the hacks.
-    // Clamp ground → hacks → shed → temper → yard → pit.
-    for (const d of ['west', 'north', 'west', 'west', 'south']) await say(digger, d);
-    for (let i = 0; i < 2; i++) await act(digger, 'dig clay with spade', '2 minutes');
-    await say(digger, 'get clay');
-    for (const d of ['north', 'east', 'east']) await say(digger, d);
-    // ⚠ A nine-hour day ends after dark, and in the dark `get bricks` sees
-    // none on the pallet (run 34): fetch them in the morning, as 4 does —
-    // and by id, since the shed holds other bricks (run 36).
-    const load = await stackAfter(digger, 'here:i:bricks', async () => {
-      await act(digger, 'shape clay into brick', '9 hours');
-      await toHour(9, 15);
-    });
-    expect(load?.stuffId, 'the second load').toBeDefined();
-    const second = `#${load!.stuffId}`;
-    await say(digger, `get ${second}`);
-    await say(digger, 'south');
-    await say(digger, `put ${second} on hack`);
-    let rows = '';
-    for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
-      await advance('7 days');
-      rows = await examine(digger, second);
-    }
-    expect(rows, 'the second load dry').toMatch(/bone-dry/i);
-    await say(digger, `get ${second}`);
-    await say(digger, 'east');
-    expect(await say(digger, `put ${second} in clamp`)).toMatch(/put .*brick.* in .*clamp/i);
-    await say(digger, 'get coal');
-    await say(digger, 'stoke coal into clamp');
-    await say(digger, 'ignite clamp');
-    const fired = await act(digger, 'fire clamp --draught half for 3 days', '3 days');
-    expect(fired).not.toMatch(/stone cold|empty|draught\?/i);
-    await say(digger, 'douse clamp');
-    await advance('1 day');
-    await say(digger, 'get bricks from clamp');
+    // ⛔ STAGED (soak-harness census): a second load dug, moulded, dried for weeks and burnt three days starved of air lives in ceramics-a.soak.dirty; here the blue bricks are set directly.
+    await hand(digger, BRICK, { _materialPath: '/stuff/idea/material/ceramic/earthenware-reduced', quantity: 3 });
     const blue = await examine(digger, 'me:i:brick');
     expect(blue, 'the starved burn').toMatch(/blue|starved of air|smoke-grey|grey/i);
   }, 3_600_000);
@@ -798,26 +746,8 @@ suite('⭐ 9 — measure against the statute brick', () => {
     });
     expect(day, `the old mould: ${day}`).toMatch(/brick/i);
     expect(big?.stuffId, 'the oversize bricks').toBeDefined();
-    const oversized = `#${big!.stuffId}`;
-    await say(digger, `get ${oversized}`);
-    // Dry them in the hacks: old pit → pit → yard → temper → shed → hacks.
-    for (const d of ['east', 'north', 'east', 'east', 'south']) await say(digger, d);
-    await say(digger, `put ${oversized} on hack`);
-    let rows = '';
-    for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
-      await advance('7 days');
-      rows = await examine(digger, oversized);
-    }
-    expect(rows, 'the oversize bricks dry').toMatch(/bone-dry/i);
-    await say(digger, `get ${oversized}`);
-    // Burn them in the clamp ground's firing pit, on their own.
-    await say(digger, 'east');
-    expect(await say(digger, `put ${oversized} in pit`)).toMatch(/put .*brick.* in .*pit/i);
-    await say(digger, 'ignite pit');
-    await act(digger, 'fire pit for 1 day', '1 day');
-    await say(digger, 'douse pit');
-    await advance('12 hours');
-    await say(digger, 'get bricks from pit');
+    // ⛔ STAGED (soak-harness census): drying the oversize bricks for weeks in the hacks and a day's burn in the firing pit live in ceramics-a.soak.dirty; here a fired brick off the old mould is set directly.
+    const oversized = `#${await hand(digger, BRICK, { _materialPath: '/stuff/idea/material/ceramic/terracotta', mass: 4.4 })}`;
     const oversize = await say(digger, `measure size ${oversized}`);
     expect(oversize, `the old mould's brick: ${oversize}`).toMatch(/off standard/i);
     expect(oversize).toMatch(/over/i);

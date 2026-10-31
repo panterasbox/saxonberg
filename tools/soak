@@ -1,0 +1,322 @@
+#!/bin/sh
+# soak — the soak lane's runner: run each merge's soak drives, unattended,
+# after it lands on master, and file a GitLab issue for every failure.
+#
+# ⛔ WHY THIS EXISTS. No merge waits on the clock (docs/workflow.md): a
+# drive step that skips more than a game day — a winter's weathering, a
+# cask's forty-five days — never blocks a merge. It lives in a
+# `*.soak.wire.test.ts` file instead, and this script runs those files
+# after the merge, in the soak worktree, against its own world. Running a
+# test and reading its result needs no judgment and spends no tokens; the
+# `soak` tmux window's Claude (the /soak skill) wakes only on the issue.
+#
+# What it does, per first-parent commit on SOAK_REF after the state file's
+# SHA, oldest first:
+#   1 finds the soak files the commit added or changed (and the canary,
+#     whenever the commit touches the soak tooling itself);
+#   2 waits for the gate: the suite lock free AND enough memory for a
+#     world on top of the reserve (in quiet hours, the world alone);
+#   3 takes the lock tools/suite takes, checks the commit out detached,
+#     installs, drops the soak database, and runs the files with
+#     `pnpm wire:soak` on SOAK_PORT — the run boots its own world and
+#     tears it down;
+#   4 reads packages/wire/.wire/result.json, keeps a copy, logs a line per
+#     file, files (or comments on) a `soak` issue per failing file;
+#   5 advances the state file to the commit — pass or fail — and drops
+#     the lock. On exit the worktree goes back to detached origin/master.
+#
+# Three bounds it inherits from tools/suite (tools/lib/suite-lock.sh):
+# the same cross-worktree lock, the same memory reserve, one at a time.
+#
+#   tools/soak --once       # one pass over what is waiting, then exit
+#   tools/soak --watch      # pass, sleep SOAK_POLL_S, forever (the window's second pane)
+#   tools/soak --dry-run    # list what would run; run and file nothing
+#
+# State lives in the soak worktree (gitignored):
+#   .soak/state              the last soaked SHA — seed it: echo <sha> > .soak/state
+#   .soak/log                <time> <sha> <file> pass|fail|skipped <reason>
+#   .soak/results/<sha>.json that run's result.json
+#   .soak/server-<sha>.log   the world's log, on a failure
+#
+# Env (every threshold, path and external is overridable):
+#   SOAK_WORKTREE    the worktree it moves         (default: $ROOT/soak)
+#   SOAK_REF         what it soaks                 (origin/master)
+#   SOAK_HOME_REF    where it leaves the worktree  (origin/master)
+#   SOAK_STATE       the state file                ($SOAK_WORKTREE/.soak/state)
+#   SOAK_PORT        the soak world's port         (2020)
+#   SOAK_WORLD_MB    what a world needs            (3072)
+#   SOAK_QUIET_HOURS when the reserve is waived    (2-6, local hours [from,to))
+#   SOAK_POLL_S      poll interval                 (60)
+#   SOAK_GLAB        the GitLab CLI                (glab)
+#   SOAK_RUN_CMD     the run; the files are appended
+#                    (WIRE_BOOT=1 WIRE_PORT=$SOAK_PORT pnpm -C packages/wire wire:soak)
+#   SUITE_LOCK, SUITE_RESERVE_GB   — tools/lib/suite-lock.sh
+
+set -u
+
+# ⚠ Everything is inside main(), and main is the last line: a shell reads
+# a script as it runs it, and this one checks out other commits of the
+# tree it lives in. Parsed whole before it runs, it cannot be changed
+# under itself.
+main() {
+  SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+  WORKTREE=$(dirname -- "$SCRIPT_DIR")
+  ROOT=$(dirname -- "$WORKTREE")
+  TAG=soak
+  WAIT=1
+  # Sourced BEFORE any checkout, for the same reason.
+  . "$SCRIPT_DIR/lib/suite-lock.sh"
+
+  MODE=once
+  DRY=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --once)    MODE=once; shift ;;
+      --watch)   MODE=watch; shift ;;
+      --dry-run) DRY=1; shift ;;
+      -h|--help) sed -n '2,52p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+      *) echo "soak: unknown option '$1' (try --help)" >&2; exit 2 ;;
+    esac
+  done
+
+  SOAK_WORKTREE=${SOAK_WORKTREE:-$ROOT/soak}
+  SOAK_REF=${SOAK_REF:-origin/master}
+  SOAK_HOME_REF=${SOAK_HOME_REF:-origin/master}
+  SOAK_STATE=${SOAK_STATE:-$SOAK_WORKTREE/.soak/state}
+  SOAK_PORT=${SOAK_PORT:-2020}
+  SOAK_WORLD_MB=${SOAK_WORLD_MB:-3072}
+  SOAK_QUIET_HOURS=${SOAK_QUIET_HOURS:-2-6}
+  SOAK_POLL_S=${SOAK_POLL_S:-60}
+  SOAK_GLAB=${SOAK_GLAB:-glab}
+  SOAK_RUN_CMD=${SOAK_RUN_CMD:-"WIRE_BOOT=1 WIRE_PORT=$SOAK_PORT pnpm -C packages/wire wire:soak"}
+  SOAK_DIR="$SOAK_WORKTREE/.soak"
+  RESULT="$SOAK_WORKTREE/packages/wire/.wire/result.json"
+  SERVER_LOG="$SOAK_WORKTREE/packages/wire/.wire/server.log"
+  MOVED=0
+
+  command -v jq >/dev/null || { echo "soak: jq is required to read result.json" >&2; exit 2; }
+  [ -d "$SOAK_WORKTREE" ] || { echo "soak: no worktree at $SOAK_WORKTREE" >&2; exit 2; }
+  if [ ! -s "$SOAK_STATE" ]; then
+    echo "soak: no state file at $SOAK_STATE. Seed it with the last merge already soaked:" >&2
+    echo "  mkdir -p $(dirname "$SOAK_STATE") && git -C $SOAK_WORKTREE rev-parse $SOAK_REF > $SOAK_STATE" >&2
+    exit 2
+  fi
+  mkdir -p "$SOAK_DIR/results"
+
+  trap 'drop_lock; go_home; exit 130' INT TERM
+  trap 'drop_lock; go_home' EXIT
+
+  while :; do
+    [ "$DRY" = 1 ] || git -C "$SOAK_WORKTREE" fetch -q origin 2>/dev/null
+    pass
+    [ "$MODE" = watch ] || break
+    sleep "$SOAK_POLL_S"
+  done
+}
+
+# ---- what is waiting ----------------------------------------------------
+
+# The soak tooling: a commit touching any of it re-proves the lane with
+# the canary.
+TOOLING='packages/wire/src/ packages/wire/vitest.config.ts packages/wire/package.json tools/soak tools/lib/ packages/server/src/backend/TestHooks.ts packages/server/src/services/auth/TestAuthRoutes.ts packages/server/src/mud/api/test-harness.ts packages/server/src/mud/platform/idea/api/TestHarnessLogic.ts'
+CANARY='canary.soak.wire.test.ts'
+
+# The soak files commit $1 brought in (added, changed or renamed into).
+files_of() {
+  c=$1
+  out=$(git -C "$SOAK_WORKTREE" diff --name-status "$c^1" "$c" -- 'packages/wire/tests/*.soak.*' 2>/dev/null |
+    awk '$1 ~ /^(A|M|R)/ { print $NF }' | xargs -r -n1 basename)
+  for t in $TOOLING; do
+    if [ -n "$(git -C "$SOAK_WORKTREE" diff --name-only "$c^1" "$c" -- "$t" 2>/dev/null)" ]; then
+      out=$(printf '%s\n%s\n' "$out" "$CANARY")
+      break
+    fi
+  done
+  printf '%s\n' "$out" | sed '/^$/d' | sort -u
+}
+
+mr_of() {
+  git -C "$SOAK_WORKTREE" log -1 --format=%b "$1" |
+    sed -n 's/.*See merge request [^!]*\(![0-9][0-9]*\).*/\1/p' | head -1
+}
+
+pass() {
+  base=$(cat "$SOAK_STATE")
+  commits=$(git -C "$SOAK_WORKTREE" log --first-parent --reverse --format=%H "$base..$SOAK_REF" 2>/dev/null)
+  if [ -z "$commits" ]; then
+    echo "soak: nothing to soak after $(echo "$base" | cut -c1-9) on $SOAK_REF."
+    return 0
+  fi
+  for c in $commits; do
+    short=$(echo "$c" | cut -c1-9)
+    subj=$(git -C "$SOAK_WORKTREE" log -1 --format=%s "$c")
+    mr=$(mr_of "$c"); [ -n "$mr" ] || mr='(no MR)'
+    files=$(files_of "$c")
+    if [ -z "$files" ]; then
+      echo "soak: $short $mr — nothing to soak."
+      [ "$DRY" = 1 ] && continue
+      log_line "$c" '-' skipped nothing-to-soak
+      echo "$c" > "$SOAK_STATE"
+      continue
+    fi
+    echo "soak: $short $mr — $(echo $files | tr ' ' ',') — $subj"
+    [ "$DRY" = 1 ] && continue
+    run "$c" "$files" "$mr" "$subj"
+    echo "$c" > "$SOAK_STATE"
+  done
+}
+
+# ---- the gate -----------------------------------------------------------
+
+quiet_now() {
+  h=$(date +%H | sed 's/^0//'); from=${SOAK_QUIET_HOURS%-*}; to=${SOAK_QUIET_HOURS#*-}
+  [ "${h:-0}" -ge "$from" ] && [ "${h:-0}" -lt "$to" ]
+}
+
+# Block until a world fits and the lock is free, saying which it waits on.
+gate() {
+  last=''
+  while :; do
+    need=$SOAK_WORLD_MB
+    quiet_now || need=$((need + RESERVE_GB * 1024))
+    free=$(avail_mb)
+    h=$(lock_holder)
+    if [ -n "$h" ]; then
+      msg="soak: waiting for the lock (${h#* }, pid ${h%% *})"
+    elif [ "$free" -lt "$need" ]; then
+      msg=$(awk -v f="$free" -v n="$need" 'BEGIN { printf "soak: waiting for memory (%.1f GB free, need %.1f GB)", f/1024, n/1024 }')
+    else
+      return 0
+    fi
+    [ "$msg" = "$last" ] || echo "$msg"
+    last=$msg
+    sleep "$SOAK_POLL_S"
+  done
+}
+
+# ---- the run ------------------------------------------------------------
+
+go_home() {
+  [ "$MOVED" = 1 ] || return 0
+  git -C "$SOAK_WORKTREE" checkout -q --detach "$SOAK_HOME_REF" 2>/dev/null &&
+    echo "soak: the worktree is back at $SOAK_HOME_REF."
+  MOVED=0
+}
+
+log_line() { echo "$(date -Iseconds) $1 $2 $3 ${4:-}" >> "$SOAK_DIR/log"; }
+
+# Kill whatever still listens on the soak port — by PID, never by pattern.
+reap_port() {
+  for pid in $(ss -ltnpH "sport = :$SOAK_PORT" 2>/dev/null | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | sort -u); do
+    echo "soak: reaping pid $pid still on :$SOAK_PORT"
+    kill "$pid" 2>/dev/null
+  done
+}
+
+run() {
+  c=$1; files=$2; mr=$3; subj=$4
+  short=$(echo "$c" | cut -c1-9)
+  gate
+  take_lock
+  if [ -n "$(git -C "$SOAK_WORKTREE" status --porcelain --untracked-files=no)" ]; then
+    echo "soak: $SOAK_WORKTREE has local changes — refusing to move it." >&2; exit 4
+  fi
+  if git -C "$SOAK_WORKTREE" symbolic-ref -q HEAD >/dev/null; then
+    echo "soak: $SOAK_WORKTREE is on a branch — the soak worktree stays detached. Refusing." >&2; exit 4
+  fi
+  MOVED=1
+  git -C "$SOAK_WORKTREE" checkout -q --detach "$c" || { echo "soak: checkout of $short failed" >&2; exit 4; }
+  out="$SOAK_DIR/run-$short.out"
+  started=$(date +%s)
+  {
+    ( cd "$SOAK_WORKTREE" && pnpm install --frozen-lockfile --prefer-offline ) &&
+    ( cd "$SOAK_WORKTREE" && pnpm -C packages/server reset:db ) &&
+    rm -f "$RESULT" &&
+    ( cd "$SOAK_WORKTREE" && sh -c "$SOAK_RUN_CMD $(echo $files)" )
+  } > "$out" 2>&1
+  rc=$?
+  reap_port
+  wall=$(( $(date +%s) - started ))
+  echo "soak: $short ran in $((wall / 60))m$((wall % 60))s (rc=$rc)."
+
+  if ! jq -e . "$RESULT" >/dev/null 2>&1; then
+    log_line "$c" '-' fail no-result
+    cp "$SERVER_LOG" "$SOAK_DIR/server-$short.log" 2>/dev/null
+    file_issue "soak: no result for $short" "no result" \
+      "$(no_result_body "$c" "$mr" "$subj" "$out")"
+    drop_lock
+    return 0
+  fi
+  cp "$RESULT" "$SOAK_DIR/results/$c.json"
+  failed=0
+  for f in $files; do
+    state=$(jq -r --arg f "$f" '([.files[] | select(.file == $f)][0].state) // "missing"' "$RESULT")
+    case "$state" in
+      pass) log_line "$c" "$f" pass ;;
+      skip) log_line "$c" "$f" skipped all-tests-skipped ;;
+      *)
+        failed=1
+        log_line "$c" "$f" fail "$state"
+        file_issue "soak: $f failed at $short" "$f" "$(fail_body "$c" "$f" "$mr" "$subj" "$wall")"
+        ;;
+    esac
+  done
+  [ "$failed" = 1 ] && cp "$SERVER_LOG" "$SOAK_DIR/server-$short.log" 2>/dev/null
+  drop_lock
+}
+
+# ---- the issue ----------------------------------------------------------
+
+# One open `soak` issue per file: a repeat failure comments on it.
+file_issue() {
+  title=$1; key=$2; body=$3
+  iid=$(cd "$SOAK_WORKTREE" && $SOAK_GLAB issue list -l soak --search "$key" --in title -F ids 2>/dev/null | head -1)
+  if [ -n "$iid" ]; then
+    # ⚠ Through the notes API, not `glab issue note`: 1.36.0's note
+    # command fails every call with "rate: Wait(n=1) exceeds limiter's
+    # burst 0" (found by this script's drive, 2026-10-30).
+    if (cd "$SOAK_WORKTREE" && $SOAK_GLAB api -X POST "projects/:id/issues/$iid/notes" -f "body=$body" >/dev/null); then
+      echo "soak: commented on #$iid ($key)."
+    else
+      echo "soak: glab failed to comment on #$iid — the failure is in $SOAK_DIR/log." >&2
+    fi
+  elif url=$(cd "$SOAK_WORKTREE" && $SOAK_GLAB issue create -y -l soak -t "$title" -d "$body" 2>&1 | grep -o 'https://[^ ]*' | tail -1); then
+    echo "soak: filed $url"
+  else
+    echo "soak: glab failed to file '$title' — the failure is in $SOAK_DIR/log." >&2
+  fi
+}
+
+fail_body() {
+  c=$1; f=$2; mr=$3; subj=$4; wall=$5
+  db=$(sed -n 's/^MONGODB_DATABASE=//p' "$SOAK_WORKTREE/packages/server/.env" 2>/dev/null)
+  printf '**File:** `packages/wire/tests/%s`\n' "$f"
+  printf '**Merge:** `%s` — %s — %s\n' "$c" "$subj" "$mr"
+  printf '**Run:** %s, wall %dm%02ds, world on :%s, db %s\n\n' \
+    "$(jq -r .finishedAt "$RESULT")" $((wall / 60)) $((wall % 60)) "$SOAK_PORT" "${db:-?}"
+  printf '### Failing steps\n'
+  jq -r --arg f "$f" '
+    [.files[] | select(.file == $f)][0] as $r
+    | if $r == null then "- ✖ the file has no record in result.json (it never ran)"
+      else ($r.tests[] | select(.state == "fail")
+        | "- ✖ `\(.name)` (\(.durationMs) ms)\n  ```\n"
+          + ([.errors[] | (.message + "\n" + (.stack | split("\n") | .[0:20] | join("\n")))] | join("\n"))
+          + "\n  ```")
+      end' "$RESULT"
+  printf '\n### Drive record\n| step | state | ms |\n|---|---|---|\n'
+  jq -r --arg f "$f" '[.files[] | select(.file == $f)][0].tests[]? | "| \(.name) | \(.state) | \(.durationMs) |"' "$RESULT"
+  printf '\n### Server log (last 120 lines)\n```\n'
+  tail -120 "$SERVER_LOG" 2>/dev/null
+  printf '```\n'
+}
+
+no_result_body() {
+  c=$1; mr=$2; subj=$3; out=$4
+  printf '⚠ **The lane, not a build, is broken:** the run left no readable `result.json`.\n\n'
+  printf '**Merge:** `%s` — %s — %s\n\n' "$c" "$subj" "$mr"
+  printf '### The runner output (last 120 lines)\n```\n'
+  tail -120 "$out" 2>/dev/null
+  printf '```\n'
+}
+
+main "$@"

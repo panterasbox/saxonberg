@@ -8,7 +8,7 @@ description: Run the soak lane's triage session in the `soak` tmux window. Use w
 The soak lane runs every merged build's **span** checks — weeks or
 seasons of game time — after the merge, so that **no merge waits on the
 clock** (`docs/workflow.md § No merge waits on the clock`,
-`docs/slates/builds/soak-lane-slate.md`).
+`docs/slates/tails/soak-lane-slate.md`).
 
 Two parts, and only one of them is you:
 
@@ -51,11 +51,35 @@ Two parts, and only one of them is you:
 ## Checking the lane's state
 
 - `glab issue list --label soak` — open soak failures.
-- The runner's state file in the worktree records the last merge
-  soaked; anything newer is still queued.
-- ⚠ **Until the harness build lands** (the `*.soak.wire.test.ts`
-  convention, `pnpm wire:soak`, and `tools/soak`), there is nothing for
-  the runner to run. Say so plainly rather than inventing work.
+- `.soak/state` in the soak worktree holds the last SHA soaked; anything
+  newer on `origin/master` is still queued. `tools/soak --dry-run` lists
+  it — each first-parent commit and the soak files it would run.
+- `.soak/log` — one line per file per run (`<time> <sha> <file>
+  pass|fail|skipped <reason>`); `.soak/results/<sha>.json` — that run's
+  `result.json` (per file, per test: state, ms, errors — the drive
+  record); `.soak/server-<sha>.log` — the world's log, kept on failure;
+  `.soak/run-<sha>.out` — the runner's own output for that run.
+- **The runner itself runs in this window's second pane**:
+  `tools/soak --watch`. It waits for the suite lock (the one
+  `tools/suite` takes) and for memory (a 4 GB reserve plus a 3 GB
+  world; the world alone 02:00–06:00), and says which it is waiting on.
+  If it is not running, nothing soaks — start it.
+
+## What an issue carries
+
+Title `soak: <file> failed at <short sha>`: the file, the merge (SHA,
+subject, MR), the run (time, wall, port, database), every failing step
+with its message and stack, the whole drive record, and the server
+log's last 120 lines. A repeat failure of the same file comments on the
+open issue rather than filing another. An issue titled `soak: no result
+for <sha>` means **the lane broke, not a build** — the run left no
+readable `result.json`; read `.soak/run-<sha>.out`.
+
+⚠ `glab` 1.36.0's `issue note` and `issue close` fail every call
+(`rate: Wait(n=1) exceeds limiter's burst 0`). Comment and close
+through the API: `glab api -X POST "projects/:id/issues/<iid>/notes" -f
+body=…` and `glab api -X PUT "projects/:id/issues/<iid>" -f
+state_event=close`.
 
 ## What you never do
 

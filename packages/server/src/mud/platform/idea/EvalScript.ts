@@ -10,120 +10,196 @@
  *
  * Sandbox: Node's `vm`, reached through `ScriptApi.compileSandboxed` /
  * `runSandboxed` — `vm` is a capability and lives in the Api tier (see
- * docs/architecture.md § The import boundary). What this file still
- * owns is the part that matters for review: `SANDBOX_NAMES` and the
- * `self`/`target` bindings ARE the sandbox surface.
- * Not the security boundary (that's `@CallSecurity` on whatever Apis
- * the eval'd code touches), but the moat that prevents trivially
- * reaching `process` / `require` / `globalThis`.
+ * docs/architecture.md § The import boundary). What this file owns is
+ * the sandbox SURFACE (`buildSandbox`): ⭐ every Api class that
+ * self-decorates (`SecurityApi.decoratedApiClasses()` — the runtime's
+ * roster, never a hand-kept list), each as a frozen facade of its own
+ * statics, plus `console`, `self` and `target`.
+ * Not the security boundary — that is `@CallSecurity` on whatever the
+ * eval'd code touches, so binding an Api exposes exactly what its own
+ * per-static gates allow and nothing more — but the moat that keeps
+ * `process` / `require` / `globalThis` unreachable.
  *
- * Migration target: `isolated-vm` for real V8-isolate sandboxing. The
- * public surface (`setCode`, async `run`) is designed to stay stable
- * across the swap; only internals change.
+ * ⛔ **`@TestOnly` statics are bound as STUBS that name their door.**
+ * `WorldClockApi.advance` and every `TestHarnessApi` static throw, from
+ * eval, a message pointing at the `testharness` command. History worth
+ * keeping: the taps build put `WorldClockApi` on the old four-name
+ * allowlist so a drive could skip a season, and it was wrong three
+ * ways — the justification was fabricated, a clock jump is scaffolding
+ * and not a capability (nothing in the game moves the realm's clock),
+ * and it could never work, because an eval always runs inside a
+ * boundary and a GLOBAL jump is what a bounded context must not do. The
+ * containment is the `@TestOnly` mark and the test-world predicate, and
+ * the back doors (`setWeatherPin`, the clock registry) refuse an eval
+ * frame by name (`SecurityApi.assertNotFromEval`).
+ *
+ * ⭐ **Every promise a facade static returns is HELD.** A rejection the
+ * eval'd code dropped (a `StuffApi.clone` written as a statement, denied
+ * at the sandbox boundary) is recorded on the run and reported on the
+ * result line — never left unhandled, because an unhandled rejection
+ * ends the process (`Server.ts`), which is how a refused clone used to
+ * take the world down. ⚠ A promise from a method on `self` or on a Stuff
+ * the code holds is NOT netted (a wrapper would break identity); await it.
+ *
+ * Migration target: `isolated-vm` for real V8-isolate sandboxing — what
+ * would also make host work cancellable. The public surface (`setCode`,
+ * async `run`) is designed to stay stable across the swap.
  */
 
 import { Idea } from '../../lib/stuff/Idea';
 import { ScriptApi, type CompiledSandbox } from '../../api/script';
 import type { Stuff } from '../../lib/stuff/Stuff';
-import { StuffApi } from '../../api/stuff';
-import { MqlApi } from '../../api/mql';
-import { ContainmentApi } from '../../api/containment';
-import { MixinApi } from '../../api/mixin';
+import { SecurityApi } from '../../api/security';
+import { MudlogApi } from '../../api/mudlog';
+import { Mml } from '../../api/mml';
 import type { FieldMeta } from '../../lib/mixin';
 
+/** A rejection the eval'd code did not hold, caught by the net. */
+export interface EvalLateError {
+  readonly api: string;
+  readonly name: string;
+  readonly message: string;
+}
+
+/** What one invocation produced. */
+export interface EvalOutcome {
+  readonly value: unknown;
+  /** Rejections dropped by the code, landed before the result. */
+  readonly late: readonly EvalLateError[];
+}
+
+/** One invocation's record: the net writes here. */
+interface EvalRun {
+  late: EvalLateError[];
+  reported: boolean;
+  label: string;
+  /** Wall-clock ms past which every facade call refuses. */
+  deadline: number;
+  budget: number;
+}
+
+const STATIC_SKIP = new Set(['length', 'name', 'prototype']);
+
 /**
- * The list of identifiers exposed inside the sandbox context. A list
- * — not a literal object — so the migration to `isolated-vm` only
- * touches the binding plumbing, not the curation choice. Anything not
- * on this list is unreachable from inside eval'd code.
- *
- * Start narrow: enough to do useful authoring (`StuffApi`, `MqlApi`,
- * `ContainmentApi`, `MixinApi`), with `console` for output. Tighten
- * or expand based on what playtesting actually wants.
- *
- * ⛔⛔⛔ **`WorldClockApi` IS NOT HERE, and the story of why is worth the
- * paragraph.**
- *
- * The taps build added it so a drive could skip a season, then spent
- * three review rounds learning that it was wrong three different ways:
- *
- *  1. ⚠⚠ **The justification was fabricated.** The first version of this
- *     comment claimed *"`setScale` was always reachable from here;
- *     `advance` is the same authority stated honestly."* It was not —
- *     before that binding **nothing in the sandbox could touch the clock
- *     at all**, and the only reference to `setScale` outside the clock's
- *     own files was that sentence asserting it. A premise stated once
- *     and then cited.
- *  2. ⛔ **It was a category error.** A clock jump is *scaffolding*, not
- *     a capability: nothing in the game moves the realm's clock, and
- *     binding it here made the fiction owe an explanation for a player
- *     who can skip a month.
- *  3. ⛔ **And it could never have worked.** An `eval` always runs inside
- *     a sandbox boundary — a quarantined circle (`/home/<player>`, the
- *     default) or a parcel-bound jurisdiction (`--parcel`) — and a jump
- *     of GLOBAL time is precisely the thing a bounded context must not
- *     do. The quarantined route is refused by
- *     `WorldClockRegistry.assertNotQuarantined`; the governed route dies
- *     on the jurisdiction boundary when the drain creates a Stuff
- *     outside the extent. ⚠ Both failed SILENTLY (no note, no matching
- *     prose) while the drive reported 15/15.
- *
- * ⭐ The clock now lives where scaffolding belongs:
- * `backend/TestHooks.advanceClock` behind `POST /auth/test-clock`, a
- * route mounted only when `AUTH_MODE === 'test'`, called by the harness
- * from OUTSIDE the fiction — where a root frame carries no scope and no
- * jurisdiction, which is exactly what a global jump needs.
- *
- * ⭐ So nothing in-world can read or move the clock through this list at
- * all, which is the containment the build should have started with.
- * `shutdown` keeps its `SystemRoot` gate; `assertNotQuarantined` stays
- * on every mutator for the callers that are not this list (a
- * circle-born schedule's callback re-roots under its birth scope).
+ * The name an Api is bound under: its class name. ⚠ With the leading
+ * underscores stripped — the TS transform renames a class whose body
+ * refers to its own binding (`StuffApi` runs as `_StuffApi`), and the
+ * name an author types is the one in the source.
  */
-const SANDBOX_NAMES = [
-  'StuffApi',
-  'MqlApi',
-  'ContainmentApi',
-  'MixinApi',
-  'console',
-] as const;
+function apiName(cls: object): string {
+  return ((cls as { name?: string }).name ?? '').replace(/^_+/, '');
+}
+
+/**
+ * Wrap a facade function so a promise it returns is HELD: the original
+ * promise goes back to the caller unchanged (an awaiting caller still
+ * sees the rejection), and a rejection nobody awaited lands on `run`
+ * instead of on the process.
+ */
+function observed(
+  fn: (...args: unknown[]) => unknown,
+  api: string,
+  name: string,
+  run: EvalRun,
+): (...args: unknown[]) => unknown {
+  return (...args: unknown[]) => {
+    // ⭐ Past the budget, the world refuses the eval: an awaited tail
+    // runs on the host's queue where V8's `timeout` cannot reach, so a
+    // runaway that keeps calling Apis is stopped HERE.
+    if (Date.now() > run.deadline) {
+      throw new Error(
+        `eval: timed out after ${run.budget} ms (eval.timeoutMs) — ` +
+          `${api}.${name} refused past the deadline`,
+      );
+    }
+    const out = fn(...args);
+    const then = (out as { then?: unknown } | null)?.then;
+    if (out !== null && typeof then === 'function') {
+      (out as Promise<unknown>).then(undefined, (err: unknown) => {
+        const message = (err as Error | null)?.message ?? String(err);
+        if (!run.reported) {
+          run.late.push({ api, name, message });
+          return;
+        }
+        // Landed after the result was reported: never silent, never fatal
+        // — and this handler must not throw, or ITS promise is the next
+        // unhandled rejection.
+        const line = `${run.label}: ${api}.${name} — ${message}`;
+        try {
+          MudlogApi.warn('sandbox.eval.late', Mml.text(line));
+        } catch {
+          console.warn(`[sandbox.eval.late] ${line}`);
+        }
+      });
+    }
+    return out;
+  };
+}
+
+/** The pointer stub for a `@TestOnly` static: eval does not bind seams. */
+function testSeamStub(api: string, name: string, guidance: string): () => never {
+  return () => {
+    throw new Error(
+      `${api}.${name} is a test seam (@TestOnly) and eval does not bind it. ` +
+        guidance,
+    );
+  };
+}
+
+/** A frozen facade of `cls`'s own statics, bound to `cls`, netted. */
+function facadeOf(cls: object, run: EvalRun): Readonly<Record<string, unknown>> {
+  const api = apiName(cls) || '?';
+  const seams = SecurityApi.getTestOnlyMembers(cls);
+  const out: Record<string, unknown> = {};
+  for (const name of Object.getOwnPropertyNames(cls)) {
+    if (STATIC_SKIP.has(name)) continue;
+    const d = Object.getOwnPropertyDescriptor(cls, name);
+    if (!d || !('value' in d)) continue; // accessors are not surface
+    const guidance = seams?.get(name);
+    if (guidance !== undefined) {
+      out[name] = testSeamStub(api, name, guidance);
+    } else if (typeof d.value === 'function') {
+      // `bind(cls)` keeps `this === cls` through the security wrapper, so
+      // an Api's `#`-static fields keep working.
+      out[name] = observed(
+        (d.value as (...a: unknown[]) => unknown).bind(cls),
+        api,
+        name,
+        run,
+      );
+    } else {
+      out[name] = d.value;
+    }
+  }
+  return Object.freeze(out);
+}
 
 /**
  * Bind the sandbox names to actual values for one execution. Returns a
  * plain object; turning it into a real context is `ScriptApi`'s job (the
  * `vm` capability lives in the Api tier). Deciding *what goes in it* is
- * this file's job, and stays here. Pulled out so the `isolated-vm`
- * migration replaces only this function and its Api counterpart.
+ * this file's job, and stays here. Built per invocation, because the net
+ * writes to THIS run's record.
  */
-function buildSandbox(receiver: Stuff): Record<string, unknown> {
-  const sandbox: Record<string, unknown> = {
-    StuffApi,
-    MqlApi,
-    ContainmentApi,
-    MixinApi,
-    console,
-    // The eval'd script's `this` binding — the `--on` target (or the
-    // avatar by default). Exposed both as a bare `this` (via the
-    // outer wrapper's `.call`) and as a named binding so eval'd
-    // code that wants the receiver explicitly without `this` can
-    // reach it.
-    self: receiver,
-    target: receiver,
-  };
-  // Defensively strip anything not on the allowlist before context
-  // creation. The list IS the contract; programmers reading this
-  // file should look at SANDBOX_NAMES + the `self`/`target` carve-
-  // outs to see the full surface.
-  for (const k of Object.keys(sandbox)) {
-    if (k === 'self' || k === 'target') continue;
-    if (!(SANDBOX_NAMES as readonly string[]).includes(k)) {
-      delete sandbox[k];
-    }
+function buildSandbox(receiver: Stuff, run: EvalRun): Record<string, unknown> {
+  const sandbox: Record<string, unknown> = {};
+  for (const cls of SecurityApi.decoratedApiClasses()) {
+    const name = apiName(cls);
+    if (name) sandbox[name] = facadeOf(cls, run);
   }
+  sandbox.console = console;
+  // The eval'd script's `this` binding — the `--on` target (or the
+  // avatar by default). Exposed both as a bare `this` (via the outer
+  // wrapper's `.call`) and as a named binding.
+  sandbox.self = receiver;
+  sandbox.target = receiver;
   return sandbox;
 }
 
 export default class EvalScript extends Idea {
+  /** `eval.timeoutMs`'s default: the wall-clock budget of one invocation. */
+  public static readonly DEFAULT_TIMEOUT_MS = 5_000;
+
   /**
    * The current code body. Set via `setCode`; read indirectly via
    * `run`. Public so the applier (if `--save` lands later) can
@@ -155,26 +231,63 @@ export default class EvalScript extends Idea {
   }
 
   /**
-   * Run the eval'd code with `this` bound to `receiver`.
-   *
-   * Async-by-default — `vm.runInContext` itself is sync, but the
-   * future `isolated-vm` backend returns thenables. Keeping the
-   * surface async means callers don't have to be re-touched on
-   * swap.
+   * Run the eval'd code with `this` bound to `receiver`; the value.
+   * See {@link runReporting}.
    */
-  public async run(receiver: Stuff): Promise<unknown> {
+  public async run(
+    receiver: Stuff,
+    opts?: { timeoutMs?: number },
+  ): Promise<unknown> {
+    return (await this.runReporting(receiver, opts)).value;
+  }
+
+  /**
+   * Run the eval'd code with `this` bound to `receiver`, and report the
+   * value with any rejection the code dropped.
+   *
+   * ⭐ The body is an ASYNC function, so `await` is legal in an eval;
+   * and a body that is one EXPRESSION returns it (`eval 1 + 1` → 2) —
+   * a body of statements returns what it `return`s. `opts.timeoutMs`
+   * bounds the whole invocation, the awaited tail included.
+   */
+  public async runReporting(
+    receiver: Stuff,
+    opts?: { timeoutMs?: number },
+  ): Promise<EvalOutcome> {
     if (this.code.length === 0) {
       throw new Error('EvalScript.run(): no code to evaluate');
     }
     if (this._compiled === null) {
-      // Wrap in an arrow so the body sees `this === receiver` without
-      // needing the eval'd code to handle the wrapper themselves.
-      // The `(function(){ return ... }).call(self)` shape is the
-      // minimal binding glue that `isolated-vm` will replace with
-      // its own per-isolate function-call wrapper.
-      const wrapped = `(function(){ ${this.code} }).call(self)`;
-      this._compiled = ScriptApi.compileSandboxed(wrapped);
+      // An expression returns itself; anything that does not parse as
+      // one is a body of statements. The `.call(self)` is the minimal
+      // binding glue that `isolated-vm` will replace.
+      try {
+        this._compiled = ScriptApi.compileSandboxed(
+          `(async function(){ return (\n${this.code.replace(/;\s*$/, '')}\n); }).call(self)`,
+        );
+      } catch {
+        this._compiled = ScriptApi.compileSandboxed(
+          `(async function(){ ${this.code}\n }).call(self)`,
+        );
+      }
     }
-    return ScriptApi.runSandboxed(this._compiled, buildSandbox(receiver));
+    const budget = opts?.timeoutMs ?? EvalScript.DEFAULT_TIMEOUT_MS;
+    const run: EvalRun = {
+      late: [],
+      reported: false,
+      label: `eval at ${this.getTemplatePath() ?? '?'}`,
+      deadline: Date.now() + budget,
+      budget,
+    };
+    try {
+      const value = await ScriptApi.runSandboxed(
+        this._compiled,
+        buildSandbox(receiver, run),
+        { timeoutMs: budget },
+      );
+      return { value, late: [...run.late] };
+    } finally {
+      run.reported = true;
+    }
   }
 }

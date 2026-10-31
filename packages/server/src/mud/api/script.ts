@@ -197,6 +197,11 @@ export class ScriptApi {
    * context built from `sandbox` — a plain object whose own enumerable
    * keys become the globals the code can see, and the only ones.
    *
+   * ⭐ Bounded: `opts.timeoutMs` (default 5000) is the wall-clock budget
+   * for the whole invocation — a synchronous loop, a microtask loop and
+   * an awaited tail alike. Past it the call rejects with
+   * `eval: timed out after <n> ms (eval.timeoutMs)`.
+   *
    * Gated to `EvalScript` for the same reason as
    * {@link ScriptApi.compileSandboxed}.
    */
@@ -204,8 +209,9 @@ export class ScriptApi {
   static runSandboxed(
     compiled: CompiledSandbox,
     sandbox: Record<string, unknown>,
-  ): unknown {
-    return logic().runSandboxed(compiled, sandbox);
+    opts?: { timeoutMs?: number },
+  ): Promise<unknown> {
+    return logic().runSandboxed(compiled, sandbox, opts);
   }
 
   /**

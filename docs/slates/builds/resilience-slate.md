@@ -5,7 +5,7 @@
 > **Left:** Tier 1 code-trust auditing (eval payloads, source-tree writes,
 > the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`,
 > `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time
-> budgets (`RenderBudget` generalized; the `eval` timeout) · input
+> budgets (`RenderBudget` generalized; eval's post-await CPU loop) · input
 > reaching dangerous constructs (+ the object quota) · daylight/`@Audited`
 > + the operator signal · load-boundary static analysis (the
 > `check-mud-imports` move; evasion detection; LLM review as advisory) ·
@@ -214,17 +214,12 @@ One blocking loop stops the world, and nothing would tell you:
 Generalize `RenderBudget` across these rather than inventing a mechanism
 per surface.
 
-**And the `eval` timeout belongs here, not in the security tiers.**
-`ScriptLogic.ts:546-555` is `runInContext(createContext(sandbox))` with no
-options object, so `while(true){}` in an eval body hangs the process —
-while `lib/shell/Author.ts:42-61` declares `eval.timeoutMs` (default 1000)
-and `eval.maxDepth` (default 32) with the comment *"the sandbox honors it
-when the isolated-vm migration lands."* **Nothing reads either key**, and
-`vm.Script.runInContext(ctx, { timeout })` has supported it all along.
-This is worth doing as a guard against **failed experiments** — the
-original ask — and claims nothing against a hostile author. ⚠ `vm`'s
-timeout interrupts **synchronous** code only; a hung promise sails past
-it.
+**The `eval` timeout — shipped** (soak-harness build, 2026-10-30):
+`eval.timeoutMs` is enforced (default 5000) and `eval.maxDepth` retired —
+[shell-author.md § EvalScript](../../subsystems/shell-author.md). ⚠ What is
+left for this slate: a pure CPU loop after an `await` still cannot be
+stopped under `node:vm` on Node 22 (`microtaskMode: 'afterEvaluate'`
+aborts the process under async hooks) — the `isolated-vm` question.
 
 ### Tier 4 — input reaching dangerous constructs
 

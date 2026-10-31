@@ -92,6 +92,12 @@ suite('order a stew — the medium, and the claim', () => {
   it('serves, with water in reach and a lit hearth', async () => {
     // ⚠ The hearth may already be lit — `food-safety.dirty` works the
     // same cookhouse. The requirement is that it IS lit, not who lit it.
+    // ⭐ Fuel first (the fire build, 2026-10-07): an unstoked oven refuses
+    // `no-fuel`, and this drive had been red on a fresh world ever since —
+    // the ceramics finalize found it. The cookhouse keeps cordwood by the
+    // oven; a log may already be in, so neither line is asserted.
+    await cook.cmd('get log');
+    await cook.cmd('stoke log into oven');
     expectOkOr(await cook.cmd('ignite oven'), 'already-burning');
     const served = await cook.cmd('order stew');
     expectOk(served);

@@ -192,7 +192,9 @@ export class WorldClockApi {
    *   must not be visible in the generated docs either.
    */
   @TestOnly(
-    'Nothing in the game moves the realm\u2019s clock: there is one ' +
+    'In a test world, move the clock with `testharness clock advance ' +
+      '<dur>` (a day at most; a span step belongs in a .soak. file). ' +
+      'Nothing in the game moves the realm\u2019s clock: there is one ' +
       'clock, it is global, and a jump ages every reconcile-on-read ' +
       'system in the world at once. A slow system reaches its own state ' +
       'by being read, so it needs nothing from here \u2014 pin the ' +
@@ -203,6 +205,17 @@ export class WorldClockApi {
   )
   public static advance(by: Quantity<'s'> | string): void {
     logic().advance(by);
+  }
+
+  /**
+   * A duration, as game-seconds, in exactly the grammar `after()`,
+   * `every()` and `advance()` take (`'90 minutes'`, `'1.5 days'`). A
+   * pure parse: the clock does not move and nothing is scheduled.
+   *
+   * @throws the clock's own message for a duration it cannot parse.
+   */
+  public static durationSeconds(d: Quantity<'s'> | string): number {
+    return logic().durationSeconds(d);
   }
 
   /* ──────────────────── persistence (own-thing model) ──────────────────── */

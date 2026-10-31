@@ -31,6 +31,7 @@
  * `BiomeApi.findByPath` (HMR-safe).
  */
 
+import { SecurityApi } from '../../api/security';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
@@ -1121,6 +1122,10 @@ export function AtmosphericMixin<
       return this._weatherPin;
     }
     public setWeatherPin(value: WeatherPin | null): void {
+      SecurityApi.assertNotFromEval(
+        'setWeatherPin',
+        'testharness weather pin <kind>',
+      );
       this._weatherPin = value;
     }
 

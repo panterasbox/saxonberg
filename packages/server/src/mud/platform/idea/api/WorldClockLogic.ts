@@ -177,6 +177,12 @@ export class WorldClockLogic extends ApiLogic {
     await resolveRegistry().shutdown();
   }
 
+  /** See {@link WorldClockApi.durationSeconds}. */
+  @CallSecurity(WorldClockApiCallers)
+  public durationSeconds(d: Quantity<'s'> | string): number {
+    return resolveRegistry().durationSeconds(d);
+  }
+
   /** See {@link WorldClockApi.advance}. */
   @CallSecurity(WorldClockApiCallers)
   public advance(by: Quantity<'s'> | string): void {

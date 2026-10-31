@@ -21,6 +21,13 @@
  * water through. ⚠ Step 20 runs after
  * 23 in this file: its grogged pot is made from 23's sherds.
  *
+ * ⛔ **The BLOCKING drive** (soak-harness census, per
+ * the ceramics soak-split census (testing.md § The soak lane) § ceramics-c): no step
+ * moves the clock more than a game day. Each span step is its staged or
+ * bounded twin here, marked `⛔ STAGED` / `⛔ BOUNDED`; the original spans
+ * (the ten-day drying, the week of vinegar, the walk to the warm season)
+ * run in `ceramics-c.soak.dirty.wire.test.ts`, the soak lane's twin.
+ *
  * Run: `WIRE_BOOT=1 WIRE_PORT=<this worktree's> npx vitest run
  * tests/ceramics-c.dirty.wire.test.ts`.
  */
@@ -34,7 +41,6 @@ import {
   expectOk,
   advanceWorldClock,
   advanceLiving,
-  toWarmSeason,
   plain,
   dress,
   dressFounder,
@@ -239,6 +245,22 @@ async function clayFor(s: Session, n: number): Promise<Session> {
   return at;
 }
 
+/**
+ * ⛔ STAGED (soak-harness census): a piece's drying — days on the shelf —
+ * set directly. The potter is a wizard holding the Delight (a wizard is in
+ * every managed group), so its own `eval` seeds the piece's water state as
+ * a mint would (`seedDryness`: 0.6 leather-hard, 1 bone-dry). The drying
+ * itself, by the clock, lives in ceramics-c.soak.dirty.
+ */
+async function stageDry(s: Session, target: string, dryness: number): Promise<string> {
+  // No `;` anywhere: the command line splits on it.
+  await say(
+    s,
+    `eval --parcel /world/terminus/hearts-delight --on ${target} --all self.seedDryness ? (self.seedDryness(${dryness}), 'dried') : 'not moist'`,
+  );
+  return examine(s, target);
+}
+
 /** Wait in game-days until `keyword` here reads `re` (drying on the boards). */
 async function until(s: Session, keyword: string, re: RegExp, step = '1 day', max = 30): Promise<string> {
   let seen = '';
@@ -292,7 +314,11 @@ let novicesFirstMug = '';
 beforeAll(async () => {
   // ⭐ A potter makes in the working season: wet ware on an unheated shop
   // floor bursts in a frost (run 31's jug and bowls, in A's winter).
-  await toWarmSeason();
+  // ⛔ STAGED (soak-harness census): the walk to the warm season is a span
+  // (up to a game year of lived time) and lives in
+  // ceramics-c.soak.dirty.wire.test.ts. Here the drive runs in whatever
+  // season the world is in; the one summer-only checkpoint (21) skips
+  // itself in a frost.
   await toHour(8, 14);
   novice = await funded('novice', SHOP);
   potter = await funded('potter', SHOP);
@@ -356,7 +382,9 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     }
     await potter.drainProse();
     await say(novice, 'drop mug');
-    const lh = await until(potter, 'here:i:jug', /leather-hard/i, '6 hours', 40);
+    // ⛔ STAGED (soak-harness census): leather-hard is up to ten days on
+    // the shelf; set directly here.
+    const lh = await stageDry(potter, 'here:i:jug', 0.6);
     expect(lh, 'the jug at leather-hard').toMatch(/leather-hard/i);
     // The potter's OWN mug, by its maker: a bare `get mug` took the novice's
     // thick one too, and `carve` bound that one, still too soft (run 22).
@@ -436,12 +464,16 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     const fit = await act(potter, `fit #${handleId} to #${mug}`, '30 minutes');
     expect(refusedFor(fit.r), `the wet handle on: ${fit.said}`).toBeNull();
     await say(potter, `drop #${mug}`);
-    const dried = await until(potter, `#${mug}`, /bone-dry/i, '1 day', 30);
+    // ⛔ BOUNDED (soak-harness census): the crack is what DRYING does to a
+    // mismatched joint, so it is waited for — on the crack, an hour at a
+    // time, a day at most — never staged (staging dryness skips the drying).
+    const dried = await until(potter, `#${mug}`, /crack|check/i, '1 hour', 24);
     expect(dried, 'the mismatched joint').toMatch(/crack|check/i);
   }, 3_600_000);
 
   it('bone-dry ware will not trim', async () => {
-    const dry = await until(potter, 'here:i:bowl', /bone-dry/i, '1 day', 30);
+    // ⛔ STAGED (soak-harness census): bone-dry is days on the shelf.
+    const dry = await stageDry(potter, 'here:i:bowl', 1);
     expect(dry).toMatch(/bone-dry/i);
     await say(potter, 'get bowl');
     const refused = await run(potter, 'carve foot on bowl');
@@ -454,20 +486,28 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
 
 suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
   it('the cones read the heat — and a practiced potter reads more of it', async () => {
-    await until(potter, 'here:i:jug', /bone-dry/i, '1 day', 30);
+    // ⛔ BOUNDED (soak-harness census): the drying was a span — a 30-day
+    // `until` on the jug, then up to ten more days for the rest. Here the
+    // whole step's drying is ONE game day at most: the jug is one of the
+    // potter's own pieces, so the loop below covers it. If the ware is
+    // still damp after that day, the step FAILS honestly (the assertion
+    // after the loop) — a damp piece in a bisque bursts. The ten-day dry
+    // lives in ceramics-c.soak.dirty.wire.test.ts.
     // ⭐ EVERY piece bone-dry, not just the jug: a crock still damp went in
     // and the bisque's steam burst it — "It froze wet, and the frost has
     // burst it apart" (the burst line reads for heat as for frost), and 18
     // glazed that one (run 36). A day at a time until none of the potter's
     // own reads damp.
-    for (let day = 0; day < 10; day++) {
-      const ours = ((await potter.query('here:i', { fields: 'detail' }).catch(() => [])) as { longDescription?: string }[])
+    const damp = async (): Promise<string[]> =>
+      ((await potter.query('here:i', { fields: 'detail' }).catch(() => [])) as { longDescription?: string }[])
         .map((r) => String(r.longDescription ?? ''))
-        .filter((d) => d.includes(`Made by ${potter.handle}`));
-      if (!ours.some((d) => /leather-hard|soft, wet|takes a thumbprint/i.test(d))) break;
-      await advance('1 day');
-      await toHour(8, 15);
-    }
+        .filter((d) => d.includes(`Made by ${potter.handle}`))
+        .filter((d) => /leather-hard|soft, wet|takes a thumbprint/i.test(d));
+    // ⛔ STAGED (soak-harness census): the potter's own ware dried to
+    // bone-dry directly — every piece in the shop answers the seed; a thing
+    // with no water state answers 'not moist'.
+    if ((await damp()).length > 0) await stageDry(potter, 'here:i', 1);
+    expect(await damp(), 'every piece of the potter\'s bone-dry within a day of drying').toEqual([]);
     // ⚠ The loading is proven by the acts, not by `kiln:i`: that query
     // lists NOTHING though the kiln holds the ware (run 28's probe — an eval
     // read six pieces inside; the MQL finding, recorded in the plan).
@@ -648,7 +688,11 @@ suite('⭐ 19 — lead leaches', () => {
     await say(potter, `pour #${vinegar} into leadpot --amount 1L`);
     await say(potter, `pour #${vinegar} into ashpot --amount 1L`);
     await say(potter, `drop #${vinegar}`);
-    await advance('7 days');
+    // ⛔ STAGED (soak-harness census): a week's leach is a span. Six real
+    // hours of acid on the lead glaze already dissolves ~1 mg/L — enough
+    // for `analyze chemistry` to read "dissolved lead" while no sense says
+    // anything. The week's dose lives in ceramics-c.soak.dirty.wire.test.ts.
+    await advance('6 hours');
     await say(potter, 'get leadpot');
     const look = await examine(potter, 'me:i:leadpot');
     const smell = await say(potter, 'smell leadpot');
@@ -671,7 +715,7 @@ suite('⭐ 19 — lead leaches', () => {
 });
 
 suite('⭐ 21 — the weeping jar', () => {
-  it('an unglazed jar of water weeps, its outside wet and its water below room heat; a glazed one holds at room heat', async () => {
+  it('an unglazed jar of water weeps, its outside wet and its water below room heat; a glazed one holds at room heat', async (ctx) => {
     // ⭐ A SUMMER effect, in summer: by 21 the drive is weeks on from its
     // warm start, and a jar of water left through a frost cracks honestly
     // and weeps nothing (run 40: "It is cracked"). A no-op inside the season.
@@ -682,7 +726,10 @@ suite('⭐ 21 — the weeping jar', () => {
     const potterAt = SHOP;
     potter.close();
     novice.close();
-    await toWarmSeason();
+    // ⛔ STAGED (soak-harness census): the walk to the warm season is a span
+    // and is gone; the step reads the shop's air below instead and skips
+    // itself in a frost (the summer run lives in
+    // ceramics-c.soak.dirty.wire.test.ts).
     potter = await goTo(potter, potterAt);
     novice = await goTo(novice, SHOP);
     // Read and act by daylight: in the dark a query sees nothing, and a
@@ -690,6 +737,16 @@ suite('⭐ 21 — the weeping jar', () => {
     await toHour(8, 14);
     await mint(SHOP, THERMOMETER);
     await say(potter, 'get thermometer');
+    // ⛔ STAGED (soak-harness census): a weep needs a warm day. At or below
+    // 274 K the jar would freeze and crack, not weep — skip, loudly.
+    const shopAir = await say(potter, 'measure temperature');
+    const shopK = Number(/([0-9]+(?:\.[0-9]+)?)\s*K\b/.exec(shopAir)?.[1] ?? NaN);
+    if (shopK <= 274) {
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log('  [drive] the shop is below freezing — the weep needs a warm day; it lives in ceramics-c.soak.dirty');
+      ctx.skip();
+      return;
+    }
     // ⭐ By identity, and a BISQUE jar: porous terracotta, bare. 18b's short
     // hot firing leaves a jar only part-fired ("fired alluvial clay"), whose
     // tight body does not weep (run 38).
@@ -980,7 +1037,8 @@ suite('⭐ 20 — flame and body', () => {
     const bowl = `#${bowlId}`;
     await say(potter, `drop ${crock}`);
     await say(potter, `drop ${bowl}`);
-    await until(potter, crock, /bone-dry/i, '1 day', 30);
+    // ⛔ STAGED (soak-harness census): bone-dry is days on the shelf.
+    await stageDry(potter, crock, 1);
     // ⚠ Stoneware wants ~1480 K, and this kiln's lining has worn through
     // 17's and 18's firings to a kiln that holds ~1345 K (B38 — the lining
     // is a wear part): the crock came out earthenware (run 28). Relined
@@ -994,7 +1052,12 @@ suite('⭐ 20 — flame and body', () => {
     }
     await fireKiln(potter, '20 hours', '--draught wide ');
     await say(potter, 'douse kiln');
-    await advance('1 day');
+    // ⛔ BOUNDED (soak-harness census): the cooling was a whole day, which
+    // took the step past a day. The shock this step reads is in the first
+    // hours, so six hours' cooling is the wait it needs. ⚠ Still over a day
+    // in total: the bone-dry `until` and the 20-hour firing above remain
+    // (flagged in the census report).
+    await advance('6 hours');
     await say(potter, `get ${crock} from kiln`);
     await say(potter, `get ${bowl} from kiln`);
     expect(await examine(potter, crock), 'a stoneware crock').toMatch(/stoneware|dense|rings/i);

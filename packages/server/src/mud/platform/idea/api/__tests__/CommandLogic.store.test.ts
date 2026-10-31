@@ -16,6 +16,7 @@ import { CommandApi } from '../../../../api/command';
 import { DocumentApi } from '../../../../api/document';
 import { PersistApi } from '../../../../api/persist';
 import { StoredDocument } from '../../../../lib/document/StoredDocument';
+import { SecurityApi } from '../../../../api/security';
 
 function view(path: string, data: Record<string, unknown>): StoredDocument {
   const d = new StoredDocument();
@@ -132,5 +133,42 @@ describe('CommandApi — offline (no store): the packs\' files are the source', 
   it('a key no pack ships is null', () => {
     vi.spyOn(PersistApi, 'isConnected').mockReturnValue(false);
     expect(CommandApi.getCommand('nowhere/nothing.yaml')).toBeNull();
+  });
+});
+
+describe('⛔ a testOnly view exists only in a test world', () => {
+  const TESTHARNESS = {
+    verbs: ['testharness'],
+    controller: '/platform/idea/cmd/system/PingController',
+    description: 'stored testharness',
+    testOnly: true,
+  };
+
+  it('is WITHHELD — not failed — outside a test world; the verb is unknown', async () => {
+    withStore();
+    stored.push(view('/platform/cmd/system/testharness', TESTHARNESS));
+    vi.spyOn(SecurityApi, 'isTestEnvironment').mockReturnValue(false);
+    const r = await CommandApi.preloadAll();
+    expect(r.failed).toEqual([]);
+    expect(r.withheld).toEqual(['platform/cmd/system/testharness.yaml']);
+    expect(CommandApi.allDefinitions().map((d) => d.verbs[0])).toEqual(['ping']);
+  });
+
+  it('a CMS reload cannot sneak it in', async () => {
+    withStore();
+    stored.push(view('/platform/cmd/system/testharness', TESTHARNESS));
+    vi.spyOn(SecurityApi, 'isTestEnvironment').mockReturnValue(false);
+    await CommandApi.preloadAll();
+    expect(await CommandApi.reload('/platform/cmd/system/testharness')).toBe(false);
+    expect(CommandApi.getCommand('platform/cmd/system/testharness.yaml')).toBeNull();
+  });
+
+  it('is admitted in a test world', async () => {
+    withStore();
+    stored.push(view('/platform/cmd/system/testharness', TESTHARNESS));
+    vi.spyOn(SecurityApi, 'isTestEnvironment').mockReturnValue(true);
+    const r = await CommandApi.preloadAll();
+    expect(r.withheld).toEqual([]);
+    expect(CommandApi.getCommand('platform/cmd/system/testharness.yaml')?.testOnly).toBe(true);
   });
 });

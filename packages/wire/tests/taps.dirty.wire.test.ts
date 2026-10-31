@@ -328,10 +328,11 @@ suite.skipIf(!isOwnedTestWorld())(
     // and it is the HARNESS's seam, not a verb.
     const before = await gameNow(k);
     expect(Number.isFinite(before)).toBe(true);
-    await advance(k, '3 days');
+    // ⛔ One game day — the blocking line (soak-harness census).
+    await advance(k, '1 day');
     const after = await gameNow(k);
-    expect(after - before).toBeGreaterThan(3 * 86_400 - 60);
-    expect(after - before).toBeLessThan(3 * 86_400 + 600);
+    expect(after - before).toBeGreaterThan(86_400 - 60);
+    expect(after - before).toBeLessThan(86_400 + 600);
   }, 300_000);
 
   it('⚠ a ZERO jump is a legal no-op, and the clock survives it', async () => {
@@ -618,21 +619,26 @@ suite.skipIf(!isOwnedTestWorld())(
     //
     // ⭐ So the walk is as short as the question allows: the sap window
     // is OPEN at game-time 0 (daylength-driven, on the rising limb), so
-    // the tap is tried FIRST and the clock is only touched if the season
-    // actually refuses — at most twice.
+    // the tap is tried with no jump at all.
+    //
+    // ⛔ The old fallback — walk 20 days and try again — was a SPAN step
+    // in disguise and is gone (soak-harness census, D1: a jump-if-refused
+    // is a span). If the season is ever shut when this file runs, the
+    // step fails here, honestly, and its twin belongs in a taps soak file.
     let set = false;
-    for (let attempt = 0; attempt < 3 && !set; attempt++) {
-      if (attempt > 0) await advance(k, '20 days');
-      const started = await say(k, 'tap birch-north with auger');
-      if (refusedFor(started) !== null) continue;
-      // ⭐ It is an ENGAGEMENT: observable time, not an instant.
-      const id = engagementIdOf(started);
-      if (id) {
-        await settle(k, started);
-        set = true;
-      }
+    const started = await say(k, 'tap birch-north with auger');
+    expect(
+      refusedFor(started),
+      'the sap run is shut at the world\'s clock — the season this step ' +
+        'needs is a span; give it a taps.soak.dirty twin',
+    ).toBeNull();
+    // ⭐ It is an ENGAGEMENT: observable time, not an instant.
+    const id = engagementIdOf(started);
+    if (id) {
+      await settle(k, started);
+      set = true;
     }
-    expect(set, 'the run never opened within forty days of walking').toBe(true);
+    expect(set, 'tap set no spile').toBe(true);
     const tree = await read(k, 'look birch-north');
     expect(tree).toMatch(/spile stands in the trunk|spiles stand in the trunk/i);
   }, 900_000);

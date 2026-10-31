@@ -1,0 +1,64 @@
+verbs: [testharness]
+controller: /platform/idea/cmd/system/TestHarnessController
+# ⛔ A TEST-WORLD verb. The view installs everywhere; the command loader
+# admits it only when SecurityApi.isTestEnvironment() (the wire runner's
+# SAXONBERG_TEST_WORLD=1). In a world somebody plays in there is no such
+# verb — not in help, not in the affordances — and `requiresTestWorld`
+# keeps the gate in the view's own data too.
+testOnly: true
+description: "Test-world staging: read and move the clock, pin the weather"
+help: |
+  Scaffolding for drives and staging, in a test world only. Subcommands
+  and options, never phrases; a bare subcommand reads.
+
+  `testharness clock` reads game time. `testharness clock advance <dur>`
+  moves it — one token, a number and a unit: 30m, 2h, 1d. A day at most:
+  a longer jump is a span step and is refused (it belongs in a .soak.
+  wire file — docs/workflow.md § No merge waits on the clock).
+
+  `testharness weather` reads the pin and the weather here.
+  `testharness weather pin <kind>` holds the weather of the Locality you
+  stand in (or `--at <place>`) at clear, overcast, rain, storm, fog or
+  snow, applied at once; `--alive` lets it still vary. `testharness
+  weather unpin` releases it. A pin persists: whoever pins, unpins.
+
+  The same rules as the wire harness's routes — one implementation
+  (TestHarnessApi) behind both.
+examples:
+  - cmd: testharness clock advance 2h
+    note: Move world-time two hours (a day at most)
+  - cmd: testharness weather pin rain
+    note: Hold rain over the Locality you stand in
+  - cmd: testharness weather unpin --at /world/terminus
+    note: Release a pin somewhere else
+validators:
+  - /lib/command/validators/requiresWizard
+  - /lib/command/validators/requiresTestWorld
+options:
+  at:
+    type: string
+    field: at
+    description: "A place's or Locality's path — the weather subcommands act on its Locality"
+  alive:
+    type: boolean
+    field: alive
+    description: "Pin alive (the grammar still varies the deviation) rather than frozen"
+subcommands:
+  clock:
+    description: "Read the clock, or `clock advance <dur>` (30m, 2h, 1d)"
+    args:
+      - name: op
+        type: string
+        required: false
+      - name: value
+        type: string
+        required: false
+  weather:
+    description: "Read the pin and the weather, or `weather pin <kind>` / `weather unpin`"
+    args:
+      - name: op
+        type: string
+        required: false
+      - name: value
+        type: string
+        required: false
