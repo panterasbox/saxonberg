@@ -18,7 +18,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import PersistentLocation from "../../platform/location/PersistentLocation";
 import { StuffApi } from "../stuff";
 import { PersistableApi } from "../persistable";
-import { makeStuff } from "../../lib/security/__tests__/test-setup";
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from "../../lib/security/__tests__/test-setup";
 
 const ROOM_PATH = "/platform/location/PersistentLocation";
 
@@ -68,3 +71,50 @@ describe("StuffApi.singleton establishes a persistable singleton", () => {
     expect(PersistableApi.capture).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * ⭐ `singletonOrClone` on a `Persistable` that is NOT `Singleton` (a
+ * `Compartment`, a `PersistentLocation`): a landing by its bare path is the
+ * row's one record — get-or-create through `singleton()`, never a second
+ * bare clone (the harbors drive: every landing on the Hesper's deck by path
+ * minted another, empty, deck). A row whose live instances are keyed is
+ * named by its handle, so the bare row throws.
+ */
+describe("StuffApi.singletonOrClone on a persistable, non-singleton class", () => {
+  beforeEach(() => {
+    StuffApi.clearAll();
+    vi.spyOn(StuffApi, "classForRef").mockResolvedValue(
+      PersistentLocation as never,
+    );
+    vi.spyOn(PersistableApi, "hasRecord").mockResolvedValue(false);
+    vi.spyOn(PersistableApi, "capture").mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("routes through singleton() — the second landing gets the first room", async () => {
+    const room = makeStuff(() => new PersistentLocation()) as PersistentLocation;
+    const single = vi
+      .spyOn(StuffApi, "singleton")
+      .mockResolvedValue(room as never);
+    const clone = vi.spyOn(StuffApi, "clone");
+    expect(await StuffApi.singletonOrClone(ROOM_PATH)).toBe(room);
+    expect(await StuffApi.singletonOrClone(ROOM_PATH)).toBe(room);
+    expect(single).toHaveBeenCalledTimes(2);
+    expect(clone).not.toHaveBeenCalled();
+  });
+
+  it("throws on a bare row whose live instances are keyed", async () => {
+    const unit = makeStuffAtPath(
+      () => new PersistentLocation(),
+      ROOM_PATH,
+    ) as PersistentLocation;
+    unit.setPersistenceKey("unit-7");
+    await expect(StuffApi.singletonOrClone(ROOM_PATH)).rejects.toThrow(
+      /keyed/,
+    );
+  });
+});
+

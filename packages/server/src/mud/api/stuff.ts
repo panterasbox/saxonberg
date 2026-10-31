@@ -751,15 +751,46 @@ export class StuffApi {
    * the one instance, clone-if-absent); otherwise → `clone(path)` (a
    * fresh instance). Any *domain* semantics on top (a Warren landing in
    * its host, a recall) belong in the caller, not here.
+   *
+   * ⭐ **A `Persistable` host reached by its bare path is the row's one
+   * record** — the establishing context {@link singleton} documents — so
+   * it is get-or-created, never cloned again. Its keyed instances (a
+   * smack's deck, a dorm unit) are minted by their provisioner and are
+   * reached by their own durable handle (`row#key`), never by the bare
+   * row: a bare path naming a row that only has keyed instances live is a
+   * caller error and THROWS rather than handing back somebody's room or
+   * a bare clone. (The harbors drive found it: a ship's room is a
+   * `Compartment` — `Persistable`, not `Singleton`, because a kind's row
+   * is every smack's — and every landing on the Hesper's deck by path
+   * minted another, empty, deck.)
    */
   public static async singletonOrClone<T extends Stuff>(
     path: string,
     context?: unknown
   ): Promise<T> {
     const cls = await this.classForRef(path);
-    return MixinApi.hasMixin(cls, Mixins.Singleton)
-      ? this.singleton<T>(path, context)
-      : this.clone<T>(path, context);
+    if (MixinApi.hasMixin(cls, Mixins.Singleton)) {
+      return this.singleton<T>(path, context);
+    }
+    if (MixinApi.hasMixin(cls, Mixins.Persistable)) {
+      const keyed = this.#indexes.byTemplatePath
+        .exact(path)
+        .some(
+          (o) =>
+            !o.isDestroyed() &&
+            MixinApi.isPersistable(o) &&
+            o.getPersistenceKey() !== null,
+        );
+      if (keyed) {
+        throw new Error(
+          `StuffApi.singletonOrClone('${path}'): the row's live instances ` +
+            `are keyed (minted by their warren) — name one by its durable ` +
+            `handle ('${path}#<key>'), not the bare row.`,
+        );
+      }
+      return this.singleton<T>(path, context);
+    }
+    return this.clone<T>(path, context);
   }
 
   /**
