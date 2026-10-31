@@ -1337,6 +1337,55 @@ export const INSPECTION_CARD_IDS: readonly CardId[] = ['subject'];
 
 export type StuffKind = "location" | "agent" | "thing" | "idea";
 
+/**
+ * ⭐ Which interface said a line of `look` (client-surface D1/D2): a
+ * mixin's augmenter (`mixin`, the name minus `Mixin`), a class-level
+ * augmenter (`class`, the class name), or the controller's own section
+ * (`look`, the printed heading — "Owned by", "Obvious exits").
+ */
+export interface SegmentSource {
+  kind: 'mixin' | 'class' | 'look';
+  name: string;
+}
+
+/** The shape a line of `look` takes on the card. */
+export type SegmentShape = 'prose' | 'state' | 'list' | 'notice';
+export const SEGMENT_SHAPES: readonly SegmentShape[] = ['prose', 'state', 'list', 'notice'];
+
+/**
+ * One chip in a `list` segment. A group of identical things is one item
+ * with `count > 1` and its `members` (expandable in place).
+ */
+export interface SegmentItem {
+  stuffId: string;
+  label: string;
+  keyword: string;
+  count: number;
+  members?: SegmentItem[];
+}
+
+/**
+ * ⭐ One segment of what `look` said — the same text the terminal printed,
+ * split by shape and source, in the same order. Joining the `text`s in
+ * order gives the terminal's lines (AC 6).
+ */
+export interface LookSegment {
+  shape: SegmentShape;
+  sources: SegmentSource[];
+  text: string;
+  /** A `list` segment's printed heading. */
+  heading?: string;
+  /** A `list` segment's chips. */
+  items?: SegmentItem[];
+}
+
+/** A segment of a thing's own description — prose or a state line. */
+export type ProseSegment = LookSegment & { shape: 'prose' | 'state' };
+
+/** The declared shape of an illustration; the client never crops it. */
+export type IllustrationShape = 'wide' | 'tall' | 'square';
+export const ILLUSTRATION_SHAPES: readonly IllustrationShape[] = ['wide', 'tall', 'square'];
+
 export interface CardOpenedEnvelope {
   type: 'card-opened';
   /**
@@ -1381,6 +1430,8 @@ export interface CardOpenedEnvelope {
   result?: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
   /** `payload`-source cards. */
   payload?: CardPayload;
+  /** ⭐ What `look` said, by shape and source (client-surface D1). */
+  segments?: LookSegment[];
 }
 
 /**
@@ -1407,6 +1458,8 @@ export interface CardTouchedEnvelope {
   prose?: string;
   result?: (StuffRefRecord | StuffDetailRecord | StuffDetailFocusRecord)[];
   payload?: CardPayload;
+  /** A re-look replaces the segments. */
+  segments?: LookSegment[];
 }
 
 /** The card went away, and why. */
@@ -1680,6 +1733,8 @@ export interface StuffDetailRecord extends StuffRefRecord {
    * client prepends its configured media base URL to render it.
    */
   illustration?: string;
+  /** The illustration's declared shape (client-surface D10). */
+  illustrationShape?: IllustrationShape;
   details?: WireDetailEntry[];
   bulkMaterial?: MaterialSummary | null;
   mass?: { value: number; unit: 'kg' };

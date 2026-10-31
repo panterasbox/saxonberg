@@ -1314,6 +1314,18 @@ function gasLevelWord(pressure: number): string {
   return 'sitting on its seal';
 }
 
+/**
+ * How full a liquid vessel reads, in words and no numbers
+ * (client-surface D10) — what you see holding a bottle up to the light.
+ */
+function liquidLevelWord(fraction: number): string {
+  if (fraction >= 0.95) return 'full';
+  if (fraction >= 0.7) return 'nearly full';
+  if (fraction >= 0.35) return 'about half';
+  if (fraction >= 0.1) return 'a finger';
+  return 'dregs';
+}
+
 function bulkContentsAugmenter(
   text: string,
   host: Stuff,
@@ -1353,10 +1365,23 @@ function bulkContentsAugmenter(
       lines.push(`It holds ${contents}, ${gasLevelWord(pressure)}.`);
       continue;
     }
+    if (affordance === 'surface') {
+      lines.push(`A puddle of ${contents} pools here.`);
+      continue;
+    }
+    // ⭐ A VESSEL says how full it is and whether it is stopped — gated on
+    // the vessel kind, because Sealable composes on doors and windows too
+    // and a door has no level (client-surface D10).
+    const words: string[] = [];
+    if (MixinApi.isVesselKind(host)) {
+      const cap = host.getBulkCapacity('interior')?.rawValue() ?? 0;
+      if (cap > 0) {
+        words.push(liquidLevelWord(host.getBulkAmount('interior').rawValue() / cap));
+      }
+      if (MixinApi.isSealable(host)) words.push(host.isOpen() ? 'open' : 'sealed');
+    }
     lines.push(
-      affordance === 'surface'
-        ? `A puddle of ${contents} pools here.`
-        : `It holds ${contents}.`,
+      words.length > 0 ? `It holds ${contents}, ${words.join(', ')}.` : `It holds ${contents}.`,
     );
   }
   if (lines.length === 0) return text;

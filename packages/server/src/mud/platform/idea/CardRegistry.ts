@@ -44,6 +44,7 @@ import type {
   StuffDetailRecord,
   StuffRefRecord,
   StuffKind,
+  LookSegment,
 } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
@@ -129,6 +130,8 @@ export interface CardState {
   prose?: string;
   /** What the subject IS — inspection cards only. */
   subjectKind?: StuffKind;
+  /** ⭐ What `look` said, by shape and source (client-surface D1). */
+  segments?: LookSegment[];
   /**
    * ⚠ This live card has been superseded and already gave its
    * subscription up (`demoteLive`). Its own marker rather than reusing
@@ -160,6 +163,12 @@ export interface CardOpenOptions {
    * Ignored when the card declares `noProse`.
    */
   prose?: Mml;
+  /**
+   * ⭐ The same lines as `prose`, split by shape and source — built by the
+   * controller in step with the prose it emitted (client-surface D1).
+   * Already materialized for this card's viewer.
+   */
+  segments?: LookSegment[];
   /** Overrides the catalogue default (an arrangement never does). */
   pinned?: boolean;
   /**
@@ -366,6 +375,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(opts.prose && !def.noProse
         ? { prose: opts.prose.toString(holder) }
         : {}),
+      ...(opts.segments ? { segments: opts.segments } : {}),
     };
 
     /*
@@ -456,6 +466,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(state.records ? { result: state.records } : {}),
       ...(state.payload ? { payload: state.payload } : {}),
       ...(state.subjectKind ? { subjectKind: state.subjectKind } : {}),
+      ...(state.segments ? { segments: state.segments } : {}),
     };
     holder.onEnvelope(template);
     return state.instanceId;
@@ -859,6 +870,7 @@ export default class CardRegistry extends CardRegistryBase {
     if (opts.prose && !def.noProse && holder) {
       state.prose = opts.prose.toString(holder);
     }
+    if (opts.segments) state.segments = opts.segments;
 
     if (!def.live && holder) {
       this.resolveInto(def, state, holder, opts);
@@ -887,6 +899,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(state.takenAt !== undefined ? { takenAt: state.takenAt } : {}),
       ...(state.title !== undefined ? { title: state.title } : {}),
       ...(state.prose ? { prose: state.prose } : {}),
+      ...(opts.segments ? { segments: opts.segments } : {}),
       ...(carriesBody && state.records ? { result: state.records } : {}),
       ...(carriesBody && state.payload ? { payload: state.payload } : {}),
     };

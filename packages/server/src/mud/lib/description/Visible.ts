@@ -24,6 +24,7 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 import type { Stuff } from '../stuff/Stuff';
+import { ILLUSTRATION_SHAPES, type IllustrationShape, type ProseSegment } from '@saxonberg/types';
 import {
   Mml,
   type AugmentOpts,
@@ -84,6 +85,13 @@ export interface Visible {
    */
   getIllustration(): string | null;
   setIllustration(value: string | null): void;
+  /**
+   * The illustration's declared shape — `wide` (16:9), `tall` (4:5) or
+   * `square` (1:1). Authored, else the branch default: a place is wide, an
+   * agent tall, anything else square. The client never crops to it.
+   */
+  getIllustrationShape(): IllustrationShape;
+  setIllustrationShape(value: IllustrationShape | null): void;
   getShort(): string;
   getLong(): string;
   /**
@@ -127,6 +135,16 @@ export interface Visible {
    * viewer's full sensorium — the gestalt rule).
    */
   getMarkupLong(viewer: Stuff, opts?: AugmentOpts): string;
+  /**
+   * ⭐ {@link getMarkupLong} AND the same lines split by which interface
+   * said which (client-surface D1) — one fold, so the terminal's `text` and
+   * the card's `segments` cannot diverge: the prose, then one `state`
+   * segment per augmenter that appended.
+   */
+  getSegmentedLong(
+    viewer: Stuff,
+    opts?: AugmentOpts,
+  ): { text: string; segments: ProseSegment[] };
 }
 
 export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -154,6 +172,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       register: { persistent: true, authorable: true },
       longDescription: { persistent: true, authorable: true },
       illustration: { persistent: true, authorable: true },
+      illustrationShape: { persistent: true, authorable: true },
     };
 
     /**
@@ -222,6 +241,12 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           (stuff as unknown as Visible).getIllustration() ?? undefined,
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
+      {
+        // The declared shape rides beside the picture so the card can
+        // reserve the right box before it loads — never a crop.
+        name: 'illustrationShape',
+        read: (stuff) => (stuff as unknown as Visible).getIllustrationShape(),
+      },
     ];
 
     /**
@@ -241,6 +266,8 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     protected longDescription: string = '';
     /** Bucket-relative media key for this thing's illustration. */
     protected illustration: string | null = null;
+    /** The authored illustration shape; `null` = the branch default. */
+    protected illustrationShape: IllustrationShape | null = null;
 
     getShortDescription(): string {
       return this.shortDescription;
@@ -295,6 +322,29 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getIllustration(): string | null {
       return this.illustration;
+    }
+
+    getIllustrationShape(): IllustrationShape {
+      if (this.illustrationShape) return this.illustrationShape;
+      const self = this as unknown as Stuff;
+      if (self.isPlace()) return 'wide';
+      if (self.isAgent()) return 'tall';
+      return 'square';
+    }
+
+    setIllustrationShape(value: IllustrationShape | null): void {
+      if (value !== null && !ILLUSTRATION_SHAPES.includes(value)) {
+        throw new RangeError(
+          `illustrationShape: unknown shape '${String(value)}' ` +
+            `(expected ${ILLUSTRATION_SHAPES.join(' | ')})`,
+        );
+      }
+      this.illustrationShape = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'illustrationShape',
+        this.illustrationShape,
+        value,
+      );
     }
 
     setIllustration(value: string | null): void {
@@ -353,6 +403,18 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     getMarkupLong(viewer: Stuff, opts?: AugmentOpts): string {
       return Mml.augment(
+        this.getLongFor(viewer),
+        this as unknown as Stuff,
+        viewer,
+        opts,
+      );
+    }
+
+    getSegmentedLong(
+      viewer: Stuff,
+      opts?: AugmentOpts,
+    ): { text: string; segments: ProseSegment[] } {
+      return Mml.augmentSegmented(
         this.getLongFor(viewer),
         this as unknown as Stuff,
         viewer,

@@ -2418,34 +2418,53 @@ export class MixinApi {
   public static getAllMarkupAugmenters(
     constructor: AnyConstructor,
   ): Array<(text: string, host: unknown, viewer: unknown, opts?: unknown) => string> {
+    return MixinApi.getMarkupAugmenterLevels(constructor).flatMap((l) => l.fns);
+  }
+
+  /**
+   * ⭐ The same walk as {@link getAllMarkupAugmenters}, keeping WHICH
+   * level contributed which augmenters (client-surface D1) — root → leaf.
+   * A level whose class owns a `_mixinName` is a mixin (`name` without the
+   * `Mixin` suffix); any other is a class (`Weapon`, `CraftVessel`). The
+   * card's source gutter is read off this.
+   */
+  public static getMarkupAugmenterLevels(constructor: AnyConstructor): Array<{
+    source: { kind: 'mixin' | 'class'; name: string };
+    fns: Array<(text: string, host: unknown, viewer: unknown, opts?: unknown) => string>;
+  }> {
     type AugFn = (
       text: string,
       host: unknown,
       viewer: unknown,
       opts?: unknown,
     ) => string;
+    type Level = { source: { kind: 'mixin' | 'class'; name: string }; fns: AugFn[] };
     // Walk leaf → root, collecting contributing levels.
-    const chain: AugFn[][] = [];
+    const chain: Level[] = [];
     let current: unknown = constructor;
     while (current && current !== Object && (current as MixinClass).prototype) {
       const c = current as MixinClass & {
         markupAugmenters?: AugFn[];
+        name?: string;
       };
       if (
         Object.prototype.hasOwnProperty.call(c, 'markupAugmenters') &&
         Array.isArray(c.markupAugmenters)
       ) {
-        chain.push(c.markupAugmenters);
+        const mixinName = Object.prototype.hasOwnProperty.call(c, '_mixinName')
+          ? c._mixinName
+          : undefined;
+        chain.push({
+          source: mixinName
+            ? { kind: 'mixin', name: mixinName.replace(/Mixin$/, '') }
+            : { kind: 'class', name: c.name ?? 'Thing' },
+          fns: c.markupAugmenters,
+        });
       }
       current = Object.getPrototypeOf(current);
     }
-    // Flatten root → leaf so the fold applies parent's augmenters
-    // before child's.
-    const out: AugFn[] = [];
-    for (let i = chain.length - 1; i >= 0; i--) {
-      out.push(...chain[i]!);
-    }
-    return out;
+    // Root → leaf so the fold applies parent's augmenters before child's.
+    return chain.reverse();
   }
 
   /**

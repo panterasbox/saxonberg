@@ -673,6 +673,21 @@ unit terminal card).
   import cycle through `Thing` (three suites failed to load); the read
   states `isAnotherPerson`'s three-clause rule with a comment, and
   `mql-subscription.privacy.test.ts` pins that the two agree.
+- **B7 — one fold per look: `Visible.getSegmentedLong(viewer, opts)`
+  returns `{ text, segments }`** instead of the plan's
+  `getLongSegments(): ProseSegment[]`, so `LookController` folds once and
+  the terminal text and the card segments come from the same call.
+- **B8 — the prose segment's source is `mixin:Visible`** (the authored
+  description); a transform that keeps earlier state lines intact joins
+  the prose's sources, one that rewrites them collapses everything into
+  one prose segment. State segments are trimmed; the card joins them with
+  a paragraph break.
+- **B9 — a list segment's `text` is the whole printed line** (`── You also
+  see: …`), the chips ride `items`; a group's text is the count form
+  (`3 bottles of gin`) with no ref tag, its members ride `items[].members`.
+  A person never groups.
+- **B10 — the presence line reads `Now: <status>, <posture>, <activity>,
+  away.`**; an activity is the engagement's `type` written as words.
 
 ---
 
@@ -836,6 +851,14 @@ the gate. Commit `build(client-surface W0): privacy on the wire — pockets,
 mass, names, fog; the harness captures envelopes`.
 
 ### W1 — `look` as segments, the quiet lines, presence, grouping, shape, arrival
+
+> ✅ **Done** (build). `MixinApi.getMarkupAugmenterLevels`,
+> `Mml.augmentSegmented` (`augment` = its `.text`), `Visible.getSegmentedLong`
+> (B7), `illustrationShape` with branch defaults, `card-opened/touched
+> .segments`, the look segment builder in both branches (B8–B10), grouping,
+> presence, level/seal words (`isVesselKind`), quiet one-piece, arrival
+> forces `look` (`autoLookOnArrival`). The quiet verdict landed in W0 (B3).
+> test:near 545/545 after the DETAIL_FIELDS list test; lint:family 85/85.
 
 **Goal.** The server says each line's shape and source; the two quiet
 lines go quiet; the presence line, the level/seal words, grouping, the

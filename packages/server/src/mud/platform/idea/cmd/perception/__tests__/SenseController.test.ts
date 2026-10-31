@@ -2,9 +2,9 @@
  * SenseController tests — gestalt verb behavior.
  *
  * The auto-on-entry switch (Avatar.enter / Mobile arrival hook)
- * rides `Mobile.autoSenseOnArrival` and is gated separately in
+ * rides `Mobile.autoLookOnArrival` and is gated separately in
  * `Mobile.autoSense.test.ts` (substrate test that asserts the
- * hook forces the `sense` verb, not `look`).
+ * hook forces the `look` verb since client-surface D10).
  */
 
 import "../../../../../../test-bootstrap";

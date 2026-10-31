@@ -294,7 +294,8 @@ suite('⭐ drive 1 — parts or one piece (AC 12)', () => {
     // pale where two hands have gripped it".
     expect(pick).not.toMatch(/It is worn|has been mended/);
     const stone = await examine(mender, 'whetstone');
-    expect(stone, `look whetstone: ${stone}`).toMatch(/It is one piece\./);
+    // ⭐ Quiet on the look since client-surface D10; the fit refusal says it.
+    expect(stone, `look whetstone: ${stone}`).not.toMatch(/made of/i);
     const fit = await say(mender, 'fit pick-haft to whetstone');
     expect(fit, `fit haft to whetstone: ${fit}`).toMatch(/one piece/i);
   }, 300_000);

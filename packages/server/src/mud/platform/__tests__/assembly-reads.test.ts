@@ -83,7 +83,8 @@ describe('a part moves another subsystem', () => {
     vi.spyOn(Object.getPrototypeOf(Chair.prototype), 'getRestQuality').mockReturnValue(0.8);
     const stool = makeStuff(() => new Chair());
     expect(stool.getRestQuality()).toBeCloseTo(0.8, 6);
-    expect(stool.getMarkupLong(stool)).toMatch(/It is one piece\./);
+    // A one-piece thing is quiet about it (client-surface D10).
+    expect(stool.getMarkupLong(stool)).not.toMatch(/one piece/);
   });
 
   it('⚠ a SAWN board is neither armour nor a weapon — every look line runs without throwing', () => {

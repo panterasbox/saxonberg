@@ -100,8 +100,8 @@ export class CardApi {
      * forced command.**
      *
      * `context.interactive` is *the connection that originated the
-     * command*, and it is genuinely optional: `Mobile.autoSenseOnArrival`
-     * forces a `sense` from inside the traverse, so nothing originated it
+     * command*, and it is genuinely optional: `Mobile.autoLookOnArrival`
+     * forces a `look` from inside the traverse, so nothing originated it
      * from a socket. Read literally, that made every room card born of
      * WALKING return `null` — silently, because a null open is how a
      * card politely declines. Every room card came from the arrangement

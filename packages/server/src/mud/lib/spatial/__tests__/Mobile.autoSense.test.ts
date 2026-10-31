@@ -1,6 +1,6 @@
 /**
- * Mobile.autoSenseOnArrival — substrate-level test that the renamed
- * hook fires the `sense` verb (not `look`).
+ * Mobile.autoLookOnArrival — substrate-level test that the renamed
+ * hook fires the `look` verb (client-surface D10 — it was `sense`).
  *
  * The four on-entry call sites (Avatar.enter, Mobile.traverse,
  * Mobile.teleport, Goto -l fallback) all delegate to this one
@@ -42,10 +42,10 @@ class CapturingMobile extends Base {
   }
 }
 
-describe('Mobile.autoSenseOnArrival', () => {
-  it('forces the `sense` verb (not `look`)', async () => {
+describe('Mobile.autoLookOnArrival', () => {
+  it('forces the `look` verb (client-surface D10)', async () => {
     const mover = makeStuff(() => new CapturingMobile());
-    await mover.autoSenseOnArrival();
-    expect(mover.forced).toEqual([{ text: 'sense', forced: true }]);
+    await mover.autoLookOnArrival();
+    expect(mover.forced).toEqual([{ text: 'look', forced: true }]);
   });
 });

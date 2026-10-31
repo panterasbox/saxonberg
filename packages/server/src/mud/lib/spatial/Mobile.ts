@@ -97,7 +97,7 @@ export interface Mobile {
    * augmenter's filter ∩ sensorium = vision for any room with no
    * `<sense>` regions authored.
    */
-  autoSenseOnArrival(): Promise<void>;
+  autoLookOnArrival(): Promise<void>;
   autoIntroduceOnArrival(): void;
 
   /**
@@ -556,7 +556,7 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // Auto-sense on arrival, same as `traverse`. Fire-and-forget
         // because `teleport` keeps a synchronous signature; failures
         // in the sense (rare — same room rendering) are swallowed.
-        void this.autoSenseOnArrival().catch(() => {});
+        void this.autoLookOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
       if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
@@ -607,12 +607,15 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * the player walks into a room with no widget, the auto-sense
      * comes up empty).
      */
-    async autoSenseOnArrival(): Promise<void> {
+    async autoLookOnArrival(): Promise<void> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       if (MixinApi.isFocused(self)) self.clearFocus();
       try {
-        await self.forceCommand('sense');
+        // ⭐ `look`, not `sense` (client-surface D10, #52): arriving shows
+        // the room exactly as `look` does — band, notices, presence, the
+        // card — so the first view of a place and every later one agree.
+        await self.forceCommand('look');
       } catch {
         // Swallow — see jsdoc.
       }
@@ -1083,7 +1086,7 @@ async function crossExit(
   // or perceives it, or flies/swims over a ground hazard). Reaching the
   // trap through its `resolveTraversal` *method* honors the inter-Stuff
   // methods-only contract. Fires on walked/ridden/conveyed entry only —
-  // teleport arrival uses `autoSenseOnArrival`, a different path.
+  // teleport arrival uses `autoLookOnArrival`, a different path.
   const hazardSeen = new Set<Stuff>();
   const considerHazard = (cand: Stuff): void => {
     if (hazardSeen.has(cand)) return;
@@ -1114,10 +1117,10 @@ async function crossExit(
   // resulting Command frame is tagged `forced: true` and `sense`'s
   // `updates_focus: extend` re-anchors the mover's focus chain
   // for the new room (the `clearFocus()` call inside
-  // `autoSenseOnArrival` resets the chain to "here" first, so
+  // `autoLookOnArrival` resets the chain to "here" first, so
   // extend simply produces "here" again — focus is well-defined
   // on arrival).
-  await mover.autoSenseOnArrival();
+  await mover.autoLookOnArrival();
   mover.autoIntroduceOnArrival();
   // The display you can see shows X — and the one you left, no
   // longer. One hook, both directions; the viewer owns its own

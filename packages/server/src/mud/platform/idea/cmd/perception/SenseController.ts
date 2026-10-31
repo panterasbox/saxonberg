@@ -223,7 +223,7 @@ export default class SenseController extends CommandController<SenseModel> {
 
     /*
      * ⭐⭐ **Walking into a room mints THAT room's card.** Arrival forces
-     * a bare `sense` (`Mobile.autoSenseOnArrival`), so this is where it
+     * a bare `sense` (`Mobile.autoLookOnArrival`), so this is where it
      * happens. The card for the room you LEFT stays where it is — the
      * column is a history of where you have been, not one room card
      * being rewritten under you every time you move.

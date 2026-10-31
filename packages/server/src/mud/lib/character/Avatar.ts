@@ -880,7 +880,7 @@ export default abstract class Avatar extends AvatarBase {
    *      payload the client needs for bootstrap.
    *   3. Force a `sense` so the player perceives their starting
    *      location across every channel they possess — delegated
-   *      to `MobileMixin.autoSenseOnArrival` (the same hook that
+   *      to `MobileMixin.autoLookOnArrival` (the same hook that
    *      fires after a traversal), so we share the focus-reset and
    *      forceCommand plumbing instead of reimplementing `sense`.
    *   4. Emit `Events.PlayerLoggedIn` for engine-level observers.
@@ -937,7 +937,7 @@ export default abstract class Avatar extends AvatarBase {
     // Force a sense so the player perceives where they are across every
     // channel they possess — MobileMixin's auto-sense-on-arrival path,
     // reused rather than re-rendering the description here.
-    await this.autoSenseOnArrival();
+    await this.autoLookOnArrival();
     this.openArrangementGuarded(interactive);
     this.markSessionStarted(interactive);
   }
@@ -1132,7 +1132,7 @@ export default abstract class Avatar extends AvatarBase {
      * applies when you change your mind is a workspace you cannot
      * simply return to.
      *
-     * ⚠ After `autoSenseOnArrival`, so the room card the arrangement
+     * ⚠ After `autoLookOnArrival`, so the room card the arrangement
      * pushes lands beside a transcript that already says where you are.
      */
     /*

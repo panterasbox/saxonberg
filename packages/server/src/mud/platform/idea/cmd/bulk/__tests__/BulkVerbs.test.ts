@@ -39,6 +39,8 @@ import { DescriptorBank } from '../../../../../lib/identification/DescriptorBank
 import { WorldClockApi } from '../../../../../api/worldclock';
 import '../../../WorldClockRegistry';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import { VesselKindMixin } from '../../../../../lib/bulk/VesselKind';
+import { SealableMixin } from '../../../../../lib/spatial/Sealable';
 import {
   CommandApi,
   type CommandContext,
@@ -67,6 +69,11 @@ class TestActor extends PerceptionMixin(
 
 class Receptacle extends BulkableMixin(Good) {
   static _mixinName = 'Receptacle';
+}
+
+/** A stoppered bottle: a vessel kind that seals. */
+class SealedVesselKind extends SealableMixin(VesselKindMixin(BulkableMixin(Good))) {
+  static _mixinName = 'SealedVesselKind';
 }
 
 /** A substance you can learn — the potion case (magic-items D24/D26). */
@@ -545,6 +552,29 @@ describe('Bulk verbs — look composes Material.appearance', () => {
     (s as unknown as { getMarkupLong(v: Stuff): string }).getMarkupLong(actor);
 
   it('look <holder> appends the interior contents via appearance', () => {
+    const mug = vessel('a ceramic mug', { material: water, amountL: 0.2, capacityL: 0.35 });
+    expect(markupLong(mug)).toContain('It holds some water.');
+  });
+
+  it('⭐ a VESSEL says how full it is and whether it is stopped (client-surface D10)', () => {
+    const v = makeStuff(() => {
+      const x = new SealedVesselKind();
+      x.setShortDescription('a bottle');
+      x.interiorBulk = true;
+      x.setCategory('bottle');
+      x.setInteriorCapacity(Quantity.of(1, 'L'));
+      x.setBulkMaterial('interior', water);
+      x.setBulkAmount('interior', Quantity.of(0.8, 'L'));
+      return x;
+    }) as unknown as Stuff;
+    const sealable = v as unknown as { isOpen(): boolean; setOpen(o: boolean): void };
+    sealable.setOpen(false);
+    expect(markupLong(v)).toContain('It holds some water, nearly full, sealed.');
+    sealable.setOpen(true);
+    expect(markupLong(v)).toContain('open.');
+  });
+
+  it('a plain receptacle (no vessel kind) says no level — Sealable alone would speak for a door', () => {
     const mug = vessel('a ceramic mug', { material: water, amountL: 0.2, capacityL: 0.35 });
     expect(markupLong(mug)).toContain('It holds some water.');
   });
