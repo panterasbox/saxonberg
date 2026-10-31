@@ -1,0 +1,35 @@
+# ⭐ ONE `splice` (cordage D9; energy's lineman's verb until cordage): the
+# strands of two ends worked back into each other. Two ropes into one rope;
+# a cut feeder line made whole at its pole. The THING decides what splicing
+# it means (`SpliceableMixin`) and says why not in its own words.
+verbs: [splice]
+controller: /platform/idea/cmd/crafting/SpliceController
+description: "Splice two ropes into one, or a cut line back together"
+help: |
+  `splice rope to rope` lays the strands of two ropes' ends into each
+  other: one rope, as long as the two, that holds nearly as much as either
+  — far more than any knot. A splice is not untied; it is cut out.
+
+  At a pole or a manhole, `splice` repairs the feeder line there. If
+  nothing above it is still cut and the source is up, the line and
+  everything downstream of it come back on at once.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[mixin.SpliceableMixin]"
+    scope: ["reachable"]
+    requires: [SpliceableMixin]
+    greedy: true
+  - name: other
+    type: object
+    required: false
+    prepositions: [to, into, with]
+    scope: ["reachable"]
+    requires: [SpliceableMixin]
+    greedy: true

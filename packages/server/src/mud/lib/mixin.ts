@@ -663,6 +663,9 @@ export const Mixins = {
   // ⭐ *A thing whose end is made fast to something* — a protocol mixin
   // (cordage D8); the host answers `tie`/`untie` (a rope, a line's end, a bag).
   Tieable: 'TieableMixin',
+  // ⭐ *A thing you splice* — a protocol mixin (cordage D9): two ropes into
+  // one, a cut feeder line made whole.
+  Spliceable: 'SpliceableMixin',
   // ⭐ *A thing in the water holding ANOTHER up* — a protocol mixin the
   // sinking rule asks (an air bag lashed to an anchor).
   Buoy: 'BuoyMixin',
@@ -1054,6 +1057,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   PullableMixin: "{} isn't on a line you can pull",
   TossableMixin: "{} isn't something anybody catches",
   TieableMixin: "{} has no end to tie",
+  SpliceableMixin: "{} isn't something you splice",
   BuoyMixin: "{} doesn't hold anything up in the water",
   HaulerMixin: "{} can't pull a cart",
 

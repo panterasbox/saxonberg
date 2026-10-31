@@ -101,6 +101,12 @@ export interface Faced {
    * already fused). A coat laid by hand fuses by heat-work (`heatCoats`).
    */
   fuseCoats(peakK: number): number;
+  /**
+   * ⭐ Set every wet coat that sets by COOLING (cordage D13′): a coat whose
+   * material has no heat-set law and melts above `atK` — pitch drawn out of
+   * a hot tub — is set the moment it is that cold. Returns how many set.
+   */
+  coolCoats(atK: number): number;
   /** Does this face keep water in? A sound fused coat, or a tight body. */
   holdsWater(face: FaceName): boolean;
   /** The body's open porosity, `0..1` — read off its (fired) material. */
@@ -327,6 +333,24 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           if (!(fuseK > 0) || peakK < fuseK) return coat;
           changed += 1;
           return this.fusedCoat(coat, mat ?? null, change, peakK);
+        });
+      }
+      if (changed > 0) this.coats = next;
+      return changed;
+    }
+
+    public coolCoats(atK: number): number {
+      let changed = 0;
+      const next: Partial<Record<FaceName, CoatLayer[]>> = {};
+      for (const [face, list] of Object.entries(this.coats) as [FaceName, CoatLayer[]][]) {
+        next[face] = (list ?? []).map((coat) => {
+          if (coat.state !== 'wet') return coat;
+          const mat = materialAt(coat.material);
+          if (mat === null || mat.getKinetics()?.setsByHeat()) return coat;
+          const melts = mat.getMeltingPoint().rawValue();
+          if (!(melts > atK)) return coat;
+          changed += 1;
+          return this.fusedCoat(coat, mat, null, melts);
         });
       }
       if (changed > 0) this.coats = next;

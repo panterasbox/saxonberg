@@ -1,0 +1,13 @@
+# Ropework — knots, splices and laying rope (cordage D16). The band is how
+# well a knot is dressed — drawn up snug so it keeps what it should of the
+# rope's strength: a green hand's bowline holds less than a practised one,
+# every time, with no roll. Earned by tying, splicing and laying rope.
+class: /platform/idea/Discipline
+data:
+  key: ropework
+  channel: skill
+  label: Ropework
+  iscedf: "0723"
+  requires: [recipe-knowledge]
+  synergizes: [textiles, diving]
+  description: Knots, splices and rope — which knot for which job, and how to dress it so it holds. A practised hand's knots keep more of the rope, and they keep it every time.

@@ -12,6 +12,9 @@ data:
     Twenty meters of tarred rope coiled down neat, a bowline already in
     the end of it. It smells of tar and the river.
   _materialPath: /stuff/idea/material/textile/hemp
-  mass: 3
   lengthM: 20
   diameterMm: 14
+  # ⭐ Tarred (cordage D13′): a set coat of pitch on its outside — it does not rot.
+  coats:
+    outside:
+      - { material: /stuff/idea/material/bulk/pitch, thicknessM: 0.0005, state: set }

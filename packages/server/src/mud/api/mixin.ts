@@ -189,6 +189,7 @@ import type { WaterColumn } from '../lib/location/WaterColumn';
 import type { Pullable } from '../lib/spatial/Pullable';
 import type { Tossable } from '../lib/spatial/Tossable';
 import type { Tieable } from '../lib/spatial/Tieable';
+import type { Spliceable } from '../lib/spatial/Spliceable';
 import type { Buoy } from '../lib/location/Buoy';
 import type { WaterSource } from '../lib/location/WaterSource';
 import type { Improvable } from '../lib/ground/Improvable';
@@ -1938,6 +1939,10 @@ export class MixinApi {
 
   public static isTieable(obj: Stuff): obj is Stuff & Tieable {
     return this.hasMixin(obj, Mixins.Tieable);
+  }
+
+  public static isSpliceable(obj: Stuff): obj is Stuff & Spliceable {
+    return this.hasMixin(obj, Mixins.Spliceable);
   }
 
   public static isBuoy(obj: Stuff): obj is Stuff & Buoy {

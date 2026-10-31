@@ -1,0 +1,21 @@
+# `coil` (cordage D10): lay a rope down in a coil, ready to throw or carry.
+# A rope flaked or tangled on the ground will not go far when thrown; a
+# coiled one runs out clean.
+verbs: [coil]
+controller: /platform/idea/cmd/inventory/CoilController
+description: "Coil a rope down, ready to throw"
+help: |
+  `coil rope` lays it down in neat turns — it takes a moment for every two
+  meters. A coiled rope runs out clean when you throw it; one that is not
+  coiled will not go far. Cutting, tying or splicing a rope un-coils it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    requires: any
+    greedy: true

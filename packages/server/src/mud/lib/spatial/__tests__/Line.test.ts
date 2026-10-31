@@ -53,6 +53,13 @@ beforeEach(() => {
     if (path === '/platform/thing/rope-end') return makeStuff(() => new RopeEnd());
     return (realClone as (...a: unknown[]) => unknown)(path, ...rest);
   }) as unknown as typeof StuffApi.clone);
+  // The knot rows (cordage D7), as the joint catalogue would answer them.
+  const realSingleton = StuffApi.singleton.bind(StuffApi);
+  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (path: string, ...rest: unknown[]) => path !== '/platform/idea/JointCatalogue'
+    ? (realSingleton as (...a: unknown[]) => unknown)(path, ...rest)
+    : ({
+    warmed: async (key: string) => (key === 'bowline' ? { key, label: 'tied in a bowline', strength: 0.6 } : null),
+  })) as unknown as typeof StuffApi.singleton);
 });
 
 afterEach(() => {

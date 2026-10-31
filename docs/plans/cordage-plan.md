@@ -478,7 +478,21 @@ green; `pnpm wire` runs `underwater.dirty` and `river-b.dirty` green (throw line
 lash → `tie` still answer on a `Rope`); `lint:family` green.
 Commit: `build(cordage W0): rope is the kernel's line with two ends; the hose is diving's`.
 
-### W1 — a rope is a length with a strength (D4, D6, D7, D9, D10, D13, D15 part)
+### W1 — a rope is a length with a strength (D4, D6, D7, D9, D10, D13, D15 part) ✅
+> **Done.** Rope: derived mass, `breakingKg`/`effectiveKg`, knot records dressed by `ropework`
+> band (credited), `cutPlan`/`spliceBy`/`coilPlan`, marks + cut ends, rot reconcile, tar off the face.
+> Kernel `Spliceable` + `splice` (energy's pole answers it), `coil`, `cut … at <length>`. **Decided:**
+> **D22** — the cut length rides a preposition (`cut rope at 10 m`), not a trailing positional: the
+> binder allows only prepositional args after a greedy target (`validateArgOrder`); `at` left the tool
+> prepositions (no caller used it). **D13″** — rot keeps its own reconcile (`rot`/`rotAt`), NOT Kinetics:
+> Kinetics has no moisture driver and is integrated by `ThermalMixin` over a temperature trajectory;
+> rot's driver is wetness (window mean of before/after drying). Extending Kinetics with a second
+> driver is a kernel design → deferred seam. **D23** — Faced gains one rung, `coolCoats(atK)`: a wet coat
+> whose material has no heat-set law and melts above `atK` sets as it cools (pitch, 320 K). Pitch
+> and wood tar author `laysCoat: true`, `coatWord: tarred`, tag `waterproofing`; the lifeline row
+> authors a set pitch coat. **D24** — knot strength is captured on the knot record at tie-time (no
+> cold-catalogue read on every strength read). A plain `/platform/thing/rope` row is what a cut
+> piece of an unrowed rope is minted as. Rope rows author no `mass:` (derived).
 Files: `platform/thing/Rope.ts` (mass derivation, `cutPlan`, `spliceBy`, `coil`, knot records +
 dressing, `effectiveKg()`, words, `marks`, `rot` reconcile + `WetMixin`, `dipInto`), `lib/craft/
 Cuttable.ts` (`CutRequest.length`), `cut.yaml` (+ `length`), `CutController.ts` (passes it),
