@@ -2163,8 +2163,9 @@ same as for a pot. Talked through first (husbandry § the area crop, and
   was already this composition as the sugar pack's `CaneBundle`, which is
   retired onto the kernel class: two packs that share no ancestor compose
   it (CLAUDE.md § module categories). Lens 1 (eat it or sow it) and lens 2.
-  The Delight's farm shelf, which consigns the barn's sacks, becomes the
-  at-scale seed seller with no new code.
+  ⚠ The Delight's farm shelf would be the at-scale seed seller, but the
+  browser walk found it empty: nothing moves the barn's sacks onto it
+  (see the walk below; the seed-and-propagation slate).
 - **D21 — yield from area and condition, not seed.** `yieldRatio` is
   replaced by `yieldKgPerM2`, the attainable yield of a perfect season;
   the cut gives that × vigor (the stand's held condition) × the ratoon
@@ -2181,3 +2182,38 @@ same as for a pot. Talked through first (husbandry § the area crop, and
   grain (the owner: weeds can wait), seed set by a crop left standing,
   fiber-or-seed timing, viability, seed dressing, varieties and hybrids, a
   seed merchant.
+
+### The browser walk (2026-10-31, headless Playwright against the client)
+
+The owner asked whether this was driven in a live browser; it had not
+been since the soak split. Walked as a player (bench reads, sample,
+label, the refusals, the campus hire, plough, sowing threshed grain
+with the drill, a staged cut). It found what the wire drives could not:
+
+- **The stands listed three times** in the entry look and the room card
+  (D17's rule lived only in `look`): moved into `getLooseContents`, the
+  one filter `look`, the sense verbs and the card share (e9f21b95a).
+- **"still established"** in the harvest refusal where the field read
+  "in ear", and **"a billhook, or an axe"** asked of one labeled wheat
+  plant: `Growing.growsByFieldRule()` and `stageWord()` (529df7623).
+- **A business read as its template path** ("taken on as labourer at
+  /world/…/farm-unit"; "You hold a job at …"): a business is a publisher,
+  and a publisher's label falls back to its path, which `organizationLabel`
+  preferred over the name (3787adb00, a29630eb9).
+- **"laying a sack of wheat in rows"**: sowing casts seed FROM the sack.
+- **The farm shelf sells nothing.** The barn's comment says its sacks are
+  consigned to the shelf; nothing does it (the farms brain consigns only
+  what the hand carries from its own picking). Seed at scale from the
+  farm therefore waits on the hand moving the barn's stock — added to the
+  seed-and-propagation slate's Left, beside "the hand harvesting a field".
+- **Not this build's, named for owners:** the glare line at noon on every
+  open field (ambient 40,000 is the realm's outdoor figure); `water` is
+  unknown with no vessel in hand (tool-afforded by design, but the refusal
+  doctrine wants the verb to exist and explain); a stem affords `ring`
+  (the ceramics merge); after `look at the top end`, `look top end wheat`
+  reads the patch again (the focus resolver); a player holding goods taken
+  without paying cannot buy anything and is told "You can't cover a sickle
+  just now" (the store's unpaid counter).
+- **test:near after the walk fixes** found a latent warmth-slot bug B43
+  had turned into a runaway (PlantVerbs out of heap): a walk that settled
+  without awaiting left its promise recorded forever (dbc016c81).

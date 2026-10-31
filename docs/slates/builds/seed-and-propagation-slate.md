@@ -6,7 +6,7 @@
 > from area and condition, not from seed** (the seed-to-yield ratio is
 > derived), and **the seed drill** (a `Tool` row: half the seed, a wider
 > pass). See husbandry.md § the area crop.
-> **Left:** volunteers and shed grain (weeds of the last crop) · seed set
+> **Left:** volunteers and shed grain (weeds of the last crop) · the farm hand moving the barn's stock to the farm shelf (the at-scale seed seller — found empty on the browser walk) · seed set
 > by a crop left standing (roots and biennials) · fiber-or-seed timing
 > (flax, hemp) · vegetative stock (corms, root division) · seed
 > viability in store · seed-borne disease and dressing · varieties and
