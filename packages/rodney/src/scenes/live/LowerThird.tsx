@@ -38,7 +38,9 @@ function Rotation({
   profile: ShowProfile;
   height: number;
 }) {
-  const ofShow = PANELS.filter((p) => profile.panels.includes(p.key));
+  // `?pin=<key>` holds the rotation on one panel — for previewing a panel.
+  const pin = new URLSearchParams(window.location.search).get('pin');
+  const ofShow = PANELS.filter((p) => (pin ? p.key === pin : profile.panels.includes(p.key)));
   const eligible = ofShow.filter((p) => p.when(show));
   const eligibleKeys = eligible.map((p) => p.key).join(',');
   const [turn, setTurn] = useState<{ row: PanelRow; started: number } | null>(null);
