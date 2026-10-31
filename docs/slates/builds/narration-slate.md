@@ -416,7 +416,7 @@ the voice is never embodied, which the bible already settled.
 Struck: *"narrating everything is a tutorial in farming"* and *"cheap to
 look different this week, expensive to be different"* as a design goal.
 Bad-faith engagement needs no new mechanism — renown, participation and
-the producer stock already measure engagement quality, and accountability
+the labor stock already measure engagement quality, and accountability
 measures harm. This is `measurement.md`'s own **"the platform records; it
 rarely forbids."**
 

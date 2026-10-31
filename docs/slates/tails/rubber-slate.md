@@ -217,7 +217,7 @@ monopoly on the only real insulator in the world. **No dominant option**,
 and it is the historically exact choice — Goodyear published and died in
 debt while others patented.
 
-It rides shipped machinery end to end: `provenance` → producer standing ·
+It rides shipped machinery end to end: `provenance` → labor standing ·
 the library as teachable goods · guilds as the natural holders of a
 mystery.
 

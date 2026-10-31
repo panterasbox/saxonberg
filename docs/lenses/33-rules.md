@@ -265,11 +265,11 @@ None of them changes the rules the way *Pitstop* changed them.
 with no timer.** Committee work, forum argument and drafting law is where
 a player can spend unbounded time and lose the thread of everything else.
 There is a candidate reading — that we deliberately have **three main
-modes rather than one main mode with submodes**, because the Producer,
+modes rather than one main mode with submodes**, because the Labor,
 Capital and Consumer chambers are meant to be different games — and I am
 flagging it as **unresolved** rather than asserting it, since "mode" in
 Schell's sense means the rules change completely and it is arguable
-whether producer-versus-capital clears that bar. Either way the rule gives
+whether labor-versus-capital clears that bar. Either way the rule gives
 us a **testable failure**: if consumer-house players routinely forget what
 they were doing, the design is wrong.
 

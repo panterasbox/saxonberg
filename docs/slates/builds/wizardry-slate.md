@@ -157,7 +157,7 @@ CATEGORY ERROR*.
 | layer | in / out | why |
 |---|---|---|
 | **the practice** — acquire land, build, ship packs, consume others' templates | ⭐ **in** | it is an economy with real inputs and a real market (§ 3) |
-| **the reputation** — who builds well | ⭐ **in** | it is already producer standing and renown |
+| **the reputation** — who builds well | ⭐ **in** | it is already labor standing and renown |
 | **the competence band** | ⭐⭐ **in** | and it confers nothing except eligibility for the apex |
 | **the apex licence** (`isWizard`) | ⭐ **in, and gated** | § 4 |
 | **the transcript** — portable applied hours | **out** | `antecedents-and-federation`: ⭐⭐ *skill travels* |
@@ -288,7 +288,7 @@ advertise the vacancy.
 
 **⚠ 4 — values.** Measuring authorship confers status, and status near
 standing is political. ⭐ *Being good at building = political weight* is
-the producer chamber's **actual premise**, so it is consistent — but it
+the labor chamber's **actual premise**, so it is consistent — but it
 is technocracy, and the counterweights are structural and already there:
 **three chambers, two-of-three**, plus § 5's rule that the band confers
 no power.
