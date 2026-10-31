@@ -54,6 +54,7 @@ import {
   FEED_DESTINATIONS,
   CARD_IDS,
   SHIPPED_ARRANGEMENT_CARDS,
+  MODE_PRIMARY_FILTER,
   type ArrangementSpec,
   type ArrangementCard,
   WIDTH_CLASSES,
@@ -365,16 +366,16 @@ export function SaxonbergClientMixin<
       },
       {
         key: 'cockpit.mode',
-        // ⚠ `null`, not 'play', so "never set" stays distinguishable
+        // ⚠ `null`, not 'explore', so "never set" stays distinguishable
         // from "deliberately set to the default". A legacy player has
         // no `cockpit.mode` but DOES have a `cockpit.layout` that
         // already names their mode — `getCockpitMode()` reads this null
-        // as its cue to migrate. A 'play' default here would silently
+        // as its cue to migrate. An 'explore' default here would silently
         // answer for them and the migration would never run.
         defaultValue: null,
         description:
           'The cockpit activity mode — the front-door axis (chat | ' +
-          'play | watch | build | govern), answering "what am I here ' +
+          'explore | watch | build | govern), answering "what am I here ' +
           'to do". Set by `cockpit mode`. Null means never set: read ' +
           'through `getCockpitMode()`, which migrates a legacy ' +
           '`cockpit.layout` rather than assuming the default.',
@@ -695,7 +696,7 @@ export function SaxonbergClientMixin<
      * The legacy step is scoped to the matching mode on purpose. The
      * two livestream layouts collapse into one `watch` mode with
      * different arrangements, so `livestream-viewer` may answer for
-     * `watch` — but it must not answer for `play`.
+     * `watch` — but it must not answer for `explore`.
      */
     public getCockpitArrangement(mode?: CockpitMode): string {
       const self = this as unknown as ClientHost;
@@ -858,7 +859,7 @@ export function SaxonbergClientMixin<
      * Host-internal: reads `_clientState` directly to tell "stored" from
      * "schema default", which `getClientState` deliberately collapses.
      * The distinction is the whole migration — a host still sitting on
-     * the `world` default must NOT be treated as having chosen `play`,
+     * the `world` default must NOT be treated as having chosen `explore`,
      * because it has chosen nothing.
      */
     private migratedLegacyLayout(): { mode: CockpitMode; arrangement: string } | null {
@@ -908,6 +909,7 @@ export function SaxonbergClientMixin<
       const mode = self.getCockpitMode();
       interactive.applyCardArrangement(
         self.arrangementCards(mode, self.getCockpitArrangement(mode)),
+        MODE_PRIMARY_FILTER[mode],
       );
     }
   };

@@ -703,6 +703,29 @@ unit terminal card).
 - **B14 — an arrangement never records the subject/here card** (a moment,
   not a workspace), and `applyArrangement` re-shapes a card already up
   rather than reopening it.
+- **B15 — the primary terminal is ensured only on a MODE entry**
+  (`applyArrangement(cards, primaryFilter)` from `openArrangement`,
+  `cockpit mode`, `cockpit layout`); a bare card re-arrange touches no
+  terminal. Each mode's default filter is `MODE_PRIMARY_FILTER` in types
+  (chat → the `Chat` view, the rest everything). No shipped arrangement
+  names `terminal`.
+- **B16 — a terminal's `barId` is minted (`bar-<uuid>`), not its
+  `instanceId`** — the payload is built before the instance exists, and
+  a separate id is just as stable across retargets.
+- **B17 — terminal cards are filtered out of the card feed until W5**,
+  when the terminal column renders them; the layouts' own `<Terminal>`
+  stays the primary's renderer meanwhile.
+- **B18 — the shelf's words (#77)**: Standing · Known · Skills · Body ·
+  Making · Money · Status · Time · Who's on · Docket (the plan's list had
+  a "Where" no shelf row is). Title case; the figure keeps its engraved
+  display style.
+- **B19 — #59 is fixed by clearing the preview on every phase change**;
+  char-gen keeps its own status bar (the phases are exclusive, so one bar
+  is ever mounted, and intake renders command-sending affordances).
+- **B20 — prompts are per bar on the client** (`activeSlotByBar`,
+  `primaryBarId` registered by the primary `CommandBar`); `activeSlot`
+  mirrors the last bar that moved for the readers that predate it. Typed
+  text at a choice or mql prompt is sent as a command.
 
 ---
 
@@ -973,6 +996,15 @@ W2): the registry owns placement — roles, actions, per-card liveness,
 arrangements in units`.
 
 ### W2b — Terminal cards, per-bar prompts, the settings card, `explore`
+
+> ✅ **Done** (build). `terminal` + `settings` cards; `cockpit terminal
+> <view|#channel> [--beside]` / `primary <card>`
+> (`CockpitTerminalController`); the registry's `openTerminal`,
+> `showInTerminal`, `setPrimaryTerminal`, retarget, input-mode restore;
+> `PromptEnvelope.barId`; `channel:<name>` tags on every channel frame;
+> `play` → `explore` (with a refusal that names it); `Aether` → `Chat`.
+> Decisions B15–B20. The chat tag has no unit test (no `postToChannel`
+> test exists) — the W7 wire drive asserts it.
 
 **Goal.** A terminal is a card kind with its own bar; prompts belong to a
 bar; `play` is `explore`; settings are a card. Drive step 19's wire half

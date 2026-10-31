@@ -113,11 +113,11 @@ describe('the shipped arrangements', () => {
    * the arrangement has no business duplicating it, and the test below
    * pins that the two never fight over it.
    */
-  it('⚠ `watch`, `govern` and `play` ship empty, deliberately', () => {
+  it('⚠ `watch`, `govern` and `explore` ship empty, deliberately', () => {
     expect(SHIPPED_ARRANGEMENT_CARDS.watch.viewer).toEqual([]);
     expect(SHIPPED_ARRANGEMENT_CARDS.watch.streamer).toEqual([]);
     expect(SHIPPED_ARRANGEMENT_CARDS.govern.default).toEqual([]);
-    expect(SHIPPED_ARRANGEMENT_CARDS.play.default).toEqual([]);
+    expect(SHIPPED_ARRANGEMENT_CARDS.explore.default).toEqual([]);
   });
 
   /**

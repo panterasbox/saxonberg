@@ -940,6 +940,12 @@ export interface PromptEnvelope {
   frameId: number;
   promptId: string;
   outcome: NoteOnlyOutcome;
+  /**
+   * ⭐ The bar that asked (client-surface D6, #97): a prompt belongs to
+   * the terminal whose command raised it. Absent for a command no bar
+   * sent (an affordance click) — the primary terminal takes it then.
+   */
+  barId?: string;
 }
 
 // ============================================================================
@@ -1022,7 +1028,11 @@ export type CardId =
   | "git"
   | "studio"
   | "stock"
-  | "survey";
+  | "survey"
+  /** ⭐ A terminal is a card (client-surface D6): a filtered view of the one frame store. */
+  | "terminal"
+  /** Your settings, as a card (client-surface D10). */
+  | "settings";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -1037,6 +1047,8 @@ export const CARD_IDS: readonly CardId[] = [
   "studio",
   "stock",
   "survey",
+  "terminal",
+  "settings",
 ];
 
 /**
@@ -1227,7 +1239,22 @@ export type CardPayload =
   | { kind: 'releases'; rows: ReleaseRow[] }
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
-  | { kind: 'survey'; survey: SurveyFrame };
+  | { kind: 'survey'; survey: SurveyFrame }
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean };
+
+/**
+ * ⭐ What a terminal card shows (client-surface D6): a view by name (the
+ * shipped `console.tabs` vocabulary), a channel, or both; plus the mutes
+ * and facets a view carries. An empty filter is everything.
+ */
+export interface TerminalFilter {
+  /** A `console.tabs` view name (or `All`). */
+  view?: string;
+  /** A chat channel's name — the `channel:<name>` frame tag. */
+  channel?: string;
+  muted?: string[];
+  facets?: FacetFilter;
+}
 
 /**
  * One measurement a character has taken and remembers.
@@ -3007,7 +3034,7 @@ export interface ViewDefinition {
  */
 export const DEFAULT_VIEWS: readonly ViewDefinition[] = [
   {
-    name: 'Aether',
+    name: 'Chat',
     /*
      * ⚠ Topics, not facets, and not by choice — see `FacetFilter.topics`.
      * `speech.vocal` is facet-identical to `speech.channel`, so a facet
@@ -3171,7 +3198,7 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
  * arrangement, flattened into one string (see
  * {@link LEGACY_LAYOUT_MIGRATION}).
  *
- * ⚠ **A mode is a view, never a gate.** Everything runnable in `play`
+ * ⚠ **A mode is a view, never a gate.** Everything runnable in `explore`
  * is runnable in `build`. A mode that forbade a verb would be a
  * permission system wearing a UI costume, with its checks in the wrong
  * layer entirely. A mode owns which arrangements ship, which one you
@@ -3187,8 +3214,8 @@ export const LAYOUT_NAMES: readonly LayoutName[] = [
 export type CockpitMode =
   /** Talking to people — channels, boards, the social surface. */
   | "chat"
-  /** Living in the world. The default. */
-  | "play"
+  /** Living in the world — exploring it. The default. */
+  | "explore"
   /** Watching a stream, as viewer or broadcaster. */
   | "watch"
   /** Making things — the content editor. */
@@ -3200,14 +3227,14 @@ export type CockpitMode =
  *  validator and the client's mode registry both read this one list. */
 export const COCKPIT_MODES: readonly CockpitMode[] = [
   "chat",
-  "play",
+  "explore",
   "watch",
   "build",
   "govern",
 ];
 
 /** The mode a player lands in with nothing stored. */
-export const DEFAULT_COCKPIT_MODE: CockpitMode = "play";
+export const DEFAULT_COCKPIT_MODE: CockpitMode = "explore";
 
 /**
  * The **arrangement axis** — savable card arrangements *inside* a mode.
@@ -3224,7 +3251,7 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
   Record<CockpitMode, readonly string[]>
 > = {
   chat: ["default"],
-  play: ["default"],
+  explore: ["default"],
   watch: ["viewer", "streamer"],
   build: ["default"],
   govern: ["default"],
@@ -3251,17 +3278,33 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
 > = {
   chat: { default: ['who'] },
   /*
-   * ⚠ **Empty, and it was already empty in effect.** `play` used to name
-   * the room card here, but an arrangement names a card KIND while an
-   * inspection card is ABOUT a subject the arrangement cannot know —
-   * so `applyArrangement` skips subject cards on both sides and this
-   * row had stopped opening anything. Arrival mints the room card; the
-   * arrangement has no business duplicating it.
+   * ⚠ **Empty, and it was already empty in effect.** `explore` (then
+   * `play`) used to name the room card here, but an arrangement names a
+   * card KIND while an inspection card is ABOUT a subject the
+   * arrangement cannot know — so `applyArrangement` skips subject cards
+   * on both sides. Arrival mints the room card (the `here` role).
+   *
+   * ⭐ No row names the primary TERMINAL either: every mode has one, so
+   * `openArrangement` mints it whenever none is up (client-surface D6),
+   * filtered by {@link MODE_PRIMARY_FILTER}.
    */
-  play: { default: [] },
+  explore: { default: [] },
   watch: { viewer: [], streamer: [] },
   build: { default: ['cms', 'git', 'studio'] },
   govern: { default: [] },
+};
+
+/**
+ * ⭐ What each mode's primary terminal shows when the arrangement does not
+ * say (client-surface D6): chat opens on the chat view; everything else
+ * shows everything.
+ */
+export const MODE_PRIMARY_FILTER: Readonly<Record<CockpitMode, TerminalFilter>> = {
+  chat: { view: 'Chat' },
+  explore: {},
+  watch: {},
+  build: {},
+  govern: {},
 };
 
 /**
@@ -3278,7 +3321,7 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
 export const LEGACY_LAYOUT_MIGRATION: Readonly<
   Record<LayoutName, { mode: CockpitMode; arrangement: string }>
 > = {
-  world: { mode: "play", arrangement: "default" },
+  world: { mode: "explore", arrangement: "default" },
   forum: { mode: "chat", arrangement: "default" },
   "livestream-viewer": { mode: "watch", arrangement: "viewer" },
   streamer: { mode: "watch", arrangement: "streamer" },
@@ -3307,7 +3350,7 @@ export const LEGACY_LAYOUT_FOR: Readonly<
   Record<CockpitMode, Readonly<Record<string, LayoutName>>>
 > = {
   chat: { default: "forum" },
-  play: { default: "world" },
+  explore: { default: "world" },
   watch: { viewer: "livestream-viewer", streamer: "streamer" },
   // No legacy layout ever meant "govern" — the builder frame is the
   // closest thing the current client can paint for it.
@@ -3336,6 +3379,8 @@ export interface ArrangementCard {
   placed?: CardPlacement;
   minimized?: boolean;
   pinned?: boolean;
+  /** A terminal card's filter, input mode, and whether it is the primary. */
+  terminal?: { filter: TerminalFilter; inputMode?: string; primary?: true };
 }
 
 /**

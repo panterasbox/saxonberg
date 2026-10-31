@@ -1010,7 +1010,8 @@ class WebSocketClient {
     for (const note of envelope.outcome.notes) {
       const entry = this.promptEntryFromNote(promptId, note);
       if (entry) {
-        store.pushPrompt(entry);
+        // ⭐ The prompt is the asking bar's (client-surface D6, #97).
+        store.pushPrompt(envelope.barId ? { ...entry, barId: envelope.barId } : entry);
         continue;
       }
       if (note.kind === "prompt-validation-failed") {

@@ -59,6 +59,8 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   studio: "the composer",
   stock: "the stock sheet",
   survey: "the survey",
+  terminal: "a terminal",
+  settings: "your settings",
 };
 
 /**

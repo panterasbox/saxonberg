@@ -50,6 +50,7 @@ import type {
   CardRole,
   CardArrangedEnvelope,
   ArrangementCard,
+  TerminalFilter,
 } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
@@ -618,12 +619,16 @@ export default class CardRegistry extends CardRegistryBase {
   public applyArrangement(
     interactive: Interactive,
     wanted: readonly ArrangementCard[],
+    primaryFilter?: TerminalFilter,
   ): { opened: number; closed: number } {
     const want = new Map<CardId, ArrangementCard>();
+    const terminals: ArrangementCard[] = [];
     for (const c of wanted) {
       const id = c.cardId as CardId;
       if (!CARDS_BY_NAME[id] || this.isSubjectCard(id)) continue;
-      if (!want.has(id)) want.set(id, c);
+      // ⭐ An arrangement may name SEVERAL terminals — each its own card.
+      if (id === 'terminal') terminals.push(c);
+      else if (!want.has(id)) want.set(id, c);
     }
     const bucket = this.cards.get(interactive);
     let closed = 0;
@@ -631,7 +636,10 @@ export default class CardRegistry extends CardRegistryBase {
     if (bucket) {
       for (const [instanceId, state] of [...bucket.entries()]) {
         if (this.isSubjectCard(state.cardId)) continue;
-        const spec = want.get(state.cardId);
+        // The primary terminal is never closed by a rearrange; the other
+        // terminals are re-opened from the arrangement below.
+        if (state.role === 'primary') continue;
+        const spec = state.cardId === 'terminal' ? undefined : want.get(state.cardId);
         if (spec) {
           // Already open and still wanted — keep it (closing and reopening
           // would blank it), and give it the arrangement's shape and place.
@@ -654,7 +662,156 @@ export default class CardRegistry extends CardRegistryBase {
       };
       if (this.open(interactive, cardId, opts) !== null) opened++;
     }
+
+    // ⭐⭐ Every mode has a PRIMARY terminal (client-surface D6): the
+    // arrangement's, else the mode's default filter — minted whenever none
+    // is up, retargeted when one is.
+    //
+    // ⚠ Only when the caller names the MODE (its filter) or the
+    // arrangement names a primary — a bare re-arrange of cards is not a
+    // mode entry and touches no terminal (B15).
+    const primarySpec = terminals.find((t) => t.terminal?.primary === true);
+    const primaryWant = primarySpec?.terminal?.filter ?? primaryFilter;
+    if (primaryWant !== undefined) {
+      const primary = this.findRole(interactive, 'primary');
+      if (primary) {
+        this.retarget(primary, primaryWant);
+        if (primarySpec) this.applySpec(primary, primarySpec);
+      } else if (this.openTerminal(interactive, primaryWant, { primary: true, spec: primarySpec })) {
+        opened++;
+      }
+    }
+    for (const t of terminals) {
+      if (t === primarySpec) continue;
+      if (this.openTerminal(interactive, t.terminal?.filter ?? {}, { spec: t })) opened++;
+    }
     return { opened, closed };
+  }
+
+  /**
+   * ⭐ Open a terminal card (client-surface D6) with its own bar. Its
+   * `barId` is minted here and never changes, so its input mode stays its
+   * own across retargets. Returns the instance id, or null.
+   */
+  @CallSecurity(CardApiCallers)
+  public openTerminal(
+    interactive: Interactive,
+    filter: TerminalFilter,
+    opts: { primary?: boolean; spec?: ArrangementCard } = {},
+  ): string | null {
+    const barId = `bar-${SecurityApi.uuid()}`;
+    const spec = opts.spec;
+    const id = this.open(interactive, 'terminal', {
+      key: this.terminalKey(filter),
+      title: this.terminalTitle(filter),
+      payload: { kind: 'terminal', filter, barId, primary: opts.primary === true },
+      ...(spec?.size ? { size: spec.size } : opts.primary ? { size: 'medium' as const } : {}),
+      ...(spec?.placed ? { placed: spec.placed } : {}),
+      ...(spec?.minimized !== undefined ? { minimized: spec.minimized } : {}),
+    });
+    if (id === null) return null;
+    const state = this.cards.get(interactive)?.get(id);
+    if (state && opts.primary) {
+      state.role = 'primary';
+      this.pushArranged(state);
+    }
+    const mode = spec?.terminal?.inputMode;
+    if (mode) this.setInputMode(interactive, barId, mode);
+    return id;
+  }
+
+  /**
+   * Point the primary terminal at a new filter (`cockpit terminal <view>`),
+   * or open a new terminal beside it (`--beside`). Returns the card's id.
+   */
+  @CallSecurity(CardApiCallers)
+  public showInTerminal(
+    interactive: Interactive,
+    filter: TerminalFilter,
+    beside: boolean,
+  ): string | null {
+    const primary = this.findRole(interactive, 'primary');
+    if (beside || !primary) {
+      return this.openTerminal(interactive, filter, { primary: !primary });
+    }
+    this.retarget(primary, filter);
+    return primary.instanceId;
+  }
+
+  /**
+   * Make another terminal the primary (`cockpit terminal primary <card>`).
+   * Returns the refusal reason, or null.
+   */
+  @CallSecurity(CardApiCallers)
+  public setPrimaryTerminal(interactive: Interactive, cardRef: string): string | null {
+    const next = this.findRef(interactive, cardRef);
+    if (!next) return 'unknown-card';
+    if (next.cardId !== 'terminal') return 'not-a-terminal';
+    const current = this.findRole(interactive, 'primary');
+    if (current === next) return null;
+    if (current) {
+      delete current.role;
+      this.setPrimaryFlag(current, false);
+    }
+    next.role = 'primary';
+    next.minimized = false;
+    this.setPrimaryFlag(next, true);
+    return null;
+  }
+
+  private setPrimaryFlag(state: CardState, primary: boolean): void {
+    if (state.payload?.kind === 'terminal') {
+      state.payload = { ...state.payload, primary };
+    }
+    this.pushTerminal(state);
+    this.pushArranged(state);
+  }
+
+  /** Change a terminal card's filter, keeping its bar. */
+  private retarget(state: CardState, filter: TerminalFilter): void {
+    if (state.payload?.kind !== 'terminal') return;
+    state.payload = { ...state.payload, filter };
+    state.key = this.terminalKey(filter);
+    state.title = this.terminalTitle(filter);
+    state.lastTouchedAt = Date.now();
+    this.pushTerminal(state);
+  }
+
+  private pushTerminal(state: CardState): void {
+    const holder = this.viewerOf(state.interactive);
+    if (!holder) return;
+    const template: Omit<CardTouchedEnvelope, 'frameId'> = {
+      type: 'card-touched',
+      instanceId: state.instanceId,
+      key: state.key,
+      ...(state.title !== undefined ? { title: state.title } : {}),
+      ...(state.payload ? { payload: state.payload } : {}),
+      ...(state.role ? { role: state.role } : {}),
+    };
+    holder.onEnvelope(template);
+  }
+
+  /** The command that reproduces a terminal — what its refresh says. */
+  private terminalKey(filter: TerminalFilter): string {
+    if (filter.channel) return `cockpit terminal #${filter.channel}`;
+    return `cockpit terminal ${filter.view ?? 'All'}`;
+  }
+
+  private terminalTitle(filter: TerminalFilter): string {
+    if (filter.channel) return `#${filter.channel}`;
+    return filter.view ?? 'All';
+  }
+
+  /** Restore a terminal's input mode into the session's per-bar map. */
+  private setInputMode(interactive: Interactive, barId: string, mode: string): void {
+    const holder = this.viewerOf(interactive);
+    if (!holder || !MixinApi.isClientState(holder)) return;
+    const modes = {
+      ...(holder.getClientState<Record<string, string>>('cockpit.inputModes') ?? {}),
+      [barId]: mode,
+    };
+    holder.setClientState('cockpit.inputModes', modes);
+    holder.pushClientStateUpdate('cockpit.inputModes', modes);
   }
 
   /** Give an open card an arrangement's recorded shape and place. */
@@ -818,6 +975,7 @@ export default class CardRegistry extends CardRegistryBase {
     const bucket = this.cards.get(interactive)!;
     switch (action) {
       case 'close': {
+        if (state.role === 'primary') return { refused: 'primary-terminal' };
         if (state.role) return { refused: 'role-card' };
         this.close(interactive, state.instanceId, 'dismissed');
         return { refused: null, instanceId: state.instanceId };
@@ -832,7 +990,7 @@ export default class CardRegistry extends CardRegistryBase {
       case 'grow':
       case 'shrink': {
         const ladder: WidthClass[] =
-          (state.cardId as string) === 'terminal'
+          state.cardId === 'terminal'
             ? ['line', 'unit', 'medium', 'full']
             : ['unit', 'medium', 'full'];
         const i = Math.max(0, ladder.indexOf(state.size));
@@ -872,7 +1030,7 @@ export default class CardRegistry extends CardRegistryBase {
         break;
       }
       case 'unplace':
-        if (state.role) return { refused: 'role-card' };
+        if (state.role === 'here') return { refused: 'role-card' };
         delete state.placed;
         break;
     }

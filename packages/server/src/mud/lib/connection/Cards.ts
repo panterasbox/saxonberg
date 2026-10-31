@@ -113,7 +113,8 @@ export type CardPayloadKind =
   | 'releases'
   | 'wikiPage'
   | 'helpTopic'
-  | 'survey';
+  | 'survey'
+  | 'terminal';
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
@@ -368,6 +369,35 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * strike row tightens. Nothing accumulates in the card; the card shows
    * what the character knows.
    */
+  /**
+   * ⭐ **A terminal is a card** (client-surface D6): a filtered view of the
+   * one frame store with its own command bar. Its `barId` IS its
+   * instance id, so the shipped per-bar input mode is per terminal by
+   * construction. The PRIMARY is a role — minted whenever none is up,
+   * never closed. Pinned: a terminal is a workspace, not a reading.
+   */
+  terminal: {
+    label: 'a terminal',
+    source: { kind: 'payload', producer: 'terminal' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'cockpit terminal <subject>',
+    noProse: true,
+  },
+
+  /**
+   * ⭐ **Your settings, as a card** (client-surface D10) — the editor that
+   * used to be a docked panel. Opened by the `settings` verb; one of it.
+   */
+  settings: {
+    label: 'your settings',
+    source: { kind: 'client' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'settings',
+    singleton: true,
+  },
+
   survey: {
     label: 'the survey',
     source: { kind: 'payload', producer: 'survey' },

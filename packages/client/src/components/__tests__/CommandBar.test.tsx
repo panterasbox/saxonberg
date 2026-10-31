@@ -21,6 +21,8 @@ function resetStore(): void {
     prompts: [],
     promptDrafts: { [BASE_SLOT]: '' },
     activeSlot: BASE_SLOT,
+    activeSlotByBar: {},
+    primaryBarId: null,
     basePrompt: 'here>',
     echoSnapshotQueue: [],
   });
@@ -568,5 +570,78 @@ describe('CommandBar — meta affordances', () => {
       });
     });
     expect(screen.getByText('2')).toBeTruthy();
+  });
+});
+
+describe('⭐ a prompt belongs to the bar that asked (client-surface D6, #97)', () => {
+  beforeEach(resetStore);
+
+  const choice = (barId?: string): PromptEntry =>
+    ({
+      kind: 'choice',
+      promptId: 'p-bar',
+      label: 'Which loaf?',
+      choices: [
+        { label: 'rye', response: 'rye' },
+        { label: 'oat', response: 'oat' },
+      ],
+      foreground: true,
+      ...(barId ? { barId } : {}),
+    }) as PromptEntry;
+
+  function renderTwo(a: Spies, b: Spies) {
+    render(
+      <>
+        <CommandBar
+          barId="one"
+          onSendCommand={a.onSendCommand}
+          onSendPromptResponse={a.onSendPromptResponse}
+          onCancelPrompt={a.onCancelPrompt}
+        />
+        <CommandBar
+          barId="two"
+          primary={false}
+          onSendCommand={b.onSendCommand}
+          onSendPromptResponse={b.onSendPromptResponse}
+          onCancelPrompt={b.onCancelPrompt}
+        />
+      </>,
+    );
+  }
+
+  it('the asking bar is in prompt mode; the other bar\'s Enter sends a command', () => {
+    const a = makeSpies();
+    const b = makeSpies();
+    renderTwo(a, b);
+    act(() => useStore.getState().pushPrompt(choice('one')));
+    const inputs = screen.getAllByRole('textbox') as HTMLInputElement[];
+    const second = inputs[1]!;
+    fireEvent.change(second, { target: { value: 'look' } });
+    fireEvent.keyDown(second, { key: 'Enter' });
+    expect(b.onSendCommand).toHaveBeenCalledWith('look', 'two');
+    expect(b.onSendPromptResponse).not.toHaveBeenCalled();
+  });
+
+  it('an un-barred prompt lands on the primary bar only', () => {
+    const a = makeSpies();
+    const b = makeSpies();
+    renderTwo(a, b);
+    act(() => useStore.getState().pushPrompt(choice()));
+    expect(useStore.getState().activeSlotByBar['one']).toBe('p-bar');
+    expect(useStore.getState().activeSlotByBar['two']).toBeUndefined();
+  });
+
+  it('typing a COMMAND at a choice prompt sends it — typed text is never swallowed', () => {
+    const a = makeSpies();
+    const b = makeSpies();
+    renderTwo(a, b);
+    act(() => useStore.getState().pushPrompt(choice('one')));
+    const first = (screen.getAllByRole('textbox') as HTMLInputElement[])[0]!;
+    fireEvent.change(first, { target: { value: 'inventory' } });
+    fireEvent.keyDown(first, { key: 'Enter' });
+    expect(a.onSendCommand).toHaveBeenCalledWith('inventory', 'one');
+    fireEvent.change(first, { target: { value: '2' } });
+    fireEvent.keyDown(first, { key: 'Enter' });
+    expect(a.onSendPromptResponse).toHaveBeenCalledWith('p-bar', 'oat');
   });
 });

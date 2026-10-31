@@ -49,7 +49,7 @@ export interface ArrangementDef {
 export const MODE_REGISTRY: Partial<
   Record<CockpitMode, Record<string, ArrangementDef>>
 > = {
-  play: { default: { label: "World", Component: WorldLayout } },
+  explore: { default: { label: "Explore", Component: WorldLayout } },
   chat: { default: { label: "Forums", Component: ForumLayout } },
   watch: {
     viewer: { label: "Viewer", Component: LivestreamViewerLayout },
@@ -71,7 +71,7 @@ export interface ResolvedMode {
   fallbackFrom: { mode: CockpitMode; arrangement: string } | null;
 }
 
-const FLOOR: CockpitMode = "play";
+const FLOOR: CockpitMode = "explore";
 
 /**
  * Resolve the frame to render from the server-authoritative cockpit

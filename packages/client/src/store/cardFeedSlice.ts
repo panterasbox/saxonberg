@@ -226,7 +226,10 @@ export function visibleCards(
        * setting that never claimed to.
        */
       (resultDisplay !== "terminal" || c.prose === undefined) &&
-      (kinds === null || kinds.has(c.cardId)),
+      (kinds === null || kinds.has(c.cardId)) &&
+      // ⭐ A terminal card lives in the terminal column, not the feed
+      // (client-surface D6/D9).
+      c.cardId !== "terminal",
   );
 }
 

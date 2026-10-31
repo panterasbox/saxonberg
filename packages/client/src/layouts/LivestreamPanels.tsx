@@ -181,6 +181,7 @@ export function LivestreamPanels({
             independent of the game bar (e.g. scoped to `twitch`). */}
         <CommandBar
           barId="stream-chat"
+          primary={false}
           onSendCommand={onSendCommand}
           onSendPromptResponse={onSendPromptResponse}
           onCancelPrompt={onCancelPrompt}

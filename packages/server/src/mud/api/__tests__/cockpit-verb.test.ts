@@ -82,6 +82,7 @@ describe('the cockpit verb', () => {
       'mode',
       'shelf',
       'style',
+      'terminal',
     ]);
     expect(cockpit!.controllerForSubcommand('card')).toBe(
       '/platform/idea/cmd/shell/CockpitCardController'

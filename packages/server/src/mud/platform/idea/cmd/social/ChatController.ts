@@ -125,6 +125,9 @@ export default class ChatController extends CommandController<ChatModel> {
             .topic('speech.channel')
             .modality('verbal-esp')
             .meta({ channelId: ad.handle })
+            // ⭐ The channel in a field the record layer keeps (D6): a
+            // backfilled frame filters into its channel's terminal too.
+            .tags([`channel:${ad.handle}`])
             .toTarget(m, Mml.compose`[${ad.handle}] ${Mml.actor(speaker)}: ${body}`)
             .payload({
               channelId: ad.handle,
@@ -139,6 +142,7 @@ export default class ChatController extends CommandController<ChatModel> {
           .topic('speech.channel')
           .modality('verbal-esp')
           .meta({ channelId: ad.handle })
+          .tags([`channel:${ad.handle}`])
           .toSelf(Mml.compose`[${ad.handle}] You: ${body}`)
           .payload({
             channelId: ad.handle,

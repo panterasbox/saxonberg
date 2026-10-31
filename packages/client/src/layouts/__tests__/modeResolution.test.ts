@@ -95,7 +95,7 @@ describe("resolveMode", () => {
           LEGACY_LAYOUT_MIGRATION[name as keyof typeof LEGACY_LAYOUT_MIGRATION];
         // ⚠ `cockpit.mode` is deliberately null for a legacy player —
         // the server reads that null as its cue to migrate rather than
-        // assuming `play`, and the client has to do the same or it lands
+        // assuming `explore`, and the client has to do the same or it lands
         // everyone in the world layout regardless of what they saved.
         const r = resolveMode(null, undefined, name as never);
         if (MODE_REGISTRY[expected.mode]?.[expected.arrangement]) {
@@ -123,12 +123,12 @@ describe("resolveMode", () => {
     // unbuilt mode indistinguishable from a finished one.
     const r = resolveMode("govern", {}, null);
     expect(r.fallbackFrom).toEqual({ mode: "govern", arrangement: "default" });
-    expect(r.mode).toBe("play");
+    expect(r.mode).toBe("explore");
   });
 
-  it("floors to play when nothing at all is known", () => {
+  it("floors to explore when nothing at all is known", () => {
     const r = resolveMode(null, undefined, null);
-    expect(r.mode).toBe("play");
+    expect(r.mode).toBe("explore");
     expect(r.fallbackFrom).toBeNull();
   });
 });

@@ -47,7 +47,7 @@ describe('legacy cockpit.layout migration', () => {
 
   it('leaves a genuinely fresh host on the default mode', () => {
     const h = makeStuff(() => new TestHost());
-    expect(h.getCockpitMode()).toBe('play');
+    expect(h.getCockpitMode()).toBe('explore');
     expect(h.getCockpitArrangement()).toBe('default');
   });
 
@@ -88,14 +88,14 @@ describe('legacy cockpit.layout migration', () => {
 
   /*
    * The legacy arrangement is scoped to the mode it migrated to. A
-   * `livestream-viewer` host asked about `play` must get play's own
-   * default — 'viewer' is not an arrangement `play` has ever heard of,
+   * `livestream-viewer` host asked about `explore` must get explore's own
+   * default — 'viewer' is not an arrangement `explore` has ever heard of,
    * and answering with it would leak one mode's vocabulary into another.
    */
   it('does not let a legacy arrangement answer for a different mode', () => {
     const h = legacyHost('livestream-viewer');
     expect(h.getCockpitArrangement('watch')).toBe('viewer');
-    expect(h.getCockpitArrangement('play')).toBe('default');
+    expect(h.getCockpitArrangement('explore')).toBe('default');
     expect(h.getCockpitArrangement('build')).toBe('default');
   });
 
@@ -120,7 +120,7 @@ describe('legacy cockpit.layout migration', () => {
     ).toBe('default');
 
     const fresh = makeStuff(() => new TestHost());
-    expect(fresh.snapshotClientState()['cockpit.mode']).toBe('play');
+    expect(fresh.snapshotClientState()['cockpit.mode']).toBe('explore');
   });
 });
 
@@ -132,7 +132,7 @@ describe('the cockpit mode vocabulary', () => {
   it('ships the slate’s five front doors', () => {
     expect([...COCKPIT_MODES]).toEqual([
       'chat',
-      'play',
+      'explore',
       'watch',
       'build',
       'govern',

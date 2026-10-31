@@ -35,6 +35,7 @@
  * affordance cache, which is answered fresh per subject.
  */
 
+import { SettingsPanel } from "../settings/SettingsPanel";
 import React from "react";
 import styled from "styled-components";
 import type {
@@ -1080,6 +1081,16 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
    */
   if (card.payload) return <PayloadBody {...props} />;
   if (card.promptId) return <PromptCardBody card={card} />;
+  // ⭐ Settings are a card (client-surface D10): the editor that was a
+  // docked panel. Closing it is a real command.
+  if (card.cardId === 'settings') {
+    return (
+      <SettingsPanel
+        onSendCommand={props.onSendCommand}
+        onClose={() => props.onSendCommand('cockpit card close settings')}
+      />
+    );
+  }
   if (CLIENT_BODIES[card.cardId]) return <ClientBody card={card} />;
   return <MqlBody {...props} />;
 }
@@ -1208,6 +1219,15 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       return <HelpTopicBody topic={payload.topic} />;
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
+    case 'terminal':
+      // A terminal card's body is the terminal itself; the terminal
+      // column renders it (client-surface D6). In the feed it says what
+      // it shows.
+      return (
+        <Prose data-testid="card-terminal">
+          {payload.filter.channel ? `#${payload.filter.channel}` : payload.filter.view ?? 'All'}
+        </Prose>
+      );
   }
 }
 

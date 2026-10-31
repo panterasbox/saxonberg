@@ -11,7 +11,7 @@ import { ShellApi } from '../../../api/shell';
 import { CommandLineApi } from '../../../api/command-line';
 import type CardRegistry from '../CardRegistry';
 import type { CardOpenOptions, CardListing, CardArrangeAction } from '../CardRegistry';
-import type { CardCloseReason, CardId, CardPlacement, ArrangementCard } from '@saxonberg/types';
+import type { CardCloseReason, CardId, CardPlacement, ArrangementCard, TerminalFilter } from '@saxonberg/types';
 import type { CommandContext } from '../../../api/command';
 import { CARDS } from '../../../lib/connection/Cards';
 
@@ -191,8 +191,25 @@ export class CardLogic extends ApiLogic {
   public applyArrangement(
     interactive: Interactive,
     cards: readonly ArrangementCard[],
+    primaryFilter?: TerminalFilter,
   ): { opened: number; closed: number } {
-    return resolveRegistry().applyArrangement(interactive, cards);
+    return resolveRegistry().applyArrangement(interactive, cards, primaryFilter);
+  }
+
+  /** See {@link Interactive.showInTerminal}. */
+  @CallSecurity(CardCallers)
+  public showInTerminal(
+    interactive: Interactive,
+    filter: TerminalFilter,
+    beside: boolean,
+  ): string | null {
+    return resolveRegistry().showInTerminal(interactive, filter, beside);
+  }
+
+  /** See {@link Interactive.setPrimaryTerminal}. */
+  @CallSecurity(CardCallers)
+  public setPrimaryTerminal(interactive: Interactive, cardRef: string): string | null {
+    return resolveRegistry().setPrimaryTerminal(interactive, cardRef);
   }
 
   /** See {@link Interactive.notifyPromptSettled}. */

@@ -8,7 +8,7 @@
  *
  * ⚠ **A mode gates nothing.** It selects which arrangements ship, which
  * one you land in, and which card kinds may be summoned. It does not
- * decide what you may run — everything runnable in `play` is runnable
+ * decide what you may run — everything runnable in `explore` is runnable
  * in `build`. A mode that forbade a verb would be a permission system
  * wearing a UI costume, with its checks in the wrong layer; that is
  * why this controller writes client state and touches nothing else.
@@ -33,7 +33,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../../lib/character/Avatar';
 import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
-import { COCKPIT_MODES, type CockpitMode } from '@saxonberg/types';
+import { COCKPIT_MODES, MODE_PRIMARY_FILTER, type CockpitMode } from '@saxonberg/types';
 
 const MODE_KEY = 'cockpit.mode';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
@@ -81,7 +81,10 @@ export default class CockpitModeController extends CommandController<CockpitMode
     if (!(COCKPIT_MODES as readonly string[]).includes(name)) {
       return this.fail(
         context,
-        `unknown mode '${name}' (known: ${COCKPIT_MODES.join(', ')})`,
+        // The mode that used to be `play` says where it went.
+        name === 'play'
+          ? `the play mode is called explore now — cockpit mode explore`
+          : `unknown mode '${name}' (known: ${COCKPIT_MODES.join(', ')})`,
         'unknown-mode',
       );
     }
@@ -90,7 +93,7 @@ export default class CockpitModeController extends CommandController<CockpitMode
 
     // An explicit arrangement is checked against the mode being
     // ENTERED, not the one being left — otherwise `cockpit mode watch
-    // streamer` from play would be judged against play's vocabulary.
+    // streamer` from explore would be judged against explore's vocabulary.
     const wanted = model.arrangement?.trim();
     if (wanted && !host.getArrangementNames(mode).includes(wanted)) {
       return this.fail(
@@ -118,6 +121,7 @@ export default class CockpitModeController extends CommandController<CockpitMode
     if (interactive) {
       interactive.applyCardArrangement(
         host.arrangementCards(mode, arrangement),
+        MODE_PRIMARY_FILTER[mode],
       );
     }
     this.send(

@@ -36,6 +36,7 @@ import type {
   PromptChoice,
   CardPlacement,
   ArrangementCard,
+  TerminalFilter,
 } from '@saxonberg/types';
 import type { CardOpenOptions, CardListing, CardArrangeAction } from './CardRegistry';
 import type {
@@ -342,11 +343,27 @@ export default class Interactive extends Idea {
    * ⭐⭐ Open exactly the cards an arrangement names — the SERVER
    * resolving a workspace, not the client replaying it.
    */
-  public applyCardArrangement(cards: readonly ArrangementCard[]): {
+  public applyCardArrangement(
+    cards: readonly ArrangementCard[],
+    primaryFilter?: TerminalFilter,
+  ): {
     opened: number;
     closed: number;
   } {
-    return cardLogic().applyArrangement(this, cards);
+    return cardLogic().applyArrangement(this, cards, primaryFilter);
+  }
+
+  /**
+   * ⭐ Show a view or channel in the primary terminal, or in a new terminal
+   * card beside it (`cockpit terminal`, client-surface D6).
+   */
+  public showInTerminal(filter: TerminalFilter, beside: boolean): string | null {
+    return cardLogic().showInTerminal(this, filter, beside);
+  }
+
+  /** Make another terminal card the primary; the refusal reason, or null. */
+  public setPrimaryTerminal(cardRef: string): string | null {
+    return cardLogic().setPrimaryTerminal(this, cardRef);
   }
 
   /**

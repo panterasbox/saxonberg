@@ -14,7 +14,7 @@ help: |
     cockpit style <sub> …         appearance: theme, colors, plain mode
 
   Two axes, and they are different questions. A MODE is the front door
-  — chat, play, watch, build, govern. A LAYOUT is how the cards sit
+  — chat, explore, watch, build, govern. A LAYOUT is how the cards sit
   inside the mode you are in, and each mode remembers its own.
 
   Cockpit control is interface, not fiction — so `cockpit` and every
@@ -37,18 +37,18 @@ examples:
 subcommands:
   mode:
     controller: /platform/idea/cmd/shell/CockpitModeController
-    description: "Switch the cockpit mode (chat | play | watch | build | govern)."
+    description: "Switch the cockpit mode (chat | explore | watch | build | govern)."
     help: |
       A mode is a front door — it answers *what am I here to do*.
-      `chat` is talking to people, `play` is living in the world,
+      `chat` is talking to people, `explore` is living in the world,
       `watch` is a stream (as viewer or broadcaster), `build` is
       making things, and `govern` is the offices and the polity.
 
       Each mode remembers the arrangement you last used in it, so
-      switching to `chat` and back to `play` puts you where you were.
+      switching to `chat` and back to `explore` puts you where you were.
 
       A mode changes what your screen is FOR, never what you are
-      allowed to do: everything you can run in `play` you can run in
+      allowed to do: everything you can run in `explore` you can run in
       every other mode. Bare `cockpit mode` reports the current one.
       Naming an arrangement too — `cockpit mode watch streamer` — goes
       straight to that front door in that arrangement, which is what
@@ -86,7 +86,7 @@ subcommands:
       being moved there — recalling a layout is not a mode change.
 
       Your arrangement is remembered per mode: switch to `chat` and
-      back to `play` and you land where you left off. It follows you
+      back to `explore` and you land where you left off. It follows you
       across reconnects and every connection you have open.
 
       The "Views" menu in the cockpit sends this command for you —
@@ -157,6 +157,43 @@ subcommands:
       # control names another, because an affordance dispatches
       # un-prefixed and has to say which line it means.
       - name: cli
+        type: string
+        required: false
+
+  terminal:
+    controller: /platform/idea/cmd/shell/CockpitTerminalController
+    description: "Show a view or a channel in a terminal."
+    help: |
+      A terminal is a card: a view of everything you have been told,
+      filtered, with its own command line. Every mode has one PRIMARY
+      terminal, which cannot be closed; you can open more beside it.
+
+        cockpit terminal <view>            show a view in the primary
+        cockpit terminal #<channel>        show a channel in the primary
+        cockpit terminal <view> --beside   open it in a new terminal
+        cockpit terminal primary <card>    make another terminal primary
+
+      A view is one of your console views (`All`, `Chat`, and the ones
+      you saved); a channel is a chat channel by name. Each terminal
+      keeps its own input mode (`cockpit cli`) and its own questions —
+      a prompt waits on the line that asked it.
+    examples:
+      - cmd: cockpit terminal "#general"
+        note: Show the general channel in the primary terminal
+      - cmd: cockpit terminal Chat --beside
+        note: Open the chat view in a second terminal
+      - cmd: cockpit terminal All
+        note: Put the primary back to everything
+    options:
+      beside:
+        short: b
+        type: boolean
+        description: "Open it in a new terminal beside the primary."
+    args:
+      - name: target
+        type: string
+        required: false
+      - name: cardId
         type: string
         required: false
 

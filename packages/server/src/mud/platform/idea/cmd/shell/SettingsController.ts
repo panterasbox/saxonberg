@@ -19,6 +19,7 @@ import type {
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { CardApi } from '../../../../api/card';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type {
   Environment,
@@ -87,7 +88,12 @@ export default class SettingsController extends CommandController<SettingsModel>
       }
       lines.push('');
     }
-    this.send(context, Mml.fromMarkup(lines.join('\n')));
+    const report = Mml.fromMarkup(lines.join('\n'));
+    this.send(context, report);
+    // ⭐ Settings are a CARD (client-surface D10): the list opens (or
+    // touches — it is a singleton) the settings card, whose body is the
+    // client's editor. The report above stays the terminal's answer.
+    CardApi.open(context, 'settings', { prose: report });
     return;
   }
 

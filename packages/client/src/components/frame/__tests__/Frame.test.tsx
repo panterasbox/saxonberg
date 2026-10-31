@@ -92,7 +92,7 @@ describe('Frame', () => {
   it('⚠ keeps the Views switcher and the Settings affordance', () => {
     render(
       <Frame
-        mode="play"
+        mode="explore"
         onCommandClick={() => {}}
         onCommandPreview={() => {}}
         onToggleSettings={() => {}}

@@ -97,7 +97,7 @@ describe('CockpitModeController', () => {
   }
 
   it('starts on the default mode', () => {
-    expect(actor.getCockpitMode()).toBe('play');
+    expect(actor.getCockpitMode()).toBe('explore');
   });
 
   it('sets a known mode and pushes both axes', async () => {
@@ -127,7 +127,7 @@ describe('CockpitModeController', () => {
 
   it('rejects an unknown mode and does not write', async () => {
     const ctx = await run('study');
-    expect(actor.getCockpitMode()).toBe('play');
+    expect(actor.getCockpitMode()).toBe('explore');
     expect(pushSpy).not.toHaveBeenCalled();
     expect(
       ctx.getNotes().some(
@@ -138,7 +138,7 @@ describe('CockpitModeController', () => {
 
   it('reports rather than refusing on a bare invocation', async () => {
     const ctx = await run();
-    expect(actor.getCockpitMode()).toBe('play');
+    expect(actor.getCockpitMode()).toBe('explore');
     expect(pushSpy).not.toHaveBeenCalled();
     expect(
       ctx.getNotes().some((n) => n.kind === 'controller-rejected'),
@@ -162,24 +162,24 @@ describe('CockpitModeController', () => {
 
     it('overrides the remembered arrangement', async () => {
       await run('watch', 'streamer');
-      await run('play');
+      await run('explore');
       await run('watch', 'viewer');
       expect(actor.getCockpitArrangement()).toBe('viewer');
     });
 
     /*
      * Judged against the mode being ENTERED, not the one being left —
-     * otherwise `cockpit mode watch streamer` from play would be
-     * checked against play's vocabulary and always refuse.
+     * otherwise `cockpit mode watch streamer` from explore would be
+     * checked against explore's vocabulary and always refuse.
      */
     it('validates against the target mode, not the current one', async () => {
-      expect(actor.getCockpitMode()).toBe('play');
+      expect(actor.getCockpitMode()).toBe('explore');
       const ok = await run('watch', 'streamer');
       expect(
         ok.getNotes().some((n) => n.kind === 'controller-rejected'),
       ).toBe(false);
 
-      const bad = await run('play', 'streamer');
+      const bad = await run('explore', 'streamer');
       expect(
         bad.getNotes().some(
           (n) =>
@@ -203,7 +203,7 @@ describe('CockpitModeController', () => {
       watch: 'streamer',
     });
 
-    await run('play');
+    await run('explore');
     expect(actor.getCockpitArrangement()).toBe('default');
 
     await run('watch');

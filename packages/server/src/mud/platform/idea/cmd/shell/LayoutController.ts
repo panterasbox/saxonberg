@@ -38,7 +38,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Avatar from '../../../../lib/character/Avatar';
 import type { ClientState } from '../../../../lib/connection/ClientState';
 import type { SaxonbergClient } from '../../../../lib/connection/SaxonbergClient';
-import type { ArrangementSpec, ArrangementCard, CockpitMode, CardId } from '@saxonberg/types';
+import { MODE_PRIMARY_FILTER, type ArrangementSpec, type ArrangementCard, type CockpitMode, type CardId } from '@saxonberg/types';
 
 const LAYOUT_KEY = 'cockpit.layout';
 const ARRANGEMENTS_KEY = 'cockpit.arrangements';
@@ -115,6 +115,7 @@ export default class LayoutController extends CommandController<LayoutModel> {
     if (interactive) {
       interactive.applyCardArrangement(
         host.arrangementCards(mode, name),
+        MODE_PRIMARY_FILTER[mode],
       );
     }
     this.send(

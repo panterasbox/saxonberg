@@ -163,7 +163,7 @@ describe('the command sheet, intercepting at App', () => {
     // compositions; its command string is built by `ViewsMenu`, not by
     // this test.
     fireEvent.click(screen.getByText('Bartleby'));
-    const item = screen.getByTestId('views-item-play:default');
+    const item = screen.getByTestId('views-item-explore:default');
     const label = item.textContent ?? '';
     fireEvent.click(item);
     return label;
@@ -207,7 +207,7 @@ describe('the command sheet, intercepting at App', () => {
     setViewport(false);
     render(<App />);
     fireEvent.click(screen.getByLabelText('Open the Views menu'));
-    fireEvent.click(screen.getByTestId('views-item-play:default'));
+    fireEvent.click(screen.getByTestId('views-item-explore:default'));
 
     expect(sent).toHaveLength(1);
     expect(screen.queryByTestId('command-sheet')).toBeNull();

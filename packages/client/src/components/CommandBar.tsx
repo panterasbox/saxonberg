@@ -41,7 +41,7 @@
  * plain text-edit keys.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import {
   useStore,
@@ -58,6 +58,11 @@ interface CommandBarProps {
    * terminals each get their own bar with a distinct `barId`.
    */
   barId: string;
+  /**
+   * ⭐ The PRIMARY bar takes the prompts no bar asked (an affordance
+   * click). Default true — a layout with one bar has one primary.
+   */
+  primary?: boolean;
   /** Send a command, tagged with this bar's `barId` (server prepends mode). */
   onSendCommand: (text: string, barId?: string) => void;
   onSendPromptResponse: (promptId: string, response: string) => void;
@@ -447,11 +452,28 @@ function submitButtonLabel(entry: PromptEntry | undefined): string {
 
 export function CommandBar({
   barId,
+  primary = true,
   onSendCommand,
   onSendPromptResponse,
   onCancelPrompt,
 }: CommandBarProps) {
-  const prompts = useStore((s) => s.prompts);
+  // ⭐ This bar's prompts only (client-surface D6, #97): the ones its own
+  // commands asked, plus — on the primary — the ones no bar asked.
+  const allPrompts = useStore((s) => s.prompts);
+  const primaryBarId = useStore((s) => s.primaryBarId);
+  const setPrimaryBarId = useStore((s) => s.setPrimaryBarId);
+  useEffect(() => {
+    if (primary) setPrimaryBarId(barId);
+  }, [primary, barId, setPrimaryBarId]);
+  const prompts = useMemo(
+    () =>
+      allPrompts.filter((p) =>
+        p.barId !== undefined
+          ? p.barId === barId
+          : primaryBarId === null || primaryBarId === barId,
+      ),
+    [allPrompts, barId, primaryBarId],
+  );
   // This bar's server-authoritative input mode (the prefix the server
   // prepends to bare input from this bar). Display-only — mirrors
   // `cockpit.inputModes[barId]`; the client never wraps input.
@@ -465,10 +487,19 @@ export function CommandBar({
   // their own draft. Preview/flash live in the ghost command line.
   const [baseDraft, setBaseDraft] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const activeSlot = useStore((s) => s.activeSlot);
+  const barSlot = useStore((s) => s.activeSlotByBar[barId]);
+  const legacySlot = useStore((s) => s.activeSlot);
+  // A bar with no slot of its own yet follows the shared one, but only
+  // onto a prompt that is THIS bar's.
+  const wantedSlot = barSlot ?? legacySlot;
+  const activeSlot =
+    wantedSlot === BASE_SLOT || prompts.some((p) => p.promptId === wantedSlot)
+      ? wantedSlot
+      : BASE_SLOT;
   const promptDrafts = useStore((s) => s.promptDrafts);
   const basePrompt = useStore((s) => s.basePrompt);
-  const setActiveSlot = useStore((s) => s.setActiveSlot);
+  const setSlot = useStore((s) => s.setActiveSlot);
+  const setActiveSlot = useCallback((slot: string) => setSlot(slot, barId), [setSlot, barId]);
   const setDraft = useStore((s) => s.setDraft);
   // Input is disabled while the bus is down (reconnecting / dropped):
   // commands can't be sent and are never queued, so a stale command
@@ -612,18 +643,32 @@ export function CommandBar({
       case 'choice': {
         // Numbered CLI path: typing a choice's 1-based number and Enter
         // sends it, the same as clicking the chip (the hover-preview
-        // taught the number). Out-of-range / non-numeric is a no-op.
+        // taught the number).
         const n = parseInt(draft.trim(), 10);
         const list = activeEntry.choices;
-        const picked = Number.isInteger(n) ? list[n - 1] : undefined;
-        if (picked) handleChipSend(activeEntry, picked.response);
+        const picked = /^\d+$/.test(draft.trim()) ? list[n - 1] : undefined;
+        if (picked) {
+          handleChipSend(activeEntry, picked.response);
+          return;
+        }
+        // ⭐ Anything else is a COMMAND (client-surface D6, #97): typed
+        // text is never swallowed by a waiting question.
+        sendDraftAsCommand(draft);
         return;
       }
       case 'mql-object':
       case 'mql-many':
-        // Chip-only kinds: Enter on bare input is a no-op.
+        // Chip-only kinds: typed text is a command, never swallowed.
+        sendDraftAsCommand(draft);
         return;
     }
+  };
+
+  /** Send what was typed into a prompt slot as an ordinary command. */
+  const sendDraftAsCommand = (draft: string) => {
+    if (!draft.trim()) return;
+    onSendCommand(draft, barId);
+    setDraft(activeSlot, '');
   };
 
   const handleChipSend = (entry: PromptEntry, response: string) => {
