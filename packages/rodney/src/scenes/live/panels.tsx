@@ -593,9 +593,10 @@ const SOCIAL = CHANNEL.platforms.filter((p) => p.service !== 'gitlab') as unknow
 }[];
 
 /**
- * The community — people joining, never money: tonight's tallies, the
- * latest arrivals (⭐ new Saxonberg players among them, by character name),
- * and where to find the channel.
+ * The community — people joining, never money: tonight's goal and the
+ * segment it unlocks, the latest arrivals (⭐ new Saxonberg players among
+ * them, by character name) with tonight's tallies, and where to find the
+ * channel in one column.
  */
 function CommunityPanel({ community }: { community: Community }) {
   const label = {
@@ -606,19 +607,78 @@ function CommunityPanel({ community }: { community: Community }) {
     textTransform: 'uppercase',
     color: palette.text.dim,
   } as const;
+  const goal = community.goal;
+  const current = goal
+    ? goal.metric === 'subs'
+      ? community.subsAndGifts
+      : community.newFollowers
+    : 0;
+  const reached = goal !== null && current >= goal.target;
   return (
     <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 48 }}>
-      <div style={{ flex: '0 0 auto' }}>
-        <div style={label}>Tonight</div>
-        <div style={{ display: 'flex', gap: 28, marginTop: 10 }}>
-          <Figure value={`+${community.newPlayers}`} label="New players" />
-          <Figure value={`+${community.newFollowers}`} label="Followers" />
-          <Figure value={`+${community.subsAndGifts}`} label="Subs & gifts" />
+      {goal && (
+        <div style={{ flex: '0 0 520px' }}>
+          <div style={label}>Tonight&rsquo;s goal</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 4 }}>
+            <span
+              style={{
+                fontFamily: FACE_STACKS.display,
+                fontWeight: 500,
+                fontSize: 48,
+                lineHeight: 1,
+                color: palette.text.fg,
+                fontVariantNumeric: 'lining-nums',
+              }}
+            >
+              {Math.min(current, goal.target)} / {goal.target}
+            </span>
+            <span style={{ fontFamily: FACE_STACKS.chrome, fontSize: 26, color: palette.text.dim }}>
+              {goal.metric === 'subs' ? 'new subs' : 'new followers'}
+            </span>
+          </div>
+          <div
+            style={{
+              position: 'relative',
+              height: 12,
+              marginTop: 10,
+              background: palette.bg.sunken,
+              border: `1px solid ${palette.line}`,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: `${Math.min(1, current / goal.target) * 100}%`,
+                background: palette.accent,
+                transition: 'width 1.2s ease-out',
+              }}
+            />
+          </div>
+          <div
+            style={{
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 21,
+              color: reached ? palette.accent : palette.text.dim,
+              fontWeight: reached ? 600 : 400,
+              marginTop: 8,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {reached
+              ? `Goal reached — we end with ${goal.reward}!`
+              : `Hit it and we end with ${goal.reward}`}
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={label}>Latest</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
+          <span style={label}>Latest</span>
+          <span style={{ fontFamily: FACE_STACKS.chrome, fontSize: 18, color: palette.text.mute }}>
+            tonight +{community.newPlayers} players · +{community.newFollowers} followers
+          </span>
+        </div>
         {community.recent.slice(0, 3).map((a, i) => (
           <div
             key={i}
@@ -652,33 +712,23 @@ function CommunityPanel({ community }: { community: Community }) {
       </div>
 
       <div style={{ flex: '0 0 auto' }}>
-        <div style={label}>Find us</div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto auto',
-            columnGap: 24,
-            rowGap: 8,
-            marginTop: 8,
-          }}
-        >
-          {SOCIAL.map((p) => (
-            <div
-              key={p.service}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                fontFamily: FACE_STACKS.chrome,
-                fontSize: 20,
-                color: palette.text.fg,
-              }}
-            >
-              <ServiceGlyph service={p.service} size={22} />
-              {p.handle}
-            </div>
-          ))}
-        </div>
+        {SOCIAL.map((p) => (
+          <div
+            key={p.service}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              marginTop: 4,
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 18,
+              color: palette.text.dim,
+            }}
+          >
+            <ServiceGlyph service={p.service} size={18} />
+            {p.handle}
+          </div>
+        ))}
       </div>
     </div>
   );

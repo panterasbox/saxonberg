@@ -68,11 +68,25 @@ export interface Arrival {
  * players need character creation's commit on the feed; follows, subs, gifts,
  * members and patrons need the giving build's event intake.
  */
+/**
+ * Tonight's goal — a count to reach this stream, and what happens when it is
+ * reached: a segment at the end of the show. Followers until Twitch
+ * Affiliate (subs need it), subs after; five subs a stream is about Twitch's
+ * $50 payout a month.
+ */
+export interface StreamGoal {
+  metric: 'subs' | 'followers';
+  target: number;
+  /** The segment the show ends with when the goal is hit, e.g. "a lore reading". */
+  reward: string;
+}
+
 export interface Community {
   /** Tonight's tallies. */
   newPlayers: number;
   newFollowers: number;
   subsAndGifts: number;
+  goal: StreamGoal | null;
   /** The latest arrivals, newest first. */
   recent: Arrival[];
 }
@@ -129,10 +143,11 @@ const MOCK_MONEY: Money = {
 const MOCK_COMMUNITY: Community = {
   newPlayers: 4,
   newFollowers: 9,
-  subsAndGifts: 7,
+  subsAndGifts: 3,
+  goal: { metric: 'subs', target: 5, reward: 'a bonus segment' },
   recent: [
     { who: 'Iffy', kind: 'player' },
-    { who: 'ironmonger', kind: 'gift', via: 'twitch', count: 5 },
+    { who: 'ironmonger', kind: 'gift', via: 'twitch', count: 2 },
     { who: 'Mara K.', kind: 'patron', via: 'patreon' },
   ],
 };
