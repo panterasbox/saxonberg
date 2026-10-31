@@ -28,6 +28,12 @@ export interface WorldNow {
   headline: string | null;
 }
 
+/** The build the world is running. */
+export interface Build {
+  /** When it was built (deployed commit's date), epoch ms. */
+  at: number;
+}
+
 export interface Show {
   /** The current segment — the topic line. */
   topic: string | null;
@@ -39,6 +45,11 @@ export interface Show {
   playersOnline: number | null;
   /** In-world news and world firsts for the crawl, oldest first. */
   crawl: string[];
+  /**
+   * ⚠ Not exposed by the server at all yet — the deploy has to stamp its
+   * commit and date and the feed carry them.
+   */
+  build: Build | null;
 }
 
 const EMPTY: Show = {
@@ -48,6 +59,7 @@ const EMPTY: Show = {
   world: null,
   playersOnline: null,
   crawl: [],
+  build: null,
 };
 
 const MOCK_SAXONBERG: Show = {
@@ -73,6 +85,7 @@ const MOCK_SAXONBERG: Show = {
     'In the world — the clinic at Duncan Hall is open through the night',
     'World first — the first silk reeled at the Hearts Delight silk house',
   ],
+  build: { at: Date.now() - 1.3 * 86_400_000 },
 };
 
 /** Every other profile's mock: an agenda of its own, no world, no crawl. */

@@ -177,7 +177,20 @@ function Panel({
   );
 }
 
-/** ⭐ The pitch: log in and you're on the stream. */
+/** "Built 3 days ago" — how old the thing on screen is. */
+function buildAge(at: number): string {
+  const days = Math.floor((Date.now() - at) / 86_400_000);
+  const date = new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const age = days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`;
+  return `build of ${date} · ${age}`;
+}
+
+/**
+ * The Saxonberg card. ⭐ The hook is that the viewer can use the thing they
+ * are watching — it is not a streamer's tool — and the brand is restated,
+ * because "mud.panterasbox.com" is no locator for a game called Saxonberg.
+ * The shared world is implied by the count, not sold.
+ */
 function JoinPanel({ show }: { show: Show }) {
   const [qr, setQr] = useState<string | null>(null);
   useEffect(() => {
@@ -191,22 +204,70 @@ function JoinPanel({ show }: { show: Show }) {
   const count =
     show.playersOnline === null
       ? null
-      : `${show.playersOnline} ${show.playersOnline === 1 ? 'player is' : 'players are'} in the world now`;
+      : `${show.playersOnline} ${show.playersOnline === 1 ? 'player' : 'players'} in the world now`;
+  const facts = [count, show.build && buildAge(show.build.at)].filter(Boolean).join(' · ');
 
   return (
-    <Panel
-      kicker="Join the show"
-      title="Log in and you're on the stream"
-      body={[strip(JOIN_URL), count].filter(Boolean).join(' · ')}
-      aside={
-        qr && (
-          <img
-            src={qr}
-            alt=""
-            style={{ width: 140, height: 140, border: `3px solid ${palette.brand.white}` }}
-          />
-        )
-      }
-    />
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 32 }}>
+      {/* The mark standalone, white on Old Glory Blue — it owns this tile. */}
+      <div
+        style={{
+          width: 140,
+          height: 140,
+          flex: '0 0 auto',
+          background: palette.brand.blue,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <img src="/brand/saxonberg-rings-white.svg" alt="" style={{ width: 118, height: 118 }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.display,
+            fontWeight: 500,
+            fontSize: 44,
+            letterSpacing: '0.19em',
+            textTransform: 'uppercase',
+            color: palette.text.fg,
+            lineHeight: 1,
+          }}
+        >
+          Saxonberg
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 30,
+            color: palette.text.fg,
+            marginTop: 10,
+          }}
+        >
+          What you&rsquo;re watching, you can play &mdash;{' '}
+          <span style={{ color: palette.accent, fontWeight: 600 }}>{strip(JOIN_URL)}</span>
+        </div>
+        {facts && (
+          <div
+            style={{
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 24,
+              color: palette.text.dim,
+              marginTop: 8,
+            }}
+          >
+            {facts}
+          </div>
+        )}
+      </div>
+      {qr && (
+        <img
+          src={qr}
+          alt=""
+          style={{ width: 140, height: 140, border: `3px solid ${palette.brand.white}` }}
+        />
+      )}
+    </div>
   );
 }
