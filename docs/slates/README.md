@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**398 slates.** 147 greenfield · 107 continuations · 67 waves · 77 tails.
+**400 slates.** 149 greenfield · 107 continuations · 67 waves · 77 tails.
 
-## ⭐ Greenfield — nothing shipped yet (147)
+## ⭐ Greenfield — nothing shipped yet (149)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -154,6 +154,7 @@ respect.
 | [privacy](./builds/privacy-slate.md) | the privacy surface and its flagging lint · spoiler privilege earned by publication · the install-and-eval trail · the operator residual … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [radioactivity](./builds/radioactivity-slate.md) | radiation as the eighth channel, its fold attenuation through matter by decay mode · dose vs contamination · dose as a body stock, radiation sickness in phases over the `marrow` reserve, seeded long-term risk · contamination as a decaying toxin burden (effective half-life) … |
+| [real-world-anchors](./builds/real-world-anchors-slate.md) | a Wikidata anchor on reality-shaped rows · the relation kind (is · models · contrasts) and its note on how we differ … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
 | [repair](./builds/repair-slate.md) | ✅ three rulings so far (§ 0: *a bad repair is possible*; *the mixin composes on the FAMILIES*; *seats are AUTHORED only* — the owner, 2026-10-16) · the per-part gate on the maker's discipline · the failure mode, deterministic · the paid service performed by a person … |
@@ -186,6 +187,7 @@ respect.
 | [wellbeing](./builds/wellbeing-slate.md) | the TASTE PROFILE (born, learned, aversive, aging) · PLEASURE from taste × internal state × recent eating × expectation, separate from satisfaction · DISCOMFORT as the baseline from shipped physiology · afterglow and hedonic adaptation … |
 | [wheelwright](./builds/wheelwright-slate.md) | `trade-wheelwright` · the wheel as an assembly with a role (`running gear`) · wood by grain · the dish … |
 | [wholesale-market](./builds/wholesale-market-slate.md) | the wholesale market as a place (its archetype, its hours, its layout, trade-only access) · relationships under the spot trade (standing orders, regard, family history) · ⭐ allocation instead of auction (the Crane melon) · grade judged on the spot … |
+| [wiki-content](./builds/wiki-content-slate.md) | pages shipped by the pack that adds the thing · `wiki-starter` for cross-cutting concepts and guides · `/finalize` graduating the player-facing version into the pack's pages · the demo-first content pass, an agent per pack, reviewed in batches … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbor's TEXT is wizard-bar-slate's) · subject notification on record access … |
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |

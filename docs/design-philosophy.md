@@ -321,6 +321,10 @@ Verbs and instruments are the bridges:
 
 ### Principle 4: Reality-shaped models seed from real data
 
+> ⭐ **2026-10-30:** the clean source is **Wikidata** (CC0, public domain), anchored per row by a
+> permanent id; Wikipedia's prose is share-alike and is never copied in →
+> [real-world-anchors-slate](./slates/builds/real-world-anchors-slate.md).
+
 A consequence of Principle 2 with its own authoring payoff. Because
 the substrate models honestly, its schemas end up shaped like the
 real-world datasets that describe the same things. That turns
