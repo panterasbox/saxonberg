@@ -15,6 +15,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Exit from '../boundary/Exit';
 import { type Enablement } from './Enablement';
 import { LocomotionApi } from '../../api/locomotion';
 
@@ -71,6 +72,13 @@ export function SwimmableMixin<TBase extends MixinConstructor<Stuff>>(
     public canBeEngagedBy(actor: Stuff): boolean {
       void actor;
       return true;
+    }
+
+    /** @hook After a crossing on this host (cordage D11). Default: nothing. */
+    public async afterEnabledTraverse(actor: Stuff, direction: string, exit: Exit): Promise<void> {
+      void actor;
+      void direction;
+      void exit;
     }
   };
 }

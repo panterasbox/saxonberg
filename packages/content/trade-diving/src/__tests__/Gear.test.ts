@@ -8,8 +8,9 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Slate from '../thing/Slate';
 import AirBag from '../thing/AirBag';
-import Lifeline from '../thing/Lifeline';
-import LineEnd from '../thing/LineEnd';
+import Rope from '@saxonberg/server/mud/platform/thing/Rope';
+import RopeEnd from '@saxonberg/server/mud/platform/thing/RopeEnd';
+import LineEnd from '@saxonberg/server/mud/platform/thing/LineEnd';
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
@@ -99,7 +100,7 @@ beforeEach(() => {
   seedKernelContentStore();
   const realClone = StuffApi.clone.bind(StuffApi);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string, ...rest: unknown[]) => {
-    if (path === '/trade/diving/thing/line-end') return makeStuff(() => new LineEnd());
+    if (path === '/platform/thing/rope-end') return makeStuff(() => new RopeEnd());
     return (realClone as (...a: unknown[]) => unknown)(path, ...rest);
   }) as unknown as typeof StuffApi.clone);
 });
@@ -151,11 +152,11 @@ describe('what a line cannot bring up, air can (C5)', () => {
     ContainmentApi.move(diver as never, bed as never);
     const a = anchor();
     ContainmentApi.move(a as never, bed as never);
-    const line = makeStuff(() => new Lifeline());
+    const line = makeStuff(() => new Rope());
     ContainmentApi.move(line as never, tender as never);
     await line.makeFast(diver as unknown as Stuff);
     const end = diver.getContents().find((c) => c instanceof LineEnd) as LineEnd;
-    expect(end.lashTo(diver as unknown as Stuff, a as unknown as Stuff).ok).toBe(true);
+    expect((await end.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null)).ok).toBe(true);
     expect(line.getOnEnd()).toBe(a);
     expect(await line.pullBy(tender as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'too-heavy' });
     expect(a.getContainer()).toBe(bed);
@@ -173,23 +174,23 @@ describe('what a line cannot bring up, air can (C5)', () => {
 
     const bags = [bag(), bag(), bag()];
     for (const b of bags) ContainmentApi.move(b as never, diver as never);
-    const first = bags[0]!.lashTo(diver as unknown as Stuff, a as unknown as Stuff);
+    const first = await bags[0]!.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     expect(first.ok).toBe(true);
     expect(a.getContainer()).toBe(bed);
-    bags[1]!.lashTo(diver as unknown as Stuff, a as unknown as Stuff);
+    await bags[1]!.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     expect(a.getContainer()).toBe(bed);
-    bags[2]!.lashTo(diver as unknown as Stuff, a as unknown as Stuff);
+    await bags[2]!.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     expect(a.getContainer()).toBe(top);
     expect(bags.every((b) => b.getContainer() === top)).toBe(true);
 
     // At the top, floated, the tender's line brings it up the steps.
-    const line = makeStuff(() => new Lifeline());
+    const line = makeStuff(() => new Rope());
     ContainmentApi.move(line as never, tender as never);
     ContainmentApi.move(diver as never, top as never);
     await line.makeFast(diver as unknown as Stuff);
     const end = diver.getContents().find((c) => c instanceof LineEnd) as LineEnd;
     vi.spyOn(BiomeApi, 'mediumFor').mockReturnValue({ ...BED, depthM: 0, atSurface: true });
-    end.lashTo(diver as unknown as Stuff, a as unknown as Stuff);
+    await end.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null);
     const pulled = await line.pullBy(tender as unknown as Stuff, null);
     expect(pulled.ok).toBe(true);
     if (pulled.ok) await pulled.takes?.finish();
@@ -204,6 +205,6 @@ describe('what a line cannot bring up, air can (C5)', () => {
     ContainmentApi.move(a as never, quay as never);
     const b = bag();
     ContainmentApi.move(b as never, diver as never);
-    expect(b.lashTo(diver as unknown as Stuff, a as unknown as Stuff)).toMatchObject({ ok: false, reason: 'not-in-water' });
+    expect(await b.tieTo(diver as unknown as Stuff, a as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'not-in-water' });
   });
 });

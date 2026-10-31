@@ -200,7 +200,7 @@ async function finish(
     // ⭐⭐ The yarn is the FIBRE it was drawn from, and the spinner made
     // it. Before the silk build neither was carried: the row's linen
     // stood, so spun wool came off the wheel as linen yarn.
-    carryFibre(fibre, yarn);
+    if (yarn instanceof TextileStock) yarn.adoptFibre(fibre);
     if (MixinApi.isCrafted(yarn)) yarn.setMaker(giver.getIdentityPath() ?? '');
     if (MixinApi.isContainable(yarn) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(yarn as Stuff & Containable, giver as Stuff & Container);
@@ -217,21 +217,6 @@ async function finish(
       .send();
   } catch (err) {
     console.warn('SpinController: could not mint yarn:', err);
-  }
-}
-
-/**
- * ⭐ The product takes the input's material, and answers to its name —
- * *wool*, *raw silk* — beside the row's own nouns. Weave carries its own
- * copy, as each controller carries its own `dial` (a pack exports no
- * helpers).
- */
-function carryFibre(material: Material | null, to: Stuff): void {
-  if (!material || !MixinApi.isTangible(to)) return;
-  to.setMaterial(material);
-  if (MixinApi.isPerceptible(to)) {
-    const words = material.getName().toLowerCase().split(/\s+/).filter(Boolean);
-    to.setKeywords([...new Set([...to.getKeywords(), ...words])]);
   }
 }
 

@@ -28,6 +28,26 @@ import { CompositionMixin } from '@saxonberg/server/mud/lib/material/Composition
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { LyeStrength } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import Ash from '@saxonberg/content-trade-fuel/src/thing/Ash';
+import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+
+/** ⭐ The leach percolates over half a game day (cordage W7): a clock to run it on. */
+let now = 1_000_000;
+function clock(): void {
+  now = 1_000_000;
+  WorldClockApi._resetForTesting();
+  WorldClockApi._setNowProviderForTesting(() => now);
+  WorldClockApi.setScale(1);
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+    makeStuffAtPath(() => new WorldClockRegistry(), TemplatePaths.worldClockRegistry);
+  }
+}
+/** Let the water work down through the ash: a game day passes (the provider is real ms at scale 1). */
+function aDay(): void {
+  now += 86_400_000;
+}
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..', 'content', 'trade', 'chandlery');
@@ -46,6 +66,7 @@ function material(tags: string[], path = `/stuff/idea/material/_soap/${seq++}`):
 
 afterEach(() => {
   vi.restoreAllMocks();
+  WorldClockApi._resetForTesting();
   StuffApi.clearAll();
 });
 
@@ -55,23 +76,31 @@ describe('the hopper (lye from ash)', () => {
     expect(h.matchProfile(material(['liquid', 'water']))).toBeNull();
   });
 
-  it('⭐ water through ash runs the lye-leach — and the ash is spent', async () => {
-    const leach = { key: 'lye-leach' } as never;
-    const byKey = vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(leach);
+  it('⭐ water through ash runs the lye-leach — and the ash is spent once the water is through', async () => {
+    // The profile row is not loaded here: what is asked for is what counts.
+    const byKey = vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(null as never);
     installV1QuantityMarshallers();
+    clock();
     const h = makeStuff(() => new Hopper());
     const water = material(['liquid', 'water']);
     h.setInteriorCapacity(Quantity.of(20, 'L'));
     // The shipped order: the ash in first, then the water.
-    const ash = makeStuff(() => new Good());
+    const ash = makeStuff(() => new Ash());
     ash.setMaterial(material(['organic', 'potash']));
+    ash.setMass(Quantity.of(2, 'kg'));
     ContainmentApi.move(ash, h);
     h.setBulkMaterial('interior', water);
     h.setBulkAmount('interior', Quantity.of(10, 'L'));
     const destruct = vi.spyOn(StuffApi, 'destruct');
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () => makeStuff(() => new Good()) as never);
-    expect(h.matchProfile(water)).toBe(leach);
+    h.matchProfile(water);
     expect(byKey).toHaveBeenCalledWith('lye-leach');
+    // ⭐ Not yet: the water has only just been poured on.
+    h.getBulkAmount('interior');
+    await new Promise((r) => setTimeout(r, 0));
+    expect(destruct).not.toHaveBeenCalledWith(ash);
+    aDay();
+    h.getBulkAmount('interior');
     await new Promise((r) => setTimeout(r, 0));
     await new Promise((r) => setTimeout(r, 0));
     expect(destruct).toHaveBeenCalledWith(ash);
@@ -140,16 +169,15 @@ describe('the bar cures', () => {
   });
 });
 
-/** A heap of ash that says its own strength (trade-fuel's `Ash`, in shape). */
-class TestAsh extends CompositionMixin(Good) {
-  static _mixinName = 'TestAsh';
-}
+/** A heap of ash that says its own strength and percolates: trade-fuel's `Ash`. */
+const TestAsh = Ash;
 const POTASH = '/stuff/idea/material/mineral/potash';
 
 describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () => {
   // The shipped order: the ash goes in (`heap`), THEN the liquor (`fill`).
   function hopperOf(): Hopper {
     installV1QuantityMarshallers();
+    clock();
     const h = makeStuff(() => new Hopper());
     h.setInteriorCapacity(Quantity.of(40, 'L'));
     return h;
@@ -159,7 +187,7 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     h.setBulkAmount('interior', Quantity.of(litres, 'L'));
     h.setBulkPayload('interior', payload);
   }
-  function heap(h: Hopper, kg: number, strength: number): TestAsh {
+  function heap(h: Hopper, kg: number, strength: number): Ash {
     const a = makeStuff(() => new TestAsh());
     a.setMaterial(material(['organic', 'potash']));
     a.setMass(Quantity.of(kg, 'kg'));
@@ -168,9 +196,13 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     return a;
   }
   function leach(h: Hopper, liquor: Material): number {
-    vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue({ key: 'lye-leach' } as never);
+    vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(null as never);
     vi.spyOn(StuffApi, 'clone').mockImplementation(async () => makeStuff(() => new Good()) as never);
     h.matchProfile(liquor);
+    // ⭐ It percolates (cordage W7): the strength is what the water has
+    // carried down by the time somebody reads the hopper.
+    aDay();
+    h.getBulkAmount('interior');
     return h.getBulkPayload('interior')?.dissolvedSolidsKgPerL ?? 0;
   }
 
@@ -230,8 +262,10 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     fill(h, 20, water);
     const destruct = vi.spyOn(StuffApi, 'destruct');
     const clone = vi.spyOn(StuffApi, 'clone').mockImplementation(async () => makeStuff(() => new Good()) as never);
-    vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue({ key: 'lye-leach' } as never);
+    vi.spyOn(MaturationProfileRef, 'byKey').mockReturnValue(null as never);
     h.matchProfile(water);
+    aDay();
+    h.getBulkAmount('interior');
     await new Promise((r) => setTimeout(r, 0));
     await new Promise((r) => setTimeout(r, 0));
     expect(clone).toHaveBeenCalledWith('/trade/fuel/thing/spent-ash', undefined, { madeFrom: [a] });
@@ -310,8 +344,9 @@ describe('⭐⭐ lime in the kettle: slaking, causticizing, hard soap direct (po
 });
 
 describe('⭐ ash put into liquor already in the hopper leaches too (the drive)', () => {
-  it('a heap put into a lye adds its alkali at once', () => {
+  it('a heap put into a lye adds its alkali as the lye works down through it', () => {
     installV1QuantityMarshallers();
+    clock();
     const h = makeStuff(() => new Hopper());
     const lye = material(['liquid', 'caustic', 'alkali', 'lye']);
     h.setInteriorCapacity(Quantity.of(20, 'L'));
@@ -324,11 +359,14 @@ describe('⭐ ash put into liquor already in the hopper leaches too (the drive)'
     a.setMass(Quantity.of(2, 'kg'));
     a.setMakeup([{ materialPath: POTASH, fraction: 0.15 }]);
     ContainmentApi.move(a, h);
+    aDay();
+    h.getBulkAmount('interior');
     expect(h.getBulkPayload('interior')?.dissolvedSolidsKgPerL).toBeCloseTo(0.02 + 0.03, 6);
   });
 
   it('a heap put into water re-keys the batch so the leach runs', () => {
     installV1QuantityMarshallers();
+    clock();
     const h = makeStuff(() => new Hopper());
     const water = material(['liquid', 'water']);
     h.setInteriorCapacity(Quantity.of(20, 'L'));

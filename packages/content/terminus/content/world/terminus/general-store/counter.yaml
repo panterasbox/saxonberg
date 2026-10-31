@@ -201,6 +201,8 @@ data:
     # years to a usable root, against weld's one season. The price
     # teaches the same fact the garden does.
     - { itemTemplatePath: /trade/farming/thing/seed/flax, par: 3 }
+    # Hemp, the fiber variety (cordage D14): the rope crop, sown thick.
+    - { itemTemplatePath: /trade/farming/thing/seed/hemp, par: 3 }
     - { itemTemplatePath: /trade/farming/thing/seed/weld, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/woad, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/madder, par: 2 }
@@ -486,6 +488,7 @@ data:
     /stuff/thing/vessel/soil-sack: 2
     /trade/farming/thing/seed/snake-plant: 5
     /trade/farming/thing/seed/flax: 5
+    /trade/farming/thing/seed/hemp: 6
     /trade/farming/thing/seed/weld: 5
     /trade/farming/thing/seed/woad: 7
     /trade/farming/thing/seed/madder: 14

@@ -1,0 +1,12 @@
+# A length of rope (cordage D1) — the plain row a rope is when no trade's
+# row names it: what a cut piece of an unrowed rope is minted as. What it
+# is FOR is where its ends are tied.
+class: /platform/thing/Rope
+data:
+  shortDescription: rope
+  keywords: [rope, line]
+  register: indefinite
+  longDescription: A length of laid rope.
+  _materialPath: /stuff/idea/material/textile/hemp
+  lengthM: 10
+  diameterMm: 12

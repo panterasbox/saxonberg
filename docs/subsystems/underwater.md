@@ -392,8 +392,10 @@ pull) and `TossableMixin`; kernel `BuoyMixin`; the fishing pack's
 | float | `lie` on the water | `float` as its own verb |
 | clear your ears | nothing — passive, like breathing | `equalize` |
 
-Trade verbs: `tug` (afforded by the line's end to whoever holds it),
-`ring` (a signal bell), `lash` (a line's end or an air bag to a load).
+Trade verbs: `ring` (a signal bell). ⭐ Since cordage, `tug` and `tie`
+(`lash` is its word — a line's end or an air bag to a load) are KERNEL
+verbs afforded by the kernel `LineEnd` and the `Tieable` protocol
+([cordage.md](cordage.md)).
 Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
 `appoint`/`apply`/`clock`, `job`/`fulfill`, `analyze water`, `cast`/`zap`,
 `climb`.
@@ -401,8 +403,9 @@ Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
 **The gear** (`content/trade/diving/thing/`):
 
 - **Diving stone** and **weight belt** (a worn garment) — ballast down.
-- **Lifeline** (`Lifeline`, `kind: line`, 20 m) — the fixed end is in the
-  holder's hands; making it fast mints a **`LineEnd`** into the hands of
+- **Lifeline** — ⭐ a kernel **`Rope`** row (20 m of tarred hemp; cordage
+  D3: a rope's use is where its ends are tied) — the fixed end is in the
+  holder's hands; making it fast mints a **`RopeEnd`** into the hands of
   the person on it (holding it is being on the line, dropping it is
   letting go). Who is on a line is runtime — a line does not outlive a
   dive. A line knows people **as its holder does** (perceived keywords,
@@ -423,7 +426,7 @@ Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
   fishing pack's fish; a fished-out water has nothing to spear. The
   fishmonger stays a consignment shelf: the sale is `consign`.
 - **Air bag** and **air barrel** (`AirBag` = `BuoyMixin(BulkableMixin(Good))`)
-  — `lash` to a load: lift is `liters × 200 / (1 + d/10) − bag mass`
+  — `tie`/`lash` to a load: lift is `liters × 200 / (1 + d/10) − bag mass`
   per bag (a vessel's liters are compressed ×200); when the bags lift more
   than the load's mass, the pair goes up to the surface together. While
   lashed, the bag `buoys` the load, so the surface's "a dense arrival
@@ -452,7 +455,8 @@ occupants do not load gas (no bends from a bell).
 — the suit and the shipped air tank share one supply path; the **dress**
 is a two-slot garment (listed once in what you wear); the lead **boots**
 (36 kg) make you negative, so you walk the bed and cannot swim up. The
-**hose** is a `Lifeline` with `kind: hose` (25 m): its free end is the
+**hose** is diving's **`Hose`**, the other kernel `Line` (25 m; not a rope
+— cordage D2): its free end is the
 helmet's end, and the same `pull` brings the diver up. The **`AirPump`**
 on the quay speaks the kernel `Pumpable` protocol, so the verb is `pump`:
 each spell (20 s at the handles) fills the helmet on the end of a hose held

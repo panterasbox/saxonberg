@@ -113,6 +113,9 @@ importers:
       '@saxonberg/content-trade-coopering':
         specifier: workspace:*
         version: link:packages/content/trade-coopering
+      '@saxonberg/content-trade-cordage':
+        specifier: workspace:*
+        version: link:packages/content/trade-cordage
       '@saxonberg/content-trade-dairying':
         specifier: workspace:*
         version: link:packages/content/trade-dairying
@@ -1004,6 +1007,9 @@ importers:
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
+      '@saxonberg/content-trade-cordage':
+        specifier: workspace:*
+        version: link:../trade-cordage
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:../trade-distilling
@@ -1384,6 +1390,37 @@ importers:
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-cordage:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-textiles':
+        specifier: workspace:*
+        version: link:../trade-textiles
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

@@ -1,0 +1,15 @@
+# A post at the lip of the pit (cordage D11) — an old timber driven into a
+# crack in the floor beside the false boards, for a rope. Tie a rope round
+# it and the rope hangs down into the pit: a way down that is not a fall,
+# and a way back up.
+class: /platform/thing/Thing
+data:
+  shortDescription: timber post
+  keywords: [post, timber, stake]
+  register: indefinite
+  longDescription: >-
+    A stub of black oak driven hard into a crack in the floor at the edge of
+    the boards, worn smooth on one side where ropes have run round it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 30
+  fixedInPlace: true

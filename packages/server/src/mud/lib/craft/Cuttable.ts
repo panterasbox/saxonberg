@@ -32,6 +32,11 @@ export interface CutRequest {
   tools: readonly Stuff[];
   /** The raw word when the target was a word rather than a thing (`hole`, `marked`). */
   raw: string | null;
+  /**
+   * ⭐ How much to cut off, as the player wrote it (`cut rope at 10 m`), or
+   * `null` (cordage D4). The target parses it; most targets ignore it.
+   */
+  length: string | null;
   /** The verb's options, carried through for the target that reads them. */
   options: { for?: Stuff | null; tight?: boolean; generous?: boolean };
 }

@@ -675,6 +675,15 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ AC 5: one fire of four lengths made ${strong.toFixed(3)} kg (strong) and ${weak.toFixed(3)} kg (weak) of black salts — the weak lye's potash cost ${(strong / Math.max(weak, 1e-9)).toFixed(1)}× the wood per kilo`);
     expect(strong).toBeGreaterThan(weak);
+    // ⭐ AC 5's TIME half (potash-on-sugar's remainder, cordage W7): the same
+    // volume of a weaker lye holds less potash, so it must lose more water
+    // before it saturates — it sets LATER, and every kilo of its potash cost
+    // more hours of the fire, not only more wood (the fire's power limit).
+    const [strongH, weakH] = [setAt[0] ?? Infinity, setAt[1] ?? Infinity];
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] ⭐ AC 5 (time): the strong lye set at h${strongH}, the weak at h${weakH} — ${(strongH / Math.max(strong, 1e-9)).toFixed(1)} vs ${(weakH / Math.max(weak, 1e-9)).toFixed(1)} boiling hours per kilo of black salts`);
+    expect(weakH, 'the weak lye takes longer to set').toBeGreaterThan(strongH);
+    expect(weakH / Math.max(weak, 1e-9), 'and more hours per kilo').toBeGreaterThan(strongH / Math.max(strong, 1e-9));
     const look = await examine(s, 'cake');
     expect(look, `the cake: ${look}`).toMatch(/salts|cake/i);
     expect(look).not.toMatch(NO_NUMBER);

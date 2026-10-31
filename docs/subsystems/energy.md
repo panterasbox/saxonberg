@@ -89,7 +89,7 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   envelope integrates — so a cut mid-outage and a splice after it warm and
   re-cool the store correctly even if nobody watched. (Source generation is
   read as-now, not logged — the cut is the state a fridge cares about.)
-- **`LineAccess`** — a pole/manhole on a node; affords `sever`/`splice`; an
+- **`LineAccess`** — a pole/manhole on a node; affords `sever` and the kernel `splice` (it answers the `Spliceable` protocol since cordage D9 — one splice for a pole and a rope); an
   overhead one faults in a storm (`onStormExposure` → `energy.stormFaultRate`),
   a buried one is storm-safe. ⭐ **A `LineAccess` is SPARSE, not one-per-street**:
   it is the physical access point where a lineman actually works the line, so

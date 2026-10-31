@@ -202,7 +202,7 @@ describe('the acts — scrape, mark, cut', () => {
     const marked = sheet.patchByWord('marked')!;
     expect(marked.gridM).toBe(0.5);
     const ice = sheet.iceOf(marked)!;
-    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', options: {} });
+    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', length: null, options: {} });
     expect(plan.ok).toBe(true);
     const block = await sheet.cutBlock(w as unknown as Stuff, marked.id);
     expect(block).not.toBeNull();
@@ -225,7 +225,7 @@ describe('the acts — scrape, mark, cut', () => {
       send: () => undefined,
     };
     vi.spyOn(MessageApi, 'scene').mockReturnValue(chain as never);
-    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', options: {} });
+    const plan = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: 'marked', length: null, options: {} });
     if (!plan.ok) throw new Error('the plan refused');
     plan.onComplete();
     await vi.waitFor(() => expect(said.length).toBe(1));
@@ -296,9 +296,9 @@ describe('the acts — scrape, mark, cut', () => {
     const { pool, sheet } = await sheetIn();
     const w = walker(pool);
     sheet.occupy(w as never, 'ground:1');
-    const noSaw = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [], raw: null, options: {} });
+    const noSaw = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [], raw: null, length: null, options: {} });
     expect(noSaw).toMatchObject({ ok: false, reason: 'no-ice-saw' });
-    const noGrid = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: null, options: {} });
+    const noGrid = await sheet.cutPlan({ actor: w as unknown as Stuff, tools: [makeStuff(() => new Saw()) as unknown as Stuff], raw: null, length: null, options: {} });
     expect(noGrid).toMatchObject({ ok: false, reason: 'no-grid' });
   });
 

@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**402 slates.** 150 greenfield · 107 continuations · 67 waves · 78 tails.
+**402 slates.** 149 greenfield · 107 continuations · 67 waves · 79 tails.
 
-## ⭐ Greenfield — nothing shipped yet (150)
+## ⭐ Greenfield — nothing shipped yet (149)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -75,7 +75,6 @@ respect.
 | [content-declaration](./builds/content-declaration-slate.md) | the declaration schema itself (the field list) · the |
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [controllers-are-io](./builds/controllers-are-io-slate.md) | the census gate (`lint:controller-mutations`) · the burn-down, controller by controller, of 132 controllers / 408 mutating calls · the outcome-type convention · where an engaged step's DURATION lives. |
-| [cordage](./builds/cordage-slate.md) | `trade-cordage` and the ropewalk at Wharfside · twist three times, alternating · strength derived (diameter², the knot's cost, the splice, chafe, rot, shock load) · rope as a measured length … |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
 | [cover](./builds/cover-slate.md) | one kernel `Cover` shape over grass, timber and crops · per-species parameters from rows (ends the hard-coded ryegrass) · the harvest axis (what a cut takes, how it regrows, a ripeness gate) · the arable field crop (`sow`/`harvest` on a field) … |
 | [cover-and-concealment](./builds/cover-and-concealment-slate.md) | the cover protocol answered by an object's mixins · details' light cover facet · the channel split — concealment (perceptual) and protection (delivery) · search techniques per mixin … |
@@ -382,7 +381,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (78)
+## Tails — small and opportunistic (79)
 
 | slate | left |
 |---|---|
@@ -407,6 +406,7 @@ are the named remainders.
 | [consequence](./tails/consequence-slate.md) | the **terms/consent lift** — a legal primitive (`lethality`/`stopCondition`/`consent`) generalizing out of combat to sit beside governance/contracts; no owning slate exists yet (open question Q5) · the **necropolis** is still a stub inside Terminus and wants to be a sixth locality (towns-slate) with a real vertical (end-of-life-slate) · de-escalation's act-half lives in intervention-slate.md · blood/ transfusion, filling `g(composure)`, and the client `CombatCard` are each already tracked as open on their owning slate/doc (see § Not in scope) |
 | [contribution](./tails/contribution-slate.md) | ⭐⭐⭐ **the export** (`Template.data` → pack file) · the submission door + landing-runs-in-sandbox · the reference resolver that doubles as a publish precondition · `author-surface.json` as the agent contract … |
 | [cooperative-effort](./tails/cooperative-effort-slate.md) | the **pooled draw** (N × `exert` into one device) · what the device reads — **the sum**, and ⭐ **the synchrony** · the failure (*out of time*, not *too weak*) · who calls the stroke … |
+| [cordage](./tails/cordage-slate.md) | anchor strength (a ring in rotten mortar) · shock elasticity and the material ladder (manila, nylon, wire) · oakum · who answers for a parted rope … |
 | [dgg-relay](./tails/dgg-relay-slate.md) | the dgg WebSocket transport · the anonymous read path · the developer-key credential (it rides no OAuth spine) · the two-way write path, which is the point of it |
 | [document-store-tiering](./tails/document-store-tiering-slate.md) | a compound index for time-paged reads by kind (the press archive full-scans and sorts in JS today) · `release`'s `onVanish: 'delete'`, which its own neighbours' comments argue against · `descriptor-bank`, the one unit the collapse programme skipped · the |
 | [dossier](./tails/dossier-slate.md) | Q2 the materialized trio (participation + influence still seed-and-fold; make `renownOf` derive) · Q3 a seeded condition's cause · Q4 dossiers for organizations · Q5 converging char-gen's claim seeding |

@@ -454,9 +454,14 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         return host.traverse(exit, LocomotionApi.resolveHostMode(host).getName());
       }
 
-      return LocomotionApi.engageAround(this, engaged, exit, () =>
-        crossExit(this, exit, mode),
-      );
+      // ⭐ The host that enabled it hears of the crossing after the move and
+      // its witnesses (cordage D11): a rope at the lip takes its wear here.
+      const host = guard.host;
+      return LocomotionApi.engageAround(this, engaged, exit, async () => {
+        const crossed = await crossExit(this, exit, mode);
+        if (crossed.ok && host) await host.afterEnabledTraverse(this, exit.getDirection(), exit);
+        return crossed;
+      });
     }
 
     /**

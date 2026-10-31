@@ -1,0 +1,41 @@
+# ⭐ `belay` (cordage D12): hold a rope for somebody who climbs. The rope
+# you hold has its end tied round them; if they fall, the rope comes up
+# taut and you hold them — round a post if there is one, which multiplies
+# what your hands can hold, never past what the rope will.
+verbs: [belay]
+controller: /platform/idea/cmd/movement/BelayController
+description: "Hold a rope for a climber — or `belay off`"
+help: |
+  `tie rope to <climber>`, keep hold of your end, then `belay <climber>`:
+  while you belay them, a fall they take on a rope at a drop is caught —
+  they hang on your rope and you haul them in, unhurt, if you can hold the
+  jerk. A fall comes up hard: several times their weight. Your own strength
+  alone holds little; three turns round a post in your room holds a horse.
+  A climber tied on with a clove hitch is not held — it works loose.
+
+  `belay off` lets them go.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: person
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: any
+    greedy: true
+  # ⭐ The rope you hold the belay with — DECLARED, never hunted
+  # (`lint:instrument-args`): `belay hal with rope`, or the rope in hand.
+  # ⚠ The default is the INVENTORY, not `reachable`: at the ropewalk the
+  # counter's coils are reachable too, and the browser walk found the
+  # default picking one off the counter — then refusing you for not
+  # holding it.
+  - name: rope
+    type: object
+    required: false
+    prepositions: [with]
+    greedy: true
+    default: "inventory:[class.Rope]"
+    scope: ["reachable"]
+    requires: [TieableMixin]

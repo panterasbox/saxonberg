@@ -1,0 +1,22 @@
+# Hemp straw (cordage D14) — the cut stalks of fiber hemp, the bast still
+# glued to the hurd. Tagged `retting-hemp`, not `retting`, so the pit
+# runs the hemp profile on it and never the flax one (two profiles matching
+# one material is an authoring error).
+class: /platform/idea/material/Material
+data:
+  name: hemp straw
+  keywords: [hemp, straw, hemp-straw, stalks, hurds]
+  appearance: tall grey-green hemp stalks
+  density: 380
+  thermalConductivity: 0.05
+  hardness: 4
+  toughness: 3
+  specificHeat: 1360
+  electricalConductivity: 1.0e-11
+  waterAbsorptionCapacity: 60
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["plant", "organic", "once-living", "fibre-stock", "retting-hemp"]
+  composition: []
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa, tissueType: stem }
