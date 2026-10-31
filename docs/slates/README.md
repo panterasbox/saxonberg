@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**398 slates.** 147 greenfield · 107 continuations · 67 waves · 77 tails.
+**399 slates.** 148 greenfield · 107 continuations · 67 waves · 77 tails.
 
-## ⭐ Greenfield — nothing shipped yet (147)
+## ⭐ Greenfield — nothing shipped yet (148)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -154,6 +154,7 @@ respect.
 | [privacy](./builds/privacy-slate.md) | the privacy surface and its flagging lint · spoiler privilege earned by publication · the install-and-eval trail · the operator residual … |
 | [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the cast surface (typed slot binding, save-gate validated, the two authoring tiers) · one genre cast end-to-end (Mystery, against the forensic win) … |
 | [radioactivity](./builds/radioactivity-slate.md) | radiation as the eighth channel, its fold attenuation through matter by decay mode · dose vs contamination · dose as a body stock, radiation sickness in phases over the `marrow` reserve, seeded long-term risk · contamination as a decaying toxin burden (effective half-life) … |
+| [real-world-anchors](./builds/real-world-anchors-slate.md) | a Wikidata anchor on reality-shaped rows · the relation kind (is · models · contrasts) and its note on how we differ … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
 | [repair](./builds/repair-slate.md) | ✅ three rulings so far (§ 0: *a bad repair is possible*; *the mixin composes on the FAMILIES*; *seats are AUTHORED only* — the owner, 2026-10-16) · the per-part gate on the maker's discipline · the failure mode, deterministic · the paid service performed by a person … |
