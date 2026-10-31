@@ -1,0 +1,28 @@
+# Kittiwake as ONE thing — her Structure (harbors A2, one of the line's
+# two regulars). A ketch of twenty meters drawing 1.8 m — the bar takes her at all but the bottom of a spring ebb.
+#
+# She starts lying off the bar, unmoored, waiting on the office: one hail and one course bring her in. Her
+# voyages are not automated (no sailing brain this build): her master — the
+# NPC her company rosters, or whoever is appointed to the seat — lays her
+# course from the helm.
+class: /platform/idea/Ship
+data:
+  name: the Kittiwake
+  extent: /world/terminus/harbor/ships/ketch
+  entrance: /world/terminus/harbor/ships/ketch/deck
+  shortDescription: Kittiwake
+  register: definite
+  keywords: [kittiwake, ketch, ship, vessel]
+  longDescription: >-
+    A green-hulled trading ketch, twenty meters from stem to transom, her mizzen stepped well aft and her hatches battened over a cargo for the coast: the Kittiwake, of Terminus.
+  heightM: 16
+  deckHeightM: 2.5
+  mastheadHeightM: 17
+  house: /world/terminus/harbor/ships/ketch/idea/company
+  expanse: /stuff/idea/WaterExpanse/greywater
+  expansePosition: { latDeg: 42.001, lonDeg: -8.468 }
+  speedKn: 6
+  hull: { draftM: 1.8, beamM: 5, lengthM: 20 }
+  # The gangway (P9): no keyway, never bolted — the line's ships are open.
+  gangwayKeyway: ""
+  gangwayLocked: false

@@ -1,0 +1,26 @@
+# Tom Pell, master of the Kittiwake (harbors A2) — rostered in her company's
+# `master` seat, on her deck. Her voyages are not automated this build:
+# the drive lays her courses by appointing a player to the seat.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Tom Pell
+  keywords: [tom, pell, master, skipper]
+  pronouns: he
+  shortDescription: master
+  register: definite
+  longDescription: >-
+    A square, slow-moving man with a short pipe and a weathered cap, who reads the sky before he reads anything else.
+  archetype: pilot
+  prologue:
+    - "Has had the Kittiwake twenty years and knows every bank between here and the cape by its color."
+    - "Says the line pays on time and the harbor charges by the day, and he can do the arithmetic."
+  competence:
+    - { discipline: navigation, asserting: expert }
+  dispositions:
+    - { disposition: sociability, valence: 20 }
+    - { disposition: composure, valence: 70 }

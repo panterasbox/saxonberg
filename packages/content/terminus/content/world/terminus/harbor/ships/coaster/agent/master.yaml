@@ -1,0 +1,26 @@
+# Agnes Corrie, master of the Corrigan (harbors A2) — rostered in her company's
+# `master` seat, on her deck. Her voyages are not automated this build:
+# the drive lays her courses by appointing a player to the seat.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Agnes Corrie
+  keywords: [agnes, corrie, master, skipper, captain]
+  pronouns: she
+  shortDescription: master
+  register: definite
+  longDescription: >-
+    A tall woman in an oilskin coat with a master's brass buttons, a tide table folded into her breast pocket.
+  archetype: pilot
+  prologue:
+    - "Brought the Corrigan up from the south with a deck cargo of slate and has not been ashore since."
+    - "Waits for water without complaint and for a berth with a great deal."
+  competence:
+    - { discipline: navigation, asserting: expert }
+  dispositions:
+    - { disposition: sociability, valence: 20 }
+    - { disposition: composure, valence: 70 }

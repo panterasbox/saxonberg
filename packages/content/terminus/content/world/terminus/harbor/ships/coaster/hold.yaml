@@ -1,0 +1,16 @@
+# Corrigan's hold — below the deck, where her cargo rides (harbors A2).
+class: /platform/location/PersistentLocale
+data:
+  shortDescription: hold
+  keywords: [hold, below]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A long hold under heavy beams, its floor laid with slate in straw to the turn of the bilge, and a ladder up to the main hatch.
+  coords: { x: 0, y: 0, z: -1 }
+  # Her hull planking for walls and her deck overhead (construction.md).
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.08 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.06 }
+  exits:
+    up:
+      destination: /world/terminus/harbor/ships/coaster/deck

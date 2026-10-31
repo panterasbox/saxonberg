@@ -1,0 +1,43 @@
+# Corrigan's deck — the entrance (harbors A2). The helm affords
+# `course`/`anchor`/`hail`; her two mooring lines are what she makes fast
+# with alongside a quay (P6); the deck is a shore of the sea under her.
+class: /platform/location/Shore
+data:
+  shortDescription: Corrigan's deck
+  keywords: [deck, corrigan, ship]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  longDescription: |
+    A long flush deck between high bulwarks, three masts with their sails furled on the booms and gaffs, a wheel aft under a canvas dodger, and the main hatch amidships piled with slate under lashed tarpaulins.
+  coords: { x: 0, y: 0, z: 0 }
+  props:
+    - /world/terminus/harbor/ships/coaster/thing/helm
+    - /system/water/thing/lead-line
+    - /stuff/thing/instrument/hand-compass
+    # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
+    - { template: /stuff/thing/mooring-line, count: 2 }
+  cast:
+    - /world/terminus/harbor/ships/coaster/agent/master
+  exits:
+    down:
+      destination: /world/terminus/harbor/ships/coaster/hold
+    # ⭐ Ashore is wherever she is made fast (P4), worked out when taken;
+    # the destination is only her usual berth. The way back aboard is hers.
+    ashore:
+      kind: /platform/idea/exits/ashore
+      destination: /world/terminus/harbor/town-quay
+      oneWay: true
+    side:
+      kind: /system/water/idea/exits/sea-side
+      destination: /system/water/location/sea/patch
+  details:
+    sea:
+      keywords: [sea, water]
+      description: |
+        Below the rail, the water.
+    gunwale:
+      keywords: [gunwale, rail, bulwark, bulwarks]
+      description: |
+        The rail along her side, scarred where cargo has gone over it.
+  waters:
+    sea: /stuff/idea/WaterExpanse/greywater

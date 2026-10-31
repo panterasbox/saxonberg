@@ -65,6 +65,23 @@ const RHO = 1000;
 /** The position key of the seat that sees further (maritime D13). */
 const LOOKOUT_POSITION = 'lookout';
 
+/** The position key of the seat that commands her (harbors P12). */
+const MASTER_POSITION = 'master';
+
+/**
+ * ⭐ A bill she carries until it is paid (harbors P13) — a charter's days
+ * owed to her line, written when the charter ends; paid at a harbor
+ * office's book with `pay office`.
+ */
+export interface ShipBill {
+  /** The venue the money goes to (a place its Business operates). */
+  to: string;
+  /** Whole minor units. */
+  amountMinor: number;
+  /** What it is for, in words. */
+  reason: string;
+}
+
 /** The kind row of the way aboard a ship, named for her (harbors P4). */
 const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
 
@@ -110,6 +127,7 @@ export default class Ship extends PersistableMixin(
     moored: { persistent: true, authorable: true },
     gangwayKeyway: { persistent: true, authorable: true },
     gangwayLocked: { persistent: true, authorable: true },
+    owed: { persistent: true },
   };
 
   /**
@@ -208,6 +226,51 @@ export default class Ship extends PersistableMixin(
       return this.mastheadHeightM;
     }
     return deck;
+  }
+
+  /* ───────────── who answers for her, and what she owes (harbors P12, P13) ───────────── */
+
+  /** ⭐ What she has been billed and not yet paid (P13), in the order billed. */
+  protected owed: ShipBill[] = [];
+
+  /** Her unpaid bills, copies. */
+  public getOwed(): ShipBill[] {
+    return this.owed.map((b) => ({ ...b }));
+  }
+
+  /** ⭐ Bill her (P13): carried until it is paid at a harbor office. */
+  public owe(bill: ShipBill): void {
+    const amountMinor = Math.ceil(Number(bill.amountMinor));
+    if (!Number.isFinite(amountMinor) || amountMinor <= 0 || typeof bill.to !== 'string' || bill.to === '') {
+      throw new Error(`Ship.owe: a bill wants a venue and a positive amount (got ${JSON.stringify(bill)})`);
+    }
+    this.owed.push({ to: bill.to, amountMinor, reason: String(bill.reason ?? '') });
+    this.persistMooring();
+  }
+
+  /** One of her bills has been paid: the first that matches comes off. `false` when none matched. */
+  public settleOwed(bill: ShipBill): boolean {
+    const i = this.owed.findIndex((b) => b.to === bill.to && b.amountMinor === bill.amountMinor && b.reason === bill.reason);
+    if (i < 0) return false;
+    this.owed.splice(i, 1);
+    this.persistMooring();
+    return true;
+  }
+
+  /** What her unpaid bills come to, minor units. */
+  public owedMinor(): number {
+    return this.owed.reduce((n, b) => n + b.amountMinor, 0);
+  }
+
+  /**
+   * ⭐ Does `who` answer for her (P12, P13) — the one whose business her
+   * dues and bills are? Whoever holds her company's `master` seat. (The
+   * charterer and the managing owner join this in later waves.)
+   */
+  public answersFor(who: Stuff): boolean {
+    const house = this.house;
+    if (house === null || !MixinApi.isEmployed(who)) return false;
+    return who.getEmployment(house)?.positionKey === MASTER_POSITION;
   }
 
   /* ───────────── made fast: the berth and her lines (harbors P4–P6) ───────────── */

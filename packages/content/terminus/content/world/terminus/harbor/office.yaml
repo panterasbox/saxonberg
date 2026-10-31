@@ -28,7 +28,7 @@ data:
     notice:
       keywords: [notice, dues, rates, "printed notice"]
       description: |
-        THE PORT OF TERMINUS. Berths are given by the harbormaster, by a ship's length, in the order of the quays. A ship that draws more than the water over the bar waits in the roads for the flood. Dues are charged by a ship's length, for every day or part of a day she lies alongside, at the rate the harbor works posts. No ship clears with dues owing. The office keeps the hours of the harbormaster's watch, six in the morning until eight at night.
+        THE PORT OF TERMINUS. Berths are given by the harbormaster, by a ship's length, in the order of the quays. A ship that draws more than the water over the bar waits in the roads for the flood. Dues are charged by a ship's length, for every day or part of a day she lies alongside, at the rate the harbor works posts. No ship clears with dues owing; they are paid at this office by whoever answers for her. Nobody is kept aboard a ship that owes. The office keeps the hours of the harbormaster's watch, six in the morning until eight at night.
     lamp:
       keywords: [lamp, "signal lamp", window, telescope]
       description: |

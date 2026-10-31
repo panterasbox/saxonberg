@@ -1,0 +1,21 @@
+# The Greywater Line's office (harbors A2) — the shipping line's house on
+# the Town Quay, trading from its desk under the awning. The Kittiwake and
+# the Corrigan are the line's regulars; the Hesper is chartered here (A3).
+# Its mark is the line's Corpo and Brand (`/stuff/idea/corpo/{Corpo,Brand}/
+# greywater-line`); a `/corpo/greywater-line` pack is a later carve-out.
+class: /platform/idea/Business
+data:
+  name: "the Greywater Line"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: clerk
+      noun: clerk
+      label: at the line's desk
+      wageRate: 3
+      headcount: 1
+  rosterSlots: []
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/harbor/line-desk

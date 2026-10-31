@@ -1,0 +1,10 @@
+# Kittiwake's helm — it affords `course`, `anchor` and `hail`.
+class: /platform/thing/Helm
+data:
+  shortDescription: tiller
+  keywords: [tiller, helm, compass]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    A heavy tiller of oak on the rudder head, its grip worn pale, with a compass in a wooden box before it. This is where the Kittiwake is steered from.
+  _materialPath: /stuff/idea/material/wood/oak

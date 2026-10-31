@@ -6,6 +6,11 @@ help: |
   payment implant's active account; add `--cash` to hand over coin, or
   `--from <corpo>` to route this one payment from a different account of
   yours without changing your default.
+
+  ⭐ At something that keeps your bills — a harbor office's book — say
+  just `pay office`: you pay what it says you owe, each bill to whoever it
+  is owed to, and you are told what was paid and what was not. You never
+  name the sum there; the book does.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -16,9 +21,12 @@ args:
     required: true
     scope: ["reachable", "online"]
     requires: any
+  # ⚠ OPTIONAL since harbors A2: absent is meaningful only at a recipient
+  # that keeps your bills (`Payable`); anywhere else the controller asks
+  # how much.
   - name: amount
     type: string
-    required: true
+    required: false
 options:
   cash:
     short: c

@@ -1,7 +1,9 @@
 # The berth book (harbors A1) — open on the harbor office's desk: who has
 # been given which quay, and since when, read off the harbor's own book.
-# `look book` reads today's page. The harbormaster's acts and the dues are
-# afforded here in the build's later waves.
+# `look book` reads today's page — who lies where, what each owes, who was
+# sent to the roads and why. ⭐ The harbormaster's call is made here
+# (`berth <ship> at <quay>` / `berth <ship> roads`, A2), and dues are paid
+# at it (`pay book`, or `pay office` — the office answers the same).
 class: /system/transport/thing/HarborBook
 data:
   shortDescription: berth book

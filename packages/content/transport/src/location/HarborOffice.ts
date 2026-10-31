@@ -7,18 +7,23 @@
  * `Hailable` protocol: a ship at the bar hails it (`hail office`), and the
  * answer is its harbor's (`Harbor.answerHail` — the NPC's routine, by the
  * posted criteria). A player holding the seat on shift is told as well.
+ *
+ * ⭐ And where a ship's dues are paid (`Payable`, P13): `pay office` pays
+ * the bills its harbor holds for you — the book on the desk answers the
+ * same (`pay book`). The office is the word a payer uses, so it answers.
  */
 
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { HailableMixin } from '@saxonberg/server/mud/lib/expanse/Hailable';
 import { FrameSitedMixin } from '@saxonberg/server/mud/lib/expanse/FrameSited';
+import { PayableMixin, type Bill } from '@saxonberg/server/mud/lib/banking/Payable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Harbor from '../idea/Harbor';
 
-export default class HarborOffice extends HailableMixin(FrameSitedMixin(Locale)) {
+export default class HarborOffice extends PayableMixin(HailableMixin(FrameSitedMixin(Locale))) {
   static fieldMeta: FieldMeta = {
     harbor: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
@@ -34,6 +39,18 @@ export default class HarborOffice extends HailableMixin(FrameSitedMixin(Locale))
     if (this.harbor === null) return null;
     const h = await StuffApi.singleton<Stuff>(this.harbor).catch(() => null);
     return h instanceof Harbor ? h : null;
+  }
+
+  /** ⭐ What `payer` owes at this office (P13) — the harbor's to say. */
+  public override async billsFor(payer: Stuff): Promise<Bill[]> {
+    const harbor = await this.liveHarbor();
+    return harbor === null ? [] : harbor.billsFor(payer, WorldClockApi.getNow().rawValue());
+  }
+
+  public override async onPaid(bill: Bill, _payer: Stuff): Promise<void> {
+    const harbor = await this.liveHarbor();
+    if (harbor === null) throw new Error(`HarborOffice ${this.getTemplatePath()}: paid a bill with no harbor to mark it in`);
+    await harbor.onPaid(bill, WorldClockApi.getNow().rawValue());
   }
 
   public override hailName(): string {

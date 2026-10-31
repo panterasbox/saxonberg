@@ -1,0 +1,43 @@
+# Kittiwake's deck — the entrance (harbors A2). The helm affords
+# `course`/`anchor`/`hail`; her two mooring lines are what she makes fast
+# with alongside a quay (P6); the deck is a shore of the sea under her.
+class: /platform/location/Shore
+data:
+  shortDescription: Kittiwake's deck
+  keywords: [deck, kittiwake, ship]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  longDescription: |
+    A narrow deck crowded with hatch covers and coiled warps, a mainmast amidships and a mizzen aft, and a tiller with a worn compass box before it. The hatch to the hold is battened down and tarpaulined.
+  coords: { x: 0, y: 0, z: 0 }
+  props:
+    - /world/terminus/harbor/ships/ketch/thing/helm
+    - /system/water/thing/lead-line
+    - /stuff/thing/instrument/hand-compass
+    # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
+    - { template: /stuff/thing/mooring-line, count: 2 }
+  cast:
+    - /world/terminus/harbor/ships/ketch/agent/master
+  exits:
+    down:
+      destination: /world/terminus/harbor/ships/ketch/hold
+    # ⭐ Ashore is wherever she is made fast (P4), worked out when taken;
+    # the destination is only her usual berth. The way back aboard is hers.
+    ashore:
+      kind: /platform/idea/exits/ashore
+      destination: /world/terminus/harbor/town-quay
+      oneWay: true
+    side:
+      kind: /system/water/idea/exits/sea-side
+      destination: /system/water/location/sea/patch
+  details:
+    sea:
+      keywords: [sea, water]
+      description: |
+        Below the rail, the water.
+    gunwale:
+      keywords: [gunwale, rail, bulwark, bulwarks]
+      description: |
+        The rail along her side, scarred where cargo has gone over it.
+  waters:
+    sea: /stuff/idea/WaterExpanse/greywater

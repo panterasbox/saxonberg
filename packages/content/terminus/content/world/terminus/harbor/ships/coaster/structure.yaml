@@ -1,0 +1,28 @@
+# Corrigan as ONE thing — her Structure (harbors A2, one of the line's
+# two regulars). Thirty-five meters drawing 3.6 m — the bar refuses her at low water and takes her at high (P10); too long for what is left of the Town Quay with the Hesper and the Kittiwake alongside it.
+#
+# She starts in the roads, the anchorage outside the bar, waiting for water: drawing 3.6 m she crosses only on the flood. Her
+# voyages are not automated (no sailing brain this build): her master — the
+# NPC her company rosters, or whoever is appointed to the seat — lays her
+# course from the helm.
+class: /platform/idea/Ship
+data:
+  name: the Corrigan
+  extent: /world/terminus/harbor/ships/coaster
+  entrance: /world/terminus/harbor/ships/coaster/deck
+  shortDescription: Corrigan
+  register: definite
+  keywords: [corrigan, coaster, schooner, ship, vessel]
+  longDescription: >-
+    A deep-laden coasting schooner, thirty-five meters long, three masts and a black hull streaked with rust from her chain plates: the Corrigan, of Terminus.
+  heightM: 24
+  deckHeightM: 3.5
+  mastheadHeightM: 26
+  house: /world/terminus/harbor/ships/coaster/idea/company
+  expanse: /stuff/idea/WaterExpanse/greywater
+  expansePosition: { latDeg: 42.020, lonDeg: -8.400 }
+  speedKn: 7
+  hull: { draftM: 3.6, beamM: 7.5, lengthM: 35 }
+  # The gangway (P9): no keyway, never bolted — the line's ships are open.
+  gangwayKeyway: ""
+  gangwayLocked: false

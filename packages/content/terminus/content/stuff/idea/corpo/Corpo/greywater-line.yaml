@@ -1,0 +1,16 @@
+# The Greywater Line — the shipping line whose regulars use the Port of
+# Terminus (harbors A2). A MARK, not a chart: its house is the Business at
+# the line's desk (`/world/terminus/harbor/line/idea/office`). Shipped in
+# the terminus pack, the way corpo-vionne ships its rows; a corpo pack of
+# its own is a later carve-out.
+class: /platform/idea/corpo/Corpo
+data:
+  key: greywater-line
+  label: the Greywater Line
+  sector: coastal shipping
+  ethos: Sails on the tide, pays on the day — a ship is a promise to arrive.
+  aesthetic: green hulls, a white swallowtail pennant, plain block letters
+  temperament: traders, the punctual
+  description: |
+    The Greywater Line keeps two ships on the coast and a desk on the Town Quay, and makes its money on the difference between what a cargo is worth here and what it is worth there, less what the harbor charges by the day.
+  rivals: []

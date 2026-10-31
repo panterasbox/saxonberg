@@ -81,6 +81,7 @@ import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
 import type { MooringLine } from '../lib/spatial/MooringLine';
 import type { BerthKeeper } from '../lib/expanse/BerthKeeper';
+import type { Payable } from '../lib/banking/Payable';
 import type { Hailable } from '../lib/expanse/Hailable';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
@@ -1356,6 +1357,11 @@ export class MixinApi {
   /** ⭐ A landing somebody keeps a book for — a harbor quay (harbors P7). */
   public static isBerthKeeper(obj: Stuff): obj is Stuff & BerthKeeper {
     return this.hasMixin(obj, Mixins.BerthKeeper);
+  }
+
+  /** ⭐ A thing that says what you owe — a harbor office's book (harbors P13). */
+  public static isPayable(obj: Stuff): obj is Stuff & Payable {
+    return this.hasMixin(obj, Mixins.Payable);
   }
 
   /** ⭐ A place that answers a hail — a harbor office (harbors P8). */

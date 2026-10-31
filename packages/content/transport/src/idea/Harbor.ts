@@ -47,6 +47,7 @@ import { DefaultCalendar } from '@saxonberg/server/mud/lib/time/DefaultCalendar'
 import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 import BerthExit from '@saxonberg/server/mud/platform/idea/BerthExit';
 import type { LineFrame } from '@saxonberg/server/mud/lib/expanse/LineFrame';
+import type { Bill } from '@saxonberg/server/mud/lib/banking/Payable';
 
 /** One quay the harbor keeps, in the order it gives them. */
 export interface HarborQuaySpec {
@@ -98,8 +99,29 @@ export interface BerthRecord {
   leftAtS?: number | null;
 }
 
-/** Which posted criterion sent her to the roads. */
-export type HarborCriterion = 'closed' | 'bar' | 'no-room' | 'dues';
+/** Which posted criterion sent her to the roads — or `keeper`: the harbormaster's own call. */
+export type HarborCriterion = 'closed' | 'bar' | 'no-room' | 'dues' | 'keeper';
+
+/**
+ * ⭐ The last hail a ship made and what she was told (A2) — what lets the
+ * harbormaster name a ship lying in the roads (`berth corrigan at
+ * town-quay`) and what the book's page shows of her. It lapses as an
+ * assignment does.
+ */
+export interface HailRecord {
+  /** The ship's durable handle. */
+  ship: string;
+  /** Her name when she hailed. */
+  name: string;
+  /** When she hailed, game-seconds. */
+  atS: number;
+  /** The quay she was given, or `null` when she was sent to the roads. */
+  quay: string | null;
+  /** What sent her to the roads, or `null` when she was given a quay. */
+  criterion: HarborCriterion | null;
+  /** What she was told. */
+  words: string;
+}
 
 /** The harbormaster's answer to a hail. */
 export type HailAnswer =
@@ -124,6 +146,7 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
     exempt: { persistent: true, authorable: true },
     roads: { persistent: true, authorable: true, ref: 'identity:relation' },
     book: { persistent: true, runtimeState: true },
+    hails: { persistent: true, runtimeState: true },
   };
 
   protected quays: HarborQuaySpec[] = [];
@@ -133,6 +156,7 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
   protected exempt: string[] = [];
   protected roads: string | null = null;
   protected book: BerthRecord[] = [];
+  protected hails: HailRecord[] = [];
 
   /* ───────────────────────── authored ───────────────────────── */
 
@@ -175,6 +199,30 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
   public quaySpec(place: string): HarborQuaySpec | null {
     const q = this.quays.find((x) => x.place === place);
     return q ? { ...q } : null;
+  }
+
+  /**
+   * The quay the keeper means by `word` — its path's last word
+   * (`town-quay`) or its name (`town quay`, `the Town Quay`) — or `null`.
+   */
+  public async quayNamed(word: string): Promise<string | null> {
+    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
+    if (w === '') return null;
+    const dashed = w.replace(/\s+/g, '-');
+    for (const q of this.quays) {
+      const leaf = q.place.slice(q.place.lastIndexOf('/') + 1);
+      if (leaf === dashed) return q.place;
+      const name = (await nameOf(q.place)).toLowerCase().replace(/^the\s+/, '');
+      if (name === w) return q.place;
+    }
+    return null;
+  }
+
+  /** Is `word` the harbor's roads (`roads`, `the roads`, or the node's name)? */
+  public async isRoadsWord(word: string): Promise<boolean> {
+    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
+    if (w === 'roads') return true;
+    return (await this.roadsName()).toLowerCase().replace(/^the\s+/, '') === w;
   }
 
   /** ⭐ How deep the water lies at a quay's berth, m (P20), or `null`. */
@@ -249,6 +297,13 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
    * her length, dues owed. A quay given is written in the book.
    */
   public async answerHail(ship: Stuff, nowS: number): Promise<HailAnswer> {
+    const answer = await this.criteriaAnswer(ship, nowS);
+    this.noteHail(ship, answer, nowS);
+    return answer;
+  }
+
+  /** The posted criteria applied to her hail, in order. */
+  private async criteriaAnswer(ship: Stuff, nowS: number): Promise<HailAnswer> {
     this.prune(nowS);
     const handle = handleOf(ship);
     const mine = this.currentOf(handle);
@@ -353,11 +408,19 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
   }
 
   /**
-   * May she leave (P13)? ⚠ Dues are asked from A2 of the build, when the
-   * office takes payment (`pay office`); until then every ship is cleared.
+   * ⭐ May she leave (P13)? Not while she owes — her dues to this book and
+   * any bill she carries (a charter's days) — and the refusal says how much.
+   * ⛔ The SHIP is held, never the people: nothing here is asked of anyone
+   * going ashore.
    */
-  public async clearance(_ship: Stuff, _nowS: number): Promise<string | null> {
-    return null;
+  public async clearance(ship: Stuff, nowS: number): Promise<string | null> {
+    const dues = this.duesOwedBy(ship, nowS);
+    const carried = isShip(ship) ? ship.owedMinor() : 0;
+    if (dues <= 0 && carried <= 0) return null;
+    const parts: string[] = [];
+    if (dues > 0) parts.push(`${dues} in harbor dues`);
+    if (carried > 0) parts.push(`${carried} on her bills`);
+    return `She owes ${parts.join(' and ')}, and is not cleared to sail until it is paid at the harbor office — \`pay office\`. Anyone aboard may still go ashore.`;
   }
 
   /**
@@ -379,7 +442,11 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
    * posted rate, in whole minor units. The city's own craft owe nothing.
    */
   public duesOwedBy(ship: Stuff, nowS: number): number {
-    const handle = handleOf(ship);
+    return this.duesOwedOn(handleOf(ship), nowS);
+  }
+
+  /** What the book's lines for the ship `handle` owe now, whole minor units (the book's page reads it). */
+  public duesOwedOn(handle: string, nowS: number): number {
     if (this.exempt.includes(handle)) return 0;
     let owed = 0;
     for (const r of this.book) if (r.ship === handle) owed += this.owedOn(r, nowS);
@@ -409,6 +476,184 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
     const before = this.book.length;
     this.book = this.book.filter((r) => r.ship !== handle || (r.leftAtS ?? null) === null);
     if (changed || this.book.length !== before) this.save();
+  }
+
+  /* ───────────────────────── paying at the office (P13) ───────────────────────── */
+
+  /**
+   * ⭐ What `payer` owes at this office now (P13): for every ship in the
+   * book they answer for (`Ship.answersFor` — her master), her dues to the
+   * harbor works first, then each bill she carries, in the order billed.
+   */
+  public async billsFor(payer: Stuff, nowS: number): Promise<Bill[]> {
+    this.prune(nowS);
+    const out: Bill[] = [];
+    const seen = new Set<string>();
+    for (const r of this.book) {
+      if (seen.has(r.ship)) continue;
+      seen.add(r.ship);
+      const ship = await this.shipOf(r.ship);
+      if (ship === null || !ship.answersFor(payer)) continue;
+      const dues = this.duesOwedBy(ship as unknown as Stuff, nowS);
+      if (dues > 0) {
+        if (this.office === null) throw new Error(`Harbor ${this.getTemplatePath()}: dues are owed and no office is authored to pay them at`);
+        out.push({ to: this.office, amountMinor: dues, reason: `in harbor dues for ${nameOfShip(ship as unknown as Stuff)}`, key: `dues|${r.ship}` });
+      }
+      ship.getOwed().forEach((b, i) => {
+        out.push({ to: b.to, amountMinor: b.amountMinor, reason: b.reason, key: `owed|${r.ship}|${i}` });
+      });
+    }
+    return out;
+  }
+
+  /** ⭐ A bill read off this book has been paid: the dues stamped paid, or the ship's bill taken off her. */
+  public async onPaid(bill: Bill, nowS: number): Promise<void> {
+    const [kind, handle] = bill.key.split('|');
+    if (!handle) throw new Error(`Harbor.onPaid: not a bill this book wrote (${bill.key})`);
+    const ship = await this.shipOf(handle);
+    if (ship === null) throw new Error(`Harbor.onPaid: the ship ${handle} the bill was for does not stand`);
+    if (kind === 'dues') {
+      this.settleDues(ship as unknown as Stuff, nowS);
+      return;
+    }
+    if (kind === 'owed') {
+      if (!ship.settleOwed({ to: bill.to, amountMinor: bill.amountMinor, reason: bill.reason })) {
+        throw new Error(`Harbor.onPaid: ${handle} carries no bill '${bill.reason}' of ${bill.amountMinor}`);
+      }
+      return;
+    }
+    throw new Error(`Harbor.onPaid: not a bill this book wrote (${bill.key})`);
+  }
+
+  /* ───────────────────────── the harbormaster's call (P11) ───────────────────────── */
+
+  /**
+   * ⭐ Does `who` keep this harbor now — hold the seat AND be on shift
+   * (P11)? Only a keeper on shift may give a berth (`berth`).
+   */
+  public keptBy(who: Stuff): boolean {
+    const seat = this.seat;
+    if (seat === null || !MixinApi.isEmployed(who)) return false;
+    if (who.getEmployment(seat.business)?.positionKey !== seat.positionKey) return false;
+    return who.isOnShiftFor(seat.business);
+  }
+
+  /**
+   * ⭐ The ship the keeper means by `word` (her name, the article dropped,
+   * or the last word of her handle) among the ships this office knows: in
+   * the book, or hailed lately. `null` when it knows none by that word.
+   */
+  public async shipNamed(word: string, nowS: number): Promise<Ship | null> {
+    this.prune(nowS);
+    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
+    if (w === '') return null;
+    const known = [...this.book.map((r) => ({ ship: r.ship, name: r.name })), ...this.hails.map((h) => ({ ship: h.ship, name: h.name }))];
+    for (const k of known) {
+      const name = k.name.toLowerCase().replace(/^the\s+/, '');
+      const leaf = k.ship.split('/').filter((x) => x !== '' && x !== 'structure').pop() ?? '';
+      if (name === w || leaf === w) return this.shipOf(k.ship);
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ The keeper gives `ship` the quay `place` (P8, P11) — the NPC's own
+   * call made by whoever keeps the office, and no other: a quay the posted
+   * criteria would refuse is refused, citing the criterion. Those aboard
+   * her are told. Returns the refusal, or `null` when written.
+   */
+  public async assignBy(ship: Ship, place: string, by: Stuff, nowS: number): Promise<string | null> {
+    this.prune(nowS);
+    if (!this.keptBy(by)) return 'You do not keep this harbor.';
+    const s = ship as unknown as Stuff;
+    const handle = handleOf(s);
+    const mine = this.currentOf(handle);
+    if (mine !== null && mine.sinceS !== null) {
+      return `${nameOfShip(s)} lies alongside ${await nameOf(mine.quay)} already; a berth is not taken from a ship made fast.`;
+    }
+    const spec = this.quaySpec(place);
+    if (spec === null) return `${await nameOf(place)} is not a quay this harbor keeps.`;
+    // The criteria, in their posted order (the office is open: you keep it).
+    const bar = await this.barRefusal(s, nowS);
+    if (bar !== null) return `The bar: ${bar}`;
+    const quayName = await nameOf(place);
+    if (spec.maxDraftM != null && ship.hullNow().draftM > spec.maxDraftM) {
+      return `She draws ${ship.hullNow().draftM.toFixed(1)} m; ${quayName} takes nothing deeper than ${spec.maxDraftM.toFixed(1)} m.`;
+    }
+    const room = this.roomAt(spec, handle);
+    if (lengthOf(s) > room) {
+      return `There is no room for her at ${quayName}: ${Math.max(0, Math.round(room))} m is free and she is ${Math.round(lengthOf(s))} m.`;
+    }
+    const owed = this.duesOwedBy(s, nowS);
+    if (owed > 0) return `She owes ${owed} in dues; no berth is given her until they are paid.`;
+    const refused = this.assign(s, place, nowS);
+    if (refused !== null) return refused;
+    const answer: HailAnswer = { kind: 'quay', quay: place, words: await this.berthWords(place) };
+    this.noteHail(s, answer, nowS);
+    await tellAboard(ship, `The harbor office signals her: ${answer.words}`);
+    return null;
+  }
+
+  /**
+   * ⭐ The keeper sends `ship` to the roads (P8, P11): a berth given her
+   * and not yet taken up is taken back — never one she is made fast at.
+   * Those aboard her are told. Returns the refusal, or `null`.
+   */
+  public async sendToRoads(ship: Ship, by: Stuff, nowS: number): Promise<string | null> {
+    this.prune(nowS);
+    if (!this.keptBy(by)) return 'You do not keep this harbor.';
+    const s = ship as unknown as Stuff;
+    const handle = handleOf(s);
+    const mine = this.currentOf(handle);
+    if (mine !== null && mine.sinceS !== null) {
+      return `${nameOfShip(s)} lies alongside ${await nameOf(mine.quay)}; a ship made fast is not sent to the roads.`;
+    }
+    if (mine !== null) {
+      this.book = this.book.filter((r) => r !== mine);
+      this.save();
+    }
+    const answer: HailAnswer = { kind: 'roads', criterion: 'keeper', words: `Lie in ${await this.roadsName()} until the office calls her in.` };
+    this.noteHail(s, answer, nowS);
+    await tellAboard(ship, `The harbor office signals her: ${answer.words}`);
+    return null;
+  }
+
+  /** The last hail answered for her, by handle — `null` when none stands. */
+  public lastHail(ship: Stuff, nowS: number): HailRecord | null {
+    this.prune(nowS);
+    const h = this.hails.find((x) => x.ship === handleOf(ship));
+    return h ? { ...h } : null;
+  }
+
+  /** The ships lately sent to the roads, for the book's page (copies). */
+  public roadsHails(nowS: number): HailRecord[] {
+    this.prune(nowS);
+    return this.hails.filter((h) => h.quay === null).map((h) => ({ ...h }));
+  }
+
+  /** Write what she was told (one record per ship, the latest). */
+  private noteHail(ship: Stuff, answer: HailAnswer, nowS: number): void {
+    const handle = handleOf(ship);
+    this.hails = this.hails.filter((h) => h.ship !== handle);
+    this.hails.push({
+      ship: handle,
+      name: nameOfShip(ship),
+      atS: nowS,
+      quay: answer.kind === 'quay' ? answer.quay : null,
+      criterion: answer.kind === 'roads' ? answer.criterion : null,
+      words: answer.words,
+    });
+    this.save();
+  }
+
+  /** The ship a handle names, loaded (a row path today; a kind's handle when ships are minted). */
+  private async shipOf(handle: string): Promise<Ship | null> {
+    // A handle no row backs (a minted ship's, until B1) has no singleton: nothing to load.
+    const s = await StuffApi.singleton<Stuff>(handle).catch((err: unknown) => {
+      console.warn(`Harbor: the ship ${handle} in the book did not load:`, err);
+      return null;
+    });
+    return s !== null && isShip(s) ? s : null;
   }
 
   /**
@@ -519,7 +764,9 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
   private prune(nowS: number): void {
     const before = this.book.length;
     this.book = this.book.filter((r) => r.sinceS !== null || (r.leftAtS ?? null) !== null || nowS - r.assignedAtS < ASSIGNMENT_HOLDS_S);
-    if (this.book.length !== before) this.save();
+    const hailsBefore = this.hails.length;
+    this.hails = this.hails.filter((h) => nowS - h.atS < ASSIGNMENT_HOLDS_S);
+    if (this.book.length !== before || this.hails.length !== hailsBefore) this.save();
   }
 
   private save(): void {
@@ -563,4 +810,16 @@ function hoursWords(dS: number): string {
   const h = Math.max(0, dS / HOUR_S);
   const n = Math.round(h);
   return h < 0.75 ? 'within the hour' : `in about ${n} hour${n === 1 ? '' : 's'}`;
+}
+
+/** Everyone aboard `ship` hears the office's signal. */
+async function tellAboard(ship: Ship, text: string): Promise<void> {
+  for (const who of await ship.aboard()) {
+    if (!MixinApi.isSensor(who)) continue;
+    try {
+      MessageApi.scene(who).topic('speech.comms').toSelf(Mml.compose`${text}`).send();
+    } catch {
+      // decoration: the berth stands whether or not they heard
+    }
+  }
 }

@@ -107,3 +107,55 @@ describe('the Port of Terminus', () => {
     expect(rowAt('/world/terminus/harbor/agent/harbormaster').class).toBe('/platform/agent/Cast');
   });
 });
+
+describe('the line’s regulars (harbors A2)', () => {
+  const SHIPS = '/world/terminus/harbor/ships';
+  const harbor = data(HARBOR) as { quays: Array<{ place: string; lengthM: number }> };
+
+  it('⭐ the ketch and the coaster are ships with a deck that makes fast and a master’s seat rostered', () => {
+    for (const [kind, lengthM, draftM] of [['ketch', 20, 1.8], ['coaster', 35, 3.6]] as const) {
+      const row = rowAt(`${SHIPS}/${kind}/structure`);
+      expect(row.class).toBe('/platform/idea/Ship');
+      const d = row.data as { hull: { lengthM: number; draftM: number }; entrance: string; extent: string; house: string; expanse: string };
+      expect(d.hull).toMatchObject({ lengthM, draftM });
+      expect(d.extent).toBe(`${SHIPS}/${kind}`);
+      expect(d.expanse).toBe('/stuff/idea/WaterExpanse/greywater');
+      expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/CartesianZone');
+      const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number }>; exits: Record<string, { kind?: string }> };
+      expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
+      expect(deck.props).toContainEqual({ template: '/stuff/thing/mooring-line', count: 2 });
+      expect(deck.exits.ashore?.kind).toBe('/platform/idea/exits/ashore');
+      const company = data(d.house) as {
+        positions: Array<{ key: string }>;
+        rosterSlots: Array<{ positionKey: string; assignee: string; station: string }>;
+        operatingLocations: string[];
+        startsShiftOnHire: boolean;
+      };
+      expect(company.positions.map((p) => p.key)).toContain('master');
+      const slot = company.rosterSlots.find((s) => s.positionKey === 'master')!;
+      expect(rowAt(slot.assignee).class).toBe('/platform/agent/Cast');
+      expect(slot.station).toBe(d.entrance);
+      expect(company.operatingLocations).toContain(d.entrance);
+      expect(company.startsShiftOnHire).toBe(true);
+    }
+  });
+
+  it('⭐ drive step 3 holds by the rows: the Hesper and the ketch share the Town Quay; the coaster has no room left', () => {
+    const town = harbor.quays[0]!.lengthM;
+    const fish = harbor.quays[1]!.lengthM;
+    const hesper = 30; // her hull is unmeasured: `Ship.hullNow` reads 30 m
+    const ketch = (data(`${SHIPS}/ketch/structure`).hull as { lengthM: number }).lengthM;
+    const coaster = (data(`${SHIPS}/coaster/structure`).hull as { lengthM: number }).lengthM;
+    expect(hesper + ketch).toBeLessThanOrEqual(town);
+    expect(coaster).toBeGreaterThan(town - hesper - ketch);
+    expect(coaster).toBeGreaterThan(fish);
+  });
+
+  it('the line keeps an office on the Town Quay, and its mark ships in the commons', () => {
+    const office = data('/world/terminus/harbor/line/idea/office') as { operatingLocations: string[]; appointingAuthority: { office: string } };
+    expect(office.operatingLocations).toEqual(['/world/terminus/harbor/line-desk']);
+    expect(office.appointingAuthority.office).toBe('prime-minister');
+    expect(data('/stuff/idea/corpo/Corpo/greywater-line').key).toBe('greywater-line');
+    expect(data('/stuff/idea/corpo/Brand/greywater-line').owner).toBe('greywater-line');
+  });
+});

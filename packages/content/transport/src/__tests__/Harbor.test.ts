@@ -264,3 +264,129 @@ describe('a player keeping the office is told of a hail (P8)', () => {
     expect(told.join('\n')).toMatch(/the Hesper hails the harbor office/);
   });
 });
+
+describe('dues, clearance and the bills paid at the office (A2, P13)', () => {
+  /** Make `who` hold `positionKey` at `house` (on shift or not), as the Employed face says. */
+  function employ(who: Stuff, house: string, positionKey: string, onShift = true): void {
+    const w = who as unknown as Record<string, unknown>;
+    w.getEmployment = (p: string) => (p === house ? { positionKey, status: onShift ? 'on-shift' : 'off-shift' } : undefined);
+    w.isOnShiftFor = (p: string) => p === house && onShift;
+    const isEmployed = MixinApi.isEmployed.bind(MixinApi);
+    vi.spyOn(MixinApi, 'isEmployed').mockImplementation(((x: Stuff) => x === who || isEmployed(x)) as never);
+  }
+
+  it('⭐ dues stamp forward on the BOOK: a ship nobody has loaded since she made fast still owes every day begun', async () => {
+    const smack = ship('/test/ships/smack', 'the Smack', 9, 1.2);
+    harbor.madeFast(smack as unknown as Stuff, FISH, at(10));
+    // She sleeps: nothing about her runs. The book alone says what she owes.
+    fixtures.delete('/test/ships/smack');
+    expect(harbor.duesOwedOn('/test/ships/smack', at(10) + 2 * DAY + HOUR)).toBe(Math.ceil(3 * 9 * 0.25));
+    // Loaded again, her dues are what the book says.
+    fixtures.set('/test/ships/smack', smack as unknown as Stuff);
+    expect(harbor.duesOwedBy(smack as unknown as Stuff, at(10) + 2 * DAY + HOUR)).toBe(7);
+  });
+
+  it('⭐ clearance refuses her while she owes, citing the amount — and passes once paid', async () => {
+    const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
+    harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));
+    expect(await harbor.clearance(hesper as unknown as Stuff, at(9))).toBeNull();
+    const held = await town.clearance(hesper as unknown as Stuff, at(9) + 2 * HOUR);
+    expect(held).toMatch(/owes 8 in harbor dues/);
+    expect(held).toMatch(/pay office/);
+    expect(held).toMatch(/Anyone aboard may still go ashore/);
+    // A bill she carries holds her too.
+    hesper.owe({ to: '/test/line/desk', amountMinor: 12, reason: "for the Hesper's charter" });
+    harbor.settleDues(hesper as unknown as Stuff, at(9) + 2 * HOUR);
+    expect(await harbor.clearance(hesper as unknown as Stuff, at(9) + 3 * HOUR)).toMatch(/owes 12 on her bills/);
+    hesper.settleOwed({ to: '/test/line/desk', amountMinor: 12, reason: "for the Hesper's charter" });
+    expect(await harbor.clearance(hesper as unknown as Stuff, at(9) + 3 * HOUR)).toBeNull();
+  });
+
+  it('⭐ the bills are her master’s: dues to the office first, then what she carries; paying stamps them off', async () => {
+    harbor.setOffice('/test/port/office');
+    const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
+    hesper.setHouse('/test/ships/hesper/company');
+    harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));
+    hesper.owe({ to: '/test/line/desk', amountMinor: 12, reason: "for the Hesper's charter" });
+    const master = makeStuffAtPath(() => new Ship(), '/test/master') as unknown as Stuff;
+    const stranger = makeStuffAtPath(() => new Ship(), '/test/stranger') as unknown as Stuff;
+    employ(master, '/test/ships/hesper/company', 'master');
+    expect(await harbor.billsFor(stranger, at(9) + HOUR)).toEqual([]);
+    const bills = await harbor.billsFor(master, at(9) + HOUR);
+    expect(bills.map((b) => [b.to, b.amountMinor])).toEqual([
+      ['/test/port/office', 8],
+      ['/test/line/desk', 12],
+    ]);
+    expect(bills[0]!.reason).toMatch(/harbor dues for the Hesper/);
+    await harbor.onPaid(bills[0]!, at(9) + HOUR);
+    expect(harbor.duesOwedBy(hesper as unknown as Stuff, at(9) + HOUR)).toBe(0);
+    await harbor.onPaid(bills[1]!, at(9) + HOUR);
+    expect(hesper.getOwed()).toEqual([]);
+    expect(await harbor.clearance(hesper as unknown as Stuff, at(9) + HOUR)).toBeNull();
+  });
+});
+
+describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)', () => {
+  function keeper(onShift: boolean, positionKey = 'harbormaster'): Stuff {
+    const who = makeStuffAtPath(() => new Ship(), '/test/keeper') as unknown as Stuff;
+    const w = who as unknown as Record<string, unknown>;
+    w.getEmployment = (p: string) => (p === WORKS ? { positionKey, status: onShift ? 'on-shift' : 'off-shift' } : undefined);
+    w.isOnShiftFor = (p: string) => p === WORKS && onShift;
+    const isEmployed = MixinApi.isEmployed.bind(MixinApi);
+    vi.spyOn(MixinApi, 'isEmployed').mockImplementation(((x: Stuff) => x === who || isEmployed(x)) as never);
+    return who;
+  }
+
+  it('⭐ only a holder of the seat ON SHIFT keeps the harbor', () => {
+    expect(harbor.keptBy(keeper(true))).toBe(true);
+    expect(harbor.keptBy(keeper(false))).toBe(false);
+    expect(harbor.keptBy(keeper(true, 'harbor'))).toBe(false);
+  });
+
+  it('⭐ a quay the criteria refuse is refused, citing the criterion; one they allow is written', async () => {
+    const by = keeper(true);
+    const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
+    const coaster = ship('/test/ships/coaster', 'the Coaster', 35, 3.6);
+    vi.spyOn(hesper, 'aboard').mockResolvedValue([]);
+    vi.spyOn(coaster, 'aboard').mockResolvedValue([]);
+    river.levelM = -1.5;
+    expect(await harbor.assignBy(coaster, TOWN, by, at(9))).toMatch(/^The bar: .*2\.4 m over the bar/);
+    river.levelM = 1.5;
+    expect(await harbor.assignBy(coaster, FISH, by, at(9))).toMatch(/no room for her at .*25 m is free and she is 35 m/);
+    expect(await harbor.assignBy(hesper, TOWN, by, at(9))).toBeNull();
+    expect(harbor.getBook(at(9)).map((r) => [r.name, r.quay])).toEqual([['the Hesper', TOWN]]);
+    // 40 m left: the coaster fits the Town Quay now.
+    expect(await harbor.assignBy(coaster, TOWN, by, at(9))).toBeNull();
+    // Off shift, nothing.
+    expect(await harbor.assignBy(hesper, FISH, keeper(false), at(9))).toMatch(/do not keep this harbor/);
+  });
+
+  it('⭐ dues owed refuse a berth; a ship made fast is never moved or sent away', async () => {
+    const by = keeper(true);
+    const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
+    vi.spyOn(hesper, 'aboard').mockResolvedValue([]);
+    harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));
+    expect(await harbor.assignBy(hesper, FISH, by, at(10))).toMatch(/lies alongside .* already/);
+    expect(await harbor.sendToRoads(hesper, by, at(10))).toMatch(/is not sent to the roads/);
+    harbor.release(hesper as unknown as Stuff, at(10)); // left owing a day
+    expect(await harbor.assignBy(hesper, TOWN, by, at(11))).toMatch(/owes 8 in dues/);
+  });
+
+  it('⭐ the roads: a ship sent there is named by the book and can be called in again', async () => {
+    const by = keeper(true);
+    const ketch = ship('/test/ships/ketch', 'the Ketch', 20, 1.8);
+    vi.spyOn(ketch, 'aboard').mockResolvedValue([]);
+    river.levelM = 1.5;
+    expect(await harbor.answerHail(ketch as unknown as Stuff, at(9))).toMatchObject({ kind: 'quay', quay: TOWN });
+    expect(await harbor.sendToRoads(ketch, by, at(9))).toBeNull();
+    expect(harbor.getBook(at(9))).toEqual([]);
+    expect(harbor.roadsHails(at(9)).map((h) => h.name)).toEqual(['the Ketch']);
+    expect(await harbor.shipNamed('ketch', at(10))).toBe(ketch);
+    expect(await harbor.shipNamed('the ketch', at(10))).toBe(ketch);
+    expect(await harbor.quayNamed('fish-quay')).toBe(FISH);
+    expect(await harbor.isRoadsWord('the roads')).toBe(true);
+    expect(await harbor.assignBy(ketch, FISH, by, at(10))).toBeNull();
+    expect(harbor.roadsHails(at(10))).toEqual([]);
+    expect(await town.admit(ketch as unknown as Stuff, at(10))).toMatch(/gave her .*not this quay/);
+  });
+});

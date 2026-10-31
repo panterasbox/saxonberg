@@ -1,0 +1,51 @@
+# `berth` — the harbormaster's call (harbors A2, P8, P11). Afforded by the
+# berth book on the harbor office's desk (`HarborBook`, peers): whoever
+# keeps the harbor ON SHIFT gives a hailing ship a quay or sends her to
+# the roads. ⭐ The keeper's authority is the NPC's and no more: a quay the
+# posted criteria would refuse is refused, citing the criterion.
+verbs: [berth]
+controller: /system/transport/idea/cmd/harbor/BerthController
+description: "Give a ship a quay, or send her to the roads — the harbormaster's call"
+help: |
+  At the harbor office's book, whoever keeps the harbor on shift gives a
+  ship her berth: `berth <ship> at <quay>`, or `berth <ship> roads` to
+  have her lie in the roads. The ship is named as the book knows her — a
+  ship in the book, or one that hailed lately (`look book` shows them).
+
+  The office's posted criteria bind you as they bind the harbormaster:
+  the water over the bar at the tide, room along the quay by her length,
+  the depth the quay takes, dues owed. A quay they would refuse, you
+  cannot give, and you are told which criterion refused it. A ship made
+  fast is never moved or sent away. Off shift, or not holding the seat,
+  you do not keep this harbor.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+examples:
+  - cmd: berth kittiwake at town-quay
+    note: Give the Kittiwake the Town Quay
+  - cmd: berth corrigan roads
+    note: Have the Corrigan lie in the roads until the office calls her in
+args:
+  - name: ship
+    type: string
+    required: true
+  # ⭐ A quay's name may be two words (`town quay`), so the tail is greedy;
+  # `at` is its boundary, and `roads` is its other answer.
+  - name: quay
+    type: string
+    required: true
+    greedy: true
+    prepositions: [at]
+  # ⭐ The book the call is written in — declared, not hunted for: the one
+  # on the desk in front of you (`lint:instrument-args`). Required WITH a
+  # default, so absent means that book (not an optional slot a trailing
+  # word could fall into); greedy, so `in the book` binds.
+  - name: book
+    type: object
+    required: true
+    greedy: true
+    prepositions: [in]
+    default: "reachable:[class.HarborBook]"
+    scope: ["reachable"]
+    requires: [PayableMixin]

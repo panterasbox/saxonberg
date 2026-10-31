@@ -1,0 +1,8 @@
+# Kittiwake — one of the line's two regulars (harbors A2): her rooms are
+# ordinary rooms in their own zone, so the way named for her on a quay
+# crosses into somewhere else (a ship's rooms are never the quay's zone).
+class: /platform/idea/location/CartesianZone
+data:
+  name: Kittiwake
+  cellSize: 4.0
+  # No `horizon`: afloat, what is in view is computed from two heights.

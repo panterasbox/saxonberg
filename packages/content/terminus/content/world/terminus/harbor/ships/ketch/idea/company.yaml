@@ -1,0 +1,37 @@
+# The Kittiwake's company — the house whose roster mans her (harbors A2).
+#
+# ⭐ Her MASTER is a seat: the NPC rostered here keeps it by default, and
+# anybody the appointing authority puts in it holds it beside them —
+# `appoint me to master at /world/terminus/harbor/ships/ketch/idea/company` is how the founder takes
+# her helm in the drive (her voyages are laid by hand this build). Whoever
+# holds the seat answers for her at the harbor office: her dues are theirs
+# to pay (`pay office`). The authority becomes her register's managing
+# owner when the register lands (harbors B2).
+class: /platform/idea/Business
+data:
+  name: "the Kittiwake's company"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: master
+      noun: master
+      label: in command of her
+      wageRate: 5
+      headcount: 1
+    - key: deckhand
+      noun: deckhand
+      label: on deck
+      wageRate: 2
+      headcount: 2
+  rosterSlots:
+    - positionKey: master
+      assignee: /world/terminus/harbor/ships/ketch/agent/master
+      station: /world/terminus/harbor/ships/ketch/deck
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  # A hire starts at once: an appointed master has her helm with no rota to wait for.
+  startsShiftOnHire: true
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/harbor/ships/ketch/deck

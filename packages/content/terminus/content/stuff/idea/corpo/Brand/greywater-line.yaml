@@ -1,0 +1,10 @@
+# The Greywater Line's colors (harbors A2) — the swallowtail its ships fly
+# and its desk hangs out.
+class: /platform/idea/corpo/Brand
+data:
+  key: greywater-line
+  name: Greywater Line
+  owner: greywater-line
+  category: shipping
+  positioning: dependable
+  descriptor: A white swallowtail with a green bar, flown by ships that arrive when the line says they will.
