@@ -24,4 +24,9 @@ data:
   house: /world/terminus/hesper/idea/outfit
   expanse: /stuff/idea/WaterExpanse/greywater
   expansePosition: { latDeg: 42.000, lonDeg: -8.470 }
+  # ⭐ Made fast at the estuary mouth (harbors P4): her lines round its
+  # bollards, and a way aboard named for her — `go hesper` — on it. A
+  # course casts her off; a landing she comes to, she makes fast at.
+  berth: /world/terminus/estuary/estuary-mouth
+  moored: true
   speedKn: 6

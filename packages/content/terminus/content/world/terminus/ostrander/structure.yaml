@@ -29,6 +29,9 @@ data:
   house: /world/terminus/ostrander/idea/outfit
   line: /stuff/idea/Watercourse/kestrel
   linePosition: { course: kestrel, km: 8.82, across: 20 }
+  # ⭐ Made fast at the city quay (harbors P4): `go ostrander` from the bank.
+  berth: /world/terminus/wharfside/bank
+  moored: true
   speedKn: 6
   # ⭐ 0.25 m (the river build's drive): a sternwheeler built for a small
   # river draws what a flat-bottomed scow draws. At 0.4 the Kestrel's

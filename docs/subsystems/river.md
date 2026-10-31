@@ -219,13 +219,15 @@ for the sea's chart; at a node that names a river (`ExpanseNode.river`),
 in the water her `course` waits; `--leaving-them` sails and records an
 `abandonment` accountability row.
 
-**Alongside a landing** (D18): a landing on the line carries an authored
-`aboard` way (`AboardExit`) naming the ship whose usual berth it is — the
-woodyard's to the *Ostrander*'s deck — passable only while she lies there,
-not under way, within 60 m (`ALONGSIDE_M`) of the landing; her deck's
-`ashore` names her home berth and is worked out by where she lies. A way
-minted on arrival and named for her, and a river place's `look` mentioning
-her, are the ships slate's.
+**Alongside a landing** (D18; harbors P4): a ship whose passage ends at a
+landing makes fast there — her lines' ends round the landing's bollards
+and a way aboard named for her (`go ostrander`, a `BerthExit`) put on it
+— and casts off when she next sails; nothing on the landing is authored
+but the bollard. Her deck's `ashore` leads to the landing she is made
+fast at, else the one within 60 m (`ALONGSIDE_M`). A river keeps the
+craft it has adopted (`LineFrameMixin.adopt`), so a landing's first use
+can ask them whether one lies made fast there; the landing's `look` says
+who is alongside. See [expanse.md § Exits](./expanse.md).
 
 ## Ferries
 

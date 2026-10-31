@@ -22,6 +22,8 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import Good from '@saxonberg/server/mud/platform/thing/Good';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 
 class Body extends Character {}
 
@@ -47,6 +49,7 @@ beforeEach(() => {
   const realClone = StuffApi.clone.bind(StuffApi);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string, ...rest: unknown[]) => {
     if (path === '/trade/diving/thing/line-end') return makeStuff(() => new LineEnd());
+    if (path === '/stuff/thing/mooring-line-end') return makeStuff(() => new LineEnd());
     return (realClone as (...a: unknown[]) => unknown)(path, ...rest);
   }) as unknown as typeof StuffApi.clone);
 });
@@ -110,5 +113,63 @@ describe('the lifeline (underwater C1)', () => {
   it('a line not held cannot be pulled; one with nobody on it says so', async () => {
     const { tender, line } = await scene();
     expect(await line.pullBy(tender as unknown as Stuff, null)).toMatchObject({ ok: false, reason: 'nobody-on-line' });
+  });
+});
+
+describe('a mooring line (harbors P6)', () => {
+  async function moored(): Promise<{ quay: Location; deck: Location; line: Lifeline; bollard: Good; ship: { getName(): string; lineCastOff: ReturnType<typeof vi.fn> } }> {
+    const quay = makeStuffAtPath(() => new Location(), '/test/harbor/quay');
+    const deck = makeStuffAtPath(() => new Location(), '/test/ship/deck');
+    const bollard = makeStuff(() => new Good());
+    ContainmentApi.move(bollard as never, quay as never);
+    const line = makeStuff(() => new Lifeline());
+    ContainmentApi.move(line as never, deck as never);
+    const ship = { getName: () => 'the Hesper', lineCastOff: vi.fn() };
+    return { quay, deck, line, bollard, ship };
+  }
+
+  it('⭐ is a line by the kernel protocol, as long as it is', () => {
+    const line = makeStuff(() => new Lifeline());
+    expect(MixinApi.isMooringLine(line as unknown as Stuff)).toBe(true);
+    expect(line.lineLengthM()).toBe(20);
+  });
+
+  it('⭐ made fast round a bollard, the line stays aboard and its end lies on the quay, saying whose it is', async () => {
+    const { quay, deck, line, bollard, ship } = await moored();
+    expect(await line.makeFastRound(bollard as unknown as Stuff, ship)).toBe(true);
+    expect(deck.getContents()).toContain(line);
+    const end = quay.getContents().find((c) => c instanceof LineEnd) as LineEnd;
+    expect(end).toBeDefined();
+    expect(end.getShortDescription()).toBe('line from the Hesper');
+    expect(end.getRoundBollard()).toBe(bollard);
+    expect(line.isMadeFast()).toBe(true);
+    expect(line.madeFastTo()).toBe(bollard);
+  });
+
+  it('⭐⭐ lifting the end off the bollard casts the line off, and the ship is told', async () => {
+    const { quay, line, bollard, ship } = await moored();
+    await line.makeFastRound(bollard as unknown as Stuff, ship);
+    const end = quay.getContents().find((c) => c instanceof LineEnd) as LineEnd;
+    const hand = makeStuff(() => new Body());
+    ContainmentApi.move(hand as never, quay as never);
+    ContainmentApi.move(end as never, hand as never);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(ship.lineCastOff).toHaveBeenCalledWith(line);
+    expect(line.isMadeFast()).toBe(false);
+    expect(end.isDestroyed()).toBe(true);
+  });
+
+  it('brought in from aboard, the end goes and the ship is not told (she asked)', async () => {
+    const { quay, line, bollard, ship } = await moored();
+    await line.makeFastRound(bollard as unknown as Stuff, ship);
+    await line.castOffMooring();
+    expect(quay.getContents().some((c) => c instanceof LineEnd)).toBe(false);
+    expect(ship.lineCastOff).not.toHaveBeenCalled();
+  });
+
+  it('a hose holds no ship', () => {
+    const hose = makeStuff(() => new Lifeline());
+    hose.kind = 'hose';
+    expect(hose.lineLengthM()).toBe(0);
   });
 });

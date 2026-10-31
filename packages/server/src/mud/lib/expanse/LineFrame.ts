@@ -181,9 +181,20 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    adopt(_craft: Craft): void {
-      return;
+    /**
+     * ⭐ The craft on this river that have loaded or got under way (harbors
+     * P4) — a river keeps its ships as the sea does, so a landing being used
+     * can ask which of them lies made fast at it. Runtime live refs.
+     */
+    private craftSet: Set<Craft> = new Set();
+
+    adopt(craft: Craft): void {
+      this.craftSet.add(craft);
+    }
+
+    craft(): Stuff[] {
+      for (const c of this.craftSet) if (c.isDestroyed()) this.craftSet.delete(c);
+      return [...this.craftSet];
     }
 
     /**

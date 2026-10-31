@@ -5,8 +5,8 @@
 # is a thing you can do rather than a direction you can face.
 #
 # ⭐ And since the maritime build it is also a LANDING: the bar is the
-# Greywater's linear passage across the mouth, and whatever lies at the
-# bar is reached `aboard` from here. The sea is still not content in the
+# Greywater's linear passage across the mouth, and a ship made fast here
+# from the bar is reached by a way named for her (`go hesper`). The sea is still not content in the
 # room sense — nothing is ever inside the Greywater; its places are its
 # nodes, and this room is the content behind one of them.
 class: /platform/location/Shore
@@ -34,6 +34,9 @@ data:
   # a player who fills one on a dry week and one on a wet one has the whole
   # lesson side by side without anybody explaining it.
   props:
+    # ⭐ What a ship lying at the bar makes her lines fast round (harbors P6):
+    # the Hesper lies here, and her way aboard is named for her.
+    - { template: /platform/thing/bollard, count: 2 }
     # ⭐ A sailing dinghy drawn up on the shingle (the river build, D20).
     - /system/transport/thing/sailing-dinghy
     - /trade/quarrying/thing/salt-pan
@@ -54,12 +57,6 @@ data:
       media: [water]
       # A swim out over the bar, short; every corridor edge carries a budget.
       edgeMinutes: 2
-    # ⭐ The way aboard whatever lies at the bar (maritime D19) — a ship
-    # that has sailed is not alongside, and this says so.
-    aboard:
-      kind: /platform/idea/exits/aboard
-      destination: /world/terminus/hesper/deck
-      edgeMinutes: 1
   # ⭐ The channel is the Greywater's tide coming up the river (underwater
   # D25): `look channel` reads which way it runs; `fill pan from tide` draws
   # brine from it.

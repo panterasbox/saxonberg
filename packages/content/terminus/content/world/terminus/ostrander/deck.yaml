@@ -21,14 +21,21 @@ data:
     - /world/terminus/ostrander/thing/bunker
     - /system/water/thing/lead-line
     - /system/transport/thing/rowboat
+    # ⭐ Her mooring lines (harbors P6): at a landing each goes ashore round
+    # a bollard; with none aboard she cannot make fast.
+    - { template: /stuff/thing/mooring-line, count: 2 }
   exits:
     west:
       destination: /world/terminus/ostrander/saloon
     down:
       destination: /world/terminus/ostrander/hold
+    # ⭐ Ashore is wherever she is made fast (harbors P4), worked out when
+    # taken; the destination is only her home berth. One way by rows: the
+    # way back aboard is hers, named for her, put on the landing she lies at.
     ashore:
       kind: /platform/idea/exits/ashore
       destination: /world/terminus/wharfside/bank
+      oneWay: true
     # ⭐ Over the side: the river where she is now, under way or not.
     side:
       kind: /system/water/idea/exits/overside

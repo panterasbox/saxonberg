@@ -1,0 +1,14 @@
+# A mooring ring (harbors P6) — an iron ring leaded into rock, the bollard
+# of a landing that has no quay. A ship's line is made fast through it as
+# round any bollard.
+class: /platform/thing/Bollard
+data:
+  shortDescription: mooring ring
+  keywords: [ring, "mooring ring", "ring bolt", bollard]
+  register: indefinite
+  longDescription: >-
+    A ring of iron as broad as two hands, leaded into the rock and rusted
+    orange, the stone around it scored by years of lines.
+  _materialPath: /stuff/idea/material/element/iron
+  fixedInPlace: true
+  mass: 20

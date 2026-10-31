@@ -79,6 +79,7 @@ import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
+import type { MooringLine } from '../lib/spatial/MooringLine';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -1343,6 +1344,11 @@ export class MixinApi {
   /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
   public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
     return this.hasMixin(obj, Mixins.TetherEnd);
+  }
+
+  /** ⭐ A line that can hold a ship to a bollard ashore (harbors P6). */
+  public static isMooringLine(obj: Stuff): obj is Stuff & MooringLine {
+    return this.hasMixin(obj, Mixins.MooringLine);
   }
 
   /** ⭐ A bell or signal you strike (river W16), which remembers when. */

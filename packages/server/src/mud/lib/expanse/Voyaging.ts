@@ -119,6 +119,10 @@ export interface Voyaging {
   onStop(stop: CraftStop): Promise<string>;
   /** Somebody went over her side into the water (river D30). */
   noteOverboard(who: Stuff): void;
+  /** ⭐ Made fast at a landing by her own lines (harbors P5)? A boat never is. */
+  isMoored(): boolean;
+  /** ⭐ A landing is being used: if she lies made fast there, her way aboard is put back on it (harbors P4). */
+  wireBerthAt(place: Stuff): Promise<void>;
   /** The navigator's reckoning, as a value (the chart's). */
   getPlot(): Plot | null;
   /** The reckoned position now (the chart's). */
@@ -430,6 +434,23 @@ export function VoyagingMixin<
      */
     noteOverboard(who: Stuff): void {
       void who;
+    }
+
+    /**
+     * Made fast at a landing by her own lines.
+     * @hook A ship answers whether she is moored (harbors P5). Default: never.
+     */
+    isMoored(): boolean {
+      return false;
+    }
+
+    /**
+     * A landing is being used for the first time (`FrameSited`): if she lies
+     * made fast there, her way aboard goes back on it.
+     * @hook A ship re-wires her berth (harbors P4). Default: nothing.
+     */
+    async wireBerthAt(place: Stuff): Promise<void> {
+      void place;
     }
 
     /**

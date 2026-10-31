@@ -153,7 +153,7 @@ async function readInDaylight(s: Session, what: string): Promise<CommandResult> 
 }
 
 async function aboardFrom(s: Session): Promise<void> {
-  const r = await s.cmd('go aboard');
+  const r = await s.cmd('go hesper');
   expectOk(r);
   expect(await look(s)).toMatch(/Hesper's deck/i);
 }

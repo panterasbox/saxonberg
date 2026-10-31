@@ -15,6 +15,8 @@ data:
   frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence-12,left", span: 0.15, name: woodyard }
   props:
     - /world/terminus/woodyard/thing/rick
+    # ⭐ What the steamer's lines are made fast round when she comes in to wood up (harbors P6).
+    - /platform/thing/bollard
   cast:
     - /world/terminus/woodyard/agent/woodhawk
   details:
@@ -22,11 +24,3 @@ data:
       keywords: [river, kestrel, water]
       description: |
         The Kestrel slides by the stage, quick and brown, with the alders trailing in it.
-  exits:
-    aboard:
-      kind: /platform/idea/exits/aboard
-      destination: /world/terminus/ostrander/deck
-      edgeMinutes: 1
-      # The way back is her deck's `ashore`, worked out by where she lies;
-      # the deck's row names only her home berth, the city quay.
-      oneWay: true

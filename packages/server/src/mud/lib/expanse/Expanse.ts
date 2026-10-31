@@ -478,7 +478,13 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
       const node = arrived.data?.node ? await this.node(arrived.data.node) : null;
       const at = node?.getExpansePosition() ?? null;
       if (at !== null) {
-        return { told, distanceKm, stop: { reason: 'arrived', words: arrived.words ?? '', at: { frame: 'chart', at } } };
+        // ⭐ The landing behind the node (harbors P5): what she comes alongside.
+        const landing = node!.getDestination();
+        return {
+          told,
+          distanceKm,
+          stop: { reason: 'arrived', words: arrived.words ?? '', at: { frame: 'chart', at }, ...(landing ? { landing } : {}) },
+        };
       }
     }
     // 3. Neglect — the gear remembers.

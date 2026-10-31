@@ -1,0 +1,12 @@
+# The end of a mooring line, ashore (harbors P6) — minted beside a bollard
+# when a ship makes fast, gone when she casts off. Never authored into the
+# world. Lifting it off the bollard casts the line off: the ship it held is
+# held by one line fewer, and with her last line off she is adrift.
+class: /trade/diving/thing/LineEnd
+data:
+  shortDescription: end of a mooring line
+  keywords: [end, line, rope, "mooring line", warp]
+  register: indefinite
+  longDescription: The eye of a mooring line dropped over a bollard, the line going away taut to a ship's side.
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 2

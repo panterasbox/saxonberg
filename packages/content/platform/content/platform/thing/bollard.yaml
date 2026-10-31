@@ -1,0 +1,14 @@
+# A bollard (harbors P6) — what a ship's line is made fast round. A landing
+# that props one can hold a ship; a landing without one has nothing to make
+# fast to, and a ship lies off it unmoored.
+class: /platform/thing/Bollard
+data:
+  shortDescription: bollard
+  keywords: [bollard, post, "mooring post"]
+  register: indefinite
+  longDescription: >-
+    A squat iron post bolted into the edge of the landing, its waist worn
+    bright where lines have been dropped over it and hauled taut.
+  _materialPath: /stuff/idea/material/element/iron
+  fixedInPlace: true
+  mass: 250

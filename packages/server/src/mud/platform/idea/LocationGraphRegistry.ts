@@ -300,7 +300,7 @@ export default class LocationGraphRegistry extends Idea {
    * institutions over its extent, the fixtures that seat themselves in it.
    * Every one is DERIVED from a reference the content already authors,
    * pointing at the place (`operatingLocations`, a structure's `extent`, a
-   * ship's `expanse`, `parentExtent`, `seatIn`, an agent's `institution`),
+   * ship's `expanse` and `berth`, `parentExtent`, `seatIn`, an agent's `institution`),
    * so loading a place can load what belongs with it without anybody
    * writing the reverse down and without a search: a read is a map lookup
    * over the place's path and its ancestors.
@@ -449,13 +449,17 @@ export default class LocationGraphRegistry extends Idea {
       if (typeof data.institution === 'string' && placedIn.has(row.path)) {
         add(placeOf(row.path), data.institution, 'institution');
       }
-      if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string') &&
+      if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string' ||
+           typeof data.berth === 'string') &&
           row.class && (await this.isStructureClass(row.class))) {
         if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
         // ⭐ A ship on a river attaches to its LINE as the sea's do to
         // theirs (river D2): the river loads what is attached to it.
         if (typeof data.line === 'string') add(data.line, row.path, 'craft');
+        // ⭐ A ship authored made fast at a landing (harbors P4) loads with
+        // it, and puts her way aboard on it as she does.
+        if (typeof data.berth === 'string') add(data.berth, row.path, 'craft');
       }
     }
     this.attachments = next;

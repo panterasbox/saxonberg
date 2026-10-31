@@ -504,7 +504,7 @@ from a reference content already authors, pointing AT the place:
 |---|---|---|
 | `house` | a business's `operatingLocations`; ⭐ and its `rosterSlots` (each assignee's cast place and each `station`, so a round with no premises stands up too) | the operated room — a fixture's room when the entry is a counter (followed through `props:` / `cast:` / a room's `warren:`, then `container:`, then `seatIn:`); the hand's home and every stop |
 | `structure` | a Structure row's `extent` | the extent |
-| `craft` | a Ship row's `expanse` | the sea |
+| `craft` | a Ship row's `expanse` / `line`; ⭐ and its `berth` (harbors P4: a ship authored made fast at a landing loads with it and puts her way aboard on it) | the sea / the river; the landing |
 | `institution` | a row's `parentExtent`; an agent's `institution` | the extent; the room that casts the agent |
 | `fixture` | a row's `seatIn` | the seat's place |
 

@@ -22,6 +22,13 @@
  *   room, and two banks loading in one boot cascade collided on the exit
  *   row (the drive found the estuary reach with no way into the water).
  *
+ * - **Ships lie at it** (harbors P4): the first use also asks the frame's
+ *   craft whether any lies made fast here (her way aboard goes back on the
+ *   place), and stands up the ships the frame names that are not loaded —
+ *   each puts her own way back when she loads. Its `look` reads who is
+ *   alongside from those ways: *Alongside: the Hesper.* — never a thing in
+ *   the room.
+ *
  * Composed on the waterside classes (`platform/location/Shore`, `Quay`).
  */
 
@@ -31,6 +38,9 @@ import type { FramePos, FrameStuff } from './Frame';
 import { Expanse } from './Expanse';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
+import type { MarkupAugmenter } from '../../api/mml';
+import BerthExit from '../../platform/idea/BerthExit';
 
 /** Where a fixed place stands on a frame. */
 export interface FrameSiteRecord {
@@ -62,6 +72,9 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     static fieldMeta: FieldMeta = {
       frameSite: { persistent: true, authorable: true },
     };
+
+    /** ⭐ Who lies alongside, read off the ways aboard them (harbors P4). */
+    static markupAugmenters: MarkupAugmenter[] = [alongsideAugmenter];
 
     /** `null` for a place on no frame — honest, not missing. */
     public frameSite: FrameSiteRecord | null = null;
@@ -100,13 +113,37 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       if (this._siteStood === null) {
         const site = this.frameSite;
         this._siteStood = this.liveSiteFrame()
-          .then((frame) => frame?.onSiteStood(this as unknown as Stuff))
+          .then(async (frame) => {
+            if (!frame) return;
+            await frame.onSiteStood(this as unknown as Stuff);
+            // The frame HAS been told; a ship that cannot make fast again is
+            // said, and never makes the frame be told twice.
+            await this.shipsLyingHere(frame).catch((err) =>
+              console.warn(`FrameSitedMixin: the ships lying at ${site.cite} on ${site.frame} were not re-wired:`, err),
+            );
+          })
           .catch((err) => {
             this._siteStood = null;
             console.warn(`FrameSitedMixin: ${site.frame} at '${site.cite}' was not told it stands there:`, err);
           });
       }
       return this._siteStood;
+    }
+
+    /**
+     * ⭐ The ships that lie made fast here get their ways back (harbors P4):
+     * the frame's loaded craft are asked; the ships attached to the frame
+     * that are not standing are stood up, and each re-wires itself as it loads.
+     */
+    private async shipsLyingHere(frame: FrameStuff): Promise<void> {
+      for (const c of frame.craft()) {
+        if (!c.isDestroyed() && MixinApi.isVoyaging(c)) await c.wireBerthAt(this as unknown as Stuff);
+      }
+      const path = frame.getTemplatePath();
+      if (!path) return;
+      for (const p of await NavigationApi.attachedTo(path, 'craft')) {
+        void StuffApi.singleton<Stuff>(p).catch(() => null);
+      }
     }
 
     /** A player put down on it (a login, a spawn) is using it. */
@@ -121,4 +158,23 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       if (this.frameSite !== null && mover.isAgent()) void this.frameSiteStood();
     }
   };
+}
+
+/**
+ * ⭐ *Alongside: the Hesper, the Kittiwake.* — derived from the ways aboard
+ * the ships made fast here (harbors P5), so it is true the moment one casts
+ * off. A place with none passes its text through.
+ */
+function alongsideAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isExitable(host)) return text;
+  const names: string[] = [];
+  for (const exit of host.getExits().values()) {
+    if (exit instanceof BerthExit) {
+      const name = exit.alongsideName();
+      if (name) names.push(name);
+    }
+  }
+  if (names.length === 0) return text;
+  const line = `Alongside: ${names.join(', ')}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }

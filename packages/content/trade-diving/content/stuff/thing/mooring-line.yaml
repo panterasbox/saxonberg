@@ -1,0 +1,20 @@
+# A mooring line (harbors P6) — thirty meters of tarred manila, what a ship
+# is made fast to the shore with. Coming alongside, its end goes ashore
+# round a bollard while the line stays at her bitts; lift that end off the
+# bollard and she is held by one line fewer.
+#
+# ⭐ A lifeline in all but its use: the trade-diving pack owns the line's
+# class, so it ships the row (base-library cannot depend on a trade). The
+# cordage seam re-classes it to cordage's Rope.
+class: /trade/diving/thing/Lifeline
+data:
+  shortDescription: mooring line
+  keywords: [line, rope, "mooring line", warp, mooring]
+  register: indefinite
+  longDescription: >-
+    Thirty meters of tarred manila as thick as a wrist, an eye spliced in
+    one end to drop over a bollard, the rest flaked down ready to run.
+  _materialPath: /stuff/idea/material/textile/jute
+  mass: 9
+  kind: line
+  lengthM: 30

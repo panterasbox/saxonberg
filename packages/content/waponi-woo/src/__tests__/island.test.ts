@@ -28,7 +28,7 @@ describe('Waponi Woo', () => {
     expect(zone.data.continentality).toBe(0);
   });
 
-  it('⭐ is reachable by sea: the Greywater node lands at the landing, and the landing has a way aboard', () => {
+  it('⭐ is reachable by sea: the Greywater node lands at the landing, and the landing has a ring to make fast to', () => {
     const node = YAML.parse(
       readFileSync(join(CONTENT, '../../world-seed/content/stuff/idea/WaterExpanse/greywater/waponi-woo.yaml'), 'utf8'),
     );
@@ -36,7 +36,10 @@ describe('Waponi Woo', () => {
     expect(node.data.destination).toBe(`${W}/location/landing`);
     expect(node.data.focus.theta).toBe(180);
     const landing = row(`${W}/location/landing`);
-    expect(landing.data.exits.aboard.kind).toBe('/platform/idea/exits/aboard');
+    // ⭐ The way aboard is the ship's, named for her and put here while she
+    // lies made fast (harbors P4); the landing authors what she makes fast to.
+    expect(landing.data.exits.aboard).toBeUndefined();
+    expect(landing.data.props).toContain('/platform/thing/mooring-ring');
   });
 
   it('every exit inside the island names a room the island ships', () => {

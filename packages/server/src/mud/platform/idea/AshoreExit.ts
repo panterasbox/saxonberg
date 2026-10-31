@@ -10,10 +10,20 @@
  *
  * The craft is the Structure whose entrance this room is, looked up
  * (once, then cached) when the async gate is asked.
+ *
+ * ⭐ A ship made fast at a landing (harbors P4) is ashore THERE: the berth
+ * she records is read first, and the shipped reads (the landing within a
+ * rope's throw on a river, the node's landing at sea) only after. Her
+ * gangway's lock is read by this way as by the way aboard (P9) — `lock
+ * ashore` bolts it from the deck — but leaving never refuses: this way's
+ * gate never reads the bolt.
  */
 
 import { NavigationApi } from '../../api/navigation';
 import DeferredDestinationExit from '../../lib/boundary/DeferredDestinationExit';
+import { LockableMixin } from '../../lib/boundary/Lockable';
+import { Lock } from '../../lib/lock/Lock';
+import Ship from './Ship';
 import type { TraversalGuard } from '../../lib/boundary/Exit';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -25,7 +35,7 @@ import { MixinApi } from '../../api/mixin';
 /** How near a landing a ship on a river lies to be alongside it, m. */
 const ALONGSIDE_M = 60;
 
-export default class AshoreExit extends DeferredDestinationExit {
+export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   private craftPath: string | null = null;
   /** The lookup ran (a deck with no craft is answered once, not per traverse). */
   private warmed = false;
@@ -51,11 +61,42 @@ export default class AshoreExit extends DeferredDestinationExit {
     }
   }
 
+  /** The ship, standing, when she has a gangway (a Ship). */
+  private berthed(): Ship | null {
+    if (this.craftPath === null) return null;
+    const craft = StuffApi.findByTemplatePath<Stuff>(this.craftPath);
+    return craft instanceof Ship && !craft.isDestroyed() ? craft : null;
+  }
+
+  public override isLocked(): boolean {
+    return this.berthed()?.isGangwayLocked() ?? false;
+  }
+
+  public override setLocked(value: boolean): void {
+    if (typeof value !== 'boolean') throw new TypeError(`AshoreExit.locked must be a boolean, got ${typeof value}`);
+    this.berthed()?.setGangwayLocked(value);
+  }
+
+  public override lock(): void {
+    this.setLocked(true);
+  }
+
+  public override unlock(): void {
+    this.setLocked(false);
+  }
+
+  public override getLock(): Lock {
+    return new Lock(this.berthed()?.getGangwayKeyway() ?? '', 'pin-tumbler');
+  }
+
   /** The landing behind the node the craft lies at now, or `null`. */
   private landing(): string | null {
     if (this.craftPath === null) return null;
     const craft = StuffApi.findByTemplatePath<Stuff>(this.craftPath);
     if (!craft || !MixinApi.isVoyaging(craft) || craft.getCourse() !== null) return null;
+    // ⭐ Made fast at a landing: ashore is THERE (harbors P4).
+    const berth = this.berthed()?.getBerth() ?? null;
+    if (berth !== null) return berth;
     // ⭐ On a river (D18): the landing she lies within hailing of a rope's
     // throw of, by the river's own list of what stands on its banks.
     const line = MixinApi.isPositioned(craft) ? craft.getLine() : null;

@@ -664,7 +664,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor = await goTo(sailorHandle, MOUTH);
     // What Terminus feels like tonight, for step 14 to compare against.
     homeFeel = await say(sailor, 'analyze temperature');
-    await say(sailor, 'go aboard');
+    await say(sailor, 'go hesper');
     await layCourse(sailor, 'roads');
     await advance(1 * HOUR);
     await layCourse(sailor, 'waponi woo');
@@ -863,7 +863,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     expect(bought, 'the estate never had a block to sell').toBe(1);
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/landing`);
-    await say(sailor, 'go aboard');
+    await say(sailor, 'go hesper');
     // Laid from a fixed position (the island), the course home holds.
     await layCourse(sailor, 'bar');
     let heard = '';

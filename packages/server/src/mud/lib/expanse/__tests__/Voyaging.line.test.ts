@@ -8,6 +8,7 @@ import ExpanseNode from '../../../platform/idea/ExpanseNode';
 import { Expanse } from '../Expanse';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
+import type { MooringLine } from '../../spatial/MooringLine';
 import { LineFrameMixin, type LinePositionRecord, type PassagePlan, type PassageRequest } from '../LineFrame';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
@@ -44,6 +45,8 @@ class TestShip extends Ship {
   override async aboard(): Promise<Stuff[]> { return [listener]; }
   override async watchRoom(): Promise<(Stuff & Container) | null> { return deck; }
   override async cargoKg(): Promise<number> { return 0; }
+  // ⭐ A line aboard to make fast with (harbors P5): a course for a landing asks.
+  override async linesAboard(): Promise<(Stuff & MooringLine)[]> { return [{} as Stuff & MooringLine]; }
 }
 
 /** ⭐ A real line frame (river review, W7) with the river's hooks stubbed. */

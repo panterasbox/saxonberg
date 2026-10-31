@@ -14,6 +14,9 @@ data:
   waters:
     river: "kestrel:falls+0.4"
   frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "falls+0.3,left", span: 0.2, name: landing }
+  # ⭐ What the steamer's lines are made fast round (harbors P6).
+  props:
+    - /platform/thing/bollard
   details:
     river:
       keywords: [river, kestrel, water, pool, spray]
@@ -32,11 +35,3 @@ data:
       destination: /world/terminus/valley-road/the-shoulder
       media: [ground]
       edgeMinutes: 90
-    # ⭐ The way aboard the steamer, when she lies here (the river build).
-    aboard:
-      kind: /platform/idea/exits/aboard
-      destination: /world/terminus/ostrander/deck
-      edgeMinutes: 1
-      # The way back is her deck's `ashore`, worked out by where she lies;
-      # the deck's row names only her home berth, the city quay.
-      oneWay: true

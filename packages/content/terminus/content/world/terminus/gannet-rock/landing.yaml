@@ -1,5 +1,6 @@
-# The landing on Gannet Rock — iron rungs and a ledge, and the way aboard
-# whatever is lying off.
+# The landing on Gannet Rock — iron rungs and a ledge, and a ring in the
+# rock a ship lying off makes her line fast to (harbors P6): the way aboard
+# is hers, named for her, put here while she lies made fast.
 class: /platform/location/Locale
 data:
   shortDescription: landing on Gannet Rock
@@ -12,10 +13,5 @@ data:
     x: 0
     y: 0
     z: 0
-  exits:
-    # ⭐ One way by ROWS: the way back is the deck's `ashore`, which
-    # resolves to whichever node the ship is lying at — a code edge.
-    aboard:
-      kind: /platform/idea/exits/aboard
-      destination: /world/terminus/hesper/deck
-      oneWay: true
+  props:
+    - /platform/thing/mooring-ring

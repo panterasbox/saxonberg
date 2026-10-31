@@ -55,12 +55,6 @@ data:
       destination: /world/terminus/estuary/lower-towpath
       media: [ground, water]
       edgeMinutes: 3
-    # ⭐ The way aboard the Ostrander when she lies at the quay (the river
-    # build) — a steamer that has sailed is not alongside, and this says so.
-    aboard:
-      kind: /platform/idea/exits/aboard
-      destination: /world/terminus/ostrander/deck
-      edgeMinutes: 1
     # ⭐ The goods yards behind the working city — the one room D11's
     # switchover cost, and the way a hauler reaches every trade floor in
     # Terminus without any of their hands ever leaving their own floor.
@@ -164,6 +158,9 @@ data:
       media: [ground]
       edgeMinutes: 1
   props:
+    # ⭐ What a ship's lines are made fast round (harbors P6): the Ostrander
+    # lies here, and a ship alongside puts her way aboard on the quay.
+    - { template: /platform/thing/bollard, count: 2 }
     - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
     # ⭐⭐ The Cold Fell aqueduct and the house on its last drop — and

@@ -349,6 +349,8 @@ export const Mixins = {
   MovingWater: 'MovingWaterMixin',
   SmallCraft: 'SmallCraftMixin',
   TetherEnd: 'TetherEndMixin',
+  // A line that holds a ship to a bollard ashore (harbors P6).
+  MooringLine: 'MooringLineMixin',
   Ringable: 'RingableMixin',
   MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).

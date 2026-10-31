@@ -93,6 +93,12 @@ export interface Frame {
    */
   adopt(craft: Craft): void;
   /**
+   * ⭐ The craft this frame knows of now (harbors P4) — those it adopted,
+   * and on the chart the ships attached to the sea that are standing. A
+   * landing being used asks them whether any lies made fast at it.
+   */
+  craft(): Stuff[];
+  /**
    * ⭐ Turn a request into a course from where she is now, and the
    * TRAJECTORY she will follow on it (W10, W11) — or the frame's refusal,
    * in its words. The trajectory carries everything the frame knows at the

@@ -23,6 +23,12 @@
  * The hose of a hard-hat suit is the same object (`kind: hose`): its
  * free end feeds the helmet, and the same pull brings the diver up.
  *
+ * ⭐ A line is also what holds a ship to the shore (harbors P6): one made
+ * fast round a bollard (`MooringLineMixin.makeFastRound`) keeps its fixed
+ * end aboard her and puts its free end on the quay beside the bollard —
+ * the chandler's mooring line and a boat's painter are both lifelines.
+ * Lifting that end off the bollard casts the line off.
+ *
  * ⚠ Who is on the line is RUNTIME — a live ref, dropped on a restart.
  * A line is made fast for a dive; it does not outlive the dive.
  */
@@ -30,6 +36,7 @@
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { TossableMixin, type TossOutcome } from '@saxonberg/server/mud/lib/spatial/Tossable';
 import { PullableMixin, type PullOutcome, type PullSense } from '@saxonberg/server/mud/lib/spatial/Pullable';
+import { MooringLineMixin, type Moorer } from '@saxonberg/server/mud/lib/spatial/MooringLine';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -48,6 +55,9 @@ import AirBag from './AirBag';
 
 /** The free end's row — minted when the line is made fast. */
 const LINE_END_ROW = '/trade/diving/thing/line-end';
+
+/** The end of a line made fast round a bollard ashore (harbors P6). */
+const MOORING_END_ROW = '/stuff/thing/mooring-line-end';
 
 /**
  * ⭐ What a line will bring up off the bottom, kg as it weighs in the
@@ -88,7 +98,7 @@ export interface LineSignal {
 /** What a line act did — the line's own words, or why not. */
 export type LineOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
-export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
+export default class Lifeline extends MooringLineMixin(PullableMixin(TossableMixin(Tool))) {
   static commandContributions: CommandContributions = {
     self: [],
     // Whoever holds it (`environment` — item → holder) throws and pulls
@@ -124,6 +134,26 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     return this.lengthM;
   }
 
+  /** ⭐ How far it reaches from her rail to a bollard (harbors P6). */
+  public override lineLengthM(): number {
+    return this.kind === 'line' ? this.lengthM : 0;
+  }
+
+  /**
+   * ⭐ The end goes ashore round `bollard` (harbors P6): minted beside it,
+   * made fast round it, the line itself staying where it is — aboard her.
+   */
+  protected override async mintMooringEnd(bollard: Stuff, ship: Moorer): Promise<Stuff | null> {
+    const shore = MixinApi.isContainable(bollard) ? bollard.getContainer() : null;
+    if (shore === null) return null;
+    // A line in somebody's hands is not also round a bollard.
+    await this.castOffEnd();
+    const end = await StuffApi.clone<LineEnd>(MOORING_END_ROW);
+    ContainmentApi.move(end, shore);
+    end.roundBollard(this, bollard, ship.getName());
+    return end;
+  }
+
   /** The person on the free end — whoever holds it — or null. */
   public getOnEnd(): Stuff | null {
     const end = this._end;
@@ -151,8 +181,14 @@ export default class Lifeline extends PullableMixin(TossableMixin(Tool)) {
     this._tugs = [];
   }
 
-  /** Let go of the free end: whoever had it is off the line. */
+  /** Let go of the free end: whoever had it is off the line — or the bollard it was round. */
   public async castOff(): Promise<void> {
+    if (this.isMadeFast()) await this.endLifted();
+    await this.castOffEnd();
+  }
+
+  /** The end in somebody's hands, let go. */
+  private async castOffEnd(): Promise<void> {
     const who = this.getOnEnd();
     if (who !== null && MixinApi.isRespiration(who)) who.releaseHold();
     const end = this._end;

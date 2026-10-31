@@ -7,6 +7,10 @@
  *
  * Minted by its `Lifeline` when the line is made fast, and gone when the
  * line is cast off — a runtime object, never authored into the world.
+ *
+ * ⭐ Or made fast round a BOLLARD on a quay (harbors P6): a ship's line,
+ * ashore. Lifting it off the bollard (`get`, or anything that moves it
+ * away) casts the line off, and the ship it held is told.
  */
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
@@ -16,6 +20,8 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { Mml } from '@saxonberg/server/mud/api/mml';
 import type Lifeline from './Lifeline';
 import type { LineOutcome } from './Lifeline';
 
@@ -38,6 +44,63 @@ export default class LineEnd extends TetherEndMixin(Good) {
       this.setShortDescription('end of an air hose');
       this.setKeywords([...this.getKeywords(), 'hose', 'air hose', 'hose end']);
     }
+  }
+
+  /** The bollard this end is made fast round, ashore (runtime; harbors P6). */
+  private _roundBollard: Stuff | null = null;
+
+  /**
+   * ⭐ Made fast round `bollard`, the line coming ashore from `shipName`
+   * (harbors P6). The end lies beside the bollard; the quay's `look` reads
+   * whose line it is.
+   */
+  public roundBollard(line: Lifeline, bollard: Stuff, shipName: string): void {
+    this._line = line;
+    this._lashedTo = bollard;
+    this._roundBollard = bollard;
+    if (shipName) {
+      this.setShortDescription(`line from ${shipName}`);
+      this.setKeywords([...this.getKeywords(), ...shipName.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
+      this.setLongDescription(
+        `A mooring line comes ashore from ${shipName}, made fast round ${bollard.getPresentation()} with a round turn and two half hitches.`,
+      );
+    }
+  }
+
+  /** The bollard it is made fast round, or `null`. */
+  public getRoundBollard(): Stuff | null {
+    const b = this._roundBollard;
+    return b !== null && !b.isDestroyed() ? b : null;
+  }
+
+  /**
+   * ⭐ Lifted off the bollard — taken up, or carried away: the line is off,
+   * and the ship it held is told (harbors P6).
+   */
+  public onMoved(_from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+    const bollard = this._roundBollard;
+    if (bollard === null) return;
+    const shore = MixinApi.isContainable(bollard) ? bollard.getContainer() : null;
+    if (to !== null && to === shore) return;
+    this._roundBollard = null;
+    this._lashedTo = null;
+    // ⚠ Gone with the quay (a room reaped, the line brought in from aboard)
+    // is not somebody lifting it: the ship keeps her mooring and makes fast
+    // again when the quay is next used.
+    if (to === null) return;
+    const line = this.getLine();
+    if (line === null) return;
+    if (to.isAgent?.()) {
+      try {
+        MessageApi.scene(to)
+          .topic('act.deed')
+          .toSelf(Mml.compose`You lift the line off ${Mml.thing(bollard)}, and let it go; it falls slack into the water along her side.`)
+          .send();
+      } catch {
+        // decoration
+      }
+    }
+    void line.endLifted();
   }
 
   public getLine(): Lifeline | null {

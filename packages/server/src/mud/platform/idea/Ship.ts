@@ -41,7 +41,14 @@ import type { HullNow } from '../../lib/expanse/Voyaging';
 import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
 import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
+import Bollard from '../thing/Bollard';
+import BerthExit from './BerthExit';
 import type { Positioned } from '../../lib/expanse/Positioned';
+import type { MooringLine } from '../../lib/spatial/MooringLine';
+import type { Exitable } from '../../lib/boundary/Exitable';
+import { PersistableApi } from '../../api/persistable';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -56,6 +63,16 @@ const RHO = 1000;
 /** The position key of the seat that sees further (maritime D13). */
 const LOOKOUT_POSITION = 'lookout';
 
+/** The kind row of the way aboard a ship, named for her (harbors P4). */
+const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
+
+/**
+ * ⭐ A mooring line must reach from her rail to the bollard and back again
+ * (harbors P6, grain): twice her height out of the water, never less than
+ * this, m.
+ */
+const MIN_LINE_M = 2;
+
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
 export default class Ship extends PersistableMixin(
@@ -69,6 +86,10 @@ export default class Ship extends PersistableMixin(
     aground: { persistent: true },
     holed: { persistent: true },
     overboard: { persistent: true },
+    berth: { persistent: true, authorable: true, ref: 'identity:relation' },
+    moored: { persistent: true, authorable: true },
+    gangwayKeyway: { persistent: true, authorable: true },
+    gangwayLocked: { persistent: true, authorable: true },
   };
 
   /**
@@ -169,6 +190,265 @@ export default class Ship extends PersistableMixin(
     return deck;
   }
 
+  /* ───────────── made fast: the berth and her lines (harbors P4–P6) ───────────── */
+
+  /**
+   * ⭐ The landing she is made fast at, by path — `null` when she is not.
+   * Her way aboard (a `BerthExit` named for her) stands on it while she is.
+   */
+  protected berth: string | null = null;
+  /** Held to the landing by her own lines. */
+  protected moored = false;
+  /** Her gangway's keyway (P9) — `''` opens for nobody. */
+  protected gangwayKeyway = '';
+  /** Her gangway's bolt (P9) — `false` refuses nobody. */
+  protected gangwayLocked = false;
+
+  /** Runtime: the way aboard she has put on her landing, and the lines fast now. */
+  private berthExit: BerthExit | null = null;
+  private fastLines: (Stuff & MooringLine)[] = [];
+
+  /** ⭐ The landing she is made fast at — what her deck's `ashore` leads to first. */
+  public getBerth(): string | null {
+    return this.moored ? this.berth : null;
+  }
+
+  public override isMoored(): boolean {
+    return this.moored && this.berth !== null;
+  }
+
+  public isGangwayLocked(): boolean { return this.gangwayLocked; }
+  public setGangwayLocked(v: boolean): void { this.gangwayLocked = v === true; }
+  public getGangwayKeyway(): string { return this.gangwayKeyway; }
+  public setGangwayKeyway(v: string): void { this.gangwayKeyway = typeof v === 'string' ? v : ''; }
+
+  /** The authored half of the mooring (a row's `berth:`), set before she loads. */
+  public setBerth(v: string | null): void { this.berth = typeof v === 'string' && v !== '' ? v : null; }
+  public setMoored(v: boolean): void { this.moored = v === true; }
+
+  /** The word her way aboard is called by: her name, lowercased, the article dropped. */
+  public berthWord(): string {
+    return this.getName().replace(/^the\s+/i, '').trim().toLowerCase() || 'ship';
+  }
+
+  /**
+   * ⭐ The lines aboard her that will hold her (P6): every line on her deck
+   * that can be made fast round a bollard and is long enough to reach.
+   */
+  public async linesAboard(): Promise<(Stuff & MooringLine)[]> {
+    const deck = await this.watchRoom();
+    if (deck === null) return [];
+    const needM = Math.max(MIN_LINE_M, 2 * this.deckHeightM);
+    const out: (Stuff & MooringLine)[] = [];
+    for (const x of deck.getContents()) {
+      if (MixinApi.isMooringLine(x) && x.lineLengthM() >= needM) out.push(x);
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ Why a course for `target` cannot end alongside, asked before it is
+   * laid (P5) — so the refusal is instant and the voyage never starts.
+   * `null` when it can, or when the course is for no landing at all.
+   */
+  public async mooringRefusal(target: string | null): Promise<string | null> {
+    if (target === null || target === '') return null;
+    if (!(await this.landingFor(target))) return null;
+    return (await this.linesAboard()).length === 0 ? 'She has no lines to make fast.' : null;
+  }
+
+  /** Does a course `toward` end at a landing? A river's landing does; a sea node does when it has one behind it. */
+  private async landingFor(toward: string): Promise<string | null> {
+    if (this.getLine() !== null) return toward;
+    const node = await StuffApi.singleton<Stuff>(toward).catch(() => null);
+    return node instanceof ExpanseNode ? node.getDestination() : null;
+  }
+
+  /**
+   * ⭐ She comes alongside `landingPath` and makes fast (P5, P6): each line
+   * aboard goes ashore round a bollard there, and a way aboard named for
+   * her goes on the landing. With no line, or no bollard ashore, she lies
+   * off unmoored — said in the words returned.
+   */
+  public async comeAlongside(landingPath: string): Promise<string> {
+    if (this.moored) await this.castOff();
+    const landing = await StuffApi.singleton<Stuff>(landingPath).catch(() => null);
+    if (landing === null || !MixinApi.isContainer(landing)) return 'There is nothing there to make fast to; she lies off.';
+    const lines = await this.linesAboard();
+    if (lines.length === 0) return 'She has no lines to make fast; she lies off.';
+    const fast = await this.makeLinesFast(landing, lines);
+    if (fast === 0) return `There is nothing at ${landing.getPresentation()} to make a line fast round; she lies off.`;
+    this.berth = landingPath;
+    this.moored = true;
+    await this.installBerth(landing);
+    this.persistMooring();
+    return fast === 1
+      ? 'A line goes ashore and is made fast round the bollard.'
+      : 'Her lines go ashore and are made fast round the bollards.';
+  }
+
+  /**
+   * ⭐ Cast off (P5): her lines are brought in from aboard and the way
+   * aboard her comes off the landing. Any course from a moored ship does
+   * this first.
+   */
+  public async castOff(): Promise<void> {
+    const lines = this.fastLines;
+    this.fastLines = [];
+    for (const line of lines) if (!line.isDestroyed()) await line.castOffMooring();
+    this.removeBerth();
+    this.moored = false;
+    this.berth = null;
+    this.persistMooring();
+  }
+
+  /**
+   * ⭐ One of her lines was cast off from ashore (P6) — somebody lifted it
+   * off the bollard. With her last line off she is no longer moored: the
+   * way aboard comes off the landing and everyone aboard is told.
+   */
+  public lineCastOff(line: Stuff & MooringLine): void {
+    this.fastLines = this.fastLines.filter((l) => l !== line && !l.isDestroyed() && l.isMadeFast());
+    if (this.fastLines.length > 0 || !this.moored) return;
+    this.removeBerth();
+    this.moored = false;
+    this.berth = null;
+    this.persistMooring();
+    void this.aboard()
+      .then((people) => {
+        for (const who of people) {
+          try {
+            MessageApi.scene(who).topic('sense.surroundings').toSelf(Mml.compose`Her last line is off the bollard. She is adrift.`).send();
+          } catch {
+            // decoration
+          }
+        }
+      })
+      .catch(() => undefined);
+  }
+
+  /** Her lines, made fast round the bollards of `landing` in turn; how many went ashore. */
+  private async makeLinesFast(landing: Stuff & Container, lines: (Stuff & MooringLine)[]): Promise<number> {
+    const bollards = landing.getContents().filter((x): x is Bollard => x instanceof Bollard);
+    if (bollards.length === 0) return 0;
+    this.fastLines = [];
+    let i = 0;
+    for (const line of lines) {
+      if (await line.makeFastRound(bollards[i % bollards.length]!, this)) this.fastLines.push(line);
+      i += 1;
+    }
+    return this.fastLines.length;
+  }
+
+  /** Her way aboard on `landing`, named for her; one only. */
+  private async installBerth(landing: Stuff): Promise<void> {
+    const entrance = this.getEntrance();
+    if (!entrance || !MixinApi.isExitable(landing)) return;
+    const ex = landing as unknown as Stuff & Container & Exitable;
+    const live = this.berthExit;
+    if (live !== null && !live.isDestroyed() && live.getSource() === (landing as unknown as Stuff & Container)) return;
+    this.removeBerth();
+    let word = this.berthWord();
+    const there = ex.getExit(word);
+    if (there) {
+      // Hers already (a re-wire); anybody else's word is not taken from them.
+      if (there instanceof BerthExit && there.getShipPath() === this.getTemplatePath()) {
+        this.berthExit = there;
+        return;
+      }
+      word = `${word}-berth`;
+    }
+    this.berthExit = await ex.installExit<BerthExit>(
+      BERTH_EXIT_KIND,
+      { direction: word, source: ex, destinationPath: entrance, oneWay: true },
+      (e) => e.configureBerth(this as unknown as Stuff),
+    );
+  }
+
+  /** Her way aboard off the landing it is on. */
+  private removeBerth(): void {
+    const exit = this.berthExit;
+    this.berthExit = null;
+    if (exit === null || exit.isDestroyed()) return;
+    const on = exit.getSource();
+    if (MixinApi.isExitable(on) && on.getExit(exit.getDirection()) === (exit as unknown)) on.removeExit(exit.getDirection());
+    StuffApi.destruct(exit as unknown as Stuff);
+  }
+
+  /**
+   * ⭐ Put her mooring back as it was (P4, P6): the landing she is made
+   * fast at is stood up, her way aboard goes on it, and the lines that were
+   * aboard go round its bollards again — a line's end is runtime and does not
+   * outlive the process, and which lines were fast is not kept (every line
+   * aboard is made fast: a line lifted off before a restart is back on). With no line aboard or no bollard ashore she can
+   * no longer be moored, and is not (said loudly: a shipped world should
+   * never hit it).
+   */
+  public async rewireBerth(): Promise<void> {
+    if (!this.moored || this.berth === null) return;
+    const path = this.berth;
+    const landing = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    if (landing === null || !MixinApi.isContainer(landing)) {
+      console.warn(`Ship: ${this.getTemplatePath()} is moored at '${path}', which does not stand`);
+      return;
+    }
+    const want = this.fastLines.filter((l) => !l.isDestroyed() && l.isMadeFast());
+    if (want.length === 0) {
+      const fast = await this.makeLinesFast(landing, await this.linesAboard());
+      if (fast === 0) {
+        console.warn(`Ship: ${this.getTemplatePath()} cannot make fast at '${path}' (no line aboard, or no bollard ashore); she lies off`);
+        this.removeBerth();
+        this.moored = false;
+        this.berth = null;
+        this.persistMooring();
+        return;
+      }
+    }
+    await this.installBerth(landing);
+  }
+
+  /** ⭐ A landing is being used: if she lies made fast there, her way goes back on it. */
+  public override async wireBerthAt(place: Stuff): Promise<void> {
+    if (this.isMoored() && this.berth === place.getTemplatePath()) await this.rewireBerth();
+  }
+
+  /** ⭐ Loaded from her record: she lies where she was made fast (P4). */
+  override async onRestored(): Promise<void> {
+    await super.onRestored();
+    await this.armBerth();
+  }
+
+  /** ⭐ First stood up (no record yet): an authored mooring is made (P4). */
+  override async seedBornWith(): Promise<void> {
+    await super.seedBornWith();
+    await this.armBerth();
+  }
+
+  private async armBerth(): Promise<void> {
+    if (!this.isMoored()) return;
+    try {
+      await this.rewireBerth();
+    } catch (err) {
+      console.warn(`Ship: ${this.getTemplatePath()} did not make fast again:`, err);
+    }
+  }
+
+  private persistMooring(): void {
+    try {
+      void PersistableApi.capture(this as unknown as Stuff).catch((err) => console.warn('Ship: capture failed:', err));
+    } catch (err) {
+      console.warn('Ship: capture failed:', err);
+    }
+  }
+
+  /** Her way aboard comes off with her (a reaped or destroyed ship leaves no door). */
+  override onDestruct(): void {
+    for (const line of this.fastLines) if (!line.isDestroyed()) void line.castOffMooring();
+    this.fastLines = [];
+    this.removeBerth();
+    super.onDestruct();
+  }
+
   /** Runtime cache of the member room rows (the extent's descendants). */
   private memberPaths: Promise<string[]> | null = null;
 
@@ -245,8 +525,15 @@ export default class Ship extends PersistableMixin(
       return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
     }
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
+    // ⭐ A course that ends alongside needs a line to make fast with (P5),
+    // asked before the course is laid: the refusal is instant.
+    const noLine = await this.mooringRefusal(req.toward ?? null);
+    if (noLine !== null) return { refused: noLine };
     this.weighedKg = await this.cargoKg();
-    return super.steer(req);
+    const started = await super.steer(req);
+    // ⭐ Under way from a berth: her lines come in and the way aboard goes (P5).
+    if (!('refused' in started) && this.moored) await this.castOff();
+    return started;
   }
 
   /**
@@ -256,6 +543,10 @@ export default class Ship extends PersistableMixin(
   override async onStop(stop: CraftStop): Promise<string> {
     if (stop.reason === 'aground') this.aground = true;
     if (stop.reason === 'holed') this.holed = true;
+    // ⭐ At a landing she makes fast (P5): her lines go ashore round its bollards.
+    if ((stop.reason === 'landing' || stop.reason === 'arrived') && stop.landing) {
+      return `${stop.words} ${await this.comeAlongside(stop.landing)}`.trim();
+    }
     if (stop.reason === 'mouth') {
       const frame = await this.liveFrame();
       const sea = frame !== null && MixinApi.isLineFrame(frame) ? frame.mouthOnSea() : null;
@@ -265,7 +556,10 @@ export default class Ship extends PersistableMixin(
         if (at !== null) {
           this.placeAt({ frame: 'chart', at }, WorldClockApi.getNow().rawValue(), sea.expanse);
           (await this.liveFrame())?.adopt(this as never);
-          return `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
+          const out = `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
+          // ⭐ The node's landing is where she lies (P5): she makes fast there.
+          const landing = (node as ExpanseNode).getDestination();
+          return landing ? `${out} ${await this.comeAlongside(landing)}` : out;
         }
       }
     }
@@ -276,7 +570,9 @@ export default class Ship extends PersistableMixin(
    * ⭐ Off the sea and onto a river (D29): at the mouth node a river names,
    * she leaves the chart for the river's line, at its mouth.
    */
-  public enterRiver(line: string, course: string, mouthKm: number, across: number): void {
+  public async enterRiver(line: string, course: string, mouthKm: number, across: number): Promise<void> {
+    // ⭐ Made fast at the node's landing, she casts off first (harbors P5).
+    if (this.moored) await this.castOff();
     this.placeAt({ frame: 'line', at: { course, km: mouthKm, across } }, WorldClockApi.getNow().rawValue(), line);
   }
 

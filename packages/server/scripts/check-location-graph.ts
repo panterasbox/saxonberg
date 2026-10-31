@@ -261,6 +261,25 @@ function riverLandings(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
   return out;
 }
 
+/**
+ * ⭐ Every ship's entrance (harbors P4) — read as DATA, by field name: a
+ * row with an `entrance` and a frame to be on (`expanse` or `line`) is a
+ * craft, and her deck is boarded by a way NAMED FOR HER that the ship puts
+ * on whatever landing she is made fast at (`BerthExit`) — a code-resolved
+ * edge no row can show, exactly as a sea's landings are. So her entrance is
+ * an entrance to her zone.
+ */
+function shipEntrances(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
+  const out = new Set<string>();
+  for (const row of rows.values()) {
+    const data = (row.raw.data ?? {}) as Record<string, unknown>;
+    if (typeof data.entrance === "string" && (typeof data.expanse === "string" || typeof data.line === "string")) {
+      out.add(data.entrance);
+    }
+  }
+  return out;
+}
+
 /** The default start location, which is an entrance wherever it lies. */
 function defaultStart(): string | null {
   const file = join(SERVER_SRC, "mud", "lib", "config", "AppSettings.ts");
@@ -292,6 +311,7 @@ export function scanLocationGraph(idx: InheritanceIndex = inheritanceIndex()): G
   const seats = travelSeats(rows);
   const landings = seaLandings(rows);
   for (const p of riverLandings(rows)) landings.add(p);
+  for (const p of shipEntrances(rows)) landings.add(p);
   const start = defaultStart();
 
   const zoneRows = new Set<string>();

@@ -277,19 +277,34 @@ wrong chart is wrong in one row and never reconciled. See
 | `scan horizon` | `query` (alias `scan`; a bare `horizon` names a set) | what is in view beyond the room |
 | `watch horizon` | `watch` (the stream verb's horizon form) | keep a watch: told only what changes |
 | `swim` | `ShoreMixin` (inventory) — every place beside or in a water; the gate decides the way | a small water is a place: a `Pool` IS the water, swum in and swum INTO |
-| `go aboard` / `go ashore` | `AboardExit` / `AshoreExit` | the far side recomputed every traverse |
+| `go <ship>` / `go ashore` | `BerthExit` (put on the landing by the ship) / `AshoreExit` | the way aboard is named for her and exists only while she is made fast |
 
 ⛔ No `fix` verb: the four fixes are four acts that already have verbs.
 
 ## Exits
 
-`AboardExit` (on a node's landing) resolves to the entrance of whatever
-SHIP lies at that node now; `AshoreExit` (on a ship's entrance) to the
-landing of the node she lies at. Both refuse in words otherwise. Their
-lookups (which node is this landing, which craft is this deck's) run
-inside the async `canTraverse` at the moment of asking, cached after
-the first — the one gate every crossing goes through (see
-[locomotion.md](./locomotion.md)).
+⭐ **The way aboard is named for her** (harbors P4–P6). A ship that comes
+to a landing — a node's `destination` at sea (`arrived`, the stop now
+carries the node's landing), a river's landing on its line (`landing`),
+the bar's landing when she comes out of the river (`mouth`) — **makes
+fast** (`Ship.comeAlongside`): each `MooringLine` on her deck (a line long
+enough to reach) puts its end ashore round a `Bollard` on the landing, and
+a `BerthExit` named for her (`go hesper`) goes on it. With no line aboard
+a course for a landing is refused before it is laid (`mooringRefusal`);
+with no bollard ashore she lies off unmoored. Any course from a moored
+ship casts off first (lines in, the way gone); lifting her last line's
+end off its bollard on the quay (`get`) sets her adrift. She keeps two
+facts — `berth` and `moored` (plus how many lines were fast) — and puts
+the rest back when she loads (`onRestored`, and `seedBornWith` for an
+authored mooring): her landing is stood up, the ends re-minted, the way
+re-installed. A landing loads the ships authored made fast at it (the
+`berth` attachment, `location-graph.md`), and a frame-sited landing's
+first use asks its frame's craft (`Frame.craft()`). Its `look` reads
+*Alongside: the Hesper.* off the ways. `AshoreExit` (on a ship's
+entrance) leads to her `getBerth()` first, then to the landing within a
+rope's throw on a river or the node's landing at sea; it refuses in
+words between nodes. Both faces read her gangway's lock (`keyway`,
+`gangwayLocked`), and only the way aboard is gated by it.
 
 ## Perception at range (revision 1)
 
@@ -366,7 +381,7 @@ instead of a 9.81 literal.
 | seam | attach point | slate |
 |---|---|---|
 | hazards firing at a boundary | `Band.hazards[]` + the boundary report | navigable-water § 3b |
-| the berth | `AboardExit.computeDestination` | navigable-water § 7a |
+| the harbor's book of berths (who may lie where, dues) | `Ship.comeAlongside` | harbors (in build) |
 | the second depth value | `GeoPosition.depthM` | underwater |
 | the tide, a water biome, latitude as a resolved value | `WaterExpanse`, the `open-water` stub | climate-and-water |
 | vector wind | `Band.lean` becomes a deviation | weather |

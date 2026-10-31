@@ -254,7 +254,7 @@ export default class CourseController extends CommandController<CourseModel> {
       return this.decline(context, 'She cannot go up a river.', 'not-a-river-craft');
     }
     // The line is km from the mouth: she comes in at nought, mid-river.
-    craft.enterRiver(river, frame.courseKey(), 0, 0);
+    await craft.enterRiver(river, frame.courseKey(), 0, 0);
     await craft.anchorHere();
     this.tell(context, `You take her in over the bar, and she is in the river's mouth: ${frame.getPresentation()}. The next course is the river's — \`course upstream\`.`);
   }
