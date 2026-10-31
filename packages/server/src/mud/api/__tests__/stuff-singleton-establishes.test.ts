@@ -106,6 +106,15 @@ describe("StuffApi.singletonOrClone on a persistable, non-singleton class", () =
     expect(clone).not.toHaveBeenCalled();
   });
 
+  it("reuses a singleton whose first capture stashed its scope-derived owner", async () => {
+    const room = makeStuffAtPath(
+      () => new PersistentLocation(),
+      ROOM_PATH,
+    ) as PersistentLocation;
+    room.setPersistenceKey("group:terminus", false);
+    expect(await StuffApi.singletonOrClone(ROOM_PATH)).toBe(room);
+  });
+
   it("throws on a bare row whose live instances are keyed", async () => {
     const unit = makeStuffAtPath(
       () => new PersistentLocation(),

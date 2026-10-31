@@ -779,7 +779,10 @@ export class StuffApi {
           (o) =>
             !o.isDestroyed() &&
             MixinApi.isPersistable(o) &&
-            o.getPersistenceKey() !== null,
+            // An EXPLICIT key is a per-instance one (a unit, a serial); a
+            // singleton's first capture stashes its scope-derived owner,
+            // which is not a key of this kind.
+            o.isPersistenceKeyExplicit(),
         );
       if (keyed) {
         throw new Error(
