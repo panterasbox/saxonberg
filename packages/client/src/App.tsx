@@ -31,13 +31,12 @@ import { StatusBar } from "./components/frame/StatusBar";
 import { SettingsPanel } from "./components/settings/SettingsPanel";
 import { useCardFeed } from "./components/cards/useCardFeed";
 import { activeCardKinds } from "./store/cardViewActions";
-import { cardedFrameIsCovered } from "./store/cardFeedSlice";
+import { framesFor } from "./store/frameFilter";
 import type { LayoutProps } from "./layouts";
 import { resolveMode } from "./layouts/modes";
 import { useGround } from "./lib/style/useGround";
 import { useIsCompact } from "./lib/style/useIsCompact";
 import { tokens } from "./components/ui";
-import { facetFilterPasses } from "./components/FacetFilterPanel";
 import { ALL_VIEW } from "@saxonberg/types";
 import type {
   ConsoleTab,
@@ -360,21 +359,6 @@ function App() {
     (clientState["console.activeTab"] as string | undefined) ?? ALL_VIEW;
   const tabs = (clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [];
   /*
-   * ⚠⚠ **`All` resolves to NOTHING, structurally.**
-   *
-   * It is the absence of a filter, so it is not looked up in
-   * `console.tabs` at all — and deliberately not, rather than merely
-   * not being there: a player who edited `All` before it was locked
-   * still has a stored row with facets on it, and honouring that would
-   * make the locked view quietly filter. The lock has to hold against
-   * state that predates it.
-   */
-  const activeTab =
-    activeTabName === ALL_VIEW
-      ? undefined
-      : tabs.find((t) => t.name === activeTabName);
-  const mutedSet = new Set(activeTab?.muted ?? []);
-  /*
    * ⭐⭐ **Three filters, in the order they answer three different
    * questions.**
    *
@@ -392,68 +376,21 @@ function App() {
    *     prefix operation, so both halves stay.
    */
   const getTopicDescriptor = useStore((state) => state.getTopicDescriptor);
-  const facetFilter = activeTab?.facets;
-  const visibleFrames = frames.filter((f) => {
-    /*
-     * ⭐ No feed check. Every tab is a VIEW over the whole buffer now —
-     * a frame is not placed anywhere at delivery, so there is nothing
-     * to match against. See `WorldLayout`'s strip note for why the
-     * destination model was retired.
-     */
-    const d = getTopicDescriptor(f.topic);
-    if (
-      !facetFilterPasses(facetFilter, {
-        address: d.address,
-        actor: d.actor,
-        weight: d.weight,
-        topic: f.topic,
-      })
-    ) {
-      return false;
-    }
-    if (mutedSet.has(f.topic)) return false;
-    /*
-     * ⭐⭐ `shell.result` — one clause, keyed on the frame's own
-     * `carded` marker rather than on a topic.
-     *
-     * ⚠ **A plan finding.** Decision 10 keyed this on the topic
-     * `shell.result`, on the premise that *every structured command
-     * result already carries it*. The card build falsifies that:
-     * `look`'s two cards ride `sense.survey`, which twelve other verbs
-     * share — `get`, `drop`, `inventory`, `wear`… A topic key would
-     * either miss `look` entirely or silence all twelve. The marker is
-     * exact, because the producer that opens the card is the producer
-     * that stamps the frame.
-     *
-     * ⚠ Nothing is LOST: the frame still arrived and is still in the
-     * frame store, so `recall` finds your history whichever way this is
-     * set. That is the whole reason it is a filter and not a placement.
-     *
-     * ⚠⚠ **And the card has to be ON SCREEN, not merely promised.**
-     * `carded` carries the card's instance id, and the frame is dropped
-     * only when a card with that id is actually visible in the feed —
-     * which means it exists AND survives the active named view's kind
-     * filter. Two ways this bit before: a controller that TOUCHED an
-     * already-open card suppressed its own prose in favour of nothing
-     * new (`look dave` printed its echo and stopped), and a named view
-     * filtering a kind out silenced that kind's prose as well as its
-     * card. *Suppressing prose is only safe if something visible
-     * replaced it.*
-     */
-    if (
-      effectiveResultDisplay === "card" &&
-      cardedFrameIsCovered(f.carded, cards, activeCardKinds())
-    ) {
-      return false;
-    }
-    // `social.react.alwaysAggregate` — hide reaction prose lines (frames
-    // carrying `inReactionTo`); the chip on the target message carries
-    // the aggregate instead.
-    if (reactionPrefs.alwaysAggregate && f.inReactionTo !== undefined) {
-      return false;
-    }
-    return true;
-  });
+  // ⭐ ONE rule for what a terminal shows (`framesFor`, client-surface
+  // D6): the layouts that still read `frames` see the console's active
+  // view through the same filter a terminal card uses.
+  const visibleFrames = framesFor(
+    frames,
+    { view: activeTabName },
+    {
+      tabs,
+      describe: getTopicDescriptor,
+      resultDisplay: effectiveResultDisplay,
+      cards,
+      kinds: activeCardKinds(),
+      alwaysAggregate: reactionPrefs.alwaysAggregate,
+    },
+  );
   // Hover preview lives in the ghost command line (store-backed), not in
   // a command bar — under per-bar mode a moded bar would prepend its
   // prefix, so the preview would lie about what sends. The restore on
@@ -555,6 +492,9 @@ function App() {
           : {}),
         ...(RELAY_TOPICS.has(frame.topic)
           ? { relay: relayFrameFields(frame.payload) }
+          : {}),
+        ...(Array.isArray(frame.tags) && frame.tags.length > 0
+          ? { tags: frame.tags }
           : {}),
       });
     };

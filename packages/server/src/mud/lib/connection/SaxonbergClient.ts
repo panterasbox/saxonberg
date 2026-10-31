@@ -772,7 +772,9 @@ export function SaxonbergClientMixin<
        * entry need not be total over the shipped arrangements — an
        * arrangement with no row simply opens nothing.
        */
-      return (SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? []).map((cardId) => ({ cardId }));
+      return (SHIPPED_ARRANGEMENT_CARDS[mode][name] ?? []).map((c) =>
+        typeof c === 'string' ? { cardId: c } : c,
+      );
     }
 
     public savedArrangementsFor(

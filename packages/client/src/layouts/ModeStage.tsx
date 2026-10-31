@@ -36,8 +36,25 @@ import { Card } from "../components/cards/Card";
 import { CardBody } from "../components/cards/CardBodies";
 import { RadialOverlay } from "../components/cards/RadialOverlay";
 import { CARD_LABEL } from "../components/cards/useCardFeed";
+import { TerminalCardBody } from "../components/cards/TerminalCardBody";
 import type { CardState } from "../store/cardFeedSlice";
+import type { ConsoleTab, ForumSubjectRecord, SubjectSurfaceName, WatchTarget } from "@saxonberg/types";
+import { ALL_VIEW } from "@saxonberg/types";
+import { setActiveTab } from "../store/consoleActions";
+import { SubjectRail } from "../components/social/SubjectRail";
+import { SubjectHeader } from "../components/social/SubjectHeader";
+import { defaultSurface } from "../components/social/SubjectShell";
+import { isForumSurface } from "../components/social/surfaces";
+import { ForumView } from "../components/ForumView";
+import { openForumBoard } from "../store/forumActions";
+import { TunedRail } from "../components/social/TunedRail";
+import { StreamEmbed } from "../components/embed/StreamEmbed";
+import { StreamerDeck } from "../components/StreamerDeck";
 import { WorldLayout } from "./WorldLayout";
+import { ForumLayout } from "./ForumLayout";
+import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
+import { StreamerLayout } from "./StreamerLayout";
+import { BuilderLayout } from "./BuilderLayout";
 
 const Stage = styled.div`
   display: flex;
@@ -163,6 +180,35 @@ const FilterLink = styled.button`
   text-decoration: underline;
 `;
 
+const ViewBar = styled.div`
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+`;
+
+const ViewChip = styled.button<{ $on: boolean }>`
+  font: inherit;
+  font-size: ${tokens.font.small};
+  padding: 0 ${tokens.space.sm};
+  border: 1px solid ${(p) => (p.$on ? tokens.color.accent : tokens.color.borderMuted)};
+  border-radius: ${tokens.radius.sm};
+  background: ${(p) => (p.$on ? tokens.color.surfaceAlt : "transparent")};
+  color: ${(p) => (p.$on ? tokens.color.fgEmphasis : tokens.color.fgMuted)};
+  cursor: pointer;
+`;
+
+const ViewEdit = styled.button`
+  font: inherit;
+  background: transparent;
+  border: none;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+`;
+
 function titleOf(card: CardState): string {
   return (
     (card.records[0]?.displayName as string | undefined) ||
@@ -187,13 +233,45 @@ export function usePanelOpen(): { open: boolean; units: number } {
   return { open, units: open ? units.withPanel : units.withoutPanel };
 }
 
-export const ModeStage: React.FC<LayoutProps> = (props) => {
-  const { tier } = useWidthTier();
-  if (tier === "phone") return <WorldLayout {...props} />;
-  return <DesktopStage {...props} />;
-};
+/**
+ * ⭐ What a mode puts on the stage (client-surface D9): which region the
+ * panel holds, what sits over the terminal column when no medium card
+ * does, and the shipped phone surface (its own design, W6).
+ */
+export interface StageConfig {
+  panel: "here" | "subjects" | "tuned" | null;
+  focal: "video" | "deck" | "subject" | null;
+  phone: React.FC<LayoutProps>;
+}
 
-const DesktopStage: React.FC<LayoutProps> = ({
+const CONFIG = {
+  explore: { panel: "here", focal: null, phone: WorldLayout },
+  chat: { panel: "subjects", focal: "subject", phone: ForumLayout },
+  watchViewer: { panel: "tuned", focal: "video", phone: LivestreamViewerLayout },
+  watchStreamer: { panel: "tuned", focal: "deck", phone: StreamerLayout },
+  build: { panel: null, focal: null, phone: BuilderLayout },
+} satisfies Record<string, StageConfig>;
+
+function stageFor(config: StageConfig): React.FC<LayoutProps> {
+  const Staged: React.FC<LayoutProps> = (props) => {
+    const { tier } = useWidthTier();
+    const Phone = config.phone;
+    if (tier === "phone") return <Phone {...props} />;
+    return <DesktopStage {...props} config={config} />;
+  };
+  return Staged;
+}
+
+export const ExploreStage = stageFor(CONFIG.explore);
+export const ChatStage = stageFor(CONFIG.chat);
+export const WatchViewerStage = stageFor(CONFIG.watchViewer);
+export const WatchStreamerStage = stageFor(CONFIG.watchStreamer);
+export const BuildStage = stageFor(CONFIG.build);
+/** The explore stage — the default. */
+export const ModeStage = ExploreStage;
+
+const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
+  config,
   frames,
   onSendCommand,
   onSendPromptResponse,
@@ -212,22 +290,60 @@ const DesktopStage: React.FC<LayoutProps> = ({
   const activeTabName = useStore(
     (s) => (s.clientState["console.activeTab"] as string | undefined) ?? "All",
   );
+  const tabs = useStore(
+    (s) => (s.clientState["console.tabs"] as ConsoleTab[] | undefined) ?? [],
+  );
   const cards = useStore((s) => s.cards);
   const setPanelOpen = useStore((s) => s.setModePanelOpen);
-  const { open: panelOpen, units } = usePanelOpen();
+  const { open: panelWanted, units } = usePanelOpen();
 
-  const live = Object.values(cards).filter(
-    (c) => c.closed === undefined && c.cardId !== "terminal" && !c.minimized,
-  );
-  const full = live.find((c) => c.size === "full");
-  const medium = live.find((c) => c.size === "medium");
-  // The explore panel holds the room card (the `here` role).
-  const here = live.find((c) => c.role === "here" && c.size !== "medium" && c.size !== "full");
+  const live = Object.values(cards).filter((c) => c.closed === undefined && !c.minimized);
+  // ⭐ The PRIMARY terminal is the terminal column's resident (D6); the
+  // other terminals are ordinary cards in the area.
+  const primary = live.find((c) => c.cardId === "terminal" && c.role === "primary");
+  const placeable = live.filter((c) => c !== primary);
+  const full = placeable.find((c) => c.size === "full");
+  const medium = placeable.find((c) => c.size === "medium");
+  const here =
+    config.panel === "here"
+      ? placeable.find((c) => c.role === "here" && c.size !== "medium" && c.size !== "full")
+      : undefined;
+  const panelOpen = panelWanted && config.panel !== null && (config.panel !== "here" || here !== undefined);
   const exclude = React.useMemo(() => {
     const ids = new Set<string>();
     if (panelOpen && here) ids.add(here.instanceId);
+    if (primary) ids.add(primary.instanceId);
     return ids;
-  }, [panelOpen, here]);
+  }, [panelOpen, here, primary]);
+
+  // ⭐ The primary's view is the console's active view, so the view
+  // editor edits what the terminal shows.
+  const primaryView =
+    primary?.payload?.kind === "terminal" ? primary.payload.filter.view : undefined;
+  React.useEffect(() => {
+    if (primaryView && primaryView !== activeTabName) setActiveTab(primaryView);
+  }, [primaryView, activeTabName]);
+
+  const renderBody = (card: CardState, cut = false): React.ReactElement =>
+    card.cardId === "terminal" ? (
+      <TerminalCardBody
+        card={card}
+        onSendCommand={onSendCommand}
+        onSendPromptResponse={onSendPromptResponse}
+        onCancelPrompt={onCancelPrompt}
+        onCommandClick={onCommandClick}
+        onCommandPreview={onCommandPreview}
+        onCommandSend={onCommandSend}
+        resultDisplay={resultDisplay}
+      />
+    ) : (
+      <CardBody
+        card={card}
+        cut={cut}
+        onSendCommand={onCommandClick}
+        onCommandPreview={onCommandPreview}
+      />
+    );
 
   const renderCard = (card: CardState, cut = false): React.ReactElement => (
     <Card
@@ -237,48 +353,100 @@ const DesktopStage: React.FC<LayoutProps> = ({
       onSendCommand={onCommandClick}
       onCommandPreview={onCommandPreview}
     >
-      <CardBody card={card} onSendCommand={onCommandClick} onCommandPreview={onCommandPreview} />
+      {renderBody(card, cut)}
     </Card>
   );
 
-  const terminalBits = (strip: boolean): React.ReactElement => (
-    <>
-      {!strip ? (
-        <TabStrip presetsOnly onToggleDrawer={() => setViewEditorOpen((v) => !v)} />
+  /** The view chooser — the tab strip's views are the primary's filters. */
+  const viewChooser = primary ? (
+    <ViewBar data-testid="view-chooser">
+      {[ALL_VIEW, ...tabs.map((t) => t.name)].map((name) => {
+        const shown = primary.payload?.kind === "terminal" ? primary.payload.filter : {};
+        const on = !shown.channel && (shown.view ?? ALL_VIEW) === name;
+        const cmd = `cockpit terminal ${quoteRef(name)}`;
+        return (
+          <ViewChip
+            key={name}
+            type="button"
+            $on={on}
+            data-testid={`view-${name}`}
+            aria-pressed={on}
+            onClick={() => onCommandClick(cmd)}
+            onMouseEnter={() => onCommandPreview(cmd)}
+            onMouseLeave={() => onCommandPreview(null)}
+          >
+            {name}
+          </ViewChip>
+        );
+      })}
+      {primary.payload?.kind === "terminal" && primary.payload.filter.channel ? (
+        <ViewChip type="button" $on data-testid="view-channel">
+          #{primary.payload.filter.channel}
+        </ViewChip>
       ) : null}
-      <Terminal
-        frames={frames}
-        strip={strip}
-        onCommandClick={onCommandClick}
-        onCommandPreview={onCommandPreview}
-        onCommandSend={onCommandSend}
-      />
-      {!strip && frames.length === 0 && allFrames.length > 0 ? (
-        <FilteredNotice data-testid="all-filtered-notice">
-          {allFrames.length} in the buffer, all hidden by <strong>{activeTabName}</strong>.{" "}
-          <FilterLink aria-label="clear this view's filter" onClick={() => setActiveFacetFilter({})}>
-            clear it
-          </FilterLink>
-        </FilteredNotice>
-      ) : null}
-      {!strip && viewEditorOpen ? <FilterDrawer onClose={() => setViewEditorOpen(false)} /> : null}
-      <PromptStrip
-        onCancelPrompt={onCancelPrompt}
-        onSendCommand={onCommandClick}
-        onCommandPreview={onCommandPreview}
-      />
-      <CommandBar
-        barId="world"
-        onSendCommand={onSendCommand}
-        onSendPromptResponse={onSendPromptResponse}
-        onCancelPrompt={onCancelPrompt}
-      />
-    </>
-  );
+      <ViewEdit type="button" aria-label="edit this view" onClick={() => setViewEditorOpen((v) => !v)}>
+        ⋯
+      </ViewEdit>
+    </ViewBar>
+  ) : null;
+
+  const terminalBits = (strip: boolean): React.ReactElement =>
+    primary ? (
+      <>
+        {!strip ? viewChooser : null}
+        {!strip && viewEditorOpen ? <FilterDrawer onClose={() => setViewEditorOpen(false)} /> : null}
+        <TerminalCardBody
+          card={primary}
+          strip={strip}
+          onSendCommand={onSendCommand}
+          onSendPromptResponse={onSendPromptResponse}
+          onCancelPrompt={onCancelPrompt}
+          onCommandClick={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          onCommandSend={onCommandSend}
+          resultDisplay={resultDisplay}
+        />
+      </>
+    ) : (
+      // Before the server has minted a primary terminal (or with no
+      // server that does), the console's active view drives the column.
+      <>
+        {!strip ? (
+          <TabStrip presetsOnly onToggleDrawer={() => setViewEditorOpen((v) => !v)} />
+        ) : null}
+        <Terminal
+          frames={frames}
+          strip={strip}
+          onCommandClick={onCommandClick}
+          onCommandPreview={onCommandPreview}
+          onCommandSend={onCommandSend}
+        />
+        {!strip && frames.length === 0 && allFrames.length > 0 ? (
+          <FilteredNotice data-testid="all-filtered-notice">
+            {allFrames.length} in the buffer, all hidden by <strong>{activeTabName}</strong>.{" "}
+            <FilterLink aria-label="clear this view's filter" onClick={() => setActiveFacetFilter({})}>
+              clear it
+            </FilterLink>
+          </FilteredNotice>
+        ) : null}
+        {!strip && viewEditorOpen ? <FilterDrawer onClose={() => setViewEditorOpen(false)} /> : null}
+        <PromptStrip
+          onCancelPrompt={onCancelPrompt}
+          onSendCommand={onCommandClick}
+          onCommandPreview={onCommandPreview}
+        />
+        <CommandBar
+          barId="world"
+          onSendCommand={onSendCommand}
+          onSendPromptResponse={onSendPromptResponse}
+          onCancelPrompt={onCancelPrompt}
+        />
+      </>
+    );
 
   return (
     <Stage data-testid="mode-stage" data-panel-open={panelOpen ? "true" : "false"}>
-      {panelOpen && here ? (
+      {panelOpen ? (
         <Panel data-testid="mode-panel">
           <PanelHead>
             <PanelToggle
@@ -290,7 +458,13 @@ const DesktopStage: React.FC<LayoutProps> = ({
               ‹ collapse
             </PanelToggle>
           </PanelHead>
-          {renderCard(here)}
+          {config.panel === "here" && here ? renderCard(here) : null}
+          {config.panel === "subjects" ? (
+            <SubjectPanel onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
+          ) : null}
+          {config.panel === "tuned" ? (
+            <TunedRail onSendCommand={onCommandClick} onCommandPreview={onCommandPreview} />
+          ) : null}
         </Panel>
       ) : null}
       {full ? (
@@ -299,7 +473,7 @@ const DesktopStage: React.FC<LayoutProps> = ({
           <StripRow>
             <StripColumn>{terminalBits(true)}</StripColumn>
             <StripChips data-testid="stage-chips">
-              {live
+              {placeable
                 .filter((c) => c !== full)
                 .map((c) => {
                   const cmd = `cockpit card grow ${quoteRef(c.key)}`;
@@ -321,7 +495,13 @@ const DesktopStage: React.FC<LayoutProps> = ({
       ) : (
         <>
           <TerminalColumn data-testid="terminal-column">
-            {medium ? <MediumSlot data-testid="medium-slot">{renderCard(medium, true)}</MediumSlot> : null}
+            {medium ? (
+              <MediumSlot data-testid="medium-slot">{renderCard(medium, true)}</MediumSlot>
+            ) : config.focal ? (
+              <MediumSlot data-testid="focal-slot">
+                <Focal kind={config.focal} onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
+              </MediumSlot>
+            ) : null}
             {terminalBits(false)}
           </TerminalColumn>
           <CardArea
@@ -330,6 +510,7 @@ const DesktopStage: React.FC<LayoutProps> = ({
             onSendCommand={onCommandClick}
             onCommandPreview={onCommandPreview}
             resultDisplay={resultDisplay}
+            renderBody={renderBody}
           />
         </>
       )}
@@ -337,3 +518,74 @@ const DesktopStage: React.FC<LayoutProps> = ({
     </Stage>
   );
 };
+
+/**
+ * ⭐ The chat panel: the subjects (channels and boards). Picking a chat
+ * subject points the PRIMARY terminal at it (`cockpit terminal
+ * #<handle>`); a forum subject opens its board over the terminal column.
+ * The highlight is what the primary shows.
+ */
+function SubjectPanel({
+  onCommandClick,
+  onCommandPreview,
+}: {
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
+}): React.ReactElement {
+  const selected = useStore((s) => s.stageSubject);
+  const setSelected = useStore((s) => s.setStageSubject);
+  return (
+    <SubjectRail
+      selectedId={selected?.subject.id ?? null}
+      onSelect={(subject) => {
+        const surface = defaultSurface(subject);
+        setSelected({ subject, surface });
+        if (surface && isForumSurface(surface)) {
+          openForumBoard(subject.handle, subject.surfaceRefs[surface] ?? null);
+          return;
+        }
+        const cmd = `cockpit terminal #${subject.handle}`;
+        onCommandPreview(cmd);
+        onCommandClick(cmd);
+      }}
+    />
+  );
+}
+
+/** What sits over the terminal column when no medium card does. */
+function Focal({
+  kind,
+  onCommandClick,
+  onCommandPreview,
+}: {
+  kind: NonNullable<StageConfig["focal"]>;
+  onCommandClick: (command: string) => void;
+  onCommandPreview: (command: string | null) => void;
+}): React.ReactElement | null {
+  const target = useStore(
+    (s) => (s.clientState["cockpit.watch"] as WatchTarget | null) ?? null,
+  );
+  const selected = useStore((s) => s.stageSubject);
+  if (kind === "video") return <StreamEmbed target={target} />;
+  if (kind === "deck") return <StreamerDeck onCommandPreview={onCommandPreview} />;
+  // A forum subject's board, over the terminal (chat).
+  if (!selected || !selected.surface || !isForumSurface(selected.surface)) return null;
+  return (
+    <>
+      <SubjectHeader
+        subject={selected.subject}
+        activeSurface={selected.surface}
+        onSelectSurface={() => undefined}
+        onSendCommand={onCommandClick}
+        onCommandPreview={onCommandPreview}
+      />
+      <ForumView
+        onSendCommand={onCommandClick}
+        onCommandPreview={onCommandPreview}
+        organizer={selected.surface === "ordered-forum" ? "ordered" : "open"}
+      />
+    </>
+  );
+}
+
+export type StageSubject = { subject: ForumSubjectRecord; surface: SubjectSurfaceName | null };

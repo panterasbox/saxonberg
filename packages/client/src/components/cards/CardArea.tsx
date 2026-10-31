@@ -142,6 +142,11 @@ export interface CardAreaProps {
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
   resultDisplay?: "card" | "terminal" | "both";
+  /**
+   * The body for a card — the stage supplies one that renders a terminal
+   * card as a terminal; absent, every card gets its `CardBody`.
+   */
+  renderBody?: (card: CardState, cut: boolean) => React.ReactElement;
 }
 
 export function CardArea({
@@ -150,6 +155,7 @@ export function CardArea({
   onSendCommand,
   onCommandPreview,
   resultDisplay = "card",
+  renderBody,
 }: CardAreaProps): React.ReactElement {
   const byId = useStore((s) => s.cards);
   const kinds = activeCardKinds();
@@ -248,12 +254,16 @@ export function CardArea({
                     onSendCommand={onSendCommand}
                     onCommandPreview={onCommandPreview}
                   >
-                    <CardBody
-                      card={card}
-                      cut={column.length > 1}
-                      onSendCommand={onSendCommand}
-                      onCommandPreview={onCommandPreview}
-                    />
+                    {renderBody ? (
+                      renderBody(card, column.length > 1)
+                    ) : (
+                      <CardBody
+                        card={card}
+                        cut={column.length > 1}
+                        onSendCommand={onSendCommand}
+                        onCommandPreview={onCommandPreview}
+                      />
+                    )}
                   </Card>
                 </Slot>
               ))}

@@ -794,12 +794,13 @@ export default class CardRegistry extends CardRegistryBase {
   /** The command that reproduces a terminal — what its refresh says. */
   private terminalKey(filter: TerminalFilter): string {
     if (filter.channel) return `cockpit terminal #${filter.channel}`;
+    if (!filter.view && filter.label) return `cockpit terminal "${filter.label}"`;
     return `cockpit terminal ${filter.view ?? 'All'}`;
   }
 
   private terminalTitle(filter: TerminalFilter): string {
     if (filter.channel) return `#${filter.channel}`;
-    return filter.view ?? 'All';
+    return filter.view ?? filter.label ?? 'All';
   }
 
   /** Restore a terminal's input mode into the session's per-bar map. */

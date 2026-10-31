@@ -79,7 +79,8 @@ describe('the shipped arrangements', () => {
       for (const [name, cards] of Object.entries(
         SHIPPED_ARRANGEMENT_CARDS[mode],
       )) {
-        for (const id of cards) {
+        for (const c of cards) {
+          const id = typeof c === 'string' ? c : c.cardId;
           expect(
             (CARD_IDS as readonly string[]).includes(id),
             `${mode}/${name} names unknown card '${id}'`,
@@ -90,9 +91,10 @@ describe('the shipped arrangements', () => {
   });
 
   it('⭐ `build` and `chat` resolve a NON-EMPTY arrangement', () => {
-    const nonEmpty = (mode: CockpitMode, arrangement: string): CardId[] => [
-      ...(SHIPPED_ARRANGEMENT_CARDS[mode][arrangement] ?? []),
-    ];
+    const nonEmpty = (mode: CockpitMode, arrangement: string): string[] =>
+      (SHIPPED_ARRANGEMENT_CARDS[mode][arrangement] ?? []).map((c) =>
+        typeof c === 'string' ? c : c.cardId,
+      );
     expect(nonEmpty('build', 'default')).toEqual(['cms', 'git', 'studio']);
     expect(nonEmpty('chat', 'default')).toEqual(['who']);
   });
@@ -113,9 +115,15 @@ describe('the shipped arrangements', () => {
    * the arrangement has no business duplicating it, and the test below
    * pins that the two never fight over it.
    */
-  it('⚠ `watch`, `govern` and `explore` ship empty, deliberately', () => {
-    expect(SHIPPED_ARRANGEMENT_CARDS.watch.viewer).toEqual([]);
-    expect(SHIPPED_ARRANGEMENT_CARDS.watch.streamer).toEqual([]);
+  it('⚠ `govern` and `explore` ship empty, deliberately; `watch` ships its stream-chat terminal', () => {
+    // ⭐ client-surface D6/D9: stream chat is a terminal card with its own bar.
+    for (const arr of ['viewer', 'streamer'] as const) {
+      const [chat] = SHIPPED_ARRANGEMENT_CARDS.watch[arr]!;
+      expect(chat).toMatchObject({
+        cardId: 'terminal',
+        terminal: { filter: { facets: { topics: ['speech.relay'] } } },
+      });
+    }
     expect(SHIPPED_ARRANGEMENT_CARDS.govern.default).toEqual([]);
     expect(SHIPPED_ARRANGEMENT_CARDS.explore.default).toEqual([]);
   });
@@ -131,7 +139,8 @@ describe('the shipped arrangements', () => {
       SHIPPED_ARRANGEMENT_CARDS,
     )) {
       for (const [name, ids] of Object.entries(arrangements)) {
-        for (const id of ids) {
+        for (const c of ids) {
+          const id = typeof c === 'string' ? c : c.cardId;
           expect(
             (INSPECTION_CARD_IDS as readonly string[]).includes(id),
             `${mode}/${name} names inspection card '${id}', which an ` +
@@ -145,7 +154,7 @@ describe('the shipped arrangements', () => {
   it("applying `build`'s arrangement opens the three authoring cards", async () => {
     const h = await makeHarness();
     const { opened } = h.interactive.applyCardArrangement(
-      SHIPPED_ARRANGEMENT_CARDS.build.default!.map((cardId) => ({ cardId })),
+      SHIPPED_ARRANGEMENT_CARDS.build.default!.map((c) => (typeof c === 'string' ? { cardId: c } : c)),
     );
     expect(opened).toBe(3);
     expect(h.interactive.listCards().map((c) => c.cardId).sort()).toEqual([

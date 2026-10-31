@@ -1254,6 +1254,8 @@ export interface TerminalFilter {
   channel?: string;
   muted?: string[];
   facets?: FacetFilter;
+  /** What the terminal is called when neither a view nor a channel names it. */
+  label?: string;
 }
 
 /**
@@ -3273,8 +3275,13 @@ export const COCKPIT_ARRANGEMENTS: Readonly<
  * {@link COCKPIT_ARRANGEMENTS}: an arrangement with no row here simply
  * opens nothing, which is what `govern` still does.
  */
+const STREAM_CHAT_TERMINAL: ArrangementCard = {
+  cardId: 'terminal',
+  terminal: { filter: { facets: { topics: ['speech.relay'] }, label: 'Stream chat' } },
+};
+
 export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
-  Record<CockpitMode, Readonly<Record<string, readonly CardId[]>>>
+  Record<CockpitMode, Readonly<Record<string, readonly (CardId | ArrangementCard)[]>>>
 > = {
   chat: { default: ['who'] },
   /*
@@ -3289,7 +3296,15 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
    * filtered by {@link MODE_PRIMARY_FILTER}.
    */
   explore: { default: [] },
-  watch: { viewer: [], streamer: [] },
+  /*
+   * ⭐ Watch's stream chat is a TERMINAL CARD (client-surface D6/D9): the
+   * relayed chat at unit width beside the game terminal, with its own
+   * bar — the shape the livestream layouts' second column always was.
+   */
+  watch: {
+    viewer: [STREAM_CHAT_TERMINAL],
+    streamer: [STREAM_CHAT_TERMINAL],
+  },
   build: { default: ['cms', 'git', 'studio'] },
   govern: { default: [] },
 };

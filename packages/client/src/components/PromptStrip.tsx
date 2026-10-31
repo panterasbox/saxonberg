@@ -221,6 +221,13 @@ export interface PromptStripProps {
   onCommandPreview?: (command: string | null) => void;
   /** True on a phone: the strip becomes a sticky sheet. */
   compact?: boolean;
+  /**
+   * ⭐ The bar this strip sits on (client-surface D6, #97): it lists only
+   * that bar's prompts — and, on the primary, the ones no bar asked.
+   * Absent: every prompt (a layout with one bar).
+   */
+  barId?: string;
+  primary?: boolean;
 }
 
 export function PromptStrip({
@@ -228,9 +235,25 @@ export function PromptStrip({
   onSendCommand,
   onCommandPreview,
   compact = false,
+  barId,
+  primary = true,
 }: PromptStripProps): React.ReactElement | null {
-  const prompts = useStore((s) => s.prompts);
-  const activeSlot = useStore((s) => s.activeSlot);
+  const allPrompts = useStore((s) => s.prompts);
+  const primaryBarId = useStore((s) => s.primaryBarId);
+  const prompts = React.useMemo(
+    () =>
+      barId === undefined
+        ? allPrompts
+        : allPrompts.filter((p) =>
+            p.barId !== undefined
+              ? p.barId === barId
+              : primary && (primaryBarId === null || primaryBarId === barId),
+          ),
+    [allPrompts, barId, primary, primaryBarId],
+  );
+  const barSlot = useStore((s) => (barId ? s.activeSlotByBar[barId] : undefined));
+  const legacySlot = useStore((s) => s.activeSlot);
+  const activeSlot = barSlot ?? legacySlot;
   const preview = onCommandPreview ?? (() => undefined);
 
   /*

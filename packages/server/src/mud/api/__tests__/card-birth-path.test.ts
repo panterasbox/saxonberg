@@ -333,7 +333,7 @@ describe('a declared card is a reachable card', () => {
     // Named in a shipped arrangement — pushed at login / mode switch.
     for (const byArrangement of Object.values(SHIPPED_ARRANGEMENT_CARDS)) {
       for (const list of Object.values(byArrangement)) {
-        for (const id of list) born.add(id);
+        for (const c of list) born.add(typeof c === 'string' ? c : c.cardId);
       }
     }
 

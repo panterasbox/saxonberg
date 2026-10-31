@@ -241,7 +241,7 @@ export function Card({
     if (!cut || !el) return;
     const over = el.scrollHeight > el.clientHeight + 1;
     setOverflowing((prev) => (prev === over ? prev : over));
-  });
+  }, [cut, card.records, card.segments, card.prose, card.payload, card.size]);
   /*
    * ⭐⭐ **Refresh re-issues the card's own key** — the normalized
    * command that produced it. Not a new concept, not an API: the

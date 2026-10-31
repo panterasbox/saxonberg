@@ -28,11 +28,13 @@ import {
   type LayoutName,
 } from "@saxonberg/types";
 import type { LayoutProps } from "./types";
-import { ModeStage } from "./ModeStage";
-import { ForumLayout } from "./ForumLayout";
-import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
-import { StreamerLayout } from "./StreamerLayout";
-import { BuilderLayout } from "./BuilderLayout";
+import {
+  ExploreStage,
+  ChatStage,
+  WatchViewerStage,
+  WatchStreamerStage,
+  BuildStage,
+} from "./ModeStage";
 
 export interface ArrangementDef {
   label: string;
@@ -49,13 +51,15 @@ export interface ArrangementDef {
 export const MODE_REGISTRY: Partial<
   Record<CockpitMode, Record<string, ArrangementDef>>
 > = {
-  explore: { default: { label: "Explore", Component: ModeStage } },
-  chat: { default: { label: "Forums", Component: ForumLayout } },
+  // ⭐ Every desktop mode composes the one stage (client-surface D9); each
+  // keeps its shipped layout for the phone until the phone's own design.
+  explore: { default: { label: "Explore", Component: ExploreStage } },
+  chat: { default: { label: "Chat", Component: ChatStage } },
   watch: {
-    viewer: { label: "Viewer", Component: LivestreamViewerLayout },
-    streamer: { label: "Streamer", Component: StreamerLayout },
+    viewer: { label: "Viewer", Component: WatchViewerStage },
+    streamer: { label: "Streamer", Component: WatchStreamerStage },
   },
-  build: { default: { label: "Builder", Component: BuilderLayout } },
+  build: { default: { label: "Builder", Component: BuildStage } },
 };
 
 /** What `resolveMode` decided, including whether it had to fall back. */

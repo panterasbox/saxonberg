@@ -233,9 +233,9 @@ export function visibleCards(
        */
       (resultDisplay !== "terminal" || c.prose === undefined) &&
       (kinds === null || kinds.has(c.cardId)) &&
-      // ⭐ A terminal card lives in the terminal column, not the feed
-      // (client-surface D6/D9).
-      c.cardId !== "terminal",
+      // ⭐ The PRIMARY terminal lives in the terminal column, never in the
+      // feed; other terminals are ordinary cards (client-surface D6).
+      !(c.cardId === "terminal" && c.role === "primary"),
   );
 }
 

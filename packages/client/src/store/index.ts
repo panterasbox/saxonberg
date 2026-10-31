@@ -287,6 +287,13 @@ export interface Frame {
    */
   channelName?: string;
   /**
+   * ⭐ The frame's tags as the server sent them. A chat frame carries
+   * `channel:<name>` (client-surface D6), which the record layer keeps —
+   * so a BACKFILLED line, which has no payload, still finds its channel's
+   * terminal.
+   */
+  tags?: string[];
+  /**
    * Relay-chat provenance (`speech.relay`
    * frames), extracted from `payload` at ingest. Structured so the relay
    * template renders the distinct per-platform treatment and reveals the
@@ -462,6 +469,20 @@ interface StoreState
    */
   modePanelOpen: boolean;
   setModePanelOpen: (open: boolean) => void;
+  /**
+   * The subject the chat stage's panel has selected — a board shows over
+   * the terminal column; a chat subject is what the primary shows.
+   */
+  stageSubject: {
+    subject: import("@saxonberg/types").ForumSubjectRecord;
+    surface: import("@saxonberg/types").SubjectSurfaceName | null;
+  } | null;
+  setStageSubject: (
+    next: {
+      subject: import("@saxonberg/types").ForumSubjectRecord;
+      surface: import("@saxonberg/types").SubjectSurfaceName | null;
+    } | null,
+  ) => void;
   setSocialPanelOpen: (open: boolean) => void;
 
   /**
@@ -1196,6 +1217,8 @@ export const useStore = create<StoreState>((set, get) => ({
   socialPanelOpen: false,
   modePanelOpen: true,
   setModePanelOpen: (open) => set(() => ({ modePanelOpen: open })),
+  stageSubject: null,
+  setStageSubject: (next) => set(() => ({ stageSubject: next })),
   setSocialPanelOpen: (open) => set(() => ({ socialPanelOpen: open })),
 
   // Summoned-card tier (the no-modal side panel).

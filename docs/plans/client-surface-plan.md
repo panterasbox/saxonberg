@@ -755,6 +755,22 @@ unit terminal card).
   header's (Perceptible, Containable, Addressable)**; the gutter's click
   opens a popover with the interface's own summary (help, cached per
   session) and `help mixin.<X>`.
+- **B29 — chat's panel holds the subjects list as a panel region**, not
+  yet a `channels` card kind; picking a chat subject sends `cockpit
+  terminal #<handle>` (the primary shows it), a forum subject opens its
+  board over the terminal column. "Open beside" is the typed `--beside`.
+- **B30 — the shipped layouts survive as the PHONE's surfaces until W6**
+  (`WorldLayout`, `ForumLayout`, the livestream layouts, `BuilderLayout`,
+  `ChatSurface`, `TabStrip`); no desktop mode renders them.
+- **B31 — watch's stream chat is a shipped terminal card** (`speech.relay`
+  facets, labeled "Stream chat"; `SHIPPED_ARRANGEMENT_CARDS` entries may
+  now be `ArrangementCard`s); the video and the streamer deck are the
+  watch stage's focal region over the terminal column.
+- **B32 — build ships the primary terminal only**; a diagnostics lens is
+  a saved view a player opens beside (`cockpit terminal <view> --beside`).
+- **B33 — the primary's view is the console's active view** (kept in step
+  client-side), so the view editor edits what the terminal shows; the
+  view chooser above the terminal sends `cockpit terminal <view>`.
 
 ---
 
@@ -1214,6 +1230,15 @@ AC 10 (no crop). Commit `build(client-surface W4): the inspection card is
 look, by source`.
 
 ### W5 — Terminal cards, chat and watch on the client
+
+> ✅ **Done** (build). `framesFor` is the one frame filter (App's view and
+> every terminal card); frames keep their `tags`; `TerminalCardBody`
+> (its own bar, per-bar `PromptStrip`, a ticker at line width); the stage
+> hosts the primary in the terminal column with a view chooser, and other
+> terminals as cards; `ExploreStage`, `ChatStage`, `WatchViewerStage`,
+> `WatchStreamerStage`, `BuildStage` from one `ModeStage` with per-mode
+> configs. Decisions B29–B33. The e2e `tabs`/`views`/`panes` rewrites
+> land with the drive (W7).
 
 **Goal.** Every terminal is a card; chat has a terminal; watch is laid
 out. Browser steps 19–20 and the rest of 22 pass.
