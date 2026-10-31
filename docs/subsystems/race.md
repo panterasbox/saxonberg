@@ -171,6 +171,11 @@ scope. See [bulk.md](./bulk.md).
 
 ### Capability mixins
 
+> ⭐ **2026-10-30 → [material-decomposition-slate](../slates/builds/material-decomposition-slate.md)**
+> (the owner): the pattern below is to be applied across the whole class — the base keeps only what
+> every material has, chemical identity becomes the class axis, capabilities become mixins, and family
+> backing classes compose them. The census found 77 capability combinations across 347 rows.
+
 Most classification is metadata — flat strings or refs. Some
 classifications carry behavior. **`RadioactiveMixin`**
 (`/stuff/idea/material/Radioactive.ts`) is the v1 demonstration of the
