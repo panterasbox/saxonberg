@@ -260,7 +260,10 @@ async function swardTo(where: string, parcel: string, fraction: number): Promise
   return founderEval(
     where,
     parcel,
-    `return (f => (f.reconcileSward(), f.adjustReserve("sward", f.getReserve("sward").capacity.scale(${fraction}).subtract(f.getReserve("sward").current)), f.swardBand()))(self.getContainer())`,
+    // ⚠ Of the sward's CEILING, not the reserve's capacity: ploughing and
+    // sowing shrink the grass's area, and 0.53 of the capacity read
+    // "ready" (blocking run 2) — a quarter-hour's mowing.
+    `return (f => (f.reconcileSward(), f.adjustReserve("sward", f.getReserve("sward").capacity.scale(${fraction} * f.swardCeilingKg() / f.getReserve("sward").capacity.rawValue()).subtract(f.getReserve("sward").current)), f.swardBand()))(self.getContainer())`,
   );
 }
 
@@ -593,7 +596,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // first, as a player looking at it would (blocking run 1: the rick read
     // the same either side of the day).
     const RICK_KG =
-      "return (self.getContainer().reconcileSward(), self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(',')";
+      "return (self.getContainer().reconcileSward(), self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(','))";
     const kgOf = (said: string): number => Number(/([0-9.]+)/.exec(said)?.[1] ?? NaN);
     const before = kgOf(await founderEval(PASTURE, DELIGHT, RICK_KG));
     await advance(DAY);
