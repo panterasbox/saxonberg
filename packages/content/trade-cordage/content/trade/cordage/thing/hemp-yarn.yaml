@@ -1,0 +1,13 @@
+# Rope yarn (cordage D5) — hemp spun coarse and hard, the yarn a rope is
+# laid from. Count 6: a heavy yarn, a skein of it about 700 meters.
+class: /trade/textiles/thing/TextileStock
+data:
+  shortDescription: skein of hemp yarn
+  keywords: [yarn, skein, "rope yarn", "hemp yarn"]
+  register: indefinite
+  longDescription: |
+    A skein of coarse, hard-spun yarn, hairy and strong, the kind nobody would weave and every ropewalk uses.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 0.4
+  gradeBand: fair
+  yarnCount: 6

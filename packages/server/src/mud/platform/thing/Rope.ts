@@ -269,6 +269,17 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
     return this.marks;
   }
 
+  /** ⭐ Lay a colored yarn in its heart — the rogue's yarn (D15), at the walk. */
+  public addMark(color: string): void {
+    const c = color.trim().toLowerCase();
+    if (c !== '' && !this.marks.includes(c)) this.marks = [...this.marks, c];
+  }
+
+  /** Is either end a bare cut end (where the rogue's yarn shows)? */
+  public hasCutEnd(): boolean {
+    return this.cutEnds > 0;
+  }
+
   public isCoiled(): boolean {
     return this.coiledDown;
   }
@@ -330,6 +341,12 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
   /** What it holds, in words. */
   public holdsWords(): string {
     const kg = this.effectiveKg();
+    return HOLDS.find(([upTo]) => kg < upTo)![1];
+  }
+
+  /** What it would hold new and untied, in words. */
+  public holdsWordsNew(): string {
+    const kg = this.breakingKg();
     return HOLDS.find(([upTo]) => kg < upTo)![1];
   }
 

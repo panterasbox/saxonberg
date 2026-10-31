@@ -1,0 +1,14 @@
+# A strand (cordage D5) — yarns twisted together down the walk. Three or
+# more are laid up into a rope. A ROPE at its first stage: what `twist`
+# makes of yarn.
+class: /platform/thing/Rope
+data:
+  shortDescription: strand
+  keywords: [strand, "rope strand"]
+  register: indefinite
+  longDescription: A long strand of yarns twisted hard together, springy in the hand and wanting to kink.
+  _materialPath: /stuff/idea/material/textile/hemp
+  stage: strand
+  coiledDown: false
+  lengthM: 50
+  diameterMm: 6

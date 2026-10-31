@@ -1,0 +1,13 @@
+# Hemp line (cordage D14) — scutched hemp, the long clean fiber, ready for
+# the wheel. What the textile chain makes of a hemp sheaf, and what the
+# ropewalk sells to whoever spins their own yarn.
+class: /trade/textiles/thing/TextileStock
+data:
+  shortDescription: hank of hemp
+  keywords: [hemp, hank, strick, "hemp line"]
+  register: indefinite
+  longDescription: |
+    Combed hemp, grey-gold and coarse, hanging in a long switch that smells faintly of the retting pond.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 0.5
+  gradeBand: fair

@@ -538,7 +538,16 @@ fires once per enabled traverse and never for a walk.
 Acceptance: tests + `lint:family`; `pnpm wire` `reachability`/`platform-smoke` still green.
 Commit: `build(cordage W2): the rope at a drop climbs both ways, chafes, parts; the belay`.
 
-### W3 — `trade-cordage`: twist, the lay reading, the Discipline moves (D5, D15, D16, D18)
+### W3 — `trade-cordage`: twist, the lay reading, the Discipline moves (D5, D15, D16, D18) ✅
+> **Done.** Pack scaffold (root package.json + pnpm-lock; discover count 71). `RopeJack`
+> (Tool, `ropelaying`, affords `twist`) plans the twist: yarn (a `TextileStock` with a count) → a
+> strand (`n·tex·1.1`), ≥ 3 strands → a rope (Σ × 1.15), `d = 2√(λ/πρφ)`, never longer than the walk
+> (the jack's room's `getLinearExtent`); `--mark` lays the rogue's yarn. `LayReading` is
+> `analyze lay <rope>` (plan said `analyze rope`: a reading names its CHANNEL first). Rows: jack,
+> strand, rope (50 m coil), hemp line, hemp yarn (count 6), rigging knife, `lay` reading. **Decided:**
+> **D26** — the pack's rows are placed by W5 (the counter/props), so `lint:reachability` is run once at
+> W5 for W3–W5 together rather than red at W3. Kernel `Rope.addMark`/`hasCutEnd`/`holdsWordsNew` added
+> (a pack never writes a rope's fields).
 Files: `packages/content/trade-cordage/{pack.yaml,package.json,tsconfig.json,vitest.config.ts}`
 (copy `trade-chandlery`'s), `src/thing/RopeJack.ts`, `src/idea/cmd/cordage/TwistController.ts`,
 `src/idea/reading/LayReading.ts`, rows under `content/trade/cordage/`: `thing/{jack,strand,rope,

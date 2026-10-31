@@ -1,0 +1,46 @@
+# ⭐ ONE `twist` (cordage D5): rope laid at a walk. Yarn makes a STRAND,
+# strands make a ROPE — the stage is what you twist, never a second verb.
+# The JACK at the head of the walk affords it and plans it.
+verbs: [twist]
+controller: /trade/cordage/idea/cmd/cordage/TwistController
+description: "Twist yarn into a strand, or strands into a rope, at a ropewalk"
+help: |
+  At the head of a ropewalk, `twist yarn` hooks yarns to the jack and
+  walks them out down the walk into one STRAND; `twist strands` lays three
+  or more strands up the other way into a ROPE. More yarns make a thicker
+  strand, and a rope twice as thick holds four times as much.
+
+  `--yarns 60` says how many yarns go into a strand (40 if you do not
+  say). `--length 50` lays it that long — never longer than the walk:
+  that is why a ropewalk is so long. `--mark red` lays a red yarn in the
+  heart of the strand: the rogue's yarn, carried into every rope laid from
+  it, and seen wherever it is cut (`analyze lay rope`).
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: stock
+    type: objects
+    required: false
+    greedy: true
+    scope: ["inventory"]
+    requires: any
+  # ⭐ The jack — DECLARED, never hunted (`lint:instrument-args`).
+  - name: jack
+    type: object
+    required: false
+    prepositions: [on, at, with]
+    default: "reachable:[capability.ropelaying]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+options:
+  yarns:
+    type: number
+    description: "How many yarns to a strand (default 40)"
+  length:
+    type: string
+    description: "How long to lay it, in meters — never longer than the walk"
+  mark:
+    type: string
+    description: "A colored yarn laid in the heart of the strand — the rogue's yarn"
