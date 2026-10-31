@@ -91,7 +91,7 @@ export const PANELS: PanelRow[] = [
       <Panel
         kicker="You're watching"
         title={`${CHANNEL.person} @ ${CHANNEL.studio}`}
-        body="Follow on Twitch and YouTube"
+        body={`Follow on ${CHANNEL.platforms.map((p) => p.name).join(' · ')}`}
         aside={
           <img
             src="/brand/panterasbox-hex-white.svg"
