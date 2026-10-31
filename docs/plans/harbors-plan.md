@@ -431,3 +431,57 @@ Read first, in this order:
 (`packages/wire/tests/harbors.wire.test.ts`, steps 1–25 with their paces),
 the count, what each failure was; the soak drive's name for the lane
 (`harbors.soak.wire.test.ts`: S1, S2, S3).
+
+### Stage A — 2026-10-31: 9/9 (steps 1–8, 10; 9 rides 1, 2, 5)
+
+`packages/wire/tests/harbors.dirty.wire.test.ts`, order 8 → 1 → 2 → 3 → 5
+→ 4 → 6 → 7 → 10. **Seven runs**, every one on a fresh DB: run 1 4/9 · run 2
+2/9 · run 3 3/9 · run 4 2/9 · run 5 8/9 · run 6 8/9 · **run 7 9/9**. Runs 3–7
+were driven from a detached scratch checkout of the branch (Stage B's wave
+was mid-edit in the worktree and did not type-check), on this worktree's own
+DB and port 2019. Lint family 85/85 on the driven tree. Soak twin for the
+lane: **`harbors.soak.dirty.wire.test.ts`** (S1, S2, S3).
+
+Defects found (code/content), each with its fix:
+- **The river's seeded hash had no avalanche** (`8ef1f6209`). `RiverLine.seeded`
+  was bare FNV-1a with the varying part (the bend index) LAST, so every bend
+  on a course drew nearly the same value: the Kestrel's snag obstruction was
+  0.53–0.59 on every bend, all over the 0.5 strike — the whole lower river,
+  the estuary inside the bar included, was "choked", and `course town-quay`
+  stopped "among snags" the moment she crossed the bar (step 2, and the
+  Kittiwake in step 3). The undercut and strainer draws were uniform per
+  course for the same reason. Fix: murmur3's fmix32 after the FNV loop. The
+  estuary now draws 0.29–0.31; one tideway bend (km 2.0–2.26) draws 0.55,
+  the derivation working as designed. RiverRead's downstream test sails
+  `slow` now (the snags are the course's, not its subject).
+- **`go` searched the drill focus before the room** (`28d754ec8`). go.yaml's
+  scope was `["$focus", "reachable"]`, first non-empty wins: after `look first
+  line` on the quay (a line from the Hesper), `go hesper` matched the focused
+  line by NAME and never saw the way named for her ("You can't walk that
+  way"). Order-dependent — the same move passed in step 5. Now `["reachable",
+  "$focus"]`. (A first attempt that took the ship's bare name out of the line
+  end's keywords was not the cause and is reverted, `11a4dbc92`.)
+
+Steps that were wrong (each commit says so):
+- Step 4 searched for low water by HAILING (`801221f8e`): a hail on the flood
+  is answered with a berth, the berth stands, and she was never told to wait
+  (run 1's "closed … opens in about 9 hours"). It now starts at 06:15 and
+  probes with `course town-quay` (no berth given: the bar refuses first, else
+  the quay's "hail first"), then hails once at low water; a rising tide always
+  follows inside the office's day from 06:15.
+- `comeIn` listened AFTER the clock jump (`9ab3ed55c`): `Session.listen` clears
+  the buffer when it starts, so her stop ("made fast round the bollards", the
+  charter's end), told while the jump drained, was dropped every time.
+- Step 2 asked the quay's `look` for "round the bollard" — the requirement is
+  that the look names her alongside, which it does; the line's own
+  description carries "made fast round a bollard", read by `look first line`
+  (`5f1d91707`, `5b5a16f52` — `look line` first raised a which-one prompt).
+- Step 5 read the line's house balance before any payment as NaN: a house
+  nobody has paid has no account yet, i.e. 0 (`5f1d91707`).
+- Step 7 dropped the Hesper's lines back only on success; a failure stranded
+  them in the founder's hands and step 10 failed "no lines to make fast". The
+  drops are in a `finally` (`5f1d91707`). `hailUntil` now returns the whole
+  trail on failure, and step 6 says where the sailor stood.
+
+Cascades only (no defect of their own): run 1 steps 3, 5, 6; runs 2–4 steps
+5–7 and 10 (the sailor never came alongside, or a prompt stayed open).
