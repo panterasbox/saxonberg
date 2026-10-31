@@ -82,9 +82,13 @@ describe('a card owns its subscription handle', () => {
     room.setShortDescription('the lounge');
     ContainmentApi.move(h.avatar, room);
 
-    // `place` ships pinned; unpin it so the window can reach it.
-    h.interactive.pushCard('subject', { subjectId: room.stuffId });
-    h.interactive.setCardPinned('subject', false);
+    // ⭐ A live card the window can reach: PLACED (so live, D4) but not
+    // pinned and filling no role (the sweep spares those). The room card
+    // is the `here` role, so the subject here is somewhere else.
+    const yard = await StuffApi.create(() => new Locale());
+    yard.setShortDescription('the yard');
+    const id = h.interactive.pushCard('subject', { subjectId: yard.stuffId })!;
+    expect(h.interactive.arrangeCard(id, 'place').refused).toBeNull();
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(1);
 
     /*

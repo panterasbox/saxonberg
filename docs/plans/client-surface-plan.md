@@ -792,6 +792,10 @@ unit terminal card).
   `ChatSurface` and `SubjectShell` (`defaultSurface` moved to
   `surfaces.ts`). `CardFeed` survives only as the host of its
   card-behavior test suite — a finalize item.
+- **B40 — the house stock sheet is pinned by default**: a working
+  instrument like the survey ledger, and under per-card liveness a pinned
+  card is live, so a pour moves the sheet without asking. Found by the
+  full suite (trade-shopkeeping's live-sheet test).
 
 ---
 

@@ -54,12 +54,13 @@ describe('the card catalogue', () => {
     // within a minute and put a floor under the sweep.
     // + `terminal` and `settings` (client-surface D6/D10).
     expect(pinnedAndStatic.length).toBe(7);
-    expect(pinnedAndLive.length).toBe(0);
+    // The stock sheet is a pinned instrument (B40): pinned and live.
+    expect(pinnedAndLive).toEqual(['stock']);
     expect(unpinnedAndStatic.length).toBe(4);
     const unpinnedAndLive = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && CARDS[id].live,
     );
-    expect(unpinnedAndLive).toEqual(['subject', 'stock']);
+    expect(unpinnedAndLive).toEqual(['subject']);
   });
 
   /**

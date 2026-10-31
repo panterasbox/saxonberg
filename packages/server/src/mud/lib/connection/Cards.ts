@@ -336,8 +336,10 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * printed — because par is policy on the Business, not a Stuff MQL can
    * enumerate.
    *
-   * Unpinned and of a live kind: a reading of the rail at the moment you
-   * asked; pin or place it and it keeps tracking the rail (D4).
+   * ⭐ PINNED (client-surface B40): a working instrument, like the survey
+   * — the keeper asked for it to watch the rail, and under per-card
+   * liveness (D4) a pinned card is a live one, so a pour moves the sheet
+   * without asking. Dismissing it lets it age out like any reading.
    */
   stock: {
     label: 'the stock sheet',
@@ -347,7 +349,7 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
       cardinality: 'many',
       fields: ['displayName', 'primaryKeyword', 'bulkMaterial', 'bulkAmount'],
     },
-    pinnedByDefault: false,
+    pinnedByDefault: true,
     live: true,
     command: 'house stock',
   },
