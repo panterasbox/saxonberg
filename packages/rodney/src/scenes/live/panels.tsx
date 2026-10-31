@@ -5,6 +5,7 @@ import ServiceGlyph, { type Platform } from '../shared/ServiceGlyph';
 import { CHANNEL } from '../../show/channel';
 import AtAvatar from '../shared/AtAvatar';
 import ScreenGuide from './ScreenGuide';
+import FactPanel from './FactPanel';
 import repoStats from 'virtual:repo-stats';
 import useGitLab, { GITLAB_PROJECT } from '../../hooks/useGitLab';
 import { palette } from '../../tokens/palette';
@@ -108,6 +109,13 @@ export const PANELS: PanelRow[] = [
     seconds: 18,
     when: () => true,
     render: (show) => <ScreenGuide client={show.client} />,
+  },
+  {
+    key: 'fact',
+    weight: 2,
+    seconds: 18,
+    when: () => true,
+    render: (show) => <FactPanel lastVerb={show.client?.lastVerb ?? null} />,
   },
 ];
 
