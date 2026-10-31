@@ -54,6 +54,11 @@ browser when scene becomes active: off**; **Page permissions: Advanced access
 to OBS** (lets the overlay switch scenes later). Add `?mock` to either URL to
 see it filled with canned chat and show data and no server.
 
+**One OBS scene per show.** Add `?show=gaming` or `?show=music` to both URLs
+(default `saxonberg`) for a show whose brand block, topic label and rotation
+fit it; duplicate the four scenes per show, or keep a scene collection per
+show.
+
 Settings → Audio: set **Mic/Auxiliary Audio** to *Disabled* (the `Mic`
 source replaces it). Keep Desktop Audio only if you want system sound on
 stream — it carries every notification chime.

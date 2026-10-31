@@ -3,6 +3,7 @@ import type { Show } from '../../hooks/useShow';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 import { PANELS, type PanelRow } from './panels';
+import type { ShowProfile } from '../../show/profiles';
 
 /** The lower third's box: 1520 × 225 under the content area. */
 export const LOWER_THIRD = { width: 1520, height: 225, crawl: 48 } as const;
@@ -28,13 +29,22 @@ function pickNext(rows: PanelRow[], credit: Map<string, number>): PanelRow | nul
   return best;
 }
 
-function Rotation({ show, height }: { show: Show; height: number }) {
-  const eligible = PANELS.filter((p) => p.when(show));
+function Rotation({
+  show,
+  profile,
+  height,
+}: {
+  show: Show;
+  profile: ShowProfile;
+  height: number;
+}) {
+  const ofShow = PANELS.filter((p) => profile.panels.includes(p.key));
+  const eligible = ofShow.filter((p) => p.when(show));
   const eligibleKeys = eligible.map((p) => p.key).join(',');
   const [turn, setTurn] = useState<{ row: PanelRow; started: number } | null>(null);
 
   useEffect(() => {
-    const rows = PANELS.filter((p) => p.when(show));
+    const rows = ofShow.filter((p) => p.when(show));
     // Fresh credit per plan, so the heaviest row (join) always opens it.
     const credit = new Map<string, number>();
     let timer: ReturnType<typeof setTimeout>;
@@ -128,7 +138,7 @@ function Crawl({ items }: { items: string[] }) {
  * squeeze — the crawl hides when it has nothing to say and the rotation grows
  * back to the full 225.
  */
-export default function LowerThird({ show }: { show: Show }) {
+export default function LowerThird({ show, profile }: { show: Show; profile: ShowProfile }) {
   const crawling = show.crawl.length > 0;
   return (
     <div
@@ -148,6 +158,7 @@ export default function LowerThird({ show }: { show: Show }) {
       `}</style>
       <Rotation
         show={show}
+        profile={profile}
         height={crawling ? LOWER_THIRD.height - LOWER_THIRD.crawl : LOWER_THIRD.height}
       />
       {crawling && <Crawl items={show.crawl} />}

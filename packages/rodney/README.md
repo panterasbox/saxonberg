@@ -32,6 +32,14 @@ pnpm --filter @saxonberg/rodney dev   # http://localhost:5200/standby.html
 ```
 
 Point an OBS **Browser Source** at `http://localhost:5200/standby.html` (1920×1080).
+**Three brands, three jobs.** The *show* (Saxonberg, a game, music) is a
+profile — `src/show/profiles.ts`, chosen with `?show=<key>`, default
+`saxonberg` — and owns the sidebar's brand block, the topic label, the
+rotation's panels and the standby's right banner. The *studio* (Pantera's Box)
+is the frame and the left banner. The *person* (Bobalu Smallberries,
+`src/show/channel.ts`) is the nameplate: the VGA-font NetHack `@` on the
+camera in Live, in the corner on standby. A new show is a profile row.
+
 Set the countdown target with `?until=<epoch_ms>` when no feed is configured.
 Add `?mock` to feed the chat canned lines, so the page can be looked at with no
 server. Every scene lays out on a fixed 1920×1080 stage scaled to the window.

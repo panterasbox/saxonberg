@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import QRCode from 'qrcode';
 import type { Show } from '../../hooks/useShow';
+import { CHANNEL } from '../../show/channel';
+import { AtAvatar } from '../shared/Nameplate';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
@@ -29,6 +31,10 @@ export interface PanelRow {
   render: (show: Show) => ReactNode;
 }
 
+/**
+ * Every panel there is; a show profile picks which of them it rotates
+ * (`ShowProfile.panels`), so a panel row is shared across shows.
+ */
 export const PANELS: PanelRow[] = [
   {
     key: 'join',
@@ -74,6 +80,20 @@ export const PANELS: PanelRow[] = [
         kicker="The source is open"
         title="Every line of Saxonberg is public, under the AGPL"
         body={`${strip(SOURCE_URL)} · play at ${strip(JOIN_URL)}`}
+      />
+    ),
+  },
+  {
+    key: 'follow',
+    weight: 1,
+    seconds: 16,
+    when: () => true,
+    render: () => (
+      <Panel
+        kicker="You're watching"
+        title={`${CHANNEL.person} @ ${CHANNEL.studio}`}
+        body="Follow on Twitch and YouTube"
+        aside={<AtAvatar size={140} />}
       />
     ),
   },

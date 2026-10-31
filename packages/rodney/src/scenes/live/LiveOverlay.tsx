@@ -1,6 +1,8 @@
 import useStreamState from '../../hooks/useStreamState';
 import useShow from '../../hooks/useShow';
 import Stage from '../shared/Stage';
+import Nameplate from '../shared/Nameplate';
+import { currentProfile } from '../../show/profiles';
 import Sidebar, { SIDEBAR } from './Sidebar';
 import LowerThird, { LOWER_THIRD } from './LowerThird';
 import { palette } from '../../tokens/palette';
@@ -54,7 +56,8 @@ function SourceStandIn({ label, size }: { label: string; size: string }) {
  */
 export default function LiveOverlay() {
   const feed = useStreamState();
-  const show = useShow();
+  const profile = currentProfile();
+  const show = useShow(profile);
   const mock = new URLSearchParams(window.location.search).has('mock');
   const live = mock || (feed.connected && feed.state?.mode === 'live');
 
@@ -79,11 +82,30 @@ export default function LiveOverlay() {
       )}
 
       <div style={{ position: 'absolute', left: CONTENT.width, top: 0 }}>
-        <Sidebar show={show} chat={feed.chat} live={live} />
+        <Sidebar show={show} profile={profile} chat={feed.chat} live={live} />
       </div>
 
       <div style={{ position: 'absolute', left: 0, top: CONTENT.height }}>
-        <LowerThird show={show} />
+        <LowerThird show={show} profile={profile} />
+      </div>
+
+      {/* The nameplate — who you are watching — on the camera, where the eye
+          goes to see who is talking. A dark strip so it reads on any frame. */}
+      <div
+        style={{
+          position: 'absolute',
+          left: CONTENT.width,
+          top: CONTENT.height + CAMERA.height - 54,
+          width: CAMERA.width,
+          height: 54,
+          boxSizing: 'border-box',
+          padding: '0 12px',
+          display: 'flex',
+          alignItems: 'center',
+          background: 'linear-gradient(to top, rgba(4,11,23,0.88), rgba(4,11,23,0.6))',
+        }}
+      >
+        <Nameplate />
       </div>
 
       {/* A hairline frame on the camera's corner, so it sits in the chrome. */}

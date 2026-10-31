@@ -3,6 +3,9 @@ import { Canvas } from '@react-three/fiber';
 import Banner from './Banner';
 import ChatPanel from '../shared/ChatPanel';
 import Stage from '../shared/Stage';
+import Nameplate from '../shared/Nameplate';
+import { CHANNEL } from '../../show/channel';
+import { currentProfile } from '../../show/profiles';
 import ErrorBoundary from './ErrorBoundary';
 import useAwayTimer from '../../hooks/useAwayTimer';
 import useStreamState from '../../hooks/useStreamState';
@@ -43,7 +46,12 @@ const COLUMN = { left: 580, width: 760, top: 115, bottom: 1080 - 785 } as const;
  * Two voices only (DESIGN-SYSTEM § Type): Spectral for the wordmarks, the
  * label, the timer and the inscription; Public Sans for the chat.
  */
+/**
+ * The studio's banner on the left, never changing; the show's on the right,
+ * from the profile (`?show=`). The person is the nameplate in the corner.
+ */
 function BannerScene() {
+  const profile = currentProfile();
   return (
     <>
       <ambientLight intensity={0.6} color={'#9fb0cc'} />
@@ -51,12 +59,12 @@ function BannerScene() {
       <pointLight position={[0, -1, 2]} intensity={4} color={'#5b8fd6'} distance={14} />
       <Banner
         markUrl="/brand/panterasbox-hex-white.svg"
-        wordmark="Pantera's Box"
+        wordmark={CHANNEL.studio}
         position={[-BANNER_X, BANNER_TOP, 0]}
       />
       <Banner
-        markUrl="/brand/saxonberg-rings-white.svg"
-        wordmark="Saxonberg"
+        markUrl={profile.mark}
+        wordmark={profile.wordmark}
         position={[BANNER_X, BANNER_TOP, 0]}
         phase={0.37}
       />
@@ -204,6 +212,11 @@ export default function StandbyOverlay() {
           >
             {quote}
           </div>
+        </div>
+
+        {/* Who you are watching, tucked in the corner. */}
+        <div style={{ position: 'absolute', left: 40, bottom: 36 }}>
+          <Nameplate size="large" />
         </div>
       </div>
     </Stage>

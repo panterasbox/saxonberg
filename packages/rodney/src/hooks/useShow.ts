@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ShowProfile } from '../show/profiles';
 
 /**
  * What the show knows besides the stream state and the chat: the topic and
@@ -49,7 +50,7 @@ const EMPTY: Show = {
   crawl: [],
 };
 
-const MOCK: Show = {
+const MOCK_SAXONBERG: Show = {
   topic: 'Building the river',
   agenda: [
     { title: 'What merged this week', done: true },
@@ -74,10 +75,35 @@ const MOCK: Show = {
   ],
 };
 
-export default function useShow(): Show {
-  const [show] = useState<Show>(() =>
-    new URLSearchParams(window.location.search).has('mock') ? MOCK : EMPTY
-  );
+/** Every other profile's mock: an agenda of its own, no world, no crawl. */
+const MOCK_OTHER: Record<string, Show> = {
+  music: {
+    ...EMPTY,
+    topic: 'Hard Rain',
+    agenda: [
+      { title: 'Warm-up', done: true },
+      { title: 'Hard Rain', done: false },
+      { title: 'The Long Field', done: false },
+      { title: 'Requests', done: false },
+    ],
+    current: 1,
+  },
+  gaming: {
+    ...EMPTY,
+    topic: 'NetHack — a Valkyrie, Gnomish Mines',
+    agenda: [
+      { title: 'Get to Minetown', done: true },
+      { title: 'Sokoban', done: false },
+    ],
+    current: 1,
+  },
+};
+
+export default function useShow(profile: ShowProfile): Show {
+  const [show] = useState<Show>(() => {
+    if (!new URLSearchParams(window.location.search).has('mock')) return EMPTY;
+    return profile.key === 'saxonberg' ? MOCK_SAXONBERG : MOCK_OTHER[profile.key] ?? EMPTY;
+  });
   // The mock's player count drifts so the join panel visibly updates.
   const [players, setPlayers] = useState(show.playersOnline);
   useEffect(() => {
@@ -88,5 +114,5 @@ export default function useShow(): Show {
     );
     return () => clearInterval(id);
   }, [show.playersOnline]);
-  return { ...show, playersOnline: players };
+  return { ...show, playersOnline: players, crawl: profile.crawl ? show.crawl : [] };
 }

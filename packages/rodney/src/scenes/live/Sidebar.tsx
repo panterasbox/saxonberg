@@ -1,6 +1,7 @@
 import type { ChatLine } from '../../hooks/useStreamState';
 import type { Show } from '../../hooks/useShow';
 import ChatPanel from '../shared/ChatPanel';
+import type { ShowProfile } from '../../show/profiles';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
@@ -17,11 +18,13 @@ const label = {
 } as const;
 
 /**
- * Brand — always on screen. The seals are the marks APPLIED (red field, white
- * rim), because the sidebar is a surface they do not own (brand/README.md).
- * The live pill is red, so it carries a white rim too.
+ * The show's brand — always on screen. It names what tonight is ABOUT (the
+ * profile); the studio is the frame and the person is the camera's
+ * nameplate. A seal is the mark APPLIED (red field, white rim), because the
+ * sidebar is a surface it does not own (brand/README.md). The live pill is
+ * red, so it carries a white rim too.
  */
-function Brand({ live }: { live: boolean }) {
+function Brand({ profile, live }: { profile: ShowProfile; live: boolean }) {
   return (
     <div
       style={{
@@ -32,7 +35,7 @@ function Brand({ live }: { live: boolean }) {
         borderBottom: `1px solid ${palette.line}`,
       }}
     >
-      <img src="/brand/saxonberg-seal.svg" alt="" style={{ width: 54, height: 54 }} />
+      {profile.seal && <img src={profile.seal} alt="" style={{ width: 54, height: 54 }} />}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
@@ -45,10 +48,7 @@ function Brand({ live }: { live: boolean }) {
             lineHeight: 1.1,
           }}
         >
-          Saxonberg
-        </div>
-        <div style={{ ...label, fontSize: 13, marginTop: 4, color: palette.text.mute }}>
-          Pantera's Box
+          {profile.wordmark}
         </div>
       </div>
       {live && (
@@ -85,10 +85,10 @@ function Brand({ live }: { live: boolean }) {
 }
 
 /** Topic and agenda — always on screen; the current item marked in brass. */
-function Agenda({ show }: { show: Show }) {
+function Agenda({ show, profile }: { show: Show; profile: ShowProfile }) {
   return (
     <div style={{ padding: '18px 20px 18px', borderBottom: `1px solid ${palette.line}` }}>
-      <div style={label}>Now</div>
+      <div style={label}>{profile.topicLabel}</div>
       <div
         style={{
           fontFamily: FACE_STACKS.display,
@@ -99,7 +99,7 @@ function Agenda({ show }: { show: Show }) {
           marginTop: 6,
         }}
       >
-        {show.topic ?? 'Working on Saxonberg'}
+        {show.topic ?? profile.defaultTopic}
       </div>
       {show.agenda.length > 0 && (
         <ol style={{ listStyle: 'none', margin: '14px 0 0', padding: 0 }}>
@@ -147,10 +147,12 @@ function Agenda({ show }: { show: Show }) {
 
 export default function Sidebar({
   show,
+  profile,
   chat,
   live,
 }: {
   show: Show;
+  profile: ShowProfile;
   chat: ChatLine[];
   live: boolean;
 }) {
@@ -167,8 +169,8 @@ export default function Sidebar({
       }}
     >
       <style>{`@keyframes rodney-pulse { 50% { opacity: 0.35; } }`}</style>
-      <Brand live={live} />
-      <Agenda show={show} />
+      <Brand profile={profile} live={live} />
+      <Agenda show={show} profile={profile} />
       <div style={{ flex: 1, minHeight: 0 }}>
         <ChatPanel lines={chat} density="compact" max={20} />
       </div>

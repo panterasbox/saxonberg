@@ -15,8 +15,8 @@ import { FACE_STACKS } from '../../tokens/faces';
  * (brand/README.md § The casing is structural).
  */
 export interface BannerFace {
-  /** A `*-white.svg` mark under public/brand/. */
-  markUrl: string;
+  /** A `*-white.svg` mark under public/brand/, or none (wordmark only). */
+  markUrl: string | null;
   /** Set in Spectral capitals beneath the mark. */
   wordmark: string;
 }
@@ -38,7 +38,7 @@ export async function paintBanner(face: BannerFace): Promise<CanvasTexture> {
     document.fonts.load(`500 60px ${FACE_STACKS.display}`),
     document.fonts.ready,
   ]);
-  const mark = await loadImage(face.markUrl);
+  const mark = face.markUrl ? await loadImage(face.markUrl) : null;
 
   const canvas = document.createElement('canvas');
   canvas.width = W;
@@ -56,10 +56,10 @@ export async function paintBanner(face: BannerFace): Promise<CanvasTexture> {
   ctx.lineWidth = 4;
   ctx.strokeRect(inset, inset, W - inset * 2, H - inset * 2);
 
-  // The mark.
+  // The mark. With none, the wordmark rises into its place.
   const markSize = W * 0.62;
   const markTop = H * 0.13;
-  ctx.drawImage(mark, (W - markSize) / 2, markTop, markSize, markSize);
+  if (mark) ctx.drawImage(mark, (W - markSize) / 2, markTop, markSize, markSize);
 
   // The wordmark — engraved capitals, letter-spacing .19em, shrunk to fit.
   const maxWidth = W - inset * 2 - 70;
@@ -73,7 +73,7 @@ export async function paintBanner(face: BannerFace): Promise<CanvasTexture> {
     ctx.letterSpacing = `${(size * 0.19).toFixed(1)}px`;
     if (ctx.measureText(text).width <= maxWidth) break;
   }
-  const wordY = markTop + markSize + H * 0.1;
+  const wordY = mark ? markTop + markSize + H * 0.1 : H * 0.36;
   // Letter-spacing trails the last glyph; nudge right by half of it to centre.
   ctx.fillText(text, W / 2 + size * 0.095, wordY);
 
