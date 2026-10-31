@@ -46,7 +46,6 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { tokens } from "../ui";
-import { Shelf } from "./Shelf";
 
 /** A card key as a command argument: quoted when it has a space or a quote. */
 function quoteKey(key: string): string {
@@ -140,17 +139,10 @@ const TrayIcon = styled.button`
   }
 `;
 
-const ShelfSlot = styled.div`
-  flex: none;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-`;
-
 interface StatusBarProps {
   /**
-   * Click-to-send a command. With it, the bar carries the shelf figures
-   * (left) and the tray (right); without it (char-gen), only the preview.
+   * Click-to-send a command. With it, the bar carries the tray (right);
+   * without it (char-gen), only the preview. The shelf is the top bar's.
    */
   onCommandClick?: (command: string) => void;
   onCommandPreview?: (command: string | null) => void;
@@ -183,14 +175,6 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
 
   return (
     <Bar aria-live="polite" data-testid="status-bar">
-      {onCommandClick ? (
-        <ShelfSlot data-testid="status-shelf">
-          <Shelf
-            onCommandClick={onCommandClick}
-            {...(onCommandPreview ? { onCommandPreview } : {})}
-          />
-        </ShelfSlot>
-      ) : null}
       <Preview $flash={flashing} data-testid="ghost-line">
         <Glyph aria-hidden="true">{flashing ? "" : ">"}</Glyph>
         {text ? (

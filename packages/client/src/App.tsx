@@ -20,6 +20,7 @@ import { registerForumHandlers } from "./store/forumActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Rail } from "./components/frame/Rail";
+import { Frame } from "./components/frame/Frame";
 import { PhoneShell } from "./components/phone/PhoneShell";
 import { MobileFrame } from "./components/frame/MobileFrame";
 import { CommandSheet } from "./components/frame/CommandSheet";
@@ -810,28 +811,42 @@ function App() {
             </>
           ) : (
             /*
-             * ⭐ The desktop frame (client-surface D9/D10): the nav rail on
-             * the left, the stage beside it, the status bar below — no top
-             * bar. Settings are a card the rail's settings icon opens with
-             * the `settings` verb.
+             * The desktop frame: master's top bar (seal, connection,
+             * account, the shelf, Views, Settings) across the top, the mode
+             * rail on the left, the stage beside it, the status bar below.
              */
-            <ContentRow>
-              <Rail
+            <>
+              <Frame
                 mode={resolved.mode}
+                arrangement={resolved.arrangement}
                 onCommandClick={handleCommandClick}
                 onCommandPreview={handleCommandPreview}
+                settingsActive={summonedPanel === "settings"}
+                onToggleSettings={() =>
+                  summonedPanel === "settings" ? closePanel() : openPanel("settings")
+                }
               />
-              <StageColumn>
-                <ReconnectBanner />
-                {resolved.fallbackFrom ? (
-                  <FallbackNotice data-testid="mode-fallback-notice">
-                    {resolved.fallbackFrom.mode} isn&rsquo;t laid out yet — showing{" "}
-                    {resolved.mode}
-                  </FallbackNotice>
+              <ReconnectBanner />
+              <ContentRow>
+                <Rail
+                  mode={resolved.mode}
+                  onCommandClick={handleCommandClick}
+                  onCommandPreview={handleCommandPreview}
+                />
+                <StageColumn>
+                  {resolved.fallbackFrom ? (
+                    <FallbackNotice data-testid="mode-fallback-notice">
+                      {resolved.fallbackFrom.mode} isn&rsquo;t laid out yet — showing{" "}
+                      {resolved.mode}
+                    </FallbackNotice>
+                  ) : null}
+                  <ActiveLayout {...layoutProps} />
+                </StageColumn>
+                {summonedPanel === "settings" ? (
+                  <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
                 ) : null}
-                <ActiveLayout {...layoutProps} />
-              </StageColumn>
-            </ContentRow>
+              </ContentRow>
+            </>
           )}
           {/* The Social / Notifications card (master's notify surface),
               opened from the AccountMenu — independent of the summoned

@@ -119,13 +119,15 @@ describe('the in-world chrome, by viewport', () => {
    * desktop composition must not have moved. This build inverts the
    * chrome on a phone; it changes nothing above the breakpoint.
    */
-  it('⭐ above the breakpoint: a nav rail and NO top bar; the shelf rides the status bar (client-surface D10)', () => {
+  it('⭐ above the breakpoint: the top bar carries the shelf, the rail the modes, the status bar the tray', () => {
     setViewport(false);
     render(<App />);
+    const top = screen.getByTestId('top-bar');
+    expect(top.textContent).toContain('PLAY');
+    expect(screen.getByRole('button', { name: 'Open the Views menu' })).toBeTruthy();
     expect(screen.getByTestId('nav-rail')).toBeTruthy();
-    expect(screen.queryByTestId('top-bar')).toBeNull();
     expect(screen.queryByTestId('mobile-bar')).toBeNull();
-    expect(screen.getByTestId('status-shelf')).toBeTruthy();
+    expect(screen.queryByTestId('status-shelf')).toBeNull();
     expect(screen.getByTestId('tray')).toBeTruthy();
   });
 

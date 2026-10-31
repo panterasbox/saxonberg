@@ -1,12 +1,10 @@
 /**
- * Rail — the nav rail down the left edge (client-surface D10).
+ * Rail — the mode rail down the left edge, under the top bar.
  *
- * ⭐ **The frame's only chrome besides the status bar.** The top bar is
- * gone: the modes are buttons here, each a real `cockpit mode <m>` (and
- * the status bar previews it on hover); a collapsed panel's cards sit as
- * icons under the modes; the you-corner at the foot holds the account
- * menu and the settings icon, which sends `settings` (settings are a
- * card now, not a docked panel).
+ * The modes are buttons here, each a real `cockpit mode <m>` (and the
+ * status bar previews it on hover); a collapsed panel's cards sit as
+ * icons under the modes. Identity, connection, the shelf, Views and
+ * Settings are the top bar's (`Frame`) — the rail never repeats them.
  *
  * ⚠ Plain words, not glyphs: a rail of initials is a quiz. The words fit
  * the 3.5rem rail at the label size.
@@ -16,9 +14,6 @@ import React from "react";
 import styled from "styled-components";
 import { COCKPIT_MODES, type CockpitMode } from "@saxonberg/types";
 import { tokens } from "../ui";
-import { Seal } from "./Seal";
-import { ConnectionChip } from "./ConnectionChip";
-import { AccountMenu } from "./AccountMenu";
 
 const Column = styled.nav`
   flex: none;
@@ -31,12 +26,6 @@ const Column = styled.nav`
   background: ${tokens.color.surface};
   border-right: 1px solid ${tokens.color.borderMuted};
   min-height: 0;
-`;
-
-const Top = styled.div`
-  display: flex;
-  justify-content: center;
-  padding-bottom: ${tokens.space.xs};
 `;
 
 const ModeButton = styled.button<{ $active: boolean }>`
@@ -84,32 +73,6 @@ const PanelIcon = styled.button`
   }
 `;
 
-const Spacer = styled.div`
-  flex: 1;
-`;
-
-const YouCorner = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: ${tokens.space.xs};
-`;
-
-const SettingsIcon = styled.button`
-  font: inherit;
-  font-size: ${tokens.font.micro};
-  background: transparent;
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.sm};
-  color: ${tokens.color.fgEmphasis};
-  cursor: pointer;
-  padding: 0.1rem 0.35rem;
-
-  &:hover {
-    background: ${tokens.color.surfaceMuted};
-  }
-`;
-
 const LABEL: Readonly<Record<CockpitMode, string>> = {
   chat: "Chat",
   explore: "Explore",
@@ -150,9 +113,6 @@ export function Rail({
   });
   return (
     <Column data-testid="nav-rail" aria-label="modes">
-      <Top>
-        <Seal size={22} title="Saxonberg" />
-      </Top>
       {COCKPIT_MODES.map((m) => {
         const cmd = `cockpit mode ${m}`;
         return (
@@ -186,20 +146,6 @@ export function Rail({
           ))}
         </>
       ) : null}
-      <Spacer />
-      <YouCorner data-testid="you-corner">
-        <ConnectionChip />
-        <AccountMenu />
-        <SettingsIcon
-          type="button"
-          aria-label="settings"
-          data-testid="rail-settings"
-          onClick={() => onCommandClick("settings")}
-          {...hover("settings")}
-        >
-          Settings
-        </SettingsIcon>
-      </YouCorner>
     </Column>
   );
 }

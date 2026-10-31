@@ -261,7 +261,7 @@ describe('the mobile bar, when the link is down', () => {
     // A shelf that vanished on a blip would reflow the bar every time a
     // train went into a tunnel.
     expect(
-      within(screen.getByTestId('glance-line')).getAllByLabelText(/^Known:/),
+      within(screen.getByTestId('glance-line')).getAllByLabelText(/^RENOWN:/),
     ).toHaveLength(1);
   });
 
