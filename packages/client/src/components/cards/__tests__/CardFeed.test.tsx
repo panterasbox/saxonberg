@@ -214,7 +214,7 @@ describe("the pin", () => {
     expect(screen.getByLabelText('cockpit card pin "who --here"')).toBeTruthy();
     expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
     expect(
-      screen.getByLabelText('cockpit card dismiss "who --here"'),
+      screen.getByLabelText('cockpit card close "who --here"'),
     ).toBeTruthy();
   });
 
@@ -232,7 +232,7 @@ describe("the pin", () => {
     landCard(opened({ instanceId: "c1", cardId: "who" }));
     useStore.getState().setCardPinnedState("c1", true);
     render(<CardFeed onSendCommand={noop} />);
-    expect(screen.getByLabelText("cockpit card auto who")).toBeTruthy();
+    expect(screen.getByLabelText("cockpit card unpin who")).toBeTruthy();
     expect(screen.getByTestId("card-hold-reason").textContent).toBe(
       "kept",
     );
@@ -374,7 +374,7 @@ describe("the card's controls", () => {
     );
     expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
     expect(screen.getByTestId("card-close").getAttribute("aria-label")).toBe(
-      "cockpit card dismiss who",
+      "cockpit card close who",
     );
   });
 

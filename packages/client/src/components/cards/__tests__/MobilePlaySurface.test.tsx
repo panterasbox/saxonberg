@@ -58,10 +58,10 @@ describe("the pinned chip row", () => {
      * control that does not act on the card it is on. See `Card.tsx`'s
      * `cardRef`.
      */
-    fireEvent.click(screen.getByLabelText("cockpit card auto look"));
+    fireEvent.click(screen.getByLabelText("cockpit card unpin look"));
     // ⭐ A real command, like every other pin control. The chip is a
     // handle on a server-side decision, not a local toggle.
-    expect(sent).toEqual(["cockpit card auto look"]);
+    expect(sent).toEqual(["cockpit card unpin look"]);
   });
 
   it("renders nothing when nothing is pinned", () => {

@@ -46,6 +46,7 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { tokens } from "../ui";
+import { Shelf } from "./Shelf";
 
 const Bar = styled.div`
   display: flex;
@@ -105,7 +106,56 @@ const Action = styled.div`
   font-size: ${tokens.font.micro};
 `;
 
-export function StatusBar(): JSX.Element {
+/** The tray: the cards YOU minimized (client-surface D8). */
+const Tray = styled.div`
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
+`;
+
+const TrayIcon = styled.button`
+  font: inherit;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 ${tokens.space.sm};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  background: transparent;
+  color: ${tokens.color.fgEmphasis};
+  cursor: pointer;
+
+  &:hover {
+    background: ${tokens.color.surfaceMuted};
+  }
+`;
+
+const ShelfSlot = styled.div`
+  flex: none;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+`;
+
+interface StatusBarProps {
+  /**
+   * Click-to-send a command. With it, the bar carries the shelf figures
+   * (left) and the tray (right); without it (char-gen), only the preview.
+   */
+  onCommandClick?: (command: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}
+
+export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps = {}): JSX.Element {
+  // ⭐ The tray: minimized cards, restored by a real command whose text
+  // the bar previews (client-surface D8). The system never puts a card
+  // here — only `cockpit card minimize` does.
+  const cards = useStore((s) => s.cards);
+  const tray = Object.values(cards).filter((c) => c.minimized && !c.closed);
   const ghostPreview = useStore((s) => s.ghostPreview);
   const ghostFlash = useStore((s) => s.ghostFlash);
   const flashGhost = useStore((s) => s.flashGhost);
@@ -127,6 +177,14 @@ export function StatusBar(): JSX.Element {
 
   return (
     <Bar aria-live="polite" data-testid="status-bar">
+      {onCommandClick ? (
+        <ShelfSlot data-testid="status-shelf">
+          <Shelf
+            onCommandClick={onCommandClick}
+            {...(onCommandPreview ? { onCommandPreview } : {})}
+          />
+        </ShelfSlot>
+      ) : null}
       <Preview $flash={flashing} data-testid="ghost-line">
         <Glyph aria-hidden="true">{flashing ? "" : ">"}</Glyph>
         {text ? (
@@ -138,6 +196,26 @@ export function StatusBar(): JSX.Element {
       <Action data-testid="status-bar-action">
         {previewing ? "click to send" : ""}
       </Action>
+      {onCommandClick ? (
+        <Tray data-testid="tray" aria-label="minimized cards">
+          {tray.map((c) => {
+            const cmd = `cockpit card restore ${c.key}`;
+            return (
+              <TrayIcon
+                key={c.instanceId}
+                type="button"
+                data-testid="tray-card"
+                title={c.title ?? c.key}
+                onClick={() => onCommandClick(cmd)}
+                onMouseEnter={() => onCommandPreview?.(cmd)}
+                onMouseLeave={() => onCommandPreview?.(null)}
+              >
+                {c.title ?? c.cardId}
+              </TrayIcon>
+            );
+          })}
+        </Tray>
+      ) : null}
     </Bar>
   );
 }

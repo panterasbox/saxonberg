@@ -77,10 +77,10 @@ describe('Shelf', () => {
     it('⭐ defaults to the WIRED rows only', () => {
       render(<Shelf />);
       expect(groups()).toHaveLength(DEFAULT_SHELF.length);
-      for (const label of ['PLAY', 'RENOWN', 'SKILL', 'BODY']) {
+      for (const label of ['Standing', 'Known', 'Skills', 'Body']) {
         expect(groupFor(label)).toBeTruthy();
       }
-      for (const label of ['MAKE', 'COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
+      for (const label of ['Making', 'Money', 'Status', 'Time', "Who's on", 'Docket']) {
         expect(
           screen.queryByLabelText(new RegExp(`^${label}:`)),
           `${label} was default-pinned`,
@@ -137,12 +137,12 @@ describe('Shelf', () => {
     it('render server values', () => {
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
-      for (const label of ['PLAY', 'RENOWN', 'SKILL']) {
+      for (const label of ['Standing', 'Known', 'Skills']) {
         expect(groupFor(label).getAttribute('data-figure-state')).toBe('live');
       }
-      expect(groupFor('PLAY').getAttribute('aria-label')).toContain('nascent');
-      expect(groupFor('RENOWN').getAttribute('aria-label')).toContain('4');
-      expect(groupFor('SKILL').getAttribute('aria-label')).toContain(
+      expect(groupFor('Standing').getAttribute('aria-label')).toContain('nascent');
+      expect(groupFor('Known').getAttribute('aria-label')).toContain('4');
+      expect(groupFor('Skills').getAttribute('aria-label')).toContain(
         'metalwork',
       );
     });
@@ -159,16 +159,16 @@ describe('Shelf', () => {
         shelfFigures: { stuffId: 'me', renown: { value: 0 } },
       });
       render(<Shelf />);
-      const renown = groupFor('RENOWN');
+      const renown = groupFor('Known');
       expect(renown.getAttribute('data-figure-state')).toBe('live');
       // `0.0`, not `0` — see `formatRenown`. The point of this test is
       // that a measured zero is LIVE rather than empty, which is
       // unchanged; only the rendered precision moved.
-      expect(renown.getAttribute('aria-label')).toBe('RENOWN: 0.0');
+      expect(renown.getAttribute('aria-label')).toBe('Known: 0.0');
     });
 
     /**
-     * ⚠ Found by DRIVING: the shelf read `RENOWN 1.1004871063830723`.
+     * ⚠ Found by DRIVING: the shelf read `Known 1.1004871063830723`.
      *
      * Renown is a signed, continuous, log-saturated score with no
      * natural unit, so the digits past the first decimal are float
@@ -181,9 +181,9 @@ describe('Shelf', () => {
         shelfFigures: { stuffId: 'me', renown: { value: 1.1004871063830723 } },
       });
       render(<Shelf />);
-      const renown = groupFor('RENOWN');
+      const renown = groupFor('Known');
       expect(renown.getAttribute('data-figure-state')).toBe('live');
-      expect(renown.getAttribute('aria-label')).toBe('RENOWN: 1.1');
+      expect(renown.getAttribute('aria-label')).toBe('Known: 1.1');
     });
 
     it('keeps the sign on a negative renown — notoriety is real', () => {
@@ -191,15 +191,15 @@ describe('Shelf', () => {
         shelfFigures: { stuffId: 'me', renown: { value: -2.47 } },
       });
       render(<Shelf />);
-      expect(groupFor('RENOWN').getAttribute('aria-label')).toBe(
-        'RENOWN: -2.5',
+      expect(groupFor('Known').getAttribute('aria-label')).toBe(
+        'Known: -2.5',
       );
     });
 
     it('renders an ABSENT renown as empty, with a reason', () => {
       useStore.setState({ shelfFigures: { stuffId: 'me' } });
       render(<Shelf />);
-      const renown = groupFor('RENOWN');
+      const renown = groupFor('Known');
       expect(renown.getAttribute('data-figure-state')).toBe('empty');
       expect(renown.getAttribute('aria-label')).toContain('no renown recorded');
     });
@@ -213,14 +213,14 @@ describe('Shelf', () => {
         shelfFigures: { stuffId: 'me', practisingCompetence: null },
       });
       const { unmount } = render(<Shelf />);
-      expect(groupFor('SKILL').getAttribute('aria-label')).toContain(
+      expect(groupFor('Skills').getAttribute('aria-label')).toContain(
         'nothing being practised',
       );
       unmount();
 
       useStore.setState({ shelfFigures: { stuffId: 'me' } });
       render(<Shelf />);
-      expect(groupFor('SKILL').getAttribute('aria-label')).toContain(
+      expect(groupFor('Skills').getAttribute('aria-label')).toContain(
         'transcript fold',
       );
     });
@@ -235,9 +235,9 @@ describe('Shelf', () => {
         },
       });
       render(<Shelf />);
-      const body = groupFor('BODY');
+      const body = groupFor('Body');
       expect(body.getAttribute('data-figure-state')).toBe('live');
-      expect(body.getAttribute('aria-label')).toBe('BODY: fresh');
+      expect(body.getAttribute('aria-label')).toBe('Body: fresh');
     });
 
     it('adds hunger and thirst only when they are saying something, and never a digit', () => {
@@ -248,15 +248,15 @@ describe('Shelf', () => {
         },
       });
       render(<Shelf />);
-      const body = groupFor('BODY');
-      expect(body.getAttribute('aria-label')).toBe('BODY: winded · hungry · parched');
+      const body = groupFor('Body');
+      expect(body.getAttribute('aria-label')).toBe('Body: winded · hungry · parched');
       expect(body.textContent ?? '').not.toMatch(/\d/);
     });
 
     it('is empty, not unwired, before the body has been read', () => {
       useStore.setState({ shelfFigures: { stuffId: 'me' } });
       render(<Shelf />);
-      expect(groupFor('BODY').getAttribute('data-figure-state')).toBe('empty');
+      expect(groupFor('Body').getAttribute('data-figure-state')).toBe('empty');
     });
   });
 
@@ -265,7 +265,7 @@ describe('Shelf', () => {
       pinAll();
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
-      for (const label of ['COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
+      for (const label of ['Money', 'Status', 'Time', "Who's on", 'Docket']) {
         const g = groupFor(label);
         expect(g.getAttribute('data-figure-state'), label).toBe('unwired');
         expect(g.textContent ?? '', label).not.toMatch(/\d/);
@@ -289,7 +289,7 @@ describe('Shelf', () => {
       pinAll();
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
-      const make = groupFor('MAKE');
+      const make = groupFor('Making');
       expect(make.getAttribute('data-figure-state')).toBe('live');
       expect(make.textContent ?? '').toContain('dormant');
 
@@ -302,13 +302,13 @@ describe('Shelf', () => {
      * ⚠ Absent is NOT zero and NOT a per-character fallback. When the
      * server could not resolve the account the row must say so.
      */
-    it('MAKE hatches with an account reason when the server sent none', () => {
+    it('Making hatches with an account reason when the server sent none', () => {
       pinAll();
       useStore.setState({
         shelfFigures: { ...LIVE_FIGURES, makeStanding: undefined },
       });
       render(<Shelf />);
-      const make = groupFor('MAKE');
+      const make = groupFor('Making');
       expect(make.getAttribute('data-figure-state')).toBe('empty');
       expect(make.getAttribute('aria-label') ?? '').toMatch(/account/i);
     });
@@ -376,7 +376,7 @@ describe('Shelf', () => {
       // `coin` is NOT default-pinned, so its affordance PINS it — the
       // real path now that the hatched six start off the bar.
       fireEvent.click(
-        within(menu).getByText('COIN').closest('button') as HTMLElement,
+        within(menu).getByText('Money').closest('button') as HTMLElement,
       );
       expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf pin coin');
       // ⚠ And nothing moved client-side. The server owns the shelf; a
@@ -390,7 +390,7 @@ describe('Shelf', () => {
       render(<Shelf onCommandClick={onCommandClick} />);
       const menu = openMenu();
       fireEvent.click(
-        within(menu).getByText('COIN').closest('button') as HTMLElement,
+        within(menu).getByText('Money').closest('button') as HTMLElement,
       );
       expect(onCommandClick).toHaveBeenCalledWith('cockpit shelf unpin coin');
     });
@@ -400,14 +400,14 @@ describe('Shelf', () => {
      *
      * The state column used to read `pinned` or `—`, and `—` is the
      * glyph an EMPTY figure uses. So an unpinned row wore the costume
-     * of a broken one — and `MAKE` made that concrete: it is live and
+     * of a broken one — and `Making` made that concrete: it is live and
      * pinnable, but sat under a `—` with no reason line beneath it
      * (live rows have none), which read as *more* broken than the
      * hatched rows around it, all of which at least explained
      * themselves.
      *
      * ⭐ Asserted as "the glyph appears nowhere in this menu" rather
-     * than as "MAKE says add". The specific row that exposed it is an
+     * than as "Making says add". The specific row that exposed it is an
      * accident of which figures happen to be live today; the rule is
      * that a menu of buttons never labels one with a placeholder.
      */
@@ -452,7 +452,7 @@ describe('Shelf', () => {
       );
       const menu = openMenu();
       const item = within(menu)
-        .getByText('COIN')
+        .getByText('Money')
         .closest('button') as HTMLElement;
 
       fireEvent.mouseEnter(item);
@@ -469,7 +469,7 @@ describe('Shelf', () => {
       render(<Shelf onCommandPreview={onCommandPreview} />);
       const menu = openMenu();
       const item = within(menu)
-        .getByText('COIN')
+        .getByText('Money')
         .closest('button') as HTMLElement;
       fireEvent.mouseEnter(item);
       fireEvent.mouseLeave(item);
@@ -503,8 +503,8 @@ describe('Shelf', () => {
       });
       render(<Shelf />);
       expect(groups()).toHaveLength(2);
-      expect(groups()[0]!.getAttribute('aria-label')).toMatch(/^RENOWN:/);
-      expect(groups()[1]!.getAttribute('aria-label')).toMatch(/^PLAY:/);
+      expect(groups()[0]!.getAttribute('aria-label')).toMatch(/^Known:/);
+      expect(groups()[1]!.getAttribute('aria-label')).toMatch(/^Standing:/);
     });
 
     it('drops a stored row that is no longer in the vocabulary', () => {

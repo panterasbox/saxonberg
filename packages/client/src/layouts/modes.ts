@@ -28,7 +28,7 @@ import {
   type LayoutName,
 } from "@saxonberg/types";
 import type { LayoutProps } from "./types";
-import { WorldLayout } from "./WorldLayout";
+import { ModeStage } from "./ModeStage";
 import { ForumLayout } from "./ForumLayout";
 import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
 import { StreamerLayout } from "./StreamerLayout";
@@ -49,7 +49,7 @@ export interface ArrangementDef {
 export const MODE_REGISTRY: Partial<
   Record<CockpitMode, Record<string, ArrangementDef>>
 > = {
-  explore: { default: { label: "Explore", Component: WorldLayout } },
+  explore: { default: { label: "Explore", Component: ModeStage } },
   chat: { default: { label: "Forums", Component: ForumLayout } },
   watch: {
     viewer: { label: "Viewer", Component: LivestreamViewerLayout },

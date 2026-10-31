@@ -38,6 +38,7 @@ import type { CardId } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
+import { useStore } from "../../store/index";
 
 const Shell = styled.article<{ $faded: boolean; $pinned: boolean }>`
   border: 1px solid
@@ -140,7 +141,33 @@ export interface CardProps {
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
   children?: React.ReactNode;
+  /**
+   * Cut the body to fit (client-surface D9): the header never scrolls;
+   * the body is cut from the bottom and says so, with a way to grow.
+   */
+  cut?: boolean;
 }
+
+/** The body, cut from the bottom when it does not fit. */
+const Body = styled.div<{ $cut: boolean }>`
+  ${(p) => (p.$cut ? "overflow: hidden; min-height: 0; flex: 1;" : "")}
+`;
+
+const CutNote = styled.button`
+  display: block;
+  margin-top: ${tokens.space.xs};
+  font: inherit;
+  font-size: ${tokens.font.micro};
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: ${tokens.color.fgMuted};
+  cursor: pointer;
+
+  &:hover {
+    color: ${tokens.color.fgEmphasis};
+  }
+`;
 
 /**
  * ⚠⚠ **The card's ref is its KEY, not its catalogue id** — and that is
@@ -174,7 +201,7 @@ function cardRef(card: CardState): string {
 function pinAction(card: CardState): { command: string; label: string } {
   const ref = cardRef(card);
   if (card.pinned) {
-    return { command: `cockpit card auto ${ref}`, label: "⚲" };
+    return { command: `cockpit card unpin ${ref}`, label: "⚲" };
   }
   return { command: `cockpit card pin ${ref}`, label: "⚲" };
 }
@@ -192,11 +219,29 @@ export function Card({
   onSendCommand,
   onCommandPreview,
   children,
+  cut = false,
 }: CardProps): React.ReactElement {
   const preview = onCommandPreview ?? (() => undefined);
   const { command, label } = pinAction(card);
   const faded = card.closed !== undefined;
-  const close = `cockpit card dismiss ${cardRef(card)}`;
+  const ref = cardRef(card);
+  // ⭐ Every control is a real `cockpit card` command (client-surface D8);
+  // the status bar previews it. A husk has no server card left, so its
+  // close is the trail's own.
+  const close = `cockpit card close ${ref}`;
+  const grow = `cockpit card grow ${ref}`;
+  const shrink = `cockpit card shrink ${ref}`;
+  const minimize = `cockpit card minimize ${ref}`;
+  const size = card.size ?? "unit";
+  const dropCard = useStore((s) => s.dropCard);
+  const bodyRef = React.useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!cut || !el) return;
+    const over = el.scrollHeight > el.clientHeight + 1;
+    setOverflowing((prev) => (prev === over ? prev : over));
+  });
   /*
    * ⭐⭐ **Refresh re-issues the card's own key** — the normalized
    * command that produced it. Not a new concept, not an API: the
@@ -245,8 +290,18 @@ export function Card({
       data-card-key={card.key}
       data-card-live={card.live ? "true" : "false"}
       data-card-closed={card.closed ?? ""}
+      data-card-size={size}
+      style={cut ? { display: "flex", flexDirection: "column", minHeight: 0 } : undefined}
     >
-      <Head>
+      <Head
+        draggable={!faded}
+        onDragStart={(e) => {
+          // Drag is INSERTION: the drop target turns this into
+          // `cockpit card move <card> <col> <row>`.
+          e.dataTransfer.setData("application/x-saxonberg-card", ref);
+          e.dataTransfer.effectAllowed = "move";
+        }}
+      >
         {/*
           ⚠ No kind chip. Every card is the same kind now — *what I am
           looking at* — so a label saying so on every one is a word that
@@ -296,19 +351,79 @@ export function Card({
               {label}
             </IconButton>
           )}
-          <IconButton
-            data-testid="card-close"
-            title={`Click to send: ${close}`}
-            aria-label={close}
-            onClick={() => onSendCommand(close)}
-            onMouseEnter={() => preview(close)}
-            onMouseLeave={() => preview(null)}
-          >
-            ×
-          </IconButton>
+          {!faded && size !== "full" && (
+            <IconButton
+              data-testid="card-grow"
+              title={`Click to send: ${grow}`}
+              aria-label={grow}
+              onClick={() => onSendCommand(grow)}
+              onMouseEnter={() => preview(grow)}
+              onMouseLeave={() => preview(null)}
+            >
+              ⤢
+            </IconButton>
+          )}
+          {!faded && (size === "medium" || size === "full") && (
+            <IconButton
+              data-testid="card-shrink"
+              title={`Click to send: ${shrink}`}
+              aria-label={shrink}
+              onClick={() => onSendCommand(shrink)}
+              onMouseEnter={() => preview(shrink)}
+              onMouseLeave={() => preview(null)}
+            >
+              ⤡
+            </IconButton>
+          )}
+          {!faded && card.role !== "primary" && (
+            <IconButton
+              data-testid="card-minimize"
+              title={`Click to send: ${minimize}`}
+              aria-label={minimize}
+              onClick={() => onSendCommand(minimize)}
+              onMouseEnter={() => preview(minimize)}
+              onMouseLeave={() => preview(null)}
+            >
+              _
+            </IconButton>
+          )}
+          {faded ? (
+            <IconButton
+              data-testid="card-close"
+              title="Clear it from the trail"
+              aria-label="clear"
+              onClick={() => dropCard(card.instanceId)}
+            >
+              ×
+            </IconButton>
+          ) : card.role === undefined ? (
+            <IconButton
+              data-testid="card-close"
+              title={`Click to send: ${close}`}
+              aria-label={close}
+              onClick={() => onSendCommand(close)}
+              onMouseEnter={() => preview(close)}
+              onMouseLeave={() => preview(null)}
+            >
+              ×
+            </IconButton>
+          ) : null}
         </Controls>
       </Head>
-      <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+      <Body ref={bodyRef} $cut={cut} data-testid="card-body">
+        <CardBodyBoundary cardId={card.cardId}>{children}</CardBodyBoundary>
+      </Body>
+      {cut && overflowing && !faded ? (
+        <CutNote
+          type="button"
+          data-testid="card-cut"
+          onClick={() => onSendCommand(grow)}
+          onMouseEnter={() => preview(grow)}
+          onMouseLeave={() => preview(null)}
+        >
+          Cut to fit · larger ▸
+        </CutNote>
+      ) : null}
     </Shell>
   );
 }

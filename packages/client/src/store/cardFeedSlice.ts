@@ -113,8 +113,14 @@ export interface CardState {
   prose?: string;
   records: CardRecord[];
   payload?: CardPayload;
-  /** Arrival / last-touch order. The unpinned block sorts on this. */
+  /** Arrival order. Never moves. */
   openedAt: number;
+  /**
+   * ⭐ The last time the command that made it was RE-RUN (client-surface
+   * D9): in a feed a touched card moves to the bottom; in a workspace it
+   * refreshes in place. Absent = never re-run (its arrival is its touch).
+   */
+  touchedAt?: number;
   /** Set once the card closed: it is a faded husk from here on. */
   closed?: CardCloseReason;
   /**
@@ -324,6 +330,7 @@ export interface CardFeedSlice {
         | "subjectId"
         | "subjectKind"
         | "role"
+        | "touchedAt"
       >
     >,
   ) => void;

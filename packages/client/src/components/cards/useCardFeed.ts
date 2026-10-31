@@ -138,8 +138,12 @@ export function useCardFeed(): void {
 
     const handleTouched = (envelope: Envelope): void => {
       const env = envelope as CardTouchedEnvelope;
+      // A re-run carries a body; a liveness flip (pin, place) does not —
+      // only a re-run is a TOUCH that moves a card in a feed.
+      const rerun = env.prose !== undefined || env.segments !== undefined || env.payload !== undefined;
       useStore.getState().touchCard(env.instanceId, {
         key: env.key,
+        ...(rerun ? { touchedAt: Date.now() } : {}),
         // ⭐ A demotion: this card stopped being the current one.
         ...(env.live !== undefined ? { live: env.live } : {}),
         ...(env.takenAt !== undefined ? { takenAt: env.takenAt } : {}),

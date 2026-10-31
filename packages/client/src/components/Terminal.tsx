@@ -30,10 +30,11 @@ import { tokens } from './ui';
 import { EmoteSheet } from './social/EmoteSheet';
 import { useLongPress } from './social/useLongPress';
 
-const TerminalContainer = styled.div`
-  flex: 1;
+const TerminalContainer = styled.div<{ $strip?: boolean }>`
+  flex: ${(p) => (p.$strip ? "none" : "1")};
+  ${(p) => (p.$strip ? `height: ${tokens.width.strip - 2.5}rem;` : "")}
   overflow-y: auto;
-  padding: 1rem;
+  padding: ${(p) => (p.$strip ? "0.4rem 1rem" : "1rem")};
   background: ${tokens.color.surfaceSunken};
   color: ${tokens.color.fg};
   font-size: 14px;
@@ -45,6 +46,31 @@ const TerminalContainer = styled.div`
      serif's x-height reads loose; it moves both registers together.)
      No font-family here: each frame's Body sets its own per register. */
   line-height: 1.5;
+`;
+
+/**
+ * ⭐ The text MEASURE (client-surface D9): a line never runs past 42rem —
+ * about 90 characters of Newsreader — however wide the column is. The
+ * column never takes the leftover as a gutter; the measure is the text's.
+ */
+const Measure = styled.div`
+  max-width: ${tokens.width.textMeasure}rem;
+`;
+
+/** "New lines ↓" — shown when output arrived while you were scrolled up. */
+const NewLines = styled.button`
+  position: sticky;
+  bottom: 0;
+  margin-left: auto;
+  display: block;
+  font: inherit;
+  font-size: ${tokens.font.small};
+  padding: 0.15rem 0.6rem;
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  background: ${tokens.color.surface};
+  color: ${tokens.color.fgEmphasis};
+  cursor: pointer;
 `;
 
 const FrameRow = styled.div`
@@ -115,6 +141,11 @@ interface TerminalProps {
    * surface whose whole job is naming it.
    */
   onCommandSend?: (command: string) => void;
+  /**
+   * The strip under a full card (client-surface D9): the last few lines
+   * only, at the terminal column's x.
+   */
+  strip?: boolean;
 }
 
 export function Terminal({
@@ -123,6 +154,7 @@ export function Terminal({
   onCommandPreview,
   viewerStuffId,
   onCommandSend,
+  strip = false,
 }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // Default the viewer's stuffId to the store's `selfAvatarId` so the
@@ -134,11 +166,36 @@ export function Terminal({
   const stylesheet = useStylesheet(effectiveViewerId ?? null);
   const [sheetFor, setSheetFor] = useState<SheetTarget | null>(null);
 
+  /*
+   * ⭐ Stick to the bottom only when you WERE at the bottom (#54). A
+   * player scrolled up to re-read is not dragged back by the next line;
+   * a chip says new lines arrived and scrolls down when clicked.
+   */
+  const atBottom = useRef(true);
+  const [unseen, setUnseen] = useState(false);
+  const onScroll = (): void => {
+    const el = containerRef.current;
+    if (!el) return;
+    const line = 24;
+    atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight <= line;
+    if (atBottom.current) setUnseen(false);
+  };
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    const el = containerRef.current;
+    if (!el) return;
+    if (atBottom.current || strip) {
+      el.scrollTop = el.scrollHeight;
+    } else {
+      setUnseen(true);
     }
-  }, [frames]);
+  }, [frames, strip]);
+  const jumpToBottom = (): void => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    atBottom.current = true;
+    setUnseen(false);
+  };
 
   // `data-testid` so the e2e theme drive can read the transcript's
   // RESOLVED colour. That assertion cannot live in the unit suite —
@@ -146,18 +203,30 @@ export function Terminal({
   // the transcript and the chrome resolved the same theme.
   return (
     <>
-      <TerminalContainer ref={containerRef} data-testid="terminal">
-        {frames.map((frame) => (
-          <TranscriptRow
-            key={frame.id}
-            frame={frame}
-            stylesheet={stylesheet}
-            effectiveViewerId={effectiveViewerId}
-            onCommandClick={onCommandClick}
-            onCommandPreview={onCommandPreview}
-            onLongPress={setSheetFor}
-          />
-        ))}
+      <TerminalContainer
+        ref={containerRef}
+        data-testid={strip ? "terminal-strip" : "terminal"}
+        $strip={strip}
+        onScroll={onScroll}
+      >
+        <Measure data-testid="terminal-measure">
+          {(strip ? frames.slice(-4) : frames).map((frame) => (
+            <TranscriptRow
+              key={frame.id}
+              frame={frame}
+              stylesheet={stylesheet}
+              effectiveViewerId={effectiveViewerId}
+              onCommandClick={onCommandClick}
+              onCommandPreview={onCommandPreview}
+              onLongPress={setSheetFor}
+            />
+          ))}
+        </Measure>
+        {unseen && !strip ? (
+          <NewLines type="button" data-testid="terminal-new-lines" onClick={jumpToBottom}>
+            new lines ↓
+          </NewLines>
+        ) : null}
       </TerminalContainer>
       {/*
         ⭐ ONE sheet for the whole transcript — a sheet per row would be

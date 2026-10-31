@@ -726,6 +726,21 @@ unit terminal card).
   `primaryBarId` registered by the primary `CommandBar`); `activeSlot`
   mirrors the last bar that moved for the readers that predate it. Typed
   text at a choice or mql prompt is sent as a command.
+- **B21 — W3 lays out `explore` only; chat, watch and build keep their
+  shipped layouts inside the new chrome** (rail + status bar) until W5
+  converts them, so each wave lands. Below the phone tier `ModeStage`
+  renders the shipped phone surface until W6.
+- **B22 — the card area's capacity is read from the window's height**
+  (a unit card's minimum ≈ 10rem); displacement takes the stalest
+  unprotected flowing card by touch, never the newest. "Stalest" is pure
+  time (the slate's open question, decided for predictability).
+- **B23 — a feed moves a RE-RUN card to the bottom** (`touchedAt`, set
+  when a `card-touched` carries a body); a liveness flip is not a touch.
+  Husks and displaced cards ride the Recent trail; a trail chip re-runs
+  the card's command.
+- **B24 — the rail's mode buttons are words, not glyphs** (a rail of
+  initials is a quiz); `ViewsMenu` survives only in the phone's account
+  menu until W6.
 
 ---
 
@@ -1056,6 +1071,18 @@ terminals are cards; prompts are per bar; play is explore; settings is a
 card`.
 
 ### W3 — The client geometry: tiers, regions, chrome, the card area
+
+> ✅ **Done** (build). `tokens.width` / `tokens.tier` (rem);
+> `useWidthTier` (+ the slate's table as a test); `useIsCompact` in rem;
+> `Rail` (modes, panel icons, you-corner, `settings`); the status bar
+> carries the shelf (plain words, B18) and the tray; `ModeStage` (panel
+> with the `here` card, terminal column with the medium slot, card area,
+> full stage with the terminal strip and chips); `CardArea` over the pure
+> `arrangeCards` (feed/workspace, displacement, trail, overflow, drag →
+> `cockpit card move`); `Card` controls as commands, cut to fit; the
+> terminal's 42rem measure and stick-to-bottom chip (#54); the fallback
+> notice; `Frame.tsx` retired. Decisions B21–B24. The render spec
+> `client-surface-layout.spec.ts` is written; it runs at W7.
 
 **Goal.** The layout fits the window. Browser steps 12–15, 21, 22 pass
 (22's "tab views are filters" completes in W5).

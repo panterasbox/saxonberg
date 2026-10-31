@@ -455,6 +455,13 @@ interface StoreState
    * client-only UI state, never persisted.
    */
   socialPanelOpen: boolean;
+  /**
+   * ⭐ Whether the player wants the mode panel open (client-surface D9).
+   * The stage still shuts it when the window cannot afford it — the panel
+   * costs two-thirds of a unit, so it collapses first.
+   */
+  modePanelOpen: boolean;
+  setModePanelOpen: (open: boolean) => void;
   setSocialPanelOpen: (open: boolean) => void;
 
   /**
@@ -1187,6 +1194,8 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // "Social / Notifications" settings-card modal toggle (account menu).
   socialPanelOpen: false,
+  modePanelOpen: true,
+  setModePanelOpen: (open) => set(() => ({ modePanelOpen: open })),
   setSocialPanelOpen: (open) => set(() => ({ socialPanelOpen: open })),
 
   // Summoned-card tier (the no-modal side panel).

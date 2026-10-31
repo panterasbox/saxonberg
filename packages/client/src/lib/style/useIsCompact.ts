@@ -29,8 +29,12 @@
 import { useEffect, useState } from "react";
 import { tokens } from "../../components/ui";
 
-/** `(max-width: 760px)` — built from the one named token. */
-export const COMPACT_QUERY = `(max-width: ${tokens.breakpoint.compact})`;
+/**
+ * `(max-width: 47.5rem)` — the phone tier (client-surface D9), in rem so
+ * zoom is a breakpoint: 760px at a 16px root, narrower in CSS pixels the
+ * further a player zooms in. `useWidthTier` reads the same threshold.
+ */
+export const COMPACT_QUERY = `(max-width: ${tokens.tier.phone}rem)`;
 
 export function useIsCompact(): boolean {
   const [compact, setCompact] = useState<boolean>(() => matches());

@@ -19,7 +19,7 @@ import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
-import { Frame } from "./components/frame/Frame";
+import { Rail } from "./components/frame/Rail";
 import { MobileFrame } from "./components/frame/MobileFrame";
 import { CommandSheet } from "./components/frame/CommandSheet";
 import { ReconnectBanner } from "./components/frame/ReconnectBanner";
@@ -162,6 +162,28 @@ const ContentRow = styled.div<{ $compact?: boolean }>`
    * Redesigning the play surface for a phone is Wave 4's.
    */
   ${(p) => (p.$compact ? "overflow-x: auto;" : "")}
+`;
+
+/** The stage beside the rail. */
+const StageColumn = styled.div`
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+`;
+
+/**
+ * ⭐ A mode with no layout SAYS so (client-surface D10): a silent
+ * substitution is how an unbuilt mode comes to look finished.
+ */
+const FallbackNotice = styled.div`
+  flex: none;
+  padding: ${tokens.space.xs} ${tokens.space.md};
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.warning};
+  background: ${tokens.color.surface};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
 `;
 
 /*
@@ -813,37 +835,50 @@ function App() {
               two `StatusBar`s in the tree and make "exactly one renders
               above the breakpoint" unassertable. */}
           {isCompact ? (
-            <MobileFrame
-              mode={resolved.mode}
-              arrangement={resolved.arrangement}
-              onCommandClick={handleCommandClick}
-              onCommandPreview={handleCommandPreview}
-              settingsActive={summonedPanel === "settings"}
-              onToggleSettings={() =>
-                summonedPanel === "settings" ? closePanel() : openPanel("settings")
-              }
-            />
+            <>
+              <MobileFrame
+                mode={resolved.mode}
+                arrangement={resolved.arrangement}
+                onCommandClick={handleCommandClick}
+                onCommandPreview={handleCommandPreview}
+                settingsActive={summonedPanel === "settings"}
+                onToggleSettings={() =>
+                  summonedPanel === "settings" ? closePanel() : openPanel("settings")
+                }
+              />
+              <ReconnectBanner />
+              <ContentRow $compact>
+                <ActiveLayout {...layoutProps} />
+                {summonedPanel === "settings" ? (
+                  <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
+                ) : null}
+              </ContentRow>
+            </>
           ) : (
-            <Frame
-              mode={resolved.mode}
-              arrangement={resolved.arrangement}
-              onCommandClick={handleCommandClick}
-              onCommandPreview={handleCommandPreview}
-              settingsActive={summonedPanel === "settings"}
-              onToggleSettings={() =>
-                summonedPanel === "settings" ? closePanel() : openPanel("settings")
-              }
-            />
+            /*
+             * ⭐ The desktop frame (client-surface D9/D10): the nav rail on
+             * the left, the stage beside it, the status bar below — no top
+             * bar. Settings are a card the rail's settings icon opens with
+             * the `settings` verb.
+             */
+            <ContentRow>
+              <Rail
+                mode={resolved.mode}
+                onCommandClick={handleCommandClick}
+                onCommandPreview={handleCommandPreview}
+              />
+              <StageColumn>
+                <ReconnectBanner />
+                {resolved.fallbackFrom ? (
+                  <FallbackNotice data-testid="mode-fallback-notice">
+                    {resolved.fallbackFrom.mode} isn&rsquo;t laid out yet — showing{" "}
+                    {resolved.mode}
+                  </FallbackNotice>
+                ) : null}
+                <ActiveLayout {...layoutProps} />
+              </StageColumn>
+            </ContentRow>
           )}
-          <ReconnectBanner />
-          {/* The active layout fills the fluid content area; a summoned
-              card (settings) docks beside it — non-modal, terminal stays. */}
-          <ContentRow $compact={isCompact}>
-            <ActiveLayout {...layoutProps} />
-            {summonedPanel === "settings" ? (
-              <SettingsPanel onSendCommand={sendCommand} onClose={closePanel} />
-            ) : null}
-          </ContentRow>
           {/* The Social / Notifications card (master's notify surface),
               opened from the AccountMenu — independent of the summoned
               settings card above. */}
@@ -864,7 +899,12 @@ function App() {
               and it would cost a row the feed needs. What replaces it
               is the command sheet — the tap that names its command
               before it sends. */}
-          {isCompact ? null : <StatusBar />}
+          {isCompact ? null : (
+            <StatusBar
+              onCommandClick={handleCommandClick}
+              onCommandPreview={handleCommandPreview}
+            />
+          )}
           {/* The command sheet — the phone's replacement for hover.
               Rendered unconditionally: it paints only when the store
               holds a command, and only the compact branch of
