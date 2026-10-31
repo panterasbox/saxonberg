@@ -681,9 +681,15 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     let forked = 0;
     // Two cuts: what six head eat in a day (the soak file forks six and
     // waits a week).
+    // Tools down first: a cut of hay is heavy, and with a scythe and a
+    // sickle in hand `get 1 hay` strains at the first cuts it tries (run 6
+    // — it says so for each before it picks one up, so the count is the
+    // pickup line, not the absence of a refusal).
+    await act(p, 'drop scythe');
+    await act(p, 'drop sickle');
     for (let i = 0; i < 2; i++) {
       const got = await act(p, 'get 1 hay');
-      if (refusedFor(got.r) !== null) break;
+      if (!/You pick up a cut of hay/i.test(got.said)) break;
       await doing(p, 'put hay in trough');
       forked++;
     }
