@@ -509,7 +509,21 @@ energy tests still green; chandlery test still green.
 Acceptance: all of the above + `lint:family`; `help tie`, `help splice`, `help coil` resolve.
 Commit: `build(cordage W1): length, strength, knots, cut and splice, rot and tar`.
 
-### W2 — the rope at a drop and the belay (D11, D12)
+### W2 — the rope at a drop and the belay (D11, D12) ✅
+> **Done.** `Enablement.afterEnabledTraverse` (default no-op on Climbable/Swimmable/Flyable);
+> `TraversalGuard.host` rides the ok guard (`engageHost` → `canTraverseExit` past haulage) and
+> `Mobile.traverse` calls the hook inside the engagement after `crossExit`. Rope hangs on a tie
+> round a fixture beside a `down` exit with `vertical` media (≥ `cordage.minHangM`): the
+> `RopeEnd` is minted into the bottom room; `Rope` axes `['down']`, `RopeEnd` `['up']` (fixed in place
+> while hung). `takeClimb`: reef spill (burden ≥ dial) → whole rope down; load > effective → part
+> (1 m stub stays, the rest falls); else chafe. The fall asks the climber's belays first, then
+> moves them to the bottom + blunt at `hazard.dropFallEnergy`. `BelayEngagement` (hands+attention)
+> links itself on the rope; capstan `e^(0.3·2π·turns)` with a fixed thing in the belayer's room;
+> a clove hitch round the climber is not held. Delve: `lip-post` prop; corridor-2 `down`
+> `media: [vertical]`; pit-below `up` `[ground, vertical]`. **Decided:** **D25** — the belay rope is a
+> declared arg (`belay <person> with <rope>`, default `reachable:[mixin.TieableMixin]`) per
+> `lint:instrument-args`. **Known limit:** the hung end is runtime — after a restart the rope is
+> still the way down but the end (the way up) is not re-minted until it is untied and re-tied.
 Files: `lib/locomotion/Enablement.ts` (+ optional hook), `Climbable.ts` (default no-op),
 `lib/boundary/Exit.ts` (`TraversalGuard` ok `host?`), `platform/idea/api/LocomotionLogic.ts`
 (`checkEnablementScope` returns the host), `lib/spatial/Mobile.ts` (call after `onTraversed`),

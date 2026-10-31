@@ -33,8 +33,16 @@
  */
 
 import Line from '../../lib/spatial/Line';
+import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
 import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceable';
+import { ClimbableMixin } from '../../lib/locomotion/Climbable';
+import { BelayEngagement } from '../../lib/locomotion/BelayEngagement';
+import type { Engaged } from '../../lib/activity/Engaged';
+import type Exit from '../../lib/boundary/Exit';
+import { HazardDelivery } from '../../lib/hazard/HazardDelivery';
+import { ConditionApi } from '../../api/condition';
+import { SchedulerApi } from '../../api/scheduler';
 import type { TossOutcome } from '../../lib/spatial/Tossable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
@@ -64,6 +72,8 @@ const HELD = [
   'platform/cmd/inventory/untie.yaml',
   'platform/cmd/inventory/coil.yaml',
   'platform/cmd/crafting/splice.yaml',
+  'platform/cmd/movement/climb.yaml',
+  'platform/cmd/movement/belay.yaml',
 ];
 
 /** The plain rope row — what a cut piece of an unrowed rope is minted as. */
@@ -170,7 +180,7 @@ const ropeAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export default class Rope extends SpliceableMixin(TieableMixin(Line)) {
+export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Line))) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: HELD,
@@ -190,6 +200,7 @@ export default class Rope extends SpliceableMixin(TieableMixin(Line)) {
     cutEnds: { persistent: true, runtimeState: true },
     knots: { persistent: true, runtimeState: true },
     anchorPath: { persistent: true, runtimeState: true },
+    hungVia: { persistent: true, runtimeState: true },
   };
 
   static override END_ROW = '/platform/thing/rope-end';
@@ -229,6 +240,12 @@ export default class Rope extends SpliceableMixin(TieableMixin(Line)) {
 
   /** The fixture itself (runtime; found again from `anchorPath`). */
   private _anchor: Stuff | null = null;
+
+  /** ⭐ The drop it hangs down, by exit direction (`down`), while tied off above one (D11). */
+  public hungVia: string | null = null;
+
+  /** Whoever is belaying the person on the free end (runtime; D12). */
+  private _belay: BelayEngagement | null = null;
 
   /* ─────────────────────────── the numbers ─────────────────────────── */
 
@@ -432,9 +449,10 @@ export default class Rope extends SpliceableMixin(TieableMixin(Line)) {
     this.anchorPath = load.getTemplatePath();
     this.knots = [...this.knots.filter((k) => k.end !== 'fixed'), { ...made.knot, end: 'fixed' }];
     this.coiledDown = false;
+    const hung = await this.hangDown(place as Stuff & Container);
     return {
       ok: true,
-      line: `You tie ${this.getPresentation()} round ${load.getPresentation()}, ${name}.`,
+      line: `You tie ${this.getPresentation()} round ${load.getPresentation()}, ${name}.${hung}`,
       peers: `ties a rope round ${load.getPresentation()}.`,
     };
   }
@@ -447,6 +465,10 @@ export default class Rope extends SpliceableMixin(TieableMixin(Line)) {
     const anchor = this.getAnchor();
     if (anchor !== null) {
       if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', line: 'You have no hands to take it in.' };
+      if (this.hungVia !== null) {
+        this.hungVia = null;
+        await this.castOff();
+      }
       this._anchor = null;
       this.anchorPath = null;
       this.knots = this.knots.filter((k) => k.end !== 'fixed');
@@ -496,6 +518,196 @@ export default class Rope extends SpliceableMixin(TieableMixin(Line)) {
       },
     };
   }
+
+  /* ─────────────────────────── the rope at a drop (D11) ─────────────────────────── */
+
+  /**
+   * ⭐ Tied off above a drop — a `down` exit here that is climbed — the rope
+   * goes over the edge: its free end lies at the bottom, and the rope is a
+   * way down from here and a way up from there. Too short to reach, it
+   * just lies at the lip. Returns what to add to the tie's line.
+   */
+  private async hangDown(place: Stuff & Container): Promise<string> {
+    if (!MixinApi.isExitable(place)) return '';
+    const down = place.getExit('down');
+    if (!down || !down.getMedia().includes('vertical')) return '';
+    if (this.lengthM < dial(AppSettingKeys.cordageMinHangM, 3)) return ' It is too short to reach the bottom.';
+    let below: Stuff & Container;
+    try {
+      below = await down.resolveDestination();
+    } catch {
+      return '';
+    }
+    await this.castOff();
+    await this.mintEnd(below);
+    this.hungVia = 'down';
+    return ' You pay the rest of it out over the edge, and it hangs down into the dark.';
+  }
+
+  /** Does it hang down a drop from where it is tied? */
+  public isHung(): boolean {
+    return this.hungVia !== null && this.getAnchor() !== null && this.getEnd() !== null;
+  }
+
+  /** ⭐ Hung, the rope is the way DOWN from where it is tied (its end is the way up). */
+  public override getAxes(): readonly string[] {
+    return this.isHung() ? ['down'] : [];
+  }
+
+  public override canEngageAxis(direction: string): boolean {
+    return this.getAxes().includes(direction);
+  }
+
+  /** @hook A climb on this rope (D11): the wear at the lip, and whether it holds. */
+  public override async afterEnabledTraverse(actor: Stuff, direction: string, exit: Exit): Promise<void> {
+    void direction;
+    void exit;
+    await this.takeClimb(actor);
+  }
+
+  /**
+   * ⭐ The climb's load on the rope (D11): the climber and what they carry.
+   * A reef knot spills under an uneven load; a load past what the rope holds
+   * parts it; anything less chafes it at the lip — more the heavier.
+   */
+  public async takeClimb(climber: Stuff): Promise<void> {
+    if (!this.isHung()) return;
+    const burden = MixinApi.isLoadBearing(climber) ? climber.getBorneBurden().rawValue() : 0;
+    const load = (MixinApi.isTangible(climber) ? climber.getMass().rawValue() : 70) + burden;
+    if (this.knots.some((k) => k.end === 'fixed' && k.key === 'reef-knot') && burden >= dial(AppSettingKeys.cordageUnevenLoadKg, 10)) {
+      await this.spill(climber, load);
+      return;
+    }
+    if (load > this.effectiveKg()) {
+      await this.part(climber, load);
+      return;
+    }
+    this.chafe = Math.min(1, this.chafe + dial(AppSettingKeys.cordageChafePerUse, 0.06) * (load / this.breakingKg()));
+  }
+
+  /** The bottom of the drop — where the free end lies. */
+  private bottom(): (Stuff & Container) | null {
+    const end = this.getEnd();
+    const at = end !== null ? (end.getContainer() as Stuff | null) : null;
+    return at !== null && MixinApi.isContainer(at) ? at : null;
+  }
+
+  /** ⭐ A reef knot spills: the whole rope comes away from the post and goes down. */
+  private async spill(climber: Stuff, load: number): Promise<void> {
+    const below = this.bottom();
+    const post = this.getAnchor();
+    this.hungVia = null;
+    await this.castOff();
+    this._anchor = null;
+    this.anchorPath = null;
+    this.knots = this.knots.filter((k) => k.end !== 'fixed');
+    if (below !== null) ContainmentApi.move(this as unknown as Stuff & Line, below);
+    this.say(climber, `The reef knot round ${post?.getPresentation() ?? 'the post'} spills under the uneven weight — the rope comes away above you.`);
+    this.fall(climber, below, load);
+  }
+
+  /** ⭐ It parts: the stub stays tied round the post, the rest goes down with the climber. */
+  private async part(climber: Stuff, load: number): Promise<void> {
+    const below = this.bottom();
+    const stubM = 1;
+    const row = this.getTemplatePath() ?? ROPE_ROW;
+    const rest = await StuffApi.clone<Rope>(row).catch(() => null);
+    this.hungVia = null;
+    await this.castOff();
+    if (rest instanceof Rope && below !== null) {
+      const material = this.getMaterial();
+      if (material) rest.setMaterial(material);
+      rest.setLengthM(Math.max(0.5, this.lengthM - stubM));
+      rest.setDiameterMm(this.diameterMm);
+      rest.copyWearFrom(this);
+      rest.setCoats(structuredClone(this.coats));
+      rest.cutEnds = 1;
+      rest.coiledDown = false;
+      ContainmentApi.move(rest as unknown as Stuff & Line, below);
+    }
+    this.lengthM = stubM;
+    this.cutEnds = Math.min(2, this.cutEnds + 1);
+    this.say(climber, 'With a crack like a shot the rope parts above you.');
+    this.fall(climber, below, load);
+  }
+
+  /**
+   * ⭐ The fall (the hazard's drop, on the rope): asked of the climber's
+   * belay first — caught, they hang and are hauled in unhurt; else to the
+   * bottom and a blunt landing.
+   */
+  private fall(climber: Stuff, below: (Stuff & Container) | null, load: number): void {
+    const shock = load * dial(AppSettingKeys.cordageFallFactor, 3);
+    for (const belay of Rope.belaysOf(climber)) {
+      if (belay.catches(climber, shock)) {
+        this.say(climber, 'The rope round you comes up taut; you hang, and are hauled in.');
+        return;
+      }
+    }
+    if (below !== null && MixinApi.isContainable(climber) && climber.getContainer() !== below) {
+      ContainmentApi.move(climber, below);
+    }
+    const energy = dial(AppSettingKeys.hazardDropFallEnergy, 4);
+    const site = HazardDelivery.from({
+      channel: 'blunt',
+      energy,
+      siteSelector: ['body.torso', 'body.leg.left', 'body.leg.right'],
+    }).resolveSite(climber);
+    if (site && energy > 0) ConditionApi.inflict(climber, { mechanism: 'blunt', site, energy });
+    this.say(climber, 'You fall, and hit the bottom hard.');
+  }
+
+  /** The belays on whoever `climber` is — the ropes round them somebody is holding. */
+  private static belaysOf(climber: Stuff): BelayEngagement[] {
+    if (!MixinApi.isContainer(climber)) return [];
+    const out: BelayEngagement[] = [];
+    for (const c of climber.getContents()) {
+      const line = c instanceof LineEnd ? c.getLine() : null;
+      if (line instanceof Rope && line._belay !== null) out.push(line._belay);
+    }
+    return out;
+  }
+
+  private say(climber: Stuff, line: string): void {
+    try {
+      MessageApi.scene(climber).topic('act.deed').toSelf(Mml.compose`${line}`).send();
+    } catch {
+      // decoration
+    }
+  }
+
+  /* ─────────────────────────── the belay (D12) ─────────────────────────── */
+
+  /** The engagement holding this rope as a belay, while one does. */
+  public getBelay(): BelayEngagement | null {
+    return this._belay;
+  }
+
+  /** @internal The belay engagement's own link (onStart / onAbort). */
+  public _setBelay(belay: BelayEngagement | null): void {
+    this._belay = belay;
+  }
+
+  /**
+   * ⭐ `belay <person>` (D12): hold this rope for the person tied on its
+   * free end, here or one way from here, round a post if there is one.
+   */
+  public belayFor(by: Stuff, climber: Stuff): TieOutcome {
+    if (this.getHolder() !== by) return { ok: false, reason: 'not-holding', line: `You are not holding ${this.getPresentation()}.` };
+    if (this.getOnEnd() !== climber) {
+      return { ok: false, reason: 'not-tied-on', line: `${GrammarApi.cap(climber.describeFor(by))} is not tied on the end of it — \`tie rope to\` them first.` };
+    }
+    if (!MixinApi.isEngaged(by)) return { ok: false, reason: 'cannot', line: 'You cannot hold a belay.' };
+    const belay = new BelayEngagement(by as Stuff & Engaged, this, climber);
+    const started = SchedulerApi.start(belay);
+    if (!started.ok) return { ok: false, reason: 'busy', line: 'Your hands are on something else.' };
+    return {
+      ok: true,
+      line: `You take in the slack and hold the rope for ${climber.describeFor(by)}, ${belay.holdWords()}.`,
+      peers: `takes up a rope to belay somebody.`,
+    };
+  }
+
 
   /* ─────────────────────────── cut, splice, coil ─────────────────────────── */
 

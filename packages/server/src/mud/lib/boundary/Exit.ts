@@ -42,6 +42,7 @@ import { Idea } from '../stuff/Idea';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
+import type { Enablement } from '../locomotion/Enablement';
 import type { Stuff, EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
@@ -113,6 +114,12 @@ export interface TraversalGuard {
   mode?: string;
   /** Gate-specific context (e.g. `{ missing: 'ClimbableMixin' }`). */
   context?: Record<string, unknown>;
+  /**
+   * ⭐ On an ok guard for a mode with an enablement mixin: the host that
+   * enabled the crossing (the ladder, the rope at the lip), so the crossing
+   * can tell it afterwards (`Enablement.afterEnabledTraverse`, cordage D11).
+   */
+  host?: Stuff & Enablement;
 }
 
 /**

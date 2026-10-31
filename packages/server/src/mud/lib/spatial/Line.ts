@@ -157,11 +157,20 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
   public async makeFast(who: Stuff): Promise<void> {
     await this.castOff();
     if (!MixinApi.isContainer(who)) return;
+    await this.mintEnd(who);
+  }
+
+  /**
+   * Mint the free end into `into` — somebody's hands, or the bottom of a
+   * drop the line hangs down (cordage D11).
+   */
+  protected async mintEnd(into: Stuff & Container): Promise<LineEnd> {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
     end.attachTo(this);
-    ContainmentApi.move(end, who);
+    ContainmentApi.move(end, into);
     this._end = end;
     this._tugs = [];
+    return end;
   }
 
   /** Let go of the free end: whoever had it is off the line. */
