@@ -9,6 +9,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
 import type { PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
@@ -72,6 +73,24 @@ function innermostStructure(place: string, paths: readonly string[]): Structure 
     if (best === null || s.getExtent().length > best.getExtent().length) best = s;
   }
   return best;
+}
+
+/**
+ * ⭐ The structure a place belongs to BY ITS WARREN (harbors P3) — a room of
+ * a ship kind is keyed `(row, <serial>/<leaf>)`, and its row is every
+ * smack's, so no extent prefix can say which ship it is: its warren says.
+ * `pathOrHandle` is the asker's durable handle (`row#key`) or row path.
+ * `undefined` means *not answered here* (go on to the attachments); `null`
+ * means a handle no live room answers — a handle is never a row, so the
+ * extent attachments have nothing to say about it either.
+ */
+function warrenStructureOf(pathOrHandle: string): Structure | null | undefined {
+  const room = StuffApi.findByDurableHandle<Stuff>(pathOrHandle);
+  if (room !== null && MixinApi.isWarrenMember(room)) {
+    const s = room.getWarren()?.structureOf() ?? null;
+    if (s !== null && !s.isDestroyed() && isStructure(s)) return s;
+  }
+  return pathOrHandle.includes('#') ? null : undefined;
 }
 
 function registry(): LocationGraphRegistry | null {
@@ -304,6 +323,8 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAt}. */
   @CallSecurity(NavigationApiCallers)
   public async structureAt(path: string): Promise<Structure | null> {
+    const own = warrenStructureOf(path);
+    if (own !== undefined) return own;
     const paths = (await registry()?.attachedTo(path, 'structure')) ?? [];
     await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
     return innermostStructure(path, paths);
@@ -312,6 +333,8 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAtNow}. */
   @CallSecurity(NavigationApiCallers)
   public structureAtNow(path: string): Structure | null {
+    const own = warrenStructureOf(path);
+    if (own !== undefined) return own;
     return innermostStructure(path, registry()?.attachedNow(path, 'structure') ?? []);
   }
 

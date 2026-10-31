@@ -38,6 +38,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -647,13 +648,13 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
     this.save();
   }
 
-  /** The ship a handle names, loaded (a row path today; a kind's handle when ships are minted). */
+  /**
+   * The ship a handle names, standing (harbors B1): an authored ship's row,
+   * or a kind's `<row>#<serial>` stood up from her sleep by the spine.
+   */
   private async shipOf(handle: string): Promise<Ship | null> {
-    // A handle no row backs (a minted ship's, until B1) has no singleton: nothing to load.
-    const s = await StuffApi.singleton<Stuff>(handle).catch((err: unknown) => {
-      console.warn(`Harbor: the ship ${handle} in the book did not load:`, err);
-      return null;
-    });
+    const s = await ExpanseApi.standUpCraft(handle);
+    if (s === null) console.warn(`Harbor: the ship ${handle} in the book did not load`);
     return s !== null && isShip(s) ? s : null;
   }
 

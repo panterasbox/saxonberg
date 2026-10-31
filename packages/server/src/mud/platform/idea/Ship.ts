@@ -24,18 +24,19 @@
  * Structure).
  */
 
-import Structure from './Structure';
+import Structure from '../../lib/spatial/Structure';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
-import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
+import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { HullNow } from '../../lib/expanse/Voyaging';
 import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
@@ -43,6 +44,7 @@ import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
 import Bollard from '../thing/Bollard';
 import BerthExit from './BerthExit';
+import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import type { MooringLine } from '../../lib/spatial/MooringLine';
 import type { Exitable } from '../../lib/boundary/Exitable';
@@ -57,6 +59,11 @@ export interface ShipHull {
   draftM: number;
   beamM: number;
   lengthM: number;
+  /**
+   * ⭐ The depth of her hull, keel to deck, m (harbors P2) — what she can
+   * take aboard before she goes down. Absent for a ship nobody measured.
+   */
+  depthM?: number;
 }
 
 /** Water density, kg/m³ — what a laden hull displaces. */
@@ -152,6 +159,7 @@ export default class Ship extends PersistableMixin(
     gangwayLocked: { persistent: true, authorable: true },
     owed: { persistent: true },
     charter: { persistent: true },
+    warren: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
 
   /**
@@ -664,7 +672,7 @@ export default class Ship extends PersistableMixin(
     const there = ex.getExit(word);
     if (there) {
       // Hers already (a re-wire); anybody else's word is not taken from them.
-      if (there instanceof BerthExit && there.getShipPath() === this.getTemplatePath()) {
+      if (there instanceof BerthExit && there.getShipHandle() === this.getDurableHandle()) {
         this.berthExit = there;
         return;
       }
@@ -673,7 +681,7 @@ export default class Ship extends PersistableMixin(
     this.berthExit = await ex.installExit<BerthExit>(
       BERTH_EXIT_KIND,
       { direction: word, source: ex, destinationPath: entrance, oneWay: true },
-      (e) => e.configureBerth(this as unknown as Stuff),
+      (e) => e.configureBerth(this),
     );
   }
 
@@ -729,13 +737,31 @@ export default class Ship extends PersistableMixin(
   /** ⭐ Loaded from her record: she lies where she was made fast (P4). */
   override async onRestored(): Promise<void> {
     await super.onRestored();
+    await this.standKind();
     await this.armBerth();
   }
 
   /** ⭐ First stood up (no record yet): an authored mooring is made (P4). */
   override async seedBornWith(): Promise<void> {
     await super.seedBornWith();
+    await this.standKind();
     await this.armBerth();
+  }
+
+  /**
+   * ⭐ A ship of a kind stood up (minted, or woken from sleep): her rooms
+   * stand with her, and her frame keeps her among its craft — nothing
+   * authored attaches a kind's ship to a sea (P3).
+   */
+  private async standKind(): Promise<void> {
+    if (!this.isOfKind()) return;
+    this._sleeping = false;
+    await this.standWarren();
+    try {
+      (await this.liveFrame())?.adopt(this as never);
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()} was not adopted by her frame:`, err);
+    }
   }
 
   private async armBerth(): Promise<void> {
@@ -760,26 +786,129 @@ export default class Ship extends PersistableMixin(
     for (const line of this.fastLines) if (!line.isDestroyed()) void line.castOffMooring();
     this.fastLines = [];
     this.removeBerth();
+    // ⭐ Her warren goes with her: a kind's rooms come down whole; an
+    // authored ship's adopted rows are let go of, never destructed — they
+    // are rooms in their own right.
+    const w = this._warren;
+    this._warren = null;
+    if (w !== null && !w.isDestroyed()) {
+      if (!this.isOfKind()) w.releaseRooms();
+      StuffApi.destruct(w as unknown as Stuff);
+    }
     super.onDestruct();
   }
 
-  /** Runtime cache of the member room rows (the extent's descendants). */
-  private memberPaths: Promise<string[]> | null = null;
+  /* ───────────── her rooms: the warren, the handle, sleep (harbors P1–P3, B1) ───────────── */
 
-  /** The member rooms that are resident now. */
+  /**
+   * ⭐ The floorplan her rooms are minted from — a `ShipWarren` row
+   * (`/stuff/idea/ShipWarren/smack`), authored on a ship KIND. `null` for
+   * an authored ship (the Hesper), whose warren adopts her own rows.
+   */
+  protected warren: string | null = null;
+
+  public getWarrenRow(): string | null { return this.warren; }
+  public setWarren(v: string | null): void { this.warren = typeof v === 'string' && v !== '' ? v : null; }
+
+  /** Runtime: her warren standing, and its stand-up in flight. */
+  private _warren: ShipWarren | null = null;
+  private _warrenPending: Promise<ShipWarren | null> | null = null;
+  private _sleeping = false;
+
+  /** ⭐ A ship of a KIND — keyed `(kind row, serial)` — rather than an authored one-row ship. */
+  public isOfKind(): boolean {
+    return this.isPersistenceKeyExplicit();
+  }
+
+  /**
+   * ⭐ Her durable handle (P2, P3): `<kind row>#<serial>` for a ship of a
+   * kind; her own row for an authored ship (one row IS one ship — the
+   * singleton rung a building gets from its class, she gets here).
+   */
+  public override getDurableHandle(): string | null {
+    return super.getDurableHandle() ?? this.getTemplatePath();
+  }
+
+  /**
+   * ⭐ Her warren, standing (P1): keyed `(warren row, her key)` through the
+   * spine's resolve-first stand-up — her serial for a kind, her row for an
+   * authored ship — and woken (a kind's rooms minted; an authored ship's
+   * resident rooms adopted). `null`, loudly, when it will not stand.
+   */
+  public async standWarren(): Promise<ShipWarren | null> {
+    const live = this._warren;
+    if (live !== null && !live.isDestroyed()) return live;
+    if (this._warrenPending !== null) return this._warrenPending;
+    this._warrenPending = (async () => {
+      const row = this.warren ?? AUTHORED_SHIP_WARREN;
+      const key = this.isOfKind() ? this.getPersistenceKey() : this.getTemplatePath();
+      if (!key) return null;
+      try {
+        const w = await PersistableApi.standUpKeyed(row, key);
+        if (!(w instanceof ShipWarren)) {
+          throw new Error(`'${row}' is not a ShipWarren row`);
+        }
+        w.attachShip(this);
+        this._warren = w;
+        await w.wake();
+        return w;
+      } catch (err) {
+        console.warn(`Ship: ${this.getDurableHandle()} could not stand her warren '${row}' up:`, err);
+        return null;
+      }
+    })().finally(() => {
+      this._warrenPending = null;
+    });
+    return this._warrenPending;
+  }
+
+  /** The member rooms that are resident now — her warren's (P3). */
   private async liveMembers(): Promise<(Stuff & Container)[]> {
-    if (this.memberPaths === null) {
-      const ext = this.getExtent();
-      this.memberPaths = ext === ''
-        ? Promise.resolve([])
-        : Template.findDescendants(ext).then((ts) => ts.map((t) => t.path));
+    const w = await this.standWarren();
+    if (w === null) return [];
+    if (!this.isOfKind()) await w.adoptResident();
+    return w.liveRooms();
+  }
+
+  /**
+   * ⭐ Nobody interactive is aboard (her warren saw the last one go): a ship
+   * of a kind that is not under way sleeps whole. An authored ship stands
+   * while her zone does (the `Structure` rule) and never sleeps.
+   */
+  public async sleepIfEmpty(): Promise<void> {
+    if (!this.isOfKind() || this.getCourse() !== null || this._sleeping) return;
+    for (const room of await this.liveMembers()) {
+      for (const x of room.getContents()) if (MixinApi.isHasInteractive(x)) return;
     }
-    const out: (Stuff & Container)[] = [];
-    for (const p of await this.memberPaths) {
-      const s = StuffApi.findByTemplatePath<Stuff>(p);
-      if (s && s.isPlace() && MixinApi.isContainer(s)) out.push(s);
-    }
-    return out;
+    await this.sleep();
+  }
+
+  /**
+   * ⭐ Sleep whole (P1, D16's rule for a holding): every room's record, the
+   * warren's and her own are captured, then the warren comes down with her
+   * rooms and she with it. Made fast, she stays made fast — `moored` and
+   * `berth` are kept, her lines' ends ashore come in unannounced (an end is
+   * runtime, as across a restart) and her way aboard STAYS on the landing:
+   * taking it stands her up again (`BerthExit`).
+   */
+  public async sleep(): Promise<void> {
+    if (!this.isOfKind() || this._sleeping || this.isDestroyed()) return;
+    this._sleeping = true;
+    for (const line of this.fastLines) if (!line.isDestroyed()) await line.castOffMooring();
+    this.fastLines = [];
+    this.berthExit = null; // left standing on the landing, hers by handle
+    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    if (w !== null) await w.captureAll();
+    await PersistableApi.capture(this as unknown as Stuff);
+    this._warren = null;
+    if (w !== null) StuffApi.destruct(w as unknown as Stuff);
+    StuffApi.destruct(this as unknown as Stuff);
+  }
+
+  /** ⭐ Under way she stays resident (the voyage is hers to keep); otherwise as a structure. */
+  public override canEvict(context: EvictionContext): VetoResult {
+    if (this.getCourse() !== null) return { ok: false, reason: 'she is under way' };
+    return super.canEvict(context);
   }
 
   /** Everyone standing in a member room — told what the water does. */
@@ -793,6 +922,8 @@ export default class Ship extends PersistableMixin(
 
   /** The entrance — the deck the watch is kept on. */
   override async watchRoom(): Promise<(Stuff & Container) | null> {
+    // ⭐ A ship of a kind: her deck is her warren's entry room, keyed (P2).
+    if (this.isOfKind()) return (await this.standWarren())?.entryRoom() ?? null;
     const entrance = this.getEntrance();
     if (!entrance) return null;
     try {

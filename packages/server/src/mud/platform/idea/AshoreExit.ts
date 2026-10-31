@@ -9,7 +9,9 @@
  * only at a node; between nodes you move only between craft.
  *
  * The craft is the Structure whose entrance this room is, looked up
- * (once, then cached) when the async gate is asked.
+ * (once, then cached) when the async gate is asked — by the room's
+ * durable handle (harbors P3), so a keyed deck of a ship KIND is answered
+ * by its warren, never by a row every ship of the kind shares.
  *
  * ⭐ A ship made fast at a landing (harbors P4) is ashore THERE: the berth
  * she records is read first, and the shipped reads (the landing within a
@@ -36,6 +38,7 @@ import { MixinApi } from '../../api/mixin';
 const ALONGSIDE_M = 60;
 
 export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
+  /** The craft's durable handle (her row for an authored ship). */
   private craftPath: string | null = null;
   /** The lookup ran (a deck with no craft is answered once, not per traverse). */
   private warmed = false;
@@ -43,14 +46,16 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   private async warm(): Promise<void> {
     if (this.craftPath !== null || this.warmed) return;
     this.warmed = true;
-    const here = this.getSource().getTemplatePath();
+    const source = this.getSource();
+    const here = source.getDurableHandle() ?? source.getTemplatePath();
     if (!here) return;
     try {
-      // The ship this deck belongs to — attached to the deck in the
-      // location graph's record, from the ship's own `extent`.
+      // The ship this deck belongs to — her warren's answer for a keyed
+      // room; else attached to the deck in the location graph's record,
+      // from the ship's own `extent`.
       const craft = await NavigationApi.structureAt(here);
       if (craft === null) return;
-      this.craftPath = craft.getTemplatePath();
+      this.craftPath = craft.getDurableHandle() ?? craft.getTemplatePath();
       if (MixinApi.isVoyaging(craft)) {
         // Her frame, loaded: the sea's nodes (a landing's way ashore), or a river.
         const f = await craft.liveFrame();
@@ -64,8 +69,8 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   /** The ship, standing, when she has a gangway (a Ship). */
   private berthed(): Ship | null {
     if (this.craftPath === null) return null;
-    const craft = StuffApi.findByTemplatePath<Stuff>(this.craftPath);
-    return craft instanceof Ship && !craft.isDestroyed() ? craft : null;
+    const craft = StuffApi.findByDurableHandle<Stuff>(this.craftPath);
+    return craft instanceof Ship ? craft : null;
   }
 
   public override isLocked(): boolean {
@@ -92,7 +97,7 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   /** The landing behind the node the craft lies at now, or `null`. */
   private landing(): string | null {
     if (this.craftPath === null) return null;
-    const craft = StuffApi.findByTemplatePath<Stuff>(this.craftPath);
+    const craft = StuffApi.findByDurableHandle<Stuff>(this.craftPath);
     if (!craft || !MixinApi.isVoyaging(craft) || craft.getCourse() !== null) return null;
     // ⭐ Made fast at a landing: ashore is THERE (harbors P4).
     const berth = this.berthed()?.getBerth() ?? null;

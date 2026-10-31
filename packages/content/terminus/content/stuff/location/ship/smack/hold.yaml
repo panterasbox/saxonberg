@@ -1,0 +1,11 @@
+# A smack's fish hold (harbors B1) — forward of the cabin, under the hatch.
+class: /platform/location/Compartment
+data:
+  shortDescription: fish hold
+  keywords: [hold, fish hold, below]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A deep, narrow hold under the hatch, its boards scrubbed but still smelling of fish and salt, with pound boards to keep a catch from shifting.
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }

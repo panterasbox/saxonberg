@@ -6,7 +6,7 @@
 # revision 3) — `look sea`, `fish`, a bucket over the side; the lead and the sextant are how you
 # find out where you are; the rigging and the pump are what an unwatched
 # deck wears out; the dinghy is what goes over the side.
-class: /platform/location/Shore
+class: /platform/location/Compartment
 data:
   shortDescription: Hesper's deck
   keywords: [deck, hesper, ketch, ship]

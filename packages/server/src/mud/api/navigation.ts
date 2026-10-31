@@ -220,6 +220,11 @@ export class NavigationApi {
    * The Structure `path` is a member of — the innermost (longest extent)
    * when one stands inside another, a wing in a mansion — standing the
    * attached candidates up first; `null` when it is in none.
+   *
+   * ⭐ `path` may be a place's **durable handle** (`row#key`, harbors P3):
+   * a keyed room of a ship kind is answered by its warren
+   * (`Warren.structureOf`), since its row is every ship of that kind's.
+   * Pass `place.getDurableHandle() ?? place.getTemplatePath()`.
    */
   public static structureAt(path: string): Promise<Structure | null> {
     return logic().structureAt(path);

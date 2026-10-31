@@ -16,6 +16,7 @@
 
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Positioned } from '../lib/expanse/Positioned';
+import type { Voyaging } from '../lib/expanse/Voyaging';
 import type { Expanse } from '../lib/expanse/Expanse';
 import type { ClimateLean } from '../lib/weather/WeatherType';
 import { StuffApi } from './stuff';
@@ -47,6 +48,10 @@ export class ExpanseApi {
    * `null` ashore. `placePath` is the template path of the asker's ROOT
    * container: a launched boat answers itself; a room answers the
    * Structure whose extent covers it, if that Structure has a position.
+   *
+   * ⭐ `placePath` may be the root's **durable handle** (`row#key`,
+   * harbors P3) — a keyed room of a ship kind is answered by its warren.
+   * Callers pass `root.getDurableHandle() ?? root.getTemplatePath()`.
    */
   public static craftAt(placePath: string): Promise<(Stuff & Positioned) | null> {
     return logic().craftAt(placePath);
@@ -61,6 +66,17 @@ export class ExpanseApi {
    */
   public static leanAtSync(placePath: string): ClimateLean | null {
     return logic().leanAtSync(placePath);
+  }
+
+  /**
+   * ⭐ The craft a durable handle names, standing (harbors B1): the live one
+   * when she is, else stood up — `row#key` through the persistence spine's
+   * resolve-first `standUpKeyed` (a ship of a kind asleep at her berth), a
+   * bare row through `StuffApi.singleton` (an authored ship). `null` when
+   * the handle names no craft or she will not stand.
+   */
+  public static standUpCraft(handle: string): Promise<(Stuff & Positioned & Voyaging) | null> {
+    return logic().standUpCraft(handle);
   }
 
   /** The live expanse at `expansePath` (a row path), or `null`. */

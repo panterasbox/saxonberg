@@ -30,7 +30,7 @@ const craft = {
   // The sea's chart, by prototype: the reading narrows the craft's frame to it.
   liveFrame: async () => Object.assign(Object.create(Expanse.prototype), { contactsFrom: async () => contacts }),
 } as unknown as Stuff;
-const sailor = { getTemplatePath: () => '/test/sailor', getRootContainer: () => null } as unknown as Stuff;
+const sailor = { getTemplatePath: () => '/test/sailor', getDurableHandle: () => null, getRootContainer: () => null } as unknown as Stuff;
 
 function ctx() {
   return CommandApi.createCommandContext({

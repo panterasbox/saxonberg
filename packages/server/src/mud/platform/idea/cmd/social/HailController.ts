@@ -82,7 +82,7 @@ export default class HailController extends CommandController<HailModel> {
   /** The craft the giver is aboard — their root container's craft. */
   private async craftOf(giver: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    const craft = await ExpanseApi.craftAt(root.getDurableHandle() ?? root.getTemplatePath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 

@@ -28,7 +28,7 @@ import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import SeaPatchExit from '../idea/exits/SeaPatchExit';
 
@@ -64,7 +64,8 @@ export default class SeaPatch extends SeaPatchBase {
     const self = this as unknown as Stuff & Exitable;
     for (const exit of self.getExits().values()) {
       if (!(exit instanceof SeaPatchExit) || exit.getWay() !== 'deck') continue;
-      const ship = NavigationApi.structureAtNow(exit.getTarget());
+      // The way names her by her durable handle (harbors P3).
+      const ship = StuffApi.findByDurableHandle<Stuff>(exit.getTarget());
       if (ship && MixinApi.isVoyaging(ship) && ship.getCourse() === null) return ship;
     }
     return null;

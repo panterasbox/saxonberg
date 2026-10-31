@@ -1003,7 +1003,6 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
   'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
-  'warren',
 ];
 
 function checkPathFieldCoverage(

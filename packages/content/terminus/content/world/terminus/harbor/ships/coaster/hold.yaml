@@ -1,5 +1,5 @@
 # Corrigan's hold — below the deck, where her cargo rides (harbors A2).
-class: /platform/location/PersistentLocale
+class: /platform/location/Compartment
 data:
   shortDescription: hold
   keywords: [hold, below]

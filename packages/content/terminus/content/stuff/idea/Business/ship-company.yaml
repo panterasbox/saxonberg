@@ -1,0 +1,23 @@
+# A ship's company (harbors P2, B1) — the house whose roster mans a ship of
+# a kind. One `master` seat: whoever holds it commands her, takes her helm
+# and answers for her at a harbor office.
+#
+# ⚠ B1 names this seed row as every smack's house; the yard (B2) mints one
+# company per ship from it (`asIdentityPath …/ship-company/<serial>`, the
+# DrillingOutfit precedent) and the appointing authority becomes her
+# register's managing owner (`kind: register`). Until then the
+# prime-minister's office appoints, as for the line's regulars.
+class: /platform/idea/Business
+data:
+  name: "a ship's company"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: master
+      noun: master
+      label: in command of her
+      wageRate: 5
+      headcount: 1
+  startsShiftOnHire: true
+  banksAt: goodkin

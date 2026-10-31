@@ -430,7 +430,11 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * ⭐ The last three are the COLUMN's bands (underwater D5): the
  * `ColumnWarren` clones one per band under a deep water and stamps it a
  * cell below its surface, so a band row is a KIND of depth, never a
- * place an author positions.
+ * place an author positions. *
+ * ⭐ A ship KIND's rooms (harbors B1): her `ShipWarren` mints one of each
+ * per ship, keyed `(row, <serial>/<leaf>)`, and lays them out in her own
+ * frame from the floorplan (`FloorplanWarren.layOut`) — a smack's deck is
+ * every smack's deck row, never a place an author positions.
  */
 export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/face.yaml",
@@ -443,6 +447,9 @@ export const WARREN_PLACED = [
   "water/content/system/water/location/band/lit.yaml",
   "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
   "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
+  "terminus/content/stuff/location/ship/smack/deck.yaml",
+  "terminus/content/stuff/location/ship/smack/cabin.yaml",
+  "terminus/content/stuff/location/ship/smack/hold.yaml",
 ];
 
 /**

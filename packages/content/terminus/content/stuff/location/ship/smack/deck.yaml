@@ -1,0 +1,42 @@
+# A smack's deck (harbors B1) — her warren's entry room, minted keyed
+# `(this row, <serial>/deck)`. The tiller affords `course`/`anchor`/`hail`;
+# her two mooring lines are what she makes fast with (P6); the dinghy is
+# what goes over the side; the deck is a shore of whatever sea is under her
+# (stamped by her warren as she wakes — the row names the feature, the
+# ship names the sea).
+#
+# ⛔ No way below is authored here: her warren wires them from
+# the floorplan, keyed — a row-authored destination would name every
+# smack's cabin at once.
+class: /platform/location/Compartment
+data:
+  shortDescription: smack's deck
+  keywords: [deck, smack, ship]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/open-water
+  longDescription: |
+    A short deck between low bulwarks, the mast stepped forward with its gaff and sail lashed along the boom, a hatch battened over the fish hold and a companionway down into the cabin. A tiller swings over the transom.
+  props:
+    - /system/transport/thing/tiller
+    - /system/transport/thing/dinghy
+    # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
+    - { template: /stuff/thing/mooring-line, count: 2 }
+  exits:
+    # ⭐ Ashore is wherever she is made fast (P4), worked out when taken;
+    # the destination is only her home port. The way back aboard is hers.
+    ashore:
+      kind: /platform/idea/exits/ashore
+      destination: /world/terminus/harbor/town-quay
+      oneWay: true
+    side:
+      kind: /system/water/idea/exits/sea-side
+      destination: /system/water/location/sea/patch
+  details:
+    sea:
+      keywords: [sea, water]
+      description: |
+        Below the rail, the water.
+    gunwale:
+      keywords: [gunwale, rail, bulwark, bulwarks]
+      description: |
+        The low rail along her side, worn pale where the nets come in over it.

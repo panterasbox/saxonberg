@@ -6,7 +6,7 @@
 # walks her off the ground to a kedge; the lead tells the leadsman how much
 # water is under her; her boat is what takes a kedge out. Over the side is
 # the river wherever she is.
-class: /platform/location/Shore
+class: /platform/location/Compartment
 data:
   shortDescription: Ostrander's deck
   keywords: [deck, ostrander, steamer]

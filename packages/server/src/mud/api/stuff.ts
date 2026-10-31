@@ -1659,6 +1659,40 @@ export class StuffApi {
   }
 
   /**
+   * ⭐ The live instance a **durable handle** names
+   * ({@link Stuff.getDurableHandle}), or `null` when nothing standing
+   * answers it (harbors P3).
+   *
+   * - `row#key` — a keyed host: among the instances cloned from `row`,
+   *   the one whose own handle is exactly this string (two smacks share a
+   *   row and are told apart only by their keys);
+   * - anything else — a singleton row or a minted identity: the one
+   *   instance filed at that path. A row with several instances is not a
+   *   durable name for any of them, so it answers `null` rather than
+   *   throwing the way {@link findByTemplatePath} does.
+   *
+   * Never loads: standing a sleeping keyed host up is
+   * `PersistableApi.standUpKeyed(row, key)`.
+   */
+  public static findByDurableHandle<T extends Stuff = Stuff>(
+    handle: string
+  ): T | null {
+    if (!handle) return null;
+    const hash = handle.indexOf('#');
+    if (hash < 0) {
+      const bucket = this.#indexes.byTemplatePath.exact(handle);
+      return bucket.length === 1 && !bucket[0]!.isDestroyed()
+        ? (bucket[0] as T)
+        : null;
+    }
+    const row = handle.slice(0, hash);
+    for (const o of this.findAllByTemplatePath<T>(row)) {
+      if (!o.isDestroyed() && o.getDurableHandle() === handle) return o;
+    }
+    return null;
+  }
+
+  /**
    * Index re-key for `Stuff.setTemplatePath`. Removes the old
    * binding from `byTemplatePath` and inserts the new one. **Only**
    * called from `Stuff.setTemplatePath` (which carries the

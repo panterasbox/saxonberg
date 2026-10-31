@@ -24,7 +24,7 @@ const craft = {
   getExpansePosition: () => new GeoPosition(50.2134, -4.5),
   takeLatitude,
 } as unknown as Stuff;
-const sailor = { getTemplatePath: () => '/test/sailor', getRootContainer: () => null } as unknown as Stuff;
+const sailor = { getTemplatePath: () => '/test/sailor', getDurableHandle: () => null, getRootContainer: () => null } as unknown as Stuff;
 const deck = { stuffId: 'deck' } as unknown as Stuff;
 
 function ctx() {

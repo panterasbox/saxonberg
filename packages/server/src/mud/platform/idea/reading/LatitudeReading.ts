@@ -103,7 +103,7 @@ export default class LatitudeReading extends Reading {
 
   private async craftOf(who: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(who) ? who.getRootContainer() ?? who : who;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    const craft = await ExpanseApi.craftAt(root.getDurableHandle() ?? root.getTemplatePath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 }

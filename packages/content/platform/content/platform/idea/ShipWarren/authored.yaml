@@ -1,0 +1,9 @@
+# The warren an AUTHORED ship stands (harbors P1, B1): one row IS one ship
+# (the Hesper, the Ostrander, the line's regulars), her rooms rows of their
+# own under her `extent`. Its floorplan is EMPTY — it mints nothing, and
+# adopts whichever of her rooms stand instead, so `which ship is this
+# room?` and `who is aboard?` are her warren's answers for every ship,
+# authored or of a kind. Keyed by the ship's own row.
+class: /platform/idea/ShipWarren
+data:
+  floorplan: []

@@ -314,13 +314,25 @@ export abstract class FloorplanWarren extends FloorplanBase {
     // generic `/stuff/location/room/*` row resolves no zone of its own
     // (B54). Its identity stays the row — the record's scope.
     const room = await StuffApi.clone<MemberStuff>(spec.room, undefined, {
-      zoneFrom: key,
+      zoneFrom: this.zoneFromFor(spec, key),
     });
     this.addMember(room);
     await PersistableApi.restoreOrSeed(room, key);
     this._roomsByKey.set(key, room);
     this.onRoomWoken(room, spec);
     return room;
+  }
+
+  /**
+   * The path a woken room's ZONE is resolved from. A holding's key is a
+   * path under its lot (`…/lots/lot-7`), so the key itself names the zone
+   * its rooms stand in. A warren whose key is not a path (a ship's serial)
+   * says where its rooms stand instead.
+   *
+   * @hook Default: the room's full key.
+   */
+  protected zoneFromFor(_spec: FloorplanRoom, key: string): string {
+    return key;
   }
 
   /**

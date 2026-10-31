@@ -1,0 +1,9 @@
+# The smack's zone (harbors B1) — every smack's rooms stand in it, resolved
+# under their rows (`ShipWarren.zoneFromFor`); each ship's warren lays her
+# rooms out in her own frame, so two smacks never share a cell's meaning.
+# ⭐ A ship's rooms are never the quay's zone: her way aboard crosses into
+# somewhere else.
+class: /platform/idea/location/CartesianZone
+data:
+  name: a smack
+  cellSize: 3.0

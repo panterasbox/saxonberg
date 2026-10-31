@@ -1232,7 +1232,7 @@ function craftAboard(viewer: Stuff): Craft | null {
   const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
   if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
   const room = roomOf(viewer);
-  const path = room?.getTemplatePath() ?? '';
+  const path = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
   const s = path ? NavigationApi.structureAtNow(path) : null;
   return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as unknown as Craft) : null;
 }

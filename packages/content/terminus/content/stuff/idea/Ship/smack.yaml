@@ -1,0 +1,28 @@
+# The smack — ⭐ a ship KIND (harbors P2, B1): one row every smack is cloned
+# from, each keyed `(this row, <serial>)` and known by her durable handle
+# `/stuff/idea/Ship/smack#<serial>`. Her rooms are minted from her
+# floorplan (`warren:`), not authored under an `extent`, so a kind names no
+# extent and attaches to no sea: whoever owns one stands her up.
+#
+# A small gaff-rigged fishing boat of nine meters, decked, one mast, a
+# cabin aft and a fish hold forward — the cheapest ship a person can own
+# (the yard sells her from B2).
+class: /platform/idea/Ship
+data:
+  name: the smack
+  shortDescription: smack
+  register: definite
+  keywords: [smack, ship, vessel]
+  longDescription: >-
+    A stout little gaff-rigged smack, tarred black to the waterline, one
+    mast stepped well forward and a tiller over her transom.
+  # Her deck row — the face of the way aboard her; the deck itself is her
+  # warren's keyed room.
+  entrance: /stuff/location/ship/smack/deck
+  warren: /stuff/idea/ShipWarren/smack
+  heightM: 10
+  deckHeightM: 2
+  mastheadHeightM: 9
+  speedKn: 5
+  hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8 }
+  house: /stuff/idea/Business/ship-company

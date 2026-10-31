@@ -88,7 +88,7 @@ export const brain = class {
   /** The structure whose deck she stands on, if any. */
   static async craftOf(host: Stuff): Promise<Ship | null> {
     const root = MixinApi.isContainable(host) ? host.getRootContainer() ?? host : host;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    const craft = await ExpanseApi.craftAt(root.getDurableHandle() ?? root.getTemplatePath() ?? '');
     return craft instanceof Ship ? craft : null;
   }
 

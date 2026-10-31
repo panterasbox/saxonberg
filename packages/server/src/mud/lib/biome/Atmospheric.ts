@@ -1382,7 +1382,7 @@ export function AtmosphericMixin<
      */
     public exposure(): Exposure {
       const self = this as unknown as Stuff;
-      const path = self.getTemplatePath();
+      const path = self.getDurableHandle() ?? self.getTemplatePath();
       let structure: Structure | null = null;
       if (path) {
         try {

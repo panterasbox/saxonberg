@@ -164,7 +164,8 @@ export default class CourseController extends CommandController<CourseModel> {
   /** The craft the giver is aboard — their root container's craft, at sea or on a river. */
   private async craftOf(giver: Stuff): Promise<Craft | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const path = root.getTemplatePath() ?? '';
+    // ⭐ By her durable handle (harbors P3): a keyed room of a ship kind is answered by its warren.
+    const path = root.getDurableHandle() ?? root.getTemplatePath() ?? '';
     const craft = await ExpanseApi.craftAt(path);
     if (craft && MixinApi.isVoyaging(craft)) return craft;
     const s = path ? await NavigationApi.structureAt(path) : null;

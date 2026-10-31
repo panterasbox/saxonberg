@@ -91,7 +91,7 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/content/water/src/idea/WatercourseCatalogue.ts", count: 2, reason: "the water system compiling its own keyed index of its courses (and the localities draining to them) — once, lazily, never booted" },
   { file: "packages/content/transport/src/idea/LaneCatalogue.ts", count: 2, reason: "the transport system compiling its own index of its lanes and service routes, under its own namespace — once, lazily" },
   { file: "packages/content/energy/src/idea/GridCatalogue.ts", count: 1, reason: "the energy system compiling its own feeder reachability, under its own namespace — once, lazily" },
-  { file: "packages/server/src/mud/platform/idea/Ship.ts", count: 1, reason: "a structure's own members — the rows under its own extent, which it owns" },
+  { file: "packages/server/src/mud/platform/idea/ShipWarren.ts", count: 1, reason: "an authored ship's warren adopting her own members — the rows under her own extent, which she owns (moved from Ship.ts with liveMembers, harbors B1)" },
   { file: "packages/server/src/mud/lib/expanse/Expanse.ts", count: 1, reason: "a sea compiling its own nodes and bands — the rows under its own extent, which it owns (Expanse.compile)" },
   // ── the wrong-way references the sweep flips ──
   { file: "packages/content/trade-smelting/src/idea/cmd/smelting/SmeltController.ts", count: 1, reason: "an attribute match with no reference (a material → the trade's own product row), inside the trade's own namespace — the requirements' lazy-index case" },

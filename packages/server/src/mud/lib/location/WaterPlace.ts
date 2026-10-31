@@ -842,7 +842,8 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       void this.reconcileOccupants();
       // ⭐ Over a ship's side (river D30): she keeps who went into the water
       // off her, and her `course` waits for them (`Voyaging.noteOverboard`).
-      const fromPath = via?.getSource()?.getTemplatePath() ?? '';
+      const from = via?.getSource() ?? null;
+      const fromPath = from?.getDurableHandle() ?? from?.getTemplatePath() ?? '';
       const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
       if (ship !== null && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
       const floor = this.waterFloor();

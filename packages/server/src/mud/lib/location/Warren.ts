@@ -128,6 +128,20 @@ export abstract class Warren extends Idea {
     return false;
   }
 
+  /**
+   * ⭐ The structure these rooms ARE, when the warren is one (harbors P3):
+   * a ship's rooms are her warren's members, and a keyed room of a ship
+   * KIND has no row of its own for an `extent` prefix to cover — so *which
+   * ship is this room?* is answered by the room's warren, never its path.
+   * `NavigationApi.structureAt` asks this before the extent attachments.
+   *
+   * @hook Default: none — a street's lanes or a lot's rooms are no
+   *   structure's members by being in a warren.
+   */
+  public structureOf(): Stuff | null {
+    return null;
+  }
+
   public addMember(m: MemberStuff): boolean {
     if (this._members.has(m)) return true;
     if (MixinApi.isWarrenMember(m)) {

@@ -20,6 +20,7 @@ function ship(name: string, pos: GeoPosition | null, underWay = false) {
   return {
     stuffId: name,
     getTemplatePath: () => `/ship/${name}`,
+    getDurableHandle: () => `/ship/${name}`,
     getEntrance: () => `/ship/${name}/deck`,
     getName: () => `the ${name}`,
     getCourse: () => (underWay ? { bearingDeg: 0 } : null),
@@ -67,7 +68,7 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-const deck = (name: string) => ({ getTemplatePath: () => `/ship/${name}/deck` }) as unknown as Stuff;
+const deck = (name: string) => ({ getTemplatePath: () => `/ship/${name}/deck`, getDurableHandle: () => null }) as unknown as Stuff;
 
 describe('SeaWarren (river D30)', () => {
   it('⭐ a boat goes into the water beside a ship that has stopped — on the chart where she lies', async () => {
@@ -77,7 +78,8 @@ describe('SeaWarren (river D30)', () => {
     expect(room).toBeInstanceOf(SeaPatch);
     expect(room.getExpanse()).toBe(SEA);
     expect(room.getExpansePosition()!.distanceNm(new GeoPosition(42, -8.47))).toBeLessThan(0.01);
-    expect(installed).toEqual([{ room, direction: 'hesper', target: '/ship/hesper/deck' }]);
+    // ⭐ The way up names HER, by her durable handle (harbors P3) — never her deck's row.
+    expect(installed).toEqual([{ room, direction: 'hesper', target: '/ship/hesper' }]);
   });
 
   it('⭐ under way she is alongside nothing', async () => {

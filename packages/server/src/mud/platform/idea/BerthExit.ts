@@ -11,6 +11,13 @@
  * - **Eager on its face** — its destination template is her entrance row,
  *   describable with nothing loaded; the deck is faulted in when the way is
  *   taken (`computeDestination`).
+ * - **Hers by HANDLE** (harbors P3, B1) — the way names her durable handle
+ *   (`<kind row>#<serial>` for a ship of a kind, her row for an authored
+ *   ship), never a row path a second smack would share.
+ * - **It outlives her sleep** (B1): a ship of a kind asleep at her berth
+ *   leaves this way on the landing, and taking it stands her up
+ *   (`ExpanseApi.standUpCraft` → the spine's resolve-first `standUpKeyed`)
+ *   and leads onto her deck.
  * - **The gangway's lock is HERS** (P9): the bolt and the keyway are the
  *   ship's two facts, read by this way and by her deck's `ashore` alike.
  *   This way refuses a locked gangway to anybody without a key; leaving
@@ -25,6 +32,7 @@ import type { TraversalGuard } from '../../lib/boundary/Exit';
 import { LockableMixin } from '../../lib/boundary/Lockable';
 import { Lock } from '../../lib/lock/Lock';
 import { StuffApi } from '../../api/stuff';
+import { ExpanseApi } from '../../api/expanse';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -32,37 +40,49 @@ import type { Containable } from '../../lib/spatial/Containable';
 /** What a berth asks of the ship it leads aboard (a Ship answers it). */
 export interface Berthed {
   getName(): string;
-  getEntrance(): string | null;
+  getDurableHandle(): string | null;
   getBerth(): string | null;
   isGangwayLocked(): boolean;
   setGangwayLocked(value: boolean): void;
   getGangwayKeyway(): string;
+  /** Her deck, standing — where the way aboard leads. */
+  watchRoom(): Promise<(Stuff & Container) | null>;
 }
 
 export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
-  /** The ship this way leads aboard — her row path (an identity ref). */
-  private shipPath = '';
+  /** The ship this way leads aboard — her durable handle (an identity ref). */
+  private shipHandle = '';
+  /** Her name as she made fast — what the landing reads while she sleeps. */
+  private shipName = '';
 
   /** Set once, by the ship that installs it. */
-  public configureBerth(ship: Stuff): void {
-    this.shipPath = ship.getTemplatePath() ?? '';
+  public configureBerth(ship: Stuff & Berthed): void {
+    this.shipHandle = ship.getDurableHandle() ?? ship.getTemplatePath() ?? '';
+    this.shipName = ship.getName();
   }
 
-  /** The ship's row path. */
-  public getShipPath(): string {
-    return this.shipPath;
+  /** The ship's durable handle. */
+  public getShipHandle(): string {
+    return this.shipHandle;
   }
 
-  /** The ship, if she is standing. */
+  /** The ship, if she is standing (never stands her up). */
   public ship(): (Stuff & Berthed) | null {
-    if (!this.shipPath) return null;
-    const s = StuffApi.findByTemplatePath<Stuff & Berthed>(this.shipPath);
-    return s && !s.isDestroyed() ? s : null;
+    if (!this.shipHandle) return null;
+    return StuffApi.findByDurableHandle<Stuff & Berthed>(this.shipHandle);
   }
 
-  /** Her name, as the landing's `look` reads it. */
+  /** The ship, stood up if she sleeps. */
+  private async standing(): Promise<(Stuff & Berthed) | null> {
+    const live = this.ship();
+    if (live !== null) return live;
+    if (!this.shipHandle) return null;
+    return (await ExpanseApi.standUpCraft(this.shipHandle)) as unknown as (Stuff & Berthed) | null;
+  }
+
+  /** Her name, as the landing's `look` reads it — asleep or awake. */
   public alongsideName(): string {
-    return this.ship()?.getName() ?? '';
+    return this.ship()?.getName() ?? this.shipName;
   }
 
   /* ─────────────── the gangway: the ship's lock ─────────────── */
@@ -90,7 +110,7 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
   }
 
   public override async canTraverse(mover: Stuff & Containable, mode?: string): Promise<TraversalGuard> {
-    const ship = this.ship();
+    const ship = await this.standing();
     const here = this.getSource().getTemplatePath();
     if (ship === null || ship.getBerth() !== here) {
       return { ok: false, gate: 'blocked', reason: 'She is not alongside.' };
@@ -105,15 +125,16 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
     return super.canTraverse(mover, mode);
   }
 
-  /** Her deck, whenever the way is taken (she may have been reaped and stood up again). */
+  /** Her deck, whenever the way is taken (she may have slept and been stood up again). */
   public override async resolveDestination(): Promise<Stuff & Container> {
     return this.computeDestination();
   }
 
   protected override async computeDestination(): Promise<Stuff & Container> {
-    const ship = this.ship() ?? (await StuffApi.singleton<Stuff & Berthed>(this.shipPath));
-    const entrance = ship.getEntrance();
-    if (!entrance) throw new Error(`BerthExit: '${this.shipPath}' has no entrance`);
-    return StuffApi.singleton<Stuff & Container>(entrance);
+    const ship = await this.standing();
+    if (ship === null) throw new Error(`BerthExit: '${this.shipHandle}' does not stand`);
+    const deck = await ship.watchRoom();
+    if (deck === null) throw new Error(`BerthExit: '${this.shipHandle}' has no deck`);
+    return deck;
   }
 }

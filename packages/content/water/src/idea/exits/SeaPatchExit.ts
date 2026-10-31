@@ -35,7 +35,7 @@ export default class SeaPatchExit extends DeferredDestinationExit {
   /** Which way. */
   public way: SeaWay = 'side';
 
-  /** For `deck`: the deck's row path. */
+  /** For `deck`: the ship's durable handle (harbors P3) — her deck is hers to say. */
   public target = '';
 
   public configureSea(way: SeaWay, target = ''): void {

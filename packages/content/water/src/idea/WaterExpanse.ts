@@ -235,9 +235,10 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   /** A deck's craft position on THIS sea, else the place's nearest landing. */
   private positionFor(place: Stuff): GeoPosition | null {
     const path = place.getTemplatePath() ?? '';
-    const craftPath = this.craftOfPlace.get(path);
+    // ⭐ Keyed by the place's durable handle (harbors P3): two smacks' decks share a row.
+    const craftPath = this.craftOfPlace.get(place.getDurableHandle() ?? path);
     if (craftPath) {
-      const craft = StuffApi.findByTemplatePath<Stuff>(craftPath);
+      const craft = StuffApi.findByDurableHandle<Stuff>(craftPath);
       if (craft && MixinApi.isPositioned(craft) && craft.getExpanse() === this.getTemplatePath()) {
         return craft.getExpansePosition() ?? null;
       }
@@ -246,13 +247,13 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   }
 
   private async resolveCraftOf(place: Stuff): Promise<void> {
-    const path = place.getTemplatePath() ?? '';
+    const path = place.getDurableHandle() ?? place.getTemplatePath() ?? '';
     if (!path || this.craftOfPlace.has(path)) return;
     try {
       // The craft this place belongs to — attached to it in the location
       // graph's record (never a catalogue of every structure).
       const craft = await NavigationApi.structureAt(path);
-      this.craftOfPlace.set(path, craft?.getTemplatePath() ?? '');
+      this.craftOfPlace.set(path, craft?.getDurableHandle() ?? craft?.getTemplatePath() ?? '');
     } catch {
       /* asked again on the next read */
     }

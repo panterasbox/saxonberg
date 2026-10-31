@@ -1,0 +1,28 @@
+# The smack's floorplan (harbors P2, B1) — the rooms every smack is minted
+# with, keyed `(room row, <serial>/<leaf>)` by her warren. A deck, a cabin
+# under it, and the fish hold through the bulkhead forward of the cabin (a
+# floorplan's ways are cardinal — they lay her rooms out in her own frame —
+# so her fore and aft are the plan's north and south).
+#
+# ⭐ `floorM` is how high each room's floor stands above her keel (grain):
+# when water comes into her (B5) it fills her from the bottom up, and a
+# room is awash when the water is over its floor. The deck stands at the
+# top of her hull (the kind's `hull.depthM`).
+class: /platform/idea/ShipWarren
+data:
+  upkeepTerm: owner-all
+  floorplan:
+    - leaf: deck
+      room: /stuff/location/ship/smack/deck
+      entry: true
+      floorM: 1.8
+      exits:
+        - { to: cabin, direction: down, opposite: up }
+    - leaf: cabin
+      room: /stuff/location/ship/smack/cabin
+      floorM: 0.3
+      exits:
+        - { to: hold, direction: north, opposite: south }
+    - leaf: hold
+      room: /stuff/location/ship/smack/hold
+      floorM: 0.3

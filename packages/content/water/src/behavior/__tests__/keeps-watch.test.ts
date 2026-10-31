@@ -49,7 +49,7 @@ beforeEach(() => {
     getEngagementByType: () => watch,
     getEmployment: (p: string) => (p === HOUSE ? job : null),
     executeCommand: async (c: string) => { commands.push(c); },
-    getRootContainer: () => ({ getTemplatePath: () => '/t/ship/deck' }),
+    getRootContainer: () => ({ getTemplatePath: () => '/t/ship/deck', getDurableHandle: () => null }),
   } as unknown as Stuff;
   vi.spyOn(MixinApi, 'isEngaged').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isEmployed').mockReturnValue(true);

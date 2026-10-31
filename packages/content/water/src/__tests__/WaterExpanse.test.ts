@@ -138,11 +138,11 @@ describe('sea state is derived', () => {
 });
 
 describe('the sea as a water a deck cites, and the sea fishery', () => {
-  const deck = { getTemplatePath: () => '/test/ship/deck' } as unknown as Stuff;
+  const deck = { getTemplatePath: () => '/test/ship/deck', getDurableHandle: () => null } as unknown as Stuff;
   function onCraft(at: GeoPosition): void {
     const craft = { getExpansePosition: () => at, getExpanse: () => SEA } as unknown as Stuff;
     (sea as unknown as { craftOfPlace: Map<string, string> }).craftOfPlace.set('/test/ship/deck', '/test/ship/structure');
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(craft as never);
+    vi.spyOn(StuffApi, 'findByDurableHandle').mockReturnValue(craft as never);
     vi.spyOn(MixinApi, 'isPositioned').mockReturnValue(true);
   }
 
@@ -165,7 +165,7 @@ describe('the sea as a water a deck cites, and the sea fishery', () => {
   });
 
   it('a place on no craft and no landing is not yet knowable — pending, never a wrong cell', async () => {
-    const strand = { getTemplatePath: () => '/elsewhere/strand' } as unknown as Stuff;
+    const strand = { getTemplatePath: () => '/elsewhere/strand', getDurableHandle: () => null } as unknown as Stuff;
     expect(sea.currentWaterRef(SEA, strand)).toBeNull();
     const read = await sea.readWater(SEA, strand, 0);
     expect(read?.pending).toBe(true);

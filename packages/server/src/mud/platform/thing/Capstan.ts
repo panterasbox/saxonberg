@@ -29,7 +29,7 @@ export default class Capstan extends PullableMixin(Fitting) {
   public override async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     void sense;
     const room = MixinApi.isContainable(this) ? this.getContainer() : null;
-    const path = room?.getTemplatePath() ?? '';
+    const path = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
     const ship = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
     if (!(ship instanceof Ship) || ship.getLine() === null) {
       return { ok: false, reason: 'no-ship', line: 'The capstan turns freely; there is nothing on it.' };

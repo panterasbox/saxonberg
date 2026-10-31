@@ -39,7 +39,8 @@ import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import type { Voyaging } from '@saxonberg/server/mud/lib/expanse/Voyaging';
 import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
-import type Structure from '@saxonberg/server/mud/platform/idea/Structure';
+import Structure from '@saxonberg/server/mud/lib/spatial/Structure';
+import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import type SeaPatch from '../location/SeaPatch';
 import type SeaZone from '../location/SeaZone';
 import SeaPatchExit from './exits/SeaPatchExit';
@@ -121,7 +122,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     for (const exit of (patch as unknown as Exitable).getExits().values()) {
       if (!(exit instanceof SeaPatchExit) || exit.getWay() !== 'deck') continue;
       if ((await this.refusalFor(exit)) !== null) continue;
-      return StuffApi.singleton<Stuff & Container>(exit.getTarget()).catch(() => null);
+      return (await this.shipByHandle(exit.getTarget()))?.watchRoom() ?? null;
     }
     return null;
   }
@@ -135,12 +136,13 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
       if (ship === null || !this.stopped(ship)) throw new Error('She is under way; there is no water beside her to go into.');
       return (await this.patchAlongside(ship)) as unknown as Stuff & Container;
     }
-    const deck = exit.getTarget();
-    const ship = await this.shipOf(await StuffApi.singleton<Stuff>(deck));
+    const ship = await this.shipByHandle(exit.getTarget());
     if (ship === null || !this.stopped(ship) || !this.within(ship, exit.getSource() as unknown as SeaPatch)) {
       throw new Error('She has sailed.');
     }
-    return StuffApi.singleton<Stuff & Container>(deck);
+    const deck = await ship.watchRoom();
+    if (deck === null) throw new Error('She has sailed.');
+    return deck;
   }
 
   /** ⭐ Whether a sea way may be taken now, in words; `null` when it may. */
@@ -151,8 +153,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
       if (!this.stopped(ship)) return 'She is under way. Over the side now, and she would be gone before you came up.';
       return null;
     }
-    const deck = await StuffApi.singleton<Stuff>(exit.getTarget()).catch(() => null);
-    const ship = deck ? await this.shipOf(deck) : null;
+    const ship = await this.shipByHandle(exit.getTarget());
     if (ship === null || !this.stopped(ship) || !this.within(ship, exit.getSource() as unknown as SeaPatch)) {
       return 'She has sailed; there is only the sea where she was.';
     }
@@ -193,14 +194,17 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   /** A way up onto her deck, named for her, if the patch has none yet. */
   private async wireDeck(patch: SeaPatch, ship: ShipShape): Promise<void> {
     const deck = ship.getEntrance();
-    if (!deck || !MixinApi.isExitable(patch)) return;
+    // ⭐ The way names HER (harbors P3) — her durable handle, never her deck's
+    // row, which every ship of a kind shares; the row is only its face.
+    const handle = ship.getDurableHandle() ?? ship.getTemplatePath() ?? '';
+    if (!deck || !handle || !MixinApi.isExitable(patch)) return;
     const name = ship.getName().replace(/^the\s+/i, '').trim().toLowerCase() || 'ship';
     const ex = patch as unknown as Stuff & Container & Exitable;
     if (ex.getExit(name)) return;
     await ex.installExit<SeaPatchExit>(
       EXIT_KIND,
       { direction: name, source: ex, destinationPath: deck, media: ['water', 'vertical'] },
-      (e) => e.configureSea('deck', deck),
+      (e) => e.configureSea('deck', handle),
     );
   }
 
@@ -220,12 +224,18 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
 
   /* ───────────────────────── reads ───────────────────────── */
 
-  /** The ship a deck (or any of her places) belongs to, by shape. */
+  /** The ship a deck (or any of her places) belongs to — her warren's answer for a keyed room (harbors P3). */
   private async shipOf(place: Stuff): Promise<ShipShape | null> {
-    const path = place.getTemplatePath();
+    const path = place.getDurableHandle() ?? place.getTemplatePath();
     const s = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
     if (!s || !MixinApi.isVoyaging(s) || !MixinApi.isPositioned(s)) return null;
     return s;
+  }
+
+  /** The ship a way up names by her handle, standing (stood up if she sleeps). */
+  private async shipByHandle(handle: string): Promise<ShipShape | null> {
+    const s = handle ? await ExpanseApi.standUpCraft(handle) : null;
+    return s !== null && s instanceof Structure ? (s as unknown as ShipShape) : null;
   }
 
   /** Stopped at sea: on the chart, no course set. */

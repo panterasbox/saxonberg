@@ -1,0 +1,13 @@
+# A smack's cabin (harbors B1) — under her deck: two bunks and a stove, and a
+# door through the bulkhead forward into the fish hold.
+class: /platform/location/Compartment
+data:
+  shortDescription: cabin
+  keywords: [cabin, below]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A low cabin under the deck beams, two bunks built against her sides, a small iron stove with its pipe going up through the deck, and a shelf with a fiddle rail to keep its cups from walking. A low door in the bulkhead forward opens into the fish hold.
+  # Her planking for walls and her deck overhead (construction.md).
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }

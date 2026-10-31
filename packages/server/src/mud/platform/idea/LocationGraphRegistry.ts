@@ -474,7 +474,7 @@ export default class LocationGraphRegistry extends Idea {
     let verdict = false;
     try {
       // Lazily: a static import of `Structure` here closes a module cycle.
-      const { default: Structure } = await import('./Structure');
+      const { default: Structure } = await import('../../lib/spatial/Structure');
       const cls = (await StuffApi.loadClassByPath(classPath)) as { prototype?: unknown };
       verdict =
         typeof cls === 'function' &&

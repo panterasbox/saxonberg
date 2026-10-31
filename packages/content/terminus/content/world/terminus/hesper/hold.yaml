@@ -1,7 +1,7 @@
-# The Hesper's hold — below the deck. ⚠ Not persistable: anything left in
-# it does not survive a restart (the vessel build's question, not this
-# one's).
-class: /platform/location/PersistentLocale
+# The Hesper's hold — below the deck. A `Compartment` like every ship's
+# room (harbors B1): it keeps its own record, so what is left in it is
+# still there after a restart, and it is a member of her warren.
+class: /platform/location/Compartment
 data:
   shortDescription: hold
   keywords: [hold, below]

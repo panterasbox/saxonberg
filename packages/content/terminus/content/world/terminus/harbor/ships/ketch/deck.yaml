@@ -1,7 +1,7 @@
 # Kittiwake's deck — the entrance (harbors A2). The helm affords
 # `course`/`anchor`/`hail`; her two mooring lines are what she makes fast
 # with alongside a quay (P6); the deck is a shore of the sea under her.
-class: /platform/location/Shore
+class: /platform/location/Compartment
 data:
   shortDescription: Kittiwake's deck
   keywords: [deck, kittiwake, ship]

@@ -96,7 +96,7 @@ export default class DepthReading extends Reading {
   /** The river under `who` — their water room's, or the ship they are aboard. */
   private async riverUnder(who: Stuff): Promise<{ depthM: number; flow: string } | null> {
     const room = MixinApi.isContainable(who) ? who.getContainer() : null;
-    const roomPath = room?.getTemplatePath() ?? '';
+    const roomPath = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
     let pos: LinePosition | null = room !== null && MixinApi.isPositioned(room) ? room.getLinePosition() : null;
     if (pos === null && roomPath) {
       const ship = await NavigationApi.structureAt(roomPath).catch(() => null);

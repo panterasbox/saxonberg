@@ -29,7 +29,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Place from '../../../../lib/stuff/Place';
-import Structure from '../../Structure';
+import Structure from '../../../../lib/spatial/Structure';
 import InventoryController from '../inventory/InventoryController';
 
 interface QueryModel extends CommandModel {

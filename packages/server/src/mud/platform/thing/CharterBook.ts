@@ -100,7 +100,7 @@ export default class CharterBook extends Good {
   /** The ship whose room the book lies in, or `null`. */
   private async shipAboard(): Promise<Ship | null> {
     const room = MixinApi.isContainable(this) ? this.getContainer() : null;
-    const path = room?.getTemplatePath() ?? '';
+    const path = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
     if (path === '') return null;
     const s = await NavigationApi.structureAt(path);
     return s instanceof Ship ? s : null;

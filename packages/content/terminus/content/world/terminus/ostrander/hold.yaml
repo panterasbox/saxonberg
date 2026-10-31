@@ -1,6 +1,6 @@
 # The Ostrander's hold — cargo. What is down here is what she draws: put it
 # ashore and she comes up (river D28, lightening).
-class: /platform/location/Locale
+class: /platform/location/Compartment
 data:
   shortDescription: hold
   keywords: [hold, below]
