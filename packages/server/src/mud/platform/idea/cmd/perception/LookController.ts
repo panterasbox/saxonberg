@@ -213,11 +213,6 @@ export default class LookController extends CommandController<LookModel> {
       .filter((item) => {
         if (item.stuffId === actor.stuffId) return false;
         if (MixinApi.isAdornment(item)) return false;
-        // ⭐ An area crop is part of the GROUND, not loose contents (field
-        // population D17): the field's own description reads the stand,
-        // and listing it again — once per patch — would be noise. A
-        // labeled individual (no sown area) is a plant and IS listed.
-        if (MixinApi.isGrowing(item) && item.isAreaCrop()) return false;
         if (!MixinApi.isVisible(item)) return false;
         // Honest fog: a concealed thing the actor hasn't discovered /
         // can't yet perceive is absent from the actor's world.

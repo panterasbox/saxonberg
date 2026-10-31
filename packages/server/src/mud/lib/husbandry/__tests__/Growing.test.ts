@@ -523,6 +523,21 @@ describe('GrowingMixin — field population seams', () => {
     expect(plant.getBed()).toBe(ground);
   });
 
+  it('⭐ D17: a field\'s loose contents leave out the stand and keep a labeled plant', () => {
+    // The one shared rule look, the sense verbs and the inspection card
+    // read (the browser walk: the entry look and the card listed "a stand
+    // of wheat" three times over — only `look` had the rule).
+    const ground = makeStuff(() => new PartedGround());
+    const stand = fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 });
+    stand.setSownAreaM2(500);
+    const plant = fixture();
+    ContainmentApi.move(stand, ground);
+    ContainmentApi.move(plant, ground);
+    const loose = ground.getLooseContents();
+    expect(loose).toContain(plant);
+    expect(loose).not.toContain(stand);
+  });
+
   it('⚠ a plant moved while its warmth resolves takes the warmth of where it ENDS UP', async () => {
     // A labeled stem is minted somewhere warm and moved straight into the
     // field; the walk begun at the mint must not answer for the field
