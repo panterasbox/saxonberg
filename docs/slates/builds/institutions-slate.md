@@ -346,7 +346,7 @@ because it is inside theirs.
 ## Intake: measured by the platform, decided by the parent
 
 **The floor is mechanical** (Schedule rows, applies to everyone): active
-— seen within the window; standing — producer standing above a minimum,
+— seen within the window; standing — labor standing above a minimum,
 the Compact's own measure of *has done work here*; clean — no unresolved
 breach, no revoked charter, nothing on the docket.
 
@@ -395,7 +395,7 @@ dependency line.
 
 | right | who holds it | when the author leaves | when they return | tier |
 |---|---|---|---|---|
-| **authorship** (attribution) | the author, forever | untouched | untouched; producer standing earned from it is kept | **kernel** — the producer chamber runs on attribution, not property |
+| **authorship** (attribution) | the author, forever | untouched | untouched; labor standing earned from it is kept | **kernel** — the labor chamber runs on attribution, not property |
 | **license** (reuse outside this instance) | the author's choice at publish — CC by default, or their own; code source-visible always | untouched | untouched | module (the license regime) |
 | ⭐ **continuity** (the instance may keep running it, and maintain it for continuity) | the instance, irrevocably, granted *at publish* | this is what lets the city stay open | — | module — the covenant's core term |
 | **title** (who edits the live copy) | the author's committee | reverts up on dormancy, after notice | reclaimable during the window; after re-grant, not | floor = due process (chosen eternity); terms = module |

@@ -6,8 +6,8 @@
 > [livestream.md](../../subsystems/livestream.md),
 > [streaming.md](../../subsystems/streaming.md). Rodney's half is built
 > against mock data on `build/rodney` (2026-10-31): the standby on the
-> brand guide, the Live scene's sidebar and lower third, show profiles,
-> the nameplate, the OBS setup doc; requirements at
+> brand guide, the Live scene's sidebar and lower third with every card
+> below, show profiles, the nameplate, the OBS setup doc; requirements at
 > [broadcast-ready-requirements](../../requirements/broadcast-ready-requirements.md)
 > **Left:** the stream's phases (offline · starting · live · standby ·
 > ending) and standby *reasons* as rows · stream state that survives a
@@ -16,10 +16,10 @@
 > can see · ⭐ the canvas (revised 2026-10-22: display capture in a 16:9
 > content area, the sidebar — brand, topic and agenda, chat, the camera
 > in the corner — and the lower third's rotation and crawl) · the agenda ·
-> the lower third's cards (revised 2026-10-31: the Saxonberg card, money, community, wiki
-> article of the day, term of the moment; welcomes in the ticker; names shown freely) · three
-> brands, three jobs (show profiles, the nameplate) · the build's date on the feed · new
-> players on the feed · the streamer controls as a pop-out card on the unshared monitor ·
+> the lower third's cards (revised 2026-10-31: the screen guide, what can you do here, the
+> Saxonberg card, money, community, the Compact, about, the code, wiki article of the day;
+> welcomes in the ticker; names shown freely) · three brands, three jobs (show profiles, the
+> nameplate) · the build's date, new players and the streamer's last verb on the feed · the streamer controls as a pop-out card on the unshared monitor ·
 > redaction while on air · the client's foreground reported · the
 > streamer's client facts on the feed ·
 > the overlay's scenes, layers and scene rules · OBS scene switching ·
@@ -252,14 +252,53 @@ and a card whose source is empty never takes a turn.
 
 | card | about | source | waits on |
 |---|---|---|---|
+| **What you're looking at** | ⭐ that this is a GAME, and its screen | the client's facts | the verb on the feed |
+| **What can you do here?** | one true thing about a trade, per turn | the docs that say it ships | — (the verb steers it) |
 | **Saxonberg** | the game | static + the game | the build date; the domain |
 | **Money** | dollars in vs the month's budget | giving's ledger + the books | [giving](./giving-slate.md), [budget](./budget-slate.md) |
 | **Community** | people joining | giving's events + new players | giving; the new-player event |
+| **The Compact** | who governs it — the three chambers | static | — |
+| **About** | who Bobalu Smallberries is | static | — |
+| **The code** | where it is, the stack, how big | GitLab's API + the checkout | — |
 | **Wiki article of the day** | the architecture, a page at a time | the wiki | the wiki's public route |
-| **Term of the moment** | one word, defined | the wiki | the wiki's public route |
-| **What is this?** | the basics, for someone arriving mid-stream | static | ⏸ parked until the others settle |
-| **You're watching** | the channel | static | — |
 | **The ticker** (the crawl) | in-world news, world firsts, ⭐ welcomes | press, chronicle, new players | the new-player event |
+
+### ⭐⭐ What you're looking at — the screen guide **[DECIDED — the owner]**
+
+The owner: *"if someone tunes into the stream and sees me sitting there talking over a browser
+running the Saxonberg client, what are they possibly going to think? Would they even know it's a
+game? Maybe I'm building my own OBS competitor."* Walked as a guest on the demo box, the client is
+a black console, a column of cards and words like *dormant* and *Interfaces: CartesianCoordinates*
+— nothing says **game**. So the first card says it: **"A multiplayer game, played in text"**,
+beside a sketch of the client-surface build's explore layout with its regions numbered (the map,
+the story, the command line, the cards). ⭐ **It is dynamic**: the streamer's client facts light
+the live region and say so in a line — another window (*"usually the code; the game is the one
+with the map"*), the mode (*build: writing the world from inside it*), the verb just typed
+(*"look" — it opened as a card*). It never repeats the sidebar's topic. The verb is a new feed
+fact, **the verb only, never its arguments**.
+
+### What can you do here? **[DECIDED — the owner]**
+
+One true, surprising thing about a trade or a system per turn — *the icebox is the worst place
+for bread*; *every well is a bet* — drawn from the subsystem docs and pack READMEs that say they
+ship, each carrying its source (none from slates). The strongest open the deck, none repeats
+until all have shown, and ⭐ **the streamer's last verb steers it** — type `smelt` and smelting
+comes up next. Sixty-six to start, in Rodney's `show/facts.ts`.
+
+### The Compact, About, the code **[DECIDED — the owner]**
+
+- **The Compact** — *"governed by the people who make it, fund it and play it"*: the three
+  chambers in the **manifesto's** words — labor, capital, consumer; make, fund, play; standing
+  (labor is canonical, 2026-10-31) — and *"standing begins at launch"*, so nobody thinks votes
+  are happening yet.
+- **About** — the streamer's VGA `@` beside the name and the schedule, three *"since"* lines, and
+  the persona's quote last, unattributed.
+- **The code** — *"Saxonberg is open source"*, the repo, AGPL-3.0, the start date, the stack
+  (TypeScript, Node, React, MongoDB, AWS, WebSockets), merges live from GitLab and packs,
+  subsystems and lines counted from the checkout.
+
+⛔ **Cut:** the term of the moment (*"just a worse version of the wiki"*) and *you're watching*
+(the nameplate, About and the community card already say it).
 
 ### The Saxonberg card **[DECIDED — the owner; copy LEAN]**
 
@@ -308,16 +347,14 @@ community card is where that shows, and alerts weigh a gift sub heaviest.
 stream tag ([deep-links](./deep-links-slate.md)), so a player who came from the stream is welcomed
 as one — the conversion alert, in the ticker.
 
-### Wiki article of the day, and the term **[LEAN]**
+### Wiki article of the day **[LEAN]**
 
 The owner: *"a great way to get people into the architecture."* **Seeded by the date**, so the
 stream, the in-game wiki and Discord agree on the day's page; a **second slot follows the topic**
 (tonight's agenda item picks a related page), so the same page does not repeat all night. The
 summary is **the page's own lead** — the public route's link-preview summary, never an LLM's —
-and only **level-0** pages, the public route's rule. The **term of the moment** is the same reader
-on demand: the streamer flags a word (`stream define mixin`, or a deck button) and the card shows
-its one-line definition and the public link. Both read [wiki-content](./wiki-content-slate.md)'s
-public route.
+and only **level-0** pages, the public route's rule. It reads
+[wiki-content](./wiki-content-slate.md)'s public route.
 
 ### ⭐⭐ Three brands, three jobs **[DECIDED — the owner]**
 
@@ -325,12 +362,12 @@ The owner: *"the livestream really has three competing brands."* Each gets one j
 
 | brand | job | where |
 |---|---|---|
-| **the show** — Saxonberg, a game, music | what tonight is about | the sidebar's brand block, the topic label, the rotation's cards, the standby's right banner |
+| **the show** — Saxonberg (the only one so far) | what tonight is about | the sidebar's brand block, the topic label, the rotation's cards, the standby's right banner |
 | **the studio** — Pantera's Box | who makes the show | the frame itself, the standby's left banner |
 | **the person** — Bobalu Smallberries | whose channel this is | the **nameplate**: *Bobalu Smallberries @ Pantera's Box*, flush right with the studio's hex against the word BOX, on the camera |
 
 A show is a **profile** — a row naming its mark, wordmark, topic label, cards and whether the
-crawl runs; chosen per OBS browser source today (`?show=music`), carried by `stream start <show>`
+crawl runs; chosen per OBS browser source today (`?show=<key>`), carried by `stream start <show>`
 later. ⭐ The owner's NetHack `@` (the IBM VGA 8×16 glyph) is the **person's avatar on the
 platforms**, deliberately **not** on the overlay.
 

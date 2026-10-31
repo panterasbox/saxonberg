@@ -396,7 +396,7 @@ any character competence ([access.md](../../subsystems/access.md)). So:
 
 - A wizard's **character** joins guilds like anyone.
 - **Authoring is a real disciplined vocation**: worldwrighting is
-  diegetic labor (scripting, Studio, the provenance ledger, producer
+  diegetic labor (scripting, Studio, the provenance ledger, labor
   credit) — discipline × demand, so a **Worldwrights' guild** is its
   natural institution, the player → contributor on-ramp given a hall
   and a ladder (associates script; members are protowizard content
@@ -585,7 +585,7 @@ law**; harm to *people* is **meta-state** (moderation) — the membrane.
 | **The Landwrights** | private charter **holding public contracts** | survey, valuation, conveyancing/title-law, development, tenancy-stewardship; *earth/perceive* | the polity **assessment contract** (DAU-independent); see the deep-dive |
 | **The Chorus** | private, open-door | performance, oratory, music, spectacle-craft; *light/mind* | **tips + venue engagements** (realm money); the broadcast stage pays in *renown and platform patronage* — a **sanctioned membrane-straddle**, not a realm paymaster |
 | **The Society of Inquiry** | private, examined, knowledge | inquiry method, **identification**, materials analysis, arcana-as-subject | identification services (the unidentified-consumables economy), analysis for crafters, instruction employment at the University; *commissioned research waits on the teachable-goods market having teeth* |
-| **The Worldwrights** | private, examined | scripting, template-craft, dialogue-craft, lore | business/guild **commissions in realm money** + producer-stock influence — the second sanctioned straddle (the make chamber, by design) |
+| **The Worldwrights** | private, examined | scripting, template-craft, dialogue-craft, lore | business/guild **commissions in realm money** + labor-stock influence — the second sanctioned straddle (the make chamber, by design) |
 
 ### Standing charters (authored-but-dormant: 8)
 
@@ -664,7 +664,7 @@ Four findings bigger than any single charter:
    that. **Polity paper provides the DAU-independent anchors**
    (assessment, marshal writs, floor-buys, frontier contracts).
 3. **Two membrane-straddles are sanctioned, not bugs**: the
-   Worldwrights (realm-money commissions ⊕ producer influence) and the
+   Worldwrights (realm-money commissions ⊕ labor influence) and the
    Chorus (realm-money tips ⊕ renown/platform patronage) each span the
    realm/meta line exactly the way the three-chambers design intends —
    they *demonstrate* the membrane.
@@ -965,7 +965,7 @@ it needs no new machinery:
   instant politics.
 - **Compensation already exists on the right axis.** Authored work routes
   through [provenance](../../subsystems/provenance.md) →
-  `authoring_events` → **producer standing**. ⭐ That is the honest
+  `authoring_events` → **labor standing**. ⭐ That is the honest
   answer to *real labor, not a labor experience*: it is compensated on
   the **real** axis, not the diegetic one, whether or not the guild also
   pays a wage.

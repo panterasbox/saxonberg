@@ -213,7 +213,7 @@ behavior. Read the relevant doc before editing in its area.
   - [advancement.md](./docs/subsystems/advancement.md) — growth measurement: Discipline catalog, Transcript, derive-on-read Competence bands, conferrals
   - [trait.md](./docs/subsystems/trait.md) — the personality layer: 19 opposed pairs, `disposition_events`, derive-on-read TraitPosition, regard baseline
   - [renown.md](./docs/subsystems/renown.md) — measured standing: `renown_events` → RenownStanding, reaction + reception signals, per-scope derive
-  - [influence.md](./docs/subsystems/influence.md) — the three-stock contract: InfluenceApi dispatcher, the producer stock, the account roll-up seam, conviction hold/flip/tally
+  - [influence.md](./docs/subsystems/influence.md) — the three-stock contract: InfluenceApi dispatcher, the labor stock, the account roll-up seam, conviction hold/flip/tally
   - [provenance.md](./docs/subsystems/provenance.md) — authorship ledger: `authoring_events`, context-derived author, the `recordAuthoring` gate, CreditRouting
   - [crafting.md](./docs/subsystems/crafting.md) — craft-resolve, Grade/Tool/Durable/Crafted mixins, Recipe docs, the by-hand manual build, Dave's Bar
   - [assembly.md](./docs/subsystems/assembly.md) — a made thing that KEEPS its parts: ⭐ transformation destroys identity, assembly preserves it; the bill on the kind + the parts record on the instance, `Joint` rows (reversibility decides `salvage`), localized wear and `repair`, the one verb `fit`, the families it composes on (no bill = one piece) and part state on the line, the wood column (`rive`/`saw`/`carve`, seasoning, the grain carry) and the compartment

@@ -467,7 +467,7 @@ Ordered by leverage + dependency:
    the reaction + reception signal generators, log-saturation). The
    **influence stocks** then **shipped 2026-06** as its first consumer
    ([influence.md](./subsystems/influence.md)): the consumer (engagement
-   meter), **producer** (make) faucet, the **conviction** spend substrate
+   meter), **labor** (make) faucet, the **conviction** spend substrate
    (abstain/quorum, no verb yet), the durable-`templatePath` re-key, and the
    **authorship ledger** ([provenance.md](./subsystems/provenance.md)) — the
    capital faucet, the ballot/chambers, and NPC-susceptibility / eigenvector
