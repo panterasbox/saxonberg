@@ -276,6 +276,9 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
     const c = await clock('on', yard);
     expect(reasons(c)).toEqual(['not-on-premises']);
     expect(said).toMatch(/where they work/);
+    // The house by its name, never its path.
+    expect(said).toMatch(/You hold a job at Tolley's yard/);
+    expect(said).not.toMatch(new RegExp(BIZ));
     expect(alice.isOnShift()).toBe(false);
   });
 
