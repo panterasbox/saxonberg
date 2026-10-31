@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**399 slates.** 148 greenfield · 107 continuations · 67 waves · 77 tails.
+**401 slates.** 150 greenfield · 107 continuations · 67 waves · 77 tails.
 
-## ⭐ Greenfield — nothing shipped yet (148)
+## ⭐ Greenfield — nothing shipped yet (150)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -128,6 +128,7 @@ respect.
 | [map](./builds/map-slate.md) | the SVG grid + up/down corner glyphs + the pinned card · the |
 | [markets](./builds/markets-slate.md) | **dealing** — a BID on any counter's stock line, bid and ask from the business's own book, a `sell` verb · **public spending** as the primary faucet, through escrowed public-works gigs · **imports** — the engine's backstop supply named honestly, a per-commodity per-town ceiling and a possible sink · the **levers** as rows and settings … |
 | [masonry-and-concrete](./builds/masonry-and-concrete-slate.md) | ⭐ the two set chemistries (carbonation, hydration) · the binder ladder (air lime → hydraulic → Roman pozzolanic → Portland → reinforced) · concrete as moulding into formwork, and curing · compression and tension as material properties … |
+| [material-decomposition](./builds/material-decomposition-slate.md) | the base keeps only what every material has · chemical identity as the class axis (element · compound · mixture) … |
 | [matter-model-overlaps](./builds/matter-model-overlaps-slate.md) | all seven overlaps below — each is a design decision, not a mechanical merge. |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
@@ -187,6 +188,7 @@ respect.
 | [wellbeing](./builds/wellbeing-slate.md) | the TASTE PROFILE (born, learned, aversive, aging) · PLEASURE from taste × internal state × recent eating × expectation, separate from satisfaction · DISCOMFORT as the baseline from shipped physiology · afterglow and hedonic adaptation … |
 | [wheelwright](./builds/wheelwright-slate.md) | `trade-wheelwright` · the wheel as an assembly with a role (`running gear`) · wood by grain · the dish … |
 | [wholesale-market](./builds/wholesale-market-slate.md) | the wholesale market as a place (its archetype, its hours, its layout, trade-only access) · relationships under the spot trade (standing orders, regard, family history) · ⭐ allocation instead of auction (the Crane melon) · grade judged on the spot … |
+| [wiki-content](./builds/wiki-content-slate.md) | pages shipped by the pack that adds the thing · `wiki-starter` for cross-cutting concepts and guides · `/finalize` graduating the player-facing version into the pack's pages · the demo-first content pass, an agent per pack, reviewed in batches … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbor's TEXT is wizard-bar-slate's) · subject notification on record access … |
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
