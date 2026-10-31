@@ -66,15 +66,20 @@ suite('cordage — the soak drive', () => {
     expectOk(dip);
     const dipping = (dip.notes.find((n) => n.kind === 'engagement-started') as { engagementId?: string } | undefined)?.engagementId;
     if (dipping) await s.awaitActivity(dipping, 120_000);
-    const before = squash(await s.prose('look first rope'));
+    // ⭐ By id: once the ropes are on the ground, "first rope" is whatever
+    // the walk shows first (the counter's painter, the soak's run 3).
+    const ropes = (await s.query('me:i:rope', { fields: ['displayName'] })) as unknown as { stuffId: string }[];
+    expect(ropes.length, JSON.stringify(ropes)).toBe(2);
+    const [ropeA, ropeB] = ropes.map((r) => r.stuffId);
+    const before = squash(await s.prose(`look #${ropeA}`));
     // Both laid out on the open walk, in rain that does not let up.
-    expectOk(await s.cmd('drop first rope'));
-    expectOk(await s.cmd('drop first rope'));
+    expectOk(await s.cmd(`drop #${ropeA}`));
+    expectOk(await s.cmd(`drop #${ropeB}`));
     await pinWeather('rain', WALK);
     await advanceWorldClock('6 days');
-    const bare = squash(await s.prose('look first rope'));
-    const tarred = squash(await s.prose('look second rope'));
-    const [untarredLook, tarredLook] = /tarred/.test(bare) ? [tarred, bare] : [bare, tarred];
+    const lookA = squash(await s.prose(`look #${ropeA}`));
+    const lookB = squash(await s.prose(`look #${ropeB}`));
+    const [untarredLook, tarredLook] = /tarred/.test(lookA) ? [lookB, lookA] : [lookA, lookB];
     expect(untarredLook + ' | ' + tarredLook, before).toMatch(/musty|rot/);
     expect(tarredLook, tarredLook).toMatch(/tarred/);
     expect(tarredLook, tarredLook).not.toMatch(/musty|rot/);
