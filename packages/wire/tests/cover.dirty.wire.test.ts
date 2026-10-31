@@ -126,7 +126,9 @@ async function act(s: Session, text: string): Promise<{ r: CommandResult; said: 
     await s.awaitActivity(engagementIdOf(r), 180_000);
     await new Promise((res) => setTimeout(res, 1_500));
   }
-  const said = `${await r.said()} ${engaged ? await s.listen(800) : ''}`.trim();
+  // ⚠ 3 s, not 0.8: on a busy box an act's completion line ("you cut a
+  // swath of …") lands after its engagement settles (blocking run 5).
+  const said = `${await r.said()} ${engaged ? await s.listen(3_000) : ''}`.trim();
   note(`${text} → ${refusedFor(r) ?? 'ok'} · ${said.slice(0, 300)}`);
   return { r, said };
 }
@@ -637,7 +639,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // ⭐ A season away costs the seat: a holder absent past
     // employment.absenceVacatesAfterDays is vacated (economic bootstrap
     // D16), and the drive has been logged out for months. Back to the
-    // yard, take the seat again, and clock on.
+    // yard, take the seat again, and clock on — by day (run 5 read the
+    // field pitch dark here).
+    await daylight();
     await goTo(YARD);
     await act(p, 'apply for labourer');
     await act(p, 'clock on');

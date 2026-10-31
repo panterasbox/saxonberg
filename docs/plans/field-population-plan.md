@@ -2129,3 +2129,23 @@ stage server on 2014 was stopped by PID.
 ## Drive record
 
 *(appended at build time, not at plan time)*
+
+- **Final pass 4 (after the ceramics merge) — 7 of 14.** Two regressions,
+  both fixed (fd348e1c6): `look at the top end` prompted again (a
+  definite-register patch presents as "the top end", the query's article
+  is stripped, so the merged exact-name tier missed and the patch tied
+  its stand at the exact-keyword tier; the name is now compared without
+  one leading article); and Stage A ran past dark, which left the hand too
+  cold and winded to lift a can in Stage B.
+- **The soak split (2026-10-31, master's soak-harness build).** No merge
+  waits on the clock: the drive is now a BLOCKING twin
+  (`field-population.dirty.wire.test.ts` — instant, short and staged
+  steps, `advance()` refuses more than a day) and a SOAK file
+  (`field-population.soak.dirty.wire.test.ts` — the season as it was,
+  for the soak lane after merge). Staged twins: step 7's dry week is a
+  same-day dry patch; step 10's season is two stands set ripe with worst
+  stretches 0.9 / 0.3, then cut by a player.
+- **Blocking run 1 — 14 of 14** (12.5 min of steps, 19 with boot). Dry
+  patch: trial 5 · gate end 4 · sample 4. Harvest: gate end
+  *exceptional*, far side *poor*. Step 13 still meets the known gap (a
+  drive handle reaches no dorm-room starter pot).
