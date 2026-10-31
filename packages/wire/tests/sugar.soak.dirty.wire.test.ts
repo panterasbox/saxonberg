@@ -1,4 +1,9 @@
 /**
+ * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
+ * after merge, never in a blocking run). Moved whole from
+ * `sugar.dirty.wire.test.ts` by the soak-harness census (2026-10-30):
+ * Stage A hangs off the 4-day cure, the drain set across a restart, eleven days of clay and the week to Monday; nothing blocking survives honestly.
+ *
  * ⭐⭐ The sugar drive (this file IS the drive; its script retired with the requirements at the MR !439 sweep) — Stage A, the
  * Terminus sugar house; Stage B (the island and the voyage) appends.
  *
@@ -40,7 +45,7 @@ export const DIRTY_REASON =
   'wages, restarts the world, and moves the world clock by weeks';
 
 declareFile({
-  file: 'sugar.dirty.wire.test.ts',
+  file: 'sugar.soak.dirty.wire.test.ts',
   packs: [
     'trade-sugar',
     'trade-cooking',

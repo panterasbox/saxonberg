@@ -7,7 +7,8 @@
   "scripts": {
     "wire": "vitest run",
     "wire:clean": "vitest run --exclude '**/*.dirty.wire.test.ts'",
-    "wire:dirty": "vitest run tests/*.dirty.wire.test.ts"
+    "wire:dirty": "vitest run tests/*.dirty.wire.test.ts",
+    "wire:soak": "WIRE_SOAK=1 vitest run"
   },
   "devDependencies": {
     "@saxonberg/types": "workspace:*",

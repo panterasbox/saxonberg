@@ -239,8 +239,10 @@ may block a merge.**
   week was lost, because a step does not say how long it is. **The tag
   does.**
 
-→ [soak-lane-slate](./slates/builds/soak-lane-slate.md) (the finding, the
-enforcement, the lane, the root fixes).
+→ The mechanics (the `.soak.` convention, `pnpm wire:soak`, the refusal,
+`result.json`, `tools/soak`, the staging tools):
+[testing.md § The soak lane](./testing.md). The finding and the root
+fixes still to build: [soak-lane-slate](./slates/tails/soak-lane-slate.md).
 
 #### ⭐⭐ The exit criterion: drive it before the MERGE
 

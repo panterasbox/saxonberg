@@ -55,7 +55,64 @@ the wire nor the parser.**
 may block a merge.** A span step (weeks or seasons of game time) runs in the **soak lane** after
 merge, never in review, finalize or a build's exit drive. Each requirements doc writes a blocking
 drive and a soak drive. The finding behind it, the enforcement and the lane →
-[soak-lane-slate](./slates/builds/soak-lane-slate.md).
+[soak-lane-slate](./slates/tails/soak-lane-slate.md).
+
+### The soak lane — the convention, the refusal, the result, the runner
+
+- **A soak file is `<feature>.soak.wire.test.ts`** (`*.soak.dirty.wire.test.ts` when it consumes
+  something). `pnpm wire`, `wire:clean` and `wire:dirty` exclude `*.soak.*` — in
+  `vitest.config.ts`, so no script's glob can sweep one in — and the teardown's report names the
+  soak files it skipped. **`pnpm wire:soak`** (`WIRE_SOAK=1`) runs only soak files;
+  `pnpm wire:soak canary` runs a named subset. The canary, `canary.soak.wire.test.ts`, is the
+  lane's self-test: two game days and a `look`.
+- ⛔ **The refusal.** A clock jump of more than one game day (86,400 game seconds) outside soak mode
+  fails BEFORE it moves anything, in `TestHarnessApi.advanceClock` — the one place both doors call
+  (the harness route and the `testharness` verb):
+
+  ```
+  test clock: a jump of '30 days' (30.0 game days) is a SPAN step and cannot run in a blocking
+  drive — the line is one game day (docs/workflow.md § No merge waits on the clock). Move the
+  step to a .soak. file (<feature>.soak.wire.test.ts, run by `pnpm wire:soak`), or shorten it to
+  a day or less.
+  ```
+
+  The harness sends `soak: true` with every jump under `WIRE_SOAK=1`; nothing else does. ⚠ The
+  refusal is per call, the RULE is per step: a span walked in one-day calls (a search loop, a
+  retry that jumps "if refused") is still a span. A wait on state is bounded at a day in total and
+  fails past it; a jump to an hour of day (daylight, a shift) is lighting, not span, and a
+  daylight loop is capped at 24 h. The census of 2026-10-30 applied this to every file that jumps.
+- **The result.** Every run writes `packages/wire/.wire/result.json` (a vitest reporter,
+  `src/runner/result-reporter.ts`, at `onFinished`): `mode` (`soak` | `blocking`), `owned`,
+  `serverUrl`, `serverLog`, start/finish/wall, and per file `state`, `durationMs`, `dirtyReason`,
+  `proseReads`, `packs` and `tests[]` in file order — `{name, state, durationMs, errors[]}`, which
+  IS the drive record. The registry's declarations sit beside it in `.wire/declarations.json`.
+- **The runner, `tools/soak`** (`--once` · `--watch` · `--dry-run`; the `soak` window's second pane
+  runs `--watch`). Per first-parent commit on `origin/master` after `.soak/state`, it runs the soak
+  files that commit added or changed — and the canary whenever the soak tooling changed — in the
+  soak worktree on :2020 against `saxonberg_soak`, dropped first. It takes the **same lock as
+  `tools/suite`** (`tools/lib/suite-lock.sh`) and waits for memory: the 4 GB reserve plus a
+  world's 3 GB, the world alone in quiet hours (02:00–06:00). A failing file is a GitLab issue
+  labeled `soak` (file, merge, MR, failing steps, the drive record, the server log's tail); a
+  repeat comments on the open one. State, log and results live in the soak worktree's `.soak/`
+  (gitignored). Every threshold and path is an env override (`tools/soak --help`).
+
+### Staging — what a blocking drive uses instead of the clock
+
+Every span step has a **staged twin**: set the state with wizard tools, check everything around it
+with player verbs.
+
+- **`eval`** binds every self-decorating Api (shell-author.md), awaits, and answers within
+  `eval.timeoutMs`; a test runner stages inside a parcel it holds.
+- **`Session.open(handle, {parcels: ['/world/…']})`** makes the test character TITLE HOLDER of
+  each exact parcel extent named (a `ParcelApi.transfer`; one it already holds is kept), so
+  `eval --parcel <it>` runs as that parcel's holder would. ⚠ A transferred title is a sold parcel
+  to the pack that claimed it: its next reconcile records a `conflict` and skips its rows there.
+- **`pinWeather(type, scope)` / `unpinWeather(scope)`** (`/auth/test-weather`) hold the weather of
+  the Locality covering `scope`, applied at once as a segment boundary applies it. A drive that
+  pins, unpins.
+- **The `testharness` verb** — `testharness clock [advance <dur>]`,
+  `testharness weather [pin <kind> | unpin] [--at <place>] [--alive]` — the same rules in-world, in
+  a test world only.
 
 ## How often to run it
 
@@ -1096,7 +1153,7 @@ all four shapes have now been tried in one file:
 
 | shape | what happens |
 |---|---|
-| `eval --parcel` | ⛔ **took the server down** — `sandbox boundary denied fromStored()` as an unhandled rejection inside `runSandboxed`; the drive reported it as a frame timeout |
+| `eval --parcel` | used to ⛔ **take the server down** — `sandbox boundary denied fromStored()` as an unhandled rejection. Since the soak-harness build every promise an eval's Api call returns is held: a refused clone answers `late: StuffApi.clone — …` on the result line (or in the mudlog) and the world stays up. The boundary still refuses a circle-scoped clone of a field row |
 | `clone … --here` (second session) | lands on the FLOOR, so it needs a `get` — and a `get` resolves by keyword against everything in reach, so it can bind a shop's stock (held goods are not gettable) or an ambiguous instrument |
 | `clone …` (the player itself) | ⚠ **`access-denied`** — cloning a row is an authoring act gated on HELD EXTENTS, and `wizard: true` is the code-trust axis and confers no title. A fresh test character has no extents and never will |
 | ⭐ `clone … --into <handle>` (the founder) | permitted, lands in the hands that need it, and no `get` is involved |
@@ -1107,10 +1164,5 @@ in reach*, which looks like a defect in the reading ladder.
 
 ## Open: test seams a drive would want
 
-- **A runtime weather pin for drives** (`/auth/test-weather`, the climate
-  build, 2026-10). The climate drive cannot set the weather, so every
-  place it reads is pinned in CONTENT (a frozen `snow` pin on the Circle
-  and the snowfield) and its day-indexed thresholds are computed against
-  those pins. A test-auth seam that pins a Locality's weather for the
-  length of a run would let a drive exercise a thaw without authoring a
-  place for it — the `advanceWorldClock` seam's sibling.
+- ~~**A runtime weather pin for drives**~~ — shipped by the soak-harness build:
+  `pinWeather` / `unpinWeather` and `testharness weather` (§ Staging, above).

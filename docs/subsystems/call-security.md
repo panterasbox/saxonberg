@@ -859,6 +859,20 @@ right for test seams. Tests legitimately call framework code which
 might call further framework code; what matters is that some test is at
 the bottom of the chain, not that every frame between is a test.
 
+### The Api roster, and what `eval` sees
+
+`decorateApiClass` records every class it decorates, and
+`SecurityApi.decoratedApiClasses()` reads the roster back in load
+order. ⭐ It is what the `eval` sandbox binds — every self-decorating
+Api, each as a frozen facade of its own statics — so the sandbox
+surface is the set of Apis that declared themselves by their module
+tail (shell-author.md § EvalScript). The four bootstrap-special Apis
+below never self-decorate and are never bound. A `@TestOnly` static is
+bound as a stub naming its door, and
+`SecurityApi.assertNotFromEval(op, pointer)` — one line at the top of a
+mutator eval could reach without its Api — refuses under any
+`EvalScript` frame, naming the door, and is silent everywhere else.
+
 ### ⭐⭐ `@TestOnly` — the other question entirely
 
 `assertTestOnly` asks **who is calling**. There is a second question,

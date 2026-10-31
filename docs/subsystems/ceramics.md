@@ -543,5 +543,7 @@ shell weathering (only if wall spalling is built).
   form; the cast lands before its runner; the bell pit is loam; eleven
   "glazed" rows had kept the retired `fused` state, and the dairy setting pan
   is glazed earthenware again. The plan and requirements docs retired here,
-  and the split of these drives into blocking and soak went to build-4:
-  [ceramics-soak-split-slate](../slates/tails/ceramics-soak-split-slate.md).
+  and the split of these drives into blocking and soak went to build-4 and
+  shipped with the soak harness (2026-10-30): each blocking drive stages its
+  span steps' outcomes, and its `.soak.dirty` twin keeps the spans —
+  [testing.md § The soak lane](../testing.md).

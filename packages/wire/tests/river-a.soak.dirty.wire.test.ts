@@ -1,4 +1,9 @@
 /**
+ * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
+ * after merge, never in a blocking run). Moved whole from
+ * `river-a.dirty.wire.test.ts` by the soak-harness census (2026-10-30):
+ * every test swims or drifts the Kestrel, and a fresh world's water is iced — open water is reached by walking the season (5-day steps).
+ *
  * River, stage A — ⭐⭐ **the line and the patch**, driven over the wire.
  *
  * The river requirements' drive, steps 1–6, 16 and 18, numbering kept: the
@@ -33,7 +38,7 @@ export const DIRTY_REASON =
   'bed and moves the clock — none of it produced again';
 
 declareFile({
-  file: 'river-a.dirty.wire.test.ts',
+  file: 'river-a.soak.dirty.wire.test.ts',
   packs: ['terminus', 'water', 'trade-diving', 'world-seed', 'generic-objects'],
   dirtyReason: DIRTY_REASON,
 });

@@ -1,4 +1,9 @@
 /**
+ * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
+ * after merge, never in a blocking run). Moved whole from
+ * `river-d.dirty.wire.test.ts` by the soak-harness census (2026-10-30):
+ * one voyage of one ship that must float — the season is walked until the water rises.
+ *
  * River, stage D — ⭐⭐ **a ship on the river**, driven over the wire.
  *
  * The river requirements' drive, steps 25, 26 and 28–31, numbering kept:
@@ -38,7 +43,7 @@ export const DIRTY_REASON =
   'the sea and moves the clock — none of it produced again';
 
 declareFile({
-  file: 'river-d.dirty.wire.test.ts',
+  file: 'river-d.soak.dirty.wire.test.ts',
   packs: ['terminus', 'water', 'transport', 'world-seed', 'trade-forestry', 'generic-objects'],
   dirtyReason: DIRTY_REASON,
 });

@@ -1,4 +1,9 @@
 /**
+ * ⛔ **A SOAK file** (span steps — `pnpm wire:soak`, run by the soak lane
+ * after merge, never in a blocking run). Moved whole from
+ * `river-b.dirty.wire.test.ts` by the soak-harness census (2026-10-30):
+ * open water is the file's premise, not a step's: a fresh world is winter and the river is iced.
+ *
  * River, stage B — ⭐⭐ **bodies in moving water**, driven over the wire.
  *
  * The river requirements' drive, steps 7, 8, 10–14, numbering kept: the
@@ -38,7 +43,7 @@ export const DIRTY_REASON =
   'moves the clock — none of it produced again';
 
 declareFile({
-  file: 'river-b.dirty.wire.test.ts',
+  file: 'river-b.soak.dirty.wire.test.ts',
   packs: ['terminus', 'rejection', 'water', 'trade-diving', 'transport', 'world-seed', 'generic-objects'],
   dirtyReason: DIRTY_REASON,
 });

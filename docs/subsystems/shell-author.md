@@ -41,13 +41,15 @@ parallel-API convention.
 
 ## Settings keyspace (`eval.*`)
 
-Session-lifetime — declared in schema, but the runtime defaults are
-baked into `EvalScript.run` until the sandbox honors per-call knobs.
+Session-lifetime, read by `EvalController` on every invocation.
 
 | Key | Type | Default | Purpose |
 |---|---|---|---|
-| `eval.timeoutMs` | number | `1000` | Wall-clock budget per `eval` invocation. |
-| `eval.maxDepth` | number | `32` | Maximum recursion depth inside an eval body. |
+| `eval.timeoutMs` | number | `5000` | ⭐ ENFORCED wall-clock budget per `eval` invocation, the awaited tail included (below). |
+
+`eval.maxDepth` was retired (soak-harness build, 2026-10-30): nothing
+under `node:vm` could honor it, and V8's own stack limit already comes
+back as an ordinary `RangeError` in the result.
 
 ## EvalScript — Stuff-wrapped sandboxed eval
 
@@ -66,15 +68,53 @@ class EvalScript extends Idea {
 }
 ```
 
-Sandbox: Node's built-in `vm.Script` + `vm.createContext`. The
-context exposes a curated allowlist (currently
-`StuffApi`, `MqlApi`, `ContainmentApi`, `MixinApi`, `console`, plus
-`self` / `target` aliases for the receiver). `process`, `require`,
-`globalThis`, `fs`, `child_process` etc. are not reachable.
+Sandbox: Node's built-in `vm.Script` + `vm.createContext`, reached
+through `ScriptApi.compileSandboxed` / `runSandboxed`. ⭐ The context
+binds **every Api that self-decorates** — `SecurityApi.decoratedApiClasses()`,
+the roster `decorateApiClass` keeps, so the surface is a fact the Apis
+declare by their module tail, never a hand-kept list — each as a frozen
+facade of its own statics bound to the class (under its source name),
+plus `console` and `self` / `target` aliases for the receiver. The four
+bootstrap-special Apis never self-decorate and are absent by
+construction. `process`, `require`, `globalThis`'s host, `fs`,
+`child_process` etc. are not reachable. A drift test holds the surface
+to every exported `*Api` but those four, and `lint:eval-surface`
+ratchets the `@internal` statics that carry no gate (14 at the census).
 
 The sandbox is **not** the security boundary — `@CallSecurity`
-decorators on the Apis are. The sandbox is the moat that prevents
+decorators on the Apis are, so binding an Api exposes exactly what its
+own per-static gates allow. The sandbox is the moat that prevents
 trivially escaping below the api layer.
+
+- ⛔ **`@TestOnly` statics are stubs that name their door** — from eval,
+  `WorldClockApi.advance` and every `TestHarnessApi` static throw a
+  pointer at the `testharness` verb. The back doors refuse in the same
+  words: `SecurityApi.assertNotFromEval(op, pointer)` on
+  `WorldClockRegistry.advance` and both `setWeatherPin` setters fires
+  under any `EvalScript` frame.
+- ⭐ **The body is async and an expression returns itself** —
+  `eval 1 + 1` answers 2; a body of statements returns what it
+  `return`s; `await` is legal.
+- ⭐ **No eval-born rejection is left unhandled.** Every promise a
+  facade static returns is held: a rejection the code dropped (a clone
+  written as a statement, denied at the boundary) is reported on the
+  result line as `late: StuffApi.clone — …`, or mudlogged
+  (`sandbox.eval.late`) if it lands after the answer. An unhandled
+  rejection ends the process (`Server.ts`), which is how a refused clone
+  used to take the world down. ⚠ A promise from a method on `self` or a
+  Stuff the code holds is not netted (a wrapper would break identity) —
+  await it.
+- ⭐ **The budget.** V8's `timeout` bounds the synchronous segment; the
+  awaited tail is raced on the host and abandoned past the budget; every
+  facade call refuses past the deadline, so a runaway that keeps calling
+  into the world stops. ⛔ **Not `microtaskMode: 'afterEvaluate'`**: on
+  Node 22, terminating inside that queue's drain while async hooks are
+  on (AsyncLocalStorage — every call frame) aborts the process
+  (`Assertion failed: (env_->execution_async_id()) == (0)`). So a pure
+  CPU loop after an `await` cannot be stopped under `node:vm` — the
+  `isolated-vm` migration (or Node's AsyncContextFrame) is what would.
+- **The output cap** — each result line, error lines included, is cut
+  at 16,384 characters with the true length named.
 
 ### Singleton placement
 
@@ -113,11 +153,11 @@ authority)`. Eval can never grant more than the caller already has.
 
 `isolated-vm` for real V8-isolate sandboxing. The public surface
 (`setCode`, async `run`) is designed to stay stable across the
-swap; only `EvalScript` internals change. Two accommodations baked
-in v1: `run` is `Promise<unknown>` (so async-first callers don't
-need a re-touch), and the sandbox-context shape is a definition-
-local list of allowed names rather than a literal object scattered
-through the code.
+swap; only `EvalScript` internals change. `run` is
+`Promise<unknown>` (so async-first callers don't need a re-touch), and
+the context is built in one function (`buildSandbox`). The isolate is
+also what would make host work an eval started (a clone, a save)
+cancellable, and stop a pure CPU loop after an `await`.
 
 ## See also
 

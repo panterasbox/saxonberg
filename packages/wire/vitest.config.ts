@@ -19,7 +19,7 @@
  * Mongo policy, not a knob.
  */
 
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import type { WorkspaceSpec } from 'vitest/node';
 
 /**
@@ -47,9 +47,26 @@ class DirtyLastSequencer {
   }
 }
 
+/**
+ * ⛔ Soak files (`*.soak.wire.test.ts`, `*.soak.dirty.wire.test.ts`)
+ * carry SPAN steps — game weeks and seasons — and no merge waits on the
+ * clock (docs/workflow.md § No merge waits on the clock). They are
+ * excluded from every ordinary run here, in the config, because a
+ * script's shell glob (`wire:dirty`) would otherwise match them; and
+ * `pnpm wire:soak` (`WIRE_SOAK=1`) runs ONLY them. The harness sends
+ * `soak: true` on every clock jump in that mode, which is the one
+ * thing that lets a jump past a game day through.
+ */
+const SOAK = process.env.WIRE_SOAK === '1';
+
 export default defineConfig({
   test: {
-    include: ['tests/**/*.wire.test.ts'],
+    include: SOAK
+      ? ['tests/**/*.soak.wire.test.ts', 'tests/**/*.soak.dirty.wire.test.ts']
+      : ['tests/**/*.wire.test.ts'],
+    exclude: SOAK
+      ? [...configDefaults.exclude]
+      : [...configDefaults.exclude, '**/*.soak.*'],
     globalSetup: ['./src/runner/global-setup.ts'],
     // One world, one actor at a time.
     fileParallelism: false,
@@ -60,7 +77,9 @@ export default defineConfig({
     hookTimeout: 300_000,
     teardownTimeout: 60_000,
     // Per-file timings, which the suite is required to print.
-    reporters: ['verbose'],
+    // ⭐ and `.wire/result.json`, the machine-readable record the soak
+    // runner (tools/soak) reads — see src/runner/result-reporter.ts.
+    reporters: ['verbose', './src/runner/result-reporter.ts'],
     sequence: { sequencer: DirtyLastSequencer },
     retry: 0,
   },

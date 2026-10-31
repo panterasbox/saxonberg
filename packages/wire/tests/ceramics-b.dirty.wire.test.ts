@@ -16,6 +16,13 @@
  * ⚠ Every checkpoint asserts the verb was UNDERSTOOD and a STATE changed,
  * read back off the world — never only that the verb was not refused.
  *
+ * ⛔ **The BLOCKING drive** — its span steps are STAGED per
+ * the ceramics soak-split census (testing.md § The soak lane) § ceramics-b (the
+ * firebricks' weeks of drying, the keeper's two days): the state is set
+ * directly and the same player reads it. No step moves the clock more than
+ * a game day. The spans themselves run in the soak twin,
+ * `ceramics-b.soak.dirty.wire.test.ts`.
+ *
  * Run: `WIRE_BOOT=1 WIRE_PORT=<this worktree's> npx vitest run
  * tests/ceramics-b.dirty.wire.test.ts`.
  */
@@ -29,7 +36,6 @@ import {
   expectOk,
   advanceWorldClock,
   advanceLiving,
-  toWarmSeason,
   plain,
   dress,
   dressFounder,
@@ -270,9 +276,8 @@ beforeAll(async () => {
   } finally {
     gov.close();
   }
-  // ⭐ Firebricks are moulded wet and dried in the shop: begin in the
-  // working season, not wherever A left the year (run 31's froze).
-  await toWarmSeason();
+  // ⛔ STAGED (soak-harness census): the walk to the warm season lives in
+  // ceramics-b.soak.dirty; here the firebricks arrive bone-dry (step 10).
   await toHour(9, 15);
   k = await Session.open(handle, { startLocation: QUARRY, wizard: true });
   // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
@@ -334,24 +339,15 @@ suite('⭐ 10 — make firebrick', () => {
   }, 3_600_000);
 
   it('moulded at the Delight table into firebricks, dried and burnt in the pottery kiln', async () => {
-    await goTo(SHED);
-    const day = await act('shape clay into firebrick', '9 hours');
-    expect(day.said, `the firebricks: ${day.said}`).toMatch(/brick/i);
-    expect(await examine('here:i:firebrick')).toMatch(/green|thumbprint/i);
-    await say('get firebricks');
-    // ⚠ Dried in the potter's shop, warm from the kiln, where the pottery
-    // dries its own ware: on the open hacks a late frost burst them wet
-    // (run 29 — B begins wherever in the year A left the clock).
+    // ⛔ STAGED (soak-harness census): the moulding and the weeks of drying live in ceramics-b.soak.dirty; here the state is set directly.
+    // Six green firebricks of the won fireclay, already bone-dry, in hand.
     await goTo(SHOP);
-    await say('drop firebricks');
-    let rows = '';
-    for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
-      await advance('7 days');
-      rows = await examine('here:i:firebrick');
-    }
-    expect(rows, 'bone-dry').toMatch(/bone-dry/i);
-    await say('get firebricks');
-    await goTo(SHOP);
+    await hand(k, '/trade/ceramics/thing/firebrick', {
+      _materialPath: '/world/terminus/rejection/idea/material/fireclay',
+      dryness: 1,
+      quantity: 6,
+    });
+    expect(await examine('me:i:firebrick'), 'bone-dry').toMatch(/bone-dry/i);
     await say('put firebricks in kiln');
     await say('get charcoal');
     await say('stoke charcoal into kiln');
@@ -567,31 +563,42 @@ suite('⭐ 13 — wear a crucible', () => {
 suite('⭐ 14 — the keeper does it', () => {
   it('the glasshouse kiln, worn and left, is relined by its keeper with no player present', async () => {
     // ⚠ The roster tick runs only for a LOADED business: visit the
-    // glasshouse first (D20), wear the kiln, then go — and jump time.
-    await goTo(GLASSHOUSE);
+    // glasshouse first (D20), wear the kiln, then go.
+    // ⛔ STAGED (soak-harness census): the six firings and the keeper's two days live in ceramics-b.soak.dirty; here the state is set directly.
+    // The kiln is worn by eval (a wizard under Rejection's parcel), in
+    // working hours, and the keeper is given ONE beat of its relining brain.
     await toHour(9, 15);
+    at = GLASSHOUSE;
+    k?.close();
+    k = await Session.open(handle, {
+      wizard: true,
+      parcels: ['/world/terminus/rejection'],
+      startLocation: GLASSHOUSE,
+    });
+    await k.drainProse();
     const fresh = await examine('kiln');
-    // A charge for the chamber — a lump of limestone (it burns to lime, and
-    // the kiln does not care what it is holding at heat).
-    await winAtQuarry('limestone', 1, GLASSHOUSE);
-    await say('put limestone in kiln');
-    for (let i = 0; i < 6; i++) {
-      await winAtQuarry('coal', 3, GLASSHOUSE);
-      await say('stoke coal into kiln');
-      const lit = await run('ignite kiln');
-      if (refusedFor(lit.r) !== null) break;
-      await act('fire kiln for 6 hours', '6 hours');
-      await say('douse kiln');
-    }
+    // ⚠ No ';' in an eval line (the command line splits on it), and `self`
+    // is the --on target (an arrow's `this` is not).
+    await say(
+      "eval --parcel /world/terminus/rejection --on kiln (Array.from({ length: 20 }).forEach(() => self.wearLine('lining', 1)), self.liningHealth())",
+    );
     const worn = await examine('kiln');
     expect(worn, 'the kiln worn').toMatch(/lining/i);
+    expect(worn, 'the kiln worn').toMatch(/worn|thin|burnt through/i);
     expect(worn).not.toEqual(fresh);
-    // Nobody here now: the character goes to the Delight, and the clock
-    // runs through two working days.
+    // The keeper takes one beat (fired from here: `--on` finds the keeper
+    // where the wizard stands), then nobody is here — the character goes to
+    // the Delight, and the clock moves at most two hours, an hour at a time.
+    await say("eval --parcel /world/terminus/rejection --on glassblower self.fireBeat('/trade/ceramics/behavior/relines')");
     await goTo(SHOP);
-    await advance('2 days');
     await goTo(GLASSHOUSE);
-    const relined = await examine('kiln');
+    let relined = await examine('kiln');
+    for (let h = 0; h < 2 && /burnt through|worn thin/i.test(relined); h++) {
+      await goTo(SHOP);
+      await advance('1 hour');
+      await goTo(GLASSHOUSE);
+      relined = await examine('kiln');
+    }
     expect(relined, 'the keeper relined it').not.toEqual(worn);
     expect(relined).not.toMatch(/burnt through|worn thin/i);
   }, 7_200_000);

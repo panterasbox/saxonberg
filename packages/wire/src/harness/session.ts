@@ -182,9 +182,20 @@ export const plain = (s: string): string =>
     .replace(/[ \t]{2,}/g, ' ');
 
 /** POST the test-auth seam and return the session cookie header. */
+/**
+ * What a test login may ask for. `parcels` — exact parcel extents the
+ * character is made TITLE HOLDER of (a transfer; one it already holds is
+ * kept), so a drive can stage with `eval --parcel <it>`.
+ */
+export interface SessionOptions {
+  startLocation?: string;
+  wizard?: boolean;
+  parcels?: string[];
+}
+
 async function login(
   handle: string,
-  opts: { startLocation?: string; wizard?: boolean; withCharacter?: boolean } = {}
+  opts: SessionOptions & { withCharacter?: boolean } = {}
 ): Promise<string> {
   const server = SERVER_URL();
   // ⚠ After a long clock advance the world can be busy past undici's
@@ -204,6 +215,7 @@ async function login(
       withCharacter: opts.withCharacter ?? true,
       ...(opts.startLocation ? { startLocation: opts.startLocation } : {}),
       ...(opts.wizard ? { wizard: true } : {}),
+      ...(opts.parcels?.length ? { parcels: opts.parcels } : {}),
     }),
   });
   let res: Response | null = null;
@@ -216,9 +228,13 @@ async function login(
     }
   }
   if (!res.ok) {
+    const why = await res
+      .json()
+      .then((b) => (b as { error?: string }).error ?? '')
+      .catch(() => '');
     throw new Error(
-      `wire: /auth/test-login answered ${res.status} at ${server}. ` +
-        `Is the server running with AUTH_MODE=test?`
+      `wire: /auth/test-login answered ${res.status} at ${server}` +
+        (why ? `: ${why}` : '. Is the server running with AUTH_MODE=test?')
     );
   }
   const cookie = (res.headers.getSetCookie?.() ?? [])
@@ -271,7 +287,7 @@ export class Session {
    */
   static async open(
     handle: string,
-    opts: { startLocation?: string; wizard?: boolean } = {}
+    opts: SessionOptions = {}
   ): Promise<Session> {
     await assertPacksPresent();
     const cookie = await login(handle, opts);
@@ -320,7 +336,7 @@ export class Session {
    */
   static async openAtRoster(
     handle: string,
-    opts: { startLocation?: string; wizard?: boolean } = {}
+    opts: SessionOptions = {}
   ): Promise<{ session: Session; playerId: string }> {
     await assertPacksPresent();
     const cookie = await login(handle, opts);

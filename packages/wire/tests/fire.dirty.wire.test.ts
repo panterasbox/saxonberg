@@ -291,24 +291,8 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   }, 180_000);
   afterAll(() => f?.close());
 
-  it('⭐ drive 10 — the clamp chars, by the WOOD’s own transition', async () => {
-    // ⭐⭐ Ceramics ruling A: `char` sets the draught, lights the clamp and
-    // holds the watch; the cordwood chars because at 0.45 the heap is
-    // starved (completeness ≈ 0.53, below the flaming dial) and every
-    // length's own material says what three days of that makes of it.
-    const loaded = await say(f, 'put cordwood in clamp');
-    understood(loaded, 'put cordwood in clamp');
-    expect(refusedFor(loaded), 'the cordwood would not go into the clamp').toBeNull();
-    const charred = await say(f, 'char 0.45');
-    understood(charred, 'char 0.45');
-    expect(refusedFor(charred), 'the clamp would not light').toBeNull();
-    // Three game days, then the watch ends and the clamp is opened.
-    await advanceWorldClock('3 days');
-    await settle(f, charred);
-    await advanceWorldClock('1 hour');
-    const looked = (await f.prose('look clamp')).replace(/<[^>]*>/g, '');
-    expect(looked, 'the lengths did not come out charred').toMatch(/charred/i);
-  }, 300_000);
+  // ⛔ Drive 10 — the clamp chars over three game days — is a SPAN and
+  // lives in fire.soak.dirty (the soak-harness census).
 
   it('⭐⭐ drive 11 — the retort is HERE, it fires shut, and the condenser fills', async () => {
     const stoked = await say(f, 'stoke charcoal into retort');

@@ -204,6 +204,12 @@ export class AppBootstrap {
       );
     }
     console.info(`CommandApi: ${cmd.loaded} command YAML(s) preloaded`);
+    if (cmd.withheld.length > 0) {
+      console.info(
+        `CommandApi: ${cmd.withheld.length} test-only view(s) withheld ` +
+          `(not a test world): ${cmd.withheld.join(', ')}`
+      );
+    }
 
     installOnlineHoldersProvider();
     await BootstrapManager.run();
