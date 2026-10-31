@@ -15,7 +15,13 @@ validators:
 args:
   - name: target
     type: object
-    scope: ["$focus", "reachable"]
+    # ⚠ The room FIRST, the drill chain as the fallback (harbors drive run
+    # 6). A way is the room's: with the focus first, `look first line` on
+    # the Town Quay (a line from the Hesper) and then `go hesper` searched
+    # the focused line, matched its NAME, and never saw the way named for
+    # her — "You can't walk that way". Something only the drill reaches
+    # (a hatch on the thing you are examining) still resolves.
+    scope: ["reachable", "$focus"]
     required: true
     validators:
       - /lib/command/validators/canReach
