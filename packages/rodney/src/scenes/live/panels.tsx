@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import QRCode from 'qrcode';
-import type { Arrival, Community, Money, Show } from '../../hooks/useShow';
+import type { Arrival, Community, Money, Show, WikiArticle } from '../../hooks/useShow';
 import ServiceGlyph, { type Platform } from '../shared/ServiceGlyph';
 import { CHANNEL } from '../../show/channel';
 import AtAvatar from '../shared/AtAvatar';
@@ -86,6 +86,13 @@ export const PANELS: PanelRow[] = [
     seconds: 18,
     when: (show) => show.community !== null,
     render: (show) => show.community && <CommunityPanel community={show.community} />,
+  },
+  {
+    key: 'wiki',
+    weight: 1,
+    seconds: 20,
+    when: (show) => show.wikiOfDay !== null,
+    render: (show) => show.wikiOfDay && <WikiPanel article={show.wikiOfDay} />,
   },
 ];
 
@@ -177,14 +184,7 @@ function buildAge(at: number): string {
  * The shared world is implied by the count, not sold.
  */
 function JoinPanel({ show }: { show: Show }) {
-  const [qr, setQr] = useState<string | null>(null);
-  useEffect(() => {
-    QRCode.toDataURL(JOIN_URL, {
-      margin: 1,
-      width: 280,
-      color: { dark: palette.bg.ground, light: palette.brand.white },
-    }).then(setQr, () => setQr(null));
-  }, []);
+  const qr = useQr(JOIN_URL);
 
   const count =
     show.playersOnline === null
@@ -714,6 +714,132 @@ function CommunityPanel({ community }: { community: Community }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** A QR code for a URL, white on the ink ground. */
+function useQr(url: string): string | null {
+  const [qr, setQr] = useState<string | null>(null);
+  useEffect(() => {
+    QRCode.toDataURL(url, {
+      margin: 1,
+      width: 280,
+      color: { dark: palette.bg.ground, light: palette.brand.white },
+    }).then(setQr, () => setQr(null));
+  }, [url]);
+  return qr;
+}
+
+/** The lead's two marks: **bold** in full white, `code` in brass. */
+function Lead({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith('**') ? (
+          <strong key={i} style={{ color: palette.text.fg, fontWeight: 600 }}>
+            {part.slice(2, -2)}
+          </strong>
+        ) : part.startsWith('`') ? (
+          <span key={i} style={{ color: palette.accent, fontWeight: 600 }}>
+            {part.slice(1, -1)}
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
+/**
+ * The wiki's article of the day — a way into the architecture, a page at a
+ * time. The summary is the page's own lead, never anyone's paraphrase.
+ */
+function WikiPanel({ article }: { article: WikiArticle }) {
+  const qr = useQr(article.url);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 40 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <span
+            style={{
+              fontFamily: FACE_STACKS.display,
+              fontWeight: 500,
+              fontSize: 16,
+              letterSpacing: '0.19em',
+              textTransform: 'uppercase',
+              color: palette.text.dim,
+            }}
+          >
+            Wiki · article of the day
+          </span>
+          {article.kind && (
+            <span
+              style={{
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: palette.text.fg,
+                padding: '1px 8px',
+                border: `1px solid ${palette.line}`,
+                background: palette.bg.raised,
+              }}
+            >
+              {article.kind}
+            </span>
+          )}
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.display,
+            fontWeight: 500,
+            fontSize: 40,
+            lineHeight: 1.1,
+            color: palette.text.fg,
+            marginTop: 4,
+          }}
+        >
+          {article.title}
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 23,
+            lineHeight: 1.3,
+            color: palette.text.dim,
+            marginTop: 6,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          <Lead text={article.lead} />
+        </div>
+      </div>
+      {qr && (
+        <div style={{ textAlign: 'center', flex: '0 0 auto' }}>
+          <img
+            src={qr}
+            alt=""
+            style={{ width: 120, height: 120, border: `3px solid ${palette.brand.white}` }}
+          />
+          <div
+            style={{
+              fontFamily: FACE_STACKS.chrome,
+              fontSize: 14,
+              color: palette.text.mute,
+              marginTop: 4,
+            }}
+          >
+            read it
+          </div>
+        </div>
+      )}
     </div>
   );
 }

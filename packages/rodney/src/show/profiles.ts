@@ -41,7 +41,7 @@ export const PROFILES: Record<string, ShowProfile> = {
     mark: '/brand/saxonberg-rings-white.svg',
     topicLabel: 'Now',
     defaultTopic: 'Working on Saxonberg',
-    panels: ['join', 'world', 'money', 'community', 'about', 'gitlab'],
+    panels: ['join', 'world', 'money', 'community', 'about', 'gitlab', 'wiki'],
     crawl: true,
   },
 };

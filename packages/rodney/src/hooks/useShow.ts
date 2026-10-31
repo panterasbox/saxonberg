@@ -94,6 +94,20 @@ export interface Community {
   recent: Arrival[];
 }
 
+/**
+ * The wiki's article of the day — picked by the date, so the stream, the
+ * in-game wiki and Discord agree; level-0 pages only. ⚠ Needs the wiki's
+ * public route (wiki-foundation), which also settles the URL shape.
+ */
+export interface WikiArticle {
+  title: string;
+  /** What the page is about, when it is a typed subject. */
+  kind: 'mixin' | 'command' | 'template' | null;
+  /** The page's own lead paragraph — `**bold**` and `` `code` `` only. */
+  lead: string;
+  url: string;
+}
+
 export interface Show {
   /** The current segment — the topic line. */
   topic: string | null;
@@ -112,6 +126,7 @@ export interface Show {
   build: Build | null;
   money: Money | null;
   community: Community | null;
+  wikiOfDay: WikiArticle | null;
 }
 
 const EMPTY: Show = {
@@ -124,6 +139,7 @@ const EMPTY: Show = {
   build: null,
   money: null,
   community: null,
+  wikiOfDay: null,
 };
 
 /** The money is the channel's, so every profile's mock carries it. */
@@ -181,6 +197,14 @@ const MOCK_SAXONBERG: Show = {
   build: { at: Date.now() - 1.3 * 86_400_000 },
   money: MOCK_MONEY,
   community: MOCK_COMMUNITY,
+  // A real page from wiki-starter; the URL shape is a placeholder.
+  wikiOfDay: {
+    title: 'Perceptible',
+    kind: 'mixin',
+    lead:
+      'The capability of **being addressable by a word** — keywords, and the one a thing answers to first. It is what makes `look lantern` find the lantern and `go north` find the way.',
+    url: 'https://mud.panterasbox.com/wiki/main/perceptible',
+  },
 };
 
 export default function useShow(profile: ShowProfile): Show {
