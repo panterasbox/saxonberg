@@ -30,7 +30,8 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 
 class Body extends Character {}
 
-const DAY = 86_400;
+// The provider is real ms at scale 1: a game day is this many of them.
+const DAY = 86_400_000;
 const PITCH = '/stuff/idea/material/bulk/pitch';
 
 const JOINTS: Record<string, Partial<JointDescriptor>> = {

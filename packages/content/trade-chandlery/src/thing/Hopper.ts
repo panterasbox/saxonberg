@@ -6,7 +6,10 @@
  * hopper`, and half a day later `pour hopper into kettle`. The leaching is
  * a maturation — the `lye-leach` profile — that this vessel runs ONLY
  * while there is ash in it (`matchProfile`: water in an empty hopper is
- * just water). The leach takes the ash's potash: the ash is spent.
+ * just water). ⭐ The water PERCOLATES down through the heaps (cordage W7,
+ * potash-on-sugar): each heap gives up its alkali as the water reaches
+ * down through it, over half a day, and is spent ash only once the water
+ * is through — read on the hopper's own reads (its seepers).
  *
  * ⚠ And it is TALL: drawing lye off it bare-handed splashes the face —
  * lye in the eyes, which blinds until it is rinsed (D23). Deterministic,
@@ -20,16 +23,10 @@ import type MaturationProfile from '@saxonberg/server/mud/lib/maturation/Maturat
 import MaturationProfileRef from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Percolating } from '@saxonberg/server/mud/lib/material/Percolating';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { AppApi } from '@saxonberg/server/mud/api/app';
-import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
-import { LyeStrength } from '@saxonberg/server/mud/lib/cleanliness/LyeStrength';
-import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
-import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContentsTitle } from '@saxonberg/server/mud/lib/chattel/ContentsTitle';
@@ -37,12 +34,6 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 
 /** The profile a hopper of water and ash runs. */
 const LEACH = 'lye-leach';
-/** What a leached heap leaves behind (potash D6). */
-const SPENT_ASH = '/trade/fuel/thing/spent-ash';
-/** A leached heap keeps this share of its mass as spent ash. */
-const SPENT_SHARE = 0.9;
-/** The alkali share assumed of an ash heap that does not say its own. */
-const UNSAID_STRENGTH = 0.1;
 
 export default class Hopper extends ContainerMixin(Vat) {
   /**
@@ -57,57 +48,25 @@ export default class Hopper extends ContainerMixin(Vat) {
       const m = MixinApi.isTangible(c) ? c.getMaterial() : null;
       return m?.hasTag('potash') ?? false;
     });
-    if (ash.filter((a) => !this.spending.has(a)).length === 0) return null;
+    if (ash.length === 0) return null;
     this.leach(ash);
     return MaturationProfileRef.byKey(LEACH);
   }
 
   /**
-   * ⭐⭐ The leach, derived (potash D6): the water takes the ash's alkali —
-   * each heap's mass × its strength — into its litres, less what a HARD
-   * water spends on its own lime (river water makes a weaker lye than
-   * rain), on top of whatever strength a lye poured back through already
-   * had. The heaps are spent, not gone: each leaves a heap of spent ash.
-   * The hopper takes the strength's grade, so the lye drawn off it carries
-   * the band (a pour carries the holder's grade).
+   * ⭐⭐ The leach (potash D6; percolating since cordage W7): the liquor in
+   * the hopper is put on the heaps — each takes its share of the litres by
+   * mass — and works down through them over half a day, each heap giving up
+   * its alkali as it goes (`Ash.onPercolated`). What this act decides NOW is
+   * whose the lye is: the communal-oven rule, read off the heaps' titles at
+   * the fill — a later read makes no claim.
    */
-  /** Heaps already leached and on their way to spent ash — never twice. */
-  private spending = new Set<Stuff>();
-
   private leach(heaps: Stuff[]): void {
     const litres = this.getBulkAmount('interior').rawValue();
     if (!(litres > 0)) return;
-    const ash = heaps.filter((h) => !this.spending.has(h));
+    const ash = heaps.filter((h): h is Stuff & Percolating => MixinApi.isPercolating(h) && !h.isDestroyed());
     if (ash.length === 0) return;
-    const alkaliPath = (() => {
-      try {
-        return AppApi.setting(AppSettingKeys.fireAshAlkaliMaterial) || '/stuff/idea/material/mineral/potash';
-      } catch {
-        return '/stuff/idea/material/mineral/potash';
-      }
-    })();
-    let alkaliKg = 0;
-    for (const heap of ash) {
-      const mass = MixinApi.isTangible(heap) ? heap.getMass().rawValue() : 0;
-      const strength = MixinApi.isComposition(heap) ? heap.fractionOf(alkaliPath) : UNSAID_STRENGTH;
-      alkaliKg += mass * strength;
-    }
     const payload = this.getBulkPayload('interior');
-    const dgh = payload?.hardnessDgh ?? 0;
-    const perDgh = (() => {
-      try {
-        const v = Number(AppApi.setting(AppSettingKeys.potashLyeHardnessWastePerDgh));
-        return Number.isFinite(v) && v > 0 ? v : 0.04;
-      } catch {
-        return 0.04;
-      }
-    })();
-    const kept = Math.max(0, 1 - perDgh * dgh);
-    // A lye poured back that nobody measured is taken at soap strength.
-    const carried =
-      payload?.dissolvedSolidsKgPerL ??
-      (this.getBulkMaterial('interior')?.getSolidsKgPerL() ?? 0);
-    const kgPerL = carried + (alkaliKg / litres) * kept;
     // ⭐ The lye is whose the ash was (the communal-oven rule): your heaps
     // in the ashery's hopper make your lye. Rain makes no claim; heaps of
     // two owners make it nobody's.
@@ -118,36 +77,19 @@ export default class Hopper extends ContainerMixin(Vat) {
     // ⭐ Nothing titled went in — the ashery's own store, rain: the lye is
     // whoever made it (the communal oven, completed by the live walk — free
     // ash made a lye nobody could ever sell). The one pouring or putting is
-    // the author of the act this leach is part of; a read makes no claim.
+    // the author of the act this leach is part of.
     const claim = title.claimed();
     const maker = claim === undefined ? (ExecutionContextApi.getCausingAuthor() as Stuff | null) : null;
     const contentsOwner =
       maker && maker.getIdentityPath()
         ? { kind: 'player' as const, templatePath: maker.getIdentityPath()! }
         : claim;
-    this.setBulkPayload('interior', {
-      ...(payload ?? {}),
-      dissolvedSolidsKgPerL: kgPerL,
-      contentsOwner,
-    });
-    this.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
+    this.setBulkPayload('interior', { ...(payload ?? {}), contentsOwner });
+    const totalKg = ash.reduce((sum, h) => sum + (MixinApi.isTangible(h) ? h.getMass().rawValue() : 0), 0);
     for (const heap of ash) {
-      this.spending.add(heap);
-      void this.spend(heap).finally(() => this.spending.delete(heap));
+      const kg = MixinApi.isTangible(heap) ? heap.getMass().rawValue() : 0;
+      heap.receivePercolant(totalKg > 0 ? (litres * kg) / totalKg : litres / ash.length);
     }
-  }
-
-  /** A leached heap becomes spent ash, the owner's still (made from it). */
-  private async spend(heap: Stuff): Promise<void> {
-    const mass = MixinApi.isTangible(heap) ? heap.getMass().rawValue() : 0;
-    try {
-      const spent = await StuffApi.clone<Stuff & Containable>(SPENT_ASH, undefined, { madeFrom: [heap] });
-      if (MixinApi.isTangible(spent) && mass > 0) spent.setMass(Quantity.of(mass * SPENT_SHARE, 'kg'));
-      ContainmentApi.move(spent, this as unknown as Stuff & Container);
-    } catch (err) {
-      console.warn(`Hopper: no spent ash at '${SPENT_ASH}':`, err);
-    }
-    await StuffApi.destruct(heap);
   }
 
   /**
@@ -167,6 +109,7 @@ export default class Hopper extends ContainerMixin(Vat) {
       return;
     }
     if (liquor.hasTag('water')) {
+      this.leach([thing]);
       const path = liquor.getTemplatePath();
       if (path) this.rekeyBatch(path);
     }

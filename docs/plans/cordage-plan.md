@@ -615,7 +615,18 @@ at the end of this plan.
 Acceptance: the drive passes 19 + 7a; the full suite (`tools/suite`) at code-complete; MR opens READY.
 Commit: `build(cordage W6): the drive and the docs`.
 
-### W7 — carried: potash-on-sugar's remainder (the owner, 2026-10-28: *roll it into cordage*)
+### W7 — carried: potash-on-sugar's remainder (the owner, 2026-10-28: *roll it into cordage*) ✅ (code; the timing step + docs ride W6)
+> **Done (item 1).** `Ash` composes kernel `PercolatingMixin`: `percolationDays` 0.5;
+> `percolatesInto` is OVERRIDDEN on `Ash` (the holder when it holds bulk) rather than a new kernel
+> rung, so the sugar loaf's mould/placement rule is untouched; `onPercolated` carries
+> `alkali × Δreach` (less hardness waste) into the liquor and re-grades it, and at reach 1 the heap
+> becomes spent ash where it lies. The hopper's `leach` now only stamps the lye's OWNER at the fill
+> (the communal-oven rule — a later read makes no claim) and puts the litres on the heaps by mass;
+> `spend()`/`spending` are gone. **Kernel:** a vessel's `reconcileSeepers` also brings a
+> `Percolating` thing in it current (ash in the hopper, a loaf on its pot) — load on use. The
+> `lye-leach` maturation profile is KEPT: it still re-keys water to lye; the strength is the
+> percolation's. Tests: soap.test hopper blocks now run a clock (real-ms provider at scale 1 — the
+> Rope rot test's day constant was in the wrong unit and is fixed).
 
 Sugar's build landed the mandatory half (`bc60d11a5`: lye's own `solidsKgPerL`, one dissolved-solids
 fold, the pot casting at saturation off the plateau). Two items are left, both in
