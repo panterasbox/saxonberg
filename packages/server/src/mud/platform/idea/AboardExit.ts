@@ -76,6 +76,16 @@ export default class AboardExit extends DeferredDestinationExit {
     }
   }
 
+  /** ⭐ The ship alongside NOW — what a landing reads (never the authored berth: a ship that has sailed lands nowhere). */
+  public override alongsideNow(): Ship | null {
+    return this.alongside();
+  }
+
+  public override async lyingAlongside(): Promise<Ship | null> {
+    await this.warm();
+    return this.alongside();
+  }
+
   /** The craft lying at this exit's node now, if any. */
   private alongside(): Ship | null {
     if (this.riverShip !== null) return this.alongsideOnRiver(this.riverShip);

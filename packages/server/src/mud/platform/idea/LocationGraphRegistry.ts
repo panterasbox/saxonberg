@@ -49,7 +49,7 @@ import {
   type GraphNode,
 } from '../../lib/location/GraphInvariants';
 import type { VetoResult } from '../../lib/errors';
-import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { EvictionContext, Stuff } from '../../lib/stuff/Stuff';
 
 /** Only the logic singleton may drive the registry. */
 const NavigationLogicOnly = SecurityPolicies.FromTemplate(
@@ -355,6 +355,44 @@ export default class LocationGraphRegistry extends Idea {
       probe = probe.slice(0, cut);
     }
     return [...out];
+  }
+
+  /**
+   * ⭐ Structures attached at RUNTIME (paint build, 2026-10-31) — a minted
+   * building with no row of its own (a holding's house, one per lot), keyed
+   * by its extent and held by INSTANCE: its template path is shared by
+   * every lot's house, so a path cannot name it. Beside the row-derived
+   * attachments, never instead of them; dropped when the building is.
+   */
+  private readonly liveStructures = new Map<string, Stuff>();
+
+  /** Attach a minted structure at its extent. */
+  @CallSecurity(NavigationLogicOnly)
+  public attachStructure(extent: string, structure: Stuff): void {
+    if (extent === '') return;
+    this.liveStructures.set(extent, structure);
+  }
+
+  /** Drop the runtime structure attached at `extent`, if it is `structure`. */
+  @CallSecurity(NavigationLogicOnly)
+  public detachStructure(extent: string, structure: Stuff): void {
+    const held = this.liveStructures.get(extent);
+    if (held !== undefined && held.stuffId === structure.stuffId) this.liveStructures.delete(extent);
+  }
+
+  /** The runtime structures attached at `path` or any ancestor of it. */
+  @CallSecurity(NavigationLogicOnly)
+  public liveStructuresAt(path: string): Stuff[] {
+    const out: Stuff[] = [];
+    let probe = path;
+    for (let depth = 0; depth < 64 && probe.length > 0; depth++) {
+      const s = this.liveStructures.get(probe);
+      if (s !== undefined && !s.isDestroyed()) out.push(s);
+      const cut = probe.lastIndexOf('/');
+      if (cut <= 0) break;
+      probe = probe.slice(0, cut);
+    }
+    return out;
   }
 
   /** anchor (a place, or an extent) → target → why it is attached. */

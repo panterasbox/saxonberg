@@ -74,7 +74,7 @@ import { Exposure, type Face } from '../spatial/Exposure';
 import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */

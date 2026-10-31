@@ -19,6 +19,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
+import { NavigationApi } from '../navigation';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
@@ -90,6 +91,13 @@ export function candidatesForHere(
         keywords: [direction],
         via: { exit },
       });
+    }
+    // ⭐ The buildings whose LANDING this is (paint build, 2026-10-31): a
+    // structure is an Idea, never in a room, so it enters the pool from
+    // where it meets the weather — `look cottage` from the lane, `paint
+    // hesper` from the quay — with no new seed.
+    for (const structure of NavigationApi.structuresLandedAtNow(location)) {
+      pushDirect(out, structure, viewer, attention);
     }
   }
 

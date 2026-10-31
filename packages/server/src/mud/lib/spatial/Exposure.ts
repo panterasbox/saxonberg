@@ -26,7 +26,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import type Exit from '../boundary/Exit';
 import type { ResolvedEnclosure } from './Enclosed';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 
 /** One face of a place's cube cell. */
 export interface Face {

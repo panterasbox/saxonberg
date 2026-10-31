@@ -60,7 +60,7 @@ import ExpanseNode from '../../platform/idea/ExpanseNode';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';

@@ -13,12 +13,28 @@ help: |
   WHOLE place rather than the one room, and adds two things only a home
   has: what shape the fabric is in, and who owes the upkeep.
 
+  Standing where a building meets the weather — the street before a
+  house, the quay a ship lies alongside — `survey <building>` reads its
+  OUTSIDE: the coat on it, what shape the fabric is in, how much wall
+  there is, and roughly how much paint the job would take.
+
   Nothing in the game is gated on any of this. A room nobody would call
   a kitchen works exactly as well as one anybody would; the survey is a
   mirror, not a score.
+args:
+  # ⭐ Optional: a building from its landing (paint build). Structures
+  # enter the `here` pool only where their outside is at hand, so the
+  # binder finds `cottage` from the lane and nowhere else.
+  - name: target
+    type: object
+    required: false
+    scope: ["reachable"]
+    requires: any
 examples:
   - cmd: survey
     note: Read the room — or, at home, the whole place
+  - cmd: survey cottage
+    note: From the lane, read the cottage's outside
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied

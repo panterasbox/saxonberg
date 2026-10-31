@@ -3,12 +3,14 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type Structure from '../Structure';
+import type Structure from '../../../lib/structure/Structure';
 import type { AttachmentKind } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
+import type Exit from '../../../lib/boundary/Exit';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
 import type { PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
@@ -62,15 +64,20 @@ function isStructure(s: Stuff): s is Stuff & Structure {
   return typeof c.hasMember === 'function' && typeof c.getExtent === 'function';
 }
 
-function innermostStructure(place: string, paths: readonly string[]): Structure | null {
+function innermostStructure(
+  place: string,
+  paths: readonly string[],
+  live: readonly Stuff[] = [],
+): Structure | null {
   let best: Structure | null = null;
-  for (const p of paths) {
-    // Structural: a value import of `Structure` here closes a module cycle.
-    const s = StuffApi.findByTemplatePath(p) as (Stuff & Partial<Structure>) | undefined;
-    if (!s || typeof s.hasMember !== 'function' || s.isDestroyed()) continue;
-    if (!isStructure(s) || !s.hasMember(place)) continue;
+  const consider = (s: Stuff | undefined): void => {
+    if (!s || s.isDestroyed()) return;
+    if (!isStructure(s) || !s.hasMember(place)) return;
     if (best === null || s.getExtent().length > best.getExtent().length) best = s;
-  }
+  };
+  // Structural: a value import of `Structure` here closes a module cycle.
+  for (const p of paths) consider(StuffApi.findByTemplatePath(p) as Stuff | undefined);
+  for (const s of live) consider(s);
   return best;
 }
 
@@ -304,15 +311,74 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAt}. */
   @CallSecurity(NavigationApiCallers)
   public async structureAt(path: string): Promise<Structure | null> {
-    const paths = (await registry()?.attachedTo(path, 'structure')) ?? [];
+    const reg = registry();
+    const paths = (await reg?.attachedTo(path, 'structure')) ?? [];
     await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
-    return innermostStructure(path, paths);
+    return innermostStructure(path, paths, reg?.liveStructuresAt(path) ?? []);
   }
 
   /** See {@link NavigationApi.structureAtNow}. */
   @CallSecurity(NavigationApiCallers)
   public structureAtNow(path: string): Structure | null {
-    return innermostStructure(path, registry()?.attachedNow(path, 'structure') ?? []);
+    return this.innermostNow(path);
+  }
+
+  private innermostNow(path: string): Structure | null {
+    const reg = registry();
+    return innermostStructure(path, reg?.attachedNow(path, 'structure') ?? [], reg?.liveStructuresAt(path) ?? []);
+  }
+
+  /** See {@link NavigationApi.attachStructure}. */
+  @CallSecurity(NavigationApiCallers)
+  public attachStructure(structure: Structure): void {
+    registry()?.attachStructure(structure.getExtent(), structure);
+  }
+
+  /** See {@link NavigationApi.detachStructure}. */
+  @CallSecurity(NavigationApiCallers)
+  public detachStructure(structure: Structure): void {
+    registry()?.detachStructure(structure.getExtent(), structure);
+  }
+
+  /** See {@link NavigationApi.structuresLandedAtNow}. */
+  @CallSecurity(NavigationApiCallers)
+  public structuresLandedAtNow(room: Stuff): Structure[] {
+    if (!MixinApi.isExitable(room)) return [];
+    const out = new Map<string, Structure>();
+    for (const exit of room.getExits().values()) {
+      const s = this.structureBeyond(exit, exit.alongsideNow());
+      if (s !== null && !out.has(s.stuffId) && s.isLandedAt(room)) out.set(s.stuffId, s);
+    }
+    return [...out.values()];
+  }
+
+  /** See {@link NavigationApi.structuresLandedAt}. */
+  @CallSecurity(NavigationApiCallers)
+  public async structuresLandedAt(room: Stuff): Promise<Structure[]> {
+    if (!MixinApi.isExitable(room)) return [];
+    for (const exit of room.getExits().values()) {
+      const alongside = await exit.lyingAlongside();
+      if (alongside !== null) continue;
+      const dest = exit.getDestinationTemplatePath();
+      if (!dest) continue;
+      const reg = registry();
+      const paths = (await reg?.attachedTo(dest, 'structure')) ?? [];
+      await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
+      const s = innermostStructure(dest, paths, reg?.liveStructuresAt(dest) ?? []);
+      // Load on use: the exit's authored destination is the ref we follow.
+      if (s !== null && exit.peekDestination() === null) {
+        await StuffApi.singleton(dest).catch(() => null);
+      }
+    }
+    return this.structuresLandedAtNow(room);
+  }
+
+  /** The structure on the far side of `exit` now — whoever lies alongside, else the one its destination is a member of. */
+  private structureBeyond(exit: Exit, alongside: Stuff | null): Structure | null {
+    if (alongside !== null) return isStructure(alongside) ? alongside : null;
+    const far = exit.peekDestination();
+    const path = (far?.getIdentityPath() ?? far?.getTemplatePath()) || exit.getDestinationTemplatePath();
+    return path ? this.innermostNow(path) : null;
   }
 
   /** See {@link NavigationApi.attachedWithinNow}. */
