@@ -21,9 +21,11 @@ leaks and sinking), compacted against the river build on 2026-10-24, and
 reviewed on 2026-10-31 against what merged since (pace, seats, law and order,
 guarantees of play, the soak lane) and the cordage build (MR !502).
 
-⚠ **Cordage merges first.** This build ties ships up with cordage's rope and
-crosses the same movement code; if harbors branches before !502 lands, it
-merges master after.
+**Cordage is in flight, not a dependency.** Its MR (!502) is open; this build
+neither waits for it nor assumes it lands first. Its whole branch is there to
+plan around: where harbors meets rope (her lines, a boat's painter, oakum,
+ropework), harbors stands on what master has and is shaped to meet cordage's
+rule — whichever of the two merges second reconciles.
 
 ## Staging — one build, two review rounds
 
@@ -66,7 +68,7 @@ A player can already (survey 2026-10-24):
   things that sink go to the bed; breath, buoyancy, swimming up.
 - **Disciplines**: navigation (explicitly not seamanship, not pilotage),
   carpentry, swimming, diving — and, from cordage, **ropework** (knots).
-- **Rope** (cordage, MR !502): one rope whose use is where its ends are tied
+- **Rope** (cordage, MR !502 — in flight, not yet on master): one rope whose use is where its ends are tied
   (`tie` / `untie`, `coil`, a line heaved only once coiled); the painter is a
   rope; worn and rotted rope sells back for less. The Wharfside heaving line
   is a rope; its bollard is only in the description.
@@ -315,8 +317,9 @@ Chartering the line's regulars is the same rows, if the line offers them.
 the quay's bollards**; any other course casts them off and takes them in.
 Lens 1 (lines hold a ship alongside, and making fast is seamanship) chose
 real lines over a prose abstraction; lens 2 kept the ordinary case at one
-command. The lines are rope from her own gear, under cordage's rule — their
-use is where their ends are tied: a ship with **no line aboard is refused**
+command. The lines are rope from her own gear — under cordage's rule, their use is
+where their ends are tied (whichever of the two builds lands second makes
+them the same rope): a ship with **no line aboard is refused**
 ("she has no lines to make fast"), and a line cast off a bollard by hand
 leaves her unmoored. The way aboard on the quay is **named for her** (`go
 hesper`) and her deck gains the way ashore. A ship alongside is mentioned by
@@ -639,8 +642,9 @@ the regulars' own movements are driven by wizard commands, never waited for.
 - Sugar (merged 2026-10-27, MR !439): its island-sugar loop meets this build
   at Waponi Woo, and its drive step 20 (now in its soak drive) gains the
   charter.
-- Cordage (MR !502, merges first): one rope, `tie`, the painter, ropework —
-  [cordage.md](../subsystems/cordage.md) once merged.
+- Cordage (MR !502, in flight — not a dependency): one rope, `tie`, the
+  painter, ropework — `docs/subsystems/cordage.md` on its branch
+  (`reqs/cordage`).
 - Doctrine this review applied: [workflow.md](../workflow.md) § No merge
   waits on the clock · [the pace slate](../slates/builds/pace-slate.md) (encounter and absence paces, *"'Day'
   means the world's day"*, its open question 4) · [the emergency-services
