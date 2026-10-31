@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import QRCode from 'qrcode';
 import type { Show } from '../../hooks/useShow';
 import { CHANNEL } from '../../show/channel';
-import { AtAvatar } from '../shared/Nameplate';
 import { palette } from '../../tokens/palette';
 import { FACE_STACKS } from '../../tokens/faces';
 
@@ -93,7 +92,13 @@ export const PANELS: PanelRow[] = [
         kicker="You're watching"
         title={`${CHANNEL.person} @ ${CHANNEL.studio}`}
         body="Follow on Twitch and YouTube"
-        aside={<AtAvatar size={140} />}
+        aside={
+          <img
+            src="/brand/panterasbox-hex-white.svg"
+            alt=""
+            style={{ width: 130, height: 130, display: 'block' }}
+          />
+        }
       />
     ),
   },

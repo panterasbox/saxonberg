@@ -214,8 +214,8 @@ export default function StandbyOverlay() {
           </div>
         </div>
 
-        {/* Who you are watching, tucked in the corner. */}
-        <div style={{ position: 'absolute', left: 40, bottom: 36 }}>
+        {/* Who you are watching, tucked in the corner, flush right. */}
+        <div style={{ position: 'absolute', right: 40, bottom: 36 }}>
           <Nameplate size="large" />
         </div>
       </div>

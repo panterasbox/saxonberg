@@ -90,7 +90,8 @@ export default function LiveOverlay() {
       </div>
 
       {/* The nameplate — who you are watching — on the camera, where the eye
-          goes to see who is talking. A dark strip so it reads on any frame. */}
+          goes to see who is talking, flush right in the canvas's corner. A
+          dark strip so it reads on any frame. */}
       <div
         style={{
           position: 'absolute',
@@ -99,9 +100,10 @@ export default function LiveOverlay() {
           width: CAMERA.width,
           height: 54,
           boxSizing: 'border-box',
-          padding: '0 12px',
+          padding: '0 14px',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'flex-end',
           background: 'linear-gradient(to top, rgba(4,11,23,0.88), rgba(4,11,23,0.6))',
         }}
       >
