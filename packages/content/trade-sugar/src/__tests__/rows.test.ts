@@ -46,7 +46,7 @@ describe('trade-sugar rows', () => {
   it('⭐ cane is an AREA crop that declines each ratoon (cover build)', () => {
     const cane = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/plant/cane'), 'utf8'));
     expect(cane.data.profile.seedRateKgPerM2).toBeGreaterThan(0);
-    expect(cane.data.profile.yieldRatio).toBeGreaterThan(1);
+    expect(cane.data.profile.yieldKgPerM2).toBeGreaterThan(cane.data.profile.seedRateKgPerM2);
     expect(cane.data.profile.yieldDeclinePerCycle).toBeGreaterThan(0);
     expect(cane.data.harvestTool).toBe('reaping');
     expect(cane.data.seedTemplatePath).toBeUndefined();
@@ -54,7 +54,7 @@ describe('trade-sugar rows', () => {
 
   it('⭐ cane is planted from cut cane: the bundle grows into the plant', () => {
     const bundle = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/crop/cane'), 'utf8'));
-    expect(bundle.class).toBe('/trade/sugar/thing/CaneBundle');
+    expect(bundle.class).toBe('/platform/thing/PlantableCrop');
     expect(bundle.data.growsIntoPath).toBe('/trade/sugar/thing/plant/cane');
   });
 
@@ -63,10 +63,12 @@ describe('trade-sugar rows', () => {
     const cane = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/plant/cane'), 'utf8'));
     const bundle = YAML.parse(readFileSync(rowFile('/trade/sugar/thing/crop/cane'), 'utf8'));
     expect(knife.data.capabilities).toContain('reaping');
-    const kg = knife.data.swathM2 * cane.data.profile.seedRateKgPerM2 * cane.data.profile.yieldRatio;
-    // One bundle and a bit — never three (they froze every cutter).
+    // A stroke in a perfect season — the most a stand can give (its yield is
+    // the attainable figure × its condition). About a bundle in a well-kept
+    // piece; never three (they froze every cutter).
+    const kg = knife.data.swathM2 * cane.data.profile.yieldKgPerM2;
     expect(kg / bundle.data.mass).toBeGreaterThanOrEqual(1);
-    expect(kg / bundle.data.mass).toBeLessThan(2);
+    expect(kg / bundle.data.mass).toBeLessThan(3);
   });
 
   it('every extends names a shipped parent', () => {

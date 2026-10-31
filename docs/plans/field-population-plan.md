@@ -2149,3 +2149,35 @@ stage server on 2014 was stopped by PID.
   patch: trial 5 · gate end 4 · sample 4. Harvest: gate end
   *exceptional*, far side *poor*. Step 13 still meets the known gap (a
   drive handle reaches no dorm-room starter pot).
+
+### Review round — seed (2026-10-31, the owner: "let's do 1–3")
+
+The owner asked how much seed a field needs, whether last season leaves
+any, whether players can supply it, and whether buying at scale is the
+same as for a pot. Talked through first (husbandry § the area crop, and
+`seed-and-propagation-slate.md`):
+
+- **D20 — threshed grain is seed.** Wheat and barley sacks are
+  `PlantableCrop` (`PlantableMixin(Crop)`, kernel `platform/thing/`) and
+  name `growsIntoPath`; `sow` takes them as it takes bought seed. Cut cane
+  was already this composition as the sugar pack's `CaneBundle`, which is
+  retired onto the kernel class: two packs that share no ancestor compose
+  it (CLAUDE.md § module categories). Lens 1 (eat it or sow it) and lens 2.
+  The Delight's farm shelf, which consigns the barn's sacks, becomes the
+  at-scale seed seller with no new code.
+- **D21 — yield from area and condition, not seed.** `yieldRatio` is
+  replaced by `yieldKgPerM2`, the attainable yield of a perfect season;
+  the cut gives that × vigor (the stand's held condition) × the ratoon
+  decline. The seed-to-yield ratio is now derived per field. Lens 1: the
+  agricultural revolution's levers (nitrogen, rotation, manure) move it.
+  No new state.
+- **D22 — the seed drill.** `ToolMixin.seedFactor` (beside `swathM2`;
+  "seed per acre is the tool's number"); `sow`'s optional `drill` arg
+  defaults to a `drilling` tool within reach; the row sows 600 m² a pass
+  at 0.5 of the broadcast rate, stamped `industrial`, standing in the
+  campus home field beside the plough. Lens 5: the same verb, a better
+  tool.
+- **Deferred** to `seed-and-propagation-slate.md`: volunteers and shed
+  grain (the owner: weeds can wait), seed set by a crop left standing,
+  fiber-or-seed timing, viability, seed dressing, varieties and hybrids, a
+  seed merchant.

@@ -528,7 +528,7 @@ describe('GrowingMixin — field population seams', () => {
     // read (the browser walk: the entry look and the card listed "a stand
     // of wheat" three times over — only `look` had the rule).
     const ground = makeStuff(() => new PartedGround());
-    const stand = fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 });
+    const stand = fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 });
     stand.setSownAreaM2(500);
     const plant = fixture();
     ContainmentApi.move(stand, ground);
@@ -574,7 +574,7 @@ describe('GrowingMixin — field population seams', () => {
     const ground = makeStuff(() => new PartedGround());
     ground.parts = [top, lane];
     const sown = (part: string): GrowFixture => {
-      const f = fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 });
+      const f = fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 });
       f.setSownAreaM2(500);
       f.setGroundPart(part);
       f.setHarvestTemplatePath('/test/crop/grain');
@@ -663,7 +663,7 @@ describe('GrowingMixin — field population seams', () => {
   });
 
   it('takeSpecimen copies the growth and stamps the read; uncut, it stays a living plant', async () => {
-    const f = makeStuffAtPathOf(fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 }));
+    const f = makeStuffAtPathOf(fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 }));
     f.setSownAreaM2(500);
     f.setSpecimenNoun('stem of grain');
     f.getVigor();
@@ -685,7 +685,7 @@ describe('GrowingMixin — field population seams', () => {
     // Light at 0.4 of happy: under the good mark (0.6), well above death.
     const stressed = { litresPerGameDay: 0, luxHappyAt: 1000, luxDarkAt: 0 };
     const stand = makeStuffAtPathOf(
-      fixture({ ...stressed, seedRateKgPerM2: 0.015, yieldRatio: 20 }),
+      fixture({ ...stressed, seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 }),
     );
     stand.setSownAreaM2(500);
     stand.luxOverride = 400;
@@ -789,7 +789,7 @@ describe('GrowingMixin — the stand reads at the viewer\'s band', () => {
   }
 
   function dryStand(): GrowFixture {
-    const f = fixture({ seedRateKgPerM2: 0.015, yieldRatio: 20 });
+    const f = fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 });
     f.setSownAreaM2(500);
     f.getVigor();
     setNow(40 * DAY); // dry — something is short, and the cause is water

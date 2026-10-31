@@ -829,13 +829,32 @@ optional third:
 
 | field | meaning |
 |---|---|
-| `seedRateKgPerM2` | the seed a broadcast sowing spends — and the marker: no rate, *planted one at a time* |
-| `yieldRatio` | the yield-to-seed ratio every agrarian history quotes (wheat 6, barley 7, cane 10) |
+| `seedRateKgPerM2` | the seed a hand broadcast spends — and the marker: no rate, *planted one at a time* |
+| `yieldKgPerM2` | what a square metre gives in a PERFECT season (wheat 0.25, about 2.5 t/ha; barley 0.27; cane 10) |
 | `yieldDeclinePerCycle` | the share a ratoon loses each cycle (cane 0.12); absent = 0 |
 
-The standing crop at ripeness is `area × rate × ratio × (1 − decline)^cycles`
-kilograms — no yield table; a third of the seed sown is a third of the
-yield. `takeSwath(m²)` cuts and reports `{ kg, areaCut, last }`;
+The standing crop at ripeness is `area × yieldKgPerM2 × vigor ×
+(1 − decline)^cycles` kilograms: the attainable figure × the stand's
+condition at the cut (vigor, the running mean of what limited it all
+season, held from ripeness). ⭐ **The seed sown does not set the yield**
+(field population, 2026-10-31): the ground and the season do, so the
+seed-to-yield ratio every agrarian history quotes is DERIVED — about 4:1
+on thin ground broadcast by hand, three times that on a manured field
+with clover in the ley, double again sown with a drill. Before this a
+crop's yield was `area × rate × ratio`, so nitrogen, water and manure set
+only the grade, and a field sown twice as thick gave twice the crop.
+
+**Seed.** A crop whose harvest is its planting stock is a
+`PlantableCrop` (`PlantableMixin(Crop)`) that names its `growsIntoPath`:
+threshed wheat and barley, and cut cane. `sow` takes the sack off the
+harvest exactly as it takes a bought sack of seed, so *eat it or sow it*
+is a decision made with one good, and a farm's shelf is a seed seller at
+scale. A **seed drill** is a `Tool` with the `drilling` capability: `sow`
+uses one within reach, laying the crop in rows over its `swathM2` a pass
+at its `seedFactor` share of the broadcast rate (the drill row: 0.5,
+`industrial`). Crops whose seed is a different part or a different year
+(roots and biennials, flax and hemp, dye plants) are not modeled — the
+seed-and-propagation slate. `takeSwath(m²)` cuts and reports `{ kg, areaCut, last }`;
 `settleRatoon()` closes a ratoon's cycle (the whole area stands again,
 one cycle older). The farmer's words come off the stage — *just
 emerging · tillering · in ear · ripening · ripe* — and the area off the

@@ -57,6 +57,15 @@ export interface Tooled {
   getSwathM2(): number;
   setSwathM2(value: number): void;
   /**
+   * ⭐ The share of a crop's broadcast seed rate this tool sows at — a
+   * seed drill lays the seed in rows at about half what a hand casts
+   * (Tull, 1701), for the same crop. `1` = not a sowing tool, or one that
+   * spends what a hand does. *Seed per acre is the tool's number; yield
+   * per acre is the ground's.*
+   */
+  getSeedFactor(): number;
+  setSeedFactor(value: number): void;
+  /**
    * ⭐ The craft this tool's finer use draws on, or `''`: pyrometric cones
    * are read by a POTTER's eye (a competent potter calls them by number),
    * not by the general awareness a thermometer's dial wants. A reading
@@ -75,6 +84,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
       capabilities: { persistent: true, authorable: true },
       epoch: { persistent: true, authorable: true },
       swathM2: { persistent: true, authorable: true },
+      seedFactor: { persistent: true, authorable: true },
       discipline: { persistent: true, authorable: true },
     };
 
@@ -100,6 +110,20 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
     setSwathM2(value: number): void {
       const n = Number(value);
       this.swathM2 = Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    /** The share of the broadcast seed rate this tool sows at; `1` = a hand's. */
+    public seedFactor = 1;
+
+    getSeedFactor(): number {
+      return this.seedFactor;
+    }
+
+    setSeedFactor(value: number): void {
+      const n = Number(value);
+      // (0, 1]: a tool that sows MORE seed than a hand is no improvement
+      // anybody built, and none sows nothing.
+      this.seedFactor = Number.isFinite(n) && n > 0 ? Math.min(1, n) : 1;
     }
 
     /** The craft this tool's finer use draws on; `''` = none. See {@link Tooled.getDiscipline}. */

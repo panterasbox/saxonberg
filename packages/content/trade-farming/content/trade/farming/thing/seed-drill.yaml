@@ -1,0 +1,33 @@
+# The seed drill — ⭐ the same crop on half the seed (field population).
+#
+# Jethro Tull's drill (1701) cut a row with a coulter, dropped the seed
+# into it from a hopper and covered it. Broadcast by hand, much of the
+# seed lies on the surface for the birds, so a hand casts about twice what
+# the crop needs. In rows it all goes in at depth: the same stand from
+# about half the seed.
+#
+# ⭐ `seedFactor: 0.5` is the whole mechanism. `sow` reads it off whatever
+# drill is within reach and spends the crop's broadcast rate × that, over
+# `swathM2` a pass. Yield is the ground's and the season's, so the
+# seed-to-yield ratio of a drilled field is twice a broadcast one's. That
+# is how a drill changed agriculture, and nothing here says so.
+#
+# The same verb as a hand broadcast (`sow wheat at <patch>`): a better
+# tool, not a new act. Stamped `industrial`, which is when drills became
+# common on farms.
+class: /platform/thing/Tool
+data:
+  keywords: [drill, "seed drill", "seed-drill", hopper, coulter]
+  shortDescription: seed drill
+  register: indefinite
+  longDescription: >-
+    A narrow wooden hopper on two wheels with three iron coulters hung
+    below it, each with a tube behind it that the seed runs down into the
+    cut. A long pair of shafts for a horse, or for somebody walking in
+    front of it bent double.
+  mass: 60
+  capabilities: ["drilling"]
+  swathM2: 600
+  seedFactor: 0.5
+  epoch: industrial
+  _materialPath: /stuff/idea/material/wood/ash

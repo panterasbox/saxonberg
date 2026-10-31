@@ -32,9 +32,9 @@ data:
     warmHappyK: 289
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
     daysToStage: { young: 16, established: 50, mature: 100 }
-    # ⭐ The field crop is two numbers (cover build D2): the seed rate a
-    # broadcast sowing spends, and the yield-to-seed ratio every agrarian
-    # history quotes. A third of a field's seed sows a third of it, and
-    # yields a third.
+    # ⭐ The field crop is two numbers (cover build D2, field population):
+    # the seed a hand broadcasts, and what a square metre gives in a
+    # PERFECT season. A stand gives that × its condition at the cut — the
+    # seed-to-yield ratio is derived, never authored (see wheat).
     seedRateKgPerM2: 0.016
-    yieldRatio: 7
+    yieldKgPerM2: 0.27

@@ -43,11 +43,12 @@ data:
     # sized to one.
     fruitSetCount: 1
     fruitFillDays: 120
-    # ⭐ The yield is two numbers (cover build D2): 0.8 kg of sett a square
-    # metre, ten times that back — about 80 tonnes a hectare, which is a
-    # plantation's figure. Each ratoon gives about an eighth less, so a
+    # ⭐ The yield is two numbers (cover build D2, field population): 0.8 kg
+    # of sett a square metre, and 10 kg back in a PERFECT season (100 t/ha;
+    # a stand gives that × its condition, so a well-kept piece cuts about a
+    # plantation's 60–80). Each ratoon gives about an eighth less, so a
     # piece cut five or six times is tired and wants grubbing out and
     # replanting from cut cane.
     seedRateKgPerM2: 0.8
-    yieldRatio: 10
+    yieldKgPerM2: 10
     yieldDeclinePerCycle: 0.12

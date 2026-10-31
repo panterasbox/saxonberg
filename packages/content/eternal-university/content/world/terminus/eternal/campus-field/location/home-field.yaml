@@ -86,6 +86,9 @@ data:
     # ⭐ The plough lives at the headland (cover build): too heavy to carry,
     # it is used where it lies.
     - /trade/farming/thing/plough
+    # ⭐ So does the seed drill (field population): `sow` finds it within
+    # reach and lays the crop in rows on half the seed.
+    - /trade/farming/thing/seed-drill
   # ⭐ The farm hand (field population D12) stands on the ground she keeps.
   cast:
     - /world/terminus/eternal/campus-farm/agent/farm-hand

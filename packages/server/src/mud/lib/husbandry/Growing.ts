@@ -185,13 +185,16 @@ export interface GrowthProfileData {
    */
   seedRateKgPerM2?: number;
   /**
-   * The yield-to-seed ratio — the number every agrarian history quotes
-   * (wheat about six, barley seven, cane about ten over its sett). The
-   * standing crop at ripeness is `sownAreaM2 × seedRateKgPerM2 ×
-   * yieldRatio`, so a third of the seed sown is a third of the yield and
-   * there is no yield table anywhere.
+   * ⭐ Kilograms a square metre gives in a PERFECT season — the crop's
+   * attainable yield (wheat 0.25, about 2.5 t/ha, the best pre-modern
+   * figure). What a stand actually gives is this × its condition at the
+   * cut, so nitrogen, water, light and roots set the harvest the way they
+   * set how it looks; the seed sown does not (a field sown twice as thick
+   * is not twice the crop). The yield-to-seed ratio every agrarian history
+   * quotes is therefore DERIVED — about 4:1 on thin ground broadcast by
+   * hand, far better on manured ground drilled — never authored.
    */
-  yieldRatio?: number;
+  yieldKgPerM2?: number;
   /**
    * The fraction of yield a ratoon loses each cycle it is cut and
    * regrows (cane about 0.12). Absent = 0: a coppice stool keeps its
@@ -1120,17 +1123,21 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * Kilograms one square metre gives at ripeness: seed rate × yield
-     * ratio, less the ratoon decline compounded over the cycles cut.
-     * Two row numbers and one optional third — no yield table.
+     * Kilograms one square metre gives at the cut: the crop's attainable
+     * yield × the stand's condition (its vigor — the running mean of what
+     * limited it all season, held from ripeness), less the ratoon decline
+     * compounded over the cycles cut. A stand that looks poor gives poorly.
      */
     private yieldPerM2(): number {
       const p = this.profile;
       if (!p) return 0;
-      const rate = p.seedRateKgPerM2 ?? 0;
-      const ratio = p.yieldRatio ?? 0;
+      const potential = p.yieldKgPerM2 ?? 0;
       const decline = clamp01(p.yieldDeclinePerCycle ?? 0);
-      return rate * ratio * Math.pow(1 - decline, Math.max(0, this._cycleCount));
+      return (
+        potential *
+        this.getVigor() *
+        Math.pow(1 - decline, Math.max(0, this._cycleCount))
+      );
     }
 
     public standingYieldKg(): number {

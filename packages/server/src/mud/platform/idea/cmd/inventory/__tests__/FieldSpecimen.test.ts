@@ -116,7 +116,7 @@ function wheatProfile(): GrowthProfileData {
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 },
     daysToStage: { young: 18, established: 55, mature: 110 },
     seedRateKgPerM2: 0.015,
-    yieldRatio: 6,
+    yieldKgPerM2: 0.09,
   };
 }
 

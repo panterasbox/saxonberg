@@ -24,6 +24,7 @@ import Plant from '../../../../thing/Plant';
 import Crop from '../../../../thing/Crop';
 import Seed from '../../../../thing/Seed';
 import Tool from '../../../../thing/Tool';
+import PlantableCrop from '../../../../thing/PlantableCrop';
 import Material from '../../../../../lib/material/Material';
 import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
 import { SoilMixin } from '../../../../../lib/husbandry/Soil';
@@ -148,7 +149,7 @@ function grainProfile(extra: Partial<GrowthProfileData> = {}): GrowthProfileData
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 },
     daysToStage: { young: 14, established: 42, mature: 84 },
     seedRateKgPerM2: 0.1,
-    yieldRatio: 5,
+    yieldKgPerM2: 0.5,
     ...extra,
   };
 }
@@ -317,6 +318,9 @@ describe('the area crop', () => {
     p.setSownAreaM2(areaM2);
     ContainmentApi.move(p, ground);
     (p as unknown as { growthStage: string }).growthStage = 'mature';
+    // A perfect stand: yield is the attainable figure × condition, so the
+    // arithmetic below reads at condition 1.
+    (p as unknown as { _vigor: number })._vigor = 1;
     return p;
   }
 
@@ -356,11 +360,11 @@ describe('the area crop', () => {
   });
 
   describe('the yield', () => {
-    it('is area × seed rate × yield ratio, and a swath takes its share', () => {
+    it('is area × attainable yield × condition, and a swath takes its share', () => {
       const { ground } = scene();
       const p = standingCrop(ground, 100);
       expect(p.isAreaCrop()).toBe(true);
-      expect(p.standingYieldKg()).toBeCloseTo(100 * 0.1 * 5);
+      expect(p.standingYieldKg()).toBeCloseTo(100 * 0.5);
       const cut = p.takeSwath(30);
       expect(cut.areaCut).toBe(30);
       expect(cut.kg).toBeCloseTo(15);
@@ -369,6 +373,18 @@ describe('the area crop', () => {
       const rest = p.takeSwath(1000);
       expect(rest.areaCut).toBe(70);
       expect(rest.last).toBe(true);
+    });
+
+    it('⭐ a stand in poor condition gives poorly — the seed sown does not set the yield', () => {
+      // The seed-to-yield ratio is DERIVED (field population): the same
+      // area at half the condition gives half, and a crop sown on half
+      // the seed (drilled) gives the same as a broadcast one.
+      const { ground } = scene();
+      const kept = standingCrop(ground, 100);
+      const poor = standingCrop(ground, 100);
+      (poor as unknown as { _vigor: number })._vigor = 0.5;
+      expect(poor.standingYieldKg()).toBeCloseTo(kept.standingYieldKg() / 2);
+      expect(kept.standingYieldKg()).toBeCloseTo(100 * 0.5);
     });
 
     it('a third of the area is a third of the yield', () => {
@@ -616,6 +632,52 @@ describe('the area crop', () => {
       expect(crop!.getSownAreaM2()).toBeCloseTo(30);
       expect(seed.isDestroyed()).toBe(true);
       expect(ground.titled).toBe(1);
+    });
+
+    it('⭐ threshed grain is seed: a sack off the harvest sows like a bought one', async () => {
+      const { giver, ground } = scene();
+      const grain = makeStuffAtPath(() => {
+        const g = new PlantableCrop();
+        g.setGrowsIntoPath(PLANT_PATH);
+        g.setMass(Quantity.of(3, 'kg'));
+        return g;
+      }, freshPath('/trade/farming/thing/crop/_grain'));
+      ContainmentApi.move(grain, giver);
+      await makeStuff(() => new PlantController()).execute(
+        { seed: one(grain, 'grain') } as ModelData as never,
+        makeContext(giver, ground, 'sow'),
+      );
+      await settle();
+      const crop = ground.getContents().find((s): s is Plant => s instanceof Plant);
+      expect(crop!.getSownAreaM2()).toBeCloseTo(30);
+      expect(grain.isDestroyed()).toBe(true);
+    });
+
+    it('⭐ a seed drill within reach sows its own swath on its share of the seed', async () => {
+      const { giver, ground } = scene();
+      const seed = makeSeed(100); // 100 kg: 1,000 m² broadcast, 2,000 drilled
+      ContainmentApi.move(seed, giver);
+      const drill = makeStuffAtPath(() => {
+        const t = new Tool();
+        t.setShortDescription('a seed drill');
+        t.setCapabilities(['drilling']);
+        t.setSwathM2(600);
+        t.setSeedFactor(0.5);
+        return t;
+      }, freshPath('/trade/farming/thing/_drill'));
+      ContainmentApi.move(drill, ground);
+      await makeStuff(() => new PlantController()).execute(
+        { seed: one(seed, 'seed'), drill: one(drill, 'drill', 'with') } as ModelData as never,
+        makeContext(giver, ground, 'sow'),
+      );
+      await settle();
+      const crop = ground.getContents().find((s): s is Plant => s instanceof Plant);
+      // One pass is the drill's swath, not the hand's 400 m².
+      expect(crop!.getSownAreaM2()).toBeCloseTo(600);
+      // 600 m² at 0.1 × 0.5 = 30 kg spent, 70 kg left.
+      expect(
+        (seed as unknown as { getMass(): Quantity<'kg'> }).getMass().rawValue(),
+      ).toBeCloseTo(70);
     });
 
     it('one cast covers the hand area; a later cast widens the crop', async () => {

@@ -47,9 +47,12 @@ data:
     warmHappyK: 291
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
     daysToStage: { young: 18, established: 55, mature: 110 }
-    # ⭐ The field crop is two numbers (cover build D2): the seed rate a
-    # broadcast sowing spends, and the yield-to-seed ratio every agrarian
-    # history quotes. A third of a field's seed sows a third of it, and
-    # yields a third.
+    # ⭐ The field crop is two numbers (cover build D2, field population):
+    # the seed a hand broadcasts (150 kg a hectare — a drill sows about
+    # half), and what a square metre gives in a PERFECT season (2.5 t/ha,
+    # the best pre-modern figure). A stand gives that × its condition at
+    # the cut, so the seed-to-yield ratio is derived: about 4:1 on the
+    # bench's thin top end broadcast by hand, three times that on a
+    # manured field, double again drilled.
     seedRateKgPerM2: 0.015
-    yieldRatio: 6
+    yieldKgPerM2: 0.25

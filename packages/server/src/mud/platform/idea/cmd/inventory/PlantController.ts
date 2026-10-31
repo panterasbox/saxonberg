@@ -39,6 +39,7 @@ import { EmploymentApi } from '../../../../api/employment';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Quantity } from '../../../../lib/quantity';
 import { PLANT_SLOT } from '../../../../lib/husbandry/Cultivable';
+import type { Tooled } from '../../../../lib/craft/Tooled';
 import type { Soil } from '../../../../lib/husbandry/Soil';
 import type { Plantable } from '../../../../lib/husbandry/Plantable';
 import type { Growing } from '../../../../lib/husbandry/Growing';
@@ -54,6 +55,8 @@ interface PlantModel extends CommandModel {
   pot?: MqlOneResult;
   /** `at <patch>` — which part of a divided field to sow (D5). */
   patch?: MqlOneResult;
+  /** A seed drill within reach — sows in rows at its own seed rate. */
+  drill?: MqlOneResult;
 }
 
 /** Numeric AppSetting read, falling back to the seeded literal. */
@@ -131,11 +134,13 @@ export default class PlantController extends EngagedActController<PlantModel> {
         context.note({ kind: 'empty-result', field: 'patch', query: patchRaw });
         return;
       }
+      const drill = model.drill?.stuff ?? null;
       await this.sowGround(
         context,
         seed,
         ground,
         patch && MixinApi.isSoil(patch) ? patch : null,
+        drill && MixinApi.isTool(drill) && drill.hasCapability('drilling') ? drill : null,
       );
       return;
     }
@@ -318,6 +323,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
     seed: Stuff & Plantable,
     ground: Stuff & Soil & Container,
     patch: (Stuff & Soil) | null,
+    drill: (Stuff & Tooled) | null,
   ): Promise<void> {
     const giver = context.commandGiver;
     const growsInto = seed.getGrowsIntoPath();
@@ -398,7 +404,9 @@ export default class PlantController extends EngagedActController<PlantModel> {
       fresh = made;
       crop = made;
     }
-    const rate = crop.getProfile()?.seedRateKgPerM2 ?? 0;
+    const broadcast = crop.getProfile()?.seedRateKgPerM2 ?? 0;
+    // ⭐ A drill lays the same crop in rows on its own share of the seed.
+    const rate = broadcast * (drill ? drill.getSeedFactor() : 1);
     if (!(rate > 0)) {
       if (fresh) await StuffApi.destruct(fresh);
       this.decline(
@@ -415,11 +423,10 @@ export default class PlantController extends EngagedActController<PlantModel> {
       0,
       groundM2 - (standing ? standing.getSownAreaM2() : 0),
     );
-    const area = Math.min(
-      dial(AppSettingKeys.husbandrySowHandM2, 400),
-      seedKg / rate,
-      free,
-    );
+    const pass = drill && drill.getSwathM2() > 0
+      ? drill.getSwathM2()
+      : dial(AppSettingKeys.husbandrySowHandM2, 400);
+    const area = Math.min(pass, seedKg / rate, free);
     if (!(area >= 1)) {
       if (fresh) await StuffApi.destruct(fresh);
       this.decline(
@@ -437,10 +444,16 @@ export default class PlantController extends EngagedActController<PlantModel> {
     this.engageAct(context, {
       durationMs: Math.round(3000 + area * 10),
       cost: 5,
-      beginSelf: part
-        ? Mml.compose`You walk ${Mml.thing(part)}, casting ${Mml.thing(seed)} in wide arcs.`
-        : Mml.compose`You walk the ground, casting ${Mml.thing(seed)} in wide arcs.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} walks the ground, broadcasting seed.`,
+      beginSelf: drill
+        ? part
+          ? Mml.compose`You take ${Mml.thing(drill)} down ${Mml.thing(part)}, the coulters laying ${Mml.thing(seed)} in rows.`
+          : Mml.compose`You take ${Mml.thing(drill)} down the ground, the coulters laying ${Mml.thing(seed)} in rows.`
+        : part
+          ? Mml.compose`You walk ${Mml.thing(part)}, casting ${Mml.thing(seed)} in wide arcs.`
+          : Mml.compose`You walk the ground, casting ${Mml.thing(seed)} in wide arcs.`,
+      beginPeers: drill
+        ? Mml.compose`${Mml.actor(giver)} works a seed drill down the ground.`
+        : Mml.compose`${Mml.actor(giver)} walks the ground, broadcasting seed.`,
       onComplete: () => {
         // ⚠⚠ A MODULE function: this controller is destructed the
         // moment `execute` returns.

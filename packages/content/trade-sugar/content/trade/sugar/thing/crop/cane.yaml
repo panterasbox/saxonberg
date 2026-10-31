@@ -2,7 +2,7 @@
 # ⭐ And it is what cane is PLANTED from (cover build D15): lengths of
 # stalk laid in a ploughed furrow sprout at every joint, so `sow cane`
 # with a bundle in hand starts a new piece. No sett row, no new act.
-class: /trade/sugar/thing/CaneBundle
+class: /platform/thing/PlantableCrop
 data:
   shortDescription: bundle of cut cane
   keywords: [cane, "cut cane", bundle, "bundle of cut cane", stalks]

@@ -58,3 +58,14 @@ args:
     scope: "reachable"
     prepositions: [in, into, on, over]
     requires: [VisibleMixin, CultivableMixin|SoilMixin]
+  # ⭐ A SEED DRILL, when one stands within reach (field population, the
+  # drill): it lays the seed in rows at its own share of the crop's rate,
+  # over its own swath a pass. With none, the seed is broadcast by hand.
+  # The default finds it the way `harvest` finds its sickle.
+  - name: drill
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.drilling]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

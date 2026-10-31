@@ -67,9 +67,13 @@ describe("wheat has the five rows a cereal needs", () => {
   it("the crop is a discrete sack, the same shape barley's is", () => {
     const wheat = data(join(FARMING, "thing", "crop", "wheat.yaml"));
     const barley = data(join(FARMING, "thing", "crop", "barley.yaml"));
-    expect(wheat.__class).toBe("/platform/thing/Crop");
+    // ⭐ A crop that is also its own seed (field population): threshed
+    // grain is kept back and sown, so both name what they grow into.
+    expect(wheat.__class).toBe("/platform/thing/PlantableCrop");
     expect(wheat.__class).toBe(barley.__class);
     expect(wheat.mass).toBe(barley.mass);
+    expect(wheat.growsIntoPath).toBe("/trade/farming/thing/plant/wheat");
+    expect(barley.growsIntoPath).toBe("/trade/farming/thing/plant/barley");
   });
 });
 
