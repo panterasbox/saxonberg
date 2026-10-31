@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**402 slates.** 149 greenfield · 107 continuations · 67 waves · 79 tails.
+**403 slates.** 150 greenfield · 107 continuations · 67 waves · 79 tails.
 
-## ⭐ Greenfield — nothing shipped yet (149)
+## ⭐ Greenfield — nothing shipped yet (150)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -172,6 +172,7 @@ respect.
 | [sleep](./builds/sleep-slate.md) | the wake reconcile (state at logout + time away) across every body clock · rest quality from bed, how kept, what you wore, the room's heat · what a night soils · pyjamas as a consequence, never a chore … |
 | [smoking](./builds/smoking-slate.md) | inhalation as a route · nicotine and THC as substance rows · dependence (tolerance, craving, withdrawal, free recovery) · lungs through `wind` and the silent exposure stock … |
 | [stage-and-simulation](./builds/stage-and-simulation-slate.md) | Coordinated Metaversal Time as the one arrow · derived locality clocks and their registry · every age a date with one owner · role age, aged by recasting … |
+| [staging](./builds/staging-slate.md) | the Staging Idea (parts, nesting, cadence) · a member's identity as (staging, part), stamped on the instance · restaging as reconciliation, wherever a part now is · named sets … |
 | [standing-instructions](./builds/standing-instructions-slate.md) | the whole of it — first, *may a player automate labour at all?* |
 | [steam-engine](./builds/steam-engine-slate.md) | ⭐⭐⭐ **the Carnot bound** as the second un-authorable invariant (and `arcane-science.md` has already ratified it for magic, so this is its first non-magical consumer) · ⭐⭐⭐ **shaft work as a coupling** — the thing nothing in the realm has, since traction couples to a cart and nothing else · the four rungs (atmospheric → separate condenser → high pressure → rotative) as rows · ⭐⭐ **fuel as a standing bill**, which is why the first engine belongs at a pithead and the second one does not … |
 | [stratigraphy-and-finds](./builds/stratigraphy-and-finds-slate.md) | ⭐ lore as evidence through finds and the museum · stratigraphy as a reading (index fossils for the surveyor; context as information) · fossils as nature's moulds and casts, seeded and exposed by digging and erosion · their uses (survey, coprolite fertilizer, collectors, gems) … |
