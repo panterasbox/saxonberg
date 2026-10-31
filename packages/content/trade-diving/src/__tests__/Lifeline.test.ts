@@ -141,6 +141,9 @@ describe('a mooring line (harbors P6)', () => {
     const end = quay.getContents().find((c) => c instanceof LineEnd) as LineEnd;
     expect(end).toBeDefined();
     expect(end.getShortDescription()).toBe('line from the Hesper');
+    // ⚠ Never her bare name: `hesper` is the way aboard her (drive run 5).
+    expect(end.getKeywords()).not.toContain('hesper');
+    expect(end.getKeywords()).toContain('hesper line');
     expect(end.getRoundBollard()).toBe(bollard);
     expect(line.isMadeFast()).toBe(true);
     expect(line.madeFastTo()).toBe(bollard);
