@@ -4,7 +4,7 @@ import type { Arrival, Community, Money, Show, WikiArticle } from '../../hooks/u
 import ServiceGlyph, { type Platform } from '../shared/ServiceGlyph';
 import { CHANNEL } from '../../show/channel';
 import AtAvatar from '../shared/AtAvatar';
-import { currentProfile } from '../../show/profiles';
+import ScreenGuide from './ScreenGuide';
 import repoStats from 'virtual:repo-stats';
 import useGitLab, { GITLAB_PROJECT } from '../../hooks/useGitLab';
 import { palette } from '../../tokens/palette';
@@ -107,7 +107,7 @@ export const PANELS: PanelRow[] = [
     weight: 2,
     seconds: 18,
     when: () => true,
-    render: () => <WhatPanel />,
+    render: (show) => <ScreenGuide client={show.client} />,
   },
 ];
 
@@ -997,66 +997,3 @@ function CompactPanel() {
   );
 }
 
-/**
- * "What is this?" — for someone who arrives mid-stream: what the game is
- * (the owner's one sentence) and what the stream is. Nothing the other cards
- * or the sidebar already carry (the topic, the Compact, the URL).
- */
-function WhatPanel() {
-  const profile = currentProfile();
-  const label = {
-    fontFamily: FACE_STACKS.display,
-    fontWeight: 500,
-    fontSize: 16,
-    letterSpacing: '0.19em',
-    textTransform: 'uppercase',
-    color: palette.accent,
-  } as const;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 48 }}>
-      <div style={{ flex: '1.6 1 0', minWidth: 0 }}>
-        <div style={label}>What is this?</div>
-        <div
-          style={{
-            fontFamily: FACE_STACKS.display,
-            fontWeight: 500,
-            fontSize: 36,
-            lineHeight: 1.15,
-            color: palette.text.fg,
-            marginTop: 6,
-          }}
-        >
-          {profile.pitch}
-        </div>
-      </div>
-      <div
-        style={{
-          flex: '1 1 0',
-          minWidth: 0,
-          alignSelf: 'stretch',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          borderLeft: `1px solid ${palette.line}`,
-          paddingLeft: 32,
-        }}
-      >
-        <div style={{ ...label, color: palette.text.dim }}>The stream</div>
-        <div
-          style={{
-            fontFamily: FACE_STACKS.chrome,
-            fontSize: 24,
-            lineHeight: 1.3,
-            color: palette.text.fg,
-            marginTop: 6,
-          }}
-        >
-          {CHANNEL.person} builds it live and talks through the work.
-        </div>
-        <div style={{ fontFamily: FACE_STACKS.chrome, fontSize: 20, color: palette.text.dim, marginTop: 4 }}>
-          {CHANNEL.schedule}
-        </div>
-      </div>
-    </div>
-  );
-}

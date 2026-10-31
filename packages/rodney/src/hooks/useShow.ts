@@ -108,6 +108,21 @@ export interface WikiArticle {
   url: string;
 }
 
+/**
+ * What the streamer's own client is doing — facts its client reports on the
+ * feed (broadcast-ready requirements: the foreground, the mode; the verb is a
+ * proposed addition — the verb only, never its arguments). The screen guide
+ * points at whatever is live.
+ */
+export interface ClientFacts {
+  /** Saxonberg in front, another tab in that window, or another app. */
+  foreground: 'saxonberg' | 'other-tab' | 'other-app';
+  /** The client's mode: explore, chat, watch, build, govern. */
+  mode: 'explore' | 'chat' | 'watch' | 'build' | 'govern';
+  /** The verb of the streamer's last command, e.g. "look". */
+  lastVerb: string | null;
+}
+
 export interface Show {
   /** The current segment — the topic line. */
   topic: string | null;
@@ -127,6 +142,7 @@ export interface Show {
   money: Money | null;
   community: Community | null;
   wikiOfDay: WikiArticle | null;
+  client: ClientFacts | null;
 }
 
 const EMPTY: Show = {
@@ -140,6 +156,7 @@ const EMPTY: Show = {
   money: null,
   community: null,
   wikiOfDay: null,
+  client: null,
 };
 
 /** The money is the channel's, so every profile's mock carries it. */
@@ -204,6 +221,14 @@ const MOCK_SAXONBERG: Show = {
     lead:
       'The capability of **being addressable by a word** — keywords, and the one a thing answers to first. It is what makes `look lantern` find the lantern and `go north` find the way.',
     url: 'https://mud.panterasbox.com/wiki/main/perceptible',
+  },
+  // `?fg=other-tab`, `?mode=build`, `?verb=smelt` vary it for preview.
+  client: {
+    foreground: (new URLSearchParams(window.location.search).get('fg') ??
+      'saxonberg') as ClientFacts['foreground'],
+    mode: (new URLSearchParams(window.location.search).get('mode') ??
+      'explore') as ClientFacts['mode'],
+    lastVerb: new URLSearchParams(window.location.search).get('verb') ?? 'look',
   },
 };
 
