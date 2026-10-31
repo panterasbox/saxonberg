@@ -2217,3 +2217,14 @@ with the drill, a staged cut). It found what the wire drives could not:
 - **test:near after the walk fixes** found a latent warmth-slot bug B43
   had turned into a runaway (PlantVerbs out of heap): a walk that settled
   without awaiting left its promise recorded forever (dbc016c81).
+- **Final blocking runs, on the seed build and the walk fixes:**
+  field population **14/14**; cover **17/17**. Fixes the runs needed were
+  the drives' own: step 9 stages the other patches full (the campus hand
+  fed the gate end mid-step); cover step 16 is staged — the founder's own
+  body forks the cuts by player verbs (the trough is the farm's fixture,
+  out of the field parcel's eval reach), and the cover drive's eval helper
+  now fails on an eval error (a boundary refusal had passed silently and
+  the step passed on the farm hand's hay). ⚠ Finding for the encumbrance
+  owner: after a day's work and a night's rest the drive's hand could not
+  lift a 5 kg cut of hay; the founder's fresh body lifted three.
+- `test:near` green (server 358 files + 8 packs); lint family 85/85.
