@@ -1,4 +1,4 @@
-# Paint — requirements
+# Paint and adhesives — requirements
 
 **Kind:** feature
 **Leads from:** kernel. The substrate is a building's outside: where you stand to reach it, the coat
@@ -9,7 +9,9 @@ A building in this realm says *"the paint has gone; rain has gotten into the sil
 paint. Behind the line is one number per home that falls in a straight line. This build makes the
 line true. A building's outside is a stack of coats that weathers where the building meets the
 weather. Paint is a pigment in a binder, made from things the world already produces, and putting
-it on is how a building is kept. Seeded by the [paint slate](../slates/builds/paint-slate.md);
+it on is how a building is kept. ⭐ **A binder is an adhesive** — it glues pigment to a surface — so
+the build takes adhesives whole: glues made from what ships, one setting model for a coat and a
+glue line, and the glued joint made real. Seeded by the [paint slate](../slates/builds/paint-slate.md);
 designed with the owner on 2026-10-31.
 
 ## What already exists
@@ -33,6 +35,10 @@ designed with the owner on 2026-10-31.
   clay carrying goethite; chalk; soot in flues; malachite; copper; lead; wine vinegar; madder and
   alum; Scots pine, standing in Hanging Wood; the tappable tree and the `tap` verb (maple, birch);
   the still and its cut schedules; `mill`, `pour`, `stir`; `write` on a surface that bears marks.
+- **Glue** exists only as a kind of joint (`glued`): *"anybody can smear it on"* — it uses up
+  nothing, no glue material exists, and no content uses it. The rendering slate holds glue and
+  gelatin with *"nothing demands them"*. A cask's joints already slacken as it dries out, read
+  on look ([assembly.md](../subsystems/assembly.md)).
 - **Hazards that ship:** the hay fire (a heap that warms itself until it catches); an acute lead
   condition (the chronic kind was deferred).
 - **Restaging:** every reboot re-applies staged content from its rows.
@@ -41,7 +47,8 @@ designed with the owner on 2026-10-31.
 Therefore what is genuinely new here is: **a building's outside as something you can stand beside
 and act on; a coat that weathers and is replaced; the shell for every building, not just homes;
 paint as pigment in a binder; resin and turpentine; the slow lead poison and the smoldering rag;
-and the colorman's trade at Wharfside.**
+adhesives — glues made, a glue line that sets and fails by its surroundings; and the colorman's
+trade at Wharfside.**
 
 ## Goals
 
@@ -57,6 +64,8 @@ and the colorman's trade at Wharfside.**
 - The paint and the job are counted: survey tells the area and how much paint it takes.
 - A coat shows its color; a pigment that fades in light fades the coat.
 - Resin is tapped from pine, distilled into turpentine and rosin, and made into varnish.
+- Glue is made from what ships, sets by the same rules as paint, and a glued joint uses it up,
+  holds by it, and fails by it — in the damp, in the heat, or because it was disturbed before it set.
 - Painting can hurt you, in three derivable ways: lead white poisons slowly, oily rags in a heap
   catch fire, turpentine fumes in a closed room make you ill.
 - A colorman sells paint at Wharfside, a house painter keeps the town's buildings, and a
@@ -76,6 +85,10 @@ and the colorman's trade at Wharfside.**
   keeps a staged outside out of the captured state, so a restage resets it.
 - **Moving Structure's and Ship's existing subclass state into mixins** → the owner's own pass;
   this build adds its capabilities as mixins and moves nothing that ships.
+- **Paper sizing and bookbinding** → [paper and printing slate](../slates/builds/paper-and-printing-slate.md),
+  which gets its glue from this build.
+- **Lime mortar as an adhesive** → [masonry and concrete slate](../slates/builds/masonry-and-concrete-slate.md).
+- **Veneer, marquetry and glued furniture** → [carpentry slate](../slates/builds/carpentry-slate.md).
 - **Galvanizing** → [metal-chain slate](../slates/builds/metal-chain-slate.md) (zinc).
 - **Resin as light** (the dipped brand, the light ladder) →
   [tapping slate](../slates/tails/tapping-slate.md). This build taps resin for paint.
@@ -85,12 +98,14 @@ and the colorman's trade at Wharfside.**
 
 ## Placement
 
-- **Kernel:** the landing (core to Structure); the coat stack and weathering on a Structure as
+- **Kernel:** one setting model a coat and a glue line share; the glued joint taking a glue and
+  judging its surroundings; the landing (core to Structure); the coat stack and weathering on a Structure as
   capabilities a structure composes, sharing the coat model goods already use; the shell moved
   from residence to Structure as a capability; the `paint` verb, afforded by a brush; the chronic
   lead condition; turpentine vapor as a breathable hazard.
 - **`trade-painting`** (`/trade/painting`), a new capability pack: binder, pigment, paint and
-  varnish rows; the brush; the colorman's and house painter's working behavior; the turpentine cut.
+  varnish rows; glue rows and how they are made; the brush; the colorman's and house painter's
+  working behavior; the turpentine cut.
 - **`trade-forestry`:** pine's resin yield and the tappable pine.
 - **The terminus pack:** the colorman's shop and yard at Wharfside, tappable pines in Hanging Wood.
 - ⭐ **A second paint, a second colorman and a second painted building are rows.** Any liquid
@@ -110,7 +125,9 @@ and the colorman's trade at Wharfside.**
 - **Wharfside's neighbors** become the colorman's suppliers: chandlery, dyehouse, knackers,
   tannery, mill.
 - **Hanging Wood** gains tappable pines among its standards.
-- **Joinery's glued joint** gets a real glue.
+- **The glued joint** changes meaning: it costs glue, its strength and reversibility come from the
+  glue, and it can fail. No content uses it today (one test does).
+- **The knackers and tannery** gain a customer for bone and hide scraps.
 
 ## Surface decisions
 
@@ -153,6 +170,25 @@ Nothing is authored per paint. A coat's thickness comes from the paint's solids,
 longer than one. Its wear comes from its binder and pigment: limewash wants renewing yearly-ish,
 oil lasts years. A coat laid in rain or frost sets badly. Paced on the shell's existing dial.
 
+### Adhesives: glues from what ships, and one setting model
+A glue is a material with a setting rule — drying, cooling (it gels), or its solvent leaving — the
+same rules the binders use, read from the same air. Each glue also says what it resists: hide,
+bone, fish glue and starch paste let go in the damp; casein holds; resin and rubber cement do not
+care; hide glue softens in heat and pitch melts. The glues: **hide** and **bone glue** (the
+knackers' and tannery's scraps, boiled long — collagen turns to gelatin only under long moist heat,
+as butchery already says), **fish glue**, **casein glue** (curd and lime), **starch paste** (flour
+cooked in water), **rosin cement**, and **rubber cement** (rubber dissolved in turpentine, the next
+epoch's glue). Lens 1 chose them: water resistance, reversibility and open time are what a
+woodworker learns.
+
+### The glued joint takes a real glue
+It uses up glue to make; its strength and its reversibility come from the glue (hide glue comes
+apart with heat and steam, which is how furniture is repaired; casein and resin never do); it is
+weak until it sets; and it judges its surroundings on read, as a cask's hoops already do — a
+hide-glued chair in a wet cellar fails at the glue line. Inside this build the brush (bristles set
+in glue or pitch on a handle) and the gessoed panel (chalk in glue size) are glue's first
+customers.
+
 ### Lead white is in, with the slow poison
 The brightest white there was, and it poisons through the dust and the skin of every job. Lens 1:
 the dose accumulates and is derivable. Lens 7: a polity can ban it.
@@ -171,7 +207,8 @@ per act.)
 
 1. **Pedagogy** — the sacrificial layer (repaint cheaply or replace the sills); carbonation,
    oxidation and drying; a dye against a pigment; coverage in square meters per gallon;
-   lightfastness; spontaneous combustion; chronic poisoning; distillation of turpentine.
+   lightfastness; spontaneous combustion; chronic poisoning; distillation of turpentine; a binder
+   as an adhesive; why a boat is not hide-glued; why old furniture can be taken apart.
 2. **Expression** — a coat's color is the painter's choice; a sign's words are the player's; a
    second paint, colorman or building is rows; the picture belongs to the artist.
 3. **Immersion** — the survey line made true; the south-street shopfront that peels; the rags
@@ -182,8 +219,8 @@ per act.)
 5. **Continuity** — the same `paint` from limewash to oil, and later alkyd and latex; tar on a
    hull is the same coat.
 6. **Economy** — every building's weathering is the demand, and it was there first; paint consumes
-   lime, linseed, curd, eggs, hides, soot, copper, lead and resin; the colorman and painter are
-   paid by owners.
+   lime, linseed, curd, eggs, hides, bone, fish skins, flour, soot, copper, lead and resin; the
+   colorman and painter are paid by owners; the glued joint stops being free.
 7. **Governance** — a ban on lead paint; who owes upkeep (title); a building code that requires a
    coat is a polity's to write.
 
@@ -223,6 +260,12 @@ per act.)
 20. A gessoed panel (chalk in hide glue), `paint`ed with egg tempera, is a painted panel good; a
     madder lake on it fades in a sunny window.
 21. A house painter on their round paints a weathered staged building in town.
+22. Hide scraps from the knackers, held hot in water and reduced, give a glue liquor that gels into
+    cakes as it cools; warmed again it is ready to use.
+23. A joint glued with hide glue holds once set; one disturbed before it set is weak. Left in a wet
+    cellar it lets go at the glue line, and `look` says so; the same joint in casein glue holds.
+24. A hide-glued joint comes apart with heat and steam; a casein-glued one does not.
+25. The colorman's brush is an assembly: bristles set in glue on a handle.
 
 ## Acceptance criteria
 
@@ -249,6 +292,10 @@ per act.)
 - Turpentine vapor in a closed room harms a player until the room is aired.
 - A player can letter a board in paint, and anyone who can see it can read it.
 - A gessoed panel painted with tempera exists as a good.
+- A player can make hide, bone, fish and casein glue, starch paste, rosin cement and rubber cement
+  from things the world produces.
+- A glued joint uses up glue; it is weak until set; a hide-glued joint fails in the damp and
+  comes apart with heat and steam; a casein-glued joint holds in the damp and cannot be taken apart.
 - A colorman at Wharfside sells paint and its ingredients; a house painter paints a town building
   on their round; nobody can address the house painter as a boat's bow line.
 - The chandlery's milk of lime works as limewash with no change to the chandlery.
@@ -268,4 +315,8 @@ per act.)
   [textiles.md](../subsystems/textiles.md) · [taps.md](../subsystems/taps.md) ·
   [fractionation.md](../subsystems/fractionation.md) · [fire.md](../subsystems/fire.md) ·
   [metabolism.md](../subsystems/metabolism.md) · [respiration.md](../subsystems/respiration.md) ·
-  [cleanliness.md](../subsystems/cleanliness.md)
+  [cleanliness.md](../subsystems/cleanliness.md) · [assembly.md](../subsystems/assembly.md) ·
+  [butchery.md](../subsystems/butchery.md)
+- Also: [rendering slate](../slates/tails/rendering-slate.md) (glue and gelatin) ·
+  [carpentry slate](../slates/builds/carpentry-slate.md) ·
+  [paper and printing slate](../slates/builds/paper-and-printing-slate.md)
