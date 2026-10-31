@@ -1586,7 +1586,49 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)* — the output of running the requirements
-doc's blocking drive (`packages/wire/tests/client-surface.wire.test.ts`
-steps 1–11 and the render specs for steps 12–23) against the running
-game: the run, the count, what each failure was. No soak drive.
+Run 2026-10-31 against one world booted from a freshly dropped
+`saxonberg_build3` on `WIRE_PORT=2016` (`WIRE_KEEP_WORLD=1`, reused
+between runs; rebooted after each server change), master merged in
+first. Wire half: `packages/wire/tests/client-surface.dirty.wire.test.ts`
+(steps 1–11 + 10b). Browser half: the render specs for steps 12–23
+(`client-surface-layout`, `views`, `panes`, `inspect`, `mobile-chrome`)
+against a Vite client on 5173 pointed at the same world. No soak drive
+(every step is `instant`/`short`/`staged`).
+
+**Wire half — 5/12 → 12/12.**
+
+| run | result | what it found |
+|---|---|---|
+| 1 | 5/12 | ⭐ **B3 never closed**: `hasInteriorBulk()` says the vessel HAS an interior, not that anything is in it — every empty pint said "It looks fair". ⭐ **The tablet had no Screen line**: nothing is shown on a fresh world's tablet, and `look` printed nothing for a dark screen → B41. The rest were the drive file's own guesses about the lounge: Remy/Mara by name (a stranger cannot name them — the privacy working), `dressing-1` (an `as:` id, not a keyword), `here:bandage` (not MQL), `yield` (it is `fight yield`), step 11 reading a focus card (bare `look` reads `$focus` — pre-existing). |
+| 2 | 11/12 | step 7: `eval --on sloane` matched nothing — the founder has never met her either. Staged by `bartender`; `stage` now fails where it misses. |
+| 3 | 11/12 | step 7: the death ran and **left no body**. `ConditionApi.die` inside a field-parcel eval is refused at the corpse's applier (SandboxBoundary on `setConditionAtDeath`) after the NPC is already gone — **pre-existing, reported on the MR, not this build's**. Staged with `beginDying(…, 1)` instead (the avatar-family precedent: the scheduler kills outside the eval). Also seen: the grouped room list read "2 pint glasss" → `GrammarApi.pluralize` takes the regular plural of the head word. |
+| 4, 5 | 12/12 | after a reboot with the fixes; again after the browser half's server fix. |
+
+**Browser half — 11/21 → 21/21** (one worker under a sibling's suite
+at load ≈ 12; the remaining flakes were arrival timing and are fixed in
+the specs).
+
+- ⭐⭐ **The primary terminal never told the client it was primary.**
+  `openTerminal` set `role = 'primary'` after `card-opened` had gone, and
+  `card-arranged` carries no role — so on every desktop the stage
+  rendered the primary as an ordinary card: no view chooser, and a
+  second command bar beside the fallback one. The wire drive (10b)
+  passed because it read `payload.primary`. `open()` now takes the role;
+  the client also derives a terminal's role from `payload.primary` on a
+  touch, so a demotion clears it.
+- The view chooser showed `All` twice (the default tabs carry one).
+- The phone showed a pinned chip for the primary terminal ("⚲ All") —
+  it is the stage, not a pin; excluded.
+- Typing in the first second was lost when the fallback bar was swapped
+  for the primary terminal's bar — the draft now rides the store across
+  the swap. (A press of Enter in that same instant can still drop the
+  command: the pre-existing settle race `sendUntil` documents.)
+- Spec drift, fixed in the specs: shelf labels in sentence case, four
+  default shelf rows (body joined on master), the touch rule's Send after
+  a mode tab, the drawer covering the scrim's center, `who` as a card
+  (the inspection tab is gone), the panel waited for before collapsing,
+  the pull-down measured after the login look lands.
+
+**Gates around it:** client package 1024/1024; `test:near` + the lint
+family after the last change (see the MR).
+
