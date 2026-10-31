@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import QRCode from 'qrcode';
-import type { Show } from '../../hooks/useShow';
+import type { Money, Show } from '../../hooks/useShow';
+import ServiceGlyph from '../shared/ServiceGlyph';
 import { CHANNEL } from '../../show/channel';
 import AtAvatar from '../shared/AtAvatar';
 import repoStats from 'virtual:repo-stats';
@@ -71,6 +72,13 @@ export const PANELS: PanelRow[] = [
     seconds: 18,
     when: () => true,
     render: () => <GitLabPanel />,
+  },
+  {
+    key: 'money',
+    weight: 2,
+    seconds: 18,
+    when: (show) => show.money !== null,
+    render: (show) => show.money && <MoneyPanel money={show.money} />,
   },
   {
     key: 'follow',
@@ -431,6 +439,124 @@ function GitLabPanel() {
       <Figure value={String(repoStats.packs)} label="Content packs" />
       <Figure value={String(repoStats.subsystems)} label="Subsystems" />
       <Figure value={compact(repoStats.linesOfTypeScript)} label="Lines of TS" />
+    </div>
+  );
+}
+
+/** "$142" for whole dollars, "$3.50" otherwise. */
+function dollars(n: number): string {
+  return n >= 100 || Number.isInteger(n) ? `$${Math.round(n)}` : `$${n.toFixed(2)}`;
+}
+
+/**
+ * The money — dollars only: this month's income against this month's costs,
+ * back to zero on the 1st, because that is how the bills are paid. Income is
+ * at net (what reached the project after each platform's cut); the costs say
+ * what drives them, so "costs rise as more people play" is visible.
+ */
+function MoneyPanel({ money }: { money: Money }) {
+  const total = money.costs.reduce((n, c) => n + c.amount, 0);
+  const share = total > 0 ? Math.min(1, money.income / total) : 0;
+  const label = {
+    fontFamily: FACE_STACKS.display,
+    fontWeight: 500,
+    fontSize: 16,
+    letterSpacing: '0.19em',
+    textTransform: 'uppercase',
+    color: palette.text.dim,
+  } as const;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', height: '100%', gap: 56 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 18 }}>
+          <span style={label}>{money.month}</span>
+          <span style={{ fontFamily: FACE_STACKS.chrome, fontSize: 20, color: palette.text.mute }}>
+            {money.daysLeft} {money.daysLeft === 1 ? 'day' : 'days'} left
+          </span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 4 }}>
+          <span
+            style={{
+              fontFamily: FACE_STACKS.display,
+              fontWeight: 500,
+              fontSize: 56,
+              lineHeight: 1,
+              color: palette.text.fg,
+              fontVariantNumeric: 'lining-nums',
+            }}
+          >
+            {dollars(money.income)}
+          </span>
+          <span style={{ fontFamily: FACE_STACKS.chrome, fontSize: 28, color: palette.text.dim }}>
+            of {dollars(total)} this month
+          </span>
+        </div>
+        <div
+          style={{
+            position: 'relative',
+            height: 14,
+            marginTop: 12,
+            background: palette.bg.sunken,
+            border: `1px solid ${palette.line}`,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: `${share * 100}%`,
+              background: palette.accent,
+              transition: 'width 1.2s ease-out',
+            }}
+          />
+        </div>
+        <div
+          style={{
+            fontFamily: FACE_STACKS.chrome,
+            fontSize: 20,
+            color: palette.text.dim,
+            marginTop: 8,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {money.costs.map((c) => `${c.label} ${dollars(c.amount)}`).join(' · ')}
+          <span style={{ color: palette.text.mute }}> · income after platform fees</span>
+        </div>
+      </div>
+
+      {money.recent.length > 0 && (
+        <div style={{ width: 380, flex: '0 0 auto' }}>
+          <div style={label}>Latest</div>
+          {money.recent.slice(0, 3).map((g, i) => (
+            <div
+              key={i}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginTop: 8,
+                fontFamily: FACE_STACKS.chrome,
+                fontSize: 22,
+              }}
+            >
+              <ServiceGlyph service={g.via} size={22} />
+              <span
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  color: palette.text.fg,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {g.who}
+              </span>
+              <span style={{ color: palette.accent, fontWeight: 600 }}>{dollars(g.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

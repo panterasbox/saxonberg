@@ -30,5 +30,6 @@ export const palette = {
     twitch: '#9146FF',
     youtube: '#FF0033',
     kick: '#53FC18',
+    patreon: '#FF424D',
   },
 } as const;

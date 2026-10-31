@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ShowProfile } from '../show/profiles';
+import type { Platform } from '../scenes/shared/ServiceGlyph';
 
 /**
  * What the show knows besides the stream state and the chat: the topic and
@@ -34,6 +35,23 @@ export interface Build {
   at: number;
 }
 
+/**
+ * The month's money, from the giving ledger and the books. ⚠ Neither exists
+ * yet (giving-slate, budget-slate).
+ */
+export interface Money {
+  /** The month this covers, e.g. "October"; everything resets on the 1st. */
+  month: string;
+  /** Income at net — what reached the project after each platform's cut. */
+  income: number;
+  /** The month's costs, by what drives them. */
+  costs: { label: string; amount: number }[];
+  /** The latest gifts, newest first, at net. */
+  recent: { who: string; amount: number; via: Platform }[];
+  /** Days left in the month. */
+  daysLeft: number;
+}
+
 export interface Show {
   /** The current segment — the topic line. */
   topic: string | null;
@@ -50,6 +68,7 @@ export interface Show {
    * commit and date and the feed carry them.
    */
   build: Build | null;
+  money: Money | null;
 }
 
 const EMPTY: Show = {
@@ -60,7 +79,24 @@ const EMPTY: Show = {
   playersOnline: null,
   crawl: [],
   build: null,
+  money: null,
 };
+
+/** The money is the channel's, so every profile's mock carries it. */
+const MOCK_MONEY: Money = {
+    month: 'October',
+    income: 142.35,
+    costs: [
+      { label: 'Running the world', amount: 11 },
+      { label: 'Building it', amount: 200 },
+    ],
+    recent: [
+      { who: 'ironmonger', amount: 3.5, via: 'youtube' },
+      { who: 'Mara K.', amount: 8.5, via: 'patreon' },
+      { who: 'pelt_and_tallow', amount: 2.5, via: 'twitch' },
+    ],
+    daysLeft: 11,
+  };
 
 const MOCK_SAXONBERG: Show = {
   topic: 'Building the river',
@@ -86,12 +122,14 @@ const MOCK_SAXONBERG: Show = {
     'World first — the first silk reeled at the Hearts Delight silk house',
   ],
   build: { at: Date.now() - 1.3 * 86_400_000 },
+  money: MOCK_MONEY,
 };
 
 /** Every other profile's mock: an agenda of its own, no world, no crawl. */
 const MOCK_OTHER: Record<string, Show> = {
   music: {
     ...EMPTY,
+    money: MOCK_MONEY,
     topic: 'Hard Rain',
     agenda: [
       { title: 'Warm-up', done: true },
@@ -103,6 +141,7 @@ const MOCK_OTHER: Record<string, Show> = {
   },
   gaming: {
     ...EMPTY,
+    money: MOCK_MONEY,
     topic: 'NetHack — a Valkyrie, Gnomish Mines',
     agenda: [
       { title: 'Get to Minetown', done: true },
