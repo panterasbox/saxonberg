@@ -125,8 +125,8 @@ Everything this build *deferred* is a slot. The starting set:
 - **Merit modules** — the asymmetric recognition channels (Art. III §§6–7):
   the consumer **renown** wiring (regard as a bounded multiplier on earned
   influence; optional peer-allowance sourcing — never a standalone mint) and the
-  producer **merit-pay** bank (a legislature-capped, competence-evaluated,
-  recusal-gated, sub-decisive mint of *producer* influence only — merit pay for
+  labor **merit-pay** bank (a legislature-capped, competence-evaluated,
+  recusal-gated, sub-decisive mint of *labor* influence only — merit pay for
   unpaid creators).
 - **Membership / Sybil module** — the participation threshold, the
   Sybil-resistance policy, citizenship gates (fills Art. II's `[OPEN]`).
@@ -141,7 +141,7 @@ Everything this build *deferred* is a slot. The starting set:
   discretion yet surrendered. The shape a streamer starts in. Pairs with the
   **homestead / Frontier** tenure setting (register D8) — the lowest-activation
   on-ramp.
-- **Creator collective** — producer-weighted, light economy, due process on,
+- **Creator collective** — labor-weighted, light economy, due process on,
   property on; expression compelled.
 - **Full republic** — every right compelled, full economy, full institution
   roster, sortition judiciary mandatory. The end state Art. XI ratifies toward.

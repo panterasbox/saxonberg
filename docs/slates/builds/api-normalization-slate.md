@@ -416,7 +416,7 @@ lib/standing/  Band · InfluenceStanding · RenownStanding ·
 
 ⭐⭐ **The lib layer already models this as one substrate and the Api layer
 models it as five.** `influence.md` even names the shape — *"the
-three-stock contract: InfluenceApi dispatcher, the producer stock, the
+three-stock contract: InfluenceApi dispatcher, the labor stock, the
 account roll-up seam"* — and `InfluenceApi`'s own docstring calls itself
 *"a thin, stock-parameterized dispatcher over the per-stock Apis."* A
 dispatcher over siblings that share a substrate, a cache and an output

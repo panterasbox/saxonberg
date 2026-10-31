@@ -610,7 +610,7 @@ to a `ForumsLogic` / `SubjectLogic` logic singleton; see
 [forums.md](./subsystems/forums.md)), `ConsumerApi` (forwarding to
 `ConsumerLogic`; the consumer influence stock — see
 [participation.md](./subsystems/participation.md)), `ProducerApi` (→
-`ProducerLogic`; the producer/make stock), `ConvictionApi` (→
+`ProducerLogic`; the labor/make stock), `ConvictionApi` (→
 `ConvictionLogic`; the conviction spend half), `ProvenanceApi` (→
 `ProvenanceLogic`; the authorship ledger) — see
 [influence.md](./subsystems/influence.md) and

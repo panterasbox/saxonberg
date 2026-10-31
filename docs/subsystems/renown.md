@@ -93,7 +93,7 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
   (cold = neutral `0`, never throws) warmed at boot (`warm()`) and
   refreshed by each recompute. ⭐ The storage is the shared
   `WarmedIndex` (`lib/persistence/WarmedIndex.ts`) since 2026-09 —
-  producer and participation standing had the same `_cache`/`warm`/
+  labor and participation standing had the same `_cache`/`warm`/
   `cached` triplet written out three times. ⚠ `cached()` hands back a
   `ReadonlyMap`: four tests were writing standings straight through the
   read accessor, and a read surface a caller can mutate is not one. `scope` is the

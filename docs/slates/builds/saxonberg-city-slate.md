@@ -143,7 +143,7 @@ no mechanical difference between them.
    already exists (the legislative surfaces are axiomatic — the
    floor, the argument, the tallies are core design):
    - **The PM's Residence** (executive) — office + home, above.
-   - **The three chamber halls** — the Producer House, the Capital
+   - **The three chamber halls** — the Labor House, the Capital
      House, the Consumer House: each Speaker's venue, each a reading
      room on its own chamber's business (proposals, the claim-map,
      the tallies). Nothing binding happens in a hall that doesn't
@@ -226,7 +226,7 @@ attendant, possibly nobody — the committee hires its own city).
                    (empty plinth)   \
                           |          Court Street —
                      Chamber Row      [Courthouse] · [Archive]
-          [Producer] [Capital] [Consumer]
+          [Labor] [Capital] [Consumer]
 
   (edge parcel, off-axis: RESERVED — the federal facility;
    see prison-slate.md)

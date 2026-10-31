@@ -8,7 +8,7 @@ Banking is **phase 4 ("Money") of the Dave's-Bar track**: the two-tier money
 model (physical **cash** vs auditable **account balances**), bridged by a
 custodial **bank**, with a single governed-but-logged **central bank** mint.
 It mirrors the `lib/standing/` **append-only-log → rebuildable-materialized-
-standing** shape (renown / participation / producer) with one hard addition:
+standing** shape (renown / participation / labor) with one hard addition:
 **conservation**.
 
 ## The money model (the load-bearing decisions)
