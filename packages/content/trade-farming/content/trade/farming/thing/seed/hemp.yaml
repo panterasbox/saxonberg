@@ -1,0 +1,11 @@
+# Hemp seed (cordage D14) — the fiber variety: sown thick so the stalks
+# grow tall and unbranched.
+class: /platform/thing/Seed
+data:
+  shortDescription: packet of hemp seed
+  keywords: [seed, seeds, packet, "hemp seed", hemp]
+  register: indefinite
+  longDescription: |
+    Round grey-green seeds with a marbled shell, hard as shot.
+  growsIntoPath: /trade/farming/thing/plant/hemp
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa

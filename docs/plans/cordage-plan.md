@@ -562,7 +562,15 @@ thicker → stronger; the walk cap refusal names the length; `--mark` laid, `ana
 Acceptance: pack suite + `lint:family` (`verb-collisions` clean: `twist` is new, `lay` untouched).
 Commit: `build(cordage W3): trade-cordage — twist at the walk, the lay read, the walk lays rope`.
 
-### W4 — hemp on the farm, through the pit and the board (D14)
+### W4 — hemp on the farm, through the pit and the board (D14) ✅
+> **Done.** Field population (!480) had NOT merged at W4, so hemp copies flax's shape (species
+> `cannabis/sativa`, `plant/hemp`, `seed/hemp`, `crop/hemp-sheaf`, `hemp-straw` tagged `retting-hemp`);
+> whichever lands second reconciles. Textiles: `retting-hemp` profile (product hemp, turned
+> `rotted-hemp`), `TextileStock.adoptFibre` (spin's `carryFibre` folded in) — scutch now carries the
+> retted fiber onto line and tow (`hank of hemp line`), and the straw refusal reads `fibre-stock`
+> rather than flax's `retting` tag. Hemp seed on the general store beside flax. **Decided:** **D27** —
+> a stock worked from another fiber keeps the row's words with `flax` replaced (`fibreWord`), the
+> smallest change that names it; a row per fiber was the alternative and multiplies rows.
 Files: `trade-farming/content/stuff/idea/species/…/rosales/cannabaceae/cannabis/sativa.yaml`,
 `trade/farming/thing/{seed,plant,crop}/hemp*.yaml`, `trade/farming/idea/material/hemp-straw.yaml`;
 `trade-textiles/content/trade/textiles/idea/maturation/retting-hemp.yaml`,

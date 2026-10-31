@@ -1,0 +1,17 @@
+# A sheaf of hemp straw (cordage D14) — the fiber crop, cut at the root
+# when the male plants shed. Into the retting pit with it; the textile
+# chain does the rest, and the ropewalk buys what comes out.
+class: /platform/thing/GradedReceptacle
+data:
+  shortDescription: sheaf of hemp straw
+  keywords: [sheaf, hemp, straw, bundle]
+  register: indefinite
+  longDescription: |
+    A shoulder-high bundle of hemp stalks tied twice, taller than a man and smelling green and resinous. The fiber runs the whole height of it, glued to the woody heart.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 5
+  interiorBulk: true
+  interiorCapacity: 10
+  interiorMaterial: /trade/farming/idea/material/hemp-straw
+  interiorAmount: 8
+  closure: open

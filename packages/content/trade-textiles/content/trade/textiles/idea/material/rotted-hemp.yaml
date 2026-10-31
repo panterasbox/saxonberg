@@ -1,0 +1,20 @@
+# Rotted hemp (cordage D14) — hemp left in the pit days past ready: the rot
+# is into the fiber itself. Grey, weak, short, and no way back.
+class: /platform/idea/material/Material
+data:
+  name: rotted hemp
+  keywords: [hemp, rotted-hemp, rot, slime, ruin, rotted]
+  appearance: grey slimy rotted hemp
+  density: 450
+  thermalConductivity: 0.06
+  hardness: 1
+  toughness: 1
+  specificHeat: 1360
+  electricalConductivity: 1.0e-11
+  waterAbsorptionCapacity: 70
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["plant", "organic", "once-living", "spoiled"]
+  composition: []
+  biologicalSource: { speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa, tissueType: stem }
