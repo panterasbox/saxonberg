@@ -746,11 +746,11 @@ export default class LookController extends CommandController<LookModel> {
     // screen renders itself: `readScreen(viewer)` is the PROSE arm, and
     // it is per-viewer, so a board that annotates against the reader's
     // own credential resolves here rather than being pushed at the room.
+    // ⭐ A screen at rest is a fact too (client-surface B41): "dark" is
+    // what you would see, and the line is there either way.
     if (MixinApi.isDisplay(target)) {
-      const screen = await target.readScreen(actor);
-      if (screen) {
-        section(Mml.compose`── ${screen}`, { shape: 'state', sources: [lookSource('Screen')] });
-      }
+      const screen = (await target.readScreen(actor)) ?? Mml.compose`The screen is dark.`;
+      section(Mml.compose`── ${screen}`, { shape: 'state', sources: [lookSource('Screen')] });
     }
     // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
     // visibility rule `inventory` reads too: on a person what they wear

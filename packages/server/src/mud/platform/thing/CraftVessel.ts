@@ -157,7 +157,9 @@ function contentsFreshnessAugmenter(
 function vesselVerdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!MixinApi.isCrafted(host)) return text;
   const used =
-    (MixinApi.isBulkable(host) && host.hasInteriorBulk()) ||
+    (MixinApi.isBulkable(host) &&
+      host.hasInteriorBulk() &&
+      !host.getBulk('interior').isEmpty()) ||
     (MixinApi.isServiceable(host) && host.isSoiled());
   if (!used) return text;
   const verdict = host.renderVerdict(viewer);

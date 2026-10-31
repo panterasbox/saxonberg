@@ -21,8 +21,8 @@ import {
 } from '../src/harness';
 
 export const DIRTY_REASON =
-  'kills a named lounge NPC to stage a corpse (step 7); the NPC does not ' +
-  'return until the world reboots';
+  'kills a named lounge NPC (Sloane) to stage a corpse (step 7); she does ' +
+  'not return until the world reboots';
 
 declareFile({
   file: 'client-surface.dirty.wire.test.ts',
@@ -57,6 +57,8 @@ type Card = CapturedEnvelope & {
 let a: Session; // the looker
 let b: Session; // another person in the bar
 let c: Session; // a bystander
+/** The room card, as step 1 bound it — step 11 walks out and watches it. */
+let hereCard: Card | undefined;
 
 /** The subject card a command opened or touched. */
 async function subjectCard(s: Session): Promise<Card> {
@@ -110,6 +112,7 @@ suite('the room by look (steps 1–4)', () => {
     expect(card.segments!.some((g) => g.shape === 'prose')).toBe(true);
     expect(card.segments!.some((g) => g.sources.some((s) => s.name === 'Light'))).toBe(true);
     expect(card.role).toBe('here');
+    hereCard = card;
   });
 
   it('2 · look back-bar: what is on it arrives as list segments, identical things grouped', async () => {
@@ -165,51 +168,67 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
     expect(presence?.text, allText(card.segments)).toMatch(/^Now: .*sit/);
   });
 
-  it('6 · "Owned by" names the owner as A knows them, not their true name', async () => {
+  it('6 · "Owned by" and "Made by" name B as A knows them, not their true name', async () => {
     const bId = await stuffIdOf(b);
     const bName = String(
       ((await b.queryOne('me', ['displayName'])) as { displayName?: string }).displayName ?? '',
     );
-    await stage('dressing-1', `this.stampChattel(StuffApi.findById('${bId}'))`);
-    await a.cmd('look dressing-1');
-    const card = await subjectCard(a);
-    const owned = (card.segments ?? []).find((g) => g.heading === 'Owned by');
-    expect(owned, allText(card.segments)).toBeDefined();
     expect(bName.length).toBeGreaterThan(0);
+    // B's own pint (handed in step 5 — a fresh good is its holder's), set
+    // down on the bar, with B stamped as its maker and the glass used (an
+    // unused glass gives no verdict, so no maker line — B3).
+    const pint = (await b.queryOne('me:i:pint', ['displayName'])) as { stuffId: string };
+    expect((await b.cmd(`drop #${pint.stuffId}`)).status).toBe('ok');
+    await stage(
+      `#${pint.stuffId}`,
+      `(this.setMaker(StuffApi.findById('${bId}').getIdentityPath()), this.markUsed(), 'ok')`,
+    );
+    await a.cmd(`look #${pint.stuffId}`);
+    const card = await subjectCard(a);
+    const text = allText(card.segments);
+    const owned = (card.segments ?? []).find((g) => g.heading === 'Owned by');
+    expect(owned, text).toBeDefined();
     expect(owned!.text).not.toContain(bName);
+    expect(text).toMatch(/Made by /);
+    expect(text).not.toContain(bName);
   });
 
   it('7 · a named NPC\'s corpse reads as a stranger to A and does not answer to the name', async () => {
-    await stage('mara', `ConditionApi.die(this, 'hypothermia')`);
+    // Sloane never introduces herself, so A has never met her.
+    await stage('sloane', `ConditionApi.die(this, 'hypothermia')`);
+    a.clearCaptures();
     await a.cmd('look body');
     const card = await subjectCard(a);
     const title = String(card.result?.[0]?.displayName ?? '');
     expect(title).toMatch(/body of/);
-    expect(title).not.toMatch(/Mara/);
-    const byName = await a.cmd('look mara');
+    expect(title).not.toMatch(/Sloane/i);
+    a.clearCaptures();
+    const byName = await a.cmd('look sloane');
     const named = a.lastCard<Card>('card-opened');
-    expect(named?.result?.[0]?.displayName ?? '', `look mara: ${byName.status}`).not.toMatch(/body/);
+    expect(String(named?.result?.[0]?.displayName ?? ''), `look sloane: ${byName.status}`).not.toMatch(/body/);
   });
 
   it('8 · a fight seen by a bystander: the combat line is there and reads through the fog', async () => {
-    await a.cmd('attack remy');
+    expect((await a.cmd('attack tiefling')).status).toBe('ok');
     const aId = await stuffIdOf(a);
+    c.clearCaptures();
     await c.cmd(`look #${aId}`);
     const text = allText((await subjectCard(c)).segments);
     // The line is present while the fight is; the unit tests pin the fog.
     expect(text).toMatch(/In combat — /);
-    await a.cmd('yield');
+    await a.cmd('fight yield');
   });
 });
 
 suite('the card registry (steps 9–11)', () => {
   it('9 · a card link by id names exactly that thing, not the first match', async () => {
-    const rows = await a.query('here:bandage', { fields: ['displayName'] });
-    expect(rows.length).toBeGreaterThanOrEqual(2);
-    const second = (rows[1] as { stuffId: string }).stuffId;
-    await a.cmd(`look #${second}`);
+    const rows = await a.query('stool', { fields: ['displayName'] });
+    expect(rows.length).toBeGreaterThanOrEqual(3);
+    const third = (rows[2] as { stuffId: string }).stuffId;
+    a.clearCaptures();
+    await a.cmd(`look #${third}`);
     const card = await subjectCard(a);
-    expect(card.subjectId ?? (card.result?.[0]?.stuffId as string)).toBe(second);
+    expect(card.subjectId ?? (card.result?.[0]?.stuffId as string)).toBe(third);
   });
 
   it('10 · cockpit card actions each change the card and echo; a saved layout restores it', async () => {
@@ -245,9 +264,12 @@ suite('the card registry (steps 9–11)', () => {
   });
 
   it('11 · walking out rebinds the room card — never a second one', async () => {
-    await a.cmd('look');
-    const here = await subjectCard(a);
-    await a.cmd('south');
+    // (Bare `look` reads your focus once you have one, so the room card is
+    // the one step 1 bound.)
+    const here = hereCard!;
+    expect(here, 'the here card').toBeDefined();
+    a.clearCaptures();
+    expect((await a.cmd('south')).status).toBe('ok');
     // Arrival runs `look`: the same instance, a new subject.
     const rebound = await a.awaitEnvelope<Card>(
       'card-touched',

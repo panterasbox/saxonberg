@@ -45,7 +45,9 @@ function verdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   // ⭐ Quiet on an unused vessel (client-surface D10): an empty, unsoiled
   // bottle has nothing to be judged on yet.
   const used =
-    (MixinApi.isBulkable(host) && host.hasInteriorBulk()) ||
+    (MixinApi.isBulkable(host) &&
+      host.hasInteriorBulk() &&
+      !host.getBulk('interior').isEmpty()) ||
     (MixinApi.isServiceable(host) && host.isSoiled());
   if (!used) return text;
   const verdict = host.renderVerdict(viewer);
