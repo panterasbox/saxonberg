@@ -27,11 +27,15 @@ args:
     greedy: true
   # ⭐ The rope you hold the belay with — DECLARED, never hunted
   # (`lint:instrument-args`): `belay hal with rope`, or the rope in hand.
+  # ⚠ The default is the INVENTORY, not `reachable`: at the ropewalk the
+  # counter's coils are reachable too, and the browser walk found the
+  # default picking one off the counter — then refusing you for not
+  # holding it.
   - name: rope
     type: object
     required: false
     prepositions: [with]
     greedy: true
-    default: "reachable:[mixin.TieableMixin]"
+    default: "inventory:[class.Rope]"
     scope: ["reachable"]
     requires: [TieableMixin]

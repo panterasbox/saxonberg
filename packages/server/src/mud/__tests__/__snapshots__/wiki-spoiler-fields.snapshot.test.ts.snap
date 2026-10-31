@@ -1133,6 +1133,7 @@ Rope.cutEnds = 0
 Rope.diameterMm = 0
 Rope.hungVia = 0
 Rope.knots = 0
+Rope.layEvenness = 0
 Rope.marks = 0
 Rope.rot = 0
 Rope.rotAt = 0
