@@ -322,6 +322,20 @@ sold-or-not), and the nightly reset's `PackApi.reprovision()` re-runs
 every applied pack's grants after the wipe takes `parcels`
 ([record-layer.md](./record-layer.md)).
 
+### A test runner's title is a transfer
+
+`POST /auth/test-login` with `parcels: ['/world/…']` (the wire
+harness's `Session.open(handle, {parcels})`) makes the test character
+the title holder of each exact parcel extent named — through
+`ParcelApi.transfer`, an appended `transfer` event and the owner index
+re-pointed, so every authority check downstream runs the same walk a
+player's does (`AccessApi` learns nothing about test mode). A parcel it
+already holds — a group it is in, or its own title — is kept; a path
+that is not an exact extent fails the login naming the covering parcel.
+⚠ To the pack that claimed it, a transferred parcel is SOLD: its next
+reconcile records a `conflict` and its rows under that extent reconcile
+`skip-sold`. A test world is reset per run.
+
 ## The sparse hierarchy
 
 A zone with no parcel row inherits its governing parcel from the nearest

@@ -650,6 +650,19 @@ shipped subsystem:
    the activity framework augments with five framework-intrinsic
    reasons. See [activity.md § The Abort taxonomy](./activity.md).
 
+## ⚠ Known defect — a giver replaced mid-command loses its reply
+
+`emitDispatchResponse` (`CommandGiver.ts`) sends the envelope through
+`ctx.commandGiver`, the giver object captured when the command arrived.
+If that body is destructed and replaced while the command is still in
+flight — a death (`ConditionApi.die` → `divideBody` mints a shade and
+moves the sockets to it), a `passage` reembody, a sandbox crossing — the
+envelope goes to the destroyed body's inert proxy and the client never
+gets a dispatch-response. Found by the soak-harness drive (2026-10-30):
+a runner whose dying window ran out during `testharness clock advance`.
+The fix is to re-resolve the live holder through `ctx.interactive`
+before sending, or to hand the in-flight context to the replacement.
+
 ## Cross-references
 
 - [messaging.md](./messaging.md) — `MessageFrame` shape, Scene

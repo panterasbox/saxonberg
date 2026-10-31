@@ -691,6 +691,24 @@ the **same** wetness accrual and the **same** puddle. Fixtures via
 `adornments:`; no imperative construction; reachable by teleport (no
 inbound exit — the treeline / substation content-standup precedent).
 
+## The test pin — staging the weather (soak-harness build, 2026-10-30)
+
+`TestHarnessApi.pinWeather(scope, type, mode)` / `unpinWeather(scope)`
+set the **Locality-tier** pin of the Locality covering `scope` (a
+place's or a Locality's template path) — the tier the precipitation
+integral and the snow walk read, so a pinned `snow` lies on the ground
+and freezes the mere, not just a word in `analyze weather`. The pin is
+applied AT ONCE through `WeatherApi.onBoundary()`, as a segment
+boundary applies the weather: every occupied room restamps its
+ambient, puddles accrue, rain wets whoever is out in it. Two doors, one
+implementation: the wire harness's `pinWeather` / `unpinWeather`
+(`/auth/test-weather`) and the in-world `testharness weather` verb. All
+`@TestOnly` — in a played world nothing pins the weather at runtime
+(the cast-time write below is still deferred), and an `eval` that
+reaches a `setWeatherPin` directly is refused naming the verb
+(`SecurityApi.assertNotFromEval`). ⚠ The pin is persistent on the
+Locality: whoever pins, unpins.
+
 ## Still-deferred seams
 
 - **fog → visibility** (senses), and other hazards (flood / blizzard /
@@ -705,8 +723,8 @@ inbound exit — the treeline / substation content-standup precedent).
 - **from the climate build:** rain-on-snow melt (the walk has both terms
   — `climate-slate`); the ice-albedo term (polar summers run warm);
   firn and glaciers (the `perennial` cap is their attach point); a
-  runtime weather-pin seam for drives (`/auth/test-weather`); a Locality
-  that knows its zone (retires `Watercourse.site`).
+  Locality that knows its zone (retires `Watercourse.site`). (The
+  runtime weather-pin seam for drives shipped — § The test pin, below.)
 - **magic `Create·Lightning`** — the frontier noun; this build ships the
   mundane strike on the reserved seam
   ([capability-magic](../slates/builds/capability-magic-slate.md)).

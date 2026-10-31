@@ -814,7 +814,9 @@ reason.
   perception, social, movement, posture, inventory, boundary, bulk, shell,
   author, system, charactergen, crafting, banking, governance, civics
   (the FICTION's governments — `government`; the meta `committee` verb
-  stays under `system`, the jargon standard's layer split), stream, tpa,
+  stays under `system`, the jargon standard's layer split; so does
+  `testharness`, test-world scaffolding withheld everywhere else — see
+  [testing.md § The soak lane](./docs/testing.md)), stream, tpa,
   medical, combat, magic (`cast`/`spells` — the casting core), work (the
   labor market — `job`/`fulfill`), employment (`appoint` [alias `hire`]/`dismiss`/`quit`/`apply`/`clock`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`), device
   ("operating a built object or mechanism" —

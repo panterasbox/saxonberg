@@ -45,7 +45,6 @@ SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 WORKTREE=$(dirname -- "$SCRIPT_DIR")
 ROOT=$(dirname -- "$WORKTREE")
 
-LOCK="$ROOT/.suite.lock"
 LOGS="$WORKTREE/.suite"
 
 ONLY=''
@@ -53,7 +52,7 @@ FROM=''
 PIN=''
 SHARD=''
 WAIT=1
-RESERVE_GB=4          # left for the editor, the agents, a sibling's dev server
+TAG=suite
 PER_WORKER_MB=700     # measured: a kernel-loading fork sits at 300-500 MB
 MAX_WORKERS=6
 
@@ -73,7 +72,8 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-avail_mb() { awk '/^MemAvailable:/{print int($2/1024)}' /proc/meminfo; }
+# The lock, the reserve (RESERVE_GB) and avail_mb — shared with tools/soak.
+. "$SCRIPT_DIR/lib/suite-lock.sh"
 
 workers_now() {
   [ -n "$PIN" ] && { echo "$PIN"; return; }
@@ -85,33 +85,7 @@ workers_now() {
   echo "$n"
 }
 
-# ---- the cross-worktree lock -------------------------------------------
-# `mkdir` is the atomic primitive every shell has. The holder writes its
-# pid and worktree inside, so a stale lock can be told from a live one
-# rather than guessed at — and a dead holder's lock is taken, not waited
-# on, because the common way a lock goes stale here is `tools/panic`.
-take_lock() {
-  while :; do
-    if mkdir "$LOCK" 2>/dev/null; then
-      printf '%s\n%s\n' "$$" "$WORKTREE" > "$LOCK/owner"
-      return 0
-    fi
-    holder=$(sed -n 1p "$LOCK/owner" 2>/dev/null)
-    where=$(sed -n 2p "$LOCK/owner" 2>/dev/null)
-    if [ -z "${holder:-}" ] || [ ! -d "/proc/$holder" ]; then
-      echo "suite: taking a stale lock (holder ${holder:-?} is gone)."
-      rm -rf "$LOCK"
-      continue
-    fi
-    if [ "$WAIT" = 0 ]; then
-      echo "suite: a suite is already running in ${where:-?} (pid $holder). --no-wait, so stopping." >&2
-      exit 3
-    fi
-    echo "suite: waiting for ${where:-?} (pid $holder) to finish its suite..."
-    sleep 20
-  done
-}
-drop_lock() { [ -f "$LOCK/owner" ] && grep -qx "$$" "$LOCK/owner" 2>/dev/null && rm -rf "$LOCK"; }
+# ---- the cross-worktree lock (tools/lib/suite-lock.sh) ----------------
 trap 'drop_lock; exit 130' INT TERM
 trap 'drop_lock' EXIT
 

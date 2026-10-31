@@ -120,8 +120,10 @@ for (const file of packSrcFiles(MUD)) {
           if (ch === '(') depth++;
           else if (ch === ')') depth--;
         }
-        if (depth <= 0 && j > i) break;
-        if (depth <= 0 && j === i && !text.includes('(')) break;
+        // Balanced at the end of a line ends the decorator — including a
+        // one-line `@TestOnly('…')`, which the old two-clause test walked
+        // one line too far on, flagging the method BODY (soak-harness).
+        if (depth <= 0) break;
       }
       // …then past any blank lines, comments or further decorators.
       j++;

@@ -127,6 +127,17 @@ const __dirname = dirname(__filename);
 const MUD_ROOT = resolvePath(__dirname, '../../..');
 
 /** `/platform/cmd/perception/look` → `platform/cmd/perception/look.yaml`: the key is the path. */
+
+/**
+ * ⛔ Does this world admit `cmd`? A `testOnly` view (the `testharness`
+ * scaffolding) exists only in a test environment — everywhere else the
+ * loader withholds it, so the verb is unknown, unhelped and unafforded.
+ * Consulted wherever a definition enters the `commands` map.
+ */
+function admitsView(cmd: CommandDefinition): boolean {
+  return !cmd.testOnly || SecurityApi.isTestEnvironment();
+}
+
 function viewKeyOf(docPath: string): string {
   return `${docPath.replace(/^\//, '')}.yaml`;
 }
@@ -642,6 +653,8 @@ export class CommandLogic extends ApiLogic {
     const doc = await DocumentApi.read(docPath);
     if (!doc || doc.getKind() !== 'command-view') return false;
     const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+    // ⛔ A CMS reload cannot sneak a test-world verb into a played world.
+    if (!admitsView(cmd)) return false;
     await resolveCommandValidators(cmd);
     validateCommandEffects(cmd);
     commands.set(key, cmd);
@@ -650,8 +663,13 @@ export class CommandLogic extends ApiLogic {
 
   /** See {@link CommandApi.preloadAll}. */
   @CallSecurity(CommandApiCallers)
-  public async preloadAll(): Promise<{ loaded: number; failed: string[] }> {
+  public async preloadAll(): Promise<{
+    loaded: number;
+    failed: string[];
+    withheld: string[];
+  }> {
     const failed: string[] = [];
+    const withheld: string[] = [];
     let loaded = 0;
 
     // ── The STORE: every installed `command-view` document. A malformed
@@ -671,6 +689,10 @@ export class CommandLogic extends ApiLogic {
         const key = viewKeyOf(doc.getPath());
         try {
           const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+          if (!admitsView(cmd)) {
+            withheld.push(key);
+            continue;
+          }
           await resolveCommandValidators(cmd);
           validateCommandEffects(cmd);
           commands.set(key, cmd);
@@ -680,7 +702,7 @@ export class CommandLogic extends ApiLogic {
           failed.push(key);
         }
       }
-      return { loaded, failed };
+      return { loaded, failed, withheld };
     }
 
     // ── OFFLINE (no store — a unit test, a stripped boot): the packs'
@@ -696,6 +718,11 @@ export class CommandLogic extends ApiLogic {
         failed.push(file);
         continue;
       }
+      if (!admitsView(cmd)) {
+        commands.delete(file);
+        withheld.push(file);
+        continue;
+      }
       try {
         await resolveCommandValidators(cmd);
         validateCommandEffects(cmd);
@@ -705,7 +732,7 @@ export class CommandLogic extends ApiLogic {
         failed.push(file);
       }
     }
-    return { loaded, failed };
+    return { loaded, failed, withheld };
   }
 
   /** See {@link CommandApi.collectContributions}. */

@@ -33,8 +33,10 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../../api/stuff';
 import type { MqlManyResult } from '../../../../api/mql';
 import Avatar from '../../../../lib/character/Avatar';
-import type EvalScript from '../../EvalScript';
+import EvalScript from '../../EvalScript';
 import { ScriptApi } from '../../../../api/script';
+import { ShellApi } from '../../../../api/shell';
+import type { EvalLateError } from '../../EvalScript';
 import { SandboxApi } from '../../../../api/sandbox';
 import { ParcelApi } from '../../../../api/parcel';
 import { GroupApi } from '../../../../api/group';
@@ -51,6 +53,9 @@ interface EvalModel extends CommandModel {
 }
 
 export default class EvalController extends CommandController<EvalModel> {
+  /** The longest result line `eval` writes to the socket. */
+  public static readonly OUTPUT_CAP_CHARS = 16_384;
+
   async execute(model: EvalModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
@@ -142,7 +147,15 @@ export default class EvalController extends CommandController<EvalModel> {
     // OWN output line, not running the player's code (found live).
     // Only the player's code belongs inside the jurisdiction.
     const names = targets.map((t) => t.getPresentation());
-    const results: Array<{ ok: boolean; value: unknown }> = [];
+    const results: Array<{
+      ok: boolean;
+      value: unknown;
+      late: readonly EvalLateError[];
+    }> = [];
+    // ⭐ The budget is the giver's own session setting, read out here.
+    const setting = Number(ShellApi.resolveSetting<number>(giver, 'eval.timeoutMs'));
+    const timeoutMs =
+      Number.isFinite(setting) && setting > 0 ? setting : EvalScript.DEFAULT_TIMEOUT_MS;
     let missingPrior = false;
 
     await inJurisdiction(async () => {
@@ -170,9 +183,14 @@ export default class EvalController extends CommandController<EvalModel> {
 
       for (const target of targets) {
         try {
-          results.push({ ok: true, value: await evalStuff.run(target) });
+          const out = await evalStuff.runReporting(target, { timeoutMs });
+          results.push({ ok: true, value: out.value, late: out.late });
         } catch (err) {
-          results.push({ ok: false, value: (err as Error).message });
+          results.push({
+            ok: false,
+            value: (err as Error | null)?.message ?? String(err),
+            late: [],
+          });
         }
       }
     });
@@ -189,11 +207,16 @@ export default class EvalController extends CommandController<EvalModel> {
     // there.
     results.forEach((r, i) => {
       const name = names[i] ?? '?';
+      const line = r.ok
+        ? `${name}: ${this._formatResult(r.value)}`
+        : `${name}: error: ${String(r.value)}`;
+      // ⭐ A rejection the code dropped is reported, never lost.
+      const late = r.late.map(
+        (l) => `\n${name}: late: ${l.api}.${l.name} — ${l.message}`,
+      );
       this.tell(
         context,
-        r.ok
-          ? `\n${name}: ${this._formatResult(r.value)}\n`
-          : `\n${name}: error: ${String(r.value)}\n`,
+        `\n${this.capLine(line)}${late.map((l) => this.capLine(l)).join('')}\n`,
       );
     });
     if (!isWire) {
@@ -292,6 +315,20 @@ export default class EvalController extends CommandController<EvalModel> {
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: 'controller-rejected', reason, detail });
     return;
+  }
+
+  /**
+   * ⭐ One cap on every result line, error lines included: a huge
+   * result is cut with its true length named, so the socket is never
+   * flooded and the reader knows what was cut.
+   */
+  private capLine(line: string): string {
+    const cap = EvalController.OUTPUT_CAP_CHARS;
+    if (line.length <= cap) return line;
+    return (
+      `${line.slice(0, cap)} … [cut at ${cap.toLocaleString('en-US')} of ` +
+      `${line.length.toLocaleString('en-US')} chars — eval output cap]`
+    );
   }
 
   private _formatResult(v: unknown): string {

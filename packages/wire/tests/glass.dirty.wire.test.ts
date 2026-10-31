@@ -47,6 +47,7 @@ import {
   expectOk,
   engagementIdOf,
   advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
@@ -98,11 +99,20 @@ async function settle(s: Session, started: CommandResult): Promise<void> {
   await new Promise((r) => setTimeout(r, 500));
 }
 
-let dayAdvanced = false;
+/**
+ * ⭐ To the working day — by the clock as it STANDS. The glasshouse is a
+ * clearing lit only by daylight (a cold kiln gives none), and this used to
+ * add a blind twelve hours, which is noon only when the run begins at
+ * midnight; in a shared run the clock is wherever the last file left it
+ * (the ceramics finalize found it). Jumps to the next noon unless it is
+ * already 09:00–15:00 — at most a day, so a short step.
+ */
 async function toMidday(): Promise<void> {
-  if (dayAdvanced) return;
-  await advanceWorldClock('12 hours');
-  dayAdvanced = true;
+  const now = await worldClockNow();
+  const into = ((now % 86_400) + 86_400) % 86_400;
+  if (into >= 9 * 3600 && into <= 15 * 3600) return;
+  const toNoon = (12 * 3600 - into + 86_400) % 86_400;
+  await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
 }
 
 suite('⭐ glass — the glasshouse in the woods', () => {

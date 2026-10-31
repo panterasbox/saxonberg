@@ -225,7 +225,7 @@ async function advance(duration: string): Promise<void> {
  * that had nothing to do with whiskey.
  */
 async function waitForDaylight(s: Session): Promise<void> {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     const here = await read(s, 'look');
     if (!/pitch dark|too dark/i.test(here)) return;
     await advance('4 hours');
