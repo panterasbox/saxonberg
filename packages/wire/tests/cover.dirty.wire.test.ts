@@ -684,6 +684,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     let forked = 0;
     // Two cuts: what six head eat in a day (the soak file forks six and
     // waits a week).
+    // ⚠ Rested first: after a day's cutting and the grazing steps the hand
+    // strained at a cut of hay with empty hands (blocking run, after the
+    // seed build). A night indoors, then back out by day.
+    await advance(8 * 3_600);
+    await daylight();
+    await goTo(HOME_FIELD);
     // Tools down first: a cut of hay is heavy, and with a scythe and a
     // sickle in hand `get 1 hay` strains at the first cuts it tries (run 6
     // — it says so for each before it picks one up, so the count is the
