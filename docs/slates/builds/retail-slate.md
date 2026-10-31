@@ -232,6 +232,18 @@ distinct from S3 on purpose.
 
 ---
 
+## ⭐ Per-instance worth — deferred from cordage (2026-10-31)
+
+A house bids per ROW (`Stock.bidFor(itemTemplatePath)`), so a good that is
+more or less of its row is paid as all of it. Cordage found the case: rope
+sells as 50 m coils, and a coil cut into five 10 m pieces would sell back as
+five coils. Cordage built a `Good.worthFactor()` hook for it and the owner
+pulled it out of the trade build — per-instance worth is retail's. Until it
+lands, the ropewalk buys no rope (`buys:` off its coil line) and rope flows
+one way. What it wants: a per-instance scale on the bid (length, wear, rot,
+a cut cheese, a half sack), read where the house PAYS, never on the per-row
+board.
+
 ## Open questions (for when each build opens)
 
 - **S1 — the storefront abstraction.** Extract a shared offer/price-list

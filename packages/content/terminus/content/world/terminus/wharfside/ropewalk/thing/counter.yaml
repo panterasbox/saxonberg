@@ -1,7 +1,7 @@
 # The ropewalk counter (cordage D17) — coils by the fifty meters, hemp by
-# the hank and the skein, and rope bought back: ⭐ by its length and its
-# soundness (`Good.worthFactor`), so a ten-meter cut fetches a fifth of a
-# coil and a chafed one less.
+# the hank and the skein. ⚠ It buys no rope back: a house bids per ROW, so a
+# coil cut into five would sell as five coils. Per-instance worth is
+# retail's to build (retail slate); until then rope goes one way.
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: rope counter
@@ -17,7 +17,7 @@ data:
   serverPositionKeys: [keeper]
   businessPath: /world/terminus/wharfside/ropewalk/idea/outfit
   stockLines:
-    - { itemTemplatePath: /trade/cordage/thing/rope, par: 2, buys: true }
+    - { itemTemplatePath: /trade/cordage/thing/rope, par: 2 }
     - { itemTemplatePath: /trade/cordage/thing/hemp-line, par: 6 }
     - { itemTemplatePath: /trade/cordage/thing/hemp-yarn, par: 40 }
     - { itemTemplatePath: /trade/cordage/thing/rigging-knife, par: 2 }

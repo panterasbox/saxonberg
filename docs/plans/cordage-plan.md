@@ -583,6 +583,7 @@ Acceptance: farming + textiles suites, `lint:family` (`perishable`/`mass` on the
 Commit: `build(cordage W4): hemp — one plant, the fiber variety; the pit and the board take it`.
 
 ### W5 — the Wharfside ropewalk (D17) ✅
+> ⛔ **2026-10-31, the owner: the buy-back is OUT** — `Good.worthFactor()` was retail's capability built in a trade build. Removed from `Good`/`Stock`/`Rope`; the coil line no longer `buys:`; drive 17's sale cut; the seam is on the retail slate (*Per-instance worth*).
 > **Done.** Zone `wharfside/ropewalk`, `location/walk` (Locale, `extent: 300`) + offstage, the
 > ropekeeper Agnes Tarrow (ropework proficient), the Business (keeper `fulfills: [ropework]`), the
 > counter (coil `buys: true`, hemp line, hemp yarn par 40, rigging knife, painter), the tar tub

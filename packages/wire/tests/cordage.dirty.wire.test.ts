@@ -418,10 +418,9 @@ suite('cordage — the blocking drive', () => {
     expect(after2, after2).toMatch(/hit the bottom/);
   }, 900_000);
 
-  it('17. rope is sold back; the lifeline, the heaving line and a painter read as rope', async () => {
-    const s = await session(maker, WALK);
-    const sold = await say(s, 'sell rope');
-    expect(sold, sold).not.toMatch(/does not buy|not yours|no one/i);
+  // ⚠ 17's sale is cut: the ropewalk buys no rope back (a house bids per
+  // row, so a coil cut into five would sell as five) — retail's seam.
+  it('17. the lifeline, the heaving line and a painter read as rope', async () => {
     const shop = await session(maker, SHOP);
     const life = await look(shop, 'first lifeline');
     expect(life, life).toMatch(/20 meters of hemp rope/);

@@ -241,12 +241,3 @@ describe('rot and tar (D13′)', () => {
     expect(r.isTarred()).toBe(true);
   });
 });
-
-describe('buy-back by the meter (D17)', () => {
-  it('⭐ a ten-meter cut is worth a fifth of a coil, and chafe takes off it', () => {
-    const r = rope(fiber('hemp', 4), 10);
-    expect(r.worthFactor()).toBeCloseTo(0.2, 5);
-    r.chafe = 0.5;
-    expect(r.worthFactor()).toBeCloseTo(0.1, 5);
-  });
-});

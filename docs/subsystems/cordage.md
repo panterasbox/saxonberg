@@ -66,8 +66,9 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
 - **Rot**: `cordage.rotPerWetDay (0.03) × wetness` per game day, untarred.
   Tarred = a SET coat of a `waterproofing` material outermost on the
   outside face (`Faced.coolCoats`: pitch sets as it cools below 320 K).
-- **Buy-back**: `Good.worthFactor()` scales a house's per-row bid at the
-  sale; a rope is `length / 50 × (1 − chafe) × (1 − rot)`.
+- **No buy-back** (yet): a house bids per row, so a coil cut into five
+  would sell as five coils; the ropewalk buys no rope until retail builds
+  per-instance worth ([retail slate](../slates/builds/retail-slate.md)).
 
 ## The rope at a drop
 
@@ -99,8 +100,8 @@ but its end is re-minted only by untying and tying again.
 
 - **The Wharfside ropewalk** (`/world/terminus/wharfside/ropewalk/`), off the
   towpath by a `ropewalk` exit: a 300 m walk, the jack, a tar tub of pitch
-  (`GlazeTub`), the ropekeeper Agnes Tarrow and her counter (50 m coils
-  bought back, hemp line, hemp yarn, rigging knives, painters).
+  (`GlazeTub`), the ropekeeper Agnes Tarrow and her counter (50 m coils,
+  hemp line, hemp yarn, rigging knives, painters; she buys no rope back).
 - **The Sunken Delve**: a timber post at corridor-2's lip; the pit is climbed.
 - **Hemp** (`trade-farming`): *Cannabis sativa*, one species; the fiber
   variety is the plant row (`plant/hemp`); its seed is on the general store.

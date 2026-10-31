@@ -96,9 +96,6 @@ const FIBER_DENSITY = 1480;
 /** A coat of pitch drawn out of the tub sets below this, K. */
 const SETS_BELOW_K = 300;
 
-/** A coil, as a house prices it: fifty meters (D17). */
-const COIL_M = 50;
-
 /** A rope longer than this, not coiled, will not go far when thrown, m. */
 const THROWS_UNCOILED_M = 5;
 
@@ -341,15 +338,6 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
     this.reconcileRot();
     const knot = this.knots.reduce((min, k) => Math.min(min, k.strength * k.dressing), 1);
     return this.breakingKg() * knot * (1 - this.chafe) * (1 - this.rot);
-  }
-
-  /**
-   * @hook ⭐ What it is worth against a coil (D17): its length over fifty
-   * meters, less its chafe and rot — a house buys rope back by the meter and
-   * by how sound it is.
-   */
-  public override worthFactor(): number {
-    return (this.lengthM / COIL_M) * (1 - this.chafe) * (1 - this.getRot());
   }
 
   /** What it holds, in words. */
