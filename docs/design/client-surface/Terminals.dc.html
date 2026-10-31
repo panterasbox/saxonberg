@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Multiple terminals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Spectral:ital,wght@0,400;0,500;0,600;1,400&amp;family=Newsreader:ital,wght@0,400;0,500;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: {{vw}}px; height: {{vh}}px; display: flex; flex-direction: column; background: #071224; color: #f2f5fa; font-family: 'Public Sans', system-ui, sans-serif; font-size: 13px; overflow: hidden; box-sizing: border-box">
+<div style="flex: 1; min-height: 0; display: flex">
+
+<nav aria-label="Modes" style="width: 56px; flex: none; background: #040b17; border-right: 1px solid #132441; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 4px; box-sizing: border-box">
+<div aria-hidden="true" style="width: 32px; height: 32px; border: 1px solid #c9a227; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Spectral, serif; font-weight: 500; color: #c9a227; font-size: 14px; margin-bottom: 10px">S</div>
+<button aria-label="Chat" style="position: relative; width: 44px; height: 44px; border: 0; border-radius: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; {{nav.chat}}"><sc-if value="{{nav.chatOn}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; left: -6px; top: 12px; width: 3px; height: 20px; background: #c9a227; border-radius: 2px"></span></sc-if><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg><sc-if value="{{nav.chatBadge}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; top: 5px; right: 4px; min-width: 16px; height: 16px; border-radius: 8px; background: #c9a227; color: #171204; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; box-sizing: border-box">{{nav.unread}}</span></sc-if></button>
+<button aria-label="Explore" style="position: relative; width: 44px; height: 44px; border: 0; border-radius: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; {{nav.explore}}"><sc-if value="{{nav.exploreOn}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; left: -6px; top: 12px; width: 3px; height: 20px; background: #c9a227; border-radius: 2px"></span></sc-if><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5 13.2 13.2 8.5 15.5 10.8 10.8z"></path></svg></button>
+<button aria-label="Watch" style="position: relative; width: 44px; height: 44px; border: 0; border-radius: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; {{nav.watch}}"><sc-if value="{{nav.watchOn}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; left: -6px; top: 12px; width: 3px; height: 20px; background: #c9a227; border-radius: 2px"></span></sc-if><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="13" rx="1"></rect><path d="M10 9l5 2.5-5 2.5z"></path></svg></button>
+<button aria-label="Build" style="position: relative; width: 44px; height: 44px; border: 0; border-radius: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; {{nav.build}}"><sc-if value="{{nav.buildOn}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position: absolute; left: -6px; top: 12px; width: 3px; height: 20px; background: #c9a227; border-radius: 2px"></span></sc-if><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"></path></svg></button>
+<button aria-label="Govern" style="position: relative; width: 44px; height: 44px; border: 0; border-radius: 3px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: transparent; color: #9fb0cc"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 9h16M5 9l7-5 7 5M7 9v9M12 9v9M17 9v9M4 19h16"></path></svg></button>
+<div style="flex: 1"></div>
+<button aria-label="You: Maren Vask, online" style="position: relative; width: 44px; height: 44px; border: 0; border-radius: 3px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer"><span style="width: 32px; height: 32px; border-radius: 50%; background: #15274a; border: 1px solid #22355e; color: #f2f5fa; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">MV</span><span aria-hidden="true" style="position: absolute; right: 5px; bottom: 5px; width: 9px; height: 9px; border-radius: 50%; background: #4a9d8f; border: 2px solid #040b17"></span></button>
+</nav>
+
+<sc-if value="{{panelOpen}}" hint-placeholder-val="{{ true }}">
+<aside aria-label="Mode panel" style="width: 240px; flex: none; background: #071224; border-right: 1px solid #132441; padding: 12px 8px; display: flex; flex-direction: column; box-sizing: border-box; position: relative">
+<article aria-label="{{panel.title}}" style="flex: 1 1 0; min-height: 0; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; display: flex; flex-direction: column; overflow: hidden">
+<header style="flex: none; display: flex; align-items: center; gap: 8px; padding: 9px 6px 9px 10px; border-bottom: 1px solid #132441">
+<div style="flex: 1; min-width: 0"><div style="font-family: Newsreader, serif; font-size: 15px">{{panel.title}}</div><div style="font-size: 11.5px; color: #8494b3">{{panel.sub}}</div></div>
+<button aria-label="Open at a larger size" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></button>
+<button aria-label="Collapse panel" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"></path></svg></button>
+</header>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 8px 6px; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{panel.sections}}" as="s" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; gap: 1px">
+<span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3; padding: 0 6px 4px">{{s.label}}</span>
+<sc-for list="{{s.rows}}" as="r" hint-placeholder-count="3"><button aria-current="{{r.current}}" style="position: relative; height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border: 0; border-radius: 3px; font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; background: {{r.rowBg}}; color: {{r.rowColor}}"><span aria-hidden="true" style="width: 14px; height: 14px; flex: none; border: 1.5px solid {{r.color}}; border-radius: 3px; color: {{r.color}}; font: 600 8px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{r.glyph}}</span><span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span><sc-if value="{{r.player}}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if><sc-if value="{{r.active}}" hint-placeholder-val="{{ false }}"><span style="flex: none; font: 500 10px 'IBM Plex Mono', monospace; color: #c9a227; border: 1px solid #c9a227; border-radius: 3px; padding: 0 4px">{{r.activeLabel}}</span></sc-if><sc-if value="{{r.open}}" hint-placeholder-val="{{ false }}"><span title="open as its own terminal card" style="flex: none; display: inline-flex; align-items: center; gap: 4px; font: 500 10px 'IBM Plex Mono', monospace; color: #9fb0cc; border: 1px solid #22355e; border-radius: 3px; padding: 0 4px">›_ open</span></sc-if><sc-if value="{{r.hasMeta}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; color: #8494b3">{{r.meta}}</span></sc-if><sc-if value="{{r.hasBadge}}" hint-placeholder-val="{{ false }}"><span style="min-width: 18px; height: 16px; border-radius: 8px; background: #c9a227; color: #171204; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; box-sizing: border-box">{{r.badge}}</span></sc-if></button></sc-for>
+</div></sc-for>
+</div>
+</article>
+<sc-if value="{{specOn}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; z-index: 2; bottom: 20px; left: 16px; font: 500 11px 'IBM Plex Mono', monospace; color: #c9a227; background: #040b17; border: 1px dashed #c9a227; border-radius: 3px; padding: 2px 6px; pointer-events: none">{{panel.spec}}</span></sc-if>
+</aside>
+</sc-if>
+
+<main style="flex: 1; min-width: 0; padding: 12px; display: flex; gap: 12px; box-sizing: border-box">
+<sc-for list="{{cols}}" as="col" hint-placeholder-count="3"><div style="{{col.style}} display: flex; flex-direction: column; gap: 12px; min-height: 0">
+<sc-for list="{{col.stack}}" as="it" hint-placeholder-count="2">
+
+<sc-if value="{{it.isTerm}}" hint-placeholder-val="{{ true }}">
+<article aria-label="Terminal: {{it.title}}" style="{{it.box}} background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; display: flex; flex-direction: column; overflow: hidden; position: relative">
+<header style="flex: none; display: flex; align-items: center; gap: 8px; padding: 7px 4px 7px 10px; border-bottom: 1px solid #132441">
+<span aria-hidden="true" style="width: 16px; height: 16px; flex: none; border: 1.5px solid #9fb0cc; border-radius: 3px; color: #9fb0cc; font: 600 9px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">›_</span>
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px">
+<span style="font-family: Newsreader, serif; font-size: 15px; white-space: nowrap">{{it.title}}</span>
+<span style="font: 500 11px 'IBM Plex Mono', monospace; color: #9fb0cc; border: 1px solid #22355e; border-radius: 3px; padding: 1px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{it.filter}}</span>
+</div>
+<sc-if value="{{it.primary}}" hint-placeholder-val="{{ false }}"><span style="flex: none; font-size: 10px; color: #c9a227; border: 1px solid #c9a227; border-radius: 3px; padding: 0 5px; text-transform: uppercase; letter-spacing: .08em; margin-right: 6px">primary</span></sc-if>
+<sc-if value="{{it.notPrimary}}" hint-placeholder-val="{{ true }}"><span style="display: flex">
+<button aria-label="Change size" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></button>
+<button aria-label="Minimize to tray" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 19h14"></path></svg></button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</span></sc-if>
+</header>
+<div role="log" aria-label="{{it.title}}" style="flex: 1; min-height: 0; overflow: hidden; padding: 12px 16px 8px; display: flex; flex-direction: column; justify-content: flex-end; gap: 7px">
+<sc-for list="{{it.lines}}" as="l" hint-placeholder-count="6">
+<sc-if value="{{l.isSay}}" hint-placeholder-val="{{ true }}"><div style="max-width: 42rem; font-family: Newsreader, serif; font-size: {{it.prose}}px; line-height: 1.45; color: #f2f5fa"><span style="font-family: 'Public Sans', sans-serif; font-weight: 600; font-size: 13px; color: {{l.whoColor}}">{{l.who}}</span><sc-if value="{{l.player}}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 16 16" role="img" aria-label="a real player" style="margin-left: 4px"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if>  {{l.text}}</div></sc-if>
+<sc-if value="{{l.isCmd}}" hint-placeholder-val="{{ false }}"><div style="max-width: 42rem; font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #9fb0cc"><span style="color: #c9a227">&gt;</span> {{l.text}}</div></sc-if>
+<sc-if value="{{l.isProse}}" hint-placeholder-val="{{ false }}"><div style="max-width: 42rem; font-family: Newsreader, serif; font-size: {{it.prose}}px; line-height: 1.5; color: #f2f5fa">{{l.text}}</div></sc-if>
+<sc-if value="{{l.isMeta}}" hint-placeholder-val="{{ false }}"><div style="max-width: 42rem; font-size: 13px; color: #8494b3">{{l.text}}</div></sc-if>
+<sc-if value="{{l.isDiag}}" hint-placeholder-val="{{ false }}"><div style="max-width: 42rem; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #9fb0cc"><span style="color: {{l.tagColor}}">{{l.tag}}</span>  {{l.text}}</div></sc-if>
+</sc-for>
+</div>
+<label style="flex: none; border-top: 1px solid #22355e; display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 42px; font-family: 'IBM Plex Mono', monospace; font-size: 13px">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Command for {{it.title}}</span>
+<span style="color: #c9a227; white-space: nowrap">{{it.prefix}}</span>
+<input placeholder="{{it.placeholder}}" style="flex: 1; min-width: 0; background: transparent; border: 0; color: #f2f5fa; font: inherit">
+</label>
+<sc-if value="{{specOn}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; z-index: 2; top: 44px; right: 8px; font: 500 11px 'IBM Plex Mono', monospace; color: #c9a227; background: #040b17; border: 1px dashed #c9a227; border-radius: 3px; padding: 2px 6px; pointer-events: none">{{it.spec}}</span></sc-if>
+</article>
+</sc-if>
+
+<sc-if value="{{it.isCard}}" hint-placeholder-val="{{ false }}"><div style="{{it.box}} position: relative"><dc-import name="Card" card="{{it.card}}" hint-size="100%,190px"></dc-import><sc-if value="{{specOn}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; z-index: 2; bottom: 8px; right: 8px; font: 500 11px 'IBM Plex Mono', monospace; color: #c9a227; background: #040b17; border: 1px dashed #c9a227; border-radius: 3px; padding: 2px 6px; pointer-events: none">{{it.spec}}</span></sc-if></div></sc-if>
+
+<sc-if value="{{it.isList}}" hint-placeholder-val="{{ false }}">
+<article aria-label="{{it.title}}" style="{{it.box}} background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; display: flex; flex-direction: column; overflow: hidden; position: relative">
+<header style="flex: none; display: flex; align-items: center; gap: 8px; padding: 9px 6px 9px 10px; border-bottom: 1px solid #132441">
+<span aria-hidden="true" style="width: 16px; height: 16px; flex: none; border: 1.5px solid {{it.color}}; border-radius: 3px; color: {{it.color}}; font: 600 9px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{it.glyph}}</span>
+<div style="flex: 1; min-width: 0"><div style="font-family: Newsreader, serif; font-size: 15px">{{it.title}}</div><div style="font-size: 11.5px; color: #8494b3">{{it.sub}}</div></div>
+<button aria-label="{{it.toggleLabel}}" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.chevron}}"></path></svg></button>
+</header>
+<sc-if value="{{it.expanded}}" hint-placeholder-val="{{ true }}">
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 8px 6px; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{it.sections}}" as="s" hint-placeholder-count="2"><div style="display: flex; flex-direction: column; gap: 1px">
+<span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3; padding: 0 6px 4px">{{s.label}}</span>
+<sc-for list="{{s.rows}}" as="r" hint-placeholder-count="3"><button style="height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 6px; border: 0; border-radius: 3px; font-family: inherit; font-size: 13px; text-align: left; cursor: pointer; background: {{r.rowBg}}; color: {{r.rowColor}}"><span aria-hidden="true" style="width: 14px; height: 14px; flex: none; border: 1.5px solid {{r.color}}; border-radius: 3px; color: {{r.color}}; font: 600 8px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{r.glyph}}</span><span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span><sc-if value="{{r.player}}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if><sc-if value="{{r.hasMeta}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; color: #8494b3">{{r.meta}}</span></sc-if><sc-if value="{{r.hasBadge}}" hint-placeholder-val="{{ false }}"><span style="min-width: 18px; height: 16px; border-radius: 8px; background: #c9a227; color: #171204; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; box-sizing: border-box">{{r.badge}}</span></sc-if></button></sc-for>
+</div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{specOn}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; z-index: 2; bottom: 8px; right: 8px; font: 500 11px 'IBM Plex Mono', monospace; color: #c9a227; background: #040b17; border: 1px dashed #c9a227; border-radius: 3px; padding: 2px 6px; pointer-events: none">{{it.spec}}</span></sc-if>
+</article>
+</sc-if>
+
+<sc-if value="{{it.isVideo}}" hint-placeholder-val="{{ false }}">
+<article aria-label="Video: {{it.title}}" style="{{it.box}} background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; display: flex; flex-direction: column; overflow: hidden; position: relative">
+<header style="flex: none; display: flex; align-items: center; gap: 8px; padding: 7px 4px 7px 10px; border-bottom: 1px solid #132441">
+<span aria-hidden="true" style="width: 16px; height: 16px; flex: none; border: 1.5px solid #5b8fd6; border-radius: 3px; color: #5b8fd6; font: 600 9px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">A</span>
+<div style="flex: 1; min-width: 0"><div style="display: flex; align-items: center; gap: 6px"><span style="font-family: Newsreader, serif; font-size: 15px">{{it.title}}</span><svg width="11" height="11" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></div><div style="font-size: 11.5px; color: #8494b3">{{it.sub}}</div></div>
+<span style="flex: none; display: flex; align-items: center; gap: 5px; font-size: 11px; color: #f2f5fa; margin-right: 6px"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="6" fill="#FFFFFF"></circle><circle cx="6" cy="6" r="4" fill="#BF0A30"></circle></svg>LIVE</span>
+<button aria-label="Open full size" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></button>
+<button aria-label="Close" style="width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</header>
+<div style="flex: 1; min-height: 0; background: #040b17; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #8494b3">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M10 8.5l5 3.5-5 3.5z"></path></svg>
+<span style="font-size: 12px">stream embed · 16:9</span>
+</div>
+<sc-if value="{{specOn}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; z-index: 2; bottom: 8px; right: 8px; font: 500 11px 'IBM Plex Mono', monospace; color: #c9a227; background: #040b17; border: 1px dashed #c9a227; border-radius: 3px; padding: 2px 6px; pointer-events: none">{{it.spec}}</span></sc-if>
+</article>
+</sc-if>
+
+<sc-if value="{{it.isLine}}" hint-placeholder-val="{{ false }}">
+<div style="{{it.box}} display: flex; align-items: center; gap: 8px; padding: 0 6px 0 8px; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; overflow: hidden; position: relative">
+<span aria-hidden="true" style="width: 14px; height: 14px; flex: none; border: 1.5px solid #9fb0cc; border-radius: 3px; color: #9fb0cc; font: 600 7px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">›_</span>
+<span style="flex: none; font: 500 11px 'IBM Plex Mono', monospace; color: #9fb0cc">{{it.label}}</span>
+<span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: Newsreader, serif; font-size: 14px"><span style="font-family: 'Public Sans', sans-serif; font-weight: 600; font-size: 12px; color: #c9a227">{{it.who}}</span>  {{it.text}}</span>
+<span style="flex: none; min-width: 18px; height: 16px; border-radius: 8px; background: #c9a227; color: #171204; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; box-sizing: border-box">{{it.badge}}</span>
+<sc-if value="{{specOn}}" hint-placeholder-val="{{ true }}"><span style="position: absolute; z-index: 2; top: -1px; right: 40px; font: 500 11px 'IBM Plex Mono', monospace; color: #c9a227; background: #040b17; border: 1px dashed #c9a227; border-radius: 3px; padding: 2px 6px; pointer-events: none">{{it.spec}}</span></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{it.isLanding}}" hint-placeholder-val="{{ false }}"><div style="{{it.box}} border: 1px dashed #22355e; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: #8494b3; font-size: 12px">new cards land here</div></sc-if>
+
+</sc-for>
+</div></sc-for>
+</main>
+</div>
+
+<footer style="height: 28px; flex: none; background: #040b17; border-top: 1px solid #22355e; display: flex; align-items: center; padding: 0 8px 0 14px; gap: 8px; font-size: 12px">
+<span style="font-family: 'IBM Plex Mono', monospace; color: #9fb0cc">{{status}}</span>
+<span style="flex: 1"></span>
+<span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3; margin-right: 2px">Minimized</span>
+<sc-for list="{{tray}}" as="t" hint-placeholder-count="2"><button aria-label="Restore {{t.title}}" title="{{t.title}}" style="position: relative; width: 26px; height: 22px; display: flex; align-items: center; justify-content: center; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; cursor: pointer; padding: 0"><span aria-hidden="true" style="width: 14px; height: 14px; border: 1.5px solid {{t.color}}; border-radius: 3px; color: {{t.color}}; font: 600 7px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{t.glyph}}</span><sc-if value="{{t.hasBadge}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: -6px; right: -6px; min-width: 15px; height: 14px; border-radius: 7px; background: #c9a227; color: #171204; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; box-sizing: border-box">{{t.badge}}</span></sc-if></button></sc-for>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"scene":{"editor":"enum","options":["chat","explore","watch","build","chat-1440"],"default":"chat"},"spec":{"editor":"boolean","default":true},"$preview":{"width":1920,"height":970}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var S = String(this.props.scene == null ? 'chat' : this.props.scene);
+    var specOn = this.props.spec == null ? true : !!this.props.spec;
+    var small = S === 'chat-1440';
+    var vw = small ? 1440 : 1920, vh = small ? 790 : 970;
+    var RAIL = 56, PANEL = 240, PAD = 12, GAP = 12, TERM = 704;
+
+    var BR = {
+      loc: { color: '#4a9d8f', glyph: 'L' }, agent: { color: '#5b8fd6', glyph: 'A' },
+      thing: { color: '#c9a227', glyph: 'T' }, idea: { color: '#b48ad6', glyph: 'I' },
+      term: { color: '#9fb0cc', glyph: '›_' }, file: { color: '#9fb0cc', glyph: 'F' }
+    };
+    function grow() { return 'flex: 1 1 0; min-height: 0;'; }
+    function fixed(h) { return 'flex: none; height: ' + h + 'px;'; }
+    var NONE = { isTerm: false, isCard: false, isList: false, isVideo: false, isLine: false, isLanding: false };
+    function say(who, text, kind) {
+      return { isSay: true, isCmd: false, isProse: false, isMeta: false, isDiag: false, who: who, text: text, player: kind === 'player' || kind === 'you',
+        whoColor: kind === 'you' ? '#4a9d8f' : kind === 'player' ? '#c9a227' : '#9fb0cc' };
+    }
+    function ln(kind, text) { return { isSay: false, isCmd: kind === 'cmd', isProse: kind === 'prose', isMeta: kind === 'meta', isDiag: false, text: text }; }
+    function dg(tag, color, text) { return { isSay: false, isCmd: false, isProse: false, isMeta: false, isDiag: true, tag: tag, tagColor: color, text: text }; }
+    function term(o) {
+      var t = Object.assign({}, NONE, { isTerm: true, primary: false, prefix: 'here›', placeholder: 'type a command…', box: grow(), lines: [] }, o);
+      t.notPrimary = !t.primary;
+      return t;
+    }
+    function row(branch, name, o) {
+      var r = Object.assign({ name: name, active: false, activeLabel: 'primary', open: false, hasBadge: false, badge: '', player: false, hasMeta: false, meta: '' }, BR[branch], o || {});
+      r.current = r.active ? 'true' : 'false';
+      if (r.badge) r.hasBadge = true;
+      if (r.meta) r.hasMeta = true;
+      r.rowBg = r.active ? '#15274a' : 'transparent';
+      r.rowColor = r.active ? '#f2f5fa' : '#9fb0cc';
+      return r;
+    }
+    function list(branch, o) {
+      var l = Object.assign({}, NONE, BR[branch], { isList: true, expanded: true, box: grow() }, o);
+      l.chevron = l.expanded ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6';
+      l.toggleLabel = l.expanded ? 'Collapse to header' : 'Expand';
+      return l;
+    }
+    function mk(branch, o) {
+      return Object.assign({ pinned: false, hasRole: false, role: '', player: false, hasComp: true, live: false, notLive: true, taken: '' }, BR[branch], o);
+    }
+    function L() { var a = [].slice.call(arguments); return { isLines: true, isChips: false, items: a.map(function (w) { return { w: w + '%' }; }) }; }
+    function C() { var a = [].slice.call(arguments); return { isLines: false, isChips: true, items: a.map(function (w) { return { w: w + 'px' }; }) }; }
+    function sec(label, body) { return Object.assign({ label: label, hasLabel: !!label }, body); }
+    function card(c) { return Object.assign({}, NONE, { isCard: true, card: c, box: fixed(c.h) }); }
+    function landing(h) { return Object.assign({}, NONE, { isLanding: true, box: fixed(h) }); }
+    function video(o) { return Object.assign({}, NONE, { isVideo: true, box: fixed(Math.round(TERM * 9 / 16) + 44) }, o); }
+    function tick(o) { return Object.assign({}, NONE, { isLine: true, box: fixed(32) }, o); }
+    function tr(branch, title, badge) { return Object.assign({ title: title, badge: badge || '', hasBadge: !!badge }, BR[branch]); }
+
+    var channels = {
+      title: 'Channels', sub: 'the room, channels, direct, streams',
+      sections: [
+        { label: 'Here', rows: [row('loc', "Dave's Bar", { active: S === 'chat', meta: S === 'chat' ? '' : '5 here' })] },
+        { label: 'Channels', rows: [row('term', '#dairy', { active: S === 'chat-1440' }), row('term', '#newcomers', { badge: '12' }), row('term', '#market')] },
+        { label: 'Direct', rows: [row('agent', 'Bramble', { player: true, open: true }), row('agent', 'Mara', { player: true, badge: '1' })] },
+        { label: 'Streams', rows: [row('agent', 'pbox · chat', { player: true, meta: 'live' })] }
+      ]
+    };
+    var navigator = {
+      title: 'Navigator', sub: 'about you · University Avenue',
+      sections: [
+        { label: 'Here', rows: [row('loc', "Dave's Bar", { active: true, activeLabel: 'here', meta: 'N E D' })] },
+        { label: 'Known places', rows: [row('loc', 'The Lounge', { meta: 'walked' }), row('loc', 'Wharfside', { meta: 'walked' }), row('loc', 'Duncan Hall', { meta: 'seen' })] },
+        { label: 'Route', rows: [row('idea', '— no route in progress')] }
+      ]
+    };
+    var streams = {
+      title: 'Streams', sub: 'live, tuned, screens in reach',
+      sections: [
+        { label: 'Live', rows: [row('agent', 'pbox', { active: true, activeLabel: 'watching', player: true }), row('agent', 'kestrel', { player: true, meta: 'live' })] },
+        { label: 'Tuned', rows: [row('term', 'pbox · chat', { open: true })] },
+        { label: 'Screens in reach', rows: [row('thing', 'the bar TV', { meta: 'dark' })] }
+      ]
+    };
+
+    var roomChat = [
+      say('the storekeeper', 'Mind the step on your way down.'),
+      ln('prose', 'Bramble waves to you from the end of the counter.'),
+      say('Bramble', 'evening! you here for the stream?', 'player'),
+      say('Maren Vask', 'Yeah, pbox said nine. Saving a stool.', 'you'),
+      say('the storekeeper', 'Last orders at the bell, mind.'),
+      ln('prose', 'A hewer shoulders in from the cold, stamping snow off his boots.'),
+      say('Bramble', 'did anyone bring the ledger?', 'player')
+    ];
+    var dm = [
+      say('Bramble', 'Customs house when the iron’s done.', 'player'),
+      say('Maren Vask', 'on my way after this round', 'you'),
+      say('Bramble', 'bring the ledger, they want the pages signed', 'player'),
+      say('Maren Vask', 'it’s minimized, one sec', 'you')
+    ];
+    var dairy = [
+      say('Ada', 'Curd set overnight, cutting at first light.', 'player'),
+      say('Tomas', 'whey to the pigs again?', 'player'),
+      say('Ada', 'half of it. the rest goes in the ricotta pot', 'player'),
+      say('Maren Vask', 'saving me a wheel of the hard one?', 'you'),
+      say('Ada', 'if you bring rennet back from Wharfside', 'player')
+    ];
+    var explore = [
+      ln('cmd', 'north'),
+      ln('prose', "Dave's Bar"),
+      ln('prose', 'Low beams and a long zinc counter, scarred where a thousand glasses have been set down too hard. Lamps along the back wall throw warm light across rows of coupes, and the air smells of citrus peel and old oak.'),
+      ln('meta', 'Exits: north, east, down.'),
+      say('the storekeeper', 'Mind the step on your way down.'),
+      ln('cmd', 'look storekeeper'),
+      ln('prose', 'A steady, watchful dwarf tending bar, sleeves rolled to the elbow.'),
+      ln('cmd', 'query back-bar:i'),
+      ln('meta', 'back-bar · 64 — 60 glasses ▸ · 4 bottles ▸')
+    ];
+    var streamChat = [
+      say('kestrel_92', 'the bar looks way better lit'),
+      say('oatmilk', 'is that the new customs house?'),
+      say('pbox', 'next up: signing the ledger at the customs house', 'player'),
+      say('gravelpit', 'F in chat for the whey'),
+      say('oatmilk', 'Bramble is in the bar too!'),
+      say('kestrel_92', 'pog')
+    ];
+    var diag = [
+      dg('error', '#e8705c', 'dave-bar.yaml:42 unknown mixin "Lockabel" (did you mean Lockable?)'),
+      dg('warn', '#c9a227', 'back-bar.yaml: contents exceed the shelf’s placement capacity'),
+      dg('git', '#5b8fd6', '3 changed · 1 staged · on design/2026-10-20-bar'),
+      dg('reload', '#4a9d8f', 'dave-bar hot-reloaded 11:06 · 5 clones restored'),
+      dg('error', '#e8705c', 'stools.yaml:8 seatIn: refers to a fixture that does not exist')
+    ];
+
+    var room = mk('loc', { title: "Dave's Bar", sub: 'University Avenue', hasRole: true, role: 'here', live: true, notLive: false, h: 300, comp: '13 capabilities',
+      sections: [sec('', L(100, 84)), sec('Exits', C(64, 52, 58)), sec('People', C(112, 86)), sec('Things', L(70))] });
+    var backbar = mk('thing', { title: 'the back bar', sub: 'fixed · 64 things in it', pinned: true, taken: 'taken 10:57', h: 182, comp: '6 capabilities',
+      sections: [sec('In it', L(64, 46)), sec('State', C(72))] });
+    var bramble = mk('agent', { title: 'Bramble', sub: 'at the counter · on air', player: true, taken: 'taken 11:04', h: 190, comp: '11 capabilities',
+      sections: [sec('', L(86)), sec('Presence', C(80, 64))] });
+    var pbox = mk('agent', { title: 'pbox', sub: 'streaming · on air', player: true, live: true, notLive: false, h: 200, comp: '11 capabilities',
+      sections: [sec('', L(90)), sec('Presence', C(70, 90))] });
+    var gitCard = mk('idea', { title: 'git · design/2026-10-20-bar', sub: '3 changed · 1 staged', taken: 'taken 11:06', h: 220, hasComp: false,
+      sections: [sec('Changed', L(80, 66, 72)), sec('Staged', L(58))] });
+
+    var members = list('agent', { title: "Here · Dave's Bar", sub: '5 here · 2 players', box: fixed(310), sections: [
+      { label: 'Players · 2', rows: [row('agent', 'Bramble', { player: true, meta: 'on air' }), row('agent', 'Maren Vask', { player: true, meta: 'you' })] },
+      { label: 'Others · 3', rows: [row('agent', 'the storekeeper', { meta: 'engaged' }), row('agent', 'a hewer'), row('agent', 'a mule', { meta: 'lying down' })] }
+    ] });
+    var tree = list('file', { title: 'Tree · /world/terminus', sub: 'moved out of the shut panel', sections: [
+      { label: 'dave-bar/', rows: [row('file', 'dave-bar.yaml', { active: true, badge: '1' }), row('file', 'back-bar.yaml', { meta: 'M' }), row('file', 'stools.yaml', { badge: '1' })] },
+      { label: 'lounge/', rows: [row('file', 'lounge.yaml'), row('file', 'satellites.yaml')] }
+    ] });
+
+    var panel = null, cols = [], tray = [], status = '', navKey = 'chat', unread = '';
+    if (S === 'chat') {
+      navKey = 'chat'; panel = channels; status = '› say Yeah, pbox said nine.';
+      cols = [
+        { kind: 'measure', stack: [term({ title: "Dave's Bar", filter: 'room speech · Dave’s Bar', primary: true, prefix: 'say›', placeholder: 'say something…', lines: roomChat })] },
+        { kind: 'unit', stack: [members, card(bramble), landing(120)] },
+        { kind: 'unit', stack: [term({ title: 'Bramble', filter: 'tell · Bramble', prefix: 'tell bramble›', placeholder: 'reply…', lines: dm })] }
+      ];
+      tray = [tr('term', '#market', '4'), tr('thing', 'your ledger')];
+      unread = '';
+    } else if (S === 'explore') {
+      navKey = 'explore'; panel = navigator; status = '› look storekeeper'; unread = '15';
+      cols = [
+        { kind: 'measure', stack: [term({ title: 'Everything', filter: 'no filter', primary: true, lines: explore })] },
+        { kind: 'unit', stack: [tick({ label: '#newcomers', who: 'Ada', text: 'anyone know where the customs house is? the map says east', badge: '12' }), card(room), card(backbar)] },
+        { kind: 'unit', stack: [term({ title: '#dairy', filter: 'channel · dairy guild', prefix: 'chat dairy›', placeholder: 'say to #dairy…', lines: dairy })] }
+      ];
+      tray = [tr('idea', 'oak'), tr('term', '#market', '4')];
+    } else if (S === 'watch') {
+      navKey = 'watch'; panel = streams; status = '› tune pbox'; unread = '15';
+      cols = [
+        { kind: 'measure', stack: [video({ title: 'pbox', sub: 'watching · Dave’s Bar tour' }), term({ title: 'Game', filter: 'no filter', primary: true, lines: explore.slice(3) })] },
+        { kind: 'unit', stack: [term({ title: 'pbox · stream chat', filter: 'relay · twitch/pbox', prefix: 'chat›', placeholder: 'chat to the stream…', lines: streamChat })] },
+        { kind: 'unit', stack: [card(pbox), card(bramble), landing(140)] }
+      ];
+      tray = [tr('term', '#dairy', '3')];
+    } else if (S === 'build') {
+      navKey = 'build'; panel = null; status = '› errors --watch'; unread = '15';
+      cols = [
+        { kind: 'measure', stack: [term({ title: 'Everything', filter: 'no filter', primary: true, lines: explore })] },
+        { kind: 'measure', stack: [term({ title: 'Diagnostics', filter: 'lens · errors + git + reload', prefix: 'here›', lines: diag })] },
+        { kind: 'unit', stack: [tree, card(gitCard)] }
+      ];
+      tray = [tr('term', '#builders', '5'), tr('loc', "Dave's Bar")];
+    } else {
+      navKey = 'chat'; panel = channels; status = '› chat dairy saving me a wheel?';
+      cols = [
+        { kind: 'measure', stack: [term({ title: '#dairy', filter: 'channel · dairy guild', primary: true, prefix: 'chat dairy›', placeholder: 'say to #dairy…', lines: dairy })] },
+        { kind: 'unit', stack: [list('agent', { title: 'Members · #dairy', sub: '14 members · 3 online', expanded: false, box: fixed(50), sections: [] }),
+          term({ title: 'Bramble', filter: 'tell · Bramble', prefix: 'tell bramble›', placeholder: 'reply…', lines: dm })] }
+      ];
+      tray = [tr('term', '#market', '4')];
+    }
+
+    var nUnits = 0, nMeasure = 0;
+    cols.forEach(function (c) { if (c.kind === 'unit') nUnits++; else nMeasure++; });
+    var avail = vw - RAIL - (panel ? PANEL : 0) - 2 * PAD - nMeasure * TERM - (cols.length - 1) * GAP;
+    var unitW = nUnits ? Math.floor(avail / nUnits) : 0;
+    cols.forEach(function (c) {
+      c.style = c.kind === 'measure' ? 'width: ' + TERM + 'px; flex: none;' : 'flex: 1 1 0; min-width: 0;';
+      var w = c.kind === 'measure' ? TERM : unitW;
+      c.stack.forEach(function (it) {
+        if (it.isTerm) {
+          it.prose = c.kind === 'measure' ? 16 : 15;
+          it.spec = 'terminal · ' + (c.kind === 'measure' ? 'measure ' + w + ' · ~90 ch' : 'unit ' + w + ' · ~' + Math.round((w - 34) / 7) + ' ch') + (it.primary ? ' · primary' : '');
+        } else if (it.isCard) it.spec = 'card · unit ' + w;
+        else if (it.isList) it.spec = it.expanded ? 'list card · ' + w : 'collapsed to header · ' + w;
+        else if (it.isVideo) it.spec = 'video · ' + TERM + ' × ' + Math.round(TERM * 9 / 16);
+        else if (it.isLine) it.spec = 'terminal · line (ticker)';
+      });
+    });
+    if (panel) panel.spec = 'panel · 240 · a card';
+
+    var on = 'background: #15274a; color: #f2f5fa;', off = 'background: transparent; color: #9fb0cc;';
+    var nav = {
+      chat: navKey === 'chat' ? on : off, chatOn: navKey === 'chat',
+      explore: navKey === 'explore' ? on : off, exploreOn: navKey === 'explore',
+      watch: navKey === 'watch' ? on : off, watchOn: navKey === 'watch',
+      build: navKey === 'build' ? on : off, buildOn: navKey === 'build',
+      unread: unread, chatBadge: !!unread
+    };
+
+    return { vw: vw, vh: vh, specOn: specOn, panelOpen: !!panel, panel: panel || { title: '', sub: '', sections: [], spec: '' }, cols: cols, tray: tray, status: status, nav: nav };
+  }
+}
+</script>
+</body>
+</html>

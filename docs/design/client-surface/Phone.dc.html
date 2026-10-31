@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone — chat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Spectral:ital,wght@0,400;0,500;0,600;1,400&amp;family=Newsreader:ital,wght@0,400;0,500;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; display: flex; flex-direction: column; background: #071224; color: #f2f5fa; font-family: 'Public Sans', system-ui, sans-serif; font-size: 14px; overflow: hidden; position: relative; box-sizing: border-box">
+<div style="height: 62px; flex: none"></div>
+
+<header style="flex: none; height: 52px; display: flex; align-items: center; gap: 4px; padding: 0 4px; border-bottom: 1px solid #132441">
+<button aria-label="{{leftLabel}}" style="width: 44px; height: 44px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; border-radius: 3px; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+<button aria-label="Switch terminal: {{title}}" style="flex: 1; min-width: 0; height: 44px; border: 0; background: transparent; color: #f2f5fa; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 0 4px; font-family: inherit; text-align: left; cursor: pointer">
+<span style="display: flex; align-items: center; gap: 6px; font-family: Newsreader, serif; font-size: 17px">{{title}}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8494b3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span>
+<span style="font-size: 12px; color: #8494b3">{{subtitle}}</span>
+</button>
+<button aria-label="{{rightLabel}}" style="position: relative; width: 44px; height: 44px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; border-radius: 3px; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c.8-4 3.4-6 6.5-6s5.7 2 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .6 3.2 2.6 3.5 6"></path></svg></button>
+</header>
+
+<div role="log" aria-label="{{title}}" style="flex: 1; min-height: 0; overflow: hidden; padding: 10px 14px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px">
+<sc-for list="{{lines}}" as="l" hint-placeholder-count="8">
+<sc-if value="{{l.isSay}}" hint-placeholder-val="{{ true }}"><div style="font-family: Newsreader, serif; font-size: 15.5px; line-height: 1.42; color: #f2f5fa"><span style="font-family: 'Public Sans', sans-serif; font-weight: 600; font-size: 13.5px; color: {{l.whoColor}}">{{l.who}}</span><sc-if value="{{l.player}}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 16 16" role="img" aria-label="a real player" style="margin-left: 4px"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if>  {{l.text}}</div></sc-if>
+<sc-if value="{{l.isProse}}" hint-placeholder-val="{{ false }}"><div style="font-family: Newsreader, serif; font-size: 15.5px; line-height: 1.45; color: #f2f5fa">{{l.text}}</div></sc-if>
+<sc-if value="{{l.isCmd}}" hint-placeholder-val="{{ false }}"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #9fb0cc"><span style="color: #c9a227">&gt;</span> {{l.text}}</div></sc-if>
+<sc-if value="{{l.isMeta}}" hint-placeholder-val="{{ false }}"><div style="font-size: 13px; color: #8494b3">{{l.text}}</div></sc-if>
+<sc-if value="{{l.isCard}}" hint-placeholder-val="{{ false }}"><div style="flex: none; height: {{l.h}}px"><dc-import name="Card" card="{{l.card}}" hint-size="100%,170px"></dc-import></div></sc-if>
+</sc-for>
+</div>
+
+<sc-if value="{{showChips}}" hint-placeholder-val="{{ false }}">
+<div role="group" aria-label="Placed cards" style="flex: none; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 10px; overflow: hidden; border-top: 1px solid #132441">
+<sc-for list="{{chips}}" as="g" hint-placeholder-count="3"><button style="flex: none; height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; color: #9fb0cc; font-family: inherit; font-size: 12.5px; cursor: pointer"><span aria-hidden="true" style="width: 14px; height: 14px; flex: none; border: 1.5px solid {{g.color}}; border-radius: 3px; color: {{g.color}}; font: 600 8px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{g.glyph}}</span>{{g.title}}</button></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showButtons}}" hint-placeholder-val="{{ false }}">
+<div role="toolbar" aria-label="Commands here" style="flex: none; height: 52px; display: flex; align-items: center; gap: 6px; padding: 0 10px; overflow: hidden; border-top: 1px solid #132441; background: #0a1730">
+<sc-for list="{{buttons}}" as="b" hint-placeholder-count="6"><button style="flex: none; min-width: 44px; height: 40px; padding: 0 12px; background: {{b.bg}}; border: 1px solid #22355e; border-radius: 3px; color: #f2f5fa; font: 500 13px 'IBM Plex Mono', monospace; cursor: pointer">{{b.label}}</button></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showReply}}" hint-placeholder-val="{{ false }}">
+<div style="flex: none; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 14px; background: #0d1c38; border-top: 1px solid #22355e; font-size: 12.5px; color: #9fb0cc">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 6 6v5"></path></svg>
+<span style="flex: 1">Replying to <strong style="color: #c9a227; font-weight: 600">Bramble</strong> — <span style="font-family: Newsreader, serif; font-style: italic">did anyone bring the ledger?</span></span>
+<button aria-label="Cancel reply" style="width: 32px; height: 32px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+</sc-if>
+
+<div style="flex: none; height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; border-top: 1px solid #22355e; background: #0d1c38">
+<button aria-label="Change who this goes to: {{prefix}}" style="flex: none; height: 36px; display: flex; align-items: center; gap: 5px; padding: 0 8px; background: transparent; border: 1px solid #c9a227; border-radius: 3px; color: #c9a227; font: 500 13px 'IBM Plex Mono', monospace; cursor: pointer">{{prefix}}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+<label style="flex: 1; min-width: 0; display: flex">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Message</span>
+<input placeholder="{{placeholder}}" value="{{typed}}" readOnly="{{ true }}" style="flex: 1; min-width: 0; height: 40px; background: transparent; border: 0; color: #f2f5fa; font-family: Newsreader, serif; font-size: 16px">
+</label>
+<button aria-label="Send" style="flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: {{sendBg}}; color: {{sendFg}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"></path></svg></button>
+</div>
+
+<sc-if value="{{typing}}" hint-placeholder-val="{{ false }}">
+<div role="listbox" aria-label="Suggestions" style="flex: none; height: 46px; display: flex; align-items: center; gap: 6px; padding: 0 8px; overflow: hidden; background: #0a1730; border-top: 1px solid #132441">
+<sc-for list="{{suggest}}" as="s" hint-placeholder-count="4"><button role="option" style="flex: none; height: 36px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: #15274a; border: 1px solid #22355e; border-radius: 3px; color: #f2f5fa; font-family: inherit; font-size: 13.5px; cursor: pointer">{{s.name}}<sc-if value="{{s.player}}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if><span style="font-size: 11px; color: #8494b3">{{s.meta}}</span></button></sc-for>
+</div>
+<div aria-hidden="true" style="flex: none; height: 300px; background: #1c2230; display: flex; align-items: center; justify-content: center; color: #8494b3; font-size: 12px; letter-spacing: .08em">SYSTEM KEYBOARD</div>
+</sc-if>
+
+<sc-if value="{{notTyping}}" hint-placeholder-val="{{ true }}">
+<nav aria-label="Modes" style="flex: none; height: 56px; display: flex; border-top: 1px solid #22355e; background: #040b17">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5"><button aria-current="{{t.current}}" style="position: relative; flex: 1; border: 0; background: transparent; color: {{t.color}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-family: inherit; font-size: 10.5px; cursor: pointer"><span style="width: 22px; height: 22px; border-radius: 3px; border: 1.5px solid {{t.color}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font: 600 10px 'IBM Plex Mono', monospace">{{t.glyph}}</span>{{t.label}}<sc-if value="{{t.hasBadge}}" hint-placeholder-val="{{ false }}"><span style="position: absolute; top: 5px; left: 50%; margin-left: 6px; min-width: 16px; height: 16px; border-radius: 8px; background: #c9a227; color: #171204; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; box-sizing: border-box">{{t.badge}}</span></sc-if></button></sc-for>
+</nav>
+<div style="height: 34px; flex: none; background: #040b17"></div>
+</sc-if>
+
+<sc-if value="{{longpress}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(4, 11, 23, .72)"></div>
+<section role="dialog" aria-label="Message actions" style="position: absolute; left: 0; right: 0; bottom: 0; background: #0d1c38; border-top: 1px solid #22355e; border-radius: 12px 12px 0 0; padding: 8px 0 34px; display: flex; flex-direction: column">
+<div aria-hidden="true" style="width: 40px; height: 4px; border-radius: 2px; background: #22355e; align-self: center; margin-bottom: 10px"></div>
+<div style="margin: 0 14px 12px; padding: 10px 12px; background: #071224; border: 1px solid #132441; border-radius: 3px; font-family: Newsreader, serif; font-size: 15.5px"><span style="font-family: 'Public Sans', sans-serif; font-weight: 600; font-size: 13.5px; color: #c9a227">Bramble</span>  did anyone bring the ledger?</div>
+<div role="group" aria-label="React" style="display: flex; gap: 6px; padding: 0 14px; overflow: hidden">
+<sc-for list="{{reactions}}" as="r" hint-placeholder-count="5"><button style="flex: none; height: 44px; min-width: 44px; padding: 0 12px; background: #15274a; border: 1px solid #22355e; border-radius: 3px; color: #f2f5fa; font-family: inherit; font-size: 13.5px; cursor: pointer">{{r}}</button></sc-for>
+</div>
+<div style="padding: 6px 14px 8px; font: 12px 'IBM Plex Mono', monospace; color: #8494b3">tap sends › react nod bramble</div>
+<sc-for list="{{actions}}" as="a" hint-placeholder-count="4"><button style="height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 16px; border: 0; border-top: 1px solid #132441; background: transparent; color: #f2f5fa; font-family: inherit; font-size: 15px; text-align: left; cursor: pointer"><span style="flex: 1">{{a.label}}</span><span style="font: 12px 'IBM Plex Mono', monospace; color: #8494b3">{{a.cmd}}</span></button></sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{drawer}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(4, 11, 23, .72)"></div>
+<aside aria-label="Channels" style="position: absolute; left: 0; top: 0; bottom: 0; width: 322px; background: #0d1c38; border-right: 1px solid #22355e; padding: 62px 0 34px; display: flex; flex-direction: column; box-sizing: border-box">
+<div style="flex: none; display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 8px 16px">
+<span style="font-family: Newsreader, serif; font-size: 20px">Channels</span>
+<button aria-label="Close channels" style="width: 44px; height: 44px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+</div>
+<label style="flex: none; margin: 0 12px 10px; display: flex">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Find a channel or person</span>
+<input placeholder="Find a channel or person" style="flex: 1; height: 40px; padding: 0 12px; background: #071224; border: 1px solid #22355e; border-radius: 3px; color: #f2f5fa; font-family: inherit; font-size: 14px">
+</label>
+<div style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 4px 8px">
+<sc-for list="{{channelSections}}" as="s" hint-placeholder-count="4"><div style="display: flex; flex-direction: column">
+<span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3; padding: 0 8px 4px">{{s.label}}</span>
+<sc-for list="{{s.rows}}" as="r" hint-placeholder-count="3"><button aria-current="{{r.current}}" style="height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 8px; border: 0; border-radius: 3px; font-family: inherit; font-size: 15px; text-align: left; cursor: pointer; background: {{r.bg}}; color: {{r.fg}}"><span aria-hidden="true" style="width: 16px; height: 16px; flex: none; border: 1.5px solid {{r.color}}; border-radius: 3px; color: {{r.color}}; font: 600 8px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{r.glyph}}</span><span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span><sc-if value="{{r.player}}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if><sc-if value="{{r.hasMeta}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: #8494b3">{{r.meta}}</span></sc-if><sc-if value="{{r.hasBadge}}" hint-placeholder-val="{{ false }}"><span style="min-width: 20px; height: 18px; border-radius: 9px; background: #c9a227; color: #171204; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; box-sizing: border-box">{{r.badge}}</span></sc-if></button></sc-for>
+</div></sc-for>
+</div>
+<div style="flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-top: 1px solid #132441">
+<span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3; flex: 1">Minimized</span>
+<button aria-label="Restore your ledger" style="width: 44px; height: 36px; display: flex; align-items: center; justify-content: center; background: #071224; border: 1px solid #22355e; border-radius: 3px; cursor: pointer"><span aria-hidden="true" style="width: 16px; height: 16px; border: 1.5px solid #c9a227; border-radius: 3px; color: #c9a227; font: 600 8px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">T</span></button>
+<button aria-label="Restore oak" style="width: 44px; height: 36px; display: flex; align-items: center; justify-content: center; background: #071224; border: 1px solid #22355e; border-radius: 3px; cursor: pointer"><span aria-hidden="true" style="width: 16px; height: 16px; border: 1.5px solid #b48ad6; border-radius: 3px; color: #b48ad6; font: 600 8px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">I</span></button>
+</div>
+</aside>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"screen":{"editor":"enum","options":["chat","typing","longpress","channels","explore"],"default":"chat"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var S = String(this.props.screen == null ? 'chat' : this.props.screen);
+    var isExplore = S === 'explore', typing = S === 'typing';
+    function say(who, text, kind) {
+      return { isSay: true, isProse: false, isCmd: false, isMeta: false, isCard: false, who: who, text: text, player: kind === 'player' || kind === 'you',
+        whoColor: kind === 'you' ? '#4a9d8f' : kind === 'player' ? '#c9a227' : '#9fb0cc' };
+    }
+    function ln(kind, text) { return { isSay: false, isProse: kind === 'prose', isCmd: kind === 'cmd', isMeta: kind === 'meta', isCard: false, text: text }; }
+    function sec(label, body) { return Object.assign({ label: label, hasLabel: !!label }, body); }
+    function L() { var a = [].slice.call(arguments); return { isLines: true, isChips: false, items: a.map(function (w) { return { w: w + '%' }; }) }; }
+    function C() { var a = [].slice.call(arguments); return { isLines: false, isChips: true, items: a.map(function (w) { return { w: w + 'px' }; }) }; }
+    function cardLine(c) { return { isSay: false, isProse: false, isCmd: false, isMeta: false, isCard: true, card: c, h: c.h }; }
+    var base = { pinned: false, hasRole: false, role: '', player: false, hasComp: true, live: false, notLive: true, taken: '' };
+
+    var bramble = Object.assign({}, base, { color: '#5b8fd6', glyph: 'A', title: 'Bramble', sub: 'at the counter · on air', player: true, taken: 'taken 11:04', h: 168, comp: '11 capabilities',
+      sections: [sec('', L(88)), sec('Presence', C(80, 64))] });
+    var room = Object.assign({}, base, { color: '#4a9d8f', glyph: 'L', title: "Dave's Bar", sub: 'University Avenue', hasRole: true, role: 'here', live: true, notLive: false, h: 236, comp: '13 capabilities',
+      sections: [sec('', L(100, 72)), sec('Exits', C(58, 48, 54)), sec('People', C(104, 80))] });
+
+    var chatLines = [
+      say('the storekeeper', 'Mind the step on your way down.'),
+      say('Bramble', 'evening! you here for the stream?', 'player'),
+      say('Maren Vask', 'Yeah, pbox said nine. Saving a stool.', 'you'),
+      ln('cmd', 'look bramble'),
+      cardLine(bramble),
+      say('the storekeeper', 'Last orders at the bell, mind.'),
+      ln('prose', 'A hewer shoulders in from the cold, stamping snow off his boots.'),
+      say('Bramble', 'did anyone bring the ledger?', 'player')
+    ];
+    var exploreLines = [
+      ln('cmd', 'north'),
+      ln('prose', 'Low beams and a long zinc counter, scarred where a thousand glasses have been set down too hard. Lamps throw warm light across rows of coupes.'),
+      ln('meta', 'Exits: north, east, down.'),
+      cardLine(room),
+      say('the storekeeper', 'Mind the step on your way down.')
+    ];
+
+    var tabDefs = [['Chat', '#'], ['Explore', '◇'], ['Watch', '▷'], ['Build', '{}'], ['You', 'MV']];
+    var tabs = tabDefs.map(function (d, i) {
+      var on = (isExplore && d[0] === 'Explore') || (!isExplore && d[0] === 'Chat');
+      return { label: d[0], glyph: d[1], color: on ? '#f2f5fa' : '#8494b3', current: on ? 'page' : 'false',
+        hasBadge: d[0] === 'Chat' && isExplore, badge: '15' };
+    });
+
+    function row(branch, name, o) {
+      var C2 = { loc: ['#4a9d8f', 'L'], agent: ['#5b8fd6', 'A'], term: ['#9fb0cc', '›_'] }[branch];
+      var r = Object.assign({ name: name, color: C2[0], glyph: C2[1], active: false, player: false, meta: '', badge: '' }, o || {});
+      r.hasMeta = !!r.meta; r.hasBadge = !!r.badge;
+      r.bg = r.active ? '#15274a' : 'transparent'; r.fg = r.active ? '#f2f5fa' : '#9fb0cc';
+      r.current = r.active ? 'true' : 'false';
+      return r;
+    }
+    var channelSections = [
+      { label: 'Here', rows: [row('loc', "Dave's Bar", { active: true, meta: '5 here' })] },
+      { label: 'Channels', rows: [row('term', '#dairy', { badge: '3' }), row('term', '#newcomers', { badge: '12' }), row('term', '#market')] },
+      { label: 'Direct', rows: [row('agent', 'Bramble', { player: true }), row('agent', 'Mara', { player: true, badge: '1' })] },
+      { label: 'Streams', rows: [row('agent', 'pbox · chat', { player: true, meta: 'live' })] }
+    ];
+
+    return {
+      title: "Dave's Bar",
+      subtitle: isExplore ? 'everything · University Avenue' : 'room speech · 5 here',
+      leftLabel: isExplore ? 'Navigator' : 'Channels',
+      rightLabel: isExplore ? 'Who is here' : 'Members',
+      lines: isExplore ? exploreLines : chatLines,
+      showChips: isExplore,
+      chips: [{ color: '#4a9d8f', glyph: 'L', title: "Dave's Bar · here" }, { color: '#c9a227', glyph: 'T', title: 'the back bar' }, { color: '#9fb0cc', glyph: '›_', title: '#newcomers 12' }],
+      showButtons: isExplore,
+      buttons: ['north', 'east', 'down', 'look', 'sit', 'buy', '⋯'].map(function (b, i) { return { label: b, bg: i < 3 ? '#15274a' : '#0d1c38' }; }),
+      showReply: typing,
+      prefix: isExplore ? 'here' : 'say',
+      placeholder: isExplore ? 'type a command…' : "say in Dave's Bar…",
+      typed: typing ? '@' : '',
+      sendBg: typing ? '#c9a227' : '#15274a',
+      sendFg: typing ? '#171204' : '#8494b3',
+      typing: typing, notTyping: !typing,
+      suggest: [{ name: 'Bramble', player: true, meta: 'here' }, { name: 'the storekeeper', player: false, meta: 'here' }, { name: 'a hewer', player: false, meta: 'here' }, { name: 'Mara', player: true, meta: 'DM' }],
+      tabs: tabs,
+      longpress: S === 'longpress',
+      reactions: ['nod', 'grin', 'wave', 'applaud', 'cheer', '+'],
+      actions: [{ label: 'Reply', cmd: 'say @bramble …' }, { label: 'Tell Bramble privately', cmd: 'tell bramble …' }, { label: 'Look at Bramble', cmd: 'look bramble' }, { label: 'Copy text', cmd: '' }],
+      drawer: S === 'channels',
+      channelSections: channelSections
+    };
+  }
+}
+</script>
+</body>
+</html>

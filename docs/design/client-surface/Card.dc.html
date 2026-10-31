@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unit card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Spectral:ital,wght@0,400;0,500;0,600;1,400&amp;family=Newsreader:ital,wght@0,400;0,500;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<article aria-label="{{c.title}}" style="width: 100%; height: {{c.h}}px; box-sizing: border-box; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; display: flex; flex-direction: column; overflow: hidden; font-family: 'Public Sans', system-ui, sans-serif; color: #f2f5fa">
+<header style="flex: none; display: flex; align-items: center; gap: 8px; padding: 7px 4px 7px 10px; border-bottom: 1px solid #132441">
+<span aria-hidden="true" style="width: 16px; height: 16px; flex: none; border: 1.5px solid {{c.color}}; border-radius: 3px; color: {{c.color}}; font: 600 9px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{c.glyph}}</span>
+<div style="flex: 1; min-width: 0">
+<div style="display: flex; align-items: center; gap: 6px">
+<span style="font-family: Newsreader, serif; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.title}}</span>
+<sc-if value="{{c.player}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.5"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if>
+<sc-if value="{{c.hasRole}}" hint-placeholder-val="{{ false }}"><span style="flex: none; font-size: 10px; color: #c9a227; border: 1px solid #c9a227; border-radius: 3px; padding: 0 4px; text-transform: uppercase; letter-spacing: .08em">{{c.role}}</span></sc-if>
+</div>
+<div style="font-size: 11.5px; color: #8494b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.sub}}</div>
+</div>
+<sc-if value="{{c.live}}" hint-placeholder-val="{{ false }}"><span style="flex: none; font-size: 11px; color: #4a9d8f; display: flex; align-items: center; gap: 4px"><svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="#4a9d8f"></circle></svg>live</span></sc-if>
+<sc-if value="{{c.notLive}}" hint-placeholder-val="{{ true }}"><span style="flex: none; font-size: 11px; color: #8494b3">{{c.taken}}</span></sc-if>
+<sc-if value="{{c.pinned}}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c9a227" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" role="img" aria-label="pinned"><path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v7"></path></svg></sc-if>
+<button aria-label="Open at medium size" style="flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></button>
+<button aria-label="Minimize to tray" style="flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 19h14"></path></svg></button>
+<button aria-label="Close" style="flex: none; width: 28px; height: 28px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</header>
+<div style="flex: 1; min-height: 0; overflow: hidden; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{c.sections}}" as="s" hint-placeholder-count="3"><div style="display: flex; flex-direction: column; gap: 6px">
+<sc-if value="{{s.hasLabel}}" hint-placeholder-val="{{ true }}"><span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3">{{s.label}}</span></sc-if>
+<sc-if value="{{s.isLines}}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 5px"><sc-for list="{{s.items}}" as="i" hint-placeholder-count="2"><div style="height: 8px; width: {{i.w}}; background: #1a2e55; border-radius: 2px"></div></sc-for></div></sc-if>
+<sc-if value="{{s.isChips}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-wrap: wrap; gap: 5px"><sc-for list="{{s.items}}" as="i" hint-placeholder-count="2"><span style="height: 20px; width: {{i.w}}; border: 1px solid #22355e; border-radius: 3px; background: #122447; box-sizing: border-box"></span></sc-for></div></sc-if>
+</div></sc-for>
+</div>
+<sc-if value="{{c.hasComp}}" hint-placeholder-val="{{ true }}"><footer style="flex: none; padding: 0 12px 9px"><span style="font-size: 11px; color: #9fb0cc; border: 1px solid #22355e; border-radius: 3px; padding: 2px 6px">{{c.comp}}</span></footer></sc-if>
+</article>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"card":{"editor":null},"$preview":{"width":352,"height":318}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var fallback = {
+      title: "Dave's Bar", sub: 'University Avenue', color: '#4a9d8f', glyph: 'L',
+      hasRole: true, role: 'here', player: false, pinned: false, live: true, notLive: false, taken: '',
+      h: 318, hasComp: true, comp: '13 capabilities',
+      sections: [
+        { label: '', hasLabel: false, isLines: true, isChips: false, items: [{ w: '100%' }, { w: '84%' }] },
+        { label: 'Exits', hasLabel: true, isLines: false, isChips: true, items: [{ w: '64px' }, { w: '52px' }, { w: '58px' }] },
+        { label: 'People', hasLabel: true, isLines: false, isChips: true, items: [{ w: '112px' }, { w: '86px' }] },
+        { label: 'Things', hasLabel: true, isLines: true, isChips: false, items: [{ w: '70%' }] }
+      ]
+    };
+    return { c: this.props.card || fallback };
+  }
+}
+</script>
+</body>
+</html>

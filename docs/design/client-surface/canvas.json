@@ -1,0 +1,330 @@
+{
+ "v": 3,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-10-20T18:15:00Z"
+ },
+ "title": "Saxonberg client — responsive layout",
+ "launch": {
+  "view": "canvas"
+ },
+ "pages": [],
+ "boards": {
+  "Main.dc.html": {
+   "x": 0,
+   "y": 0,
+   "w": 1920,
+   "h": 970,
+   "title": "1920 · default"
+  },
+  "Medium-1920.dc.html": {
+   "x": 2000,
+   "y": 0,
+   "w": 1920,
+   "h": 970,
+   "title": "1920 · medium"
+  },
+  "Full-1920.dc.html": {
+   "x": 4000,
+   "y": 0,
+   "w": 1920,
+   "h": 970,
+   "title": "1920 · full"
+  },
+  "Default-1440.dc.html": {
+   "x": 0,
+   "y": 1390,
+   "w": 1440,
+   "h": 790,
+   "title": "1440 · default"
+  },
+  "Medium-1440.dc.html": {
+   "x": 1520,
+   "y": 1390,
+   "w": 1440,
+   "h": 790,
+   "title": "1440 · medium"
+  },
+  "Full-1440.dc.html": {
+   "x": 3040,
+   "y": 1390,
+   "w": 1440,
+   "h": 790,
+   "title": "1440 · full"
+  },
+  "Card.dc.html": {
+   "x": 0,
+   "y": 2420,
+   "w": 352,
+   "h": 318,
+   "title": "Unit card (component)"
+  },
+  "Terminals.dc.html": {
+   "x": 0,
+   "y": 3160,
+   "w": 1920,
+   "h": 970,
+   "title": "chat · 1920 — room primary + DM sidecar"
+  },
+  "Terminals-explore.dc.html": {
+   "x": 2000,
+   "y": 3160,
+   "w": 1920,
+   "h": 970,
+   "title": "explore · 1920 — channel sidecar + ticker"
+  },
+  "Terminals-watch.dc.html": {
+   "x": 4000,
+   "y": 3160,
+   "w": 1920,
+   "h": 970,
+   "title": "watch · 1920 — video over game, stream chat"
+  },
+  "Terminals-build.dc.html": {
+   "x": 6000,
+   "y": 3160,
+   "w": 1920,
+   "h": 970,
+   "title": "build · 1920, panel shut — two measures"
+  },
+  "Terminals-chat-1440.dc.html": {
+   "x": 8000,
+   "y": 3160,
+   "w": 1440,
+   "h": 790,
+   "title": "chat · 1440 — one unit, stacked"
+  },
+  "Phone.dc.html": {
+   "x": 0,
+   "y": 4550,
+   "w": 390,
+   "h": 844,
+   "title": "phone · chat"
+  },
+  "Phone-typing.dc.html": {
+   "x": 470,
+   "y": 4550,
+   "w": 390,
+   "h": 844,
+   "title": "phone · chat, typing"
+  },
+  "Phone-longpress.dc.html": {
+   "x": 940,
+   "y": 4550,
+   "w": 390,
+   "h": 844,
+   "title": "phone · long-press a message"
+  },
+  "Phone-channels.dc.html": {
+   "x": 1410,
+   "y": 4550,
+   "w": 390,
+   "h": 844,
+   "title": "phone · channels (swipe right)"
+  },
+  "Phone-explore.dc.html": {
+   "x": 1880,
+   "y": 4550,
+   "w": 390,
+   "h": 844,
+   "title": "phone · explore, button bar"
+  },
+  "Inspect-glance.dc.html": {
+   "x": 0,
+   "y": 5814,
+   "w": 400,
+   "h": 236,
+   "title": "glance · the name + the first section"
+  },
+  "Inspect.dc.html": {
+   "x": 480,
+   "y": 5814,
+   "w": 400,
+   "h": 470,
+   "title": "pint glass, served · square image"
+  },
+  "Inspect-pinthover.dc.html": {
+   "x": 960,
+   "y": 5814,
+   "w": 400,
+   "h": 690,
+   "title": "pint · hovering the Bulkable stripe, quiet row open"
+  },
+  "Inspect-gin.dc.html": {
+   "x": 1440,
+   "y": 5814,
+   "w": 400,
+   "h": 520,
+   "title": "Crowsfoot gin · tall image"
+  },
+  "Inspect-backbar.dc.html": {
+   "x": 1920,
+   "y": 5814,
+   "w": 400,
+   "h": 540,
+   "title": "the back-bar · wide image, grouped"
+  },
+  "Inspect-knife.dc.html": {
+   "x": 2400,
+   "y": 5814,
+   "w": 400,
+   "h": 520,
+   "title": "belt knife · square image, pip rows"
+  },
+  "Inspect-corpse.dc.html": {
+   "x": 2880,
+   "y": 5814,
+   "w": 400,
+   "h": 460,
+   "title": "a corpse · no image (whose body is runtime)"
+  },
+  "Inspect-agent.dc.html": {
+   "x": 3360,
+   "y": 5814,
+   "w": 400,
+   "h": 590,
+   "title": "Dave, to a stranger · tall image"
+  },
+  "Inspect-player.dc.html": {
+   "x": 3840,
+   "y": 5814,
+   "w": 400,
+   "h": 540,
+   "title": "another player · their species’ image"
+  },
+  "Inspect-location.dc.html": {
+   "x": 4320,
+   "y": 5814,
+   "w": 400,
+   "h": 640,
+   "title": "Dave’s Bar · unit, wide image"
+  },
+  "Inspect-detail.dc.html": {
+   "x": 4800,
+   "y": 5814,
+   "w": 400,
+   "h": 380,
+   "title": "Dave’s Bar › the photos · details have no image"
+  },
+  "Inspect-medium.dc.html": {
+   "x": 5280,
+   "y": 5814,
+   "w": 704,
+   "h": 600,
+   "title": "Dave’s Bar · medium, wide image"
+  },
+  "Inspect-oak.dc.html": {
+   "x": 6064,
+   "y": 5814,
+   "w": 400,
+   "h": 380,
+   "title": "oak · no image (Materials are not Visible)"
+  }
+ },
+ "order": [
+  "Main.dc.html",
+  "Medium-1920.dc.html",
+  "Full-1920.dc.html",
+  "Default-1440.dc.html",
+  "Medium-1440.dc.html",
+  "Full-1440.dc.html",
+  "Card.dc.html",
+  "Terminals.dc.html",
+  "Terminals-explore.dc.html",
+  "Terminals-watch.dc.html",
+  "Terminals-build.dc.html",
+  "Terminals-chat-1440.dc.html",
+  "Phone.dc.html",
+  "Phone-typing.dc.html",
+  "Phone-longpress.dc.html",
+  "Phone-channels.dc.html",
+  "Phone-explore.dc.html",
+  "Inspect-glance.dc.html",
+  "Inspect.dc.html",
+  "Inspect-pinthover.dc.html",
+  "Inspect-gin.dc.html",
+  "Inspect-backbar.dc.html",
+  "Inspect-knife.dc.html",
+  "Inspect-corpse.dc.html",
+  "Inspect-agent.dc.html",
+  "Inspect-player.dc.html",
+  "Inspect-location.dc.html",
+  "Inspect-detail.dc.html",
+  "Inspect-medium.dc.html",
+  "Inspect-oak.dc.html"
+ ],
+ "notes": {
+  "row1920": {
+   "x": 0,
+   "y": -300,
+   "text": "Explore · 1920 × 970 — 1080p, browser maximized",
+   "kind": "title1",
+   "maxW": 5920
+  },
+  "rowTerms": {
+   "x": 0,
+   "y": 2860,
+   "text": "Multiple terminals — every terminal is a card, a filtered view of one log",
+   "kind": "title1",
+   "maxW": 9440
+  },
+  "widths": {
+   "x": 9520,
+   "y": 3160,
+   "w": 460,
+   "maxH": 640,
+   "size": "m",
+   "fill": "teal",
+   "text": "Size = the width of where a card sits; height = what its stack leaves\nicon · tray (a terminal shows unread)\nline · trail / strip row (a terminal is a ticker)\npanel · 240 (channels, navigator, tree, streams)\nunit · 352–450 (a chat sidecar, ~50 ch)\nmeasure · ~704 (the primary, ~90 ch; a medium card)\nstage · everything (full; the primary stays as a strip)\n\nThe primary terminal never closes or minimizes. Any filter can be primary: the room in chat, everything in explore.\nEvery terminal card carries its own command bar and input mode (barId)."
+  },
+  "rowPhone": {
+   "x": 0,
+   "y": 4250,
+   "text": "Phone — chat first; one terminal, cards inline, switch don’t stack",
+   "kind": "title1",
+   "maxW": 2270
+  },
+  "phoneNotes": {
+   "x": 2350,
+   "y": 4550,
+   "w": 440,
+   "maxH": 640,
+   "size": "m",
+   "fill": "orange",
+   "text": "Phone widths collapse to three: line (chips) · unit (a card inline, cut) · stage (a card as a sheet)\n\nChat: no button bar. Throughput help is the target chip (say ▾), the suggestion strip only while typing, a reply chip, and long-press for react / reply / tell / look — each showing its command.\n\nSwipe right: the panel card (channels; the highlight = what the one terminal shows). Swipe left: who is here.\n\nExplore: the button bar is the commands card at line size (exits first), above it the placed-card chips with the room first.\n\nMode tabs hide while the keyboard is up. Govern is not a tab yet."
+  },
+  "rowInspect": {
+   "x": 0,
+   "y": 5514,
+   "text": "Inspection card — rebuilt from the specimen sheet: real rows, real strings",
+   "kind": "title1",
+   "maxW": 6464
+  },
+  "inspectNotes": {
+   "x": 6544,
+   "y": 5814,
+   "w": 480,
+   "maxH": 800,
+   "size": "m",
+   "fill": "green",
+   "text": "Every line is what the server says today for that row, unless it is blue and italic: proposed, needing server work.\n\nTHE GUTTER (like the terminal's GutterStripe): every section has a 3px stripe in its source's color. Hover → tooltip (name, what the interface is, what it says, the commands); click → popover (help, the deeper look, copy). Sections are told apart by their stripes, not rules.\n• solid = a mixin • dotted = a class's own augmenter (Character, Weapon, CraftVessel) or a look controller line • blue dashes = proposed\n• several stripes side by side = several sources made one section (the description: Visible + Detailed)\n• the header carries Perceptible (what you can call it) and Containable / Addressable (where it is)\n\nQUIET: interfaces that said nothing collapse into one last row, “N quiet interfaces ▸”, which expands in place. The pill strip is gone.\n\nSCROLL: the header never scrolls. Unit cuts to fit (bottom-up, with a “cut to fit … larger ▸” bar); medium and full scroll under the header.\n\nIMAGES: one general picture per row, generated once from authored, stable state only; never runtime contents or people in places. The row declares its shape: wide 16:9 (full width at unit, a block at medium) · tall 4:5 (a column beside the description) · square (beside the description). The client never crops or stretches. No image is a valid answer.\n\nSpecimen sheet + traces: specimens/ beside these frames."
+  },
+  "row1440": {
+   "x": 0,
+   "y": 1090,
+   "text": "Explore · 1440 × 790 — laptop, browser maximized",
+   "kind": "title1",
+   "maxW": 4480
+  },
+  "ladder": {
+   "x": 6040,
+   "y": 0,
+   "w": 480,
+   "maxH": 640,
+   "size": "m",
+   "fill": "blue",
+   "text": "Sizes\nicon — you minimized it · tray at the right of the status bar\nglance — the system shrank it (aged out, displaced, a room you left) · trail atop the card area\nunit — portrait body · the card area, one column per unit\nmedium — landscape body · top of the terminal column\nfull — the stage · the terminal drops to a 4-line strip + command bar\n\nGeometry (CSS px, zoom-aware)\nnav rail 56 · mode panel 240 (collapses first)\nterminal column 704 · text capped at 42rem\nunit ≥ 352, stretches to fill · gaps 12\n1 unit = feed (placed on top, flow below, newest at the bottom)\n2+ units = workspace (placed cards hold slots, new cards land in the dashed slot)\n\nPlaceholders: branch marks are letters (L·A·T·I) until the icon set is designed; card bodies are bars."
+  }
+ },
+ "designSystems": []
+}

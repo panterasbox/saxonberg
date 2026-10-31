@@ -8,15 +8,43 @@
 > ⛔ **User verdict on the output: *"they're exactly what I asked for but
 > I don't really like em. not enough color."***
 > **Left:** ⭐⭐ **style as a ROW** + `StyleCatalogue` + the chain resolve
-> (the gallery) · the `props:`/`cast:` stable read (a defect fix) · a
-> **`thing`** prompt builder (the missing job with the best economics) ·
-> per-detail plates · the **monochrome-SVG tint channel** · thumbnails as
-> crops · media **ingest** (the named M3 gap) · the prompt-craft loop and
-> its fixed evaluation set · an npm script + an MQL batch mode
+> (the gallery) · ⭐⭐ **a declared shape per row** (wide · tall · square)
+> that the generator honors and the card never crops · the
+> `props:`/`cast:` stable read (a defect fix) · a **`thing`** prompt
+> builder (the missing job with the best economics) · per-detail plates
+> (⚠ contested, § 11) · the **monochrome-SVG tint channel** · thumbnails
+> as crops · species pictures as the KIND, for players · media **ingest**
+> (the named M3 gap) · the prompt-craft loop and its fixed evaluation set
+> · an npm script + an MQL batch mode · regenerating the 19 under the new
+> shapes and style
 > **Size:** **a build.** The style row is the spine; everything else is a
 > builder or a crop.
 
-**Captured 2026-10-02.**
+**Captured 2026-10-02. Extended 2026-10-30** in the client-surface design
+session, against `panterasbox/saxonberg@9550937c6`: the declared shape
+(§ 1a), the people and containers rules (§ 2), the per-shape card rules
+(§ 4) and what the style must cover (§ 8a). The card comps that use these
+rules are the `Inspect-*` frames in
+[`docs/design/client-surface/`](../../design/client-surface/README.md).
+Related: [client-surface-slate.md](client-surface-slate.md).
+
+## What is true today (2026-10-30)
+
+- **Any Visible can carry one image key** (`Visible.illustration` →
+  `mediaUrl()`). **19 rows use it**: 3 locations, 16 species.
+- **`illustrate.ts`** builds a prompt per kind: locations from
+  description + `getContents()` + exits at 1536×1024, species from
+  description + body plan at 1024×1536. It writes a `MediaAsset` with
+  `styleVersion: potter-v1`.
+- **People show their species' portrait.** Every human player, and Dave,
+  gets the same one.
+- **The client center-crops room images** into a strip
+  (`CardIllustration`: `max-height: 6.5rem; object-fit: cover`).
+- **potter-v1 contradicts the content**, not just the user's taste:
+  Dave's Bar is lit by two neon signs and is "dim" at every hour by the
+  light model, and the style's avoid list says "no neon". Night,
+  artificial light, industry, injury and death are all outside what it
+  allows (§ 5, § 8a).
 
 > **User: "before we can talk about any of that we need to know how we
 > actually want to use images in the client… the prompt should know
@@ -40,6 +68,12 @@ which projects one detail's slice for focus.
 > seven close-ups** — the illustrated-field-guide form exactly: the
 > plate, plus plates of the parts. A per-detail illustration is a *field
 > addition*, not new machinery.
+
+⚠ **Contested 2026-10-30.** The client-surface session listed "a detail,
+which is prose" among the things that cannot have an image, and its
+`Inspect-detail` comp shows a detail behind the breadcrumb with no plate.
+The two positions are recorded side by side in § 11 q2; neither has been
+decided.
 
 ### ⭐⭐ Multiplier two — the KIND (which divides instead)
 
@@ -74,6 +108,35 @@ is unaffordable *and* violates § 2.
 **So for a raster: where appearance is derived, the image is of the
 undyed archetype and the derived part stays prose.** ⭐ For an SVG, § 3
 makes that restriction go away.
+
+## 1a. ⭐⭐ The row declares its shape (2026-10-30)
+
+Three shapes, a closed vocabulary, **chosen for where images are shown
+and what they show**, not for what a model happens to output:
+
+| shape | ratio | for | why |
+|---|---|---|---|
+| **wide** | 16:9 | places; long things | A scene you stand in. At unit width (400px) 16:9 is 225px tall, about a third of a card; 3:2 (267px) and 4:3 (300px) take it over. 16:9 also matches the medium card / terminal column (~704×396), the stage and the phone. |
+| **tall** | 4:5 | people and creatures at three-quarter length; tall things; vertical places | Readable small: the face survives at 120–160px wide beside the description. A full figure at 2:3 puts a face at ~10px at unit width. It shows the costume, and NPC costume is authored. |
+| **square** | 1:1 | most things, vignetted on bare paper | Neutral: the empty paper absorbs the object's proportions. Also the source for thumbnails. |
+
+- The branch may supply a **default** (wide for places, tall for agents,
+  square for things); the row overrides it freely (a tall clock, a long
+  gallery).
+- The shape rides the wire with the image key. **The client never crops
+  or stretches** (§ 4 has its one rule per shape per card size).
+- `MediaAsset` records the shape (it records only the pixel size today).
+- **The generator honors the declaration.** gpt-image-1 outputs only
+  1024², 1536×1024 and 1024×1536, so either the pipeline crops once at
+  generation to 16:9 / 4:5 with the prompt composing inside that safe
+  area, or it moves to a model that supports these ratios. Either way
+  the crop is decided when the image is created, never at display.
+- ⭐ This is the same conclusion as § 4's thumbnails from the other end:
+  **every crop is decided once, at creation**, never by the renderer.
+- **No image is a valid answer**, and some things can't have one: a
+  corpse, whose look depends on whose body it is (runtime); a Material,
+  which isn't Visible (the `materials/oak.png` key in § 1 would need a
+  Visible to hang on); and, by the 2026-10-30 reading, a detail (§ 11 q2).
 
 ## 2. ⭐⭐⭐ The stable-read rule — and `props:` is the fix
 
@@ -125,6 +188,37 @@ crossing's own prose:
 ⚠ Per cast member, not a blanket flip — an NPC can die or be moved, and
 per-instance portraits are deferred to recognition
 ([media.md § Deferred](../../subsystems/media.md)).
+
+⚠ **Contested 2026-10-30.** The client-surface session wrote *"no people,
+including staged cast (they come and go on shifts)"*. The two readings
+differ on what makes a person transient: being unauthored (this section)
+or not always being there (a shift roster). Gus is the case that splits
+them. Recorded in § 11 q6, undecided.
+
+### The rest of the rule, by kind (2026-10-30)
+
+The builder's inputs, as the 2026-10-30 session listed them: the
+description, `Staged` props, `fixedInPlace`, adornments, costume rows, and
+the row's own authored fields (brand, label, material) — plus § 9's
+derived-but-stable facts. **Never live containment.**
+
+- **Places**: the authored description plus what the row stages as
+  fixed — fixtures, adornments, props fixed in place. **No loose
+  things**, and nothing placed on a host.
+- **NPCs**: three-quarter length (tall, § 1a) in their authored costume
+  (Dave's comes from the costume row he extends).
+- **Players**: no per-character image. They show their **species'
+  picture**, which must therefore show **the kind in neutral dress**,
+  not an individual. The card's "Wearing" list carries what they
+  actually wear.
+- **Containers and vessels**: the container as authored, without
+  contents — an empty pint, a bare back-bar. Rows that author initial
+  contents (the gin bottle's 0.75 L) show their label and seal with the
+  fill left unreadable. **Never paint a level the thing will drift
+  from.**
+- ⭐ **Prose bugs become image bugs.** A description that claims runtime
+  state ("ranked with bottles" on the back-bar) will be painted. Fix the
+  prose — the client-surface slate lists the ones its trace found.
 
 ## 2a. ⭐⭐⭐ The reins stay central — generation is NOT bring-your-own
 
@@ -233,6 +327,24 @@ Nobody arbitrates; each party answers only what it can know:
 | a **lightbox** | ⭐ the one honest modal: *"I am stepping out to look"* |
 | ⛔ **the transcript** | never — `registers.ts` keeps `chrome`/`display` unmapped to any transcript topic |
 
+### One rule per shape per card size (2026-10-30)
+
+The client reads the declared shape (§ 1a) and never crops. Card sizes
+are the client-surface slate's width classes:
+
+| shape | unit (~352–450) | medium (~704) |
+|---|---|---|
+| wide | full card width | a block |
+| tall | a column beside the description | the same, larger |
+| square | beside the description | the same, larger |
+
+- ⚠ Today's `CardIllustration` center-crop (`max-height: 6.5rem;
+  object-fit: cover`) retires.
+- The character-creation species slot (`CharGenStage`, 3:4 today) moves
+  to **4:5**, so one species image serves char-gen and the card.
+- Open: whether the image starts collapsed at unit size when the card is
+  short on room (client-surface slate q4).
+
 ### Thumbnails: a crop, not a generation
 
 > **User: "second render for thumbnails is fine we dont need tokens for
@@ -332,6 +444,27 @@ The manuscript direction fits the fiction better and portraits worse.
 
 **And the gallery means this stops being one irreversible choice**, which
 is the actual answer to the rejected output.
+
+## 8a. ⭐⭐ What the style must cover (2026-10-30)
+
+The client-surface session found potter-v1 failing on **coverage**, not
+only on color: whatever row ships as the default must be able to draw
+
+- **night**, and **artificial light** — lamps, gaslight (§ 9's 2200 K),
+  **neon**, mana light;
+- **industry** — the brickfield, the smelter, the glasshouse;
+- **injury and death**;
+- **a genre-plural world** — the realm is not one epoch or one region.
+
+And it must sit inside the design system's civic frame, which confines
+storybook warmth to **plates in a paper mount** (the 2026-08 handoff's
+art direction). Open: one house style, or a base with regional or epoch
+inflections — which § 6's chain resolve already makes expressible. ⭐ The
+style guide is the **user's** to write; the row is the mechanism that
+holds it. Work it as prompt blocks (STYLE, AVOID, per-shape composition,
+§ 11 q3) judged on § 10's contact sheet; the session proposed **Dave's
+Bar, Dave and the Crowsfoot gin bottle** as the first three subjects —
+one of each shape.
 
 ## 9. What the prompt may read
 
@@ -453,9 +586,11 @@ should be the loop's inner step, costing nothing per iteration.
 1. ⭐⭐⭐ **Which style ships as the default row?** § 8 argues the
    hand-tinted plate; it is a taste call and the gallery makes it
    reversible.
-2. ⭐ **Are per-detail plates in the demo?** Seven close-ups of one
-   crossing demonstrates the field-guide idea far better than seven rooms
-   at one plate each, and costs about the same.
+2. ⭐ **Does a detail get a plate at all — and are per-detail plates in
+   the demo?** § 1 says yes: seven close-ups of one crossing demonstrates
+   the field-guide idea far better than seven rooms at one plate each,
+   and costs about the same. The 2026-10-30 session said no: a detail is
+   prose. Undecided.
 3. **Does a style row carry per-job composition, or one block?** Per-job
    is what makes a style survive its weakest job; one block is what keeps
    a custom style authorable by somebody who is not a prompt engineer.
@@ -464,8 +599,40 @@ should be the loop's inner step, costing nothing per iteration.
 5. **How much metadata is too much** — § 10's dilution risk is measured
    for text and *assumed* for images. The contact sheet is how it gets
    measured.
+6. ⚠ **Staged cast in a place's picture** — § 2 lets authored cast in
+   (Gus at his post); the 2026-10-30 session kept all people out because
+   cast work shifts. Is transience "unauthored" or "not always there"?
+7. **Disguise** — the picture should follow the disguise, the way the
+   name does. An unidentified thing is fine if its picture is drawn from
+   its appearance row, like its prose.
+8. **Who may generate** — § 2a keeps generation central. Whether a player
+   may *upload* an image for their own row is a separate question: cost,
+   moderation, and attribution through the provenance ledger.
+9. **Thumbnails** for glance chips and headers — § 4's deterministic
+   crop, taken from the square shape or from a declared focal point, or
+   none.
+
+## Lens pass (2026-10-30)
+
+1. **Pedagogy** — neutral.
+2. **Creative expression** ⭐ — the author decides what gets a picture
+   and its shape, and picks the style row; nothing is forced by kind.
+3. **Immersion** ⭐ — drawing only authored, stable state is what keeps a
+   picture from ever contradicting the world's live words.
+4. **Values** — no player is pictured as an individual they didn't
+   author.
+5. **Continuity** — a picture is of the row; it survives every runtime
+   change by not depicting it.
+6. **Economy** — generation costs money per row; regenerating the
+   library is one-time; § 2a keeps the forever cost (storage) off private
+   money.
+7. **Governance** — moderation, if players ever upload.
 
 ## Cross-refs
+
+- [client-surface-slate.md](client-surface-slate.md) — the card sizes
+  § 4's per-shape rules are written against, and the prose bugs § 2 says
+  become image bugs. Comps: [`docs/design/client-surface/`](../../design/client-surface/README.md).
 
 - [media.md](../../subsystems/media.md) — the shipped subsystem:
   `Visible.illustration`, `mediaUrl()`, `MediaAsset`, the generation
