@@ -144,6 +144,12 @@ function proseForFrameworkNote(note: Note): string | null {
  */
 const detachedContexts = new WeakSet<CommandContext>();
 
+/**
+ * The dispatches that have already asked for a missing object (`Ring
+ * what?`), so the line the answer completes is never asked about again.
+ */
+const ASKED = new WeakSet<CommandContext>();
+
 /** Frame `target` marker for a detached async command body. */
 const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
 
@@ -1074,6 +1080,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
       /** The first view that refused an argument, if a later one is tried. */
       let firstRefused: CommandContext | undefined;
+      /** The first view whose only problem is a missing object — askable. */
+      let askable: { command: CommandDefinition; field: string } | undefined;
       for (const affordance of matches) {
         const command = affordance.command;
         const built = CommandApi.assemble(parsed, command, {
@@ -1087,7 +1095,18 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           CommandApi.overlayBodyFields(built.model, outer.bodyFields, command);
         }
         if ('error' in built) {
-          if (built.error === 'shape') continue; // fall through
+          if (built.error === 'shape') {
+            // ⭐ A line that left out a required OBJECT is not wrong, it
+            // is unfinished — remember it, and ask for it if nobody else
+            // claims the line (below).
+            const def = built.missing
+              ? command.args.find((a) => a.name === built.missing)
+              : undefined;
+            if (!askable && def && (def.type === 'object' || def.type === 'objects')) {
+              askable = { command, field: def.name };
+            }
+            continue; // fall through
+          }
           if (firstRefused) return firstRefused;
           // Bind / unknown-subcommand errors stop the chain. Emit on
           // the outer ctx — we never reached _executeOne for any
@@ -1191,6 +1210,39 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         return attempt;
       }
       if (firstRefused) return firstRefused;
+      // ⭐⭐ "Ring what?" — the line named the verb and not its object.
+      // Ask, offering what is in reach and fits the field; the answer
+      // (a pick from the list, or any thing clicked elsewhere on screen)
+      // goes where the object goes, as `#<id>`, and the line runs again
+      // exactly as if it had been typed — so every gate a typed object
+      // meets, this one meets. Asked once: a second shape failure after
+      // the answer is a real one.
+      if (askable && outer.interactive && !ASKED.has(outer)) {
+        ASKED.add(outer);
+        const candidates = CommandApi.objectCandidates(
+          askable.command,
+          askable.field,
+          outer.commandGiver as Stuff & CommandGiver,
+        );
+        const verb = parsed.verb;
+        const picked = await outer.interactive.promptMqlObject(
+          `${verb.charAt(0).toUpperCase()}${verb.slice(1)} what?`,
+          candidates,
+        );
+        // (Cancelling throws PromptCancelledError, which the dispatch's
+        // own catch reports; a null pick is the same answer.)
+        if (picked === null) {
+          outer.note({ kind: 'controller-rejected', reason: 'cancelled', detail: 'prompt cancelled' });
+          return outer;
+        }
+        const arg = askable.command.args.find((a) => a.name === askable!.field) as
+          | { prepositions?: string[] }
+          | undefined;
+        const prep = arg?.prepositions?.[0];
+        const line = `${CommandLineApi.format(parsed)} ${prep ? `${prep} ` : ''}#${picked.stuffId}`;
+        const reparsed = CommandLineApi.parsePipeline(line).commands[0];
+        if (reparsed) return this._runChain(reparsed, outer);
+      }
       // Every match returned a shape error.
       outer.note({
         kind: 'command-rejected',

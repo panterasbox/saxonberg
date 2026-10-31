@@ -1637,10 +1637,10 @@ export interface AffordanceEntry {
   verb: string;
   /**
    * ⭐ The exact command the server validated this verb with — the verb
-   * and the target as the viewer would type it (its primary keyword;
-   * the `#id` only when it has none). Absent when the target is not the
-   * verb's first argument, so no one-word command is correct: a client
-   * must never compose one by appending (#91).
+   * and the target by `#id`, never a word that could resolve to another
+   * thing. Sent only for the `links ids` shortcut; by default a client
+   * sends the verb alone and the dispatcher asks "Ring what?". Absent
+   * when the target is not the verb's first argument (#91).
    */
   command?: string;
   /** Authored one-line description — the menu's label text. */

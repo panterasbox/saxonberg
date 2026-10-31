@@ -1172,6 +1172,34 @@ export class CommandLogic extends ApiLogic {
     }
   }
 
+  /** See {@link CommandApi.objectCandidates}. */
+  @CallSecurity(CommandApiCallers)
+  public objectCandidates(
+    command: CommandDefinition,
+    field: string,
+    giver: Stuff & CommandGiver,
+  ): Stuff[] {
+    const def = command.args.find((a) => a.name === field) as
+      | { _requirementTerms?: RequirementTerm[]; scope?: string[] }
+      | undefined;
+    const terms = def?._requirementTerms ?? [];
+    // The field's own scope — `drop` offers your inventory, `get` what is
+    // around you. A `$var` scope (the focus chain) has no list of its
+    // own, so it widens to what is in reach.
+    const seeds = (def?.scope ?? []).filter((x) => !x.startsWith('$'));
+    const out = new Map<string, Stuff>();
+    for (const seed of seeds.length > 0 ? seeds : ['reachable']) {
+      try {
+        for (const s of MqlApi.resolveMany(seed, { commandGiver: giver, scope: '' }).stuff) {
+          out.set(s.stuffId, s);
+        }
+      } catch {
+        // A seed this giver cannot resolve offers nothing.
+      }
+    }
+    return [...out.values()].filter((s) => s !== giver && terms.every((t) => t.test(s)));
+  }
+
   /** See {@link CommandApi.preloadValidatorDeps}. */
   @CallSecurity(CommandApiCallers)
   public async preloadValidatorDeps(
@@ -2061,9 +2089,11 @@ const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
  * is a modifier the player types on purpose.
  */
 /**
- * ⭐ The command an affordance stands for, as the viewer would type it
- * (#91): the verb, then the target by its primary keyword — the word
- * `look`'s links already click with — or `#id` when it has none.
+ * ⭐ The exact command an affordance stands for (#91): the verb and the
+ * target by `#id` — never a word, which could quietly resolve to some
+ * other thing in reach. The client sends it only when the player asked
+ * to skip the question (`cockpit style links ids`); by default a click
+ * sends the verb alone and the dispatcher asks "Ring what?".
  *
  * Only when the bound field is the verb's FIRST positional: a target in
  * a later slot (`give <amount> <whom>`) has no correct one-word form, so
@@ -2077,8 +2107,7 @@ function affordanceCommand(
 ): string | undefined {
   if (!bound) return verb;
   if (cmd.args[0]?.name !== bound) return undefined;
-  const keyword = MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined;
-  return keyword ? `${verb} ${keyword}` : `${verb} #${target.stuffId}`;
+  return `${verb} #${target.stuffId}`;
 }
 
 function objectFields(cmd: CommandDefinition): string[] {
@@ -2566,7 +2595,7 @@ function bindPositionals(
   expandDefault: (text: string) => string = expand,
 ):
   | { bound: ModelData; prep: Record<string, string> }
-  | { error: 'shape'; summary: string } {
+  | { error: 'shape'; summary: string; missing?: string } {
   const bound: ModelData = {};
   const prep: Record<string, string> = {};
   let pi = 0;
@@ -2604,6 +2633,7 @@ function bindPositionals(
               def.type === 'struct'
                 ? `field '${name}' requires structured input; cannot bind from text`
                 : `missing required arg: ${name}`,
+            ...(def.type === 'struct' ? {} : { missing: name }),
           };
         }
         /*
@@ -2736,6 +2766,7 @@ function bindPositionals(
           return {
             error: 'shape',
             summary: `missing required arg: ${name}`,
+            missing: name,
           };
         }
       } else if (loneQuoted !== null) {
@@ -2808,6 +2839,7 @@ function bindPositionals(
             def.type === 'struct'
               ? `field '${name}' requires structured input; cannot bind from text`
               : `missing required arg: ${name}`,
+          ...(def.type === 'struct' ? {} : { missing: name }),
         };
       }
       if (def.type === 'struct') {

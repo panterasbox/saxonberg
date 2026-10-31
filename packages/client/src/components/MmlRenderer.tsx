@@ -609,6 +609,8 @@ function renderNode(
   return (
     <ClickableSpan
       key={key}
+      // A noun names a thing: it answers a "Ring what?" prompt (PickMode).
+      data-stuff-id={node.attrs['stuff-id'] || undefined}
       $tint={paletteFor(node.attrs.color)}
       onClick={(e) => handleAffordanceClick(e, cmd, ctx.onCommandClick)}
       onContextMenu={(e) => {

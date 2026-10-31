@@ -321,7 +321,10 @@ export function Card({
           which is where the reader can actually see it.
         */}
         {card.subjectKind ? <KindMark kind={card.subjectKind} /> : null}
-        <Title>{title}</Title>
+        {/* The subject's title names it — it answers a pick (PickMode). */}
+        <Title data-stuff-id={(card.records[0]?.stuffId as string | undefined) || undefined}>
+          {title}
+        </Title>
         {/*
           ⭐ The honesty stamp. A static card says WHEN its answer was
           taken; a live card has no stale answer to stamp, so it says

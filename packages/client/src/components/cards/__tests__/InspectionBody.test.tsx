@@ -84,8 +84,8 @@ describe("InspectionBody", () => {
         "pint-1": {
           composition: ["VisibleMixin", "BulkableMixin", "TangibleMixin", "PerceptibleMixin", "ThermalMixin"],
           verbs: [
-            { verb: "drink", source: "subject", state: "enabled", command: "drink pint" },
-            { verb: "look", source: "actor", state: "enabled", command: "look pint" },
+            { verb: "drink", source: "subject", state: "enabled", command: "drink #pint-1" },
+            { verb: "look", source: "actor", state: "enabled", command: "look #pint-1" },
           ],
         } as never,
       },
@@ -96,20 +96,21 @@ describe("InspectionBody", () => {
     // nothing — Perceptible is no exception any more.
     expect(screen.getByTestId("quiet-toggle").textContent).toMatch(/^3 quiet interfaces/);
     expect(screen.getByText("Actions")).toBeTruthy();
-    fireEvent.click(screen.getByLabelText("drink pint"));
-    expect(sent).toEqual(["drink pint"]);
+    // ⭐ The verb alone: the game asks "Drink what?" — never a guessed word.
+    fireEvent.click(screen.getByLabelText("drink"));
+    expect(sent).toEqual(["drink"]);
     // The quiet row is the last thing on the card.
     const body = screen.getByTestId("inspection-body");
     expect(body.lastElementChild?.getAttribute("data-testid")).toBe("quiet-row");
   });
 
-  it("with `cockpit style links ids`, a click names its target by id", () => {
+  it("with `cockpit style links ids`, an action skips the question with the server's exact `#id` command", () => {
     useStore.setState({
       clientState: { "style.overlay": { links: "ids" } },
       affordances: {
         "pint-1": {
           composition: [],
-          verbs: [{ verb: "drink", source: "subject", state: "enabled", command: "drink pint" }],
+          verbs: [{ verb: "drink", source: "subject", state: "enabled", command: "drink #pint-1" }],
         } as never,
       },
     });

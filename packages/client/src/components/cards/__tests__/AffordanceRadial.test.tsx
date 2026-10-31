@@ -157,10 +157,10 @@ describe("the three states", () => {
     expect(screen.getByText("needs target")).toBeTruthy();
   });
 
-  it("⭐ sends the server's own command for the verb, and previews it first (#91)", () => {
-    // The server bound the subject into `look`'s first argument and sent
-    // back the command it validated — the client never composes one.
-    answer([entry({ verb: "look", category: "perception", command: "look anvil" })]);
+  it("⭐ sends the verb alone — the game asks what — and previews it first (#91)", () => {
+    // A word could resolve to some other thing in reach; the click never
+    // guesses. `look` → the game asks "Look what?".
+    answer([entry({ verb: "look", category: "perception", command: "look #anvil" })]);
     const sent: string[] = [];
     const previews: (string | null)[] = [];
     render(
@@ -174,8 +174,8 @@ describe("the three states", () => {
     const button = screen.getByText("look").closest("button")!;
     fireEvent.mouseEnter(button);
     fireEvent.click(button);
-    expect(previews[0]).toBe("look anvil");
-    expect(sent).toEqual(["look anvil"]);
+    expect(previews[0]).toBe("look");
+    expect(sent).toEqual(["look"]);
   });
 
   it("a verb with no one-word command sends the verb alone, so the dispatcher asks", () => {

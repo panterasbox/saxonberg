@@ -225,25 +225,20 @@ describe('the verb menu stops lying', () => {
    * group, declared universal because those controllers refuse nothing
    * by kind. An invented constraint would show up here.
    */
-  it('⭐ each entry carries the exact command it was validated with — the verb and the primary keyword, never an appended guess (#91)', async () => {
+  it('⭐ each entry carries the exact command it was validated with — `verb #id`, never a word that could name something else (#91)', async () => {
     const room = makeStuff(() => new Room());
     const viewer = makeAnimateViewer();
     ContainmentApi.move(viewer, room);
     const rock = makeStuff(() => new Rock());
     rock.setName('a plain rock');
-    expect(MixinApi.isPerceptible(rock)).toBe(true);
-    if (MixinApi.isPerceptible(rock)) rock.setKeywords(['rock', 'plain']);
+    rock.setKeywords(['rock', 'plain']);
     ContainmentApi.move(rock, room);
-    const onWidget = (await CommandApi.resolveAffordances(rock, viewerOf(viewer)))!.verbs;
-    const look = entry(onWidget, 'look');
-    // Perceptible's primary keyword (keywords[0] here), or `#id` when a
-    // thing has no keyword at all.
-    const word = MixinApi.isPerceptible(rock) ? rock.getPrimaryKeyword() : undefined;
-    expect(look?.command).toBe(word ? `look ${word}` : `look #${rock.stuffId}`);
+    const onRock = (await CommandApi.resolveAffordances(rock, viewerOf(viewer)))!.verbs;
+    expect(entry(onRock, 'look')?.command).toBe(`look #${rock.stuffId}`);
     // A verb whose target is not its first argument carries NO command:
     // the client must not compose one.
-    for (const v of onWidget) {
-      if (v.command) expect(v.command.startsWith(`${v.verb}`)).toBe(true);
+    for (const v of onRock) {
+      if (v.command) expect(v.command).toMatch(new RegExp(`^${v.verb}( #${rock.stuffId})?$`));
     }
   });
 

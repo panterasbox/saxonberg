@@ -1328,7 +1328,11 @@ export interface AssembleSuccess {
 
 export type AssembleResult =
   | AssembleSuccess
-  | { error: 'shape'; summary: string }
+  /**
+   * `missing` names the required field the line left out, when that is
+   * why it failed — the dispatcher asks for an object it is missing.
+   */
+  | { error: 'shape'; summary: string; missing?: string }
   | { error: 'bind'; summary: string }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
@@ -1779,6 +1783,21 @@ export class CommandApi {
     command: CommandDefinition,
   ): void {
     return logic().overlayBodyFields(model, fields, command);
+  }
+
+  /**
+   * ⭐ What a missing object could be (the "Ring what?" prompt): what is
+   * in the giver's reach and satisfies the field's `requires:` — the
+   * same admissibility test the binder applies to a typed word. The
+   * prompt offers these; a pick from elsewhere on screen is re-checked
+   * by the dispatch it feeds, exactly as if it had been typed.
+   */
+  static objectCandidates(
+    command: CommandDefinition,
+    field: string,
+    giver: Stuff & CommandGiver,
+  ): Stuff[] {
+    return logic().objectCandidates(command, field, giver);
   }
 
   /**

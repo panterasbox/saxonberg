@@ -258,6 +258,7 @@ function ItemChips({
       <ItemChip
         key={item.stuffId}
         type="button"
+        data-stuff-id={item.stuffId}
         data-testid="segment-chip"
         aria-label={cmd}
         onClick={() => onSendCommand(cmd)}

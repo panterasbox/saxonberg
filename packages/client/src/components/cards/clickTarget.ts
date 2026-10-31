@@ -7,15 +7,17 @@
  * exactly as typing it would — the disambiguation prompt is the UI for
  * ambiguity, not an id nobody can read.
  *
- * ⚠ An action's command is the SERVER's, never composed here: the
- * affordance probe binds the target into the verb's real argument slot
- * and sends back the command it validated. A verb whose target is not
- * its first argument comes back with no command, and the click sends
- * the verb alone so the dispatcher asks for what it needs — appending
- * the target would put it in the wrong slot.
+ * ⭐⭐ An ACTION never names its target by a word: a word can quietly
+ * resolve to some other thing in reach, and we never want to be wrong.
+ * A click sends the verb alone and the game asks — "Ring what?" — with
+ * its own list of what fits, and every noun on screen can answer
+ * (PickMode), so the player who clicked `ring` on a card answers by
+ * clicking the tip jar in that same card.
  *
- * A player who would rather never be asked turns on
- * `cockpit style links ids`, and every click names its target by `#id`.
+ * A player who would rather skip the question turns on
+ * `cockpit style links ids`: an action then sends the server's exact
+ * `<verb> #<id>` — and only when the target really is the verb's first
+ * argument (the server sends none otherwise).
  */
 
 import type { AffordanceEntry, StyleOverlay } from "@saxonberg/types";
@@ -37,15 +39,11 @@ export function lookCommand(stuffId: string, keyword: string | undefined, mode: 
   return mode === "words" && keyword ? `look ${keyword}` : `look #${stuffId}`;
 }
 
-/** What one action chip sends. */
+/** What one action chip sends: the verb (the game asks), or the exact `#id` command. */
 export function actionCommand(
   entry: AffordanceEntry,
-  stuffId: string | undefined,
+  _stuffId: string | undefined,
   mode: LinkMode,
 ): string {
-  if (!entry.command) return entry.verb;
-  if (mode === "ids" && stuffId && entry.command !== entry.verb) {
-    return `${entry.verb} #${stuffId}`;
-  }
-  return entry.command;
+  return mode === "ids" && entry.command ? entry.command : entry.verb;
 }
