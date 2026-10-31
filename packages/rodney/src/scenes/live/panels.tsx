@@ -87,26 +87,6 @@ export const PANELS: PanelRow[] = [
     when: (show) => show.community !== null,
     render: (show) => show.community && <CommunityPanel community={show.community} />,
   },
-  {
-    key: 'follow',
-    weight: 1,
-    seconds: 16,
-    when: () => true,
-    render: () => (
-      <Panel
-        kicker="You're watching"
-        title={`${CHANNEL.person} @ ${CHANNEL.studio}`}
-        body={`Follow on ${CHANNEL.platforms.map((p) => p.name).join(' · ')}`}
-        aside={
-          <img
-            src="/brand/panterasbox-hex-white.svg"
-            alt=""
-            style={{ width: 130, height: 130, display: 'block' }}
-          />
-        }
-      />
-    ),
-  },
 ];
 
 function capitalize(s: string): string {
