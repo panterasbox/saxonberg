@@ -31,6 +31,7 @@ args:
     type: object
     required: false
     prepositions: [with]
+    greedy: true
     default: "reachable:[mixin.TieableMixin]"
     scope: ["reachable"]
     requires: [TieableMixin]

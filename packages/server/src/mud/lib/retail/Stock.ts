@@ -32,6 +32,7 @@
  * `lint:counters`.
  */
 
+import GoodClass from "../stuff/Good";
 import Holder from "../stuff/Holder";
 import { ContainerMixin } from "../spatial/Container";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
@@ -589,8 +590,13 @@ export default class Stock extends StockBase {
       const veto = (MixinApi.isContainer(store) ? store.canAddContainable?.(item) : undefined) ?? { ok: true };
       if (!veto.ok) return no("store-refuses", veto.reason ?? "The house has no room for it.");
     }
-    const bid = this.bidFor(path);
-    if (bid === null) return no("not-priced", "The house will not put a price on that.");
+    const rowBid = this.bidFor(path);
+    if (rowBid === null) return no("not-priced", "The house will not put a price on that.");
+    // ⭐ The bid is per row; the good says how much of its row it is
+    // (cordage D17: a ten-meter cut of a fifty-meter coil, a chafed rope).
+    const worth = item instanceof GoodClass ? Math.max(0, item.worthFactor()) : 1;
+    const bid = Math.floor(rowBid * worth);
+    if (bid < 1) return no("worthless", "The house will not give anything for that.");
     const sellerAccount = await BankingApi.primaryAccountIdOf(who);
     if (!sellerAccount) return no("no-account", "You have no bank account to be paid into.");
     try {

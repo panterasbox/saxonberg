@@ -1007,6 +1007,9 @@ importers:
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
+      '@saxonberg/content-trade-cordage':
+        specifier: workspace:*
+        version: link:../trade-cordage
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:../trade-distilling

@@ -9,3 +9,4 @@ data:
     Round grey-green seeds with a marbled shell, hard as shot.
   growsIntoPath: /trade/farming/thing/plant/hemp
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/cannabaceae/cannabis/sativa
+  mass: 0.05

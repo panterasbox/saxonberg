@@ -75,4 +75,14 @@ const GoodBase = FacedMixin(IntegrityMixin(ChattelMixin(ConcealableMixin(Thing))
 
 export default class Good extends GoodBase {
   static fieldMeta: FieldMeta = {};
+
+  /**
+   * @hook ⭐ What this one is worth against the row's own price (cordage
+   * D17): a house's bid is per ROW, and a good that is more or less of its
+   * row — ten meters cut off a fifty-meter coil, a chafed rope — scales it.
+   * Default 1: every good is all of its row.
+   */
+  public worthFactor(): number {
+    return 1;
+  }
 }

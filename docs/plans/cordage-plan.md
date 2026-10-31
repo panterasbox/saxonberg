@@ -582,7 +582,15 @@ straw only.
 Acceptance: farming + textiles suites, `lint:family` (`perishable`/`mass` on the new rows).
 Commit: `build(cordage W4): hemp — one plant, the fiber variety; the pit and the board take it`.
 
-### W5 — the Wharfside ropewalk (D17)
+### W5 — the Wharfside ropewalk (D17) ✅
+> **Done.** Zone `wharfside/ropewalk`, `location/walk` (Locale, `extent: 300`) + offstage, the
+> ropekeeper Agnes Tarrow (ropework proficient), the Business (keeper `fulfills: [ropework]`), the
+> counter (coil `buys: true`, hemp line, hemp yarn par 40, rigging knife, painter), the tar tub
+> (`GlazeTub` holding pitch), the jack in `props:`; towpath `ropewalk` exit; parcel off-grid; terminus
+> depends on cordage. Kernel `Good.worthFactor()` `@hook` (default 1; `Rope` = length/50 × sound),
+> applied where the house PAYS (`Stock` sale path) — the `look` listing stays the per-coil row bid.
+> lint:family green for W3–W5 together (mass: hemp seed weighs; reachability: the two declared
+> instrument args greedy, `hank of hemp` answers to its printed name).
 Files: `terminus/content/world/terminus/wharfside/ropewalk.yaml`, `ropewalk/location/walk.yaml`
 (+ `offstage.yaml`), `ropewalk/agent/ropekeeper.yaml`, `ropewalk/idea/outfit.yaml`,
 `ropewalk/thing/{counter,tar-pot}.yaml`, `valley-road/towpath.yaml` (exit), `terminus/pack.yaml`

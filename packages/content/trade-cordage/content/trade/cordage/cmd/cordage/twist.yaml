@@ -31,6 +31,7 @@ args:
     type: object
     required: false
     prepositions: [on, at, with]
+    greedy: true
     default: "reachable:[capability.ropelaying]"
     scope: ["reachable"]
     requires: [ToolMixin]

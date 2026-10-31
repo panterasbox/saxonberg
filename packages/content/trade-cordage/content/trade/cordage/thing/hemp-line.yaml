@@ -4,7 +4,7 @@
 class: /trade/textiles/thing/TextileStock
 data:
   shortDescription: hank of hemp
-  keywords: [hemp, hank, strick, "hemp line"]
+  keywords: [hemp, hank, strick, "hemp line", "hank of hemp"]
   register: indefinite
   longDescription: |
     Combed hemp, grey-gold and coarse, hanging in a long switch that smells faintly of the retting pond.

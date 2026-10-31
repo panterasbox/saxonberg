@@ -1,0 +1,25 @@
+# The ropewalk (cordage D17) — one keeper, who lays and sells rope.
+class: /platform/idea/Business
+data:
+  name: "Tarrow's ropewalk"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/wharfside/ropewalk/agent/ropekeeper
+  call: rota
+  positions:
+    - key: keeper
+      noun: ropekeeper
+      label: keeping the ropewalk
+      wageRate: 4
+      fulfills: [ropework]
+  rosterSlots:
+    - positionKey: keeper
+      assignee: /world/terminus/wharfside/ropewalk/agent/ropekeeper
+      station: /world/terminus/wharfside/ropewalk/location/walk
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  offstage: /world/terminus/wharfside/ropewalk/location/offstage
+  operatingLocations:
+    - /world/terminus/wharfside/ropewalk/location/walk
+    - /world/terminus/wharfside/ropewalk/thing/counter
