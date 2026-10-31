@@ -174,6 +174,10 @@ test('the pull-down overlays the feed, and nothing scrolls sideways', async ({
   try {
     const terminal = page.getByTestId('terminal');
     await expect(terminal).toBeVisible({ timeout: 20_000 });
+    // ⚠ Measure once the login `look` has landed: its room card joins the
+    // phone's feed and resizes the transcript, which is arrival, not the
+    // pull-down.
+    await expect(page.locator('[data-card-kind="subject"]').first()).toBeVisible({ timeout: 20_000 });
     const before = await terminal.boundingBox();
 
     await openWithoutOverflow(page, 'shelf-pulldown', async () => {
@@ -191,9 +195,9 @@ test('the pull-down overlays the feed, and nothing scrolls sideways', async ({
     const cards = page.locator(
       '[data-testid="pulldown-grid"] [data-figure-state]',
     );
-    await expect(cards).toHaveCount(3); // the default shelf
+    await expect(cards).toHaveCount(4); // the default shelf: play, renown, skill, body
     await runCommand(page, 'cockpit shelf pin coin');
-    await expect(cards).toHaveCount(4, { timeout: 15_000 });
+    await expect(cards).toHaveCount(5, { timeout: 15_000 });
 
     // ⭐ Hatched rows carry their reason as VISIBLE text and no digit —
     // the same claim the desktop shelf makes, at a size where the
