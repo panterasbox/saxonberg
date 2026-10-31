@@ -439,10 +439,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     note(`stages seen: ${[...seen].join(', ')}`);
     expect(seen.size).toBeGreaterThanOrEqual(3);
     expect([...seen].join(' ')).toMatch(/ripe and ready to cut/);
-    // ⭐ Step 16's hay: the rest of the field, grown long (staged), mown.
-    await swardTo(HOME_FIELD, CAMPUS, 0.95);
-    await goTo(HOME_FIELD);
-    expect(await read(p, 'look')).toMatch(/a good even cover|ready to graze|grown long/i);
+    // ⭐ Step 16's hay: the rest of the field's grass, grown on (staged) a
+    // little over the residual — a scythe takes `3 s + 0.4 s a kilo` of
+    // real time, so a long sward is a quarter-hour's mowing — and mown.
+    await swardTo(HOME_FIELD, CAMPUS, 0.53);
     await goTo(YARD);
     await act(p, 'get scythe');
     await goTo(HOME_FIELD);
@@ -585,9 +585,15 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // ⭐ [staged] The month is the soak file's. Here the pasture's grass is
     // set given out — what that month does — and a day shows the trough
     // turning to the rick.
-    await swardTo(PASTURE, DELIGHT, 0.05);
+    // ⚠ To NOTHING: a "bare" sward still holds grass (5% of the pasture's
+    // ceiling feeds the herd for days), and the trough is only asked for
+    // what the grass cannot give (staged: run 1's rick read the same).
+    await swardTo(PASTURE, DELIGHT, 0);
+    // ⚠ The pasture settles what it fed when it is READ — reconcile it
+    // first, as a player looking at it would (blocking run 1: the rick read
+    // the same either side of the day).
     const RICK_KG =
-      "return self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(',')";
+      "return (self.getContainer().reconcileSward(), self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(',')";
     const kgOf = (said: string): number => Number(/([0-9.]+)/.exec(said)?.[1] ?? NaN);
     const before = kgOf(await founderEval(PASTURE, DELIGHT, RICK_KG));
     await advance(DAY);
@@ -640,7 +646,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // ⭐ [staged] The winter is the soak file's. Here the stubble is set
     // eaten to the dirt — what a winter on it does — and a day unfed shows
     // the herd on it eating nothing: the heads do not gain, none dies.
-    await swardTo(HOME_FIELD, CAMPUS, 0.02);
+    // To nothing: bare grass still feeds them (see step 18).
+    await swardTo(HOME_FIELD, CAMPUS, 0);
     await advance(DAY);
     await daylight();
     const winter = await collegeHead(1);
