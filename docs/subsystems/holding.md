@@ -165,7 +165,9 @@ should be written and lets the rest grow.
 
 ## Tier 2 — `HoldingWarren`, the holding
 
-An instanceable `Warren` (`PersistableMixin(Warren)`) — deliberately **not** a singleton, because there is one live
+An instanceable `FloorplanWarren` (the kernel base it shares with a ship's
+warren — [the lift](#-the-lift-landed-floorplanwarren-in-the-kernel-harbors-p1))
+— deliberately **not** a singleton, because there is one live
 instance per holding, all sharing one row and separated by their
 persistence key.
 
@@ -596,26 +598,43 @@ Named, not stubbed — each is a clean attach point:
   court off Hinkley's segment 2 exists in the plan and materializes as
   frontage fills; deeper trees (a court off a court) are untested.
 
-### ⭐ The lift: `HoldingWarren` is one concern from kernel-general
+### ⭐ The lift landed: `FloorplanWarren` in the kernel (harbors P1)
 
-Worth naming before a second consumer arrives, because it will be
-cheaper to see coming than to discover. Of everything the pack's
-`HoldingWarren` owns — the keyed floorplan mint, whole-unit dormancy,
-wake/sleep, the front-door edge, revert — **only the shell clock is
-residential**, and even that is residential only in its *vocabulary*
-(`shellCondition`, `landlord-shell`, `residence.weather.daysToWorn`).
-The mechanism underneath is *a held thing weathers on the passage of
-days, and a term says who owes the upkeep*, which is not about houses.
+The second consumer arrived as a **ship**, not a mine: her deck, cabin
+and hold are a floorplan, she sleeps whole, and her hull weathers on the
+same clock as a house's shell — the owner's rule was *"whatever the rule,
+it works the same way as residences"*, which made the clock part of the
+lift rather than a rhyme. So the condition axis is **one clock**.
 
-A mine's workings are a holding one level down in exactly the same
-sense: a shaft is minted against a plan, its rooms sleep and wake as a
-unit, the way in is gated, and somebody owes the timbering. The metal
-chain is the likely second consumer.
+`packages/server/src/mud/lib/location/FloorplanWarren.ts` (abstract,
+`Persistable(WarrenMember(Container(RoomWarren)))`) now owns the
+`floorplan` + `upkeepTerm` fields and `UPKEEP_TERMS`, the keyed room mint
+(`wake` / `wakeRoom` / `roomForLeaf` / `roomForKey` / `entryRoom`), the
+intra-plan wiring, `layOut`, `captureAll` / `teardown` / `revert`, and the
+shell clock (`shellCondition`, `shellStamp`, `reconcileShell`,
+`conditionBand`, `conditionCause`, `restoreShell`). It speaks through four
+hooks: `reconcile` (who hears a population change — still abstract),
+`wireLockedEdge` (what opens a locked edge — the base **throws**, it has no
+lock to hang), `onRoomWoken` (what a woken room is stamped with), and
+`upkeepWords()` (the words the fabric is described in — the cause lines,
+the kit, the act and its witnessed line).
 
-**The lift is not mechanical, which is why it is deferred and not
-done.** Moving the class into `lib/location/` is the easy half; the
-hard half is deciding whether the condition axis stays one clock with a
-neutral name, or whether a holding's shell and a working's supports are
-two different things that merely rhyme. That is a design conversation
-with the second consumer in the room — **do not make it alone, and do
-not widen a residences MR to do it.**
+`HoldingWarren extends FloorplanWarren` and keeps only what is
+residential: `addressBase` (stamped in `onRoomWoken`), the parcel keyway
+(`refreshKeyway` before the base's wake; the keyed-door edge in
+`wireLockedEdge`), `admitPlot` (the break-ground seam), `reconcile` → the
+institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, and the
+house's words (paint, sills, a householder's kit). Its template path,
+fields and observable behavior are unchanged. `maintain` narrows on the
+kernel class (`instanceof FloorplanWarren`) and speaks in the warren's
+`upkeepWords()`, so the same verb caulks a hull and paints a house.
+
+⚠ The rate key is still `residence.weather.daysToWorn` (45 game-days
+fallback), read by the kernel base — the requirements fix *"the same
+rate — the residence setting"*. Renaming it to a neutral key is a
+deliberate later sweep. ⚠ A mine's workings are still not a
+`FloorplanWarren` (`MineWarren` extends `RoomWarren`); adopting it is a
+base swap whenever the metal chain wants a timbering clock. The
+duck-typed shell reads in `CirculationWarren.conditionOf` and
+`SurveyController` could now narrow on the kernel class too; they were
+left as they are by this wave.

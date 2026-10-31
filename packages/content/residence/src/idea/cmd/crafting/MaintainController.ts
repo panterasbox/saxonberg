@@ -10,8 +10,11 @@
  * Three checks, in the order a person would ask them:
  *
  *   1. **Am I somewhere maintainable?** The room must belong to a
- *      holding — a programme, reached through the `WarrenMember`
- *      back-ref. A public street has no shell to keep.
+ *      floorplan warren with a shell — a house, a ship — reached through
+ *      the `WarrenMember` back-ref and narrowed on the kernel's
+ *      `FloorplanWarren` (harbors P1). A public street has no shell to
+ *      keep. Every sentence after this one is the warren's own words
+ *      (`upkeepWords()`), so a hull is caulked where a house is painted.
  *   2. **Do I have the kit?** A carried tool offering the `upkeep`
  *      capability. Conferred by the tool, which is also what makes the
  *      verb visible at all; a person with no kit never sees it.
@@ -38,7 +41,7 @@ import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
-import HoldingWarren from "../../HoldingWarren";
+import { FloorplanWarren } from "@saxonberg/server/mud/lib/location/FloorplanWarren";
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MaintainModel extends CommandModel {
@@ -73,6 +76,7 @@ export default class MaintainController extends CommandController {
       return;
     }
 
+    const words = programme.upkeepWords();
     const kit = this.kitOf(model.kit?.stuff);
     if (!kit) {
       context.note({
@@ -83,7 +87,7 @@ export default class MaintainController extends CommandController {
       MessageApi.scene(actor)
         .topic("sense.survey")
         .toSelf(
-          Mml.compose`You'd need a householder's kit in your hands to do anything about it.`,
+          Mml.compose`You'd need ${Mml.text(words.kit)} in your hands to do anything about it.`,
         )
         .send();
       return;
@@ -113,20 +117,20 @@ export default class MaintainController extends CommandController {
     MessageApi.scene(actor)
       .topic("sense.survey")
       .toSelf(
-        Mml.compose`You work the place over — putty into the seams, paint where the weather has been at it, a nail where a nail was wanted. It was ${Mml.text(before)}; it is sound again.`,
+        Mml.compose`${Mml.text(words.work)} It was ${Mml.text(before)}; it is sound again.`,
       )
       .toPeers(
-        Mml.compose`${Mml.actor(actor)} works over the fabric of the place with a householder's kit.`,
+        Mml.compose`${Mml.actor(actor)} ${Mml.text(words.witnessed)}`,
       )
       .send();
   }
 
-  /** The programme whose shell this room belongs to, or null. */
-  private holdingOf(room: Stuff | null | undefined): HoldingWarren | null {
+  /** The floorplan warren whose shell this room belongs to, or null. */
+  private holdingOf(room: Stuff | null | undefined): FloorplanWarren | null {
     if (!room || !MixinApi.isWarrenMember(room)) return null;
     const warren = room.getWarren();
-    return warren instanceof HoldingWarren
-      ? (warren as unknown as HoldingWarren)
+    return warren instanceof FloorplanWarren
+      ? (warren as unknown as FloorplanWarren)
       : null;
   }
 

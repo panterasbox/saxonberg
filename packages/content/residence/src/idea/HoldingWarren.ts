@@ -17,6 +17,13 @@
  * always resolves to a row (D17), per-holding uniqueness carried by
  * the persistence spine's unique-key guard.
  *
+ * ⭐ **The lift (harbors P1).** The floorplan mint, keyed rooms,
+ * whole-warren dormancy, `layOut`, the shell clock and its bands are the
+ * kernel's `FloorplanWarren` now — a ship's hull weathers on the same
+ * clock. What stays here is only what is residential: the address stem,
+ * the parcel keyway and the keyed front-door edge, `admitPlot`, the
+ * relay to the institution, and the house's words for its fabric.
+ *
  * The member contract stays **open to runtime-added members** (the
  * cross-build interface with farming's break-ground act): the
  * floorplan is the *initial* mint, never the closed set — `wake()`
@@ -24,159 +31,35 @@
  * whose records already ride the holding's extent.
  */
 
-import { type Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import {
+  FloorplanWarren,
+  type FloorplanRoom,
+  type FloorplanExit,
+  type UpkeepWords,
+} from '@saxonberg/server/mud/lib/location/FloorplanWarren';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
-// A holding's members are ROOMS, so it is a `RoomWarren` — the tier
-// whose occupancy is who is standing in a member. Its institution (a
-// dorm, a building, a plat) is a `CirculationWarren`, whose members are
-// holdings like this and which owns the corridors and lanes between them. `Warren` declares `occupantsOf` abstract so the
-// tier is chosen explicitly, by which base you extend.
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
-import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 type MemberStuff = Stuff & Container;
 
-/** One floorplan room spec (authored on the programme row). */
-export interface FloorplanRoom {
-  /** The room's leaf under the holding extent; ABSENT for the
-   *  degenerate one-room holding (the dorm) — its key IS the extent. */
-  leaf?: string;
-  /** The room ROW the keyed instance clones from (D17: a real row). */
-  room: string;
-  /** The mover lands here (the FrontDoorExit's destination). */
-  entry?: boolean;
-}
-
-/** One intra-holding edge (authored on the programme row). */
-export interface FloorplanExit {
-  /** Room leafs ('' / absent leaf rooms use the empty string). */
-  from: string;
-  to: string;
-  direction: string;
-  /** The far side's direction back (else the compass inverse). */
-  opposite?: string;
-  /** A LOCKED edge — traversal presents a key against the holding's
-   *  keyway (the dorm-door model; the hall behind the yard). */
-  locked?: boolean;
-}
-
-/** The closed-today, open-by-construction upkeep-term vocabulary (D5). */
-export const UPKEEP_TERMS = [
-  'institution-all',
-  'landlord-shell',
-  'owner-all',
-] as const;
-
-/** The five condition bands — banded prose, no gauge (P10). */
-const CONDITION_BANDS: Array<[number, string]> = [
-  [0.9, 'sound'],
-  [0.7, 'weathered'],
-  [0.5, 'worn'],
-  [0.25, 'shabby'],
-  [0, 'dilapidated'],
-];
-
-const GAME_DAY_SECONDS = 86_400;
-
-const ProgrammeBase = PersistableMixin(
-  WarrenMemberMixin(
-    ContainerMixin(RoomWarren),
-  ),
-);
-
-export default class HoldingWarren extends ProgrammeBase {
+export default class HoldingWarren extends FloorplanWarren {
   static fieldMeta: FieldMeta = {
-    floorplan: { persistent: true, authorable: true },
-    upkeepTerm: { persistent: true, authorable: true },
     addressBase: { persistent: true, authorable: true },
-    shellCondition: { persistent: true },
-    shellStamp: { persistent: true },
   };
-
-  /** The authored floorplan — the INITIAL mint (D16). */
-  public floorplan: Array<Record<string, unknown>> = [];
-
-  /** Who owes the shell (D5): `institution-all` / `landlord-shell` /
-   *  `owner-all` — a validated string vocabulary, open to future
-   *  values (`hoa-shell`) without mechanism. */
-  public upkeepTerm: string = 'owner-all';
 
   /** The address stem rooms stamp (`<addressBase>/<leaf>`); empty
    *  derives from the holding key's tail. */
   public addressBase: string = '';
 
-  /** Shell condition, 0..1 (D4) — persistent, reconciled on read. */
-  public shellCondition: number = 1;
-
-  /** Game-time stamp (seconds) of the last shell reconcile. */
-  public shellStamp: number = 0;
-
-  /** Live rooms by full key (`<extent>` or `<extent>/<leaf>`). */
-  private _roomsByKey: Map<string, MemberStuff> = new Map();
   /** The holding's keyway (sync lock identity), refreshed at wake. */
   private _keyway: string = '';
 
   // ── authored-field surface ──────────────────────────────────────
-
-  public getUpkeepTerm(): string {
-    return this.upkeepTerm;
-  }
-
-  public setUpkeepTerm(value: string): void {
-    if (typeof value !== 'string' || !/^[a-z][a-z-]*$/.test(value)) {
-      throw new Error(
-        `HoldingWarren: upkeepTerm '${String(value)}' is not a ` +
-          `kebab-case term (shipped: ${UPKEEP_TERMS.join(', ')})`,
-      );
-    }
-    this.upkeepTerm = value;
-  }
-
-  public getFloorplan(): FloorplanRoom[] {
-    return (this.floorplan ?? []).map((r) => ({
-      leaf: typeof r.leaf === 'string' ? r.leaf : undefined,
-      room: String(r.room ?? ''),
-      entry: r.entry === true,
-    }));
-  }
-
-  public setFloorplan(value: Array<Record<string, unknown>>): void {
-    this.floorplan = Array.isArray(value) ? value : [];
-  }
-
-  /** The authored intra-holding edges (parsed off the raw specs). */
-  public getFloorplanExits(): FloorplanExit[] {
-    const out: FloorplanExit[] = [];
-    for (const r of this.floorplan ?? []) {
-      const exits = (r as Record<string, unknown>).exits;
-      if (!Array.isArray(exits)) continue;
-      for (const e of exits) {
-        const o = e as Record<string, unknown>;
-        out.push({
-          from: typeof r.leaf === 'string' ? (r.leaf as string) : '',
-          to: String(o.to ?? ''),
-          direction: String(o.direction ?? ''),
-          opposite:
-            typeof o.opposite === 'string' ? (o.opposite as string) : undefined,
-          locked: o.locked === true,
-        });
-      }
-    }
-    return out;
-  }
 
   public getAddressBase(): string {
     return this.addressBase;
@@ -224,14 +107,7 @@ export default class HoldingWarren extends ProgrammeBase {
 
   /** The holding's parcel extent — the programme's persistence key. */
   public holdingKey(): string | null {
-    return (this as unknown as Persistable).getPersistenceKey();
-  }
-
-  /** The full room key for a floorplan leaf ('' = the extent itself). */
-  public roomKeyOf(leaf: string | undefined): string | null {
-    const extent = this.holdingKey();
-    if (!extent) return null;
-    return leaf ? `${extent}/${leaf}` : extent;
+    return this.warrenKey();
   }
 
   // ── ⭐ runtime-added members: the break-ground seam ──────────────
@@ -319,121 +195,28 @@ export default class HoldingWarren extends ProgrammeBase {
     return room;
   }
 
-  /** The raw floorplan entry for a leaf — what `admitPlot` stored on it. */
-  public floorplanEntryOf(leaf: string): Record<string, unknown> | null {
-    return (this.floorplan ?? []).find((r) => r.leaf === leaf) ?? null;
-  }
-
   // ── wake / membership ───────────────────────────────────────────
 
   /**
-   * Stand the whole holding up: every floorplan room keyed
-   * `(roomRow, <extent>[/leaf])` via the spine's restore-or-seed,
-   * intra-holding exits wired, per-room addresses stamped, the keyway
-   * cache refreshed. Idempotent per room (live rooms are reused).
+   * Stand the whole holding up (the kernel's floorplan wake), with the
+   * keyway cache refreshed first so the locked edges it wires gate on
+   * the parcel's current keyway.
    */
-  public async wake(): Promise<void> {
+  public override async wake(): Promise<void> {
     await this.refreshKeyway();
-    const rooms = this.getFloorplan();
-    for (const spec of rooms) {
-      await this.wakeRoom(spec);
-    }
-    for (const edge of this.getFloorplanExits()) {
-      await this.wireEdge(edge);
-    }
-    this.layOut();
-  }
-
-  /** ⭐ A holding is a frame of its own — see {@link layOut}. */
-  public override laysOutOwnFrame(): boolean {
-    return true;
+    await super.wake();
   }
 
   /**
-   * ⭐⭐ **Every place has coordinates — a holding's rooms in the
-   * HOLDING's frame** (the place taxonomy, cleanliness B53).
+   * The room's address: `<addressBase or derived>/<leaf>` — the
+   * Locality address is the human per-place identity (D16).
    *
-   * The entry room is the origin, and the floorplan's cardinal exits lay
-   * the rest out from it: the Hinkley house's yard (0,0,0), its hall one
-   * north at (0,1,0), the kitchen east of the hall at (1,1,0). Nothing is
-   * authored that was not already: the exits always said where each room
-   * was. Not the street's grid — every house of a plat would share one
-   * set of cells, and a generic room row resolves no zone at all.
-   *
-   * A room the cardinal plan does not reach (a field plotted off the yard
-   * by NAME, `field-1`) sits in a row beyond the house, in floorplan
-   * order. A cell two edges disagree about keeps its first room; the
-   * second is laid out with the unreached. Re-run on every wake and every
-   * admitted plot — it is derived, never stored on the floorplan.
+   * @hook
    */
-  public layOut(): void {
-    const plan = this.getFloorplan();
-    const entry = plan.find((r) => r.entry) ?? plan[0];
-    if (!entry) return;
-    const leafOf = (l: string | undefined): string => l ?? '';
-    const keyOf = (c: readonly number[]): string => c.join(',');
-    const cells = new Map<string, [number, number, number]>();
-    const taken = new Set<string>();
-    const place = (leaf: string, cell: [number, number, number]): void => {
-      cells.set(leaf, cell);
-      taken.add(keyOf(cell));
-    };
-    place(leafOf(entry.leaf), [0, 0, 0]);
-    const edges = this.getFloorplanExits();
-    const queue = [leafOf(entry.leaf)];
-    while (queue.length > 0) {
-      const from = queue.shift()!;
-      const at = cells.get(from)!;
-      for (const e of edges) {
-        const forward = e.from === from;
-        const next = forward ? e.to : e.to === from ? e.from : null;
-        const dir = forward ? e.direction : e.opposite;
-        if (next === null || cells.has(next) || !dir) continue;
-        const off = NavigationApi.directionOffset(dir);
-        if (!off) continue;
-        const cell: [number, number, number] = [at[0] + off[0], at[1] + off[1], at[2] + off[2]];
-        if (taken.has(keyOf(cell))) continue;
-        place(next, cell);
-        queue.push(next);
-      }
-    }
-    const beyond = Math.max(...[...cells.values()].map((c) => c[1])) + 1;
-    let x = 0;
-    for (const r of plan) {
-      const leaf = leafOf(r.leaf);
-      if (cells.has(leaf)) continue;
-      while (taken.has(keyOf([x, beyond, 0]))) x += 1;
-      place(leaf, [x, beyond, 0]);
-    }
-    for (const [leaf, cell] of cells) {
-      const room = this.roomForLeaf(leaf || undefined);
-      if (room && MixinApi.isCartesianCoordinates(room)) room.setCoordinates(cell);
-    }
-  }
-
-  private async wakeRoom(spec: FloorplanRoom): Promise<MemberStuff | null> {
-    const key = this.roomKeyOf(spec.leaf);
-    if (!key || !spec.room) return null;
-    const cached = this._roomsByKey.get(key);
-    if (cached && !cached.isDestroyed()) return cached;
-    // ⭐ The room stands in the zone its HOLDING does (the Hinkley lots,
-    // the dorm's hall), resolved from its key rather than its row: a
-    // room's size is its zone's cell, and a generic `/stuff/location/
-    // room/*` row resolves no zone of its own (B54). Its identity stays
-    // the row — the `(scope, key)` record's scope.
-    const room = await StuffApi.clone<MemberStuff>(spec.room, undefined, {
-      zoneFrom: key,
-    });
-    this.addMember(room);
-    await PersistableApi.restoreOrSeed(room, key);
-    this._roomsByKey.set(key, room);
-    // The room's address: `<addressBase or derived>/<leaf>` — the
-    // Locality address is the human per-place identity (D16).
-    if (MixinApi.isAddressable(room)) {
-      const base = this.addressBase || this.derivedAddressBase();
-      if (base) room.setAddress(spec.leaf ? `${base}/${spec.leaf}` : base);
-    }
-    return room;
+  protected override onRoomWoken(room: MemberStuff, spec: FloorplanRoom): void {
+    if (!MixinApi.isAddressable(room)) return;
+    const base = this.addressBase || this.derivedAddressBase();
+    if (base) room.setAddress(spec.leaf ? `${base}/${spec.leaf}` : base);
   }
 
   private derivedAddressBase(): string {
@@ -445,75 +228,44 @@ export default class HoldingWarren extends ProgrammeBase {
     return parts.filter((p) => p !== 'lots' && p !== 'units').join('/');
   }
 
-  private async wireEdge(edge: FloorplanExit): Promise<void> {
-    const from = this.roomForLeaf(edge.from);
-    const to = this.roomForLeaf(edge.to);
-    if (!from || !to || !edge.direction) return;
+  /**
+   * The locked edge — keyway-gated INWARD (the dorm-door model); the way
+   * back OUT is free (a guest let in is never trapped, and leaving your
+   * own house needs no key). ⭐ The ROOM installs, from a kind ROW.
+   *
+   * @hook
+   */
+  protected override async wireLockedEdge(
+    from: MemberStuff,
+    to: MemberStuff,
+    edge: FloorplanExit,
+  ): Promise<void> {
     if (!MixinApi.isExitable(from) || !MixinApi.isExitable(to)) return;
-    if (from.getExit(edge.direction)) return;
     const { default: KeyedDoorExitClass } = await import('./KeyedDoorExit');
     void KeyedDoorExitClass; // the class the kind row names
-    if (edge.locked) {
-      // The locked edge — keyway-gated INWARD (the dorm-door model);
-      // the way back OUT is free (a guest let in is never trapped, and
-      // leaving your own house needs no key).
-      // ⭐ The ROOM installs, from a kind ROW.
-      await from.installExit<
-        Exit & { configureKeyedDoor(p: HoldingWarren): void }
-      >(
-        '/system/residence/idea/exits/keyed-door',
-        {
-          direction: edge.direction,
-          source: from,
-          destination: to,
-          keepLiveDestination: true,
-          oneWay: true,
-        },
-        (e) => e.configureKeyedDoor(this),
-      );
-      const back = edge.opposite ?? 'out';
-      if (!to.getExit(back)) {
-        await to.installExit('/platform/idea/exits/passage', {
-          direction: back,
-          source: to,
-          destination: from as never,
-          keepLiveDestination: true,
-          oneWay: true,
-        });
-      }
-      return;
+    await from.installExit<
+      Exit & { configureKeyedDoor(p: HoldingWarren): void }
+    >(
+      '/system/residence/idea/exits/keyed-door',
+      {
+        direction: edge.direction,
+        source: from,
+        destination: to,
+        keepLiveDestination: true,
+        oneWay: true,
+      },
+      (e) => e.configureKeyedDoor(this),
+    );
+    const back = edge.opposite ?? 'out';
+    if (!to.getExit(back)) {
+      await to.installExit('/platform/idea/exits/passage', {
+        direction: back,
+        source: to,
+        destination: from as never,
+        keepLiveDestination: true,
+        oneWay: true,
+      });
     }
-    await from.addBidirectionalExit(to, edge.direction, {
-      opposite: edge.opposite,
-      keepLiveDestination: true,
-    });
-  }
-
-  /** The live room for a floorplan leaf, or null. */
-  public roomForLeaf(leaf: string | undefined): MemberStuff | null {
-    const key = this.roomKeyOf(leaf || undefined);
-    return key ? this.roomForKey(key) : null;
-  }
-
-  /** The live room for a full key, or null. */
-  public roomForKey(key: string): MemberStuff | null {
-    const room = this._roomsByKey.get(key);
-    if (!room) return null;
-    if (room.isDestroyed()) {
-      this._roomsByKey.delete(key);
-      return null;
-    }
-    return room;
-  }
-
-  /** The mover's landing room — the floorplan `entry`, else the first
-   *  room, else null. The FrontDoorExit + the institution's `admit`
-   *  land here. */
-  public entryRoom(): MemberStuff | null {
-    const rooms = this.getFloorplan();
-    const entry = rooms.find((r) => r.entry) ?? rooms[0];
-    if (!entry) return null;
-    return this.roomForLeaf(entry.leaf);
   }
 
   // ── the keyway (the front door's sync lock identity) ────────────
@@ -535,28 +287,10 @@ export default class HoldingWarren extends ProgrammeBase {
   // ── dormancy as a unit (D16) ────────────────────────────────────
 
   /**
-   * The whole-holding capture: every live room's record (keyed), then
-   * the programme's own (shell state). The partial-reap alternative is
-   * structurally impossible — rooms only ever tear down through
-   * `teardown()`, which the institution reaches by destructing the
-   * programme whole.
-   */
-  public async captureAll(): Promise<void> {
-    for (const [key, room] of this._roomsByKey) {
-      if (room.isDestroyed()) continue;
-      if (MixinApi.isPersistable(room)) {
-        await PersistableApi.capture(room, key);
-      }
-    }
-    const extent = this.holdingKey();
-    if (extent) await PersistableApi.capture(this as unknown as Stuff, extent);
-  }
-
-  /**
-   * Population-reactive reconcile: the programme NEVER reaps a room on
-   * its own — the holding sleeps whole or not at all. All it does is
-   * relay the aggregate population change to the owning institution,
-   * whose reconcile captures-whole + tears the holding down.
+   * Population-reactive reconcile: the holding NEVER reaps a room on its
+   * own — it sleeps whole or not at all. All it does is relay the
+   * aggregate population change to the owning institution, whose
+   * reconcile captures-whole + tears the holding down.
    */
   protected async reconcile(): Promise<void> {
     const institution = this.getWarren() as unknown as {
@@ -567,137 +301,20 @@ export default class HoldingWarren extends ProgrammeBase {
     }
   }
 
-  /**
-   * Teardown: the rooms follow the programme (whole-holding, D16).
-   * When the programme is marked for revert (end-lease) or has been
-   * captured for dormancy, the rooms skip their destruct-time capture
-   * backstop.
-   */
-  public override teardown(): void {
-    const revert = !(this as unknown as Persistable).shouldPersist();
-    for (const room of this._roomsByKey.values()) {
-      if (room.isDestroyed()) continue;
-      if (revert && MixinApi.isPersistable(room)) {
-        (room as unknown as Persistable).markForRevert();
-      }
-    }
-    super.teardown(); // destructs every member room
-    this._roomsByKey.clear();
-  }
+  // ── the house's words for its fabric ────────────────────────────
 
   /**
-   * Destruct witness: the rooms follow the programme whatever path
-   * destructs it (the institution's teardownHolding calls `teardown()`
-   * explicitly first — this is the belt for every other path; a second
-   * call walks empty maps).
+   * A house speaks of paint, sills and a householder's kit.
    *
    * @hook
    */
-  public override onDestruct(): void {
-    this.teardown();
-    super.onDestruct();
-  }
-
-  /**
-   * End-lease revert (D16): delete every room record + the programme's
-   * own under the extent prefix, mark everything for revert, and tear
-   * down. The caller (unlease) evicts owned chattel to storage FIRST.
-   */
-  public async revert(): Promise<void> {
-    (this as unknown as Persistable).markForRevert();
-    const extent = this.holdingKey();
-    if (extent) {
-      for (const key of [...this._roomsByKey.keys()]) {
-        await PersistableApi.deleteAllFor(key);
-      }
-      await PersistableApi.deleteAllFor(extent);
-    }
-    this.teardown();
-  }
-
-  // ── shell condition + the weathering clock (D4/P10) ─────────────
-
-  /**
-   * Reconcile the shell's weathering: a linear slope on GAME time,
-   * rate from the `residence.weather.daysToWorn` setting (game-days
-   * from sound to worn — HALF the condition scale, so full decay takes
-   * twice that). Stamp-forward; no scheduler; honest across restarts
-   * because the stamp is persistent state.
-   */
-  public reconcileShell(): number {
-    const now = WorldClockApi.getNow().rawValue();
-    if (this.shellStamp <= 0) {
-      this.shellStamp = now;
-      return this.shellCondition;
-    }
-    const elapsed = now - this.shellStamp;
-    if (elapsed <= 0) return this.shellCondition;
-    const daysToWorn = this.settingNumber('residence.weather.daysToWorn', 45);
-    const perSecond = 0.5 / (daysToWorn * GAME_DAY_SECONDS);
-    this.shellCondition = Math.max(
-      0,
-      this.shellCondition - elapsed * perSecond,
-    );
-    this.shellStamp = now;
-    return this.shellCondition;
-  }
-
-  /** The banded, no-gauge read (P10): sound / weathered / worn /
-   *  shabby / dilapidated. Reconciles first. */
-  public conditionBand(): string {
-    const c = this.reconcileShell();
-    for (const [floor, band] of CONDITION_BANDS) {
-      if (c >= floor) return band;
-    }
-    return 'dilapidated';
-  }
-
-  /** The legible cause line for a declined shell. */
-  public conditionCause(): string | null {
-    const c = this.shellCondition;
-    if (c >= 0.9) return null;
-    if (c >= 0.5) {
-      return 'The paint is going; weather is starting to find the seams.';
-    }
-    return 'The paint has gone; rain has gotten into the sills.';
-  }
-
-  /** The maintenance act's restore (P10): back to sound, stamped now. */
-  public restoreShell(): void {
-    this.shellCondition = 1;
-    this.shellStamp = WorldClockApi.getNow().rawValue();
-  }
-
-  private settingNumber(key: string, fallback: number): number {
-    try {
-      const raw = AppApi.setting(key);
-      const n = Number.parseFloat(raw);
-      if (Number.isFinite(n) && n > 0) return n;
-    } catch {
-      /* cold cache — fallback */
-    }
-    return fallback;
-  }
-
-  // ── Warren policy hooks ─────────────────────────────────────────
-
-  protected async createMember(): Promise<MemberStuff> {
-    throw new Error('HoldingWarren mints rooms via wake(), never buds');
-  }
-
-  public async admitArrival(): Promise<void> {
-    /* holdings don't population-bud */
-  }
-
-  protected attachmentFor(): Attachment {
-    return { direction: 'out' };
-  }
-
-  protected async wireHostFixtures(): Promise<void> {
-    /* the entry room is authored by the floorplan, not a host */
-  }
-
-  protected async unwireHostFixtures(): Promise<void> {
-    /* no-op */
+  public override upkeepWords(): UpkeepWords {
+    return {
+      declining: 'The paint is going; weather is starting to find the seams.',
+      failed: 'The paint has gone; rain has gotten into the sills.',
+      kit: "a householder's kit",
+      work: 'You work the place over — putty into the seams, paint where the weather has been at it, a nail where a nail was wanted.',
+      witnessed: "works over the fabric of the place with a householder's kit.",
+    };
   }
 }
