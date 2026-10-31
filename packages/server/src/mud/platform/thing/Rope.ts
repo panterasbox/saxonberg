@@ -37,6 +37,8 @@ import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
 import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceable';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
+import { GradedMixin } from '../../lib/craft/Graded';
+import { Grade, type GradeBand } from '../../lib/craft/Grade';
 import { BelayEngagement } from '../../lib/locomotion/BelayEngagement';
 import type { Engaged } from '../../lib/activity/Engaged';
 import type Exit from '../../lib/boundary/Exit';
@@ -108,6 +110,15 @@ const DRESSING: Record<CompetenceBandName, number> = {
   competent: 0.9,
   proficient: 1,
   expert: 1,
+};
+
+/** ⭐ The yarn's staple, carried as the rope's grade: what it keeps of its strength. */
+const GRADE_STRENGTH: Record<GradeBand, number> = {
+  poor: 0.85,
+  fair: 1,
+  fine: 1.05,
+  exceptional: 1.08,
+  masterful: 1.1,
 };
 
 /** What a rope holds, in words, kg (D6). */
@@ -182,7 +193,7 @@ const ropeAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Line))) {
+export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line)))) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: HELD,
@@ -203,6 +214,7 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
     knots: { persistent: true, runtimeState: true },
     anchorPath: { persistent: true, runtimeState: true },
     hungVia: { persistent: true, runtimeState: true },
+    layEvenness: { persistent: true, authorable: true },
   };
 
   static override END_ROW = '/platform/thing/rope-end';
@@ -242,6 +254,13 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
 
   /** The fixture itself (runtime; found again from `anchorPath`). */
   private _anchor: Stuff | null = null;
+
+  /**
+   * ⭐ How evenly it was laid, `0..1` — the layer's craft (the review's
+   * lens pass): a green hand's twist bunches into hockles and the rope keeps
+   * less; a master's is hard and true. Authored rows (bought, shipped) are 1.
+   */
+  public layEvenness = 1;
 
   /** ⭐ The drop it hangs down, by exit direction (`down`), while tied off above one (D11). */
   public hungVia: string | null = null;
@@ -288,6 +307,15 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
 
   public getChafe(): number {
     return this.chafe;
+  }
+
+  public getLayEvenness(): number {
+    return this.layEvenness;
+  }
+
+  /** How evenly it was laid — the layer's craft, set at the walk. */
+  public setLayEvenness(value: number): void {
+    if (Number.isFinite(value)) this.layEvenness = Math.min(1, Math.max(0.5, value));
   }
 
   public getKnots(): readonly KnotRecord[] {
@@ -337,7 +365,8 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
   public effectiveKg(): number {
     this.reconcileRot();
     const knot = this.knots.reduce((min, k) => Math.min(min, k.strength * k.dressing), 1);
-    return this.breakingKg() * knot * (1 - this.chafe) * (1 - this.rot);
+    const made = GRADE_STRENGTH[this.getGrade().getBand()] * this.layEvenness;
+    return this.breakingKg() * made * knot * (1 - this.chafe) * (1 - this.rot);
   }
 
   /** What it holds, in words. */
@@ -814,6 +843,8 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
   /** Copy what a rope has been through — fiber stage, marks, chafe, rot. */
   private copyWearFrom(from: Rope): void {
     this.stage = from.stage;
+    this.layEvenness = from.layEvenness;
+    this.setGrade(from.getGrade());
     this.marks = [...from.marks];
     this.chafe = from.chafe;
     from.reconcileRot();
@@ -850,6 +881,8 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
     this.marks = [...new Set([...this.marks, ...other.marks])];
     this.chafe = Math.max(this.chafe, other.chafe);
     this.rot = Math.max(this.rot, other.rot);
+    this.layEvenness = Math.min(this.layEvenness, other.layEvenness);
+    this.setGrade(this.getGrade().min(other.getGrade()));
     this.cutEnds = Math.max(0, Math.min(2, this.cutEnds + other.cutEnds - 2));
     this.knots = [
       ...this.knots.filter((k) => k.end !== 'free'),
@@ -919,6 +952,8 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
     lines.push(
       `${GrammarApi.cap(meters(this.lengthM))} of ${this.fiber()} ${what}, about ${Math.round(this.diameterMm)} mm thick; ${this.holdsWords()}.`,
     );
+    const lay = this.layWords();
+    if (lay !== '') lines.push(lay);
     if (this.isCoiled()) lines.push('It is coiled down, ready to throw.');
     const wear = this.chafeWords();
     if (wear !== '') lines.push(wear);
@@ -931,6 +966,15 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Li
       lines.push(`At the cut end, ${this.marks.map((m) => `a ${m} yarn`).join(' and ')} runs in the heart of it.`);
     }
     return lines;
+  }
+
+  /** How it was laid, in words: hockles from a green hand, hard and true from a master. */
+  public layWords(): string {
+    const e = this.layEvenness;
+    if (e < 0.88) return 'It is unevenly laid — hockles where the twist bunched up.';
+    if (e < 0.95) return 'The lay wanders a little along its length.';
+    if (e < 1) return 'It is evenly laid, hard and true.';
+    return '';
   }
 
   /** Chafe, in words: scuffed · fraying · a few yarns parted · about to go. */

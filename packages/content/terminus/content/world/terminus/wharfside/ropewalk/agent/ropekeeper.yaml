@@ -27,3 +27,6 @@ data:
   behaviors:
     - brain: /lib/behavior/introduces
       trigger: arrival
+    # ⭐ She takes the jack's wheel for whoever lays (a ropewalk is a crew).
+    - brain: /trade/cordage/behavior/turns
+      trigger: candidate

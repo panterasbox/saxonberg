@@ -27,7 +27,7 @@ export default class TwistController extends ManualBuildController<TwistModel> {
       this.declineStep(context, Mml.compose`You need a rope jack at the head of a walk to twist rope.`, 'no-jack');
       return;
     }
-    const plan = jack.twistPlan(actor, (model.stock?.stuff ?? []) as Stuff[], {
+    const plan = await jack.twistPlan(actor, (model.stock?.stuff ?? []) as Stuff[], {
       yarns: typeof model.yarns === 'number' ? model.yarns : null,
       length: model.length?.toString().trim() || null,
       mark: model.mark?.trim() || null,

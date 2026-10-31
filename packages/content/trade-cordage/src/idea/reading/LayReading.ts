@@ -42,6 +42,9 @@ export default class LayReading extends Reading {
     );
     if (CompetenceBand.atOrAbove(band, 'novice')) {
       lines.push(`New and untied, ${subject.holdsWordsNew()}; as it is, ${subject.holdsWords()}.`);
+      const lay = subject.layWords();
+      lines.push(lay !== '' ? lay : 'Its lay is as even as a ropewalk ever made it.');
+      lines.push(`It is laid from ${subject.getGrade().getBand()} yarn.`);
     }
     const wear = subject.chafeWords();
     if (wear !== '') lines.push(wear);

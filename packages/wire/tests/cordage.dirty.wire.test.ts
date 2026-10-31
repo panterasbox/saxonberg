@@ -235,32 +235,52 @@ suite('cordage — the blocking drive', () => {
 
   it('3. twist yarn: it becomes a strand', async () => {
     const s = await session(maker, WALK);
-    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 40 --length 20');
+    // ⭐ Laying is work (the review's lens pass): a strand is its length ×
+    // its yarns of walking — so the drive lays short ones.
+    const first = await act(s, 'twist yarn --yarns 40 --length 10', 900_000);
+    expect(first, first).toMatch(/turning the wheel/);
+    for (let i = 0; i < 2; i++) await act(s, 'twist yarn --yarns 40 --length 10', 900_000);
     expect(await carried(s, 'strand')).toBe(3);
     const st = await look(s, 'first strand');
-    expect(st, st).toMatch(/20 meters of hemp strand/);
-  }, 600_000);
+    expect(st, st).toMatch(/10 meters of hemp strand/);
+    // A fresh hand's twist bunches: the strand says so.
+    expect(st, st).toMatch(/hockles|wanders/);
+  }, 1_800_000);
+
+  it('3a. a crew: a second hand takes the wheel (or the keeper has it) and the layer walks at full pace', async () => {
+    const hand = await session(climber, WALK);
+    const took = await say(hand, 'turn jack');
+    expect(took, took).toMatch(/crank|already has the wheel/);
+    const s = await session(maker, WALK);
+    const lay = await act(s, 'twist yarn --yarns 10 --length 5', 900_000);
+    expect(lay, lay).toMatch(/turning the wheel/);
+    expect(lay, lay).not.toMatch(/turning the wheel yourself/);
+    if (/crank/.test(took)) await say(hand, 'turn back jack');
+    await say(s, 'drop first strand').catch(() => '');
+  }, 1_800_000);
 
   it('4. twist the strands: they become rope — fiber, length, thickness, strength in words', async () => {
     const s = await session(maker, WALK);
-    await act(s, 'twist strands');
+    await act(s, 'twist strands', 900_000);
     expect(await carried(s, 'strand')).toBe(0);
     const r = await look(s, 'rope');
-    expect(r, r).toMatch(/20 meters of hemp rope, about \d+ mm thick; it would hold/);
-  }, 600_000);
+    expect(r, r).toMatch(/10 meters of hemp rope, about \d+ mm thick; it would hold/);
+    const read = await say(s, 'analyze lay rope');
+    expect(read, read).toMatch(/laid from \w+ yarn/);
+  }, 1_800_000);
 
   it('5. more yarns make a thicker, stronger rope', async () => {
     const s = await session(maker, WALK);
-    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 80 --length 10');
-    await act(s, 'twist strands');
+    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 80 --length 5', 900_000);
+    await act(s, 'twist strands', 900_000);
     expect(await carried(s, 'rope')).toBeGreaterThanOrEqual(2);
     const all = (await look(s, 'first rope')) + ' | ' + (await look(s, 'second rope'));
-    // The 10 m rope of 80-yarn strands is thicker, and holds more, than the 20 m one.
-    const thin = /20 meters of hemp rope, about (\d+) mm/.exec(all);
-    const thick = /10 meters of hemp rope, about (\d+) mm/.exec(all);
+    // The 5 m rope of 80-yarn strands is thicker, and holds more, than the 10 m one.
+    const thin = /10 meters of hemp rope, about (\d+) mm/.exec(all);
+    const thick = /5 meters of hemp rope, about (\d+) mm/.exec(all);
     expect(thin !== null && thick !== null, all).toBe(true);
     expect(Number(thick![1]), all).toBeGreaterThan(Number(thin![1]));
-  }, 600_000);
+  }, 1_800_000);
 
   it('6. no rope longer than the walk — and the refusal says why', async () => {
     const s = await session(maker, WALK);
@@ -271,7 +291,7 @@ suite('cordage — the blocking drive', () => {
   it('7. cut a length off, coil one', async () => {
     const s = await session(maker, WALK);
     const before = await carried(s, 'rope');
-    await act(s, 'cut first rope at 5 m');
+    await act(s, 'cut first rope at 2 m');
     expect(await carried(s, 'rope')).toBe(before + 1);
     await act(s, 'coil first rope');
     const coiled = squash(await s.prose('look first rope'));
@@ -285,18 +305,18 @@ suite('cordage — the blocking drive', () => {
     const s = await session(marker, WALK);
     for (let i = 0; i < 4; i++) await say(s, 'buy hemp yarn');
     await say(s, 'buy rigging knife');
-    await act(s, 'twist yarn --yarns 20 --length 10 --mark red');
-    await act(s, 'twist yarn --yarns 20 --length 10');
-    await act(s, 'twist yarn --yarns 20 --length 10');
-    await act(s, 'twist strands');
+    await act(s, 'twist yarn --yarns 20 --length 6 --mark red', 900_000);
+    await act(s, 'twist yarn --yarns 20 --length 6', 900_000);
+    await act(s, 'twist yarn --yarns 20 --length 6', 900_000);
+    await act(s, 'twist strands', 900_000);
     const plainLook = await look(s, 'rope');
     expect(plainLook, plainLook).not.toMatch(/red yarn/);
     const close = await say(s, 'analyze lay rope');
     expect(close, close).toMatch(/a red yarn runs in the heart/);
-    await act(s, 'cut rope at 3 m');
+    await act(s, 'cut rope at 2 m');
     const both = (await look(s, 'first rope')) + ' | ' + (await look(s, 'second rope'));
     expect(both, both).toMatch(/red yarn runs in the heart/);
-  }, 600_000);
+  }, 1_800_000);
 
   it('8. tar a rope in the tar tub: it reads tarred', async () => {
     const tarrer = await funded('cdt', 60);
@@ -350,7 +370,7 @@ suite('cordage — the blocking drive', () => {
     } finally {
       await setDial('cordage.chafePerUse', '0.06');
     }
-  }, 600_000);
+  }, 1_800_000);
 
   it('12. a reef knot spills under an uneven load, and you fall', async () => {
     const loader = await funded('cdl', 80);
@@ -364,21 +384,21 @@ suite('cordage — the blocking drive', () => {
     const all = d + ' ' + squash(await s.listen(1_500).catch(() => ''));
     expect(all, all).toMatch(/spills/);
     expect(all, all).toMatch(/hit the bottom/);
-  }, 600_000);
+  }, 1_800_000);
 
   it('13. splice two lengths into one, nearly as strong', async () => {
     const splicer = await funded('cdp', 60);
     const s = await session(splicer, WALK);
     for (let i = 0; i < 4; i++) await say(s, 'buy hemp yarn');
     await say(s, 'buy rigging knife');
-    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 40 --length 10');
-    await act(s, 'twist strands');
+    for (let i = 0; i < 3; i++) await act(s, 'twist yarn --yarns 20 --length 10', 900_000);
+    await act(s, 'twist strands', 900_000);
     await act(s, 'cut rope at 4 m');
     const sp = await say(s, 'splice first rope to second rope');
     expect(sp, sp).toMatch(/one rope now, 10 meters long/);
     const r = await look(s, 'first rope');
     expect(r, r).toMatch(/splice/);
-  }, 600_000);
+  }, 1_800_000);
 
   it('15–16. a worn rope parts under a belayed climber: caught; unbelayed: dropped', async () => {
     // The belayer holds one coil and a thin strand that will not hold a man.
@@ -386,8 +406,8 @@ suite('cordage — the blocking drive', () => {
     const w = await session(holder, WALK);
     await say(w, 'buy rope');
     for (let i = 0; i < 2; i++) await say(w, 'buy hemp yarn');
-    await act(w, 'twist yarn --yarns 6 --length 8');
-    await act(w, 'twist yarn --yarns 6 --length 8');
+    await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
+    await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
     const belayer = await atTheLip(holder);
     const c = await atTheLip(climber);
     // They meet: a rope is tied round somebody by what the tier knows them as.
@@ -416,7 +436,7 @@ suite('cordage — the blocking drive', () => {
     const after2 = fall2 + ' ' + squash(await c.listen(1_500).catch(() => ''));
     expect(after2, after2).toMatch(/parts above you/);
     expect(after2, after2).toMatch(/hit the bottom/);
-  }, 900_000);
+  }, 1_800_000);
 
   // ⚠ 17's sale is cut: the ropewalk buys no rope back (a house bids per
   // row, so a coil cut into five would sell as five) — retail's seam.

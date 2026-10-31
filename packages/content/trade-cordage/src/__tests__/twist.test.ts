@@ -19,6 +19,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { ActPlan } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -71,9 +72,11 @@ function yarn(who: Body, skeins: number): TextileStock {
   return y;
 }
 
-async function run(plan: ReturnType<RopeJack['twistPlan']>): Promise<void> {
+async function run(pending: ReturnType<RopeJack['twistPlan']>): Promise<ActPlan> {
+  const plan = await pending;
   expect(plan.ok).toBe(true);
   await (plan as ActPlan).onComplete();
+  return plan as ActPlan;
 }
 
 describe('twist at the walk (cordage D5)', () => {
@@ -109,10 +112,10 @@ describe('twist at the walk (cordage D5)', () => {
     expect(thick!.breakingKg()).toBeCloseTo(thin!.breakingKg() * 4, 3);
   });
 
-  it('⭐ nothing is laid longer than the walk, and the refusal says why', () => {
+  it('⭐ nothing is laid longer than the walk, and the refusal says why', async () => {
     const { jack, who } = walk(300);
     const y = yarn(who, 30);
-    const out = jack.twistPlan(who as unknown as Stuff, [y as unknown as Stuff], { yarns: 40, length: '400 m', mark: null });
+    const out = await jack.twistPlan(who as unknown as Stuff, [y as unknown as Stuff], { yarns: 40, length: '400 m', mark: null });
     expect(out).toMatchObject({ ok: false, reason: 'longer-than-walk' });
     expect(JSON.stringify(out)).toMatch(/The walk is 300 m long; a rope cannot be laid longer than it/);
   });
@@ -121,9 +124,45 @@ describe('twist at the walk (cordage D5)', () => {
     const { jack, who } = walk(300);
     const y = yarn(who, 1);
     const actor = who as unknown as Stuff;
-    expect(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '300', mark: null })).toMatchObject({ ok: false, reason: 'not-enough-yarn' });
+    expect(await jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '300', mark: null })).toMatchObject({ ok: false, reason: 'not-enough-yarn' });
     await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 10, length: '10', mark: null }));
     const strand = who.getContents().find((c): c is Rope => c instanceof Rope)!;
-    expect(jack.twistPlan(actor, [strand as unknown as Stuff], { yarns: null, length: null, mark: null })).toMatchObject({ ok: false, reason: 'too-few-strands' });
+    expect(await jack.twistPlan(actor, [strand as unknown as Stuff], { yarns: null, length: null, mark: null })).toMatchObject({ ok: false, reason: 'too-few-strands' });
+  });
+
+  it('⭐ a green hand lays unevenly: the rope keeps less and says so', async () => {
+    const { jack, who } = walk(300);
+    const y = yarn(who, 30);
+    const actor = who as unknown as Stuff;
+    for (let i = 0; i < 3; i++) await run(jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null }));
+    const strands = who.getContents().filter((c): c is Rope => c instanceof Rope);
+    await run(jack.twistPlan(actor, strands as unknown as Stuff[], { yarns: null, length: null, mark: null }));
+    const rope = who.getContents().find((c): c is Rope => c instanceof Rope)!;
+    expect(rope.getLayEvenness()).toBeCloseTo(0.8, 5);
+    expect(rope.describeRope().join(' ')).toMatch(/hockles/);
+    expect(rope.effectiveKg()).toBeCloseTo(rope.breakingKg() * 0.8, 3);
+  });
+
+  it('⭐ the weakest yarn sets the grade', async () => {
+    const { jack, who } = walk(300);
+    const y = yarn(who, 30);
+    y.setGrade(Grade.of('poor'));
+    await run(jack.twistPlan(who as unknown as Stuff, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null }));
+    const strand = who.getContents().find((c): c is Rope => c instanceof Rope)!;
+    expect(strand.getGrade().getBand()).toBe('poor');
+  });
+
+  it('⭐ a hand at the wheel and the layer walks at full pace; alone, at half', async () => {
+    const { room, jack, who } = walk(300);
+    const y = yarn(who, 30);
+    const actor = who as unknown as Stuff;
+    const alone = await jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null });
+    const mate = makeStuff(() => new Body());
+    ContainmentApi.move(mate as never, room as never);
+    jack._setWheelHand(mate as unknown as Stuff);
+    const crewed = await jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null });
+    expect((alone as ActPlan).durationMs).toBe((crewed as ActPlan).durationMs * 2);
+    // Real work: twenty meters of a forty-yarn strand is a long while.
+    expect((crewed as ActPlan).durationMs).toBeGreaterThanOrEqual(20 * 40_000);
   });
 });

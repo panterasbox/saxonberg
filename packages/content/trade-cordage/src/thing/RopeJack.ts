@@ -23,9 +23,25 @@
  *
  * The alternating lay (yarns one way, strands the other, so the rope does
  * not unwind) is told in the words, never chosen.
+ *
+ * ⭐⭐ And it is WORK (the review's lens pass): a strand takes its length ×
+ * the yarns in it of walking and hardening, a rope its length of laying —
+ * hours, at a full walk. The craft is the TWIST: the layer's `ropework`
+ * band decides how evenly the strands harden (a green hand's bunch into
+ * hockles and the rope keeps less), and the yarn's grade is the rope's
+ * (weakest link). And it is a CREW: someone at the wheel (`turn jack` — a
+ * second player, or the keeper on her shift) and the layer walks at full
+ * pace; alone, they turn it themselves between walks, at half.
  */
 
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
+import { TurnableMixin } from '@saxonberg/server/mud/lib/craft/Turnable';
+import type { ActOutcome } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
+import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { WheelEngagement, WHEEL_TYPE } from '../lib/WheelEngagement';
 import Rope from '@saxonberg/server/mud/platform/thing/Rope';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -39,7 +55,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import TextileStock from '@saxonberg/content-trade-textiles/src/thing/TextileStock';
 
-const TWIST = ['trade/cordage/cmd/cordage/twist.yaml'];
+const TWIST = ['trade/cordage/cmd/cordage/twist.yaml', 'platform/cmd/device/turn.yaml'];
 
 const STRAND_ROW = '/trade/cordage/thing/strand';
 const ROPE_ROW = '/trade/cordage/thing/rope';
@@ -65,8 +81,23 @@ const FIBER_DENSITY = 1480;
 /** Yarns to a strand when nobody says. */
 const DEFAULT_YARNS = 40;
 
-/** Walking a meter of yarn out and back, game-ms. */
-const MS_PER_M = 1_000;
+/** Walking a strand out, per meter: the walk itself, game-ms… */
+const STRAND_MS_PER_M = 20_000;
+/** …and per yarn hooked and hardened into it, per meter. */
+const STRAND_MS_PER_M_PER_YARN = 500;
+/** Laying strands up into rope, per meter, game-ms. */
+const ROPE_MS_PER_M = 30_000;
+/** Alone, the layer turns the wheel themselves between walks: this much slower. */
+const ALONE = 2;
+
+/** ⭐ How evenly a strand hardens, by the layer's `ropework` band. */
+const EVENNESS: Record<CompetenceBandName, number> = {
+  untrained: 0.8,
+  novice: 0.85,
+  competent: 0.92,
+  proficient: 0.97,
+  expert: 1,
+};
 
 /** What the player asked of the twist. */
 export interface TwistOptions {
@@ -92,11 +123,75 @@ function diameterMm(kgPerM: number, density: number): number {
   return 2000 * Math.sqrt(kgPerM / (Math.PI * density * PACKING));
 }
 
-export default class RopeJack extends Tool {
+export default class RopeJack extends TurnableMixin(Tool) {
   static commandContributions: CommandContributions = {
     environment: TWIST,
     peers: TWIST,
   };
+
+  /** Who has the wheel (runtime; the wheel engagement's own link). */
+  private _wheelHand: Stuff | null = null;
+
+  /** ⭐ Who is turning the wheel, here and still at it — or null. */
+  public getWheelHand(): Stuff | null {
+    const hand = this._wheelHand;
+    if (hand === null || hand.isDestroyed()) return null;
+    const self = this as unknown as Stuff;
+    const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+    const there = MixinApi.isContainable(hand) ? hand.getContainer() : null;
+    return here !== null && there === here ? hand : null;
+  }
+
+  /** @internal The wheel engagement's own link (onStart / onAbort). */
+  public _setWheelHand(hand: Stuff | null): void {
+    this._wheelHand = hand;
+  }
+
+  /**
+   * ⭐ `turn jack` — take the wheel, and turn it for whoever lays; `turn
+   * back jack` — let it go.
+   */
+  public override async turnBy(actor: Stuff, back: boolean): Promise<ActOutcome | ActRefusal> {
+    const self = this as unknown as Stuff;
+    const holder = this.getWheelHand();
+    if (back) {
+      if (holder !== actor) return { ok: false, reason: 'not-turning', line: Mml.compose`You are not turning ${Mml.thing(self)}.` };
+      if (MixinApi.isEngaged(actor)) SchedulerApi.cancelByType(actor as Stuff & Engaged, WHEEL_TYPE);
+      this._wheelHand = null;
+      return { ok: true, line: Mml.compose`You let go of the wheel of ${Mml.thing(self)}.`, peers: Mml.compose`${Mml.actor(actor)} lets go of the jack's wheel.` };
+    }
+    if (holder === actor) return { ok: false, reason: 'already', line: Mml.compose`You already have the wheel.` };
+    if (holder !== null) {
+      return { ok: false, reason: 'taken', line: Mml.compose`${Mml.actor(holder)} already has the wheel of ${Mml.thing(self)}.` };
+    }
+    const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+    const at = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (here === null || at !== here) return { ok: false, reason: 'out-of-reach', line: Mml.compose`You are not at ${Mml.thing(self)}.` };
+    if (!MixinApi.isEngaged(actor)) return { ok: false, reason: 'cannot', line: Mml.compose`You cannot turn a wheel.` };
+    const started = SchedulerApi.start(new WheelEngagement(actor as Stuff & Engaged, this));
+    if (!started.ok) return { ok: false, reason: 'busy', line: Mml.compose`Your hands are on something else.` };
+    return {
+      ok: true,
+      line: Mml.compose`You take the crank of ${Mml.thing(self)}'s great wheel, ready to turn it for whoever lays.`,
+      peers: Mml.compose`${Mml.actor(actor)} takes the crank of the jack's wheel.`,
+    };
+  }
+
+  /** The layer's evenness — their `ropework` band, credited. */
+  private async evenness(actor: Stuff): Promise<number> {
+    if (!MixinApi.isAdvancing(actor)) return EVENNESS.untrained;
+    const band = await actor.competenceBandFor('ropework').catch(() => 'untrained' as CompetenceBandName);
+    return EVENNESS[band];
+  }
+
+  /** The pace: someone at the wheel, or the layer alone at half. */
+  private pace(actor: Stuff): { factor: number; words: string } {
+    const hand = this.getWheelHand();
+    if (hand !== null && hand !== actor) {
+      return { factor: 1, words: `, ${hand.describeFor(actor)} turning the wheel` };
+    }
+    return { factor: ALONE, words: ', turning the wheel yourself between walks' };
+  }
 
   /** ⭐ The walk: the room the jack stands in, its length, m. */
   public walkM(): number | null {
@@ -111,7 +206,7 @@ export default class RopeJack extends Tool {
    * is what you twist. Refused in words: no walk, a length longer than the
    * walk, too little yarn, fewer than three strands.
    */
-  public twistPlan(actor: Stuff, stock: readonly Stuff[], opts: TwistOptions): ActPlan | ActRefusal {
+  public async twistPlan(actor: Stuff, stock: readonly Stuff[], opts: TwistOptions): Promise<ActPlan | ActRefusal> {
     const walk = this.walkM();
     if (walk === null) {
       return { ok: false, reason: 'no-walk', line: Mml.compose`A rope is laid down a walk; set the jack up at the head of one.` };
@@ -132,16 +227,17 @@ export default class RopeJack extends Tool {
     }
     if (stock.length === 0) return { ok: false, reason: 'nothing', line: Mml.compose`Twist what? Yarn makes a strand; strands make a rope.` };
     const strands = stock.filter((s): s is Rope => s instanceof Rope && s.getStage() === 'strand');
-    if (strands.length === stock.length) return this.layRope(actor, strands, want);
+    const even = await this.evenness(actor);
+    if (strands.length === stock.length) return this.layRope(actor, strands, want, even);
     const yarn = stock.find((s): s is TextileStock => s instanceof TextileStock && s.getYarnCount() > 0);
     if (yarn !== undefined && stock.every((s) => s instanceof TextileStock)) {
-      return this.layStrand(actor, yarn, walk, want, opts);
+      return this.layStrand(actor, yarn, walk, want, opts, even);
     }
     return { ok: false, reason: 'not-twistable', line: Mml.compose`You twist yarn into strands, and strands into rope — not that.` };
   }
 
   /** Yarn → a strand: `n` yarns walked out and twisted together. */
-  private layStrand(actor: Stuff, yarn: TextileStock, walk: number, want: number | null, opts: TwistOptions): ActPlan | ActRefusal {
+  private layStrand(actor: Stuff, yarn: TextileStock, walk: number, want: number | null, opts: TwistOptions, even: number): ActPlan | ActRefusal {
     const n = opts.yarns ?? DEFAULT_YARNS;
     if (!Number.isInteger(n) || n < 1) {
       return { ok: false, reason: 'bad-yarns', line: Mml.compose`A strand is so many yarns — a whole number of them.` };
@@ -163,12 +259,15 @@ export default class RopeJack extends Tool {
     const kgPerM = (n * TEX_PER_COUNT) / count / 1e6 * STRAND_TAKE_UP;
     const mark = opts.mark?.trim().toLowerCase() || null;
     const units = Math.ceil((n * length) / skeinM - 1e-9);
+    // ⭐ The weakest yarn sets the strand's grade (the textile chain's rule).
+    const grade = yarn.likeStacksInHand().reduce((g, y) => g.min(y.getGrade()), yarn.getGrade());
     const self = this as unknown as Stuff;
+    const pace = this.pace(actor);
     return {
       ok: true,
-      durationMs: Math.max(10_000, length * MS_PER_M),
+      durationMs: Math.max(10_000, length * (STRAND_MS_PER_M + n * STRAND_MS_PER_M_PER_YARN) * pace.factor),
       effortW: 150,
-      beginSelf: Mml.compose`You hook ${n} yarns to the whirls of ${Mml.thing(self)} and walk them out ${round(length)} m down the walk, the jack's wheel turning them together.`,
+      beginSelf: Mml.compose`You hook ${n} yarns to the whirls of ${Mml.thing(self)} and walk them out ${round(length)} m down the walk${pace.words}.`,
       beginPeers: Mml.compose`${Mml.actor(actor)} walks yarns out down the ropewalk.`,
       onComplete: async () => {
         if (yarn.isDestroyed() || yarn.quantityInHand() < units) {
@@ -181,6 +280,8 @@ export default class RopeJack extends Tool {
         strand.setLengthM(round(length));
         strand.setDiameterMm(diameterMm(kgPerM, density));
         if (mark) strand.addMark(mark);
+        strand.setLayEvenness(even);
+        strand.setGrade(Grade.of(grade.getBand()));
         this.credit(actor);
         this.deliver(actor, strand);
         MessageApi.scene(actor)
@@ -193,7 +294,7 @@ export default class RopeJack extends Tool {
   }
 
   /** Strands → a rope: three or more, twisted the other way. */
-  private layRope(actor: Stuff, strands: Rope[], want: number | null): ActPlan | ActRefusal {
+  private layRope(actor: Stuff, strands: Rope[], want: number | null, even: number): ActPlan | ActRefusal {
     if (strands.length < 3) {
       return { ok: false, reason: 'too-few-strands', line: Mml.compose`A rope is laid from three strands or more; you have ${strands.length}.` };
     }
@@ -206,12 +307,17 @@ export default class RopeJack extends Tool {
     const material = strands[0]!.getMaterial();
     const density = material?.getDensity().rawValue() || FIBER_DENSITY;
     const marks = [...new Set(strands.flatMap((s) => [...s.getMarks()]))];
+    // ⭐ A rope is as even as its worst strand and its layer's hand, and its
+    // yarn is its weakest strand's.
+    const layEven = Math.min(even, ...strands.map((s) => s.getLayEvenness()));
+    const grade = strands.reduce((g, s) => g.min(s.getGrade()), strands[0]!.getGrade());
     const self = this as unknown as Stuff;
+    const pace = this.pace(actor);
     return {
       ok: true,
-      durationMs: Math.max(10_000, length * MS_PER_M),
+      durationMs: Math.max(10_000, length * ROPE_MS_PER_M * pace.factor),
       effortW: 200,
-      beginSelf: Mml.compose`You hook ${strands.length} strands to ${Mml.thing(self)} and walk the top down between them as the jack turns them the other way.`,
+      beginSelf: Mml.compose`You hook ${strands.length} strands to ${Mml.thing(self)} and walk the top down between them as the jack turns them the other way${pace.words}.`,
       beginPeers: Mml.compose`${Mml.actor(actor)} lays a rope down the ropewalk.`,
       onComplete: async () => {
         if (strands.some((s) => s.isDestroyed())) {
@@ -223,6 +329,8 @@ export default class RopeJack extends Tool {
         rope.setLengthM(round(length));
         rope.setDiameterMm(diameterMm(kgPerM, density));
         for (const m of marks) rope.addMark(m);
+        rope.setLayEvenness(layEven);
+        rope.setGrade(Grade.of(grade.getBand()));
         for (const s of strands) StuffApi.destruct(s as unknown as Stuff);
         this.credit(actor);
         this.deliver(actor, rope);
@@ -235,10 +343,13 @@ export default class RopeJack extends Tool {
     };
   }
 
-  /** Laying rope is ropework. */
+  /** Laying rope is ropework — for the layer, and for the hand at the wheel. */
   private credit(actor: Stuff): void {
-    if (MixinApi.isAdvancing(actor)) {
-      void actor.creditSignature({ discipline: [{ discipline: 'ropework', difficulty: 'standard', outcome: 'success' }] }).catch(() => {});
+    const hand = this.getWheelHand();
+    for (const who of hand !== null && hand !== actor ? [actor, hand] : [actor]) {
+      if (MixinApi.isAdvancing(who)) {
+        void who.creditSignature({ discipline: [{ discipline: 'ropework', difficulty: 'standard', outcome: 'success' }] }).catch(() => {});
+      }
     }
   }
 

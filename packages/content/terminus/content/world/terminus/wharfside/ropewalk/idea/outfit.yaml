@@ -12,6 +12,15 @@ data:
       label: keeping the ropewalk
       wageRate: 4
       fulfills: [ropework]
+    # ⭐ The crew-shaped hole: a hand at the jack's wheel so the layer walks
+    # at full pace. One seat, open to a player (`apply`); the keeper turns
+    # it herself when nobody holds it.
+    - key: wheel-hand
+      noun: wheel-hand
+      label: turning the jack's wheel
+      wageRate: 2
+      headcount: 1
+      fulfills: [ropework]
   rosterSlots:
     - positionKey: keeper
       assignee: /world/terminus/wharfside/ropewalk/agent/ropekeeper
