@@ -120,25 +120,25 @@ export interface ShelfRow {
 export const SHELF_CATALOGUE: readonly ShelfRow[] = [
   {
     id: "play",
-    label: "Standing",
+    label: "PLAY",
     desc: "influence · earned by living in the world",
     source: "live",
   },
   {
     id: "renown",
-    label: "Known",
+    label: "RENOWN",
     desc: "how widely you are known, and for what",
     source: "live",
   },
   {
     id: "skill",
-    label: "Skills",
+    label: "SKILL",
     desc: "the competence you are practising",
     source: "live",
   },
   {
     id: "body",
-    label: "Body",
+    label: "BODY",
     desc: "what your body is telling you — breath, hunger, thirst",
     // ⭐ Live from the nutrition-and-fitness build: `bodyState` on the
     // self card, poked when a band turns over. Words, never a gauge.
@@ -146,7 +146,7 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
   },
   {
     id: "make",
-    label: "Making",
+    label: "MAKE",
     desc: "influence · earned by building",
     // ⭐ Live since the account roll-up landed. `makeStanding` joined
     // `CARDS.self` in the same commit as the arithmetic, so the band on
@@ -156,31 +156,31 @@ export const SHELF_CATALOGUE: readonly ShelfRow[] = [
   },
   {
     id: "coin",
-    label: "Money",
+    label: "COIN",
     desc: "what you are carrying",
     source: "unexposed",
   },
   {
     id: "status",
-    label: "Status",
+    label: "STATUS",
     desc: "the note others see beside your name",
     source: "unexposed",
   },
   {
     id: "time",
-    label: "Time",
+    label: "TIME",
     desc: "in-world clock and phase",
     source: "not-self",
   },
   {
     id: "online",
-    label: "Who's on",
+    label: "ONLINE",
     desc: "how many people are on",
     source: "not-self",
   },
   {
     id: "docket",
-    label: "Docket",
+    label: "DOCKET",
     desc: "open measures you may vote on",
     source: "not-self",
   },

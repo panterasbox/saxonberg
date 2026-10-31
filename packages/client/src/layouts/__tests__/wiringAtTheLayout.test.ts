@@ -43,10 +43,10 @@ const WIRING_HOOKS = ['useCardFeed'];
  */
 const FORM_FACTOR_SPECIFIC = [
   'components/cards/CardFeed.tsx',
-  'components/cards/CardArea.tsx',
   'components/cards/MobilePlaySurface.tsx',
-  'layouts/ModeStage.tsx',
-  'components/phone/PhoneShell.tsx',
+  'layouts/WorldLayout.tsx',
+  'layouts/BuilderLayout.tsx',
+  'layouts/ForumLayout.tsx',
 ];
 
 /**
@@ -79,18 +79,15 @@ const SURFACE_MOUNTS: Array<{ file: string; renders: string }> = [
   // The forum app is nothing without its rail: the rail holds the
   // `subjects` subscription, so a shell that stopped rendering it would
   // leave the header describing a subject nobody could pick.
-  // ⭐ client-surface W5/W6: the chat stage's panel and the phone's
-  // channel drawer.
-  { file: 'layouts/ModeStage.tsx', renders: 'SubjectRail' },
-  { file: 'components/phone/PhoneShell.tsx', renders: 'SubjectRail' },
+  { file: 'components/social/SubjectShell.tsx', renders: 'SubjectRail' },
+  { file: 'layouts/ForumLayout.tsx', renders: 'SubjectShell' },
   // The tuned rail reads `cockpit.tuned`; if the cards stop rendering
   // it, the livestream side loses its only view of what it follows.
-  { file: 'layouts/ModeStage.tsx', renders: 'TunedRail' },
+  { file: 'layouts/LivestreamPanels.tsx', renders: 'TunedRail' },
   // The right column IS the card feed now — the switcher is gone, so
   // a layout that stopped rendering it would leave a player with no
   // cards at all and no tab to notice were missing.
-  { file: 'layouts/ModeStage.tsx', renders: 'CardArea' },
-  { file: 'components/phone/PhoneShell.tsx', renders: 'InlineCard' },
+  { file: 'layouts/WorldLayout.tsx', renders: 'CardFeed' },
   // The reaction picker and its touch sheet both hang off the
   // transcript, which is the one component both form factors share.
   { file: 'components/Terminal.tsx', renders: 'EmoteSheet' },
@@ -126,8 +123,7 @@ describe('⭐ every social surface is actually mounted', () => {
 describe('⚠⚠ the feed rules are not re-implemented per render path', () => {
   const RENDER_PATHS = [
     'components/cards/CardFeed.tsx',
-    'components/cards/CardArea.tsx',
-    'components/phone/PhoneShell.tsx',
+    'layouts/WorldLayout.tsx',
   ];
 
   it.each(RENDER_PATHS)('%s filters through visibleCards', (file) => {

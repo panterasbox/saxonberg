@@ -52,21 +52,12 @@ const layoutsDir = resolve(here, '..');
  * is checked for the same reason it exists — it is a second render site
  * for the same cards.
  */
-const AFFORDANCE_CARDS = ['CardArea', 'CardFeed', 'InlineCard'];
-
-/** The stage (every desktop mode) and the phone. */
-const RENDER_SITES = [
-  join(layoutsDir, 'ModeStage.tsx'),
-  join(layoutsDir, '..', 'components', 'phone', 'PhoneShell.tsx'),
-];
+const AFFORDANCE_CARDS = ['CardFeed', 'InlineCard'];
 
 function layoutSources(): Array<{ file: string; text: string }> {
-  return [
-    ...readdirSync(layoutsDir)
-      .filter((f) => f.endsWith('.tsx'))
-      .map((f) => join(layoutsDir, f)),
-    ...RENDER_SITES.slice(1),
-  ].map((f) => ({ file: f, text: readFileSync(f, 'utf8') }));
+  return readdirSync(layoutsDir)
+    .filter((f) => f.endsWith('.tsx'))
+    .map((f) => ({ file: f, text: readFileSync(join(layoutsDir, f), 'utf8') }));
 }
 
 describe('affordance routing', () => {
@@ -100,8 +91,7 @@ describe('affordance routing', () => {
      * stale the moment a second layout adopted the feed — which is
      * exactly what Wave 7 did.
      */
-    // ⭐ client-surface W5/W6: the stage's card area and the phone's inline stack.
-    expect(inspected, 'the scan matched no card render sites').toBe(2);
+    expect(inspected, 'the scan matched no card render sites').toBe(4);
   });
 
   /*
@@ -136,11 +126,9 @@ describe('affordance routing', () => {
    * require confirming it, which is its own absurdity.
    */
   it('⚠ but the command bar keeps the raw send', () => {
-    for (const file of RENDER_SITES) {
-      const text = readFileSync(file, 'utf8');
-      const bar = /<CommandBar\b[\s\S]*?\/>/.exec(text)?.[0] ?? '';
-      expect(bar, file).toContain('onSendCommand={onSendCommand}');
-    }
+    const world = readFileSync(join(layoutsDir, 'WorldLayout.tsx'), 'utf8');
+    const bar = /<CommandBar\b[\s\S]*?\/>/.exec(world)?.[0] ?? '';
+    expect(bar).toContain('onSendCommand={onSendCommand}');
   });
 });
 

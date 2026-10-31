@@ -857,14 +857,6 @@ interface StoreState
    */
   promptDrafts: Record<string, string>;
   /**
-   * ⭐ The primary bar's draft, handed across a remount (client-surface):
-   * the fallback bar the stage shows before the primary terminal arrives
-   * is replaced by the terminal's own bar, a different element, and the
-   * text the player had begun typing must survive the swap.
-   */
-  primaryDraftCarry: string;
-  setPrimaryDraftCarry: (text: string) => void;
-  /**
    * Which slot the CommandBar input is currently bound to. Either
    * `BASE_SLOT` or a `promptId` from `prompts`. Set to a new
    * arrival iff `foreground` is true; preserved otherwise.
@@ -1590,7 +1582,6 @@ export const useStore = create<StoreState>((set, get) => ({
   // Prompt-stack slice (initial cleared state)
   prompts: [],
   promptDrafts: { [BASE_SLOT]: "" },
-  primaryDraftCarry: "",
   activeSlot: BASE_SLOT,
   activeSlotByBar: {},
   primaryBarId: null,
@@ -1695,8 +1686,6 @@ export const useStore = create<StoreState>((set, get) => ({
         activeSlotByBar: { ...state.activeSlotByBar, [bar]: slot },
       };
     }),
-
-  setPrimaryDraftCarry: (text) => set(() => ({ primaryDraftCarry: text })),
 
   setDraft: (slot, text) =>
     set((state) => {

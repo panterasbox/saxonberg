@@ -119,14 +119,13 @@ describe('the in-world chrome, by viewport', () => {
    * desktop composition must not have moved. This build inverts the
    * chrome on a phone; it changes nothing above the breakpoint.
    */
-  it('⭐ above the breakpoint: a nav rail and NO top bar; the shelf rides the status bar (client-surface D10)', () => {
+  it('⚠ above the breakpoint the desktop bar is unchanged', () => {
     setViewport(false);
     render(<App />);
-    expect(screen.getByTestId('nav-rail')).toBeTruthy();
-    expect(screen.queryByTestId('top-bar')).toBeNull();
+    expect(screen.getByTestId('top-bar')).toBeTruthy();
     expect(screen.queryByTestId('mobile-bar')).toBeNull();
-    expect(screen.getByTestId('status-shelf')).toBeTruthy();
-    expect(screen.getByTestId('tray')).toBeTruthy();
+    // B's composition, still whole: the shelf lives IN the bar.
+    expect(screen.getByTestId('shelf')).toBeTruthy();
   });
 
   /*
@@ -134,15 +133,6 @@ describe('the in-world chrome, by viewport', () => {
    * cost a row the feed needs — so it does not exist there, rather than
    * existing and being hidden.
    */
-  it('⭐ a mode with no layout SAYS so (client-surface D10)', () => {
-    setViewport(false);
-    useStore.setState({ clientState: { 'cockpit.mode': 'govern' } });
-    render(<App />);
-    expect(screen.getByTestId('mode-fallback-notice').textContent).toMatch(
-      /govern isn.t laid out yet — showing explore/,
-    );
-  });
-
   it('⭐ renders NO status bar below the breakpoint', () => {
     setViewport(true);
     render(<App />);
@@ -216,8 +206,8 @@ describe('the command sheet, intercepting at App', () => {
   it('⚠ above the breakpoint the click sends directly, with no sheet', () => {
     setViewport(false);
     render(<App />);
-    // The rail's mode button is an affordance like any other.
-    fireEvent.click(screen.getByTestId('rail-mode-explore'));
+    fireEvent.click(screen.getByLabelText('Open the Views menu'));
+    fireEvent.click(screen.getByTestId('views-item-explore:default'));
 
     expect(sent).toHaveLength(1);
     expect(screen.queryByTestId('command-sheet')).toBeNull();

@@ -110,17 +110,3 @@ export function lightSurfaceCommand(
 export function isForumSurface(surface: SubjectSurfaceName): boolean {
   return surface === "ordered-forum" || surface === "open-forum";
 }
-
-/**
- * The surface a freshly-selected subject opens on: the first it has lit,
- * in vocabulary order.
- *
- * ⚠ Never a fixed default. Defaulting to `popularity-forum` would land a
- * deliberation-only subject on a surface it does not have, and the body
- * would render empty with nothing saying why.
- */
-export function defaultSurface(
-  subject: { surfaces: readonly SubjectSurfaceName[] },
-): SubjectSurfaceName | null {
-  return subject.surfaces[0] ?? null;
-}

@@ -15,7 +15,7 @@
  * that collapse is lossy in the mode column and only the arrangement
  * column keeps them apart.
  *
- * ⚠ `govern` has no surface yet and falls back to `play`. It falls back
+ * ⚠ `govern` has no surface yet and falls back to `explore`. It falls back
  * VISIBLY — see `resolveMode` — because a mode that silently renders as
  * another one is indistinguishable from a mode that is finished.
  */
@@ -28,13 +28,11 @@ import {
   type LayoutName,
 } from "@saxonberg/types";
 import type { LayoutProps } from "./types";
-import {
-  ExploreStage,
-  ChatStage,
-  WatchViewerStage,
-  WatchStreamerStage,
-  BuildStage,
-} from "./ModeStage";
+import { WorldLayout } from "./WorldLayout";
+import { ForumLayout } from "./ForumLayout";
+import { LivestreamViewerLayout } from "./LivestreamViewerLayout";
+import { StreamerLayout } from "./StreamerLayout";
+import { BuilderLayout } from "./BuilderLayout";
 
 export interface ArrangementDef {
   label: string;
@@ -51,15 +49,13 @@ export interface ArrangementDef {
 export const MODE_REGISTRY: Partial<
   Record<CockpitMode, Record<string, ArrangementDef>>
 > = {
-  // ⭐ Every desktop mode composes the one stage (client-surface D9); each
-  // keeps its shipped layout for the phone until the phone's own design.
-  explore: { default: { label: "Explore", Component: ExploreStage } },
-  chat: { default: { label: "Chat", Component: ChatStage } },
+  explore: { default: { label: "World", Component: WorldLayout } },
+  chat: { default: { label: "Forums", Component: ForumLayout } },
   watch: {
-    viewer: { label: "Viewer", Component: WatchViewerStage },
-    streamer: { label: "Streamer", Component: WatchStreamerStage },
+    viewer: { label: "Viewer", Component: LivestreamViewerLayout },
+    streamer: { label: "Streamer", Component: StreamerLayout },
   },
-  build: { default: { label: "Builder", Component: BuildStage } },
+  build: { default: { label: "Builder", Component: BuilderLayout } },
 };
 
 /** What `resolveMode` decided, including whether it had to fall back. */
@@ -85,7 +81,7 @@ const FLOOR: CockpitMode = "explore";
  * server's `getCockpitMode()` reads that null as its cue to migrate a
  * stored `cockpit.layout` rather than assuming the default — so if the
  * pushed snapshot still carries the null, the client has to do the same
- * migration rather than silently landing everybody in `play`. That is
+ * migration rather than silently landing everybody in `explore`. That is
  * what the `legacyLayout` argument is for; it is read ONLY when `mode`
  * is absent, and never as a live source of truth.
  */
