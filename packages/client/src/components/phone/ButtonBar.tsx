@@ -11,6 +11,7 @@ import type { StuffDetailRecord } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { websocketClient } from "../../services/websocket";
 import { tokens } from "../ui";
+import { actionCommand, useLinkMode } from "../cards/clickTarget";
 
 const Bar = styled.div`
   flex: none;
@@ -47,6 +48,7 @@ export function ButtonBar({
   const record = here?.records[0] as StuffDetailRecord | undefined;
   const stuffId = record?.stuffId;
   const answer = useStore((s) => (stuffId ? s.affordances[stuffId] : undefined));
+  const mode = useLinkMode();
   React.useEffect(() => {
     if (stuffId && !answer) websocketClient.resolveAffordances(stuffId);
   }, [stuffId, answer]);
@@ -73,7 +75,7 @@ export function ButtonBar({
           key={v.verb}
           type="button"
           data-testid="button-verb"
-          onClick={() => onCommandClick(`${v.verb} #${stuffId}`)}
+          onClick={() => onCommandClick(actionCommand(v, stuffId, mode))}
         >
           {v.verb}
         </Btn>

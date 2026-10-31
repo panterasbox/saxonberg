@@ -46,6 +46,7 @@ import styled from "styled-components";
 import type { AffordanceEntry } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { websocketClient } from "../../services/websocket";
+import { actionCommand, useLinkMode } from "./clickTarget";
 import { tokens } from "../ui";
 
 /** The four fixed slots. Order is the render order, not a ranking. */
@@ -275,19 +276,6 @@ export interface AffordanceRadialProps {
   onCommandPreview?: (command: string | null) => void;
 }
 
-/**
- * What one entry sends when clicked.
- *
- * ⚠ A `pending-operand` verb sends the verb ALONE, on purpose: the
- * dispatcher's own prompt substrate asks for the missing operand, and
- * it asks better than a menu could — it knows the candidate set. The
- * entry names the field so the label can say what is about to be asked
- * for, which is the difference between a click that stalls and a click
- * that continues.
- */
-function commandFor(entry: AffordanceEntry, keyword: string): string {
-  return `${entry.verb} ${keyword}`;
-}
 
 export function AffordanceRadial({
   stuffId,
@@ -298,6 +286,7 @@ export function AffordanceRadial({
   const answer = useStore((s) => s.affordances[stuffId]);
   const unresolvable = useStore((s) => !!s.affordanceUnresolvable[stuffId]);
   const preview = onCommandPreview ?? (() => undefined);
+  const mode = useLinkMode();
 
   React.useEffect(() => {
     websocketClient.resolveAffordances(stuffId);
@@ -316,7 +305,6 @@ export function AffordanceRadial({
   }
 
   const slots = groupIntoSlots(answer.verbs);
-  const keyword = displayName;
 
   const renderSlot = (slot: RadialSlot) => {
     /*
@@ -335,7 +323,8 @@ export function AffordanceRadial({
     <Quadrant $area={slot} key={slot} data-testid={`radial-${slot}`}>
       <QuadrantLabel>{SLOT_LABEL[slot]}</QuadrantLabel>
       {shown.map((entry) => {
-        const command = commandFor(entry, keyword);
+        // ⭐ The server's own command (#91) — see `clickTarget.ts`.
+        const command = actionCommand(entry, stuffId, mode);
         return (
           <VerbButton
             key={entry.verb}

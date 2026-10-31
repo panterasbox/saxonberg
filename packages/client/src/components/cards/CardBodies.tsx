@@ -57,6 +57,7 @@ import { websocketClient } from "../../services/websocket";
 import { mediaUrl } from "../../config";
 import { MmlRenderer } from "../MmlRenderer";
 import { InspectionBody } from "./InspectionBody";
+import { actionCommand, lookCommand, useLinkMode } from "./clickTarget";
 import { CmsExplorer } from "../cms/CmsExplorer";
 import { CmsEditor } from "../cms/CmsEditor";
 import { CmsGitPanel } from "../cms/CmsGitPanel";
@@ -526,17 +527,15 @@ function Measured({
  */
 function ActionRow({
   stuffId,
-  keyword,
   onSendCommand,
   onCommandPreview,
 }: {
   stuffId?: string;
-  /** The subject's own keyword — the word the player would type. */
-  keyword?: string;
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
   const answer = useStore((s) => (stuffId ? s.affordances[stuffId] : undefined));
+  const mode = useLinkMode();
   if (!answer) return null;
   const afforded = answer.verbs.filter(
     (v) => v.source === "subject" && v.state !== "disabled",
@@ -544,18 +543,11 @@ function ActionRow({
   if (afforded.length === 0) return null;
   return (
     <>
-      <Label>What it affords</Label>
+      <Label>Actions</Label>
       <Chips data-testid="card-action-row">
         {afforded.map((v) => {
-          /*
-           * ⚠ Named with the subject's own KEYWORD, so the command
-           * reads as one the player could have typed — the same rule
-           * the refresh control follows. A verb with no operand slot
-           * sends bare.
-           */
-          // ⭐ By id (client-surface D7): `<verb> #<id>` names exactly
-          // this subject, never the first thing that answers to a word.
-          const send = stuffId ? `${v.verb} #${stuffId}` : keyword ? `${v.verb} ${keyword}` : v.verb;
+          // ⭐ The server's own command (#91) — see `clickTarget.ts`.
+          const send = actionCommand(v, stuffId, mode);
           return (
             <InlineLink
               key={v.verb}
@@ -811,6 +803,7 @@ function HereList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const contents = record?.contents ?? [];
   if (contents.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -827,8 +820,7 @@ function HereList({
       <Label>Here</Label>
       <Rows>
         {shown.map((row) => {
-          // ⭐ By id (client-surface D7): the link names exactly this thing.
-          const command = `look #${row.stuffId}`;
+          const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -873,6 +865,7 @@ function PlacedList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const groups = record?.placed ?? [];
   if (groups.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -887,7 +880,7 @@ function PlacedList({
             <Rows>
               {shown.map((row) => {
                 // ⭐ By id (client-surface D7).
-                const command = `look #${row.stuffId}`;
+                const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
                 return (
                   <div key={row.stuffId}>
                     <EntityName
@@ -936,6 +929,7 @@ function WornList({
   onSendCommand: (text: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement | null {
+  const mode = useLinkMode();
   const worn = record?.worn ?? [];
   if (worn.length === 0) return null;
   const preview = onCommandPreview ?? (() => undefined);
@@ -946,8 +940,7 @@ function WornList({
       <Label>Worn</Label>
       <Rows>
         {shown.map((row) => {
-          // ⭐ By id (client-surface D7): the link names exactly this thing.
-          const command = `look #${row.stuffId}`;
+          const command = lookCommand(row.stuffId, row.primaryKeyword, mode);
           return (
             <div key={row.stuffId}>
               <EntityName
@@ -1540,7 +1533,6 @@ function MqlBody(props: CardBodyProps): React.ReactElement {
       )}
       <ActionRow
         stuffId={stuffId}
-        keyword={record?.primaryKeyword}
         onSendCommand={onSendCommand}
         onCommandPreview={onCommandPreview}
       />

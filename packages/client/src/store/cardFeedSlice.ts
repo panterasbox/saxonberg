@@ -303,6 +303,13 @@ export interface CardFeedSlice {
   /** Every card, keyed by instance id. */
   cards: Record<string, CardState>;
   /**
+   * ⭐ The card area's order, as the player dragged it — the client's
+   * alone. A card it does not name follows the named ones, by arrival.
+   */
+  cardOrder: string[];
+  /** Drag `instanceId` to sit just before `beforeId` (or last, with null). */
+  reorderCard: (instanceId: string, beforeId: string | null) => void;
+  /**
    * ⚠ Named `openCard`, not `openPanel` — the store already has an
    * `openPanel` for the summoned settings overlay, and two things
    * called "open" on one flat store is how a call site reaches the
@@ -406,6 +413,24 @@ export const createCardFeedSlice = (
   get: () => CardFeedSlice,
 ): CardFeedSlice => ({
   cards: {},
+  cardOrder: [],
+
+  reorderCard: (instanceId, beforeId) =>
+    set((s) => {
+      // Start from what is on screen, so the first drag fixes the order
+      // the player was looking at rather than an empty list.
+      const known = Object.values(s.cards)
+        .sort((a, b) => a.openedAt - b.openedAt)
+        .map((c) => c.instanceId);
+      const base = [
+        ...s.cardOrder.filter((id) => s.cards[id]),
+        ...known.filter((id) => !s.cardOrder.includes(id)),
+      ].filter((id) => id !== instanceId);
+      const at = beforeId === null ? -1 : base.indexOf(beforeId);
+      if (at < 0) base.push(instanceId);
+      else base.splice(at, 0, instanceId);
+      return { cardOrder: base };
+    }),
 
   openCard: (card) =>
     set((s) => ({

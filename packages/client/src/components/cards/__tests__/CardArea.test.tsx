@@ -1,7 +1,8 @@
 /**
- * The card area (client-surface D9): one column is a feed, more is a
- * workspace; below one unit it is a glance strip; dragging sends a
- * `cockpit card move`; minimized and medium cards are drawn elsewhere.
+ * The card area: a grid that fills the width, in the player's own order
+ * (drag one card onto another and it moves before it, client-side);
+ * below one unit it is a glance strip; minimized and medium cards are
+ * drawn elsewhere.
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -25,24 +26,35 @@ function land(id: string, extra: Partial<CardState> = {}): void {
 }
 
 beforeEach(() => {
-  useStore.setState({ cards: {} });
+  useStore.setState({ cards: {}, cardOrder: [] });
 });
 
+const order = (): string[] =>
+  Array.from(document.querySelectorAll("[data-card-key]")).map((e) => e.getAttribute("data-card-key")!);
+
+function drag(fromId: string, onto: Element): void {
+  fireEvent.drop(onto, {
+    dataTransfer: {
+      getData: (t: string) => (t === "application/x-saxonberg-card-id" ? fromId : ""),
+    },
+  });
+}
+
 describe("CardArea", () => {
-  it("⭐ one unit is ONE column; three units is three", () => {
+  it("⭐ one grid, in arrival order, whatever the width", () => {
     land("a");
     land("b");
-    const { rerender } = render(<CardArea units={1} onSendCommand={() => {}} />);
-    expect(screen.getAllByTestId("card-column")).toHaveLength(1);
-    rerender(<CardArea units={3} onSendCommand={() => {}} />);
-    expect(screen.getAllByTestId("card-column")).toHaveLength(3);
+    land("c");
+    render(<CardArea units={3} onSendCommand={() => {}} />);
+    expect(screen.getAllByTestId("card-grid")).toHaveLength(1);
+    expect(order()).toEqual(["who a", "who b", "who c"]);
   });
 
   it("below one unit: a glance strip; a chip opens its card at measure", () => {
     land("a");
     const sent: string[] = [];
     render(<CardArea units={0} onSendCommand={(t) => sent.push(t)} />);
-    expect(screen.queryAllByTestId("card-column")).toHaveLength(0);
+    expect(screen.queryAllByTestId("card-grid")).toHaveLength(0);
     fireEvent.click(screen.getByTestId("glance-chip"));
     expect(sent).toEqual(['cockpit card grow "who a"']);
   });
@@ -58,15 +70,18 @@ describe("CardArea", () => {
     expect(keys).toEqual(["who here"]);
   });
 
-  it("⭐ a drop sends `cockpit card move` — the server places it, not the client", () => {
+  it("⭐ drag a card onto another and it moves before it — in the client, nothing sent", () => {
     land("a");
+    land("b");
+    land("c");
     const sent: string[] = [];
-    render(<CardArea units={2} onSendCommand={(t) => sent.push(t)} />);
-    const second = screen.getAllByTestId("card-column")[1]!;
-    fireEvent.drop(second, {
-      dataTransfer: { getData: () => "who", types: ["application/x-saxonberg-card"] },
-      clientY: 0,
-    });
-    expect(sent).toEqual(["cockpit card move who 1 0"]);
+    render(<CardArea units={3} onSendCommand={(t) => sent.push(t)} />);
+    const slotOf = (id: string) => document.querySelector(`[data-card-slot="${id}"]`)!;
+    drag("c", slotOf("a"));
+    expect(order()).toEqual(["who c", "who a", "who b"]);
+    // Dropped on the grid's empty space, it goes last.
+    drag("c", screen.getByTestId("card-grid"));
+    expect(order()).toEqual(["who a", "who b", "who c"]);
+    expect(sent).toEqual([]);
   });
 });

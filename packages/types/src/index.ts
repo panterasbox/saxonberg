@@ -1635,6 +1635,14 @@ export type AffordanceState = 'enabled' | 'disabled' | 'pending-operand';
 /** One verb in an {@link AffordanceResultEnvelope}. */
 export interface AffordanceEntry {
   verb: string;
+  /**
+   * ⭐ The exact command the server validated this verb with — the verb
+   * and the target as the viewer would type it (its primary keyword;
+   * the `#id` only when it has none). Absent when the target is not the
+   * verb's first argument, so no one-word command is correct: a client
+   * must never compose one by appending (#91).
+   */
+  command?: string;
   /** Authored one-line description — the menu's label text. */
   description: string;
   state: AffordanceState;

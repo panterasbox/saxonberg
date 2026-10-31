@@ -38,12 +38,15 @@ import type { CardId } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
+import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
 
-const Shell = styled.article<{ $faded: boolean; $pinned: boolean }>`
+const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string }>`
   border: 1px solid
     ${(p) =>
       p.$pinned ? tokens.color.fgEmphasis : tokens.color.borderMuted};
+  /* The kind's colour down the left edge — what this card is about. */
+  ${(p) => (p.$kind ? `border-left: 3px solid ${p.$kind};` : "")}
   border-radius: ${tokens.radius.md};
   background: ${tokens.color.surface};
   padding: ${tokens.space.md};
@@ -52,9 +55,9 @@ const Shell = styled.article<{ $faded: boolean; $pinned: boolean }>`
 
 const Head = styled.header`
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: ${tokens.space.sm};
-  margin-bottom: ${tokens.space.sm};
+  margin-bottom: ${tokens.space.xs};
 `;
 
 const Title = styled.h3`
@@ -125,9 +128,14 @@ const IconButton = styled.button<{ $on?: boolean }>`
   color: ${(p) => (p.$on ? tokens.color.fgEmphasis : tokens.color.fg)};
   padding: 0 ${tokens.space.sm};
   /* 44px minimum touch target via min-height — never by shrinking the
-     box the glyph sits in. */
+     box the glyph sits in. With a mouse the target is the pointer's,
+     and a 44px row of buttons made the header a fifth of the card. */
   min-height: 44px;
   min-width: 34px;
+  @media (pointer: fine) {
+    min-height: 1.75rem;
+    min-width: 1.75rem;
+  }
 
   &:hover {
     border-color: ${tokens.color.fgEmphasis};
@@ -285,6 +293,7 @@ export function Card({
     <Shell
       $faded={faded}
       $pinned={card.pinned === true}
+      {...(card.subjectKind ? { $kind: KIND_COLOR[card.subjectKind] } : {})}
       data-testid={`card-${card.cardId}`}
       data-card-kind={card.cardId}
       data-card-key={card.key}
@@ -299,6 +308,8 @@ export function Card({
           // Drag is INSERTION: the drop target turns this into
           // `cockpit card move <card> <col> <row>`.
           e.dataTransfer.setData("application/x-saxonberg-card", ref);
+          // The grid reorders by instance — the client's own order.
+          e.dataTransfer.setData("application/x-saxonberg-card-id", card.instanceId);
           e.dataTransfer.effectAllowed = "move";
         }}
       >
@@ -309,6 +320,7 @@ export function Card({
           differs between a room and a lamp is the sections in the body,
           which is where the reader can actually see it.
         */}
+        {card.subjectKind ? <KindMark kind={card.subjectKind} /> : null}
         <Title>{title}</Title>
         {/*
           ⭐ The honesty stamp. A static card says WHEN its answer was

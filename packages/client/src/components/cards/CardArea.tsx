@@ -1,16 +1,17 @@
 /**
- * CardArea — the cards beside the terminal column (client-surface D9).
+ * CardArea — the cards beside the terminal column.
  *
- * ⭐ **A feed at one column, a workspace at more**, laid out by
- * {@link arrangeCards} from the window's unit count: placed cards hold
- * their slots (units, from the server), flowing cards run by touch, and
- * when there is no room the stalest unprotected card is displaced to the
- * Recent trail, saying which command displaced it. Below one unit the
- * area is a glance strip of chips, and a chip opens its card at measure.
+ * ⭐ **A grid that fills the width.** Columns are as many as fit at the
+ * unit's minimum width and stretch to share whatever is left, so no
+ * space sits unused to the right. Cards keep their full height and the
+ * area scrolls; nothing is cut or displaced to make room.
  *
- * ⚠ The client never decides WHERE a card is placed: dragging a card
- * sends `cockpit card move <card> <col> <row>` (insertion), and the card
- * moves when the server's `card-arranged` arrives.
+ * ⭐ **The order is the player's, in the client.** Cards arrive in the
+ * order they were opened; drag one onto another and it moves before it
+ * (the store's `cardOrder`). Nothing is sent to the server.
+ *
+ * Below one unit of room the area is a glance strip of chips, and a
+ * chip opens its card at measure.
  */
 
 import React from "react";
@@ -20,7 +21,6 @@ import { tokens } from "../ui";
 import { Card } from "./Card";
 import { CardBody } from "./CardBodies";
 import { visibleCards, type CardState } from "../../store/cardFeedSlice";
-import { arrangeCards, type TrailChip } from "../../store/cardLayout";
 import { activeCardKinds } from "../../store/cardViewActions";
 import { CARD_LABEL } from "./useCardFeed";
 
@@ -38,28 +38,25 @@ const Area = styled.section<{ $overflow: boolean }>`
   overflow-y: ${(p) => (p.$overflow ? "auto" : "hidden")};
 `;
 
-const Columns = styled.div`
-  flex: 1;
-  min-height: 0;
-  display: flex;
+/**
+ * ⚠ `min(100%, …)` so a single column never overflows a narrow area;
+ * `1fr` so the columns share the leftover instead of leaving it empty.
+ */
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, ${tokens.width.unit.min}rem), 1fr)
+  );
   gap: ${tokens.width.gap}rem;
+  align-items: start;
 `;
 
-const Column = styled.div`
-  flex: 1 1 ${tokens.width.unit.min}rem;
-  min-width: ${tokens.width.unit.min}rem;
-  max-width: ${tokens.width.unit.max}rem;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: ${tokens.space.sm};
-`;
-
-const Slot = styled.div`
-  flex: 1 1 auto;
-  min-height: 6rem;
-  display: flex;
-  flex-direction: column;
+const Slot = styled.div<{ $over: boolean }>`
+  min-width: 0;
+  border-radius: ${tokens.radius.md};
+  outline: ${(p) => (p.$over ? `2px dashed ${tokens.color.fgEmphasis}` : "none")};
+  outline-offset: 2px;
 `;
 
 const Trail = styled.div`
@@ -71,14 +68,6 @@ const Trail = styled.div`
   max-height: 3.4rem;
   overflow: hidden;
   font-size: ${tokens.font.micro};
-`;
-
-const TrailLabel = styled.span`
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.1em;
-  color: ${tokens.color.sectionLabel};
-  align-self: center;
 `;
 
 const Chip = styled.button`
@@ -98,26 +87,6 @@ const Chip = styled.button`
     border-color: ${tokens.color.fgEmphasis};
   }
 `;
-
-const Muted = styled.span`
-  color: ${tokens.color.fgMuted};
-`;
-
-const OverNote = styled.div`
-  flex: none;
-  font-size: ${tokens.font.micro};
-  color: ${tokens.color.fgMuted};
-`;
-
-/** How many cards a column holds before it must displace: a reading of the window's height. */
-function capacityPerColumn(): number {
-  if (typeof window === "undefined") return 4;
-  const rootPx =
-    parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  const remHeight = window.innerHeight / rootPx;
-  // A unit card's minimum: header + its kept fields ≈ 10rem.
-  return Math.max(2, Math.floor((remHeight - 6) / 10));
-}
 
 function titleOf(card: CardState): string {
   return (
@@ -161,66 +130,37 @@ export function CardArea({
   const kinds = activeCardKinds();
   const preview = onCommandPreview ?? (() => undefined);
 
-  const arrangement = React.useMemo(() => {
-    const cards = visibleCards(byId, { resultDisplay, kinds }).filter(
+  const order = useStore((s) => s.cardOrder);
+  const reorderCard = useStore((s) => s.reorderCard);
+  const [over, setOver] = React.useState<string | null>(null);
+
+  const cards = React.useMemo(() => {
+    const shown = visibleCards(byId, { resultDisplay, kinds }).filter(
       (c) =>
         !c.minimized &&
         c.size !== "medium" &&
         c.size !== "full" &&
         !(exclude?.has(c.instanceId) ?? false),
     );
-    return arrangeCards(cards, units, capacityPerColumn());
-  }, [byId, resultDisplay, kinds, units, exclude]);
+    const rank = new Map(order.map((id, i) => [id, i]));
+    return shown.sort((a, b) => {
+      const ra = rank.get(a.instanceId);
+      const rb = rank.get(b.instanceId);
+      if (ra !== undefined && rb !== undefined) return ra - rb;
+      if (ra !== undefined) return -1;
+      if (rb !== undefined) return 1;
+      return a.openedAt - b.openedAt;
+    });
+  }, [byId, resultDisplay, kinds, exclude, order]);
 
-  const chipFor = (chip: TrailChip): React.ReactElement => {
-    // A husk re-runs its command; a displaced card is brought back by
-    // re-running it too (a touch moves it to the bottom).
-    const cmd = chip.card.key;
-    return (
-      <Chip
-        key={chip.card.instanceId}
-        type="button"
-        data-testid="trail-chip"
-        title={`${titleOf(chip.card)} — ${chip.reason}`}
-        onClick={() => onSendCommand(cmd)}
-        onMouseEnter={() => preview(cmd)}
-        onMouseLeave={() => preview(null)}
-      >
-        {titleOf(chip.card)} <Muted>· {chip.reason}</Muted>
-      </Chip>
-    );
-  };
-
-  const onDrop = (col: number, e: React.DragEvent<HTMLDivElement>): void => {
-    const ref = e.dataTransfer.getData("application/x-saxonberg-card");
-    if (!ref) return;
-    e.preventDefault();
-    // ⭐ Insertion: the row is the count of slots above the drop point.
-    const slots = Array.from(
-      (e.currentTarget as HTMLElement).querySelectorAll("[data-card-slot]"),
-    );
-    const row = slots.filter((el) => {
-      const r = (el as HTMLElement).getBoundingClientRect();
-      return r.top + r.height / 2 < e.clientY;
-    }).length;
-    onSendCommand(`cockpit card move ${ref} ${col} ${row}`);
-  };
+  const dragged = (e: React.DragEvent): string =>
+    e.dataTransfer.getData("application/x-saxonberg-card-id");
 
   return (
-    <Area
-      $overflow={arrangement.overflow}
-      data-testid="card-area"
-      data-card-units={units}
-    >
-      {arrangement.trail.length > 0 ? (
-        <Trail data-testid="recent-trail">
-          <TrailLabel>Recent</TrailLabel>
-          {arrangement.trail.map(chipFor)}
-        </Trail>
-      ) : null}
+    <Area $overflow data-testid="card-area" data-card-units={units}>
       {units <= 0 ? (
         <Trail data-testid="glance-strip" style={{ maxHeight: "none" }}>
-          {arrangement.glance.map((card) => {
+          {cards.map((card) => {
             // Below one unit a card opens at measure, beside the terminal.
             const cmd = `cockpit card grow ${quoteRef(card.key)}`;
             return (
@@ -238,44 +178,48 @@ export function CardArea({
           })}
         </Trail>
       ) : (
-        <Columns>
-          {arrangement.columns.map((column, col) => (
-            <Column
-              key={col}
-              data-testid="card-column"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => onDrop(col, e)}
+        <Grid
+          data-testid="card-grid"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            // Dropped on the grid's empty space: it goes last.
+            const id = dragged(e);
+            if (!id) return;
+            e.preventDefault();
+            reorderCard(id, null);
+            setOver(null);
+          }}
+        >
+          {cards.map((card) => (
+            <Slot
+              key={card.instanceId}
+              data-card-slot={card.instanceId}
+              $over={over === card.instanceId}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (over !== card.instanceId) setOver(card.instanceId);
+              }}
+              onDragLeave={() => setOver((o) => (o === card.instanceId ? null : o))}
+              onDrop={(e) => {
+                const id = dragged(e);
+                if (!id) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (id !== card.instanceId) reorderCard(id, card.instanceId);
+                setOver(null);
+              }}
             >
-              {column.map((card) => (
-                <Slot key={card.instanceId} data-card-slot="">
-                  <Card
-                    card={card}
-                    cut={column.length > 1}
-                    onSendCommand={onSendCommand}
-                    onCommandPreview={onCommandPreview}
-                  >
-                    {renderBody ? (
-                      renderBody(card, column.length > 1)
-                    ) : (
-                      <CardBody
-                        card={card}
-                        cut={column.length > 1}
-                        onSendCommand={onSendCommand}
-                        onCommandPreview={onCommandPreview}
-                      />
-                    )}
-                  </Card>
-                </Slot>
-              ))}
-            </Column>
+              <Card card={card} onSendCommand={onSendCommand} onCommandPreview={onCommandPreview}>
+                {renderBody ? (
+                  renderBody(card, false)
+                ) : (
+                  <CardBody card={card} onSendCommand={onSendCommand} onCommandPreview={onCommandPreview} />
+                )}
+              </Card>
+            </Slot>
           ))}
-        </Columns>
+        </Grid>
       )}
-      {arrangement.overflow ? (
-        <OverNote data-testid="card-area-over">
-          More cards are kept than fit — the area scrolls.
-        </OverNote>
-      ) : null}
     </Area>
   );
 }

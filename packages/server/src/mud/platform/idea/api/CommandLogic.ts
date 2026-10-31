@@ -2060,6 +2060,27 @@ const OBJECT_FIELD_TYPES = new Set(['object', 'objects']);
  * binds to what the verb is ABOUT, and that is a positional. An option
  * is a modifier the player types on purpose.
  */
+/**
+ * ⭐ The command an affordance stands for, as the viewer would type it
+ * (#91): the verb, then the target by its primary keyword — the word
+ * `look`'s links already click with — or `#id` when it has none.
+ *
+ * Only when the bound field is the verb's FIRST positional: a target in
+ * a later slot (`give <amount> <whom>`) has no correct one-word form, so
+ * the entry carries none rather than one the binder would misread.
+ */
+function affordanceCommand(
+  cmd: CommandDefinition,
+  verb: string,
+  bound: string | undefined,
+  target: Stuff,
+): string | undefined {
+  if (!bound) return verb;
+  if (cmd.args[0]?.name !== bound) return undefined;
+  const keyword = MixinApi.isPerceptible(target) ? target.getPrimaryKeyword() : undefined;
+  return keyword ? `${verb} ${keyword}` : `${verb} #${target.stuffId}`;
+}
+
 function objectFields(cmd: CommandDefinition): string[] {
   const names: string[] = [];
   for (const arg of cmd.args) {
@@ -2193,6 +2214,8 @@ async function evaluateAffordance(
   // typed this binding.
   const binding: MqlOneResult = { stuff: target, raw: AFFORDANCE_PROBE_ID };
   const model: CommandModel = bound ? { [bound]: binding } : {};
+  const command = affordanceCommand(cmd, verb, bound, target);
+  const typed = command ? { command } : {};
 
   // ⚠⚠ The dispatcher runs an ASYNC preload phase between MQL
   // resolution and the sync validator bodies, and it is not optional:
@@ -2221,6 +2244,7 @@ async function evaluateAffordance(
     if (note?.field && note.field !== bound && fields.includes(note.field)) {
       return {
         verb,
+        ...typed,
         description: cmd.description,
         state: 'pending-operand',
         operand: note.field,
@@ -2230,6 +2254,7 @@ async function evaluateAffordance(
 
     return {
       verb,
+      ...typed,
       description: cmd.description,
       state: 'disabled',
       reason: note?.detail ?? 'You cannot do that here.',
@@ -2256,6 +2281,7 @@ async function evaluateAffordance(
   if (operand) {
     return {
       verb,
+      ...typed,
       description: cmd.description,
       state: 'pending-operand',
       operand,
@@ -2265,6 +2291,7 @@ async function evaluateAffordance(
 
   return {
     verb,
+    ...typed,
     description: cmd.description,
     state: 'enabled',
     category: cmd.category,

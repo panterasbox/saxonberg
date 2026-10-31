@@ -49,6 +49,10 @@ export const tokens = {
     surfaceAlt: SX.raised,
     surfaceMuted: SX.ground,
     surfaceSunken: SX.sunken,
+    /** The terminal's ground: a neutral near-black in every theme. */
+    terminal: SX["terminal-ground"],
+    /** Text on the terminal's ground — light in every theme. */
+    terminalFg: SX["terminal-fg"],
     fg: SX.fg,
     // ⭐ The three-level text hierarchy the chrome build needed:
     // `fg` (what you are reading) → `fgDim` (present, secondary — a
@@ -114,6 +118,17 @@ export const tokens = {
   // `paletteFor(token)` falls back to `neutral` for an unknown token.
   // 1:1 with the ground's `tint-*` tier, which is what keeps the
   // server's token vocabulary and the ground's in step.
+  /**
+   * ⭐ What class of thing a card is about (the client-surface design's
+   * kind colours): location teal, agent blue, thing brass, idea violet —
+   * the ground's own roles, so every theme carries them.
+   */
+  kind: {
+    location: SX.good,
+    agent: SX.info,
+    thing: SX.accent,
+    idea: SX["tint-violet"],
+  },
   palette: {
     amber: SX["tint-amber"],
     teal: SX["tint-teal"],

@@ -313,6 +313,7 @@ subcommands:
         cockpit style mention self <on|off>
         cockpit style plain <on|off>
         cockpit style plain channel <key> <on|off>
+        cockpit style links <words|ids>          what a click names its target by
         cockpit style reset                      wipe the overlay
 
       Bare `cockpit style` is the same as `cockpit style show`. Use

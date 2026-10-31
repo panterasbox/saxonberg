@@ -35,8 +35,8 @@ const TerminalContainer = styled.div<{ $strip?: boolean }>`
   ${(p) => (p.$strip ? `height: ${tokens.width.strip - 2.5}rem;` : "")}
   overflow-y: auto;
   padding: ${(p) => (p.$strip ? "0.4rem 1rem" : "1rem")};
-  background: ${tokens.color.surfaceSunken};
-  color: ${tokens.color.fg};
+  background: ${tokens.color.terminal};
+  color: ${tokens.color.terminalFg};
   font-size: 14px;
   /* The cross-register rhythm anchor — keep line-height HERE on the
      common ancestor, never per-register on Body, so a serif frame and

@@ -11,6 +11,7 @@
  *   - `mention self on|off`         — own-name highlight toggle
  *   - `plain on|off`                — global plain-mode toggle
  *   - `plain channel <key> on|off`  — per-channel plain
+ *   - `links words|ids`             — what a clickable names its target by
  *   - `reset`                       — clear overlay to {}
  *
  * ⚠ These are NOT command subcommands — `cockpit style` is already the
@@ -76,7 +77,7 @@ interface StyleModel extends CommandModel {
   c?: string;
 }
 
-const STYLE_SUBS = ['show', 'theme', 'channel', 'mention', 'plain', 'reset'];
+const STYLE_SUBS = ['show', 'theme', 'channel', 'mention', 'plain', 'links', 'reset'];
 
 export default class StyleController extends CommandController<StyleModel> {
   execute(model: StyleModel, context: CommandContext): void {
@@ -100,6 +101,8 @@ export default class StyleController extends CommandController<StyleModel> {
         return this.executeMention(host, model.a, model.b, context);
       case 'plain':
         return this.executePlain(host, model.a, model.b, model.c, context);
+      case 'links':
+        return this.executeLinks(host, model.a, context);
       case 'reset':
         return this.executeReset(host, context);
       default:
@@ -198,6 +201,34 @@ export default class StyleController extends CommandController<StyleModel> {
       context,
       `unknown channel action '${action}' (known: color, clear)`,
       'unknown-action',
+    );
+  }
+
+  /**
+   * ⭐ What a clickable names its target by (#91). `words` (the default)
+   * sends the primary keyword — `look stool`, and an ambiguous word asks
+   * which, as typing it would. `ids` sends `#<id>` for a player who
+   * would rather never be asked.
+   */
+  private executeLinks(
+    host: StyleHost,
+    choice: string | undefined,
+    context: CommandContext,
+  ): void {
+    if (choice !== 'words' && choice !== 'ids') {
+      return this.fail(context, 'usage: cockpit style links <words|ids>', 'missing-arg');
+    }
+    const next = this.cloneOverlay(host);
+    if (choice === 'ids') next.links = 'ids';
+    else delete next.links;
+    this.commit(host, next);
+    this.send(
+      context,
+      Mml.fromMarkup(
+        choice === 'ids'
+          ? '\nclickables name their target by id\n'
+          : '\nclickables name their target by its word\n',
+      ),
     );
   }
 

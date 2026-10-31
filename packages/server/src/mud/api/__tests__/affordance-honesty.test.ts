@@ -24,6 +24,8 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeAll } from 'vitest';
+import { MixinApi } from '../mixin';
+import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { CommandApi } from '../command';
 import { Idea } from '../../lib/stuff/Idea';
 import { CommandGiverMixin, type CommandGiver } from '../../lib/command/CommandGiver';
@@ -105,6 +107,9 @@ class Widget extends VisibleMixin(
 ) {}
 
 class Room extends ContainerMixin(Idea) {}
+
+/** A widget a player can name — Perceptible carries the keywords. */
+class Rock extends PerceptibleMixin(Widget) {}
 
 function viewerOf(v: Viewer): Stuff & CommandGiver {
   return v as unknown as Stuff & CommandGiver;
@@ -220,6 +225,28 @@ describe('the verb menu stops lying', () => {
    * group, declared universal because those controllers refuse nothing
    * by kind. An invented constraint would show up here.
    */
+  it('⭐ each entry carries the exact command it was validated with — the verb and the primary keyword, never an appended guess (#91)', async () => {
+    const room = makeStuff(() => new Room());
+    const viewer = makeAnimateViewer();
+    ContainmentApi.move(viewer, room);
+    const rock = makeStuff(() => new Rock());
+    rock.setName('a plain rock');
+    expect(MixinApi.isPerceptible(rock)).toBe(true);
+    if (MixinApi.isPerceptible(rock)) rock.setKeywords(['rock', 'plain']);
+    ContainmentApi.move(rock, room);
+    const onWidget = (await CommandApi.resolveAffordances(rock, viewerOf(viewer)))!.verbs;
+    const look = entry(onWidget, 'look');
+    // Perceptible's primary keyword (keywords[0] here), or `#id` when a
+    // thing has no keyword at all.
+    const word = MixinApi.isPerceptible(rock) ? rock.getPrimaryKeyword() : undefined;
+    expect(look?.command).toBe(word ? `look ${word}` : `look #${rock.stuffId}`);
+    // A verb whose target is not its first argument carries NO command:
+    // the client must not compose one.
+    for (const v of onWidget) {
+      if (v.command) expect(v.command.startsWith(`${v.verb}`)).toBe(true);
+    }
+  });
+
   it('keeps look available on a room', async () => {
     const { onRoom } = await world();
     const look = entry(onRoom, 'look');

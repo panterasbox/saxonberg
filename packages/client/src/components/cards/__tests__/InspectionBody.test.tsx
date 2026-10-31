@@ -78,23 +78,45 @@ describe("InspectionBody", () => {
     expect(screen.getByTestId("illustration-plate")).toBeTruthy();
   });
 
-  it("⭐ the quiet row counts the interfaces that said nothing; actions go by id", () => {
+  it("⭐ the quiet row counts every interface that said nothing — last on the card; actions send the server's command", () => {
     useStore.setState({
       affordances: {
         "pint-1": {
           composition: ["VisibleMixin", "BulkableMixin", "TangibleMixin", "PerceptibleMixin", "ThermalMixin"],
           verbs: [
-            { verb: "drink", source: "subject", state: "enabled" },
-            { verb: "look", source: "actor", state: "enabled" },
+            { verb: "drink", source: "subject", state: "enabled", command: "drink pint" },
+            { verb: "look", source: "actor", state: "enabled", command: "look pint" },
           ],
         } as never,
       },
     });
     const sent: string[] = [];
     render(<InspectionBody card={PINT} onSendCommand={(t) => sent.push(t)} />);
-    // Visible and Bulkable spoke; Perceptible is the header's — Tangible and Thermal are quiet.
-    expect(screen.getByTestId("quiet-toggle").textContent).toMatch(/^2 quiet interfaces/);
+    // Visible and Bulkable spoke; Tangible, Perceptible and Thermal said
+    // nothing — Perceptible is no exception any more.
+    expect(screen.getByTestId("quiet-toggle").textContent).toMatch(/^3 quiet interfaces/);
+    expect(screen.getByText("Actions")).toBeTruthy();
+    fireEvent.click(screen.getByLabelText("drink pint"));
+    expect(sent).toEqual(["drink pint"]);
+    // The quiet row is the last thing on the card.
+    const body = screen.getByTestId("inspection-body");
+    expect(body.lastElementChild?.getAttribute("data-testid")).toBe("quiet-row");
+  });
+
+  it("with `cockpit style links ids`, a click names its target by id", () => {
+    useStore.setState({
+      clientState: { "style.overlay": { links: "ids" } },
+      affordances: {
+        "pint-1": {
+          composition: [],
+          verbs: [{ verb: "drink", source: "subject", state: "enabled", command: "drink pint" }],
+        } as never,
+      },
+    });
+    const sent: string[] = [];
+    render(<InspectionBody card={PINT} onSendCommand={(t) => sent.push(t)} />);
     fireEvent.click(screen.getByLabelText("drink #pint-1"));
     expect(sent).toEqual(["drink #pint-1"]);
+    useStore.setState({ clientState: {} });
   });
 });

@@ -34,25 +34,9 @@ import { websocketClient } from "../../services/websocket";
 import { mediaUrl, SERVER_URL } from "../../config";
 import { MmlRenderer } from "../MmlRenderer";
 import { colorForTopic } from "../GutterStripe";
+import { actionCommand, lookCommand, useLinkMode } from "./clickTarget";
 
 /* ─── layout ─── */
-
-const Head = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${tokens.space.xs};
-  margin-bottom: ${tokens.space.xs};
-  font-size: ${tokens.font.micro};
-  color: ${tokens.color.fgMuted};
-`;
-
-const Branch = styled.span`
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.label};
-  border: 1px solid ${tokens.color.borderMuted};
-  border-radius: ${tokens.radius.sm};
-  padding: 0 0.3rem;
-`;
 
 const Row = styled.div`
   display: flex;
@@ -216,13 +200,6 @@ function useSummary(source: SegmentSource | null): string | null {
 
 /* ─── pieces ─── */
 
-const BRANCH_LETTER: Record<StuffKind, string> = {
-  location: "L",
-  agent: "A",
-  thing: "T",
-  idea: "I",
-};
-
 function defaultShape(kind: StuffKind): IllustrationShape {
   return kind === "location" ? "wide" : kind === "agent" ? "tall" : "square";
 }
@@ -270,9 +247,13 @@ function ItemChips({
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement {
   const [openGroup, setOpenGroup] = React.useState<string | null>(null);
-  const chip = (item: SegmentItem): React.ReactElement => {
-    // ⭐ By id: the chip names exactly this thing, not the first match.
-    const cmd = `look #${item.stuffId}`;
+  const mode = useLinkMode();
+  // ⭐ A chip sends what a player would type (#91): `look <word>`, and an
+  // ambiguous word asks which. ⚠ The members of an expanded group are
+  // the one exception — they share a word, and expanding the group is
+  // how you pick ONE — so a member names itself by id.
+  const chip = (item: SegmentItem, member = false): React.ReactElement => {
+    const cmd = lookCommand(item.stuffId, member ? undefined : item.keyword, mode);
     return (
       <ItemChip
         key={item.stuffId}
@@ -301,7 +282,7 @@ function ItemChips({
             >
               {item.label} {openGroup === item.stuffId ? "▾" : "▸"}
             </Toggle>
-            {openGroup === item.stuffId ? item.members.map(chip) : null}
+            {openGroup === item.stuffId ? item.members.map((m) => chip(m, true)) : null}
           </React.Fragment>
         ) : (
           chip(item)
@@ -314,13 +295,16 @@ function ItemChips({
 function SourcePopover({
   source,
   stuffId,
+  keyword,
   onSendCommand,
 }: {
   source: SegmentSource;
   stuffId?: string;
+  keyword?: string;
   onSendCommand: (text: string) => void;
 }): React.ReactElement {
   const summary = useSummary(source);
+  const mode = useLinkMode();
   const help = source.kind === "mixin" ? `help mixin.${source.name}` : null;
   return (
     <Popover data-testid="source-popover">
@@ -333,7 +317,7 @@ function SourcePopover({
           </ItemChip>
         ) : null}
         {stuffId ? (
-          <ItemChip type="button" onClick={() => onSendCommand(`look #${stuffId}`)}>
+          <ItemChip type="button" onClick={() => onSendCommand(lookCommand(stuffId, keyword, mode))}>
             look again
           </ItemChip>
         ) : null}
@@ -353,9 +337,6 @@ export interface InspectionBodyProps {
   /** Intercept prose clicks (the detail drill). */
   onProseClick?: (text: string) => void;
 }
-
-/** Interfaces the header already shows — never "quiet". */
-const HEADER_MIXINS = new Set(["Perceptible", "Containable", "Addressable"]);
 
 export function InspectionBody({
   card,
@@ -381,8 +362,11 @@ export function InspectionBody({
     segments.flatMap((s) => s.sources).filter((s) => s.kind === "mixin").map((s) => s.name),
   );
   const composition = (answer?.composition ?? []).map((m) => m.replace(/Mixin$/, ""));
-  const quiet = composition.filter((m) => !spoke.has(m) && !HEADER_MIXINS.has(m));
-  const headerMixins = composition.filter((m) => HEADER_MIXINS.has(m));
+  // ⭐ Quiet = composed, and said nothing on this card. Perceptible and
+  // Containable are no exception: a stripe with no line beside it said
+  // nothing either.
+  const quiet = composition.filter((m) => !spoke.has(m));
+  const mode = useLinkMode();
 
   const shape: IllustrationShape = record?.illustrationShape ?? defaultShape(kind);
   const size = card.size ?? "unit";
@@ -398,20 +382,6 @@ export function InspectionBody({
 
   return (
     <div data-testid="inspection-body">
-      <Head data-testid="inspection-head">
-        <Branch title={kind}>{BRANCH_LETTER[kind]}</Branch>
-        {headerMixins.map((m) => (
-          <Stripe
-            key={m}
-            type="button"
-            aria-label={`said by ${m}`}
-            title={m}
-            $color={colorForTopic(m)}
-            $solid
-            style={{ height: "0.9rem" }}
-          />
-        ))}
-      </Head>
       {illustration && cut && !imageOpen ? (
         <Toggle type="button" data-testid="image-collapsed" onClick={() => setImageOpen(true)}>
           picture ▸
@@ -456,10 +426,41 @@ export function InspectionBody({
             </Content>
           </Row>
           {openSource && seg.sources.includes(openSource) ? (
-            <SourcePopover source={openSource} stuffId={stuffId} onSendCommand={onSendCommand} />
+            <SourcePopover
+              source={openSource}
+              stuffId={stuffId}
+              keyword={record?.primaryKeyword}
+              onSendCommand={onSendCommand}
+            />
           ) : null}
         </React.Fragment>
       ))}
+      {afforded.length > 0 && stuffId ? (
+        <>
+          <ActionLabel>Actions</ActionLabel>
+          <ChipRow data-testid="card-action-row">
+            {afforded.map((v) => {
+              // ⭐ The server's own command (#91) — see `clickTarget.ts`.
+              const send = actionCommand(v, stuffId, mode);
+              return (
+                <ItemChip
+                  key={v.verb}
+                  type="button"
+                  aria-label={send}
+                  title={`Click to send: ${send}`}
+                  onClick={() => onSendCommand(send)}
+                  onMouseEnter={() => onCommandPreview?.(send)}
+                  onMouseLeave={() => onCommandPreview?.(null)}
+                >
+                  {v.verb}
+                </ItemChip>
+              );
+            })}
+          </ChipRow>
+        </>
+      ) : null}
+      {/* What composed this thing and said nothing on it — last, since it
+          is the least of what the card has to say. */}
       {quiet.length > 0 ? (
         <Quiet data-testid="quiet-row">
           <Toggle
@@ -480,29 +481,6 @@ export function InspectionBody({
             </div>
           ) : null}
         </Quiet>
-      ) : null}
-      {afforded.length > 0 && stuffId ? (
-        <>
-          <ActionLabel>What it affords</ActionLabel>
-          <ChipRow data-testid="card-action-row">
-            {afforded.map((v) => {
-              const send = `${v.verb} #${stuffId}`;
-              return (
-                <ItemChip
-                  key={v.verb}
-                  type="button"
-                  aria-label={send}
-                  title={`Click to send: ${send}`}
-                  onClick={() => onSendCommand(send)}
-                  onMouseEnter={() => onCommandPreview?.(send)}
-                  onMouseLeave={() => onCommandPreview?.(null)}
-                >
-                  {v.verb}
-                </ItemChip>
-              );
-            })}
-          </ChipRow>
-        </>
       ) : null}
     </div>
   );

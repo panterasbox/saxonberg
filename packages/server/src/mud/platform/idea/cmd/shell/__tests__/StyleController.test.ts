@@ -229,6 +229,24 @@ describe('StyleController', () => {
     });
   });
 
+  describe('links (#91)', () => {
+    it('`links ids` makes clickables name their target by id; `links words` restores the default', async () => {
+      const controller = makeStuff(() => new StyleController());
+      await controller.execute(makeModel({ styleSub: 'links', a: 'ids' }), makeContext(actor, location) as never);
+      expect(getOverlay(actor).links).toBe('ids');
+      await controller.execute(makeModel({ styleSub: 'links', a: 'words' }), makeContext(actor, location) as never);
+      expect(getOverlay(actor).links).toBeUndefined();
+    });
+
+    it('refuses anything but words or ids', async () => {
+      const controller = makeStuff(() => new StyleController());
+      const ctx = makeContext(actor, location);
+      await controller.execute(makeModel({ styleSub: 'links', a: 'stuffids' }), ctx as never);
+      expect(getOverlay(actor).links).toBeUndefined();
+      expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(true);
+    });
+  });
+
   describe('plain', () => {
     it('plain on sets the global flag', async () => {
       const controller = makeStuff(() => new StyleController());
