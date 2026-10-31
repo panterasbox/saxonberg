@@ -11,16 +11,26 @@
  * inside a drive (a dry week, a neglected side of a field), the FOUNDER
  * stages it by `eval` on the patch — never on what is being measured.
  *
- * The order is the calendar's, not the requirement's numbering: the home
- * field is sown in spring (step 6), the bench is read a fortnight later
- * (steps 1–5, the bench is pre-sown), the home field is cared for and
- * watched (7, 8, 9, 11), and cut at summer's end (10). Each `it` carries
- * its requirement number.
+ * ⭐⭐ **The BLOCKING drive** (docs/workflow.md § No merge waits on the
+ * clock): instant, short and staged steps only — no jump over a game day.
+ * The season it used to walk is `field-population.soak.dirty.wire.test.ts`,
+ * run by the soak lane after merge; each span step has its staged twin
+ * here, tagged in its `it`:
+ *   - step 7's dry week → `staged`: the gate end dried, the labeled plant
+ *     watered, all three read the same day (the soil line moves at once;
+ *     the looks take weeks, and that is the soak file's);
+ *   - step 10's season to harvest → `staged`: two stands set ripe with
+ *     different worst stretches, then cut with the sickle by a player.
+ * Every assertion is made through player verbs; `eval` only sets state.
+ *
+ * The order: the home field is ploughed and sown on boot day (step 6 — no
+ * crop verb waits on the season), the bench is read (1–5, pre-sown), the
+ * home field is cared for (7, 8, 9, 11) and cut (10). Each `it` carries its
+ * requirement number.
  *
  * ⚠ The calendar: the world boots at midnight on 1 Arienle, midwinter.
- * Jumps are ten days at most a step (a long jump drains every schedule
- * and outlives the client's header timeout), and every read is taken in
- * daylight: a dark field binds the wrong thing and reads as nothing.
+ * Every read is taken in daylight: a dark field binds the wrong thing and
+ * reads as nothing.
  *
  * ⚠⚠ **A read that binds one thing is taken from a FRESH session.** `look`
  * walks `$focus` before `reachable`, and a partial match in the focus beats
@@ -97,11 +107,6 @@ const DORM = '/world/terminus/eternal/duncan-hall/location/dormroom';
  * `/world/terminus/eternal`: the founder holds no authority there.
  */
 const CAMPUS = '/world/terminus/eternal/campus-field';
-
-/** Day-of-year the home field is sown (the cover drive's spring). */
-const SOW_DAY = 80;
-/** Day-of-year the bench is read — a fortnight on, crop in ear. */
-const BENCH_DAY = 95;
 
 /** How a crop LOOKS, as a rank — the banded field read and the pot read. */
 const CONDITIONS: Array<[RegExp, number]> = [
@@ -208,8 +213,9 @@ async function freshRead(who: string, where: string, text: string, wizard = fals
   }
 }
 
-/** Jump the clock, ten game-days at most a step, and prove it moved. */
+/** Jump the clock — a game day at most (a blocking drive) — and prove it moved. */
 async function advance(seconds: number): Promise<void> {
+  expect(seconds, 'a jump over a game day is a SPAN step: the soak file').toBeLessThanOrEqual(DAY);
   // ⚠ Six hours or more away is spent INDOORS, then back to where the
   // hand stood (the cover drive: a body left standing in an open field
   // through a cold night dropped, and through an autumn night died).
@@ -218,7 +224,7 @@ async function advance(seconds: number): Promise<void> {
   if (park) await goTo(STORE);
   let left = seconds;
   while (left > 0) {
-    const step = Math.min(left, 10 * DAY);
+    const step = Math.min(left, DAY);
     // ⭐ And it DRINKS. A logged-in body's clock runs through a jump.
     if (park && step >= DAY) await drink();
     const { before, after } = await advanceWorldClock(`${Math.max(1, Math.round(step / 60))} minutes`);
@@ -227,13 +233,6 @@ async function advance(seconds: number): Promise<void> {
   }
   await new Promise((r) => setTimeout(r, 800));
   if (park && back) await goTo(back);
-}
-
-/** Advance to game-day `day` (from the epoch), at `hour` o'clock. */
-async function toDay(day: number, hour = 10): Promise<void> {
-  const now = await worldClockNow();
-  const target = day * DAY + hour * 3_600;
-  if (target > now) await advance(target - now);
 }
 
 /** Make sure it is daylight: on to 10 o'clock when it is not. */
@@ -401,7 +400,7 @@ function expectOkish(r: CommandResult): void {
 
 suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => {
   it('6a. hired on, the home field is ploughed and sown patch by patch', async () => {
-    await toDay(SOW_DAY);
+    await daylight();
     await goTo(STORE);
     await doing(p, 'buy sickle');
     // The store keeps four sacks (par 4) — about two-thirds of a hectare.
@@ -477,7 +476,6 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
   const novice = uniqueHandle('fieldnov');
 
   it('1. the bench reads a line per patch, and the top end reads poorest', async () => {
-    await toDay(BENCH_DAY);
     await daylight();
     await goTo(BENCH);
     const looked = await read(p, 'look');
@@ -579,25 +577,18 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
 /* ═══════════════════ Stage C — the home field cared for ═══════════════════ */
 
 suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () => {
-  it('7. through a dry week the watered labeled plant reads better than its patch and a fresh sample', async () => {
+  it('7. [staged] a dry patch: the watered labeled plant reads better than its patch and a fresh sample', async () => {
+    // ⭐ The staged twin of the dry week (the week is the soak file's): the
+    // founder dries the gate end, the hand fills the can at the yard trough
+    // and waters the labeled plant, and the three are read the same day.
     await daylight();
-    // Six staged days. The founder dries the gate end every six hours
-    // (rain would otherwise make it no dry week at all); the hand fills
-    // the can at the yard trough and waters the labeled plant once a day.
-    for (let d = 0; d < 6; d++) {
-      await dryTo({ 'gate-end': 0.1 });
-      await goTo(YARD);
-      await doing(p, 'fill can from trough');
-      await goTo(HOME_FIELD);
-      const { r, said } = await act(p, 'water trial');
-      if (refusedFor(r) !== 'already-wet') expect(refusedFor(r), said).toBeNull();
-      await drink();
-      for (let q = 0; q < 4; q++) {
-        await advance(6 * 3_600);
-        await dryTo({ 'gate-end': 0.1 });
-      }
-    }
-    await daylight();
+    await dryTo({ 'gate-end': 0.1 });
+    await goTo(YARD);
+    await doing(p, 'fill can from trough');
+    await goTo(HOME_FIELD);
+    const { r, said } = await act(p, 'water trial');
+    if (refusedFor(r) !== 'already-wet') expect(refusedFor(r), said).toBeNull();
+    // The can went on the plant's own roots; the patch is still dry.
     await dryTo({ 'gate-end': 0.1 });
     const trial = await freshRead(expert, HOME_FIELD, 'look trial', true);
     const patch = await freshRead(expert, HOME_FIELD, 'look at the gate end', true);
@@ -617,7 +608,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     note(`dry week: trial ${healthOf(trial)} · gate end ${healthOf(patch)} · sample ${healthOf(sample)}`);
     expect(healthOf(trial), 'the watered plant reads better than its patch').toBeGreaterThan(healthOf(patch));
     expect(healthOf(trial), 'and better than a fresh stem from it').toBeGreaterThan(healthOf(sample));
-  }, 3_600_000);
+  }, 1_200_000);
 
   it('8. a pail at the middle says how much, and the patch barely moves', async () => {
     await goTo(BYRE);
@@ -667,12 +658,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     }
   }, 1_200_000);
 
-  it('11. the campus hand waters the patch her own read points to — and a bystander sees which', async () => {
+  it('11. [short] the campus hand waters the patch her own read points to — and a bystander sees which', async () => {
     // Her hours are 06–18; she beats only once she is loaded (on the
     // roster's next pass after a jump). Below her `waterAt` (0.5) on all
     // three, but above the wheat's happy line (0.35): she has something
     // to decide, and nothing is stressed by the staging.
-    await toDay(Math.floor((await worldClockNow()) / DAY) + 1, 9);
+    // The next 09:00 — within a day, whatever the hour now.
+    const into = (((await worldClockNow()) % DAY) + DAY) % DAY;
+    await advance(((9 * 3_600 - into + DAY) % DAY) || DAY);
     await goTo(HOME_FIELD);
     // ⚠ Everything anybody standing in the field heard counts — the
     // founder staging the drain saw her water the gate end the moment the
@@ -694,51 +687,31 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     await read(p, 'look');
   }, 1_800_000);
 
-  it('10. at harvest the kept patch grades better than the neglected one', async () => {
-    // ⭐ Staging: the comparison window opens here — every stand's season
-    // record is set even (reconciled first, so the window that just ended
-    // is not charged to the new one; then `_worstLimiting` back to 1, the
-    // dry week behind the gate end forgiven) — and then the far side is
-    // NEGLECTED through one dry spell: dried by the founder, a day left
-    // dry, and read while it is. Once, not every step: a stand kept dry
-    // develops slowly enough that it would not ripen before the frost
-    // (staged W6 — at day 228 the gate end was ripe and the far side
-    // still in ear). The gate end is left to the weather.
+  it('10. [staged] at harvest the kept patch grades better than the neglected one', async () => {
+    // ⭐ The staged twin of the season (the season is the soak file's): the
+    // two stands are set RIPE with the season record each would have
+    // carried — the gate end kept (its worst stretch 0.9), the far side
+    // neglected (0.3) — and a player cuts both with the sickle. A ripe field
+    // crop stops integrating (B36), so the record holds until the cut.
+    // ⚠ No `;` in eval text: the command line splits on it; the comma
+    // operator does the same work.
     const WORST =
       'return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => c.getGroundPart() + "=" + c.getWorstLimiting()).join(",")';
     await founderEval(
       HOME_FIELD,
       CAMPUS,
-      // ⚠ No `;` in eval text: the command line splits on it (drive 2 found
-      // the reset never ran). The comma operator does the same work.
-      'return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => (c.getVigor(), c._worstLimiting = 1, c.getGroundPart())).join(",")',
+      'return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => (c.getVigor(), c.growthStage = "mature", c._worstLimiting = ({ "gate-end": 0.9, middle: 0.6, "far-side": 0.3 })[c.getGroundPart()], c.getGroundPart())).join(",")',
     );
-    await daylight();
-    // ⚠ Stressed, not killed: the campus barely rains (the realm finding),
-    // so a patch dried to the wilting point never comes back and dies
-    // before it ripens (drive 2). Neglect grades worse; it need not kill.
-    await dryTo({ 'far-side': 0.25 });
-    for (let q = 0; q < 4; q++) {
-      await advance(6 * 3_600);
-      await dryTo({ 'far-side': 0.25 });
-    }
-    await daylight();
-    await dryTo({ 'far-side': 0.25 });
-    await freshRead(expert, HOME_FIELD, 'look at the far side', true);
-    note(`after the dry spell: ${await founderEval(HOME_FIELD, CAMPUS, WORST)}`);
+    note(`staged ripe: ${await founderEval(HOME_FIELD, CAMPUS, WORST)}`);
     const GRADES_EVAL =
       'return self.getContainer().getContents().filter(c => /crop\\/wheat$/.test(c.getTemplatePath() ?? "")).map(c => c.stuffId + ":" + c.getGradeBand()).join(",")';
     const grades = (said: string): Map<string, string> =>
       new Map([...said.matchAll(/([A-Za-z0-9_-]{8,}):([a-z]+)/g)].map((m) => [m[1]!, m[2]!]));
 
     const cut = async (part: string): Promise<string> => {
-      // Ripe first, then cut until a sack is in hand.
-      for (let i = 0; i < 25; i++) {
-        await daylight();
-        await goTo(HOME_FIELD);
-        if (new RegExp(`At ${part} it is ripe`, 'i').test(await read(p, 'look'))) break;
-        await advance(10 * DAY);
-      }
+      await daylight();
+      await goTo(HOME_FIELD);
+      expect(await read(p, 'look'), `${part} reads ripe`).toMatch(new RegExp(`At ${part} it is ripe`, 'i'));
       await onShift();
       for (let i = 0; i < 40 && (await p.query('me:i:wheat')).length === 0; i++) {
         await daylight();
@@ -760,7 +733,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     const neglected = await cut('the far side');
     note(`grades: the gate end ${kept} · the far side ${neglected}`);
     expect(GRADES.indexOf(kept), 'the kept patch grades better').toBeGreaterThan(GRADES.indexOf(neglected));
-  }, 7_200_000);
+  }, 1_800_000);
 });
 
 /* ═══════════════════ Stage D — what did not change ═══════════════════ */

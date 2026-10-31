@@ -7,11 +7,18 @@
  * `move college herd to …` — and asserted on the envelope's reasons and
  * the world's own words, never on "defined".
  *
- * ⚠ The calendar: the world boots at midnight on 1 Arienle, midwinter.
- * The drive walks a year in ten-day jumps (a long jump drains every
- * schedule and outlives the client's header timeout), stepping to
- * daylight before it looks at anything: a dark field binds the wrong
- * thing and reads as nothing.
+ * ⭐⭐ **The BLOCKING drive** (docs/workflow.md § No merge waits on the
+ * clock): instant, short and staged steps only — no jump over a game day.
+ * The year it used to walk is `cover.soak.dirty.wire.test.ts`, run by the
+ * soak lane after merge. Each span step has its staged twin here, tagged in
+ * its `it`: the founder sets the state a season would have made (a stand's
+ * stage, a sward's cover, how much of a crop is cut, a head's flesh) by
+ * `eval`, and a player's verbs check everything around it.
+ *
+ * ⚠ The calendar: the world boots at midnight on 1 Arienle, midwinter, and
+ * no crop verb waits on the season — the home field is ploughed and sown
+ * the first morning. Every look is taken in daylight: a dark field binds
+ * the wrong thing and reads as nothing.
  *
  * ⚠ NPC positions after a jump are nondeterministic (memory: probe-world):
  * the drive asserts what the world HOLDS — the hay in the rick, the band
@@ -161,8 +168,9 @@ async function read(s: Session, text: string): Promise<string> {
   return said;
 }
 
-/** Jump the clock, ten game-days at most a step, and prove it moved. */
+/** Jump the clock — a game day at most (a blocking drive) — and prove it moved. */
 async function advance(seconds: number): Promise<void> {
+  expect(seconds, 'a jump over a game day is a SPAN step: the soak file').toBeLessThanOrEqual(DAY);
   // ⚠ Six hours or more away is spent INDOORS, then back to where the
   // hand stood. The hand is logged in, and a body left standing in an
   // open field in a student shirt through a winter month dropped (drive
@@ -173,7 +181,7 @@ async function advance(seconds: number): Promise<void> {
   if (park) await goTo(STORE);
   let left = seconds;
   while (left > 0) {
-    const step = Math.min(left, 10 * DAY);
+    const step = Math.min(left, DAY);
     // ⭐ And it DRINKS. A logged-in body's clock runs through a jump.
     if (park && step >= DAY) await drink();
     const { before, after } = await advanceWorldClock(`${Math.max(1, Math.round(step / 60))} minutes`);
@@ -182,13 +190,6 @@ async function advance(seconds: number): Promise<void> {
   }
   await new Promise((r) => setTimeout(r, 800));
   if (park && back) await goTo(back);
-}
-
-/** Advance to game-day `day` (from the epoch), at `hour` o'clock. */
-async function toDay(day: number, hour = 10): Promise<void> {
-  const now = await worldClockNow();
-  const target = day * DAY + hour * 3_600;
-  if (target > now) await advance(target - now);
 }
 
 /** Make sure it is daylight: on to 10 o'clock when it is not. */
@@ -244,6 +245,32 @@ async function founderEval(where: string, parcel: string, code: string): Promise
   } finally {
     gov.close();
   }
+}
+
+/** The founder's jurisdictions for staging. */
+const CAMPUS = '/world/terminus/eternal/campus-field';
+const DELIGHT = '/world/terminus/hearts-delight';
+
+/**
+ * ⭐ Staging, not measuring: set the standing grass of the field the
+ * founder stands in to `fraction` of its ceiling (reconciled first, so the
+ * window that just ended is credited). Returns the band it now reads.
+ */
+async function swardTo(where: string, parcel: string, fraction: number): Promise<string> {
+  return founderEval(
+    where,
+    parcel,
+    `return (f => (f.reconcileSward(), f.adjustReserve("sward", f.getReserve("sward").capacity.scale(${fraction}).subtract(f.getReserve("sward").current)), f.swardBand()))(self.getContainer())`,
+  );
+}
+
+/** Set every area crop in `where` to growth stage `stage` (the season's work). */
+async function stageCrops(where: string, parcel: string, stage: string): Promise<string> {
+  return founderEval(
+    where,
+    parcel,
+    `return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => (c.getVigor(), c.growthStage = "${stage}", c.getGroundPart() + ":" + c.getCropStage())).join(",")`,
+  );
 }
 
 /** The stockman's condition bands, thinnest first (Creature's phrases). */
@@ -343,8 +370,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
   }, 600_000);
 
   it('3. on shift, the herd goes to the paddock and the field is ploughed for the season — once', async () => {
-    // Spring.
-    await toDay(80);
+    await daylight();
     spring3 = await collegeHead(3);
     await goTo(HOME_FIELD);
     await act(p, 'clock on');
@@ -380,55 +406,58 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     expect(await read(p, 'look')).toMatch(/stand of wheat grows over about a third of it/i);
   }, 1_800_000);
 
-  it('14. grazing: a fortnight on the paddock takes the grass down; a drafted head holds condition', async () => {
+  it('14. [short] grazing: a day on the paddock takes the grass down; a drafted head holds condition', async () => {
+    // The fortnight is the soak file's; a day shows the same two things.
     await goTo(PADDOCK);
     const before = await read(p, 'look');
-    await advance(14 * DAY);
+    await advance(DAY);
     await daylight();
     await goTo(PADDOCK);
     const after = await read(p, 'look');
     expect(after).toMatch(/six head of the college herd are grazing it/i);
     note(`paddock grass: «${/The grass is ([^.]*)\./.exec(before)?.[1]}» → «${/The grass is ([^.]*)\./.exec(after)?.[1]}»`);
-    // A fortnight on fresh grass: the head holds, or gains.
+    // On fresh grass: the head holds, or gains.
     const fed = await collegeHead(3);
-    expect(fed, 'a fortnight on fresh grass: it holds, or gains').toBeGreaterThanOrEqual(spring3);
+    expect(fed, 'on fresh grass: it holds, or gains').toBeGreaterThanOrEqual(spring3);
   }, 1_800_000);
 
-  it('6. through the season the stages are named in words', async () => {
+  it('6. [staged] through the season the stages are named in words', async () => {
+    // ⭐ The season is the soak file's: here each stage it reaches is SET,
+    // and the field's own look names it.
     const seen = new Set<string>();
-    for (let i = 0; i < 20; i++) {
-      await advance(10 * DAY);
+    for (const stage of ['seedling', 'young', 'established', 'mature']) {
+      await stageCrops(HOME_FIELD, CAMPUS, stage);
       await daylight();
       await goTo(HOME_FIELD);
       const looked = await read(p, 'look');
       const m = STAGES.exec(looked);
       if (m) seen.add(m[0].toLowerCase());
-      // The crop's own condition and cause, for the record. ⚠ Named by its
-      // patch: with two stands in the field a bare `look wheat` PROMPTS
-      // (field population W2), and the harness fails on a prompt. The
-      // quoted `"wheat at the gate end"` is no substitute — from a room
-      // focus it binds the room (field population W6).
+      // ⚠ Named by its patch: with two stands in the field a bare `look
+      // wheat` PROMPTS (field population W2).
       await read(p, 'look gate end wheat');
-      // ⭐ Step 16's hay: the rest of the field is mown when it is ready,
-      // and the bales lie where they fell until the winter.
-      if (!mown && /a good even cover|ready to graze|grown long/i.test(looked)) {
-        await goTo(YARD);
-        await act(p, 'get scythe');
-        await goTo(HOME_FIELD);
-        mown = /cut it down to the residual/i.test((await act(p, 'mow')).said);
-      }
-      if (/ripe and ready to cut/i.test(looked)) break;
     }
     note(`stages seen: ${[...seen].join(', ')}`);
     expect(seen.size).toBeGreaterThanOrEqual(3);
     expect([...seen].join(' ')).toMatch(/ripe and ready to cut/);
-  }, 3_600_000);
+    // ⭐ Step 16's hay: the rest of the field, grown long (staged), mown.
+    await swardTo(HOME_FIELD, CAMPUS, 0.95);
+    await goTo(HOME_FIELD);
+    expect(await read(p, 'look')).toMatch(/a good even cover|ready to graze|grown long/i);
+    await goTo(YARD);
+    await act(p, 'get scythe');
+    await goTo(HOME_FIELD);
+    mown = /cut it down to the residual/i.test((await act(p, 'mow')).said);
+    expect(mown, 'the long grass was mown for hay').toBe(true);
+  }, 1_800_000);
 
-  it('9. the bench’s ripe wheat is the farm’s when a stranger cuts it; sowing there is refused', async () => {
+  it('9. [staged] the bench’s ripe wheat is the farm’s when a stranger cuts it; sowing there is refused', async () => {
     // Seed in hand first: the last of it went into the home field, and
     // with none held `sow wheat` names the standing crop (not plantable).
     await goTo(STORE);
     await doing(p, 'buy seed wheat');
+    // [staged] The bench ripens on the season (the soak file's): set ripe.
+    await stageCrops(BENCH, DELIGHT, 'mature');
+    await daylight();
     await goTo(BENCH);
     const looked = await read(p, 'look');
     expect(looked).toMatch(/ripe and ready to cut/i);
@@ -449,7 +478,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await act(p, 'drop all wheat');
   }, 1_800_000);
 
-  it('7. harvest with the sickle cuts a swath; bare hands cut less; down to the stubble', async () => {
+  it('7. [staged] harvest with the sickle cuts a swath; bare hands cut less; down to the stubble', async () => {
     await goTo(HOME_FIELD);
     // Step 9's cutting at the bench has worn the body out: rest first.
     await daylight();
@@ -466,10 +495,16 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // The take is the university's, not the labourer's.
     expect((await p.query('me:i:wheat:mine')).length).toBe(0);
     let looked = '';
-    // A third of a hectare is days of work: rest when tired, and stop at
-    // dusk — in the dark nothing in the field can be made out to cut.
+    // ⭐ [staged] A third of a hectare is days of work (the soak file cuts
+    // it all): the founder leaves a strip of each stand standing, and the
+    // hand cuts the rest to the stubble.
+    await founderEval(
+      HOME_FIELD,
+      CAMPUS,
+      'return self.getContainer().getContents().filter(c => c.isAreaCrop && c.isAreaCrop()).map(c => (c._harvestedAreaM2 = Math.max(c._harvestedAreaM2, c.getSownAreaM2() - 15), c.getGroundPart() + "=" + c.standingAreaM2())).join(",")',
+    );
     const parts = ['the gate end', 'the middle'];
-    for (let i = 0; i < 120 && parts.length > 0; i++) {
+    for (let i = 0; i < 20 && parts.length > 0; i++) {
       await daylight();
       await drink(); // ~1.8 game-hours of scything a cut (drive 12)
       const { r, said } = await work(p, `harvest wheat at ${parts[0]}`);
@@ -483,11 +518,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     }
     await daylight();
     looked = await read(p, 'look');
-    expect(looked).toMatch(/cut down to the stubble/i);
-  }, 3_600_000);
+    // The stubble line reads the grass under it: mown in step 6, it may
+    // already be coming back.
+    expect(looked).toMatch(/cut down to the stubble|coming back over the stubble/i);
+  }, 1_800_000);
 
-  it('8. stubble to fallow: a season on, the grass comes back over the stubble', async () => {
-    await advance(30 * DAY);
+  it('8. [staged] stubble to fallow: a season on, the grass comes back over the stubble', async () => {
+    // The season's regrowth is the soak file's: the grass is set back.
+    await swardTo(HOME_FIELD, CAMPUS, 0.5);
     await daylight();
     await goTo(HOME_FIELD);
     expect(await read(p, 'look')).toMatch(/grass is coming back over the stubble|stubble is lost under the grass|cut down to the stubble/i);
@@ -538,21 +576,24 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     }
   }, 1_800_000);
 
-  it('18. Hearts Delight, unattended: a month on, the pasture trough drew on the rick; a cow still milks', async () => {
+  it('18. [staged] Hearts Delight, unattended: the grass gives out, the pasture trough draws on the rick; a cow still milks', async () => {
     // ⭐ The requirement's month (R2: the rick carries the unwatched
     // month). Nobody stacks hay at the Delight while nobody is there, so
     // the month that counts is the one the grass gives out in — late in
     // the first year, when the trough first turns to the rick. A whole
     // unwatched year starves the herd, and that is the sim being right.
-    await toDay(255);
+    // ⭐ [staged] The month is the soak file's. Here the pasture's grass is
+    // set given out — what that month does — and a day shows the trough
+    // turning to the rick.
+    await swardTo(PASTURE, DELIGHT, 0.05);
     const RICK_KG =
       "return self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(',')";
     const kgOf = (said: string): number => Number(/([0-9.]+)/.exec(said)?.[1] ?? NaN);
-    const before = kgOf(await founderEval(PASTURE, '/world/terminus/hearts-delight', RICK_KG));
-    await advance(30 * DAY);
+    const before = kgOf(await founderEval(PASTURE, DELIGHT, RICK_KG));
+    await advance(DAY);
     await daylight();
-    const after = kgOf(await founderEval(PASTURE, '/world/terminus/hearts-delight', RICK_KG));
-    note(`the dairy rick over the month the grass gave out: ${before} kg → ${after} kg`);
+    const after = kgOf(await founderEval(PASTURE, DELIGHT, RICK_KG));
+    note(`the dairy rick over a day with the grass given out: ${before} kg → ${after} kg`);
     expect(after, 'the trough drew on the rick').toBeLessThan(before);
     await goTo(PASTURE);
     expect(await read(p, 'look')).toMatch(/head of the Delight dairy herd are grazing it/i);
@@ -586,35 +627,33 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // yard, take the seat again, and clock on.
     await goTo(YARD);
     await act(p, 'apply for labourer');
-    await doing(p, 'clock on');
+    await act(p, 'clock on');
     await doing(p, 'go field');
     await doing(p, 'move college herd to here');
     const before = await read(p, 'look');
     expect(before).toMatch(/six head of the college herd are grazing it/i);
   }, 600_000);
 
-  it('15. winter, unfed: the grass gives out; drafted heads thin; none dies', async () => {
+  it('15. [staged] winter, unfed: the grass gives out; drafted heads thin; none dies', async () => {
     const autumn = await collegeHead(1);
     const shyAutumn = await collegeHead(2);
-    // Into the winter on the stubble, nothing in the trough — a fortnight
-    // at a time until the fattest head shows it (a fat beast carries a
-    // long way into a hungry winter; the bands are coarse).
-    let winter = autumn;
-    let shyWinter = shyAutumn;
-    for (let i = 0; i < 8 && winter >= autumn; i++) {
-      await advance(15 * DAY);
-      await daylight();
-      winter = await collegeHead(1);
-      shyWinter = await collegeHead(2);
-      // None dies: a head that can be drafted is a head still standing.
-    }
+    // ⭐ [staged] The winter is the soak file's. Here the stubble is set
+    // eaten to the dirt — what a winter on it does — and a day unfed shows
+    // the herd on it eating nothing: the heads do not gain, none dies.
+    await swardTo(HOME_FIELD, CAMPUS, 0.02);
+    await advance(DAY);
+    await daylight();
+    const winter = await collegeHead(1);
+    const shyWinter = await collegeHead(2);
+    // None dies: a head that can be drafted is a head still standing.
     await goTo(HOME_FIELD);
-    expect(await read(p, 'look')).toMatch(/eaten right down|grazed to the dirt/i);
-    note(`winter: head 1 ${autumn} → ${winter}; head 2 ${shyAutumn} → ${shyWinter}`);
-    expect(winter, 'unfed through the winter, it thins').toBeLessThan(autumn);
-  }, 3_600_000);
+    expect(await read(p, 'look')).toMatch(/eaten right down|grazed to the dirt|cut down to the stubble/i);
+    note(`unfed day: head 1 ${autumn} → ${winter}; head 2 ${shyAutumn} → ${shyWinter}`);
+    expect(winter, 'unfed, it does not gain').toBeLessThanOrEqual(autumn);
+    expect(shyWinter, 'unfed, it does not gain').toBeLessThanOrEqual(shyAutumn);
+  }, 1_800_000);
 
-  it('16. hay in the trough feeds them, and the trough empties', async () => {
+  it('16. [short] hay in the trough feeds them, and the trough empties', async () => {
     await goTo(HOME_FIELD);
     expect(mown, 'the home field was mown for hay in the summer').toBe(true);
     // What a person does: pick up a cut, put it in the trough, until the
@@ -622,7 +661,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // `here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
     // so the count is the acts, not a query.)
     let forked = 0;
-    for (let i = 0; i < 6; i++) {
+    // Two cuts: what six head eat in a day (the soak file forks six and
+    // waits a week).
+    for (let i = 0; i < 2; i++) {
       const got = await act(p, 'get 1 hay');
       if (refusedFor(got.r) !== null) break;
       await doing(p, 'put hay in trough');
@@ -631,7 +672,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     note(`cuts of hay forked into the trough: ${forked}`);
     expect(forked, 'there was hay lying in the home field').toBeGreaterThan(0);
     expect(await read(p, 'look trough')).not.toMatch(/It is empty/);
-    await advance(7 * DAY);
+    await advance(DAY);
     await daylight();
     await goTo(HOME_FIELD);
     expect(await read(p, 'look trough')).toMatch(/It is empty/);
