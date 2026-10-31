@@ -318,7 +318,7 @@ function AboutPanel() {
  * One small server (AWS Lightsail behind Caddy) and a MongoDB is the whole of
  * a deployment (docs/deployment.md).
  */
-const STACK = ['TypeScript', 'Node', 'React', 'MongoDB', 'AWS', 'pnpm monorepo'];
+const STACK = ['TypeScript', 'Node', 'React', 'MongoDB', 'AWS', 'WebSockets'];
 
 /** "545k" — a big count, short. */
 function compact(n: number): string {
