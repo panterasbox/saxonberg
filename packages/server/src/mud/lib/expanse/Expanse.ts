@@ -503,12 +503,12 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
         const place = await StuffApi.singleton<Stuff>(dest).catch(() => null);
         if (place !== null && MixinApi.isHailable(place)) add([place]);
       }
-      // ⭐ A kept quay behind the node (A3 — the island's) is hailed at the
-      // office that keeps its book.
-      if (dest && cls !== null && MixinApi.hasMixin(cls, Mixins.BerthKeeper)) {
-        const quay = await StuffApi.singleton<Stuff>(dest).catch(() => null);
-        const office = quay !== null && MixinApi.isBerthKeeper(quay) ? await quay.hailedAt() : null;
-        const place = office ? await StuffApi.singleton<Stuff>(office).catch(() => null) : null;
+      // ⭐ The station the chart names for the node (A3, review 1 — the
+      // island's office answers for its quay): followed forward, loaded
+      // only when it is named.
+      const station = node.getHail();
+      if (station !== null) {
+        const place = await StuffApi.singleton<Stuff>(station).catch(() => null);
         if (place !== null && MixinApi.isHailable(place)) add([place]);
       }
     }

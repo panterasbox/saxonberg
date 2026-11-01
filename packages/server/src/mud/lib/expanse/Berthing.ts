@@ -1,7 +1,8 @@
 /**
- * BerthKeeperMixin — ⭐ **a landing somebody keeps a book for** (harbors P7):
- * a harbor quay, where a ship comes alongside only when the harbormaster
- * has given her the berth, and leaves only once she is cleared.
+ * BerthingMixin — ⭐ **berthing at a landing somebody keeps a book for**
+ * (harbors P7; named for the act, not a keeper — review 1): a harbor quay,
+ * where a ship comes alongside only when the harbormaster has given her
+ * the berth, and leaves only once she is cleared.
  *
  * The kernel's half of the harbor. The ship (`Ship.steer`, `Ship.castOff`)
  * asks the landing she is coming to or leaving through this protocol and
@@ -12,12 +13,17 @@
  *
  * ⛔ The harbor detains the SHIP, never the people: nothing here is asked
  * when somebody goes ashore or comes aboard.
+ *
+ * ⛔ Nor is it how a hail is answered (review 1): who answers for a berth
+ * is the HAILABLE side's — a sea node names the station a ship lying at it
+ * hails (`ExpanseNode.hail`, as a chart lists a port's signal station),
+ * and a river's line names its offices as places on it.
  */
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
-export interface BerthKeeper {
+export interface Berthing {
   /**
    * ⭐ May `ship` come alongside here now? `null` when she may; otherwise
    * why not, in the words her master is told (*"Hail the harbor office
@@ -32,19 +38,13 @@ export interface BerthKeeper {
   release(ship: Stuff, nowS: number): Promise<void>;
   /** How deep the water lies at the berth, m (a mud berth), or `null` when nobody says. */
   berthDepthM(): number | null;
-  /**
-   * ⭐ Where a hail for this berth is answered, by path — the harbor office
-   * that keeps its book (A3: a sea harbor behind a node is hailed through
-   * its quay), or `null` when nobody answers for it.
-   */
-  hailedAt(): Promise<string | null>;
 }
 
-export function BerthKeeperMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class BerthKeeperMixin extends Base implements BerthKeeper {
-    static _mixinName: string = 'BerthKeeperMixin';
+export function BerthingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class BerthingMixin extends Base implements Berthing {
+    static _mixinName: string = 'BerthingMixin';
 
-    /** @hook Override: the keeper's criteria. Default: any ship may come. */
+    /** @hook Override: the book's criteria. Default: any ship may come. */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async admit(_ship: Stuff, _nowS: number): Promise<string | null> {
       return null;
@@ -70,11 +70,6 @@ export function BerthKeeperMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
 
     /** @hook Override: the berth's depth. Default: nobody says. */
     public berthDepthM(): number | null {
-      return null;
-    }
-
-    /** @hook Override: the office that answers for the berth. Default: none. */
-    public async hailedAt(): Promise<string | null> {
       return null;
     }
   };

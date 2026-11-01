@@ -79,7 +79,7 @@ import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
-import type { BerthKeeper } from '../lib/expanse/BerthKeeper';
+import type { Berthing } from '../lib/expanse/Berthing';
 import type { Payable } from '../lib/banking/Payable';
 import type { Hailable } from '../lib/expanse/Hailable';
 import type { Hirable } from '../lib/retail/Hirable';
@@ -1352,8 +1352,8 @@ export class MixinApi {
   }
 
   /** ⭐ A landing somebody keeps a book for — a harbor quay (harbors P7). */
-  public static isBerthKeeper(obj: Stuff): obj is Stuff & BerthKeeper {
-    return this.hasMixin(obj, Mixins.BerthKeeper);
+  public static isBerthing(obj: Stuff): obj is Stuff & Berthing {
+    return this.hasMixin(obj, Mixins.Berthing);
   }
 
   /** ⭐ A thing that says what you owe — a harbor office's book (harbors P13). */

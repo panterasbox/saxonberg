@@ -4,7 +4,7 @@
  * berth the harbormaster gave her, and is in the harbor's book while she
  * lies there.
  *
- * It answers the kernel's `BerthKeeper` protocol — the only way the ship
+ * It answers the kernel's `Berthing` protocol — the only way the ship
  * reaches the harbor — by asking its `Harbor` (`harbor:`, the port's
  * row): `admit` before her course is laid, `madeFast` as her lines go
  * ashore, `clearance` before she leaves, `release` as she casts off.
@@ -13,13 +13,13 @@
  */
 
 import Quay from '@saxonberg/server/mud/platform/location/Quay';
-import { BerthKeeperMixin } from '@saxonberg/server/mud/lib/expanse/BerthKeeper';
+import { BerthingMixin } from '@saxonberg/server/mud/lib/expanse/Berthing';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Harbor from '../idea/Harbor';
 
-export default class HarborQuay extends BerthKeeperMixin(Quay) {
+export default class HarborQuay extends BerthingMixin(Quay) {
   static fieldMeta: FieldMeta = {
     harbor: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
@@ -57,11 +57,6 @@ export default class HarborQuay extends BerthKeeperMixin(Quay) {
 
   public override async release(ship: Stuff, nowS: number): Promise<void> {
     (await this.liveHarbor())?.release(ship, nowS);
-  }
-
-  /** ⭐ A hail for this quay is answered at its harbor's office (A3). */
-  public override async hailedAt(): Promise<string | null> {
-    return (await this.liveHarbor())?.getOffice() ?? null;
   }
 
   /** ⭐ The berth's depth is the harbor's posted fact (P20) — read while the book is loaded. */

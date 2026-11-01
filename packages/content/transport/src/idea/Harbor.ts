@@ -26,7 +26,7 @@
  * title. A player's authority is never more than the NPC's.
  *
  * The kernel reaches it only through its quays (`HarborQuay`, a
- * `BerthKeeper`) and its office (`HarborOffice`, a `Hailable`): the ship
+ * `Berthing`) and its office (`HarborOffice`, a `Hailable`): the ship
  * imports no pack.
  */
 

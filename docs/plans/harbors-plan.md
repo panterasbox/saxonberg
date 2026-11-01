@@ -278,6 +278,41 @@ Every wave lands at one commit (`build(harbors A1): …`), independently landabl
 - `stageShip`'s `hull`/`bilge`/`slept`/`settling` options land with B4/B5 (each wave adds the option its own staged twin needs); B6 completes the drive file; `packages/wire/tests/harbors.wire.test.ts` (Stage A steps 1–10 are written at A3 and extended here) and `harbors.soak.wire.test.ts` (S1–S3); `docs/subsystems/harbor.md` (new: the port, berths, the book, the seat, dues, the charter), `docs/subsystems/ship.md` (new: the kind, the warren, the handle, the register, shares, the flag, the hull clock, the bilge, sinking, the wreck), one-line map entries in `CLAUDE.md` (at the sweep), updates to `expanse.md`, `river.md`, `holding.md` (the lift landed), `residence.md`, `pump.md`, `underwater.md`, `retail.md` (minted lines), `civics.md` (the flag state), `employment.md` (the `register` authority), `document-store.md` (the `ship` kind), `chattel.md`, `transport`'s README.
 - Commit: `build(harbors B6): staging tools, the drive, the docs`; then `drive(harbors): …`.
 
+### Review round 1 — the user's mixin review (2026-10-31)
+
+The user reviewed the six new mixins and approved three changes: two
+mixins duplicated substrate the kernel already had, and one was named for
+a role instead of a thing. Each landed as its own commit. ⚠ The rows in
+§ Host placement and P5/P6/P21 above describe the shapes as they were
+built. **This section supersedes them.**
+
+**1. `MooringLine` → cordage's `Tieable`** (`88e6d3045`). `MooringLineMixin`, its Mixins entry, `MixinApi.isMooringLine` and `Moorer` are deleted. So are the reconciliation's bridges `LineEnd.lashTo` and `Line.untieEnd`.
+- ⭐ **The end across.** `Rope.tieTo(structure, fixture, knot)` lets a STRUCTURE tie the free end of a rope lying in one of its rooms round a fixture in another room. The end is minted beside the fixture already tied (cordage's `mintEnd(into, tiedTo)`), and the rope stays where it is. Only the structure the rope's room belongs to may do this, decided by extent or by warren. A ship coming alongside ties each of her lines this way with a clove hitch.
+- **Letting go uses cordage's own acts.** `untie` of the end on the quay puts the end in your hands, unchanged. `untie` of the rope aboard casts it off. Either way the structure is told: `Line.endUntied` is a notification `@hook`, and `Structure.onLineLetGo` is the structure's `@hook`.
+- **Moored is a read.** `Ship.fastLines()` returns the ropes she tied whose end is still round a bollard. When her last line comes off she is adrift and the way is removed, as before. Her own bringing-in (sailing, sleeping, going down) is flagged so it says nothing. The persisted `moored`/`berth` pair stays, because a restart re-ties from it.
+- ⭐ **Which ropes are hers** (lens 2: an author's ordinary rope works with no code). A rope counts when it lies on her deck and is kept AT HER BITTS, either placed `on` a `Bollard` there or tied round one. The wart "any loose rope on deck" is gone. `Bollard` is now a `Placing` host that takes lines only, and is fixed by construction. New row: `/platform/thing/bitts` (class Bollard). The five decks prop bitts with `{ template: mooring-line, count: 2, on: bitts }`. A player's `put rope on bitts` or `tie rope to bitts` makes a rope a mooring line.
+- **Drive:** step 7's finally block changed from `drop 1 mooring line` ×2 to `put mooring line on bitts` ×2, asserted ok, because a dropped rope is no longer hers and step 10 would refuse. The quay `look` of the line ashore still reads *"A mooring line comes ashore from the Hesper, made fast round the bollard with a clove hitch."*
+
+**2. `Bailable` → the pump's `LiftSource`; one bilge** (`c60944860`). `BailableMixin`, its Mixins entry, its refusal phrase and `isBailable` are deleted.
+- ⭐ **`bail` is the bucket over ANY `LiftSource`** (pump.md family A). It narrows by shape as `pump` does, with `requires: any` and a greedy target. Unnamed, it takes the lift source you sit in, i.e. the boat. The controller reads the SOURCE and the TOOL:
+  - a spell takes `20 s + 0.4 s/m` of standing depth, with endurance `4 + 0.2/m`. One rule reproduces both shipped grains: the boat's 20 s and the bore's 30 s at 25 m;
+  - a bucketful is the tool's: a vessel's own capacity, `bail.bucketL` 12 L for a bailing tool, or `bail.handsL` 10 L for bare hands;
+  - the water rises through `liftInto`. When the draw point holds it, it is then tipped into the vessel you brought.
+- **Two optional `LiftSource` hooks** carry what belongs to the source:
+  - `bucketRefusal`: a bore needs a derrick, and now a bailer, because hands do not reach down a bore. A boat refuses when capsized or dry.
+  - `bucketLanded`: the source's own words and credits. For the bore this is the answer to the bet, crediting geology and mining. For the boat it is *"over her side"*.
+- `Boat` now answers `LiftSource` for her bilge. `Wellhead` lost `planBail`/`completeBail`/`lift()`/`liftL()`. The bore's first-answer fact is captured in `liftInto` before the rig catches up (runtime only), and `bucketLanded` reads it. The village `Well` and a ship's `BilgeWell` can now be bailed by the same rule, though nobody affords the verb there yet.
+- ⭐ **One bilge.** `lib/expanse/Bilge.ts` (`BilgeMixin`, named for the water in a hull, not for an ability) holds the litres, the stamp, the integrator (`integrateBilge`, `bilgeAt`), capacity, `takeBilge` and `resetBilge`. `Ship` and `Boat` both compose it, and each keeps its own leak through `leakedBetween`:
+  - **Ship:** hull band over the shell line plus a hole; `null` while her warren is down, so the stamp waits.
+  - **Boat:** holes plus a coat that has opened, and only while she is afloat.
+- **Drive:** no command changes. Step 24's `bail #<rowboat>` still answers *"You throw a bucketful of water out over her side."* followed by *going down* or *She is dry*. `drilling.dirty` never runs `bail`; it buys the bailer, which still affords the kernel view.
+
+**3. `BerthKeeper` → `Berthing`; the hail moves to the hailable side** (this commit; sha in the plan commit that follows).
+- The rename covers `BerthingMixin`, `Mixins.Berthing`, `MixinApi.isBerthing`, the file and `Ship.berthingAt`, across kernel, transport, tests and docs.
+- `hailedAt()` is deleted. ⭐ **A sea node names the station a ship lying at it hails** (`ExpanseNode.hail`, an identity relation), the way a chart lists a port's signal station. `Expanse.hailables` follows that reference forward and loads the station only when one is named. Waponi Woo's node row names the estate store.
+- Rejected: having the quay relay to its harbor's office. The kernel cannot read `Harbor`, and a quay that answers hails would match `hail office` only through its office's words.
+- Drive step 10 (`hail office` off the island) is unchanged in command and expectation.
+
 ---
 
 ## Reachability wiring

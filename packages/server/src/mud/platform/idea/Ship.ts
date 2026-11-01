@@ -49,7 +49,7 @@ import type { Positioned } from '../../lib/expanse/Positioned';
 import Rope from '../thing/Rope';
 import { BilgeMixin } from '../../lib/expanse/Bilge';
 import type { Exitable } from '../../lib/boundary/Exitable';
-import type { BerthKeeper } from '../../lib/expanse/BerthKeeper';
+import type { Berthing } from '../../lib/expanse/Berthing';
 import type { LineFrame } from '../../lib/expanse/LineFrame';
 import { PersistableApi } from '../../api/persistable';
 import { MessageApi } from '../../api/message';
@@ -568,7 +568,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    */
   public async bottomDepthM(): Promise<number | null> {
     if (this.moored && this.berth) {
-      const d = (await this.keeperAt(this.berth))?.berthDepthM();
+      const d = (await this.berthingAt(this.berth))?.berthDepthM();
       if (d !== null && d !== undefined && Number.isFinite(d)) return d;
     }
     const frame = await this.liveFrame();
@@ -835,7 +835,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * hers, and still where she lies).
    */
   private async castOffForGood(): Promise<void> {
-    const keeper = await this.keeperAt(this.berth);
+    const keeper = await this.berthingAt(this.berth);
     await this.bringLinesIn();
     this.removeBerth();
     this.moored = false;
@@ -1366,7 +1366,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    */
   public async courseRefusal(landing: string | null, opts: { admit?: boolean } = {}): Promise<string | null> {
     const nowS = WorldClockApi.getNow().rawValue();
-    const leaving = this.isMoored() ? await this.keeperAt(this.berth) : null;
+    const leaving = this.isMoored() ? await this.berthingAt(this.berth) : null;
     if (leaving !== null) {
       const held = await leaving.clearance(this as unknown as Stuff, nowS);
       if (held !== null) return held;
@@ -1374,7 +1374,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     if (landing === null || landing === '') return null;
     if ((await this.linesAboard()).length === 0) return 'She has no lines to make fast.';
     if (opts.admit === false) return null;
-    const coming = await this.keeperAt(landing);
+    const coming = await this.berthingAt(landing);
     return coming === null ? null : coming.admit(this as unknown as Stuff, nowS);
   }
 
@@ -1385,7 +1385,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * fast. The words for whoever is aboard.
    */
   public async arriveAlongside(landing: string): Promise<string> {
-    const keeper = await this.keeperAt(landing);
+    const keeper = await this.berthingAt(landing);
     if (keeper !== null) {
       const no = await keeper.admit(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
       if (no !== null) return `She lies off. ${no}`;
@@ -1394,10 +1394,10 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /** The landing at `path` when somebody keeps a book for it (a harbor quay), else `null`. */
-  private async keeperAt(path: string | null): Promise<(Stuff & BerthKeeper) | null> {
+  private async berthingAt(path: string | null): Promise<(Stuff & Berthing) | null> {
     if (path === null || path === '') return null;
     const s = await StuffApi.singleton<Stuff>(path).catch(() => null);
-    return s !== null && MixinApi.isBerthKeeper(s) ? s : null;
+    return s !== null && MixinApi.isBerthing(s) ? s : null;
   }
 
   /**
@@ -1464,7 +1464,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7),
     // and a charter ends there (P23) — its days billed to her.
     let ended = '';
-    if (MixinApi.isBerthKeeper(landing)) {
+    if (MixinApi.isBerthing(landing)) {
       await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
       ended = this.endCharter();
     }
@@ -1483,7 +1483,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * this first.
    */
   public async castOff(): Promise<void> {
-    const keeper = this.moored ? await this.keeperAt(this.berth) : null;
+    const keeper = this.moored ? await this.berthingAt(this.berth) : null;
     await this.bringLinesIn();
     this.removeBerth();
     this.moored = false;
@@ -1511,7 +1511,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.persistMooring();
     this.noteLies(null);
     // Adrift, she no longer holds the berth she was given (P7).
-    void this.keeperAt(was)
+    void this.berthingAt(was)
       .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
       .catch((err) => console.warn('Ship: the berth was not released:', err));
     void this.aboard()
@@ -1627,7 +1627,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     }
     await this.installBerth(landing);
     // ⭐ A kept berth knows she lies there (P7) — the book's entry stands as it was.
-    if (MixinApi.isBerthKeeper(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+    if (MixinApi.isBerthing(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
 
   /** ⭐ A landing is being used: if she lies made fast there, her way goes back on it. */

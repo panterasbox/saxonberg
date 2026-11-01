@@ -67,6 +67,7 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
     destination: { persistent: true, authorable: true },
     along: { persistent: true, authorable: true },
     river: { persistent: true, authorable: true, ref: 'identity:relation' },
+    hail: { persistent: true, authorable: true, ref: 'identity:relation' },
   };
 
   /**
@@ -75,6 +76,16 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
    * this is the same fact asked from the sea.
    */
   protected river: string | null = null;
+
+  /**
+   * ⭐ The station a ship lying at this node hails, by path (harbors A3,
+   * review 1) — as a chart lists a port's signal station: the island's
+   * harbor office answers for the quay behind its node. `null`: nobody
+   * here keeps a watch (the place behind it may still answer for itself).
+   */
+  protected hail: string | null = null;
+  public getHail(): string | null { return this.hail; }
+  public setHail(v: string | null): void { this.hail = typeof v === 'string' && v !== '' ? v : null; }
   public getRiver(): string | null { return this.river; }
   public setRiver(v: string | null): void { this.river = v ?? null; }
 

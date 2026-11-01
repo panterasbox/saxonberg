@@ -317,7 +317,8 @@ words between nodes. Both faces read her gangway's lock (`keyway`,
 ⭐ **The ship reaches a harbor only through two kernel protocols** — the
 kernel imports no pack:
 
-- **`BerthKeeper`** (`lib/expanse/BerthKeeper.ts`) on a landing somebody
+- **`Berthing`** (`lib/expanse/Berthing.ts`, `BerthingMixin` — named for
+  the act; it was `BerthKeeper` until review 1) on a landing somebody
   keeps a book for (the transport pack's `HarborQuay`): `Ship.steer` asks
   it through `Ship.courseRefusal(landing)` — the landing she lies at must
   `clearance` her before she leaves, the landing she is coming to must
@@ -332,7 +333,11 @@ kernel imports no pack:
   `expanse.signalRangeNm` whose class composes it (read off the row's
   class, `StuffApi.classForRef` — only an answering place is loaded); the
   sea, through every node in range that is a river's mouth (hand the hail up
-  the river) and every node landing that answers itself. `hail <word>` tries
+  the river), every node landing that answers itself, and the station a
+  node's row names (`ExpanseNode.hail` — as a chart lists a port's signal
+  station: Waponi Woo's node names the estate store that keeps the
+  island's book; review 1 moved this off `Berthing`, which keeps only the
+  book's five questions and the berth's depth). `hail <word>` tries
   these first (`hail office`, `hail harbor`), then the sails in sight.
 
 A place sited on a river that is no landing authors `frameSite.landing:

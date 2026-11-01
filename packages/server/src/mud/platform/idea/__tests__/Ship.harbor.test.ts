@@ -4,7 +4,7 @@ import Ship from '../Ship';
 import BerthExit from '../BerthExit';
 import AshoreExit from '../AshoreExit';
 import Quay from '../../location/Quay';
-import { BerthKeeperMixin } from '../../../lib/expanse/BerthKeeper';
+import { BerthingMixin } from '../../../lib/expanse/Berthing';
 import { LineFrameMixin, type BarWater } from '../../../lib/expanse/LineFrame';
 import { Idea } from '../../../lib/stuff/Idea';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -29,7 +29,7 @@ import type { Container } from '../../../lib/spatial/Container';
 
 /**
  * ⭐ A ship and the harbor, by the kernel's protocols only (harbors P7, P10):
- * a kept berth (`BerthKeeper`) is asked to admit her before her course for
+ * a kept berth (`Berthing`) is asked to admit her before her course for
  * it is laid and to clear her before she leaves it, is told when she makes
  * fast and when she casts off; and the bar's window is her draft against
  * the water over it at the tide — low water refuses the deep ship, the
@@ -42,7 +42,7 @@ const SHIP = '/test/hesper/structure';
 const RIVER = '/test/river';
 
 /** A quay with a book: records what it is asked and told; refuses as the test sets. */
-class KeptQuay extends BerthKeeperMixin(Quay) {
+class KeptQuay extends BerthingMixin(Quay) {
   public calls: string[] = [];
   public refuseAdmit: string | null = null;
   public refuseClearance: string | null = null;
