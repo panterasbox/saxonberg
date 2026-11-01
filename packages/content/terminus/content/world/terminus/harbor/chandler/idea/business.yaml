@@ -1,0 +1,24 @@
+# Hobb's (harbors B4) — the ship chandler's business. Its counter's sales
+# settle here; the chandler keeps the shop on the roster's day.
+class: /platform/idea/Business
+data:
+  name: "Hobb's, ship chandler"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/harbor/chandler/agent/chandler
+  call: rota
+  positions:
+    - key: chandler
+      noun: chandler
+      label: keeping the chandler's
+      wageRate: 4
+  rosterSlots:
+    - positionKey: chandler
+      assignee: /world/terminus/harbor/chandler/agent/chandler
+      station: /world/terminus/harbor/chandler/shop
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/harbor/chandler/shop
+    - /world/terminus/harbor/chandler/thing/counter

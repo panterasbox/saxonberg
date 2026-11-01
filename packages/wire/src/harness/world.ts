@@ -467,9 +467,16 @@ export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
 /** Where a staged ship is put: a sea's node by path, or a citation on a frame. */
 export type ShipStagePlace = { node: string } | { frame: string; cite: string };
 
-/** How a ship is staged (harbors P25; Stage B adds the hull, the bilge, the sleep). */
+/** How a ship is staged (harbors P25; B5 adds the settling). */
 export interface ShipStageSpec {
+  /** Where she lies — a sea's node or a citation on a frame. */
   at?: ShipStagePlace;
+  /** The band her hull reads once staged: sound, weathered, worn, shabby, dilapidated. */
+  hull?: string;
+  /** Litres in her bilge, as staged (before `sleptDays` fills it further). */
+  bilgeL?: number;
+  /** Game-days she has lain unattended: her bilge fills over every band her hull passed through. */
+  sleptDays?: number;
 }
 
 /** What the ship route reports. */
@@ -482,9 +489,12 @@ export interface ShipStageResult {
 /**
  * ⭐ Stage a ship — the staged twin of sailing her there (harbors P25).
  *
- * Posts to `/auth/test-ship`: the ship named by her row path is put lying
- * at `spec.at` (a sea's node, or a citation on a frame), cast off from any
- * berth and with no course. Her rooms and everyone in them go with her.
+ * Posts to `/auth/test-ship`: the ship named by her row path (or a ship of
+ * a kind by her handle) is put lying at `spec.at` (a sea's node, or a
+ * citation on a frame), cast off from any berth and with no course; and/or
+ * her hull put in a band (`hull`), her bilge at `bilgeL` litres, and her
+ * left `sleptDays` unattended (B4). Her rooms and everyone in them go with
+ * her.
  * Only in a world this run owns (the route is test-only).
  *
  * ⛔ A blocking drive stages what a soak drive sails (the voyage is a span

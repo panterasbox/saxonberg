@@ -35,6 +35,8 @@ import { FloorplanWarren, type FloorplanRoom, type UpkeepWords } from '../../lib
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { PersistableApi } from '../../api/persistable';
+import { WorldClockApi } from '../../api/worldclock';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { VetoResult } from '../../lib/errors';
@@ -145,6 +147,43 @@ export default class ShipWarren extends FloorplanWarren {
   }
 
   /**
+   * ⭐ Her hull is her shell (harbors B4): the house's clock, the house's
+   * rate. Before the shell moves, her bilge is brought up to now over the
+   * line as it stood — so the leak is integrated band by band, and the
+   * bilge's stamp never falls behind the shell's. The first read of a
+   * fresh shell is kept at once: an authored ship never sleeps, and a
+   * stamp that was never captured would restart her clock on every boot.
+   */
+  public override reconcileShell(): number {
+    this.ship()?.integrateBilge(WorldClockApi.getNow().rawValue());
+    const fresh = this.shellStamp <= 0;
+    const c = super.reconcileShell();
+    if (fresh) this.keep();
+    return c;
+  }
+
+  /**
+   * ⭐ Caulked (`maintain` aboard): the water that came in came in at the
+   * old band, then the shell is sound and the leak stops — read live.
+   * Kept at once (an authored ship's warren is captured by nothing else).
+   */
+  public override restoreShell(): void {
+    this.ship()?.integrateBilge(WorldClockApi.getNow().rawValue());
+    super.restoreShell();
+    this.keep();
+  }
+
+  private keep(): void {
+    try {
+      void PersistableApi.capture(this as unknown as Stuff).catch((err) =>
+        console.warn('ShipWarren: capture failed:', err),
+      );
+    } catch (err) {
+      console.warn('ShipWarren: capture failed:', err);
+    }
+  }
+
+  /**
    * A ship speaks of seams, oakum and pitch.
    *
    * @hook
@@ -156,6 +195,7 @@ export default class ShipWarren extends FloorplanWarren {
       kit: "a caulker's kit",
       work: 'You work along her seams, paying in oakum and hot pitch wherever the weather has been at them.',
       witnessed: "works along her seams with a caulker's kit.",
+      discipline: 'seamanship',
     };
   }
 }

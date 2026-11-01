@@ -581,6 +581,29 @@ describe('the maintenance act (D4/D5)', () => {
     expect(k.getCondition()).toBeLessThan(before);
   });
 
+  it('⭐ credits the Discipline the fabric names — a house names none (harbors P24)', async () => {
+    const { holding, hall } = await wornHolding();
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+    ContainmentApi.move(
+      kit() as unknown as Stuff & Containable,
+      iris as unknown as Stuff & Container,
+    );
+    const credit = vi.fn(async () => undefined);
+    vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(true);
+    (iris as unknown as { creditDeed: unknown }).creditDeed = credit;
+    // A house: no Discipline, nothing credited.
+    await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
+    expect(holding.conditionBand()).toBe('sound');
+    expect(credit).not.toHaveBeenCalled();
+    // A fabric that names one (a hull: seamanship) credits it.
+    const words = holding.upkeepWords();
+    vi.spyOn(holding, 'upkeepWords').mockReturnValue({ ...words, discipline: 'seamanship' });
+    vi.spyOn(holding, 'conditionBand').mockReturnValue('worn');
+    await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
+    expect(credit).toHaveBeenCalledWith({ discipline: 'seamanship', difficulty: 'standard', outcome: 'success' });
+  });
+
   it('refuses without a kit — the shell is untouched', async () => {
     const { holding, hall } = await wornHolding();
     const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');

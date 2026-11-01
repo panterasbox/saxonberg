@@ -13,7 +13,7 @@ data:
   longDescription: |
     A wall of dressed stone runs along the river for seventy paces, its top worn smooth and its face hung with weed and old fenders. Iron bollards stand along the edge at intervals, each with a bright waist where lines have been dropped over it. The water lies close under the wall at the flood and well down it at the ebb, over soft gray mud.
 
-    Northward the quay opens onto the estuary mouth and the made path back to the city. West, past a cart and a stack of fish boxes, the wall steps down to the Fish Quay; east, a flight of stairs goes into the water. The harbor office stands at the back of the quay with its door open and a flagstaff over it.
+    Northward the quay opens onto the estuary mouth and the made path back to the city. West, past a cart and a stack of fish boxes, the wall steps down to the Fish Quay; east, a flight of stairs goes into the water. The harbor office stands at the back of the quay with its door open and a flagstaff over it, and on the corner to the southwest a ship chandler's has its door propped with a cask.
   coords: { x: 0, y: 0, z: 0 }
   harbor: /world/terminus/harbor/idea/harbor
   # ⭐ What a ship's lines are made fast round (harbors P6) — four along the
@@ -47,4 +47,8 @@ data:
       media: [ground]
     south:
       destination: /world/terminus/harbor/office
+      media: [ground]
+    # ⭐ The ship chandler (harbors B4), at the corner of the quay.
+    southwest:
+      destination: /world/terminus/harbor/chandler/shop
       media: [ground]

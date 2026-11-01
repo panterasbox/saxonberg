@@ -44,6 +44,8 @@ import { MixinApi } from '../../api/mixin';
 import { NavigationApi } from '../../api/navigation';
 import { PersistableApi } from '../../api/persistable';
 import { WorldClockApi } from '../../api/worldclock';
+import { CallSecurity } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Persistable } from '../persistence/Persistable';
@@ -93,6 +95,27 @@ export interface UpkeepWords {
   /** The witnessed work, after the actor's name — "works over the
    *  fabric of the place with a householder's kit." */
   witnessed: string;
+  /**
+   * The Discipline the upkeep act exercises, credited to whoever does it
+   * (harbors P24 — caulking a hull is seamanship). Absent: the act
+   * credits nothing (keeping a house is nobody's Discipline yet).
+   */
+  discipline?: string;
+}
+
+/**
+ * ⭐ The shell clock as a straight line (harbors B4): the condition at
+ * its stamp and the slope it falls by. Every reader that must integrate
+ * something over the shell's band — a hull's leak — reads the line, never
+ * a sample, so a long absence is honest across every band it crossed.
+ */
+export interface ShellTrajectory {
+  /** The condition at `stampS` (0..1). */
+  condition: number;
+  /** Game-seconds the condition was last reconciled at; `0` = never read. */
+  stampS: number;
+  /** Condition lost per game-second. */
+  perSecond: number;
 }
 
 /** The closed-today, open-by-construction upkeep-term vocabulary (D5). */
@@ -491,24 +514,67 @@ export abstract class FloorplanWarren extends FloorplanBase {
     }
     const elapsed = now - this.shellStamp;
     if (elapsed <= 0) return this.shellCondition;
+    this.shellCondition = Math.max(
+      0,
+      this.shellCondition - elapsed * this.shellPerSecond(),
+    );
+    this.shellStamp = now;
+    return this.shellCondition;
+  }
+
+  /**
+   * ⭐ The shell's line, read WITHOUT reconciling (harbors B4): where it
+   * stood at its stamp and how fast it falls. A hull integrates her leak
+   * over it, band by band.
+   */
+  public shellTrajectory(): ShellTrajectory {
+    return {
+      condition: this.shellCondition,
+      stampS: this.shellStamp,
+      perSecond: this.shellPerSecond(),
+    };
+  }
+
+  /** Condition lost per game-second — the one rate a house and a hull share. */
+  private shellPerSecond(): number {
     const daysToWorn = this.settingNumber(
       'residence.weather.daysToWorn',
       DEFAULT_DAYS_TO_WORN,
     );
-    const perSecond = 0.5 / (daysToWorn * GAME_DAY_SECONDS);
-    this.shellCondition = Math.max(0, this.shellCondition - elapsed * perSecond);
-    this.shellStamp = now;
-    return this.shellCondition;
+    return 0.5 / (daysToWorn * GAME_DAY_SECONDS);
   }
 
   /** The banded, no-gauge read (P10): sound / weathered / worn /
    *  shabby / dilapidated. Reconciles first. */
   public conditionBand(): string {
-    const c = this.reconcileShell();
+    return this.bandFor(this.reconcileShell());
+  }
+
+  /** The band a condition reads as — the five words, no digit. */
+  public bandFor(condition: number): string {
     for (const [floor, band] of CONDITION_BANDS) {
-      if (c >= floor) return band;
+      if (condition >= floor) return band;
     }
     return 'dilapidated';
+  }
+
+  /**
+   * The band floors, highest first — `[floor, band]`. What a reader
+   * integrating over the line needs to find where each band begins.
+   */
+  public bandFloors(): Array<[number, string]> {
+    return CONDITION_BANDS.map(([f, b]) => [f, b]);
+  }
+
+  /**
+   * ⭐ Put the shell at `condition`, stamped at `stampS` (harbors P25 —
+   * the staged twin of a fabric that weathered there). A test world's
+   * staging only; the game moves a shell by the clock and `maintain`.
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
+  public stageShell(condition: number, stampS: number): void {
+    this.shellCondition = Math.min(1, Math.max(0, Number(condition) || 0));
+    this.shellStamp = Math.max(0, Number(stampS) || 0);
   }
 
   /** The legible cause line for a declined shell, in this warren's

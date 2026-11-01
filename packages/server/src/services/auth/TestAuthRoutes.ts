@@ -206,14 +206,17 @@ export class TestAuthRoutes {
         });
     });
 
-    // ⭐ A ship staged (harbors P25): `{ship: '/row/path', at: {node} | {frame, cite}}`
-    // — put lying where the drive needs her, never sailed there.
+    // ⭐ A ship staged (harbors P25, B4): `{ship: '/row/path' | '<kind>#<serial>',
+    // at?: {node} | {frame, cite}, hull?: band, bilgeL?: L, sleptDays?: n}` —
+    // put lying where and as the drive needs her, never sailed there.
     app.post('/auth/test-ship', (req: Request, res: Response) => {
       if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
         res.status(403).json({ error: 'forbidden' });
         return;
       }
-      const body = req.body as { ship?: unknown; at?: unknown } | undefined;
+      const body = req.body as
+        | { ship?: unknown; at?: unknown; hull?: unknown; bilgeL?: unknown; sleptDays?: unknown }
+        | undefined;
       const ship = body?.ship;
       const at = body?.at as { node?: unknown; frame?: unknown; cite?: unknown } | undefined;
       const place =
@@ -222,13 +225,21 @@ export class TestAuthRoutes {
           : at && typeof at.frame === 'string' && typeof at.cite === 'string'
             ? { frame: at.frame, cite: at.cite }
             : null;
-      if (typeof ship !== 'string' || ship === '' || place === null) {
+      const spec: Parameters<typeof TestHooks.stageShip>[1] = {};
+      if (place !== null) spec.at = place;
+      if (typeof body?.hull === 'string') spec.hull = body.hull;
+      if (typeof body?.bilgeL === 'number') spec.bilgeL = body.bilgeL;
+      if (typeof body?.sleptDays === 'number') spec.sleptDays = body.sleptDays;
+      const badAt = at !== undefined && place === null;
+      if (typeof ship !== 'string' || ship === '' || badAt || Object.keys(spec).length === 0) {
         res.status(400).json({
-          error: "test-ship wants {ship: '/row/path', at: {node: '/path'} | {frame: '/path', cite: '…'}}",
+          error:
+            "test-ship wants {ship: '/row/path', at?: {node: '/path'} | {frame: '/path', cite: '…'}, " +
+            'hull?: band, bilgeL?: litres, sleptDays?: days} — at least one of them',
         });
         return;
       }
-      void TestHooks.stageShip(ship, { at: place })
+      void TestHooks.stageShip(ship, spec)
         .then((report) => res.json(report))
         .catch((err: unknown) => {
           console.error('TestAuthRoutes: test-ship failed:', err);

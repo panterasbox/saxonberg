@@ -21,6 +21,10 @@ data:
     - /system/transport/thing/dinghy
     # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
     - { template: /platform/thing/mooring-line, count: 2 }
+    # ⭐ Her pump well and the rod to sound it (harbors P19): `pump well`,
+    # `measure bilge`.
+    - /stuff/thing/bilge-well
+    - /platform/thing/sounding-rod
     # ⭐ Her colors (P16): the flag on her flagstaff is the flag she flies —
     # Terminus' ensign, as the yard enters her in the city's register. A
     # claim only: strike it, or fly another, and her register is unchanged.

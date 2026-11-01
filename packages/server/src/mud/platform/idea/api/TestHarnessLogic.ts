@@ -59,10 +59,34 @@ export interface WeatherPinReport {
  */
 export type ShipStagePlace = { node: string } | { frame: string; cite: string };
 
-/** How a ship is staged (harbors P25; B4/B5 add `hull`, `bilgeL`, `sleptDays`, `settling`). */
+/** How a ship is staged (harbors P25; B5 adds `settling`). */
 export interface ShipStageSpec {
+  /** Where she lies — a sea's node or a citation on a frame. */
   at?: ShipStagePlace;
+  /**
+   * ⭐ The band her hull READS once staged (B4): `sound · weathered · worn ·
+   * shabby · dilapidated` — after any `sleptDays`, which she weathered
+   * into it through.
+   */
+  hull?: string;
+  /** Litres in her bilge, as staged (before any `sleptDays` fill it further). */
+  bilgeL?: number;
+  /**
+   * ⭐ Game-days she has lain unattended (B4): her bilge has filled over
+   * them at every band her hull weathered through. With `hull`, the hull
+   * reads that band now; without, she has aged that long too.
+   */
+  sleptDays?: number;
 }
+
+/** Where in each band a staged hull is put — the band's middle, so a minute's clock does not tip it. */
+const STAGED_CONDITION: Record<string, number> = {
+  sound: 1,
+  weathered: 0.8,
+  worn: 0.6,
+  shabby: 0.375,
+  dilapidated: 0.1,
+};
 
 /** What staging a ship reports. */
 export interface ShipStageReport {
@@ -70,7 +94,7 @@ export interface ShipStageReport {
   readonly ship: string;
   /** The frame she is on now, by path, and where on it. */
   readonly frame: string;
-  readonly at: FramePos;
+  readonly at: FramePos | null;
 }
 
 /**
@@ -197,19 +221,70 @@ export class TestHarnessLogic extends ApiLogic {
       throw new Error(`testharness ship: '${handle}' is not a ship (name her by her row path, or a ship of a kind by her handle)`);
     }
     const ship = found;
-    if (!spec.at) throw new Error('testharness ship: say where — `at node:<path>` or `at <frame> <cite>`');
-    const { framePath, pos } = await this.placeFor(spec.at);
-    // Staged, she leaves her berth and any course she held: she is put down
-    // where the drive says, lying there, with nothing about her else changed.
-    if (ship.isMoored()) await ship.castOff();
-    if (ship.getCourse() !== null) await ship.anchorHere();
+    const wear = spec.hull !== undefined || spec.bilgeL !== undefined || spec.sleptDays !== undefined;
+    if (!spec.at && !wear) {
+      throw new Error('testharness ship: say what — `at node:<path>`, `at <frame> <cite>`, `hull <band>`, `bilge <L>` or `slept <days>`');
+    }
     const nowS = WorldClockApi.getNow().rawValue();
-    ship.placeAt(pos, nowS, framePath);
-    const frame = await ship.liveFrame();
-    frame?.adopt(ship as never);
+    let framePath = ship.getExpanse() ?? '';
+    let pos: FramePos | null = null;
+    if (spec.at) {
+      const placed = await this.placeFor(spec.at);
+      framePath = placed.framePath;
+      pos = placed.pos;
+      // Staged, she leaves her berth and any course she held: she is put down
+      // where the drive says, lying there, with nothing about her else changed.
+      if (ship.isMoored()) await ship.castOff();
+      if (ship.getCourse() !== null) await ship.anchorHere();
+      ship.placeAt(pos, nowS, framePath);
+      const frame = await ship.liveFrame();
+      frame?.adopt(ship as never);
+    }
+    if (wear) await this.stageWear(ship, spec, nowS);
     await PersistableApi.capture(ship as unknown as Stuff);
     console.info(`TestHarness: staged ${ship.getTemplatePath()} on ${framePath}`);
-    return { ship: ship.getDurableHandle() ?? handle, frame: framePath, at: pos };
+    return { ship: ship.getDurableHandle() ?? handle, frame: framePath, at: pos ?? this.lyingAt(ship) };
+  }
+
+  /**
+   * ⭐ Her hull, her bilge and her sleep (B4): the bilge is first brought up
+   * to now as she stood; the hull is put in its band; then the bilge's stamp
+   * is moved back `sleptDays`, so the next read fills her over every band
+   * her hull's line passed through on the way to where it is now. (With no
+   * `hull`, her shell ages the same days.)
+   */
+  private async stageWear(ship: Ship, spec: ShipStageSpec, nowS: number): Promise<void> {
+    const warren = await ship.standWarren();
+    if (warren === null) throw new Error(`testharness ship: ${ship.getDurableHandle()}'s rooms do not stand`);
+    await ship.reconcileBilge();
+    const days = spec.sleptDays ?? 0;
+    if (!(days >= 0) || !Number.isFinite(days)) throw new Error(`testharness ship: slept wants days (got ${spec.sleptDays})`);
+    const sleptS = days * 86_400;
+    if (spec.hull !== undefined) {
+      const c = STAGED_CONDITION[spec.hull];
+      if (c === undefined) {
+        throw new Error(`testharness ship: hull wants a band — ${Object.keys(STAGED_CONDITION).join(', ')} (got '${spec.hull}')`);
+      }
+      warren.stageShell(c, nowS);
+    } else if (sleptS > 0) {
+      const line = warren.shellTrajectory();
+      const was = line.stampS > 0 ? line.condition : 1;
+      warren.stageShell(was - line.perSecond * sleptS, nowS);
+    }
+    if (spec.bilgeL !== undefined && !(spec.bilgeL >= 0)) {
+      throw new Error(`testharness ship: bilge wants litres (got ${spec.bilgeL})`);
+    }
+    ship.stageBilge(spec.bilgeL ?? ship.bilgeNowL(), nowS - sleptS);
+    await ship.reconcileBilge();
+    await PersistableApi.capture(warren as unknown as Stuff);
+  }
+
+  /** Where she lies now, for the report when she was not moved. */
+  private lyingAt(ship: Ship): FramePos | null {
+    const line = ship.getLinePosition();
+    if (line !== null) return { frame: 'line', at: line } as FramePos;
+    const chart = ship.getExpansePosition();
+    return chart === null ? null : ({ frame: 'chart', at: chart } as FramePos);
   }
 
   /** The frame and position a stage place names — or a throw in words. */

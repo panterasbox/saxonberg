@@ -1,0 +1,16 @@
+# Oakum (harbors B4) — old rope picked apart into loose tarry fiber, the
+# stuff driven into a hull's seams before they are payed over with pitch.
+#
+# ⭐ Its honest source is old rope (the requirements' chandler): picking it
+# is not this build's, so the chandler sells it by the bundle. A good that
+# a caulker consumes; `maintain`'s kit carries its own twist.
+class: /platform/thing/Good
+data:
+  shortDescription: bundle of oakum
+  keywords: [oakum, bundle, fiber, tow, "bundle of oakum"]
+  register: indefinite
+  longDescription: >-
+    A loose bundle of brown hemp fiber, teased out of old rope and still
+    smelling of the tar it was laid up in.
+  _materialPath: /stuff/idea/material/textile/hemp
+  mass: 1

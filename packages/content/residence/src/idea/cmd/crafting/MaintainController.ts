@@ -56,7 +56,7 @@ const UPKEEP = "upkeep";
 const KIT_WEAR = 0.08;
 
 export default class MaintainController extends CommandController {
-  execute(model: MaintainModel, context: CommandContext): void {
+  async execute(model: MaintainModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
     const room = context.location;
 
@@ -123,6 +123,16 @@ export default class MaintainController extends CommandController {
         Mml.compose`${Mml.actor(actor)} ${Mml.text(words.witnessed)}`,
       )
       .send();
+
+    // ⭐ The fabric names the Discipline the work exercises (harbors P24):
+    // caulking a hull is seamanship; keeping a house is nobody's yet.
+    if (words.discipline && MixinApi.isAdvancing(actor)) {
+      await actor.creditDeed({
+        discipline: words.discipline,
+        difficulty: "standard",
+        outcome: "success",
+      });
+    }
   }
 
   /** The floorplan warren whose shell this room belongs to, or null. */

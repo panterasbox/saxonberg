@@ -16,6 +16,10 @@ data:
     - /stuff/thing/instrument/hand-compass
     # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
     - { template: /platform/thing/mooring-line, count: 2 }
+    # ⭐ Her pump well and the rod to sound it (harbors P19): `pump well`,
+    # `measure bilge`.
+    - /stuff/thing/bilge-well
+    - /platform/thing/sounding-rod
   cast:
     - /world/terminus/harbor/ships/ketch/agent/master
   exits:

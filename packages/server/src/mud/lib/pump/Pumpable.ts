@@ -135,10 +135,22 @@ export interface LiftSource {
   standingAvailableL(): Promise<number>;
   /** Litres the draw point could still receive before it is full. */
   receivableL(): number;
-  /** Raise up to `litres` into the draw point. Returns litres moved. */
-  liftInto(litres: number): Promise<number>;
+  /**
+   * Raise up to `litres` into the draw point. Returns litres moved.
+   * `by` is whoever worked the handle, when a hand did (a ship's bilge
+   * well credits the pumping to them — harbors P24); a source that does
+   * not care ignores it.
+   */
+  liftInto(litres: number, by?: Stuff): Promise<number>;
   /** The place whose atmosphere presses on the draw point. */
   liftScope(): (Stuff & Container) | null;
+  /**
+   * Where what came up GOES, in words, when it is not the source's own
+   * draw point (harbors B4 — a bilge pump throws the water over the
+   * side). `what` is the fluid's name, capitalized. Absent: the pump says
+   * it runs into the source.
+   */
+  liftedWords?(what: string): Mml;
 }
 
 /**

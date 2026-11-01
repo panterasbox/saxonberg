@@ -37,6 +37,8 @@ import { ShoreMixin } from '../../lib/location/Shore';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
 import { MixinApi } from '../../api/mixin';
+import { NavigationApi } from '../../api/navigation';
+import Ship from '../idea/Ship';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Containable } from '../../lib/spatial/Containable';
 
@@ -58,6 +60,26 @@ export default class Compartment extends ShoreMixin(
 
   private notePopulation(thing: Stuff & Containable): void {
     if (!MixinApi.isHasInteractive(thing as unknown as Stuff)) return;
-    this.getWarren()?.notifyPopulationChange(this as unknown as Stuff & Location);
+    const warren = this.getWarren();
+    if (warren !== null) {
+      warren.notifyPopulationChange(this as unknown as Stuff & Location);
+      return;
+    }
+    // ⭐ An authored ship's room that loaded after her warren adopted her
+    // rooms (harbors B4): somebody came aboard, so it joins her now —
+    // `maintain` and the bilge well find her through it.
+    void this.joinShip();
+  }
+
+  /** Ask the ship this room is a room of to adopt it (an authored ship's warren adopts on read). */
+  private async joinShip(): Promise<void> {
+    try {
+      const path = this.getDurableHandle() ?? this.getTemplatePath() ?? '';
+      const ship = path === '' ? null : await NavigationApi.structureAt(path);
+      if (!(ship instanceof Ship)) return;
+      await (await ship.standWarren())?.adoptResident();
+    } catch (err) {
+      console.warn(`Compartment: ${this.getTemplatePath()} could not join her ship:`, err);
+    }
   }
 }

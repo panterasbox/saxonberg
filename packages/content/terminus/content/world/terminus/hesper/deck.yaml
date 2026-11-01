@@ -22,6 +22,8 @@ data:
     - /world/terminus/hesper/thing/helm
     - /world/terminus/hesper/thing/rigging
     - /world/terminus/hesper/thing/pump
+    # ⭐ Sounding the well (harbors P19): `measure bilge`.
+    - /platform/thing/sounding-rod
     - /system/water/thing/lead-line
     - /stuff/thing/instrument/sextant
     - /stuff/thing/instrument/hand-compass

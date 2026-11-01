@@ -58,9 +58,14 @@ import type { ShareHolder } from '../../api/ship-register';
 import { BoundaryApi } from '../../api/boundary';
 import { GovernmentApi } from '../../api/government';
 import { Lock } from '../../lib/lock/Lock';
+import { CallSecurity } from '../../lib/security/decorators';
+import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { MarkupAugmenter } from '../../api/mml';
 import Flag from '../thing/Flag';
 import Flagstaff from '../thing/Flagstaff';
+import { AppApi } from '../../api/app';
+import { CompetenceBand, type CompetenceBandName } from '../../lib/advancement/CompetenceBand';
+import type { Difficulty } from '../../lib/advancement/ActSignature';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -148,6 +153,42 @@ export interface BarClearance {
   nextHighS: number | null;
 }
 
+/**
+ * ⭐ What a hull lets in by her shell's band (harbors P19, grain): litres
+ * a second per meter of her length, each a setting (`ship.leak.<band>`).
+ * A sound hull is tight; a worn one weeps at every seam.
+ */
+const LEAK_LPS_PER_M: Record<string, number> = {
+  sound: 0,
+  weathered: 0.002,
+  worn: 0.02,
+  shabby: 0.08,
+  dilapidated: 0.2,
+};
+
+/** What a hole lets in on top of her seams, L/s per meter (`ship.leak.holed`, grain). */
+const HOLED_LPS_PER_M = 0.25;
+
+/** The share of her hull's box that is hull (a block coefficient, as `hullNow` uses). */
+const BLOCK = 0.7;
+
+/** One bilge pump's throughput, L/s — what a sounding tells an expert she out-runs. */
+const ONE_PUMP_LPS = 0.6;
+
+/** The bilge she has as it stands now (harbors P19), for a reading. */
+export interface BilgeState {
+  /** Litres in her bilge. */
+  litres: number;
+  /** The water's height above her keel, m. */
+  heightM: number;
+  /** Her hull's depth, keel to deck, m. */
+  depthM: number;
+  /** What is coming in, L/s, now. */
+  leakLps: number;
+  /** Her shell's band now (the hull clock). */
+  band: string;
+}
+
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
 export default class Ship extends PersistableMixin(
@@ -168,6 +209,8 @@ export default class Ship extends PersistableMixin(
     owed: { persistent: true },
     charter: { persistent: true },
     warren: { persistent: true, authorable: true, ref: 'identity:relation' },
+    bilgeL: { persistent: true },
+    bilgeStamp: { persistent: true },
   };
 
   /**
@@ -221,7 +264,223 @@ export default class Ship extends PersistableMixin(
   public isAground(): boolean { return this.aground; }
   public isHoled(): boolean { return this.holed; }
   public setAground(v: boolean): void { this.aground = v === true; }
-  public setHoled(v: boolean): void { this.holed = v === true; }
+  public setHoled(v: boolean): void {
+    // ⭐ The water that came in before the hole (or before it was patched)
+    // came in at the old rate: integrate up to now first (P19).
+    this.integrateBilge(WorldClockApi.getNow().rawValue());
+    this.holed = v === true;
+  }
+
+  /* ───────────── the hull clock and the bilge (harbors P19, B4) ───────────── */
+
+  /** ⭐ Litres in her bilge as of `bilgeStamp` (P19). */
+  protected bilgeL = 0;
+  /** Game-seconds her bilge was last reconciled at; `0` = never. */
+  protected bilgeStamp = 0;
+
+  /**
+   * ⭐ Her hull's band (P19) — her warren's shell, on the house's clock and
+   * the house's rate: `sound · weathered · worn · shabby · dilapidated`.
+   * Read live, so `maintain` aboard makes her sound at once.
+   */
+  public async hullBand(): Promise<string> {
+    const w = await this.standWarren();
+    return w === null ? 'sound' : w.conditionBand();
+  }
+
+  /** ⭐ What is coming in now, L/s (P19): her band's rate by her length, and a hole's. */
+  public async leakLps(): Promise<number> {
+    return this.leakLpsFor(await this.hullBand());
+  }
+
+  /** The leak a hull of her length takes in a given band, L/s (with her hole, if holed). */
+  public leakLpsFor(band: string): number {
+    const length = this.hull?.lengthM ?? 30;
+    const perM = shipSetting(`ship.leak.${band}`, LEAK_LPS_PER_M[band] ?? 0);
+    const hole = this.holed ? shipSetting('ship.leak.holed', HOLED_LPS_PER_M) : 0;
+    return length * (perM + hole);
+  }
+
+  /** Her hull's depth, keel to deck, m — the measured `depthM`, else twice her draft. */
+  public hullDepthM(): number {
+    const h = this.hull;
+    if (h?.depthM !== undefined && h.depthM > 0) return h.depthM;
+    return 2 * (h?.draftM ?? 1.2);
+  }
+
+  /** What her hull holds to the deck, L — past it, she has no more to give. */
+  public bilgeCapacityL(): number {
+    const h = this.hull ?? { draftM: 1.2, beamM: 6, lengthM: 30 };
+    return h.lengthM * h.beamM * BLOCK * this.hullDepthM() * 1000;
+  }
+
+  /** Litres in her bilge as last reconciled (sync — a reading reconciles first). */
+  public bilgeNowL(): number {
+    return this.bilgeL;
+  }
+
+  /** The water's height above her keel as last reconciled, m. */
+  public bilgeHeightNowM(): number {
+    const h = this.hull ?? { draftM: 1.2, beamM: 6, lengthM: 30 };
+    return this.bilgeL / (h.lengthM * h.beamM * BLOCK * 1000);
+  }
+
+  /**
+   * ⭐ Bring her bilge up to now (P19): the leak integrated over her shell's
+   * LINE since the bilge's stamp — band by band, never sampled, so a long
+   * absence fills her at every rate she weathered through. Her warren asks
+   * this before it reconciles or restores her shell (`ShipWarren`), so the
+   * stamp never falls behind the shell's. Returns her litres.
+   */
+  public async reconcileBilge(): Promise<number> {
+    const w = await this.standWarren();
+    if (w !== null) w.reconcileShell(); // integrates the bilge first
+    else this.integrateBilge(WorldClockApi.getNow().rawValue());
+    return this.bilgeL;
+  }
+
+  /**
+   * The integral itself, sync, over the standing warren's shell line. With
+   * no warren standing she cannot know her band, and the stamp is left
+   * where it was (the next reconcile covers the gap). `@internal`-shaped:
+   * her warren calls it; nothing else needs to.
+   */
+  public integrateBilge(nowS: number): void {
+    const from = this.bilgeStamp;
+    if (from <= 0) {
+      this.bilgeStamp = nowS;
+      this.persistMooring();
+      return;
+    }
+    if (!(nowS > from)) return;
+    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    if (w === null && this.isOfKind()) return;
+    let litres = 0;
+    if (w === null) {
+      // An authored ship whose rooms have not stood yet: her shell has never
+      // been read, so it is as it was authored — sound.
+      litres = this.leakLpsFor('sound') * (nowS - from);
+    } else {
+      const line = w.shellTrajectory();
+      const k = line.perSecond;
+      const at = (t: number): number =>
+        line.stampS <= 0 || !(k > 0)
+          ? line.condition
+          : Math.min(1, Math.max(0, line.condition - k * (t - line.stampS)));
+      // Where each band begins on the line, inside the span.
+      const cuts = [from, nowS];
+      if (line.stampS > 0 && k > 0) {
+        for (const [floor] of w.bandFloors()) {
+          if (floor <= 0) continue;
+          const t = line.stampS + (line.condition - floor) / k;
+          if (t > from && t < nowS) cuts.push(t);
+        }
+      }
+      cuts.sort((a, b) => a - b);
+      for (let i = 0; i + 1 < cuts.length; i += 1) {
+        const a = cuts[i]!;
+        const b = cuts[i + 1]!;
+        if (!(b > a)) continue;
+        litres += this.leakLpsFor(w.bandFor(at((a + b) / 2))) * (b - a);
+      }
+    }
+    this.bilgeL = Math.min(this.bilgeCapacityL(), this.bilgeL + litres);
+    this.bilgeStamp = nowS;
+  }
+
+  /**
+   * ⭐ Pump her (P19): up to `litres` out of her bilge and over the side —
+   * the bilge well's lift. Returns what came out; refuses nothing (an
+   * empty bilge gives nothing back).
+   */
+  public async pumpOut(litres: number): Promise<number> {
+    await this.reconcileBilge();
+    const moved = Math.min(Math.max(0, Number(litres) || 0), this.bilgeL);
+    if (!(moved > 0)) return 0;
+    this.bilgeL -= moved;
+    this.persistMooring();
+    return moved;
+  }
+
+  /**
+   * ⭐ Stage her bilge (harbors P25): `litres` in her as of `stampS` — the
+   * staged twin of a bilge that filled there. A test world's staging only.
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
+  public stageBilge(litres: number, stampS: number): void {
+    this.bilgeL = Math.min(this.bilgeCapacityL(), Math.max(0, Number(litres) || 0));
+    this.bilgeStamp = Math.max(0, Number(stampS) || 0);
+    this.persistMooring();
+  }
+
+  /** ⭐ Her bilge now (P19), reconciled — what a sounding reads. */
+  public async bilgeState(): Promise<BilgeState> {
+    await this.reconcileBilge();
+    const band = await this.hullBand();
+    return {
+      litres: this.bilgeL,
+      heightM: this.bilgeHeightNowM(),
+      depthM: this.hullDepthM(),
+      leakLps: this.leakLpsFor(band),
+      band,
+    };
+  }
+
+  /**
+   * ⭐ Her bilge in words (P19), as a sounding finds it — banded by the
+   * reader's seamanship: everybody hears how deep and whether it is
+   * rising; a novice how fast; an expert whether one pump would gain on
+   * it. Never a number (the reading adds the bracketed figure).
+   */
+  public async bilgeWords(band: CompetenceBandName): Promise<string> {
+    const st = await this.bilgeState();
+    const h = st.heightM;
+    const level =
+      st.litres < 5
+        ? 'Her well is dry.'
+        : h < 0.05
+          ? 'There is a little water sloshing at the bottom of her well.'
+          : h < 0.15
+            ? "There is a hand's depth of water in her bilge."
+            : h < 0.5
+              ? 'There is water knee-deep in her bilge.'
+              : h < 1
+                ? 'There is water waist-deep in her bilge.'
+                : st.heightM < st.depthM * 0.9
+                  ? 'Her bilge is deep in water — deeper than a man could stand in.'
+                  : 'She is full of water almost to her deck.';
+    if (!(st.leakLps > 0)) return `${level} It is not rising.`;
+    const rank = CompetenceBand.rank(band);
+    if (rank < CompetenceBand.rank('novice')) return `${level} It is rising.`;
+    const rate =
+      st.leakLps < 0.05
+        ? 'It is rising slowly — she weeps at her seams.'
+        : st.leakLps < 0.3
+          ? 'It is rising steadily; she is making water at her seams.'
+          : 'It is rising fast.';
+    if (rank < CompetenceBand.rank('expert')) return `${level} ${rate}`;
+    const pump =
+      st.leakLps < ONE_PUMP_LPS
+        ? 'One pump kept at the brake would gain on it.'
+        : 'One pump at the brake would not keep up with it.';
+    return `${level} ${rate} ${pump}`;
+  }
+
+  /**
+   * ⭐ Credit those handling her with seamanship (P24): whoever aboard may
+   * take her helm — her master, her charterer — for mooring, casting off,
+   * and bringing her to the node she was laid for.
+   */
+  private async creditHands(difficulty: Difficulty): Promise<void> {
+    try {
+      for (const who of await this.aboard()) {
+        if (!this.mayBeSteeredBy(who) || !MixinApi.isAdvancing(who)) continue;
+        await who.creditDeed({ discipline: 'seamanship', difficulty, outcome: 'success' });
+      }
+    } catch (err) {
+      console.warn(`Ship: seamanship was not credited aboard ${this.getDurableHandle()}:`, err);
+    }
+  }
 
   /** An observer's eye height on deck, meters. */
   protected deckHeightM = 0;
@@ -792,6 +1051,9 @@ export default class Ship extends PersistableMixin(
       await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
       ended = this.endCharter();
     }
+    // ⭐ Bringing her alongside and making fast is seamanship (P24) — for
+    // whoever aboard has her helm.
+    await this.creditHands('standard');
     const made = fast === 1
       ? 'A line goes ashore and is made fast round the bollard.'
       : 'Her lines go ashore and are made fast round the bollards.';
@@ -956,7 +1218,12 @@ export default class Ship extends PersistableMixin(
    * authored attaches a kind's ship to a sea (P3).
    */
   private async standKind(): Promise<void> {
-    if (!this.isOfKind()) return;
+    // ⭐ An authored ship's warren stands with her too (B4): her hull's clock
+    // is its shell, and her rooms that stand now join it.
+    if (!this.isOfKind()) {
+      await this.standWarren();
+      return;
+    }
     this._sleeping = false;
     await this.standWarren();
     // Her company stands with her once she has one (commissioned: her house is hers by serial).
@@ -1187,7 +1454,10 @@ export default class Ship extends PersistableMixin(
     this.weighedKg = await this.cargoKg();
     const started = await super.steer(req);
     // ⭐ Under way from a berth: her lines come in and the way aboard goes (P5).
-    if (!('refused' in started) && this.moored) await this.castOff();
+    if (!('refused' in started) && this.moored) {
+      await this.castOff();
+      await this.creditHands('easy'); // casting off is seamanship (P24)
+    }
     return started;
   }
 
@@ -1205,6 +1475,8 @@ export default class Ship extends PersistableMixin(
     if (stop.reason === 'arrived' && stop.landing) {
       return `${stop.words} ${await this.arriveAlongside(stop.landing)}`.trim();
     }
+    // ⭐ The node she was laid for, raised (P24): seamanship to whoever has her helm.
+    if (stop.reason === 'arrived') await this.creditHands('standard');
     if (stop.reason === 'mouth') {
       const frame = await this.liveFrame();
       const sea = frame !== null && MixinApi.isLineFrame(frame) ? frame.mouthOnSea() : null;
@@ -1274,4 +1546,16 @@ function flagAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   const name = polity ? GovernmentApi.getGovernment(polity)?.name ?? polity : flag.getPresentation();
   const line = polity ? `She flies the colors of ${name}.` : `She flies ${name}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/** A numeric setting, else the shipped grain (the `FloorplanWarren` read). */
+function shipSetting(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    const n = Number.parseFloat(raw);
+    if (Number.isFinite(n) && n >= 0) return n;
+  } catch {
+    // a cold cache or an unregistered key — the shipped grain
+  }
+  return fallback;
 }

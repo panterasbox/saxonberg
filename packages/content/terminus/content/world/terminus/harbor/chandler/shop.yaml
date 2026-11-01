@@ -1,0 +1,36 @@
+# The ship chandler (harbors B4) — Hobb's, at the corner of the Town Quay:
+# what a ship consumes. ⭐ The caulker's kit is how a hull is kept tight
+# (`maintain` aboard); the mooring line is how she is made fast; oakum and
+# pitch are what caulking uses up. Lens 6: caulking and mooring make the
+# demand, and this is the counter it is met at.
+class: /platform/location/Locale
+data:
+  shortDescription: ship chandler's
+  keywords: [chandler, "ship chandler", chandlery, "chandler's", shop, "hobb's"]
+  register: definite
+  _address: terminus/city/harbor/chandler/shop
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A low shop that smells of tar and hemp, its ceiling hung with coils of line and its floor crowded with casks. Bundles of oakum are stacked along one wall like brown fleeces, and a rack by the door holds caulking irons, mallets and ladles. A counter runs across the back with a scale on it.
+
+    The Town Quay is out the door, northeast.
+  coords: { x: -1, y: -1, z: 0 }
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  props:
+    - /world/terminus/harbor/chandler/thing/counter
+  cast:
+    - /world/terminus/harbor/chandler/agent/chandler
+  details:
+    casks:
+      keywords: [casks, cask, pitch, tar]
+      description: |
+        Small casks of pitch with their heads knocked in, the pitch gone hard and glossy, and one of Stockholm tar with a spigot.
+    coils:
+      keywords: [coils, coil, line, lines, ceiling]
+      description: |
+        Coils of hemp line hung from hooks in the beams, the thick ones at the back — hawsers and mooring lines — the thin ones by the window.
+  exits:
+    northeast:
+      destination: /world/terminus/harbor/town-quay
+      media: [ground]

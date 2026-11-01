@@ -200,4 +200,34 @@ describe('the line’s regulars (harbors A2)', () => {
     }
     expect(entry('ostrander').shares[0]!.holder.path).toBe('/world/terminus/budget');
   });
+  it('⭐ the chandler sells the caulker\'s kit and mooring line, off the Town Quay (B4)', () => {
+    const counter = data('/world/terminus/harbor/chandler/thing/counter') as {
+      businessPath: string;
+      stockLines: Array<{ itemTemplatePath: string }>;
+      prices: Record<string, number>;
+    };
+    const lines = counter.stockLines.map((l) => l.itemTemplatePath);
+    expect(lines).toEqual(expect.arrayContaining(['/stuff/thing/caulkers-kit', '/platform/thing/mooring-line', '/stuff/thing/oakum', '/stuff/thing/pitch-cask']));
+    for (const l of lines) expect(counter.prices[l]).toBeGreaterThan(0);
+    expect((data(counter.businessPath) as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/chandler/thing/counter');
+    // The kit is the householder's kit by another name: the same class, the upkeep capability.
+    const kit = rowAt('/stuff/thing/caulkers-kit');
+    expect(kit.class).toBe('/system/residence/thing/HouseholdersKit');
+    expect((kit.data as { capabilities: Array<{ kind: string }> }).capabilities[0]!.kind).toBe('upkeep');
+    const town = data(TOWN) as { exits: Record<string, { destination: string }> };
+    expect(town.exits.southwest!.destination).toBe('/world/terminus/harbor/chandler/shop');
+    const shop = data('/world/terminus/harbor/chandler/shop') as { exits: Record<string, { destination: string }> };
+    expect(shop.exits.northeast!.destination).toBe(TOWN);
+  });
+
+  it('⭐ every ship has a pump well with its pump, and a rod to sound it (B4, P19)', () => {
+    expect(rowAt('/world/terminus/hesper/thing/pump').class).toBe('/platform/thing/BilgeWell');
+    expect(rowAt('/stuff/thing/bilge-well').class).toBe('/platform/thing/BilgeWell');
+    expect((data('/stuff/thing/bilge-well') as { props: string[] }).props).toContain('/stuff/thing/bilge-pump');
+    expect((data('/world/terminus/hesper/thing/pump') as { props: string[] }).props).toContain('/stuff/thing/bilge-pump');
+    expect(rowAt('/stuff/thing/bilge-pump').class).toBe('/platform/thing/Pump');
+    for (const deck of ['/world/terminus/hesper/deck', '/stuff/location/ship/smack/deck', '/world/terminus/harbor/ships/ketch/deck', '/world/terminus/harbor/ships/coaster/deck']) {
+      expect((data(deck) as { props: unknown[] }).props, deck).toContain('/platform/thing/sounding-rod');
+    }
+  });
 });

@@ -25,7 +25,12 @@ help: |
   `testharness ship <ship path> at node:<path>` puts a ship lying at a
   sea's node (or `at <frame path> <cite>`, a citation on a frame), cast
   off and with no course — the staged twin of sailing her there. Her
-  rooms, and everyone in them, go with her.
+  rooms, and everyone in them, go with her. `hull <band>` puts her hull
+  in a band (sound, weathered, worn, shabby, dilapidated), `bilge <L>`
+  her bilge at so many litres, and `slept <days>` has her lie that long
+  unattended — her bilge fills over every band her hull passed through
+  (with `hull`, the band she reads after it). Options in any order; an
+  `at <frame> <cite>` goes last.
 
   The same rules as the wire harness's routes — one implementation
   (TestHarnessApi) behind both.
@@ -38,6 +43,8 @@ examples:
     note: Release a pin somewhere else
   - cmd: testharness ship /world/terminus/hesper/structure at node:/stuff/idea/WaterExpanse/greywater/bar
     note: Stage the Hesper lying off the bar
+  - cmd: testharness ship /world/terminus/hesper/structure hull worn slept 0.25
+    note: Stage her hull worn, six hours' water in her bilge
 validators:
   - /lib/command/validators/requiresWizard
   - /lib/command/validators/requiresTestWorld
@@ -70,7 +77,7 @@ subcommands:
         type: string
         required: false
   ship:
-    description: "Stage a ship: `ship <ship path> at node:<path>` or `at <frame> <cite>`"
+    description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>]`"
     args:
       - name: op
         type: string

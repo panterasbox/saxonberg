@@ -1,0 +1,20 @@
+# A pitch cask (harbors B4) — a small cask of pitch, set hard, that a
+# caulker breaks into and melts to pay over a seam.
+#
+# ⭐ Pitch is the end of the shortest chain in the game (wood → tar →
+# pitch); this is the chandler's stock of it. A cask with the pitch IN it
+# (bulk), so what is bought is the stuff, not a word.
+class: /platform/thing/Receptacle
+data:
+  shortDescription: pitch cask
+  keywords: [cask, "pitch cask", pitch, keg]
+  register: indefinite
+  longDescription: >-
+    A small cask with its head knocked in, full to within a hand of the rim
+    with black pitch gone hard and glossy as it cooled.
+  _materialPath: /stuff/idea/material/wood/oak
+  interiorBulk: true
+  interiorCapacity: 20
+  interiorMaterial: /stuff/idea/material/bulk/pitch
+  interiorAmount: 18
+  mass: 6

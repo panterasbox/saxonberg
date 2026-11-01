@@ -1,0 +1,23 @@
+# ship — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing — an operator's `config` change is never touched).
+#
+# ⭐ What a hull lets in (harbors P19), by her shell's band — the house's
+# clock and the house's rate (`residence.weather.daysToWorn`), read as
+# WATER: litres a second per meter of her length. A smack (9 m) worn takes
+# in ~0.18 L/s, about 650 L an hour — a quarter of an hour at one bilge
+# pump keeps an hour's leak out. These are the grain an author may change.
+# See docs/subsystems/ship.md.
+settings:
+  - key: ship.leak.sound
+    value: "0"
+  - key: ship.leak.weathered
+    value: "0.002"
+  - key: ship.leak.worn
+    value: "0.02"
+  - key: ship.leak.shabby
+    value: "0.08"
+  - key: ship.leak.dilapidated
+    value: "0.2"
+  # A hole (a snag, a grounding) on top of her seams, L/s per meter.
+  - key: ship.leak.holed
+    value: "0.25"

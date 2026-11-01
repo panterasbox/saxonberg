@@ -25,7 +25,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { TestHarnessApi } from '../../../../api/test-harness';
+import { TestHarnessApi, type ShipStageSpec } from '../../../../api/test-harness';
 import { WeatherApi } from '../../../../api/weather';
 import { CelestialApi } from '../../../../api/celestial';
 import { MixinApi } from '../../../../api/mixin';
@@ -167,27 +167,41 @@ export default class TestHarnessController extends CommandController<TestHarness
   }
 
   /**
-   * `testharness ship <ship> at node:<path>` / `… at <frame> <cite>`
-   * (harbors P25): the ship by her row path (the subcommand's first word,
-   * `op`), staged where the drive needs her.
+   * `testharness ship <ship> [at node:<path> | at <frame> <cite>] [hull
+   * <band>] [bilge <L>] [slept <days>]` (harbors P25, B4): the ship by her
+   * row path or handle (the subcommand's first word, `op`), staged where
+   * and as the drive needs her. Options in any order; a frame citation
+   * (`at <frame> <cite>`) takes the rest of the line, so it goes last.
    */
   private async ship(model: TestHarnessModel, context: CommandContext): Promise<void> {
     const usage =
-      'testharness ship <ship path> at node:<path> — or at <frame path> <cite>.';
+      'testharness ship <ship> [at node:<path> | at <frame path> <cite>] [hull <band>] [bilge <L>] [slept <days>].';
     const handle = model.op;
-    const verb = model.value;
-    const where = model.cite ?? '';
-    if (!handle || verb !== 'at' || where === '') {
-      return this.refuse(context, TOPIC, usage, 'test-usage');
+    const words = [model.value ?? '', ...(model.cite ?? '').trim().split(/\s+/)].filter((w) => w !== '');
+    if (!handle || words.length === 0) return this.refuse(context, TOPIC, usage, 'test-usage');
+    const spec: ShipStageSpec = {};
+    for (let i = 0; i < words.length; ) {
+      const key = words[i]!;
+      const next = words[i + 1];
+      if (next === undefined) return this.refuse(context, TOPIC, usage, 'test-usage');
+      if (key === 'at') {
+        if (next.startsWith('node:')) {
+          spec.at = { node: next.slice('node:'.length) };
+          i += 2;
+          continue;
+        }
+        const cite = words.slice(i + 2).join(' ');
+        if (cite === '') return this.refuse(context, TOPIC, usage, 'test-usage');
+        spec.at = { frame: next, cite };
+        break;
+      }
+      if (key === 'hull') spec.hull = next;
+      else if (key === 'bilge') spec.bilgeL = Number(next);
+      else if (key === 'slept') spec.sleptDays = Number(next);
+      else return this.refuse(context, TOPIC, usage, 'test-usage');
+      i += 2;
     }
-    const [first, ...rest] = where.trim().split(/\s+/);
-    const at = first!.startsWith('node:')
-      ? { node: first!.slice('node:'.length) }
-      : rest.length > 0
-        ? { frame: first!, cite: rest.join(' ') }
-        : null;
-    if (at === null) return this.refuse(context, TOPIC, usage, 'test-usage');
-    const r = await TestHarnessApi.stageShip(handle, { at });
+    const r = await TestHarnessApi.stageShip(handle, spec);
     this.say(context, `${r.ship} lies staged on ${r.frame}.`);
   }
 

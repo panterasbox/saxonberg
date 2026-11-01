@@ -1,0 +1,30 @@
+# The chandler's counter (harbors B4) — the caulker's kit, mooring line,
+# oakum and pitch. ⭐ Priced against the shipped wage (P28, grain): the
+# harbor works pays 4 an hour; a kit is about three hours' (the general
+# store's householder's kit is 9 — a caulker's irons cost a little more),
+# a mooring line five (thirty meters of wrist-thick hemp; the ropewalk's
+# fifty of lighter rope is 25 at the walk, and the chandler takes his cut).
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: chandler's counter
+  keywords: [counter, "chandler's counter", scale]
+  register: definite
+  longDescription: |
+    A long counter worn pale in the middle, a beam scale at one end and a ledger at the other, with a chalked board of prices on the wall behind it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 70
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [chandler]
+  businessPath: /world/terminus/harbor/chandler/idea/business
+  stockLines:
+    - { itemTemplatePath: /stuff/thing/caulkers-kit, par: 3 }
+    - { itemTemplatePath: /platform/thing/mooring-line, par: 4 }
+    - { itemTemplatePath: /stuff/thing/oakum, par: 10 }
+    - { itemTemplatePath: /stuff/thing/pitch-cask, par: 4 }
+  prices:
+    /stuff/thing/caulkers-kit: 12
+    /platform/thing/mooring-line: 20
+    /stuff/thing/oakum: 2
+    /stuff/thing/pitch-cask: 8
