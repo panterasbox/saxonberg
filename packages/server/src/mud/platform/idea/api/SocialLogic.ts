@@ -522,7 +522,11 @@ function wornFeatureOf(occ: Stuff): string | null {
  * activity-status affix ("…, watching the empty road").
  */
 function nameMml(_viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
-  return Mml.actor(occ, { form: 'presence', ...(color ? { color } : {}) });
+  const name = Mml.actor(occ, { form: 'presence', ...(color ? { color } : {}) });
+  // ⭐ "Mara, seated on a bar stool" — the seat is its own link (owner,
+  // 2026-11-01). Read from the body's real posture, never authored.
+  const rest = MixinApi.isPosed(occ) ? occ.currentRest() : null;
+  return rest ? Mml.compose`${name}, ${rest.phrase} ${Mml.thing(rest.host)}` : name;
 }
 
 /**

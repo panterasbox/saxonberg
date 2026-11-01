@@ -126,7 +126,22 @@ export interface Posed {
     host: Stuff & Slotted;
     slot: string;
   } | null;
+  /**
+   * ⭐ What this body is resting ON, in words a roll-call reads — *"seated
+   * on"* + the seat — or null when it rests on nothing (standing, or on
+   * the ground with no host). The seat is returned as itself so a surface
+   * can name it as its own clickable thing.
+   */
+  currentRest(): { phrase: string; host: Stuff & Slotted } | null;
 }
+
+/** How a roll-call says each posture's resting relation. */
+const REST_PHRASE: Readonly<Record<string, string>> = {
+  sit: 'seated on',
+  lie: 'lying on',
+  kneel: 'kneeling on',
+  mounted: 'mounted on',
+};
 
 export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
   // Declared-then-returned (the Meltable shape) so method decorators
@@ -366,6 +381,15 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const actor = this as unknown as Stuff;
       if (!MixinApi.isSlottable(actor)) return null;
       return findPostureBearingSlot(actor);
+    }
+
+    /** See {@link Posed.currentRest}. */
+    public currentRest(): { phrase: string; host: Stuff & Slotted } | null {
+      const at = this.currentPostureBearingSlot();
+      if (!at) return null;
+      const posture = this.getPosture();
+      const phrase = REST_PHRASE[posture] ?? `${posture} on`;
+      return { phrase, host: at.host };
     }
 
   }

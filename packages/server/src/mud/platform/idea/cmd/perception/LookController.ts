@@ -33,6 +33,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
+import { Postures } from '../../../../lib/slot/Postured';
 import { StuffApi } from '../../../../api/stuff';
 import { ChattelApi } from '../../../../api/chattel';
 import { ContainmentApi } from '../../../../api/containment';
@@ -380,7 +381,16 @@ export default class LookController extends CommandController<LookModel> {
         // and returns a Mml already resolved for `actor` — the single known
         // viewer of this `toSelf` render.
         const occupants = topLevel.filter((item) => MixinApi.isOrganism(item));
-        const items = topLevel.filter((item) => !MixinApi.isOrganism(item));
+        // ⭐ A seat somebody is sitting on is named in THEIR line
+        // ("Mara, seated on a bar stool"); only the empty ones are things
+        // here, so "+5 more" counts the stools you could take.
+        const seats = new Set(
+          occupants.flatMap((o) => {
+            const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
+            return rest ? [rest.host.stuffId] : [];
+          }),
+        );
+        const items = topLevel.filter((item) => !MixinApi.isOrganism(item) && !seats.has(item.stuffId));
         /*
          * ⭐ PEOPLE and THINGS are two lines (owner, 2026-11-01): the bar's
          * one "You also see" ran five people into thirteen fixtures. Who is
@@ -403,7 +413,7 @@ export default class LookController extends CommandController<LookModel> {
             heading: 'Here',
             sources: [lookSource('Here')],
             text: this.render(Mml.compose`── Here: ${who}.`, actor),
-            items: occupants.map((o) => this.itemOf(o, actor)),
+            items: occupants.map((o) => this.personOf(o, actor)),
           });
         }
         if (items.length > 0) {
@@ -855,6 +865,21 @@ export default class LookController extends CommandController<LookModel> {
   }
 
   /**
+   * A person's chip: their name, their status line, and what they rest on
+   * — the seat as its own chip, so both stay clickable.
+   */
+  private personOf(o: Stuff, actor: Stuff): SegmentItem {
+    const item = this.itemOf(o, actor);
+    const status = MixinApi.isStatus(o) ? o.getStatus() : '';
+    const rest = MixinApi.isPosed(o) ? o.currentRest() : null;
+    return {
+      ...item,
+      ...(status ? { status } : {}),
+      ...(rest ? { seat: { posture: rest.phrase, on: this.itemOf(rest.host, actor) } } : {}),
+    };
+  }
+
+  /**
    * ⭐ Identical things in a list GROUP (client-surface D2, #71/#76): the
    * same row, holding the same matter, is one entry — "a bottle of gin
    * +5 more" — carrying its members so the card expands it in place. A
@@ -917,7 +942,12 @@ export default class LookController extends CommandController<LookModel> {
     }
     if (MixinApi.isPosed(target)) {
       const posture = target.getPosture();
-      if (posture && posture !== 'standing') parts.push(posture);
+      // ⚠ The stored value is the VERB form (`Postures.Stand` = 'stand'):
+      // comparing to 'standing' never matched, and every person card said
+      // "Now: stand." A resting body says what it rests on instead.
+      const rest = target.currentRest();
+      if (rest) parts.push(`${rest.phrase} ${rest.host.getPresentation()}`);
+      else if (posture && posture !== Postures.Stand) parts.push(posture);
     }
     if (MixinApi.isEngaged(target)) {
       // The engagement's type is its activity, written as words.

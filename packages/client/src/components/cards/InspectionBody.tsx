@@ -310,6 +310,22 @@ function ItemChips({
             </Toggle>
             {openGroup === item.stuffId ? item.members.map((m) => chip(m, true)) : null}
           </React.Fragment>
+        ) : item.status || item.seat ? (
+          /*
+           * ⭐ A person reads as one phrase: "Remy, behind the bar" (their
+           * status) · "Mara, seated on a bar stool" (their posture) — and
+           * the seat is its own chip, so both stay clickable.
+           */
+          <Person key={item.stuffId} data-testid="segment-person">
+            {chip(item)}
+            {item.status ? <span>, {item.status}</span> : null}
+            {item.seat ? (
+              <>
+                <span>, {item.seat.posture} </span>
+                {chip(item.seat.on)}
+              </>
+            ) : null}
+          </Person>
         ) : (
           chip(item)
         ),
@@ -317,6 +333,14 @@ function ItemChips({
     </ChipRow>
   );
 }
+
+const Person = styled.span`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  color: ${tokens.color.fgMuted};
+  font-size: ${tokens.font.small};
+`;
 
 function SourcePopover({
   source,

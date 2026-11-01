@@ -1434,6 +1434,13 @@ export interface SegmentItem {
   keyword: string;
   count: number;
   members?: SegmentItem[];
+  /** A person's status line ("behind the bar"), read beside their name. */
+  status?: string;
+  /**
+   * ⭐ What a person is resting on — "seated on" + the seat, which is its
+   * own clickable thing ("*Mara*, seated on *a bar stool*").
+   */
+  seat?: { posture: string; on: SegmentItem };
 }
 
 /**

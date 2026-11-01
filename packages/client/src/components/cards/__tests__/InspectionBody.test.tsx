@@ -59,6 +59,39 @@ describe("InspectionBody", () => {
     expect(text).toContain("rail.\n\nMostly");
   });
 
+  it("⭐ a person reads as one phrase, with the seat as its own chip", () => {
+    const sent: string[] = [];
+    const bar = {
+      ...PINT,
+      segments: [
+        {
+          shape: "list" as const,
+          heading: "Here",
+          sources: [{ kind: "look" as const, name: "Here" }],
+          text: "── Here: Mara, seated on a bar stool, Remy, behind the bar.",
+          items: [
+            {
+              stuffId: "mara",
+              label: "Mara",
+              keyword: "mara",
+              count: 1,
+              seat: { posture: "seated on", on: { stuffId: "stool-3", label: "a bar stool", keyword: "stool", count: 1 } },
+            },
+            { stuffId: "remy", label: "Remy", keyword: "remy", count: 1, status: "behind the bar" },
+          ],
+        },
+      ],
+    };
+    render(<InspectionBody card={bar} onSendCommand={(t) => sent.push(t)} />);
+    const people = screen.getAllByTestId("segment-person").map((p) => p.textContent);
+    expect(people).toEqual(["Mara, seated on a bar stool", "Remy, behind the bar"]);
+    // Both are links: the person and the seat.
+    const chips = screen.getAllByTestId("segment-chip").map((c) => c.textContent);
+    expect(chips).toEqual(["Mara", "a bar stool", "Remy"]);
+    fireEvent.click(screen.getAllByTestId("segment-chip")[1]!);
+    expect(sent).toEqual(["look stool"]);
+  });
+
   it("⭐ the gutter says who said it: solid for a mixin, dotted for a class", () => {
     render(<InspectionBody card={PINT} onSendCommand={noop} />);
     const stripes = screen.getAllByTestId("segment-stripe");
