@@ -264,3 +264,236 @@ Day-of-year matters, and staging is by clock jumps and wizard tools.
   tail)
 - [farming-slate](../slates/builds/farming-slate.md) ·
   [irrigation-slate](../slates/builds/irrigation-slate.md)
+
+---
+
+# Addendum — tracts and fields: how a farm is laid out (2026-10-31)
+
+**Kind:** feature · **Leads from:** content and kernel together. The first
+consumers are Quist's farm at Hearts Delight (re-expressed), a row of new
+farmsteads in the valley minted from the same layout, the campus farm,
+the dairy, and a Hinkley Hills lot.
+
+The owner, reviewing !480: *"if I buy a farm, does it come with the fields
+already fixed? or can I carve it up into my own field content"*, and
+*"we don't want every content author making up their own system for
+modelling field makeup, and this should be consistent whether the content
+is authored or something done at runtime like Hinkley Hills."* The
+conversation that followed settled the model below. It replaces this
+build's "patch" with the owner's words: **the field is what you plant.**
+
+## What already exists
+
+- **Parcels** are title to an extent; everything whose path sits under a
+  parcel is within its perimeter. A parcel's ground is accounted: each
+  building is a child parcel whose own area is its footprint.
+- **Holdings** (the residence system): a holding's row carries a
+  **floorplan** (rooms, names, exits) that every copy mints as its own
+  keyed rooms. Hinkley Hills mints a house per lot this way. A holding's
+  room set is open to rooms added at runtime.
+- **`plot`** makes a 400 m² field room on ground you hold, through a hook
+  the residence system offers. Every plot is the same size and one piece.
+- **Fields today are rooms**, eleven of them authored: the bench, the
+  orchard close, the lower meadow, the hay meadow and the pasture at Hearts
+  Delight; the campus home field and back paddock; the Waponi cane pieces
+  and smallholdings; Rejection's goat pen. Six are hand-wired singletons.
+- **Patches** (this build) are named parts of a field's soil, written
+  only by an author.
+- **The farm archetype** (`trade-farming`) names what a working farm
+  needs: ground, water, storage, traction, groundwork, a way to market.
+  Reported, never enforced.
+- **The landing** (the painting build, not yet on master): a structure is
+  seen and worked from the open-air place its exits lead out to.
+
+Therefore what is genuinely new: **the tract** (a walkable piece of a
+parcel's open ground, sized as a share), **fields marked by the player**
+inside a tract, **farms as holdings with a farm layout** that can be
+copied (and mirrored) onto any parcel, and a tract seen from the places
+that lead into it.
+
+## Goals
+
+- **A farm is laid out one way, everywhere.** Authored or made at runtime,
+  a farm is a holding on a parcel: its buildings, and one or more tracts.
+  No author invents their own scheme.
+- **A tract is a place you walk to.** Its name, its exits and its share of
+  the farm's open ground come from the layout; its soil comes from where
+  that copy of the farm actually is.
+- **The field is what you plant, and the holder draws it.** Standing on a
+  tract, the holder marks fields on it (a name and a share), resizes them,
+  and removes them. Fields don't divide further.
+- **A farm layout can be copied.** The same layout minted on many parcels
+  gives each its own tracts with the same names, sized to that parcel and
+  grown on that parcel's ground; a layout may be mirrored.
+- **A tract is seen from where it is reached.** From the farmyard you can
+  look at the upper bench and read its fields, then walk up to work it.
+- **Grazing and grass belong to the field.** A herd grazes a field; a
+  pasture is a field of grass.
+- **The farm archetype can ask for fields.** "This is a farm" can be
+  queried for its tracts and fields; a farm of beds or pots is still a farm.
+
+## Non-goals
+
+- **Deriving rooms or paths from carving.** Tracts are authored rooms (or
+  added whole at runtime); fields are never rooms. Nowhere, deliberately.
+- **Fences, hedges and gates between fields as objects.** A field's
+  boundary is its marking; grazing respects it. → the field-population
+  slate (§ 8 already holds enclosure).
+- **Weeds and volunteers.** → `seed-and-propagation-slate.md`.
+- **The farm hand moving the barn's stock to the shelf.** →
+  `seed-and-propagation-slate.md`.
+- **Selling farmsteads beyond the one valley row this build stands up**
+  (a land office, a farm market). → `settlement-model.md`'s land markets.
+
+## Placement
+
+- **The farming trade** owns tracts, fields, the farm layout and the
+  verbs. **The residence system** owns holdings and floorplans and gains a
+  declared way for another trade to add a room to a holding (today's hook
+  is untyped).
+- **A second farm needs no code:** a layout row and a parcel.
+- **Hearts Delight** owns Quist's farm and its new farmsteads; the
+  **campus**, **Waponi** and **Rejection** keep their places, re-expressed.
+
+## Collisions
+
+- **Every authored field place changes kind** (eleven, above): each
+  becomes a tract, and its patches or its single crop become fields.
+- **Quist's farm has no parcel of its own** except the orchard close: it
+  gains one covering the farmstead, the bench, the close and the lower
+  meadow.
+- **The dairy** keeps its parcel; the pasture and hay meadow become its
+  tracts.
+- **The campus farm**: the home field and back paddock become its tracts;
+  the college herd grazes a field on one of them.
+- **Hinkley Hills lots**: `plot` adds a tract to the lot's holding instead
+  of a fixed field room.
+- **The cover and field-population drives** name patches; they are
+  reworded to fields. Their acts don't change.
+- **The painting build's landing**: the tract's must be the same rule,
+  whichever merges first.
+
+## Surface decisions
+
+### The words
+
+**Parcel** (title, area) · **farm** (a holding on a parcel) · **tract**
+(a walkable piece of its open ground) · **field** (what you plant, marked
+on a tract). "Patch" retires.
+
+### A tract's size is a share
+
+A layout gives each tract a share of the farm's open ground (the parcel's
+ground less what its buildings stand on), never square metres, so one
+layout fits any parcel. Runtime `plot` takes a share of what is left.
+
+### Fields start empty
+
+A new copy of a layout has tracts and no fields: every choice is the
+holder's. An author may pre-mark fields where the place is already being
+farmed when a player arrives (Quist's bench, the dairy's pasture, the
+campus fields) — a starting state the holder may re-mark. Lens 2 chose.
+
+### `plot` makes a tract; `mark` makes a field
+
+- **`plot [<name>] [as <share>]`** — standing on your holding, add a tract
+  off where you stand, from the open ground you have left. Refused past
+  the parcel's open ground, with what is left named.
+- **`mark <name> [as <share> of it]`** — standing on a tract you hold (or
+  work for its holder), mark, resize or name a field. Its soil is the
+  ground where it lies.
+- **Removing a field** returns its ground to the rest of the tract.
+- **A field with a crop standing can't be resized or removed** until it is
+  cut or grubbed — you can't move a boundary through standing wheat
+  (lens 3a chose).
+- Survey (`analyze soil`, `measure …`) works on a tract before any field
+  exists, and `at <field>` once one does.
+
+### A tract is seen from where you reach it
+
+The places whose exits lead into a tract can `look` at it: its fields in
+one line each, as the field read does today. You work a field only from
+its tract. The rule is the painting build's landing, applied to a piece
+of ground rather than a building.
+
+### Copies and mirroring
+
+A farm layout is minted per parcel like a Hinkley house: same names,
+its own rooms. A layout may be marked **mirrored** for a copy, flipping
+its compass (east ↔ west), so a row of farmsteads doesn't all face one way.
+
+### The farm archetype
+
+Its ground slot is satisfied by a tract with at least one field — or, as
+before, by cultivated beds. Still reported, never enforced.
+
+### What stands up in the world
+
+- **Quist's farm** becomes a copy of a farm layout on its own parcel: the
+  farmstead, barn and byre; tracts the upper bench (its three fields
+  pre-marked: the top end, the middle, the lane end), the orchard close
+  and the lower meadow.
+- **Four farmsteads in the valley**, minted from the same layout and
+  alternately mirrored, empty of fields, buyable with `title buy` like a
+  Hinkley lot.
+- **The dairy**, **the campus farm**, **Waponi's pieces** and
+  **Rejection's goat pen** re-expressed as tracts with their current
+  working fields pre-marked.
+
+## Lens pass
+
+1. **Pedagogy.** Laying out a farm is the lesson: survey first, mark where
+   the ground changes, keep enough fields to rotate (the yield work makes
+   rotation pay), keep stock off the crop. All of it derivable from the
+   ground the player reads.
+2. **Creative expression.** A farm layout is rows only; a second farm is a
+   copy; the holder owns the field layout. The author writes the starting
+   state, never the final one.
+3. **3a Immersion:** tracts are real places you walk up to. **3b
+   Participation:** a valley of empty farmsteads is a farm-shaped hole.
+4. **Values.** Nothing decided for the player: how to divide is theirs.
+5. **Continuity.** The same verbs at any epoch; a drill or a tractor
+   changes how much a field costs to work, not how fields are made.
+6. **Economy.** Farmsteads are land to buy; a farm's fields set what it
+   can grow, graze and rotate.
+7. **Governance.** Only the holder (or a hand on shift) marks a field;
+   title is the shipped parcel rule.
+
+## The drive (blocking, staged where it needs a season)
+
+1. A fresh character with funds buys a valley farmstead (`title buy`),
+   walks in, and finds its tracts named in the yard's exits.
+2. From the farmyard, `look upper bench` reads the tract: rough ground, no
+   fields yet.
+3. Walk up to the bench; `analyze soil` reads the tract before any field.
+4. `mark barley field as a third of it` — the reply names the field and
+   its share; `look` lists it.
+5. `mark wheat field as two-thirds of it`; a third `mark` past the whole
+   is refused, naming what is left.
+6. Sow the barley field with threshed grain; `mark barley field as half
+   of it` is refused while the crop stands.
+7. A second farmstead (mirrored) has its tracts on the opposite compass
+   point; its upper bench's soil reads differently from the first.
+8. At Quist's farm, the bench reads its three pre-marked fields exactly as
+   the field-population drive's bench steps do.
+9. On a Hinkley Hills lot, `plot back acre as a half` adds a tract you walk
+   into; `mark` works there as on a farmstead.
+10. The dairy herd grazes the pasture field; a field with a crop on the
+    same tract is not grazed.
+11. The farm archetype reports Quist's farm and a fresh farmstead: both
+    farms, and the fresh one lists tracts with no fields.
+
+## Acceptance criteria
+
+- Every farm in the world is a holding on a parcel, laid out the same way;
+  no field is a room.
+- A farmstead layout copied onto two parcels gives two farms with the same
+  tract names, different sizes in proportion, different soil, and (when
+  mirrored) the opposite compass.
+- A player who holds a farm marks, resizes and removes fields on its
+  tracts by player verbs, and is refused moving a boundary through a
+  standing crop.
+- From a place that leads into a tract, a player can read the tract's
+  fields without entering it; fields are worked only from their tract.
+- Herds graze a field, not a place.
+- The cover and field-population drives pass, reworded to fields.
