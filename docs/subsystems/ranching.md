@@ -226,14 +226,22 @@ stands on a field or eats nothing:
   drafted head) puts the herd's line on a field near the keeper and on
   its own home ground; the keeper is whoever holds that ground, or a hand
   on shift for the field's operator. A herdbook may author where its herd
-  STARTS (`grazing:`), applied once; after that `move` is the truth, and
-  `look herdbook` says where they are.
+  STARTS (`grazing:` the tract, `grazingField:` the field's key), applied
+  once; after that `move` is the truth, and `look herdbook` says where
+  they are.
+- ⭐ **A herd grazes a FIELD, not a place** (tracts build D34): the line
+  is written `<tract>#<fieldKey>` (the tract by its durable handle when
+  it is one keyed copy of a layout). `move <herd> to the far side` names
+  a field; naming a tract (or `here`) means its one field, or its one
+  field with no crop — else the tract's own *"Which field?"*. A field
+  with a crop is never grazed; a trough on the tract feeds any field's
+  herd, first come first served.
 - **Intake is the body's size**: `Species.dryMatterIntakeKgPerDay()` =
   `0.1 × adultMass^0.75` — a 550 kg cow about eleven kilograms of dry
   matter, a ewe two, a hen a sixth of one. The herd's demand is the tally
   times that, written into the field's ledger with the feeder kinds its
   species eats from.
-- **The field feeds it** — the sward first, then any trough on the field
+- **The field feeds it** — its sward first, then any trough on its tract
   of a kind it eats from, then the rick behind a trough
   ([soil.md](soil.md)). Each window closed (by `move`, by `draft`) is
   folded into the record's **fed history**: the share it got, how long,

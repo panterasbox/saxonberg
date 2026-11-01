@@ -398,10 +398,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     for (const field of ['the gate end', 'the middle']) {
       let said = '';
       for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, 'look at ' + field));
+        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
       }
       expect(said, field).toMatch(/ploughed for the season/i);
     }
+    // ⚠ `look at <field>` pins the focus on the field; a bare `look` would
+    // then read the field, not the tract. Back to the room.
+    await read(p, 'look here');
     await refused(p, 'plough at the gate end', 'already-ploughed');
   }, 1_200_000);
 
@@ -614,7 +617,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // first, as a player looking at it would (blocking run 1: the rick read
     // the same either side of the day).
     const RICK_KG =
-      "return (self.getContainer().reconcileSward(), self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(','))";
+      "return (self.getContainer().soilParts().forEach(f => f.reconcileSward()), self.getContainer().getContents().filter(t => /rick/.test(t.getTemplatePath() ?? '')).map(t => t.getContents().reduce((a, c) => a + c.getMass().rawValue(), 0)).join(','))";
     const kgOf = (said: string): number => Number(/([0-9.]+)/.exec(said)?.[1] ?? NaN);
     const before = kgOf(await founderEval(PASTURE, DELIGHT, RICK_KG));
     await advance(DAY);

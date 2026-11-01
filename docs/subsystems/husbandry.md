@@ -885,22 +885,22 @@ for the field's operator. See [soil.md](soil.md) for the field half.
 
 *The plant is the unit at every scale* (the field-population slate's
 thesis): what a player learns on one pot is what they use on a field.
-The ground half — patches as soil parts, the kernel's parts protocol —
+The ground half — fields as soil parts (the "patches" of the field-population build), the kernel's parts protocol —
 is [soil.md](soil.md) § *A soil made of parts*.
 
 **`groundPart`.** An area crop carries the key of the part it is rooted
 in (`groundPart: top-end` on a row; `setGroundPart` before `sow` moves a
 new stand in). `getBed()` resolves it through `soilPart(key)` — so the
-stand drinks, feeds and is drawn on in ITS patch, never the field's
+stand drinks, feeds and is drawn on in ITS field, never the tract's
 aggregate — and falls back to the whole ground when the key names no
 part. `standIn(part)` finds the stand of this kind in a part (same
 template path OR same `harvestTemplatePath`: the bench's three
 `extends:` rows are one wheat). `ripeSibling` substitution stays inside
 one bed: a ripe stand at the lane end is no substitute for the middle's.
-Only an area crop answers to its patch's words (`Plant.getKeywords`).
+Only an area crop answers to its field's words (`Plant.getKeywords`).
 
 **The act names its part.** `water`, `feed`, `sow`, `harvest`, `sample`
-and `label` take `at <patch>` (optional, greedy, `SoilMixin`). The GROUND
+and `label` take `at <field>` (optional, greedy, `SoilMixin`). The GROUND
 decides (`resolvePartFor`): one part needs no name; several refuse
 `part-unnamed` with the names; naming a part a plant does not stand in
 refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L
@@ -911,7 +911,7 @@ own area and refuses `part-sown` when it is full; `harvest` cuts that
 part's stand and grades it by ITS `_worstLimiting`. Area crops only — an
 individual is acted on where it stands.
 
-**The specimen.** `sample <crop> at <patch>` pulls a stem
+**The specimen.** `sample <crop> at <field>` pulls a stem
 (`takeSpecimen(variation)`): a non-growing individual stamped with a
 `SpecimenRecord` — the ground and part it came from, the factor limiting
 it and how badly, the next factor, and the roots band (`shallow ·
@@ -922,14 +922,14 @@ same plant*. `look stem` reads like a pot plant plus *"Its roots …"* and
 *"Taken from the top end of the upper bench."* (`specimenNoun` on the
 row names it).
 
-**The labeled plant.** `label <crop> [text] at <patch>` mints an UNCUT
+**The labeled plant.** `label <crop> [text] at <field>` mints an UNCUT
 individual at the part (`_fromStand`), keyworded by its label (a
 bare `label` names it after the labeler — label with text). It has a
 **root zone** of its own (`installRootZone()` — about a litre and a
 nitrogen reserve, seeded at the bed's fractions): `water`/`feed` aimed at
 it reach the zone alone; the zone relaxes toward the ground's MEAN
 moisture with a two-day constant (nitrogen ten), so a plant watered daily
-holds above its patch and a neglected one falls back; the plant never
+holds above its field and a neglected one falls back; the plant never
 moves the ground's reserve. It is NOT an area crop — it is listed among
 loose contents (*"You also see: trial."*) and reads the pot read — but
 ⭐ it develops on the FIELD rule (`isAreaCrop() || _fromStand`): a sample
@@ -959,6 +959,6 @@ non-`Cultivable` home through `rootedAreaCrop(part)` at HER band and
 seed, and gives ONE watering and ONE feeding a beat to the lowest read
 below `waterAt`/`feedAt` (`water wheat at the gate end`, the part by its
 definite phrase), filling the can at `config.water` (`room` + `from`).
-She is a novice by assertion, so two patches a little apart can fool
+She is a novice by assertion, so two fields a little apart can fool
 her; a student who reads better sees where she watered wrong. ⚠ A
 successful act leaves no `[dispatch]` line — read the effect.

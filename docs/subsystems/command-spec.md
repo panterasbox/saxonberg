@@ -452,6 +452,17 @@ lacks. Work down these, in order; the order is the point.
 `KNOWN_COLLISIONS` — that allowlist is the shipped-before-the-gate
 backlog, not an amnesty (`check-verb-collisions.ts`).
 
+
+**Worked: `mark` (tracts build, 2026-10-31).** Ice's `mark` scored a
+cutting grid; farming's draws a field boundary on held ground. Rung 1
+would have made one view carry both grammars (`as <share>` and `with
+<tool>`) and the controller ask which. Rung 2 decided it: *marking a
+boundary on held ground* is the primitive other content extends (pens,
+plots, claims), and scoring ice is one trade's gesture with a plain word
+of its own. Ice yielded — not to `score`, which the platform already
+claims (`social/score`), but to **`groove`**, what an ice plough did.
+`cut marked` keeps its word: "marked" is the ice's state.
+
 ### `async:` — detach the controller from the giver's input chain
 
 An optional top-level `async: true` (default `false`) makes the verb

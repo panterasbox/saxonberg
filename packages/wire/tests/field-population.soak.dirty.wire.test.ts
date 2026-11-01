@@ -428,10 +428,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     for (const field of ['the gate end', 'the middle', 'the far side']) {
       let said = '';
       for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, 'look at ' + field));
+        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
       }
       expect(said, field).toMatch(/ploughed for the season/i);
     }
+    // ⚠ `look at <field>` pins the focus on the field; a bare `look` would
+    // then read the field, not the tract. Back to the room.
+    await read(p, 'look here');
     // ⭐ Every act on a divided field names its field (R2).
     await refused(p, 'sow wheat', 'part-unnamed');
     // The gate end until it is full, a little in the middle, the rest on

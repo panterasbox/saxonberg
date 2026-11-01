@@ -364,10 +364,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     for (const field of ['the gate end', 'the middle']) {
       let said = '';
       for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, 'look at ' + field));
+        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
       }
       expect(said, field).toMatch(/ploughed for the season/i);
     }
+    // ⚠ `look at <field>` pins the focus on the field; a bare `look` would
+    // then read the field, not the tract. Back to the room.
+    await read(p, 'look here');
     await refused(p, 'plough at the gate end', 'already-ploughed');
   }, 1_200_000);
 
