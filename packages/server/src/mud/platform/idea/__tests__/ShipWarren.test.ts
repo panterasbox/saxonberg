@@ -37,6 +37,10 @@ import type { Containable } from '../../../lib/spatial/Containable';
 import type { Exitable } from '../../../lib/boundary/Exitable';
 import type { MooringLine } from '../../../lib/spatial/MooringLine';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
+import { PersistableMixin } from '../../../lib/persistence/Persistable';
+import { ContainableMixin } from '../../../lib/spatial/Containable';
+import { Idea } from '../../../lib/stuff/Idea';
+import { makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 
 interface Doc extends Record<string, unknown> {
@@ -312,6 +316,22 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(await PersistableApi.standUpKeyed(KIND, 'r1')).toBe(back);
     const deck = await (back as Ship).watchRoom();
     expect(deck?.getDurableHandle()).toBe(`${DECK}#r1/deck`);
+  });
+
+  it('⭐ B6: somebody on an authored ship\'s deck is placed by the ROOM, never by the shared authored-warren row', async () => {
+    // Two authored ships: two warrens off the one `authored` row, each keyed by her path.
+    const ship = await StuffApi.singleton<Ship>(AUTHORED);
+    const deck = await StuffApi.singleton<Stuff & Container>(A_DECK);
+    class Rover extends PersistableMixin(ContainableMixin(Idea)) {}
+    const who = makeStuffAtPath(() => new Rover(), '/test/rover') as unknown as Stuff & Containable;
+    vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((s: Stuff) => s === who) as never);
+    ContainmentApi.move(who, deck);
+    await ship.aboard();
+    const warren = (deck as unknown as { getWarren(): ShipWarren | null }).getWarren();
+    expect(warren?.getTemplatePath()).toBe(AUTHORED_SHIP_WARREN);
+    await PersistableApi.capture(who as unknown as Stuff, 'rover-1');
+    const rec = col('holder_snapshots').find((d) => d.scope === '/test/rover' && d.owner === 'rover-1');
+    expect(rec?.place).toEqual({ container: A_DECK });
   });
 
   it('⭐ an authored ship adopts the rooms under her extent, and never sleeps', async () => {

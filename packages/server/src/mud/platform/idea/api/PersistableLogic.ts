@@ -241,7 +241,14 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     if (scope && key) return { container: scope, containerKey: key, ...nested };
   }
   if (MixinApi.isWarrenMember(anchor)) {
-    const warren = anchor.getWarren()?.getTemplatePath();
+    // ⚠ Only a warren that is its row's ONE record lands by that row's
+    // path. A KEYED warren (an authored ship's — one `ShipWarren/authored`
+    // row, a warren per ship, keyed by her path; harbors B6) shares its
+    // row with its siblings, so its path names none of them: the room is
+    // anchored by its own address below.
+    const w = anchor.getWarren();
+    const keyed = w !== null && MixinApi.isPersistable(w) && w.isPersistenceKeyExplicit();
+    const warren = keyed ? null : w?.getTemplatePath();
     if (warren) return { startLocation: warren, ...nested };
   }
   const container = anchor.getIdentityPath();

@@ -17,6 +17,7 @@ import { AddressApi } from '../../../api/address';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
+import { ShipRegisterApi } from '../../../api/ship-register';
 import Ship from '../Ship';
 import ExpanseNode from '../ExpanseNode';
 import { Expanse } from '../../../lib/expanse/Expanse';
@@ -221,6 +222,19 @@ export class TestHarnessLogic extends ApiLogic {
   public async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
     // ⭐ A ship of a kind is named by her durable handle (`<kind>#<serial>`,
     // harbors B2) and stood up if she sleeps; an authored ship by her row.
+    // ⭐ B6: or by her NAME in a register (no leading `/`) — a drive knows
+    // the name it gave her at `buy`, never the serial she was minted with.
+    if (!handle.startsWith('/')) {
+      const named = await ShipRegisterApi.entriesNamed(handle);
+      if (named.length !== 1) {
+        throw new Error(
+          named.length === 0
+            ? `testharness ship: no register has a ship named '${handle}'`
+            : `testharness ship: '${handle}' is entered under ${named.length} flags — name her by her handle`,
+        );
+      }
+      handle = named[0]!.key;
+    }
     const found = handle.includes('#')
       ? await ExpanseApi.standUpCraft(handle).catch(() => null)
       : await StuffApi.singleton<Stuff>(handle).catch(() => null);
