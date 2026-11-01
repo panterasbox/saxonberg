@@ -34,6 +34,7 @@ declareFile({
 const DAY = 86_400;
 const VALLEY = '/world/terminus/hearts-delight/valley';
 const VALLEY_LANE = '/world/terminus/hearts-delight/location/valley-lane';
+const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
 
@@ -111,7 +112,7 @@ async function funded(handle: string, zorkmids = 20000): Promise<void> {
 /** The first lot on a book's listing that is not sold, from `title list`. */
 function unsoldLot(book: string, wanted?: RegExp): string {
   for (const line of book.split('\n')) {
-    const m = /^\s*(lot-\d+)\s+—\s+(.*)$/.exec(line);
+    const m = /^\s*([a-z][a-z-]*-\d+)\s+—\s+(.*)$/.exec(line);
     if (!m) continue;
     if (/sold|held|owned/i.test(m[2]!)) continue;
     if (wanted && !wanted.test(m[1]!)) continue;
@@ -164,9 +165,9 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     await doing(p, 'buy seed wheat');
     await doing(p, 'buy sickle');
     p.close();
-    p = await goTo(farmer, VALLEY_LANE);
+    p = await goTo(farmer, REALTY);
     const book = await read(p, 'title list');
-    lot = unsoldLot(book);
+    lot = unsoldLot(book, /^farmstead-/);
     expect(lot).toBeTruthy();
     await doing(p, `title buy ${lot}`);
     p.close();
@@ -199,7 +200,7 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
 
 /** The lane's gate direction for a valley lot — the plat's gate ring. */
 function gateOf(leaf: string): string {
-  return ({ 'lot-1': 'east', 'lot-2': 'west', 'lot-3': 'northeast', 'lot-4': 'northwest' } as Record<string, string>)[leaf] ?? 'east';
+  return ({ 'farmstead-1': 'east', 'farmstead-2': 'west', 'farmstead-3': 'northeast', 'farmstead-4': 'northwest' } as Record<string, string>)[leaf] ?? 'east';
 }
 
 /** As the founder, walk from `start` by `dirs`, then `eval` there under `parcel`. */

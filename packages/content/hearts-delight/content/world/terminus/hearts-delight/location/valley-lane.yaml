@@ -17,6 +17,3 @@ data:
       destination: /world/terminus/hearts-delight/location/bench-lane
       media: [ground]
       edgeMinutes: 3
-  props:
-    # ⭐ The land board: the valley's farmsteads are bought here.
-    - /world/terminus/hearts-delight/thing/land-board

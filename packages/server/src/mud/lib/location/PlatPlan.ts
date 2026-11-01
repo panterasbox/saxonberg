@@ -114,6 +114,10 @@ export class PlatPlan {
      *  `f<n>-r<p>`) or `u` (a unit building's `f<n>-u<p>`; a distinct
      *  leaf so dorm tooling never misreads a unit extent). */
     private readonly frontageLeaf: string = 'r',
+    /** A branched plan's slot word — `lot-` (`lot-7`), or a plat's own
+     *  (`farmstead-`): two books on one deed desk must not both answer
+     *  `lot-1` (tracts build W4). */
+    private readonly slotPrefix: string = 'lot-',
   ) {}
 
   // ── parsing ─────────────────────────────────────────────────────
@@ -233,7 +237,11 @@ export class PlatPlan {
       // that branches off it — so a plat asking for more frontages than
       // that is unbuildable, and says so at install rather than running
       // out of compass on a sale.
-      const plan = new PlatPlan('branched', 0, roads, []);
+      const prefix =
+        typeof data?.slotPrefix === 'string' && /^[a-z][a-z-]*-$/.test(data.slotPrefix)
+          ? data.slotPrefix
+          : 'lot-';
+      const plan = new PlatPlan('branched', 0, roads, [], 'r', prefix);
       for (const r of roads) {
         for (let seg = 1; seg <= r.segments; seg++) {
           const room = plan.ringFor(r, seg).length;
@@ -277,7 +285,7 @@ export class PlatPlan {
       }
       return null;
     }
-    const m = /^lot-(\d+)$/.exec(slotLeaf);
+    const m = this.slotNumberOf(slotLeaf);
     if (!m) return null;
     let n = Number(m[1]);
     for (const road of this.roads) {
@@ -324,7 +332,7 @@ export class PlatPlan {
         n += 1;
         if (count >= cap) return null;
         count += 1;
-        const leaf = `lot-${n}`;
+        const leaf = `${this.slotPrefix}${n}`;
         if (!taken.has(leaf)) return leaf;
       }
     }
@@ -475,7 +483,7 @@ export class PlatPlan {
    */
   gateDirectionOfSlot(slotLeaf: string): string | null {
     if (this.shape !== 'branched') return null;
-    const m = /^lot-(\d+)$/.exec(slotLeaf);
+    const m = this.slotNumberOf(slotLeaf);
     if (!m) return null;
     let n = Number(m[1]);
     for (const road of this.roads) {
@@ -550,7 +558,7 @@ export class PlatPlan {
 
   private roadOfSlot(slotLeaf: string): PlanRoad | null {
     if (this.shape !== 'branched') return null;
-    const m = /^lot-(\d+)$/.exec(slotLeaf);
+    const m = this.slotNumberOf(slotLeaf);
     if (!m) return null;
     let n = Number(m[1]);
     for (const road of this.roads) {
@@ -576,6 +584,13 @@ export class PlatPlan {
         .map((r) => r.branchesFrom!.direction),
     );
     return taken.size === 0 ? ring : ring.filter((d) => !taken.has(d));
+  }
+
+  /** A branched slot leaf's number match (`lot-7` → 7), or `null`. */
+  private slotNumberOf(slotLeaf: string): RegExpExecArray | null {
+    // The prefix is checked at parse to be lower-case letters and hyphens,
+    // so it needs no escaping here.
+    return new RegExp(`^${this.slotPrefix}(\\d+)$`).exec(slotLeaf);
   }
 
   private parseNode(nodeId: string): { road: string; segment: number } {

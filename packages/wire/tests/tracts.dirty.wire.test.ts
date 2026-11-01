@@ -55,6 +55,7 @@ const VALLEY_LANE = '/world/terminus/hearts-delight/location/valley-lane';
 const QUIST_YARD = '/world/terminus/hearts-delight/location/farmstead-yard';
 const PASTURE = '/world/terminus/hearts-delight/dairy/location/pasture';
 const YARD = '/world/terminus/eternal/campus-farm/location/yard';
+const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
 const REGISTRY = '/world/terminus/registry/office';
@@ -134,7 +135,7 @@ async function funded(handle: string, zorkmids = 20000): Promise<void> {
 /** The first lot on a book's listing that is not sold, from `title list`. */
 function unsoldLot(book: string, wanted?: RegExp): string {
   for (const line of book.split('\n')) {
-    const m = /^\s*(lot-\d+)\s+—\s+(.*)$/.exec(line);
+    const m = /^\s*([a-z][a-z-]*-\d+)\s+—\s+(.*)$/.exec(line);
     if (!m) continue;
     if (/sold|held|owned/i.test(m[2]!)) continue;
     if (wanted && !wanted.test(m[1]!)) continue;
@@ -168,11 +169,14 @@ afterAll(() => {
 
 suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', () => {
   it('1. a farmstead bought at the land board; its yard\'s ways name the tracts', async () => {
-    p = await goTo(farmer, VALLEY_LANE);
+    // Land changes hands at a deed desk: the Terminus realty office.
+    p = await goTo(farmer, REALTY);
     const book = await read(p, 'title list');
-    lot = unsoldLot(book, /^lot-1$/) || unsoldLot(book);
+    lot = unsoldLot(book, /^farmstead-1$/) || unsoldLot(book, /^farmstead-/);
     expect(lot, `an unsold farmstead on the valley book: ${book.slice(0, 300)}`).toBeTruthy();
     await doing(p, `title buy ${lot}`);
+    p.close();
+    p = await goTo(farmer, VALLEY_LANE);
     await doing(p, `go ${gateOf(lot)}`);
     const yard = await read(p, 'look');
     expect(yard).toMatch(/farmyard/i);
@@ -231,16 +235,23 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
   }, 600_000);
 
   it('7. a farmstead across the lane is the same layout, mirrored', async () => {
+    const desk = await goTo(neighbor, REALTY);
+    let other = '';
+    try {
+      // The book lists what sold and the NEXT free lot; buying walks it on.
+      const book = await read(desk, 'title list');
+      other = unsoldLot(book, /^farmstead-/);
+      expect(other, 'the next farmstead is for sale').toBeTruthy();
+      await doing(desk, `title buy ${other}`);
+    } finally {
+      desk.close();
+    }
     const n = await goTo(neighbor, VALLEY_LANE);
     try {
-      const book = await read(n, 'title list');
-      const other = unsoldLot(book, lot === 'lot-1' ? /^lot-2$/ : /^lot-1$/);
-      expect(other, 'the farmstead across the lane is for sale').toBeTruthy();
-      await doing(n, `title buy ${other}`);
       await doing(n, `go ${gateOf(other)}`);
       // ⭐ The meadow lies AWAY from the lane on both sides: east of an
       // east-side yard, west of a west-side one.
-      const meadow = other === 'lot-1' ? 'east' : 'west';
+      const meadow = ['farmstead-1', 'farmstead-3'].includes(other) ? 'east' : 'west';
       await doing(n, `go ${meadow}`);
       expect(await read(n, 'look')).toMatch(/lower meadow/i);
     } finally {
@@ -327,7 +338,7 @@ suite.skipIf(!isOwnedTestWorld())('the authored farms, and the house lot', () =>
 
 /** The lane's gate direction for a valley lot — the plat's gate ring. */
 function gateOf(leaf: string): string {
-  return ({ 'lot-1': 'east', 'lot-2': 'west', 'lot-3': 'northeast', 'lot-4': 'northwest' } as Record<string, string>)[leaf] ?? 'east';
+  return ({ 'farmstead-1': 'east', 'farmstead-2': 'west', 'farmstead-3': 'northeast', 'farmstead-4': 'northwest' } as Record<string, string>)[leaf] ?? 'east';
 }
 
 /** As the founder, walk from `start` by `dirs`, then `eval` there under `parcel`. */

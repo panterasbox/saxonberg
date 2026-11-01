@@ -1,11 +1,13 @@
 # The valley book — four farmsteads for sale (tracts build D33), on the
-# land board at the valley lane.
+# Terminus land agent's desk beside the Hinkley Hills plat. Its lots are
+# `farmstead-1`…`farmstead-4`: two books on one desk must not both answer
+# `lot-1`.
 class: /system/residence/idea/PlatBook
 data:
   label: the Delight valley farmsteads
   parentExtent: /world/terminus/hearts-delight/valley
   lotBranch: lots
-  lotPrefix: lot-
+  lotPrefix: farmstead-
   # Grain: four times a house lot, for sixteen times the ground — farmland
   # is cheap and a house is not.
   priceMinor: 16000

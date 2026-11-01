@@ -335,3 +335,18 @@ describe('⭐ the mirror and the static slot (tracts build D31, D32)', () => {
     ).toThrow(/mirror axis/);
   });
 });
+
+describe('a plat names its own slots (tracts build W4)', () => {
+  it('slotPrefix: `farmstead-1` is the first slot, and `lot-1` is not one', () => {
+    const plan = PlatPlan.parse({
+      shape: 'branched',
+      slotPrefix: 'farmstead-',
+      roads: [{ key: 'valley-lane', heading: 'north', segments: 1, frontagesPerSegment: 4 }],
+    });
+    expect(plan.nodeOfSlot('farmstead-2')).toBe('valley-lane:1');
+    expect(plan.nodeOfSlot('lot-2')).toBeNull();
+    expect(plan.gateDirectionOfSlot('farmstead-2')).toBe('west');
+    expect(plan.mirrorAxisOfSlot('farmstead-2')).toBe('east-west');
+    expect(plan.nextFreeSlot(new Set(['farmstead-1']), 4)).toBe('farmstead-2');
+  });
+});
