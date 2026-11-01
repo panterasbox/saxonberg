@@ -85,7 +85,7 @@ import type { BoundaryRole } from '../security/BoundaryRole';
  */
 /** What a face gives its contents (ceramics M7). */
 export interface LeachSpec {
-  /** The toxin type, as metabolism names it (`lead-poisoning`). */
+  /** The toxin type, as metabolism names it (`lead` — the Condition row's `toxinType`, not its name). */
   toxin: string;
   /**
    * mg per litre per game-day against VINEGAR (pH 2.4, the acid a lead-

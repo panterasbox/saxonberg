@@ -154,6 +154,7 @@ import type { StrikingDie } from '../lib/craft/StrikingDie';
 import type { Faced } from '../lib/material/Faced';
 import type { Weathering } from '../lib/material/Weathering';
 import type { Shell } from '../lib/structure/Shell';
+import type { SelfHeating } from '../lib/thermal/SelfHeating';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
@@ -1801,6 +1802,10 @@ export class MixinApi {
 
   public static isShell(obj: Stuff): obj is Stuff & Faced & Weathering & Shell {
     return this.hasMixin(obj, Mixins.Shell);
+  }
+
+  public static isSelfHeating(obj: Stuff): obj is Stuff & SelfHeating {
+    return this.hasMixin(obj, Mixins.SelfHeating);
   }
 
   public static isGreenware(obj: Stuff): obj is Stuff & Greenware {

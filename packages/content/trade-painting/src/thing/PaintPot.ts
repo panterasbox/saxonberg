@@ -15,11 +15,15 @@
  *   solids, raised by the pigment's share of the mass;
  * - **a thinner** — a solvent liquid stirred in (turpentine).
  *
+ * ⭐ It is also a DIP BATH (a `GlazeTub`): `dip rag in pot` soaks a rag in
+ * the oil — which is how a painter's rag gets oily, and what sets a heap
+ * of them alight (paint D15).
+ *
  * A ready-mixed pot authors its makeup (`makeup:`, a seed field), laid on
  * its paint once at its mint.
  */
 
-import CompoundingVessel from '@saxonberg/server/mud/platform/thing/CompoundingVessel';
+import GlazeTub from '@saxonberg/server/mud/platform/thing/GlazeTub';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { BuildContribution } from '@saxonberg/server/mud/lib/craft/ManualBuild';
@@ -30,7 +34,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 /** An egg broken into a paint pot binds as tempera. */
 const EGG_TEMPERA = '/trade/painting/idea/material/egg-tempera';
 
-export default class PaintPot extends CompoundingVessel {
+export default class PaintPot extends GlazeTub {
   static fieldMeta: FieldMeta = {
     // ⭐ A ready-mixed pot's authored makeup — a SEED (phase 3, mint-only):
     // laid on the paint the row filled it with, once.

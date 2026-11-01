@@ -280,6 +280,23 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       };
     }
 
+    /**
+     * ⭐ Stirring a VOLATILE liquid in the open stirs its vapor into the room
+     * (paint D16) — the same quarter-hour of evaporation a pour into an
+     * open vessel exposes (`BulkableLogic`'s emission). A shut room keeps
+     * it; its air changes clear it.
+     */
+    private ventVolatiles(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
+      const held = self.getBulkMaterial('interior');
+      if (held === null || !(held.getVapourLPerLPerHour() > 0) || held.getVapourMaterial() === '') return;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (room === null || !MixinApi.isAtmospheric(room)) return;
+      const litres = self.getBulkAmount('interior').rawValue();
+      room.addAtmosphereContent(held.getVapourMaterial(), litres * held.getVapourLPerLPerHour() * 0.25);
+    }
+
     public payloadFor(_charge: readonly BuildContribution[]): BulkPayload | null {
       return null;
     }
@@ -289,6 +306,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       const charge = this.chargeContributions();
       const inputs = charge.length;
       const payload = this.payloadFor(charge);
+      this.ventVolatiles();
       // ⭐ The ONE mint (re-plan R1-D7): the charge runs the path a
       // shaker's buffer runs, and this vessel's product names what it makes.
       const minted = await CraftingApi.mintFromBuild({

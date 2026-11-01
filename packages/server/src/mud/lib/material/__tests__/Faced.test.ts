@@ -106,7 +106,7 @@ beforeEach(() => {
           ladder: [{ atDegree: 1, becomes: `/stuff/idea/material/_faced/${name}` }],
         },
       ]);
-      if (leaches) m.setLeaches([{ toxin: 'lead-poisoning', mgPerLPerDay: 4 }]);
+      if (leaches) m.setLeaches([{ toxin: 'lead', mgPerLPerDay: 4 }]);
     });
   lead = glaze('lead-glaze', 1250, 1400, 7.5e-6, true);
   ash = glaze('ash-glaze', 1250, 1500, 5e-6, false);
@@ -254,7 +254,7 @@ describe('the slot — the leach and the weep', () => {
     leaded.getBulkPayload('interior');
     clean.getBulkPayload('interior');
     advance(7 * 86_400);
-    const dose = leaded.getBulkPayload('interior')?.dissolvedToxins?.find((t) => t.type === 'lead-poisoning');
+    const dose = leaded.getBulkPayload('interior')?.dissolvedToxins?.find((t) => t.type === 'lead');
     // Vinegar IS the reference (B109): the authored 4 mg/L/day, a week.
     expect(dose?.amount ?? 0).toBeCloseTo(4 * 7, 0);
     expect(clean.getBulkPayload('interior')?.dissolvedToxins ?? []).toEqual([]);

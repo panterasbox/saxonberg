@@ -1011,6 +1011,23 @@ fork, the lens that chose is named.
   glue at room temperature is a cake (meltingPoint 308, cast
   `glue-cake`): it must be warm in its pot to glue anything.
 
+- **B26 (W7, D15 re-planned)** — there is NO `wipe` verb (the plan's
+  premise). A rag gets oily by `dip rag in pot`: the `PaintPot` is now a
+  `GlazeTub` (a dip bath), and the rag's self-heating reads its wet
+  oxidation coat. `Wet.wetMaterial` was therefore not added (nothing would
+  write it). `Thermal.reconcileCoats` leaves a self-heating host's coats to
+  the host.
+- **B27 (W7)** — the kernel `SelfHeatingMixin` keeps the hay rick's field
+  names (`rickCoreK`/`rickStamp`) so no barn record needs a migration; a
+  heap catches only when COMBUSTIBLE (a bale is not, so hay smokes as
+  before). Linen gained an autoignition point (680 K); an oily rag lowers
+  its own to 420 K.
+- **B28 (W7)** — a pour joins only LIKE with like (`BulkableLogic` step 2),
+  so turpentine cannot thin a pot of oil paint; the `PaintPot` thinner path
+  is unreachable from the verbs today. The fumes come from pouring
+  turpentine into an open dish (shipped emission) and from stirring a
+  volatile (vented). Recorded for the bulk-mixing seam.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1343,7 +1360,16 @@ kernel structure; Hinkley lots and Seznick House have buildings.
 - Commit: `build(paint W6): glue from what ships; the glued joint costs
   glue and fails by it`.
 
-### W7 — the three hazards
+### W7 — the three hazards ✅
+
+> **Done.** Lead: every row now doses `lead` (the shipped bug — leaches too);
+> the Condition has the colic band at 2; `mill`ing a `lead`-tagged stock and
+> brushing lead paint dose the body (a glove halves the skin's share).
+> `SelfHeating` is the kernel's (`Mixins.SelfHeating`); hay's drive moved
+> onto `HayBale` unchanged (its suite green); the `Rag` heap heats from its
+> oil coat and catches; a spread rag sheds it; a wet one does not heat.
+> Turpentine is a volatile with a vapor and a Condition; stirring a
+> volatile vents it. Notes B26–B28.
 
 - D14 lead (rows + bands + the two dose calls + a glove halving).
 - D15 `SelfHeating` to the kernel (`Mixins.SelfHeating`,

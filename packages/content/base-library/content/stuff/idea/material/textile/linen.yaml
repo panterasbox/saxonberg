@@ -39,6 +39,10 @@ data:
   waterAbsorptionCapacity: 20
   # Elasticity (% strain it springs back from; rubber build).
   elasticity: 3
+  # ⭐ It burns (paint D15): a dry cloth catches near 680 K; an oily one far
+  # lower (the rag heap that sets a shed alight).
+  heatOfCombustion: 16
+  autoignitionTemperature: 680
   edibility: false
   nutrients: []
   toxicity: []

@@ -750,6 +750,9 @@ export const Mixins = {
   // ⭐⭐ Shell (paint D5/D13) — "I have a fabric that holds while my coat
   // does and wears once it is gone, and can be mended". Requires Weathering.
   Shell: 'ShellMixin',
+  // ⭐⭐ SelfHeating (paint D15, promoted from trade-farming) — "I make my own
+  // heat faster than I lose it, until I catch": the hay rick, the oily rags.
+  SelfHeating: 'SelfHeatingMixin',
   // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
   // whether I can be trimmed, fired, or ruined by the weather".
   Greenware: 'GreenwareMixin',
@@ -1048,6 +1051,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   FacedMixin: "{} has no face you could lay a coat on",
   WeatheringMixin: "{} does not stand out in the weather",
   ShellMixin: "{} has no fabric to mend",
+  SelfHeatingMixin: "{} does not heat itself",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the

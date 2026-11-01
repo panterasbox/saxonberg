@@ -1310,7 +1310,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ A coat the AIR sets (paint D4) — an oil on a chair, a size on a
       // board — sets by the room's air over the same window; an oil warms
       // the good as it does. A weathering host walks its own weather.
-      if (!self.hasWetCoats() || MixinApi.isWeathering(self)) return;
+      // A self-heating heap (oily rags) walks its oil's oxidation as its own
+      // heat; a weathering host walks its own weather.
+      if (!self.hasWetCoats() || MixinApi.isWeathering(self) || MixinApi.isSelfHeating(self)) return;
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (room === null) return;
       const ach = MixinApi.isAtmospheric(room) ? room.airChangesPerHour() : Infinity;

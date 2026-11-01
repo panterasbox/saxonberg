@@ -250,6 +250,11 @@ function coatLine(top: CoatLayer, face: FaceName): string {
   }
 }
 
+/** Is any pigment in this paint a lead one (tagged `lead`)? */
+function leadIn(makeup: PaintMakeup): boolean {
+  return makeup.pigments.some((p) => p.share > 0 && (materialAt(p.material)?.hasTag('lead') ?? false));
+}
+
 function nameOf(m: Material | null): string {
   return m?.getName() || 'coating';
 }
@@ -370,6 +375,13 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           src.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
           const soil = MixinApi.isSoilable(self) ? Math.max(self.soilAt('outside'), self.soilAt('')) : 0;
           self.layCoat('outside', path, setM, soil, makeup);
+          // ⭐ Lead paint on the brush is lead on the hands (paint D14): the
+          // body takes a dose by the litre; a glove halves it.
+          if (makeup !== undefined && leadIn(makeup) && MixinApi.isMetabolic(giver)) {
+            const gloved =
+              MixinApi.isAttired(giver) && giver.handSites().some((h) => giver.outermostAt(h) !== null);
+            giver.addToxinBurden('lead', litres * dial(AppSettingKeys.metabolismLeadSkinDosePerL, 0.6) * (gloved ? 0.5 : 1));
+          }
           if (!giver.isDestroyed()) {
             MessageApi.scene(giver)
               .topic('act.deed')

@@ -17,5 +17,9 @@ data:
   nutrients: []
   toxicity: []
   tags: [liquid, solvent, flammable, organic, once-living, turpentine]
+  # ⭐ A volatile (paint D16): poured into an open dish it gives off a
+  # vapor into the room, and in a shut room that is a dose every breath.
+  vapourLPerLPerHour: 20
+  vapourMaterial: /trade/painting/idea/material/turpentine-vapour
   composition: []
   biologicalSource: null

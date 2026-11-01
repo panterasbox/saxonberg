@@ -43,6 +43,7 @@ data:
     - { itemTemplatePath: /trade/fishing/thing/fish-skins, par: 4 }
     - { itemTemplatePath: /trade/painting/thing/bristle, par: 6 }
     - { itemTemplatePath: /trade/painting/thing/brush-handle, par: 6 }
+    - { itemTemplatePath: /trade/painting/thing/rag, par: 12 }
   prices:
     /trade/painting/thing/brush: 3
     /trade/painting/thing/paint-pot: 2
@@ -71,3 +72,4 @@ data:
     /trade/fishing/thing/fish-skins: 1
     /trade/painting/thing/bristle: 1
     /trade/painting/thing/brush-handle: 1
+    /trade/painting/thing/rag: 1
