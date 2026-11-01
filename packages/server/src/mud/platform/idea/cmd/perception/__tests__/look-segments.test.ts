@@ -10,6 +10,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LookController from '../LookController';
 import { StuffApi } from '../../../../../api/stuff';
+import { MixinApi } from '../../../../../api/mixin';
 import { ContainmentApi } from '../../../../../api/containment';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { MessageApi } from '../../../../../api/message';
@@ -151,6 +152,27 @@ describe('the room', () => {
     expect(seen!.items![0]!.count).toBe(3);
     expect(seen!.items![0]!.members).toHaveLength(3);
     expect(body).toMatch(/3 bottles of gin/);
+  });
+
+  it('⭐ people and things are two lines: "Here" holds the people, "You also see" the things', async () => {
+    ContainmentApi.move(bottle('one') as never, room as never);
+    const mara = makeStuff(() => {
+      const x = new Bottle();
+      x.setShortDescription('Mara');
+      return x;
+    });
+    ContainmentApi.move(mara as never, room as never);
+    // Stand-in for an organism: composing a real one needs a species.
+    const real = MixinApi.isOrganism.bind(MixinApi);
+    vi.spyOn(MixinApi, 'isOrganism').mockImplementation(((o: Stuff) => o === (mara as unknown as Stuff) || real(o)) as never);
+    const { body, segments } = await look(room as unknown as Stuff, 'look');
+    const here = segments.find((s) => s.heading === 'Here');
+    const seen = segments.find((s) => s.heading === 'You also see');
+    expect(here?.items?.map((i) => i.stuffId)).toEqual([mara.stuffId]);
+    expect(seen?.items?.some((i) => i.stuffId === mara.stuffId)).toBe(false);
+    expect(body).toMatch(/── Here: .*Mara/);
+    expect(body).toMatch(/── You also see: .*bottle of gin/);
+    expect(body.indexOf('── Here:')).toBeLessThan(body.indexOf('── You also see:'));
   });
 });
 

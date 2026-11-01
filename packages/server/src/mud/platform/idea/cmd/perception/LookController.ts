@@ -382,19 +382,30 @@ export default class LookController extends CommandController<LookModel> {
         // viewer of this `toSelf` render.
         const occupants = topLevel.filter((item) => MixinApi.isOrganism(item));
         const items = topLevel.filter((item) => !MixinApi.isOrganism(item));
-        const seenParts: Mml[] = [];
-        const chips: SegmentItem[] = occupants.map((o) => this.itemOf(o, actor));
+        /*
+         * ⭐ PEOPLE and THINGS are two lines (owner, 2026-11-01): the bar's
+         * one "You also see" ran five people into thirteen fixtures. Who is
+         * here is its own question — the place-surfaces slate's
+         * presentation tiers (*who is here* · *what is here*) — and the
+         * terminal and the card get the same two lines.
+         */
         if (occupants.length > 0) {
           // ⭐ Both paths render the same FORM now. The rich composer
           // (players) and the plain list (everyone else) used to differ
           // in what they showed — status or no status — because only the
           // eager path could afford it. Which form a surface gets is the
           // surface's choice, not a consequence of who is looking.
-          seenParts.push(
-            MixinApi.isNotifyPolicy(actor)
-              ? await actor.composeOccupants(occupants, occupants.length)
-              : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' }))),
-          );
+          const who = MixinApi.isNotifyPolicy(actor)
+            ? await actor.composeOccupants(occupants, occupants.length)
+            : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' })));
+          body = Mml.compose`${body}\n── Here: ${who}.`;
+          segments.push({
+            shape: 'list',
+            heading: 'Here',
+            sources: [lookSource('Here')],
+            text: this.render(Mml.compose`── Here: ${who}.`, actor),
+            items: occupants.map((o) => this.itemOf(o, actor)),
+          });
         }
         if (items.length > 0) {
           // ⚠⚠ **Resolved NOW, viewer-blind — and that is not laziness,
@@ -418,18 +429,16 @@ export default class LookController extends CommandController<LookModel> {
           // of fourteen bottles is "14 bottles of gin", one chip that
           // expands, not fourteen words.
           const grouped = this.groupForList(items, actor, (item) => Mml.thing(item));
-          chips.push(...grouped.items);
-          seenParts.push(Mml.fromMarkup(Mml.list(grouped.parts).toString()));
+          const seen = Mml.fromMarkup(Mml.list(grouped.parts).toString());
+          body = Mml.compose`${body}\n── You also see: ${seen}.`;
+          segments.push({
+            shape: 'list',
+            heading: 'You also see',
+            sources: [lookSource('You also see')],
+            text: this.render(Mml.compose`── You also see: ${seen}.`, actor),
+            items: grouped.items,
+          });
         }
-        const seen = Mml.list(seenParts);
-        body = Mml.compose`${body}\n── You also see: ${seen}.`;
-        segments.push({
-          shape: 'list',
-          heading: 'You also see',
-          sources: [lookSource('You also see')],
-          text: this.render(Mml.compose`── You also see: ${seen}.`, actor),
-          items: chips,
-        });
       }
     }
 
