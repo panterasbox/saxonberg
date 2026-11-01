@@ -999,6 +999,18 @@ fork, the lens that chose is named.
   + turpentine → varnish). `tap.yaml`'s tool default stays
   `capability.boring`: `tap pine with knife` names the blade.
 
+- **B24 (W6)** — only `fit`'s RAISE arm consumes glue; re-making a glued
+  joint by the replace arm does not yet (recorded; the drive glues by
+  raising). The glue litres are a per-joint dial
+  (`crafting.glueLitresPerJoint`, 0.02 L), not contact area — the parts'
+  areas are not on the bill.
+- **B25 (W6)** — starch paste's pot takes flour and water, both BULK, and
+  a pot's liquid is one slot: whether a second pour mixes is the bulk
+  layer's (unverified). Casein (curd item + milk of lime) and rubber
+  cement (rubber lump + turpentine) are item + liquid and sound. An animal
+  glue at room temperature is a cake (meltingPoint 308, cast
+  `glue-cake`): it must be warm in its pot to glue anything.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1296,7 +1308,20 @@ kernel structure; Hinkley lots and Seznick House have buildings.
 - Commit: `build(paint W5): resin tapped from pine, cut to turpentine and
   rosin, stirred to varnish`.
 
-### W6 — adhesives: the glues, and the glued joint made real
+### W6 — adhesives: the glues, and the glued joint made real ✅
+
+> **Done.** `JointDescriptor.takes` (`glued.yaml takes: glue`, validated);
+> `fit`'s raise arm finds an open vessel of glue in reach (litres per
+> joint dial), refuses `insufficient-input: glue` without one, draws it
+> and `glueJoints()`; `Assembled.reconcileGlue` sets the line by the
+> glue's air rule, slackens it in the damp by `1 − resistsDamp`, lets go
+> past `softensAtK`; weak until set, and a knock before it sets costs
+> more; the look says *the glue line has failed*; salvage reads the glue
+> (hide/bone/fish come apart hot and wet). Six glue materials + rosin's
+> adhesive; `GluePot` (stock → hide/bone/fish glue by the stock's tag,
+> three profiles); casein, paste and cement pots; hide scraps (tanning),
+> fish skins (fishing), bone's `collagen` tag; the brush is an ASSEMBLY
+> (bristle glued into a handle) with a `fit brush` recipe. Notes B24–B25.
 
 - D11: `Material.adhesive`; `BillJoint.takes`; `JointDescriptor.takes`;
   `glued.yaml` `takes: glue`; `fitImpl` + `jointGate` consume glue;

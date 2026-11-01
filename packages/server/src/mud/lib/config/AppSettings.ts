@@ -1880,6 +1880,10 @@ export const AppSettingKeys = {
   cordageMinHangM: "cordage.minHangM",
   /** Cordage — a caught fall's shock, as a multiple of the climber's weight (D12). */
   cordageFallFactor: "cordage.fallFactor",
+  /** Crafting — relative humidity at or over which a glue line takes the damp (paint D11). */
+  craftingGlueDampRh: "crafting.glueDampRh",
+  /** Crafting — litres of glue one glued joint takes (paint D11). */
+  craftingGlueLitresPerJoint: "crafting.glueLitresPerJoint",
   /** Structure — game-days a bare building's fabric takes from sound to worn (paint D5; was residence's). */
   structureWeatherDaysToWorn: "structure.weather.daysToWorn",
   /** Structure — the wet film one brushed coat of paint lays, m (paint D9). */

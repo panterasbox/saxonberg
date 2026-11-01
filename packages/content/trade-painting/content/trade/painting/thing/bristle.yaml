@@ -1,0 +1,10 @@
+# A knot of hog bristle — the head of a brush, before it is glued into its
+# handle (paint D11).
+class: /trade/quarrying/thing/Lump
+data:
+  shortDescription: knot of bristle
+  keywords: [bristle, bristles, knot, "knot of bristle"]
+  register: indefinite
+  longDescription: A tied knot of stiff pale hog bristle, split at the tips.
+  _materialPath: /trade/painting/idea/material/hog-bristle
+  mass: 0.03

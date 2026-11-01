@@ -1,0 +1,14 @@
+# The paste pot (paint D12) — stir flour and water in it and it comes together as
+# paste.
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: paste pot
+  keywords: [pot, "paste pot"]
+  register: indefinite
+  longDescription: A small earthenware pot with a stirring stick.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 1
+  interiorBulk: true
+  interiorCapacity: 3
+  closure: liquidTight
+  productMaterial: /trade/painting/idea/material/starch-paste

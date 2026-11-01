@@ -15,3 +15,11 @@ data:
   capabilities:
     - kind: painting
       rate: 1
+  # ⭐ An ASSEMBLY (paint D11): a knot of bristle GLUED into its handle —
+  # the glue line is what goes when a brush is left standing in water.
+  bill:
+    parts:
+      - { part: handle, template: /trade/painting/thing/brush-handle, count: 1, role: structural }
+      - { part: bristles, template: /trade/painting/thing/bristle, count: 1, role: wear }
+    joints:
+      - { key: setting, method: glued, members: [handle, bristles] }

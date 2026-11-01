@@ -19,5 +19,8 @@ data:
   toxicity: []
   tags: [resin, rosin, flammable, organic, once-living]
   castTemplate: /trade/painting/thing/rosin
+  # ⭐ Melted, it is a CEMENT (paint D11): a stiff, waterproof line that
+  # sets as it cools and lets go again when it is warmed.
+  adhesive: { strength: 0.5, reversible: { heatK: 360 }, resistsDamp: 0.9, softensAtK: 340 }
   composition: []
   biologicalSource: null

@@ -1,0 +1,22 @@
+# rubber cement — raw rubber dissolved in turpentine: a flexible glue that sets as the spirit leaves it, stands the damp, and peels away again.
+class: /platform/idea/material/Material
+data:
+  name: rubber cement
+  keywords: ["rubber cement", cement, glue]
+  appearance: a tacky amber syrup that smells of turpentine and rubber
+  density: 950
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  meltingPoint: 230
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, glue, cement, flammable]
+  # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
+  # steam undo it, how it stands the damp, the heat it lets go at.
+  adhesive: { strength: 0.45, reversible: never, resistsDamp: 0.9, softensAtK: 360 }
+  kinetics:
+    - key: set
+      sets: solvent
+      order: 0
+      rate: [[273, 0.05], [283, 0.15], [293, 0.3], [303, 0.5]]

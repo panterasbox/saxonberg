@@ -34,6 +34,15 @@ data:
     - { itemTemplatePath: /trade/painting/thing/turpentine-jar, par: 4 }
     - { itemTemplatePath: /trade/painting/thing/rosin, par: 4 }
     - { itemTemplatePath: /trade/painting/thing/varnish-pot, par: 2 }
+    - { itemTemplatePath: /trade/painting/thing/glue-pot, par: 2 }
+    - { itemTemplatePath: /trade/painting/thing/glue-cake, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/casein-pot, par: 2 }
+    - { itemTemplatePath: /trade/painting/thing/paste-pot, par: 2 }
+    - { itemTemplatePath: /trade/painting/thing/cement-pot, par: 2 }
+    - { itemTemplatePath: /trade/tanning/thing/hide-scraps, par: 4 }
+    - { itemTemplatePath: /trade/fishing/thing/fish-skins, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/bristle, par: 6 }
+    - { itemTemplatePath: /trade/painting/thing/brush-handle, par: 6 }
   prices:
     /trade/painting/thing/brush: 3
     /trade/painting/thing/paint-pot: 2
@@ -53,3 +62,12 @@ data:
     /trade/painting/thing/turpentine-jar: 3
     /trade/painting/thing/rosin: 2
     /trade/painting/thing/varnish-pot: 3
+    /trade/painting/thing/glue-pot: 4
+    /trade/painting/thing/glue-cake: 2
+    /trade/painting/thing/casein-pot: 2
+    /trade/painting/thing/paste-pot: 2
+    /trade/painting/thing/cement-pot: 2
+    /trade/tanning/thing/hide-scraps: 1
+    /trade/fishing/thing/fish-skins: 1
+    /trade/painting/thing/bristle: 1
+    /trade/painting/thing/brush-handle: 1
