@@ -403,3 +403,10 @@ row: reeling a cocoon kills the pupa inside it (stifling must come first,
 or the moth cuts the thread), so the act does not feed back on a rate —
 it ENDS the animal, and the decision is what to keep alive for seed. It is
 not a tap (the silkworm species row has no `production`).
+
+
+## The tap names its tool (paint build, 2026-10-31)
+
+`TapSpec.instrument` (default `boring`) is the tool capability that opens a
+tap: an auger bores a maple; a blade (`cutting`) cuts the face of a Scots
+pine for its gum. The tree refuses and words the set by it.

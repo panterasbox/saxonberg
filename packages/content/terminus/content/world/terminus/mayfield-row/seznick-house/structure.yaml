@@ -14,3 +14,15 @@ data:
     A narrow brick lodging house of four floors, its sash windows in white
     frames and its front door up two worn steps from the pavement.
   heightM: 13
+  # ⭐ White lead in linseed oil on its frames and front (paint D20) — the
+  # coat the weather takes first; Walter mends the sills, a painter the coat.
+  coats:
+    outside:
+      - material: /trade/painting/idea/material/linseed-oil
+        thicknessM: 0.00003
+        state: set
+        paint:
+          binder: /trade/painting/idea/material/linseed-oil
+          pigments:
+            - { material: /trade/painting/idea/material/lead-white, share: 1 }
+          solidsFraction: 0.8

@@ -1028,6 +1028,13 @@ fork, the lens that chose is named.
   turpentine into an open dish (shipped emission) and from stirring a
   volatile (vented). Recorded for the bulk-mixing seam.
 
+- **B29 (W8)** — the house painter reads `housepainter` (one word) and never
+  `house painter`: a multi-word keyword carrying the token `painter` still
+  collides with the diving pack's bow line. The round has two stations, not
+  three (the sugar house's landing is inside Veshko's works). He does not
+  restock his pot from the counter (`buy` from a brain) — recorded; his pot
+  is authored full.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1387,7 +1394,17 @@ kernel structure; Hinkley lots and Seznick House have buildings.
 - Commit: `build(paint W7): lead white poisons slowly; oily rags catch;
   turpentine in a shut room`.
 
-### W8 — Wharfside: the colorman, the house painter, the buildings
+### W8 — Wharfside: the colorman, the house painter, the buildings ✅
+
+> **Done** (the shop itself landed in W4, B21). The towpath cottage (zone,
+> room, limewashed structure row, its own parcel so it can be sold), the
+> chandlery's structure row, Seznick House's white-lead oil coat, the shop's
+> hearth, the shed's rag; Tam Rook (`housepainter`) with a brush and a pot
+> of ochre oil, his rota round (the towpath mornings, Mayfield Row
+> afternoons) and the `paints` brain (the landed building with its coat gone
+> or thin → the literal `paint` verb); `Flued.takeSoot` behind
+> `cleanliness.sootTemplate` (the pack sets it to lampblack) and the sweep
+> saying what was gathered. Note B29.
 
 - D20 + D18: the zone, shop, yard, shed, cottage (+ structure row with its
   limewash), the chandlery's structure row, the towpath exits, the counter,

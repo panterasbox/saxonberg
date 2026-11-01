@@ -13,3 +13,5 @@ data:
   exits:
     south:
       destination: /world/terminus/wharfside/colorman/location/yard
+  props:
+    - /trade/painting/thing/rag

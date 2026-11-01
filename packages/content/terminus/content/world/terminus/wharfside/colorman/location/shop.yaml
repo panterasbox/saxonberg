@@ -20,5 +20,8 @@ data:
   props:
     - /world/terminus/wharfside/colorman/thing/counter
     - /trade/painting/thing/paint-pot
+    # The hearth: warms a glue pot, fires ochre red, and its swept flue gives
+    # lampblack (paint D18).
+    - /stuff/thing/Hearth
   cast:
     - /world/terminus/wharfside/colorman/agent/colorman

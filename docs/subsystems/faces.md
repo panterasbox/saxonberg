@@ -212,3 +212,15 @@ glaze or a tight body.
   are inside-face coats; recorded, not migrated.
 - **Wet clothes and sweat** reading `evaporativeDepressionK`: exertion and
   textiles' deferred lists.
+
+
+## Setting by the air, weathering, color (paint build, 2026-10-31)
+
+A coat need not set by heat: `KineticSpec.sets` names carbonation,
+oxidation, drying or solvent, and `Faced.airCoats` walks the air (rain runs
+a wet coat, frost crazes it). A coat may remember what it was made of
+(`CoatLayer.paint`, the pot's makeup — its color), what was lettered in it
+(`marks`) and how much sun it has had (`faded`). `coatPlanFor` is the
+`paint` verb's protocol on the thing painted; `coatAreaM2` is its face's
+area; `persistsCoats` gates the coat slice. Weathering and the fabric are
+[painting.md](./painting.md)'s.

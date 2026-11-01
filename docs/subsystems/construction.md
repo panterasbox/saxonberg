@@ -36,11 +36,16 @@ class that knows its own construction declares it: an `ExitableVessel`
 (its own material all round, or `none` for an open boat), a `Hive`, a
 `ColdStore`, a `SealedCellar` (a metre of granite over it too).
 
-## A structure is a set of places, and made of nothing
+## A structure is a set of places — and made of materials, as an Idea is
 
 A `Structure` row says which places are its members (an `extent` prefix)
-and which stand on which (`storeys`), and **never** what anything is made
-of — `lint:envelope` refuses a Structure row that authors a material.
+and which stand on which (`storeys`). ⭐ **It IS made of materials** (the
+owner, paint build 2026-10-31) — but as an Idea, not a Thing: what it is
+made of is a BILL, the materials it takes to erect and later to maintain
+(the construction slate's). What it is NOT is a container of walls: the
+walls and roofs are the places' own, and `lint:envelope` refuses a
+Structure row that authors an envelope. Its OUTSIDE is its own — the coat,
+the weathering and the fabric ([painting.md](./painting.md)).
 
 ```yaml
 storeys:
@@ -54,6 +59,29 @@ No `storeys` is one implicit storey; a storey with no `on` stands on the
 ground; whether a storey is enclosed is read off its members' own walls
 and roof (never authored on it). A lone hut is complete with no structure;
 a structure with no member places (a landmark) still stands on the horizon.
+
+## The landing — where a structure meets the weather
+
+A structure is not a Thing or a Location, so a player engages it from a
+place that touches it. ⭐ **A landing** is *a place that does not hold its
+own air (`exposure().holdsAir()` false) with an exit into a member that is
+enclosed or is the structure's entrance — or with the structure lying
+alongside it* (a ship at a quay: the exit answers `alongsideNow()`). Derived,
+never authored (`StructureBase.isLandedAt`; `Place.landedStructuresNow()`
+from the room's side). A closet holds air; a neighbour's parlour is another
+structure's member; a sailed ship's berth has nothing alongside; a member
+courtyard open to the sky is a landing of its own building. The landed
+structures enter the room's `here` pool, so `look cottage`, `survey
+cottage` and `paint cottage` bind from the lane with no new MQL seed.
+
+`Structure` is split (paint D1): the BASE (`lib/structure/Structure`) holds
+membership, entrance, height, storeys, the landing, whether it is sold
+(`isTitleSold` — a person holds the covering parcel); the platform twin
+(`platform/idea/Structure`, a `Singleton` per row) composes the outside's
+capabilities; a holding's house (`HoldingStructure`) is the base keyed per
+lot and attached to the graph at runtime (`NavigationApi.attachStructure`).
+A keyed room answers its KEY as its place (`Stuff.getPlacePath()`), which is
+what membership and `exposure()` read.
 
 ## The one rule, and the `Exposure` it computes
 

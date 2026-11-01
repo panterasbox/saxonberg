@@ -1,0 +1,34 @@
+# Tam Rook, the house painter (paint D20). ⛔ No keyword is the bare word
+# `painter` — that is the diving pack's bow line. He works a round of the
+# town's buildings, painting whichever one has lost its coat.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Tam Rook
+  keywords: [tam, rook, housepainter, decorator]
+  shortDescription: housepainter
+  register: definite
+  longDescription: >-
+    A wiry man in overalls spattered every color a house can be, a brush
+    behind each ear and a pot hooked over one arm, who looks at a building
+    the way a doctor looks at a tongue.
+  archetype: proprietor
+  prologue:
+    - "Has painted every front on the towpath twice and can tell you which ones are due."
+  competence:
+    - { discipline: painting, asserting: proficient }
+  dispositions:
+    - { disposition: sociability, valence: 40 }
+    - { disposition: composure, valence: 50 }
+  props:
+    - /trade/painting/thing/brush
+    - /trade/painting/thing/ochre-oil-paint
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival
+    - brain: /trade/painting/behavior/paints
+      trigger: candidate

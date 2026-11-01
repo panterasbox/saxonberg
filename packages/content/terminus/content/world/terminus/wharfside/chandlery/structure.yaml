@@ -1,0 +1,18 @@
+# The chandlery as a BUILDING (paint D20) — brick, limewashed, staged.
+# Where it meets the weather is its yard door's far side.
+class: /platform/idea/Structure
+data:
+  extent: /world/terminus/wharfside/chandlery
+  entrance: /world/terminus/wharfside/chandlery/location/floor
+  shortDescription: chandlery
+  register: definite
+  keywords: [chandlery, building, "chandler's"]
+  longDescription: >-
+    A squat brick works with a tall chimney, its walls washed white and
+    streaked grey under the eaves with tallow smoke.
+  heightM: 7
+  coats:
+    outside:
+      - material: /trade/chandlery/idea/material/milk-of-lime
+        thicknessM: 0.00003
+        state: set

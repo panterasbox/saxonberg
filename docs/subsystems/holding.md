@@ -177,7 +177,10 @@ persistence key.
 - `upkeepTerm` — the tenure vocabulary (below).
 - `addressBase?` — the human address the per-room addresses hang off.
 
-**Persistent per instance:** `shellCondition`, `shellStamp`.
+**Persistent per instance:** the floorplan and the term. ⭐ The SHELL is the
+holding's BUILDING's now (paint build D6/D13): `wake()` stands up a
+`HoldingStructure` keyed by the holding's extent (or reads the Structure
+row its units stand in — Seznick House), and the fabric lives there.
 
 **`wake()`** is the whole of standing a holding up: every room in the
 floorplan is stood up as a **keyed instance** — `(scope = the room's row,
@@ -304,12 +307,13 @@ the world instead of a tutor.
 
 ## Condition — the weathering clock
 
-**Storage:** `shellCondition` (0..1) + `shellStamp` (game-time) on the
-programme instance. **Reconciled on read**, linear slope, rate from
-`residence.weather.daysToWorn` (default 45 game-days from sound to
-worn — half the scale, so a full slide takes twice that). Stamp-forward.
-**No scheduler**, and the stamp is persistent, so the decline is honest
-across a restart and across a holding sleeping for a month.
+⭐ **Moved to the kernel by the paint build** (`ShellMixin`, see
+[painting.md](./painting.md)): the fabric is the BUILDING's — the holding's
+house — and it wears **only while the building's coat is gone**, at
+`structure.weather.daysToWorn` (default 45 game-days from sound to worn,
+the dial that was `residence.weather.daysToWorn`). A holding's house starts
+bare, so an unpainted holding wears exactly as the shell always did.
+Reconciled on read, stamp-forward, persistent; honest across a restart.
 
 Five bands, and the readout is **only ever a band**:
 
@@ -601,7 +605,7 @@ Named, not stubbed — each is a clean attach point:
 Worth naming before a second consumer arrives, because it will be
 cheaper to see coming than to discover. Of everything the pack's
 `HoldingWarren` owns — the keyed floorplan mint, whole-unit dormancy,
-wake/sleep, the front-door edge, revert — **only the shell clock is
+wake/sleep, the front-door edge, revert — **only the shell clock (now the house's, paint D13) is
 residential**, and even that is residential only in its *vocabulary*
 (`shellCondition`, `landlord-shell`, `residence.weather.daysToWorn`).
 The mechanism underneath is *a held thing weathers on the passage of

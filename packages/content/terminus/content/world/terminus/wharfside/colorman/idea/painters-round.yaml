@@ -1,0 +1,33 @@
+# The house painter's round (paint D20) — one man, a rota of the town's
+# buildings: the towpath in the morning (the cottage, the chandlery), the
+# Row after noon (Seznick House). At each station he paints whichever
+# building there has lost its coat.
+class: /platform/idea/Business
+data:
+  name: "Rook, housepainter"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/wharfside/colorman/agent/housepainter
+  call: rota
+  positions:
+    - key: housepainter
+      noun: housepainter
+      label: painting the town's fronts
+      wageRate: 3
+      fulfills: [painting]
+  rosterSlots:
+    - positionKey: housepainter
+      assignee: /world/terminus/wharfside/colorman/agent/housepainter
+      station: /world/terminus/valley-road/towpath
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 12] }
+    - positionKey: housepainter
+      assignee: /world/terminus/wharfside/colorman/agent/housepainter
+      station: /world/terminus/mayfield-row/street
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [12, 16] }
+  banksAt: goodkin
+  offstage: /world/terminus/wharfside/colorman/location/offstage
+  operatingLocations:
+    - /world/terminus/valley-road/towpath
+    - /world/terminus/mayfield-row/street
