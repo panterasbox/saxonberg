@@ -27,7 +27,7 @@ data:
     y: 0
     z: 0
   shortDescription: Dave's Bar
-  keywords: [bar, "dave's", dave]
+  keywords: [bar, "dave's"]
   register: proper
   illustration: location/bar.png
   longDescription: |
