@@ -35,10 +35,9 @@
 import React from "react";
 import styled from "styled-components";
 import type { CardId } from "@saxonberg/types";
-import { tokens } from "../ui";
+import { Icon, tokens } from "../ui";
 import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
-import { Maximize2, Minimize2, Pin, X } from "lucide-react";
 import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
 
@@ -378,7 +377,7 @@ export function Card({
               onMouseEnter={() => preview(size === "full" ? null : grow)}
               onMouseLeave={() => preview(null)}
             >
-              <Maximize2 size={14} aria-hidden="true" />
+              <Icon name="card.bigger" label="bigger" size={14} decorative />
             </IconButton>
           )}
           {!faded && card.role !== "primary" && (
@@ -390,7 +389,7 @@ export function Card({
               onMouseEnter={() => preview(shrink)}
               onMouseLeave={() => preview(null)}
             >
-              <Minimize2 size={14} aria-hidden="true" />
+              <Icon name="card.smaller" label="smaller" size={14} decorative />
             </IconButton>
           )}
           {!faded && (
@@ -403,7 +402,7 @@ export function Card({
               onMouseEnter={() => preview(command)}
               onMouseLeave={() => preview(null)}
             >
-              <Pin size={14} aria-hidden="true" />
+              <Icon name="card.pin" label="pin" size={14} decorative />
             </IconButton>
           )}
           {faded ? (
@@ -413,7 +412,7 @@ export function Card({
               aria-label="clear"
               onClick={() => dropCard(card.instanceId)}
             >
-              <X size={14} aria-hidden="true" />
+              <Icon name="card.close" label="close" size={14} decorative />
             </IconButton>
           ) : card.role !== "primary" ? (
             <IconButton
@@ -424,7 +423,7 @@ export function Card({
               onMouseEnter={() => preview(close)}
               onMouseLeave={() => preview(null)}
             >
-              <X size={14} aria-hidden="true" />
+              <Icon name="card.close" label="close" size={14} decorative />
             </IconButton>
           ) : null}
         </Controls>

@@ -45,8 +45,7 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
-import { tokens } from "../ui";
-import { Square } from "lucide-react";
+import { tokens, Icon } from "../ui";
 import { KindMark } from "../cards/KindMark";
 
 /** A card key as a command argument: quoted when it has a space or a quote. */
@@ -210,7 +209,7 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
                 {c.subjectKind ? (
                   <KindMark kind={c.subjectKind} size={14} />
                 ) : (
-                  <Square size={14} aria-hidden="true" />
+                  <Icon name="card.tray" label="a card" size={14} decorative />
                 )}
               </TrayIcon>
             );
