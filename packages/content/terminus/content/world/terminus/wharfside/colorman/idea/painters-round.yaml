@@ -4,14 +4,14 @@
 # building there has lost its coat.
 class: /platform/idea/Business
 data:
-  name: "Rook, housepainter"
+  name: "Rook, house painter"
   appointingAuthority:
     kind: entity
     path: /world/terminus/wharfside/colorman/agent/housepainter
   call: rota
   positions:
     - key: housepainter
-      noun: housepainter
+      noun: painter
       label: painting the town's fronts
       wageRate: 3
       fulfills: [painting]

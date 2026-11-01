@@ -119,8 +119,8 @@ trade at Wharfside.**
   gone"* line describes a real coat. `maintain` stops resetting everything: it mends the fabric
   (sills, putty), and the coat is `paint`'s.
 - **The chandlery's milk of lime** already answers to *limewash* — it is the lime paint.
-- **The word *painter*** already means the diving pack's bow line. The house painter must not be
-  addressable by a word a rope answers to.
+- **The word *painter*** is the house painter's (the owner, review): the diving pack's boat line
+  was renamed a *bow line*, so nothing a rope answers to collides with the trade.
 - **`write`** gains paint as a medium.
 - **Wharfside's neighbors** become the colorman's suppliers: chandlery, dyehouse, knackers,
   tannery, mill.

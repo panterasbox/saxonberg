@@ -1224,7 +1224,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     if (river && MixinApi.isExerting(walker)) {
       walker.exert({ durationS: 60, powerW: Math.min(400, 60 + 40 * Math.abs(river.currentMps)) });
     }
-    this.tellOf(walker, Mml.compose`You lean on the painter and walk her up the bank, the boat sheering out on the current and coming along.`);
+    this.tellOf(walker, Mml.compose`You lean on the bow line and walk her up the bank, the boat sheering out on the current and coming along.`);
   }
 
   /**

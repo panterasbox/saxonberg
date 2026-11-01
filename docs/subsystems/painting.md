@@ -141,8 +141,8 @@ rosin and turpentine stir to varnish.
 The colorman's (Ira Pell) off the towpath: a shop with its counter and
 hearth, a yard with the quern, a shed for the rags. The towpath cottage is
 the town's limewashed building, its own parcel so it can be sold. Tam Rook,
-the housepainter (⛔ never the bare word *painter* — the diving pack's bow
-line), works a rota of the towpath and Mayfield Row and paints the landed
+the house painter (he answers to *painter*; a boat's line is a *bow
+line*), works a rota of the towpath and Mayfield Row and paints the landed
 building whose coat is gone (the `paints` brain, through the literal verb).
 A swept flue gives lampblack where the realm names it
 (`cleanliness.sootTemplate`).

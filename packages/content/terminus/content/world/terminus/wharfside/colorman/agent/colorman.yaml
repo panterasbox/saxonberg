@@ -1,5 +1,4 @@
-# Ira Pell, the colorman (paint D20). ⛔ No keyword is the bare word
-# `painter` — that is the diving pack's bow line.
+# Ira Pell, the colorman (paint D20).
 class: /platform/agent/Cast
 extends: /stuff/agent/costume/student
 data:

@@ -1,6 +1,7 @@
-# Tam Rook, the house painter (paint D20). ⛔ No keyword is the bare word
-# `painter` — that is the diving pack's bow line. He works a round of the
-# town's buildings, painting whichever one has lost its coat.
+# Tam Rook, the house painter (paint D20). He works a round of the town's
+# buildings, painting whichever one has lost its coat. ⭐ He answers to
+# `painter` — that is what the word means to anyone (the owner); the boat's
+# bow line answers to "bow line".
 class: /platform/agent/Cast
 extends: /stuff/agent/costume/student
 data:
@@ -9,8 +10,8 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   name: Tam Rook
-  keywords: [tam, rook, housepainter, decorator]
-  shortDescription: housepainter
+  keywords: [tam, rook, painter, "house painter", housepainter, decorator]
+  shortDescription: house painter
   register: definite
   longDescription: >-
     A wiry man in overalls spattered every color a house can be, a brush

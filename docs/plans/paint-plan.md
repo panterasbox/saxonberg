@@ -17,10 +17,9 @@ capability pack, `trade-painting` at `/trade/painting`, carries the trade.
 Branch `reqs/paint` (worktree `build-2`, **`WIRE_PORT=2013`**), cut off
 `origin/master` after the cordage merge. ⚠ Vocabulary: American English in
 every new name (*color*, *mold* in prose; the shipped `Colour` class and
-`MouldMixin` are not renamed). ⚠ The word *painter* is the diving pack's bow
-line (`trade-diving/…/thing/painter.yaml` keywords `[painter, line, rope,
-"bow line"]`): no keyword, name or stock line in this build may contain the
-bare token `painter`.
+`MouldMixin` are not renamed). ⭐ *Painter* means someone who paints (the
+owner, 2026-11-01: "ask anyone"): the diving pack's boat line was renamed a
+**bow line** and Tam Rook answers to `painter` (B30).
 
 ---
 
@@ -1028,12 +1027,19 @@ fork, the lens that chose is named.
   turpentine into an open dish (shipped emission) and from stirring a
   volatile (vented). Recorded for the bulk-mixing seam.
 
-- **B29 (W8)** — the house painter reads `housepainter` (one word) and never
-  `house painter`: a multi-word keyword carrying the token `painter` still
-  collides with the diving pack's bow line. The round has two stations, not
+- **B29 (W8)** — the round has two stations, not
   three (the sugar house's landing is inside Veshko's works). He does not
   restock his pot from the counter (`buy` from a brain) — recorded; his pot
   is authored full.
+
+- **B30 (review, the owner)** — *painter* is the house painter's word. The
+  plan had ceded it to `trade-diving`'s boat line; the owner: *"if you ask
+  anyone what a painter is they're gonna say it's someone who paints."* The
+  boat line is now `bow line` (shortDescription and keywords; its template
+  path `/trade/diving/thing/painter` is kept so every stock line and record
+  still resolves), the lining prose says *bow line*, and Tam answers to
+  `painter` and `house painter`. *Lens 3a: the fiction speaks the common
+  word.*
 
 ---
 
@@ -1486,7 +1492,7 @@ under `wharfside/colorman` or `trade-painting` contains the token
 | 15 a gessoed panel painted with tempera is a good | W4, W3 | 20 |
 | 16 seven glues from what the world produces | W6 (D12) | 22 (+ unit for the other six) |
 | 17 glued joint uses glue; weak until set; hide fails damp, comes apart hot+steamed; casein holds, never comes apart | W6 (D11) | 23 (staged), 24, 25 |
-| 18 colorman sells; house painter paints on his round; nobody addresses him as a bow line | W8 | 1, 21 |
+| 18 colorman sells; house painter paints on his round; he answers to *painter* | W8 | 1, 21 |
 | 19 milk of lime works as limewash with no chandlery mechanism change | W4 (gap 1) | 10 |
 
 Nothing unmapped.

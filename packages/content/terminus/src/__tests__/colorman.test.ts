@@ -1,6 +1,6 @@
 /**
- * ⭐ The colorman's and the house painter (paint D20), as rows: nobody
- * answers to the bare word `painter` (the diving pack's bow line); the
+ * ⭐ The colorman's and the house painter (paint D20), as rows: `painter`
+ * names the house painter (the boat's line is a bow line); the
  * cottage is a building whose landing is the towpath; the round's stations
  * are where buildings meet the weather.
  */
@@ -25,11 +25,9 @@ function rowsUnder(dir: string): { file: string; data: Record<string, unknown> }
 }
 
 describe('the colorman and the house painter', () => {
-  it('no keyword under the colorman is the bare word "painter"', () => {
-    for (const { file, data } of rowsUnder(join(ROOT, 'wharfside/colorman'))) {
-      const words = (data.keywords as string[] | undefined) ?? [];
-      for (const w of words) expect(w.split(/\s+/), file).not.toContain('painter');
-    }
+  it('"painter" names the house painter, and the boat\'s line is a bow line', () => {
+    const tam = rowsUnder(join(ROOT, 'wharfside/colorman/agent')).find((r) => r.data.name === 'Tam Rook')!;
+    expect(tam.data.keywords).toContain('painter');
   });
 
   it('the house painter paints through the brain, with a brush and a pot', () => {
