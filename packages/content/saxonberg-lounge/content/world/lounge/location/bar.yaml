@@ -109,6 +109,8 @@ data:
   adornments:
     - { template: /world/lounge/thing/neon-veshko, slot: sign:veshko }
     - { template: /world/lounge/thing/neon-aevex, slot: sign:aevex }
+    # The slab's own light — see the row. Without it the room is `dim`.
+    - { template: /world/lounge/thing/under-bar-light, slot: lamp:under-bar }
   # The crafting fixtures stock the rail; the cast spawns here on
   # hydration too. Each cast member is an NPC template + behavior data;
   # the `shifts` brain sorts them by the game clock — whoever's on shift
