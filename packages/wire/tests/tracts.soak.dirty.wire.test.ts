@@ -175,9 +175,9 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     await doing(p, 'mark wheat field as half');
     await founderEvalVia(
       VALLEY_LANE,
-      [`go ${gateOf(lot)}`, 'go up'],
+      [],
       VALLEY,
-      'return (t => (t.fieldByKey("wheat-field").turnUnder(), "seedbed"))(self.getContainer())',
+      `return (t => (t.fieldByKey("wheat-field").turnUnder(), "seedbed"))(self.getContainer().getExit("${gateOf(lot)}").peekDestination().getExit("up").peekDestination())`,
     );
     await doing(p, 'sow wheat at the wheat field');
     expect(await read(p, 'look')).toMatch(/stand of wheat grows/i);

@@ -1,0 +1,29 @@
+# Mayfield & Co., land agents — the business that operates the realty
+# office (tracts build, 2026-11-01).
+#
+# ⚠⚠ Without it a plot of land could never be SOLD here: `title buy`
+# settles the price into the operating account of the business at the
+# desk's room, the office's ground is held by a group (no business, no
+# account), and the sale refused every buyer with *"You can't cover …"* —
+# a funds refusal for a missing payee. The farming drive only ever
+# asserted that refusal; the tracts drive is the first to buy a lot.
+class: /platform/idea/Business
+data:
+  name: "Mayfield & Co."
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/realty/agent/ricky
+  call: rota
+  positions:
+    - key: agent
+      noun: land agent
+      label: at the deed desk
+      wageRate: 3
+  rosterSlots:
+    - positionKey: agent
+      assignee: /world/terminus/realty/agent/ricky
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [8, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/realty/office

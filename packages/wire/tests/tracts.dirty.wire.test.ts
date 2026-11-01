@@ -29,6 +29,8 @@ import {
   uniqueHandle,
   engagementIdOf,
   isOwnedTestWorld,
+  advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -58,7 +60,6 @@ const YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
-const REGISTRY = '/world/terminus/registry/office';
 const HINKLEY_LANE = '/world/terminus/hinkley-hills/location/lane';
 
 const record: string[] = [];
@@ -114,6 +115,21 @@ async function read(s: Session, text: string): Promise<string> {
   return said;
 }
 
+const DAY = 86_400;
+
+/**
+ * Make it daylight — on to 10 o'clock when it is not — with every body
+ * logged out (an offline body is frozen). Under a day: a short step.
+ */
+async function daylight(): Promise<void> {
+  const now = await worldClockNow();
+  const into = ((now % DAY) + DAY) % DAY;
+  const hour = into / 3_600;
+  if (hour >= 8 && hour <= 16) return;
+  const wait = into < 10 * 3_600 ? 10 * 3_600 - into : DAY - into + 10 * 3_600;
+  await advanceWorldClock(`${Math.max(1, Math.round(wait / 60))} minutes`);
+}
+
 /** A funded stranger: an account at the bank, and the Governor's override into it. */
 async function funded(handle: string, zorkmids = 20000): Promise<void> {
   const s = await Session.open(handle, { startLocation: BANK_HALL });
@@ -160,6 +176,7 @@ beforeAll(async () => {
   neighbor = uniqueHandle('neighbor');
   await funded(farmer);
   await funded(neighbor);
+  await daylight();
 }, 600_000);
 
 afterAll(() => {
@@ -214,14 +231,16 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
     await doing(p, 'buy seed wheat');
     p.close();
     // ⭐ [staged] A fresh farmstead has no plough; the seedbed is SET, the
-    // act it stands for (ploughing) is the cover drive's. The founder walks
-    // to the farmer's own bench — a keyed copy has no path of its own.
+    // act it stands for (ploughing) is the cover drive's.
     const gate = gateOf(lot);
+    // ⚠ The founder may not walk through somebody else's lot gate, so the
+    // eval reaches the bench from the lane, through the ways the farmer
+    // walked (each far side already loaded).
     const staged = await founderEvalVia(
       VALLEY_LANE,
-      [`go ${gate}`, 'go up'],
+      [],
       VALLEY,
-      'return (t => (t.fieldByKey("wheat-field").turnUnder(), "seedbed"))(self.getContainer())',
+      `return (t => (t.fieldByKey("wheat-field").turnUnder(), "seedbed"))(self.getContainer().getExit("${gate}").peekDestination().getExit("up").peekDestination())`,
     );
     expect(staged).toMatch(/seedbed/);
     p = await goTo(farmer, VALLEY_LANE);
@@ -275,11 +294,11 @@ suite.skipIf(!isOwnedTestWorld())('the authored farms, and the house lot', () =>
   it("9. a Hinkley lot's garden takes beds, not fields — in the zoning's words", async () => {
     const h = uniqueHandle('householder');
     await funded(h, 5000);
-    const reg = await goTo(h, REGISTRY);
+    const reg = await goTo(h, REALTY);
     let house = '';
     try {
       const book = await read(reg, 'title list');
-      house = unsoldLot(book);
+      house = unsoldLot(book, /^lot-/);
       expect(house, 'an unsold Hinkley lot').toBeTruthy();
       await doing(reg, `title buy ${house}`);
     } finally {
