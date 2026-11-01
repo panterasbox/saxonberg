@@ -1,6 +1,6 @@
 /**
- * Harbors — ⭐⭐ **the Stage A blocking drive** (the requirements' drive
- * steps 1–10, numbering kept), over the wire.
+ * Harbors — ⭐⭐ **the blocking drive** (the requirements' drive
+ * steps 1–25, numbering kept), over the wire.
  *
  * The Port of Terminus: a ship hails the office from the bar and is given
  * a berth; comes in on `course <quay>` and makes her own lines fast to its
@@ -31,6 +31,23 @@
  *    can only be driven once the Hesper has left (step 5).
  *  - **10 last**, where the requirements put it.
  *
+ * ⭐ **Stage B (11–25)** — owning a ship: bought and named at Pell's yard,
+ * entered in the city's register in sixty-fourths; a second player's
+ * smack keeps her own rooms; the gangway is a lock with a key and the helm
+ * is only her master's; shares sold with the money and the shares together;
+ * she keeps across a server RESTART (15, run in the middle, in a world this
+ * run owns); her hull on the house's clock — settled at her berth, pumped
+ * off the mud, sounded, pumped and rising again; at sea under her flag; a
+ * rowboat bought and loaded, a dinghy swamped in a chop; a canoe hired by
+ * the day; settling, going down, swum up out of, dived to; a holed boat
+ * bailed and let go; the caulker's kit. ⚠ The ORDER is the requirements'
+ * with these moves, each for a reason: **15–16 and 19–20 before 14** (she
+ * must be at her berth to be left, restarted, settled and pumped — 14
+ * takes her to sea, where 17's chop and 21–23's sinking need her), and
+ * **24–25 after 23** (the rowboat 17 bought is the one holed).
+ * Each stage-B ship is named afresh every run (a name already entered is
+ * refused — which is step 11's other half, driven by the second buyer).
+ *
  * ⚠⚠ `.dirty.` (docs/testing.md § Repeatable by default): it charters the
  * Hesper, pays dues and charters from a funded player, moves three ships
  * and leaves the Hesper at Waponi Woo — none of it produced again. (The
@@ -39,6 +56,11 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import { spawnSync } from 'child_process';
+import { copyFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import type { CommandResult } from '../src/harness';
 import {
   Session,
   declareFile,
@@ -49,12 +71,18 @@ import {
   advanceWorldClock,
   worldClockNow,
   stageShip,
+  hand,
+  isOwnedTestWorld,
+  pinWeather,
+  unpinWeather,
 } from '../src/harness';
+import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'charters the Hesper and pays her dues and days from a funded player, ' +
   'moves the Hesper and the line’s two regulars and leaves the Hesper at ' +
-  'Waponi Woo — none of it produced again';
+  'Waponi Woo, buys two smacks into the register and sinks one, buys and ' +
+  'sinks a rowboat, restarts the world — none of it produced again';
 
 declareFile({
   file: 'harbors.dirty.wire.test.ts',
@@ -378,4 +406,535 @@ suite('A2 — sugar’s island', () => {
     const paid = await say(sailor, 'pay office');
     expect(paid, paid).toMatch(/You pay .*Nothing more is owed/);
   }, 900_000);
+});
+
+/* ══════════════════════════ Stage B — the boats ══════════════════════════ */
+
+const SHED = '/world/terminus/harbor/yard/shed';
+const YARD = '/world/terminus/harbor/yard/quay';
+const CHANDLER = '/world/terminus/harbor/chandler/shop';
+const PUT_IN = '/world/terminus/rejection/put-in/landing';
+const ROADS = `${SEA}/the-roads`;
+const STONE = '/stuff/thing/gear/press-stone';
+const AIR_TANK = '/stuff/thing/gear/air-tank';
+
+// ⭐ A name the register has never seen, every run (a kept world is driven
+// again; a name already entered is refused, which is step 11's other half).
+const tag = (): string =>
+  Array.from({ length: 4 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join('');
+const NAME1 = `Petrel${tag()}`;
+const NAME2 = `Fulmar${tag()}`;
+const way1 = NAME1.toLowerCase();
+const way2 = NAME2.toLowerCase();
+
+const OWNER = uniqueHandle('hbo');
+const SECOND = uniqueHandle('hbt');
+let owner: Session;
+let second: Session;
+let ownerName = '';
+let secondName = '';
+/** The rowboat the second player bought (17), and the weight put in her. */
+let rowboat = '';
+const stones: string[] = [];
+
+/** The ids of the `kw` things lying here — so a drive names the one it means (`#<id>`). */
+async function idsHere(s: Session, kw: string): Promise<string[]> {
+  const rows = await s.query(`here:i:${kw}`, { fields: ['displayName'] });
+  return rows.map((r) => String((r as { stuffId?: unknown }).stuffId ?? '')).filter((x) => x !== '');
+}
+
+/** A player's own name, as others see it (what `give … to` and `transfer … from` bind). */
+async function nameOf(s: Session): Promise<string> {
+  const me = await s.query('me', { fields: ['displayName'] });
+  return String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+}
+
+/** A funded player at the bank: an account and `amount` in it. */
+async function funded(handle: string, amount: number): Promise<void> {
+  const s = await session(handle, BANK_HALL);
+  expectOk(await s.cmd('bank open'));
+  const gov = await founderAt(BANK_HALL);
+  expectOk(await gov.cmd(`reserve override ${amount} to ${handle} "wire: harbors stage B funding"`));
+  gov.close();
+  s.close();
+}
+
+/** The prompt envelope's id and its first note, wherever the frame carries them. */
+function promptOf(p: unknown): { id: string; kind: string } {
+  type Body = { promptId?: string; outcome?: { notes?: Array<{ kind?: string }> } };
+  const frame = p as Body & { payload?: Body };
+  const body = frame.payload?.promptId ? frame.payload : frame;
+  const kind = body.outcome?.notes?.find((n) => n.kind?.startsWith('prompt-'))?.kind ?? '';
+  return { id: body.promptId ?? '', kind };
+}
+
+/**
+ * Run `line` on `s` and answer every prompt that arrives on `asked` (the
+ * giver, or the other party a verb asks) with the next of `answers`, in
+ * order. ⚠ Polled in short slices that stop when the command resolves: a
+ * long `awaitPrompt` left pending would swallow the next command's prompt.
+ */
+async function withPrompts(s: Session, line: string, answers: string[], asked: Session = s): Promise<{ r: CommandResult; said: string }> {
+  await s.drainProse();
+  let done = false;
+  const left = [...answers];
+  // ⚠ One question can arrive on more than one frame: answer each id once
+  // (run 3 named the second smack "no" — her name went to the echo).
+  const answered = new Set<string>();
+  const pending = s.cmd(line).finally(() => {
+    done = true;
+  });
+  void (async () => {
+    while (!done) {
+      const p = await asked.awaitPrompt(250).catch(() => null);
+      if (p === null || done) continue;
+      const { id } = promptOf(p);
+      if (!id || answered.has(id)) continue;
+      answered.add(id);
+      asked.answerPrompt(id, left.shift() ?? 'no');
+    }
+  })();
+  const r = await pending;
+  return { r, said: squash(await r.said()) };
+}
+
+/** An engaged act run to its end; the prose it ended with (read off the starting command). */
+async function act(s: Session, line: string): Promise<{ r: CommandResult; said: string }> {
+  await s.drainProse();
+  const r = await s.cmd(line);
+  const started = r.notes.find((n) => n.kind === 'engagement-started') as { engagementId?: string } | undefined;
+  if (started?.engagementId) {
+    await s.awaitActivity(started.engagementId, 120_000).catch(() => undefined);
+    await new Promise((res) => setTimeout(res, 1_500));
+  }
+  return { r, said: squash(await r.said()) };
+}
+
+/** What the bilge reads, as a sounding rod finds it. */
+async function sound(s: Session): Promise<string> {
+  return say(s, 'measure bilge');
+}
+
+/** Into office hours (6–20) if the clock is outside them — a `short` move. */
+async function inOfficeHours(): Promise<void> {
+  const now = await worldClockNow();
+  const h = ((now % DAY) + DAY) % DAY / 3600;
+  if (h < 6.5 || h >= 18) await toHour(7);
+}
+
+suite('B1 — owning a ship', () => {
+  beforeAll(async () => {
+    await funded(OWNER, 6_000);
+    await funded(SECOND, 6_000);
+    await inOfficeHours();
+    owner = await session(OWNER, SHED);
+    second = await session(SECOND, SHED);
+    // ⭐ Strangers know each other by description only: a key handed and
+    // shares sold name their party, so the two buyers meet first (run 3:
+    // `transfer … from <name>` bound nobody — they had never met).
+    expectOk(await owner.cmd('introduce'));
+    expectOk(await second.cmd('introduce'));
+    ownerName = await nameOf(owner);
+    secondName = await nameOf(second);
+  }, 600_000);
+
+  it('11. (instant · player) at the yard, `buy smack` and name her: she lies at the yard’s quay; the register lists her in your name, 64 shares, under Terminus’ flag', async () => {
+    const { r, said } = await withPrompts(owner, 'buy smack', [NAME1]);
+    expect(r.status, said).toBe('ok');
+    expect(said, said).toMatch(new RegExp(`entered in the register of the City of Terminus as the ${NAME1}, all sixty-four shares in your name, and you are her master`));
+    expect(said, said).toMatch(/Her gangway is locked; the key is yours/);
+    expectOk(await owner.cmd('go north'));
+    const quay = await look(owner);
+    expect(quay, quay).toMatch(new RegExp(`Alongside: the ${NAME1}`));
+    expect(quay, quay).toMatch(new RegExp(`\\b${way1}\\b`));
+    // The register, read at the harbor office.
+    expectOk(await owner.cmd('go east'));
+    expectOk(await owner.cmd('go east'));
+    expectOk(await owner.cmd('go south'));
+    const reg = await say(owner, 'read register');
+    expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\), under the flag of the City of Terminus: [^.]*64/64`));
+    expectOk(await owner.cmd('go north'));
+    expectOk(await owner.cmd('go west'));
+    expectOk(await owner.cmd('go west'));
+  }, 600_000);
+
+  it('12. (instant · player) a second player’s smack (a name already entered is refused): her rooms are hers; a locked gangway keeps them off yours, her key lets them aboard, never the helm; locked with them aboard, they can still go ashore', async () => {
+    // ⭐ 11's refusal: the name already in the register, then her own.
+    const { r, said } = await withPrompts(second, 'buy smack', [NAME1, NAME2]);
+    expect(r.status, said).toBe('ok');
+    expect(said, said).toMatch(new RegExp(`named ${NAME1} already\\. Another name`));
+    expect(said, said).toMatch(new RegExp(`as the ${NAME2}, all sixty-four shares in your name`));
+    expectOk(await second.cmd('go north'));
+
+    // What you leave in your hold is not in hers.
+    expectOk(await owner.cmd(`go ${way1}`));
+    expect(await look(owner)).toMatch(/smack's deck/i);
+    expectOk(await owner.cmd('go down'));
+    expectOk(await owner.cmd('go north'));
+    const oakum = await hand(owner, '/stuff/thing/oakum');
+    expectOk(await owner.cmd(`drop #${oakum}`));
+    expect(await look(owner)).toMatch(/oakum/i);
+    expectOk(await owner.cmd('go south'));
+    expectOk(await owner.cmd('go up'));
+    expectOk(await owner.cmd('go ashore'));
+    expectOk(await second.cmd(`go ${way2}`));
+    // ⭐ Her gangway left unlocked and her key in her own cabin, so the only
+    // key the second player carries from here is the one they are handed.
+    expectOk(await second.cmd('unlock ashore'));
+    expectOk(await second.cmd('go down'));
+    expectOk(await second.cmd('drop key'));
+    expectOk(await second.cmd('go north'));
+    const theirs = await look(second);
+    expect(theirs, theirs).toMatch(/fish hold/i);
+    expect(theirs, theirs).not.toMatch(/oakum/i);
+    expectOk(await second.cmd('go south'));
+    expectOk(await second.cmd('go up'));
+    expectOk(await second.cmd('go ashore'));
+    expect(await look(second)).toMatch(/yard quay/i);
+
+    // Locked: not aboard without her key.
+    const kept = await second.cmd(`go ${way1}`);
+    expect(kept.status, squash(await kept.said())).not.toBe('ok');
+    // Handed her key: aboard — and still not her helm.
+    expectOk(await owner.cmd(`give key to "${secondName}"`));
+    expectOk(await second.cmd(`go ${way1}`));
+    expect(await look(second)).toMatch(/smack's deck/i);
+    const helm = await second.cmd('course roads');
+    expectNote(helm, 'controller-rejected', { reason: 'not-her-master' });
+    // The key back, ashore; unlocked from the quay, the second player goes
+    // aboard; locked behind them, they still go ashore — and cannot return.
+    expectOk(await second.cmd('go ashore'));
+    expectOk(await second.cmd(`give key to "${ownerName}"`));
+    expectOk(await owner.cmd(`unlock ${way1}`));
+    expectOk(await second.cmd(`go ${way1}`));
+    expectOk(await owner.cmd(`go ${way1}`));
+    const locked = await say(owner, 'lock ashore');
+    expect(locked, locked).toMatch(/lock/i);
+    const leaves = await second.cmd('go ashore');
+    expect(leaves.status, squash(await leaves.said())).toBe('ok');
+    expect(await look(second)).toMatch(/yard quay/i);
+    const barred = await second.cmd(`go ${way1}`);
+    expect(barred.status, squash(await barred.said())).not.toBe('ok');
+    expectOk(await owner.cmd('go ashore'));
+  }, 600_000);
+
+  it('13. (instant · player) 16 shares sold to the second player at a price both accept: the money and the shares move together; the register shows both owners', async () => {
+    const { r, said } = await withPrompts(second, `transfer 16 shares of ${NAME1} from "${ownerName}" for 400`, ['yes'], owner);
+    expect(r.status, said).toBe('ok');
+    expect(said, said).toMatch(new RegExp(`You buy 16 of the ${NAME1}'s shares from .* for [^.]*400`));
+    // At the office: both owners in the register.
+    expectOk(await second.cmd('go east'));
+    expectOk(await second.cmd('go east'));
+    expectOk(await second.cmd('go south'));
+    const reg = await say(second, 'read register');
+    expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*48/64`));
+    expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*16/64`));
+    // Nobody but a shareholder sells: the second player has no shares in hers to sell twice over.
+    const none = await withPrompts(owner, `transfer 16 shares of ${NAME2} from "${ownerName}" for 1`, []);
+    expect(none.r.status, none.said).not.toBe('ok');
+  }, 600_000);
+});
+
+suite('B1 — she keeps across a restart (15)', () => {
+  // ⚠ No `afterAll(stopOwnedWorld)`: the rebooted world stays up for the
+  // steps after this one (the cleanliness drive's precedent).
+  it.skipIf(!isOwnedTestWorld())('15. (instant · player) leave her; she sleeps; restart the server; come back: she is where you left her, with what you left in her', async () => {
+    for (const s of open) s.close();
+    open.length = 0;
+    await new Promise((r) => setTimeout(r, 8_000));
+    try {
+      copyFileSync(WIRE_LOG, `${WIRE_LOG}.before-restart`);
+    } catch {
+      /* no log to keep */
+    }
+    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
+    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
+      cwd: serverDir,
+      stdio: 'ignore',
+    });
+    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    owner = await session(OWNER, YARD);
+    second = await session(SECOND, YARD);
+    const quay = await look(owner);
+    expect(quay, `the yard quay, after a restart: ${quay}`).toMatch(new RegExp(`Alongside: [^.]*the ${NAME1}`));
+    // Her way aboard is wired again from the register's `lies`.
+    expectOk(await owner.cmd(`go ${way1}`));
+    expect(await look(owner)).toMatch(/smack's deck/i);
+    expectOk(await owner.cmd('go down'));
+    expectOk(await owner.cmd('go north'));
+    const hold = await look(owner);
+    expect(hold, `her hold, after a restart: ${hold}`).toMatch(/oakum/i);
+    expectOk(await owner.cmd('go south'));
+    expectOk(await owner.cmd('go up'));
+  }, 1_500_000);
+
+  it('16. (staged · player — twin of soak S1) her hull staged worn and her sleep staged long: settled at her berth; her hull reads worn; pump her out', async () => {
+    await stageShip(NAME1, { hull: 'worn', sleptDays: 60 });
+    const held = await say(owner, 'course roads');
+    expect(held, held).toMatch(/settled onto the mud/);
+    const survey = await say(owner, 'survey');
+    expect(survey, survey).toMatch(/fabric of the place is worn/);
+    const full = await sound(owner);
+    expect(full, full).toMatch(/full of water almost to her deck|deeper than a man could stand in/);
+    // (staged) The water down near her floors, so a few strokes float her
+    // (2,600 strokes otherwise, and the packing wears in fifteen).
+    await stageShip(NAME1, { bilgeL: 2_850 });
+    let heard = '';
+    for (let i = 0; i < 6 && !/lifts off the mud/.test(heard); i++) {
+      const stroke = await act(owner, 'pump well');
+      expect(stroke.r.status, stroke.said).toBe('ok');
+      heard += ' ' + stroke.said + ' ' + squash(await owner.listen(1_500));
+    }
+    expect(heard, heard).toMatch(/over her side/);
+    expect(heard, heard).toMatch(/She lifts off the mud and floats again/);
+  }, 600_000);
+});
+
+suite('B3 — the hull’s decline (at her berth)', () => {
+  it('19. (staged · player — twin of soak S1) her caulking staged worn: sound the well — water in the bilge, rising', async () => {
+    await stageShip(NAME1, { hull: 'worn', bilgeL: 0, sleptDays: 1 });
+    const read = await sound(owner);
+    expect(read, read).toMatch(/knee-deep|waist-deep|hand's depth/);
+    expect(read, read).toMatch(/rising/);
+  }, 300_000);
+
+  it('20. (short · player) `pump well`: the level falls while you work; stop, and it rises', async () => {
+    // (staged) The level a hand's breadth over a band's edge, so a few
+    // strokes show in the words a sounding gives.
+    await stageShip(NAME1, { bilgeL: 2_870 });
+    expect(await sound(owner)).toMatch(/knee-deep/);
+    let after = '';
+    for (let i = 0; i < 6 && !/hand's depth/.test(after); i++) {
+      const stroke = await act(owner, 'pump well');
+      expect(stroke.said, stroke.said).toMatch(/over her side/);
+      after = await sound(owner);
+    }
+    expect(after, after).toMatch(/hand's depth of water in her bilge/);
+    await advanceWorldClock('1 hour');
+    const later = await sound(owner);
+    expect(later, later).toMatch(/knee-deep/);
+    expect(later, later).toMatch(/rising/);
+  }, 600_000);
+});
+
+suite('B1 — at sea (14)', () => {
+  it('14. (short · player) her dues paid, `course roads`; at sea, `government`: the City of Terminus, her flag state', async () => {
+    await inOfficeHours();
+    // ⚠ A smack owes a day's dues the moment she leaves the yard quay.
+    expectOk(await owner.cmd('go ashore'));
+    expectOk(await owner.cmd('go east'));
+    expectOk(await owner.cmd('go east'));
+    expectOk(await owner.cmd('go south'));
+    const paid = await say(owner, 'pay office');
+    expect(paid, paid).toMatch(/You pay|Nothing (more )?is owed/);
+    expectOk(await owner.cmd('go north'));
+    expectOk(await owner.cmd('go west'));
+    expectOk(await owner.cmd('go west'));
+    expectOk(await owner.cmd(`go ${way1}`));
+    const laid = await say(owner, 'course roads');
+    expect(laid, laid).toMatch(/lay a course|under way/i);
+    const heard = await comeIn(owner, 18);
+    expect(heard, heard).toMatch(/not under way|roads|lies/i);
+    const gov = await say(owner, 'government');
+    expect(gov, gov).toMatch(/City of Terminus/);
+  }, 900_000);
+});
+
+suite('B2 — owning a boat', () => {
+  it('17. (instant · staged — a chop pinned) a rowboat bought, her painter in her; loaded she rides lower; overloaded in a chop, she swamps', async () => {
+    await inOfficeHours();
+    const buyer = await session(SECOND, PUT_IN);
+    const before = await idsHere(buyer, 'rowboat');
+    const bought = await say(buyer, 'buy rowboat');
+    expect(bought, bought).toMatch(/You buy .*rowboat/);
+    expect(bought, bought).toMatch(/waiting for you/);
+    // Hers is the rowboat that was not lying here before.
+    rowboat = (await idsHere(buyer, 'rowboat')).find((id) => !before.includes(id)) ?? '';
+    expect(rowboat, 'the rowboat bought is not on the landing').not.toBe('');
+    const inHer = await say(buyer, `look in #${rowboat}`);
+    expect(inHer, inHer).toMatch(/painter/i);
+    // (staged) Weight to load her with.
+    for (let i = 0; i < 2; i++) {
+      const id = await hand(buyer, STONE, { mass: 90 });
+      stones.push(id);
+      expectOk(await buyer.cmd(`put #${id} in #${rowboat}`));
+    }
+    const lower = await say(buyer, `look #${rowboat}`);
+    expect(lower, lower).toMatch(/sits lower in the water|riding low/);
+    buyer.close();
+    // The chop: her own dinghy, put over the side of the smack at the roads.
+    expect(await look(owner)).toMatch(/smack's deck/i);
+    await pinWeather('rain', ROADS);
+    try {
+      expectOk(await owner.cmd('go dinghy'));
+      const afloat = await say(owner, 'launch');
+      expect(afloat, afloat).toMatch(/floats/);
+      const rides = await say(owner, 'look here');
+      expect(rides, rides).not.toMatch(/fills|swamp/i);
+      expectOk(await owner.cmd('recover'));
+      expectOk(await owner.cmd('go out'));
+      for (let i = 0; i < 4; i++) {
+        const id = await hand(owner, STONE, { mass: 90 });
+        expectOk(await owner.cmd(`put #${id} in dinghy`));
+      }
+      expectOk(await owner.cmd('go dinghy'));
+      const swamped = await say(owner, 'launch');
+      const seen = `${swamped} ${squash(await owner.listen(3_000))} ${await look(owner)}`;
+      expect(seen, seen).toMatch(/fills|swamp|over her gunwale|loaded past/i);
+    } finally {
+      await unpinWeather(ROADS).catch(() => undefined);
+    }
+    // Back aboard her, whatever the water did.
+    if (!/smack's deck/i.test(await look(owner))) {
+      const back = await owner.cmd(`go ${way1}`);
+      if (back.status !== 'ok') await owner.cmd('go out');
+    }
+    expect(await look(owner)).toMatch(/smack's deck/i);
+  }, 600_000);
+
+  it('18. (instant · player) a canoe hired from Ada Fenn for two days: two days’ money, taken at hire; paddled off; returned', async () => {
+    await inOfficeHours();
+    const hirer = await session(SECOND, PUT_IN);
+    const canoe = (await idsHere(hirer, 'canoe'))[0] ?? '';
+    expect(canoe, 'no canoe on the shingle').not.toBe('');
+    const hired = await say(hirer, `rent #${canoe} for 2 days`);
+    expect(hired, hired).toMatch(/You hire the canoe for 2 days/);
+    expect(hired, hired).toMatch(/\([^)]*\b6(\.00)?\b[^)]*\)/);
+    const slate = await say(hirer, 'look counter');
+    expect(slate, slate).toMatch(/For hire: /);
+    expect(await say(hirer, `look #${canoe}`)).toMatch(/hire/i);
+    expectOk(await hirer.cmd(`go #${canoe}`));
+    const launched = await say(hirer, 'launch');
+    expect(launched, launched).toMatch(/floats/);
+    const off = await act(hirer, 'paddle upstream');
+    expect(off.r.status, off.said).toBe('ok');
+    const back = await say(hirer, 'recover');
+    expect(back, back).toMatch(/comes up out of the water/);
+    expectOk(await hirer.cmd('go out'));
+    const after = await say(hirer, 'look counter');
+    expect(after, after).not.toMatch(/Chalked under it/);
+    expect(await say(hirer, `look #${canoe}`)).not.toMatch(/on hire/i);
+    hirer.close();
+  }, 600_000);
+});
+
+suite('B3 — she goes down', () => {
+  it('21. (short · staged — twin of soak S2; the bilge staged near the line) the lowest rooms flood, then the next; told she is settling, with time to act; she goes down', async () => {
+    await stageShip(NAME1, { hull: 'worn', bilgeL: 33_000 });
+    // Her lowest rooms are flooded; her deck is dry.
+    expectOk(await owner.cmd('go down'));
+    const cabin = await look(owner);
+    expect(cabin, cabin).toMatch(/water (stands|is up to|here is over)/i);
+    expectOk(await owner.cmd('go up'));
+    const deck = await look(owner);
+    expect(deck, deck).not.toMatch(/Water (stands|sloshes)|over your head/);
+    // Let it go: the deck goes under, and she says so.
+    let told = '';
+    for (let i = 0; i < 16 && !/She is settling/.test(told); i++) {
+      const hearing = owner.listen(6_000);
+      await advanceWorldClock('15 minutes');
+      told += ' ' + squash(await hearing);
+    }
+    expect(told, told).toMatch(/She is settling\. The water is at her deck, and she will not float much longer/);
+    // ⭐ Time to act: these are acts, and she has not gone yet.
+    expectOk(await owner.cmd('look'));
+    expectOk(await owner.cmd('inhale'));
+    const hearing = owner.listen(15_000);
+    for (let i = 0; i < 6; i++) await owner.cmd('look');
+    const gone = squash(await hearing);
+    expect(gone, gone).toMatch(/She goes down under you/);
+  }, 900_000);
+
+  it('22. (instant · player) still aboard, you are in her rooms under water; swim up the column to the surface', async () => {
+    const under = await look(owner);
+    expect(under, under).toMatch(/She lies on the bottom, and the sea fills her/);
+    const up = await owner.cmd('go up');
+    expect(up.status, squash(await up.said())).toBe('ok');
+    let top = '';
+    for (let i = 0; i < 10; i++) {
+      const r = await owner.cmd('ascend');
+      if (r.status !== 'ok') {
+        top = squash(await r.said());
+        break;
+      }
+      await owner.listen(4_000);
+    }
+    expect(top, top).toMatch(/already at the surface/i);
+  }, 600_000);
+
+  it('23. (instant · player) a diver goes down to her: the wreck is the ship — her rooms, her cargo in the hold — and she is still in your name in the register', async () => {
+    // (staged) The diver's kit, handed.
+    const tank = await hand(owner, AIR_TANK);
+    expectOk(await owner.cmd(`wear #${tank}`));
+    for (let i = 0; i < 10; i++) {
+      const r = await owner.cmd('descend');
+      if (r.status !== 'ok') break;
+      await owner.listen(4_000);
+    }
+    const bed = await look(owner);
+    expect(bed, bed).toMatch(new RegExp(`\\b${way1}\\b`));
+    expectOk(await owner.cmd(`go ${way1}`));
+    expect(await look(owner)).toMatch(/smack's deck/i);
+    expectOk(await owner.cmd('go down'));
+    expectOk(await owner.cmd('go north'));
+    const hold = await look(owner);
+    expect(hold, hold).toMatch(/oakum/i);
+    expect(hold, hold).toMatch(/sea fills her/);
+    const clerk = await session(SECOND, OFFICE);
+    const reg = await say(clerk, 'read register');
+    expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*48/64`));
+    clerk.close();
+  }, 600_000);
+
+  it('24. (short · player) a boat holed on a grounding leaks: `bail` keeps her up; stop, and she sinks with what is in her', async () => {
+    await inOfficeHours();
+    const boatman = await session(uniqueHandle('hbb'), PUT_IN);
+    // Her load out on the shingle; the painter stays in her.
+    for (const id of stones) expectOk(await boatman.cmd(`get #${id} from #${rowboat}`));
+    for (const id of stones) expectOk(await boatman.cmd(`drop #${id}`));
+    expectOk(await boatman.cmd(`go #${rowboat}`));
+    expect(await say(boatman, 'launch')).toMatch(/floats/);
+    // (staged) The grounding's blow: a hole stove in her.
+    const f = await founderAt(PUT_IN);
+    const holed = await say(f, `eval --parcel /world/terminus --on #${rowboat} return this.addFlaw("holed", true)`);
+    f.close();
+    expect(holed, holed).not.toMatch(/error|denied/i);
+    await advanceWorldClock('10 minutes');
+    let bailed = '';
+    for (let i = 0; i < 3; i++) bailed += ' ' + (await act(boatman, `bail #${rowboat}`)).said;
+    expect(bailed, bailed).toMatch(/bucketful of water out over her side/);
+    expect(bailed, bailed).toMatch(/going down|She is dry/);
+    // Stop: she fills, and goes down with what is in her.
+    const hearing = boatman.listen(10_000);
+    await advanceWorldClock('3 hours');
+    const sank = `${squash(await hearing)} ${await look(boatman)}`;
+    expect(sank, sank).toMatch(/goes down under you|You are in the water/);
+    boatman.close();
+  }, 600_000);
+
+  it('25. (instant · player) `maintain` her hull with a caulker’s kit from the chandler: the leak stops, the hull reads sound; mooring, pumping and handling her counted toward seamanship', async () => {
+    await inOfficeHours();
+    const caulker = await session(SECOND, CHANDLER);
+    const kit = await say(caulker, "buy caulker's kit");
+    expect(kit, kit).toMatch(/You buy .*caulker's kit/);
+    expectOk(await caulker.cmd('go northeast'));
+    expectOk(await caulker.cmd('go west'));
+    expectOk(await caulker.cmd('go west'));
+    // Her own smack, worn: the leak stops and the hull reads sound.
+    await stageShip(NAME2, { hull: 'worn', bilgeL: 0 });
+    // Her gangway was left unlocked (12), her key in her cabin.
+    expectOk(await caulker.cmd(`go ${way2}`));
+    expect(await sound(caulker)).toMatch(/rising/);
+    const done = await act(caulker, 'maintain');
+    expect(done.r.status, done.said).toBe('ok');
+    expect(done.said, done.said).toMatch(/seams/);
+    const survey = await say(caulker, 'survey');
+    expect(survey, survey).toMatch(/fabric of the place is sound/);
+    const after = await sound(caulker);
+    expect(after, after).toMatch(/not rising|dry/);
+    // The owner moored, pumped and handled hers: seamanship on the transcript.
+    const comp = await say(owner, 'competence');
+    expect(comp, comp).toMatch(/seamanship/i);
+    caulker.close();
+  }, 600_000);
 });

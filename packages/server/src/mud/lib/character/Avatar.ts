@@ -17,6 +17,7 @@ import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
 import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
+import { BankingApi } from "../../api/banking";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { BiomeApi } from "../../api/biome";
@@ -1365,6 +1366,15 @@ export default abstract class Avatar extends AvatarBase {
         CredentialWalletUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(wallet);
+      // ⭐ The accounts are the record; the wallet app is re-cloned every
+      // login, so it links again whatever this person banks with — after
+      // a server restart it held none, and nothing they bought anywhere
+      // could be paid for (harbors B6, found by the drive's restart).
+      const me = this.getIdentityPath();
+      if (me && !this.isGuest) {
+        const pay = wallet.ensureCredential("payment");
+        for (const id of await BankingApi.accountIdsOf(me)) pay.linkAccount(id);
+      }
       // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet,
       // re-provisioned every login exactly as they are.
       const calendar = await StuffApi.clone<CalendarUpdate>(

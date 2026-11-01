@@ -398,6 +398,15 @@ export class BankingApi {
     return logic().accountsOf();
   }
 
+  /**
+   * Every account id `ownerKey` holds, its primary first — what a wallet
+   * minted fresh at login links again (harbors B6: the wallet app is
+   * re-cloned each login, so after a restart it held no account at all).
+   */
+  public static async accountIdsOf(ownerKey: string): Promise<string[]> {
+    return logic().accountIdsOf(ownerKey);
+  }
+
   /** The `ownerKey`'s primary account id — the receive-by-identity target. */
   public static async primaryAccountIdOf(
     ownerKey: string,

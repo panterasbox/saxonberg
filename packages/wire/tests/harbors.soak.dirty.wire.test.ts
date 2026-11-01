@@ -10,11 +10,19 @@
  *   blocking twins are steps 8–10 of `harbors.dirty.wire.test.ts`, which
  *   STAGE the Hesper where these voyages sail her.
  *
- * S1 (the hull's clock at a berth) and S2 (the deep-anchor sinking) are
- * Stage B's and join this file with it.
+ * - **S1** *(span)* A smack bought at the yard and left asleep at its quay
+ *   weathers from sound to worn at the house's rate (the hull clock is the
+ *   residence's) and is found SETTLED there forty days on, not vanished.
+ *   Blocking twins: steps 16 and 19 (the hull and the sleep staged).
+ * - **S2** *(span)* A smack left at anchor in the roads with nobody aboard
+ *   goes down over a forty-day absence and lies on the bottom, still in her
+ *   owner's name; her pumped twin — a weathered hull at the same anchorage,
+ *   her owner aboard sounding and pumping her every day — does not sink.
+ *   Blocking twin: step 21 (the bilge staged near the line).
  *
  * ⚠⚠ `.dirty.`: it charters the Hesper, pays dues and days from a funded
- * player and moves her across the sea — none of it produced again.
+ * player and moves her across the sea, and buys three smacks into the
+ * register — none of it produced again.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -26,11 +34,14 @@ import {
   expectOk,
   advanceWorldClock,
   worldClockNow,
+  stageShip,
+  hand,
 } from '../src/harness';
 
 export const DIRTY_REASON =
   'charters the Hesper, pays her dues and days from a funded player and ' +
-  'sails her to Waponi Woo and home — none of it produced again';
+  'sails her to Waponi Woo and home, and buys three smacks into the ' +
+  'register — none of it produced again';
 
 declareFile({
   file: 'harbors.soak.dirty.wire.test.ts',
@@ -154,5 +165,128 @@ suite('S3 — the two voyages, sailed in full', () => {
     }
     expect(home, 'she never raised the bar').toMatch(/You raise the bar/i);
     expectOk(await sailor.cmd('go ashore'));
+  }, 18_000_000);
+});
+
+/* ══════════════════════════ Stage B — the hull's clock ══════════════════════════ */
+
+const SHED = '/world/terminus/harbor/yard/shed';
+const YARD = '/world/terminus/harbor/yard/quay';
+const SEA = '/stuff/idea/WaterExpanse/greywater';
+const ROADS = `${SEA}/the-roads`;
+const AIR_TANK = '/stuff/thing/gear/air-tank';
+
+const tag = (): string =>
+  Array.from({ length: 4 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join('');
+
+/** A funded player: an account and `amount` in it. */
+async function fundedOwner(handle: string, amount: number): Promise<void> {
+  const s = await Session.open(handle, { startLocation: BANK_HALL });
+  open.push(s);
+  expectOk(await s.cmd('bank open'));
+  const gov = await Session.open('founder', { startLocation: BANK_HALL });
+  expectOk(await gov.cmd(`reserve override ${amount} to ${handle} "wire: harbors soak smack"`));
+  gov.close();
+  s.close();
+}
+
+/** `buy smack` at the yard, named `name` at the register's prompt. */
+async function buySmack(s: Session, name: string): Promise<string> {
+  await s.drainProse();
+  let done = false;
+  const pending = s.cmd('buy smack').finally(() => {
+    done = true;
+  });
+  void (async () => {
+    while (!done) {
+      const p = (await s.awaitPrompt(250).catch(() => null)) as
+        | { promptId?: string; payload?: { promptId?: string } }
+        | null;
+      if (p === null || done) continue;
+      const id = p.payload?.promptId ?? p.promptId;
+      if (id) s.answerPrompt(id, name);
+    }
+  })();
+  return squash(await (await pending).said());
+}
+
+/** Advance the world `days` game days, a day a jump (soak mode lets a span through). */
+async function absent(days: number): Promise<void> {
+  for (let d = 0; d < days; d++) await advanceWorldClock('1 day');
+}
+
+suite('S1 — the hull clock at her berth', () => {
+  it('S1. (span · player) a smack left asleep at the yard quay weathers from sound to worn at the house’s rate, and is found settled there, not vanished', async () => {
+    const handle = uniqueHandle('hs1');
+    const name = `Skua${tag()}`;
+    await fundedOwner(handle, 6_000);
+    await toHour(8);
+    const s = await Session.open(handle, { startLocation: SHED });
+    open.push(s);
+    const bought = await buySmack(s, name);
+    expect(bought, bought).toMatch(new RegExp(`as the ${name}`));
+    expectOk(await s.cmd('go north'));
+    expectOk(await s.cmd(`go ${name.toLowerCase()}`));
+    expect(await say(s, 'survey')).toMatch(/fabric of the place is sound/);
+    expectOk(await s.cmd('go ashore'));
+    s.close();
+    // Away forty days: nobody aboard, she sleeps; her hull keeps the house's clock.
+    await absent(40);
+    const back = await Session.open(handle, { startLocation: YARD });
+    open.push(back);
+    const quay = squash(await back.prose('look here'));
+    expect(quay, quay).toMatch(new RegExp(`Alongside: [^.]*the ${name}`));
+    expectOk(await back.cmd(`go ${name.toLowerCase()}`));
+    const survey = await say(back, 'survey');
+    expect(survey, survey).toMatch(/fabric of the place is (worn|shabby)/);
+    const held = await say(back, 'course roads');
+    expect(held, held).toMatch(/settled onto the mud/);
+  }, 7_200_000);
+});
+
+suite('S2 — at anchor in deep water', () => {
+  it('S2. (span · player) a worn smack left at anchor in the roads goes down over the absence and lies on the bottom, still hers; her pumped twin does not sink', async () => {
+    const handle = uniqueHandle('hs2');
+    const left = `Gannet${tag()}`;
+    const kept = `Shag${tag()}`;
+    await fundedOwner(handle, 12_000);
+    await toHour(8);
+    const s = await Session.open(handle, { startLocation: SHED });
+    open.push(s);
+    expect(await buySmack(s, left)).toMatch(new RegExp(`as the ${left}`));
+    expect(await buySmack(s, kept)).toMatch(new RegExp(`as the ${kept}`));
+    // (staged) Both at the anchorage: the one left, empty and worn; the twin
+    // weathered, her owner aboard. Sailing them there is step 14's.
+    await stageShip(left, { at: { node: ROADS }, hull: 'worn', bilgeL: 0 });
+    expectOk(await s.cmd('go north'));
+    expectOk(await s.cmd(`go ${kept.toLowerCase()}`));
+    await stageShip(kept, { at: { node: ROADS }, hull: 'weathered', bilgeL: 0 });
+    // Twenty days: every day her owner sounds the well and pumps her dry.
+    for (let d = 0; d < 20; d++) {
+      await advanceWorldClock('1 day');
+      for (let stroke = 0; stroke < 60; stroke++) {
+        const read = await say(s, 'measure bilge');
+        if (/well is dry|little water sloshing/.test(read)) break;
+        await say(s, 'pump well');
+        await s.listen(22_000);
+      }
+    }
+    // The twin floats; her sister has gone down.
+    const twin = await say(s, 'measure bilge');
+    expect(twin, twin).not.toMatch(/full of water/);
+    expect(await say(s, 'course roads')).not.toMatch(/settl/);
+    // Over her side, and down to the bottom: the one left alone lies there.
+    const tank = await hand(s, AIR_TANK);
+    expectOk(await s.cmd(`wear #${tank}`));
+    expectOk(await s.cmd('go side'));
+    for (let i = 0; i < 10; i++) {
+      const r = await s.cmd('descend');
+      if (r.status !== 'ok') break;
+      await s.listen(4_000);
+    }
+    const bed = squash(await s.prose('look here'));
+    expect(bed, bed).toMatch(new RegExp(`\\b${left.toLowerCase()}\\b`));
+    expectOk(await s.cmd(`go ${left.toLowerCase()}`));
+    expect(squash(await s.prose('look here'))).toMatch(/She lies on the bottom, and the sea fills her/);
   }, 18_000_000);
 });

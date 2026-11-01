@@ -1026,15 +1026,39 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   const skipped = [...skippedOwnedGoods];
   skippedOwnedGoods.clear();
   if (skipped.length > 0) await flushSkippedOwnedGoods(skipped);
-  const rec =
-    (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
-    new PersistedRecord();
-  rec.scope = scope;
-  rec.owner = owner;
-  rec.state = state;
-  rec.place = place;
-  rec.writtenAt = Date.now();
-  await rec.save();
+  // ⭐ One write at a time per record (harbors B6): two captures of a host
+  // that has no record yet both found none and both INSERTED, and the
+  // second died on the unique index — a ship's first commissioning capture
+  // and the fire-and-forget one her mooring kicks off at seed raced, so
+  // `buy smack` threw E11000 and the snapshot that lost was the good one.
+  // The snapshot above is taken synchronously; only find-then-save queues.
+  await serialRecordWrite(`${scope}\u0000${owner}`, async () => {
+    const rec =
+      (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
+      new PersistedRecord();
+    rec.scope = scope;
+    rec.owner = owner;
+    rec.state = state;
+    rec.place = place;
+    rec.writtenAt = Date.now();
+    await rec.save();
+  });
+}
+
+/** Runtime: the in-flight record write per `(scope, owner)` — the queue {@link serialRecordWrite} keeps. */
+const recordWrites = new Map<string, Promise<void>>();
+
+/** Run `write` after any earlier write of the same record has settled (find-then-save is not atomic). */
+function serialRecordWrite(id: string, write: () => Promise<void>): Promise<void> {
+  const prior = recordWrites.get(id) ?? Promise.resolve();
+  const mine = prior.catch(() => undefined).then(write);
+  recordWrites.set(id, mine);
+  void mine
+    .finally(() => {
+      if (recordWrites.get(id) === mine) recordWrites.delete(id);
+    })
+    .catch(() => undefined);
+  return mine;
 }
 
 async function materializeImpl(host: Stuff, key?: string): Promise<void> {
