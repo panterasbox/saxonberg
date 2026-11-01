@@ -35,7 +35,7 @@ import {
 
 export const DIRTY_REASON =
   'buys two valley farmsteads and a Hinkley lot with issued coin (none ' +
-  'can be sold back), marks fields on one, stages its seedbed and sows it';
+  'can be sold back), marks fields on one, ploughs it and sows it';
 
 declareFile({
   file: 'tracts.dirty.wire.test.ts',
@@ -230,22 +230,17 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
     p = await goTo(farmer, STORE);
     await doing(p, 'buy seed wheat');
     p.close();
-    // ⭐ [staged] A fresh farmstead has no plough; the seedbed is SET, the
-    // act it stands for (ploughing) is the cover drive's.
+    // ⭐ The farmstead's plough lies at the bench's headland: the wheat
+    // field is ploughed by the farmer, for real.
     const gate = gateOf(lot);
-    // ⚠ The founder may not walk through somebody else's lot gate, so the
-    // eval reaches the bench from the lane, through the ways the farmer
-    // walked (each far side already loaded).
-    const staged = await founderEvalVia(
-      VALLEY_LANE,
-      [],
-      VALLEY,
-      `return (t => (t.fieldByKey("wheat-field").turnUnder(), "seedbed"))(self.getContainer().getExit("${gate}").peekDestination().getExit("up").peekDestination())`,
-    );
-    expect(staged).toMatch(/seedbed/);
     p = await goTo(farmer, VALLEY_LANE);
     await doing(p, `go ${gate}`);
     await doing(p, 'go up');
+    let said = '';
+    for (let i = 0; i < 6 && !/ploughed for the season/i.test(said); i++) {
+      said = (await act(p, 'plough at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
+    }
+    expect(said, 'the wheat field is ploughed').toMatch(/ploughed for the season/i);
     const sown = await act(p, 'sow wheat at the wheat field');
     expect(refusedFor(sown.r), sown.said).toBeNull();
     expect(await read(p, 'look')).toMatch(/stand of wheat grows/i);
@@ -296,27 +291,21 @@ suite.skipIf(!isOwnedTestWorld())('the authored farms, and the house lot', () =>
     await funded(h, 5000);
     const reg = await goTo(h, REALTY);
     let house = '';
+    let side = '';
     try {
       const book = await read(reg, 'title list');
       house = unsoldLot(book, /^lot-/);
       expect(house, 'an unsold Hinkley lot').toBeTruthy();
-      await doing(reg, `title buy ${house}`);
+      const bought = await doing(reg, `title buy ${house}`);
+      // ⭐ The registrar says which side of the lane the gate is on.
+      side = /gate is on the (\w+) side/i.exec(bought)?.[1] ?? '';
+      expect(side, `the sale names the gate side: ${bought}`).toBeTruthy();
     } finally {
       reg.close();
     }
     const s = await goTo(h, HINKLEY_LANE);
     try {
-      // The gate ring: which side of the lane the lot is on.
-      const gates = ['north', 'south', 'northwest', 'southwest', 'northeast', 'southeast'];
-      let inYard = false;
-      for (const g of gates) {
-        const r = await s.cmd(`go ${g}`);
-        if (refusedFor(r) === null && /yard behind the house/i.test(await r.said())) {
-          inYard = true;
-          break;
-        }
-      }
-      expect(inYard, 'walked through the lot gate into the yard').toBe(true);
+      expect(await doing(s, `go ${side}`)).toMatch(/yard behind the house/i);
       await doing(s, 'go west');
       expect(await read(s, 'look')).toMatch(/garden/i);
       const said = await refused(s, 'mark vegetable field as half', 'zoned-against-fields');
@@ -360,19 +349,3 @@ function gateOf(leaf: string): string {
   return ({ 'farmstead-1': 'east', 'farmstead-2': 'west', 'farmstead-3': 'northeast', 'farmstead-4': 'northwest' } as Record<string, string>)[leaf] ?? 'east';
 }
 
-/** As the founder, walk from `start` by `dirs`, then `eval` there under `parcel`. */
-async function founderEvalVia(start: string, dirs: string[], parcel: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: start, wizard: true });
-  try {
-    await gov.drainProse();
-    for (const d of dirs) await doing(gov, d);
-    const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
-    const said = await r.said();
-    note(`(founder eval → ${said.slice(0, 300)})`);
-    expect(refusedFor(r)).toBeNull();
-    expect(said, 'the eval threw').not.toMatch(/sandbox boundary denied|\berror:/i);
-    return said;
-  } finally {
-    gov.close();
-  }
-}

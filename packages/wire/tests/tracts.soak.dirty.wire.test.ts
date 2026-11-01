@@ -22,8 +22,8 @@ import {
 } from '../src/harness';
 
 export const DIRTY_REASON =
-  'buys a valley farmstead with issued coin, marks a field, stages its ' +
-  'seedbed, sows it and cuts the crop a season later';
+  'buys a valley farmstead with issued coin, marks a field, ' +
+  'ploughs it, sows it and cuts the crop a season later';
 
 declareFile({
   file: 'tracts.soak.dirty.wire.test.ts',
@@ -173,12 +173,11 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     p.close();
     await toTheBench();
     await doing(p, 'mark wheat field as half');
-    await founderEvalVia(
-      VALLEY_LANE,
-      [],
-      VALLEY,
-      `return (t => (t.fieldByKey("wheat-field").turnUnder(), "seedbed"))(self.getContainer().getExit("${gateOf(lot)}").peekDestination().getExit("up").peekDestination())`,
-    );
+    let said = '';
+    for (let i = 0; i < 6 && !/ploughed for the season/i.test(said); i++) {
+      said = (await act(p, 'plough at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
+    }
+    expect(said, 'the wheat field is ploughed').toMatch(/ploughed for the season/i);
     await doing(p, 'sow wheat at the wheat field');
     expect(await read(p, 'look')).toMatch(/stand of wheat grows/i);
   }, 900_000);
@@ -203,19 +202,3 @@ function gateOf(leaf: string): string {
   return ({ 'farmstead-1': 'east', 'farmstead-2': 'west', 'farmstead-3': 'northeast', 'farmstead-4': 'northwest' } as Record<string, string>)[leaf] ?? 'east';
 }
 
-/** As the founder, walk from `start` by `dirs`, then `eval` there under `parcel`. */
-async function founderEvalVia(start: string, dirs: string[], parcel: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: start, wizard: true });
-  try {
-    await gov.drainProse();
-    for (const d of dirs) await doing(gov, d);
-    const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
-    const said = await r.said();
-    note(`(founder eval → ${said.slice(0, 300)})`);
-    expect(refusedFor(r)).toBeNull();
-    expect(said, 'the eval threw').not.toMatch(/sandbox boundary denied|\berror:/i);
-    return said;
-  } finally {
-    gov.close();
-  }
-}

@@ -14,3 +14,8 @@ data:
   legumeFraction: 0.4
   longDescription: |
     Thin stony ground above the yard, open to the wind, the soil a hand's depth over rock.
+  props:
+    # ⭐ A farmstead is sold with a plough at the headland of its arable
+    # ground (the campus field's precedent): too heavy to carry, used where
+    # it lies.
+    - /trade/farming/thing/plough

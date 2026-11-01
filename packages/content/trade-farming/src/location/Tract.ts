@@ -545,7 +545,7 @@ export default class Tract extends TractBase {
     const free = Math.max(0, 1 - marked + (spec ? Number(spec.share) || 0 : 0));
     const wanted = share ?? free;
     const tract = this.presentationPhrase().definite();
-    if (!(wanted > SHARE_SLACK)) {
+    if (!(free > SHARE_SLACK) || !(wanted > SHARE_SLACK)) {
       return { ok: false, reason: 'all-marked', line: `Every yard of ${tract} is marked already.` };
     }
     if (wanted > free + SHARE_SLACK) {
