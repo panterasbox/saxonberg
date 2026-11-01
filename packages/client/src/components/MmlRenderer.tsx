@@ -179,26 +179,30 @@ function labelOf(node: MmlNode): string {
   return node.children.map(labelOf).join('');
 }
 
+/*
+ * ⚠ A link at REST takes the lift step, not the base accent. The base
+ * verdigris passed contrast (5.25 on the ink surface) and still read as
+ * the dimmest word in its sentence — darker than the prose around it, so
+ * the things you can click were the things you could not see. The lift
+ * step is the palette's higher-contrast one in every theme (lighter on
+ * ink, darker on marble); hover goes to full text.
+ */
 const ClickableSpan = styled.span<{ $tint?: string }>`
-  color: ${(p) => p.$tint ?? tokens.color.accent};
+  color: ${(p) => p.$tint ?? tokens.color.accentHover};
   cursor: pointer;
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 2px;
 
   &:hover {
-    color: ${(p) => p.$tint ?? tokens.color.accentHover};
+    color: ${(p) => p.$tint ?? tokens.color.fg};
     text-decoration-style: solid;
   }
 
-  /* ⚠ :hover and :active share accentHover. The pre-civic palette had
-     three hand-picked steps here; the ground vocabulary carries one
-     -lift step per colour family on purpose, and minting a good-press
-     role for one :active state would be the vocabulary growing to fit
-     an accident rather than a need. The solid underline on hover
-     already carries the state change. */
+  /* :hover and :active share full text color; the solid underline on
+     hover carries the state change. */
   &:active {
-    color: ${(p) => p.$tint ?? tokens.color.accentHover};
+    color: ${(p) => p.$tint ?? tokens.color.fg};
   }
 `;
 
