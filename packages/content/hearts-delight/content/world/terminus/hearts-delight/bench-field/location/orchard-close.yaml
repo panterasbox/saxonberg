@@ -20,7 +20,7 @@
 # the build's own finding — a beekeeper is a SECOND PARTY on land they do
 # not own, and you cannot be a second party to a farm that already keeps
 # its own hives.
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   fieldName: the close
   # ⚠ No article in the stem — `register: definite` below is what puts

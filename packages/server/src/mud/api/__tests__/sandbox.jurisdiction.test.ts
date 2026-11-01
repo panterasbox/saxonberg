@@ -243,7 +243,7 @@ describe('governed eval — the jurisdiction bound', () => {
     // because a fixture is pathed by its kind row and is not contained.
     const field = roomAt('/world/lounge/location/home-field');
     const patch = makeStuff(() => new Fixture());
-    stampTemplatePathForTest(patch, '/trade/farming/thing/patch');
+    stampTemplatePathForTest(patch, '/trade/farming/thing/field');
     field.addFixture(patch as never, 'patch:top-end');
     await SandboxApi.runGoverned(BOUND, async () => {
       patch.setName('the top end');
@@ -254,7 +254,7 @@ describe('governed eval — the jurisdiction bound', () => {
   it('⚠ and DENIES a fixture of a place outside it, and a detached one', async () => {
     const far = roomAt('/world/moor/location/heath');
     const patch = makeStuff(() => new Fixture());
-    stampTemplatePathForTest(patch, '/trade/farming/thing/patch');
+    stampTemplatePathForTest(patch, '/trade/farming/thing/field');
     far.addFixture(patch as never, 'patch:far');
     await expect(
       SandboxApi.runGoverned(BOUND, async () => {

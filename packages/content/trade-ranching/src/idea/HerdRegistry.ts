@@ -62,7 +62,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import Species, { FEEDER_KINDS } from '@saxonberg/server/mud/platform/idea/species/Species';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 // ⚠ A cycle (the book imports the register), safe because the book is
 // only read inside a method, never while either module evaluates.
 import Herdbook from '../thing/Herdbook';
@@ -483,7 +483,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
    * `grazing:`. Returns the record as it now stands, or `null` when no
    * such herd is filed.
    */
-  public async graze(herdId: string, to: Field | null): Promise<HerdRecord | null> {
+  public async graze(herdId: string, to: Tract | null): Promise<HerdRecord | null> {
     await this.foldOpen(herdId);
     const herd = await this.read(herdId);
     if (herd === null) return null;
@@ -620,10 +620,10 @@ function nowSeconds(): number | null {
  * The field at `path`, loaded on use (the way an exit loads where it
  * leads), or `null` when it will not resolve or is not a field.
  */
-async function loadField(path: string): Promise<Field | null> {
+async function loadField(path: string): Promise<Tract | null> {
   try {
     const place = await StuffApi.singleton<Stuff>(path);
-    return place instanceof Field ? place : null;
+    return place instanceof Tract ? place : null;
   } catch (err) {
     console.error(`HerdRegistry: field '${path}' did not resolve`, err);
     return null;

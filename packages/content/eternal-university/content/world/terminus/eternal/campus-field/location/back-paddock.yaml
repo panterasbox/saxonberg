@@ -3,7 +3,7 @@
 # ⭐ A rotation needs two fields: the college herd is moved off the home
 # field while its crop stands and back onto the stubble once it is cut
 # (lens 1 — the lesson is the move, and one field cannot teach it).
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   fieldName: the back paddock
   shortDescription: back paddock

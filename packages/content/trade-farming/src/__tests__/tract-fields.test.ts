@@ -1,26 +1,26 @@
 /**
- * A field divided into patches (field population W1, D2/D3/D14/R4):
+ * A tract divided into fields (field population W1, D2/D3/D14/R4):
  *
- *   - a field with patches installs its soil on the PATCHES and none on
+ *   - a tract with fields installs its soil on the PATCHES and none on
  *     itself; its own reads are the area-weighted aggregate;
- *   - a plant bound by `groundPart` roots in its patch, and answers to the
- *     patch's name;
- *   - a thin patch (`depthScale: 0.35`) holds a third of the water per m²;
- *   - `fieldLines` prints the stand once and a line per sown patch;
- *   - ⭐ W2: the patch lines read at the VIEWER's band — a novice's line is
+ *   - a plant bound by `groundPart` roots in its field, and answers to the
+ *     field's name;
+ *   - a thin field (`depthScale: 0.35`) holds a third of the water per m²;
+ *   - `tractLines` prints the stand once and a line per sown field;
+ *   - ⭐ W2: the field lines read at the VIEWER's band — a novice's line is
  *     the start of an expert's, never a different truth;
- *   - grubbing ends every patch's crop;
- *   - a patch forwards the crop's title and sowing to its field;
- *   - a field with no `patches:` has no patch fixtures and keeps its own
+ *   - grubbing ends every field's crop;
+ *   - a field forwards the crop's title and sowing to its tract;
+ *   - a tract with no `fields:` has no field fixtures and keeps its own
  *     soil — today's path;
- *   - ⭐ R4: a patch's reserves AND its soil stamps survive a capture →
- *     materialize of the field (the fixtures slice).
+ *   - ⭐ R4: a field's reserves AND its soil stamps survive a capture →
+ *     materialize of the tract (the fixtures slice).
  */
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Field, { type PatchSpec } from '../location/Field';
-import Patch from '../thing/Patch';
+import Tract, { type FieldSpec } from '../location/Tract';
+import Field from '../thing/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import {
   SOIL_MOISTURE_RESERVE_KEY,
@@ -67,14 +67,14 @@ const DAY = 86_400;
 const SEED = 4242;
 const SPOT = [4, 7] as const;
 
-const SPECS: PatchSpec[] = [
+const SPECS: FieldSpec[] = [
   {
     key: 'top-end',
     name: 'the top end',
-    areaM2: 400,
+    share: 0.4,
     lean: { depthScale: 0.35, nitrogenPct: 12 },
   },
-  { key: 'lane-end', name: 'the lane end', areaM2: 600 },
+  { key: 'lane-end', name: 'the lane end', share: 0.6 },
 ];
 
 function profile(): GrowthProfileData {
@@ -91,32 +91,32 @@ function profile(): GrowthProfileData {
   };
 }
 
-/** `StuffApi.clone` of the patch row mints a bare `Patch`. */
-function mockPatchClone(): void {
+/** `StuffApi.clone` of the field row mints a bare `Field`. */
+function mockFieldClone(): void {
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
-    if (path !== '/trade/farming/thing/patch') throw new Error(`no row ${path}`);
-    return makeStuffAtPath(() => new Patch(), path);
+    if (path !== '/trade/farming/thing/field') throw new Error(`no row ${path}`);
+    return makeStuffAtPath(() => new Field(), path);
   }) as unknown as typeof StuffApi.clone);
 }
 
-function fieldSample() {
+function tractSample() {
   return GroundCharacter.resolve(null, SPOT, SEED);
 }
 
-async function dividedField(area = 1000, path?: string): Promise<Field> {
+async function markedTract(area = 1000, path?: string): Promise<Tract> {
   const f = path
-    ? makeStuffAtPath(() => new Field(), path)
-    : makeStuff(() => new Field());
+    ? makeStuffAtPath(() => new Tract(), path)
+    : makeStuff(() => new Tract());
   f.setAreaM2(area);
   f.setGroundSpot(SPOT);
-  f.patches = SPECS.map((s) => ({ ...s }));
-  const sample = fieldSample();
-  await f.ensurePatches(null, SEED, sample);
-  f.installFieldReserves(sample);
+  f.fields = SPECS.map((s) => ({ ...s }));
+  const sample = tractSample();
+  await f.ensureFields(null, SEED, sample);
+  f.installTractReserves(sample);
   return f;
 }
 
-function crop(f: Field, area: number, part = '', stage = 'young'): Plant {
+function crop(f: Tract, area: number, part = '', stage = 'young'): Plant {
   const p = makeStuffAtPath(() => {
     const plant = new Plant();
     plant.setShortDescription('stand of wheat');
@@ -133,18 +133,18 @@ function crop(f: Field, area: number, part = '', stage = 'young'): Plant {
   return p;
 }
 
-function patch(f: Field, key: string): Patch {
-  const p = f.getPatches().find((x) => x.getPatchKey() === key);
-  if (!p) throw new Error(`no patch ${key}`);
+function field(f: Tract, key: string): Field {
+  const p = f.getFields().find((x) => x.getFieldKey() === key);
+  if (!p) throw new Error(`no field ${key}`);
   return p;
 }
 
 /** A reader with a competence transcript (W2's novice/expert pair). */
 class Reader extends AdvancementMixin(PersonaMixin(Idea)) {
-  static _mixinName = 'FieldPatchesTestReader';
+  static _mixinName = 'TractFieldsTestReader';
 }
 
-describe('a field divided into patches', () => {
+describe('a tract divided into fields', () => {
   let clock: ReturnType<typeof vi.spyOn>;
   let base: number;
 
@@ -155,16 +155,16 @@ describe('a field divided into patches', () => {
     base = WorldClockApi.getNow().rawValue();
     clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));
-    mockPatchClone();
+    mockFieldClone();
   });
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('⭐ installs soil on the patches and none on the field itself', async () => {
-    const f = await dividedField();
-    const parts = f.getPatches();
-    expect(parts.map((p) => p.getPatchKey())).toEqual(['top-end', 'lane-end']);
+  it('⭐ installs soil on the fields and none on the tract itself', async () => {
+    const f = await markedTract();
+    const parts = f.getFields();
+    expect(parts.map((p) => p.getFieldKey())).toEqual(['top-end', 'lane-end']);
     expect(f.soilParts()).toHaveLength(2);
     for (const p of parts) {
       expect(MixinApi.isAdornment(p as unknown as Stuff)).toBe(true);
@@ -173,36 +173,36 @@ describe('a field divided into patches', () => {
     }
     expect(f.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(false);
     expect(f.hasReserve(SOIL_NITROGEN_RESERVE_KEY)).toBe(false);
-    // The patches are fixtures, never loose contents.
+    // The fields are fixtures, never loose contents.
     expect(f.getContents()).not.toContain(parts[0]);
   });
 
   it('get-or-create: a second run re-sizes, it does not mint again', async () => {
-    const f = await dividedField();
-    const first = f.getPatches();
-    await f.ensurePatches(null, SEED, fieldSample());
-    expect(f.getPatches()).toEqual(first);
-    expect(f.getFixtures().filter((x) => x instanceof Patch)).toHaveLength(2);
+    const f = await markedTract();
+    const first = f.getFields();
+    await f.ensureFields(null, SEED, tractSample());
+    expect(f.getFields()).toEqual(first);
+    expect(f.getFixtures().filter((x) => x instanceof Field)).toHaveLength(2);
   });
 
-  it('the patches tile the field: the last absorbs the difference', async () => {
-    const f = await dividedField(1200);
-    expect(patch(f, 'top-end').getAreaM2()).toBe(400);
-    expect(patch(f, 'lane-end').getAreaM2()).toBe(800);
+  it('each field is its share of the tract; shares that tile it tile it', async () => {
+    const f = await markedTract(1200);
+    expect(field(f, 'top-end').getAreaM2()).toBeCloseTo(480, 6);
+    expect(field(f, 'lane-end').getAreaM2()).toBeCloseTo(720, 6);
   });
 
-  it('a patch reads by its name, definite, and answers to its words', async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
+  it('a field reads by its name, definite, and answers to its words', async () => {
+    const f = await markedTract();
+    const top = field(f, 'top-end');
     expect(top.presentationPhrase().definite()).toBe('the top end');
     expect(top.getKeywords()).toEqual(expect.arrayContaining(['top end', 'top', 'end', 'top-end']));
     expect(f.soilPartRefusal()).toBe('Which field? Name one: the top end or the lane end.');
   });
 
-  it("⭐ the field's moisture is the area-weighted mean of its patches", async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
-    const lane = patch(f, 'lane-end');
+  it("⭐ the tract's moisture is the area-weighted mean of its fields", async () => {
+    const f = await markedTract();
+    const top = field(f, 'top-end');
+    const lane = field(f, 'lane-end');
     level(top, SOIL_MOISTURE_RESERVE_KEY, 0);
     const laneCap = lane.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity.rawValue();
     level(lane, SOIL_MOISTURE_RESERVE_KEY, laneCap);
@@ -213,63 +213,63 @@ describe('a field divided into patches', () => {
   });
 
   it('⭐ the thin top end holds a third of the water per square metre', async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
-    const lane = patch(f, 'lane-end');
-    const perM2 = (p: Patch) =>
+    const f = await markedTract();
+    const top = field(f, 'top-end');
+    const lane = field(f, 'lane-end');
+    const perM2 = (p: Field) =>
       p.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity.rawValue() / p.getAreaM2();
     // The water per m² follows the depth: a third as deep (the lean's
     // 0.35, held at the ground's own floor depth) holds a third.
-    const depthRatio = top.soilDepthM()! / fieldSample().topsoilM;
+    const depthRatio = top.soilDepthM()! / tractSample().topsoilM;
     expect(perM2(top) / perM2(lane)).toBeCloseTo(depthRatio, 6);
     expect(depthRatio).toBeGreaterThan(0.3);
     expect(depthRatio).toBeLessThan(0.4);
-    expect(lane.soilDepthM()).toBeCloseTo(fieldSample().topsoilM, 6);
-    // The lean's nitrogen override reaches the patch's reserve.
+    expect(lane.soilDepthM()).toBeCloseTo(tractSample().topsoilM, 6);
+    // The lean's nitrogen override reaches the field's reserve.
     expect(top.getReserve(SOIL_NITROGEN_RESERVE_KEY)!.current.rawValue()).toBe(12);
   });
 
-  it('⭐ a plant bound by groundPart roots in its patch, and answers to its name', async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
+  it('⭐ a plant bound by groundPart roots in its field, and answers to its name', async () => {
+    const f = await markedTract();
+    const top = field(f, 'top-end');
     const p = crop(f, 300, 'top-end');
     expect(p.getBed()).toBe(top);
     expect(f.cropOn(top)).toBe(p);
     expect(top.cropsOn()).toEqual([p]);
     expect(p.getKeywords()).toEqual(expect.arrayContaining(['wheat', 'top end', 'top-end']));
-    // An unbound crop roots in the whole field and keeps its own words.
+    // An unbound crop roots in the whole tract and keeps its own words.
     const loose = crop(f, 100, '');
     expect(loose.getBed()).toBe(f);
     expect(loose.getKeywords()).not.toContain('top end');
   });
 
-  it('a key naming no patch falls back to the whole field (R8)', async () => {
-    const f = await dividedField();
+  it('a key naming no field falls back to the whole tract (R8)', async () => {
+    const f = await markedTract();
     const p = crop(f, 300, 'gone');
     expect(p.getBed()).toBe(f);
     expect(p.getKeywords()).not.toContain('gone');
   });
 
-  it("a patch's thirst is its crops plus its share of the field's sward", async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
+  it("a field's thirst is its crops plus its share of the tract's sward", async () => {
+    const f = await markedTract();
+    const top = field(f, 'top-end');
     const sward = f.swardTranspirationPerGameDay();
     expect(top.soilWaterDemandPerGameDay()).toBeCloseTo(sward * 0.4, 6);
     crop(f, 300, 'top-end');
     expect(top.soilWaterDemandPerGameDay()).toBeCloseTo(sward * 0.4 + 300 * 1.2, 6);
   });
 
-  it('a patch catches the sky of the field it is part of', async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
-    expect(top.getField()).toBe(f);
+  it('a field catches the sky of the tract it is part of', async () => {
+    const f = await markedTract();
+    const top = field(f, 'top-end');
+    expect(top.getTract()).toBe(f);
     expect((top as unknown as { watershedScope(): unknown }).watershedScope()).toBe(f);
     expect(top.soilCatchmentAreaM2()).toBe(400);
   });
 
-  it("⭐ a patch forwards the crop's title and sowing to its field (W0 hand-off)", async () => {
-    const f = await dividedField();
-    const top = patch(f, 'top-end');
+  it("⭐ a field forwards the crop's title and sowing to its tract (W0 hand-off)", async () => {
+    const f = await markedTract();
+    const top = field(f, 'top-end');
     const title = vi.spyOn(f, 'ensureCropTitle').mockResolvedValue(undefined);
     await top.ensureCropTitle();
     expect(title).toHaveBeenCalledOnce();
@@ -278,11 +278,11 @@ describe('a field divided into patches', () => {
   });
 
   describe('look', () => {
-    it('⭐ prints the stand once, then a line per sown patch, in words', async () => {
-      const f = await dividedField();
+    it('⭐ prints the stand once, then a line per sown field, in words', async () => {
+      const f = await markedTract();
       crop(f, 300, 'top-end');
       crop(f, 300, 'lane-end');
-      const lines = f.fieldLines();
+      const lines = f.tractLines();
       const text = lines.join(' ');
       expect(text.match(/stand of wheat grows/gi)).toHaveLength(1);
       expect(text).toMatch(/over about two-thirds of it/);
@@ -291,18 +291,18 @@ describe('a field divided into patches', () => {
       expect(text).not.toMatch(/\d/);
     });
 
-    it('a patch with no crop says nothing of a crop', async () => {
-      const f = await dividedField();
+    it('a field with no crop says nothing of a crop', async () => {
+      const f = await markedTract();
       crop(f, 300, 'top-end');
-      expect(f.fieldLines().some((l) => /lane end/.test(l))).toBe(false);
+      expect(f.tractLines().some((l) => /lane end/.test(l))).toBe(false);
     });
 
     it('⭐ W2: a novice reads less than an expert, at the same moment — never a different truth', async () => {
-      const f = await dividedField();
+      const f = await markedTract();
       const top = crop(f, 300, 'top-end');
       crop(f, 300, 'lane-end');
       // Dry the top end so something is short there and the bands differ.
-      level(patch(f, 'top-end'), SOIL_MOISTURE_RESERVE_KEY, 0);
+      level(field(f, 'top-end'), SOIL_MOISTURE_RESERVE_KEY, 0);
       top.getVigor();
       clock.mockReturnValue(Quantity.of(base + 20 * DAY, 's'));
 
@@ -337,8 +337,8 @@ describe('a field divided into patches', () => {
 
       const at = (lines: string[]): string =>
         lines.find((l) => l.startsWith('At the top end'))!;
-      const lo = at(f.fieldLines(novice));
-      const hi = at(f.fieldLines(expert));
+      const lo = at(f.tractLines(novice));
+      const hi = at(f.tractLines(expert));
       expect(lo).toBeTruthy();
       // The novice's line is the START of the expert's: more words, the
       // same sentence first.
@@ -348,25 +348,25 @@ describe('a field divided into patches', () => {
       expect(lo).not.toMatch(/dry/);
       expect(hi).toMatch(/The soil is dry there\./);
       expect(`${lo} ${hi}`).not.toMatch(/\d/);
-      // And the patch's own look reads at the same band.
-      expect(top.getBed()).toBe(patch(f, 'top-end'));
-      expect(patch(f, 'top-end').patchLines(expert).join(' ')).toMatch(/The soil is dry there\./);
-      expect(patch(f, 'top-end').patchLines(novice).join(' ')).not.toMatch(/dry/);
+      // And the field's own look reads at the same band.
+      expect(top.getBed()).toBe(field(f, 'top-end'));
+      expect(field(f, 'top-end').fieldLines(expert).join(' ')).toMatch(/The soil is dry there\./);
+      expect(field(f, 'top-end').fieldLines(novice).join(' ')).not.toMatch(/dry/);
     });
 
     it("`look at the top end`: the ground, then the crop rooted there", async () => {
-      const f = await dividedField();
-      const top = patch(f, 'top-end');
+      const f = await markedTract();
+      const top = field(f, 'top-end');
       crop(f, 300, 'top-end');
-      const lines = top.patchLines(null);
+      const lines = top.fieldLines(null);
       expect(lines[0]).toMatch(/ground/i);
       expect(lines).toContain('A stand of wheat grows here.');
       expect(lines.join(' ')).toMatch(/It is .* and /);
     });
   });
 
-  it('⭐ grubbing ends every patch\'s crop', async () => {
-    const f = await dividedField();
+  it('⭐ grubbing ends every field\'s crop', async () => {
+    const f = await markedTract();
     const a = crop(f, 300, 'top-end');
     const b = crop(f, 300, 'lane-end');
     const destruct = vi.spyOn(StuffApi, 'destruct').mockResolvedValue(undefined as never);
@@ -380,15 +380,15 @@ describe('a field divided into patches', () => {
     expect(destruct).toHaveBeenCalledWith(b);
   });
 
-  it('⭐ a field with no patches has no patch fixtures and keeps its own soil', async () => {
-    const f = makeStuff(() => new Field());
+  it('⭐ a tract with no fields has no field fixtures and keeps its own soil', async () => {
+    const f = makeStuff(() => new Tract());
     f.setAreaM2(1000);
-    const sample = fieldSample();
-    await f.ensurePatches(null, SEED, sample);
-    f.installFieldReserves(sample);
-    expect(f.getPatches()).toEqual([]);
+    const sample = tractSample();
+    await f.ensureFields(null, SEED, sample);
+    f.installTractReserves(sample);
+    expect(f.getFields()).toEqual([]);
     expect(f.soilParts()).toEqual([]);
-    expect(f.getFixtures().some((x) => x instanceof Patch)).toBe(false);
+    expect(f.getFixtures().some((x) => x instanceof Field)).toBe(false);
     expect(f.hasReserve(SOIL_MOISTURE_RESERVE_KEY)).toBe(true);
     const p = crop(f, 300);
     expect(p.getBed()).toBe(f);
@@ -396,7 +396,7 @@ describe('a field divided into patches', () => {
   });
 });
 
-describe('⭐ R4 — a patch survives a restart on its field\'s record', () => {
+describe('⭐ R4 — a field survives a restart on its tract\'s record', () => {
   let snapshots: Record<string, unknown>[];
   let clock: ReturnType<typeof vi.spyOn>;
   let base: number;
@@ -416,7 +416,7 @@ describe('⭐ R4 — a patch survives a restart on its field\'s record', () => {
     base = WorldClockApi.getNow().rawValue();
     clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));
-    mockPatchClone();
+    mockFieldClone();
     vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
     vi.spyOn(PersistApi, 'find').mockImplementation(
       async (col: string, query: Record<string, unknown>) => {
@@ -445,10 +445,10 @@ describe('⭐ R4 — a patch survives a restart on its field\'s record', () => {
     vi.restoreAllMocks();
   });
 
-  it("⭐ the patch's reserves and soil stamps come back onto the re-minted patch", async () => {
-    const PATH = '/world/test/kept-field';
-    const f = await dividedField(1000, PATH);
-    const top = patch(f, 'top-end');
+  it("⭐ the field's reserves and soil stamps come back onto the re-minted field", async () => {
+    const PATH = '/world/test/kept-tract';
+    const f = await markedTract(1000, PATH);
+    const top = field(f, 'top-end');
     // An act: the top end is drunk dry and its window has run.
     clock.mockReturnValue(Quantity.of(base + 3 * DAY, 's'));
     top.soilMoistureFraction();
@@ -458,16 +458,16 @@ describe('⭐ R4 — a patch survives a restart on its field\'s record', () => {
 
     await PersistableApi.capture(f);
 
-    // The world restarts: the field is re-minted, its onCreate mints fresh
-    // patches (half-full, unstamped), and the record overlays them.
+    // The world restarts: the tract is re-minted, its onCreate mints fresh
+    // fields (half-full, unstamped), and the record overlays them.
     StuffApi.unregister(top);
-    StuffApi.unregister(patch(f, 'lane-end'));
+    StuffApi.unregister(field(f, 'lane-end'));
     StuffApi.unregister(f);
-    // Two days later: the fresh patch stamps ITS window at the new now, so
+    // Two days later: the fresh field stamps ITS window at the new now, so
     // only the record can give back the old stamp.
     clock.mockReturnValue(Quantity.of(base + 5 * DAY, 's'));
-    const reborn = await dividedField(1000, PATH);
-    const freshTop = patch(reborn, 'top-end');
+    const reborn = await markedTract(1000, PATH);
+    const freshTop = field(reborn, 'top-end');
     expect(freshTop).not.toBe(top);
     expect(freshTop.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).not.toBe(7);
     expect(freshTop.soilClockStamp).not.toBe(stamp);
@@ -476,7 +476,7 @@ describe('⭐ R4 — a patch survives a restart on its field\'s record', () => {
 
     expect(freshTop.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBe(7);
     expect(freshTop.soilClockStamp).toBe(stamp);
-    // Still the field's part, still its sky.
-    expect(reborn.getPatches()[0]).toBe(freshTop);
+    // Still the tract's part, still its sky.
+    expect(reborn.getFields()[0]).toBe(freshTop);
   });
 });

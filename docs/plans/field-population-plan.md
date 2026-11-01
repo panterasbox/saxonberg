@@ -3038,6 +3038,25 @@ ends at one commit. Stage on a live world between waves
 
 ### W0 — the kernel seams
 
+> ✅ **Done 2026-10-31** (`b3d037dc0`). Notes for review:
+> - The remainder is read through a guard (`ownTerm` / `dividedInto`):
+>   each aggregate read asks its parts, then asks itself once with the
+>   parts hidden, so every shipped direct body answers the remainder term
+>   unchanged. Rain on the remainder uses `soilRemainderAreaM2`.
+> - ⚠ **The archetype's `cultivation` need had no evaluator at all** — it
+>   fell through to the cold-storage rung and could never be met. Fixed
+>   here (zoning + marked fields), with a test.
+> - `dependentPersistables`: capture walks it; `markForRevert` marks
+>   dependents; **deletion** cannot walk from `deleteAllFor(owner)` (it
+>   takes a string, not a host), so `HoldingWarren.revert` deletes each
+>   dependent by its own key through the typed hook — residence still
+>   names no farming class.
+> - `lint:unconsumed-seams` wants every hook's override in the same
+>   commit: the tract-to-be answers `soilPartNoun` ('field') and
+>   `isSeenAcrossExit` now; `onWarrenWake` and `dormancyOf` are held back
+>   to W4, where their overrides land.
+> - The refusal now reads *"Which field? Name one: …"* on a tract.
+
 **Goal.** Every kernel hook this build needs, each with a default that
 changes nothing, so W1–W5 are pack and content work.
 
@@ -3083,6 +3102,21 @@ drives are updated for in the same commit (`patch-unnamed` →
 **Commit.** `kernel(tracts): the remainder is a part; a place seen across an exit; onWarrenWake, dependentPersistables, dormancyOf; the static slot and the mirror axis`
 
 ### W1 — the rename: Tract and Field
+
+> ✅ **Done 2026-10-31.** Notes for review:
+> - Mechanical rename of the two classes, rows, specs, tests and both
+>   drives' prose; `fields:` specs carry `share` (bench 0.25/0.375/0.375,
+>   home field 0.3/0.4/0.3). `fieldAreas` lets the last field absorb
+>   rounding only when the shares tile the tract, so W3's remainder
+>   needs no second change.
+> - ⚠ **The plough/mow `at <field>` arg moved to W2.** With the stamps
+>   still on the tract this wave the arg would bind and do nothing; it
+>   lands with `turnUnder`/`drawSward` on the field.
+> - The planner missed one importer: **trade-apiculture's `Hive`** reads
+>   the tract's sward for forage. Renamed here; in W2 the tract answers
+>   the hive over its fields.
+> - Two lint lists named the old row path (`check-biome-sky`,
+>   `check-location-classes`' minted rows) and were updated.
 
 **Goal.** `Field.ts` → `Tract.ts`, `Patch.ts` → `Field.ts`, rows, specs,
 the arg, the drives' words — **no behavior change** (grass and the

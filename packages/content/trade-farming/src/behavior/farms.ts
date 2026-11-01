@@ -10,7 +10,7 @@
  * FIELD — read each of its parts through the crop rooted there, at the
  * hand's OWN band with a seeded bracket (`crop.readFor(band,
  * crop.readSeedFor(hand))`, field population D11/D12), so a novice can
- * water the wrong patch and an expert cannot. Then ONE watering (a can
+ * water the wrong field and an expert cannot. Then ONE watering (a can
  * is one can) to the lowest read below `waterAt` — `fill can from
  * <from>` at the configured water room, then `water <crop> at <part>` —
  * and one feeding (`feed <crop> at <part> with sack`) likewise; `pick
@@ -148,7 +148,7 @@ export const brain = class {
     // ⭐ A FIELD is read through its crop, part by part, at the hand's OWN
     // band (field population D11/D12): the observed moisture is the truth
     // plus a seeded error inside the band's bracket, so a novice can
-    // water the wrong patch and an expert cannot. Never the true figure.
+    // water the wrong field and an expert cannot. Never the true figure.
     if (MixinApi.isSoil(home) && !MixinApi.isCultivable(home)) {
       const parts: readonly ((Stuff & Soil) | null)[] =
         home.soilParts().length > 0 ? home.soilParts() : [null];

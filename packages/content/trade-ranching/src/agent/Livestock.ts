@@ -52,7 +52,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import { HeadSeed } from '../lib/HeadSeed';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
@@ -346,7 +346,7 @@ export default class Livestock extends LivestockBase {
   private grazedFraction(): number | null {
     if (!this.herdId) return null;
     const here = this.getContainer();
-    if (!(here instanceof Field)) return null;
+    if (!(here instanceof Tract)) return null;
     const line = here.grazerLedger(this.herdId);
     if (!line) return null;
     return line.demandKg > 0 ? Math.min(1, line.fedKg / line.demandKg) : 1;

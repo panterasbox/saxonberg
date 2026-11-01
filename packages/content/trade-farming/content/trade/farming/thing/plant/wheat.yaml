@@ -19,7 +19,7 @@ class: /platform/thing/Plant
 data:
   shortDescription: stand of wheat
   keywords: [wheat, corn, crop, stand]
-  # ⭐ What `sample wheat at <patch>` pulls (field population D7): one
+  # ⭐ What `sample wheat at <field>` pulls (field population D7): one
   # stem out of the stand, not the stand.
   specimenNoun: stem of wheat
   register: indefinite

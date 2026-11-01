@@ -22,7 +22,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PlotController from '../PlotController';
-import Field from '../../../../location/Field';
+import Tract from '../../../../location/Tract';
 import Spade from '../../../../thing/Spade';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -49,7 +49,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 
 const LOT = '/world/plot-test/lots/lot-1';
-const FIELD_ROW = '/trade/farming/location/field';
+const FIELD_ROW = '/trade/farming/location/tract';
 
 /** A yard: a coordinate room that belongs to a warren. */
 class TestYard extends WarrenMemberMixin(Location) {}
@@ -70,7 +70,7 @@ class StubHolding {
   public async admitPlot(spec: Record<string, unknown>): Promise<Stuff | null> {
     if (this.refuse) return null;
     this.admitted.push(spec);
-    const field = await StuffApi.clone<Field>(FIELD_ROW);
+    const field = await StuffApi.clone<Tract>(FIELD_ROW);
     this.members.push(field as unknown as Stuff);
     return field as unknown as Stuff;
   }
@@ -101,7 +101,7 @@ function installStore(): void {
     {
       _id: 'field',
       path: FIELD_ROW,
-      class: '/trade/farming/location/Field',
+      class: '/trade/farming/location/Tract',
       data: { shortDescription: 'a field' },
     },
   );
@@ -227,7 +227,7 @@ describe('plot — breaking a field out of ground you hold', () => {
       room: FIELD_ROW,
       direction: 'top-meadow',
     });
-    const field = s.holding.members[0] as unknown as Field;
+    const field = s.holding.members[0] as unknown as Tract;
     expect(field.getFieldName()).toBe('Top Meadow');
     expect(field.getPresentation()).toBe('Top Meadow');
   });
@@ -237,7 +237,7 @@ describe('plot — breaking a field out of ground you hold', () => {
     await bootRegistries();
     const s = await scene([7, -3, 0]);
     await run(s.ctx);
-    const field = s.holding.members[0] as unknown as Field;
+    const field = s.holding.members[0] as unknown as Tract;
     expect(field.getGroundSpot()).toEqual([7, -3]);
   });
 
@@ -245,7 +245,7 @@ describe('plot — breaking a field out of ground you hold', () => {
     await bootRegistries();
     const s = await scene();
     await run(s.ctx);
-    const field = s.holding.members[0] as unknown as Field;
+    const field = s.holding.members[0] as unknown as Tract;
     const water = field.getReserve('moisture');
     expect(water).toBeDefined();
     expect(water!.capacity.rawValue()).toBeGreaterThan(0);

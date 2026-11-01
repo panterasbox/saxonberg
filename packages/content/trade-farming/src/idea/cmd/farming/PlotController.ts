@@ -10,7 +10,7 @@
  * ⭐ **And because the ground was always there (D2), you can survey
  * before you commit.** Plotting is therefore a decision about *where*,
  * informed by work you chose to do — or a gamble you chose to take. That
- * is only true because {@link Field} carries the spot it was plotted
+ * is only true because {@link Tract} carries the spot it was plotted
  * from, so the field you make on ground you sampled is the ground you
  * sampled.
  *
@@ -53,12 +53,12 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { LandUses } from '@saxonberg/server/mud/lib/parcel/LandUse';
 import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
-import type Field from '../../../location/Field';
+import type Tract from '../../../location/Tract';
 
 const TOPIC = 'act.deed';
 
 /** The row every plotted field clones from (D17 — always a real row). */
-const FIELD_ROW = '/trade/farming/location/field';
+const FIELD_ROW = '/trade/farming/location/tract';
 
 /**
  * How much ground one `plot` takes, in m².
@@ -193,7 +193,7 @@ export default class PlotController extends CommandController<PlotModel> {
       return;
     }
 
-    const field = room as unknown as Field;
+    const field = room as unknown as Tract;
     const spot = this.spotOf(place);
     field.setGroundSpot(spot);
     field.setAreaM2(FIELD_AREA_M2);
@@ -202,7 +202,7 @@ export default class PlotController extends CommandController<PlotModel> {
     const locality = await AddressApi.resolveLocalityFor(place);
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
     const sample = field.groundSample(await this.characterAt(place), seed);
-    field.installFieldReserves(sample);
+    field.installTractReserves(sample);
 
     MessageApi.scene(giver)
       .topic(TOPIC)

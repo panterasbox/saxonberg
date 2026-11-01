@@ -29,7 +29,7 @@ import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvabl
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
-import type Field from '../../../location/Field';
+import type Tract from '../../../location/Tract';
 
 /**
  * ⭐ Re-exported so farming's own acts keep one import.
@@ -44,7 +44,7 @@ export type { GroundStepOptions as FieldStepOptions } from '@saxonberg/server/mu
 
 /** A field, its resolved character, and the bill that character implies. */
 export interface FieldReading {
-  field: Field & Stuff & Container;
+  field: Tract & Stuff & Container;
   sample: GroundSample;
   bill: ImprovementCost;
 }
@@ -69,12 +69,12 @@ export abstract class FieldWorkController<
   protected async fieldOf(giver: Stuff): Promise<FieldReading | null> {
     const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     if (!room || !MixinApi.isContainer(room)) return null;
-    const candidate = room as unknown as Partial<Field> & Stuff & Container;
+    const candidate = room as unknown as Partial<Tract> & Stuff & Container;
     if (typeof candidate.getGroundSpot !== 'function') return null;
     if (typeof (candidate as unknown as { progressOn?: unknown }).progressOn !== 'function') {
       return null;
     }
-    const field = candidate as Field & Stuff & Container;
+    const field = candidate as Tract & Stuff & Container;
     const locality = await AddressApi.resolveLocalityFor(room as Stuff & Container);
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
     const model = await this.characterAt(room as Stuff & Container);

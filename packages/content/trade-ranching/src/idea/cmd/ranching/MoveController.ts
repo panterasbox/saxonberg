@@ -35,7 +35,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import HerdRegistry, { type HerdRecord } from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
 
@@ -165,12 +165,12 @@ export default class MoveController extends CommandController<MoveModel> {
     giver: Stuff,
     herd: HerdRecord,
     wanted: string,
-  ): Promise<Field | null> {
+  ): Promise<Tract | null> {
     const want = wanted.toLowerCase().replace(/^the\s+/, '');
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     const candidates: Stuff[] = [];
     if (here) candidates.push(here);
-    if (here && want === 'here') return here instanceof Field ? here : null;
+    if (here && want === 'here') return here instanceof Tract ? here : null;
     if (here && MixinApi.isExitable(here)) {
       for (const [, exit] of here.getExits()) {
         try {
@@ -185,7 +185,7 @@ export default class MoveController extends CommandController<MoveModel> {
       if (current) candidates.push(current);
     }
     for (const place of candidates) {
-      if (!(place instanceof Field)) continue;
+      if (!(place instanceof Tract)) continue;
       const name = place.getFieldName().toLowerCase().replace(/^the\s+/, '');
       if (name === want || place.hasKeyword(want)) return place;
     }

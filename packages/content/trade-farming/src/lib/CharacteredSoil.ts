@@ -62,7 +62,7 @@ const LITRES_PER_M2_LOAM = 45;
  * sward's figure (0.3 kg/m² × 4 L/kg), because a field of wheat in leaf
  * drinks the ground about as hard as a full pasture does. A crop row's
  * `litresPerGameDay` is a single plant's and cannot be read per square
- * metre. Read by the field and by each of its patches.
+ * metre. Read by the tract and by each of its fields.
  */
 export const CROP_TRANSPIRATION_L_PER_M2_DAY = 1.2;
 
@@ -102,7 +102,7 @@ export function CharacteredSoilMixin<
     /**
      * The most recently resolved ground sample, or `null`. ⚠ Not
      * persisted and not authoritative — a read cache for the sync paths
-     * (`soilLeachRate`, poaching, a patch's depth) that cannot resolve a
+     * (`soilLeachRate`, poaching, a field's depth) that cannot resolve a
      * locality themselves. Everything that can resolve, resolves.
      */
     protected lastSample: GroundSample | null = null;

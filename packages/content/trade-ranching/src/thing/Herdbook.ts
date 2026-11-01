@@ -53,7 +53,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import HerdRegistry, {
   DEFAULT_FEMALE_FRACTION,
   DEFAULT_FOUNDING_MEAN_AGE_DAYS,
@@ -266,7 +266,7 @@ export default class Herdbook extends HerdbookBase {
     if (!path && this.grazing) {
       try {
         const place = await StuffApi.singleton<Stuff>(this.grazing);
-        if (place instanceof Field) {
+        if (place instanceof Tract) {
           await registry.graze(this.herdId, place);
           path = this.grazing;
         }

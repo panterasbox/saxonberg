@@ -15,7 +15,7 @@
  * pail` — and asserted on the envelope's reasons and the world's own
  * words. Where a step needs the world in a state no player can put it in
  * inside a drive (a dry week, a neglected side of a field), the FOUNDER
- * stages it by `eval` on the patch — never on what is being measured.
+ * stages it by `eval` on the field — never on what is being measured.
  *
  * The order is the calendar's, not the requirement's numbering: the home
  * field is sown in spring (step 6), the bench is read a fortnight later
@@ -31,13 +31,13 @@
  * ⚠⚠ **A read that binds one thing is taken from a FRESH session.** `look`
  * walks `$focus` before `reachable`, and a partial match in the focus beats
  * a whole match further out (field population W2, the resolver's to fix):
- * with the top end in focus `look top end wheat` reads the patch, and from
+ * with the top end in focus `look top end wheat` reads the field, and from
  * a room focus the quoted `look "wheat at the top end"` reads the ROOM
  * (found staging W6). A fresh session's focus is the room, where
- * `look at the top end` binds the patch and `look top end wheat` the stand.
+ * `look at the top end` binds the field and `look top end wheat` the stand.
  *
  * ⚠ A bare `look wheat` on a divided field PROMPTS among the stands (W2),
- * and the harness fails on a prompt — every crop is named by its patch.
+ * and the harness fails on a prompt — every crop is named by its field.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -58,13 +58,13 @@ import {
  * Delight's bench, ties a label to a plant in the home field, takes a pail
  * from the Delight byre and a can from the rubber works, and spends the
  * farm's water and a sack of compost — and the founder dries and starves
- * the home field's patches by `eval`. None of that is regenerated.
+ * the home field's fields by `eval`. None of that is regenerated.
  */
 export const DIRTY_REASON =
   'takes a campus labourer seat, ploughs, sows and cuts the home field, ' +
   'pulls stems off the Delight bench, labels a plant, takes a byre pail ' +
   'and a rubber-works can, spends the farm water and compost, and dries ' +
-  'and starves the home field patches by founder eval';
+  "and starves the home field tract's fields by founder eval";
 
 declareFile({
   file: 'field-population.soak.dirty.wire.test.ts',
@@ -298,7 +298,7 @@ function byPart(said: string): Record<string, number> {
   return out;
 }
 
-/** Each home-field patch's root-zone moisture fraction (reconciled). */
+/** Each field's root-zone, on the home field tract moisture fraction (reconciled). */
 async function moistures(): Promise<Record<string, number>> {
   return byPart(
     await founderEval(
@@ -310,9 +310,9 @@ async function moistures(): Promise<Record<string, number>> {
 }
 
 /**
- * ⭐ Staging, not measuring: set the named patches' moisture to a
+ * ⭐ Staging, not measuring: set the named fields' moisture to a
  * fraction of capacity (reconciling first, so the window that just ended
- * is credited at its true level). `eval` reaches a patch since W6 (a
+ * is credited at its true level). `eval` reaches a field since W6 (a
  * fixture's jurisdiction is its host's).
  */
 async function dryTo(want: Record<string, number>): Promise<string> {
@@ -320,7 +320,7 @@ async function dryTo(want: Record<string, number>): Promise<string> {
 }
 
 /**
- * Set the named patches' `reserve` to a fraction of capacity, reading it
+ * Set the named fields' `reserve` to a fraction of capacity, reading it
  * through `read` first (the reconcile). Returns the eval's prose — which
  * also carries whatever the founder SAW while standing there.
  */
@@ -353,8 +353,8 @@ function healthOf(said: string): number {
   return conditionOf(said) * 2 + (/soil is dry/i.test(said) ? 0 : 1);
 }
 
-/** The condition rank of one patch's line in a field's `look`. */
-function patchCondition(looked: string, part: string): number {
+/** The condition rank of one field's line in a field's `look`. */
+function fieldCondition(looked: string, part: string): number {
   const m = new RegExp(`At ${part} it is [^.]*?(is failing|looks poor|looks well|looks strong)\\.`, 'i').exec(looked);
   if (!m) throw new Error(`no line for ${part} in: ${looked}`);
   return conditionOf(m[1]!);
@@ -406,7 +406,7 @@ function expectOkish(r: CommandResult): void {
 /* ═══════════════════════ Stage A — spring ═══════════════════════ */
 
 suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => {
-  it('6a. hired on, the home field is ploughed and sown patch by patch', async () => {
+  it('6a. hired on, the home field is ploughed and sown field by field', async () => {
     await toDay(SOW_DAY);
     await goTo(STORE);
     await doing(p, 'buy sickle');
@@ -428,7 +428,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
       said = (await work(p, 'plough')).said + ' ' + (await read(p, 'look'));
     }
     expect(said).toMatch(/ploughed for the season/i);
-    // ⭐ Every act on a divided field names its patch (R2).
+    // ⭐ Every act on a divided field names its field (R2).
     await refused(p, 'sow wheat', 'part-unnamed');
     // The gate end until it is full, a little in the middle, the rest on
     // the far side.
@@ -481,24 +481,24 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
 
 /* ═══════════════════════ Stage B — the bench ═══════════════════════ */
 
-suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => {
+suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => {
   const novice = uniqueHandle('fieldnov');
 
-  it('1. the bench reads a line per patch, and the top end reads poorest', async () => {
+  it('1. the bench reads a line per field, and the top end reads poorest', async () => {
     await toDay(BENCH_DAY);
     await daylight();
     await goTo(BENCH);
     const looked = await read(p, 'look');
     expect(looked, 'never a number').not.toMatch(/\d+\s*(m²|kg|%)/);
-    const top = patchCondition(looked, 'the top end');
-    const middle = patchCondition(looked, 'the middle');
-    const lane = patchCondition(looked, 'the lane end');
-    note(`bench patches: top end ${top} · middle ${middle} · lane end ${lane}`);
+    const top = fieldCondition(looked, 'the top end');
+    const middle = fieldCondition(looked, 'the middle');
+    const lane = fieldCondition(looked, 'the lane end');
+    note(`bench fields: top end ${top} · middle ${middle} · lane end ${lane}`);
     expect(top, 'the top end reads poorer than the middle').toBeLessThan(middle);
     expect(top, 'the top end reads poorer than the lane end').toBeLessThan(lane);
   }, 1_800_000);
 
-  it('2. the same patch, the same moment: the novice reads less, never a different truth', async () => {
+  it('2. the same field, the same moment: the novice reads less, never a different truth', async () => {
     // Back to back, no clock between: an untrained handle and an expert.
     const plain = await freshRead(novice, BENCH, 'look at the top end');
     const trained = await freshRead(expert, BENCH, 'look at the top end', true);
@@ -518,13 +518,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
       expect(flatTrained, `the expert's read lacks: ${sentence}`).toContain(sentence);
     }
     expect(flatTrained.length).toBeGreaterThan(plain.replace(/\s+/g, ' ').length);
-    // ⭐ And the stand answers to its patch's name (amended D13).
+    // ⭐ And the stand answers to its field's name (amended D13).
     const stand = await freshRead(expert, BENCH, 'look top end wheat', true);
     expect(stand).toMatch(/It stands at the top end\./);
     expect(stand).toMatch(CAUSE);
   }, 600_000);
 
-  it('3. sample wheat at the top end: a stem that names its field and patch, the same twice', async () => {
+  it('3. sample wheat at the top end: a stem that names its tract and field, the same twice', async () => {
     const x = await Session.open(expert, { startLocation: BENCH, wizard: true });
     try {
       await x.drainProse();
@@ -568,7 +568,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
     }
   }, 600_000);
 
-  it('5. water wheat with no patch named is refused, naming all three', async () => {
+  it('5. water wheat with no field named is refused, naming all three', async () => {
     // `water` is afforded by the vessel (husbandry § water is
     // tool-afforded): a can in hand — the one step 7 waters with.
     let can = false;
@@ -586,8 +586,8 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
 
 /* ═══════════════════ Stage C — the home field cared for ═══════════════════ */
 
-suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () => {
-  it('7. through a dry week the watered labeled plant reads better than its patch and a fresh sample', async () => {
+suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () => {
+  it('7. through a dry week the watered labeled plant reads better than its field and a fresh sample', async () => {
     await daylight();
     // Six staged days. The founder dries the gate end every six hours
     // (rain would otherwise make it no dry week at all); the hand fills
@@ -608,7 +608,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     await daylight();
     await dryTo({ 'gate-end': 0.1 });
     const trial = await freshRead(expert, HOME_FIELD, 'look trial', true);
-    const patch = await freshRead(expert, HOME_FIELD, 'look at the gate end', true);
+    const field = await freshRead(expert, HOME_FIELD, 'look at the gate end', true);
     const x = await Session.open(expert, { startLocation: HOME_FIELD, wizard: true });
     let sample = '';
     try {
@@ -622,12 +622,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     } finally {
       x.close();
     }
-    note(`dry week: trial ${healthOf(trial)} · gate end ${healthOf(patch)} · sample ${healthOf(sample)}`);
-    expect(healthOf(trial), 'the watered plant reads better than its patch').toBeGreaterThan(healthOf(patch));
+    note(`dry week: trial ${healthOf(trial)} · gate end ${healthOf(field)} · sample ${healthOf(sample)}`);
+    expect(healthOf(trial), 'the watered plant reads better than its field').toBeGreaterThan(healthOf(field));
     expect(healthOf(trial), 'and better than a fresh stem from it').toBeGreaterThan(healthOf(sample));
   }, 3_600_000);
 
-  it('8. a pail at the middle says how much, and the patch barely moves', async () => {
+  it('8. a pail at the middle says how much, and the field barely moves', async () => {
     await goTo(BYRE);
     await doing(p, 'get 1 pail');
     await goTo(YARD);
@@ -656,9 +656,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
   it('9. compost at the far side: the reply states the kilograms, the far side alone is fed', async () => {
     await goTo(HOME_FIELD);
     // ⭐ Staging: a hungry far side. The campus hand feeds the hungriest
-    // patch every beat (W5), so by now she may have filled it — and a
-    // full patch has nothing to take.
-    // ⚠ And the other two FULL: the hand feeds whichever patch is
+    // field every beat (W5), so by now she may have filled it — and a
+    // full field has nothing to take.
+    // ⚠ And the other two FULL: the hand feeds whichever field is
     // hungriest every beat, and arriving mid-step she fed the gate end
     // (blocking run, after the seed build) — "untouched" must mean the
     // PLAYER touched only the far side.
@@ -666,7 +666,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     const NITROGEN =
       'return self.getContainer().soilParts().map(p => p.soilPartKey() + "=" + p.nutrientFraction()).join(",")';
     const before = byPart(await founderEval(HOME_FIELD, CAMPUS, NITROGEN));
-    // ⚠ One word for the source: a two-word object after the greedy patch
+    // ⚠ One word for the source: a two-word object after the greedy field
     // falls through every command shape (staged W6; W3 saw the same of
     // `fill watering can from …`). The only compost carried is the sack.
     const said = await doing(p, 'feed wheat at the far side with compost');
@@ -679,7 +679,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     }
   }, 1_200_000);
 
-  it('11. the campus hand waters the patch her own read points to — and a bystander sees which', async () => {
+  it('11. the campus hand waters the field her own read points to — and a bystander sees which', async () => {
     // Her hours are 06–18; she beats only once she is loaded (on the
     // roster's next pass after a jump). Below her `waterAt` (0.5) on all
     // three, but above the wheat's happy line (0.35): she has something
@@ -702,11 +702,11 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     }
     note(`the hand: ${heard.replace(/\s+/g, ' ').slice(0, 600)}`);
     note(`the hand watered: ${watered ?? 'nothing'}; the expert's read of the moment: ${expertRead.replace(/\s+/g, ' ').slice(0, 600)}`);
-    expect(watered, 'the hand watered SOME patch, by name').not.toBeNull();
+    expect(watered, 'the hand watered SOME field, by name').not.toBeNull();
     await read(p, 'look');
   }, 1_800_000);
 
-  it('10. at harvest the kept patch grades better than the neglected one', async () => {
+  it('10. at harvest the kept field grades better than the neglected one', async () => {
     // ⭐ Staging: the comparison window opens here — every stand's season
     // record is set even (reconciled first, so the window that just ended
     // is not charged to the new one; then `_worstLimiting` back to 1, the
@@ -727,7 +727,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     );
     await daylight();
     // ⚠ Stressed, not killed: the campus barely rains (the realm finding),
-    // so a patch dried to the wilting point never comes back and dies
+    // so a field dried to the wilting point never comes back and dies
     // before it ripens (drive 2). Neglect grades worse; it need not kill.
     await dryTo({ 'far-side': 0.25 });
     for (let q = 0; q < 4; q++) {
@@ -771,14 +771,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by patch, and the hand', () 
     const kept = await cut('the gate end');
     const neglected = await cut('the far side');
     note(`grades: the gate end ${kept} · the far side ${neglected}`);
-    expect(GRADES.indexOf(kept), 'the kept patch grades better').toBeGreaterThan(GRADES.indexOf(neglected));
+    expect(GRADES.indexOf(kept), 'the kept field grades better').toBeGreaterThan(GRADES.indexOf(neglected));
   }, 7_200_000);
 });
 
 /* ═══════════════════ Stage D — what did not change ═══════════════════ */
 
 suite.skipIf(!isOwnedTestWorld())('Stage D — one-piece fields and pots', () => {
-  it('12. a Waponi cane piece reads and cuts with no patch named', async () => {
+  it('12. a Waponi cane piece reads and cuts with no field named', async () => {
     await daylight();
     await goTo(CANE_PIECE);
     const looked = await read(p, 'look');
@@ -820,7 +820,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage D — one-piece fields and pots', () =>
       await doing(t, 'fill can from tap');
       const { r, said } = await act(t, 'water lily');
       // A fresh room's pot may be wet through; then the verb says so —
-      // in the pot's words, never a patch's.
+      // in the pot's words, never a field's.
       if (refusedFor(r) === 'already-wet') {
         expect(said).toMatch(/already wet through/i);
       } else {

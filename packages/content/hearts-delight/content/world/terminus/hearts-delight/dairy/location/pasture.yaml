@@ -6,7 +6,7 @@
 # calves — a cow wants about half a hectare through a season, because a
 # good sward grows at most eighty kilos a hectare on a May day and a cow
 # eats eleven (cover build B19). The rick and the trough are at its head.
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   fieldName: the dairy pasture
   shortDescription: dairy pasture

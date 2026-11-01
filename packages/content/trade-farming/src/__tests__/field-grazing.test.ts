@@ -13,7 +13,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Field from '../location/Field';
+import Tract from '../location/Tract';
 import Feeder from '@saxonberg/server/mud/platform/thing/Feeder';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Vessel from '@saxonberg/server/mud/platform/thing/Vessel';
@@ -53,8 +53,8 @@ function trough(kind: 'trough' | 'hopper' = 'trough'): Feeder {
   return t;
 }
 
-function field(area = 400): Field {
-  const f = makeStuff(() => new Field());
+function field(area = 400): Tract {
+  const f = makeStuff(() => new Tract());
   f.setAreaM2(area);
   f.installSward();
   // ⭐ Deep winter: nothing grows, so every kilo the herd eats is one the
@@ -87,7 +87,7 @@ describe('the field feeds its grazers', () => {
     vi.restoreAllMocks();
   });
 
-  function settle(f: Field): void {
+  function settle(f: Tract): void {
     // First touch stamps the sward clock; integrate from here.
     f.standingDryMatterKg();
   }
@@ -194,11 +194,11 @@ describe('the field feeds its grazers', () => {
   it('⭐ an authored field is kept ground: its clearing starts done; a plotted one starts rough', async () => {
     const bill = { clearing: 40, stonePicking: 10, draining: 0, liming: 0 } as never;
     const authored = makeStuff(() => {
-      const f = new Field();
+      const f = new Tract();
       f.setAreaM2(400); // sized by its row before registration
       return f;
     });
-    const plotted = makeStuff(() => new Field()); // no area until `plot`
+    const plotted = makeStuff(() => new Tract()); // no area until `plot`
     for (const f of [authored, plotted]) {
       vi.spyOn(f, 'improvementBill').mockResolvedValue(bill);
       f.improvementWork = {};
@@ -212,6 +212,6 @@ describe('the field feeds its grazers', () => {
     const f = field(400);
     settle(f);
     f.setGrazer('herd-a', { label: 'six head of the college herd', demandKgPerDay: 5, feederKinds: [] });
-    expect(f.fieldLines().join(' ')).toMatch(/Six head of the college herd are grazing it\./);
+    expect(f.tractLines().join(' ')).toMatch(/Six head of the college herd are grazing it\./);
   });
 });

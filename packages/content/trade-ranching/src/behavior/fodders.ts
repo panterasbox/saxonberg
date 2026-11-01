@@ -35,7 +35,7 @@ import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 
 /** What the hand can see where it stands. */
 interface Yard {
@@ -140,7 +140,7 @@ export const brain = class {
     const trough = r.trough
       ? here.find((s) => MixinApi.isFeeder(s) && named(s, r.trough!))
       : undefined;
-    const field = room instanceof Field ? room : null;
+    const field = room instanceof Tract ? room : null;
     const band = field ? field.swardBand() : null;
     return {
       inMeadow: field !== null && store === undefined,

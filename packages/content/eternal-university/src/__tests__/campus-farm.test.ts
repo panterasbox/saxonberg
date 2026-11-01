@@ -56,7 +56,7 @@ describe('the campus farm', () => {
     // system's (`/system/ground/idea/GroundCharacter`, moved out of the
     // farming trade by the ground build — dirt is there whether or not
     // anybody is farming it); everything else is the platform's.
-    expect(classes).toContain('/trade/farming/location/SingletonField');
+    expect(classes).toContain('/trade/farming/location/SingletonTract');
     expect(classes).toContain('/system/ground/idea/GroundCharacter');
     for (const cls of classes) {
       expect(

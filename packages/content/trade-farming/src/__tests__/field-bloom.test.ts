@@ -1,5 +1,5 @@
 /**
- * `Field.inFlowerFraction()` — **how much of this sward is in flower**
+ * `Tract.inFlowerFraction()` — **how much of this sward is in flower**
  * (apiculture D6), and the two rules it is easy to get wrong.
  *
  * ⭐ The sward knows when it blooms and the hive asks. Nothing here knows
@@ -15,15 +15,15 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import Field from '../location/Field';
+import Tract from '../location/Tract';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
 /**
  * A field with its sky already resolved to a summer's day, so the season
  * gate is a lever rather than an accident of when the test ran.
  */
-function field(legume: number, ambientK = 292, daylight = 0.62): Field {
-  const f = makeStuff(() => new Field());
+function field(legume: number, ambientK = 292, daylight = 0.62): Tract {
+  const f = makeStuff(() => new Tract());
   f.setAreaM2(1000);
   f.setLegumeFraction(legume);
   // The sward reserve is installed by the host's own registration; a

@@ -93,7 +93,7 @@ export function AdornmentMixin<TBase extends MixinConstructor<Stuff>>(
      * {@link Stuff.jurisdictionHost}.
      *
      * A fixture is the exit's case again: it answers to its KIND row
-     * (`/stuff/thing/default-floor`, `/trade/farming/thing/patch`) and its
+     * (`/stuff/thing/default-floor`, `/trade/farming/thing/field`) and its
      * host holds it in `getFixtures()`, not `getContents()`, so the default
      * containment walk had nothing to walk and a governed `eval --parcel
      * <extent>` was refused on every floor and every field patch inside its

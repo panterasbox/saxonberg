@@ -1,7 +1,7 @@
 # The lower meadow — where the oxen and the hens go out (cover build W6),
 # below the farmstead yard on the good side of the lane. A trough by the
 # gate is kept from the rick in the barn.
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   fieldName: the lower meadow
   shortDescription: lower meadow

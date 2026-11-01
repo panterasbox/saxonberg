@@ -1,10 +1,10 @@
 /**
- * Field — **a piece of ground you can stand in**, and the thing this
+ * Tract — **a piece of ground you can stand in**, and the thing this
  * game did not have.
  *
  * Cultivation before this build was `PlantPot` and `GardenBed`: a Thing
  * with a bulk interior of soil measured in **litres**. A 1,000 m² lot
- * held a four-plant bed. A field is not a bigger bed — it is a *place*,
+ * held a four-plant bed. A tract is not a bigger bed — it is a *place*,
  * with the soil under your boots rather than in a box you could pick up
  * if you were strong enough.
  *
@@ -20,52 +20,52 @@
  *  - **`PersistableMixin`** outermost — the host rule (`cleanupOnDestruct`
  *    must fire before the inner `Container` evacuates). ⚠ Over the
  *    PERMISSIVE `Location`, never the singleton one, because a
- *    field is a KIND of place minted many times. Safe only because every
+ *    tract is a KIND of place minted many times. Safe only because every
  *    instance is **keyed** `<holding extent>/<leaf>` — a keyless
  *    persistable over a permissive base would silently share ONE
- *    `holder_snapshots` scope across every field in the world.
+ *    `holder_snapshots` scope across every tract in the world.
  *  - **`WarrenMemberMixin`** — the back-ref to the holding it belongs to.
  *  - **`SoilMixin`** — the kernel's, the same one `GardenBed` composes.
  *    ⭐ *There is exactly one soil checkpoint implementation*, which is
- *    AC 3 and the reason W1 happened first. `pasture is a field` dies the
+ *    AC 3 and the reason W1 happened first. `pasture is a tract` dies the
  *    moment pasture's soil is not farming's soil.
  *  - **`ReservedMixin`** — soil's host constraint, and where the
  *    moisture, nitrogen and (later) sward reserves live.
  *
  * ## ⭐ Why the ground key is not the coordinates
  *
- * A field is a warren member, and a warren member is not on anybody's
+ * A tract is a warren member, and a warren member is not on anybody's
  * grid — *a lot's room is NOT on the street's grid*, which is the shipped
- * rule the residences build settled. So every field would sit at
- * `[0, 0, 0]` and every field in the world would sample the same dirt.
+ * rule the residences build settled. So every tract would sit at
+ * `[0, 0, 0]` and every tract in the world would sample the same dirt.
  *
- * Instead the field carries {@link Field.groundSpot}, **stamped at plot
- * time from where the plotter was standing**, offset by which field on
+ * Instead the tract carries {@link Tract.groundSpot}, **stamped at plot
+ * time from where the plotter was standing**, offset by which tract on
  * the holding this is. Two consequences, and the first is the point:
  *
  *  - ⭐⭐ **surveying before you commit actually predicts something.** You
- *    walk the lot, take your spadefuls, and the field you then plot on it
+ *    walk the lot, take your spadefuls, and the tract you then plot on it
  *    carries the ground you surveyed. D3's *"you can survey before you
  *    commit"* is only true if that holds.
- *  - a hand-authored field authors its own spot, so a venue can put its
+ *  - a hand-authored tract authors its own spot, so a venue can put its
  *    top meadow on the heavy end of the valley deliberately.
  *
  * ## What it is NOT
  *
  * ⚠ Not a `PersistentLocation` — that class is the four furnishing
- * archetypes' base, and a field is not a room a player puts their goods
- * in. ⚠ And it holds **no plant slot**: a field's crop is not four
+ * archetypes' base, and a tract is not a room a player puts their goods
+ * in. ⚠ And it holds **no plant slot**: a tract's crop is not four
  * `Slottable`s in a bed, which is exactly why `CultivableMixin` could not
  * be the vehicle and why W1 split soil out of it.
  *
  * ## ⭐ The crop (cover build)
  *
- * A field holds ONE area crop: a single `Plant` standing loose in its
- * contents with a sown area, rooted in the field's soil by containment
- * (the kernel's `getBed()`). The rest of the field is sward. `plough`
+ * A tract holds ONE area crop: a single `Plant` standing loose in its
+ * contents with a sown area, rooted in the tract's soil by containment
+ * (the kernel's `getBed()`). The rest of the tract is sward. `plough`
  * turns the sward under and stamps a SEEDBED good for one season; `sow`
- * asks the field (`sowingRefusal`) and the field answers from that
- * stamp. The crop is titled to the business that works the field
+ * asks the tract (`sowingRefusal`) and the tract answers from that
+ * stamp. The crop is titled to the business that works the tract
  * (`ensureCropTitle`), so whoever cuts it, the sheaf is the holder's.
  *
  * See [docs/subsystems/soil.md] and [docs/subsystems/smallholding.md].
@@ -87,7 +87,7 @@ import {
   CharacteredSoilMixin,
   CROP_TRANSPIRATION_L_PER_M2_DAY,
 } from '../lib/CharacteredSoil';
-import type Patch from '../thing/Patch';
+import type Field from '../thing/Field';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -120,7 +120,7 @@ import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/C
 
 /** What a spadeful of a stony headland leaves standing at the edge. */
 const STONE_ROW = '/trade/farming/thing/field-stone';
-/** Calcareous clay, dug out of the corner of a sweet field. */
+/** Calcareous clay, dug out of the corner of a sweet tract. */
 const MARL_ROW = '/trade/farming/thing/marl';
 /** Above this stoniness, an act of grubbing turns up stone worth stacking. */
 const STONE_THRESHOLD = 0.35;
@@ -129,7 +129,7 @@ const MARL_PH = 7.2;
 
 /**
  * Percentage points of organic matter a kilogram of eaten dry matter
- * returns to the field as dung.
+ * returns to the tract as dung.
  *
  * ⭐ Most of what a ruminant eats comes straight back out — the
  * retention is single digits — which is exactly why grazing cycles
@@ -185,9 +185,9 @@ const BLOOM_MIN_K = 285;
 const BLOOM_MIN_DAYLIGHT = 0.45;
 
 /**
- * ⭐ One herd's line in the field's grazing ledger (cover build D8): what
+ * ⭐ One herd's line in the tract's grazing ledger (cover build D8): what
  * it wants, what vessels it will eat from, and what it has been given
- * since it came onto the field. A PLAIN object, never a `Map` (a Map
+ * since it came onto the tract. A PLAIN object, never a `Map` (a Map
  * field has no BSON shape).
  */
 export interface GrazerEntry {
@@ -212,7 +212,7 @@ export interface GrazerEntry {
  */
 const SEEDBED_DAYS = 90;
 
-/** The share of its ceiling an authored field's grass starts at. */
+/** The share of its ceiling an authored tract's grass starts at. */
 const AUTHORED_SWARD_START = 0.8;
 
 const SECONDS_PER_GAME_DAY = 86_400;
@@ -226,14 +226,14 @@ const SECONDS_PER_GAME_DAY = 86_400;
 const OM_PER_KG_PER_M2_TURNED = 3;
 
 /**
- * ⭐ The field's own lines in `look` — in words, never numbers: the crop
+ * ⭐ The tract's own lines in `look` — in words, never numbers: the crop
  * and its stage, the stubble, a fresh seedbed, the grass. Sync and pure:
  * an augmenter only READS (⛔ it never settles a title — that is the
  * acts' job).
  */
 function fieldAugmenter(text: string, host: Stuff, viewer: Stuff): string {
-  if (!(host instanceof Field)) return text;
-  const lines = host.fieldLines(viewer);
+  if (!(host instanceof Tract)) return text;
+  const lines = host.tractLines(viewer);
   if (lines.length === 0) return text;
   const block = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${block}` : block;
@@ -244,8 +244,8 @@ function fieldAugmenter(text: string, host: Stuff, viewer: Stuff): string {
 // is not cosmetic: inference through this many nested generic mixin
 // factories in one expression collapses to `never`.
 // ⭐ `CharacteredSoilMixin` (field population D2): the area and the seeded
-// character that size the reserves — shared with the field's patches.
-const FieldGround = CharacteredSoilMixin(SoilMixin(ReservedMixin(Location)));
+// character that size the reserves — shared with the tract's fields.
+const TractGround = CharacteredSoilMixin(SoilMixin(ReservedMixin(Location)));
 
 // `ImprovableMixin` is the THIRD axis (D57) — what has been DONE to the
 // ground, independent of what the polity permits (`LandUse`) and of what
@@ -255,18 +255,18 @@ const FieldGround = CharacteredSoilMixin(SoilMixin(ReservedMixin(Location)));
 // drinks it: the grass transpires the moisture the sky put in, which is
 // what closes the loop and what makes a dry month read as a sward that
 // stopped growing rather than as a message about rain.
-const FieldBase = PersistableMixin(
-  WarrenMemberMixin(ImprovableMixin(SwardMixin(FieldGround))),
+const TractBase = PersistableMixin(
+  WarrenMemberMixin(ImprovableMixin(SwardMixin(TractGround))),
 );
 
-export default class Field extends FieldBase {
+export default class Tract extends TractBase {
   /**
    * ⚠⚠ **`plough` is afforded HERE and nowhere else, and it would have
    * gone silent without this block.**
    *
    * The improvement acts moved to the platform with `ImprovableMixin`, and
    * `plough` went with them in the same list — but ploughing is not
-   * improvement, it is farming's own act on a field, so it did not belong
+   * improvement, it is farming's own act on a tract, so it did not belong
    * in a kernel mixin's contributions. A verb nothing affords parses as
    * *"I don't understand 'plough'"*, and **every controller test would
    * still have passed**: the affordance is a static on a class and nothing
@@ -282,13 +282,13 @@ export default class Field extends FieldBase {
     // `inventory`: a location's occupants hear it (`self` is a giver's).
     inventory: [
       'trade/farming/cmd/farming/plough.yaml',
-      // ⭐ A field affords SOWING to whoever stands in it (cover build):
+      // ⭐ A tract affords SOWING to whoever stands in it (cover build):
       // the platform view, named here the way `plough` is. A bed affords
       // it through `CultivableMixin`; ground with no slot had nothing.
       'platform/cmd/inventory/plant.yaml',
-      // ⭐ And FEEDING (field population): a field's ground — or one of
-      // its patches — takes muck from whoever stands in it. `feed` rode
-      // only `CultivableMixin` before, so a field afforded nothing.
+      // ⭐ And FEEDING (field population): a tract's ground — or one of
+      // its fields — takes muck from whoever stands in it. `feed` rode
+      // only `CultivableMixin` before, so a tract afforded nothing.
       'platform/cmd/bulk/feed.yaml',
     ],
   };
@@ -306,24 +306,24 @@ export default class Field extends FieldBase {
     seedbedStamp: { persistent: true },
     stubbleStamp: { persistent: true },
     grazers: { persistent: true },
-    patches: { persistent: true, authorable: true },
+    fields: { persistent: true, authorable: true },
   };
 
   /**
-   * ⭐ **The parts this field is divided into** (field population D2) —
+   * ⭐ **The parts this tract is divided into** (field population D2) —
    * the top end, the middle, the lane end. Authored; `[]` = one piece,
-   * and a field with none takes today's path on every line. Each spec
-   * mints one {@link Patch} fixture at `onCreate` (get-or-create at slot
-   * `patch:<key>`); the parts tile the field, the LAST absorbing any
+   * and a tract with none takes today's path on every line. Each spec
+   * mints one {@link Field} fixture at `onCreate` (get-or-create at slot
+   * `field:<key>`); the parts tile the tract, the LAST absorbing any
    * difference in area. ⚠ Keys are stable — a crop row binds by key
    * (`groundPart: top-end`); a name may change.
    */
-  public patches: PatchSpec[] = [];
+  public fields: FieldSpec[] = [];
 
   /**
-   * ⭐ **Who grazes this field** (cover build D8), by herd id. Ranching
-   * writes it through `setGrazer`/`clearGrazer`; the field keeps each
-   * line's fed window inside its own sward integral. The field never
+   * ⭐ **Who grazes this tract** (cover build D8), by herd id. Ranching
+   * writes it through `setGrazer`/`clearGrazer`; the tract keeps each
+   * line's fed window inside its own sward integral. The tract never
    * searches for a herd — the herd's move wrote itself here.
    */
   public grazers: Record<string, GrazerEntry> = {};
@@ -336,13 +336,13 @@ export default class Field extends FieldBase {
 
   /**
    * Game-seconds the last crop ended (cut down or grubbed out), `0` when
-   * none has — what lets the field read *stubble* rather than bare
+   * none has — what lets the tract read *stubble* rather than bare
    * grass. Cleared by the next ploughing.
    */
   public stubbleStamp = 0;
 
   /**
-   * ⭐ **D88 — holders name their fields.** Real farms always have: the
+   * ⭐ **D88 — holders name their tracts.** Real farms always have: the
    * top meadow, the wet corner, Long Acre. The names carry the ground's
    * history, and they solve reference: *"move them to the top meadow"*
    * rather than *"paddock 7"*.
@@ -380,7 +380,7 @@ export default class Field extends FieldBase {
    *     {@link fixLegumeNitrogen} on why nothing writes it yet.
    *   - **the standing sward** — **derived**, reconciled over game-time
    *     from water, nutrient and the season.
-   *   - **the bloom season** — **derived**, from this field's own cached
+   *   - **the bloom season** — **derived**, from this tract's own cached
    *     sky.
    *
    * ⚠ The tri-state rule, twice: an unresolved cache (`-1`) reads as
@@ -428,14 +428,14 @@ export default class Field extends FieldBase {
 
   // ---------- ⭐ the crop (cover build) ----------
 
-  /** The (first) area crop standing in this field, or `null`. */
+  /** The (first) area crop standing in this tract, or `null`. */
   public getCrop(): (Stuff & Growing) | null {
     return this.getCrops()[0] ?? null;
   }
 
   /**
-   * ⭐ Every area crop standing in this field (field population D1): one
-   * on a one-piece field, one per sown patch on a divided one.
+   * ⭐ Every area crop standing in this tract (field population D1): one
+   * on a one-piece tract, one per sown field on a divided one.
    */
   public getCrops(): (Stuff & Growing)[] {
     const out: (Stuff & Growing)[] = [];
@@ -456,19 +456,19 @@ export default class Field extends FieldBase {
     return Math.min(this.areaM2, sown);
   }
 
-  // ---------- ⭐ the patches (field population D2) ----------
+  // ---------- ⭐ the fields (field population D2) ----------
 
   /**
-   * The patches minted from {@link patches}, in authored order. ⭐ Read
-   * off the fixture SLOTS this field minted them into (`patch:<key>`) —
-   * the field put them there, so the slot is the record of what they are.
+   * The fields minted from {@link fields}, in authored order. ⭐ Read
+   * off the fixture SLOTS this tract minted them into (`field:<key>`) —
+   * the tract put them there, so the slot is the record of what they are.
    */
-  public getPatches(): (Stuff & Patch)[] {
-    const out: (Stuff & Patch)[] = [];
-    for (const spec of this.patches) {
+  public getFields(): (Stuff & Field)[] {
+    const out: (Stuff & Field)[] = [];
+    for (const spec of this.fields) {
       for (const f of this.getFixtures()) {
-        if (this.slotOfFixture(f) === patchSlot(spec.key)) {
-          out.push(f as unknown as Stuff & Patch);
+        if (this.slotOfFixture(f) === fieldSlot(spec.key)) {
+          out.push(f as unknown as Stuff & Field);
           break;
         }
       }
@@ -477,12 +477,12 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * ⭐ The kernel's parts hook: a divided field's soil IS its patches, so
-   * every read and write the kernel's verbs make of the field aggregates
+   * ⭐ The kernel's parts hook: a divided tract's soil IS its fields, so
+   * every read and write the kernel's verbs make of the tract aggregates
    * over them, and a plant bound by `groundPart` roots in its own.
    */
   public override soilParts(): readonly (Stuff & Soil)[] {
-    return this.getPatches();
+    return this.getFields();
   }
 
   /** A refusal names one of these by the word a farmer uses. */
@@ -499,46 +499,46 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * Mint (or find) one patch per authored spec, sized and characterized
-   * from this field's sample and the spec's lean.
+   * Mint (or find) one field per authored spec, sized and characterized
+   * from this tract's sample and the spec's lean.
    *
-   * ⭐ Get-or-create at slot `patch:<key>` — the `ensureFloor` shape — so
-   * a re-run (a CMS go-live re-hydrating the field) re-sizes what is there
-   * rather than minting a second set, and a restored field's fixtures
-   * slice overlays its record onto the patches minted here.
+   * ⭐ Get-or-create at slot `field:<key>` — the `ensureFloor` shape — so
+   * a re-run (a CMS go-live re-hydrating the tract) re-sizes what is there
+   * rather than minting a second set, and a restored tract's fixtures
+   * slice overlays its record onto the fields minted here.
    *
    * ⚠ A failure to mint is warned, never thrown: `onCreate` throwing
-   * unregisters the field, and a field that reads as one piece is a
-   * degradation where a field that will not boot is not.
+   * unregisters the tract, and a tract that reads as one piece is a
+   * degradation where a tract that will not boot is not.
    */
-  public async ensurePatches(
+  public async ensureFields(
     model: GroundCharacter | null,
     seed: number,
     fieldSample: GroundSample,
   ): Promise<void> {
-    const specs = this.patches.filter((p) => p && typeof p.key === 'string' && p.key);
+    const specs = this.fields.filter((p) => p && typeof p.key === 'string' && p.key);
     if (specs.length === 0) return;
-    const areas = patchAreas(specs, this.areaM2);
+    const areas = fieldAreas(specs, this.areaM2);
     for (const [i, spec] of specs.entries()) {
       try {
-        let patch = this.patchInSlot(spec.key);
-        if (!patch) {
-          const minted = await StuffApi.clone<Stuff>(PATCH_ROW);
+        let field = this.fieldInSlot(spec.key);
+        if (!field) {
+          const minted = await StuffApi.clone<Stuff>(FIELD_ROW);
           if (!MixinApi.isAdornment(minted) || !MixinApi.isSoil(minted)) {
             await StuffApi.destruct(minted);
-            throw new Error(`'${PATCH_ROW}' is not a soil fixture`);
+            throw new Error(`'${FIELD_ROW}' is not a soil fixture`);
           }
-          this.addFixture(minted, patchSlot(spec.key));
-          patch = minted as unknown as Stuff & Patch;
+          this.addFixture(minted, fieldSlot(spec.key));
+          field = minted as unknown as Stuff & Field;
         }
-        patch.configurePatch(spec, areas[i] ?? 0);
-        patch.installFromField(
+        field.configureField(spec, areas[i] ?? 0);
+        field.installFromTract(
           GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean),
           fieldSample,
         );
       } catch (err) {
         console.warn(
-          `Field.ensurePatches: no patch '${spec.key}' for ` +
+          `Tract.ensureFields: no field '${spec.key}' for ` +
             `${this.getTemplatePath() ?? this.stuffId} — ` +
             `${err instanceof Error ? err.message : String(err)}`,
         );
@@ -546,11 +546,11 @@ export default class Field extends FieldBase {
     }
   }
 
-  /** The patch in `patch:<key>`, or `null`. */
-  private patchInSlot(key: string): (Stuff & Patch) | null {
+  /** The field in `field:<key>`, or `null`. */
+  private fieldInSlot(key: string): (Stuff & Field) | null {
     for (const f of this.getFixtures()) {
-      if (this.slotOfFixture(f) === patchSlot(key)) {
-        return f as unknown as Stuff & Patch;
+      if (this.slotOfFixture(f) === fieldSlot(key)) {
+        return f as unknown as Stuff & Field;
       }
     }
     return null;
@@ -580,7 +580,7 @@ export default class Field extends FieldBase {
   /**
    * ⭐ **Turn the sward under** (cover build D4): the standing grass goes
    * into the ground as organic matter and the seedbed is stamped. What a
-   * plough does to a field after its clearing is done.
+   * plough does to a tract after its clearing is done.
    */
   public turnUnder(): void {
     const kg = this.drawSward(this.standingDryMatterKg());
@@ -594,7 +594,7 @@ export default class Field extends FieldBase {
 
   /**
    * ⭐ **Whose the crop is** (cover build D6): the business that works
-   * this field, stood up if it has to be. A group cannot hold goods, so
+   * this tract, stood up if it has to be. A group cannot hold goods, so
    * *the holder* is realized as the operator; with none, the crop keeps
    * whatever title its arrival gave it (the sower's, or nobody's).
    * ⛔ Called by the acts — sow and harvest — never by a read.
@@ -604,7 +604,7 @@ export default class Field extends FieldBase {
   }
 
   private async settleCropTitle(standUp: boolean): Promise<void> {
-    // ⭐ Every crop standing here (field population): a divided field's
+    // ⭐ Every crop standing here (field population): a divided tract's
     // stands are each the holder's.
     const crops = this.getCrops().filter((c) => MixinApi.isChattel(c));
     if (crops.length === 0) return;
@@ -627,7 +627,7 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * ⭐ A crop ARRIVING is the field's moment to learn it was sown, and an
+   * ⭐ A crop ARRIVING is the tract's moment to learn it was sown, and an
    * authored crop's to be titled to the live operator (no house is stood
    * up by an arrival — that is the harvest's act).
    */
@@ -658,7 +658,7 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * ⭐ **A field in use is a field kept** (cover build B35): stock and a
+   * ⭐ **A tract in use is a tract kept** (cover build B35): stock and a
    * standing crop keep the scrub down, so clearing does not revert while a
    * herd grazes it or a crop stands on it. Without this a kept clover ley
    * grazed all winter "had scrub on it yet" by spring and took two
@@ -676,7 +676,7 @@ export default class Field extends FieldBase {
 
   /**
    * ⭐ **Grubbing ends a crop** (cover build D5): clearing work banked on
-   * a field with a crop standing in it takes the crop out first — tired
+   * a tract with a crop standing in it takes the crop out first — tired
    * cane is grubbed before it is replanted.
    */
   public override bankWork(
@@ -685,22 +685,22 @@ export default class Field extends FieldBase {
     cost: ImprovementCost,
   ): number {
     if (job === 'clearing') {
-      // Every patch's crop goes (field population): grubbing is the field's.
+      // Every field's crop goes (field population): grubbing is the tract's.
       for (const crop of this.getCrops()) void StuffApi.destruct(crop);
     }
     return super.bankWork(job, amount, cost);
   }
 
   /**
-   * The field's own lines, in words: the crop and its stage, the
-   * stubble, a fresh seedbed, the grass — and, on a divided field, one
-   * line per sown patch read at the VIEWER's band (field population D9,
+   * The tract's own lines, in words: the crop and its stage, the
+   * stubble, a fresh seedbed, the grass — and, on a divided tract, one
+   * line per sown field read at the VIEWER's band (field population D9,
    * D13). ⭐ A pure read.
    */
-  public fieldLines(viewer?: Stuff | null): string[] {
+  public tractLines(viewer?: Stuff | null): string[] {
     const lines: string[] = [];
     const crops = this.getCrops();
-    // The stand reads as ONE thing: the kind, how much of the field it
+    // The stand reads as ONE thing: the kind, how much of the tract it
     // covers in all, and the stage of the crop covering the most ground.
     const crop = crops.reduce<(Stuff & Growing) | null>(
       (big, c) => (big === null || c.standingAreaM2() > big.standingAreaM2() ? c : big),
@@ -711,7 +711,7 @@ export default class Field extends FieldBase {
       // ⚠ `cropAreaPhrase` reads ITS crop's standing share of the area it
       // is given; scaling the area by that crop's share of all the
       // standing ground makes it read the whole stand's share instead.
-      // One crop: the field's own area, unchanged.
+      // One crop: the tract's own area, unchanged.
       const over =
         crops.length === 1 || !(standing > 0)
           ? this.areaM2
@@ -727,7 +727,7 @@ export default class Field extends FieldBase {
       if (crops.some((c) => c.isTiredRatoon())) {
         lines.push('The stools are tired, and the stand comes up thin.');
       }
-      lines.push(...this.patchLines(viewer ?? null));
+      lines.push(...this.fieldLines(viewer ?? null));
     } else if (this.stubbleStamp > 0) {
       const band = this.swardBand();
       lines.push(
@@ -755,20 +755,20 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * ⭐ One line per sown patch (field population D13): *"At the top end it
+   * ⭐ One line per sown field (field population D13): *"At the top end it
    * is in ear and looks poor. It is short of something."* — the crop
    * rooted there, read at the viewer's band (a viewer with no transcript
-   * reads the floor). Never a digit; a patch with no crop says nothing.
+   * reads the floor). Never a digit; a field with no crop says nothing.
    */
-  private patchLines(viewer: Stuff | null): string[] {
+  private fieldLines(viewer: Stuff | null): string[] {
     const out: string[] = [];
-    for (const patch of this.getPatches()) {
+    for (const field of this.getFields()) {
       for (const crop of this.getCrops()) {
-        if (crop.getBed() !== patch) continue;
+        if (crop.getBed() !== field) continue;
         const read = crop.readLines(bandOf(viewer, crop.getDiscipline()));
         const [first, ...rest] = read;
         if (!first) continue;
-        const at = `At ${patch.presentationPhrase().definite()}`;
+        const at = `At ${field.presentationPhrase().definite()}`;
         out.push([`${at} ${lowerFirst(first)}`, ...rest].join(' '));
       }
     }
@@ -777,7 +777,7 @@ export default class Field extends FieldBase {
 
   // ---------- ⭐ the grazing ledger (cover build D8, D11) ----------
 
-  /** Put a herd on this field, or replace its line. Opens a fresh window. */
+  /** Put a herd on this tract, or replace its line. Opens a fresh window. */
   public setGrazer(herdId: string, entry: Omit<GrazerEntry, 'fedKg' | 'demandKg' | 'since'>): void {
     // Settle the window the herd is joining, so it is not billed for it —
     // and the upkeep window, which was kept or not by who was on it.
@@ -797,7 +797,7 @@ export default class Field extends FieldBase {
     };
   }
 
-  /** Take a herd off this field. Returns its closed line, or `null`. */
+  /** Take a herd off this tract. Returns its closed line, or `null`. */
   public clearGrazer(herdId: string): GrazerEntry | null {
     this.reconcileSward();
     this.reconcileImprovement();
@@ -811,7 +811,7 @@ export default class Field extends FieldBase {
 
   /**
    * A herd's line, reconciled — what it has been fed since it came on.
-   * `null` when the herd is not on this field.
+   * `null` when the herd is not on this tract.
    */
   public grazerLedger(herdId: string): GrazerEntry | null {
     this.reconcileSward();
@@ -839,7 +839,7 @@ export default class Field extends FieldBase {
     return { fraction, days };
   }
 
-  /** The herds on this field, by id. */
+  /** The herds on this tract, by id. */
   public grazerIds(): string[] {
     return Object.keys(this.grazers);
   }
@@ -855,7 +855,7 @@ export default class Field extends FieldBase {
 
   /**
    * ⭐ **The trough feeds what the grass did not** (D11): every feeder
-   * standing on this field whose kind a grazer eats from, drawn by mass —
+   * standing on this tract whose kind a grazer eats from, drawn by mass —
    * and a feeder kept from a store draws on the store when it is empty.
    */
   public override swardShortfallFed(kgNeeded: number): number {
@@ -883,12 +883,12 @@ export default class Field extends FieldBase {
 
   // ---------- the hooks SoilMixin asks of its host ----------
   // (`soilLeachRate`, `soilCatchmentAreaM2` and the reserves' sizing are
-  // `CharacteredSoilMixin`'s — shared with the patches.)
+  // `CharacteredSoilMixin`'s — shared with the fields.)
 
   /**
-   * ⭐ **A field IS a place, so it is its own watershed scope.** The
+   * ⭐ **A tract IS a place, so it is its own watershed scope.** The
    * default asks a container — right for a pot in a room, wrong here:
-   * a field's container is the warren, which is not where it is. Asking
+   * a tract's container is the warren, which is not where it is. Asking
    * upward would resolve the holding's locality, which happens to be the
    * same answer today and would stop being the same answer the moment a
    * holding spans two.
@@ -900,14 +900,14 @@ export default class Field extends FieldBase {
 
   /**
    * ⭐ **What drinks this soil is the grass standing in it.** The pot and
-   * the bed answer with their occupants' summed demand; a field answers
+   * the bed answer with their occupants' summed demand; a tract answers
    * with its sward's transpiration, which is the same question asked of a
    * different kind of ground.
    */
   public override soilWaterDemandPerGameDay(): number {
     // ⭐ And a crop standing in it drinks too (cover build) — per square
-    // metre still standing. ⚠ Never read on a divided field (it holds no
-    // reserve of its own; each patch answers for what stands in it).
+    // metre still standing. ⚠ Never read on a divided tract (it holds no
+    // reserve of its own; each field answers for what stands in it).
     const cropDemand = this.getCrops().reduce(
       (n, c) => n + c.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY,
       0,
@@ -938,7 +938,7 @@ export default class Field extends FieldBase {
   // ---------- the three hooks the sward asks of its host ----------
 
   /**
-   * Every square metre of a field is sward, until something else is
+   * Every square metre of a tract is sward, until something else is
    * sown — ⭐ and then the crop's ground is not (cover build).
    */
   public override swardAreaM2(): number {
@@ -951,7 +951,7 @@ export default class Field extends FieldBase {
    *
    * A sward is limited by whichever of water and nutrient is scarcest,
    * and multiplying them would let two half-limitations read as a quarter
-   * — which is not how a field behaves and not what a player should
+   * — which is not how a tract behaves and not what a player should
    * learn. Warmth and daylength join the same minimum in W6; the shape is
    * here so they slot in rather than being retrofitted.
    *
@@ -964,7 +964,7 @@ export default class Field extends FieldBase {
     const moisture = this.soilMoistureFraction();
     if (moisture !== null) {
       // Grass is drought-sensitive well before it is dead: growth falls
-      // away below about a third of field capacity.
+      // away below about a third of tract capacity.
       factors.push(clampUnit(moisture / 0.35));
     }
     const nitrogen = this.nutrientFraction();
@@ -1009,7 +1009,7 @@ export default class Field extends FieldBase {
   private _seasonPromise: Promise<void> | null = null;
 
   /**
-   * ⭐ The field's climate site, its offset from that climate, and its
+   * ⭐ The tract's climate site, its offset from that climate, and its
    * sky (cover build): what lets the sward read warmth and daylength at
    * ANY moment of a window rather than at the moment it was read.
    * Runtime caches, resolved with the season; `null` = fall back to the
@@ -1053,7 +1053,7 @@ export default class Field extends FieldBase {
    * Resolve how cold it is and how long the day is, here, now.
    *
    * ⭐ Both are properties of the PLACE and of the moment, and neither is
-   * a season flag: the same call in the same field answers differently in
+   * a season flag: the same call in the same tract answers differently in
    * June and December because the declination moved, and answers
    * differently under glass because the temperature did. That is D10's
    * *"winter is not a mode"* made mechanical — and it is why a heated
@@ -1083,7 +1083,7 @@ export default class Field extends FieldBase {
         self as unknown as Stuff,
       );
       // The site and the sky, for reading any moment of a window.
-      // ⚠ Only under open sky: a field under glass keeps its one sample.
+      // ⚠ Only under open sky: a tract under glass keeps its one sample.
       const exposure = BiomeApi.exposureOf(self as unknown as Stuff);
       const open = exposure ? exposure.rainReaches() : BiomeApi.isSkyExposed(self as unknown as Stuff);
       if (this._ambientK > 0 && open) {
@@ -1093,7 +1093,7 @@ export default class Field extends FieldBase {
           const climate = dailyMeanClimate(site, now);
           if (Number.isFinite(climate)) {
             this._swardSite = site;
-            // ⚠⚠ ZERO under open sky (cover build B32): the field IS its
+            // ⚠⚠ ZERO under open sky (cover build B32): the tract IS its
             // climate. The difference from the mean at this moment is
             // the moment's weather and hour; carried across a window it
             // grew a whole unwatched summer 7.7 K cold (a staged year).
@@ -1113,14 +1113,14 @@ export default class Field extends FieldBase {
   /**
    * ⭐ **D7's whole graze row: is the mouth standing here?**
    *
-   * Summed intake of the animals actually in this field. Nothing else
-   * decides whether the field is "grazed" — there is no `use` enum, and
+   * Summed intake of the animals actually in this tract. Nothing else
+   * decides whether the tract is "grazed" — there is no `use` enum, and
    * the difference between grazing and haymaking is only ever whether the
    * animal was here when the grass came off.
    *
    * ⚠ A PURE read of authored demand, never a reconcile: reading an
    * animal's own hunger here would re-enter that animal's metabolism,
-   * which reads this field. Same hazard, same discipline, as the soil's.
+   * which reads this tract. Same hazard, same discipline, as the soil's.
    */
   public override swardGrazingDemandPerGameDay(): number {
     // ⭐ The herds whose moves wrote themselves here (cover build D8) —
@@ -1141,7 +1141,7 @@ export default class Field extends FieldBase {
   /**
    * ⭐⭐ **The ledger, closed, in four lines.**
    *
-   * Every game day this field integrates: the mouths standing on it put
+   * Every game day this tract integrates: the mouths standing on it put
    * back most of what they ate (as organic matter, which mineralises);
    * the clover in the sward fixes nitrogen out of the air; and hooves on
    * wet ground destroy structure. Rain takes nitrate away on the soil's
@@ -1194,7 +1194,7 @@ export default class Field extends FieldBase {
    * ⭐⭐ **Fertility follows the mouths, and this is the line that makes
    * it true** (D7, D14).
    *
-   * An animal standing on the field eats its nitrogen and gives most of
+   * An animal standing on the tract eats its nitrogen and gives most of
    * it straight back where it stands — a ruminant retains only a small
    * fraction of what it eats. So **grazing cycles nitrogen in place** and
    * mowing exports it, and the difference between the two land uses is
@@ -1233,7 +1233,7 @@ export default class Field extends FieldBase {
    * ⚠⚠ **Poaching — the one interlock that runs ranching→farming as
    * HARM** (D17). Everything else in this build has the animals
    * improving the ground; hooves on wet clay destroy its structure, and
-   * that is what makes *"put the herd on the tired field"* a judgement
+   * that is what makes *"put the herd on the tired tract"* a judgement
    * rather than a free move.
    */
   public poachByOccupants(intensity: number): number {
@@ -1262,7 +1262,7 @@ export default class Field extends FieldBase {
    * requirement every `Improvable` read measures against.
    *
    * ⚠ Convenience only: it re-resolves the sample each call and stores
-   * nothing, which is the seeded field's whole contract.
+   * nothing, which is the seeded tract's whole contract.
    */
   public improvementBillFor(
     model: GroundCharacter | null,
@@ -1276,7 +1276,7 @@ export default class Field extends FieldBase {
    *
    * This is the whole seam that let `ImprovableMixin` leave the trade that
    * invented it: the kernel's `grub`/`ditch`/`lime` never learn what a
-   * `GroundCharacter` is, they ask the ground, and a field answers out of
+   * `GroundCharacter` is, they ask the ground, and a tract answers out of
    * farming's own seeded model. A turbary answers out of its peat.
    */
   public override async improvementBill(): Promise<ImprovementCost | null> {
@@ -1305,18 +1305,18 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * ⭐⭐ **What comes up out of clearing a field**, and the kernel must not
+   * ⭐⭐ **What comes up out of clearing a tract**, and the kernel must not
    * know either of their names.
    *
    * **The cleared stone IS the wall.** Stony ground is expensive to clear
    * and cheap to fence, which inverts an expectation in a way a player
    * remembers, is historically exact — the stone walls of Ireland and New
-   * England are the fields' own stones stacked at the edge — and makes the
+   * England are the tracts' own stones stacked at the edge — and makes the
    * waste zero.
    *
    * ⭐ **And limy ground gives up marl.** Digging calcareous clay out of a
-   * sweet field and spreading it on a sour one was *the* land improvement
-   * of its era, and marl pits are still visible in field corners. It is
+   * sweet tract and spreading it on a sour one was *the* land improvement
+   * of its era, and marl pits are still visible in tract corners. It is
    * the pH lever that needs no kiln and no fuel.
    */
   public override async improvementSpoils(
@@ -1336,12 +1336,12 @@ export default class Field extends FieldBase {
     return out;
   }
 
-  /** Clone a spoil row into the field it came out of. */
+  /** Clone a spoil row into the tract it came out of. */
   private async mintSpoil(row: string): Promise<Stuff | null> {
     try {
       const thing = await StuffApi.clone<Stuff>(row);
       // ⭐ The hook names no actor, so the spoil carries no title — but
-      // the move captures the field with it in it.
+      // the move captures the tract with it in it.
       ContainmentApi.move(thing as Stuff & Containable, this as unknown as Stuff & Container);
       return thing;
     } catch {
@@ -1352,7 +1352,7 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * How this field presents itself — its name, when its holder gave it
+   * How this tract presents itself — its name, when its holder gave it
    * one. ⭐ A name a holder typed is a proper name: "Long Acre", never
    * "a Long Acre". Overriding the PHRASE rather than the rendered string
    * is what makes the possessive and the definite form come out right.
@@ -1365,43 +1365,43 @@ export default class Field extends FieldBase {
 
   /**
    * Install the sward alongside the soil reserves — one call, because a
-   * field with soil and no grass on it is not a state the world has.
+   * tract with soil and no grass on it is not a state the world has.
    */
-  public installFieldReserves(
+  public installTractReserves(
     sample: GroundSample,
     swardStart: number = SWARD_RESIDUAL_FRACTION,
   ): void {
-    // ⚠⚠ **A field with no area is not yet a field.** Registration runs
+    // ⚠⚠ **A tract with no area is not yet a tract.** Registration runs
     // BEFORE `plot` has sized a minted one, so installing here would
     // seed a zero-capacity moisture reserve — and because both installs
     // are idempotent, the real sizing call would then find the reserve
-    // present and do nothing. A field that could never hold water, from
+    // present and do nothing. A tract that could never hold water, from
     // one ordering. Found by the plot suite, which is exactly the kind
     // of thing an authored-content path breaks silently.
     if (this.areaM2 <= 0) return;
-    // ⭐ A divided field holds no soil of its own (field population D3):
-    // its patches do, and every soil read of the field aggregates over
-    // them. The sward stays field-wide.
-    if (this.getPatches().length === 0) this.installSoilReserves(sample);
+    // ⭐ A divided tract holds no soil of its own (field population D3):
+    // its fields do, and every soil read of the tract aggregates over
+    // them. The sward stays tract-wide.
+    if (this.getFields().length === 0) this.installSoilReserves(sample);
     this.installSward(swardStart);
     // Learn where — and when — it is, the moment it exists.
     void this.restampSeason();
   }
 
   /**
-   * ⭐⭐ **A hand-authored field stands itself up, and that is what makes
+   * ⭐⭐ **A hand-authored tract stands itself up, and that is what makes
    * AC 62 reachable.**
    *
-   * A plotted field gets its reserves from `plot`. An AUTHORED one — the
-   * campus farm, a venue's home field — has no act to hang them on, and
+   * A plotted tract gets its reserves from `plot`. An AUTHORED one — the
+   * campus farm, a venue's home tract — has no act to hang them on, and
    * `reserves` is `runtimeState` so a row cannot declare them. Without
-   * this, authoring a field would need pack code, which is precisely the
+   * this, authoring a tract would need pack code, which is precisely the
    * thing the archetype exists to make unnecessary.
    *
    * So registration resolves the ground and installs what its character
    * calls for. ⚠ Idempotent by construction — `installSoilReserves` and
    * `installSward` both skip a reserve that already exists, so a restored
-   * field keeps its history and only a fresh one is seeded.
+   * tract keeps its history and only a fresh one is seeded.
    */
   public override async onCreate(): Promise<void> {
     await super.onCreate();
@@ -1409,22 +1409,22 @@ export default class Field extends FieldBase {
       this as unknown as Stuff & Container,
     );
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
-    // ⚠ The zone's authored model, NOT `null`. A field whose reserves were
+    // ⚠ The zone's authored model, NOT `null`. A tract whose reserves were
     // sized off procedural sand while `look` and `analyze soil` reported
-    // authored loam would be visibly two different fields to one player.
+    // authored loam would be visibly two different tracts to one player.
     const model = await GroundCharacter.forZone(this.getZone());
     const sample = this.groundSample(model, seed);
-    // ⭐ The parts first (field population D2): with patches minted, the
-    // field installs no soil of its own — each patch is sized from this
+    // ⭐ The parts first (field population D2): with fields minted, the
+    // tract installs no soil of its own — each field is sized from this
     // sample nudged by its lean.
-    await this.ensurePatches(model, seed, sample);
-    // ⭐ An AUTHORED field is a kept pasture, not rough ground just broken
+    await this.ensureFields(model, seed, sample);
+    // ⭐ An AUTHORED tract is a kept pasture, not rough ground just broken
     // (cover build): its grass starts as a good even cover. A plotted
-    // field starts at the residual — the sod it was cut out of.
-    this.installFieldReserves(sample, AUTHORED_SWARD_START);
+    // tract starts at the residual — the sod it was cut out of.
+    this.installTractReserves(sample, AUTHORED_SWARD_START);
     // ⭐ And it is KEPT ground (cover build B37): a ley, a pasture, a cane
     // piece — cleared long ago, so its clearing starts done. Draining and
-    // liming stay what the ground's character makes them. A plotted field
+    // liming stay what the ground's character makes them. A plotted tract
     // has no area yet at registration and is untouched here: new ground
     // is rough until somebody clears it (D54). Without this, a Waponi
     // piece grubbed of tired cane took ploughing after ploughing for
@@ -1442,7 +1442,7 @@ export default class Field extends FieldBase {
   }
 
   /**
-   * Settle both of soil's checkpoints AND the season edge. A field is a
+   * Settle both of soil's checkpoints AND the season edge. A tract is a
    * place, so it is never "moved"; registration and the first read are
    * the only moments it can learn about itself.
    */
@@ -1455,38 +1455,45 @@ export default class Field extends FieldBase {
 }
 
 /**
- * ⭐ One authored part of a field (field population D2). `name` is how it
- * reads (*the top end*, a definite phrase — a leading *the* is the
- * register, not the stem); `keywords` are extra words it answers to;
- * `lean` nudges the field's sample for this part (a thin top end is
+ * ⭐ One field marked on a tract (field population D2; tracts build D27).
+ * `name` is how it reads (*the top end*, a definite phrase — a leading
+ * *the* is the register, not the stem); `keywords` are extra words it
+ * answers to; `share` is its fraction of the tract (`0 < share ≤ 1`);
+ * `lean` nudges the tract's sample for this field (a thin top end is
  * `depthScale: 0.35`); `description` is its long description.
  */
-export interface PatchSpec {
+export interface FieldSpec {
   key: string;
   name: string;
   keywords?: string[];
-  areaM2: number;
+  share: number;
   lean?: GroundLean;
   description?: string;
 }
 
-/** The row every patch is minted from. */
-const PATCH_ROW = '/trade/farming/thing/patch';
+/** The row every field is minted from. */
+const FIELD_ROW = '/trade/farming/thing/field';
 
-/** The fixture slot a patch keyed `key` sits in. */
-function patchSlot(key: string): string {
-  return `patch:${key}`;
+/** The fixture slot a field keyed `key` sits in. */
+function fieldSlot(key: string): string {
+  return `field:${key}`;
 }
 
+/** Shares within this of the whole are the whole — the tract is tiled. */
+const WHOLE_SHARE_SLACK = 1e-6;
+
 /**
- * Each patch's area: as authored, with the LAST absorbing whatever makes
- * the parts tile the field exactly (never below nothing).
+ * Each field's area: its share of the tract. When the shares tile the
+ * tract the LAST absorbs the rounding, so the fields sum to the tract
+ * exactly; otherwise the rest is unmarked ground (tracts build D25).
  */
-function patchAreas(specs: readonly PatchSpec[], fieldAreaM2: number): number[] {
-  const areas = specs.map((p) => Math.max(0, Number(p.areaM2) || 0));
-  if (areas.length > 0 && fieldAreaM2 > 0) {
+function fieldAreas(specs: readonly FieldSpec[], tractAreaM2: number): number[] {
+  const shares = specs.map((p) => Math.max(0, Math.min(1, Number(p.share) || 0)));
+  const areas = shares.map((share) => share * Math.max(0, tractAreaM2));
+  const total = shares.reduce((a, b) => a + b, 0);
+  if (areas.length > 0 && total >= 1 - WHOLE_SHARE_SLACK) {
     const others = areas.slice(0, -1).reduce((a, b) => a + b, 0);
-    areas[areas.length - 1] = Math.max(0, fieldAreaM2 - others);
+    areas[areas.length - 1] = Math.max(0, tractAreaM2 - others);
   }
   return areas;
 }

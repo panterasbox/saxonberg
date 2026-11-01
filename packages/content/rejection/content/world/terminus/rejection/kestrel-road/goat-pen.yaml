@@ -12,7 +12,7 @@
 # it grazes nothing, and a pen is a small field — bare and trodden, so
 # the goats live off the trough, which is kept from the rick under the
 # lean-to.
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   shortDescription: goat pen
   keywords: [pen, goats, fold, hurdles]

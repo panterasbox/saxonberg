@@ -25,7 +25,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hive from '../thing/Hive';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import Location from '@saxonberg/server/mud/lib/location/Location';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
@@ -87,8 +87,8 @@ function pine(): Material {
 }
 
 /** A field with a clover ley in flower, of a stated size. */
-function ley(areaM2: number, legume = 0.4): Field {
-  const f = makeStuff(() => new Field());
+function ley(areaM2: number, legume = 0.4): Tract {
+  const f = makeStuff(() => new Tract());
   f.setAreaM2(areaM2);
   f.setLegumeFraction(legume);
   f.installSward();

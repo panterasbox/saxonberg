@@ -12,7 +12,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Field from '../location/Field';
+import Tract from '../location/Tract';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve';
 import {
@@ -45,8 +45,8 @@ function profile(): GrowthProfileData {
   };
 }
 
-function field(area = 1000): Field {
-  const f = makeStuff(() => new Field());
+function field(area = 1000): Tract {
+  const f = makeStuff(() => new Tract());
   f.setAreaM2(area);
   f.installSward();
   for (const [key, cap, now] of [
@@ -67,7 +67,7 @@ function field(area = 1000): Field {
   return f;
 }
 
-function crop(f: Field, area: number, stage = 'young'): Plant {
+function crop(f: Tract, area: number, stage = 'young'): Plant {
   const p = makeStuffAtPath(() => {
     const plant = new Plant();
     plant.setShortDescription('stand of wheat');
@@ -166,7 +166,7 @@ describe('a field holds a crop', () => {
     it('names the crop, its share of the field, and its stage', () => {
       const f = field(900);
       crop(f, 300, 'young');
-      const lines = f.fieldLines().join(' ');
+      const lines = f.tractLines().join(' ');
       expect(lines).toMatch(/stand of wheat grows over about a third of it, a young crop, tillering/i);
       expect(lines).not.toMatch(/\d/);
     });
@@ -174,18 +174,18 @@ describe('a field holds a crop', () => {
     it('a ploughed, unsown field reads ploughed for the season', () => {
       const f = field();
       f.turnUnder();
-      expect(f.fieldLines().join(' ')).toMatch(/ploughed for the season/);
+      expect(f.tractLines().join(' ')).toMatch(/ploughed for the season/);
     });
 
     it('a cut field reads stubble', () => {
       const f = field();
       f.turnUnder();
       f.stubbleStamp = base;
-      expect(f.fieldLines().join(' ')).toMatch(/cut down to the stubble/);
+      expect(f.tractLines().join(' ')).toMatch(/cut down to the stubble/);
     });
 
     it('an untouched field reads its grass', () => {
-      expect(field().fieldLines().join(' ')).toMatch(/^The grass is /);
+      expect(field().tractLines().join(' ')).toMatch(/^The grass is /);
     });
   });
 });

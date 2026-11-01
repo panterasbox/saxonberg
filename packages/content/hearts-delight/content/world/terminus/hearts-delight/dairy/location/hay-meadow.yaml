@@ -1,7 +1,7 @@
 # The hay meadow below the pasture — shut up for hay, never grazed
 # (cover build W6). The dairy lad mows it in summer and stacks the rick at
 # the head of the pasture, which is the cows' winter.
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   fieldName: the hay meadow
   shortDescription: hay meadow

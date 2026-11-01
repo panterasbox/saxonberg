@@ -1,23 +1,23 @@
 /**
- * Patch — **a named part of a field, with soil of its own** (field
+ * Field — **a named part of a tract, with soil of its own** (tract
  * population D2).
  *
  * The top end of the upper bench is thin, stony and dries first; the lane
- * end is deep and holds its water. Before this build a field had ONE
+ * end is deep and holds its water. Before this build a tract had ONE
  * soil, so the whole bench read as one average and nobody could see the
- * top end failing. A patch is that part made real: it composes the
+ * top end failing. A field is that part made real: it composes the
  * kernel's `SoilMixin` whole — its own reserves (sized from its area and
  * its leaned sample), its own reconcile, its own rain edge (catchment =
  * its area), its own draw — so nothing in the soil model is written
- * twice. The field becomes the AGGREGATE: every soil read of a divided
- * field is the area-weighted answer over its patches (the kernel's parts
+ * twice. The tract becomes the AGGREGATE: every soil read of a divided
+ * tract is the area-weighted answer over its fields (the kernel's parts
  * protocol, `Soil.soilParts`).
  *
  * ## What it is, and what it is not
  *
- *  - **A fixture of the field** — the `Floor` shape: minted by
- *    `Field.ensurePatches` at `onCreate` (get-or-create at slot
- *    `patch:<key>`), never loose contents, never carried (the
+ *  - **A fixture of the tract** — the `Floor` shape: minted by
+ *    `Tract.ensureFields` at `onCreate` (get-or-create at slot
+ *    `field:<key>`), never loose contents, never carried (the
  *    Adornment-not-portable invariant fires at `ContainmentApi.move`),
  *    targetable by its name (`look at the top end`) because a fixture is a
  *    peer candidate. Its runtime state — reserves and soil stamps — rides
@@ -25,7 +25,7 @@
  *    its own.
  *  - ⛔ **Not a `Location`** — you do not walk to the top end.
  *  - ⛔ **Not a `Container`** — nothing is inside it. Its crops stand in
- *    the field's contents and root in it by key (`Growing.groundPart`).
+ *    the tract's contents and root in it by key (`Growing.groundPart`).
  *
  * Composition: `CharacteredSoilMixin(SoilMixin(ReservedMixin(
  * AdornmentMixin(VisibleMixin(Thing)))))` over the kernel's substrate
@@ -57,9 +57,9 @@ import {
   CharacteredSoilMixin,
   CROP_TRANSPIRATION_L_PER_M2_DAY,
 } from '../lib/CharacteredSoil';
-import Field, { type PatchSpec } from '../location/Field';
+import Tract, { type FieldSpec } from '../location/Tract';
 
-/** A part's water against the field's is held within this band (D14). */
+/** A part's water against the tract's is held within this band (D14). */
 const DEPTH_FACTOR_MIN = 0.2;
 const DEPTH_FACTOR_MAX = 2;
 
@@ -68,57 +68,57 @@ const DEPTH_FACTOR_MAX = 2;
  * crop rooted here read at the VIEWER's band, then any plant somebody has
  * labeled here. Sync and pure — an augmenter only reads.
  */
-function patchAugmenter(text: string, host: Stuff, viewer: Stuff): string {
-  if (!(host instanceof Patch)) return text;
-  const lines = host.patchLines(viewer);
+function fieldAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!(host instanceof Field)) return text;
+  const lines = host.fieldLines(viewer);
   if (lines.length === 0) return text;
   const block = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${block}` : block;
 }
 
 // The soil half composed separately: inference through this many nested
-// generic mixin factories in one expression collapses (the `Field`
+// generic mixin factories in one expression collapses (the `Tract`
 // precedent).
-const PatchGround = SoilMixin(ReservedMixin(AdornmentMixin(VisibleMixin(Thing))));
-const PatchBase = CharacteredSoilMixin(PatchGround);
+const FieldGround = SoilMixin(ReservedMixin(AdornmentMixin(VisibleMixin(Thing))));
+const FieldBase = CharacteredSoilMixin(FieldGround);
 
-export default class Patch extends PatchBase {
+export default class Field extends FieldBase {
   /** The ground, the crop on it, and any labeled plant, in words. */
-  static markupAugmenters: MarkupAugmenter[] = [patchAugmenter];
+  static markupAugmenters: MarkupAugmenter[] = [fieldAugmenter];
 
   static fieldMeta: FieldMeta = {
-    patchKey: { persistent: true, authorable: true },
+    fieldKey: { persistent: true, authorable: true },
     lean: { persistent: true, authorable: true },
   };
 
   /**
    * ⭐ The key a crop binds by (`groundPart: top-end`) — stable; the name
-   * may change. Set by the field from its spec.
+   * may change. Set by the tract from its spec.
    */
-  public patchKey = '';
+  public fieldKey = '';
 
-  /** The nudge this part makes to the field's sample, or `null`. */
+  /** The nudge this part makes to the tract's sample, or `null`. */
   public lean: GroundLean | null = null;
 
-  public getPatchKey(): string {
-    return this.patchKey;
+  public getFieldKey(): string {
+    return this.fieldKey;
   }
 
   public getLean(): GroundLean | null {
     return this.lean;
   }
 
-  /** The field this patch is a part of, or `null` when unattached. */
-  public getField(): Field | null {
+  /** The tract this field is a part of, or `null` when unattached. */
+  public getTract(): Tract | null {
     const host = this.getAdornedTo();
-    return host instanceof Field ? host : null;
+    return host instanceof Tract ? host : null;
   }
 
   // ---------- the parts protocol (kernel hooks) ----------
 
-  /** A crop standing in the field binds to this part by this key. */
+  /** A crop standing in the tract binds to this part by this key. */
   public override soilPartKey(): string {
-    return this.patchKey;
+    return this.fieldKey;
   }
 
   /** How deep the topsoil runs here — the roots read it. */
@@ -126,57 +126,57 @@ export default class Patch extends PatchBase {
     return this.lastSample?.topsoilM ?? null;
   }
 
-  // ---------- the soil hooks a patch answers as part of its field ----------
+  // ---------- the soil hooks a field answers as part of its tract ----------
 
   /**
-   * ⭐ **A patch catches the field's sky.** A fixture is in nobody's
+   * ⭐ **A field catches the tract's sky.** A fixture is in nobody's
    * contents, so the default (ask the container) would leave it under no
-   * sky at all; the field IS the place it is part of.
+   * sky at all; the tract IS the place it is part of.
    */
   protected override watershedScope(): (Stuff & Container) | null {
-    const field = this.getField();
-    return field && MixinApi.isContainer(field as unknown as Stuff)
-      ? (field as unknown as Stuff & Container)
+    const tract = this.getTract();
+    return tract && MixinApi.isContainer(tract as unknown as Stuff)
+      ? (tract as unknown as Stuff & Container)
       : null;
   }
 
   /**
    * What drinks this part: the crops rooted in it, per square metre still
-   * standing, plus its share of the field's sward.
+   * standing, plus its share of the tract's sward.
    */
   public override soilWaterDemandPerGameDay(): number {
-    const field = this.getField();
+    const tract = this.getTract();
     const crops = this.cropsOn().reduce(
       (n, c) => n + c.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY,
       0,
     );
-    if (!field) return crops;
-    const fieldArea = field.getAreaM2();
+    if (!tract) return crops;
+    const fieldArea = tract.getAreaM2();
     const share = fieldArea > 0 ? this.areaM2 / fieldArea : 0;
-    return crops + field.swardTranspirationPerGameDay() * share;
+    return crops + tract.swardTranspirationPerGameDay() * share;
   }
 
-  /** The draw follows the field's season (it reads the field's sky). */
+  /** The draw follows the tract's season (it reads the tract's sky). */
   public override soilDrawFactor(fromS: number, toS: number): number {
-    const field = this.getField();
-    return field ? field.soilDrawFactor(fromS, toS) : super.soilDrawFactor(fromS, toS);
+    const tract = this.getTract();
+    return tract ? tract.soilDrawFactor(fromS, toS) : super.soilDrawFactor(fromS, toS);
   }
 
   /**
-   * ⭐ **Whose the crop is, is the field's question** (W0 hand-off): the
-   * harvest asks the crop's bed, and on a divided field that is this
-   * patch — so a stranger's cut on the bench is still the farm's.
+   * ⭐ **Whose the crop is, is the tract's question** (W0 hand-off): the
+   * harvest asks the crop's bed, and on a divided tract that is this
+   * field — so a stranger's cut on the bench is still the farm's.
    */
   public override async ensureCropTitle(): Promise<void> {
-    await this.getField()?.ensureCropTitle();
+    await this.getTract()?.ensureCropTitle();
   }
 
-  /** Sowing here is the field's question: ploughed this season, or not. */
+  /** Sowing here is the tract's question: ploughed this season, or not. */
   public override sowingRefusal(): string | null {
-    return this.getField()?.sowingRefusal() ?? null;
+    return this.getTract()?.sowingRefusal() ?? null;
   }
 
-  // ---------- configured by its field ----------
+  // ---------- configured by its tract ----------
 
   /**
    * Take a spec's identity and area: the name it reads by (a leading
@@ -184,8 +184,8 @@ export default class Patch extends PatchBase {
    * lean, the description. Re-run on every `onCreate`, so an edited row
    * reaches a booted world.
    */
-  public configurePatch(spec: PatchSpec, areaM2: number): void {
-    this.patchKey = spec.key;
+  public configureField(spec: FieldSpec, areaM2: number): void {
+    this.fieldKey = spec.key;
     this.lean = spec.lean ?? null;
     this.setAreaM2(areaM2);
     const stem = spec.name.trim().replace(/^the\s+/i, '') || spec.key.replace(/-/g, ' ');
@@ -202,12 +202,12 @@ export default class Patch extends PatchBase {
   }
 
   /**
-   * Size this part's soil from its own sample (the field's, nudged by its
-   * lean) against the field's: ⭐ a part whose topsoil runs a third as deep
+   * Size this part's soil from its own sample (the tract's, nudged by its
+   * lean) against the tract's: ⭐ a part whose topsoil runs a third as deep
    * holds a third of the water per square metre (D14). The material is
    * what the sample says the ground is.
    */
-  public installFromField(sample: GroundSample, fieldSample: GroundSample): void {
+  public installFromTract(sample: GroundSample, fieldSample: GroundSample): void {
     this.lastSample = sample;
     const ratio =
       fieldSample.topsoilM > 0 ? sample.topsoilM / fieldSample.topsoilM : 1;
@@ -225,17 +225,17 @@ export default class Patch extends PatchBase {
 
   // ---------- reads ----------
 
-  /** The area crops standing in the field rooted in this part. */
+  /** The area crops standing in the tract rooted in this part. */
   public cropsOn(): (Stuff & Growing)[] {
     return this.plantsOn().filter((c) => c.isAreaCrop());
   }
 
-  /** Every growing thing in the field rooted in this part. */
+  /** Every growing thing in the tract rooted in this part. */
   private plantsOn(): (Stuff & Growing)[] {
-    const field = this.getField();
-    if (!field) return [];
+    const tract = this.getTract();
+    if (!tract) return [];
     const out: (Stuff & Growing)[] = [];
-    for (const c of field.getContents()) {
+    for (const c of tract.getContents()) {
       if (MixinApi.isGrowing(c) && c.getBed() === (this as unknown as Stuff)) {
         out.push(c);
       }
@@ -248,7 +248,7 @@ export default class Patch extends PatchBase {
    * viewer's band, then each labeled plant (*"Trial stands here,
    * labeled."*). In words, never numbers.
    */
-  public patchLines(viewer: Stuff | null): string[] {
+  public fieldLines(viewer: Stuff | null): string[] {
     const lines: string[] = [];
     if (this.lastSample) {
       lines.push(capitalize(GroundCharacter.lookPhrase(this.lastSample)));

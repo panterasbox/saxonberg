@@ -437,7 +437,7 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/fall.yaml",
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
-  "trade-farming/content/trade/farming/location/field.yaml",
+  "trade-farming/content/trade/farming/location/tract.yaml",
   "water/content/system/water/location/band/bed.yaml",
   "water/content/system/water/location/band/dark.yaml",
   "water/content/system/water/location/band/lit.yaml",

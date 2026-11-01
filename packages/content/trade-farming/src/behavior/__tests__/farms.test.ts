@@ -454,7 +454,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
 
 // ── ⭐ field population W5: the hand reads a FIELD with its own eyes ──
 
-/** A named part of a divided field — the `Patch` shape, in the kernel. */
+/** A named part of a divided field — the `Field` shape, in the kernel. */
 class TestPart extends SoilMixin(ReservedMixin(NamedMixin(Idea))) {
   key = '';
   public override soilPartKey(): string {
@@ -486,7 +486,7 @@ let FIELD = '';
 let YARD = '';
 let w5Scene = 0;
 
-describe('the farms beat on a FIELD — patches read at the hand\'s band', () => {
+describe('the farms beat on a FIELD — fields read at the hand\'s band', () => {
   let field: TestField;
   let yard: Place;
   let fseq = 0;
@@ -576,7 +576,7 @@ describe('the farms beat on a FIELD — patches read at the hand\'s band', () =>
     vi.restoreAllMocks();
   });
 
-  it('⭐ an expert fills at the yard trough and waters the THIRSTY patch, by name, and comes home', async () => {
+  it('⭐ an expert fills at the yard trough and waters the THIRSTY field, by name, and comes home', async () => {
     const top = part('top-end', 20);
     const lane = part('lane-end', 45);
     field.parts = [top, lane];
@@ -618,7 +618,7 @@ describe('the farms beat on a FIELD — patches read at the hand\'s band', () =>
     expect(h.getContainer()).toBe(field);
   });
 
-  it('wet patches are left alone — nothing is filled or watered', async () => {
+  it('wet fields are left alone — nothing is filled or watered', async () => {
     const top = part('top-end', 80);
     field.parts = [top, part('lane-end', 90)];
     wheatAt(top);
@@ -627,7 +627,7 @@ describe('the farms beat on a FIELD — patches read at the hand\'s band', () =>
     expect(lines).toEqual([]);
   });
 
-  it('⭐ an expert never misranks two patches 0.02 apart; a novice can — and waters where ITS read points', async () => {
+  it('⭐ an expert never misranks two fields 0.02 apart; a novice can — and waters where ITS read points', async () => {
     const top = part('top-end', 30);
     const lane = part('lane-end', 32);
     field.parts = [top, lane];

@@ -324,9 +324,10 @@ ten points 60/40 would have halved a divided field's legume nitrogen.
 The sward, `turnUnder` and the grazing integral keep reading the field
 and get the aggregate. A divided field has NO soil of its own.
 
-**`Patch`** (`trade-farming/src/thing/Patch.ts`) is a fixture, minted
-get-or-create in slot `patch:<key>` (the `ensureFloor` shape) by
-`Field.ensurePatches`: `CharacteredSoilMixin(SoilMixin(ReservedMixin(
+**`Field`** (`trade-farming/src/thing/Field.ts`, a "patch" until the
+tracts build renamed it; the walkable ground it is marked on is a
+**`Tract`**, `src/location/Tract.ts`) is a fixture, minted get-or-create
+in slot `field:<key>` (the `ensureFloor` shape) by `Tract.ensureFields`: `CharacteredSoilMixin(SoilMixin(ReservedMixin(
 AdornmentMixin(VisibleMixin(Thing)))))`. Its ground is the field's
 sample with the spec's **lean** applied LAST
 (`GroundCharacter.resolve(model, at, seed, nudge)`), and its moisture

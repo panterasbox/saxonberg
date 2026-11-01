@@ -17,7 +17,7 @@
 #
 # `areaM2: 4000` — ten times the college's home field, and a tenth as
 # good. That is what dryland arable is.
-class: /trade/farming/location/SingletonField
+class: /trade/farming/location/SingletonTract
 data:
   fieldName: the upper bench
   shortDescription: upper bench
@@ -41,16 +41,16 @@ data:
   areaM2: 4000
   # No ley. This ground has never had clover on it and it shows.
   legumeFraction: 0
-  # ⭐⭐ The bench in three parts (field population D15) — each its own
-  # soil, sized from this field's ground nudged by its lean. The top end
+  # ⭐⭐ The bench marked into three fields (field population D15) — each its own
+  # soil, sized from this tract's ground nudged by its lean. The top end
   # is where the soil runs out: a third the depth, stonier, hungry, and
   # it dries first in a dry month. The lane end is the deepest and the
   # best of it. ⚠ Keys are stable (a crop row binds by key); names may
-  # change. The last patch absorbs any difference in area.
-  patches:
+  # change. Shares of the tract; the last absorbs any rounding.
+  fields:
     - key: top-end
       name: the top end
-      areaM2: 1000
+      share: 0.25
       lean:
         depthScale: 0.35
         stoninessScale: 1.5
@@ -60,11 +60,11 @@ data:
       description: The top of the strip, where the hill starts to steepen and the soil thins to a skin over the stone.
     - key: middle
       name: the middle
-      areaM2: 1500
+      share: 0.375
       description: The long middle of the strip, thin ground but ground.
     - key: lane-end
       name: the lane end
-      areaM2: 1500
+      share: 0.375
       lean:
         depthScale: 1.1
         nitrogenPct: 30
@@ -81,10 +81,10 @@ data:
       destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
       media: [ground]
       edgeMinutes: 2
-  # ⭐ One stand of wheat per patch (field population D15): three crops
-  # over three-quarters of the field — a thousand square metres in each
+  # ⭐ One stand of wheat per field (field population D15): three crops
+  # over three-quarters of the tract — a thousand square metres in each
   # part, the headland and the rest still grass. Each roots in its own
-  # patch's soil by `groundPart`, and the field reads them as ONE stand.
+  # field's soil by `groundPart`, and the tract reads them as ONE stand.
   props:
     - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-top-end
     - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-middle
