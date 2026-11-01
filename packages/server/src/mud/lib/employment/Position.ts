@@ -161,6 +161,15 @@ export interface PositionData {
    * mixin: authority is the position's. Absent = false.
    */
   purchases?: boolean;
+  /**
+   * ⭐ What the holder is doing, while on shift — their STATUS line
+   * (`StatusMixin`): *"behind the bar"*, *"at the stove"*, *"at the
+   * window"*. Set when the shift begins and cleared when it ends, so the
+   * room's roll-call reads *"Remy, behind the bar"* for exactly as long as
+   * it is true (owner, 2026-11-01: a status, not a special case for one
+   * venue). Absent = the seat says nothing about its holder.
+   */
+  onShiftStatus?: string;
 }
 
 export class Position {
@@ -185,6 +194,8 @@ export class Position {
     public readonly requires?: PositionRequirementData,
     /** What one holder is CALLED, or undefined. See {@link PositionData.noun}. */
     public readonly noun?: string,
+    /** The holder's status line while on shift. See {@link PositionData.onShiftStatus}. */
+    public readonly onShiftStatus?: string,
   ) {}
 
   /** Build a Position from an already-typed descriptor. */
@@ -200,6 +211,7 @@ export class Position {
       Position.coerceHeadcount(data.headcount),
       Position.coerceRequires(data.requires),
       data.noun,
+      data.onShiftStatus,
     );
   }
 
@@ -235,6 +247,9 @@ export class Position {
       Position.coerceRequires(data.requires),
       typeof data.noun === 'string' && data.noun.length > 0
         ? data.noun
+        : undefined,
+      typeof data.onShiftStatus === 'string' && data.onShiftStatus.trim().length > 0
+        ? data.onShiftStatus.trim()
         : undefined,
     );
   }
@@ -374,6 +389,7 @@ export class Position {
       ...(this.headcount != null ? { headcount: this.headcount } : {}),
       ...(this.requires ? { requires: { ...this.requires } } : {}),
       ...(this.noun ? { noun: this.noun } : {}),
+      ...(this.onShiftStatus ? { onShiftStatus: this.onShiftStatus } : {}),
     };
   }
 }

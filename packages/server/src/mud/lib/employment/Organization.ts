@@ -219,6 +219,12 @@ export interface Organization {
   /** Flip `actor` off-shift (caller settles the wage off the captured
    * record first). */
   endShift(actor: Stuff & Employed): void;
+  /**
+   * Show the seat's on-shift status on its holder (when the seat has one).
+   * `beginShift` does it; the roster tick calls it again when a restart
+   * re-moves a hand who was already on shift.
+   */
+  showShiftStatus(actor: Stuff & Employed): void;
   /** Begin a proprietor's transient on-shift cover. */
   beginCover(actor: Stuff & Employed, nowRaw: number): Employment | null;
   /** End a proprietor's cover: drop the transient record. */
@@ -641,6 +647,15 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       const emp = actor.getEmployment(this.getOrganizationPath());
       if (!emp) return;
       actor._upsertEmployment(emp.withStatus('on-shift', nowRaw).serialize());
+      this.showShiftStatus(actor);
+    }
+
+    @CallSecurity(OrganizationSurface)
+    public showShiftStatus(actor: Stuff & Employed): void {
+      // ⭐ The seat says what its holder is doing while on shift.
+      const emp = actor.getEmployment(this.getOrganizationPath());
+      const line = emp ? this.getPosition(emp.positionKey)?.onShiftStatus : undefined;
+      if (line && MixinApi.isStatus(actor)) actor.setStatus(line);
     }
 
     @CallSecurity(OrganizationSurface)
@@ -649,6 +664,10 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       const emp = actor.getEmployment(this.getOrganizationPath());
       if (emp && EXITED_STATUSES.includes(emp.status)) return;
       actor._setEmploymentStatus(this.getOrganizationPath(), 'off-shift');
+      // Clear the seat's line — only if it still says what the seat set,
+      // so a status the holder chose since is theirs to keep.
+      const line = emp ? this.getPosition(emp.positionKey)?.onShiftStatus : undefined;
+      if (line && MixinApi.isStatus(actor) && actor.getStatus() === line) actor.setStatus('');
     }
 
     @CallSecurity(OrganizationSurface)
