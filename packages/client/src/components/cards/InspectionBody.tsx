@@ -69,9 +69,17 @@ const Content = styled.div<{ $shape: LookSegment["shape"] }>`
   font-size: ${tokens.font.body};
   color: ${(p) => (p.$shape === "notice" ? tokens.color.fgMuted : tokens.color.fg)};
   font-style: ${(p) => (p.$shape === "notice" ? "italic" : "normal")};
+  /* Prose is read, not scanned: book leading, not the UI's. */
+  line-height: ${(p) => (p.$shape === "prose" ? 1.45 : 1.3)};
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 `;
+
+/** Prose's soft wraps become spaces; blank lines stay paragraphs. */
+function reflow(shape: LookSegment["shape"], text: string): string {
+  if (shape !== "prose") return text;
+  return text.replace(/([^\n])[ \t]*\n[ \t]*(?=[^\n])/g, "$1 ");
+}
 
 const ListHeading = styled.div`
   font-size: ${tokens.font.micro};
@@ -436,7 +444,14 @@ export function InspectionBody({
                 <MmlRenderer
                   // The terminal's `── ` section divider is the TERMINAL's
                   // layout; in a card the row and its gutter already part it.
-                  text={seg.text.replace(/^\s*──\s*/, "")}
+                  //
+                  // ⚠ Prose arrives HARD-WRAPPED for an 80-column terminal.
+                  // Kept under pre-wrap, those wraps broke every sentence
+                  // mid-clause in a card column (the same defect the
+                  // wiki body hit — see `PreformattedMml`). A single
+                  // newline inside a paragraph is a soft wrap and becomes a
+                  // space; a blank line is still a paragraph break.
+                  text={reflow(seg.shape, seg.text.replace(/^\s*──\s*/, ""))}
                   onCommandClick={seg.shape === "prose" && onProseClick ? onProseClick : onSendCommand}
                   onCommandPreview={onCommandPreview ?? (() => undefined)}
                 />

@@ -42,6 +42,23 @@ describe("InspectionBody", () => {
     expect(row.textContent).not.toContain("──");
   });
 
+  it("⭐ prose hard-wrapped for the terminal reflows in a card; a blank line stays a paragraph", () => {
+    const dave = {
+      ...PINT,
+      segments: [
+        {
+          shape: "prose" as const,
+          sources: [{ kind: "look" as const, name: "Description" }],
+          text: "Dave keeps to the back these days\nand lets the staff run the rail.\n\nMostly, it took.",
+        },
+      ],
+    };
+    render(<InspectionBody card={dave} onSendCommand={noop} />);
+    const text = screen.getByTestId("segment").textContent!;
+    expect(text).toContain("these days and lets the staff");
+    expect(text).toContain("rail.\n\nMostly");
+  });
+
   it("⭐ the gutter says who said it: solid for a mixin, dotted for a class", () => {
     render(<InspectionBody card={PINT} onSendCommand={noop} />);
     const stripes = screen.getAllByTestId("segment-stripe");
