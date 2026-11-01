@@ -85,6 +85,8 @@ function seedDomain(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     domain.push({ _id: `d-${++idCounter}`, ...row });
   }
+  // A holding mints its house at wake (paint D6).
+  domain.push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-structure', class: '/system/residence/idea/HoldingStructure', data: { shortDescription: 'house' } });
   add('/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit');
   add('/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor');
   add('/stuff/idea/exits/stair', '/platform/idea/Exit');
