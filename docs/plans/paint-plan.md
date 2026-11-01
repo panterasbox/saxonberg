@@ -1729,5 +1729,16 @@ proved in `Assembled.glue.test.ts`). 10 (limewash setting) is unit-proved
     new character's group already holds, so the "sold" twin transfers the
     parcel by eval; eval jurisdictions widened to `/world/terminus`; the
     shop props its own paint pot, so the drive names `me:i:kettle`.
+**Browser walk** (`e2e/tests/paint-walk.spec.ts`, Chromium against the real
+client, 1 passed in 5.0 min, 2026-11-01): the lit shop and its card, `mill flax`,
+`mill clay`, pour/put/stir into `me:i:kettle` (the card names *yellow ochre in
+linseed oil*), `write PELL on board with ochre paint` and `read board`, the
+glued brush on its card, `survey cottage` from the towpath (coat, fabric, 64 m²,
+about 3 litres), `paint cottage` to its finish line, `maintain cottage`, the
+survey inside, `dip rags`. Found nothing in the code; the walk's own lessons:
+`mill ochre` is ambiguous with a pot of ochre paint in hand (a prompt), and
+after `look <x>` the shell's focus prompt makes a bare exit name fail (`go
+<exit>` works) — shipped shell behavior, not this build's.
+
 13. Intermittent: two world boots wedged after the location graph projected
     (CPU idle); a retry with a longer boot budget booted the same code.
