@@ -83,6 +83,7 @@ import type { MooringLine } from '../lib/spatial/MooringLine';
 import type { BerthKeeper } from '../lib/expanse/BerthKeeper';
 import type { Payable } from '../lib/banking/Payable';
 import type { Hailable } from '../lib/expanse/Hailable';
+import type { Hirable } from '../lib/retail/Hirable';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -1364,6 +1365,11 @@ export class MixinApi {
   /** ⭐ A thing that says what you owe — a harbor office's book (harbors P13). */
   public static isPayable(obj: Stuff): obj is Stuff & Payable {
     return this.hasMixin(obj, Mixins.Payable);
+  }
+
+  /** ⭐ A thing let by the day — a hired boat (harbors P18). */
+  public static isHirable(obj: Stuff): obj is Stuff & Hirable {
+    return this.hasMixin(obj, Mixins.Hirable);
   }
 
   /** ⭐ A place that answers a hail — a harbor office (harbors P8). */

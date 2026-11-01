@@ -1,0 +1,58 @@
+# ⭐ `rent` — take a boat out by the day (harbors P18). Paid up front to the
+# house, `n × rate`; she is yours to take out, never yours: the house still
+# owns her. The hire ends when she is put down again on the landing she
+# was let from — paddled in, carried round — so there is no `return`
+# (ranching's). ⛔ Not `hire`: that word is `appoint`'s alias.
+#
+# Afforded by a shop counter (`Stock`'s peers) — the counter's `rates:`
+# says what it lets and for how much a day; a counter with none lets
+# nothing and says so.
+verbs: [rent]
+controller: /platform/idea/cmd/retail/RentController
+description: "Take a boat out by the day from whoever lets them here"
+help: |
+  `rent canoe for 2 days` pays the house two days' hire up front and the
+  canoe is yours to take out. She is still the house's — you have her,
+  you do not own her. Put her back on the landing you took her from and
+  the hire is done; there is nothing else to do and no one to tell.
+
+  The counter's slate says what it lets and for how much a day (`look
+  counter`). Without `for`, a day. A boat kept out past her day is
+  chalked up on the shed's slate under your name.
+examples:
+  - cmd: rent canoe for 2 days
+    note: Two days' hire, paid now
+  - cmd: rent rowboat
+    note: A day's hire
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH BOAT — one lying here (the house's, on the shingle). Greedy
+  # because a boat's name can be a phrase (`the second canoe`); it stops at
+  # the later declared prepositions (`for`, `at`).
+  - name: boat
+    type: object
+    required: true
+    greedy: true
+    scope: ["reachable"]
+    requires: [SmallCraftMixin]
+  # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
+  # ⚠ `greedy: true` — "2 days" is two tokens and one span.
+  - name: days
+    type: string
+    required: false
+    greedy: true
+    prepositions: [for]
+  # ⭐ WHO LETS HER, declared rather than hunted for — the counter here, or
+  # `at the second counter` where there are several. The shelf mixin, as
+  # `buy` binds it: the controller asks the counter for its rate.
+  - name: counter
+    type: object
+    required: false
+    greedy: true
+    prepositions: [at]
+    default: "reachable:[mixin.ConsignmentShelfMixin]"
+    scope: [reachable]
+    requires: [ConsignmentShelfMixin]

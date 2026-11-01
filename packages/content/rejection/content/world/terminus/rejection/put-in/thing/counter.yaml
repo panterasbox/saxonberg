@@ -3,6 +3,14 @@
 # river is doing. ⚠ The boats are not on it: a boat is a vessel, and a
 # counter cannot hold one (the drive found the whole cascade through the
 # pass failing on it) — they lie on the shingle, the outfitter's own.
+#
+# ⭐ Harbors B3: a boat is still never ON the counter, but she is SOLD over
+# it — a minted line built to order and put down on the shingle (P17), her
+# painter, oars or paddles and killick with her. Priced against the
+# outfitter's own wage (4 an hour, ~56 a shift — P28): a rowboat about three
+# days' wages, a canoe about two. And the shed LETS its own boats by the
+# day (`rent`, P18): `rates:` is a day's hire — a canoe under an hour's
+# wage, so a day's outing is cheap.
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: boat-shed counter
@@ -21,13 +29,20 @@ data:
     - { itemTemplatePath: /system/transport/thing/propulsion/paddle, par: 4 }
     - { itemTemplatePath: /system/transport/thing/propulsion/pole, par: 2 }
     - { itemTemplatePath: /system/transport/thing/killick, par: 2 }
-    - { itemTemplatePath: /trade/diving/thing/painter, par: 3 }
+    - { itemTemplatePath: /platform/thing/painter, par: 3 }
     - { itemTemplatePath: /system/water/thing/current-log, par: 2 }
     - { itemTemplatePath: /stuff/thing/instrument/thermometer, par: 2 }
+    - { itemTemplatePath: /system/transport/thing/rowboat, par: 1, minted: true, deliversTo: /world/terminus/rejection/put-in/landing }
+    - { itemTemplatePath: /system/transport/thing/canoe, par: 1, minted: true, deliversTo: /world/terminus/rejection/put-in/landing }
   prices:
     /system/transport/thing/propulsion/paddle: 4
     /system/transport/thing/propulsion/pole: 5
     /system/transport/thing/killick: 3
-    /trade/diving/thing/painter: 2
+    /platform/thing/painter: 2
     /system/water/thing/current-log: 5
     /stuff/thing/instrument/thermometer: 6
+    /system/transport/thing/rowboat: 160
+    /system/transport/thing/canoe: 110
+  rates:
+    /system/transport/thing/canoe: 3
+    /system/transport/thing/rowboat: 5

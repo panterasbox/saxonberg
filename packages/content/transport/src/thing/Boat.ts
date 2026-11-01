@@ -55,16 +55,21 @@ import Propulsion from './Propulsion';
 import { Propel, type PropelHeading } from '../lib/Propel';
 import Killick from './Killick';
 import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
+import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hirable';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft &
-  { entryMediaIn(env: Stuff & Container): string[] };
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Hirable &
+  { entryMediaIn(env: Stuff & Container): string[]; onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BoatCtor = new (...args: any[]) => BoatShape;
 
-const BoatBase = PullableMixin(
-  HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
+const BoatBase = HirableMixin(
+  PullableMixin(
+    HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
+  ) as unknown as MixinConstructor<BoatShape>,
 ) as unknown as BoatCtor;
 
 /** What a boat affords to whoever sits in it. */
@@ -99,6 +104,23 @@ const SAIL_MIN_WIND_MPS = 1.5;
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
+/**
+ * How much of the water's roughness comes over a gunwale — the river's rule
+ * (`Propel`: `roughness × 0.6`), and the same at sea, where the roughness is
+ * the sea state's.
+ */
+const WAVE_SHARE = 0.6;
+
+/** ⭐ What a look says of a boat: how low she rides, and whose hire she is on. */
+const boatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
+  if (opts?.filter && !opts.filter.includes('vision')) return text;
+  if (!(host instanceof Boat)) return text;
+  const lines = host.describeBoat();
+  if (lines.length === 0) return text;
+  const all = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${all}` : all;
+};
+
 
 export default class Boat extends BoatBase {
   static commandContributions: CommandContributions = {
@@ -108,6 +130,8 @@ export default class Boat extends BoatBase {
     // "I don't understand 'pull'").
     peers: ['platform/cmd/inventory/pull.yaml'],
   };
+
+  static markupAugmenters: MarkupAugmenter[] = [boatAugmenter];
 
   static fieldMeta: FieldMeta = {
     eyeHeightM: { persistent: true, authorable: true },
@@ -272,6 +296,91 @@ export default class Boat extends BoatBase {
   /** ⭐ `anchor` in a boat (D23): over goes her killick, if she carries one. */
   public override async letGoAnchor(by: Stuff): Promise<{ ok: boolean; line: string } | null> {
     return this.carriesKedge() ? this.holdAt(by) : null;
+  }
+
+  /**
+   * ⭐ What a look says of her (harbors P22, P18): how low her load has her
+   * riding — the freeboard IS her capacity — and that she is out on hire.
+   */
+  public describeBoat(): string[] {
+    const out: string[] = [];
+    if (this._capsized) return out;
+    const full = this.hull.freeboardM;
+    const now = this.freeboardNowM();
+    if (full > 0) {
+      const share = now / full;
+      if (share <= 0) out.push('She is loaded past her gunwale.');
+      else if (share < 0.34) out.push('She is riding very low; the water is nearly at her gunwale.');
+      else if (share < 0.67) out.push('She is riding low with what is in her.');
+      else if (share < 0.9) out.push('She sits lower in the water with what is in her.');
+    }
+    const by = this.hiredByName();
+    if (by !== null) out.push(`She is out on hire to ${by}.`);
+    return out;
+  }
+
+  /**
+   * ⭐ Does she still float (harbors P22)? Asked whenever her load changes
+   * and whenever she is put into water. Ashore — on a bank, a landing, a
+   * deck — she floats on nothing and nothing happens. Afloat, loaded past
+   * her freeboard, she swamps where she lies; otherwise the water's own
+   * roughness must top what freeboard her load has left her: the sea state
+   * where a sea patch lies (a pinned storm's chop), the river's broken
+   * water. A ship's wake is the river's own act (`ReachWarren.wakeAt`).
+   * `true` when she went over.
+   */
+  public async reconcileFloat(): Promise<boolean> {
+    if (this._capsized) return false;
+    const room = this.getContainer();
+    if (room === null || !MixinApi.isWaterPlace(room)) return false;
+    const freeboard = this.freeboardNowM();
+    if (freeboard <= 0) {
+      this.capsize('She is loaded past her freeboard.');
+      return true;
+    }
+    const wave = await this.waveAt(room);
+    if (wave > freeboard) {
+      this.capsize('A sea comes in over her gunwale, and then another, and she fills.');
+      return true;
+    }
+    return false;
+  }
+
+  /** How high the water's roughness throws a wave where she lies, m. */
+  private async waveAt(room: Stuff): Promise<number> {
+    if (MixinApi.isPositioned(room)) {
+      const pos = room.getExpansePosition();
+      const sea = StuffApi.findByTemplatePath<Stuff>(room.getExpanse() ?? '');
+      if (pos !== null && sea instanceof WaterExpanse) {
+        return (await sea.roughnessAt(pos, room).catch(() => 0)) * WAVE_SHARE;
+      }
+    }
+    const water = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
+    const river = water ? await water.riverAt(room).catch(() => null) : null;
+    return river ? river.roughness * WAVE_SHARE : 0;
+  }
+
+  /** Her load changed: does she still float? */
+  public onContainableAdded(thing: Stuff & Containable): void {
+    void thing;
+    void this.reconcileFloat().catch(() => undefined);
+  }
+
+  public onContainableRemoved(thing: Stuff & Containable): void {
+    void thing;
+    void this.reconcileFloat().catch(() => undefined);
+  }
+
+  /**
+   * ⭐ Put down somewhere (harbors P18, P22): on the landing she was let
+   * from, her hire is over; into water, she must float.
+   */
+  public override onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+    super.onMoved(from, to);
+    if (to === null) return;
+    const home = this.home();
+    if (home !== null && (to.getDurableHandle() ?? to.getTemplatePath()) === home) this.endHire();
+    void this.reconcileFloat().catch(() => undefined);
   }
 
   /** The boat is its own watch. */

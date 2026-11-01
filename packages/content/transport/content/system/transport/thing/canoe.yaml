@@ -16,3 +16,5 @@ data:
   props:
     - { template: /system/transport/thing/propulsion/paddle, count: 2 }
     - /system/transport/thing/killick
+    # ⭐ Every boat comes with her painter (harbors P17) — the line on her bow.
+    - /platform/thing/painter

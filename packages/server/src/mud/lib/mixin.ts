@@ -357,6 +357,8 @@ export const Mixins = {
   Hailable: 'HailableMixin',
   // A thing that says what you owe — a harbor office's book (harbors P13).
   Payable: 'PayableMixin',
+  // A thing let by the day — a hired boat (harbors P18).
+  Hirable: 'HirableMixin',
   Ringable: 'RingableMixin',
   MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
@@ -905,6 +907,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CoolboxMixin: "{} isn't a cold box",
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
+  SmallCraftMixin: "{} isn't a boat",
 
   // Reduction & separation — a mill, a stamp battery.
   ComminutingMixin: "{} isn't something that grinds",

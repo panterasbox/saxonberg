@@ -51,6 +51,10 @@ import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../config/AppSettings";
 import { EmploymentApi } from "../../api/employment";
 import { BankingApi, Money } from "../../api/banking";
+import { WorldClockApi } from "../../api/worldclock";
+
+/** A world day, seconds — what a hire is let by. */
+const DAY_S = 86_400;
 
 /**
  * How a line is priced (economic bootstrap D14). `fixed`: the authored
@@ -114,6 +118,18 @@ export interface StockLine {
   deliversTo?: string;
 }
 
+/** A hire as the counter that let it keeps it (harbors P18). */
+export interface StockHire {
+  /** The hire's id — the thing let carries the same one. */
+  id: string;
+  /** The kind row let (what `look` names). */
+  kind: string;
+  /** The hirer's name. */
+  byName: string;
+  /** The world second she was due back. */
+  untilS: number;
+}
+
 /**
  * A line's authored source (`from:`); absent means an import.
  *
@@ -163,7 +179,77 @@ export default class Stock extends StockBase {
   static fieldMeta: FieldMeta = {
     stockLines: { persistent: true, authorable: true },
     purchasing: { persistent: true, authorable: true },
+    rates: { persistent: true, authorable: true },
+    hires: { persistent: true, runtimeState: true },
   };
+
+  /**
+   * ⭐ What the house LETS by the day (harbors P18): kind row → minor units
+   * a day — `{ /system/transport/thing/canoe: 3 }`. `rent <boat> for <n>
+   * days` asks it; a kind with no rate is not let here.
+   */
+  public rates: Record<string, number> = {};
+
+  /**
+   * ⭐ The house's copy of every hire it has let and not yet had back — what
+   * its `look` reads to name the boats out past their day. The thing let
+   * keeps the other copy (`HirableMixin`) and drops this one when she is
+   * home (`hireEnded`).
+   */
+  public hires: StockHire[] = [];
+
+  /** The applier's Phase-1 setter: a rate is a positive whole number of minor units a day. */
+  public setRates(value: unknown): void {
+    if (value === null || value === undefined) {
+      this.rates = {};
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) throw new Error("Stock.rates: expected { <kind row>: <minor a day> }");
+    const out: Record<string, number> = {};
+    for (const [kind, rate] of Object.entries(value as Record<string, unknown>)) {
+      if (typeof rate !== "number" || !Number.isInteger(rate) || rate <= 0) {
+        throw new Error(`Stock.rates '${kind}': a day's hire is a positive whole number of minor units (got ${String(rate)})`);
+      }
+      out[kind] = rate;
+    }
+    this.rates = out;
+  }
+
+  /** A day's hire of `kind` here, or `null` when the house does not let it. */
+  public rateFor(kind: string): number | null {
+    return this.rates[kind] ?? null;
+  }
+
+  /**
+   * ⭐ The counter in this place that lets `kind`: this one when it has a
+   * rate for it, else another `Stock` standing in the same place that does,
+   * else `null`. The `counterFor` rule, for hire.
+   */
+  public hireCounterFor(kind: string): Stock | null {
+    if (this.rateFor(kind) !== null) return this;
+    const self = this as unknown as Stuff;
+    const here = MixinApi.isContainable(self) ? self.getContainer() : null;
+    if (here === null || !MixinApi.isContainer(here)) return null;
+    for (const other of here.getContents() as Stuff[]) {
+      if (other instanceof Stock && other !== this && other.rateFor(kind) !== null) return other;
+    }
+    return null;
+  }
+
+  /** Note a hire this counter let (`rent`), so its `look` can say when she is overdue. */
+  public recordHire(hire: StockHire): void {
+    this.hires = [...this.hires.filter((h) => h.id !== hire.id), { ...hire }];
+  }
+
+  /** ⭐ She is home: the hire is struck from the counter's book. */
+  public hireEnded(id: string): void {
+    this.hires = this.hires.filter((h) => h.id !== id);
+  }
+
+  /** The hires out past their day at `nowS`. */
+  public overdueHires(nowS: number): StockHire[] {
+    return this.hires.filter((h) => h.untilS < nowS);
+  }
 
   /**
    * ⭐ The counter's policy for what it accepts from a consignor (economic
@@ -673,7 +759,29 @@ export default class Stock extends StockBase {
       .join(", ");
     const shelves = lines.length > 0 ? `${base} On the shelves: ${lines}.` : base;
     const buying = this.buyingWords();
-    return buying ? `${shelves} ${buying}` : shelves;
+    const said = buying ? `${shelves} ${buying}` : shelves;
+    const hiring = this.hiringWords();
+    return hiring ? `${said} ${hiring}` : said;
+  }
+
+  /**
+   * ⭐ What the house lets by the day, and the boats it let that are out
+   * past their day (harbors P18) — a fact on the shed's own slate; nothing
+   * enforces it.
+   */
+  private hiringWords(): string {
+    const parts: string[] = [];
+    const lets = Object.entries(this.rates)
+      .map(([kind, rate]) => `${kind.split("/").pop() ?? kind} (${rate} a day)`)
+      .join(", ");
+    if (lets !== "") parts.push(`For hire: ${lets}.`);
+    const nowS = WorldClockApi.getNow().rawValue();
+    for (const h of this.overdueHires(nowS)) {
+      const days = Math.max(1, Math.floor((nowS - h.untilS) / DAY_S));
+      const name = h.kind.split("/").pop() ?? h.kind;
+      parts.push(`Chalked under it: a ${name} out with ${h.byName}, ${days === 1 ? "a day" : `${days} days`} past its day.`);
+    }
+    return parts.join(" ");
   }
 
   /**
