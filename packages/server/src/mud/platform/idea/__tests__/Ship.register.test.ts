@@ -35,7 +35,7 @@ import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Exitable } from '../../../lib/boundary/Exitable';
-import type { MooringLine } from '../../../lib/spatial/MooringLine';
+import type Rope from '../../thing/Rope';
 import type Locality from '../Locality';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -164,20 +164,24 @@ function installStore(): void {
   );
 }
 
-function fakeLine(): Stuff & MooringLine {
-  let fast = false;
+/** A line of hers by the rope's surface, without its end: enough to make her fast. */
+function fakeLine(): Rope {
+  let by: unknown = null;
+  let to: unknown = null;
   return {
     isDestroyed: () => false,
-    lineLengthM: () => 30,
-    isMadeFast: () => fast,
-    makeFastRound: async () => {
-      fast = true;
-      return true;
+    tieTo: async (who: unknown, load: unknown) => {
+      by = who;
+      to = load;
+      return { ok: true, line: '' };
     },
-    castOffMooring: async () => {
-      fast = false;
+    acrossFor: () => by,
+    acrossTo: () => to,
+    castOff: async () => {
+      by = null;
+      to = null;
     },
-  } as unknown as Stuff & MooringLine;
+  } as unknown as Rope;
 }
 
 function makeAvatar(id: string): Avatar {

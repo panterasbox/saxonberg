@@ -121,9 +121,11 @@ describe('the line’s regulars (harbors A2)', () => {
       expect(d.extent).toBe(`${SHIPS}/${kind}`);
       expect(d.expanse).toBe('/stuff/idea/WaterExpanse/greywater');
       expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/CartesianZone');
-      const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number }>; exits: Record<string, { kind?: string }> };
+      const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number; as?: string; on?: string }>; exits: Record<string, { kind?: string }> };
       expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
-      expect(deck.props).toContainEqual({ template: '/platform/thing/mooring-line', count: 2 });
+      // ⭐ Her lines are kept AT her bitts (review 1) — that is what makes a rope one of hers.
+      expect(deck.props).toContainEqual({ template: '/platform/thing/bitts', as: 'bitts' });
+      expect(deck.props).toContainEqual({ template: '/platform/thing/mooring-line', count: 2, on: 'bitts' });
       expect(deck.exits.ashore?.kind).toBe('/platform/idea/exits/ashore');
       const company = data(d.house) as {
         positions: Array<{ key: string }>;

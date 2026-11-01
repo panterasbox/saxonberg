@@ -31,17 +31,21 @@
  * things; if they share a superclass that's fine*): the diving pack's
  * `Hose` is the other `Line`.
  *
- * ⭐ And a rope is what holds a ship to the shore (harbors P6,
- * `MooringLineMixin`): made fast round a bollard, the rope stays at her
- * bitts and its end lies on the quay round the bollard — the free end tied
- * to a fixture in another room, as at a drop. `untie` that end on the quay
- * and the line is off: the ship is held by one line fewer.
+ * ⭐ And a rope is what holds a ship to the shore (harbors P6, review 1):
+ * a STRUCTURE may tie the free end of a rope lying in one of its rooms
+ * round a fixture in another (`tieTo(structure, bollard, knot)` — "the
+ * end across"). The rope stays at her bitts and its end lies on the quay
+ * round the bollard, as at a drop. `untie` that end on the quay (cordage's
+ * act: it comes into your hands) or cast the rope off aboard, and the
+ * structure is told (`Structure.onLineLetGo`) — a ship held by one line
+ * fewer. There is no mooring protocol: a mooring line is a rope whose end
+ * is tied where a mooring line's is.
  */
 
 import Line from '../../lib/spatial/Line';
 import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
-import { MooringLineMixin, type Moorer } from '../../lib/spatial/MooringLine';
+import Structure from '../../lib/spatial/Structure';
 import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceable';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { GradedMixin } from '../../lib/craft/Graded';
@@ -200,7 +204,7 @@ const ropeAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line))))) {
+export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line)))) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: HELD,
@@ -271,6 +275,13 @@ export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(
 
   /** ⭐ The drop it hangs down, by exit direction (`down`), while tied off above one (D11). */
   public hungVia: string | null = null;
+
+  /**
+   * ⭐ The end across (harbors review 1): the fixture in another room its
+   * free end was made fast round, and the structure that made it so
+   * (runtime — an end does not outlive the process; a ship re-makes hers).
+   */
+  private _across: { by: Structure; load: Stuff } | null = null;
 
   /** Whoever is belaying the person on the free end (runtime; D12). */
   private _belay: BelayEngagement | null = null;
@@ -456,9 +467,31 @@ export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(
     return found;
   }
 
-  /** ⭐ A rope tied round a post stays where it was tied. */
+  /** ⭐ A rope tied round a post — or made fast across, round one elsewhere — stays where it was tied. */
   public override isFixedInPlace(): boolean {
-    return super.isFixedInPlace() || this.getAnchor() !== null;
+    return super.isFixedInPlace() || this.getAnchor() !== null || this.acrossTo() !== null;
+  }
+
+  /** The fixture in another room its free end is made fast round, or null. */
+  public acrossTo(): Stuff | null {
+    return this.acrossNow()?.load ?? null;
+  }
+
+  /** The structure that made its end fast across, while it is, or null. */
+  public acrossFor(): Structure | null {
+    return this.acrossNow()?.by ?? null;
+  }
+
+  /** The end across, unless it has gone some way the rope was not told of. */
+  private acrossNow(): { by: Structure; load: Stuff } | null {
+    const a = this._across;
+    if (a === null) return null;
+    const end = this.getEnd();
+    if (end === null || a.load.isDestroyed() || end.getLashedTo() !== a.load) {
+      this._across = null;
+      return null;
+    }
+    return a;
   }
 
   /** Is either end tied to anything — a post, a person? */
@@ -474,6 +507,7 @@ export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(
   public override async tieTo(by: Stuff, load: Stuff, knot: string | null): Promise<TieOutcome> {
     const self = this as unknown as Stuff;
     if (load === self) return { ok: false, reason: 'self', line: 'You cannot tie a rope to itself.' };
+    if (by instanceof Structure) return this.tieAcross(by, load, knot);
     const place = MixinApi.isContainable(by) ? by.getContainer() : null;
     const there = MixinApi.isContainable(load) ? load.getContainer() : null;
     if (place === null || there !== place) {
@@ -539,6 +573,15 @@ export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(
       ContainmentApi.move(this as unknown as Stuff & Line, by as Stuff & Container);
       return { ok: true, line: `You untie ${this.getPresentation()} from ${anchor.getPresentation()} and take it up.` };
     }
+    const across = this.acrossNow();
+    if (across !== null && MixinApi.isContainable(by) && by.getContainer() === this.getContainer()) {
+      await this.castOff();
+      return {
+        ok: true,
+        line: `You cast off ${this.getPresentation()}; its end comes in off ${across.load.getPresentation()}.`,
+        peers: `casts off ${this.getPresentation()}.`,
+      };
+    }
     const onEnd = this.getOnEnd();
     if (onEnd !== null && (this.getHolder() === by || onEnd === by)) {
       await this.castOff();
@@ -548,58 +591,75 @@ export default class Rope extends MooringLineMixin(SpliceableMixin(TieableMixin(
   }
 
   /**
-   * Cast off the free end: its knot goes with it. Its end round a bollard
-   * ashore too — and the ship it held is told (harbors P6).
+   * Cast off the free end: its knot goes with it. An end made fast across
+   * comes in too — and the structure that made it fast is told.
    */
   public override async castOff(): Promise<void> {
-    if (this.isMadeFast()) await this.endLifted();
+    const across = this.acrossNow();
+    this._across = null;
     await super.castOff();
     this.knots = this.knots.filter((k) => k.end !== 'free');
+    if (across !== null) across.by.onLineLetGo(this as unknown as Stuff);
   }
 
-  /* ─────────────────────────── a mooring line (harbors P6) ─────────────────────────── */
-
-  /** ⭐ How far it reaches from her rail to a bollard. */
-  public override lineLengthM(): number {
-    return this.lengthM;
+  /** ⭐ Its end untied from what it was round across (cordage's `untie end` on the quay): the structure is told. */
+  public override async endUntied(by: Stuff, load: Stuff): Promise<void> {
+    const across = this._across;
+    if (across === null || across.load !== load) return;
+    this._across = null;
+    this.knots = this.knots.filter((k) => k.end !== 'free');
+    void by;
+    across.by.onLineLetGo(this as unknown as Stuff);
   }
+
+  /* ─────────────────────────── the end across (harbors P6, review 1) ─────────────────────────── */
 
   /**
-   * ⭐ The end goes ashore round `bollard`: minted beside it and tied to it,
-   * the rope itself staying where it is — aboard her. A rope tied off here
-   * (round a post, down a drop) has no end to spare.
+   * ⭐ `structure` makes the free end of this rope — lying in one of its
+   * rooms — fast round `load`, a fixture in another room: the end is minted
+   * beside it and tied, the rope staying where it is (a ship's line from
+   * her bitts round a bollard on the quay; the shape of the rope at a drop).
+   * Only the structure the rope's room belongs to can: it is the crew
+   * nobody needs to type. Refused (in words) for a rope not in one of its
+   * rooms, a load that is no fixture or is in the same room, a rope hung
+   * down a drop, or one whose end is out already.
    */
-  protected override async mintMooringEnd(bollard: Stuff, ship: Moorer): Promise<Stuff | null> {
-    if (this.getAnchor() !== null) return null;
-    const shore = MixinApi.isContainable(bollard) ? bollard.getContainer() : null;
-    if (shore === null || !MixinApi.isContainer(shore)) return null;
-    // A rope in somebody's hands on its end is not also round a bollard.
-    await super.castOff();
-    const end = await this.mintEnd(shore as Stuff & Container);
-    end.lashTo(bollard);
-    const name = ship.getName();
+  private async tieAcross(by: Structure, load: Stuff, knot: string | null): Promise<TieOutcome> {
+    const here = this.getContainer() as Stuff | null;
+    if (here === null || here.isAgent?.() || !this.isRoomOf(by, here)) {
+      return { ok: false, reason: 'not-hers', line: `${GrammarApi.cap(this.getPresentation())} is not aboard ${by.getName() || 'her'}.` };
+    }
+    const there = MixinApi.isContainable(load) ? load.getContainer() : null;
+    if (load.isAgent?.() || !MixinApi.isContainable(load) || !load.isFixedInPlace() || there === null || !MixinApi.isContainer(there)) {
+      return { ok: false, reason: 'not-a-fixture', line: `${GrammarApi.cap(this.getPresentation())} cannot be made fast round that.` };
+    }
+    if (there === here) return { ok: false, reason: 'same-room', line: 'That is not across from her.' };
+    if (this.hungVia !== null || this.getEnd() !== null) {
+      return { ok: false, reason: 'end-out', line: `The end of ${this.getPresentation()} is out already.` };
+    }
+    const made = await this.makeKnot(by, knot);
+    if (!made.ok) return made;
+    const end = await this.mintEnd(there as Stuff & Container, load);
+    const name = by.getName();
+    const stem = this.getShortDescription() || 'line';
     if (name) {
       end.setShortDescription(`line from ${name}`);
-      end.setKeywords([...end.getKeywords(), 'mooring', ...name.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
+      end.setKeywords([...end.getKeywords(), ...name.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
       end.setLongDescription(
-        `A mooring line comes ashore from ${name}, made fast round ${bollard.getPresentation()} with a round turn and two half hitches.`,
+        `${GrammarApi.cap(`${GrammarApi.articleFor(stem)} ${stem}`)} comes ashore from ${name}, ${made.knot.label.replace(/^made fast/, `made fast round ${load.getPresentation()}`)}.`,
       );
     }
-    return end;
+    this._across = { by, load };
+    this.knots = [...this.knots.filter((k) => k.end !== 'free'), { ...made.knot, end: 'free' }];
+    this.coiledDown = false;
+    return { ok: true, line: `${GrammarApi.cap(this.getPresentation())} goes across and is made fast round ${load.getPresentation()}.` };
   }
 
-  /**
-   * ⭐ `untie line` on the quay: the end off the bollard it is round, and let
-   * go — it falls slack along her side, and the ship is told.
-   */
-  public override async untieEnd(by: Stuff, load: Stuff): Promise<TieOutcome | null> {
-    if (!this.isMadeFast() || this.madeFastTo() !== load) return null;
-    await this.endLifted();
-    return {
-      ok: true,
-      line: `You cast the line off ${load.getPresentation()} and let it go; it falls slack into the water along her side.`,
-      peers: `casts a mooring line off ${load.getPresentation()}.`,
-    };
+  /** Is `room` one of `by`'s rooms — under its extent, or its warren's? */
+  private isRoomOf(by: Structure, room: Stuff): boolean {
+    const path = room.getTemplatePath() ?? '';
+    if (path !== '' && by.hasMember(path)) return true;
+    return MixinApi.isWarrenMember(room) && room.getWarren()?.structureOf() === (by as unknown);
   }
 
   /**

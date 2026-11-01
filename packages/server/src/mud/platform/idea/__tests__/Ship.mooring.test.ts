@@ -6,8 +6,11 @@ import AshoreExit from '../AshoreExit';
 import Quay from '../../location/Quay';
 import Shore from '../../location/Shore';
 import Bollard from '../../thing/Bollard';
-import Good from '../../thing/Good';
-import { MooringLineMixin, type Moorer } from '../../../lib/spatial/MooringLine';
+import { Character } from '../../../lib/character/Character';
+import Rope from '../../thing/Rope';
+import RopeEnd from '../../thing/RopeEnd';
+import { TemplatePaths } from '../../../lib/paths';
+import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
@@ -26,39 +29,13 @@ import type { Container } from '../../../lib/spatial/Container';
  * restart puts it all back from the two facts she keeps.
  */
 
+/** Somebody on the quay with hands. */
+class Hand extends Character {}
+
 const QUAY = '/test/harbor/quay';
 const DECK = '/test/hesper/deck';
 const SHIP = '/test/hesper/structure';
 const RIVER = '/test/river';
-
-/** The end of a test line, ashore: leaving its bollard's room lifts it off. */
-class TestEnd extends Good {
-  public line: TestLine | null = null;
-  public bollardRoom: Stuff | null = null;
-  public onMoved(_from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
-    if (this.line === null || to === null || to === this.bollardRoom) return;
-    const line = this.line;
-    this.line = null;
-    void line.endLifted();
-  }
-}
-
-/** A real line by the kernel protocol: its end is a TestEnd beside the bollard. */
-class TestLine extends MooringLineMixin(Good) {
-  public length = 30;
-  public override lineLengthM(): number {
-    return this.length;
-  }
-  protected override async mintMooringEnd(bollard: Stuff, _ship: Moorer): Promise<Stuff | null> {
-    const shore = MixinApi.isContainable(bollard) ? bollard.getContainer() : null;
-    if (shore === null) return null;
-    const end = makeStuffAtPath(() => new TestEnd(), '/test/line-end');
-    ContainmentApi.move(end, shore);
-    end.bollardRoom = shore;
-    end.line = this;
-    return end;
-  }
-}
 
 let quay: Quay;
 let deck: Shore;
@@ -72,21 +49,36 @@ function bollardOn(room: Stuff & Container): Bollard {
   return b;
 }
 
-function lineOn(room: Stuff & Container, length = 30): TestLine {
-  const l = makeStuffAtPath(() => new TestLine(), '/platform/thing/mooring-line');
-  l.length = length;
-  ContainmentApi.move(l, room);
+
+
+/** The knot catalogue a rope's knot is warmed from — one row, the clove hitch. */
+const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
+
+/**
+ * ⭐ A line of hers (review 1): a real rope flaked down on her BITTS — a
+ * rope kept at her bitts is one of her mooring lines; one loose on deck is not.
+ */
+function lineOn(room: Stuff & Container, length = 30): Rope {
+  let bitts = room.getContents().find((x): x is Bollard => x instanceof Bollard && x.getTemplatePath() === '/platform/thing/bitts');
+  if (bitts === undefined) {
+    bitts = makeStuffAtPath(() => new Bollard(), '/platform/thing/bitts');
+    ContainmentApi.move(bitts, room);
+  }
+  const l = makeStuffAtPath(() => new Rope(), '/platform/thing/mooring-line');
+  l.setLengthM(length);
+  ContainmentApi.move(l, bitts, 'on');
   return l;
 }
 
-function ends(room: Stuff & Container): TestEnd[] {
-  return room.getContents().filter((x): x is TestEnd => x instanceof TestEnd);
+function ends(room: Stuff & Container): RopeEnd[] {
+  return room.getContents().filter((x): x is RopeEnd => x instanceof RopeEnd);
 }
 
 function newShip(): Ship {
   const s = makeStuffAtPath(() => new Ship(), SHIP);
   s.setName('the Hesper');
   s.setEntrance(DECK);
+  s.setExtent('/test/hesper');
   return s;
 }
 
@@ -100,7 +92,9 @@ beforeEach(() => {
   rooms.set(DECK, deck as unknown as Stuff);
   ship = newShip();
   rooms.set(SHIP, ship as unknown as Stuff);
+  installV1QuantityMarshallers();
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
+    if (p === TemplatePaths.jointCatalogue) return KNOTS;
     const s = rooms.get(p);
     if (!s) throw new Error(`no fixture ${p}`);
     return s;
@@ -108,6 +102,7 @@ beforeEach(() => {
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row === '/platform/idea/exits/berth') return makeStuffAtPath(() => new BerthExit(), row);
     if (row === '/platform/idea/exits/ashore') return makeStuffAtPath(() => new AshoreExit(), row);
+    if (row === '/platform/thing/rope-end') return makeStuffAtPath(() => new RopeEnd(), row);
     throw new Error(`no row ${row}`);
   }) as never);
   // The ship's rooms and the quay are in zones of their own (a way named
@@ -187,6 +182,29 @@ describe('a ship made fast (harbors P4–P6)', () => {
     expect(await ship.linesAboard()).toHaveLength(0);
   });
 
+  it('⭐ a rope lying loose on her deck is not one of her lines — one at her bitts, or tied round them, is', async () => {
+    const loose = makeStuffAtPath(() => new Rope(), '/platform/thing/mooring-line');
+    loose.setLengthM(30);
+    ContainmentApi.move(loose, deck);
+    expect(await ship.linesAboard()).toHaveLength(0);
+    const stowed = lineOn(deck);
+    expect(await ship.linesAboard()).toEqual([stowed]);
+  });
+
+  it('⭐ cast off aboard by hand (`untie` the rope at her bitts), her last line in sets her adrift', async () => {
+    bollardOn(quay);
+    const line = lineOn(deck);
+    await ship.comeAlongside(QUAY);
+    const hand = makeStuffAtPath(() => new Hand(), '/test/hand');
+    ContainmentApi.move(hand, deck);
+    vi.spyOn(ship, 'aboard').mockResolvedValue([deck as unknown as Stuff]);
+    const out = await line.untieBy(hand as unknown as Stuff);
+    expect(out.ok).toBe(true);
+    expect(ends(quay)).toHaveLength(0);
+    expect(ship.isMoored()).toBe(false);
+    expect(quay.getExit('hesper')).toBeUndefined();
+  });
+
   it('with no bollard ashore there is nothing to make fast round', async () => {
     lineOn(deck);
     expect(await ship.comeAlongside(QUAY)).toMatch(/nothing at .* to make a line fast round/);
@@ -204,19 +222,23 @@ describe('a ship made fast (harbors P4–P6)', () => {
     expect(await ship.mooringRefusal(null)).toBeNull();
   });
 
-  it('⭐ lifting one line off the bollard leaves her held by the other; lifting the last sets her adrift', async () => {
+  it('⭐ untying one line off the bollard (cordage\'s `untie`) leaves her held by the other; untying the last sets her adrift', async () => {
     bollardOn(quay);
     lineOn(deck);
     lineOn(deck);
     await ship.comeAlongside(QUAY);
-    const hand = makeStuffAtPath(() => new Shore(), '/test/hand') as unknown as Stuff & Container;
+    expect(ship.fastLines()).toHaveLength(2);
+    const hand = makeStuffAtPath(() => new Hand(), '/test/hand');
+    ContainmentApi.move(hand, quay);
     vi.spyOn(ship, 'aboard').mockResolvedValue([deck as unknown as Stuff]);
     const [first, second] = ends(quay);
-    ContainmentApi.move(first!, hand);
-    await Promise.resolve();
+    expect((await first!.untieBy(hand as unknown as Stuff)).ok).toBe(true);
+    // The end is in the untier's hands now — cordage's act, unchanged.
+    expect(hand.getContents()).toContain(first);
+    expect(ship.fastLines()).toHaveLength(1);
     expect(ship.isMoored()).toBe(true);
     expect(quay.getExit('hesper')).toBeInstanceOf(BerthExit);
-    ContainmentApi.move(second!, hand);
+    expect((await second!.untieBy(hand as unknown as Stuff)).ok).toBe(true);
     await new Promise((r) => setTimeout(r, 0));
     expect(ship.isMoored()).toBe(false);
     expect(quay.getExit('hesper')).toBeUndefined();

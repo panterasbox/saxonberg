@@ -349,8 +349,6 @@ export const Mixins = {
   MovingWater: 'MovingWaterMixin',
   SmallCraft: 'SmallCraftMixin',
   TetherEnd: 'TetherEndMixin',
-  // A line that holds a ship to a bollard ashore (harbors P6).
-  MooringLine: 'MooringLineMixin',
   // A landing somebody keeps a book for — a harbor quay (harbors P7).
   BerthKeeper: 'BerthKeeperMixin',
   // A place that answers a hail — a harbor office (harbors P8).

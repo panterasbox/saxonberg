@@ -38,11 +38,11 @@ export default class RopeEnd extends ClimbableMixin(LineEnd) {
 
   /**
    * A hanging end stays where it hangs: it is the rope, not a thing to pick
-   * up. So does a mooring line's end round a bollard — you `untie` it.
+   * up. So does an end made fast across, round a bollard ashore — you `untie` it.
    */
   public override isFixedInPlace(): boolean {
     const rope = this.rope();
-    return super.isFixedInPlace() || (rope?.isHung() ?? false) || (rope?.isMadeFast() ?? false);
+    return super.isFixedInPlace() || (rope?.isHung() ?? false) || (rope !== null && rope.acrossTo() !== null);
   }
 
   /** @hook A climb up the rope from its end takes the same wear (D11). */

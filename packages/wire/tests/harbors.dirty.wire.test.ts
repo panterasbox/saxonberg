@@ -359,7 +359,7 @@ suite('A1 — the port', () => {
 
   it('7. (instant · player) a ship with no line aboard is refused at the quay: she has no lines to make fast', async () => {
     await stageShip(HESPER, { at: { node: BAR } });
-    // (staged) The founder takes her two lines off the deck.
+    // (staged) The founder takes her two lines off her bitts.
     const f = await founderAt(HESPER_DECK);
     expectOk(await f.cmd('get 1 mooring line'));
     expectOk(await f.cmd('get 1 mooring line'));
@@ -368,9 +368,10 @@ suite('A1 — the port', () => {
       expectNote(refused, 'controller-rejected', { reason: 'course-refused' });
       expect(squash(await refused.said())).toMatch(/She has no lines to make fast/);
     } finally {
-      // Her lines back on her deck whatever happened: step 10 makes fast with them.
-      await f.cmd('drop 1 mooring line');
-      await f.cmd('drop 1 mooring line');
+      // Her lines back AT HER BITTS whatever happened (review 1: a rope
+      // loose on her deck is not one of her lines): step 10 makes fast with them.
+      expectOk(await f.cmd('put mooring line on bitts'));
+      expectOk(await f.cmd('put mooring line on bitts'));
       f.close();
     }
   }, 300_000);

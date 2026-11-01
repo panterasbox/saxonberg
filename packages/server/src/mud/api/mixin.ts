@@ -79,7 +79,6 @@ import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
-import type { MooringLine } from '../lib/spatial/MooringLine';
 import type { BerthKeeper } from '../lib/expanse/BerthKeeper';
 import type { Payable } from '../lib/banking/Payable';
 import type { Hailable } from '../lib/expanse/Hailable';
@@ -1351,11 +1350,6 @@ export class MixinApi {
   /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
   public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
     return this.hasMixin(obj, Mixins.TetherEnd);
-  }
-
-  /** ⭐ A line that can hold a ship to a bollard ashore (harbors P6). */
-  public static isMooringLine(obj: Stuff): obj is Stuff & MooringLine {
-    return this.hasMixin(obj, Mixins.MooringLine);
   }
 
   /** ⭐ A landing somebody keeps a book for — a harbor quay (harbors P7). */

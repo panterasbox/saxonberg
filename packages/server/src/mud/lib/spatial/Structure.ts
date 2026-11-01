@@ -168,6 +168,20 @@ export default class Structure extends DetailedMixin(
   }
 
   /**
+   * A rope this structure made fast ACROSS (harbors review 1 — the end of
+   * a rope lying in one of its rooms, tied round a fixture in another:
+   * `Rope.tieTo(structure, fixture, knot)`) has been let go — untied where
+   * it was round the fixture, or cast off where the rope lies.
+   *
+   * @hook Default: nothing — a structure that ties nothing out hears
+   *   nothing. A ship answers: her mooring is a read over her ropes, and
+   *   with the last one off she is adrift.
+   */
+  public onLineLetGo(line: Stuff): void {
+    void line;
+  }
+
+  /**
    * ⭐ A structure stands as long as the zone that names it. Nothing boots
    * it (maritime review, 2026-10-14): it loads with that zone, as a room's
    * props load with the room — and a zone holds only its PATH, so one that

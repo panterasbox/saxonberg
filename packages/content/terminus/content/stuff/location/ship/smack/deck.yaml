@@ -20,7 +20,9 @@ data:
     - /system/transport/thing/tiller
     - /system/transport/thing/dinghy
     # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
-    - { template: /platform/thing/mooring-line, count: 2 }
+    # ⭐ Her bitts (review 1): the lines kept AT them are her mooring lines.
+    - { template: /platform/thing/bitts, as: bitts }
+    - { template: /platform/thing/mooring-line, count: 2, on: bitts }
     # ⭐ Her pump well and the rod to sound it (harbors P19): `pump well`,
     # `measure bilge`.
     - /stuff/thing/bilge-well

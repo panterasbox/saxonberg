@@ -12,7 +12,10 @@ import { Quantity } from '../../../lib/quantity';
 import Shore from '../../location/Shore';
 import Bollard from '../../thing/Bollard';
 import Good from '../../thing/Good';
-import { MooringLineMixin, type Moorer } from '../../../lib/spatial/MooringLine';
+import Rope from '../../thing/Rope';
+import RopeEnd from '../../thing/RopeEnd';
+import { TemplatePaths } from '../../../lib/paths';
+import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
@@ -40,35 +43,6 @@ const QUAY = '/test/harbor/quay';
 const DECK = '/test/hesper/deck';
 const SHIP = '/test/hesper/structure';
 const RIVER = '/test/river';
-
-/** The end of a test line, ashore: leaving its bollard's room lifts it off. */
-class TestEnd extends Good {
-  public line: TestLine | null = null;
-  public bollardRoom: Stuff | null = null;
-  public onMoved(_from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
-    if (this.line === null || to === null || to === this.bollardRoom) return;
-    const line = this.line;
-    this.line = null;
-    void line.endLifted();
-  }
-}
-
-/** A real line by the kernel protocol: its end is a TestEnd beside the bollard. */
-class TestLine extends MooringLineMixin(Good) {
-  public length = 30;
-  public override lineLengthM(): number {
-    return this.length;
-  }
-  protected override async mintMooringEnd(bollard: Stuff, _ship: Moorer): Promise<Stuff | null> {
-    const shore = MixinApi.isContainable(bollard) ? bollard.getContainer() : null;
-    if (shore === null) return null;
-    const end = makeStuffAtPath(() => new TestEnd(), '/test/line-end');
-    ContainmentApi.move(end, shore);
-    end.bollardRoom = shore;
-    end.line = this;
-    return end;
-  }
-}
 
 /** A quay with a book: records what it is asked and told; refuses as the test sets. */
 class KeptQuay extends BerthKeeperMixin(Quay) {
@@ -116,18 +90,36 @@ function bollardOn(room: Stuff & Container): Bollard {
   return b;
 }
 
-function lineOn(room: Stuff & Container, length = 30): TestLine {
-  const l = makeStuffAtPath(() => new TestLine(), '/platform/thing/mooring-line');
-  l.length = length;
-  ContainmentApi.move(l, room);
+
+
+/** The knot catalogue a rope's knot is warmed from — one row, the clove hitch. */
+const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
+
+/**
+ * ⭐ A line of hers (review 1): a real rope flaked down on her BITTS — a
+ * rope kept at her bitts is one of her mooring lines; one loose on deck is not.
+ */
+function lineOn(room: Stuff & Container, length = 30): Rope {
+  let bitts = room.getContents().find((x): x is Bollard => x instanceof Bollard && x.getTemplatePath() === '/platform/thing/bitts');
+  if (bitts === undefined) {
+    bitts = makeStuffAtPath(() => new Bollard(), '/platform/thing/bitts');
+    ContainmentApi.move(bitts, room);
+  }
+  const l = makeStuffAtPath(() => new Rope(), '/platform/thing/mooring-line');
+  l.setLengthM(length);
+  ContainmentApi.move(l, bitts, 'on');
   return l;
 }
 
+function ends(room: Stuff & Container): RopeEnd[] {
+  return room.getContents().filter((x): x is RopeEnd => x instanceof RopeEnd);
+}
 
 function newShip(): Ship {
   const s = makeStuffAtPath(() => new Ship(), SHIP);
   s.setName('the Hesper');
   s.setEntrance(DECK);
+  s.setExtent('/test/hesper');
   return s;
 }
 
@@ -141,7 +133,9 @@ beforeEach(() => {
   rooms.set(DECK, deck as unknown as Stuff);
   ship = newShip();
   rooms.set(SHIP, ship as unknown as Stuff);
+  installV1QuantityMarshallers();
   vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
+    if (p === TemplatePaths.jointCatalogue) return KNOTS;
     const s = rooms.get(p);
     if (!s) throw new Error(`no fixture ${p}`);
     return s;
@@ -149,6 +143,7 @@ beforeEach(() => {
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
     if (row === '/platform/idea/exits/berth') return makeStuffAtPath(() => new BerthExit(), row);
     if (row === '/platform/idea/exits/ashore') return makeStuffAtPath(() => new AshoreExit(), row);
+    if (row === '/platform/thing/rope-end') return makeStuffAtPath(() => new RopeEnd(), row);
     throw new Error(`no row ${row}`);
   }) as never);
   // The ship's rooms and the quay are in zones of their own (a way named

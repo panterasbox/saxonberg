@@ -36,7 +36,6 @@ import type { Containable } from './Containable';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../mixin';
 import type { Buoy } from '../location/Buoy';
-import type { TieOutcome } from './Tieable';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import { ContainmentApi } from '../../api/containment';
@@ -163,11 +162,13 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
 
   /**
    * Mint the free end into `into` — somebody's hands, or the bottom of a
-   * drop the line hangs down (cordage D11).
+   * drop the line hangs down (cordage D11) — tied to `tiedTo` there when
+   * the line was made fast round something across (a ship's rope round a
+   * bollard ashore, harbors review 1).
    */
-  protected async mintEnd(into: Stuff & Container): Promise<LineEnd> {
+  protected async mintEnd(into: Stuff & Container, tiedTo: Stuff | null = null): Promise<LineEnd> {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
-    end.attachTo(this);
+    end.attachTo(this, tiedTo);
     ContainmentApi.move(end, into);
     this._end = end;
     this._tugs = [];
@@ -175,15 +176,15 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
   }
 
   /**
-   * @hook `untie end` on an end tied to `load` (a fixture, a thing on the
-   * bed): what the LINE says untying it means, or `null` for the end's own
-   * (into the untier's hands). A rope moored round a bollard answers: the
-   * line is off and the ship is told (harbors P6).
+   * The free end was untied from `load` (a fixture, a thing on the bed)
+   * and is in `by`'s hands now — cordage's `untie end`.
+   *
+   * @hook Default: nothing. A rope a structure made fast across tells it
+   *   (harbors review 1: a ship's line cast off a bollard).
    */
-  public async untieEnd(by: Stuff, load: Stuff): Promise<TieOutcome | null> {
+  public async endUntied(by: Stuff, load: Stuff): Promise<void> {
     void by;
     void load;
-    return null;
   }
 
   /** Let go of the free end: whoever had it is off the line. */

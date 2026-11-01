@@ -35,7 +35,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type { Exitable } from '../../../lib/boundary/Exitable';
-import type { MooringLine } from '../../../lib/spatial/MooringLine';
+import type Rope from '../../thing/Rope';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { PersistableMixin } from '../../../lib/persistence/Persistable';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
@@ -150,21 +150,24 @@ function installStore(): void {
   );
 }
 
-/** A line by the kernel protocol, without its end: enough to make her fast. */
-function fakeLine(): Stuff & MooringLine {
-  let fast = false;
+/** A line of hers by the rope's surface, without its end: enough to make her fast. */
+function fakeLine(): Rope {
+  let by: unknown = null;
+  let to: unknown = null;
   return {
     isDestroyed: () => false,
-    lineLengthM: () => 30,
-    isMadeFast: () => fast,
-    makeFastRound: async () => {
-      fast = true;
-      return true;
+    tieTo: async (who: unknown, load: unknown) => {
+      by = who;
+      to = load;
+      return { ok: true, line: '' };
     },
-    castOffMooring: async () => {
-      fast = false;
+    acrossFor: () => by,
+    acrossTo: () => to,
+    castOff: async () => {
+      by = null;
+      to = null;
     },
-  } as unknown as Stuff & MooringLine;
+  } as unknown as Rope;
 }
 
 /** Mint a ship of the kind, keyed `serial`, and stand her up. */

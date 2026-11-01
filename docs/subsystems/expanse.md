@@ -287,15 +287,21 @@ wrong chart is wrong in one row and never reconciled. See
 to a landing — a node's `destination` at sea (`arrived`, the stop now
 carries the node's landing), a river's landing on its line (`landing`),
 the bar's landing when she comes out of the river (`mouth`) — **makes
-fast** (`Ship.comeAlongside`): each `MooringLine` on her deck (a line long
-enough to reach) puts its end ashore round a `Bollard` on the landing, and
-a `BerthExit` named for her (`go hesper`) goes on it. With no line aboard
-a course for a landing is refused before it is laid (`mooringRefusal`);
-with no bollard ashore she lies off unmoored. Any course from a moored
-ship casts off first (lines in, the way gone); lifting her last line's
-end off its bollard on the quay (`get`) sets her adrift. She keeps two
-facts — `berth` and `moored` (plus how many lines were fast) — and puts
-the rest back when she loads (`onRestored`, and `seedBornWith` for an
+fast** (`Ship.comeAlongside`): each of her lines — a rope on her deck
+kept AT her bitts (flaked down `on` a `Bollard` there, or tied round one;
+long enough to reach; a rope loose on her deck is not one) — is tied round
+a `Bollard` on the landing through **the rope's own `tieTo`** (cordage's
+end across: the rope stays aboard, its end is minted ashore round the
+bollard; only the structure the rope lies in may), and a `BerthExit` named
+for her (`go hesper`) goes on it. There is no mooring protocol (review 1):
+*moored* is a read over her ropes (`Ship.fastLines()` — which have an end
+round a bollard she made it fast round). With no line aboard a course for
+a landing is refused before it is laid (`mooringRefusal`); with no bollard
+ashore she lies off unmoored. Any course from a moored ship casts off
+first (lines in, the way gone); `untie` of her last line's end on the
+quay (cordage's act — the end comes into your hands) or of the rope at
+her bitts sets her adrift (`Structure.onLineLetGo`). She keeps two facts
+— `berth` and `moored` — and puts the rest back when she loads (`onRestored`, and `seedBornWith` for an
 authored mooring): her landing is stood up, the ends re-minted, the way
 re-installed. A landing loads the ships authored made fast at it (the
 `berth` attachment, `location-graph.md`), and a frame-sited landing's

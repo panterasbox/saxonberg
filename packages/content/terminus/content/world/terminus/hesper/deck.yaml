@@ -33,7 +33,9 @@ data:
     - /world/terminus/hesper/thing/sea-chest
     # ⭐ Her mooring lines (harbors P6): coming alongside, each goes ashore
     # round a bollard; with none aboard she cannot make fast.
-    - { template: /platform/thing/mooring-line, count: 2 }
+    # ⭐ Her bitts (review 1): the lines kept AT them are her mooring lines.
+    - { template: /platform/thing/bitts, as: bitts }
+    - { template: /platform/thing/mooring-line, count: 2, on: bitts }
   cast:
     # ⭐ A deckhand who keeps the watch once appointed (maritime R7).
     - /world/terminus/hesper/agent/lookout

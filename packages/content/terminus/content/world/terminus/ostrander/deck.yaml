@@ -23,7 +23,9 @@ data:
     - /system/transport/thing/rowboat
     # ⭐ Her mooring lines (harbors P6): at a landing each goes ashore round
     # a bollard; with none aboard she cannot make fast.
-    - { template: /platform/thing/mooring-line, count: 2 }
+    # ⭐ Her bitts (review 1): the lines kept AT them are her mooring lines.
+    - { template: /platform/thing/bitts, as: bitts }
+    - { template: /platform/thing/mooring-line, count: 2, on: bitts }
   exits:
     west:
       destination: /world/terminus/ostrander/saloon

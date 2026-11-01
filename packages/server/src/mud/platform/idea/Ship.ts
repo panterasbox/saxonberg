@@ -46,7 +46,7 @@ import Bollard from '../thing/Bollard';
 import BerthExit, { type Berthed } from './BerthExit';
 import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
-import type { MooringLine } from '../../lib/spatial/MooringLine';
+import Rope from '../thing/Rope';
 import type { Exitable } from '../../lib/boundary/Exitable';
 import type { BerthKeeper } from '../../lib/expanse/BerthKeeper';
 import type { LineFrame } from '../../lib/expanse/LineFrame';
@@ -139,6 +139,9 @@ const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
  * this, m.
  */
 const MIN_LINE_M = 2;
+
+/** The knot her lines go round a bollard in (a joint row's key) — quick on, quick off. */
+const MOORING_KNOT = 'clove-hitch';
 
 /**
  * ⭐ The water a master keeps under her keel crossing a bar (harbors P10,
@@ -838,10 +841,8 @@ export default class Ship extends PersistableMixin(
    * hers, and still where she lies).
    */
   private async castOffForGood(): Promise<void> {
-    const lines = this.fastLines;
-    this.fastLines = [];
     const keeper = await this.keeperAt(this.berth);
-    for (const line of lines) if (!line.isDestroyed()) await line.castOffMooring();
+    await this.bringLinesIn();
     this.removeBerth();
     this.moored = false;
     this.berth = null;
@@ -1284,9 +1285,12 @@ export default class Ship extends PersistableMixin(
   /** Her gangway's bolt (P9) — `false` refuses nobody. */
   protected gangwayLocked = false;
 
-  /** Runtime: the way aboard she has put on her landing, and the lines fast now. */
+  /**
+   * Runtime: the way aboard she has put on her landing, and the ropes she
+   * made fast across (whether each still is, the rope says — {@link fastLines}).
+   */
   private berthExit: BerthExit | null = null;
-  private fastLines: (Stuff & MooringLine)[] = [];
+  private madeFast: Rope[] = [];
 
   /** ⭐ The landing she is made fast at — what her deck's `ashore` leads to first. */
   public getBerth(): string | null {
@@ -1318,18 +1322,34 @@ export default class Ship extends PersistableMixin(
   }
 
   /**
-   * ⭐ The lines aboard her that will hold her (P6): every line on her deck
-   * that can be made fast round a bollard and is long enough to reach.
+   * ⭐ The lines aboard her that will hold her (P6, review 1): every ROPE on
+   * her deck kept AT her bitts — flaked down `on` a {@link Bollard} there,
+   * or tied round one — and long enough to reach. A rope lying loose on her
+   * deck is not one of her lines: nobody made it ready (lens 2 — an author's
+   * ordinary rope row propped `on: bitts`, or a player's `put rope on
+   * bitts`, is a mooring line with no code).
    */
-  public async linesAboard(): Promise<(Stuff & MooringLine)[]> {
+  public async linesAboard(): Promise<Rope[]> {
     const deck = await this.watchRoom();
     if (deck === null) return [];
     const needM = Math.max(MIN_LINE_M, 2 * this.deckHeightM);
-    const out: (Stuff & MooringLine)[] = [];
+    const out: Rope[] = [];
     for (const x of deck.getContents()) {
-      if (MixinApi.isMooringLine(x) && x.lineLengthM() >= needM) out.push(x);
+      if (!(x instanceof Rope) || x.getLengthM() < needM) continue;
+      const at = x.getPlacement()?.host ?? x.getAnchor();
+      if (at instanceof Bollard && at.getContainer() === (deck as unknown)) out.push(x);
     }
     return out;
+  }
+
+  /**
+   * ⭐ Her lines fast now (review 1 — moored is a READ over her ropes): the
+   * ropes she made fast across whose end is still round a bollard she made
+   * it fast round. A rope knows; she only remembers which ones she tied.
+   */
+  public fastLines(): Rope[] {
+    this.madeFast = this.madeFast.filter((r) => !r.isDestroyed() && r.acrossFor() === (this as unknown) && r.acrossTo() instanceof Bollard);
+    return this.madeFast;
   }
 
   /**
@@ -1469,10 +1489,8 @@ export default class Ship extends PersistableMixin(
    * this first.
    */
   public async castOff(): Promise<void> {
-    const lines = this.fastLines;
-    this.fastLines = [];
     const keeper = this.moored ? await this.keeperAt(this.berth) : null;
-    for (const line of lines) if (!line.isDestroyed()) await line.castOffMooring();
+    await this.bringLinesIn();
     this.removeBerth();
     this.moored = false;
     this.berth = null;
@@ -1483,13 +1501,15 @@ export default class Ship extends PersistableMixin(
   }
 
   /**
-   * ⭐ One of her lines was cast off from ashore (P6) — somebody lifted it
-   * off the bollard. With her last line off she is no longer moored: the
-   * way aboard comes off the landing and everyone aboard is told.
+   * ⭐ One of her lines was let go (P6, review 1) — untied off its bollard
+   * on the quay (cordage's `untie`), or cast off aboard. With her last line
+   * off she is no longer moored: the way aboard comes off the landing and
+   * everyone aboard is told. Her own bringing them in (sailing, sleeping,
+   * going down) says nothing here — she asked.
    */
-  public lineCastOff(line: Stuff & MooringLine): void {
-    this.fastLines = this.fastLines.filter((l) => l !== line && !l.isDestroyed() && l.isMadeFast());
-    if (this.fastLines.length > 0 || !this.moored) return;
+  public override onLineLetGo(line: Stuff): void {
+    void line;
+    if (this._bringingIn || !this.moored || this.fastLines().length > 0) return;
     const was = this.berth;
     this.removeBerth();
     this.moored = false;
@@ -1513,18 +1533,39 @@ export default class Ship extends PersistableMixin(
       .catch(() => undefined);
   }
 
-  /** Her lines, made fast round the bollards of `landing` in turn; how many went ashore. */
-  private async makeLinesFast(landing: Stuff & Container, lines: (Stuff & MooringLine)[]): Promise<number> {
+  /**
+   * Her lines, made fast round the bollards of `landing` in turn — each
+   * through the rope's own `tieTo` (the end across: the rope stays at her
+   * bitts, its end goes ashore round the bollard); how many went ashore.
+   */
+  private async makeLinesFast(landing: Stuff & Container, lines: Rope[]): Promise<number> {
     const bollards = landing.getContents().filter((x): x is Bollard => x instanceof Bollard);
     if (bollards.length === 0) return 0;
-    this.fastLines = [];
+    this.madeFast = [];
     let i = 0;
     for (const line of lines) {
-      if (await line.makeFastRound(bollards[i % bollards.length]!, this)) this.fastLines.push(line);
+      const out = await line.tieTo(this as unknown as Stuff, bollards[i % bollards.length]!, MOORING_KNOT);
+      if (out.ok) this.madeFast.push(line);
+      else console.warn(`Ship: ${this.getTemplatePath()}: a line was not made fast (${out.reason})`);
       i += 1;
     }
-    return this.fastLines.length;
+    return this.fastLines().length;
   }
+
+  /** Every one of her lines with an end out across comes in — she is not told (she asked). */
+  private async bringLinesIn(): Promise<void> {
+    const lines = this.madeFast;
+    this.madeFast = [];
+    this._bringingIn = true;
+    try {
+      for (const line of lines) if (!line.isDestroyed() && line.acrossFor() === (this as unknown)) await line.castOff();
+    } finally {
+      this._bringingIn = false;
+    }
+  }
+
+  /** Runtime: she is bringing her own lines in — a line let go is hers to expect. */
+  private _bringingIn = false;
 
   /** Her way aboard on `landing`, named for her; one only. */
   private async installBerth(landing: Stuff): Promise<void> {
@@ -1579,8 +1620,7 @@ export default class Ship extends PersistableMixin(
       console.warn(`Ship: ${this.getTemplatePath()} is moored at '${path}', which does not stand`);
       return;
     }
-    const want = this.fastLines.filter((l) => !l.isDestroyed() && l.isMadeFast());
-    if (want.length === 0) {
+    if (this.fastLines().length === 0) {
       const fast = await this.makeLinesFast(landing, await this.linesAboard());
       if (fast === 0) {
         console.warn(`Ship: ${this.getTemplatePath()} cannot make fast at '${path}' (no line aboard, or no bollard ashore); she lies off`);
@@ -1666,8 +1706,7 @@ export default class Ship extends PersistableMixin(
     } catch {
       // no clock (a unit world)
     }
-    for (const line of this.fastLines) if (!line.isDestroyed()) void line.castOffMooring();
-    this.fastLines = [];
+    void this.bringLinesIn();
     this.removeBerth();
     // ⭐ Her warren goes with her: a kind's rooms come down whole; an
     // authored ship's adopted rows are let go of, never destructed — they
@@ -1777,8 +1816,9 @@ export default class Ship extends PersistableMixin(
   public async sleep(): Promise<void> {
     if (!this.isOfKind() || this._sleeping || this.isDestroyed()) return;
     this._sleeping = true;
-    for (const line of this.fastLines) if (!line.isDestroyed()) await line.castOffMooring();
-    this.fastLines = [];
+    // Her lines' ends come in unannounced: `moored` is kept, and she is
+    // bringing them in herself, so a line let go says nothing.
+    await this.bringLinesIn();
     this.berthExit = null; // left standing on the landing, hers by handle
     const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
     if (w !== null) await w.captureAll();
