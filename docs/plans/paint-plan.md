@@ -992,6 +992,13 @@ fork, the lens that chose is named.
   lake. Recorded as a gap to close before the MR if time allows (the
   maturation-profile route: vinegar + a metal solid → a cake).
 
+- **B23 (W5)** — the pines join the Hanging Wood SUGARBUSH panel (capacity
+  6 → 9) instead of a separate `pine-stand` place: the panel already
+  affords each tree's tap outward, and a second panel would be a second
+  place for nothing. Varnish is a plain `CompoundingVessel` row (rosin lump
+  + turpentine → varnish). `tap.yaml`'s tool default stays
+  `capability.boring`: `tap pine with knife` names the blade.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1265,7 +1272,15 @@ kernel structure; Hinkley lots and Seznick House have buildings.
 - Commit: `build(paint W4): trade-painting — pigment in a binder, made
   from what ships`.
 
-### W5 — resin: the tapped pine, the cut, the varnish
+### W5 — resin: the tapped pine, the cut, the varnish ✅
+
+> **Done.** `TapSpec.instrument` (default `boring`); `SapStandard` refuses
+> and words the set by the tap's instrument (a pine is cut with a blade);
+> Scots pine produces gum in warm weather; `pine-gum` (forestry),
+> `pine-standard`, three named pines added to the SUGARBUSH panel (9 slots)
+> rather than a new panel — no new place; the `pine-gum` schedule (still →
+> turpentine, rosin residue); rosin casts as a lump; turpentine jar,
+> rosin and varnish pot on the colorman's counter. Note B23.
 
 - D17: `TapSpec.instrument` + `TapController` reading it (one line where
   the tool is narrowed; `tap.yaml` help sentence); `sylvestris.yaml`

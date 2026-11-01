@@ -1,0 +1,21 @@
+# Turpentine — the spirit cut from pine gum in a still (paint D17): a thin,
+# sharp-smelling solvent that thins an oil paint and dissolves a resin, and
+# gives off a vapor that dizzies anyone shut in a room with it.
+class: /platform/idea/material/Material
+data:
+  name: turpentine
+  keywords: [turpentine, turps, spirit, "spirit of turpentine"]
+  appearance: a clear, thin spirit with a sharp resinous smell
+  density: 860
+  specificHeat: 1800
+  thermalConductivity: 0.13
+  meltingPoint: 218
+  boilingPoint: 427
+  heatOfCombustion: 44
+  autoignitionTemperature: 526
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, solvent, flammable, organic, once-living, turpentine]
+  composition: []
+  biologicalSource: null

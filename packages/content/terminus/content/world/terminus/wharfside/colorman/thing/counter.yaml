@@ -31,6 +31,9 @@ data:
     - { itemTemplatePath: /trade/painting/thing/malachite-green, par: 3 }
     - { itemTemplatePath: /trade/painting/thing/gessoed-panel, par: 2 }
     - { itemTemplatePath: /trade/painting/thing/signboard, par: 2 }
+    - { itemTemplatePath: /trade/painting/thing/turpentine-jar, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/rosin, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/varnish-pot, par: 2 }
   prices:
     /trade/painting/thing/brush: 3
     /trade/painting/thing/paint-pot: 2
@@ -47,3 +50,6 @@ data:
     /trade/painting/thing/malachite-green: 5
     /trade/painting/thing/gessoed-panel: 6
     /trade/painting/thing/signboard: 3
+    /trade/painting/thing/turpentine-jar: 3
+    /trade/painting/thing/rosin: 2
+    /trade/painting/thing/varnish-pot: 3

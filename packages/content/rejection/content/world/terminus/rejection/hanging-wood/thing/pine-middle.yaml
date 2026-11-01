@@ -1,0 +1,11 @@
+# The middle pine (paint D17) — a Scots pine at the edge of the sugarbush,
+# tapped for gum: cut a face, set a cup, come back in warm weather.
+extends: /trade/forestry/thing/plant/pine-standard
+data:
+  shortDescription: middle pine
+  keywords: [pine, tree, standard, middle, "middle pine", pine-middle]
+  register: definite
+  longDescription: |
+    A tall Scots pine with red, flaking bark, its old tapping faces healed into long resin-crusted scars.
+  growthStage: mature
+  mass: 280

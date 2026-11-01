@@ -229,11 +229,17 @@ export default class SapStandard extends SapStandardBase {
             : 'The stem will not take another spile at this girth.',
       };
     }
-    if (!tool || !tool.hasCapability('boring')) {
+    // ⭐ The tool the TAP names (paint D17): an auger bores a maple, a blade
+    // cuts the face of a pine. Default `boring` — every row before it.
+    const instrument = this.taps().find((t) => t.key === key)?.instrument ?? 'boring';
+    const bores = instrument === 'boring';
+    if (!tool || !tool.hasCapability(instrument)) {
       return {
         kind: 'refusal',
         reason: 'no-tool',
-        prose: 'You would need an auger to bore the hole.',
+        prose: bores
+          ? 'You would need an auger to bore the hole.'
+          : 'You would need a blade to cut a face through the bark.',
       };
     }
     const spile = findSpile(by);
@@ -248,10 +254,11 @@ export default class SapStandard extends SapStandardBase {
       kind: 'plan',
       durationMs: SET_SPILE_MS,
       cost: SET_SPILE_COST,
-      beginSelf:
-        'You set the auger against the trunk and start to bore, cranking slowly so the bit does not bind.',
+      beginSelf: bores
+        ? 'You set the auger against the trunk and start to bore, cranking slowly so the bit does not bind.'
+        : 'You set the blade to the trunk and cut a long face through the bark, down to the pale wet wood.',
       beginPeers: null,
-      token: { phase: 'set', spilePath: spile.getTemplatePath() },
+      token: { phase: 'set', spilePath: spile.getTemplatePath(), bores },
     };
   }
 
@@ -284,9 +291,11 @@ export default class SapStandard extends SapStandardBase {
     // over-tapping a decision with a cost rather than a free action.
     StuffApi.destruct(spile);
     this.spiles = this.spiles + 1;
+    const bored = (token as { bores?: boolean } | null)?.bores !== false;
     return {
-      self:
-        'The bit breaks through into the wet wood and you drive the spile home with the heel of your hand. It beads, and then it drips.',
+      self: bored
+        ? 'The bit breaks through into the wet wood and you drive the spile home with the heel of your hand. It beads, and then it drips.'
+        : 'You set the cup under the face and press it into the bark. Resin beads along the cut, clear and slow.',
       peers: null,
       credit: this.tapCredit(key),
     };

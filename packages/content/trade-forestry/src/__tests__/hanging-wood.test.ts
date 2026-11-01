@@ -227,7 +227,8 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
   const BUSH = join(WOOD, 'sugarbush.yaml');
   const PANEL = join(WOOD, 'thing', 'sugarbush-panel.yaml');
   const NAMES = ['birch-north', 'birch-middle', 'birch-south',
-                 'maple-north', 'maple-middle', 'maple-south'];
+                 'maple-north', 'maple-middle', 'maple-south',
+                 'pine-north', 'pine-middle', 'pine-south'];
 
   it('⚠⚠ it is NOT a Wood — a stand would read over six real stems', () => {
     // A `Wood` appends its own derived reading to `look`, and over six
@@ -264,7 +265,8 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // so — which is why these are six rows and not one propped six
     // times.
     const panel = row(PANEL);
-    expect(panel.data.props?.length).toBe(6);
+    // ⭐ Six sap trees and three pines tapped for gum (paint D17).
+    expect(panel.data.props?.length).toBe(9);
     const seen = new Set<string>();
     for (const name of NAMES) {
       const f = join(WOOD, 'thing', `${name}.yaml`);
@@ -275,7 +277,7 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
       };
       // ⭐ `extends:` carries the class, the hydrator, the species and
       // the growth numbers; the child states only what differs.
-      expect(tree.extends).toMatch(/\/plant\/(birch|maple)-standard$/);
+      expect(tree.extends).toMatch(/\/plant\/(birch|maple|pine)-standard$/);
       expect((tree as unknown as { class?: string }).class).toBeUndefined();
       // The distinct keyword is what makes it addressable at all.
       expect(tree.data.keywords).toContain(name);
@@ -296,7 +298,7 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // Six slots and six trees: the bush is FULL, which is the honest
     // shape of a bush somebody else established.
     const slots = panel.data.staticSlots as Array<{ name: string; capacity: number }>;
-    expect(slots.find((s) => s.name === 'plant')?.capacity).toBe(6);
+    expect(slots.find((s) => s.name === 'plant')?.capacity).toBe(9);
   });
 
   it('⭐ the pan and the arch are the TRADE\u2019s rows, propped here', () => {

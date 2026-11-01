@@ -1,0 +1,9 @@
+# A lump of rosin — what the still leaves when it cools (the rosin's cast).
+class: /trade/quarrying/thing/Lump
+data:
+  shortDescription: lump of rosin
+  keywords: [rosin, lump, resin, "lump of rosin"]
+  register: indefinite
+  longDescription: A glassy amber lump that shatters like toffee and smells of a hot pine wood.
+  _materialPath: /trade/painting/idea/material/rosin
+  mass: 0.5
