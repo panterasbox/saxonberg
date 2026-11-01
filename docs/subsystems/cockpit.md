@@ -334,9 +334,8 @@ action is one of `list` · `pin` · `unpin` · `dismiss` · `auto` · `close` ·
 own; every shape-and-place action goes through `Interactive.arrangeCard`
 → `CardRegistry.arrange`, echoes on `shell.control` tagged
 `control:card`, and pushes a `card-arranged` for each card it moved.
-Refusals are named: `unknown-card`, `role-card` (the room card and the
-primary terminal cannot be closed; the room card cannot be unplaced),
-`primary-terminal` (the primary cannot be closed or minimized). `unpin`
+Refusals are named: `unknown-card`, `primary-terminal` (the primary
+cannot be closed or minimized). The room card closes like any card. `unpin`
 is `dismiss` by its other name.
 
 ⭐ **The card's ref is its KEY first**, then its catalogue name, then its

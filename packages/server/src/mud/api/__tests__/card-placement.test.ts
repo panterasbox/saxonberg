@@ -111,7 +111,7 @@ describe('shape and place (D8)', () => {
     expect(card(h, a).placed).toEqual({ col: 1, row: 1 });
   });
 
-  it('refuses by name: an unknown card, and closing or unplacing a role card', async () => {
+  it('refuses an unknown card by name; the room card closes like any other', async () => {
     const h = await makeHarness();
     expect(h.interactive.arrangeCard('nope', 'grow').refused).toBe('unknown-card');
     const here = CardApi.open(
@@ -120,8 +120,9 @@ describe('shape and place (D8)', () => {
       { subjectId: h.room.stuffId },
     )!;
     expect(card(h, here).role).toBe('here');
-    expect(h.interactive.arrangeCard(here, 'close').refused).toBe('role-card');
-    expect(h.interactive.arrangeCard(here, 'unplace').refused).toBe('role-card');
+    expect(h.interactive.arrangeCard(here, 'unplace').refused).toBeNull();
+    expect(h.interactive.arrangeCard(here, 'close').refused).toBeNull();
+    expect(h.interactive.listCards()).toHaveLength(0);
   });
 
   it('close closes it now, saying `dismissed`', async () => {

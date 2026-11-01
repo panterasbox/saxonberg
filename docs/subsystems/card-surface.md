@@ -196,7 +196,7 @@ neither does this. A {@link CardDefinition.singleton} row reuses.
 open card — brings it forward and replaces its prose, segments and
 result — rather than stacking a husk of the first answer above a second
 copy. A look at the place you stand in rebinds the `here` role card
-instead (§ *Placement, size, the tray and roles*). Once the card has
+(unless you kept it) instead (§ *Placement, size, the tray and roles*). Once the card has
 closed, the next look mints a fresh one.
 
 | Sequence | Result |
@@ -634,9 +634,9 @@ a `card-arranged` for every card it changed and re-syncs liveness.
 - `minimize` / `restore` toggle the tray — the status bar's right end on
   a desktop, the left drawer on a phone. A tray chip restores by sending
   `cockpit card restore <card>`.
-- **Refusals**, each by name: `unknown-card`; `role-card` (a role card
-  cannot be closed, and the `here` card cannot be unplaced);
-  `primary-terminal` (the primary cannot be closed or minimized).
+- **Refusals**, each by name: `unknown-card`; `primary-terminal` (the
+  primary cannot be closed or minimized). The `here` room card closes
+  and unplaces like any card (2026-11-01; `role-card` is retired).
 
 Every card control on the client sends one of these, and dragging a card
 sends `cockpit card move <card> <col> <row>` — the card moves when the
@@ -645,16 +645,26 @@ server's `card-arranged` arrives, never before.
 ### ⭐⭐ The `here` role — the room card follows you
 
 `CardRegistry.open` for a subject card whose `subjectId` is the viewer's
-current container stamps `role: 'here'`. When a `here` card is already up
-it **rebinds** — a new `subjectId`, a fresh subscription, and one
-`card-touched` carrying `subjectId`, `subjectKind`, `title`, `prose`,
-`segments`, `result`, `role` and `live` — so moving never adds a second
-room card (#53/#92). Arrival forces `look` (`Mobile.autoLookOnArrival`),
-which is what drives the rebind as you walk. A new place you cannot
-subscribe to (not perceived) is resolved once as a snapshot.
+current container stamps `role: 'here'`. When an UNKEPT `here` card is
+already up it **rebinds** — a new `subjectId`, a fresh subscription, and
+one `card-touched` carrying `subjectId`, `subjectKind`, `title`, `prose`,
+`segments`, `result`, `role` and `live` — so walking twenty rooms at a run
+leaves one room card, not twenty (#53/#92). Arrival forces `look`
+(`Mobile.autoLookOnArrival`), which is what drives the rebind as you walk.
+A new place you cannot subscribe to (not perceived) is resolved once as a
+snapshot.
 
-The client's "back to the room" is the `here` card itself; on a desktop
-the explore panel's first card is the `here` card at panel width.
+⭐⭐ **Kept is the player's word** (owner, 2026-11-01): a room card that is
+pinned, resized off `unit`, or in the tray is KEPT. A look at a new place
+does not rebind it: the kept card gives up the role (its `card-arranged`
+arrives with no `role`) and stays, an ordinary card about the room it
+showed, and the new place gets a new `here` card. ⚠ Nothing in the rule
+knows WHY the look happened — arriving looks, and the look is what
+inspects; movement decides nothing about cards.
+
+⭐ **The room card is an ordinary inspection card** in the gallery — same
+controls, same sizes, closable. The desktop explore panel is the
+NAVIGATOR (where you are, at zone level), not the room.
 
 ⭐ **The sweep never closes a role card.** The window and the keep-count
 skip pinned cards AND role cards, so a player standing still keeps the

@@ -416,16 +416,29 @@ export default class CardRegistry extends CardRegistryBase {
     if (subjectBound && opts.subjectId) {
       /*
        * ⭐⭐ **The `here` role** (client-surface D10, #53/#92): a look at
-       * the place you stand in is THE room card. When one is already up
-       * it REBINDS to the new place — you walked, and the room card
-       * walked with you — so moving never adds a second room card.
+       * the place you stand in is the room card. It is an ordinary
+       * inspection card — what makes it THE room card is only this rule:
+       * while you have not KEPT it, the next look at the place you stand
+       * in REBINDS it (you walked; it walked with you), so twenty rooms
+       * at a run leave one card, not twenty.
+       *
+       * ⭐ Kept means pinned, resized, or sent to the tray — the player
+       * did something to say *this one*. A kept room card gives up the
+       * role and stays, an ordinary card about the room it showed, and
+       * the new place gets a new card. Nothing here knows WHY the look
+       * happened: arriving looks, and the look is what inspects.
        */
       const here = MixinApi.isContainable(holder) ? holder.getContainer() : null;
       if (here && here.stuffId === opts.subjectId) {
         const current = this.findRole(interactive, 'here');
-        if (current) {
+        if (current && !this.isKept(current)) {
           this.rebind(current, opts);
           return current.instanceId;
+        }
+        if (current) {
+          delete current.role;
+          this.syncLive(current);
+          this.pushArranged(current);
         }
         role = 'here';
       } else {
@@ -981,8 +994,8 @@ export default class CardRegistry extends CardRegistryBase {
    * - `minimize` / `restore` toggle the tray.
    * - `close` closes it now (`dismissed`).
    *
-   * A role card cannot be closed or unplaced (`role-card`): the `here`
-   * card goes when its place does, the primary terminal never.
+   * The primary terminal cannot be closed (`primary-terminal`); the
+   * `here` room card closes like any other.
    */
   @CallSecurity(CardApiCallers)
   public arrange(
@@ -997,7 +1010,8 @@ export default class CardRegistry extends CardRegistryBase {
     switch (action) {
       case 'close': {
         if (state.role === 'primary') return { refused: 'primary-terminal' };
-        if (state.role) return { refused: 'role-card' };
+        // The room card closes like any card; the next look at a place
+        // opens a fresh one.
         this.close(interactive, state.instanceId, 'dismissed');
         return { refused: null, instanceId: state.instanceId };
       }
@@ -1061,7 +1075,6 @@ export default class CardRegistry extends CardRegistryBase {
         break;
       }
       case 'unplace':
-        if (state.role === 'here') return { refused: 'role-card' };
         delete state.placed;
         break;
     }
@@ -1119,6 +1132,9 @@ export default class CardRegistry extends CardRegistryBase {
       pinned: state.pinned,
       live: state.live,
       ...(state.placed ? { placed: state.placed } : {}),
+      // Absent = no role: how the client learns a kept room card has
+      // stepped down.
+      ...(state.role ? { role: state.role } : {}),
     };
     holder.onEnvelope(template);
   }
@@ -1244,6 +1260,11 @@ export default class CardRegistry extends CardRegistryBase {
       ...(state.records ? { result: state.records } : {}),
     };
     holder.onEnvelope(template);
+  }
+
+  /** The player has said "this one": pinned it, resized it, or trayed it. */
+  private isKept(state: CardState): boolean {
+    return state.pinned || state.minimized || state.size !== 'unit';
   }
 
   private findRole(interactive: Interactive, role: CardRole): CardState | undefined {

@@ -72,7 +72,6 @@ const ARRANGED: Record<CardArrangeAction, string> = {
 /** How each refusal reads. */
 const REFUSED: Record<string, string> = {
   'unknown-card': 'no open card',
-  'role-card': 'fills a role and cannot be closed or unplaced:',
   'primary-terminal': 'is the primary terminal and cannot be put away:',
 };
 

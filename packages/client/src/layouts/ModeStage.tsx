@@ -2,7 +2,8 @@
  * ModeStage — the stage every desktop mode composes (client-surface D9).
  *
  * ⭐⭐ **Four regions, one geometry, measured in rem**: the PANEL (a region
- * of cards, accordion; the explore panel holds the `here` card), the
+ * of cards, accordion; the explore panel is the NAVIGATOR — where you
+ * are, not what a room looks like: the room is an ordinary card), the
  * TERMINAL COLUMN (the primary terminal at a 42rem text measure, with the
  * MEDIUM slot across its top), and the CARD AREA (a feed at one unit, a
  * workspace at more). A FULL card takes the stage; the terminal drops to
@@ -235,12 +236,12 @@ export function usePanelOpen(): { open: boolean; units: number } {
  * does, and the shipped phone surface (its own design, W6).
  */
 export interface StageConfig {
-  panel: "here" | "subjects" | "tuned" | null;
+  panel: "navigator" | "subjects" | "tuned" | null;
   focal: "video" | "deck" | "subject" | null;
 }
 
 const CONFIG = {
-  explore: { panel: "here", focal: null },
+  explore: { panel: "navigator", focal: null },
   chat: { panel: "subjects", focal: "subject" },
   watchViewer: { panel: "tuned", focal: "video" },
   watchStreamer: { panel: "tuned", focal: "deck" },
@@ -312,17 +313,19 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
     onCommandClick(`cockpit card maximize ${ref}`);
   };
   const medium = placeable.find((c) => c.size === "medium");
-  const here =
-    config.panel === "here"
-      ? placeable.find((c) => c.role === "here" && c.size !== "medium" && c.size !== "full")
-      : undefined;
-  const panelOpen = panelWanted && config.panel !== null && (config.panel !== "here" || here !== undefined);
+  /*
+   * ⭐ The room card is an ORDINARY card in the gallery (owner, 11-01):
+   * looking at a room inspects it like anything else. The explore panel
+   * is the navigator — zone-level, about where you are — and does not
+   * hold the room.
+   */
+  // Until the navigator lands, explore has no panel to show.
+  const panelOpen = panelWanted && config.panel !== null && config.panel !== "navigator";
   const exclude = React.useMemo(() => {
     const ids = new Set<string>();
-    if (panelOpen && here) ids.add(here.instanceId);
     if (primary) ids.add(primary.instanceId);
     return ids;
-  }, [panelOpen, here, primary]);
+  }, [primary]);
 
   // ⭐ The primary's view is the console's active view, so the view
   // editor edits what the terminal shows.
@@ -466,7 +469,6 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
               ‹ collapse
             </PanelToggle>
           </PanelHead>
-          {config.panel === "here" && here ? renderCard(here) : null}
           {config.panel === "subjects" ? (
             <SubjectPanel onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
           ) : null}

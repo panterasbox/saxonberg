@@ -1540,6 +1540,8 @@ export interface CardArrangedEnvelope {
   minimized: boolean;
   pinned: boolean;
   live: boolean;
+  /** The role it fills now; absent = none (a kept room card stepped down). */
+  role?: CardRole;
 }
 
 /** The card went away, and why. */

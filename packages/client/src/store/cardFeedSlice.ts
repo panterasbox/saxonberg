@@ -354,7 +354,7 @@ export interface CardFeedSlice {
    */
   arrangeCardState: (
     instanceId: string,
-    arranged: Pick<CardState, "size" | "placed" | "minimized" | "pinned" | "live">,
+    arranged: Pick<CardState, "size" | "placed" | "minimized" | "pinned" | "live" | "role">,
   ) => void;
   /** The card closed: fade it and say why. */
   closeCard: (instanceId: string, reason: CardCloseReason) => void;
@@ -495,6 +495,8 @@ export const createCardFeedSlice = (
       const next: CardState = { ...card, ...arranged };
       // An absent placement means it flows again.
       if (arranged.placed === undefined) delete next.placed;
+      // An absent role means none: a kept room card stepped down.
+      if (arranged.role === undefined) delete next.role;
       return { cards: { ...s.cards, [instanceId]: next } };
     }),
 

@@ -172,6 +172,7 @@ export function useCardFeed(): void {
         minimized: env.minimized,
         pinned: env.pinned,
         live: env.live,
+        role: env.role,
       });
     };
 

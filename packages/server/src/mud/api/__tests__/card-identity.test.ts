@@ -291,6 +291,35 @@ describe('the room card', () => {
     expect(h.interactive.listCards().filter((c) => c.cardId === 'subject')).toHaveLength(1);
   });
 
+  it('⭐ a KEPT room card stays behind: pinned, resized or trayed, the next room gets a new card', async () => {
+    for (const keep of ['pin', 'grow', 'minimize'] as const) {
+      const h = await makeHarness();
+      const bar = await StuffApi.create(() => new Locale());
+      const street = await StuffApi.create(() => new Locale());
+      const lookHere = (subjectId: string): string | null =>
+        CardApi.open(
+          makeContext(h, { commandText: 'look', verbs: ['look'], opensCard: 'subject' }),
+          'subject',
+          { subjectId },
+        );
+      ContainmentApi.move(h.avatar, bar);
+      const first = lookHere(bar.stuffId)!;
+      if (keep === 'pin') h.interactive.setCardPinned(first, true);
+      else h.interactive.arrangeCard(first, keep);
+      ContainmentApi.move(h.avatar, street);
+      const second = lookHere(street.stuffId);
+      expect(second, keep).not.toBe(first);
+      const cards = h.interactive.listCards().filter((c) => c.cardId === 'subject');
+      expect(cards, keep).toHaveLength(2);
+      // The kept one is an ordinary card about the bar now; the new one is the room card.
+      expect(cards.find((c) => c.instanceId === first)?.role, keep).toBeUndefined();
+      expect(cards.find((c) => c.instanceId === second)?.role, keep).toBe('here');
+      // …and the client heard the old one step down.
+      const stepped = h.ofType('card-arranged').filter((a) => a.instanceId === first).at(-1);
+      expect(stepped?.role, keep).toBeUndefined();
+    }
+  });
+
   /**
    * ⚠⚠ **The guard that keeps `place` from growing back.**
    *

@@ -415,7 +415,7 @@ export function Card({
             >
               <X size={14} aria-hidden="true" />
             </IconButton>
-          ) : card.role === undefined ? (
+          ) : card.role !== "primary" ? (
             <IconButton
               data-testid="card-close"
               title={`Close — ${close}`}
