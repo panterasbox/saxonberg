@@ -73,6 +73,17 @@
 
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { LandUses } from '@saxonberg/server/mud/lib/parcel/LandUse';
+import {
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+  SOIL_ORGANIC_MATTER_RESERVE_KEY,
+  SOIL_STRUCTURE_RESERVE_KEY,
+} from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
@@ -222,6 +233,10 @@ export default class Tract extends TractBase {
       // only `CultivableMixin` before, so a tract afforded nothing.
       'platform/cmd/bulk/feed.yaml',
       'trade/farming/cmd/farming/mow.yaml',
+      // ⭐ The holder's half (tracts build D29): marking fields on the
+      // tract and taking them up again.
+      'trade/farming/cmd/farming/mark.yaml',
+      'trade/farming/cmd/farming/unmark.yaml',
     ],
   };
 
@@ -236,6 +251,7 @@ export default class Tract extends TractBase {
     _ambientK: { persistent: true, runtimeState: true },
     _daylightFraction: { persistent: true, runtimeState: true },
     fields: { persistent: true, authorable: true },
+    remainderSizedM2: { persistent: true, runtimeState: true },
   };
 
   /**
@@ -248,6 +264,13 @@ export default class Tract extends TractBase {
    * (`groundPart: top-end`); a name may change.
    */
   public fields: FieldSpec[] = [];
+
+  /**
+   * Square metres the tract's OWN soil is sized to — its unmarked ground
+   * when it was last resized (D27). Kept so the reserve can follow the
+   * remainder up and down, and back from nothing when the fields tiled it.
+   */
+  public remainderSizedM2 = 0;
 
   /**
    * ⭐ **D88 — holders name their tracts.** Real farms always have: the
@@ -388,7 +411,7 @@ export default class Tract extends TractBase {
     model: GroundCharacter | null,
     seed: number,
     fieldSample: GroundSample,
-    swardStart: number = SWARD_RESIDUAL_FRACTION,
+    swardStart?: number,
   ): Promise<void> {
     const specs = this.fields.filter((p) => p && typeof p.key === 'string' && p.key);
     if (specs.length === 0) return;
@@ -404,12 +427,18 @@ export default class Tract extends TractBase {
           }
           this.addFixture(minted, fieldSlot(spec.key));
           field = minted as unknown as Stuff & Field;
+          // ⭐ Its own record, keyed under this tract (D26): a field marked
+          // last week comes back with its soil and its herd.
+          await this.restoreField(field, spec.key);
         }
         field.configureField(spec, areas[i] ?? 0, this.legumeFraction);
         field.installFromTract(
           GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean),
           fieldSample,
-          swardStart,
+          // ⭐ An AUTHORED field is kept pasture (cover build): its grass
+          // starts as a good even cover; a field just marked starts at the
+          // residual of the ground it was cut from.
+          swardStart ?? (spec.marked ? SWARD_RESIDUAL_FRACTION : AUTHORED_SWARD_START),
         );
       } catch (err) {
         console.warn(
@@ -419,6 +448,56 @@ export default class Tract extends TractBase {
         );
       }
     }
+  }
+
+  /**
+   * Restore a freshly minted field's own record, or seed it (D26). ⚠ The
+   * record store may be absent (a unit test, a boot before the
+   * connection): the field still stands, fresh, and the miss is said.
+   */
+  private async restoreField(field: Stuff & Field, key: string): Promise<void> {
+    try {
+      await PersistableApi.restoreOrSeed(field, `${this.groundPath()}/${key}`);
+    } catch (err) {
+      console.warn(
+        `Tract: field '${key}' of ${this.groundPath()} kept no record — ` +
+          `${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  /**
+   * The path the parcel registry knows this tract by — a holding's keyed
+   * copy by its key (`<extent>/<leaf>`), the one authored tract by its
+   * row. Its fields are keyed under it.
+   */
+  public groundPath(): string {
+    const keyed = this.isPersistenceKeyExplicit() ? this.getPersistenceKey() : null;
+    return keyed ?? this.getTemplatePath() ?? '';
+  }
+
+  /** The records this tract owns: its fields (D26). */
+  public override dependentPersistables(): (Stuff & Persistable)[] {
+    return this.getFields() as unknown as (Stuff & Persistable)[];
+  }
+
+  /**
+   * ⭐ A restored tract's fields — the ones marked at runtime arrive with
+   * its record — are stood up, each restoring its own (D26).
+   */
+  public override async onRestored(): Promise<void> {
+    await super.onRestored();
+    await this.standUpFields();
+  }
+
+  /** Resolve this tract's ground and mint, size and restore its fields. */
+  public async standUpFields(): Promise<void> {
+    const locality = await AddressApi.resolveLocalityFor(
+      this as unknown as Stuff & Container,
+    );
+    const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
+    const model = await GroundCharacter.forZone(this.getZone());
+    await this.ensureFields(model, seed, this.groundSample(model, seed));
   }
 
   /** The field in `field:<key>`, or `null`. */
@@ -444,6 +523,207 @@ export default class Tract extends TractBase {
   public override sowingRefusal(): string | null {
     if (this.getFields().length > 0) return null;
     return 'Mark a field first — nothing is planted on unmarked ground.';
+  }
+
+  // ---------- ⭐ marking fields (tracts build D29) ----------
+
+  /**
+   * ⭐ **Mark a field** on this tract, or move the line of one it has: the
+   * act behind `mark <name> [as <share>]`. `share` is a fraction of the
+   * tract; `null` is *the rest* of its unmarked ground. Refused, in this
+   * order and in words: not yours; zoned for less than fields; never
+   * measured; more than is left; a crop standing across the line.
+   */
+  public async markField(giver: Stuff, name: string, share: number | null): Promise<MarkOutcome> {
+    const gate = await this.markingRefusal(giver);
+    if (gate) return gate;
+    const key = fieldKeyOf(name);
+    if (!key) return { ok: false, reason: 'no-name', line: 'Mark a field called what?' };
+    const spec = this.fields.find((f) => f.key === key);
+    const marked = this.fields.reduce((n, f) => n + (Number(f.share) || 0), 0);
+    const free = Math.max(0, 1 - marked + (spec ? Number(spec.share) || 0 : 0));
+    const wanted = share ?? free;
+    const tract = this.presentationPhrase().definite();
+    if (!(wanted > SHARE_SLACK)) {
+      return { ok: false, reason: 'all-marked', line: `Every yard of ${tract} is marked already.` };
+    }
+    if (wanted > free + SHARE_SLACK) {
+      return {
+        ok: false,
+        reason: 'over-the-whole',
+        line: `Only ${shareWords(free)} of ${tract} is unmarked.`,
+      };
+    }
+    const fixed = Math.min(1, wanted);
+    if (spec) {
+      const field = this.fieldByKey(key);
+      const crop = field?.cropsOn()[0] ?? null;
+      if (crop) {
+        return {
+          ok: false,
+          reason: 'crop-stands',
+          line: `You cannot move a boundary through ${crop.getPresentation().replace(/^(a|an|the) /, '').replace(/^stand of /, 'standing ')}.`,
+        };
+      }
+      this.fields = this.fields.map((f) => (f.key === key ? { ...f, share: fixed } : f));
+      field?.resizeTo(fixed * this.areaM2);
+      this.followRemainder();
+      await this.captureFields();
+      return {
+        ok: true,
+        line: `You move the stakes: ${field ? field.presentationPhrase().definite() : name} is ${shareWords(fixed)} of ${tract} now.`,
+      };
+    }
+    const before = this.soilFractions();
+    this.fields = [...this.fields, { key, name, share: fixed, marked: true }];
+    await this.standUpFields();
+    const field = this.fieldByKey(key);
+    // ⭐ The new field carries the ground's history (D29): its soil starts
+    // where the unmarked ground stood, never fresh.
+    field?.adoptSoilOf((k) => before[k] ?? null);
+    this.followRemainder();
+    await this.captureFields();
+    return {
+      ok: true,
+      line: `You pace out ${field ? field.presentationPhrase().definite() : name} — ${shareWords(fixed)} of ${tract} — and set a stake at each corner.`,
+    };
+  }
+
+  /**
+   * ⭐ **Take a field's stakes up**: its ground goes back into the unmarked
+   * remainder, its soil folded in by area, its record deleted. Refused
+   * when it is not yours, or while a crop stands in it.
+   */
+  public async unmarkField(giver: Stuff, field: Stuff & Field): Promise<MarkOutcome> {
+    const gate = await this.markingRefusal(giver, false);
+    if (gate) return gate;
+    const crop = field.cropsOn()[0] ?? null;
+    if (crop) {
+      return {
+        ok: false,
+        reason: 'crop-stands',
+        line: `${capitalize(crop.getPresentation())} stands in ${field.presentationPhrase().definite()}. Cut it or grub it out first.`,
+      };
+    }
+    const name = field.presentationPhrase().definite();
+    const fieldArea = field.getAreaM2();
+    const remainderBefore = this.soilRemainderAreaM2();
+    const mine = this.soilFractions();
+    const theirs: Partial<Record<string, number>> = {};
+    for (const k of SOIL_FOLD_KEYS) {
+      const f = field.soilReserveFraction(k);
+      if (f !== null) theirs[k] = f;
+    }
+    const key = field.getFieldKey();
+    const record = field.getPersistenceKey();
+    this.fields = this.fields.filter((f) => f.key !== key);
+    field.markForRevert();
+    await StuffApi.destruct(field);
+    if (record) {
+      try {
+        await PersistableApi.deleteAllFor(record);
+      } catch (err) {
+        console.warn(`Tract.unmarkField: record '${record}' not deleted —`, err);
+      }
+    }
+    // The remainder grows by the field's ground and takes its soil in,
+    // area-weighted — or, when the fields had tiled the tract, IS it.
+    const after = remainderBefore + fieldArea;
+    if (!this.hasReserve(SOIL_MOISTURE_RESERVE_KEY) || !(this.remainderSizedM2 > 0)) {
+      const sample = this.lastSample;
+      if (sample) this.installSoilReserves(sample, after / Math.max(1, this.areaM2));
+      this.remainderSizedM2 = after;
+    } else {
+      this.followRemainder();
+    }
+    for (const k of SOIL_FOLD_KEYS) {
+      const a = mine[k];
+      const b = theirs[k];
+      const mixed =
+        a === undefined || !(remainderBefore > 0)
+          ? b
+          : b === undefined
+            ? a
+            : (a * remainderBefore + b * fieldArea) / Math.max(1, after);
+      if (mixed !== undefined) this.setSoilReserveFraction(k, mixed);
+    }
+    await this.captureFields();
+    return {
+      ok: true,
+      line: `You pull up the stakes. ${capitalize(name)} goes back into the rest of ${this.presentationPhrase().definite()}.`,
+    };
+  }
+
+  /**
+   * Who may mark here and whether the ground takes fields at all (D29):
+   * whoever may sow it — the holder, or a hand on shift for the business
+   * that works it — and only on ground zoned for fields. Unparcelled
+   * ground is not policed (the sowing gate's rule); an unmeasured tract
+   * cannot be divided.
+   */
+  private async markingRefusal(giver: Stuff, askZoning = true): Promise<MarkOutcome | null> {
+    const where = this.groundPath();
+    const covering = await ParcelApi.coveringParcelOf(where);
+    if (covering) {
+      const extent = covering.getExtent();
+      const held = await AccessApi.heldExtents(giver);
+      const holder = held.some((e) => extent === e || extent.startsWith(`${e}/`));
+      const hand =
+        !holder &&
+        MixinApi.isEmployed(giver) &&
+        EmploymentApi.operatorsAt(this as unknown as Stuff).some((b) =>
+          giver.isOnShiftFor(b.getOrganizationPath()),
+        );
+      if (!holder && !hand) {
+        return { ok: false, reason: 'not-held', line: 'This is not your ground to divide.' };
+      }
+      if (askZoning && ParcelApi.cultivationScaleAt(where) !== 'field') {
+        const use = ParcelApi.landUseOf(where);
+        const takes = LandUses.permitsAnyCultivation(use)
+          ? 'takes beds, not fields'
+          : 'takes no cultivation at all';
+        return {
+          ok: false,
+          reason: 'zoned-against-fields',
+          line: `${capitalize(this.presentationPhrase().definite())} is zoned ${use} — ${LandUses.summaryOf(use)} — and ${takes}.`,
+        };
+      }
+    }
+    if (askZoning && !(this.areaM2 > 0)) {
+      return {
+        ok: false,
+        reason: 'unmeasured',
+        line: 'This ground has never been measured; nobody can say what a third of it is.',
+      };
+    }
+    return null;
+  }
+
+  /** The tract's own soil follows its unmarked ground's size (D27). */
+  private followRemainder(): void {
+    const now = this.soilRemainderAreaM2();
+    if (!(now > 0) || !(this.remainderSizedM2 > 0)) return;
+    this.resizeSoilReserves(now / this.remainderSizedM2);
+    this.remainderSizedM2 = now;
+  }
+
+  /** The unmarked ground's soil fractions, unreconciled. */
+  private soilFractions(): Partial<Record<string, number>> {
+    const out: Partial<Record<string, number>> = {};
+    for (const k of SOIL_FOLD_KEYS) {
+      const f = this.soilReserveFraction(k);
+      if (f !== null) out[k] = f;
+    }
+    return out;
+  }
+
+  /** Write the tract and so its fields (D26) — a mark is kept at once. */
+  private async captureFields(): Promise<void> {
+    try {
+      await PersistableApi.capture(this as unknown as Stuff);
+    } catch (err) {
+      console.warn('Tract: capture after marking failed —', err);
+    }
   }
 
   /**
@@ -1017,7 +1297,10 @@ export default class Tract extends TractBase {
     const remainder = this.getFields().length === 0
       ? this.areaM2
       : this.soilRemainderAreaM2();
-    if (remainder > 0) this.installSoilReserves(sample, remainder / this.areaM2);
+    if (remainder > 0 && !this.hasReserve(SOIL_MOISTURE_RESERVE_KEY)) {
+      this.installSoilReserves(sample, remainder / this.areaM2);
+      this.remainderSizedM2 = remainder;
+    }
     // Learn where — and when — it is, the moment it exists.
     void this.restampSeason();
   }
@@ -1053,7 +1336,7 @@ export default class Tract extends TractBase {
     // sample nudged by its lean.
     // ⭐ An AUTHORED tract's fields are kept pasture, not rough ground just
     // broken (cover build): their grass starts as a good even cover.
-    await this.ensureFields(model, seed, sample, AUTHORED_SWARD_START);
+    await this.ensureFields(model, seed, sample);
     this.installTractReserves(sample);
     // ⭐ And it is KEPT ground (cover build B37): a ley, a pasture, a cane
     // piece — cleared long ago, so its clearing starts done. Draining and
@@ -1102,6 +1385,8 @@ export interface FieldSpec {
   share: number;
   /** This field's clover share; the tract's authored one when absent. */
   legumeFraction?: number;
+  /** Marked by a holder (`mark`), not authored — its grass starts rough. */
+  marked?: boolean;
   lean?: GroundLean;
   description?: string;
 }
@@ -1165,4 +1450,51 @@ function dailyMeanClimate(site: ClimateSite, atS: number): number {
     sum += WeatherApi.climateAt(site, Quantity.of(atS + h * 3_600, 's')).rawValue();
   }
   return sum / 4;
+}
+
+/** What `mark` and `unmark` come back with — a line either way. */
+export type MarkOutcome =
+  | { ok: true; line: string }
+  | { ok: false; reason: string; line: string };
+
+/** Shares within this of each other are the same share. */
+const SHARE_SLACK = 1e-3;
+
+/** The soil reserves a field takes from, and folds back into, its tract. */
+const SOIL_FOLD_KEYS = [
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+  SOIL_ORGANIC_MATTER_RESERVE_KEY,
+  SOIL_STRUCTURE_RESERVE_KEY,
+] as const;
+
+/** A field's stable key from the name it was marked with. */
+function fieldKeyOf(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/^the\s+/, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+const SHARE_WORDS: ReadonlyArray<[number, string]> = [
+  [1, 'all'],
+  [3 / 4, 'three-quarters'],
+  [2 / 3, 'two-thirds'],
+  [1 / 2, 'half'],
+  [1 / 3, 'a third'],
+  [1 / 4, 'a quarter'],
+  [1 / 5, 'a fifth'],
+  [1 / 6, 'a sixth'],
+  [1 / 8, 'an eighth'],
+  [1 / 10, 'a tenth'],
+];
+
+/** A share in the words a farmer says it; a per cent when there are none. */
+function shareWords(fraction: number): string {
+  for (const [v, words] of SHARE_WORDS) {
+    if (Math.abs(fraction - v) < 0.01) return words;
+  }
+  return `${Math.round(fraction * 100)} per cent`;
 }

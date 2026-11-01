@@ -351,9 +351,9 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(ground, ground).toMatch(/scraped patch/i);
   });
 
-  it('⭐ 6. mark the field: the grid is scored', async () => {
-    const said = await say('mark');
-    console.info(`  mark: ${said.slice(0, 200)}`);
+  it('⭐ 6. groove the field: the grid is cut', async () => {
+    const said = await say('groove');
+    console.info(`  groove: ${said.slice(0, 200)}`);
     const ground = await k.prose('look ground');
     expect(ground, ground).toMatch(/marked grid/i);
   });
@@ -384,7 +384,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     console.info(`  fish (hole): ${refusal(fishAgain)} — ${again.slice(0, 160)}`);
     expect(again, again).not.toMatch(/frozen|through the ice/i);
     // A second scraped patch for the reading after the cold (drive 5):
-    // `mark` took the first one for its grid.
+    // `groove` took the first one for its grid.
     await say('scrape');
     const swim = await k.cmd('swim');
     console.info(`  swim (into the channel): ${refusal(swim)} — ${(await swim.said()).slice(0, 160)}`);
@@ -451,8 +451,8 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     // ⭐ The house BUYS a cutter's block (the review): back out for a
     // second block, and sell it — the bid paid into the account, the block
     // onto the stack on the house's claim.
-    // ⚠ No second `mark`: a grid survives a cut (the cut takes one block's
-    // area), and a `mark` here would grid the patch step 8 scraped for the
+    // ⚠ No second `groove`: a grid survives a cut (the cut takes one block's
+    // area), and a `groove` here would grid the patch step 8 scraped for the
     // day-11 reading.
     await goto(SHORE);
     expectOk(await k.cmd('north'));

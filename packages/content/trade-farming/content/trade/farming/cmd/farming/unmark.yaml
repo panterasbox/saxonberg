@@ -1,0 +1,23 @@
+verbs: [unmark]
+controller: /trade/farming/idea/cmd/farming/UnmarkController
+description: "Take up a field's stakes"
+help: |
+  Take a field's stakes up: its ground goes back into the tract's
+  unmarked ground, and what was done to its soil goes with it. You
+  cannot take up a field with a crop standing in it.
+
+  To rename a field, take it up and mark it again.
+examples:
+  - cmd: unmark the barley field
+    note: Its ground goes back to the rest of the tract
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # ⭐ The arg gate: only ground answers (a field is a soil fixture).
+  - name: field
+    type: object
+    required: true
+    greedy: true
+    scope: ["reachable"]
+    requires: SoilMixin

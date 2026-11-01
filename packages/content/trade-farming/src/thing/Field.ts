@@ -21,9 +21,10 @@
  *    `field:<key>`), never loose contents, never carried (the
  *    Adornment-not-portable invariant fires at `ContainmentApi.move`),
  *    targetable by its name (`look at the top end`) because a fixture is a
- *    peer candidate. Its runtime state — reserves, soil and sward stamps,
- *    the crop stamps and the grazing ledger — rides the TRACT's record
- *    through the fixtures slice.
+ *    peer candidate. ⭐ It keeps its OWN record (tracts build D26), keyed
+ *    `<tract key>/<field key>` — reserves, soil and sward stamps, the crop
+ *    stamps and the grazing ledger — which the tract's capture walks
+ *    (`dependentPersistables`) and its unmarking deletes.
  *  - ⭐ **The grass is the field's** (tracts build D24, D34): a herd
  *    grazes a field, a crop shades one field's sward and not its
  *    neighbor's, and the nitrogen dung puts back lands where the herd
@@ -64,7 +65,16 @@ import {
   CharacteredSoilMixin,
   CROP_TRANSPIRATION_L_PER_M2_DAY,
 } from '../lib/CharacteredSoil';
-import { SwardMixin, SWARD_RESIDUAL_FRACTION } from '../lib/Sward';
+import { SwardMixin, SWARD_RESIDUAL_FRACTION, SWARD_RESERVE_KEY } from '../lib/Sward';
+import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import {
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+  SOIL_ORGANIC_MATTER_RESERVE_KEY,
+  SOIL_STRUCTURE_RESERVE_KEY,
+} from '@saxonberg/server/mud/lib/husbandry/Soil';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Tract, { type FieldSpec } from '../location/Tract';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
@@ -74,6 +84,14 @@ const DEPTH_FACTOR_MIN = 0.2;
 const DEPTH_FACTOR_MAX = 2;
 
 const SECONDS_PER_GAME_DAY = 86_400;
+
+/** The soil reserves a field carries from, and folds back into, its tract. */
+const SOIL_FRACTION_KEYS = [
+  SOIL_MOISTURE_RESERVE_KEY,
+  SOIL_NITROGEN_RESERVE_KEY,
+  SOIL_ORGANIC_MATTER_RESERVE_KEY,
+  SOIL_STRUCTURE_RESERVE_KEY,
+] as const;
 
 /**
  * Game-days a ploughed seedbed stays fit to sow (cover build D4) — about
@@ -165,7 +183,10 @@ function fieldAugmenter(text: string, host: Stuff, viewer: Stuff): string {
 // generic mixin factories in one expression collapses (the `Tract`
 // precedent).
 const FieldGround = SoilMixin(ReservedMixin(AdornmentMixin(VisibleMixin(Thing))));
-const FieldBase = SwardMixin(CharacteredSoilMixin(FieldGround));
+// ⭐ `PersistableMixin` outermost (tracts build D26): a field keeps its OWN
+// `(scope, key)` record, keyed under its tract, so a field marked at
+// runtime survives a restart and dies with its unmarking.
+const FieldBase = PersistableMixin(SwardMixin(CharacteredSoilMixin(FieldGround)));
 
 export default class Field extends FieldBase {
   /** The ground, the crop on it, the grass and the herds, in words. */
@@ -401,6 +422,43 @@ export default class Field extends FieldBase {
     );
     if (material) this.setMaterial(material);
     this.settleSoilPlacement();
+  }
+
+  /**
+   * ⭐ Change size keeping every fraction (tracts build D27): a field's
+   * line moved. The soil's litres and the grass's kilos scale with the
+   * ground; the per-cent reserves are fractions already.
+   */
+  public resizeTo(areaM2: number): void {
+    const before = this.areaM2;
+    this.setAreaM2(areaM2);
+    if (!(before > 0) || !(areaM2 > 0)) return;
+    const ratio = areaM2 / before;
+    this.resizeSoilReserves(ratio);
+    const sward = this.getReserve(SWARD_RESERVE_KEY);
+    if (sward) {
+      this.setReserve(
+        new Reserve(
+          SWARD_RESERVE_KEY,
+          Quantity.of(sward.capacity.rawValue() * ratio, 'kg'),
+          Quantity.of(sward.current.rawValue() * ratio, 'kg'),
+          'cultivation',
+          null,
+        ),
+      );
+    }
+  }
+
+  /**
+   * ⭐ A field marked on ground that already had a history takes that
+   * history with it (tracts build D29): its soil starts at the fractions
+   * the tract's unmarked ground stood at, never fresh.
+   */
+  public adoptSoilOf(fractionOf: (key: string) => number | null): void {
+    for (const key of SOIL_FRACTION_KEYS) {
+      const f = fractionOf(key);
+      if (f !== null) this.setSoilReserveFraction(key, f);
+    }
   }
 
   // ---------- reads ----------

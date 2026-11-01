@@ -3247,6 +3247,36 @@ steps green; the field-population drive green; `pnpm -C packages/content/trade-r
 
 ### W3 — `mark`, `unmark`, the look from the gate, and the ice's `score`
 
+> ✅ **Done 2026-10-31.** Notes for review:
+> - `Field` is `PersistableMixin` outermost; its record is keyed
+>   `<tract groundPath>/<fieldKey>` (`groundPath` = the explicit key of a
+>   keyed copy, else the row path — the sowing gate's own rule).
+>   `ensureFields` restores a freshly minted field at once; the tract's
+>   `onRestored` stands up runtime-marked specs; `dependentPersistables`
+>   makes the tract's capture write every field.
+> - ⚠ A field restored from its record reconciles the unobserved gap the
+>   moment it is minted — its grass drinks through the days nobody looked.
+>   Correct, and the reason the R4 test now restarts at the same moment.
+> - `markField` / `unmarkField` live on the tract and word every line;
+>   the controllers are dumb. A new field ADOPTS the unmarked ground's
+>   soil fractions (never fresh); unmarking folds the field back in by
+>   area and deletes its record. `Tract.remainderSizedM2` lets the
+>   tract's own soil follow the remainder down, and back up from nothing
+>   when the fields had tiled it. `FieldSpec.marked` = a holder's mark
+>   (grass starts at the residual); authored fields start as kept pasture.
+> - Title gate: the holder, or a hand on shift for the business that
+>   works the tract (the sowing gate). Zoning: below `field` →
+>   *"… is zoned residential — dwelling, companions and small cultivation
+>   — and takes beds, not fields."*; `wild` → *"takes no cultivation at
+>   all"*. Unparcelled ground is not policed. Unmark asks no zoning.
+> - `Share` (pack `lib/` value object) is constructed, never a static
+>   parser (`lib/` statics are ratcheted).
+> - Ice: `mark` → ⚠ **`groove`, not the planned `score`** — `score` is
+>   already a platform verb (`social/score`, `lint:verb-collisions`), and
+>   an ice plough historically GROOVED the ice. View, controller class +
+>   row, `IceMarker`'s affordance, the two brains' forced commands, help,
+>   tests, the storage-and-ice soak drive. `cut marked` keeps its word.
+
 **Goal.** The player's half: marking fields on a tract, with every
 refusal; a field keeps its own record; a tract reads from the yard.
 

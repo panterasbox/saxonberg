@@ -1,5 +1,5 @@
 # The hand marker — a toothed iron runner pushed across the ice to score a
-# grid of thirty-centimetre squares for the saw to follow (`mark`). The
+# grid of thirty-centimetre squares for the saw to follow (`groove`). The
 # rung below the horse-drawn ice plough: the same act, a smaller grid.
 class: /trade/ice/thing/IceMarker
 data:

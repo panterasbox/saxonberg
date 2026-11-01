@@ -76,6 +76,9 @@ export interface CharacteredSoil {
    * Idempotent.
    */
   installSoilReserves(sample: GroundSample, depthFactor?: number): void;
+  resizeSoilReserves(ratio: number): void;
+  soilReserveFraction(key: string): number | null;
+  setSoilReserveFraction(key: string, fraction: number): void;
 }
 
 export function CharacteredSoilMixin<
@@ -136,6 +139,54 @@ export function CharacteredSoilMixin<
      * carried, because a reserve is *state* and re-installing would erase
      * the history the whole ledger exists to keep.
      */
+    /**
+     * ⭐ Change size keeping every fraction (tracts build D27): the one
+     * EXTENSIVE reserve — the moisture, in litres — scales by `ratio`,
+     * capacity and current alike; the per-cent reserves are fractions of
+     * the ground already and do not move. What marking, resizing and
+     * unmarking a field does to the ground on either side of the line.
+     */
+    public resizeSoilReserves(ratio: number): void {
+      if (!Number.isFinite(ratio) || ratio <= 0 || ratio === 1) return;
+      const host = this as unknown as Stuff & Reserved;
+      const r = host.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      if (!r) return;
+      host.setReserve(
+        new Reserve(
+          SOIL_MOISTURE_RESERVE_KEY,
+          Quantity.of(r.capacity.rawValue() * ratio, 'L'),
+          Quantity.of(r.current.rawValue() * ratio, 'L'),
+          SOIL_RESERVE_THEME,
+          null,
+        ),
+      );
+    }
+
+    /** How full a soil reserve is `[0, 1]`, unreconciled; `null` when absent. */
+    public soilReserveFraction(key: string): number | null {
+      const r = (this as unknown as Stuff & Reserved).getReserve(key);
+      if (!r) return null;
+      const cap = r.capacity.rawValue();
+      return cap > 0 ? r.current.rawValue() / cap : null;
+    }
+
+    /** Set a soil reserve to `fraction` of its capacity (no-op when absent). */
+    public setSoilReserveFraction(key: string, fraction: number): void {
+      const host = this as unknown as Stuff & Reserved;
+      const r = host.getReserve(key);
+      if (!r || !Number.isFinite(fraction)) return;
+      const f = fraction < 0 ? 0 : fraction > 1 ? 1 : fraction;
+      host.setReserve(
+        new Reserve(
+          key,
+          r.capacity,
+          Quantity.of(r.capacity.rawValue() * f, r.capacity.unit),
+          SOIL_RESERVE_THEME,
+          null,
+        ),
+      );
+    }
+
     public installSoilReserves(sample: GroundSample, depthFactor = 1): void {
       const host = this as unknown as Stuff & Reserved;
       if (!host.hasReserve(SOIL_MOISTURE_RESERVE_KEY)) {

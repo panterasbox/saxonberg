@@ -401,7 +401,7 @@ describe('a tract divided into fields', () => {
   });
 });
 
-describe('⭐ R4 — a field survives a restart on its tract\'s record', () => {
+describe('⭐ R4 / D26 — a field survives a restart on its OWN record', () => {
   let snapshots: Record<string, unknown>[];
   let clock: ReturnType<typeof vi.spyOn>;
   let base: number;
@@ -450,7 +450,7 @@ describe('⭐ R4 — a field survives a restart on its tract\'s record', () => {
     vi.restoreAllMocks();
   });
 
-  it("⭐ the field's reserves and soil stamps come back onto the re-minted field", async () => {
+  it("⭐ the field's reserves and soil stamps come back onto the re-minted field, from its own key", async () => {
     const PATH = '/world/test/kept-tract';
     const f = await markedTract(1000, PATH);
     const top = field(f, 'top-end');
@@ -462,21 +462,22 @@ describe('⭐ R4 — a field survives a restart on its tract\'s record', () => {
     expect(stamp).toBeGreaterThan(0);
 
     await PersistableApi.capture(f);
+    // ⭐ The tract's capture wrote each field under its own key (D26).
+    expect(snapshots.some((d) => d.owner === `${PATH}/top-end`)).toBe(true);
 
-    // The world restarts: the tract is re-minted, its onCreate mints fresh
-    // fields (half-full, unstamped), and the record overlays them.
+    // The world restarts: the tract is re-minted, and minting each field
+    // restores that field's own record.
     StuffApi.unregister(top);
     StuffApi.unregister(field(f, 'lane-end'));
     StuffApi.unregister(f);
-    // Two days later: the fresh field stamps ITS window at the new now, so
-    // only the record can give back the old stamp.
-    clock.mockReturnValue(Quantity.of(base + 5 * DAY, 's'));
+    // ⚠ At the same moment: a field restored from its record reconciles
+    // the unobserved gap the instant it is minted (its grass drinks), so a
+    // later restart would honestly read drier than 7.
     const reborn = await markedTract(1000, PATH);
     const freshTop = field(reborn, 'top-end');
     expect(freshTop).not.toBe(top);
-    expect(freshTop.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).not.toBe(7);
-    expect(freshTop.soilClockStamp).not.toBe(stamp);
 
+    // The tract's own restore does not clobber what the field brought back.
     await PersistableApi.materialize(reborn);
 
     expect(freshTop.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBe(7);
