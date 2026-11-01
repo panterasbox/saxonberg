@@ -1,0 +1,30 @@
+# Abel Pell, shipwright (harbors B2) — keeps the boat shed and builds the
+# smack the yard sells; stationed at the shed on the roster's day.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Abel Pell
+  keywords: [abel, pell, shipwright]
+  pronouns: he
+  shortDescription: shipwright
+  register: definite
+  longDescription: >-
+    A broad, slow-moving man with an adze through his belt and shavings in
+    his beard, who runs a hand along a plank before he says anything about
+    it.
+  archetype: proprietor
+  prologue:
+    - "Served his time in a yard down the coast and came up the river with his tools in a sea chest."
+    - "Builds one kind of boat, the smack, because it is the one he can build honestly."
+  competence:
+    - { discipline: navigation, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 20 }
+    - { disposition: composure, valence: 70 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

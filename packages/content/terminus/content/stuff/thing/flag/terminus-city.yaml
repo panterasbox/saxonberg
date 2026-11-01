@@ -1,0 +1,13 @@
+# A Terminus ensign (harbors P16) — the city's colors as cloth. On a ship's
+# flagstaff it is the flag she flies; struck (`get flag`), she flies none.
+class: /platform/thing/Flag
+data:
+  shortDescription: Terminus ensign
+  keywords: [flag, ensign, colors, "terminus ensign"]
+  register: indefinite
+  longDescription: >-
+    A square of gray bunting with a white tower sewn over three wavy bars of
+    blue, its hoist bound with tarred line.
+  _materialPath: /stuff/idea/material/textile/wool
+  _brandKey: flag-terminus-city
+  mass: 0.4

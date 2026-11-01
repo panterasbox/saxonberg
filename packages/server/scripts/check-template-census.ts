@@ -240,6 +240,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // ⭐ (harbors A3) A charter book's `payTo` — the venue its days are
     // paid into; a rowless one is a charter whose bill settles nowhere.
     'payTo',
+    // ⭐ (harbors B2) A government's `shipRegister` — the register row it
+    // keeps; a rowless one is a polity whose yard sells a ship into nothing.
+    'shipRegister',
   ] as const) {
     push(f, data[f]);
   }
@@ -963,6 +966,12 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // that is not a live Container — so a dangling vault serves NOTHING
   // rather than everything, failing closed exactly like the extents above.
   '_vaultPaths',
+  // ⭐ (harbors B2) A register's `registerOwner` / `registerPrefix` name
+  // DOCUMENT-tree branches (`/platform`, `/platform/ships/<gov>`), checked by
+  // `DocumentApi.saveToRegister` — never template rows, so there is no row
+  // for them to dangle from.
+  'registerOwner',
+  'registerPrefix',
   // ⭐ A blood unit's donor key is a durable PARTY id — an identity path
   // (a person) for a drawn unit, an organization path for an institutional
   // one, and '' for an unattributed bag. Like `donorIdentityPath` it keys a

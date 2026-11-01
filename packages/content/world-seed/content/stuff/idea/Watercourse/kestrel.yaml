@@ -78,6 +78,7 @@ data:
     # ⭐ The Port of Terminus (harbors A1): the quays inside the bar, between
     # the reach (estuary-1.2) and the mouth (estuary-0.3); the office is sited
     # by the river (no landing) so a hail from the bar reaches it.
+    - /world/terminus/harbor/yard/quay
     - /world/terminus/harbor/fish-quay
     - /world/terminus/harbor/office
     - /world/terminus/harbor/town-quay

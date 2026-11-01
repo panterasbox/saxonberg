@@ -11,7 +11,7 @@ data:
   _address: terminus/city/harbor/office
   _biomePath: /stuff/idea/biome/indoor/baseline
   longDescription: |
-    One room at the back of the Town Quay with a window onto the river and a signal lamp on the sill. A tall desk faces the window with the berth book open on it, and behind the desk a board of hooks holds tide tables, a telescope in a leather case, and a printed notice of the harbor's dues.
+    One room at the back of the Town Quay with a window onto the river and a signal lamp on the sill. A tall desk faces the window with the berth book open on it and the blue-bound register of ships beside it, and behind the desk a board of hooks holds tide tables, a telescope in a leather case, and a printed notice of the harbor's dues.
 
     The quay is north, through the open door.
   coords: { x: 0, y: -1, z: 0 }
@@ -22,6 +22,8 @@ data:
   frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.55,left", landing: false }
   props:
     - /world/terminus/harbor/thing/berth-book
+    # ⭐ The city's register of ships (harbors P14): `read register`.
+    - /world/terminus/harbor/thing/register
   cast:
     - /world/terminus/harbor/agent/harbormaster
   details:

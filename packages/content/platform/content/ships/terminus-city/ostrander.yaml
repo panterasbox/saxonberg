@@ -1,0 +1,14 @@
+# The Ostrander's entry (harbors P14) — the city's public river steamer,
+# owned by the city itself: all sixty-four shares stand in the municipal
+# budget's name, so whoever holds the budget's authority appoints her
+# master.
+name: Ostrander
+kind: /world/terminus/ostrander/structure
+key: /world/terminus/ostrander/structure
+flag: terminus-city
+registeredAtS: 0
+house: /world/terminus/ostrander/idea/outfit
+lies: null
+shares:
+  - holder: { kind: organization, path: /world/terminus/budget, name: the City of Terminus }
+    shares: 64

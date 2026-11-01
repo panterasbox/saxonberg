@@ -1,0 +1,12 @@
+# The colors of the City of Terminus (harbors P16) — a polity's mark, not a
+# trade's: `government:` names whose, and no corpo carries it. Run up a
+# ship's flagstaff it is the flag she flies; her flag STATE is her register.
+class: /platform/idea/corpo/Brand
+data:
+  key: flag-terminus-city
+  name: the colors of the City of Terminus
+  owner: ""
+  government: terminus-city
+  category: colors
+  positioning: civic
+  descriptor: A gray field with a white tower over three blue wavy bars.

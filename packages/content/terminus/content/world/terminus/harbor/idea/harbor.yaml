@@ -29,6 +29,9 @@ data:
   quays:
     - { place: /world/terminus/harbor/town-quay, lengthM: 70, berthDepthM: 1.5 }
     - { place: /world/terminus/harbor/fish-quay, lengthM: 25, berthDepthM: 1.2 }
+    # ⭐ The yard's quay (B2, P17): a smack the yard sells lies here, and owes
+    # dues from the day of sale.
+    - { place: /world/terminus/harbor/yard/quay, lengthM: 15, berthDepthM: 1.2 }
     # ⭐ The Wharfside bank — the harbor works already keeps it. Up a river
     # reach half a meter deep: only river craft are put alongside it.
     - { place: /world/terminus/wharfside/bank, lengthM: 60, berthDepthM: 0.8, maxDraftM: 0.6 }

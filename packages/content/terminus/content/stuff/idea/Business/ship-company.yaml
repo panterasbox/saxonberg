@@ -2,17 +2,17 @@
 # a kind. One `master` seat: whoever holds it commands her, takes her helm
 # and answers for her at a harbor office.
 #
-# ⚠ B1 names this seed row as every smack's house; the yard (B2) mints one
-# company per ship from it (`asIdentityPath …/ship-company/<serial>`, the
-# DrillingOutfit precedent) and the appointing authority becomes her
-# register's managing owner (`kind: register`). Until then the
-# prime-minister's office appoints, as for the line's regulars.
+# ⭐ The SEED of every smack's company (harbors B2): the yard mints one per
+# ship from it (`asIdentityPath …/ship-company/<serial>`, the drilling
+# outfit's precedent), naming HER handle as the authority's ship — so her
+# register's managing owner appoints her master (`kind: register`). The
+# seed itself names no ship, and so nobody appoints at it: it is a shape,
+# not a company.
 class: /platform/idea/Business
 data:
   name: "a ship's company"
   appointingAuthority:
-    kind: office
-    office: prime-minister
+    kind: register
   positions:
     - key: master
       noun: master

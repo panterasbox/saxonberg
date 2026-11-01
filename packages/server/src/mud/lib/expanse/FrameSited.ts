@@ -39,6 +39,8 @@ import { Expanse } from './Expanse';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
+import { ShipRegisterApi } from '../../api/ship-register';
+import { ExpanseApi } from '../../api/expanse';
 import type { MarkupAugmenter } from '../../api/mml';
 import BerthExit from '../../platform/idea/BerthExit';
 
@@ -149,6 +151,17 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       if (!path) return;
       for (const p of await NavigationApi.attachedTo(path, 'craft')) {
         void StuffApi.singleton<Stuff>(p).catch(() => null);
+      }
+      // ⭐ A ship of a KIND is attached to nothing authored (B1): her
+      // register says where she lies (Risk 6), so a landing used after a
+      // restart stands her up, and she re-wires her way as she loads.
+      const here = (this as unknown as Stuff).getTemplatePath();
+      if (!here) return;
+      for (const handle of await ShipRegisterApi.lyingAt(here)) {
+        if (StuffApi.findByDurableHandle(handle) !== null) continue;
+        await ExpanseApi.standUpCraft(handle).catch((err) =>
+          console.warn(`FrameSitedMixin: ${handle}, lying at ${here} by her register, did not stand up:`, err),
+        );
       }
     }
 

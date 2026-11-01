@@ -14,7 +14,7 @@
  * press secretary. So nothing in this file is ever consulted by a
  * do-the-work check — see `mayPublishAs` for the other half.
  *
- * ## The four kinds
+ * ## The five kinds
  *
  * | kind | resolves through | founder passes? |
  * |---|---|---|
@@ -22,6 +22,7 @@
  * | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
  * | `seat` | `GovernmentApi.holdsSeat` | no |
  * | `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one** |
+ * | `register` | `ShipRegisterApi.managingOwnerOf` (the ship's) | only if her managing owner's authority does |
  *
  * ⚠ The *founder passes* column is load-bearing, not trivia. Only `office`
  * and `committee` carry the Art. XI default, so **an authority the founder
@@ -32,14 +33,21 @@
  * ⚠ **There is deliberately no `author` kind.** The operator override is
  * the Prime Minister's SEAT (`isProprietorOf`'s `holdsOffice` arm — the
  * accountable person, never an "author tier"), never an appointing
- * authority in its own right. Four kinds, each with a consumer.
+ * authority in its own right. Five kinds, each with a consumer.
+ *
+ * ⭐ `register` (harbors P12) is a ship's company's: *whoever her register
+ * says owns her appoints her master*. The managing owner (more than half
+ * her shares, else the largest holding) is a player — an identity match —
+ * or an organization, whose OWN appointing authority is then asked (the
+ * Greywater Line's office appoints the Hesper's master). Only ship
+ * companies author it.
  *
  * Types and constants only — the resolver lives in `EmploymentLogic`,
  * where the Api surfaces it can reach live.
  */
 
 /** The discriminator of a {@link PrincipalRef}. */
-export type PrincipalRefKind = 'entity' | 'office' | 'seat' | 'committee';
+export type PrincipalRefKind = 'entity' | 'office' | 'seat' | 'committee' | 'register';
 
 /** The blessed kind vocabulary (validation array). */
 export const PRINCIPAL_REF_KINDS: readonly PrincipalRefKind[] = [
@@ -47,6 +55,7 @@ export const PRINCIPAL_REF_KINDS: readonly PrincipalRefKind[] = [
   'office',
   'seat',
   'committee',
+  'register',
 ] as const;
 
 /** A specific entity, by durable templatePath — the shipped proprietor edge. */
@@ -79,12 +88,20 @@ export interface CommitteePrincipalRef {
   parcel: string;
 }
 
+/** Whoever a ship's register names her managing owner — a ship's company's authority. */
+export interface RegisterPrincipalRef {
+  kind: 'register';
+  /** The ship's durable handle (`<kind>#<serial>`, or an authored ship's row). */
+  ship: string;
+}
+
 /** Who may fill an organization's positions. */
 export type PrincipalRef =
   | EntityPrincipalRef
   | OfficePrincipalRef
   | SeatPrincipalRef
-  | CommitteePrincipalRef;
+  | CommitteePrincipalRef
+  | RegisterPrincipalRef;
 
 /**
  * Coerce a seed / hydrated blob into a {@link PrincipalRef}, or `null`
@@ -124,6 +141,10 @@ export class Authority {
       case 'committee':
         return typeof r.parcel === 'string' && r.parcel.length > 0
           ? { kind: 'committee', parcel: r.parcel }
+          : null;
+      case 'register':
+        return typeof r.ship === 'string' && r.ship.length > 0
+          ? { kind: 'register', ship: r.ship }
           : null;
       default:
         return null;

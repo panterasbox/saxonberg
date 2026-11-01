@@ -45,7 +45,7 @@ describe('the Port of Terminus', () => {
   const kestrel = data('/stuff/idea/Watercourse/kestrel') as { places: string[]; nodes: Array<{ name: string; meanDepthM?: number }> };
 
   it('⭐ every quay in the book is a HarborQuay of this harbor, propping bollards, named by the river', () => {
-    expect(harbor.quays.map((q) => q.place)).toEqual([TOWN, '/world/terminus/harbor/fish-quay', '/world/terminus/wharfside/bank']);
+    expect(harbor.quays.map((q) => q.place)).toEqual([TOWN, '/world/terminus/harbor/fish-quay', '/world/terminus/harbor/yard/quay', '/world/terminus/wharfside/bank']);
     for (const q of harbor.quays) {
       const row = rowAt(q.place);
       expect(row.class, q.place).toBe('/system/transport/location/HarborQuay');
@@ -157,5 +157,47 @@ describe('the line’s regulars (harbors A2)', () => {
     expect(office.appointingAuthority.office).toBe('prime-minister');
     expect(data('/stuff/idea/corpo/Corpo/greywater-line').key).toBe('greywater-line');
     expect(data('/stuff/idea/corpo/Brand/greywater-line').owner).toBe('greywater-line');
+  });
+
+  it('⭐ the yard sells the smack BUILT TO ORDER, delivered to its own quay — a quay of the harbor\'s book (B2, P17)', () => {
+    const counter = data('/world/terminus/harbor/yard/thing/counter') as {
+      businessPath: string;
+      stockLines: Array<{ itemTemplatePath: string; minted?: boolean; deliversTo?: string }>;
+      prices: Record<string, number>;
+    };
+    expect(counter.stockLines).toEqual([
+      { itemTemplatePath: '/stuff/idea/Ship/smack', par: 1, minted: true, deliversTo: '/world/terminus/harbor/yard/quay' },
+    ]);
+    // ≈ a season of a hand's wages (P28): 90 days × ~56 a shift.
+    expect(counter.prices['/stuff/idea/Ship/smack']).toBe(5000);
+    expect((data(counter.businessPath) as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/yard/thing/counter');
+    expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/location/HarborQuay');
+    expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
+    // The smack's company is appointed by her register; she flies the city's colors.
+    expect((data('/stuff/idea/Business/ship-company') as { appointingAuthority: { kind: string } }).appointingAuthority.kind).toBe('register');
+    const deck = data('/stuff/location/ship/smack/deck') as { props: Array<string | Record<string, string>> };
+    expect(deck.props).toContainEqual({ template: '/stuff/thing/flag/terminus-city', on: 'flagstaff' });
+    expect(data('/stuff/idea/corpo/Brand/flag-terminus-city').government).toBe('terminus-city');
+  });
+
+  it('⭐ the city keeps a register, and the line and the city own their ships in it (B2, P14)', () => {
+    const city = data('/platform/idea/Government/terminus-city');
+    expect(city.shipRegister).toBe('/platform/idea/ShipRegister/terminus-city');
+    const reg = data('/platform/idea/ShipRegister/terminus-city');
+    expect(reg).toMatchObject({ government: 'terminus-city', registerOwner: '/platform', registerPrefix: '/platform/ships/terminus-city', registerKind: 'ship' });
+    const entry = (slug: string) =>
+      YAML.parse(readFileSync(join(PACKS, 'platform', 'content', 'ships', 'terminus-city', `${slug}.yaml`), 'utf8')) as {
+        key: string;
+        house: string;
+        shares: Array<{ holder: { kind: string; path: string }; shares: number }>;
+      };
+    for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`]] as const) {
+      const e = entry(slug);
+      expect(e.key).toBe(ship);
+      expect(e.shares).toEqual([{ holder: { kind: 'organization', path: '/world/terminus/harbor/line/idea/office', name: 'the Greywater Line' }, shares: 64 }]);
+      // Her company's authority is her register (whoever owns her appoints her master).
+      expect((data(e.house) as { appointingAuthority: unknown }).appointingAuthority).toEqual({ kind: 'register', ship });
+    }
+    expect(entry('ostrander').shares[0]!.holder.path).toBe('/world/terminus/budget');
   });
 });

@@ -84,6 +84,12 @@ export interface GovernmentDescriptor {
   seats: GovernmentSeat[];
   /** The standard measures this polity declares (empty by default). */
   standards: GovernmentStandard[];
+  /**
+   * ⭐ The ship register this polity keeps (harbors P14) — a
+   * `ShipRegister` row path, or `''` when it keeps none. A government
+   * keeps one **if it chooses to**: a ship entered there flies its flag.
+   */
+  shipRegister?: string;
 }
 
 /**
@@ -113,9 +119,12 @@ export default class Government extends NamedMixin(Idea) {
   public seats: GovernmentSeat[] = [];
   /** The standard measures this polity declares. */
   public standards: GovernmentStandard[] = [];
+  /** The ship register this polity keeps (`''` = none) — harbors P14. */
+  public shipRegister: string = "";
 
   static fieldMeta: FieldMeta = {
     standards: { persistent: true },
+    shipRegister: { persistent: true, ref: "identity:relation" },
     key: { persistent: true },
     description: { persistent: true },
     charter: { persistent: true },

@@ -1,0 +1,14 @@
+# The Hesper's entry in the register of the City of Terminus (harbors P14):
+# an authored ship is her own row — her kind and her handle are the same
+# path — and the Greywater Line owns her outright, so the line's office
+# (whose authority is the realm's prime minister) appoints her master.
+name: Hesper
+kind: /world/terminus/hesper/structure
+key: /world/terminus/hesper/structure
+flag: terminus-city
+registeredAtS: 0
+house: /world/terminus/hesper/idea/outfit
+lies: null
+shares:
+  - holder: { kind: organization, path: /world/terminus/harbor/line/idea/office, name: the Greywater Line }
+    shares: 64

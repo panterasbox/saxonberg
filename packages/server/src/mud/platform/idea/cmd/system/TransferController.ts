@@ -12,6 +12,20 @@
  * `transfer` chain-of-title event (from = current owner, actor from
  * context) before updating the current-state row — never a destructive
  * overwrite. Title-only; `sell` (payment-coupled) is deferred.
+ *
+ * ⭐ **A ship's shares** (harbors P15) are the verb's second form, read off
+ * the parcel phrase (`<n> shares of <ship>`):
+ *
+ *   - `transfer <n> shares of <ship> from <holder> for <price>` — run by
+ *     the BUYER (the money primitive pays from the acting principal, so the
+ *     buyer is the one who acts); the holder confirms on their own
+ *     Interactive; on yes the shares move in the register and the buyer's
+ *     payment settles to the holder's account — and if the payment fails,
+ *     the shares move back. Money and shares together, or neither.
+ *   - `transfer <n> shares of <ship> to <person>` — a GIFT by the holder:
+ *     title only, the receiver's consent, the parcel flow's shape.
+ *
+ * Nobody but a holder can be the `from`; the register refuses the rest.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
@@ -27,12 +41,23 @@ import { MixinApi } from "../../../../api/mixin";
 import { StuffApi } from "../../../../api/stuff";
 import { Zone } from "../../../../lib/zone/Zone";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import { ShipRegisterApi } from "../../../../api/ship-register";
+import { BankingApi, Money } from "../../../../api/banking";
+import Ship from "../../Ship";
+import { SHARES_PER_SHIP } from "../../ShipRegister";
 
 const TOPIC = "shell.result";
+
+/** `16 shares of the gull` — the register's form of the verb (harbors P15). */
+const SHARES_PHRASE = /^(\d+)\s+shares?\s+(?:of|in)\s+(.+)$/i;
 
 interface TransferModel extends CommandModel {
   parcel?: string;
   recipient?: MqlOneResult | string;
+  /** Shares bought: whose they are (harbors P15). */
+  holder?: MqlOneResult | string;
+  /** Shares bought: what the buyer pays for them. */
+  price?: string;
   /** Group-recipient widening (sandbox build): a managed-group NAME. */
   group?: string;
 }
@@ -42,6 +67,11 @@ export default class TransferController extends CommandController<TransferModel>
     const giver = context.commandGiver as Stuff;
 
     const parcelPath = (model.parcel ?? "").trim();
+    // ⭐ `<n> shares of <ship>` — the register's form, not a parcel.
+    const shares = SHARES_PHRASE.exec(parcelPath);
+    if (shares) {
+      return this.transferShares(model, context, Number(shares[1]), shares[2]!.trim());
+    }
     if (!parcelPath) {
       return this.fail(
         context,
@@ -151,6 +181,154 @@ export default class TransferController extends CommandController<TransferModel>
       context,
       Mml.compose`\nTransferred the title to ${parcel.getExtent()} to ${receiver.getPresentation()}.\n`,
     );
+  }
+
+  /**
+   * ⭐ Shares of a ship change hands (harbors P15): bought from a holder
+   * (`from … for …`, the buyer acting, the holder consenting) or given by
+   * one (`to …`, the receiver consenting).
+   */
+  private async transferShares(
+    model: TransferModel,
+    context: CommandContext,
+    n: number,
+    shipName: string,
+  ): Promise<void> {
+    const giver = context.commandGiver as Stuff;
+    if (!Number.isInteger(n) || n <= 0 || n > SHARES_PER_SHIP) {
+      return this.fail(context, `A share is a sixty-fourth of her: name a whole number from 1 to ${SHARES_PER_SHIP}.`, "bad-share-count");
+    }
+    const entries = await ShipRegisterApi.entriesNamed(shipName);
+    if (entries.length === 0) {
+      return this.fail(context, `No register has a ship named ${shipName.replace(/^the\s+/i, "")}.`, "no-such-ship");
+    }
+    if (entries.length > 1) {
+      return this.fail(context, `More than one register has a ship of that name; the flags differ, and so do the ships.`, "which-ship");
+    }
+    const entry = entries[0]!;
+    const self = giver.getIdentityPath() ?? "";
+    if (self === "") return this.fail(context, "You have no durable identity to hold a share.", "no-identity");
+    const person = (ref: MqlOneResult | string | undefined): Stuff | null =>
+      ref && typeof ref === "object" ? (ref as MqlOneResult).stuff ?? null : null;
+
+    const holder = person(model.holder);
+    if (holder !== null) {
+      // ── bought: the giver is the buyer; the holder is asked ──
+      const price = Number((model.price ?? "").trim());
+      if (!Number.isInteger(price) || price < 0) {
+        return this.fail(context, "Name your price in whole coin — `for 40`.", "bad-price");
+      }
+      if (holder === giver) return this.fail(context, "They are your own shares.", "self-transfer");
+      const from = holder.getIdentityPath() ?? "";
+      const held = entry.shares.find((h) => h.holder.kind === "player" && h.holder.path === from)?.shares ?? 0;
+      if (held < n) {
+        return this.fail(
+          context,
+          held === 0
+            ? `${holder.getPresentation()} holds none of the ${entry.name}'s shares.`
+            : `${holder.getPresentation()} holds only ${held} of the ${entry.name}'s shares.`,
+          "not-a-holder",
+        );
+      }
+      const sellerAccount = await BankingApi.primaryAccountIdOf(from);
+      if (price > 0 && !sellerAccount) {
+        return this.fail(context, `${holder.getPresentation()} has no account to be paid into.`, "seller-no-account");
+      }
+      const accepted = await this.ask(holder, `Sell ${n} of your shares in the ${entry.name} to ${giver.getPresentation()} for ${price}?`);
+      if (accepted === null) return this.fail(context, `${holder.getPresentation()} must be online to sell shares.`, "holder-offline");
+      if (!accepted) return this.fail(context, `${holder.getPresentation()} will not sell.`, "declined");
+      const seller = { kind: "player" as const, path: from, name: holder.getPresentation() };
+      const buyer = { kind: "player" as const, path: self, name: giver.getPresentation() };
+      const moved = await ShipRegisterApi.transferShares(entry.key, seller, buyer, n);
+      if (!moved.ok) return this.fail(context, moved.reason, "register-refused");
+      if (price > 0) {
+        try {
+          await BankingApi.settle(
+            {
+              amount: Money.of(price, BankingApi.compactCurrency()),
+              reason: `${n} shares of the ${entry.name}`,
+              presented: false,
+              payeeAccountId: sellerAccount!,
+              category: "transfer",
+            },
+            { kind: "credential" },
+          );
+        } catch (err) {
+          // ⭐ Money and shares together or neither: the shares go back.
+          const back = await ShipRegisterApi.transferShares(entry.key, buyer, seller, n);
+          if (!back.ok) console.error(`TransferController: ${n} shares of ${entry.key} moved but were not paid for and could not move back — ${back.reason}`);
+          return this.fail(
+            context,
+            `Your payment did not clear (${err instanceof Error ? err.message : String(err)}); the shares stay ${holder.getPresentation()}'s.`,
+            "unpaid",
+          );
+        }
+      }
+      await this.refreshShip(entry.key);
+      this.send(context, Mml.compose`\nYou buy ${String(n)} of the ${entry.name}'s shares from ${Mml.actor(holder)} for ${Money.of(price, BankingApi.compactCurrency()).render()}. ${this.ownersWords(moved.entry.shares)}\n`);
+      this.tellOther(holder, `${giver.getPresentation()} buys ${n} of your shares in the ${entry.name} for ${price}.`);
+      return;
+    }
+
+    const receiver = person(model.recipient);
+    if (receiver === null || !PlayerApi.isAvatarStuff(receiver)) {
+      return this.fail(context, "Shares to whom — or from whom, and for what?", "no-receiver");
+    }
+    if (receiver === giver) return this.fail(context, "They are already yours.", "self-transfer");
+    // ── given: the giver is the holder; the receiver is asked ──
+    const held = entry.shares.find((h) => h.holder.kind === "player" && h.holder.path === self)?.shares ?? 0;
+    if (held < n) {
+      return this.fail(
+        context,
+        held === 0 ? `You hold none of the ${entry.name}'s shares.` : `You hold only ${held} of the ${entry.name}'s shares.`,
+        "not-a-holder",
+      );
+    }
+    const to = receiver.getIdentityPath() ?? "";
+    const accepted = await this.ask(receiver, `Accept ${n} shares in the ${entry.name} from ${giver.getPresentation()}?`);
+    if (accepted === null) return this.fail(context, `${receiver.getPresentation()} must be online to accept shares.`, "receiver-offline");
+    if (!accepted) return this.fail(context, `${receiver.getPresentation()} declined the shares.`, "declined");
+    const moved = await ShipRegisterApi.transferShares(
+      entry.key,
+      { kind: "player", path: self, name: giver.getPresentation() },
+      { kind: "player", path: to, name: receiver.getPresentation() },
+      n,
+    );
+    if (!moved.ok) return this.fail(context, moved.reason, "register-refused");
+    await this.refreshShip(entry.key);
+    this.send(context, Mml.compose`\nYou give ${String(n)} of the ${entry.name}'s shares to ${Mml.actor(receiver)}. ${this.ownersWords(moved.entry.shares)}\n`);
+    this.tellOther(receiver, `${giver.getPresentation()} gives you ${n} shares in the ${entry.name}.`);
+  }
+
+  /** Ask `who` on their own Interactive; `null` when they have none (offline). */
+  private async ask(who: Stuff, label: string): Promise<boolean | null> {
+    const interactive = MixinApi.isHasInteractive(who) ? [...who.getInteractives()][0] : undefined;
+    if (!interactive) return null;
+    try {
+      return await interactive.promptConfirm(label, "no");
+    } catch {
+      return false;
+    }
+  }
+
+  /** A live ship reads her register again (who answers for her may have changed). */
+  private async refreshShip(handle: string): Promise<void> {
+    const live = StuffApi.findByDurableHandle<Stuff>(handle);
+    if (live instanceof Ship) await live.refreshRegistry();
+  }
+
+  /** *The register now shows: …* */
+  private ownersWords(shares: ReadonlyArray<{ holder: { path: string; name?: string }; shares: number }>): string {
+    const parts = shares.map((h) => `${h.holder.name ?? h.holder.path.split("/").pop() ?? h.holder.path} ${h.shares}`);
+    return `The register now shows: ${parts.join(", ")}.`;
+  }
+
+  private tellOther(who: Stuff, text: string): void {
+    try {
+      MessageApi.scene(who).topic(TOPIC).toSelf(Mml.compose`${text}`).send();
+    } catch {
+      // decoration
+    }
   }
 
   /** Resolve a zone Stuff from its templatePath, or null. */

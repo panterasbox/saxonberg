@@ -12,6 +12,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
+import { ExpanseApi } from '../../../api/expanse';
 import { AddressApi } from '../../../api/address';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
@@ -187,9 +188,13 @@ export class TestHarnessLogic extends ApiLogic {
   /** See {@link TestHarnessApi.stageShip}. */
   @CallSecurity(TestHarnessApiCallers)
   public async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
-    const found = await StuffApi.singleton<Stuff>(handle).catch(() => null);
+    // ⭐ A ship of a kind is named by her durable handle (`<kind>#<serial>`,
+    // harbors B2) and stood up if she sleeps; an authored ship by her row.
+    const found = handle.includes('#')
+      ? await ExpanseApi.standUpCraft(handle).catch(() => null)
+      : await StuffApi.singleton<Stuff>(handle).catch(() => null);
     if (!(found instanceof Ship)) {
-      throw new Error(`testharness ship: '${handle}' is not a ship (name her by her row path)`);
+      throw new Error(`testharness ship: '${handle}' is not a ship (name her by her row path, or a ship of a kind by her handle)`);
     }
     const ship = found;
     if (!spec.at) throw new Error('testharness ship: say where — `at node:<path>` or `at <frame> <cite>`');
@@ -204,7 +209,7 @@ export class TestHarnessLogic extends ApiLogic {
     frame?.adopt(ship as never);
     await PersistableApi.capture(ship as unknown as Stuff);
     console.info(`TestHarness: staged ${ship.getTemplatePath()} on ${framePath}`);
-    return { ship: ship.getTemplatePath() ?? handle, frame: framePath, at: pos };
+    return { ship: ship.getDurableHandle() ?? handle, frame: framePath, at: pos };
   }
 
   /** The frame and position a stage place names — or a throw in words. */

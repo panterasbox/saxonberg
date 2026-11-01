@@ -80,6 +80,9 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
+    // ⭐ Marks derived from a record (a register's page) are read now.
+    await target.refreshMarks(giver);
+
     // ── Perceive ──
     //
     // One call. `canMakeOutMarks` owns the whole intersection now —

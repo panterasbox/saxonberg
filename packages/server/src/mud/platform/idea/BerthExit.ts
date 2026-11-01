@@ -54,11 +54,21 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
   private shipHandle = '';
   /** Her name as she made fast — what the landing reads while she sleeps. */
   private shipName = '';
+  /**
+   * ⭐ Her gangway as she last said it — the bolt and the keyway — so the
+   * way answers `lock`/`unlock` and refuses the right people while she
+   * SLEEPS (B2: a sleeping ship is not standing to be asked). She tells it
+   * whenever the bolt moves; it is never the authority while she stands.
+   */
+  private lockedWhenAsleep = false;
+  private keywayWhenAsleep = '';
 
-  /** Set once, by the ship that installs it. */
+  /** Set by the ship that installs it, and again whenever her gangway changes. */
   public configureBerth(ship: Stuff & Berthed): void {
     this.shipHandle = ship.getDurableHandle() ?? ship.getTemplatePath() ?? '';
     this.shipName = ship.getName();
+    this.lockedWhenAsleep = ship.isGangwayLocked();
+    this.keywayWhenAsleep = ship.getGangwayKeyway();
   }
 
   /** The ship's durable handle. */
@@ -88,12 +98,28 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
   /* ─────────────── the gangway: the ship's lock ─────────────── */
 
   public override isLocked(): boolean {
-    return this.ship()?.isGangwayLocked() ?? false;
+    return this.ship()?.isGangwayLocked() ?? this.lockedWhenAsleep;
   }
 
+  /**
+   * The bolt is hers: thrown on her while she stands; while she sleeps the
+   * way takes it at once and she is stood up to keep it (her record is
+   * what outlives the process).
+   */
   public override setLocked(value: boolean): void {
     if (typeof value !== 'boolean') throw new TypeError(`BerthExit.locked must be a boolean, got ${typeof value}`);
-    this.ship()?.setGangwayLocked(value);
+    const live = this.ship();
+    if (live !== null) {
+      live.setGangwayLocked(value);
+      return;
+    }
+    this.lockedWhenAsleep = value;
+    void this.standing()
+      .then((ship) => {
+        if (ship === null) throw new Error(`'${this.shipHandle}' does not stand`);
+        ship.setGangwayLocked(value);
+      })
+      .catch((err) => console.warn(`BerthExit: her gangway could not be ${value ? 'locked' : 'unlocked'} while she slept:`, err));
   }
 
   public override lock(): void {
@@ -106,7 +132,7 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
 
   /** ⭐ The keyway is hers, not this way's (P9). */
   public override getLock(): Lock {
-    return new Lock(this.ship()?.getGangwayKeyway() ?? '', 'pin-tumbler');
+    return new Lock(this.ship()?.getGangwayKeyway() ?? this.keywayWhenAsleep, 'pin-tumbler');
   }
 
   public override async canTraverse(mover: Stuff & Containable, mode?: string): Promise<TraversalGuard> {

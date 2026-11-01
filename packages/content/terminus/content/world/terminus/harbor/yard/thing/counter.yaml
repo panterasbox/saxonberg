@@ -1,0 +1,26 @@
+# The yard's counter (harbors B2, P17) — where a smack is bought. ⭐ The line
+# is MINTED: a ship is not a thing on a shelf, so nothing restocks and a
+# sale builds one to order, delivered to the yard's quay (`deliversTo`).
+#
+# ⭐ Priced at about a SEASON of a hand's wages (P28, grain): the harbor
+# works pays 4 an hour, ~56 a fourteen-hour shift, and a season is ninety
+# days — ~5,040, set at 5,000. A ship is capital, bought in shares if one
+# purse will not reach (`transfer … shares`).
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: yard counter
+  keywords: [counter, "yard counter", desk]
+  register: definite
+  longDescription: |
+    A plank counter by the shed door with a ledger on it, a tin of nails holding the pages down, and a price chalked on the board above: a smack, built to order, five thousand.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 40
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [shipwright]
+  businessPath: /world/terminus/harbor/yard/idea/business
+  stockLines:
+    - { itemTemplatePath: /stuff/idea/Ship/smack, par: 1, minted: true, deliversTo: /world/terminus/harbor/yard/quay }
+  prices:
+    /stuff/idea/Ship/smack: 5000

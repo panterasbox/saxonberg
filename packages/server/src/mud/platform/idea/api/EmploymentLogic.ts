@@ -21,6 +21,7 @@ import { MqlApi } from '../../../api/mql';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
+import { ShipRegisterApi } from '../../../api/ship-register';
 import { PlayerApi } from '../../../api/player';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
@@ -136,6 +137,7 @@ type EmployedActor = Stuff & Employed;
 async function holdsAuthorityImpl(
   principal: Stuff | null,
   ref: PrincipalRef | null,
+  depth = 0,
 ): Promise<boolean> {
   if (principal === null || ref === null) return false;
   switch (ref.kind) {
@@ -154,7 +156,34 @@ async function holdsAuthorityImpl(
       return PlayerApi.isAvatarStuff(principal)
         ? CompactApi.isCommitteeMember(principal, ref.parcel)
         : false;
+    case 'register':
+      return holdsRegisterAuthority(principal, ref.ship, depth);
   }
+}
+
+/**
+ * ⭐ A ship's company's authority (harbors P12): whoever her register names
+ * her managing owner. A player owner is an identity match; an organization
+ * owner's OWN authority is asked in turn (the line's office appoints the
+ * Hesper's master). Fails closed: a stateless ship (in no register), an
+ * owner organization that does not stand, or a chain of organizations
+ * owning each other's ships deeper than a handful.
+ */
+async function holdsRegisterAuthority(
+  principal: Stuff,
+  ship: string,
+  depth: number,
+): Promise<boolean> {
+  if (depth > 4) return false;
+  const owner = await ShipRegisterApi.managingOwnerOf(ship);
+  if (owner === null) return false;
+  if (owner.kind === 'player') {
+    const path = principal.getIdentityPath();
+    return path !== null && path === owner.path;
+  }
+  const org = await StuffApi.singleton(owner.path).catch(() => null);
+  if (!org || !MixinApi.isOrganization(org)) return false;
+  return holdsAuthorityImpl(principal, org.getAppointingAuthority(), depth + 1);
 }
 
 /**

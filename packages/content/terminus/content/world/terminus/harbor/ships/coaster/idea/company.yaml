@@ -10,9 +10,12 @@
 class: /platform/idea/Business
 data:
   name: "the Corrigan's company"
+  # ⭐ Whoever her register names her managing owner appoints her master
+  # (harbors P12): her entry in the city's register (`read register` at the
+  # harbor office) says who owns her, by shares.
   appointingAuthority:
-    kind: office
-    office: prime-minister
+    kind: register
+    ship: /world/terminus/harbor/ships/coaster/structure
   positions:
     - key: master
       noun: master

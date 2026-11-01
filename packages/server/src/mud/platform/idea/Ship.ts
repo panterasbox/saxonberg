@@ -43,7 +43,7 @@ import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
 import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
 import Bollard from '../thing/Bollard';
-import BerthExit from './BerthExit';
+import BerthExit, { type Berthed } from './BerthExit';
 import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import type { MooringLine } from '../../lib/spatial/MooringLine';
@@ -53,6 +53,14 @@ import type { LineFrame } from '../../lib/expanse/LineFrame';
 import { PersistableApi } from '../../api/persistable';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { ShipRegisterApi } from '../../api/ship-register';
+import type { ShareHolder } from '../../api/ship-register';
+import { BoundaryApi } from '../../api/boundary';
+import { GovernmentApi } from '../../api/government';
+import { Lock } from '../../lib/lock/Lock';
+import type { MarkupAugmenter } from '../../api/mml';
+import Flag from '../thing/Flag';
+import Flagstaff from '../thing/Flagstaff';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -301,10 +309,11 @@ export default class Ship extends PersistableMixin(
    * her dues and bills are? Whoever holds her company's `master` seat, her
    * charterer while the charter runs, and a charterer whose days she still
    * carries unpaid (the charter ended as she berthed; clearing her is still
-   * theirs). (The managing owner joins this with the register, B2.)
+   * theirs), and her managing owner by her register (B2) — a player who
+   * holds the most of her shares.
    */
   public answersFor(who: Stuff): boolean {
-    if (this.holdsMasterSeat(who) || this.isChartererOf(who)) return true;
+    if (this.holdsMasterSeat(who) || this.isChartererOf(who) || this.isManagingOwner(who)) return true;
     const id = idOf(who);
     return id !== '' && this.owed.some((b) => b.by === id);
   }
@@ -323,6 +332,189 @@ export default class Ship extends PersistableMixin(
     const house = this.house;
     if (house === null || !MixinApi.isEmployed(who)) return false;
     return who.getEmployment(house)?.positionKey === MASTER_POSITION;
+  }
+
+  /* ───────────── her register, her owners, her flag (harbors P12, P14, P16) ───────────── */
+
+  /** Runtime: her managing owner as her register last said — read sync by `answersFor`. */
+  private _managingOwner: ShareHolder | null = null;
+
+  /** Is `who` her managing owner by her register (a player holding the most of her shares)? */
+  public isManagingOwner(who: Stuff): boolean {
+    const owner = this._managingOwner;
+    const id = idOf(who);
+    return owner !== null && owner.kind === 'player' && id !== '' && owner.path === id;
+  }
+
+  /** ⭐ Read her register again — after she is entered, after her shares change hands, as she stands up. */
+  public async refreshRegistry(): Promise<void> {
+    const handle = this.getDurableHandle();
+    if (!handle) return;
+    try {
+      this._managingOwner = await ShipRegisterApi.managingOwnerOf(handle);
+    } catch (err) {
+      console.warn(`Ship: ${handle}'s register could not be read:`, err);
+    }
+  }
+
+  /**
+   * ⭐ The flag she flies (P16): the flag on her entrance room's flagstaff,
+   * or `null`. Only a claim — her flag STATE is her register's, and false
+   * colors are found out by reading it.
+   */
+  public flownFlag(): Flag | null {
+    const deck = this.entranceNow();
+    if (deck === null) return null;
+    for (const x of deck.getContents()) {
+      if (x instanceof Flagstaff) {
+        const flag = x.flying();
+        if (flag !== null) return flag;
+      }
+    }
+    return null;
+  }
+
+  /** Her entrance room if it stands now (no stand-up: the look is sync). */
+  private entranceNow(): (Stuff & Container) | null {
+    if (this.isOfKind()) {
+      const room = this._warren?.entryRoom() ?? null;
+      return room !== null && MixinApi.isContainer(room) ? room : null;
+    }
+    const entrance = this.getEntrance();
+    const room = entrance ? StuffApi.findByDurableHandle<Stuff>(entrance) : null;
+    return room !== null && MixinApi.isContainer(room) ? room : null;
+  }
+
+  static markupAugmenters: MarkupAugmenter[] = [flagAugmenter];
+
+  /**
+   * ⭐ Commission her (P17): a ship of a kind just bought, keyed by her
+   * serial, is named, given her own company, entered in `flag`'s register
+   * in `buyer`'s name (all sixty-four shares), keyed (the gangway locked,
+   * the key to the buyer), her buyer made her master (a sole owner holds
+   * all three — owner, managing owner, master), and brought alongside
+   * `landingPath`. Returns what the buyer is told.
+   *
+   * @throws when she is not a ship of a kind, or her register refuses her
+   *   — the caller asked the register about her name before taking money,
+   *   so a refusal here is a race or a caller error, said loudly.
+   */
+  public async commission(buyer: Stuff, name: string, landingPath: string, flag: string): Promise<string> {
+    const handle = this.getDurableHandle();
+    const serial = this.getPersistenceKey();
+    if (!this.isOfKind() || !handle || !serial) {
+      throw new Error(`Ship.commission: only a ship of a kind, keyed by her serial, is commissioned (got ${handle ?? '?'})`);
+    }
+    const owner = buyer.getIdentityPath();
+    if (!owner) throw new Error('Ship.commission: her buyer has no durable identity to hold her shares');
+    const named = name.trim().replace(/^the\s+/i, '');
+    this.setName(`the ${named}`);
+    this.setShortDescription(named);
+    const words = named.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
+    this.setKeywords([...new Set([named.toLowerCase(), ...words, ...this.getKeywords()])]);
+
+    const company = await this.mintCompany(named);
+    const refused = await ShipRegisterApi.enter(flag, {
+      name: named,
+      kind: this.getTemplatePath() ?? '',
+      key: handle,
+      shares: [{ holder: { kind: 'player', path: owner, name: buyer.getPresentation() }, shares: 64 }],
+      house: company?.getIdentityPath() ?? '',
+      lies: null,
+    });
+    if (refused !== null) throw new Error(`Ship.commission: the register refused ${named} — ${refused}`);
+    await this.refreshRegistry();
+
+    // ⭐ Her gangway is a door with a key (P9): locked, the key with her owner.
+    const keyway = BoundaryApi.mintKeyway();
+    this.gangwayKeyway = keyway;
+    this.gangwayLocked = true;
+    try {
+      await new Lock(keyway, 'pin-tumbler').issueKeyTo(buyer);
+    } catch (err) {
+      console.warn(`Ship.commission: ${named}'s key was not issued:`, err);
+    }
+    // A sole owner is her master too: whoever her register names appoints, and she names herself.
+    if (company !== null && MixinApi.isOrganization(company)) {
+      const appointed = await company.appoint(buyer, MASTER_POSITION);
+      if (appointed === null) console.warn(`Ship.commission: ${buyer.getPresentation()} was not made master of ${named}`);
+    }
+
+    // She lies where she was built: on the frame at the landing, made fast to it.
+    const lying = await this.putDownAt(landingPath);
+    await PersistableApi.capture(this as unknown as Stuff);
+    const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
+    return `She is entered in the register of ${polity} as the ${named}, all sixty-four shares in your name, and you are her master. Her gangway is locked; the key is yours. ${lying}`.trim();
+  }
+
+  /** ⭐ Put her on the frame where `landingPath` is sited and bring her alongside it. */
+  private async putDownAt(landingPath: string): Promise<string> {
+    const landing = await StuffApi.singleton<Stuff>(landingPath).catch(() => null);
+    if (landing === null) return 'There is nowhere there for her to lie.';
+    if (MixinApi.isFrameSited(landing)) {
+      const site = landing.getFrameSite();
+      const pos = await landing.sitePosition();
+      if (site !== null && pos !== null) {
+        this.placeAt(pos, WorldClockApi.getNow().rawValue(), site.frame);
+        (await this.liveFrame())?.adopt(this as never);
+      }
+    }
+    return this.comeAlongside(landingPath);
+  }
+
+  /**
+   * ⭐ Her own company (P2): a Business minted from her kind's seed row
+   * (`house:`) at `<seed>/<serial>` — the drilling outfit's precedent — whose
+   * appointing authority is her register (`kind: register`). Stood up again
+   * from the same seed when she loads and it does not stand (a company keeps
+   * no record of its own: its seats are the seed's, its holders' records
+   * their own). `null`, loudly, when she has no seed to mint from.
+   */
+  private async mintCompany(named?: string): Promise<Stuff | null> {
+    const serial = this.getPersistenceKey();
+    const handle = this.getDurableHandle();
+    if (!this.isOfKind() || !serial || !handle) return null;
+    const current = this.house ?? '';
+    const seed = current.endsWith(`/${serial}`) ? current.slice(0, -(serial.length + 1)) : current;
+    if (seed === '') {
+      console.warn(`Ship: ${handle} names no company row to mint hers from`);
+      return null;
+    }
+    const identity = `${seed}/${serial}`;
+    const live = StuffApi.findByTemplatePath<Stuff>(identity);
+    if (live !== undefined) {
+      this.house = identity;
+      return live;
+    }
+    const label = named ?? this.getName().replace(/^the\s+/i, '');
+    try {
+      const company = await StuffApi.clone<Stuff>(seed, undefined, {
+        // identity-keyed-by: referenced — her register entry's `house`, her
+        // own `house` field, and the employment records of whoever holds her
+        // seats name it; its seats are the seed's.
+        asIdentityPath: identity,
+        dataOverlay: {
+          name: `the ${label}'s company`,
+          appointingAuthority: { kind: 'register', ship: handle },
+        },
+      });
+      this.house = identity;
+      return company;
+    } catch (err) {
+      console.warn(`Ship: ${handle}'s company '${identity}' could not be minted from '${seed}':`, err);
+      return null;
+    }
+  }
+
+  /** ⭐ Tell her register where she lies (a ship of a kind) — what re-wires her way after a restart (Risk 6). */
+  private noteLies(landing: string | null): void {
+    if (!this.isOfKind()) return;
+    const handle = this.getDurableHandle();
+    if (!handle) return;
+    const lies = landing === null ? null : { landing, sinceS: WorldClockApi.getNow().rawValue() };
+    void ShipRegisterApi.noteLies(handle, lies).catch((err) =>
+      console.warn(`Ship: ${handle} could not tell her register where she lies:`, err),
+    );
   }
 
   /* ───────────── the charter (harbors P23) ───────────── */
@@ -444,7 +636,13 @@ export default class Ship extends PersistableMixin(
   }
 
   public isGangwayLocked(): boolean { return this.gangwayLocked; }
-  public setGangwayLocked(v: boolean): void { this.gangwayLocked = v === true; }
+  /** The bolt thrown or drawn — kept, and told to her way aboard (it answers for her while she sleeps). */
+  public setGangwayLocked(v: boolean): void {
+    this.gangwayLocked = v === true;
+    const exit = this.berthExit;
+    if (exit !== null && !exit.isDestroyed()) exit.configureBerth(this as unknown as Stuff & Berthed);
+    this.persistMooring();
+  }
   public getGangwayKeyway(): string { return this.gangwayKeyway; }
   public setGangwayKeyway(v: string): void { this.gangwayKeyway = typeof v === 'string' ? v : ''; }
 
@@ -586,6 +784,7 @@ export default class Ship extends PersistableMixin(
     this.moored = true;
     await this.installBerth(landing);
     this.persistMooring();
+    this.noteLies(landingPath);
     // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7),
     // and a charter ends there (P23) — its days billed to her.
     let ended = '';
@@ -613,6 +812,7 @@ export default class Ship extends PersistableMixin(
     this.moored = false;
     this.berth = null;
     this.persistMooring();
+    this.noteLies(null);
     // ⭐ The berth is free in its keeper's book (P7).
     if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
@@ -630,6 +830,7 @@ export default class Ship extends PersistableMixin(
     this.moored = false;
     this.berth = null;
     this.persistMooring();
+    this.noteLies(null);
     // Adrift, she no longer holds the berth she was given (P7).
     void this.keeperAt(was)
       .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
@@ -674,6 +875,7 @@ export default class Ship extends PersistableMixin(
       // Hers already (a re-wire); anybody else's word is not taken from them.
       if (there instanceof BerthExit && there.getShipHandle() === this.getDurableHandle()) {
         this.berthExit = there;
+        there.configureBerth(this as unknown as Stuff & Berthed);
         return;
       }
       word = `${word}-berth`;
@@ -757,6 +959,9 @@ export default class Ship extends PersistableMixin(
     if (!this.isOfKind()) return;
     this._sleeping = false;
     await this.standWarren();
+    // Her company stands with her once she has one (commissioned: her house is hers by serial).
+    if ((this.house ?? '').endsWith(`/${this.getPersistenceKey() ?? ''}`)) await this.mintCompany();
+    await this.refreshRegistry();
     try {
       (await this.liveFrame())?.adopt(this as never);
     } catch (err) {
@@ -1054,4 +1259,19 @@ export default class Ship extends PersistableMixin(
 /** A person's durable key (D17: never the lineage stamp alone). */
 function idOf(who: Stuff): string {
   return who.getIdentityPath() ?? who.getTemplatePath() ?? '';
+}
+
+/**
+ * ⭐ *She flies the colors of the City of Terminus.* — derived from the flag
+ * on her flagstaff (P16), so it is true the moment the flag is struck or
+ * changed. Says nothing of her register: colors are a claim.
+ */
+function flagAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof Ship)) return text;
+  const flag = host.flownFlag();
+  if (flag === null) return text;
+  const polity = flag.colorsOf();
+  const name = polity ? GovernmentApi.getGovernment(polity)?.name ?? polity : flag.getPresentation();
+  const line = polity ? `She flies the colors of ${name}.` : `She flies ${name}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }

@@ -173,6 +173,13 @@ export interface Marked {
    * {@link DEVICE_MODALITIES}).
    */
   deviceFor(viewer: Stuff): string | null;
+  /**
+   * @hook ⭐ Bring the marks up to date before they are read (harbors B2):
+   * a surface whose words are DERIVED from a record elsewhere — a ship
+   * register's page — reads the record here, so `getMarkText()` stays a
+   * sync read. Default: nothing (authored marks are what they are).
+   */
+  refreshMarks(viewer: Stuff): Promise<void>;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
@@ -278,6 +285,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the reading is what failed. Fixed things (a sign in the rain) and
      * marks that are not ink (chalk, a scratched slate) are unaffected.
      */
+    /** @hook See {@link Marked.refreshMarks}. Authored marks need nothing. */
+    public async refreshMarks(_viewer: Stuff): Promise<void> {}
+
     public getMarkText(): string {
       const self = this as unknown as Stuff;
       if (

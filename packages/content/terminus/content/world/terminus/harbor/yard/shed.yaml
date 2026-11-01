@@ -1,0 +1,36 @@
+# The boat shed (harbors B2, P17) — Pell's yard, where the smack is sold.
+# ⭐ Its counter sells a KIND, not a hull on a shelf: a ship cannot sit on a
+# counter, so the line is minted (`minted: true`) — `buy smack`, name her as
+# she is entered in the city's register, and she is brought round to the
+# yard's quay with her gangway locked and the key in your hand.
+class: /platform/location/Locale
+data:
+  shortDescription: boat shed
+  keywords: [shed, "boat shed", yard, "pell's yard"]
+  register: definite
+  _address: terminus/city/harbor/yard/shed
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A long open-fronted shed of tarred boards with a smack's hull on the stocks inside it, half planked, her ribs showing pale where the planking stops. Steam drifts from a box along one wall where a plank is being softened to bend, and the floor is deep in shavings.
+
+    A counter by the door has a price chalked above it. The quay is north.
+  coords: { x: -2, y: -1, z: 0 }
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.03 }
+  props:
+    - /world/terminus/harbor/yard/thing/counter
+  cast:
+    - /world/terminus/harbor/yard/agent/shipwright
+  details:
+    hull:
+      keywords: [hull, stocks, smack, ribs, frames]
+      description: |
+        A smack in frame on the stocks, her keel and stem up and her ribs bent in, the planking carried halfway up her side. When she is finished she will be somebody's, and her name will be in the register at the harbor office.
+    steam-box:
+      keywords: [steam, box, "steam box", plank]
+      description: |
+        A long wooden box fed by a kettle on a brazier, a plank inside it going soft enough to bend round a hull.
+  exits:
+    north:
+      destination: /world/terminus/harbor/yard/quay
+      media: [ground]

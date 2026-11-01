@@ -1,0 +1,25 @@
+# Pell's yard (harbors B2, P17) — the shipwright's business that sells the
+# smack. Its counter's sales settle here; its shipwright keeps the shed on
+# the roster's day.
+class: /platform/idea/Business
+data:
+  name: "Pell's yard"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/harbor/yard/agent/shipwright
+  call: rota
+  positions:
+    - key: shipwright
+      noun: shipwright
+      label: keeping the boat shed
+      wageRate: 5
+  rosterSlots:
+    - positionKey: shipwright
+      assignee: /world/terminus/harbor/yard/agent/shipwright
+      station: /world/terminus/harbor/yard/shed
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/harbor/yard/shed
+    - /world/terminus/harbor/yard/thing/counter

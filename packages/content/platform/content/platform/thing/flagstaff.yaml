@@ -1,0 +1,15 @@
+# A flagstaff (harbors P16) — where a ship's colors are flown. It takes one
+# flag `on` it (`put flag on flagstaff`; `get flag` strikes it); the flag on
+# her entrance room's staff is the flag a ship flies. A claim, not her
+# register: false colors are possible, and found out by reading the book.
+class: /platform/thing/Flagstaff
+data:
+  shortDescription: flagstaff
+  keywords: [flagstaff, staff, ensign staff, pole]
+  register: indefinite
+  longDescription: >-
+    A short staff stepped at the stern rail, a halyard rove through a
+    sheave at its truck and belayed to a cleat at its foot.
+  _materialPath: /stuff/idea/material/wood/pine
+  fixedInPlace: true
+  mass: 6

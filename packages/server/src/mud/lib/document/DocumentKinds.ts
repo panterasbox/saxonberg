@@ -283,6 +283,29 @@ export const DOCUMENT_KINDS = {
    * new one writes a new path; nothing overwrites the old.
    */
   'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **ship's register entry** — her name in this register, her kind, her
+   * durable handle, her flag, her owners by shares (sixty-fourths) and
+   * where she lies (harbors P14).
+   *
+   * ⭐⭐ **You file; you do not hold the pen** — the herd's rule. An entry
+   * lives under the GOVERNMENT's own branch
+   * (`/platform/ships/<government key>/<name slug>`), written only by its
+   * register (`DocumentApi.saveToRegister`), so a shipowner cannot rewrite
+   * whose she is. ⭐ The slug IS the uniqueness: a register refuses a
+   * second ship of a name because the path is taken; the same name under
+   * another flag is another prefix.
+   *
+   * Pack-shipped AND runtime-written: the authored ships' entries ship in
+   * the platform pack (`content/ships/<gov>/<slug>.yaml`); a yard sale
+   * files the rest. `onVanish: 'keep'` for the water right's reason: an
+   * entry is a record of title, and no absent pack file may erase whose a
+   * ship is.
+   *
+   * The KIND is the platform's; what a legitimate entry looks like is
+   * the register's (`ShipRegister`).
+   */
+  ship: { kind: 'ship', naturalKey: null, contentDir: 'ships', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

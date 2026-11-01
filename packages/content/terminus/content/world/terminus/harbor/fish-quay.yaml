@@ -11,7 +11,7 @@ data:
   longDescription: |
     Timber staging on piles, black with tar and silver with old scales, running twenty-five paces along the river above the stone of the Town Quay. Two bollards are bolted through the planking. Gulls stand on the pile heads facing the wind and wait.
 
-    The stone quay is east, down two steps.
+    The stone quay is east, down two steps; the boatyard's quay is west along the staging.
   coords: { x: -1, y: 0, z: 0 }
   harbor: /world/terminus/harbor/idea/harbor
   props:
@@ -31,4 +31,8 @@ data:
   exits:
     east:
       destination: /world/terminus/harbor/town-quay
+      media: [ground]
+    # ⭐ Pell's yard and its fitting-out quay (harbors B2).
+    west:
+      destination: /world/terminus/harbor/yard/quay
       media: [ground]

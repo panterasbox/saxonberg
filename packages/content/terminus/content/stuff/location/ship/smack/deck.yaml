@@ -21,6 +21,11 @@ data:
     - /system/transport/thing/dinghy
     # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
     - { template: /platform/thing/mooring-line, count: 2 }
+    # ⭐ Her colors (P16): the flag on her flagstaff is the flag she flies —
+    # Terminus' ensign, as the yard enters her in the city's register. A
+    # claim only: strike it, or fly another, and her register is unchanged.
+    - { template: /platform/thing/flagstaff, as: flagstaff }
+    - { template: /stuff/thing/flag/terminus-city, on: flagstaff }
   exits:
     # ⭐ Ashore is wherever she is made fast (P4), worked out when taken;
     # the destination is only her home port. The way back aboard is hers.
