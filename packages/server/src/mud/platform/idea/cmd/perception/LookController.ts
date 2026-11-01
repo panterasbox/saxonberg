@@ -44,7 +44,6 @@ import { PerceptionApi } from '../../../../api/perception';
 import { FireApi } from '../../../../api/fire';
 import { SocialApi } from '../../../../api/social';
 import { Mml } from '../../../../api/mml';
-import { GrammarApi } from '../../../../api/grammar';
 import type { LookSegment, SegmentItem, SegmentSource } from '@saxonberg/types';
 import type Exit from '../../../../lib/boundary/Exit';
 import {
@@ -857,8 +856,8 @@ export default class LookController extends CommandController<LookModel> {
 
   /**
    * ⭐ Identical things in a list GROUP (client-surface D2, #71/#76): the
-   * same row, holding the same matter, is one entry — "14 bottles of
-   * gin" — carrying its members so the card expands it in place. A
+   * same row, holding the same matter, is one entry — "a bottle of gin
+   * +5 more" — carrying its members so the card expands it in place. A
    * person never groups; every person is somebody.
    */
   private groupForList(
@@ -886,14 +885,18 @@ export default class LookController extends CommandController<LookModel> {
         items.push(this.itemOf(first, actor));
         continue;
       }
-      const label = first
-        .presentationPhrase()
-        .withCount(members.length, GrammarApi.pluralize(first, first.presentationPhrase().bare()))
-        .render();
-      parts.push(Mml.compose`${label}`);
+      /*
+       * ⭐ "a bar stool +5 more" (owner, 2026-11-01): ONE of them, by its
+       * own name and still a link, then how many more. A counted plural
+       * ("6 bar stools") named none of them and read like a different
+       * kind of thing.
+       */
+      const more = members.length - 1;
+      const one = this.itemOf(first, actor);
+      parts.push(Mml.compose`${ref(first)} +${String(more)} more`);
       items.push({
-        ...this.itemOf(first, actor),
-        label,
+        ...one,
+        label: `${one.label} +${more} more`,
         count: members.length,
         members: members.map((m) => this.itemOf(m, actor)),
       });

@@ -151,7 +151,9 @@ describe('the room', () => {
     expect(seen?.items).toHaveLength(1);
     expect(seen!.items![0]!.count).toBe(3);
     expect(seen!.items![0]!.members).toHaveLength(3);
-    expect(body).toMatch(/3 bottles of gin/);
+    // One of them by name, then how many more (owner, 2026-11-01).
+    expect(body).toMatch(/bottle of gin.* \+2 more/);
+    expect(seen!.items![0]!.label).toMatch(/bottle of gin \+2 more$/);
   });
 
   it('⭐ people and things are two lines: "Here" holds the people, "You also see" the things', async () => {
