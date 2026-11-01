@@ -1,0 +1,12 @@
+# A valley farmstead's yard — the generic room every sold farmstead's yard
+# is a keyed copy of (tracts build D33). No exits: the holding wires them.
+class: /platform/location/PersistentLocation
+data:
+  shortDescription: farmyard
+  keywords: [yard, farmyard, farmstead]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A beaten-earth yard between a stone barn and the open ground, a water butt under the eaves and the ruts of a cart going out to the fields. Nobody has lived a season here yet; the gate is new and the posts are still pale.

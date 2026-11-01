@@ -18,6 +18,9 @@
 # `areaM2: 4000` — ten times the college's home field, and a tenth as
 # good. That is what dryland arable is.
 class: /trade/farming/location/SingletonTract
+# ⭐ Quist's is the valley layout's upper-bench, dressed (tracts build D33):
+# the shape every farmstead the Delight sells is a copy of.
+extends: /world/terminus/hearts-delight/farmstead/tract/upper-bench
 data:
   fieldName: the upper bench
   shortDescription: upper bench

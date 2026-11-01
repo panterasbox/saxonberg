@@ -1634,6 +1634,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

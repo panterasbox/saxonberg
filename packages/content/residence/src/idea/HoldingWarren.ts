@@ -46,6 +46,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { MirrorAxis } from '@saxonberg/server/mud/lib/location/PlatPlan';
 
 type MemberStuff = Stuff & Container;
 
@@ -58,6 +59,18 @@ export interface FloorplanRoom {
   room: string;
   /** The mover lands here (the FrontDoorExit's destination). */
   entry?: boolean;
+  /**
+   * ⭐ For open ground (a farm's tract): its share of the holding's OPEN
+   * ground — what the buildings leave (tracts build D27). A copy of the
+   * layout on a bigger parcel has bigger tracts, in proportion.
+   */
+  share?: number;
+  /**
+   * The ground a room's building stands on that no tract covers, in m²
+   * (the barn, the yard) — subtracted from the parcel's workable area to
+   * give the open ground the shares divide.
+   */
+  footprintM2?: number;
 }
 
 /** One intra-holding edge (authored on the programme row). */
@@ -104,7 +117,25 @@ export default class HoldingWarren extends ProgrammeBase {
     addressBase: { persistent: true, authorable: true },
     shellCondition: { persistent: true },
     shellStamp: { persistent: true },
+    mirrorAxis: { persistent: true },
   };
+
+  /**
+   * ⭐ Which way this copy of the layout is MIRRORED, `''` for none
+   * (tracts build D31) — set by the institution from the side of the road
+   * the lot is on, before the holding wakes. Every floorplan direction is
+   * read through it, so a farm on the far side of the lane faces the lane
+   * too.
+   */
+  public mirrorAxis: '' | MirrorAxis = '';
+
+  public getMirrorAxis(): '' | MirrorAxis {
+    return this.mirrorAxis;
+  }
+
+  public setMirrorAxis(value: '' | MirrorAxis | null): void {
+    this.mirrorAxis = value === 'east-west' || value === 'north-south' ? value : '';
+  }
 
   /** The authored floorplan — the INITIAL mint (D16). */
   public floorplan: Array<Record<string, unknown>> = [];
@@ -150,7 +181,30 @@ export default class HoldingWarren extends ProgrammeBase {
       leaf: typeof r.leaf === 'string' ? r.leaf : undefined,
       room: String(r.room ?? ''),
       entry: r.entry === true,
+      share: typeof r.share === 'number' ? r.share : undefined,
+      footprintM2: typeof r.footprintM2 === 'number' ? r.footprintM2 : undefined,
     }));
+  }
+
+  /** A floorplan leaf's share of the open ground, or `null` (not open ground). */
+  public shareOf(leaf: string): number | null {
+    const spec = this.getFloorplan().find((r) => r.leaf === leaf);
+    return spec && typeof spec.share === 'number' && spec.share > 0 ? spec.share : null;
+  }
+
+  /**
+   * ⭐ **The holding's open ground**, m² (tracts build D27): the parcel's
+   * workable area less every floorplan room's footprint — what the tracts'
+   * shares divide. `0` on an unmeasured parcel (nobody can say what a
+   * third of it is).
+   */
+  public async openGroundM2(): Promise<number> {
+    const extent = this.holdingKey();
+    if (!extent) return 0;
+    const workable = await ParcelApi.workableAreaOf(extent);
+    if (!(workable > 0)) return 0;
+    const built = this.getFloorplan().reduce((n, r) => n + (r.footprintM2 ?? 0), 0);
+    return Math.max(0, workable - built);
   }
 
   public setFloorplan(value: Array<Record<string, unknown>>): void {
@@ -165,12 +219,16 @@ export default class HoldingWarren extends ProgrammeBase {
       if (!Array.isArray(exits)) continue;
       for (const e of exits) {
         const o = e as Record<string, unknown>;
+        // ⭐ Read through the mirror (D31): a reflected copy's every
+        // direction is flipped across the road's axis.
         out.push({
           from: typeof r.leaf === 'string' ? (r.leaf as string) : '',
           to: String(o.to ?? ''),
-          direction: String(o.direction ?? ''),
+          direction: mirrored(String(o.direction ?? ''), this.mirrorAxis),
           opposite:
-            typeof o.opposite === 'string' ? (o.opposite as string) : undefined,
+            typeof o.opposite === 'string'
+              ? mirrored(o.opposite as string, this.mirrorAxis)
+              : undefined,
           locked: o.locked === true,
         });
       }
@@ -232,96 +290,6 @@ export default class HoldingWarren extends ProgrammeBase {
     const extent = this.holdingKey();
     if (!extent) return null;
     return leaf ? `${extent}/${leaf}` : extent;
-  }
-
-  // ── ⭐ runtime-added members: the break-ground seam ──────────────
-
-  /**
-   * ⭐⭐ **Admit a room the holder MADE, not one the programme authored.**
-   *
-   * This class has always said the member contract is *"open to
-   * runtime-added members (the cross-build interface with farming's
-   * break-ground act) — the floorplan is the INITIAL mint, never the
-   * closed set."* This is that promise, made real. It was a docstring
-   * and a `wake()` that iterated only the authored rooms.
-   *
-   * The mechanism is deliberately the smallest one available: it appends
-   * to `floorplan`, which is already **persistent**, and then wakes the
-   * one new entry. So a plotted field survives a reboot by the same
-   * machinery that stands up a hall and a kitchen, with no second
-   * ledger, no new collection and no per-caller bookkeeping.
-   *
-   * ⚠ **Duck-typed on purpose.** The caller is `trade-farming`'s `plot`
-   * and it must not import this pack — a trade does not depend on the
-   * residence system to put a field on ground somebody holds. It finds
-   * this method by the shape the object answers, exactly as
-   * `analyze water` finds a waterworks. Both sides document the shape;
-   * neither imports the other.
-   *
-   * @param spec the new room: its `leaf` under the holding extent, the
-   *   `room` ROW it clones from (D17 — always a real row), the
-   *   `direction` you leave the holding's entry room by to reach it, the
-   *   `opposite` you come back through, and any extra authored fields
-   *   the caller wants carried on the entry (they persist untouched).
-   * @returns the live member, or `null` when the holding cannot key it
-   *   or the leaf is already taken.
-   */
-  public async admitPlot(spec: {
-    leaf: string;
-    room: string;
-    direction: string;
-    opposite?: string;
-    from?: string;
-    extra?: Record<string, unknown>;
-  }): Promise<MemberStuff | null> {
-    if (!spec.leaf || !spec.room) return null;
-    if (!this.holdingKey()) return null;
-    const taken = (this.floorplan ?? []).some((r) => r.leaf === spec.leaf);
-    if (taken) return null;
-
-    // The edge is declared on the NEW room's own spec, pointing back at
-    // the room you came from — which is how `getFloorplanExits` reads
-    // them, and it means `wake()` re-wires the gate on every boot with
-    // no special case.
-    const entry: Record<string, unknown> = {
-      ...(spec.extra ?? {}),
-      leaf: spec.leaf,
-      room: spec.room,
-      exits: [
-        {
-          to: spec.from ?? '',
-          direction: spec.opposite ?? 'out',
-          opposite: spec.direction,
-        },
-      ],
-    };
-    this.floorplan = [...(this.floorplan ?? []), entry];
-
-    // ⚠ Leave no half-entry behind. A floorplan row whose room will not
-    // clone is not a one-off failure — it is retried on EVERY wake,
-    // forever, and the holding never finishes standing up. Rolling back
-    // is what makes a bad row a refusal instead of a permanent limp.
-    let room: MemberStuff | null = null;
-    try {
-      room = await this.wakeRoom({ leaf: spec.leaf, room: spec.room });
-    } catch {
-      room = null;
-    }
-    if (!room) {
-      this.floorplan = (this.floorplan ?? []).filter((r) => r.leaf !== spec.leaf);
-      return null;
-    }
-    for (const edge of this.getFloorplanExits()) {
-      if (edge.from === spec.leaf) await this.wireEdge(edge);
-    }
-    this.layOut();
-    await PersistableApi.capture(this as unknown as Stuff, this.holdingKey() ?? undefined);
-    return room;
-  }
-
-  /** The raw floorplan entry for a leaf — what `admitPlot` stored on it. */
-  public floorplanEntryOf(leaf: string): Record<string, unknown> | null {
-    return (this.floorplan ?? []).find((r) => r.leaf === leaf) ?? null;
   }
 
   // ── wake / membership ───────────────────────────────────────────
@@ -433,6 +401,9 @@ export default class HoldingWarren extends ProgrammeBase {
       const base = this.addressBase || this.derivedAddressBase();
       if (base) room.setAddress(spec.leaf ? `${base}/${spec.leaf}` : base);
     }
+    // ⭐ Stood up and restored: a member may now finish itself against
+    // its holding — a tract sizes itself from the open ground (D28).
+    if (MixinApi.isWarrenMember(room)) await room.onWarrenWake();
     return room;
   }
 
@@ -708,4 +679,24 @@ export default class HoldingWarren extends ProgrammeBase {
   protected async unwireHostFixtures(): Promise<void> {
     /* no-op */
   }
+}
+
+/** The eight planar directions' reflections, per mirror axis (D31). */
+const MIRRORS: Readonly<Record<MirrorAxis, Readonly<Record<string, string>>>> = {
+  'east-west': {
+    east: 'west', west: 'east',
+    northeast: 'northwest', northwest: 'northeast',
+    southeast: 'southwest', southwest: 'southeast',
+  },
+  'north-south': {
+    north: 'south', south: 'north',
+    northeast: 'southeast', southeast: 'northeast',
+    northwest: 'southwest', southwest: 'northwest',
+  },
+};
+
+/** `direction` reflected across `axis`; `up`, `down` and the axis itself stay. */
+function mirrored(direction: string, axis: '' | MirrorAxis): string {
+  if (!axis) return direction;
+  return MIRRORS[axis][direction] ?? direction;
 }

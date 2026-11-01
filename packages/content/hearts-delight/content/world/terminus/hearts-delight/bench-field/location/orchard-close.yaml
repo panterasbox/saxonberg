@@ -21,6 +21,9 @@
 # not own, and you cannot be a second party to a farm that already keeps
 # its own hives.
 class: /trade/farming/location/SingletonTract
+# ⭐ Quist's is the valley layout's orchard-close, dressed (tracts build D33):
+# the shape every farmstead the Delight sells is a copy of.
+extends: /world/terminus/hearts-delight/farmstead/tract/orchard-close
 data:
   fieldName: the close
   # ⚠ No article in the stem — `register: definite` below is what puts

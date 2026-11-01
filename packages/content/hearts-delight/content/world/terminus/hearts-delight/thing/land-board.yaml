@@ -1,0 +1,17 @@
+# The valley land board — where the Delight sells its farmsteads, at the
+# lane they front (tracts build D33). The same deed desk the Registry and
+# the Terminus realty office use: `title list` and `title buy` answer here,
+# and the board names only the valley book.
+#
+# ⚠ Its own desk rather than a line on the realty desk's: two books on one
+# desk both answer `lot-1`, and the first book named wins — the valley's
+# lot-1 would shadow Hinkley's or the other way round.
+class: /system/residence/thing/DeedDesk
+data:
+  books:
+    - /world/terminus/hearts-delight/idea/valley-book
+  shortDescription: land board
+  keywords: [board, land board, deed, desk, plat, book]
+  register: definite
+  longDescription: |
+    A slate-roofed notice board on two posts at the head of the lane, the valley's plat pinned under glass — four farmsteads staked out either side of the track, a price chalked against each — and a locked box below it for the deeds.

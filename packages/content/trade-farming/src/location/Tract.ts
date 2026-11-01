@@ -73,6 +73,7 @@
 
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import HoldingWarren from '@saxonberg/content-residence/src/idea/HoldingWarren';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -1338,23 +1339,60 @@ export default class Tract extends TractBase {
     // broken (cover build): their grass starts as a good even cover.
     await this.ensureFields(model, seed, sample);
     this.installTractReserves(sample);
-    // ⭐ And it is KEPT ground (cover build B37): a ley, a pasture, a cane
-    // piece — cleared long ago, so its clearing starts done. Draining and
-    // liming stay what the ground's character makes them. A plotted tract
-    // has no area yet at registration and is untouched here: new ground
-    // is rough until somebody clears it (D54). Without this, a Waponi
-    // piece grubbed of tired cane took ploughing after ploughing for
-    // "scrub" that was never there (browser walk).
-    if (this.areaM2 > 0 && this.improvementWork['clearing'] === undefined) {
-      const bill = await this.improvementBill();
-      if (bill) {
-        this.improvementWork = {
-          ...this.improvementWork,
-          clearing: bill.clearing + bill.stonePicking,
-        };
-      }
-    }
+    // ⭐ And it is KEPT ground (B37). Without this, a Waponi piece grubbed
+    // of tired cane took ploughing after ploughing for "scrub" that was
+    // never there (browser walk). A holding's copy has no area yet at
+    // registration; its holding sizes it and keeps it at wake.
+    await this.keepClearing();
     void this.restampSeason();
+  }
+
+  /**
+   * ⭐ **Stood up by its holding** (tracts build D28): a farm's tract is
+   * one copy of a layout, sized as its share of the holding's open ground,
+   * on a spot of the soil field of its own (so two copies of one layout
+   * have different ground), its fields stood up and restored, and kept
+   * ground like any authored farmland. A tract no holding owns — the
+   * authored venue farms — is sized by its row and never comes here.
+   */
+  public override async onWarrenWake(): Promise<void> {
+    await super.onWarrenWake();
+    const holding = this.getWarren();
+    if (!(holding instanceof HoldingWarren)) return;
+    const extent = holding.holdingKey() ?? '';
+    const key = this.getPersistenceKey() ?? '';
+    const leaf = extent && key.startsWith(`${extent}/`) ? key.slice(extent.length + 1) : '';
+    const share = holding.shareOf(leaf);
+    if (share === null) return;
+    this.setAreaM2(share * (await holding.openGroundM2()));
+    this.setGroundSpot(spotOf(key));
+    const locality = await AddressApi.resolveLocalityFor(
+      this as unknown as Stuff & Container,
+    );
+    const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
+    const model = await GroundCharacter.forZone(this.getZone());
+    const sample = this.groundSample(model, seed);
+    await this.ensureFields(model, seed, sample);
+    this.installTractReserves(sample);
+    await this.keepClearing();
+    void this.restampSeason();
+  }
+
+  /**
+   * ⭐ Farmland is KEPT ground (cover build B37): a ley, a pasture, a cane
+   * piece — cleared long ago, so its clearing starts done. Draining and
+   * liming stay what the ground's character makes them. Ground with no
+   * area yet is untouched: it is rough until somebody clears it (D54).
+   */
+  private async keepClearing(): Promise<void> {
+    if (!(this.areaM2 > 0) || this.improvementWork['clearing'] !== undefined) return;
+    const bill = await this.improvementBill();
+    if (bill) {
+      this.improvementWork = {
+        ...this.improvementWork,
+        clearing: bill.clearing + bill.stonePicking,
+      };
+    }
   }
 
   /**
@@ -1497,4 +1535,18 @@ function shareWords(fraction: number): string {
     if (Math.abs(fraction - v) < 0.01) return words;
   }
   return `${Math.round(fraction * 100)} per cent`;
+}
+
+/**
+ * A copy's own spot on the soil field, seeded from its key (a holding's
+ * `<extent>/<leaf>`): stable across boots, different between copies — so
+ * the valley's four farmsteads are one layout on four grounds.
+ */
+function spotOf(key: string): Spot {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return [(h % 61) - 30, ((h >>> 8) % 61) - 30];
 }

@@ -3322,6 +3322,45 @@ upper bench` prints the three fields; `lint:family` green including
 
 ### W4 — holdings: the layout substrate, Quist's farm, the valley, the Hinkley garden
 
+> ✅ **Done 2026-11-01.** Notes for review:
+> - Residence: floorplan entries carry `share` / `footprintM2`;
+>   `HoldingWarren.openGroundM2()` (workable − footprints), `shareOf`,
+>   persistent `mirrorAxis` read through `getFloorplanExits` (up/down and
+>   the axis itself never flip); `wakeRoom` calls the kernel's
+>   `onWarrenWake()` on each member; `admitPlot` deleted with its test.
+>   `PlatWarren.standUpHolding` sets the mirror from the plan (and takes a
+>   static slot's own programme); ⚠ **`wireHubExit`'s way out was always
+>   `south`** — it is now the gate's direction reversed, else a mirrored
+>   house found its own hall where the way out should be.
+> - `Tract.onWarrenWake`: area = share × open ground; a ground spot of
+>   its own seeded from its key (two copies, two grounds); fields stood
+>   up; remainder soil; kept clearing (the B37 rule, factored into
+>   `keepClearing`). `areaM2` stays authorable — the venue tracts still
+>   author it (W5 re-plan).
+> - The valley: `farmstead.yaml` (the layout, drawn for a lot EAST of the
+>   lane — nothing west of the yard, which is the way out; a west-side
+>   copy is mirrored and lies exactly as Quist's does), generic rows under
+>   `farmstead/`, `valley-plat.yaml` (branched, `valley-lane` heading
+>   north, 4 frontages), `valley-book.yaml` (16 000 m², 16 000 minor,
+>   agricultural), `location/valley-lane` northwest off the bench lane,
+>   the `valley` claim (64 000 m²). No byre in the layout (nothing in the
+>   farm archetype asks for one).
+> - ⚠ **The valley book is on its own deed desk — a land board at the
+>   valley lane — not on the realty desk (D33 said the realty desk).** Two
+>   books on one desk both answer `lot-1`, and the first book named wins:
+>   the valley's lot-1 would have shadowed Hinkley's or the other way.
+> - ⚠ **The layout has a farmhouse** (the generic bedroom row, south of
+>   the yard, locked). A farm is a home, and `residence-sandbox-door`
+>   requires every floorplan to reach its tenant's wardrobe — the circle
+>   door. The plan's layout had no house at all. Quist's
+>   three tracts `extends:` the generic tract rows.
+> - Hinkley: footprints (220 m²) and a `garden` tract (share 1, west of
+>   the yard, a bed in it) — about 780 m² on a quarter-acre.
+> - `plot` retired: controller, row, view, test, the spade's affordance.
+> - D32's standing venue holdings and `dormancyOf` are not built (see the
+>   W5 re-plan); the held `dormancyOf` hook was dropped, `onWarrenWake`
+>   landed with its consumer.
+
 **Goal.** A farm is a holding; tracts are sized by share of open ground;
 the four farmsteads are for sale; a Hinkley house has a garden tract.
 
@@ -3374,6 +3413,31 @@ field-population drives green (Quist's rows resolve by the same paths).
 **Commit.** `feat(residence,farming): a farm is a holding — shares of open ground, mirrored copies, the valley farmsteads for sale, the Hinkley garden; plot retires`
 
 ### W5 — the other venues: the dairy, the campus, Waponi, Rejection
+
+> ⚠ **Re-planned 2026-10-31 at the end of W3: the venue farms stay
+> authored tracts this MR; D32's standing venue holdings move to a
+> follow-up** (§ Deferred seams).
+>
+> The premise that broke: a standing holding of a static plat exists only
+> once its PLAT is loaded, and the authored ways into these farms (the
+> bench lane into Quist's yard, the campus path, Waponi's track, the
+> kestrel-road yard gate) resolve their destination ROW on use. With the
+> rooms re-homed as keyed holding members, an exit walked before the plat
+> stands mints a stray second instance — unless the plat is BOOTED, which
+> the standing rule forbids (*load on use, never boot*; Hearts Delight's
+> own pack says *"Nothing here is booted"*). Doing it properly needs the
+> reference to point the other way — each venue tract (or its approach
+> room) names its holding, and a venue holding ADOPTS its authored
+> singleton rooms rather than cloning keyed copies — which is a design
+> change to residence the addendum did not discuss.
+>
+> What the player sees is unchanged by the deferral: every venue tract is
+> already a tract with fields marked on it (W1–W3), reads from its gate,
+> takes `mark`/`unmark`, and its herd grazes a field. The uniform holding
+> model ships for every farm that is SOLD (W4: the valley farmsteads, the
+> Hinkley garden). `SingletonTract` therefore stays; the Waponi track
+> keeps its southeast exit. Lens 2 is satisfied either way: a second
+> venue farm is rows only.
 
 **Goal.** Every remaining authored field is a tract of a standing holding;
 `SingletonTract` is deleted.

@@ -2,6 +2,9 @@
 # below the farmstead yard on the good side of the lane. A trough by the
 # gate is kept from the rick in the barn.
 class: /trade/farming/location/SingletonTract
+# ⭐ Quist's is the valley layout's lower-meadow, dressed (tracts build D33):
+# the shape every farmstead the Delight sells is a copy of.
+extends: /world/terminus/hearts-delight/farmstead/tract/lower-meadow
 data:
   fieldName: the lower meadow
   shortDescription: lower meadow
