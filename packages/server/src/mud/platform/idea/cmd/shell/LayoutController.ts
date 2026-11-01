@@ -117,6 +117,8 @@ export default class LayoutController extends CommandController<LayoutModel> {
         host.arrangementCards(mode, name),
         MODE_PRIMARY_FILTER[mode],
       );
+      // An arrangement opens the navigator with no body; fill it now.
+      host.refreshNavigator();
     }
     this.send(
       context,

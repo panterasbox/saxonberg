@@ -17,6 +17,7 @@ data:
     A warm strip of light runs the length of the slab's underside, bright
     enough to read a ledger by and low enough that every bottle on the
     back-bar throws its own long, colored shadow up the wall.
+  mass: 2
   on: true
   emittedIntensity: 450
   emittedColorTemperature: 2400

@@ -123,6 +123,8 @@ export default class CockpitModeController extends CommandController<CockpitMode
         host.arrangementCards(mode, arrangement),
         MODE_PRIMARY_FILTER[mode],
       );
+      // An arrangement opens the navigator with no body; fill it now.
+      host.refreshNavigator();
     }
     this.send(
       context,

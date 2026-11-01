@@ -29,6 +29,8 @@ import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
 import type { RouteOutcome } from '../lib/location/RoutePlan';
 import type { TravelProfileSpec } from '../lib/location/TravelProfile';
 import type { ReachResult } from '../platform/idea/api/NavigationLogic';
+import type { Whereabouts } from '@saxonberg/types';
+import type { Stuff } from '../lib/stuff/Stuff';
 
 /** Canonical direction names (long form). */
 /**
@@ -228,6 +230,16 @@ export class NavigationApi {
   /** {@link structureAt} over what is already standing — never loads. */
   public static structureAtNow(path: string): Structure | null {
     return logic().structureAtNow(path);
+  }
+
+  /**
+   * ⭐ Where `viewer` is, at zone level — the navigator card's body: the
+   * covering Localities, the Structure, the cell, the ways out the viewer
+   * can PERCEIVE, the sky over the place, and whose ground it is. A read
+   * that fails leaves its field absent; `null` when the viewer is nowhere.
+   */
+  public static whereaboutsFor(viewer: Stuff): Promise<Whereabouts | null> {
+    return logic().whereaboutsFor(viewer);
   }
 
   /** Every node in one zone. */

@@ -1032,7 +1032,9 @@ export type CardId =
   /** ⭐ A terminal is a card (client-surface D6): a filtered view of the one frame store. */
   | "terminal"
   /** Your settings, as a card (client-surface D10). */
-  | "settings";
+  | "settings"
+  /** ⭐ Where you are, at zone level — the navigator (map slate, wave-1 stub). */
+  | "map";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -1049,6 +1051,7 @@ export const CARD_IDS: readonly CardId[] = [
   "survey",
   "terminal",
   "settings",
+  "map",
 ];
 
 /**
@@ -1240,7 +1243,47 @@ export type CardPayload =
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
   | { kind: 'survey'; survey: SurveyFrame }
-  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean };
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean }
+  | { kind: 'navigation'; where: Whereabouts };
+
+/**
+ * ⭐ Where you are, at zone level — the navigator card's body (the map
+ * slate's zone navigation card, wave-1 stub). Navigation, not inspection:
+ * nothing here describes what the room LOOKS like.
+ *
+ * Every field is what the server could honestly read; absent means it
+ * could not, and the card says so rather than inventing a value.
+ */
+export interface Whereabouts {
+  /** The room you stand in. */
+  place: { stuffId: string; name: string };
+  /** The Structure the room is part of (a building), innermost. */
+  structure?: { name: string };
+  /** The covering Localities, OUTERMOST first (Terminus › the City › …). */
+  localities: { name: string; address: string }[];
+  /** Your cell in the zone's grid, when the place has coordinates. */
+  coords?: { x: number; y: number; z: number };
+  /** The ways out you can perceive (concealed exits are absent). */
+  exits: WhereaboutsExit[];
+  /** What spans places: the sky over the locality. */
+  conditions: {
+    weather?: string;
+    season?: string;
+    daylight?: 'day' | 'night';
+  };
+  /** The innermost government whose ground this is; null = none claims it. */
+  jurisdiction: string | null;
+}
+
+/** One perceivable way out. */
+export interface WhereaboutsExit {
+  direction: string;
+  /** Where it leads, by name, when the destination has one. */
+  destination?: string;
+  /** ⭐ It leaves this zone's coordinate frame — a list entry, not a compass arm. */
+  crossesZone: boolean;
+  door?: { name: string; open: boolean };
+}
 
 /**
  * ⭐ What a terminal card shows (client-surface D6): a view by name (the
@@ -3295,17 +3338,18 @@ export const SHIPPED_ARRANGEMENT_CARDS: Readonly<
 > = {
   chat: { default: ['who'] },
   /*
-   * ⚠ **Empty, and it was already empty in effect.** `explore` (then
-   * `play`) used to name the room card here, but an arrangement names a
-   * card KIND while an inspection card is ABOUT a subject the
-   * arrangement cannot know — so `applyArrangement` skips subject cards
-   * on both sides. Arrival mints the room card (the `here` role).
+   * ⭐ Explore opens the NAVIGATOR (`map`, the map slate's zone navigation
+   * card) — where you are. ⚠ It does not name the room card: an
+   * arrangement names a card KIND, and an inspection card is ABOUT a
+   * subject the arrangement cannot know, so `applyArrangement` skips
+   * subject cards on both sides. Arrival mints the room card (the `here`
+   * role), an ordinary card in the gallery.
    *
    * ⭐ No row names the primary TERMINAL either: every mode has one, so
    * `openArrangement` mints it whenever none is up (client-surface D6),
    * filtered by {@link MODE_PRIMARY_FILTER}.
    */
-  explore: { default: [] },
+  explore: { default: ['map'] },
   /*
    * ⭐ Watch's stream chat is a TERMINAL CARD (client-surface D6/D9): the
    * relayed chat at unit width beside the game terminal, with its own

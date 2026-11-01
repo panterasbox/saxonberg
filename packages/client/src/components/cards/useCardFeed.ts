@@ -61,6 +61,7 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   survey: "the survey",
   terminal: "a terminal",
   settings: "your settings",
+  map: "where you are",
 };
 
 /**

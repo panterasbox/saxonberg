@@ -319,13 +319,16 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
    * is the navigator — zone-level, about where you are — and does not
    * hold the room.
    */
-  // Until the navigator lands, explore has no panel to show.
-  const panelOpen = panelWanted && config.panel !== null && config.panel !== "navigator";
+  // The navigator is the `map` card; the panel shows it once it is up.
+  const navigator =
+    config.panel === "navigator" ? placeable.find((c) => c.cardId === "map" && !c.closed) : undefined;
+  const panelOpen = panelWanted && config.panel !== null && (config.panel !== "navigator" || navigator !== undefined);
   const exclude = React.useMemo(() => {
     const ids = new Set<string>();
     if (primary) ids.add(primary.instanceId);
+    if (panelOpen && navigator) ids.add(navigator.instanceId);
     return ids;
-  }, [primary]);
+  }, [primary, panelOpen, navigator]);
 
   // ⭐ The primary's view is the console's active view, so the view
   // editor edits what the terminal shows.
@@ -469,6 +472,7 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
               ‹ collapse
             </PanelToggle>
           </PanelHead>
+          {config.panel === "navigator" && navigator ? renderCard(navigator) : null}
           {config.panel === "subjects" ? (
             <SubjectPanel onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
           ) : null}

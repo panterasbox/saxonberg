@@ -115,7 +115,7 @@ describe('the shipped arrangements', () => {
    * the arrangement has no business duplicating it, and the test below
    * pins that the two never fight over it.
    */
-  it('⚠ `govern` and `explore` ship empty, deliberately; `watch` ships its stream-chat terminal', () => {
+  it('⚠ `govern` ships empty and `explore` ships the navigator; `watch` ships its stream-chat terminal', () => {
     // ⭐ client-surface D6/D9: stream chat is a terminal card with its own bar.
     for (const arr of ['viewer', 'streamer'] as const) {
       const [chat] = SHIPPED_ARRANGEMENT_CARDS.watch[arr]!;
@@ -125,7 +125,8 @@ describe('the shipped arrangements', () => {
       });
     }
     expect(SHIPPED_ARRANGEMENT_CARDS.govern.default).toEqual([]);
-    expect(SHIPPED_ARRANGEMENT_CARDS.explore.default).toEqual([]);
+    // The navigator (`map`), never the room: arrival mints that.
+    expect(SHIPPED_ARRANGEMENT_CARDS.explore.default).toEqual(['map']);
   });
 
   /**

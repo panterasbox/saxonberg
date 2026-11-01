@@ -96,7 +96,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
     // …and the rest declare it, which is what the filter honours.
     const declared = CARD_IDS.filter((id) => CARDS[id].noProse === true);
     expect(declared.sort()).toEqual(
-      ['cms', 'git', 'prompt', 'studio', 'terminal'].sort(),
+      ['cms', 'git', 'map', 'prompt', 'studio', 'terminal'].sort(),
     );
 
     // A `noProse` card discards prose even when a caller supplies it,

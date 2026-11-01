@@ -114,7 +114,8 @@ export type CardPayloadKind =
   | 'wikiPage'
   | 'helpTopic'
   | 'survey'
-  | 'terminal';
+  | 'terminal'
+  | 'navigation';
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
@@ -397,6 +398,26 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     pinnedByDefault: true,
     live: false,
     command: 'settings',
+    singleton: true,
+  },
+
+  /**
+   * ⭐ The NAVIGATOR — where you are, at zone level (map slate, the zone
+   * navigation card; wave-1 stub with no map yet). Navigation, not
+   * inspection: the room you look at is an ordinary subject card.
+   *
+   * Born by `map` (the slate's command) with `NavigationApi.whereaboutsFor`
+   * as its payload; the explore arrangement names it, and after a move
+   * the mover re-runs `map` when one is up — navigation updating
+   * navigation, never a look.
+   */
+  map: {
+    label: 'where you are',
+    source: { kind: 'payload', producer: 'navigation' },
+    pinnedByDefault: true,
+    live: false,
+    command: 'map',
+    noProse: true,
     singleton: true,
   },
 

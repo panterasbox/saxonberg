@@ -55,6 +55,7 @@ const Shell = styled.article<{ $faded: boolean; $pinned: boolean; $kind?: string
 
 const Head = styled.header`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: ${tokens.space.sm};
   margin-bottom: ${tokens.space.xs};
@@ -66,8 +67,12 @@ const Title = styled.h3`
   font-size: ${tokens.font.title};
   font-weight: 500;
   color: ${tokens.color.fg};
-  min-width: 0;
-  overflow-wrap: anywhere;
+  /* ⚠ A title keeps a readable width; in a narrow column the CONTROLS
+     wrap below it, rather than the title collapsing to one letter a
+     line (the navigator in the panel did exactly that). */
+  flex: 1 1 7rem;
+  min-width: 7rem;
+  overflow-wrap: break-word;
 `;
 
 /**

@@ -560,7 +560,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         void this.autoLookOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+      if (MixinApi.isSaxonbergClient(self)) {
+        self.refreshDisplays();
+        self.refreshNavigator();
+      }
     }
 
     /**
@@ -1129,7 +1132,10 @@ async function crossExit(
   // longer. One hook, both directions; the viewer owns its own
   // client state, so the viewer is who re-syncs it (display.md).
   const self: Stuff = mover;
-  if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+  if (MixinApi.isSaxonbergClient(self)) {
+    self.refreshDisplays();
+    self.refreshNavigator();
+  }
   return { ok: true };
 }
 

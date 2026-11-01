@@ -20,5 +20,9 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: lounge
+  # ⭐ Where the lounge sits in the address namespace — the Locality
+  # `the-lounge` claims `lounge`. Without it no room here resolved to any
+  # Locality, and the navigator's breadcrumb had nothing above the room.
+  address: lounge
   # 4 m cells — a bar and its side rooms are ordinary interior spans.
   cellSize: 4.0

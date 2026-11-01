@@ -182,6 +182,8 @@ describe('a card is born on the server, or not at all', () => {
         'mud/platform/idea/cmd/author/StudioController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
         'mud/platform/idea/cmd/perception/LookController.ts:open',
+        // ⭐ `map` opens the navigator (client-surface, 2026-11-01).
+        'mud/platform/idea/cmd/perception/MapController.ts:open',
         'mud/platform/idea/cmd/perception/SenseController.ts:open',
         'mud/platform/idea/cmd/shell/CockpitModeController.ts:applyCardArrangement',
         // ⭐ client-surface D6/D10: a terminal is a card, opened by

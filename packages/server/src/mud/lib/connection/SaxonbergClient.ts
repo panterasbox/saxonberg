@@ -134,6 +134,15 @@ export interface SaxonbergClient extends ClientState {
   refreshDisplays(): void;
 
   /**
+   * ⭐ After a move, bring the NAVIGATOR along: every session of this body
+   * that has the `map` card up re-runs `map` (its body is where you are).
+   * A session without one gets nothing — the card is opened by the explore
+   * arrangement or by typing `map`, never by walking. Navigation updating
+   * navigation; it is not a look and opens no inspection card.
+   */
+  refreshNavigator(): void;
+
+  /**
    * The active cockpit mode, legacy-migration aware. Prefer this over
    * `getClientState('cockpit.mode')`: a player who last played before
    * the mode axis existed has no `cockpit.mode` at all, only a legacy
@@ -633,6 +642,20 @@ export function SaxonbergClientMixin<
       environment: [],
     };
 
+    public refreshNavigator(): void {
+      const self = this as unknown as StuffRef & ClientHost;
+      if (!MixinApi.isCommandGiver(self)) return;
+      for (const interactive of self.getInteractives()) {
+        if (!interactive.listCards().some((c) => c.cardId === 'map')) continue;
+        // ⚠ Loud, not swallowed: a silent catch here hid a missing
+        // `opens_card` for a whole drive. A failed refresh leaves the card
+        // as it was, and says why in the log.
+        void self.forceCommand('map', { interactive }).catch((err: unknown) => {
+          console.warn(`refreshNavigator: map failed: ${(err as Error).message}`);
+        });
+      }
+    }
+
     public refreshDisplays(): void {
       const self = this as unknown as StuffRef & ClientHost;
       const current =
@@ -913,6 +936,8 @@ export function SaxonbergClientMixin<
         self.arrangementCards(mode, self.getCockpitArrangement(mode)),
         MODE_PRIMARY_FILTER[mode],
       );
+      // An arrangement opens the navigator with no body; fill it now.
+      self.refreshNavigator();
     }
   };
 }

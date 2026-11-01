@@ -35,6 +35,7 @@
  * affordance cache, which is answered fresh per subject.
  */
 
+import { NavigatorBody } from "./NavigatorBody";
 import { SettingsPanel } from "../settings/SettingsPanel";
 import React from "react";
 import styled from "styled-components";
@@ -1214,6 +1215,14 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       );
     case 'helpTopic':
       return <HelpTopicBody topic={payload.topic} />;
+    case 'navigation':
+      return (
+        <NavigatorBody
+          where={payload.where}
+          onSendCommand={onSendCommand}
+          {...(onCommandPreview ? { onCommandPreview } : {})}
+        />
+      );
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
     case 'terminal':
