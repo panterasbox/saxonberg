@@ -69,21 +69,23 @@ export interface DesugarResult {
  * Used to short-circuit desugar when the player or author has
  * deliberately reached for MQL syntax. The set of signal characters
  * is `:`, `[`, `,`, `'`, `{` — chain operator, bracket open, set-union
- * comma, string-literal quote, and quantity-brace open. Any of these
- * indicates intent that the desugar pass should not second-guess.
+ * comma, string-literal quote (at the start of a token only), and
+ * quantity-brace open. Any of these indicates intent that the desugar
+ * pass should not second-guess. A `\`-escaped character is none of them.
  */
 export function looksFormal(input: string): boolean {
   for (let i = 0; i < input.length; i += 1) {
     const ch = input[i];
-    if (
-      ch === ':' ||
-      ch === '[' ||
-      ch === ',' ||
-      ch === "'" ||
-      ch === '{'
-    ) {
-      return true;
+    // An escaped character is a literal, not a signal.
+    if (ch === '\\') {
+      i += 1;
+      continue;
     }
+    if (ch === ':' || ch === '[' || ch === ',' || ch === '{') return true;
+    // ⚠ Only a quote that STARTS a token opens a literal (the lexer's
+    // rule): `dave's` is a word, and treating it as formal skipped the
+    // article strip, so `the dave's slab` kept its `the`.
+    if (ch === "'" && (i === 0 || /\s/.test(input[i - 1]!))) return true;
   }
   return false;
 }

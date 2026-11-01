@@ -36,7 +36,18 @@ export function useLinkMode(): LinkMode {
 
 /** `look` at one thing: by its word, or by id when it has none (or by choice). */
 export function lookCommand(stuffId: string, keyword: string | undefined, mode: LinkMode): string {
-  return mode === "words" && keyword ? `look ${keyword}` : `look #${stuffId}`;
+  return mode === "words" && keyword ? `look ${escapeTarget(keyword)}` : `look #${stuffId}`;
+}
+
+/**
+ * A name or keyword as a typed target: MQL's operator characters (and
+ * the shell's `|`) backslash-escaped so they read as letters, the way a
+ * player would type them. Spaces stay — words AND-narrow — and so does
+ * an apostrophe inside a word (`dave's`), which MQL reads as a letter;
+ * one at the very start is escaped, since there it would open a literal.
+ */
+export function escapeTarget(text: string): string {
+  return text.replace(/[,:()[\]{}#$*/=!<>.|\\]|^'/g, (c) => `\\${c}`);
 }
 
 /** What one action chip sends: the verb (the game asks), or the exact `#id` command. */

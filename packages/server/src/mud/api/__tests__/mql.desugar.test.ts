@@ -34,6 +34,17 @@ describe('looksFormal', () => {
     expect(looksFormal("'rose'")).toBe(true);
   });
 
+  it("⭐ an apostrophe INSIDE a word is not a signal — `the dave's slab` still loses its article", () => {
+    expect(looksFormal("dave's")).toBe(false);
+    expect(rewrittenOf("the dave's slab")).toBe("dave's slab");
+    expect(looksFormal("rose 'red one'")).toBe(true);
+  });
+
+  it('an escaped reserved character is not a signal', () => {
+    expect(looksFormal('foo\\,bar')).toBe(false);
+    expect(looksFormal('a\\:b')).toBe(false);
+  });
+
   it('returns true for queries containing { (quantity)', () => {
     expect(looksFormal('coin:{5}')).toBe(true);
   });

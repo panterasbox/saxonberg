@@ -68,7 +68,8 @@ character (part of a bareword, path segment, or quoted string).
 | `(` `)` | Grouping |
 | `[` `]` | Filter expression / ordinal index (overloaded) |
 | `{` `}` | Formal quantity body (`:{N}` strict count, `:{*}` strict all) — see [subsystems/stacks.md](./subsystems/stacks.md). |
-| `'…'` | Literal string (preserves whitespace, no MQL parsing inside) |
+| `'…'` | Literal string (preserves whitespace, no MQL parsing inside). Opens only at the START of a token — `dave's` is a word. Inside, `\'` is a quote and `\\` a backslash. |
+| `\` | Escape: the next character is part of the word, whatever it is (`foo\,bar`, `\#5`) |
 | `-` | Set difference (only between expressions; literal inside barewords) |
 | `#` | Identifier prefix: `#5` ordinal, `#abc123` stuff id |
 | `$` | Memory: `$$` last result |
@@ -118,6 +119,27 @@ drop 'second rose'          MQL receives the literal string
 The shell deliberately doesn't treat `'` as a quote — apostrophes
 are everywhere in chat (`don't`, `'allo`, `lyon's mane`). That
 single-quote slot is MQL's.
+
+⭐ **And MQL claims it only at the start of a token.** An apostrophe
+glued to a word is part of the word, so `look dave's`, `look lyon's
+mane` and `get twins' cart` are plain keyword queries. Before
+2026-11-01 any `'` opened a literal, which made every name with an
+apostrophe untypeable as a target — and a click on "Dave's Bar" died
+with *unterminated string literal*.
+
+**Escapes.** A backslash makes the next character literal: outside a
+literal it joins the word (`foo\,bar` is the one keyword `foo,bar`;
+an escaped word is always a keyword, never an int or a transform);
+inside `'…'`, `\'` is a quote and `\\` a backslash. The shell keeps
+any `\X` it does not recognize verbatim, so `\,` `\:` `\[` `\'`
+reach MQL untouched; only a literal backslash needs doubling twice
+(`\\\\` at the command line), because each layer takes one.
+
+```
+look dave's                 keyword query — the apostrophe is a letter
+look 'dave\'s bar'          MQL literal with an escaped quote
+look foo\,bar               one keyword containing a comma
+```
 
 ## Seeds
 

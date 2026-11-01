@@ -24,6 +24,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useStore } from '../store';
+import { escapeTarget } from './cards/clickTarget';
 import { parseMml, type MmlNode } from '../lib/mml/parseMml';
 import { FACE_STACKS } from '../styles/faces';
 import { tokens } from './ui';
@@ -124,7 +125,7 @@ export function commandFor(node: Extract<MmlNode, { kind: 'tag' }>): string | nu
   }
   if (node.tag === 'detail') {
     const key = node.attrs.key ?? labelOf(node);
-    return `look ${key}`;
+    return `look ${escapeTarget(key)}`;
   }
   if (node.tag === 'link') {
     return commandForLink(node.attrs.href ?? '');
@@ -140,9 +141,9 @@ export function commandFor(node: Extract<MmlNode, { kind: 'tag' }>): string | nu
     if (stuffId) {
       const meta = useStore.getState().stuffRegistry.get(stuffId);
       const keyword = meta?.primaryKeyword;
-      if (keyword) return `look ${keyword}`;
+      if (keyword) return `look ${escapeTarget(keyword)}`;
     }
-    return `look ${label}`;
+    return `look ${escapeTarget(label)}`;
   }
   return null;
 }
@@ -162,7 +163,7 @@ function commandForLink(href: string): string | null {
     const id = href.slice('mudref:'.length);
     const meta = useStore.getState().stuffRegistry.get(id);
     const keyword = meta?.primaryKeyword;
-    return keyword ? `look ${keyword}` : `look #${id}`;
+    return keyword ? `look ${escapeTarget(keyword)}` : `look #${id}`;
   }
   // mudq: — inert; any other scheme — inert (renderer paints styled
   // text with no click handler).
