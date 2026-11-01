@@ -307,7 +307,7 @@ built. **This section supersedes them.**
   - **Boat:** holes plus a coat that has opened, and only while she is afloat.
 - **Drive:** no command changes. Step 24's `bail #<rowboat>` still answers *"You throw a bucketful of water out over her side."* followed by *going down* or *She is dry*. `drilling.dirty` never runs `bail`; it buys the bailer, which still affords the kernel view.
 
-**3. `BerthKeeper` → `Berthing`; the hail moves to the hailable side** (this commit; sha in the plan commit that follows).
+**3. `BerthKeeper` → `Berthing`; the hail moves to the hailable side** (`24d31eeb6`).
 - The rename covers `BerthingMixin`, `Mixins.Berthing`, `MixinApi.isBerthing`, the file and `Ship.berthingAt`, across kernel, transport, tests and docs.
 - `hailedAt()` is deleted. ⭐ **A sea node names the station a ship lying at it hails** (`ExpanseNode.hail`, an identity relation), the way a chart lists a port's signal station. `Expanse.hailables` follows that reference forward and loads the station only when one is named. Waponi Woo's node row names the estate store.
 - Rejected: having the quay relay to its harbor's office. The kernel cannot read `Harbor`, and a quay that answers hails would match `hail office` only through its office's words.
